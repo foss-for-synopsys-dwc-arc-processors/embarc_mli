@@ -1,0 +1,557 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Getting Started &mdash; embARC Machine Learning Inference Library 1.00a documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/style_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Kernel Functions" href="../kernel_func_desc/index.html" />
+    <link rel="prev" title="Arithmetic Details" href="arithmetic_details.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> embARC Machine Learning Inference Library
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.00a
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../initial/index.html">Definitions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../initial/index.html#revision-history">Revision history</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Machine Learning Interface Library API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="general_considerations.html">Description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="general_considerations.html#general-considerations">General Considerations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="arithmetic_details.html">Arithmetic Details</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Getting Started</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#package-content">Package content</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#build-process">Build Process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples:</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../kernel_func_desc/index.html">Kernel Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../helper_func_desc/index.html">Helper Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../final/references.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">embARC Machine Learning Inference Library</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Machine Learning Interface Library API</a> &raquo;</li>
+        
+      <li>Getting Started</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/mli_api_desc/getting_started.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="getting-started">
+<h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<blockquote>
+<div>The MLI library provides a basic set of functions running on the ARC
+EM DSP and HS cores and is intended to solve typical machine learning
+tasks in a portable or low-power system. This library is designed
+with ease of use and low overhead in mind.</div></blockquote>
+<div class="section" id="package-content">
+<h2>Package content<a class="headerlink" href="#package-content" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><p>This package consists of the following files and folders:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="34%" />
+<col width="42%" />
+<col width="24%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><strong>Folder</strong></th>
+<th class="head"><strong>Files</strong></th>
+<th class="head"><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">Makefile</span></code></td>
+<td>Root makefile that
+allows to build
+library and the set
+of example
+applications.</td>
+</tr>
+<tr class="row-odd"><td colspan="3"><strong>include/</strong></td>
+</tr>
+<tr class="row-even"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">MLI_API.h</span></code></td>
+<td>High level header
+used by application.
+Includes all required
+headers for working
+with library.</td>
+</tr>
+<tr class="row-odd"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">MLI_types.h</span></code></td>
+<td>Header that
+conglomerates all
+public library
+specific data types.</td>
+</tr>
+<tr class="row-even"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">MLI_config.h</span></code></td>
+<td>Configuration header
+with definitions used
+for library
+implementation
+configurability.</td>
+</tr>
+<tr class="row-odd"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">api</span></code></td>
+<td>The subdirectory that
+contains the set of
+low level public
+headers declaring the
+API.</td>
+</tr>
+<tr class="row-even"><td colspan="3"><strong>include/api</strong></td>
+</tr>
+<tr class="row-odd"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">MLI_helpers_API.h</span></code></td>
+<td>Header with
+declarations for
+helper functions</td>
+</tr>
+<tr class="row-even"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">MLI_kernels_API.h</span></code></td>
+<td>Header with
+declarations for
+kernel functions</td>
+</tr>
+<tr class="row-odd"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">mli_krn_avepool_spec_i.h</span></code></td>
+<td>Header with
+declarations for
+average pooling
+specializations</td>
+</tr>
+<tr class="row-even"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">mli_krn_conv2d_spec_api.h</span></code></td>
+<td>Header with
+declarations for
+convolution 2D
+specializations</td>
+</tr>
+<tr class="row-odd"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">mli_krn_depthwise_conv2d_spec_api.h</span></code></td>
+<td>Header with
+declarations for
+depth-wise
+convolution
+specializations</td>
+</tr>
+<tr class="row-even"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">mli_krn_maxpool_spec_api.h</span></code></td>
+<td>Header with
+declarations for max
+pooling
+specializations</td>
+</tr>
+<tr class="row-odd"><td colspan="3"><strong>build/</strong></td>
+</tr>
+<tr class="row-even"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">rules.mk</span></code></td>
+<td>The common makefile
+that declares the
+generic build targets
+and rules.</td>
+</tr>
+<tr class="row-odd"><td colspan="3"><strong>lib/</strong></td>
+</tr>
+<tr class="row-even"><td>lib/make/</td>
+<td><code class="docutils literal notranslate"><span class="pre">Makefile</span></code></td>
+<td>Library makefile.</td>
+</tr>
+<tr class="row-odd"><td>lib/src/helpers/</td>
+<td>&#160;</td>
+<td>Directory containing
+implementation of
+helper functions:</td>
+</tr>
+<tr class="row-even"><td colspan="3"><strong>lib/kernels/</strong></td>
+</tr>
+<tr class="row-odd"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">common/</span></code></td>
+<td>Directory containing
+implementation of
+common kernels</td>
+</tr>
+<tr class="row-even"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">convolution/</span></code></td>
+<td>Directory containing
+implementation of
+convolution kernels</td>
+</tr>
+<tr class="row-odd"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">elementwise/</span></code></td>
+<td>Directory containing
+implementation of
+elementwise kernels</td>
+</tr>
+<tr class="row-even"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">pooling/</span></code></td>
+<td>Directory containing
+implementation of
+pooling kernels</td>
+</tr>
+<tr class="row-odd"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">data_manip/</span></code></td>
+<td>Directory containing
+implementation of
+data manipulation
+kernels</td>
+</tr>
+<tr class="row-even"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">transform/</span></code></td>
+<td>Directory containing
+implementation of
+transform kernels</td>
+</tr>
+<tr class="row-odd"><td>lib/private/</td>
+<td>&#160;</td>
+<td>Directory containing
+internal library
+specific functions
+and data description</td>
+</tr>
+<tr class="row-even"><td colspan="3"><strong>examples/</strong></td>
+</tr>
+<tr class="row-odd"><td>examples/Example_CIF
+R10_Caffe</td>
+<td>&#160;</td>
+<td>Convolutional Neural
+Network example for
+CIFAR-10 dataset (See
+entry [6] of
+<a class="reference internal" href="../final/references.html#refs"><span class="std std-ref">References</span></a>)
+Based on Caffe
+standard example (see
+entry [7] of
+<a class="reference internal" href="../final/references.html#refs"><span class="std std-ref">References</span></a>)</td>
+</tr>
+<tr class="row-even"><td>examples/Example_HAR_Smartphone</td>
+<td>&#160;</td>
+<td>LSTM Human activity
+recognition example.
+Based on open source
+project by Guillaume
+Chevalier (See entry
+[8] of <a class="reference internal" href="../final/references.html#refs"><span class="std std-ref">References</span></a>)
+for UCI HAR dataset
+(See entry [9] of
+<a class="reference internal" href="../final/references.html#refs"><span class="std std-ref">References</span></a>).</td>
+</tr>
+<tr class="row-odd"><td>examples/auxiliary</td>
+<td>&#160;</td>
+<td>Common helper code
+that is used by the
+examples.</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="build-process">
+<h2>Build Process<a class="headerlink" href="#build-process" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><p>To verify the build process, run the following root makefile command
+to rebuild the project from scratch and place the output ELF and
+static library files into the bin directory.</p>
+<p><code class="docutils literal notranslate"><span class="pre">gmake</span> <span class="pre">all</span></code></p>
+<p>After the build process completes, the output files are found inside
+the bin directory created by the make tool:</p>
+</div></blockquote>
+<div class="code c highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">:</span>\<span class="n">mli</span>\<span class="nb">bin</span><span class="o">&gt;</span><span class="nb">dir</span> <span class="o">/</span><span class="n">b</span> <span class="o">*.</span><span class="n">elf</span> <span class="o">*.</span><span class="n">a</span>
+<span class="n">Example_CIFAR10_Caffe</span><span class="o">.</span><span class="n">elf</span>
+<span class="n">Example_HAR_Smartphone</span><span class="o">.</span><span class="n">elf</span>
+    <span class="n">libmli</span><span class="o">.</span><span class="n">a</span>
+</pre></div>
+</div>
+<blockquote>
+<div><p>Root makefile supports the configuration option <code class="docutils literal notranslate"><span class="pre">TCF_FILE</span></code> to set the
+required TCF file to use for the code compilation. The default TCF
+file hard-coded in the project is em7d_voice_audio provided as a part
+of MetaWare Development Toolkit package. Note that makefile requires the full path to
+the TCF in case of using the custom file.</p>
+<p><code class="docutils literal notranslate"><span class="pre">gmake</span> <span class="pre">all</span> <span class="pre">TCF_FILE=C:\ARC\Projects\my_project\build\tool_config\arc.tcf</span></code></p>
+</div></blockquote>
+<blockquote>
+<div><p>The project build system also allows to build the library and
+examples separately.</p>
+<p>It supports the common set of optional parameters to configure the
+target platform and output/intermediate files placement:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><strong>Parameter</strong></th>
+<th class="head"><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">TCF_FILE</span></code></td>
+<td>The name of the TCF provided
+as a part of the MWDT package
+or a full path of the custom
+TCF</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">LIBRARY_DIR</span></code></td>
+<td>Target directory to create the
+static library</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">BUILD_DIR</span></code></td>
+<td>Target directory to store the
+intermediate files (object
+files, and so on).</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">OUT_DIR</span></code></td>
+<td>Target directory to create the
+example ELF</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">OUT_NAME</span></code></td>
+<td>Custom file name of the
+library or example</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">LCF_FILE</span></code></td>
+<td>Custom linker script file to
+use to build the example. Dy
+default, the linker script is
+obtained from the TCF.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">EXT_CFLAGS</span></code></td>
+<td>Additional C compiler flags to
+use</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p></p>
+<blockquote>
+<div>Use the library makefile located in <code class="docutils literal notranslate"><span class="pre">lib/make</span></code> directory to create the
+custom library build.</div></blockquote>
+</div>
+<div class="section" id="examples">
+<h2>Examples:<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>To build the debug version of the library using the custom TCF and
+storing the output file in the directory outside the project, use the
+following commands:</li>
+</ul>
+<div class="code c highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">lib</span>\<span class="n">make</span>
+<span class="n">gmake</span> <span class="n">TCF_FILE</span><span class="o">=</span><span class="n">C</span><span class="p">:</span>\<span class="n">ARC</span>\<span class="n">Projects</span>\<span class="n">my_project</span>\<span class="n">build</span>\<span class="n">tool_config</span>\<span class="n">arc</span><span class="o">.</span><span class="n">tcf</span>
+<span class="n">EXT_CFLAGS</span><span class="o">=-</span><span class="n">g</span> <span class="n">LIBRARY_DIR</span><span class="o">=</span><span class="n">C</span><span class="p">:</span>\<span class="nb">bin</span>
+</pre></div>
+</div>
+<blockquote>
+<div>Example applications also provide the separate makefiles to make the
+customized applications build.</div></blockquote>
+<ul class="simple">
+<li>To build the debug version of the CIFAR10_Caffe example application
+using the custom TCF, use the following commands:</li>
+</ul>
+<div class="code c highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">examples</span>\<span class="n">Example_CIFAR10_Caffe</span>
+<span class="n">gmake</span> <span class="n">TCF_FILE</span><span class="o">=</span><span class="n">C</span><span class="p">:</span>\<span class="n">ARC</span>\<span class="n">Projects</span>\<span class="n">my_project</span>\<span class="n">build</span>\<span class="n">tool_config</span>\<span class="n">arc</span><span class="o">.</span><span class="n">tcf</span>
+<span class="n">EXT_CFLAGS</span><span class="o">=-</span><span class="n">g</span>
+</pre></div>
+</div>
+<blockquote>
+<div>Example application makefiles support the target run to execute the
+application using the NSIM simulator. Note that this target
+requires the TCF name to be provided to setup the simulation
+environment.</div></blockquote>
+<ul class="simple">
+<li>To build <code class="docutils literal notranslate"><span class="pre">CIFAR10_Caffe</span></code> example application using the custom TCF and
+starting the simulation, use the following commands:</li>
+</ul>
+<div class="code c highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">examples</span>\<span class="n">Example_CIFAR10_Caffe</span>
+<span class="n">gmake</span> <span class="n">TCF_FILE</span><span class="o">=</span><span class="n">C</span><span class="p">:</span>\<span class="n">ARC</span>\<span class="n">Projects</span>\<span class="n">my_project</span>\<span class="n">build</span>\<span class="n">tool_config</span>\<span class="n">arc</span><span class="o">.</span><span class="n">tcf</span>
+<span class="n">gmake</span> <span class="n">run</span> <span class="n">TCF_FILE</span><span class="o">=</span><span class="n">C</span><span class="p">:</span>\<span class="n">ARC</span>\<span class="n">Projects</span>\<span class="n">my_project</span>\<span class="n">build</span>\<span class="n">tool_config</span>\<span class="n">arc</span><span class="o">.</span><span class="n">tcf</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../kernel_func_desc/index.html" class="btn btn-neutral float-right" title="Kernel Functions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="arithmetic_details.html" class="btn btn-neutral float-left" title="Arithmetic Details" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Synopsys, Inc
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
