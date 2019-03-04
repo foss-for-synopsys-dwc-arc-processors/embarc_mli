@@ -27,9 +27,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdio.h>
-#include <assert.h>
-
 #include "mli_config.h"
 #include "mli_debug.h"
 #include "mli_helpers_api.h"
@@ -228,12 +225,12 @@ mli_status mli_krn_conv2d_hwc_fx16_1x1_str1_nopad (
     uint8_t padding_left = cfg->padding_left;
     uint8_t padding_right = cfg->padding_right;
 
-    assert (stride_width == 1);
-    assert (stride_height == 1);
-    assert (padding_top == 0);
-    assert (padding_bot == 0);
-    assert (padding_left == 0);
-    assert (padding_right == 0);
+    MLI_ASSERT(stride_width == 1);
+    MLI_ASSERT(stride_height == 1);
+    MLI_ASSERT(padding_top == 0);
+    MLI_ASSERT(padding_bot == 0);
+    MLI_ASSERT(padding_left == 0);
+    MLI_ASSERT(padding_right == 0);
 
     stride_width = 1;
     stride_height = 1;
@@ -256,8 +253,8 @@ mli_status mli_krn_conv2d_hwc_fx16_1x1_str1_nopad (
 
     int kernel_height = (int) weights->shape[1];
     int kernel_width = (int) weights->shape[2];
-    assert (kernel_width == 1);
-    assert (kernel_height == 1);
+    MLI_ASSERT(kernel_width == 1);
+    MLI_ASSERT(kernel_height == 1);
     kernel_width = 1;
     kernel_height = 1;
 

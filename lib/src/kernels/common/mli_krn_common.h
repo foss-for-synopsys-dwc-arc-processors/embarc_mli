@@ -38,12 +38,6 @@
 #include "mli_math.h"
 #include "mli_types.h"
 
-#if 0
-#define MY_ASSERT(a) assert(a)
-#else
-#define MY_ASSERT(a) (void)(a)
-#endif
-
 static inline accum40_t __attribute__ ((always_inline)) mli_prv_ashift_accu(accum40_t accu, const int shift_right)
 {
     return fx_asr_a40(accu, shift_right);
