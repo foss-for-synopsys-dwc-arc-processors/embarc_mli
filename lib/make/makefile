@@ -54,7 +54,7 @@ EXT_LIBS     =
 LIBRARY_DIR ?= ../../bin
 OUT_NAME    ?= libmli
 BUILD_DIR   ?= ../../obj
-CFLAGS      += -O3 -g -Xdsp_ctrl=postshift,guard,convergent -Hnocopyr -Hfxapi -Hpurge -Hsdata0 -DNDEBUG
+CFLAGS      += -O3 -g -Xdsp_ctrl=postshift,guard,convergent -Hnocopyr -Hfxapi -Hpurge -Hsdata0
 
 all: lib
 

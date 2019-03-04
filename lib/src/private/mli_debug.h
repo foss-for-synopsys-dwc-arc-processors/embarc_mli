@@ -57,18 +57,18 @@ extern "C" {
 // Assert wrapper: works only in DBG_MODE_FULL and DBG_MODE_DEBUG
 #if MLI_DBG_ENABLE_ASSERTS
 #    include <assert.h>
-#    define ASSERT(a) assert(a)
+#    define MLI_ASSERT(a) assert(a)
 #else
-#    define ASSERT(a) (void)(a)
+#    define MLI_ASSERT(a) (void)(a)
 #endif
 
 // Extra Assert wrapper: works only in DBG_MODE_FULL
 // used for checks inside performance critical loops.
 #if MLI_DBG_ENABLE_EXTRA_ASSERTS
 #    include <assert.h>
-#    define EXTRA_ASSERT(a) assert(a)
+#    define MLI_EXTRA_ASSERT(a) assert(a)
 #else
-#    define EXTRA_ASSERT(a) (void)(a)
+#    define MLI_EXTRA_ASSERT(a) (void)(a)
 #endif
 
 #if MLI_DBG_ENABLE_RETURNCODES
@@ -87,7 +87,7 @@ static mli_status __attribute__ ((always_inline)) mli_check_status(mli_status st
     if (stat != MLI_STATUS_OK){
         //printf("%s: %s: %s\n", funcname, msg, err_status_to_string[status]); TODO
         MLI_PRINTF("MLI_CHECK: %s: %s: %s\n", funcname, msg, "");
-        ASSERT(0);
+        MLI_ASSERT(0);
     }
     return stat;
 }
@@ -100,7 +100,7 @@ static bool __attribute__ ((always_inline)) mli_check(
         const char* funcname) {
     if (!cond){
         MLI_PRINTF("MLI_CHECK: %s: condition (%s) failed: %s %s\n", funcname, condstring, msg, msg2);
-        ASSERT(0);
+        MLI_ASSERT(0);
     }
     return !cond;
 }
