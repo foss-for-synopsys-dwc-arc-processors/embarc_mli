@@ -1327,7 +1327,7 @@ static inline void __attribute__ ((always_inline)) conv2d_chw (
                     padding_top, padding_left, padding_right, H_idx, left_comp, right_comp, 0 /*top_comp */ ,
                     clmn_begin, clmn_end, kernel_height);
 
-            MY_ASSERT (H_input_idx + padding_bot < in_height);
+            MLI_EXTRA_ASSERT(H_input_idx + kernel_height - padding_top <= in_height);
             H_idx++;
 
         }
