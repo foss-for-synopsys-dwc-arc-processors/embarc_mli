@@ -29,9 +29,7 @@
 #ifndef _MLI_KRN_ELTWISE_H_
 #define _MLI_KRN_ELTWISE_H_
 
-#include <assert.h>
-#include <stdio.h>
-
+#include "mli_debug.h"
 #include "mli_math.h"
 #include "mli_prv_dsp.h"
 #include "mli_prv_load_store.h"
@@ -71,7 +69,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_sub_fx (
     } else {
         // Elemetnwise between tensors of the same shape
         //==============================================
-        assert(op1_size == op2_size);
+        MLI_ASSERT(op1_size == op2_size);
 
         for (int idx = 0; idx < op1_size; idx++) {
             *out++ = mli_math_sub_fx(*op1++, *op2++);
@@ -100,7 +98,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_add_fx (
     // Elemetnwise between tensors of the same shape
     //==============================================
     else {
-        assert(op1_size == op2_size);
+        MLI_ASSERT(op1_size == op2_size);
 
         for (int idx = 0; idx < op1_size; idx++) {
             *out++ = mli_math_add_fx(*op1++, *op2++);
@@ -129,7 +127,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_max_fx (
     // Elemetnwise between tensors of the same shape
     //==============================================
     else {
-        assert(op1_size == op2_size);
+        MLI_ASSERT(op1_size == op2_size);
 
         for (int idx = 0; idx < op1_size; idx++) {
             *out++ = mli_math_max_fx(*op1++, *op2++);
@@ -158,7 +156,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_min_fx (
     // Elemetnwise between tensors of the same shape
     //==============================================
     else {
-        assert(op1_size == op2_size);
+        MLI_ASSERT(op1_size == op2_size);
 
         for (int idx = 0; idx < op1_size; idx++) {
             *out++ = mli_math_min_fx(*op1++, *op2++);
@@ -194,7 +192,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_add_fx (
     // Elemetnwise between tensors of the same shape
     //==============================================
     else {
-        assert(op1_size == op2_size);
+        MLI_ASSERT(op1_size == op2_size);
 
         for (int idx = 0; idx < op1_size / 2; idx++) {
             mli_prv_store_2_samples(out, mli_prv_load_add_vec2(op1, op2));
@@ -242,7 +240,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_sub_fx (
     } else {
         // Elemetnwise between tensors of the same shape
         //==============================================
-        assert(op1_size == op2_size);
+        MLI_ASSERT(op1_size == op2_size);
 
         for (int idx = 0; idx < op1_size / 2; idx++) {
             mli_prv_store_2_samples(out, mli_prv_load_sub_vec2(op1, op2));
@@ -282,7 +280,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_max_fx (
     } else {
     // Elemetnwise between tensors of the same shape
     //==============================================
-        assert(op1_size == op2_size);
+        MLI_ASSERT(op1_size == op2_size);
 
         for (int idx = 0; idx < op1_size / 2; idx++) {
             mli_prv_store_2_samples(out, mli_prv_load_max_vec2(op1, op2));
@@ -322,7 +320,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_min_fx (
     } else {
     // Elemetnwise between tensors of the same shape
     //==============================================
-        assert(op1_size == op2_size);
+        MLI_ASSERT(op1_size == op2_size);
 
         for (int idx = 0; idx < op1_size / 2; idx++) {
             mli_prv_store_2_samples(out, mli_prv_load_min_vec2(op1, op2));
@@ -378,7 +376,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_mul_fx (
     } else {
     // Elemetnwise between tensors of the same shape
     //==============================================
-        assert(op1_size == op2_size);
+        MLI_ASSERT(op1_size == op2_size);
 
         if (op1_size & 0x3) {
             for (int j = 0; j < (op1_size & 0x3); j++) {
@@ -452,7 +450,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_mul_with_restricts
     } else {
     // Elemetnwise between tensors of the same shape
     //==============================================
-        assert(op1_size == op2_size);
+        MLI_ASSERT(op1_size == op2_size);
 
         if (op1_size & 0x3) {
             for (int j = 0; j < (op1_size & 0x3); j++) {

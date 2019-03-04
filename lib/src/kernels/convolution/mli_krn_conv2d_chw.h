@@ -30,20 +30,11 @@
 #ifndef _MLI_KRN_CONV2D_CHW_H_
 #define _MLI_KRN_CONV2D_CHW_H_
 
-#include <assert.h>
-#include <stdio.h>
-
 #include "mli_config.h"
 #include "mli_debug.h"
 #include "mli_helpers_api.h"
 #include "mli_prv_dsp.h"
 #include "mli_krn_dotprod_chw.h"
-
-#if 0                           /* when debugging, set this to 1 to get more asserts */
-#define MY_ASSERT(a) assert(a)
-#else
-#define MY_ASSERT(a) (void)(a)
-#endif
 
 #ifdef DEBUG_CONV2D
 #define CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, out_val) \
@@ -591,8 +582,8 @@ static inline void __attribute__ ((always_inline)) conv2d_chw_nopad_k1x1_str1 (
     const int clmn_begin = perception_area->clmn_beg;
     const int clmn_end = perception_area->clmn_end;
 
-    assert (kernel_height == 1);
-    assert (kernel_width == 1);
+    MLI_ASSERT(kernel_height == 1);
+    MLI_ASSERT(kernel_width == 1);
 
     for (int out_ch_idx = 0; out_ch_idx < out_ch; out_ch_idx++) {
         for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
@@ -703,8 +694,8 @@ static inline void __attribute__ ((always_inline)) conv2d_chw_nopad_k1x1_str1 (
     const int clmn_begin = perception_area->clmn_beg;
     const int clmn_end = perception_area->clmn_end;
 
-    assert (kernel_height == 1);
-    assert (kernel_width == 1);
+    MLI_ASSERT(kernel_height == 1);
+    MLI_ASSERT(kernel_width == 1);
 
     for (int out_ch_idx = 0; out_ch_idx < out_ch; out_ch_idx++) {
         for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
@@ -838,8 +829,8 @@ static inline void __attribute__ ((always_inline)) conv2d_row_str1 (
 
     MLI_PTR (io_T) __restrict o_ptr = out_ftrs + out_ch_idx * out_width * out_height + H_idx * out_width + clmn_begin;
 
-    assert (stride_width == 1);
-    assert (H_idx < out_height);
+    MLI_ASSERT(stride_width == 1);
+    MLI_ASSERT(H_idx < out_height);
 
     /* for large kernel sizes use a loop for the first part of the run-in
      * for the rest of the run-in and for small kernel sizes, use the
@@ -979,7 +970,7 @@ static inline void __attribute__ ((always_inline)) conv2d_chw_str1 (
     int left_comp = -MIN ((clmn_begin * stride_width) - padding_left, 0);
     int right_comp = -MIN (in_width - ((clmn_end * stride_width) - padding_left + kernel_width - 1), 0);
 
-    assert (stride_width == 1);
+    MLI_ASSERT(stride_width == 1);
 
     for (int out_ch_idx = 0; out_ch_idx < out_ch; out_ch_idx++) {
         int H_idx = 0;
@@ -1155,7 +1146,7 @@ static inline void __attribute__ ((always_inline)) conv2d_row_anystride (
             out_ch_idx * out_width * out_height +
             H_idx * out_width + clmn_begin;
 
-    assert (H_idx < out_height);
+    MLI_ASSERT(H_idx < out_height);
 
     /* for large kernel sizes use a loop for the first part of the run-in
      * for the rest of the run-in and for small kernel sizes, use the
@@ -1163,8 +1154,8 @@ static inline void __attribute__ ((always_inline)) conv2d_row_anystride (
      */
     if (pad_left > 0) {
         for (; W_input_idx < left_comp; W_input_idx += stride_width) {
-            MY_ASSERT ((in_ptr - in_ptr_start) == MAX (W_idx * stride_width - pad_left, 0));
-            MY_ASSERT (weights_offset == -MIN (W_idx * stride_width - pad_left, 0));
+            MLI_EXTRA_ASSERT((in_ptr - in_ptr_start) == MAX (W_idx * stride_width - pad_left, 0));
+            MLI_EXTRA_ASSERT(weights_offset == -MIN (W_idx * stride_width - pad_left, 0));
 
             convolution (in_ptr, w_ptr + weights_offset, o_ptr, biases[out_ch_idx], bias_shift,
                     out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h, 
@@ -1186,8 +1177,8 @@ static inline void __attribute__ ((always_inline)) conv2d_row_anystride (
 
         if ((kernel_w & 1) == 0) {
             for (; W_input_idx < clmn_end * stride_width - right_comp; W_input_idx += stride_width) {
-                MY_ASSERT ((in_ptr - in_ptr_start) == MAX (W_idx * stride_width - pad_left, 0));
-                MY_ASSERT (W_input_idx + kernel_w - pad_left <= in_width);
+                MLI_EXTRA_ASSERT((in_ptr - in_ptr_start) == MAX (W_idx * stride_width - pad_left, 0));
+                MLI_EXTRA_ASSERT(W_input_idx + kernel_w - pad_left <= in_width);
 
                 convolution_even (in_ptr, w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
                         out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h, kernel_w, 
@@ -1200,8 +1191,8 @@ static inline void __attribute__ ((always_inline)) conv2d_row_anystride (
 
         } else if ((kernel_w & 3) == 3) {
             for (; W_input_idx < clmn_end * stride_width - right_comp; W_input_idx += stride_width) {
-                MY_ASSERT ((in_ptr - in_ptr_start) == MAX (W_idx * stride_width - pad_left, 0));
-                MY_ASSERT (W_input_idx + kernel_w - pad_left <= in_width);
+                MLI_EXTRA_ASSERT((in_ptr - in_ptr_start) == MAX (W_idx * stride_width - pad_left, 0));
+                MLI_EXTRA_ASSERT(W_input_idx + kernel_w - pad_left <= in_width);
 
                 convolution_unroll4_plus3 (in_ptr, w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
                         out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h, kernel_w, 
@@ -1214,8 +1205,8 @@ static inline void __attribute__ ((always_inline)) conv2d_row_anystride (
 
         } else if ((kernel_w & 3) == 1) {
             for (; W_input_idx < clmn_end * stride_width - right_comp; W_input_idx += stride_width) {
-                MY_ASSERT ((in_ptr - in_ptr_start) == MAX (W_idx * stride_width - pad_left, 0));
-                MY_ASSERT (W_input_idx + kernel_w - pad_left <= in_width);
+                MLI_EXTRA_ASSERT((in_ptr - in_ptr_start) == MAX (W_idx * stride_width - pad_left, 0));
+                MLI_EXTRA_ASSERT(W_input_idx + kernel_w - pad_left <= in_width);
 
                 convolution_unroll4_plus1 (in_ptr, w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
                         out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h, kernel_w, 
@@ -1228,8 +1219,8 @@ static inline void __attribute__ ((always_inline)) conv2d_row_anystride (
 
         } else {
             for (; W_input_idx < clmn_end * stride_width - right_comp; W_input_idx += stride_width) {
-                MY_ASSERT ((in_ptr - in_ptr_start) == MAX (W_idx * stride_width - pad_left, 0));
-                MY_ASSERT (W_input_idx + kernel_w - pad_left <= in_width);
+                MLI_EXTRA_ASSERT((in_ptr - in_ptr_start) == MAX (W_idx * stride_width - pad_left, 0));
+                MLI_EXTRA_ASSERT(W_input_idx + kernel_w - pad_left <= in_width);
 
                 convolution (in_ptr, w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
                         out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h, kernel_w, 
@@ -1246,7 +1237,7 @@ static inline void __attribute__ ((always_inline)) conv2d_row_anystride (
     if (pad_right > 0) {
         for (; W_input_idx < (clmn_end * stride_width); W_input_idx += stride_width) {
             int clmns = kernel_w - MAX (W_input_idx + kernel_w - pad_left - in_width, 0);
-            MY_ASSERT ((in_ptr - in_ptr_start) == MAX (W_idx * stride_width - pad_left, 0));
+            MLI_EXTRA_ASSERT((in_ptr - in_ptr_start) == MAX (W_idx * stride_width - pad_left, 0));
 
             convolution (in_ptr, w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
                     out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h, clmns, rows, in_ch);

@@ -32,17 +32,10 @@
 
 #include "mli_krn_reduce_sum2d_chw.h"
 
-#include <assert.h>
-
 #include "mli_config.h"
+#include "mli_debug.h"
 #include "mli_helpers_api.h"
 #include "mli_prv_dsp.h"
-
-#if 1
-#define MY_ASSERT(a) assert(a)
-#else
-#define MY_ASSERT(a)
-#endif
 
 /******************************************************************************
  *
@@ -238,8 +231,8 @@ static inline void __attribute__((always_inline)) avepool_chw_k4x4_str1_nopad(
     (void)padding_right;
     (void)padding_bot;
 
-    MY_ASSERT(stride_width == 1);
-    MY_ASSERT(stride_height == 1);
+    MLI_ASSERT(stride_width == 1);
+    MLI_ASSERT(stride_height == 1);
 
     MLI_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
     MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T))in_ftrs + in_width * (row_beg * stride_height - padding_top) +

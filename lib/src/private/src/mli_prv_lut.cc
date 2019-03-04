@@ -29,9 +29,8 @@
 
 #include "mli_prv_lut.h"
 
-#include <assert.h>
-
 #include "mli_config.h"
+#include "mli_debug.h"
 #include "mli_math.h"
 #include "mli_prv_dsp.h"
 #include "mli_prv_load_store.h"
@@ -147,10 +146,10 @@ void mli_prv_activation_lut_fx16(
         const mli_lut *lut,
         int in_frac_bits,
         int length) {
-    assert(in_frac_bits >= -1);  // -1 may be required by softmax
-    assert(length >= 0);
-    assert(lut->frac_bits >= 0);
-    assert(lut->length >= 0);
+    MLI_ASSERT(in_frac_bits >= -1);  // -1 may be required by softmax
+    MLI_ASSERT(length >= 0);
+    MLI_ASSERT(lut->frac_bits >= 0);
+    MLI_ASSERT(lut->length >= 0);
 
     int shift_in = in_frac_bits - lut->frac_bits;
     int16_t *lut_data = (int16_t *)lut->data;
@@ -232,10 +231,10 @@ void mli_prv_activation_lut_fx8(
         const mli_lut *lut,
         int in_frac_bits,
         int length) {
-    assert(in_frac_bits >= -1);  // -1 may be required by softmax
-    assert(length >= 0);
-    assert(lut->frac_bits >= 0);
-    assert(lut->length >= 0);
+    MLI_ASSERT(in_frac_bits >= -1);  // -1 may be required by softmax
+    MLI_ASSERT(length >= 0);
+    MLI_ASSERT(lut->frac_bits >= 0);
+    MLI_ASSERT(lut->length >= 0);
 
     int shift_in = in_frac_bits - lut->frac_bits;
     int16_t *lut_data = (int16_t *)lut->data;

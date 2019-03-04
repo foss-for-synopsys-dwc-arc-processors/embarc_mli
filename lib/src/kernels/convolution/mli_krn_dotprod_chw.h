@@ -30,9 +30,8 @@
 #ifndef _MLI_KRN_DOTPROD_CHW_H_
 #define _MLI_KRN_DOTPROD_CHW_H_
 
-#include <assert.h>
-
 #include "mli_config.h"
+#include "mli_debug.h"
 #include "mli_types.h"
 #include "mli_prv_dsp.h"
 
@@ -73,7 +72,7 @@ static inline void __attribute__ ((always_inline)) dotprod2D_unroll2 (
         int in_row_step, 
         int kern_row_step, 
         acc_T * accu) {
-    assert (width % 2 == 0);
+    MLI_ASSERT(width % 2 == 0);
 
     in_row_step -= width;
     kern_row_step -= width;
@@ -124,7 +123,7 @@ static inline void __attribute__ ((always_inline)) dotprod2D_unroll4 (
         int in_row_step, 
         int kern_row_step, 
         acc_T * accu) {
-    assert (width % 4 == 0);
+    MLI_ASSERT(width % 4 == 0);
 
     in_row_step -= width;
     kern_row_step -= width;
@@ -154,7 +153,7 @@ static inline void __attribute__ ((always_inline)) dotprod2D_unroll4_plus1 (
         int in_row_step, 
         int kern_row_step, 
         acc_T * accu) {
-    assert (width % 4 == 1);
+    MLI_ASSERT(width % 4 == 1);
 
     in_row_step -= width;
     kern_row_step -= width;
@@ -187,7 +186,7 @@ static inline void __attribute__ ((always_inline)) dotprod2D_unroll4_plus2 (
         int in_row_step, 
         int kern_row_step, 
         acc_T * accu) {
-    assert (width % 4 == 2);
+    MLI_ASSERT(width % 4 == 2);
 
     in_row_step -= width;
     kern_row_step -= width;
@@ -221,7 +220,7 @@ static inline void __attribute__ ((always_inline)) dotprod2D_unroll4_plus3 (
         int in_row_step, 
         int kern_row_step, 
         acc_T * accu) {
-    assert (width % 4 == 3);
+    MLI_ASSERT(width % 4 == 3);
 
     in_row_step -= width;
     kern_row_step -= width;
@@ -272,7 +271,7 @@ dotprod1D_v_unroll2 (
         const int height, 
         int in_step, 
         acc_T * accu) {
-    assert ((height & 1) == 0);
+    MLI_ASSERT((height & 1) == 0);
 //#pragma clang loop unroll(full)
     for (int32_t row = 0; row < height / 2; row++) {
 #if defined __Xxy
