@@ -27,9 +27,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <assert.h>
-
 #include "mli_config.h"
+#include "mli_debug.h"
 #include "mli_private_types.h"
 #include "mli_math_macros.h"
 
@@ -50,7 +49,7 @@ mli_prv_get_relu_min_max (const mli_relu_cfg * cfg, const mli_tensor * out) {
         max_val = INT16_MAX;
         break;
     default:
-        assert (0);             /* unsupported element type */
+        MLI_ASSERT(0);             /* unsupported element type */
     }
 
     switch (cfg->type) {

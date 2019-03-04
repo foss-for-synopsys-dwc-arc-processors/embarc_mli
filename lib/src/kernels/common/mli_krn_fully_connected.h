@@ -30,18 +30,11 @@
 #ifndef _MLI_KRN_FULLY_CONNECTED_H_
 #define _MLI_KRN_FULLY_CONNECTED_H_
 
-#include <assert.h>
-
 #include "mli_config.h"
+#include "mli_debug.h"
 #include "mli_helpers_api.h"
 #include "mli_prv_dsp.h"
 #include "mli_prv_tensor.h"
-
-#if 0
-#define MY_ASSERT(a) assert(a)
-#else
-#define MY_ASSERT(a) (void)(a)
-#endif
 
 /******************************************************************************
  *
@@ -82,7 +75,7 @@ static void __attribute__((always_inline)) full_connection(
                     w_ptr += 4;
                 }
                 in_ptr -= inp_size;
-                MY_ASSERT(start_in_ptr == in_ptr);
+                MLI_EXTRA_ASSERT(start_in_ptr == in_ptr);
 
                 mli_prv_clip_and_store_output(o_ptr++, &ip_out, out_shift);
             }
@@ -103,7 +96,7 @@ static void __attribute__((always_inline)) full_connection(
                     w_ptr += 4;
                 }
                 in_ptr -= inp_size;
-                MY_ASSERT(start_in_ptr == in_ptr);
+                MLI_EXTRA_ASSERT(start_in_ptr == in_ptr);
 
                 mli_prv_clip_and_store_output(o_ptr++, &ip_out, out_shift);
             }
