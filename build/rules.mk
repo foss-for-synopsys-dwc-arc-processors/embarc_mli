@@ -1,3 +1,30 @@
+# Copyright (c) 2019, Synopsys, Inc. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification,
+# are permitted provided that the following conditions are met:
+#
+# 1) Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+# 
+# 2)  Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# 
+# 3) Neither the name of the <ORGANIZATION> nor the names of its contributors
+# may be used to endorse or promote products derived from this software
+# without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ''AS IS'' AND ANY
+# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 #=============================================================
 # OS-specific definitions
 #=============================================================
@@ -85,11 +112,13 @@ OBJS		= $(C_OBJS) $(CPP_OBJS) $(CC_OBJS) $(C_DEPNDS) $(CPP_DEPENDS) $(CC_DEPENDS
 #
 ifeq ($(TOOLCHAIN),gnu)
 # place to add GNU-specific common settings
-CFLAGS +=-fno-short-enums
+CFLAGS     +=-fno-short-enums
+DEPFLAGS    =
 else
 ifeq ($(TOOLCHAIN),mwdt)
 # place to add MWDT-specific common settings
-CFLAGS +=-Hon=Long_enums
+CFLAGS     +=-Hon=Long_enums
+DEPFLAGS    =-Hdepend=$(BUILD_DIR)/ -MD
 else
 $(error ERROR - Unsupported toolchain. Supported toolchains are 'gnu' and 'mwdt', default one is 'gnu')
 endif
@@ -132,7 +161,7 @@ else
  CFLAGS += -DRF_BUILD=0x006e
  CFLAGS += -DRF_BUILD=0x006e
  CFLAGS += -DSTATUS32=0x000a
- LDFLAGS += -marcv2elf
+ LDFLAGS += -marcv2elfx
  LDFLAGS += -lc
  LDFLAGS += -lm 
  LDFLAGS += -lnsim
@@ -160,21 +189,21 @@ ifeq ($(BUILD_DIR),)
 	$(error cannot build C object file $@ -- BUILD_DIR variable must be set)
 endif
 	@echo [CC] $<
-	$(CC) $(CFLAGS) $(INCS) -c -Hdepend=$(BUILD_DIR)/ -MD $< -o $@
+	$(CC) $(CFLAGS) $(INCS) -c $(DEPFLAGS) $< -o $@
 
 $(CPP_OBJS): $(BUILD_DIR)/%.o: %.cpp | $(BUILD_DIR)
 ifeq ($(BUILD_DIR),)
 	$(error cannot build C++ object file $@ -- BUILD_DIR variable must be set)
 endif
 	@echo [CPP] $<
-	$(CC) $(CFLAGS) $(INCS) -c -Hdepend=$(BUILD_DIR)/ -MD $< -o $@
+	$(CC) $(CFLAGS) $(INCS) -c $(DEPFLAGS) $< -o $@
 
 $(CC_OBJS): $(BUILD_DIR)/%.o: %.cc | $(BUILD_DIR)
 ifeq ($(BUILD_DIR),)
 	$(error cannot build C++ object file $@ -- BUILD_DIR variable must be set)
 endif
 	@echo [C++] $<
-	$(CC) $(CFLAGS) $(INCS) -c -Hdepend=$(BUILD_DIR)/ -MD $< -o $@
+	$(CC) $(CFLAGS) $(INCS) -c $(DEPFLAGS) $< -o $@
 
 $(LIBRARY_DIR):
 	$(MKDIR) $(call fix_platform_path, $(LIBRARY_DIR))
@@ -244,7 +273,7 @@ ELF_RUN=mdb $(MDB_ARGS) -nsim -tcf=$(TCF_FILE) -profile $(DBG_OPTS)
 endif
 
 ifeq ($(RUN_METHOD),NSIM_DEBUG)
-ELF_RUN=mdb -nsim -tcf=$(TCF_FILE)
+ELF_RUN=mdb -nsim -tcf=$(TCF_FILE) $(DBG_OPTS)
 endif
 
 ifeq ($(RUN_METHOD),XCAM_RUN)

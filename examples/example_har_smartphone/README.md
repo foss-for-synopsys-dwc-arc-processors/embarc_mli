@@ -10,9 +10,18 @@ Example shows how to work with recurrent primitives (LSTM and basic RNN) impleme
 
 Quick Start
 --------------
-Here we will consider building for hw/em9d.tcf template.
 
-0. embARC MLI Library must be built for required hardware configuration first. See [embARC MLI Library building and quick start](public/README.md).
+Example supports building using MetaWare Development tools and ARC GNU toolchain
+
+I) Build with MetaWare Development tools
+
+    Build requirements:
+        - MetaWare Development tools version 2018.12 or higher
+        - gmake
+
+Here we will consider building for hw/em9d.tcf template. hw/em9d.tcf template is a default template for this example. Other templated can be also used. 
+
+0. embARC MLI Library must be built for required hardware configuration first. See [embARC MLI Library building and quick start](README.md).
 
 1. Open command line and change working directory to './examples/example_har_smartphone'
 
@@ -24,11 +33,43 @@ Here we will consider building for hw/em9d.tcf template.
 
        gmake TCF_FILE=../../hw/em9d.tcf 
 
-4. Run example 
+4. Run example with MetaWare Debuger on nSim simulator.
 
        gmake run TCF_FILE=../../hw/em9d.tcf
 
 5. Result Quality shall be "S/N=1823.9     (65.2 db)"
+
+II) Build with ARC GNU toolchain
+
+    Build requirements:
+        - ARC GNU toolchain version 2018.09 or higher
+        - gmake
+
+Here we will consider building for IoT Devkit. 
+    
+0. embARC MLI Library prebuilt for IoT Devkit hardware configuration must be located in the prebuilt folder.
+
+1. Open command line and change working directory to './examples/example_har_smartphone'
+
+2. Clean previous build artifacts (optional)
+
+        gmake TOOLCHAIN=gnu clean
+
+3. Build example
+        
+        gmake TOOLCHAIN=gnu
+
+4. Run example with MetaWare Debuger on nSim simulator.
+
+    Run requirements:
+    - MetaWare Development tools version 2018.12 or higher
+    - tcf file with hardware configuration of IoT Devkit for setup nSim. See [tcf file](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_osp/blob/master/board/iotdk/configs/10/tcf/arcem9d.tcf)
+        
+        gmake run TOOLCHAIN=gnu TCF_FILE=arcem9d.tcf
+
+5. Result Quality shall be "S/N=1823.9     (65.2 db)"
+    
+    See documentation on [IoT Devkit](https://embarc.org/embarc_osp/doc/build/html/board/iotdk.html) on how to run executable built with [ARC GNU](https://embarc.org/toolchain/index.html) and [ARC open source development tools](https://embarc.org/embarc_osp/doc/build/html/index.html) on IoT Devkit.
 
 
 Example Structure
