@@ -11,15 +11,15 @@ Example shows how to work with recurrent primitives (LSTM and basic RNN) impleme
 Quick Start
 --------------
 
-Example supports building using MetaWare Development tools and ARC GNU toolchain
+Example supports building using MetaWare Development tools and ARC GNU toolchain and running with MetaWare Debuger on nSim simulator.
 
-I) Build with MetaWare Development tools
+### Build with MetaWare Development tools
 
     Build requirements:
         - MetaWare Development tools version 2018.12 or higher
         - gmake
 
-Here we will consider building for hw/em9d.tcf template. hw/em9d.tcf template is a default template for this example. Other templated can be also used. 
+Here we will consider building for [/hw/em9d.tcf](/hw/em9d.tcf) template. This template is a default template for this example. Other templated can be also used. 
 
 0. embARC MLI Library must be built for required hardware configuration first. See [embARC MLI Library building and quick start](/README.md).
 
@@ -33,21 +33,22 @@ Here we will consider building for hw/em9d.tcf template. hw/em9d.tcf template is
 
        gmake TCF_FILE=../../hw/em9d.tcf 
 
-4. Run example with MetaWare Debuger on nSim simulator.
+### Run example with MetaWare Debuger on nSim simulator.
 
        gmake run TCF_FILE=../../hw/em9d.tcf
 
-5. Result Quality shall be "S/N=1823.9     (65.2 db)"
+	Result Quality shall be "S/N=1823.9     (65.2 db)"
 
-II) Build with ARC GNU toolchain
+### Build with ARC GNU toolchain
+
+Here we will consider building with ARC GNU toolchain. As a platform for the assembly, we use the [IoT Devkit](https://embarc.org/embarc_osp/doc/build/html/board/iotdk.html) from [the embARC Open Software Platform (OSP)](https://embarc.org/embarc_osp/doc/build/html/introduction/introduction.html#)
 
     Build requirements:
         - ARC GNU toolchain version 2018.09 or higher
+        - embARC MLI Library prebuilt with MetaWare Development tools for IoT Devkit hardware configuration
         - gmake
 
-Here we will consider building for IoT Devkit. 
-    
-0. embARC MLI Library prebuilt for IoT Devkit hardware configuration must be located in the prebuilt folder.
+0. Prebuilt embARC MLI Library  must be copyied into the /prebuilt folder.
 
 1. Open command line and change working directory to './examples/example_har_smartphone'
 
@@ -56,20 +57,28 @@ Here we will consider building for IoT Devkit.
         gmake TOOLCHAIN=gnu clean
 
 3. Build example
-        
+
         gmake TOOLCHAIN=gnu
 
-4. Run example with MetaWare Debuger on nSim simulator.
+   Notes: IoT Devkit hardware configuration is specifed in Makefile. 
+
+### Run example with MetaWare Debuger on nSim simulator.
 
     Run requirements:
     - MetaWare Development tools version 2018.12 or higher
-    - tcf file with hardware configuration of IoT Devkit for setup nSim. See [tcf file](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_osp/blob/master/board/iotdk/configs/10/tcf/arcem9d.tcf)
-        
-        gmake run TOOLCHAIN=gnu TCF_FILE=arcem9d.tcf LCF=arcem9d.lcf
+    - arcem9d.tcf file with hardware configuration of IoT Devkit for setup nSim.
 
-5. Result Quality shall be "S/N=1823.9     (65.2 db)"
-    
-    See documentation on [IoT Devkit](https://embarc.org/embarc_osp/doc/build/html/board/iotdk.html) on how to run executable built with [ARC GNU](https://embarc.org/toolchain/index.html) and [ARC open source development tools](https://embarc.org/embarc_osp/doc/build/html/index.html) on IoT Devkit.
+0. Copy the [arcem9d.tcf](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_osp/blob/master/board/iotdk/configs/10/tcf/arcem9d.tcf) file into example folder.
+
+1. Run example 
+
+        gmake run TOOLCHAIN=gnu TCF_FILE=arcem9d.tcf
+
+    Result Quality shall be "S/N=1823.9     (65.2 db)"
+
+### Run example without MetaWare Development tools
+ 
+See documentation on [IoT Devkit](https://embarc.org/embarc_osp/doc/build/html/board/iotdk.html) on how to run executable built with [ARC GNU](https://embarc.org/toolchain/index.html) and [ARC open source development tools](https://embarc.org/embarc_osp/doc/build/html/index.html) on IoT Devkit.
 
 
 Example Structure
