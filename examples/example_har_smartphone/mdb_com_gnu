@@ -5,18 +5,21 @@ off=cr_for_more
 break main
 
 run
-//Select one mode to uncomment the line with the fillmem command
+//Select one mode to uncomment lines with the fillmem command
 
-//----------mode=1-------
+//----------mode 1-----------------------------------
+//--Built-in input processing------------------------
 fillmem 0x1 &mode 1
 fillmem "dummy_for_check" &param[0][0] 15
 
-//----------mode=2-----------
+//----------mode 2-----------------------------------
+//--External test-set processing---------------------
 //fillmem 0x2 &mode 1
 //fillmem "dummy_for_check" &param[0][0] 15
 //fillmem "small_test_base/tests.idx" &param[1][0] 25
 
-//-----------mode=3----------
+//-----------mode 3----------------------------------
+//--Accuracy measurement for testset-----------------
 //fillmem 0x3 &mode 1
 //fillmem "dummy_for_check" &param[0][0] 15
 //fillmem "small_test_base/tests.idx" &param[1][0] 25
