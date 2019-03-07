@@ -48,7 +48,7 @@ Here we will consider building with ARC GNU toolchain. As a platform for the ass
         - embARC MLI Library prebuilt with MetaWare Development tools for IoT Devkit hardware configuration
         - gmake
 
-0. Prebuilt embARC MLI Library  must be copyied into the /prebuilt folder.
+0. Prebuilt embARC MLI Library  must be copyied into the ./examples/prebuilt folder.
 
 1. Open command line and change working directory to './examples/example_har_smartphone'
 
