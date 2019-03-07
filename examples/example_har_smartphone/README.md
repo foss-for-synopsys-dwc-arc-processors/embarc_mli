@@ -37,7 +37,7 @@ Here we will consider building for [/hw/em9d.tcf](/hw/em9d.tcf) template. This t
 
        gmake run TCF_FILE=../../hw/em9d.tcf
 
-	Result Quality shall be "S/N=1823.9     (65.2 db)"
+    Result Quality shall be "S/N=1823.9     (65.2 db)"
 
 ### Build with ARC GNU toolchain
 
@@ -60,7 +60,7 @@ Here we will consider building with ARC GNU toolchain. As a platform for the ass
 
         gmake TOOLCHAIN=gnu
 
-   Notes: IoT Devkit hardware configuration is specifed in Makefile. 
+   Notes: IoT Devkit hardware configuration is specifed in Makefile. Additionally used memory.x linkscript file for GNU linker. 
 
 ### Run example with MetaWare Debuger on nSim simulator.
 
@@ -76,8 +76,10 @@ Here we will consider building with ARC GNU toolchain. As a platform for the ass
 
     Result Quality shall be "S/N=1823.9     (65.2 db)"
 
+    Notes: Example built by ARC GNU tools is run using mdb_com_gnu script file. Modify this file to customize the example run mode. See [More Options on Building and Running](README.md#more-options-on-building-and-running)
+
 ### Run example without MetaWare Development tools
- 
+
 See documentation on [IoT Devkit](https://embarc.org/embarc_osp/doc/build/html/board/iotdk.html) on how to run executable built with [ARC GNU](https://embarc.org/toolchain/index.html) and [ARC open source development tools](https://embarc.org/embarc_osp/doc/build/html/index.html) on IoT Devkit.
 
 
@@ -98,8 +100,13 @@ Structure of example application may be divided logically on three parts:
    * ../auxiliary/tests_aux.h(.c)
    * ../auxiliary/idx_file.h(.c)
 
-Example structure also contains test vector set including small subset of pre-processed UCI HAR Smartphones dataset (20 vectors organized in IDX file format).
-   
+Example structure contains test vector set including small subset of pre-processed UCI HAR Smartphones dataset (20 vectors organized in IDX file format).
+
+Example structure also contains auxiliary files for development tools:
+ * arcem9d.lcf - linkscript file for MetaWare linker.
+ * memory.x    - linkscript file for GNU linker.
+ * mdb_com_gnu - command script file for MetaWare Debugger.
+
 More Options on Building and Running
 ---------------------------------------
 Coefficients for trained NN model are stored in the separate compile unit (*coefficients.c) as wrapped float numbers. This allows to transform coefficients into quantized fixed point values in compile time.
@@ -119,15 +126,18 @@ No application input arguments.
 
        gmake run TCF_FILE=../../hw/em9d.tcf
 
-2. **Accuracy measurement for testset.** Reads vectors from input IDX file, passes it to the model, and accumulates number of successive classifications according to labels IDX file. 
+2. **External test-set processing.** Reads vectors from input IDX file, passes it to the model, and writes it's output to the other IDX file (if input is *tests.idx* then output will be *tests.idx_out*). 
+Input test-set path is required as argument
+
+       gmake run TCF_FILE=../../hw/em9d.tcf RUN_ARGS="small_test_base/tests.idx"
+
+3. **Accuracy measurement for testset.** Reads vectors from input IDX file, passes it to the model, and accumulates number of successive classifications according to labels IDX file. 
 Input test-set and labels paths are required as argument.
 
        gmake run TCF_FILE=../../hw/em9d.tcf RUN_ARGS="small_test_base/tests.idx small_test_base/labels.idx"
 
-3. **External test-set processing.** Reads vectors from input IDX file, passes it to the model, and writes it's output to the other IDX file (if input is *tests.idx* then output will be *tests.idx_out*). 
-Input test-set path is required as argument
-
-       gmake run TCF_FILE=../../hw/em9d.tcf RUN_ARGS="small_test_base/tests.idx"
+Notes: If the example is compiled with GNU tools, then these modes are transferred to the application using mdb_com_gnu command script file for MetaWare Debugger.
+       Modify this file to customize the example run mode.
 
 References
 ----------------------------
