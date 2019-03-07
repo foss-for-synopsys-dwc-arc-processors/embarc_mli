@@ -101,9 +101,10 @@ Example structure also contains auxiliary files for development tools:
  * arcem9d.lcf - linkscript file for MetaWare linker.
  * memory.x    - linkscript file for GNU linker.
  * mdb_com_gnu - command script file for MetaWare Debugger.
+
 More Options on Building and Running
 ---------------------------------------
-CIFAR-10 example application is implemented in the same way as LSTM Based HAR example and provides the same configuration and running abilities. For more details see appropriate HAR example [description part](examples/example_har_smartphone/README.md).
+CIFAR-10 example application is implemented in the same way as LSTM Based HAR example and provides the same configuration and running abilities. For more details see appropriate HAR example [description part](/examples/example_har_smartphone/README.md#more-options-on-building-and-running).
 
 References
 ----------------------------
