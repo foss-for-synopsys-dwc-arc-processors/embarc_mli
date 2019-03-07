@@ -39,6 +39,9 @@
 #include "examples_aux.h"
 #include "tests_aux.h"
 
+#if defined (__GNUC__) && !defined (__CCAC__)
+extern int start_init(void);
+#endif // if defined (__GNUC__) && !defined (__CCAC__)
 // Root to referenc IR vectors for comparison
 // pass "./ir_idx_12_chw_small" or "./ir_idx_12_chw_big" for debug (regarding to used modelCHW and HWC layout accordingly)
 static const char kCifar10RootIR[] = "";
@@ -49,13 +52,64 @@ const float kSingleOutRef[OUT_POINTS] = OUT_PROB_12;
 
 static void cifar10_preprocessing(const void * image_, mli_tensor * net_input_);
 
+#define EXAMPLE_MAX_MODE (3)
+int mode=0; // emulation argc for GNU toolchain
+char param[EXAMPLE_MAX_MODE][256];// emulation argv for GNU toolchain
 //========================================================================================
 //
 // MAIN
 //
 //========================================================================================
 int main(int argc, char ** argv ) {
-    switch (argc) {
+#if defined (__GNUC__) && !defined (__CCAC__)
+//ARC GNU tools
+    if (0 != start_init() ){
+        printf("ERROR: init proccesor\n");
+        //Error init proccesor;
+        return 1;
+    }
+//fill mode and param from cmd line script before use
+
+#else
+//Metaware tools
+//fill mode and param from argc and argv
+    if ( argc <= EXAMPLE_MAX_MODE) {
+        mode=argc;
+    
+        for(int i=0; i < mode; i++) {
+            memcpy( &param[i][0], argv[i], strlen(argv[i]) );
+        }
+    }        
+#endif // if defined (__GNUC__) && !defined (__CCAC__)
+   
+    //checking that variables are set
+    if(mode == 0){
+        printf("ERROR: mode not set up\n");
+#if defined (__GNUC__) && !defined (__CCAC__)        
+//ARC GNU tools
+        printf("Please set up mode \n");
+        printf("Please check that you use mdb_com_gnu script with correct setups\n");
+#else
+//Metaware tools    
+        printf("App command line:\n"
+                "\t%s \n\t\tProcess single hardcoded vector\n\n"
+                "\t%s <input_test_base.idx> \n\t\tProcess testset from file and \n"
+                "\t\t output model results to <input_test_base.idx_out> file\n\n", argv[0], argv[0]);
+#endif // if defined (__GNUC__) && !defined (__CCAC__)                 
+        return 2; //Error: mode not set       
+    }  
+    
+    for(int i=0; i < mode; i++) {
+       if (param[i][0] == 0){
+           printf("param[%d][0] not set.\n", i);
+           if (i==0) printf("Please set up dummy string for check.\n");
+           if (i==1) printf("Please set up input IDX file.\n");
+           if (i==2) printf("Please set up labels IDX file.\n");
+           return 2; //Error: param not set
+       }
+    }
+
+    switch (mode) {
     // No Arguments for app. Process single hardcoded input
     // Print various measures to stdout
     //=========================================================
@@ -72,16 +126,16 @@ int main(int argc, char ** argv ) {
     //=================================================================
     case 2:
         printf("Input IDX testset to output IDX set\n");
-        char * out_path = malloc(strlen(argv[1]) + strlen(kOutFilePostfix) + 1);
+        char * out_path = malloc(strlen(param[1]) + strlen(kOutFilePostfix) + 1);
         if (out_path == NULL) {
             printf("mem allocation failed\n");
             break;
         }
         out_path[0] = 0;
-        strcat(out_path, argv[1]);
+        strcat(out_path, param[1]);
         strcat(out_path, kOutFilePostfix);
 
-        model_run_idx_base_to_idx_out(argv[1], out_path,
+        model_run_idx_base_to_idx_out(param[1], out_path,
                 cifar10_cf_net_input, cifar10_cf_net_output,
                 cifar10_preprocessing, cifar10_cf_net,
                 NULL);
@@ -93,7 +147,7 @@ int main(int argc, char ** argv ) {
     //=================================================================
     case 3:
         printf("ACCURACY CALCULATION on Input IDX testset according to IDX labels set\n");
-        model_run_acc_on_idx_base(argv[1], argv[2],
+        model_run_acc_on_idx_base(param[1], param[2],
                 cifar10_cf_net_input, cifar10_cf_net_output,
                 cifar10_preprocessing, cifar10_cf_net,
                 NULL);
