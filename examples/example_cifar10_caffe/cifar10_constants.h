@@ -47,7 +47,31 @@ typedef int16_t w_type;
 // Defining data sections attributes
 //===================================
 #if (ARC_PLATFORM == V2DSP_XY)
-// Model Weights attribute 
+#if defined (__GNUC__) && !defined (__CCAC__)
+// ARC GNU tools
+// Model Weights attribute
+#define _Wdata_attr __attribute__((section(".mli_model")))
+#define _W  _Wdata_attr
+
+// Model Weights (part 2) attribute 
+#define _W2data_attr __attribute__((section(".mli_model_p2")))
+#define _W2  _W2data_attr
+
+// Bank X (XCCM) attribute
+#define __Xdata_attr __attribute__((section(".Xdata")))
+#define _X  __Xdata_attr
+
+// Bank Y (YCCM) attribute
+#define __Ydata_attr __attribute__((section(".Ydata")))
+#define _Y  __Ydata_attr
+
+// Bank Z (DCCM) attribute
+#define __Zdata_attr __attribute__((section(".Zdata")))
+#define _Z  __Zdata_attr
+
+#else	
+// Metaware tools
+// Model Weights attribute
 #define _Wdata_attr __attribute__((section(".mli_model")))
 #define _W __xy _Wdata_attr
 
@@ -66,6 +90,7 @@ typedef int16_t w_type;
 // Bank Z (DCCM) attribute
 #define __Zdata_attr __attribute__((section(".Zdata")))
 #define _Z __xy __Zdata_attr
+#endif // if defined (__GNUC__) && !defined (__CCAC__)
 
 #else
 #define _X __attribute__((section(".mli_ir_buf")))
