@@ -40,7 +40,7 @@
 */
 
 /**
-* Concatenate primitive: Maximum number of tensor might be concatenated.
+* Concatenate primitive: Maximum number of tensors that might be concatenated.
 */
 #define MLI_CONCAT_MAX_TENSORS (8)
 
@@ -62,13 +62,18 @@
 */
 #include <stdint.h>
 
+#if defined (__CCAC__)
+
 #include <arc/xy.h>
 
 #ifdef __FXAPI__
 #include <stdfix.h>
 #else
-#error "ARC FX Library (FXAPI) is required dependency"
+#error "ARC FX Library (FXAPI) is a required dependency"
 #endif
+
+#endif // if defined (__CCAC__)
+
 
 /*
 * Define the platform (according to pre-defined macro or according to HW config)

@@ -46,14 +46,13 @@ extern "C" {
 /** @def Macro for calculating number of fractionl bits. Uses container type and number of integer bits*/
 #define FRAQ_BITS(int_part, el_type) ((sizeof(el_type)*8)-int_part-1)
 
-
 #ifndef MAX
 /** @def Common Maximum macro function (two values)*/
-#define MAX(A,B) (((A > B)? A: B))
+#define MAX(A,B) (((A) > (B))? (A): (B))
 #endif
 /** @def Common Minimum macro function (two values)*/
 #ifndef MIN
-#define MIN(A,B) (((A > B)? B: A))
+#define MIN(A,B) (((A) > (B))? (B): (A))
 #endif
 
 #define CEIL_DIV(num,den) (((num) + (den) - 1)/(den))
@@ -81,9 +80,40 @@ extern unsigned cycle_cnt;
     cycle_cnt = _timer_default_read();
 #else
 //GNU toolchain profiling
+static inline void test_aux_start_timer_0() {
+    _sr(0 , 0x22);
+    _sr(0xffffffff, 0x23);
+    _sr(3, 0x22);
+    _sr(0, 0x21);
+}
+
+static inline uint32_t test_aux_read_timer_0() {
+    return (_lr(0x21));
+}
+
+static inline void test_aux_stop_timer_0() {
+    _sr (0 , 0x22);
+}
+
+static inline void test_aux_start_timer_1() {
+    _sr(0 , 0x101);
+    _sr(0xffffffff, 0x102);
+    _sr(3, 0x101);
+    _sr(0, 0x100);
+}
+
+static inline uint32_t test_aux_read_timer_1() {
+    return( _lr(0x100) );
+}
+
+static inline void test_aux_stop_timer_1() {
+    _sr (0 , 0x101);
+}
+
 #define PROFILE(F) \
-    cycle_cnt = 0;\
-    F;
+    test_aux_start_timer_0(); \
+    F;\
+    cycle_cnt = test_aux_read_timer_0();
 #endif
 #else
 #define PROFILE(F) \
@@ -146,7 +176,6 @@ test_status load_tensors_from_idx_files(
         const char * const paths[],
         mli_tensor * tensors[],
         uint32_t paths_num);
-
 
 /**
  * @brief Compare data in tensor with external reference data
