@@ -27,33 +27,72 @@
 
 # default toolchain
 TOOLCHAIN ?= mwdt
-TCF_FILE ?= ../../hw/em9d.tcf
+
+# default hardware config file
+TCF_FILE  ?= ../../hw/em9d.tcf
 
 # Directories and files
-PUBLIC_DIR ?= ../..
-SRC_DIRS 	= $(PUBLIC_DIR)/examples/example_har_smartphone \
-			  $(PUBLIC_DIR)/examples/auxiliary
+EMBARC_MLI_DIR ?= ../..
+SRC_DIRS    = $(EMBARC_MLI_DIR)/examples/example_har_smartphone \
+              $(EMBARC_MLI_DIR)/examples/auxiliary
 
-INC_DIRS 	= . \
-			  $(PUBLIC_DIR)/include\
-			  $(PUBLIC_DIR)/examples/auxiliary
+INC_DIRS    = . \
+              $(EMBARC_MLI_DIR)/include\
+              $(EMBARC_MLI_DIR)/examples/auxiliary
 
+EXT_LIBS_DIR ?= $(EMBARC_MLI_DIR)/bin
+EXT_LIBS     ?= $(EXT_LIBS_DIR)/libmli.a
+OUT_DIR     ?= ./bin
+BUILD_DIR   ?= ./obj
+OUT_NAME    ?= example_har_smartphone
+ifeq ($(TOOLCHAIN),mwdt)
+# MWDT specific options
+CFLAGS       =  -Hnocopyr -Hpurge -Hheap=16K -Hstack=4K -Hfxapi -e_start -Bgrouplib -Hldopt=-q -O0
+else
+PREBUILT_LIB ?= $(EMBARC_MLI_DIR)/examples/prebuilt/libmli.a
 
-EXT_LIBS	?= $(PUBLIC_DIR)/bin/libmli.a
-OUT_DIR		?= ./bin
-BUILD_DIR	?= ./obj
-OUT_NAME	?= example_har_smartphone
-CFLAGS		=  -Hnocopyr -Hpurge -Hheap=16K -Hstack=4K -Hfxapi -e_start -Bgrouplib -Hldopt=-q -O0
+# GNU toolchain specific options - correct it according to your target platform settings (see build_configuration.txt for input)
+#Iot DevKit config
+CFLAGS       =  -mcpu=em4_dmips -mlittle-endian -mcode-density -mdiv-rem -mswap -mnorm -mmpy-option=6 -mbarrel-shifter -mxy
+
+# The embARC MLI Library specific options it according to your target platform settings 
+#(EM5D or EM7D platform)
+#CFLAGS      += -DV2DSP
+#(EM9D or EM11D platform)
+CFLAGS      += -DV2DSP_XY
+#(HS45D or HS47D platform)
+#CFLAGS      += -DV2DSP_WIDE
+
+# GNU toolchain linker specific options
+LDFLAGS      = --defsym=__DEFAULT_HEAP_SIZE=16k 
+LDFLAGS     += --defsym=__DEFAULT_STACK_SIZE=4k
+LDFLAGS     += -Map $(OUT_DIR)/$(OUT_NAME).map
+
+#specific options for run the example with the MetaWare Debuger on the nSim simulator. 
+DBG_OPTS     = -cmd="read mdb_com_gnu"
+endif
 
 all: lib app 
 
-include $(PUBLIC_DIR)/build/rules.mk
+$(EXT_LIBS): $(EXT_LIBS_DIR)
+	@echo Copy prebuilt library $(PREBUILT_LIB) to $@
+	@$(CP) $(call fix_platform_path,$(PREBUILT_LIB)) $(call fix_platform_path,$@)
+
+$(EXT_LIBS_DIR):
+	$(MKDIR) $(call fix_platform_path, $@))
+
+include $(EMBARC_MLI_DIR)/build/rules.mk
 
 .PHONY: clean all lib cleanall app
 .DEFAULT: all
 
+
+ifeq ($(TOOLCHAIN),mwdt)
 lib:
 	@ $(MAKE) generic_lib -C ..$(PS)..$(PS)lib$(PS)make$(PS) TCF_FILE="$(TCF_FILE)"
+else
+lib: $(EXT_LIBS)
+endif
 
 app: generic_app
 
