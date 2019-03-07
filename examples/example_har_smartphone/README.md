@@ -21,7 +21,7 @@ Example supports building using MetaWare Development tools and ARC GNU toolchain
 
 Here we will consider building for [/hw/em9d.tcf](/hw/em9d.tcf) template. This template is a default template for this example. Other templated can be also used. 
 
-0. embARC MLI Library must be built for required hardware configuration first. See [embARC MLI Library building and quick start](/README.md).
+0. embARC MLI Library must be built for required hardware configuration first. See [embARC MLI Library building and quick start](/README.md#building-and-quick-start).
 
 1. Open command line and change working directory to './examples/example_har_smartphone'
 
