@@ -36,7 +36,7 @@ static inline void convolution_hwc_no_pad (
         const MLI_PTR (int16_t) __restrict in_ftrs,
         const MLI_PTR (int16_t) __restrict weights,
         const MLI_PTR (int16_t) __restrict biases,
-        MLI_PTR (int16_t) __restrict out_ftrs,
+        MLI_CONV_OUT_PTR (int16_t) __restrict out_ftrs,
         const rect_t * const perception_area,
         const int bias_shift,
         const int out_shift,
@@ -52,7 +52,7 @@ static inline void convolution_hwc_no_pad_unroll4 (
         const MLI_PTR (int16_t) __restrict in_ftrs,
         const MLI_PTR (int16_t) __restrict weights,
         const MLI_PTR (int16_t) __restrict biases,
-        MLI_PTR (int16_t) __restrict out_ftrs,
+        MLI_CONV_OUT_PTR (int16_t) __restrict out_ftrs,
         const rect_t * const perception_area,
         const int bias_shift,
         const int out_shift,
@@ -68,7 +68,7 @@ static void convolution_hwc (
         const MLI_PTR (int16_t) __restrict in_ftrs,
         const MLI_PTR (int16_t) __restrict weights,
         const MLI_PTR (int16_t) __restrict biases,
-        MLI_PTR (int16_t) __restrict out_ftrs,
+        MLI_CONV_OUT_PTR (int16_t) __restrict out_ftrs,
         const rect_t * const perception_area,
         const int bias_shift,
         const int out_shift,
@@ -102,7 +102,7 @@ mli_status mli_krn_conv2d_hwc_fx16 (
     val_limit = mli_prv_get_relu_min_max (&cfg->relu, out);
 
     MLI_PTR (int16_t) in_ftrs = (MLI_PTR (int16_t)) in->data;
-    MLI_PTR (int16_t) out_ftrs = (MLI_PTR (int16_t)) out->data;
+    MLI_CONV_OUT_PTR (int16_t) out_ftrs = (MLI_CONV_OUT_PTR (int16_t)) out->data;
     MLI_PTR (int16_t) wt = (MLI_PTR (int16_t)) weights->data;
     MLI_PTR (int16_t) bs = (MLI_PTR (int16_t)) bias->data;
 
@@ -224,7 +224,7 @@ mli_status mli_krn_conv2d_hwc_fx16_1x1_str1_nopad (
     val_limit = mli_prv_get_relu_min_max (&cfg->relu, out);
 
     MLI_PTR (int16_t) in_ftrs = (MLI_PTR (int16_t)) in->data;
-    MLI_PTR (int16_t) out_ftrs = (MLI_PTR (int16_t)) out->data;
+    MLI_CONV_OUT_PTR (int16_t) out_ftrs = (MLI_CONV_OUT_PTR (int16_t)) out->data;
     MLI_PTR (int16_t) wt = (MLI_PTR (int16_t)) weights->data;
     MLI_PTR (int16_t) bs = (MLI_PTR (int16_t)) bias->data;
 
@@ -287,7 +287,7 @@ static inline void convolution_hwc_no_pad (
         const MLI_PTR (int16_t) __restrict in_ftrs,
         const MLI_PTR (int16_t) __restrict weights,
         const MLI_PTR (int16_t) __restrict biases,
-        MLI_PTR (int16_t) __restrict out_ftrs,
+        MLI_CONV_OUT_PTR (int16_t) __restrict out_ftrs,
         const rect_t * const perception_area,
         const int bias_shift,
         const int out_shift,
@@ -310,7 +310,7 @@ static inline void convolution_hwc_no_pad (
         int W_idx_inc = in_ch * stride_width;
 
         for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
-            MLI_PTR (int16_t) o_ptr = out_ftrs + (H_idx * out_width + W_idx) * out_ch;
+            MLI_CONV_OUT_PTR (int16_t) o_ptr = out_ftrs + (H_idx * out_width + W_idx) * out_ch;
 
             const MLI_PTR (int16_t) w_ptr = weights;    // Start point
             int w_ptr_inc = in_ch * kernel_width * kernel_height;   // move to filter
@@ -335,7 +335,7 @@ static inline void convolution_hwc_no_pad_unroll4 (
         const MLI_PTR (int16_t) __restrict in_ftrs,
         const MLI_PTR (int16_t) __restrict weights,
         const MLI_PTR (int16_t) __restrict biases,
-        MLI_PTR (int16_t) __restrict out_ftrs,
+        MLI_CONV_OUT_PTR (int16_t) __restrict out_ftrs,
         const rect_t * const perception_area,
         const int bias_shift,
         const int out_shift,
@@ -358,7 +358,7 @@ static inline void convolution_hwc_no_pad_unroll4 (
         int W_idx_inc = in_ch * stride_width;
 
         for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
-            MLI_PTR (int16_t) o_ptr = out_ftrs + (H_idx * out_width + W_idx) * out_ch;
+            MLI_CONV_OUT_PTR (int16_t) o_ptr = out_ftrs + (H_idx * out_width + W_idx) * out_ch;
 
             const MLI_PTR (int16_t) w_ptr = weights;    // Start point
             int w_ptr_inc = in_ch * kernel_width * kernel_height;   // move to filter
@@ -391,7 +391,7 @@ static void convolution_hwc (
         const MLI_PTR (int16_t) __restrict in_ftrs,
         const MLI_PTR (int16_t) __restrict weights,
         const MLI_PTR (int16_t) __restrict biases,
-        MLI_PTR (int16_t) __restrict out_ftrs,
+        MLI_CONV_OUT_PTR (int16_t) __restrict out_ftrs,
         const rect_t * const perception_area,
         const int bias_shift,
         const int out_shift,
@@ -439,7 +439,7 @@ static void convolution_hwc (
                 dotprod2D (in_ptr, w_ptr, clmns * in_ch, rows, in_width * in_ch,
                          kernel_width * in_ch, &conv_out);
 
-                MLI_PTR(int16_t) o_ptr = &out_ftrs[out_ch_idx + (H_idx * out_width + W_idx) * out_ch];
+                MLI_CONV_OUT_PTR(int16_t) o_ptr = &out_ftrs[out_ch_idx + (H_idx * out_width + W_idx) * out_ch];
                 mli_prv_clip_relu_store_output (o_ptr, conv_out, out_shift, val_min_limit, val_max_limit);
             }
         }

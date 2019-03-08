@@ -55,7 +55,7 @@ mli_status mli_krn_maxpool_hwc_fx8(const mli_tensor* in, const mli_pool_cfg* cfg
 
     // Data pointers
     const MLI_PTR(int8_t) in_ftrs = (const MLI_PTR(int8_t))in->data;
-    MLI_PTR(int8_t) out_ftrs = (MLI_PTR(int8_t))out->data;
+    MLI_OUT_PTR(int8_t) out_ftrs = (MLI_OUT_PTR(int8_t))out->data;
 
     // Define Data dimensions
     int channels_num = (int)in->shape[2];

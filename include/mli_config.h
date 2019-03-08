@@ -93,8 +93,12 @@
 */
 #if (ARC_PLATFORM == V2DSP_XY)
 #define MLI_PTR(p) __xy p *
+#define MLI_OUT_PTR(p) __xy p *
+#define MLI_CONV_OUT_PTR(p) __xy p *
 #else
 #define MLI_PTR(p) p *
+#define MLI_OUT_PTR(p) p *
+#define MLI_CONV_OUT_PTR(p) p *
 #endif
 
 #endif // _MLI_CONFIG_H_

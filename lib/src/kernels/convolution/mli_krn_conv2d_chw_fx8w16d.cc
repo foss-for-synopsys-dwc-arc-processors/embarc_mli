@@ -78,7 +78,7 @@ mli_krn_conv2d_chw_fx8w16d (const mli_tensor * in, const mli_tensor * weights, c
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t))out->data;
     MLI_PTR(int8_t) wt = (MLI_PTR(int8_t))weights->data;
     MLI_PTR(int8_t) bs = (MLI_PTR(int8_t))bias->data;
 
@@ -130,7 +130,7 @@ mli_krn_conv2d_chw_fx8w16d (const mli_tensor * in, const mli_tensor * weights, c
                     }
 
                     // Write results
-                    MLI_PTR(int16_t) o_ptr = &out_ftrs[out_ch_idx * out_width * out_height + H_idx * out_width + W_idx];
+                    MLI_CONV_OUT_PTR(int16_t) o_ptr = &out_ftrs[out_ch_idx * out_width * out_height + H_idx * out_width + W_idx];
                     mli_prv_clip_relu_store_output (o_ptr, conv_out, out_shift, val_min_limit, val_max_limit);
                 }
             }
@@ -199,7 +199,7 @@ mli_krn_conv2d_chw_fx8w16d (const mli_tensor * in, const mli_tensor * weights, c
                             conv_out += dotprod2D (in_ptr, w_ptr, clmns, rows, in_width, kernel_width);
                         }
                         // Write result
-                        MLI_PTR(int16_t) o_ptr = &out_ftrs[out_ch_idx * out_width * out_height + H_idx * out_width + W_idx];
+                        MLI_CONV_OUT_PTR(int16_t) o_ptr = &out_ftrs[out_ch_idx * out_width * out_height + H_idx * out_width + W_idx];
                         mli_prv_clip_relu_store_output (o_ptr, conv_out, out_shift, val_min_limit, val_max_limit);
                     }
                 }

@@ -31,7 +31,7 @@ static void convolution_chw_nopad (
         const MLI_PTR (io_T) __restrict in_ftrs,
         const MLI_PTR (w_T) __restrict weights,
         const MLI_PTR (w_T) __restrict biases,
-        MLI_PTR (io_T) __restrict out_ftrs,
+        MLI_CONV_OUT_PTR (io_T) __restrict out_ftrs,
         const rect_t * const perception_area,
         const int bias_shift,
         const int out_shift,
@@ -50,7 +50,7 @@ static void convolution_chw (
         const MLI_PTR (io_T) __restrict in_ftrs,
         const MLI_PTR (w_T) __restrict weights,
         const MLI_PTR (w_T) __restrict biases,
-        MLI_PTR (io_T) __restrict out_ftrs,
+        MLI_CONV_OUT_PTR (io_T) __restrict out_ftrs,
         const rect_t * const perception_area,
         const int bias_shift,
         const int out_shift,
@@ -69,7 +69,7 @@ static void conv2d_chw_nopad_k1x1_str1 (
         const MLI_PTR (io_T) __restrict in_ftrs,
         const MLI_PTR (w_T) __restrict weights,
         const MLI_PTR (w_T) __restrict biases,
-        MLI_PTR (io_T) __restrict out_ftrs,
+        MLI_CONV_OUT_PTR (io_T) __restrict out_ftrs,
         const rect_t * const perception_area,
         const int bias_shift,
         const int out_shift,
@@ -89,7 +89,7 @@ static void conv2d_chw_str1 (
         const MLI_PTR (io_T) __restrict in_ftrs,
         const MLI_PTR (w_T) __restrict weights,
         const MLI_PTR (w_T) __restrict biases,
-        MLI_PTR (io_T) __restrict out_ftrs,
+        MLI_CONV_OUT_PTR (io_T) __restrict out_ftrs,
         const rect_t * const perception_area,
         const int bias_shift,
         const int out_shift,
@@ -109,7 +109,7 @@ template < typename io_T, typename w_T >
 static void __attribute__ ((always_inline)) convolution (
         const MLI_PTR (io_T) __restrict in_ptr,
         const MLI_PTR (w_T) __restrict w_ptr,
-        MLI_PTR (io_T) __restrict o_ptr,
+        MLI_CONV_OUT_PTR (io_T) __restrict o_ptr,
         const w_T bias,
         const int bias_shift,
         const int out_shift,
@@ -135,7 +135,7 @@ static void __attribute__ ((always_inline)) convolution (
 static void __attribute__ ((always_inline)) convolution (
         const MLI_PTR (int16_t) __restrict in_ptr,
         const MLI_PTR (int16_t) __restrict w_ptr,
-        MLI_PTR (int16_t) __restrict o_ptr,
+        MLI_CONV_OUT_PTR (int16_t) __restrict o_ptr,
         const int16_t bias,
         const int bias_shift,
         const int out_shift,
@@ -168,7 +168,7 @@ template < typename io_T, typename w_T >
 static void __attribute__ ((always_inline)) convolution_even (
         const MLI_PTR (io_T) __restrict in_ptr,
         const MLI_PTR (w_T) __restrict w_ptr,
-        MLI_PTR (io_T) __restrict o_ptr,
+        MLI_CONV_OUT_PTR (io_T) __restrict o_ptr,
         const w_T bias,
         const int bias_shift,
         const int out_shift,
@@ -195,7 +195,7 @@ template <typename io_T, typename w_T>
 static void __attribute__((always_inline)) convolution_odd_even(
         const MLI_PTR(io_T) __restrict in_ptr,
         const MLI_PTR(w_T) __restrict w_ptr,
-            MLI_PTR(io_T) __restrict o_ptr,
+        MLI_CONV_OUT_PTR(io_T) __restrict o_ptr,
         const w_T bias,
         const int bias_shift,
         const int out_shift,
@@ -255,7 +255,7 @@ template < typename io_T, typename w_T >
 static void __attribute__ ((always_inline)) convolution_unroll4_plus1 (
         const MLI_PTR (io_T) __restrict in_ptr,
         const MLI_PTR (w_T) __restrict w_ptr,
-        MLI_PTR (io_T) __restrict o_ptr,
+        MLI_CONV_OUT_PTR (io_T) __restrict o_ptr,
         const w_T bias,
         const int bias_shift,
         const int out_shift,
@@ -283,7 +283,7 @@ template < typename io_T, typename w_T >
 static void __attribute__ ((always_inline)) convolution_unroll4_plus3 (
         const MLI_PTR (io_T) __restrict in_ptr,
         const MLI_PTR (w_T) __restrict w_ptr,
-        MLI_PTR (io_T) __restrict o_ptr,
+        MLI_CONV_OUT_PTR (io_T) __restrict o_ptr,
         const w_T bias,
         const int bias_shift,
         const int out_shift,
@@ -310,7 +310,7 @@ template < typename io_T, typename w_T >
 static void __attribute__ ((always_inline)) convolution_v (
         const MLI_PTR (io_T) __restrict in_ptr,
         const MLI_PTR (w_T) __restrict w_ptr,
-        MLI_PTR (io_T) __restrict o_ptr,
+        MLI_CONV_OUT_PTR (io_T) __restrict o_ptr,
         const w_T bias,
         const int bias_shift,
         const int out_shift,
@@ -337,7 +337,7 @@ static void __attribute__ ((always_inline)) convolution_v (
 static void __attribute__ ((always_inline)) convolution_v (
         const MLI_PTR (int16_t) __restrict in_ptr,
         const MLI_PTR (int16_t) __restrict w_ptr,
-        MLI_PTR (int16_t) __restrict o_ptr,
+        MLI_CONV_OUT_PTR (int16_t) __restrict o_ptr,
         const int16_t bias,
         const int bias_shift,
         const int out_shift,
@@ -368,7 +368,7 @@ convolution_chw_nopad (
         const MLI_PTR (io_T) __restrict in_ftrs,
         const MLI_PTR (w_T) __restrict weights,
         const MLI_PTR (w_T) __restrict biases,
-        MLI_PTR (io_T) __restrict out_ftrs,
+        MLI_CONV_OUT_PTR (io_T) __restrict out_ftrs,
         const rect_t * const perception_area,
         const int bias_shift,
         const int out_shift,
@@ -406,7 +406,7 @@ convolution_chw_nopad (
                     dotprod2D (in_ptr, w_ptr, kernel_width, kernel_height, in_width, kernel_width, &conv_out);
                 }
 
-                MLI_PTR(io_T) o_ptr = &out_ftrs[out_ch_idx * out_width * out_height + H_idx * out_width + W_idx];
+                MLI_CONV_OUT_PTR(io_T) o_ptr = &out_ftrs[out_ch_idx * out_width * out_height + H_idx * out_width + W_idx];
                 mli_prv_clip_relu_store_output (o_ptr, conv_out, out_shift, val_min_limit, val_max_limit);
                 CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, *o_ptr);
             }
@@ -419,7 +419,7 @@ static void convolution_chw (
         const MLI_PTR (io_T) __restrict in_ftrs,
         const MLI_PTR (w_T) __restrict weights,
         const MLI_PTR (w_T) __restrict biases,
-        MLI_PTR (io_T) __restrict out_ftrs,
+        MLI_CONV_OUT_PTR (io_T) __restrict out_ftrs,
         const rect_t * const perception_area,
         const int bias_shift,
         const int out_shift,
@@ -468,7 +468,7 @@ static void convolution_chw (
                     // Convolution core
                     dotprod2D (in_ptr, w_ptr, clmns, rows, in_width, kernel_width, &conv_out);
                 }
-                MLI_PTR(io_T) o_ptr = &out_ftrs[out_ch_idx * out_width * out_height + H_idx * out_width + W_idx];
+                MLI_CONV_OUT_PTR(io_T) o_ptr = &out_ftrs[out_ch_idx * out_width * out_height + H_idx * out_width + W_idx];
                 mli_prv_clip_relu_store_output (o_ptr, conv_out, out_shift, val_min_limit, val_max_limit);
                 CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, *o_ptr);
             }
@@ -481,7 +481,7 @@ static void convolution_chw (
         const MLI_PTR (int16_t) __restrict in_ftrs,
         const MLI_PTR (int16_t) __restrict weights,
         const MLI_PTR (int16_t) __restrict biases,
-        MLI_PTR (int16_t) __restrict out_ftrs,
+        MLI_CONV_OUT_PTR (int16_t) __restrict out_ftrs,
         const rect_t * const perception_area,
         const int bias_shift,
         const int out_shift,
@@ -530,7 +530,7 @@ static void convolution_chw (
                     // Convolution core
                     dotprod2D (in_ptr, w_ptr, clmns, rows, in_width, kernel_width, &conv_out);
                 }
-                MLI_PTR(int16_t) o_ptr = &out_ftrs[out_ch_idx * out_width * out_height + H_idx * out_width + W_idx];
+                MLI_CONV_OUT_PTR(int16_t) o_ptr = &out_ftrs[out_ch_idx * out_width * out_height + H_idx * out_width + W_idx];
                 mli_prv_clip_relu_store_output (o_ptr, conv_out, out_shift, val_min_limit, val_max_limit);
                 CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, *o_ptr);
             }
@@ -544,7 +544,7 @@ static inline void __attribute__ ((always_inline)) conv2d_chw_nopad_k1x1_str1 (
         const MLI_PTR (io_T) __restrict in_ftrs,
         const MLI_PTR (w_T) __restrict weights,
         const MLI_PTR (w_T) __restrict biases,
-        MLI_PTR (io_T) __restrict out_ftrs,
+        MLI_CONV_OUT_PTR (io_T) __restrict out_ftrs,
         const rect_t * const perception_area,
         const int bias_shift,
         const int out_shift,
@@ -568,7 +568,7 @@ static inline void __attribute__ ((always_inline)) conv2d_chw_nopad_k1x1_str1 (
     for (int out_ch_idx = 0; out_ch_idx < out_ch; out_ch_idx++) {
         for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
             int W_idx;
-            MLI_PTR(io_T) __restrict o_ptr = out_ftrs +
+            MLI_CONV_OUT_PTR(io_T) __restrict o_ptr = out_ftrs +
                     out_ch_idx * out_width * out_height +
                     H_idx * out_width + clmn_begin;
 
@@ -656,7 +656,7 @@ static inline void __attribute__ ((always_inline)) conv2d_chw_nopad_k1x1_str1 (
         const MLI_PTR (int16_t) __restrict in_ftrs,
         const MLI_PTR (int16_t) __restrict weights,
         const MLI_PTR (int16_t) __restrict biases,
-        MLI_PTR (int16_t) __restrict out_ftrs,
+        MLI_CONV_OUT_PTR (int16_t) __restrict out_ftrs,
         const rect_t * const perception_area,
         const int bias_shift,
         const int out_shift,
@@ -680,7 +680,7 @@ static inline void __attribute__ ((always_inline)) conv2d_chw_nopad_k1x1_str1 (
     for (int out_ch_idx = 0; out_ch_idx < out_ch; out_ch_idx++) {
         for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
             int W_idx;
-            MLI_PTR(int16_t) __restrict o_ptr = out_ftrs +
+            MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr = out_ftrs +
                     out_ch_idx * out_width * out_height +
                     H_idx * out_width + clmn_begin;
 
@@ -772,7 +772,7 @@ static inline void __attribute__ ((always_inline)) conv2d_row_str1 (
         const MLI_PTR (io_T) __restrict in_ftrs,
         const MLI_PTR (w_T) __restrict weights,
         const MLI_PTR (w_T) __restrict biases,
-        MLI_PTR (io_T) __restrict out_ftrs,
+        MLI_CONV_OUT_PTR (io_T) __restrict out_ftrs,
         const int bias_shift,
         const int out_shift,
         const int16_t val_min_limit,
@@ -807,7 +807,7 @@ static inline void __attribute__ ((always_inline)) conv2d_row_str1 (
             out_ch_idx * in_ch * kernel_w * kernel_h +  // move to filter
             top_comp * kernel_w;    // move to row
 
-    MLI_PTR (io_T) __restrict o_ptr = out_ftrs + out_ch_idx * out_width * out_height + H_idx * out_width + clmn_begin;
+    MLI_CONV_OUT_PTR (io_T) __restrict o_ptr = out_ftrs + out_ch_idx * out_width * out_height + H_idx * out_width + clmn_begin;
 
     MLI_ASSERT(stride_width == 1);
     MLI_ASSERT(H_idx < out_height);
@@ -928,7 +928,7 @@ static inline void __attribute__ ((always_inline)) conv2d_chw_str1 (
         const MLI_PTR (io_T) __restrict in_ftrs,
         const MLI_PTR (w_T) __restrict weights,
         const MLI_PTR (w_T) __restrict biases,
-        MLI_PTR (io_T) __restrict out_ftrs,
+        MLI_CONV_OUT_PTR (io_T) __restrict out_ftrs,
         const rect_t * const perception_area,
         const int bias_shift,
         const int out_shift,
@@ -1082,7 +1082,7 @@ static inline void __attribute__ ((always_inline)) conv2d_row_anystride (
         const MLI_PTR (io_T) __restrict in_ftrs,
         const MLI_PTR (w_T) __restrict weights,
         const MLI_PTR (w_T) __restrict biases,
-        MLI_PTR (io_T) __restrict out_ftrs,
+        MLI_CONV_OUT_PTR (io_T) __restrict out_ftrs,
         const int bias_shift,
         const int out_shift,
         const int16_t val_min_limit,
@@ -1122,7 +1122,7 @@ static inline void __attribute__ ((always_inline)) conv2d_row_anystride (
             out_ch_idx * in_ch * kernel_w * kernel_h +  // move to filter
             top_comp * kernel_w;    // move to row
 
-    MLI_PTR(io_T) __restrict o_ptr = out_ftrs +
+    MLI_CONV_OUT_PTR(io_T) __restrict o_ptr = out_ftrs +
             out_ch_idx * out_width * out_height +
             H_idx * out_width + clmn_begin;
 
@@ -1237,7 +1237,7 @@ static inline void __attribute__ ((always_inline)) conv2d_chw (
         const MLI_PTR (io_T) __restrict in_ftrs,
         const MLI_PTR (w_T) __restrict weights,
         const MLI_PTR (w_T) __restrict biases,
-        MLI_PTR (io_T) __restrict out_ftrs,
+        MLI_CONV_OUT_PTR (io_T) __restrict out_ftrs,
         const rect_t * const perception_area,
         const int bias_shift,
         const int out_shift,

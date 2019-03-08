@@ -30,7 +30,7 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad(
         const int clmn_beg,
         const int clmn_end,
         const MLI_PTR(io_T) __restrict in_ftrs,
-        MLI_PTR(io_T) __restrict out_ftrs,
+        MLI_OUT_PTR(io_T) __restrict out_ftrs,
         const int channels_num,
         const int in_width,
         const int in_height,
@@ -49,7 +49,7 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad(
 
     const int kernel_size = kernel_width * kernel_height;
 
-    MLI_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
+    MLI_OUT_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
     MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T))in_ftrs + in_width * (row_beg * stride_height - padding_top) +
             (clmn_beg * stride_width - padding_left);
     const int delta_W = (clmn_end - clmn_beg);
@@ -81,7 +81,7 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad_even(
         const int clmn_beg,
         const int clmn_end,
         const MLI_PTR(io_T) __restrict in_ftrs,
-        MLI_PTR(io_T) __restrict out_ftrs,
+        MLI_OUT_PTR(io_T) __restrict out_ftrs,
         const int channels_num,
         const int in_width,
         const int in_height,
@@ -100,7 +100,7 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad_even(
 
     const int kernel_size = kernel_width * kernel_height;
 
-    MLI_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
+    MLI_OUT_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
     MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T))in_ftrs + in_width * (row_beg * stride_height - padding_top) +
             (clmn_beg * stride_width - padding_left);
     const int delta_W = (clmn_end - clmn_beg);
@@ -134,7 +134,7 @@ static inline void __attribute__((always_inline)) avepool_chw(
         const int clmn_beg,
         const int clmn_end,
         const MLI_PTR(io_T) __restrict in_ftrs,
-        MLI_PTR(io_T) __restrict out_ftrs,
+        MLI_OUT_PTR(io_T) __restrict out_ftrs,
         const int channels_num,
         const int in_width,
         const int in_height,
@@ -151,10 +151,10 @@ static inline void __attribute__((always_inline)) avepool_chw(
     (void)padding_right;
     (void)padding_bot;
 
-    MLI_PTR(io_T) __restrict out_ptr = out_ftrs + clmn_beg * out_width + clmn_beg;
+    MLI_OUT_PTR(io_T) __restrict out_ptr = out_ftrs + clmn_beg * out_width + clmn_beg;
     for (int ch_idx = 0; ch_idx < channels_num; ch_idx++) {
         for (int H_idx = row_beg; H_idx < row_end; H_idx++) {
-            MLI_PTR(io_T) __restrict p_out_ftrs = (out_ftrs + ch_idx * out_width * out_height + H_idx * out_width);
+            MLI_OUT_PTR(io_T) __restrict p_out_ftrs = (out_ftrs + ch_idx * out_width * out_height + H_idx * out_width);
             for (int W_idx = clmn_beg; W_idx < clmn_end; W_idx++) {
                 // Define area of input and filter for convolution
                 // *_comp - compensation values for valid area defining
@@ -194,7 +194,7 @@ static inline void __attribute__((always_inline)) avepool_chw_k4x4_str1_nopad(
         const int clmn_beg,
         const int clmn_end,
         const MLI_PTR(io_T) __restrict in_ftrs,
-        MLI_PTR(io_T) __restrict out_ftrs,
+        MLI_OUT_PTR(io_T) __restrict out_ftrs,
         const int channels_num,
         const int in_width,
         const int in_height,
@@ -214,7 +214,7 @@ static inline void __attribute__((always_inline)) avepool_chw_k4x4_str1_nopad(
     MLI_ASSERT(stride_width == 1);
     MLI_ASSERT(stride_height == 1);
 
-    MLI_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
+    MLI_OUT_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
     MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T))in_ftrs + in_width * (row_beg * stride_height - padding_top) +
            (clmn_beg * stride_width - padding_left);
     const int delta_W = (clmn_end - clmn_beg);
@@ -247,7 +247,7 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad_k2x2(
         const int clmn_beg,
         const int clmn_end,
         const MLI_PTR(io_T) __restrict in_ftrs,
-        MLI_PTR(io_T) __restrict out_ftrs,
+        MLI_OUT_PTR(io_T) __restrict out_ftrs,
         const int channels_num,
         const int in_width,
         const int in_height,
@@ -264,7 +264,7 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad_k2x2(
     (void)padding_right;
     (void)padding_bot;
 
-    MLI_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
+    MLI_OUT_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
     MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T))in_ftrs + in_width * (row_beg * stride_height - padding_top) +
            (clmn_beg * stride_width - padding_left);
     const int delta_W = (clmn_end - clmn_beg);
@@ -299,7 +299,7 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad_k4_Nx2_N_eve
         const int clmn_beg,
         const int clmn_end,
         const MLI_PTR(io_T) __restrict in_ftrs,
-        MLI_PTR(io_T) __restrict out_ftrs,
+        MLI_OUT_PTR(io_T) __restrict out_ftrs,
         const int channels_num,
         const int in_width,
         const int in_height,
@@ -318,7 +318,7 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad_k4_Nx2_N_eve
 
     const int kernel_size = kernel_height * kernel_width;
 
-    MLI_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
+    MLI_OUT_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
     MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T))in_ftrs + in_width * (row_beg * stride_height - padding_top) +
             (clmn_beg * stride_width - padding_left);
     const int delta_W = (clmn_end - clmn_beg);
@@ -351,7 +351,7 @@ static inline void __attribute__((always_inline)) avepool_chw_krnpad(
         const int clmn_beg,
         const int clmn_end,
         const MLI_PTR(io_T) __restrict in_ftrs,
-        MLI_PTR(io_T) __restrict out_ftrs,
+        MLI_OUT_PTR(io_T) __restrict out_ftrs,
         const int channels_num,
         const int in_width,
         const int in_height,
@@ -439,7 +439,7 @@ static inline void __attribute__((always_inline)) avepool_chw_krnpad_k4_Nx2_N_ev
         const int clmn_beg,
         const int clmn_end,
         const MLI_PTR(io_T) __restrict in_ftrs,
-        MLI_PTR(io_T) __restrict out_ftrs,
+        MLI_OUT_PTR(io_T) __restrict out_ftrs,
         const int channels_num,
         const int in_width,
         const int in_height,

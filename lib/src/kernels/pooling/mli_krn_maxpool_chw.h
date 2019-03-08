@@ -135,7 +135,7 @@ static inline io_T __attribute__((always_inline)) reduce_max2D (
 template <typename io_T>
 static inline void __attribute__((always_inline)) maxpool_chw_nopad(
         const MLI_PTR(io_T) __restrict in_ftrs,
-        MLI_PTR(io_T) __restrict out_ftrs,
+        MLI_OUT_PTR(io_T) __restrict out_ftrs,
         const int row_begin,
         const int row_end,
         const int clmn_begin,
@@ -153,7 +153,7 @@ static inline void __attribute__((always_inline)) maxpool_chw_nopad(
         const int padding_bot,
         const int padding_left,
         const int padding_right) {
-    MLI_PTR(io_T) __restrict out_ptr = out_ftrs + row_begin * out_width + clmn_begin;
+    MLI_OUT_PTR(io_T) __restrict out_ptr = out_ftrs + row_begin * out_width + clmn_begin;
     const MLI_PTR(io_T) __restrict in_ptr =
             in_ftrs + (row_begin * stride_height - padding_top) * in_width + (clmn_begin * stride_width - padding_left);
     if (kernel_width < 4 && kernel_height <= REDUCE_MAX2D_UNROLL_FACTOR_FOR_HEIGHT) {
@@ -201,7 +201,7 @@ static inline void __attribute__((always_inline)) maxpool_chw_nopad(
 template <typename io_T>
 static inline void __attribute__((always_inline)) maxpool_chw(
         const MLI_PTR(io_T) __restrict in_ftrs,
-        MLI_PTR(io_T) __restrict out_ftrs,
+        MLI_OUT_PTR(io_T) __restrict out_ftrs,
         const int row_begin,
         const int row_end,
         const int clmn_begin,
@@ -219,7 +219,7 @@ static inline void __attribute__((always_inline)) maxpool_chw(
         const int padding_bot,
         const int padding_left,
         const int padding_right) {
-    MLI_PTR(io_T) __restrict out_ptr = out_ftrs + row_begin * out_width + clmn_begin;
+    MLI_OUT_PTR(io_T) __restrict out_ptr = out_ftrs + row_begin * out_width + clmn_begin;
     for (int ch_idx = 0; ch_idx < channels_num; ch_idx++) {
         for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
             for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
@@ -257,7 +257,7 @@ static inline void __attribute__((always_inline)) maxpool_chw(
 template <typename io_T>
 static inline void __attribute__((always_inline)) maxpool_chw_krnpad(
         const MLI_PTR(io_T) __restrict in_ftrs,
-        MLI_PTR(io_T) __restrict out_ftrs,
+        MLI_OUT_PTR(io_T) __restrict out_ftrs,
         const int row_beg,
         const int row_end,
         const int clmn_beg,

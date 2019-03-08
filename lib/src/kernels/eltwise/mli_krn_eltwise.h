@@ -34,10 +34,10 @@ typedef enum {
 #ifdef __Xxy
 template <typename io_T>
 static inline void __attribute__ ((always_inline)) eltwise_op_sub_fx (
-        const MLI_PTR(int8_t) op1, 
-        const MLI_PTR(int8_t) op2, 
-        MLI_PTR(int8_t) out, 
-        const int op1_size, 
+        const MLI_PTR(int8_t) op1,
+        const MLI_PTR(int8_t) op2,
+        MLI_OUT_PTR(int8_t) out,
+        const int op1_size,
         const int op2_size) {
     // Simple broadcast (vector on scalar)
     //==============================================
@@ -62,10 +62,10 @@ static inline void __attribute__ ((always_inline)) eltwise_op_sub_fx (
 
 template <typename io_T>
 static inline void __attribute__ ((always_inline)) eltwise_op_add_fx (
-        const MLI_PTR(int8_t) op1, 
-        const MLI_PTR(int8_t) op2, 
-        MLI_PTR(int8_t) out, 
-        const int op1_size, 
+        const MLI_PTR(int8_t) op1,
+        const MLI_PTR(int8_t) op2,
+        MLI_OUT_PTR(int8_t) out,
+        const int op1_size,
         const int op2_size) {
     // Simple broadcast (vector on scalar)
     //==============================================
@@ -91,10 +91,10 @@ static inline void __attribute__ ((always_inline)) eltwise_op_add_fx (
 
 template <typename io_T>
 static inline void __attribute__ ((always_inline)) eltwise_op_max_fx (
-        const MLI_PTR(int8_t) op1, 
-        const MLI_PTR(int8_t) op2, 
-        MLI_PTR(int8_t) out, 
-        const int op1_size, 
+        const MLI_PTR(int8_t) op1,
+        const MLI_PTR(int8_t) op2,
+        MLI_OUT_PTR(int8_t) out,
+        const int op1_size,
         const int op2_size) {
     // Simple broadcast (vector on scalar)
     //==============================================
@@ -120,10 +120,10 @@ static inline void __attribute__ ((always_inline)) eltwise_op_max_fx (
 
 template <typename io_T>
 static inline void __attribute__ ((always_inline)) eltwise_op_min_fx (
-        const MLI_PTR(int8_t) op1, 
-        const MLI_PTR(int8_t) op2, 
-        MLI_PTR(int8_t) out, 
-        const int op1_size, 
+        const MLI_PTR(int8_t) op1,
+        const MLI_PTR(int8_t) op2,
+        MLI_OUT_PTR(int8_t) out,
+        const int op1_size,
         const int op2_size) {
     // Simple broadcast (vector on scalar)
     //==============================================
@@ -150,10 +150,10 @@ static inline void __attribute__ ((always_inline)) eltwise_op_min_fx (
 
 template <typename io_T>
 static inline void __attribute__ ((always_inline)) eltwise_op_add_fx (
-        const MLI_PTR(io_T) op1, 
-        const MLI_PTR(io_T) op2, 
-        MLI_PTR(io_T) out, 
-        const int op1_size, 
+        const MLI_PTR(io_T) op1,
+        const MLI_PTR(io_T) op2,
+        MLI_OUT_PTR(io_T) out,
+        const int op1_size,
         const int op2_size) {
     // Simple broadcast (vector on scalar)
     //==============================================
@@ -191,10 +191,10 @@ static inline void __attribute__ ((always_inline)) eltwise_op_add_fx (
 
 template <typename io_T>
 static inline void __attribute__ ((always_inline)) eltwise_op_sub_fx (
-        const MLI_PTR(io_T) op1, 
-        const MLI_PTR(io_T) op2, 
-        MLI_PTR(io_T) out, 
-        const int op1_size, 
+        const MLI_PTR(io_T) op1,
+        const MLI_PTR(io_T) op2,
+        MLI_OUT_PTR(io_T) out,
+        const int op1_size,
         const int op2_size) {
     // Simple broadcast (vector on scalar)
     //==============================================
@@ -241,10 +241,10 @@ static inline void __attribute__ ((always_inline)) eltwise_op_sub_fx (
 
 template <typename io_T>
 static inline void __attribute__ ((always_inline)) eltwise_op_max_fx (
-        const MLI_PTR(io_T) op1, 
-        const MLI_PTR(io_T) op2, 
-        MLI_PTR(io_T) out, 
-        const int op1_size, 
+        const MLI_PTR(io_T) op1,
+        const MLI_PTR(io_T) op2,
+        MLI_OUT_PTR(io_T) out,
+        const int op1_size,
         const int op2_size) {
     // Simple broadcast (vector on scalar)
     //==============================================
@@ -281,10 +281,10 @@ static inline void __attribute__ ((always_inline)) eltwise_op_max_fx (
 
 template <typename io_T>
 static inline void __attribute__ ((always_inline)) eltwise_op_min_fx (
-        const MLI_PTR(io_T) op1, 
-        const MLI_PTR(io_T) op2, 
-        MLI_PTR(io_T) out, 
-        const int op1_size, 
+        const MLI_PTR(io_T) op1,
+        const MLI_PTR(io_T) op2,
+        MLI_OUT_PTR(io_T) out,
+        const int op1_size,
         const int op2_size) {
     // Simple broadcast (vector on scalar)
     //==============================================
@@ -321,11 +321,11 @@ static inline void __attribute__ ((always_inline)) eltwise_op_min_fx (
 
 template <typename io_T>
 static inline void __attribute__ ((always_inline)) eltwise_op_mul_fx (
-        const MLI_PTR(io_T) op1, 
-        const MLI_PTR(io_T) op2, 
-        MLI_PTR(io_T) out, 
-        const int op1_size, 
-        const int op2_size, 
+        const MLI_PTR(io_T) op1,
+        const MLI_PTR(io_T) op2,
+        MLI_OUT_PTR(io_T) out,
+        const int op1_size,
+        const int op2_size,
         const int mul_out_shift) {
     // Simple broadcast (vector on scalar)
     //==============================================
@@ -395,11 +395,11 @@ static inline void __attribute__ ((always_inline)) eltwise_op_mul_fx (
 
 template <typename io_T>
 static inline void __attribute__ ((always_inline)) eltwise_op_mul_with_restricts_fx (
-        const MLI_PTR(io_T) __restrict op1, 
-        const MLI_PTR(io_T) __restrict op2, 
-        MLI_PTR(io_T) __restrict out, 
-        const int op1_size, 
-        const int op2_size, 
+        const MLI_PTR(io_T) __restrict op1,
+        const MLI_PTR(io_T) __restrict op2,
+        MLI_OUT_PTR(io_T) __restrict out,
+        const int op1_size,
+        const int op2_size,
         const int mul_out_shift) {
     // Simple broadcast (vector on scalar)
     //==============================================
@@ -480,7 +480,7 @@ static inline void eltwise_prepare_and_run_fx(const mli_tensor *in1, const mli_t
     // Extract in/out pointers to mem
     const MLI_PTR(io_T) inp1_ptr = (const MLI_PTR(io_T))(in1->data);
     const MLI_PTR(io_T) inp2_ptr = (const MLI_PTR(io_T))(in2->data);
-    MLI_PTR(io_T) out_ptr = (MLI_PTR(io_T))(out->data);
+    MLI_OUT_PTR(io_T) out_ptr = (MLI_OUT_PTR(io_T))(out->data);
 
     // Extract in/out as scalar values
     const io_T in1_scalar = (io_T)((intptr_t)(in1->data));
@@ -489,7 +489,7 @@ static inline void eltwise_prepare_and_run_fx(const mli_tensor *in1, const mli_t
 
     inp1_ptr = (in1->rank != 0) ? inp1_ptr : (const MLI_PTR(io_T)) & in1_scalar;
     inp2_ptr = (in2->rank != 0) ? inp2_ptr : (const MLI_PTR(io_T)) & in2_scalar;
-    out_ptr = (out->capacity > 0) ? out_ptr : (MLI_PTR(io_T)) & out_scalar;
+    out_ptr = (out->capacity > 0) ? out_ptr : (MLI_OUT_PTR(io_T)) & out_scalar;
 
     // Calc outshift for MUL operation
     const int mul_out_shift = mli_prv_calc_shift(in1, in2, out);
