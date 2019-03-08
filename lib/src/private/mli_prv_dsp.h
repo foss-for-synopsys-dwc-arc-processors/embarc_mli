@@ -426,7 +426,7 @@ static inline int32_t __attribute__ ((always_inline)) mli_prv_init_accu_with_bia
         const MLI_PTR(int8_t) __restrict in,
         const int8_t bias,
         const int bias_shift) {
-    int32_t accu = ((int32_t) bias << bias_shift);
+    int32_t accu = fx_asr_rnd_q31((int32_t) bias, -bias_shift);
     _setacc(accu, 1);
 
     return accu;

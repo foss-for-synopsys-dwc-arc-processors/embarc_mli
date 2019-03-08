@@ -106,10 +106,14 @@ mli_status mli_chk_conv2d_hwc (
     fail |= MLI_CHECK(cfg->stride_width > 0, "Stride should be greater than zero");
     if (fail) return MLI_STATUS_BAD_FUNC_CFG;
 
-    fail |= MLI_CHECK(weights->el_type == bias->el_type, "Elements type mismatch");
+    fail |= MLI_CHECK(weights->el_type == bias->el_type, "Elements type mismatch between weights and bias");
     fail |= MLI_CHECK(!(in->el_type == MLI_EL_FX_8 && weights->el_type == MLI_EL_FX_16),
                       "8bit data in combination with 16bit weights is not supported");
     if (fail) return MLI_STATUS_NOT_SUPPORTED;
+
+    fail |= MLI_CHECK(bias->el_params.fx.frac_bits <= in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits,
+                      "The number of fractional bits of the accumulator will be the sum of the frac bits of in and weights. If bias has more frac bits, precision will be lost.");
+    if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
     int in_height = in->shape[FMAP_H_DIM_HWC];
     int in_width = in->shape[FMAP_W_DIM_HWC];
@@ -211,6 +215,10 @@ mli_status mli_chk_conv2d_chw (
                       "8bit data in combination with 16bit weights is not supported");
     if (fail) return MLI_STATUS_NOT_SUPPORTED;
 
+    fail |= MLI_CHECK(bias->el_params.fx.frac_bits <= in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits,
+                      "The number of fractional bits of the accumulator will be the sum of the frac bits of in and weights. If bias has more frac bits, precision will be lost.");
+    if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
+
     int in_height = in->shape[FMAP_H_DIM_CHW];
     int in_width = in->shape[FMAP_W_DIM_CHW];
     int out_width = CEIL_DIV(in_width + cfg->padding_left + cfg->padding_right - kernel_width + 1, cfg->stride_width);
@@ -310,6 +318,10 @@ mli_status mli_chk_depthwise_conv2d_chw (
     fail |= MLI_CHECK(!(in->el_type == MLI_EL_FX_8 && weights->el_type == MLI_EL_FX_16),
                       "8bit data in combination with 16bit weights is not supported");
     if (fail) return MLI_STATUS_NOT_SUPPORTED;
+
+    fail |= MLI_CHECK(bias->el_params.fx.frac_bits <= in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits,
+                      "The number of fractional bits of the accumulator will be the sum of the frac bits of in and weights. If bias has more frac bits, precision will be lost.");
+    if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
     int in_height = in->shape[FMAP_H_DIM_CHW];
     int in_width = in->shape[FMAP_W_DIM_CHW];
@@ -607,6 +619,10 @@ mli_status mli_chk_fully_connected (
     fail |= MLI_CHECK(!(in->el_type == MLI_EL_FX_8 && weights->el_type == MLI_EL_FX_16),
                       "8bit data in combination with 16bit weights is not supported");
     if (fail) return MLI_STATUS_NOT_SUPPORTED;
+
+    fail |= MLI_CHECK(bias->el_params.fx.frac_bits <= in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits,
+                      "The number of fractional bits of the accumulator will be the sum of the frac bits of in and weights. If bias has more frac bits, precision will be lost.");
+    if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
     if (MLI_CHECK((weights->shape[0] * mli_hlp_tensor_element_size (in)) <= out->capacity, "capacity of output tensor is too small"))
         return MLI_STATUS_NOT_ENGH_MEM;
@@ -1010,6 +1026,10 @@ mli_status mli_chk_basic_rnn_cell (
     fail |= MLI_CHECK(in->el_type == prev_out->el_type, "element type of in and prev_out has to be the same");
     if (fail) return MLI_STATUS_TYPE_MISMATCH;
 
+    fail |= MLI_CHECK(bias->el_params.fx.frac_bits <= in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits,
+                      "The number of fractional bits of the accumulator will be the sum of the frac bits of in and weights. If bias has more frac bits, precision will be lost.");
+    if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
+
     // Check capacity of output and IR
     fail |= MLI_CHECK((out_elements * out_batches * mli_hlp_tensor_element_size (in)) <= out->capacity,
                       "capacity of output tensor is too small");
@@ -1138,6 +1158,10 @@ mli_status mli_chk_lstm_cell (
     fail |= MLI_CHECK(in->el_type == prev_out->el_type, "element type of in and prev_out has to be the same");
     fail |= MLI_CHECK(in->el_type == cell->el_type, "element type of in and cell has to be the same");
     if (fail) return MLI_STATUS_TYPE_MISMATCH;
+
+    fail |= MLI_CHECK(bias->el_params.fx.frac_bits <= in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits,
+                      "The number of fractional bits of the accumulator will be the sum of the frac bits of in and weights. If bias has more frac bits, precision will be lost.");
+    if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
     // Check capacity of output and IR
     fail |= MLI_CHECK((4 * out_elements * mli_hlp_tensor_element_size (in)) <= cfg->ir_tsr->capacity,

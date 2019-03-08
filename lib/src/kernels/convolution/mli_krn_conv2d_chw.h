@@ -319,7 +319,7 @@ static void __attribute__ ((always_inline)) convolution_v (
         const int in_width, const int in_height, 
         const int kernel_w, const int kernel_h, 
         const int clmns, const int rows, const int in_ch) {
-    int32_t conv_out = ((int32_t) bias << bias_shift);
+    int32_t conv_out = fx_asr_rnd_q31((int32_t) bias, -bias_shift);
     __v2i32_t conv_out_v = { conv_out, conv_out };
 
     for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
