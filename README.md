@@ -35,7 +35,7 @@ examples and documentation.
 ## Building and quick start
 ---------------------------
 By default embARC MLI Library can be build for [/hw/em9d.tcf](/hw/em9d.tcf) which is based on the standard EM9D Voice Audio template, 
-defined in MetaWare Development Tools, with extended XY memory. embARC MLI Library can be also built for a specific 
+defined in [MetaWare Development Tools](https://www.synopsys.com/dw/ipdir.php?ds=sw_metaware), with extended XY memory. embARC MLI Library can be also built for a specific 
 EM or HS configuration.
 
 Build requirements:
