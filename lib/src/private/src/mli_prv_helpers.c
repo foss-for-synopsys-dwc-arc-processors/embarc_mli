@@ -32,6 +32,8 @@
 #include "mli_private_types.h"
 #include "mli_math_macros.h"
 
+#pragma Code(".mli_lib")
+
 //============================================================
 //
 //============================================================
@@ -74,3 +76,5 @@ mli_prv_get_relu_min_max (const mli_relu_cfg * cfg, const mli_tensor * out) {
 
     return val_limit;
 }
+#pragma Code()
+
