@@ -72,6 +72,9 @@ LDFLAGS     += -Map $(OUT_DIR)/$(OUT_NAME).map
 DBG_OPTS     = -cmd="read mdb_com_gnu"
 endif
 
+.PHONY: clean all lib cleanall app
+.DEFAULT_GOAL := all
+
 all: lib app 
 
 $(EXT_LIBS): $(EXT_LIBS_DIR)
@@ -82,10 +85,6 @@ $(EXT_LIBS_DIR):
 	$(MKDIR) $(call fix_platform_path, $@ )
 
 include $(EMBARC_MLI_DIR)/build/rules.mk
-
-.PHONY: clean all lib cleanall app
-.DEFAULT: all
-
 
 ifeq ($(TOOLCHAIN),mwdt)
 lib:
