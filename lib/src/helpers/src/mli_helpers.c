@@ -82,7 +82,7 @@ mli_status mli_hlp_point_to_subtensor(const mli_tensor *in, const mli_point_to_s
     for (int i = 1; i < cfg->coord_num; i++)
         size += cfg->start_coord[i] * dimension_sizes[i];
 
-    out->data = in->data + size;
+    out->data = (void *)((char *)in->data + size);
     size = out->shape[0] = cfg->first_out_dim_size;
     for (int i = 1; i < out_rank; i++) {
         out->shape[i] = in->shape[subtsr_start_axis + i];
