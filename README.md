@@ -34,12 +34,12 @@ examples and documentation.
 
 ## Building and quick start
 ---------------------------
-By default embARC MLI Library can be build for (hw/em9d.tcf) which is based on the standard EM9D Voice Audio template, 
+By default embARC MLI Library can be build for [/hw/em9d.tcf](/hw/em9d.tcf) which is based on the standard EM9D Voice Audio template, 
 defined in MetaWare Development Tools, with extended XY memory. embARC MLI Library can be also built for a specific 
 EM or HS configuration.
 
 Build requirements:
-1. MetaWare Development tools 2018.09 or later
+1. MetaWare Development tools 2018.12 or later
 
 Building of embARC MLI library	
 1. Open command line and change working directory to './lib/make/'      
@@ -56,7 +56,7 @@ Building of embARC MLI library
 3. Run CIFAR10 example
 	'gmake run TCF_FILE=../../hw/em9d.tcf'
 
-4. Result Quality shall be "S/N=2344.4     (67.4 db)"
+4. Result Quality shall be "S/N=3638.6     (71.2 db)"
 
 ## Building and running [Human Activity Recognition example](examples/example_har_smartphone/README.md)
 ----------------------------------------------------------
