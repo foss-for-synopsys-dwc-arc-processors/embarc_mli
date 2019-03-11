@@ -79,7 +79,7 @@ $(EXT_LIBS): $(EXT_LIBS_DIR)
 	@$(CP) $(call fix_platform_path,$(PREBUILT_LIB)) $(call fix_platform_path,$@)
 
 $(EXT_LIBS_DIR):
-	$(MKDIR) $(call fix_platform_path, $@))
+	$(MKDIR) $(call fix_platform_path, $@ )
 
 include $(EMBARC_MLI_DIR)/build/rules.mk
 
