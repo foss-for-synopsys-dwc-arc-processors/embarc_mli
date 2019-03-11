@@ -71,6 +71,6 @@ run:
 
 clean:
 	@echo Cleaning library...
-	@$(RM) $(call fix_platform_path,$(OBJS))
-	@$(RM) $(call fix_platform_path,$(LIBRARY_DIR)/$(OUT_NAME).a)
+	-@$(RM) $(call fix_platform_path,$(OBJS))
+	-@$(RM) $(call fix_platform_path,$(LIBRARY_DIR)/$(OUT_NAME).a)
 
