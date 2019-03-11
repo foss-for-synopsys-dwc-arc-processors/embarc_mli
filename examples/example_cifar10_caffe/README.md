@@ -6,7 +6,7 @@ Example is based on standard [Caffe tutorial](http://caffe.berkeleyvision.org/ga
 Quick Start
 --------------
 
-Example supports building using MetaWare Development tools and ARC GNU toolchain and running with MetaWare Debuger on nSim simulator.
+Example supports building with [MetaWare Development tools](https://www.synopsys.com/dw/ipdir.php?ds=sw_metaware) and [ARC GNU toolchain](https://www.synopsys.com/dw/ipdir.php?ds=sw_jtag_gnu) and running with MetaWare Debuger on [nSim simulator](https://www.synopsys.com/dw/ipdir.php?ds=sim_nSIM).
 
 ### Build with MetaWare Development tools
 
