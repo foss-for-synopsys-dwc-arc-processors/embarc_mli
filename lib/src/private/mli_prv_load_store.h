@@ -66,6 +66,17 @@ static inline void __attribute__ ((always_inline)) mli_prv_store_2_samples (MLI_
     *(MLI_PTR (v2q15_t)) out = data;
 }
 
+
+static inline void __attribute__ ((always_inline)) mli_prv_sat_and_store_2_samples (MLI_PTR (int8_t) __restrict out, v2q15_t data) {
+    const v2u16_t sat_v2= {8, 8};
+    *(MLI_PTR (v2i8_t)) out = __builtin_convertvector (fx_sat_v2q15(data, sat_v2), v2i8_t);
+}
+
+static inline void __attribute__ ((always_inline)) mli_prv_sat_and_store_2_samples (MLI_PTR (int16_t) __restrict out, v2q15_t data) {
+    /*You don't need to do additional saturation, because of it already built into the 16-bit FXAPI functions.*/
+    *(MLI_PTR (v2q15_t)) out = data;
+}
+
 static inline v2q15_t __attribute__ ((always_inline)) mli_prv_load_1_sample (const MLI_PTR (int8_t) __restrict in) {
     return fx_create_v2q15((q15_t) (*(MLI_PTR (q7_t)) in), 0);
 }

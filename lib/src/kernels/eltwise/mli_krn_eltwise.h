@@ -183,7 +183,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_add_fx (
 
         const v2q15_t broadcast_val_v2 = fx_create_v2q15(broadcast_val, broadcast_val);
         for (int idx = 0; idx < out_size / 2; idx++) {
-            mli_prv_store_2_samples(out, fx_add_v2q15(broadcast_val_v2, mli_prv_load_2_samples(vec)));
+            mli_prv_sat_and_store_2_samples(out, fx_add_v2q15(broadcast_val_v2, mli_prv_load_2_samples(vec)));
             vec += 2;
             out += 2;
         }
@@ -222,7 +222,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_sub_fx (
         const v2q15_t broadcast_val_v2 = fx_create_v2q15(broadcast_val, broadcast_val);
         // Vector minus scalar
         for (int idx = 0; idx < op1_size / 2; idx++) {
-            mli_prv_store_2_samples(out, fx_sub_v2q15(mli_prv_load_2_samples(op1), broadcast_val_v2));
+            mli_prv_sat_and_store_2_samples(out, fx_sub_v2q15(mli_prv_load_2_samples(op1), broadcast_val_v2));
             op1 += 2;
             out += 2;
         }
@@ -234,7 +234,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_sub_fx (
         const v2q15_t broadcast_val_v2 = fx_create_v2q15(broadcast_val, broadcast_val);
         // Scalar minus Vector
         for (int idx = 0; idx < op2_size / 2; idx++) {
-            mli_prv_store_2_samples(out, fx_sub_v2q15(broadcast_val_v2, mli_prv_load_2_samples(op2)));
+            mli_prv_sat_and_store_2_samples(out, fx_sub_v2q15(broadcast_val_v2, mli_prv_load_2_samples(op2)));
             op2 += 2;
             out += 2;
         }
@@ -274,7 +274,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_max_fx (
 
         const v2q15_t broadcast_val_v2 = fx_create_v2q15(broadcast_val, broadcast_val);
         for (int idx = 0; idx < out_size / 2; idx++) {
-            mli_prv_store_2_samples(out, fx_max_v2q15(broadcast_val_v2, mli_prv_load_2_samples(vec)));
+            mli_prv_sat_and_store_2_samples(out, fx_max_v2q15(broadcast_val_v2, mli_prv_load_2_samples(vec)));
             vec += 2;
             out += 2;
         }
@@ -314,7 +314,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_min_fx (
 
         const v2q15_t broadcast_val_v2 = fx_create_v2q15(broadcast_val, broadcast_val);
         for (int idx = 0; idx < out_size / 2; idx++) {
-            mli_prv_store_2_samples(out, fx_min_v2q15(broadcast_val_v2, mli_prv_load_2_samples(vec)));
+            mli_prv_sat_and_store_2_samples(out, fx_min_v2q15(broadcast_val_v2, mli_prv_load_2_samples(vec)));
             vec += 2;
             out += 2;
         }
@@ -357,7 +357,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_mul_fx (
         if ((out_size & 0x3) || (out_size < 0x7)) {
             for (int j = 0; j < (out_size & 0x3); j++) {
                 auto acc = mli_prv_init_accu((io_T)0);
-                mli_prv_load_mac(&acc, vec++, (const MLI_PTR(io_T) __restrict) & broadcast_val);
+                mli_prv_load_mac(&acc, vec++, (const io_T *__restrict) &broadcast_val);
                 mli_prv_clip_and_store_output(out++, &acc, mul_out_shift);
             }
             for (int j = 0; j < (out_size & ~0x3) / 2; j++) {
@@ -431,7 +431,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_mul_with_restricts
         if ((out_size & 0x3) || (out_size < 0x7)) {
             for (int j = 0; j < (out_size & 0x3); j++) {
                 auto acc = mli_prv_init_accu((io_T)0);
-                mli_prv_load_mac(&acc, vec++, (const MLI_PTR(io_T) __restrict) & broadcast_val);
+                mli_prv_load_mac(&acc, vec++, (const MLI_PTR(io_T) __restrict) &broadcast_val);
                 mli_prv_clip_and_store_output(out++, &acc, mul_out_shift);
             }
             for (int j = 0; j < (out_size & ~0x3) / 2; j++) {
