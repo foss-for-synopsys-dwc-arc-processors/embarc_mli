@@ -47,7 +47,7 @@ BUILD_DIR    ?= ./obj
 OUT_NAME     ?= example_cifar10_caffe
 ifeq ($(TOOLCHAIN),mwdt)
 # MWDT specific options
-CFLAGS       =  -Hnocopyr -Hpurge -Hheap=8K -Hstack=4K -Hfxapi -e_start -Bgrouplib -Hldopt=-q -O0
+CFLAGS       =  -Hnocopyr -Hpurge -Hheap=8K -Hstack=1K -Hfxapi -e_start -Bgrouplib -Hldopt=-q -O0
 else
 PREBUILT_LIB ?= $(EMBARC_MLI_DIR)/examples/prebuilt/libmli.a
 
@@ -65,7 +65,7 @@ CFLAGS      += -DV2DSP_XY
 
 # GNU toolchain linker specific options
 LDFLAGS      = --defsym=__DEFAULT_HEAP_SIZE=8k 
-LDFLAGS     += --defsym=__DEFAULT_STACK_SIZE=4k
+LDFLAGS     += --defsym=__DEFAULT_STACK_SIZE=1k
 LDFLAGS     += -Map $(OUT_DIR)/$(OUT_NAME).map
 
 #specific options for run the example with the MetaWare Debuger on the nSim simulator. 
