@@ -105,4 +105,4 @@ cleanall: clean
 	@echo Cleaning all files ..
 	-@$(RM) $(call fix_platform_path,$(OUT_DIR)/$(OUT_NAME).elf)
 	-@$(RM) $(call fix_platform_path,$(OUT_DIR)/$(OUT_NAME).map)
-	+$(MAKE) clean -C ..$(PS)..$(PS)lib$(PS)make$(PS)
+	+$(MAKE) clean -C $(EMBARC_MLI_DIR)$(PS)lib$(PS)make$(PS)
