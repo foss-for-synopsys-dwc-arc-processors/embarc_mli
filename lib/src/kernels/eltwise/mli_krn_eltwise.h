@@ -61,11 +61,13 @@ static inline void __attribute__ ((always_inline)) eltwise_op_sub_fx (
     // Simple broadcast (vector on scalar)
     //==============================================
     if (op2_size == 1) {
+        const io_T broadcast_val = *(const io_T *)op2;
         // Vector minus scalar
-        for (int idx = 0; idx < op1_size; idx++) out[idx] = mli_math_sub_fx(op1[idx], *op2);
+        for (int idx = 0; idx < op1_size; idx++) out[idx] = mli_math_sub_fx(op1[idx], broadcast_val);
     } else if (op1_size == 1) {
+        const io_T broadcast_val = *(const io_T *)op1;
         // Scalar minus Vector
-        for (int idx = 0; idx < op2_size; idx++) out[idx] = mli_math_sub_fx(*op1, op2[idx]);
+        for (int idx = 0; idx < op2_size; idx++) out[idx] = mli_math_sub_fx(broadcast_val, op2[idx]);
     } else {
         // Elemetnwise between tensors of the same shape
         //==============================================
@@ -87,7 +89,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_add_fx (
     // Simple broadcast (vector on scalar)
     //==============================================
     if (op1_size == 1 || op2_size == 1) {
-        const int8_t broadcast_val = (op1_size > op2_size) ? (*op2) : (*op1);
+        const int8_t broadcast_val = (op1_size > op2_size) ? (*(const io_T *)op2) : (*(const io_T *)op1);
         const MLI_PTR(int8_t) vec = (op1_size > op2_size) ? (MLI_PTR(int8_t))op1 : (MLI_PTR(int8_t))op2;
         const int out_size = MAX(op1_size, op2_size);
 
@@ -116,7 +118,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_max_fx (
     // Simple broadcast (vector on scalar)
     //==============================================
     if (op1_size == 1 || op2_size == 1) {
-        const int8_t broadcast_val = (op1_size > op2_size) ? (*op2) : (*op1);
+        const int8_t broadcast_val = (op1_size > op2_size) ? (*(const io_T *)op2) : (*(const io_T *)op1);
         const MLI_PTR(int8_t) vec = (op1_size > op2_size) ? (MLI_PTR(int8_t))op1 : (MLI_PTR(int8_t))op2;
         const int out_size = MAX(op1_size, op2_size);
 
@@ -145,7 +147,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_min_fx (
     // Simple broadcast (vector on scalar)
     //==============================================
     if (op1_size == 1 || op2_size == 1) {
-        const int8_t broadcast_val = (op1_size > op2_size) ? (*op2) : (*op1);
+        const int8_t broadcast_val = (op1_size > op2_size) ? (*(const io_T *)op2) : (*(const io_T *)op1);
         const MLI_PTR(int8_t) vec = (op1_size > op2_size) ? (MLI_PTR(int8_t))op1 : (MLI_PTR(int8_t))op2;
         const int out_size = MAX(op1_size, op2_size);
 
@@ -175,13 +177,13 @@ static inline void __attribute__ ((always_inline)) eltwise_op_add_fx (
     // Simple broadcast (vector on scalar)
     //==============================================
     if (op1_size == 1 || op2_size == 1) {
-        const io_T broadcast_val = (op1_size > op2_size) ? (*op2) : (*op1);
+        const io_T broadcast_val = (op1_size > op2_size) ? (*(const io_T *)op2) : (*(const io_T *)op1);
         const MLI_PTR(io_T) vec = (op1_size > op2_size) ? (MLI_PTR(io_T))op1 : (MLI_PTR(io_T))op2;
         const int out_size = MAX(op1_size, op2_size);
 
-        io_T broadcast_val_v2[] = {broadcast_val, broadcast_val};
+        const v2q15_t broadcast_val_v2 = fx_create_v2q15(broadcast_val, broadcast_val);
         for (int idx = 0; idx < out_size / 2; idx++) {
-            mli_prv_store_2_samples(out, mli_prv_load_add_vec2(vec, (const MLI_PTR(io_T)) & broadcast_val_v2));
+            mli_prv_store_2_samples(out, fx_add_v2q15(broadcast_val_v2, mli_prv_load_2_samples(vec)));
             vec += 2;
             out += 2;
         }
@@ -216,26 +218,28 @@ static inline void __attribute__ ((always_inline)) eltwise_op_sub_fx (
     // Simple broadcast (vector on scalar)
     //==============================================
     if (op2_size == 1) {
-        io_T broadcast_val_v2[] = {*op2, *op2};
+        const io_T broadcast_val = *(const io_T *)op2;
+        const v2q15_t broadcast_val_v2 = fx_create_v2q15(broadcast_val, broadcast_val);
         // Vector minus scalar
         for (int idx = 0; idx < op1_size / 2; idx++) {
-            mli_prv_store_2_samples(out, mli_prv_load_sub_vec2(op1, (const MLI_PTR(io_T)) & broadcast_val_v2));
+            mli_prv_store_2_samples(out, fx_sub_v2q15(mli_prv_load_2_samples(op1), broadcast_val_v2));
             op1 += 2;
             out += 2;
         }
         if (op1_size & 1) {
-            *out++ = mli_math_sub_fx(*op1++, *op2);
+            *out++ = mli_math_sub_fx(*op1++, broadcast_val);
         }
     } else if (op1_size == 1) {
-        io_T broadcast_val_v2[] = {*op1, *op1};
+        const io_T broadcast_val = *(const io_T *)op1;
+        const v2q15_t broadcast_val_v2 = fx_create_v2q15(broadcast_val, broadcast_val);
         // Scalar minus Vector
         for (int idx = 0; idx < op2_size / 2; idx++) {
-            mli_prv_store_2_samples(out, mli_prv_load_sub_vec2((const MLI_PTR(io_T)) & broadcast_val_v2, op2));
+            mli_prv_store_2_samples(out, fx_sub_v2q15(broadcast_val_v2, mli_prv_load_2_samples(op2)));
             op2 += 2;
             out += 2;
         }
         if (op2_size & 1) {
-            *out++ = mli_math_sub_fx(*op1, *op2++);
+            *out++ = mli_math_sub_fx(broadcast_val, *op2++);
         }
     } else {
         // Elemetnwise between tensors of the same shape
@@ -264,13 +268,13 @@ static inline void __attribute__ ((always_inline)) eltwise_op_max_fx (
     // Simple broadcast (vector on scalar)
     //==============================================
     if (op1_size == 1 || op2_size == 1) {
-        const io_T broadcast_val = (op1_size > op2_size) ? (*op2) : (*op1);
+        const io_T broadcast_val = (op1_size > op2_size) ? (*(const io_T *)op2) : (*(const io_T *)op1);
         const MLI_PTR(io_T) vec = (op1_size > op2_size) ? (MLI_PTR(io_T))op1 : (MLI_PTR(io_T))op2;
         const int out_size = MAX(op1_size, op2_size);
 
-        io_T broadcast_val_v2[] = {broadcast_val, broadcast_val};
+        const v2q15_t broadcast_val_v2 = fx_create_v2q15(broadcast_val, broadcast_val);
         for (int idx = 0; idx < out_size / 2; idx++) {
-            mli_prv_store_2_samples(out, mli_prv_load_max_vec2(vec, (const MLI_PTR(io_T)) & broadcast_val_v2));
+            mli_prv_store_2_samples(out, fx_max_v2q15(broadcast_val_v2, mli_prv_load_2_samples(vec)));
             vec += 2;
             out += 2;
         }
@@ -304,13 +308,13 @@ static inline void __attribute__ ((always_inline)) eltwise_op_min_fx (
     // Simple broadcast (vector on scalar)
     //==============================================
     if (op1_size == 1 || op2_size == 1) {
-        const io_T broadcast_val = (op1_size > op2_size) ? (*op2) : (*op1);
+        const io_T broadcast_val = (op1_size > op2_size) ? (*(const io_T *)op2) : (*(const io_T *)op1);
         const MLI_PTR(io_T) vec = (op1_size > op2_size) ? (MLI_PTR(io_T))op1 : (MLI_PTR(io_T))op2;
         const int out_size = MAX(op1_size, op2_size);
 
-        io_T broadcast_val_v2[] = {broadcast_val, broadcast_val};
+        const v2q15_t broadcast_val_v2 = fx_create_v2q15(broadcast_val, broadcast_val);
         for (int idx = 0; idx < out_size / 2; idx++) {
-            mli_prv_store_2_samples(out, mli_prv_load_min_vec2(vec, (const MLI_PTR(io_T)) & broadcast_val_v2));
+            mli_prv_store_2_samples(out, fx_min_v2q15(broadcast_val_v2, mli_prv_load_2_samples(vec)));
             vec += 2;
             out += 2;
         }
@@ -345,7 +349,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_mul_fx (
     // Simple broadcast (vector on scalar)
     //==============================================
     if (op1_size == 1 || op2_size == 1) {
-        const io_T broadcast_val = (op1_size > op2_size) ? (*op2) : (*op1);
+        const io_T broadcast_val = (op1_size > op2_size) ? (*(const io_T *)op2) : (*(const io_T *)op1);
         const MLI_PTR(io_T) vec = (op1_size > op2_size) ? op1 : op2;
         const int out_size = MAX(op1_size, op2_size);
         v2q15_t broadcast_val_v2 = {broadcast_val, broadcast_val};
@@ -419,7 +423,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_mul_with_restricts
     // Simple broadcast (vector on scalar)
     //==============================================
     if (op1_size == 1 || op2_size == 1) {
-        const io_T broadcast_val = (op1_size > op2_size) ? (*op2) : (*op1);
+        const io_T broadcast_val = (op1_size > op2_size) ? (*(const io_T *)op2) : (*(const io_T *)op1);
         const MLI_PTR(io_T) vec = (op1_size > op2_size) ? op1 : op2;
         const int out_size = MAX(op1_size, op2_size);
         v2q15_t broadcast_val_v2 = {broadcast_val, broadcast_val};
