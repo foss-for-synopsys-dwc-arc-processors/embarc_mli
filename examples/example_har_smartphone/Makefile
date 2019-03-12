@@ -88,7 +88,7 @@ include $(EMBARC_MLI_DIR)/build/rules.mk
 
 ifeq ($(TOOLCHAIN),mwdt)
 lib:
-	@ $(MAKE) generic_lib -C ..$(PS)..$(PS)lib$(PS)make$(PS) TCF_FILE="$(TCF_FILE)"
+	@ $(MAKE) generic_lib -C $(EMBARC_MLI_DIR)$(PS)lib$(PS)make$(PS) TCF_FILE="$(TCF_FILE)"
 else
 lib: $(EXT_LIBS)
 endif
