@@ -256,15 +256,15 @@ static const mli_tensor L4_fc_bias = {
 //  (MODEL_BIT_DEPTH define)
 //
 //==============================================================
-static inline mli_status relu(const mli_tensor *in, const mli_relu_cfg *cfg, mli_tensor *out);
+static inline mli_status nn_relu(const mli_tensor *in, const mli_relu_cfg *cfg, mli_tensor *out);
 
-static inline mli_status fully_connected(
+static inline mli_status nn_fully_connected(
         const mli_tensor *in,
         const mli_tensor *weights,
         const mli_tensor  *bias,
         mli_tensor   *out);
 
-static inline mli_status lstm_cell(
+static inline mli_status nn_lstm_cell(
         const mli_tensor *in,
         const mli_tensor *prev_out,
         const mli_tensor *weights,
@@ -274,15 +274,15 @@ static inline mli_status lstm_cell(
         mli_tensor *out);
 
 #if defined(CUSTOM_USER_LSTM_LAYER3)
-static inline mli_status sigm(const mli_tensor *in, mli_tensor *out);
+static inline mli_status nn_sigm(const mli_tensor *in, mli_tensor *out);
 
-static inline mli_status tanh(const mli_tensor *in, mli_tensor *out);
+static inline mli_status nn_tanh(const mli_tensor *in, mli_tensor *out);
 
-static inline mli_status eltwise_mul(const mli_tensor *in1, const mli_tensor *in2, mli_tensor *out);
+static inline mli_status nn_eltwise_mul(const mli_tensor *in1, const mli_tensor *in2, mli_tensor *out);
 
-static inline mli_status eltwise_add(const mli_tensor *in1, const mli_tensor *in2, mli_tensor *out);
+static inline mli_status nn_eltwise_add(const mli_tensor *in1, const mli_tensor *in2, mli_tensor *out);
 
-static inline mli_status rnn_cell(
+static inline mli_status nn_rnn_cell(
         const mli_tensor *in,
         const mli_tensor *prev_out,
         const mli_tensor  *weights,
@@ -327,7 +327,7 @@ void har_smartphone_net(const char * debug_ir_root) {
         //=======================================
         ir_tensor_Y.el_params.fx.frac_bits = FC1_OUT_FRAQ;
         user_fc_on_multiple_samples(&input, &ir_tensor_Y);
-        relu(&ir_tensor_Y, &L1_relu_cfg, &ir_tensor_X);
+        nn_relu(&ir_tensor_Y, &L1_relu_cfg, &ir_tensor_X);
 
         // LAYER 2
         //=======================================
@@ -341,7 +341,7 @@ void har_smartphone_net(const char * debug_ir_root) {
         lstm_prev_tensor.el_params.fx.frac_bits = LSTM2_OUT_FRAQ;
         lstm_cell_tensor.el_params.fx.frac_bits = LSTM2_CELL_FRAQ;
 
-        lstm_cell(&ir_tensor_X, &lstm_prev_tensor, &L2_lstm_wt, &L2_lstm_bias,
+        nn_lstm_cell(&ir_tensor_X, &lstm_prev_tensor, &L2_lstm_wt, &L2_lstm_bias,
                 &L2_lstm_cfg, &lstm_cell_tensor, &ir_tensor_Y);
 
         // LAYER 3
@@ -362,7 +362,7 @@ void har_smartphone_net(const char * debug_ir_root) {
         // LAYER 4
         //=======================================
         output.el_params.fx.frac_bits = FC4_OUT_FRAQ;
-        fully_connected(&ir_tensor_X, &L4_fc_wt, &L4_fc_bias, &output);
+        nn_fully_connected(&ir_tensor_X, &L4_fc_wt, &L4_fc_bias, &output);
     } else {
         // Version A: Wrapped by service code for profiling and IR results checking purpose
         //========================================================================================
@@ -380,7 +380,7 @@ void har_smartphone_net(const char * debug_ir_root) {
         check_result(debug_ir_root, "ir_fc1.idx", &ir_tensor_Y, cycle_cnt, ret);
         layer1_cycles += cycle_cnt;
 
-        PROFILE(ret = relu(&ir_tensor_Y, &L1_relu_cfg, &ir_tensor_X));
+        PROFILE(ret = nn_relu(&ir_tensor_Y, &L1_relu_cfg, &ir_tensor_X));
         check_result(debug_ir_root, "ir_relu1.idx", &ir_tensor_X, cycle_cnt, ret);
         layer1_cycles += cycle_cnt;
 
@@ -397,7 +397,7 @@ void har_smartphone_net(const char * debug_ir_root) {
         lstm_prev_tensor.el_params.fx.frac_bits = LSTM2_OUT_FRAQ;
         lstm_cell_tensor.el_params.fx.frac_bits = LSTM2_CELL_FRAQ;
 
-        PROFILE(ret = lstm_cell(&ir_tensor_X, &lstm_prev_tensor,
+        PROFILE(ret = nn_lstm_cell(&ir_tensor_X, &lstm_prev_tensor,
                 &L2_lstm_wt, &L2_lstm_bias, &L2_lstm_cfg, &lstm_cell_tensor, &ir_tensor_Y));
         check_result(debug_ir_root, "ir_lstm2.idx", &ir_tensor_Y, cycle_cnt, ret);
         layer2_cycles += cycle_cnt;
@@ -422,7 +422,7 @@ void har_smartphone_net(const char * debug_ir_root) {
         // LAYER 4
         //=======================================
         output.el_params.fx.frac_bits = FC4_OUT_FRAQ;
-        PROFILE(ret = fully_connected(&ir_tensor_X, &L4_fc_wt, &L4_fc_bias, &output));
+        PROFILE(ret = nn_fully_connected(&ir_tensor_X, &L4_fc_wt, &L4_fc_bias, &output));
         check_result(debug_ir_root, "ir_fc4.idx", &output, cycle_cnt, ret);
         layer4_cycles += cycle_cnt;
 
@@ -457,7 +457,7 @@ static mli_status user_fc_on_multiple_samples(const mli_tensor *layer_input, mli
     unsigned next_out_add = mli_hlp_count_elem_num(&L1_fc_bias, 0) * mli_hlp_tensor_element_size(&fc1_in);
     unsigned next_in_add = fc1_in.capacity;
     for (int batch_idx = 0; batch_idx < layer_input->shape[0]; batch_idx++) {
-        ret_val = fully_connected(&fc1_in, &L1_fc_wt, &L1_fc_bias, &fc1_out);
+        ret_val = nn_fully_connected(&fc1_in, &L1_fc_wt, &L1_fc_bias, &fc1_out);
         if (ret_val != MLI_STATUS_OK)
             return ret_val;
 
@@ -488,7 +488,7 @@ static mli_status user_lstm_batch_to_last(
         mli_tensor *out) {
 #if !defined(CUSTOM_USER_LSTM_LAYER3)
     // Might be replaced with MLI function
-    return lstm_cell(in, prev_out, weights, bias, lstm_cfg, cell, out);
+    return nn_lstm_cell(in, prev_out, weights, bias, lstm_cfg, cell, out);
 #else
     mli_status ret_val = MLI_STATUS_OK;
 
@@ -514,7 +514,7 @@ static mli_status user_lstm_batch_to_last(
     if (ret_val != MLI_STATUS_OK)
         return ret_val;
 
-    ret_val = rnn_cell(&rnn_in, rnn_prev, weights, bias, &rnn_cfg, ir_tensor);
+    ret_val = nn_rnn_cell(&rnn_in, rnn_prev, weights, bias, &rnn_cfg, ir_tensor);
     if (ret_val != MLI_STATUS_OK)
         return ret_val;
 
@@ -539,36 +539,36 @@ static mli_status user_lstm_batch_to_last(
     //===============================================================
     for (int batch_idx = 0; batch_idx < in->shape[0]; batch_idx++) {
         //Step 2: Applying non-linearity
-        ret_val = sigm(&in_gate, &in_gate);
+        ret_val = nn_sigm(&in_gate, &in_gate);
         if (ret_val == MLI_STATUS_OK)
-            ret_val = tanh(&g_tsr, &g_tsr);
+            ret_val = nn_tanh(&g_tsr, &g_tsr);
         if (ret_val == MLI_STATUS_OK)
-            ret_val = sigm(&forget_gate, &forget_gate);
+            ret_val = nn_sigm(&forget_gate, &forget_gate);
         if (ret_val == MLI_STATUS_OK)
-            ret_val = sigm(&out_gate, &out_gate);
+            ret_val = nn_sigm(&out_gate, &out_gate);
         if (ret_val != MLI_STATUS_OK)
             return ret_val;
 
         // Step 3: Pointwise operations
-        ret_val = eltwise_mul(&forget_gate, cell, cell);
+        ret_val = nn_eltwise_mul(&forget_gate, cell, cell);
         if (ret_val == MLI_STATUS_OK)
-            ret_val = eltwise_mul(&in_gate, &g_tsr, &new_g);
+            ret_val = nn_eltwise_mul(&in_gate, &g_tsr, &new_g);
         if (ret_val == MLI_STATUS_OK)
-            ret_val = eltwise_add(cell, &new_g, cell);
+            ret_val = nn_eltwise_add(cell, &new_g, cell);
         if (ret_val != MLI_STATUS_OK)
             return ret_val;
 
         // Step 4: Calculate next output
-        ret_val = tanh(cell, out);
+        ret_val = nn_tanh(cell, out);
         if (ret_val == MLI_STATUS_OK)
-            ret_val = eltwise_mul(out, &out_gate, out);
+            ret_val = nn_eltwise_mul(out, &out_gate, out);
         if (ret_val != MLI_STATUS_OK)
             return ret_val;
 
         //Next sample: Step 1: Fully connected
         if (batch_idx < in->shape[0]-1) {
             rnn_in.data += next_in_add;
-            ret_val = rnn_cell(&rnn_in, rnn_prev, weights, bias, &rnn_cfg, ir_tensor);
+            ret_val = nn_rnn_cell(&rnn_in, rnn_prev, weights, bias, &rnn_cfg, ir_tensor);
             if (ret_val != MLI_STATUS_OK)
                         return ret_val;
 
@@ -617,47 +617,47 @@ static void check_result(const char * ir_root, const char * ref_file, mli_tensor
 //  MLI Functions wrappers: Kernels w/o weights
 //========================================================================================
 #if (MODEL_BIT_DEPTH != MODEL_FX_8)
-static inline mli_status relu(const mli_tensor *in, const mli_relu_cfg *cfg, mli_tensor *out) {
+static inline mli_status nn_relu(const mli_tensor *in, const mli_relu_cfg *cfg, mli_tensor *out) {
     return mli_krn_relu_fx16(in, cfg, out);
 }
 
 #if defined(CUSTOM_USER_LSTM_LAYER3)
-static inline mli_status sigm(const mli_tensor *in, mli_tensor *out) {
+static inline mli_status nn_sigm(const mli_tensor *in, mli_tensor *out) {
     return mli_krn_sigm_fx16(in, out);
 }
 
-static inline mli_status tanh(const mli_tensor *in, mli_tensor *out) {
+static inline mli_status nn_tanh(const mli_tensor *in, mli_tensor *out) {
     return mli_krn_tanh_fx16(in, out);
 }
 
-static inline mli_status eltwise_mul(const mli_tensor *in1, const mli_tensor *in2, mli_tensor *out) {
+static inline mli_status nn_eltwise_mul(const mli_tensor *in1, const mli_tensor *in2, mli_tensor *out) {
     return mli_krn_eltwise_mul_fx16(in1, in2, out);
 }
 
-static inline mli_status eltwise_add(const mli_tensor *in1, const mli_tensor *in2, mli_tensor *out) {
+static inline mli_status nn_eltwise_add(const mli_tensor *in1, const mli_tensor *in2, mli_tensor *out) {
     return mli_krn_eltwise_add_fx16(in1, in2, out);
 }
 #endif
 
 #else // MODEL_BIT_DEPTH == (MODEL_FX_8W16D || MODEL_FX_8W16D)
-static inline mli_status relu(const mli_tensor *in, const mli_relu_cfg *cfg, mli_tensor *out) {
+static inline mli_status nn_relu(const mli_tensor *in, const mli_relu_cfg *cfg, mli_tensor *out) {
     return mli_krn_relu_fx8(in, cfg, out);
 }
 
 #if defined(CUSTOM_USER_LSTM_LAYER3)
-static inline mli_status sigm(const mli_tensor *in, mli_tensor *out) {
+static inline mli_status nn_sigm(const mli_tensor *in, mli_tensor *out) {
     return mli_krn_sigm_fx8(in, out);
 }
 
-static inline mli_status tanh(const mli_tensor *in, mli_tensor *out) {
+static inline mli_status nn_tanh(const mli_tensor *in, mli_tensor *out) {
     return mli_krn_tanh_fx8(in, out);
 }
 
-static inline mli_status eltwise_mul(const mli_tensor *in1, const mli_tensor *in2, mli_tensor *out) {
+static inline mli_status nn_eltwise_mul(const mli_tensor *in1, const mli_tensor *in2, mli_tensor *out) {
     return mli_krn_eltwise_mul_fx8(in1, in2, out);
 }
 
-static inline mli_status eltwise_add(const mli_tensor *in1, const mli_tensor *in2, mli_tensor *out) {
+static inline mli_status nn_eltwise_add(const mli_tensor *in1, const mli_tensor *in2, mli_tensor *out) {
     return mli_krn_eltwise_add_fx8(in1, in2, out);
 }
 #endif
@@ -668,7 +668,7 @@ static inline mli_status eltwise_add(const mli_tensor *in1, const mli_tensor *in
 //  MLI Functions wrappers: Kernels with weights
 //========================================================================================
 #if (MODEL_BIT_DEPTH == MODEL_FX_8)
-static inline mli_status fully_connected(
+static inline mli_status nn_fully_connected(
         const mli_tensor *in,
         const mli_tensor *weights,
         const mli_tensor *bias,
@@ -676,7 +676,7 @@ static inline mli_status fully_connected(
     return mli_krn_fully_connected_fx8(in, weights, bias, out);
 }
 
-static inline mli_status lstm_cell(
+static inline mli_status nn_lstm_cell(
         const mli_tensor *in,
         const mli_tensor *prev_out,
         const mli_tensor *weights,
@@ -688,7 +688,7 @@ static inline mli_status lstm_cell(
 }
 
 #if defined(CUSTOM_USER_LSTM_LAYER3)
-static inline mli_status rnn_cell(
+static inline mli_status nn_rnn_cell(
         const mli_tensor *in,
         const mli_tensor *prev_out,
         const mli_tensor  *weights,
@@ -700,7 +700,7 @@ static inline mli_status rnn_cell(
 #endif
 
 #elif (MODEL_BIT_DEPTH == MODEL_FX_16)
-static inline mli_status fully_connected(
+static inline mli_status nn_fully_connected(
         const mli_tensor *in,
         const mli_tensor *weights,
         const mli_tensor *bias,
@@ -708,7 +708,7 @@ static inline mli_status fully_connected(
     return mli_krn_fully_connected_fx16(in, weights, bias, out);
 }
 
-static inline mli_status lstm_cell(
+static inline mli_status nn_lstm_cell(
         const mli_tensor *in,
         const mli_tensor *prev_out,
         const mli_tensor *weights,
@@ -720,7 +720,7 @@ static inline mli_status lstm_cell(
 }
 
 #if defined(CUSTOM_USER_LSTM_LAYER3)
-static inline mli_status rnn_cell(
+static inline mli_status nn_rnn_cell(
         const mli_tensor *in,
         const mli_tensor *prev_out,
         const mli_tensor  *weights,
@@ -732,7 +732,7 @@ static inline mli_status rnn_cell(
 #endif
 
 #else // MODEL_BIT_DEPTH == MODEL_FX_8W16D
-static inline mli_status fully_connected(
+static inline mli_status nn_fully_connected(
         const mli_tensor *in,
         const mli_tensor *weights,
         const mli_tensor *bias,
@@ -740,7 +740,7 @@ static inline mli_status fully_connected(
     return mli_krn_fully_connected_fx8w16d(in, weights, bias, out);
 }
 
-static inline mli_status lstm_cell(
+static inline mli_status nn_lstm_cell(
         const mli_tensor *in,
         const mli_tensor *prev_out,
         const mli_tensor *weights,
@@ -752,7 +752,7 @@ static inline mli_status lstm_cell(
 }
 
 #if defined(CUSTOM_USER_LSTM_LAYER3)
-static inline mli_status rnn_cell(
+static inline mli_status nn_rnn_cell(
         const mli_tensor *in,
         const mli_tensor *prev_out,
         const mli_tensor  *weights,
