@@ -539,7 +539,8 @@ static inline void __attribute__ ((always_inline)) mli_prv_load_mac(
 }
 
 static inline void __attribute__ ((always_inline)) mli_prv_load_mac(
-        int32_t * accu, const MLI_PTR(int16_t) __restrict in,
+        int32_t * accu, 
+        const MLI_PTR(int16_t) __restrict in,
         const MLI_PTR(int8_t) __restrict k) {
     /* casting the in pointer to unsigned to make sure no sign extension happens on the load
      * this way the 'second' byte contains zeros. and it is safe to use dmac.
@@ -550,6 +551,38 @@ static inline void __attribute__ ((always_inline)) mli_prv_load_mac(
     *accu = _dmachbl(*in, *(MLI_PTR(uint8_t)) k);
 }
 
+static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec_on_scalar(
+        accum40_t * accu,
+        const MLI_PTR(int16_t) __restrict in,
+        const int16_t *__restrict k) {
+    *accu = fx_a40_mac_q15(*accu, *in, *k);
+}
+
+static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec_on_scalar(
+        int32_t * accu,
+        const MLI_PTR(int8_t) __restrict in,
+        const int8_t *__restrict k) {
+    /* casting the in pointer to unsigned to make sure no sign extension happens on the load
+     * this way the 'second' byte contains zeros. and it is safe to use dmac.
+     * the sign extension happens inside the dmachbl operation.
+     * for the load of 'k' we need sign extension because we need a 16bit value.
+     * the value of the second half is don't care because it will be multiplied by 0
+     */
+    *accu = _dmachbl(*k, *(uint8_t *) in);
+}
+
+static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec_on_scalar(
+        int32_t * accu, 
+        const MLI_PTR(int16_t) __restrict in,
+        const int8_t *__restrict k) {
+    /* casting the in pointer to unsigned to make sure no sign extension happens on the load
+     * this way the 'second' byte contains zeros. and it is safe to use dmac.
+     * the sign extension happens inside the dmachbl operation.
+     * for the load of 'in' we need sign extension because we need a 16bit value.
+     * the value of the second half is don't care because it will be multiplied by 0
+     */
+    *accu = _dmachbl(*in, *(uint8_t *) k);
+}
 
 static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec2(
         accum40_t * accu, 

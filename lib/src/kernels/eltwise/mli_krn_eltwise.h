@@ -357,7 +357,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_mul_fx (
         if ((out_size & 0x3) || (out_size < 0x7)) {
             for (int j = 0; j < (out_size & 0x3); j++) {
                 auto acc = mli_prv_init_accu((io_T)0);
-                mli_prv_load_mac(&acc, vec++, (const io_T *__restrict) &broadcast_val);
+                mli_prv_load_mac_vec_on_scalar(&acc, vec++, (const io_T *__restrict) &broadcast_val);
                 mli_prv_clip_and_store_output(out++, &acc, mul_out_shift);
             }
             for (int j = 0; j < (out_size & ~0x3) / 2; j++) {
@@ -431,7 +431,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_mul_with_restricts
         if ((out_size & 0x3) || (out_size < 0x7)) {
             for (int j = 0; j < (out_size & 0x3); j++) {
                 auto acc = mli_prv_init_accu((io_T)0);
-                mli_prv_load_mac(&acc, vec++, (const io_T *__restrict) &broadcast_val);
+                mli_prv_load_mac_vec_on_scalar(&acc, vec++, (const io_T *__restrict) &broadcast_val);
                 mli_prv_clip_and_store_output(out++, &acc, mul_out_shift);
             }
             for (int j = 0; j < (out_size & ~0x3) / 2; j++) {
