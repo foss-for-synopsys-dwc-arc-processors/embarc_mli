@@ -630,7 +630,7 @@ DSP Control
    Ensure that you build the library with the appropriate command line
    parameter:
 
-   ``-Xdsp_ctrl=postshift,guard,up``
+   ``-Xdsp_ctrl=postshift,guard,convergent``
 
 ..   
    
