@@ -577,10 +577,10 @@ Target Platform Definition (ARC_PLATFORM)
 Function Parameters Examination and Debug (MLI_DEBUG_MODE)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-   MLI Library supports three debug modes. You can choose the debug mode
+   MLI Library supports five debug modes. You can choose the debug mode
    by setting MLI_DEBUG_MODE define as follows:
 
-   -  **DBG_MODE_RELEASE** (**MLI_DEBUG_MODE** = 0) – No debug. Functions
+   -  **DBG_MODE_RELEASE** (**MLI_DEBUG_MODE** = 0) - No debug. Functions
       do not examine parameters, and process data assuming they are valid.
       This might lead to undefined behavior if the assumption is not true.
       Functions always return MLI_STATUS_OK. No messages are printed, and
@@ -591,13 +591,23 @@ Function Parameters Examination and Debug (MLI_DEBUG_MODE)
       found. Else, functions process data and return status MLI_STATUS_OK.
       No messages are printed and no assertions are used.
 
-   -  **DBG_MODE_FULL** (**MLI_DEBUG_MODE** = 3) – Functions examine
+   -  **DBG_MODE_ASSERT** (**MLI_DEBUG_MODE** = 2) - Functions examine
+      parameters. If any violation of data is found, the function tries to
+      break the execution using **assert()** function. If the **assert()**
+      function does not break the execution, function returns error status.
+
+   -  **DBG_MODE_DEBUG** (**MLI_DEBUG_MODE** = 3) - Functions examine
       parameters. If any violation of data is found, the function prints a
       descriptive message using standard **printf()** function and tries to
       break the execution using **assert()** function. If the **assert()**
       function does not break the execution, function returns error status.
 
-..
+   -  **DBG_MODE_FULL** (**MLI_DEBUG_MODE** = 4) - Functions examine
+      parameters. If any violation of data is found, the function prints a
+      descriptive message using standard **printf()** function and tries to
+      break the execution using **assert()** function. Extra assertions inside 
+      loops are used for this mode . If the **assert()**  function does not 
+      break the execution, function returns error status.
 
    By default, ``MLI_DEBUG_MODE`` is set to ``DBG_MODE_RELEASE``.
 
