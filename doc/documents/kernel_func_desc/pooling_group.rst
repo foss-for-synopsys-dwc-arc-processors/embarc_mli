@@ -170,7 +170,6 @@ Function Specializations
    +--------------------------------------+-----------------------------------+
    | ``mli_krn_maxpool_chw_fx16``         | Switching function (see           |
    |                                      | :ref:`fns`); 16bit FX tensors;    |
-   |                                      |                                   |
    |                                      | Delegates calculations to         |
    |                                      | suitable specialization or        |
    |                                      | generic function.                 |
@@ -357,7 +356,7 @@ Function Specializations
    |                                     | suitable specialization or        |
    |                                     | generic function.                 |
    +-------------------------------------+-----------------------------------+
-   | mli_krn_avepool_chw_fx16            | Switching function (see           |
+   | ``mli_krn_avepool_chw_fx16``        | Switching function (see           |
    |                                     | :ref:`fns`); 16bit FX tensors;    |
    |                                     | Delegates calculations to         |
    |                                     | suitable specialization or        |

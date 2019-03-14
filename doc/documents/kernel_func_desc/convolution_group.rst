@@ -82,13 +82,13 @@ Function Configuration Structure
 |                       |.. code:: c                                        |
 |                       |                                                   |
 | **Definition**        | typedef struct {                                  |
+|                       |    mli_relu_cfg relu;                             |
 |                       |    uint8_t stride_width;                          |
 |                       |    uint8_t  stride_height;                        |
 |                       |    uint8_t padding_left;                          |
 |                       |    uint8_t padding_right;                         |
 |                       |    uint8_t padding_top;                           |
 |                       |    uint8_t  padding_bottom;                       |
-|                       |    mli_relu_cfg relu;                             |
 |                       | } mli_conv2d_cfg;                                 |
 |                       |                                                   |
 +-----------------------+-----------------------+---------------------------+
@@ -389,13 +389,17 @@ Function Specializations
    |                                               | suitable specialization or        |
    |                                               | generic function.                 |
    +-----------------------------------------------+-----------------------------------+
-   | ``mli_krn_depthwise_conv2d_chw_fx8w16d``      | General function; 8bit FX tensors |
-   |                                               |                                   |
+   | ``mli_krn_depthwise_conv2d_chw_fx8w16d``      | General function; FX tensors      |
+   |                                               | (8bit weights and biases, 16 bit  |
+   |                                               | input and output)                 |
    +-----------------------------------------------+-----------------------------------+
-   | ``mli_krn_depthwise_conv2d_chw_fx8_generic``  | General function; 16bit FX        |
+   | ``mli_krn_depthwise_conv2d_chw_fx8_generic``  | General function; 8bit FX         |
    |                                               | tensors                           |
    +-----------------------------------------------+-----------------------------------+
-   | ``mli_krn_depthwise_conv2d_chw_fx16_generic`` | Specialization function*; 8bit FX |
+   | ``mli_krn_depthwise_conv2d_chw_fx16_generic`` | General function; 16bit FX        |
+   |                                               | tensors                           |
+   +-----------------------------------------------+-----------------------------------+
+   | ``mli_krn_depthwise_conv2d_chw_fx16_[spec]``  | Specialization function*; 8bit FX |
    |                                               | tensors                           |
    +-----------------------------------------------+-----------------------------------+
    | ``mli_krn_depthwise_conv2d_chw_fx16_[spec]``  | Specialization function*; 16bit   |
@@ -450,4 +454,4 @@ Conditions for Applying the Function
 
    -  Additional restrictions for specialized functions are described in
       section :ref:`spec_fns`.
-	  
+  
