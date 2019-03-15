@@ -581,7 +581,8 @@ Function Parameters Examination and Debug (MLI_DEBUG_MODE)
    by setting MLI_DEBUG_MODE define as follows:
 
    -  **DBG_MODE_RELEASE** (**MLI_DEBUG_MODE** = 0) - No debug. Functions
-      do not examine parameters, and process data assuming they are valid.
+      do not examine parameters. Data is processed with assumption that function 
+      input is  valid.
       This might lead to undefined behavior if the assumption is not true.
       Functions always return MLI_STATUS_OK. No messages are printed, and
       no assertions are used.
