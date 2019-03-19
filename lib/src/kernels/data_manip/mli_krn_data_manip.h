@@ -1,24 +1,12 @@
 /*
-//
-// CONFIDENTIAL AND PROPRIETARY INFORMATION
-//
-// Copyright (c) 2018 Synopsys, Inc. All rights reserved.
-// This software and documentation contain confidential and
-// proprietary information that is the property of
-// Synopsys, Inc. The software and documentation are
-// furnished under a license agreement and may be used
-// or copied only in accordance with the terms of the license
-// agreement. No part of the software and documentation
-// may be reproduced, transmitted, or translated, in any
-// form or by any means, electronic, mechanical, manual,
-// optical, or otherwise, without prior written permission
-// of Synopsys, Inc., or as expressly provided by the license agreement.
-// Reverse engineering is prohibited, and reproduction,
-// disclosure or use without specific written authorization
-// of Synopsys Inc. is strictly forbidden.
-//
-//
+* Copyright 2019, Synopsys, Inc.
+* All rights reserved.
+*
+* This source code is licensed under the BSD-3-Clause license found in
+* the LICENSE file in the root directory of this source tree.
+*
 */
+
 #ifndef _MLI_KRN_DATA_MANIP_H_
 #define _MLI_KRN_DATA_MANIP_H_
 
