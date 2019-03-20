@@ -10,11 +10,16 @@ Welcome to embARC Machine Learning Inference Library documentation!
    :maxdepth: 2
    :caption: Contents:
    
-   initial/index.rst
-   mli_api_desc/index.rst
-   kernel_func_desc/index.rst
-   helper_func_desc/index.rst
-   final/references.rst
+   overview/overview.rst
+   getting_started/getting_started.rst
+   library_model/library_model.rst
+   MLI_FP_data_format/MLI_FP_data_format.rst
+   MLI_kernels/MLI_kernels.rst
+   MLI_helpers/MLI_helpers.rst
+  
+Indices and tables
+==================
 
-..
-
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

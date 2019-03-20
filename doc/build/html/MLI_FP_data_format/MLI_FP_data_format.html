@@ -1,0 +1,575 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>MLI Fixed-Point Data Format &mdash; embARC Machine Learning Inference Library 1.00a documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/style_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="MLI Kernels" href="../MLI_kernels/MLI_kernels.html" />
+    <link rel="prev" title="Hardware Dependencies and Configurability" href="../library_model/hw_dependencies_config.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> embARC Machine Learning Inference Library
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.00a
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../overview/overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../library_model/library_model.html">Library Model</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">MLI Fixed-Point Data Format</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#data-storage">Data storage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#operations-on-fx-values">Operations on FX values</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#data-format-conversion">Data Format Conversion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#addition-and-subtraction">Addition and Subtraction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#multiplication">Multiplication</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#division">Division</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#accumulation">Accumulation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#arcv2dsp-implementation-specifics">ARCv2DSP Implementation Specifics</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#bias-for-mac-based-kernels">Bias for MAC-based Kernels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#configurability-of-output-tensors-fractional-bits">Configurability of Output Tensors Fractional Bits</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#quantization-influence-of-accumulator-bit-depth">Quantization: Influence of Accumulator Bit Depth</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../MLI_kernels/MLI_kernels.html">MLI Kernels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI helpers</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">embARC Machine Learning Inference Library</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>MLI Fixed-Point Data Format</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/MLI_FP_data_format/MLI_FP_data_format.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="mli-fixed-point-data-format">
+<span id="mli-fpd-fmt"></span><h1>MLI Fixed-Point Data Format<a class="headerlink" href="#mli-fixed-point-data-format" title="Permalink to this headline">¶</a></h1>
+<blockquote>
+<div><p>The MLI Library is targeting ARCv2DSP based platform and implies
+efficient usage of its DSP Features. For this reason, there is some
+specificity of basic data types and arithmetical operations using it
+in comparison with operations using float-point values.</p>
+<p>Default MLI Fixed-point data format (represented by tensors of
+<code class="docutils literal notranslate"><span class="pre">MLI_EL_FX_8</span></code> and <code class="docutils literal notranslate"><span class="pre">MLI_EL_FX_16</span></code> element types) reflects general signed
+values interpreted by typical Q notation [1,2]. The following
+designation is used:</p>
+<ul class="simple">
+<li>value of <em>Qm.n</em> format have <em>m</em> bits for integer part (excluding sign bit),
+and <em>n</em> bits for fractional part.</li>
+<li>value of <em>Q.n</em> format have <em>n</em> bits for fractional part<em>.</em> The rest of the
+non-sign bits are assumed to hold an integer part.</li>
+</ul>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>For more information regarding Q notation, see</p>
+<ul class="last simple">
+<li><a class="reference external" href="https://en.wikipedia.org/wiki/Q_(number_format)">Q Notation</a></li>
+<li><a class="reference external" href="http://x86asm.net/articles/fixed-point-arithmetic-and-tricks/">Q Notation tips and tricks</a></li>
+</ul>
+</div>
+<div class="section" id="data-storage">
+<h2>Data storage<a class="headerlink" href="#data-storage" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><p>The container of the tensor’s values is always signed two’s
+complemented integer numbers: 8 bit for <code class="docutils literal notranslate"><span class="pre">MLI_EL_FX_8</span></code> (also referred to as <code class="docutils literal notranslate"><span class="pre">fx8</span></code>) and
+16 bit for <code class="docutils literal notranslate"><span class="pre">MLI_EL_FX_16</span></code> (also referred to as <code class="docutils literal notranslate"><span class="pre">fx16</span></code>). <code class="docutils literal notranslate"><span class="pre">mli_tensor</span></code> keeps only number
+of fractional bits (see <code class="docutils literal notranslate"><span class="pre">fx.frac_bits</span></code> in <a class="reference internal" href="../library_model/data.html#mli-el-prm-u"><span class="std std-ref">mli_element_params Union</span></a>),
+which corresponds to the second designation above.</p>
+<p>Examples:</p>
+<p>Given 0x4000h (16384) value in 16bit container,</p>
+<ul class="simple">
+<li>In Q0.15 (and Q.15) format, this represents 0.5</li>
+<li>In Q1.14 (and Q.14) format, this represents 1.0</li>
+</ul>
+<p>For more information on how to get the real value of tensor from fx,
+see <a class="reference internal" href="#data-fmt-conv"><span class="std std-ref">Data Format Conversion</span></a>.</p>
+<p>Number of fractional bits must be nonnegative value. Number of
+fractional bits might be bigger than total number of containers
+significant (not-sign) bits. In this case all bits not present in the
+container implied equal to sign bit.</p>
+<p>Examples:</p>
+<p>Given 0x0020 (32) in Q.10 format,</p>
+<ul class="simple">
+<li>For a 16 bit container (Q5.10), this represents 0.3125 real value.</li>
+<li>The value also can be stored in an 8 bit container without
+misrepresentation. Therefore, 0x20 in Q-3.10 format is equivalent to
+0.3125 real value.</li>
+</ul>
+<p>Given 0x0220 (544) in Q.10 format,</p>
+<ul class="simple">
+<li>For 16 bit container (Q5.10), this represent 0.53125 real value.</li>
+<li>The value cannot be stored in an 8 bit container in the same Q
+format. Therefore, conversion is required.</li>
+</ul>
+<p>Values originally stored in the containers with a larger number of
+bits can be represented in a container with smaller number of bits
+only with a certain accuracy. For the same reason, values originally
+stored as single precision floating point numbers cannot be
+accurately represented in fx16 or fx8 formats, since usually have 24
+bits for the mantissa.</p>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Asymmetricity of signed integer types affects FX  representation. fx8 container (int8_t) holds values in range of [-128, 127] which means that FX representation of this number is also asymmetric. So for Q.7 format, this range is [-1, 1), or
+to be more precise [-1.0, 0.9921875] (excluding 1.0). Similarly, fx16 container (int16_t) holds values in range of [-32768, 32767]. For Q.15 format, the range is [-1, 0.999969482421875].</p>
+</div>
+</div>
+<div class="section" id="operations-on-fx-values">
+<span id="op-fx-val"></span><h2>Operations on FX values<a class="headerlink" href="#operations-on-fx-values" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>Arithmetical operations are actually performed on signed integers
+according to the rules for two’s complemented integer numbers. Q
+notation gives these values a different meaning and to save
+it, some additional operations are required.</div></blockquote>
+<div class="section" id="data-format-conversion">
+<span id="data-fmt-conv"></span><h3>Data Format Conversion<a class="headerlink" href="#data-format-conversion" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Conversion between real values and fx value might be performed
+according to the following formula:</div></blockquote>
+<div class="math notranslate nohighlight">
+\[fx\_ val\  = Round(real\_ val\ *2^{fraq\_ bits})\]</div>
+<div class="math notranslate nohighlight">
+\[dequant\_ real\_ val\  = \frac{fx\_ val\ }{{\ 2}^{fraq\_ bits}}\]</div>
+<p>Where:</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">real_val</span></code>– real value (might be represented as float)</p>
+<p><code class="docutils literal notranslate"><span class="pre">dequant_real_val</span></code> – de-quantized real value.</p>
+<p><code class="docutils literal notranslate"><span class="pre">fx_val</span></code> - FX value of particular Q format</p>
+<p><code class="docutils literal notranslate"><span class="pre">fraq_bits</span></code> – number of <code class="docutils literal notranslate"><span class="pre">fx_val</span></code> fractional bits.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Round()</span></code> – rounding according to one of supported modes</p>
+<p>2 <sup>fraq_bits</sup> represents 1.0 in FX format and also might
+be obtain by shifting (1 &lt;&lt; fraq_bits). Rounding mode (nearest, up,
+convergence) affects only FX representation accuracy. MLI Library
+uses rounding provided by ARCv2 DSP hardware (see <a class="reference internal" href="../library_model/hw_dependencies_config.html#hw-comp-dpd"><span class="std std-ref">Hardware Components Dependencies</span></a> ). <code class="docutils literal notranslate"><span class="pre">dequant_real_val</span></code> might be not equal to
+<code class="docutils literal notranslate"><span class="pre">real_</span> <span class="pre">val</span></code> in case of immediate forward/backward conversion
+due to rounding operation (see examples 2 and 4 from the following example list).</p>
+<p>Examples:</p>
+<ul>
+<li><p class="first">For a real value of 0.85; FX format Q.7; rounding mode nearest, the
+FX value is computed as:</p>
+<p><code class="docutils literal notranslate"><span class="pre">Round(0.85</span> <span class="pre">*</span> <span class="pre">(2^7))</span> <span class="pre">=</span> <span class="pre">Round(0.85</span> <span class="pre">*</span> <span class="pre">128)</span> <span class="pre">=</span> <span class="pre">Round(108.8)</span> <span class="pre">=</span> <span class="pre">109</span> <span class="pre">(0x6D)</span></code></p>
+</li>
+<li><p class="first">For a Real value -1.09; FX format Q.10; rounding mode: nearest, the
+FX value is computed as:</p>
+<p><code class="docutils literal notranslate"><span class="pre">Round(-1.09</span> <span class="pre">*</span> <span class="pre">(2^10))</span> <span class="pre">=</span> <span class="pre">Round(-1.09</span> <span class="pre">*</span> <span class="pre">1024)</span> <span class="pre">=</span> <span class="pre">Round</span> <span class="pre">(-1116.16)</span> <span class="pre">=</span>&#160; <span class="pre">-1116</span> <span class="pre">(0xFBA4)</span></code></p>
+</li>
+<li><p class="first">For an FX value 5448 in Q.15 format, the real value is computed as:</p>
+<p><code class="docutils literal notranslate"><span class="pre">5448</span> <span class="pre">/</span> <span class="pre">(2^15)</span> <span class="pre">=</span> <span class="pre">5448</span> <span class="pre">/</span> <span class="pre">32768</span> <span class="pre">=</span> <span class="pre">0.166259765625</span></code></p>
+</li>
+<li><p class="first">For an FX value -1116 in Q.10 format, the real value is computed as:</p>
+<p><code class="docutils literal notranslate"><span class="pre">-1116</span> <span class="pre">/</span> <span class="pre">(2^10)</span> <span class="pre">=</span> <span class="pre">-1116</span> <span class="pre">/</span> <span class="pre">1024</span> <span class="pre">=</span> <span class="pre">-1.08984375</span></code></p>
+</li>
+</ul>
+<p>Conversion between two FX formats with different number of fractional
+bits requires value shifting: shift left in case of increasing number
+of fractional bits, and shift right with rounding in case of
+decreasing.</p>
+<p>Examples:</p>
+<ul>
+<li><p class="first">For an FX value 0x24 in Q.8 format (0.140625), the FX value in Q.12
+format is computed as:</p>
+<p><code class="docutils literal notranslate"><span class="pre">(0x24</span> <span class="pre">&lt;&lt;</span> <span class="pre">(12</span> <span class="pre">–</span> <span class="pre">8)</span> <span class="pre">)</span> <span class="pre">=</span> <span class="pre">(0x24</span> <span class="pre">&lt;&lt;</span> <span class="pre">4</span> <span class="pre">)</span> <span class="pre">=</span> <span class="pre">0x240</span> <span class="pre">in</span> <span class="pre">Q.12</span> <span class="pre">(0.140625)</span></code></p>
+</li>
+<li><p class="first">For an FX value 0x24 in Q.4 format (2.25), the FX value in Q.1format
+with rounding mode ‘up’ is computed as:</p>
+</li>
+</ul>
+<blockquote>
+<div><code class="docutils literal notranslate"><span class="pre">Round(0x24&gt;&gt;(4–1))</span> <span class="pre">=</span> <span class="pre">Round(0x24&gt;&gt;3)</span> <span class="pre">=</span> <span class="pre">(0x24</span> <span class="pre">+</span> <span class="pre">(1&lt;&lt;(3-1)))</span> <span class="pre">&gt;&gt;</span> <span class="pre">3</span> <span class="pre">=</span> <span class="pre">0x28&gt;&gt;3</span> <span class="pre">=</span> <span class="pre">0x5</span> <span class="pre">in</span> <span class="pre">Q.1(2.5)</span></code></div></blockquote>
+</div></blockquote>
+</div>
+<div class="section" id="addition-and-subtraction">
+<h3>Addition and Subtraction<a class="headerlink" href="#addition-and-subtraction" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>In fixed point arithmetic, addition and subtraction are performed as
+they are for general integer values but only when the input values
+are in the same format. Otherwise, ensure that you perform conversion
+to bring the input values into the same format before operation.</div></blockquote>
+</div>
+<div class="section" id="multiplication">
+<h3>Multiplication<a class="headerlink" href="#multiplication" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>For multiplication input operands do not have to be of the same
+format. The width of the integer part of the result is the sum of
+widths of integer parts of the opernads. The width of the fractional
+part of the result is the sum of widths of fractional parts of the operands.</p>
+<p>Example:</p>
+<p>For a number x in Q4.3 format (that is, 4 bits for integer and 3 for
+fractional part) and a number y in Q5.7 format, <code class="docutils literal notranslate"><span class="pre">x*y</span></code> is in Q9.10
+format (4+5=9 bits for integer part and 3+7=10 for fractional part).</p>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For particular values
+multiplication might result in
+integer value (that is, no fractional
+bits required), but for general
+case fractional part must be
+reserved</p>
+</div>
+<blockquote>
+<div>Multiplication increases number of significant bits and requires
+bigger container for intermediate result. Data conversion is
+necessary for saving result of multiplication to output container
+that typically does not have enough bits for holding all result. So,
+unlike the addition/subtraction where conversion of inputs might be
+required for inputs, multiplication typically requires conversion of
+result.</div></blockquote>
+</div>
+<div class="section" id="division">
+<h3>Division<a class="headerlink" href="#division" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><blockquote>
+<div><p>For division, input operands also do not have to be of the same
+format. The result has a format containing the difference of bits in
+the formats of input operands.</p>
+<p>Example:</p>
+</div></blockquote>
+<ul class="simple">
+<li>For a dividend <code class="docutils literal notranslate"><span class="pre">x</span></code> in Q16.16 format and a divisor y in Q7.10 format,
+the format of the result <code class="docutils literal notranslate"><span class="pre">x/y</span></code> is Q(16-7).(16-10), or Q9.6 format.</li>
+<li>For a dividend <code class="docutils literal notranslate"><span class="pre">x</span></code> in Q7.8 format and a divisor y in Q3.12 format, the
+format of the result <code class="docutils literal notranslate"><span class="pre">x/y</span></code> is in Q4.-4 format.</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div>Since division is implemented using integer operation, the number of
+significant bits is decreased. For the second example, sum of integer
+and fractional parts of output format is 4 + (-4) = 0. This means
+total precision loss for output value. To avoid this situation,
+conversion of dividend operand to a bigger format (with more
+significant bits) is required.</div></blockquote>
+</div>
+<div class="section" id="accumulation">
+<h3>Accumulation<a class="headerlink" href="#accumulation" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Even single addition might result in overflow if all bits of operands
+are used and both of them hold the maximum (or minimum) values. It
+means that an extra bit is required for this operation. But if
+sum of several operands is needed(accumulation), more than one extra bit is
+required to make sure that result does not overflow. Assuming that
+all operands of the same format, the number of extra bits is defined
+based on the number of additions to be done:</div></blockquote>
+<div class="math notranslate nohighlight">
+\[extra\_ bits = \operatorname{}{(number\_ of\_ additions)})\]</div>
+<blockquote>
+<div><p>Where Ceil(<em>x</em>) function rounds up x to the smallest integer value
+that is not less than <em>x</em>. From notation point of view, these extra
+bits are added to integer part.</p>
+<p>Example:</p>
+<p>For 34 values in Q3.4 format to be accumulated, the number of extra
+bits are computed as: ceil(log<sub>2</sub> 34)= ceil(5.09) = 6</p>
+<p>Result format is: Q9.4 (since 3+6=9)</p>
+<p>The same logic applies for sequential Multiply-Accumulation (MAC)
+operation.</p>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="arcv2dsp-implementation-specifics">
+<h2>ARCv2DSP Implementation Specifics<a class="headerlink" href="#arcv2dsp-implementation-specifics" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>The MLI Library is designed keeping performance in mind as one of the
+main goals. This section deals with manual model adaptation of MLI
+library.</div></blockquote>
+<div class="section" id="bias-for-mac-based-kernels">
+<h3>Bias for MAC-based Kernels<a class="headerlink" href="#bias-for-mac-based-kernels" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>MAC based kernels (convolutions, fully connected, recurrent, etc)
+typically use several input tensors including input feature map,
+weights and bias (constant offset). All of them might hold data of
+different FX format. The number of fractional bits is used to derive
+shift values for bias and output. Such kernels perform accumulator
+initialization with left pre-shifted bias value (format cast before
+addition). For this reason, the number of bias fractional bits must
+be less than or equal to fractional bits for the sum of inputs. This
+condition is checked by primitives in debug mode. For more
+information, see <a class="reference internal" href="../library_model/error_handling.html#err-codes"><span class="std std-ref">Error Codes</span></a>.</p>
+<p>Example:</p>
+<p>Given an Input tensor of Q.7 format; and weights tensor of Q.3
+format, the number of its fractional bits before shift left operation
+must be less or equal to 10 (since 7+3=10) for correct bias.</p>
+</div></blockquote>
+</div>
+<div class="section" id="configurability-of-output-tensors-fractional-bits">
+<h3>Configurability of Output Tensors Fractional Bits<a class="headerlink" href="#configurability-of-output-tensors-fractional-bits" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>Not all primitives provide possibility to configure output tensor
+format – some of them derive it based on inputs or used algorithm,
+while others must be configured with required output format explicitly.
+It depends on the basic operation used by primitive:</p>
+<ul class="simple">
+<li>Primitives based on multiplication and division deal with
+intermediate data formats (see <a class="reference internal" href="#op-fx-val"><span class="std std-ref">Operations on FX values</span></a>). If the result
+does not fit in the output container, ensure that you provide the
+desired result format for result conversion. Typically, it
+can not be derived from inputs and primitives of this kind requires
+output format. For example, this statement is true for convolution2D
+and fully connected.</li>
+<li>Primitives based on addition, subtraction, and unary operations (max,
+min, etc) use input format (at least one of them) to perform
+calculation and save result. Conversion operation in this case isn’t
+required.</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div>Output configurability is specified in description for each primitive.</div></blockquote>
+</div>
+<div class="section" id="quantization-influence-of-accumulator-bit-depth">
+<h3>Quantization: Influence of Accumulator Bit Depth<a class="headerlink" href="#quantization-influence-of-accumulator-bit-depth" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>The MLI Library applies neither saturation nor post-multiplication
+shift with rounding in accumulation. Saturation is performed only for
+the final result of accumulation while its value is reduced to the
+output format. To avoid result overflow, user is responsible for
+providing inputs of correct ranges to library primitives.</p>
+<p>Number of available bits depends on operands types:</p>
+<ul>
+<li><p class="first"><strong>FX8 operands</strong>: 32-bit depth accumulator is used with 1 sign bit
+and 31 significant bits. FX8 operands have 1 sign and 7 significant
+bits. Single multiplication of such operands results in 7 + 7 = 14
+significant bits for output. Thus for MAC based kernels, 17
+accumulation bits (since 31–(7+7)=17) are available which can be used
+to perform up to 2 <sup>17</sup> = 131072 operations without overflow.</p>
+<p>For simple accumulation, 31 – 7 = 24 bits are available which
+guaranteed to perform up to 2 <sup>24</sup> = 16777216 operations without
+overflow.</p>
+</li>
+<li><p class="first"><strong>FX16 operands</strong>: 40-bit depth accumulator is used with 1 sign bit
+and 39 significant bits. FX16 operands have 1 sign and 15 significant
+bits. Single multiplication of such operands results 15 + 15 = 30
+significant bits for output. For MAC based kernels, 39 – (15+15) = 9
+accumulation bits are available, which can be used to perform up to
+2 <sup>9</sup> = 512 operations without overflow.</p>
+<p>For simple accumulation, 39 – 15 = 24 bits are available which
+perform up to 2 <sup>24</sup> = 16777216 operations without overflow.</p>
+</li>
+<li><p class="first"><strong>FX16 x FX8 operands</strong>: 40-bit depth accumulator is used. For MAC
+based kernels, 39 – (15 + 7) = 39 - 22 = 17 accumulation bits are
+available which can be used to perform up to 2 <sup>17</sup> = 131072 operations
+without overflow.</p>
+</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div>In general, the number of accumulations required for one output value
+calculation can be easily estimated in advance. According to
+this information one can define if accumulator satisfies requirements
+or not.</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<ul class="last simple">
+<li>If available bits are not enough, ensure that you quantize inputs
+(including weights for both the operands of MAC) while keeping some
+bits unused.</li>
+<li>To reduce the influence of quantization on result, ensure that you
+evenly distribute these bits between operands.</li>
+</ul>
+</div>
+<blockquote>
+<div><p>Example:</p>
+<p>Given fx16 operands, 2D Convolution layer with 5x5 kernel size on
+input with 64 channels, Initial Input tensor format being Q.11,
+Initial weights tensor format being Q.15,</p>
+<p>each output value of 2D convolution layer requires the following
+number of accumulations:</p>
+<p><code class="docutils literal notranslate"><span class="pre">kernel_height(5)</span> <span class="pre">\*</span> <span class="pre">kernel_width(5)</span> <span class="pre">\*</span> <span class="pre">input_channels(64)</span> <span class="pre">+</span>
+<span class="pre">bias_add(1)</span> <span class="pre">=</span> <span class="pre">5*5*64+1=1601</span></code></p>
+<p>To ensure that the result does not overflow in accumulation, the
+following number of extra bits is required:</p>
+<p><code class="docutils literal notranslate"><span class="pre">ceil(log2(1601))</span> <span class="pre">=</span> <span class="pre">ceil(10.65)</span> <span class="pre">=</span> <span class="pre">11</span></code></p>
+<p>9 extra bits are present in 40-bit accumulator for fx16 operands. To
+ensure no overflow, distribute 11-9=2 bits between inputs and weights
+and correct number of fractional bits. 2 is even number and it might
+be distributed equally (-1 fractional bit for each operand).</p>
+<p>The new number of fractional bits in Input tensor: = 11 – 1 = 10</p>
+<p>The new number of fractional bits in Weights tensor: = 15 – 1 = 14</p>
+</div></blockquote>
+<p></p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../MLI_kernels/MLI_kernels.html" class="btn btn-neutral float-right" title="MLI Kernels" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../library_model/hw_dependencies_config.html" class="btn btn-neutral float-left" title="Hardware Dependencies and Configurability" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Synopsys, Inc
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

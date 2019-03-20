@@ -1,0 +1,338 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>SoftMax &mdash; embARC Machine Learning Inference Library 1.00a documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/style_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Elementwise Group" href="elementwise_grp.html" />
+    <link rel="prev" title="TanH" href="trans_tanh.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> embARC Machine Learning Inference Library
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.00a
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../overview/overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../library_model/library_model.html">Library Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MLI_FP_data_format/MLI_FP_data_format.html">MLI Fixed-Point Data Format</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="MLI_kernels.html">MLI Kernels</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="convolution_grp.html">Convolution Group</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pooling_grp.html">Pooling Group</a></li>
+<li class="toctree-l2"><a class="reference internal" href="common_grp.html">Common Group</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="transform_grp.html">Transform Group</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="trans_relu.html">ReLU</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trans_leaky_relu.html">Leaky ReLU</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trans_sigmoid.html">Sigmoid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trans_tanh.html">TanH</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">SoftMax</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#function-configuration-structure">Function Configuration Structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#api">API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#kernel-specializations">Kernel Specializations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#conditions-for-applying-the-kernel">Conditions for Applying the Kernel</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="elementwise_grp.html">Elementwise Group</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_manipulation_grp.html">Data Manipulation Group</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI helpers</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">embARC Machine Learning Inference Library</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="MLI_kernels.html">MLI Kernels</a> &raquo;</li>
+        
+          <li><a href="transform_grp.html">Transform Group</a> &raquo;</li>
+        
+      <li>SoftMax</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/MLI_kernels/trans_softmax.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="softmax">
+<span id="id1"></span><h1>SoftMax<a class="headerlink" href="#softmax" title="Permalink to this headline">¶</a></h1>
+<img alt="Softmax Function" class="align-center" src="../_images/image156.png" />
+<blockquote>
+<div>This kernel performs activation function which is a generalization of
+the logistic function that transform input vector according to next
+formula:</div></blockquote>
+<div class="math notranslate nohighlight">
+\[y_{i} = \frac{e^{x_{i}}}{\sum_{j}^{}e^{x_{j}}}\]</div>
+<blockquote>
+<div><p><em>x</em> <sub>i</sub> - i <sub>th</sub> value in input tensor.</p>
+<p><span class="math notranslate nohighlight">\(y_{i}\ \)</span> - <span class="math notranslate nohighlight">\(i_{\text{th}}\)</span> value in output tensor.</p>
+</div></blockquote>
+<blockquote>
+<div><p>The SoftMax function is often used as the final layer of a neural
+network-based classifier and its output can be considered as a
+probability distribution over N different possible outcomes. The sum
+of all the entries across the last dimension tends to 1.</p>
+<p>For FX data type, the range of output values is [0, 1), and all
+non-sign bits are fractional. Output holds 7 fractional bits for fx8
+type, and 15 fractional bits for fx16 type. For this reason, the
+maximum representable value of SoftMax is equivalent to 0.9921875 in
+case of fx8 output tensor, and to 0.999969482421875 in case of fx16
+(not 1.0).</p>
+<p>The kernel outputs tensor of the same shape and type as input.</p>
+<p>The kernel can perform in-place computation: output and input can
+point to exactly the same memory (the same starting address).</p>
+</div></blockquote>
+<div class="section" id="function-configuration-structure">
+<span id="function-configuration-structure-11"></span><h2>Function Configuration Structure<a class="headerlink" href="#function-configuration-structure" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>No configuration structure for softmax kernel is required. All
+necessary information is provided by tensors.</div></blockquote>
+</div>
+<div class="section" id="api">
+<span id="api-7"></span><h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><strong>Prototype</strong></td>
+<td colspan="2"><div class="code c first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mli_status</span> <span class="n">mli_krn_softmax_</span><span class="o">&lt;</span><span class="n">data_type</span><span class="o">&gt;</span><span class="p">(</span>
+   <span class="n">const</span> <span class="n">mli_tensor</span> <span class="o">*</span><span class="ow">in</span><span class="p">,</span>
+   <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">out</span><span class="p">);</span>
+</pre></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><strong>Parameters</strong></td>
+<td><code class="docutils literal notranslate"><span class="pre">in</span></code></td>
+<td>[IN] Pointer to input
+tensor</td>
+</tr>
+<tr class="row-odd"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">out</span></code></td>
+<td>[OUT] Pointer to
+output tensor. Result
+is stored here</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="kernel-specializations">
+<span id="kernel-specializations-7"></span><h2>Kernel Specializations<a class="headerlink" href="#kernel-specializations" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="41%" />
+<col width="59%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><strong>Function</strong></th>
+<th class="head"><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">mli_krn_softmax_fx8</span></code></td>
+<td>General function; 8bit FX elements;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">mli_krn_softmax_fx16</span></code></td>
+<td>General function; 16bit FX elements;</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="conditions-for-applying-the-kernel">
+<span id="conditions-for-applying-the-kernel-7"></span><h2>Conditions for Applying the Kernel<a class="headerlink" href="#conditions-for-applying-the-kernel" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><p>Ensure that you satisfy the following conditions before applying the
+function:</p>
+<ul class="simple">
+<li>Input, tensors must be valid (see <a class="reference internal" href="../library_model/data.html#mli-tns-struct"><span class="std std-ref">mli_tensor Structure</span></a>).</li>
+<li>Before processing, the output tensor must contain a valid pointer to
+a buffer, with sufficient capacity enough for storing the result.
+Other fields are filled by kernel (shape, rank and element
+specific parameters)</li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="elementwise_grp.html" class="btn btn-neutral float-right" title="Elementwise Group" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="trans_tanh.html" class="btn btn-neutral float-left" title="TanH" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Synopsys, Inc
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

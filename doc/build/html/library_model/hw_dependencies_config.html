@@ -1,0 +1,421 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Hardware Dependencies and Configurability &mdash; embARC Machine Learning Inference Library 1.00a documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/style_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="MLI Fixed-Point Data Format" href="../MLI_FP_data_format/MLI_FP_data_format.html" />
+    <link rel="prev" title="Functions" href="functions.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> embARC Machine Learning Inference Library
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.00a
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../overview/overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="library_model.html">Library Model</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="data.html">Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="error_handling.html">Error Codes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="functions.html">Functions</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Hardware Dependencies and Configurability</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#global-definitions-and-library-configurability">Global Definitions and Library Configurability</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#target-platform-definition-arc-platform">Target Platform Definition (ARC_PLATFORM)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#function-parameters-examination-and-debug-mli-debug-mode">Function Parameters Examination and Debug (MLI_DEBUG_MODE)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#concatenation-primitive-maximum-tensors-to-concatenate-mli-concat-max-tensors">Concatenation Primitive: Maximum Tensors to Concatenate (MLI_CONCAT_MAX_TENSORS)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#memory-allocation">Memory Allocation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hardware-components-dependencies">Hardware Components Dependencies</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#dsp-control">DSP Control</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#agu-support">AGU Support</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../MLI_FP_data_format/MLI_FP_data_format.html">MLI Fixed-Point Data Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MLI_kernels/MLI_kernels.html">MLI Kernels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI helpers</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">embARC Machine Learning Inference Library</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="library_model.html">Library Model</a> &raquo;</li>
+        
+      <li>Hardware Dependencies and Configurability</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/library_model/hw_dependencies_config.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="hardware-dependencies-and-configurability">
+<h1>Hardware Dependencies and Configurability<a class="headerlink" href="#hardware-dependencies-and-configurability" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="global-definitions-and-library-configurability">
+<h2>Global Definitions and Library Configurability<a class="headerlink" href="#global-definitions-and-library-configurability" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>All configurable global definitions and constants are defined in <code class="docutils literal notranslate"><span class="pre">./include/MLI_config.h</span></code>. This header file is not included in <code class="docutils literal notranslate"><span class="pre">./include/MLI_API.h</span></code> header and should be included implicitly in user code in case its content might be useful. For example, use <code class="docutils literal notranslate"><span class="pre">ARC_PLATFORM</span></code> define for multi-platform applications.</div></blockquote>
+<div class="section" id="target-platform-definition-arc-platform">
+<span id="tgt-pf-def"></span><h3>Target Platform Definition (ARC_PLATFORM)<a class="headerlink" href="#target-platform-definition-arc-platform" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>ARC_PLATFORM defines main platform type that the library is built
+for. By default this is determined in compile time according to the
+TCF file. To explicitly set platform, set ARC_PLATFORM to one of the
+following macros in advance:</p>
+<ul class="simple">
+<li><strong>V2DSP</strong> – using ARCv2DSP ISA extensions only (EM5D or EM7D).</li>
+<li><strong>V2DSP_WIDE</strong> – using wide ARCv2DSP ISA extensions (HS45D or HS47D)</li>
+<li><strong>V2DSP_XY</strong> – using ARCv2DSP ISA extensions and AGU (EM9D or EM11D).</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="function-parameters-examination-and-debug-mli-debug-mode">
+<span id="func-param-dbg"></span><h3>Function Parameters Examination and Debug (MLI_DEBUG_MODE)<a class="headerlink" href="#function-parameters-examination-and-debug-mli-debug-mode" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>MLI Library supports five debug modes. You can choose the debug mode
+by setting MLI_DEBUG_MODE define as follows:</p>
+<ul class="simple">
+<li><strong>DBG_MODE_RELEASE</strong> (<strong>MLI_DEBUG_MODE</strong> = 0) - No debug. Functions
+do not examine parameters. Data is processed with assumption that function
+input is  valid.
+This might lead to undefined behavior if the assumption is not true.
+Functions always return MLI_STATUS_OK. No messages are printed, and
+no assertions are used.</li>
+<li><strong>DBG_MODE_RET_CODES</strong> (<strong>MLI_DEBUG_MODE</strong> = 1) – Functions examine
+parameters and return valid error status if any violation of data is
+found. Else, functions process data and return status MLI_STATUS_OK.
+No messages are printed and no assertions are used.</li>
+<li><strong>DBG_MODE_ASSERT</strong> (<strong>MLI_DEBUG_MODE</strong> = 2) - Functions examine
+parameters. If any violation of data is found, the function tries to
+break the execution using <strong>assert()</strong> function. If the <strong>assert()</strong>
+function does not break the execution, function returns error status.</li>
+<li><strong>DBG_MODE_DEBUG</strong> (<strong>MLI_DEBUG_MODE</strong> = 3) - Functions examine
+parameters. If any violation of data is found, the function prints a
+descriptive message using standard <strong>printf()</strong> function and tries to
+break the execution using <strong>assert()</strong> function. If the <strong>assert()</strong>
+function does not break the execution, function returns error status.</li>
+<li><strong>DBG_MODE_FULL</strong> (<strong>MLI_DEBUG_MODE</strong> = 4) - Functions examine
+parameters. If any violation of data is found, the function prints a
+descriptive message using standard <strong>printf()</strong> function and tries to
+break the execution using <strong>assert()</strong> function. Extra assertions inside
+loops are used for this mode . If the <strong>assert()</strong>  function does not
+break the execution, function returns error status.</li>
+</ul>
+<p>By default, <code class="docutils literal notranslate"><span class="pre">MLI_DEBUG_MODE</span></code> is set to <code class="docutils literal notranslate"><span class="pre">DBG_MODE_RELEASE</span></code>.</p>
+</div></blockquote>
+</div>
+<div class="section" id="concatenation-primitive-maximum-tensors-to-concatenate-mli-concat-max-tensors">
+<h3>Concatenation Primitive: Maximum Tensors to Concatenate (MLI_CONCAT_MAX_TENSORS)<a class="headerlink" href="#concatenation-primitive-maximum-tensors-to-concatenate-mli-concat-max-tensors" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>This primitive configures maximum number of tensors for concatenation
+by appropriate primitive (see <a class="reference internal" href="../MLI_kernels/data_manip_concat.html#concat"><span class="std std-ref">Concatenation</span></a> ). Default: 8.</div></blockquote>
+</div>
+</div>
+<div class="section" id="memory-allocation">
+<h2>Memory Allocation<a class="headerlink" href="#memory-allocation" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>Library does not allocate any memory dynamically. Application is
+responsible for providing correct parameters for function and
+allocate memory for it if necessary. Library might use internal
+statically allocated data (tables of constants).</div></blockquote>
+</div>
+<div class="section" id="hardware-components-dependencies">
+<span id="hw-comp-dpd"></span><h2>Hardware Components Dependencies<a class="headerlink" href="#hardware-components-dependencies" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="dsp-control">
+<h3>DSP Control<a class="headerlink" href="#dsp-control" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>MLI Library intensively uses ARCv2DSP extension of ARC EM and ARC HS
+processors. Ensure that this extension is present and correctly
+configured in hardware.</p>
+<p>Ensure that you build the library with the appropriate command line
+parameter:</p>
+<p><code class="docutils literal notranslate"><span class="pre">-Xdsp_ctrl=postshift,guard,convergent</span></code></p>
+</div></blockquote>
+<blockquote>
+<div>Where “up” defines the rounding mode of DSP hardware (rounding up)
+and it is the only parameter which might be changed (to “convergent” -
+round to the nearest even). All parameters are described in <em>MetaWare
+Fixed-Point Reference for ARC EM and ARC HS</em>.</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">MLI Library sets the required DSP   mode inside each function where it is needed, but does not restore it to previous state. If another ARC DSP code beside MLI library is used in an application, ensure that you set the required DSP mode before its execution. For more information see  “Configuring the ARC DSP Extensions” section of <em>MetaWare DSP Programming Guide for ARC EM and ARC HS</em> or “Using the FXAPI” section of entry [5] of <em>MetaWare Fixed-Point Reference for ARC EM and ARC HS</em>.</p>
+</div>
+</div>
+<div class="section" id="agu-support">
+<h3>AGU Support<a class="headerlink" href="#agu-support" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>Library is optimized for systems with and without AGU (address
+generation unit). If AGU is present in the system, then library code
+optimized for AGU is compiled automatically, otherwise the AGU
+optimization is not used (see <a class="reference internal" href="#tgt-pf-def"><span class="std std-ref">Target Platform Definition (ARC_PLATFORM)</span></a>).
+Inside primitives, pointers to some data defined with use of
+MLI_PTR(p) macro expand into “__xy p *” in AGU systems, and to “p
+*” in system without AGU. An application is responsible for
+allocation of relevant buffers in the AGU memory region (for more
+information see “XY Memory Optimization” chapter <em>of MetaWare DSP
+Programming Guide for ARC EM and ARC HS</em>).</p>
+<p><a class="reference internal" href="#agu-req-tensors"><span class="std std-ref">AGU Requirements for Tensors</span></a> provides information about tensors must
+be allocated into AGUaccessible memory for each primitive. Tensors
+not mentioned in <a class="reference internal" href="#agu-req-tensors"><span class="std std-ref">AGU Requirements for Tensors</span></a> does not have to be allocated in the
+same way.</p>
+</div></blockquote>
+<span id="agu-req-tensors"></span><table border="1" class="colwidths-given docutils" id="id1">
+<caption><span class="caption-number">Table 9 </span><span class="caption-text">AGU Requirements for Tensors</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Primitive</th>
+<th class="head">Tensors must be allocated into
+AGU accessible memory</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Convolution 2D</td>
+<td>in, weights, out, biases</td>
+</tr>
+<tr class="row-odd"><td>Depthwise convolution</td>
+<td>in, weights, out, biases</td>
+</tr>
+<tr class="row-even"><td>Max Pooling</td>
+<td>In, out</td>
+</tr>
+<tr class="row-odd"><td>Average Pooling</td>
+<td>In, out</td>
+</tr>
+<tr class="row-even"><td>Fully connected</td>
+<td>In, out</td>
+</tr>
+<tr class="row-odd"><td>Long Short Term Memory</td>
+<td>In, weights, biases, out,
+prev_out, ir_tsr</td>
+</tr>
+<tr class="row-even"><td>Basic RNN cell</td>
+<td>In, weights, biases, out,
+prev_out, ir_tsr</td>
+</tr>
+<tr class="row-odd"><td>ReLU</td>
+<td>In, out</td>
+</tr>
+<tr class="row-even"><td>Leaky ReLU</td>
+<td>In, out</td>
+</tr>
+<tr class="row-odd"><td>Sigmoid</td>
+<td>In, out</td>
+</tr>
+<tr class="row-even"><td>TanH</td>
+<td>In, out</td>
+</tr>
+<tr class="row-odd"><td>Softmax</td>
+<td>In, out</td>
+</tr>
+<tr class="row-even"><td>Eltwise
+add/subtract/max/multiplication</td>
+<td>In1, in2, out</td>
+</tr>
+<tr class="row-odd"><td>Concatenation</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td>Permute</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td>Padding 2D</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../MLI_FP_data_format/MLI_FP_data_format.html" class="btn btn-neutral float-right" title="MLI Fixed-Point Data Format" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="functions.html" class="btn btn-neutral float-left" title="Functions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Synopsys, Inc
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

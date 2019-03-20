@@ -1,0 +1,297 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Convert Tensor &mdash; embARC Machine Learning Inference Library 1.00a documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/style_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Point to Sub-Tensor" href="point_to_sub_tensor.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> embARC Machine Learning Inference Library
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.00a
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../overview/overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../library_model/library_model.html">Library Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MLI_FP_data_format/MLI_FP_data_format.html">MLI Fixed-Point Data Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MLI_kernels/MLI_kernels.html">MLI Kernels</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="MLI_helpers.html">MLI helpers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="get_basic_elem_size.html">Get Basic Element Size</a></li>
+<li class="toctree-l2"><a class="reference internal" href="count_no_elements.html">Count Number of Elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="point_to_sub_tensor.html">Point to Sub-Tensor</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Convert Tensor</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#api">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#conditions-for-applying-the-function">Conditions for Applying the Function</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">embARC Machine Learning Inference Library</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="MLI_helpers.html">MLI helpers</a> &raquo;</li>
+        
+      <li>Convert Tensor</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/MLI_helpers/convert_tensor.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="convert-tensor">
+<span id="conv-tensor"></span><h1>Convert Tensor<a class="headerlink" href="#convert-tensor" title="Permalink to this headline">¶</a></h1>
+<blockquote>
+<div><p>This function copies elements from input tensor to output with data
+conversion according to the output tensor type parameters.</p>
+<p>For example, the function can:</p>
+<ul class="simple">
+<li>convert data according to new element type: <code class="docutils literal notranslate"><span class="pre">fx16</span></code> to <code class="docutils literal notranslate"><span class="pre">fx8</span></code> and backward</li>
+<li>change data according to new data parameter: increase/decrease the
+number of fractional bits while keeping the same element type for
+FX data</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><p>Conversion is performed using</p>
+<ul class="simple">
+<li>rounding when the number of significant bits increases.</li>
+<li>saturation when the number of significant bits decreases.</li>
+</ul>
+</div></blockquote>
+<blockquote>
+<div><p>This operation does not change tensor shape. It copies it from input
+to output.</p>
+<p>Kernel can perform in-place computation, but only for conversions
+without increasing data size, so that that it does not lead to
+undefined behavior. Therefore, output and input might point to exactly the
+same memory (but without shift) except <code class="docutils literal notranslate"><span class="pre">fx8</span></code> to <code class="docutils literal notranslate"><span class="pre">fx16</span></code> conversion.
+In-place computation might affect performance for some platforms.</p>
+</div></blockquote>
+<div class="section" id="api">
+<span id="api-18"></span><h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="25%" />
+<col width="25%" />
+<col width="50%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><strong>Prototype</strong></td>
+<td colspan="2"><div class="code c first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mli_status</span> <span class="n">mli_hlp_convert_tensor</span><span class="p">(</span><span class="n">mli_tensor</span> <span class="o">*</span><span class="ow">in</span><span class="p">,</span> <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">out</span><span class="p">);</span>
+</pre></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><strong>Parameters</strong></td>
+<td><code class="docutils literal notranslate"><span class="pre">in</span></code></td>
+<td>[IN] Pointer to input
+tensor</td>
+</tr>
+<tr class="row-odd"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">start_dim</span></code></td>
+<td>[OUT] Pointer to
+output tensor</td>
+</tr>
+<tr class="row-even"><td><strong>Returns</strong></td>
+<td><code class="docutils literal notranslate"><span class="pre">status</span> <span class="pre">code</span></code></td>
+<td>&#160;</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="conditions-for-applying-the-function">
+<span id="conditions-for-applying-the-function-7"></span><h2>Conditions for Applying the Function<a class="headerlink" href="#conditions-for-applying-the-function" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li>Input must be a valid tensor (see <a class="reference internal" href="../library_model/data.html#mli-tns-struct"><span class="std std-ref">mli_tensor Structure</span></a>).</li>
+<li>Before processing the output tensor must contain a valid pointer to a
+buffer with sufficient capacity enough for storing the result
+(that is, the total amount of elements in input tensor).</li>
+<li>The output tensor also must contain valid element type and its
+parameter (<code class="docutils literal notranslate"><span class="pre">el_params.fx.frac_bits</span></code>)</li>
+<li>Before processing, the output tensor does not have to contain valid
+shape and rank - they are copied from input tensor.</li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="point_to_sub_tensor.html" class="btn btn-neutral float-left" title="Point to Sub-Tensor" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Synopsys, Inc
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

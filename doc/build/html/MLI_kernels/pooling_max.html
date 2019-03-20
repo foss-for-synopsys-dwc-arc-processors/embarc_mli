@@ -1,0 +1,493 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>MAX-Pooling &mdash; embARC Machine Learning Inference Library 1.00a documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/style_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Average-Pooling" href="pooling_avg.html" />
+    <link rel="prev" title="Pooling Group" href="pooling_grp.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> embARC Machine Learning Inference Library
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.00a
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../overview/overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../library_model/library_model.html">Library Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MLI_FP_data_format/MLI_FP_data_format.html">MLI Fixed-Point Data Format</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="MLI_kernels.html">MLI Kernels</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="convolution_grp.html">Convolution Group</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="pooling_grp.html">Pooling Group</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">MAX-Pooling</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#function-configuration-structure">Function Configuration Structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#general-api">General API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#function-specializations">Function Specializations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#conditions-for-applying-the-function">Conditions for Applying the Function</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pooling_avg.html">Average-Pooling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="common_grp.html">Common Group</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transform_grp.html">Transform Group</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elementwise_grp.html">Elementwise Group</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_manipulation_grp.html">Data Manipulation Group</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI helpers</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">embARC Machine Learning Inference Library</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="MLI_kernels.html">MLI Kernels</a> &raquo;</li>
+        
+          <li><a href="pooling_grp.html">Pooling Group</a> &raquo;</li>
+        
+      <li>MAX-Pooling</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/MLI_kernels/pooling_max.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="max-pooling">
+<span id="max-pool"></span><h1>MAX-Pooling<a class="headerlink" href="#max-pooling" title="Permalink to this headline">¶</a></h1>
+<img alt="Max Pooling Operation Example" class="align-center" src="../_images/image108.png" />
+<blockquote>
+<div><p>This kernel implements a max-pooling operation. Input and output
+feature maps are three-dimensional tensor even if one of dimensions is
+equal to 1. Input shape includes height, width, and depth (channels)
+according to used data layout (see <a class="reference internal" href="../library_model/data.html#data-muldim"><span class="std std-ref">Data Layout of Multidimensional Feature Maps</span></a>).</p>
+<p>Each channel of input is considered independently, which means that
+the analysis fragment includes only neighbor points of the channel.
+For each fragment of input tensor, maximum value is being defined as
+the output value. The fragment size is defined in configuration
+structure according to kernel_width and kernel_height values.</p>
+<p>Splitting input on fragments is performed according to stride and
+padding parameters. This logic is similar to convolution 2D operation
+(see <a class="reference internal" href="convolution_2d.html#cnvl-2d"><span class="std std-ref">Convolution 2D</span></a>).</p>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">TensorFlow and Caffe differ significantly when processing padding and
+borders of pooling kernels. To be compatible with both, MLI follows TF
+approach. See <a class="reference internal" href="pooling_avg.html#avg-pool"><span class="std std-ref">Average-Pooling</span></a> for more information.</p>
+</div>
+<blockquote>
+<div>For more information on calculations, see the pooling part of
+<a class="reference external" href="https://www.tensorflow.org/api_guides/python/nn">TensorFlow–Neural Network details</a>.</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Ensure that input and output
+tensors do not point to
+overlapped memory regions,
+otherwise the behavior is
+undefined.</p>
+</div>
+<div class="section" id="function-configuration-structure">
+<span id="fn-conf-str-max-pool"></span><h2>Function Configuration Structure<a class="headerlink" href="#function-configuration-structure" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><strong>Definition</strong></td>
+<td colspan="2"><div class="code c first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">typedef</span> <span class="n">struct</span> <span class="p">{</span>
+   <span class="n">uint8_t</span> <span class="n">kernel_width</span><span class="p">;</span>
+   <span class="n">uint8_t</span> <span class="n">kernel_height</span><span class="p">;</span>
+   <span class="n">uint8_t</span> <span class="n">stride_width</span><span class="p">;</span>
+   <span class="n">uint8_t</span> <span class="n">stride_height</span><span class="p">;</span>
+   <span class="n">uint8_t</span> <span class="n">padding_left</span><span class="p">;</span>
+   <span class="n">uint8_t</span> <span class="n">padding_right</span><span class="p">;</span>
+   <span class="n">uint8_t</span> <span class="n">padding_top</span><span class="p">;</span>
+   <span class="n">uint8_t</span> <span class="n">padding_bottom</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">mli_pool_cfg</span><span class="p">;</span>
+</pre></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><strong>Fields</strong></td>
+<td><code class="docutils literal notranslate"><span class="pre">kernel_width</span></code></td>
+<td>Width of frame for
+function applying</td>
+</tr>
+<tr class="row-odd"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">kernel_height</span></code></td>
+<td>Height of frame for
+function applying</td>
+</tr>
+<tr class="row-even"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">stride_width</span></code></td>
+<td>Stride of frame
+across a width
+dimension of input</td>
+</tr>
+<tr class="row-odd"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">stride_height</span></code></td>
+<td>Stride of frame
+across a height
+dimension of input</td>
+</tr>
+<tr class="row-even"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">padding_left</span></code></td>
+<td>Number of points
+implicitly added to
+the left side of
+input (width
+dimension).</td>
+</tr>
+<tr class="row-odd"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">padding_right</span></code></td>
+<td>Number of points
+implicitly added to
+the right side of
+input (width
+dimension).</td>
+</tr>
+<tr class="row-even"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">padding_top</span></code></td>
+<td>Number of points
+implicitly added to
+the upper side of
+input (height
+dimension).</td>
+</tr>
+<tr class="row-odd"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">padding_bottom</span></code></td>
+<td>Number of points
+implicitly added to
+the bottom side of
+input (height
+dimension).</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="general-api">
+<span id="general-api-2"></span><h2>General API<a class="headerlink" href="#general-api" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><p>Interface of all specializations are the same and described as follows.</p>
+<p></p>
+</div></blockquote>
+<table border="1" class="docutils">
+<colgroup>
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><strong>Prototype</strong></td>
+<td colspan="2"><div class="code c first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mli_status</span> <span class="n">mli_krn_maxpool_</span><span class="o">&lt;</span><span class="n">layout</span><span class="o">&gt;</span><span class="n">_</span>
+<span class="o">&lt;</span><span class="n">data_type</span><span class="o">&gt;</span><span class="p">[</span><span class="n">_specialization</span><span class="p">](</span>
+   <span class="n">const</span> <span class="n">mli_tensor</span>  <span class="o">*</span><span class="ow">in</span><span class="p">,</span>
+   <span class="n">const</span> <span class="n">mli_pool_cfg</span> <span class="o">*</span><span class="n">cfg</span><span class="p">,</span>
+   <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">out</span><span class="p">);</span>
+</pre></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><strong>Parameters</strong></td>
+<td><code class="docutils literal notranslate"><span class="pre">in</span></code></td>
+<td>[IN] Pointer to input
+feature map tensor</td>
+</tr>
+<tr class="row-odd"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">cfg</span></code></td>
+<td>[IN] Pointer to
+pooling parameters
+structure</td>
+</tr>
+<tr class="row-even"><td>&#160;</td>
+<td><code class="docutils literal notranslate"><span class="pre">out</span></code></td>
+<td>[OUT] Pointer to
+output feature map
+tensor. Result is
+stored here</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="function-specializations">
+<span id="function-specializations-2"></span><h2>Function Specializations<a class="headerlink" href="#function-specializations" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><p>There are about 150 specializations for the primitive assuming
+various combinations of inputs parameters. Max-pooling primitive
+follows the naming convention for specializations (see <a class="reference internal" href="../library_model/functions.html#spec-fns"><span class="std std-ref">Specialized Functions</span></a>
+). The header file <code class="code docutils literal notranslate"><span class="pre">mli_krn_maxpool_spec_api.h</span></code> contains
+declarations of all specializations for the primitive.</p>
+<p><a class="reference internal" href="#non-spl-func-max-pool"><span class="std std-ref">Non-Specialized Functions for MAX-Pooling</span></a> contains only non-specialized functions.</p>
+</div></blockquote>
+<span id="non-spl-func-max-pool"></span><table border="1" class="colwidths-auto docutils" id="id1">
+<caption><span class="caption-number">Table 11 </span><span class="caption-text">Non-Specialized Functions for MAX-Pooling</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><strong>Function</strong></th>
+<th class="head"><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td colspan="2"><em>CHW Data Layout</em></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">mli_krn_maxpool_chw_fx8</span></code></td>
+<td>Switching function (see
+<a class="reference internal" href="../library_model/functions.html#fns"><span class="std std-ref">Functions</span></a>); 8bit FX tensors;
+Delegates calculations to
+suitable specialization or
+generic function.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">mli_krn_maxpool_chw_fx16</span></code></td>
+<td>Switching function (see
+<a class="reference internal" href="../library_model/functions.html#fns"><span class="std std-ref">Functions</span></a>); 16bit FX tensors;
+Delegates calculations to
+suitable specialization or
+generic function.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">mli_krn_maxpool_chw_fx8_generic</span></code></td>
+<td>General function; 8bit FX tensors</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">mli_krn_maxpool_chw_fx16_generic</span></code></td>
+<td>General function; 16bit FX
+tensors</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">mli_krn_maxpool_chw_fx8_[spec]</span></code></td>
+<td>Specialization function*; 8bit FX
+tensors</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">mli_krn_maxpool_chw_fx16_[spec]</span></code></td>
+<td>Specialization function*; 16bit
+FX tensors</td>
+</tr>
+<tr class="row-odd"><td><em>HWC Data Layout</em></td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">mli_krn_maxpool_hwc_fx8</span></code></td>
+<td>General function; 8bit FX
+elements;</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">mli_krn_maxpool_hwc_fx16</span></code></td>
+<td>General function; 16bit FX
+elements;</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">*For specialization functions,
+backward compatibility between
+different releases cannot be
+guaranteed. The General functions
+call the available
+specializations when possible.</p>
+</div>
+</div>
+<div class="section" id="conditions-for-applying-the-function">
+<span id="conditions-for-applying-the-function-2"></span><h2>Conditions for Applying the Function<a class="headerlink" href="#conditions-for-applying-the-function" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><p>Ensure that you satisfy the following conditions before applying the
+function:</p>
+<ul class="simple">
+<li>Input tensor must be valid (see <a class="reference internal" href="../library_model/data.html#mli-tns-struct"><span class="std std-ref">mli_tensor Structure</span></a>) and its rank
+must be 3.</li>
+<li>Before processing, the output tensor must contain a valid pointer to
+a buffer with sufficient capacity (enough for storing the result).</li>
+<li>While processing, the following output tensor parameters are filled
+by functions:</li>
+<li>Shape (new shape is calculated according to input tensor shape,
+stride, and padding parameters)</li>
+<li>Rank, element type and element parameters (these are copied from
+the input tensor)</li>
+<li><code class="docutils literal notranslate"><span class="pre">padding_top</span></code> and <code class="docutils literal notranslate"><span class="pre">padding_bottom</span></code> parameters must be in range of [0,
+<code class="docutils literal notranslate"><span class="pre">kernel_height</span></code>).</li>
+<li><code class="docutils literal notranslate"><span class="pre">padding_left</span></code> and <code class="docutils literal notranslate"><span class="pre">padding_right</span></code> parameters must be in range of [0,
+<code class="docutils literal notranslate"><span class="pre">kernel_width</span></code>).</li>
+<li><code class="docutils literal notranslate"><span class="pre">stride_width</span></code> and <code class="docutils literal notranslate"><span class="pre">stride_height</span></code> parameters must be &gt;= 1.</li>
+<li><code class="docutils literal notranslate"><span class="pre">kernel_width</span></code> and <code class="docutils literal notranslate"><span class="pre">kernel_height</span></code> must be less than or equal to the
+corresponding dimensions of input tensor.</li>
+<li>Additional restrictions for specialized functions are described in
+section <a class="reference internal" href="../library_model/functions.html#spec-fns"><span class="std std-ref">Specialized Functions</span></a>.</li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="pooling_avg.html" class="btn btn-neutral float-right" title="Average-Pooling" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="pooling_grp.html" class="btn btn-neutral float-left" title="Pooling Group" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Synopsys, Inc
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
