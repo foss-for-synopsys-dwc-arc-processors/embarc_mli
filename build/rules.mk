@@ -48,7 +48,7 @@ quote=$(subst $(coQ),$(Q)$(coQ), \
       $(subst $(OPEN_PAREN),$(Q)$(OPEN_PAREN), \
       $(subst $(CLOSE_PAREN),$(Q)$(CLOSE_PAREN), \
       $(subst !,$(Q)!, \
-      $(subst ",$(Q)", \
+      $(subst ",$(Q)$(coQ)", \
       $(subst $(Q),$(Q)$(Q), \
 	  $(1) ))))))))))))))
 
