@@ -133,7 +133,7 @@ else
  AR = arc-elf32-ar
  AS = arc-elf32-as
  CFLAGS += $(addprefix -I, $(HEADER_DIRS))
- CFLAGS += -D_Interrupt=__attribute__((interrupt(\"ilink\")))
+ CFLAGS += -D_Interrupt=__attribute__((interrupt("ilink")))
  CFLAGS += -D_lr=__builtin_arc_lr
  CFLAGS += -D_sr=__builtin_arc_sr
  CFLAGS += -D_seti=__builtin_arc_seti
