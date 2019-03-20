@@ -44,8 +44,7 @@ endif
 # but many tools themselves remove quotes (unless escaped with backslash)
 # So finally we've found that in our use cases we may not escaping any symbols but prepend backslashes before quotes.
 
-quote=$(subst $(coQ),$(Q)$(coQ), \
-      $(subst %,$(Q)%, \
+quote=$(subst %,$(Q)%, \
       $(subst &,$(Q)&, \
       $(subst <,$(Q)<, \
       $(subst >,$(Q)>, \
@@ -58,7 +57,7 @@ quote=$(subst $(coQ),$(Q)$(coQ), \
       $(subst !,$(Q)!, \
       $(subst ",$(BACKSLASH)", \
       $(subst $(Q),$(Q)$(Q), \
-	  $(1) ))))))))))))))
+      $(1) )))))))))))))
 
 
 #=============================================================
