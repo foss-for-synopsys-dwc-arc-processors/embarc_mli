@@ -34,7 +34,7 @@ PREBUILT_LIB ?= $(EMBARC_MLI_DIR)/examples/prebuilt/libmli.a
 
 # GNU toolchain specific options - correct it according to your target platform settings (see build_configuration.txt for input)
 #Iot DevKit config
-CFLAGS       =  -mcpu=em4_dmips -mlittle-endian -mcode-density -mdiv-rem -mswap -mnorm -mmpy-option=6 -mbarrel-shifter -mxy
+CFLAGS       =  -mcpu=em4_fpuda -mlittle-endian -mcode-density -mdiv-rem -mswap -mnorm -mmpy-option=6 -mbarrel-shifter -mxy
 
 # The embARC MLI Library specific options it according to your target platform settings 
 #(EM5D or EM7D platform)
