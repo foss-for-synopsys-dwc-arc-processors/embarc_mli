@@ -64,7 +64,7 @@ mli_status mli_krn_conv2d_hwc_fx8 (
     val_limit = mli_prv_get_relu_min_max (&cfg->relu, out);
 
     MLI_PTR(int8_t) in_ftrs = (MLI_PTR(int8_t))in->data;
-    MLI_PTR(int8_t) out_ftrs = (MLI_PTR(int8_t))out->data;
+    MLI_CONV_OUT_PTR(int8_t) out_ftrs = (MLI_CONV_OUT_PTR(int8_t))out->data;
     MLI_PTR(int8_t) wt = (MLI_PTR(int8_t))weights->data;
     MLI_PTR(int8_t) bs = (MLI_PTR(int8_t))bias->data;
 
@@ -121,7 +121,7 @@ mli_status mli_krn_conv2d_hwc_fx8 (
                     conv_out += dotprod2D (in_ptr, w_ptr, kernel_width * in_ch, kernel_height, in_width * in_ch, 
                             kernel_width * in_ch);
 
-                    MLI_PTR(int8_t) o_ptr = &out_ftrs[out_ch_idx + (H_idx * out_width + W_idx) * out_ch];
+                    MLI_CONV_OUT_PTR(int8_t) o_ptr = &out_ftrs[out_ch_idx + (H_idx * out_width + W_idx) * out_ch];
                     mli_prv_clip_relu_store_output (o_ptr, conv_out, out_shift, val_limit.min, val_limit.max);
                 }
             }
@@ -189,7 +189,7 @@ mli_status mli_krn_conv2d_hwc_fx8 (
                         // Convolution core
                         conv_out += dotprod2D (in_ptr, w_ptr, clmns * in_ch, rows, in_width * in_ch, kernel_width * in_ch);
 
-                        MLI_PTR(int8_t) o_ptr = &out_ftrs[out_ch_idx + (H_idx * out_width + W_idx) * out_ch];
+                        MLI_CONV_OUT_PTR(int8_t) o_ptr = &out_ftrs[out_ch_idx + (H_idx * out_width + W_idx) * out_ch];
                         mli_prv_clip_relu_store_output (o_ptr, conv_out, out_shift, val_limit.min, val_limit.max);
                     }
                 }

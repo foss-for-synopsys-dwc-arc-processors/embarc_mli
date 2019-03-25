@@ -90,11 +90,20 @@
 
 /*
 * Re-define ML pointers for XY specific platform
+*
+* MLI_PTR is used for all the read pointers
+* MLI_CONV_OUT_PTR is used for the output buffers of all weigths based kernels.
+* this means all the kernels that perform a convolution like operation between inputs and weights.
+* MLI_OUT_PTR is used for the output of all other kernels.
 */
 #if (ARC_PLATFORM == V2DSP_XY)
 #define MLI_PTR(p) __xy p *
+#define MLI_OUT_PTR(p) __xy p *
+#define MLI_CONV_OUT_PTR(p) p *
 #else
 #define MLI_PTR(p) p *
+#define MLI_OUT_PTR(p) p *
+#define MLI_CONV_OUT_PTR(p) p *
 #endif
 
 #endif // _MLI_CONFIG_H_

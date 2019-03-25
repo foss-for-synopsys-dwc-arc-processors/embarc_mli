@@ -34,16 +34,16 @@ static inline v2q15_t __attribute__ ((always_inline)) mli_prv_load_2_samples (co
     return *(MLI_PTR (v2q15_t)) in;
 }
 
-static inline void __attribute__ ((always_inline)) mli_prv_store_2_samples (MLI_PTR (int8_t) __restrict out, v2q15_t data) {
-    *(MLI_PTR (v2i8_t)) out = __builtin_convertvector (data, v2i8_t);
+static inline void __attribute__ ((always_inline)) mli_prv_store_2_samples (MLI_OUT_PTR (int8_t) __restrict out, v2q15_t data) {
+    *(MLI_OUT_PTR (v2i8_t)) out = __builtin_convertvector (data, v2i8_t);
 }
 
-static inline void __attribute__ ((always_inline)) mli_prv_store_2_samples (MLI_PTR (int8_t) __restrict out, v2i8_t data) {
-    *(MLI_PTR (v2i8_t)) out = data;
+static inline void __attribute__ ((always_inline)) mli_prv_store_2_samples (MLI_OUT_PTR (int8_t) __restrict out, v2i8_t data) {
+    *(MLI_OUT_PTR (v2i8_t)) out = data;
 }
 
-static inline void __attribute__ ((always_inline)) mli_prv_store_2_samples (MLI_PTR (int16_t) __restrict out, v2q15_t data) {
-    *(MLI_PTR (v2q15_t)) out = data;
+static inline void __attribute__ ((always_inline)) mli_prv_store_2_samples (MLI_OUT_PTR (int16_t) __restrict out, v2q15_t data) {
+    *(MLI_OUT_PTR (v2q15_t)) out = data;
 }
 
 
@@ -65,12 +65,12 @@ static inline v2q15_t __attribute__ ((always_inline)) mli_prv_load_1_sample (con
     return fx_create_v2q15(*(MLI_PTR (q15_t)) in, 0);
 }
 
-static inline void __attribute__ ((always_inline)) mli_prv_store_1_sample (MLI_PTR (int8_t) __restrict out, v2q15_t data) {
-    *(MLI_PTR (q7_t)) out = (q7_t) data[0];
+static inline void __attribute__ ((always_inline)) mli_prv_store_1_sample (MLI_OUT_PTR (int8_t) __restrict out, v2q15_t data) {
+    *(MLI_OUT_PTR (q7_t)) out = (q7_t) data[0];
 }
 
-static inline void __attribute__ ((always_inline)) mli_prv_store_1_sample (MLI_PTR (int16_t) __restrict out, v2q15_t data) {
-    *(MLI_PTR (q15_t)) out = data[0];
+static inline void __attribute__ ((always_inline)) mli_prv_store_1_sample (MLI_OUT_PTR (int16_t) __restrict out, v2q15_t data) {
+    *(MLI_OUT_PTR (q15_t)) out = data[0];
 }
 
 

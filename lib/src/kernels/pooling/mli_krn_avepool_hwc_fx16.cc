@@ -60,7 +60,7 @@ mli_status mli_krn_avepool_hwc_fx16(const mli_tensor* in, const mli_pool_cfg* cf
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t))out->data;
 
     // Define Data dimensions
     int32_t channels_num = in->shape[FMAP_C_DIM_HWC];
@@ -97,8 +97,8 @@ mli_status mli_krn_avepool_hwc_fx16(const mli_tensor* in, const mli_pool_cfg* cf
                     int32_t accum_32 = reduce_sum2D_hwc(in_ptr, kernel_width, kernel_height, channels_num, in_width);
 
                     // Write results
-                    MLI_PTR(int16_t)
-                    p_out_ftrs = (MLI_PTR(int16_t))(out_ftrs + ch_idx + (H_idx * out_width + W_idx) * channels_num);
+                    MLI_OUT_PTR(int16_t)
+                    p_out_ftrs = (MLI_OUT_PTR(int16_t))(out_ftrs + ch_idx + (H_idx * out_width + W_idx) * channels_num);
                     mli_prv_clip_div_and_store_result(p_out_ftrs, kernel_size, accum_32);
                 }
             }
@@ -164,8 +164,8 @@ mli_status mli_krn_avepool_hwc_fx16(const mli_tensor* in, const mli_pool_cfg* cf
                         int32_t accum_32 = reduce_sum2D_hwc(in_ptr, clmns, rows, channels_num, in_width);
 
                         // Write result
-                        MLI_PTR(int16_t)
-                        p_out_ftrs = (MLI_PTR(int16_t))(out_ftrs + ch_idx + (H_idx * out_width + W_idx) * channels_num);
+                        MLI_OUT_PTR(int16_t)
+                        p_out_ftrs = (MLI_OUT_PTR(int16_t))(out_ftrs + ch_idx + (H_idx * out_width + W_idx) * channels_num);
                         mli_prv_clip_div_and_store_result(p_out_ftrs, (int32_t)(rows * clmns), accum_32);
                     }
                 }

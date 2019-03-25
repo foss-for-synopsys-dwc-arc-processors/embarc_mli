@@ -29,7 +29,7 @@ mli_status mli_krn_tanh_fx8(const mli_tensor* in, mli_tensor* out) {
     mli_prv_fx_init_dsp_ctrl();
 
     mli_prv_activation_lut_fx8(
-            (MLI_PTR(int8_t))in->data, (MLI_PTR(int8_t))out->data, &tanh_lut_fx16, in->el_params.fx.frac_bits,
+            (MLI_PTR(int8_t))in->data, (MLI_OUT_PTR(int8_t))out->data, &tanh_lut_fx16, in->el_params.fx.frac_bits,
             (int)mli_prv_count_elem_num(in));
     mli_prv_copy_tensor_format(in, out);
     out->el_params.fx.frac_bits = 7;
@@ -43,7 +43,7 @@ mli_status mli_krn_tanh_fx16(const mli_tensor* in, mli_tensor* out) {
     mli_prv_fx_init_dsp_ctrl();
 
     mli_prv_activation_lut_fx16(
-            (MLI_PTR(int16_t))in->data, (MLI_PTR(int16_t))out->data, &tanh_lut_fx16, in->el_params.fx.frac_bits,
+            (MLI_PTR(int16_t))in->data, (MLI_OUT_PTR(int16_t))out->data, &tanh_lut_fx16, in->el_params.fx.frac_bits,
             (int)mli_prv_count_elem_num(in));
     mli_prv_copy_tensor_format(in, out);
     out->el_params.fx.frac_bits = 15;

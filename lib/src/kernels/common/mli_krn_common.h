@@ -38,7 +38,7 @@ static void __attribute__ ((always_inline)) rnn_dense_op_fx(
         const MLI_PTR (io_T) __restrict state,
         const MLI_PTR (w_T) __restrict weights,
         const MLI_PTR (w_T) __restrict biases,
-        MLI_PTR (io_T) __restrict out, 
+        MLI_CONV_OUT_PTR (io_T) __restrict out,
         const int inp_size,
         const int s_size,
         const int ch_out,
@@ -156,7 +156,7 @@ static void __attribute__ ((always_inline))  basic_rnn_cell_prepare_and_run_fx(
     dense_out.el_params.fx.frac_bits = (cfg->act == RNN_ACT_NONE) ? out->el_params.fx.frac_bits : 
             (sizeof(io_T) * 8) - 1 - 3;
 
-    MLI_PTR (io_T) dense_out_ptr = (MLI_PTR (io_T)) dense_out.data;
+    MLI_CONV_OUT_PTR (io_T) dense_out_ptr = (MLI_CONV_OUT_PTR (io_T)) dense_out.data;
 
     mli_tensor rnn_out = {
         out->data, out_elements * sizeof(io_T),    // buffer params
@@ -170,7 +170,7 @@ static void __attribute__ ((always_inline))  basic_rnn_cell_prepare_and_run_fx(
         rnn_out.data = cfg->ir_tsr->data;
     }
 
-    MLI_PTR (io_T) rnn_out_ptr = (MLI_PTR (io_T)) rnn_out.data;
+    MLI_CONV_OUT_PTR (io_T) rnn_out_ptr = (MLI_CONV_OUT_PTR (io_T)) rnn_out.data;
 
     // Define shift values
     const int bias_shift = mli_prv_calc_shift (in, weights, bias);
@@ -182,19 +182,19 @@ static void __attribute__ ((always_inline))  basic_rnn_cell_prepare_and_run_fx(
         if(cfg->mode == RNN_BATCH_TO_LAST && cfg->act == RNN_ACT_NONE) {
             // Applying Dense
             //=======================================
-            rnn_dense_op_fx < io_T, w_T > (in_ptr, state_ptr, w_ptr, b_ptr, rnn_out_ptr, in_elements, 
+            rnn_dense_op_fx(in_ptr, state_ptr, w_ptr, b_ptr, rnn_out_ptr, in_elements,
                     prev_elements, out_elements, bias_shift, in_to_state_dif, out_shift);
             // Update pointers for next batch
             //=======================================
             state_ptr = (MLI_PTR (io_T)) rnn_out.data;
             b_half ^= 1;
             rnn_out.data = b_half ? out->data : cfg->ir_tsr->data;
-            rnn_out_ptr = (MLI_PTR (io_T)) rnn_out.data;
+            rnn_out_ptr = (MLI_CONV_OUT_PTR (io_T)) rnn_out.data;
         }
         else {
             // Applying Dense
             //=======================================
-            rnn_dense_op_fx < io_T, w_T > (in_ptr, state_ptr, w_ptr, b_ptr, dense_out_ptr, in_elements, 
+            rnn_dense_op_fx(in_ptr, state_ptr, w_ptr, b_ptr, dense_out_ptr, in_elements,
                     prev_elements, out_elements, bias_shift, in_to_state_dif, out_shift);
             // Applying Non-Linearity
             //=======================================
@@ -257,7 +257,7 @@ static void __attribute__ ((always_inline)) lstm_cell_prepare_and_run_fx(
     const MLI_PTR (w_T) b_ptr = (const MLI_PTR (w_T)) bias->data;
     const MLI_PTR (io_T) in_ptr = (const MLI_PTR (io_T)) in->data;
     const MLI_PTR (io_T) prev_ptr = (const MLI_PTR (io_T)) prev_out->data;
-    MLI_PTR (io_T) dense_out_ptr = (MLI_PTR (io_T)) cfg->ir_tsr->data;
+    MLI_CONV_OUT_PTR (io_T) dense_out_ptr = (MLI_CONV_OUT_PTR (io_T)) cfg->ir_tsr->data;
 
     // Fill intermediate tensor of dense output
     mli_tensor *ir_tensor = cfg->ir_tsr;
@@ -306,7 +306,7 @@ static void __attribute__ ((always_inline)) lstm_cell_prepare_and_run_fx(
 
         // Step 1: Applying Dense
         //=======================================
-        rnn_dense_op_fx<io_T, w_T>(in_ptr, prev_ptr, w_ptr, b_ptr, dense_out_ptr,
+        rnn_dense_op_fx(in_ptr, prev_ptr, w_ptr, b_ptr, dense_out_ptr,
                 in_elements, lstm_out_elements, dense_out_elements, dense_bias_shift, in_to_state_dif, dense_out_shift);
 
         // Step2: Applying non-linearity
