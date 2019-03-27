@@ -569,26 +569,6 @@ static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec4(acc_T *
     mli_prv_load_mac_vec2(accu, in, k);
 }
 
-static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec4(
-        int32_t * accu, 
-        const MLI_PTR(int8_t) in, 
-        const MLI_PTR(int8_t) k) {
-    int32_t four8bitvalues = *(MLI_PTR(int32_t)) in;
-    *accu = _dmachbl((int32_t) mli_prv_load_2_samples(k), four8bitvalues);
-    k += 2;
-    *accu = _dmachbm((int32_t) mli_prv_load_2_samples(k), four8bitvalues);
-}
-
-static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec4(
-        int32_t * accu, 
-        const MLI_PTR(int16_t) in, 
-        const MLI_PTR(int8_t) k) {
-    int32_t four8bitvalues = *(MLI_PTR(int32_t)) k;
-    *accu = _dmachbl((int32_t) mli_prv_load_2_samples(in), four8bitvalues);
-    in += 2;
-    *accu = _dmachbm((int32_t) mli_prv_load_2_samples(in), four8bitvalues);
-}
-
 static unsigned __attribute__ ((always_inline)) mli_prv_init_dsp_ctrl(unsigned ctrl_info) {
     unsigned t, old = _lr(DSP_CTRL);
     _sr(ctrl_info, DSP_CTRL);
