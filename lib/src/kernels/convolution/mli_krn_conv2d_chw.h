@@ -945,135 +945,68 @@ static inline void __attribute__ ((always_inline)) conv2d_chw_str1 (
     const int row_end = perception_area->row_end;
     const int clmn_begin = perception_area->clmn_beg;
     const int clmn_end = perception_area->clmn_end;
-    int top_comp = -MIN ((row_begin * stride_height) - padding_top, 0);
-    int bottom_comp = -MIN (in_height - ((row_end * stride_height) - 1 - padding_top + kernel_height), 0);
     int left_comp = -MIN ((clmn_begin * stride_width) - padding_left, 0);
     int right_comp = -MIN (in_width - ((clmn_end * stride_width) - padding_left + kernel_width - 1), 0);
+    int top_border_size = CEIL_DIV(padding_top, stride_height);
+    int bot_border_size = CEIL_DIV(padding_bot, stride_height);
 
     MLI_ASSERT(stride_width == 1);
+    MLI_ASSERT(stride_height == 1);
+    int str_height = 1;
 
     for (int out_ch_idx = 0; out_ch_idx < out_ch; out_ch_idx++) {
-        int H_idx = 0;
         int in_ch_start_idx = depthwise ? out_ch_idx : 0;
         int in_ch_num = depthwise ? 1 : in_ch;
 
-        if ((fixed_padding == 0) || ((fixed_padding == 1) && (padding_top > 2))) {
-            for (int t_comp = top_comp; t_comp > 0; t_comp--) {
-                conv2d_row_str1 (
-                        in_ftrs, weights, biases, out_ftrs,
-                        bias_shift, out_shift,
-                        val_min_limit, val_max_limit,
-                        in_ch_num, in_width, in_height,
-                        out_ch_idx, out_width, out_height,
-                        in_ch_start_idx,
-                        kernel_height, kernel_width,
-                        stride_height, stride_width,
-                        padding_top, padding_left, padding_right, 
-                        H_idx, 
-                        left_comp, right_comp, t_comp, 
-                        clmn_begin, clmn_end, 
-                        kernel_height - t_comp /*rows */ ,
-                        fixed_padding);
-                H_idx++;
-            }
-        } else {
-            if ((padding_top > 1) && (top_comp > 1)) {
-                int t_comp = 2;
-                conv2d_row_str1 (
-                        in_ftrs, weights, biases, out_ftrs,
-                        bias_shift, out_shift,
-                        val_min_limit, val_max_limit,
-                        in_ch_num, in_width, in_height,
-                        out_ch_idx, out_width, out_height,
-                        in_ch_start_idx,
-                        kernel_height, kernel_width,
-                        stride_height, stride_width,
-                        padding_top, padding_left, padding_right, 
-                        H_idx, left_comp, right_comp, t_comp, clmn_begin, clmn_end, kernel_height - t_comp /*rows */ ,
-                        fixed_padding);
-                H_idx++;
-            }
-            if ((padding_top > 0) && (top_comp > 0)) {
-                int t_comp = 1;
-                conv2d_row_str1 (
-                        in_ftrs, weights, biases, out_ftrs,
-                        bias_shift, out_shift,
-                        val_min_limit, val_max_limit,
-                        in_ch_num, in_width, in_height,
-                        out_ch_idx, out_width, out_height,
-                        in_ch_start_idx,
-                        kernel_height, kernel_width,
-                        stride_height, stride_width,
-                        padding_top, padding_left, padding_right, 
-                        H_idx, left_comp, right_comp, t_comp, clmn_begin, clmn_end, kernel_height - t_comp /*rows */ ,
-                        fixed_padding);
-                H_idx++;
+        for (int H_idx = row_begin; H_idx < row_end; )
+        {
+            int input_kernel_start = H_idx * str_height - padding_top;
+            int kernel_rows = kernel_height + MIN(input_kernel_start, 0) - MAX(input_kernel_start + kernel_height - in_height, 0);
+            int lines = (H_idx >= top_border_size && H_idx < (out_height - bot_border_size))? MIN(out_height - bot_border_size, row_end) - H_idx : 1;
+            int top_comp = -MIN((H_idx * str_height) - padding_top, 0);
+
+            if (kernel_rows == kernel_height){
+                for (int line = 0; line < lines; line++ ){
+                    conv2d_row_str1(
+                            in_ftrs, weights, biases, out_ftrs, bias_shift, out_shift, val_min_limit, val_max_limit,
+                            in_ch_num, in_width, in_height,    out_ch_idx, out_width, out_height, in_ch_start_idx,
+                            kernel_height, kernel_width, str_height, stride_width, padding_top, padding_left, padding_right,
+                            H_idx, left_comp, right_comp, top_comp, clmn_begin, clmn_end,
+                            kernel_height/*rows*/, fixed_padding);
+                    H_idx++;
+                }
+            } else if ((fixed_padding == 1) && (kernel_height <= 5) && ((padding_top > 0) || (padding_bot > 0)) && (kernel_rows == kernel_height - 1)){
+                {
+                    conv2d_row_str1(
+                            in_ftrs, weights, biases, out_ftrs, bias_shift, out_shift, val_min_limit, val_max_limit,
+                            in_ch_num, in_width, in_height,    out_ch_idx, out_width, out_height, in_ch_start_idx,
+                            kernel_height, kernel_width, str_height, stride_width, padding_top, padding_left, padding_right,
+                            H_idx, left_comp, right_comp, top_comp, clmn_begin, clmn_end,
+                            kernel_height - 1/*rows*/, fixed_padding);
+                    H_idx++;
+                }
+            } else if ((fixed_padding == 1) && (kernel_height <= 5) && ((padding_top > 1) || (padding_bot > 1)) && (kernel_rows == kernel_height - 2)){
+                {
+                    conv2d_row_str1(
+                            in_ftrs, weights, biases, out_ftrs, bias_shift, out_shift, val_min_limit, val_max_limit,
+                            in_ch_num, in_width, in_height,    out_ch_idx, out_width, out_height, in_ch_start_idx,
+                            kernel_height, kernel_width, str_height, stride_width, padding_top, padding_left, padding_right,
+                            H_idx, left_comp, right_comp, top_comp, clmn_begin, clmn_end,
+                            kernel_height - 2/*rows*/, fixed_padding);
+                    H_idx++;
+                }
+            } else if ((fixed_padding == 0) || (padding_top > 2) || (padding_bot > 2)) {
+                for (int line = 0; line < lines; line++ ){
+                    conv2d_row_str1(
+                            in_ftrs, weights, biases, out_ftrs, bias_shift, out_shift, val_min_limit, val_max_limit,
+                            in_ch_num, in_width, in_height,    out_ch_idx, out_width, out_height, in_ch_start_idx,
+                            kernel_height, kernel_width, str_height, stride_width, padding_top, padding_left, padding_right,
+                            H_idx, left_comp, right_comp, top_comp, clmn_begin, clmn_end,
+                            kernel_rows/*rows*/, fixed_padding);
+                    H_idx++;
+                }
             }
         }
-        for (H_idx = row_begin + top_comp; H_idx < row_end - bottom_comp; H_idx++) {
-            conv2d_row_str1 (
-                    in_ftrs, weights, biases, out_ftrs,
-                    bias_shift, out_shift,
-                    val_min_limit, val_max_limit,
-                    in_ch_num, in_width, in_height,
-                    out_ch_idx, out_width, out_height,
-                    in_ch_start_idx,
-                    kernel_height, kernel_width, 
-                    stride_height, stride_width, 
-                    padding_top, padding_left, padding_right, H_idx, left_comp, right_comp, 0 /*top_comp */ ,
-                    clmn_begin, clmn_end, kernel_height, fixed_padding);
-
-        }
-
-        if ((fixed_padding == 0) || ((fixed_padding == 1) && (padding_bot > 2))) {
-            for (int b_comp = 1; b_comp <= bottom_comp; b_comp++) {
-                conv2d_row_str1 (
-                        in_ftrs, weights, biases, out_ftrs,
-                        bias_shift, out_shift,
-                        val_min_limit, val_max_limit,
-                        in_ch_num, in_width, in_height,
-                        out_ch_idx, out_width, out_height,
-                        in_ch_start_idx,
-                        kernel_height, kernel_width, 
-                        stride_height, stride_width, 
-                        padding_top, padding_left, padding_right, H_idx, left_comp, right_comp, 0 /*top_comp */ ,
-                        clmn_begin, clmn_end, kernel_height - b_comp /*rows */ ,
-                        fixed_padding);
-                H_idx++;
-            }
-        } else {
-            if ((padding_bot > 0) && (bottom_comp > 0)) {
-                conv2d_row_str1 (
-                        in_ftrs, weights, biases, out_ftrs,
-                        bias_shift, out_shift,
-                        val_min_limit, val_max_limit,
-                        in_ch_num, in_width, in_height,
-                        out_ch_idx, out_width, out_height,
-                        in_ch_start_idx,
-                        kernel_height, kernel_width, 
-                        stride_height, stride_width, 
-                        padding_top, padding_left, padding_right, H_idx, left_comp, right_comp, 0 /*top_comp */ ,
-                        clmn_begin, clmn_end, kernel_height - 1 /*rows */ ,
-                        fixed_padding);
-                H_idx++;
-            }
-            if ((padding_bot > 1) && (bottom_comp > 1)) {
-                conv2d_row_str1 (
-                        in_ftrs, weights, biases, out_ftrs,
-                        bias_shift, out_shift,
-                        val_min_limit, val_max_limit,
-                        in_ch_num, in_width, in_height,
-                        out_ch_idx, out_width, out_height,
-                        in_ch_start_idx,
-                        kernel_height, kernel_width, 
-                        stride_height, stride_width, 
-                        padding_top, padding_left, padding_right, H_idx, left_comp, right_comp, 0 /*top_comp */ ,
-                        clmn_begin, clmn_end, kernel_height - 2 /*rows */ ,
-                        fixed_padding);
-                H_idx++;
-            }
-        }
-
     }
 }
 
