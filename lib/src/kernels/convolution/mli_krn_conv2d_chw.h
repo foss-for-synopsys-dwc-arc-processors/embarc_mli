@@ -120,6 +120,7 @@ static void __attribute__ ((always_inline)) convolution (
         const int clmns, const int rows, const int in_ch) {
     auto conv_out = mli_prv_init_accu_with_bias (in_ptr, bias, bias_shift);
 
+    __builtin_assume(in_ch > 0);
     for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
         // Convolution core
         dotprod2D (in_ptr, w_ptr, clmns, rows, in_width, kernel_w, &conv_out);
@@ -146,6 +147,7 @@ static void __attribute__ ((always_inline)) convolution (
         const int clmns, const int rows, const int in_ch) {
     auto conv_out = mli_prv_init_accu_with_bias (in_ptr, bias, bias_shift);
 
+    __builtin_assume(in_ch > 0);
     for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
         // Convolution core
         dotprod2D (in_ptr, w_ptr, clmns, rows, in_width, kernel_w, &conv_out);
@@ -322,6 +324,7 @@ static void __attribute__ ((always_inline)) convolution_v (
     int32_t conv_out = fx_asr_rnd_q31((int32_t) bias, -bias_shift);
     __v2i32_t conv_out_v = { conv_out, conv_out };
 
+    __builtin_assume(in_ch > 0);
     for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
         // Convolution core
         dotprod2D_v (in_ptr, w_ptr, clmns, rows, in_width, kernel_w, &conv_out_v);
@@ -351,6 +354,7 @@ static void __attribute__ ((always_inline)) convolution_v (
     v2accum40_t conv_out_v = fx_v2a40_mpy_nf_v2q15 (bias_v, (v2q15_t) 0x00010001);
     conv_out_v = fx_asr_v2a40_n (conv_out_v, -bias_shift);
 
+    __builtin_assume(in_ch > 0);
     for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
         // Convolution core
         dotprod2D_v (in_ptr, w_ptr, clmns, rows, in_width, kernel_w, &conv_out_v);
@@ -808,117 +812,119 @@ static inline void __attribute__ ((always_inline)) conv2d_row_str1 (
             top_comp * kernel_w;    // move to row
 
     MLI_CONV_OUT_PTR (io_T) __restrict o_ptr = out_ftrs + out_ch_idx * out_width * out_height + H_idx * out_width + clmn_begin;
+    int left_border_size = CEIL_DIV(pad_left, stride_width);
+    int right_border_size = CEIL_DIV(pad_right, stride_width);
 
     MLI_ASSERT(stride_width == 1);
     MLI_ASSERT(H_idx < out_height);
 
-    /* for large kernel sizes use a loop for the first part of the run-in
-     * for the rest of the run-in and for small kernel sizes, use the
-     * unrolled part below.
-     */
-    if ((fixed_padding == 0) || ((fixed_padding == 1) && (pad_left > 2))) {
-        for (int l_comp = left_comp; l_comp > 0; l_comp--) {
-            convolution_odd_even (in_ptr, w_ptr + l_comp, o_ptr, biases[out_ch_idx], bias_shift,
-                    out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h, 
-                    kernel_w - l_comp, rows, in_ch);
-            CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, o_ptr[0]);
-            W_idx++;
-            o_ptr++;
-            /* only output ptr is incremented here, input ptr is not incremented because the input
-             * pixels for the border processing start at the same point as the first part of the center
-             * processing.
-             */
-        }
-    } else {
-        /* the extra condition with pad_left is only added because it enables
-         * the compiler to remove the complete code block when not needed.
-         * pad_left is compiletime constant.
-         */
-        if ((pad_left > 1) && (left_comp > 1)) {
-            int l_comp = 2;
+    int cols = out_width - left_border_size - right_border_size;
+    int cols_even = cols>>1;
+    int odd = cols - cols_even*2;
+    int l_comp = pad_left;
+    int lr_comp = left_comp;
+
+    /* for large padding sizes and in case the padding is not fixed, we use a loop. */
+    bool use_padding_loop = ((fixed_padding == 0) || (pad_left > 2) || (pad_right > 2));
+    bool use_padding2 = !use_padding_loop && ((pad_left > 1) || (pad_right > 1));
+    bool use_padding1 = !use_padding_loop && ((pad_left > 0) || (pad_right > 0));
+
+    for (int i = 0; i < 2; i++)
+    {
+        if (use_padding2 && (((left_comp > 1) && (i==0)) || ((right_comp > 1) && (i==1))) ){
+            // border processing with kernelsize = kernel width - 2
             convolution (in_ptr, w_ptr + l_comp, o_ptr, biases[out_ch_idx], bias_shift,
-                    out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h, 
-                    kernel_w - l_comp, rows, in_ch);
-            CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, o_ptr[0]);
-            W_idx++;
-            o_ptr++;
-            /* only output ptr is incremented here, input ptr is not incremented because the input
-             * pixels for the border processing start at the same point as the first part of the center
-             * processing.
-             */
+                    out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h, kernel_w - 2, rows, in_ch);
+            CONV2D_DBG_PRINT_EXTRA(out_ch_idx, H_idx, W_idx, o_ptr[0], rows, kernel_w - 2);
+            if (i == 0){
+                // At the left border l_comp (used as w_ptr offset) needs to be decremented. on the right border it is always zero.
+                l_comp--;
+                W_idx += 1;
+                o_ptr += 1;
+            } else {
+                // At the right border, the pointers need to be decremented because the order of point that will be computed
+                // next sits left of the currently calculated point.
+                in_ptr -= 1;
+                W_idx -= 1;
+                o_ptr -= 1;
+            }
         }
-        if ((pad_left > 0) && (left_comp > 0)) {
-            int l_comp = 1;
+
+        if (use_padding1 && (((left_comp > 0) && (i==0)) || ((right_comp > 0) && (i==1)))){
+            // border processing with kernelsize = kernel width - 1
             convolution (in_ptr, w_ptr + l_comp, o_ptr, biases[out_ch_idx], bias_shift,
-                    out_shift, val_min_limit, val_max_limit, in_width, in_height, 
-                    kernel_w, kernel_h, kernel_w - l_comp, rows, in_ch);
-            CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, o_ptr[0]);
-            W_idx++;
-            o_ptr++;
-            /* only output ptr is incremented here, input ptr is not incremented because the input
-             * pixels for the border processing start at the same point as the first part of the center
-             * processing.
-             */
-        }
-    }
-    /* this is the main loop without run-in and run-out effects */
-    /* when stride is fixed to one, the vectorized convolution can be used.
-     * This will calculate two output samples at once.
-     * in this case an extra case is needed for odd widths.
-     */
-    for (W_idx = clmn_begin + left_comp; W_idx < clmn_end - right_comp - 1; W_idx += 2) {
-        convolution_v (in_ptr, w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
-                out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h, 
-                kernel_w, rows, in_ch);
-        CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, o_ptr[0]);
-        CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx + 1, o_ptr[1]);
-        o_ptr += 2;
-        in_ptr += 2;
-    }
-
-    /* because the main loop is doing 2 pixels at a time, we need an exception for odd widths */
-    if (_Rarely (((clmn_end - right_comp) - (clmn_begin + left_comp)) & 1)) {
-        convolution (in_ptr, w_ptr, o_ptr, biases[out_ch_idx], bias_shift, out_shift, val_min_limit, val_max_limit, 
-                in_width, in_height, kernel_w, kernel_h, kernel_w, rows, in_ch);
-        CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, o_ptr[0]);
-        W_idx++;
-        o_ptr += 1;
-        in_ptr += 1;
-    }
-
-    if ((fixed_padding == 0) || ((fixed_padding == 1) && (pad_right > 2))) {
-        /* for large padding sizes and in case the padding is not fixed, we use a loop. */
-        for (int r_comp = 1; r_comp <= right_comp; r_comp++) {
-            convolution_odd_even (in_ptr, w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
-                    out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h, 
-                    kernel_w - r_comp, rows, in_ch);
-            CONV2D_DBG_PRINT_EXTRA(out_ch_idx, H_idx, W_idx, o_ptr[0], rows, kernel_w - r_comp);
-            W_idx++;
-            o_ptr++;
-            in_ptr++;
-        }
-
-    } else {
-        if ((pad_right > 0) && (right_comp > 0))
-        {
-            convolution (in_ptr, w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
                     out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h, kernel_w - 1, rows, in_ch);
             CONV2D_DBG_PRINT_EXTRA(out_ch_idx, H_idx, W_idx, o_ptr[0], rows, kernel_w - 1);
             W_idx++;
             o_ptr += 1;
-            in_ptr += 1;
+            if (i == 0){
+                // At the left border l_comp (used as w_ptr offset) needs to be decremented. on the right border it is always zero.
+                l_comp--;
+            }
+        }
+        /* for large padding sizes and in case the padding is not fixed, we use a loop. */
+        if (use_padding_loop) {
+            for (int loop = 0; loop < lr_comp; loop++) {
+                int l_comp = left_comp - loop;
+                int r_comp = loop + 1;
+                int comp = (i == 0) ? l_comp : r_comp;
+                int w_ptr_offset = (i == 0) ? l_comp : 0;
+                convolution_odd_even (in_ptr, w_ptr + w_ptr_offset, o_ptr, biases[out_ch_idx], bias_shift,
+                        out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h,
+                        kernel_w - comp, rows, in_ch);
+                CONV2D_DBG_PRINT_EXTRA(out_ch_idx, H_idx, W_idx, o_ptr[0], rows, kernel_w - comp);
+                W_idx++;
+                o_ptr++;
+                /* when processing the left border, input ptr is not incremented because the input
+                 * pixels for the border processing start at the same point as the first part of the center
+                 * processing.
+                 */
+                 if (i == 1) in_ptr++;
+            }
         }
 
-        if ((pad_right > 1) && (right_comp > 1)) {
+        //if (i == 1) break;
+
+        if (cols_even > 0) {
+            /* This is the main loop without run-in and run-out effects */
+            /* when stride is fixed to one, the vectorized convolution can be used.
+             * This will calculate two output samples at once.
+             * in this case an extra case is needed for odd widths.
+             */
+            for (int col = 0; col < cols_even; col++) {
+                __builtin_assume(cols_even > 0);
+                convolution_v (in_ptr, w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
+                        out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h,
+                        kernel_w, rows, in_ch);
+                CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, o_ptr[0]);
+                CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx + 1, o_ptr[1]);
+                W_idx += 2;
+                o_ptr += 2;
+                in_ptr += 2;
+            }
+        }
+#if 1 // if disabled, odd sizes are not supported
+        if (_Rarely(odd)) {
+            //odd
             convolution (in_ptr, w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
-                    out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h, kernel_w - 2, rows, in_ch);
-            CONV2D_DBG_PRINT_EXTRA(out_ch_idx, H_idx, W_idx, o_ptr[0], rows, kernel_w - 2);
+                    out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h,
+                    kernel_w, rows, in_ch);
+            CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, o_ptr[0]);
             W_idx++;
+            o_ptr++;
+            in_ptr += 1;
+        }
+#endif
+        if (use_padding2 && (right_comp > 1)){
+            // extra increment because the border pixel with kernel_w - 2 is computed before kernel_w - 1
+            W_idx += 1;
             o_ptr += 1;
             in_ptr += 1;
         }
+        cols_even = 0;
+        odd = 0;
+        lr_comp = right_comp;
     }
-
 }
 
 /* optimized function that can do both the borders and the main part
