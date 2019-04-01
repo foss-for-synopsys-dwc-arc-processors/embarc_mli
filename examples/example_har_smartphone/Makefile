@@ -14,18 +14,18 @@ TCF_FILE  ?= ../../hw/em9d.tcf
 
 # Directories and files
 EMBARC_MLI_DIR ?= ../..
-SRC_DIRS    = $(EMBARC_MLI_DIR)/examples/example_har_smartphone \
-              $(EMBARC_MLI_DIR)/examples/auxiliary
+SRC_DIRS     = $(EMBARC_MLI_DIR)/examples/example_har_smartphone \
+               $(EMBARC_MLI_DIR)/examples/auxiliary
 
-INC_DIRS    = . \
-              $(EMBARC_MLI_DIR)/include\
-              $(EMBARC_MLI_DIR)/examples/auxiliary
+INC_DIRS     = . \
+               $(EMBARC_MLI_DIR)/include \
+               $(EMBARC_MLI_DIR)/examples/auxiliary
 
 EXT_LIBS_DIR ?= $(EMBARC_MLI_DIR)/bin
 EXT_LIBS     ?= $(EXT_LIBS_DIR)/libmli.a
-OUT_DIR     ?= ./bin
-BUILD_DIR   ?= ./obj
-OUT_NAME    ?= example_har_smartphone
+OUT_DIR      ?= ./bin
+BUILD_DIR    ?= ./obj
+OUT_NAME     ?= example_har_smartphone
 ifeq ($(TOOLCHAIN),mwdt)
 # MWDT specific options
 CFLAGS       =  -Hnocopyr -Hpurge -Hheap=8K -Hstack=1K -Hfxapi -e_start -Bgrouplib -Hldopt=-q -O0
@@ -34,7 +34,7 @@ PREBUILT_LIB ?= $(EMBARC_MLI_DIR)/examples/prebuilt/libmli.a
 
 # GNU toolchain specific options - correct it according to your target platform settings (see build_configuration.txt for input)
 #Iot DevKit config
-CFLAGS       =  -mcpu=em4_dmips -mlittle-endian -mcode-density -mdiv-rem -mswap -mnorm -mmpy-option=6 -mbarrel-shifter -mxy
+CFLAGS       =  -mcpu=em4_fpuda -mlittle-endian -mcode-density -mdiv-rem -mswap -mnorm -mmpy-option=6 -mbarrel-shifter -mxy
 
 # The embARC MLI Library specific options it according to your target platform settings 
 #(EM5D or EM7D platform)
