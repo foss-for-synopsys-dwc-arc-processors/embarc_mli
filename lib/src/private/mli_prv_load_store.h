@@ -21,7 +21,7 @@
 
 
 static inline v2q15_t __attribute__ ((always_inline)) mli_prv_load_2_samples (const MLI_PTR (int8_t) __restrict in) {
-#ifndef _ARC
+#if defined __Xxy
     return __builtin_convertvector (*(MLI_PTR (v2i8_t)) in, v2q15_t);
 #else
     int16_t two8bitvalues = *(MLI_PTR (int16_t)) in;
