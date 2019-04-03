@@ -152,7 +152,8 @@ static inline void __attribute__((always_inline)) maxpool_chw_nopad(
         const int padding_top,
         const int padding_bot,
         const int padding_left,
-        const int padding_right) {
+        const int padding_right,
+        const int fixed_padding) {
     MLI_OUT_PTR(io_T) __restrict out_ptr = out_ftrs + row_begin * out_width + clmn_begin;
     const MLI_PTR(io_T) __restrict in_ptr =
             in_ftrs + (row_begin * stride_height - padding_top) * in_width + (clmn_begin * stride_width - padding_left);
@@ -218,8 +219,10 @@ static inline void __attribute__((always_inline)) maxpool_chw(
         const int padding_top,
         const int padding_bot,
         const int padding_left,
-        const int padding_right) {
+        const int padding_right,
+        const int fixed_padding) {
     MLI_OUT_PTR(io_T) __restrict out_ptr = out_ftrs + row_begin * out_width + clmn_begin;
+
     for (int ch_idx = 0; ch_idx < channels_num; ch_idx++) {
         for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
             for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
@@ -231,6 +234,13 @@ static inline void __attribute__((always_inline)) maxpool_chw(
                 int right_comp = -MIN((int)in_width - ((int)(W_idx * stride_width) - padding_left + kernel_width), 0);
                 int bottom_comp =
                         -MIN((int)in_height - ((int)(H_idx * stride_height) - padding_top + kernel_height), 0);
+
+                if (fixed_padding) {
+                    if (padding_left == 0) left_comp = 0;
+                    if (padding_right == 0) right_comp = 0;
+                    if (padding_top == 0) top_comp = 0;
+                    if (padding_bot == 0) bottom_comp = 0;
+                }
 
                 int rows = kernel_height - top_comp - bottom_comp;
                 int clmns = kernel_width - right_comp - left_comp;
@@ -274,7 +284,8 @@ static inline void __attribute__((always_inline)) maxpool_chw_krnpad(
         const int padding_top,
         const int padding_bot,
         const int padding_left,
-        const int padding_right) {
+        const int padding_right,
+        const int fixed_padding) {
     // Phase 1: Process central part (without border effects - padding free)
     //=======================================================================
     if (in_height >= kernel_height && in_width >= kernel_width) {
@@ -286,50 +297,42 @@ static inline void __attribute__((always_inline)) maxpool_chw_krnpad(
         maxpool_chw_nopad(
                 in_ftrs, out_ftrs, row_beg, row_end, clmn_beg, clmn_end, channels_num, in_width, in_height, out_width,
                 out_height, kernel_height, kernel_width, stride_height, stride_width, padding_top, padding_bot,
-                padding_left, padding_right);
+                padding_left, padding_right, fixed_padding);
     }
     // Phase 2: Process border part with more complex algorithm
     // (usually significantly smaller part of computations)
     //=======================================================================
+    rect_t areas[4];
+    uint32_t areas_num = 0;
     if (padding_top) {
-        const int row_beg = 0;
-        const int row_end = CEIL_DIV(padding_top, stride_height);
-        const int clmn_beg = 0;
-        const int clmn_end = out_width;
-        maxpool_chw(
-                in_ftrs, out_ftrs, row_beg, row_end, clmn_beg, clmn_end, channels_num, in_width, in_height, out_width,
-                out_height, kernel_height, kernel_width, stride_height, stride_width, padding_top, padding_bot,
-                padding_left, padding_right);
+        areas[areas_num].row_beg = 0;
+        areas[areas_num].row_end = CEIL_DIV (padding_top, stride_height);
+        areas[areas_num].clmn_beg = 0;
+        areas[areas_num++].clmn_end = out_width;
     }
     if (padding_bot) {
-        const int row_beg = out_height - CEIL_DIV(padding_bot, stride_height);
-        const int row_end = out_height;
-        const int clmn_beg = 0;
-        const int clmn_end = out_width;
-        maxpool_chw(
-                in_ftrs, out_ftrs, row_beg, row_end, clmn_beg, clmn_end, channels_num, in_width, in_height, out_width,
-                out_height, kernel_height, kernel_width, stride_height, stride_width, padding_top, padding_bot,
-                padding_left, padding_right);
+        areas[areas_num].row_beg = out_height - CEIL_DIV (padding_bot, stride_height);
+        areas[areas_num].row_end = out_height;
+        areas[areas_num].clmn_beg = 0;
+        areas[areas_num++].clmn_end = out_width;
     }
     if (padding_left) {
-        const int row_beg = CEIL_DIV(padding_top, stride_height);
-        const int row_end = out_height - CEIL_DIV(padding_bot, stride_height);
-        const int clmn_beg = 0;
-        const int clmn_end = CEIL_DIV(padding_left, stride_width);
-        maxpool_chw(
-                in_ftrs, out_ftrs, row_beg, row_end, clmn_beg, clmn_end, channels_num, in_width, in_height, out_width,
-                out_height, kernel_height, kernel_width, stride_height, stride_width, padding_top, padding_bot,
-                padding_left, padding_right);
+        areas[areas_num].row_beg = CEIL_DIV (padding_top, stride_height);
+        areas[areas_num].row_end = out_height - CEIL_DIV (padding_bot, stride_height);
+        areas[areas_num].clmn_beg = 0;
+        areas[areas_num++].clmn_end = CEIL_DIV (padding_left, stride_width);
     }
     if (padding_right) {
-        const int row_beg = CEIL_DIV(padding_top, stride_height);
-        const int row_end = out_height - CEIL_DIV(padding_bot, stride_height);
-        const int clmn_beg = out_width - CEIL_DIV(padding_right, stride_width);
-        const int clmn_end = out_width;
+        areas[areas_num].row_beg = CEIL_DIV (padding_top, stride_height);
+        areas[areas_num].row_end = out_height - CEIL_DIV (padding_bot, stride_height);
+        areas[areas_num].clmn_beg = out_width - CEIL_DIV (padding_right, stride_width);
+        areas[areas_num++].clmn_end = out_width;
+    }
+    for (int i = 0; i < areas_num; i++) {
         maxpool_chw(
-                in_ftrs, out_ftrs, row_beg, row_end, clmn_beg, clmn_end, channels_num, in_width, in_height, out_width,
+                in_ftrs, out_ftrs, areas[i].row_beg, areas[i].row_end, areas[i].clmn_beg, areas[i].clmn_end, channels_num, in_width, in_height, out_width,
                 out_height, kernel_height, kernel_width, stride_height, stride_width, padding_top, padding_bot,
-                padding_left, padding_right);
+                padding_left, padding_right, fixed_padding);
     }
 }
 
