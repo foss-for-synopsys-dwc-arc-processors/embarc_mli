@@ -499,7 +499,7 @@ mli_status mli_krn_conv2d_chw_fx8_k2x2_str1_krnpad(
 
     mli_prv_fx_init_dsp_ctrl();
 
-    conv2d_chw(
+    conv2d_chw_str1(
         in_ftrs, wt, bs, out_ftrs, &cent_area,
         bias_shift, out_shift,
         val_limit.min, val_limit.max,
@@ -597,7 +597,7 @@ mli_status mli_krn_conv2d_chw_fx8_k2x2_ch1_str1_krnpad(
 
     mli_prv_fx_init_dsp_ctrl();
 
-    conv2d_chw(
+    conv2d_chw_str1(
         in_ftrs, wt, bs, out_ftrs, &cent_area,
         bias_shift, out_shift,
         val_limit.min, val_limit.max,
@@ -695,7 +695,7 @@ mli_status mli_krn_conv2d_chw_fx8_k3x3_str1_krnpad(
 
     mli_prv_fx_init_dsp_ctrl();
 
-    conv2d_chw(
+    conv2d_chw_str1(
         in_ftrs, wt, bs, out_ftrs, &cent_area,
         bias_shift, out_shift,
         val_limit.min, val_limit.max,
@@ -793,7 +793,7 @@ mli_status mli_krn_conv2d_chw_fx8_k3x3_ch1_str1_krnpad(
 
     mli_prv_fx_init_dsp_ctrl();
 
-    conv2d_chw(
+    conv2d_chw_str1(
         in_ftrs, wt, bs, out_ftrs, &cent_area,
         bias_shift, out_shift,
         val_limit.min, val_limit.max,
@@ -891,7 +891,7 @@ mli_status mli_krn_conv2d_chw_fx8_k4x4_str1_krnpad(
 
     mli_prv_fx_init_dsp_ctrl();
 
-    conv2d_chw(
+    conv2d_chw_str1(
         in_ftrs, wt, bs, out_ftrs, &cent_area,
         bias_shift, out_shift,
         val_limit.min, val_limit.max,
@@ -989,7 +989,7 @@ mli_status mli_krn_conv2d_chw_fx8_k4x4_ch1_str1_krnpad(
 
     mli_prv_fx_init_dsp_ctrl();
 
-    conv2d_chw(
+    conv2d_chw_str1(
         in_ftrs, wt, bs, out_ftrs, &cent_area,
         bias_shift, out_shift,
         val_limit.min, val_limit.max,
@@ -1087,7 +1087,7 @@ mli_status mli_krn_conv2d_chw_fx8_k5x5_str1_krnpad(
 
     mli_prv_fx_init_dsp_ctrl();
 
-    conv2d_chw(
+    conv2d_chw_str1(
         in_ftrs, wt, bs, out_ftrs, &cent_area,
         bias_shift, out_shift,
         val_limit.min, val_limit.max,
@@ -1185,7 +1185,7 @@ mli_status mli_krn_conv2d_chw_fx8_k5x5_ch1_str1_krnpad(
 
     mli_prv_fx_init_dsp_ctrl();
 
-    conv2d_chw(
+    conv2d_chw_str1(
         in_ftrs, wt, bs, out_ftrs, &cent_area,
         bias_shift, out_shift,
         val_limit.min, val_limit.max,
@@ -1283,7 +1283,7 @@ mli_status mli_krn_conv2d_chw_fx8_k6x6_str1_krnpad(
 
     mli_prv_fx_init_dsp_ctrl();
 
-    conv2d_chw(
+    conv2d_chw_str1(
         in_ftrs, wt, bs, out_ftrs, &cent_area,
         bias_shift, out_shift,
         val_limit.min, val_limit.max,
@@ -1381,7 +1381,7 @@ mli_status mli_krn_conv2d_chw_fx8_k6x6_ch1_str1_krnpad(
 
     mli_prv_fx_init_dsp_ctrl();
 
-    conv2d_chw(
+    conv2d_chw_str1(
         in_ftrs, wt, bs, out_ftrs, &cent_area,
         bias_shift, out_shift,
         val_limit.min, val_limit.max,
@@ -1479,7 +1479,7 @@ mli_status mli_krn_conv2d_chw_fx8_k7x7_str1_krnpad(
 
     mli_prv_fx_init_dsp_ctrl();
 
-    conv2d_chw(
+    conv2d_chw_str1(
         in_ftrs, wt, bs, out_ftrs, &cent_area,
         bias_shift, out_shift,
         val_limit.min, val_limit.max,
@@ -1577,7 +1577,7 @@ mli_status mli_krn_conv2d_chw_fx8_k7x7_ch1_str1_krnpad(
 
     mli_prv_fx_init_dsp_ctrl();
 
-    conv2d_chw(
+    conv2d_chw_str1(
         in_ftrs, wt, bs, out_ftrs, &cent_area,
         bias_shift, out_shift,
         val_limit.min, val_limit.max,
