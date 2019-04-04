@@ -51,6 +51,8 @@ mli_status mli_krn_avepool_hwc_fx8(const mli_tensor* in, const mli_pool_cfg* cfg
     mli_status ret = MLI_CHECK_STATUS(mli_chk_avepool_hwc_fx8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
 
+    mli_prv_fx_init_dsp_ctrl();
+
     // Extract general maxpooling parameters
     int32_t stride_width = cfg->stride_width;
     int32_t stride_height = cfg->stride_height;

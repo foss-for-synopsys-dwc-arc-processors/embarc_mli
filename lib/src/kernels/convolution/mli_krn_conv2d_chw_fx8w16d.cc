@@ -43,6 +43,8 @@ mli_krn_conv2d_chw_fx8w16d (const mli_tensor * in, const mli_tensor * weights, c
     if (ret != MLI_STATUS_OK)
         return ret;
 
+    mli_prv_fx_init_dsp_ctrl();
+
     // Extract general conv2D parameters
     uint8_t stride_width = cfg->stride_width;
     uint8_t stride_height = cfg->stride_height;
