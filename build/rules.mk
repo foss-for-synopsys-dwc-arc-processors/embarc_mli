@@ -223,6 +223,9 @@ endif
 ifneq ($(CPP_DEPENDS),)
 -include $(CPP_DEPENDS)
 endif
+ifneq ($(CC_DEPENDS),)
+-include $(CC_DEPENDS)
+endif
 
 #=================================================================
 # Applications rules

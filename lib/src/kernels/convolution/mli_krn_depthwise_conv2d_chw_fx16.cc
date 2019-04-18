@@ -1,7 +1,7 @@
 /* This file is generated, do not edit!
  * edit following template files instead:
  * filetemplate.txt
- * depthwise_conv2d_func_body.txt
+ * mli_krn_depthwise_conv2d_func_body.txt
  */
 /*
 * Copyright 2019, Synopsys, Inc.

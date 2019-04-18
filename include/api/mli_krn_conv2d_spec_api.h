@@ -519,4 +519,4 @@ mli_status mli_krn_conv2d_chw_fx8_generic(
 #ifdef __cplusplus
 }
 #endif
-#endif                          //_MLI_KRN_CONV2D_SPEC_API_H_
+#endif //_MLI_KRN_CONV2D_SPEC_API_H_
