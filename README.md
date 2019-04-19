@@ -1,4 +1,4 @@
-EmbARC Machine Learning Inference Library
+embARC Machine Learning Inference Library
 ==================================================
 
 This repository contains source code of embARC Machine Learning Inference Library (embARC MLI Lib),
