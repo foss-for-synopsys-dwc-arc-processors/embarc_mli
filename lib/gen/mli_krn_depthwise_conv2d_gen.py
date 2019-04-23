@@ -17,6 +17,7 @@ capital_header_file_name = "_MLI_KRN_DEPTHWISE_CONV2D_SPEC_API_H_"
 output_header_file = "..\..\include\\api\mli_krn_depthwise_conv2d_spec_api.h"
 output_file_fx16 = "..\..\lib\src\kernels\convolution\mli_krn_depthwise_conv2d_chw_fx16.cc"
 output_file_fx8 = "..\..\lib\src\kernels\convolution\mli_krn_depthwise_conv2d_chw_fx8.cc"
+output_file_fx8w16d = "..\..\lib\src\kernels\convolution\mli_krn_depthwise_conv2d_chw_fx8w16d.cc"
 
 f_list = []
 f_args = [("const mli_tensor *", "in"),
@@ -128,6 +129,22 @@ default_func = default_func.copy_and_replace_base(fbase)
 if "fx8" in sys.argv or no_args:
     f = open(output_file_fx8, "wb")
     f.write(c.print_file(f_list_fx8, default_func, func_body_template_file, file_template, include_list, define_list))
+    f.close()
+
+#------------------------------------------------------------
+# Create a new list of specialization functions for fx8w16d
+#------------------------------------------------------------
+fbase = ("krn", "depthwise_conv2d", "chw", "fx8w16d", f_args)
+
+f_list_fx8w16d = [f.copy_and_replace_base(fbase) for f in f_list]
+default_func = default_func.copy_and_replace_base(fbase)
+
+#------------------------------------------------------------
+# Generate the output file
+#------------------------------------------------------------
+if "fx8w16d" in sys.argv or no_args:
+    f = open(output_file_fx8w16d, "wb")
+    f.write(c.print_file(f_list_fx8w16d, default_func, func_body_template_file, file_template, include_list, define_list))
     f.close()
 
 #------------------------------------------------------------

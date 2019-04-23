@@ -43,6 +43,8 @@ GEN_FILES_BASE = $(CONVOLUTION_SRC_FOLDER)/mli_krn_conv2d \
 
 GEN_FILES  = $(addsuffix _chw_fx16.cc, $(GEN_FILES_BASE))
 GEN_FILES += $(addsuffix _chw_fx8.cc, $(GEN_FILES_BASE))
+GEN_FILES += $(CONVOLUTION_SRC_FOLDER)/mli_krn_conv2d_chw_fx8w16d.cc \
+             $(CONVOLUTION_SRC_FOLDER)/mli_krn_depthwise_conv2d_chw_fx8w16d.cc
 
 GEN_FILES_HEADERS = $(addprefix $(GEN_HEADER_FOLDER)/, $(addsuffix _spec_api.h, $(notdir $(GEN_FILES_BASE))))
 
