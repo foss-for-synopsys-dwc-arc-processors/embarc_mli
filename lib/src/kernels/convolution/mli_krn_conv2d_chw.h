@@ -26,6 +26,11 @@
 #define CONV2D_DBG_PRINT_EXTRA(out_ch_idx, H_idx, W_idx, out_val, rows, clms)
 #endif
 
+/* This define controls the manual loop unrolling for the padding loop.
+ * only the values 1 and 2 are supported. value 2 gives better performance,
+ * value 1 gives better codesize. */
+#define VPAD_UNROLL 2
+
 template < typename io_T, typename w_T >
 static void convolution_chw_nopad (
         const MLI_PTR (io_T) __restrict in_ftrs,
@@ -210,6 +215,7 @@ static void __attribute__((always_inline)) convolution_odd_even(
     const MLI_PTR(w_T) __restrict w_ptr1 = w_ptr;
 
     auto conv_out = mli_prv_init_accu_with_bias (in_ptr, bias, bias_shift);
+    __builtin_assume(in_ch > 0);
 
     if (clmns & 1)
     {
@@ -336,7 +342,6 @@ static void __attribute__ ((always_inline)) convolution_v (
     mli_prv_clip_relu_store_output_v (o_ptr, conv_out_v, out_shift, val_min_limit, val_max_limit);
 }
 
-#ifdef __FXAPI__
 static void __attribute__ ((always_inline)) convolution_v (
         const MLI_PTR (int16_t) __restrict in_ptr,
         const MLI_PTR (int16_t) __restrict w_ptr,
@@ -362,10 +367,8 @@ static void __attribute__ ((always_inline)) convolution_v (
         w_ptr += kernel_w * kernel_h;
         in_ptr += in_width * in_height;
     }
-
     mli_prv_clip_relu_store_output_v (o_ptr, &conv_out_v, out_shift, val_min_limit, val_max_limit);
 }
-#endif //__FXAPI__
 
 template < typename io_T, typename w_T > static void
 convolution_chw_nopad (
@@ -480,7 +483,6 @@ static void convolution_chw (
     }
 }
 
-#ifdef __FXAPI__
 static void convolution_chw (
         const MLI_PTR (int16_t) __restrict in_ftrs,
         const MLI_PTR (int16_t) __restrict weights,
@@ -541,7 +543,6 @@ static void convolution_chw (
         }
     }
 }
-#endif //__FXAPI__
 
 template < typename io_T, typename w_T >
 static inline void __attribute__ ((always_inline)) conv2d_chw_nopad_k1x1_str1 (
@@ -655,7 +656,6 @@ static inline void __attribute__ ((always_inline)) conv2d_chw_nopad_k1x1_str1 (
     }
 }
 
-#ifdef __FXAPI__
 static inline void __attribute__ ((always_inline)) conv2d_chw_nopad_k1x1_str1 (
         const MLI_PTR (int16_t) __restrict in_ftrs,
         const MLI_PTR (int16_t) __restrict weights,
@@ -769,7 +769,6 @@ static inline void __attribute__ ((always_inline)) conv2d_chw_nopad_k1x1_str1 (
         }
     }
 }
-#endif
 
 template < typename io_T, typename w_T >
 static inline void __attribute__ ((always_inline)) conv2d_row_str1 (
@@ -964,25 +963,50 @@ static inline void __attribute__ ((always_inline)) conv2d_chw_str1 (
         int in_ch_start_idx = depthwise ? out_ch_idx : 0;
         int in_ch_num = depthwise ? 1 : in_ch;
 
-        for (int H_idx = row_begin; H_idx < row_end; )
-        {
-            int input_kernel_start = H_idx * str_height - padding_top;
-            int kernel_rows = kernel_height + MIN(input_kernel_start, 0) - MAX(input_kernel_start + kernel_height - in_height, 0);
-            int lines = (H_idx >= top_border_size && H_idx < (out_height - bot_border_size))? MIN(out_height - bot_border_size, row_end) - H_idx : 1;
-            int top_comp = -MIN((H_idx * str_height) - padding_top, 0);
+        int H_idx = row_begin;
+        int tb_comp = -MIN((row_begin * str_height) - padding_top, 0);
+        int top_comp = tb_comp;
+        int lines = MIN(out_height - bot_border_size, row_end) - top_border_size;
 
-            if (kernel_rows == kernel_height){
-                for (int line = 0; line < lines; line++ ){
+        for (int i = 0; i < 2; i++)
+        {
+            if ((fixed_padding == 0) || (padding_top > VPAD_UNROLL) || (padding_bot > VPAD_UNROLL)) {
+                for (int loop = 0; loop < tb_comp; loop++) {
+                    int t_comp = tb_comp - loop;
+                    int b_comp = loop + 1;
+                    int comp = (i == 0) ? t_comp : b_comp;
+                    top_comp = (i == 0) ? t_comp : 0;
+
                     conv2d_row_str1(
                             in_ftrs, weights, biases, out_ftrs, bias_shift, out_shift, val_min_limit, val_max_limit,
                             in_ch_num, in_width, in_height,    out_ch_idx, out_width, out_height, in_ch_start_idx,
                             kernel_height, kernel_width, str_height, stride_width, padding_top, padding_left, padding_right,
                             H_idx, left_comp, right_comp, top_comp, clmn_begin, clmn_end,
-                            kernel_height/*rows*/, fixed_padding);
+                            kernel_height - comp/*rows*/, fixed_padding);
                     H_idx++;
+
                 }
-            } else if ((fixed_padding == 1) && (kernel_height <= 5) && ((padding_top > 0) || (padding_bot > 0)) && (kernel_rows == kernel_height - 1)){
-                {
+            } else {
+#if VPAD_UNROLL > 1
+                if (((fixed_padding == 1) && ((padding_top > 1) || (padding_bot > 1))) && (tb_comp > 1)) {
+                    if (i == 1) {
+                        H_idx++;
+                    }
+                    conv2d_row_str1(
+                            in_ftrs, weights, biases, out_ftrs, bias_shift, out_shift, val_min_limit, val_max_limit,
+                            in_ch_num, in_width, in_height,    out_ch_idx, out_width, out_height, in_ch_start_idx,
+                            kernel_height, kernel_width, str_height, stride_width, padding_top, padding_left, padding_right,
+                            H_idx, left_comp, right_comp, top_comp, clmn_begin, clmn_end,
+                            kernel_height - 2/*rows*/, fixed_padding);
+                    if (i == 0) {
+                        H_idx++;
+                        top_comp--;
+                    } else {
+                        H_idx--;;
+                    }
+                }
+#endif
+                if (((fixed_padding == 1) && ((padding_top > 0) || (padding_bot > 0))) && (tb_comp > 0)) {
                     conv2d_row_str1(
                             in_ftrs, weights, biases, out_ftrs, bias_shift, out_shift, val_min_limit, val_max_limit,
                             in_ch_num, in_width, in_height,    out_ch_idx, out_width, out_height, in_ch_start_idx,
@@ -991,27 +1015,22 @@ static inline void __attribute__ ((always_inline)) conv2d_chw_str1 (
                             kernel_height - 1/*rows*/, fixed_padding);
                     H_idx++;
                 }
-            } else if ((fixed_padding == 1) && (kernel_height <= 5) && ((padding_top > 1) || (padding_bot > 1)) && (kernel_rows == kernel_height - 2)){
-                {
-                    conv2d_row_str1(
-                            in_ftrs, weights, biases, out_ftrs, bias_shift, out_shift, val_min_limit, val_max_limit,
-                            in_ch_num, in_width, in_height,    out_ch_idx, out_width, out_height, in_ch_start_idx,
-                            kernel_height, kernel_width, str_height, stride_width, padding_top, padding_left, padding_right,
-                            H_idx, left_comp, right_comp, top_comp, clmn_begin, clmn_end,
-                            kernel_height - 2/*rows*/, fixed_padding);
-                    H_idx++;
-                }
-            } else if ((fixed_padding == 0) || (padding_top > 2) || (padding_bot > 2)) {
-                for (int line = 0; line < lines; line++ ){
-                    conv2d_row_str1(
-                            in_ftrs, weights, biases, out_ftrs, bias_shift, out_shift, val_min_limit, val_max_limit,
-                            in_ch_num, in_width, in_height,    out_ch_idx, out_width, out_height, in_ch_start_idx,
-                            kernel_height, kernel_width, str_height, stride_width, padding_top, padding_left, padding_right,
-                            H_idx, left_comp, right_comp, top_comp, clmn_begin, clmn_end,
-                            kernel_rows/*rows*/, fixed_padding);
-                    H_idx++;
-                }
             }
+            //if (i==1) break;
+
+            for (int line = 0; line < lines; line++ ){
+                conv2d_row_str1(
+                        in_ftrs, weights, biases, out_ftrs, bias_shift, out_shift, val_min_limit, val_max_limit,
+                        in_ch_num, in_width, in_height,    out_ch_idx, out_width, out_height, in_ch_start_idx,
+                        kernel_height, kernel_width, str_height, stride_width, padding_top, padding_left, padding_right,
+                        H_idx, left_comp, right_comp, 0/*top_comp*/, clmn_begin, clmn_end,
+                        kernel_height/*rows*/, fixed_padding);
+                H_idx++;
+            }
+
+            tb_comp = -MIN (in_height - ((row_end * stride_height) - 1 - padding_top + kernel_height), 0);
+            top_comp = 0;
+            lines = 0;
         }
     }
 }
