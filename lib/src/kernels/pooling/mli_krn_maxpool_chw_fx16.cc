@@ -2815,7 +2815,7 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_str1_krnpad(const mli_tensor * in, cons
 
     mli_prv_fx_init_dsp_ctrl();
 
-    maxpool_chw_krnpad(
+    maxpool_chw_krnpad_small(
         in_ftrs, out_ftrs,
         row_beg, row_end,
         clmn_beg, clmn_end,
@@ -2893,7 +2893,7 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_ch1_str1_krnpad(const mli_tensor * in, 
 
     mli_prv_fx_init_dsp_ctrl();
 
-    maxpool_chw_krnpad(
+    maxpool_chw_krnpad_small(
         in_ftrs, out_ftrs,
         row_beg, row_end,
         clmn_beg, clmn_end,
@@ -2971,7 +2971,7 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_ch3_str1_krnpad(const mli_tensor * in, 
 
     mli_prv_fx_init_dsp_ctrl();
 
-    maxpool_chw_krnpad(
+    maxpool_chw_krnpad_small(
         in_ftrs, out_ftrs,
         row_beg, row_end,
         clmn_beg, clmn_end,
@@ -3049,7 +3049,7 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_str1_krnpad(const mli_tensor * in, cons
 
     mli_prv_fx_init_dsp_ctrl();
 
-    maxpool_chw_krnpad(
+    maxpool_chw_krnpad_small(
         in_ftrs, out_ftrs,
         row_beg, row_end,
         clmn_beg, clmn_end,
@@ -3127,7 +3127,7 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_ch1_str1_krnpad(const mli_tensor * in, 
 
     mli_prv_fx_init_dsp_ctrl();
 
-    maxpool_chw_krnpad(
+    maxpool_chw_krnpad_small(
         in_ftrs, out_ftrs,
         row_beg, row_end,
         clmn_beg, clmn_end,
@@ -3205,7 +3205,7 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_ch3_str1_krnpad(const mli_tensor * in, 
 
     mli_prv_fx_init_dsp_ctrl();
 
-    maxpool_chw_krnpad(
+    maxpool_chw_krnpad_small(
         in_ftrs, out_ftrs,
         row_beg, row_end,
         clmn_beg, clmn_end,
@@ -5779,7 +5779,7 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2(const mli_tensor * in, const mli_pool_c
 
     mli_prv_fx_init_dsp_ctrl();
 
-    maxpool_chw_krnpad(
+    maxpool_chw_krnpad_small(
         in_ftrs, out_ftrs,
         row_beg, row_end,
         clmn_beg, clmn_end,
@@ -5857,7 +5857,7 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_ch1(const mli_tensor * in, const mli_po
 
     mli_prv_fx_init_dsp_ctrl();
 
-    maxpool_chw_krnpad(
+    maxpool_chw_krnpad_small(
         in_ftrs, out_ftrs,
         row_beg, row_end,
         clmn_beg, clmn_end,
@@ -5935,7 +5935,7 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3(const mli_tensor * in, const mli_pool_c
 
     mli_prv_fx_init_dsp_ctrl();
 
-    maxpool_chw_krnpad(
+    maxpool_chw_krnpad_small(
         in_ftrs, out_ftrs,
         row_beg, row_end,
         clmn_beg, clmn_end,
@@ -6013,7 +6013,7 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_ch1(const mli_tensor * in, const mli_po
 
     mli_prv_fx_init_dsp_ctrl();
 
-    maxpool_chw_krnpad(
+    maxpool_chw_krnpad_small(
         in_ftrs, out_ftrs,
         row_beg, row_end,
         clmn_beg, clmn_end,
