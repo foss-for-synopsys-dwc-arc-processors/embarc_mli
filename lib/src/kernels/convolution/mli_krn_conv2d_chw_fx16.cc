@@ -1,7 +1,7 @@
 /* This file is generated, do not edit!
  * edit following template files instead:
  * filetemplate.txt
- * conv2d_func_body.txt
+ * mli_krn_conv2d_func_body.txt
  */
 /*
 * Copyright 2019, Synopsys, Inc.

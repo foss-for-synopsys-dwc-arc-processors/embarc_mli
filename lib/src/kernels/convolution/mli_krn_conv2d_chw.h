@@ -319,8 +319,7 @@ static void __attribute__ ((always_inline)) convolution_v (
         const int in_width, const int in_height, 
         const int kernel_w, const int kernel_h, 
         const int clmns, const int rows, const int in_ch) {
-    int32_t conv_out = fx_asr_rnd_q31((int32_t) bias, -bias_shift);
-    __v2i32_t conv_out_v = { conv_out, conv_out };
+    auto conv_out_v = mli_prv_init_accu_with_bias_v(in_ptr, bias, bias_shift);
 
     for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
         // Convolution core
@@ -330,7 +329,7 @@ static void __attribute__ ((always_inline)) convolution_v (
         in_ptr += in_width * in_height;
     }
 
-    mli_prv_clip_relu_store_output_v (o_ptr, conv_out_v, out_shift, val_min_limit, val_max_limit);
+    mli_prv_clip_relu_store_output_v (o_ptr, &conv_out_v, out_shift, val_min_limit, val_max_limit);
 }
 
 #ifdef __FXAPI__
@@ -359,7 +358,7 @@ static void __attribute__ ((always_inline)) convolution_v (
         in_ptr += in_width * in_height;
     }
 
-    mli_prv_clip_relu_store_output_v (o_ptr, &conv_out_v, out_shift, val_min_limit, val_max_limit);
+    mli_prv_clip_relu_store_output_v(o_ptr, &conv_out_v, out_shift, val_min_limit, val_max_limit);
 }
 #endif //__FXAPI__
 
@@ -573,8 +572,7 @@ static inline void __attribute__ ((always_inline)) conv2d_chw_nopad_k1x1_str1 (
                     H_idx * out_width + clmn_begin;
 
             for (W_idx = clmn_begin; W_idx < clmn_end - 1; W_idx += 2) {
-                int32_t conv_out = (biases[out_ch_idx] << bias_shift);
-                __v2i32_t conv_out_v = { conv_out, conv_out };
+                auto conv_out_v = mli_prv_init_accu_with_bias_v(in_ftrs, biases[out_ch_idx], bias_shift);
 
 #if !defined __Xxy
                 const MLI_PTR (io_T) in_ptr;
@@ -627,7 +625,7 @@ static inline void __attribute__ ((always_inline)) conv2d_chw_nopad_k1x1_str1 (
 
                 }
 
-                mli_prv_clip_relu_store_output_v (o_ptr, conv_out_v, out_shift, val_min_limit, val_max_limit);
+                mli_prv_clip_relu_store_output_v (o_ptr, &conv_out_v, out_shift, val_min_limit, val_max_limit);
                 CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, o_ptr[0]);
                 CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx + 1, o_ptr[1]);
                 o_ptr += 2;
@@ -742,7 +740,7 @@ static inline void __attribute__ ((always_inline)) conv2d_chw_nopad_k1x1_str1 (
 
 #endif
 
-                mli_prv_clip_relu_store_output_v (o_ptr, &conv_out_v, out_shift, val_min_limit, val_max_limit);
+                mli_prv_clip_relu_store_output_v(o_ptr, &conv_out_v, out_shift, val_min_limit, val_max_limit);
                 CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, o_ptr[0]);
                 CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx + 1, o_ptr[1]);
                 o_ptr += 2;

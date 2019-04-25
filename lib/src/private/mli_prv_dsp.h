@@ -203,11 +203,12 @@ static inline void __attribute__ ((always_inline)) mli_prv_clip_and_store_output
 
 static inline void __attribute__ ((always_inline)) mli_prv_clip_relu_store_output_v(
         MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
-        __v2i32_t acc_v,
+        __v2i32_t * accu_v,
         const int out_shift, 
         const int16_t val_min_limit, 
         const int16_t val_max_limit) {
     v2i8_t out_v;
+	__v2i32_t acc_v = *accu_v;
 
     acc_v[0] = fx_asr_rnd_q31(acc_v[0], out_shift);
     acc_v[1] = fx_asr_rnd_q31(acc_v[1], out_shift);
@@ -227,7 +228,32 @@ static inline void __attribute__ ((always_inline)) mli_prv_clip_relu_store_outpu
 
 static inline void __attribute__ ((always_inline)) mli_prv_clip_relu_store_output_v(
         MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
-        v2accum40_t * acc_v,
+        __v2i32_t * accu_v,
+        const int out_shift, 
+        const int16_t val_min_limit, 
+        const int16_t val_max_limit) {
+    v2q15_t out_v;
+	__v2i32_t acc_v = *accu_v;
+
+    acc_v[0] = fx_asr_rnd_q31(acc_v[0], out_shift);
+    acc_v[1] = fx_asr_rnd_q31(acc_v[1], out_shift);
+
+    // acc_v[0]
+    // no saturation needed because ReLu clipping is done in 32bit domain.
+    // ReLU truncation
+    acc_v[0] = MIN(acc_v[0], val_max_limit);
+    acc_v[1] = MIN(acc_v[1], val_max_limit);
+
+    acc_v[0] = MAX(acc_v[0], val_min_limit);
+    acc_v[1] = MAX(acc_v[1], val_min_limit);
+
+    out_v = __builtin_convertvector(acc_v, v2q15_t);
+    *((v2q15_t *) o_ptr) = out_v;
+}
+
+static inline void __attribute__ ((always_inline)) mli_prv_clip_relu_store_output_v(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        v2accum40_t *acc_v,
         const int out_shift, 
         const int16_t val_min_limit, 
         const int16_t val_max_limit) {
@@ -245,6 +271,26 @@ static inline void __attribute__ ((always_inline)) mli_prv_clip_relu_store_outpu
     *((v2q15_t *) o_ptr) = out_v;
 }
 
+static inline void __attribute__ ((always_inline)) mli_prv_clip_relu_store_output_v(
+        MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
+        v2accum40_t *acc_v,
+        const int out_shift, 
+        const int16_t val_min_limit, 
+        const int16_t val_max_limit) {
+    v2q15_t out_v;
+    v2q15_t v2_val_max_limit = { val_max_limit, val_max_limit };
+    v2q15_t v2_val_min_limit = { val_min_limit, val_min_limit };
+    //acc_v = acc_v >> out_shift;
+    out_v = fx_v2q15_cast_nf_asl_rnd_v2a40(*acc_v, 16 - out_shift);
+    // no saturation needed because ReLu clipping is done in 32bit domain.
+    // ReLU truncation
+    out_v = fx_min_v2q15(out_v, v2_val_max_limit);
+    out_v = fx_max_v2q15(out_v, v2_val_min_limit);
+
+    v2i8_t out_v8 = __builtin_convertvector(out_v, v2i8_t);
+    *((v2i8_t *) o_ptr) = out_v8;
+}
+
 //=========================================================================
 
 static inline void __attribute__ ((always_inline)) mli_prv_clip_relu_store_output(
@@ -254,6 +300,21 @@ static inline void __attribute__ ((always_inline)) mli_prv_clip_relu_store_outpu
         const int16_t val_min_limit, 
         const int16_t val_max_limit) {
     int16_t out_val = fx_q15_cast_asl_rnd_a40(conv_out, 16 - out_shift - 1);
+
+    out_val = MIN(out_val, val_max_limit);
+    out_val = MAX(out_val, val_min_limit);
+
+    // Write result
+    *o_ptr = out_val;
+}
+
+static inline void __attribute__ ((always_inline)) mli_prv_clip_relu_store_output(
+        MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
+        accum40_t conv_out,
+        const int out_shift, 
+        const int16_t val_min_limit, 
+        const int16_t val_max_limit) {
+    int8_t out_val = fx_q7_cast_asl_rnd_a40(conv_out, 32 - sizeof(int8_t) * 8 - out_shift - 1);
 
     out_val = MIN(out_val, val_max_limit);
     out_val = MAX(out_val, val_min_limit);
@@ -382,6 +443,39 @@ static inline v2accum40_t __attribute__ ((always_inline)) mli_prv_init_accu_with
     return acc_v;
 }
 
+static inline __v2i32_t __attribute__ ((always_inline)) mli_prv_init_accu_with_bias_v(
+        const MLI_PTR(int8_t) __restrict in, 
+        const int8_t bias, 
+        const int bias_shift) {
+    int32_t accu = fx_asr_rnd_q31((int32_t) bias, -bias_shift);
+    __v2i32_t accu_v = { accu, accu };
+    return accu_v;
+}
+
+#ifdef USE_40BIT_ACCU_FOR_16x8
+static inline v2accum40_t __attribute__ ((always_inline)) mli_prv_init_accu_with_bias_v(
+        const MLI_PTR(int16_t) __restrict in, 
+        const int8_t bias, 
+        const int bias_shift) {
+    v2q15_t v2bias = {bias, bias};
+    v2q15_t v2one = {0x0001, 0x0001};
+    v2accum40_t acc_v = fx_v2a40_mpy_nf_v2q15(v2bias, v2one);
+    acc_v = fx_asl_v2a40_n(acc_v, bias_shift);
+
+    return acc_v;
+}
+#else
+static inline __v2i32_t __attribute__ ((always_inline)) mli_prv_init_accu_with_bias_v(
+        const MLI_PTR(int16_t) __restrict in, 
+        const int8_t bias, 
+        const int bias_shift) {
+    int32_t accu = fx_asr_rnd_q31((int32_t) bias, -bias_shift);
+    __v2i32_t accu_v = { accu, accu };
+    return accu_v;
+}
+
+#endif
+
 static inline accum40_t __attribute__ ((always_inline)) mli_prv_init_accu_with_bias(
         const MLI_PTR(int16_t) __restrict in,
         const int16_t bias,
@@ -401,17 +495,29 @@ static inline int32_t __attribute__ ((always_inline)) mli_prv_init_accu_with_bia
 
     return accu;
 }
+#ifdef USE_40BIT_ACCU_FOR_16x8
 
+static inline accum40_t __attribute__ ((always_inline)) mli_prv_init_accu_with_bias(
+        const MLI_PTR(int16_t) __restrict in,
+        const int8_t bias,
+        const int bias_shift) {
+    accum40_t accu = fx_a40_mpy_q15(bias, 1);
+    accu = fx_asl_a40(accu, bias_shift);
+
+    return accu;
+}
+#else
 static inline int32_t __attribute__ ((always_inline)) mli_prv_init_accu_with_bias(
         const MLI_PTR(int16_t) __restrict in,
         const int8_t bias,
         const int bias_shift) {
-    int32_t accu = ((int32_t) bias << bias_shift);
+    int32_t accu = fx_asr_rnd_q31((int32_t) bias, -bias_shift);
     _setacc(accu, 1);
 
     return accu;
 }
-
+	
+#endif
 static inline v2q15_t __attribute__ ((always_inline)) mli_prv_load_add_vec2(
         const MLI_PTR(int16_t) __restrict in, 
         const MLI_PTR(int16_t) __restrict k) {
@@ -509,6 +615,13 @@ static inline void __attribute__ ((always_inline)) mli_prv_load_mac(
 static inline void __attribute__ ((always_inline)) mli_prv_load_mac(
         accum40_t * accu,
         const MLI_PTR(int16_t) __restrict in,
+        const MLI_PTR(int8_t) __restrict k) {
+    *accu = fx_a40_mac_q15(*accu, *in, *k);
+}
+
+static inline void __attribute__ ((always_inline)) mli_prv_load_mac(
+        accum40_t * accu,
+        const MLI_PTR(int16_t) __restrict in,
         const int16_t k) {
     *accu = fx_a40_mac_q15(*accu, *in, k);
 }
@@ -542,6 +655,13 @@ static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec2(
         accum40_t * accu, 
         const MLI_PTR(int16_t) __restrict in, 
         const MLI_PTR(int16_t) __restrict k) {
+    *accu = fx_a40_dmac_v2q15(*accu, mli_prv_load_2_samples(in), mli_prv_load_2_samples(k));
+}
+
+static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec2(
+        accum40_t * accu, 
+        const MLI_PTR(int16_t) __restrict in, 
+        const MLI_PTR(int8_t) __restrict k) {
     *accu = fx_a40_dmac_v2q15(*accu, mli_prv_load_2_samples(in), mli_prv_load_2_samples(k));
 }
 
