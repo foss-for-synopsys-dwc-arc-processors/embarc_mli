@@ -15,6 +15,7 @@
 #include "mli_math_macros.h"
 #include "mli_private_types.h"
 #include "mli_prv_dsp.h"
+#include "mli_krn_dotprod_chw.h"
 
  /**
  * Function Short Description
@@ -31,14 +32,6 @@ extern "C" {
 #endif
 
 #pragma Code(".mli_lib")
-
-static inline int32_t dotprod2D (
-        int16_t * in, 
-        int8_t * krn, 
-        uint32_t width, 
-        uint32_t height, 
-        uint32_t in_row_step, 
-        uint32_t kern_row_step);
 
 mli_status mli_krn_conv2d_hwc_fx8w16d (
         const mli_tensor * in, 
@@ -105,16 +98,16 @@ mli_status mli_krn_conv2d_hwc_fx8w16d (
 
                     // Define area of input and filter for convolution
 
-                    int16_t *in_ptr = in_ftrs + // starting point
+                    MLI_PTR(int16_t) in_ptr = in_ftrs + // starting point
                             in_ch * in_width * (H_idx * stride_height - padding_top) +  // move to row
                             in_ch * (W_idx * stride_width - padding_left);  // move to column
 
-                    int8_t *w_ptr = wt +    // Start point
+                    MLI_PTR(int8_t) w_ptr = wt +    // Start point
                             out_ch_idx * in_ch * kernel_width * kernel_height;  // move to filter
 
                     // Convolution core
-                    conv_out += dotprod2D (in_ptr, w_ptr, kernel_width * in_ch, kernel_height, in_width * in_ch, 
-                            kernel_width * in_ch);
+                    dotprod2D (in_ptr, w_ptr, kernel_width * in_ch, kernel_height, in_width * in_ch, 
+                            kernel_width * in_ch, &conv_out);
 
                     MLI_CONV_OUT_PTR(int16_t) o_ptr = &out_ftrs[out_ch_idx + (H_idx * out_width + W_idx) * out_ch];
                     mli_prv_clip_relu_store_output (o_ptr, conv_out, out_shift, val_limit.min, val_limit.max);
@@ -172,17 +165,17 @@ mli_status mli_krn_conv2d_hwc_fx8w16d (
                         int32_t rows = kernel_height - top_comp - bottom_comp;
                         int32_t clmns = kernel_width - right_comp - left_comp;
 
-                        int16_t *in_ptr = in_ftrs + // starting point
+                        MLI_PTR(int16_t) in_ptr = in_ftrs + // starting point
                                 in_ch * in_width * (H_idx * stride_height - padding_top + top_comp) +   // move to row
                                 in_ch * ((W_idx * stride_width) - padding_left + left_comp);    // move to column
 
-                        int8_t *w_ptr = wt +    // Start point
+                        MLI_PTR(int8_t) w_ptr = wt +    // Start point
                                 out_ch_idx * in_ch * kernel_width * kernel_height + // move to filter
                                 top_comp * kernel_width * in_ch +   // move to row
                                 left_comp * in_ch;  // move to column
 
                         // Convolution core
-                        conv_out += dotprod2D (in_ptr, w_ptr, clmns * in_ch, rows, in_width * in_ch, kernel_width * in_ch);
+                        dotprod2D (in_ptr, w_ptr, clmns * in_ch, rows, in_width * in_ch, kernel_width * in_ch, &conv_out);
 
                         MLI_CONV_OUT_PTR(int16_t) o_ptr = &out_ftrs[out_ch_idx + (H_idx * out_width + W_idx) * out_ch];
                         mli_prv_clip_relu_store_output (o_ptr, conv_out, out_shift, val_limit.min, val_limit.max);
@@ -198,26 +191,6 @@ mli_status mli_krn_conv2d_hwc_fx8w16d (
     out->shape[2] = out_ch;
 
     return MLI_STATUS_OK;
-}
-
-static inline int32_t dotprod2D (
-        int16_t * in, 
-        int8_t * krn, 
-        uint32_t width, 
-        uint32_t height, 
-        uint32_t in_row_step, 
-        uint32_t kern_row_step) {
-    int32_t accu = 0;
-    in_row_step -= width;
-    kern_row_step -= width;
-    for (uint32_t row = 0; row < height; row++) {
-        for (uint32_t clmn = 0; clmn < width; clmn++) {
-            accu += (*in++) * (*krn++);
-        }
-        in += in_row_step;
-        krn += kern_row_step;
-    }
-    return accu;
 }
 
 #pragma code()

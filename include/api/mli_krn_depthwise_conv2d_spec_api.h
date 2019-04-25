@@ -491,4 +491,4 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8_generic(
 #ifdef __cplusplus
 }
 #endif
-#endif                          //_MLI_KRN_DEPTHWISE_CONV2D_SPEC_API_H_
+#endif //_MLI_KRN_DEPTHWISE_CONV2D_SPEC_API_H_
