@@ -32,6 +32,7 @@ static inline void __attribute__ ((always_inline)) dotprod2D (
         acc_T * accu) {
     in_row_step -= width;
     kern_row_step -= width;
+    __builtin_assume (height > 0);
 #pragma clang loop unroll(full)
     for (int row = 0; row < height; row++) {
 #pragma clang loop unroll(full)
@@ -107,6 +108,7 @@ static inline void __attribute__ ((always_inline)) dotprod2D_unroll4 (
 
     in_row_step -= width;
     kern_row_step -= width;
+    __builtin_assume (height > 0);
     for (int row = 0; row < height; row++) {
         __builtin_assume (width % 2 == 0);
         /* unroll of 2 enables the use of dmac
@@ -137,6 +139,7 @@ static inline void __attribute__ ((always_inline)) dotprod2D_unroll4_plus1 (
 
     in_row_step -= width;
     kern_row_step -= width;
+    __builtin_assume (height > 0);
 #pragma clang loop unroll(full)
     for (int row = 0; row < height; row++) {
         /* unroll of 2 enables the use of dmac
@@ -170,6 +173,7 @@ static inline void __attribute__ ((always_inline)) dotprod2D_unroll4_plus2 (
 
     in_row_step -= width;
     kern_row_step -= width;
+    __builtin_assume (height > 0);
 #pragma clang loop unroll(full)
     for (int row = 0; row < height; row++) {
         __builtin_assume (width % 2 == 0);
@@ -204,6 +208,7 @@ static inline void __attribute__ ((always_inline)) dotprod2D_unroll4_plus3 (
 
     in_row_step -= width;
     kern_row_step -= width;
+    __builtin_assume (height > 0);
 #pragma clang loop unroll(full)
     for (int row = 0; row < height; row++) {
         /* unroll of 2 enables the use of dmac
@@ -234,6 +239,7 @@ dotprod1D_v (
         const int height, 
         int in_step, 
         acc_T * accu) {
+    __builtin_assume (height > 0);
 //#pragma clang loop unroll(full)
     for (int32_t row = 0; row < height; row++) {
         int16_t k = (*krn++);
@@ -301,6 +307,54 @@ dotprod2D_v_simple (
     }
 }
 
+template < typename in_T, typename w_T, typename acc_T > static inline void
+dotprod3D_v_simple (
+        const MLI_PTR (in_T) __restrict in,
+        const MLI_PTR (w_T) __restrict krn,
+        const int width,
+        const int height,
+        const int in_ch,
+        int in_row_step,
+        int kern_row_step,
+        int in_ch_step,
+        int kern_ch_step,
+        acc_T * accu) {
+    in_ch_step -= height * in_row_step;
+    kern_ch_step -= height * kern_row_step;
+    in_row_step -= width;
+    kern_row_step -= width;
+
+    __builtin_assume(in_ch > 0);
+    __builtin_assume(height > 1);
+    for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
+#pragma clang loop unroll(full)
+        for (int row = 0; row < height-1; row++) {
+#pragma clang loop unroll(full)
+            for (int32_t clmn = 0; clmn < width; clmn++) {
+                int16_t k = (*krn++);
+                v2q15_t k_v = { k, k };
+                v2q15_t tx = mli_prv_load_2_samples (in);
+                in++;
+                mli_math_mac_fx_vec2 (accu, tx, k_v);
+            }
+            in += in_row_step;
+            krn += kern_row_step;
+        }
+#pragma clang loop unroll(full)
+        for (int32_t clmn = 0; clmn < width/*+1*/; clmn++) {
+            int16_t k = (*krn++);
+            v2q15_t k_v = { k, k };
+            v2q15_t tx = mli_prv_load_2_samples (in);
+            in++;
+            mli_math_mac_fx_vec2 (accu, tx, k_v);
+        }
+        in += in_row_step;
+        krn += kern_row_step;
+
+        in += in_ch_step;
+        krn += kern_ch_step;
+    }
+}
 
 /* not defining K_ODD reduces a single load for the weights.
  * to be investigated if this has a significant performance impact.

@@ -388,43 +388,35 @@ static inline void __attribute__((always_inline)) avepool_chw_krnpad(
     // (usually significantly smaller part of computations)
     //=======================================================================
     if (padding_top || padding_left || padding_bot || padding_right) {
+        rect_t areas[4];
+        uint32_t areas_num = 0;
         if (padding_top) {
-            const int row_beg = 0;
-            const int row_end = CEIL_DIV(padding_top, stride_height);
-            const int clmn_beg = 0;
-            const int clmn_end = out_width;
-            avepool_chw(
-                    row_beg, row_end, clmn_beg, clmn_end, in_ftrs, out_ftrs, channels_num, in_width, in_height,
-                    out_width, out_height, kernel_height, kernel_width, stride_height, stride_width, padding_top,
-                    padding_left, padding_right, padding_bot);
+            areas[areas_num].row_beg = 0;
+            areas[areas_num].row_end = CEIL_DIV (padding_top, stride_height);
+            areas[areas_num].clmn_beg = 0;
+            areas[areas_num++].clmn_end = out_width;
         }
         if (padding_bot) {
-            const int row_beg = out_height - CEIL_DIV(padding_bot, stride_height);
-            const int row_end = out_height;
-            const int clmn_beg = 0;
-            const int clmn_end = out_width;
-            avepool_chw(
-                    row_beg, row_end, clmn_beg, clmn_end, in_ftrs, out_ftrs, channels_num, in_width, in_height,
-                    out_width, out_height, kernel_height, kernel_width, stride_height, stride_width, padding_top,
-                    padding_left, padding_right, padding_bot);
+            areas[areas_num].row_beg = out_height - CEIL_DIV (padding_bot, stride_height);
+            areas[areas_num].row_end = out_height;
+            areas[areas_num].clmn_beg = 0;
+            areas[areas_num++].clmn_end = out_width;
         }
         if (padding_left) {
-            const int row_beg = CEIL_DIV(padding_top, stride_height);
-            const int row_end = out_height - CEIL_DIV(padding_bot, stride_height);
-            const int clmn_beg = 0;
-            const int clmn_end = CEIL_DIV(padding_left, stride_width);
-            avepool_chw(
-                    row_beg, row_end, clmn_beg, clmn_end, in_ftrs, out_ftrs, channels_num, in_width, in_height,
-                    out_width, out_height, kernel_height, kernel_width, stride_height, stride_width, padding_top,
-                    padding_left, padding_right, padding_bot);
+            areas[areas_num].row_beg = CEIL_DIV (padding_top, stride_height);
+            areas[areas_num].row_end = out_height - CEIL_DIV (padding_bot, stride_height);
+            areas[areas_num].clmn_beg = 0;
+            areas[areas_num++].clmn_end = CEIL_DIV (padding_left, stride_width);
         }
         if (padding_right) {
-            const int row_beg = CEIL_DIV(padding_top, stride_height);
-            const int row_end = out_height - CEIL_DIV(padding_bot, stride_height);
-            const int clmn_beg = out_width - CEIL_DIV(padding_right, stride_width);
-            const int clmn_end = out_width;
+            areas[areas_num].row_beg = CEIL_DIV (padding_top, stride_height);
+            areas[areas_num].row_end = out_height - CEIL_DIV (padding_bot, stride_height);
+            areas[areas_num].clmn_beg = out_width - CEIL_DIV (padding_right, stride_width);
+            areas[areas_num++].clmn_end = out_width;
+        }
+        for (int i = 0; i < areas_num; i++) {
             avepool_chw(
-                    row_beg, row_end, clmn_beg, clmn_end, in_ftrs, out_ftrs, channels_num, in_width, in_height,
+                    areas[i].row_beg, areas[i].row_end, areas[i].clmn_beg, areas[i].clmn_end, in_ftrs, out_ftrs, channels_num, in_width, in_height,
                     out_width, out_height, kernel_height, kernel_width, stride_height, stride_width, padding_top,
                     padding_left, padding_right, padding_bot);
         }
@@ -476,43 +468,35 @@ static inline void __attribute__((always_inline)) avepool_chw_krnpad_k4_Nx2_N_ev
     // (usually significantly smaller part of computations)
     //=======================================================================
     if (padding_top || padding_left || padding_bot || padding_right) {
+        rect_t areas[4];
+        uint32_t areas_num = 0;
         if (padding_top) {
-            const int row_beg = 0;
-            const int row_end = CEIL_DIV(padding_top, stride_height);
-            const int clmn_beg = 0;
-            const int clmn_end = out_width;
-            avepool_chw(
-                    row_beg, row_end, clmn_beg, clmn_end, in_ftrs, out_ftrs, channels_num, in_width, in_height,
-                    out_width, out_height, kernel_height, kernel_width, stride_height, stride_width, padding_top,
-                    padding_left, padding_right, padding_bot);
+            areas[areas_num].row_beg = 0;
+            areas[areas_num].row_end = CEIL_DIV (padding_top, stride_height);
+            areas[areas_num].clmn_beg = 0;
+            areas[areas_num++].clmn_end = out_width;
         }
         if (padding_bot) {
-            const int row_beg = out_height - CEIL_DIV(padding_bot, stride_height);
-            const int row_end = out_height;
-            const int clmn_beg = 0;
-            const int clmn_end = out_width;
-            avepool_chw(
-                    row_beg, row_end, clmn_beg, clmn_end, in_ftrs, out_ftrs, channels_num, in_width, in_height,
-                    out_width, out_height, kernel_height, kernel_width, stride_height, stride_width, padding_top,
-                    padding_left, padding_right, padding_bot);
+            areas[areas_num].row_beg = out_height - CEIL_DIV (padding_bot, stride_height);
+            areas[areas_num].row_end = out_height;
+            areas[areas_num].clmn_beg = 0;
+            areas[areas_num++].clmn_end = out_width;
         }
         if (padding_left) {
-            const int row_beg = CEIL_DIV(padding_top, stride_height);
-            const int row_end = out_height - CEIL_DIV(padding_bot, stride_height);
-            const int clmn_beg = 0;
-            const int clmn_end = CEIL_DIV(padding_left, stride_width);
-            avepool_chw(
-                    row_beg, row_end, clmn_beg, clmn_end, in_ftrs, out_ftrs, channels_num, in_width, in_height,
-                    out_width, out_height, kernel_height, kernel_width, stride_height, stride_width, padding_top,
-                    padding_left, padding_right, padding_bot);
+            areas[areas_num].row_beg = CEIL_DIV (padding_top, stride_height);
+            areas[areas_num].row_end = out_height - CEIL_DIV (padding_bot, stride_height);
+            areas[areas_num].clmn_beg = 0;
+            areas[areas_num++].clmn_end = CEIL_DIV (padding_left, stride_width);
         }
         if (padding_right) {
-            const int row_beg = CEIL_DIV(padding_top, stride_height);
-            const int row_end = out_height - CEIL_DIV(padding_bot, stride_height);
-            const int clmn_beg = out_width - CEIL_DIV(padding_right, stride_width);
-            const int clmn_end = out_width;
+            areas[areas_num].row_beg = CEIL_DIV (padding_top, stride_height);
+            areas[areas_num].row_end = out_height - CEIL_DIV (padding_bot, stride_height);
+            areas[areas_num].clmn_beg = out_width - CEIL_DIV (padding_right, stride_width);
+            areas[areas_num++].clmn_end = out_width;
+        }
+        for (int i = 0; i < areas_num; i++) {
             avepool_chw(
-                    row_beg, row_end, clmn_beg, clmn_end, in_ftrs, out_ftrs, channels_num, in_width, in_height,
+                    areas[i].row_beg, areas[i].row_end, areas[i].clmn_beg, areas[i].clmn_end, in_ftrs, out_ftrs, channels_num, in_width, in_height,
                     out_width, out_height, kernel_height, kernel_width, stride_height, stride_width, padding_top,
                     padding_left, padding_right, padding_bot);
         }

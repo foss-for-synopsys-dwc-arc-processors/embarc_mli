@@ -13,6 +13,7 @@
 #include "mli_helpers_api.h"
 #include "mli_math_macros.h"
 #include "mli_private_types.h"
+#include "mli_prv_dsp.h"
 #include "mli_types.h"
 
 /**
@@ -25,6 +26,10 @@
  *
  * Some Details
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #pragma Code(".mli_lib")
 
@@ -45,6 +50,8 @@ static inline int16_t reduce_max2D_hwc(
 mli_status mli_krn_maxpool_hwc_fx16(const mli_tensor* in, const mli_pool_cfg* cfg, mli_tensor* out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx16(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
 
     // Extract general maxpooling parameters
     int stride_width = cfg->stride_width;
@@ -188,3 +195,6 @@ static inline int16_t reduce_max2D_hwc(
 }
 
 #pragma code()
+#ifdef __cplusplus
+}
+#endif

@@ -125,7 +125,7 @@ ifeq ($(TOOLCHAIN),mwdt)
  LD = ccac
  AR = arac
  AS = ccac
- CFLAGS += -tcf=$(TCF_FILE) -tcf_core_config
+ TCF_CFLAGS += -tcf=$(TCF_FILE) -tcf_core_config
  LDFLAGS += -tcf=$(TCF_FILE) $(LCF)
 else 
  CC = arc-elf32-gcc
@@ -159,7 +159,8 @@ else
  endif
 endif
 
-CFLAGS  := $(call quote,  $(CFLAGS))
+# TCF file needs to be the in front of the other CFLAGS
+CFLAGS  := $(TCF_CFLAGS) $(call quote,  $(CFLAGS))
 LDFLAGS := $(call quote, $(LDFLAGS))
 
 vpath %.c  $(SRC_DIRS) 

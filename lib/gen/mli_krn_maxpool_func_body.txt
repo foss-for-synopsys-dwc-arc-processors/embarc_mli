@@ -61,7 +61,8 @@
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        $kernelpadding);
 
     // fill output tensor parameters
     out->el_type = in->el_type;

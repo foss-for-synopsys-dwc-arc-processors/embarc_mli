@@ -39,6 +39,8 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k1x2_ch1_str1_krnpad(
     if (ret != MLI_STATUS_OK)
         return ret;
 
+    mli_prv_fx_init_dsp_ctrl();
+
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
     int stride_height = cfg->stride_height;

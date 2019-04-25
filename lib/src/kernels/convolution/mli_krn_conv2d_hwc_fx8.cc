@@ -52,6 +52,9 @@ mli_status mli_krn_conv2d_hwc_fx8 (
     mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwc_fx8(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
+
     uint8_t stride_width = cfg->stride_width;
     uint8_t stride_height = cfg->stride_height;
     uint8_t padding_top = cfg->padding_top;

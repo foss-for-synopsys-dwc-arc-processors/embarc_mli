@@ -47,9 +47,15 @@ channel_range = [0,1]
 f_list.extend([Func(fbase, 1, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range for ch in channel_range])
 f_list.extend([Func(fbase, k, 1, ch, stride, stride, corefunc, "nopad") for k in kernel_range for ch in channel_range])
 
+corefunc = "maxpool_chw_krnpad_small"
+stride = 1
+kernel_range = [2, 3]
+channel_range = [0,1,3]
+f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
+
 corefunc = "maxpool_chw_krnpad"
 stride = 1
-kernel_range = range(2,11)
+kernel_range = range(4,11)
 channel_range = [0,1,3]
 f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
 
@@ -68,7 +74,7 @@ f_list.extend([Func(fbase, 1, 0, 0, stride, stride, corefunc, "")]) #k_width == 
 f_list.extend([Func(fbase, 0, 1, 0, stride, stride, corefunc, "")]) #k_heigth == 1
 f_list.extend([Func(fbase, 0, 0, 1, stride, stride, corefunc, "")]) #channels == 1
 
-corefunc = "maxpool_chw_krnpad"
+corefunc = "maxpool_chw_krnpad_small"
 stride = 0
 kernel_range = [2,3]
 channel_range = [0,1]
