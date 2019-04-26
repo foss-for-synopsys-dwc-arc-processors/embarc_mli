@@ -3,11 +3,11 @@
 Transform Group
 ---------------
 
-   Transform group provides operations for transformation data according
-   to particular function (activations). In general, transformations do
-   not alter data size or shape. They only change the values
-   element-wise.
-      
+Transform group provides operations for transformation data according
+to particular function (activations). In general, transformations do
+not alter data size or shape. They only change the values
+element-wise.
+   
 .. toctree::
    :maxdepth: 2
    

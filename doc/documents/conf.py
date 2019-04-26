@@ -86,7 +86,7 @@ pygments_style = 'sphinx'
 todo_include_todos = True
 
 #If true, figures and tables are numbered
-numfig = True
+numfig = False
 
 # -- Options for HTML output ----------------------------------------------
 
@@ -141,7 +141,7 @@ latex_elements = {
 	# Increase limitations on the number of floats.
 	'preamble': '\usepackage{morefloats}',
 	'preamble': '\usepackage{float}',
-
+	'preamble': '\usepackage{amsmath}',
     # Latex figure (float) alignment
 	'figure_align': 'H',
 }

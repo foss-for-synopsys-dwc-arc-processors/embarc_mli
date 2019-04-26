@@ -3,8 +3,8 @@
 Convolution Group
 -----------------
 
-   Convolution group of functions convolve input features with a set of
-   trained filters. Typically these are multi-dimensional tensors. 
+Convolution group of functions convolve input features with a set of
+trained filters. Typically these are multi-dimensional tensors. 
 
 .. toctree::
    :maxdepth: 2

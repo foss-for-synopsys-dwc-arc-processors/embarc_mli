@@ -3,9 +3,9 @@
 Elementwise Group
 -----------------
 
-   Elementwise group provides operations which might be applied on two
-   tensors of the same shape element-wise and returns a tensor of same
-   shape.
+Elementwise group provides operations that might be applied on two
+tensors of the same shape element-wise and returns a tensor of same
+shape.
    
 .. toctree::
    :maxdepth: 2
