@@ -25,7 +25,6 @@ static void convert_tensor_fx8_to_fx8(
         int count, 
         int shift_right) {
     __builtin_assume(count > 0);
-//#pragma unroll 2
     for (int i = 0; i < count; i++)
         out[i] = (int8_t)fx_sat_q15(fx_asr_rnd_q15((int16_t)in[i], shift_right), 8);
 }
@@ -36,7 +35,6 @@ static void convert_tensor_fx16_to_fx16(
         int count, 
         int shift_right) {
     __builtin_assume(count > 0);
-//#pragma unroll 2
     for (int i = 0; i < count; i++)
         out[i] = fx_asr_rnd_q15(in[i], shift_right);
 }
@@ -47,7 +45,6 @@ static void convert_tensor_fx8_to_fx16(
         int count, 
         int shift_right) {
     __builtin_assume(count > 0);
-//#pragma unroll 2
     for (int i = 0; i < count; i++)
         out[i] = (int16_t)fx_asr_rnd_q15((int16_t)in[i], shift_right);
 }
@@ -57,7 +54,6 @@ static void convert_tensor_fx16_to_fx8(
         MLI_PTR(int8_t) __restrict out, 
         int count, 
         int shift_right) {
-//#pragma unroll 2
     for (int i = 0; i < count; i++)
         out[i] = (int8_t)fx_sat_q15(fx_asr_rnd_q15(in[i], shift_right), 8);
 }
