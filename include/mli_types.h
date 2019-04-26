@@ -262,7 +262,7 @@ typedef struct {
 /**
  * @brief Point-to-subtensor helper config
  *
- * Data structure to porvide coordinates and size of required subtensor in the input tensor
+ * Data structure to provide coordinates and size of required subtensor in the input tensor
  */
 typedef struct {
     uint32_t start_coord[MLI_MAX_RANK];   /**< subtensor start coodinates in the input tensor */
