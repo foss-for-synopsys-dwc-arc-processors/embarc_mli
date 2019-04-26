@@ -19,10 +19,49 @@
 #pragma Code(".mli_lib")
 
 
-static void convert_tensor_fx8_to_fx8(const int8_t *in, int8_t *out, int count, int shift_right);
-static void convert_tensor_fx16_to_fx16(const int16_t *in, int16_t *out, int count, int shift_right);
-static void convert_tensor_fx8_to_fx16(const int8_t *in, int16_t *out, int count, int shift_right);
-static void convert_tensor_fx16_to_fx8(const int16_t *in, int8_t *out, int count, int shift_right);
+static void convert_tensor_fx8_to_fx8(
+        const MLI_PTR(int8_t) __restrict in, 
+        MLI_PTR(int8_t) __restrict out, 
+        int count, 
+        int shift_right) {
+    __builtin_assume(count > 0);
+//#pragma unroll 2
+    for (int i = 0; i < count; i++)
+        out[i] = (int8_t)fx_sat_q15(fx_asr_rnd_q15((int16_t)in[i], shift_right), 8);
+}
+
+static void convert_tensor_fx16_to_fx16(
+        const MLI_PTR(int16_t) __restrict in, 
+        MLI_PTR(int16_t) __restrict out, 
+        int count, 
+        int shift_right) {
+    __builtin_assume(count > 0);
+//#pragma unroll 2
+    for (int i = 0; i < count; i++)
+        out[i] = fx_asr_rnd_q15(in[i], shift_right);
+}
+
+static void convert_tensor_fx8_to_fx16(
+        const MLI_PTR(int8_t) __restrict in, 
+        MLI_PTR(int16_t) __restrict out, 
+        int count, 
+        int shift_right) {
+    __builtin_assume(count > 0);
+//#pragma unroll 2
+    for (int i = 0; i < count; i++)
+        out[i] = (int16_t)fx_asr_rnd_q15((int16_t)in[i], shift_right);
+}
+
+static void convert_tensor_fx16_to_fx8(
+        const MLI_PTR(int16_t) __restrict in, 
+        MLI_PTR(int8_t) __restrict out, 
+        int count, 
+        int shift_right) {
+//#pragma unroll 2
+    for (int i = 0; i < count; i++)
+        out[i] = (int8_t)fx_sat_q15(fx_asr_rnd_q15(in[i], shift_right), 8);
+}
+
 
 
 uint32_t mli_hlp_count_elem_num(const mli_tensor *in, uint32_t start_dim) {
@@ -85,38 +124,20 @@ mli_status mli_hlp_convert_tensor(mli_tensor *in, mli_tensor *out) {
     const int in_sz = (int)mli_prv_count_elem_num(in);
     const int out_shift = (int)(in->el_params.fx.frac_bits) - out->el_params.fx.frac_bits;
 
+    if(in_sz <= 0)
+        return MLI_STATUS_BAD_TENSOR;
+
     // Switchnig functionality depending on tensors type
     if (in->el_type == out->el_type == MLI_EL_FX_8)
-        convert_tensor_fx8_to_fx8((int8_t *)in->data, (int8_t *)out->data, in_sz, out_shift);
+        convert_tensor_fx8_to_fx8((MLI_PTR(int8_t))in->data, (MLI_PTR(int8_t))out->data, in_sz, out_shift);
     else if (in->el_type == out->el_type == MLI_EL_FX_16)
-        convert_tensor_fx16_to_fx16((int16_t *)in->data, (int16_t *)out->data, in_sz, out_shift);
+        convert_tensor_fx16_to_fx16((MLI_PTR(int16_t))in->data, (MLI_PTR(int16_t))out->data, in_sz, out_shift);
     else if (in->el_type == MLI_EL_FX_8 && out->el_type == MLI_EL_FX_16)
-        convert_tensor_fx8_to_fx16((int8_t *)in->data, (int16_t *)out->data, in_sz, out_shift);
+        convert_tensor_fx8_to_fx16((MLI_PTR(int8_t))in->data, (MLI_PTR(int16_t))out->data, in_sz, out_shift);
     else if (in->el_type == MLI_EL_FX_16 && out->el_type == MLI_EL_FX_8)
-        convert_tensor_fx16_to_fx8((int16_t *)in->data, (int8_t *)out->data, in_sz, out_shift);
+        convert_tensor_fx16_to_fx8((MLI_PTR(int16_t))in->data, (MLI_PTR(int8_t))out->data, in_sz, out_shift);
 
     return MLI_STATUS_OK;
-}
-
-
-static void convert_tensor_fx8_to_fx8(const int8_t *in, int8_t *out, int count, int shift_right) {
-    for (int i = 0; i < count; ++i)
-        out[i] = (int8_t)fx_sat_q15(fx_asr_rnd_q15((int16_t)in[i], shift_right), 8);
-}
-
-static void convert_tensor_fx16_to_fx16(const int16_t *in, int16_t *out, int count, int shift_right) {
-    for (int i = 0; i < count; ++i)
-        out[i] = fx_asr_rnd_q15(in[i], shift_right);
-}
-
-static void convert_tensor_fx8_to_fx16(const int8_t *in, int16_t *out, int count, int shift_right) {
-    for (int i = 0; i < count; ++i)
-        out[i] = (int16_t)fx_asr_rnd_q15((int16_t)in[i], shift_right);
-}
-
-static void convert_tensor_fx16_to_fx8(const int16_t *in, int8_t *out, int count, int shift_right) {
-    for (int i = 0; i < count; ++i)
-        out[i] = (int8_t)fx_sat_q15(fx_asr_rnd_q15(in[i], shift_right), 8);
 }
 
 #pragma code()
