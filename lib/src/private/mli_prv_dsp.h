@@ -13,6 +13,7 @@
 #include <arc/arc_reg.h>        // Defines DSP_CTRL
 
 #include "mli_config.h"
+#include "mli_debug.h"
 #include "mli_helpers_api.h"
 #include "mli_prv_load_store.h"
 #include "mli_math.h"
@@ -714,11 +715,15 @@ static unsigned __attribute__ ((always_inline)) mli_prv_init_dsp_ctrl(unsigned c
     _sr(ctrl_info, DSP_CTRL);
     t = _lr(DSP_CTRL);
 
-    if ((t & 31) != (ctrl_info & 31)) { // check that the new mode is set  
-        _flag(1);              //Halt processor (other flags not updated)
-        _nop();
-        _nop();
-    }
+    /* Check if the new mode is set correctly
+     * If the check fails, there is a disconnect between the
+     * compiler and the debugger.  NSIM will only allow bits
+     * to be set in DSP_CTRL that are enabled in the HW.
+     * The code needs to be recompiled with a -Xdsp_ctrl option
+     * that matches your hardware OR you need to invoke
+     * the debugger with different opitons.
+     */
+    MLI_ASSERT((t & 31) == (ctrl_info & 31));
 
     return old;
 }
