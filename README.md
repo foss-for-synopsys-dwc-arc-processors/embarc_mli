@@ -1,12 +1,12 @@
 embARC Machine Learning Inference Library
 ==================================================
 
-This repository contains source code of embARC Machine Learning Inference Library (embARC MLI Lib),
+This repository contains source code of embARC Machine Learning Inference Library (embARC MLI Library),
 examples and documentation.
 
 ## Release notes
 ----------------
-1. Preliminary version 0.5
+1. Version 1.0
 2. This release supports following functional primitives
 	* 2D Convolution
 	* 2D depthwise convolution
@@ -39,7 +39,7 @@ defined in [MetaWare Development Tools](https://www.synopsys.com/dw/ipdir.php?ds
 EM or HS configuration.
 
 Build requirements:
-1. MetaWare Development tools 2018.12 or later
+1. MetaWare Development tools 2019.03-1 or later
 
 Building of embARC MLI library	
 1. Open command line and change working directory to './lib/make/'      
@@ -76,5 +76,5 @@ Building of embARC MLI library
 
 ## Known Issues
 ---------------
-None
+1. Optimal performance for 8-bit data requires version of MetaWare Development Tools 2019.06 and later
 
