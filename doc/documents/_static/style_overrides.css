@@ -43,3 +43,10 @@
 		margin: 30px 0 30px 25px;
 	}
 }
+
+.math {
+    text-align: left;
+}
+.eqno {
+    float: right;
+}

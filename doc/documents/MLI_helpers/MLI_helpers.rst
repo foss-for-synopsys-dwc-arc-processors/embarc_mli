@@ -1,10 +1,10 @@
 .. _mli_helpers:
 
-MLI helpers
+MLI Helpers
 ===========
 
-   This is a set of utility functions for getting information from data
-   structures and performing various operations on it.
+The MLI Helpers are a set of utility functions for getting information from data
+structures and performing various operations on it.
    
 .. toctree::
    :maxdepth: 2
