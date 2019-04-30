@@ -39,8 +39,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k1x2_ch1_str1_krnpad(
     if (ret != MLI_STATUS_OK)
         return ret;
 
-    mli_prv_fx_init_dsp_ctrl();
-
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
     int stride_height = cfg->stride_height;
@@ -119,6 +117,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k1x2_ch1_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -215,6 +214,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k2x1_ch1_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -311,6 +311,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k2x2_ch1_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -407,6 +408,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k3x3_ch1_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -503,6 +505,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k4x4_ch1_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -599,6 +602,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k5x5_ch1_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -695,6 +699,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k6x6_ch1_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -791,6 +796,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k7x7_ch1_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -887,6 +893,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k2x2_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -983,6 +990,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k3x3_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1079,6 +1087,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k4x4_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1175,6 +1184,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k5x5_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1271,6 +1281,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k6x6_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1367,6 +1378,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k7x7_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1463,6 +1475,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1559,6 +1572,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k1x2_ch1_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1655,6 +1669,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k2x1_ch1_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1751,6 +1766,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k2x2_ch1_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1847,6 +1863,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k3x3_ch1_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1943,6 +1960,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k4x4_ch1_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2039,6 +2057,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k5x5_ch1_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2135,6 +2154,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k6x6_ch1_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2231,6 +2251,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k7x7_ch1_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2327,6 +2348,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k2x2_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2423,6 +2445,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k3x3_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2519,6 +2542,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k4x4_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2615,6 +2639,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k5x5_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2711,6 +2736,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k6x6_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2807,6 +2833,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k7x7_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2903,6 +2930,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_k1xn_str1(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2999,6 +3027,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_knx1_str1(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -3095,6 +3124,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_ch1_str1(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -3191,6 +3221,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d_generic(
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;

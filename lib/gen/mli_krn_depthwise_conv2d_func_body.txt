@@ -80,6 +80,7 @@
         1, 1);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
