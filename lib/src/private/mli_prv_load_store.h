@@ -34,6 +34,9 @@ static inline v2q15_t __attribute__ ((always_inline)) mli_prv_load_2_samples (co
     return *(MLI_PTR (v2q15_t)) in;
 }
 
+static inline v4q15_t __attribute__ ((always_inline)) mli_prv_load_4_samples (const MLI_PTR (int16_t) __restrict in) {
+    return *(MLI_PTR (v4q15_t)) in;
+}
 static inline void __attribute__ ((always_inline)) mli_prv_store_2_samples (MLI_OUT_PTR (int8_t) __restrict out, v2q15_t data) {
     *(MLI_OUT_PTR (v2i8_t)) out = __builtin_convertvector (data, v2i8_t);
 }

@@ -127,6 +127,32 @@ static inline void __attribute__ ((always_inline)) dotprod2D_unroll4 (
 }
 
 template < typename in_T, typename w_T, typename acc_T >
+static inline void __attribute__ ((always_inline)) dotprod2D_mac4 (
+        const MLI_PTR (in_T) __restrict in,
+        const MLI_PTR (w_T) __restrict krn,
+        const int width, 
+        const int height, 
+        int in_row_step, 
+        int kern_row_step, 
+        acc_T * accu) {
+    MLI_ASSERT(width % 4 == 0);
+
+    in_row_step -= width;
+    kern_row_step -= width;
+#pragma clang loop unroll(full)	
+    for (int row = 0; row < height; row++) {
+        __builtin_assume (width % 4 == 0);
+#pragma clang loop unroll(full)
+        for (int clmn = 0; clmn < width / 4; clmn++) {
+            mli_prv_load_mac_vec4 (accu, in, krn);
+            in += 4;
+            krn += 4;
+        }
+        in += in_row_step;
+        krn += kern_row_step;
+    }
+}
+template < typename in_T, typename w_T, typename acc_T >
 static inline void __attribute__ ((always_inline)) dotprod2D_unroll4_plus1 (
         const MLI_PTR (in_T) __restrict in,
         const MLI_PTR (w_T) __restrict krn,

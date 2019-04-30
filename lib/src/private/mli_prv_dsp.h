@@ -690,6 +690,16 @@ static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec4(acc_T *
     mli_prv_load_mac_vec2(accu, in, k);
 }
 
+#ifdef __Xdsp_wide
+static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec4(
+        accum40_t * accu, 
+        const MLI_PTR(int16_t) in, 
+        const MLI_PTR(int16_t) k) {
+
+    *accu = fx_a40_qmac_v4q15(*accu, mli_prv_load_4_samples(in), mli_prv_load_4_samples(k));
+}
+#endif
+
 static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec4(
         int32_t * accu, 
         const MLI_PTR(int8_t) in, 

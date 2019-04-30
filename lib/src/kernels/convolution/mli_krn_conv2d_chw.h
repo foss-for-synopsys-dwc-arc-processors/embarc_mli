@@ -288,6 +288,62 @@ static void __attribute__ ((always_inline)) convolution_unroll4_plus1 (
 }
 
 template < typename io_T, typename w_T >
+static void __attribute__ ((always_inline)) convolution_unroll4_plus2 (
+        const MLI_PTR (io_T) __restrict in_ptr,
+        const MLI_PTR (w_T) __restrict w_ptr,
+        MLI_CONV_OUT_PTR (io_T) __restrict o_ptr,
+        const w_T bias,
+        const int bias_shift,
+        const int out_shift,
+        const int16_t val_min_limit,
+        const int16_t val_max_limit,
+        const int in_width,
+        const int in_height,
+        const int kernel_w, const int kernel_h, 
+        const int clmns, const int rows, const int in_ch) {
+    auto conv_out = mli_prv_init_accu_with_bias (in_ptr, bias, bias_shift);
+
+    for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
+        // Convolution core
+        dotprod2D_unroll4_plus2 (in_ptr, w_ptr, clmns, rows, in_width, kernel_w, &conv_out);
+
+        // move to next channel
+        w_ptr += kernel_w * kernel_h;
+        in_ptr += in_width * in_height;
+    }
+
+    mli_prv_clip_relu_store_output (o_ptr, conv_out, out_shift, val_min_limit, val_max_limit);
+}
+
+template < typename io_T, typename w_T >
+static void __attribute__ ((always_inline)) convolution_unroll4 (
+        const MLI_PTR (io_T) __restrict in_ptr,
+        const MLI_PTR (w_T) __restrict w_ptr,
+        MLI_CONV_OUT_PTR (io_T) __restrict o_ptr,
+        const w_T bias,
+        const int bias_shift,
+        const int out_shift,
+        const int16_t val_min_limit,
+        const int16_t val_max_limit,
+        const int in_width,
+        const int in_height,
+        const int kernel_w, const int kernel_h, 
+        const int clmns, const int rows, const int in_ch) {
+    auto conv_out = mli_prv_init_accu_with_bias (in_ptr, bias, bias_shift);
+
+    for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
+        // Convolution core
+        dotprod2D_mac4 (in_ptr, w_ptr, clmns, rows, in_width, kernel_w, &conv_out);
+
+        // move to next channel
+        w_ptr += kernel_w * kernel_h;
+        in_ptr += in_width * in_height;
+    }
+
+    mli_prv_clip_relu_store_output (o_ptr, conv_out, out_shift, val_min_limit, val_max_limit);
+}
+
+template < typename io_T, typename w_T >
 static void __attribute__ ((always_inline)) convolution_unroll4_plus3 (
         const MLI_PTR (io_T) __restrict in_ptr,
         const MLI_PTR (w_T) __restrict w_ptr,
@@ -883,36 +939,90 @@ static inline void __attribute__ ((always_inline)) conv2d_row_str1 (
 
         //if (i == 1) break;
 
-        if (cols_even > 0) {
+#ifdef __Xdsp_wide
+        if (( kernel_w >= 4 ) && (cols > 0)) {
             /* This is the main loop without run-in and run-out effects */
-            /* when stride is fixed to one, the vectorized convolution can be used.
-             * This will calculate two output samples at once.
-             * in this case an extra case is needed for odd widths.
-             */
-            for (int col = 0; col < cols_even; col++) {
-                __builtin_assume(cols_even > 0);
-                convolution_v (in_ptr, w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
+            /* This will calculate one output samples at once using qmac instruction in loops.      */
+            if ( (kernel_w & 3) == 0) {
+                 __builtin_assume(cols > 0);
+                for (int col = 0; col < cols; col++) {
+                    convolution_unroll4 (in_ptr, w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
+                        out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h, 
+                        kernel_w, rows, in_ch);
+                    CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, o_ptr[0]);
+                     W_idx++;
+                    o_ptr += 1;
+                    in_ptr += 1;
+                }
+            } else if ( (kernel_w & 3) == 1) {
+                 __builtin_assume(cols > 0);
+                for (int col = 0; col < cols; col++) {
+                    convolution_unroll4_plus1 (in_ptr, w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
+                        out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h, 
+                        kernel_w, rows, in_ch);
+                    CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, o_ptr[0]);
+                     W_idx++;
+                    o_ptr += 1;
+                    in_ptr += 1;
+                }
+            } else if ( (kernel_w & 3) == 2) {
+                 __builtin_assume(cols > 0);
+                for (int col = 0; col < cols; col++) {
+                    convolution_unroll4_plus2 (in_ptr, w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
+                        out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h, 
+                        kernel_w, rows, in_ch);
+                    CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, o_ptr[0]);
+                     W_idx++;
+                    o_ptr += 1;
+                    in_ptr += 1;
+                }
+            } else if ( (kernel_w & 3) == 3) {
+                 __builtin_assume(cols > 0);
+                for (int col = 0; col < cols; col++) {
+                    convolution_unroll4_plus3 (in_ptr, w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
+                        out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h, 
+                        kernel_w, rows, in_ch);
+                    CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, o_ptr[0]);
+                     W_idx++;
+                    o_ptr += 1;
+                    in_ptr += 1;
+                }
+            }
+        cols = 0;
+        } else  
+#endif
+       {
+           if (cols_even > 0) {
+                /* This is the main loop without run-in and run-out effects */
+                /* when stride is fixed to one, the vectorized convolution can be used.
+                 * This will calculate two output samples at once.
+                 * in this case an extra case is needed for odd widths.
+                 */
+                for (int col = 0; col < cols_even; col++) {
+                    __builtin_assume(cols_even > 0);
+                    convolution_v (in_ptr, w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
+                            out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h,
+                            kernel_w, rows, in_ch);
+                    CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, o_ptr[0]);
+                    CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx + 1, o_ptr[1]);
+                    W_idx += 2;
+                    o_ptr += 2;
+                    in_ptr += 2;
+                }
+            }
+    #if 1 // if disabled, odd sizes are not supported
+            if (_Rarely(odd)) {
+                //odd
+                convolution (in_ptr, w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
                         out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h,
                         kernel_w, rows, in_ch);
                 CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, o_ptr[0]);
-                CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx + 1, o_ptr[1]);
-                W_idx += 2;
-                o_ptr += 2;
-                in_ptr += 2;
+                W_idx++;
+                o_ptr++;
+                in_ptr += 1;
             }
-        }
-#if 1 // if disabled, odd sizes are not supported
-        if (_Rarely(odd)) {
-            //odd
-            convolution (in_ptr, w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
-                    out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h,
-                    kernel_w, rows, in_ch);
-            CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, o_ptr[0]);
-            W_idx++;
-            o_ptr++;
-            in_ptr += 1;
-        }
-#endif
+    #endif
+       }
         if (use_padding2 && (right_comp > 1)){
             // extra increment because the border pixel with kernel_w - 2 is computed before kernel_w - 1
             W_idx += 1;
@@ -1111,7 +1221,23 @@ static inline void __attribute__ ((always_inline)) conv2d_row_anystride (
     /* this is the main loop without run-in and run-out effects */
     {
         in_ptr += W_idx * stride_width - pad_left;
+#ifdef __Xdsp_wide
+        if ((kernel_w & 3) == 0) {
+            for (; W_input_idx < clmn_end * stride_width - right_comp; W_input_idx += stride_width) {
+                MLI_EXTRA_ASSERT((in_ptr - in_ptr_start) == MAX (W_idx * stride_width - pad_left, 0));
+                MLI_EXTRA_ASSERT(W_input_idx + kernel_w - pad_left <= in_width);
 
+                convolution_unroll4 (in_ptr, w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
+                        out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h, kernel_w, 
+                        rows, in_ch);
+                CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, o_ptr[0]);
+                W_idx++;
+                o_ptr++;
+                in_ptr += stride_width;
+            }
+
+        } else 
+#endif
         if ((kernel_w & 1) == 0) {
             for (; W_input_idx < clmn_end * stride_width - right_comp; W_input_idx += stride_width) {
                 MLI_EXTRA_ASSERT((in_ptr - in_ptr_start) == MAX (W_idx * stride_width - pad_left, 0));
