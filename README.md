@@ -76,5 +76,5 @@ Building of embARC MLI library
 
 ## Known Issues
 ---------------
-1. Optimal performance for 8-bit data requires version of MetaWare Development Tools 2019.06 and later
+1. Optimal performance for 8-bit data requires version of MetaWare Development Tools 2019.06 or later
 
