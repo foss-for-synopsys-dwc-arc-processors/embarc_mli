@@ -41,14 +41,13 @@ complemented integer numbers: 8 bit for ``MLI_EL_FX_8`` (also referred to as ``f
 of fractional bits (see ``fx.frac_bits`` in :ref:`mli_el_prm_u`),
 which corresponds to the second designation above.
 
-.. note::  
-	Example:
+.. admonition:: Example 
+   :class: "admonition tip"
 
-	Given 0x4000h (16384) value in 16bit container,
-
-	• In Q0.15 (and Q.15) format, this represents 0.5
-
-	• In Q1.14 (and Q.14) format, this represents 1.0
+    Given 0x4000h (16384) value in 16bit container,
+    
+    * In Q0.15 (and Q.15) format, this represents 0.5
+    * In Q1.14 (and Q.14) format, this represents 1.0
 ..
 
 For more information on how to get the real value of tensor from fx,
@@ -59,8 +58,8 @@ fractional bits might be larger than total number of containers
 significant (not-sign) bits. In this case all bits not present in the
 container implied equal to sign bit.
 
-.. note::  
-	Examples:
+.. admonition:: Example 
+   :class: "admonition tip"
 
 	Given 0x0020 (32) in Q.10 format,
 
@@ -127,9 +126,8 @@ uses rounding provided by ARCv2 DSP hardware (see :ref:`hw_comp_dpd` ). ``dequan
 ``real_ val`` in case of immediate forward/backward conversion
 due to rounding operation (see examples 2 and 4 from the following example list).
 
-.. note::
-
-   Examples:
+.. admonition:: Example 
+   :class: "admonition tip"
 
    -  Given a real value of 0.85; FX format Q.7; rounding mode nearest, the
       FX value is computed as: 
@@ -152,9 +150,8 @@ bits requires value shifting: shift left in case of increasing number
 of fractional bits, and shift right with rounding in case of
 decreasing.
 
-.. note::
-
-   Examples:
+.. admonition:: Example 
+   :class: "admonition tip"
 
    -  Given an FX value 0x24 in Q.8 format (0.140625), the FX value in Q.12
       format is computed as:
@@ -181,8 +178,8 @@ format. The width of the integer part of the result is the sum of
 widths of integer parts of the opernads. The width of the fractional 
 part of the result is the sum of widths of fractional parts of the operands.
 
-.. note::
-   Example:
+.. admonition:: Example 
+   :class: "admonition tip"
 
    Given a number x in Q4.3 format (that is, 4 bits for integer and 3 for
    fractional part) and a number y in Q5.7 format, ``x*y`` is in Q9.10
@@ -214,9 +211,8 @@ For division, input operands also do not have to be of the same
 format. The result has a format containing the difference of bits in
 the formats of input operands.
 
-.. note::
-
-   Example:
+.. admonition:: Example 
+   :class: "admonition tip"
 
    - Given a dividend ``x`` in Q16.16 format and a divisor ``y`` in Q7.10 format,
      the format of the result ``x/y`` is Q(16-7).(16-10), or Q9.6 format.
@@ -251,9 +247,8 @@ Where Ceil(\ *x*) function rounds up *x* to the smallest integer value
 that is not less than *x*. From notation point of view, these extra
 bits are added to integer part.
 
-.. note::
-
-   Example:
+.. admonition:: Example 
+   :class: "admonition tip"
 
    For 34 values in Q3.4 format to be accumulated, the number of extra
    bits are computed as: ceil(log\ :sub:`2` 34)= ceil(5.09) = 6
@@ -285,9 +280,8 @@ be less than or equal to fractional bits for the sum of inputs. This
 condition is checked by primitives in debug mode. For more
 information, see :ref:`err_codes`.
 
-.. note::
-
-   Example:
+.. admonition:: Example 
+   :class: "admonition tip"
 
    Given an input tensor of Q.7 format; and weights tensor of Q.3
    format, the number of its fractional bits before shift left operation
@@ -337,7 +331,6 @@ Number of available bits depends on operands types:
    significant bits for output. Thus for MAC-based kernels, 17
    accumulation bits (as 31–(7+7)=17) are available which can be used
    to perform up to 2 :sup:`17` = 131072 operations without overflow.
-
    For simple accumulation, 31 – 7 = 24 bits are available which
    guaranteed to perform up to 2 :sup:`24` = 16777216 operations without
    overflow.
@@ -348,16 +341,15 @@ Number of available bits depends on operands types:
    significant bits for output. For MAC-based kernels, 39 – (15+15) = 9
    accumulation bits are available, which can be used to perform up to
    2 :sup:`9` = 512 operations without overflow.
-
    For simple accumulation, 39 – 15 = 24 bits are available which
    perform up to 2 :sup:`24` = 16777216 operations without overflow.
 
--  **FX16 x FX8 operands**: 40-bit depth accumulator is used. For  
-   MAC-based kernels, 39 – (15 + 7) = 39 - 22 = 17 accumulation bits 
-   are available which can be used to perform up to 2 :sup:`17` = 131072 operations 
-   without overflow.
+-  **FX16 x FX8 operands**: 32-bit depth accumulator is used. For  
+   MAC-based kernels, 31 – (15 + 7) = 31 - 22 = 9 accumulation bits 
+   are available which can be used to perform up to 2 :sup:`9` = 512
+   operations without overflow.
 
-In general, the number of accumulations required for one output value 													
+In general, the number of accumulations required for one output value 
 calculation can be easily estimated in advance. Using this information 
 you can define if the accumulator satisfies requirements or not.
   
@@ -365,21 +357,20 @@ you can define if the accumulator satisfies requirements or not.
    -  If the available bits are not enough, ensure that you quantize inputs
       (including weights for both the operands of MAC) while keeping some
       bits unused.
-	  
+
    -  To reduce the influence of quantization on result, ensure that you 
       evenly distribute these bits between operands.
 ..
 
-.. note::   
-
-   Example:
+.. admonition:: Example 
+   :class: "admonition tip"
 
    Given fx16 operands, 2D Convolution layer with 5x5 kernel size on
    input with 64 channels, initial Input tensor format being Q.11,
    initial weights tensor format being Q.15, each output value of 
    2D convolution layer requires the following number of accumulations:
 
-   ``kernel_height(5) \* kernel_width(5) \* input_channels(64) +
+   ``kernel_height(5) * kernel_width(5) * input_channels(64) +
    bias_add(1) = 5*5*64+1=1601``
 
    To ensure that the result does not overflow during accumulation, the
@@ -392,8 +383,7 @@ you can define if the accumulator satisfies requirements or not.
    and correct number of fractional bits. 2 is an even number and it might
    be distributed equally (-1 fractional bit for each operand).
 
-   The new number of fractional bits in Input tensor: = 11 – 1 = 10
-
-   The new number of fractional bits in Weights tensor: = 15 – 1 = 14
+   - The new number of fractional bits in Input tensor: = 11 – 1 = 10
+   - The new number of fractional bits in Weights tensor: = 15 – 1 = 14
 ..
   
