@@ -39,8 +39,6 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k1x1_str1_nopad(
     if (ret != MLI_STATUS_OK)
         return ret;
 
-    mli_prv_fx_init_dsp_ctrl();
-
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
     int stride_height = cfg->stride_height;
@@ -121,6 +119,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k1x1_str1_nopad(
         1, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -219,6 +218,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k1x1_ch1_str1_nopad(
         1, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -317,6 +317,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k1x1_ch3_str1_nopad(
         1, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -415,6 +416,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k1x1_ch4_str1_nopad(
         1, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -513,6 +515,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k2x2_str1_krnpad(
         1, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -611,6 +614,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k2x2_ch1_str1_krnpad(
         1, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -709,6 +713,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k3x3_str1_krnpad(
         1, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -807,6 +812,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k3x3_ch1_str1_krnpad(
         1, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -905,6 +911,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k4x4_str1_krnpad(
         1, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1003,6 +1010,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k4x4_ch1_str1_krnpad(
         1, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1101,6 +1109,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k5x5_str1_krnpad(
         1, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1199,6 +1208,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k5x5_ch1_str1_krnpad(
         1, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1297,6 +1307,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k6x6_str1_krnpad(
         1, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1395,6 +1406,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k6x6_ch1_str1_krnpad(
         1, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1493,6 +1505,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k7x7_str1_krnpad(
         1, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1591,6 +1604,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k7x7_ch1_str1_krnpad(
         1, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1689,6 +1703,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k1x2_str1_krnpad(
         1, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1787,6 +1802,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k1x3_str1_krnpad(
         1, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1885,6 +1901,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k2x1_str1_krnpad(
         1, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1983,6 +2000,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k3x1_str1_krnpad(
         1, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2081,6 +2099,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k1xn_str1(
         0, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2179,6 +2198,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_knx1_str1(
         0, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2277,6 +2297,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_ch1_str1(
         0, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2375,6 +2396,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_str1(
         0, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2473,6 +2495,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k1x1_nopad(
         1, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2571,6 +2594,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k1x1_ch1_nopad(
         1, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2669,6 +2693,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k1x1_ch3_nopad(
         1, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2767,6 +2792,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k1x1_ch4_nopad(
         1, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2865,6 +2891,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k1x1_ch8_nopad(
         1, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2963,6 +2990,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k2x2_krnpad(
         0, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -3061,6 +3089,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k2x2_ch1_krnpad(
         0, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -3159,6 +3188,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k3x3_krnpad(
         0, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -3257,6 +3287,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_k3x3_ch1_krnpad(
         0, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -3355,6 +3386,7 @@ mli_status mli_krn_conv2d_chw_fx8w16d_generic(
         0, 0);
 
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = out_ch;
     out->shape[FMAP_H_DIM_CHW] = out_height;
