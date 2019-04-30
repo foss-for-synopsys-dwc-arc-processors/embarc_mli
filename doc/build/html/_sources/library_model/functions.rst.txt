@@ -3,110 +3,114 @@
 Functions 
 ---------
 
-   In general, several functions are implemented for each primitive
-   supported by MLI library. Each function (implementation of primitive)
-   is designed to deal with specific inputs. Therefore, you must meet the
-   assumptions that functions make. For example, function designed to
-   perform 2D convolution for data of ``fx8`` type must not be used with
-   data of ``fx16`` type.
+In general, several functions are implemented for each primitive
+supported by MLI library. Each function (implementation of primitive)
+is designed to deal with specific inputs. Therefore, you must meet the
+assumptions that functions make. For example, function designed to
+perform 2D convolution for data of ``fx8`` type must not be used with
+data of ``fx16`` type.
 
-   All assumptions are reflected in function name according to naming
-   convention (see :ref:`MLI_func_naming_conv` and 
-   :ref:`MLI_fn_spl`). MLI Library functions have at
-   least one assumption on input data types. Functions with only
-   data-type assumption are referred to as generic functions while
-   functions with additional assumptions referred to as specialized
-   functions or specializations.
+All assumptions are reflected in function name according to naming
+convention (see :ref:`MLI_func_naming_conv` and 
+:ref:`MLI_fn_spl`). MLI Library functions have at
+least one assumption on input data types. Functions with only
+data-type assumption are referred to as generic functions while
+functions with additional assumptions referred to as specialized
+functions or specializations.
 
-   .. note::    
-	  A lot of specializations along with generic functions are implemented in convolution and pooling groups for each primitive. Generic functions are typically slower than the specialized ones. For this reason, a function without postfix performs switching logic to choose the correct specialized function or a generic function if there is no appropriate specialization. Such ‘switchers’ significantly increase the code size of application and should be used only in development or intentionally. Generic functions have a ‘_generic’ name postfix, and specializations have a descriptive postfix.
+.. note::    
+  A lot of specializations along with generic functions are implemented in convolution and pooling groups for each primitive. Generic functions are typically slower than the specialized ones. Hence, a function without postfix performs switching logic to choose the correct specialized function or a generic function if there is no appropriate specialization. Such ‘switchers’ significantly increase the code size of application and should be used only in development or intentionally. Generic functions have a ‘_generic’ name postfix, and specializations have a descriptive postfix.
 
 Naming Convention
 ~~~~~~~~~~~~~~~~~
 
-   MLI Library function adheres naming convention listed in :ref:`MLI_func_naming_conv`:
+MLI Library function adheres naming convention listed in :ref:`MLI_func_naming_conv`:
 
-\
-  
+.. code::
+
+   mli_<set>_<type>_[layout]_<data_type>_[spec](<in_data>,[config],<out_data>) ; 
+.. 
+ 
 .. _MLI_func_naming_conv:
 .. table:: MLI Library Functions Naming Convention
-   :widths: auto   
+   :widths: grid   
 
-   +-----------------------+-----------------------+---------------------------------+
-   | ``mli_<set>_<type>_[layout]_<data_type>_[spec](<in_data>,[config],<out_data>);``| 
-   +=======================+=======================+=================================+
-   | Field name            | Field Entries         | Field Description               |
-   +-----------------------+-----------------------+---------------------------------+
-   | ``set``               | ``krn``               | Mandatory. Specifies            |
-   |                       |                       | set of functions                |
-   |                       | ``hlp``               | related to the                  |
-   |                       |                       | implementation. See             |
-   |                       |                       | :ref:`gen_api_struct`           |
-   |                       |                       | for more information.           |
-   +-----------------------+-----------------------+---------------------------------+
-   | ``type``              | ``conv2d``            | Mandatory. Specifies            |
-   |                       |                       | particular type of              |
-   |                       | ``fully_connected``   | primitive supported             |
-   |                       |                       | by the library                  |
-   +-----------------------+-----------------------+---------------------------------+
-   | ``layout``            | ``chw``               | Optional. Specifies             |
-   |                       |                       | data layout for                 |
-   |                       | ``hwc``               | image-like inputs.              |
-   |                       |                       | See :ref:`data_types` for       |
-   |                       |                       | more information.               |
-   +-----------------------+-----------------------+---------------------------------+
-   | ``data_type``         | ``fx8``               | Mandatory. Specifies            |
-   |                       |                       | the tensor basic                |
-   |                       | ``fx16``              | element type expected           |
-   |                       |                       | by the function.                |
-   |                       | ``fx8w16d``           |                                 |
-   |                       |                       | fx8w16d means weights           |
-   |                       |                       | and bias tensors are            |
-   |                       |                       | 8-bit, while all the            |
-   |                       |                       | others are 16-bit.              |
-   |                       |                       |                                 |
-   |                       |                       | For more information,           |
-   |                       |                       | see :ref:`mli_fpd_fmt`          |
-   +-----------------------+-----------------------+---------------------------------+
-   | ``spec``              |                       | Optional. Reflects              |
-   |                       |                       | additional                      |
-   |                       |                       | assumptions of                  |
-   |                       |                       | function. For                   |
-   |                       |                       | example, if the                 |
-   |                       |                       | function can only               |
-   |                       |                       | process convolutions            |
-   |                       |                       | of a 3x3 kernel, this           |
-   |                       |                       | should be reflected             |
-   |                       |                       | in this field (see              |
-   |                       |                       | :ref:`MLI_fn_spl`)              |
-   +-----------------------+-----------------------+---------------------------------+
-   | ``in_data``           |                       | Mandatory. Input data           |
-   |                       |                       | tensors                         |
-   +-----------------------+-----------------------+---------------------------------+
-   | ``config``            |                       | Optional. Structure             |
-   |                       |                       | of primitive-specific           |
-   |                       |                       | parameters                      |
-   +-----------------------+-----------------------+---------------------------------+
-   | ``out_data``          |                       | Mandatory. Output               |
-   |                       |                       | data tensors                    |
-   +-----------------------+-----------------------+---------------------------------+
+   +-----------------------+-----------------------+------------------------------------------------------+
+   | **Field name**        | **Field Entries**     | **Field Description**                                |
+   +=======================+=======================+======================================================+
+   | ``set``               | ``krn``               | Mandatory. Specifies                                 |
+   |                       |                       | set of functions                                     |
+   |                       | ``hlp``               | related to the                                       |
+   |                       |                       | implementation. For more information, see            |
+   |                       |                       | :ref:`gen_api_struct`                                |
+   +-----------------------+-----------------------+------------------------------------------------------+
+   | ``type``              | ``conv2d``            | Mandatory. Specifies                                 |
+   |                       |                       | particular type of                                   |
+   |                       | ``fully_connected``   | primitive supported                                  |
+   |                       |                       | by the library                                       |
+   +-----------------------+-----------------------+------------------------------------------------------+
+   | ``layout``            | ``chw``               | Optional. Specifies                                  |
+   |                       |                       | data layout for                                      |
+   |                       | ``hwc``               | image-like inputs.                                   |
+   |                       |                       | For more information, see :ref:`data_types`          |
+   +-----------------------+-----------------------+------------------------------------------------------+
+   | ``data_type``         | ``fx8``               | Mandatory. Specifies                                 |
+   |                       |                       | the tensor basic                                     |
+   |                       | ``fx16``              | element type expected                                |
+   |                       |                       | by the function.                                     |
+   |                       | ``fx8w16d``           | ``fx8w16d`` means weights                            |
+   |                       |                       | and bias tensors are                                 |
+   |                       |                       | 8-bit, while all the                                 |
+   |                       |                       | others are 16-bit.                                   |
+   |                       |                       | For more information,                                |
+   |                       |                       | see :ref:`mli_fpd_fmt`                               |
+   +-----------------------+-----------------------+------------------------------------------------------+
+   | ``spec``              |                       | Optional. Reflects                                   |
+   |                       |                       | additional                                           |
+   |                       |                       | assumptions of                                       |
+   |                       |                       | function. For                                        |
+   |                       |                       | example, if the                                      |
+   |                       |                       | function can only                                    |
+   |                       |                       | process convolutions                                 |
+   |                       |                       | of a 3x3 kernel, this                                |
+   |                       |                       | should be reflected                                  |
+   |                       |                       | in this field (see                                   |
+   |                       |                       | :ref:`MLI_fn_spl`)                                   |
+   +-----------------------+-----------------------+------------------------------------------------------+
+   | ``in_data``           |                       | Mandatory. Input data          	                  |
+   |                       |                       | tensors                        	                  |
+   +-----------------------+-----------------------+------------------------------------------------------+
+   | ``config``            |                       | Optional. Structure            	                  |
+   |                       |                       | of primitive-specific          	                  |
+   |                       |                       | parameters                     	                  |
+   +-----------------------+-----------------------+------------------------------------------------------+
+   | ``out_data``          |                       | Mandatory. Output                                    |
+   |                       |                       | data tensors                                         |
+   +-----------------------+-----------------------+------------------------------------------------------+
 
 ..
+.. note::  
 
    Example:
-
-   ``mli_krn_avepool_hwc_fx8(const mli_tensor *in, const mli_pool_cfg *cfg, mli_tensor *out);``
-
+   
+   .. code::
+   
+      mli_krn_avepool_hwc_fx8(const mli_tensor *in, 
+                              const mli_pool_cfg *cfg, 
+                              mli_tensor *out
+                              );
+..
+   
 .. _spec_fns:
 
 Specialized Functions
 ~~~~~~~~~~~~~~~~~~~~~
 
-   Naming convention for the specializations: \
+Naming convention for the specializations: \
 
 .. _MLI_fn_spl:
 .. table:: MLI Library Functions Naming \- Specialization Details
-   :widths: auto  
+   :widths: 20,60,20  
 
    +-----------------------+---------------------------+-----------------------+
    | Configuration         |    Naming convention      | Relevant for          |
@@ -178,9 +182,8 @@ Specialized Functions
    |                       | specializations.          |                       |
    +-----------------------+---------------------------+-----------------------+
 
-\
 
-   For example, the function name of a 16bit 2d convolution kernel with
-   CHW layout and a kernel size of 3x3 and stride of 1 is:
-   ``mli_krn_conv2d_chw_fx16_k3x3_str1()``.
+For example, the function name of a 16bit 2d convolution kernel with
+CHW layout and a kernel size of 3x3 and stride of 1 is:
+``mli_krn_conv2d_chw_fx16_k3x3_str1()``.
 

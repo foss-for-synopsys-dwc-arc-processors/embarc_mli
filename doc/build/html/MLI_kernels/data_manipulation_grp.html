@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Data Manipulation Group &mdash; embARC Machine Learning Inference Library 1.00a documentation</title>
+  <title>Data Manipulation Group &mdash; embARC Machine Learning Inference Library 1.00 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                1.00a
+                1.00
               </div>
             
           
@@ -97,7 +97,7 @@
 <li class="toctree-l2"><a class="reference internal" href="pooling_grp.html">Pooling Group</a></li>
 <li class="toctree-l2"><a class="reference internal" href="common_grp.html">Common Group</a></li>
 <li class="toctree-l2"><a class="reference internal" href="transform_grp.html">Transform Group</a></li>
-<li class="toctree-l2"><a class="reference internal" href="elementwise_grp.html">Elementwise Group</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elementwise_grp.html">Element-wise Group</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Data Manipulation Group</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="data_manip_concat.html">Concatenation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="data_manip_permute.html">Permute</a></li>
@@ -106,7 +106,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI helpers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI Helpers</a></li>
 </ul>
 
             
@@ -175,29 +175,28 @@
             
   <div class="section" id="data-manipulation-group">
 <span id="data-manip-grp"></span><h1>Data Manipulation Group<a class="headerlink" href="#data-manipulation-group" title="Permalink to this headline">¶</a></h1>
-<blockquote>
-<div>Data manipulation group provides operations to perform tensors
+<p>Data manipulation group provides operations to perform tensors
 element reordering, complex copying, and so on. Typically data manipulation
-does not change values itself.</div></blockquote>
+does not change values itself.</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="data_manip_concat.html">Concatenation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="data_manip_concat.html#function-configuration-structure">Function Configuration Structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data_manip_concat.html#api">API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_manip_concat.html#kernel-interface">Kernel Interface</a></li>
 <li class="toctree-l2"><a class="reference internal" href="data_manip_concat.html#kernel-specializations">Kernel Specializations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="data_manip_concat.html#conditions-for-applying-the-kernel">Conditions for Applying the Kernel</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="data_manip_permute.html">Permute</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="data_manip_permute.html#function-configuration-structure">Function Configuration Structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data_manip_permute.html#api">API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_manip_permute.html#kernel-interface">Kernel Interface</a></li>
 <li class="toctree-l2"><a class="reference internal" href="data_manip_permute.html#kernel-specializations">Kernel Specializations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="data_manip_permute.html#conditions-for-applying-the-kernel">Conditions for Applying the Kernel</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="data_manip_pad2d.html">Padding 2D</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="data_manip_pad2d.html#function-configuration-structure">Function Configuration Structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data_manip_pad2d.html#api">API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_manip_pad2d.html#kernel-interface">Kernel Interface</a></li>
 <li class="toctree-l2"><a class="reference internal" href="data_manip_pad2d.html#kernel-specializations">Kernel Specializations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="data_manip_pad2d.html#conditions-for-applying-the-kernel">Conditions for Applying the Kernel</a></li>
 </ul>

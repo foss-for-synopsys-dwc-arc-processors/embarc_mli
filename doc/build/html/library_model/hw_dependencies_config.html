@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Hardware Dependencies and Configurability &mdash; embARC Machine Learning Inference Library 1.00a documentation</title>
+  <title>Hardware Dependencies and Configurability &mdash; embARC Machine Learning Inference Library 1.00 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                1.00a
+                1.00
               </div>
             
           
@@ -113,7 +113,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../MLI_FP_data_format/MLI_FP_data_format.html">MLI Fixed-Point Data Format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../MLI_kernels/MLI_kernels.html">MLI Kernels</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI helpers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI Helpers</a></li>
 </ul>
 
             
@@ -184,26 +184,22 @@
 <h1>Hardware Dependencies and Configurability<a class="headerlink" href="#hardware-dependencies-and-configurability" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="global-definitions-and-library-configurability">
 <h2>Global Definitions and Library Configurability<a class="headerlink" href="#global-definitions-and-library-configurability" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div>All configurable global definitions and constants are defined in <code class="docutils literal notranslate"><span class="pre">./include/MLI_config.h</span></code>. This header file is not included in <code class="docutils literal notranslate"><span class="pre">./include/MLI_API.h</span></code> header and should be included implicitly in user code in case its content might be useful. For example, use <code class="docutils literal notranslate"><span class="pre">ARC_PLATFORM</span></code> define for multi-platform applications.</div></blockquote>
+<p>All configurable global definitions and constants are defined in <strong>./include/mli_config.h</strong>. This header file is not included in <strong>./include/mli_api.h</strong> header and should be included implicitly in user code in case its content might be useful. For example, use <code class="docutils literal notranslate"><span class="pre">ARC_PLATFORM</span></code> define for multi-platform applications.</p>
 <div class="section" id="target-platform-definition-arc-platform">
 <span id="tgt-pf-def"></span><h3>Target Platform Definition (ARC_PLATFORM)<a class="headerlink" href="#target-platform-definition-arc-platform" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>ARC_PLATFORM defines main platform type that the library is built
+<p>ARC_PLATFORM defines main platform type that the library is built
 for. By default this is determined in compile time according to the
-TCF file. To explicitly set platform, set ARC_PLATFORM to one of the
+TCF file. To explicitly set the platform, set ARC_PLATFORM to one of the
 following macros in advance:</p>
 <ul class="simple">
 <li><strong>V2DSP</strong> – using ARCv2DSP ISA extensions only (EM5D or EM7D).</li>
 <li><strong>V2DSP_WIDE</strong> – using wide ARCv2DSP ISA extensions (HS45D or HS47D)</li>
 <li><strong>V2DSP_XY</strong> – using ARCv2DSP ISA extensions and AGU (EM9D or EM11D).</li>
 </ul>
-</div></blockquote>
 </div>
 <div class="section" id="function-parameters-examination-and-debug-mli-debug-mode">
 <span id="func-param-dbg"></span><h3>Function Parameters Examination and Debug (MLI_DEBUG_MODE)<a class="headerlink" href="#function-parameters-examination-and-debug-mli-debug-mode" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>MLI Library supports five debug modes. You can choose the debug mode
+<p>The MLI Library supports five debug modes. You can choose the debug mode
 by setting MLI_DEBUG_MODE define as follows:</p>
 <ul class="simple">
 <li><strong>DBG_MODE_RELEASE</strong> (<strong>MLI_DEBUG_MODE</strong> = 0) - No debug. Functions
@@ -217,89 +213,119 @@ parameters and return valid error status if any violation of data is
 found. Else, functions process data and return status MLI_STATUS_OK.
 No messages are printed and no assertions are used.</li>
 <li><strong>DBG_MODE_ASSERT</strong> (<strong>MLI_DEBUG_MODE</strong> = 2) - Functions examine
-parameters. If any violation of data is found, the function tries to
-break the execution using <strong>assert()</strong> function. If the <strong>assert()</strong>
-function does not break the execution, function returns error status.</li>
-<li><strong>DBG_MODE_DEBUG</strong> (<strong>MLI_DEBUG_MODE</strong> = 3) - Functions examine
-parameters. If any violation of data is found, the function prints a
-descriptive message using standard <strong>printf()</strong> function and tries to
-break the execution using <strong>assert()</strong> function. If the <strong>assert()</strong>
-function does not break the execution, function returns error status.</li>
-<li><strong>DBG_MODE_FULL</strong> (<strong>MLI_DEBUG_MODE</strong> = 4) - Functions examine
-parameters. If any violation of data is found, the function prints a
-descriptive message using standard <strong>printf()</strong> function and tries to
-break the execution using <strong>assert()</strong> function. Extra assertions inside
-loops are used for this mode . If the <strong>assert()</strong>  function does not
-break the execution, function returns error status.</li>
+parameters.  Any violation of data found lead to break on <strong>assert()</strong></li>
+<li><strong>DBG_MODE_DEBUG</strong> (<strong>MLI_DEBUG_MODE</strong> = 3) - The same as DBG_MODE_ASSERT,
+but before breaking on <strong>assert()</strong> function prints descriptive message
+using standard <strong>printf()</strong></li>
+<li><strong>DBG_MODE_FULL</strong> (<strong>MLI_DEBUG_MODE</strong> = 4) - The same as DBG_MODE_DEBUG,
+but additionally extra assertions inside loops are used for this mode.</li>
 </ul>
-<p>By default, <code class="docutils literal notranslate"><span class="pre">MLI_DEBUG_MODE</span></code> is set to <code class="docutils literal notranslate"><span class="pre">DBG_MODE_RELEASE</span></code>.</p>
-</div></blockquote>
+<p>By default, <code class="docutils literal notranslate"><span class="pre">MLI_DEBUG_MODE</span></code> is set to <code class="docutils literal notranslate"><span class="pre">DBG_MODE_RELEASE</span></code>. The following table
+conglomerates information on modes behaviour.</p>
+<table border="1" class="docutils" id="dbg-mode-behav">
+<colgroup>
+<col width="30%" />
+<col width="15%" />
+<col width="18%" />
+<col width="14%" />
+<col width="12%" />
+<col width="11%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Behavior / Mode</th>
+<th class="head">RELEASE</th>
+<th class="head">RET_CODES</th>
+<th class="head">ASSERT</th>
+<th class="head">DEBUG</th>
+<th class="head">FULL</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Return Codes</td>
+<td>NO</td>
+<td>YES</td>
+<td>YES</td>
+<td>YES</td>
+<td>YES</td>
+</tr>
+<tr class="row-odd"><td>Assertions</td>
+<td>NO</td>
+<td>NO</td>
+<td>YES</td>
+<td>YES</td>
+<td>YES</td>
+</tr>
+<tr class="row-even"><td>Extra Assertions</td>
+<td>NO</td>
+<td>NO</td>
+<td>NO</td>
+<td>NO</td>
+<td>YES</td>
+</tr>
+<tr class="row-odd"><td>Messages</td>
+<td>NO</td>
+<td>NO</td>
+<td>NO</td>
+<td>YES</td>
+<td>YES</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section" id="concatenation-primitive-maximum-tensors-to-concatenate-mli-concat-max-tensors">
 <h3>Concatenation Primitive: Maximum Tensors to Concatenate (MLI_CONCAT_MAX_TENSORS)<a class="headerlink" href="#concatenation-primitive-maximum-tensors-to-concatenate-mli-concat-max-tensors" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div>This primitive configures maximum number of tensors for concatenation
-by appropriate primitive (see <a class="reference internal" href="../MLI_kernels/data_manip_concat.html#concat"><span class="std std-ref">Concatenation</span></a> ). Default: 8.</div></blockquote>
+<p>This primitive configures maximum number of tensors for concatenation
+by appropriate primitive (see <a class="reference internal" href="../MLI_kernels/data_manip_concat.html#concat"><span class="std std-ref">Concatenation</span></a> ). Default: 8.</p>
 </div>
 </div>
 <div class="section" id="memory-allocation">
 <h2>Memory Allocation<a class="headerlink" href="#memory-allocation" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div>Library does not allocate any memory dynamically. Application is
+<p>The MLI library does not allocate any memory dynamically. Your application is
 responsible for providing correct parameters for function and
-allocate memory for it if necessary. Library might use internal
-statically allocated data (tables of constants).</div></blockquote>
+allocate memory for it if necessary. The MLI library might use internal
+statically allocated data (tables of constants).</p>
 </div>
 <div class="section" id="hardware-components-dependencies">
 <span id="hw-comp-dpd"></span><h2>Hardware Components Dependencies<a class="headerlink" href="#hardware-components-dependencies" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="dsp-control">
 <h3>DSP Control<a class="headerlink" href="#dsp-control" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>MLI Library intensively uses ARCv2DSP extension of ARC EM and ARC HS
+<p>The MLI Library intensively uses ARCv2DSP extension of ARC EM and ARC HS
 processors. Ensure that this extension is present and correctly
 configured in hardware.</p>
 <p>Ensure that you build the library with the appropriate command line
 parameter:</p>
 <p><code class="docutils literal notranslate"><span class="pre">-Xdsp_ctrl=postshift,guard,convergent</span></code></p>
-</div></blockquote>
-<blockquote>
-<div>Where “up” defines the rounding mode of DSP hardware (rounding up)
+<p>Where “up” defines the rounding mode of DSP hardware (rounding up)
 and it is the only parameter which might be changed (to “convergent” -
 round to the nearest even). All parameters are described in <em>MetaWare
-Fixed-Point Reference for ARC EM and ARC HS</em>.</div></blockquote>
+Fixed-Point Reference for ARC EM and ARC HS</em>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">MLI Library sets the required DSP   mode inside each function where it is needed, but does not restore it to previous state. If another ARC DSP code beside MLI library is used in an application, ensure that you set the required DSP mode before its execution. For more information see  “Configuring the ARC DSP Extensions” section of <em>MetaWare DSP Programming Guide for ARC EM and ARC HS</em> or “Using the FXAPI” section of entry [5] of <em>MetaWare Fixed-Point Reference for ARC EM and ARC HS</em>.</p>
+<p class="last">The MLI Library sets the required DSP mode inside each function where it is needed, but does not restore it to previous state. If another ARC DSP code beside MLI library is used in an application, ensure that you set the required DSP mode before its execution. For more information see  “Configuring the ARC DSP Extensions” section of <em>MetaWare DSP Programming Guide for ARC EM and ARC HS</em> or “Using the FXAPI” section of entry [5] of <em>MetaWare Fixed-Point Reference for ARC EM and ARC HS</em>.</p>
 </div>
 </div>
 <div class="section" id="agu-support">
 <h3>AGU Support<a class="headerlink" href="#agu-support" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><p>Library is optimized for systems with and without AGU (address
+<p>The MLI Library is optimized for systems with and without AGU (address
 generation unit). If AGU is present in the system, then library code
 optimized for AGU is compiled automatically, otherwise the AGU
 optimization is not used (see <a class="reference internal" href="#tgt-pf-def"><span class="std std-ref">Target Platform Definition (ARC_PLATFORM)</span></a>).
 Inside primitives, pointers to some data defined with use of
-MLI_PTR(p) macro expand into “__xy p *” in AGU systems, and to “p
-*” in system without AGU. An application is responsible for
+<code class="docutils literal notranslate"><span class="pre">MLI_PTR(p)</span></code> macro expand into <code class="docutils literal notranslate"><span class="pre">__xy</span> <span class="pre">p</span> <span class="pre">*</span></code> in AGU systems, and to <code class="docutils literal notranslate"><span class="pre">p</span>
+<span class="pre">*</span></code> in system without AGU. An application is responsible for
 allocation of relevant buffers in the AGU memory region (for more
 information see “XY Memory Optimization” chapter <em>of MetaWare DSP
 Programming Guide for ARC EM and ARC HS</em>).</p>
 <p><a class="reference internal" href="#agu-req-tensors"><span class="std std-ref">AGU Requirements for Tensors</span></a> provides information about tensors must
-be allocated into AGUaccessible memory for each primitive. Tensors
-not mentioned in <a class="reference internal" href="#agu-req-tensors"><span class="std std-ref">AGU Requirements for Tensors</span></a> does not have to be allocated in the
+be allocated into AGU-accessible memory for each primitive. Tensors
+not mentioned in <a class="reference internal" href="#agu-req-tensors"><span class="std std-ref">AGU Requirements for Tensors</span></a> do not have to be allocated in the
 same way.</p>
-</div></blockquote>
-<span id="agu-req-tensors"></span><table border="1" class="colwidths-given docutils" id="id1">
-<caption><span class="caption-number">Table 9 </span><span class="caption-text">AGU Requirements for Tensors</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
-<colgroup>
-<col width="50%" />
-<col width="50%" />
-</colgroup>
+<span id="agu-req-tensors"></span><table border="1" class="colwidths-auto docutils" id="id1">
+<caption><span class="caption-text">AGU Requirements for Tensors</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Primitive</th>
-<th class="head">Tensors must be allocated into
-AGU accessible memory</th>
+<th class="head">Tensors That Must Be Allocated
+Into AGU-Accessible Memory</th>
 </tr>
 </thead>
 <tbody valign="top">
@@ -310,40 +336,40 @@ AGU accessible memory</th>
 <td>in, weights, out, biases</td>
 </tr>
 <tr class="row-even"><td>Max Pooling</td>
-<td>In, out</td>
+<td>in, out</td>
 </tr>
 <tr class="row-odd"><td>Average Pooling</td>
-<td>In, out</td>
+<td>in, out</td>
 </tr>
 <tr class="row-even"><td>Fully connected</td>
-<td>In, out</td>
+<td>in, out</td>
 </tr>
 <tr class="row-odd"><td>Long Short Term Memory</td>
-<td>In, weights, biases, out,
+<td>in, weights, biases, out,
 prev_out, ir_tsr</td>
 </tr>
 <tr class="row-even"><td>Basic RNN cell</td>
-<td>In, weights, biases, out,
+<td>in, weights, biases, out,
 prev_out, ir_tsr</td>
 </tr>
 <tr class="row-odd"><td>ReLU</td>
-<td>In, out</td>
+<td>in, out</td>
 </tr>
 <tr class="row-even"><td>Leaky ReLU</td>
-<td>In, out</td>
+<td>in, out</td>
 </tr>
 <tr class="row-odd"><td>Sigmoid</td>
-<td>In, out</td>
+<td>in, out</td>
 </tr>
 <tr class="row-even"><td>TanH</td>
-<td>In, out</td>
+<td>in, out</td>
 </tr>
 <tr class="row-odd"><td>Softmax</td>
-<td>In, out</td>
+<td>in, out</td>
 </tr>
 <tr class="row-even"><td>Eltwise
 add/subtract/max/multiplication</td>
-<td>In1, in2, out</td>
+<td>in1, in2, out</td>
 </tr>
 <tr class="row-odd"><td>Concatenation</td>
 <td><ul class="first last simple">

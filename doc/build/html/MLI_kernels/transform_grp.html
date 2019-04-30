@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Transform Group &mdash; embARC Machine Learning Inference Library 1.00a documentation</title>
+  <title>Transform Group &mdash; embARC Machine Learning Inference Library 1.00 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                1.00a
+                1.00
               </div>
             
           
@@ -104,11 +104,11 @@
 <li class="toctree-l3"><a class="reference internal" href="trans_softmax.html">SoftMax</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="elementwise_grp.html">Elementwise Group</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elementwise_grp.html">Element-wise Group</a></li>
 <li class="toctree-l2"><a class="reference internal" href="data_manipulation_grp.html">Data Manipulation Group</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI helpers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI Helpers</a></li>
 </ul>
 
             
@@ -177,44 +177,43 @@
             
   <div class="section" id="transform-group">
 <span id="transform-grp"></span><h1>Transform Group<a class="headerlink" href="#transform-group" title="Permalink to this headline">¶</a></h1>
-<blockquote>
-<div>Transform group provides operations for transformation data according
+<p>Transform group provides operations for transformation data according
 to particular function (activations). In general, transformations do
 not alter data size or shape. They only change the values
-element-wise.</div></blockquote>
+element-wise.</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="trans_relu.html">ReLU</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="trans_relu.html#function-configuration-structure">Function Configuration Structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="trans_relu.html#api">API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trans_relu.html#kernel-interface">Kernel Interface</a></li>
 <li class="toctree-l2"><a class="reference internal" href="trans_relu.html#kernel-specializations">Kernel Specializations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="trans_relu.html#conditions-for-applying-the-kernel">Conditions for Applying the Kernel</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="trans_leaky_relu.html">Leaky ReLU</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="trans_leaky_relu.html#function-configuration-structure">Function Configuration Structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="trans_leaky_relu.html#api">API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trans_leaky_relu.html#kernel-interface">Kernel Interface</a></li>
 <li class="toctree-l2"><a class="reference internal" href="trans_leaky_relu.html#kernel-specializations">Kernel Specializations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="trans_leaky_relu.html#conditions-for-applying-the-kernel">Conditions for Applying the Kernel</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="trans_sigmoid.html">Sigmoid</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="trans_sigmoid.html#function-configuration-structure">Function Configuration Structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="trans_sigmoid.html#api">API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trans_sigmoid.html#kernel-interface">Kernel Interface</a></li>
 <li class="toctree-l2"><a class="reference internal" href="trans_sigmoid.html#kernel-specializations">Kernel Specializations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="trans_sigmoid.html#conditions-for-applying-the-kernel">Conditions for Applying the Kernel</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="trans_tanh.html">TanH</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="trans_tanh.html#function-configuration-structure">Function Configuration Structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="trans_tanh.html#api">API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trans_tanh.html#kernel-interface">Kernel Interface</a></li>
 <li class="toctree-l2"><a class="reference internal" href="trans_tanh.html#kernel-specializations">Kernel Specializations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="trans_tanh.html#conditions-for-applying-the-kernel">Conditions for Applying the Kernel</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="trans_softmax.html">SoftMax</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="trans_softmax.html#function-configuration-structure">Function Configuration Structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="trans_softmax.html#api">API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trans_softmax.html#kernel-interface">Kernel Interface</a></li>
 <li class="toctree-l2"><a class="reference internal" href="trans_softmax.html#kernel-specializations">Kernel Specializations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="trans_softmax.html#conditions-for-applying-the-kernel">Conditions for Applying the Kernel</a></li>
 </ul>

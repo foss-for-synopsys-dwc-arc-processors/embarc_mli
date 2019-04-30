@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Element-wise Add &mdash; embARC Machine Learning Inference Library 1.00a documentation</title>
+  <title>Element-wise Add &mdash; embARC Machine Learning Inference Library 1.00 documentation</title>
   
 
   
@@ -38,7 +38,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Element-wise Subtraction" href="elem_sub.html" />
-    <link rel="prev" title="Elementwise Group" href="elementwise_grp.html" /> 
+    <link rel="prev" title="Element-wise Group" href="elementwise_grp.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                1.00a
+                1.00
               </div>
             
           
@@ -97,10 +97,10 @@
 <li class="toctree-l2"><a class="reference internal" href="pooling_grp.html">Pooling Group</a></li>
 <li class="toctree-l2"><a class="reference internal" href="common_grp.html">Common Group</a></li>
 <li class="toctree-l2"><a class="reference internal" href="transform_grp.html">Transform Group</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="elementwise_grp.html">Elementwise Group</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="elementwise_grp.html">Element-wise Group</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Element-wise Add</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#function-configuration-structure">Function Configuration Structure</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#api">API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#kernel-interface">Kernel Interface</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#kernel-specializations">Kernel Specializations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#conditions-for-applying-the-kernel">Conditions for Applying the Kernel</a></li>
 </ul>
@@ -113,7 +113,7 @@
 <li class="toctree-l2"><a class="reference internal" href="data_manipulation_grp.html">Data Manipulation Group</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI helpers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI Helpers</a></li>
 </ul>
 
             
@@ -161,7 +161,7 @@
         
           <li><a href="MLI_kernels.html">MLI Kernels</a> &raquo;</li>
         
-          <li><a href="elementwise_grp.html">Elementwise Group</a> &raquo;</li>
+          <li><a href="elementwise_grp.html">Element-wise Group</a> &raquo;</li>
         
       <li>Element-wise Add</li>
     
@@ -184,19 +184,16 @@
             
   <div class="section" id="element-wise-add">
 <span id="elmwise-add"></span><h1>Element-wise Add<a class="headerlink" href="#element-wise-add" title="Permalink to this headline">¶</a></h1>
-<blockquote>
-<div>This kernel adds two tensors of the same shape element-wise and
-stores results to the output tensor saving the shape of inputs:</div></blockquote>
+<p>This kernel adds two tensors of the same shape element-wise and
+stores results to the output tensor saving the shape of inputs:</p>
 <div class="math notranslate nohighlight">
 \[y_{i} = {x1}_{i} + {x2}_{i}\]</div>
-<blockquote>
-<div>It supports simple broadcasting of single value (scalar tensor see
+<p>It supports simple broadcasting of single value (scalar tensor see
 <a class="reference internal" href="../library_model/data.html#mli-tns-struct"><span class="std std-ref">mli_tensor Structure</span></a>) on general tensor. One of the operands can be a
-scalar:</div></blockquote>
+scalar:</p>
 <div class="math notranslate nohighlight">
-\[y_{i} = x_{i} + x\_\text{scalar}\]</div>
-<blockquote>
-<div><p>The elements of input tensors must be of the same type and with the
+\[y_{i} = x_{i} + x_{\text{scalar}}\]</div>
+<p>The elements of input tensors must be of the same type and with the
 same element parameters. Output tensor holds the same element and
 shape parameters as input tensors (for example, a scalar tensor).</p>
 <p>If the result of an operation is out of containers’ range, it is
@@ -204,43 +201,45 @@ saturated to the container’s limit.</p>
 <p>Kernel can perform in-place computation (output and input can point
 to exactly the same memory but without shift). It can affect
 performance for some platforms.</p>
-</div></blockquote>
 <div class="section" id="function-configuration-structure">
 <span id="function-configuration-structure-12"></span><h2>Function Configuration Structure<a class="headerlink" href="#function-configuration-structure" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div>No configuration structure for the kernel is required. All necessary
-information is provided by tensors.</div></blockquote>
+<p>No configuration structure for the kernel is required. All necessary
+information is provided by tensors.</p>
 </div>
-<div class="section" id="api">
-<span id="api-8"></span><h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
-<table border="1" class="docutils">
-<colgroup>
-<col width="33%" />
-<col width="33%" />
-<col width="33%" />
-</colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td><strong>Prototype</strong></td>
-<td colspan="2"><div class="code c first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mli_status</span> <span class="n">mli_krn_eltwise_add_fx</span> <span class="p">(</span>
-<span class="n">const</span> <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">in1</span><span class="p">,</span>
-<span class="n">const</span> <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">in2</span><span class="p">,</span>
-<span class="n">mli_tensor</span> <span class="o">*</span><span class="n">out</span><span class="p">);</span>
+<div class="section" id="kernel-interface">
+<span id="api-8"></span><h2>Kernel Interface<a class="headerlink" href="#kernel-interface" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="prototype">
+<h3>Prototype<a class="headerlink" href="#prototype" title="Permalink to this headline">¶</a></h3>
+<div class="code c highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mli_status</span> <span class="n">mli_krn_eltwise_add_fx</span> <span class="p">(</span>
+   <span class="n">const</span> <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">in1</span><span class="p">,</span>
+   <span class="n">const</span> <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">in2</span><span class="p">,</span>
+   <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">out</span><span class="p">);</span>
 </pre></div>
 </div>
-</td>
+</div>
+<div class="section" id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="colwidths-given docutils" id="id1">
+<caption><span class="caption-text">Kernel Interface Parameters</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="13%" />
+<col width="87%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><strong>Parameters</strong></th>
+<th class="head"><strong>Description</strong></th>
 </tr>
-<tr class="row-even"><td><strong>Parameters</strong></td>
-<td><code class="docutils literal notranslate"><span class="pre">in1</span></code></td>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">in1</span></code></td>
 <td>[IN] Pointer to the
 first input tensor</td>
 </tr>
-<tr class="row-odd"><td>&#160;</td>
-<td><code class="docutils literal notranslate"><span class="pre">in2</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">in2</span></code></td>
 <td>[IN] Pointer to the
 second input tensor</td>
 </tr>
-<tr class="row-even"><td>&#160;</td>
-<td><code class="docutils literal notranslate"><span class="pre">out</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">out</span></code></td>
 <td>[OUT] Pointer to the
 output tensor. Result
 is stored here</td>
@@ -248,12 +247,14 @@ is stored here</td>
 </tbody>
 </table>
 </div>
+</div>
 <div class="section" id="kernel-specializations">
 <span id="kernel-specializations-8"></span><h2>Kernel Specializations<a class="headerlink" href="#kernel-specializations" title="Permalink to this headline">¶</a></h2>
-<table border="1" class="docutils">
+<table border="1" class="colwidths-given docutils" id="id2">
+<caption><span class="caption-text">Non-Specialized Functions</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col width="44%" />
-<col width="56%" />
+<col width="13%" />
+<col width="87%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head"><strong>Function</strong></th>
@@ -272,24 +273,12 @@ is stored here</td>
 </div>
 <div class="section" id="conditions-for-applying-the-kernel">
 <span id="conditions-for-applying-the-kernel-8"></span><h2>Conditions for Applying the Kernel<a class="headerlink" href="#conditions-for-applying-the-kernel" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div>Ensure that you satisfy the following conditions before applying the
-function:</div></blockquote>
+<p>Ensure that you satisfy the following conditions before applying the function:</p>
 <ul class="simple">
 <li>Input, tensors must be valid (see <a class="reference internal" href="../library_model/data.html#mli-tns-struct"><span class="std std-ref">mli_tensor Structure</span></a>).</li>
 <li>One of the inputs can be a valid scalar (see <a class="reference internal" href="../library_model/data.html#mli-tns-struct"><span class="std std-ref">mli_tensor Structure</span></a>).</li>
-<li><dl class="first docutils">
-<dt>If both of the input tensors are tensors, the shape and rank of both</dt>
-<dd>of them must be equal.</dd>
-</dl>
-</li>
-<li><dl class="first docutils">
-<dt>Before processing, the output tensor must contain a valid pointer to</dt>
-<dd>a buffe, with sufficient capacity enough for storing the result.
-Other fields are filled by kernel (shape, rank and element
-specific parameters)</dd>
-</dl>
-</li>
+<li>If both the inputs are tensors, the shape and rank of both of them must be equal.</li>
+<li>Before processing, the output tensor must contain a valid pointer to a buffer, with sufficient capacity enough for storing the result. Other fields are filled by kernel (shape, rank and element specific parameters).</li>
 </ul>
 </div>
 </div>
@@ -305,7 +294,7 @@ specific parameters)</dd>
         <a href="elem_sub.html" class="btn btn-neutral float-right" title="Element-wise Subtraction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="elementwise_grp.html" class="btn btn-neutral float-left" title="Elementwise Group" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="elementwise_grp.html" class="btn btn-neutral float-left" title="Element-wise Group" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

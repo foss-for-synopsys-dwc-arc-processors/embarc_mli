@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Error Codes &mdash; embARC Machine Learning Inference Library 1.00a documentation</title>
+  <title>Error Codes &mdash; embARC Machine Learning Inference Library 1.00 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                1.00a
+                1.00
               </div>
             
           
@@ -99,7 +99,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../MLI_FP_data_format/MLI_FP_data_format.html">MLI Fixed-Point Data Format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../MLI_kernels/MLI_kernels.html">MLI Kernels</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI helpers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI Helpers</a></li>
 </ul>
 
             
@@ -168,17 +168,15 @@
             
   <div class="section" id="error-codes">
 <span id="err-codes"></span><h1>Error Codes<a class="headerlink" href="#error-codes" title="Permalink to this headline">¶</a></h1>
-<blockquote>
-<div><p>Functions return value of <em>mli_status</em> enumeration type which is
-declared in <strong>include/MLI_types.h</strong>. By default, functions do not
+<p>Functions return value of <em>mli_status</em> enumeration type which is
+declared in <strong>include/mli_types.h</strong>. By default, functions do not
 validate inputs and typically return only <code class="docutils literal notranslate"><span class="pre">MLI_STATUS_OK</span></code>.</p>
 <p>To turn on the checking logic, ensure that you build the MLI library
 with along with the required debug mode as described in section
 <a class="reference internal" href="hw_dependencies_config.html#func-param-dbg"><span class="std std-ref">Function Parameters Examination and Debug (MLI_DEBUG_MODE)</span></a>. This might slightly affect the performance and code size of the library.</p>
 <p><a class="reference internal" href="#mli-status-val-desc"><span class="std std-ref">mli_status Values Description</span></a> contains list of status code with description.</p>
-</div></blockquote>
 <span id="mli-status-val-desc"></span><table border="1" class="colwidths-auto docutils" id="id1">
-<caption><span class="caption-number">Table 6 </span><span class="caption-text">mli_status Values Description</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-text">mli_status Values Description</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Value</th>
 <th class="head">Field Description</th>
@@ -207,12 +205,12 @@ enough for function result</td>
 <tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">MLI_STATUS_NOT_SUPPORTED</span></code></td>
 <td>Function is not yet implemented,
 or inputs combination is not
-supported.</td>
+supported</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">MLI_STATUS_SPEC_PARAM_MISMATCH</span></code></td>
 <td>Function parameters do not match
 the one specified in the
-specialized function.</td>
+specialized function</td>
 </tr>
 </tbody>
 </table>

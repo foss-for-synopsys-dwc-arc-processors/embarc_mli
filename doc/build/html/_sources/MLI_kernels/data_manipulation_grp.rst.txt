@@ -3,9 +3,9 @@
 Data Manipulation Group
 -----------------------
 
-   Data manipulation group provides operations to perform tensors
-   element reordering, complex copying, and so on. Typically data manipulation
-   does not change values itself.
+Data manipulation group provides operations to perform tensors
+element reordering, complex copying, and so on. Typically data manipulation
+does not change values itself.
      
 .. toctree::
    :maxdepth: 2

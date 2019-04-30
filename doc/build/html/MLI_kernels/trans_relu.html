@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ReLU &mdash; embARC Machine Learning Inference Library 1.00a documentation</title>
+  <title>ReLU &mdash; embARC Machine Learning Inference Library 1.00 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                1.00a
+                1.00
               </div>
             
           
@@ -99,7 +99,7 @@
 <li class="toctree-l2 current"><a class="reference internal" href="transform_grp.html">Transform Group</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">ReLU</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#function-configuration-structure">Function Configuration Structure</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#api">API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#kernel-interface">Kernel Interface</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#kernel-specializations">Kernel Specializations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#conditions-for-applying-the-kernel">Conditions for Applying the Kernel</a></li>
 </ul>
@@ -110,11 +110,11 @@
 <li class="toctree-l3"><a class="reference internal" href="trans_softmax.html">SoftMax</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="elementwise_grp.html">Elementwise Group</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elementwise_grp.html">Element-wise Group</a></li>
 <li class="toctree-l2"><a class="reference internal" href="data_manipulation_grp.html">Data Manipulation Group</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI helpers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI Helpers</a></li>
 </ul>
 
             
@@ -186,60 +186,57 @@
   <div class="section" id="relu">
 <span id="id1"></span><h1>ReLU<a class="headerlink" href="#relu" title="Permalink to this headline">¶</a></h1>
 <img alt="Various ReLU functions. a. General ReLU; b. ReLU1; c. ReLU6" class="align-center" src="../_images/image_relu.png" />
-<blockquote>
-<div>This kernel represents Rectified Linear unit (ReLU). It performs
+<p>This kernel represents Rectified Linear unit (ReLU). It performs
 various types of the rectifier activation on input. The following
-types of ReLU supported by this type of kernel:</div></blockquote>
+types of ReLU supported by this type of kernel:</p>
 <ol class="arabic simple">
-<li>General ReLU: <span class="math notranslate nohighlight">\(f(x) = MAX\left( x,\ \ 0 \right)\)</span></li>
-<li><dl class="first docutils">
-<dt>ReLU1:</dt>
-<dd><span class="math notranslate nohighlight">\(f(x) = MAX\left( \text{MIN}\left( x,\ 1 \right),\  - 1 \right)\)</span></dd>
-</dl>
-</li>
-<li><dl class="first docutils">
-<dt>ReLU6:</dt>
-<dd><span class="math notranslate nohighlight">\(f(x) = MAX\left( \text{MIN}\left( x,\ 6 \right),\ 0 \right)\)</span></dd>
-</dl>
-</li>
+<li>General ReLU:  <span class="math notranslate nohighlight">\(f(x) = \text{MAX}\left( x,\ \ 0 \right)\)</span></li>
+<li>ReLU1:  <span class="math notranslate nohighlight">\(f(x) = \text{MAX}\left( \text{MIN}\left( x,\ 1 \right),\  - 1 \right)\)</span></li>
+<li>ReLU6:  <span class="math notranslate nohighlight">\(f(x) = \text{MAX}\left( \text{MIN}\left( x,\ 6 \right),\ 0 \right)\)</span></li>
 </ol>
-<blockquote>
-<div><p>Where:</p>
-<p><em>x</em> - input value.</p>
-<p>Kernel outputs a tensor of the same shape, type and format as input
+<p>where: <span class="math notranslate nohighlight">\(\ x\ \)</span> - input value.</p>
+<p>This kernel outputs a tensor of the same shape, type, and format as input
 tensor.</p>
-<p>Kernel might perform in-place computation: output and input might point
+<p>This kernel might perform in-place computation: output and input might point
 to exactly the same memory (the same starting address). It might affect
 performance for some platforms.</p>
-</div></blockquote>
 <div class="section" id="function-configuration-structure">
 <span id="function-configuration-structure-7"></span><h2>Function Configuration Structure<a class="headerlink" href="#function-configuration-structure" title="Permalink to this headline">¶</a></h2>
-<table border="1" class="docutils">
-<colgroup>
-<col width="33%" />
-<col width="33%" />
-<col width="33%" />
-</colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td><strong>Definition</strong></td>
-<td colspan="2"><div class="code c first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">typedef</span> <span class="n">struct</span> <span class="p">{</span>
+<div class="section" id="definition">
+<h3>Definition<a class="headerlink" href="#definition" title="Permalink to this headline">¶</a></h3>
+<div class="code c highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">typedef</span> <span class="n">struct</span> <span class="p">{</span>
    <span class="n">mli_relu_type</span> <span class="nb">type</span><span class="p">;</span>
  <span class="p">}</span> <span class="n">mli_relu_cfg</span><span class="p">;</span>
 </pre></div>
 </div>
-</td>
+</div>
+<div class="section" id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="colwidths-given docutils" id="id3">
+<caption><span class="caption-text">Function Configuration Parameters</span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><strong>Fields</strong></th>
+<th class="head"><strong>Description</strong></th>
 </tr>
-<tr class="row-even"><td><strong>Fields</strong></td>
-<td><code class="docutils literal notranslate"><span class="pre">Type</span></code></td>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">Type</span></code></td>
 <td>Type of ReLu
 that is applied
 (enumeration)</td>
 </tr>
 </tbody>
 </table>
-<p></p>
-<span id="mli-relu-val-desc"></span><table border="1" class="colwidths-auto docutils" id="id2">
-<caption><span class="caption-number">Table 15 </span><span class="caption-text">mli_relu_type Values Description</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<span id="mli-relu-val-desc"></span><table border="1" class="colwidths-given docutils" id="id4">
+<caption><span class="caption-text">mli_relu_type Values Description</span><a class="headerlink" href="#id4" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="20%" />
+<col width="80%" />
+</colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head"><strong>Value</strong></th>
 <th class="head"><strong>Field Description</strong></th>
@@ -247,12 +244,12 @@ that is applied
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">MLI_RELU_NONE</span></code></td>
-<td>No ReLU. Identity function.</td>
+<td>No ReLU. Identity function</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">MLI_RELU_GEN</span></code></td>
 <td>General Rectifier function with
 output range from 0 to value
-maximum inclusively.</td>
+maximum inclusively</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">MLI_RELU_1</span></code></td>
 <td>ReLU1 Rectifier function with
@@ -265,37 +262,42 @@ output range [0, 6]</td>
 </tbody>
 </table>
 </div>
-<div class="section" id="api">
-<span id="api-3"></span><h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
-<table border="1" class="docutils">
-<colgroup>
-<col width="33%" />
-<col width="33%" />
-<col width="33%" />
-</colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td><strong>Prototype</strong></td>
-<td colspan="2"><div class="code c first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mli_status</span> <span class="n">mli_krn_relu_</span><span class="o">&lt;</span><span class="n">data_type</span><span class="o">&gt;</span><span class="p">(</span>
+</div>
+<div class="section" id="kernel-interface">
+<span id="api-3"></span><h2>Kernel Interface<a class="headerlink" href="#kernel-interface" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="prototype">
+<h3>Prototype<a class="headerlink" href="#prototype" title="Permalink to this headline">¶</a></h3>
+<div class="code c highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mli_status</span> <span class="n">mli_krn_relu_</span><span class="o">&lt;</span><span class="n">data_type</span><span class="o">&gt;</span><span class="p">(</span>
    <span class="n">const</span> <span class="n">mli_tensor</span> <span class="o">*</span><span class="ow">in</span><span class="p">,</span>
    <span class="n">const</span> <span class="n">mli_relu_cfg</span> <span class="o">*</span><span class="n">cfg</span><span class="p">,</span>
    <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">out</span><span class="p">);</span>
 </pre></div>
 </div>
-</td>
+</div>
+<div class="section" id="id2">
+<h3>Parameters<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="colwidths-given docutils" id="id5">
+<caption><span class="caption-text">Kernel Interface Parameters</span><a class="headerlink" href="#id5" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="13%" />
+<col width="87%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><strong>Parameters</strong></th>
+<th class="head"><strong>Description</strong></th>
 </tr>
-<tr class="row-even"><td><strong>Parameters</strong></td>
-<td><code class="docutils literal notranslate"><span class="pre">in</span></code></td>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">in</span></code></td>
 <td>[IN] Pointer to input
 tensor</td>
 </tr>
-<tr class="row-odd"><td>&#160;</td>
-<td><code class="docutils literal notranslate"><span class="pre">cfg</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">cfg</span></code></td>
 <td>[IN] Pointer to
 function parameters
 structure</td>
 </tr>
-<tr class="row-even"><td>&#160;</td>
-<td><code class="docutils literal notranslate"><span class="pre">out</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">out</span></code></td>
 <td>[OUT] Pointer to
 output tensor for
 storing the result</td>
@@ -303,12 +305,14 @@ storing the result</td>
 </tbody>
 </table>
 </div>
+</div>
 <div class="section" id="kernel-specializations">
 <span id="kernel-specializations-3"></span><h2>Kernel Specializations<a class="headerlink" href="#kernel-specializations" title="Permalink to this headline">¶</a></h2>
-<table border="1" class="docutils">
+<table border="1" class="colwidths-given docutils" id="id6">
+<caption><span class="caption-text">Non-Specialized Functions</span><a class="headerlink" href="#id6" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col width="38%" />
-<col width="62%" />
+<col width="21%" />
+<col width="79%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head"><strong>Function</strong></th>
@@ -327,17 +331,15 @@ storing the result</td>
 </div>
 <div class="section" id="conditions-for-applying-the-kernel">
 <span id="conditions-for-applying-the-kernel-3"></span><h2>Conditions for Applying the Kernel<a class="headerlink" href="#conditions-for-applying-the-kernel" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div><p>Ensure that you satisfy the following conditions before applying the
+<p>Ensure that you satisfy the following conditions before applying the
 function:</p>
 <ul class="simple">
-<li>Input, tensors must be valid (see <a class="reference internal" href="../library_model/data.html#mli-tns-struct"><span class="std std-ref">mli_tensor Structure</span></a>).</li>
+<li>Input tensors must be valid (see <a class="reference internal" href="../library_model/data.html#mli-tns-struct"><span class="std std-ref">mli_tensor Structure</span></a>).</li>
 <li>Before processing, the output tensor must contain valid pointer to a
-buffer with sufficient capacity enough for storing the result.
+buffer with sufficient capacity for storing the result.
 Other fields are filled by kernel (shape, rank and element
-specific parameters)</li>
+specific parameters).</li>
 </ul>
-</div></blockquote>
 </div>
 </div>
 

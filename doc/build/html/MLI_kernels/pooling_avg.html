@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Average-Pooling &mdash; embARC Machine Learning Inference Library 1.00a documentation</title>
+  <title>Average-Pooling &mdash; embARC Machine Learning Inference Library 1.00 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                1.00a
+                1.00
               </div>
             
           
@@ -98,7 +98,7 @@
 <li class="toctree-l3"><a class="reference internal" href="pooling_max.html">MAX-Pooling</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Average-Pooling</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#function-configuration-structure">Function Configuration Structure</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#general-api">General API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#kernel-interface">Kernel Interface</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#function-specializations">Function Specializations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#conditions-for-applying-the-function">Conditions for Applying the Function</a></li>
 </ul>
@@ -107,11 +107,11 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="common_grp.html">Common Group</a></li>
 <li class="toctree-l2"><a class="reference internal" href="transform_grp.html">Transform Group</a></li>
-<li class="toctree-l2"><a class="reference internal" href="elementwise_grp.html">Elementwise Group</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elementwise_grp.html">Element-wise Group</a></li>
 <li class="toctree-l2"><a class="reference internal" href="data_manipulation_grp.html">Data Manipulation Group</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI helpers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI Helpers</a></li>
 </ul>
 
             
@@ -183,12 +183,11 @@
   <div class="section" id="average-pooling">
 <span id="avg-pool"></span><h1>Average-Pooling<a class="headerlink" href="#average-pooling" title="Permalink to this headline">¶</a></h1>
 <img alt="Average Pooling Operation Example" class="align-center" src="../_images/image109.png" />
-<blockquote>
-<div><p>This kernel implements an average-pooling operation. Input and output
+<p>This kernel implements an average-pooling operation. Input and output
 feature maps are three-dimensional tensor even if one of dimensions is
 equal to 1. Input shape includes height, width, and depth (channels)
 according to used data layout (see <a class="reference internal" href="../library_model/data.html#data-muldim"><span class="std std-ref">Data Layout of Multidimensional Feature Maps</span></a>).</p>
-<p>Each channel of input is considered independently, which means that
+<p>Each input channel is considered independently, which means that
 analysis window includes only neighbor points of the channel. For
 each window, average value over all considered ponts is defined as
 the output value. Window size (or kernel size for convolution layers)
@@ -205,9 +204,8 @@ existing values are analyzed (this also implies reducing of divider
 for average calculation).</p>
 <p>To use padding in Caffe, use Padding2D (see <a class="reference internal" href="data_manip_pad2d.html#pad-2d"><span class="std std-ref">Padding 2D</span></a>) primitive
 before pooling.</p>
-</div></blockquote>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
+<div class="admonition caution">
+<p class="first admonition-title">Caution</p>
 <p class="last">Ensure that input and output
 tensors do not point to
 overlapped memory regions,
@@ -216,46 +214,45 @@ undefined.</p>
 </div>
 <div class="section" id="function-configuration-structure">
 <span id="function-configuration-structure-3"></span><h2>Function Configuration Structure<a class="headerlink" href="#function-configuration-structure" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div>Average pooling kernel shares configuration structure with max
+<p>Average pooling kernel shares configuration structure with max
 pooling kernel. For more information see <a class="reference internal" href="pooling_max.html#fn-conf-str-max-pool"><span class="std std-ref">Function Configuration Structure</span></a>
-section of Max-pooling function.</div></blockquote>
+section of Max-pooling function.</p>
 </div>
-<div class="section" id="general-api">
-<span id="general-api-3"></span><h2>General API<a class="headerlink" href="#general-api" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div>Interface of all specializations are the same and described as follows.</div></blockquote>
-<p></p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="33%" />
-<col width="33%" />
-<col width="33%" />
-</colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td><strong>Prototype</strong></td>
-<td colspan="2"><div class="code c first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mli_status</span>  <span class="n">mli_krn_avepool_</span><span class="o">&lt;</span><span class="n">layout</span><span class="o">&gt;</span><span class="n">_</span>
+<div class="section" id="kernel-interface">
+<span id="general-api-3"></span><h2>Kernel Interface<a class="headerlink" href="#kernel-interface" title="Permalink to this headline">¶</a></h2>
+<p>Interface of all specializations are the same and described as follows.</p>
+<div class="section" id="prototype">
+<h3>Prototype<a class="headerlink" href="#prototype" title="Permalink to this headline">¶</a></h3>
+<div class="code c highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mli_status</span>  <span class="n">mli_krn_avepool_</span><span class="o">&lt;</span><span class="n">layout</span><span class="o">&gt;</span><span class="n">_</span>
 <span class="o">&lt;</span><span class="n">data_type</span><span class="o">&gt;</span><span class="p">[</span><span class="n">_specialization</span><span class="p">](</span>
    <span class="n">const</span> <span class="n">mli_tensor</span> <span class="o">*</span><span class="ow">in</span><span class="p">,</span>
-   <span class="n">const</span> <span class="n">mli_avepool_cfg</span> <span class="o">*</span><span class="n">cfg</span><span class="p">,</span>
+   <span class="n">const</span> <span class="n">mli_pool_cfg</span> <span class="o">*</span><span class="n">cfg</span><span class="p">,</span>
    <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">out</span><span class="p">);</span>
 </pre></div>
 </div>
-</td>
+</div>
+<div class="section" id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="colwidths-given docutils" id="id1">
+<caption><span class="caption-text">Kernel Interface Parameters</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="13%" />
+<col width="87%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><strong>Parameters</strong></td>
+<td><strong>Description</strong></td>
 </tr>
-<tr class="row-even"><td><strong>Parameters</strong></td>
-<td><code class="docutils literal notranslate"><span class="pre">in</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">in</span></code></td>
 <td>[IN] Pointer to input
 feature map tensor</td>
 </tr>
-<tr class="row-odd"><td>&#160;</td>
-<td><code class="docutils literal notranslate"><span class="pre">cfg</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">cfg</span></code></td>
 <td>[IN] Pointer to
 pooling parameters
 structure</td>
 </tr>
-<tr class="row-even"><td>&#160;</td>
-<td><code class="docutils literal notranslate"><span class="pre">out</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">out</span></code></td>
 <td>[OUT] Pointer to
 output feature map
 tensor. Result is
@@ -264,39 +261,45 @@ stored here</td>
 </tbody>
 </table>
 </div>
+</div>
 <div class="section" id="function-specializations">
 <span id="function-specializations-3"></span><h2>Function Specializations<a class="headerlink" href="#function-specializations" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div><p>There are about 80 specializations for the primitive assuming various
+<p>There are about 80 specializations for the primitive assuming various
 combinations of inputs parameters. Average-pooling primitive follows
 the naming convention for specializations (see <a class="reference internal" href="../library_model/functions.html#spec-fns"><span class="std std-ref">Specialized Functions</span></a>
 ). The header file <code class="docutils literal notranslate"><span class="pre">mli_krn_avepool_spec_api.h</span></code> contains
 declarations of all specializations for the primitive.</p>
-<p><a class="reference internal" href="#non-spec-funct-avg-pool"><span class="std std-ref">Non-specialized Functions for Average-Pooling</span></a> contains only non-specialized functions.</p>
-</div></blockquote>
-<span id="non-spec-funct-avg-pool"></span><table border="1" class="colwidths-auto docutils" id="id1">
-<caption><span class="caption-number">Table 12 </span><span class="caption-text">Non-specialized Functions for Average-Pooling</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<p><a class="reference internal" href="#non-spec-funct-avg-pool"><span class="std std-ref">Non-specialized Functions</span></a> contains only non-specialized functions.</p>
+<span id="non-spec-funct-avg-pool"></span><table border="1" class="docutils" id="id2">
+<caption><span class="caption-text">Non-specialized Functions</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="51%" />
+<col width="49%" />
+</colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head"><strong>Function</strong></th>
 <th class="head"><strong>Description</strong></th>
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td colspan="2"><em>CHW Data Layout</em></td>
+<tr class="row-even"><td colspan="2"><div class="first last line-block">
+<div class="line">                         <em>CHW Data Layout</em></div>
+</div>
+</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">mli_krn_avepool_chw_fx8</span></code></td>
 <td>Switching function (see
 <a class="reference internal" href="../library_model/functions.html#fns"><span class="std std-ref">Functions</span></a>); 8bit FX tensors;
 Delegates calculations to
 suitable specialization or
-generic function.</td>
+generic function</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">mli_krn_avepool_chw_fx16</span></code></td>
 <td>Switching function (see
 <a class="reference internal" href="../library_model/functions.html#fns"><span class="std std-ref">Functions</span></a>); 16bit FX tensors;
 Delegates calculations to
 suitable specialization or
-generic function.</td>
+generic function</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">mli_krn_avepool_chw_fx8_generic</span></code></td>
 <td>General function; 8bit FX tensors</td>
@@ -313,7 +316,10 @@ tensors</td>
 <td>Specialization function*; 16bit
 FX tensors</td>
 </tr>
-<tr class="row-odd"><td colspan="2"><em>HWC Data Layout</em></td>
+<tr class="row-odd"><td colspan="2"><div class="first last line-block">
+<div class="line">                         <em>HWC Data Layout</em></div>
+</div>
+</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">mli_krn_avepool_hwc_fx8</span></code></td>
 <td>General function; 8bit FX
@@ -325,8 +331,8 @@ elements;</td>
 </tr>
 </tbody>
 </table>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
+<div class="admonition attention">
+<p class="first admonition-title">Attention</p>
 <p class="last">*For specialization
 functions, backward
 compatibility between
@@ -338,8 +344,7 @@ specializations when possible.</p>
 </div>
 <div class="section" id="conditions-for-applying-the-function">
 <span id="conditions-for-applying-the-function-3"></span><h2>Conditions for Applying the Function<a class="headerlink" href="#conditions-for-applying-the-function" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div><p>Ensure that you satisfy the following conditions before applying the
+<p>Ensure that you satisfy the following conditions before applying the
 function:</p>
 <ul class="simple">
 <li>Input tensor must be valid (see <a class="reference internal" href="../library_model/data.html#mli-tns-struct"><span class="std std-ref">mli_tensor Structure</span></a>) and its rank
@@ -347,11 +352,11 @@ must be 3.</li>
 <li>Before processing, the output tensor must contain a valid pointer to
 a buffer with sufficient capacity (enough for result storing).</li>
 <li>While processing, the following output tensor parameters are filled
-by functions:</li>
+by functions:<ul>
 <li>Shape (new shape is calculated according to input tensor shape,
-stride and padding parameters)</li>
+stride and padding parameters).</li>
 <li>Rank, element type, and element parameters (are copied from the input
-tensor)</li>
+tensor).</li>
 <li><code class="docutils literal notranslate"><span class="pre">padding_top</span></code> and <code class="docutils literal notranslate"><span class="pre">padding_bottom</span></code> parameters must be in range of [0,
 kernel_height).</li>
 <li><code class="docutils literal notranslate"><span class="pre">padding_left</span></code> and <code class="docutils literal notranslate"><span class="pre">padding_right</span></code> parameters must be in range of [0,
@@ -359,10 +364,11 @@ kernel_width).</li>
 <li><code class="docutils literal notranslate"><span class="pre">stride_width</span></code> and <code class="docutils literal notranslate"><span class="pre">stride_height</span></code> parameters must be &gt;= 1.</li>
 <li><code class="docutils literal notranslate"><span class="pre">kernel_width</span></code> and <code class="docutils literal notranslate"><span class="pre">kernel_height</span></code> must be less than or equal to the
 corresponding dimensions of input tensor.</li>
+</ul>
+</li>
 <li>Additional restrictions for specialized functions are described in
 section <a class="reference internal" href="../library_model/functions.html#spec-fns"><span class="std std-ref">Specialized Functions</span></a>.</li>
 </ul>
-</div></blockquote>
 </div>
 </div>
 

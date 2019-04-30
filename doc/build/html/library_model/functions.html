@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Functions &mdash; embARC Machine Learning Inference Library 1.00a documentation</title>
+  <title>Functions &mdash; embARC Machine Learning Inference Library 1.00 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                1.00a
+                1.00
               </div>
             
           
@@ -103,7 +103,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../MLI_FP_data_format/MLI_FP_data_format.html">MLI Fixed-Point Data Format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../MLI_kernels/MLI_kernels.html">MLI Kernels</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI helpers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI Helpers</a></li>
 </ul>
 
             
@@ -172,8 +172,7 @@
             
   <div class="section" id="functions">
 <span id="fns"></span><h1>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h1>
-<blockquote>
-<div><p>In general, several functions are implemented for each primitive
+<p>In general, several functions are implemented for each primitive
 supported by MLI library. Each function (implementation of primitive)
 is designed to deal with specific inputs. Therefore, you must meet the
 assumptions that functions make. For example, function designed to
@@ -188,37 +187,39 @@ functions with additional assumptions referred to as specialized
 functions or specializations.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">A lot of specializations along with generic functions are implemented in convolution and pooling groups for each primitive. Generic functions are typically slower than the specialized ones. For this reason, a function without postfix performs switching logic to choose the correct specialized function or a generic function if there is no appropriate specialization. Such ‘switchers’ significantly increase the code size of application and should be used only in development or intentionally. Generic functions have a ‘_generic’ name postfix, and specializations have a descriptive postfix.</p>
+<p class="last">A lot of specializations along with generic functions are implemented in convolution and pooling groups for each primitive. Generic functions are typically slower than the specialized ones. Hence, a function without postfix performs switching logic to choose the correct specialized function or a generic function if there is no appropriate specialization. Such ‘switchers’ significantly increase the code size of application and should be used only in development or intentionally. Generic functions have a ‘_generic’ name postfix, and specializations have a descriptive postfix.</p>
 </div>
-</div></blockquote>
 <div class="section" id="naming-convention">
 <h2>Naming Convention<a class="headerlink" href="#naming-convention" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div>MLI Library function adheres naming convention listed in <a class="reference internal" href="#mli-func-naming-conv"><span class="std std-ref">MLI Library Functions Naming Convention</span></a>:</div></blockquote>
-<p></p>
-<span id="mli-func-naming-conv"></span><table border="1" class="colwidths-auto docutils" id="id1">
-<caption><span class="caption-number">Table 7 </span><span class="caption-text">MLI Library Functions Naming Convention</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<p>MLI Library function adheres naming convention listed in <a class="reference internal" href="#mli-func-naming-conv"><span class="std std-ref">MLI Library Functions Naming Convention</span></a>:</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mli_</span><span class="o">&lt;</span><span class="nb">set</span><span class="o">&gt;</span><span class="n">_</span><span class="o">&lt;</span><span class="nb">type</span><span class="o">&gt;</span><span class="n">_</span><span class="p">[</span><span class="n">layout</span><span class="p">]</span><span class="n">_</span><span class="o">&lt;</span><span class="n">data_type</span><span class="o">&gt;</span><span class="n">_</span><span class="p">[</span><span class="n">spec</span><span class="p">](</span><span class="o">&lt;</span><span class="n">in_data</span><span class="o">&gt;</span><span class="p">,[</span><span class="n">config</span><span class="p">],</span><span class="o">&lt;</span><span class="n">out_data</span><span class="o">&gt;</span><span class="p">)</span> <span class="p">;</span>
+</pre></div>
+</div>
+<span id="mli-func-naming-conv"></span><table border="1" class="colwidths-given docutils" id="id1">
+<caption><span class="caption-text">MLI Library Functions Naming Convention</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="23%" />
+<col width="23%" />
+<col width="54%" />
+</colgroup>
 <thead valign="bottom">
-<tr class="row-odd"><th class="head" colspan="3"><code class="docutils literal notranslate"><span class="pre">mli_&lt;set&gt;_&lt;type&gt;_[layout]_&lt;data_type&gt;_[spec](&lt;in_data&gt;,[config],&lt;out_data&gt;);</span></code></th>
+<tr class="row-odd"><th class="head"><strong>Field name</strong></th>
+<th class="head"><strong>Field Entries</strong></th>
+<th class="head"><strong>Field Description</strong></th>
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td>Field name</td>
-<td>Field Entries</td>
-<td>Field Description</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">set</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">set</span></code></td>
 <td><p class="first"><code class="docutils literal notranslate"><span class="pre">krn</span></code></p>
 <p class="last"><code class="docutils literal notranslate"><span class="pre">hlp</span></code></p>
 </td>
 <td>Mandatory. Specifies
 set of functions
 related to the
-implementation. See
-<a class="reference internal" href="library_model.html#gen-api-struct"><span class="std std-ref">Library Model</span></a>
-for more information.</td>
+implementation. For more information, see
+<a class="reference internal" href="library_model.html#gen-api-struct"><span class="std std-ref">Library Model</span></a></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">type</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">type</span></code></td>
 <td><p class="first"><code class="docutils literal notranslate"><span class="pre">conv2d</span></code></p>
 <p class="last"><code class="docutils literal notranslate"><span class="pre">fully_connected</span></code></p>
 </td>
@@ -227,34 +228,32 @@ particular type of
 primitive supported
 by the library</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">layout</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">layout</span></code></td>
 <td><p class="first"><code class="docutils literal notranslate"><span class="pre">chw</span></code></p>
 <p class="last"><code class="docutils literal notranslate"><span class="pre">hwc</span></code></p>
 </td>
 <td>Optional. Specifies
 data layout for
 image-like inputs.
-See <a class="reference internal" href="data.html#data-types"><span class="std std-ref">Data Types</span></a> for
-more information.</td>
+For more information, see <a class="reference internal" href="data.html#data-types"><span class="std std-ref">Data Types</span></a></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">data_type</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">data_type</span></code></td>
 <td><p class="first"><code class="docutils literal notranslate"><span class="pre">fx8</span></code></p>
 <p><code class="docutils literal notranslate"><span class="pre">fx16</span></code></p>
 <p class="last"><code class="docutils literal notranslate"><span class="pre">fx8w16d</span></code></p>
 </td>
-<td><p class="first">Mandatory. Specifies
+<td>Mandatory. Specifies
 the tensor basic
 element type expected
-by the function.</p>
-<p>fx8w16d means weights
+by the function.
+<code class="docutils literal notranslate"><span class="pre">fx8w16d</span></code> means weights
 and bias tensors are
 8-bit, while all the
-others are 16-bit.</p>
-<p class="last">For more information,
-see <a class="reference internal" href="../MLI_FP_data_format/MLI_FP_data_format.html#mli-fpd-fmt"><span class="std std-ref">MLI Fixed-Point Data Format</span></a></p>
-</td>
+others are 16-bit.
+For more information,
+see <a class="reference internal" href="../MLI_FP_data_format/MLI_FP_data_format.html#mli-fpd-fmt"><span class="std std-ref">MLI Fixed-Point Data Format</span></a></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">spec</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">spec</span></code></td>
 <td>&#160;</td>
 <td>Optional. Reflects
 additional
@@ -268,35 +267,45 @@ should be reflected
 in this field (see
 <a class="reference internal" href="#mli-fn-spl"><span class="std std-ref">MLI Library Functions Naming - Specialization Details</span></a>)</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">in_data</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">in_data</span></code></td>
 <td>&#160;</td>
 <td>Mandatory. Input data
 tensors</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">config</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">config</span></code></td>
 <td>&#160;</td>
 <td>Optional. Structure
 of primitive-specific
 parameters</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">out_data</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">out_data</span></code></td>
 <td>&#160;</td>
 <td>Mandatory. Output
 data tensors</td>
 </tr>
 </tbody>
 </table>
-<blockquote>
-<div><p>Example:</p>
-<p><code class="docutils literal notranslate"><span class="pre">mli_krn_avepool_hwc_fx8(const</span> <span class="pre">mli_tensor</span> <span class="pre">*in,</span> <span class="pre">const</span> <span class="pre">mli_pool_cfg</span> <span class="pre">*cfg,</span> <span class="pre">mli_tensor</span> <span class="pre">*out);</span></code></p>
-</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Example:</p>
+<div class="code last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mli_krn_avepool_hwc_fx8</span><span class="p">(</span><span class="n">const</span> <span class="n">mli_tensor</span> <span class="o">*</span><span class="ow">in</span><span class="p">,</span>
+                        <span class="n">const</span> <span class="n">mli_pool_cfg</span> <span class="o">*</span><span class="n">cfg</span><span class="p">,</span>
+                        <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">out</span>
+                        <span class="p">);</span>
+</pre></div>
+</div>
+</div>
 </div>
 <div class="section" id="specialized-functions">
 <span id="spec-fns"></span><h2>Specialized Functions<a class="headerlink" href="#specialized-functions" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div>Naming convention for the specializations: </div></blockquote>
-<span id="mli-fn-spl"></span><table border="1" class="colwidths-auto docutils" id="id2">
-<caption><span class="caption-number">Table 8 </span><span class="caption-text">MLI Library Functions Naming - Specialization Details</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<p>Naming convention for the specializations: </p>
+<span id="mli-fn-spl"></span><table border="1" class="colwidths-given docutils" id="id2">
+<caption><span class="caption-text">MLI Library Functions Naming - Specialization Details</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="20%" />
+<col width="60%" />
+<col width="20%" />
+</colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Configuration
 parameter</th>
@@ -387,11 +396,9 @@ pooling group</td>
 </tr>
 </tbody>
 </table>
-<p></p>
-<blockquote>
-<div>For example, the function name of a 16bit 2d convolution kernel with
+<p>For example, the function name of a 16bit 2d convolution kernel with
 CHW layout and a kernel size of 3x3 and stride of 1 is:
-<code class="docutils literal notranslate"><span class="pre">mli_krn_conv2d_chw_fx16_k3x3_str1()</span></code>.</div></blockquote>
+<code class="docutils literal notranslate"><span class="pre">mli_krn_conv2d_chw_fx16_k3x3_str1()</span></code>.</p>
 </div>
 </div>
 

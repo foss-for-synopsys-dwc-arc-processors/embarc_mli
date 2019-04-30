@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Data &mdash; embARC Machine Learning Inference Library 1.00a documentation</title>
+  <title>Data &mdash; embARC Machine Learning Inference Library 1.00 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                1.00a
+                1.00
               </div>
             
           
@@ -109,7 +109,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../MLI_FP_data_format/MLI_FP_data_format.html">MLI Fixed-Point Data Format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../MLI_kernels/MLI_kernels.html">MLI Kernels</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI helpers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI Helpers</a></li>
 </ul>
 
             
@@ -180,15 +180,13 @@
 <span id="id1"></span><h1>Data<a class="headerlink" href="#data" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="data-types">
 <span id="id2"></span><h2>Data Types<a class="headerlink" href="#data-types" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div>The library is intended to work with structured data types. Each data type groups related parameters in one entity as defined in .<strong>/include/MLI_types.h</strong> .</div></blockquote>
+<p>This library is intended to work with structured data types. Each data type groups related parameters in one entity as defined in .<strong>/include/mli_types.h</strong> .</p>
 <div class="section" id="mli-tensor-structure">
 <span id="mli-tns-struct"></span><h3>mli_tensor Structure<a class="headerlink" href="#mli-tensor-structure" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><code class="docutils literal notranslate"><span class="pre">mli_tensor</span></code> is the main container type for input and output data which
+<p><code class="docutils literal notranslate"><span class="pre">mli_tensor</span></code> is the main container type for input and output data that
 must be processed by ML algorithm. <code class="docutils literal notranslate"><span class="pre">mli_tensor</span></code> represents
 multi-dimensional arrays of a particular shape and includes not only
-a data, but also its shape, type, and other data-specific parameters.</div></blockquote>
+a data, but also its shape, type, and other data-specific parameters.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">The term “data” includes input
@@ -213,14 +211,14 @@ machine learning tasks.</p>
 </pre></div>
 </div>
 <span id="mli-tensor-struc"></span><table border="1" class="colwidths-given docutils" id="id3">
-<caption><span class="caption-number">Table 2 </span><span class="caption-text">mli_tensor Structure Fields</span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-text">mli_tensor Structure Fields</span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col width="33%" />
-<col width="33%" />
-<col width="33%" />
+<col width="15%" />
+<col width="15%" />
+<col width="70%" />
 </colgroup>
 <thead valign="bottom">
-<tr class="row-odd"><th class="head">Field name</th>
+<tr class="row-odd"><th class="head">Field Name</th>
 <th class="head">Field Type</th>
 <th class="head">Field Description</th>
 </tr>
@@ -280,8 +278,7 @@ see
 </tr>
 </tbody>
 </table>
-<blockquote>
-<div><p>Some primitives, such as slope coefficient for leaky ReLU, might
+<p>Some primitives, such as slope coefficient for leaky ReLU, might
 require scalar parameters which explicitly involve calculations (not
 primitive configuration parameter). Such scalar
 inputs/outputs are also passed to primitive as tensor of rank=1 and
@@ -291,32 +288,26 @@ data field (not pointed by it).</p>
 <p>All input tensors passed to primitives typically must be valid with
 fields that are not conflicting. Examples of field conflicts are:</p>
 <ul class="simple">
-<li>Tensor shape declares more data than tensors capacity.</li>
+<li>Tensor shape declares more data than tensors capacity</li>
 <li>Tensor rank is bigger than MLI_MAX_RANK</li>
 <li>Data pointer is invalid (NULL pointer) except cases when it is
-allowed to pass scalar value directly in data field.</li>
+allowed to pass scalar value directly in data field</li>
 <li>Tensor is empty (total number of elements is zero)</li>
 </ul>
-</div></blockquote>
 </div>
 <div class="section" id="mli-element-type-enumeration">
 <span id="mli-elm-enum"></span><h3>mli_element_type Enumeration<a class="headerlink" href="#mli-element-type-enumeration" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><code class="docutils literal notranslate"><span class="pre">mli_element_type</span></code> defines basic element type stored in tensor
-structure (data field).</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">mli_element_type</span></code> defines basic element type stored in tensor
+structure (data field).</p>
 <div class="code c highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">typedef</span> <span class="n">enum</span> <span class="p">{</span>
-<span class="n">MLI_EL_FX_8</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-<span class="n">MLI_EL_FX_16</span><span class="p">,</span>
+   <span class="n">MLI_EL_FX_8</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+   <span class="n">MLI_EL_FX_16</span><span class="p">,</span>
 <span class="p">}</span> <span class="n">mli_element_type</span><span class="p">;</span>
 </pre></div>
 </div>
 <p></p>
-<span id="mli-element-type-val-desc"></span><table border="1" class="colwidths-given docutils" id="id4">
-<caption><span class="caption-number">Table 3 </span><span class="caption-text">mli_element_type Values Description</span><a class="headerlink" href="#id4" title="Permalink to this table">¶</a></caption>
-<colgroup>
-<col width="50%" />
-<col width="50%" />
-</colgroup>
+<span id="mli-element-type-val-desc"></span><table border="1" class="colwidths-auto docutils" id="id4">
+<caption><span class="caption-text">mli_element_type Values Description</span><a class="headerlink" href="#id4" title="Permalink to this table">¶</a></caption>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Value</th>
 <th class="head">Field Description</th>
@@ -344,9 +335,8 @@ document as fx16 type.</td>
 </div>
 <div class="section" id="mli-element-params-union">
 <span id="mli-el-prm-u"></span><h3>mli_element_params Union<a class="headerlink" href="#mli-element-params-union" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div><code class="docutils literal notranslate"><span class="pre">mli_element_params</span></code> union stores data type parameters required for
-arithmetical operations with tensor elements.</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">mli_element_params</span></code> union stores data type parameters required for
+arithmetical operations with tensor elements.</p>
 <div class="code c highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">typedef</span> <span class="n">union</span> <span class="n">_mli_element_params</span> <span class="p">{</span>
    <span class="n">struct</span><span class="p">{</span>
       <span class="n">unsigned</span> <span class="n">frac_bits</span><span class="p">;</span>
@@ -354,20 +344,13 @@ arithmetical operations with tensor elements.</div></blockquote>
 <span class="p">}</span> <span class="n">mli_element_params</span><span class="p">;</span>
 </pre></div>
 </div>
-<blockquote>
-<div>Parameters are wrapped into union for future library extensibility.
+<p>Parameters are wrapped into union for future library extensibility.
 The current version supports only fixed point data with configurable
 number of fractional bits (see <a class="reference internal" href="../MLI_FP_data_format/MLI_FP_data_format.html#mli-fpd-fmt"><span class="std std-ref">MLI Fixed-Point Data Format</span></a>) and union
-can be interpreted only as the following structure.</div></blockquote>
+can be interpreted only as the following structure.</p>
 <p></p>
-<span id="mli-element-params-struct-fields"></span><table border="1" class="colwidths-given docutils" id="id5">
-<caption><span class="caption-number">Table 4 </span><span class="caption-text">mli_element_params Structure Fields</span><a class="headerlink" href="#id5" title="Permalink to this table">¶</a></caption>
-<colgroup>
-<col width="25%" />
-<col width="25%" />
-<col width="25%" />
-<col width="25%" />
-</colgroup>
+<span id="mli-element-params-struct-fields"></span><table border="1" class="colwidths-auto docutils" id="id5">
+<caption><span class="caption-text">mli_element_params Structure Fields</span><a class="headerlink" href="#id5" title="Permalink to this table">¶</a></caption>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Union
 Interpretation</th>
@@ -392,35 +375,29 @@ value.</td>
 </div>
 <div class="section" id="kernel-specific-configuration-structures">
 <h3>Kernel Specific Configuration Structures<a class="headerlink" href="#kernel-specific-configuration-structures" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div>Significant number of primitives must be configured by specific
+<p>Significant number of primitives must be configured by specific
 parameters, which influence calculations and results, but not
 directly related to input data. For example, padding and stride
 values are parameters of convolution layer and the type of ReLU is a
 parameter for ReLU transform layer. All specific parameters for
 particular primitive type are grouped into structures. This document
 describes these structures along with the primitive description they
-relate to.</div></blockquote>
+relate to.</p>
 </div>
 </div>
 <div class="section" id="data-layout-of-multidimensional-feature-maps">
 <span id="data-muldim"></span><h2>Data Layout of Multidimensional Feature Maps<a class="headerlink" href="#data-layout-of-multidimensional-feature-maps" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div>Functions of convolution and pooling groups deal with
+<p>Functions of convolution and pooling groups deal with
 multi-dimensional feature maps which might be considered as images.
 In general, these maps have three dimensions with following names:
 height, width, and channels (also called depth). Despite logical
 organization, multidimensional feature maps are stored in memory as
 continuous arrays. Order of elements depends on the order of
 dimensions – data layout. <a class="reference internal" href="#multidim-data-layout"><span class="std std-ref">Multidimensional Data Layout</span></a> describes
-two supported and traditionally used data layouts – HWC and CHW.</div></blockquote>
+two supported and traditionally used data layouts – HWC and CHW.</p>
 <p></p>
-<span id="multidim-data-layout"></span><table border="1" class="colwidths-given docutils" id="id6">
-<caption><span class="caption-number">Table 5 </span><span class="caption-text">Multidimensional Data Layout</span><a class="headerlink" href="#id6" title="Permalink to this table">¶</a></caption>
-<colgroup>
-<col width="50%" />
-<col width="50%" />
-</colgroup>
+<span id="multidim-data-layout"></span><table border="1" class="colwidths-auto docutils" id="id6">
+<caption><span class="caption-text">Multidimensional Data Layout</span><a class="headerlink" href="#id6" title="Permalink to this table">¶</a></caption>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Designation</th>
 <th class="head">Description</th>
@@ -454,8 +431,7 @@ a feature map with 32
 </tr>
 </tbody>
 </table>
-<blockquote>
-<div><p>Due to algorithmic reasons, HWC layout provides higher data locality
+<p>Due to algorithmic reasons, HWC layout provides higher data locality
 for some functions, and CHW layout does so for others.</p>
 <p>“Data locality” means the data disposition in memory where elements
 consistently used by algorithm are stored in memory as close as
@@ -463,7 +439,6 @@ possible (in ideal case, contiguously). Low data locality could
 reduce performance of systems with cache. For the layouts supported
 by particular kernels, see <a class="reference internal" href="functions.html#fns"><span class="std std-ref">Functions</span></a>. Current version of MLI Library
 focuses on optimization of kernels for CHW layout.</p>
-</div></blockquote>
 </div>
 </div>
 

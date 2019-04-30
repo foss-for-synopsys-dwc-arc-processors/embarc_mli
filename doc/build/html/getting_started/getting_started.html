@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Getting Started &mdash; embARC Machine Learning Inference Library 1.00a documentation</title>
+  <title>Getting Started &mdash; embARC Machine Learning Inference Library 1.00 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                1.00a
+                1.00
               </div>
             
           
@@ -98,7 +98,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../library_model/library_model.html">Library Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../MLI_FP_data_format/MLI_FP_data_format.html">MLI Fixed-Point Data Format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../MLI_kernels/MLI_kernels.html">MLI Kernels</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI helpers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI Helpers</a></li>
 </ul>
 
             
@@ -165,66 +165,48 @@
             
   <div class="section" id="getting-started">
 <h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
-<blockquote>
-<div>The MLI library provides a basic set of functions running on the ARC
-EM DSP and HS cores and is intended to solve typical machine learning
+<p>The MLI library provides a basic set of functions running on the ARC
+EM DSP and HS cores. It is intended to solve typical machine learning
 tasks in a portable or low-power system. This library is designed
-with ease of use and low overhead in mind.</div></blockquote>
+with ease of use and low overhead in mind.</p>
 <div class="section" id="build-library">
 <span id="bld-lib"></span><h2>Build Library<a class="headerlink" href="#build-library" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div><p>By default embARC MLI Library can be built for <code class="docutils literal notranslate"><span class="pre">/hw/em9d.tcf</span></code> which is based on
-the standard EM9D Voice Audio template, defined in MetaWare Development Tools, with extended
-XY memory. embARC MLI Library can be also built for a specific EM or HS configuration.</p>
+<p>By default, the embARC MLI Library can be built for <code class="docutils literal notranslate"><span class="pre">/hw/em9d.tcf</span></code> that is based on
+the standard EM9D Voice Audio template, defined in MetaWare Development Tools with extended
+XY memory. The embARC MLI Library can be also built for a specific EM or HS configuration.</p>
 <p>Build requirements:</p>
-<ol class="arabic simple">
-<li>MetaWare Development tools 2018.12 or later</li>
-</ol>
+<p>MetaWare Development tools 2018.12 or later</p>
 <p>To verify the build process, run the following root makefile command
-to rebuild the project from scratch including  ELF for examples and static library.</p>
-</div></blockquote>
+to rebuild the project from scratch including  ELF for examples and static library:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">gmake all</span>
 </pre></div>
 </div>
-<blockquote>
-<div><p>After the build process completes, the output files are found inside
+<p>After the build process completes, the output files are found inside
 the bin directory created by the make tool:</p>
-<ul class="simple">
-<li>On Windows</li>
-</ul>
-</div></blockquote>
+<p>On Windows:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">dir /b /s \*.elf \*.a</span>
 </pre></div>
 </div>
-<blockquote>
-<div><ul class="simple">
-<li>On Linux</li>
-</ul>
-</div></blockquote>
+<p>On Linux:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">find -name ‘\*.a’ -o -name ‘\*.elf’</span>
 </pre></div>
 </div>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">.\bin\libmli.a</span>
-<span class="go">.\examples\example_cifar10_caffe\bin\example_cifar10_caffe.elf</span>
-<span class="go">.\examples\example_har_smartphone\bin\example_har_smartphone.elf</span>
+<p>Expected console output on windows is next:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">.</span>\<span class="nb">bin</span>\<span class="n">libmli</span><span class="o">.</span><span class="n">a</span>
+<span class="o">.</span>\<span class="n">examples</span>\<span class="n">example_cifar10_caffe</span>\<span class="nb">bin</span>\<span class="n">example_cifar10_caffe</span><span class="o">.</span><span class="n">elf</span>
+<span class="o">.</span>\<span class="n">examples</span>\<span class="n">example_har_smartphone</span>\<span class="nb">bin</span>\<span class="n">example_har_smartphone</span><span class="o">.</span><span class="n">elf</span>
 </pre></div>
 </div>
-<blockquote>
-<div>The project build system allows to build the library and examples separately.
-Library and each example have the separate makefile which uses common rules from <code class="docutils literal notranslate"><span class="pre">build/rules.mk</span></code>.
-Building of embARC MLI library defining a TCF file:</div></blockquote>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">gmake all TCF_FILE=C:\ARC\Projects\my_project\build\tool_config\arc.tcf</span>
+<p>The project build system allows to build the library and examples separately.
+Library and each example have a separate makefile which uses common rules from <code class="docutils literal notranslate"><span class="pre">build/rules.mk</span></code>.
+To build the embARC MLI library defined by a TCF file, use the following command:</p>
+<div class="code c highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gmake</span> <span class="nb">all</span> <span class="n">TCF_FILE</span><span class="o">=</span><span class="n">C</span><span class="p">:</span>\<span class="n">ARC</span>\<span class="n">Projects</span>\<span class="n">my_project</span>\<span class="n">build</span>\<span class="n">tool_config</span>\<span class="n">arc</span><span class="o">.</span><span class="n">tcf</span>
 </pre></div>
 </div>
-<blockquote>
-<div>Build system supports the common set of optional parameters to configure the target platform,
-output/intermediate files placement and providing extra parameters to build tool or application.</div></blockquote>
-<table border="1" class="colwidths-given docutils" id="id1">
-<caption><span class="caption-number">Table 1 </span><span class="caption-text">Optional Parameters for Target Platform</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
-<colgroup>
-<col width="36%" />
-<col width="64%" />
-</colgroup>
+<p>The Build system supports a common set of optional parameters to configure the target platform,
+output/intermediate files placement, and provides extra parameters to build tool or application.</p>
+<table border="1" class="colwidths-auto docutils" id="id1">
+<caption><span class="caption-text">Optional Parameters for Target Platform</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head"><strong>Parameter</strong></th>
 <th class="head"><strong>Description</strong></th>
@@ -272,35 +254,27 @@ use</td>
 </div>
 <div class="section" id="build-and-run-examples">
 <span id="bld-run-ex"></span><h2>Build and Run Examples<a class="headerlink" href="#build-and-run-examples" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>To build the debug version of the library using the custom TCF and
-storing the output file in the directory outside the project, use the
-following commands:</li>
-</ul>
+<p>To build the debug version of the library using the custom TCF and
+to store the output file in the directory outside the project, use the
+following commands:</p>
 <div class="code console highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">lib</span>\<span class="n">make</span>
 <span class="n">gmake</span> <span class="n">TCF_FILE</span><span class="o">=</span><span class="n">C</span><span class="p">:</span>\<span class="n">ARC</span>\<span class="n">Projects</span>\<span class="n">my_project</span>\<span class="n">build</span>\<span class="n">tool_config</span>\<span class="n">arc</span><span class="o">.</span><span class="n">tcf</span> <span class="n">EXT_CFLAGS</span><span class="o">=-</span><span class="n">g</span> <span class="n">LIBRARY_DIR</span><span class="o">=</span><span class="n">C</span><span class="p">:</span>\<span class="nb">bin</span>
 </pre></div>
 </div>
-<blockquote>
-<div>Example applications also provide the separate makefiles to make the
-customized applications build.</div></blockquote>
-<ul class="simple">
-<li>To build the debug version of the <code class="docutils literal notranslate"><span class="pre">cifar10_caffe</span></code> example application
-using the custom TCF, use the following commands:</li>
-</ul>
+<p>Example applications also provide the separate makefiles to make the
+customized applications build.</p>
+<p>To build the debug version of the <code class="docutils literal notranslate"><span class="pre">cifar10_caffe</span></code> example application
+using the custom TCF, use the following commands:</p>
 <div class="code console highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">examples</span>\<span class="n">example_cifar10_caffe</span>
 <span class="n">gmake</span> <span class="n">TCF_FILE</span><span class="o">=</span><span class="n">C</span><span class="p">:</span>\<span class="n">ARC</span>\<span class="n">Projects</span>\<span class="n">my_project</span>\<span class="n">build</span>\<span class="n">tool_config</span>\<span class="n">arc</span><span class="o">.</span><span class="n">tcf</span> <span class="n">EXT_CFLAGS</span><span class="o">=-</span><span class="n">g</span>
 </pre></div>
 </div>
-<blockquote>
-<div>Example application makefiles support the target run to execute the
+<p>Example application makefiles support the target run to execute the
 application using the NSIM simulator. Note that this target
 requires the TCF name to be provided to setup the simulation
-environment.</div></blockquote>
-<ul class="simple">
-<li>To build <code class="docutils literal notranslate"><span class="pre">cifar10_caffe</span></code> example application using the custom TCF and
-starting the simulation, use the following commands:</li>
-</ul>
+environment.</p>
+<p>To build <code class="docutils literal notranslate"><span class="pre">cifar10_caffe</span></code> example application using the custom TCF and
+starting the simulation, use the following commands:</p>
 <div class="code console highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">examples</span>\<span class="n">example_cifar10_caffe</span>
 <span class="n">gmake</span> <span class="n">TCF_FILE</span><span class="o">=</span><span class="n">C</span><span class="p">:</span>\<span class="n">ARC</span>\<span class="n">Projects</span>\<span class="n">my_project</span>\<span class="n">build</span>\<span class="n">tool_config</span>\<span class="n">arc</span><span class="o">.</span><span class="n">tcf</span>
 <span class="n">gmake</span> <span class="n">run</span> <span class="n">TCF_FILE</span><span class="o">=</span><span class="n">C</span><span class="p">:</span>\<span class="n">ARC</span>\<span class="n">Projects</span>\<span class="n">my_project</span>\<span class="n">build</span>\<span class="n">tool_config</span>\<span class="n">arc</span><span class="o">.</span><span class="n">tcf</span>
@@ -309,41 +283,39 @@ starting the simulation, use the following commands:</li>
 </div>
 <div class="section" id="project-structure">
 <span id="pkg-struct"></span><h2>Project Structure<a class="headerlink" href="#project-structure" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div><p>The repo is organized as follows:</p>
+<p>The repo is organized as follows:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">./build</span></code>: Contains common build rules.</li>
-<li><code class="docutils literal notranslate"><span class="pre">rules.mk</span></code>: The common makefile that declares the generic build targets and rules.</li>
-<li><code class="docutils literal notranslate"><span class="pre">./doc</span></code>: Contains sources of embARC MLI library documentation (what you are reading now).</li>
-<li><code class="docutils literal notranslate"><span class="pre">./include</span></code>:  Include files with API prototypes and types. Subject for more attention.</li>
-<li><code class="docutils literal notranslate"><span class="pre">mli_api.h</span></code>: High level header used by application. Includes all required headers for working with library.</li>
-<li><code class="docutils literal notranslate"><span class="pre">mli_types.h</span></code>: Header that conglomerates all public library specific data types.</li>
-<li><code class="docutils literal notranslate"><span class="pre">mli_config.h</span></code>: Configuration header with definitions used for library implementation configu-rability.</li>
-<li><code class="docutils literal notranslate"><span class="pre">/include/api</span></code>: The subdirectory that contains the set of low level public headers declaring the API.</li>
-<li><code class="docutils literal notranslate"><span class="pre">mli_helpers_api.h</span></code>: Header with declarations for helper functions</li>
-<li><code class="docutils literal notranslate"><span class="pre">mli_kernels_api.h</span></code>: Header with declarations for kernel functions</li>
-<li><code class="docutils literal notranslate"><span class="pre">mli_krn_avepool_spec_api.h</span></code>: Header with declarations for average pooling special-izations</li>
-<li><code class="docutils literal notranslate"><span class="pre">mli_krn_conv2d_spec_api.h</span></code>: Header with declarations for convolution 2D speciali-zations</li>
-<li><code class="docutils literal notranslate"><span class="pre">mli_krn_depthwise_conv2d_spec_api.h</span></code>: Header with declarations for depth-wise convolution specializations</li>
-<li><code class="docutils literal notranslate"><span class="pre">mli_krn_maxpool_spec_api.h</span></code>: Header with declarations for max pooling specializa-tions</li>
-<li><code class="docutils literal notranslate"><span class="pre">./lib</span></code>: Source code and build scripts of embARC MLI Library</li>
-<li><code class="docutils literal notranslate"><span class="pre">./examples</span></code>: Source code of examples</li>
-<li><code class="docutils literal notranslate"><span class="pre">/example_cifar10_caffe</span></code>: Convolutional Neural Network example for CIFAR-10 dataset.</li>
-<li><code class="docutils literal notranslate"><span class="pre">/example_har_smartphone</span></code>: LSTM based Human activity recognition example.</li>
-<li><code class="docutils literal notranslate"><span class="pre">/auxiliary</span></code>: Common helper code that is used by the examples.</li>
-<li><code class="docutils literal notranslate"><span class="pre">/prebuilt</span></code>: Library to be filled with prebuilt MLI Library for working with examples via ARC GNU tools</li>
-<li><code class="docutils literal notranslate"><span class="pre">./hw</span></code>: Contains HW templates (*.tcf files)</li>
+<li><code class="docutils literal notranslate"><span class="pre">./build/</span></code>: Contains common build rules.</li>
+<li><code class="docutils literal notranslate"><span class="pre">./build/rules.mk</span></code>: The common makefile that declares the generic build targets and rules.</li>
+<li><code class="docutils literal notranslate"><span class="pre">./doc/</span></code>: Contains sources of embARC MLI library documentation (what you are reading now).</li>
+<li><code class="docutils literal notranslate"><span class="pre">./include/</span></code>:  Include files with API prototypes and types. Subject for more attention.</li>
+<li><code class="docutils literal notranslate"><span class="pre">./include/mli_api.h</span></code>: High level header used by application. Includes all required headers for working with library.</li>
+<li><code class="docutils literal notranslate"><span class="pre">./include/mli_types.h</span></code>: Header that conglomerates all public library specific data types.</li>
+<li><code class="docutils literal notranslate"><span class="pre">./include/mli_config.h</span></code>: Configuration header with definitions used for library implementation configu-rability.</li>
+<li><code class="docutils literal notranslate"><span class="pre">./include/api/</span></code>: The subdirectory that contains the set of low level public headers declaring the API.</li>
+<li><code class="docutils literal notranslate"><span class="pre">./include/api/mli_helpers_api.h</span></code>: Header with declarations for helper functions</li>
+<li><code class="docutils literal notranslate"><span class="pre">./include/api/mli_kernels_api.h</span></code>: Header with declarations for kernel functions</li>
+<li><code class="docutils literal notranslate"><span class="pre">./include/api/mli_krn_avepool_spec_api.h</span></code>: Header with declarations for average pooling special-izations</li>
+<li><code class="docutils literal notranslate"><span class="pre">./include/api/mli_krn_conv2d_spec_api.h</span></code>: Header with declarations for convolution 2D speciali-zations</li>
+<li><code class="docutils literal notranslate"><span class="pre">./include/api/mli_krn_depthwise_conv2d_spec_api.h</span></code>: Header with declarations for depth-wise convolution specializations</li>
+<li><code class="docutils literal notranslate"><span class="pre">./include/api/mli_krn_maxpool_spec_api.h</span></code>: Header with declarations for max pooling specializa-tions</li>
+<li><code class="docutils literal notranslate"><span class="pre">./lib/</span></code>: Source code and build scripts of embARC MLI Library</li>
+<li><code class="docutils literal notranslate"><span class="pre">./examples/</span></code>: Source code of examples</li>
+<li><code class="docutils literal notranslate"><span class="pre">./examples/example_cifar10_caffe/</span></code>: Convolutional Neural Network example for CIFAR-10 dataset.</li>
+<li><code class="docutils literal notranslate"><span class="pre">./examples/example_har_smartphone/</span></code>: LSTM based Human activity recognition example.</li>
+<li><code class="docutils literal notranslate"><span class="pre">./examples/auxiliary/</span></code>: Common helper code that is used by the examples.</li>
+<li><code class="docutils literal notranslate"><span class="pre">./examples/prebuilt/</span></code>: Library to be filled with prebuilt MLI Library for working with examples via ARC GNU tools.</li>
+<li><code class="docutils literal notranslate"><span class="pre">./hw/</span></code>: Contains HW templates (*.tcf files)</li>
 <li><code class="docutils literal notranslate"><span class="pre">./Makefile</span></code>: Root makefile that allows to build or clean library and the set of example applications.</li>
 <li><code class="docutils literal notranslate"><span class="pre">./README.md</span></code>: Short description and quick start instructions for embARC MLI Library</li>
 <li><code class="docutils literal notranslate"><span class="pre">./LICENSE</span></code>: License notes</li>
 </ul>
-<p>After you have built library the following entities will appear in the structure</p>
+<p>After you have built library, the following entities will appear in the structure:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">./obj</span></code>: directory holder for library object and dependency files created during build</li>
-<li><code class="docutils literal notranslate"><span class="pre">./bin</span></code>: directory holder for embARC MLI library binaries created during build</li>
-<li><code class="docutils literal notranslate"><span class="pre">libmli.a</span></code>: embARC MLI library archive file (static library)</li>
+<li><code class="docutils literal notranslate"><span class="pre">./obj/</span></code>: Directory holder for library object and dependency files created during build</li>
+<li><code class="docutils literal notranslate"><span class="pre">./bin/</span></code>: Directory holder for embARC MLI library binaries created during build</li>
+<li><code class="docutils literal notranslate"><span class="pre">./bin/libmli.a</span></code>: embARC MLI library archive file (static library)</li>
 </ul>
-</div></blockquote>
 </div>
 </div>
 

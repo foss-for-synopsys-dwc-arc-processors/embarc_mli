@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Long Short Term Memory (LSTM) Cell &mdash; embARC Machine Learning Inference Library 1.00a documentation</title>
+  <title>Long Short Term Memory (LSTM) Cell &mdash; embARC Machine Learning Inference Library 1.00 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                1.00a
+                1.00
               </div>
             
           
@@ -100,7 +100,7 @@
 <li class="toctree-l3"><a class="reference internal" href="comm_basic_rnn.html">Basic RNN Cell</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Long Short Term Memory (LSTM) Cell</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#function-configuration-structure">Function Configuration Structure</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#api">API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#kernel-interface">Kernel Interface</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#kernel-specializations">Kernel Specializations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#conditions-for-applying-the-kernel">Conditions for Applying the Kernel</a></li>
 </ul>
@@ -108,11 +108,11 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="transform_grp.html">Transform Group</a></li>
-<li class="toctree-l2"><a class="reference internal" href="elementwise_grp.html">Elementwise Group</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elementwise_grp.html">Element-wise Group</a></li>
 <li class="toctree-l2"><a class="reference internal" href="data_manipulation_grp.html">Data Manipulation Group</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI helpers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI Helpers</a></li>
 </ul>
 
             
@@ -184,11 +184,9 @@
   <div class="section" id="long-short-term-memory-lstm-cell">
 <span id="lstm"></span><h1>Long Short Term Memory (LSTM) Cell<a class="headerlink" href="#long-short-term-memory-lstm-cell" title="Permalink to this headline">¶</a></h1>
 <img alt="Long Short Term Memory Schematic Representation" class="align-center" src="../_images/image119.png" />
-<blockquote>
-<div><p>This kernel implements the default non-peephole implementation of
+<p>This kernel implements the default non-peephole implementation of
 Long short term memory cell.</p>
 <p>The LSTM operation is described by the following formulas:</p>
-</div></blockquote>
 <div class="math notranslate nohighlight">
 \[{i_{t} = sigm\left( x_{t}W_{\text{xi}} + h_{t - 1}W_{\text{hi}} + b_{i} \right)}\]</div>
 <div class="math notranslate nohighlight">
@@ -196,29 +194,29 @@ Long short term memory cell.</p>
 <div class="math notranslate nohighlight">
 \[{o_{t} = sigm\left( x_{t}W_{\text{xo}} + h_{t - 1}W_{\text{ho}} + b_{o} \right)}\]</div>
 <div class="math notranslate nohighlight">
-\[{g_{t} = \tanh\left( x_{t}W_{\text{xg}} + h_{t - 1}W_{\text{hg}} + b_{g} \right)}\]</div>
+\[{g_{t} = tanh\left( x_{t}W_{\text{xg}} + h_{t - 1}W_{\text{hg}} + b_{g} \right)}\]</div>
 <div class="math notranslate nohighlight">
 \[{C_{t} = g_{t}*i_{t} + f_{t}*C_{t - 1}}\]</div>
 <div class="math notranslate nohighlight">
 \[{h_{t} = o_{t}\ *o\_ act(C_{t})}\]</div>
-<p>Where:</p>
-<blockquote>
-<div><p><span class="math notranslate nohighlight">\(\ x_{t}\ \)</span> - frame <span class="math notranslate nohighlight">\(t\)</span> in input sequence.</p>
-<p><span class="math notranslate nohighlight">\(\ h_{t}\ \)</span> - cell output for frame <span class="math notranslate nohighlight">\(t\)</span> in input
-sequence.</p>
-<p><span class="math notranslate nohighlight">\(i_{t}\ ,\ f_{t}\ ,\ o_{t}\)</span> – Input, forget, output gate
-subtensors for frame <span class="math notranslate nohighlight">\(t\)</span> in input sequence.</p>
-<p><span class="math notranslate nohighlight">\(\ g_{t}\ \)</span> - New cell candidates for frame <span class="math notranslate nohighlight">\(t\)</span> in input
-sequence.</p>
-<p><span class="math notranslate nohighlight">\(\ C_{t}\ \)</span> - Cell state for frame <span class="math notranslate nohighlight">\(t\)</span> in input sequence.</p>
-<p><span class="math notranslate nohighlight">\(W_{**}\ \)</span> - weights for appropriate input subtensor.</p>
-<p><span class="math notranslate nohighlight">\(b_{*}\ \)</span> - bias for appropriate input subtensor.</p>
-<p><em>sigm</em> , <em>tanh</em> - sigmoid and hyperbolic tangent
-activation functions.</p>
-<p><span class="math notranslate nohighlight">\(o\_ act\)</span> – output activation function.</p>
+<dl class="docutils">
+<dt>where:</dt>
+<dd><ul class="first last simple">
+<li><span class="math notranslate nohighlight">\(\ x_{t}\ \)</span> - frame <span class="math notranslate nohighlight">\(t\)</span> in input sequence.</li>
+<li><span class="math notranslate nohighlight">\(\ h_{t}\ \)</span> - cell output for frame <span class="math notranslate nohighlight">\(t\)</span> in input sequence.</li>
+<li><span class="math notranslate nohighlight">\(i_{t}\ ,\ f_{t}\ ,\ o_{t}\)</span> – input, forget, output gate subtensors for frame <span class="math notranslate nohighlight">\(t\)</span> in input sequence.</li>
+<li><span class="math notranslate nohighlight">\(\ g_{t}\ \)</span> - new cell candidates for frame <span class="math notranslate nohighlight">\(t\)</span> in input sequence.</li>
+<li><span class="math notranslate nohighlight">\(\ C_{t}\ \)</span> - cell state for frame <span class="math notranslate nohighlight">\(t\)</span> in input sequence.</li>
+<li><span class="math notranslate nohighlight">\(W_{**}\ \)</span> - weights for appropriate input subtensor.</li>
+<li><span class="math notranslate nohighlight">\(b_{*}\ \)</span> - bias for appropriate input subtensor.</li>
+<li><span class="math notranslate nohighlight">\(\ sigm\ , tanh\ \)</span> - sigmoid and hyperbolic tangent activation functions.</li>
+<li><span class="math notranslate nohighlight">\(o\_ act\)</span> – output activation function.</li>
+</ul>
+</dd>
+</dl>
 <p>In the figure, <em>N</em> is the total number of elements in the input and M
 is the total number of elements in the cell output.</p>
-<p>Kernel supports various types of output activation (<span class="math notranslate nohighlight">\(o\_ act\)</span>
+<p>This kernel supports the following output activation types (<span class="math notranslate nohighlight">\(o\_ act\)</span>
 in the formula above):</p>
 <ul class="simple">
 <li><strong>Hyperbolic tangent</strong>: Uses TanH kernel of the library (see <a class="reference internal" href="trans_tanh.html#tanh"><span class="std std-ref">TanH</span></a>).
@@ -229,16 +227,13 @@ of fractional bits for output tensor is the same as that for tensors
 processed by Sigmoid activation.</li>
 <li><strong>No Activation</strong>: Passes data without modification.</li>
 </ul>
-</div></blockquote>
-<blockquote>
-<div><p>The kernel takes 7 tensors including input, weights, cell,
+<p>This kernel takes 7 tensors including input, weights, cell,
 intermediate tensor from configuration structure and others (for full
-list, see <a class="reference internal" href="#api-lstm"><span class="std std-ref">API</span></a>). It modifies only output tensor, cell tensors, and
+list, see <a class="reference internal" href="#api-lstm"><span class="std std-ref">Kernel Interface</span></a>). It modifies only output tensor, cell tensors, and
 intermediate tensor in processing.</p>
 <p>Weights for cell is a single three-dimensional tensor of shape [4, <em>M</em>,
 <em>M+N</em>]. Ensure that bias is of shape [4, M]. It represents stacking
 of all weights sub tensors into one tensor in order (I, g, f, o):</p>
-</div></blockquote>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{bmatrix}
 \begin{matrix}
@@ -257,26 +252,25 @@ W_{\text{ho}} \\
 \end{matrix} \\
 \end{matrix} \\
 \end{bmatrix}\text{ }\end{split}\]</div>
-<blockquote>
-<div>The first [M, <em>M+N]</em> sub-tensor of weights is applied to the input
-gate, the second, tor new cell candidates, the third, to the forget
-gate, and the last, to the output gate.</div></blockquote>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
+<p>The first [M, <em>M+N]</em> sub-tensor of weights is applied to the input
+gate, the second, to new cell candidates, the third, to the forget
+gate, and the last, to the output gate.</p>
+<div class="admonition caution">
+<p class="first admonition-title">Caution</p>
 <ul class="last simple">
 <li>Ensure that you keep the same
 order of sub-tensors for bias
 tensor. For more information
 about kernel parameters
-requirements see <a class="reference internal" href="#cond-lstm"><span class="std std-ref">Conditions for Applying the Kernel</span></a>.</li>
+requirements, see <a class="reference internal" href="#cond-lstm"><span class="std std-ref">Conditions for Applying the Kernel</span></a>.</li>
 <li>Ensure that the configuration
 structure (see <a class="reference internal" href="#fn-conf-lstm"><span class="std std-ref">Function Configuration Structure</span></a>) also
 contains the pointer to
 tensor, which is used by
 kernel as intermediate result
-tensor. Kernel modifies the
+tensor. This kernel modifies the
 memory pointed to by the data,
-shape, rank, element type and
+shape, rank, element type, and
 element parameters fields of
 this tensor.</li>
 <li>Ensure that the capacity of
@@ -285,8 +279,7 @@ enough to store M*4 elements
 of input tensor type</li>
 </ul>
 </div>
-<blockquote>
-<div><p>Kernel supports three modes of input processing:</p>
+<p>This kernel supports three modes of input processing:</p>
 <ul class="simple">
 <li><strong>One-to-one</strong><ul>
 <li>Processes the input tensor as a single input frame</li>
@@ -319,13 +312,11 @@ tensor in batch-to-batch mode</li>
 </ul>
 </li>
 </ul>
-</div></blockquote>
-<blockquote>
-<div>Dense part of calculations uses intermediate tensor for result, and
+<p>Dense part of calculations uses intermediate tensor for result, and
 consequently output and previous output tensors might use the same
-memory if it is acceptable to rewrite previous output data.</div></blockquote>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
+memory if it is acceptable to rewrite previous output data.</p>
+<div class="admonition caution">
+<p class="first admonition-title">Caution</p>
 <p class="last">Ensure that you allocate memory
 for the rest of the tensors
 (including intermediate results
@@ -335,105 +326,14 @@ undefined.</p>
 </div>
 <div class="section" id="function-configuration-structure">
 <span id="fn-conf-lstm"></span><h2>Function Configuration Structure<a class="headerlink" href="#function-configuration-structure" title="Permalink to this headline">¶</a></h2>
-<table border="1" class="docutils">
-<colgroup>
-<col width="33%" />
-<col width="33%" />
-<col width="33%" />
-</colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td><strong>Definition</strong></td>
-<td colspan="2"><div class="code c first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">typedef</span> <span class="n">struct</span> <span class="p">{</span>
-   <span class="n">mli_rnn_mode</span> <span class="n">mode</span><span class="p">;</span>
-   <span class="n">mli_rnn_out_activation</span>  <span class="n">act</span><span class="p">;</span>
-   <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">ir_tsr</span><span class="p">;</span>
- <span class="p">}</span> <span class="n">mli_rnn_cell_cfg</span><span class="p">;</span>
-</pre></div>
+<p>LSTM cell kernel shares configuration structure with Basic RNN cell.
+For more information see <a class="reference internal" href="comm_basic_rnn.html#fn-conf-brnn"><span class="std std-ref">Function Configuration Structure</span></a>.</p>
 </div>
-</td>
-</tr>
-<tr class="row-even"><td><strong>Fields</strong></td>
-<td><code class="docutils literal notranslate"><span class="pre">mode</span></code></td>
-<td>LSTM processing mode
-(enumeration)</td>
-</tr>
-<tr class="row-odd"><td>&#160;</td>
-<td><code class="docutils literal notranslate"><span class="pre">act</span></code></td>
-<td>LSTM output
-activation type
-(enumeration)</td>
-</tr>
-<tr class="row-even"><td>&#160;</td>
-<td><code class="docutils literal notranslate"><span class="pre">ir_tsr</span></code></td>
-<td>Pointer to tensor for
-holding intermediate
-results. Tensor must
-contain valid data
-and capacity fields.
-Field is modified by
-kernels.</td>
-</tr>
-</tbody>
-</table>
-<p></p>
-<span id="mli-rnn-mode-val-desc"></span><table border="1" class="colwidths-auto docutils" id="id1">
-<caption><span class="caption-number">Table 13 </span><span class="caption-text">mli_rnn_mode Values Description</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head"><strong>Value</strong></th>
-<th class="head"><strong>Field Description</strong></th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">RNN_ONE_TO_ONE</span></code></td>
-<td>Process input tensor as a single
-input frame .</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">RNN_BATCH_TO_BATCH</span></code></td>
-<td>Process input tensor as a
-sequence of frames to produce a
-sequence of outputs .</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">RNN_BATCH_TO_LAST</span></code></td>
-<td>Process input tensor as a
-sequence of frames to produce
-single (last) outputs.</td>
-</tr>
-</tbody>
-</table>
-<p></p>
-<span id="mli-rnn-out-activation-val-desc"></span><table border="1" class="colwidths-auto docutils" id="id2">
-<caption><span class="caption-number">Table 14 </span><span class="caption-text">mli_rnn_out_activation Values Description</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head"><strong>Value</strong></th>
-<th class="head"><strong>Field Description</strong></th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">RNN_ACT_TANH</span></code></td>
-<td>Hyperbolic tangent activation function.</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">RNN_ACT_SIGM</span></code></td>
-<td>Logistic (sigmoid) activation function.</td>
-</tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">RNN_ACT_NONE</span></code></td>
-<td>No activation.</td>
-</tr>
-</tbody>
-</table>
-<p></p>
-</div>
-<div class="section" id="api">
-<span id="api-lstm"></span><h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
-<table border="1" class="docutils">
-<colgroup>
-<col width="33%" />
-<col width="33%" />
-<col width="33%" />
-</colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td><strong>Prototype</strong></td>
-<td colspan="2"><div class="code c first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mli_status</span> <span class="n">mli_krn_lstm_cell_</span><span class="o">&lt;</span><span class="n">data_type</span><span class="o">&gt;</span>
-<span class="p">[</span><span class="n">_specialization</span><span class="p">](</span>
+<div class="section" id="kernel-interface">
+<span id="api-lstm"></span><h2>Kernel Interface<a class="headerlink" href="#kernel-interface" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="prototype">
+<h3>Prototype<a class="headerlink" href="#prototype" title="Permalink to this headline">¶</a></h3>
+<div class="code c highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mli_status</span> <span class="n">mli_krn_lstm_cell_</span><span class="o">&lt;</span><span class="n">data_type</span><span class="o">&gt;</span><span class="p">[</span><span class="n">_specialization</span><span class="p">](</span>
    <span class="n">const</span> <span class="n">mli_tensor</span> <span class="o">*</span><span class="ow">in</span><span class="p">,</span>
    <span class="n">const</span> <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">prev_out</span><span class="p">,</span>
    <span class="n">const</span> <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">weights</span><span class="p">,</span>
@@ -443,55 +343,62 @@ single (last) outputs.</td>
    <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">out</span><span class="p">);</span>
 </pre></div>
 </div>
-</td>
+</div>
+<div class="section" id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="colwidths-given docutils" id="id1">
+<caption><span class="caption-text">Kernel Interface Parameters</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="13%" />
+<col width="87%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><strong>Parameters</strong></th>
+<th class="head"><strong>Description</strong></th>
 </tr>
-<tr class="row-even"><td><strong>Parameters</strong></td>
-<td><code class="docutils literal notranslate"><span class="pre">in</span></code></td>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">in</span></code></td>
 <td>[IN] Pointer to input
 tensor</td>
 </tr>
-<tr class="row-odd"><td>&#160;</td>
-<td><code class="docutils literal notranslate"><span class="pre">prev_out</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">prev_out</span></code></td>
 <td>[IN] Pointer to
 previous output
 tensor</td>
 </tr>
-<tr class="row-even"><td>&#160;</td>
-<td><code class="docutils literal notranslate"><span class="pre">weights</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">weights</span></code></td>
 <td>[IN] Pointer to
 weights tensor</td>
 </tr>
-<tr class="row-odd"><td>&#160;</td>
-<td><code class="docutils literal notranslate"><span class="pre">bias</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">bias</span></code></td>
 <td>[IN] Pointer to
 biases tensor</td>
 </tr>
-<tr class="row-even"><td>&#160;</td>
-<td><code class="docutils literal notranslate"><span class="pre">cfg</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">cfg</span></code></td>
 <td>[IN/OUT] Pointer to
 configuration
 structure</td>
 </tr>
-<tr class="row-odd"><td>&#160;</td>
-<td><code class="docutils literal notranslate"><span class="pre">cell</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">cell</span></code></td>
 <td>[IN/OUT] Pointer to
 cell state tensor</td>
 </tr>
-<tr class="row-even"><td>&#160;</td>
-<td><code class="docutils literal notranslate"><span class="pre">out</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">out</span></code></td>
 <td>[OUT] Pointer to
-output tensor.</td>
+output tensor</td>
 </tr>
 </tbody>
 </table>
-<p></p>
+</div>
 </div>
 <div class="section" id="kernel-specializations">
 <span id="kernel-specializations-1"></span><h2>Kernel Specializations<a class="headerlink" href="#kernel-specializations" title="Permalink to this headline">¶</a></h2>
-<table border="1" class="docutils">
+<table border="1" class="colwidths-given docutils" id="id2">
+<caption><span class="caption-text">Non-Specialized Functions</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col width="50%" />
-<col width="50%" />
+<col width="38%" />
+<col width="62%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head"><strong>Function</strong></th>
@@ -509,7 +416,7 @@ elements;</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">mli_krn_lstm_cell_fx8w16d</span></code></td>
 <td>General function; FX tensors
-(8bit weights and biases, 16 bit
+(8bit weights and biases, 16-bit
 input, state, cell, output and
 intermediate data);</td>
 </tr>
@@ -518,23 +425,22 @@ intermediate data);</td>
 </div>
 <div class="section" id="conditions-for-applying-the-kernel">
 <span id="cond-lstm"></span><h2>Conditions for Applying the Kernel<a class="headerlink" href="#conditions-for-applying-the-kernel" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div><p>Ensure that you satisfy the following conditions before applying the
+<p>Ensure that you satisfy the following conditions before applying the
 function:</p>
 <ul class="simple">
-<li>Input, Weights, Bias, cell, and Previous output tensors must be valid
+<li>Input, weights, bias, cell, and Previous output tensors must be valid
 (see <a class="reference internal" href="../library_model/data.html#mli-tns-struct"><span class="std std-ref">mli_tensor Structure</span></a>)</li>
 <li>Weights must be a three-dimensional tensor of shape [4, M, N+M]</li>
 <li>Bias must be a two-dimensional tensor of shape [4, M]</li>
 <li>Cell must be a one-dimensional tensor of shape [M]</li>
 <li>Previous output must be a one-dimensional tensor of shape [M]</li>
-<li>Element type of Weights and Bias tensors must be the same</li>
-<li>Element type of Input, Cell and Previous output tensors must be the
+<li>Element type of weights and bias tensors must be the same</li>
+<li>Element type of input, cell, and previous output tensors must be the
 same</li>
-<li>The Input tensor has the following restrictions:<ul>
+<li>The input tensor has the following restrictions:<ul>
 <li>For <code class="docutils literal notranslate"><span class="pre">RNN_ONE_TO_ONE</span></code> mode, the total number of input and previous
-output tensors (N+M) must be equal to the last dimension of
-Weights tensor</li>
+output tensors elements (N+M) must be equal to the last dimension of the
+weights tensor</li>
 <li>For <code class="docutils literal notranslate"><span class="pre">RNN_BATCH_TO_BATCH</span></code> and <code class="docutils literal notranslate"><span class="pre">RNN_BATCH_TO_LAST</span></code> modes, the first
 dimension of input reflects sequence length (batch size) while for
 the rest of the input tensor dimensions, the same rules apply as
@@ -560,7 +466,6 @@ for the result (4*M elements of input type)</li>
 </ul>
 </li>
 </ul>
-</div></blockquote>
 </div>
 </div>
 
