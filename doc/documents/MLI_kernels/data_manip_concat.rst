@@ -28,7 +28,7 @@ by changing ``MLI_CONCAT_MAX_TENSORS`` define (default: 8) in the
 **mli_config.h** header file. It can slightly affect stack memory
 requirements of the kernel.
 
-.. note::
+.. caution::
    Ensure that input and output   
    tensors do not point to     
    overlapped memory regions,  
@@ -121,7 +121,8 @@ Kernel Specializations
 ^^^^^^^^^^^^^^^^^^^^^^
 
 .. table:: Non-Specialized Functions
-
+	:widths: 20,130
+	
 	+-------------------------+--------------------------------------+
 	| **Function**            | **Description**                      |
 	+=========================+======================================+

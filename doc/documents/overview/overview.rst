@@ -11,7 +11,7 @@ Overview
 Introduction
 ------------
    
-The Machine Learning Inference Library is the basis for machine learning inference for lower power families of ARCv2 DSP cores (ARC EMxD and ARC HS4xD). Its purpose is to enable porting of machine learning models mostly based on NN to ARC processors.
+The embARC Machine Learning Inference Library (MLI Library) is the basis for machine learning inference for lower power families of ARCv2 DSP cores (ARC EMxD and ARC HS4xD). Its purpose is to enable porting of machine learning models mostly based on NN to ARC processors.
 
 The library is a collection of ML algorithms (primitives) that roughly can be separated into the following groups:
 
@@ -19,7 +19,7 @@ The library is a collection of ML algorithms (primitives) that roughly can be se
 - **Pooling** – pool input features with a function 
 - **Common** - Common ML, mathematical, and statistical operations
 - **Transform** - Transform each element of input set according to a particular function
-- **Elementwise** - Apply multi-operand function element-wise to several inputs
+- **Element-wise** - Apply multi-operand function element-wise to several inputs
 - **Data manipulation** - Move input data by a specified pattern
 
 MLI supported primitives are intended for:

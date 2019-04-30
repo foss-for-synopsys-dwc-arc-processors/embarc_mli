@@ -39,7 +39,7 @@ following types of ReLU activations are supported (for more info see
 
 -  RELU_6
 
-.. note::
+.. caution::
    Ensure that input and output
    tensors do not point to     
    overlapped memory regions,  
@@ -136,7 +136,6 @@ and inputs layout beforehand by permute primitive (see :ref:`permute`).
    +-----------------------------------------------+-----------------------------------+
    | ``mli_krn_depthwise_conv2d_chw_fx16``         | Switching function (see           |
    |                                               | :ref:`fns`); 16bit FX tensors;    |
-   |                                               |                                   |
    |                                               | Delegates calculations to         |
    |                                               | suitable specialization or        |
    |                                               | generic function.                 |
@@ -158,7 +157,7 @@ and inputs layout beforehand by permute primitive (see :ref:`permute`).
    |                                               | FX tensors                        |
    +-----------------------------------------------+-----------------------------------+
 
-.. note:: 
+.. attention:: 
    \*For specialization         
    functions, backward          
    compatibility between        

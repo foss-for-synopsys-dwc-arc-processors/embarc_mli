@@ -45,13 +45,11 @@ On Linux:
    find -name ‘\*.a’ -o -name ‘\*.elf’
 ..
 
-.. code-block:: console  
-   
-   .\bin\libmli.a
-   .\examples\example_cifar10_caffe\bin\example_cifar10_caffe.elf
-   .\examples\example_har_smartphone\bin\example_har_smartphone.elf
+Expected console output on windows is next:: 
 
-..
+.\bin\libmli.a
+.\examples\example_cifar10_caffe\bin\example_cifar10_caffe.elf
+.\examples\example_har_smartphone\bin\example_har_smartphone.elf
 
 The project build system allows to build the library and examples separately. 
 Library and each example have a separate makefile which uses common rules from ``build/rules.mk``.
@@ -154,33 +152,27 @@ Project Structure
 
 The repo is organized as follows:
 
-* ``./build``: Contains common build rules.
-
-* ``rules.mk``: The common makefile that declares the generic build targets and rules.
-* ``./doc``: Contains sources of embARC MLI library documentation (what you are reading now).
-* ``./include``:  Include files with API prototypes and types. Subject for more attention.
-
-* ``mli_api.h``: High level header used by application. Includes all required headers for working with library.
-* ``mli_types.h``: Header that conglomerates all public library specific data types.
-* ``mli_config.h``: Configuration header with definitions used for library implementation configu-rability.
-* ``/include/api``: The subdirectory that contains the set of low level public headers declaring the API.
-
-* ``mli_helpers_api.h``: Header with declarations for helper functions
-* ``mli_kernels_api.h``: Header with declarations for kernel functions
-* ``mli_krn_avepool_spec_api.h``: Header with declarations for average pooling special-izations
-* ``mli_krn_conv2d_spec_api.h``: Header with declarations for convolution 2D speciali-zations
-* ``mli_krn_depthwise_conv2d_spec_api.h``: Header with declarations for depth-wise convolution specializations
-* ``mli_krn_maxpool_spec_api.h``: Header with declarations for max pooling specializa-tions
-
-* ``./lib``: Source code and build scripts of embARC MLI Library 
-* ``./examples``: Source code of examples
-
-* ``/example_cifar10_caffe``: Convolutional Neural Network example for CIFAR-10 dataset. 
-* ``/example_har_smartphone``: LSTM based Human activity recognition example.
-* ``/auxiliary``: Common helper code that is used by the examples.
-* ``/prebuilt``: Library to be filled with prebuilt MLI Library for working with examples via ARC GNU tools.
-
-* ``./hw``: Contains HW templates (\*.tcf files)
+* ``./build/``: Contains common build rules.
+* ``./build/rules.mk``: The common makefile that declares the generic build targets and rules.
+* ``./doc/``: Contains sources of embARC MLI library documentation (what you are reading now).
+* ``./include/``:  Include files with API prototypes and types. Subject for more attention.
+* ``./include/mli_api.h``: High level header used by application. Includes all required headers for working with library.
+* ``./include/mli_types.h``: Header that conglomerates all public library specific data types.
+* ``./include/mli_config.h``: Configuration header with definitions used for library implementation configu-rability.
+* ``./include/api/``: The subdirectory that contains the set of low level public headers declaring the API.
+* ``./include/api/mli_helpers_api.h``: Header with declarations for helper functions
+* ``./include/api/mli_kernels_api.h``: Header with declarations for kernel functions
+* ``./include/api/mli_krn_avepool_spec_api.h``: Header with declarations for average pooling special-izations
+* ``./include/api/mli_krn_conv2d_spec_api.h``: Header with declarations for convolution 2D speciali-zations
+* ``./include/api/mli_krn_depthwise_conv2d_spec_api.h``: Header with declarations for depth-wise convolution specializations
+* ``./include/api/mli_krn_maxpool_spec_api.h``: Header with declarations for max pooling specializa-tions
+* ``./lib/``: Source code and build scripts of embARC MLI Library 
+* ``./examples/``: Source code of examples
+* ``./examples/example_cifar10_caffe/``: Convolutional Neural Network example for CIFAR-10 dataset. 
+* ``./examples/example_har_smartphone/``: LSTM based Human activity recognition example.
+* ``./examples/auxiliary/``: Common helper code that is used by the examples.
+* ``./examples/prebuilt/``: Library to be filled with prebuilt MLI Library for working with examples via ARC GNU tools.
+* ``./hw/``: Contains HW templates (\*.tcf files)
 * ``./Makefile``: Root makefile that allows to build or clean library and the set of example applications.
 * ``./README.md``: Short description and quick start instructions for embARC MLI Library
 * ``./LICENSE``: License notes
@@ -188,9 +180,8 @@ The repo is organized as follows:
 
 After you have built library, the following entities will appear in the structure:
 
-* ``./obj``: Directory holder for library object and dependency files created during build
-* ``./bin``: Directory holder for embARC MLI library binaries created during build
-
-* ``libmli.a``: embARC MLI library archive file (static library)
+* ``./obj/``: Directory holder for library object and dependency files created during build
+* ``./bin/``: Directory holder for embARC MLI library binaries created during build
+* ``./bin/libmli.a``: embARC MLI library archive file (static library)
 
 

@@ -109,7 +109,7 @@ The first [M, *M+N]* sub-tensor of weights is applied to the input
 gate, the second, to new cell candidates, the third, to the forget
 gate, and the last, to the output gate.
 
-.. note::
+.. caution::
    -  Ensure that you keep the same 
       order of sub-tensors for bias 
       tensor. For more information  
@@ -179,7 +179,7 @@ Dense part of calculations uses intermediate tensor for result, and
 consequently output and previous output tensors might use the same
 memory if it is acceptable to rewrite previous output data.
 
-.. note::
+.. caution::
    Ensure that you allocate memory
    for the rest of the tensors    
    (including intermediate results
@@ -192,79 +192,8 @@ memory if it is acceptable to rewrite previous output data.
 Function Configuration Structure
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Definition
-''''''''''
-.. code:: c                     
-                                
- typedef struct {               
-    mli_rnn_mode mode;          
-    mli_rnn_out_activation  act;
-    mli_tensor *ir_tsr;         
-  } mli_rnn_cell_cfg;           
-..
-
-Parameters
-''''''''''
-
-.. table:: Function Configuration Parameters
-   :widths: 20,80
-
-   +-----------------------+-----------------------+
-   |  **Fields**           |  **Description**      |
-   +=======================+=======================+
-   | ``mode``              | LSTM processing mode  |
-   |                       | (enumeration)         |
-   +-----------------------+-----------------------+
-   | ``act``               | LSTM output           |
-   |                       | activation type       |
-   |                       | (enumeration)         |
-   +-----------------------+-----------------------+
-   | ``ir_tsr``            | Pointer to tensor for |
-   |                       | holding intermediate  |
-   |                       | results. Tensor must  |
-   |                       | contain valid data    |
-   |                       | and capacity fields.  |
-   |                       | Field is modified by  |
-   |                       | kernels.              |
-   +-----------------------+-----------------------+
- 
-.. _mli_rnn_mode_val_desc:
-.. table:: mli_rnn_mode Values Description
-   :widths: 20,80
-   
-   +-----------------------------------+-----------------------------------+
-   | **Value**                         | **Field Description**             |
-   +===================================+===================================+
-   | ``RNN_ONE_TO_ONE``                | Process input tensor as a single  |
-   |                                   | input frame .                     |
-   +-----------------------------------+-----------------------------------+
-   | ``RNN_BATCH_TO_BATCH``            | Process input tensor as a         |
-   |                                   | sequence of frames to produce a   |
-   |                                   | sequence of outputs .             |
-   +-----------------------------------+-----------------------------------+
-   | ``RNN_BATCH_TO_LAST``             | Process input tensor as a         |
-   |                                   | sequence of frames to produce     |
-   |                                   | single (last) outputs.            |
-   +-----------------------------------+-----------------------------------+
-
-
-.. _mli_rnn_out_activation_val_desc:
-.. table:: mli_rnn_out_activation Values Description
-   :widths: 20,100
-   
-   +-----------------------------------+-----------------------------------+
-   | **Value**                         | **Field Description**             |
-   +===================================+===================================+
-   | ``RNN_ACT_TANH``                  | Hyperbolic tangent activation     |
-   |                                   | function.                         |
-   +-----------------------------------+-----------------------------------+
-   | ``RNN_ACT_SIGM``                  | Logistic (sigmoid) activation     |
-   |                                   | function.                         |
-   +-----------------------------------+-----------------------------------+
-   | ``RNN_ACT_NONE``                  | No activation.                    |
-   +-----------------------------------+-----------------------------------+
-
-\
+LSTM cell kernel shares configuration structure with Basic RNN cell.
+For more information see :ref:`fn_conf_brnn`.
 
 .. _api_lstm:
 
@@ -276,8 +205,7 @@ Prototype
 
 .. code:: c                               
                                           
- mli_status mli_krn_lstm_cell_<data_type> 
- [_specialization](                       
+ mli_status mli_krn_lstm_cell_<data_type>[_specialization](
     const mli_tensor *in,                 
     const mli_tensor *prev_out,           
     const mli_tensor *weights,            
@@ -369,7 +297,7 @@ function:
 -  The input tensor has the following restrictions:
 
    -  For ``RNN_ONE_TO_ONE`` mode, the total number of input and previous
-      output tensors (N+M) must be equal to the last dimension of the
+      output tensors elements (N+M) must be equal to the last dimension of the
       weights tensor
 
    -  For ``RNN_BATCH_TO_BATCH`` and ``RNN_BATCH_TO_LAST`` modes, the first

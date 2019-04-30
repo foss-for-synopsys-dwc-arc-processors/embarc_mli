@@ -34,7 +34,7 @@ for average calculation).
 To use padding in Caffe, use Padding2D (see :ref:`pad_2d`) primitive
 before pooling.
 
-.. note::
+.. caution::
    Ensure that input and output
    tensors do not point to     
    overlapped memory regions,  
@@ -151,7 +151,7 @@ declarations of all specializations for the primitive.
    +-------------------------------------+-----------------------------------+
 
 
-.. note::
+.. attention::
    \*For specialization          
    functions, backward          
    compatibility between        

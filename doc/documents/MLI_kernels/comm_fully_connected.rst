@@ -31,7 +31,7 @@ Ensure that the weight for this kernel is a two-dimensional tensor
 input tensor is not considered and only total number of elements is
 considered. Kernel outputs a one-dimensional tensor of shape [M].
 
-.. note::
+.. caution::
    Ensure that input and output
    tensors do not point to     
    overlapped memory regions,  

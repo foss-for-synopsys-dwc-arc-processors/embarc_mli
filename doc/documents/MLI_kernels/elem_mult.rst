@@ -16,7 +16,7 @@ can be a scalar:
 
 It supports simple broadcasting of single value (scalar tensor see :ref:`mli_tns_struct`) on general tensor also. One of the operands can be a scalar:
 
-.. math:: y_{i} = x_{i}*x\_\text{scalar}
+.. math:: y_{i} = x_{i}*x_\text{scalar}
 
 ..
 

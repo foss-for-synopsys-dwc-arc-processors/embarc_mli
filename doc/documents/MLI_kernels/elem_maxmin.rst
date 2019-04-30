@@ -89,21 +89,21 @@ Kernel Specializations
 .. table:: Non-Specialized Functions
    :widths: 20,130
    
-   +-----------------------------------+-----------------------------------+
-   | **Function**                      | **Description**                   |
-   +===================================+===================================+
-   | ``mli_krn_eltwise_max_fx8``       | General elementwise max function; |
-   |                                   | 8bit FX elements;                 |
-   +-----------------------------------+-----------------------------------+
-   | ``mli_krn_eltwise_max_fx16``      | General elementwise max function; |
-   |                                   | 16bit FX elements;                |
-   +-----------------------------------+-----------------------------------+
-   | ``mli_krn_eltwise_min_fx8``       | General elementwise min function; |
-   |                                   | 8bit FX elements;                 |
-   +-----------------------------------+-----------------------------------+
-   | ``mli_krn_eltwise_min_fx16``      | General elementwise min function; |
-   |                                   | 16bit FX elements;                |
-   +-----------------------------------+-----------------------------------+
+   +-----------------------------------+------------------------------------+
+   | **Function**                      | **Description**                    |
+   +===================================+====================================+
+   | ``mli_krn_eltwise_max_fx8``       | General element-wise max function; |
+   |                                   | 8bit FX elements;                  |
+   +-----------------------------------+------------------------------------+
+   | ``mli_krn_eltwise_max_fx16``      | General element-wise max function; |
+   |                                   | 16bit FX elements;                 |
+   +-----------------------------------+------------------------------------+
+   | ``mli_krn_eltwise_min_fx8``       | General element-wise min function; |
+   |                                   | 8bit FX elements;                  |
+   +-----------------------------------+------------------------------------+
+   | ``mli_krn_eltwise_min_fx16``      | General element-wise min function; |
+   |                                   | 16bit FX elements;                 |
+   +-----------------------------------+------------------------------------+
 
 .. _conditions-for-applying-the-kernel-10:
 

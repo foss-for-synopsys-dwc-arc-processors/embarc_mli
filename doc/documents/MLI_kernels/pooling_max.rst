@@ -24,7 +24,7 @@ Splitting input on fragments is performed according to stride and
 padding parameters. This logic is similar to convolution 2D operation
 (see :ref:`cnvl_2d`).
 
-.. note::
+.. important::
    TensorFlow and Caffe differ significantly when processing padding and 
    borders of pooling kernels. To be compatible with both, MLI follows TF 
    approach. For more information, see :ref:`avg_pool`.
@@ -36,7 +36,7 @@ For more information on calculations, see the pooling part of
    
 .. _TensorFlow–Neural Network details: https://www.tensorflow.org/api_guides/python/nn   
 
-.. note::
+.. caution::
    Ensure that input and output
    tensors do not point to     
    overlapped memory regions,  
@@ -211,7 +211,7 @@ declarations of all specializations for the primitive.
    |                                      | elements;                         |
    +--------------------------------------+-----------------------------------+
 
-.. note:: 
+.. attention:: 
    \*For specialization functions,  
    backward compatibility between 
    different releases cannot be     

@@ -43,24 +43,34 @@ by setting MLI_DEBUG_MODE define as follows:
    No messages are printed and no assertions are used.
 
 -  **DBG_MODE_ASSERT** (**MLI_DEBUG_MODE** = 2) - Functions examine
-   parameters. If any violation of data is found, the function tries to
-   break the execution using **assert()** function. If the **assert()**
-   function does not break the execution, function returns error status.
+   parameters.  Any violation of data found lead to break on **assert()** 
 
--  **DBG_MODE_DEBUG** (**MLI_DEBUG_MODE** = 3) - Functions examine
-   parameters. If any violation of data is found, the function prints a
-   descriptive message using standard **printf()** function and tries to
-   break the execution using **assert()** function. If the **assert()**
-   function does not break the execution, function returns error status.
+-  **DBG_MODE_DEBUG** (**MLI_DEBUG_MODE** = 3) - The same as DBG_MODE_ASSERT, 
+   but before breaking on **assert()** function prints descriptive message 
+   using standard **printf()**
 
--  **DBG_MODE_FULL** (**MLI_DEBUG_MODE** = 4) - Functions examine
-   parameters. If any violation of data is found, the function prints a
-   descriptive message using standard **printf()** function and tries to
-   break the execution using **assert()** function. Extra assertions inside 
-   loops are used for this mode . If the **assert()**  function does not 
-   break the execution, function returns error status.
+-  **DBG_MODE_FULL** (**MLI_DEBUG_MODE** = 4) - The same as DBG_MODE_DEBUG,
+   but additionally extra assertions inside loops are used for this mode.
 
-By default, ``MLI_DEBUG_MODE`` is set to ``DBG_MODE_RELEASE``.
+By default, ``MLI_DEBUG_MODE`` is set to ``DBG_MODE_RELEASE``. The following table 
+conglomerates information on modes behaviour.
+
+.. _DBG_Mode_Behav:
+.. table::
+    
+   +----------------------+-----------+-------------+----------+---------+--------+
+   |    Behavior / Mode   |  RELEASE  |  RET_CODES  |  ASSERT  |  DEBUG  |  FULL  |
+   +======================+===========+=============+==========+=========+========+
+   |    Return Codes      |   NO      |   YES       |   YES    |  YES    |  YES   |
+   +----------------------+-----------+-------------+----------+---------+--------+
+   |    Assertions        |   NO      |   NO        |   YES    |  YES    |  YES   |
+   +----------------------+-----------+-------------+----------+---------+--------+
+   |    Extra Assertions  |   NO      |   NO        |   NO     |  NO     |  YES   |
+   +----------------------+-----------+-------------+----------+---------+--------+
+   |    Messages          |   NO      |   NO        |   NO     |  YES    |  YES   |
+   +----------------------+-----------+-------------+----------+---------+--------+
+
+
 
 Concatenation Primitive: Maximum Tensors to Concatenate (MLI_CONCAT_MAX_TENSORS)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

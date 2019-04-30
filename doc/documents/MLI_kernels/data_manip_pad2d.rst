@@ -28,7 +28,7 @@ the padding on the top and the right, with the ``padding_top=2`` and
 where top 2 rows contains only zeros, and last value of each row
 also equal to zero.
 
-.. note::
+.. caution::
    Ensure that input and output
    tensors do not point to     
    overlapped memory regions,  

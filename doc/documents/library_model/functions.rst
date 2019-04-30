@@ -58,12 +58,10 @@ MLI Library function adheres naming convention listed in :ref:`MLI_func_naming_c
    |                       |                       | the tensor basic                                     |
    |                       | ``fx16``              | element type expected                                |
    |                       |                       | by the function.                                     |
-   |                       | ``fx8w16d``           |                                                      |
-   |                       |                       | fx8w16d means weights                                |
+   |                       | ``fx8w16d``           | ``fx8w16d`` means weights                            |
    |                       |                       | and bias tensors are                                 |
    |                       |                       | 8-bit, while all the                                 |
    |                       |                       | others are 16-bit.                                   |
-   |                       |                       |                                                      |
    |                       |                       | For more information,                                |
    |                       |                       | see :ref:`mli_fpd_fmt`                               |
    +-----------------------+-----------------------+------------------------------------------------------+

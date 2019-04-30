@@ -38,13 +38,12 @@ Definition
 
 .. code:: c                 
                             
-	typedef struct {           
-		uint32_t                   
-		start_coord[MLI_MAX_RANK ];
-		uint8_t coord_num;         
-		uint8_t first_out_dim_size;
-	}                          
-	mli_point_to_subtsr_cfg;   
+ typedef struct {           
+     uint32_t                   
+     start_coord[MLI_MAX_RANK];
+     uint8_t coord_num;         
+     uint8_t first_out_dim_size;
+ } mli_point_to_subtsr_cfg;   
 ..
 
 Parameters

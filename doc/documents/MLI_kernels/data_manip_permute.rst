@@ -15,7 +15,7 @@ For example, if input tensors have the shape [2, 4, 8] and ``perm_dim``
 order is (2, 0, 1) then output tensor is of the shape [8, 2, 4]. This
 transpose reflects changing the feature map layout from HWC to CHW.
 
-.. note::
+.. caution::
    Ensure that input and output
    tensors do not point to     
    overlapped memory regions,  

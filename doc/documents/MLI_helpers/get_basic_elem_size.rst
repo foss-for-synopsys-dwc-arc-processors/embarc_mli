@@ -23,7 +23,8 @@ Parameters
 ''''''''''
 
 .. table:: Kernel Interface Parameters
- 
+ 	:widths: 20,130
+	
 	+-----------------------+-----------------------+
 	| **Parameters**        | **Description**       |   
 	+=======================+=======================+

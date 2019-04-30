@@ -63,7 +63,7 @@ following types of ReLU activations are supported (for more info see
 
 -  RELU_6
 
-.. note::
+.. caution::
    Ensure that input and output 
    tensors do not point to      
    overlapped memory regions,   
@@ -204,7 +204,6 @@ all specializations for the primitive.
 	+-------------------------------------+-----------------------------------+
 	| ``mli_krn_conv2d_chw_fx16``         | Switching function; 16bit FX      |
 	|                                     | tensors;                          |
-	|                                     |                                   |
 	|                                     | Delegates calculations to         |
 	|                                     | suitable specialization or        |
 	|                                     | generic function.                 |
@@ -236,7 +235,7 @@ all specializations for the primitive.
 	|                                     | input and output)                 |
 	+-------------------------------------+-----------------------------------+
 
-.. note::
+.. attention::
    \*For specialization functions, backward compatibility between different releases cannot be guaranteed. The general functions call the available specializations when possible.   
    
 Conditions for Applying the Function
