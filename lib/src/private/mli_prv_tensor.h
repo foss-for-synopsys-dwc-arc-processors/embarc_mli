@@ -14,6 +14,7 @@
 
 #include "mli_check.h"
 #include "mli_debug.h"
+#include "mli_math_macros.h"
 #include "mli_types.h"
 #include "mli_private_types.h"
 
@@ -62,7 +63,45 @@ static uint32_t inline __attribute__((always_inline)) mli_prv_count_elem_num(con
     return mli_prv_count_elem_num_part(in, 0);
 }
 
-mli_minmax_t mli_prv_get_relu_min_max (const mli_relu_cfg * cfg, const mli_tensor * out);
+static inline mli_minmax_t __attribute__((always_inline))
+mli_prv_get_relu_min_max (const mli_relu_cfg * cfg, const mli_tensor * out) {
+    mli_minmax_t val_limit;
+    int min_val, max_val;
+    switch (out->el_type) {
+    case MLI_EL_FX_8:
+        min_val = INT8_MIN;
+        max_val = INT8_MAX;
+        break;
+    case MLI_EL_FX_16:
+        min_val = INT16_MIN;
+        max_val = INT16_MAX;
+        break;
+    default:
+        MLI_ASSERT(0);             /* unsupported element type */
+    }
+
+    switch (cfg->type) {
+    case MLI_RELU_GEN:
+        val_limit.min = 0;
+        val_limit.max = max_val;
+        break;
+    case MLI_RELU_6:
+        val_limit.min = 0;
+        val_limit.max = MIN (6 << (int) out->el_params.fx.frac_bits, max_val);
+        break;
+    case MLI_RELU_1:
+        val_limit.min = (uint16_t) MAX (-(1 << (int) out->el_params.fx.frac_bits), min_val);
+        val_limit.max = (uint16_t) MIN (1 << (int) out->el_params.fx.frac_bits, max_val);
+        break;
+    default:
+        // For leaky and param relu there is no saturation in the function domain.
+        // only container type limitations (8bit or 16 bit)
+        val_limit.min = min_val;
+        val_limit.max = max_val;
+    }
+
+    return val_limit;
+}
 
 
 #ifdef __cplusplus

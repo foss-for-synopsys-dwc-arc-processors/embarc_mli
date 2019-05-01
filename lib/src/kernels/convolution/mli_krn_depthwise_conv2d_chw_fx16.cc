@@ -75,7 +75,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k1x2_ch1_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -117,7 +117,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k1x2_ch1_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -172,7 +171,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k2x1_ch1_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -214,7 +213,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k2x1_ch1_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -269,7 +267,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k2x2_ch1_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -311,7 +309,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k2x2_ch1_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -366,7 +363,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k3x3_ch1_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -408,7 +405,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k3x3_ch1_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -463,7 +459,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k4x4_ch1_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -505,7 +501,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k4x4_ch1_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -560,7 +555,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k5x5_ch1_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -602,7 +597,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k5x5_ch1_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -657,7 +651,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k6x6_ch1_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -699,7 +693,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k6x6_ch1_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -754,7 +747,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k7x7_ch1_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -796,7 +789,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k7x7_ch1_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -851,7 +843,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k2x2_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -893,7 +885,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k2x2_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -948,7 +939,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k3x3_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -990,7 +981,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k3x3_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1045,7 +1035,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k4x4_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -1087,7 +1077,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k4x4_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1142,7 +1131,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k5x5_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -1184,7 +1173,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k5x5_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1239,7 +1227,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k6x6_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -1281,7 +1269,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k6x6_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1336,7 +1323,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k7x7_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -1378,7 +1365,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k7x7_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1433,7 +1419,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -1475,7 +1461,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_str1_krnpad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1530,7 +1515,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k1x2_ch1_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -1572,7 +1557,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k1x2_ch1_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1627,7 +1611,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k2x1_ch1_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -1669,7 +1653,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k2x1_ch1_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1724,7 +1707,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k2x2_ch1_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -1766,7 +1749,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k2x2_ch1_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1821,7 +1803,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k3x3_ch1_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -1863,7 +1845,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k3x3_ch1_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -1918,7 +1899,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k4x4_ch1_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -1960,7 +1941,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k4x4_ch1_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2015,7 +1995,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k5x5_ch1_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -2057,7 +2037,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k5x5_ch1_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2112,7 +2091,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k6x6_ch1_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -2154,7 +2133,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k6x6_ch1_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2209,7 +2187,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k7x7_ch1_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -2251,7 +2229,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k7x7_ch1_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2306,7 +2283,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k2x2_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -2348,7 +2325,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k2x2_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2403,7 +2379,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k3x3_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -2445,7 +2421,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k3x3_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2500,7 +2475,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k4x4_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -2542,7 +2517,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k4x4_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2597,7 +2571,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k5x5_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -2639,7 +2613,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k5x5_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2694,7 +2667,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k6x6_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -2736,7 +2709,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k6x6_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2791,7 +2763,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k7x7_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -2833,7 +2805,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k7x7_str1_nopad(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2888,7 +2859,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k1xn_str1(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -2930,7 +2901,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k1xn_str1(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -2985,7 +2955,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_knx1_str1(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -3027,7 +2997,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_knx1_str1(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -3082,7 +3051,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_ch1_str1(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -3124,7 +3093,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_ch1_str1(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
@@ -3179,7 +3147,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_generic(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -3221,7 +3189,6 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_generic(
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;

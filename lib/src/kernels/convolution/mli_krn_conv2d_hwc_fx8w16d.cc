@@ -53,6 +53,7 @@ mli_status mli_krn_conv2d_hwc_fx8w16d (
     uint8_t padding_right = cfg->padding_right;
 
     mli_minmax_t val_limit;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max (&cfg->relu, out);
 

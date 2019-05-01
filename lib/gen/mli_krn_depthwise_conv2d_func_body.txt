@@ -38,7 +38,7 @@
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = $d_enum_type;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -80,7 +80,6 @@
         1, 1);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_C_DIM_CHW] = channels;
     out->shape[FMAP_H_DIM_CHW] = out_height;
