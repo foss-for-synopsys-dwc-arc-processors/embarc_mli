@@ -96,40 +96,41 @@ Parameters
 ''''''''''
 
 .. table:: Function Configuration Parameters
-
-	+-----------------------+---------------------------+
-	|   **Widths**          |    **Description**        |
-	+=======================+===========================+
-	| ``stride_width``      | Stride of filter across   |
-	|                       | width dimension of input  |
-	+-----------------------+---------------------------+
-	| ``stride_height``     | Stride (step) of filter   |
-	|                       | across height dimension   |
-	|                       | of input                  |
-	+-----------------------+---------------------------+
-	| ``padding_left``      | Number of zero points     |
-	|                       | implicitly added to the   |
-	|                       | left of input (width      |
-	|                       | dimension)                |
-	+-----------------------+---------------------------+
-	| ``padding_right``     | Number of zero points     |
-	|                       | implicitly added to       |
-	|                       | the right of input        |
-	|                       | (width dimension)         |
-	+-----------------------+---------------------------+
-	| ``padding_top``       | Number of zero points     |
-	|                       | implicitly added to the   |
-	|                       | above the input           |
-	|                       | (height dimension)        |
-	+-----------------------+---------------------------+
-	| ``padding_bottom``    | Number of zero points     |
-	|                       | implicitly added to the   |
-	|                       | below the input           |
-	|                       | (height dimension)        |
-	+-----------------------+---------------------------+
-	| ``relu``              | Type of ReLU activation   |
-	|                       | applied to output values  |
-	+-----------------------+---------------------------+
+   :widths: 20, 130
+   
+   +-----------------------+---------------------------+
+   |   **Widths**          |    **Description**        |
+   +=======================+===========================+
+   | ``stride_width``      | Stride of filter across   |
+   |                       | width dimension of input  |
+   +-----------------------+---------------------------+
+   | ``stride_height``     | Stride (step) of filter   |
+   |                       | across height dimension   |
+   |                       | of input                  |
+   +-----------------------+---------------------------+
+   | ``padding_left``      | Number of zero points     |
+   |                       | implicitly added to the   |
+   |                       | left of input (width      |
+   |                       | dimension)                |
+   +-----------------------+---------------------------+
+   | ``padding_right``     | Number of zero points     |
+   |                       | implicitly added to       |
+   |                       | the right of input        |
+   |                       | (width dimension)         |
+   +-----------------------+---------------------------+
+   | ``padding_top``       | Number of zero points     |
+   |                       | implicitly added to the   |
+   |                       | above the input           |
+   |                       | (height dimension)        |
+   +-----------------------+---------------------------+
+   | ``padding_bottom``    | Number of zero points     |
+   |                       | implicitly added to the   |
+   |                       | below the input           |
+   |                       | (height dimension)        |
+   +-----------------------+---------------------------+
+   | ``relu``              | Type of ReLU activation   |
+   |                       | applied to output values  |
+   +-----------------------+---------------------------+
 
 Kernel Interface
 ^^^^^^^^^^^^^^^^
@@ -155,30 +156,31 @@ Parameters
 ''''''''''   
 
 .. table:: Kernel Interface Parameters
-
-	+-----------------------+-----------------------+
-	| **Parameters**        |  **Description**      |
-	+-----------------------+-----------------------+
-	| ``in``                | [IN] Pointer to input |
-	|                       | feature map tensor    |
-	+-----------------------+-----------------------+
-	| ``weights``           | [IN] Pointer to       |
-	|                       | convolution filters   |
-	|                       | weights tensor        |
-	+-----------------------+-----------------------+
-	| ``bias``              | [IN] Pointer to       |
-	|                       | convolution filters   |
-	|                       | biases tensor         |
-	+-----------------------+-----------------------+
-	| ``cfg``               | [IN] Pointer to       |
-	|                       | convolution           |
-	|                       | parameters structure  |
-	+-----------------------+-----------------------+
-	| ``out``               | [OUT] Pointer to      |
-	|                       | output feature map    |
-	|                       | tensor. Result is     |
-	|                       | stored here           |
-	+-----------------------+-----------------------+
+   :widths: 20, 130
+   
+   +-----------------------+-----------------------+
+   | **Parameters**        |  **Description**      |
+   +-----------------------+-----------------------+
+   | ``in``                | [IN] Pointer to input |
+   |                       | feature map tensor    |
+   +-----------------------+-----------------------+
+   | ``weights``           | [IN] Pointer to       |
+   |                       | convolution filters   |
+   |                       | weights tensor        |
+   +-----------------------+-----------------------+
+   | ``bias``              | [IN] Pointer to       |
+   |                       | convolution filters   |
+   |                       | biases tensor         |
+   +-----------------------+-----------------------+
+   | ``cfg``               | [IN] Pointer to       |
+   |                       | convolution           |
+   |                       | parameters structure  |
+   +-----------------------+-----------------------+
+   | ``out``               | [OUT] Pointer to      |
+   |                       | output feature map    |
+   |                       | tensor. Result is     |
+   |                       | stored here           |
+   +-----------------------+-----------------------+
 
 Function Specializations
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -191,49 +193,51 @@ all specializations for the primitive.
 
 
 .. table:: Non-Specialized Functions
-
-	+-------------------------------------+-----------------------------------+
-	| **Function**                        | **Description**                   |
-	+=====================================+===================================+
-	||                           *CHW Data Layout*                            |
-	+-------------------------------------+-----------------------------------+
-	| ``mli_krn_conv2d_chw_fx8``          | Switching function; 8bit FX       |
-	|                                     | tensors; Delegates calculations   |
-	|                                     | to suitable specialization or     |
-	|                                     | generic function.                 |
-	+-------------------------------------+-----------------------------------+
-	| ``mli_krn_conv2d_chw_fx16``         | Switching function; 16bit FX      |
-	|                                     | tensors;                          |
-	|                                     | Delegates calculations to         |
-	|                                     | suitable specialization or        |
-	|                                     | generic function.                 |
-	+-------------------------------------+-----------------------------------+
-	| ``mli_krn_conv2d_chw_fx8w16d``      | General function; FX tensors      |
-	|                                     | (8bit weights and biases, 16bit   |
-	|                                     | input and output)                 |
-	+-------------------------------------+-----------------------------------+
-	| ``mli_krn_conv2d_chw_fx8_generic``  | General function; 8bit FX tensors |
-	+-------------------------------------+-----------------------------------+
-	| ``mli_krn_conv2d_chw_fx16_generic`` | General function; 16bit FX        |
-	|                                     | tensors                           |
-	+-------------------------------------+-----------------------------------+
-	| ``mli_krn_conv2d_chw_fx8_[spec]``   | Specialization function*; 8bit FX |
-	|                                     | tensors                           |
-	+-------------------------------------+-----------------------------------+
-	| ``mli_krn_conv2d_chw_fx16_[spec]``  | Specialization function*; 16bit   |
-	|                                     | FX tensors                        |
-	+-------------------------------------+-----------------------------------+
-	||                           *HWC Data Layout*                            |
-	+-------------------------------------+-----------------------------------+
-	| ``mli_krn_conv2d_hwc_fx8``          | General function; 8bit FX tensors |
-	+-------------------------------------+-----------------------------------+
-	| ``mli_krn_conv2d_hwc_fx16``         | General function; 16bit FX        |
-	|                                     | tensors                           |
-	+-------------------------------------+-----------------------------------+
-	| ``mli_krn_conv2d_hwc_fx8w16d``      | General function; FX tensors      |
-	|                                     | (8bit weights and biases, 16bit   |
-	|                                     | input and output)                 |
-	+-------------------------------------+-----------------------------------+
+   :widths: 20, 130
+   
+   +-------------------------------------+-----------------------------------+
+   | **Function**                        | **Description**                   |
+   +=====================================+===================================+
+   ||                           *CHW Data Layout*                            |
+   +-------------------------------------+-----------------------------------+
+   | ``mli_krn_conv2d_chw_fx8``          | Switching function; 8bit FX       |
+   |                                     | tensors; Delegates calculations   |
+   |                                     | to suitable specialization or     |
+   |                                     | generic function.                 |
+   +-------------------------------------+-----------------------------------+
+   | ``mli_krn_conv2d_chw_fx16``         | Switching function; 16bit FX      |
+   |                                     | tensors;                          |
+   |                                     |                                   |
+   |                                     | Delegates calculations to         |
+   |                                     | suitable specialization or        |
+   |                                     | generic function.                 |
+   +-------------------------------------+-----------------------------------+
+   | ``mli_krn_conv2d_chw_fx8w16d``      | General function; FX tensors      |
+   |                                     | (8bit weights and biases, 16bit   |
+   |                                     | input and output)                 |
+   +-------------------------------------+-----------------------------------+
+   | ``mli_krn_conv2d_chw_fx8_generic``  | General function; 8bit FX tensors |
+   +-------------------------------------+-----------------------------------+
+   | ``mli_krn_conv2d_chw_fx16_generic`` | General function; 16bit FX        |
+   |                                     | tensors                           |
+   +-------------------------------------+-----------------------------------+
+   | ``mli_krn_conv2d_chw_fx8_[spec]``   | Specialization function*; 8bit FX |
+   |                                     | tensors                           |
+   +-------------------------------------+-----------------------------------+
+   | ``mli_krn_conv2d_chw_fx16_[spec]``  | Specialization function*; 16bit   |
+   |                                     | FX tensors                        |
+   +-------------------------------------+-----------------------------------+
+   ||                           *HWC Data Layout*                            |
+   +-------------------------------------+-----------------------------------+
+   | ``mli_krn_conv2d_hwc_fx8``          | General function; 8bit FX tensors |
+   +-------------------------------------+-----------------------------------+
+   | ``mli_krn_conv2d_hwc_fx16``         | General function; 16bit FX        |
+   |                                     | tensors                           |
+   +-------------------------------------+-----------------------------------+
+   | ``mli_krn_conv2d_hwc_fx8w16d``      | General function; FX tensors      |
+   |                                     | (8bit weights and biases, 16bit   |
+   |                                     | input and output)                 |
+   +-------------------------------------+-----------------------------------+
 
 .. attention::
    \*For specialization functions, backward compatibility between different releases cannot be guaranteed. The general functions call the available specializations when possible.   

@@ -118,12 +118,12 @@ where:
  - :math:`\ fx\_ val\ ` \- FX value of the particular Q format
  - :math:`\ fraq\_ bits \ ` \- number of :math:`\ fx\_ val\ ` fractional bits
  - :math:`\ Round\ () \ ` \- rounding according to one of supported modes
-   
-2 :sup:`fraq_bits` represents 1.0 in FX format and also might
-be obtained by shifting (1 << fraq_bits). Rounding mode (nearest, up,
+
+:math:`\ 2^{fraq\_ bits} \ ` represents 1.0 in FX format and also might
+be obtained by shifting (1 << :math:`\ fraq\_ bits \ `). Rounding mode (nearest, up,
 convergence) affects only FX representation accuracy. MLI Library
-uses rounding provided by ARCv2 DSP hardware (see :ref:`hw_comp_dpd` ). ``dequant_real_val`` might be not equal to
-``real_ val`` in case of immediate forward/backward conversion
+uses rounding provided by ARCv2 DSP hardware (see :ref:`hw_comp_dpd` ). :math:`\ dequant\_ real\_ val\ ` might be not equal to
+:math:`\ real\_ val\ ` in case of immediate forward/backward conversion
 due to rounding operation (see examples 2 and 4 from the following example list).
 
 .. admonition:: Example 
@@ -243,8 +243,8 @@ based on the number of additions to be done:
 
 ..
 
-Where Ceil(\ *x*) function rounds up *x* to the smallest integer value
-that is not less than *x*. From notation point of view, these extra
+Where :math:`\text{Ceil}(x)` function rounds up :math:`x` to the smallest integer value
+that is not less than :math:`x`. From notation point of view, these extra
 bits are added to integer part.
 
 .. admonition:: Example 
@@ -335,6 +335,7 @@ Number of available bits depends on operands types:
    guaranteed to perform up to 2 :sup:`24` = 16777216 operations without
    overflow.
 
+   
 -  **FX16 operands**: 40-bit depth accumulator is used with 1 sign bit
    and 39 significant bits. FX16 operands have 1 sign and 15 significant
    bits. A multiplication of such operands results in 15 + 15 = 30
@@ -344,6 +345,7 @@ Number of available bits depends on operands types:
    For simple accumulation, 39 – 15 = 24 bits are available which
    perform up to 2 :sup:`24` = 16777216 operations without overflow.
 
+   
 -  **FX16 x FX8 operands**: 32-bit depth accumulator is used. For  
    MAC-based kernels, 31 – (15 + 7) = 31 - 22 = 9 accumulation bits 
    are available which can be used to perform up to 2 :sup:`9` = 512

@@ -6,7 +6,7 @@ Element-wise Multiplication
 This kernel multiplies two tensors of the same shape element-wise and
 store results to the output tensor saving shape of inputs:
 
-.. math:: y_{i} = {x1}_{i}*{x2}_{i}
+.. math:: y_{i} = {x^1}_{i}*{x^2}_{i}
 
 ..
 

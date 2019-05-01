@@ -7,7 +7,7 @@ This kernel subtracts element-wise, the second input tensor
 (subtrahend) from the first input tensor (minuend) and stores results
 to the output tensor:
 
-.. math:: y_{i} = {x1}_{i} - {x2}_{i}
+.. math:: y_{i} = {x^1}_{i} - {x^2}_{i}
 
 ..
 
@@ -17,9 +17,9 @@ scalar:
 
 .. math::
 
-   {y_{i} = {x1}_{i} - x2_{\text{scalar}}}
+   {y_{i} = {x^1}_{i} - x^{2}_{\text{scalar}}}
    
-   {y_{i} = {x1}_{\text{scalar}} - \ {x2}_{i}}
+   {y_{i} = {x^1}_{\text{scalar}} - \ {x^2}_{i}}
 
 ..
    
