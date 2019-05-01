@@ -725,6 +725,13 @@ static unsigned __attribute__ ((always_inline)) mli_prv_init_dsp_ctrl(unsigned c
      */
     MLI_ASSERT((t & 31) == (ctrl_info & 31));
 
+    /* always halt, not only in assert mode */
+    if ((t & 31) != (ctrl_info & 31)) {
+        _flag(1); //Halt processor (other flags not updated)
+        _nop();
+        _nop();
+    }
+
     return old;
 }
 
