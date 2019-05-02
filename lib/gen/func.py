@@ -164,21 +164,24 @@ class Func:
         if self.datatype == "fx16":
             d_type = "int16_t"
             w_type = "int16_t"
-            return (d_type, w_type)
+            d_enum = "MLI_EL_FX_16"
+            return (d_type, w_type, d_enum)
         if self.datatype == "fx8":
             d_type = "int8_t"
             w_type = "int8_t"
-            return (d_type, w_type)
+            d_enum = "MLI_EL_FX_8"
+            return (d_type, w_type, d_enum)
         if self.datatype == "fx8w16d":
             d_type = "int16_t"
             w_type = "int8_t"
-            return (d_type, w_type)
+            d_enum = "MLI_EL_FX_16"
+            return (d_type, w_type, d_enum)
         print "ERROR: unsopported type: " + self.datatype
 
     def print_body(self, template_file):
         f = open(template_file, "r")
         s = Template(f.read())
-        d_type, w_type = self.get_types()
+        d_type, w_type, d_enum = self.get_types()
         # we use 'SAME' padding scheme from the TensorFlow
         #the bottom and right sides may have the one additional padded pixel in some cases.
         #for example, an even size of a kernel and a stride equal to 1
@@ -253,6 +256,7 @@ class Func:
                             datatype = self.datatype,
                             d_type = d_type,
                             w_type = w_type,
+                            d_enum_type = d_enum,
                             kernelpadding = k_pad,
                             padding_top = pad_top,
                             padding_bot = pad_bot,

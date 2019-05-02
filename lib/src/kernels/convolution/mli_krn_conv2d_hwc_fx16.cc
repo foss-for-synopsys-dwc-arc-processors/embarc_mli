@@ -100,6 +100,7 @@ mli_status mli_krn_conv2d_hwc_fx16 (
     uint8_t padding_right = cfg->padding_right;
 
     mli_minmax_t val_limit;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max (&cfg->relu, out);
 
@@ -181,7 +182,6 @@ mli_status mli_krn_conv2d_hwc_fx16 (
         }
     }
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[0] = out_height;
     out->shape[1] = out_width;
@@ -224,6 +224,7 @@ mli_status mli_krn_conv2d_hwc_fx16_1x1_str1_nopad (
     padding_right = 0;
 
     mli_minmax_t val_limit;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max (&cfg->relu, out);
 
@@ -262,7 +263,6 @@ mli_status mli_krn_conv2d_hwc_fx16_1x1_str1_nopad (
             kernel_height, kernel_width, stride_height, stride_width, padding_top, padding_left);
 
     // fill output tensor parameters
-    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[0] = out_height;
     out->shape[1] = out_width;
