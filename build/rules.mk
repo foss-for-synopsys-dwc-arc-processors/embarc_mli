@@ -9,13 +9,17 @@
 #=============================================================
 # OS-specific definitions
 #=============================================================
+COMMA=,
+OPEN_PAREN=(
+CLOSE_PAREN=)
+BACKSLASH=\$(nullstring)
 ifneq ($(ComSpec)$(COMSPEC),)
     O_SYS=Windows
     RM=del /F /Q
     MKDIR=mkdir 
     CP=copy /Y
     TYPE=type
-    PS=\$(nullstring)
+    PS=$(BACKSLASH)
     Q=
     coQ=\$(nullstring)
     fix_platform_path = $(subst /,$(PS), $(1))
@@ -27,17 +31,20 @@ else
     CP=cp 
     TYPE=cat
     PS=/
-    Q=\$(nullstring)
-    coQ=^
+    Q=$(BACKSLASH)
+    coQ=
     fix_platform_path=$(1)
     DEV_NULL=/dev/null
 endif
 
-COMMA=,
-OPEN_PAREN=(
-CLOSE_PAREN=)
-quote=$(subst $(coQ),$(Q)$(coQ), \
-      $(subst %,$(Q)%, \
+# Note: Windows escaping rules is very combersome 
+# initially I tried to use Q=^, but this depends on the context and (looks like) on Win version.
+# Also expecially ugly thing is that in quoted strings the quotes the same are remain.
+# Batch has special parameter expansion syntax to remove quotes,
+# but many tools themselves remove quotes (unless escaped with backslash)
+# So finally we've found that in our use cases we may not escaping any symbols but prepend backslashes before quotes.
+
+quote=$(subst %,$(Q)%, \
       $(subst &,$(Q)&, \
       $(subst <,$(Q)<, \
       $(subst >,$(Q)>, \
@@ -48,9 +55,9 @@ quote=$(subst $(coQ),$(Q)$(coQ), \
       $(subst $(OPEN_PAREN),$(Q)$(OPEN_PAREN), \
       $(subst $(CLOSE_PAREN),$(Q)$(CLOSE_PAREN), \
       $(subst !,$(Q)!, \
-      $(subst ",$(Q)", \
+      $(subst ",$(BACKSLASH)", \
       $(subst $(Q),$(Q)$(Q), \
-	  $(1) ))))))))))))))
+      $(1) )))))))))))))
 
 
 #=============================================================
@@ -118,7 +125,7 @@ ifeq ($(TOOLCHAIN),mwdt)
  LD = ccac
  AR = arac
  AS = ccac
- CFLAGS += -tcf=$(TCF_FILE) -tcf_core_config
+ TCF_CFLAGS += -tcf=$(TCF_FILE) -tcf_core_config
  LDFLAGS += -tcf=$(TCF_FILE) $(LCF)
 else 
  CC = arc-elf32-gcc
@@ -126,7 +133,7 @@ else
  AR = arc-elf32-ar
  AS = arc-elf32-as
  CFLAGS += $(addprefix -I, $(HEADER_DIRS))
- CFLAGS += -D_Interrupt=__attribute__((interrupt(\"ilink\")))
+ CFLAGS += -D_Interrupt=__attribute__((interrupt("ilink")))
  CFLAGS += -D_lr=__builtin_arc_lr
  CFLAGS += -D_sr=__builtin_arc_sr
  CFLAGS += -D_seti=__builtin_arc_seti
@@ -152,7 +159,8 @@ else
  endif
 endif
 
-CFLAGS  := $(call quote,  $(CFLAGS))
+# TCF file needs to be the in front of the other CFLAGS
+CFLAGS  := $(TCF_CFLAGS) $(call quote,  $(CFLAGS))
 LDFLAGS := $(call quote, $(LDFLAGS))
 
 vpath %.c  $(SRC_DIRS) 
@@ -215,6 +223,9 @@ ifneq ($(C_DEPNDS),)
 endif
 ifneq ($(CPP_DEPENDS),)
 -include $(CPP_DEPENDS)
+endif
+ifneq ($(CC_DEPENDS),)
+-include $(CC_DEPENDS)
 endif
 
 #=================================================================

@@ -46,7 +46,7 @@ mli_status mli_krn_softmax_fx8(const mli_tensor *in, mli_tensor *out) {
     mli_prv_fx_init_dsp_ctrl();
 
     const MLI_PTR(int8_t) vec_in = (MLI_PTR(int8_t))in->data;
-    MLI_PTR(int8_t) vec_out = (MLI_PTR(int8_t))out->data;
+    MLI_OUT_PTR(int8_t) vec_out = (MLI_OUT_PTR(int8_t))out->data;
 
     const int el_num = (int)mli_prv_count_elem_num(in);
     int in_frac = (int)in->el_params.fx.frac_bits;
@@ -69,7 +69,7 @@ mli_status mli_krn_softmax_fx8(const mli_tensor *in, mli_tensor *out) {
 
     // reset data pointers
     vec_in = (MLI_PTR(int8_t))in->data;
-    vec_out = (MLI_PTR(int8_t))out->data;
+    vec_out = (MLI_OUT_PTR(int8_t))out->data;
 
     // subtract maximum from each element,
     // free one more bit if saturation is expected
@@ -106,7 +106,7 @@ mli_status mli_krn_softmax_fx8(const mli_tensor *in, mli_tensor *out) {
 
     // reset data pointers
     vec_in = (MLI_PTR(int8_t))in->data;
-    vec_out = (MLI_PTR(int8_t))out->data;
+    vec_out = (MLI_OUT_PTR(int8_t))out->data;
 
     mli_prv_activation_lut_fx8(vec_out, vec_out, &expneg_lut_fx16, in_frac, el_num);
 
@@ -147,7 +147,7 @@ mli_status mli_krn_softmax_fx16(const mli_tensor *in, mli_tensor *out) {
     mli_prv_fx_init_dsp_ctrl();
 
     const MLI_PTR(int16_t) vec_in = (MLI_PTR(int16_t))in->data;
-    MLI_PTR(int16_t) vec_out = (MLI_PTR(int16_t))out->data;
+    MLI_OUT_PTR(int16_t) vec_out = (MLI_OUT_PTR(int16_t))out->data;
 
     const int el_num = (int)mli_prv_count_elem_num(in);
     int in_frac = (int)in->el_params.fx.frac_bits;
@@ -170,7 +170,7 @@ mli_status mli_krn_softmax_fx16(const mli_tensor *in, mli_tensor *out) {
 
     // reset data pointers
     vec_in = (MLI_PTR(int16_t))in->data;
-    vec_out = (MLI_PTR(int16_t))out->data;
+    vec_out = (MLI_OUT_PTR(int16_t))out->data;
 
     // subtract maximum from each element,
     // free one more bit if saturation is expected
@@ -207,7 +207,7 @@ mli_status mli_krn_softmax_fx16(const mli_tensor *in, mli_tensor *out) {
 
     // reset data pointers
     vec_in = (MLI_PTR(int16_t))in->data;
-    vec_out = (MLI_PTR(int16_t))out->data;
+    vec_out = (MLI_OUT_PTR(int16_t))out->data;
 
     mli_prv_activation_lut_fx16(vec_out, vec_out, &expneg_lut_fx16, in_frac, el_num);
 

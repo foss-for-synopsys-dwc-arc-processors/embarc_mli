@@ -9,7 +9,7 @@ Data Types
 ~~~~~~~~~~
 
 
-   The library is intended to work with structured data types. Each data type groups related parameters in one entity as defined in .\ **/include/MLI_types.h** .
+This library is intended to work with structured data types. Each data type groups related parameters in one entity as defined in .\ **/include/mli_types.h** .
 
 
 
@@ -18,10 +18,10 @@ Data Types
 mli_tensor Structure
 ^^^^^^^^^^^^^^^^^^^^^
 
-   ``mli_tensor`` is the main container type for input and output data which
-   must be processed by ML algorithm. ``mli_tensor`` represents
-   multi-dimensional arrays of a particular shape and includes not only
-   a data, but also its shape, type, and other data-specific parameters.
+``mli_tensor`` is the main container type for input and output data that
+must be processed by ML algorithm. ``mli_tensor`` represents
+multi-dimensional arrays of a particular shape and includes not only
+a data, but also its shape, type, and other data-specific parameters.
 
 .. note::
    The term “data” includes input
@@ -49,10 +49,10 @@ mli_tensor Structure
    
 .. _mli_tensor_struc:
 .. table:: mli_tensor Structure Fields
-   :widths: grid
+   :widths: 15,15,70
    
    +-----------------------+-----------------------+-----------------------+
-   | Field name            | Field Type            | Field Description     |
+   | Field Name            | Field Type            | Field Description     |
    +=======================+=======================+=======================+
    |    ``data``           |    ``void *``         | Pointer to memory     |
    |                       |                       | with tensor data      |
@@ -97,46 +97,46 @@ mli_tensor Structure
 
 ..
 
-   Some primitives, such as slope coefficient for leaky ReLU, might
-   require scalar parameters which explicitly involve calculations (not
-   primitive configuration parameter). Such scalar
-   inputs/outputs are also passed to primitive as tensor of rank=1 and
-   shape[0]=1. For some primitives it is possible to provide scalar
-   value as tensor with zero rank and single value stored directly in
-   data field (not pointed by it).
+Some primitives, such as slope coefficient for leaky ReLU, might
+require scalar parameters which explicitly involve calculations (not
+primitive configuration parameter). Such scalar
+inputs/outputs are also passed to primitive as tensor of rank=1 and
+shape[0]=1. For some primitives it is possible to provide scalar
+value as tensor with zero rank and single value stored directly in
+data field (not pointed by it).
 
-   All input tensors passed to primitives typically must be valid with
-   fields that are not conflicting. Examples of field conflicts are:
+All input tensors passed to primitives typically must be valid with
+fields that are not conflicting. Examples of field conflicts are:
 
-   -  Tensor shape declares more data than tensors capacity.
+-  Tensor shape declares more data than tensors capacity
 
-   -  Tensor rank is bigger than MLI_MAX_RANK
+-  Tensor rank is bigger than MLI_MAX_RANK
 
-   -  Data pointer is invalid (NULL pointer) except cases when it is
-      allowed to pass scalar value directly in data field.
+-  Data pointer is invalid (NULL pointer) except cases when it is
+   allowed to pass scalar value directly in data field
 
-   -  Tensor is empty (total number of elements is zero)
+-  Tensor is empty (total number of elements is zero)
 
 .. _mli_elm_enum:
    
 mli_element_type Enumeration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-   ``mli_element_type`` defines basic element type stored in tensor
-   structure (data field).
+``mli_element_type`` defines basic element type stored in tensor
+structure (data field).
 
 .. code:: c
    
    typedef enum {
-   MLI_EL_FX_8 = 0,
-   MLI_EL_FX_16,
+      MLI_EL_FX_8 = 0,
+      MLI_EL_FX_16,
    } mli_element_type;
 
 \
 
 .. _mli_element_type_val_desc:
 .. table:: mli_element_type Values Description
-   :widths: grid
+   :widths: auto
    
    +-----------------------------------+-----------------------------------+
    |    Value                          |    Field Description              |
@@ -161,8 +161,8 @@ mli_element_type Enumeration
 mli_element_params Union
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-   ``mli_element_params`` union stores data type parameters required for
-   arithmetical operations with tensor elements.
+``mli_element_params`` union stores data type parameters required for
+arithmetical operations with tensor elements.
 
 .. code:: c
    
@@ -173,17 +173,17 @@ mli_element_params Union
    } mli_element_params;
 
 ..
-   
-   Parameters are wrapped into union for future library extensibility.
-   The current version supports only fixed point data with configurable
-   number of fractional bits (see :ref:`mli_fpd_fmt`) and union
-   can be interpreted only as the following structure.
+
+Parameters are wrapped into union for future library extensibility.
+The current version supports only fixed point data with configurable
+number of fractional bits (see :ref:`mli_fpd_fmt`) and union
+can be interpreted only as the following structure.
    
 \
 
 .. _mli_element_params_struct_fields:
 .. table:: mli_element_params Structure Fields
-   :widths: grid   
+   :widths: auto   
 
    +-----------------+-----------------+-----------------+-----------------+
    | Union           | Field           | Field Type      | Field           |
@@ -199,34 +199,34 @@ mli_element_params Union
 Kernel Specific Configuration Structures
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-   Significant number of primitives must be configured by specific
-   parameters, which influence calculations and results, but not
-   directly related to input data. For example, padding and stride
-   values are parameters of convolution layer and the type of ReLU is a
-   parameter for ReLU transform layer. All specific parameters for
-   particular primitive type are grouped into structures. This document
-   describes these structures along with the primitive description they
-   relate to.
+Significant number of primitives must be configured by specific
+parameters, which influence calculations and results, but not
+directly related to input data. For example, padding and stride
+values are parameters of convolution layer and the type of ReLU is a
+parameter for ReLU transform layer. All specific parameters for
+particular primitive type are grouped into structures. This document
+describes these structures along with the primitive description they
+relate to.
 
 .. _data_muldim:
    
 Data Layout of Multidimensional Feature Maps
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   Functions of convolution and pooling groups deal with
-   multi-dimensional feature maps which might be considered as images.
-   In general, these maps have three dimensions with following names:
-   height, width, and channels (also called depth). Despite logical
-   organization, multidimensional feature maps are stored in memory as
-   continuous arrays. Order of elements depends on the order of
-   dimensions – data layout. :ref:`Multidim_Data_Layout` describes 
-   two supported and traditionally used data layouts – HWC and CHW.
+Functions of convolution and pooling groups deal with
+multi-dimensional feature maps which might be considered as images.
+In general, these maps have three dimensions with following names:
+height, width, and channels (also called depth). Despite logical
+organization, multidimensional feature maps are stored in memory as
+continuous arrays. Order of elements depends on the order of
+dimensions – data layout. :ref:`Multidim_Data_Layout` describes 
+two supported and traditionally used data layouts – HWC and CHW.
 
 \
 
 .. _Multidim_Data_Layout:
 .. table:: Multidimensional Data Layout
-   :widths: grid      
+   :widths: auto      
 
    +-----------------------------------+-----------------------------------+
    | Designation                       |    Description                    |
@@ -257,14 +257,14 @@ Data Layout of Multidimensional Feature Maps
 
 ..
 
-   Due to algorithmic reasons, HWC layout provides higher data locality
-   for some functions, and CHW layout does so for others.
+Due to algorithmic reasons, HWC layout provides higher data locality
+for some functions, and CHW layout does so for others.
 
-   “Data locality” means the data disposition in memory where elements
-   consistently used by algorithm are stored in memory as close as
-   possible (in ideal case, contiguously). Low data locality could
-   reduce performance of systems with cache. For the layouts supported
-   by particular kernels, see :ref:`fns`. Current version of MLI Library
-   focuses on optimization of kernels for CHW layout.
+“Data locality” means the data disposition in memory where elements
+consistently used by algorithm are stored in memory as close as
+possible (in ideal case, contiguously). Low data locality could
+reduce performance of systems with cache. For the layouts supported
+by particular kernels, see :ref:`fns`. Current version of MLI Library
+focuses on optimization of kernels for CHW layout.
 
 

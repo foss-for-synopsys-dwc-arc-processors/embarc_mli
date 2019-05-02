@@ -3,15 +3,15 @@
 Error Codes
 -----------
 
-   Functions return value of *mli_status* enumeration type which is
-   declared in **include/MLI_types.h**. By default, functions do not
-   validate inputs and typically return only ``MLI_STATUS_OK``.
+Functions return value of *mli_status* enumeration type which is
+declared in **include/mli_types.h**. By default, functions do not
+validate inputs and typically return only ``MLI_STATUS_OK``.
 
-   To turn on the checking logic, ensure that you build the MLI library
-   with along with the required debug mode as described in section
-   :ref:`func_param_dbg`. This might slightly affect the performance and code size of the library.
+To turn on the checking logic, ensure that you build the MLI library
+with along with the required debug mode as described in section
+:ref:`func_param_dbg`. This might slightly affect the performance and code size of the library.
 
-   :ref:`mli_status_val_desc` contains list of status code with description.
+:ref:`mli_status_val_desc` contains list of status code with description.
 
 .. _mli_status_val_desc:
 .. table:: mli_status Values Description
@@ -36,10 +36,10 @@ Error Codes
    +-----------------------------------+-----------------------------------+
    | ``MLI_STATUS_NOT_SUPPORTED``      | Function is not yet implemented,  |
    |                                   | or inputs combination is not      |
-   |                                   | supported.                        |
+   |                                   | supported                         |
    +-----------------------------------+-----------------------------------+
    | ``MLI_STATUS_SPEC_PARAM_MISMATCH``| Function parameters do not match  |
    |                                   | the one specified in the          |
-   |                                   | specialized function.             |
+   |                                   | specialized function              |
    +-----------------------------------+-----------------------------------+
 

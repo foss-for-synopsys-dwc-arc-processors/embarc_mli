@@ -1,7 +1,7 @@
 /* This file is generated, do not edit!
  * edit following template files instead:
  * filetemplate.txt
- * maxpool_func_body.txt
+ * mli_krn_maxpool_func_body.txt
  */
 /*
 * Copyright 2019, Synopsys, Inc.
@@ -69,7 +69,7 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_str1_nopad(const mli_tensor * in, const
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -93,7 +93,8 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_str1_nopad(const mli_tensor * in, const
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -146,7 +147,7 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_ch1_str1_nopad(const mli_tensor * in, c
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -170,7 +171,8 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_ch1_str1_nopad(const mli_tensor * in, c
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -223,7 +225,7 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_ch3_str1_nopad(const mli_tensor * in, c
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -247,7 +249,8 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_ch3_str1_nopad(const mli_tensor * in, c
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -300,7 +303,7 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_str1_nopad(const mli_tensor * in, const
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -324,7 +327,8 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_str1_nopad(const mli_tensor * in, const
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -377,7 +381,7 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_ch1_str1_nopad(const mli_tensor * in, c
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -401,7 +405,8 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_ch1_str1_nopad(const mli_tensor * in, c
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -454,7 +459,7 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_ch3_str1_nopad(const mli_tensor * in, c
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -478,7 +483,8 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_ch3_str1_nopad(const mli_tensor * in, c
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -531,7 +537,7 @@ mli_status mli_krn_maxpool_chw_fx16_k4x4_str1_nopad(const mli_tensor * in, const
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -555,7 +561,8 @@ mli_status mli_krn_maxpool_chw_fx16_k4x4_str1_nopad(const mli_tensor * in, const
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -608,7 +615,7 @@ mli_status mli_krn_maxpool_chw_fx16_k4x4_ch1_str1_nopad(const mli_tensor * in, c
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -632,7 +639,8 @@ mli_status mli_krn_maxpool_chw_fx16_k4x4_ch1_str1_nopad(const mli_tensor * in, c
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -685,7 +693,7 @@ mli_status mli_krn_maxpool_chw_fx16_k4x4_ch3_str1_nopad(const mli_tensor * in, c
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -709,7 +717,8 @@ mli_status mli_krn_maxpool_chw_fx16_k4x4_ch3_str1_nopad(const mli_tensor * in, c
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -762,7 +771,7 @@ mli_status mli_krn_maxpool_chw_fx16_k5x5_str1_nopad(const mli_tensor * in, const
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -786,7 +795,8 @@ mli_status mli_krn_maxpool_chw_fx16_k5x5_str1_nopad(const mli_tensor * in, const
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -839,7 +849,7 @@ mli_status mli_krn_maxpool_chw_fx16_k5x5_ch1_str1_nopad(const mli_tensor * in, c
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -863,7 +873,8 @@ mli_status mli_krn_maxpool_chw_fx16_k5x5_ch1_str1_nopad(const mli_tensor * in, c
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -916,7 +927,7 @@ mli_status mli_krn_maxpool_chw_fx16_k5x5_ch3_str1_nopad(const mli_tensor * in, c
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -940,7 +951,8 @@ mli_status mli_krn_maxpool_chw_fx16_k5x5_ch3_str1_nopad(const mli_tensor * in, c
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -993,7 +1005,7 @@ mli_status mli_krn_maxpool_chw_fx16_k6x6_str1_nopad(const mli_tensor * in, const
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -1017,7 +1029,8 @@ mli_status mli_krn_maxpool_chw_fx16_k6x6_str1_nopad(const mli_tensor * in, const
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -1070,7 +1083,7 @@ mli_status mli_krn_maxpool_chw_fx16_k6x6_ch1_str1_nopad(const mli_tensor * in, c
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -1094,7 +1107,8 @@ mli_status mli_krn_maxpool_chw_fx16_k6x6_ch1_str1_nopad(const mli_tensor * in, c
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -1147,7 +1161,7 @@ mli_status mli_krn_maxpool_chw_fx16_k6x6_ch3_str1_nopad(const mli_tensor * in, c
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -1171,7 +1185,8 @@ mli_status mli_krn_maxpool_chw_fx16_k6x6_ch3_str1_nopad(const mli_tensor * in, c
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -1224,7 +1239,7 @@ mli_status mli_krn_maxpool_chw_fx16_k7x7_str1_nopad(const mli_tensor * in, const
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -1248,7 +1263,8 @@ mli_status mli_krn_maxpool_chw_fx16_k7x7_str1_nopad(const mli_tensor * in, const
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -1301,7 +1317,7 @@ mli_status mli_krn_maxpool_chw_fx16_k7x7_ch1_str1_nopad(const mli_tensor * in, c
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -1325,7 +1341,8 @@ mli_status mli_krn_maxpool_chw_fx16_k7x7_ch1_str1_nopad(const mli_tensor * in, c
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -1378,7 +1395,7 @@ mli_status mli_krn_maxpool_chw_fx16_k7x7_ch3_str1_nopad(const mli_tensor * in, c
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -1402,7 +1419,8 @@ mli_status mli_krn_maxpool_chw_fx16_k7x7_ch3_str1_nopad(const mli_tensor * in, c
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -1455,7 +1473,7 @@ mli_status mli_krn_maxpool_chw_fx16_k8x8_str1_nopad(const mli_tensor * in, const
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -1479,7 +1497,8 @@ mli_status mli_krn_maxpool_chw_fx16_k8x8_str1_nopad(const mli_tensor * in, const
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -1532,7 +1551,7 @@ mli_status mli_krn_maxpool_chw_fx16_k8x8_ch1_str1_nopad(const mli_tensor * in, c
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -1556,7 +1575,8 @@ mli_status mli_krn_maxpool_chw_fx16_k8x8_ch1_str1_nopad(const mli_tensor * in, c
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -1609,7 +1629,7 @@ mli_status mli_krn_maxpool_chw_fx16_k8x8_ch3_str1_nopad(const mli_tensor * in, c
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -1633,7 +1653,8 @@ mli_status mli_krn_maxpool_chw_fx16_k8x8_ch3_str1_nopad(const mli_tensor * in, c
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -1686,7 +1707,7 @@ mli_status mli_krn_maxpool_chw_fx16_k9x9_str1_nopad(const mli_tensor * in, const
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -1710,7 +1731,8 @@ mli_status mli_krn_maxpool_chw_fx16_k9x9_str1_nopad(const mli_tensor * in, const
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -1763,7 +1785,7 @@ mli_status mli_krn_maxpool_chw_fx16_k9x9_ch1_str1_nopad(const mli_tensor * in, c
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -1787,7 +1809,8 @@ mli_status mli_krn_maxpool_chw_fx16_k9x9_ch1_str1_nopad(const mli_tensor * in, c
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -1840,7 +1863,7 @@ mli_status mli_krn_maxpool_chw_fx16_k9x9_ch3_str1_nopad(const mli_tensor * in, c
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -1864,7 +1887,8 @@ mli_status mli_krn_maxpool_chw_fx16_k9x9_ch3_str1_nopad(const mli_tensor * in, c
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -1917,7 +1941,7 @@ mli_status mli_krn_maxpool_chw_fx16_k10x10_str1_nopad(const mli_tensor * in, con
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -1941,7 +1965,8 @@ mli_status mli_krn_maxpool_chw_fx16_k10x10_str1_nopad(const mli_tensor * in, con
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -1994,7 +2019,7 @@ mli_status mli_krn_maxpool_chw_fx16_k10x10_ch1_str1_nopad(const mli_tensor * in,
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -2018,7 +2043,8 @@ mli_status mli_krn_maxpool_chw_fx16_k10x10_ch1_str1_nopad(const mli_tensor * in,
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -2071,7 +2097,7 @@ mli_status mli_krn_maxpool_chw_fx16_k10x10_ch3_str1_nopad(const mli_tensor * in,
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -2095,7 +2121,8 @@ mli_status mli_krn_maxpool_chw_fx16_k10x10_ch3_str1_nopad(const mli_tensor * in,
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -2148,7 +2175,7 @@ mli_status mli_krn_maxpool_chw_fx16_k1x2_str1_nopad(const mli_tensor * in, const
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -2172,7 +2199,8 @@ mli_status mli_krn_maxpool_chw_fx16_k1x2_str1_nopad(const mli_tensor * in, const
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -2225,7 +2253,7 @@ mli_status mli_krn_maxpool_chw_fx16_k1x2_ch1_str1_nopad(const mli_tensor * in, c
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -2249,7 +2277,8 @@ mli_status mli_krn_maxpool_chw_fx16_k1x2_ch1_str1_nopad(const mli_tensor * in, c
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -2302,7 +2331,7 @@ mli_status mli_krn_maxpool_chw_fx16_k1x3_str1_nopad(const mli_tensor * in, const
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -2326,7 +2355,8 @@ mli_status mli_krn_maxpool_chw_fx16_k1x3_str1_nopad(const mli_tensor * in, const
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -2379,7 +2409,7 @@ mli_status mli_krn_maxpool_chw_fx16_k1x3_ch1_str1_nopad(const mli_tensor * in, c
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -2403,7 +2433,8 @@ mli_status mli_krn_maxpool_chw_fx16_k1x3_ch1_str1_nopad(const mli_tensor * in, c
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -2456,7 +2487,7 @@ mli_status mli_krn_maxpool_chw_fx16_k2x1_str1_nopad(const mli_tensor * in, const
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -2480,7 +2511,8 @@ mli_status mli_krn_maxpool_chw_fx16_k2x1_str1_nopad(const mli_tensor * in, const
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -2533,7 +2565,7 @@ mli_status mli_krn_maxpool_chw_fx16_k2x1_ch1_str1_nopad(const mli_tensor * in, c
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -2557,7 +2589,8 @@ mli_status mli_krn_maxpool_chw_fx16_k2x1_ch1_str1_nopad(const mli_tensor * in, c
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -2610,7 +2643,7 @@ mli_status mli_krn_maxpool_chw_fx16_k3x1_str1_nopad(const mli_tensor * in, const
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -2634,7 +2667,8 @@ mli_status mli_krn_maxpool_chw_fx16_k3x1_str1_nopad(const mli_tensor * in, const
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -2687,7 +2721,7 @@ mli_status mli_krn_maxpool_chw_fx16_k3x1_ch1_str1_nopad(const mli_tensor * in, c
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -2711,7 +2745,8 @@ mli_status mli_krn_maxpool_chw_fx16_k3x1_ch1_str1_nopad(const mli_tensor * in, c
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -2764,7 +2799,7 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_str1_krnpad(const mli_tensor * in, cons
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -2780,7 +2815,7 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_str1_krnpad(const mli_tensor * in, cons
 
     mli_prv_fx_init_dsp_ctrl();
 
-    maxpool_chw_krnpad(
+    maxpool_chw_krnpad_small(
         in_ftrs, out_ftrs,
         row_beg, row_end,
         clmn_beg, clmn_end,
@@ -2788,7 +2823,8 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_str1_krnpad(const mli_tensor * in, cons
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -2841,7 +2877,7 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_ch1_str1_krnpad(const mli_tensor * in, 
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -2857,7 +2893,7 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_ch1_str1_krnpad(const mli_tensor * in, 
 
     mli_prv_fx_init_dsp_ctrl();
 
-    maxpool_chw_krnpad(
+    maxpool_chw_krnpad_small(
         in_ftrs, out_ftrs,
         row_beg, row_end,
         clmn_beg, clmn_end,
@@ -2865,7 +2901,8 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_ch1_str1_krnpad(const mli_tensor * in, 
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -2918,7 +2955,7 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_ch3_str1_krnpad(const mli_tensor * in, 
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -2934,7 +2971,7 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_ch3_str1_krnpad(const mli_tensor * in, 
 
     mli_prv_fx_init_dsp_ctrl();
 
-    maxpool_chw_krnpad(
+    maxpool_chw_krnpad_small(
         in_ftrs, out_ftrs,
         row_beg, row_end,
         clmn_beg, clmn_end,
@@ -2942,7 +2979,8 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_ch3_str1_krnpad(const mli_tensor * in, 
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -2995,7 +3033,7 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_str1_krnpad(const mli_tensor * in, cons
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -3011,7 +3049,7 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_str1_krnpad(const mli_tensor * in, cons
 
     mli_prv_fx_init_dsp_ctrl();
 
-    maxpool_chw_krnpad(
+    maxpool_chw_krnpad_small(
         in_ftrs, out_ftrs,
         row_beg, row_end,
         clmn_beg, clmn_end,
@@ -3019,7 +3057,8 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_str1_krnpad(const mli_tensor * in, cons
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -3072,7 +3111,7 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_ch1_str1_krnpad(const mli_tensor * in, 
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -3088,7 +3127,7 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_ch1_str1_krnpad(const mli_tensor * in, 
 
     mli_prv_fx_init_dsp_ctrl();
 
-    maxpool_chw_krnpad(
+    maxpool_chw_krnpad_small(
         in_ftrs, out_ftrs,
         row_beg, row_end,
         clmn_beg, clmn_end,
@@ -3096,7 +3135,8 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_ch1_str1_krnpad(const mli_tensor * in, 
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -3149,7 +3189,7 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_ch3_str1_krnpad(const mli_tensor * in, 
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -3165,7 +3205,7 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_ch3_str1_krnpad(const mli_tensor * in, 
 
     mli_prv_fx_init_dsp_ctrl();
 
-    maxpool_chw_krnpad(
+    maxpool_chw_krnpad_small(
         in_ftrs, out_ftrs,
         row_beg, row_end,
         clmn_beg, clmn_end,
@@ -3173,7 +3213,8 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_ch3_str1_krnpad(const mli_tensor * in, 
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -3226,7 +3267,7 @@ mli_status mli_krn_maxpool_chw_fx16_k4x4_str1_krnpad(const mli_tensor * in, cons
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -3250,7 +3291,8 @@ mli_status mli_krn_maxpool_chw_fx16_k4x4_str1_krnpad(const mli_tensor * in, cons
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -3303,7 +3345,7 @@ mli_status mli_krn_maxpool_chw_fx16_k4x4_ch1_str1_krnpad(const mli_tensor * in, 
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -3327,7 +3369,8 @@ mli_status mli_krn_maxpool_chw_fx16_k4x4_ch1_str1_krnpad(const mli_tensor * in, 
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -3380,7 +3423,7 @@ mli_status mli_krn_maxpool_chw_fx16_k4x4_ch3_str1_krnpad(const mli_tensor * in, 
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -3404,7 +3447,8 @@ mli_status mli_krn_maxpool_chw_fx16_k4x4_ch3_str1_krnpad(const mli_tensor * in, 
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -3457,7 +3501,7 @@ mli_status mli_krn_maxpool_chw_fx16_k5x5_str1_krnpad(const mli_tensor * in, cons
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -3481,7 +3525,8 @@ mli_status mli_krn_maxpool_chw_fx16_k5x5_str1_krnpad(const mli_tensor * in, cons
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -3534,7 +3579,7 @@ mli_status mli_krn_maxpool_chw_fx16_k5x5_ch1_str1_krnpad(const mli_tensor * in, 
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -3558,7 +3603,8 @@ mli_status mli_krn_maxpool_chw_fx16_k5x5_ch1_str1_krnpad(const mli_tensor * in, 
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -3611,7 +3657,7 @@ mli_status mli_krn_maxpool_chw_fx16_k5x5_ch3_str1_krnpad(const mli_tensor * in, 
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -3635,7 +3681,8 @@ mli_status mli_krn_maxpool_chw_fx16_k5x5_ch3_str1_krnpad(const mli_tensor * in, 
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -3688,7 +3735,7 @@ mli_status mli_krn_maxpool_chw_fx16_k6x6_str1_krnpad(const mli_tensor * in, cons
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -3712,7 +3759,8 @@ mli_status mli_krn_maxpool_chw_fx16_k6x6_str1_krnpad(const mli_tensor * in, cons
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -3765,7 +3813,7 @@ mli_status mli_krn_maxpool_chw_fx16_k6x6_ch1_str1_krnpad(const mli_tensor * in, 
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -3789,7 +3837,8 @@ mli_status mli_krn_maxpool_chw_fx16_k6x6_ch1_str1_krnpad(const mli_tensor * in, 
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -3842,7 +3891,7 @@ mli_status mli_krn_maxpool_chw_fx16_k6x6_ch3_str1_krnpad(const mli_tensor * in, 
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -3866,7 +3915,8 @@ mli_status mli_krn_maxpool_chw_fx16_k6x6_ch3_str1_krnpad(const mli_tensor * in, 
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -3919,7 +3969,7 @@ mli_status mli_krn_maxpool_chw_fx16_k7x7_str1_krnpad(const mli_tensor * in, cons
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -3943,7 +3993,8 @@ mli_status mli_krn_maxpool_chw_fx16_k7x7_str1_krnpad(const mli_tensor * in, cons
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -3996,7 +4047,7 @@ mli_status mli_krn_maxpool_chw_fx16_k7x7_ch1_str1_krnpad(const mli_tensor * in, 
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -4020,7 +4071,8 @@ mli_status mli_krn_maxpool_chw_fx16_k7x7_ch1_str1_krnpad(const mli_tensor * in, 
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -4073,7 +4125,7 @@ mli_status mli_krn_maxpool_chw_fx16_k7x7_ch3_str1_krnpad(const mli_tensor * in, 
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -4097,7 +4149,8 @@ mli_status mli_krn_maxpool_chw_fx16_k7x7_ch3_str1_krnpad(const mli_tensor * in, 
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -4150,7 +4203,7 @@ mli_status mli_krn_maxpool_chw_fx16_k8x8_str1_krnpad(const mli_tensor * in, cons
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -4174,7 +4227,8 @@ mli_status mli_krn_maxpool_chw_fx16_k8x8_str1_krnpad(const mli_tensor * in, cons
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -4227,7 +4281,7 @@ mli_status mli_krn_maxpool_chw_fx16_k8x8_ch1_str1_krnpad(const mli_tensor * in, 
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -4251,7 +4305,8 @@ mli_status mli_krn_maxpool_chw_fx16_k8x8_ch1_str1_krnpad(const mli_tensor * in, 
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -4304,7 +4359,7 @@ mli_status mli_krn_maxpool_chw_fx16_k8x8_ch3_str1_krnpad(const mli_tensor * in, 
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -4328,7 +4383,8 @@ mli_status mli_krn_maxpool_chw_fx16_k8x8_ch3_str1_krnpad(const mli_tensor * in, 
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -4381,7 +4437,7 @@ mli_status mli_krn_maxpool_chw_fx16_k9x9_str1_krnpad(const mli_tensor * in, cons
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -4405,7 +4461,8 @@ mli_status mli_krn_maxpool_chw_fx16_k9x9_str1_krnpad(const mli_tensor * in, cons
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -4458,7 +4515,7 @@ mli_status mli_krn_maxpool_chw_fx16_k9x9_ch1_str1_krnpad(const mli_tensor * in, 
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -4482,7 +4539,8 @@ mli_status mli_krn_maxpool_chw_fx16_k9x9_ch1_str1_krnpad(const mli_tensor * in, 
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -4535,7 +4593,7 @@ mli_status mli_krn_maxpool_chw_fx16_k9x9_ch3_str1_krnpad(const mli_tensor * in, 
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -4559,7 +4617,8 @@ mli_status mli_krn_maxpool_chw_fx16_k9x9_ch3_str1_krnpad(const mli_tensor * in, 
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -4612,7 +4671,7 @@ mli_status mli_krn_maxpool_chw_fx16_k10x10_str1_krnpad(const mli_tensor * in, co
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -4636,7 +4695,8 @@ mli_status mli_krn_maxpool_chw_fx16_k10x10_str1_krnpad(const mli_tensor * in, co
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -4689,7 +4749,7 @@ mli_status mli_krn_maxpool_chw_fx16_k10x10_ch1_str1_krnpad(const mli_tensor * in
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -4713,7 +4773,8 @@ mli_status mli_krn_maxpool_chw_fx16_k10x10_ch1_str1_krnpad(const mli_tensor * in
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -4766,7 +4827,7 @@ mli_status mli_krn_maxpool_chw_fx16_k10x10_ch3_str1_krnpad(const mli_tensor * in
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -4790,7 +4851,8 @@ mli_status mli_krn_maxpool_chw_fx16_k10x10_ch3_str1_krnpad(const mli_tensor * in
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -4843,7 +4905,7 @@ mli_status mli_krn_maxpool_chw_fx16_k1x2_str1_krnpad(const mli_tensor * in, cons
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -4867,7 +4929,8 @@ mli_status mli_krn_maxpool_chw_fx16_k1x2_str1_krnpad(const mli_tensor * in, cons
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -4920,7 +4983,7 @@ mli_status mli_krn_maxpool_chw_fx16_k1x2_ch1_str1_krnpad(const mli_tensor * in, 
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -4944,7 +5007,8 @@ mli_status mli_krn_maxpool_chw_fx16_k1x2_ch1_str1_krnpad(const mli_tensor * in, 
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -4997,7 +5061,7 @@ mli_status mli_krn_maxpool_chw_fx16_k1x3_str1_krnpad(const mli_tensor * in, cons
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -5021,7 +5085,8 @@ mli_status mli_krn_maxpool_chw_fx16_k1x3_str1_krnpad(const mli_tensor * in, cons
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -5074,7 +5139,7 @@ mli_status mli_krn_maxpool_chw_fx16_k1x3_ch1_str1_krnpad(const mli_tensor * in, 
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -5098,7 +5163,8 @@ mli_status mli_krn_maxpool_chw_fx16_k1x3_ch1_str1_krnpad(const mli_tensor * in, 
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -5151,7 +5217,7 @@ mli_status mli_krn_maxpool_chw_fx16_k2x1_str1_krnpad(const mli_tensor * in, cons
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -5175,7 +5241,8 @@ mli_status mli_krn_maxpool_chw_fx16_k2x1_str1_krnpad(const mli_tensor * in, cons
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -5228,7 +5295,7 @@ mli_status mli_krn_maxpool_chw_fx16_k2x1_ch1_str1_krnpad(const mli_tensor * in, 
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -5252,7 +5319,8 @@ mli_status mli_krn_maxpool_chw_fx16_k2x1_ch1_str1_krnpad(const mli_tensor * in, 
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -5305,7 +5373,7 @@ mli_status mli_krn_maxpool_chw_fx16_k3x1_str1_krnpad(const mli_tensor * in, cons
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -5329,7 +5397,8 @@ mli_status mli_krn_maxpool_chw_fx16_k3x1_str1_krnpad(const mli_tensor * in, cons
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -5382,7 +5451,7 @@ mli_status mli_krn_maxpool_chw_fx16_k3x1_ch1_str1_krnpad(const mli_tensor * in, 
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -5406,7 +5475,8 @@ mli_status mli_krn_maxpool_chw_fx16_k3x1_ch1_str1_krnpad(const mli_tensor * in, 
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        1);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -5459,7 +5529,7 @@ mli_status mli_krn_maxpool_chw_fx16_k1xn_str1(const mli_tensor * in, const mli_p
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -5483,7 +5553,8 @@ mli_status mli_krn_maxpool_chw_fx16_k1xn_str1(const mli_tensor * in, const mli_p
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        0);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -5536,7 +5607,7 @@ mli_status mli_krn_maxpool_chw_fx16_knx1_str1(const mli_tensor * in, const mli_p
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -5560,7 +5631,8 @@ mli_status mli_krn_maxpool_chw_fx16_knx1_str1(const mli_tensor * in, const mli_p
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        0);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -5613,7 +5685,7 @@ mli_status mli_krn_maxpool_chw_fx16_ch1_str1(const mli_tensor * in, const mli_po
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -5637,7 +5709,8 @@ mli_status mli_krn_maxpool_chw_fx16_ch1_str1(const mli_tensor * in, const mli_po
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        0);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -5690,7 +5763,7 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2(const mli_tensor * in, const mli_pool_c
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -5706,7 +5779,7 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2(const mli_tensor * in, const mli_pool_c
 
     mli_prv_fx_init_dsp_ctrl();
 
-    maxpool_chw_krnpad(
+    maxpool_chw_krnpad_small(
         in_ftrs, out_ftrs,
         row_beg, row_end,
         clmn_beg, clmn_end,
@@ -5714,7 +5787,8 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2(const mli_tensor * in, const mli_pool_c
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        0);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -5767,7 +5841,7 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_ch1(const mli_tensor * in, const mli_po
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -5783,7 +5857,7 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_ch1(const mli_tensor * in, const mli_po
 
     mli_prv_fx_init_dsp_ctrl();
 
-    maxpool_chw_krnpad(
+    maxpool_chw_krnpad_small(
         in_ftrs, out_ftrs,
         row_beg, row_end,
         clmn_beg, clmn_end,
@@ -5791,7 +5865,8 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_ch1(const mli_tensor * in, const mli_po
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        0);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -5844,7 +5919,7 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3(const mli_tensor * in, const mli_pool_c
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -5860,7 +5935,7 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3(const mli_tensor * in, const mli_pool_c
 
     mli_prv_fx_init_dsp_ctrl();
 
-    maxpool_chw_krnpad(
+    maxpool_chw_krnpad_small(
         in_ftrs, out_ftrs,
         row_beg, row_end,
         clmn_beg, clmn_end,
@@ -5868,7 +5943,8 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3(const mli_tensor * in, const mli_pool_c
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        0);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -5921,7 +5997,7 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_ch1(const mli_tensor * in, const mli_po
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -5937,7 +6013,7 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_ch1(const mli_tensor * in, const mli_po
 
     mli_prv_fx_init_dsp_ctrl();
 
-    maxpool_chw_krnpad(
+    maxpool_chw_krnpad_small(
         in_ftrs, out_ftrs,
         row_beg, row_end,
         clmn_beg, clmn_end,
@@ -5945,7 +6021,8 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_ch1(const mli_tensor * in, const mli_po
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        0);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -5998,7 +6075,7 @@ mli_status mli_krn_maxpool_chw_fx16_generic(const mli_tensor * in, const mli_poo
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
@@ -6022,7 +6099,8 @@ mli_status mli_krn_maxpool_chw_fx16_generic(const mli_tensor * in, const mli_poo
         out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
-        padding_top, padding_bot, padding_left, padding_right);
+        padding_top, padding_bot, padding_left, padding_right,
+        0);
 
     // fill output tensor parameters
     out->el_type = in->el_type;

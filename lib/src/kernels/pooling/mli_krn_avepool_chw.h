@@ -30,7 +30,7 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad(
         const int clmn_beg,
         const int clmn_end,
         const MLI_PTR(io_T) __restrict in_ftrs,
-        MLI_PTR(io_T) __restrict out_ftrs,
+        MLI_OUT_PTR(io_T) __restrict out_ftrs,
         const int channels_num,
         const int in_width,
         const int in_height,
@@ -49,7 +49,7 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad(
 
     const int kernel_size = kernel_width * kernel_height;
 
-    MLI_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
+    MLI_OUT_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
     MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T))in_ftrs + in_width * (row_beg * stride_height - padding_top) +
             (clmn_beg * stride_width - padding_left);
     const int delta_W = (clmn_end - clmn_beg);
@@ -81,7 +81,7 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad_even(
         const int clmn_beg,
         const int clmn_end,
         const MLI_PTR(io_T) __restrict in_ftrs,
-        MLI_PTR(io_T) __restrict out_ftrs,
+        MLI_OUT_PTR(io_T) __restrict out_ftrs,
         const int channels_num,
         const int in_width,
         const int in_height,
@@ -100,7 +100,7 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad_even(
 
     const int kernel_size = kernel_width * kernel_height;
 
-    MLI_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
+    MLI_OUT_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
     MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T))in_ftrs + in_width * (row_beg * stride_height - padding_top) +
             (clmn_beg * stride_width - padding_left);
     const int delta_W = (clmn_end - clmn_beg);
@@ -134,7 +134,7 @@ static inline void __attribute__((always_inline)) avepool_chw(
         const int clmn_beg,
         const int clmn_end,
         const MLI_PTR(io_T) __restrict in_ftrs,
-        MLI_PTR(io_T) __restrict out_ftrs,
+        MLI_OUT_PTR(io_T) __restrict out_ftrs,
         const int channels_num,
         const int in_width,
         const int in_height,
@@ -151,10 +151,10 @@ static inline void __attribute__((always_inline)) avepool_chw(
     (void)padding_right;
     (void)padding_bot;
 
-    MLI_PTR(io_T) __restrict out_ptr = out_ftrs + clmn_beg * out_width + clmn_beg;
+    MLI_OUT_PTR(io_T) __restrict out_ptr = out_ftrs + clmn_beg * out_width + clmn_beg;
     for (int ch_idx = 0; ch_idx < channels_num; ch_idx++) {
         for (int H_idx = row_beg; H_idx < row_end; H_idx++) {
-            MLI_PTR(io_T) __restrict p_out_ftrs = (out_ftrs + ch_idx * out_width * out_height + H_idx * out_width);
+            MLI_OUT_PTR(io_T) __restrict p_out_ftrs = (out_ftrs + ch_idx * out_width * out_height + H_idx * out_width);
             for (int W_idx = clmn_beg; W_idx < clmn_end; W_idx++) {
                 // Define area of input and filter for convolution
                 // *_comp - compensation values for valid area defining
@@ -194,7 +194,7 @@ static inline void __attribute__((always_inline)) avepool_chw_k4x4_str1_nopad(
         const int clmn_beg,
         const int clmn_end,
         const MLI_PTR(io_T) __restrict in_ftrs,
-        MLI_PTR(io_T) __restrict out_ftrs,
+        MLI_OUT_PTR(io_T) __restrict out_ftrs,
         const int channels_num,
         const int in_width,
         const int in_height,
@@ -214,7 +214,7 @@ static inline void __attribute__((always_inline)) avepool_chw_k4x4_str1_nopad(
     MLI_ASSERT(stride_width == 1);
     MLI_ASSERT(stride_height == 1);
 
-    MLI_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
+    MLI_OUT_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
     MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T))in_ftrs + in_width * (row_beg * stride_height - padding_top) +
            (clmn_beg * stride_width - padding_left);
     const int delta_W = (clmn_end - clmn_beg);
@@ -247,7 +247,7 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad_k2x2(
         const int clmn_beg,
         const int clmn_end,
         const MLI_PTR(io_T) __restrict in_ftrs,
-        MLI_PTR(io_T) __restrict out_ftrs,
+        MLI_OUT_PTR(io_T) __restrict out_ftrs,
         const int channels_num,
         const int in_width,
         const int in_height,
@@ -264,7 +264,7 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad_k2x2(
     (void)padding_right;
     (void)padding_bot;
 
-    MLI_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
+    MLI_OUT_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
     MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T))in_ftrs + in_width * (row_beg * stride_height - padding_top) +
            (clmn_beg * stride_width - padding_left);
     const int delta_W = (clmn_end - clmn_beg);
@@ -299,7 +299,7 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad_k4_Nx2_N_eve
         const int clmn_beg,
         const int clmn_end,
         const MLI_PTR(io_T) __restrict in_ftrs,
-        MLI_PTR(io_T) __restrict out_ftrs,
+        MLI_OUT_PTR(io_T) __restrict out_ftrs,
         const int channels_num,
         const int in_width,
         const int in_height,
@@ -318,7 +318,7 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad_k4_Nx2_N_eve
 
     const int kernel_size = kernel_height * kernel_width;
 
-    MLI_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
+    MLI_OUT_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
     MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T))in_ftrs + in_width * (row_beg * stride_height - padding_top) +
             (clmn_beg * stride_width - padding_left);
     const int delta_W = (clmn_end - clmn_beg);
@@ -351,7 +351,7 @@ static inline void __attribute__((always_inline)) avepool_chw_krnpad(
         const int clmn_beg,
         const int clmn_end,
         const MLI_PTR(io_T) __restrict in_ftrs,
-        MLI_PTR(io_T) __restrict out_ftrs,
+        MLI_OUT_PTR(io_T) __restrict out_ftrs,
         const int channels_num,
         const int in_width,
         const int in_height,
@@ -388,43 +388,35 @@ static inline void __attribute__((always_inline)) avepool_chw_krnpad(
     // (usually significantly smaller part of computations)
     //=======================================================================
     if (padding_top || padding_left || padding_bot || padding_right) {
+        rect_t areas[4];
+        uint32_t areas_num = 0;
         if (padding_top) {
-            const int row_beg = 0;
-            const int row_end = CEIL_DIV(padding_top, stride_height);
-            const int clmn_beg = 0;
-            const int clmn_end = out_width;
-            avepool_chw(
-                    row_beg, row_end, clmn_beg, clmn_end, in_ftrs, out_ftrs, channels_num, in_width, in_height,
-                    out_width, out_height, kernel_height, kernel_width, stride_height, stride_width, padding_top,
-                    padding_left, padding_right, padding_bot);
+            areas[areas_num].row_beg = 0;
+            areas[areas_num].row_end = CEIL_DIV (padding_top, stride_height);
+            areas[areas_num].clmn_beg = 0;
+            areas[areas_num++].clmn_end = out_width;
         }
         if (padding_bot) {
-            const int row_beg = out_height - CEIL_DIV(padding_bot, stride_height);
-            const int row_end = out_height;
-            const int clmn_beg = 0;
-            const int clmn_end = out_width;
-            avepool_chw(
-                    row_beg, row_end, clmn_beg, clmn_end, in_ftrs, out_ftrs, channels_num, in_width, in_height,
-                    out_width, out_height, kernel_height, kernel_width, stride_height, stride_width, padding_top,
-                    padding_left, padding_right, padding_bot);
+            areas[areas_num].row_beg = out_height - CEIL_DIV (padding_bot, stride_height);
+            areas[areas_num].row_end = out_height;
+            areas[areas_num].clmn_beg = 0;
+            areas[areas_num++].clmn_end = out_width;
         }
         if (padding_left) {
-            const int row_beg = CEIL_DIV(padding_top, stride_height);
-            const int row_end = out_height - CEIL_DIV(padding_bot, stride_height);
-            const int clmn_beg = 0;
-            const int clmn_end = CEIL_DIV(padding_left, stride_width);
-            avepool_chw(
-                    row_beg, row_end, clmn_beg, clmn_end, in_ftrs, out_ftrs, channels_num, in_width, in_height,
-                    out_width, out_height, kernel_height, kernel_width, stride_height, stride_width, padding_top,
-                    padding_left, padding_right, padding_bot);
+            areas[areas_num].row_beg = CEIL_DIV (padding_top, stride_height);
+            areas[areas_num].row_end = out_height - CEIL_DIV (padding_bot, stride_height);
+            areas[areas_num].clmn_beg = 0;
+            areas[areas_num++].clmn_end = CEIL_DIV (padding_left, stride_width);
         }
         if (padding_right) {
-            const int row_beg = CEIL_DIV(padding_top, stride_height);
-            const int row_end = out_height - CEIL_DIV(padding_bot, stride_height);
-            const int clmn_beg = out_width - CEIL_DIV(padding_right, stride_width);
-            const int clmn_end = out_width;
+            areas[areas_num].row_beg = CEIL_DIV (padding_top, stride_height);
+            areas[areas_num].row_end = out_height - CEIL_DIV (padding_bot, stride_height);
+            areas[areas_num].clmn_beg = out_width - CEIL_DIV (padding_right, stride_width);
+            areas[areas_num++].clmn_end = out_width;
+        }
+        for (int i = 0; i < areas_num; i++) {
             avepool_chw(
-                    row_beg, row_end, clmn_beg, clmn_end, in_ftrs, out_ftrs, channels_num, in_width, in_height,
+                    areas[i].row_beg, areas[i].row_end, areas[i].clmn_beg, areas[i].clmn_end, in_ftrs, out_ftrs, channels_num, in_width, in_height,
                     out_width, out_height, kernel_height, kernel_width, stride_height, stride_width, padding_top,
                     padding_left, padding_right, padding_bot);
         }
@@ -439,7 +431,7 @@ static inline void __attribute__((always_inline)) avepool_chw_krnpad_k4_Nx2_N_ev
         const int clmn_beg,
         const int clmn_end,
         const MLI_PTR(io_T) __restrict in_ftrs,
-        MLI_PTR(io_T) __restrict out_ftrs,
+        MLI_OUT_PTR(io_T) __restrict out_ftrs,
         const int channels_num,
         const int in_width,
         const int in_height,
@@ -476,43 +468,35 @@ static inline void __attribute__((always_inline)) avepool_chw_krnpad_k4_Nx2_N_ev
     // (usually significantly smaller part of computations)
     //=======================================================================
     if (padding_top || padding_left || padding_bot || padding_right) {
+        rect_t areas[4];
+        uint32_t areas_num = 0;
         if (padding_top) {
-            const int row_beg = 0;
-            const int row_end = CEIL_DIV(padding_top, stride_height);
-            const int clmn_beg = 0;
-            const int clmn_end = out_width;
-            avepool_chw(
-                    row_beg, row_end, clmn_beg, clmn_end, in_ftrs, out_ftrs, channels_num, in_width, in_height,
-                    out_width, out_height, kernel_height, kernel_width, stride_height, stride_width, padding_top,
-                    padding_left, padding_right, padding_bot);
+            areas[areas_num].row_beg = 0;
+            areas[areas_num].row_end = CEIL_DIV (padding_top, stride_height);
+            areas[areas_num].clmn_beg = 0;
+            areas[areas_num++].clmn_end = out_width;
         }
         if (padding_bot) {
-            const int row_beg = out_height - CEIL_DIV(padding_bot, stride_height);
-            const int row_end = out_height;
-            const int clmn_beg = 0;
-            const int clmn_end = out_width;
-            avepool_chw(
-                    row_beg, row_end, clmn_beg, clmn_end, in_ftrs, out_ftrs, channels_num, in_width, in_height,
-                    out_width, out_height, kernel_height, kernel_width, stride_height, stride_width, padding_top,
-                    padding_left, padding_right, padding_bot);
+            areas[areas_num].row_beg = out_height - CEIL_DIV (padding_bot, stride_height);
+            areas[areas_num].row_end = out_height;
+            areas[areas_num].clmn_beg = 0;
+            areas[areas_num++].clmn_end = out_width;
         }
         if (padding_left) {
-            const int row_beg = CEIL_DIV(padding_top, stride_height);
-            const int row_end = out_height - CEIL_DIV(padding_bot, stride_height);
-            const int clmn_beg = 0;
-            const int clmn_end = CEIL_DIV(padding_left, stride_width);
-            avepool_chw(
-                    row_beg, row_end, clmn_beg, clmn_end, in_ftrs, out_ftrs, channels_num, in_width, in_height,
-                    out_width, out_height, kernel_height, kernel_width, stride_height, stride_width, padding_top,
-                    padding_left, padding_right, padding_bot);
+            areas[areas_num].row_beg = CEIL_DIV (padding_top, stride_height);
+            areas[areas_num].row_end = out_height - CEIL_DIV (padding_bot, stride_height);
+            areas[areas_num].clmn_beg = 0;
+            areas[areas_num++].clmn_end = CEIL_DIV (padding_left, stride_width);
         }
         if (padding_right) {
-            const int row_beg = CEIL_DIV(padding_top, stride_height);
-            const int row_end = out_height - CEIL_DIV(padding_bot, stride_height);
-            const int clmn_beg = out_width - CEIL_DIV(padding_right, stride_width);
-            const int clmn_end = out_width;
+            areas[areas_num].row_beg = CEIL_DIV (padding_top, stride_height);
+            areas[areas_num].row_end = out_height - CEIL_DIV (padding_bot, stride_height);
+            areas[areas_num].clmn_beg = out_width - CEIL_DIV (padding_right, stride_width);
+            areas[areas_num++].clmn_end = out_width;
+        }
+        for (int i = 0; i < areas_num; i++) {
             avepool_chw(
-                    row_beg, row_end, clmn_beg, clmn_end, in_ftrs, out_ftrs, channels_num, in_width, in_height,
+                    areas[i].row_beg, areas[i].row_end, areas[i].clmn_beg, areas[i].clmn_end, in_ftrs, out_ftrs, channels_num, in_width, in_height,
                     out_width, out_height, kernel_height, kernel_width, stride_height, stride_width, padding_top,
                     padding_left, padding_right, padding_bot);
         }

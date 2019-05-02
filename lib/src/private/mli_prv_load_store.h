@@ -21,7 +21,7 @@
 
 
 static inline v2q15_t __attribute__ ((always_inline)) mli_prv_load_2_samples (const MLI_PTR (int8_t) __restrict in) {
-#ifndef _ARC
+#if defined __Xxy
     return __builtin_convertvector (*(MLI_PTR (v2i8_t)) in, v2q15_t);
 #else
     int16_t two8bitvalues = *(MLI_PTR (int16_t)) in;
@@ -34,16 +34,19 @@ static inline v2q15_t __attribute__ ((always_inline)) mli_prv_load_2_samples (co
     return *(MLI_PTR (v2q15_t)) in;
 }
 
-static inline void __attribute__ ((always_inline)) mli_prv_store_2_samples (MLI_PTR (int8_t) __restrict out, v2q15_t data) {
-    *(MLI_PTR (v2i8_t)) out = __builtin_convertvector (data, v2i8_t);
+static inline v4q15_t __attribute__ ((always_inline)) mli_prv_load_4_samples (const MLI_PTR (int16_t) __restrict in) {
+    return *(MLI_PTR (v4q15_t)) in;
+}
+static inline void __attribute__ ((always_inline)) mli_prv_store_2_samples (MLI_OUT_PTR (int8_t) __restrict out, v2q15_t data) {
+    *(MLI_OUT_PTR (v2i8_t)) out = __builtin_convertvector (data, v2i8_t);
 }
 
-static inline void __attribute__ ((always_inline)) mli_prv_store_2_samples (MLI_PTR (int8_t) __restrict out, v2i8_t data) {
-    *(MLI_PTR (v2i8_t)) out = data;
+static inline void __attribute__ ((always_inline)) mli_prv_store_2_samples (MLI_OUT_PTR (int8_t) __restrict out, v2i8_t data) {
+    *(MLI_OUT_PTR (v2i8_t)) out = data;
 }
 
-static inline void __attribute__ ((always_inline)) mli_prv_store_2_samples (MLI_PTR (int16_t) __restrict out, v2q15_t data) {
-    *(MLI_PTR (v2q15_t)) out = data;
+static inline void __attribute__ ((always_inline)) mli_prv_store_2_samples (MLI_OUT_PTR (int16_t) __restrict out, v2q15_t data) {
+    *(MLI_OUT_PTR (v2q15_t)) out = data;
 }
 
 
@@ -65,12 +68,12 @@ static inline v2q15_t __attribute__ ((always_inline)) mli_prv_load_1_sample (con
     return fx_create_v2q15(*(MLI_PTR (q15_t)) in, 0);
 }
 
-static inline void __attribute__ ((always_inline)) mli_prv_store_1_sample (MLI_PTR (int8_t) __restrict out, v2q15_t data) {
-    *(MLI_PTR (q7_t)) out = (q7_t) data[0];
+static inline void __attribute__ ((always_inline)) mli_prv_store_1_sample (MLI_OUT_PTR (int8_t) __restrict out, v2q15_t data) {
+    *(MLI_OUT_PTR (q7_t)) out = (q7_t) data[0];
 }
 
-static inline void __attribute__ ((always_inline)) mli_prv_store_1_sample (MLI_PTR (int16_t) __restrict out, v2q15_t data) {
-    *(MLI_PTR (q15_t)) out = data[0];
+static inline void __attribute__ ((always_inline)) mli_prv_store_1_sample (MLI_OUT_PTR (int16_t) __restrict out, v2q15_t data) {
+    *(MLI_OUT_PTR (q15_t)) out = data[0];
 }
 
 

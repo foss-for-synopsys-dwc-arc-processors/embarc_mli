@@ -1,7 +1,7 @@
 /* This file is generated, do not edit!
  * edit following template files instead:
  * filetemplate.txt
- * depthwise_conv2d_func_body.txt
+ * mli_krn_depthwise_conv2d_func_body.txt
  */
 /*
 * Copyright 2019, Synopsys, Inc.
@@ -75,13 +75,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k1x2_ch1_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -171,13 +171,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k2x1_ch1_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -267,13 +267,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k2x2_ch1_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -363,13 +363,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k3x3_ch1_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -459,13 +459,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k4x4_ch1_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -555,13 +555,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k5x5_ch1_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -651,13 +651,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k6x6_ch1_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -747,13 +747,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k7x7_ch1_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -843,13 +843,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k2x2_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -939,13 +939,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k3x3_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -1035,13 +1035,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k4x4_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -1131,13 +1131,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k5x5_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -1227,13 +1227,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k6x6_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -1323,13 +1323,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k7x7_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -1419,13 +1419,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_str1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -1515,13 +1515,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k1x2_ch1_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -1611,13 +1611,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k2x1_ch1_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -1707,13 +1707,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k2x2_ch1_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -1803,13 +1803,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k3x3_ch1_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -1899,13 +1899,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k4x4_ch1_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -1995,13 +1995,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k5x5_ch1_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -2091,13 +2091,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k6x6_ch1_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -2187,13 +2187,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k7x7_ch1_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -2283,13 +2283,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k2x2_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -2379,13 +2379,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k3x3_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -2475,13 +2475,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k4x4_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -2571,13 +2571,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k5x5_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -2667,13 +2667,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k6x6_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -2763,13 +2763,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k7x7_str1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -2859,13 +2859,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_k1xn_str1(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -2955,13 +2955,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_knx1_str1(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -3051,13 +3051,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_ch1_str1(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 
@@ -3147,13 +3147,13 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_generic(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
     MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_PTR(int16_t) out_ftrs = (MLI_PTR(int16_t ))out->data;
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data;
     MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data;
     MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data;
 

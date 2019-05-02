@@ -28,7 +28,7 @@ static void __attribute__((always_inline)) full_connection(
         const MLI_PTR(io_T) __restrict in_ptr,
         const MLI_PTR(w_T) __restrict w_ptr,
         const MLI_PTR(w_T) bias_p,
-        MLI_PTR(io_T) __restrict o_ptr,
+        MLI_CONV_OUT_PTR(io_T) __restrict o_ptr,
         const int ch_out,
         const int inp_size,
         const int bias_shift,
@@ -95,7 +95,7 @@ static void __attribute__((always_inline)) fully_connected_prepare_and_run_fx(
     const MLI_PTR(io_T) in_ptr = (MLI_PTR(io_T))(in->data);
     const MLI_PTR(w_T) w_ptr = (MLI_PTR(w_T))(weights->data);
     const MLI_PTR(w_T) b_ptr = (MLI_PTR(w_T))(bias->data);
-    MLI_PTR(io_T) out_ptr = (MLI_PTR(io_T))(out->data);
+    MLI_CONV_OUT_PTR(io_T) out_ptr = (MLI_CONV_OUT_PTR(io_T))(out->data);
 
     int ch_out = weights->shape[0];
     int in_sz = mli_prv_count_elem_num(in);

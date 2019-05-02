@@ -185,4 +185,4 @@ mli_status mli_krn_maxpool_chw_fx8_generic(const mli_tensor * in, const mli_pool
 #ifdef __cplusplus
 }
 #endif
-#endif                          //_MLI_KRN_MAXPOOL_SPEC_API_H_
+#endif //_MLI_KRN_MAXPOOL_SPEC_API_H_

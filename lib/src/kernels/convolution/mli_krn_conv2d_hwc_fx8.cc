@@ -52,6 +52,9 @@ mli_status mli_krn_conv2d_hwc_fx8 (
     mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwc_fx8(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
+
     uint8_t stride_width = cfg->stride_width;
     uint8_t stride_height = cfg->stride_height;
     uint8_t padding_top = cfg->padding_top;
@@ -60,11 +63,12 @@ mli_status mli_krn_conv2d_hwc_fx8 (
     uint8_t padding_right = cfg->padding_right;
 
     mli_minmax_t val_limit;
+    out->el_type = MLI_EL_FX_8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max (&cfg->relu, out);
 
     MLI_PTR(int8_t) in_ftrs = (MLI_PTR(int8_t))in->data;
-    MLI_PTR(int8_t) out_ftrs = (MLI_PTR(int8_t))out->data;
+    MLI_CONV_OUT_PTR(int8_t) out_ftrs = (MLI_CONV_OUT_PTR(int8_t))out->data;
     MLI_PTR(int8_t) wt = (MLI_PTR(int8_t))weights->data;
     MLI_PTR(int8_t) bs = (MLI_PTR(int8_t))bias->data;
 
@@ -121,7 +125,7 @@ mli_status mli_krn_conv2d_hwc_fx8 (
                     conv_out += dotprod2D (in_ptr, w_ptr, kernel_width * in_ch, kernel_height, in_width * in_ch, 
                             kernel_width * in_ch);
 
-                    MLI_PTR(int8_t) o_ptr = &out_ftrs[out_ch_idx + (H_idx * out_width + W_idx) * out_ch];
+                    MLI_CONV_OUT_PTR(int8_t) o_ptr = &out_ftrs[out_ch_idx + (H_idx * out_width + W_idx) * out_ch];
                     mli_prv_clip_relu_store_output (o_ptr, conv_out, out_shift, val_limit.min, val_limit.max);
                 }
             }
@@ -189,7 +193,7 @@ mli_status mli_krn_conv2d_hwc_fx8 (
                         // Convolution core
                         conv_out += dotprod2D (in_ptr, w_ptr, clmns * in_ch, rows, in_width * in_ch, kernel_width * in_ch);
 
-                        MLI_PTR(int8_t) o_ptr = &out_ftrs[out_ch_idx + (H_idx * out_width + W_idx) * out_ch];
+                        MLI_CONV_OUT_PTR(int8_t) o_ptr = &out_ftrs[out_ch_idx + (H_idx * out_width + W_idx) * out_ch];
                         mli_prv_clip_relu_store_output (o_ptr, conv_out, out_shift, val_limit.min, val_limit.max);
                     }
                 }

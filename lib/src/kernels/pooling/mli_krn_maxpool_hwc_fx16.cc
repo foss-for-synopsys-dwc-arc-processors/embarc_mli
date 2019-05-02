@@ -13,6 +13,8 @@
 #include "mli_helpers_api.h"
 #include "mli_math_macros.h"
 #include "mli_private_types.h"
+#include "mli_prv_dsp.h"
+#include "mli_types.h"
 
 /**
  * Function Short Description
@@ -25,6 +27,10 @@
  * Some Details
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #pragma Code(".mli_lib")
 
 /******************************************************************************
@@ -34,16 +40,18 @@
  *
  ******************************************************************************/
 
-static inline int8_t reduce_max2D_hwc(
-        const MLI_PTR(int8_t) in,
+static inline int16_t reduce_max2D_hwc(
+        const MLI_PTR(int16_t) in,
         const int width,
         const int height,
         const int channels,
         const int in_row_step);
 
-mli_status mli_krn_maxpool_hwc_fx8(const mli_tensor* in, const mli_pool_cfg* cfg, mli_tensor* out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx8(in, cfg, out), __func__);
+mli_status mli_krn_maxpool_hwc_fx16(const mli_tensor* in, const mli_pool_cfg* cfg, mli_tensor* out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx16(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
 
     // Extract general maxpooling parameters
     int stride_width = cfg->stride_width;
@@ -54,8 +62,8 @@ mli_status mli_krn_maxpool_hwc_fx8(const mli_tensor* in, const mli_pool_cfg* cfg
     int padding_right = cfg->padding_right;
 
     // Data pointers
-    const MLI_PTR(int8_t) in_ftrs = (const MLI_PTR(int8_t))in->data;
-    MLI_PTR(int8_t) out_ftrs = (MLI_PTR(int8_t))out->data;
+    const MLI_PTR(int16_t) in_ftrs = (const MLI_PTR(int16_t))in->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t))out->data;
 
     // Define Data dimensions
     int channels_num = (int)in->shape[2];
@@ -81,15 +89,16 @@ mli_status mli_krn_maxpool_hwc_fx8(const mli_tensor* in, const mli_pool_cfg* cfg
             for (int H_idx = row_beg; H_idx < row_end; H_idx++) {
                 for (int W_idx = clmn_beg; W_idx < clmn_end; W_idx++) {
                     // Define area of input and filter for convolution
-                    const MLI_PTR(int8_t) in_ptr =
+                    const MLI_PTR(int16_t) in_ptr =
                             in_ftrs +                                                          // starting point
                             channels_num * in_width * (H_idx * stride_height - padding_top) +  // move to row
                             channels_num * (W_idx * stride_width - padding_left) +             // move to column
                             ch_idx;                                                            // move to channel
 
                     // Core Max
-                    int8_t max_val = reduce_max2D_hwc(in_ptr, kernel_width, kernel_height, channels_num, in_width);
+                    int16_t max_val = reduce_max2D_hwc(in_ptr, kernel_width, kernel_height, channels_num, in_width);
 
+                    // Write results
                     out_ftrs[ch_idx + (H_idx * out_width + W_idx) * channels_num] = max_val;
                 }
             }
@@ -141,7 +150,7 @@ mli_status mli_krn_maxpool_hwc_fx8(const mli_tensor* in, const mli_pool_cfg* cfg
                         int rows = kernel_height - top_comp - bottom_comp;
                         int clmns = kernel_width - right_comp - left_comp;
 
-                        const MLI_PTR(int8_t) in_ptr =
+                        const MLI_PTR(int16_t) in_ptr =
                                 in_ftrs +  // starting point
                                 channels_num * in_width *
                                 (H_idx * stride_height - padding_top + top_comp) +            // move to row
@@ -149,7 +158,7 @@ mli_status mli_krn_maxpool_hwc_fx8(const mli_tensor* in, const mli_pool_cfg* cfg
                                 ch_idx;
 
                         // Core Max
-                        int8_t max_val = reduce_max2D_hwc(in_ptr, clmns, rows, channels_num, in_width);
+                        int16_t max_val = reduce_max2D_hwc(in_ptr, clmns, rows, channels_num, in_width);
 
                         // Write result
                         out_ftrs[ch_idx + (H_idx * out_width + W_idx) * channels_num] = max_val;
@@ -169,15 +178,15 @@ mli_status mli_krn_maxpool_hwc_fx8(const mli_tensor* in, const mli_pool_cfg* cfg
     return MLI_STATUS_OK;
 }
 
-static inline int8_t reduce_max2D_hwc(
-        const MLI_PTR(int8_t) in,
+static inline int16_t reduce_max2D_hwc(
+        const MLI_PTR(int16_t) in,
         const int width,
         const int height,
         const int channels,
         const int in_row_step) {
-    int8_t cur_max = INT8_MIN;
-    for (int row = 0; row < (int)height; row++) {
-        for (int clmn = 0; clmn < (int)width; clmn++) {
+    int16_t cur_max = INT16_MIN;
+    for (int row = 0; row < height; row++) {
+        for (int clmn = 0; clmn < width; clmn++) {
             cur_max = MAX(cur_max, in[clmn * channels]);
         }
         in += in_row_step * channels;
@@ -186,3 +195,6 @@ static inline int8_t reduce_max2D_hwc(
 }
 
 #pragma code()
+#ifdef __cplusplus
+}
+#endif
