@@ -15,16 +15,20 @@ By default, the embARC MLI Library can be built for ``/hw/em9d.tcf`` that is bas
 the standard EM9D Voice Audio template, defined in MetaWare Development Tools with extended 
 XY memory. The embARC MLI Library can be also built for a specific EM or HS configuration.
 
-Build requirements:
+Build requirements
+~~~~~~~~~~~~~~~~~~
 
 MetaWare Development tools 2018.12 or later
+
+Build Process
+~~~~~~~~~~~~~
 
 To verify the build process, run the following root makefile command
 to rebuild the project from scratch including  ELF for examples and static library:
 
 .. code-block:: console
 
-   gmake all
+   $ gmake all
    
 ..
 
@@ -35,14 +39,14 @@ On Windows:
    
 .. code-block:: console
 
-   dir /b /s \*.elf \*.a
+   > dir /b /s \*.elf \*.a
 ..
 
 On Linux:
    
 .. code-block:: console
 
-   find -name ‘\*.a’ -o -name ‘\*.elf’
+   $ find -name ‘\*.a’ -o -name ‘\*.elf’
 ..
 
 Expected console output on windows is next:: 
@@ -55,17 +59,20 @@ The project build system allows to build the library and examples separately.
 Library and each example have a separate makefile which uses common rules from ``build/rules.mk``.
 To build the embARC MLI library defined by a TCF file, use the following command:
 
-.. code:: c
+.. code-block:: console
 
-   gmake all TCF_FILE=C:\ARC\Projects\my_project\build\tool_config\arc.tcf
+   $ gmake all TCF_FILE=C:\ARC\Projects\my_project\build\tool_config\arc.tcf
 
 ..
+
+Optional Parameters for Target Platform
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    
 The Build system supports a common set of optional parameters to configure the target platform, 
 output/intermediate files placement, and provides extra parameters to build tool or application.
    
 .. table:: Optional Parameters for Target Platform
-   :widths: auto
+   :widths: 20,130
    
    +-------------------------+---------------------------------------------+
    |    **Parameter**        |    **Description**                          |
@@ -105,27 +112,33 @@ output/intermediate files placement, and provides extra parameters to build tool
 Build and Run Examples
 ----------------------
 
+Build Debug Version of Library Using Custom TCF
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 To build the debug version of the library using the custom TCF and
 to store the output file in the directory outside the project, use the
 following commands:
 
-.. code:: console
+.. code-block:: console
 
-   cd lib\make
-   gmake TCF_FILE=C:\ARC\Projects\my_project\build\tool_config\arc.tcf EXT_CFLAGS=-g LIBRARY_DIR=C:\bin
+   $ cd lib\make
+   $ gmake TCF_FILE=C:\ARC\Projects\my_project\build\tool_config\arc.tcf EXT_CFLAGS=-g LIBRARY_DIR=C:\bin
 
 ..
    
 Example applications also provide the separate makefiles to make the
 customized applications build.
 
+Build Debug Version of Example Application Using Custom TCF
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 To build the debug version of the ``cifar10_caffe`` example application
 using the custom TCF, use the following commands:
 
-.. code:: console
+.. code-block:: console
 
-   cd examples\example_cifar10_caffe
-   gmake TCF_FILE=C:\ARC\Projects\my_project\build\tool_config\arc.tcf EXT_CFLAGS=-g
+   $ cd examples\example_cifar10_caffe
+   $ gmake TCF_FILE=C:\ARC\Projects\my_project\build\tool_config\arc.tcf EXT_CFLAGS=-g
 
 ..
 
@@ -134,14 +147,17 @@ application using the NSIM simulator. Note that this target
 requires the TCF name to be provided to setup the simulation
 environment.
 
+Build and Simulate Debug Version of Example Application Using Custom TCF
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 To build ``cifar10_caffe`` example application using the custom TCF and
 starting the simulation, use the following commands:
 
-.. code:: console
+.. code-block:: console
 
-   cd examples\example_cifar10_caffe
-   gmake TCF_FILE=C:\ARC\Projects\my_project\build\tool_config\arc.tcf
-   gmake run TCF_FILE=C:\ARC\Projects\my_project\build\tool_config\arc.tcf
+   $ cd examples\example_cifar10_caffe
+   $ gmake TCF_FILE=C:\ARC\Projects\my_project\build\tool_config\arc.tcf
+   $ gmake run TCF_FILE=C:\ARC\Projects\my_project\build\tool_config\arc.tcf
 
 ..
 

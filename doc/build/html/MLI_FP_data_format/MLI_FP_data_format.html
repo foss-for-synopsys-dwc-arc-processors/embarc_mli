@@ -276,11 +276,11 @@ according to the following formula:</p>
 <li><span class="math notranslate nohighlight">\(\ Round\ () \ \)</span> - rounding according to one of supported modes</li>
 </ul>
 </div></blockquote>
-<p>2 <sup>fraq_bits</sup> represents 1.0 in FX format and also might
-be obtained by shifting (1 &lt;&lt; fraq_bits). Rounding mode (nearest, up,
+<p><span class="math notranslate nohighlight">\(\ 2^{fraq\_ bits} \ \)</span> represents 1.0 in FX format and also might
+be obtained by shifting (1 &lt;&lt; <span class="math notranslate nohighlight">\(\ fraq\_ bits \ \)</span>). Rounding mode (nearest, up,
 convergence) affects only FX representation accuracy. MLI Library
-uses rounding provided by ARCv2 DSP hardware (see <a class="reference internal" href="../library_model/hw_dependencies_config.html#hw-comp-dpd"><span class="std std-ref">Hardware Components Dependencies</span></a> ). <code class="docutils literal notranslate"><span class="pre">dequant_real_val</span></code> might be not equal to
-<code class="docutils literal notranslate"><span class="pre">real_</span> <span class="pre">val</span></code> in case of immediate forward/backward conversion
+uses rounding provided by ARCv2 DSP hardware (see <a class="reference internal" href="../library_model/hw_dependencies_config.html#hw-comp-dpd"><span class="std std-ref">Hardware Components Dependencies</span></a> ). <span class="math notranslate nohighlight">\(\ dequant\_ real\_ val\ \)</span> might be not equal to
+<span class="math notranslate nohighlight">\(\ real\_ val\ \)</span> in case of immediate forward/backward conversion
 due to rounding operation (see examples 2 and 4 from the following example list).</p>
 <div class="admonition tip">
 <p class="first admonition-title">Example</p>
@@ -381,8 +381,8 @@ all operands of the same format, the number of extra bits is defined
 based on the number of additions to be done:</p>
 <div class="math notranslate nohighlight">
 \[extra\_ bits = \operatorname{Ceil(log_2}(number\_ of\_ additions))\]</div>
-<p>Where Ceil(<em>x</em>) function rounds up <em>x</em> to the smallest integer value
-that is not less than <em>x</em>. From notation point of view, these extra
+<p>Where <span class="math notranslate nohighlight">\(\text{Ceil}(x)\)</span> function rounds up <span class="math notranslate nohighlight">\(x\)</span> to the smallest integer value
+that is not less than <span class="math notranslate nohighlight">\(x\)</span>. From notation point of view, these extra
 bits are added to integer part.</p>
 <div class="admonition tip">
 <p class="first admonition-title">Example</p>

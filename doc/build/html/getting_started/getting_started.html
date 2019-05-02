@@ -90,8 +90,18 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../overview/overview.html">Overview</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#build-library">Build Library</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#build-and-run-examples">Build and Run Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#build-library">Build Library</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#build-requirements">Build requirements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#build-process">Build Process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#optional-parameters-for-target-platform">Optional Parameters for Target Platform</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#build-and-run-examples">Build and Run Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#build-debug-version-of-library-using-custom-tcf">Build Debug Version of Library Using Custom TCF</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#build-debug-version-of-example-application-using-custom-tcf">Build Debug Version of Example Application Using Custom TCF</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#build-and-simulate-debug-version-of-example-application-using-custom-tcf">Build and Simulate Debug Version of Example Application Using Custom TCF</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#project-structure">Project Structure</a></li>
 </ul>
 </li>
@@ -174,21 +184,25 @@ with ease of use and low overhead in mind.</p>
 <p>By default, the embARC MLI Library can be built for <code class="docutils literal notranslate"><span class="pre">/hw/em9d.tcf</span></code> that is based on
 the standard EM9D Voice Audio template, defined in MetaWare Development Tools with extended
 XY memory. The embARC MLI Library can be also built for a specific EM or HS configuration.</p>
-<p>Build requirements:</p>
+<div class="section" id="build-requirements">
+<h3>Build requirements<a class="headerlink" href="#build-requirements" title="Permalink to this headline">¶</a></h3>
 <p>MetaWare Development tools 2018.12 or later</p>
+</div>
+<div class="section" id="build-process">
+<h3>Build Process<a class="headerlink" href="#build-process" title="Permalink to this headline">¶</a></h3>
 <p>To verify the build process, run the following root makefile command
 to rebuild the project from scratch including  ELF for examples and static library:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">gmake all</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> gmake all
 </pre></div>
 </div>
 <p>After the build process completes, the output files are found inside
 the bin directory created by the make tool:</p>
 <p>On Windows:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">dir /b /s \*.elf \*.a</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;</span> dir /b /s <span class="se">\*</span>.elf <span class="se">\*</span>.a
 </pre></div>
 </div>
 <p>On Linux:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">find -name ‘\*.a’ -o -name ‘\*.elf’</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> find -name ‘<span class="se">\*</span>.a’ -o -name ‘<span class="se">\*</span>.elf’
 </pre></div>
 </div>
 <p>Expected console output on windows is next:</p>
@@ -200,13 +214,20 @@ the bin directory created by the make tool:</p>
 <p>The project build system allows to build the library and examples separately.
 Library and each example have a separate makefile which uses common rules from <code class="docutils literal notranslate"><span class="pre">build/rules.mk</span></code>.
 To build the embARC MLI library defined by a TCF file, use the following command:</p>
-<div class="code c highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gmake</span> <span class="nb">all</span> <span class="n">TCF_FILE</span><span class="o">=</span><span class="n">C</span><span class="p">:</span>\<span class="n">ARC</span>\<span class="n">Projects</span>\<span class="n">my_project</span>\<span class="n">build</span>\<span class="n">tool_config</span>\<span class="n">arc</span><span class="o">.</span><span class="n">tcf</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> gmake all <span class="nv">TCF_FILE</span><span class="o">=</span>C:<span class="se">\A</span>RC<span class="se">\P</span>rojects<span class="se">\m</span>y_project<span class="se">\b</span>uild<span class="se">\t</span>ool_config<span class="se">\a</span>rc.tcf
 </pre></div>
 </div>
+</div>
+<div class="section" id="optional-parameters-for-target-platform">
+<h3>Optional Parameters for Target Platform<a class="headerlink" href="#optional-parameters-for-target-platform" title="Permalink to this headline">¶</a></h3>
 <p>The Build system supports a common set of optional parameters to configure the target platform,
 output/intermediate files placement, and provides extra parameters to build tool or application.</p>
-<table border="1" class="colwidths-auto docutils" id="id1">
+<table border="1" class="colwidths-given docutils" id="id1">
 <caption><span class="caption-text">Optional Parameters for Target Platform</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="13%" />
+<col width="87%" />
+</colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head"><strong>Parameter</strong></th>
 <th class="head"><strong>Description</strong></th>
@@ -252,33 +273,43 @@ use</td>
 </tbody>
 </table>
 </div>
+</div>
 <div class="section" id="build-and-run-examples">
 <span id="bld-run-ex"></span><h2>Build and Run Examples<a class="headerlink" href="#build-and-run-examples" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="build-debug-version-of-library-using-custom-tcf">
+<h3>Build Debug Version of Library Using Custom TCF<a class="headerlink" href="#build-debug-version-of-library-using-custom-tcf" title="Permalink to this headline">¶</a></h3>
 <p>To build the debug version of the library using the custom TCF and
 to store the output file in the directory outside the project, use the
 following commands:</p>
-<div class="code console highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">lib</span>\<span class="n">make</span>
-<span class="n">gmake</span> <span class="n">TCF_FILE</span><span class="o">=</span><span class="n">C</span><span class="p">:</span>\<span class="n">ARC</span>\<span class="n">Projects</span>\<span class="n">my_project</span>\<span class="n">build</span>\<span class="n">tool_config</span>\<span class="n">arc</span><span class="o">.</span><span class="n">tcf</span> <span class="n">EXT_CFLAGS</span><span class="o">=-</span><span class="n">g</span> <span class="n">LIBRARY_DIR</span><span class="o">=</span><span class="n">C</span><span class="p">:</span>\<span class="nb">bin</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> <span class="nb">cd</span> lib<span class="se">\m</span>ake
+<span class="gp">$</span> gmake <span class="nv">TCF_FILE</span><span class="o">=</span>C:<span class="se">\A</span>RC<span class="se">\P</span>rojects<span class="se">\m</span>y_project<span class="se">\b</span>uild<span class="se">\t</span>ool_config<span class="se">\a</span>rc.tcf <span class="nv">EXT_CFLAGS</span><span class="o">=</span>-g <span class="nv">LIBRARY_DIR</span><span class="o">=</span>C:<span class="se">\b</span>in
 </pre></div>
 </div>
 <p>Example applications also provide the separate makefiles to make the
 customized applications build.</p>
+</div>
+<div class="section" id="build-debug-version-of-example-application-using-custom-tcf">
+<h3>Build Debug Version of Example Application Using Custom TCF<a class="headerlink" href="#build-debug-version-of-example-application-using-custom-tcf" title="Permalink to this headline">¶</a></h3>
 <p>To build the debug version of the <code class="docutils literal notranslate"><span class="pre">cifar10_caffe</span></code> example application
 using the custom TCF, use the following commands:</p>
-<div class="code console highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">examples</span>\<span class="n">example_cifar10_caffe</span>
-<span class="n">gmake</span> <span class="n">TCF_FILE</span><span class="o">=</span><span class="n">C</span><span class="p">:</span>\<span class="n">ARC</span>\<span class="n">Projects</span>\<span class="n">my_project</span>\<span class="n">build</span>\<span class="n">tool_config</span>\<span class="n">arc</span><span class="o">.</span><span class="n">tcf</span> <span class="n">EXT_CFLAGS</span><span class="o">=-</span><span class="n">g</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> <span class="nb">cd</span> examples<span class="se">\e</span>xample_cifar10_caffe
+<span class="gp">$</span> gmake <span class="nv">TCF_FILE</span><span class="o">=</span>C:<span class="se">\A</span>RC<span class="se">\P</span>rojects<span class="se">\m</span>y_project<span class="se">\b</span>uild<span class="se">\t</span>ool_config<span class="se">\a</span>rc.tcf <span class="nv">EXT_CFLAGS</span><span class="o">=</span>-g
 </pre></div>
 </div>
 <p>Example application makefiles support the target run to execute the
 application using the NSIM simulator. Note that this target
 requires the TCF name to be provided to setup the simulation
 environment.</p>
+</div>
+<div class="section" id="build-and-simulate-debug-version-of-example-application-using-custom-tcf">
+<h3>Build and Simulate Debug Version of Example Application Using Custom TCF<a class="headerlink" href="#build-and-simulate-debug-version-of-example-application-using-custom-tcf" title="Permalink to this headline">¶</a></h3>
 <p>To build <code class="docutils literal notranslate"><span class="pre">cifar10_caffe</span></code> example application using the custom TCF and
 starting the simulation, use the following commands:</p>
-<div class="code console highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">examples</span>\<span class="n">example_cifar10_caffe</span>
-<span class="n">gmake</span> <span class="n">TCF_FILE</span><span class="o">=</span><span class="n">C</span><span class="p">:</span>\<span class="n">ARC</span>\<span class="n">Projects</span>\<span class="n">my_project</span>\<span class="n">build</span>\<span class="n">tool_config</span>\<span class="n">arc</span><span class="o">.</span><span class="n">tcf</span>
-<span class="n">gmake</span> <span class="n">run</span> <span class="n">TCF_FILE</span><span class="o">=</span><span class="n">C</span><span class="p">:</span>\<span class="n">ARC</span>\<span class="n">Projects</span>\<span class="n">my_project</span>\<span class="n">build</span>\<span class="n">tool_config</span>\<span class="n">arc</span><span class="o">.</span><span class="n">tcf</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> <span class="nb">cd</span> examples<span class="se">\e</span>xample_cifar10_caffe
+<span class="gp">$</span> gmake <span class="nv">TCF_FILE</span><span class="o">=</span>C:<span class="se">\A</span>RC<span class="se">\P</span>rojects<span class="se">\m</span>y_project<span class="se">\b</span>uild<span class="se">\t</span>ool_config<span class="se">\a</span>rc.tcf
+<span class="gp">$</span> gmake run <span class="nv">TCF_FILE</span><span class="o">=</span>C:<span class="se">\A</span>RC<span class="se">\P</span>rojects<span class="se">\m</span>y_project<span class="se">\b</span>uild<span class="se">\t</span>ool_config<span class="se">\a</span>rc.tcf
 </pre></div>
+</div>
 </div>
 </div>
 <div class="section" id="project-structure">

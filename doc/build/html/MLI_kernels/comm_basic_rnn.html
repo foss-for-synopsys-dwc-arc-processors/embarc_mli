@@ -261,7 +261,7 @@ one step of kernel (M or L*M elements for stacked weights matrix).</p>
 <p>For the other modes (one-to-one or batch-to-batch), kernel does not
 use the intermediate result tensor and this field might not be
 initialized. For more information about configuration structure, see
-<a class="reference internal" href="#fn-conf-brnn"><span class="std std-ref">Function Configuration Structure</span></a>.</p>
+<a class="reference internal" href="comm_lstm.html#fn-conf-lstm"><span class="std std-ref">Function Configuration Structure</span></a>.</p>
 <div class="admonition caution">
 <p class="first admonition-title">Caution</p>
 <p>Ensure that you allocate memory for all tensors (including
@@ -390,11 +390,11 @@ function.</td>
 </div>
 <div class="section" id="id1">
 <h3>Parameters<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
-<table border="1" class="docutils" id="id5">
+<table border="1" class="colwidths-given docutils" id="id5">
 <caption><span class="caption-text">Kernel Interface Parameters</span><a class="headerlink" href="#id5" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col width="50%" />
-<col width="50%" />
+<col width="13%" />
+<col width="87%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head"><strong>Parameters</strong></th>
@@ -435,11 +435,11 @@ is stored here</td>
 </div>
 <div class="section" id="kernel-specializations">
 <span id="kernel-specializations-2"></span><h2>Kernel Specializations<a class="headerlink" href="#kernel-specializations" title="Permalink to this headline">¶</a></h2>
-<table border="1" class="docutils" id="id6">
+<table border="1" class="colwidths-given docutils" id="id6">
 <caption><span class="caption-text">Non-Specialized Functions</span><a class="headerlink" href="#id6" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col width="53%" />
-<col width="47%" />
+<col width="13%" />
+<col width="87%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head"><strong>Function</strong></th>

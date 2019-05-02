@@ -188,12 +188,12 @@
 (subtrahend) from the first input tensor (minuend) and stores results
 to the output tensor:</p>
 <div class="math notranslate nohighlight">
-\[y_{i} = {x1}_{i} - {x2}_{i}\]</div>
+\[y_{i} = {x^1}_{i} - {x^2}_{i}\]</div>
 <p>It supports simple broadcasting of single value (scalar tensor see
 <a class="reference internal" href="../library_model/data.html#mli-tns-struct"><span class="std std-ref">mli_tensor Structure</span></a>) on general tensor. One of the operands can be
 scalar:</p>
 <div class="math notranslate nohighlight">
-\[ \begin{align}\begin{aligned}{y_{i} = {x1}_{i} - x2_{\text{scalar}}}\\{y_{i} = {x1}_{\text{scalar}} - \ {x2}_{i}}\end{aligned}\end{align} \]</div>
+\[ \begin{align}\begin{aligned}{y_{i} = {x^1}_{i} - x^{2}_{\text{scalar}}}\\{y_{i} = {x^1}_{\text{scalar}} - \ {x^2}_{i}}\end{aligned}\end{align} \]</div>
 <p>Elements of input tensors must be of the same type and with the same
 element parameters. Output tensor holds the same element and
 shape parameters as the input tensors (for example, a scalar tensor).</p>

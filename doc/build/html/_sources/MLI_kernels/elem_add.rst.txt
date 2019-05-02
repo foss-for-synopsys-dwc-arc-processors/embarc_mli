@@ -6,7 +6,7 @@ Element-wise Add
 This kernel adds two tensors of the same shape element-wise and
 stores results to the output tensor saving the shape of inputs:
 
-.. math:: y_{i} = {x1}_{i} + {x2}_{i}
+.. math:: y_{i} = {x^{1}}_{i} + {x^{2}}_{i}
 
 ..
 

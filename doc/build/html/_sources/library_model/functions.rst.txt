@@ -33,7 +33,7 @@ MLI Library function adheres naming convention listed in :ref:`MLI_func_naming_c
  
 .. _MLI_func_naming_conv:
 .. table:: MLI Library Functions Naming Convention
-   :widths: grid   
+   :widths: 30,20,130   
 
    +-----------------------+-----------------------+------------------------------------------------------+
    | **Field name**        | **Field Entries**     | **Field Description**                                |

@@ -112,7 +112,8 @@ declarations of all specializations for the primitive.
 
 .. _Non-spec_funct_avg_pool:
 .. table:: Non-specialized Functions
-
+   :widths: 20,130
+   
    +-------------------------------------+-----------------------------------+
    | **Function**                        | **Description**                   |
    +=====================================+===================================+

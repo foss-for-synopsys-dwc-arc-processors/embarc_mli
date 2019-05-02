@@ -70,48 +70,49 @@ Parameters
 ''''''''''
 
 .. table:: Function Configuration Parameters 
-
-	+-----------------------+-----------------------+
-	|  **Fields**           |  **Description**      |
-	+-----------------------+-----------------------+
-	| ``kernel_width``      | Width of frame for    |
-	|                       | applying function     |
-	+-----------------------+-----------------------+
-	| ``kernel_height``     | Height of frame for   |
-	|                       | applying function     |
-	+-----------------------+-----------------------+
-	| ``stride_width``      | Stride of frame       |
-	|                       | across a width        |
-	|                       | dimension of input    |
-	+-----------------------+-----------------------+
-	| ``stride_height``     | Stride of frame       |
-	|                       | across a height       |
-	|                       | dimension of input    |
-	+-----------------------+-----------------------+
-	| ``padding_left``      | Number of points      |
-	|                       | implicitly added to   |
-	|                       | the left side of      |
-	|                       | input (width          |
-	|                       | dimension)            |
-	+-----------------------+-----------------------+
-	| ``padding_right``     | Number of points      |
-	|                       | implicitly added to   |
-	|                       | the right side of     |
-	|                       | input (width          |
-	|                       | dimension)            |
-	+-----------------------+-----------------------+
-	| ``padding_top``       | Number of points      |
-	|                       | implicitly added to   |
-	|                       | the upper side of     |
-	|                       | input (height         |
-	|                       | dimension)            |
-	+-----------------------+-----------------------+
-	| ``padding_bottom``    | Number of points      |
-	|                       | implicitly added to   |
-	|                       | the bottom side of    |
-	|                       | input (height         |
-	|                       | dimension)            |
-	+-----------------------+-----------------------+
+   :widths: 20,130
+   
+   +-----------------------+-----------------------+
+   |  **Fields**           |  **Description**      |
+   +-----------------------+-----------------------+
+   | ``kernel_width``      | Width of frame for    |
+   |                       | applying function     |
+   +-----------------------+-----------------------+
+   | ``kernel_height``     | Height of frame for   |
+   |                       | applying function     |
+   +-----------------------+-----------------------+
+   | ``stride_width``      | Stride of frame       |
+   |                       | across a width        |
+   |                       | dimension of input    |
+   +-----------------------+-----------------------+
+   | ``stride_height``     | Stride of frame       |
+   |                       | across a height       |
+   |                       | dimension of input    |
+   +-----------------------+-----------------------+
+   | ``padding_left``      | Number of points      |
+   |                       | implicitly added to   |
+   |                       | the left side of      |
+   |                       | input (width          |
+   |                       | dimension)            |
+   +-----------------------+-----------------------+
+   | ``padding_right``     | Number of points      |
+   |                       | implicitly added to   |
+   |                       | the right side of     |
+   |                       | input (width          |
+   |                       | dimension)            |
+   +-----------------------+-----------------------+
+   | ``padding_top``       | Number of points      |
+   |                       | implicitly added to   |
+   |                       | the upper side of     |
+   |                       | input (height         |
+   |                       | dimension)            |
+   +-----------------------+-----------------------+
+   | ``padding_bottom``    | Number of points      |
+   |                       | implicitly added to   |
+   |                       | the bottom side of    |
+   |                       | input (height         |
+   |                       | dimension)            |
+   +-----------------------+-----------------------+
 
 .. _general-api-2:
 
@@ -137,24 +138,25 @@ Parameters
 ''''''''''
 
 .. table:: Kernel Interface Parameters
-
-	+-----------------------+-----------------------+
-	|   **Parameters**      | **Description**       |
-	+-----------------------+-----------------------+
-	|                       |                       |
-	|                       |                       |
-	| ``in``                | [IN] Pointer to input |
-	|                       | feature map tensor    |
-	+-----------------------+-----------------------+
-	| ``cfg``               | [IN] Pointer to       |
-	|                       | pooling parameters    |
-	|                       | structure             |
-	+-----------------------+-----------------------+
-	| ``out``               | [OUT] Pointer to      |
-	|                       | output feature map    |
-	|                       | tensor. Result is     |
-	|                       | stored here           |
-	+-----------------------+-----------------------+
+   :widths: 20,130
+   
+   +-----------------------+-----------------------+
+   |   **Parameters**      | **Description**       |
+   +-----------------------+-----------------------+
+   |                       |                       |
+   |                       |                       |
+   | ``in``                | [IN] Pointer to input |
+   |                       | feature map tensor    |
+   +-----------------------+-----------------------+
+   | ``cfg``               | [IN] Pointer to       |
+   |                       | pooling parameters    |
+   |                       | structure             |
+   +-----------------------+-----------------------+
+   | ``out``               | [OUT] Pointer to      |
+   |                       | output feature map    |
+   |                       | tensor. Result is     |
+   |                       | stored here           |
+   +-----------------------+-----------------------+
 
 ..
 
@@ -173,6 +175,7 @@ declarations of all specializations for the primitive.
 
 .. _Non_Spl_func_MAX_pool:
 .. table:: Non-Specialized Functions
+   :widths: 20,130
    
    +--------------------------------------+-----------------------------------+
    | **Function**                         | **Description**                   |
