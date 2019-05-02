@@ -210,7 +210,7 @@ Prototype
     const mli_tensor *prev_out,           
     const mli_tensor *weights,            
     const mli_tensor *bias,               
-    const mli_lstm_cell_cfg *cfg,         
+    const mli_rnn_cell_cfg *cfg,         
     mli_tensor *cell,                     
     mli_tensor *out);                     
 
@@ -253,7 +253,7 @@ Kernel Specializations
 ^^^^^^^^^^^^^^^^^^^^^^
 
 .. table:: Non-Specialized Functions
-   :widths: 50,80
+   :widths: 20,130
    
    +-----------------------------------+-----------------------------------+
    | **Function**                      | **Description**                   |
@@ -297,7 +297,7 @@ function:
 -  The input tensor has the following restrictions:
 
    -  For ``RNN_ONE_TO_ONE`` mode, the total number of input and previous
-      output tensors elements (N+M) must be equal to the last dimension of the
+      output tensor-elements (N+M) must be equal to the last dimension of the
       weights tensor
 
    -  For ``RNN_BATCH_TO_BATCH`` and ``RNN_BATCH_TO_LAST`` modes, the first

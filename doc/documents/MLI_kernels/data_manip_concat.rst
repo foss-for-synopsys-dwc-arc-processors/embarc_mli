@@ -55,22 +55,23 @@ Parameters
 ''''''''''
 
 .. table:: Function Configuration Parameters
-  
-	+-----------------------+-----------------------+
-	| **Parameters**        | **Description**       |
-	+=======================+=======================+
-	|                       |                       |
-	| ``tensors_num``       | Number of tensors to  |
-	|                       | concatenate (number   |
-	|                       | of pointers in        |
-	|                       | “inputs” array)       |
-	+-----------------------+-----------------------+
-	|                       |                       |
-	| ``axis``              | Axis for              |
-	|                       | concatenation         |
-	|                       | (dimension number     |
-	|                       | starting from 0)      |
-	+-----------------------+-----------------------+
+   :widths: 20,130
+   
+   +-----------------------+-----------------------+
+   | **Parameters**        | **Description**       |
+   +=======================+=======================+
+   |                       |                       |
+   | ``tensors_num``       | Number of tensors to  |
+   |                       | concatenate (number   |
+   |                       | of pointers in        |
+   |                       | “inputs” array)       |
+   +-----------------------+-----------------------+
+   |                       |                       |
+   | ``axis``              | Axis for              |
+   |                       | concatenation         |
+   |                       | (dimension number     |
+   |                       | starting from 0)      |
+   +-----------------------+-----------------------+
 
 .. _api-12:
 
@@ -92,28 +93,29 @@ Parameters
 ''''''''''
 
 .. table:: Kernel Interface Parameters
- 
-	+-----------------------+-----------------------+
-	| **Parameters**        | **Description**       |
-	+=======================+=======================+
-	|                       |                       |
-	| ``inputs``            | [IN] Pointer to the   |
-	|                       | array of pointers to  |
-	|                       | tensors for           |
-	|                       | concatenation         |
-	+-----------------------+-----------------------+
-	|                       |                       |
-	| ``cfg``               | [IN] Pointer to       |
-	|                       | configuration         |
-	|                       | structure with axis   |
-	|                       | and amount of inputs  |
-	|                       | definition            |
-	+-----------------------+-----------------------+
-	|                       |                       |
-	| ``out``               | [OUT] Pointer to the  |
-	|                       | output tensor. Result |
-	|                       | is stored here        |
-	+-----------------------+-----------------------+
+   :widths: 20,130
+   
+   +-----------------------+-----------------------+
+   | **Parameters**        | **Description**       |
+   +=======================+=======================+
+   |                       |                       |
+   | ``inputs``            | [IN] Pointer to the   |
+   |                       | array of pointers to  |
+   |                       | tensors for           |
+   |                       | concatenation         |
+   +-----------------------+-----------------------+
+   |                       |                       |
+   | ``cfg``               | [IN] Pointer to       |
+   |                       | configuration         |
+   |                       | structure with axis   |
+   |                       | and amount of inputs  |
+   |                       | definition            |
+   +-----------------------+-----------------------+
+   |                       |                       |
+   | ``out``               | [OUT] Pointer to the  |
+   |                       | output tensor. Result |
+   |                       | is stored here        |
+   +-----------------------+-----------------------+
 
 .. _kernel-specializations-12:
 
@@ -121,15 +123,15 @@ Kernel Specializations
 ^^^^^^^^^^^^^^^^^^^^^^
 
 .. table:: Non-Specialized Functions
-	:widths: 20,130
-	
-	+-------------------------+--------------------------------------+
-	| **Function**            | **Description**                      |
-	+=========================+======================================+
-	| ``mli_krn_concat_fx8``  | General function; 8bit FX elements;  |
-	+-------------------------+--------------------------------------+
-	| ``mli_krn_concat_fx16`` | General function; 16bit FX elements; |
-	+-------------------------+--------------------------------------+
+   :widths: 20,130
+   
+   +-------------------------+--------------------------------------+
+   | **Function**            | **Description**                      |
+   +=========================+======================================+
+   | ``mli_krn_concat_fx8``  | General function; 8bit FX elements;  |
+   +-------------------------+--------------------------------------+
+   | ``mli_krn_concat_fx16`` | General function; 16bit FX elements; |
+   +-------------------------+--------------------------------------+
 
 .. _conditions-for-applying-the-kernel-12:
 

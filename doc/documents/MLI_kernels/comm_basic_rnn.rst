@@ -108,7 +108,7 @@ one step of kernel (M or L*M elements for stacked weights matrix).
 For the other modes (one-to-one or batch-to-batch), kernel does not
 use the intermediate result tensor and this field might not be
 initialized. For more information about configuration structure, see
-:ref:`fn_conf_brnn`.
+:ref:`fn_conf_lstm`.
    
 .. caution::
    Ensure that you allocate memory for all tensors (including      
@@ -222,37 +222,38 @@ Parameters
 ''''''''''
 
 .. table:: Kernel Interface Parameters
-
-	+-----------------------+-----------------------+
-	|  **Parameters**       | **Description**       |
-	+=======================+=======================+
-	|                       |                       |
-	| ``in``                | [IN] Pointer to input |
-	|                       | tensor                |
-	+-----------------------+-----------------------+
-	|                       |                       |
-	| ``prev_out``          | [IN] Pointer to       |
-	|                       | previous output       |
-	|                       | tensor                |
-	+-----------------------+-----------------------+
-	|                       |                       |
-	| ``weights``           | [IN] Pointer to       |
-	|                       | weights tensor        |
-	+-----------------------+-----------------------+
-	|                       |                       |
-	| ``bias``              | [IN] Pointer to       |
-	|                       | biases tensor         |
-	+-----------------------+-----------------------+
-	|                       |                       |
-	| ``cfg``               | [IN/OUT] Pointer to   |
-	|                       | configuration         |
-	|                       | structure             |
-	+-----------------------+-----------------------+
-	|                       |                       |
-	| ``out``               | [OUT] Pointer to      |
-	|                       | output tensor. Result |
-	|                       | is stored here        |
-	+-----------------------+-----------------------+
+   :widths: 20,130
+   
+   +-----------------------+-----------------------+
+   |  **Parameters**       | **Description**       |
+   +=======================+=======================+
+   |                       |                       |
+   | ``in``                | [IN] Pointer to input |
+   |                       | tensor                |
+   +-----------------------+-----------------------+
+   |                       |                       |
+   | ``prev_out``          | [IN] Pointer to       |
+   |                       | previous output       |
+   |                       | tensor                |
+   +-----------------------+-----------------------+
+   |                       |                       |
+   | ``weights``           | [IN] Pointer to       |
+   |                       | weights tensor        |
+   +-----------------------+-----------------------+
+   |                       |                       |
+   | ``bias``              | [IN] Pointer to       |
+   |                       | biases tensor         |
+   +-----------------------+-----------------------+
+   |                       |                       |
+   | ``cfg``               | [IN/OUT] Pointer to   |
+   |                       | configuration         |
+   |                       | structure             |
+   +-----------------------+-----------------------+
+   |                       |                       |
+   | ``out``               | [OUT] Pointer to      |
+   |                       | output tensor. Result |
+   |                       | is stored here        |
+   +-----------------------+-----------------------+
 
 .. _kernel-specializations-2:
 
@@ -260,21 +261,22 @@ Kernel Specializations
 ^^^^^^^^^^^^^^^^^^^^^^
 
 .. table:: Non-Specialized Functions
-
-	+---------------------------------------+-----------------------------------+
-	| **Function**                          | **Description**                   |
-	+=======================================+===================================+
-	| ``mli_krn_basic_rnn_cell_fx8``        | General function; 8bit FX         |
-	|                                       | elements;                         |
-	+---------------------------------------+-----------------------------------+
-	| ``mli_krn_basic_rnn_cell_fx16``       | General function; 16bit FX        |
-	|                                       | elements;                         |
-	+---------------------------------------+-----------------------------------+
-	| ``mli_krn_basic_rnn_cell_fx8w16d``    | General function; FX tensors      |
-	|                                       | (8bit weights and biases, 16 bit  |
-	|                                       | input, state, cell, output and    |
-	|                                       | intermediate data);               |
-	+---------------------------------------+-----------------------------------+
+   :widths: 20,130
+   
+   +---------------------------------------+-----------------------------------+
+   | **Function**                          | **Description**                   |
+   +=======================================+===================================+
+   | ``mli_krn_basic_rnn_cell_fx8``        | General function; 8bit FX         |
+   |                                       | elements;                         |
+   +---------------------------------------+-----------------------------------+
+   | ``mli_krn_basic_rnn_cell_fx16``       | General function; 16bit FX        |
+   |                                       | elements;                         |
+   +---------------------------------------+-----------------------------------+
+   | ``mli_krn_basic_rnn_cell_fx8w16d``    | General function; FX tensors      |
+   |                                       | (8bit weights and biases, 16 bit  |
+   |                                       | input, state, cell, output and    |
+   |                                       | intermediate data);               |
+   +---------------------------------------+-----------------------------------+
 
 .. _conditions-for-applying-the-kernel-2:
 

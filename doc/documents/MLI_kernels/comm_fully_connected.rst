@@ -66,46 +66,48 @@ Parameters
 ''''''''''
 
 .. table:: Kernel Interface Parameters
-
-	+-----------------------+-----------------------+
-	| **Parameters**        | **Description**       |
-	+=======================+=======================+
-	|                       |                       |
-	| ``in``                | [IN] Pointer to Input |
-	|                       | feature map tensor    |
-	+-----------------------+-----------------------+
-	|                       |                       |
-	| ``weights``           | [IN] Pointer to       |
-	|                       | weights tensor        |
-	+-----------------------+-----------------------+
-	|                       |                       |
-	| ``bias``              | [IN] Pointer to       |
-	|                       | biases tensor         |
-	+-----------------------+-----------------------+
-	|                       |                       |
-	| ``out``               | [OUT] Pointer to      |
-	|                       | output tensor. Result |
-	|                       | is stored here        |
-	+-----------------------+-----------------------+
+   :widths: 20,130
+   
+   +-----------------------+-----------------------+
+   | **Parameters**        | **Description**       |
+   +=======================+=======================+
+   |                       |                       |
+   | ``in``                | [IN] Pointer to Input |
+   |                       | feature map tensor    |
+   +-----------------------+-----------------------+
+   |                       |                       |
+   | ``weights``           | [IN] Pointer to       |
+   |                       | weights tensor        |
+   +-----------------------+-----------------------+
+   |                       |                       |
+   | ``bias``              | [IN] Pointer to       |
+   |                       | biases tensor         |
+   +-----------------------+-----------------------+
+   |                       |                       |
+   | ``out``               | [OUT] Pointer to      |
+   |                       | output tensor. Result |
+   |                       | is stored here        |
+   +-----------------------+-----------------------+
 
 Kernel Specializations
 ^^^^^^^^^^^^^^^^^^^^^^
 
 .. table:: Non-Specialized Functions
-
-	+-------------------------------------+-----------------------------------+
-	| **Function**                        | **Description**                   |
-	+=====================================+===================================+
-	| ``mli_krn_fully_connected_fx8``     | General function; 8bit FX         |
-	|                                     | elements;                         |
-	+-------------------------------------+-----------------------------------+
-	| ``mli_krn_fully_connected_fx16``    | General function; 16bit FX        |
-	|                                     | elements;                         |
-	+-------------------------------------+-----------------------------------+
-	| ``mli_krn_fully_connected_fx8w16d`` | General function; FX tensors      |
-	|                                     | (8bit weights and biases, 16 bit  |
-	|                                     | input and output);                |
-	+-------------------------------------+-----------------------------------+
+   :widths: 20,130
+   
+   +-------------------------------------+-----------------------------------+
+   | **Function**                        | **Description**                   |
+   +=====================================+===================================+
+   | ``mli_krn_fully_connected_fx8``     | General function; 8bit FX         |
+   |                                     | elements;                         |
+   +-------------------------------------+-----------------------------------+
+   | ``mli_krn_fully_connected_fx16``    | General function; 16bit FX        |
+   |                                     | elements;                         |
+   +-------------------------------------+-----------------------------------+
+   | ``mli_krn_fully_connected_fx8w16d`` | General function; FX tensors      |
+   |                                     | (8bit weights and biases, 16 bit  |
+   |                                     | input and output);                |
+   +-------------------------------------+-----------------------------------+
 
 .. _conditions_apply_kernel:
 

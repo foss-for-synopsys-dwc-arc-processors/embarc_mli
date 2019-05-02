@@ -8,9 +8,9 @@ results to the output tensor:
 
 .. math::
 
-   {y_{i} = \text{MAX}\left( {x1}_{i}\ \ ,\ \ \ {x2}_{i} \right)}
+   {y_{i} = \text{MAX}\left( {x^1}_{i}\ \ ,\ \ \ {x^2}_{i} \right)}
    
-   {y_{i} = \text{MIN}\left( {x1}_{i}\ \ ,\ \ \ {x2}_{i} \right)\ }
+   {y_{i} = \text{MIN}\left( {x^1}_{i}\ \ ,\ \ \ {x^2}_{i} \right)\ }
 
 ..
    

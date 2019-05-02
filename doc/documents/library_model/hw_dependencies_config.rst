@@ -53,10 +53,10 @@ by setting MLI_DEBUG_MODE define as follows:
    but additionally extra assertions inside loops are used for this mode.
 
 By default, ``MLI_DEBUG_MODE`` is set to ``DBG_MODE_RELEASE``. The following table 
-conglomerates information on modes behaviour.
+specifies modes behavior.
 
 .. _DBG_Mode_Behav:
-.. table::
+.. table:: MLI_DEBUG_MODE modes behavior
     
    +----------------------+-----------+-------------+----------+---------+--------+
    |    Behavior / Mode   |  RELEASE  |  RET_CODES  |  ASSERT  |  DEBUG  |  FULL  |
@@ -132,7 +132,7 @@ same way.
    
 .. _AGU_Req_tensors:
 .. table:: AGU Requirements for Tensors
-   :widths: auto
+   :widths: 20,130
 
    +-----------------------------------+-----------------------------------+
    |    Primitive                      |    Tensors That Must Be Allocated |
@@ -174,4 +174,4 @@ same way.
    +-----------------------------------+-----------------------------------+
    |    Padding 2D                     |    -                              |
    +-----------------------------------+-----------------------------------+
-   
+

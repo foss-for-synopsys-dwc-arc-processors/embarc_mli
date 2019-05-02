@@ -41,15 +41,16 @@ Parameters
 ''''''''''
 
 .. table:: Function Configuration Parameters
- 
-	+-----------------------+-----------------------+
-	| **Field**             | **Description**       |
-	+=======================+=======================+
-	|                       |                       |
-	| ``perm_dim``          | A permutation array.  |
-	|                       | Dimensions order for  |
-	|                       | output tensor.        |
-	+-----------------------+-----------------------+
+   :widths: 20,130
+   
+   +-----------------------+-----------------------+
+   | **Field**             | **Description**       |
+   +=======================+=======================+
+   |                       |                       |
+   | ``perm_dim``          | A permutation array.  |
+   |                       | Dimensions order for  |
+   |                       | output tensor.        |
+   +-----------------------+-----------------------+
 
 .. _api-13:
 
@@ -71,25 +72,26 @@ Parameters
 ''''''''''
 
 .. table:: Kernel Interface Parameters
-
-	+-----------------------+-----------------------+
-	| **Parameters**        | **Description**       |
-	+-----------------------+-----------------------+
-	|                       |                       |
-	| ``in``                | [IN] Pointer to input |
-	|                       | tensor                |
-	+-----------------------+-----------------------+
-	|                       |                       |
-	| ``cfg``               | [IN] Pointer to       |
-	|                       | configuration         |
-	|                       | structure with        |
-	|                       | permutation order     |
-	+-----------------------+-----------------------+
-	|                       |                       |
-	| ``out``               | [OUT] Pointer to the  |
-	|                       | output tensor. Result |
-	|                       | is stored here        |
-	+-----------------------+-----------------------+
+   :widths: 20,130
+   
+   +-----------------------+-----------------------+
+   | **Parameters**        | **Description**       |
+   +-----------------------+-----------------------+
+   |                       |                       |
+   | ``in``                | [IN] Pointer to input |
+   |                       | tensor                |
+   +-----------------------+-----------------------+
+   |                       |                       |
+   | ``cfg``               | [IN] Pointer to       |
+   |                       | configuration         |
+   |                       | structure with        |
+   |                       | permutation order     |
+   +-----------------------+-----------------------+
+   |                       |                       |
+   | ``out``               | [OUT] Pointer to the  |
+   |                       | output tensor. Result |
+   |                       | is stored here        |
+   +-----------------------+-----------------------+
 
 .. _kernel-specializations-13:
 

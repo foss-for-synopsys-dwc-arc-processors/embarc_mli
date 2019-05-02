@@ -81,30 +81,31 @@ Parameters
 ''''''''''
 
 .. table:: Kernel Interface Parameters
-	
-	+-----------------------+-----------------------+
-	| **Parameter**         | **Description**       |
-	+-----------------------+-----------------------+
-	| ``in``                | [IN] Pointer to input |
-	|                       | feature map tensor    |
-	+-----------------------+-----------------------+
-	| ``weights``           | [IN] Pointer to       |
-	|                       | convolution filters   |
-	|                       | weights tensor        |
-	+-----------------------+-----------------------+
-	| ``bias``              | [IN] Pointer to       |
-	|                       | convolution filters   |
-	|                       | biases tensor         |
-	+-----------------------+-----------------------+
-	| ``cfg``               | [IN] Pointer to       |
-	|                       | convolution           |
-	|                       | parameters structure  |
-	+-----------------------+-----------------------+
-	| ``out``               | [OUT] Pointer to      |
-	|                       | output feature map    |
-	|                       | tensor. Result is     |
-	|                       | stored here           |
-	+-----------------------+-----------------------+
+   :widths: 20,130
+   
+   +-----------------------+-----------------------+
+   | **Parameter**         | **Description**       |
+   +-----------------------+-----------------------+
+   | ``in``                | [IN] Pointer to input |
+   |                       | feature map tensor    |
+   +-----------------------+-----------------------+
+   | ``weights``           | [IN] Pointer to       |
+   |                       | convolution filters   |
+   |                       | weights tensor        |
+   +-----------------------+-----------------------+
+   | ``bias``              | [IN] Pointer to       |
+   |                       | convolution filters   |
+   |                       | biases tensor         |
+   +-----------------------+-----------------------+
+   | ``cfg``               | [IN] Pointer to       |
+   |                       | convolution           |
+   |                       | parameters structure  |
+   +-----------------------+-----------------------+
+   | ``out``               | [OUT] Pointer to      |
+   |                       | output feature map    |
+   |                       | tensor. Result is     |
+   |                       | stored here           |
+   +-----------------------+-----------------------+
 
 .. _function-specializations-1:
 
@@ -124,6 +125,7 @@ and inputs layout beforehand by permute primitive (see :ref:`permute`).
 
 .. _Non_spec_func_Dw_cnvl:
 .. table:: Non-Specialized Functions
+   :widths: 20,130
    
    +-----------------------------------------------+-----------------------------------+
    | **Function**                                  | **Description**                   |
