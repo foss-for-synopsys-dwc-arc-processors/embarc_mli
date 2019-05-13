@@ -53,26 +53,7 @@ LIBRARY_DIR ?= ../../bin
 OUT_NAME    ?= libmli
 BUILD_DIR   ?= ../../obj
 GEN_DIR     ?= ../gen
-CFLAGS      += -O3 -Xdsp_ctrl=postshift,guard,convergent -Hnocopyr -Hfxapi -Hpurge -Hsdata0
-
-ifneq ($(ComSpec)$(COMSPEC),)
-    O_SYS=Windows
-    DEV_NULL = nul
-else
-    O_SYS=Unix
-    DEV_NULL=/dev/null
-endif
-
-# Variable with all default flags and defines for target HW (tcf file).
-ALL_FLAGS := $(strip $(shell ccac -tcf=$(TCF_FILE) -Hbatchnotmp _.c 2> $(DEV_NULL)))
-# Analize all flags.
-ifeq (-av2hs,$(findstring -av2hs, $(ALL_FLAGS)))
-#add extra cflag for HS platforms
-CFLAGS += -Hpipeline
-else
-#add extra cflag for EM platforms
-CFLAGS += -Hdense_prologue
-endif
+CFLAGS      += -O3 -Xdsp_ctrl=postshift,guard,convergent -Hnocopyr -Hfxapi -Hpurge -Hsdata0 -Hdense_prologue
 
 vpath %.py  $(GEN_DIR)
 vpath %.txt  $(GEN_DIR)
