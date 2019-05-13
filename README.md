@@ -16,7 +16,7 @@ examples and documentation.
 	* Elementwise (add, sub, mul, min, max)
 	* Data manipulation (concatanation, permute, 2D padding)
 	* ReLU, Leaky ReLu, ReLu1, ReLu6
-	* Softmax, Sigmoid, ThanH
+	* Softmax, Sigmoid, TanH
 3. Supported data layout CHW (Channel-Height-Width standard for Caffe)
 
 ## Package structure
