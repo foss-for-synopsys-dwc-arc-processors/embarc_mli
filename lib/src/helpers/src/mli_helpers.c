@@ -124,15 +124,19 @@ mli_status mli_hlp_convert_tensor(mli_tensor *in, mli_tensor *out) {
         return MLI_STATUS_BAD_TENSOR;
 
     // Switchnig functionality depending on tensors type
-    if (in->el_type == out->el_type == MLI_EL_FX_8)
+    if (in->el_type == MLI_EL_FX_8 && out->el_type == MLI_EL_FX_8)
         convert_tensor_fx8_to_fx8((MLI_PTR(int8_t))in->data, (MLI_PTR(int8_t))out->data, in_sz, out_shift);
-    else if (in->el_type == out->el_type == MLI_EL_FX_16)
+    else if (in->el_type == MLI_EL_FX_16 && out->el_type == MLI_EL_FX_16)
         convert_tensor_fx16_to_fx16((MLI_PTR(int16_t))in->data, (MLI_PTR(int16_t))out->data, in_sz, out_shift);
     else if (in->el_type == MLI_EL_FX_8 && out->el_type == MLI_EL_FX_16)
         convert_tensor_fx8_to_fx16((MLI_PTR(int8_t))in->data, (MLI_PTR(int16_t))out->data, in_sz, out_shift);
     else if (in->el_type == MLI_EL_FX_16 && out->el_type == MLI_EL_FX_8)
         convert_tensor_fx16_to_fx8((MLI_PTR(int16_t))in->data, (MLI_PTR(int8_t))out->data, in_sz, out_shift);
 
+    // Fill the rest output tensor params
+    for (int idx = 0; idx < in->rank; idx++)
+       	out->shape[idx] = in->shape[idx];
+    out->rank = in->rank;
     return MLI_STATUS_OK;
 }
 
