@@ -14,6 +14,7 @@
 #include "mli_config.h"
 #include "mli_debug.h"
 #include "mli_helpers_api.h"
+#include "mli_krn_reduce_sum2d_chw.h"
 #include "mli_prv_dsp.h"
 #include "mli_prv_tensor.h"
 
@@ -85,7 +86,10 @@ mli_status mli_krn_avepool_hwc_fx8(const mli_tensor* in, const mli_pool_cfg* cfg
         const int32_t clmn_beg = CEIL_DIV(padding_left, stride_width);
         const int32_t clmn_end = out_width - CEIL_DIV(padding_right, stride_width);
 
-        int32_t divider = (kernel_height * kernel_width);
+        const int32_t kernel_size = kernel_width * kernel_height;
+        int16_t mul = 0;
+        int shift = 0;
+        get_mul_shift_value(kernel_size, kernel_size, &mul, &shift);
         for (int ch_idx = 0; ch_idx < channels_num; ch_idx++) {
             for (int H_idx = row_beg; H_idx < row_end; H_idx++) {
                 for (int W_idx = clmn_beg; W_idx < clmn_end; W_idx++) {
@@ -97,11 +101,11 @@ mli_status mli_krn_avepool_hwc_fx8(const mli_tensor* in, const mli_pool_cfg* cfg
                              ch_idx;                                                            // move to channel
 
                     // Core Sum
-                    int32_t accum_32 = reduce_sum2D_hwc(in_ptr, kernel_width, kernel_height, channels_num, in_width);
+                    accum40_t accu = reduce_sum2D_hwc(in_ptr, kernel_width, kernel_height, channels_num, in_width, mul);
 
                     MLI_OUT_PTR(int8_t)
                     p_out_ftrs = (MLI_OUT_PTR(int8_t))(out_ftrs + ch_idx + (H_idx * out_width + W_idx) * channels_num);
-                    mli_prv_clip_div_and_store_result(p_out_ftrs, divider, accum_32);
+                    mli_prv_shift_clip_and_store_output(p_out_ftrs, &accu, shift);
                 }
             }
         }
@@ -154,6 +158,11 @@ mli_status mli_krn_avepool_hwc_fx8(const mli_tensor* in, const mli_pool_cfg* cfg
 
                         int32_t rows = kernel_height - top_comp - bottom_comp;
                         int32_t clmns = kernel_width - right_comp - left_comp;
+                        unsigned int max_kernel_size = kernel_width * kernel_height;
+                        int kernel_size = rows * clmns;
+                        int16_t mul = 0;
+                        int shift = 0;
+                        get_mul_shift_value(kernel_size, max_kernel_size, &mul, &shift);
 
                         MLI_PTR(int8_t)
                         in_ptr = in_ftrs +  // starting point
@@ -163,12 +172,12 @@ mli_status mli_krn_avepool_hwc_fx8(const mli_tensor* in, const mli_pool_cfg* cfg
                                  ch_idx;
 
                         // Core Sum
-                        int32_t accum_32 = reduce_sum2D_hwc(in_ptr, clmns, rows, channels_num, in_width);
+                        accum40_t accu = reduce_sum2D_hwc(in_ptr, clmns, rows, channels_num, in_width, mul);
 
                         // Write result
                         MLI_OUT_PTR(int8_t)
                         p_out_ftrs = (MLI_OUT_PTR(int8_t))(out_ftrs + ch_idx + (H_idx * out_width + W_idx) * channels_num);
-                        mli_prv_clip_div_and_store_result(p_out_ftrs, (int32_t)(rows * clmns), accum_32);
+                        mli_prv_shift_clip_and_store_output(p_out_ftrs, &accu, shift);
                     }
                 }
             }
@@ -183,17 +192,6 @@ mli_status mli_krn_avepool_hwc_fx8(const mli_tensor* in, const mli_pool_cfg* cfg
     out->el_type = in->el_type;
 
     return MLI_STATUS_OK;
-}
-
-static inline int32_t reduce_sum2D_hwc(MLI_PTR(int8_t) in, uint32_t width, uint32_t height, uint32_t channels, uint32_t in_row_step) {
-    int32_t acc = 0;
-    for (int row = 0; row < height; row++) {
-        for (int clmn = 0; clmn < width; clmn++) {
-            acc += in[clmn * channels];
-        }
-        in += in_row_step * channels;
-    }
-    return acc;
 }
 
 #pragma code()

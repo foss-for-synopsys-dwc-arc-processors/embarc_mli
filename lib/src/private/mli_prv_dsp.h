@@ -144,6 +144,40 @@ static inline void __attribute__ ((always_inline)) mli_prv_clip_and_store_output
 
 //=========================================================================
 
+static inline void __attribute__ ((always_inline)) mli_prv_shift_clip_and_store_output(
+        MLI_PTR(int16_t) __restrict o_ptr,
+        accum40_t * ip_out_v,
+        const int out_shift) {
+    *o_ptr = fx_q15_cast_asl_rnd_a40(*ip_out_v, 32 - sizeof(int16_t) * 8 - out_shift - 1);
+}
+
+static inline void __attribute__ ((always_inline)) mli_prv_shift_clip_and_store_output(
+        MLI_PTR(int8_t) __restrict o_ptr,
+        accum40_t * ip_out_v,
+        const int out_shift) {
+    *o_ptr = fx_q7_cast_asl_rnd_a40(*ip_out_v, 32 - sizeof(int8_t) * 8 - out_shift - 1);
+}
+
+static inline void __attribute__ ((always_inline)) mli_prv_shift_clip_and_store_output(
+        MLI_PTR(int8_t) __restrict o_ptr,
+        int32_t * ip_in,
+        const int out_shift) {
+    q31_t temp = fx_asr_rnd_q31(*ip_in, out_shift);
+    temp = fx_asl_q31(temp, 32 - sizeof(int8_t) * 8);
+    *o_ptr = (int8_t) fx_q7_cast_q31(temp);
+}
+
+static inline void __attribute__ ((always_inline)) mli_prv_shift_clip_and_store_output(
+        MLI_PTR(int16_t) __restrict o_ptr,
+        int32_t * ip_in,
+        const int out_shift) {
+    q31_t temp = fx_asr_rnd_q31(*ip_in, out_shift);
+    temp = fx_asl_q31(temp, 32 - sizeof(int16_t) * 8);
+    *o_ptr = (int16_t) fx_q15_cast_q31(temp);
+}
+
+//=========================================================================
+
 static inline void __attribute__ ((always_inline)) mli_prv_clip_and_store_output_v(
         MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
         __v2i32_t * acc_v, 
