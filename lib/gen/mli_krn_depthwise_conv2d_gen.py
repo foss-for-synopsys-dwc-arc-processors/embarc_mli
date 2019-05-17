@@ -164,6 +164,6 @@ if "fx8w16d" in sys.argv or no_args:
 #------------------------------------------------------------
 if "header" in sys.argv or no_args:
     fh = open(output_header_file, "wb")
-    fh.write(c.print_proto_file([f_list,f_list_fx8], function_group, capital_header_file_name, file_header_template))
+    fh.write(c.print_proto_file([f_list,f_list_fx8,f_list_fx8w16d], function_group, capital_header_file_name, file_header_template))
     fh.close()
 

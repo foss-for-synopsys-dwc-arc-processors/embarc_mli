@@ -26,6 +26,7 @@ class Func:
         else:
             self.corefunc = [corefunc]
         self.generic = generic
+        self.debug = False
 
     def get_param_by_name(self, paramname):
         if paramname == 'kernel_w':
@@ -52,7 +53,10 @@ class Func:
                     self.stride_w, self.stride_h, self.corefunc, self.padding, self.generic)
 
     def name(self):
-        name = "mli_{0}_{1}_{2}_{3}".format(self.group, self.typen, self.layout, self.datatype)
+        name = "mli"
+        if self.debug:
+            name += "_debug"
+        name += "_{0}_{1}_{2}_{3}".format(self.group, self.typen, self.layout, self.datatype)
         if ((self.kernel_w > 0) and (self.kernel_h > 0)):
             name += "_k{0}x{1}".format(self.kernel_w, self.kernel_h)
         if ((self.kernel_w > 0) and (self.kernel_h == 0)):
@@ -89,14 +93,16 @@ class Func:
         string += ")"
         return string
 
-    def print_proto(self):
-        func_len = len("mli_status " + self.name() + self.argstr(True))
+    def print_proto(self, returntype = "mli_status"):
+        func_len = len(returntype + " " + self.name() + self.argstr(True))
         if func_len > self.max_len_of_line:
-            return "mli_status " + self.name() + self.argstr(True, split=True)
+            return returntype + " " + self.name() + self.argstr(True, split=True)
         else:
-            return "mli_status " + self.name() + self.argstr(True)
+            return returntype + " " + self.name() + self.argstr(True)
 
-    def print_call(self, indent=""):
+    def print_call(self, namestringonly, indent=""):
+        if namestringonly:
+            return "(char*)\"" + self.name() + "\";\n"
         func_len = len(self.name() + self.argstr(False, indent) + ";\n")
         if func_len > self.max_len_of_line:
             return self.name() + self.argstr(False, indent, split=True) + ";\n"

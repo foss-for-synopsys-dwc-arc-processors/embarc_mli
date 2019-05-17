@@ -84,23 +84,23 @@ clean:
 
 ifeq ($(GEN_RULES),ON)
 
-$(filter $(CONVOLUTION_SRC_FOLDER)/mli_krn_conv2d_chw_%, $(GEN_FILES)): $(CONVOLUTION_SRC_FOLDER)/mli_krn_conv2d_chw_%.cc : mli_krn_conv2d_gen.py mli_krn_conv2d_func_body.txt filetemplate.txt
+$(filter $(CONVOLUTION_SRC_FOLDER)/mli_krn_conv2d_chw_%, $(GEN_FILES)): $(CONVOLUTION_SRC_FOLDER)/mli_krn_conv2d_chw_%.cc : mli_krn_conv2d_gen.py mli_krn_conv2d_func_body.txt filetemplate.txt codegen.py func.py
 	@echo [generate] $@
 	cd $(GEN_DIR) && python $< $*
 
-$(filter $(CONVOLUTION_SRC_FOLDER)/mli_krn_depthwise_conv2d_chw_%, $(GEN_FILES)): $(CONVOLUTION_SRC_FOLDER)/mli_krn_depthwise_conv2d_chw_%.cc : mli_krn_depthwise_conv2d_gen.py mli_krn_depthwise_conv2d_func_body.txt filetemplate.txt
+$(filter $(CONVOLUTION_SRC_FOLDER)/mli_krn_depthwise_conv2d_chw_%, $(GEN_FILES)): $(CONVOLUTION_SRC_FOLDER)/mli_krn_depthwise_conv2d_chw_%.cc : mli_krn_depthwise_conv2d_gen.py mli_krn_depthwise_conv2d_func_body.txt filetemplate.txt codegen.py func.py
 	@echo [generate] $@
 	cd $(GEN_DIR) && python $< $*
 
-$(filter $(POOLING_SRC_FOLDER)/mli_krn_avepool_chw_%, $(GEN_FILES)): $(POOLING_SRC_FOLDER)/mli_krn_avepool_chw_%.cc : mli_krn_avepool_gen.py mli_krn_avepool_func_body.txt filetemplate.txt
+$(filter $(POOLING_SRC_FOLDER)/mli_krn_avepool_chw_%, $(GEN_FILES)): $(POOLING_SRC_FOLDER)/mli_krn_avepool_chw_%.cc : mli_krn_avepool_gen.py mli_krn_avepool_func_body.txt filetemplate.txt codegen.py func.py
 	@echo [generate] $@
 	cd $(GEN_DIR) && python $< $*
 
-$(filter $(POOLING_SRC_FOLDER)/mli_krn_maxpool_chw_%, $(GEN_FILES)): $(POOLING_SRC_FOLDER)/mli_krn_maxpool_chw_%.cc : mli_krn_maxpool_gen.py mli_krn_maxpool_func_body.txt filetemplate.txt
+$(filter $(POOLING_SRC_FOLDER)/mli_krn_maxpool_chw_%, $(GEN_FILES)): $(POOLING_SRC_FOLDER)/mli_krn_maxpool_chw_%.cc : mli_krn_maxpool_gen.py mli_krn_maxpool_func_body.txt filetemplate.txt codegen.py func.py
 	@echo [generate] $@
 	cd $(GEN_DIR) && python $< $*
 
-$(GEN_FILES_HEADERS): $(GEN_HEADER_FOLDER)/%_spec_api.h : %_gen.py header_filetemplate.txt
+$(GEN_FILES_HEADERS): $(GEN_HEADER_FOLDER)/%_spec_api.h : %_gen.py header_filetemplate.txt codegen.py func.py
 	@echo [generate] $@
 	cd $(GEN_DIR) && python $< header
 

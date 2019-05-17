@@ -23,6 +23,7 @@ extern "C" {
 //===================================================================
 // AvePooling specialization kernels implementation
 //===================================================================
+char * mli_debug_krn_avepool_chw_fx16(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 
 mli_status mli_krn_avepool_chw_fx16_k2x2_str1_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_avepool_chw_fx16_k4x4_str1_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
@@ -55,6 +56,7 @@ mli_status mli_krn_avepool_chw_fx16_knx1_nopad(const mli_tensor * in, const mli_
 mli_status mli_krn_avepool_chw_fx16_k2x1_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_avepool_chw_fx16_k3x1_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_avepool_chw_fx16_generic(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
+char * mli_debug_krn_avepool_chw_fx8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 
 mli_status mli_krn_avepool_chw_fx8_k2x2_str1_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_avepool_chw_fx8_k4x4_str1_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);

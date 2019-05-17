@@ -25,10 +25,10 @@ class Codegen:
                 sub_list.append(f)
         return sub_list
 
-    def print_if_tree(self, func_list, hierargy_list, indent, default_func):
+    def print_if_tree(self, func_list, hierargy_list, indent, default_func, namestringonly):
         string = ""
         if len(hierargy_list) == 0:
-            return indent + "return " + func_list[0].print_call()
+            return indent + "return " + func_list[0].print_call(namestringonly)
         local_hierargy_list = list(hierargy_list)
         param_name = local_hierargy_list.pop(0)
         param_range = self.get_param_range_from_list(func_list, param_name)
@@ -57,7 +57,7 @@ class Codegen:
                     string = string[:len(string)-1] + " "
                     string += sep + "{\n"
                     has_else_branch = True
-                string += self.print_if_tree(sub_list, local_hierargy_list, indent + "    ", default_func)
+                string += self.print_if_tree(sub_list, local_hierargy_list, indent + "    ", default_func, namestringonly)
                 string += indent + "}\n"
             else:
                 if param:
@@ -75,13 +75,13 @@ class Codegen:
                 else:
                     string += indent + sep + "{\n"
                     has_else_branch = True
-                string += self.print_if_tree(sub_list, local_hierargy_list, indent + "    ", default_func)
+                string += self.print_if_tree(sub_list, local_hierargy_list, indent + "    ", default_func, namestringonly)
                 string += indent + "}\n"
             sep = "else "
         if not has_else_branch:
             string = string[:len(string)-1] + " "
             string += sep + "{\n"
-            string += indent + " "*4 + "return " + default_func.print_call()
+            string += indent + " "*4 + "return " + default_func.print_call(namestringonly)
             string += indent + "}\n"
         return string
 
@@ -104,7 +104,7 @@ class Codegen:
             string += func.name() + "()\n"
         return string
 
-    def print_if_list(self, func_list, hierargy_list, default_func):
+    def print_if_list(self, func_list, hierargy_list, default_func, namestringonly=False):
         string = ""
         sep = "    "
         sorted_list = self.sort_func_list(func_list, hierargy_list)
@@ -118,11 +118,11 @@ class Codegen:
             else:
                 string += func.print_condition(split=True)
             string += " {\n"
-            string += " "*8 + "return " + func.print_call()
+            string += " "*8 + "return " + func.print_call(namestringonly)
             string += " "*4 + "}"
             sep = " else "
         string += " else {\n"
-        string += " "*8 + "return " + default_func.print_call()
+        string += " "*8 + "return " + default_func.print_call(namestringonly)
         string += " "*4 + "}\n"
         return string
 
@@ -163,21 +163,31 @@ class Codegen:
                 except KeyError, e:
                     print 'Wrapper hierarchy contains a variable that is not provided in set_wrapper_variables: "%s"' % str(e)
         return string
-    def print_wrapper(self, func_list, default_func):
+    def print_wrapper(self, func_list, default_func, debugwrapper=False):
         base_func = func_list[0].get_base_func()
         #todo: check if all functions in the list have the same base
-        string = base_func.print_proto() + " {\n"
+        if debugwrapper:
+            returntype = "char *"
+            base_func.debug = True
+        else:
+            returntype = "mli_status"
+        string = base_func.print_proto(returntype=returntype) + " {\n"
         string += self.print_variables()
         string += "\n"
         if self.tree == True:
-            string += self.print_if_tree(func_list, self.hierarchy, "    ", default_func)
+            string += self.print_if_tree(func_list, self.hierarchy, "    ", default_func, debugwrapper)
         else:
-            string += self.print_if_list(func_list, self.hierarchy, default_func)
+            string += self.print_if_list(func_list, self.hierarchy, default_func, debugwrapper)
         string += "}\n"
         return string
-    def print_wrapper_proto(self, func_list):
+    def print_wrapper_proto(self, func_list, debugwrapper=False):
         base_func = func_list[0].get_base_func()
-        string = base_func.print_proto() + ";\n"
+        if debugwrapper:
+            returntype = "char *"
+            base_func.debug = True
+        else:
+            returntype = "mli_status"
+        string = base_func.print_proto(returntype=returntype) + ";\n"
         return string
 
     def print_includes(self, include_list):
@@ -204,7 +214,7 @@ class Codegen:
         string += s.substitute(extra_includes = self.print_includes(include_list),
                                extra_defines = self.print_define(define_list),
                                functions = self.print_func_bodies(func_list, body_template),
-                               wrapper = self.print_wrapper(func_list, default_func))
+                               wrapper = self.print_wrapper(func_list, default_func) + self.print_wrapper(func_list, default_func, debugwrapper=True))
         return string
     def print_proto_file(self, func_list_list, function_group, cap_header_file_name, header_file_template):
         f = open(header_file_template, "r")
@@ -216,6 +226,7 @@ class Codegen:
         functions_list = ""
         wrapper_list = ""
         for f_list in func_list_list:
+            functions_list += self.print_wrapper_proto(f_list, debugwrapper=True)
             functions_list += self.print_func_proto(f_list)
         string += s.substitute(capital_file_name = cap_header_file_name,
                                func_group = function_group,
