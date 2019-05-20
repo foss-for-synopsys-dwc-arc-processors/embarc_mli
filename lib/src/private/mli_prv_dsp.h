@@ -754,7 +754,7 @@ static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec4(
     *accu = _dmachbm((int32_t) mli_prv_load_2_samples(in), four8bitvalues);
 }
 
-static unsigned __attribute__ ((always_inline)) mli_prv_init_dsp_ctrl(unsigned ctrl_info) {
+static inline unsigned __attribute__ ((always_inline)) mli_prv_init_dsp_ctrl(unsigned ctrl_info) {
     unsigned t, old = _lr(DSP_CTRL);
     _sr(ctrl_info, DSP_CTRL);
     t = _lr(DSP_CTRL);
@@ -779,7 +779,7 @@ static unsigned __attribute__ ((always_inline)) mli_prv_init_dsp_ctrl(unsigned c
     return old;
 }
 
-static unsigned __attribute__ ((always_inline)) mli_prv_fx_init_dsp_ctrl() {
+static inline unsigned __attribute__ ((always_inline)) mli_prv_fx_init_dsp_ctrl() {
     unsigned mode = 0;
 
 #if (defined(__Xdsp_version) && __Xdsp_version > 1) || defined(__Xdsp2)
