@@ -24,7 +24,7 @@
  ******************************************************************************/
 
 #define DIV_LUT_THRESHOLD 32
-static int16_t multiplier_lut[] = {
+static const int16_t multiplier_lut[] = {
     0, // 0
     0x0001, // 1
     0x0001, // 2
@@ -59,7 +59,7 @@ static int16_t multiplier_lut[] = {
     0x4210, // 31*
 };
 
-static int8_t shift_lut[] = {
+static const int8_t shift_lut[] = {
     0,  // 0
     0,  // 1
     1,  // 2
