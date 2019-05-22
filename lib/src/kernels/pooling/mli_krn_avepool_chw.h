@@ -23,6 +23,7 @@
  * Targets:
  *
  ******************************************************************************/
+
 template <typename io_T>
 static inline void __attribute__((always_inline)) avepool_chw_nopad(
         const int row_beg,
@@ -48,6 +49,9 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad(
     (void)padding_bot;
 
     const int kernel_size = kernel_width * kernel_height;
+    int16_t mul = 0;
+    int shift = 0;
+    get_mul_shift_value(kernel_size, kernel_size, &mul, &shift);
 
     MLI_OUT_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
     MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T))in_ftrs + in_width * (row_beg * stride_height - padding_top) +
@@ -59,9 +63,9 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad(
         for (int j = 0; j < (row_end - row_beg); j++) {
             for (int k = 0; k < (clmn_end - clmn_beg); k++) {
                 accum40_t accum_40 = fx_create_a40(0x0, 0x0);
-                reduce_sum2D(&accum_40, in_ptr, kernel_width, kernel_height, in_width);
+                reduce_sum2D(&accum_40, in_ptr, kernel_width, kernel_height, in_width, mul);
                 // Write results
-                mli_prv_clip_div_and_store_result(p_out_ftrs, kernel_size, accum_40);
+                mli_prv_shift_clip_and_store_output(p_out_ftrs, &accum_40, shift);
 
                 p_out_ftrs++;
                 in_ptr += stride_width;
@@ -99,6 +103,9 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad_even(
     (void)padding_bot;
 
     const int kernel_size = kernel_width * kernel_height;
+    int16_t mul = 0;
+    int shift = 0;
+    get_mul_shift_value(kernel_size, kernel_size, &mul, &shift);
 
     MLI_OUT_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
     MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T))in_ftrs + in_width * (row_beg * stride_height - padding_top) +
@@ -110,11 +117,10 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad_even(
         for (int j = 0; j < (row_end - row_beg); j++) {
             for (int k = 0; k < (clmn_end - clmn_beg); k++) {
                 // Core Sum
-
                 accum40_t accum_40 = fx_create_a40(0x0, 0x0);
-                reduce_sum2D_even(&accum_40, in_ptr, kernel_width, kernel_height, in_width);
+                reduce_sum2D_even(&accum_40, in_ptr, kernel_width, kernel_height, in_width, mul);
                 // Write results
-                mli_prv_clip_div_and_store_result(p_out_ftrs, kernel_size, accum_40);
+                mli_prv_shift_clip_and_store_output(p_out_ftrs, &accum_40, shift);
 
                 p_out_ftrs++;
                 in_ptr += stride_width;
@@ -150,6 +156,7 @@ static inline void __attribute__((always_inline)) avepool_chw(
         const int padding_bot) {
     (void)padding_right;
     (void)padding_bot;
+    unsigned int max_kernel_size = kernel_width * kernel_height;
 
     MLI_OUT_PTR(io_T) __restrict out_ptr = out_ftrs + clmn_beg * out_width + clmn_beg;
     for (int ch_idx = 0; ch_idx < channels_num; ch_idx++) {
@@ -168,6 +175,9 @@ static inline void __attribute__((always_inline)) avepool_chw(
                 int clmns = kernel_width + right_comp + left_comp;
 
                 const int kernel_size = rows * clmns;
+                int16_t mul = 0;
+                int shift = 0;
+                get_mul_shift_value(kernel_size, max_kernel_size, &mul, &shift);
 
                 const MLI_PTR(io_T) __restrict in_ptr =
                         in_ftrs +                                                      // starting point
@@ -176,9 +186,9 @@ static inline void __attribute__((always_inline)) avepool_chw(
                         (W_idx * stride_width) - padding_left - left_comp;             // move to column
 
                 accum40_t accum_40 = fx_create_a40(0x0, 0x0);
-                reduce_sum2D(&accum_40, in_ptr, clmns, rows, in_width);
+                reduce_sum2D(&accum_40, in_ptr, clmns, rows, in_width, mul);
                 // Write results
-                mli_prv_clip_div_and_store_result(&p_out_ftrs[W_idx], kernel_size, accum_40);
+                mli_prv_shift_clip_and_store_output(&p_out_ftrs[W_idx], &accum_40, shift);
 
             }  // W_idx
             out_ptr += out_width + clmn_beg - clmn_end;
@@ -213,21 +223,21 @@ static inline void __attribute__((always_inline)) avepool_chw_k4x4_str1_nopad(
 
     MLI_ASSERT(stride_width == 1);
     MLI_ASSERT(stride_height == 1);
+    MLI_ASSERT(kernel_width == 4);
+    MLI_ASSERT(kernel_height == 4);
 
     MLI_OUT_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
     MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T))in_ftrs + in_width * (row_beg * stride_height - padding_top) +
            (clmn_beg * stride_width - padding_left);
     const int delta_W = (clmn_end - clmn_beg);
     const int delta_H = (row_end - row_beg);
-    const int kernel_size = (kernel_width * kernel_height);
 
     for (int ch_idx = 0; ch_idx < channels_num; ch_idx++) {
         for (int j = 0; j < (row_end - row_beg); j++) {
             for (int k = 0; k < (clmn_end - clmn_beg); k++) {
                 accum40_t accum_40 = fx_create_a40(0x0, 0x0);
-                reduce_sum2D_even(&accum_40, (const MLI_PTR(io_T))in_ptr, kernel_width, kernel_height, in_width);
-
-                mli_prv_clip_div_and_store_result(p_out_ftrs, kernel_size, accum_40);
+                reduce_sum2D_even(&accum_40, (const MLI_PTR(io_T))in_ptr, kernel_width, kernel_height, in_width, 1);
+                mli_prv_shift_clip_and_store_output(p_out_ftrs, &accum_40, 4);
 
                 p_out_ftrs++;
                 in_ptr += stride_width;
@@ -269,7 +279,9 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad_k2x2(
            (clmn_beg * stride_width - padding_left);
     const int delta_W = (clmn_end - clmn_beg);
     const int delta_H = (row_end - row_beg);
-    const int kernel_size = (kernel_width * kernel_height);
+
+    MLI_ASSERT(kernel_width == 2);
+    MLI_ASSERT(kernel_height == 2);
 
     for (int ch_idx = 0; ch_idx < channels_num; ch_idx++) {
         for (int j = 0; j < (row_end - row_beg); j++) {
@@ -277,9 +289,8 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad_k2x2(
                 // Core Sum
 
                 accum40_t accum_40 = fx_create_a40(0x0, 0x0);
-                reduce_sum2D_even(&accum_40, in_ptr, kernel_width, kernel_height, in_width);
-
-                mli_prv_clip_div_and_store_result(p_out_ftrs, kernel_size, accum_40);
+                reduce_sum2D_even(&accum_40, in_ptr, kernel_width, kernel_height, in_width, 1);
+                mli_prv_shift_clip_and_store_output(p_out_ftrs, &accum_40, 2);
 
                 p_out_ftrs++;
                 in_ptr += stride_width;
@@ -317,6 +328,9 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad_k4_Nx2_N_eve
     (void)padding_bot;
 
     const int kernel_size = kernel_height * kernel_width;
+    int16_t mul = 0;
+    int shift = 0;
+    get_mul_shift_value(kernel_size, kernel_size, &mul, &shift);
 
     MLI_OUT_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
     MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T))in_ftrs + in_width * (row_beg * stride_height - padding_top) +
@@ -329,9 +343,8 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad_k4_Nx2_N_eve
             for (int k = 0; k < (clmn_end - clmn_beg); k++) {
                 // Core Sum
                 accum40_t accum_40 = fx_create_a40(0x0, 0x0);
-                reduce_sum2D_even(&accum_40, in_ptr, kernel_width, kernel_height, in_width);
-
-                mli_prv_clip_div_and_store_result(p_out_ftrs, kernel_size, accum_40);
+                reduce_sum2D_even(&accum_40, in_ptr, kernel_width, kernel_height, in_width, mul);
+                mli_prv_shift_clip_and_store_output(p_out_ftrs, &accum_40, shift);
 
                 p_out_ftrs++;
                 in_ptr += stride_width;
