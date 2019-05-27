@@ -49,7 +49,7 @@ inputs shape.
 
 For more details on calculations see convolution part of `TensorFlow–Neural Network details`_. 
    
-.. _TensorFlow–Neural Network details: https://www.tensorflow.org/api_guides/python/nn.
+.. _TensorFlow–Neural Network details: https://www.tensorflow.org/versions/r1.11/api_guides/python/nn
 
 ReLU activation function might be applied to result of convolution. The
 following types of ReLU activations are supported (for more info see
