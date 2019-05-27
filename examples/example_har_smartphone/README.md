@@ -120,6 +120,10 @@ For this reason you can build and check application with 8 and 16 bit depth of N
 
        gmake TCF_FILE=../../hw/em9d.tcf EXT_CFLAGS="-DMODEL_BIT_DEPTH=8"
 
+* 8x16: 8 bit depth of coefficients and 16 bit depth of data:
+
+       gmake TCF_FILE=../../hw/em9d.tcf EXT_CFLAGS="-DMODEL_BIT_DEPTH=816"
+
 Example application may be used in three modes:
 1. **Built-in input processing.** Uses only hard-coded vector for the single input model inference. 
 No application input arguments.
@@ -138,6 +142,22 @@ Input test-set and labels paths are required as argument.
 
 Notes: If the example is compiled with GNU tools, then these modes are transferred to the application using mdb_com_gnu command script file for MetaWare Debugger.
        Modify this file to customize the example run mode.
+
+
+Data Memory Requirements
+----------------------------
+
+Example application uses statically allocated memory for model weights and intermediate results (activations) and structures. Requirements for them depends on model bit depth 
+configuration define and listed in table below. Before compiling application for desired hardware configuration, be sure it has enough memory to keep data.
+
+|                      Data                         |   MODEL_BIT_DEPTH=8   |  MODEL_BIT_DEPTH=816  |  MODEL_BIT_DEPTH=16  |
+| :-----------------------------------------------: | :-------------------: | :-------------------: | :------------------: |
+| Weights <br/>(*.mli_model* section)              |  17160 bytes          | 17160 bytes           | 34316 bytes          |
+| Activations <br/>(*.Xdata* and *.Ydata* sections) |  8352 bytes           | 16704 bytes           | 16704 bytes          |
+| Structures <br/>(*.mli_data* section)           |  496 bytes            | 496 bytes             | 496 bytes            |
+
+By default, application uses MODEL_BIT_DEPTH=16 mode. Application code size depends on target hardware configuration and compilation flags. MLI Library code is wrapped into mli_lib section.
+
 
 References
 ----------------------------
