@@ -84,8 +84,8 @@ Building of embARC MLI library
 Q: Can I use ARC GNU tools to build embARC MLI library?
 A: No you cannot. embARC MLI Library must be built by MetaWare Development Tools only. Read the documentation at [embarc.org]( https://embarc.org/embarc_mli/doc/build/html/getting_started/getting_started.html#build-library) for details
 
-Q: Can I use MetaWare Development Tools Light to pre-build embARC MLI library and ARC GNU to build example application?
-A: No you cannot. embARC MLI Library must be built by full version of MetaWare Development Tools. Binaries built with MWDT Light are not compatible with ARC GNU Tools. Read the MWDT Light documentation for details.
+Q: Can I use MetaWare Development Tools Lite to pre-build embARC MLI library and ARC GNU to build example application?
+A: No you cannot. embARC MLI Library must be built by full version of MetaWare Development Tools. Binaries built with MWDT Lite are not compatible with ARC GNU Tools. Read the MWDT Lite documentation for details.
 
 Q: I can not build and run example application for my Synopsys board (EMSK, IoTDK, etc), what I shall do?
 A: If you build for Synopsys boards refer to documentation [embarc.org](https://embarc.org/platforms.html) as a good starting point. 
