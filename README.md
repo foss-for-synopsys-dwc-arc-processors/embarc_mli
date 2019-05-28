@@ -1,8 +1,8 @@
 embARC Machine Learning Inference Library
 ==================================================
 
-This repository contains source code of embARC Machine Learning Inference Library (embARC MLI Library),
-examples and documentation.
+This repository contains source code of embARC Machine Learning Inference Library (embARC MLI Library), 
+documentation and examples. Read the documentation at [embarc.org](https://embarc.org/embarc_mli).
 
 ## Release notes
 ----------------
