@@ -379,7 +379,7 @@ static inline void __attribute__((always_inline)) maxpool_chw_small(
 }
 
 template <typename io_T>
-static inline void __attribute__((always_inline)) maxpool_chw_krnpad(
+static inline void __attribute__((always_inline)) maxpool_chw_pad(
         const MLI_PTR(io_T) __restrict in_ftrs,
         MLI_OUT_PTR(io_T) __restrict out_ftrs,
         const int row_beg,
