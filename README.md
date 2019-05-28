@@ -73,6 +73,15 @@ Building of embARC MLI library
 
 5. Result Quality shall be "S/N=1823.9     (65.2 db)"
 		
+## Optimizations for code size
+------------------------------
+By default the embARC MLI Library is build for optimal speed. If code size needs to be reduced, there are two things that can be done:
+1. For convolution and pooling layers there are specialized funtions for specific kernel sizes, they are called by a wrapper functions based on the parameters.
+These parameters are compile time constant in the application, so the application can directly call the specialized functions. This will reduce over all code size.
+Please be aware that the list of specializations is not guaranteed to be backwards compatible between releases.
+
+2. Use a different optimization mode when calling the makefile. OPTMODE=size will optimize for size. default is OPTMODE=speed
+	'gmake TCF_FILE=../../hw/em9d.tcf OPTMODE=size'
 
 ## Known Issues
 ---------------
