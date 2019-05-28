@@ -64,6 +64,8 @@ quote=$(subst %,$(Q)%, \
 # Global settings
 #=============================================================
 TOOLCHAIN ?= gnu
+#optmization mode
+OPTMODE ?= speed
 
 export DEBUG_BUILD?=ON
 #export ASM_OUT?=OFF
@@ -75,6 +77,13 @@ endif
 #    CFLAGS += -g0 -Hkeepasm -Hanno
 #    # CFLAGS += -Hon=Print_var_info
 #endif
+
+ifeq ($(OPTMODE),size)
+	CFLAGS += -O2 -Hlto
+endif
+ifeq ($(OPTMODE),speed)
+	CFLAGS += -O3
+endif
 
 #=============================================================
 # Files and directories

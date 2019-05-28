@@ -739,9 +739,15 @@ static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec4(
         const MLI_PTR(int8_t) in, 
         const MLI_PTR(int8_t) k) {
     int32_t four8bitvalues = *(MLI_PTR(int32_t)) in;
+#if defined __Xxy
     *accu = _dmachbl((int32_t) mli_prv_load_2_samples(k), four8bitvalues);
     k += 2;
     *accu = _dmachbm((int32_t) mli_prv_load_2_samples(k), four8bitvalues);
+#else
+    int32_t four8bit_weights = *(MLI_PTR(int32_t)) k;
+    *accu = _dmachbl((int32_t) (v2q15_t) _vsext2bhl(four8bit_weights), four8bitvalues);
+    *accu = _dmachbm((int32_t) (v2q15_t) _vsext2bhm(four8bit_weights), four8bitvalues);
+#endif
 }
 
 static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec4(

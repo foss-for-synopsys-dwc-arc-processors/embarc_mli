@@ -28,7 +28,7 @@ BUILD_DIR    ?= ./obj
 OUT_NAME     ?= example_cifar10_caffe
 ifeq ($(TOOLCHAIN),mwdt)
 # MWDT specific options
-CFLAGS       =  -Hnocopyr -Hpurge -Hheap=8K -Hstack=1K -Hfxapi -e_start -Bgrouplib -Hldopt=-q -O0 -Hsdata0
+CFLAGS       =  -Hnocopyr -Hpurge -Hheap=8K -Hstack=1K -Hfxapi -e_start -Bgrouplib -Hldopt=-q -Hsdata0 -Xdsp_ctrl=postshift,guard,convergent -Hdense_prologue
 else
 PREBUILT_LIB ?= $(EMBARC_MLI_DIR)/examples/prebuilt/libmli.a
 

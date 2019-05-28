@@ -434,7 +434,7 @@ static void check_result(
 //========================================================================================
 #if (MODEL_BIT_DEPTH != MODEL_FX_8)
 static inline mli_status maxpool_chw(const mli_tensor *in, const mli_pool_cfg *cfg, mli_tensor *out) {
-    return mli_krn_maxpool_chw_fx16_k3x3(in, cfg, out);
+    return mli_krn_maxpool_chw_fx16_k3x3_krnpad(in, cfg, out);
 }
 
 static inline mli_status avepool_chw(const mli_tensor *in, const mli_pool_cfg *cfg, mli_tensor *out) {
@@ -455,7 +455,7 @@ static inline mli_status mli_krn_permute_fx(const mli_tensor *in, const mli_perm
 
 #else // MODEL_BIT_DEPTH == (MODEL_FX_8W16D || MODEL_FX_8W16D)
 static inline mli_status maxpool_chw(const mli_tensor *in, const mli_pool_cfg *cfg, mli_tensor *out) {
-    return mli_krn_maxpool_chw_fx8_k3x3(in, cfg, out);
+    return mli_krn_maxpool_chw_fx8_k3x3_krnpad(in, cfg, out);
 }
 
 static inline mli_status avepool_chw(const mli_tensor *in, const mli_pool_cfg *cfg, mli_tensor *out) {

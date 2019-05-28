@@ -124,10 +124,15 @@ class Func:
             else:
                 cond = "(1)"
         elif self.padding == "nopad":
-                cond  = "(padding_top == 0) && "
-                cond += "(padding_bot == 0) && "
-                cond += "(padding_left == 0) && "
-                cond += "(padding_right == 0)"
+            cond  = "(padding_top == 0) && "
+            cond += "(padding_bot == 0) && "
+            cond += "(padding_left == 0) && "
+            cond += "(padding_right == 0)"
+        elif self.padding == "krnpad" and (self.kernel_h > 0) and (self.kernel_w > 0):
+            cond  = "(padding_top <= " + str(int((self.kernel_h - 1) / 2)) + ") && "
+            cond += "(padding_bot <= " + str(int(self.kernel_h / 2)) + ") && "
+            cond += "(padding_left <= " + str(int((self.kernel_w -1) / 2)) + ") && "
+            cond += "(padding_right <= " + str(int(self.kernel_w / 2)) + ")"
         else:
             cond = "(1)"
         return cond
