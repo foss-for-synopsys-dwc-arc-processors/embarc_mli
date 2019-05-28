@@ -109,7 +109,7 @@ round to the nearest even). All parameters are described in *MetaWare
 Fixed-Point Reference for ARC EM and ARC HS*.
 
 .. note::
-   The MLI Library sets the required DSP mode inside each function where it is needed, but does not restore it to previous state. If another ARC DSP code beside MLI library is used in an application, ensure that you set the required DSP mode before its execution. For more information see  “Configuring the ARC DSP Extensions” section of *MetaWare DSP Programming Guide for ARC EM and ARC HS* or “Using the FXAPI” section of entry [5] of *MetaWare Fixed-Point Reference for ARC EM and ARC HS*.
+   The MLI Library sets the required DSP mode inside each function where it is needed, but does not restore it to previous state. If another ARC DSP code beside MLI library is used in an application, ensure that you set the required DSP mode before its execution. For more information see  “Configuring the ARC DSP Extensions” section of *MetaWare DSP Programming Guide for ARC EM and ARC HS* or “Using the FXAPI” section of *MetaWare Fixed-Point Reference for ARC EM and ARC HS*.
 
 AGU Support
 ^^^^^^^^^^^
