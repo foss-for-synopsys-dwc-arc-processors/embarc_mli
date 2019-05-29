@@ -47,56 +47,56 @@ no_args = len(sys.argv) == 1
 
 corefunc = "maxpool_chw_nopad"
 stride = 1
-kernel_range = range(2,11)
-channel_range = [0,1,3]
+kernel_range = [2]
+channel_range = [0]
 f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range for ch in channel_range])
 
-#stride = 1, 1xk and kx1 versions
 corefunc = "maxpool_chw_nopad"
-stride = 1
+stride = 0
+kernel_range = range(2,11)
+channel_range = [0]
+f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range for ch in channel_range])
+
+#stride = 0, 1xk and kx1 versions
+corefunc = "maxpool_chw_nopad"
+stride = 0
 kernel_range = range(2,4)
-channel_range = [0,1]
+channel_range = [0]
 f_list.extend([Func(fbase, 1, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range for ch in channel_range])
 f_list.extend([Func(fbase, k, 1, ch, stride, stride, corefunc, "nopad") for k in kernel_range for ch in channel_range])
 
 corefunc = "maxpool_chw_krnpad_small"
-stride = 1
+stride = 0
 kernel_range = [2, 3]
-channel_range = [0,1,3]
+channel_range = [0]
 f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
 
 corefunc = "maxpool_chw_pad"
-stride = 1
+stride = 0
 kernel_range = range(4,11)
-channel_range = [0,1,3]
+channel_range = [0]
 f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
 
-#stride = 1, 1xk and kx1 versions
+# 1xk and kx1 versions
 corefunc = "maxpool_chw_pad"
-stride = 1
+stride = 0
 kernel_range = range(2,4)
-channel_range = [0,1]
+channel_range = [0]
 f_list.extend([Func(fbase, 1, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
 f_list.extend([Func(fbase, k, 1, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
 
 #fix single dimension, others flex
 corefunc = "maxpool_chw_pad"
-stride = 1
+stride = 0
 f_list.extend([Func(fbase, 1, 0, 0, stride, stride, corefunc, "")]) #k_width == 1
 f_list.extend([Func(fbase, 0, 1, 0, stride, stride, corefunc, "")]) #k_heigth == 1
-f_list.extend([Func(fbase, 0, 0, 1, stride, stride, corefunc, "")]) #channels == 1
 
 corefunc = "maxpool_chw_pad"
 stride = 0
 kernel_range = [2,3]
-channel_range = [0,1]
+channel_range = [0]
 f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "") for k in kernel_range for ch in channel_range])
 
-corefunc = "maxpool_chw_krnpad_small"
-stride = 0
-kernel_range = [2,3]
-channel_range = [0]
-f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
 
 #at last add the generic function that can be used in the else branch in the wrapper.
 corefunc = "maxpool_chw_pad"
@@ -115,7 +115,7 @@ c.set_wrapper_variables({'padding_bot' : "cfg->padding_bottom"})
 c.set_wrapper_variables({'padding_left' : "cfg->padding_left"})
 c.set_wrapper_variables({'padding_right' : "cfg->padding_right"})
 c.set_wrapper_hierarchy(['stride_w', 'stride_h', 'kernel_w', 'kernel_h', 'channels', 'padding'])
-c.set_wrapper_if_tree(True)
+c.set_wrapper_if_tree(False)
 
 if "fx16" in sys.argv or no_args:
     f = open(output_file_fx16, "wb")

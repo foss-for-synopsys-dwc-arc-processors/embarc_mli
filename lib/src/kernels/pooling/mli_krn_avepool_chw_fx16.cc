@@ -3292,72 +3292,90 @@ mli_status mli_krn_avepool_chw_fx16(const mli_tensor * in, const mli_pool_cfg * 
         {
             if (kernel_w == 10) {
                 if (kernel_h == 10) {
-                    {
+                    if ((padding_top <= 4) && (padding_bot <= 5) && (padding_left <= 4) && (padding_right <= 5)) {
                         return mli_krn_avepool_chw_fx16_k10x10_krnpad(in, cfg, out);
+                    } else {
+                        return mli_krn_avepool_chw_fx16_generic(in, cfg, out);
                     }
                 } else {
                     return mli_krn_avepool_chw_fx16_generic(in, cfg, out);
                 }
             } else if (kernel_w == 9) {
                 if (kernel_h == 9) {
-                    {
+                    if ((padding_top <= 4) && (padding_bot <= 4) && (padding_left <= 4) && (padding_right <= 4)) {
                         return mli_krn_avepool_chw_fx16_k9x9_krnpad(in, cfg, out);
+                    } else {
+                        return mli_krn_avepool_chw_fx16_generic(in, cfg, out);
                     }
                 } else {
                     return mli_krn_avepool_chw_fx16_generic(in, cfg, out);
                 }
             } else if (kernel_w == 8) {
                 if (kernel_h == 8) {
-                    {
+                    if ((padding_top <= 3) && (padding_bot <= 4) && (padding_left <= 3) && (padding_right <= 4)) {
                         return mli_krn_avepool_chw_fx16_k8x8_krnpad(in, cfg, out);
+                    } else {
+                        return mli_krn_avepool_chw_fx16_generic(in, cfg, out);
                     }
                 } else {
                     return mli_krn_avepool_chw_fx16_generic(in, cfg, out);
                 }
             } else if (kernel_w == 7) {
                 if (kernel_h == 7) {
-                    {
+                    if ((padding_top <= 3) && (padding_bot <= 3) && (padding_left <= 3) && (padding_right <= 3)) {
                         return mli_krn_avepool_chw_fx16_k7x7_krnpad(in, cfg, out);
+                    } else {
+                        return mli_krn_avepool_chw_fx16_generic(in, cfg, out);
                     }
                 } else {
                     return mli_krn_avepool_chw_fx16_generic(in, cfg, out);
                 }
             } else if (kernel_w == 6) {
                 if (kernel_h == 6) {
-                    {
+                    if ((padding_top <= 2) && (padding_bot <= 3) && (padding_left <= 2) && (padding_right <= 3)) {
                         return mli_krn_avepool_chw_fx16_k6x6_krnpad(in, cfg, out);
+                    } else {
+                        return mli_krn_avepool_chw_fx16_generic(in, cfg, out);
                     }
                 } else {
                     return mli_krn_avepool_chw_fx16_generic(in, cfg, out);
                 }
             } else if (kernel_w == 5) {
                 if (kernel_h == 5) {
-                    {
+                    if ((padding_top <= 2) && (padding_bot <= 2) && (padding_left <= 2) && (padding_right <= 2)) {
                         return mli_krn_avepool_chw_fx16_k5x5_krnpad(in, cfg, out);
+                    } else {
+                        return mli_krn_avepool_chw_fx16_generic(in, cfg, out);
                     }
                 } else {
                     return mli_krn_avepool_chw_fx16_generic(in, cfg, out);
                 }
             } else if (kernel_w == 4) {
                 if (kernel_h == 4) {
-                    {
+                    if ((padding_top <= 1) && (padding_bot <= 2) && (padding_left <= 1) && (padding_right <= 2)) {
                         return mli_krn_avepool_chw_fx16_k4x4_krnpad(in, cfg, out);
+                    } else {
+                        return mli_krn_avepool_chw_fx16_generic(in, cfg, out);
                     }
                 } else {
                     return mli_krn_avepool_chw_fx16_generic(in, cfg, out);
                 }
             } else if (kernel_w == 3) {
                 if (kernel_h == 3) {
-                    {
+                    if ((padding_top <= 1) && (padding_bot <= 1) && (padding_left <= 1) && (padding_right <= 1)) {
                         return mli_krn_avepool_chw_fx16_k3x3_krnpad(in, cfg, out);
+                    } else {
+                        return mli_krn_avepool_chw_fx16_generic(in, cfg, out);
                     }
                 } else {
                     return mli_krn_avepool_chw_fx16_generic(in, cfg, out);
                 }
             } else if (kernel_w == 2) {
                 if (kernel_h == 2) {
-                    {
+                    if ((padding_top <= 0) && (padding_bot <= 1) && (padding_left <= 0) && (padding_right <= 1)) {
                         return mli_krn_avepool_chw_fx16_k2x2_krnpad(in, cfg, out);
+                    } else {
+                        return mli_krn_avepool_chw_fx16_generic(in, cfg, out);
                     }
                 } else {
                     return mli_krn_avepool_chw_fx16_generic(in, cfg, out);
