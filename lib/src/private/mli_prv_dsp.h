@@ -144,6 +144,40 @@ static inline void __attribute__ ((always_inline)) mli_prv_clip_and_store_output
 
 //=========================================================================
 
+static inline void __attribute__ ((always_inline)) mli_prv_shift_clip_and_store_output(
+        MLI_PTR(int16_t) __restrict o_ptr,
+        accum40_t * ip_out_v,
+        const int out_shift) {
+    *o_ptr = fx_q15_cast_asl_rnd_a40(*ip_out_v, 32 - sizeof(int16_t) * 8 - out_shift - 1);
+}
+
+static inline void __attribute__ ((always_inline)) mli_prv_shift_clip_and_store_output(
+        MLI_PTR(int8_t) __restrict o_ptr,
+        accum40_t * ip_out_v,
+        const int out_shift) {
+    *o_ptr = fx_q7_cast_asl_rnd_a40(*ip_out_v, 32 - sizeof(int8_t) * 8 - out_shift - 1);
+}
+
+static inline void __attribute__ ((always_inline)) mli_prv_shift_clip_and_store_output(
+        MLI_PTR(int8_t) __restrict o_ptr,
+        int32_t * ip_in,
+        const int out_shift) {
+    q31_t temp = fx_asr_rnd_q31(*ip_in, out_shift);
+    temp = fx_asl_q31(temp, 32 - sizeof(int8_t) * 8);
+    *o_ptr = (int8_t) fx_q7_cast_q31(temp);
+}
+
+static inline void __attribute__ ((always_inline)) mli_prv_shift_clip_and_store_output(
+        MLI_PTR(int16_t) __restrict o_ptr,
+        int32_t * ip_in,
+        const int out_shift) {
+    q31_t temp = fx_asr_rnd_q31(*ip_in, out_shift);
+    temp = fx_asl_q31(temp, 32 - sizeof(int16_t) * 8);
+    *o_ptr = (int16_t) fx_q15_cast_q31(temp);
+}
+
+//=========================================================================
+
 static inline void __attribute__ ((always_inline)) mli_prv_clip_and_store_output_v(
         MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
         __v2i32_t * acc_v, 
@@ -705,9 +739,15 @@ static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec4(
         const MLI_PTR(int8_t) in, 
         const MLI_PTR(int8_t) k) {
     int32_t four8bitvalues = *(MLI_PTR(int32_t)) in;
+#if defined __Xxy
     *accu = _dmachbl((int32_t) mli_prv_load_2_samples(k), four8bitvalues);
     k += 2;
     *accu = _dmachbm((int32_t) mli_prv_load_2_samples(k), four8bitvalues);
+#else
+    int32_t four8bit_weights = *(MLI_PTR(int32_t)) k;
+    *accu = _dmachbl((int32_t) (v2q15_t) _vsext2bhl(four8bit_weights), four8bitvalues);
+    *accu = _dmachbm((int32_t) (v2q15_t) _vsext2bhm(four8bit_weights), four8bitvalues);
+#endif
 }
 
 static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec4(
@@ -720,7 +760,7 @@ static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec4(
     *accu = _dmachbm((int32_t) mli_prv_load_2_samples(in), four8bitvalues);
 }
 
-static unsigned __attribute__ ((always_inline)) mli_prv_init_dsp_ctrl(unsigned ctrl_info) {
+static inline unsigned __attribute__ ((always_inline)) mli_prv_init_dsp_ctrl(unsigned ctrl_info) {
     unsigned t, old = _lr(DSP_CTRL);
     _sr(ctrl_info, DSP_CTRL);
     t = _lr(DSP_CTRL);
@@ -745,7 +785,7 @@ static unsigned __attribute__ ((always_inline)) mli_prv_init_dsp_ctrl(unsigned c
     return old;
 }
 
-static unsigned __attribute__ ((always_inline)) mli_prv_fx_init_dsp_ctrl() {
+static inline unsigned __attribute__ ((always_inline)) mli_prv_fx_init_dsp_ctrl() {
     unsigned mode = 0;
 
 #if (defined(__Xdsp_version) && __Xdsp_version > 1) || defined(__Xdsp2)

@@ -34,7 +34,7 @@ padding parameters. This logic is similar to convolution 2D operation
 For more information on calculations, see the pooling part of
 `TensorFlow–Neural Network details`_.
    
-.. _TensorFlow–Neural Network details: https://www.tensorflow.org/api_guides/python/nn   
+.. _TensorFlow–Neural Network details: https://www.tensorflow.org/versions/r1.11/api_guides/python/nn   
 
 .. caution::
    Ensure that input and output

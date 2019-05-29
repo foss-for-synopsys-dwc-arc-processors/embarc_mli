@@ -106,6 +106,21 @@ More Options on Building and Running
 ---------------------------------------
 CIFAR-10 example application is implemented in the same way as LSTM Based HAR example and provides the same configuration and running abilities. For more details see appropriate HAR example [description part](/examples/example_har_smartphone/README.md#more-options-on-building-and-running).
 
+Data Memory Requirements
+----------------------------
+
+Example application uses statically allocated memory for model weights and intermediate results (activations) and structures. Requirements for them depends on model bit depth 
+configuration define and listed in table below. Before compiling application for desired hardware configuration, be sure it has enough memory to keep data.
+
+|                      Data                              |   MODEL_BIT_DEPTH=8   |  MODEL_BIT_DEPTH=816  |  MODEL_BIT_DEPTH=16  |
+| :----------------------------------------------------: | :-------------------: | :-------------------: | :------------------: |
+| Weights <br/>*.mli_model* and *mli_model_p2 * sections |  33212 bytes          | 33212 bytes           | 66420 bytes          |
+| Activations 1 <br/>*.Zdata * section                   |  32768 bytes          | 65536 bytes           | 65536 bytes          |
+| Activations 2 <br/>*.Ydata * section                   |  8192 bytes           | 16384 bytes           | 16384 bytes          |
+| Structures <br/>*.mli_data* section                    |  384 bytes            | 384 bytes             | 384 bytes            |
+
+By default, application uses MODEL_BIT_DEPTH=16 mode. Application code size depends on target hardware configuration and compilation flags. MLI Library code is wrapped into mli_lib section.
+
 References
 ----------------------------
 CIFAR-10 Dataset:

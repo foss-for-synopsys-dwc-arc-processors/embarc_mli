@@ -2,6 +2,18 @@ from func import Func
 from codegen import Codegen
 import sys
 
+# This script is used to generate the specialized versions for the maxpool functions.
+# The specialized functions can be called directly from the application, or the generated
+# wrapper function can be called. The script builds a list with specializations by
+# (optionally) fixing strides, kernel sizes, number of channels, or padding mode for
+# different value ranges. A value 0 means that the specific parameter is not fixed.
+# After the complete list is build, the code is generated based on a function template,
+# and inserted into the file template. This script can be used to generate the cc files for
+# different bit precisions, and it can also generate the header file that contains the
+# function prototypes of all specializations. For normal operation of the lib there is no
+# need to update the script.
+# The script can be exectued with python 2.7
+
 #------------------------------------------------------------
 # maxpool functions chw
 #------------------------------------------------------------
@@ -53,14 +65,14 @@ kernel_range = [2, 3]
 channel_range = [0,1,3]
 f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
 
-corefunc = "maxpool_chw_krnpad"
+corefunc = "maxpool_chw_pad"
 stride = 1
 kernel_range = range(4,11)
 channel_range = [0,1,3]
 f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
 
 #stride = 1, 1xk and kx1 versions
-corefunc = "maxpool_chw_krnpad"
+corefunc = "maxpool_chw_pad"
 stride = 1
 kernel_range = range(2,4)
 channel_range = [0,1]
@@ -68,20 +80,26 @@ f_list.extend([Func(fbase, 1, k, ch, stride, stride, corefunc, "krnpad") for k i
 f_list.extend([Func(fbase, k, 1, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
 
 #fix single dimension, others flex
-corefunc = "maxpool_chw_krnpad"
+corefunc = "maxpool_chw_pad"
 stride = 1
 f_list.extend([Func(fbase, 1, 0, 0, stride, stride, corefunc, "")]) #k_width == 1
 f_list.extend([Func(fbase, 0, 1, 0, stride, stride, corefunc, "")]) #k_heigth == 1
 f_list.extend([Func(fbase, 0, 0, 1, stride, stride, corefunc, "")]) #channels == 1
 
-corefunc = "maxpool_chw_krnpad_small"
+corefunc = "maxpool_chw_pad"
 stride = 0
 kernel_range = [2,3]
 channel_range = [0,1]
 f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "") for k in kernel_range for ch in channel_range])
 
+corefunc = "maxpool_chw_krnpad_small"
+stride = 0
+kernel_range = [2,3]
+channel_range = [0]
+f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
+
 #at last add the generic function that can be used in the else branch in the wrapper.
-corefunc = "maxpool_chw_krnpad"
+corefunc = "maxpool_chw_pad"
 default_func = Func(fbase, 0, 0, 0, 0, 0, corefunc, generic=True)
 f_list.append(default_func)
 

@@ -2,6 +2,18 @@ from func import Func
 from codegen import Codegen
 import sys
 
+# This script is used to generate the specialized versions for the depthwise_conv2d functions.
+# The specialized functions can be called directly from the application, or the generated
+# wrapper function can be called. The script builds a list with specializations by
+# (optionally) fixing strides, kernel sizes, number of channels, or padding mode for
+# different value ranges. A value 0 means that the specific parameter is not fixed.
+# After the complete list is build, the code is generated based on a function template,
+# and inserted into the file template. This script can be used to generate the cc files for
+# different bit precisions, and it can also generate the header file that contains the
+# function prototypes of all specializations. For normal operation of the lib there is no
+# need to update the script.
+# The script can be exectued with python 2.7
+
 #------------------------------------------------------------
 # convolution functions chw
 #------------------------------------------------------------
