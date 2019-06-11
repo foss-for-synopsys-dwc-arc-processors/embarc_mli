@@ -32,7 +32,7 @@ Here we will consider building for [/hw/em9d.tcf](/hw/em9d.tcf) template. This t
 
        gmake run TCF_FILE=../../hw/em9d.tcf
 
-    Result Quality shall be "S/N=3638.6     (71.2 db)"
+    Result Quality shall be "S/N=4383.8  (72.8 db)"
 
 ### Build with ARC GNU toolchain
 
@@ -69,7 +69,7 @@ Here we will consider building with ARC GNU toolchain. As a platform for the ass
 
         gmake run TOOLCHAIN=gnu TCF_FILE=arcem9d.tcf
 
-    Result Quality shall be "S/N=3638.6     (71.2 db)"
+    Result Quality shall be "S/N=4383.8     (72.8 db)"
 
     Notes: Example built by ARC GNU tools is run using mdb_com_gnu script file. Modify this file to customize the example run mode. See [More Options on Building and Running](README.md#more-options-on-building-and-running)
 
