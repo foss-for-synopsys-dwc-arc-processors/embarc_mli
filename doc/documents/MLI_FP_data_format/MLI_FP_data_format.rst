@@ -314,6 +314,8 @@ It depends on the basic operation used by primitive:
 
    Output configurability is specified in description for each primitive.
 
+.. _quant_acc_bit_depth: 
+   
 Quantization: Influence of Accumulator Bit Depth
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

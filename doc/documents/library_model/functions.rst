@@ -137,8 +137,8 @@ Naming convention for the specializations: \
    |                       | parameters to achieve     |                       |
    |                       | same output size          |                       |
    |                       | (similar to ‘SAME’        |                       |
-   |                       | padding scheme used       |                       |
-   |                       | in TensorFlow [3])        |                       |
+   |                       | `padding scheme`_ used    |                       |
+   |                       | in TensorFlow)            |                       |
    +-----------------------+---------------------------+-----------------------+
    | ``Input channels``    | [_ch\ *n*]                | convolution group,    |
    |                       |                           | pooling group         |
@@ -181,6 +181,9 @@ Naming convention for the specializations: \
    |                       | suitable                  |                       |
    |                       | specializations.          |                       |
    +-----------------------+---------------------------+-----------------------+
+
+.. _padding scheme: https://www.tensorflow.org/versions/r1.11/api_guides/python/nn#Notes_on_SAME_Convolution_Padding
+
 
 
 For example, the function name of a 16bit 2d convolution kernel with
