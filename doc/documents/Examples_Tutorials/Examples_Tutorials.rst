@@ -215,26 +215,7 @@ Fractional bits are calculated as container size minus integer bits.
 For 8-bit depth of data, this is sufficient, but for 16-bit minor corrections are required. MLI uses 40bit accumulator which provides 9 extra bits for processing up to 512 MAC operations in a row on 16x16 operands. For longer MAC series, keep some bits in the operands unused to guarantee that the result does not saturate in accumulation (for more info see :ref:`quant_acc_bit_depth` ).
 
 Consider a small example not directly related to the CIFAR-10: 
-
-.. table:: Integer Bits Derivation Considering Accumulator Restrictions
-   :widths: auto
-
-   +--------------+-------------------------------------+----------------------------------------+--------------------------------------------+
-   |              |    **Integer bit Requirements**     |      **Accumulator Restrictions**      |      **Integer bit requirements**          |
-   |              |         **(fx8 operands)**          |                                        |          **(fx16 operands)**               |
-   |              +------------+-------------+----------+--------------+------------+------------+------------+-------------+-----------------+
-   |              | Layer      | Layer       | Layer    | Macs per     | Required   | not enough | Layer      | Layer       | Layer           |
-   |              | input bits | weight bits | out bits | output value | extra bits | bits       | input bits | weight bits | out bits        |
-   |              |            |             |          |              |            |            | (updated)  | (updated)   | (updated)       |
-   +==============+============+=============+==========+==============+============+============+============+=============+=================+
-   | Layer X conv |     5      |     -1      |    5     ||    801      |     10     | 10 – 9 = 1 | 5 + 1 = 6  |    -1       ||       6        |
-   |              |            |             |          || (32*5*5+1)  |            |            |            |             || (next layer in)|
-   +--------------+------------+-------------+----------+--------------+------------+------------+------------+-------------+-----------------+
-   | Layer X+1 FC |     5      |     -1      |    5     ||   1025      |     11     | 11 – 9 = 2 | 5 + 1 = 6  | -1 + 1 = 0  |       5         |          
-   |              |            |             |          || (64*16+1)   |            |            |            |             |                 |
-   +--------------+------------+-------------+----------+--------------+------------+------------+------------+-------------+-----------------+
-..
-  
+ 
 .. table:: Integer Bits Derivation Considering Accumulator Restrictions
    :widths: 30, 30, 20, 20
    :align: center
@@ -281,31 +262,6 @@ For the following fully connected layer, 11 extra bits are required and you need
 
 For 8-bit operands,you do not need to perform this adjustment unless your MAC series is more than 131072 operations in which case, apply similar approach. After considering accumulator restrictions for CIFAR-10 example with 16-bit operands, you get the following table:
  
-.. table:: Integer Bits Derivation from CIFAR-10 Model Statistics Considering Accumulator Restrictions
-   :widths: auto
-
-   +--------------+-------------------------------------+----------------------------------------+--------------------------------------------+
-   |              |    **Integer bit requirements**     |      **Accumulator restrictions**      |      **Integer bit requirements**          |
-   |              |         **(fx8 operands)**          |                                        |          **(fx16 operands)**               |
-   |              +------------+-------------+----------+--------------+------------+------------+------------+-------------+-----------------+
-   |              | Layer      | Layer       | Layer    | Macs per     | Required   | not enough | Layer      | Layer       | Layer           |
-   |              | input bits | weight bits | out bits | output value | extra bits | bits       | input bits | weight bits | out bits        |
-   |              |            |             |          |              |            |            | (updated)  | (updated)   | (updated)       |
-   +==============+============+=============+==========+==============+============+============+============+=============+=================+
-   | Layer 1_conv |     0      |     -1      |    3     ||      76     |      7     |     0      |     0      |    -1       ||       4        |
-   |              |            |             |          ||  (3*5*5+1)  |            |            |            |             || (next layer in)|
-   +--------------+------------+-------------+----------+--------------+------------+------------+------------+-------------+-----------------+
-   | Layer 2_conv |     3      |     -1      |    5     ||     801     |     10     | 10 – 9 = 1 |  3 + 1 = 4 |    -1       |       5         |          
-   |              |            |             |          || (32*5*5+1)  |            |            |            |             |                 |
-   +--------------+------------+-------------+----------+--------------+------------+------------+------------+-------------+-----------------+
-   | Layer 3_conv |     5      |     -1      |    5     ||     401     |      9     |  9 – 9 = 0 |     5      |    -1       ||       6        |
-   |              |            |             |          || (16*5*5+1)  |            |            |            |             || (next layer in)|
-   +--------------+------------+-------------+----------+--------------+------------+------------+------------+-------------+-----------------+
-   | Layer 4_fc   |     5      |     -1      |    5     ||     513     |     10     | 10 – 9 = 1 |  5 + 1 = 6 |    -1       |       5         |
-   |              |            |             |          ||  (32*16+1)  |            |            |            |             |                 |
-   +--------------+------------+-------------+----------+--------------+------------+------------+------------+-------------+-----------------+
-..    
-
 .. table:: Integer Bits Derivation from CIFAR-10 Model Statistics Considering Accumulator Restrictions
    :widths: 30, 30, 20, 20, 20, 20
    :align: center
@@ -663,5 +619,5 @@ Here is one of the options:
 ..   
 
 .. note:: 
-   Here 2 memories instead of 3 may be used w/o effect on XY performance. 
+   You can use two memories instead of three without effect on XY performance. 
 ..   
