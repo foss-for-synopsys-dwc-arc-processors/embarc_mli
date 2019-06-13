@@ -43,7 +43,7 @@ Manual deployment consists of two main parts:
 Each step of the CIFAR-10 example above is described in separate section below.
 
 Instrument the Model to Extract Weights and Data
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 After we successfully pass basic Caffe CIFAR 10 tutorial with minor changes, we obtain the following files for deployment:
 
@@ -119,7 +119,7 @@ Here:
 Using defined pieces of Python code, you can extract all the required data from the model and adapt it to an embedded MLI based application.  
 
 Collect Data Range Statistic for Each Layer
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Quantization process is not only meant to convert weights data to fixed point representation, but also meant to define ranges of all the intermediate data for each layer. For this purpose, run the model on some representative data subset and gather statistics for all intermediate results. It is better to use all training subsets, or even all the dataset. 
 
@@ -172,7 +172,7 @@ A similar range definition is required for model parameters. As weights are fixe
 ..
 
 Define Q Data Format for Weights and Data for Each Layer
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 MLI supports fixed point format defined by Q-notation (see section MLI Fixed-Point Data Format). The next step is to find the appropriate Q-format of input, output and coefficients for each layer to correctly represent float values. This format is fixed in inference time (at least for constant weights). We define the number of integer bits and fractional bits can be easily derived from it. The following table specifies the derivation of integer bits from CIFAR-10 model statistics:
 
@@ -297,7 +297,7 @@ For 8-bit operands,you do not need to perform this adjustment unless your MAC se
 ..
    
 Quantize Weights According to Defined Q-Format
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 After extracting coefficients in numpy array objects and defining Qm.n format for data, define MLI structures for kernels and export the quantized data. 
 
@@ -358,7 +358,7 @@ To describe raw data by tensor structures, see this sample code:
 Extract the shape of the data and its rank (number of dimensions) from numpy object. Set the container parameters, including its type and number of fractional bits, according to bit depth that you want to use and integer bits defined earlier. For MAC-based kernels, allocate the number of fractional bits as well for output (`CONV1_OUT_FRAQ_BITS`).
 
 Deploying Operations
-~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^
 
 To define MLI operations and its parameters for trained graph, start from input data as shown in the figure below. 
 
@@ -606,7 +606,7 @@ When data extracted properly (wrapped into tensors and configuration structures)
 Here, you can see the IR tensors for storing intermediate results (ir_tensor_X and ir_tensor_X). They are used in double-buffering style. Each primitive uses only buffers pointed by tensors. Fill the rest of the fields of tensors to provide a valid value to next primitive as input. Hence, before using, output tensor must keep only pointer to buffer and its capacity + number of fractional bits for MAC based operations.
    
 Data Allocation
-~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^
 
 To estimate how much memory is required, and decide where to keep the operands in the address space, consider EM9D based target with AGU and XY memory. Keeping operands in a different memory banks (DCCM, XCCM, YCCM) significantly increases performance. Ensure that you organize data flow properly for this work properly. 
 
