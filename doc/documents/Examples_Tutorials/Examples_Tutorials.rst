@@ -18,7 +18,7 @@ Our assumption is that you are familiar with:
 
  - **Caffe framework basics**
  
-The development process of MLI-based embedded application is depicted with diagram:
+The proposed development process of MLI-based embedded application is depicted with diagram:
 
 .. image::  ../images/1_depl_process.png
    :align: center
@@ -26,9 +26,9 @@ The development process of MLI-based embedded application is depicted with diagr
 
 ..
 
-1. Model definition and training in some appropriate framework. Ensure that you consider all limitations of the target platform here including memory restriction, MHz budget, and quantization effect in some cases.
+1. Model definition and training in some appropriate framework. Ensure that you consider all limitations of the target platform here including memory restriction and frequency budget.
 
-2. Model deployment implies construction of tested and verified ML module with a defined interface. Hence, wrap the module into file-to-file application for convenient debugging and verification.
+2. Model deployment implies construction of tested and verified ML module with a defined interface. It is recommended to wrap the module into file-to-file application for convenient debugging and verification.
    MLI CIFAR-10 example is exactly of this “unit-testing” kind of applications.
 
 3. Integrate this module into the target embedded application code with real data. 
@@ -36,7 +36,7 @@ The development process of MLI-based embedded application is depicted with diagr
 This tutorial focuses on the second step – model deployment. 
 Manual deployment consists of two main parts: 
 
- - Deploying data  — This is obvious because training implies tuning of model parameters. 
+ - Deploying data  — Training implies tuning of model parameters. 
  
  - Deploying operations — The model consists of not only parameters but also algorithm that uses some basic operations or machine learning primitives.
 
@@ -121,7 +121,7 @@ Using defined pieces of Python code, you can extract all the required data from 
 Collect Data Range Statistic for Each Layer
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Quantization process is not only meant to convert weights data to fixed point representation, but also meant to define ranges of all the intermediate data for each layer. For this purpose, run the model on some representative data subset and gather statistics for all intermediate results. It is better to use all training subsets, or even all the dataset. 
+Quantization process is not only meant to convert weights data to fixed point representation, but also meant to define ranges of all the intermediate data for each layer. For this purpose, run the model on some representative data subset and gather statistics for all intermediate results. It is recommended to use full training subset. 
 
 To accomplish this using previously defined instruments, see this sample code:
 
@@ -180,10 +180,10 @@ MLI supports fixed point format defined by Q-notation (see section MLI Fixed-Poi
    :widths: auto
    
    +---------------+---------------------------------------------------------------+---------------------------------------------------------------+
-   |               |              **Maximum abs values of tensors**                |            **Maximum abs values of tensors**                  |
+   |               |              **Maximum abs values of tensors**                |            **Minimum abs values of tensors**                  |
    |  **CIFAR10**  +---------------+---------------+---------------+---------------+---------------+---------------+---------------+---------------+
-   |               | Layer input   | Layer weights | Layer bias    | Layer out     | Layer input   | Layer weights | Layer bias    | Layer out     |
-   |               | Max ABS value | Max ABS value | Max ABS value | Max ABS value | Max ABS value | Max ABS value | Max ABS value | Max ABS value |
+   |               | Layer Input   | Layer Weights | Layer Bias    | Layer Out     | Layer Input   | Layer Weights | Layer bias    | Layer out     |
+   |               | Max ABS Value | Max ABS Value | Max ABS Value | Max ABS Value | Bits          | Bits          | Bits          | Bits          |
    +===============+===============+===============+===============+===============+===============+===============+===============+===============+
    | Layer 1_conv  |     0.99      |     0.49      |     0.73      |    7.03       |       0       |      -1       |       0       |      3        |
    +---------------+---------------+---------------+---------------+---------------+---------------+---------------+---------------+---------------+ 
@@ -245,20 +245,11 @@ Consider a small example not directly related to the CIFAR-10:
    |                              | (updated)             |                   |                  |
    +------------------------------+-----------------------+-------------------+------------------+
    
+..   
    
-   
-   
-   
-   
-Ensure that you follow these steps:
-
-1. For a convolution layer, define the number of integer bits as in the previous example. 
-
-2. For each output value, the compute the number of required sequential accumulations: 32[number of channels] * (5*5) [kernel size] +1 [bias] = 801 operations. Hence, 10 extra bits are required for accumulation.
-
-3. Since the number of extra bits is less than the allocated bits for integer - 9, increase number of integer bits for layer input.
-
-For the following fully connected layer, 11 extra bits are required and you need to distribute 2 bits. It’s recommended to do it evenly between operands. Note that number of convolution’s output fractional bits also needs to be changed to be aligned with next fully connected input.
+For convolution layer X, number of integer bits are defined as before. And for each output value, the following number of sequential accumulations is required: 32[number of channels] * (5*5) [kernel size] +1 [bias] = 801 operations. 10 extra bits are required for accumulation while only 9 are available. For this reason, the number of integer bits for layer input are increased.   
+ 
+For the following fully connected layer, 11 extra bits are required and 2 bits need to be distributed. It’s recommended to do this evenly between operands. Note that number of convolution’s output fractional bits also needs to be changed to be aligned with next fully connected input.
 
 For 8-bit operands,you do not need to perform this adjustment unless your MAC series is more than 131072 operations in which case, apply similar approach. After considering accumulator restrictions for CIFAR-10 example with 16-bit operands, you get the following table:
  
@@ -293,7 +284,7 @@ For 8-bit operands,you do not need to perform this adjustment unless your MAC se
 
    
 .. note::
-   Defining Q format in this way, you can guarantee that accumulator is not saturated while a single output is being calculated. But the restriction may be loosened if you are sure about your data. For example, look at the final fully connected layer above: 9 bits are enough if we do not consider bias addition. Analyze how likely is it that for 1 extra addition result will overflow the defined range. Moreover, saturation of results might have a minor effect on the network accuracy. 
+   Defining Q format in this way, you can guarantee that accumulator is not saturated while a single output is being calculated. But the restriction may be loosened if you are sure about your data. For example, look at the final fully connected layer above: 9 bits (512 MACs) are enough if we do not consider bias addition. Analyze how likely is it that for 1 extra addition result will overflow the defined range. Moreover, saturation of results might have a minor effect on the network accuracy. 
 ..
    
 Quantize Weights According to Defined Q-Format
@@ -301,7 +292,7 @@ Quantize Weights According to Defined Q-Format
 
 After extracting coefficients in numpy array objects and defining Qm.n format for data, define MLI structures for kernels and export the quantized data. 
 
-Consider a static allocation of data. To extract weights, you may make pre-processor quantize data for you in compile-time by wrapping each coefficient into some macro. It is slower and uses more memory resources of your machine for compilation, but it is worth if the model is not so big. 
+Consider a static allocation of data. To extract weights, you may make pre-processor quantize data for you in compile-time by wrapping each coefficient into macro function. It is slower and uses more memory resources of your machine for compilation, but it is worth if the model is not so big. 
 
 .. code:: c++
 
@@ -321,7 +312,7 @@ Consider a static allocation of data. To extract weights, you may make pre-proce
    };
 ..
 
-Alternatively, you may quantize data externally Layer 1_conv in the same way and just put it into code. 
+Alternatively, you can quantize data externally in the same way and just put it into code. 
 
 .. code:: c++
 
@@ -413,6 +404,8 @@ Transpose data by permute layer with appropriate parameters:
    |                           | ..                                                            |
    +---------------------------+---------------------------------------------------------------+
 
+   
+Next, consider convolution and ReLU layers:
 
 .. image::  ../images/4_op_map_step2.png
    :align: center
@@ -471,6 +464,8 @@ Parameters of all convolutions in the model are the same, so you may use the onl
    :alt: CIFAR-10 Graph Visualization: Pooling Layers
 
 .. 
+
+MLI Pooling behavior differs from Caffe default behavior. In Caffe, padding is implied for some combinations of layer parameters, even if not specified. You should indicate padding clearly because it is meant in the Caffe. It was done for compatibility with other frameworks.
 
 .. table:: Example Pooling Layer with Padding 
    :widths: 20, 130
@@ -533,6 +528,8 @@ Consider the last two operations:
    :alt: CIFAR-10 Graph Visualization: Final Layers
 
 ..
+
+Fully connected (referred as Inner Product in Caffe) and softmax don’t require any specific analysis.
 
 .. table:: Example of Function Choosing Optimal Specialization 
    :widths: 20, 130
