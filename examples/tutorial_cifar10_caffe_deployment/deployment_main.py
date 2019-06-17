@@ -47,17 +47,17 @@ if __name__ == '__main__':
     parser.add_argument(
         '--lmdb_data_dir',
         type=str,
-        default='cifar10_test_lmdb',
+        default='cifar10_train_lmdb',
         help='Path to CIFAR-10 subset in LMDB format (created by caffe cifar-10 example specific tool)')
     parser.add_argument(
         '--model',
         type=str,
-        default='cifar10_small_4quant_iter_18000.caffemodel.h5',
+        default='cifar10_small.caffemodel.h5',
         help='CIFAR-10 caffemodl file')
     parser.add_argument(
         '--prototext',
         type=str,
-        default='cifar10_small_4quant_test.prototxt',
+        default='cifar10_small.prototxt',
         help='CIFAR-10 test prototext file')
     parser.add_argument(
         '--output_prefix',
