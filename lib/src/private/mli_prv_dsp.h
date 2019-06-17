@@ -24,6 +24,16 @@
 #include <arc/arc_intrinsics.h>
 #endif
 
+#if ((_ARCVER >= 0x50) && (_ARCVER < 0x60))
+#define _ARCVER_ARCv2HS
+#endif
+
+#if defined(_ARCVER_ARCv2HS)
+#define LOOP_PIPELINE_ENABLE _Pragma("clang loop pipeline(enable)")
+#else
+#define LOOP_PIPELINE_ENABLE 
+#endif
+
 //=========================================================================
 // This file contains functions that combine the math functions from
 // mli_math.h with the loadstore functions from mli_prv_load_store.h
@@ -243,7 +253,7 @@ static inline void __attribute__ ((always_inline)) mli_prv_clip_relu_store_outpu
         const int16_t val_min_limit, 
         const int16_t val_max_limit) {
     v2i8_t out_v;
-	__v2i32_t acc_v = *accu_v;
+    __v2i32_t acc_v = *accu_v;
 
     acc_v[0] = fx_asr_rnd_q31(acc_v[0], out_shift);
     acc_v[1] = fx_asr_rnd_q31(acc_v[1], out_shift);
@@ -268,7 +278,7 @@ static inline void __attribute__ ((always_inline)) mli_prv_clip_relu_store_outpu
         const int16_t val_min_limit, 
         const int16_t val_max_limit) {
     v2q15_t out_v;
-	__v2i32_t acc_v = *accu_v;
+    __v2i32_t acc_v = *accu_v;
 
     acc_v[0] = fx_asr_rnd_q31(acc_v[0], out_shift);
     acc_v[1] = fx_asr_rnd_q31(acc_v[1], out_shift);
@@ -551,7 +561,7 @@ static inline int32_t __attribute__ ((always_inline)) mli_prv_init_accu_with_bia
 
     return accu;
 }
-	
+    
 #endif
 static inline v2q15_t __attribute__ ((always_inline)) mli_prv_load_add_vec2(
         const MLI_PTR(int16_t) __restrict in, 
