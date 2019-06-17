@@ -49,6 +49,7 @@ static void __attribute__((always_inline)) full_connection(
             for (int i = 0; i < ch_out; i++) {
                 auto ip_out = mli_prv_init_accu_with_bias(in_ptr, *bias_p++, bias_shift);
 
+LOOP_PIPELINE_ENABLE
                 for (int j = 0; j < (inp_size / 4); j++) {
                     mli_prv_load_mac_vec4(&ip_out, in_ptr, w_ptr);
                     in_ptr += 4;
@@ -70,6 +71,7 @@ static void __attribute__((always_inline)) full_connection(
                 }
 
                 int even_inp_size = inp_size - odd_rest_of_inp_size;
+LOOP_PIPELINE_ENABLE
                 for (int j = 0; j < (even_inp_size / 4); j++) {
                     mli_prv_load_mac_vec4(&ip_out, in_ptr, w_ptr);
                     in_ptr += 4;
