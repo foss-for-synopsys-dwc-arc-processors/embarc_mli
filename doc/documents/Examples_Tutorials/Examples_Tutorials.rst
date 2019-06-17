@@ -8,13 +8,13 @@ In this chapter, we guide you through the manual model deployment process taking
 
 Our assumption is that you are familiar with: 
 
- - **Neural networks basics** – convolutions, tensors, ReLU, and so on
+ - **Neural networks basics** - convolutions, tensors, ReLU, and so on
 
- - **Python** – you can read and understand python code
+ - **Python** - you can read and understand python code
 
- - **NumPy** – de-facto standard numerical library for python
+ - **NumPy** - de-facto standard numerical library for python
 
- - **С programming language** – MLI API is C level API
+ - **C programming language** - MLI API is C level API
 
  - **Caffe framework basics**
  
@@ -33,12 +33,12 @@ The proposed development process of MLI-based embedded application is depicted w
 
 3. Integrate this module into the target embedded application code with real data. 
 
-This tutorial focuses on the second step – model deployment. 
+This tutorial focuses on the second step - model deployment. 
 Manual deployment consists of two main parts: 
 
- - Deploying data  — Training implies tuning of model parameters. 
+ - Deploying data  - Training implies tuning of model parameters. 
  
- - Deploying operations — The model consists of not only parameters but also algorithm that uses some basic operations or machine learning primitives.
+ - Deploying operations - The model consists of not only parameters but also algorithm that uses some basic operations or machine learning primitives.
 
 Each step of the CIFAR-10 example above is described in separate section below.
 
@@ -47,9 +47,9 @@ Instrument the Model to Extract Weights and Data
 
 After we successfully pass basic Caffe CIFAR 10 tutorial with minor changes, we obtain the following files for deployment:
 
- - cifar10_small.prototxt – textual description of the graph which might be visualized as in figure below.
+ - cifar10_small.prototxt - textual description of the graph which might be visualized as in figure below.
 
- - cifar10_small.caffemodel.h5 – data of trained graph. Not necessary h5 format.
+ - cifar10_small.caffemodel.h5 - data of trained graph. Not necessary h5 format.
 
  - mean file (Optional). Not used in this example. The only mean value for all pixels in all channels was used: 128
 
@@ -61,7 +61,7 @@ After we successfully pass basic Caffe CIFAR 10 tutorial with minor changes, we 
 
 To get access to model data, install following modules in the environment:
 
-.. code:: python
+.. code-block:: python
 
    import caffe
    import lmdb
@@ -70,19 +70,19 @@ To get access to model data, install following modules in the environment:
 
 To transform Caffe representation of data into numpy arrays, load and initialize model by constructing Caffe Net object which takes prototext and caffemodel files as parameters.
 
-.. code:: python
+.. code-block:: python
 
    classifier = caffe.Net("cifar10_small.prototxt", "cifar10_small.caffemodel.h5", caffe.TEST)
 
-   # Get key to the first output of net (here it’s a prob data)
+   # Get key to the first output of net (here it's a prob data)
    out_key = classifier.outputs[0] 
 ..
 
 To deploy the model correctly, analyze the two subsets of data which might be transformed to numpy arrays by native interface:
 
-1) Model parameters. 
+1) Model parameters 
 
-.. code:: python
+.. code-block:: python
 
    for layer_name, data_obj in classifier.params.iteritems():
       weights_np_arr = data_obj[0].data # conv weights is blob #0 
@@ -92,27 +92,27 @@ To deploy the model correctly, analyze the two subsets of data which might be tr
 
 2) Intermediate results
 
-.. code:: python
+.. code-block:: python
 
-   for blob_name, data_obj in classifier.blobs.iteritems():
-   data_np_arr = data_obj.data
-   # further operations with data
+    for blob_name, data_obj in classifier.blobs.iter():
+        data_np_arr = data_obj.data
+        # further operations with data
 ..
 
 In Caffe, these objects are referred as blobs. While model parameters in this case are fixed in the inference time (after model had been trained), intermediate results vary from one model input to another. Therefore, intermediate blob content differs depending on the input you feed into net. 
 
 To update classifier object state, use the following command:
 
-.. code:: python
+.. code-block:: python
 
     pred = classifier.forward_all(data=test_data)[out_key]
 ..
 
 Here:
 
- - `test_data` is a numpy array with input vector (CIFAR-10 dataset entity),
+ - `test_data` is a numpy array with input vector (CIFAR-10 dataset entity)
  
- - `out_key` is our “key” to the network output we had defined early
+ - `out_key` is our "key" to the network output we had defined early
  
  - `pred` is the output.
 
@@ -125,38 +125,38 @@ Quantization process is not only meant to convert weights data to fixed point re
 
 To accomplish this using previously defined instruments, see this sample code:
 
-.. code:: python
+.. code-block:: python
 
-   # Open dataset and get cursor
-   lmdb_env = lmdb.open("cifar10_train_lmdb")
-   lmdb_txn = lmdb_env.begin()
-   lmdb_cursor = lmdb_txn.cursor()
-   
-   # Init data parser and dictionary for min/max statistic
-   datum = caffe.proto.caffe_pb2.Datum()
-   ir_ranges = dict()
+    # Open dataset and get cursor
+    lmdb_env = lmdb.open("cifar10_train_lmdb")
+    lmdb_txn = lmdb_env.begin()
+    lmdb_cursor = lmdb_txn.cursor()
     
-   for key, value in lmdb_cursor:
-       datum.ParseFromString(value)
-       data_raw = caffe.io.datum_to_array(datum)
-       
-       # Don't forget about pre-processing if you need it (Mean and scale)
-       test_data = np.asarray( [(data_raw – 128.0)/128.0] )
-       test_label = datum.label
-   
-       # Model Inference on loaded data
-       pred = classifier.forward_all(data=test_data)[out_key]
-   
-       # Update ranges (Note: dictionary requires proper initialization in first pass)
-       for blob_name, v in classifier.blobs.items():
-           ir_ranges[blob_name][0] = max(ir_ranges[key][0], v.data.max())
-           ir_ranges[blob_name][1] = min(ir_ranges[key][1], v.data.min())
+    # Init data parser and dictionary for min/max statistic
+    datum = caffe.proto.caffe_pb2.Datum()
+    ir_ranges = dict()
+    
+    for key, value in lmdb_cursor:
+        datum.ParseFromString(value)
+        data_raw = caffe.io.datum_to_array(datum)
+
+        # Don't forget about pre-processing if you need it (Mean and scale)
+        test_data = np.asarray([(data_raw - 128.0)/128.0])
+        test_label = datum.label
+
+        # Model Inference on loaded data
+        pred = classifier.forward_all(data=test_data)[out_key]
+
+        # Update ranges (Note: dictionary requires proper initialization in first pass)
+        for blob_name, v in classifier.blobs.items():
+            ir_ranges[blob_name][0] = max(ir_ranges[key][0], v.data.max())
+            ir_ranges[blob_name][1] = min(ir_ranges[key][1], v.data.min())
 ..
 
 For simplicity, only maximum/minimum range of our data is collected. However, you can choose a more sophisticated approach which also may affect the choice for calibration data.
 A similar range definition is required for model parameters. As weights are fixed after training and are not changed in inference time, you can just transform data to numpy arrays. It provides min() and max() methods for easy range definition. It also keeps the shape of data we need for MLI tensor definition later.
 
-.. code:: python
+.. code-block:: python
 
   weights_dict = dict()
   bias_dict = dict()
@@ -174,13 +174,13 @@ A similar range definition is required for model parameters. As weights are fixe
 Define Q Data Format for Weights and Data for Each Layer
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-MLI supports fixed point format defined by Q-notation (see section MLI Fixed-Point Data Format). The next step is to find the appropriate Q-format of input, output and coefficients for each layer to correctly represent float values. This format is fixed in inference time (at least for constant weights). We define the number of integer bits and fractional bits can be easily derived from it. The following table specifies the derivation of integer bits from CIFAR-10 model statistics:
+MLI supports fixed point format defined by Q-notation (see :ref:`mli_fpd_fmt` section). The next step is to find the appropriate Q-format of input, output and coefficients for each layer to correctly represent float values. This format is fixed in inference time (at least for constant weights). We define the number of integer bits and fractional bits can be easily derived from it. The following table specifies the derivation of integer bits from CIFAR-10 model statistics:
 
 .. table:: Integer Bits Derivation form CIFAR-10 Model Statistics
    :widths: auto
    
    +---------------+---------------------------------------------------------------+---------------------------------------------------------------+
-   |               |              **Maximum abs values of tensors**                |            **Minimum abs values of tensors**                  |
+   |               |              **Maximum abs values of tensors**                |            **Minimum Integer bits requirements**              |
    |  **CIFAR10**  +---------------+---------------+---------------+---------------+---------------+---------------+---------------+---------------+
    |               | Layer Input   | Layer Weights | Layer Bias    | Layer Out     | Layer Input   | Layer Weights | Layer bias    | Layer out     |
    |               | Max ABS Value | Max ABS Value | Max ABS Value | Max ABS Value | Bits          | Bits          | Bits          | Bits          |
@@ -197,7 +197,7 @@ MLI supports fixed point format defined by Q-notation (see section MLI Fixed-Poi
  
 On the left part of the table are the absolute maximum of ranges for all tensors we had defined early:
 
-.. code:: python
+.. code-block:: python
 
    max_abs_val = max(abs(val_max), abs(val_min))
 ..
@@ -205,7 +205,7 @@ On the left part of the table are the absolute maximum of ranges for all tensors
 
 On the right are the calculated minimum number of integer bits:
 
-.. code:: python
+.. code-block:: python
 
    int_bits = int(np.ceil(np.log2(max_abs_val)))
 ..
@@ -233,7 +233,7 @@ Consider a small example not directly related to the CIFAR-10:
    |                              +-----------------------+-------------------+------------------+
    | **Accumulator Restrictions** | Required Extra Bits   |        10         |      11          |   
    |                              +-----------------------+-------------------+------------------+   
-   |                              | Not Enough Bits       |     10 – 9 = 1    |   11 – 9 = 2     |   
+   |                              | Not Enough Bits       |     10 - 9 = 1    |   11 - 9 = 2     |   
    +------------------------------+-----------------------+-------------------+------------------+  
    |                              | Layer Input Bits      |      5 + 1 = 6    |    5 + 1 = 6     |
    |                              | (updated)             |                   |                  |
@@ -249,7 +249,7 @@ Consider a small example not directly related to the CIFAR-10:
    
 For convolution layer X, number of integer bits are defined as before. And for each output value, the following number of sequential accumulations is required: 32[number of channels] * (5*5) [kernel size] +1 [bias] = 801 operations. 10 extra bits are required for accumulation while only 9 are available. For this reason, the number of integer bits for layer input are increased.   
  
-For the following fully connected layer, 11 extra bits are required and 2 bits need to be distributed. It’s recommended to do this evenly between operands. Note that number of convolution’s output fractional bits also needs to be changed to be aligned with next fully connected input.
+For the following fully connected layer, 11 extra bits are required and 2 bits need to be distributed. It's recommended to do this evenly between operands. Note that number of convolution's output fractional bits also needs to be changed to be aligned with next fully connected input.
 
 For 8-bit operands,you do not need to perform this adjustment unless your MAC series is more than 131072 operations in which case, apply similar approach. After considering accumulator restrictions for CIFAR-10 example with 16-bit operands, you get the following table:
  
@@ -270,7 +270,7 @@ For 8-bit operands,you do not need to perform this adjustment unless your MAC se
    |                              +-----------------------+-------------------+------------------+-------------------+------------------+
    | **Accumulator Restrictions** | Required Extra Bits   |         7         |      10          |         9         |      10          |
    |                              +-----------------------+-------------------+------------------+-------------------+------------------+
-   |                              | Not Enough Bits       |         0         |   10 – 9 = 1     |      9 – 9 = 0    |   10 – 9 = 1     |
+   |                              | Not Enough Bits       |         0         |   10 - 9 = 1     |      9 - 9 = 0    |   10 - 9 = 1     |
    +------------------------------+-----------------------+-------------------+------------------+-------------------+------------------+
    |                              | Layer Input Bits      |         0         |    3 + 1 = 4     |         5         |    5 + 1 = 6     |
    |                              | (updated)             |                   |                  |                   |                  |
@@ -294,35 +294,35 @@ After extracting coefficients in numpy array objects and defining Qm.n format fo
 
 Consider a static allocation of data. To extract weights, you may make pre-processor quantize data for you in compile-time by wrapping each coefficient into macro function. It is slower and uses more memory resources of your machine for compilation, but it is worth if the model is not so big. 
 
-.. code:: c++
+.. code-block:: c++
 
    #define QMN(type, fraq, val)   \
         (type)(val * (1u << (fraq)) + ((val >= 0)? 0.5f: -0.5f)) 
    #define L1_WQ(val)   QMN(int8_t,  8, val) 
    #define L1_BQ(val)   QMN(int8_t,  7, val)
    const  int8_t L1_conv_wt_buf[] = {\
-        L1_WQ( 0.096343018),L1_WQ( 0.148116693),L1_WQ( 0.023189211), … \
-        L1_WQ(-0.123411559),L1_WQ(-0.047247209),L1_WQ( 0.091348067), … \ 
-        …
+        L1_WQ( 0.096343018),L1_WQ( 0.148116693),L1_WQ( 0.023189211), ... \
+        L1_WQ(-0.123411559),L1_WQ(-0.047247209),L1_WQ( 0.091348067), ... \ 
+        ...
    };
    const int8_t  L1_conv_bias_buf[] = {\
-        L1_BQ( 0.058115590),L1_BQ(-0.098249219),L1_BQ( 0.456347317), … \
-        L1_BQ(-0.135683402),L1_BQ(-0.039959636),L1_BQ( 0.527986348), … \ 
-        …
+        L1_BQ( 0.058115590),L1_BQ(-0.098249219),L1_BQ( 0.456347317), ... \
+        L1_BQ(-0.135683402),L1_BQ(-0.039959636),L1_BQ( 0.527986348), ... \ 
+        ...
    };
 ..
 
 Alternatively, you can quantize data externally in the same way and just put it into code. 
 
-.. code:: c++
+.. code-block:: c++
 
-   const int8_t L1_conv_wt_buf[] = {25, 38, 6, -12, -7, …} 
-   const int8_t L1_conv_bt_buf[] = {7, -12, 58, -1, -25, …}
+   const int8_t L1_conv_wt_buf[] = {25, 38, 6, -12, -7, ...} 
+   const int8_t L1_conv_bt_buf[] = {7, -12, 58, -1, -25, ...}
 ..
 
 To describe raw data by tensor structures, see this sample code:
 
-.. code:: c++
+.. code-block:: c++
 
    // Conv 1 Layer weights and biases tensors 
    static const mli_tensor L1_conv_wt = {
@@ -384,7 +384,7 @@ Transpose data by permute layer with appropriate parameters:
    |                           |    }                                                          |
    |                           | ..                                                            |
    +---------------------------+---------------------------------------------------------------+
-   |                           | .. code:: c++                                                 |
+   |                           | .. code-block:: c++                                           |
    |                           |                                                               |   
    |                           |    mli_status mli_krn_permute_fx8(                            |
    |                           |        const mli_tensor * in,        // Input tensor          |
@@ -393,7 +393,7 @@ Transpose data by permute layer with appropriate parameters:
    |                           |      );                                                       |
    |                           | ..                                                            |
    +---------------------------+---------------------------------------------------------------+
-   |                           | .. code:: c++                                                 |
+   |                           | .. code-block:: c++                                           |
    |                           |                                                               |   
    |                           |    mli_permute_cfg permute_hwc2chw_cfg = {                    |
    |                           |       .perm_dim =                                             |
@@ -422,10 +422,10 @@ Parameters of all convolutions in the model are the same, so you may use the onl
    |                           | .. code::                                                     |
    |                           |                                                               |
    |                           |    layer {                                                    |
-   |                           |      name: "conv2“                                            |
-   |                           |      type: "Convolution“                                      |
-   |                           |      bottom: “pool1“                                          |
-   |                           |      top: "conv2“                                             |
+   |                           |      name: "conv2"                                            |
+   |                           |      type: "Convolution"                                      |
+   |                           |      bottom: "pool1"                                          |
+   |                           |      top: "conv2"                                             |
    | **ProtoText description** |      convolution_param {                                      |
    |                           |         num_output: 32 pad: 2 kernel_size: 5 stride: 1  }}    |
    |                           |    layer {                                                    |
@@ -435,7 +435,7 @@ Parameters of all convolutions in the model are the same, so you may use the onl
    |                           |      top: "conv2"}                                            |
    |                           | ..                                                            |
    +---------------------------+---------------------------------------------------------------+
-   |                           | .. code:: c++                                                 |
+   |                           | .. code-block:: c++                                           |
    |                           |                                                               |   
    |                           |    mli_status mli_krn_conv2d_chw_fx8_k5x5_str1_krnpad(        |
    |                           |      const mli_tensor * in,       // Input tensor             |
@@ -446,7 +446,7 @@ Parameters of all convolutions in the model are the same, so you may use the onl
    |                           |   );                                                          |
    |                           | ..                                                            |
    +---------------------------+---------------------------------------------------------------+
-   |                           | .. code:: c++                                                 |
+   |                           | .. code-block:: c++                                           |
    |                           |                                                               |   
    |                           |    mli_conv2d_cfg shared_conv_cfg = {                         |
    |                           |      .stride_height = 1, .stride_width = 1,                   |
@@ -489,7 +489,7 @@ MLI Pooling behavior differs from Caffe default behavior. In Caffe, padding is i
    |                           |           pool: AVE    kernel_size: 3    stride: 2  }}        |
    |                           | ..                                                            |
    +---------------------------+---------------------------------------------------------------+
-   |                           | .. code:: c++                                                 |
+   |                           | .. code-block:: c++                                           |
    |                           |                                                               |   
    |                           |    mli_status mli_krn_maxpool_chw_fx8_k3x3(                   |
    |                           |       const mli_tensor * in,     // Input tensor              |
@@ -502,8 +502,8 @@ MLI Pooling behavior differs from Caffe default behavior. In Caffe, padding is i
    |                           |       mli_tensor * out           // Output tensor             |
    |                           |    );                                                         |
    |                           | ..                                                            |
-   +---------------------------+---------------------------------------------------------------+   
-   |                           | .. code:: c++                                                 |
+   +---------------------------+---------------------------------------------------------------+
+   |                           | .. code-block:: c++                                           |
    |                           |                                                               |   
    |                           |     mli_pool_cfg shared_pool_cfg = {                          |
    |                           |        .kernel_height = 3, .kernel_width = 3,                 |
@@ -529,18 +529,18 @@ Consider the last two operations:
 
 ..
 
-Fully connected (referred as Inner Product in Caffe) and softmax don’t require any specific analysis.
+Fully connected (referred as Inner Product in Caffe) and softmax don't require any specific analysis.
 
 .. table:: Example of Function Choosing Optimal Specialization 
    :widths: 20, 130
    
    +---------------------------+---------------------------------------------------------------+
    |                           | .. code::                                                     |
-   |                           |                                                               |   
+   |                           |                                                               |
    |                           |    layer {                                                    |
    |                           |      name: "ip1"                                              |
-   |                           |      type: "InnerProduct“                                     |
-   |                           |      bottom: "pool3“                                          |
+   |                           |      type: "InnerProduct"                                     |
+   |                           |      bottom: "pool3"                                          |
    |                           |      top: "ip1"                                               |
    | **ProtoText description** |      inner_product_param {  num_output: 10  }                 |
    |                           |    }                                                          |
@@ -552,8 +552,8 @@ Fully connected (referred as Inner Product in Caffe) and softmax don’t require
    |                           |    }                                                          |
    |                           | ..                                                            |
    +---------------------------+---------------------------------------------------------------+
-   |                           | .. code:: c++                                                 |
-   |                           |                                                               |   
+   |                           | .. code-block:: c++                                           |
+   |                           |                                                               |
    |                           |    mli_status mli_krn_fully_connected_fx8(                    |
    |                           |       const mli_tensor * in,      // Input tensor             |
    |                           |       const mli_tensor * weights, // Weights tensor           |
@@ -565,7 +565,7 @@ Fully connected (referred as Inner Product in Caffe) and softmax don’t require
    |                           |       mli_tensor * out         // Output tensor               |
    |                           |    );                                                         |
    |                           | ..                                                            |
-   +---------------------------+---------------------------------------------------------------+   
+   +---------------------------+---------------------------------------------------------------+
    | **MLI Function Config**   | No configuration is required. Tensors provide all necessary   |
    |                           | information                                                   |
    +---------------------------+---------------------------------------------------------------+
@@ -573,34 +573,34 @@ Fully connected (referred as Inner Product in Caffe) and softmax don’t require
 
 When data extracted properly (wrapped into tensors and configuration structures), and functions for inference are defined, execution sequence in terms of MLI calls look like this:
 
-.. code:: c++ 
+.. code-block:: c++ 
 
    // LAYER 0: Change RGB Image layout
-   mli_krn_permute_fx16(&input, &permute_hwc2chw_cfg, &ir_tensor_Y);
+   mli_krn_permute_fx16(&input, &permute_hwc2chw_cfg, &ir_Y);
    
    // LAYER 1
-   ir_tensor_X.el_params.fx.frac_bits = CONV1_OUT_FRAQ;
-   mli_krn_conv2d_chw_fx8_k5x5_str1_krnpad(&ir_tensor_Y, &L1_conv_wt, &L1_conv_bias, &shared_conv_cfg, &ir_tensor_X);
-   mli_krn_maxpool_chw_fx16_k3x3(&ir_tensor_X, &shared_pool_cfg, &ir_tensor_Y);
+   ir_X.el_params.fx.frac_bits = CONV1_OUT_FRAQ;
+   mli_krn_conv2d_chw_fx8_k5x5_str1_krnpad(&ir_Y, &L1_conv_wt, &L1_conv_bias, &shared_conv_cfg, &ir_X);
+   mli_krn_maxpool_chw_fx16_k3x3(&ir_X, &shared_pool_cfg, &ir_Y);
    
    // LAYER 2
-   ir_tensor_X.el_params.fx.frac_bits = CONV2_OUT_FRAQ;
-   mli_krn_conv2d_chw_fx8_k5x5_str1_krnpad(&ir_tensor_Y, &L2_conv_wt, &L2_conv_bias, &shared_conv_cfg, &ir_tensor_X);
-   mli_krn_avepool_chw_fx16_k3x3_krnpad(&ir_tensor_X, &shared_pool_cfg, &ir_tensor_Y);
+   ir_X.el_params.fx.frac_bits = CONV2_OUT_FRAQ;
+   mli_krn_conv2d_chw_fx8_k5x5_str1_krnpad(&ir_Y, &L2_conv_wt, &L2_conv_bias, &shared_conv_cfg, &ir_X);
+   mli_krn_avepool_chw_fx16_k3x3_krnpad(&ir_X, &shared_pool_cfg, &ir_Y);
    
    // LAYER 3
-   ir_tensor_X.el_params.fx.frac_bits = CONV3_OUT_FRAQ;
-   mli_krn_conv2d_chw_fx8_k5x5_str1_krnpad(&ir_tensor_Y, &L3_conv_wt, &L3_conv_bias, &shared_conv_cfg, &ir_tensor_X);
-   mli_krn_avepool_chw_fx16_k3x3_krnpad(&ir_tensor_X, &shared_pool_cfg, &ir_tensor_Y);
+   ir_X.el_params.fx.frac_bits = CONV3_OUT_FRAQ;
+   mli_krn_conv2d_chw_fx8_k5x5_str1_krnpad(&ir_Y, &L3_conv_wt, &L3_conv_bias, &shared_conv_cfg, &ir_X);
+   mli_krn_avepool_chw_fx16_k3x3_krnpad(&ir_X, &shared_pool_cfg, &ir_Y);
    
    // LAYER 4
-   ir_tensor_X.el_params.fx.frac_bits = FC4_OUT_FRAQ;
-   mli_krn_fully_connected_fx16(&ir_tensor_Y, &L4_fc_wt, &L4_fc_bias, &ir_tensor_X);
-   mli_krn_softmax_fx16(&ir_tensor_X, &output); 
+   ir_X.el_params.fx.frac_bits = FC4_OUT_FRAQ;
+   mli_krn_fully_connected_fx16(&ir_Y, &L4_fc_wt, &L4_fc_bias, &ir_X);
+   mli_krn_softmax_fx16(&ir_X, &output); 
 ..
 
 
-Here, you can see the IR tensors for storing intermediate results (ir_tensor_X and ir_tensor_X). They are used in double-buffering style. Each primitive uses only buffers pointed by tensors. Fill the rest of the fields of tensors to provide a valid value to next primitive as input. Hence, before using, output tensor must keep only pointer to buffer and its capacity + number of fractional bits for MAC based operations.
+Here, you can see the IR tensors for storing intermediate results (ir_X and ir_Y). They are used in double-buffering style. Each primitive uses only buffers pointed by tensors. Fill the rest of the fields of tensors to provide a valid value to next primitive as input. Hence, before using, output tensor must keep only pointer to buffer and its capacity + number of fractional bits for MAC based operations.
    
 Data Allocation
 ^^^^^^^^^^^^^^^

@@ -3,7 +3,7 @@
 MLI Fixed-Point Data Format
 ---------------------------
 
-The MLI Library targets an ARCv2DSP-based platform and implies
+The embARC MLI Library targets an ARCv2DSP-based platform and implies
 efficient usage of its DSP Features. Hence, there is some
 specificity of basic data types and arithmetical operations using it
 in comparison with operations using float-point values.
@@ -14,10 +14,20 @@ values interpreted by typical Q notation. The following
 designation is used:
 
 -  value of *Qm.n* format have *m* bits for integer part (excluding sign bit), 
-   and *n* bits for fractional part.
+   and *n* bits for fractional part (see the figure below).
 
 -  value of *Q.n* format have *n* bits for fractional part\ *.* The rest of the 
    non-sign bits are assumed to hold an integer part.
+
+.. image::  ../images/01_container1.png
+   :align: center
+   :alt: Qmn Container Representation
+
+..   
+
+Regarding to the second notation, number of integer bits can be derived from the container size and number of fractional bits: 
+
+.. math:: m\ = cont\_ size\ - n
 
 .. note::
    For more information regarding Q notation, see 
@@ -56,7 +66,13 @@ see :ref:`data_fmt_conv`.
 Number of fractional bits must be a non-negative value. The number of
 fractional bits might be larger than total number of containers
 significant (not-sign) bits. In this case all bits not present in the
-container implied equal to sign bit.
+container implied equal to sign bit:
+
+.. image::  ../images/02_container2.png
+   :align: center
+   :alt: Qmn Container representation with negative integer bits
+
+..   
 
 .. admonition:: Example 
    :class: "admonition tip"
