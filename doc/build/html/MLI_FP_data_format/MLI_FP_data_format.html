@@ -111,6 +111,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../MLI_kernels/MLI_kernels.html">MLI Kernels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI Helpers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Examples_Tutorials/Examples_Tutorials.html">Examples and Tutorials</a></li>
 </ul>
 
             
@@ -177,7 +178,7 @@
             
   <div class="section" id="mli-fixed-point-data-format">
 <span id="mli-fpd-fmt"></span><h1>MLI Fixed-Point Data Format<a class="headerlink" href="#mli-fixed-point-data-format" title="Permalink to this headline">¶</a></h1>
-<p>The MLI Library targets an ARCv2DSP-based platform and implies
+<p>The embARC MLI Library targets an ARCv2DSP-based platform and implies
 efficient usage of its DSP Features. Hence, there is some
 specificity of basic data types and arithmetical operations using it
 in comparison with operations using float-point values.</p>
@@ -187,10 +188,14 @@ values interpreted by typical Q notation. The following
 designation is used:</p>
 <ul class="simple">
 <li>value of <em>Qm.n</em> format have <em>m</em> bits for integer part (excluding sign bit),
-and <em>n</em> bits for fractional part.</li>
+and <em>n</em> bits for fractional part (see the figure below).</li>
 <li>value of <em>Q.n</em> format have <em>n</em> bits for fractional part<em>.</em> The rest of the
 non-sign bits are assumed to hold an integer part.</li>
 </ul>
+<img alt="Qmn Container Representation" class="align-center" src="../_images/01_container1.png" />
+<p>Regarding to the second notation, number of integer bits can be derived from the container size and number of fractional bits:</p>
+<div class="math notranslate nohighlight">
+\[m\ = cont\_ size\ - n\]</div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p>For more information regarding Q notation, see</p>
@@ -221,7 +226,8 @@ see <a class="reference internal" href="#data-fmt-conv"><span class="std std-ref
 <p>Number of fractional bits must be a non-negative value. The number of
 fractional bits might be larger than total number of containers
 significant (not-sign) bits. In this case all bits not present in the
-container implied equal to sign bit.</p>
+container implied equal to sign bit:</p>
+<img alt="Qmn Container representation with negative integer bits" class="align-center" src="../_images/02_container2.png" />
 <div class="admonition tip">
 <p class="first admonition-title">Example</p>
 <blockquote class="last">
@@ -441,7 +447,7 @@ required.</li>
 <div>Output configurability is specified in description for each primitive.</div></blockquote>
 </div>
 <div class="section" id="quantization-influence-of-accumulator-bit-depth">
-<h3>Quantization: Influence of Accumulator Bit Depth<a class="headerlink" href="#quantization-influence-of-accumulator-bit-depth" title="Permalink to this headline">¶</a></h3>
+<span id="quant-acc-bit-depth"></span><h3>Quantization: Influence of Accumulator Bit Depth<a class="headerlink" href="#quantization-influence-of-accumulator-bit-depth" title="Permalink to this headline">¶</a></h3>
 <p>The MLI Library applies neither saturation nor post-multiplication
 shift with rounding in accumulation. Saturation is performed only for
 the final result of accumulation while its value is reduced to the

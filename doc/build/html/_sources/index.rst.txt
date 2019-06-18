@@ -16,6 +16,7 @@ Welcome to embARC Machine Learning Inference Library documentation!
    MLI_FP_data_format/MLI_FP_data_format.rst
    MLI_kernels/MLI_kernels.rst
    MLI_helpers/MLI_helpers.rst
+   Examples_Tutorials/Examples_Tutorials.rst
   
 Indices and tables
 ==================
