@@ -119,7 +119,7 @@ extern const w_type  _W2  L5_fc_bias_buf[];
 //
 //======================================================
 #if !defined(MODEL_BIG) // Small Model 
-#if (MODEL_BIT_DEPTH == MODEL_FX_16)
+#if (MODEL_BIT_DEPTH == MODEL_FX_16) || (MODEL_BIT_DEPTH == MODEL_FX_8W16D)
 
 #define CONV1_W_INT   (-1)
 #define CONV1_B_INT   (0)
@@ -131,13 +131,13 @@ extern const w_type  _W2  L5_fc_bias_buf[];
 
 #define CONV3_W_INT   (-1)
 #define CONV3_B_INT   (-2)
-#define CONV3_OUT_INT (6)
+#define CONV3_OUT_INT (5)
 
 #define FC4_W_INT   (-1)
 #define FC4_B_INT   (-2)
 #define FC4_OUT_INT (5)
 
-#else //(MODEL_BIT_DEPTH == MODEL_FX_8 or MODEL_FX_8W16D)
+#else //(MODEL_BIT_DEPTH == MODEL_FX_8)
 
 #define CONV1_W_INT   (-1)
 #define CONV1_B_INT   (0)
@@ -158,7 +158,7 @@ extern const w_type  _W2  L5_fc_bias_buf[];
 #endif
 
 #else // Big Model
-#if (MODEL_BIT_DEPTH == MODEL_FX_16)
+#if (MODEL_BIT_DEPTH == MODEL_FX_16) || (MODEL_BIT_DEPTH == MODEL_FX_8W16D)
 
 #define CONV1_W_INT   (0)
 #define CONV1_B_INT   (0)
@@ -269,11 +269,11 @@ extern const w_type  _W2  L5_fc_bias_buf[];
 #define CONV3_W_RANK (4)
 #define CONV3_B_RANK (1)
 
-#define CONV3_W_FRAQ   (FRQ_BITS(CONV2_W_INT, w_type))
-#define L3_WQ(val)   QMN(w_type, CONV2_W_FRAQ, val)
-#define CONV3_B_FRAQ   (FRQ_BITS(CONV2_B_INT, w_type))
-#define L3_BQ(val)   QMN(w_type, CONV2_B_FRAQ, val)
-#define CONV3_OUT_FRAQ (FRQ_BITS(CONV2_OUT_INT, d_type))
+#define CONV3_W_FRAQ   (FRQ_BITS(CONV3_W_INT, w_type))
+#define L3_WQ(val)   QMN(w_type, CONV3_W_FRAQ, val)
+#define CONV3_B_FRAQ   (FRQ_BITS(CONV3_B_INT, w_type))
+#define L3_BQ(val)   QMN(w_type, CONV3_B_FRAQ, val)
+#define CONV3_OUT_FRAQ (FRQ_BITS(CONV3_OUT_INT, d_type))
 
 // FC4
 //================================================

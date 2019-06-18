@@ -32,7 +32,7 @@ Here we will consider building for [/hw/em9d.tcf](/hw/em9d.tcf) template. This t
 
        gmake run TCF_FILE=../../hw/em9d.tcf
 
-    Result Quality shall be "S/N=3638.6     (71.2 db)"
+    Result Quality shall be "S/N=4383.8  (72.8 db)"
 
 ### Build with ARC GNU toolchain
 
@@ -69,7 +69,7 @@ Here we will consider building with ARC GNU toolchain. As a platform for the ass
 
         gmake run TOOLCHAIN=gnu TCF_FILE=arcem9d.tcf
 
-    Result Quality shall be "S/N=3638.6     (71.2 db)"
+    Result Quality shall be "S/N=4383.8     (72.8 db)"
 
     Notes: Example built by ARC GNU tools is run using mdb_com_gnu script file. Modify this file to customize the example run mode. See [More Options on Building and Running](README.md#more-options-on-building-and-running)
 
@@ -114,9 +114,9 @@ configuration define and listed in table below. Before compiling application for
 
 |                      Data                              |   MODEL_BIT_DEPTH=8   |  MODEL_BIT_DEPTH=816  |  MODEL_BIT_DEPTH=16  |
 | :----------------------------------------------------: | :-------------------: | :-------------------: | :------------------: |
-| Weights <br/>*.mli_model* and *mli_model_p2 * sections |  33212 bytes          | 33212 bytes           | 66420 bytes          |
-| Activations 1 <br/>*.Zdata * section                   |  32768 bytes          | 65536 bytes           | 65536 bytes          |
-| Activations 2 <br/>*.Ydata * section                   |  8192 bytes           | 16384 bytes           | 16384 bytes          |
+| Weights <br/>*.mli_model* and *mli_model_p2* sections  |  33212 bytes          | 33212 bytes           | 66420 bytes          |
+| Activations 1 <br/>*.Zdata* section                    |  32768 bytes          | 65536 bytes           | 65536 bytes          |
+| Activations 2 <br/>*.Ydata* section                    |  8192 bytes           | 16384 bytes           | 16384 bytes          |
 | Structures <br/>*.mli_data* section                    |  384 bytes            | 384 bytes             | 384 bytes            |
 
 By default, application uses MODEL_BIT_DEPTH=16 mode. Application code size depends on target hardware configuration and compilation flags. MLI Library code is wrapped into mli_lib section.

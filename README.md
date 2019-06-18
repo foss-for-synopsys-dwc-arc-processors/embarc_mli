@@ -21,16 +21,17 @@ documentation and examples. Read the documentation at [embarc.org](https://embar
 
 ## Package structure
 --------------------
-./bin                             - directory holder for embARC MLI library and samples binaries created during build  
-./build                           - contains common build rules  
-./doc                             - contains the API documentation of the embARC MLI library
-./include                         - include files with API prototypes and types  
-./lib/src                         - source code of embARC MLI Library  
-./examples                        - source code of examples  
-./examples/example_cifar10_caffe  - example illustrating implementation of CIFAR10 Caffe  
-./examples/example_har_smartphone - example illustrating implementation of Human Activity Recognition  
-./examples/auxilary               - source code of helper functions used for the examples  
-./hw                              - contains HW templates (*.tcf files)   
+/bin                             		- directory holder for embARC MLI library and samples binaries created during build  
+./build                           		- contains common build rules  
+./doc                             		- contains the API documentation of the embARC MLI library  
+./include                         		- include files with API prototypes and types  
+./lib/src                         		- source code of embARC MLI Library  
+./examples                        		- source code of examples  
+./examples/example_cifar10_caffe  		- example illustrating implementation of CIFAR10 Caffe  
+./examples/example_har_smartphone 		- example illustrating implementation of Human Activity Recognition  
+./examples/auxilary               		- source code of helper functions used for the examples  
+./examples/tutorial_cifar10_caffe_deployment	- model deployment tutorial for Caffe and CIFAR10  
+./hw                              		- contains HW templates (*.tcf files)   
 
 ## Building and quick start
 ---------------------------
@@ -90,12 +91,12 @@ Please be aware that the list of specializations is not guaranteed to be backwar
 ## Frequently Asked Questions
 ---------------
 
-Q: Can I use ARC GNU tools to build embARC MLI library?
+***Q: Can I use ARC GNU tools to build embARC MLI library?***  
 A: No you cannot. embARC MLI Library must be built by MetaWare Development Tools only. Read the documentation at [embarc.org]( https://embarc.org/embarc_mli/doc/build/html/getting_started/getting_started.html#build-library) for details
 
-Q: Can I use MetaWare Development Tools Lite to pre-build embARC MLI library and ARC GNU to build example application?
+***Q: Can I use MetaWare Development Tools Lite to pre-build embARC MLI library and ARC GNU to build example application?***  
 A: No you cannot. embARC MLI Library must be built by full version of MetaWare Development Tools. Binaries built with MWDT Lite are not compatible with ARC GNU Tools and full MetaWare Development Tools. Read the MWDT Lite documentation for details.
 
-Q: I can not build and run example application for my Synopsys board (EMSK, IoTDK, etc), what I shall do?
+***Q: I can not build and run example application for my Synopsys board (EMSK, IoTDK, etc), what I shall do?***  
 A: If you build for Synopsys boards refer to documentation [embarc.org](https://embarc.org/platforms.html) as a good starting point. 
 You should also note that example applications support different configurations for pre trained models and thus memory requirements, not all configurations can be built and run on Synopsys boards due to memory limitations and HW capabilities, read example application readme for details. embARC MLI Library must be also pre built specifically for your board by MetaWare Development Tools. Please note that makefiles provided with examples are configured for IoTDK only if GNU tools are used.
