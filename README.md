@@ -21,16 +21,17 @@ documentation and examples. Read the documentation at [embarc.org](https://embar
 
 ## Package structure
 --------------------
-./bin                             - directory holder for embARC MLI library and samples binaries created during build  
-./build                           - contains common build rules  
-./doc                             - contains the API documentation of the embARC MLI library
-./include                         - include files with API prototypes and types  
-./lib/src                         - source code of embARC MLI Library  
-./examples                        - source code of examples  
-./examples/example_cifar10_caffe  - example illustrating implementation of CIFAR10 Caffe  
-./examples/example_har_smartphone - example illustrating implementation of Human Activity Recognition  
-./examples/auxilary               - source code of helper functions used for the examples  
-./hw                              - contains HW templates (*.tcf files)   
+./bin                             		- directory holder for embARC MLI library and samples binaries created during build  
+./build                           		- contains common build rules  
+./doc                             		- contains the API documentation of the embARC MLI library
+./include                         		- include files with API prototypes and types  
+./lib/src                         		- source code of embARC MLI Library  
+./examples                        		- source code of examples  
+./examples/example_cifar10_caffe  		- example illustrating implementation of CIFAR10 Caffe  
+./examples/example_har_smartphone 		- example illustrating implementation of Human Activity Recognition  
+./examples/auxilary               		- source code of helper functions used for the examples  
+./examples/tutorial_cifar10_caffe_deployment	- Model Deployment Tutorial for Caffe and CIFAR-10  
+./hw                              		- contains HW templates (*.tcf files)   
 
 ## Building and quick start
 ---------------------------
