@@ -109,12 +109,11 @@ f_list.append(default_func)
 c = Codegen()
 c.set_wrapper_variables({'stride_w' : "cfg->stride_width", 'stride_h' : "cfg->stride_height"})
 c.set_wrapper_variables({'kernel_w' : "cfg->kernel_width", 'kernel_h' : "cfg->kernel_height"})
-c.set_wrapper_variables({'channels' : "in->shape[FMAP_C_DIM_CHW]"})
 c.set_wrapper_variables({'padding_top' : "cfg->padding_top"})
 c.set_wrapper_variables({'padding_bot' : "cfg->padding_bottom"})
 c.set_wrapper_variables({'padding_left' : "cfg->padding_left"})
 c.set_wrapper_variables({'padding_right' : "cfg->padding_right"})
-c.set_wrapper_hierarchy(['stride_w', 'stride_h', 'kernel_w', 'kernel_h', 'channels', 'padding'])
+c.set_wrapper_hierarchy(['stride_w', 'stride_h', 'kernel_w', 'kernel_h', 'padding'])
 c.set_wrapper_if_tree(False)
 
 if "fx16" in sys.argv or no_args:

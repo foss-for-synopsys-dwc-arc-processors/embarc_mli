@@ -2531,7 +2531,6 @@ mli_status mli_krn_maxpool_chw_fx8(const mli_tensor * in, const mli_pool_cfg * c
     int stride_h = cfg->stride_height;
     int kernel_w = cfg->kernel_width;
     int kernel_h = cfg->kernel_height;
-    int channels = in->shape[FMAP_C_DIM_CHW];
     int padding_top = cfg->padding_top;
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
@@ -2541,9 +2540,13 @@ mli_status mli_krn_maxpool_chw_fx8(const mli_tensor * in, const mli_pool_cfg * c
             (kernel_w == 2) && (kernel_h == 2) && 
             (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
         return mli_krn_maxpool_chw_fx8_k2x2_str1_nopad(in, cfg, out);
-    } else if ((kernel_w == 10) && (kernel_h == 10) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+    } else if (
+            (kernel_w == 10) && (kernel_h == 10) && 
+            (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
         return mli_krn_maxpool_chw_fx8_k10x10_nopad(in, cfg, out);
-    } else if ((kernel_w == 10) && (kernel_h == 10) && (padding_top <= 4) && (padding_bot <= 5) && (padding_left <= 4) && (padding_right <= 5)) {
+    } else if (
+            (kernel_w == 10) && (kernel_h == 10) && 
+            (padding_top <= 4) && (padding_bot <= 5) && (padding_left <= 4) && (padding_right <= 5)) {
         return mli_krn_maxpool_chw_fx8_k10x10_krnpad(in, cfg, out);
     } else if ((kernel_w == 9) && (kernel_h == 9) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
         return mli_krn_maxpool_chw_fx8_k9x9_nopad(in, cfg, out);
@@ -2597,9 +2600,9 @@ mli_status mli_krn_maxpool_chw_fx8(const mli_tensor * in, const mli_pool_cfg * c
         return mli_krn_maxpool_chw_fx8_k1x2_nopad(in, cfg, out);
     } else if ((kernel_w == 1) && (kernel_h == 2) && (padding_top <= 0) && (padding_bot <= 1) && (padding_left <= 0) && (padding_right <= 0)) {
         return mli_krn_maxpool_chw_fx8_k1x2_krnpad(in, cfg, out);
-    } else if ((kernel_w == 1)) {
+    } else if (kernel_w == 1) {
         return mli_krn_maxpool_chw_fx8_k1xn(in, cfg, out);
-    } else if ((kernel_h == 1)) {
+    } else if (kernel_h == 1) {
         return mli_krn_maxpool_chw_fx8_knx1(in, cfg, out);
     } else {
         return mli_krn_maxpool_chw_fx8_generic(in, cfg, out);
