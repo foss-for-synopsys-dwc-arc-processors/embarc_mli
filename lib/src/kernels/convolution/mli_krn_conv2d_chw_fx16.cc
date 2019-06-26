@@ -3680,13 +3680,19 @@ mli_status mli_krn_conv2d_chw_fx16(
         return mli_krn_conv2d_chw_fx16_ch1_str1(in, weights, bias, cfg, out);
     } else if ((stride_w == 1) && (stride_h == 1)) {
         return mli_krn_conv2d_chw_fx16_str1(in, weights, bias, cfg, out);
-    } else if ((kernel_w == 3) && (kernel_h == 3) && (channels == 1)) {
+    } else if (
+            (kernel_w == 3) && (kernel_h == 3) && 
+            (channels == 1) && 
+            (padding_top <= 1) && (padding_bot <= 1) && (padding_left <= 1) && (padding_right <= 1)) {
         return mli_krn_conv2d_chw_fx16_k3x3_ch1_krnpad(in, weights, bias, cfg, out);
-    } else if ((kernel_w == 3) && (kernel_h == 3)) {
+    } else if ((kernel_w == 3) && (kernel_h == 3) && (padding_top <= 1) && (padding_bot <= 1) && (padding_left <= 1) && (padding_right <= 1)) {
         return mli_krn_conv2d_chw_fx16_k3x3_krnpad(in, weights, bias, cfg, out);
-    } else if ((kernel_w == 2) && (kernel_h == 2) && (channels == 1)) {
+    } else if (
+            (kernel_w == 2) && (kernel_h == 2) && 
+            (channels == 1) && 
+            (padding_top <= 0) && (padding_bot <= 1) && (padding_left <= 0) && (padding_right <= 1)) {
         return mli_krn_conv2d_chw_fx16_k2x2_ch1_krnpad(in, weights, bias, cfg, out);
-    } else if ((kernel_w == 2) && (kernel_h == 2)) {
+    } else if ((kernel_w == 2) && (kernel_h == 2) && (padding_top <= 0) && (padding_bot <= 1) && (padding_left <= 0) && (padding_right <= 1)) {
         return mli_krn_conv2d_chw_fx16_k2x2_krnpad(in, weights, bias, cfg, out);
     } else if (
             (kernel_w == 1) && (kernel_h == 1) && 
