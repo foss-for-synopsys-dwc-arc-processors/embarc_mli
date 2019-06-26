@@ -14,7 +14,7 @@ documentation and examples. Read the documentation at [embarc.org](https://embar
 	* Max and average pooling
 	* LSTM, Basic RNN
 	* Elementwise (add, sub, mul, min, max)
-	* Data manipulation (concatanation, permute, 2D padding)
+	* Data manipulation (concatenation, permute, 2D padding)
 	* ReLU, Leaky ReLu, ReLu1, ReLu6
 	* Softmax, Sigmoid, TanH
 3. Supported data layout CHW (Channel-Height-Width standard for Caffe)
