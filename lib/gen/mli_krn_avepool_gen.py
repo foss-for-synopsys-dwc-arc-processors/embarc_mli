@@ -78,7 +78,7 @@ f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for k in
 
 corefunc = "avepool_chw_nopad_k4_Nx2_N_even"
 stride = 0
-kernel_range = range(4, 9, 2)
+kernel_range = range(2, 9, 2)
 ch = 0
 f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
 
