@@ -10,6 +10,10 @@
 TOOLCHAIN = mwdt
 TCF_FILE ?= ../../hw/em9d.tcf
 
+# Make rules for code generation are default disabled to avoid
+# dependency to python when re-generation is not needed
+GEN_RULES ?= OFF
+
 # Directories and files
 SRC_ROOT    =  ../src
 SRC_DIRS    =  ../src/helpers/src \
@@ -78,6 +82,8 @@ clean:
 	-@$(RM) $(call fix_platform_path,$(LIBRARY_DIR)/$(OUT_NAME).a)
 
 
+ifeq ($(GEN_RULES),ON)
+
 $(filter $(CONVOLUTION_SRC_FOLDER)/mli_krn_conv2d_chw_%, $(GEN_FILES)): $(CONVOLUTION_SRC_FOLDER)/mli_krn_conv2d_chw_%.cc : mli_krn_conv2d_gen.py mli_krn_conv2d_func_body.txt filetemplate.txt
 	@echo [generate] $@
 	cd $(GEN_DIR) && python $< $*
@@ -98,5 +104,6 @@ $(GEN_FILES_HEADERS): $(GEN_HEADER_FOLDER)/%_spec_api.h : %_gen.py header_filete
 	@echo [generate] $@
 	cd $(GEN_DIR) && python $< header
 
-
 gen: $(GEN_FILES) $(GEN_FILES_HEADERS)
+
+endif
