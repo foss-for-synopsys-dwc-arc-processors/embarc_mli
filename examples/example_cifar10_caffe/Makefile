@@ -31,7 +31,7 @@ ifeq ($(TOOLCHAIN),mwdt)
 CFLAGS       =  -Hnocopyr -Hpurge -Hheap=8K -Hstack=1K -Hfxapi -e_start -Bgrouplib -Hldopt=-q -Hsdata0 -Xdsp_ctrl=postshift,guard,convergent -Hdense_prologue
 
 # use compact CRT
-CFLAGS      += -Hcl -Hcrt_argv -Hcrt_fast_memcpy -Hcrt_fast_memset -Hxcheck -Hcrt_initbss
+CFLAGS      += -Hcl -Hcrt_argv -Hcrt_fast_memcpy -Hcrt_fast_memset -Hxcheck
 
 else
 PREBUILT_LIB ?= $(EMBARC_MLI_DIR)/examples/prebuilt/libmli.a
