@@ -270,11 +270,11 @@ RUN_METHOD?=NSIM_RUN
 MDB_ARGS?=-run -cl
 
 ifeq ($(RUN_METHOD),NSIM_RUN)
-ELF_RUN=mdb $(MDB_ARGS) -nsim -tcf=$(TCF_FILE) -profile $(DBG_OPTS)
+ELF_RUN=mdb $(MDB_ARGS) -nsim -tcf=$(TCF_FILE) -profile $(DBG_OPTS) -on=deadbeef
 endif
 
 ifeq ($(RUN_METHOD),NSIM_DEBUG)
-ELF_RUN=mdb -nsim -tcf=$(TCF_FILE) $(DBG_OPTS)
+ELF_RUN=mdb -nsim -tcf=$(TCF_FILE) $(DBG_OPTS) -on=deadbeef
 endif
 
 ifeq ($(RUN_METHOD),XCAM_RUN)
