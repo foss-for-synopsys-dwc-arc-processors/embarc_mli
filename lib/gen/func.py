@@ -140,6 +140,7 @@ class Func:
     def print_condition(self, split=False):
         indent = ""
         newline = ""
+        cond_count = 0
         if (split):
             indent = " "*12
             newline = "\n"
@@ -148,22 +149,32 @@ class Func:
         if (self.stride_w > 0):
             cond += sep + "(stride_w == " + str(self.stride_w) + ")"
             sep = " && "
+            cond_count += 1
         if (self.stride_h > 0):
             cond += sep + "(stride_h == " + str(self.stride_h) + ")"
             sep = " && "
+            cond_count += 1
         if (self.kernel_w > 0):
             cond += sep + newline + indent + "(kernel_w == " + str(self.kernel_w) + ")"
             sep = " && "
+            cond_count += 1
         if (self.kernel_h > 0):
             cond += sep + "(kernel_h == " + str(self.kernel_h) + ")"
             sep = " && "
+            cond_count += 1
         if (self.channels > 0):
             cond += sep + newline + indent + "(channels == " + str(self.channels) + ")"
             sep = " && "
+            cond_count += 1
         if (self.print_padding_condition() != "(1)"):
             #skip padding
             cond += sep + newline + indent + self.print_padding_condition(split=split)
-        return cond
+            cond_count += 1
+
+        if (cond_count > 1):
+            return "(" + cond + ")"
+        else:
+            return cond
 
     def get_types(self):
         if self.datatype == "fx16":

@@ -58,48 +58,38 @@ k = 4
 ch = 0
 f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad")])
 
-#stride = 1, any kernel size, any channel size
 corefunc = "avepool_chw_krnpad"
-stride = 1
-kernel_range = range(5, 11, 2)
+stride = 0
+kernel_range = range(3, 11, 2)
 ch = 0
 f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
 
 corefunc = "avepool_chw_krnpad_k4_Nx2_N_even"
-stride = 1
-width_range = range(4, 9, 2)
-height_range = range(2, 9, 2)
+stride = 0
+kernel_range = range(2, 9, 2)
 ch = 0
-f_list.extend([Func(fbase, w, h, ch, stride, stride, corefunc, "krnpad") for w in width_range for h in height_range])
+f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
 
-corefunc = "avepool_chw_nopad_k4_Nx2_N_even"
-stride = 1
-w = 4
-h = 2
-ch = 0
-f_list.extend([Func(fbase, w, h, ch, stride, stride, corefunc, "nopad")])
-
-#stride = 1, any kernel size, any channel size
-corefunc = "avepool_chw_nopad_k4_Nx2_N_even"
-stride = 1
-width_range = range(6, 9, 2)
-height_range = range(2, 9, 2)
-ch = 0
-f_list.extend([Func(fbase, w, h, ch, stride, stride, corefunc, "nopad") for w in width_range for h in height_range])
-
-#stride = 1, any kernel size, any channel size
 corefunc = "avepool_chw_nopad"
-stride = 1
+stride = 0
 kernel_range = range(3, 11, 2)
 ch = 0
 f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
 
-#here construct the specializations for any stride, and multiple kernel sizes > 1
+corefunc = "avepool_chw_nopad_k4_Nx2_N_even"
+stride = 0
+kernel_range = range(2, 9, 2)
+ch = 0
+f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
+
 corefunc = "avepool_chw_krnpad"
 stride = 0
-kernel_range = range(2, 11)
+kernel_range = [0, 2, 3]
 ch = 0
-f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
+f_list.extend([Func(fbase, 1, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
+f_list.extend([Func(fbase, k, 1, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
+f_list.extend([Func(fbase, 1, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
+f_list.extend([Func(fbase, k, 1, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
 
 #at last add the generic function that can be used in the else branch in the wrapper.
 corefunc = "avepool_chw_krnpad"
@@ -117,7 +107,7 @@ c.set_wrapper_variables({'padding_bot' : "cfg->padding_bottom"})
 c.set_wrapper_variables({'padding_left' : "cfg->padding_left"})
 c.set_wrapper_variables({'padding_right' : "cfg->padding_right"})
 c.set_wrapper_hierarchy(['stride_w', 'stride_h', 'kernel_w', 'kernel_h', 'padding'])
-c.set_wrapper_if_tree(True)
+c.set_wrapper_if_tree(False)
 
 if "fx16" in sys.argv or no_args:
     f = open(output_file_fx16, "wb")

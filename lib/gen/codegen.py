@@ -111,13 +111,13 @@ class Codegen:
         for func in sorted_list:
             if func.generic:
                 continue #call to generic should be done at the end
-            string += sep + "if ("
+            string += sep + "if "
             cond = func.print_condition()
             if (len(cond) <= func.max_len_of_line):
                 string += cond
             else:
                 string += func.print_condition(split=True)
-            string += ") {\n"
+            string += " {\n"
             string += " "*8 + "return " + func.print_call()
             string += " "*4 + "}"
             sep = " else "
