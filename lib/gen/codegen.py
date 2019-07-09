@@ -41,7 +41,7 @@ class Codegen:
                 if param:
                     if param_name == "padding":
                         if len(sub_list) > 1:
-                            print "padding needs to be deepest hierarchy level otherwise the condition cannot be calculated"
+                            print("padding needs to be deepest hierarchy level otherwise the condition cannot be calculated")
                         if (sub_list[0].print_padding_condition() == "(1)"):
                             string = string[:len(string)-1] + " "
                             string += sep
@@ -63,7 +63,7 @@ class Codegen:
                 if param:
                     if param_name == "padding":
                         if len(sub_list) > 1:
-                            print "padding needs to be deepest hierarchy level otherwise the condition cannot be calculated"
+                            print("padding needs to be deepest hierarchy level otherwise the condition cannot be calculated")
                         if (sub_list[0].print_padding_condition() == "(1)"):
                             string += indent + sep
                             has_else_branch = True
@@ -155,13 +155,13 @@ class Codegen:
                 try:
                     for padvar in ['padding_top', 'padding_bot', 'padding_left', 'padding_right']:
                         string += "    int " + padvar + " = " + self.wrapper_variables[padvar] + ";\n"
-                except KeyError, e:
-                    print 'Wrapper hierarchy contains a padding and set_wrapper_variables should have: "%s"' % str(e)
+                except KeyError as e:
+                    print('Wrapper hierarchy contains a padding and set_wrapper_variables should have: "%s"' % str(e))
             else:
                 try:
                     string += "    int " + var + " = " + self.wrapper_variables[var] + ";\n"
-                except KeyError, e:
-                    print 'Wrapper hierarchy contains a variable that is not provided in set_wrapper_variables: "%s"' % str(e)
+                except KeyError as e:
+                    print('Wrapper hierarchy contains a variable that is not provided in set_wrapper_variables: "%s"' % str(e))
         return string
     def print_wrapper(self, func_list, default_func, debugwrapper=False):
         base_func = func_list[0].get_base_func()
@@ -215,7 +215,7 @@ class Codegen:
                                extra_defines = self.print_define(define_list),
                                functions = self.print_func_bodies(func_list, body_template),
                                wrapper = self.print_wrapper(func_list, default_func) + self.print_wrapper(func_list, default_func, debugwrapper=True))
-        return string
+        return string.encode('latin-1')
     def print_proto_file(self, func_list_list, function_group, cap_header_file_name, header_file_template):
         f = open(header_file_template, "r")
         s = Template(f.read())
@@ -231,4 +231,4 @@ class Codegen:
         string += s.substitute(capital_file_name = cap_header_file_name,
                                func_group = function_group,
                                functions = functions_list)
-        return string
+        return string.encode('latin-1')

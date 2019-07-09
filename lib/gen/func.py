@@ -198,7 +198,7 @@ class Func:
             w_type = "int8_t"
             d_enum = "MLI_EL_FX_16"
             return (d_type, w_type, d_enum)
-        print "ERROR: unsopported type: " + self.datatype
+        print("ERROR: unsopported type: " + self.datatype)
 
     def print_body(self, template_file):
         f = open(template_file, "r")
