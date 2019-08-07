@@ -112,7 +112,7 @@ All the rest commands beside the list are marked as “\_unknown\_”
 Module takes mono input 16bit PCM audio stream of 16kHz sample rate by frames of 15ms length (240 samples – stride size). FBANK Feature are calculated from 30ms long frame extracting 13 values from each frame.
 
 When input features sequence is long enough to perform complete NN Inference (features for 65 frames), module invokes MLI based NN implementation of the following architecture:
-[DSCNN_LSTM_NN](kws/dsconv_lstm_nn/DSCONV_LSTM_NN.png)
+![DSCNN_LSTM_NN](kws/dsconv_lstm_nn/DSCONV_LSTM_NN.png)
 
 The following table provides accuracy performance of trained model and it’s MLI based version for various bit depth of quantized data:
 
