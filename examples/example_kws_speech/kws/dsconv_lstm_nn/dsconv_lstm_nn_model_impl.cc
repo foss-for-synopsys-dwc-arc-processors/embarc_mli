@@ -21,7 +21,12 @@ const dsconv_lstm_model_data* const kws_dsconv_lstm_nn::model = &kDsconvLstmMode
 
 // Constant sizes of buffers
 constexpr int kModelIRsizeBytesMax = 22528;
+constexpr int kModelIRsizeBytesMaxHalf = kModelIRsizeBytesMax / 2;
+
 constexpr int kModelIRsizeBytesSecondMax = 17280;
+constexpr int kModelIRsizeBytesSecondMaxHalf = kModelIRsizeBytesSecondMax / 2;
+
+constexpr int kFexIRsizeFloatsMax = 1024;
 
 constexpr int kSubframesInSamplesBuf = 4;
 constexpr int kFeatureVectorsStridePerInf = 16;
@@ -31,7 +36,7 @@ constexpr int kFeatureVectorsStridePerInf = 16;
 struct kws_dsconv_lstm_nn::fastmem_x_map {
     union nn_t {
         struct fex_phase_t {
-            float ir_buf_x[kAudioFrameLength * 2];
+            float ir_buf_x[kFexIRsizeFloatsMax];
         } fex_phase;
 
         struct cnn_phase_t {
@@ -39,8 +44,8 @@ struct kws_dsconv_lstm_nn::fastmem_x_map {
         } cnn_phase ;
 
         struct rnn_phase_t {
-            int8_t ir_data_x[kModelIRsizeBytesSecondMax / 2];
-            int8_t lstm_ir_data[kModelIRsizeBytesSecondMax / 2];
+            int8_t ir_data_x[kModelIRsizeBytesSecondMaxHalf];
+            int8_t lstm_ir_data[kModelIRsizeBytesSecondMaxHalf];
         } rnn_phase;
     } nn;
 };
@@ -50,8 +55,8 @@ struct kws_dsconv_lstm_nn::fastmem_x_map {
 struct kws_dsconv_lstm_nn::fastmem_y_map {
     union nn_t {
         struct fex_phase_t {
-            float ir_buf_y[kAudioFrameLength * 2];
-            float out_features[kAudioFrameLength * 2];
+            float ir_buf_y[kFexIRsizeFloatsMax];
+            float out_features[kFbankNumBins];
         } fex_phase;
 
         struct cnn_phase_t{
@@ -59,8 +64,8 @@ struct kws_dsconv_lstm_nn::fastmem_y_map {
         } cnn_phase;
 
         struct rnn_phase_t{
-            int8_t ir_data_y[kModelIRsizeBytesMax / 2];
-            int8_t lstm_cell_data[kModelIRsizeBytesMax / 2];
+            int8_t ir_data_y[kModelIRsizeBytesMaxHalf];
+            int8_t lstm_cell_data[kModelIRsizeBytesMaxHalf];
         } rnn_phase;
     } nn;
 };

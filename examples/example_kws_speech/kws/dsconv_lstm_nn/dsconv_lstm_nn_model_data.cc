@@ -243,7 +243,7 @@ const dsconv_lstm_model_data kDsconvLstmModelStruct = {
     // Configuration objects for layers
     //===============================================
     .leaky_relu_slope_coeff = {
-        .data = (void *)((intptr_t *) ((int)LRELU_SLOPE_COEFF_VAL)), // 0.2
+        .data = (void *)(LRELU_SLOPE_COEFF_VAL), // 0.2
         .capacity = 0,
         .shape = {0}, 
         .rank = 0,

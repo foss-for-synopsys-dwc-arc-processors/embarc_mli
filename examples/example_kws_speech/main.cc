@@ -234,7 +234,8 @@ int main(int argc, char ** argv ) {
         printf("\tTotal: %d\n", detector_info.temp_fastmem_b_sz + detector_info.temp_fastmem_a_sz 
                                 + detector_info.state_fastmem_a_sz + detector_info.coeff_fastmem_sz);
 
-        const float stream_total_seconds = (detector_info.input_samples_num * process_calls) / 16000.0f;
+        const float stream_total_seconds = 
+            (detector_info.input_samples_num * process_calls) / wav_file_guard::kExpectedSampleRate;
         printf("Performance [cycles]:\n");
         printf("\tMax per frame: %d\n", cycles_max);
         printf("\tMin per frame: %d\n", cycles_min);
