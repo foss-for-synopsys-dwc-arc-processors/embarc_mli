@@ -18,7 +18,7 @@
 //=================================================================================
 mli_status mli_hlp_float_to_fx_tensor (const float *src, uint32_t src_size, mli_tensor * dst) {
     mli_status ret = MLI_STATUS_OK;
-    const uint32_t scale_val = 1u << (dst->el_params.fx.frac_bits);
+    float scale_val = (float) (1u << mli_hlp_tensor_scale_shift(dst)) / (float) mli_hlp_tensor_scale(dst);
 
     if (dst->el_type == MLI_EL_FX_16) {
         if (dst->capacity < src_size * sizeof (int16_t))
@@ -54,7 +54,7 @@ mli_status mli_hlp_fx_tensor_to_float (const mli_tensor * src, float *dst, uint3
     if (elem_num == 0)
         return MLI_STATUS_BAD_TENSOR;
 
-    const float scale_val = 1.0f / (float) (1u << (src->el_params.fx.frac_bits));
+    const float scale_val = (float)mli_hlp_tensor_scale(src) / (float) (1u << mli_hlp_tensor_scale_shift(src));
     if (src->el_type == MLI_EL_FX_16) {
         int16_t *src_arr = src->data;
         for (int idx = 0; idx < elem_num; idx++)

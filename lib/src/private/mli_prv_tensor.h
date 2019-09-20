@@ -17,10 +17,17 @@
 #include "mli_math_macros.h"
 #include "mli_types.h"
 #include "mli_private_types.h"
+#ifdef _ARC
+#include <arc/arc_intrinsics.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+static inline uint32_t __attribute__ ((always_inline)) mli_prv_norm(int32_t val) {
+    return _norm(val);
+}
 
 static inline mli_status __attribute__ ((always_inline)) mli_prv_copy_tensor_format (
         const mli_tensor * src, 
@@ -30,19 +37,73 @@ static inline mli_status __attribute__ ((always_inline)) mli_prv_copy_tensor_for
           return check;
 
     for (int idx = 0; idx < src->rank; idx++)
-          dst->shape[idx] = src->shape[idx];
-      dst->rank = src->rank;
-      dst->el_type = src->el_type;
-      dst->el_params.fx.frac_bits = src->el_params.fx.frac_bits;
-      return MLI_STATUS_OK;
+        dst->shape[idx] = src->shape[idx];
+
+    dst->rank = src->rank;
+    dst->el_type = src->el_type;
+
+    if ((src->el_type == MLI_EL_FX_8) || (src->el_type == MLI_EL_FX_8)) {
+        dst->el_params.fx.frac_bits = src->el_params.fx.frac_bits;
+    } else if (src->el_type == MLI_EL_ASYM_I8) {
+        dst->el_params.asym = src->el_params.asym;
+    } else if (src->el_type == MLI_EL_ASYM_I8_PER_CHAN) {
+        dst->el_params.asym_per_chan = src->el_params.asym_per_chan;
+    } else {
+        MLI_ASSERT(0);
+    }
+
+    return MLI_STATUS_OK;
 }
 
 static int inline __attribute__((always_inline)) mli_prv_calc_shift(
         const mli_tensor *in0,
         const mli_tensor *in1,
         const mli_tensor *out){
-    return (in0->el_params.fx.frac_bits + in1->el_params.fx.frac_bits) - out->el_params.fx.frac_bits;
+    if ((in0->el_type == MLI_EL_FX_8) || (in0->el_type == MLI_EL_FX_16)) {
+        /* mix of FX and asym datatypes is not supported */
+        MLI_ASSERT((in1->el_type == MLI_EL_FX_8) || (in1->el_type == MLI_EL_FX_16));
+        MLI_ASSERT((out->el_type == MLI_EL_FX_8) || (out->el_type == MLI_EL_FX_16));
+        return (in0->el_params.fx.frac_bits + in1->el_params.fx.frac_bits) - out->el_params.fx.frac_bits;
+    } else if (in0->el_type == MLI_EL_ASYM_I8) {
+        /* mix of FX and asym datatypes is not supported */
+        MLI_ASSERT(in1->el_type == MLI_EL_ASYM_I8);
+        MLI_ASSERT(out->el_type == MLI_EL_ASYM_I8);
+        return (in0->el_params.asym.scale_frac_bits + in1->el_params.asym.scale_frac_bits) - out->el_params.asym.scale_frac_bits;
+    } else {
+        MLI_ASSERT(0);
+        return 0;
+    }
 }
+
+static int32_t inline __attribute__((always_inline)) mli_prv_calc_out_mul(
+        const mli_tensor *in0,
+        const mli_tensor *in1,
+        const mli_tensor *out,
+        int * shift){
+    if ((in0->el_type == MLI_EL_FX_8) || (in0->el_type == MLI_EL_FX_16)) {
+        /* mix of FX and asym datatypes is not supported */
+        MLI_ASSERT((in1->el_type == MLI_EL_FX_8) || (in1->el_type == MLI_EL_FX_16));
+        MLI_ASSERT((out->el_type == MLI_EL_FX_8) || (out->el_type == MLI_EL_FX_16));
+        return 1;
+    } else if (in0->el_type == MLI_EL_ASYM_I8) {
+        /* mix of FX and asym datatypes is not supported */
+        MLI_ASSERT(in1->el_type == MLI_EL_ASYM_I8);
+        MLI_ASSERT(out->el_type == MLI_EL_ASYM_I8);
+        int32_t out_mul = (int32_t)in0->el_params.asym.scale * (int32_t)in1->el_params.asym.scale;
+        int norm = mli_prv_norm(out_mul);
+        out_mul <<= norm;
+        *shift += norm;
+        out_mul = out_mul / (int32_t)out->el_params.asym.scale;
+        norm = mli_prv_norm(out_mul);
+        out_mul <<= norm;
+        *shift += norm;
+        return out_mul;
+    } else {
+        MLI_ASSERT(0);
+        return 0;
+    }
+}
+
 
 /* partial element counting. starting at startrank */
 static uint32_t inline __attribute__((always_inline)) mli_prv_count_elem_num_part(
@@ -69,6 +130,8 @@ mli_prv_get_relu_min_max (const mli_relu_cfg * cfg, const mli_tensor * out) {
     int min_val, max_val;
     switch (out->el_type) {
     case MLI_EL_FX_8:
+    case MLI_EL_ASYM_I8:
+    case MLI_EL_ASYM_I8_PER_CHAN:
         min_val = INT8_MIN;
         max_val = INT8_MAX;
         break;

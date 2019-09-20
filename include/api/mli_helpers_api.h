@@ -106,6 +106,9 @@ mli_status mli_hlp_convert_tensor(mli_tensor *in, mli_tensor *out);
  */
 mli_status mli_hlp_point_to_subtensor(const mli_tensor *in, const mli_point_to_subtsr_cfg *cfg, mli_tensor *out);
 
+uint32_t mli_hlp_tensor_scale_shift(const mli_tensor *in);
+
+uint32_t mli_hlp_tensor_scale(const mli_tensor *in);
 
 
 

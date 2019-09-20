@@ -280,6 +280,12 @@ mli_status mli_krn_fully_connected_fx8w16d(
         const mli_tensor * bias,
         mli_tensor * out);
 
+mli_status mli_krn_fully_connected_int8(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        mli_tensor * out);
+
 /**
  * @brief Long Short Term Memory (LSTM) Cell
  *

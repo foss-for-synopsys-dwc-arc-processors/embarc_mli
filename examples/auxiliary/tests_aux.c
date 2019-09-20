@@ -211,7 +211,7 @@ test_status measure_ref_to_pred(
     float noise_accum = 0.f;
     float quant_accum = 0.f;
     float max_abs_err = -1.f;
-    const float quant_scale = (1u << pred.el_params.fx.frac_bits);
+    const float quant_scale = (float)(1u << mli_hlp_tensor_scale_shift(&pred)) / (float)mli_hlp_tensor_scale(&pred);
     const float quant_max = (1 << (8*pred_elem_size - 1)) - 1.0f;
     const float quant_min = -(1 << (8*pred_elem_size - 1));
     while (elements_accounted  < total_pred_elements) {

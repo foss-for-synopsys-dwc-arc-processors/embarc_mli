@@ -73,6 +73,36 @@ uint32_t mli_hlp_tensor_element_size(const mli_tensor *in) {
     switch (in->el_type) {
         case MLI_EL_FX_8:  return sizeof(int8_t);
         case MLI_EL_FX_16: return sizeof(int16_t);
+        case MLI_EL_ASYM_I8:  return sizeof(int8_t);
+        case MLI_EL_ASYM_I8_PER_CHAN:  return sizeof(int8_t);
+        default: return 0;
+    }
+}
+
+uint32_t mli_hlp_tensor_scale_shift(const mli_tensor *in) {
+    switch (in->el_type) {
+        case MLI_EL_FX_8:
+        case MLI_EL_FX_16:
+		    return in->el_params.fx.frac_bits;
+        case MLI_EL_ASYM_I8:
+		    return in->el_params.asym.scale_frac_bits;
+        case MLI_EL_ASYM_I8_PER_CHAN:
+		    MLI_ASSERT(0);
+			return 0;
+        default: return 0;
+    }
+}
+
+uint32_t mli_hlp_tensor_scale(const mli_tensor *in) {
+    switch (in->el_type) {
+        case MLI_EL_FX_8:
+        case MLI_EL_FX_16:
+		    return 1;
+        case MLI_EL_ASYM_I8:
+		    return in->el_params.asym.scale;
+        case MLI_EL_ASYM_I8_PER_CHAN:
+		    MLI_ASSERT(0);
+			return 0;
         default: return 0;
     }
 }
