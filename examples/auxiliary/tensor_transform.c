@@ -18,7 +18,8 @@
 //=================================================================================
 mli_status mli_hlp_float_to_fx_tensor (const float *src, uint32_t src_size, mli_tensor * dst) {
     mli_status ret = MLI_STATUS_OK;
-    float scale_val = (float) (1u << mli_hlp_tensor_scale_shift(dst)) / (float) mli_hlp_tensor_scale(dst);
+    float scale_val = (float) ((int64_t)1u << mli_hlp_tensor_scale_shift(dst)) / (float) mli_hlp_tensor_scale(dst);
+    int16_t zero_offset = mli_hlp_tensor_zero_offset(dst);
 
     if (dst->el_type == MLI_EL_FX_16) {
         if (dst->capacity < src_size * sizeof (int16_t))
@@ -30,7 +31,7 @@ mli_status mli_hlp_float_to_fx_tensor (const float *src, uint32_t src_size, mli_
             int32_t dst_val = (int32_t) (scale_val * src[idx] + round_val);
             dst_arr[idx] = (int16_t) (MIN (MAX (dst_val, INT16_MIN), INT16_MAX));
         }
-    } else {
+    } else if ((dst->el_type == MLI_EL_FX_8) || (dst->el_type == MLI_EL_ASYM_I8)){
         if (dst->capacity < src_size * sizeof (int8_t))
             return MLI_STATUS_LENGTH_ERROR;
 
@@ -38,8 +39,20 @@ mli_status mli_hlp_float_to_fx_tensor (const float *src, uint32_t src_size, mli_
         for (int idx = 0; idx < src_size; idx++) {
             const float round_val = (src[idx] > 0) ? 0.5f : -0.5f;
             const int32_t dst_val = (int32_t) (scale_val * src[idx] + round_val);
-            dst_arr[idx] = (int8_t) (MIN (MAX (dst_val, INT8_MIN), INT8_MAX));
+            dst_arr[idx] = (int8_t) (MIN (MAX (dst_val + zero_offset, INT8_MIN), INT8_MAX));
         }
+    } else if (dst->el_type == MLI_EL_ASYM_I32) {
+        if (dst->capacity < src_size * sizeof (int32_t))
+            return MLI_STATUS_LENGTH_ERROR;
+
+        int32_t *dst_arr = dst->data;
+        for (int idx = 0; idx < src_size; idx++) {
+            const float round_val = (src[idx] > 0) ? 0.5f : -0.5f;
+            int32_t dst_val = (int32_t) (scale_val * src[idx] + round_val);
+            dst_arr[idx] = dst_val + zero_offset;
+        }
+    } else {
+        return MLI_STATUS_TYPE_MISMATCH;
     }
     return ret;
 }
@@ -55,14 +68,21 @@ mli_status mli_hlp_fx_tensor_to_float (const mli_tensor * src, float *dst, uint3
         return MLI_STATUS_BAD_TENSOR;
 
     const float scale_val = (float)mli_hlp_tensor_scale(src) / (float) (1u << mli_hlp_tensor_scale_shift(src));
+    int16_t zero_offset = mli_hlp_tensor_zero_offset(src);
     if (src->el_type == MLI_EL_FX_16) {
         int16_t *src_arr = src->data;
         for (int idx = 0; idx < elem_num; idx++)
             dst[idx] = (float) (scale_val * src_arr[idx]);
-    } else {
+    } else if ((src->el_type == MLI_EL_FX_8) || (src->el_type == MLI_EL_ASYM_I8)){
         int8_t *src_arr = src->data;
         for (int idx = 0; idx < elem_num; idx++)
-            dst[idx] = (float) (scale_val * src_arr[idx]);
+            dst[idx] = (float) (scale_val * (src_arr[idx] - zero_offset));
+    } else if (src->el_type == MLI_EL_ASYM_I32) {
+        int32_t *src_arr = src->data;
+        for (int idx = 0; idx < elem_num; idx++)
+            dst[idx] = (float) (scale_val * (src_arr[idx] - zero_offset));
+    } else {
+        return MLI_STATUS_TYPE_MISMATCH;
     }
     return MLI_STATUS_OK;
 }

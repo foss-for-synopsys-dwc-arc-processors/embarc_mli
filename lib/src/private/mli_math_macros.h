@@ -15,4 +15,6 @@
 
 #define CEIL_DIV(num,den) (((num) + (den) - 1)/(den))
 
+#define MLI_MAT_MUL_Q31_SHIFT 31
+
 #endif // _MLI_MATH_MACROS_H_

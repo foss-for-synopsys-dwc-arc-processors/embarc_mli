@@ -74,8 +74,11 @@ uint32_t mli_hlp_tensor_element_size(const mli_tensor *in) {
         case MLI_EL_FX_8:  return sizeof(int8_t);
         case MLI_EL_FX_16: return sizeof(int16_t);
         case MLI_EL_ASYM_I8:  return sizeof(int8_t);
-        case MLI_EL_ASYM_I8_PER_CHAN:  return sizeof(int8_t);
-        default: return 0;
+        case MLI_EL_ASYM_I8_PER_AXIS:  return sizeof(int8_t);
+        case MLI_EL_ASYM_I32:  return sizeof(int32_t);
+        default:
+            MLI_ASSERT(0);
+            return 0;
     }
 }
 
@@ -83,13 +86,16 @@ uint32_t mli_hlp_tensor_scale_shift(const mli_tensor *in) {
     switch (in->el_type) {
         case MLI_EL_FX_8:
         case MLI_EL_FX_16:
-		    return in->el_params.fx.frac_bits;
+            return in->el_params.fx.frac_bits;
         case MLI_EL_ASYM_I8:
-		    return in->el_params.asym.scale_frac_bits;
-        case MLI_EL_ASYM_I8_PER_CHAN:
-		    MLI_ASSERT(0);
-			return 0;
-        default: return 0;
+        case MLI_EL_ASYM_I32:
+            return in->el_params.asym.scale_frac_bits;
+        case MLI_EL_ASYM_I8_PER_AXIS:
+            MLI_ASSERT(0);
+            return 0;
+        default:
+            MLI_ASSERT(0);
+            return 0;
     }
 }
 
@@ -97,13 +103,33 @@ uint32_t mli_hlp_tensor_scale(const mli_tensor *in) {
     switch (in->el_type) {
         case MLI_EL_FX_8:
         case MLI_EL_FX_16:
-		    return 1;
+            return 1;
         case MLI_EL_ASYM_I8:
-		    return in->el_params.asym.scale;
-        case MLI_EL_ASYM_I8_PER_CHAN:
-		    MLI_ASSERT(0);
-			return 0;
-        default: return 0;
+        case MLI_EL_ASYM_I32:
+            return in->el_params.asym.scale;
+        case MLI_EL_ASYM_I8_PER_AXIS:
+            MLI_ASSERT(0);
+            return 0;
+        default:
+            MLI_ASSERT(0);
+            return 0;
+    }
+}
+
+uint16_t mli_hlp_tensor_zero_offset(const mli_tensor *in) {
+    switch (in->el_type) {
+        case MLI_EL_FX_8:
+        case MLI_EL_FX_16:
+            return 0;
+        case MLI_EL_ASYM_I8:
+        case MLI_EL_ASYM_I32:
+            return in->el_params.asym.zero_point;
+        case MLI_EL_ASYM_I8_PER_AXIS:
+            MLI_ASSERT(0);
+            return 0;
+        default:
+            MLI_ASSERT(0);
+            return 0;
     }
 }
 
@@ -165,7 +191,7 @@ mli_status mli_hlp_convert_tensor(mli_tensor *in, mli_tensor *out) {
 
     // Fill the rest output tensor params
     for (int idx = 0; idx < in->rank; idx++)
-       	out->shape[idx] = in->shape[idx];
+        out->shape[idx] = in->shape[idx];
     out->rank = in->rank;
     return MLI_STATUS_OK;
 }

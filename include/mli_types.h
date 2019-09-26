@@ -72,9 +72,10 @@ typedef enum {
     MLI_EL_FX_16,       /**< 16 bit depth fixed point data with configurable number 
                              of fractional bits Data container is int16_t*/
     MLI_EL_ASYM_I8,     /**< 8 bit asymetrical signed data with configurable zero offset
-	                         and multiplier. Data container is int8_t */
-    MLI_EL_ASYM_I8_PER_CHAN,     /**< 8 bit asymetrical signed data with configurable zero offset
-	                         and multiplier. Data container is int8_t */
+                             and multiplier. Data container is int8_t */
+    MLI_EL_ASYM_I8_PER_AXIS,     /**< 8 bit asymetrical signed data with configurable zero offset vector
+                             and multiplier vector. Data container is int8_t */
+    MLI_EL_ASYM_I32,    /**< 32 bit signed data. Container is int32_t */
     MLI_EL_LARGE_ENUM = 0x02000000      /**< Utility field. Prevent size optimization of public enums */
 } mli_element_type;
 

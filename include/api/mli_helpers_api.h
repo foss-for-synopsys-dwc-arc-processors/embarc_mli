@@ -110,6 +110,7 @@ uint32_t mli_hlp_tensor_scale_shift(const mli_tensor *in);
 
 uint32_t mli_hlp_tensor_scale(const mli_tensor *in);
 
+uint16_t mli_hlp_tensor_zero_offset(const mli_tensor *in);
 
 
 
