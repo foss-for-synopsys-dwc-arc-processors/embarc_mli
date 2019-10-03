@@ -17,9 +17,7 @@
 #include "mli_math_macros.h"
 #include "mli_types.h"
 #include "mli_private_types.h"
-#ifdef _ARC
 #include <arc/arc_intrinsics.h>
-#endif
 
 #ifdef __cplusplus
 extern "C" {
