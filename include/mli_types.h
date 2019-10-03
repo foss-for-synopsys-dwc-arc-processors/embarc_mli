@@ -71,6 +71,11 @@ typedef enum {
                              of fractional bits Data container is int8_t*/
     MLI_EL_FX_16,       /**< 16 bit depth fixed point data with configurable number 
                              of fractional bits Data container is int16_t*/
+    MLI_EL_ASYM_I8,     /**< 8 bit asymetrical signed data with configurable zero offset
+                             and multiplier. Data container is int8_t */
+    MLI_EL_ASYM_I8_PER_AXIS,     /**< 8 bit asymetrical signed data with configurable zero offset vector
+                             and multiplier vector. Data container is int8_t */
+    MLI_EL_ASYM_I32,    /**< 32 bit signed data. Container is int32_t */
     MLI_EL_LARGE_ENUM = 0x02000000      /**< Utility field. Prevent size optimization of public enums */
 } mli_element_type;
 
@@ -87,6 +92,20 @@ typedef union _mli_element_params {
     struct{
         uint8_t frac_bits; /**< Number of fractional bits */
     } fx;
+
+    struct {
+        void * zero_points;/**< array of zero point offsets type is the same as the type of the tensor*/
+        uint16_t * scales;/** array of fixed point scale factors. size of this array can be looked up in the shape using the dimension to which the scales apply*/
+        uint32_t dim; /**< dimension of the tensor to which the array's of quantization parameters apply */
+        int8_t scale_frac_bits; /**< number of fractional bits in the elements of the scales array */ // consider to use fixed number of fractional bits?
+    } asym_per_chan;
+
+    struct {
+        int16_t zero_point;/**< zero point offset */
+        uint16_t scale;/**< scale is a fixed point number, and together with scale_frac_bits, it is the scale factor for this tensor. */
+        int8_t scale_frac_bits;/**< number of fractional bits in the scale field */
+    } asym;
+
 } mli_element_params;
 
 

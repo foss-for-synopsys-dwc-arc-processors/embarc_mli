@@ -14,7 +14,6 @@
 
 #include "mli_config.h"
 #include "mli_debug.h"
-#include "mli_helpers_api.h"
 #include "mli_prv_load_store.h"
 #include "mli_math.h"
 #include "mli_math_macros.h"
