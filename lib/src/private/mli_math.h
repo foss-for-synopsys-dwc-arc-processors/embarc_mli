@@ -16,6 +16,7 @@
 #error "ARC FX Library (FXAPI) is required dependency"
 #endif
 
+#include "mli_debug.h"
 #include "mli_math_macros.h"
 #include "mli_private_types.h"
 
@@ -33,6 +34,7 @@ template < typename io_T > inline io_T mli_math_sub_fx(io_T L, io_T R);
 template < typename io_T > inline io_T mli_math_max_fx(io_T L, io_T R);
 template < typename io_T > inline io_T mli_math_min_fx(io_T L, io_T R);
 template < typename in_T, typename acc_T > inline acc_T mli_math_mul_fx(in_T L, in_T R);
+template < typename in_T, typename acc_T > inline acc_T mli_math_mul_fx_high(in_T L, in_T R);
 template < typename l_T, typename r_T, typename acc_T > inline acc_T mli_math_mac_fx(acc_T acc, l_T L, r_T R);
 template < typename out_T, typename acc_T > inline out_T mli_math_acc_cast_fx(acc_T acc, int shift_right);
 template < typename acc_T > inline acc_T mli_math_acc_ashift_fx(acc_T acc, int shift_right);
@@ -90,6 +92,12 @@ template <> inline mli_acc40_t mli_math_mul_fx(int16_t L, int16_t R) {
     return fx_a40_mpy_nf_q15(L, R);
 }
 
+template <> inline mli_acc32_t mli_math_mul_fx_high(int32_t L, int32_t R) {
+    // this function takes the MSB part of the result. (L * R) >> 31
+    // in optimized code check if mpyfr instruction is used here.
+    return (mli_acc32_t)fx_q31_cast_rnd_a72(fx_a72_mpy_q31(L, R));
+}
+
 // Multiply-and-accumulate operands
 //========================================================================
 template <> inline mli_acc32_t mli_math_mac_fx(mli_acc32_t acc, int8_t L, int8_t R) {
@@ -100,12 +108,20 @@ template <> inline mli_acc32_t mli_math_mac_fx(mli_acc32_t acc, int16_t L, int16
     return acc + (mli_acc32_t) (L * R);
 }
 
+template <> inline mli_acc32_t mli_math_mac_fx(mli_acc32_t acc, int16_t L, int8_t R) {
+    return acc + (mli_acc32_t)(L * (int16_t)R);
+}
+
 template <> inline mli_acc40_t mli_math_mac_fx(mli_acc40_t acc, int16_t L, int16_t R) {
     return fx_a40_mac_nf_q15(acc, L, R);
 }
 
 template <> inline mli_acc40_t mli_math_mac_fx(mli_acc40_t acc, int16_t L, int8_t R) {
     return fx_a40_mac_nf_q15(acc, L, (int16_t) R);
+}
+
+template <> inline mli_acc40_t mli_math_mac_fx(mli_acc40_t acc, int8_t L, int8_t R) {
+    return fx_a40_mac_nf_q15(acc, (int16_t)L, (int16_t)R);
 }
 
 static inline void __attribute__ ((always_inline)) mli_math_mac_fx_vec2(__v2i32_t * accu, v2q15_t in, v2q15_t k) { //mli_math_mac_fx_vec2 , acc by value
@@ -175,6 +191,46 @@ static inline bool __attribute__ ((always_inline)) mli_prv_less_than_1(io_T valu
     io_T unit = (io_T) 1 << frac_bits;
     return (value < unit);
 }
+
+template <typename in_T, typename acc_T>
+inline acc_T mli_math_mul_fx_high(in_T L, in_T R);
+
+// Multipliers used to apply scale factors in asymetric data types
+//========================================================================
+template <typename acc_T, bool asym_data>
+static inline mli_acc32_t mli_math_scale_mul(mli_acc32_t accu, int32_t mul) {
+    if (asym_data) {
+        return accu = mli_math_mul_fx_high<int32_t, int32_t>(accu, mul);
+    }else{
+        return accu;
+    }
+}
+
+template <typename acc_T, bool asym_data>
+static inline mli_acc40_t mli_math_scale_mul(mli_acc40_t accu, int32_t mul) {
+    if (asym_data) {
+        MLI_ASSERT(0); // asymetric data not supported with 40bit accumulator
+    }else{
+        return accu;
+    }
+}
+
+template <typename b_T, typename acc_T, bool asym_data>
+static inline acc_T mli_math_init_accu(b_T bias, int32_t bias_mul, int bias_shift) {
+    acc_T accu = mli_math_mul_fx<b_T, acc_T>(bias, asym_data ? 2 : 1); // extra factor of 2 needed because scale mul cannot multiply by 1.
+    accu = mli_math_acc_ashift_fx(accu, -bias_shift);
+    accu = mli_math_scale_mul<acc_T, asym_data>(accu, bias_mul);
+    return accu;
+}
+
+template <typename b_T, typename acc_T, bool asym_data>
+static inline int32_t mli_math_init_accu(int32_t bias, int32_t bias_mul, int bias_shift) {
+    int32_t accu = bias;
+    accu = mli_math_acc_ashift_fx(accu, -(bias_shift+1)); // extra factor of 2 needed because scale mul cannot multiply by 1.
+    accu = mli_math_scale_mul<acc_T, asym_data>(accu, bias_mul);
+    return accu;
+}
+
 
 #pragma Code()
 
