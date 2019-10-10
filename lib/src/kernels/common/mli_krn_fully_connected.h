@@ -115,4 +115,77 @@ static void __attribute__((always_inline)) fully_connected_prepare_and_run_fx(
     out->rank = 1;
 }
 
+template <typename io_T, typename w_T, typename b_T, typename acc_T>
+static inline void ip_op(
+        const io_T* __restrict in,
+        const w_T*  __restrict weights,
+        const b_T*  __restrict biases,
+              io_T* __restrict out,
+
+        const int in_elements,
+        const int out_elements,
+        const int32_t bias_mul,
+        const int bias_shift,
+        const int32_t out_mul,
+        const int out_shift,
+        const io_T input_offset,
+        const io_T output_offset) {
+    // Matrix-Vector multiplication
+    //==============================
+    for (int o_idx = 0; o_idx < out_elements; o_idx++) {
+        int w_idx = o_idx * in_elements;
+
+        acc_T accu = mli_math_init_accu<b_T, acc_T, true>(biases[o_idx], bias_mul, bias_shift);
+
+        for (int i_idx = 0; i_idx < in_elements; i_idx++, w_idx++){
+            accu = mli_math_mac_fx(accu, in[i_idx], weights[w_idx]);
+            accu = mli_math_mac_fx(accu, (io_T)-input_offset, weights[w_idx]);
+        }
+
+        accu = mli_math_scale_mul<acc_T, true>(accu, out_mul);
+
+        // adding the output offset needs to happen after the output mul and output shift
+        // but before the cast to the output container size.
+        // because the cast and shift are combined in one function, the output offset is
+        // added before, and multiplied with 1<< out_shift to compensate.
+        accu = mli_math_mac_fx(accu, (int16_t)(1<<out_shift), (io_T)output_offset);
+        out[o_idx] = mli_math_acc_cast_fx<io_T, acc_T> (accu, out_shift);
+    }
+}
+
+template <typename io_T, typename w_T, typename b_T>
+static void fully_connected_prepare_and_run(
+        const mli_tensor* in,
+        const mli_tensor* weights,
+        const mli_tensor* bias,
+        mli_tensor* out) {
+    fx_init_dsp_ctrl();
+
+    const io_T * in_ptr = static_cast<io_T *>(in->data);
+    const w_T * w_ptr = static_cast<w_T *>(weights->data);
+    const b_T * b_ptr = static_cast<b_T *>(bias->data);
+    io_T * out_ptr = static_cast<io_T *>(out->data);
+
+    int ch_out = bias->shape[0];
+    int in_sz = mli_prv_count_elem_num(in);
+
+    // Define shift values
+    int bias_shift = mli_prv_calc_shift(in, weights, bias);
+    int out_shift = mli_prv_calc_shift(in, weights, out);
+
+    int32_t out_mul = mli_prv_calc_out_mul(in, weights, out, &out_shift);;
+    int32_t bias_mul = mli_prv_calc_bias_mul(in, weights, bias);
+    io_T input_offset = mli_hlp_tensor_zero_offset(in);
+    io_T output_offset = mli_hlp_tensor_zero_offset(out);
+    MLI_ASSERT(mli_hlp_tensor_zero_offset(weights) == 0);
+
+    // Run basic calculation
+    ip_op<io_T, w_T, b_T, mli_acc32_t>(in_ptr, w_ptr, b_ptr, out_ptr, in_sz, ch_out, bias_mul, bias_shift, out_mul, out_shift, input_offset, output_offset);
+
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->shape[0] = ch_out;
+    out->rank = 1;
+}
+
 #endif  //_MLI_KRN_FULLY_CONNECTED_H_
