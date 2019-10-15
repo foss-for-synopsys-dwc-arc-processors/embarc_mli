@@ -140,6 +140,7 @@ mli_status mli_chk_avepool_chw_fx16(const mli_tensor * in, const mli_pool_cfg * 
 mli_status mli_chk_avepool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg, const mli_tensor * out);
 mli_status mli_chk_avepool_hwc_fx8(const mli_tensor * in, const mli_pool_cfg * cfg, const mli_tensor * out);
 mli_status mli_chk_avepool_hwc_fx16(const mli_tensor * in, const mli_pool_cfg * cfg, const mli_tensor * out);
+mli_status mli_chk_avepool_hwc_int8(const mli_tensor * in, const mli_pool_cfg * cfg, const mli_tensor * out);
 
 mli_status mli_chk_fully_connected(
         const mli_tensor * in,
