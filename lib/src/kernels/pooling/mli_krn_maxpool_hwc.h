@@ -59,33 +59,23 @@ static inline io_T reduce_max2D_hwc(
 }
 
 template <typename io_T>
-static inline void __attribute__((always_inline)) mli_krn_maxpool_hwc(const mli_tensor* in, const mli_pool_cfg* cfg, mli_tensor* out) {
+static inline void __attribute__((always_inline)) mli_krn_maxpool_hwc(
+    int stride_width,
+    int stride_height,
+    int padding_top,
+    int padding_bot,
+    int padding_left,
+    int padding_right,
+    const MLI_PTR(io_T) in_ftrs,
+    MLI_OUT_PTR(io_T) out_ftrs,
+    int channels_num,
+    int kernel_height,
+    int kernel_width,
+    int in_height,
+    int in_width,
+    int out_width,
+    int out_height) {
     mli_prv_fx_init_dsp_ctrl();
-
-    // Extract general maxpooling parameters
-    int stride_width = cfg->stride_width;
-    int stride_height = cfg->stride_height;
-    int padding_top = cfg->padding_top;
-    int padding_bot = cfg->padding_bottom;
-    int padding_left = cfg->padding_left;
-    int padding_right = cfg->padding_right;
-
-    // Data pointers
-    const MLI_PTR(io_T) in_ftrs = (const MLI_PTR(io_T))in->data;
-    MLI_OUT_PTR(io_T) out_ftrs = (MLI_OUT_PTR(io_T))out->data;
-
-    // Define Data dimensions
-    int channels_num = (int)in->shape[FMAP_C_DIM_HWC];
-
-    int kernel_height = cfg->kernel_height;
-    int kernel_width = cfg->kernel_width;
-
-    int in_height = (int)in->shape[FMAP_H_DIM_HWC];
-    int in_width = (int)in->shape[FMAP_W_DIM_HWC];
-
-    int out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    int out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
-
     // Phase 1: Process central part (without border effects - padding free)
     //=======================================================================
     if (in_height >= kernel_height && in_width >= kernel_width) {
@@ -176,12 +166,6 @@ static inline void __attribute__((always_inline)) mli_krn_maxpool_hwc(const mli_
             }
         }
     }
-    // fill output tensor parameters
-    out->rank = in->rank;
-    out->shape[FMAP_H_DIM_HWC] = (unsigned)out_height;
-    out->shape[FMAP_W_DIM_HWC] = (unsigned)out_width;
-    out->shape[FMAP_C_DIM_HWC] = (unsigned)channels_num;
-    out->el_type = in->el_type;
 }
 
 #pragma code()
