@@ -186,13 +186,35 @@ test_status measure_ref_to_pred(
  * @param[out] out - Structures with various error measurements
  *
  * @return Operation status code (test_status)
-  */
+ */
 test_status measure_err_vfloat(
         const float * ref_vec,
         const float * pred_vec,
         const int len,
         ref_to_pred_output *out);
 
+/**
+ * @brief Fill Asym tesnor parameteres of element base on it's float representations
+ *
+ * @detail Calculate FX version of scale rates and zero points and store it in target_tensor structure. 
+ *         Function might be appied to the following tensor types: MLI_EL_ASYM_I8, MLI_EL_ASYM_I8_PER_AXIS,
+ *         MLI_EL_ASYM_I32. 
+ *
+ * @param[in] scale_rates - Pointer to scale rates. number of vals must be 1 for MLI_EL_ASYM_I8/I32 and 
+ * @param[in] zero_points - Second array with float values for comparison
+ * @param[in] scale_int_bits - Length of both array
+ * @param[in/out] target_tensor - Tensor structure to fill. el_type field of the structure must be filled beforehand.
+ *                                For MLI_EL_ASYM_I8_PER_AXIS next fields also must be filled: 
+ *                                el_params.asym_per_axis.dim - quantization axis
+ *                                el_params.asym_per_axis.zero_points(scales) - pointers to valid memory
+ *
+ * @return Operation status code (test_status)
+ */
+test_status fill_asym_tensor_element_params(
+        const float * scale_rates,
+        const float * zero_points,
+        const int scale_int_bits,
+        mli_tensor *target_tensor);
 #ifdef __cplusplus
 } /* end extern "C" */
 #endif

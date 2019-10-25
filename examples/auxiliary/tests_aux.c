@@ -212,6 +212,7 @@ test_status measure_ref_to_pred(
     float quant_accum = 0.f;
     float max_abs_err = -1.f;
     const float quant_scale = (float)(1u << mli_hlp_tensor_scale_shift(&pred)) / (float)mli_hlp_tensor_scale(&pred);
+    const int16_t quant_zero_offset = mli_hlp_tensor_zero_offset(&pred);
     const float quant_max = (1 << (8*pred_elem_size - 1)) - 1.0f;
     const float quant_min = -(1 << (8*pred_elem_size - 1));
     while (elements_accounted  < total_pred_elements) {
@@ -228,14 +229,16 @@ test_status measure_ref_to_pred(
         }
 
         for (uint32_t i = 0; i < descr.num_elements; i++) {
-            float ref_quant = ref_buf[i] * quant_scale;
+            float ref_quant = ref_buf[i] * quant_scale + quant_zero_offset;
             ref_quant = MAX(quant_min, MIN(quant_max, roundf(ref_quant))) - ref_quant;
 
             quant_accum += ref_quant * ref_quant;
             ref_accum += ref_buf[i] * ref_buf[i];
             pred_accum += pred_buf[i] * pred_buf[i];
             noise_accum += (ref_buf[i] - pred_buf[i]) * (ref_buf[i] - pred_buf[i]);
-            max_abs_err = MAX(fabsf(pred_buf[i] - ref_buf[i]), max_abs_err);
+            //max_abs_err = MAX(fabsf(pred_buf[i] - ref_buf[i]), max_abs_err);
+            if(fabsf(pred_buf[i] - ref_buf[i]) > max_abs_err) 
+                max_abs_err = MAX(fabsf(pred_buf[i] - ref_buf[i]), max_abs_err);
         }
         elements_accounted += descr.num_elements;
         pred.data += descr.num_elements * pred_elem_size;
@@ -293,5 +296,49 @@ test_status measure_err_vfloat(
     out->ref_vec_length = sqrtf(ref_accum);
     out->noise_vec_length = sqrtf(noise_accum);
     out->ref_to_noise_snr = 10.f * log10f((ref_accum + eps) / (noise_accum + eps));
+    return TEST_PASSED;
+}
+
+
+test_status fill_asym_tensor_element_params(
+        const float * scale_rates,
+        const float * zero_points,
+        const int scale_int_bits,
+        mli_tensor *target_tensor) {
+    if (target_tensor->el_type == MLI_EL_FX_8 || 
+        target_tensor->el_type == MLI_EL_FX_16)
+        return TEST_FAILED;
+    
+    const int8_t scale_fraq_bits = FRAQ_BITS(scale_int_bits, int16_t);
+    const uint32_t mult = 1u << FRAQ_BITS(scale_int_bits, int16_t);
+    const int num_vals = (target_tensor->el_type == MLI_EL_ASYM_I8_PER_AXIS)? 
+        target_tensor->shape[target_tensor->el_params.asym_per_axis.dim] : 1;
+    int16_t * scale_dist;
+    int16_t * zp_dist;
+
+    if (target_tensor->el_type == MLI_EL_ASYM_I8_PER_AXIS) {
+        target_tensor->el_params.asym_per_axis.scale_frac_bits = scale_fraq_bits;
+        scale_dist = target_tensor->el_params.asym_per_axis.scales;
+        zp_dist = target_tensor->el_params.asym_per_axis.zero_points;
+    } else {
+        target_tensor->el_params.asym.scale_frac_bits = scale_fraq_bits;
+        scale_dist = &target_tensor->el_params.asym.scale;
+        zp_dist = &target_tensor->el_params.asym.zero_point;
+    }
+
+    for (int i = 0; i < num_vals; i++) {
+        if (scale_rates[i] <= 0.0f)
+            return TEST_FAILED;
+
+        const float scale_round_val = (scale_rates[i] > 0) ? 0.5f : -0.5f;
+        const float zp_round_val = (zero_points[i] > 0) ? 0.5f : -0.5f;
+
+        const int32_t dst_val = (int32_t) (mult * scale_rates[i] + scale_round_val);
+        scale_dist[i] = (int16_t) (MIN(MAX(dst_val, INT16_MIN), INT16_MAX));
+
+        const int32_t zero_val = (int32_t)(-zero_points[i] / scale_rates[i] + zp_round_val);
+        zp_dist[i] = (int16_t)(MIN(MAX(zero_val , INT16_MIN), INT16_MAX));
+    }
+
     return TEST_PASSED;
 }
