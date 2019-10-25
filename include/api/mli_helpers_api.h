@@ -43,6 +43,11 @@ extern "C" {
 #define KRNL_D_DIM_HWC 3 // kernel depth aka input channels
 #define KRNL_C_DIM_HWC 0 // output channels
 
+#define KRNL_DW_H_DIM_HWC 1 // kernel height
+#define KRNL_DW_W_DIM_HWC 2 // kernel width
+#define KRNL_DW_D_DIM_HWC 0 // kernel depth aka input channels
+#define KRNL_DW_C_DIM_HWC 3 // output channels
+
 /** 
  * @brief Count Number of Elements in Tensor
  *
@@ -110,7 +115,7 @@ uint32_t mli_hlp_tensor_scale_shift(const mli_tensor *in);
 
 uint32_t mli_hlp_tensor_scale(const mli_tensor *in);
 
-uint16_t mli_hlp_tensor_zero_offset(const mli_tensor *in);
+int16_t mli_hlp_tensor_zero_offset(const mli_tensor *in);
 
 
 

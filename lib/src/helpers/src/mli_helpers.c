@@ -116,7 +116,7 @@ uint32_t mli_hlp_tensor_scale(const mli_tensor *in) {
     }
 }
 
-uint16_t mli_hlp_tensor_zero_offset(const mli_tensor *in) {
+int16_t mli_hlp_tensor_zero_offset(const mli_tensor *in) {
     switch (in->el_type) {
         case MLI_EL_FX_8:
         case MLI_EL_FX_16:

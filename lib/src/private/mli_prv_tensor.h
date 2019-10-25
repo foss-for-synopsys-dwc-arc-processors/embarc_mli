@@ -14,6 +14,7 @@
 
 #include "mli_check.h"
 #include "mli_debug.h"
+#include "mli_helpers_api.h"
 #include "mli_math_macros.h"
 #include "mli_types.h"
 #include "mli_private_types.h"
@@ -49,7 +50,7 @@ static inline mli_status __attribute__ ((always_inline)) mli_prv_copy_tensor_for
     } else if ((src->el_type == MLI_EL_ASYM_I8) || (src->el_type == MLI_EL_ASYM_I32)) {
         dst->el_params.asym = src->el_params.asym;
     } else if (src->el_type == MLI_EL_ASYM_I8_PER_AXIS) {
-        dst->el_params.asym_per_chan = src->el_params.asym_per_chan;
+        dst->el_params.asym_per_axis = src->el_params.asym_per_axis;
     } else {
         MLI_ASSERT(0);
     }
@@ -120,7 +121,7 @@ static int32_t inline __attribute__((always_inline)) mli_prv_calc_bias_mul(
         /* mix of FX and asym datatypes is not supported */
         MLI_ASSERT(in1->el_type == MLI_EL_ASYM_I8);
         MLI_ASSERT((bias->el_type == MLI_EL_ASYM_I8) || (bias->el_type == MLI_EL_ASYM_I32));
-        MLI_ASSERT(bias->el_params.asym.scale == 1);
+        //MLI_ASSERT(bias->el_params.asym.scale == 1);
         int32_t bias_mul = (1 << MLI_BIAS_MUL_SHIFT) / ((int32_t)in0->el_params.asym.scale * (int32_t)in1->el_params.asym.scale);
         return bias_mul;
     } else {
@@ -152,6 +153,21 @@ static inline mli_minmax_t __attribute__((always_inline))
 mli_prv_get_relu_min_max (const mli_relu_cfg * cfg, const mli_tensor * out) {
     mli_minmax_t val_limit;
     int min_val, max_val;
+    int zero, one, neg_one, six;
+    if (out->el_type == MLI_EL_ASYM_I8) {
+        zero = out->el_params.asym.zero_point;
+        six = ((int64_t)6l << mli_hlp_tensor_scale_shift(out)) /  mli_hlp_tensor_scale(out);
+        one = ((int64_t)1l << mli_hlp_tensor_scale_shift(out)) /  mli_hlp_tensor_scale(out);
+        six = six + zero;
+        neg_one = -one + zero;
+        one = one + zero;
+    } else {
+        zero = 0;
+        six = 6 << (int) out->el_params.fx.frac_bits;
+        one = 1 << (int) out->el_params.fx.frac_bits;
+        neg_one = -one;
+    }
+
     switch (out->el_type) {
     case MLI_EL_FX_8:
     case MLI_EL_ASYM_I8:
@@ -169,22 +185,22 @@ mli_prv_get_relu_min_max (const mli_relu_cfg * cfg, const mli_tensor * out) {
 
     switch (cfg->type) {
     case MLI_RELU_GEN:
-        val_limit.min = 0;
-        val_limit.max = max_val;
+        val_limit.min = (int16_t) zero;
+        val_limit.max = (int16_t) max_val;
         break;
     case MLI_RELU_6:
-        val_limit.min = 0;
-        val_limit.max = MIN (6 << (int) out->el_params.fx.frac_bits, max_val);
+        val_limit.min = (int16_t) zero;
+        val_limit.max = (int16_t) MIN (six, max_val);
         break;
     case MLI_RELU_1:
-        val_limit.min = (uint16_t) MAX (-(1 << (int) out->el_params.fx.frac_bits), min_val);
-        val_limit.max = (uint16_t) MIN (1 << (int) out->el_params.fx.frac_bits, max_val);
+        val_limit.min = (int16_t) MAX(neg_one, min_val);
+        val_limit.max = (int16_t) MIN(one, max_val);
         break;
     default:
         // For leaky and param relu there is no saturation in the function domain.
         // only container type limitations (8bit or 16 bit)
-        val_limit.min = min_val;
-        val_limit.max = max_val;
+        val_limit.min = (int16_t) min_val;
+        val_limit.max = (int16_t) max_val;
     }
 
     return val_limit;

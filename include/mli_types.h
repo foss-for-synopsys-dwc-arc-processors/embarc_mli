@@ -89,21 +89,21 @@ typedef enum {
  * The union can be interpreted only as this structure.
  */
 typedef union _mli_element_params {
-    struct{
+    struct {
         uint8_t frac_bits; /**< Number of fractional bits */
     } fx;
 
     struct {
-        void * zero_points;/**< array of zero point offsets type is the same as the type of the tensor*/
-        uint16_t * scales;/** array of fixed point scale factors. size of this array can be looked up in the shape using the dimension to which the scales apply*/
-        uint32_t dim; /**< dimension of the tensor to which the array's of quantization parameters apply */
+        int16_t * zero_points;     /**< array of zero point offsets type is the same as the type of the tensor*/
+        int16_t * scales;      /** array of fixed point scale factors. size of this array can be looked up in the shape using the dimension to which the scales apply*/
+        uint32_t dim;           /**< dimension of the tensor to which the array's of quantization parameters apply */
         int8_t scale_frac_bits; /**< number of fractional bits in the elements of the scales array */ // consider to use fixed number of fractional bits?
-    } asym_per_chan;
+    } asym_per_axis;
 
     struct {
-        int16_t zero_point;/**< zero point offset */
-        uint16_t scale;/**< scale is a fixed point number, and together with scale_frac_bits, it is the scale factor for this tensor. */
-        int8_t scale_frac_bits;/**< number of fractional bits in the scale field */
+        int16_t zero_point;     /**< zero point offset */
+        int16_t scale;          /**< scale is a fixed point number, and together with scale_frac_bits, it is the scale factor for this tensor. */
+        int8_t scale_frac_bits; /**< number of fractional bits in the scale field */
     } asym;
 
 } mli_element_params;
