@@ -202,6 +202,7 @@ test_status measure_err_vfloat(
  *
  * @param[in] scale_rates - Pointer to scale rates. number of vals must be 1 for MLI_EL_ASYM_I8/I32 and 
  * @param[in] zero_points - Second array with float values for comparison
+ * @param[in] num_vals - Number of values in the input arrays (tensor must hold pointers to keep quantized ones)
  * @param[in] scale_int_bits - Length of both array
  * @param[in/out] target_tensor - Tensor structure to fill. el_type field of the structure must be filled beforehand.
  *                                For MLI_EL_ASYM_I8_PER_AXIS next fields also must be filled: 
@@ -213,6 +214,7 @@ test_status measure_err_vfloat(
 test_status fill_asym_tensor_element_params(
         const float * scale_rates,
         const float * zero_points,
+        const int num_vals,
         const int scale_int_bits,
         mli_tensor *target_tensor);
 #ifdef __cplusplus

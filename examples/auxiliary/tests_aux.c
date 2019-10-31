@@ -211,8 +211,8 @@ test_status measure_ref_to_pred(
     float noise_accum = 0.f;
     float quant_accum = 0.f;
     float max_abs_err = -1.f;
-    const float quant_scale = (float)(1u << mli_hlp_tensor_scale_shift(&pred)) / (float)mli_hlp_tensor_scale(&pred);
-    const int16_t quant_zero_offset = mli_hlp_tensor_zero_offset(&pred);
+    const float quant_scale = (float)(1u << mli_hlp_tensor_scale_shift(&pred)) / (float)mli_hlp_tensor_scale(&pred, 0);
+    const int16_t quant_zero_offset = mli_hlp_tensor_zero_offset(&pred, 0);
     const float quant_max = (1 << (8*pred_elem_size - 1)) - 1.0f;
     const float quant_min = -(1 << (8*pred_elem_size - 1));
     while (elements_accounted  < total_pred_elements) {
@@ -303,6 +303,7 @@ test_status measure_err_vfloat(
 test_status fill_asym_tensor_element_params(
         const float * scale_rates,
         const float * zero_points,
+        const int num_vals,
         const int scale_int_bits,
         mli_tensor *target_tensor) {
     if (target_tensor->el_type == MLI_EL_FX_8 || 
@@ -311,12 +312,13 @@ test_status fill_asym_tensor_element_params(
     
     const int8_t scale_fraq_bits = FRAQ_BITS(scale_int_bits, int16_t);
     const uint32_t mult = 1u << FRAQ_BITS(scale_int_bits, int16_t);
-    const int num_vals = (target_tensor->el_type == MLI_EL_ASYM_I8_PER_AXIS)? 
-        target_tensor->shape[target_tensor->el_params.asym_per_axis.dim] : 1;
+    //const int num_vals = (target_tensor->el_type == MLI_EL_ASYM_I8_PER_AXIS)? 
+    //    target_tensor->shape[target_tensor->el_params.asym_per_axis.dim] : 1;
     int16_t * scale_dist;
     int16_t * zp_dist;
 
-    if (target_tensor->el_type == MLI_EL_ASYM_I8_PER_AXIS) {
+    if (target_tensor->el_type == MLI_EL_ASYM_I8_PER_AXIS ||
+        target_tensor->el_type == MLI_EL_ASYM_I32_PER_AXIS) {
         target_tensor->el_params.asym_per_axis.scale_frac_bits = scale_fraq_bits;
         scale_dist = target_tensor->el_params.asym_per_axis.scales;
         zp_dist = target_tensor->el_params.asym_per_axis.zero_points;

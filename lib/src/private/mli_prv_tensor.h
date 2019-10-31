@@ -156,8 +156,8 @@ mli_prv_get_relu_min_max (const mli_relu_cfg * cfg, const mli_tensor * out) {
     int zero, one, neg_one, six;
     if (out->el_type == MLI_EL_ASYM_I8) {
         zero = out->el_params.asym.zero_point;
-        six = ((int64_t)6l << mli_hlp_tensor_scale_shift(out)) /  mli_hlp_tensor_scale(out);
-        one = ((int64_t)1l << mli_hlp_tensor_scale_shift(out)) /  mli_hlp_tensor_scale(out);
+        six = ((int64_t)6l << mli_hlp_tensor_scale_shift(out)) /  mli_hlp_tensor_scale(out, 0);
+        one = ((int64_t)1l << mli_hlp_tensor_scale_shift(out)) /  mli_hlp_tensor_scale(out, 0);
         six = six + zero;
         neg_one = -one + zero;
         one = one + zero;

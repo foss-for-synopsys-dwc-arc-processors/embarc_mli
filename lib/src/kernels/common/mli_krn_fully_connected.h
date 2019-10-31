@@ -175,9 +175,9 @@ static void fully_connected_prepare_and_run(
 
     int32_t out_mul = mli_prv_calc_out_mul(in, weights, out, &out_shift);;
     int32_t bias_mul = mli_prv_calc_bias_mul(in, weights, bias);
-    io_T input_offset = mli_hlp_tensor_zero_offset(in);
-    io_T output_offset = mli_hlp_tensor_zero_offset(out);
-    MLI_ASSERT(mli_hlp_tensor_zero_offset(weights) == 0);
+    io_T input_offset = mli_hlp_tensor_zero_offset(in, 0);
+    io_T output_offset = mli_hlp_tensor_zero_offset(out, 0);
+    MLI_ASSERT(mli_hlp_tensor_zero_offset(weights, 0) == 0);
 
     // Run basic calculation
     ip_op<io_T, w_T, b_T, mli_acc32_t>(in_ptr, w_ptr, b_ptr, out_ptr, in_sz, ch_out, bias_mul, bias_shift, out_mul, out_shift, input_offset, output_offset);

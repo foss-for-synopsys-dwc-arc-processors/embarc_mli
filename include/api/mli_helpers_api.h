@@ -113,9 +113,9 @@ mli_status mli_hlp_point_to_subtensor(const mli_tensor *in, const mli_point_to_s
 
 uint32_t mli_hlp_tensor_scale_shift(const mli_tensor *in);
 
-uint32_t mli_hlp_tensor_scale(const mli_tensor *in);
+int16_t mli_hlp_tensor_scale(const mli_tensor *in, const uint32_t scale_idx);
 
-int16_t mli_hlp_tensor_zero_offset(const mli_tensor *in);
+int16_t mli_hlp_tensor_zero_offset(const mli_tensor *in, const uint32_t zero_idx);
 
 
 
