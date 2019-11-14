@@ -285,6 +285,7 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad_k2x2(
 
     for (int ch_idx = 0; ch_idx < channels_num; ch_idx++) {
         for (int j = 0; j < (row_end - row_beg); j++) {
+LOOP_PIPELINE_ENABLE  
             for (int k = 0; k < (clmn_end - clmn_beg); k++) {
                 // Core Sum
 
