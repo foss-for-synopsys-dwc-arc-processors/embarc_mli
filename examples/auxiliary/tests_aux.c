@@ -312,21 +312,17 @@ test_status fill_asym_tensor_element_params(
     
     const int8_t scale_fraq_bits = FRAQ_BITS(scale_int_bits, int16_t);
     const uint32_t mult = 1u << FRAQ_BITS(scale_int_bits, int16_t);
-    //const int num_vals = (target_tensor->el_type == MLI_EL_ASYM_I8_PER_AXIS)? 
-    //    target_tensor->shape[target_tensor->el_params.asym_per_axis.dim] : 1;
     int16_t * scale_dist;
     int16_t * zp_dist;
 
-    if (target_tensor->el_type == MLI_EL_ASYM_I8_PER_AXIS ||
-        target_tensor->el_type == MLI_EL_ASYM_I32_PER_AXIS) {
-        target_tensor->el_params.asym_per_axis.scale_frac_bits = scale_fraq_bits;
-        scale_dist = target_tensor->el_params.asym_per_axis.scales;
-        zp_dist = target_tensor->el_params.asym_per_axis.zero_points;
+    if (num_vals > 1) {
+        scale_dist = target_tensor->el_params.asym.scale.pi16;
+        zp_dist = target_tensor->el_params.asym.zero_point.pi16;
     } else {
-        target_tensor->el_params.asym.scale_frac_bits = scale_fraq_bits;
-        scale_dist = &target_tensor->el_params.asym.scale;
-        zp_dist = &target_tensor->el_params.asym.zero_point;
+        scale_dist = &target_tensor->el_params.asym.scale.i16;
+        zp_dist = &target_tensor->el_params.asym.zero_point.i16;
     }
+    target_tensor->el_params.asym.scale_frac_bits = scale_fraq_bits;
 
     for (int i = 0; i < num_vals; i++) {
         if (scale_rates[i] <= 0.0f)

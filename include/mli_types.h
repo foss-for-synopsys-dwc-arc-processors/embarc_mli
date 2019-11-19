@@ -71,15 +71,29 @@ typedef enum {
                              of fractional bits Data container is int8_t*/
     MLI_EL_FX_16,       /**< 16 bit depth fixed point data with configurable number 
                              of fractional bits Data container is int16_t*/
-    MLI_EL_ASYM_I8,     /**< 8 bit asymetrical signed data with configurable zero offset
-                             and multiplier. Data container is int8_t */
-    MLI_EL_ASYM_I8_PER_AXIS,     /**< 8 bit asymetrical signed data with configurable zero offset vector
+    MLI_EL_ASYM_I8,     /**< 8 bit asymetrical signed data with configurable zero offset vector
                              and multiplier vector. Data container is int8_t */
-    MLI_EL_ASYM_I32,    /**< 32 bit signed data. Container is int32_t */
-    MLI_EL_ASYM_I32_PER_AXIS,    /**< 32 bit signed data. Container is int32_t */
+    MLI_EL_ASYM_I32,    /**< 32 bit asymetrical signed data with configurable zero offset vector
+                             and multiplier vector. Data container is int32_t */
     MLI_EL_LARGE_ENUM = 0x02000000      /**< Utility field. Prevent size optimization of public enums */
 } mli_element_type;
 
+/**
+ * @brief Container union to represent polymorphic data.
+ *
+ * Stores pointer to data or a single value that intend to be directly used in arithmetical operations.
+ *
+ * NOTE: As compiler pointer to XY memory (or another fast memory) is a separate type, it should be somehow reflected if we are going to
+ * use it in tensor type.
+ */
+typedef union _mli_data_container {
+    int32_t*  pi32;
+    int16_t*  pi16;
+    int8_t*   pi8;
+    int32_t   i32;
+    int16_t   i16;
+    int8_t    i8;
+} mli_data_container;
 
 /**
  * @brief type parameters for arithmetical operations with tensor elements.
@@ -95,18 +109,13 @@ typedef union _mli_element_params {
     } fx;
 
     struct {
-        int16_t * zero_points;     /**< array of zero point offsets type is the same as the type of the tensor*/
-        int16_t * scales;      /** array of fixed point scale factors. size of this array can be looked up in the shape using the dimension to which the scales apply*/
-        uint32_t dim;           /**< dimension of the tensor to which the array's of quantization parameters apply */
-        int8_t scale_frac_bits; /**< number of fractional bits in the elements of the scales array */ // consider to use fixed number of fractional bits?
-    } asym_per_axis;
-
-    struct {
-        int16_t zero_point;     /**< zero point offset */
-        int16_t scale;          /**< scale is a fixed point number, and together with scale_frac_bits, it is the scale factor for this tensor. */
-        int8_t scale_frac_bits; /**< number of fractional bits in the scale field */
+        mli_data_container zero_point;  /**< 16bit signed zero point offset. Single value for all data in tensor if dim < 0 or array of zeroes per axis otherwise.
+                                        In case of array it's sizecan be looked up in the shape using the dimension to which the scales apply*/
+        mli_data_container scale;       /** 16bit signed scale factors. Single value for all data in tensor if dim < 0 or array of scales per axis otherwise.
+                                        In case of array it's size can be looked up in the shape using the dimension to which the scales apply*/
+        int32_t dim;               /**< dimension of the tensor to which the array's of quantization parameters apply */
+        int8_t scale_frac_bits;     /**< number of fractional bits in the elements of the scales array */
     } asym;
-
 } mli_element_params;
 
 

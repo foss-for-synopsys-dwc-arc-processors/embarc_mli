@@ -74,9 +74,7 @@ uint32_t mli_hlp_tensor_element_size(const mli_tensor *in) {
         case MLI_EL_FX_8:  return sizeof(int8_t);
         case MLI_EL_FX_16: return sizeof(int16_t);
         case MLI_EL_ASYM_I8:  return sizeof(int8_t);
-        case MLI_EL_ASYM_I8_PER_AXIS:  return sizeof(int8_t);
         case MLI_EL_ASYM_I32:  return sizeof(int32_t);
-        case MLI_EL_ASYM_I32_PER_AXIS:  return sizeof(int32_t);
         default:
             MLI_ASSERT(0);
             return 0;
@@ -91,9 +89,6 @@ uint32_t mli_hlp_tensor_scale_shift(const mli_tensor *in) {
         case MLI_EL_ASYM_I8:
         case MLI_EL_ASYM_I32:
             return in->el_params.asym.scale_frac_bits;
-        case MLI_EL_ASYM_I8_PER_AXIS:
-        case MLI_EL_ASYM_I32_PER_AXIS:
-            return in->el_params.asym_per_axis.scale_frac_bits;
         default:
             MLI_ASSERT(0);
             return 0;
@@ -107,10 +102,7 @@ int16_t mli_hlp_tensor_scale(const mli_tensor *in, const uint32_t scale_idx) {
             return 1;
         case MLI_EL_ASYM_I8:
         case MLI_EL_ASYM_I32:
-            return in->el_params.asym.scale;
-        case MLI_EL_ASYM_I8_PER_AXIS:
-        case MLI_EL_ASYM_I32_PER_AXIS:
-            return in->el_params.asym_per_axis.scales[scale_idx];
+            return (in->el_params.asym.dim >= 0)? in->el_params.asym.scale.pi16[scale_idx]: in->el_params.asym.scale.i16;
         default:
             MLI_ASSERT(0);
             return 0;
@@ -124,10 +116,7 @@ int16_t mli_hlp_tensor_zero_offset(const mli_tensor *in, const uint32_t zero_idx
             return 0;
         case MLI_EL_ASYM_I8:
         case MLI_EL_ASYM_I32:
-            return in->el_params.asym.zero_point;
-        case MLI_EL_ASYM_I8_PER_AXIS:
-        case MLI_EL_ASYM_I32_PER_AXIS:
-            return in->el_params.asym_per_axis.zero_points[zero_idx];
+            return (in->el_params.asym.dim >= 0)? in->el_params.asym.zero_point.pi16[zero_idx]: in->el_params.asym.zero_point.i16;
         default:
             MLI_ASSERT(0);
             return 0;

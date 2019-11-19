@@ -44,17 +44,7 @@ static inline mli_status __attribute__ ((always_inline)) mli_prv_copy_tensor_for
 
     dst->rank = src->rank;
     dst->el_type = src->el_type;
-
-    if ((src->el_type == MLI_EL_FX_8) || (src->el_type == MLI_EL_FX_8)) {
-        dst->el_params.fx.frac_bits = src->el_params.fx.frac_bits;
-    } else if ((src->el_type == MLI_EL_ASYM_I8) || (src->el_type == MLI_EL_ASYM_I32)) {
-        dst->el_params.asym = src->el_params.asym;
-    } else if (src->el_type == MLI_EL_ASYM_I8_PER_AXIS) {
-        dst->el_params.asym_per_axis = src->el_params.asym_per_axis;
-    } else {
-        MLI_ASSERT(0);
-    }
-
+    dst->el_params = src->el_params;
     return MLI_STATUS_OK;
 }
 
@@ -92,11 +82,11 @@ static int32_t inline __attribute__((always_inline)) mli_prv_calc_out_mul(
         /* mix of FX and asym datatypes is not supported */
         MLI_ASSERT(in1->el_type == MLI_EL_ASYM_I8);
         MLI_ASSERT((out->el_type == MLI_EL_ASYM_I8) || (out->el_type == MLI_EL_ASYM_I32));
-        int32_t out_mul = (int32_t)in0->el_params.asym.scale * (int32_t)in1->el_params.asym.scale;
+        int32_t out_mul = (int32_t)in0->el_params.asym.scale.i16 * (int32_t)in1->el_params.asym.scale.i16;
         int norm = mli_prv_norm(out_mul);
         out_mul <<= norm;
         *shift += norm;
-        out_mul = out_mul / (int32_t)out->el_params.asym.scale;
+        out_mul = out_mul / (int32_t)out->el_params.asym.scale.i16;
         norm = mli_prv_norm(out_mul);
         out_mul <<= norm;
         *shift += norm;
@@ -121,8 +111,7 @@ static int32_t inline __attribute__((always_inline)) mli_prv_calc_bias_mul(
         /* mix of FX and asym datatypes is not supported */
         MLI_ASSERT(in1->el_type == MLI_EL_ASYM_I8);
         MLI_ASSERT((bias->el_type == MLI_EL_ASYM_I8) || (bias->el_type == MLI_EL_ASYM_I32));
-        //MLI_ASSERT(bias->el_params.asym.scale == 1);
-        int32_t bias_mul = (1 << MLI_BIAS_MUL_SHIFT) / ((int32_t)in0->el_params.asym.scale * (int32_t)in1->el_params.asym.scale);
+        int32_t bias_mul = (1 << MLI_BIAS_MUL_SHIFT) / ((int32_t)in0->el_params.asym.scale.i16 * (int32_t)in1->el_params.asym.scale.i16);
         return bias_mul;
     } else {
         MLI_ASSERT(0);
@@ -155,7 +144,8 @@ mli_prv_get_relu_min_max (const mli_relu_cfg * cfg, const mli_tensor * out) {
     int min_val, max_val;
     int zero, one, neg_one, six;
     if (out->el_type == MLI_EL_ASYM_I8) {
-        zero = out->el_params.asym.zero_point;
+        zero = out->el_params.asym.zero_point.i16;
+        //zero = out->el_params.asym.zero_point;
         six = ((int64_t)6l << mli_hlp_tensor_scale_shift(out)) /  mli_hlp_tensor_scale(out, 0);
         one = ((int64_t)1l << mli_hlp_tensor_scale_shift(out)) /  mli_hlp_tensor_scale(out, 0);
         six = six + zero;
@@ -171,7 +161,7 @@ mli_prv_get_relu_min_max (const mli_relu_cfg * cfg, const mli_tensor * out) {
     switch (out->el_type) {
     case MLI_EL_FX_8:
     case MLI_EL_ASYM_I8:
-    case MLI_EL_ASYM_I8_PER_AXIS:
+    //case MLI_EL_ASYM_I8_PER_AXIS:
         min_val = INT8_MIN;
         max_val = INT8_MAX;
         break;
