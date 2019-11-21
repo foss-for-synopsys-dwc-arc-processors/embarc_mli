@@ -82,6 +82,7 @@ static int32_t inline __attribute__((always_inline)) mli_prv_calc_out_mul(
         /* mix of FX and asym datatypes is not supported */
         MLI_ASSERT(in1->el_type == MLI_EL_ASYM_I8);
         MLI_ASSERT((out->el_type == MLI_EL_ASYM_I8) || (out->el_type == MLI_EL_ASYM_I32));
+        MLI_ASSERT((in0->el_params.asym.dim < 0) && (in1->el_params.asym.dim < 0));
         int32_t out_mul = (int32_t)in0->el_params.asym.scale.i16 * (int32_t)in1->el_params.asym.scale.i16;
         int norm = mli_prv_norm(out_mul);
         out_mul <<= norm;
@@ -143,9 +144,14 @@ mli_prv_get_relu_min_max (const mli_relu_cfg * cfg, const mli_tensor * out) {
     mli_minmax_t val_limit;
     int min_val, max_val;
     int zero, one, neg_one, six;
-    if (out->el_type == MLI_EL_ASYM_I8) {
+    if (out->el_type == MLI_EL_ASYM_I8 || out->el_type == MLI_EL_ASYM_I32) {
+        MLI_ASSERT(out->el_params.asym.dim < 0);
         zero = out->el_params.asym.zero_point.i16;
-        //zero = out->el_params.asym.zero_point;
+        // In theory it is possible that scale of input is really small value and shift might be bigger than 16 bit to 
+        // represent six and one in such format before int div (may exceed 32 bits). 
+        // One and six are not casted to 16bit directly, only after comparison with min_val and max_val and all of them are int.
+        // Min val and max val always fit to container range, while six and one don't have to.
+        // TODO: think about how to define whether it is required to extract six and one at all or not.
         six = ((int64_t)6l << mli_hlp_tensor_scale_shift(out)) /  mli_hlp_tensor_scale(out, 0);
         one = ((int64_t)1l << mli_hlp_tensor_scale_shift(out)) /  mli_hlp_tensor_scale(out, 0);
         six = six + zero;
@@ -161,7 +167,6 @@ mli_prv_get_relu_min_max (const mli_relu_cfg * cfg, const mli_tensor * out) {
     switch (out->el_type) {
     case MLI_EL_FX_8:
     case MLI_EL_ASYM_I8:
-    //case MLI_EL_ASYM_I8_PER_AXIS:
         min_val = INT8_MIN;
         max_val = INT8_MAX;
         break;

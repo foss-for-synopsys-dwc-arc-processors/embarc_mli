@@ -66,14 +66,29 @@ bool mli_tensor_is_scalar (const mli_tensor * in) {
     return false;
 }
 
+mli_status mli_chk_bias_frac_fx(const mli_tensor * in, const mli_tensor * weights, const mli_tensor * bias) {
+    if (MLI_CHECK(bias->el_params.fx.frac_bits <= in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits,
+                      "The number of fractional bits of the accumulator will be the sum of the frac bits of in and weights. If bias has more frac bits, precision will be lost."))
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    return MLI_STATUS_OK;
+}
+
 mli_status mli_chk_bias_scale_asym(const mli_tensor * in, const mli_tensor * weights, const mli_tensor * bias) {
+    // For FX in runtime, before adding bias, we requantize it to intermediate result format. 
+    // For FX it's just the matter of shift. That's why we are ok to not store bias in this format in advance (but it could be done).
+    // For asym it is assumed that bias is stored in intermediate result format to avoid this requantization in runtime, 
+    // which is not a matter of shifts anymore. Here we check bias format is similar to IR
+    MLI_ASSERT(in->el_params.asym.dim < 0);
+    MLI_ASSERT(in->el_type == MLI_EL_ASYM_I8);
+    MLI_ASSERT(weights->el_type == MLI_EL_ASYM_I8);
+    MLI_ASSERT(bias->el_type == MLI_EL_ASYM_I32);
     const bool is_per_axis = weights->el_params.asym.dim >= 0;
-    const int scale_vals = (is_per_axis)? weights->shape[weights->el_params.asym.dim]: 1;
+    const int num_scale_vals = (is_per_axis)? weights->shape[weights->el_params.asym.dim]: 1;
     const int16_t* w_scales = (is_per_axis)? weights->el_params.asym.scale.pi16: &weights->el_params.asym.scale.i16;
     const int16_t* b_scales = (is_per_axis)? bias->el_params.asym.scale.pi16: &bias->el_params.asym.scale.i16;
     const int scale_in = (int)in->el_params.asym.scale.i16;
     const int out_shift = mli_prv_calc_shift(in, weights, bias); 
-    for (int idx = 0; idx < scale_vals; idx++) {
+    for (int idx = 0; idx < num_scale_vals; idx++) {
         int bias_scale_expected = scale_in * w_scales[idx];
         bias_scale_expected = (out_shift > 0)
                 ? bias_scale_expected >> out_shift
@@ -110,12 +125,12 @@ mli_status mli_chk_conv2d_hwc (
     fail |= MLI_CHECK(in->rank == 3, "Wrong input rank");
     fail |= MLI_CHECK(weights->rank == 4, "Wrong weights rank");
     fail |= MLI_CHECK(bias->rank == 1, "Wrong bias rank");
-    fail |= MLI_CHECK(in->shape[2] == weights->shape[3], "Shape mismatch in and weights");
-    fail |= MLI_CHECK(bias->shape[0] == weights->shape[0], "Shape mismatch bias and weights");
+    fail |= MLI_CHECK(in->shape[FMAP_C_DIM_HWC] == weights->shape[KRNL_D_DIM_HWC], "Shape mismatch in and weights");
+    fail |= MLI_CHECK(bias->shape[0] == weights->shape[KRNL_C_DIM_HWC], "Shape mismatch bias and weights");
     if (fail) return MLI_STATUS_SHAPE_MISMATCH;
 
-    int kernel_width = weights->shape[2];
-    int kernel_height = weights->shape[1];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
     fail |= MLI_CHECK(cfg->padding_left < kernel_width, "Padding should be smaller than kernelsize");
     fail |= MLI_CHECK(cfg->padding_right < kernel_width, "Padding should be smaller than kernelsize");
     fail |= MLI_CHECK(cfg->padding_top < kernel_height, "Padding should be smaller than kernelsize");
@@ -128,7 +143,7 @@ mli_status mli_chk_conv2d_hwc (
     int in_width = in->shape[FMAP_W_DIM_HWC];
     int out_width = CEIL_DIV(in_width + cfg->padding_left + cfg->padding_right - kernel_width + 1, cfg->stride_width);
     int out_height = CEIL_DIV(in_height + cfg->padding_top + cfg->padding_bottom - kernel_height + 1, cfg->stride_height);
-    int out_min_capacity = out_height * out_width * weights->shape[0] * mli_hlp_tensor_element_size(in);
+    int out_min_capacity = out_height * out_width * weights->shape[KRNL_C_DIM_HWC] * mli_hlp_tensor_element_size(in);
 
     if (MLI_CHECK(out_min_capacity <= out->capacity, "capacity of output tensor is too small"))
         return MLI_STATUS_NOT_ENGH_MEM;
@@ -146,10 +161,10 @@ mli_status mli_chk_conv2d_hwc_fx8(
         MLI_CHECK(weights->el_type == MLI_EL_FX_8, "Wrong weights tensor type") ||
         MLI_CHECK(bias->el_type    == MLI_EL_FX_8, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
-    if (MLI_CHECK(bias->el_params.fx.frac_bits <= in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits,
-                      "The number of fractional bits of the accumulator will be the sum of the frac bits of in and weights. If bias has more frac bits, precision will be lost."))
-        return MLI_STATUS_INCOMPATEBLE_TENSORS;
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwc(in, weights, bias, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwc(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     return MLI_STATUS_OK;
@@ -165,10 +180,10 @@ mli_status mli_chk_conv2d_hwc_fx16(
         MLI_CHECK(weights->el_type == MLI_EL_FX_16, "Wrong weights tensor type") ||
         MLI_CHECK(bias->el_type    == MLI_EL_FX_16, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
-    if (MLI_CHECK(bias->el_params.fx.frac_bits <= in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits,
-                      "The number of fractional bits of the accumulator will be the sum of the frac bits of in and weights. If bias has more frac bits, precision will be lost."))
-        return MLI_STATUS_INCOMPATEBLE_TENSORS;
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwc(in, weights, bias, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwc(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     return MLI_STATUS_OK;
@@ -184,10 +199,10 @@ mli_status mli_chk_conv2d_hwc_fx8w16d(
         MLI_CHECK(weights->el_type == MLI_EL_FX_8, "Wrong weights tensor type") ||
         MLI_CHECK(bias->el_type    == MLI_EL_FX_8, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
-    if (MLI_CHECK(bias->el_params.fx.frac_bits <= in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits,
-                      "The number of fractional bits of the accumulator will be the sum of the frac bits of in and weights. If bias has more frac bits, precision will be lost."))
-        return MLI_STATUS_INCOMPATEBLE_TENSORS;
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwc(in, weights, bias, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwc(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     return MLI_STATUS_OK;
@@ -208,7 +223,7 @@ mli_status mli_chk_conv2d_hwc_int8wd32b(
     if (ret != MLI_STATUS_OK)
         return ret;
 
-    if (MLI_CHECK(weights->el_params.asym.dim == 0, "Weights tensor: per output channels quantization is expected") ||
+    if (MLI_CHECK(weights->el_params.asym.dim == KRNL_C_DIM_HWC, "Weights tensor: per output channels quantization is expected") ||
         MLI_CHECK(bias->el_params.asym.dim == 0, "Bias tensor: per output channels quantization is expected") || 
         MLI_CHECK(in->el_params.asym.dim < 0, "Input tensor: Per-tensor quantization is expected"))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
@@ -241,12 +256,12 @@ mli_status mli_chk_conv2d_chw (
     fail |= MLI_CHECK(in->rank == 3, "Wrong input rank");
     fail |= MLI_CHECK(weights->rank == 4, "Wrong weights rank");
     fail |= MLI_CHECK(bias->rank == 1, "Wrong bias rank");
-    fail |= MLI_CHECK(in->shape[0] == weights->shape[1], "Shape mismatch in and weights");
-    fail |= MLI_CHECK(bias->shape[0] == weights->shape[0], "Shape mismatch bias and weights");
+    fail |= MLI_CHECK(in->shape[FMAP_C_DIM_CHW] == weights->shape[KRNL_D_DIM_CHW], "Shape mismatch in and weights");
+    fail |= MLI_CHECK(bias->shape[0] == weights->shape[KRNL_C_DIM_CHW], "Shape mismatch bias and weights");
     if (fail) return MLI_STATUS_SHAPE_MISMATCH;
 
-    int kernel_width = weights->shape[3];
-    int kernel_height = weights->shape[2];
+    int kernel_width = weights->shape[KRNL_W_DIM_CHW];
+    int kernel_height = weights->shape[KRNL_H_DIM_CHW];
     fail |= MLI_CHECK(cfg->padding_left < kernel_width, "Padding should be smaller than kernelsize");
     fail |= MLI_CHECK(cfg->padding_right < kernel_width, "Padding should be smaller than kernelsize");
     fail |= MLI_CHECK(cfg->padding_top < kernel_height, "Padding should be smaller than kernelsize");
@@ -259,7 +274,7 @@ mli_status mli_chk_conv2d_chw (
     int in_width = in->shape[FMAP_W_DIM_CHW];
     int out_width = CEIL_DIV(in_width + cfg->padding_left + cfg->padding_right - kernel_width + 1, cfg->stride_width);
     int out_height = CEIL_DIV(in_height + cfg->padding_top + cfg->padding_bottom - kernel_height + 1, cfg->stride_height);
-    int out_min_capacity = out_height * out_width * weights->shape[0] * mli_hlp_tensor_element_size(in);
+    int out_min_capacity = out_height * out_width * weights->shape[KRNL_C_DIM_CHW] * mli_hlp_tensor_element_size(in);
 
     if (MLI_CHECK(out_min_capacity <= out->capacity, "capacity of output tensor is too small"))
         return MLI_STATUS_NOT_ENGH_MEM;
@@ -277,10 +292,10 @@ mli_status mli_chk_conv2d_chw_fx8(
         MLI_CHECK(weights->el_type == MLI_EL_FX_8, "Wrong weights tensor type") ||
         MLI_CHECK(bias->el_type    == MLI_EL_FX_8, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
-    if (MLI_CHECK(bias->el_params.fx.frac_bits <= in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits,
-                      "The number of fractional bits of the accumulator will be the sum of the frac bits of in and weights. If bias has more frac bits, precision will be lost."))
-        return MLI_STATUS_INCOMPATEBLE_TENSORS;
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_chw(in, weights, bias, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_conv2d_chw(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     return MLI_STATUS_OK;
@@ -296,10 +311,10 @@ mli_status mli_chk_conv2d_chw_fx16(
         MLI_CHECK(weights->el_type == MLI_EL_FX_16, "Wrong weights tensor type") ||
         MLI_CHECK(bias->el_type    == MLI_EL_FX_16, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
-    if (MLI_CHECK(bias->el_params.fx.frac_bits <= in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits,
-                      "The number of fractional bits of the accumulator will be the sum of the frac bits of in and weights. If bias has more frac bits, precision will be lost."))
-        return MLI_STATUS_INCOMPATEBLE_TENSORS;
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_chw(in, weights, bias, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_conv2d_chw(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     return MLI_STATUS_OK;
@@ -315,10 +330,10 @@ mli_status mli_chk_conv2d_chw_fx8w16d(
         MLI_CHECK(weights->el_type == MLI_EL_FX_8, "Wrong weights tensor type") ||
         MLI_CHECK(bias->el_type    == MLI_EL_FX_8, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
-    if (MLI_CHECK(bias->el_params.fx.frac_bits <= in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits,
-                      "The number of fractional bits of the accumulator will be the sum of the frac bits of in and weights. If bias has more frac bits, precision will be lost."))
-        return MLI_STATUS_INCOMPATEBLE_TENSORS;
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_chw(in, weights, bias, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_conv2d_chw(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     return MLI_STATUS_OK;
@@ -346,13 +361,13 @@ mli_status mli_chk_depthwise_conv2d_chw (
     fail |= MLI_CHECK(in->rank == 3, "Wrong input rank");
     fail |= MLI_CHECK(weights->rank == 4, "Wrong weights rank");
     fail |= MLI_CHECK(bias->rank == 1, "Wrong bias rank");
-    fail |= MLI_CHECK(weights->shape[1] == 1, "Wrong weights shape");
-    fail |= MLI_CHECK(in->shape[0] == weights->shape[0], "Shape mismatch in and weights");
-    fail |= MLI_CHECK(bias->shape[0] == weights->shape[0], "Shape mismatch bias and weights");
+    fail |= MLI_CHECK(weights->shape[KRNL_D_DIM_CHW] == 1, "Wrong weights shape");
+    fail |= MLI_CHECK(in->shape[FMAP_C_DIM_CHW] == weights->shape[KRNL_C_DIM_CHW], "Shape mismatch in and weights");
+    fail |= MLI_CHECK(bias->shape[0] == weights->shape[KRNL_C_DIM_CHW], "Shape mismatch bias and weights");
     if (fail) return MLI_STATUS_SHAPE_MISMATCH;
 
-    int kernel_width = weights->shape[3];
-    int kernel_height = weights->shape[2];
+    int kernel_width = weights->shape[KRNL_W_DIM_CHW];
+    int kernel_height = weights->shape[KRNL_H_DIM_CHW];
     fail |= MLI_CHECK(cfg->padding_left < kernel_width, "Padding should be smaller than kernelsize");
     fail |= MLI_CHECK(cfg->padding_right < kernel_width, "Padding should be smaller than kernelsize");
     fail |= MLI_CHECK(cfg->padding_top < kernel_height, "Padding should be smaller than kernelsize");
@@ -365,7 +380,7 @@ mli_status mli_chk_depthwise_conv2d_chw (
     int in_width = in->shape[FMAP_W_DIM_CHW];
     int out_width = CEIL_DIV(in_width + cfg->padding_left + cfg->padding_right - kernel_width + 1, cfg->stride_width);
     int out_height = CEIL_DIV(in_height + cfg->padding_top + cfg->padding_bottom - kernel_height + 1, cfg->stride_height);
-    int out_min_capacity = out_height * out_width * weights->shape[0] * mli_hlp_tensor_element_size(in);
+    int out_min_capacity = out_height * out_width * weights->shape[KRNL_C_DIM_CHW] * mli_hlp_tensor_element_size(in);
 
     if (MLI_CHECK(out_min_capacity <= out->capacity, "capacity of output tensor is too small"))
         return MLI_STATUS_NOT_ENGH_MEM;
@@ -383,10 +398,10 @@ mli_status mli_chk_depthwise_conv2d_chw_fx8(
         MLI_CHECK(weights->el_type == MLI_EL_FX_8, "Wrong weights tensor type") ||
         MLI_CHECK(bias->el_type    == MLI_EL_FX_8, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
-    if (MLI_CHECK(bias->el_params.fx.frac_bits <= in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits,
-                      "The number of fractional bits of the accumulator will be the sum of the frac bits of in and weights. If bias has more frac bits, precision will be lost."))
-        return MLI_STATUS_INCOMPATEBLE_TENSORS;
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_chw(in, weights, bias, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_chw(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     return MLI_STATUS_OK;
@@ -402,10 +417,10 @@ mli_status mli_chk_depthwise_conv2d_chw_fx16(
         MLI_CHECK(weights->el_type == MLI_EL_FX_16, "Wrong weights tensor type") ||
         MLI_CHECK(bias->el_type    == MLI_EL_FX_16, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
-    if (MLI_CHECK(bias->el_params.fx.frac_bits <= in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits,
-                      "The number of fractional bits of the accumulator will be the sum of the frac bits of in and weights. If bias has more frac bits, precision will be lost."))
-        return MLI_STATUS_INCOMPATEBLE_TENSORS;
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_chw(in, weights, bias, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_chw(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     return MLI_STATUS_OK;
@@ -421,10 +436,10 @@ mli_status mli_chk_depthwise_conv2d_chw_fx8w16d(
         MLI_CHECK(weights->el_type == MLI_EL_FX_8, "Wrong weights tensor type") ||
         MLI_CHECK(bias->el_type    == MLI_EL_FX_8, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
-    if (MLI_CHECK(bias->el_params.fx.frac_bits <= in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits,
-                      "The number of fractional bits of the accumulator will be the sum of the frac bits of in and weights. If bias has more frac bits, precision will be lost."))
-        return MLI_STATUS_INCOMPATEBLE_TENSORS;
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_chw(in, weights, bias, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_chw(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     return MLI_STATUS_OK;
@@ -453,13 +468,13 @@ mli_status mli_chk_depthwise_conv2d_hwc(
     fail |= MLI_CHECK(weights->rank == 4, "Wrong weights rank");
     fail |= MLI_CHECK(bias->rank == 1, "Wrong bias rank");
     fail |= MLI_CHECK(weights->shape[0] == 1, "Wrong weights shape");
-    fail |= MLI_CHECK(bias->shape[0] == weights->shape[3], "Shape mismatch bias and weights");
-    fail |= MLI_CHECK((weights->shape[3] % in->shape[2]) == 0, "Shape mismatch in and weights (number of filters must be multiple to in_channels)");
-    fail |= MLI_CHECK((weights->shape[3] / in->shape[2]) > 0, "Shape mismatch in and weights (number of filters must be multiple to in_channels)");
+    fail |= MLI_CHECK(bias->shape[0] == weights->shape[KRNL_DW_C_DIM_HWC], "Shape mismatch bias and weights");
+    fail |= MLI_CHECK((weights->shape[KRNL_DW_C_DIM_HWC] % in->shape[FMAP_C_DIM_HWC]) == 0, "Shape mismatch in and weights (number of filters must be multiple to in_channels)");
+    fail |= MLI_CHECK((weights->shape[KRNL_DW_C_DIM_HWC] / in->shape[FMAP_C_DIM_HWC]) > 0, "Shape mismatch in and weights (number of filters must be multiple to in_channels)");
     if (fail) return MLI_STATUS_SHAPE_MISMATCH;
 
-    int kernel_width = weights->shape[2];
-    int kernel_height = weights->shape[1];
+    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
     fail |= MLI_CHECK(cfg->padding_left < kernel_width, "Padding should be smaller than kernelsize");
     fail |= MLI_CHECK(cfg->padding_right < kernel_width, "Padding should be smaller than kernelsize");
     fail |= MLI_CHECK(cfg->padding_top < kernel_height, "Padding should be smaller than kernelsize");
@@ -472,7 +487,7 @@ mli_status mli_chk_depthwise_conv2d_hwc(
     int in_width = in->shape[FMAP_W_DIM_CHW];
     int out_width = CEIL_DIV(in_width + cfg->padding_left + cfg->padding_right - kernel_width + 1, cfg->stride_width);
     int out_height = CEIL_DIV(in_height + cfg->padding_top + cfg->padding_bottom - kernel_height + 1, cfg->stride_height);
-    int out_min_capacity = out_height * out_width * weights->shape[3] * mli_hlp_tensor_element_size(in);
+    int out_min_capacity = out_height * out_width * weights->shape[KRNL_DW_C_DIM_HWC] * mli_hlp_tensor_element_size(in);
 
     if (MLI_CHECK(out_min_capacity <= out->capacity, "capacity of output tensor is too small"))
         return MLI_STATUS_NOT_ENGH_MEM;
@@ -490,10 +505,10 @@ mli_status mli_chk_depthwise_conv2d_hwc_fx8(
         MLI_CHECK(weights->el_type == MLI_EL_FX_8, "Wrong weights tensor type") ||
         MLI_CHECK(bias->el_type    == MLI_EL_FX_8, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
-    if (MLI_CHECK(bias->el_params.fx.frac_bits <= in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits,
-                      "The number of fractional bits of the accumulator will be the sum of the frac bits of in and weights. If bias has more frac bits, precision will be lost."))
-        return MLI_STATUS_INCOMPATEBLE_TENSORS;
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc(in, weights, bias, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     return MLI_STATUS_OK;
@@ -509,10 +524,10 @@ mli_status mli_chk_depthwise_conv2d_hwc_fx16(
         MLI_CHECK(weights->el_type == MLI_EL_FX_16, "Wrong weights tensor type") ||
         MLI_CHECK(bias->el_type    == MLI_EL_FX_16, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
-    if (MLI_CHECK(bias->el_params.fx.frac_bits <= in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits,
-                      "The number of fractional bits of the accumulator will be the sum of the frac bits of in and weights. If bias has more frac bits, precision will be lost."))
-        return MLI_STATUS_INCOMPATEBLE_TENSORS;
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc(in, weights, bias, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     return MLI_STATUS_OK;
@@ -528,10 +543,10 @@ mli_status mli_chk_depthwise_conv2d_hwc_fx8w16d(
         MLI_CHECK(weights->el_type == MLI_EL_FX_8, "Wrong weights tensor type") ||
         MLI_CHECK(bias->el_type    == MLI_EL_FX_8, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
-    if (MLI_CHECK(bias->el_params.fx.frac_bits <= in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits,
-                      "The number of fractional bits of the accumulator will be the sum of the frac bits of in and weights. If bias has more frac bits, precision will be lost."))
-        return MLI_STATUS_INCOMPATEBLE_TENSORS;
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc(in, weights, bias, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     return MLI_STATUS_OK;
@@ -552,7 +567,7 @@ mli_status mli_chk_depthwise_conv2d_hwc_int8wd32b(
     if (ret != MLI_STATUS_OK)
         return ret;
 
-    if (MLI_CHECK(weights->el_params.asym.dim == 3, "Weights tensor: per output channels quantization is expected") ||
+    if (MLI_CHECK(weights->el_params.asym.dim == KRNL_DW_C_DIM_HWC, "Weights tensor: per output channels quantization is expected") ||
         MLI_CHECK(bias->el_params.asym.dim == 0, "Bias tensor: per output channels quantization is expected") || 
         MLI_CHECK(in->el_params.asym.dim < 0, "Input tensor: Per-tensor quantization is expected"))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
@@ -832,10 +847,10 @@ mli_status mli_chk_fully_connected_fx8w16d(
         MLI_CHECK(weights->el_type == MLI_EL_FX_8, "Wrong weights tensor type") ||
         MLI_CHECK(bias->el_type    == MLI_EL_FX_8, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
-    if (MLI_CHECK(bias->el_params.fx.frac_bits <= in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits,
-                      "The number of fractional bits of the accumulator will be the sum of the frac bits of in and weights. If bias has more frac bits, precision will be lost."))
-        return MLI_STATUS_INCOMPATEBLE_TENSORS;
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_fully_connected(in, weights, bias, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_fully_connected(in, weights, bias, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     return MLI_STATUS_OK;
@@ -850,10 +865,10 @@ mli_status mli_chk_fully_connected_fx8(
         MLI_CHECK(weights->el_type == MLI_EL_FX_8, "Wrong weights tensor type") ||
         MLI_CHECK(bias->el_type    == MLI_EL_FX_8, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
-    if (MLI_CHECK(bias->el_params.fx.frac_bits <= in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits,
-                      "The number of fractional bits of the accumulator will be the sum of the frac bits of in and weights. If bias has more frac bits, precision will be lost."))
-        return MLI_STATUS_INCOMPATEBLE_TENSORS;
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_fully_connected(in, weights, bias, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_fully_connected(in, weights, bias, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     return MLI_STATUS_OK;
@@ -868,11 +883,10 @@ mli_status mli_chk_fully_connected_fx16(
         MLI_CHECK(weights->el_type == MLI_EL_FX_16, "Wrong weights tensor type") ||
         MLI_CHECK(bias->el_type    == MLI_EL_FX_16, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
-    if (MLI_CHECK(bias->el_params.fx.frac_bits <= in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits,
-                      "The number of fractional bits of the accumulator will be the sum of the frac bits of in and weights. If bias has more frac bits, precision will be lost."))
-        return MLI_STATUS_INCOMPATEBLE_TENSORS;
-    
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_fully_connected(in, weights, bias, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_fully_connected(in, weights, bias, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     return MLI_STATUS_OK;

@@ -43,10 +43,10 @@ extern "C" {
 #define KRNL_D_DIM_HWC 3 // kernel depth aka input channels
 #define KRNL_C_DIM_HWC 0 // output channels
 
-#define KRNL_DW_H_DIM_HWC 1 // kernel height
-#define KRNL_DW_W_DIM_HWC 2 // kernel width
-#define KRNL_DW_D_DIM_HWC 0 // kernel depth aka input channels
-#define KRNL_DW_C_DIM_HWC 3 // output channels
+// for Depthwise convolution hwc kernel, first dimension (shape[0]) must be == 1
+#define KRNL_DW_H_DIM_HWC 1 // Depthwise convolution hwc kernel height 
+#define KRNL_DW_W_DIM_HWC 2 // Depthwise convolution hwc kernel width
+#define KRNL_DW_C_DIM_HWC 3 // Depthwise convolution hwc output channels
 
 /** 
  * @brief Count Number of Elements in Tensor
