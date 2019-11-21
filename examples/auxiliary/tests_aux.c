@@ -16,6 +16,14 @@
 #include "idx_file.h"
 #include "tensor_transform.h"
 
+// Assert wrapper: works only in DBG_MODE_FULL and DBG_MODE_DEBUG
+#if defined(DEBUG)
+#include <assert.h>
+#define DEBUG_BREAK assert(0)
+#else
+#define DEBUG_BREAK (void)(0)
+#endif
+
 static const uint32_t kMaxBufSizeToMalloc = 32768;
 static const uint32_t kMinBufSizeToMalloc = 32;
 
@@ -53,6 +61,7 @@ test_status load_tensors_from_idx_files(
     }
 
     if (path == NULL || data == NULL) {
+        DEBUG_BREAK;
         ret = TEST_NOT_ENOUGH_MEM;
         goto ret_label;
     }
@@ -65,6 +74,7 @@ test_status load_tensors_from_idx_files(
     for (uint32_t idx = 0; idx < paths_num; idx++) {
         const uint32_t elem_size = mli_hlp_tensor_element_size(tensors[idx]);
         if (elem_size == 0) {
+            DEBUG_BREAK;
             ret =  TEST_SUIT_ERROR;
             goto ret_label;
         }
@@ -78,6 +88,7 @@ test_status load_tensors_from_idx_files(
                 (idx_file_check_and_get_info(&descr)) != IDX_ERR_NONE ||
                 descr.data_type != IDX_DT_FLOAT_4B ||
                 descr.num_dim > MLI_MAX_RANK) {
+            DEBUG_BREAK;
             ret =  TEST_SUIT_ERROR;
             goto ret_label;
         }
@@ -85,6 +96,7 @@ test_status load_tensors_from_idx_files(
         // Step 3: Check memory requirements and read shape;
         //====================================
         if (elem_size * descr.num_elements > tensors[idx]->capacity) {
+            DEBUG_BREAK;
             ret =  TEST_NOT_ENOUGH_MEM;
             goto ret_label;
         }
@@ -93,6 +105,7 @@ test_status load_tensors_from_idx_files(
         descr.num_elements = 0;
         tensors[idx]->rank = descr.num_dim;
         if (idx_file_read_data(&descr, NULL, tensors[idx]->shape) != IDX_ERR_NONE) {
+            DEBUG_BREAK;
             ret =  TEST_SUIT_ERROR;
             goto ret_label;
         }
@@ -109,6 +122,7 @@ test_status load_tensors_from_idx_files(
 
             if ( idx_file_read_data(&descr, (void *)data, NULL) != IDX_ERR_NONE ||
                     mli_hlp_float_to_fx_tensor(data, descr.num_elements, tensors[idx]) != MLI_STATUS_OK) {
+                DEBUG_BREAK;
                 ret =  TEST_SUIT_ERROR;
                 tensors[idx]->data = addr_backup;
                 goto ret_label;
@@ -156,6 +170,7 @@ test_status measure_ref_to_pred(
     //=========================================
     const uint32_t pred_elem_size = mli_hlp_tensor_element_size(&pred);
     if (pred_elem_size == 0) {
+        DEBUG_BREAK;
         ret =  TEST_SUIT_ERROR;
         goto ret_label;
     }
@@ -166,6 +181,7 @@ test_status measure_ref_to_pred(
         data_buf_size = (data == NULL)? data_buf_size >> 1: data_buf_size;
     }
     if (path == NULL || data == NULL) {
+        DEBUG_BREAK;
         ret = TEST_NOT_ENOUGH_MEM;
         goto ret_label;
     }
@@ -180,6 +196,7 @@ test_status measure_ref_to_pred(
     if ((descr.opened_file = fopen(path, "rb")) == NULL ||
             (idx_file_check_and_get_info(&descr)) != IDX_ERR_NONE ||
             descr.data_type != IDX_DT_FLOAT_4B) {
+        DEBUG_BREAK;
         ret =  TEST_SUIT_ERROR;
         goto ret_label;
     }
@@ -190,6 +207,7 @@ test_status measure_ref_to_pred(
     uint32_t total_pred_elements = mli_hlp_count_elem_num(&pred, 0);
     if (descr.num_elements != total_pred_elements ||
             descr.num_dim != pred.rank) {
+        DEBUG_BREAK;
         ret =  TEST_FAILED;
         goto ret_label;
     }
@@ -198,6 +216,7 @@ test_status measure_ref_to_pred(
     idx_file_read_data(&descr, NULL, shape);
     for (uint32_t idx = 0; idx < descr.num_dim; ++idx)
         if (shape[idx] != pred.shape[idx]) {
+            DEBUG_BREAK;
             ret = TEST_FAILED;
             goto ret_label;
         }
@@ -211,7 +230,8 @@ test_status measure_ref_to_pred(
     float noise_accum = 0.f;
     float quant_accum = 0.f;
     float max_abs_err = -1.f;
-    const float quant_scale = (float)(1u << mli_hlp_tensor_scale_shift(&pred)) / (float)mli_hlp_tensor_scale(&pred);
+    const float quant_scale = (float)(1u << mli_hlp_tensor_scale_shift(&pred)) / (float)mli_hlp_tensor_scale(&pred, 0);
+    const int16_t quant_zero_offset = mli_hlp_tensor_zero_offset(&pred, 0);
     const float quant_max = (1 << (8*pred_elem_size - 1)) - 1.0f;
     const float quant_min = -(1 << (8*pred_elem_size - 1));
     while (elements_accounted  < total_pred_elements) {
@@ -223,19 +243,21 @@ test_status measure_ref_to_pred(
 
         if (idx_file_read_data(&descr, (void *)ref_buf, NULL) != IDX_ERR_NONE ||
                 mli_hlp_fx_tensor_to_float(&pred, pred_buf, data_buf_size) != MLI_STATUS_OK) {
+            DEBUG_BREAK;
             ret =  TEST_SUIT_ERROR;
             goto ret_label;
         }
 
         for (uint32_t i = 0; i < descr.num_elements; i++) {
-            float ref_quant = ref_buf[i] * quant_scale;
+            float ref_quant = ref_buf[i] * quant_scale + quant_zero_offset;
             ref_quant = MAX(quant_min, MIN(quant_max, roundf(ref_quant))) - ref_quant;
 
             quant_accum += ref_quant * ref_quant;
             ref_accum += ref_buf[i] * ref_buf[i];
             pred_accum += pred_buf[i] * pred_buf[i];
             noise_accum += (ref_buf[i] - pred_buf[i]) * (ref_buf[i] - pred_buf[i]);
-            max_abs_err = MAX(fabsf(pred_buf[i] - ref_buf[i]), max_abs_err);
+            if(fabsf(pred_buf[i] - ref_buf[i]) > max_abs_err) 
+                max_abs_err = fabsf(pred_buf[i] - ref_buf[i]);
         }
         elements_accounted += descr.num_elements;
         pred.data += descr.num_elements * pred_elem_size;
@@ -249,7 +271,6 @@ test_status measure_ref_to_pred(
     out->noise_vec_length = sqrtf(noise_accum);
 
     out->noise_to_quant_ratio = (out->noise_vec_length) / (out->quant_err_vec_length + eps);
-//	out->ref_to_noise_snr = 10.f * log10f((out->ref_vec_length + eps) / (out->noise_vec_length + eps));
     out->ref_to_noise_snr = 10.f * log10f((ref_accum + eps) / (noise_accum + eps));
 
 ret_label:
@@ -275,8 +296,10 @@ test_status measure_err_vfloat(
     float noise_accum = 0.f;
     float max_err = -1.f;
 
-    if (len <= 0)
+    if (len <= 0) {
+        DEBUG_BREAK;
         return TEST_FAILED;
+    }
 
     for (int i = 0; i < len; i++) {
         ref_accum += ref_vec[i] * ref_vec[i];
@@ -293,5 +316,56 @@ test_status measure_err_vfloat(
     out->ref_vec_length = sqrtf(ref_accum);
     out->noise_vec_length = sqrtf(noise_accum);
     out->ref_to_noise_snr = 10.f * log10f((ref_accum + eps) / (noise_accum + eps));
+    return TEST_PASSED;
+}
+
+
+test_status fill_asym_tensor_element_params(
+        const float * scale_rates,
+        const float * zero_points,
+        const int num_vals,
+        const int scale_int_bits,
+        mli_tensor *target_tensor) {
+    if (target_tensor->el_type != MLI_EL_ASYM_I8 &&
+            target_tensor->el_type != MLI_EL_ASYM_I32) {
+        DEBUG_BREAK;
+        return TEST_FAILED;
+    }
+    
+    const int8_t scale_fraq_bits = FRAQ_BITS(scale_int_bits, int16_t);
+    const uint32_t mult = 1u << FRAQ_BITS(scale_int_bits, int16_t);
+    int16_t* scale_dst;
+    int16_t* zp_dst;
+
+    if (num_vals > 1) {
+        if (target_tensor->el_params.asym.scale.pi16 == NULL ||
+                target_tensor->el_params.asym.zero_point.pi16 == NULL) {
+            DEBUG_BREAK;
+            return TEST_NOT_ENOUGH_MEM;
+        }
+
+        scale_dst = target_tensor->el_params.asym.scale.pi16;
+        zp_dst = target_tensor->el_params.asym.zero_point.pi16;
+    } else {
+        scale_dst = &target_tensor->el_params.asym.scale.i16;
+        zp_dst = &target_tensor->el_params.asym.zero_point.i16;
+    }
+    target_tensor->el_params.asym.scale_frac_bits = scale_fraq_bits;
+
+    for (int i = 0; i < num_vals; i++) {
+        if (scale_rates[i] <= 0.0f) {
+            DEBUG_BREAK;
+            return TEST_FAILED;
+        }
+
+        const float round_val = 0.5f;
+
+        const int32_t dst_val = (int32_t) (mult * scale_rates[i] + round_val);
+        scale_dst[i] = (int16_t) (MIN(MAX(dst_val, INT16_MIN), INT16_MAX));
+
+        const int32_t zero_val = (int32_t)(-zero_points[i] / scale_rates[i] + round_val);
+        zp_dst[i] = (int16_t)(MIN(MAX(zero_val , INT16_MIN), INT16_MAX));
+    }
+
     return TEST_PASSED;
 }

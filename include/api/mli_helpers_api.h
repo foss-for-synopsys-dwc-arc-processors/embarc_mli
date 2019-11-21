@@ -43,6 +43,11 @@ extern "C" {
 #define KRNL_D_DIM_HWC 3 // kernel depth aka input channels
 #define KRNL_C_DIM_HWC 0 // output channels
 
+// for Depthwise convolution hwc kernel, first dimension (shape[0]) must be == 1
+#define KRNL_DW_H_DIM_HWC 1 // Depthwise convolution hwc kernel height 
+#define KRNL_DW_W_DIM_HWC 2 // Depthwise convolution hwc kernel width
+#define KRNL_DW_C_DIM_HWC 3 // Depthwise convolution hwc output channels
+
 /** 
  * @brief Count Number of Elements in Tensor
  *
@@ -108,9 +113,9 @@ mli_status mli_hlp_point_to_subtensor(const mli_tensor *in, const mli_point_to_s
 
 uint32_t mli_hlp_tensor_scale_shift(const mli_tensor *in);
 
-uint32_t mli_hlp_tensor_scale(const mli_tensor *in);
+int16_t mli_hlp_tensor_scale(const mli_tensor *in, const uint32_t scale_idx);
 
-uint16_t mli_hlp_tensor_zero_offset(const mli_tensor *in);
+int16_t mli_hlp_tensor_zero_offset(const mli_tensor *in, const uint32_t zero_idx);
 
 
 
