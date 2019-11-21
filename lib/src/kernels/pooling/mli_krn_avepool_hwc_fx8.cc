@@ -14,7 +14,7 @@
 #include "mli_config.h"
 #include "mli_debug.h"
 #include "mli_helpers_api.h"
-#include "mli_krn_reduce_sum2d_chw.h"
+#include "mli_krn_reduce_sum2d.h"
 #include "mli_prv_dsp.h"
 #include "mli_prv_tensor.h"
 

@@ -682,7 +682,7 @@ mli_status mli_chk_maxpool_hwc_fx16 (const mli_tensor * in, const mli_pool_cfg *
     return MLI_STATUS_OK;
 }
 
-mli_status mli_chk_maxpool_hwc_int8(const mli_tensor * in, const mli_pool_cfg * cfg, const mli_tensor * out) {
+mli_status mli_chk_maxpool_hwc_int8 (const mli_tensor * in, const mli_pool_cfg * cfg, const mli_tensor * out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;

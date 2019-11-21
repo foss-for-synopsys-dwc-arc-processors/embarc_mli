@@ -151,6 +151,10 @@ template <> inline int8_t mli_math_acc_cast_fx(mli_acc32_t acc, int shift_right)
     return (int8_t) fx_q7_cast_q31(temp);
 }
 
+template <> inline int8_t mli_math_acc_cast_fx(mli_acc40_t acc, int shift_right) {
+    return fx_q7_cast_nf_asl_rnd_a40(acc, 24 - shift_right);
+}
+
 template <> inline int16_t mli_math_acc_cast_fx(mli_acc40_t acc, int shift_right) {
     return fx_q15_cast_nf_asl_rnd_a40(acc, 16 - shift_right);
 }
