@@ -29,8 +29,8 @@ extern "C" {
 
 #pragma Code(".mli_lib")
 
-mli_status mli_krn_maxpool_hwc_fx16_k2x2_str1_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx16(in, cfg, out), __func__);
+mli_status mli_krn_maxpool_hwc_int8_k2x2_str1_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_int8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
@@ -68,8 +68,8 @@ mli_status mli_krn_maxpool_hwc_fx16_k2x2_str1_nopad(const mli_tensor * in, const
 #endif
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+    MLI_PTR(int8_t) in_ftrs = (MLI_PTR(int8_t ))in->data;
+    MLI_OUT_PTR(int8_t) out_ftrs = (MLI_OUT_PTR(int8_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_HWC];
@@ -99,13 +99,13 @@ mli_status mli_krn_maxpool_hwc_fx16_k2x2_str1_nopad(const mli_tensor * in, const
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = channels_num;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    out->el_params.asym = in->el_params.asym;
 
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_maxpool_hwc_fx16_k2x2_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx16(in, cfg, out), __func__);
+mli_status mli_krn_maxpool_hwc_int8_k2x2_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_int8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
@@ -143,8 +143,8 @@ mli_status mli_krn_maxpool_hwc_fx16_k2x2_nopad(const mli_tensor * in, const mli_
 #endif
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+    MLI_PTR(int8_t) in_ftrs = (MLI_PTR(int8_t ))in->data;
+    MLI_OUT_PTR(int8_t) out_ftrs = (MLI_OUT_PTR(int8_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_HWC];
@@ -174,13 +174,13 @@ mli_status mli_krn_maxpool_hwc_fx16_k2x2_nopad(const mli_tensor * in, const mli_
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = channels_num;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    out->el_params.asym = in->el_params.asym;
 
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_maxpool_hwc_fx16_k3x3_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx16(in, cfg, out), __func__);
+mli_status mli_krn_maxpool_hwc_int8_k3x3_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_int8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
@@ -218,8 +218,8 @@ mli_status mli_krn_maxpool_hwc_fx16_k3x3_nopad(const mli_tensor * in, const mli_
 #endif
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+    MLI_PTR(int8_t) in_ftrs = (MLI_PTR(int8_t ))in->data;
+    MLI_OUT_PTR(int8_t) out_ftrs = (MLI_OUT_PTR(int8_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_HWC];
@@ -249,13 +249,13 @@ mli_status mli_krn_maxpool_hwc_fx16_k3x3_nopad(const mli_tensor * in, const mli_
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = channels_num;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    out->el_params.asym = in->el_params.asym;
 
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_maxpool_hwc_fx16_k4x4_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx16(in, cfg, out), __func__);
+mli_status mli_krn_maxpool_hwc_int8_k4x4_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_int8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
@@ -293,8 +293,8 @@ mli_status mli_krn_maxpool_hwc_fx16_k4x4_nopad(const mli_tensor * in, const mli_
 #endif
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+    MLI_PTR(int8_t) in_ftrs = (MLI_PTR(int8_t ))in->data;
+    MLI_OUT_PTR(int8_t) out_ftrs = (MLI_OUT_PTR(int8_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_HWC];
@@ -324,13 +324,13 @@ mli_status mli_krn_maxpool_hwc_fx16_k4x4_nopad(const mli_tensor * in, const mli_
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = channels_num;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    out->el_params.asym = in->el_params.asym;
 
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_maxpool_hwc_fx16_k5x5_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx16(in, cfg, out), __func__);
+mli_status mli_krn_maxpool_hwc_int8_k5x5_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_int8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
@@ -368,8 +368,8 @@ mli_status mli_krn_maxpool_hwc_fx16_k5x5_nopad(const mli_tensor * in, const mli_
 #endif
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+    MLI_PTR(int8_t) in_ftrs = (MLI_PTR(int8_t ))in->data;
+    MLI_OUT_PTR(int8_t) out_ftrs = (MLI_OUT_PTR(int8_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_HWC];
@@ -399,13 +399,13 @@ mli_status mli_krn_maxpool_hwc_fx16_k5x5_nopad(const mli_tensor * in, const mli_
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = channels_num;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    out->el_params.asym = in->el_params.asym;
 
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_maxpool_hwc_fx16_k6x6_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx16(in, cfg, out), __func__);
+mli_status mli_krn_maxpool_hwc_int8_k6x6_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_int8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
@@ -443,8 +443,8 @@ mli_status mli_krn_maxpool_hwc_fx16_k6x6_nopad(const mli_tensor * in, const mli_
 #endif
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+    MLI_PTR(int8_t) in_ftrs = (MLI_PTR(int8_t ))in->data;
+    MLI_OUT_PTR(int8_t) out_ftrs = (MLI_OUT_PTR(int8_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_HWC];
@@ -474,13 +474,13 @@ mli_status mli_krn_maxpool_hwc_fx16_k6x6_nopad(const mli_tensor * in, const mli_
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = channels_num;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    out->el_params.asym = in->el_params.asym;
 
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_maxpool_hwc_fx16_k7x7_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx16(in, cfg, out), __func__);
+mli_status mli_krn_maxpool_hwc_int8_k7x7_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_int8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
@@ -518,8 +518,8 @@ mli_status mli_krn_maxpool_hwc_fx16_k7x7_nopad(const mli_tensor * in, const mli_
 #endif
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+    MLI_PTR(int8_t) in_ftrs = (MLI_PTR(int8_t ))in->data;
+    MLI_OUT_PTR(int8_t) out_ftrs = (MLI_OUT_PTR(int8_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_HWC];
@@ -549,13 +549,13 @@ mli_status mli_krn_maxpool_hwc_fx16_k7x7_nopad(const mli_tensor * in, const mli_
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = channels_num;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    out->el_params.asym = in->el_params.asym;
 
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_maxpool_hwc_fx16_k1x2_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx16(in, cfg, out), __func__);
+mli_status mli_krn_maxpool_hwc_int8_k1x2_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_int8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
@@ -593,8 +593,8 @@ mli_status mli_krn_maxpool_hwc_fx16_k1x2_nopad(const mli_tensor * in, const mli_
 #endif
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+    MLI_PTR(int8_t) in_ftrs = (MLI_PTR(int8_t ))in->data;
+    MLI_OUT_PTR(int8_t) out_ftrs = (MLI_OUT_PTR(int8_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_HWC];
@@ -624,13 +624,13 @@ mli_status mli_krn_maxpool_hwc_fx16_k1x2_nopad(const mli_tensor * in, const mli_
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = channels_num;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    out->el_params.asym = in->el_params.asym;
 
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_maxpool_hwc_fx16_k1x3_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx16(in, cfg, out), __func__);
+mli_status mli_krn_maxpool_hwc_int8_k1x3_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_int8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
@@ -668,8 +668,8 @@ mli_status mli_krn_maxpool_hwc_fx16_k1x3_nopad(const mli_tensor * in, const mli_
 #endif
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+    MLI_PTR(int8_t) in_ftrs = (MLI_PTR(int8_t ))in->data;
+    MLI_OUT_PTR(int8_t) out_ftrs = (MLI_OUT_PTR(int8_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_HWC];
@@ -699,13 +699,13 @@ mli_status mli_krn_maxpool_hwc_fx16_k1x3_nopad(const mli_tensor * in, const mli_
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = channels_num;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    out->el_params.asym = in->el_params.asym;
 
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_maxpool_hwc_fx16_k2x1_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx16(in, cfg, out), __func__);
+mli_status mli_krn_maxpool_hwc_int8_k2x1_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_int8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
@@ -743,8 +743,8 @@ mli_status mli_krn_maxpool_hwc_fx16_k2x1_nopad(const mli_tensor * in, const mli_
 #endif
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+    MLI_PTR(int8_t) in_ftrs = (MLI_PTR(int8_t ))in->data;
+    MLI_OUT_PTR(int8_t) out_ftrs = (MLI_OUT_PTR(int8_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_HWC];
@@ -774,13 +774,13 @@ mli_status mli_krn_maxpool_hwc_fx16_k2x1_nopad(const mli_tensor * in, const mli_
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = channels_num;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    out->el_params.asym = in->el_params.asym;
 
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_maxpool_hwc_fx16_k3x1_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx16(in, cfg, out), __func__);
+mli_status mli_krn_maxpool_hwc_int8_k3x1_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_int8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
@@ -818,8 +818,8 @@ mli_status mli_krn_maxpool_hwc_fx16_k3x1_nopad(const mli_tensor * in, const mli_
 #endif
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+    MLI_PTR(int8_t) in_ftrs = (MLI_PTR(int8_t ))in->data;
+    MLI_OUT_PTR(int8_t) out_ftrs = (MLI_OUT_PTR(int8_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_HWC];
@@ -849,13 +849,13 @@ mli_status mli_krn_maxpool_hwc_fx16_k3x1_nopad(const mli_tensor * in, const mli_
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = channels_num;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    out->el_params.asym = in->el_params.asym;
 
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_maxpool_hwc_fx16_k4x4_krnpad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx16(in, cfg, out), __func__);
+mli_status mli_krn_maxpool_hwc_int8_k4x4_krnpad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_int8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
@@ -893,8 +893,8 @@ mli_status mli_krn_maxpool_hwc_fx16_k4x4_krnpad(const mli_tensor * in, const mli
 #endif
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+    MLI_PTR(int8_t) in_ftrs = (MLI_PTR(int8_t ))in->data;
+    MLI_OUT_PTR(int8_t) out_ftrs = (MLI_OUT_PTR(int8_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_HWC];
@@ -924,13 +924,13 @@ mli_status mli_krn_maxpool_hwc_fx16_k4x4_krnpad(const mli_tensor * in, const mli
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = channels_num;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    out->el_params.asym = in->el_params.asym;
 
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_maxpool_hwc_fx16_k5x5_krnpad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx16(in, cfg, out), __func__);
+mli_status mli_krn_maxpool_hwc_int8_k5x5_krnpad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_int8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
@@ -968,8 +968,8 @@ mli_status mli_krn_maxpool_hwc_fx16_k5x5_krnpad(const mli_tensor * in, const mli
 #endif
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+    MLI_PTR(int8_t) in_ftrs = (MLI_PTR(int8_t ))in->data;
+    MLI_OUT_PTR(int8_t) out_ftrs = (MLI_OUT_PTR(int8_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_HWC];
@@ -999,13 +999,13 @@ mli_status mli_krn_maxpool_hwc_fx16_k5x5_krnpad(const mli_tensor * in, const mli
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = channels_num;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    out->el_params.asym = in->el_params.asym;
 
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_maxpool_hwc_fx16_k1x2_krnpad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx16(in, cfg, out), __func__);
+mli_status mli_krn_maxpool_hwc_int8_k1x2_krnpad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_int8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
@@ -1043,8 +1043,8 @@ mli_status mli_krn_maxpool_hwc_fx16_k1x2_krnpad(const mli_tensor * in, const mli
 #endif
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+    MLI_PTR(int8_t) in_ftrs = (MLI_PTR(int8_t ))in->data;
+    MLI_OUT_PTR(int8_t) out_ftrs = (MLI_OUT_PTR(int8_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_HWC];
@@ -1074,13 +1074,13 @@ mli_status mli_krn_maxpool_hwc_fx16_k1x2_krnpad(const mli_tensor * in, const mli
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = channels_num;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    out->el_params.asym = in->el_params.asym;
 
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_maxpool_hwc_fx16_k1x3_krnpad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx16(in, cfg, out), __func__);
+mli_status mli_krn_maxpool_hwc_int8_k1x3_krnpad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_int8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
@@ -1118,8 +1118,8 @@ mli_status mli_krn_maxpool_hwc_fx16_k1x3_krnpad(const mli_tensor * in, const mli
 #endif
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+    MLI_PTR(int8_t) in_ftrs = (MLI_PTR(int8_t ))in->data;
+    MLI_OUT_PTR(int8_t) out_ftrs = (MLI_OUT_PTR(int8_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_HWC];
@@ -1149,13 +1149,13 @@ mli_status mli_krn_maxpool_hwc_fx16_k1x3_krnpad(const mli_tensor * in, const mli
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = channels_num;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    out->el_params.asym = in->el_params.asym;
 
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_maxpool_hwc_fx16_k2x1_krnpad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx16(in, cfg, out), __func__);
+mli_status mli_krn_maxpool_hwc_int8_k2x1_krnpad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_int8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
@@ -1193,8 +1193,8 @@ mli_status mli_krn_maxpool_hwc_fx16_k2x1_krnpad(const mli_tensor * in, const mli
 #endif
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+    MLI_PTR(int8_t) in_ftrs = (MLI_PTR(int8_t ))in->data;
+    MLI_OUT_PTR(int8_t) out_ftrs = (MLI_OUT_PTR(int8_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_HWC];
@@ -1224,13 +1224,13 @@ mli_status mli_krn_maxpool_hwc_fx16_k2x1_krnpad(const mli_tensor * in, const mli
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = channels_num;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    out->el_params.asym = in->el_params.asym;
 
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_maxpool_hwc_fx16_k3x1_krnpad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx16(in, cfg, out), __func__);
+mli_status mli_krn_maxpool_hwc_int8_k3x1_krnpad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_int8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
@@ -1268,8 +1268,8 @@ mli_status mli_krn_maxpool_hwc_fx16_k3x1_krnpad(const mli_tensor * in, const mli
 #endif
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+    MLI_PTR(int8_t) in_ftrs = (MLI_PTR(int8_t ))in->data;
+    MLI_OUT_PTR(int8_t) out_ftrs = (MLI_OUT_PTR(int8_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_HWC];
@@ -1299,13 +1299,13 @@ mli_status mli_krn_maxpool_hwc_fx16_k3x1_krnpad(const mli_tensor * in, const mli
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = channels_num;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    out->el_params.asym = in->el_params.asym;
 
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_maxpool_hwc_fx16_k2x2(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx16(in, cfg, out), __func__);
+mli_status mli_krn_maxpool_hwc_int8_k2x2(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_int8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
@@ -1343,8 +1343,8 @@ mli_status mli_krn_maxpool_hwc_fx16_k2x2(const mli_tensor * in, const mli_pool_c
 #endif
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+    MLI_PTR(int8_t) in_ftrs = (MLI_PTR(int8_t ))in->data;
+    MLI_OUT_PTR(int8_t) out_ftrs = (MLI_OUT_PTR(int8_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_HWC];
@@ -1374,13 +1374,13 @@ mli_status mli_krn_maxpool_hwc_fx16_k2x2(const mli_tensor * in, const mli_pool_c
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = channels_num;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    out->el_params.asym = in->el_params.asym;
 
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_maxpool_hwc_fx16_k3x3(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx16(in, cfg, out), __func__);
+mli_status mli_krn_maxpool_hwc_int8_k3x3(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_int8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
@@ -1418,8 +1418,8 @@ mli_status mli_krn_maxpool_hwc_fx16_k3x3(const mli_tensor * in, const mli_pool_c
 #endif
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+    MLI_PTR(int8_t) in_ftrs = (MLI_PTR(int8_t ))in->data;
+    MLI_OUT_PTR(int8_t) out_ftrs = (MLI_OUT_PTR(int8_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_HWC];
@@ -1449,13 +1449,13 @@ mli_status mli_krn_maxpool_hwc_fx16_k3x3(const mli_tensor * in, const mli_pool_c
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = channels_num;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    out->el_params.asym = in->el_params.asym;
 
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_maxpool_hwc_fx16_generic(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx16(in, cfg, out), __func__);
+mli_status mli_krn_maxpool_hwc_int8_generic(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_int8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
@@ -1493,8 +1493,8 @@ mli_status mli_krn_maxpool_hwc_fx16_generic(const mli_tensor * in, const mli_poo
 #endif
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+    MLI_PTR(int8_t) in_ftrs = (MLI_PTR(int8_t ))in->data;
+    MLI_OUT_PTR(int8_t) out_ftrs = (MLI_OUT_PTR(int8_t ))out->data;
 
     // Define Data dimensions
     const int32_t in_height = in->shape[FMAP_H_DIM_HWC];
@@ -1524,13 +1524,13 @@ mli_status mli_krn_maxpool_hwc_fx16_generic(const mli_tensor * in, const mli_poo
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = channels_num;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    out->el_params.asym = in->el_params.asym;
 
     return MLI_STATUS_OK;
 }
 
 
-mli_status mli_krn_maxpool_hwc_fx16(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+mli_status mli_krn_maxpool_hwc_int8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
     int stride_w = cfg->stride_width;
     int stride_h = cfg->stride_height;
     int kernel_w = cfg->kernel_width;
@@ -1543,48 +1543,48 @@ mli_status mli_krn_maxpool_hwc_fx16(const mli_tensor * in, const mli_pool_cfg * 
     if ((stride_w == 1) && (stride_h == 1) && 
             (kernel_w == 2) && (kernel_h == 2) && 
             (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_maxpool_hwc_fx16_k2x2_str1_nopad(in, cfg, out);
+        return mli_krn_maxpool_hwc_int8_k2x2_str1_nopad(in, cfg, out);
     } else if ((kernel_w == 7) && (kernel_h == 7) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_maxpool_hwc_fx16_k7x7_nopad(in, cfg, out);
+        return mli_krn_maxpool_hwc_int8_k7x7_nopad(in, cfg, out);
     } else if ((kernel_w == 6) && (kernel_h == 6) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_maxpool_hwc_fx16_k6x6_nopad(in, cfg, out);
+        return mli_krn_maxpool_hwc_int8_k6x6_nopad(in, cfg, out);
     } else if ((kernel_w == 5) && (kernel_h == 5) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_maxpool_hwc_fx16_k5x5_nopad(in, cfg, out);
+        return mli_krn_maxpool_hwc_int8_k5x5_nopad(in, cfg, out);
     } else if ((kernel_w == 5) && (kernel_h == 5) && (padding_top <= 2) && (padding_bot <= 2) && (padding_left <= 2) && (padding_right <= 2)) {
-        return mli_krn_maxpool_hwc_fx16_k5x5_krnpad(in, cfg, out);
+        return mli_krn_maxpool_hwc_int8_k5x5_krnpad(in, cfg, out);
     } else if ((kernel_w == 4) && (kernel_h == 4) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_maxpool_hwc_fx16_k4x4_nopad(in, cfg, out);
+        return mli_krn_maxpool_hwc_int8_k4x4_nopad(in, cfg, out);
     } else if ((kernel_w == 4) && (kernel_h == 4) && (padding_top <= 1) && (padding_bot <= 2) && (padding_left <= 1) && (padding_right <= 2)) {
-        return mli_krn_maxpool_hwc_fx16_k4x4_krnpad(in, cfg, out);
+        return mli_krn_maxpool_hwc_int8_k4x4_krnpad(in, cfg, out);
     } else if ((kernel_w == 3) && (kernel_h == 3) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_maxpool_hwc_fx16_k3x3_nopad(in, cfg, out);
+        return mli_krn_maxpool_hwc_int8_k3x3_nopad(in, cfg, out);
     } else if ((kernel_w == 3) && (kernel_h == 3)) {
-        return mli_krn_maxpool_hwc_fx16_k3x3(in, cfg, out);
+        return mli_krn_maxpool_hwc_int8_k3x3(in, cfg, out);
     } else if ((kernel_w == 3) && (kernel_h == 1) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_maxpool_hwc_fx16_k3x1_nopad(in, cfg, out);
+        return mli_krn_maxpool_hwc_int8_k3x1_nopad(in, cfg, out);
     } else if ((kernel_w == 3) && (kernel_h == 1) && (padding_top <= 0) && (padding_bot <= 0) && (padding_left <= 1) && (padding_right <= 1)) {
-        return mli_krn_maxpool_hwc_fx16_k3x1_krnpad(in, cfg, out);
+        return mli_krn_maxpool_hwc_int8_k3x1_krnpad(in, cfg, out);
     } else if ((kernel_w == 2) && (kernel_h == 2) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_maxpool_hwc_fx16_k2x2_nopad(in, cfg, out);
+        return mli_krn_maxpool_hwc_int8_k2x2_nopad(in, cfg, out);
     } else if ((kernel_w == 2) && (kernel_h == 2)) {
-        return mli_krn_maxpool_hwc_fx16_k2x2(in, cfg, out);
+        return mli_krn_maxpool_hwc_int8_k2x2(in, cfg, out);
     } else if ((kernel_w == 2) && (kernel_h == 1) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_maxpool_hwc_fx16_k2x1_nopad(in, cfg, out);
+        return mli_krn_maxpool_hwc_int8_k2x1_nopad(in, cfg, out);
     } else if ((kernel_w == 2) && (kernel_h == 1) && (padding_top <= 0) && (padding_bot <= 0) && (padding_left <= 0) && (padding_right <= 1)) {
-        return mli_krn_maxpool_hwc_fx16_k2x1_krnpad(in, cfg, out);
+        return mli_krn_maxpool_hwc_int8_k2x1_krnpad(in, cfg, out);
     } else if ((kernel_w == 1) && (kernel_h == 3) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_maxpool_hwc_fx16_k1x3_nopad(in, cfg, out);
+        return mli_krn_maxpool_hwc_int8_k1x3_nopad(in, cfg, out);
     } else if ((kernel_w == 1) && (kernel_h == 3) && (padding_top <= 1) && (padding_bot <= 1) && (padding_left <= 0) && (padding_right <= 0)) {
-        return mli_krn_maxpool_hwc_fx16_k1x3_krnpad(in, cfg, out);
+        return mli_krn_maxpool_hwc_int8_k1x3_krnpad(in, cfg, out);
     } else if ((kernel_w == 1) && (kernel_h == 2) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_maxpool_hwc_fx16_k1x2_nopad(in, cfg, out);
+        return mli_krn_maxpool_hwc_int8_k1x2_nopad(in, cfg, out);
     } else if ((kernel_w == 1) && (kernel_h == 2) && (padding_top <= 0) && (padding_bot <= 1) && (padding_left <= 0) && (padding_right <= 0)) {
-        return mli_krn_maxpool_hwc_fx16_k1x2_krnpad(in, cfg, out);
+        return mli_krn_maxpool_hwc_int8_k1x2_krnpad(in, cfg, out);
     } else {
-        return mli_krn_maxpool_hwc_fx16_generic(in, cfg, out);
+        return mli_krn_maxpool_hwc_int8_generic(in, cfg, out);
     }
 }
-char * mli_debug_krn_maxpool_hwc_fx16(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+char * mli_debug_krn_maxpool_hwc_int8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
     int stride_w = cfg->stride_width;
     int stride_h = cfg->stride_height;
     int kernel_w = cfg->kernel_width;
@@ -1597,45 +1597,45 @@ char * mli_debug_krn_maxpool_hwc_fx16(const mli_tensor * in, const mli_pool_cfg 
     if ((stride_w == 1) && (stride_h == 1) && 
             (kernel_w == 2) && (kernel_h == 2) && 
             (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_maxpool_hwc_fx16_k2x2_str1_nopad";
+        return (char*)"mli_krn_maxpool_hwc_int8_k2x2_str1_nopad";
     } else if ((kernel_w == 7) && (kernel_h == 7) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_maxpool_hwc_fx16_k7x7_nopad";
+        return (char*)"mli_krn_maxpool_hwc_int8_k7x7_nopad";
     } else if ((kernel_w == 6) && (kernel_h == 6) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_maxpool_hwc_fx16_k6x6_nopad";
+        return (char*)"mli_krn_maxpool_hwc_int8_k6x6_nopad";
     } else if ((kernel_w == 5) && (kernel_h == 5) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_maxpool_hwc_fx16_k5x5_nopad";
+        return (char*)"mli_krn_maxpool_hwc_int8_k5x5_nopad";
     } else if ((kernel_w == 5) && (kernel_h == 5) && (padding_top <= 2) && (padding_bot <= 2) && (padding_left <= 2) && (padding_right <= 2)) {
-        return (char*)"mli_krn_maxpool_hwc_fx16_k5x5_krnpad";
+        return (char*)"mli_krn_maxpool_hwc_int8_k5x5_krnpad";
     } else if ((kernel_w == 4) && (kernel_h == 4) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_maxpool_hwc_fx16_k4x4_nopad";
+        return (char*)"mli_krn_maxpool_hwc_int8_k4x4_nopad";
     } else if ((kernel_w == 4) && (kernel_h == 4) && (padding_top <= 1) && (padding_bot <= 2) && (padding_left <= 1) && (padding_right <= 2)) {
-        return (char*)"mli_krn_maxpool_hwc_fx16_k4x4_krnpad";
+        return (char*)"mli_krn_maxpool_hwc_int8_k4x4_krnpad";
     } else if ((kernel_w == 3) && (kernel_h == 3) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_maxpool_hwc_fx16_k3x3_nopad";
+        return (char*)"mli_krn_maxpool_hwc_int8_k3x3_nopad";
     } else if ((kernel_w == 3) && (kernel_h == 3)) {
-        return (char*)"mli_krn_maxpool_hwc_fx16_k3x3";
+        return (char*)"mli_krn_maxpool_hwc_int8_k3x3";
     } else if ((kernel_w == 3) && (kernel_h == 1) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_maxpool_hwc_fx16_k3x1_nopad";
+        return (char*)"mli_krn_maxpool_hwc_int8_k3x1_nopad";
     } else if ((kernel_w == 3) && (kernel_h == 1) && (padding_top <= 0) && (padding_bot <= 0) && (padding_left <= 1) && (padding_right <= 1)) {
-        return (char*)"mli_krn_maxpool_hwc_fx16_k3x1_krnpad";
+        return (char*)"mli_krn_maxpool_hwc_int8_k3x1_krnpad";
     } else if ((kernel_w == 2) && (kernel_h == 2) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_maxpool_hwc_fx16_k2x2_nopad";
+        return (char*)"mli_krn_maxpool_hwc_int8_k2x2_nopad";
     } else if ((kernel_w == 2) && (kernel_h == 2)) {
-        return (char*)"mli_krn_maxpool_hwc_fx16_k2x2";
+        return (char*)"mli_krn_maxpool_hwc_int8_k2x2";
     } else if ((kernel_w == 2) && (kernel_h == 1) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_maxpool_hwc_fx16_k2x1_nopad";
+        return (char*)"mli_krn_maxpool_hwc_int8_k2x1_nopad";
     } else if ((kernel_w == 2) && (kernel_h == 1) && (padding_top <= 0) && (padding_bot <= 0) && (padding_left <= 0) && (padding_right <= 1)) {
-        return (char*)"mli_krn_maxpool_hwc_fx16_k2x1_krnpad";
+        return (char*)"mli_krn_maxpool_hwc_int8_k2x1_krnpad";
     } else if ((kernel_w == 1) && (kernel_h == 3) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_maxpool_hwc_fx16_k1x3_nopad";
+        return (char*)"mli_krn_maxpool_hwc_int8_k1x3_nopad";
     } else if ((kernel_w == 1) && (kernel_h == 3) && (padding_top <= 1) && (padding_bot <= 1) && (padding_left <= 0) && (padding_right <= 0)) {
-        return (char*)"mli_krn_maxpool_hwc_fx16_k1x3_krnpad";
+        return (char*)"mli_krn_maxpool_hwc_int8_k1x3_krnpad";
     } else if ((kernel_w == 1) && (kernel_h == 2) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_maxpool_hwc_fx16_k1x2_nopad";
+        return (char*)"mli_krn_maxpool_hwc_int8_k1x2_nopad";
     } else if ((kernel_w == 1) && (kernel_h == 2) && (padding_top <= 0) && (padding_bot <= 1) && (padding_left <= 0) && (padding_right <= 0)) {
-        return (char*)"mli_krn_maxpool_hwc_fx16_k1x2_krnpad";
+        return (char*)"mli_krn_maxpool_hwc_int8_k1x2_krnpad";
     } else {
-        return (char*)"mli_krn_maxpool_hwc_fx16_generic";
+        return (char*)"mli_krn_maxpool_hwc_int8_generic";
     }
 }
 

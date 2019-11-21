@@ -104,6 +104,21 @@ static inline void calc_mul(unsigned div, int16_t* mul, int* shift_val) {
     *mul = (int16_t)(val >> (16 - normval));// from u1.31 to s1.14
 }
 
+static inline void calc_mul_origin(unsigned div, int16_t* mul, int* shift_val) {
+    unsigned int one = (1<<31); // u1.31
+    unsigned int val = one / div; // u1.31
+    int shift = 31;
+    if (div > 1) { 
+        while (val < (1<<31)) {
+            shift++;
+            val = val << 1;
+        }
+    }
+    // from u1.31 to s1.14
+    *shift_val = shift - 17;
+    *mul = (val) >> 17;
+}
+
 static inline void get_mul_shift_value(
         unsigned div,
         unsigned max_div,
@@ -203,6 +218,20 @@ static inline accum40_t reduce_sum2D_hwc(
         in += in_row_step * channels;
     }
     return acc;
+}
+
+static inline mli_acc40_t reduce_sum2D_hwc_origin(const int8_t *in, int width, int height, int channels, int in_row_step, int16_t mul) {
+    int row = 0;
+    int clmn = 0;
+    mli_acc40_t accu = mli_math_mul_fx<int16_t, mli_acc40_t>(0, 0);
+
+    for (; row < height; row++) {
+        for (clmn = 0; clmn < width; clmn++) {
+            accu = mli_math_mac_fx(accu, mul, in[clmn * channels]);
+        }
+        in += in_row_step * channels;
+    }
+    return accu;
 }
 
 #endif  //_MLI_KRN_REDUCE_SUM2D_CHW_H_

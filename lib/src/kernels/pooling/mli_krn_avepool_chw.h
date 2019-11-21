@@ -10,7 +10,7 @@
 #ifndef _MLI_KRN_AVEPOOL_CHW_H_
 #define _MLI_KRN_AVEPOOL_CHW_H_
 
-#include "mli_krn_reduce_sum2d_chw.h"
+#include "mli_krn_reduce_sum2d.h"
 
 #include "mli_config.h"
 #include "mli_debug.h"
