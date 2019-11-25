@@ -45,8 +45,8 @@ extern "C" {
  *
  ******************************************************************************/
 
-mli_status mli_krn_avepool_hwc_int8(const mli_tensor* in, const mli_pool_cfg* cfg, mli_tensor* out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_avepool_hwc_int8(in, cfg, out), __func__);
+mli_status mli_krn_avepool_hwc_sa8(const mli_tensor* in, const mli_pool_cfg* cfg, mli_tensor* out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_avepool_hwc_sa8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     
     mli_prv_fx_init_dsp_ctrl();

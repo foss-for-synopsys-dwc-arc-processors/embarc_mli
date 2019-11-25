@@ -209,7 +209,7 @@ mli_status mli_chk_conv2d_hwc_fx8w16d(
 }
 
 
-mli_status mli_chk_conv2d_hwc_int8wd32b(
+mli_status mli_chk_conv2d_hwc_sa8_sa8_sa32(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
@@ -553,7 +553,7 @@ mli_status mli_chk_depthwise_conv2d_hwc_fx8w16d(
 }
 
 
-mli_status mli_chk_depthwise_conv2d_hwc_int8wd32b(
+mli_status mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
@@ -682,7 +682,7 @@ mli_status mli_chk_maxpool_hwc_fx16 (const mli_tensor * in, const mli_pool_cfg *
     return MLI_STATUS_OK;
 }
 
-mli_status mli_chk_maxpool_hwc_int8 (const mli_tensor * in, const mli_pool_cfg * cfg, const mli_tensor * out) {
+mli_status mli_chk_maxpool_hwc_sa8 (const mli_tensor * in, const mli_pool_cfg * cfg, const mli_tensor * out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
@@ -798,7 +798,7 @@ mli_status mli_chk_avepool_hwc_fx16 (const mli_tensor * in, const mli_pool_cfg *
     return MLI_STATUS_OK;
 }
 
-mli_status mli_chk_avepool_hwc_int8 (const mli_tensor * in, const mli_pool_cfg * cfg, const mli_tensor * out) {
+mli_status mli_chk_avepool_hwc_sa8 (const mli_tensor * in, const mli_pool_cfg * cfg, const mli_tensor * out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_avepool_hwc(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
@@ -892,7 +892,7 @@ mli_status mli_chk_fully_connected_fx16(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_chk_fully_connected_int8wd32b(
+mli_status mli_chk_fully_connected_sa8_sa8_sa32(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
