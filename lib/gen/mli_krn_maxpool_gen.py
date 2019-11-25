@@ -32,7 +32,7 @@ output_file_chw_fx16 = "..\..\lib\src\kernels\pooling\mli_krn_maxpool_chw_fx16.c
 output_file_chw_fx8 = "..\..\lib\src\kernels\pooling\mli_krn_maxpool_chw_fx8.cc"
 output_file_hwc_fx8 = "..\..\lib\src\kernels\pooling\mli_krn_maxpool_hwc_fx8.cc"
 output_file_hwc_fx16 = "..\..\lib\src\kernels\pooling\mli_krn_maxpool_hwc_fx16.cc"
-output_file_hwc_int8 = "..\..\lib\src\kernels\pooling\mli_krn_maxpool_hwc_int8.cc"
+output_file_hwc_sa8 = "..\..\lib\src\kernels\pooling\mli_krn_maxpool_hwc_sa8.cc"
 
 f_list_chw = []
 f_list_hwc = []
@@ -223,20 +223,20 @@ if "fx16" in sys.argv or no_args:
     f.close()
 
 #------------------------------------------------------------
-# Create a new list of specialization functions for hwc int8
+# Create a new list of specialization functions for hwc sa8
 #------------------------------------------------------------
 
-fbase = ("krn", "maxpool", "hwc", "int8", f_args)
+fbase = ("krn", "maxpool", "hwc", "sa8", f_args)
 
-f_list_hwc_int8 = [f.copy_and_replace_base(fbase) for f in f_list_hwc]
+f_list_hwc_sa8 = [f.copy_and_replace_base(fbase) for f in f_list_hwc]
 default_func_hwc = default_func_hwc.copy_and_replace_base(fbase)
 
 #------------------------------------------------------------
 # Generate the output file
 #------------------------------------------------------------
-if "int8" in sys.argv or no_args:
-    f = open(output_file_hwc_int8, "wb")
-    f.write(c.print_file(f_list_hwc_int8, default_func_hwc, func_body_template_file_hwc, file_template, include_list_hwc, define_list))
+if "sa8" in sys.argv or no_args:
+    f = open(output_file_hwc_sa8, "wb")
+    f.write(c.print_file(f_list_hwc_sa8, default_func_hwc, func_body_template_file_hwc, file_template, include_list_hwc, define_list))
     f.close()
 
 #------------------------------------------------------------
@@ -244,5 +244,5 @@ if "int8" in sys.argv or no_args:
 #------------------------------------------------------------
 if "header" in sys.argv or no_args:
     fh = open(output_header_file, "wb")
-    fh.write(c.print_proto_file([f_list_chw, f_list_chw_fx8, f_list_hwc_fx8, f_list_hwc_fx16, f_list_hwc_int8], function_group, capital_header_file_name, file_header_template))
+    fh.write(c.print_proto_file([f_list_chw, f_list_chw_fx8, f_list_hwc_fx8, f_list_hwc_fx16, f_list_hwc_sa8], function_group, capital_header_file_name, file_header_template))
     fh.close()

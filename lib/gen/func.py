@@ -202,7 +202,8 @@ class Func:
             d_enum = "MLI_EL_FX_16"
             el_params = "fx.frac_bits"
             return (d_type, w_type, d_enum, el_params)
-        if self.datatype == "int8":
+        if self.datatype == "sa8":
+            # TODO: Code changes are required to reflect latest updates
             d_type = "int8_t"
             w_type = "int8_t"
             d_enum = "MLI_EL_INT_8"

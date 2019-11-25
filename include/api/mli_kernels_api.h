@@ -209,7 +209,7 @@ mli_status mli_krn_avepool_chw_fx8_generic(const mli_tensor * in, const mli_pool
 mli_status mli_krn_avepool_chw_fx16_generic(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_avepool_hwc_fx8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_avepool_hwc_fx16(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_avepool_hwc_int8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
+mli_status mli_krn_avepool_hwc_sa8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 
 /**
  * @brief MAX pooling
@@ -237,10 +237,10 @@ mli_status mli_krn_maxpool_chw_fx8_generic(const mli_tensor * in, const mli_pool
 mli_status mli_krn_maxpool_chw_fx16_generic(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_maxpool_hwc_fx8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_maxpool_hwc_fx16(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_maxpool_hwc_int8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
+mli_status mli_krn_maxpool_hwc_sa8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_maxpool_hwc_fx8_generic(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_maxpool_hwc_fx16_generic(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_maxpool_hwc_int8_generic(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
+mli_status mli_krn_maxpool_hwc_sa8_generic(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 
 //================================================
 //
@@ -283,13 +283,13 @@ mli_status mli_krn_fully_connected_fx8w16d(
         const mli_tensor * bias,
         mli_tensor * out);
 
-mli_status mli_krn_fully_connected_int8(
+mli_status mli_krn_fully_connected_sa8_sa8_sa8(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
         mli_tensor * out);
 
-mli_status mli_krn_fully_connected_int8wd32b(
+mli_status mli_krn_fully_connected_sa8_sa8_sa32(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
