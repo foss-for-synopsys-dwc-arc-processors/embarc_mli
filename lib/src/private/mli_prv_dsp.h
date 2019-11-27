@@ -232,16 +232,36 @@ static inline void __attribute__ ((always_inline)) mli_prv_clip_and_store_output
     *v2o_ptr = out_v;
 }
 
-static inline void __attribute__ ((always_inline)) mli_prv_clip_and_store_output_v(
-        MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
+v2i8_t FXAPI fx_v2q7_cast_nf_asl_rnd_v2a40(v2accum40_t VQ, int I) {
+  v2q15_t r;
+  int sel = I & 255;
+  sel |= 0x0300;	// Vector accumulator select
+  sel |= 0x0400;	// Saturation enable
+  sel |= 0x0800;	// Signed
+  sel |= 0x1000;	// Round using DSP_CTRL.RM
+  sel |= (3<<14);	// Round at byte: 8b
+  sel |= (0<<16);	// Clear PA bit sensitive, NO extra shift
+  r = (v2q15_t) __v2acc40_getacc( VQ.q, sel );
+  return __builtin_convertvector((r >> 8), v2i8_t);
+}
+
+static void __attribute__ ((always_inline)) mli_prv_clip_and_store_output_v(
+        MLI_OUT_PTR(int8_t) __restrict o_ptr,
         v2accum40_t * __restrict acc_v,
         const int out_shift) {
-    v2q15_t out_v = fx_v2q15_cast_nf_asl_rnd_v2a40(*acc_v, (32 - sizeof(int8_t)* 8 - out_shift));
-    out_v = fx_asr_rnd_v2q15_n(out_v, 16 - sizeof(int8_t)* 8);
-    out_v = fx_sat_v2q15_n(out_v, 8);
-
-    *((v2i8_t *) o_ptr)  = __builtin_convertvector(out_v, v2i8_t);
+    *((v2i8_t *) o_ptr) = fx_v2q7_cast_nf_asl_rnd_v2a40(*acc_v, (32 - sizeof(int8_t)* 8 - out_shift));
 }
+
+// static inline void __attribute__ ((always_inline)) mli_prv_clip_and_store_output_v(
+//         MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
+//         v2accum40_t * __restrict acc_v,
+//         const int out_shift) {
+//     v2q15_t out_v = fx_v2q15_cast_nf_asl_rnd_v2a40(*acc_v, (32 - sizeof(int8_t)* 8 - out_shift));
+//     out_v = fx_asr_rnd_v2q15_n(out_v, 16 - sizeof(int8_t)* 8);
+//     out_v = fx_sat_v2q15_n(out_v, 8);
+
+//     *((v2i8_t *) o_ptr)  = __builtin_convertvector(out_v, v2i8_t);
+// }
 
 //=========================================================================
 

@@ -51,7 +51,7 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad(
     const int kernel_size = kernel_width * kernel_height;
     int16_t mul = 0;
     int shift = 0;
-    get_mul_shift_value(kernel_size, kernel_size, &mul, &shift);
+    get_mul_shift_value(kernel_size, &mul, &shift);
 
     MLI_OUT_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
     MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T))in_ftrs + in_width * (row_beg * stride_height - padding_top) +
@@ -105,7 +105,7 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad_even(
     const int kernel_size = kernel_width * kernel_height;
     int16_t mul = 0;
     int shift = 0;
-    get_mul_shift_value(kernel_size, kernel_size, &mul, &shift);
+    get_mul_shift_value(kernel_size, &mul, &shift);
 
     MLI_OUT_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
     MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T))in_ftrs + in_width * (row_beg * stride_height - padding_top) +
@@ -177,7 +177,7 @@ static inline void __attribute__((always_inline)) avepool_chw(
                 const int kernel_size = rows * clmns;
                 int16_t mul = 0;
                 int shift = 0;
-                get_mul_shift_value(kernel_size, max_kernel_size, &mul, &shift);
+                get_mul_shift_value(kernel_size, &mul, &shift);
 
                 const MLI_PTR(io_T) __restrict in_ptr =
                         in_ftrs +                                                      // starting point
@@ -331,7 +331,7 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad_k4_Nx2_N_eve
     const int kernel_size = kernel_height * kernel_width;
     int16_t mul = 0;
     int shift = 0;
-    get_mul_shift_value(kernel_size, kernel_size, &mul, &shift);
+    get_mul_shift_value(kernel_size, &mul, &shift);
 
     MLI_OUT_PTR(io_T) __restrict p_out_ftrs = out_ftrs + row_beg * out_width + clmn_beg;
     MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T))in_ftrs + in_width * (row_beg * stride_height - padding_top) +

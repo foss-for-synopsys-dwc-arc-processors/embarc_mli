@@ -86,7 +86,7 @@ mli_status mli_krn_avepool_hwc_fx16(const mli_tensor* in, const mli_pool_cfg* cf
         const int32_t kernel_size = kernel_width * kernel_height;
         int16_t mul = 0;
         int shift = 0;
-        get_mul_shift_value(kernel_size, kernel_size, &mul, &shift);
+        get_mul_shift_value(kernel_size, &mul, &shift);
 
         for (int ch_idx = 0; ch_idx < channels_num; ch_idx++) {
             for (int H_idx = row_beg; H_idx < row_end; H_idx++) {
@@ -161,7 +161,7 @@ mli_status mli_krn_avepool_hwc_fx16(const mli_tensor* in, const mli_pool_cfg* cf
                         int kernel_size = rows * clmns;
                         int16_t mul = 0;
                         int shift = 0;
-                        get_mul_shift_value(kernel_size, max_kernel_size, &mul, &shift);
+                        get_mul_shift_value(kernel_size, &mul, &shift);
 
                         MLI_PTR(int16_t)
                         in_ptr = in_ftrs +  // starting point
