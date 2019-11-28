@@ -112,6 +112,26 @@ mli_status mli_krn_conv2d_hwc_fx8w16d(
         const mli_conv2d_cfg * cfg,
         mli_tensor * out);
 
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg * cfg,
+        mli_tensor * out);
+        
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_generic(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg * cfg,
+        mli_tensor * out);
+
+char * mli_debug_krn_conv2d_hwc_sa8_sa8_sa32(
+        const mli_tensor * in, 
+        const mli_tensor * weights, 
+        const mli_tensor * bias, 
+        const mli_conv2d_cfg * cfg, 
+        mli_tensor * out);
 
 /**
  * @brief 2D Depthwise convolution
@@ -157,6 +177,12 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d(
         const mli_tensor * bias,
         const mli_conv2d_cfg * cfg,
         mli_tensor * out);
+mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg * cfg,
+        mli_tensor * out);
 
 mli_status mli_krn_depthwise_conv2d_chw_fx8_generic(
         const mli_tensor * in,
@@ -172,7 +198,19 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_generic(
         const mli_conv2d_cfg * cfg,
         mli_tensor * out);
 
-
+mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_generic(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg * cfg,
+        mli_tensor * out);
+        
+char * mli_debug_krn_depthwise_conv2d_hwc_sa8_sa8_sa32(
+        const mli_tensor * in, 
+        const mli_tensor * weights, 
+        const mli_tensor * bias, 
+        const mli_conv2d_cfg * cfg, 
+        mli_tensor * out);
 
 //================================================
 //
