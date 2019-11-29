@@ -128,8 +128,8 @@ static inline void ip_op(
         const int bias_shift,
         const int32_t out_mul,
         const int out_shift,
-        const io_T input_offset,
-        const io_T output_offset) {
+        const int16_t input_offset,
+        const int16_t output_offset) {
     // Matrix-Vector multiplication
     //==============================
     for (int o_idx = 0; o_idx < out_elements; o_idx++) {
@@ -139,7 +139,7 @@ static inline void ip_op(
 
         for (int i_idx = 0; i_idx < in_elements; i_idx++, w_idx++){
             accu = mli_math_mac_fx(accu, in[i_idx], weights[w_idx]);
-            accu = mli_math_mac_fx(accu, (io_T)-input_offset, weights[w_idx]);
+            accu = mli_math_mac_fx(accu, (int16_t)-input_offset, weights[w_idx]);
         }
 
         accu = mli_math_scale_mul<acc_T, true>(accu, out_mul);
@@ -173,10 +173,10 @@ static void fully_connected_prepare_and_run(
     int bias_shift = mli_prv_calc_shift(in, weights, bias);
     int out_shift = mli_prv_calc_shift(in, weights, out);
 
-    int32_t out_mul = mli_prv_calc_out_mul(in, weights, out, &out_shift);;
-    int32_t bias_mul = mli_prv_calc_bias_mul(in, weights, bias);
-    io_T input_offset = mli_hlp_tensor_zero_offset(in, 0);
-    io_T output_offset = mli_hlp_tensor_zero_offset(out, 0);
+    int32_t out_mul = mli_prv_calc_out_mul(in, weights, out, &out_shift);
+    int32_t bias_mul = mli_prv_calc_out_mul(in, weights, bias, &bias_shift);
+    int16_t input_offset = mli_hlp_tensor_zero_offset(in, 0);
+    int16_t output_offset = mli_hlp_tensor_zero_offset(out, 0);
     MLI_ASSERT(mli_hlp_tensor_zero_offset(weights, 0) == 0);
 
     // Run basic calculation

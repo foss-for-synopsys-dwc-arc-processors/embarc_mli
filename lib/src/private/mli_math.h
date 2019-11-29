@@ -230,8 +230,10 @@ static inline acc_T mli_math_init_accu(b_T bias, int32_t bias_mul, int bias_shif
 template <typename b_T, typename acc_T, bool asym_data>
 static inline int32_t mli_math_init_accu(int32_t bias, int32_t bias_mul, int bias_shift) {
     int32_t accu = bias;
-    accu = mli_math_acc_ashift_fx(accu, -(bias_shift+1)); // extra factor of 2 needed because scale mul cannot multiply by 1.
-    accu = mli_math_scale_mul<acc_T, asym_data>(accu, bias_mul);
+	// for an int32_t bias type and int32_t accumulator, there is no requantization of the bias.
+	// in the mli_check function it has been checked that the bias scale and shift match the accumulator scale and shift.
+    //accu = mli_math_acc_ashift_fx(accu, bias_shift);
+    //accu = mli_math_scale_mul<acc_T, asym_data>(accu, bias_mul);
     return accu;
 }
 
