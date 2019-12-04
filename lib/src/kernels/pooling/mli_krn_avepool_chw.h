@@ -156,7 +156,6 @@ static inline void __attribute__((always_inline)) avepool_chw(
         const int padding_bot) {
     (void)padding_right;
     (void)padding_bot;
-    unsigned int max_kernel_size = kernel_width * kernel_height;
 
     MLI_OUT_PTR(io_T) __restrict out_ptr = out_ftrs + clmn_beg * out_width + clmn_beg;
     for (int ch_idx = 0; ch_idx < channels_num; ch_idx++) {
