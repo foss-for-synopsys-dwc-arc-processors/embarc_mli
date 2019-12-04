@@ -157,14 +157,14 @@ static inline void __attribute__ ((always_inline)) mli_prv_shift_clip_and_store_
         MLI_PTR(int16_t) __restrict o_ptr,
         accum40_t * ip_out_v,
         const int out_shift) {
-    *o_ptr = fx_q15_cast_asl_rnd_a40(*ip_out_v, 32 - sizeof(int16_t) * 8 - out_shift - 1);
+    *o_ptr = fx_q15_cast_nf_asl_rnd_a40(*ip_out_v, 32 - sizeof(int16_t) * 8 - out_shift);
 }
 
 static inline void __attribute__ ((always_inline)) mli_prv_shift_clip_and_store_output(
         MLI_PTR(int8_t) __restrict o_ptr,
         accum40_t * ip_out_v,
         const int out_shift) {
-    *o_ptr = fx_q7_cast_asl_rnd_a40(*ip_out_v, 32 - sizeof(int8_t) * 8 - out_shift - 1);
+    *o_ptr = fx_q7_cast_nf_asl_rnd_a40(*ip_out_v, 32 - sizeof(int8_t) * 8 - out_shift);
 }
 
 static inline void __attribute__ ((always_inline)) mli_prv_shift_clip_and_store_output(

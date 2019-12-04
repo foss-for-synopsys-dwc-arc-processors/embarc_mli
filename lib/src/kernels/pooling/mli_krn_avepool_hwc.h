@@ -135,7 +135,7 @@ static inline void __attribute__((always_inline)) avepool_hwc(
                         channels * ((W_idx * stride_width) - padding_left + left_comp) +            // move to column
                         ch_idx;                                                                     // move to channel
                 mli_acc40_t acc = reduce_sum2D_hwc(in_ptr, clmns, rows, channels, in_width, mul);
-                *out_ftrs = mli_math_acc_cast_fx<int8_t, mli_acc40_t>(acc, shift);
+                mli_prv_shift_clip_and_store_output(out_ftrs, &acc, shift);
                 out_ftrs += channels;
             } // for W_idx 
         } // for H_idx
