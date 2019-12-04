@@ -23,7 +23,8 @@ SRC_DIRS    =  ../src/helpers/src \
                ../src/kernels/eltwise \
                ../src/kernels/pooling \
                ../src/kernels/transform \
-               ../src/private/src
+               ../src/private/src \
+               ../src/move
 
 INC_DIRS    = .  \
               ../../include \
@@ -33,7 +34,8 @@ INC_DIRS    = .  \
               ../src/kernels \
               ../src/kernels/eltwise \
               ../src/kernels/pooling \
-              ../src/kernels/transform
+              ../src/kernels/transform \
+              ../src/move
 
 # source files that are generated
 CONVOLUTION_SRC_FOLDER = ../src/kernels/convolution
