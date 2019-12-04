@@ -199,17 +199,21 @@ static inline accum40_t reduce_sum2D_hwc(
         int16_t mul) {
     accum40_t acc40 = fx_create_a40(0x0, 0x0);
     if (width == 1){
+#pragma clang loop unroll(full)
         for (int row = 0; row < height; row++) {
             acc40 = fx_a40_mac_q15(acc40, *in, mul);
             in += channels * in_row_step;
         }
     } else if( height == 1) {
+#pragma clang loop unroll(full)//TODO:check after generation specific kernels, this pragma or condition above can be extra
         for (int clmn = 0; clmn < width; clmn++) {
             acc40 = fx_a40_mac_q15(acc40, *in, mul);
             in += channels;
         }
     } else {
+#pragma clang loop unroll(full)
         for (int row = 0; row < height; row++) {
+#pragma clang loop unroll(full)
             for (int clmn = 0; clmn < width; clmn++) {
                 acc40 = fx_a40_mac_q15(acc40, *in, mul);
                 in += channels;
@@ -232,17 +236,21 @@ static inline v2accum40_t __attribute__((always_inline)) reduce_sum2D_hwc_v(
     v2accum40_t v2acc40 = {0, 0};
     v2q15_t v2mul = {mul, mul};
     if (width == 1){
+#pragma clang loop unroll(full)
         for (int row = 0; row < height; row++) {
             v2acc40 = fx_v2a40_mac_v2q15(v2acc40, mli_prv_load_2_samples(in), v2mul);
             in += in_row_step * channels;
         }
     } else if (height == 1){
+#pragma clang loop unroll(full)
         for (int clmn = 0; clmn < width; clmn++) {
             v2acc40 = fx_v2a40_mac_v2q15(v2acc40, mli_prv_load_2_samples(in), v2mul);
             in += channels;
         }
     } else {
+#pragma clang loop unroll(full)
         for (int row = 0; row < height; row++) {
+#pragma clang loop unroll(full)
             for (int clmn = 0; clmn < width; clmn++) {
                 v2acc40 = fx_v2a40_mac_v2q15(v2acc40, mli_prv_load_2_samples(in), v2mul);
                 in += channels;
