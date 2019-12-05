@@ -120,27 +120,7 @@ static inline void get_mul_shift_value(
 }
 
 template <typename io_T>
-static inline void __attribute__((always_inline)) reduce_sum2D_odd(
-        accum40_t *__restrict acc40,
-        const MLI_PTR(io_T) __restrict in,
-        const int32_t width,
-        const int32_t height,
-        const int32_t in_row_step,
-        const int16_t mul) {
-    const v2i16_t mul_v = {mul, mul};
-#pragma clang loop unroll(full)
-    for (int row = 0; row < height; row++) {
-        *acc40 = fx_a40_mac_q15(*acc40, in[0], mul);
-#pragma clang loop unroll(full)
-        for (int clmn = 1; clmn < width; clmn += 2) {
-            *acc40 = fx_a40_dmac_v2q15(*acc40, mli_prv_load_2_samples(&in[clmn]), mul_v);
-        }
-        in += in_row_step;
-    }
-}
-
-template <typename io_T>
-static inline void __attribute__((always_inline)) reduce_sum2D_even(
+static inline void __attribute__((always_inline)) reduce_sum2D_chw_even(
         accum40_t *__restrict acc40,
         const MLI_PTR(io_T) __restrict in,
         const int32_t width,
@@ -159,7 +139,7 @@ static inline void __attribute__((always_inline)) reduce_sum2D_even(
 }
 
 template <typename io_T>
-static inline void __attribute__((always_inline)) reduce_sum2D(//TODO:FIX NAMES ACCORDING TO LAYERS
+static inline void __attribute__((always_inline)) reduce_sum2D_chw(
         accum40_t *__restrict acc40,
         const MLI_PTR(io_T) __restrict in,
         const int32_t width,
@@ -205,7 +185,7 @@ static inline accum40_t reduce_sum2D_hwc(
             in += channels * in_row_step;
         }
     } else if( height == 1) {
-#pragma clang loop unroll(full)//TODO:check after generation specific kernels, this pragma or condition above can be extra
+#pragma clang loop unroll(full)
         for (int clmn = 0; clmn < width; clmn++) {
             acc40 = fx_a40_mac_q15(acc40, *in, mul);
             in += channels;
