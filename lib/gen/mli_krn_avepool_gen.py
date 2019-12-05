@@ -21,81 +21,98 @@ import sys
 #------------------------------------------------------------
 # fill the basic information
 #------------------------------------------------------------
-func_body_template_file = "mli_krn_avepool_func_body.txt"
+func_body_template_file_chw = "mli_krn_avepool_chw_func_body.txt"
+func_body_template_file_hwc = "mli_krn_avepool_hwc_func_body.txt"
 file_template = "filetemplate.txt"
 file_header_template = "header_filetemplate.txt"
 function_group = "AvePooling"
 capital_header_file_name = "_MLI_KRN_AVEPOOL_SPEC_API_H_"
 output_header_file = "..\..\include\\api\mli_krn_avepool_spec_api.h"
-output_file_fx16 = "..\..\lib\src\kernels\pooling\mli_krn_avepool_chw_fx16.cc"
-output_file_fx8 = "..\..\lib\src\kernels\pooling\mli_krn_avepool_chw_fx8.cc"
+output_file_chw_fx16 = "..\..\lib\src\kernels\pooling\mli_krn_avepool_chw_fx16.cc"
+output_file_chw_fx8 = "..\..\lib\src\kernels\pooling\mli_krn_avepool_chw_fx8.cc"
+output_file_hwc_fx16 = "..\..\lib\src\kernels\pooling\mli_krn_avepool_hwc_fx16.cc"
+output_file_hwc_fx8 = "..\..\lib\src\kernels\pooling\mli_krn_avepool_hwc_fx8.cc"
+output_file_hwc_sa8 = "..\..\lib\src\kernels\pooling\mli_krn_avepool_hwc_sa8.cc"
 
-f_list = []
+f_list_hwc = []
+f_list_chw = []
+
 f_args = [("const mli_tensor *", "in"),
           ("const mli_pool_cfg *", "cfg"),
           ("mli_tensor *", "out")]
 fbase = ("krn", "avepool", "chw", "fx16", f_args)
-include_list = ["mli_krn_avepool_chw.h"]
+include_list_chw = ["mli_krn_avepool_chw.h"]
+include_list_hwc = ["mli_krn_avepool_hwc.h"]
 define_list = []
-# commandline arguments can be used to generate a specific output 'fx16' | 'fx8' | 'header']
+# commandline arguments can be used to generate a specific output 'fx16' | 'fx8' | 'sa8' | 'header']
 # if no arguments are given, all files are generated.
 no_args = len(sys.argv) == 1
 
 #------------------------------------------------------------
-# Create a list of specialization functions
+# Create a list of specialization functions for CHW
 #------------------------------------------------------------
-
-#construct the different specializtions for stride 1 and kernel 2x2
-corefunc = "avepool_chw_nopad_k2x2"
-stride = 1
-k = 2
-ch = 0
-f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad")])
-
-corefunc = "avepool_chw_k4x4_str1_nopad"
-stride = 1
-k = 4
-ch = 0
-f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad")])
-
 corefunc = "avepool_chw_krnpad"
 stride = 0
-kernel_range = range(3, 11, 2)
+kernel_range = range(2, 11)
 ch = 0
-f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
-
-corefunc = "avepool_chw_krnpad_k4_Nx2_N_even"
-stride = 0
-kernel_range = range(2, 9, 2)
-ch = 0
-f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
+f_list_chw.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
 
 corefunc = "avepool_chw_nopad"
 stride = 0
-kernel_range = range(3, 11, 2)
+kernel_range = range(2, 11)
 ch = 0
-f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
-
-corefunc = "avepool_chw_nopad_k4_Nx2_N_even"
-stride = 0
-kernel_range = range(2, 9, 2)
-ch = 0
-f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
+f_list_chw.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
 
 corefunc = "avepool_chw_krnpad"
 stride = 0
 kernel_range = [0, 2, 3]
 ch = 0
-f_list.extend([Func(fbase, 1, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
-f_list.extend([Func(fbase, k, 1, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
-f_list.extend([Func(fbase, 1, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
-f_list.extend([Func(fbase, k, 1, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
+f_list_chw.extend([Func(fbase, 1, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
+f_list_chw.extend([Func(fbase, k, 1, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
+corefunc = "avepool_chw_nopad"
+f_list_chw.extend([Func(fbase, 1, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
+f_list_chw.extend([Func(fbase, k, 1, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
+
+corefunc = "avepool_chw_krnpad"
+default_func_chw = Func(fbase, 0, 0, 0, 0, 0, corefunc, generic=True)
+f_list_chw.append(default_func_chw)
+
+f_list_chw_fx16 = [f.copy_and_replace_base(fbase) for f in f_list_chw]
+default_func_chw_fx16 = default_func_chw.copy_and_replace_base(fbase)
+
+#------------------------------------------------------------
+# Create a list of specialization functions for HWC
+#------------------------------------------------------------
+fbase = ("krn", "avepool", "hwc", "fx16", f_args)
+corefunc = "avepool_hwc_krnpad"
+stride = 0
+kernel_range = range(2, 11)
+ch = 0
+f_list_hwc.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
+
+corefunc = "avepool_hwc_nopad"
+stride = 0
+kernel_range = range(2, 11)
+ch = 0
+f_list_hwc.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
+
+corefunc = "avepool_hwc_krnpad"
+stride = 0
+kernel_range = [0, 2, 3]
+ch = 0
+f_list_hwc.extend([Func(fbase, 1, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
+f_list_hwc.extend([Func(fbase, k, 1, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
+corefunc = "avepool_hwc_nopad"
+f_list_hwc.extend([Func(fbase, 1, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
+f_list_hwc.extend([Func(fbase, k, 1, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
 
 #at last add the generic function that can be used in the else branch in the wrapper.
-corefunc = "avepool_chw_krnpad"
-default_func = Func(fbase, 0, 0, 0, 0, 0, corefunc, generic=True)
-f_list.append(default_func)
+corefunc = "avepool_hwc_krnpad"
+default_func_hwc = Func(fbase, 0, 0, 0, 0, 0, corefunc, generic=True)
+f_list_hwc.append(default_func_hwc)
 
+f_list_hwc_fx16 = [f.copy_and_replace_base(fbase) for f in f_list_hwc]
+default_func_hwc_fx16 = default_func_hwc.copy_and_replace_base(fbase)
 #------------------------------------------------------------
 # Generate the output file
 #------------------------------------------------------------
@@ -109,32 +126,67 @@ c.set_wrapper_variables({'padding_right' : "cfg->padding_right"})
 c.set_wrapper_hierarchy(['stride_w', 'stride_h', 'kernel_w', 'kernel_h', 'padding'])
 c.set_wrapper_if_tree(False)
 
-if "fx16" in sys.argv or no_args:
-    f = open(output_file_fx16, "wb")
-    f.write(c.print_file(f_list, default_func, func_body_template_file, file_template, include_list, define_list))
-    f.close()
-
 #------------------------------------------------------------
-# Create a new list of specialization functions for fx8
+# Create a new list of specialization functions for CHW fx8
 #------------------------------------------------------------
 fbase = ("krn", "avepool", "chw", "fx8", f_args)
 
-f_list_fx8 = [f.copy_and_replace_base(fbase) for f in f_list]
-default_func = default_func.copy_and_replace_base(fbase)
+f_list_chw_fx8 = [f.copy_and_replace_base(fbase) for f in f_list_chw]
+default_func_chw_fx8 = default_func_chw.copy_and_replace_base(fbase)
 
+#------------------------------------------------------------
+# Create a new list of specialization functions for HWC fx8
+#------------------------------------------------------------
+fbase = ("krn", "avepool", "hwc", "fx8", f_args)
+
+f_list_hwc_fx8 = [f.copy_and_replace_base(fbase) for f in f_list_hwc]
+default_func_hwc_fx8 = default_func_chw.copy_and_replace_base(fbase)
+
+#------------------------------------------------------------
+# Create a new list of specialization functions for HWC sa8
+#------------------------------------------------------------
+fbase = ("krn", "avepool", "hwc", "sa8", f_args)
+
+f_list_hwc_sa8 = [f.copy_and_replace_base(fbase) for f in f_list_hwc]
+default_func_hwc_sa8 = default_func_chw.copy_and_replace_base(fbase)
 #------------------------------------------------------------
 # Generate the output file
 #------------------------------------------------------------
+if "fx16" in sys.argv or no_args:
+    #Create FX16 CHW C output file
+    f = open(output_file_chw_fx16, "wb")
+    f.write(c.print_file(f_list_chw, default_func_chw_fx16, func_body_template_file_chw, file_template, include_list_chw, define_list))
+    f.close()
+
+    #Create FX16 HWC C output file
+    f = open(output_file_hwc_fx16, "wb")
+    f.write(c.print_file(f_list_hwc, default_func_hwc_fx16, func_body_template_file_hwc, file_template, include_list_hwc, define_list))
+    f.close()
+  
+
 if "fx8" in sys.argv or no_args:
-    f = open(output_file_fx8, "wb")
-    f.write(c.print_file(f_list_fx8, default_func, func_body_template_file, file_template, include_list, define_list))
+    #Create FX8 CHW C output file
+    f = open(output_file_chw_fx8, "wb")
+    f.write(c.print_file(f_list_chw_fx8, default_func_chw_fx8, func_body_template_file_chw, file_template, include_list_chw, define_list))
+    f.close()
+    
+    #Create FX8 HWC C output file
+    f = open(output_file_hwc_fx8, "wb")
+    f.write(c.print_file(f_list_hwc_fx8, default_func_hwc_fx8, func_body_template_file_hwc, file_template, include_list_hwc, define_list))
+    f.close()
+
+
+if "sa8" in sys.argv or no_args:
+    #Create SA8 HWC C output file
+    f = open(output_file_hwc_sa8, "wb")
+    f.write(c.print_file(f_list_hwc_sa8, default_func_hwc_sa8, func_body_template_file_hwc, file_template, include_list_hwc, define_list))
     f.close()
 
 #------------------------------------------------------------
 # Generate the output header file
-#------------------------------------------------------------
+#------------------------------------------------------------ 
 if "header" in sys.argv or no_args:
     fh = open(output_header_file, "wb")
-    fh.write(c.print_proto_file([f_list,f_list_fx8], function_group, capital_header_file_name, file_header_template))
+    fh.write(c.print_proto_file([f_list_chw_fx16,f_list_chw_fx8, f_list_hwc_fx16, f_list_hwc_fx8, f_list_hwc_sa8], function_group, capital_header_file_name, file_header_template))
     fh.close()
 

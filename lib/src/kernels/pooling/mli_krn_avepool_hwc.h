@@ -59,7 +59,7 @@ static inline void __attribute__((always_inline)) avepool_hwc_nopad(
     for (int ch_idx = 0; ch_idx < (channels - 1); ch_idx += 2) {
         for (int H_idx = 0; H_idx < out_height; H_idx++) {
             for (int W_idx = 0; W_idx < out_width; W_idx++) {
-                v2accum40_t v2acc = reduce_sum2D_hwc_v(in_ftrs, kernel_width, kernel_height, channels, in_width, mul);
+                auto v2acc = reduce_sum2D_hwc_v(in_ftrs, kernel_width, kernel_height, channels, in_width, mul);
                 mli_prv_clip_and_store_output_v(out_ftrs, &v2acc, shift);
                 in_ftrs += go_over_ch;
                 out_ftrs += channels;
@@ -73,8 +73,8 @@ static inline void __attribute__((always_inline)) avepool_hwc_nopad(
     if(channels & 1){
         for (int H_idx = 0; H_idx < out_height; H_idx++) {
             for (int W_idx = 0; W_idx < out_width; W_idx++) {
-                mli_acc40_t acc = reduce_sum2D_hwc(in_ftrs, kernel_width, kernel_height, channels, in_width, mul);
-                *out_ftrs = mli_math_acc_cast_fx<int8_t, mli_acc40_t>(acc, shift);
+                auto acc = reduce_sum2D_hwc(in_ftrs, kernel_width, kernel_height, channels, in_width, mul);
+                mli_prv_shift_clip_and_store_output(out_ftrs, &acc, shift);
                 // Write results
                 in_ftrs += channels * stride_width;
                 out_ftrs += channels;
