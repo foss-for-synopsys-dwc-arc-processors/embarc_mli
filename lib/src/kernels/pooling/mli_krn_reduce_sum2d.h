@@ -220,7 +220,13 @@ static inline accum40_t reduce_sum2D_hwc(
     return acc;
 }
 
-static inline mli_acc40_t reduce_sum2D_hwc_origin(const int8_t *in, int width, int height, int channels, int in_row_step, int16_t mul) {
+static inline mli_acc40_t reduce_sum2D_hwc_origin(
+        const int8_t *in,
+        int width,
+        int height, 
+        int channels,
+        int in_row_step,
+        int16_t mul) {
     int row = 0;
     int clmn = 0;
     mli_acc40_t accu = mli_math_mul_fx<int16_t, mli_acc40_t>(0, 0);
@@ -233,5 +239,49 @@ static inline mli_acc40_t reduce_sum2D_hwc_origin(const int8_t *in, int width, i
     }
     return accu;
 }
+
+//==========================================================================
+// Sequential reducing summation
+//==========================================================================
+template <typename io_T, typename acc_T>
+inline acc_T reduce_sum(
+        const io_T* __restrict in,
+        const int16_t mul,
+        acc_T accu,
+
+        const int vals,
+        const int step = 1) {
+    for (int idx = 0; idx < vals; idx++) {
+        accu = mli_math_mac_fx(accu, mul, (*in));
+        in += step;
+    }
+    return accu;
+}
+//==========================================================================
+// Two dimensional reducing summation across width and height 
+//==========================================================================
+template <typename io_T, typename acc_T>
+inline acc_T reduce_sum2D(
+        const io_T* __restrict in,
+        const int16_t mul,
+        acc_T accu,
+
+        const int width,
+        const int height,
+        int in_col_step,
+        int in_row_step) {
+    in_row_step -= width * in_col_step;
+    for (int row = 0; row < height; row++) {
+        for (int clmn = 0; clmn < width; clmn++) {
+            accu = mli_math_mac_fx(accu, mul, (*in));
+            in += in_col_step;
+        }
+        in += in_row_step;
+    }
+    return accu;
+}
+
+
+
 
 #endif  //_MLI_KRN_REDUCE_SUM2D_CHW_H_
