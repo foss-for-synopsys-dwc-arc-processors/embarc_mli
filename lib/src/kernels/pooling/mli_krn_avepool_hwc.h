@@ -47,39 +47,50 @@ static inline void __attribute__((always_inline)) avepool_hwc_nopad(
     (void)padding_right;
     (void)padding_bot;
     
-    unsigned int max_kernel_size = kernel_width * kernel_height;
-    const int go_over_ch_in_wd = channels * in_width * stride_height;
-    const int go_over_ch = channels * stride_width;
+    const unsigned int max_kernel_size = kernel_width * kernel_height;
+    const int row_diff = row_end - row_beg;
+    const int clmn_diff = clmn_end - clmn_beg;
+    const int goto_next_row = channels * in_width * stride_height;
+    const int goto_next_clmn = channels * stride_width;
+    const int compensation_inp_width_lp = channels * stride_width * clmn_diff;
+    const int compensation_inp_height_lp = goto_next_row  * row_diff;
+    const int compensation_out_height_lp = channels * clmn_diff * row_diff;
     int16_t mul = 0;
+    
     int shift = 0;
     // in case of average pooling, the sum needs to be divided by the kernel size.
     // calculate 1/(rows*clmns) to get a multiplication factor and shift value.
     get_mul_shift_value(max_kernel_size, &mul, &shift);
 
     for (int ch_idx = 0; ch_idx < (channels - 1); ch_idx += 2) {
-        for (int H_idx = 0; H_idx < out_height; H_idx++) {
-            for (int W_idx = 0; W_idx < out_width; W_idx++) {
+        for (int H_idx = 0; H_idx < row_diff; H_idx++) {
+            for (int W_idx = 0; W_idx < clmn_diff; W_idx++) {
                 auto v2acc = reduce_sum2D_hwc_v(in_ftrs, kernel_width, kernel_height, channels, in_width, mul);
                 mli_prv_clip_and_store_output_v(out_ftrs, &v2acc, shift);
-                in_ftrs += go_over_ch;
-                out_ftrs += channels;
+                in_ftrs += goto_next_clmn; //go to the next input column
+                out_ftrs += channels; //go to the next output column without out stride
             } // for W_idx
-            in_ftrs += channels * (in_width * stride_height - stride_width * clmn_end);
+            // go to the next row given compensation of previous loops incrementing
+            in_ftrs += goto_next_row - compensation_inp_width_lp;
         } // for H_idx
-        in_ftrs += 2 - go_over_ch_in_wd * row_end;
-        out_ftrs += 2 - channels * clmn_end * row_end;
+        // go to the next channel given compensation of previous loops incrementing 
+        in_ftrs  += 2 - compensation_inp_height_lp;
+        // go to next channel with compensation of previous loops incrementing
+        out_ftrs += 2 - compensation_out_height_lp;
     } // for ch_idx 
 
+
     if(channels & 1){
-        for (int H_idx = 0; H_idx < out_height; H_idx++) {
-            for (int W_idx = 0; W_idx < out_width; W_idx++) {
+        for (int H_idx = 0; H_idx < row_diff; H_idx++) {
+            for (int W_idx = 0; W_idx < clmn_diff; W_idx++) {
                 auto acc = reduce_sum2D_hwc(in_ftrs, kernel_width, kernel_height, channels, in_width, mul);
                 mli_prv_shift_clip_and_store_output(out_ftrs, &acc, shift);
                 // Write results
-                in_ftrs += channels * stride_width;
-                out_ftrs += channels;
+                in_ftrs += goto_next_clmn; //go to the next input column
+                out_ftrs += channels; //go to the next output column without out stride
             } // for W_idx 
-            in_ftrs += channels * (in_width * stride_height - stride_width * clmn_end);
+            // go to the next row given compensation of previous loops incrementing
+            in_ftrs += goto_next_row - compensation_inp_width_lp;
         } // for H_idx
     }
 }
@@ -109,9 +120,13 @@ static inline void __attribute__((always_inline)) avepool_hwc(
     (void)padding_right;
     (void)padding_bot;
     
+    const int row_diff = row_end - row_beg;
+    const int clmn_diff = clmn_end - clmn_beg;
+    const int compensation_out_height_lp = channels * clmn_diff * row_diff;
+
     for (int ch_idx = 0; ch_idx < channels; ch_idx++) {
-        for (int H_idx = 0; H_idx < out_height; H_idx++) {
-            for (int W_idx = 0; W_idx < out_width; W_idx++) {
+        for (int H_idx = 0; H_idx < row_diff; H_idx++) {
+            for (int W_idx = 0; W_idx < clmn_diff; W_idx++) {
                 // Define area of input and filter for convolution
                 // *_comp - compensation values for valid area defining
                 int top_comp = -MIN((int)(H_idx * stride_height)- padding_top, 0);
@@ -136,10 +151,11 @@ static inline void __attribute__((always_inline)) avepool_hwc(
                         ch_idx;                                                                     // move to channel
                 mli_acc40_t acc = reduce_sum2D_hwc(in_ptr, clmns, rows, channels, in_width, mul);
                 mli_prv_shift_clip_and_store_output(out_ftrs, &acc, shift);
-                out_ftrs += channels;
+                out_ftrs += channels; //go to the next output column without out stride
             } // for W_idx 
         } // for H_idx
-        out_ftrs += 1 - channels * clmn_end * row_end;
+        // go to next channel with compensation of previous loops incrementing
+        out_ftrs += 1 - compensation_out_height_lp;
     } // for ch_idx 
 }
 
