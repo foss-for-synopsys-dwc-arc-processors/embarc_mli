@@ -135,6 +135,12 @@ typedef struct _mli_tensor {
     void *data;                /**< main data. Layer cast this pointer to actual type (XY ptr for L1) */
     uint32_t capacity;         /**< data buffer size in bytes. Necessary for auxiliary tensors where dimensions are variable. */
 
+    int32_t mem_stride[MLI_MAX_RANK]; /**< Array with the distance (in elements) to the next element in the same dimension.
+                                         To compute the size in bytes, the number of elements needs to be multiplied by the bytes per element.
+                                         For example, for a matrix A[rows][columns], mem_stride[0] contains the distance
+                                         to the next element (=1 in this example), and mem_stride[1] contains the distance from
+                                         one row to the next (=columns in this example). The size of the array is defined by MLI_MAX_RANK. */
+
     uint32_t shape[MLI_MAX_RANK];   /**< Array with tensors dimensions. Dimensions must be stored in direct order
                                          starting from least changing one. For example:
                                          for matrix of shape [rows][columns], shape[0] = rows and shape[1] = columns */
@@ -142,7 +148,6 @@ typedef struct _mli_tensor {
 
     mli_element_type el_type;       /**< Type of elements stored in tensor */
     mli_element_params el_params;   /**< Parameters of elements stored in tensor. */
-
 } mli_tensor;
 
 
