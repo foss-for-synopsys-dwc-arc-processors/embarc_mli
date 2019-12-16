@@ -7,8 +7,8 @@
 *
 */
 
-#ifndef _MLI_KRN_AVEPOOL_hwc_H_
-#define _MLI_KRN_AVEPOOL_hwc_H_
+#ifndef _MLI_KRN_AVEPOOL_HWC_H_
+#define _MLI_KRN_AVEPOOL_HWC_H_
 
 #include "mli_krn_reduce_sum2d.h"
 
@@ -216,4 +216,4 @@ static inline void __attribute__((always_inline)) avepool_hwc_krnpad(
     }
 }
 
-#endif  //_MLI_KRN_AVEPOOL_hwc_H_
+#endif  //_MLI_KRN_AVEPOOL_HWC_H_

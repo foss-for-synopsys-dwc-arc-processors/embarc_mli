@@ -7,8 +7,8 @@
 *
 */
 
-#ifndef _MLI_KRN_REDUCE_SUM2D_CHW_H_
-#define _MLI_KRN_REDUCE_SUM2D_CHW_H_
+#ifndef _MLI_KRN_REDUCE_SUM2D_H_
+#define _MLI_KRN_REDUCE_SUM2D_H_
 
 #include "mli_config.h"
 #include "mli_helpers_api.h"
