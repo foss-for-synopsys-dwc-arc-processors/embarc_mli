@@ -306,7 +306,7 @@ inline int16_t mli_math_cast_fx(mli_acc32_t in_val, int shift_right) {
 
 template <>
 inline int16_t mli_math_cast_fx(int64_t in_val, int shift_right) {
-    int32_t temp = (int32_t)fx_asr_q63(in_val, shift_right);
+    int32_t temp = (int32_t)fx_asr_rnd_q63(in_val, shift_right);
     temp = fx_asl_q31(temp, 16);
     return (int16_t)fx_q15_cast_q31(temp);
 }

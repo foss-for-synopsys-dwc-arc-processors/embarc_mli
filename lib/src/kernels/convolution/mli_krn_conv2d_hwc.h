@@ -61,10 +61,10 @@ static void depthwise_convolution2D_hwc(
     const int row_end = perception_area->row_end;
     const int clmn_begin = perception_area->clmn_beg;
     const int clmn_end = perception_area->clmn_end;
-    const int in_col_step = mli_prv_column_step<LAYOUT_HWC>(in_height, in_width, in_ch, /*filters =*/ 1);
-    const int in_row_step = mli_prv_row_step<LAYOUT_HWC>(in_height, in_width, in_ch, /*filters =*/ 1);
-    const int krn_col_step = mli_prv_column_step<LAYOUT_HWC>(kernel_height, kernel_width, /*channels =*/ 1, out_ch);
-    const int krn_row_step = mli_prv_row_step<LAYOUT_HWC>(kernel_height, kernel_width, /*channels =*/ 1, out_ch);
+    const int in_col_step = mli_prv_column_step<LAYOUT_HWCN>(in_height, in_width, in_ch, /*filters =*/ 1);
+    const int in_row_step = mli_prv_row_step<LAYOUT_HWCN>(in_height, in_width, in_ch, /*filters =*/ 1);
+    const int krn_col_step = mli_prv_column_step<LAYOUT_HWCN>(kernel_height, kernel_width, /*channels =*/ 1, out_ch);
+    const int krn_row_step = mli_prv_row_step<LAYOUT_HWCN>(kernel_height, kernel_width, /*channels =*/ 1, out_ch);
     const int ch_mul = out_ch / in_ch;
 
     for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
@@ -86,7 +86,7 @@ static void depthwise_convolution2D_hwc(
             // with channel multiplier - similar to convolution with HWCN layout for weights
             for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
                 const io_T *in_ptr = in_ftrs; 
-                in_ptr += mli_prv_calc_index<LAYOUT_HWC>(in_height, in_width, in_ch, /*filters =*/ 1,
+                in_ptr += mli_prv_calc_index<LAYOUT_HWCN>(in_height, in_width, in_ch, /*filters =*/ 1,
                                                                   h_idx_in, w_idx_in, in_ch_idx);
 
                 acc_T other_additives = mli_math_mul_fx<io_T, acc_T>(0, 0);
@@ -95,7 +95,7 @@ static void depthwise_convolution2D_hwc(
                                                clmns, rows, in_col_step, in_row_step);
                 for (int ch_mult_idx = 0; ch_mult_idx < ch_mul; ch_mult_idx++) {
                     const int out_ch_idx = in_ch_idx * ch_mul + ch_mult_idx;
-                    const w_T *w_ptr = weights + mli_prv_calc_index<LAYOUT_HWC>(
+                    const w_T *w_ptr = weights + mli_prv_calc_index<LAYOUT_HWCN>(
                             kernel_height, kernel_width, /*channels =*/ 1, 
                             out_ch, comp.top, comp.left, 0, out_ch_idx);
                     adjust_quant_params(&quant_params, out_ch_idx);
@@ -117,7 +117,7 @@ static void depthwise_convolution2D_hwc(
                     out_val = MIN(out_val, val_max_limit);
                     out_val = MAX(out_val, val_min_limit);
                     io_T* out_ptr = out_ftrs;
-                    out_ptr += mli_prv_calc_index<LAYOUT_HWC>(out_height, out_width, out_ch, /*filters =*/ 1,
+                    out_ptr += mli_prv_calc_index<LAYOUT_HWCN>(out_height, out_width, out_ch, /*filters =*/ 1,
                                                                        H_idx, W_idx, out_ch_idx);
                     *out_ptr = out_val;
                 } // for ch_mult_idx 
