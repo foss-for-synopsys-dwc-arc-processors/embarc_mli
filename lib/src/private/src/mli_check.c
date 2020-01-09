@@ -87,7 +87,7 @@ mli_status mli_chk_bias_scale_asym(const mli_tensor * in, const mli_tensor * wei
     const int16_t* w_scales = (is_per_axis)? weights->el_params.asym.scale.pi16: &weights->el_params.asym.scale.i16;
     const int16_t* b_scales = (is_per_axis)? bias->el_params.asym.scale.pi16: &bias->el_params.asym.scale.i16;
     const int scale_in = (int)in->el_params.asym.scale.i16;
-    const int out_shift = mli_prv_calc_shift(in, weights, bias); 
+    const int out_shift = mli_prv_calc_shift(in, weights, bias);
     for (int idx = 0; idx < num_scale_vals; idx++) {
         int bias_scale_expected = scale_in * w_scales[idx];
         bias_scale_expected = (out_shift > 0)
@@ -483,11 +483,11 @@ mli_status mli_chk_depthwise_conv2d_hwc(
     fail |= MLI_CHECK(cfg->stride_width > 0, "Stride should be greater than zero");
     if (fail) return MLI_STATUS_BAD_FUNC_CFG;
 
-    int in_height = in->shape[FMAP_H_DIM_CHW];
-    int in_width = in->shape[FMAP_W_DIM_CHW];
+    int in_height = in->shape[FMAP_H_DIM_HWC];
+    int in_width = in->shape[FMAP_W_DIM_HWC];
     int out_width = CEIL_DIV(in_width + cfg->padding_left + cfg->padding_right - kernel_width + 1, cfg->stride_width);
     int out_height = CEIL_DIV(in_height + cfg->padding_top + cfg->padding_bottom - kernel_height + 1, cfg->stride_height);
-    int out_min_capacity = out_height * out_width * weights->shape[KRNL_DW_C_DIM_HWC] * mli_hlp_tensor_element_size(in);
+    unsigned int out_min_capacity = out_height * out_width * weights->shape[KRNL_DW_C_DIM_HWC] * mli_hlp_tensor_element_size(in);
 
     if (MLI_CHECK(out_min_capacity <= out->capacity, "capacity of output tensor is too small"))
         return MLI_STATUS_NOT_ENGH_MEM;
