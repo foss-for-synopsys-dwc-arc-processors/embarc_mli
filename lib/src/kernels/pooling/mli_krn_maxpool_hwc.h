@@ -125,7 +125,7 @@ static inline void __attribute__((always_inline)) maxpool_hwc_nopad(
     int in_width,
     int out_width,
     int out_height) {
-    mli_prv_fx_init_dsp_ctrl();
+
     // Phase 1: Process central part (without border effects - padding free)
     //=======================================================================
     if (in_height >= kernel_height && in_width >= kernel_width) {
@@ -188,7 +188,7 @@ static inline void __attribute__((always_inline)) maxpool_hwc_pad(
     int in_width,
     int out_width,
     int out_height) {
-    mli_prv_fx_init_dsp_ctrl();
+
     // Phase 1: Process central part (without border effects - padding free)
     //=======================================================================
     maxpool_hwc_nopad<io_T>(
