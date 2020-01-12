@@ -70,7 +70,6 @@ mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_generic(
     s8asym_quant_specific_params params;
     define_quant_params(in, weights, bias, out, &params);
     
-    
     rect_t cent_area;
     cent_area.row_beg = 0;
     cent_area.row_end = out_height;

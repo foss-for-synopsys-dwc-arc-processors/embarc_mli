@@ -419,7 +419,7 @@ static inline void __attribute__ ((always_inline)) mli_prv_clip_relu_store_outpu
         const int16_t val_max_limit) {
 
     accum72_t accu_scaled = fx_a72_mpy_q31(conv_out, quant_params->out_mul);
-    const int16_t out_no_offset = fx_q15_cast_nf_asl_rnd_a72(accu_scaled, quant_params->out_shift);
+    int16_t out_no_offset = fx_q15_cast_nf_asl_rnd_a72(accu_scaled, 64 - sizeof(int16_t) * 8 - quant_params->out_shift);
     int8_t out_val = mli_math_cast_fx<int16_t, int8_t>(mli_math_add_fx(out_no_offset, quant_params->out_offset), 0);
     // no saturation needed because ReLu clipping is done in 32bit domain.
     // ReLU truncation

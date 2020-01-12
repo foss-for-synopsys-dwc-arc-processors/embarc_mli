@@ -71,25 +71,18 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_generic(
     s8asym_quant_specific_params params;
     define_quant_params(in, weights, bias, out, &params);
     
-    //=======================================================================
     rect_t cent_area;
     cent_area.row_beg = 0;
     cent_area.row_end = out_height;
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
-#if 0
-    depthwise_convolution2D_hwc<int8_t, int8_t, int32_t, mli_acc32_t>(
-                in_ftrs, wt, bs, out_ftrs, &cent_area, params,
-                (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height,
-                out_ch, out_width, out_height, kernel_height, kernel_width,
-                stride_height, stride_width, padding_top, padding_left);
-#else
+
     depthwise_convolution2D_hwc_krnpad<int8_t, int8_t, int32_t, mli_acc32_t>(
                 in_ftrs, wt, bs, out_ftrs, &cent_area, params,
                 (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height,
                 out_ch, out_width, out_height, kernel_height, kernel_width,
                 stride_height, stride_width, padding_top, padding_left, padding_bot, padding_right);        
-#endif
+
     // fill output tensor parameters
     out->rank = in->rank;
     out->shape[FMAP_H_DIM_HWC] = out_height;
