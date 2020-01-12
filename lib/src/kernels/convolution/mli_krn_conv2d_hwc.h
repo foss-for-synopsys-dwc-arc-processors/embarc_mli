@@ -73,20 +73,29 @@ static void depthwise_convolution2D_hwc_nopad(
     
     const int amount_rows = row_end - row_begin;
     const int amount_columns = clmn_end - clmn_begin;
-    const int compensation_row_loop = in_ch * stride_height * in_width * filters * amount_rows;
-    const int compensation_clmn_loop = stride_width * filters * in_ch * amount_columns;
+    const int in_compensation_row_loop = in_ch * stride_height * in_width * filters * amount_rows;
+    const int out_compensation_row_loop = out_ch * out_width * filters * amount_rows;
+    const int in_compensation_clmn_loop = stride_width * filters * in_ch * amount_columns;
+    const int out_compensation_clmn_loop = filters * out_ch * amount_columns;
+
     // Next loops is subject for vectorization.
     // Cases with channel multiplier (rare) and without might be vectorized slightly different.
     // without channel multiplier - similar to pooling
     // with channel multiplier - similar to convolution with HWCN layout for weights
     MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T) __restrict)in_ftrs;
-    in_ptr += in_ch * filters * // common coefs
-        (row_begin * stride_height * in_width  +// setup init coef for moving to row
-        clmn_begin * stride_width) ;         // setup init coef for moving to colum;
+    MLI_PTR(io_T) __restrict out_ptr = (MLI_PTR(io_T) __restrict)out_ftrs;
 
+    in_ptr += in_ch * filters *                     // common coefs
+        (row_begin * stride_height * in_width  +    // setup init coef for moving to row
+        clmn_begin * stride_width) ;                // setup init coef for moving to colum;
+    
+    out_ptr += out_ch * filters *       // common coefs
+            (row_begin * out_width  +   // setup init coef for moving to row
+            clmn_begin) ;               // setup init coef for moving to colum;
+    int out_ch_idx = 0;
     for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
         for (int ch_mult_idx = 0; ch_mult_idx < ch_mul; ch_mult_idx++) {
-            const int out_ch_idx = in_ch_idx * ch_mul + ch_mult_idx;
+            //int out_ch_idx = in_ch_idx * ch_mul + ch_mult_idx;
             const w_T *w_ptr = weights + mli_prv_calc_index<LAYOUT_HWCN>(
                     kernel_height, kernel_width, /*channels =*/ 1, 
                     out_ch, 0, 0, 0, out_ch_idx);
@@ -95,18 +104,10 @@ static void depthwise_convolution2D_hwc_nopad(
             acc_T global_other_additives = zp_add;
             global_other_additives += weights_additive(w_ptr, 0x0, &quant_params, kernel_width, kernel_height, 
                     krn_col_step, krn_row_step);
-            global_other_additives += bias_additive(biases[out_ch_idx], 0x0, &quant_params);
+            global_other_additives += bias_additive(*biases, 0x0, &quant_params);
 
             for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
                 for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
-                    // in_ptr += mli_prv_calc_index<LAYOUT_HWCN>(in_height, in_width, in_ch, filters,
-                    //                                                 h_idx_in, w_idx_in, in_ch_idx);
-                    // inline int mli_prv_calc_index(int height = 1, int width = 1, int channels = 1, int filters = 1,
-                    //                   int h_idx = 0, int w_idx = 0, int c_idx = 0, int f_idx = 0) {
-                    // in_ptr += in_ch * (h_idx_in * in_width * filters + // move to row
-                    //   w_idx_in * filters) +         // move to column
-                    //   in_ch_idx * filters;                    // move to channel
-                    //   f_idx = 0 at that moment;                               // move to filter
                     acc_T other_additives  = in_additive(in_ptr, global_other_additives, &quant_params, 
                                                 kernel_width, kernel_height, in_col_step, in_row_step);
                     // Convolution core. Here calculations performes in a unfolded expression way: 
@@ -123,16 +124,32 @@ static void depthwise_convolution2D_hwc_nopad(
                     // built-in ReLU Applying and result writing 
                     out_val = MIN(out_val, val_max_limit);
                     out_val = MAX(out_val, val_min_limit);
-                    io_T* out_ptr = out_ftrs;
-                    int out_idx = mli_prv_calc_index<LAYOUT_HWCN>(out_height, out_width, out_ch, filters,
-                                                                       H_idx, W_idx, out_ch_idx);
-                    out_ptr += out_idx;
+                    // inline int mli_prv_calc_index(int height = 1, int width = 1, int channels = 1, int filters = 1,
+                    //                   int h_idx = 0, int w_idx = 0, int c_idx = 0, int f_idx = 0) {
+                    // in_ptr += in_ch * (h_idx_in * in_width * filters + // move to row
+                    //   w_idx_in * filters) +         // move to column
+                    //   in_ch_idx * filters;                    // move to channel
+                    //   f_idx = 0 at that moment;                               // move to filter
+                    
+                    // int out_idx = mli_prv_calc_index<LAYOUT_HWCN>(out_height, out_width, out_ch, filters,
+                                                                    //    H_idx, W_idx, out_ch_idx);
+                    // out_ptr += H_idx * out_width * out_ch * filters + // move to row
+                    //   W_idx * out_ch * filters +         // move to column
+                    //   out_ch_idx * filters +                    // move to channel
+                    //   f_idx;                               // move to filter
+
+                    // out_ptr += out_idx;
                     *out_ptr = out_val;
                     in_ptr += stride_width * filters * in_ch;
+                    out_ptr += filters * out_ch;
                 } // for W_idx
-                in_ptr += in_ch * stride_height * in_width * filters - compensation_clmn_loop;
+                in_ptr += in_ch * stride_height * in_width * filters - in_compensation_clmn_loop;
+                out_ptr += out_ch * out_width * filters - out_compensation_clmn_loop;
             } // for H_idx
-            in_ptr += 1 - compensation_row_loop;
+            in_ptr -= in_compensation_row_loop;
+            out_ptr += 1 - out_compensation_row_loop;
+            out_ch_idx++;//TODO: try to aboid this pointer
+            biases++;
         } // for ch_mult_idx
         in_ptr += filters;
     } // for in_ch_idx
