@@ -10,55 +10,17 @@
 #ifndef _MLI_PRV_QUANT_H_
 #define _MLI_PRV_QUANT_H_
 
-#include <assert.h>
-
 #include "mli_check.h"
 #include "mli_debug.h"
 #include "mli_helpers_api.h"
 #include "mli_math_macros.h"
-#include "mli_types.h"
 #include "mli_private_types.h"
+#include "mli_types.h"
+
 #include <arc/arc_intrinsics.h>
-
-
-typedef enum {
-    FX_MATH = 0,
-    S8ASYM_MATH
-} mli_math_type;
-
-
-
-/**
- * @brief Quantization specific parameter to perform correct calculations in s8asym quantization scheme.
- */
-struct s8asym_quant_specific_params {
-    int16_t in_offset;
-    int16_t out_offset;
-    int16_t weights_offset;
-
-    const int16_t *weight_scales;
-    int16_t in_to_out_scales_ratio;
-    
-    int32_t out_mul;
-    int out_shift;
-};
-
-/**
- * @brief Quantization specific parameter to perform correct calculations in MLI_FX quantization scheme.
- */
-struct fx_quant_specific_params {
-    int bias_shift;
-    int out_shift;
-};
-
-typedef union _conv_math_params {
-    fx_quant_specific_params fx;
-
-    s8asym_quant_specific_params i8asym;
-} conv_math_params;
+#include <assert.h>
 
 static const int kPreDivShiftS16 = 14;
-
 //=========================================================================
 //
 // Declaration

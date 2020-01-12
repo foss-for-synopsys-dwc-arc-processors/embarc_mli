@@ -14,14 +14,12 @@
 
 #include "mli_config.h"
 #include "mli_debug.h"
-#include "mli_prv_load_store.h"
 #include "mli_math.h"
 #include "mli_math_macros.h"
+#include "mli_prv_load_store.h"
 #include "mli_private_types.h"
 
-#ifdef _ARC
 #include <arc/arc_intrinsics.h>
-#endif
 
 #if ((_ARCVER >= 0x50) && (_ARCVER < 0x60))
 #define _ARCVER_ARCv2HS
@@ -408,6 +406,25 @@ static inline void __attribute__ ((always_inline)) mli_prv_clip_relu_store_outpu
     conv_out = MAX(conv_out, val_min_limit);
 
     int8_t out_val = (int8_t) conv_out;
+
+    // Write result
+    *o_ptr = out_val;
+}
+
+static inline void __attribute__ ((always_inline)) mli_prv_clip_relu_store_output(
+        MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
+        int32_t conv_out,
+        const s8asym_quant_specific_params* quant_params,
+        const int16_t val_min_limit,
+        const int16_t val_max_limit) {
+
+    accum72_t accu_scaled = fx_a72_mpy_q31(conv_out, quant_params->out_mul);
+    const int16_t out_no_offset = fx_q15_cast_nf_asl_rnd_a72(accu_scaled, quant_params->out_shift);
+    int8_t out_val = mli_math_cast_fx<int16_t, int8_t>(mli_math_add_fx(out_no_offset, quant_params->out_offset), 0);
+    // no saturation needed because ReLu clipping is done in 32bit domain.
+    // ReLU truncation
+    out_val = MIN(out_val, val_max_limit);
+    out_val = MAX(out_val, val_min_limit);
 
     // Write result
     *o_ptr = out_val;
