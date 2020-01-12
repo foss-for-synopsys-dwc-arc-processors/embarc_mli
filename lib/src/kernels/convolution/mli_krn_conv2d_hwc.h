@@ -165,6 +165,16 @@ static void depthwise_convolution2D_hwc(
     const int ch_mul = out_ch / in_ch;
     const int filters = 1;
 
+    const int amount_rows = row_end - row_begin;
+    const int amount_columns = clmn_end - clmn_begin;
+    const int out_compensation_row_loop = out_ch * out_width * filters * amount_rows;
+    const int out_compensation_clmn_loop = filters * out_ch * amount_columns;
+    int out_ch_idx = 0;
+
+    MLI_CONV_OUT_PTR(io_T) __restrict out_ptr = (MLI_CONV_OUT_PTR(io_T) __restrict)out_ftrs;
+    out_ptr += out_ch * filters *       // common coefs
+            (row_begin * out_width  +   // setup init coef for moving to row
+            clmn_begin) ;               // setup init coef for moving to colum;
 
         // Next loops is subject for vectorization.
         // Cases with channel multiplier (rare) and without might be vectorized slightly different.
@@ -172,7 +182,6 @@ static void depthwise_convolution2D_hwc(
         // with channel multiplier - similar to convolution with HWCN layout for weights
     for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
         for (int ch_mult_idx = 0; ch_mult_idx < ch_mul; ch_mult_idx++) {
-            const int out_ch_idx = in_ch_idx * ch_mul + ch_mult_idx;
             adjust_quant_params(&quant_params, out_ch_idx);
             for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
                 for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
@@ -207,16 +216,18 @@ static void depthwise_convolution2D_hwc(
                     accu = dotprod2D(in_ptr, w_ptr, accu, clmns, rows,
                                         in_col_step, in_row_step, krn_col_step, krn_row_step);
                     accu = weights_additive(w_ptr, accu, &quant_params, clmns, rows, krn_col_step, krn_row_step);
-                    accu = bias_additive(biases[out_ch_idx], accu, &quant_params);
+                    accu = bias_additive(*biases, accu, &quant_params);
                     accu = mli_math_add_fx(accu, other_additives);
-                    
-                    MLI_CONV_OUT_PTR(io_T) __restrict out_ptr = (MLI_CONV_OUT_PTR(io_T) __restrict)out_ftrs;
-                    out_ptr += mli_prv_calc_index<LAYOUT_HWCN>(out_height, out_width, out_ch, filters,
-                                                                       H_idx, W_idx, out_ch_idx);
+
                     // Cast result to output type
                     mli_prv_clip_relu_store_output(out_ptr, accu, &quant_params, val_min_limit, val_max_limit);
+                    out_ptr += filters * out_ch;
                 } // for W_idx
+                out_ptr += out_ch * out_width * filters - out_compensation_clmn_loop;
             } // for H_idx
+            out_ptr += 1 - out_compensation_row_loop;
+            biases++;
+            out_ch_idx++;
         } // for ch_mult_idx
     } // for in_ch_idx
 }
