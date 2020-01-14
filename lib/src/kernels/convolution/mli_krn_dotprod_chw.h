@@ -47,6 +47,35 @@ static inline acc_T dotprod2D(
 }
 
 template < typename in_T, typename w_T, typename acc_T >
+static inline void dotprod2D_v_experiment (
+        const MLI_PTR(in_T) __restrict in, 
+        const MLI_PTR(w_T) __restrict krn,
+        acc_T * accu,        
+        const int width,
+        const int height,
+        int in_col_step,
+        int in_row_step,
+        int kern_col_step,
+        int kern_row_step) {
+    in_row_step -= width * in_col_step;
+    kern_row_step -= width * kern_col_step;
+
+#pragma clang loop unroll(full)
+    for (int32_t row = 0; row < height; row++) {
+#pragma clang loop unroll(full)
+        for (int32_t clmn = 0; clmn < width; clmn++) {
+            v2q15_t k_v = mli_prv_load_2_samples(krn);
+            krn += kern_col_step;
+            v2q15_t tx = mli_prv_load_2_samples(in);
+            in += in_col_step;
+            mli_math_mac_fx_vec2 (accu, tx, k_v);
+        }
+        in += in_row_step;
+        krn += kern_row_step;
+    }
+}
+
+template < typename in_T, typename w_T, typename acc_T >
 static inline void __attribute__ ((always_inline)) dotprod2D (
         const MLI_PTR (in_T) __restrict in,
         const MLI_PTR (w_T) __restrict krn,

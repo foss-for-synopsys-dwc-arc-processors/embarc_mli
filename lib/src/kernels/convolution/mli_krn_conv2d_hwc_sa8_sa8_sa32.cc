@@ -76,11 +76,11 @@ mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_generic(
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
 
-    convolution2D_hwc<int8_t, int8_t, int32_t, mli_acc32_t>(
+    convolution2D_hwc_krnpad<int8_t, int8_t, int32_t, mli_acc32_t>(
                 in_ftrs, wt, bs, out_ftrs, &cent_area, params,
                 (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height, 
                 out_ch, out_width, out_height, kernel_height, kernel_width,
-                stride_height, stride_width, padding_top, padding_left);
+                stride_height, stride_width, padding_top, padding_left, padding_bot, padding_right);
 
     // fill output tensor parameters
     out->rank = in->rank;
