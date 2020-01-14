@@ -235,12 +235,12 @@ static inline void __attribute__ ((always_inline)) mli_prv_clip_and_store_output
 v2i8_t FXAPI fx_v2q7_cast_nf_asl_rnd_v2a40(v2accum40_t VQ, int I) {
   v2q15_t r;
   int sel = I & 255;
-  sel |= 0x0300;	// Vector accumulator select
-  sel |= 0x0400;	// Saturation enable
-  sel |= 0x0800;	// Signed
-  sel |= 0x1000;	// Round using DSP_CTRL.RM
-  sel |= (3<<14);	// Round at byte: 8b
-  sel |= (0<<16);	// Clear PA bit sensitive, NO extra shift
+  sel |= 0x0300;    // Vector accumulator select
+  sel |= 0x0400;    // Saturation enable
+  sel |= 0x0800;    // Signed
+  sel |= 0x1000;    // Round using DSP_CTRL.RM
+  sel |= (3<<14);   // Round at byte: 8b
+  sel |= (0<<16);   // Clear PA bit sensitive, NO extra shift
   r = (v2q15_t) __v2acc40_getacc( VQ.q, sel );
   return __builtin_convertvector((r >> 8), v2i8_t);
 }
@@ -704,6 +704,19 @@ static inline void __attribute__ ((always_inline)) mli_prv_load_mac(
     *accu = _dmachbl(*in, (uint8_t)k);
 }
 
+static inline void __attribute__ ((always_inline)) mli_prv_load_mac(
+        int32_t * accu,
+        const MLI_PTR(int8_t) __restrict in,
+        const int16_t k) {
+    /* casting the in pointer to unsigned to make sure no sign extension happens on the load
+     * this way the 'second' byte contains zeros. and it is safe to use dmac.
+     * the sign extension happens inside the dmachbl operation.
+     * for the load of 'k' we need sign extension because we need a 16bit value.
+     * the value of the second half is don't care because it will be multiplied by 0
+     */
+    *accu = _dmachbl(k, *(MLI_PTR(uint8_t)) in);
+}
+
 static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec2(
         accum40_t * accu, 
         const MLI_PTR(int16_t) __restrict in, 
@@ -741,6 +754,25 @@ static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec4(acc_T *
     k += 2;
     mli_prv_load_mac_vec2(accu, in, k);
 }
+
+//=========================================================================
+//  Multiply and accumulate for 'in' vector (4 elements) with constant k 
+//  
+//  constant k  repilcate to v2k
+//  count the sum: 
+//        accu = accu + v2k.h1*sext(four8bitvalues.b1) + v2k.h0*sext(four8bitvalues.b0) 
+//        accu = accu + v2k.h1*sext(four8bitvalues.b3) + v2k.h0*sext(four8bitvalues.b2) 
+//=========================================================================
+static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec4(
+        int32_t * accu,
+        const MLI_PTR(int8_t) __restrict in,
+        const int16_t k) {
+    v2q15_t v2k=fx_replic_v2q15((q15_t) k);
+    int32_t four8bitvalues = *(MLI_PTR(int32_t)) in;
+    *accu = _dmachbl((int32_t)v2k,four8bitvalues);
+    *accu = _dmachbm((int32_t)v2k,four8bitvalues);
+}
+
 
 #ifdef __Xdsp_wide
 static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec4(
