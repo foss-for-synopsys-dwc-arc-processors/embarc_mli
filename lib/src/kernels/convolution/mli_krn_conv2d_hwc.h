@@ -67,8 +67,6 @@ static void depthwise_convolution2D_hwc_nopad(
     const int krn_row_step = kernel_width * out_ch; /*channels == 1 */
     const int ch_mul = out_ch / in_ch;
 
-    const int kernel_size = kernel_width * kernel_height;
-        
     const int amount_rows = row_end - row_begin;
     const int amount_columns = clmn_end - clmn_begin;
     const int in_compensation_row_loop = in_ch * stride_height * in_width * filters * amount_rows;
@@ -93,9 +91,9 @@ static void depthwise_convolution2D_hwc_nopad(
             (row_begin * out_width  +   // setup init coef for moving to row
             clmn_begin) ;               // setup init coef for moving to colum;
     
-    for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
-        for (int ch_mult_idx = 0; ch_mult_idx < ch_mul; ch_mult_idx++) {
-            adjust_quant_params(&quant_params, out_ch_idx);
+    for (int ch_mult_idx = 0; ch_mult_idx < ch_mul; ch_mult_idx++) {
+        adjust_quant_params(&quant_params, out_ch_idx);
+        for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
 
             acc_T global_other_additives = weights_additive(w_ptr, 0x0, &quant_params, kernel_width, kernel_height, 
                     krn_col_step, krn_row_step);
@@ -120,14 +118,14 @@ static void depthwise_convolution2D_hwc_nopad(
                 in_ptr += in_ch * stride_height * in_width * filters - in_compensation_clmn_loop;
                 out_ptr += out_ch * out_width * filters - out_compensation_clmn_loop;
             } // for H_idx
-            in_ptr -= in_compensation_row_loop;
+            in_ptr +=filters - in_compensation_row_loop;
             out_ptr += 1 - out_compensation_row_loop;
             out_ch_idx++;
             w_ptr++;
             biases++;
-        } // for ch_mult_idx
-        in_ptr += filters;
-    } // for in_ch_idx
+        } // for in_ch_idx
+    } // for ch_mult_idx
+
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
@@ -171,10 +169,10 @@ static void depthwise_convolution2D_hwc(
             (row_begin * out_width  +   // setup init coef for moving to row
             clmn_begin) ;               // setup init coef for moving to colum;
 
-        // Next loops is subject for vectorization.
-        // Cases with channel multiplier (rare) and without might be vectorized slightly different.
-        // without channel multiplier - similar to pooling
-        // with channel multiplier - similar to convolution with HWCN layout for weights
+    // Next loops is subject for vectorization.
+    // Cases with channel multiplier (rare) and without might be vectorized slightly different.
+    // without channel multiplier - similar to pooling
+    // with channel multiplier - similar to convolution with HWCN layout for weights
     for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
         for (int ch_mult_idx = 0; ch_mult_idx < ch_mul; ch_mult_idx++) {
             adjust_quant_params(&quant_params, out_ch_idx);
@@ -418,20 +416,31 @@ static void convolution2D_hwc_nopad(
     for (int out_ch_idx = 0; out_ch_idx < out_ch; out_ch_idx++) {
         adjust_quant_params(&quant_params, out_ch_idx);
         const int bias_add = bias_additive(biases[out_ch_idx], 0x0, &quant_params);
+        int weights_add = 0;
+        MLI_PTR(w_T) __restrict w_ptr_local = (MLI_PTR(w_T) __restrict)weights + out_ch_idx * kernel_height * kernel_width * in_ch;
+        for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
+            weights_add = weights_additive(w_ptr_local++, weights_add, &quant_params, kernel_width, kernel_height, krn_col_step, krn_row_step);
+        }
 
         for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
             for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
                 MLI_PTR(w_T) __restrict w_ptr = (MLI_PTR(w_T) __restrict)weights;
                 w_ptr += out_ch_idx * kernel_height * kernel_width * in_ch;
                 acc_T accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
-                for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
+                v2accum40_t v2accu40 = {0, 0};
+                for (int in_ch_idx = 0; in_ch_idx < in_ch -1; in_ch_idx+=2) {
+                    dotprod2D_hwc_v<io_T, w_T, v2accum40_t>(in_ptr, w_ptr, &v2accu40, kernel_width, kernel_height,
+                                        in_col_step, in_row_step, krn_col_step, krn_row_step);
+                    in_ptr+= 2;
+                    w_ptr += 2;
+                }
+                if (in_ch & 1) {
                     accu = dotprod2D(in_ptr, w_ptr, accu, kernel_width, kernel_height,
                                         in_col_step, in_row_step, krn_col_step, krn_row_step);
-                    accu = weights_additive(w_ptr, accu, &quant_params, kernel_width, kernel_height, krn_col_step, krn_row_step);
                     in_ptr++;
                     w_ptr++;
                 }
-                accu += bias_add;
+                accu += bias_add + weights_add + fx_q31_cast_nf_a40(fx_get_v2a40(v2accu40, 0)) + fx_q31_cast_nf_a40(fx_get_v2a40(v2accu40, 1));
                 
                 // Cast result to output type, apply built-in ReLU Applying and write result
                 mli_prv_clip_relu_store_output(out_ptr, accu, &quant_params, val_min_limit, val_max_limit);

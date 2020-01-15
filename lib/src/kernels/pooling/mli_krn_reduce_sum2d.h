@@ -263,7 +263,7 @@ inline acc_T reduce_sum(
 //==========================================================================
 template <typename io_T, typename acc_T>
 inline acc_T reduce_sum2D(
-        const io_T* __restrict in,
+        const MLI_PTR(io_T) __restrict in,
         const int16_t mul,
         acc_T accu,
 

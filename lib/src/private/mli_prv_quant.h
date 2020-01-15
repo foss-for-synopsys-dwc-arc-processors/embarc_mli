@@ -106,7 +106,7 @@ inline void adjust_quant_params(fx_quant_specific_params* in, int krn_idx) {
 // dot_prod_asym = dot_prod_gen + w_add + in_add + zp_add + bias_add
 //==========================================================================
 template <typename w_T, typename acc_T, typename quant_T>
-inline acc_T weights_additive(const w_T* __restrict, acc_T init_accum,
+inline acc_T weights_additive(const MLI_PTR(w_T) __restrict, acc_T init_accum,
                               const quant_T*,
                               const int, const int, int, int) {
     // By default and for FX quantization scheme, weights additive isn't required
@@ -115,7 +115,7 @@ inline acc_T weights_additive(const w_T* __restrict, acc_T init_accum,
 
 template <>
 inline mli_acc32_t weights_additive(
-        const int8_t* __restrict weights, mli_acc32_t init_accum,
+        const MLI_PTR(int8_t) __restrict weights, mli_acc32_t init_accum,
         const s8asym_quant_specific_params* quant_params,
         const int width,  const int height, int col_step, int row_step) {
     // returns -(in_zero_point * cumsum(weights)) For S8ASYM 
@@ -130,7 +130,7 @@ inline mli_acc32_t weights_additive(
 // dot_prod_asym = dot_prod_gen + w_add + in_add + zp_add + bias_add
 //==========================================================================
 template <typename in_T, typename acc_T, typename quant_T>
-inline acc_T in_additive(const in_T* __restrict, acc_T init_accum, const quant_T* quant_params,
+inline acc_T in_additive(const MLI_PTR(in_T) __restrict, acc_T init_accum, const quant_T* quant_params,
                               const int, const int, int, int) {
     // By default and for FX quantization scheme, input additive isn't required
     return init_accum;
@@ -138,7 +138,7 @@ inline acc_T in_additive(const in_T* __restrict, acc_T init_accum, const quant_T
 
 template <>
 inline mli_acc32_t in_additive(
-        const int8_t* __restrict in, mli_acc32_t init_accum,
+        const MLI_PTR(int8_t) __restrict in, mli_acc32_t init_accum,
         const s8asym_quant_specific_params* quant_params,
         const int width, const int height, int col_step, int row_step) {
     // returns -(wights_zero_point * cumsum(input)) For S8ASYM 

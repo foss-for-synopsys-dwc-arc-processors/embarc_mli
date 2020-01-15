@@ -23,8 +23,8 @@
  ******************************************************************************/
 template <typename io_T, typename w_T, typename acc_T>
 static inline acc_T dotprod2D(
-        const io_T* __restrict in,
-        const w_T*  __restrict krn,
+        const MLI_PTR(io_T) __restrict in,
+        const MLI_PTR(w_T)  __restrict krn,
         acc_T accu,
         const int width,
         const int height,
