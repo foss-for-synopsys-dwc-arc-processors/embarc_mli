@@ -7,8 +7,8 @@
 *
 */
 
-#ifndef _MLI_KRN_DOTPROD_CHW_H_
-#define _MLI_KRN_DOTPROD_CHW_H_
+#ifndef _MLI_KRN_DOTPROD_H_
+#define _MLI_KRN_DOTPROD_H_
 
 #include "mli_config.h"
 #include "mli_debug.h"
@@ -47,7 +47,7 @@ static inline acc_T dotprod2D(
 }
 
 template < typename in_T, typename w_T, typename acc_T >
-static inline void dotprod2D_v_experiment (
+static inline void dotprod2D_hwc_v (
         const MLI_PTR(in_T) __restrict in, 
         const MLI_PTR(w_T) __restrict krn,
         acc_T * accu,        
@@ -539,4 +539,4 @@ static inline void __attribute__ ((always_inline)) dotprod2D_v (
 #endif
 }
 
-#endif // _MLI_KRN_DOTPROD_CHW_H_
+#endif // _MLI_KRN_DOTPROD_H_
