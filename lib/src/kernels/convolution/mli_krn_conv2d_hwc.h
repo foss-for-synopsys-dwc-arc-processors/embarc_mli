@@ -39,7 +39,7 @@
 // Depthwise convolution 2D template
 //========================================================
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static void depthwise_convolution2D_hwc_nopad(
+static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc_nopad(
         const MLI_PTR(io_T) __restrict in_ftrs,
         const MLI_PTR(w_T)  __restrict weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -73,6 +73,13 @@ static void depthwise_convolution2D_hwc_nopad(
     const int out_compensation_row_loop = out_ch * out_width * filters * amount_rows;
     const int in_compensation_clmn_loop = stride_width * filters * in_ch * amount_columns;
     const int out_compensation_clmn_loop = filters * out_ch * amount_columns;
+    const int in_increment_clmn_loop = stride_width * filters * in_ch;
+    const int out_increment_clmn_loop = filters * out_ch;
+    const int in_increment_row_loop = in_ch * stride_height * in_width * filters - in_compensation_clmn_loop;
+    const int out_increment_row_loop = out_ch * out_width * filters  - out_compensation_clmn_loop;
+    const int in_increment_in_ch_loop = filters - in_compensation_row_loop;
+    const int out_increment_in_ch_loop = 1 - out_compensation_row_loop;
+
 
     // Next loops is subject for vectorization.
     // Cases with channel multiplier (rare) and without might be vectorized slightly different.
@@ -81,6 +88,7 @@ static void depthwise_convolution2D_hwc_nopad(
     MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T) __restrict)in_ftrs;
     MLI_CONV_OUT_PTR(io_T) __restrict out_ptr = (MLI_CONV_OUT_PTR(io_T) __restrict)out_ftrs;
     MLI_PTR(w_T) __restrict w_ptr = (MLI_PTR(w_T) __restrict)weights;
+    MLI_PTR(w_T) __restrict w_ptr_local = (MLI_PTR(w_T) __restrict)weights;
     int out_ch_idx = 0;
 
     in_ptr += in_ch * filters *                     // common coefs
@@ -104,22 +112,22 @@ static void depthwise_convolution2D_hwc_nopad(
                     // Convolution core. Here calculations performes in a unfolded expression way: 
                     // out_val = (x-x_zp)*(w) + b) = -sum_i(w*x_zp) + sum(x*w) + b
                     //============================================
-                    acc_T accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
-                    accu = dotprod2D(in_ptr, w_ptr, accu, kernel_width, kernel_height,
+                    acc_T accu = global_other_additives;
+                    accu = dotprod2D(in_ptr, &w_ptr_local[in_ch_idx], accu, kernel_width, kernel_height,
                                         in_col_step, in_row_step, krn_col_step, krn_row_step);
-                    accu = mli_math_add_fx(accu, global_other_additives);
-                    
+                    // accu = mli_math_add_fx(accu, global_other_additives);
+
                     // Cast result to output type
                     mli_prv_clip_relu_store_output(out_ptr, accu, &quant_params, val_min_limit, val_max_limit);
 
-                    in_ptr += stride_width * filters * in_ch;
-                    out_ptr += filters * out_ch;
+                    in_ptr += in_increment_clmn_loop;
+                    out_ptr += out_increment_clmn_loop;
                 } // for W_idx
-                in_ptr += in_ch * stride_height * in_width * filters - in_compensation_clmn_loop;
-                out_ptr += out_ch * out_width * filters - out_compensation_clmn_loop;
+                in_ptr += in_increment_row_loop;
+                out_ptr += out_increment_row_loop;
             } // for H_idx
-            in_ptr +=filters - in_compensation_row_loop;
-            out_ptr += 1 - out_compensation_row_loop;
+            in_ptr += in_increment_in_ch_loop;
+            out_ptr += out_increment_in_ch_loop;
             out_ch_idx++;
             w_ptr++;
             biases++;
@@ -129,7 +137,7 @@ static void depthwise_convolution2D_hwc_nopad(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static void depthwise_convolution2D_hwc(
+static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc(
         const MLI_PTR(io_T) __restrict in_ftrs,
         const MLI_PTR(w_T)  __restrict weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -220,7 +228,7 @@ static void depthwise_convolution2D_hwc(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static void depthwise_convolution2D_hwc_krnpad(
+static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc_krnpad(
         const MLI_PTR(io_T) __restrict in_ftrs,
         const MLI_PTR(w_T)  __restrict weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -276,7 +284,7 @@ static void depthwise_convolution2D_hwc_krnpad(
 // Convolution 2D template
 //========================================================
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static void convolution2D_hwc(
+static __attribute__ ((always_inline)) void convolution2D_hwc(
         const MLI_PTR(io_T) __restrict in_ftrs,
         const MLI_PTR(w_T)  __restrict weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -373,7 +381,7 @@ static void convolution2D_hwc(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static void convolution2D_hwc_nopad(
+static __attribute__ ((always_inline)) void convolution2D_hwc_nopad(
         const MLI_PTR(io_T) __restrict in_ftrs,
         const MLI_PTR(w_T)  __restrict weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -456,7 +464,7 @@ static void convolution2D_hwc_nopad(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static void convolution2D_hwc_krnpad(
+static __attribute__ ((always_inline)) void convolution2D_hwc_krnpad(
         const MLI_PTR(io_T) __restrict in_ftrs,
         const MLI_PTR(w_T)  __restrict weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -512,7 +520,7 @@ static void convolution2D_hwc_krnpad(
 // Convolution 2D template
 //========================================================
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static void pointwise_convolution2D_hwc(
+static __attribute__ ((always_inline)) void pointwise_convolution2D_hwc(
         const MLI_PTR(io_T) __restrict in_ftrs,
         const MLI_PTR(w_T)  __restrict weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -605,7 +613,7 @@ static void pointwise_convolution2D_hwc(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static void pointwise_convolution2D_hwc_nopad(
+static __attribute__ ((always_inline)) void pointwise_convolution2D_hwc_nopad(
         const MLI_PTR(io_T) __restrict in_ftrs,
         const MLI_PTR(w_T)  __restrict weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -684,7 +692,7 @@ static void pointwise_convolution2D_hwc_nopad(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static void pointwise_convolution2D_hwc_krnpad(
+static __attribute__ ((always_inline)) void pointwise_convolution2D_hwc_krnpad(
         const MLI_PTR(io_T) __restrict in_ftrs,
         const MLI_PTR(w_T)  __restrict weights,
         const MLI_PTR(b_T)  __restrict biases,

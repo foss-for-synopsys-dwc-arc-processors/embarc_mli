@@ -27,29 +27,29 @@ static const int kPreDivShiftS16 = 14;
 //
 //=========================================================================
 template <typename quant_T>
-inline void define_quant_params(const mli_tensor* in, const mli_tensor* weights, const mli_tensor* bias,
+inline void __attribute__ ((always_inline)) define_quant_params(const mli_tensor* in, const mli_tensor* weights, const mli_tensor* bias,
                                 const mli_tensor* out, quant_T* params);
 
 template <typename quant_T>
-inline void adjust_quant_params(quant_T* params, int krn_idx = 0);
+inline void __attribute__ ((always_inline)) adjust_quant_params(quant_T* params, int krn_idx = 0);
 
 template <typename w_T, typename acc_T, typename quant_T>
-inline acc_T weights_additive(const w_T* __restrict weights, acc_T init_accum, const quant_T* quant_params,
+inline acc_T __attribute__ ((always_inline)) weights_additive(const w_T* __restrict weights, acc_T init_accum, const quant_T* quant_params,
                               const int width, const int height = 1, int col_step = 1, int row_step = 1);
 
 template <typename in_T, typename acc_T, typename quant_T>
-inline acc_T in_additive(const in_T* __restrict in, acc_T init_accum, const quant_T* quant_params,
+inline acc_T __attribute__ ((always_inline)) in_additive(const in_T* __restrict in, acc_T init_accum, const quant_T* quant_params,
                               const int width, const int height = 1, int col_step = 1, int row_step = 1);
 
 template <typename acc_T, typename quant_T>
-inline acc_T zp_additive(const quant_T* quant_params, acc_T init_accum,
+inline acc_T __attribute__ ((always_inline)) zp_additive(const quant_T* quant_params, acc_T init_accum,
                         const int mac_serias_len);
 
 template <typename b_T, typename acc_T, typename quant_T>
-inline acc_T bias_additive(const b_T bias, acc_T init_accum, const quant_T* quant_params);
+inline acc_T __attribute__ ((always_inline)) bias_additive(const b_T bias, acc_T init_accum, const quant_T* quant_params);
 
 template <typename o_T, typename acc_T, typename quant_T>
-inline o_T result_cast(const acc_T acc, const quant_T* quant_params);
+inline o_T __attribute__ ((always_inline)) result_cast(const acc_T acc, const quant_T* quant_params);
 
 //=========================================================================
 //
@@ -61,14 +61,14 @@ inline o_T result_cast(const acc_T acc, const quant_T* quant_params);
 // Operating with quantization params set
 //==========================================================================
 template <>
-inline void define_quant_params(const mli_tensor* in, const mli_tensor* weights, const mli_tensor* bias,
+inline void __attribute__ ((always_inline)) define_quant_params(const mli_tensor* in, const mli_tensor* weights, const mli_tensor* bias,
                                 const mli_tensor* out, fx_quant_specific_params* params) {
     params->bias_shift = mli_prv_calc_shift(in, weights, bias);
     params->out_shift = mli_prv_calc_shift(in, weights, out); 
 }
 
 template <>
-inline void define_quant_params(const mli_tensor *in, const mli_tensor  *weights, const mli_tensor  *bias,
+inline void __attribute__ ((always_inline)) define_quant_params(const mli_tensor *in, const mli_tensor  *weights, const mli_tensor  *bias,
                                 const mli_tensor   *out, s8asym_quant_specific_params* params) {
     params->in_offset = in->el_params.asym.zero_point.i16;
     params->out_offset = out->el_params.asym.zero_point.i16;
@@ -89,14 +89,14 @@ inline void define_quant_params(const mli_tensor *in, const mli_tensor  *weights
 }
 
 template <>
-inline void adjust_quant_params(s8asym_quant_specific_params* params, int krn_idx) {
+inline void __attribute__ ((always_inline)) adjust_quant_params(s8asym_quant_specific_params* params, int krn_idx) {
     // out multiplyer can be different across one of axis (per axis quantization for s8asym)
     params->out_mul = params->in_to_out_scales_ratio * params->weight_scales[krn_idx];
     return; 
 }
 
 template <>
-inline void adjust_quant_params(fx_quant_specific_params* in, int krn_idx) {
+inline void __attribute__ ((always_inline)) adjust_quant_params(fx_quant_specific_params* in, int krn_idx) {
     // No need to adjust something during calculations for MLI_FX specific quantization
     return; 
 }
@@ -106,7 +106,7 @@ inline void adjust_quant_params(fx_quant_specific_params* in, int krn_idx) {
 // dot_prod_asym = dot_prod_gen + w_add + in_add + zp_add + bias_add
 //==========================================================================
 template <typename w_T, typename acc_T, typename quant_T>
-inline acc_T weights_additive(const MLI_PTR(w_T) __restrict, acc_T init_accum,
+inline acc_T __attribute__ ((always_inline)) weights_additive(const MLI_PTR(w_T) __restrict, acc_T init_accum,
                               const quant_T*,
                               const int, const int, int, int) {
     // By default and for FX quantization scheme, weights additive isn't required
@@ -114,7 +114,7 @@ inline acc_T weights_additive(const MLI_PTR(w_T) __restrict, acc_T init_accum,
 }
 
 template <>
-inline mli_acc32_t weights_additive(
+inline mli_acc32_t __attribute__ ((always_inline)) weights_additive(
         const MLI_PTR(int8_t) __restrict weights, mli_acc32_t init_accum,
         const s8asym_quant_specific_params* quant_params,
         const int width,  const int height, int col_step, int row_step) {
@@ -130,14 +130,14 @@ inline mli_acc32_t weights_additive(
 // dot_prod_asym = dot_prod_gen + w_add + in_add + zp_add + bias_add
 //==========================================================================
 template <typename in_T, typename acc_T, typename quant_T>
-inline acc_T in_additive(const MLI_PTR(in_T) __restrict, acc_T init_accum, const quant_T* quant_params,
+inline acc_T __attribute__ ((always_inline)) in_additive(const MLI_PTR(in_T) __restrict, acc_T init_accum, const quant_T* quant_params,
                               const int, const int, int, int) {
     // By default and for FX quantization scheme, input additive isn't required
     return init_accum;
 }
 
 template <>
-inline mli_acc32_t in_additive(
+inline mli_acc32_t __attribute__ ((always_inline)) in_additive(
         const MLI_PTR(int8_t) __restrict in, mli_acc32_t init_accum,
         const s8asym_quant_specific_params* quant_params,
         const int width, const int height, int col_step, int row_step) {
@@ -155,7 +155,7 @@ inline mli_acc32_t in_additive(
 // dot_prod_asym = dot_prod_gen + w_add + in_add + zp_add + bias_add
 //==========================================================================
 template <typename acc_T, typename quant_T>
-inline acc_T zp_additive(const quant_T*, acc_T init_accum,
+inline acc_T __attribute__ ((always_inline)) zp_additive(const quant_T*, acc_T init_accum,
                         const int) {
     // By default (for FX quantization scheme) weights additive isn't required
     return init_accum;
@@ -163,7 +163,7 @@ inline acc_T zp_additive(const quant_T*, acc_T init_accum,
 
 
 template <>
-inline mli_acc32_t zp_additive(const s8asym_quant_specific_params* quant_params, mli_acc32_t init_accum,
+inline mli_acc32_t __attribute__ ((always_inline)) zp_additive(const s8asym_quant_specific_params* quant_params, mli_acc32_t init_accum,
                                const int mac_serias_len) {
     if (quant_params->weights_offset != 0 || quant_params->in_offset != 0)
         // Calculating (w_zp * in_zp * mac_serias_len) via reduce sum because of complexity with accum casts.
@@ -178,7 +178,7 @@ inline mli_acc32_t zp_additive(const s8asym_quant_specific_params* quant_params,
 // dot_prod_asym= dot_prod_gen + w_add + in_add + zp_add + bias_add
 //==========================================================================
 template <>
-inline mli_acc32_t bias_additive(
+inline mli_acc32_t __attribute__ ((always_inline)) bias_additive(
         const int8_t bias, mli_acc32_t init_accum, const fx_quant_specific_params* quant_params) {
     mli_acc32_t accu = mli_math_mul_fx<int8_t, mli_acc32_t>(bias, 1);
     accu = mli_math_acc_ashift_fx(accu, -quant_params->bias_shift);
@@ -186,13 +186,13 @@ inline mli_acc32_t bias_additive(
 }
 
 template <>
-inline mli_acc40_t bias_additive(
+inline mli_acc40_t __attribute__ ((always_inline)) bias_additive(
         const int16_t bias, mli_acc40_t init_accum, const fx_quant_specific_params* quant_params) {
     return mli_math_add_fx(init_accum, mli_math_cast_fx<int16_t, mli_acc40_t>(bias, -quant_params->bias_shift));
 }
 
 template <>
-inline mli_acc32_t bias_additive(
+inline mli_acc32_t __attribute__ ((always_inline)) bias_additive(
         const int32_t bias, mli_acc32_t init_accum, const s8asym_quant_specific_params* quant_params) {
     // For I8ASYM Bias is of the similar format as result accumulator.
     // To prevent saturation during dotproduct we add bias in the end. (saturate final result - not IR)
