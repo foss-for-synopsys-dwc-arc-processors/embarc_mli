@@ -27,10 +27,10 @@ file_template = "filetemplate.txt"
 file_header_template = "header_filetemplate.txt"
 function_group = "Convolution 2d"
 capital_header_file_name = "_MLI_KRN_CONV2D_SPEC_API_H_"
-output_header_file = "..\..\include\\api\mli_krn_conv2d_spec_api.h"
-output_file_chw_fx16 = "..\..\lib\src\kernels\convolution\mli_krn_conv2d_chw_fx16.cc"
-output_file_chw_fx8 = "..\..\lib\src\kernels\convolution\mli_krn_conv2d_chw_fx8.cc"
-output_file_chw_fx8w16d = "..\..\lib\src\kernels\convolution\mli_krn_conv2d_chw_fx8w16d.cc"
+output_header_file           = "..\..\include\\api\mli_krn_conv2d_spec_api.h"
+output_file_chw_fx16         = "..\..\lib\src\kernels\convolution\mli_krn_conv2d_chw_fx16.cc"
+output_file_chw_fx8          = "..\..\lib\src\kernels\convolution\mli_krn_conv2d_chw_fx8.cc"
+output_file_chw_fx8w16d      = "..\..\lib\src\kernels\convolution\mli_krn_conv2d_chw_fx8w16d.cc"
 output_file_hwc_sa8_sa8_sa32 = "..\..\lib\src\kernels\convolution\mli_krn_conv2d_hwc_sa8_sa8_sa32.cc"
 
 f_list_chw_fx16 = []
@@ -231,12 +231,77 @@ if "fx8w16d" in sys.argv or no_args:
     f.write(c.print_file(f_list_chw_fx8w16d, default_func_chw_fx8w16d, func_body_template_file_chw, file_template, include_list_chw, define_list))
     f.close()
 
+#------------------------------------------------------------
+# Create a list of specialization functions for SA8 SA8 SA32
+#------------------------------------------------------------
+
+fbase = ("krn", "depthwise_conv2d", "hwc", "sa8_sa8_sa32", f_args)
+
+corefunc = "convolution2D_hwc_krnpad"
+stride = 0
+kernel_range = range(2, 11)
+ch = 0
+f_list_hwc_sa8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
+
+corefunc = "convolution2D_hwc_nopad"
+stride = 0
+kernel_range = range(2, 11)
+ch = 0
+f_list_hwc_sa8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
+
+corefunc = "pointwise_convolution2D_hwc_nopad"
+stride = 0
+k = 1
+ch = 0
+f_list_hwc_sa8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad")])
+
+corefunc = "pointwise_convolution2D_hwc_krnpad"
+stride = 0
+k = 1
+ch = 0
+f_list_hwc_sa8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad")])
+
+
+corefunc = "convolution2D_hwc_krnpad"
+stride = 0
+kernel_range = [0, 2, 3]
+ch = 0
+f_list_hwc_sa8.extend([Func(fbase, 1, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
+f_list_hwc_sa8.extend([Func(fbase, k, 1, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
+corefunc = "convolution2D_hwc_nopad"
+f_list_hwc_sa8.extend([Func(fbase, 1, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
+f_list_hwc_sa8.extend([Func(fbase, k, 1, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
+
+corefunc = "convolution2D_hwc_krnpad"
+default_func_hwc = Func(fbase, 0, 0, 0, 0, 0, corefunc, generic=True)
+f_list_hwc_sa8.append(default_func_hwc)
+
+#------------------------------------------------------------
+# Generate the HWC output file
+#------------------------------------------------------------
+c = Codegen()
+c.set_wrapper_variables({'stride_w' : "cfg->stride_width", 'stride_h' : "cfg->stride_height"})
+c.set_wrapper_variables({'kernel_w' : "weights->shape[KRNL_DW_W_DIM_HWC]", 'kernel_h' : "weights->shape[KRNL_DW_H_DIM_HWC]"})
+c.set_wrapper_variables({'in_ch' : "in->shape[KRNL_DW_C_DIM_HWC]"})
+c.set_wrapper_variables({'padding_top' : "cfg->padding_top"})
+c.set_wrapper_variables({'padding_bot' : "cfg->padding_bottom"})
+c.set_wrapper_variables({'padding_left' : "cfg->padding_left"})
+c.set_wrapper_variables({'padding_right' : "cfg->padding_right"})
+c.set_wrapper_hierarchy(['stride_w', 'stride_h', 'kernel_w', 'kernel_h', 'in_ch', 'padding'])
+c.set_wrapper_if_tree(False)
+
+if "sa8_sa8_sa32" in sys.argv or no_args:
+    #Create SA8 HWC C output file
+    f = open(output_file_hwc_sa8_sa8_sa32, "wb")
+    f.write(c.print_file(f_list_hwc_sa8, default_func_hwc, func_body_template_file_hwc, file_template, include_list_hwc, define_list))
+    f.close()
+
 
 #------------------------------------------------------------
 # Generate the output header file
 #------------------------------------------------------------
 if "header" in sys.argv or no_args:
     fh = open(output_header_file, "wb")
-    fh.write(c.print_proto_file([f_list_chw_fx16, f_list_chw_fx8, f_list_chw_fx8w16d], function_group, capital_header_file_name, file_header_template))
+    fh.write(c.print_proto_file([f_list_chw_fx16, f_list_chw_fx8, f_list_chw_fx8w16d, f_list_hwc_sa8], function_group, capital_header_file_name, file_header_template))
     fh.close()
 
