@@ -29,7 +29,7 @@ extern "C" {
 
 #pragma Code(".mli_lib")
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x2_krnpad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k2x2_krnpad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -46,9 +46,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x2_krnpad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -121,7 +121,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x2_krnpad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x3_krnpad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k3x3_krnpad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -138,9 +138,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x3_krnpad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -213,7 +213,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x3_krnpad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k4x4_krnpad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k4x4_krnpad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -230,9 +230,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k4x4_krnpad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -305,7 +305,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k4x4_krnpad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k5x5_krnpad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k5x5_krnpad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -322,9 +322,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k5x5_krnpad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -397,7 +397,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k5x5_krnpad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k6x6_krnpad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k6x6_krnpad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -414,9 +414,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k6x6_krnpad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -489,7 +489,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k6x6_krnpad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k7x7_krnpad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k7x7_krnpad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -506,9 +506,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k7x7_krnpad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -581,7 +581,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k7x7_krnpad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k8x8_krnpad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k8x8_krnpad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -598,9 +598,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k8x8_krnpad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -673,7 +673,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k8x8_krnpad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k9x9_krnpad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k9x9_krnpad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -690,9 +690,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k9x9_krnpad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -765,7 +765,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k9x9_krnpad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k10x10_krnpad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k10x10_krnpad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -782,9 +782,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k10x10_krnpad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -857,7 +857,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k10x10_krnpad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x2_nopad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k2x2_nopad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -874,9 +874,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x2_nopad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -949,7 +949,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x2_nopad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x3_nopad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k3x3_nopad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -966,9 +966,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x3_nopad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -1041,7 +1041,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x3_nopad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k4x4_nopad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k4x4_nopad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -1058,9 +1058,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k4x4_nopad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -1133,7 +1133,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k4x4_nopad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k5x5_nopad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k5x5_nopad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -1150,9 +1150,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k5x5_nopad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -1225,7 +1225,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k5x5_nopad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k6x6_nopad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k6x6_nopad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -1242,9 +1242,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k6x6_nopad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -1317,7 +1317,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k6x6_nopad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k7x7_nopad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k7x7_nopad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -1334,9 +1334,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k7x7_nopad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -1409,7 +1409,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k7x7_nopad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k8x8_nopad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k8x8_nopad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -1426,9 +1426,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k8x8_nopad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -1501,7 +1501,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k8x8_nopad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k9x9_nopad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k9x9_nopad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -1518,9 +1518,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k9x9_nopad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -1593,7 +1593,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k9x9_nopad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k10x10_nopad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k10x10_nopad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -1610,9 +1610,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k10x10_nopad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -1685,7 +1685,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k10x10_nopad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x1_nopad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k1x1_nopad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -1702,9 +1702,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x1_nopad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -1777,7 +1777,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x1_nopad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x1_krnpad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k1x1_krnpad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -1794,9 +1794,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x1_krnpad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -1869,7 +1869,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x1_krnpad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1xn_krnpad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k1xn_krnpad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -1886,9 +1886,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1xn_krnpad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -1961,7 +1961,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1xn_krnpad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x2_krnpad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k1x2_krnpad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -1978,9 +1978,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x2_krnpad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -2053,7 +2053,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x2_krnpad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x3_krnpad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k1x3_krnpad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -2070,9 +2070,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x3_krnpad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -2145,7 +2145,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x3_krnpad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_knx1_krnpad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_knx1_krnpad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -2162,9 +2162,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_knx1_krnpad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -2237,7 +2237,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_knx1_krnpad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x1_krnpad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k2x1_krnpad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -2254,9 +2254,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x1_krnpad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -2329,7 +2329,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x1_krnpad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x1_krnpad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k3x1_krnpad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -2346,9 +2346,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x1_krnpad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -2421,7 +2421,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x1_krnpad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1xn_nopad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k1xn_nopad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -2438,9 +2438,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1xn_nopad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -2513,7 +2513,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1xn_nopad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x2_nopad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k1x2_nopad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -2530,9 +2530,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x2_nopad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -2605,7 +2605,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x2_nopad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x3_nopad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k1x3_nopad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -2622,9 +2622,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x3_nopad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -2697,7 +2697,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x3_nopad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_knx1_nopad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_knx1_nopad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -2714,9 +2714,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_knx1_nopad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -2789,7 +2789,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_knx1_nopad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x1_nopad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k2x1_nopad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -2806,9 +2806,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x1_nopad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -2881,7 +2881,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x1_nopad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x1_nopad(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k3x1_nopad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -2898,9 +2898,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x1_nopad(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -2973,7 +2973,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x1_nopad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_generic(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_generic(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -2990,9 +2990,9 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_generic(
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -3066,7 +3066,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_generic(
 }
 
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32(
+mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -3085,76 +3085,76 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32(
     if (
             (kernel_w == 10) && (kernel_h == 10) && 
             (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k10x10_nopad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k10x10_nopad(in, weights, bias, cfg, out);
     } else if (
             (kernel_w == 10) && (kernel_h == 10) && 
             (padding_top <= 4) && (padding_bot <= 5) && (padding_left <= 4) && (padding_right <= 5)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k10x10_krnpad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k10x10_krnpad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 9) && (kernel_h == 9) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k9x9_nopad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k9x9_nopad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 9) && (kernel_h == 9) && (padding_top <= 4) && (padding_bot <= 4) && (padding_left <= 4) && (padding_right <= 4)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k9x9_krnpad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k9x9_krnpad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 8) && (kernel_h == 8) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k8x8_nopad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k8x8_nopad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 8) && (kernel_h == 8) && (padding_top <= 3) && (padding_bot <= 4) && (padding_left <= 3) && (padding_right <= 4)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k8x8_krnpad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k8x8_krnpad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 7) && (kernel_h == 7) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k7x7_nopad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k7x7_nopad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 7) && (kernel_h == 7) && (padding_top <= 3) && (padding_bot <= 3) && (padding_left <= 3) && (padding_right <= 3)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k7x7_krnpad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k7x7_krnpad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 6) && (kernel_h == 6) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k6x6_nopad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k6x6_nopad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 6) && (kernel_h == 6) && (padding_top <= 2) && (padding_bot <= 3) && (padding_left <= 2) && (padding_right <= 3)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k6x6_krnpad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k6x6_krnpad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 5) && (kernel_h == 5) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k5x5_nopad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k5x5_nopad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 5) && (kernel_h == 5) && (padding_top <= 2) && (padding_bot <= 2) && (padding_left <= 2) && (padding_right <= 2)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k5x5_krnpad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k5x5_krnpad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 4) && (kernel_h == 4) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k4x4_nopad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k4x4_nopad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 4) && (kernel_h == 4) && (padding_top <= 1) && (padding_bot <= 2) && (padding_left <= 1) && (padding_right <= 2)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k4x4_krnpad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k4x4_krnpad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 3) && (kernel_h == 3) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x3_nopad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k3x3_nopad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 3) && (kernel_h == 3) && (padding_top <= 1) && (padding_bot <= 1) && (padding_left <= 1) && (padding_right <= 1)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x3_krnpad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k3x3_krnpad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 3) && (kernel_h == 1) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x1_nopad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k3x1_nopad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 3) && (kernel_h == 1) && (padding_top <= 0) && (padding_bot <= 0) && (padding_left <= 1) && (padding_right <= 1)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x1_krnpad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k3x1_krnpad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 2) && (kernel_h == 2) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x2_nopad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k2x2_nopad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 2) && (kernel_h == 2) && (padding_top <= 0) && (padding_bot <= 1) && (padding_left <= 0) && (padding_right <= 1)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x2_krnpad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k2x2_krnpad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 2) && (kernel_h == 1) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x1_nopad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k2x1_nopad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 2) && (kernel_h == 1) && (padding_top <= 0) && (padding_bot <= 0) && (padding_left <= 0) && (padding_right <= 1)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x1_krnpad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k2x1_krnpad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 1) && (kernel_h == 3) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x3_nopad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k1x3_nopad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 1) && (kernel_h == 3) && (padding_top <= 1) && (padding_bot <= 1) && (padding_left <= 0) && (padding_right <= 0)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x3_krnpad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k1x3_krnpad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 1) && (kernel_h == 2) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x2_nopad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k1x2_nopad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 1) && (kernel_h == 2) && (padding_top <= 0) && (padding_bot <= 1) && (padding_left <= 0) && (padding_right <= 0)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x2_krnpad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k1x2_krnpad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 1) && (kernel_h == 1) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x1_nopad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k1x1_nopad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 1) && (kernel_h == 1) && (padding_top <= 0) && (padding_bot <= 0) && (padding_left <= 0) && (padding_right <= 0)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x1_krnpad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k1x1_krnpad(in, weights, bias, cfg, out);
     } else if ((kernel_w == 1) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1xn_nopad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k1xn_nopad(in, weights, bias, cfg, out);
     } else if (kernel_w == 1) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1xn_krnpad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_k1xn_krnpad(in, weights, bias, cfg, out);
     } else if ((kernel_h == 1) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_knx1_nopad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_knx1_nopad(in, weights, bias, cfg, out);
     } else if (kernel_h == 1) {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_knx1_krnpad(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_knx1_krnpad(in, weights, bias, cfg, out);
     } else {
-        return mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_generic(in, weights, bias, cfg, out);
+        return mli_krn_conv2d_hwc_sa8_sa8_sa32_generic(in, weights, bias, cfg, out);
     }
 }
-char * mli_debug_krn_depthwise_conv2d_hwc_sa8_sa8_sa32(
+char * mli_debug_krn_conv2d_hwc_sa8_sa8_sa32(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -3173,73 +3173,73 @@ char * mli_debug_krn_depthwise_conv2d_hwc_sa8_sa8_sa32(
     if (
             (kernel_w == 10) && (kernel_h == 10) && 
             (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k10x10_nopad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k10x10_nopad";
     } else if (
             (kernel_w == 10) && (kernel_h == 10) && 
             (padding_top <= 4) && (padding_bot <= 5) && (padding_left <= 4) && (padding_right <= 5)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k10x10_krnpad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k10x10_krnpad";
     } else if ((kernel_w == 9) && (kernel_h == 9) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k9x9_nopad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k9x9_nopad";
     } else if ((kernel_w == 9) && (kernel_h == 9) && (padding_top <= 4) && (padding_bot <= 4) && (padding_left <= 4) && (padding_right <= 4)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k9x9_krnpad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k9x9_krnpad";
     } else if ((kernel_w == 8) && (kernel_h == 8) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k8x8_nopad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k8x8_nopad";
     } else if ((kernel_w == 8) && (kernel_h == 8) && (padding_top <= 3) && (padding_bot <= 4) && (padding_left <= 3) && (padding_right <= 4)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k8x8_krnpad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k8x8_krnpad";
     } else if ((kernel_w == 7) && (kernel_h == 7) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k7x7_nopad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k7x7_nopad";
     } else if ((kernel_w == 7) && (kernel_h == 7) && (padding_top <= 3) && (padding_bot <= 3) && (padding_left <= 3) && (padding_right <= 3)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k7x7_krnpad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k7x7_krnpad";
     } else if ((kernel_w == 6) && (kernel_h == 6) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k6x6_nopad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k6x6_nopad";
     } else if ((kernel_w == 6) && (kernel_h == 6) && (padding_top <= 2) && (padding_bot <= 3) && (padding_left <= 2) && (padding_right <= 3)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k6x6_krnpad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k6x6_krnpad";
     } else if ((kernel_w == 5) && (kernel_h == 5) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k5x5_nopad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k5x5_nopad";
     } else if ((kernel_w == 5) && (kernel_h == 5) && (padding_top <= 2) && (padding_bot <= 2) && (padding_left <= 2) && (padding_right <= 2)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k5x5_krnpad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k5x5_krnpad";
     } else if ((kernel_w == 4) && (kernel_h == 4) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k4x4_nopad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k4x4_nopad";
     } else if ((kernel_w == 4) && (kernel_h == 4) && (padding_top <= 1) && (padding_bot <= 2) && (padding_left <= 1) && (padding_right <= 2)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k4x4_krnpad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k4x4_krnpad";
     } else if ((kernel_w == 3) && (kernel_h == 3) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x3_nopad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k3x3_nopad";
     } else if ((kernel_w == 3) && (kernel_h == 3) && (padding_top <= 1) && (padding_bot <= 1) && (padding_left <= 1) && (padding_right <= 1)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x3_krnpad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k3x3_krnpad";
     } else if ((kernel_w == 3) && (kernel_h == 1) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x1_nopad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k3x1_nopad";
     } else if ((kernel_w == 3) && (kernel_h == 1) && (padding_top <= 0) && (padding_bot <= 0) && (padding_left <= 1) && (padding_right <= 1)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x1_krnpad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k3x1_krnpad";
     } else if ((kernel_w == 2) && (kernel_h == 2) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x2_nopad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k2x2_nopad";
     } else if ((kernel_w == 2) && (kernel_h == 2) && (padding_top <= 0) && (padding_bot <= 1) && (padding_left <= 0) && (padding_right <= 1)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x2_krnpad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k2x2_krnpad";
     } else if ((kernel_w == 2) && (kernel_h == 1) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x1_nopad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k2x1_nopad";
     } else if ((kernel_w == 2) && (kernel_h == 1) && (padding_top <= 0) && (padding_bot <= 0) && (padding_left <= 0) && (padding_right <= 1)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x1_krnpad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k2x1_krnpad";
     } else if ((kernel_w == 1) && (kernel_h == 3) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x3_nopad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k1x3_nopad";
     } else if ((kernel_w == 1) && (kernel_h == 3) && (padding_top <= 1) && (padding_bot <= 1) && (padding_left <= 0) && (padding_right <= 0)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x3_krnpad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k1x3_krnpad";
     } else if ((kernel_w == 1) && (kernel_h == 2) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x2_nopad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k1x2_nopad";
     } else if ((kernel_w == 1) && (kernel_h == 2) && (padding_top <= 0) && (padding_bot <= 1) && (padding_left <= 0) && (padding_right <= 0)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x2_krnpad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k1x2_krnpad";
     } else if ((kernel_w == 1) && (kernel_h == 1) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x1_nopad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k1x1_nopad";
     } else if ((kernel_w == 1) && (kernel_h == 1) && (padding_top <= 0) && (padding_bot <= 0) && (padding_left <= 0) && (padding_right <= 0)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x1_krnpad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k1x1_krnpad";
     } else if ((kernel_w == 1) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1xn_nopad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k1xn_nopad";
     } else if (kernel_w == 1) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1xn_krnpad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_k1xn_krnpad";
     } else if ((kernel_h == 1) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_knx1_nopad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_knx1_nopad";
     } else if (kernel_h == 1) {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_knx1_krnpad";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_knx1_krnpad";
     } else {
-        return (char*)"mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_generic";
+        return (char*)"mli_krn_conv2d_hwc_sa8_sa8_sa32_generic";
     }
 }
 

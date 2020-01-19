@@ -235,7 +235,7 @@ if "fx8w16d" in sys.argv or no_args:
 # Create a list of specialization functions for SA8 SA8 SA32
 #------------------------------------------------------------
 
-fbase = ("krn", "depthwise_conv2d", "hwc", "sa8_sa8_sa32", f_args)
+fbase = ("krn", "conv2d", "hwc", "sa8_sa8_sa32", f_args)
 
 corefunc = "convolution2D_hwc_krnpad"
 stride = 0
