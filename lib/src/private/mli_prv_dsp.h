@@ -751,6 +751,14 @@ static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec2(
     *accu = _dmachbl((int32_t) mli_prv_load_2_samples(in), two8bitvalues);
 }
 
+static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec2(
+        accum40_t * accu, 
+        const MLI_PTR(int8_t) in, 
+        const MLI_PTR(int8_t) k) {
+
+    *accu = fx_a40_dmac_v2q15(*accu, mli_prv_load_2_samples(in), mli_prv_load_2_samples(k));
+}
+
 template < typename in_T, typename w_T, typename acc_T > 
 static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec4(acc_T * accu, MLI_PTR(in_T) in, MLI_PTR(w_T) k) {
     mli_prv_load_mac_vec2(accu, in, k);

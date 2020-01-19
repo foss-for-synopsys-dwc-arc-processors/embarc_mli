@@ -76,6 +76,33 @@ static void __attribute__ ((always_inline)) dotprod2D_hwc_v (
 }
 
 template < typename in_T, typename w_T, typename acc_T >
+static void __attribute__ ((always_inline)) dotprod2D_hwc_d (
+        const MLI_PTR(in_T) __restrict in, 
+        const MLI_PTR(w_T) __restrict krn,
+        accum40_t * accu,        
+        const int width,
+        const int height,
+        int in_col_step,
+        int in_row_step,
+        int kern_col_step,
+        int kern_row_step) {
+    in_row_step -= width * in_col_step;
+    kern_row_step -= width * kern_col_step;
+
+#pragma clang loop unroll(full)
+    for (int32_t row = 0; row < height; row++) {
+#pragma clang loop unroll(full)
+        for (int32_t clmn = 0; clmn < width; clmn++) {
+            mli_prv_load_mac_vec2 (accu, in, krn);
+            krn += kern_col_step;
+            in += in_col_step;
+        }
+        in += in_row_step;
+        krn += kern_row_step;
+    }
+}
+
+template < typename in_T, typename w_T, typename acc_T >
 static void __attribute__ ((always_inline)) dotprod_d (
         const MLI_PTR(in_T) __restrict in, 
         const MLI_PTR(w_T) __restrict krn,
