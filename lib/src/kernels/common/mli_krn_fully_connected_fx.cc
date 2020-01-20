@@ -66,19 +66,6 @@ mli_status mli_krn_fully_connected_fx8w16d(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_fully_connected_sa8_sa8_sa8(
-        const mli_tensor* in,
-        const mli_tensor* weights,
-        const mli_tensor* bias,
-        mli_tensor* out) {
-    mli_status ret = mli_chk_fully_connected(in, weights, bias, out);
-    if (ret != MLI_STATUS_OK)
-        return ret;
-
-    fully_connected_prepare_and_run<int8_t, int8_t, int8_t>(in, weights, bias, out);
-    return MLI_STATUS_OK;
-}
-
 mli_status mli_krn_fully_connected_sa8_sa8_sa32(
         const mli_tensor* in,
         const mli_tensor* weights,
