@@ -271,13 +271,29 @@ inline acc_T __attribute__((always_inline)) reduce_sum2D(
         const int height,
         int in_col_step,
         int in_row_step) {
-    in_row_step -= width * in_col_step;
-    for (int row = 0; row < height; row++) {
+    if (width == 1){
+#pragma clang loop unroll(full)
+        for (int row = 0; row < height; row++) {
+            accu = mli_math_mac_fx(accu, mul, (*in));
+            in += in_row_step;
+        }
+    } else if( height == 1) {
+#pragma clang loop unroll(full)
         for (int clmn = 0; clmn < width; clmn++) {
             accu = mli_math_mac_fx(accu, mul, (*in));
             in += in_col_step;
         }
-        in += in_row_step;
+    } else {
+        in_row_step -= width * in_col_step;
+#pragma clang loop unroll(full)
+        for (int row = 0; row < height; row++) {
+#pragma clang loop unroll(full)
+            for (int clmn = 0; clmn < width; clmn++) {
+                accu = mli_math_mac_fx(accu, mul, (*in));
+                in += in_col_step;
+            }
+            in += in_row_step;
+        }
     }
     return accu;
 }

@@ -77,7 +77,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc_nopad(
     const int out_increment_clmn_loop = filters * out_ch;
     const int in_increment_row_loop = in_ch * stride_height * in_width * filters - in_compensation_clmn_loop;
     const int out_increment_row_loop = out_ch * out_width * filters  - out_compensation_clmn_loop;
-    const int in_increment_in_ch_loop = filters - in_compensation_row_loop;
+    // const int in_increment_in_ch_loop = filters - in_compensation_row_loop;
     const int out_increment_in_ch_loop = 1 - out_compensation_row_loop;
 
 
@@ -123,7 +123,7 @@ for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
                 out_ptr += out_increment_row_loop;
             } // for H_idx
             in_ptr -= in_compensation_row_loop;
-            out_ptr += 1 - out_compensation_row_loop;
+            out_ptr += out_increment_in_ch_loop;
             out_ch_idx++;
             w_ptr++;
             biases++;
@@ -174,37 +174,49 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc(
             (row_begin * out_width  +   // setup init coef for moving to row
             clmn_begin) ;               // setup init coef for moving to colum;
 
-    for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
-        for (int ch_mult_idx = 0; ch_mult_idx < ch_mul; ch_mult_idx++) {
-            adjust_quant_params(&quant_params, out_ch_idx);
+    for (int ch_mult_idx = 0; ch_mult_idx < ch_mul; ch_mult_idx++) {
+
+        adjust_quant_params(&quant_params, out_ch_idx);
+
+        for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {            
             for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
+                mli_compensations comp;
+                comp.top    = -MIN((H_idx * stride_height)- padding_top, 0);
+                comp.bottom = -MIN(in_height - ((H_idx * stride_height)- padding_top + kernel_height), 0);
+                const int rows = kernel_height - comp.top - comp.bottom;
+                const int h_idx_in = (H_idx * stride_height - padding_top + comp.top);
+                MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T) __restrict)in_ftrs 
+                        + h_idx_in * in_width * in_ch * filters                 // move to row
+                        // + w_idx * in_ch * filters                            // move to column
+                        + in_ch_idx * filters;                                  // move to channel
+                MLI_PTR(w_T) __restrict w_ptr = (MLI_PTR(w_T) __restrict)weights
+                        + comp.top * kernel_width * filters * out_ch            // move to row
+                        //+ comp.left * filters * out_ch                        // move to column
+                        + out_ch_idx;                                           // move to filter
+
+                int32_t prev_clmns = -1, prev_w_adds;
                 for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
                     // Define area of input and filter for convolution
                     // comp - compensation values for valid area definition
-                    mli_compensations comp = mli_prv_valid_area_compensations(
-                            H_idx, W_idx, in_height, in_width, kernel_height, kernel_width, 
-                            stride_height, stride_width, padding_left, padding_top);
-
-                    const int rows = kernel_height - comp.top - comp.bottom;
+                    // mli_compensations comp;
+                    comp.left   = -MIN((W_idx * stride_width)- padding_left, 0);
+                    comp.right  = -MIN(in_width - ((W_idx * stride_width)- padding_left + kernel_width), 0);
                     const int clmns = kernel_width - comp.right - comp.left;
-                    const int h_idx_in = (H_idx * stride_height - padding_top + comp.top);
                     const int w_idx_in = (W_idx * stride_width - padding_left + comp.left);
-                    MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T) __restrict)in_ftrs;
-
-                    in_ptr += mli_prv_calc_index<LAYOUT_HWCN>(in_height, in_width, in_ch, filters,
-                                                                  h_idx_in, w_idx_in, in_ch_idx);
-                    
-                    MLI_PTR(w_T) __restrict w_ptr = (MLI_PTR(w_T) __restrict)weights + mli_prv_calc_index<LAYOUT_HWCN>(
-                            kernel_height, kernel_width, filters, 
-                            out_ch, comp.top, comp.left, 0, out_ch_idx);
 
                     // Convolution core. Here calculations performes in a unfolded expression way: 
                     // out_val = (x-x_zp)*(w) + b) = -sum_i(w*x_zp) + sum(x*w) + b
                     //============================================
                     acc_T accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
-                    accu = dotprod2D(in_ptr, w_ptr, accu, clmns, rows,
+                    accu = dotprod2D(&in_ptr[w_idx_in * in_ch * filters], &w_ptr[comp.left * filters * out_ch], accu, clmns, rows,
                                         in_col_step, in_row_step, krn_col_step, krn_row_step);
-                    accu = weights_additive(w_ptr, accu, &quant_params, clmns, rows, krn_col_step, krn_row_step);
+                    
+                    // int32_t 
+                    if( prev_clmns != clmns) {
+                        prev_w_adds = weights_additive(&w_ptr[comp.left * filters * out_ch], 0x0, &quant_params, clmns, rows, krn_col_step, krn_row_step);
+                        prev_clmns = clmns;
+                    }
+                    accu = fx_add_q31(accu, prev_w_adds);
                     accu = bias_additive(*biases, accu, &quant_params);
 
                     // Cast result to output type
@@ -216,8 +228,8 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc(
             out_ptr += 1 - out_compensation_row_loop;
             biases++;
             out_ch_idx++;
-        } // for ch_mult_idx
-    } // for in_ch_idx
+        } // for in_ch_idx
+    } // for ch_mult_idx
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
