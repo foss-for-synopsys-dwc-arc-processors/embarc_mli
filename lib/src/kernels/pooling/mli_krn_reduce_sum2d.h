@@ -262,8 +262,8 @@ inline acc_T reduce_sum(
 // Two dimensional reducing summation across width and height 
 //==========================================================================
 template <typename io_T, typename acc_T>
-inline acc_T reduce_sum2D(
-        const io_T* __restrict in,
+inline acc_T __attribute__((always_inline)) reduce_sum2D(
+        const MLI_PTR(io_T) __restrict in,
         const int16_t mul,
         acc_T accu,
 
@@ -281,8 +281,5 @@ inline acc_T reduce_sum2D(
     }
     return accu;
 }
-
-
-
 
 #endif  //_MLI_KRN_REDUCE_SUM2D_CHW_H_
