@@ -81,10 +81,6 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc_nopad(
     const int out_increment_in_ch_loop = 1 - out_compensation_row_loop;
 
 
-    // Next loops is subject for vectorization.
-    // Cases with channel multiplier (rare) and without might be vectorized slightly different.
-    // without channel multiplier - similar to pooling
-    // with channel multiplier - similar to convolution with HWCN layout for weights
     MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T) __restrict)in_ftrs;
     MLI_CONV_OUT_PTR(io_T) __restrict out_ptr = (MLI_CONV_OUT_PTR(io_T) __restrict)out_ftrs;
     MLI_PTR(w_T) __restrict w_ptr = (MLI_PTR(w_T) __restrict)weights;
@@ -116,6 +112,7 @@ for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
                     accu = dotprod2D(in_ptr, w_ptr, accu, kernel_width, kernel_height,
                                         in_col_step, in_row_step, krn_col_step, krn_row_step);
                     accu = mli_math_add_fx(accu, global_other_additives);
+
                     // Cast result to output type
                     mli_prv_clip_relu_store_output(out_ptr, accu, &quant_params, val_min_limit, val_max_limit);
 
@@ -177,10 +174,6 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc(
             (row_begin * out_width  +   // setup init coef for moving to row
             clmn_begin) ;               // setup init coef for moving to colum;
 
-    // Next loops is subject for vectorization.
-    // Cases with channel multiplier (rare) and without might be vectorized slightly different.
-    // without channel multiplier - similar to pooling
-    // with channel multiplier - similar to convolution with HWCN layout for weights
     for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
         for (int ch_mult_idx = 0; ch_mult_idx < ch_mul; ch_mult_idx++) {
             adjust_quant_params(&quant_params, out_ch_idx);
@@ -246,8 +239,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc_krnpad(
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right ) {
 
-    // Phase 2: Process border part with more complex algorithm
-    // (usually significantly smaller part of computations)
+    //Krnpad case
     //=======================================================================
     if (padding_top || padding_left || padding_bot || padding_right) {
         depthwise_convolution2D_hwc<int8_t, int8_t, int32_t, mli_acc32_t>(
@@ -259,7 +251,8 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc_krnpad(
                 stride_height, stride_width,
                 padding_top, padding_left);
     } else {
-        // Phase 1: Process central part (without border effects - padding free)
+
+        //Nopad case
         //=======================================================================
         if (in_height >= kernel_height && in_width >= kernel_width) {
             rect_t area;
@@ -482,7 +475,7 @@ static __attribute__ ((always_inline)) void convolution2D_hwc_krnpad(
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right ) {
 
-    // Phase 2: Process border part with more complex algorithm
+    //Krnpad case
     // (usually significantly smaller part of computations)
     //=======================================================================
     if (padding_top || padding_left || padding_bot || padding_right) {
@@ -495,7 +488,7 @@ static __attribute__ ((always_inline)) void convolution2D_hwc_krnpad(
                 stride_height, stride_width,
                 padding_top, padding_left);
     } else {
-        // Phase 1: Process central part (without border effects - padding free)
+        //Nopad case
         //=======================================================================
         if (in_height >= kernel_height && in_width >= kernel_width) {
             rect_t area;
@@ -710,8 +703,7 @@ static __attribute__ ((always_inline)) void pointwise_convolution2D_hwc_krnpad(
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right ) {
 
-    // Phase 2: Process border part with more complex algorithm
-    // (usually significantly smaller part of computations)
+    //Krnpad case
     //=======================================================================
     if (padding_top || padding_left || padding_bot || padding_right) {
         pointwise_convolution2D_hwc<int8_t, int8_t, int32_t, mli_acc32_t>(
@@ -723,7 +715,7 @@ static __attribute__ ((always_inline)) void pointwise_convolution2D_hwc_krnpad(
                 stride_height, stride_width,
                 padding_top, padding_left);
     } else {
-        // Phase 1: Process central part (without border effects - padding free)
+        //Nopad case
         //=======================================================================
         if (in_height >= kernel_height && in_width >= kernel_width) {
             rect_t area;
