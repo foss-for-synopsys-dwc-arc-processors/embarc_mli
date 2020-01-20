@@ -117,10 +117,10 @@ static void __attribute__((always_inline)) fully_connected_prepare_and_run_fx(
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
 static inline void ip_op(
-        const io_T* __restrict in,
-        const w_T*  __restrict weights,
-        const b_T*  __restrict biases,
-              io_T* __restrict out,
+        const MLI_PTR(io_T) __restrict in,
+        const MLI_PTR(w_T)  __restrict weights,
+        const MLI_PTR(b_T)  __restrict biases,
+              MLI_CONV_OUT_PTR(io_T) __restrict out,
 
         const int in_elements,
         const int out_elements,
@@ -132,24 +132,81 @@ static inline void ip_op(
         const int16_t output_offset) {
     // Matrix-Vector multiplication
     //==============================
-    for (int o_idx = 0; o_idx < out_elements; o_idx++) {
-        int w_idx = o_idx * in_elements;
+    if (_Rarely(in_elements < 8)) {
+        for (int o_idx = 0; o_idx < out_elements; o_idx++) {
 
-        acc_T accu = mli_math_init_accu<b_T, acc_T, true>(biases[o_idx], bias_mul, bias_shift);
+            acc_T accu = mli_math_init_accu<b_T, acc_T, true>(biases[o_idx], bias_mul, bias_shift);
 
-        for (int i_idx = 0; i_idx < in_elements; i_idx++, w_idx++){
-            accu = mli_math_mac_fx(accu, in[i_idx], weights[w_idx]);
-            accu = mli_math_mac_fx(accu, (int16_t)-input_offset, weights[w_idx]);
+            for (int i_idx = 0; i_idx < in_elements; i_idx++){
+                mli_prv_load_mac(&accu, in++, weights);
+                mli_prv_load_mac(&accu, weights, (const int16_t)-input_offset);
+                weights++;
+            }
+            in -= in_elements;
+            accu = mli_math_scale_mul<acc_T, true>(accu, out_mul);
+
+            // adding the output offset needs to happen after the output mul and output shift
+            // but before the cast to the output container size.
+            // because the cast and shift are combined in one function, the output offset is
+            // added before, and multiplied with 1<< out_shift to compensate.
+            accu = mli_math_mac_fx(accu, (int16_t)(1<<out_shift), (io_T)output_offset);
+            out[o_idx] = mli_math_acc_cast_fx<io_T, acc_T> (accu, out_shift);
         }
+    } else {
+        if ((in_elements & 0x3) == 0) {
+            for (int o_idx = 0; o_idx < out_elements; o_idx++) {
 
-        accu = mli_math_scale_mul<acc_T, true>(accu, out_mul);
+                acc_T accu = mli_math_init_accu<b_T, acc_T, true>(biases[o_idx], bias_mul, bias_shift);
+LOOP_PIPELINE_ENABLE
+                for (int i_idx = 0; i_idx < in_elements/4; i_idx++){
+                    mli_prv_load_mac_vec4(&accu, in, weights);
+                    in += 4;
+                    mli_prv_load_mac_vec4(&accu, weights, (const int16_t) -input_offset);
+                    weights += 4;
+                }
+                in -= in_elements;
+                
+                accu = mli_math_scale_mul<acc_T, true>(accu, out_mul);
 
-        // adding the output offset needs to happen after the output mul and output shift
-        // but before the cast to the output container size.
-        // because the cast and shift are combined in one function, the output offset is
-        // added before, and multiplied with 1<< out_shift to compensate.
-        accu = mli_math_mac_fx(accu, (int16_t)(1<<out_shift), (io_T)output_offset);
-        out[o_idx] = mli_math_acc_cast_fx<io_T, acc_T> (accu, out_shift);
+                // adding the output offset needs to happen after the output mul and output shift
+                // but before the cast to the output container size.
+                // because the cast and shift are combined in one function, the output offset is
+                // added before, and multiplied with 1<< out_shift to compensate.
+                accu = mli_math_mac_fx(accu, (int16_t)(1<<out_shift), (io_T)output_offset);
+                out[o_idx] = mli_math_acc_cast_fx<io_T, acc_T> (accu, out_shift);
+            }
+        } else {
+            for (int o_idx = 0; o_idx < out_elements; o_idx++) {
+
+            acc_T accu = mli_math_init_accu<b_T, acc_T, true>(biases[o_idx], bias_mul, bias_shift);
+
+            int odd_rest_of_inp_size = (in_elements & 0x3);
+            
+            for (int k = 0; k < odd_rest_of_inp_size; k++) {
+                mli_prv_load_mac(&accu, in++, weights);
+                mli_prv_load_mac(&accu, weights,  (const int16_t) -input_offset);
+                weights++;
+            }
+            
+            int even_inp_size = in_elements - odd_rest_of_inp_size;
+LOOP_PIPELINE_ENABLE           
+            for (int i_idx = 0; i_idx < even_inp_size/4; i_idx++){
+                mli_prv_load_mac_vec4(&accu, in, weights);
+                in += 4;
+                mli_prv_load_mac_vec4(&accu, weights, (const int16_t)-input_offset );
+                weights += 4;
+            }
+            in -= in_elements;
+            accu = mli_math_scale_mul<acc_T, true>(accu, out_mul);
+
+            // adding the output offset needs to happen after the output mul and output shift
+            // but before the cast to the output container size.
+            // because the cast and shift are combined in one function, the output offset is
+            // added before, and multiplied with 1<< out_shift to compensate.
+            accu = mli_math_mac_fx(accu, (int16_t)(1<<out_shift), (io_T)output_offset);
+            out[o_idx] = mli_math_acc_cast_fx<io_T, acc_T> (accu, out_shift);
+            }
+        }
     }
 }
 
@@ -159,12 +216,12 @@ static void fully_connected_prepare_and_run(
         const mli_tensor* weights,
         const mli_tensor* bias,
         mli_tensor* out) {
-    fx_init_dsp_ctrl();
+    mli_prv_fx_init_dsp_ctrl();
 
-    const io_T * in_ptr = static_cast<io_T *>(in->data);
-    const w_T * w_ptr = static_cast<w_T *>(weights->data);
-    const b_T * b_ptr = static_cast<b_T *>(bias->data);
-    io_T * out_ptr = static_cast<io_T *>(out->data);
+    const MLI_PTR(io_T) in_ptr = (MLI_PTR(io_T))(in->data);
+    const MLI_PTR(w_T)  w_ptr  = (MLI_PTR(w_T)) (weights->data);
+    const MLI_PTR(b_T)  b_ptr  = (MLI_PTR(b_T)) (bias->data);
+    MLI_CONV_OUT_PTR(io_T) out_ptr = (MLI_CONV_OUT_PTR(io_T)) (out->data);
 
     int ch_out = bias->shape[0];
     int in_sz = mli_prv_count_elem_num(in);
