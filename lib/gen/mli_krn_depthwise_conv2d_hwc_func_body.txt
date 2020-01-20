@@ -2,6 +2,8 @@
     if (ret != MLI_STATUS_OK)
         return ret;
 
+    mli_prv_fx_init_dsp_ctrl();
+
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
     int stride_height = cfg->stride_height;
@@ -67,8 +69,6 @@
     cent_area.row_end = out_height;
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
-
-    mli_prv_fx_init_dsp_ctrl();
 
     $core_name<$d_type, $w_type, $b_type, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,

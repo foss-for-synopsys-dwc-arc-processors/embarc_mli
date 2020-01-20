@@ -206,23 +206,20 @@ class Func:
             el_params = "fx.frac_bits"
             return (d_type, w_type, d_enum, el_params, b_type)
         if self.datatype == "sa8":
-            # TODO: Code changes are required to reflect latest updates
             d_type = "int8_t"
             w_type = "int8_t"
             b_type = w_type
-            d_enum = "MLI_EL_INT_8"
+            d_enum = "MLI_EL_ASYM_I8"
             el_params = "asym"
             return (d_type, w_type, d_enum, el_params, b_type)
         if self.datatype == "sa8_sa8_sa32":
-            # TODO: Code changes are required to reflect latest updates
             d_type = "int8_t"
             w_type = "int8_t"
             b_type = "int32_t"
-            d_enum = "in->el_type"
+            d_enum = "MLI_EL_ASYM_I8"
             el_params = "asym"
             return (d_type, w_type, d_enum, el_params, b_type)
         print("ERROR: unsopported type: " + self.datatype)
-
     def print_body(self, template_file):
         f = open(template_file, "r")
         s = Template(f.read())

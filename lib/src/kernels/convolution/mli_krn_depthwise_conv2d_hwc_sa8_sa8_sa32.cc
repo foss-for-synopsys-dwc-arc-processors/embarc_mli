@@ -39,6 +39,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x2_krnpad(
     if (ret != MLI_STATUS_OK)
         return ret;
 
+    mli_prv_fx_init_dsp_ctrl();
+
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
     int stride_height = cfg->stride_height;
@@ -76,7 +78,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x2_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -104,8 +106,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x2_krnpad(
     cent_area.row_end = out_height;
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
-
-    mli_prv_fx_init_dsp_ctrl();
 
     depthwise_convolution2D_hwc_krnpad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
@@ -132,6 +132,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x3_krnpad(
     if (ret != MLI_STATUS_OK)
         return ret;
 
+    mli_prv_fx_init_dsp_ctrl();
+
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
     int stride_height = cfg->stride_height;
@@ -169,7 +171,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x3_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -197,8 +199,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x3_krnpad(
     cent_area.row_end = out_height;
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
-
-    mli_prv_fx_init_dsp_ctrl();
 
     depthwise_convolution2D_hwc_krnpad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
@@ -225,6 +225,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k4x4_krnpad(
     if (ret != MLI_STATUS_OK)
         return ret;
 
+    mli_prv_fx_init_dsp_ctrl();
+
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
     int stride_height = cfg->stride_height;
@@ -262,7 +264,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k4x4_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -290,8 +292,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k4x4_krnpad(
     cent_area.row_end = out_height;
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
-
-    mli_prv_fx_init_dsp_ctrl();
 
     depthwise_convolution2D_hwc_krnpad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
@@ -318,6 +318,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k5x5_krnpad(
     if (ret != MLI_STATUS_OK)
         return ret;
 
+    mli_prv_fx_init_dsp_ctrl();
+
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
     int stride_height = cfg->stride_height;
@@ -355,7 +357,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k5x5_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -384,8 +386,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k5x5_krnpad(
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
 
-    mli_prv_fx_init_dsp_ctrl();
-
     depthwise_convolution2D_hwc_krnpad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
             (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height, 
@@ -410,6 +410,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k6x6_krnpad(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
 
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
@@ -448,7 +450,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k6x6_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -477,8 +479,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k6x6_krnpad(
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
 
-    mli_prv_fx_init_dsp_ctrl();
-
     depthwise_convolution2D_hwc_krnpad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
             (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height, 
@@ -503,6 +503,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k7x7_krnpad(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
 
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
@@ -541,7 +543,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k7x7_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -570,8 +572,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k7x7_krnpad(
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
 
-    mli_prv_fx_init_dsp_ctrl();
-
     depthwise_convolution2D_hwc_krnpad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
             (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height, 
@@ -596,6 +596,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k8x8_krnpad(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
 
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
@@ -634,7 +636,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k8x8_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -663,8 +665,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k8x8_krnpad(
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
 
-    mli_prv_fx_init_dsp_ctrl();
-
     depthwise_convolution2D_hwc_krnpad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
             (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height, 
@@ -689,6 +689,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k9x9_krnpad(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
 
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
@@ -727,7 +729,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k9x9_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -756,8 +758,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k9x9_krnpad(
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
 
-    mli_prv_fx_init_dsp_ctrl();
-
     depthwise_convolution2D_hwc_krnpad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
             (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height, 
@@ -782,6 +782,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k10x10_krnpad(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
 
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
@@ -820,7 +822,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k10x10_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -849,8 +851,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k10x10_krnpad(
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
 
-    mli_prv_fx_init_dsp_ctrl();
-
     depthwise_convolution2D_hwc_krnpad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
             (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height, 
@@ -875,6 +875,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x2_nopad(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
 
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
@@ -913,7 +915,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x2_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -942,8 +944,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x2_nopad(
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
 
-    mli_prv_fx_init_dsp_ctrl();
-
     depthwise_convolution2D_hwc_nopad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
             (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height, 
@@ -968,6 +968,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x3_nopad(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
 
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
@@ -1006,7 +1008,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x3_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -1035,8 +1037,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x3_nopad(
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
 
-    mli_prv_fx_init_dsp_ctrl();
-
     depthwise_convolution2D_hwc_nopad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
             (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height, 
@@ -1061,6 +1061,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k4x4_nopad(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
 
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
@@ -1099,7 +1101,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k4x4_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -1128,8 +1130,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k4x4_nopad(
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
 
-    mli_prv_fx_init_dsp_ctrl();
-
     depthwise_convolution2D_hwc_nopad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
             (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height, 
@@ -1154,6 +1154,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k5x5_nopad(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
 
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
@@ -1192,7 +1194,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k5x5_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -1221,8 +1223,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k5x5_nopad(
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
 
-    mli_prv_fx_init_dsp_ctrl();
-
     depthwise_convolution2D_hwc_nopad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
             (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height, 
@@ -1247,6 +1247,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k6x6_nopad(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
 
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
@@ -1285,7 +1287,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k6x6_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -1314,8 +1316,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k6x6_nopad(
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
 
-    mli_prv_fx_init_dsp_ctrl();
-
     depthwise_convolution2D_hwc_nopad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
             (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height, 
@@ -1340,6 +1340,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k7x7_nopad(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
 
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
@@ -1378,7 +1380,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k7x7_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -1407,8 +1409,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k7x7_nopad(
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
 
-    mli_prv_fx_init_dsp_ctrl();
-
     depthwise_convolution2D_hwc_nopad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
             (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height, 
@@ -1433,6 +1433,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k8x8_nopad(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
 
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
@@ -1471,7 +1473,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k8x8_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -1500,8 +1502,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k8x8_nopad(
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
 
-    mli_prv_fx_init_dsp_ctrl();
-
     depthwise_convolution2D_hwc_nopad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
             (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height, 
@@ -1526,6 +1526,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k9x9_nopad(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
 
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
@@ -1564,7 +1566,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k9x9_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -1593,8 +1595,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k9x9_nopad(
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
 
-    mli_prv_fx_init_dsp_ctrl();
-
     depthwise_convolution2D_hwc_nopad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
             (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height, 
@@ -1619,6 +1619,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k10x10_nopad(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
 
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
@@ -1657,7 +1659,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k10x10_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -1685,8 +1687,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k10x10_nopad(
     cent_area.row_end = out_height;
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
-
-    mli_prv_fx_init_dsp_ctrl();
 
     depthwise_convolution2D_hwc_nopad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
@@ -1713,6 +1713,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1xn_krnpad(
     if (ret != MLI_STATUS_OK)
         return ret;
 
+    mli_prv_fx_init_dsp_ctrl();
+
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
     int stride_height = cfg->stride_height;
@@ -1750,7 +1752,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1xn_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -1778,8 +1780,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1xn_krnpad(
     cent_area.row_end = out_height;
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
-
-    mli_prv_fx_init_dsp_ctrl();
 
     depthwise_convolution2D_hwc_krnpad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
@@ -1806,6 +1806,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x2_krnpad(
     if (ret != MLI_STATUS_OK)
         return ret;
 
+    mli_prv_fx_init_dsp_ctrl();
+
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
     int stride_height = cfg->stride_height;
@@ -1843,7 +1845,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x2_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -1871,8 +1873,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x2_krnpad(
     cent_area.row_end = out_height;
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
-
-    mli_prv_fx_init_dsp_ctrl();
 
     depthwise_convolution2D_hwc_krnpad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
@@ -1899,6 +1899,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x3_krnpad(
     if (ret != MLI_STATUS_OK)
         return ret;
 
+    mli_prv_fx_init_dsp_ctrl();
+
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
     int stride_height = cfg->stride_height;
@@ -1936,7 +1938,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x3_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -1965,8 +1967,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x3_krnpad(
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
 
-    mli_prv_fx_init_dsp_ctrl();
-
     depthwise_convolution2D_hwc_krnpad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
             (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height, 
@@ -1991,6 +1991,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_knx1_krnpad(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
 
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
@@ -2029,7 +2031,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_knx1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -2058,8 +2060,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_knx1_krnpad(
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
 
-    mli_prv_fx_init_dsp_ctrl();
-
     depthwise_convolution2D_hwc_krnpad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
             (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height, 
@@ -2084,6 +2084,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x1_krnpad(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
 
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
@@ -2122,7 +2124,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -2151,8 +2153,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x1_krnpad(
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
 
-    mli_prv_fx_init_dsp_ctrl();
-
     depthwise_convolution2D_hwc_krnpad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
             (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height, 
@@ -2177,6 +2177,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x1_krnpad(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
 
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
@@ -2215,7 +2217,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x1_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -2244,8 +2246,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x1_krnpad(
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
 
-    mli_prv_fx_init_dsp_ctrl();
-
     depthwise_convolution2D_hwc_krnpad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
             (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height, 
@@ -2270,6 +2270,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1xn_nopad(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
 
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
@@ -2308,7 +2310,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1xn_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -2337,8 +2339,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1xn_nopad(
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
 
-    mli_prv_fx_init_dsp_ctrl();
-
     depthwise_convolution2D_hwc_nopad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
             (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height, 
@@ -2363,6 +2363,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x2_nopad(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
 
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
@@ -2401,7 +2403,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x2_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -2430,8 +2432,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x2_nopad(
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
 
-    mli_prv_fx_init_dsp_ctrl();
-
     depthwise_convolution2D_hwc_nopad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
             (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height, 
@@ -2456,6 +2456,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x3_nopad(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
 
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
@@ -2494,7 +2496,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x3_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -2523,8 +2525,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k1x3_nopad(
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
 
-    mli_prv_fx_init_dsp_ctrl();
-
     depthwise_convolution2D_hwc_nopad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
             (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height, 
@@ -2549,6 +2549,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_knx1_nopad(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
 
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
@@ -2587,7 +2589,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_knx1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -2616,8 +2618,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_knx1_nopad(
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
 
-    mli_prv_fx_init_dsp_ctrl();
-
     depthwise_convolution2D_hwc_nopad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
             (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height, 
@@ -2642,6 +2642,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x1_nopad(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
 
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
@@ -2680,7 +2682,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -2709,8 +2711,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k2x1_nopad(
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
 
-    mli_prv_fx_init_dsp_ctrl();
-
     depthwise_convolution2D_hwc_nopad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
             (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height, 
@@ -2735,6 +2735,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x1_nopad(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
 
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
@@ -2773,7 +2775,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -2802,8 +2804,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x1_nopad(
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
 
-    mli_prv_fx_init_dsp_ctrl();
-
     depthwise_convolution2D_hwc_nopad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
             (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height, 
@@ -2828,6 +2828,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_generic(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+
+    mli_prv_fx_init_dsp_ctrl();
 
     // Extract general conv2D parameters
     int stride_width = cfg->stride_width;
@@ -2866,7 +2868,7 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_generic(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = in->el_type;
+    out->el_type = MLI_EL_ASYM_I8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
@@ -2894,8 +2896,6 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_generic(
     cent_area.row_end = out_height;
     cent_area.clmn_beg = 0;
     cent_area.clmn_end = out_width;
-
-    mli_prv_fx_init_dsp_ctrl();
 
     depthwise_convolution2D_hwc_krnpad<int8_t, int8_t, int32_t, int32_t>(
             in_ftrs, wt, bs, out_ftrs, &cent_area, params,
