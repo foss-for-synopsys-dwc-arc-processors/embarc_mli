@@ -154,9 +154,13 @@ mli_status mli_mov_prepare(mli_mov_handle_t* h, const mli_tensor* src, const mli
         stride *= src->shape[i];
     }
     if (is_possible_in_single1d_transfer) {
-        int copy_size = mli_hlp_count_elem_num(src, 0);
-        copy_size *= mli_hlp_tensor_element_size(src);
-        retval = mli_mov_memcpy(h, src->data, dst->data, copy_size, dst->capacity);
+        // in case source and destination pointer match, and the transfer is a single 1d transfer, there
+        // is no need in actually copying the data.
+        if (src->data != dst->data) {
+            int copy_size = mli_hlp_count_elem_num(src, 0);
+            copy_size *= mli_hlp_tensor_element_size(src);
+            retval = mli_mov_memcpy(h, src->data, dst->data, copy_size, dst->capacity);
+        }
 
     } else {
         MLI_ASSERT(MLI_MAX_RANK == 4); // because 4 nested loops are hard coded below. add more loops if MLI_MAX_RANK is increased
