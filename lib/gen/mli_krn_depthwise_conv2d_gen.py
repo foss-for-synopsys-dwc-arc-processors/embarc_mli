@@ -172,20 +172,6 @@ if "fx8w16d" in sys.argv or no_args:
 
 fbase = ("krn", "depthwise_conv2d", "hwc", "sa8_sa8_sa32", f_args)
 
-#stride = any, channels == any
-# corefunc = "depthwise_convolution2D_hwc_nopad"
-# stride = 0
-# kernel_range = range(1,3)#range(1,6)
-# channel_range = [0]#[0,1,3,4,8]
-# f_list_hwc_sa8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range for ch in channel_range])
-
-# corefunc = "depthwise_convolution2D_hwc_krnpad"
-# stride = 0
-# kernel_range = range(1,3)#range(1,6)
-# channel_range = [0]#[0,1,3,4,8]
-# f_list_hwc_sa8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
-
-
 corefunc = "depthwise_convolution2D_hwc_krnpad"
 stride = 0
 kernel_range = range(2, 11)
