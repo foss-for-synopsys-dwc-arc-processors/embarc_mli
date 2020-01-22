@@ -213,7 +213,6 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc(
                     accu = dotprod2D(&in_ptr[w_idx_in * in_ch * filters], &w_ptr[comp.left * filters * out_ch], accu, clmns, rows,
                                         in_col_step, in_row_step, krn_col_step, krn_row_step);
                     
-                    // int32_t 
                     if( prev_clmns != clmns) {
                         prev_w_adds = weights_additive(&w_ptr[comp.left * filters * out_ch], 0x0, &quant_params, clmns, rows, krn_col_step, krn_row_step);
                         prev_clmns = clmns;
@@ -327,55 +326,62 @@ static __attribute__ ((always_inline)) void convolution2D_hwc(
             clmn_begin);                // setup init coef for moving to colum;
 
     for (int out_ch_idx = 0; out_ch_idx < out_ch; out_ch_idx++) {
+
         adjust_quant_params(&quant_params, out_ch_idx);
+        const int bias_add = bias_additive(biases[out_ch_idx], 0x0, &quant_params);
+
         for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
+
+            mli_compensations comp;
+            comp.top    = -MIN((H_idx * stride_height)- padding_top, 0);
+            comp.bottom = -MIN(in_height - ((H_idx * stride_height)- padding_top + kernel_height), 0);
+            const int rows = kernel_height - comp.top - comp.bottom;
+            const int h_idx_in = (H_idx * stride_height - padding_top + comp.top);
+            MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T) __restrict)in_ftrs 
+                    + h_idx_in * in_width * in_ch;   // move to row
+                    // + w_idx_in * in_ch              // move to column
+                    // + in_ch_idx;                    // move to channel
+            MLI_PTR(w_T) __restrict w_ptr = (MLI_PTR(w_T) __restrict)weights
+                    + out_ch_idx * kernel_height * kernel_width * in_ch     // move to filter
+                    + comp.top * kernel_width * in_ch;                      // move to row
+                    //+   comp.left * in_ch +                               // move to column
+                    //+   in_ch_idx;                                        // move to channel
+
+            int32_t prev_clmns = -1, prev_w_adds;
+
             for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
                 // Define area of input and filter for convolution
                 // comp - compensation values for valid area definition
-                mli_compensations comp = mli_prv_valid_area_compensations(
-                        H_idx, W_idx, in_height, in_width, kernel_height, kernel_width, 
-                        stride_height, stride_width, padding_left, padding_top);
+                comp.left   = -MIN((W_idx * stride_width)- padding_left, 0);
+                comp.right  = -MIN(in_width - ((W_idx * stride_width)- padding_left + kernel_width), 0);
 
-                const int rows = kernel_height - comp.top - comp.bottom;
                 const int clmns = kernel_width - comp.right - comp.left;
-                const int h_idx_in = (H_idx * stride_height - padding_top + comp.top);
                 const int w_idx_in = (W_idx * stride_width - padding_left + comp.left);
 
                 acc_T accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
+                if( prev_clmns != clmns) {
+                    prev_w_adds = 0;
+                    for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
+                        prev_w_adds = weights_additive(&w_ptr[comp.left * in_ch + in_ch_idx], prev_w_adds, &quant_params, 
+                                    clmns, rows, krn_col_step, krn_row_step);
+                    }
+                    prev_clmns = clmns;
+                }
+
                 v2accum40_t v2accu40 = {0, 0};
                 for (int in_ch_idx = 0; in_ch_idx < in_ch - 1; in_ch_idx+=2) {
-                    MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T) __restrict)in_ftrs;
-                    MLI_PTR(w_T) __restrict w_ptr = (MLI_PTR(w_T) __restrict)weights;
-                    in_ptr += mli_prv_calc_index<LAYOUT_HWC>(
-                            in_height, in_width, in_ch, /*filters =*/ 1, h_idx_in, w_idx_in, in_ch_idx);
-                    w_ptr += mli_prv_calc_index<LAYOUT_HWC>(
-                            kernel_height, kernel_width, in_ch, out_ch, comp.top, comp.left, in_ch_idx, out_ch_idx);
-                    dotprod2D_hwc_v<io_T, w_T, v2accum40_t>(in_ptr, w_ptr, &v2accu40, clmns, rows,
-                                            in_col_step, in_row_step, krn_col_step, krn_row_step);
-                    accu = weights_additive(w_ptr, accu, &quant_params, clmns, rows, krn_col_step, krn_row_step);
-
-                    in_ptr =  (MLI_PTR(io_T) __restrict)in_ftrs; 
-                    w_ptr =  (MLI_PTR(io_T) __restrict)weights; 
-                    in_ptr += mli_prv_calc_index<LAYOUT_HWC>(
-                            in_height, in_width, in_ch, /*filters =*/ 1, h_idx_in, w_idx_in, in_ch_idx + 1);
-                    w_ptr += mli_prv_calc_index<LAYOUT_HWC>(
-                            kernel_height, kernel_width, in_ch, out_ch, comp.top, comp.left, in_ch_idx + 1, out_ch_idx);
-                    accu = weights_additive(w_ptr, accu, &quant_params, clmns, rows, krn_col_step, krn_row_step);
+                    dotprod2D_hwc_v<io_T, w_T, v2accum40_t>(&in_ptr[w_idx_in * in_ch + in_ch_idx], 
+                            &w_ptr[comp.left * in_ch + in_ch_idx], &v2accu40, clmns, rows, in_col_step, in_row_step, 
+                            krn_col_step, krn_row_step);
                 }
                 if (in_ch & 1)
                 {
-                    const MLI_PTR (io_T) in_ptr = in_ftrs; 
-                    const MLI_PTR (w_T) w_ptr = weights; 
-                    in_ptr += mli_prv_calc_index<LAYOUT_HWC>(
-                            in_height, in_width, in_ch, /*filters =*/ 1, h_idx_in, w_idx_in, in_ch - 1);
-                    w_ptr += mli_prv_calc_index<LAYOUT_HWC>(
-                            kernel_height, kernel_width, in_ch, out_ch, comp.top, comp.left, in_ch - 1, out_ch_idx);
-                    accu = dotprod2D(in_ptr, w_ptr, accu, clmns, rows,
-                                    in_col_step, in_row_step, krn_col_step, krn_row_step);
-                    accu = weights_additive(w_ptr, accu, &quant_params, clmns, rows, krn_col_step, krn_row_step);
+                    accu = dotprod2D(&in_ptr[w_idx_in * in_ch + in_ch - 1], &w_ptr[comp.left * in_ch + in_ch - 1], 
+                            accu, clmns, rows, in_col_step, in_row_step, krn_col_step, krn_row_step);
                 }
                 accu += fx_q31_cast_nf_a40(fx_get_v2a40(v2accu40, 0)) + fx_q31_cast_nf_a40(fx_get_v2a40(v2accu40, 1));
-                accu = bias_additive(biases[out_ch_idx], accu, &quant_params);
+                accu += prev_w_adds;
+                accu += bias_add;
 
                 // Cast result to output type, apply built-in ReLU Applying and write result
                 mli_prv_clip_relu_store_output(out_ptr, accu, &quant_params, val_min_limit, val_max_limit);
