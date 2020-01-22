@@ -175,11 +175,14 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc(
             clmn_begin) ;               // setup init coef for moving to colum;
 
     for (int ch_mult_idx = 0; ch_mult_idx < ch_mul; ch_mult_idx++) {
+        for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
 
-        adjust_quant_params(&quant_params, out_ch_idx);
+            adjust_quant_params(&quant_params, out_ch_idx);
+            int32_t bias_add = bias_additive(*biases++, 0x0, &quant_params);
 
-        for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {            
             for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
+                // Define area of input and filter for convolution
+                // comp - compensation values for valid area definition
                 mli_compensations comp;
                 comp.top    = -MIN((H_idx * stride_height)- padding_top, 0);
                 comp.bottom = -MIN(in_height - ((H_idx * stride_height)- padding_top + kernel_height), 0);
@@ -198,7 +201,6 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc(
                 for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
                     // Define area of input and filter for convolution
                     // comp - compensation values for valid area definition
-                    // mli_compensations comp;
                     comp.left   = -MIN((W_idx * stride_width)- padding_left, 0);
                     comp.right  = -MIN(in_width - ((W_idx * stride_width)- padding_left + kernel_width), 0);
                     const int clmns = kernel_width - comp.right - comp.left;
@@ -216,8 +218,9 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc(
                         prev_w_adds = weights_additive(&w_ptr[comp.left * filters * out_ch], 0x0, &quant_params, clmns, rows, krn_col_step, krn_row_step);
                         prev_clmns = clmns;
                     }
+
                     accu = fx_add_q31(accu, prev_w_adds);
-                    accu = bias_additive(*biases, accu, &quant_params);
+                    accu = fx_add_q31(bias_add, accu);
 
                     // Cast result to output type
                     mli_prv_clip_relu_store_output(out_ptr, accu, &quant_params, val_min_limit, val_max_limit);
@@ -226,7 +229,6 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc(
                 out_ptr += out_ch * out_width * filters - out_compensation_clmn_loop;
             } // for H_idx
             out_ptr += 1 - out_compensation_row_loop;
-            biases++;
             out_ch_idx++;
         } // for in_ch_idx
     } // for ch_mult_idx
