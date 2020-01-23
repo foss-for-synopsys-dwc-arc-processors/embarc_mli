@@ -495,6 +495,13 @@ static inline int32_t __attribute__ ((always_inline)) mli_prv_init_accu(int8_t i
     return acc;
 }
 
+static inline int32_t __attribute__ ((always_inline)) mli_prv_init_accu(int32_t inp_val) {
+    int32_t acc = inp_val;
+    _setacc(acc, 1);
+
+    return acc;
+}
+
 static inline accum40_t __attribute__ ((always_inline)) mli_prv_init_accu(int16_t inp_val) {
     accum40_t acc = {inp_val};
 
