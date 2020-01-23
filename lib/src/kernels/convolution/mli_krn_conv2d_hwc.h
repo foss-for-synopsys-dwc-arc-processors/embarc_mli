@@ -35,6 +35,39 @@
 #include "mli_prv_quant.h"
 #include "mli_types.h"
 
+
+static inline void __attribute__ ((always_inline)) mli_prv_clip_relu_store_output_v_exp(
+        MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
+        __v2i32_t *conv_out_v,
+        const s8asym_quant_specific_params quant_params[],
+        const int16_t val_min_limit,
+        const int16_t val_max_limit) {
+    v2q15_t v2val_max_limit = {val_max_limit, val_max_limit};
+    v2q15_t v2val_min_limit = {val_min_limit, val_min_limit};
+
+    accum72_t accu_scaled = fx_a72_mpy_q31((*conv_out_v)[0], quant_params[0].out_mul);
+    int16_t out_no_offset_ch1 = fx_q15_cast_nf_asl_rnd_a72(accu_scaled, 64 - sizeof(int16_t) * 8 - quant_params[0].out_shift);
+
+    accu_scaled = fx_a72_mpy_q31((*conv_out_v)[1], quant_params[1].out_mul);
+    int16_t out_no_offset_ch2 = fx_q15_cast_nf_asl_rnd_a72(accu_scaled, 64 - sizeof(int16_t) * 8 - quant_params[1].out_shift);
+
+    v2q15_t v2out_no_offset = {out_no_offset_ch1, out_no_offset_ch2};
+    v2q15_t v2quant_out_offset = {quant_params[0].out_offset, quant_params[1].out_offset};
+    v2q15_t v2out_offset = fx_add_v2q15(v2out_no_offset, v2quant_out_offset);
+    
+    //do we really need it?
+    // v2q15_t v2out_rnd_val = fx_asr_rnd_v2q15_n(v2out_offset, 0);
+    // v2q15_t v2out_cast_val = fx_sat_v2q15_n(v2out_rnd_val, 8);
+    // no saturation needed because ReLu clipping is done in 32bit domain.
+    // ReLU truncation
+
+    v2out_offset = fx_min_v2q15(v2out_offset, v2val_max_limit);
+    v2out_offset = fx_max_v2q15(v2out_offset, v2val_min_limit);
+
+    // Write result
+    *((v2i8_t *) o_ptr) = __builtin_convertvector((v2out_offset), v2i8_t);
+}
+
 //========================================================
 // Depthwise convolution 2D template
 //========================================================
@@ -79,6 +112,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc_nopad(
     const int out_increment_row_loop = out_ch * out_width * filters  - out_compensation_clmn_loop;
     // const int in_increment_in_ch_loop = filters - in_compensation_row_loop;
     const int out_increment_in_ch_loop = 1 - out_compensation_row_loop;
+    const int out_increment_in_ch_loop_v = 2 - out_compensation_row_loop;
 
 
     MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T) __restrict)in_ftrs;
@@ -94,9 +128,46 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc_nopad(
     out_ptr += out_ch * filters *       // common coefs
             (row_begin * out_width  +   // setup init coef for moving to row
             clmn_begin) ;               // setup init coef for moving to colum;
-    
-for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
-    for (int ch_mult_idx = 0; ch_mult_idx < ch_mul; ch_mult_idx++) {
+
+    s8asym_quant_specific_params v2quant_params[] = {quant_params, quant_params};
+    for (int in_ch_idx = 0; in_ch_idx < in_ch-1; in_ch_idx += 2) {
+        for (int ch_mult_idx = 0; ch_mult_idx < ch_mul; ch_mult_idx++) {
+            adjust_quant_params(&v2quant_params[0], out_ch_idx++);
+            adjust_quant_params(&v2quant_params[1], out_ch_idx++);
+
+            __v2i32_t v2acc_weights_add = {0, 0};
+            v2acc_weights_add = weights_additive_v(w_ptr, &v2acc_weights_add, &quant_params, kernel_width, kernel_height, 
+                    krn_col_step, krn_row_step);
+            acc_T bias_add_ch1 = bias_additive(*biases++, 0x0, &v2quant_params[0]);
+            acc_T bias_add_ch2 = bias_additive(*biases++, 0x0, &v2quant_params[1]);
+            __v2i32_t v2_bias_add = {bias_add_ch1, bias_add_ch2};
+            for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
+                for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
+                    __v2i32_t v2accu_dotprod = {0, 0};
+                    dotprod2D_hwc_v(in_ptr, w_ptr, &v2accu_dotprod, kernel_width, kernel_height,
+                                        in_col_step, in_row_step, krn_col_step, krn_row_step);
+
+                    v2accu_dotprod += v2acc_weights_add;
+                    v2accu_dotprod += v2_bias_add;
+                    mli_prv_clip_relu_store_output_v_exp(out_ptr, &v2accu_dotprod, v2quant_params, val_min_limit, val_max_limit);
+
+                    in_ptr += in_increment_clmn_loop;
+                    out_ptr += out_increment_clmn_loop;
+                } // for W_idx
+                in_ptr += in_increment_row_loop;
+                out_ptr += out_increment_row_loop;
+            } // for H_idx
+            in_ptr -= in_compensation_row_loop;
+            out_ptr += out_increment_in_ch_loop_v;
+            // out_ch_idx++;
+            w_ptr += 2;
+            // biases++;
+        } // for ch_mult_idx
+        in_ptr += 2 * filters;
+    } // for in_ch_idx
+
+    if(in_ch & 1){
+        for (int ch_mult_idx = 0; ch_mult_idx < ch_mul; ch_mult_idx++) {
             adjust_quant_params(&quant_params, out_ch_idx);
 
             acc_T global_other_additives = weights_additive(w_ptr, 0x0, &quant_params, kernel_width, kernel_height, 
@@ -130,7 +201,6 @@ for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
         } // for in_ch_idx
         in_ptr += filters;
     } // for ch_mult_idx
-
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
