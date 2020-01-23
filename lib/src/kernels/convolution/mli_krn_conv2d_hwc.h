@@ -358,7 +358,6 @@ static __attribute__ ((always_inline)) void convolution2D_hwc(
                 const int clmns = kernel_width - comp.right - comp.left;
                 const int w_idx_in = (W_idx * stride_width - padding_left + comp.left);
 
-                acc_T accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
                 if( prev_clmns != clmns) {
                     int8_t init_accum_val = 0;
                     prev_w_adds = mli_prv_init_accu(init_accum_val);
@@ -375,10 +374,12 @@ static __attribute__ ((always_inline)) void convolution2D_hwc(
                     prev_clmns = clmns;
                 }
 
-                v2accum40_t v2accu40 = {0, 0};
+                acc_T accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
+                //v2accum40_t v2accu40 = {0, 0};
+                acc_T accu32 = mli_prv_init_accu((int8_t) 0);
                 for (int in_ch_idx = 0; in_ch_idx < in_ch - 1; in_ch_idx+=2) {
-                    dotprod2D_hwc_v<io_T, w_T, v2accum40_t>(&in_ptr[w_idx_in * in_ch + in_ch_idx], 
-                            &w_ptr[comp.left * in_ch + in_ch_idx], &v2accu40, clmns, rows, in_col_step, in_row_step, 
+                    dotprod2D_hwc_d<io_T, w_T, acc_T>(&in_ptr[w_idx_in * in_ch + in_ch_idx], 
+                            &w_ptr[comp.left * in_ch + in_ch_idx], &accu32, clmns, rows, in_col_step, in_row_step, 
                             krn_col_step, krn_row_step);
                 }
                 if (in_ch & 1)
@@ -386,7 +387,7 @@ static __attribute__ ((always_inline)) void convolution2D_hwc(
                     accu = dotprod2D(&in_ptr[w_idx_in * in_ch + in_ch - 1], &w_ptr[comp.left * in_ch + in_ch - 1], 
                             accu, clmns, rows, in_col_step, in_row_step, krn_col_step, krn_row_step);
                 }
-                accu += fx_q31_cast_nf_a40(fx_get_v2a40(v2accu40, 0)) + fx_q31_cast_nf_a40(fx_get_v2a40(v2accu40, 1));
+                accu += accu32;//fx_q31_cast_nf_a40(fx_get_v2a40(v2accu40, 0)) + fx_q31_cast_nf_a40(fx_get_v2a40(v2accu40, 1));
                 accu += prev_w_adds;
                 accu += bias_add;
 
@@ -464,10 +465,10 @@ static __attribute__ ((always_inline)) void convolution2D_hwc_nopad(
             for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
                 MLI_PTR(w_T) __restrict w_ptr = (MLI_PTR(w_T) __restrict)weights;
                 w_ptr += out_ch_idx * kernel_height * kernel_width * in_ch;
+                acc_T accu32 = mli_prv_init_accu((int8_t) 0);
                 acc_T accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
-                accum40_t accu40 = {0};
                 for (int in_ch_idx = 0; in_ch_idx < in_ch -1; in_ch_idx+=2) {
-                    dotprod2D_hwc_d<io_T, w_T, accum40_t>(in_ptr, w_ptr, &accu40, kernel_width, kernel_height,
+                    dotprod2D_hwc_d<io_T, w_T, acc_T>(in_ptr, w_ptr, &accu32, kernel_width, kernel_height,
                                         in_col_step, in_row_step, krn_col_step, krn_row_step);
                     in_ptr+= 2;
                     w_ptr += 2;
@@ -479,8 +480,7 @@ static __attribute__ ((always_inline)) void convolution2D_hwc_nopad(
                     in_ptr++;
                     w_ptr++;
                 }
-
-                accu += bias_add + weights_add + fx_q31_cast_nf_a40(accu40);
+                accu += bias_add + weights_add + accu32;
                 
                 // Cast result to output type, apply built-in ReLU Applying and write result
                 mli_prv_clip_relu_store_output(out_ptr, accu, &quant_params, val_min_limit, val_max_limit);
@@ -601,10 +601,10 @@ static __attribute__ ((always_inline)) void pointwise_convolution2D_hwc_nopad(
             for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
                 MLI_PTR(w_T) __restrict w_ptr = (MLI_PTR(w_T) __restrict)weights;
                 w_ptr += out_ch_idx * in_ch;
+                acc_T accu32 = mli_prv_init_accu((int8_t) 0);
                 acc_T accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
-                accum40_t acc40 = {0};
                 for (int in_ch_idx = 0; in_ch_idx < in_ch -1; in_ch_idx+=2) {
-                    dotprod_d<io_T, w_T, accum40_t>(in_ptr, w_ptr, &acc40);
+                    dotprod_d<io_T, w_T, acc_T>(in_ptr, w_ptr, &accu32);
                     in_ptr+= 2;
                     w_ptr += 2;
                 }
@@ -613,7 +613,7 @@ static __attribute__ ((always_inline)) void pointwise_convolution2D_hwc_nopad(
                     in_ptr++;
                     w_ptr++;
                 }
-                accu += bias_add + weights_add + fx_q31_cast_nf_a40(acc40);
+                accu += bias_add + weights_add + accu32;
                 
                 // Cast result to output type, apply built-in ReLU Applying and write result
                 mli_prv_clip_relu_store_output(out_ptr, accu, &quant_params, val_min_limit, val_max_limit);
