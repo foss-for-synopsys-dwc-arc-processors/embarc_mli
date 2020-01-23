@@ -125,6 +125,17 @@ inline mli_acc32_t __attribute__ ((always_inline)) weights_additive(
         return init_accum;
 }
 
+inline mli_acc32_t __attribute__ ((always_inline)) weights_additive_d(
+        const MLI_PTR(int8_t) __restrict weights, mli_acc32_t *init_accum,
+        const s8asym_quant_specific_params* quant_params,
+        const int width,  const int height, int col_step, int row_step) {
+    // returns -(in_zero_point * cumsum(weights)) For S8ASYM 
+    if (quant_params->in_offset != 0)
+        return reduce_sum2D_d(weights, -quant_params->in_offset, init_accum, width, height, col_step, row_step);
+    else 
+        return *init_accum;
+}
+
 //==========================================================================
 // Calculation of input additive (in_add) in 
 // dot_prod_asym = dot_prod_gen + w_add + in_add + zp_add + bias_add
