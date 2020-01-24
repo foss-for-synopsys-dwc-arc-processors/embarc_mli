@@ -103,23 +103,6 @@ static void __attribute__ ((always_inline)) dotprod2D_hwc_d (
 }
 
 template < typename in_T, typename w_T, typename acc_T >
-static void __attribute__ ((always_inline)) dotprod_d (
-        const MLI_PTR(in_T) __restrict in, 
-        const MLI_PTR(w_T) __restrict krn,
-        acc_T * accu) {
-        mli_prv_load_mac_vec2(accu, in, krn);
-}
-
-template <typename io_T, typename w_T, typename acc_T>
-static acc_T __attribute__ ((always_inline)) dotprod(
-        const MLI_PTR(io_T) __restrict in,
-        const MLI_PTR(w_T)  __restrict krn,
-        acc_T accu) {
-    accu = mli_math_mac_fx(accu, (*in), (*krn));
-    return accu;
-}
-
-template < typename in_T, typename w_T, typename acc_T >
 static void __attribute__ ((always_inline)) dotprod2D_hwc_v_point (
         const MLI_PTR(in_T) __restrict in, 
         const MLI_PTR(w_T) __restrict krn,

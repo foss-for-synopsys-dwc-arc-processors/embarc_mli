@@ -31,42 +31,12 @@
 #include "mli_krn_reduce_sum2d.h"
 #include "mli_math.h"
 #include "mli_prv_aux_calc.h"
+#include "mli_prv_dsp.h"
 #include "mli_prv_tensor.h"
 #include "mli_prv_quant.h"
 #include "mli_types.h"
 
 
-static inline void __attribute__ ((always_inline)) mli_prv_clip_relu_store_output_v_exp(
-        MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
-        __v2i32_t *conv_out_v,
-        const s8asym_quant_specific_params quant_params[],
-        const int16_t val_min_limit,
-        const int16_t val_max_limit) {
-    v2q15_t v2val_max_limit = {val_max_limit, val_max_limit};
-    v2q15_t v2val_min_limit = {val_min_limit, val_min_limit};
-
-    accum72_t accu_scaled = fx_a72_mpy_q31((*conv_out_v)[0], quant_params[0].out_mul);
-    int16_t out_no_offset_ch1 = fx_q15_cast_nf_asl_rnd_a72(accu_scaled, 64 - sizeof(int16_t) * 8 - quant_params[0].out_shift);
-
-    accu_scaled = fx_a72_mpy_q31((*conv_out_v)[1], quant_params[1].out_mul);
-    int16_t out_no_offset_ch2 = fx_q15_cast_nf_asl_rnd_a72(accu_scaled, 64 - sizeof(int16_t) * 8 - quant_params[1].out_shift);
-
-    v2q15_t v2out_no_offset = {out_no_offset_ch1, out_no_offset_ch2};
-    v2q15_t v2quant_out_offset = {quant_params[0].out_offset, quant_params[1].out_offset};
-    v2q15_t v2out_offset = fx_add_v2q15(v2out_no_offset, v2quant_out_offset);
-    
-    //do we really need it?
-    // v2q15_t v2out_rnd_val = fx_asr_rnd_v2q15_n(v2out_offset, 0);
-    // v2q15_t v2out_cast_val = fx_sat_v2q15_n(v2out_rnd_val, 8);
-    // no saturation needed because ReLu clipping is done in 32bit domain.
-    // ReLU truncation
-
-    v2out_offset = fx_min_v2q15(v2out_offset, v2val_max_limit);
-    v2out_offset = fx_max_v2q15(v2out_offset, v2val_min_limit);
-
-    // Write result
-    *((v2i8_t *) o_ptr) = __builtin_convertvector((v2out_offset), v2i8_t);
-}
 
 //========================================================
 // Depthwise convolution 2D template
@@ -110,8 +80,10 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc_nopad(
     const int out_increment_clmn_loop = filters * out_ch;
     const int in_increment_row_loop = in_ch * stride_height * in_width * filters - in_compensation_clmn_loop;
     const int out_increment_row_loop = out_ch * out_width * filters  - out_compensation_clmn_loop;
-    const int out_increment_in_ch_loop = 1 - out_compensation_row_loop;
-    const int out_increment_in_ch_loop_v = 2 - out_compensation_row_loop;
+    const int channel_per_loop = 1;
+    const int channels_per_loop_v = 2;
+    const int out_increment_in_ch_loop = channel_per_loop - out_compensation_row_loop;
+    const int out_increment_in_ch_loop_v = channels_per_loop_v - out_compensation_row_loop;
 
 
     MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T) __restrict)in_ftrs;
@@ -152,7 +124,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc_nopad(
                     v2accu_dotprod += v2_bias_add;
 
                     // Cast result to output type
-                    mli_prv_clip_relu_store_output_v_exp(out_ptr, &v2accu_dotprod, v2quant_params, val_min_limit, val_max_limit);
+                    mli_prv_clip_relu_store_output_v(out_ptr, &v2accu_dotprod, v2quant_params, val_min_limit, val_max_limit);
 
                     in_ptr += in_increment_clmn_loop;
                     out_ptr += out_increment_clmn_loop;
@@ -240,8 +212,10 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc(
     const int amount_columns = clmn_end - clmn_begin;
     const int out_compensation_row_loop = out_ch * out_width * filters * amount_rows;
     const int out_compensation_clmn_loop = filters * out_ch * amount_columns;
-    const int out_increment_in_ch_loop = 1 - out_compensation_row_loop;
-    const int out_increment_in_ch_loop_v = 2 - out_compensation_row_loop;
+    const int channel_per_loop = 1;
+    const int channels_per_loop_v = 2;
+    const int out_increment_in_ch_loop = channel_per_loop - out_compensation_row_loop;
+    const int out_increment_in_ch_loop_v = channels_per_loop_v - out_compensation_row_loop;
     int out_ch_idx = 0;
 
     MLI_CONV_OUT_PTR(io_T) __restrict out_ptr = (MLI_CONV_OUT_PTR(io_T) __restrict)out_ftrs;
@@ -303,7 +277,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc(
                     v2accu_dotprod += v2_bias_add;
 
                     // Cast result to output type
-                    mli_prv_clip_relu_store_output_v_exp(out_ptr, &v2accu_dotprod, v2quant_params, val_min_limit, val_max_limit);
+                    mli_prv_clip_relu_store_output_v(out_ptr, &v2accu_dotprod, v2quant_params, val_min_limit, val_max_limit);
 
                     out_ptr += filters * out_ch;
                 } // for W_idx
@@ -337,7 +311,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc(
                         //+ comp.left * filters * out_ch                        // move to column
                         + out_ch_idx;                                           // move to filter
 
-                int32_t prev_clmns = -1, prev_w_adds;
+                int32_t prev_clmns = -1, prev_w_adds = 0;
                 for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
                     // Define area of input and filter for convolution
                     // comp - compensation values for valid area definition
@@ -392,36 +366,68 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc_krnpad(
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right ) {
 
-    //Krnpad case
-    //=======================================================================
-    if (padding_top || padding_left || padding_bot || padding_right) {
+    if (padding_top || padding_left){
         depthwise_convolution2D_hwc<int8_t, int8_t, int32_t, mli_acc32_t>(
-                in_ftrs, weights, biases, out_ftrs, perception_area, quant_params,
-                val_min_limit, val_max_limit,
-                in_ch, in_width, in_height,
-                out_ch, out_width, out_height,
-                kernel_height, kernel_width,
-                stride_height, stride_width,
-                padding_top, padding_left);
+                        in_ftrs, weights, biases, out_ftrs, perception_area, quant_params,
+                        val_min_limit, val_max_limit,
+                        in_ch, in_width, in_height,
+                        out_ch, out_width, out_height,
+                        kernel_height, kernel_width,
+                        stride_height, stride_width,
+                        padding_top, padding_left);
     } else {
 
-        //Nopad case
+        // Phase 1: Process central part (without border effects - padding free)
         //=======================================================================
-        if (in_height >= kernel_height && in_width >= kernel_width) {
-            rect_t area;
-            area.row_beg = CEIL_DIV(padding_top, stride_height);
-            area.row_end = out_height - CEIL_DIV(padding_bot, stride_height);
-            area.clmn_beg = CEIL_DIV(padding_left, stride_width);
-            area.clmn_end = out_width - CEIL_DIV(padding_right, stride_width);
-
-            depthwise_convolution2D_hwc_nopad<int8_t, int8_t, int32_t, mli_acc32_t>(
-                    in_ftrs, weights, biases, out_ftrs, &area, quant_params,
-                    val_min_limit, val_max_limit,
+        depthwise_convolution2D_hwc_nopad<int8_t, int8_t, int32_t, mli_acc32_t>(
+                    in_ftrs, weights, biases, out_ftrs, perception_area, quant_params,
+                     val_min_limit, val_max_limit,
                     in_ch, in_width, in_height,
                     out_ch, out_width, out_height,
                     kernel_height, kernel_width,
                     stride_height, stride_width,
                     padding_top, padding_left);
+
+        // Phase 2: Process border part with more complex algorithm
+        // (usually significantly smaller part of computations)
+        //=======================================================================
+        if (padding_bot || padding_right) {
+            rect_t perc_areas[4];
+            int areas_num = 0;
+            // if (padding_top) {
+            //     perc_areas[areas_num].row_beg = 0;
+            //     perc_areas[areas_num].row_end = CEIL_DIV(padding_top, stride_height);
+            //     perc_areas[areas_num].clmn_beg = 0;
+            //     perc_areas[areas_num++].clmn_end = out_width;
+            // }
+            if (padding_bot) {
+                perc_areas[areas_num].row_beg = out_height - CEIL_DIV(padding_bot, stride_height);
+                perc_areas[areas_num].row_end = out_height;
+                perc_areas[areas_num].clmn_beg = 0;
+                perc_areas[areas_num++].clmn_end = out_width;
+            }
+            // if (padding_left) {
+            //     perc_areas[areas_num].row_beg = CEIL_DIV(padding_top, stride_height);
+            //     perc_areas[areas_num].row_end = out_height - CEIL_DIV(padding_bot, stride_height);
+            //     perc_areas[areas_num].clmn_beg = 0;
+            //     perc_areas[areas_num++].clmn_end = CEIL_DIV(padding_left, stride_width);
+            // }
+            if (padding_right) {
+                perc_areas[areas_num].row_beg = CEIL_DIV(padding_top, stride_height);
+                perc_areas[areas_num].row_end = out_height - CEIL_DIV(padding_bot, stride_height);
+                perc_areas[areas_num].clmn_beg = out_width - CEIL_DIV(padding_right, stride_width);
+                perc_areas[areas_num++].clmn_end = out_width;
+            }
+            for(int i = 0; i < areas_num; i ++) {
+                depthwise_convolution2D_hwc<int8_t, int8_t, int32_t, mli_acc32_t>(
+                        in_ftrs, weights, biases, out_ftrs, &perc_areas[i], quant_params,
+                        val_min_limit, val_max_limit,
+                        in_ch, in_width, in_height,
+                        out_ch, out_width, out_height,
+                        kernel_height, kernel_width,
+                        stride_height, stride_width,
+                        padding_top, padding_left);
+            }
         }
     }
 }
@@ -487,7 +493,7 @@ static __attribute__ ((always_inline)) void convolution2D_hwc(
                     //+   comp.left * in_ch +                               // move to column
                     //+   in_ch_idx;                                        // move to channel
 
-            int32_t prev_clmns = -1, prev_w_adds;
+            int32_t prev_clmns = -1, prev_w_adds = 0;
 
             for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
                 // Define area of input and filter for convolution
@@ -515,22 +521,22 @@ static __attribute__ ((always_inline)) void convolution2D_hwc(
                 }
 
                 int32_t init_accum_val = prev_w_adds;
-                acc_T accu32 = mli_prv_init_accu(init_accum_val);
+                acc_T accu = mli_prv_init_accu(init_accum_val);
                 for (int in_ch_idx = 0; in_ch_idx < in_ch - 1; in_ch_idx+=2) {
                     dotprod2D_hwc_d<io_T, w_T, acc_T>(&in_ptr[w_idx_in * in_ch + in_ch_idx], 
-                            &w_ptr[comp.left * in_ch + in_ch_idx], &accu32, clmns, rows, in_col_step, in_row_step, 
+                            &w_ptr[comp.left * in_ch + in_ch_idx], &accu, clmns, rows, in_col_step, in_row_step, 
                             krn_col_step, krn_row_step);
                 }
 
                 if (in_ch & 1)
                 {
-                    accu32 = dotprod2D(&in_ptr[w_idx_in * in_ch + in_ch - 1], &w_ptr[comp.left * in_ch + in_ch - 1], 
-                            accu32, clmns, rows, in_col_step, in_row_step, krn_col_step, krn_row_step);
+                    accu = dotprod2D(&in_ptr[w_idx_in * in_ch + in_ch - 1], &w_ptr[comp.left * in_ch + in_ch - 1], 
+                            accu, clmns, rows, in_col_step, in_row_step, krn_col_step, krn_row_step);
                 }
-                accu32 += bias_add;
+                accu += bias_add;
 
                 // Cast result to output type, apply built-in ReLU Applying and write result
-                mli_prv_clip_relu_store_output(out_ptr, accu32, &quant_params, val_min_limit, val_max_limit);
+                mli_prv_clip_relu_store_output(out_ptr, accu, &quant_params, val_min_limit, val_max_limit);
                 out_ptr += out_ch;
             } // for W_idx
             out_ptr += out_width * out_ch - out_compensation_clmn_loop;
@@ -604,24 +610,24 @@ static __attribute__ ((always_inline)) void convolution2D_hwc_nopad(
                 MLI_PTR(w_T) __restrict w_ptr = (MLI_PTR(w_T) __restrict)weights + out_ch_idx * kernel_height 
                         * kernel_width * in_ch;
                 int32_t init_accum_val = weights_add;
-                acc_T accu32 = mli_prv_init_accu(init_accum_val);
+                acc_T accu = mli_prv_init_accu(init_accum_val);
                 for (int in_ch_idx = 0; in_ch_idx < in_ch -1; in_ch_idx+=2) {
-                    dotprod2D_hwc_d<io_T, w_T, acc_T>(in_ptr, w_ptr, &accu32, kernel_width, kernel_height,
+                    dotprod2D_hwc_d<io_T, w_T, acc_T>(in_ptr, w_ptr, &accu, kernel_width, kernel_height,
                                         in_col_step, in_row_step, krn_col_step, krn_row_step);
                     in_ptr+= 2;
                     w_ptr += 2;
                 }
 
                 if (in_ch & 1) {
-                    accu32 = dotprod2D(in_ptr, w_ptr, accu32, kernel_width, kernel_height,
+                    accu = dotprod2D(in_ptr, w_ptr, accu, kernel_width, kernel_height,
                                         in_col_step, in_row_step, krn_col_step, krn_row_step);
                     in_ptr++;
                     w_ptr++;
                 }
-                accu32 += bias_add;
+                accu += bias_add;
                 
                 // Cast result to output type, apply built-in ReLU Applying and write result
-                mli_prv_clip_relu_store_output(out_ptr, accu32, &quant_params, val_min_limit, val_max_limit);
+                mli_prv_clip_relu_store_output(out_ptr, accu, &quant_params, val_min_limit, val_max_limit);
                 out_ptr += out_ch;
                 in_ptr += in_ch * (stride_width - 1);
             } // for W_idx
@@ -750,23 +756,25 @@ static __attribute__ ((always_inline)) void pointwise_convolution2D_hwc_nopad(
                 MLI_PTR(w_T) __restrict w_ptr = (MLI_PTR(w_T) __restrict)weights + out_ch_idx * in_ch;
 
                 int32_t init_accum_val = weights_add;
-                acc_T accu32 = mli_prv_init_accu(init_accum_val);
+                acc_T accu = mli_prv_init_accu(init_accum_val);
 
                 for (int in_ch_idx = 0; in_ch_idx < in_ch -1; in_ch_idx+=2) {
-                    dotprod_d<io_T, w_T, acc_T>(in_ptr, w_ptr, &accu32);
+                    const MLI_PTR(io_T) __restrict tmp_in_ptr = (const MLI_PTR(io_T) __restrict)in_ptr;
+                    const MLI_PTR(w_T) __restrict tmp_w_ptr = (const MLI_PTR(w_T) __restrict)w_ptr;
+                    mli_prv_load_mac_vec2(&accu, tmp_in_ptr, tmp_w_ptr);
                     in_ptr+= 2;
                     w_ptr += 2;
                 }
 
                 if (in_ch & 1) {
-                    accu32 = dotprod(in_ptr, w_ptr, accu32);
+                    accu = mli_math_mac_fx(accu, *in_ptr, *w_ptr);
                     in_ptr++;
                     w_ptr++;
                 }
-                accu32 += bias_add;
+                accu += bias_add;
                 
                 // Cast result to output type, apply built-in ReLU Applying and write result
-                mli_prv_clip_relu_store_output(out_ptr, accu32, &quant_params, val_min_limit, val_max_limit);
+                mli_prv_clip_relu_store_output(out_ptr, accu, &quant_params, val_min_limit, val_max_limit);
                 out_ptr += out_ch;
                 in_ptr += in_ch * (stride_width - 1);
             } // for W_idx
