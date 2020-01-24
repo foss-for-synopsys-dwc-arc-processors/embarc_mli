@@ -93,8 +93,8 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc_nopad(
     int out_ch_idx = 0;
 
     in_ptr += in_ch * filters *                     // common coefs
-        (row_begin * stride_height * in_width  +    // setup init coef for moving to row
-        clmn_begin * stride_width) ;                // setup init coef for moving to colum;
+        ((row_begin * stride_height - padding_top) * in_width  +    // setup init coef for moving to row
+        (clmn_begin * stride_width - padding_left)) ;                // setup init coef for moving to colum;
     
     out_ptr += out_ch * filters *       // common coefs
             (row_begin * out_width  +   // setup init coef for moving to row
@@ -212,6 +212,8 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc(
     const int amount_columns = clmn_end - clmn_begin;
     const int out_compensation_row_loop = out_ch * out_width * filters * amount_rows;
     const int out_compensation_clmn_loop = filters * out_ch * amount_columns;
+    const int out_increment_clmn_loop = filters * out_ch;
+    const int out_increment_row_loop = out_ch * out_width * filters  - out_compensation_clmn_loop;
     const int channel_per_loop = 1;
     const int channels_per_loop_v = 2;
     const int out_increment_in_ch_loop = channel_per_loop - out_compensation_row_loop;
@@ -250,8 +252,6 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc(
                         //+ comp.left * filters * out_ch                        // move to column
                         + out_ch_idx;                                           // move to filter
 
-                int32_t prev_clmns = -1;
-                __v2i32_t v2acc_weights_add = {0, 0};
                 for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
                     // Define area of input and filter for convolution
                     // comp - compensation values for valid area definition
@@ -267,16 +267,14 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc(
                     dotprod2D_hwc_v(&in_ptr[w_idx_in * in_ch * filters], &w_ptr[comp.left * filters * out_ch], &v2accu_dotprod, clmns, rows,
                                         in_col_step, in_row_step, krn_col_step, krn_row_step);
 
-                    if( prev_clmns != clmns) {
-                        v2acc_weights_add = {0, 0};
+                        __v2i32_t v2acc_weights_add = {0, 0};
                         v2acc_weights_add = weights_additive_v(&w_ptr[comp.left * filters * out_ch], &v2acc_weights_add, &quant_params, clmns, rows, krn_col_step, krn_row_step);
-                        prev_clmns = clmns;
-                    }
 
                     v2accu_dotprod += v2acc_weights_add;
                     v2accu_dotprod += v2_bias_add;
 
                     // Cast result to output type
+
                     mli_prv_clip_relu_store_output_v(out_ptr, &v2accu_dotprod, v2quant_params, val_min_limit, val_max_limit);
 
                     out_ptr += filters * out_ch;
@@ -311,7 +309,6 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc(
                         //+ comp.left * filters * out_ch                        // move to column
                         + out_ch_idx;                                           // move to filter
 
-                int32_t prev_clmns = -1, prev_w_adds = 0;
                 for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
                     // Define area of input and filter for convolution
                     // comp - compensation values for valid area definition
@@ -327,19 +324,17 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc(
                     accu = dotprod2D(&in_ptr[w_idx_in * in_ch * filters], &w_ptr[comp.left * filters * out_ch], accu, clmns, rows,
                                         in_col_step, in_row_step, krn_col_step, krn_row_step);
 
-                    if( prev_clmns != clmns) {
-                        prev_w_adds = weights_additive(&w_ptr[comp.left * filters * out_ch], 0x0, &quant_params, clmns, rows, krn_col_step, krn_row_step);
-                        prev_clmns = clmns;
-                    }
+                    int32_t prev_w_adds = weights_additive(&w_ptr[comp.left * filters * out_ch], 0x0, &quant_params, clmns, rows, krn_col_step, krn_row_step);
 
                     accu = fx_add_q31(accu, prev_w_adds);
                     accu = fx_add_q31(bias_add, accu);
 
                     // Cast result to output type
                     mli_prv_clip_relu_store_output(out_ptr, accu, &quant_params, val_min_limit, val_max_limit);
-                    out_ptr += filters * out_ch;
+
+                    out_ptr += out_increment_clmn_loop;
                 } // for W_idx
-                out_ptr += out_ch * out_width * filters - out_compensation_clmn_loop;
+                out_ptr += out_increment_row_loop;
             } // for H_idx
             out_ptr += out_increment_in_ch_loop;
             out_ch_idx++;
@@ -366,68 +361,63 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc_krnpad(
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right ) {
 
-    if (padding_top || padding_left){
-        depthwise_convolution2D_hwc<int8_t, int8_t, int32_t, mli_acc32_t>(
-                        in_ftrs, weights, biases, out_ftrs, perception_area, quant_params,
-                        val_min_limit, val_max_limit,
-                        in_ch, in_width, in_height,
-                        out_ch, out_width, out_height,
-                        kernel_height, kernel_width,
-                        stride_height, stride_width,
-                        padding_top, padding_left);
-    } else {
 
-        // Phase 1: Process central part (without border effects - padding free)
-        //=======================================================================
-        depthwise_convolution2D_hwc_nopad<int8_t, int8_t, int32_t, mli_acc32_t>(
-                    in_ftrs, weights, biases, out_ftrs, perception_area, quant_params,
-                     val_min_limit, val_max_limit,
+    // Phase 1: Process central part (without border effects - padding free)
+    //=======================================================================
+    rect_t perception_area_nopad;
+    perception_area_nopad.row_beg = CEIL_DIV(padding_top, stride_height);
+    perception_area_nopad.row_end = out_height - CEIL_DIV(padding_bot, stride_height);
+    perception_area_nopad.clmn_beg = CEIL_DIV(padding_left, stride_width);
+    perception_area_nopad.clmn_end = out_width - CEIL_DIV(padding_right, stride_width);
+    
+    depthwise_convolution2D_hwc_nopad<int8_t, int8_t, int32_t, mli_acc32_t>(
+                in_ftrs, weights, biases, out_ftrs, &perception_area_nopad, quant_params,
+                    val_min_limit, val_max_limit,
+                in_ch, in_width, in_height,
+                out_ch, out_width, out_height,
+                kernel_height, kernel_width,
+                stride_height, stride_width,
+                padding_top, padding_left);
+
+    // Phase 2: Process border part with more complex algorithm
+    // (usually significantly smaller part of computations)
+    //=======================================================================
+    if (padding_top || padding_left || padding_bot || padding_right) {
+        rect_t perc_areas[4];
+        int areas_num = 0;
+        if (padding_top) {
+            perc_areas[areas_num].row_beg = 0;
+            perc_areas[areas_num].row_end = CEIL_DIV(padding_top, stride_height);
+            perc_areas[areas_num].clmn_beg = 0;
+            perc_areas[areas_num++].clmn_end = out_width;
+        }
+        if (padding_bot) {
+            perc_areas[areas_num].row_beg = out_height - CEIL_DIV(padding_bot, stride_height);
+            perc_areas[areas_num].row_end = out_height;
+            perc_areas[areas_num].clmn_beg = 0;
+            perc_areas[areas_num++].clmn_end = out_width;
+        }
+        if (padding_left) {
+            perc_areas[areas_num].row_beg = CEIL_DIV(padding_top, stride_height);
+            perc_areas[areas_num].row_end = out_height - CEIL_DIV(padding_bot, stride_height);
+            perc_areas[areas_num].clmn_beg = 0;
+            perc_areas[areas_num++].clmn_end = CEIL_DIV(padding_left, stride_width);
+        }
+        if (padding_right) {
+            perc_areas[areas_num].row_beg = CEIL_DIV(padding_top, stride_height);
+            perc_areas[areas_num].row_end = out_height - CEIL_DIV(padding_bot, stride_height);
+            perc_areas[areas_num].clmn_beg = out_width - CEIL_DIV(padding_right, stride_width);
+            perc_areas[areas_num++].clmn_end = out_width;
+        }
+        for(int i = 0; i < areas_num; i ++) {
+            depthwise_convolution2D_hwc<int8_t, int8_t, int32_t, mli_acc32_t>(
+                    in_ftrs, weights, biases, out_ftrs, &perc_areas[i], quant_params,
+                    val_min_limit, val_max_limit,
                     in_ch, in_width, in_height,
                     out_ch, out_width, out_height,
                     kernel_height, kernel_width,
                     stride_height, stride_width,
                     padding_top, padding_left);
-
-        // Phase 2: Process border part with more complex algorithm
-        // (usually significantly smaller part of computations)
-        //=======================================================================
-        if (padding_bot || padding_right) {
-            rect_t perc_areas[4];
-            int areas_num = 0;
-            // if (padding_top) {
-            //     perc_areas[areas_num].row_beg = 0;
-            //     perc_areas[areas_num].row_end = CEIL_DIV(padding_top, stride_height);
-            //     perc_areas[areas_num].clmn_beg = 0;
-            //     perc_areas[areas_num++].clmn_end = out_width;
-            // }
-            if (padding_bot) {
-                perc_areas[areas_num].row_beg = out_height - CEIL_DIV(padding_bot, stride_height);
-                perc_areas[areas_num].row_end = out_height;
-                perc_areas[areas_num].clmn_beg = 0;
-                perc_areas[areas_num++].clmn_end = out_width;
-            }
-            // if (padding_left) {
-            //     perc_areas[areas_num].row_beg = CEIL_DIV(padding_top, stride_height);
-            //     perc_areas[areas_num].row_end = out_height - CEIL_DIV(padding_bot, stride_height);
-            //     perc_areas[areas_num].clmn_beg = 0;
-            //     perc_areas[areas_num++].clmn_end = CEIL_DIV(padding_left, stride_width);
-            // }
-            if (padding_right) {
-                perc_areas[areas_num].row_beg = CEIL_DIV(padding_top, stride_height);
-                perc_areas[areas_num].row_end = out_height - CEIL_DIV(padding_bot, stride_height);
-                perc_areas[areas_num].clmn_beg = out_width - CEIL_DIV(padding_right, stride_width);
-                perc_areas[areas_num++].clmn_end = out_width;
-            }
-            for(int i = 0; i < areas_num; i ++) {
-                depthwise_convolution2D_hwc<int8_t, int8_t, int32_t, mli_acc32_t>(
-                        in_ftrs, weights, biases, out_ftrs, &perc_areas[i], quant_params,
-                        val_min_limit, val_max_limit,
-                        in_ch, in_width, in_height,
-                        out_ch, out_width, out_height,
-                        kernel_height, kernel_width,
-                        stride_height, stride_width,
-                        padding_top, padding_left);
-            }
         }
     }
 }
