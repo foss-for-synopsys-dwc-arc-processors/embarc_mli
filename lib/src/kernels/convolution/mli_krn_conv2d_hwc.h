@@ -361,7 +361,6 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc_krnpad(
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right ) {
 
-
     // Phase 1: Process central part (without border effects - padding free)
     //=======================================================================
     rect_t perception_area_nopad;
@@ -483,7 +482,7 @@ static __attribute__ ((always_inline)) void convolution2D_hwc(
                     //+   comp.left * in_ch +                               // move to column
                     //+   in_ch_idx;                                        // move to channel
 
-            int32_t prev_clmns = -1, prev_w_adds = 0;
+            int32_t w_adds = 0;
 
             for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
                 // Define area of input and filter for convolution
@@ -494,23 +493,19 @@ static __attribute__ ((always_inline)) void convolution2D_hwc(
                 const int clmns = kernel_width - comp.right - comp.left;
                 const int w_idx_in = (W_idx * stride_width - padding_left + comp.left);
 
-                if( prev_clmns != clmns) {
-                    int8_t init_accum_weights_add_val = 0;
-                    prev_w_adds = mli_prv_init_accu(init_accum_weights_add_val);
-                    for (int in_ch_idx = 0; in_ch_idx < in_ch-1; in_ch_idx+=2) {
-                        prev_w_adds = weights_additive_d(&w_ptr[comp.left * in_ch + in_ch_idx], &prev_w_adds, &quant_params, 
-                                    clmns, rows, krn_col_step, krn_row_step);
-                    }
-                    if (in_ch & 1)
-                    {
-                        prev_w_adds = weights_additive(&w_ptr[comp.left * in_ch + in_ch-1], prev_w_adds, &quant_params, 
+                int8_t init_accum_weights_add_val = 0;
+                w_adds = mli_prv_init_accu(init_accum_weights_add_val);
+                for (int in_ch_idx = 0; in_ch_idx < in_ch-1; in_ch_idx+=2) {
+                    w_adds = weights_additive_d(&w_ptr[comp.left * in_ch + in_ch_idx], &w_adds, &quant_params, 
                                 clmns, rows, krn_col_step, krn_row_step);
-                    }
-
-                    prev_clmns = clmns;
+                }
+                if (in_ch & 1)
+                {
+                    w_adds = weights_additive(&w_ptr[comp.left * in_ch + in_ch-1], w_adds, &quant_params, 
+                            clmns, rows, krn_col_step, krn_row_step);
                 }
 
-                int32_t init_accum_val = prev_w_adds;
+                int32_t init_accum_val = w_adds;
                 acc_T accu = mli_prv_init_accu(init_accum_val);
                 for (int in_ch_idx = 0; in_ch_idx < in_ch - 1; in_ch_idx+=2) {
                     dotprod2D_hwc_d<io_T, w_T, acc_T>(&in_ptr[w_idx_in * in_ch + in_ch_idx], 
@@ -573,8 +568,8 @@ static __attribute__ ((always_inline)) void convolution2D_hwc_nopad(
             (row_begin * out_width  +   // setup init coef for moving to row
             clmn_begin);                // setup init coef for moving to colum;
     MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T) __restrict)in_ftrs;
-    in_ptr += in_ch * (row_begin * stride_height * in_width +          // move to row
-              clmn_begin * stride_width);                              // move to column
+    in_ptr += in_ch * ((row_begin * stride_height - padding_top) * in_width +          // move to row
+              (clmn_begin * stride_width - padding_left));                             // move to column
 
     for (int out_ch_idx = 0; out_ch_idx < out_ch; out_ch_idx++) {
         adjust_quant_params(&quant_params, out_ch_idx);
@@ -648,30 +643,56 @@ static __attribute__ ((always_inline)) void convolution2D_hwc_krnpad(
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right ) {
 
-    //Krnpad case
-    // (usually significantly smaller part of computations)
+    // Phase 1: Process central part (without border effects - padding free)
     //=======================================================================
-    if (padding_top || padding_left || padding_bot || padding_right) {
-        convolution2D_hwc<int8_t, int8_t, int32_t, mli_acc32_t>(
-                in_ftrs, weights, biases, out_ftrs, perception_area, quant_params,
+    rect_t perception_area_nopad;
+    perception_area_nopad.row_beg = CEIL_DIV(padding_top, stride_height);
+    perception_area_nopad.row_end = out_height - CEIL_DIV(padding_bot, stride_height);
+    perception_area_nopad.clmn_beg = CEIL_DIV(padding_left, stride_width);
+    perception_area_nopad.clmn_end = out_width - CEIL_DIV(padding_right, stride_width);
+    
+    convolution2D_hwc_nopad<int8_t, int8_t, int32_t, mli_acc32_t>(
+                in_ftrs, weights, biases, out_ftrs, &perception_area_nopad, quant_params,
                 val_min_limit, val_max_limit,
                 in_ch, in_width, in_height,
                 out_ch, out_width, out_height,
                 kernel_height, kernel_width,
                 stride_height, stride_width,
                 padding_top, padding_left);
-    } else {
-        //Nopad case
-        //=======================================================================
-        if (in_height >= kernel_height && in_width >= kernel_width) {
-            rect_t area;
-            area.row_beg = CEIL_DIV(padding_top, stride_height);
-            area.row_end = out_height - CEIL_DIV(padding_bot, stride_height);
-            area.clmn_beg = CEIL_DIV(padding_left, stride_width);
-            area.clmn_end = out_width - CEIL_DIV(padding_right, stride_width);
 
-            convolution2D_hwc_nopad<int8_t, int8_t, int32_t, mli_acc32_t>(
-                    in_ftrs, weights, biases, out_ftrs, &area, quant_params,
+    // Phase 2: Process border part with more complex algorithm
+    // (usually significantly smaller part of computations)
+    //=======================================================================
+    if (padding_top || padding_left || padding_bot || padding_right) {
+        rect_t perc_areas[4];
+        int areas_num = 0;
+        if (padding_top) {
+            perc_areas[areas_num].row_beg = 0;
+            perc_areas[areas_num].row_end = CEIL_DIV(padding_top, stride_height);
+            perc_areas[areas_num].clmn_beg = 0;
+            perc_areas[areas_num++].clmn_end = out_width;
+        }
+        if (padding_bot) {
+            perc_areas[areas_num].row_beg = out_height - CEIL_DIV(padding_bot, stride_height);
+            perc_areas[areas_num].row_end = out_height;
+            perc_areas[areas_num].clmn_beg = 0;
+            perc_areas[areas_num++].clmn_end = out_width;
+        }
+        if (padding_left) {
+            perc_areas[areas_num].row_beg = CEIL_DIV(padding_top, stride_height);
+            perc_areas[areas_num].row_end = out_height - CEIL_DIV(padding_bot, stride_height);
+            perc_areas[areas_num].clmn_beg = 0;
+            perc_areas[areas_num++].clmn_end = CEIL_DIV(padding_left, stride_width);
+        }
+        if (padding_right) {
+            perc_areas[areas_num].row_beg = CEIL_DIV(padding_top, stride_height);
+            perc_areas[areas_num].row_end = out_height - CEIL_DIV(padding_bot, stride_height);
+            perc_areas[areas_num].clmn_beg = out_width - CEIL_DIV(padding_right, stride_width);
+            perc_areas[areas_num++].clmn_end = out_width;
+        }
+        for(int i = 0; i < areas_num; i ++) {
+            convolution2D_hwc<int8_t, int8_t, int32_t, mli_acc32_t>(
+                    in_ftrs, weights, biases, out_ftrs, &perc_areas[i], quant_params,
                     val_min_limit, val_max_limit,
                     in_ch, in_width, in_height,
                     out_ch, out_width, out_height,
