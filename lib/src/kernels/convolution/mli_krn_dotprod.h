@@ -79,7 +79,7 @@ template < typename in_T, typename w_T, typename acc_T >
 static void __attribute__ ((always_inline)) dotprod2D_hwc_d (
         const MLI_PTR(in_T) __restrict in, 
         const MLI_PTR(w_T) __restrict krn,
-        accum40_t * accu,        
+        acc_T * accu,        
         const int width,
         const int height,
         int in_col_step,
@@ -100,25 +100,6 @@ static void __attribute__ ((always_inline)) dotprod2D_hwc_d (
         in += in_row_step;
         krn += kern_row_step;
     }
-}
-
-template < typename in_T, typename w_T, typename acc_T >
-static void __attribute__ ((always_inline)) dotprod_d (
-        const MLI_PTR(in_T) __restrict in, 
-        const MLI_PTR(w_T) __restrict krn,
-        acc_T * accu) {
-            v2q15_t k_v = mli_prv_load_2_samples(krn);
-            v2q15_t tx = mli_prv_load_2_samples(in);
-            *accu = fx_a40_dmac_v2q15(*accu, tx, k_v);
-}
-
-template <typename io_T, typename w_T, typename acc_T>
-static acc_T __attribute__ ((always_inline)) dotprod(
-        const MLI_PTR(io_T) __restrict in,
-        const MLI_PTR(w_T)  __restrict krn,
-        acc_T accu) {
-    accu = mli_math_mac_fx(accu, (*in), (*krn));
-    return accu;
 }
 
 template < typename in_T, typename w_T, typename acc_T >

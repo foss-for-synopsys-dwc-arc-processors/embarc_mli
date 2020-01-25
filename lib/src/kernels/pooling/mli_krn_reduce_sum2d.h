@@ -271,15 +271,110 @@ inline acc_T __attribute__((always_inline)) reduce_sum2D(
         const int height,
         int in_col_step,
         int in_row_step) {
-    in_row_step -= width * in_col_step;
-    for (int row = 0; row < height; row++) {
+    if (width == 1){
+#pragma clang loop unroll(full)
+        for (int row = 0; row < height; row++) {
+            accu = mli_math_mac_fx(accu, mul, (*in));
+            in += in_row_step;
+        }
+    } else if( height == 1) {
+#pragma clang loop unroll(full)
         for (int clmn = 0; clmn < width; clmn++) {
             accu = mli_math_mac_fx(accu, mul, (*in));
             in += in_col_step;
         }
-        in += in_row_step;
+    } else {
+        in_row_step -= width * in_col_step;
+#pragma clang loop unroll(full)
+        for (int row = 0; row < height; row++) {
+#pragma clang loop unroll(full)
+            for (int clmn = 0; clmn < width; clmn++) {
+                accu = mli_math_mac_fx(accu, mul, (*in));
+                in += in_col_step;
+            }
+            in += in_row_step;
+        }
     }
     return accu;
 }
 
-#endif  //_MLI_KRN_REDUCE_SUM2D_CHW_H_
+template <typename io_T>
+static inline __v2i32_t __attribute__((always_inline)) reduce_sum2D_v(
+        const MLI_PTR(io_T) __restrict in,
+        const int16_t mul,
+        __v2i32_t *v2acc,
+
+        const int width,
+        const int height,
+        int in_col_step,
+        int in_row_step) {
+
+    v2q15_t v2mul = {mul, mul};
+    if (width == 1){
+#pragma clang loop unroll(full)
+        for (int row = 0; row < height; row++) {
+            mli_math_mac_fx_vec2(v2acc, mli_prv_load_2_samples(in), v2mul);
+            in += in_row_step;
+        }
+    } else if (height == 1){
+#pragma clang loop unroll(full)
+        for (int clmn = 0; clmn < width; clmn++) {
+            mli_math_mac_fx_vec2(v2acc, mli_prv_load_2_samples(in), v2mul);
+            in += in_col_step;
+        }
+    } else {
+        in_row_step -= width * in_col_step;
+#pragma clang loop unroll(full)
+        for (int row = 0; row < height; row++) {
+#pragma clang loop unroll(full)
+            for (int clmn = 0; clmn < width; clmn++) {
+                mli_math_mac_fx_vec2(v2acc, mli_prv_load_2_samples(in), v2mul);
+                in += in_col_step;
+            }
+            in += in_row_step;
+        }
+    }
+    return *v2acc;
+}
+
+template <typename io_T, typename acc_T>
+inline acc_T __attribute__((always_inline)) reduce_sum2D_d(
+        const MLI_PTR(io_T) __restrict in,
+        const int16_t mul,
+        acc_T *accu,
+
+        const int width,
+        const int height,
+        int in_col_step,
+        int in_row_step) {
+
+        v2q15_t v2mul = {mul, mul};
+        const __xy int16_t *__restrict v2mul_ptr = (const __xy int16_t *__restrict)&v2mul;
+    if (width == 1){
+#pragma clang loop unroll(full)
+        for (int row = 0; row < height; row++) {
+            mli_prv_load_mac_vec2(accu, v2mul_ptr, in);
+            in += in_row_step;
+        }
+    } else if( height == 1) {
+#pragma clang loop unroll(full)
+        for (int clmn = 0; clmn < width; clmn++) {
+            mli_prv_load_mac_vec2(accu, v2mul_ptr, in);
+            in += in_col_step;
+        }
+    } else {
+        in_row_step -= width * in_col_step;
+#pragma clang loop unroll(full)
+        for (int row = 0; row < height; row++) {
+#pragma clang loop unroll(full)
+            for (int clmn = 0; clmn < width; clmn++) {
+                mli_prv_load_mac_vec2(accu,v2mul_ptr, in);
+                in += in_col_step;
+            }
+            in += in_row_step;
+        }
+    }
+    return *accu;
+}
+
+#endif  //_MLI_KRN_REDUCE_SUM2D_H_
