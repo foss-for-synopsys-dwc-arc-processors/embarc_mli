@@ -194,7 +194,8 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc(
         const int out_ch, const int out_width, const int out_height,
         const int kernel_height, const int kernel_width,
         const int stride_height, const int stride_width,
-        const int padding_top, const int padding_left) {
+        const int padding_top, const int padding_left,
+        const int padding_bot, const int padding_right) {
 
     const int row_begin = perception_area->row_beg;
     const int row_end = perception_area->row_end;
@@ -375,7 +376,8 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc_krnpad(
                 out_ch, out_width, out_height,
                 kernel_height, kernel_width,
                 stride_height, stride_width,
-                padding_top, padding_left);
+                padding_top, padding_left,
+                padding_bot, padding_right);
 
     // Phase 2: Process border part with more complex algorithm
     // (usually significantly smaller part of computations)
@@ -440,7 +442,8 @@ static __attribute__ ((always_inline)) void convolution2D_hwc(
         const int out_ch, const int out_width, const int out_height,
         const int kernel_height, const int kernel_width,
         const int stride_height, const int stride_width,
-        const int padding_top, const int padding_left) {
+        const int padding_top, const int padding_left,
+        const int padding_bot, const int padding_right) {
 
     const int row_begin = perception_area->row_beg;
     const int row_end = perception_area->row_end;
@@ -659,7 +662,8 @@ static __attribute__ ((always_inline)) void convolution2D_hwc_krnpad(
                 out_ch, out_width, out_height,
                 kernel_height, kernel_width,
                 stride_height, stride_width,
-                padding_top, padding_left);
+                padding_top, padding_left,
+                padding_bot, padding_right);
 
     // Phase 2: Process border part with more complex algorithm
     // (usually significantly smaller part of computations)
