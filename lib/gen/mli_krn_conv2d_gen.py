@@ -255,13 +255,6 @@ k = 1
 ch = 0
 f_list_hwc_sa8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad")])
 
-corefunc = "pointwise_convolution2D_hwc_krnpad"
-stride = 0
-k = 1
-ch = 0
-f_list_hwc_sa8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad")])
-
-
 corefunc = "convolution2D_hwc_krnpad"
 stride = 0
 kernel_range = [0, 2, 3]
