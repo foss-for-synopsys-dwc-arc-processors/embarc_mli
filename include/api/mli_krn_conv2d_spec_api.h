@@ -912,13 +912,6 @@ mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k1x1_nopad(
         const mli_conv2d_cfg * cfg, 
         mli_tensor * out);
 
-mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k1x1_krnpad(
-        const mli_tensor * in, 
-        const mli_tensor * weights, 
-        const mli_tensor * bias, 
-        const mli_conv2d_cfg * cfg, 
-        mli_tensor * out);
-
 mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_k1xn_krnpad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
