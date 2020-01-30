@@ -106,13 +106,14 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc_nopad(
             adjust_quant_params(&v2quant_params[0], out_ch_idx++);
             adjust_quant_params(&v2quant_params[1], out_ch_idx++);
 
-            __v2i32_t v2acc_weights_add = {0, 0};
-            v2acc_weights_add = weights_additive_v(w_ptr, &v2acc_weights_add, &quant_params, kernel_width, kernel_height, 
-                    krn_col_step, krn_row_step);
-
             acc_T bias_add_ch1 = bias_additive(*biases++, 0x0, &v2quant_params[0]);
             acc_T bias_add_ch2 = bias_additive(*biases++, 0x0, &v2quant_params[1]);
-            __v2i32_t v2_bias_add = {bias_add_ch1, bias_add_ch2};
+
+            v2accum40_t v2acc_weights_add = {bias_add_ch1, bias_add_ch2};
+            v2acc_weights_add = weights_additive_v(w_ptr, &v2acc_weights_add, &quant_params, kernel_width, kernel_height, 
+                    krn_col_step, krn_row_step);
+            __v2i32_t v2acc_weights_add_int = {fx_q31_cast_nf_a40(fx_get_v2a40(v2acc_weights_add, 0)),
+                                               fx_q31_cast_nf_a40(fx_get_v2a40(v2acc_weights_add, 1))};
 
             for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
                 for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
@@ -120,8 +121,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc_nopad(
                     dotprod2D_hwc_v(in_ptr, w_ptr, &v2accu_dotprod, kernel_width, kernel_height,
                                         in_col_step, in_row_step, krn_col_step, krn_row_step);
 
-                    v2accu_dotprod += v2acc_weights_add;
-                    v2accu_dotprod += v2_bias_add;
+                    v2accu_dotprod += v2acc_weights_add_int;
 
                     // Cast result to output type
                     mli_prv_clip_relu_store_output_v(out_ptr, &v2accu_dotprod, v2quant_params, val_min_limit, val_max_limit);

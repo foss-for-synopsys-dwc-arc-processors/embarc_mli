@@ -298,11 +298,11 @@ inline acc_T __attribute__((always_inline)) reduce_sum2D(
     return accu;
 }
 
-template <typename io_T>
-static inline __v2i32_t __attribute__((always_inline)) reduce_sum2D_v(
+template <typename io_T, typename acc_T>
+static inline acc_T __attribute__((always_inline)) reduce_sum2D_v(
         const MLI_PTR(io_T) __restrict in,
         const int16_t mul,
-        __v2i32_t *v2acc,
+        acc_T *v2acc,
 
         const int width,
         const int height,

@@ -126,8 +126,9 @@ inline mli_acc32_t __attribute__ ((always_inline)) weights_additive(
 }
 
 
-inline __v2i32_t __attribute__ ((always_inline)) weights_additive_v(
-        const MLI_PTR(int8_t) __restrict weights, __v2i32_t *init_accum,
+template <typename acc_T>
+inline acc_T __attribute__ ((always_inline)) weights_additive_v(
+        const MLI_PTR(int8_t) __restrict weights, acc_T *init_accum,
         const s8asym_quant_specific_params* quant_params,
         const int width,  const int height, int col_step, int row_step) {
 
