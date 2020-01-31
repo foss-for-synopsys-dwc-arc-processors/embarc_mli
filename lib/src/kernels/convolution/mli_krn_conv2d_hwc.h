@@ -85,7 +85,6 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc_nopad(
     const int out_increment_in_ch_loop = channel_per_loop - out_compensation_row_loop;
     const int out_increment_in_ch_loop_v = channels_per_loop_v - out_compensation_row_loop;
 
-
     MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T) __restrict)in_ftrs;
     MLI_CONV_OUT_PTR(io_T) __restrict out_ptr = (MLI_CONV_OUT_PTR(io_T) __restrict)out_ftrs;
     MLI_PTR(w_T) __restrict w_ptr = (MLI_PTR(w_T) __restrict)weights;
@@ -114,20 +113,24 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc_nopad(
                     krn_col_step, krn_row_step);
             __v2i32_t v2acc_weights_add_int = {fx_q31_cast_nf_a40(fx_get_v2a40(v2acc_weights_add, 0)),
                                                fx_q31_cast_nf_a40(fx_get_v2a40(v2acc_weights_add, 1))};
+            __builtin_assume(amount_rows > 0);
+            for (int H_idx = 0; H_idx < amount_rows; H_idx++) {
+                __builtin_assume(amount_columns > 0);
 
-            for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
-                for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
-                    __v2i32_t v2accu_dotprod = {0, 0};
-                    dotprod2D_hwc_v(in_ptr, w_ptr, &v2accu_dotprod, kernel_width, kernel_height,
-                                        in_col_step, in_row_step, krn_col_step, krn_row_step);
-
-                    v2accu_dotprod += v2acc_weights_add_int;
+                __v2i32_t v2accu_dotprod = v2acc_weights_add_int;
+                dotprod2D_hwc_v(in_ptr, w_ptr, &v2accu_dotprod, kernel_width, kernel_height,
+                                in_col_step, in_row_step, krn_col_step, krn_row_step);
+                for (int W_idx = 0; W_idx < amount_columns; W_idx++) {
 
                     // Cast result to output type
                     mli_prv_clip_relu_store_output_v(out_ptr, &v2accu_dotprod, v2quant_params, val_min_limit, val_max_limit);
 
                     in_ptr += in_increment_clmn_loop;
                     out_ptr += out_increment_clmn_loop;
+
+                    v2accu_dotprod = v2acc_weights_add_int;
+                    dotprod2D_hwc_v(in_ptr, w_ptr, &v2accu_dotprod, kernel_width, kernel_height,
+                                    in_col_step, in_row_step, krn_col_step, krn_row_step);
                 } // for W_idx
                 in_ptr += in_increment_row_loop;
                 out_ptr += out_increment_row_loop;

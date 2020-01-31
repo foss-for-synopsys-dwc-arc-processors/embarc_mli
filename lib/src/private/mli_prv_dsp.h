@@ -348,17 +348,18 @@ static inline void __attribute__ ((always_inline)) mli_prv_clip_relu_store_outpu
         const s8asym_quant_specific_params quant_params[],
         const int16_t val_min_limit,
         const int16_t val_max_limit) {
-    v2q15_t v2val_max_limit = {val_max_limit, val_max_limit};
-    v2q15_t v2val_min_limit = {val_min_limit, val_min_limit};
-
     accum72_t accu_scaled = fx_a72_mpy_q31((*conv_out_v)[0], quant_params[0].out_mul);
     int16_t out_no_offset_ch1 = fx_q15_cast_nf_asl_rnd_a72(accu_scaled, 64 - sizeof(int16_t) * 8 - quant_params[0].out_shift);
 
     accu_scaled = fx_a72_mpy_q31((*conv_out_v)[1], quant_params[1].out_mul);
     int16_t out_no_offset_ch2 = fx_q15_cast_nf_asl_rnd_a72(accu_scaled, 64 - sizeof(int16_t) * 8 - quant_params[1].out_shift);
 
-    v2q15_t v2out_no_offset = {out_no_offset_ch1, out_no_offset_ch2};
     v2q15_t v2quant_out_offset = {quant_params[0].out_offset, quant_params[1].out_offset};
+
+    v2q15_t v2out_no_offset = {out_no_offset_ch1, out_no_offset_ch2};
+
+    v2q15_t v2val_max_limit = {val_max_limit, val_max_limit};
+    v2q15_t v2val_min_limit = {val_min_limit, val_min_limit};
     v2q15_t v2out_offset = fx_add_v2q15(v2out_no_offset, v2quant_out_offset);
 
     // no saturation needed because ReLu clipping is done in 32bit domain.
