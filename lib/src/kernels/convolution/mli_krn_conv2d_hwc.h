@@ -748,14 +748,14 @@ static __attribute__ ((always_inline)) void pointwise_convolution2D_hwc_nopad(
     out_ptr += out_ch *                 // common coefs
             (row_begin * out_width  +   // setup init coef for moving to row
             clmn_begin);                // setup init coef for moving to colum;
-    MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T) __restrict)in_ftrs;
+    const MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T) __restrict)in_ftrs;
     in_ptr += in_ch * (row_begin * stride_height * in_width +          // move to row
               clmn_begin * stride_width);                              // move to column
 
     for (int out_ch_idx = 0; out_ch_idx < out_ch; out_ch_idx++) {
         adjust_quant_params(&quant_params, out_ch_idx);
         const int bias_add = bias_additive(biases[out_ch_idx], 0x0, &quant_params);
-        MLI_PTR(w_T) __restrict w_ptr_local = (MLI_PTR(w_T) __restrict)weights + out_ch_idx * in_ch;
+        const MLI_PTR(w_T) __restrict w_ptr_local = (MLI_PTR(w_T) __restrict)weights + out_ch_idx * in_ch;
         int8_t init_accum_val = 0;
         int weights_add = mli_prv_init_accu(init_accum_val);
 
@@ -770,37 +770,72 @@ static __attribute__ ((always_inline)) void pointwise_convolution2D_hwc_nopad(
             weights_add = weights_additive(w_ptr_local++, weights_add, &quant_params, 
                     kernel_width, kernel_height, krn_col_step, krn_row_step);
         }
-
-        for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
-            for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
-                MLI_PTR(w_T) __restrict w_ptr = (MLI_PTR(w_T) __restrict)weights + out_ch_idx * in_ch;
+        
+        int odd_rest_of_in_ch = (in_ch & 0x3);
+        int even_in_ch = in_ch & (!0x3u);
+        
+        if ((in_ch & 0x3) == 0) {
+            for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
+                const MLI_PTR(w_T) __restrict w_ptr = (const MLI_PTR(w_T) __restrict)weights + out_ch_idx * in_ch;
 
                 int32_t init_accum_val = weights_add;
                 acc_T accu = mli_prv_init_accu(init_accum_val);
+                for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
 
-                for (int in_ch_idx = 0; in_ch_idx < in_ch -1; in_ch_idx+=2) {
-                    const MLI_PTR(io_T) __restrict tmp_in_ptr = (const MLI_PTR(io_T) __restrict)in_ptr;
-                    const MLI_PTR(w_T) __restrict tmp_w_ptr = (const MLI_PTR(w_T) __restrict)w_ptr;
-                    mli_prv_load_mac_vec2(&accu, tmp_in_ptr, tmp_w_ptr);
-                    in_ptr+= 2;
-                    w_ptr += 2;
-                }
+LOOP_PIPELINE_ENABLE
+                    for (int j = 0; j < (in_ch / 4); j++) {
+                        mli_prv_load_mac_vec4(&accu, in_ptr, w_ptr);
+                        in_ptr += 4;
+                        w_ptr += 4;
+                    }
+                    accu += bias_add;
 
-                if (in_ch & 1) {
-                    accu = mli_math_mac_fx(accu, *in_ptr, *w_ptr);
-                    in_ptr++;
-                    w_ptr++;
-                }
-                accu += bias_add;
-                
-                // Cast result to output type, apply built-in ReLU Applying and write result
-                mli_prv_clip_relu_store_output(out_ptr, accu, &quant_params, val_min_limit, val_max_limit);
-                out_ptr += out_ch;
-                in_ptr += in_ch * (stride_width - 1);
-            } // for W_idx
-            out_ptr += out_width * out_ch - out_compensation_clmn_loop;
-            in_ptr += stride_height * in_width * in_ch - in_compensation_clmn_loop;
-        } // for H_idx
+                    // Cast result to output type, apply built-in ReLU Applying and write result
+                    mli_prv_clip_relu_store_output(out_ptr, accu, &quant_params, val_min_limit, val_max_limit);
+                    out_ptr += out_ch;
+                    in_ptr += in_ch * (stride_width - 1);
+                    w_ptr -= in_ch;
+
+                    int32_t init_accum_val = weights_add;
+                    acc_T accu = mli_prv_init_accu(init_accum_val);
+                } // for W_idx
+                out_ptr += out_width * out_ch - out_compensation_clmn_loop;
+                in_ptr += stride_height * in_width * in_ch - in_compensation_clmn_loop;
+            } // for H_idx
+        } else {
+            for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
+                int32_t init_accum_val = weights_add;
+                acc_T accu = mli_prv_init_accu(init_accum_val);
+
+                const MLI_PTR(w_T) __restrict w_ptr = (const MLI_PTR(w_T) __restrict)weights + out_ch_idx * in_ch;
+                for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
+
+                    for (int k = 0; k < odd_rest_of_in_ch; k++) {
+                        mli_prv_load_mac(&accu, in_ptr++, w_ptr++);
+                    }
+
+                    
+LOOP_PIPELINE_ENABLE
+                    for (int j = 0; j < (even_in_ch / 4); j++) {
+                        mli_prv_load_mac_vec4(&accu, in_ptr, w_ptr);
+                        in_ptr += 4;
+                        w_ptr += 4;
+                    }
+                    accu += bias_add;
+
+                    // Cast result to output type, apply built-in ReLU Applying and write result
+                    mli_prv_clip_relu_store_output(out_ptr, accu, &quant_params, val_min_limit, val_max_limit);
+                    out_ptr += out_ch;
+                    in_ptr += in_ch * (stride_width - 1);
+                    w_ptr -= in_ch;
+
+                    int32_t init_accum_val = weights_add;
+                    acc_T accu = mli_prv_init_accu(init_accum_val);
+                } // for W_idx
+                out_ptr += out_width * out_ch - out_compensation_clmn_loop;
+                in_ptr += stride_height * in_width * in_ch - in_compensation_clmn_loop;
+            } // for H_idx
+        }
         in_ptr -=  in_compensation_row_loop;
         out_ptr += 1 - out_compensation_row_loop;
     } // for out_ch_idx
