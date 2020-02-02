@@ -53,10 +53,10 @@ GEN_FILES += $(CONVOLUTION_SRC_FOLDER)/mli_krn_conv2d_chw_fx8w16d.cc \
              $(CONVOLUTION_SRC_FOLDER)/mli_krn_conv2d_hwc_sa8_sa8_sa32.cc \
              $(CONVOLUTION_SRC_FOLDER)/mli_krn_depthwise_conv2d_chw_fx8w16d.cc \
              $(CONVOLUTION_SRC_FOLDER)/mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32.cc \
-             $(POOLING_SRC_FOLDER)/mli_krn_maxpool_hwc_fx8.cc \
+             $(POOLING_SRC_FOLDER)/mli_krn_maxpool_hwc_fx8.cc  \
              $(POOLING_SRC_FOLDER)/mli_krn_maxpool_hwc_fx16.cc \
-             $(POOLING_SRC_FOLDER)/mli_krn_maxpool_hwc_sa8.cc   \
-             $(POOLING_SRC_FOLDER)/mli_krn_avepool_hwc_sa8.cc
+             $(POOLING_SRC_FOLDER)/mli_krn_avepool_hwc_sa8.cc  \
+             $(POOLING_SRC_FOLDER)/mli_krn_maxpool_hwc_sa8.cc
 
 GEN_FILES_HEADERS = $(addprefix $(GEN_HEADER_FOLDER)/, $(addsuffix _spec_api.h, $(notdir $(GEN_FILES_BASE))))
 
@@ -109,6 +109,10 @@ $(filter $(CONVOLUTION_SRC_FOLDER)/mli_krn_depthwise_conv2d_hwc_%, $(GEN_FILES))
 	cd $(GEN_DIR) && python $< $*
 
 $(filter $(POOLING_SRC_FOLDER)/mli_krn_avepool_chw_%, $(GEN_FILES)): $(POOLING_SRC_FOLDER)/mli_krn_avepool_chw_%.cc : mli_krn_avepool_gen.py mli_krn_avepool_chw_func_body.txt filetemplate.txt codegen.py func.py
+	@echo [generate] $@
+	cd $(GEN_DIR) && python $< $*
+
+$(filter $(POOLING_SRC_FOLDER)/mli_krn_avepool_hwc_%, $(GEN_FILES)): $(POOLING_SRC_FOLDER)/mli_krn_avepool_hwc_%.cc : mli_krn_avepool_gen.py mli_krn_avepool_hwc_func_body.txt filetemplate.txt codegen.py func.py
 	@echo [generate] $@
 	cd $(GEN_DIR) && python $< $*
 
