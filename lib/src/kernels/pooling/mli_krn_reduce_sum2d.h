@@ -349,7 +349,7 @@ inline acc_T __attribute__((always_inline)) reduce_sum2D_d(
         int in_row_step) {
 
         v2q15_t v2mul = {mul, mul};
-        const __xy int16_t *__restrict v2mul_ptr = (const __xy int16_t *__restrict)&v2mul;
+        const MLI_PTR(int16_t) __restrict v2mul_ptr = (const MLI_PTR(int16_t) __restrict)&v2mul;
     if (width == 1){
 #pragma clang loop unroll(full)
         for (int row = 0; row < height; row++) {
