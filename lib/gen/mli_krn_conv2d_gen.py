@@ -238,32 +238,23 @@ if "fx8w16d" in sys.argv or no_args:
 fbase = ("krn", "conv2d", "hwc", "sa8_sa8_sa32", f_args)
 
 corefunc = "convolution2D_hwc_krnpad"
-stride = 0
-kernel_range = range(2, 11)
+stride = 1
+kernel_range = range(3, 5, 2)
 ch = 0
 f_list_hwc_sa8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
 
-corefunc = "convolution2D_hwc_nopad"
-stride = 0
-kernel_range = range(2, 11)
+corefunc = "convolution2D_hwc_krnpad"
+stride = 2
+k = 3
 ch = 0
-f_list_hwc_sa8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
+f_list_hwc_sa8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad")])
+
 
 corefunc = "pointwise_convolution2D_hwc_nopad"
 stride = 0
 k = 1
 ch = 0
 f_list_hwc_sa8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad")])
-
-corefunc = "convolution2D_hwc_krnpad"
-stride = 0
-kernel_range = [0, 2, 3]
-ch = 0
-f_list_hwc_sa8.extend([Func(fbase, 1, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
-f_list_hwc_sa8.extend([Func(fbase, k, 1, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
-corefunc = "convolution2D_hwc_nopad"
-f_list_hwc_sa8.extend([Func(fbase, 1, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
-f_list_hwc_sa8.extend([Func(fbase, k, 1, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
 
 corefunc = "convolution2D_hwc_krnpad"
 default_func_hwc = Func(fbase, 0, 0, 0, 0, 0, corefunc, generic=True)
@@ -274,8 +265,8 @@ f_list_hwc_sa8.append(default_func_hwc)
 #------------------------------------------------------------
 c = Codegen()
 c.set_wrapper_variables({'stride_w' : "cfg->stride_width", 'stride_h' : "cfg->stride_height"})
-c.set_wrapper_variables({'kernel_w' : "weights->shape[KRNL_DW_W_DIM_HWC]", 'kernel_h' : "weights->shape[KRNL_DW_H_DIM_HWC]"})
-c.set_wrapper_variables({'in_ch' : "in->shape[KRNL_DW_C_DIM_HWC]"})
+c.set_wrapper_variables({'kernel_w' : "weights->shape[KRNL_W_DIM_HWC]", 'kernel_h' : "weights->shape[KRNL_H_DIM_HWC]"})
+c.set_wrapper_variables({'in_ch' : "in->shape[KRNL_C_DIM_HWC]"})
 c.set_wrapper_variables({'padding_top' : "cfg->padding_top"})
 c.set_wrapper_variables({'padding_bot' : "cfg->padding_bottom"})
 c.set_wrapper_variables({'padding_left' : "cfg->padding_left"})

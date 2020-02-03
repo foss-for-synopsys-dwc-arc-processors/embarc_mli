@@ -173,26 +173,16 @@ if "fx8w16d" in sys.argv or no_args:
 fbase = ("krn", "depthwise_conv2d", "hwc", "sa8_sa8_sa32", f_args)
 
 corefunc = "depthwise_convolution2D_hwc_krnpad"
-stride = 0
-kernel_range = range(2, 11)
+stride = 1
+kernel_range = range(3, 5, 2)
 ch = 0
 f_list_hwc_sa8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
 
-corefunc = "depthwise_convolution2D_hwc_nopad"
-stride = 0
-kernel_range = range(2, 11)
-ch = 0
-f_list_hwc_sa8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
-
 corefunc = "depthwise_convolution2D_hwc_krnpad"
-stride = 0
-kernel_range = [0, 2, 3]
+stride = 2
+k = 3
 ch = 0
-f_list_hwc_sa8.extend([Func(fbase, 1, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
-f_list_hwc_sa8.extend([Func(fbase, k, 1, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
-corefunc = "depthwise_convolution2D_hwc_nopad"
-f_list_hwc_sa8.extend([Func(fbase, 1, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
-f_list_hwc_sa8.extend([Func(fbase, k, 1, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
+f_list_hwc_sa8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad")])
 
 corefunc = "depthwise_convolution2D_hwc_krnpad"
 default_func_hwc = Func(fbase, 0, 0, 0, 0, 0, corefunc, generic=True)
