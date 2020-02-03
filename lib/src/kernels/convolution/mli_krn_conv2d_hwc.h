@@ -772,8 +772,8 @@ static __attribute__ ((always_inline)) void pointwise_convolution2D_hwc_nopad(
         }
         
         int odd_rest_of_in_ch = (in_ch & 0x3);
-        int even_in_ch = in_ch & (!0x3u);
-        
+        int even_in_ch = in_ch & (~0x3);
+
         if ((in_ch & 0x3) == 0) {
             for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
                 const MLI_PTR(w_T) __restrict w_ptr = (const MLI_PTR(w_T) __restrict)weights + out_ch_idx * in_ch;
