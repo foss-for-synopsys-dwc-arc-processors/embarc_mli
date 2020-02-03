@@ -744,14 +744,28 @@ char * mli_debug_krn_depthwise_conv2d_hwc_sa8_sa8_sa32(
         const mli_conv2d_cfg * cfg, 
         mli_tensor * out);
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x3_str1_krnpad(
+mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x3_krnpad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
         const mli_conv2d_cfg * cfg, 
         mli_tensor * out);
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x3_str2_krnpad(
+mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k5x5_krnpad(
+        const mli_tensor * in, 
+        const mli_tensor * weights, 
+        const mli_tensor * bias, 
+        const mli_conv2d_cfg * cfg, 
+        mli_tensor * out);
+
+mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k3x3_nopad(
+        const mli_tensor * in, 
+        const mli_tensor * weights, 
+        const mli_tensor * bias, 
+        const mli_conv2d_cfg * cfg, 
+        mli_tensor * out);
+
+mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_k5x5_nopad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
