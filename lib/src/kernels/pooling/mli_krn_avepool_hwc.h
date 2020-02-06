@@ -48,23 +48,28 @@ static inline void __attribute__((always_inline)) avepool_hwc_nopad(
     (void)padding_bot;
     
     const unsigned int max_kernel_size = kernel_width * kernel_height;
-    const int row_diff = row_end - row_beg;
-    const int clmn_diff = clmn_end - clmn_beg;
+    const int number_rows = row_end - row_beg;
+    const int number_clmns = clmn_end - clmn_beg;
     const int goto_next_row = channels * in_width * stride_height;
     const int goto_next_clmn = channels * stride_width;
-    const int compensation_inp_width_lp = channels * stride_width * clmn_diff;
-    const int compensation_inp_height_lp = goto_next_row  * row_diff;
-    const int compensation_out_height_lp = channels * clmn_diff * row_diff;
+    const int compensation_inp_width_lp = channels * stride_width * number_clmns;
+    const int compensation_inp_height_lp = goto_next_row  * number_rows;
+    const int out_compensation_row_loop = channels * out_width * number_rows;
+    const int out_compensation_clmn_loop = channels * number_clmns;
     int16_t mul = 0;
-    
+
+    in_ftrs  += ((row_beg * stride_height - padding_top) * in_width +            // move to row
+                 (clmn_beg * stride_width - padding_left)) * channels;           // move to column
+    out_ftrs += (row_beg  * out_width +                                          // move to row
+                 clmn_beg)  * channels;                                           // move to column
     int shift = 0;
     // in case of average pooling, the sum needs to be divided by the kernel size.
     // calculate 1/(rows*clmns) to get a multiplication factor and shift value.
     get_mul_shift_value(max_kernel_size, &mul, &shift);
 
     for (int ch_idx = 0; ch_idx < (channels - 1); ch_idx += 2) {
-        for (int H_idx = 0; H_idx < row_diff; H_idx++) {
-            for (int W_idx = 0; W_idx < clmn_diff; W_idx++) {
+        for (int H_idx = 0; H_idx < number_rows; H_idx++) {
+            for (int W_idx = 0; W_idx < number_clmns; W_idx++) {
                 auto v2acc = reduce_sum2D_hwc_v(in_ftrs, kernel_width, kernel_height, channels, in_width, mul);
                 mli_prv_clip_and_store_output_v(out_ftrs, &v2acc, shift);
                 in_ftrs += goto_next_clmn; //go to the next input column
@@ -72,17 +77,18 @@ static inline void __attribute__((always_inline)) avepool_hwc_nopad(
             } // for W_idx
             // go to the next row given compensation of previous loops incrementing
             in_ftrs += goto_next_row - compensation_inp_width_lp;
+            out_ftrs += out_width * channels - out_compensation_clmn_loop;
         } // for H_idx
         // go to the next channel given compensation of previous loops incrementing 
         in_ftrs  += 2 - compensation_inp_height_lp;
         // go to next channel with compensation of previous loops incrementing
-        out_ftrs += 2 - compensation_out_height_lp;
+        out_ftrs += 2 - out_compensation_row_loop;
     } // for ch_idx 
 
 
     if(channels & 1){
-        for (int H_idx = 0; H_idx < row_diff; H_idx++) {
-            for (int W_idx = 0; W_idx < clmn_diff; W_idx++) {
+        for (int H_idx = 0; H_idx < number_rows; H_idx++) {
+            for (int W_idx = 0; W_idx < number_clmns; W_idx++) {
                 auto acc = reduce_sum2D_hwc(in_ftrs, kernel_width, kernel_height, channels, in_width, mul);
                 mli_prv_shift_clip_and_store_output(out_ftrs, &acc, shift);
                 // Write results
@@ -90,11 +96,12 @@ static inline void __attribute__((always_inline)) avepool_hwc_nopad(
                 out_ftrs += channels; //go to the next output column without out stride
             } // for W_idx 
             // go to the next row given compensation of previous loops incrementing
+            out_ftrs += out_width * channels - out_compensation_clmn_loop;
             in_ftrs += goto_next_row - compensation_inp_width_lp;
         } // for H_idx
+        out_ftrs += 1 - out_compensation_row_loop;
     }
 }
-
 
 template <typename io_T>
 static inline void __attribute__((always_inline)) avepool_hwc(
@@ -120,13 +127,17 @@ static inline void __attribute__((always_inline)) avepool_hwc(
     (void)padding_right;
     (void)padding_bot;
     
-    const int row_diff = row_end - row_beg;
-    const int clmn_diff = clmn_end - clmn_beg;
-    const int compensation_out_height_lp = channels * clmn_diff * row_diff;
+    const int number_rows = row_end - row_beg;
+    const int number_clmns = clmn_end - clmn_beg;
+    const int out_compensation_row_loop = channels * out_width * number_rows;
+    const int out_compensation_clmn_loop = channels * number_clmns;
+
+    out_ftrs += (row_beg  * out_width +  // move to row
+                 clmn_beg)  * channels;   // move to column
 
     for (int ch_idx = 0; ch_idx < channels; ch_idx++) {
-        for (int H_idx = 0; H_idx < row_diff; H_idx++) {
-            for (int W_idx = 0; W_idx < clmn_diff; W_idx++) {
+        for (int H_idx = row_beg; H_idx < row_end; H_idx++) {
+            for (int W_idx = clmn_beg; W_idx < clmn_end; W_idx++) {
                 // Define area of input and filter for convolution
                 // *_comp - compensation values for valid area defining
                 int top_comp = -MIN((int)(H_idx * stride_height)- padding_top, 0);
@@ -153,9 +164,10 @@ static inline void __attribute__((always_inline)) avepool_hwc(
                 mli_prv_shift_clip_and_store_output(out_ftrs, &acc, shift);
                 out_ftrs += channels; //go to the next output column without out stride
             } // for W_idx 
+            out_ftrs += out_width * channels - out_compensation_clmn_loop;
         } // for H_idx
         // go to next channel with compensation of previous loops incrementing
-        out_ftrs += 1 - compensation_out_height_lp;
+        out_ftrs += 1 - out_compensation_row_loop;
     } // for ch_idx 
 }
 
@@ -182,53 +194,61 @@ static inline void __attribute__((always_inline)) avepool_hwc_krnpad(
         const int padding_bot) {
     // Phase 1: Process central part (without border effects - padding free)
     //=======================================================================
-    avepool_hwc_nopad(
-            row_beg, row_end, clmn_beg, clmn_end,
-            in_ftrs, out_ftrs, channels, in_width,
-            in_height, out_width, out_height, kernel_height,
-            kernel_width, stride_height, stride_width,
-            padding_top, padding_left, padding_right, padding_bot);
+    {
+        const int row_beg = CEIL_DIV(padding_top, stride_height);
+        const int row_end = out_height - CEIL_DIV(padding_bot, stride_height);
+        const int clmn_beg = CEIL_DIV(padding_left, stride_width);
+        const int clmn_end = out_width - CEIL_DIV(padding_right, stride_width);
+
+        avepool_hwc_nopad(
+                row_beg, row_end, clmn_beg, clmn_end,
+                in_ftrs, out_ftrs, channels, in_width,
+                in_height, out_width, out_height, kernel_height,
+                kernel_width, stride_height, stride_width,
+                padding_top, padding_left, padding_right, padding_bot);
+    }
 
     // Phase 2: Process border part with more complex algorithm
     // (usually significantly smaller part of computations)
     //=======================================================================
     if (padding_top || padding_left || padding_bot || padding_right) {
-        rect_t perc_areas[4];
+        rect_t areas[4];
         int areas_num = 0;
         if (padding_top) {
-            perc_areas[areas_num].row_beg = 0;
-            perc_areas[areas_num].row_end = CEIL_DIV(padding_top, stride_height);
-            perc_areas[areas_num].clmn_beg = 0;
-            perc_areas[areas_num++].clmn_end = out_width;
+            areas[areas_num].row_beg = 0;
+            areas[areas_num].row_end = CEIL_DIV(padding_top, stride_height);
+            areas[areas_num].clmn_beg = 0;
+            areas[areas_num++].clmn_end = out_width;
         }
         if (padding_bot) {
-            perc_areas[areas_num].row_beg = out_height - CEIL_DIV(padding_bot, stride_height);
-            perc_areas[areas_num].row_end = out_height;
-            perc_areas[areas_num].clmn_beg = 0;
-            perc_areas[areas_num++].clmn_end = out_width;
+            areas[areas_num].row_beg = out_height - CEIL_DIV(padding_bot, stride_height);
+            areas[areas_num].row_end = out_height;
+            areas[areas_num].clmn_beg = 0;
+            areas[areas_num++].clmn_end = out_width;
         }
         if (padding_left) {
-            perc_areas[areas_num].row_beg = CEIL_DIV(padding_top, stride_height);
-            perc_areas[areas_num].row_end = out_height - CEIL_DIV(padding_bot, stride_height);
-            perc_areas[areas_num].clmn_beg = 0;
-            perc_areas[areas_num++].clmn_end = CEIL_DIV(padding_left, stride_width);
+            areas[areas_num].row_beg = CEIL_DIV(padding_top, stride_height);
+            areas[areas_num].row_end = out_height - CEIL_DIV(padding_bot, stride_height);
+            areas[areas_num].clmn_beg = 0;
+            areas[areas_num++].clmn_end = CEIL_DIV(padding_left, stride_width);
         }
         if (padding_right) {
-            perc_areas[areas_num].row_beg = CEIL_DIV(padding_top, stride_height);
-            perc_areas[areas_num].row_end = out_height - CEIL_DIV(padding_bot, stride_height);
-            perc_areas[areas_num].clmn_beg = out_width - CEIL_DIV(padding_right, stride_width);
-            perc_areas[areas_num++].clmn_end = out_width;
+            areas[areas_num].row_beg = CEIL_DIV(padding_top, stride_height);
+            areas[areas_num].row_end = out_height - CEIL_DIV(padding_bot, stride_height);
+            areas[areas_num].clmn_beg = out_width - CEIL_DIV(padding_right, stride_width);
+            areas[areas_num++].clmn_end = out_width;
         }
 
-        avepool_hwc(
-            row_beg, row_end,
-            clmn_beg, clmn_end,
-            in_ftrs, out_ftrs,
-            channels, in_width, in_height,
-            out_width, out_height,
-            kernel_height, kernel_width,
-            stride_height, stride_width,
-            padding_top, padding_left, padding_right, padding_bot);
+        for (int i = 0; i < areas_num; i++) {
+            avepool_hwc(
+                    areas[i].row_beg, areas[i].row_end, areas[i].clmn_beg, areas[i].clmn_end,
+                    in_ftrs, out_ftrs,
+                    channels, in_width, in_height,
+                    out_width, out_height,
+                    kernel_height, kernel_width,
+                    stride_height, stride_width,
+                    padding_top, padding_left, padding_right, padding_bot);
+        }
     }
 }
 
