@@ -84,24 +84,17 @@ default_func_chw_fx16 = default_func_chw.copy_and_replace_base(fbase)
 # Create a list of specialization functions for HWC
 #------------------------------------------------------------
 fbase = ("krn", "avepool", "hwc", "fx16", f_args)
-corefunc = "avepool_hwc_krnpad"
-stride = 0
-k = 3
-ch = 0
-f_list_hwc.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad")])
-
 corefunc = "avepool_hwc_nopad"
-stride = 0
-kernel_range = range(2, 11)
-ch = 0
-f_list_hwc.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
-
 stride = 0
 kernel_range = [2, 3]
 ch = 0
-corefunc = "avepool_hwc_nopad"
-f_list_hwc.extend([Func(fbase, 1, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
-f_list_hwc.extend([Func(fbase, k, 1, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
+f_list_hwc.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
+
+corefunc = "avepool_hwc_krnpad"
+stride = 0
+kernel_range = [2, 3]
+ch = 0
+f_list_hwc.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
 
 #at last add the generic function that can be used in the else branch in the wrapper.
 corefunc = "avepool_hwc_krnpad"
