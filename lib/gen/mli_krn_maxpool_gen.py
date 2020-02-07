@@ -109,44 +109,16 @@ default_func_chw = Func(fbase, 0, 0, 0, 0, 0, corefunc_chw, generic=True)
 f_list_chw.append(default_func_chw)
 
 corefunc_hwc = "maxpool_hwc_nopad"
-stride = 1
-kernel_range = [2]
-channel_range = [0]
-f_list_hwc.extend([Func(fbase, k, k, ch, stride, stride, corefunc_hwc, "nopad") for k in kernel_range for ch in channel_range])
-
-corefunc_hwc = "maxpool_hwc_nopad"
 stride = 0
-kernel_range_hwc = range(2, 8)
-channel_range = [0]
-f_list_hwc.extend([Func(fbase, k, k, ch, stride, stride, corefunc_hwc, "nopad") for k in kernel_range_hwc for ch in channel_range])
-
-#stride = 0, 1xk and kx1 versions
-corefunc_hwc = "maxpool_hwc_nopad"
-stride = 0
-kernel_range = range(2,4)
-channel_range = [0]
-f_list_hwc.extend([Func(fbase, 1, k, ch, stride, stride, corefunc_hwc, "nopad") for k in kernel_range for ch in channel_range])
-f_list_hwc.extend([Func(fbase, k, 1, ch, stride, stride, corefunc_hwc, "nopad") for k in kernel_range for ch in channel_range])
+kernel_range = [2, 3]
+ch = 0
+f_list_hwc.extend([Func(fbase, k, k, ch, stride, stride, corefunc_hwc, "nopad") for k in kernel_range])
 
 corefunc_hwc = "maxpool_hwc_pad"
 stride = 0
-kernel_range_hwc = range(4,6)
-channel_range = [0]
-f_list_hwc.extend([Func(fbase, k, k, ch, stride, stride, corefunc_hwc, "krnpad") for k in kernel_range_hwc for ch in channel_range])
-
-# 1xk and kx1 versions
-corefunc_hwc = "maxpool_hwc_pad"
-stride = 0
-kernel_range = range(2,4)
-channel_range = [0]
-f_list_hwc.extend([Func(fbase, 1, k, ch, stride, stride, corefunc_hwc, "krnpad") for k in kernel_range for ch in channel_range])
-f_list_hwc.extend([Func(fbase, k, 1, ch, stride, stride, corefunc_hwc, "krnpad") for k in kernel_range for ch in channel_range])
-
-corefunc_hwc = "maxpool_hwc_pad"
-stride = 0
-kernel_range = [2,3]
-channel_range = [0]
-f_list_hwc.extend([Func(fbase, k, k, ch, stride, stride, corefunc_hwc, "") for k in kernel_range for ch in channel_range])
+kernel_range = [2, 3]
+ch = 0
+f_list_hwc.extend([Func(fbase, k, k, ch, stride, stride, corefunc_hwc, "krnpad") for k in kernel_range])
 
 #at last add the generic function that can be used in the else branch in the wrapper.
 corefunc_hwc = "maxpool_hwc_pad"
