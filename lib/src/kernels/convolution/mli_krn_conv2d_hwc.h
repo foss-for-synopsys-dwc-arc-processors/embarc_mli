@@ -801,8 +801,8 @@ LOOP_PIPELINE_ENABLE
                     in_ptr += in_ch * (stride_width - 1);
                     w_ptr -= in_ch;
 
-                    int32_t init_accum_val = weights_add;
-                    acc_T accu = mli_prv_init_accu(init_accum_val);
+                    init_accum_val = weights_add;
+                    accu = mli_prv_init_accu(init_accum_val);
                 } // for W_idx
                 out_ptr += out_width * out_ch - out_compensation_clmn_loop;
                 in_ptr += stride_height * in_width * in_ch - in_compensation_clmn_loop;
@@ -834,8 +834,8 @@ LOOP_PIPELINE_ENABLE
                     in_ptr += in_ch * (stride_width - 1);
                     w_ptr -= in_ch;
 
-                    int32_t init_accum_val = weights_add;
-                    acc_T accu = mli_prv_init_accu(init_accum_val);
+                    init_accum_val = weights_add;
+                    accu = mli_prv_init_accu(init_accum_val);
                 } // for W_idx
                 out_ptr += out_width * out_ch - out_compensation_clmn_loop;
                 in_ptr += stride_height * in_width * in_ch - in_compensation_clmn_loop;
