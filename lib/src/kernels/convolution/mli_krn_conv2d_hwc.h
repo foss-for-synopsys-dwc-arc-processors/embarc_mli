@@ -270,8 +270,8 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc(
                     dotprod2D_hwc_v(&in_ptr[w_idx_in * in_ch * filters], &w_ptr[comp.left * filters * out_ch], &v2accu_dotprod, clmns, rows,
                                         in_col_step, in_row_step, krn_col_step, krn_row_step);
 
-                        __v2i32_t v2acc_weights_add = {0, 0};
-                        v2acc_weights_add = weights_additive_v(&w_ptr[comp.left * filters * out_ch], &v2acc_weights_add, &quant_params, clmns, rows, krn_col_step, krn_row_step);
+                    __v2i32_t v2acc_weights_add = {0, 0};
+                    v2acc_weights_add = weights_additive_v(&w_ptr[comp.left * filters * out_ch], &v2acc_weights_add, &quant_params, clmns, rows, krn_col_step, krn_row_step);
 
                     v2accu_dotprod += v2acc_weights_add;
                     v2accu_dotprod += v2_bias_add;
@@ -501,6 +501,7 @@ static __attribute__ ((always_inline)) void convolution2D_hwc(
 
                 int8_t init_accum_weights_add_val = 0;
                 w_adds = mli_prv_init_accu(init_accum_weights_add_val);
+LOOP_PIPELINE_ENABLE
                 for (int in_ch_idx = 0; in_ch_idx < in_ch-1; in_ch_idx+=2) {
                     w_adds = weights_additive_d(&w_ptr[comp.left * in_ch + in_ch_idx], &w_adds, &quant_params, 
                                 clmns, rows, krn_col_step, krn_row_step);
@@ -513,6 +514,7 @@ static __attribute__ ((always_inline)) void convolution2D_hwc(
 
                 int32_t init_accum_val = w_adds;
                 acc_T accu = mli_prv_init_accu(init_accum_val);
+LOOP_PIPELINE_ENABLE
                 for (int in_ch_idx = 0; in_ch_idx < in_ch - 1; in_ch_idx+=2) {
                     dotprod2D_hwc_d<io_T, w_T, acc_T>(&in_ptr[w_idx_in * in_ch + in_ch_idx], 
                             &w_ptr[comp.left * in_ch + in_ch_idx], &accu, clmns, rows, in_col_step, in_row_step, 
@@ -584,7 +586,8 @@ static __attribute__ ((always_inline)) void convolution2D_hwc_nopad(
         MLI_PTR(w_T) __restrict w_ptr_local = (MLI_PTR(w_T) __restrict)weights + out_ch_idx * kernel_height * kernel_width * in_ch;
         int8_t init_accum_val = 0;
         int weights_add = mli_prv_init_accu(init_accum_val);
-
+        MLI_PTR(w_T) __restrict w_ptr = (MLI_PTR(w_T) __restrict)weights + out_ch_idx * kernel_height 
+                * kernel_width * in_ch;
         for (int in_ch_idx = 0; in_ch_idx < in_ch-1; in_ch_idx+=2) {
             weights_add = weights_additive_d(w_ptr_local, &weights_add, &quant_params, 
                         kernel_width, kernel_height, krn_col_step, krn_row_step);
@@ -598,11 +601,11 @@ static __attribute__ ((always_inline)) void convolution2D_hwc_nopad(
         }
 
         for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
-            MLI_PTR(w_T) __restrict w_ptr = (MLI_PTR(w_T) __restrict)weights + out_ch_idx * kernel_height 
-                    * kernel_width * in_ch;
+
             int32_t init_accum_val = weights_add;
             acc_T accu = mli_prv_init_accu(init_accum_val);
             for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
+LOOP_PIPELINE_ENABLE
                 for (int in_ch_idx = 0; in_ch_idx < in_ch -1; in_ch_idx+=2) {
                     dotprod2D_hwc_d<io_T, w_T, acc_T>(in_ptr, w_ptr, &accu, kernel_width, kernel_height,
                                         in_col_step, in_row_step, krn_col_step, krn_row_step);
@@ -760,29 +763,28 @@ static __attribute__ ((always_inline)) void pointwise_convolution2D_hwc_nopad(
     for (int out_ch_idx = 0; out_ch_idx < out_ch; out_ch_idx++) {
         adjust_quant_params(&quant_params, out_ch_idx);
         const int bias_add = bias_additive(biases[out_ch_idx], 0x0, &quant_params);
-        const MLI_PTR(w_T) __restrict w_ptr_local = (MLI_PTR(w_T) __restrict)weights + out_ch_idx * in_ch;
+        const MLI_PTR(w_T) __restrict w_ptr = (const MLI_PTR(w_T) __restrict)weights + out_ch_idx * in_ch;
         int8_t init_accum_val = 0;
         int weights_add = mli_prv_init_accu(init_accum_val);
 
         for (int in_ch_idx = 0; in_ch_idx < in_ch-1; in_ch_idx+=2) {
-            weights_add = weights_additive_d(w_ptr_local, &weights_add, &quant_params, 
+            weights_add = weights_additive_d(w_ptr, &weights_add, &quant_params, 
                         kernel_width, kernel_height, krn_col_step, krn_row_step);
-            w_ptr_local += 2;
+            w_ptr += 2;
         }
 
         if (in_ch & 1)
         {
-            weights_add = weights_additive(w_ptr_local++, weights_add, &quant_params, 
+            weights_add = weights_additive(w_ptr++, weights_add, &quant_params, 
                     kernel_width, kernel_height, krn_col_step, krn_row_step);
         }
-        
+        w_ptr -= in_ch;
+
         int odd_rest_of_in_ch = (in_ch & 0x3);
         int even_in_ch = in_ch & (~0x3);
 
         if ((in_ch & 0x3) == 0) {
             for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
-                const MLI_PTR(w_T) __restrict w_ptr = (const MLI_PTR(w_T) __restrict)weights + out_ch_idx * in_ch;
-
                 int32_t init_accum_val = weights_add;
                 acc_T accu = mli_prv_init_accu(init_accum_val);
                 for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
@@ -811,8 +813,6 @@ LOOP_PIPELINE_ENABLE
             for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
                 int32_t init_accum_val = weights_add;
                 acc_T accu = mli_prv_init_accu(init_accum_val);
-
-                const MLI_PTR(w_T) __restrict w_ptr = (const MLI_PTR(w_T) __restrict)weights + out_ch_idx * in_ch;
                 for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
 
                     for (int k = 0; k < odd_rest_of_in_ch; k++) {
