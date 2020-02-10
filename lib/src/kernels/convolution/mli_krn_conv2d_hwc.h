@@ -583,20 +583,20 @@ static __attribute__ ((always_inline)) void convolution2D_hwc_nopad(
     for (int out_ch_idx = 0; out_ch_idx < out_ch; out_ch_idx++) {
         adjust_quant_params(&quant_params, out_ch_idx);
         const int bias_add = bias_additive(biases[out_ch_idx], 0x0, &quant_params);
-        MLI_PTR(w_T) __restrict w_ptr_local = (MLI_PTR(w_T) __restrict)weights + out_ch_idx * kernel_height * kernel_width * in_ch;
         int8_t init_accum_val = 0;
         int weights_add = mli_prv_init_accu(init_accum_val);
         MLI_PTR(w_T) __restrict w_ptr = (MLI_PTR(w_T) __restrict)weights + out_ch_idx * kernel_height 
                 * kernel_width * in_ch;
+
         for (int in_ch_idx = 0; in_ch_idx < in_ch-1; in_ch_idx+=2) {
-            weights_add = weights_additive_d(w_ptr_local, &weights_add, &quant_params, 
+            weights_add = weights_additive_d(w_ptr, &weights_add, &quant_params, 
                         kernel_width, kernel_height, krn_col_step, krn_row_step);
-            w_ptr_local += 2;
+            w_ptr += 2;
         }
 
         if (in_ch & 1)
         {
-            weights_add = weights_additive(w_ptr_local++, weights_add, &quant_params, 
+            weights_add = weights_additive(w_ptr++, weights_add, &quant_params, 
                     kernel_width, kernel_height, krn_col_step, krn_row_step);
         }
 
