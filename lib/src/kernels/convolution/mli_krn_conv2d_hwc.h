@@ -788,8 +788,22 @@ static __attribute__ ((always_inline)) void pointwise_convolution2D_hwc_nopad(
             for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
                 int32_t init_accum_val = weights_add;
                 acc_T accu = mli_prv_init_accu(init_accum_val);
-                for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
+                for (int j = 0; j < (in_ch / 4); j++) {
+                    mli_prv_load_mac_vec4(&accu, in_ptr, w_ptr);
+                    in_ptr += 4;
+                    w_ptr += 4;
+                }
+                accu += bias_add;
 
+                // Cast result to output type, apply built-in ReLU Applying and write result
+                mli_prv_clip_relu_store_output(out_ptr, accu, &quant_params, val_min_limit, val_max_limit);
+                out_ptr += out_ch;
+                in_ptr += in_ch * (stride_width - 1);
+                w_ptr -= in_ch;
+
+                for (int W_idx = clmn_begin + 1; W_idx < clmn_end; W_idx++) {
+                    init_accum_val = weights_add;
+                    accu = mli_prv_init_accu(init_accum_val);
 LOOP_PIPELINE_ENABLE
                     for (int j = 0; j < (in_ch / 4); j++) {
                         mli_prv_load_mac_vec4(&accu, in_ptr, w_ptr);
@@ -803,10 +817,7 @@ LOOP_PIPELINE_ENABLE
                     out_ptr += out_ch;
                     in_ptr += in_ch * (stride_width - 1);
                     w_ptr -= in_ch;
-
-                    init_accum_val = weights_add;
-                    accu = mli_prv_init_accu(init_accum_val);
-                } // for W_idx
+              } // for W_idx
                 out_ptr += out_width * out_ch - out_compensation_clmn_loop;
                 in_ptr += stride_height * in_width * in_ch - in_compensation_clmn_loop;
             } // for H_idx
