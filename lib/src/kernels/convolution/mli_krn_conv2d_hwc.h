@@ -599,6 +599,7 @@ static __attribute__ ((always_inline)) void convolution2D_hwc_nopad(
             weights_add = weights_additive(w_ptr++, weights_add, &quant_params, 
                     kernel_width, kernel_height, krn_col_step, krn_row_step);
         }
+        w_ptr -= in_ch;
 
         for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
 
