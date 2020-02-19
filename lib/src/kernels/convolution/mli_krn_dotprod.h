@@ -473,6 +473,36 @@ dotprod3D_v_simple (
     }
 }
 
+
+template <typename io_T, typename w_T, typename acc_T>
+static acc_T __attribute__ ((always_inline)) dotprod2D_inp_width_v(
+        const MLI_PTR(io_T) __restrict inp,
+        const MLI_PTR(w_T)  __restrict krn,
+        acc_T *accu,
+        const int width,
+        const int height,
+        int in_col_step,
+        int in_row_step,
+        int kern_col_step,
+        int kern_row_step,
+        int in_width_step) {
+    in_row_step -= width * in_col_step;
+    kern_row_step -= width * kern_col_step;
+    for (int row = 0; row < height; row++) {
+        for (int clmn = 0; clmn < width; clmn++) {
+            int16_t k = *krn;
+            v2q15_t k_v = { k, k };
+            v2q15_t in_v = {inp[0], inp[in_width_step]};
+            mli_math_mac_fx_vec2(accu, in_v, k_v);
+            inp += in_col_step;
+            krn += kern_col_step;
+        }
+        inp += in_row_step;
+        krn += kern_row_step;
+    }
+    return *accu;
+}
+
 /* not defining K_ODD reduces a single load for the weights.
  * to be investigated if this has a significant performance impact.
  * it could also impact the amount of unaligned loads.
