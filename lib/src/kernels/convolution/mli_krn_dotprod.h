@@ -488,7 +488,9 @@ static acc_T __attribute__ ((always_inline)) dotprod2D_inp_width_v(
         int in_width_step) {
     in_row_step -= width * in_col_step;
     kern_row_step -= width * kern_col_step;
+#pragma clang loop unroll(full)
     for (int row = 0; row < height; row++) {
+#pragma clang loop unroll(full)
         for (int clmn = 0; clmn < width; clmn++) {
             int16_t k = *krn;
             v2q15_t k_v = { k, k };
