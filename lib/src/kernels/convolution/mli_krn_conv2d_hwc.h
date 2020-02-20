@@ -341,10 +341,10 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc(
                     accu = dotprod2D(&in_ptr[w_idx_in * in_ch * filters], &w_ptr[comp.left * filters * out_ch], accu, clmns, rows,
                                         in_col_step, in_row_step, krn_col_step, krn_row_step);
 
-                    int32_t prev_w_adds = weights_additive(&w_ptr[comp.left * filters * out_ch], 0x0, &quant_params, clmns, rows, krn_col_step, krn_row_step);
+                    int32_t w_adds = weights_additive(&w_ptr[comp.left * filters * out_ch], 0x0, &quant_params, clmns, rows, krn_col_step, krn_row_step);
 
-                    accu = fx_add_q31(accu, prev_w_adds);
-                    accu = fx_add_q31(bias_add, accu);
+                    accu += w_adds;
+                    accu += bias_add;
 
                     // Cast result to output type
                     mli_prv_clip_relu_store_output(out_ptr, accu, &quant_params, val_min_limit, val_max_limit);
