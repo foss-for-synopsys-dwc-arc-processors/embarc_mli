@@ -785,10 +785,31 @@ static __attribute__ ((always_inline)) void pointwise_convolution2D_hwc_nopad(
         int even_in_ch = in_ch & (~0x3);
 
         if ((in_ch & 0x3) == 0) {
-            for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
+            for (int H_idx = 0; H_idx < amount_rows; H_idx++) {
+#if !defined(_ARCVER_ARCv2HS)
                 int32_t init_accum_val = weights_add;
                 acc_T accu = mli_prv_init_accu(init_accum_val);
-                for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
+                for (int j = 0; j < (in_ch / 4); j++) {
+                    mli_prv_load_mac_vec4(&accu, in_ptr, w_ptr);
+                    in_ptr += 4;
+                    w_ptr += 4;
+                }
+                accu += bias_add;
+
+                // Cast result to output type, apply built-in ReLU Applying and write result
+                mli_prv_clip_relu_store_output(out_ptr, accu, &quant_params, val_min_limit, val_max_limit);
+                out_ptr += out_ch;
+                in_ptr += in_ch * (stride_width - 1);
+                w_ptr -= in_ch;
+
+                for (int W_idx = 1; W_idx < amount_columns; W_idx++) {
+                    init_accum_val = weights_add;
+                    accu = mli_prv_init_accu(init_accum_val);
+#else
+                for (int W_idx = 0; W_idx < amount_columns; W_idx++) {
+                    int32_t init_accum_val = weights_add;
+                    acc_T accu = mli_prv_init_accu(init_accum_val);
+#endif
 
 LOOP_PIPELINE_ENABLE
                     for (int j = 0; j < (in_ch / 4); j++) {
@@ -803,18 +824,15 @@ LOOP_PIPELINE_ENABLE
                     out_ptr += out_ch;
                     in_ptr += in_ch * (stride_width - 1);
                     w_ptr -= in_ch;
-
-                    init_accum_val = weights_add;
-                    accu = mli_prv_init_accu(init_accum_val);
-                } // for W_idx
+              } // for W_idx
                 out_ptr += out_width * out_ch - out_compensation_clmn_loop;
                 in_ptr += stride_height * in_width * in_ch - in_compensation_clmn_loop;
             } // for H_idx
         } else {
-            for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
+            for (int H_idx = 0; H_idx < amount_rows; H_idx++) {
                 int32_t init_accum_val = weights_add;
                 acc_T accu = mli_prv_init_accu(init_accum_val);
-                for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
+                for (int W_idx = 0; W_idx < amount_columns; W_idx++) {
 
                     for (int k = 0; k < odd_rest_of_in_ch; k++) {
                         mli_prv_load_mac(&accu, in_ptr++, w_ptr++);
