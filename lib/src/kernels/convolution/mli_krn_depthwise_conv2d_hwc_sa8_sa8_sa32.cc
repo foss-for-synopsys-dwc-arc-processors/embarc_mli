@@ -501,11 +501,8 @@ mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32(
         const mli_tensor * bias, 
         const mli_conv2d_cfg * cfg, 
         mli_tensor * out) {
-    int stride_w = cfg->stride_width;
-    int stride_h = cfg->stride_height;
     int kernel_w = weights->shape[KRNL_DW_W_DIM_HWC];
     int kernel_h = weights->shape[KRNL_DW_H_DIM_HWC];
-    int in_ch = in->shape[KRNL_DW_C_DIM_HWC];
     int padding_top = cfg->padding_top;
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
@@ -529,11 +526,8 @@ char * mli_debug_krn_depthwise_conv2d_hwc_sa8_sa8_sa32(
         const mli_tensor * bias, 
         const mli_conv2d_cfg * cfg, 
         mli_tensor * out) {
-    int stride_w = cfg->stride_width;
-    int stride_h = cfg->stride_height;
     int kernel_w = weights->shape[KRNL_DW_W_DIM_HWC];
     int kernel_h = weights->shape[KRNL_DW_H_DIM_HWC];
-    int in_ch = in->shape[KRNL_DW_C_DIM_HWC];
     int padding_top = cfg->padding_top;
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;

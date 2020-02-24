@@ -36,8 +36,6 @@
 #include "mli_prv_quant.h"
 #include "mli_types.h"
 
-
-
 //========================================================
 // Depthwise convolution 2D template
 //========================================================
@@ -151,23 +149,39 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc_nopad(
             acc_T global_other_additives = weights_additive(w_ptr, 0x0, &quant_params, kernel_width, kernel_height, 
                     krn_col_step, krn_row_step);
             global_other_additives += bias_additive(*biases, 0x0, &quant_params);
+            __v2i32_t v2global_other_additives = {global_other_additives, global_other_additives};
 
-            for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
-                for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
+            for (int H_idx = 0; H_idx < amount_rows; H_idx++) {
+                for (int W_idx = 0; W_idx < amount_columns - 1; W_idx += 2) {
+                    // Convolution core. Here calculations performes in a unfolded expression way: 
+                    // out_val = (x-x_zp)*(w) + b) = -sum_i(w*x_zp) + sum(x*w) + b
+                    //============================================
+                    __v2i32_t accu = {0, 0};
+                    accu = dotprod2D_inp_width_v(in_ptr, w_ptr, &accu, kernel_width, kernel_height,
+                                        in_col_step, in_row_step, krn_col_step, krn_row_step, in_increment_clmn_loop);
+                    accu += v2global_other_additives;
+
+                    // Cast result to output type
+                    mli_prv_clip_relu_store_output_inp_width_v(out_ptr, &accu, &quant_params, val_min_limit, val_max_limit, out_increment_clmn_loop);
+
+                    in_ptr += 2 * in_increment_clmn_loop;
+                    out_ptr += 2 * out_increment_clmn_loop;
+                } // for W_idx
+                if( amount_columns & 0x1) {
                     // Convolution core. Here calculations performes in a unfolded expression way: 
                     // out_val = (x-x_zp)*(w) + b) = -sum_i(w*x_zp) + sum(x*w) + b
                     //============================================
                     acc_T accu = 0;
                     accu = dotprod2D(in_ptr, w_ptr, accu, kernel_width, kernel_height,
                                         in_col_step, in_row_step, krn_col_step, krn_row_step);
-                    accu = mli_math_add_fx(accu, global_other_additives);
+                    accu += global_other_additives;
 
                     // Cast result to output type
                     mli_prv_clip_relu_store_output(out_ptr, accu, &quant_params, val_min_limit, val_max_limit);
 
                     in_ptr += in_increment_clmn_loop;
                     out_ptr += out_increment_clmn_loop;
-                } // for W_idx
+                }
                 in_ptr += in_increment_row_loop;
                 out_ptr += out_increment_row_loop;
             } // for H_idx
@@ -327,10 +341,10 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc(
                     accu = dotprod2D(&in_ptr[w_idx_in * in_ch * filters], &w_ptr[comp.left * filters * out_ch], accu, clmns, rows,
                                         in_col_step, in_row_step, krn_col_step, krn_row_step);
 
-                    int32_t prev_w_adds = weights_additive(&w_ptr[comp.left * filters * out_ch], 0x0, &quant_params, clmns, rows, krn_col_step, krn_row_step);
+                    int32_t w_adds = weights_additive(&w_ptr[comp.left * filters * out_ch], 0x0, &quant_params, clmns, rows, krn_col_step, krn_row_step);
 
-                    accu = fx_add_q31(accu, prev_w_adds);
-                    accu = fx_add_q31(bias_add, accu);
+                    accu += w_adds;
+                    accu += bias_add;
 
                     // Cast result to output type
                     mli_prv_clip_relu_store_output(out_ptr, accu, &quant_params, val_min_limit, val_max_limit);
