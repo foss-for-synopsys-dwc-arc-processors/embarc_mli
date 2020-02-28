@@ -106,31 +106,28 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_nopad(
             acc_T bias_add_ch1 = bias_additive(*biases++, 0x0, &v2quant_params[0]);
             acc_T bias_add_ch2 = bias_additive(*biases++, 0x0, &v2quant_params[1]);
 
-            v2accum40_t v2acc_weights_add = {bias_add_ch1, bias_add_ch2};
+            __v2i32_t v2acc_weights_add = {bias_add_ch1, bias_add_ch2};
             v2acc_weights_add = weights_additive_v(w_ptr, &v2acc_weights_add, &quant_params, kernel_width, kernel_height, 
                     krn_col_step, krn_row_step);
-            __v2i32_t v2acc_weights_add_int = {fx_q31_cast_nf_a40(fx_get_v2a40(v2acc_weights_add, 0)),
-                                               fx_q31_cast_nf_a40(fx_get_v2a40(v2acc_weights_add, 1))};
             __builtin_assume(amount_rows > 0);
             for (int H_idx = 0; H_idx < amount_rows; H_idx++) {
                 __builtin_assume(amount_columns > 0);
 
-                __v2i32_t v2accu_dotprod = v2acc_weights_add_int;
+                __v2i32_t v2accu_dotprod = v2acc_weights_add;
                 dotprod2D_hwc_v(in_ptr, w_ptr, &v2accu_dotprod, kernel_width, kernel_height,
                                 in_col_step, in_row_step, krn_col_step, krn_row_step);
+                in_ptr += in_increment_clmn_loop;
                 for (int W_idx = 0; W_idx < amount_columns; W_idx++) {
-
                     // Cast result to output type
                     mli_prv_clip_relu_store_output_v(out_ptr, &v2accu_dotprod, v2quant_params, val_min_limit, val_max_limit);
-
-                    in_ptr += in_increment_clmn_loop;
                     out_ptr += out_increment_clmn_loop;
 
-                    v2accu_dotprod = v2acc_weights_add_int;
+                    v2accu_dotprod = v2acc_weights_add;
                     dotprod2D_hwc_v(in_ptr, w_ptr, &v2accu_dotprod, kernel_width, kernel_height,
                                     in_col_step, in_row_step, krn_col_step, krn_row_step);
+                    in_ptr += in_increment_clmn_loop;
                 } // for W_idx
-                in_ptr += in_increment_row_loop;
+                in_ptr += in_increment_row_loop - stride_width * filters * in_ch;
                 out_ptr += out_increment_row_loop;
             } // for H_idx
             in_ptr -= in_compensation_row_loop;
@@ -156,10 +153,9 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_nopad(
                     // Convolution core. Here calculations performes in a unfolded expression way: 
                     // out_val = (x-x_zp)*(w) + b) = -sum_i(w*x_zp) + sum(x*w) + b
                     //============================================
-                    __v2i32_t accu = {0, 0};
+                    __v2i32_t accu = v2global_other_additives;
                     accu = dotprod2D_inp_width_v(in_ptr, w_ptr, &accu, kernel_width, kernel_height,
                                         in_col_step, in_row_step, krn_col_step, krn_row_step, in_increment_clmn_loop);
-                    accu += v2global_other_additives;
 
                     // Cast result to output type
                     mli_prv_clip_relu_store_output_inp_width_v(out_ptr, &accu, &quant_params, val_min_limit, val_max_limit, out_increment_clmn_loop);
