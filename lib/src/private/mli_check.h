@@ -71,7 +71,7 @@ mli_status mli_chk_conv2d_hwc_fx8w16d(
         const mli_conv2d_cfg * cfg,
         const mli_tensor * out);
 
-mli_status mli_chk_conv2d_hwc_sa8_sa8_sa32(
+mli_status mli_chk_conv2d_nhwc_sa8_sa8_sa32(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
@@ -162,7 +162,7 @@ mli_status mli_chk_depthwise_conv2d_hwc_fx8w16d(
         const mli_conv2d_cfg * cfg,
         const mli_tensor * out);
 
-mli_status mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(
+mli_status mli_chk_depthwise_conv2d_hwcn_sa8_sa8_sa32(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
