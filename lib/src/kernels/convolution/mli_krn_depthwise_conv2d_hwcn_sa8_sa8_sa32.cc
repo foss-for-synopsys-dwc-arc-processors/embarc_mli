@@ -35,7 +35,7 @@ mli_status mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32_k3x3_krnpad(
         const mli_tensor * bias, 
         const mli_conv2d_cfg * cfg, 
         mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwcn_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
@@ -128,7 +128,7 @@ mli_status mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32_k5x5_krnpad(
         const mli_tensor * bias, 
         const mli_conv2d_cfg * cfg, 
         mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwcn_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
@@ -221,7 +221,7 @@ mli_status mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32_k3x3_nopad(
         const mli_tensor * bias, 
         const mli_conv2d_cfg * cfg, 
         mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwcn_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
@@ -314,7 +314,7 @@ mli_status mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32_k5x5_nopad(
         const mli_tensor * bias, 
         const mli_conv2d_cfg * cfg, 
         mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwcn_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
@@ -407,7 +407,7 @@ mli_status mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32_generic(
         const mli_tensor * bias, 
         const mli_conv2d_cfg * cfg, 
         mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwcn_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 

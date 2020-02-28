@@ -1,4 +1,4 @@
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwc_$datatype(in, weights, bias, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_nhwc_$datatype(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
