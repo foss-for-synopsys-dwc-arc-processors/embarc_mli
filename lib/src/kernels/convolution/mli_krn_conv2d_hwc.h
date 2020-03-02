@@ -40,7 +40,7 @@
 // Depthwise convolution 2D template
 //========================================================
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc_nopad(
+static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_nopad(
         const MLI_PTR(io_T) __restrict in_ftrs,
         const MLI_PTR(w_T)  __restrict weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -196,7 +196,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc_nopad(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc(
+static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn(
         const MLI_PTR(io_T) __restrict in_ftrs,
         const MLI_PTR(w_T)  __restrict weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -360,7 +360,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc_krnpad(
+static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_krnpad(
         const MLI_PTR(io_T) __restrict in_ftrs,
         const MLI_PTR(w_T)  __restrict weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -386,7 +386,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc_krnpad(
     perception_area_nopad.clmn_beg = CEIL_DIV(padding_left, stride_width);
     perception_area_nopad.clmn_end = out_width - CEIL_DIV(padding_right, stride_width);
     
-    depthwise_convolution2D_hwc_nopad<int8_t, int8_t, int32_t, mli_acc32_t>(
+    depthwise_convolution2D_hwcn_nopad<int8_t, int8_t, int32_t, mli_acc32_t>(
                 in_ftrs, weights, biases, out_ftrs, &perception_area_nopad, quant_params,
                     val_min_limit, val_max_limit,
                 in_ch, in_width, in_height,
@@ -427,7 +427,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc_krnpad(
             perc_areas[areas_num++].clmn_end = out_width;
         }
         for(int i = 0; i < areas_num; i ++) {
-            depthwise_convolution2D_hwc<int8_t, int8_t, int32_t, mli_acc32_t>(
+            depthwise_convolution2D_hwcn<int8_t, int8_t, int32_t, mli_acc32_t>(
                     in_ftrs, weights, biases, out_ftrs, &perc_areas[i], quant_params,
                     val_min_limit, val_max_limit,
                     in_ch, in_width, in_height,
@@ -444,7 +444,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwc_krnpad(
 // Convolution 2D template
 //========================================================
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static __attribute__ ((always_inline)) void convolution2D_hwc(
+static __attribute__ ((always_inline)) void convolution2D_nhwc(
         const MLI_PTR(io_T) __restrict in_ftrs,
         const MLI_PTR(w_T)  __restrict weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -553,7 +553,7 @@ LOOP_PIPELINE_ENABLE
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static __attribute__ ((always_inline)) void convolution2D_hwc_nopad(
+static __attribute__ ((always_inline)) void convolution2D_nhwc_nopad(
         const MLI_PTR(io_T) __restrict in_ftrs,
         const MLI_PTR(w_T)  __restrict weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -655,7 +655,7 @@ LOOP_PIPELINE_ENABLE
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static __attribute__ ((always_inline)) void convolution2D_hwc_krnpad(
+static __attribute__ ((always_inline)) void convolution2D_nhwc_krnpad(
         const MLI_PTR(io_T) __restrict in_ftrs,
         const MLI_PTR(w_T)  __restrict weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -681,7 +681,7 @@ static __attribute__ ((always_inline)) void convolution2D_hwc_krnpad(
     perception_area_nopad.clmn_beg = CEIL_DIV(padding_left, stride_width);
     perception_area_nopad.clmn_end = out_width - CEIL_DIV(padding_right, stride_width);
     
-    convolution2D_hwc_nopad<int8_t, int8_t, int32_t, mli_acc32_t>(
+    convolution2D_nhwc_nopad<int8_t, int8_t, int32_t, mli_acc32_t>(
                 in_ftrs, weights, biases, out_ftrs, &perception_area_nopad, quant_params,
                 val_min_limit, val_max_limit,
                 in_ch, in_width, in_height,
@@ -722,7 +722,7 @@ static __attribute__ ((always_inline)) void convolution2D_hwc_krnpad(
             perc_areas[areas_num++].clmn_end = out_width;
         }
         for(int i = 0; i < areas_num; i ++) {
-            convolution2D_hwc<int8_t, int8_t, int32_t, mli_acc32_t>(
+            convolution2D_nhwc<int8_t, int8_t, int32_t, mli_acc32_t>(
                     in_ftrs, weights, biases, out_ftrs, &perc_areas[i], quant_params,
                     val_min_limit, val_max_limit,
                     in_ch, in_width, in_height,
@@ -736,7 +736,7 @@ static __attribute__ ((always_inline)) void convolution2D_hwc_krnpad(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static __attribute__ ((always_inline)) void pointwise_convolution2D_hwc_nopad(
+static __attribute__ ((always_inline)) void pointwise_convolution2D_nhwc_nopad(
         const MLI_PTR(io_T) __restrict in_ftrs,
         const MLI_PTR(w_T)  __restrict weights,
         const MLI_PTR(b_T)  __restrict biases,

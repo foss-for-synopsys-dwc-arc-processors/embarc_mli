@@ -1,4 +1,4 @@
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc_$datatype(in, weights, bias, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_nhwc_$datatype(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
@@ -11,9 +11,9 @@
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_DW_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_DW_C_DIM_HWC];
+    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
+    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
+    int out_ch = weights->shape[KRNL_C_DIM_HWC];
     int in_ch = in->shape[FMAP_C_DIM_HWC];
 
     // assign hard coded values for this variation to some variables
@@ -51,10 +51,9 @@
     MLI_PTR($w_type) wt = (MLI_PTR($w_type ))weights->data;
     MLI_PTR($b_type) bs = (MLI_PTR($b_type ))bias->data;
 
-     // Define Data dimensions
+    // Define Data dimensions
     int in_height = in->shape[FMAP_H_DIM_HWC];
     int in_width = in->shape[FMAP_W_DIM_HWC];
-
 
     int out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
     int out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);

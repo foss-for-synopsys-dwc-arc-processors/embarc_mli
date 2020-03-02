@@ -22,7 +22,7 @@ import sys
 # fill the basic information
 #------------------------------------------------------------
 func_body_template_file_chw = "mli_krn_depthwise_conv2d_chw_func_body.txt"
-func_body_template_file_hwc = "mli_krn_depthwise_conv2d_hwc_func_body.txt"
+func_body_template_file_hwc = "mli_krn_depthwise_conv2d_hwcn_func_body.txt"
 file_template = "filetemplate.txt"
 file_header_template = "header_filetemplate.txt"
 function_group = "Depthwise convolution 2d"
@@ -31,12 +31,12 @@ output_header_file = "..\..\include\\api\mli_krn_depthwise_conv2d_spec_api.h"
 output_file_chw_fx16 = "..\..\lib\src\kernels\convolution\mli_krn_depthwise_conv2d_chw_fx16.cc"
 output_file_chw_fx8 = "..\..\lib\src\kernels\convolution\mli_krn_depthwise_conv2d_chw_fx8.cc"
 output_file_chw_fx8w16d = "..\..\lib\src\kernels\convolution\mli_krn_depthwise_conv2d_chw_fx8w16d.cc"
-output_file_hwc_sa8 = "..\..\lib\src\kernels\convolution\mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32.cc"
+output_file_hwcn_sa8 = "..\..\lib\src\kernels\convolution\mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32.cc"
 
 f_list_chw_fx16 = []
 f_list_chw_fx8 = []
 f_list_chw_fx8w16d = []
-f_list_hwc_sa8 = []
+f_list_hwcn_sa8 = []
 
 f_args = [("const mli_tensor *", "in"),
           ("const mli_tensor *", "weights"),
@@ -170,23 +170,23 @@ if "fx8w16d" in sys.argv or no_args:
 # Create a list of specialization functions for SA8 SA8 SA32
 #------------------------------------------------------------
 
-fbase = ("krn", "depthwise_conv2d", "hwc", "sa8_sa8_sa32", f_args)
+fbase = ("krn", "depthwise_conv2d", "hwcn", "sa8_sa8_sa32", f_args)
 
-corefunc = "depthwise_convolution2D_hwc_krnpad"
+corefunc = "depthwise_convolution2D_hwcn_krnpad"
 stride = 0
 kernel_range = range(3, 6, 2)
 ch = 0
-f_list_hwc_sa8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
+f_list_hwcn_sa8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
 
-corefunc = "depthwise_convolution2D_hwc_nopad"
+corefunc = "depthwise_convolution2D_hwcn_nopad"
 stride = 0
 kernel_range = range(3, 6, 2)
 ch = 0
-f_list_hwc_sa8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
+f_list_hwcn_sa8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
 
-corefunc = "depthwise_convolution2D_hwc_krnpad"
+corefunc = "depthwise_convolution2D_hwcn_krnpad"
 default_func_hwc = Func(fbase, 0, 0, 0, 0, 0, corefunc, generic=True)
-f_list_hwc_sa8.append(default_func_hwc)
+f_list_hwcn_sa8.append(default_func_hwc)
 
 #------------------------------------------------------------
 # Generate the HWC output file
@@ -202,8 +202,8 @@ c.set_wrapper_if_tree(False)
 
 if "sa8_sa8_sa32" in sys.argv or no_args:
     #Create SA8 HWC C output file
-    f = open(output_file_hwc_sa8, "wb")
-    f.write(c.print_file(f_list_hwc_sa8, default_func_hwc, func_body_template_file_hwc, file_template, include_list_hwc, define_list))
+    f = open(output_file_hwcn_sa8, "wb")
+    f.write(c.print_file(f_list_hwcn_sa8, default_func_hwc, func_body_template_file_hwc, file_template, include_list_hwc, define_list))
     f.close()
 
 
@@ -212,6 +212,6 @@ if "sa8_sa8_sa32" in sys.argv or no_args:
 #------------------------------------------------------------
 if "header" in sys.argv or no_args:
     fh = open(output_header_file, "wb")
-    fh.write(c.print_proto_file([f_list_chw_fx16,f_list_chw_fx8,f_list_chw_fx8w16d, f_list_hwc_sa8], function_group, capital_header_file_name, file_header_template))
+    fh.write(c.print_proto_file([f_list_chw_fx16,f_list_chw_fx8,f_list_chw_fx8w16d, f_list_hwcn_sa8], function_group, capital_header_file_name, file_header_template))
     fh.close()
 
