@@ -194,12 +194,13 @@ static inline void __attribute__((always_inline)) avepool_hwc_krnpad(
         const int padding_bot) {
     // Phase 1: Process central part (without border effects - padding free)
     //=======================================================================
-    {
-        const int row_beg = CEIL_DIV(padding_top, stride_height);
-        const int row_end = out_height - CEIL_DIV(padding_bot, stride_height);
-        const int clmn_beg = CEIL_DIV(padding_left, stride_width);
-        const int clmn_end = out_width - CEIL_DIV(padding_right, stride_width);
 
+    const int row_beg = CEIL_DIV(padding_top, stride_height);
+    const int row_end = out_height - CEIL_DIV(padding_bot, stride_height);
+    const int clmn_beg = CEIL_DIV(padding_left, stride_width);
+    const int clmn_end = out_width - CEIL_DIV(padding_right, stride_width);
+
+    if ((row_end - row_beg > 0) && (clmn_end - clmn_beg > 0)) {
         avepool_hwc_nopad(
                 row_beg, row_end, clmn_beg, clmn_end,
                 in_ftrs, out_ftrs, channels, in_width,
