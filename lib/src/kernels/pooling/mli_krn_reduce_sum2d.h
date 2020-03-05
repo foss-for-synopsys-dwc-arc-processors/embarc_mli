@@ -298,6 +298,48 @@ inline acc_T __attribute__((always_inline)) reduce_sum2D(
     return accu;
 }
 
+//The function uses pointers to pointers for in. 
+//The caller of the function should compensate for the increment
+//done inside this function.
+template <typename io_T, typename acc_T>
+static inline acc_T __attribute__((always_inline)) reduce_sum2D_v(
+        const MLI_PTR(io_T) __restrict *in,
+        const int16_t mul,
+        acc_T *v2acc,
+
+        const int width,
+        const int height,
+        int in_col_step,
+        int in_row_step) {
+
+    v2q15_t v2mul = {mul, mul};
+    if (width == 1){
+#pragma clang loop unroll(full)
+        for (int row = 0; row < height; row++) {
+            mli_math_mac_fx_vec2(v2acc, mli_prv_load_2_samples(*in), v2mul);
+            *in += in_row_step;
+        }
+    } else if (height == 1){
+#pragma clang loop unroll(full)
+        for (int clmn = 0; clmn < width; clmn++) {
+            mli_math_mac_fx_vec2(v2acc, mli_prv_load_2_samples(*in), v2mul);
+            *in += in_col_step;
+        }
+    } else {
+        in_row_step -= width * in_col_step;
+#pragma clang loop unroll(full)
+        for (int row = 0; row < height; row++) {
+#pragma clang loop unroll(full)
+            for (int clmn = 0; clmn < width; clmn++) {
+                mli_math_mac_fx_vec2(v2acc, mli_prv_load_2_samples(*in), v2mul);
+                *in += in_col_step;
+            }
+            *in += in_row_step;
+        }
+    }
+    return *v2acc;
+}
+
 template <typename io_T, typename acc_T>
 static inline acc_T __attribute__((always_inline)) reduce_sum2D_v(
         const MLI_PTR(io_T) __restrict in,

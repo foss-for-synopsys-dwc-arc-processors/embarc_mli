@@ -83,9 +83,9 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_nopad(
     const int out_increment_in_ch_loop = channel_per_loop - out_compensation_row_loop;
     const int out_increment_in_ch_loop_v = channels_per_loop_v - out_compensation_row_loop;
 
-    MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T) __restrict)in_ftrs;
+    const MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T) __restrict)in_ftrs;
     MLI_CONV_OUT_PTR(io_T) __restrict out_ptr = (MLI_CONV_OUT_PTR(io_T) __restrict)out_ftrs;
-    MLI_PTR(w_T) __restrict w_ptr = (MLI_PTR(w_T) __restrict)weights;
+    const MLI_PTR(w_T) __restrict w_ptr = (MLI_PTR(w_T) __restrict)weights;
     // MLI_PTR(w_T) __restrict w_ptr_local = (MLI_PTR(w_T) __restrict)weights;
     int out_ch_idx = 0;
 
@@ -114,20 +114,21 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_nopad(
                 __builtin_assume(amount_columns > 0);
 
                 __v2i32_t v2accu_dotprod = v2acc_weights_add;
-                dotprod2D_hwc_v(in_ptr, w_ptr, &v2accu_dotprod, kernel_width, kernel_height,
-                                in_col_step, in_row_step, krn_col_step, krn_row_step);
-                in_ptr += in_increment_clmn_loop;
                 for (int W_idx = 0; W_idx < amount_columns; W_idx++) {
+                    dotprod2D_hwc_v(&in_ptr, &w_ptr, &v2accu_dotprod, kernel_width, kernel_height,
+                                    in_col_step, in_row_step, krn_col_step, krn_row_step);
+                    //compensite increment of input tensor pointer from dotprod2D_hwc_v function
+                    in_ptr += in_increment_clmn_loop - kernel_height * in_row_step;
+                    //compensite increment of weights pointer from dotprod2D_hwc_v function
+                    w_ptr -= kernel_height * krn_row_step;
+
                     // Cast result to output type
                     mli_prv_clip_relu_store_output_v(out_ptr, &v2accu_dotprod, v2quant_params, val_min_limit, val_max_limit);
                     out_ptr += out_increment_clmn_loop;
 
                     v2accu_dotprod = v2acc_weights_add;
-                    dotprod2D_hwc_v(in_ptr, w_ptr, &v2accu_dotprod, kernel_width, kernel_height,
-                                    in_col_step, in_row_step, krn_col_step, krn_row_step);
-                    in_ptr += in_increment_clmn_loop;
                 } // for W_idx
-                in_ptr += in_increment_row_loop - stride_width * filters * in_ch;
+                in_ptr += in_increment_row_loop;
                 out_ptr += out_increment_row_loop;
             } // for H_idx
             in_ptr -= in_compensation_row_loop;
@@ -154,13 +155,14 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_nopad(
                     // out_val = (x-x_zp)*(w) + b) = -sum_i(w*x_zp) + sum(x*w) + b
                     //============================================
                     __v2i32_t accu = v2global_other_additives;
-                    accu = dotprod2D_inp_width_v(in_ptr, w_ptr, &accu, kernel_width, kernel_height,
+                    accu = dotprod2D_inp_width_v(&in_ptr, &w_ptr, &accu, kernel_width, kernel_height,
                                         in_col_step, in_row_step, krn_col_step, krn_row_step, in_increment_clmn_loop);
-
+                    //compensite increment of input tensor pointer from dotprod2D_hwc_v function
+                    in_ptr += 2 * in_increment_clmn_loop - kernel_height * in_row_step;
+                    //compensite increment of weights pointer from dotprod2D_hwc_v function
+                    w_ptr -= kernel_height * krn_row_step;
                     // Cast result to output type
                     mli_prv_clip_relu_store_output_inp_width_v(out_ptr, &accu, &quant_params, val_min_limit, val_max_limit, out_increment_clmn_loop);
-
-                    in_ptr += 2 * in_increment_clmn_loop;
                     out_ptr += 2 * out_increment_clmn_loop;
                 } // for W_idx
                 if( amount_columns & 0x1) {
@@ -168,14 +170,16 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_nopad(
                     // out_val = (x-x_zp)*(w) + b) = -sum_i(w*x_zp) + sum(x*w) + b
                     //============================================
                     acc_T accu = 0;
-                    accu = dotprod2D(in_ptr, w_ptr, accu, kernel_width, kernel_height,
+                    accu = dotprod2D(&in_ptr, &w_ptr, accu, kernel_width, kernel_height,
                                         in_col_step, in_row_step, krn_col_step, krn_row_step);
+                    //compensite increment of input tensor pointer from dotprod2D_hwc_v function
+                    in_ptr += in_increment_clmn_loop - kernel_height * in_row_step;
+                    //compensite increment of weights pointer from dotprod2D_hwc_v function
+                    w_ptr -= kernel_height * krn_row_step;
                     accu += global_other_additives;
 
                     // Cast result to output type
                     mli_prv_clip_relu_store_output(out_ptr, accu, &quant_params, val_min_limit, val_max_limit);
-
-                    in_ptr += in_increment_clmn_loop;
                     out_ptr += out_increment_clmn_loop;
                 }
                 in_ptr += in_increment_row_loop;
@@ -881,4 +885,5 @@ LOOP_PIPELINE_ENABLE
 }
 
 #endif // _MLI_KRN_CONV2D_HWC_H_
+
 
