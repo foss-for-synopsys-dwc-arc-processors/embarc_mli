@@ -191,10 +191,10 @@ static inline void __attribute__((always_inline)) maxpool_hwc_pad(
 
     // Phase 1: Process central part (without border effects - padding free)
     //=======================================================================
-    int row_beg = CEIL_DIV(padding_top, stride_height);
-    int row_end = out_height - CEIL_DIV(padding_bot, stride_height);
-    int clmn_beg = CEIL_DIV(padding_left, stride_width);
-    int clmn_end = out_width - CEIL_DIV(padding_right, stride_width);
+    row_beg = CEIL_DIV(padding_top, stride_height);
+    row_end = out_height - CEIL_DIV(padding_bot, stride_height);
+    clmn_beg = CEIL_DIV(padding_left, stride_width);
+    clmn_end = out_width - CEIL_DIV(padding_right, stride_width);
 
     if ((row_end - row_beg > 0) && (clmn_end - clmn_beg > 0)) {
         maxpool_hwc_nopad<io_T>(
