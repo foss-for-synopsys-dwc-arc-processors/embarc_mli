@@ -173,10 +173,10 @@ static inline void __attribute__((always_inline)) avepool_hwc(
 
 template <typename io_T>
 static inline void __attribute__((always_inline)) avepool_hwc_krnpad(
-        const int row_beg,
-        const int row_end,
-        const int clmn_beg,
-        const int clmn_end,
+        int row_beg,
+        int row_end,
+        int clmn_beg,
+        int clmn_end,
         const MLI_PTR(io_T) __restrict in_ftrs,
         MLI_OUT_PTR(io_T) __restrict out_ftrs,
         const int channels,
@@ -195,10 +195,10 @@ static inline void __attribute__((always_inline)) avepool_hwc_krnpad(
     // Phase 1: Process central part (without border effects - padding free)
     //=======================================================================
 
-    const int row_beg = CEIL_DIV(padding_top, stride_height);
-    const int row_end = out_height - CEIL_DIV(padding_bot, stride_height);
-    const int clmn_beg = CEIL_DIV(padding_left, stride_width);
-    const int clmn_end = out_width - CEIL_DIV(padding_right, stride_width);
+    row_beg = CEIL_DIV(padding_top, stride_height);
+    row_end = out_height - CEIL_DIV(padding_bot, stride_height);
+    clmn_beg = CEIL_DIV(padding_left, stride_width);
+    clmn_end = out_width - CEIL_DIV(padding_right, stride_width);
 
     if ((row_end - row_beg > 0) && (clmn_end - clmn_beg > 0)) {
         avepool_hwc_nopad(
