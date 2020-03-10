@@ -590,7 +590,7 @@ static __attribute__ ((always_inline)) void convolution2D_nhwc_nopad(
     out_ptr += out_ch *                 // common coefs
             (row_begin * out_width  +   // setup init coef for moving to row
             clmn_begin);                // setup init coef for moving to colum;
-    MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T) __restrict)in_ftrs;
+    const MLI_PTR(io_T) __restrict in_ptr = (const MLI_PTR(io_T) __restrict)in_ftrs;
     in_ptr += in_ch * ((row_begin * stride_height - padding_top) * in_width +          // move to row
               (clmn_begin * stride_width - padding_left));                             // move to column
 
@@ -599,7 +599,7 @@ static __attribute__ ((always_inline)) void convolution2D_nhwc_nopad(
         const int bias_add = bias_additive(biases[out_ch_idx], 0x0, &quant_params);
         int8_t init_accum_val = 0;
         int weights_add = mli_prv_init_accu(init_accum_val);
-        MLI_PTR(w_T) __restrict w_ptr = (MLI_PTR(w_T) __restrict)weights + out_ch_idx * kernel_height 
+        const MLI_PTR(w_T) __restrict w_ptr = (const MLI_PTR(w_T) __restrict)weights + out_ch_idx * kernel_height 
                 * kernel_width * in_ch;
 
         for (int in_ch_idx = 0; in_ch_idx < in_ch-1; in_ch_idx+=2) {
@@ -622,17 +622,17 @@ static __attribute__ ((always_inline)) void convolution2D_nhwc_nopad(
             for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
 LOOP_PIPELINE_ENABLE
                 for (int in_ch_idx = 0; in_ch_idx < in_ch -1; in_ch_idx+=2) {
-                    dotprod2D_hwc_d<io_T, w_T, acc_T>(in_ptr, w_ptr, &accu, kernel_width, kernel_height,
+                    dotprod2D_hwc_d<io_T, w_T, acc_T>(&in_ptr, &w_ptr, &accu, kernel_width, kernel_height,
                                         in_col_step, in_row_step, krn_col_step, krn_row_step);
-                    in_ptr+= 2;
-                    w_ptr += 2;
+                    in_ptr+= 2 - kernel_height * in_row_step;
+                    w_ptr += 2 - kernel_height * krn_row_step;
                 }
 
                 if (in_ch & 1) {
-                    accu = dotprod2D(in_ptr, w_ptr, accu, kernel_width, kernel_height,
+                    accu = dotprod2D<io_T, w_T, acc_T>(&in_ptr, &w_ptr, accu, kernel_width, kernel_height,
                                         in_col_step, in_row_step, krn_col_step, krn_row_step);
-                    in_ptr++;
-                    w_ptr++;
+                    in_ptr+= 1 - kernel_height * in_row_step;
+                    w_ptr+= 1 - kernel_height * krn_row_step;
                 }
                 accu += bias_add;
                 
