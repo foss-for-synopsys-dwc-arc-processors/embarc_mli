@@ -15,6 +15,7 @@ class Func:
 
     def __init__(self, base, kernel_w, kernel_h, channels, stride_w, stride_h, corefunc, padding="", generic=False):
         self.group, self.typen, self.layout, self.datatype, self.args = base
+        
         self.kernel_w = kernel_w
         self.kernel_h = kernel_h
         self.channels = channels
@@ -26,6 +27,7 @@ class Func:
         else:
             self.corefunc = [corefunc]
         self.generic = generic
+        self.debug = False
 
     def get_param_by_name(self, paramname):
         if paramname == 'kernel_w':
@@ -52,7 +54,10 @@ class Func:
                     self.stride_w, self.stride_h, self.corefunc, self.padding, self.generic)
 
     def name(self):
-        name = "mli_{0}_{1}_{2}_{3}".format(self.group, self.typen, self.layout, self.datatype)
+        name = "mli"
+        if self.debug:
+            name += "_debug"
+        name += "_{0}_{1}_{2}_{3}".format(self.group, self.typen, self.layout, self.datatype)
         if ((self.kernel_w > 0) and (self.kernel_h > 0)):
             name += "_k{0}x{1}".format(self.kernel_w, self.kernel_h)
         if ((self.kernel_w > 0) and (self.kernel_h == 0)):
@@ -89,14 +94,16 @@ class Func:
         string += ")"
         return string
 
-    def print_proto(self):
-        func_len = len("mli_status " + self.name() + self.argstr(True))
+    def print_proto(self, returntype = "mli_status"):
+        func_len = len(returntype + " " + self.name() + self.argstr(True))
         if func_len > self.max_len_of_line:
-            return "mli_status " + self.name() + self.argstr(True, split=True)
+            return returntype + " " + self.name() + self.argstr(True, split=True)
         else:
-            return "mli_status " + self.name() + self.argstr(True)
+            return returntype + " " + self.name() + self.argstr(True)
 
-    def print_call(self, indent=""):
+    def print_call(self, namestringonly, indent=""):
+        if namestringonly:
+            return "(char*)\"" + self.name() + "\";\n"
         func_len = len(self.name() + self.argstr(False, indent) + ";\n")
         if func_len > self.max_len_of_line:
             return self.name() + self.argstr(False, indent, split=True) + ";\n"
@@ -181,23 +188,33 @@ class Func:
             d_type = "int16_t"
             w_type = "int16_t"
             d_enum = "MLI_EL_FX_16"
-            return (d_type, w_type, d_enum)
+            el_params = "fx.frac_bits"
+            return (d_type, w_type, d_enum, el_params)
         if self.datatype == "fx8":
             d_type = "int8_t"
             w_type = "int8_t"
             d_enum = "MLI_EL_FX_8"
-            return (d_type, w_type, d_enum)
+            el_params = "fx.frac_bits"
+            return (d_type, w_type, d_enum, el_params)
         if self.datatype == "fx8w16d":
             d_type = "int16_t"
             w_type = "int8_t"
             d_enum = "MLI_EL_FX_16"
-            return (d_type, w_type, d_enum)
-        print "ERROR: unsopported type: " + self.datatype
+            el_params = "fx.frac_bits"
+            return (d_type, w_type, d_enum, el_params)
+        if self.datatype == "sa8":
+            # TODO: Code changes are required to reflect latest updates
+            d_type = "int8_t"
+            w_type = "int8_t"
+            d_enum = "MLI_EL_INT_8"
+            el_params = "asym"
+            return (d_type, w_type, d_enum, el_params)
+        print("ERROR: unsopported type: " + self.datatype)
 
     def print_body(self, template_file):
         f = open(template_file, "r")
         s = Template(f.read())
-        d_type, w_type, d_enum = self.get_types()
+        d_type, w_type, d_enum, el_params = self.get_types()
         # we use 'SAME' padding scheme from the TensorFlow
         #the bottom and right sides may have the one additional padded pixel in some cases.
         #for example, an even size of a kernel and a stride equal to 1
@@ -270,6 +287,7 @@ class Func:
                             stride_w = self.stride_w,
                             stride_h = self.stride_h,
                             datatype = self.datatype,
+                            el_params = el_params,
                             d_type = d_type,
                             w_type = w_type,
                             d_enum_type = d_enum,

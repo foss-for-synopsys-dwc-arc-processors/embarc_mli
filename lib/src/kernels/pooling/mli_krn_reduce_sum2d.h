@@ -7,8 +7,8 @@
 *
 */
 
-#ifndef _MLI_KRN_REDUCE_SUM2D_CHW_H_
-#define _MLI_KRN_REDUCE_SUM2D_CHW_H_
+#ifndef _MLI_KRN_REDUCE_SUM2D_H_
+#define _MLI_KRN_REDUCE_SUM2D_H_
 
 #include "mli_config.h"
 #include "mli_helpers_api.h"
@@ -94,21 +94,24 @@ static const int8_t shift_lut[] = {
     19, // 31
 };
 
-
 static inline void calc_mul(unsigned div, int16_t* mul, int* shift_val) {
     unsigned int one = (1<<31); // u1.31
     unsigned int val = one / div; // u1.31
-    // Get extra precision by shifting out MSB's that are zero
-    int normval = _norm(val);
-    *shift_val = normval + 15;
-    *mul = (int16_t)(val >> (16 - normval));// from u1.31 to s1.14
+    int shift_norm_val = 0;
+
+    if (div > 1) { 
+        shift_norm_val = fx_norm_q31(val) + 1;
+        val <<= shift_norm_val;
+    }
+
+    *mul = val >> 17;
+    *shift_val = 14 + shift_norm_val;
 }
 
 static inline void get_mul_shift_value(
         unsigned div,
-        unsigned max_div,
         int16_t* mul, int* shift) {
-    if ((max_div < DIV_LUT_THRESHOLD) || (div < DIV_LUT_THRESHOLD)) {
+    if (div < DIV_LUT_THRESHOLD) {
         *mul = multiplier_lut[div];
         *shift = (int)shift_lut[div];
     } else {
@@ -117,27 +120,7 @@ static inline void get_mul_shift_value(
 }
 
 template <typename io_T>
-static inline void __attribute__((always_inline)) reduce_sum2D_odd(
-        accum40_t *__restrict acc40,
-        const MLI_PTR(io_T) __restrict in,
-        const int32_t width,
-        const int32_t height,
-        const int32_t in_row_step,
-        const int16_t mul) {
-    const v2i16_t mul_v = {mul, mul};
-#pragma clang loop unroll(full)
-    for (int row = 0; row < height; row++) {
-        *acc40 = fx_a40_mac_q15(*acc40, in[0], mul);
-#pragma clang loop unroll(full)
-        for (int clmn = 1; clmn < width; clmn += 2) {
-            *acc40 = fx_a40_dmac_v2q15(*acc40, mli_prv_load_2_samples(&in[clmn]), mul_v);
-        }
-        in += in_row_step;
-    }
-}
-
-template <typename io_T>
-static inline void __attribute__((always_inline)) reduce_sum2D_even(
+static inline void __attribute__((always_inline)) reduce_sum2D_chw_even(
         accum40_t *__restrict acc40,
         const MLI_PTR(io_T) __restrict in,
         const int32_t width,
@@ -156,7 +139,7 @@ static inline void __attribute__((always_inline)) reduce_sum2D_even(
 }
 
 template <typename io_T>
-static inline void __attribute__((always_inline)) reduce_sum2D(
+static inline void __attribute__((always_inline)) reduce_sum2D_chw(
         accum40_t *__restrict acc40,
         const MLI_PTR(io_T) __restrict in,
         const int32_t width,
@@ -188,21 +171,115 @@ static inline void __attribute__((always_inline)) reduce_sum2D(
 
 template <typename io_T>
 static inline accum40_t reduce_sum2D_hwc(
-        MLI_PTR(io_T) in,
+        MLI_PTR(io_T) __restrict in,
         uint32_t width,
         uint32_t height,
         uint32_t channels,
         uint32_t in_row_step,
         int16_t mul) {
-    accum40_t acc = fx_create_a40(0x0, 0x0);
+    accum40_t acc40 = fx_create_a40(0x0, 0x0);
+    if (width == 1){
+#pragma clang loop unroll(full)
+        for (int row = 0; row < height; row++) {
+            acc40 = fx_a40_mac_q15(acc40, *in, mul);
+            in += channels * in_row_step;
+        }
+    } else if( height == 1) {
+#pragma clang loop unroll(full)
+        for (int clmn = 0; clmn < width; clmn++) {
+            acc40 = fx_a40_mac_q15(acc40, *in, mul);
+            in += channels;
+        }
+    } else {
+#pragma clang loop unroll(full)
+        for (int row = 0; row < height; row++) {
+#pragma clang loop unroll(full)
+            for (int clmn = 0; clmn < width; clmn++) {
+                acc40 = fx_a40_mac_q15(acc40, *in, mul);
+                in += channels;
+            }
+            in += channels * (in_row_step - width);
+        }
+    }
+    return acc40;
+}
+
+template <typename io_T>
+static inline v2accum40_t __attribute__((always_inline)) reduce_sum2D_hwc_v(
+        MLI_PTR(io_T) __restrict in,
+        uint32_t width,
+        uint32_t height,
+        uint32_t channels,
+        uint32_t in_row_step,
+        int16_t mul) {
+
+    v2accum40_t v2acc40 = {0, 0};
+    v2q15_t v2mul = {mul, mul};
+    if (width == 1){
+#pragma clang loop unroll(full)
+        for (int row = 0; row < height; row++) {
+            v2acc40 = fx_v2a40_mac_v2q15(v2acc40, mli_prv_load_2_samples(in), v2mul);
+            in += in_row_step * channels;
+        }
+    } else if (height == 1){
+#pragma clang loop unroll(full)
+        for (int clmn = 0; clmn < width; clmn++) {
+            v2acc40 = fx_v2a40_mac_v2q15(v2acc40, mli_prv_load_2_samples(in), v2mul);
+            in += channels;
+        }
+    } else {
+#pragma clang loop unroll(full)
+        for (int row = 0; row < height; row++) {
+#pragma clang loop unroll(full)
+            for (int clmn = 0; clmn < width; clmn++) {
+                v2acc40 = fx_v2a40_mac_v2q15(v2acc40, mli_prv_load_2_samples(in), v2mul);
+                in += channels;
+            }
+            in += channels * (in_row_step - width);
+        }
+    }
+    return v2acc40;
+}
+
+//==========================================================================
+// Sequential reducing summation
+//==========================================================================
+template <typename io_T, typename acc_T>
+inline acc_T reduce_sum(
+        const io_T* __restrict in,
+        const int16_t mul,
+        acc_T accu,
+
+        const int vals,
+        const int step = 1) {
+    for (int idx = 0; idx < vals; idx++) {
+        accu = mli_math_mac_fx(accu, mul, (*in));
+        in += step;
+    }
+    return accu;
+}
+//==========================================================================
+// Two dimensional reducing summation across width and height 
+//==========================================================================
+template <typename io_T, typename acc_T>
+inline acc_T __attribute__((always_inline)) reduce_sum2D(
+        const MLI_PTR(io_T) __restrict in,
+        const int16_t mul,
+        acc_T accu,
+
+        const int width,
+        const int height,
+        int in_col_step,
+        int in_row_step) {
+    in_row_step -= width * in_col_step;
     for (int row = 0; row < height; row++) {
         for (int clmn = 0; clmn < width; clmn++) {
-            acc = fx_a40_mac_q15(acc, in[clmn * channels], mul);
-            //acc += in[clmn * channels] * mul;
+            accu = mli_math_mac_fx(accu, mul, (*in));
+            in += in_col_step;
         }
-        in += in_row_step * channels;
+        in += in_row_step;
     }
-    return acc;
+    return accu;
 }
 
 #endif  //_MLI_KRN_REDUCE_SUM2D_CHW_H_

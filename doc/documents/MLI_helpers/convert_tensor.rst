@@ -57,7 +57,7 @@ Parameters
    | ``in``                | [IN] Pointer to input |
    |                       | tensor                |
    +-----------------------+-----------------------+
-   | ``start_dim``         | [OUT] Pointer to      |
+   | ``out``               | [OUT] Pointer to      |
    |                       | output tensor         |
    +-----------------------+-----------------------+	
 

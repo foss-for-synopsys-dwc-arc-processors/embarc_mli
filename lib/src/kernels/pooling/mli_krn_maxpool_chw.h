@@ -209,6 +209,7 @@ static inline void __attribute__((always_inline)) maxpool_chw_nopad(
         __builtin_assume(channels_num > 0);
         for (int ch_idx = 0; ch_idx < channels_num; ch_idx++) {
             for (int j = 0; j < (row_end - row_begin); j++) {
+LOOP_PIPELINE_ENABLE 
 #pragma unroll 2
                 for (int k = 0; k < (clmn_end - clmn_begin); k++) {
                     // Core Max

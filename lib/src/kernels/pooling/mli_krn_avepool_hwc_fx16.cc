@@ -1,3 +1,8 @@
+/* This file is generated, do not edit!
+ * edit following template files instead:
+ * filetemplate.txt
+ * mli_krn_avepool_hwc_func_body.txt
+ */
 /*
 * Copyright 2019, Synopsys, Inc.
 * All rights reserved.
@@ -7,30 +12,16 @@
 *
 */
 
-#include <assert.h>
-#include <stdio.h>
+#include "mli_krn_avepool_hwc.h"
 
-#include "mli_check.h"
 #include "mli_config.h"
 #include "mli_debug.h"
 #include "mli_helpers_api.h"
-#include "mli_krn_reduce_sum2d_chw.h"
-#include "mli_prv_dsp.h"
+#include "mli_math.h"
+#include "mli_prv_tensor.h"
+#include "mli_private_types.h"
 
-#ifdef __FXAPI__
-#include <fxarc.h>
-#endif
 
-/**
- * Function Short Description
- *
- * \param[in]
- * \param[in/out]
- * \param[out]
- * \result
- *
- * Some Details
- */
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,163 +29,1253 @@ extern "C" {
 
 #pragma Code(".mli_lib")
 
-/******************************************************************************
- *
- * Version & platform description
- * Targets:
- *
- ******************************************************************************/
-
-mli_status mli_krn_avepool_hwc_fx16(const mli_tensor* in, const mli_pool_cfg* cfg, mli_tensor* out) {
+mli_status mli_krn_avepool_hwc_fx16_k3x3_krnpad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_avepool_hwc_fx16(in, cfg, out), __func__);
-    if (ret != MLI_STATUS_OK) return ret;
+    if (ret != MLI_STATUS_OK)
+        return ret;
+
+    // Extract general avepool parameters
+    int stride_width = cfg->stride_width;
+    int stride_height = cfg->stride_height;
+    int padding_top = cfg->padding_top;
+    int padding_bot = cfg->padding_bottom;
+    int padding_left = cfg->padding_left;
+    int padding_right = cfg->padding_right;
+    int channels_num = in->shape[FMAP_C_DIM_HWC];
+    int kernel_height = cfg->kernel_height;
+    int kernel_width = cfg->kernel_width;
+    // assign hard coded values for this variation to some variables
+#if 0
+    MLI_CHECK_AND_FIX(stride_width, 0);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(stride_height, 0);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(padding_top, 0);
+    MLI_CHECK_AND_FIX(padding_bot, 0);
+    MLI_CHECK_AND_FIX(padding_left, 0);
+    MLI_CHECK_AND_FIX(padding_right, 0);
+#endif
+#if 3
+    MLI_CHECK_AND_FIX(kernel_width, 3);
+#endif
+#if 3
+    MLI_CHECK_AND_FIX(kernel_height, 3);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(channels_num, 0);
+#endif
+
+    // Data pointers
+    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+
+    // Define Data dimensions
+    const int in_height = in->shape[FMAP_H_DIM_HWC];
+    const int in_width = in->shape[FMAP_W_DIM_HWC];
+
+    const int out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+
+    const int row_beg = 0;
+    const int row_end = out_height;
+    const int clmn_beg = 0;
+    const int clmn_end = out_width;
 
     mli_prv_fx_init_dsp_ctrl();
 
-    // Extract general maxpooling parameters
-    int32_t stride_width = cfg->stride_width;
-    int32_t stride_height = cfg->stride_height;
-    int32_t padding_top = cfg->padding_top;
-    int32_t padding_bot = cfg->padding_bottom;
-    int32_t padding_left = cfg->padding_left;
-    int32_t padding_right = cfg->padding_right;
+    avepool_hwc_krnpad(
+        row_beg, row_end,
+        clmn_beg, clmn_end,
+        in_ftrs, out_ftrs,
+        channels_num, in_width, in_height,
+        out_width, out_height,
+        kernel_height, kernel_width,
+        stride_height, stride_width,
+        padding_top, padding_left, padding_right, padding_bot);
 
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t))out->data;
-
-    // Define Data dimensions
-    int32_t channels_num = in->shape[FMAP_C_DIM_HWC];
-
-    int32_t kernel_height = cfg->kernel_height;
-    int32_t kernel_width = cfg->kernel_width;
-
-    int32_t in_height = in->shape[FMAP_H_DIM_HWC];
-    int32_t in_width = in->shape[FMAP_W_DIM_HWC];
-
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
-
-    // Phase 1: Process central part (without border effects - padding free)
-    //=======================================================================
-    if (in_height >= kernel_height && in_width >= kernel_width) {
-        const int32_t row_beg = CEIL_DIV(padding_top, stride_height);
-        const int32_t row_end = out_height - CEIL_DIV(padding_bot, stride_height);
-        const int32_t clmn_beg = CEIL_DIV(padding_left, stride_width);
-        const int32_t clmn_end = out_width - CEIL_DIV(padding_right, stride_width);
-
-        const int32_t kernel_size = kernel_width * kernel_height;
-        int16_t mul = 0;
-        int shift = 0;
-        get_mul_shift_value(kernel_size, kernel_size, &mul, &shift);
-
-        for (int ch_idx = 0; ch_idx < channels_num; ch_idx++) {
-            for (int H_idx = row_beg; H_idx < row_end; H_idx++) {
-                for (int W_idx = clmn_beg; W_idx < clmn_end; W_idx++) {
-                    // Define area of input and filter for convolution
-                    MLI_PTR(int16_t)
-                    in_ptr = in_ftrs +                                                          // starting point
-                             channels_num * in_width * (H_idx * stride_height - padding_top) +  // move to row
-                             channels_num * (W_idx * stride_width - padding_left) +             // move to column
-                             ch_idx;                                                            // move to channel
-
-                    // Core Sum
-                    accum40_t accu = reduce_sum2D_hwc(in_ptr, kernel_width, kernel_height, channels_num, in_width, mul);
-
-                    // Write results
-                    MLI_OUT_PTR(int16_t)
-                    p_out_ftrs = (MLI_OUT_PTR(int16_t))(out_ftrs + ch_idx + (H_idx * out_width + W_idx) * channels_num);
-                    mli_prv_shift_clip_and_store_output(p_out_ftrs, &accu, shift);
-                }
-            }
-        }
-    }
-    // Phase 2: Process border part with more complex algorithm
-    // (usually significantly smaller part of computations)
-    //=======================================================================//
-    if (padding_top || padding_left || padding_bot || padding_right) {
-        rect_t perc_areas[4];
-        uint32_t areas_num = 0;
-        if (padding_top) {
-            perc_areas[areas_num].row_beg = 0;
-            perc_areas[areas_num].row_end = CEIL_DIV(padding_top, stride_height);
-            perc_areas[areas_num].clmn_beg = 0;
-            perc_areas[areas_num++].clmn_end = out_width;
-        }
-        if (padding_bot) {
-            perc_areas[areas_num].row_beg = out_height - CEIL_DIV(padding_bot, stride_height);
-            perc_areas[areas_num].row_end = out_height;
-            perc_areas[areas_num].clmn_beg = 0;
-            perc_areas[areas_num++].clmn_end = out_width;
-        }
-        if (padding_left) {
-            perc_areas[areas_num].row_beg = CEIL_DIV(padding_top, stride_height);
-            perc_areas[areas_num].row_end = out_height - CEIL_DIV(padding_bot, stride_height);
-            perc_areas[areas_num].clmn_beg = 0;
-            perc_areas[areas_num++].clmn_end = CEIL_DIV(padding_left, stride_width);
-        }
-        if (padding_right) {
-            perc_areas[areas_num].row_beg = CEIL_DIV(padding_top, stride_height);
-            perc_areas[areas_num].row_end = out_height - CEIL_DIV(padding_bot, stride_height);
-            perc_areas[areas_num].clmn_beg = out_width - CEIL_DIV(padding_right, stride_width);
-            perc_areas[areas_num++].clmn_end = out_width;
-        }
-
-        for (int area_idx = 0; area_idx < areas_num; ++area_idx) {
-            for (int ch_idx = 0; ch_idx < channels_num; ch_idx++) {
-                for (int H_idx = perc_areas[area_idx].row_beg; H_idx < perc_areas[area_idx].row_end; H_idx++) {
-                    for (int W_idx = perc_areas[area_idx].clmn_beg; W_idx < perc_areas[area_idx].clmn_end; W_idx++) {
-                        // Define area of input and filter for convolution
-                        // *_comp - compensation values for valid area defining
-                        int32_t top_comp = -MIN((int32_t)(H_idx * stride_height) - padding_top, 0);
-                        int32_t left_comp = -MIN((int32_t)(W_idx * stride_width) - padding_left, 0);
-
-                        int32_t right_comp = -MIN(
-                                (int32_t)in_width - ((int32_t)(W_idx * stride_width) - padding_left + kernel_width), 0);
-                        int32_t bottom_comp = -MIN(
-                                (int32_t)in_height - ((int32_t)(H_idx * stride_height) - padding_top + kernel_height),
-                                0);
-
-                        int32_t rows = kernel_height - top_comp - bottom_comp;
-                        int32_t clmns = kernel_width - right_comp - left_comp;
-                        unsigned int max_kernel_size = kernel_width * kernel_height;
-                        int kernel_size = rows * clmns;
-                        int16_t mul = 0;
-                        int shift = 0;
-                        get_mul_shift_value(kernel_size, max_kernel_size, &mul, &shift);
-
-                        MLI_PTR(int16_t)
-                        in_ptr = in_ftrs +  // starting point
-                                 channels_num * in_width *
-                                         (H_idx * stride_height - padding_top + top_comp) +            // move to row
-                                 channels_num * ((W_idx * stride_width) - padding_left + left_comp) +  // move to column
-                                 ch_idx;
-
-                        // Core Sum
-                        accum40_t accu = reduce_sum2D_hwc(in_ptr, clmns, rows, channels_num, in_width, mul);
-
-                        // Write result
-                        MLI_OUT_PTR(int16_t)
-                        p_out_ftrs = (MLI_OUT_PTR(int16_t))(out_ftrs + ch_idx + (H_idx * out_width + W_idx) * channels_num);
-                        mli_prv_shift_clip_and_store_output(p_out_ftrs, &accu, shift);
-                    }
-                }
-            }
-        }
-    }
     // fill output tensor parameters
+    out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = channels_num;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    out->el_type = in->el_type;
 
     return MLI_STATUS_OK;
+}
+
+mli_status mli_krn_avepool_hwc_fx16_k2x2_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_avepool_hwc_fx16(in, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+
+    // Extract general avepool parameters
+    int stride_width = cfg->stride_width;
+    int stride_height = cfg->stride_height;
+    int padding_top = cfg->padding_top;
+    int padding_bot = cfg->padding_bottom;
+    int padding_left = cfg->padding_left;
+    int padding_right = cfg->padding_right;
+    int channels_num = in->shape[FMAP_C_DIM_HWC];
+    int kernel_height = cfg->kernel_height;
+    int kernel_width = cfg->kernel_width;
+    // assign hard coded values for this variation to some variables
+#if 0
+    MLI_CHECK_AND_FIX(stride_width, 0);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(stride_height, 0);
+#endif
+#if 1
+    MLI_CHECK_AND_FIX(padding_top, 0);
+    MLI_CHECK_AND_FIX(padding_bot, 0);
+    MLI_CHECK_AND_FIX(padding_left, 0);
+    MLI_CHECK_AND_FIX(padding_right, 0);
+#endif
+#if 2
+    MLI_CHECK_AND_FIX(kernel_width, 2);
+#endif
+#if 2
+    MLI_CHECK_AND_FIX(kernel_height, 2);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(channels_num, 0);
+#endif
+
+    // Data pointers
+    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+
+    // Define Data dimensions
+    const int in_height = in->shape[FMAP_H_DIM_HWC];
+    const int in_width = in->shape[FMAP_W_DIM_HWC];
+
+    const int out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+
+    const int row_beg = 0;
+    const int row_end = out_height;
+    const int clmn_beg = 0;
+    const int clmn_end = out_width;
+
+    mli_prv_fx_init_dsp_ctrl();
+
+    avepool_hwc_nopad(
+        row_beg, row_end,
+        clmn_beg, clmn_end,
+        in_ftrs, out_ftrs,
+        channels_num, in_width, in_height,
+        out_width, out_height,
+        kernel_height, kernel_width,
+        stride_height, stride_width,
+        padding_top, padding_left, padding_right, padding_bot);
+
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_H_DIM_HWC] = out_height;
+    out->shape[FMAP_W_DIM_HWC] = out_width;
+    out->shape[FMAP_C_DIM_HWC] = channels_num;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_krn_avepool_hwc_fx16_k3x3_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_avepool_hwc_fx16(in, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+
+    // Extract general avepool parameters
+    int stride_width = cfg->stride_width;
+    int stride_height = cfg->stride_height;
+    int padding_top = cfg->padding_top;
+    int padding_bot = cfg->padding_bottom;
+    int padding_left = cfg->padding_left;
+    int padding_right = cfg->padding_right;
+    int channels_num = in->shape[FMAP_C_DIM_HWC];
+    int kernel_height = cfg->kernel_height;
+    int kernel_width = cfg->kernel_width;
+    // assign hard coded values for this variation to some variables
+#if 0
+    MLI_CHECK_AND_FIX(stride_width, 0);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(stride_height, 0);
+#endif
+#if 1
+    MLI_CHECK_AND_FIX(padding_top, 0);
+    MLI_CHECK_AND_FIX(padding_bot, 0);
+    MLI_CHECK_AND_FIX(padding_left, 0);
+    MLI_CHECK_AND_FIX(padding_right, 0);
+#endif
+#if 3
+    MLI_CHECK_AND_FIX(kernel_width, 3);
+#endif
+#if 3
+    MLI_CHECK_AND_FIX(kernel_height, 3);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(channels_num, 0);
+#endif
+
+    // Data pointers
+    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+
+    // Define Data dimensions
+    const int in_height = in->shape[FMAP_H_DIM_HWC];
+    const int in_width = in->shape[FMAP_W_DIM_HWC];
+
+    const int out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+
+    const int row_beg = 0;
+    const int row_end = out_height;
+    const int clmn_beg = 0;
+    const int clmn_end = out_width;
+
+    mli_prv_fx_init_dsp_ctrl();
+
+    avepool_hwc_nopad(
+        row_beg, row_end,
+        clmn_beg, clmn_end,
+        in_ftrs, out_ftrs,
+        channels_num, in_width, in_height,
+        out_width, out_height,
+        kernel_height, kernel_width,
+        stride_height, stride_width,
+        padding_top, padding_left, padding_right, padding_bot);
+
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_H_DIM_HWC] = out_height;
+    out->shape[FMAP_W_DIM_HWC] = out_width;
+    out->shape[FMAP_C_DIM_HWC] = channels_num;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_krn_avepool_hwc_fx16_k4x4_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_avepool_hwc_fx16(in, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+
+    // Extract general avepool parameters
+    int stride_width = cfg->stride_width;
+    int stride_height = cfg->stride_height;
+    int padding_top = cfg->padding_top;
+    int padding_bot = cfg->padding_bottom;
+    int padding_left = cfg->padding_left;
+    int padding_right = cfg->padding_right;
+    int channels_num = in->shape[FMAP_C_DIM_HWC];
+    int kernel_height = cfg->kernel_height;
+    int kernel_width = cfg->kernel_width;
+    // assign hard coded values for this variation to some variables
+#if 0
+    MLI_CHECK_AND_FIX(stride_width, 0);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(stride_height, 0);
+#endif
+#if 1
+    MLI_CHECK_AND_FIX(padding_top, 0);
+    MLI_CHECK_AND_FIX(padding_bot, 0);
+    MLI_CHECK_AND_FIX(padding_left, 0);
+    MLI_CHECK_AND_FIX(padding_right, 0);
+#endif
+#if 4
+    MLI_CHECK_AND_FIX(kernel_width, 4);
+#endif
+#if 4
+    MLI_CHECK_AND_FIX(kernel_height, 4);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(channels_num, 0);
+#endif
+
+    // Data pointers
+    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+
+    // Define Data dimensions
+    const int in_height = in->shape[FMAP_H_DIM_HWC];
+    const int in_width = in->shape[FMAP_W_DIM_HWC];
+
+    const int out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+
+    const int row_beg = 0;
+    const int row_end = out_height;
+    const int clmn_beg = 0;
+    const int clmn_end = out_width;
+
+    mli_prv_fx_init_dsp_ctrl();
+
+    avepool_hwc_nopad(
+        row_beg, row_end,
+        clmn_beg, clmn_end,
+        in_ftrs, out_ftrs,
+        channels_num, in_width, in_height,
+        out_width, out_height,
+        kernel_height, kernel_width,
+        stride_height, stride_width,
+        padding_top, padding_left, padding_right, padding_bot);
+
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_H_DIM_HWC] = out_height;
+    out->shape[FMAP_W_DIM_HWC] = out_width;
+    out->shape[FMAP_C_DIM_HWC] = channels_num;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_krn_avepool_hwc_fx16_k5x5_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_avepool_hwc_fx16(in, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+
+    // Extract general avepool parameters
+    int stride_width = cfg->stride_width;
+    int stride_height = cfg->stride_height;
+    int padding_top = cfg->padding_top;
+    int padding_bot = cfg->padding_bottom;
+    int padding_left = cfg->padding_left;
+    int padding_right = cfg->padding_right;
+    int channels_num = in->shape[FMAP_C_DIM_HWC];
+    int kernel_height = cfg->kernel_height;
+    int kernel_width = cfg->kernel_width;
+    // assign hard coded values for this variation to some variables
+#if 0
+    MLI_CHECK_AND_FIX(stride_width, 0);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(stride_height, 0);
+#endif
+#if 1
+    MLI_CHECK_AND_FIX(padding_top, 0);
+    MLI_CHECK_AND_FIX(padding_bot, 0);
+    MLI_CHECK_AND_FIX(padding_left, 0);
+    MLI_CHECK_AND_FIX(padding_right, 0);
+#endif
+#if 5
+    MLI_CHECK_AND_FIX(kernel_width, 5);
+#endif
+#if 5
+    MLI_CHECK_AND_FIX(kernel_height, 5);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(channels_num, 0);
+#endif
+
+    // Data pointers
+    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+
+    // Define Data dimensions
+    const int in_height = in->shape[FMAP_H_DIM_HWC];
+    const int in_width = in->shape[FMAP_W_DIM_HWC];
+
+    const int out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+
+    const int row_beg = 0;
+    const int row_end = out_height;
+    const int clmn_beg = 0;
+    const int clmn_end = out_width;
+
+    mli_prv_fx_init_dsp_ctrl();
+
+    avepool_hwc_nopad(
+        row_beg, row_end,
+        clmn_beg, clmn_end,
+        in_ftrs, out_ftrs,
+        channels_num, in_width, in_height,
+        out_width, out_height,
+        kernel_height, kernel_width,
+        stride_height, stride_width,
+        padding_top, padding_left, padding_right, padding_bot);
+
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_H_DIM_HWC] = out_height;
+    out->shape[FMAP_W_DIM_HWC] = out_width;
+    out->shape[FMAP_C_DIM_HWC] = channels_num;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_krn_avepool_hwc_fx16_k6x6_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_avepool_hwc_fx16(in, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+
+    // Extract general avepool parameters
+    int stride_width = cfg->stride_width;
+    int stride_height = cfg->stride_height;
+    int padding_top = cfg->padding_top;
+    int padding_bot = cfg->padding_bottom;
+    int padding_left = cfg->padding_left;
+    int padding_right = cfg->padding_right;
+    int channels_num = in->shape[FMAP_C_DIM_HWC];
+    int kernel_height = cfg->kernel_height;
+    int kernel_width = cfg->kernel_width;
+    // assign hard coded values for this variation to some variables
+#if 0
+    MLI_CHECK_AND_FIX(stride_width, 0);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(stride_height, 0);
+#endif
+#if 1
+    MLI_CHECK_AND_FIX(padding_top, 0);
+    MLI_CHECK_AND_FIX(padding_bot, 0);
+    MLI_CHECK_AND_FIX(padding_left, 0);
+    MLI_CHECK_AND_FIX(padding_right, 0);
+#endif
+#if 6
+    MLI_CHECK_AND_FIX(kernel_width, 6);
+#endif
+#if 6
+    MLI_CHECK_AND_FIX(kernel_height, 6);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(channels_num, 0);
+#endif
+
+    // Data pointers
+    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+
+    // Define Data dimensions
+    const int in_height = in->shape[FMAP_H_DIM_HWC];
+    const int in_width = in->shape[FMAP_W_DIM_HWC];
+
+    const int out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+
+    const int row_beg = 0;
+    const int row_end = out_height;
+    const int clmn_beg = 0;
+    const int clmn_end = out_width;
+
+    mli_prv_fx_init_dsp_ctrl();
+
+    avepool_hwc_nopad(
+        row_beg, row_end,
+        clmn_beg, clmn_end,
+        in_ftrs, out_ftrs,
+        channels_num, in_width, in_height,
+        out_width, out_height,
+        kernel_height, kernel_width,
+        stride_height, stride_width,
+        padding_top, padding_left, padding_right, padding_bot);
+
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_H_DIM_HWC] = out_height;
+    out->shape[FMAP_W_DIM_HWC] = out_width;
+    out->shape[FMAP_C_DIM_HWC] = channels_num;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_krn_avepool_hwc_fx16_k7x7_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_avepool_hwc_fx16(in, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+
+    // Extract general avepool parameters
+    int stride_width = cfg->stride_width;
+    int stride_height = cfg->stride_height;
+    int padding_top = cfg->padding_top;
+    int padding_bot = cfg->padding_bottom;
+    int padding_left = cfg->padding_left;
+    int padding_right = cfg->padding_right;
+    int channels_num = in->shape[FMAP_C_DIM_HWC];
+    int kernel_height = cfg->kernel_height;
+    int kernel_width = cfg->kernel_width;
+    // assign hard coded values for this variation to some variables
+#if 0
+    MLI_CHECK_AND_FIX(stride_width, 0);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(stride_height, 0);
+#endif
+#if 1
+    MLI_CHECK_AND_FIX(padding_top, 0);
+    MLI_CHECK_AND_FIX(padding_bot, 0);
+    MLI_CHECK_AND_FIX(padding_left, 0);
+    MLI_CHECK_AND_FIX(padding_right, 0);
+#endif
+#if 7
+    MLI_CHECK_AND_FIX(kernel_width, 7);
+#endif
+#if 7
+    MLI_CHECK_AND_FIX(kernel_height, 7);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(channels_num, 0);
+#endif
+
+    // Data pointers
+    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+
+    // Define Data dimensions
+    const int in_height = in->shape[FMAP_H_DIM_HWC];
+    const int in_width = in->shape[FMAP_W_DIM_HWC];
+
+    const int out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+
+    const int row_beg = 0;
+    const int row_end = out_height;
+    const int clmn_beg = 0;
+    const int clmn_end = out_width;
+
+    mli_prv_fx_init_dsp_ctrl();
+
+    avepool_hwc_nopad(
+        row_beg, row_end,
+        clmn_beg, clmn_end,
+        in_ftrs, out_ftrs,
+        channels_num, in_width, in_height,
+        out_width, out_height,
+        kernel_height, kernel_width,
+        stride_height, stride_width,
+        padding_top, padding_left, padding_right, padding_bot);
+
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_H_DIM_HWC] = out_height;
+    out->shape[FMAP_W_DIM_HWC] = out_width;
+    out->shape[FMAP_C_DIM_HWC] = channels_num;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_krn_avepool_hwc_fx16_k8x8_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_avepool_hwc_fx16(in, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+
+    // Extract general avepool parameters
+    int stride_width = cfg->stride_width;
+    int stride_height = cfg->stride_height;
+    int padding_top = cfg->padding_top;
+    int padding_bot = cfg->padding_bottom;
+    int padding_left = cfg->padding_left;
+    int padding_right = cfg->padding_right;
+    int channels_num = in->shape[FMAP_C_DIM_HWC];
+    int kernel_height = cfg->kernel_height;
+    int kernel_width = cfg->kernel_width;
+    // assign hard coded values for this variation to some variables
+#if 0
+    MLI_CHECK_AND_FIX(stride_width, 0);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(stride_height, 0);
+#endif
+#if 1
+    MLI_CHECK_AND_FIX(padding_top, 0);
+    MLI_CHECK_AND_FIX(padding_bot, 0);
+    MLI_CHECK_AND_FIX(padding_left, 0);
+    MLI_CHECK_AND_FIX(padding_right, 0);
+#endif
+#if 8
+    MLI_CHECK_AND_FIX(kernel_width, 8);
+#endif
+#if 8
+    MLI_CHECK_AND_FIX(kernel_height, 8);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(channels_num, 0);
+#endif
+
+    // Data pointers
+    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+
+    // Define Data dimensions
+    const int in_height = in->shape[FMAP_H_DIM_HWC];
+    const int in_width = in->shape[FMAP_W_DIM_HWC];
+
+    const int out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+
+    const int row_beg = 0;
+    const int row_end = out_height;
+    const int clmn_beg = 0;
+    const int clmn_end = out_width;
+
+    mli_prv_fx_init_dsp_ctrl();
+
+    avepool_hwc_nopad(
+        row_beg, row_end,
+        clmn_beg, clmn_end,
+        in_ftrs, out_ftrs,
+        channels_num, in_width, in_height,
+        out_width, out_height,
+        kernel_height, kernel_width,
+        stride_height, stride_width,
+        padding_top, padding_left, padding_right, padding_bot);
+
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_H_DIM_HWC] = out_height;
+    out->shape[FMAP_W_DIM_HWC] = out_width;
+    out->shape[FMAP_C_DIM_HWC] = channels_num;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_krn_avepool_hwc_fx16_k9x9_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_avepool_hwc_fx16(in, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+
+    // Extract general avepool parameters
+    int stride_width = cfg->stride_width;
+    int stride_height = cfg->stride_height;
+    int padding_top = cfg->padding_top;
+    int padding_bot = cfg->padding_bottom;
+    int padding_left = cfg->padding_left;
+    int padding_right = cfg->padding_right;
+    int channels_num = in->shape[FMAP_C_DIM_HWC];
+    int kernel_height = cfg->kernel_height;
+    int kernel_width = cfg->kernel_width;
+    // assign hard coded values for this variation to some variables
+#if 0
+    MLI_CHECK_AND_FIX(stride_width, 0);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(stride_height, 0);
+#endif
+#if 1
+    MLI_CHECK_AND_FIX(padding_top, 0);
+    MLI_CHECK_AND_FIX(padding_bot, 0);
+    MLI_CHECK_AND_FIX(padding_left, 0);
+    MLI_CHECK_AND_FIX(padding_right, 0);
+#endif
+#if 9
+    MLI_CHECK_AND_FIX(kernel_width, 9);
+#endif
+#if 9
+    MLI_CHECK_AND_FIX(kernel_height, 9);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(channels_num, 0);
+#endif
+
+    // Data pointers
+    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+
+    // Define Data dimensions
+    const int in_height = in->shape[FMAP_H_DIM_HWC];
+    const int in_width = in->shape[FMAP_W_DIM_HWC];
+
+    const int out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+
+    const int row_beg = 0;
+    const int row_end = out_height;
+    const int clmn_beg = 0;
+    const int clmn_end = out_width;
+
+    mli_prv_fx_init_dsp_ctrl();
+
+    avepool_hwc_nopad(
+        row_beg, row_end,
+        clmn_beg, clmn_end,
+        in_ftrs, out_ftrs,
+        channels_num, in_width, in_height,
+        out_width, out_height,
+        kernel_height, kernel_width,
+        stride_height, stride_width,
+        padding_top, padding_left, padding_right, padding_bot);
+
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_H_DIM_HWC] = out_height;
+    out->shape[FMAP_W_DIM_HWC] = out_width;
+    out->shape[FMAP_C_DIM_HWC] = channels_num;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_krn_avepool_hwc_fx16_k10x10_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_avepool_hwc_fx16(in, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+
+    // Extract general avepool parameters
+    int stride_width = cfg->stride_width;
+    int stride_height = cfg->stride_height;
+    int padding_top = cfg->padding_top;
+    int padding_bot = cfg->padding_bottom;
+    int padding_left = cfg->padding_left;
+    int padding_right = cfg->padding_right;
+    int channels_num = in->shape[FMAP_C_DIM_HWC];
+    int kernel_height = cfg->kernel_height;
+    int kernel_width = cfg->kernel_width;
+    // assign hard coded values for this variation to some variables
+#if 0
+    MLI_CHECK_AND_FIX(stride_width, 0);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(stride_height, 0);
+#endif
+#if 1
+    MLI_CHECK_AND_FIX(padding_top, 0);
+    MLI_CHECK_AND_FIX(padding_bot, 0);
+    MLI_CHECK_AND_FIX(padding_left, 0);
+    MLI_CHECK_AND_FIX(padding_right, 0);
+#endif
+#if 10
+    MLI_CHECK_AND_FIX(kernel_width, 10);
+#endif
+#if 10
+    MLI_CHECK_AND_FIX(kernel_height, 10);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(channels_num, 0);
+#endif
+
+    // Data pointers
+    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+
+    // Define Data dimensions
+    const int in_height = in->shape[FMAP_H_DIM_HWC];
+    const int in_width = in->shape[FMAP_W_DIM_HWC];
+
+    const int out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+
+    const int row_beg = 0;
+    const int row_end = out_height;
+    const int clmn_beg = 0;
+    const int clmn_end = out_width;
+
+    mli_prv_fx_init_dsp_ctrl();
+
+    avepool_hwc_nopad(
+        row_beg, row_end,
+        clmn_beg, clmn_end,
+        in_ftrs, out_ftrs,
+        channels_num, in_width, in_height,
+        out_width, out_height,
+        kernel_height, kernel_width,
+        stride_height, stride_width,
+        padding_top, padding_left, padding_right, padding_bot);
+
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_H_DIM_HWC] = out_height;
+    out->shape[FMAP_W_DIM_HWC] = out_width;
+    out->shape[FMAP_C_DIM_HWC] = channels_num;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_krn_avepool_hwc_fx16_k1x2_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_avepool_hwc_fx16(in, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+
+    // Extract general avepool parameters
+    int stride_width = cfg->stride_width;
+    int stride_height = cfg->stride_height;
+    int padding_top = cfg->padding_top;
+    int padding_bot = cfg->padding_bottom;
+    int padding_left = cfg->padding_left;
+    int padding_right = cfg->padding_right;
+    int channels_num = in->shape[FMAP_C_DIM_HWC];
+    int kernel_height = cfg->kernel_height;
+    int kernel_width = cfg->kernel_width;
+    // assign hard coded values for this variation to some variables
+#if 0
+    MLI_CHECK_AND_FIX(stride_width, 0);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(stride_height, 0);
+#endif
+#if 1
+    MLI_CHECK_AND_FIX(padding_top, 0);
+    MLI_CHECK_AND_FIX(padding_bot, 0);
+    MLI_CHECK_AND_FIX(padding_left, 0);
+    MLI_CHECK_AND_FIX(padding_right, 0);
+#endif
+#if 1
+    MLI_CHECK_AND_FIX(kernel_width, 1);
+#endif
+#if 2
+    MLI_CHECK_AND_FIX(kernel_height, 2);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(channels_num, 0);
+#endif
+
+    // Data pointers
+    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+
+    // Define Data dimensions
+    const int in_height = in->shape[FMAP_H_DIM_HWC];
+    const int in_width = in->shape[FMAP_W_DIM_HWC];
+
+    const int out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+
+    const int row_beg = 0;
+    const int row_end = out_height;
+    const int clmn_beg = 0;
+    const int clmn_end = out_width;
+
+    mli_prv_fx_init_dsp_ctrl();
+
+    avepool_hwc_nopad(
+        row_beg, row_end,
+        clmn_beg, clmn_end,
+        in_ftrs, out_ftrs,
+        channels_num, in_width, in_height,
+        out_width, out_height,
+        kernel_height, kernel_width,
+        stride_height, stride_width,
+        padding_top, padding_left, padding_right, padding_bot);
+
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_H_DIM_HWC] = out_height;
+    out->shape[FMAP_W_DIM_HWC] = out_width;
+    out->shape[FMAP_C_DIM_HWC] = channels_num;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_krn_avepool_hwc_fx16_k1x3_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_avepool_hwc_fx16(in, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+
+    // Extract general avepool parameters
+    int stride_width = cfg->stride_width;
+    int stride_height = cfg->stride_height;
+    int padding_top = cfg->padding_top;
+    int padding_bot = cfg->padding_bottom;
+    int padding_left = cfg->padding_left;
+    int padding_right = cfg->padding_right;
+    int channels_num = in->shape[FMAP_C_DIM_HWC];
+    int kernel_height = cfg->kernel_height;
+    int kernel_width = cfg->kernel_width;
+    // assign hard coded values for this variation to some variables
+#if 0
+    MLI_CHECK_AND_FIX(stride_width, 0);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(stride_height, 0);
+#endif
+#if 1
+    MLI_CHECK_AND_FIX(padding_top, 0);
+    MLI_CHECK_AND_FIX(padding_bot, 0);
+    MLI_CHECK_AND_FIX(padding_left, 0);
+    MLI_CHECK_AND_FIX(padding_right, 0);
+#endif
+#if 1
+    MLI_CHECK_AND_FIX(kernel_width, 1);
+#endif
+#if 3
+    MLI_CHECK_AND_FIX(kernel_height, 3);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(channels_num, 0);
+#endif
+
+    // Data pointers
+    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+
+    // Define Data dimensions
+    const int in_height = in->shape[FMAP_H_DIM_HWC];
+    const int in_width = in->shape[FMAP_W_DIM_HWC];
+
+    const int out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+
+    const int row_beg = 0;
+    const int row_end = out_height;
+    const int clmn_beg = 0;
+    const int clmn_end = out_width;
+
+    mli_prv_fx_init_dsp_ctrl();
+
+    avepool_hwc_nopad(
+        row_beg, row_end,
+        clmn_beg, clmn_end,
+        in_ftrs, out_ftrs,
+        channels_num, in_width, in_height,
+        out_width, out_height,
+        kernel_height, kernel_width,
+        stride_height, stride_width,
+        padding_top, padding_left, padding_right, padding_bot);
+
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_H_DIM_HWC] = out_height;
+    out->shape[FMAP_W_DIM_HWC] = out_width;
+    out->shape[FMAP_C_DIM_HWC] = channels_num;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_krn_avepool_hwc_fx16_k2x1_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_avepool_hwc_fx16(in, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+
+    // Extract general avepool parameters
+    int stride_width = cfg->stride_width;
+    int stride_height = cfg->stride_height;
+    int padding_top = cfg->padding_top;
+    int padding_bot = cfg->padding_bottom;
+    int padding_left = cfg->padding_left;
+    int padding_right = cfg->padding_right;
+    int channels_num = in->shape[FMAP_C_DIM_HWC];
+    int kernel_height = cfg->kernel_height;
+    int kernel_width = cfg->kernel_width;
+    // assign hard coded values for this variation to some variables
+#if 0
+    MLI_CHECK_AND_FIX(stride_width, 0);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(stride_height, 0);
+#endif
+#if 1
+    MLI_CHECK_AND_FIX(padding_top, 0);
+    MLI_CHECK_AND_FIX(padding_bot, 0);
+    MLI_CHECK_AND_FIX(padding_left, 0);
+    MLI_CHECK_AND_FIX(padding_right, 0);
+#endif
+#if 2
+    MLI_CHECK_AND_FIX(kernel_width, 2);
+#endif
+#if 1
+    MLI_CHECK_AND_FIX(kernel_height, 1);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(channels_num, 0);
+#endif
+
+    // Data pointers
+    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+
+    // Define Data dimensions
+    const int in_height = in->shape[FMAP_H_DIM_HWC];
+    const int in_width = in->shape[FMAP_W_DIM_HWC];
+
+    const int out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+
+    const int row_beg = 0;
+    const int row_end = out_height;
+    const int clmn_beg = 0;
+    const int clmn_end = out_width;
+
+    mli_prv_fx_init_dsp_ctrl();
+
+    avepool_hwc_nopad(
+        row_beg, row_end,
+        clmn_beg, clmn_end,
+        in_ftrs, out_ftrs,
+        channels_num, in_width, in_height,
+        out_width, out_height,
+        kernel_height, kernel_width,
+        stride_height, stride_width,
+        padding_top, padding_left, padding_right, padding_bot);
+
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_H_DIM_HWC] = out_height;
+    out->shape[FMAP_W_DIM_HWC] = out_width;
+    out->shape[FMAP_C_DIM_HWC] = channels_num;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_krn_avepool_hwc_fx16_k3x1_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_avepool_hwc_fx16(in, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+
+    // Extract general avepool parameters
+    int stride_width = cfg->stride_width;
+    int stride_height = cfg->stride_height;
+    int padding_top = cfg->padding_top;
+    int padding_bot = cfg->padding_bottom;
+    int padding_left = cfg->padding_left;
+    int padding_right = cfg->padding_right;
+    int channels_num = in->shape[FMAP_C_DIM_HWC];
+    int kernel_height = cfg->kernel_height;
+    int kernel_width = cfg->kernel_width;
+    // assign hard coded values for this variation to some variables
+#if 0
+    MLI_CHECK_AND_FIX(stride_width, 0);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(stride_height, 0);
+#endif
+#if 1
+    MLI_CHECK_AND_FIX(padding_top, 0);
+    MLI_CHECK_AND_FIX(padding_bot, 0);
+    MLI_CHECK_AND_FIX(padding_left, 0);
+    MLI_CHECK_AND_FIX(padding_right, 0);
+#endif
+#if 3
+    MLI_CHECK_AND_FIX(kernel_width, 3);
+#endif
+#if 1
+    MLI_CHECK_AND_FIX(kernel_height, 1);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(channels_num, 0);
+#endif
+
+    // Data pointers
+    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+
+    // Define Data dimensions
+    const int in_height = in->shape[FMAP_H_DIM_HWC];
+    const int in_width = in->shape[FMAP_W_DIM_HWC];
+
+    const int out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+
+    const int row_beg = 0;
+    const int row_end = out_height;
+    const int clmn_beg = 0;
+    const int clmn_end = out_width;
+
+    mli_prv_fx_init_dsp_ctrl();
+
+    avepool_hwc_nopad(
+        row_beg, row_end,
+        clmn_beg, clmn_end,
+        in_ftrs, out_ftrs,
+        channels_num, in_width, in_height,
+        out_width, out_height,
+        kernel_height, kernel_width,
+        stride_height, stride_width,
+        padding_top, padding_left, padding_right, padding_bot);
+
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_H_DIM_HWC] = out_height;
+    out->shape[FMAP_W_DIM_HWC] = out_width;
+    out->shape[FMAP_C_DIM_HWC] = channels_num;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_krn_avepool_hwc_fx16_generic(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_avepool_hwc_fx16(in, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+
+    // Extract general avepool parameters
+    int stride_width = cfg->stride_width;
+    int stride_height = cfg->stride_height;
+    int padding_top = cfg->padding_top;
+    int padding_bot = cfg->padding_bottom;
+    int padding_left = cfg->padding_left;
+    int padding_right = cfg->padding_right;
+    int channels_num = in->shape[FMAP_C_DIM_HWC];
+    int kernel_height = cfg->kernel_height;
+    int kernel_width = cfg->kernel_width;
+    // assign hard coded values for this variation to some variables
+#if 0
+    MLI_CHECK_AND_FIX(stride_width, 0);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(stride_height, 0);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(padding_top, 0);
+    MLI_CHECK_AND_FIX(padding_bot, 0);
+    MLI_CHECK_AND_FIX(padding_left, 0);
+    MLI_CHECK_AND_FIX(padding_right, 0);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(kernel_width, 0);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(kernel_height, 0);
+#endif
+#if 0
+    MLI_CHECK_AND_FIX(channels_num, 0);
+#endif
+
+    // Data pointers
+    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
+    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
+
+    // Define Data dimensions
+    const int in_height = in->shape[FMAP_H_DIM_HWC];
+    const int in_width = in->shape[FMAP_W_DIM_HWC];
+
+    const int out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+
+    const int row_beg = 0;
+    const int row_end = out_height;
+    const int clmn_beg = 0;
+    const int clmn_end = out_width;
+
+    mli_prv_fx_init_dsp_ctrl();
+
+    avepool_hwc_krnpad(
+        row_beg, row_end,
+        clmn_beg, clmn_end,
+        in_ftrs, out_ftrs,
+        channels_num, in_width, in_height,
+        out_width, out_height,
+        kernel_height, kernel_width,
+        stride_height, stride_width,
+        padding_top, padding_left, padding_right, padding_bot);
+
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_H_DIM_HWC] = out_height;
+    out->shape[FMAP_W_DIM_HWC] = out_width;
+    out->shape[FMAP_C_DIM_HWC] = channels_num;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+
+    return MLI_STATUS_OK;
+}
+
+
+mli_status mli_krn_avepool_hwc_fx16(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    int stride_w = cfg->stride_width;
+    int stride_h = cfg->stride_height;
+    int kernel_w = cfg->kernel_width;
+    int kernel_h = cfg->kernel_height;
+    int padding_top = cfg->padding_top;
+    int padding_bot = cfg->padding_bottom;
+    int padding_left = cfg->padding_left;
+    int padding_right = cfg->padding_right;
+
+    if (
+            (kernel_w == 10) && (kernel_h == 10) && 
+            (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+        return mli_krn_avepool_hwc_fx16_k10x10_nopad(in, cfg, out);
+    } else if ((kernel_w == 9) && (kernel_h == 9) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+        return mli_krn_avepool_hwc_fx16_k9x9_nopad(in, cfg, out);
+    } else if ((kernel_w == 8) && (kernel_h == 8) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+        return mli_krn_avepool_hwc_fx16_k8x8_nopad(in, cfg, out);
+    } else if ((kernel_w == 7) && (kernel_h == 7) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+        return mli_krn_avepool_hwc_fx16_k7x7_nopad(in, cfg, out);
+    } else if ((kernel_w == 6) && (kernel_h == 6) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+        return mli_krn_avepool_hwc_fx16_k6x6_nopad(in, cfg, out);
+    } else if ((kernel_w == 5) && (kernel_h == 5) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+        return mli_krn_avepool_hwc_fx16_k5x5_nopad(in, cfg, out);
+    } else if ((kernel_w == 4) && (kernel_h == 4) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+        return mli_krn_avepool_hwc_fx16_k4x4_nopad(in, cfg, out);
+    } else if ((kernel_w == 3) && (kernel_h == 3) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+        return mli_krn_avepool_hwc_fx16_k3x3_nopad(in, cfg, out);
+    } else if ((kernel_w == 3) && (kernel_h == 3) && (padding_top <= 1) && (padding_bot <= 1) && (padding_left <= 1) && (padding_right <= 1)) {
+        return mli_krn_avepool_hwc_fx16_k3x3_krnpad(in, cfg, out);
+    } else if ((kernel_w == 3) && (kernel_h == 1) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+        return mli_krn_avepool_hwc_fx16_k3x1_nopad(in, cfg, out);
+    } else if ((kernel_w == 2) && (kernel_h == 2) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+        return mli_krn_avepool_hwc_fx16_k2x2_nopad(in, cfg, out);
+    } else if ((kernel_w == 2) && (kernel_h == 1) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+        return mli_krn_avepool_hwc_fx16_k2x1_nopad(in, cfg, out);
+    } else if ((kernel_w == 1) && (kernel_h == 3) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+        return mli_krn_avepool_hwc_fx16_k1x3_nopad(in, cfg, out);
+    } else if ((kernel_w == 1) && (kernel_h == 2) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+        return mli_krn_avepool_hwc_fx16_k1x2_nopad(in, cfg, out);
+    } else {
+        return mli_krn_avepool_hwc_fx16_generic(in, cfg, out);
+    }
+}
+char * mli_debug_krn_avepool_hwc_fx16(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    int stride_w = cfg->stride_width;
+    int stride_h = cfg->stride_height;
+    int kernel_w = cfg->kernel_width;
+    int kernel_h = cfg->kernel_height;
+    int padding_top = cfg->padding_top;
+    int padding_bot = cfg->padding_bottom;
+    int padding_left = cfg->padding_left;
+    int padding_right = cfg->padding_right;
+
+    if (
+            (kernel_w == 10) && (kernel_h == 10) && 
+            (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+        return (char*)"mli_krn_avepool_hwc_fx16_k10x10_nopad";
+    } else if ((kernel_w == 9) && (kernel_h == 9) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+        return (char*)"mli_krn_avepool_hwc_fx16_k9x9_nopad";
+    } else if ((kernel_w == 8) && (kernel_h == 8) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+        return (char*)"mli_krn_avepool_hwc_fx16_k8x8_nopad";
+    } else if ((kernel_w == 7) && (kernel_h == 7) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+        return (char*)"mli_krn_avepool_hwc_fx16_k7x7_nopad";
+    } else if ((kernel_w == 6) && (kernel_h == 6) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+        return (char*)"mli_krn_avepool_hwc_fx16_k6x6_nopad";
+    } else if ((kernel_w == 5) && (kernel_h == 5) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+        return (char*)"mli_krn_avepool_hwc_fx16_k5x5_nopad";
+    } else if ((kernel_w == 4) && (kernel_h == 4) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+        return (char*)"mli_krn_avepool_hwc_fx16_k4x4_nopad";
+    } else if ((kernel_w == 3) && (kernel_h == 3) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+        return (char*)"mli_krn_avepool_hwc_fx16_k3x3_nopad";
+    } else if ((kernel_w == 3) && (kernel_h == 3) && (padding_top <= 1) && (padding_bot <= 1) && (padding_left <= 1) && (padding_right <= 1)) {
+        return (char*)"mli_krn_avepool_hwc_fx16_k3x3_krnpad";
+    } else if ((kernel_w == 3) && (kernel_h == 1) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+        return (char*)"mli_krn_avepool_hwc_fx16_k3x1_nopad";
+    } else if ((kernel_w == 2) && (kernel_h == 2) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+        return (char*)"mli_krn_avepool_hwc_fx16_k2x2_nopad";
+    } else if ((kernel_w == 2) && (kernel_h == 1) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+        return (char*)"mli_krn_avepool_hwc_fx16_k2x1_nopad";
+    } else if ((kernel_w == 1) && (kernel_h == 3) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+        return (char*)"mli_krn_avepool_hwc_fx16_k1x3_nopad";
+    } else if ((kernel_w == 1) && (kernel_h == 2) && (padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0)) {
+        return (char*)"mli_krn_avepool_hwc_fx16_k1x2_nopad";
+    } else {
+        return (char*)"mli_krn_avepool_hwc_fx16_generic";
+    }
 }
 
 #pragma code()
 
 #ifdef __cplusplus
-}
+    }
 #endif

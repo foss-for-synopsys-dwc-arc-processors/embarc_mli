@@ -7,8 +7,8 @@
 *
 */
 
-#ifndef _MLI_KRN_DOTPROD_CHW_H_
-#define _MLI_KRN_DOTPROD_CHW_H_
+#ifndef _MLI_KRN_DOTPROD_H_
+#define _MLI_KRN_DOTPROD_H_
 
 #include "mli_config.h"
 #include "mli_debug.h"
@@ -21,6 +21,116 @@
  * Targets:
  *
  ******************************************************************************/
+template <typename io_T, typename w_T, typename acc_T>
+static acc_T __attribute__ ((always_inline)) dotprod2D(
+        const MLI_PTR(io_T) __restrict in,
+        const MLI_PTR(w_T)  __restrict krn,
+        acc_T accu,
+        const int width,
+        const int height,
+        int in_col_step,
+        int in_row_step,
+        int kern_col_step,
+        int kern_row_step) {
+    in_row_step -= width * in_col_step;
+    kern_row_step -= width * kern_col_step;
+    for (int row = 0; row < height; row++) {
+        for (int clmn = 0; clmn < width; clmn++) {
+            accu = mli_math_mac_fx(accu, (*in), (*krn));
+            in += in_col_step;
+            krn += kern_col_step;
+        }
+        in += in_row_step;
+        krn += kern_row_step;
+    }
+    return accu;
+}
+
+template < typename in_T, typename w_T, typename acc_T >
+static void __attribute__ ((always_inline)) dotprod2D_hwc_v (
+        const MLI_PTR(in_T) __restrict in, 
+        const MLI_PTR(w_T) __restrict krn,
+        acc_T * accu,        
+        const int width,
+        const int height,
+        int in_col_step,
+        int in_row_step,
+        int kern_col_step,
+        int kern_row_step) {
+    in_row_step -= width * in_col_step;
+    kern_row_step -= width * kern_col_step;
+
+#pragma clang loop unroll(full)
+    for (int32_t row = 0; row < height; row++) {
+#pragma clang loop unroll(full)
+        for (int32_t clmn = 0; clmn < width; clmn++) {
+            v2q15_t k_v = mli_prv_load_2_samples(krn);
+            krn += kern_col_step;
+            v2q15_t tx = mli_prv_load_2_samples(in);
+            in += in_col_step;
+            mli_math_mac_fx_vec2 (accu, tx, k_v);
+        }
+        in += in_row_step;
+        krn += kern_row_step;
+    }
+}
+
+template < typename in_T, typename w_T, typename acc_T >
+static void __attribute__ ((always_inline)) dotprod2D_hwc_d (
+        const MLI_PTR(in_T) __restrict in, 
+        const MLI_PTR(w_T) __restrict krn,
+        accum40_t * accu,        
+        const int width,
+        const int height,
+        int in_col_step,
+        int in_row_step,
+        int kern_col_step,
+        int kern_row_step) {
+    in_row_step -= width * in_col_step;
+    kern_row_step -= width * kern_col_step;
+
+#pragma clang loop unroll(full)
+    for (int32_t row = 0; row < height; row++) {
+#pragma clang loop unroll(full)
+        for (int32_t clmn = 0; clmn < width; clmn++) {
+            mli_prv_load_mac_vec2 (accu, in, krn);
+            krn += kern_col_step;
+            in += in_col_step;
+        }
+        in += in_row_step;
+        krn += kern_row_step;
+    }
+}
+
+template < typename in_T, typename w_T, typename acc_T >
+static void __attribute__ ((always_inline)) dotprod_d (
+        const MLI_PTR(in_T) __restrict in, 
+        const MLI_PTR(w_T) __restrict krn,
+        acc_T * accu) {
+            v2q15_t k_v = mli_prv_load_2_samples(krn);
+            v2q15_t tx = mli_prv_load_2_samples(in);
+            *accu = fx_a40_dmac_v2q15(*accu, tx, k_v);
+}
+
+template <typename io_T, typename w_T, typename acc_T>
+static acc_T __attribute__ ((always_inline)) dotprod(
+        const MLI_PTR(io_T) __restrict in,
+        const MLI_PTR(w_T)  __restrict krn,
+        acc_T accu) {
+    accu = mli_math_mac_fx(accu, (*in), (*krn));
+    return accu;
+}
+
+template < typename in_T, typename w_T, typename acc_T >
+static void __attribute__ ((always_inline)) dotprod2D_hwc_v_point (
+        const MLI_PTR(in_T) __restrict in, 
+        const MLI_PTR(w_T) __restrict krn,
+        acc_T * accu) {
+    v2q15_t k_v = mli_prv_load_2_samples(krn);
+    v2q15_t tx = mli_prv_load_2_samples(in);
+    mli_math_mac_fx_vec2 (accu, tx, k_v);
+}
+
 template < typename in_T, typename w_T, typename acc_T >
 static inline void __attribute__ ((always_inline)) dotprod2D (
         const MLI_PTR (in_T) __restrict in,
@@ -485,4 +595,4 @@ static inline void __attribute__ ((always_inline)) dotprod2D_v (
 #endif
 }
 
-#endif // _MLI_KRN_DOTPROD_CHW_H_
+#endif // _MLI_KRN_DOTPROD_H_
