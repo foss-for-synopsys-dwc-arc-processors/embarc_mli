@@ -142,7 +142,7 @@ else
  AR = arc-elf32-ar
  AS = arc-elf32-as
  CFLAGS += $(addprefix -I, $(HEADER_DIRS))
- CFLAGS += -D_Interrupt=__attribute__((interrupt("ilink")))
+ CFLAGS += -D_Interrupt=__attribute__\(\(interrupt\("ilink"\)\)\)
  CFLAGS += -D_lr=__builtin_arc_lr
  CFLAGS += -D_sr=__builtin_arc_sr
  CFLAGS += -D_seti=__builtin_arc_seti
@@ -152,8 +152,8 @@ else
  CFLAGS += -D__Xdmac
 
  CFLAGS += -D_Uncached=volatile
- CFLAGS += -D_Usually(x)=__builtin_expect((x)!=0,1)
- CFLAGS += -D_Rarely(x)=__builtin_expect((x)!=0,0)
+ CFLAGS += -D_Usually\(x\)=__builtin_expect\(\(x\)!=0,1\)
+ CFLAGS += -D_Rarely\(x\)=__builtin_expect\(\(x\)!=0,0\)
  CFLAGS += -DIRQ_BUILD=0x00f3
  CFLAGS += -DRF_BUILD=0x006e
  CFLAGS += -DRF_BUILD=0x006e
@@ -253,7 +253,7 @@ endif
 ifeq ($(TOOLCHAIN),mwdt)
 	$(CC) $(CFLAGS) $(C_OBJS) $(CPP_OBJS) $(CC_OBJS) $(EXT_LIBS) $(addprefix -Wl$(COMMA),$(LDFLAGS)) -o $@ -m > $(OUT_DIR)/$(OUT_NAME).map
 else
-	$(CC) $(CFLAGS) $(C_OBJS) $(CPP_OBJS) $(CC_OBJS) $(EXT_LIBS) $(addprefix -Wl$(COMMA),$(LDFLAGS)) --specs=nsim.specs -o $@
+	$(CC) $(CFLAGS) $(C_OBJS) $(CPP_OBJS) $(CC_OBJS)  $(GCC_OBJ) $(EXT_LIBS) $(addprefix -Wl$(COMMA),$(LDFLAGS)) --specs=nsim.specs -o $@
 endif
 
 
