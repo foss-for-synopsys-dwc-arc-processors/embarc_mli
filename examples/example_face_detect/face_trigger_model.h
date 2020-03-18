@@ -11,7 +11,8 @@
 #define _FACE_TRIGGER_MODEL_H_
 
 #include "stdint.h"
-
+#include <stdbool.h>
+#include <stdio.h>
 
 // Face Trigger Input dimmensions size (same for X and Y)
 #define FT_MODEL_IN_DIM_SZ (36)
@@ -19,6 +20,12 @@
 // Face Trigger Input size
 #define FT_MODEL_IN_POINTS (1 * FT_MODEL_IN_DIM_SZ * FT_MODEL_IN_DIM_SZ)
 
+
+//Setup profiling
+#define PROFILE_ON
+extern int total_cycles;
+extern int run_num;
+static bool print_summary = true;
 
 // Face Trigger Inference function
 //

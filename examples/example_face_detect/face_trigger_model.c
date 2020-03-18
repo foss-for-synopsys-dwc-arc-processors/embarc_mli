@@ -13,7 +13,7 @@
 #include "mli_config.h"
 
 #include "face_trigger_constants.h"
-
+#include "tests_aux.h"
 
 //==============================================================
 //
@@ -275,6 +275,9 @@ static void user_custom_activation(const mli_tensor *input, mli_tensor *output);
 
 static void user_custom_convolution_layer2(const mli_tensor *input, mli_tensor *temp_data, mli_tensor *output);
 
+//Profiling vars
+int total_cycles = 0;
+int run_num = 0;
 
 //==============================================================
 //
@@ -283,6 +286,7 @@ static void user_custom_convolution_layer2(const mli_tensor *input, mli_tensor *
 //==============================================================
 int mli_face_trigger_process(const uint8_t *image_buffer){
 
+#ifndef PROFILE_ON
     // Preprocessing: Expend data to 16bit
     //=============================================
     user_custom_preprocessing(image_buffer, &ir_tensor_X);
@@ -312,7 +316,74 @@ int mli_face_trigger_process(const uint8_t *image_buffer){
     ir_tensor_X.el_params.fx.frac_bits = kL4ConvOutFracBits;
     mli_krn_fully_connected_fx16(&ir_tensor_Y, &L4_fc_wt, &L4_fc_bias,
                                  &ir_tensor_X);
+#else
+    mli_status ret = MLI_STATUS_OK;
+    unsigned preproc_cycles = 0;
+    unsigned layer1_cycles = 0;
+    unsigned activ1_cycles = 0;
+    unsigned layer2_cycles = 0;
+    unsigned activ2_cycles = 0;
+    unsigned layer3_cycles = 0;
+    unsigned activ3_cycles = 0;
+    unsigned layer4_cycles = 0;
 
+    // Preprocessing: Expend data to 16bit
+    //=============================================
+    PROFILE(user_custom_preprocessing(image_buffer, &ir_tensor_X));
+    preproc_cycles += cycle_cnt;
+
+    // Layer 1: Convolution on grayscale image
+//=============================================
+    ir_tensor_Y.el_params.fx.frac_bits = kL1ConvOutFracBits;
+    PROFILE(mli_krn_conv2d_chw_fx16_generic(&ir_tensor_X, &L1_conv_wt, &L1_conv_bias,
+      &shared_conv_cfg, &ir_tensor_Y));
+    layer1_cycles += cycle_cnt;
+    
+    PROFILE(user_custom_activation(&ir_tensor_Y, &ir_tensor_Y));
+    activ1_cycles += cycle_cnt;
+
+    // Layer 2: Custom convolution layer
+    //=============================================
+    ir_tensor_X.el_params.fx.frac_bits = kL2ConvOutFracBits;
+    PROFILE(user_custom_convolution_layer2(&ir_tensor_Y, &custom_l2_ir_tensor, &ir_tensor_X));
+    layer2_cycles += cycle_cnt;
+    PROFILE(user_custom_activation(&ir_tensor_X, &ir_tensor_X));
+    activ2_cycles += cycle_cnt;
+
+    // Layer 3: Depthwise convolution layer
+    //=============================================
+    ir_tensor_Y.el_params.fx.frac_bits = kL3ConvOutFracBits;
+    PROFILE(mli_krn_depthwise_conv2d_chw_fx16_generic(&ir_tensor_X, &L3_conv_wt, &L3_conv_bias,
+      &shared_conv_cfg, &ir_tensor_Y));
+    layer3_cycles += cycle_cnt;
+    PROFILE(user_custom_activation(&ir_tensor_Y, &ir_tensor_Y));
+    activ3_cycles += cycle_cnt;
+
+    // Layer 4: fully connected layer
+    //=============================================
+    ir_tensor_X.el_params.fx.frac_bits = kL4ConvOutFracBits;
+    PROFILE(ret = mli_krn_fully_connected_fx16(&ir_tensor_Y, &L4_fc_wt, &L4_fc_bias,
+      &ir_tensor_X));
+    layer4_cycles += cycle_cnt;
+
+    const unsigned total = preproc_cycles + layer1_cycles + activ1_cycles + layer2_cycles + activ2_cycles + layer3_cycles + activ3_cycles + layer4_cycles;
+    total_cycles += total;
+    run_num++;
+    if (print_summary) {
+      printf("\n\nSummary:\n"
+        "\tImage Preprocessing: %u cycles\n"
+        "\tLayer1: %u cycles\n"
+        "\tActivation1: %u cycles\n"
+        "\tLayer2: %u cycles\n"
+        "\tActivation2: %u cycles\n"
+        "\tLayer3: %u cycles\n"
+        "\tActivation3: %u cycles\n"
+        "\tLayer4: %u cycles\n"
+        "\n\tTotal: %u cycles\n\n",
+        preproc_cycles, layer1_cycles, activ1_cycles, layer2_cycles, activ2_cycles, layer3_cycles, activ3_cycles, layer4_cycles, total);
+      print_summary = false;
+    }
+#endif
     // Decision by threshold
     //=============================================
     const int16_t out_score = ((int16_t *)ir_tensor_X.data)[0];

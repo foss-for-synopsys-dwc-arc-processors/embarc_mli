@@ -155,7 +155,7 @@ int main(int argc, char *argv[]) {
     memcpy((void*)rescaled_image_buffer, (void*)input_image_data, FD_IN_XRES * FD_IN_XRES);
     memset((void*)image_mask_buffer, 0, FD_IN_XRES * FD_IN_YRES);
 
-    /* Image processing */
+     /* Image processing */
     const int total_scan_steps = ASIZE(fd_scan_scheme);
     for (int step = 0; step < total_scan_steps; step++) {
         printf("Detection step #%d\n", step);
@@ -187,6 +187,8 @@ int main(int argc, char *argv[]) {
                 coord.top_left_x, coord.top_left_y, coord.bot_right_x, coord.bot_right_y);
         }
     }
+
+    printf("\nNN was run %d times \nTotal number of cycles: %d\n", run_num, total_cycles);
 
     bmp_write_gray("result.bmp", input_image_data, image_mask_buffer);
 
