@@ -307,6 +307,20 @@ typedef struct {
 } mli_point_to_subtsr_cfg;
 
 /**
+ * @brief Create Subtensor helper config
+ *
+ * Data structure to provide coordinates and sizes of required subtensor in the input tensor
+ * The size can be reduced in any dimension.
+ */
+typedef struct {
+    uint32_t offset[MLI_MAX_RANK];   /**< subtensor start coordinates in the input tensor 
+                                          The size of this array is determined by the rank of the input tensor*/
+    uint32_t size[MLI_MAX_RANK];     /**< Size of the sub tensor in elements per dimension
+                                          the number of entries in this array is determind by the input tensor */
+    uint32_t sub_tensor_rank;        /**< Rank of the sub tensor that will be produced */
+} mli_sub_tensor_cfg;
+
+/**
  * @brief Data layout type for vision kernels (convolutions/pooloing mostly).
  *
  * Provide information on how to interprete dimensions in input and params tensors: 

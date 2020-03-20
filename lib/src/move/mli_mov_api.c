@@ -133,9 +133,20 @@ mli_status mli_mov_prepare(mli_mov_handle_t* h, const mli_tensor* src, const mli
         dst->mem_stride[i] = 0;
     }
 
-    dst->mem_stride[rank - 1] = cfg->dst_mem_stride[rank - 1] != 0 ? cfg->dst_mem_stride[rank - 1] : 1;
+    /* if destination memstride is provided in the configuration, use it.
+       if not, check if the output tensor provides a mem stride.
+       when no memstride is provided at all, compute the memstride based on the destination shape */
+    if (cfg->dst_mem_stride[rank - 1] != 0) {
+        dst->mem_stride[rank - 1] = cfg->dst_mem_stride[rank - 1];
+    } else if (dst->mem_stride[rank - 1] == 0) {
+        dst->mem_stride[rank - 1] = 1;
+    }
     for (int i = rank - 2; i >= 0; i--) {
-        dst->mem_stride[i] = cfg->dst_mem_stride[i] != 0 ? cfg->dst_mem_stride[i] : dst->mem_stride[i+1] * dst->shape[i + 1];
+        if (cfg->dst_mem_stride[i] != 0) {
+            dst->mem_stride[i] = cfg->dst_mem_stride[i];
+        } else if (dst->mem_stride[i] == 0) {
+            dst->mem_stride[i] = dst->mem_stride[i + 1] * dst->shape[i + 1];
+        }
     }
 
     // update state in the handle

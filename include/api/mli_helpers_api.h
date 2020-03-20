@@ -111,6 +111,24 @@ mli_status mli_hlp_convert_tensor(mli_tensor *in, mli_tensor *out);
  */
 mli_status mli_hlp_point_to_subtensor(const mli_tensor *in, const mli_point_to_subtsr_cfg *cfg, mli_tensor *out);
 
+/**
+ * @brief Create a Sub-Tensor from a larger tensor
+ *
+ * @detail This function points to sub tensors in input tensor. This function performs operations 
+ * on pointers and doesn’t copy data (only points to subsequence of data in input).
+ * For this reason, depending on the parameters, it can happen that the sub tensor contains
+ * data that is not adjacent in memory.
+ *
+ * For more info on primitive see MLI Documentation
+ *
+ * @param in      [I] Input tensor (of any shape)
+ * @param cfg     [I] Configuration structure (for more info see @ref mli_sub_tensor_cfg)
+ * @param out     [O] Output tensor. Result will be stored here
+ *
+ * @return MLI status code
+ */
+mli_status mli_hlp_create_subtensor(const mli_tensor *in, const mli_sub_tensor_cfg *cfg, mli_tensor *out);
+
 uint32_t mli_hlp_tensor_scale_shift(const mli_tensor *in);
 
 int16_t mli_hlp_tensor_scale(const mli_tensor *in, const uint32_t scale_idx);
