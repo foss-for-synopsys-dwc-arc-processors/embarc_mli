@@ -253,7 +253,7 @@ endif
 ifeq ($(TOOLCHAIN),mwdt)
 	$(CC) $(CFLAGS) $(C_OBJS) $(CPP_OBJS) $(CC_OBJS) $(EXT_LIBS) $(addprefix -Wl$(COMMA),$(LDFLAGS)) -o $@ -m > $(OUT_DIR)/$(OUT_NAME).map
 else
-	$(CC) $(CFLAGS) $(C_OBJS) $(CPP_OBJS) $(CC_OBJS)  $(GCC_OBJ) $(EXT_LIBS) $(addprefix -Wl$(COMMA),$(LDFLAGS)) --specs=nsim.specs -o $@
+	$(CC) $(CFLAGS) $(C_OBJS) $(CPP_OBJS) $(CC_OBJS) $(EXT_LIBS) $(addprefix -Wl$(COMMA),$(LDFLAGS)) --specs=nsim.specs -o $@
 endif
 
 

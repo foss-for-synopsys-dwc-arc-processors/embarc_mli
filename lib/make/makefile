@@ -62,7 +62,7 @@ LIBRARY_DIR ?= ../../bin
 OUT_NAME    ?= libmli
 BUILD_DIR   ?= ../../obj
 GEN_DIR     ?= ../gen
-CFLAGS      += -Xdsp_ctrl=postshift,guard,convergent -Hnocopyr -Hfxapi -Hpurge -Hsdata0 -Hdense_prologue -Hoff=Stackcheck_alloca
+CFLAGS      += -Xdsp_ctrl=postshift,guard,convergent -Hnocopyr -Hfxapi -Hpurge -Hsdata0 -Hdense_prologue
 
 vpath %.py  $(GEN_DIR)
 vpath %.txt  $(GEN_DIR)

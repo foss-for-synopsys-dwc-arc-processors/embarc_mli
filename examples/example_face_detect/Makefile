@@ -49,8 +49,6 @@ LDFLAGS      = --defsym=__DEFAULT_HEAP_SIZE=20k
 LDFLAGS     += --defsym=__DEFAULT_STACK_SIZE=4k
 LDFLAGS     += -Map $(OUT_DIR)/$(OUT_NAME).map
 
-GCC_OBJ = $(EMBARC_MLI_DIR)/examples/prebuilt/l64x32divnorm.o $(EMBARC_MLI_DIR)/examples/prebuilt/lsllbs.o $(EMBARC_MLI_DIR)/examples/prebuilt/ac_mc_13.o $(EMBARC_MLI_DIR)/examples/prebuilt/divnorm.o $(EMBARC_MLI_DIR)/examples/prebuilt/ldivnorm.o $(EMBARC_MLI_DIR)/examples/prebuilt/div0max.o
-
 #specific options for run the example with the MetaWare Debuger on the nSim simulator. 
 DBG_OPTS     = -cmd="read mdb_com_gnu"
 endif

@@ -275,9 +275,11 @@ static void user_custom_activation(const mli_tensor *input, mli_tensor *output);
 
 static void user_custom_convolution_layer2(const mli_tensor *input, mli_tensor *temp_data, mli_tensor *output);
 
+#ifdef PROFILE_ON
 //Profiling vars
 int total_cycles = 0;
 int run_num = 0;
+#endif
 
 //==============================================================
 //
@@ -370,7 +372,7 @@ int mli_face_trigger_process(const uint8_t *image_buffer){
     total_cycles += total;
     run_num++;
     if (print_summary) {
-      printf("\n\nSummary:\n"
+      printf("\nSummary per NN run:\n"
         "\tImage Preprocessing: %u cycles\n"
         "\tLayer1: %u cycles\n"
         "\tActivation1: %u cycles\n"

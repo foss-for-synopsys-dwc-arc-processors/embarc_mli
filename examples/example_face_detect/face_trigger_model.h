@@ -22,10 +22,13 @@
 
 
 //Setup profiling
-#define PROFILE_ON
+//#define PROFILE_ON 0 
+
+#ifdef PROFILE_ON
 extern int total_cycles;
 extern int run_num;
 static bool print_summary = true;
+#endif // PROFILE_ON
 
 // Face Trigger Inference function
 //

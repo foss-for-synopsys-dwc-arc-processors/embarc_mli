@@ -187,9 +187,11 @@ int main(int argc, char *argv[]) {
                 coord.top_left_x, coord.top_left_y, coord.bot_right_x, coord.bot_right_y);
         }
     }
-
-    printf("\nNN was run %d times \nTotal number of cycles: %d\n", run_num, total_cycles);
-
+#ifdef PROFILE_ON
+    printf("\nTotal summary:\n"
+      "\tNN was run %d times\n" 
+      "\tNumber of cycles: %d\n", run_num, total_cycles);
+#endif
     bmp_write_gray("result.bmp", input_image_data, image_mask_buffer);
 
     /* Free allocated buffers */
