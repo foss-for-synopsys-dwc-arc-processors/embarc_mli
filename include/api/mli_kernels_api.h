@@ -112,21 +112,21 @@ mli_status mli_krn_conv2d_hwc_fx8w16d(
         const mli_conv2d_cfg * cfg,
         mli_tensor * out);
 
-mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32(
+mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
         const mli_conv2d_cfg * cfg,
         mli_tensor * out);
         
-mli_status mli_krn_conv2d_hwc_sa8_sa8_sa32_generic(
+mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_generic(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
         const mli_conv2d_cfg * cfg,
         mli_tensor * out);
 
-char * mli_debug_krn_conv2d_hwc_sa8_sa8_sa32(
+char * mli_debug_krn_conv2d_nhwc_sa8_sa8_sa32(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -177,7 +177,7 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d(
         const mli_tensor * bias,
         const mli_conv2d_cfg * cfg,
         mli_tensor * out);
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32(
+mli_status mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
@@ -198,14 +198,14 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_generic(
         const mli_conv2d_cfg * cfg,
         mli_tensor * out);
 
-mli_status mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32_generic(
+mli_status mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32_generic(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
         const mli_conv2d_cfg * cfg,
         mli_tensor * out);
         
-char * mli_debug_krn_depthwise_conv2d_hwc_sa8_sa8_sa32(
+char * mli_debug_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -316,12 +316,6 @@ mli_status mli_krn_fully_connected_fx16(
         mli_tensor * out);
 
 mli_status mli_krn_fully_connected_fx8w16d(
-        const mli_tensor * in,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        mli_tensor * out);
-
-mli_status mli_krn_fully_connected_sa8_sa8_sa8(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,

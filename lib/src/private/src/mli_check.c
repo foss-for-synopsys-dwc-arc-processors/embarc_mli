@@ -209,7 +209,7 @@ mli_status mli_chk_conv2d_hwc_fx8w16d(
 }
 
 
-mli_status mli_chk_conv2d_hwc_sa8_sa8_sa32(
+mli_status mli_chk_conv2d_nhwc_sa8_sa8_sa32(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
@@ -219,6 +219,11 @@ mli_status mli_chk_conv2d_hwc_sa8_sa8_sa32(
         MLI_CHECK(weights->el_type == MLI_EL_ASYM_I8, "Wrong weights tensor type") ||
         MLI_CHECK(bias->el_type    == MLI_EL_ASYM_I32, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
+
+    if (MLI_CHECK(in->el_params.asym.zero_point.i16 != INT16_MIN,"Input tensor: INT16_MIN doesn't support as offset value") ||
+        MLI_CHECK(out->el_params.asym.zero_point.i16 != INT16_MIN,"Input tensor: INT16_MIN doesn't support as offset value"))
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+
     mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwc(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
@@ -553,7 +558,7 @@ mli_status mli_chk_depthwise_conv2d_hwc_fx8w16d(
 }
 
 
-mli_status mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(
+mli_status mli_chk_depthwise_conv2d_hwcn_sa8_sa8_sa32(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
@@ -571,6 +576,11 @@ mli_status mli_chk_depthwise_conv2d_hwc_sa8_sa8_sa32(
         MLI_CHECK(bias->el_params.asym.dim == 0, "Bias tensor: per output channels quantization is expected") || 
         MLI_CHECK(in->el_params.asym.dim < 0, "Input tensor: Per-tensor quantization is expected"))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
+
+    if (MLI_CHECK(in->el_params.asym.zero_point.i16 != INT16_MIN,"Input tensor: INT16_MIN doesn't support as offset value") ||
+        MLI_CHECK(out->el_params.asym.zero_point.i16 != INT16_MIN,"Input tensor: INT16_MIN doesn't support as offset value"))
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+
     ret = MLI_CHECK_STATUS(mli_chk_bias_scale_asym(in, weights, bias), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
