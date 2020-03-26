@@ -130,6 +130,8 @@ static inline void ip_op(
         const int out_shift,
         const int16_t input_offset,
         const int16_t output_offset) {
+    const int left_shift = out_shift > 0 ? 0 : -out_shift;
+    const int right_shift = out_shift > 0 ? out_shift : 0;
     // Matrix-Vector multiplication
     //==============================
     if (_Rarely(in_elements < 8)) {
@@ -143,14 +145,16 @@ static inline void ip_op(
                 weights++;
             }
             in -= in_elements;
+
+            accu = mli_math_acc_ashift_fx(accu, -left_shift);
             accu = mli_math_scale_mul<acc_T, true>(accu, out_mul);
 
             // adding the output offset needs to happen after the output mul and output shift
             // but before the cast to the output container size.
             // because the cast and shift are combined in one function, the output offset is
-            // added before, and multiplied with 1<< out_shift to compensate.
-            accu = mli_math_mac_fx(accu, (int16_t)(1<<out_shift), (io_T)output_offset);
-            out[o_idx] = mli_math_acc_cast_fx<io_T, acc_T> (accu, out_shift);
+            // added before, and multiplied with 1<< right_shift to compensate.
+            accu = mli_math_mac_fx(accu, (int16_t)(1<<right_shift), (io_T)output_offset);
+            out[o_idx] = mli_math_acc_cast_fx<io_T, acc_T> (accu, right_shift);
         }
     } else {
         if ((in_elements & 0x3) == 0) {
@@ -165,15 +169,16 @@ LOOP_PIPELINE_ENABLE
                     weights += 4;
                 }
                 in -= in_elements;
-                
+
+                accu = mli_math_acc_ashift_fx(accu, -left_shift);
                 accu = mli_math_scale_mul<acc_T, true>(accu, out_mul);
 
                 // adding the output offset needs to happen after the output mul and output shift
                 // but before the cast to the output container size.
                 // because the cast and shift are combined in one function, the output offset is
-                // added before, and multiplied with 1<< out_shift to compensate.
-                accu = mli_math_mac_fx(accu, (int16_t)(1<<out_shift), (io_T)output_offset);
-                out[o_idx] = mli_math_acc_cast_fx<io_T, acc_T> (accu, out_shift);
+                // added before, and multiplied with 1<< right_shift to compensate.
+                accu = mli_math_mac_fx(accu, (int16_t)(1<<right_shift), (io_T)output_offset);
+                out[o_idx] = mli_math_acc_cast_fx<io_T, acc_T> (accu, right_shift);
             }
         } else {
             for (int o_idx = 0; o_idx < out_elements; o_idx++) {
@@ -197,14 +202,16 @@ LOOP_PIPELINE_ENABLE
                 weights += 4;
             }
             in -= in_elements;
+
+            accu = mli_math_acc_ashift_fx(accu, -left_shift);
             accu = mli_math_scale_mul<acc_T, true>(accu, out_mul);
 
             // adding the output offset needs to happen after the output mul and output shift
             // but before the cast to the output container size.
             // because the cast and shift are combined in one function, the output offset is
-            // added before, and multiplied with 1<< out_shift to compensate.
-            accu = mli_math_mac_fx(accu, (int16_t)(1<<out_shift), (io_T)output_offset);
-            out[o_idx] = mli_math_acc_cast_fx<io_T, acc_T> (accu, out_shift);
+            // added before, and multiplied with 1<< right_shift to compensate.
+            accu = mli_math_mac_fx(accu, (int16_t)(1<<right_shift), (io_T)output_offset);
+            out[o_idx] = mli_math_acc_cast_fx<io_T, acc_T> (accu, right_shift);
             }
         }
     }
@@ -224,7 +231,7 @@ static void fully_connected_prepare_and_run(
     MLI_CONV_OUT_PTR(io_T) out_ptr = (MLI_CONV_OUT_PTR(io_T)) (out->data);
 
     int ch_out = bias->shape[0];
-    int in_sz = mli_prv_count_elem_num(in);
+    int in_sz = weights->shape[1];
 
     // Define shift values
     int bias_shift = mli_prv_calc_shift(in, weights, bias);

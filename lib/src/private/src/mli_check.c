@@ -1744,4 +1744,26 @@ mli_status mli_chk_point_to_subtensor(const mli_tensor *in, const mli_point_to_s
     return MLI_STATUS_OK;
 }
 
+mli_status mli_chk_create_subtensor(const mli_tensor *in, const mli_sub_tensor_cfg *cfg, mli_tensor *out) {
+    mli_status stat = MLI_STATUS_OK;
+
+    // Check that in tensor is valid and out provides valid pointers
+    stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
+    if (stat != MLI_STATUS_OK) return stat;
+    if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
+
+    if (MLI_CHECK(cfg != NULL , "Bad cfg pointer")) return MLI_STATUS_BAD_FUNC_CFG;
+    if (MLI_CHECK(cfg->sub_tensor_rank <= in->rank, "incorrect number of coordinates"))
+        return MLI_STATUS_BAD_FUNC_CFG;
+
+    for (int i = 0; i < in->rank; i++) {
+        if (MLI_CHECK(cfg->offset[i] < in->shape[i], "bad config"))
+            return MLI_STATUS_BAD_FUNC_CFG;
+        if (MLI_CHECK(cfg->offset[i] + cfg->size[i] <= in->shape[i], "bad config"))
+            return MLI_STATUS_BAD_FUNC_CFG;
+    }
+
+    return MLI_STATUS_OK;
+}
+
 #pragma code()
