@@ -1744,7 +1744,7 @@ mli_status mli_chk_point_to_subtensor(const mli_tensor *in, const mli_point_to_s
     return MLI_STATUS_OK;
 }
 
-mli_status mli_chk_subtensor(const mli_tensor *in, const mli_sub_tensor_cfg *cfg, mli_tensor *out) {
+mli_status mli_chk_create_subtensor(const mli_tensor *in, const mli_sub_tensor_cfg *cfg, mli_tensor *out) {
     mli_status stat = MLI_STATUS_OK;
 
     // Check that in tensor is valid and out provides valid pointers

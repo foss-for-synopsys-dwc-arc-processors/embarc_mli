@@ -158,7 +158,7 @@ mli_status mli_hlp_point_to_subtensor(const mli_tensor *in, const mli_point_to_s
 }
 
 mli_status mli_hlp_create_subtensor(const mli_tensor *in, const mli_sub_tensor_cfg *cfg, mli_tensor *out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_subtensor(in, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_create_subtensor(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
