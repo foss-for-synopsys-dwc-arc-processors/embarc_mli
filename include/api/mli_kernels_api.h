@@ -112,6 +112,26 @@ mli_status mli_krn_conv2d_hwc_fx8w16d(
         const mli_conv2d_cfg * cfg,
         mli_tensor * out);
 
+mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg * cfg,
+        mli_tensor * out);
+        
+mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_generic(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg * cfg,
+        mli_tensor * out);
+
+char * mli_debug_krn_conv2d_nhwc_sa8_sa8_sa32(
+        const mli_tensor * in, 
+        const mli_tensor * weights, 
+        const mli_tensor * bias, 
+        const mli_conv2d_cfg * cfg, 
+        mli_tensor * out);
 
 /**
  * @brief 2D Depthwise convolution
@@ -157,6 +177,12 @@ mli_status mli_krn_depthwise_conv2d_chw_fx8w16d(
         const mli_tensor * bias,
         const mli_conv2d_cfg * cfg,
         mli_tensor * out);
+mli_status mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg * cfg,
+        mli_tensor * out);
 
 mli_status mli_krn_depthwise_conv2d_chw_fx8_generic(
         const mli_tensor * in,
@@ -172,7 +198,19 @@ mli_status mli_krn_depthwise_conv2d_chw_fx16_generic(
         const mli_conv2d_cfg * cfg,
         mli_tensor * out);
 
-
+mli_status mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32_generic(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg * cfg,
+        mli_tensor * out);
+        
+char * mli_debug_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32(
+        const mli_tensor * in, 
+        const mli_tensor * weights, 
+        const mli_tensor * bias, 
+        const mli_conv2d_cfg * cfg, 
+        mli_tensor * out);
 
 //================================================
 //
@@ -209,6 +247,7 @@ mli_status mli_krn_avepool_chw_fx8_generic(const mli_tensor * in, const mli_pool
 mli_status mli_krn_avepool_chw_fx16_generic(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_avepool_hwc_fx8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_avepool_hwc_fx16(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
+mli_status mli_krn_avepool_hwc_sa8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 
 /**
  * @brief MAX pooling
@@ -236,8 +275,10 @@ mli_status mli_krn_maxpool_chw_fx8_generic(const mli_tensor * in, const mli_pool
 mli_status mli_krn_maxpool_chw_fx16_generic(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_maxpool_hwc_fx8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_maxpool_hwc_fx16(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
-
-
+mli_status mli_krn_maxpool_hwc_sa8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
+mli_status mli_krn_maxpool_hwc_fx8_generic(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
+mli_status mli_krn_maxpool_hwc_fx16_generic(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
+mli_status mli_krn_maxpool_hwc_sa8_generic(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 
 //================================================
 //
@@ -280,6 +321,11 @@ mli_status mli_krn_fully_connected_fx8w16d(
         const mli_tensor * bias,
         mli_tensor * out);
 
+mli_status mli_krn_fully_connected_sa8_sa8_sa32(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        mli_tensor * out);
 /**
  * @brief Long Short Term Memory (LSTM) Cell
  *
@@ -457,7 +503,7 @@ mli_status mli_krn_tanh_fx16(const mli_tensor * in, mli_tensor * out);
  * @brief Softmax
  *
  * @detail This kernel performs activation function which is a generalization of the logistic function.
- * The SoftMax function is often used as the final layer of a neural network-based classifier and it’s output can be considered 
+ * The SoftMax function is often used as the final layer of a neural network-based classifier and it's output can be considered 
  * as a probability distribution over N different possible outcomes. The sum of all the entries tends to 1
  *
  * For more info on primitive see MLI Documentation
@@ -562,7 +608,7 @@ mli_status mli_krn_eltwise_max_fx16(const mli_tensor * in1, const mli_tensor * i
  *
  * @detail The kernel permutes dimensions of input tensor according to provided order. In other words, it transposes input tensors.
  * The new order of dimensions is given by perm_dim array of kernel configuration structure. Output dimension #idx 
- * corresponds to the dimension of input tensor with #perm_dim[idx]. Tensor’s data is reordered according to new shape.
+ * corresponds to the dimension of input tensor with #perm_dim[idx]. Tensor's data is reordered according to new shape.
  *
  * For more info on primitive see MLI Documentation
  *

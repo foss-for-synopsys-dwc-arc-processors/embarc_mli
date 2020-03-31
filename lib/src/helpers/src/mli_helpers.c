@@ -73,7 +73,53 @@ uint32_t mli_hlp_tensor_element_size(const mli_tensor *in) {
     switch (in->el_type) {
         case MLI_EL_FX_8:  return sizeof(int8_t);
         case MLI_EL_FX_16: return sizeof(int16_t);
-        default: return 0;
+        case MLI_EL_ASYM_I8:  return sizeof(int8_t);
+        case MLI_EL_ASYM_I32:  return sizeof(int32_t);
+        default:
+            MLI_ASSERT(0);
+            return 0;
+    }
+}
+
+uint32_t mli_hlp_tensor_scale_shift(const mli_tensor *in) {
+    switch (in->el_type) {
+        case MLI_EL_FX_8:
+        case MLI_EL_FX_16:
+            return in->el_params.fx.frac_bits;
+        case MLI_EL_ASYM_I8:
+        case MLI_EL_ASYM_I32:
+            return in->el_params.asym.scale_frac_bits;
+        default:
+            MLI_ASSERT(0);
+            return 0;
+    }
+}
+
+int16_t mli_hlp_tensor_scale(const mli_tensor *in, const uint32_t scale_idx) {
+    switch (in->el_type) {
+        case MLI_EL_FX_8:
+        case MLI_EL_FX_16:
+            return 1;
+        case MLI_EL_ASYM_I8:
+        case MLI_EL_ASYM_I32:
+            return (in->el_params.asym.dim >= 0)? in->el_params.asym.scale.pi16[scale_idx]: in->el_params.asym.scale.i16;
+        default:
+            MLI_ASSERT(0);
+            return 0;
+    }
+}
+
+int16_t mli_hlp_tensor_zero_offset(const mli_tensor *in, const uint32_t zero_idx) {
+    switch (in->el_type) {
+        case MLI_EL_FX_8:
+        case MLI_EL_FX_16:
+            return 0;
+        case MLI_EL_ASYM_I8:
+        case MLI_EL_ASYM_I32:
+            return (in->el_params.asym.dim >= 0)? in->el_params.asym.zero_point.pi16[zero_idx]: in->el_params.asym.zero_point.i16;
+        default:
+            MLI_ASSERT(0);
+            return 0;
     }
 }
 
@@ -111,6 +157,68 @@ mli_status mli_hlp_point_to_subtensor(const mli_tensor *in, const mli_point_to_s
     return MLI_STATUS_OK;
 }
 
+mli_status mli_hlp_create_subtensor(const mli_tensor *in, const mli_sub_tensor_cfg *cfg, mli_tensor *out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_create_subtensor(in, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+
+    const uint32_t elem_size = mli_hlp_tensor_element_size(in);
+    const uint32_t out_rank = cfg->sub_tensor_rank;
+    uint32_t mem_strides[MLI_MAX_RANK];
+    const uint32_t input_rank = in->rank;
+    const bool isAsym = (in->el_type == MLI_EL_ASYM_I8) || (in->el_type == MLI_EL_ASYM_I32);
+
+    // compute memory strides for the input tensor if not yet provided by the input tensor.
+    mem_strides[input_rank - 1] = in->mem_stride[input_rank - 1] != 0 ? in->mem_stride[input_rank - 1] : 1;
+    for (int i = input_rank - 2; i >= 0; i--) {
+        mem_strides[i] = in->mem_stride[i] != 0 ? in->mem_stride[i] : mem_strides[i+1] * in->shape[i+1];
+    }
+
+    // compute the offset inside the buffer
+    int buf_offset = 0;
+    for (int i = 0; i < input_rank; i++) {
+        buf_offset += cfg->offset[i] * mem_strides[i];
+    }
+    buf_offset *= elem_size;
+    out->data = (void *)((char *)in->data + buf_offset);
+    out->capacity = in->capacity - buf_offset;
+
+    // Fill the shape[] of the output tensor.
+    // If the sub_tensor_rank is smaller than the input rank, the dimensions with
+    // a size of 1 will be removed in the output shape starting from the first dimension
+    // until the requested sub_tensor_rank value is reached.
+    int out_idx = 0;
+    int skip_cnt = input_rank - out_rank;
+    int out_asym_dim = -1;
+    int out_asym_offset = 0;
+    for (int in_idx = 0; in_idx < input_rank; in_idx++) {
+        if ((skip_cnt > 0) && (cfg->size[in_idx] == 1)) {
+            skip_cnt--;
+            continue;
+        }
+        out->shape[out_idx] = cfg->size[in_idx];
+        out->mem_stride[out_idx] = mem_strides[in_idx];
+        if (isAsym && (in->el_params.asym.dim == in_idx)) {
+            out_asym_dim = out_idx;
+            out_asym_offset = cfg->offset[in_idx];
+        }
+        out_idx++;
+    }
+
+    out->rank = out_rank;
+    out->el_params = in->el_params;
+    out->el_type = in->el_type;
+
+    if (isAsym){
+        if (out->el_params.asym.dim >= 0) {
+            out->el_params.asym.scale.pi16 += out_asym_offset;
+            out->el_params.asym.dim = out_asym_dim;
+            out->el_params.asym.zero_point.pi16 += out_asym_offset;
+        }
+    }
+    return MLI_STATUS_OK;
+}
+
 
 mli_status mli_hlp_convert_tensor(mli_tensor *in, mli_tensor *out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_convert_tensor(in, out), __func__);
@@ -135,7 +243,7 @@ mli_status mli_hlp_convert_tensor(mli_tensor *in, mli_tensor *out) {
 
     // Fill the rest output tensor params
     for (int idx = 0; idx < in->rank; idx++)
-       	out->shape[idx] = in->shape[idx];
+        out->shape[idx] = in->shape[idx];
     out->rank = in->rank;
     return MLI_STATUS_OK;
 }

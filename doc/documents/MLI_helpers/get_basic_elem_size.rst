@@ -16,7 +16,7 @@ Prototype
 
 .. code:: c                      
                                  
-   uint32_t mli_hlp_count_elem_num (mli_tensor *in)                
+   uint32_t mli_hlp_tensor_element_size(mli_tensor *in)
 ..
 
 Parameters

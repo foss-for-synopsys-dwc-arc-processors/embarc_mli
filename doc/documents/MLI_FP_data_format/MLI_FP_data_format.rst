@@ -79,11 +79,11 @@ container implied equal to sign bit:
 
 	Given 0x0020 (32) in Q.10 format,
 
-	• For a 16-bit container (Q5.10), this represents 0.3125 real value.
+	• For a 16-bit container (Q5.10), this represents 0.03125 real value.
 
 	• The value also can be stored in an 8-bit container without
 	  misrepresentation. Therefore, 0x20 in Q-3.10 format is equivalent to
-	  0.3125 real value.
+	  0.03125 real value.
 	 
 	Given 0x0220 (544) in Q.10 format,
 

@@ -26,6 +26,7 @@ documentation and examples. Read the documentation at [embarc.org](https://embar
 ./doc                             		- contains the API documentation of the embARC MLI library  
 ./include                         		- include files with API prototypes and types  
 ./lib/src                         		- source code of embARC MLI Library  
+./lib/gen                         		- auxiliary generation scripts for LUT tables and library source code  
 ./examples                        		- source code of examples  
 ./examples/example_cifar10_caffe  		- example illustrating implementation of CIFAR10 Caffe  
 ./examples/example_har_smartphone 		- example illustrating implementation of Human Activity Recognition  

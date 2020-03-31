@@ -163,11 +163,12 @@ static void __attribute__ ((always_inline))  basic_rnn_cell_prepare_and_run_fx(
     MLI_CONV_OUT_PTR (io_T) dense_out_ptr = (MLI_CONV_OUT_PTR (io_T)) dense_out.data;
 
     mli_tensor rnn_out = {
-        out->data, out_elements * sizeof(io_T),    // buffer params
-        {static_cast<unsigned>(out_elements)}, 1,    // shape and rank
-        in->el_type,        // element type
-        (cfg->act == RNN_ACT_NONE) ? out->el_params : prev_out->el_params   // fx Parameters
-    };
+        .data = out->data,
+        .capacity = out_elements * sizeof(io_T),
+        .shape = {static_cast<unsigned>(out_elements)},
+        .rank = 1,
+        .el_type = in->el_type,
+        .el_params = (cfg->act == RNN_ACT_NONE) ? out->el_params : prev_out->el_params};
 
     int b_half = batch_sz&1;
     if(b_half == 0 && cfg->act == RNN_ACT_NONE && cfg->mode == RNN_BATCH_TO_LAST) {
@@ -290,10 +291,11 @@ static void __attribute__ ((always_inline)) lstm_cell_prepare_and_run_fx(
 
     // lstm output for one step
     mli_tensor rnn_out = {
-        out->data, out->capacity,   // buffer params
-        {static_cast<unsigned>(lstm_out_elements)}, 1,   // shape and rank
-        in->el_type         // element type
-    };
+        .data = out->data,
+        .capacity = out->capacity,
+        .shape = {static_cast<unsigned>(lstm_out_elements)},
+        .rank = 1,
+        .el_type = in->el_type};
     if (cfg->act == RNN_ACT_NONE)   // fx Parameters in case of No activation
         rnn_out.el_params.fx.frac_bits = prev_out->el_params.fx.frac_bits;
 

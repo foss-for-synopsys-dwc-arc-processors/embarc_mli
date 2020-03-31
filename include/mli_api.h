@@ -20,5 +20,6 @@
 
 #include "api/mli_helpers_api.h"
 #include "api/mli_kernels_api.h"
+#include "api/mli_mov_api.h"
 
 #endif //#ifndef _MLI_API_H_
