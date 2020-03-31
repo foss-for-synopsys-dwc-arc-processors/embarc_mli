@@ -98,9 +98,6 @@ uint8_t *bmp_read(const char* filename) {
     image = grayscale_image;
     pixel_size_bytes = bmp_info_header.bits >> 3;
 
-    /* Jump to the beginning of the pixels data */
-    //fseek(f, -1 * bmp_info_header.size_bytes, SEEK_END);
-
     /* Read the data pixel-by-pixel and convert to 8-bit grayscale.
        Note: if "height" is positive, BMP stores the pixel rows "bottom-up" */
     for (y = (FD_IN_YRES - 1); y >= 0; y--) {
