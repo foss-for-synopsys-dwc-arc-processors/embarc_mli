@@ -14,15 +14,12 @@
 
 #include "mli_config.h"
 #include "mli_debug.h"
-#include "mli_helpers_api.h"
-#include "mli_prv_load_store.h"
 #include "mli_math.h"
 #include "mli_math_macros.h"
+#include "mli_prv_load_store.h"
 #include "mli_private_types.h"
 
-#ifdef _ARC
 #include <arc/arc_intrinsics.h>
-#endif
 
 #if ((_ARCVER >= 0x50) && (_ARCVER < 0x60))
 #define _ARCVER_ARCv2HS
@@ -158,14 +155,14 @@ static inline void __attribute__ ((always_inline)) mli_prv_shift_clip_and_store_
         MLI_PTR(int16_t) __restrict o_ptr,
         accum40_t * ip_out_v,
         const int out_shift) {
-    *o_ptr = fx_q15_cast_asl_rnd_a40(*ip_out_v, 32 - sizeof(int16_t) * 8 - out_shift - 1);
+    *o_ptr = fx_q15_cast_nf_asl_rnd_a40(*ip_out_v, 32 - sizeof(int16_t) * 8 - out_shift);
 }
 
 static inline void __attribute__ ((always_inline)) mli_prv_shift_clip_and_store_output(
         MLI_PTR(int8_t) __restrict o_ptr,
         accum40_t * ip_out_v,
         const int out_shift) {
-    *o_ptr = fx_q7_cast_asl_rnd_a40(*ip_out_v, 32 - sizeof(int8_t) * 8 - out_shift - 1);
+    *o_ptr = fx_q7_cast_nf_asl_rnd_a40(*ip_out_v, 32 - sizeof(int8_t) * 8 - out_shift);
 }
 
 static inline void __attribute__ ((always_inline)) mli_prv_shift_clip_and_store_output(
@@ -233,15 +230,24 @@ static inline void __attribute__ ((always_inline)) mli_prv_clip_and_store_output
     *v2o_ptr = out_v;
 }
 
-static inline void __attribute__ ((always_inline)) mli_prv_clip_and_store_output_v(
-        MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
+v2i8_t FXAPI fx_v2q7_cast_nf_asl_rnd_v2a40(v2accum40_t VQ, int I) {
+  v2q15_t r;
+  int sel = I & 255;
+  sel |= 0x0300;    // Vector accumulator select
+  sel |= 0x0400;    // Saturation enable
+  sel |= 0x0800;    // Signed
+  sel |= 0x1000;    // Round using DSP_CTRL.RM
+  sel |= (3<<14);   // Round at byte: 8b
+  sel |= (0<<16);   // Clear PA bit sensitive, NO extra shift
+  r = (v2q15_t) __v2acc40_getacc( VQ.q, sel );
+  return __builtin_convertvector((r >> 8), v2i8_t);
+}
+
+static void __attribute__ ((always_inline)) mli_prv_clip_and_store_output_v(
+        MLI_OUT_PTR(int8_t) __restrict o_ptr,
         v2accum40_t * __restrict acc_v,
         const int out_shift) {
-    v2q15_t out_v = fx_v2q15_cast_nf_asl_rnd_v2a40(*acc_v, (32 - sizeof(int8_t)* 8 - out_shift));
-    out_v = fx_asr_rnd_v2q15_n(out_v, 16 - sizeof(int8_t)* 8);
-    out_v = fx_sat_v2q15_n(out_v, 8);
-
-    *((v2i8_t *) o_ptr)  = __builtin_convertvector(out_v, v2i8_t);
+    *((v2i8_t *) o_ptr) = fx_v2q7_cast_nf_asl_rnd_v2a40(*acc_v, (32 - sizeof(int8_t)* 8 - out_shift));
 }
 
 //=========================================================================
@@ -336,6 +342,66 @@ static inline void __attribute__ ((always_inline)) mli_prv_clip_relu_store_outpu
     *((v2i8_t *) o_ptr) = out_v8;
 }
 
+static inline void __attribute__ ((always_inline)) mli_prv_clip_relu_store_output_v(
+        MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
+        __v2i32_t *conv_out_v,
+        const s8asym_quant_specific_params quant_params[],
+        const int16_t val_min_limit,
+        const int16_t val_max_limit) {
+    accum72_t accu_scaled = fx_a72_mpy_q31((*conv_out_v)[0], quant_params[0].out_mul);
+    int16_t out_no_offset_ch1 = fx_q15_cast_nf_asl_rnd_a72(accu_scaled, 64 - sizeof(int16_t) * 8 - quant_params[0].out_shift);
+
+    accu_scaled = fx_a72_mpy_q31((*conv_out_v)[1], quant_params[1].out_mul);
+    int16_t out_no_offset_ch2 = fx_q15_cast_nf_asl_rnd_a72(accu_scaled, 64 - sizeof(int16_t) * 8 - quant_params[1].out_shift);
+
+    v2q15_t v2quant_out_offset = {quant_params[0].out_offset, quant_params[1].out_offset};
+
+    v2q15_t v2out_no_offset = {out_no_offset_ch1, out_no_offset_ch2};
+
+    v2q15_t v2val_max_limit = {val_max_limit, val_max_limit};
+    v2q15_t v2val_min_limit = {val_min_limit, val_min_limit};
+    v2q15_t v2out_offset = fx_add_v2q15(v2out_no_offset, v2quant_out_offset);
+
+    // no saturation needed because ReLu clipping is done in 32bit domain.
+    // ReLU truncation
+    v2out_offset = fx_min_v2q15(v2out_offset, v2val_max_limit);
+    v2out_offset = fx_max_v2q15(v2out_offset, v2val_min_limit);
+
+    // Write result
+    *((v2i8_t *) o_ptr) = __builtin_convertvector((v2out_offset), v2i8_t);
+}
+
+static inline void __attribute__ ((always_inline)) mli_prv_clip_relu_store_output_inp_width_v(
+        MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
+        __v2i32_t *conv_out_v,
+        const s8asym_quant_specific_params *quant_params,
+        const int16_t val_min_limit,
+        const int16_t val_max_limit,
+        const int next_out_indx) {
+    accum72_t accu_scaled = fx_a72_mpy_q31((*conv_out_v)[0], quant_params->out_mul);
+    int16_t out_no_offset_ch1 = fx_q15_cast_nf_asl_rnd_a72(accu_scaled, 64 - sizeof(int16_t) * 8 - quant_params->out_shift);
+
+    accu_scaled = fx_a72_mpy_q31((*conv_out_v)[1], quant_params->out_mul);
+    int16_t out_no_offset_ch2 = fx_q15_cast_nf_asl_rnd_a72(accu_scaled, 64 - sizeof(int16_t) * 8 - quant_params->out_shift);
+
+    v2q15_t v2quant_out_offset = {quant_params->out_offset, quant_params->out_offset};
+
+    v2q15_t v2out_no_offset = {out_no_offset_ch1, out_no_offset_ch2};
+
+    v2q15_t v2val_max_limit = {val_max_limit, val_max_limit};
+    v2q15_t v2val_min_limit = {val_min_limit, val_min_limit};
+    v2q15_t v2out_offset = fx_add_v2q15(v2out_no_offset, v2quant_out_offset);
+
+    // no saturation needed because ReLu clipping is done in 32bit domain.
+    // ReLU truncation
+    v2out_offset = fx_min_v2q15(v2out_offset, v2val_max_limit);
+    v2out_offset = fx_max_v2q15(v2out_offset, v2val_min_limit);
+
+    // Write result
+    o_ptr[0]             = (int8_t)(v2out_offset[0]);
+    o_ptr[next_out_indx] = (int8_t)(v2out_offset[1]);
+}
+
 //=========================================================================
 
 static inline void __attribute__ ((always_inline)) mli_prv_clip_relu_store_output(
@@ -405,6 +471,26 @@ static inline void __attribute__ ((always_inline)) mli_prv_clip_relu_store_outpu
     *o_ptr = out_val;
 }
 
+static inline void __attribute__ ((always_inline)) mli_prv_clip_relu_store_output(
+        MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
+        int32_t conv_out,
+        const s8asym_quant_specific_params* quant_params,
+        const int16_t val_min_limit,
+        const int16_t val_max_limit) {
+
+    accum72_t accu_scaled = fx_a72_mpy_q31(conv_out, quant_params->out_mul);
+    int16_t out_no_offset = fx_q15_cast_nf_asl_rnd_a72(accu_scaled, 64 - sizeof(int16_t) * 8 - quant_params->out_shift);
+    int16_t out_with_offset = fx_add_q15(out_no_offset, quant_params->out_offset);
+
+    // no saturation needed because ReLu clipping is done in 32bit domain.
+    // ReLU truncation
+    out_with_offset = MIN(out_with_offset, val_max_limit);
+    out_with_offset = MAX(out_with_offset, val_min_limit);
+
+    // Write result
+    *o_ptr = (int8_t)out_with_offset;
+}
+
 template < typename io_T, typename w_T >
 static inline int32_t __attribute__ ((always_inline)) mli_prv_qmpy_v4i16x8(
         const MLI_PTR(int8_t) __restrict pIn, 
@@ -464,6 +550,13 @@ static inline __v2i32_t __attribute__ ((always_inline)) mli_prv_init_accu_v(int8
 }
 
 static inline int32_t __attribute__ ((always_inline)) mli_prv_init_accu(int8_t inp_val) {
+    int32_t acc = inp_val;
+    _setacc(acc, 1);
+
+    return acc;
+}
+
+static inline int32_t __attribute__ ((always_inline)) mli_prv_init_accu(int32_t inp_val) {
     int32_t acc = inp_val;
     _setacc(acc, 1);
 
@@ -696,6 +789,19 @@ static inline void __attribute__ ((always_inline)) mli_prv_load_mac(
     *accu = _dmachbl(*in, (uint8_t)k);
 }
 
+static inline void __attribute__ ((always_inline)) mli_prv_load_mac(
+        int32_t * accu,
+        const MLI_PTR(int8_t) __restrict in,
+        const int16_t k) {
+    /* casting the in pointer to unsigned to make sure no sign extension happens on the load
+     * this way the 'second' byte contains zeros. and it is safe to use dmac.
+     * the sign extension happens inside the dmachbl operation.
+     * for the load of 'k' we need sign extension because we need a 16bit value.
+     * the value of the second half is don't care because it will be multiplied by 0
+     */
+    *accu = _dmachbl(k, *(MLI_PTR(uint8_t)) in);
+}
+
 static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec2(
         accum40_t * accu, 
         const MLI_PTR(int16_t) __restrict in, 
@@ -726,6 +832,14 @@ static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec2(
     *accu = _dmachbl((int32_t) mli_prv_load_2_samples(in), two8bitvalues);
 }
 
+static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec2(
+        accum40_t * accu, 
+        const MLI_PTR(int8_t) in, 
+        const MLI_PTR(int8_t) k) {
+
+    *accu = fx_a40_dmac_v2q15(*accu, mli_prv_load_2_samples(in), mli_prv_load_2_samples(k));
+}
+
 template < typename in_T, typename w_T, typename acc_T > 
 static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec4(acc_T * accu, MLI_PTR(in_T) in, MLI_PTR(w_T) k) {
     mli_prv_load_mac_vec2(accu, in, k);
@@ -733,6 +847,25 @@ static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec4(acc_T *
     k += 2;
     mli_prv_load_mac_vec2(accu, in, k);
 }
+
+//=========================================================================
+//  Multiply and accumulate for 'in' vector (4 elements) with constant k 
+//  
+//  constant k  repilcate to v2k
+//  count the sum: 
+//        accu = accu + v2k.h1*sext(four8bitvalues.b1) + v2k.h0*sext(four8bitvalues.b0) 
+//        accu = accu + v2k.h1*sext(four8bitvalues.b3) + v2k.h0*sext(four8bitvalues.b2) 
+//=========================================================================
+static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec4(
+        int32_t * accu,
+        const MLI_PTR(int8_t) __restrict in,
+        const int16_t k) {
+    v2q15_t v2k=fx_replic_v2q15((q15_t) k);
+    int32_t four8bitvalues = *(MLI_PTR(int32_t)) in;
+    *accu = _dmachbl((int32_t)v2k,four8bitvalues);
+    *accu = _dmachbm((int32_t)v2k,four8bitvalues);
+}
+
 
 #ifdef __Xdsp_wide
 static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec4(
@@ -784,13 +917,6 @@ static inline unsigned __attribute__ ((always_inline)) mli_prv_init_dsp_ctrl(uns
      * the debugger with different opitons.
      */
     MLI_ASSERT((t & 31) == (ctrl_info & 31));
-
-    /* always halt, not only in assert mode */
-    if ((t & 31) != (ctrl_info & 31)) {
-        _flag(1); //Halt processor (other flags not updated)
-        _nop();
-        _nop();
-    }
 
     return old;
 }

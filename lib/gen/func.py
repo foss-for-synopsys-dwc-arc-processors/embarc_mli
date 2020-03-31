@@ -15,6 +15,7 @@ class Func:
 
     def __init__(self, base, kernel_w, kernel_h, channels, stride_w, stride_h, corefunc, padding="", generic=False):
         self.group, self.typen, self.layout, self.datatype, self.args = base
+        
         self.kernel_w = kernel_w
         self.kernel_h = kernel_h
         self.channels = channels
@@ -186,24 +187,43 @@ class Func:
         if self.datatype == "fx16":
             d_type = "int16_t"
             w_type = "int16_t"
+            b_type = w_type
             d_enum = "MLI_EL_FX_16"
-            return (d_type, w_type, d_enum)
+            el_params = "fx.frac_bits"
+            return (d_type, w_type, d_enum, el_params, b_type)
         if self.datatype == "fx8":
             d_type = "int8_t"
             w_type = "int8_t"
+            b_type = w_type
             d_enum = "MLI_EL_FX_8"
-            return (d_type, w_type, d_enum)
+            el_params = "fx.frac_bits"
+            return (d_type, w_type, d_enum, el_params, b_type)
         if self.datatype == "fx8w16d":
             d_type = "int16_t"
             w_type = "int8_t"
+            b_type = w_type
             d_enum = "MLI_EL_FX_16"
-            return (d_type, w_type, d_enum)
+            el_params = "fx.frac_bits"
+            return (d_type, w_type, d_enum, el_params, b_type)
+        if self.datatype == "sa8":
+            d_type = "int8_t"
+            w_type = "int8_t"
+            b_type = w_type
+            d_enum = "MLI_EL_ASYM_I8"
+            el_params = "asym"
+            return (d_type, w_type, d_enum, el_params, b_type)
+        if self.datatype == "sa8_sa8_sa32":
+            d_type = "int8_t"
+            w_type = "int8_t"
+            b_type = "int32_t"
+            d_enum = "MLI_EL_ASYM_I8"
+            el_params = "asym"
+            return (d_type, w_type, d_enum, el_params, b_type)
         print("ERROR: unsopported type: " + self.datatype)
-
     def print_body(self, template_file):
         f = open(template_file, "r")
         s = Template(f.read())
-        d_type, w_type, d_enum = self.get_types()
+        d_type, w_type, d_enum, el_params, b_type = self.get_types()
         # we use 'SAME' padding scheme from the TensorFlow
         #the bottom and right sides may have the one additional padded pixel in some cases.
         #for example, an even size of a kernel and a stride equal to 1
@@ -276,9 +296,11 @@ class Func:
                             stride_w = self.stride_w,
                             stride_h = self.stride_h,
                             datatype = self.datatype,
+                            el_params = el_params,
                             d_type = d_type,
                             w_type = w_type,
                             d_enum_type = d_enum,
+                            b_type = b_type,
                             kernelpadding = k_pad,
                             padding_top = pad_top,
                             padding_bot = pad_bot,

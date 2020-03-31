@@ -71,9 +71,29 @@ typedef enum {
                              of fractional bits Data container is int8_t*/
     MLI_EL_FX_16,       /**< 16 bit depth fixed point data with configurable number 
                              of fractional bits Data container is int16_t*/
+    MLI_EL_ASYM_I8,     /**< 8 bit asymetrical signed data with configurable zero offset vector
+                             and multiplier vector. Data container is int8_t */
+    MLI_EL_ASYM_I32,    /**< 32 bit asymetrical signed data with configurable zero offset vector
+                             and multiplier vector. Data container is int32_t */
     MLI_EL_LARGE_ENUM = 0x02000000      /**< Utility field. Prevent size optimization of public enums */
 } mli_element_type;
 
+/**
+ * @brief Container union to represent polymorphic data.
+ *
+ * Stores pointer to data or a single value that intend to be directly used in arithmetical operations.
+ *
+ * NOTE: As compiler pointer to XY memory (or another fast memory) is a separate type, it should be somehow reflected if we are going to
+ * use it in tensor type.
+ */
+typedef union _mli_data_container {
+    int32_t*  pi32;
+    int16_t*  pi16;
+    int8_t*   pi8;
+    int32_t   i32;
+    int16_t   i16;
+    int8_t    i8;
+} mli_data_container;
 
 /**
  * @brief type parameters for arithmetical operations with tensor elements.
@@ -84,9 +104,20 @@ typedef enum {
  * The union can be interpreted only as this structure.
  */
 typedef union _mli_element_params {
-    struct{
+    struct {
         uint8_t frac_bits; /**< Number of fractional bits */
     } fx;
+
+    struct {
+        mli_data_container zero_point;  /**< 16bit signed zero point offset. Single value for all data in tensor if dim < 0 
+                                        or pointer to an array of zero points regarding configured dimension (dim) otherwise.
+                                        In case of array it's size can be looked up in the shape using the dimension to which the scales apply*/
+        mli_data_container scale;       /** 16bit signed scale factors. Single value for all data in tensor if dim < 0 
+                                        or pointer to an array of scale factors regarding configured dimension (dim) otherwise.
+                                        In case of array it's size can be looked up in the shape using the dimension to which the scales apply*/
+        int32_t dim;               /**< dimension of the tensor to which the array's of quantization parameters apply */
+        int8_t scale_frac_bits;     /**< number of fractional bits in the elements of the scales array */
+    } asym;
 } mli_element_params;
 
 
@@ -104,6 +135,12 @@ typedef struct _mli_tensor {
     void *data;                /**< main data. Layer cast this pointer to actual type (XY ptr for L1) */
     uint32_t capacity;         /**< data buffer size in bytes. Necessary for auxiliary tensors where dimensions are variable. */
 
+    int32_t mem_stride[MLI_MAX_RANK]; /**< Array with the distance (in elements) to the next element in the same dimension.
+                                         To compute the size in bytes, the number of elements needs to be multiplied by the bytes per element.
+                                         For example, for a matrix A[rows][columns], mem_stride[0] contains the distance
+                                         to the next element (=1 in this example), and mem_stride[1] contains the distance from
+                                         one row to the next (=columns in this example). The size of the array is defined by MLI_MAX_RANK. */
+
     uint32_t shape[MLI_MAX_RANK];   /**< Array with tensors dimensions. Dimensions must be stored in direct order
                                          starting from least changing one. For example:
                                          for matrix of shape [rows][columns], shape[0] = rows and shape[1] = columns */
@@ -111,7 +148,6 @@ typedef struct _mli_tensor {
 
     mli_element_type el_type;       /**< Type of elements stored in tensor */
     mli_element_params el_params;   /**< Parameters of elements stored in tensor. */
-
 } mli_tensor;
 
 
@@ -270,5 +306,20 @@ typedef struct {
     uint8_t first_out_dim_size;           /**< First output dimension size */
 } mli_point_to_subtsr_cfg;
 
+/**
+ * @brief Data layout type for vision kernels (convolutions/pooloing mostly).
+ *
+ * Provide information on how to interprete dimensions in input and params tensors: 
+ * which dimension are height/ width/ channels
+ *
+ * LAYOUT_HWC - Data is stored in next order: [Height; Width; Channels] 
+ *              weights in [Filters(out channel); Height; Width; In Channels] 
+ * LAYOUT_HWCN - Data is stored as for HWC 
+ *              weights are [Height; Width; In Channels; Filters(out channel)] 
+ */
+ typedef enum {
+     LAYOUT_HWC,
+     LAYOUT_HWCN
+ } mli_layout_type;
 
 #endif // _MLI_TYPES_H_

@@ -14,21 +14,21 @@ TCF ?= ../../hw/em9d.tcf
 all: app
 
 lib:
-	gmake -C lib/make TCF_FILE=$(TCF)
+	$(MAKE) -C lib/make TCF_FILE=$(TCF)
 
 app: lib
-	gmake -C lib/make TCF_FILE=$(TCF)
-	gmake -C examples/example_cifar10_caffe TCF_FILE=$(TCF)
-	gmake -C examples/example_har_smartphone TCF_FILE=$(TCF) 
+	$(MAKE) -C lib/make TCF_FILE=$(TCF)
+	$(MAKE) -C examples/example_cifar10_caffe TCF_FILE=$(TCF)
+	$(MAKE) -C examples/example_har_smartphone TCF_FILE=$(TCF) 
 
 cleanapp:
-	gmake -C examples/example_cifar10_caffe clean 
-	gmake -C examples/example_har_smartphone clean 
+	$(MAKE) -C examples/example_cifar10_caffe clean 
+	$(MAKE) -C examples/example_har_smartphone clean 
 
 cleanall:
-	gmake -C lib/make clean
-	gmake -C examples/example_cifar10_caffe cleanall 
-	gmake -C examples/example_har_smartphone cleanall
+	$(MAKE) -C lib/make clean
+	$(MAKE) -C examples/example_cifar10_caffe cleanall 
+	$(MAKE) -C examples/example_har_smartphone cleanall
 
 libclean:
-	gmake -C lib/make clean
+	$(MAKE) -C lib/make clean

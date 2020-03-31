@@ -21,26 +21,30 @@ import sys
 #------------------------------------------------------------
 # fill the basic information
 #------------------------------------------------------------
-func_body_template_file = "mli_krn_conv2d_func_body.txt"
+func_body_template_file_chw = "mli_krn_conv2d_chw_func_body.txt"
+func_body_template_file_hwc = "mli_krn_conv2d_nhwc_func_body.txt"
 file_template = "filetemplate.txt"
 file_header_template = "header_filetemplate.txt"
 function_group = "Convolution 2d"
 capital_header_file_name = "_MLI_KRN_CONV2D_SPEC_API_H_"
-output_header_file = "..\..\include\\api\mli_krn_conv2d_spec_api.h"
-output_file_fx16 = "..\..\lib\src\kernels\convolution\mli_krn_conv2d_chw_fx16.cc"
-output_file_fx8 = "..\..\lib\src\kernels\convolution\mli_krn_conv2d_chw_fx8.cc"
-output_file_fx8w16d = "..\..\lib\src\kernels\convolution\mli_krn_conv2d_chw_fx8w16d.cc"
+output_header_file           = "..\..\include\\api\mli_krn_conv2d_spec_api.h"
+output_file_chw_fx16         = "..\..\lib\src\kernels\convolution\mli_krn_conv2d_chw_fx16.cc"
+output_file_chw_fx8          = "..\..\lib\src\kernels\convolution\mli_krn_conv2d_chw_fx8.cc"
+output_file_chw_fx8w16d      = "..\..\lib\src\kernels\convolution\mli_krn_conv2d_chw_fx8w16d.cc"
+output_file_nhwc_sa8_sa8_sa32 = "..\..\lib\src\kernels\convolution\mli_krn_conv2d_nhwc_sa8_sa8_sa32.cc"
 
-f_list = []
+f_list_chw_fx16 = []
+f_list_nhwc_sa8 = []
 f_args = [("const mli_tensor *", "in"),
           ("const mli_tensor *", "weights"),
           ("const mli_tensor *", "bias"),
           ("const mli_conv2d_cfg *", "cfg"),
           ("mli_tensor *", "out")]
 fbase = ("krn", "conv2d", "chw", "fx16", f_args)
-include_list = ["mli_krn_conv2d_chw.h"]
+include_list_chw = ["mli_krn_conv2d_chw.h"]
+include_list_hwc = ["mli_krn_conv2d_hwc.h"]
 define_list = []
-# commandline arguments can be used to generate a specific output 'fx16' | 'fx8' | 'header']
+# commandline arguments can be used to generate a specific output 'fx16' | 'fx8' | 'sa8_sa8_sa32' | 'header']
 # if no arguments are given, all files are generated.
 no_args = len(sys.argv) == 1
 
@@ -58,36 +62,36 @@ corefunc = "conv2d_chw_nopad_k1x1_str1"
 stride = 1
 k = 1
 channel_range = [0,1,3,4]
-f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for ch in channel_range])
+f_list_chw_fx16.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for ch in channel_range])
 
 #stride = 1, any kernel size, any channel size
 corefunc = "conv2d_chw_str1"
 stride = 1
 kernel_range = [2,3,4,5,6,7]#above 8x8 there is less than 20% benefit of using specialized version
 channel_range = [0,1]#for larger number of channels the generic channel case has similar performance. maybe 3 channels is still useful
-f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
+f_list_chw_fx16.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
 
 #stride = 1, no padding
 corefunc = "conv2d_chw_str1"
 stride = 1
 kernel_range = [5]
 channel_range = [0,1]#for larger number of channels the generic channel case has similar performance. maybe 3 channels is still useful
-f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range for ch in channel_range])
+f_list_chw_fx16.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range for ch in channel_range])
 
 #stride = 1, 1xk and kx1 versions
 corefunc = "conv2d_chw_str1"
 stride = 1
 kernel_range = [2,3]#,4,5,6,7,8,9,10,11]#range(1,6)
 channel_range = [0]#[0,1,3,4,8]
-f_list.extend([Func(fbase, 1, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
-f_list.extend([Func(fbase, k, 1, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
+f_list_chw_fx16.extend([Func(fbase, 1, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
+f_list_chw_fx16.extend([Func(fbase, k, 1, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
 
 #fix single dimension, others flex
 corefunc = "conv2d_chw_str1"
 stride = 1
-f_list.extend([Func(fbase, 1, 0, 0, stride, stride, corefunc, "")]) #k_width == 1
-f_list.extend([Func(fbase, 0, 1, 0, stride, stride, corefunc, "")]) #k_heigth == 1
-f_list.extend([Func(fbase, 0, 0, 1, stride, stride, corefunc, "")]) #channels == 1
+f_list_chw_fx16.extend([Func(fbase, 1, 0, 0, stride, stride, corefunc, "")]) #k_width == 1
+f_list_chw_fx16.extend([Func(fbase, 0, 1, 0, stride, stride, corefunc, "")]) #k_heigth == 1
+f_list_chw_fx16.extend([Func(fbase, 0, 0, 1, stride, stride, corefunc, "")]) #channels == 1
 
 
 #generic function for all the other stride=1 cases (mainly bigger size kernels) the dmac performs better than vmac
@@ -95,7 +99,7 @@ corefunc = "conv2d_chw"
 stride = 1
 k = 0
 ch = 0
-f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "")])
+f_list_chw_fx16.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "")])
 
 
 #here construct the specializations for any stride, and kernel 1x1
@@ -103,18 +107,18 @@ corefunc = "convolution_chw" #should become "conv2d_chw_k1x1"
 stride = 0 #0 means any stride
 k = 1
 channel_range = [0,1,3,4,8]
-f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for ch in channel_range])
+f_list_chw_fx16.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for ch in channel_range])
 
 #here construct the specializations for any stride, and multiple kernel sizes > 1
 corefunc = "conv2d_chw"
 stride = 0
 kernel_range = [2,3]
 channel_range = [0,1]
-f_list.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
+f_list_chw_fx16.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
 
 #at last add the generic function that can be used in the else branch in the wrapper.
-default_func = Func(fbase, 0, 0, 0, 0, 0, "conv2d_chw", generic=True)
-f_list.append(default_func)
+default_func_chw = Func(fbase, 0, 0, 0, 0, 0, "conv2d_chw", generic=True)
+f_list_chw_fx16.append(default_func_chw)
 
 #------------------------------------------------------------
 # Generate the output file
@@ -131,8 +135,8 @@ c.set_wrapper_hierarchy(['stride_w', 'stride_h', 'kernel_w', 'kernel_h', 'channe
 c.set_wrapper_if_tree(False)
 
 if "fx16" in sys.argv or no_args:
-    f = open(output_file_fx16, "wb")
-    f.write(c.print_file(f_list, default_func, func_body_template_file, file_template, include_list, define_list))
+    f = open(output_file_chw_fx16, "wb")
+    f.write(c.print_file(f_list_chw_fx16, default_func_chw, func_body_template_file_chw, file_template, include_list_chw, define_list))
     f.close()
 
 
@@ -141,7 +145,7 @@ if "fx16" in sys.argv or no_args:
 #------------------------------------------------------------
 
 fbase = ("krn", "conv2d", "chw", "fx8", f_args)
-f_list_fx8 = []
+f_list_chw_fx8 = []
 
 #for FX8 there are different tradeoff points.
 #main difference is that for the square kernel sizes the dmac performs better because dmachbl() can be used.
@@ -151,30 +155,30 @@ corefunc = "conv2d_chw_nopad_k1x1_str1"
 stride = 1
 k = 1
 channel_range = [0,1,3,4]
-f_list_fx8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for ch in channel_range])
+f_list_chw_fx8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for ch in channel_range])
 
 #stride = 1, any square kernel size, any channel size
 corefunc = "conv2d_chw_str1"
 stride = 1
 kernel_range = [2,3,4,5,6,7]#above 8x8 there is less than 20% benefit of using specialized version
 channel_range = [0,1]#for larger number of channels the generic channel case has similar performance. maybe 3 channels is still useful
-f_list_fx8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
+f_list_chw_fx8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
 
 #stride = 1, 1xk and kx1 versions
 corefunc = "conv2d_chw_str1"
 stride = 1
 kernel_range = [2,3]#,4,5,6,7,8,9,10,11]#range(1,6)
 channel_range = [0]#[0,1,3,4,8]
-f_list_fx8.extend([Func(fbase, 1, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
-f_list_fx8.extend([Func(fbase, k, 1, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
+f_list_chw_fx8.extend([Func(fbase, 1, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
+f_list_chw_fx8.extend([Func(fbase, k, 1, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
 
 #fix single dimension, others flex
 corefunc = "conv2d_chw_str1"
 stride = 1
-f_list_fx8.extend([Func(fbase, 1, 0, 0, stride, stride, corefunc, "")]) #k_width == 1
-f_list_fx8.extend([Func(fbase, 0, 1, 0, stride, stride, corefunc, "")]) #k_heigth == 1
+f_list_chw_fx8.extend([Func(fbase, 1, 0, 0, stride, stride, corefunc, "")]) #k_width == 1
+f_list_chw_fx8.extend([Func(fbase, 0, 1, 0, stride, stride, corefunc, "")]) #k_heigth == 1
 corefunc = "conv2d_chw"
-f_list_fx8.extend([Func(fbase, 0, 0, 1, stride, stride, corefunc, "")]) #channels == 1
+f_list_chw_fx8.extend([Func(fbase, 0, 0, 1, stride, stride, corefunc, "")]) #channels == 1
 
 
 #generic function for all the other stride=1 cases (mainly bigger size kernels) the dmac performs better than vmac
@@ -182,7 +186,7 @@ corefunc = "conv2d_chw"
 stride = 1
 k = 0
 ch = 0
-f_list_fx8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "")])
+f_list_chw_fx8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "")])
 
 
 #here construct the specializations for any stride, and kernel 1x1
@@ -190,25 +194,25 @@ corefunc = "convolution_chw" #should become "conv2d_chw_k1x1"
 stride = 0 #0 means any stride
 k = 1
 channel_range = [0,1,3,4,8]
-f_list_fx8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for ch in channel_range])
+f_list_chw_fx8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for ch in channel_range])
 
 #here construct the specializations for any stride, and multiple kernel sizes > 1
 corefunc = "conv2d_chw"
 stride = 0
 kernel_range = [2,3]
 channel_range = [0,1]
-f_list_fx8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
+f_list_chw_fx8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range for ch in channel_range])
 
 #at last add the generic function that can be used in the else branch in the wrapper.
-default_func = Func(fbase, 0, 0, 0, 0, 0, "conv2d_chw", generic=True)
-f_list_fx8.append(default_func)
+default_func_chw_fx8 = Func(fbase, 0, 0, 0, 0, 0, "conv2d_chw", generic=True)
+f_list_chw_fx8.append(default_func_chw_fx8)
 
 #------------------------------------------------------------
 # Generate the output file
 #------------------------------------------------------------
 if "fx8" in sys.argv or no_args:
-    f = open(output_file_fx8, "wb")
-    f.write(c.print_file(f_list_fx8, default_func, func_body_template_file, file_template, include_list, define_list))
+    f = open(output_file_chw_fx8, "wb")
+    f.write(c.print_file(f_list_chw_fx8, default_func_chw_fx8, func_body_template_file_chw, file_template, include_list_chw, define_list))
     f.close()
 
 #------------------------------------------------------------
@@ -216,15 +220,63 @@ if "fx8" in sys.argv or no_args:
 #------------------------------------------------------------
 fbase = ("krn", "conv2d", "chw", "fx8w16d", f_args)
 
-f_list_fx8w16d = [f.copy_and_replace_base(fbase) for f in f_list_fx8]
-default_func = default_func.copy_and_replace_base(fbase)
+f_list_chw_fx8w16d = [f.copy_and_replace_base(fbase) for f in f_list_chw_fx8]
+default_func_chw_fx8w16d = default_func_chw_fx8.copy_and_replace_base(fbase)
 
 #------------------------------------------------------------
 # Generate the output file
 #------------------------------------------------------------
 if "fx8w16d" in sys.argv or no_args:
-    f = open(output_file_fx8w16d, "wb")
-    f.write(c.print_file(f_list_fx8w16d, default_func, func_body_template_file, file_template, include_list, define_list))
+    f = open(output_file_chw_fx8w16d, "wb")
+    f.write(c.print_file(f_list_chw_fx8w16d, default_func_chw_fx8w16d, func_body_template_file_chw, file_template, include_list_chw, define_list))
+    f.close()
+
+#------------------------------------------------------------
+# Create a list of specialization functions for SA8 SA8 SA32
+#------------------------------------------------------------
+
+fbase = ("krn", "conv2d", "nhwc", "sa8_sa8_sa32", f_args)
+
+corefunc = "convolution2D_nhwc_krnpad"
+stride = 0
+kernel_range = range(3, 6, 2)
+ch = 0
+f_list_nhwc_sa8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "krnpad") for k in kernel_range])
+
+corefunc = "convolution2D_nhwc_nopad"
+stride = 0
+kernel_range = range(3, 6, 2)
+ch = 0
+f_list_nhwc_sa8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad") for k in kernel_range])
+
+corefunc = "pointwise_convolution2D_nhwc_nopad"
+stride = 0
+k = 1
+ch = 0
+f_list_nhwc_sa8.extend([Func(fbase, k, k, ch, stride, stride, corefunc, "nopad")])
+
+corefunc = "convolution2D_nhwc_krnpad"
+default_func_hwc = Func(fbase, 0, 0, 0, 0, 0, corefunc, generic=True)
+f_list_nhwc_sa8.append(default_func_hwc)
+
+#------------------------------------------------------------
+# Generate the HWC output file
+#------------------------------------------------------------
+c = Codegen()
+c.set_wrapper_variables({'stride_w' : "cfg->stride_width", 'stride_h' : "cfg->stride_height"})
+c.set_wrapper_variables({'kernel_w' : "weights->shape[KRNL_W_DIM_HWC]", 'kernel_h' : "weights->shape[KRNL_H_DIM_HWC]"})
+c.set_wrapper_variables({'in_ch' : "in->shape[KRNL_C_DIM_HWC]"})
+c.set_wrapper_variables({'padding_top' : "cfg->padding_top"})
+c.set_wrapper_variables({'padding_bot' : "cfg->padding_bottom"})
+c.set_wrapper_variables({'padding_left' : "cfg->padding_left"})
+c.set_wrapper_variables({'padding_right' : "cfg->padding_right"})
+c.set_wrapper_hierarchy(['stride_w', 'stride_h', 'kernel_w', 'kernel_h', 'in_ch', 'padding'])
+c.set_wrapper_if_tree(False)
+
+if "sa8_sa8_sa32" in sys.argv or no_args:
+    #Create SA8 HWC C output file
+    f = open(output_file_nhwc_sa8_sa8_sa32, "wb")
+    f.write(c.print_file(f_list_nhwc_sa8, default_func_hwc, func_body_template_file_hwc, file_template, include_list_hwc, define_list))
     f.close()
 
 
@@ -233,6 +285,6 @@ if "fx8w16d" in sys.argv or no_args:
 #------------------------------------------------------------
 if "header" in sys.argv or no_args:
     fh = open(output_header_file, "wb")
-    fh.write(c.print_proto_file([f_list,f_list_fx8,f_list_fx8w16d], function_group, capital_header_file_name, file_header_template))
+    fh.write(c.print_proto_file([f_list_chw_fx16, f_list_chw_fx8, f_list_chw_fx8w16d, f_list_nhwc_sa8], function_group, capital_header_file_name, file_header_template))
     fh.close()
 

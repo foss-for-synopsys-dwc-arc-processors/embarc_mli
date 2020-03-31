@@ -14,7 +14,7 @@
 #include "mli_debug.h"
 #include "mli_helpers_api.h"
 #include "mli_prv_dsp.h"
-#include "mli_krn_dotprod_chw.h"
+#include "mli_krn_dotprod.h"
 
 #ifdef DEBUG_CONV2D
 #define CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, out_val) \

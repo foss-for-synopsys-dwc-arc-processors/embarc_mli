@@ -14,7 +14,7 @@
 #include "mli_prv_dsp.h"
 #include "mli_math_macros.h"
 #include "mli_private_types.h"
-#include "mli_krn_dotprod_chw.h"
+#include "mli_krn_dotprod.h"
 
 #ifdef __cplusplus
 extern "C" {
