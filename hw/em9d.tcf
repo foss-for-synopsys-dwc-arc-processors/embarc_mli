@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config_list>
-  <tool_config version="1.0.76" mwdt_version="O-2018.06" />
+  <tool_config version="1.0.71" mwdt_version="O-2018.06" />
   <configuration name="BCRs" filename="bcr_contents.txt">
     <string><![CDATA[
 	0x4	0x44		IDENTITY
@@ -19,7 +19,6 @@
 	0x7e	0x2		MINMAX_BUILD
 	0x7f	0x303		BARREL_BUILD
 	0xc1	0x12427202	ISA_CONFIG
-	0xc8	0x1000f03	FPU_BUILD
 	0xcb	0x2		BS_BUILD
 	0xcc	0x1988c02	AGU_BUILD
 	0xcd	0xa1002		DMAC_BUILD
@@ -35,15 +34,13 @@
 Version Information:
     ARChitect O-2018.09
     IP Libraries:
-        ARCv2EM            v5.1.15
-        ARC Debug          v2.1.10
+        ARCv2EM            v5.1.3
+        ARC Debug          v2.1.9
         ARC xCAM           v4.3.7
-        ARC_Trace          v3.0.1
-        ARConnect          v2.1.29
-        ARCv2EM_CCT        v5.1.15
-        ARCv2MSS           v2.2.14
-        Implementation     v5.1.15
-        Tool Configuration  v1.0.76
+        ARCv2EM_CCT        v5.1.3
+        ARCv2MSS           v2.2.9
+        Implementation     v5.1.3
+        Tool Configuration  v1.0.71
 ]]></string>
   </configuration>
   <configuration name="mw_compiler" filename="ccac.arg">
@@ -69,11 +66,6 @@ Version Information:
 	-Xxy
 	-Xxy_config=dccm_x_y
 	-Xbitstream
-	-Xfpus_div
-	-Xfpu_mac
-	-Xfpuda
-	-Xfpus_mpy_slow
-	-Xfpus_div_slow
 	-Xtimer0
 	-Hccm
 	-Xdmac
@@ -110,11 +102,6 @@ Version Information:
 	-Xxy_x_base=0xc00000 
 	-Xxy_y_base=0xe00000 
 	-Xbitstream 
-	-Xfpus_div 
-	-Xfpu_mac 
-	-Xfpuda 
-	-Xfpus_mpy_slow 
-	-Xfpus_div_slow 
 	-Xtimer0 
 	-Xtimer0_level=1 
 	-interrupts=10 
@@ -167,11 +154,6 @@ Version Information:
 	nsim_isa_xy_x_base=0xc00000
 	nsim_isa_xy_y_base=0xe00000
 	nsim_isa_bitstream_option=1
-	nsim_isa_fpus_div_option=1
-	nsim_isa_fpu_mac_option=1
-	nsim_isa_fpuda_option=1
-	nsim_isa_fpu_fast_mpy_option=0
-	nsim_isa_fpu_fast_div_option=0
 	nsim_isa_enable_timer_0=1
 	nsim_isa_timer_0_int_level=1
 	nsim_isa_number_of_interrupts=10
@@ -224,11 +206,6 @@ Version Information:
 	processor.Xxy_x_base=0xc00000
 	processor.Xxy_y_base=0xe00000
 	processor.Xbitstream=1
-	processor.Xfpus_div=1
-	processor.Xfpu_mac=1
-	processor.Xfpuda=1
-	processor.Xfpus_mpy_slow=1
-	processor.Xfpus_div_slow=1
 	processor.Xtimer0=1
 	processor.Xtimer0_level=1
 	processor.interrupts=10
@@ -250,7 +227,7 @@ Version Information:
   </configuration>
   <configuration name="architect" filename="build_configuration.txt">
     <string><![CDATA[
-######## EM9D_VA_FPU --- com.arc.templates.project.Empty.1_0 ########
+######## project16 --- com.arc.templates.project.em9d_voice_audio.1_0 ########
 
 # BuildHTMLDocs --- Creates custom HTML documentation in the 'docs' directory.
 -build_html_docs false
@@ -262,7 +239,7 @@ Version Information:
 -build_test_code false
 
 # BuildScripts --- Creates synthesis scripts and configuration files, which are required for hierarchy generation.
--build_scripts true
+-build_scripts false
 
 # BuildHDL --- Creates the behavioural and synthesisable HDL source code.
 -build_hdl true
@@ -297,17 +274,17 @@ Version Information:
 # RunARCpower --- Run the Power Analysis using RTL simulation to derive the activity
 -run_arcpower false
 
-# compile_nsim_user_extensions --- Build nSIM extensions for any APEX components in the current design using their C Models.
--compile_nsim_user_extension false
-
-# compile_translated_nsim_extensions --- Converts APEX extensions from Verilog to C++ and compiles the model for nSIM.
--compile_translated_nsim_extensions false
-
 # compile_iss_user_extensions --- Build ISS extensions for any APEX components in the current design using their C Models.
 -compile_iss_user_extensions false
 
 # compile_translated_iss_extensions --- Converts APEX extensions from Verilog to C++ and compiles the model for the ISS.
 -compile_translated_iss_extensions false
+
+# compile_nsim_user_extensions --- Build nSIM extensions for any APEX components in the current design using their C Models.
+-compile_nsim_user_extension false
+
+# compile_translated_nsim_extensions --- Converts APEX extensions from Verilog to C++ and compiles the model for nSIM.
+-compile_translated_nsim_extensions false
 
 
 ######## System --- com.arc.hardware.System.1_0 ########
@@ -350,37 +327,6 @@ Version Information:
 # A Copy Prefix P causes creation of a separate copy of the entire Verilog build where each Verilog filename, module, and `define is prefixed with P and copied to a separate directory named P.
 # 	
 -copy_prefix ""
-
-
-######## Tool Configuration --- cgen.1_0 ########
-
-# Create Tool Configuration
--create cgen.1_0 "System.Tool Configuration"
-
-# mwdt_version --- Selects the MetaWare version to be used with the TCF file.
-# Change from the default to an older or newer toolset version if you want the TCF file to be used with an older or newer version of the MetaWare tools.
--mwdt_version O-2018.06
-
-# code_base_addr --- 
-# The base address to assign to the executable code segment in the linker command file when there is no ICCM in the build.  This value is ignored when there is an ICCM.
-# 
--code_base_addr 0x0
-
-# data_base_addr --- 
-# The base address to assign to the data segment in the linker command file when the data is not being mapped to a DCCM.  This value is ignored when the data segment is mapped to a DCCM, as in that case the base address of the DCCM memory is used.
-# 
-# A value of 0xffffffff means that the data segment will not be mapped to any specific address.
-# 
--data_base_addr 0xffff_ffff
-
-# underscores_in_numbers --- Use underscores in hex numbers to improve readability.
--underscores_in_numbers false
-
-# lcf_ccm_fill --- Linker command file fills CCM data memory for use with -Bzerobss
--lcf_ccm_fill true
-
-# tcf_rebrand --- Alternate branding of TCF (not used)
--rebrand false
 
 
 ######## ARCv2EM CCT --- cct.1_0 ########
@@ -430,9 +376,6 @@ Version Information:
 
 # alb_mss_fab_lat --- This specifies the maximum latency in the master latency units.
 -alb_mss_fab_lat 0
-
-# alb_mss_fab_cdc_fifo_en --- This enables CDC FIFO from core clock domain to MSS clock domain.
--alb_mss_fab_cdc_fifo_en false
 
 # alb_mss_fab_def_lat --- This specifies the latency after reset for the master latency units.
 -alb_mss_fab_def_lat 0
@@ -645,16 +588,13 @@ Version Information:
 # clock_gating --- This enables the insertion of architectural clock gate elements in the design. By enabling this option, the clocks to various parts of the design will be disabled when the logic they drive is not in use to save power.
 -clock_gating true
 
-# back_compat --- This enables the addition of rst_a input in the clkgate module to support backward compatibility with the older EM and Subsystem releases.
--back_compat false
-
-# byte_parity --- If parity protection on the CCMs or Cache is configured, this option enables parity protection on a per-byte basis. Otherwise, parity is per word basis
+# byte_parity --- If parity protection on the CCMs is configured, this option is used to enable parity protection on a per-byte basis. Otherwise, parity will be per word basis
 -byte_parity false
 
 # prot_pipelined --- Check the box if CCM memories are configured for ECC, and you want single-bit errors to be corrected, written back to memory, and re-fetched. When unchecked, single bit errors are corrected when read from memory, but the offending memory location itself is not corrected with a writeback, no influence on Cache protection
 -prot_pipelined true
 
-# cct_test_ena --- When ECC is configured, this option enables single bit error injection in CCT RAM models to demonstrate ECC protection on the RAMs. When enabled, the RAM models can only be used in HDL CCT simulation (no xCAM support) and are not intended for use in SoC level integration.
+# cct_test_ena --- When ECC is configured, this option enables automatic generation of error conditions in relevant testbench memories to exercise error detection and correction features
 -cct_test_ena false
 
 # err_prot_ehce --- Enabled enhanced ECC architecture for CCM. Instruction fetch with single bit error is not replayed; ecc cac modules are shared to reduce area and timing opt.
@@ -748,9 +688,6 @@ Version Information:
 # Create Debug Interface
 -create com.arc.hardware.Debug_Interface.1_0 "System.CPUisle.ARCv2EM.Debug Interface"
 
-# dbg_en_option --- Adds an enable pin to the existing debug interface
--dbg_en_option false
-
 # secure_debug --- This enables secure debug feature
 -secure_debug false
 
@@ -771,6 +708,9 @@ Version Information:
 
 # iccm0_base --- Sets the initial memory region assignment for ICCM0
 -iccm0_base 0
+
+# iccm0_rom_split --- Split ICCM0 to halves for ROM/RAM regions, with ROM in lower half and RAM in higher half.
+-iccm0_rom_split false
 
 # iccm0_wide --- Creates ICCM0 as 64b memory to reduce accesses.
 -iccm0_wide true
@@ -865,30 +805,6 @@ Version Information:
 -dmac_mem_if integrated
 
 
-######## Floating-point unit --- com.arc.hardware.Floating_point_unit.1_0 ########
-
-# Create Floating-point unit
--create com.arc.hardware.Floating_point_unit.1_0 "System.CPUisle.ARCv2EM.Floating-point unit"
-
-# fpu_dp_assist --- This enables double-precision acceleration instructions.
--fpu_dp_assist true
-
-# fpu_fma_option --- This enables the fused multiply-add & multiply-subtract instructions.
--fpu_fma_option true
-
-# fpu_mas_cycles --- Make mul/add/sub multicycle to achieve a higher clock speed.
--fpu_mas_cycles 2
-
-# fpu_pipe_impl --- FPU pipelined implementation
--fpu_pipe_impl false
-
-# fpu_div_option --- This enables divide & square-root acceleration
--fpu_div_option true
-
-# fpu_div_cycles --- Controls div/sqrt implementation.
--fpu_div_cycles 17
-
-
 ######## ClkCtrl --- com.arc.hardware.ARCv2MSS.ClkCtrl.1_0 ########
 
 # Create ClkCtrl
@@ -970,11 +886,6 @@ Version Information:
 # Generate ipxact.xml file describing the CPUisle or archipelago frontier
 # 
 -generate_ipxact false
-
-# ipxact_include_aux_regs --- 
-# Include aux register descriptions in the generated ipxact.
-# 
--ipxact_include_aux_regs false
 
 # ipxact_relative_path_names --- 
 # Use relative path names for Verilog files in the ipxact.
@@ -1108,6 +1019,34 @@ Version Information:
 -alb_mss_mem_data_width 64
 
 
+######## Tool Configuration --- cgen.1_0 ########
+
+# Create Tool Configuration
+-create cgen.1_0 "System.Tool Configuration"
+
+# mwdt_version --- Selects the MetaWare version to be used with the TCF file.
+# Change from the default to an older or newer toolset version if you want the TCF file to be used with an older or newer version of the MetaWare tools.
+-mwdt_version O-2018.06
+
+# code_base_addr --- 
+# The base address to assign to the executable code segment in the linker command file when there is no ICCM in the build.  This value is ignored when there is an ICCM.
+# 
+-code_base_addr 0x0
+
+# data_base_addr --- 
+# The base address to assign to the data segment in the linker command file when the data is not being mapped to a DCCM.  This value is ignored when the data segment is mapped to a DCCM, as in that case the base address of the DCCM memory is used.
+# 
+# A value of 0xffffffff means that the data segment will not be mapped to any specific address.
+# 
+-data_base_addr 0xffff_ffff
+
+# underscores_in_numbers --- Use underscores in hex numbers to improve readability.
+-underscores_in_numbers false
+
+# tcf_rebrand --- Alternate branding of TCF (not used)
+-rebrand false
+
+
 ######## XCAM --- com.arc.tools.XCAM.1_0 ########
 
 # Create XCAM
@@ -1150,16 +1089,7 @@ Version Information:
     <string><![CDATA[
 .ifndef __core_config_s
 	.define __core_config_s, 1
-	.define _TOOL_CONFIG_VER, 10076
-	;--------  NOTE: Start of BCR/CIR Macros ------------------
-	; The initial macros with "_bcr_" or "_cir_" in the macro name
-	; may appear and disappear as different hardware releases change the
-	; layout of configuration registers. Additionally, the semantics of
-	; a "bcr" or "cir" macro value is subject to change.
-	; For these reasons it is recommended to avoid dependency on macros
-	; which have "_bcr_" or "_cir_" in the name (and request alternative
-	; macros as needed).
-	;----------------------------------------------------------
+	.define _TOOL_CONFIG_VER, 10071
 	.define	core_config_cir_identity,0x00000044
 	.define	core_config_cir_identity_chipid,0
 	.define	core_config_cir_identity_arcnum,0
@@ -1248,22 +1178,6 @@ Version Information:
 	.define	core_config_bcr_isa_config_lpc_size,7
 	.define	core_config_bcr_isa_config_pc_size,2
 	.define	core_config_bcr_isa_config_version,2
-	.define	core_config_bcr_fpu_build,0x01000f03
-	.define	core_config_bcr_fpu_build_da,1
-	.define	core_config_bcr_fpu_build_hp,0
-	.define	core_config_bcr_fpu_build_dd,0
-	.define	core_config_bcr_fpu_build_dc,0
-	.define	core_config_bcr_fpu_build_df,0
-	.define	core_config_bcr_fpu_build_dp,0
-	.define	core_config_bcr_fpu_build_fd_v1,0
-	.define	core_config_bcr_fpu_build_pi,0
-	.define	core_config_bcr_fpu_build_fd,0
-	.define	core_config_bcr_fpu_build_fm,0
-	.define	core_config_bcr_fpu_build_sd,1
-	.define	core_config_bcr_fpu_build_sc,1
-	.define	core_config_bcr_fpu_build_sf,1
-	.define	core_config_bcr_fpu_build_sp,1
-	.define	core_config_bcr_fpu_build_version,3
 	.define	core_config_bcr_bs_build,0x00000002
 	.define	core_config_bcr_bs_build_version,2
 	.define	core_config_bcr_agu_build,0x01988c02
@@ -1293,7 +1207,6 @@ Version Information:
 	.define	core_config_cir_aux_iccm,0x00000000
 	.define	core_config_cir_xccm_base,0x00c00000
 	.define	core_config_cir_yccm_base,0x00e00000
-	;------------- End of BCR/CIR Macros ---------------------
 	.define	core_config_family,4
 	.define	core_config_core_version,4
 	.define	core_config_family_name,"arcv2em"
@@ -1335,11 +1248,6 @@ Version Information:
 	.define	core_config_xy_x_base,0xc00000
 	.define	core_config_xy_y_base,0xe00000
 	.define	core_config_bitstream,1
-	.define	core_config_fpus_div,1
-	.define	core_config_fpu_mac,1
-	.define	core_config_fpuda,1
-	.define	core_config_fpus_mpy_slow,1
-	.define	core_config_fpus_div_slow,1
 	.define	core_config_timer0,1
 	.define	core_config_timer0_level,1
 	.define	core_config_timer0_vector,16
@@ -1375,16 +1283,7 @@ Version Information:
     <string><![CDATA[
 #ifndef __core_config_h
 	#define __core_config_h  1
-	#define _TOOL_CONFIG_VER 10076
-	/********  NOTE: Start of BCR/CIR Macros ******************
-	 * The initial macros with "_bcr_" or "_cir_" in the macro name
-	 * may appear and disappear as different hardware releases change the
-	 * layout of configuration registers. Additionally, the semantics of
-	 * a "bcr" or "cir" macro value is subject to change.
-	 * For these reasons it is recommended to avoid dependency on macros
-	 * which have "_bcr_" or "_cir_" in the name (and request alternative
-	 * macros as needed).
-	 **********************************************************/
+	#define _TOOL_CONFIG_VER 10071
 	#define	core_config_cir_identity	0x00000044
 	#define	core_config_cir_identity_chipid	0
 	#define	core_config_cir_identity_arcnum	0
@@ -1473,22 +1372,6 @@ Version Information:
 	#define	core_config_bcr_isa_config_lpc_size	7
 	#define	core_config_bcr_isa_config_pc_size	2
 	#define	core_config_bcr_isa_config_version	2
-	#define	core_config_bcr_fpu_build	0x01000f03
-	#define	core_config_bcr_fpu_build_da	1
-	#define	core_config_bcr_fpu_build_hp	0
-	#define	core_config_bcr_fpu_build_dd	0
-	#define	core_config_bcr_fpu_build_dc	0
-	#define	core_config_bcr_fpu_build_df	0
-	#define	core_config_bcr_fpu_build_dp	0
-	#define	core_config_bcr_fpu_build_fd_v1	0
-	#define	core_config_bcr_fpu_build_pi	0
-	#define	core_config_bcr_fpu_build_fd	0
-	#define	core_config_bcr_fpu_build_fm	0
-	#define	core_config_bcr_fpu_build_sd	1
-	#define	core_config_bcr_fpu_build_sc	1
-	#define	core_config_bcr_fpu_build_sf	1
-	#define	core_config_bcr_fpu_build_sp	1
-	#define	core_config_bcr_fpu_build_version	3
 	#define	core_config_bcr_bs_build	0x00000002
 	#define	core_config_bcr_bs_build_version	2
 	#define	core_config_bcr_agu_build	0x01988c02
@@ -1518,7 +1401,6 @@ Version Information:
 	#define	core_config_cir_aux_iccm	0x00000000
 	#define	core_config_cir_xccm_base	0x00c00000
 	#define	core_config_cir_yccm_base	0x00e00000
-	/************* End of BCR/CIR Macros **********************/
 	#define	core_config_family	4
 	#define	core_config_core_version	4
 	#define	core_config_family_name	"arcv2em"
@@ -1560,11 +1442,6 @@ Version Information:
 	#define	core_config_xy_x_base	0xc00000
 	#define	core_config_xy_y_base	0xe00000
 	#define	core_config_bitstream	1
-	#define	core_config_fpus_div	1
-	#define	core_config_fpu_mac	1
-	#define	core_config_fpuda	1
-	#define	core_config_fpus_mpy_slow	1
-	#define	core_config_fpus_div_slow	1
 	#define	core_config_timer0	1
 	#define	core_config_timer0_level	1
 	#define	core_config_timer0_vector	16
@@ -1686,22 +1563,6 @@ Version Information:
 	core_config.bcr.isa_config.lpc_size=7
 	core_config.bcr.isa_config.pc_size=2
 	core_config.bcr.isa_config.version=2
-	core_config.bcr.fpu_build=0x01000f03
-	core_config.bcr.fpu_build.da=1
-	core_config.bcr.fpu_build.hp=0
-	core_config.bcr.fpu_build.dd=0
-	core_config.bcr.fpu_build.dc=0
-	core_config.bcr.fpu_build.df=0
-	core_config.bcr.fpu_build.dp=0
-	core_config.bcr.fpu_build.fd_v1=0
-	core_config.bcr.fpu_build.pi=0
-	core_config.bcr.fpu_build.fd=0
-	core_config.bcr.fpu_build.fm=0
-	core_config.bcr.fpu_build.sd=1
-	core_config.bcr.fpu_build.sc=1
-	core_config.bcr.fpu_build.sf=1
-	core_config.bcr.fpu_build.sp=1
-	core_config.bcr.fpu_build.version=3
 	core_config.bcr.bs_build=0x00000002
 	core_config.bcr.bs_build.version=2
 	core_config.bcr.agu_build=0x01988c02
@@ -1771,11 +1632,6 @@ Version Information:
 	core_config.xy_x_base=0xc00000
 	core_config.xy_y_base=0xe00000
 	core_config.bitstream=1
-	core_config.fpus_div=1
-	core_config.fpu_mac=1
-	core_config.fpuda=1
-	core_config.fpus_mpy_slow=1
-	core_config.fpus_div_slow=1
 	core_config.timer0=1
 	core_config.timer0_level=1
 	core_config.timer0.vector=16
@@ -1807,7 +1663,7 @@ Version Information:
   </configuration>
   <configuration name="gcc_compiler" filename="gcc.arg">
     <string><![CDATA[
-	-mcpu=em4_fpuda
+	-mcpu=em4_dmips
 	-mlittle-endian
 	-mcode-density
 	-mdiv-rem
@@ -1815,7 +1671,6 @@ Version Information:
 	-mnorm
 	-mmpy-option=6
 	-mbarrel-shifter
-	-mfpu=fpuda_all
 ]]></string>
   </configuration>
   <configuration name="linker_command_file" filename="link_cmd.txt">
@@ -1902,188 +1757,6 @@ PROVIDE (__end_heap =  (0x0087ffff ));
 #ifndef _apexextensions_H_
 #define _apexextensions_H_
 
-#define APEX_COM_ARC_HARDWARE_FLOATING_POINT_UNIT_FPU_PRESENT	1
-
-// User extension aux register fpu_build
-#define AR_FPU_BUILD 0xc8
-#pragma Aux_register(0xc8, name=>"fpu_build")
-
-// User extension aux register fpu_ctrl
-#define AR_FPU_CTRL 0x300
-#pragma Aux_register(0x300, name=>"fpu_ctrl")
-
-// User extension aux register fpu_status
-#define AR_FPU_STATUS 0x301
-#pragma Aux_register(0x301, name=>"fpu_status")
-
-// User extension instruction fsmadd
-extern int fsmadd(int,int);
-#pragma intrinsic(fsmadd,opcode=>6,sub_opcode=>5, effects=>"auxreg=0xc8:is_read:is_written; auxreg=0x300:is_read:is_written; auxreg=0x301:is_read:is_written")
-
-// User extension instruction fsmsub
-extern int fsmsub(int,int);
-#pragma intrinsic(fsmsub,opcode=>6,sub_opcode=>6, effects=>"auxreg=0xc8:is_read:is_written; auxreg=0x300:is_read:is_written; auxreg=0x301:is_read:is_written")
-
-// User extension instruction fsmul
-extern int fsmul(int,int);
-#pragma intrinsic(fsmul,opcode=>6,sub_opcode=>0, effects=>"auxreg=0xc8:is_read:is_written; auxreg=0x300:is_read:is_written; auxreg=0x301:is_read:is_written")
-
-// User extension instruction fsadd
-extern int fsadd(int,int);
-#pragma intrinsic(fsadd,opcode=>6,sub_opcode=>1, effects=>"auxreg=0xc8:is_read:is_written; auxreg=0x300:is_read:is_written; auxreg=0x301:is_read:is_written")
-
-// User extension instruction fssub
-extern int fssub(int,int);
-#pragma intrinsic(fssub,opcode=>6,sub_opcode=>2, effects=>"auxreg=0xc8:is_read:is_written; auxreg=0x300:is_read:is_written; auxreg=0x301:is_read:is_written")
-
-// User extension instruction fcvt32
-extern int fcvt32(int,int);
-#pragma intrinsic(fcvt32,opcode=>6,sub_opcode=>8, effects=>"auxreg=0xc8:is_read:is_written; auxreg=0x300:is_read:is_written; auxreg=0x301:is_read:is_written")
-
-// User extension instruction fsdiv
-extern int fsdiv(int,int);
-#pragma intrinsic(fsdiv,opcode=>6,sub_opcode=>7, effects=>"auxreg=0xc8:is_read:is_written; auxreg=0x300:is_read:is_written; auxreg=0x301:is_read:is_written")
-
-// User extension instruction fscmp
-extern int fscmp(int,int);
-#pragma intrinsic(fscmp,opcode=>6,sub_opcode=>3, effects=>"auxreg=0xc8:is_read:is_written; auxreg=0x300:is_read:is_written; auxreg=0x301:is_read:is_written")
-
-// User extension instruction fscmp
-extern int fscmp_f(int,int);
-#pragma intrinsic(fscmp_f,opcode=>6,sub_opcode=>3, set_flags => 1, flags => "zncv", effects=>"auxreg=0xc8:is_read:is_written; auxreg=0x300:is_read:is_written; auxreg=0x301:is_read:is_written")
-
-// User extension instruction fscmpf
-extern int fscmpf(int,int);
-#pragma intrinsic(fscmpf,opcode=>6,sub_opcode=>4, effects=>"auxreg=0xc8:is_read:is_written; auxreg=0x300:is_read:is_written; auxreg=0x301:is_read:is_written")
-
-// User extension instruction fscmpf
-extern int fscmpf_f(int,int);
-#pragma intrinsic(fscmpf_f,opcode=>6,sub_opcode=>4, set_flags => 1, flags => "zncv", effects=>"auxreg=0xc8:is_read:is_written; auxreg=0x300:is_read:is_written; auxreg=0x301:is_read:is_written")
-
-// User extension instruction fssqrt
-extern int fssqrt(int);
-#pragma intrinsic(fssqrt,opcode=>6,sub_opcode=>0, effects=>"auxreg=0xc8:is_read:is_written; auxreg=0x300:is_read:is_written; auxreg=0x301:is_read:is_written")
-#define APEX_COM_ARC_HARDWARE_FLOATING_POINT_UNIT_FPU_DP_ASSIST_PRESENT	1
-
-// User extension aux register aux_dpfp1l
-#define AR_AUX_DPFP1L 0x302
-#pragma Aux_register(0x302, name=>"aux_dpfp1l")
-
-// User extension aux register aux_dpfp1h
-#define AR_AUX_DPFP1H 0x303
-#pragma Aux_register(0x303, name=>"aux_dpfp1h")
-
-// User extension aux register aux_dpfp2l
-#define AR_AUX_DPFP2L 0x304
-#pragma Aux_register(0x304, name=>"aux_dpfp2l")
-
-// User extension aux register aux_dpfp2h
-#define AR_AUX_DPFP2H 0x305
-#pragma Aux_register(0x305, name=>"aux_dpfp2h")
-
-// User extension instruction dmulh11
-extern int dmulh11(int,int);
-#pragma intrinsic(dmulh11,opcode=>6,sub_opcode=>48,blocking_cycles=> 7, effects=>"auxreg=0x302:is_read:is_written; auxreg=0x303:is_read:is_written; auxreg=0x304:is_read:is_written; auxreg=0x305:is_read:is_written")
-
-// User extension instruction dmulh11
-extern int dmulh11_f(int,int);
-#pragma intrinsic(dmulh11_f,opcode=>6,sub_opcode=>48, set_flags => 1, flags => "zncv",blocking_cycles=> 7, effects=>"auxreg=0x302:is_read:is_written; auxreg=0x303:is_read:is_written; auxreg=0x304:is_read:is_written; auxreg=0x305:is_read:is_written")
-
-// User extension instruction dmulh12
-extern int dmulh12(int,int);
-#pragma intrinsic(dmulh12,opcode=>6,sub_opcode=>49,blocking_cycles=> 7, effects=>"auxreg=0x302:is_read:is_written; auxreg=0x303:is_read:is_written; auxreg=0x304:is_read:is_written; auxreg=0x305:is_read:is_written")
-
-// User extension instruction dmulh12
-extern int dmulh12_f(int,int);
-#pragma intrinsic(dmulh12_f,opcode=>6,sub_opcode=>49, set_flags => 1, flags => "zncv",blocking_cycles=> 7, effects=>"auxreg=0x302:is_read:is_written; auxreg=0x303:is_read:is_written; auxreg=0x304:is_read:is_written; auxreg=0x305:is_read:is_written")
-
-// User extension instruction dmulh21
-extern int dmulh21(int,int);
-#pragma intrinsic(dmulh21,opcode=>6,sub_opcode=>50,blocking_cycles=> 7, effects=>"auxreg=0x302:is_read:is_written; auxreg=0x303:is_read:is_written; auxreg=0x304:is_read:is_written; auxreg=0x305:is_read:is_written")
-
-// User extension instruction dmulh21
-extern int dmulh21_f(int,int);
-#pragma intrinsic(dmulh21_f,opcode=>6,sub_opcode=>50, set_flags => 1, flags => "zncv",blocking_cycles=> 7, effects=>"auxreg=0x302:is_read:is_written; auxreg=0x303:is_read:is_written; auxreg=0x304:is_read:is_written; auxreg=0x305:is_read:is_written")
-
-// User extension instruction dmulh22
-extern int dmulh22(int,int);
-#pragma intrinsic(dmulh22,opcode=>6,sub_opcode=>51,blocking_cycles=> 7, effects=>"auxreg=0x302:is_read:is_written; auxreg=0x303:is_read:is_written; auxreg=0x304:is_read:is_written; auxreg=0x305:is_read:is_written")
-
-// User extension instruction dmulh22
-extern int dmulh22_f(int,int);
-#pragma intrinsic(dmulh22_f,opcode=>6,sub_opcode=>51, set_flags => 1, flags => "zncv",blocking_cycles=> 7, effects=>"auxreg=0x302:is_read:is_written; auxreg=0x303:is_read:is_written; auxreg=0x304:is_read:is_written; auxreg=0x305:is_read:is_written")
-
-// User extension instruction daddh11
-extern int daddh11(int,int);
-#pragma intrinsic(daddh11,opcode=>6,sub_opcode=>52,blocking_cycles=> 5, effects=>"auxreg=0x302:is_read:is_written; auxreg=0x303:is_read:is_written; auxreg=0x304:is_read:is_written; auxreg=0x305:is_read:is_written")
-
-// User extension instruction daddh11
-extern int daddh11_f(int,int);
-#pragma intrinsic(daddh11_f,opcode=>6,sub_opcode=>52, set_flags => 1, flags => "zncv",blocking_cycles=> 5, effects=>"auxreg=0x302:is_read:is_written; auxreg=0x303:is_read:is_written; auxreg=0x304:is_read:is_written; auxreg=0x305:is_read:is_written")
-
-// User extension instruction daddh12
-extern int daddh12(int,int);
-#pragma intrinsic(daddh12,opcode=>6,sub_opcode=>53,blocking_cycles=> 5, effects=>"auxreg=0x302:is_read:is_written; auxreg=0x303:is_read:is_written; auxreg=0x304:is_read:is_written; auxreg=0x305:is_read:is_written")
-
-// User extension instruction daddh12
-extern int daddh12_f(int,int);
-#pragma intrinsic(daddh12_f,opcode=>6,sub_opcode=>53, set_flags => 1, flags => "zncv",blocking_cycles=> 5, effects=>"auxreg=0x302:is_read:is_written; auxreg=0x303:is_read:is_written; auxreg=0x304:is_read:is_written; auxreg=0x305:is_read:is_written")
-
-// User extension instruction daddh21
-extern int daddh21(int,int);
-#pragma intrinsic(daddh21,opcode=>6,sub_opcode=>54,blocking_cycles=> 5, effects=>"auxreg=0x302:is_read:is_written; auxreg=0x303:is_read:is_written; auxreg=0x304:is_read:is_written; auxreg=0x305:is_read:is_written")
-
-// User extension instruction daddh21
-extern int daddh21_f(int,int);
-#pragma intrinsic(daddh21_f,opcode=>6,sub_opcode=>54, set_flags => 1, flags => "zncv",blocking_cycles=> 5, effects=>"auxreg=0x302:is_read:is_written; auxreg=0x303:is_read:is_written; auxreg=0x304:is_read:is_written; auxreg=0x305:is_read:is_written")
-
-// User extension instruction daddh22
-extern int daddh22(int,int);
-#pragma intrinsic(daddh22,opcode=>6,sub_opcode=>55,blocking_cycles=> 5, effects=>"auxreg=0x302:is_read:is_written; auxreg=0x303:is_read:is_written; auxreg=0x304:is_read:is_written; auxreg=0x305:is_read:is_written")
-
-// User extension instruction daddh22
-extern int daddh22_f(int,int);
-#pragma intrinsic(daddh22_f,opcode=>6,sub_opcode=>55, set_flags => 1, flags => "zncv",blocking_cycles=> 5, effects=>"auxreg=0x302:is_read:is_written; auxreg=0x303:is_read:is_written; auxreg=0x304:is_read:is_written; auxreg=0x305:is_read:is_written")
-
-// User extension instruction dsubh11
-extern int dsubh11(int,int);
-#pragma intrinsic(dsubh11,opcode=>6,sub_opcode=>56,blocking_cycles=> 5, effects=>"auxreg=0x302:is_read:is_written; auxreg=0x303:is_read:is_written; auxreg=0x304:is_read:is_written; auxreg=0x305:is_read:is_written")
-
-// User extension instruction dsubh11
-extern int dsubh11_f(int,int);
-#pragma intrinsic(dsubh11_f,opcode=>6,sub_opcode=>56, set_flags => 1, flags => "zncv",blocking_cycles=> 5, effects=>"auxreg=0x302:is_read:is_written; auxreg=0x303:is_read:is_written; auxreg=0x304:is_read:is_written; auxreg=0x305:is_read:is_written")
-
-// User extension instruction dsubh12
-extern int dsubh12(int,int);
-#pragma intrinsic(dsubh12,opcode=>6,sub_opcode=>57,blocking_cycles=> 5, effects=>"auxreg=0x302:is_read:is_written; auxreg=0x303:is_read:is_written; auxreg=0x304:is_read:is_written; auxreg=0x305:is_read:is_written")
-
-// User extension instruction dsubh12
-extern int dsubh12_f(int,int);
-#pragma intrinsic(dsubh12_f,opcode=>6,sub_opcode=>57, set_flags => 1, flags => "zncv",blocking_cycles=> 5, effects=>"auxreg=0x302:is_read:is_written; auxreg=0x303:is_read:is_written; auxreg=0x304:is_read:is_written; auxreg=0x305:is_read:is_written")
-
-// User extension instruction dsubh21
-extern int dsubh21(int,int);
-#pragma intrinsic(dsubh21,opcode=>6,sub_opcode=>58,blocking_cycles=> 5, effects=>"auxreg=0x302:is_read:is_written; auxreg=0x303:is_read:is_written; auxreg=0x304:is_read:is_written; auxreg=0x305:is_read:is_written")
-
-// User extension instruction dsubh21
-extern int dsubh21_f(int,int);
-#pragma intrinsic(dsubh21_f,opcode=>6,sub_opcode=>58, set_flags => 1, flags => "zncv",blocking_cycles=> 5, effects=>"auxreg=0x302:is_read:is_written; auxreg=0x303:is_read:is_written; auxreg=0x304:is_read:is_written; auxreg=0x305:is_read:is_written")
-
-// User extension instruction dsubh22
-extern int dsubh22(int,int);
-#pragma intrinsic(dsubh22,opcode=>6,sub_opcode=>59,blocking_cycles=> 5, effects=>"auxreg=0x302:is_read:is_written; auxreg=0x303:is_read:is_written; auxreg=0x304:is_read:is_written; auxreg=0x305:is_read:is_written")
-
-// User extension instruction dsubh22
-extern int dsubh22_f(int,int);
-#pragma intrinsic(dsubh22_f,opcode=>6,sub_opcode=>59, set_flags => 1, flags => "zncv",blocking_cycles=> 5, effects=>"auxreg=0x302:is_read:is_written; auxreg=0x303:is_read:is_written; auxreg=0x304:is_read:is_written; auxreg=0x305:is_read:is_written")
-
-// User extension instruction dexcl1
-extern int dexcl1(int,int);
-#pragma intrinsic(dexcl1,opcode=>6,sub_opcode=>60, effects=>"auxreg=0x302:is_read:is_written; auxreg=0x303:is_read:is_written; auxreg=0x304:is_read:is_written; auxreg=0x305:is_read:is_written")
-
-// User extension instruction dexcl2
-extern int dexcl2(int,int);
-#pragma intrinsic(dexcl2,opcode=>6,sub_opcode=>61, effects=>"auxreg=0x302:is_read:is_written; auxreg=0x303:is_read:is_written; auxreg=0x304:is_read:is_written; auxreg=0x305:is_read:is_written")
 
 
 #endif
@@ -2091,51 +1764,11 @@ extern int dexcl2(int,int);
 
 ]]></string>
   </configuration>
-  <configuration name="alb_mss_clkctrl_regmap.h" filename="alb_mss_clkctrl_regmap.h">
+  <configuration name="apex_assembly" filename="apexextensions.s">
     <string><![CDATA[
-/*************************************************************************/
-/**                                                                     **/
-/** Copyright (C) 2016-2017 Synopsys, Inc.                              **/
-/** All Rights Reserved.                                                **/
-/**                                                                     **/
-/** This Synopsys software and all associated documentation are         **/
-/** proprietary to Synopsys, Inc. and may only be used pursuant to the  **/
-/** terms and conditions of a written license agreement with Synopsys,  **/
-/** Inc. All other use, reproduction, modification, or distribution of  **/
-/** this Synopsys software or the associated documentation is strictly  **/
-/** prohibited.                                                         **/
-/**                                                                     **/
-/*************************************************************************/
 
+; Assembler directives for eia extensions in this design
 
-/* **** DO NOT EDIT - this file is generated by ARChitect2 ****
- *
- * Description: Header file declaring the compiler extensions for Clock control 
- */
-#ifndef  _alb_mss_clkctrl_regmap_H_
-#define  _alb_mss_clkctrl_regmap_H_
-// Use -tcf_include= #include "alb_mss_fab_system_memmap.h"
-// Clock control registers
-#define MSS_CLKCTRL_CFG_CTRL_ADDR            (MSS_CLKCTRL_0_BASE+0x0)
-// clock divider registers
-#define MSS_CLKCTRL_CLK_DIV_ADDR      (MSS_CLKCTRL_0_BASE+0x4)
-#define MSS_CLKCTRL_MSS_CLK_DIV_ADDR      (MSS_CLKCTRL_0_BASE+0x8)
-// clock enable ratio and status registers
-// mbus_clk_en: clk <-> mss_clk; design rule: none (clk freq vs. mss_clk freq)
-#define MSS_CLKCTRL_MBUS_CLK_EN_RATIO_ADDR     (MSS_CLKCTRL_0_BASE+0xc)
-#define MSS_CLKCTRL_MBUS_CLK_EN_STAT_ADDR      (MSS_CLKCTRL_0_BASE+0x10)
-// mss_fab_slv0_clk_en: mss_clk <-> mss_clk; design rule: none (mss_clk freq vs. mss_clk freq)
-#define MSS_CLKCTRL_MSS_FAB_SLV0_CLK_EN_RATIO_ADDR     (MSS_CLKCTRL_0_BASE+0x14)
-#define MSS_CLKCTRL_MSS_FAB_SLV0_CLK_EN_STAT_ADDR      (MSS_CLKCTRL_0_BASE+0x18)
-// mss_fab_slv1_clk_en: mss_clk <-> mss_clk; design rule: none (mss_clk freq vs. mss_clk freq)
-#define MSS_CLKCTRL_MSS_FAB_SLV1_CLK_EN_RATIO_ADDR     (MSS_CLKCTRL_0_BASE+0x1c)
-#define MSS_CLKCTRL_MSS_FAB_SLV1_CLK_EN_STAT_ADDR      (MSS_CLKCTRL_0_BASE+0x20)
-// mss_fab_slv2_clk_en: mss_clk <-> mss_clk; design rule: none (mss_clk freq vs. mss_clk freq)
-#define MSS_CLKCTRL_MSS_FAB_SLV2_CLK_EN_RATIO_ADDR     (MSS_CLKCTRL_0_BASE+0x24)
-#define MSS_CLKCTRL_MSS_FAB_SLV2_CLK_EN_STAT_ADDR      (MSS_CLKCTRL_0_BASE+0x28)
-
-#define MSS_CLKCTRL_NMI_COUNTER              (MSS_CLKCTRL_0_BASE+0x2c)
-#endif
 ]]></string>
   </configuration>
   <configuration name="system_memmap" filename="alb_mss_fab_system_memmap.h">
@@ -2173,135 +1806,6 @@ extern int dexcl2(int,int);
 
 #define HAS_DEFAULT_SLAVE 1
 #endif
-]]></string>
-  </configuration>
-  <configuration name="alb_mss_perfctrl_regmap.h" filename="alb_mss_perfctrl_regmap.h">
-    <string><![CDATA[
-/*************************************************************************/
-/**                                                                     **/
-/** Copyright (C) 2016-2017 Synopsys, Inc.                              **/
-/** All Rights Reserved.                                                **/
-/**                                                                     **/
-/** This Synopsys software and all associated documentation are         **/
-/** proprietary to Synopsys, Inc. and may only be used pursuant to the  **/
-/** terms and conditions of a written license agreement with Synopsys,  **/
-/** Inc. All other use, reproduction, modification, or distribution of  **/
-/** this Synopsys software or the associated documentation is strictly  **/
-/** prohibited.                                                         **/
-/**                                                                     **/
-/*************************************************************************/
-
-
-/* **** DO NOT EDIT - this file is generated by ARChitect2 ****
- *
- * Description: Header file declaring the compiler extensions for Performance control
- */
-#ifndef  _alb_mss_perfctrl_regmap_H_
-#define  _alb_mss_perfctrl_regmap_H_
-
-
-// Use -tcf_include= #include "alb_mss_fab_system_memmap.h"
-
-// The number of fabric master buses for which latency and performance counters can be controlled
-#define MSS_PERFCTRL_MST_FAB_COUNT                   0
-
-// The indices of each fabric master bus:
-// - These indices can be used in the  MSS_PERFCTRL_REG_*(i) macro's to get the
-//   corresponding latency/performance counter register for that specific fabric master bus.
-#define MSS_PERFCTRL_MEM_REG_LAT_CTRL(j)                 (MSS_PERFCTRL_0_BASE + 0x1000 + (j*0x80))
-#define MSS_PERFCTRL_MEM_REG_AW_COUNT_LO(j)              (MSS_PERFCTRL_0_BASE + 0x1000 + (j*0x80) + 0x08)
-#define MSS_PERFCTRL_MEM_REG_AW_COUNT_HI(j)              (MSS_PERFCTRL_0_BASE + 0x1000 + (j*0x80) + 0x0C)
-#define MSS_PERFCTRL_MEM_REG_W_COUNT_LO(j)               (MSS_PERFCTRL_0_BASE + 0x1000 + (j*0x80) + 0x10)
-#define MSS_PERFCTRL_MEM_REG_W_COUNT_HI(j)               (MSS_PERFCTRL_0_BASE + 0x1000 + (j*0x80) + 0x14)
-#define MSS_PERFCTRL_MEM_REG_AW_LAT_LO(j)                (MSS_PERFCTRL_0_BASE + 0x1000 + (j*0x80) + 0x18)
-#define MSS_PERFCTRL_MEM_REG_AW_LAT_HI(j)                (MSS_PERFCTRL_0_BASE + 0x1000 + (j*0x80) + 0x1C)
-#define MSS_PERFCTRL_MEM_REG_W_FIRST_LAT_LO(j)           (MSS_PERFCTRL_0_BASE + 0x1000 + (j*0x80) + 0x20)
-#define MSS_PERFCTRL_MEM_REG_W_FIRST_LAT_HI(j)           (MSS_PERFCTRL_0_BASE + 0x1000 + (j*0x80) + 0x24)
-#define MSS_PERFCTRL_MEM_REG_W_LAST_LAT_LO(j)            (MSS_PERFCTRL_0_BASE + 0x1000 + (j*0x80) + 0x28)
-#define MSS_PERFCTRL_MEM_REG_W_LAST_LAT_HI(j)            (MSS_PERFCTRL_0_BASE + 0x1000 + (j*0x80) + 0x2C)
-#define MSS_PERFCTRL_MEM_REG_B_LAT_LO(j)                 (MSS_PERFCTRL_0_BASE + 0x1000 + (j*0x80) + 0x30)
-#define MSS_PERFCTRL_MEM_REG_B_LAT_HI(j)                 (MSS_PERFCTRL_0_BASE + 0x1000 + (j*0x80) + 0x34)
-#define MSS_PERFCTRL_MEM_REG_AR_COUNT_LO(j)              (MSS_PERFCTRL_0_BASE + 0x1000 + (j*0x80) + 0x38)
-#define MSS_PERFCTRL_MEM_REG_AR_COUNT_HI(j)              (MSS_PERFCTRL_0_BASE + 0x1000 + (j*0x80) + 0x3C)
-#define MSS_PERFCTRL_MEM_REG_R_COUNT_LO(j)               (MSS_PERFCTRL_0_BASE + 0x1000 + (j*0x80) + 0x40)
-#define MSS_PERFCTRL_MEM_REG_R_COUNT_HI(j)               (MSS_PERFCTRL_0_BASE + 0x1000 + (j*0x80) + 0x44)
-#define MSS_PERFCTRL_MEM_REG_AR_LAT_LO(j)                (MSS_PERFCTRL_0_BASE + 0x1000 + (j*0x80) + 0x48)
-#define MSS_PERFCTRL_MEM_REG_AR_LAT_HI(j)                (MSS_PERFCTRL_0_BASE + 0x1000 + (j*0x80) + 0x4C)
-#define MSS_PERFCTRL_MEM_REG_R_FIRST_LAT_LO(j)           (MSS_PERFCTRL_0_BASE + 0x1000 + (j*0x80) + 0x50)
-#define MSS_PERFCTRL_MEM_REG_R_FIRST_LAT_HI(j)           (MSS_PERFCTRL_0_BASE + 0x1000 + (j*0x80) + 0x54)
-#define MSS_PERFCTRL_MEM_REG_R_LAST_LAT_LO(j)            (MSS_PERFCTRL_0_BASE + 0x1000 + (j*0x80) + 0x58)
-#define MSS_PERFCTRL_MEM_REG_R_LAST_LAT_HI(j)            (MSS_PERFCTRL_0_BASE + 0x1000 + (j*0x80) + 0x5C)
-#define MSS_PERFCTRL_MEM_REG_BW_WR_CTRL(j)               (MSS_PERFCTRL_0_BASE + 0x1000 + (j*0x80) + 0x60)
-#define MSS_PERFCTRL_MEM_REG_BW_RD_CTRL(j)               (MSS_PERFCTRL_0_BASE + 0x1000 + (j*0x80) + 0x64)
-
-// Global performance controller registers
-#define MSS_PERFCTRL_REG_CTRL                         (MSS_PERFCTRL_0_BASE + 0x1000 + 0x800)
-#define MSS_PERFCTRL_REG_TICK_COUNT_LO                (MSS_PERFCTRL_0_BASE + 0x1000 + 0x804)
-#define MSS_PERFCTRL_REG_TICK_COUNT_HI                (MSS_PERFCTRL_0_BASE + 0x1000 + 0x808)
-#define MSS_PERFCTRL_REG_COMP_VERSION                 (MSS_PERFCTRL_0_BASE + 0x1000 + 0x80C)
-#define MSS_PERFCTRL_REG_COMP_TYPE                    (MSS_PERFCTRL_0_BASE + 0x1000 + 0x810)
-
-#endif
-]]></string>
-  </configuration>
-  <configuration name="apex_assembly" filename="apexextensions.s">
-    <string><![CDATA[
-
-; Assembler directives for eia extensions in this design
-.set apex_com_arc_hardware_floating_point_unit_fpu_present,1
-.extAuxRegister fpu_build,0xc8,r
-.extAuxRegister fpu_ctrl,0x300,r|w
-.extAuxRegister fpu_status,0x301,r|w
-.extInstruction fsmadd,6,5,SUFFIX_COND,SYNTAX_3OP
-.extInstruction fsmsub,6,6,SUFFIX_COND,SYNTAX_3OP
-.extInstruction fsmul,6,0,SUFFIX_COND,SYNTAX_3OP
-.extInstruction fsadd,6,1,SUFFIX_COND,SYNTAX_3OP
-.extInstruction fssub,6,2,SUFFIX_COND,SYNTAX_3OP
-.extInstruction fcvt32,6,8,SUFFIX_COND,SYNTAX_3OP
-.extInstruction fsdiv,6,7,SUFFIX_COND,SYNTAX_3OP
-.extInstruction fscmp,6,3,SUFFIX_COND|SUFFIX_FLAG,SYNTAX_3OP
-.extInstruction fscmpf,6,4,SUFFIX_COND|SUFFIX_FLAG,SYNTAX_3OP
-.extInstruction fssqrt,6,0,FLAGS_NONE,SYNTAX_2OP
-.set apex_com_arc_hardware_floating_point_unit_fpu_dp_assist_present,1
-.extAuxRegister aux_dpfp1l,0x302,r|w
-.extAuxRegister aux_dpfp1h,0x303,r|w
-.extAuxRegister aux_dpfp2l,0x304,r|w
-.extAuxRegister aux_dpfp2h,0x305,r|w
-.extInstruction dmulh11,6,48,SUFFIX_COND|SUFFIX_FLAG,SYNTAX_3OP
-.extInstruction dmulh12,6,49,SUFFIX_COND|SUFFIX_FLAG,SYNTAX_3OP
-.extInstruction dmulh21,6,50,SUFFIX_COND|SUFFIX_FLAG,SYNTAX_3OP
-.extInstruction dmulh22,6,51,SUFFIX_COND|SUFFIX_FLAG,SYNTAX_3OP
-.extInstruction daddh11,6,52,SUFFIX_COND|SUFFIX_FLAG,SYNTAX_3OP
-.extInstruction daddh12,6,53,SUFFIX_COND|SUFFIX_FLAG,SYNTAX_3OP
-.extInstruction daddh21,6,54,SUFFIX_COND|SUFFIX_FLAG,SYNTAX_3OP
-.extInstruction daddh22,6,55,SUFFIX_COND|SUFFIX_FLAG,SYNTAX_3OP
-.extInstruction dsubh11,6,56,SUFFIX_COND|SUFFIX_FLAG,SYNTAX_3OP
-.extInstruction dsubh12,6,57,SUFFIX_COND|SUFFIX_FLAG,SYNTAX_3OP
-.extInstruction dsubh21,6,58,SUFFIX_COND|SUFFIX_FLAG,SYNTAX_3OP
-.extInstruction dsubh22,6,59,SUFFIX_COND|SUFFIX_FLAG,SYNTAX_3OP
-.extInstruction dexcl1,6,60,SUFFIX_COND,SYNTAX_3OP
-.extInstruction dexcl2,6,61,SUFFIX_COND,SYNTAX_3OP
-
-]]></string>
-  </configuration>
-  <configuration name="alb_mss_fab_system_memmap.s" filename="alb_mss_fab_system_memmap.s">
-    <string><![CDATA[
-// System memory map
-
-.equ MSS_CLKCTRL_0_BASE, 0xc00000
-.equ MSS_CLKCTRL_0_SIZE, 0x1000
-.equ MSS_PERFCTRL_0_BASE, 0xc0002000
-.equ MSS_PERFCTRL_0_SIZE, 0x2000
-.equ MSS_MEM_0_BASE, 0x0000
-.equ MSS_MEM_0_SIZE, 0x100000000
-
-
-
-.equ UNALLOC_SPACE_NUM,       0
-
-// CCM system address with the specific name
-
-.equ HAS_DEFAULT_SLAVE, 1
 ]]></string>
   </configuration>
 </config_list>
