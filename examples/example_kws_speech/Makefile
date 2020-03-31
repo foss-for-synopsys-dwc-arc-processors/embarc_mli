@@ -35,7 +35,7 @@ BUILD_DIR    ?= ./obj
 OUT_NAME     ?= example_kws_stream
 ifeq ($(TOOLCHAIN),mwdt)
 # MWDT specific options
-CFLAGS       =  -Hnocopyr -Hpurge -Hheap=4K -Hstack=4K -Hdsplib -Hfxapi -e_start -Bgrouplib -Hldopt=-q -O3 -Hsdata0 -Xdsp_ctrl=postshift,guard,convergent -Hdense_prologue
+CFLAGS       =  -Hnocopyr -Hpurge -Hheap=4K -Hstack=4K -Hdsplib -Hfxapi -e_start -Bgrouplib -Hldopt=-q -Hsdata0 -Xdsp_ctrl=postshift,guard,convergent -Hdense_prologue
 
 ifneq ($(RT_LIB),)
 CFLAGS       +=  -Hlib=$(RT_LIB)

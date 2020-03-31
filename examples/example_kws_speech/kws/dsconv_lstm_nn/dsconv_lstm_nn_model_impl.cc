@@ -254,7 +254,7 @@ kws_status kws_dsconv_lstm_nn::audio_features_extract(const sample_t *in_frame, 
                                                y_mem->nn.fex_phase.ir_buf_y, x_mem->nn.fex_phase.ir_buf_x);
     if (fbanks_num == kFbankNumBins) {
         mli_tensor out_fx_features = {
-            (void *)out_features, kFbankNumBins * sizeof(out_features[0]), {0}, 0,
+            (void *)out_features, kFbankNumBins * sizeof(out_features[0]), {0}, {0}, 0,
                 MLI_EL_FX_8, {kFbankFraqBits}
         };
         if (MLI_STATUS_OK != 
@@ -280,7 +280,7 @@ kws_status kws_dsconv_lstm_nn::nn_inference(const int8_t *in_features, float *ou
     {
         mli_tensor input = {
             (void *)in_features, kFeatureVectorsForInference * kFbankNumBins * sizeof(in_features[0]),
-            {1, kFeatureVectorsForInference, kFbankNumBins}, 3,
+            {0}, {1, kFeatureVectorsForInference, kFbankNumBins}, 3,
             MLI_EL_FX_8, {kFbankFraqBits}
         };
 
@@ -343,12 +343,12 @@ kws_status kws_dsconv_lstm_nn::nn_inference(const int8_t *in_features, float *ou
         // LAYER 5
         // init structures for LSTM layer 
         const uint32_t lstm_cell_size = m->L5_lstm_bias.shape[1];
-        mli_tensor lstm_prev_out = {ir_X.data, ir_X.capacity, {lstm_cell_size}, 1, MLI_EL_FX_16, {7}};
+        mli_tensor lstm_prev_out = { ir_X.data, ir_X.capacity, {0},  {lstm_cell_size}, 1, MLI_EL_FX_16, {7} };
         mli_tensor lstm_ir = { (void *)x_mem->nn.rnn_phase.lstm_ir_data, sizeof(x_mem->nn.rnn_phase.lstm_ir_data) };
         const mli_rnn_cell_cfg lstm_cfg = {m->lstm_mode, m->lstm_act, &lstm_ir};
         mli_tensor lstm_cell = {
             (void *)y_mem->nn.rnn_phase.lstm_cell_data, sizeof(y_mem->nn.rnn_phase.lstm_cell_data),
-            {lstm_cell_size}, 1,
+            {0}, {lstm_cell_size}, 1,
             MLI_EL_FX_16, {m->L5_lstm_cell_fraq}
         };
 
