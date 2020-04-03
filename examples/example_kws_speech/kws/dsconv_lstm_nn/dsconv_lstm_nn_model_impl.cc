@@ -254,8 +254,10 @@ kws_status kws_dsconv_lstm_nn::audio_features_extract(const sample_t *in_frame, 
                                                y_mem->nn.fex_phase.ir_buf_y, x_mem->nn.fex_phase.ir_buf_x);
     if (fbanks_num == kFbankNumBins) {
         mli_tensor out_fx_features = {
-            (void *)out_features, kFbankNumBins * sizeof(out_features[0]), {0}, {0}, 0,
-                MLI_EL_FX_8, {kFbankFraqBits}
+            .data = (void *)out_features, 
+            .capacity = kFbankNumBins * sizeof(out_features[0]), 
+            .el_type = MLI_EL_FX_8,
+            .el_params.fx.frac_bits = kFbankFraqBits,
         };
         if (MLI_STATUS_OK != 
                 mli_hlp_float_to_fx_tensor(y_mem->nn.fex_phase.out_features, kFbankNumBins,&out_fx_features))
@@ -279,9 +281,12 @@ kws_status kws_dsconv_lstm_nn::nn_inference(const int8_t *in_features, float *ou
     // Convolution Phase
     {
         mli_tensor input = {
-            (void *)in_features, kFeatureVectorsForInference * kFbankNumBins * sizeof(in_features[0]),
-            {0}, {1, kFeatureVectorsForInference, kFbankNumBins}, 3,
-            MLI_EL_FX_8, {kFbankFraqBits}
+            .data = (void *)in_features, 
+            .capacity = kFeatureVectorsForInference * kFbankNumBins * sizeof(in_features[0]),
+            .shape = {1, kFeatureVectorsForInference, kFbankNumBins}, 
+            .rank = 3,
+            .el_type = MLI_EL_FX_8, 
+            .el_params.fx.frac_bits = kFbankFraqBits,
         };
 
         // LAYER 1
@@ -343,13 +348,23 @@ kws_status kws_dsconv_lstm_nn::nn_inference(const int8_t *in_features, float *ou
         // LAYER 5
         // init structures for LSTM layer 
         const uint32_t lstm_cell_size = m->L5_lstm_bias.shape[1];
-        mli_tensor lstm_prev_out = { ir_X.data, ir_X.capacity, {0},  {lstm_cell_size}, 1, MLI_EL_FX_16, {7} };
+        mli_tensor lstm_prev_out = { 
+            .data = ir_X.data, 
+            .capacity = ir_X.capacity, 
+            .shape = {lstm_cell_size}, 
+            .rank = 1, 
+            .el_type = MLI_EL_FX_16, 
+            .el_params.fx.frac_bits = 7,
+        };
         mli_tensor lstm_ir = { (void *)x_mem->nn.rnn_phase.lstm_ir_data, sizeof(x_mem->nn.rnn_phase.lstm_ir_data) };
         const mli_rnn_cell_cfg lstm_cfg = {m->lstm_mode, m->lstm_act, &lstm_ir};
         mli_tensor lstm_cell = {
-            (void *)y_mem->nn.rnn_phase.lstm_cell_data, sizeof(y_mem->nn.rnn_phase.lstm_cell_data),
-            {0}, {lstm_cell_size}, 1,
-            MLI_EL_FX_16, {m->L5_lstm_cell_fraq}
+            .data = (void *)y_mem->nn.rnn_phase.lstm_cell_data,
+            .capacity = sizeof(y_mem->nn.rnn_phase.lstm_cell_data),
+            .shape = {lstm_cell_size},
+            .rank = 1,
+            .el_type = MLI_EL_FX_16,
+            .el_params.fx.frac_bits = m->L5_lstm_cell_fraq,
         };
 
         // Clear state buffers and state tensors description completion
