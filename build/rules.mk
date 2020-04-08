@@ -15,7 +15,7 @@ CLOSE_PAREN=)
 BACKSLASH=\$(nullstring)
 ifneq ($(ComSpec)$(COMSPEC),)
     O_SYS=Windows
-    RM=del /F /Q
+    RM=del /F /Q /S
     MKDIR=mkdir 
     CP=copy /Y
     TYPE=type
