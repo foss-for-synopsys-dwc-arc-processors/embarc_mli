@@ -31,6 +31,7 @@ static void __attribute__((always_inline)) full_connection(
         MLI_CONV_OUT_PTR(io_T) __restrict o_ptr,
         const int ch_out,
         const int inp_size,
+        const int w_ch_out_mem_stride,
         const int bias_shift,
         const int out_shift) {
     if (_Rarely(inp_size < 8)) {
@@ -40,6 +41,7 @@ static void __attribute__((always_inline)) full_connection(
                 mli_prv_load_mac(&ip_out, in_ptr++, w_ptr++);
             }
             in_ptr -= inp_size;
+            w_ptr += w_ch_out_mem_stride - inp_size;
 
             mli_prv_clip_and_store_output(o_ptr++, &ip_out, out_shift);
         }
@@ -56,6 +58,7 @@ LOOP_PIPELINE_ENABLE
                     w_ptr += 4;
                 }
                 in_ptr -= inp_size;
+                w_ptr += w_ch_out_mem_stride - inp_size;
                 MLI_EXTRA_ASSERT(start_in_ptr == in_ptr);
 
                 mli_prv_clip_and_store_output(o_ptr++, &ip_out, out_shift);
@@ -78,6 +81,7 @@ LOOP_PIPELINE_ENABLE
                     w_ptr += 4;
                 }
                 in_ptr -= inp_size;
+                w_ptr += w_ch_out_mem_stride - inp_size;
                 MLI_EXTRA_ASSERT(start_in_ptr == in_ptr);
 
                 mli_prv_clip_and_store_output(o_ptr++, &ip_out, out_shift);
@@ -101,13 +105,17 @@ static void __attribute__((always_inline)) fully_connected_prepare_and_run_fx(
 
     int ch_out = weights->shape[0];
     int in_sz = mli_prv_count_elem_num(in);
+    int w_ch_out_mem_stride_from_tensor = weights->mem_stride[0];
+    int w_ch_out_mem_stride = (w_ch_out_mem_stride_from_tensor != 0) ?
+        w_ch_out_mem_stride_from_tensor : in_sz;
 
     // Define shift values
     const int bias_shift = mli_prv_calc_shift(in, weights, bias);
     const int out_shift = mli_prv_calc_shift(in, weights, out);
 
     // Run basic calculation
-    full_connection<io_T, w_T>(in_ptr, w_ptr, b_ptr, out_ptr, ch_out, in_sz, bias_shift, out_shift);
+    full_connection<io_T, w_T>(in_ptr, w_ptr, b_ptr, out_ptr, ch_out, in_sz, w_ch_out_mem_stride,
+            bias_shift, out_shift);
 
     // fill output tensor parameters
     out->el_type = in->el_type;
@@ -124,6 +132,7 @@ static inline void ip_op(
 
         const int in_elements,
         const int out_elements,
+        const int w_ch_out_mem_stride,
         const int32_t bias_mul,
         const int bias_shift,
         const int32_t out_mul,
@@ -169,6 +178,7 @@ LOOP_PIPELINE_ENABLE
                     weights += 4;
                 }
                 in -= in_elements;
+                weights += w_ch_out_mem_stride - in_elements;
 
                 accu = mli_math_acc_ashift_fx(accu, -left_shift);
                 accu = mli_math_scale_mul<acc_T, true>(accu, out_mul);
@@ -202,6 +212,7 @@ LOOP_PIPELINE_ENABLE
                 weights += 4;
             }
             in -= in_elements;
+            weights += w_ch_out_mem_stride - in_elements;
 
             accu = mli_math_acc_ashift_fx(accu, -left_shift);
             accu = mli_math_scale_mul<acc_T, true>(accu, out_mul);
@@ -232,6 +243,9 @@ static void fully_connected_prepare_and_run(
 
     int ch_out = bias->shape[0];
     int in_sz = weights->shape[1];
+    int w_ch_out_mem_stride_from_tensor = weights->mem_stride[0];
+    int w_ch_out_mem_stride = (w_ch_out_mem_stride_from_tensor != 0) ?
+        w_ch_out_mem_stride_from_tensor : in_sz;
 
     // Define shift values
     int bias_shift = mli_prv_calc_shift(in, weights, bias);
@@ -244,7 +258,8 @@ static void fully_connected_prepare_and_run(
     MLI_ASSERT(mli_hlp_tensor_zero_offset(weights, 0) == 0);
 
     // Run basic calculation
-    ip_op<io_T, w_T, b_T, mli_acc32_t>(in_ptr, w_ptr, b_ptr, out_ptr, in_sz, ch_out, bias_mul, bias_shift, out_mul, out_shift, input_offset, output_offset);
+    ip_op<io_T, w_T, b_T, mli_acc32_t>(in_ptr, w_ptr, b_ptr, out_ptr, in_sz, ch_out, w_ch_out_mem_stride,
+            bias_mul, bias_shift, out_mul, out_shift, input_offset, output_offset);
 
     // fill output tensor parameters
     out->el_type = in->el_type;

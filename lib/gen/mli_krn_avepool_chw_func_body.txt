@@ -9,9 +9,13 @@
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int channels_num = in->shape[FMAP_C_DIM_CHW];
     int kernel_height = cfg->kernel_height;
     int kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR($d_type), MLI_PTR_IS_XY>(in,
+            $channels); // channels
+
     // assign hard coded values for this variation to some variables
 #if $stride_w
     MLI_CHECK_AND_FIX(stride_width, $stride_w);
@@ -31,20 +35,19 @@
 #if $kernel_h
     MLI_CHECK_AND_FIX(kernel_height, $kernel_h);
 #endif
-#if $channels
-    MLI_CHECK_AND_FIX(channels_num, $channels);
-#endif
-
-    // Data pointers
-    MLI_PTR($d_type) in_ftrs = (MLI_PTR($d_type ))in->data;
-    MLI_OUT_PTR($d_type) out_ftrs = (MLI_OUT_PTR($d_type ))out->data;
 
     // Define Data dimensions
-    const int in_height = in->shape[FMAP_H_DIM_CHW];
-    const int in_width = in->shape[FMAP_W_DIM_CHW];
+    const int out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR($d_type), MLI_OUT_PTR_IS_XY>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -56,20 +59,10 @@
     $core_name(
         row_beg, row_end,
         clmn_beg, clmn_end,
-        in_ftrs, out_ftrs,
-        channels_num, in_width, in_height,
-        out_width, out_height,
+        in_prv, out_prv,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_left, padding_right, padding_bot);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }

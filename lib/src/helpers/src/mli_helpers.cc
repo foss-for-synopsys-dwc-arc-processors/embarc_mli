@@ -18,6 +18,9 @@
 
 #pragma Code(".mli_lib")
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 static void convert_tensor_fx8_to_fx8(
         const MLI_PTR(int8_t) __restrict in, 
@@ -247,5 +250,9 @@ mli_status mli_hlp_convert_tensor(mli_tensor *in, mli_tensor *out) {
     out->rank = in->rank;
     return MLI_STATUS_OK;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #pragma code()

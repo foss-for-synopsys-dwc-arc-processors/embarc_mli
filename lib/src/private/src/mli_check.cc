@@ -21,6 +21,10 @@
 
 #pragma Code(".mli_lib")
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /******************************************************
  *  mli_tensor data structure correctness checking
  ******************************************************/
@@ -32,7 +36,7 @@ mli_status mli_chk_tensor (const mli_tensor * in) {
     fail |= MLI_CHECK(mli_hlp_tensor_element_size (in) * mli_prv_count_elem_num (in) <= in->capacity,
                       "Insufficient tensor capacity");
     if (fail) return MLI_STATUS_BAD_TENSOR;
-    
+
     return MLI_STATUS_OK;
 }
 
@@ -1767,3 +1771,7 @@ mli_status mli_chk_create_subtensor(const mli_tensor *in, const mli_sub_tensor_c
 }
 
 #pragma code()
+
+#ifdef __cplusplus
+}
+#endif
