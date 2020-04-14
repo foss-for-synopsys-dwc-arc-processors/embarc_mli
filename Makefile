@@ -32,3 +32,9 @@ cleanall:
 
 libclean:
 	$(MAKE) -C lib/make clean
+
+package:
+	$(MAKE) -C lib/make -f package.mk package
+
+cleanpackage:
+	$(MAKE) -C lib/make -f package.mk clean
