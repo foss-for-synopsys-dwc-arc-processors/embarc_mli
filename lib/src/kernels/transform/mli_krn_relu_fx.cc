@@ -50,6 +50,7 @@ mli_status mli_krn_relu_fx8(const mli_tensor* in, const mli_relu_cfg* cfg, mli_t
         }
     } else {
         // Case with more tricky limits, which we're defining by separate function
+        __builtin_assume(in->el_type == MLI_EL_FX_8);
         mli_minmax_t limits = mli_prv_get_relu_min_max(cfg, in);
         v2q15_t min_vec = fx_replic_v2q15(limits.min);
         v2q15_t max_vec = fx_replic_v2q15(limits.max);
@@ -101,6 +102,7 @@ mli_status mli_krn_relu_fx16(const mli_tensor* in, const mli_relu_cfg* cfg, mli_
         }
     } else {
         // Case with more tricky limits, which we're defining by separate function
+        __builtin_assume(in->el_type == MLI_EL_FX_16);
         mli_minmax_t limits = mli_prv_get_relu_min_max(cfg, in);
         v2q15_t min_vec = fx_replic_v2q15(limits.min);
         v2q15_t max_vec = fx_replic_v2q15(limits.max);
