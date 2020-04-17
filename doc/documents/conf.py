@@ -53,7 +53,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'embARC Machine Learning Inference Library'
-copyright = u'2019, Synopsys, Inc'
+copyright = u'2019-2020, Synopsys, Inc'
 author = u'Synopsys, Inc'
 
 # The version info for the project you're documenting, acts as replacement for
