@@ -15,9 +15,11 @@ CLOSE_PAREN=)
 BACKSLASH=\$(nullstring)
 ifneq ($(ComSpec)$(COMSPEC),)
     O_SYS=Windows
-    RM=del /F /Q /S
+    RM=del /F /Q
+    RMDIR=rmdir /Q /S
     MKDIR=mkdir 
     CP=copy /Y
+    CPR=xcopy /I /E /Y
     TYPE=type
     PS=$(BACKSLASH)
     Q=
@@ -27,8 +29,10 @@ ifneq ($(ComSpec)$(COMSPEC),)
 else
     O_SYS=Unix
     RM=rm -rf
+    RMDIR=rm -rf
     MKDIR=mkdir -p
-    CP=cp 
+    CP=cp
+    CPR= cp -r
     TYPE=cat
     PS=/
     Q=$(BACKSLASH)
