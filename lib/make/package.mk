@@ -17,7 +17,7 @@ LIB_DIR = ../../bin
 LIB_NAME = libmli.a
 TCF_DIR = ../../hw
 LIB_LIST = $(addsuffix /$(LIB_NAME), $(addprefix $(LIB_DIR)/, $(PLATFORMLIST)) ) 
-
+PKG_NAME = embARC_MLI_package
 include ../../build/rules.mk 
 
 
@@ -29,10 +29,15 @@ $(LIB_LIST) : $(LIB_DIR)/%/$(LIB_NAME): $(TCF_DIR)/%.tcf
 package_content: $(LIB_LIST)
 
 package: package_content
-	cd ../../ & zip package.zip -r include bin & cd lib/make
+	-cd ../.. & $(MKDIR) $(PKG_NAME)
+	$(CPR) $(call fix_platform_path,../../include) $(call fix_platform_path,../../$(PKG_NAME)/include/)
+	$(CPR) $(call fix_platform_path,../../bin) $(call fix_platform_path,../../$(PKG_NAME)/bin/)
+	$(CP) $(call fix_platform_path,../../LICENSE) $(call fix_platform_path,../../$(PKG_NAME)/LICENSE)
+	cd ../.. & zip $(PKG_NAME).zip -r $(PKG_NAME)
+	$(RMDIR) $(call fix_platform_path,../../$(PKG_NAME))
 
 clean:
 	@echo Cleaning package...
-	-@$(RM) $(call fix_platform_path,$(LIB_DIR))
-	-@$(RM) $(call fix_platform_path,../../obj)
-	-@$(RM) $(call fix_platform_path,../../package.zip)
+	-@$(RMDIR) $(call fix_platform_path,$(LIB_DIR))
+	-@$(RMDIR) $(call fix_platform_path,../../obj)
+	-@$(RM) $(call fix_platform_path,../../$(PKG_NAME).zip)
