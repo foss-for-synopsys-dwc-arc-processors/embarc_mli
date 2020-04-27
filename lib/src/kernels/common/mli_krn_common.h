@@ -150,10 +150,11 @@ static void __attribute__ ((always_inline))  basic_rnn_cell_prepare_and_run_fx(
     const MLI_PTR (io_T) in_ptr = (const MLI_PTR (io_T)) in->data;
     MLI_PTR (io_T) state_ptr = (MLI_PTR (io_T)) prev_out->data;
 
-    mli_tensor dense_out;
+    mli_tensor dense_out = { 0 };
     dense_out.data = (cfg->mode != RNN_BATCH_TO_LAST) ? out->data : cfg->ir_tsr->data;
     dense_out.capacity = (cfg->mode != RNN_BATCH_TO_LAST) ? out->capacity : cfg->ir_tsr->capacity;
     dense_out.shape[0] = out_elements;
+    dense_out.mem_stride[0] = 0;
     dense_out.rank = 1;
     dense_out.el_type = in->el_type;
     // 1sign and 3 integer bits for typical rnn nonlinearity (TANH/SIGM) is enough
@@ -269,6 +270,8 @@ static void __attribute__ ((always_inline)) lstm_cell_prepare_and_run_fx(
     ir_tensor->rank = bias->rank;
     ir_tensor->shape[0] = bias->shape[0];
     ir_tensor->shape[1] = bias->shape[1];
+    ir_tensor->mem_stride[0] = 0;
+    ir_tensor->mem_stride[1] = 0;
     ir_tensor->el_type = in->el_type;
     // 1sign and 3 integer bits for TANH/SIGM input is enough
     ir_tensor->el_params.fx.frac_bits = (sizeof(io_T) * 8) - 1 - 3;
@@ -278,9 +281,9 @@ static void __attribute__ ((always_inline)) lstm_cell_prepare_and_run_fx(
     const int in_to_state_dif = in->el_params.fx.frac_bits - prev_out->el_params.fx.frac_bits;
     const int dense_out_shift = mli_prv_calc_shift(prev_out, weights, ir_tensor);
 
-    // Paricular subtensors of intermediate tensor
-    mli_tensor in_gate, forget_gate, out_gate;  // Various gates to controll info flow
-    mli_tensor g_tsr;       // Information tensors
+    // Paricular subtensors of intermediate tensor (mli_tensor.mem_stride[] should be zero and cannot be left uninitialized)
+    mli_tensor in_gate = { 0 }, forget_gate = { 0 }, out_gate = { 0 }; // Various gates to controll info flow
+    mli_tensor g_tsr = { 0 }; // Information tensors
 
     // Init subtensors
     mli_point_to_subtsr_cfg iterator = {.start_coord = {0}, .coord_num=1, .first_out_dim_size=1};

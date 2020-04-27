@@ -198,8 +198,10 @@ static inline mli_status __attribute__ ((always_inline)) mli_prv_copy_tensor_for
     if (check != MLI_STATUS_OK)
           return check;
 
-    for (int idx = 0; idx < src->rank; idx++)
+    for (int idx = 0; idx < src->rank; idx++) {
         dst->shape[idx] = src->shape[idx];
+        dst->mem_stride[idx] = src->mem_stride[idx];
+    }
 
     dst->rank = src->rank;
     dst->el_type = src->el_type;
