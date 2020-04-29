@@ -17,6 +17,8 @@
 #include "mli_mov_private_types.h"
 #include "mli_types.h"
 
+#pragma Code(".mli_lib")
+
 // singleton for dma channel pool
 static mli_mov_dma_pool_t dma_pool = MLI_MOV_DMA_POOL_INIT;
 
@@ -537,3 +539,4 @@ mli_status mli_mov_cfg_all(
     return retval;
 }
 
+#pragma Code()
