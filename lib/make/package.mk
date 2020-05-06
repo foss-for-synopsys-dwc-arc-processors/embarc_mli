@@ -16,25 +16,35 @@ PLATFORMLIST = \
 LIB_DIR = ../../bin
 LIB_NAME = libmli.a
 TCF_DIR = ../../hw
-LIB_LIST = $(addsuffix /$(LIB_NAME), $(addprefix $(LIB_DIR)/, $(PLATFORMLIST)) ) 
+LIB_LIST = $(addsuffix /$(LIB_NAME), $(addprefix $(LIB_DIR)/, $(PLATFORMLIST)) )
 PKG_NAME = embARC_MLI_package
 include ../../build/rules.mk 
-
+PKG_TMP_FOLDER = ../../$(PKG_NAME)
+FILE_LIST = $(addsuffix .tcf, $(addprefix $(PKG_TMP_FOLDER)/hw/, $(PLATFORMLIST)) )
+FILE_LIST += $(PKG_TMP_FOLDER)/LICENSE
 
 $(LIB_LIST) : $(LIB_DIR)/%/$(LIB_NAME): $(TCF_DIR)/%.tcf
 	$(MAKE) TCF_FILE=$< BUILD_DIR=../../obj/$*/debug LIBRARY_DIR=$(LIB_DIR)/$*/debug DEBUG_BUILD=ON EXT_CFLAGS="-DMLI_DEBUG_MODE=DBG_MODE_FULL"
 	$(MAKE) TCF_FILE=$< BUILD_DIR=../../obj/$*/release LIBRARY_DIR=$(LIB_DIR)/$*/release DEBUG_BUILD=OFF EXT_CFLAGS="-DMLI_DEBUG_MODE=DBG_MODE_RELEASE"
 
+$(PKG_TMP_FOLDER):
+	$(MKDIR) $(call fix_platform_path,$@)
+	$(MKDIR) $(call fix_platform_path,$@/hw)
 
-package_content: $(LIB_LIST)
+package_libs: $(LIB_LIST) $(PKG_TMP_FOLDER)
+	$(CPR) $(call fix_platform_path,../../bin) $(call fix_platform_path,$(PKG_TMP_FOLDER)/bin/)
+
+package_includes: $(PKG_TMP_FOLDER)
+	$(CPR) $(call fix_platform_path,../../include) $(call fix_platform_path,../../$(PKG_NAME)/include/)
+
+$(FILE_LIST): $(PKG_TMP_FOLDER)/% : ../../%
+	$(CP) $(call fix_platform_path,$<) $(call fix_platform_path,$@)
+
+package_content: package_libs package_includes $(FILE_LIST)
 
 package: package_content
-	-cd ../.. & $(MKDIR) $(PKG_NAME)
-	$(CPR) $(call fix_platform_path,../../include) $(call fix_platform_path,../../$(PKG_NAME)/include/)
-	$(CPR) $(call fix_platform_path,../../bin) $(call fix_platform_path,../../$(PKG_NAME)/bin/)
-	$(CP) $(call fix_platform_path,../../LICENSE) $(call fix_platform_path,../../$(PKG_NAME)/LICENSE)
 	cd ../.. & zip $(PKG_NAME).zip -r $(PKG_NAME)
-	$(RMDIR) $(call fix_platform_path,../../$(PKG_NAME))
+	$(RMDIR) $(call fix_platform_path,$(PKG_TMP_FOLDER))
 
 clean:
 	@echo Cleaning package...
