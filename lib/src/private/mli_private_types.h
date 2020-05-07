@@ -13,12 +13,42 @@
 #include "mli_config.h"
 #include "mli_types.h"
 
+/**
+ * Private tensor struct typically used for pooling/conv2d/depthwise_conv2d
+ * inputs and outputs.
+ */
+template <typename T>
+struct tensor_private_t {
+    T __restrict ptr;
+    int32_t width;
+    int32_t height;
+    int32_t ch;
+    int32_t col_mem_stride;
+    int32_t row_mem_stride;
+    int32_t ch_mem_stride;
+};
+
+/**
+ * Private weights tensor struct typically used for conv2d/depthwise_conv2d.
+ */
+template <typename T>
+struct conv2d_weights_tensor_private_t {
+    T __restrict ptr;
+    int32_t kernel_width;
+    int32_t kernel_height;
+    int32_t in_ch;
+    int32_t out_ch;
+    int32_t col_mem_stride;
+    int32_t row_mem_stride;
+    int32_t in_ch_mem_stride;
+    int32_t out_ch_mem_stride;
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct
-{
+typedef struct {
     uint32_t row_beg;
     uint32_t row_end;
     uint32_t clmn_beg;

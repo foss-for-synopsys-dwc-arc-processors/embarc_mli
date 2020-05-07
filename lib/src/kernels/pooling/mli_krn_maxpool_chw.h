@@ -18,6 +18,7 @@
 #include "mli_debug.h"
 #include "mli_helpers_api.h"
 #include "mli_math.h"
+#include "mli_private_types.h"
 #include "mli_prv_dsp.h"
 #include "mli_prv_load_store.h"
 
@@ -187,17 +188,12 @@ static inline io_T __attribute__((always_inline)) reduce_max2D_small(
 
 template <typename io_T>
 static inline void __attribute__((always_inline)) maxpool_chw_nopad(
-        const MLI_PTR(io_T) __restrict in_ftrs,
-        MLI_OUT_PTR(io_T) __restrict out_ftrs,
+        const tensor_private_t<MLI_PTR(io_T)> &in,
+        const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
         const int row_begin,
         const int row_end,
         const int clmn_begin,
         const int clmn_end,
-        const int channels_num,
-        const int in_width,
-        const int in_height,
-        const int out_width,
-        const int out_height,
         const int kernel_height,
         const int kernel_width,
         const int stride_height,
@@ -207,65 +203,67 @@ static inline void __attribute__((always_inline)) maxpool_chw_nopad(
         const int padding_left,
         const int padding_right,
         const int fixed_padding) {
-    MLI_OUT_PTR(io_T) __restrict out_ptr = out_ftrs + row_begin * out_width + clmn_begin;
-    const MLI_PTR(io_T) __restrict in_ptr =
-            in_ftrs + (row_begin * stride_height - padding_top) * in_width + (clmn_begin * stride_width - padding_left);
+
+    MLI_ASSERT(in.col_mem_stride == 1 && out.col_mem_stride == 1);
+
+    MLI_OUT_PTR(io_T) __restrict out_ptr = out.ptr
+            + out.col_mem_stride * clmn_begin
+            + out.row_mem_stride * row_begin;
+    const MLI_PTR(io_T) __restrict in_ptr = in.ptr
+            + in.col_mem_stride * (clmn_begin * stride_width - padding_left)
+            + in.row_mem_stride * (row_begin * stride_height - padding_top);
+
     if (kernel_width < 4 && kernel_height <= REDUCE_MAX2D_UNROLL_FACTOR_FOR_HEIGHT) {
-        __builtin_assume(channels_num > 0);
-        for (int ch_idx = 0; ch_idx < channels_num; ch_idx++) {
+        __builtin_assume(in.ch > 0);
+        for (int ch_idx = 0; ch_idx < in.ch; ch_idx++) {
             for (int j = 0; j < (row_end - row_begin); j++) {
 LOOP_PIPELINE_ENABLE 
 #pragma unroll 2
                 for (int k = 0; k < (clmn_end - clmn_begin); k++) {
                     // Core Max
-                    io_T max_val = reduce_max2D(in_ptr, kernel_width, kernel_height, in_width, true);
+                    io_T max_val = reduce_max2D(in_ptr, kernel_width, kernel_height, in.row_mem_stride, true);
 
-                    in_ptr += stride_width;
+                    in_ptr += in.col_mem_stride * stride_width;
                     // Write results
                     *out_ptr++ = max_val;
                     MAXPOOL_DBG_PRINT(ch_idx, j + row_begin, k + clmn_begin, max_val);
                 }
-                in_ptr += in_width * stride_height + (clmn_begin - clmn_end) * stride_width;
-                out_ptr += out_width + clmn_begin - clmn_end;
+                in_ptr += in.row_mem_stride * stride_height - (in.col_mem_stride * stride_width * (clmn_end - clmn_begin));
+                out_ptr += out.row_mem_stride - (clmn_end - clmn_begin);
             }
-            in_ptr += in_width * (in_height + (row_begin - row_end) * stride_height);
-            out_ptr += out_width * (out_height + row_begin - row_end);
+            in_ptr += in.ch_mem_stride - (in.row_mem_stride * stride_height * (row_end - row_begin));
+            out_ptr += out.ch_mem_stride -  (out.row_mem_stride * (row_end - row_begin));
         }
     } else {
-        __builtin_assume(channels_num > 0);
-        for (int ch_idx = 0; ch_idx < channels_num; ch_idx++) {
+        __builtin_assume(in.ch > 0);
+        for (int ch_idx = 0; ch_idx < in.ch; ch_idx++) {
             for (int j = 0; j < (row_end - row_begin); j++) {
                 for (int k = 0; k < (clmn_end - clmn_begin); k++) {
                     // Core Max
-                    io_T max_val = reduce_max2D(in_ptr, kernel_width, kernel_height, in_width, true);
+                    io_T max_val = reduce_max2D(in_ptr, kernel_width, kernel_height, in.row_mem_stride, true);
 
-                    in_ptr += stride_width;
+                    in_ptr += in.col_mem_stride * stride_width;
                     // Write results
                     *out_ptr++ = max_val;
                     MAXPOOL_DBG_PRINT(ch_idx, j + row_begin, k + clmn_begin, max_val);
                 }
-                in_ptr += in_width * stride_height + (clmn_begin - clmn_end) * stride_width;
-                out_ptr += out_width + clmn_begin - clmn_end;
+                in_ptr += in.row_mem_stride * stride_height - (in.col_mem_stride * stride_width * (clmn_end - clmn_begin));
+                out_ptr += out.row_mem_stride - (clmn_end - clmn_begin);
             }
-            in_ptr += in_width * (in_height + (row_begin - row_end) * stride_height);
-            out_ptr += out_width * (out_height + row_begin - row_end);
+            in_ptr += in.ch_mem_stride - (in.row_mem_stride * stride_height * (row_end - row_begin));
+            out_ptr += out.ch_mem_stride -  (out.row_mem_stride * (row_end - row_begin));
         }
     }
 }
 
 template <typename io_T>
 static inline void __attribute__((always_inline)) maxpool_chw(
-        const MLI_PTR(io_T) __restrict in_ftrs,
-        MLI_OUT_PTR(io_T) __restrict out_ftrs,
+        const tensor_private_t<MLI_PTR(io_T)> &in,
+        const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
         const int row_begin,
         const int row_end,
         const int clmn_begin,
         const int clmn_end,
-        const int channels_num,
-        const int in_width,
-        const int in_height,
-        const int out_width,
-        const int out_height,
         const int kernel_height,
         const int kernel_width,
         const int stride_height,
@@ -275,9 +273,14 @@ static inline void __attribute__((always_inline)) maxpool_chw(
         const int padding_left,
         const int padding_right,
         const int fixed_padding) {
-    MLI_OUT_PTR(io_T) __restrict out_ptr = out_ftrs + row_begin * out_width + clmn_begin;
 
-    for (int ch_idx = 0; ch_idx < channels_num; ch_idx++) {
+    MLI_ASSERT(in.col_mem_stride == 1 && out.col_mem_stride == 1);
+
+    MLI_OUT_PTR(io_T) __restrict out_ptr = out.ptr
+            + out.col_mem_stride * clmn_begin
+            + out.row_mem_stride * row_begin;
+
+    for (int ch_idx = 0; ch_idx < in.ch; ch_idx++) {
         for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
             for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
                 // Define area of input for maxpooling
@@ -285,9 +288,9 @@ static inline void __attribute__((always_inline)) maxpool_chw(
                 int top_comp = -MIN((int)(H_idx * stride_height) - padding_top, 0);
                 int left_comp = -MIN((int)(W_idx * stride_width) - padding_left, 0);
 
-                int right_comp = -MIN((int)in_width - ((int)(W_idx * stride_width) - padding_left + kernel_width), 0);
+                int right_comp = -MIN((int)in.width - ((int)(W_idx * stride_width) - padding_left + kernel_width), 0);
                 int bottom_comp =
-                        -MIN((int)in_height - ((int)(H_idx * stride_height) - padding_top + kernel_height), 0);
+                        -MIN((int)in.height - ((int)(H_idx * stride_height) - padding_top + kernel_height), 0);
 
                 if (fixed_padding) {
                     if (padding_left == 0) left_comp = 0;
@@ -299,38 +302,32 @@ static inline void __attribute__((always_inline)) maxpool_chw(
                 int rows = kernel_height - top_comp - bottom_comp;
                 int clmns = kernel_width - right_comp - left_comp;
 
-                const MLI_PTR(io_T) __restrict in_ptr =
-                        in_ftrs +                                                      // starting point
-                        in_width * in_height * ch_idx +                                // move to channels
-                        in_width * (H_idx * stride_height - padding_top + top_comp) +  // move to row
-                        (W_idx * stride_width) - padding_left + left_comp;             // move to column
+                const MLI_PTR(io_T) __restrict in_ptr = in.ptr
+                        + in.ch_mem_stride * ch_idx                                              // move to channels
+                        + in.row_mem_stride * (H_idx * stride_height - padding_top + top_comp)   // move to row
+                        + in.col_mem_stride * (W_idx * stride_width - padding_left + left_comp); // move to column
 
                 // Core Max
-                io_T max_val = reduce_max2D(in_ptr, clmns, rows, in_width, false);
+                io_T max_val = reduce_max2D(in_ptr, clmns, rows, in.row_mem_stride, false);
 
                 // Write result
                 *out_ptr++ = max_val;
                 MAXPOOL_DBG_PRINT(ch_idx, H_idx, W_idx, max_val);
             }
-            out_ptr += out_width + clmn_begin - clmn_end;
+            out_ptr += out.row_mem_stride - (clmn_end - clmn_begin);
         }
-        out_ptr += out_width * (out_height + row_begin - row_end);
+        out_ptr += out.ch_mem_stride - out.row_mem_stride * (row_end - row_begin);
     }
 }
 
 template <typename io_T>
 static inline void __attribute__((always_inline)) maxpool_chw_small(
-        const MLI_PTR(io_T) __restrict in_ftrs,
-        MLI_OUT_PTR(io_T) __restrict out_ftrs,
+        const tensor_private_t<MLI_PTR(io_T)> &in,
+        const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
         const int row_begin,
         const int row_end,
         const int clmn_begin,
         const int clmn_end,
-        const int channels_num,
-        const int in_width,
-        const int in_height,
-        const int out_width,
-        const int out_height,
         const int kernel_height,
         const int kernel_width,
         const int stride_height,
@@ -340,20 +337,25 @@ static inline void __attribute__((always_inline)) maxpool_chw_small(
         const int padding_left,
         const int padding_right,
         const int fixed_padding) {
-    MLI_ASSERT(kernel_width <= 3); // the code in this function assumes small kernel width.
-    MLI_OUT_PTR(io_T) __restrict out_ptr = out_ftrs + row_begin * out_width + clmn_begin;
 
-    for (int ch_idx = 0; ch_idx < channels_num; ch_idx++) {
+    MLI_ASSERT(in.col_mem_stride == 1 && out.col_mem_stride == 1);
+
+    MLI_ASSERT(kernel_width <= 3); // the code in this function assumes small kernel width.
+    MLI_OUT_PTR(io_T) __restrict out_ptr = out.ptr
+            + out.col_mem_stride * clmn_begin
+            + out.row_mem_stride * row_begin;
+
+    for (int ch_idx = 0; ch_idx < in.ch; ch_idx++) {
         for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
             for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
                 // Define area of input for maxpooling
                 // *_comp - compensation values for valid area defining
                 int top_comp = -MIN((int)(H_idx * stride_height) - padding_top, 0);
-				// because kernel width is max 3, left_comp and right_comp can be max 1
-				int left_comp = (W_idx * stride_width < padding_left) ? 1 : 0;
-				int right_comp = (in_width + padding_left - kernel_width < W_idx * stride_width) ? 1 : 0;
+                // because kernel width is max 3, left_comp and right_comp can be max 1
+                int left_comp = (W_idx * stride_width < padding_left) ? 1 : 0;
+                int right_comp = (in.width + padding_left - kernel_width < W_idx * stride_width) ? 1 : 0;
                 int bottom_comp =
-                        -MIN((int)in_height - ((int)(H_idx * stride_height) - padding_top + kernel_height), 0);
+                        -MIN((int)in.height - ((int)(H_idx * stride_height) - padding_top + kernel_height), 0);
 
                 if (fixed_padding) {
                     if (padding_left == 0) left_comp = 0;
@@ -365,38 +367,32 @@ static inline void __attribute__((always_inline)) maxpool_chw_small(
                 int rows = kernel_height - top_comp - bottom_comp;
                 int clmns = kernel_width - right_comp - left_comp;
 
-                const MLI_PTR(io_T) __restrict in_ptr =
-                        in_ftrs +                                                      // starting point
-                        in_width * in_height * ch_idx +                                // move to channels
-                        in_width * (H_idx * stride_height - padding_top + top_comp) +  // move to row
-                        (W_idx * stride_width) - padding_left + left_comp;             // move to column
+                const MLI_PTR(io_T) __restrict in_ptr = in.ptr
+                        + in.ch_mem_stride * ch_idx                                              // move to channels
+                        + in.row_mem_stride * (H_idx * stride_height - padding_top + top_comp)   // move to row
+                        + in.col_mem_stride * (W_idx * stride_width - padding_left + left_comp); // move to column
 
                 // Core Max
-                io_T max_val = reduce_max2D_small(in_ptr, clmns, rows, in_width, kernel_width);
+                io_T max_val = reduce_max2D(in_ptr, clmns, rows, in.row_mem_stride, kernel_width);
 
                 // Write result
                 *out_ptr++ = max_val;
                 MAXPOOL_DBG_PRINT(ch_idx, H_idx, W_idx, max_val);
             }
-            out_ptr += out_width + clmn_begin - clmn_end;
+            out_ptr += out.row_mem_stride - (clmn_end - clmn_begin);
         }
-        out_ptr += out_width * (out_height + row_begin - row_end);
+        out_ptr += out.ch_mem_stride - out.row_mem_stride * (row_end - row_begin);
     }
 }
 
 template <typename io_T>
 static inline void __attribute__((always_inline)) maxpool_chw_pad(
-        const MLI_PTR(io_T) __restrict in_ftrs,
-        MLI_OUT_PTR(io_T) __restrict out_ftrs,
+        const tensor_private_t<MLI_PTR(io_T)> &in,
+        const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
         const int row_beg,
         const int row_end,
         const int clmn_beg,
         const int clmn_end,
-        const int channels_num,
-        const int in_width,
-        const int in_height,
-        const int out_width,
-        const int out_height,
         const int kernel_height,
         const int kernel_width,
         const int stride_height,
@@ -408,15 +404,15 @@ static inline void __attribute__((always_inline)) maxpool_chw_pad(
         const int fixed_padding) {
     // Phase 1: Process central part (without border effects - padding free)
     //=======================================================================
-    if (in_height >= kernel_height && in_width >= kernel_width) {
+    if (in.height >= kernel_height && in.width >= kernel_width) {
         const int row_beg = CEIL_DIV(padding_top, stride_height);
-        const int row_end = out_height - CEIL_DIV(padding_bot, stride_height);
+        const int row_end = out.height - CEIL_DIV(padding_bot, stride_height);
         const int clmn_beg = CEIL_DIV(padding_left, stride_width);
-        const int clmn_end = out_width - CEIL_DIV(padding_right, stride_width);
+        const int clmn_end = out.width - CEIL_DIV(padding_right, stride_width);
 
         maxpool_chw_nopad(
-                in_ftrs, out_ftrs, row_beg, row_end, clmn_beg, clmn_end, channels_num, in_width, in_height, out_width,
-                out_height, kernel_height, kernel_width, stride_height, stride_width, padding_top, padding_bot,
+                in, out, row_beg, row_end, clmn_beg, clmn_end,
+                kernel_height, kernel_width, stride_height, stride_width, padding_top, padding_bot,
                 padding_left, padding_right, fixed_padding);
     }
     // Phase 2: Process border part with more complex algorithm
@@ -428,47 +424,42 @@ static inline void __attribute__((always_inline)) maxpool_chw_pad(
         areas[areas_num].row_beg = 0;
         areas[areas_num].row_end = CEIL_DIV (padding_top, stride_height);
         areas[areas_num].clmn_beg = 0;
-        areas[areas_num++].clmn_end = out_width;
+        areas[areas_num++].clmn_end = out.width;
     }
     if (padding_bot) {
-        areas[areas_num].row_beg = out_height - CEIL_DIV (padding_bot, stride_height);
-        areas[areas_num].row_end = out_height;
+        areas[areas_num].row_beg = out.height - CEIL_DIV (padding_bot, stride_height);
+        areas[areas_num].row_end = out.height;
         areas[areas_num].clmn_beg = 0;
-        areas[areas_num++].clmn_end = out_width;
+        areas[areas_num++].clmn_end = out.width;
     }
     if (padding_left) {
         areas[areas_num].row_beg = CEIL_DIV (padding_top, stride_height);
-        areas[areas_num].row_end = out_height - CEIL_DIV (padding_bot, stride_height);
+        areas[areas_num].row_end = out.height - CEIL_DIV (padding_bot, stride_height);
         areas[areas_num].clmn_beg = 0;
         areas[areas_num++].clmn_end = CEIL_DIV (padding_left, stride_width);
     }
     if (padding_right) {
         areas[areas_num].row_beg = CEIL_DIV (padding_top, stride_height);
-        areas[areas_num].row_end = out_height - CEIL_DIV (padding_bot, stride_height);
-        areas[areas_num].clmn_beg = out_width - CEIL_DIV (padding_right, stride_width);
-        areas[areas_num++].clmn_end = out_width;
+        areas[areas_num].row_end = out.height - CEIL_DIV (padding_bot, stride_height);
+        areas[areas_num].clmn_beg = out.width - CEIL_DIV (padding_right, stride_width);
+        areas[areas_num++].clmn_end = out.width;
     }
     for (int i = 0; i < areas_num; i++) {
         maxpool_chw(
-                in_ftrs, out_ftrs, areas[i].row_beg, areas[i].row_end, areas[i].clmn_beg, areas[i].clmn_end, channels_num, in_width, in_height, out_width,
-                out_height, kernel_height, kernel_width, stride_height, stride_width, padding_top, padding_bot,
+                in, out, areas[i].row_beg, areas[i].row_end, areas[i].clmn_beg, areas[i].clmn_end,
+                kernel_height, kernel_width, stride_height, stride_width, padding_top, padding_bot,
                 padding_left, padding_right, fixed_padding);
     }
 }
 
 template <typename io_T>
 static inline void __attribute__((always_inline)) maxpool_chw_krnpad_small(
-        const MLI_PTR(io_T) __restrict in_ftrs,
-        MLI_OUT_PTR(io_T) __restrict out_ftrs,
+        const tensor_private_t<MLI_PTR(io_T)> &in,
+        const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
         const int row_beg,
         const int row_end,
         const int clmn_beg,
         const int clmn_end,
-        const int channels_num,
-        const int in_width,
-        const int in_height,
-        const int out_width,
-        const int out_height,
         const int kernel_height,
         const int kernel_width,
         const int stride_height,
@@ -478,17 +469,20 @@ static inline void __attribute__((always_inline)) maxpool_chw_krnpad_small(
         const int padding_left,
         const int padding_right,
         const int fixed_padding) {
+
+    MLI_ASSERT(in.col_mem_stride == 1 && out.col_mem_stride == 1);
+
     // Phase 1: Process central part (without border effects - padding free)
     //=======================================================================
-    if (in_height >= kernel_height && in_width >= kernel_width) {
+    if (in.height >= kernel_height && in.width >= kernel_width) {
         const int row_beg = CEIL_DIV(padding_top, stride_height);
-        const int row_end = out_height - CEIL_DIV(padding_bot, stride_height);
+        const int row_end = out.height - CEIL_DIV(padding_bot, stride_height);
         const int clmn_beg = CEIL_DIV(padding_left, stride_width);
-        const int clmn_end = out_width - CEIL_DIV(padding_right, stride_width);
+        const int clmn_end = out.width - CEIL_DIV(padding_right, stride_width);
 
         maxpool_chw_nopad(
-                in_ftrs, out_ftrs, row_beg, row_end, clmn_beg, clmn_end, channels_num, in_width, in_height, out_width,
-                out_height, kernel_height, kernel_width, stride_height, stride_width, padding_top, padding_bot,
+                in, out, row_beg, row_end, clmn_beg, clmn_end,
+                kernel_height, kernel_width, stride_height, stride_width, padding_top, padding_bot,
                 padding_left, padding_right, fixed_padding);
     }
     // Phase 2: Process border part with more complex algorithm
@@ -500,30 +494,30 @@ static inline void __attribute__((always_inline)) maxpool_chw_krnpad_small(
         areas[areas_num].row_beg = 0;
         areas[areas_num].row_end = CEIL_DIV (padding_top, stride_height);
         areas[areas_num].clmn_beg = 0;
-        areas[areas_num++].clmn_end = out_width;
+        areas[areas_num++].clmn_end = out.width;
     }
     if (padding_bot) {
-        areas[areas_num].row_beg = out_height - CEIL_DIV (padding_bot, stride_height);
-        areas[areas_num].row_end = out_height;
+        areas[areas_num].row_beg = out.height - CEIL_DIV (padding_bot, stride_height);
+        areas[areas_num].row_end = out.height;
         areas[areas_num].clmn_beg = 0;
-        areas[areas_num++].clmn_end = out_width;
+        areas[areas_num++].clmn_end = out.width;
     }
     if (padding_left) {
         areas[areas_num].row_beg = CEIL_DIV (padding_top, stride_height);
-        areas[areas_num].row_end = out_height - CEIL_DIV (padding_bot, stride_height);
+        areas[areas_num].row_end = out.height - CEIL_DIV (padding_bot, stride_height);
         areas[areas_num].clmn_beg = 0;
         areas[areas_num++].clmn_end = CEIL_DIV (padding_left, stride_width);
     }
     if (padding_right) {
         areas[areas_num].row_beg = CEIL_DIV (padding_top, stride_height);
-        areas[areas_num].row_end = out_height - CEIL_DIV (padding_bot, stride_height);
-        areas[areas_num].clmn_beg = out_width - CEIL_DIV (padding_right, stride_width);
-        areas[areas_num++].clmn_end = out_width;
+        areas[areas_num].row_end = out.height - CEIL_DIV (padding_bot, stride_height);
+        areas[areas_num].clmn_beg = out.width - CEIL_DIV (padding_right, stride_width);
+        areas[areas_num++].clmn_end = out.width;
     }
     for (int i = 0; i < areas_num; i++) {
         maxpool_chw_small(
-                in_ftrs, out_ftrs, areas[i].row_beg, areas[i].row_end, areas[i].clmn_beg, areas[i].clmn_end, channels_num, in_width, in_height, out_width,
-                out_height, kernel_height, kernel_width, stride_height, stride_width, padding_top, padding_bot,
+                in, out, areas[i].row_beg, areas[i].row_end, areas[i].clmn_beg, areas[i].clmn_end,
+                kernel_height, kernel_width, stride_height, stride_width, padding_top, padding_bot,
                 padding_left, padding_right, fixed_padding);
     }
 }

@@ -41,9 +41,13 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_str1_nopad(const mli_tensor * in, const
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 1
     MLI_CHECK_AND_FIX(stride_width, 1);
@@ -63,20 +67,19 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_str1_nopad(const mli_tensor * in, const
 #if 2
     MLI_CHECK_AND_FIX(kernel_height, 2);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -86,23 +89,13 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_str1_nopad(const mli_tensor * in, const
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_nopad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         1);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -119,9 +112,13 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_nopad(const mli_tensor * in, const mli_
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -141,20 +138,19 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_nopad(const mli_tensor * in, const mli_
 #if 2
     MLI_CHECK_AND_FIX(kernel_height, 2);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -164,23 +160,13 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_nopad(const mli_tensor * in, const mli_
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_nopad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         1);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -197,9 +183,13 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_nopad(const mli_tensor * in, const mli_
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -219,20 +209,19 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_nopad(const mli_tensor * in, const mli_
 #if 3
     MLI_CHECK_AND_FIX(kernel_height, 3);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -242,23 +231,13 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_nopad(const mli_tensor * in, const mli_
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_nopad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         1);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -275,9 +254,13 @@ mli_status mli_krn_maxpool_chw_fx16_k4x4_nopad(const mli_tensor * in, const mli_
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -297,20 +280,19 @@ mli_status mli_krn_maxpool_chw_fx16_k4x4_nopad(const mli_tensor * in, const mli_
 #if 4
     MLI_CHECK_AND_FIX(kernel_height, 4);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -320,23 +302,13 @@ mli_status mli_krn_maxpool_chw_fx16_k4x4_nopad(const mli_tensor * in, const mli_
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_nopad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         1);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -353,9 +325,13 @@ mli_status mli_krn_maxpool_chw_fx16_k5x5_nopad(const mli_tensor * in, const mli_
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -375,20 +351,19 @@ mli_status mli_krn_maxpool_chw_fx16_k5x5_nopad(const mli_tensor * in, const mli_
 #if 5
     MLI_CHECK_AND_FIX(kernel_height, 5);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -398,23 +373,13 @@ mli_status mli_krn_maxpool_chw_fx16_k5x5_nopad(const mli_tensor * in, const mli_
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_nopad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         1);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -431,9 +396,13 @@ mli_status mli_krn_maxpool_chw_fx16_k6x6_nopad(const mli_tensor * in, const mli_
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -453,20 +422,19 @@ mli_status mli_krn_maxpool_chw_fx16_k6x6_nopad(const mli_tensor * in, const mli_
 #if 6
     MLI_CHECK_AND_FIX(kernel_height, 6);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -476,23 +444,13 @@ mli_status mli_krn_maxpool_chw_fx16_k6x6_nopad(const mli_tensor * in, const mli_
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_nopad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         1);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -509,9 +467,13 @@ mli_status mli_krn_maxpool_chw_fx16_k7x7_nopad(const mli_tensor * in, const mli_
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -531,20 +493,19 @@ mli_status mli_krn_maxpool_chw_fx16_k7x7_nopad(const mli_tensor * in, const mli_
 #if 7
     MLI_CHECK_AND_FIX(kernel_height, 7);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -554,23 +515,13 @@ mli_status mli_krn_maxpool_chw_fx16_k7x7_nopad(const mli_tensor * in, const mli_
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_nopad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         1);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -587,9 +538,13 @@ mli_status mli_krn_maxpool_chw_fx16_k8x8_nopad(const mli_tensor * in, const mli_
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -609,20 +564,19 @@ mli_status mli_krn_maxpool_chw_fx16_k8x8_nopad(const mli_tensor * in, const mli_
 #if 8
     MLI_CHECK_AND_FIX(kernel_height, 8);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -632,23 +586,13 @@ mli_status mli_krn_maxpool_chw_fx16_k8x8_nopad(const mli_tensor * in, const mli_
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_nopad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         1);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -665,9 +609,13 @@ mli_status mli_krn_maxpool_chw_fx16_k9x9_nopad(const mli_tensor * in, const mli_
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -687,20 +635,19 @@ mli_status mli_krn_maxpool_chw_fx16_k9x9_nopad(const mli_tensor * in, const mli_
 #if 9
     MLI_CHECK_AND_FIX(kernel_height, 9);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -710,23 +657,13 @@ mli_status mli_krn_maxpool_chw_fx16_k9x9_nopad(const mli_tensor * in, const mli_
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_nopad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         1);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -743,9 +680,13 @@ mli_status mli_krn_maxpool_chw_fx16_k10x10_nopad(const mli_tensor * in, const ml
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -765,20 +706,19 @@ mli_status mli_krn_maxpool_chw_fx16_k10x10_nopad(const mli_tensor * in, const ml
 #if 10
     MLI_CHECK_AND_FIX(kernel_height, 10);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -788,23 +728,13 @@ mli_status mli_krn_maxpool_chw_fx16_k10x10_nopad(const mli_tensor * in, const ml
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_nopad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         1);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -821,9 +751,13 @@ mli_status mli_krn_maxpool_chw_fx16_k1x2_nopad(const mli_tensor * in, const mli_
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -843,20 +777,19 @@ mli_status mli_krn_maxpool_chw_fx16_k1x2_nopad(const mli_tensor * in, const mli_
 #if 2
     MLI_CHECK_AND_FIX(kernel_height, 2);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -866,23 +799,13 @@ mli_status mli_krn_maxpool_chw_fx16_k1x2_nopad(const mli_tensor * in, const mli_
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_nopad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         1);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -899,9 +822,13 @@ mli_status mli_krn_maxpool_chw_fx16_k1x3_nopad(const mli_tensor * in, const mli_
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -921,20 +848,19 @@ mli_status mli_krn_maxpool_chw_fx16_k1x3_nopad(const mli_tensor * in, const mli_
 #if 3
     MLI_CHECK_AND_FIX(kernel_height, 3);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -944,23 +870,13 @@ mli_status mli_krn_maxpool_chw_fx16_k1x3_nopad(const mli_tensor * in, const mli_
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_nopad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         1);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -977,9 +893,13 @@ mli_status mli_krn_maxpool_chw_fx16_k2x1_nopad(const mli_tensor * in, const mli_
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -999,20 +919,19 @@ mli_status mli_krn_maxpool_chw_fx16_k2x1_nopad(const mli_tensor * in, const mli_
 #if 1
     MLI_CHECK_AND_FIX(kernel_height, 1);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -1022,23 +941,13 @@ mli_status mli_krn_maxpool_chw_fx16_k2x1_nopad(const mli_tensor * in, const mli_
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_nopad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         1);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -1055,9 +964,13 @@ mli_status mli_krn_maxpool_chw_fx16_k3x1_nopad(const mli_tensor * in, const mli_
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -1077,20 +990,19 @@ mli_status mli_krn_maxpool_chw_fx16_k3x1_nopad(const mli_tensor * in, const mli_
 #if 1
     MLI_CHECK_AND_FIX(kernel_height, 1);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -1100,23 +1012,13 @@ mli_status mli_krn_maxpool_chw_fx16_k3x1_nopad(const mli_tensor * in, const mli_
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_nopad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         1);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -1133,9 +1035,13 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_krnpad(const mli_tensor * in, const mli
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -1155,20 +1061,19 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_krnpad(const mli_tensor * in, const mli
 #if 2
     MLI_CHECK_AND_FIX(kernel_height, 2);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -1178,23 +1083,13 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2_krnpad(const mli_tensor * in, const mli
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_krnpad_small(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         0);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -1211,9 +1106,13 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_krnpad(const mli_tensor * in, const mli
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -1233,20 +1132,19 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_krnpad(const mli_tensor * in, const mli
 #if 3
     MLI_CHECK_AND_FIX(kernel_height, 3);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -1256,23 +1154,13 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3_krnpad(const mli_tensor * in, const mli
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_krnpad_small(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         0);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -1289,9 +1177,13 @@ mli_status mli_krn_maxpool_chw_fx16_k4x4_krnpad(const mli_tensor * in, const mli
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -1311,20 +1203,19 @@ mli_status mli_krn_maxpool_chw_fx16_k4x4_krnpad(const mli_tensor * in, const mli
 #if 4
     MLI_CHECK_AND_FIX(kernel_height, 4);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -1334,23 +1225,13 @@ mli_status mli_krn_maxpool_chw_fx16_k4x4_krnpad(const mli_tensor * in, const mli
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_pad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         0);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -1367,9 +1248,13 @@ mli_status mli_krn_maxpool_chw_fx16_k5x5_krnpad(const mli_tensor * in, const mli
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -1389,20 +1274,19 @@ mli_status mli_krn_maxpool_chw_fx16_k5x5_krnpad(const mli_tensor * in, const mli
 #if 5
     MLI_CHECK_AND_FIX(kernel_height, 5);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -1412,23 +1296,13 @@ mli_status mli_krn_maxpool_chw_fx16_k5x5_krnpad(const mli_tensor * in, const mli
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_pad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         0);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -1445,9 +1319,13 @@ mli_status mli_krn_maxpool_chw_fx16_k6x6_krnpad(const mli_tensor * in, const mli
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -1467,20 +1345,19 @@ mli_status mli_krn_maxpool_chw_fx16_k6x6_krnpad(const mli_tensor * in, const mli
 #if 6
     MLI_CHECK_AND_FIX(kernel_height, 6);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -1490,23 +1367,13 @@ mli_status mli_krn_maxpool_chw_fx16_k6x6_krnpad(const mli_tensor * in, const mli
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_pad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         0);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -1523,9 +1390,13 @@ mli_status mli_krn_maxpool_chw_fx16_k7x7_krnpad(const mli_tensor * in, const mli
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -1545,20 +1416,19 @@ mli_status mli_krn_maxpool_chw_fx16_k7x7_krnpad(const mli_tensor * in, const mli
 #if 7
     MLI_CHECK_AND_FIX(kernel_height, 7);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -1568,23 +1438,13 @@ mli_status mli_krn_maxpool_chw_fx16_k7x7_krnpad(const mli_tensor * in, const mli
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_pad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         0);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -1601,9 +1461,13 @@ mli_status mli_krn_maxpool_chw_fx16_k8x8_krnpad(const mli_tensor * in, const mli
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -1623,20 +1487,19 @@ mli_status mli_krn_maxpool_chw_fx16_k8x8_krnpad(const mli_tensor * in, const mli
 #if 8
     MLI_CHECK_AND_FIX(kernel_height, 8);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -1646,23 +1509,13 @@ mli_status mli_krn_maxpool_chw_fx16_k8x8_krnpad(const mli_tensor * in, const mli
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_pad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         0);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -1679,9 +1532,13 @@ mli_status mli_krn_maxpool_chw_fx16_k9x9_krnpad(const mli_tensor * in, const mli
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -1701,20 +1558,19 @@ mli_status mli_krn_maxpool_chw_fx16_k9x9_krnpad(const mli_tensor * in, const mli
 #if 9
     MLI_CHECK_AND_FIX(kernel_height, 9);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -1724,23 +1580,13 @@ mli_status mli_krn_maxpool_chw_fx16_k9x9_krnpad(const mli_tensor * in, const mli
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_pad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         0);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -1757,9 +1603,13 @@ mli_status mli_krn_maxpool_chw_fx16_k10x10_krnpad(const mli_tensor * in, const m
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -1779,20 +1629,19 @@ mli_status mli_krn_maxpool_chw_fx16_k10x10_krnpad(const mli_tensor * in, const m
 #if 10
     MLI_CHECK_AND_FIX(kernel_height, 10);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -1802,23 +1651,13 @@ mli_status mli_krn_maxpool_chw_fx16_k10x10_krnpad(const mli_tensor * in, const m
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_pad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         0);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -1835,9 +1674,13 @@ mli_status mli_krn_maxpool_chw_fx16_k1x2_krnpad(const mli_tensor * in, const mli
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -1857,20 +1700,19 @@ mli_status mli_krn_maxpool_chw_fx16_k1x2_krnpad(const mli_tensor * in, const mli
 #if 2
     MLI_CHECK_AND_FIX(kernel_height, 2);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -1880,23 +1722,13 @@ mli_status mli_krn_maxpool_chw_fx16_k1x2_krnpad(const mli_tensor * in, const mli
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_pad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         0);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -1913,9 +1745,13 @@ mli_status mli_krn_maxpool_chw_fx16_k1x3_krnpad(const mli_tensor * in, const mli
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -1935,20 +1771,19 @@ mli_status mli_krn_maxpool_chw_fx16_k1x3_krnpad(const mli_tensor * in, const mli
 #if 3
     MLI_CHECK_AND_FIX(kernel_height, 3);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -1958,23 +1793,13 @@ mli_status mli_krn_maxpool_chw_fx16_k1x3_krnpad(const mli_tensor * in, const mli
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_pad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         0);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -1991,9 +1816,13 @@ mli_status mli_krn_maxpool_chw_fx16_k2x1_krnpad(const mli_tensor * in, const mli
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -2013,20 +1842,19 @@ mli_status mli_krn_maxpool_chw_fx16_k2x1_krnpad(const mli_tensor * in, const mli
 #if 1
     MLI_CHECK_AND_FIX(kernel_height, 1);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -2036,23 +1864,13 @@ mli_status mli_krn_maxpool_chw_fx16_k2x1_krnpad(const mli_tensor * in, const mli
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_pad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         0);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -2069,9 +1887,13 @@ mli_status mli_krn_maxpool_chw_fx16_k3x1_krnpad(const mli_tensor * in, const mli
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -2091,20 +1913,19 @@ mli_status mli_krn_maxpool_chw_fx16_k3x1_krnpad(const mli_tensor * in, const mli
 #if 1
     MLI_CHECK_AND_FIX(kernel_height, 1);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -2114,23 +1935,13 @@ mli_status mli_krn_maxpool_chw_fx16_k3x1_krnpad(const mli_tensor * in, const mli
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_pad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         0);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -2147,9 +1958,13 @@ mli_status mli_krn_maxpool_chw_fx16_k1xn(const mli_tensor * in, const mli_pool_c
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -2169,20 +1984,19 @@ mli_status mli_krn_maxpool_chw_fx16_k1xn(const mli_tensor * in, const mli_pool_c
 #if 0
     MLI_CHECK_AND_FIX(kernel_height, 0);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -2192,23 +2006,13 @@ mli_status mli_krn_maxpool_chw_fx16_k1xn(const mli_tensor * in, const mli_pool_c
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_pad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         0);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -2225,9 +2029,13 @@ mli_status mli_krn_maxpool_chw_fx16_knx1(const mli_tensor * in, const mli_pool_c
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -2247,20 +2055,19 @@ mli_status mli_krn_maxpool_chw_fx16_knx1(const mli_tensor * in, const mli_pool_c
 #if 1
     MLI_CHECK_AND_FIX(kernel_height, 1);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -2270,23 +2077,13 @@ mli_status mli_krn_maxpool_chw_fx16_knx1(const mli_tensor * in, const mli_pool_c
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_pad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         0);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -2303,9 +2100,13 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2(const mli_tensor * in, const mli_pool_c
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -2325,20 +2126,19 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2(const mli_tensor * in, const mli_pool_c
 #if 2
     MLI_CHECK_AND_FIX(kernel_height, 2);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -2348,23 +2148,13 @@ mli_status mli_krn_maxpool_chw_fx16_k2x2(const mli_tensor * in, const mli_pool_c
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_pad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         0);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -2381,9 +2171,13 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3(const mli_tensor * in, const mli_pool_c
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -2403,20 +2197,19 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3(const mli_tensor * in, const mli_pool_c
 #if 3
     MLI_CHECK_AND_FIX(kernel_height, 3);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -2426,23 +2219,13 @@ mli_status mli_krn_maxpool_chw_fx16_k3x3(const mli_tensor * in, const mli_pool_c
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_pad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         0);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }
@@ -2459,9 +2242,13 @@ mli_status mli_krn_maxpool_chw_fx16_generic(const mli_tensor * in, const mli_poo
     int32_t padding_bot = cfg->padding_bottom;
     int32_t padding_left = cfg->padding_left;
     int32_t padding_right = cfg->padding_right;
-    int32_t channels_num = in->shape[FMAP_C_DIM_CHW];
     int32_t kernel_height = cfg->kernel_height;
     int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+            0); // channels
+
     // assign hard coded values for this variation to some variables
 #if 0
     MLI_CHECK_AND_FIX(stride_width, 0);
@@ -2481,20 +2268,19 @@ mli_status mli_krn_maxpool_chw_fx16_generic(const mli_tensor * in, const mli_poo
 #if 0
     MLI_CHECK_AND_FIX(kernel_height, 0);
 #endif
-#if 0
-    MLI_CHECK_AND_FIX(channels_num, 0);
-#endif
-
-    // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data;
-    MLI_OUT_PTR(int16_t) out_ftrs = (MLI_OUT_PTR(int16_t ))out->data;
 
     // Define Data dimensions
-    const int32_t in_height = in->shape[FMAP_H_DIM_CHW];
-    const int32_t in_width = in->shape[FMAP_W_DIM_CHW];
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    const int32_t out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_CHW] = in_prv.ch;
+    out->shape[FMAP_H_DIM_CHW] = out_height;
+    out->shape[FMAP_W_DIM_CHW] = out_width;
+    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
@@ -2504,23 +2290,13 @@ mli_status mli_krn_maxpool_chw_fx16_generic(const mli_tensor * in, const mli_poo
     mli_prv_fx_init_dsp_ctrl();
 
     maxpool_chw_pad(
-        in_ftrs, out_ftrs,
+        in_prv, out_prv,
         row_beg, row_end,
         clmn_beg, clmn_end,
-        channels_num, in_width, in_height,
-        out_width, out_height,
         kernel_height, kernel_width,
         stride_height, stride_width,
         padding_top, padding_bot, padding_left, padding_right,
         0);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_CHW] = channels_num;
-    out->shape[FMAP_H_DIM_CHW] = out_height;
-    out->shape[FMAP_W_DIM_CHW] = out_width;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
 
     return MLI_STATUS_OK;
 }

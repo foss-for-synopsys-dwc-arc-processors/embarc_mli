@@ -180,8 +180,8 @@ static inline accum40_t reduce_sum2D_hwc(
         MLI_PTR(io_T) __restrict in,
         uint32_t width,
         uint32_t height,
-        uint32_t channels,
-        uint32_t in_row_step,
+        uint32_t col_mem_stride,
+        uint32_t row_mem_stride,
         int16_t mul) {
     accum40_t acc40 = fx_create_a40(0x0, 0x0);
 #pragma clang diagnostic push
@@ -190,13 +190,13 @@ static inline accum40_t reduce_sum2D_hwc(
 #pragma clang loop unroll(full)
         for (int row = 0; row < height; row++) {
             acc40 = fx_a40_mac_q15(acc40, *in, mul);
-            in += channels * in_row_step;
+            in += row_mem_stride;
         }
     } else if( height == 1) {
 #pragma clang loop unroll(full)
         for (int clmn = 0; clmn < width; clmn++) {
             acc40 = fx_a40_mac_q15(acc40, *in, mul);
-            in += channels;
+            in += col_mem_stride;
         }
     } else {
 #pragma clang loop unroll(full)
@@ -204,9 +204,9 @@ static inline accum40_t reduce_sum2D_hwc(
 #pragma clang loop unroll(full)
             for (int clmn = 0; clmn < width; clmn++) {
                 acc40 = fx_a40_mac_q15(acc40, *in, mul);
-                in += channels;
+                in += col_mem_stride;
             }
-            in += channels * (in_row_step - width);
+            in += row_mem_stride - col_mem_stride * width;
         }
     }
 #pragma clang diagnostic pop
@@ -218,8 +218,8 @@ static inline v2accum40_t __attribute__((always_inline)) reduce_sum2D_hwc_v(
         MLI_PTR(io_T) __restrict in,
         uint32_t width,
         uint32_t height,
-        uint32_t channels,
-        uint32_t in_row_step,
+        uint32_t col_mem_stride,
+        uint32_t row_mem_stride,
         int16_t mul) {
 
     v2accum40_t v2acc40 = {0, 0};
@@ -230,13 +230,13 @@ static inline v2accum40_t __attribute__((always_inline)) reduce_sum2D_hwc_v(
 #pragma clang loop unroll(full)
         for (int row = 0; row < height; row++) {
             v2acc40 = fx_v2a40_mac_v2q15(v2acc40, mli_prv_load_2_samples(in), v2mul);
-            in += in_row_step * channels;
+            in += row_mem_stride;
         }
     } else if (height == 1){
 #pragma clang loop unroll(full)
         for (int clmn = 0; clmn < width; clmn++) {
             v2acc40 = fx_v2a40_mac_v2q15(v2acc40, mli_prv_load_2_samples(in), v2mul);
-            in += channels;
+            in += col_mem_stride;
         }
     } else {
 #pragma clang loop unroll(full)
@@ -244,9 +244,9 @@ static inline v2accum40_t __attribute__((always_inline)) reduce_sum2D_hwc_v(
 #pragma clang loop unroll(full)
             for (int clmn = 0; clmn < width; clmn++) {
                 v2acc40 = fx_v2a40_mac_v2q15(v2acc40, mli_prv_load_2_samples(in), v2mul);
-                in += channels;
+                in += col_mem_stride;
             }
-            in += channels * (in_row_step - width);
+            in += row_mem_stride - col_mem_stride * width;
         }
     }
 #pragma clang diagnostic pop

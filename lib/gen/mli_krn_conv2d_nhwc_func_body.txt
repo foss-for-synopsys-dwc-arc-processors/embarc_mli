@@ -11,10 +11,15 @@
     int padding_bot = cfg->padding_bottom;
     int padding_left = cfg->padding_left;
     int padding_right = cfg->padding_right;
-    int kernel_height = weights->shape[KRNL_H_DIM_HWC];
-    int kernel_width = weights->shape[KRNL_W_DIM_HWC];
-    int out_ch = weights->shape[KRNL_C_DIM_HWC];
-    int in_ch = in->shape[FMAP_C_DIM_HWC];
+
+    // Define Data dimensions
+    const auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR($d_type), MLI_PTR_IS_XY>(in,
+            $channels); // channels
+    const auto w = mli_prv_get_conv2d_weights_tensor_nhwc<MLI_PTR($w_type), MLI_PTR_IS_XY>(weights,
+            $channels,  // channels
+            $kernel_w,  // kernel_width
+            $kernel_h); // kernel_height
+    __builtin_assume(in_prv.ch == w.in_ch);
 
     // assign hard coded values for this variation to some variables
 #if $stride_w
@@ -29,15 +34,6 @@
     MLI_CHECK_AND_FIX(padding_left, $padding_left);
     MLI_CHECK_AND_FIX(padding_right, $padding_right);
 #endif
-#if $kernel_w
-    MLI_CHECK_AND_FIX(kernel_width, $kernel_w);
-#endif
-#if $kernel_h
-    MLI_CHECK_AND_FIX(kernel_height, $kernel_h);
-#endif
-#if $channels
-    MLI_CHECK_AND_FIX(in_ch, $channels);
-#endif
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
@@ -46,17 +42,18 @@
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR($d_type) in_ftrs = (MLI_PTR($d_type ))in->data;
-    MLI_CONV_OUT_PTR($d_type) out_ftrs = (MLI_CONV_OUT_PTR($d_type ))out->data;
-    MLI_PTR($w_type) wt = (MLI_PTR($w_type ))weights->data;
     MLI_PTR($b_type) bs = (MLI_PTR($b_type ))bias->data;
 
     // Define Data dimensions
-    int in_height = in->shape[FMAP_H_DIM_HWC];
-    int in_width = in->shape[FMAP_W_DIM_HWC];
+    int out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - w.kernel_width + 1, stride_width);
+    int out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - w.kernel_height + 1, stride_height);
 
-    int out_width = CEIL_DIV(in_width + padding_left + padding_right - kernel_width + 1, stride_width);
-    int out_height = CEIL_DIV(in_height + padding_top + padding_bot - kernel_height + 1, stride_height);
+    // fill output tensor parameters
+    out->rank = in->rank;
+    out->shape[FMAP_C_DIM_HWC] = w.out_ch;
+    out->shape[FMAP_H_DIM_HWC] = out_height;
+    out->shape[FMAP_W_DIM_HWC] = out_width;
+    const auto out_prv = mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR($d_type), MLI_CONV_OUT_PTR_IS_XY>(out);
 
     // Define quantization specific params
     s8asym_quant_specific_params params;
@@ -70,16 +67,11 @@
     cent_area.clmn_end = out_width;
 
     $core_name<$d_type, $w_type, $b_type, int32_t>(
-            in_ftrs, wt, bs, out_ftrs, &cent_area, params,
-            (int8_t)val_limit.min, (int8_t)val_limit.max, in_ch, in_width, in_height, 
-            out_ch, out_width, out_height, kernel_height, kernel_width,
-            stride_height, stride_width, padding_top, padding_left, padding_bot, padding_right);
-
-    // fill output tensor parameters
-    out->rank = in->rank;
-    out->shape[FMAP_C_DIM_HWC] = out_ch;
-    out->shape[FMAP_H_DIM_HWC] = out_height;
-    out->shape[FMAP_W_DIM_HWC] = out_width;
+        in_prv, w, bs, out_prv,
+        &cent_area, params,
+        (int8_t)val_limit.min, (int8_t)val_limit.max,
+        stride_height, stride_width,
+        padding_top, padding_left, padding_bot, padding_right);
 
     return MLI_STATUS_OK;
 }
