@@ -44,6 +44,8 @@ static inline io_T __attribute__((always_inline)) reduce_max2D (
         v2q15_t v2_cur_max = mli_prv_load_2_samples(in);
         in += in_row_step;
         __builtin_assume(height > 0);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
 #pragma clang loop unroll(full)
         for (int row = 0; row < (height - 1); row++) {
             v2_cur_max = fx_max_v2q15(v2_cur_max, mli_prv_load_2_samples(in));
@@ -130,6 +132,7 @@ static inline io_T __attribute__((always_inline)) reduce_max2D (
             }
         }
     }
+#pragma clang diagnostic pop
     return (io_T)cur_max;
 }
 
@@ -147,6 +150,8 @@ static inline io_T __attribute__((always_inline)) reduce_max2D_small(
         cur_max = in[2];
         in += in_row_step;
         __builtin_assume(height > 0);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
 #pragma clang loop unroll(full)
         for (int row = 0; row < (height - 1); row++) {
             v2_cur_max = fx_max_v2q15(v2_cur_max, mli_prv_load_2_samples(in));
@@ -176,7 +181,7 @@ static inline io_T __attribute__((always_inline)) reduce_max2D_small(
     } else {
 		MLI_ASSERT(0);
 	}
-
+#pragma clang diagnostic pop
     return (io_T)cur_max;
 }
 

@@ -128,6 +128,8 @@ static inline void __attribute__((always_inline)) reduce_sum2D_chw_even(
         const int32_t in_row_step,
         const int16_t mul) {
     const v2q15_t mul_v = {mul, mul};
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
 #pragma clang loop unroll(full)
     for (int row = 0; row < height; row++) {
 #pragma clang loop unroll(full)
@@ -136,6 +138,7 @@ static inline void __attribute__((always_inline)) reduce_sum2D_chw_even(
         }
         in += in_row_step;
     }
+#pragma clang diagnostic pop
 }
 
 template <typename io_T>
@@ -147,6 +150,8 @@ static inline void __attribute__((always_inline)) reduce_sum2D_chw(
         const int32_t in_row_step,
         const int16_t mul) {
     const v2q15_t mul_v = {mul, mul};
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
     if (width & 1) {
 #pragma clang loop unroll(full)
         for (int row = 0; row < height; row++) {
@@ -167,6 +172,7 @@ static inline void __attribute__((always_inline)) reduce_sum2D_chw(
             in += in_row_step;
         }
     }
+#pragma clang diagnostic pop
 }
 
 template <typename io_T>
@@ -178,6 +184,8 @@ static inline accum40_t reduce_sum2D_hwc(
         uint32_t in_row_step,
         int16_t mul) {
     accum40_t acc40 = fx_create_a40(0x0, 0x0);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
     if (width == 1){
 #pragma clang loop unroll(full)
         for (int row = 0; row < height; row++) {
@@ -201,6 +209,7 @@ static inline accum40_t reduce_sum2D_hwc(
             in += channels * (in_row_step - width);
         }
     }
+#pragma clang diagnostic pop
     return acc40;
 }
 
@@ -215,6 +224,8 @@ static inline v2accum40_t __attribute__((always_inline)) reduce_sum2D_hwc_v(
 
     v2accum40_t v2acc40 = {0, 0};
     v2q15_t v2mul = {mul, mul};
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
     if (width == 1){
 #pragma clang loop unroll(full)
         for (int row = 0; row < height; row++) {
@@ -238,6 +249,7 @@ static inline v2accum40_t __attribute__((always_inline)) reduce_sum2D_hwc_v(
             in += channels * (in_row_step - width);
         }
     }
+#pragma clang diagnostic pop
     return v2acc40;
 }
 
@@ -271,6 +283,8 @@ inline acc_T __attribute__((always_inline)) reduce_sum2D(
         const int height,
         int in_col_step,
         int in_row_step) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
     if (width == 1){
 #pragma clang loop unroll(full)
         for (int row = 0; row < height; row++) {
@@ -295,6 +309,7 @@ inline acc_T __attribute__((always_inline)) reduce_sum2D(
             in += in_row_step;
         }
     }
+#pragma clang diagnostic pop
     return accu;
 }
 
@@ -313,6 +328,8 @@ static inline acc_T __attribute__((always_inline)) reduce_sum2D_v(
         int in_row_step) {
 
     v2q15_t v2mul = {mul, mul};
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
     if (width == 1){
 #pragma clang loop unroll(full)
         for (int row = 0; row < height; row++) {
@@ -337,6 +354,7 @@ static inline acc_T __attribute__((always_inline)) reduce_sum2D_v(
             *in += in_row_step;
         }
     }
+#pragma clang diagnostic pop
     return *v2acc;
 }
 
@@ -352,6 +370,8 @@ static inline acc_T __attribute__((always_inline)) reduce_sum2D_v(
         int in_row_step) {
 
     v2q15_t v2mul = {mul, mul};
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
     if (width == 1){
 #pragma clang loop unroll(full)
         for (int row = 0; row < height; row++) {
@@ -376,6 +396,7 @@ static inline acc_T __attribute__((always_inline)) reduce_sum2D_v(
             in += in_row_step;
         }
     }
+#pragma clang diagnostic pop
     return *v2acc;
 }
 
@@ -392,6 +413,8 @@ inline acc_T __attribute__((always_inline)) reduce_sum2D_d(
 
         v2q15_t v2mul = {mul, mul};
         const MLI_PTR(int16_t) __restrict v2mul_ptr = (const MLI_PTR(int16_t) __restrict)&v2mul;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
     if (width == 1){
 #pragma clang loop unroll(full)
         for (int row = 0; row < height; row++) {
@@ -416,6 +439,7 @@ inline acc_T __attribute__((always_inline)) reduce_sum2D_d(
             in += in_row_step;
         }
     }
+#pragma clang diagnostic pop
     return *accu;
 }
 

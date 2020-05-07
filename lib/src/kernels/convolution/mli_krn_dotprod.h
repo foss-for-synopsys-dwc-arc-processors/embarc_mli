@@ -60,6 +60,8 @@ static void __attribute__ ((always_inline)) dotprod2D_hwc_v (
     in_row_step -= width * in_col_step;
     kern_row_step -= width * kern_col_step;
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
 #pragma clang loop unroll(full)
     for (int32_t row = 0; row < height; row++) {
 #pragma clang loop unroll(full)
@@ -73,6 +75,7 @@ static void __attribute__ ((always_inline)) dotprod2D_hwc_v (
         in += in_row_step;
         krn += kern_row_step;
     }
+#pragma clang diagnostic pop
 }
 
 //The function uses pointers to pointers for in and krn. 
@@ -91,7 +94,8 @@ static void __attribute__ ((always_inline)) dotprod2D_hwc_d (
         int kern_row_step) {
     in_row_step -= width * in_col_step;
     kern_row_step -= width * kern_col_step;
-
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
 #pragma clang loop unroll(full)
     for (int32_t row = 0; row < height; row++) {
 #pragma clang loop unroll(full)
@@ -103,6 +107,7 @@ static void __attribute__ ((always_inline)) dotprod2D_hwc_d (
         *in += in_row_step;
         *krn += kern_row_step;
     }
+#pragma clang diagnostic pop
 }
 
 //The function uses pointers to pointers for in and krn. 
@@ -122,6 +127,8 @@ static void __attribute__ ((always_inline)) dotprod2D_hwc_v (
 
     in_row_step -= width * in_col_step;
     kern_row_step -= width * kern_col_step;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
 #pragma clang loop unroll(full)
     for (int32_t row = 0; row < height; row++) {
 #pragma clang loop unroll(full)
@@ -135,6 +142,7 @@ static void __attribute__ ((always_inline)) dotprod2D_hwc_v (
         *in += in_row_step;
         *krn += kern_row_step;
     }
+#pragma clang diagnostic pop
 }
 
 //The function uses pointers to pointers for in and krn. 
@@ -154,6 +162,8 @@ static acc_T __attribute__ ((always_inline)) dotprod2D_inp_width_v(
         int in_width_step) {
     in_row_step -= width * in_col_step;
     kern_row_step -= width * kern_col_step;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
 #pragma clang loop unroll(full)
     for (int row = 0; row < height; row++) {
 #pragma clang loop unroll(full)
@@ -168,6 +178,7 @@ static acc_T __attribute__ ((always_inline)) dotprod2D_inp_width_v(
         *inp += in_row_step;
         *krn += kern_row_step;
     }
+#pragma clang diagnostic pop
     return *accu;
 }
 
@@ -212,7 +223,8 @@ static void __attribute__ ((always_inline)) dotprod2D_hwc_d (
         int kern_row_step) {
     in_row_step -= width * in_col_step;
     kern_row_step -= width * kern_col_step;
-
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
 #pragma clang loop unroll(full)
     for (int32_t row = 0; row < height; row++) {
 #pragma clang loop unroll(full)
@@ -224,6 +236,7 @@ static void __attribute__ ((always_inline)) dotprod2D_hwc_d (
         in += in_row_step;
         krn += kern_row_step;
     }
+#pragma clang diagnostic pop
 }
 
 template < typename in_T, typename w_T, typename acc_T >
@@ -248,6 +261,8 @@ static inline void __attribute__ ((always_inline)) dotprod2D (
     in_row_step -= width;
     kern_row_step -= width;
     __builtin_assume (height > 0);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
 #pragma clang loop unroll(full)
     for (int row = 0; row < height; row++) {
 #pragma clang loop unroll(full)
@@ -257,6 +272,7 @@ static inline void __attribute__ ((always_inline)) dotprod2D (
         in += in_row_step;
         krn += kern_row_step;
     }
+#pragma clang diagnostic pop
 }
 
 template < typename in_T, typename w_T, typename acc_T >
@@ -272,6 +288,8 @@ static inline void __attribute__ ((always_inline)) dotprod2D_unroll2 (
 
     in_row_step -= width;
     kern_row_step -= width;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
 #pragma clang loop unroll(full)
     for (int row = 0; row < height; row++) {
         __builtin_assume (width % 2 == 0);
@@ -285,6 +303,7 @@ static inline void __attribute__ ((always_inline)) dotprod2D_unroll2 (
         in += in_row_step;
         krn += kern_row_step;
     }
+#pragma clang diagnostic pop
 }
 
 template <typename in_T, typename w_T, typename acc_T>
@@ -298,6 +317,8 @@ static inline void __attribute__((always_inline)) dotprod2D_odd(
         acc_T *accu) {
     in_row_step -= width;
     kern_row_step -= width;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
 #pragma clang loop unroll(full)
     for (int row = 0; row < height; row++) {
 #pragma clang loop unroll(full)
@@ -309,6 +330,7 @@ static inline void __attribute__((always_inline)) dotprod2D_odd(
         in += in_row_step;
         krn += kern_row_step;
     }
+#pragma clang diagnostic pop
 }
 template < typename in_T, typename w_T, typename acc_T >
 static inline void __attribute__ ((always_inline)) dotprod2D_unroll4 (
@@ -330,6 +352,8 @@ static inline void __attribute__ ((always_inline)) dotprod2D_unroll4 (
          * unroll of 4 the dmac is not directly after the corresponding load
          * which reduces the stalls.
          */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
 #pragma clang loop unroll(full)
         for (int clmn = 0; clmn < width / 4; clmn++) {
             mli_prv_load_mac_vec4 (accu, in, krn);
@@ -339,6 +363,7 @@ static inline void __attribute__ ((always_inline)) dotprod2D_unroll4 (
         in += in_row_step;
         krn += kern_row_step;
     }
+#pragma clang diagnostic pop
 }
 
 template < typename in_T, typename w_T, typename acc_T >
@@ -354,6 +379,8 @@ static inline void __attribute__ ((always_inline)) dotprod2D_mac4 (
 
     in_row_step -= width;
     kern_row_step -= width;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
 #pragma clang loop unroll(full)	
     for (int row = 0; row < height; row++) {
         __builtin_assume (width % 4 == 0);
@@ -366,6 +393,7 @@ static inline void __attribute__ ((always_inline)) dotprod2D_mac4 (
         in += in_row_step;
         krn += kern_row_step;
     }
+#pragma clang diagnostic pop
 }
 template < typename in_T, typename w_T, typename acc_T >
 static inline void __attribute__ ((always_inline)) dotprod2D_unroll4_plus1 (
@@ -381,6 +409,8 @@ static inline void __attribute__ ((always_inline)) dotprod2D_unroll4_plus1 (
     in_row_step -= width;
     kern_row_step -= width;
     __builtin_assume (height > 0);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
 #pragma clang loop unroll(full)
     for (int row = 0; row < height; row++) {
         /* unroll of 2 enables the use of dmac
@@ -399,6 +429,7 @@ static inline void __attribute__ ((always_inline)) dotprod2D_unroll4_plus1 (
         in += in_row_step;
         krn += kern_row_step;
     }
+#pragma clang diagnostic pop
 }
 
 template < typename in_T, typename w_T, typename acc_T >
@@ -415,6 +446,8 @@ static inline void __attribute__ ((always_inline)) dotprod2D_unroll4_plus2 (
     in_row_step -= width;
     kern_row_step -= width;
     __builtin_assume (height > 0);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
 #pragma clang loop unroll(full)
     for (int row = 0; row < height; row++) {
         __builtin_assume (width % 2 == 0);
@@ -434,6 +467,7 @@ static inline void __attribute__ ((always_inline)) dotprod2D_unroll4_plus2 (
         in += in_row_step;
         krn += kern_row_step;
     }
+#pragma clang diagnostic pop
 }
 
 template < typename in_T, typename w_T, typename acc_T >
@@ -450,6 +484,8 @@ static inline void __attribute__ ((always_inline)) dotprod2D_unroll4_plus3 (
     in_row_step -= width;
     kern_row_step -= width;
     __builtin_assume (height > 0);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
 #pragma clang loop unroll(full)
     for (int row = 0; row < height; row++) {
         /* unroll of 2 enables the use of dmac
@@ -471,6 +507,7 @@ static inline void __attribute__ ((always_inline)) dotprod2D_unroll4_plus3 (
         in += in_row_step;
         krn += kern_row_step;
     }
+#pragma clang diagnostic pop
 }
 
 template < typename in_T, typename w_T, typename acc_T > static inline void
@@ -532,7 +569,8 @@ dotprod2D_v_simple (
         acc_T * accu) {
     in_row_step -= width;
     kern_row_step -= width;
-
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
 #pragma clang loop unroll(full)
     for (int32_t row = 0; row < height; row++) {
 #pragma clang loop unroll(full)
@@ -546,6 +584,7 @@ dotprod2D_v_simple (
         in += in_row_step;
         krn += kern_row_step;
     }
+#pragma clang diagnostic pop
 }
 
 template < typename in_T, typename w_T, typename acc_T > static inline void
@@ -568,6 +607,8 @@ dotprod3D_v_simple (
     __builtin_assume(in_ch > 0);
     __builtin_assume(height > 1);
     for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
 #pragma clang loop unroll(full)
         for (int row = 0; row < height-1; row++) {
 #pragma clang loop unroll(full)
@@ -595,6 +636,7 @@ dotprod3D_v_simple (
         in += in_ch_step;
         krn += kern_ch_step;
     }
+#pragma clang diagnostic pop
 }
 
 
@@ -612,6 +654,8 @@ static acc_T __attribute__ ((always_inline)) dotprod2D_inp_width_v(
         int in_width_step) {
     in_row_step -= width * in_col_step;
     kern_row_step -= width * kern_col_step;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
 #pragma clang loop unroll(full)
     for (int row = 0; row < height; row++) {
 #pragma clang loop unroll(full)
@@ -626,6 +670,7 @@ static acc_T __attribute__ ((always_inline)) dotprod2D_inp_width_v(
         inp += in_row_step;
         krn += kern_row_step;
     }
+#pragma clang diagnostic pop
     return *accu;
 }
 
@@ -649,6 +694,8 @@ static inline void __attribute__ ((always_inline)) dotprod2D_v_odd_even (
 #else
     kern_row_step -= (width + 1);
 #endif
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
 #pragma clang loop unroll(full)
     for (int row = 0; row < height; row++) {
 #ifdef K_ODD
@@ -707,6 +754,7 @@ static inline void __attribute__ ((always_inline)) dotprod2D_v_odd_even (
         in += in_row_step;
         krn += kern_row_step;
     }
+#pragma clang diagnostic pop
 }
 
 template < typename in_T, typename w_T, typename acc_T >

@@ -164,6 +164,15 @@ if "fx8" in sys.argv or no_args:
 # Create a new list of specialization functions for hwc fx8
 #------------------------------------------------------------
 
+c.clean_wrapper_variables()
+c.set_wrapper_variables({'kernel_w' : "cfg->kernel_width", 'kernel_h' : "cfg->kernel_height"})
+c.set_wrapper_variables({'padding_top' : "cfg->padding_top"})
+c.set_wrapper_variables({'padding_bot' : "cfg->padding_bottom"})
+c.set_wrapper_variables({'padding_left' : "cfg->padding_left"})
+c.set_wrapper_variables({'padding_right' : "cfg->padding_right"})
+c.set_wrapper_hierarchy(['kernel_w', 'kernel_h', 'padding'])
+c.set_wrapper_if_tree(False)
+
 fbase = ("krn", "maxpool", "hwc", "fx8", f_args)
 
 f_list_hwc_fx8 = [f.copy_and_replace_base(fbase) for f in f_list_hwc]

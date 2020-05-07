@@ -83,6 +83,8 @@ static inline v2q15_t reduce_max2D_hwc_v(
             cur_max = fx_max_v2q15(cur_max, mli_prv_load_2_samples(&in[clmn * channels]));
         }
     } else {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
         if (fixed_size && height <= REDUCE_MAX2D_UNROLL_FACTOR_FOR_HEIGHT && height <= REDUCE_MAX2D_UNROLL_FACTOR_FOR_WIDTH) {
 #pragma clang loop unroll(full)
             for (int row = 0; row < height; row++) {
@@ -100,6 +102,7 @@ static inline v2q15_t reduce_max2D_hwc_v(
                 in += in_row_step * channels;
             }
         }
+#pragma clang diagnostic pop
     }
     return cur_max;
 }

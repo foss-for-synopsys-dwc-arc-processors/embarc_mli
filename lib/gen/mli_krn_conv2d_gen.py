@@ -263,14 +263,12 @@ f_list_nhwc_sa8.append(default_func_hwc)
 # Generate the HWC output file
 #------------------------------------------------------------
 c = Codegen()
-c.set_wrapper_variables({'stride_w' : "cfg->stride_width", 'stride_h' : "cfg->stride_height"})
 c.set_wrapper_variables({'kernel_w' : "weights->shape[KRNL_W_DIM_HWC]", 'kernel_h' : "weights->shape[KRNL_H_DIM_HWC]"})
-c.set_wrapper_variables({'in_ch' : "in->shape[KRNL_C_DIM_HWC]"})
 c.set_wrapper_variables({'padding_top' : "cfg->padding_top"})
 c.set_wrapper_variables({'padding_bot' : "cfg->padding_bottom"})
 c.set_wrapper_variables({'padding_left' : "cfg->padding_left"})
 c.set_wrapper_variables({'padding_right' : "cfg->padding_right"})
-c.set_wrapper_hierarchy(['stride_w', 'stride_h', 'kernel_w', 'kernel_h', 'in_ch', 'padding'])
+c.set_wrapper_hierarchy(['kernel_w', 'kernel_h', 'padding'])
 c.set_wrapper_if_tree(False)
 
 if "sa8_sa8_sa32" in sys.argv or no_args:
