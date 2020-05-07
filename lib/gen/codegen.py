@@ -147,6 +147,9 @@ class Codegen:
 
     def set_wrapper_variables(self, variables):
         self.wrapper_variables.update(variables)
+    
+    def clean_wrapper_variables(self):
+        self.wrapper_variables = {}
 
     def print_variables(self):
         string = ""

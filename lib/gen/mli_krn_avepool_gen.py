@@ -107,13 +107,12 @@ default_func_hwc_fx16 = default_func_hwc.copy_and_replace_base(fbase)
 # Generate the output file
 #------------------------------------------------------------
 c = Codegen()
-c.set_wrapper_variables({'stride_w' : "cfg->stride_width", 'stride_h' : "cfg->stride_height"})
 c.set_wrapper_variables({'kernel_w' : "cfg->kernel_width", 'kernel_h' : "cfg->kernel_height"})
 c.set_wrapper_variables({'padding_top' : "cfg->padding_top"})
 c.set_wrapper_variables({'padding_bot' : "cfg->padding_bottom"})
 c.set_wrapper_variables({'padding_left' : "cfg->padding_left"})
 c.set_wrapper_variables({'padding_right' : "cfg->padding_right"})
-c.set_wrapper_hierarchy(['stride_w', 'stride_h', 'kernel_w', 'kernel_h', 'padding'])
+c.set_wrapper_hierarchy(['kernel_w', 'kernel_h', 'padding'])
 c.set_wrapper_if_tree(False)
 
 #------------------------------------------------------------

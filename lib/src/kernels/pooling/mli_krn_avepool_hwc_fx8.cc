@@ -416,8 +416,6 @@ mli_status mli_krn_avepool_hwc_fx8_generic(const mli_tensor * in, const mli_pool
 
 
 mli_status mli_krn_avepool_hwc_fx8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    int stride_w = cfg->stride_width;
-    int stride_h = cfg->stride_height;
     int kernel_w = cfg->kernel_width;
     int kernel_h = cfg->kernel_height;
     int padding_top = cfg->padding_top;
@@ -438,8 +436,6 @@ mli_status mli_krn_avepool_hwc_fx8(const mli_tensor * in, const mli_pool_cfg * c
     }
 }
 char * mli_debug_krn_avepool_hwc_fx8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    int stride_w = cfg->stride_width;
-    int stride_h = cfg->stride_height;
     int kernel_w = cfg->kernel_width;
     int kernel_h = cfg->kernel_height;
     int padding_top = cfg->padding_top;
