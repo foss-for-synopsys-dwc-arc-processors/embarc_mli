@@ -100,8 +100,6 @@ mli_status mli_krn_conv2d_hwc_fx16 (
     out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max (&cfg->relu, out);
-
-    MLI_CONV_OUT_PTR (int16_t) out_ftrs = (MLI_CONV_OUT_PTR (int16_t)) out->data;
     MLI_PTR (int16_t) bs = (MLI_PTR (int16_t)) bias->data;
 
     int out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - w.kernel_width + 1, stride_width);
@@ -282,7 +280,7 @@ static inline void convolution_hwc_no_pad (
 
     for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
         const MLI_PTR (int16_t) in_ptr = in.ptr
-                + in.row_mem_stride * (H_idx * stride_height - padding_top) +     // move to row
+                + in.row_mem_stride * (H_idx * stride_height - padding_top)       // move to row
                 + in.col_mem_stride * (clmn_begin * stride_width - padding_left); // move to column
 
         MLI_CONV_OUT_PTR (int16_t) o_ptr = out.ptr

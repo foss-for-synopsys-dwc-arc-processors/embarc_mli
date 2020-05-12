@@ -39,11 +39,11 @@
 template <typename T, bool type_is_xy> __attribute__((always_inline))
 static inline tensor_private_t<T> mli_prv_get_tensor_chw (
         const mli_tensor *in,
-        int fix_ch = 0)
+        const int fix_ch = 0)
 {
-    int ch     = (int)in->shape[FMAP_C_DIM_CHW];
-    int height = (int)in->shape[FMAP_H_DIM_CHW];
-    int width  = (int)in->shape[FMAP_W_DIM_CHW];
+    int ch             = (int)in->shape[FMAP_C_DIM_CHW];
+    const int height   = (int)in->shape[FMAP_H_DIM_CHW];
+    const int width    = (int)in->shape[FMAP_W_DIM_CHW];
     int ch_mem_stride  = in->mem_stride[FMAP_C_DIM_CHW];
     int row_mem_stride = in->mem_stride[FMAP_H_DIM_CHW];
 
@@ -70,11 +70,11 @@ static inline tensor_private_t<T> mli_prv_get_tensor_chw (
 template <typename T, bool type_is_xy> __attribute__((always_inline))
 static inline tensor_private_t<T> mli_prv_get_tensor_hwc (
         const mli_tensor *in,
-        int fix_ch = 0)
+        const int fix_ch = 0)
 {
-    int height = (int)in->shape[FMAP_H_DIM_HWC];
-    int width  = (int)in->shape[FMAP_W_DIM_HWC];
-    int ch     = (int)in->shape[FMAP_C_DIM_HWC];
+    const int height   = (int)in->shape[FMAP_H_DIM_HWC];
+    const int width    = (int)in->shape[FMAP_W_DIM_HWC];
+    int ch             = (int)in->shape[FMAP_C_DIM_HWC];
     int row_mem_stride = in->mem_stride[FMAP_H_DIM_HWC];
     int col_mem_stride = in->mem_stride[FMAP_W_DIM_HWC];
 
@@ -105,10 +105,10 @@ static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tens
         const int fix_width = 0,
         const int fix_height = 0)
 {
-    int out_ch = (int)weights->shape[KRNL_C_DIM_HWC];
-    int height = (int)weights->shape[KRNL_H_DIM_HWC];
-    int width  = (int)weights->shape[KRNL_W_DIM_HWC];
-    int in_ch  = (int)weights->shape[KRNL_D_DIM_HWC];
+    const int out_ch = (int)weights->shape[KRNL_C_DIM_HWC];
+    int height       = (int)weights->shape[KRNL_H_DIM_HWC];
+    int width        = (int)weights->shape[KRNL_W_DIM_HWC];
+    int in_ch        = (int)weights->shape[KRNL_D_DIM_HWC];
     int out_ch_mem_stride = weights->mem_stride[KRNL_C_DIM_HWC];
     int row_mem_stride    = weights->mem_stride[KRNL_H_DIM_HWC];
     int col_mem_stride    = weights->mem_stride[KRNL_W_DIM_HWC];
@@ -149,10 +149,10 @@ static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tens
         const int fix_width = 0,
         const int fix_height = 0)
 {
-    int in_ch  = 1;
-    int height = (int)weights->shape[KRNL_DW_H_DIM_HWC];
-    int width  = (int)weights->shape[KRNL_DW_W_DIM_HWC];
-    int out_ch = (int)weights->shape[KRNL_DW_C_DIM_HWC];
+    const int in_ch    = 1;
+    int height         = (int)weights->shape[KRNL_DW_H_DIM_HWC];
+    int width          = (int)weights->shape[KRNL_DW_W_DIM_HWC];
+    const int out_ch   = (int)weights->shape[KRNL_DW_C_DIM_HWC];
     int row_mem_stride    = weights->mem_stride[KRNL_DW_H_DIM_HWC];
     int col_mem_stride    = weights->mem_stride[KRNL_DW_W_DIM_HWC];
     int out_ch_mem_stride = weights->mem_stride[KRNL_DW_C_DIM_HWC];
