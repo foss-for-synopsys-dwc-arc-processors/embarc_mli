@@ -17,10 +17,10 @@ lib:
 	$(MAKE) -C lib/make TCF_FILE=$(TCF_FILE)
 
 app: lib
-	$(MAKE) -C lib/make TCF_FILE=$(TCF_FILE)
 	$(MAKE) -C examples/example_cifar10_caffe TCF_FILE=$(TCF_FILE)
 	$(MAKE) -C examples/example_har_smartphone TCF_FILE=$(TCF_FILE) 
 	$(MAKE) -C examples/example_face_detect TCF_FILE=$(TCF_FILE)
+	@echo NOTE: Omitting example_kws_speech due to extra steps required for build. If you want to build this example please change working directory to examples/example_kws_speech and follow the instructions in a README.md
 
 cleanapp:
 	$(MAKE) -C examples/example_cifar10_caffe clean 
