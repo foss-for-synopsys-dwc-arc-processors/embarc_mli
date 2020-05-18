@@ -48,33 +48,18 @@ Building of embARC MLI library
 2. Start building
 	'gmake TCF_FILE=../../hw/em9d.tcf'
 
-## Building and running [CIFAR10 Caffe example](examples/example_cifar10_caffe/README.md)
+## Building and running examples
 ---------------------------------------------
-1. Open command line and change working directory to './examples/example_cifar10_caffe/'
+There are several examples supplied with embARC MLI Library. For information on how to build and run each example please go to example directory and examine local README.		
+### [CIFAR-10](/examples/example_cifar10_caffe)
+This example is a simple image classifier built on convolution, pooling and dense layers. It is based on standard Caffe tutorial for CIFAR-10 dataset.
+### [Human Activity Recognition](/examples/example_har_smartphone)
+LSTM Based Human Activity Recognition example. The model is intended to differentiate human activity between 6 classes based on inputs from embedded inertial sensors from waist-mounted smartphone. 
+### [Face Detection](/examples/example_face_detect)
+Example shows basic implementation of the classic object detection (face detection in our case) via sliding window paradigm. 
+### [Key Word Spotting](/examples/example_kws_speech)
+An example of speech recognition implementation for key word spotting.
 
-2. Build CIFAR10 example
-	'gmake TCF_FILE=../../hw/em9d.tcf'
-
-3. Run CIFAR10 example
-	'gmake run TCF_FILE=../../hw/em9d.tcf'
-
-4. Result Quality shall be "S/N=3638.6     (71.2 db)"
-
-## Building and running [Human Activity Recognition example](examples/example_har_smartphone/README.md)
-----------------------------------------------------------
-1. Open command line and change working directory to './examples/example_har_smartphone'
-
-2. Clean old build artifacts of the application (this will not clean the lib)
-	'gmake clean'
-
-3. Build HAR example.
-	'gmake TCF_FILE=../../hw/em9d.tcf'
-
-4. Run HAR example.
-    'gmake run TCF_FILE=../../hw/em9d.tcf'
-
-5. Result Quality shall be "S/N=1823.9     (65.2 db)"
-		
 ## Optimizations for code size
 ------------------------------
 By default the embARC MLI Library is build for optimal speed. If code size needs to be reduced, there are two things that can be done:
