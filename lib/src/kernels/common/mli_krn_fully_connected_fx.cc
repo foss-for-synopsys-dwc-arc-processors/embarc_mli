@@ -71,7 +71,7 @@ mli_status mli_krn_fully_connected_sa8_sa8_sa32(
         const mli_tensor* weights,
         const mli_tensor* bias,
         mli_tensor* out) {
-    mli_status ret = mli_chk_fully_connected(in, weights, bias, out);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_fully_connected_sa8_sa8_sa32(in, weights, bias, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
