@@ -83,9 +83,9 @@ Kernel Specializations
    +-----------------------+--------------------------------------+
    | **Function**          | **Description**                      |
    +=======================+======================================+
-   | ``mli_krn_sigm_fx8``  | General function; 8bit FX elements;  |
+   | ``mli_krn_tanh_fx8``  | General function; 8bit FX elements;  |
    +-----------------------+--------------------------------------+
-   | ``mli_krn_sigm_fx16`` | General function; 16bit FX elements; |
+   | ``mli_krn_tanh_fx16`` | General function; 16bit FX elements; |
    +-----------------------+--------------------------------------+
 
 .. _conditions-for-applying-the-kernel-6:
