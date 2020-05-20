@@ -54,6 +54,10 @@ Expected console output on windows is next::
 .\bin\libmli.a
 .\examples\example_cifar10_caffe\bin\example_cifar10_caffe.elf
 .\examples\example_har_smartphone\bin\example_har_smartphone.elf
+.\examples\example_face_detect\bin\example_face_trigger.elf
+
+Note: example_kws_speech is not included into general build rule as it requires extra steps 
+before building. Please refer to ``example_kws_speech/README.md`` for build information.   
 
 The project build system allows to build the library and examples separately. 
 Library and each example have a separate makefile which uses common rules from ``build/rules.mk``.
