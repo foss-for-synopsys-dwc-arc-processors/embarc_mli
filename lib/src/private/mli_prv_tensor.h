@@ -37,74 +37,81 @@
 
 // To prevent a compiler name mangling issue, type_is_xy should be true if and only if T has __xy.
 template <typename T, bool type_is_xy> __attribute__((always_inline))
-static inline tensor_private_t<T> mli_prv_get_tensor_chw (
+static inline tensor_private_t<T> mli_prv_get_tensor_chw(
         const mli_tensor *in,
-        const int fix_ch = 0)
-{
+        const int fix_ch = 0) {
     int ch             = (int)in->shape[FMAP_C_DIM_CHW];
     const int height   = (int)in->shape[FMAP_H_DIM_CHW];
     const int width    = (int)in->shape[FMAP_W_DIM_CHW];
     int ch_mem_stride  = in->mem_stride[FMAP_C_DIM_CHW];
     int row_mem_stride = in->mem_stride[FMAP_H_DIM_CHW];
+    int col_mem_stride = in->mem_stride[FMAP_W_DIM_CHW];
 
     if (fix_ch != 0) {
-        MLI_ASSERT(ch == fix_ch);
-        ch = fix_ch;
+        MLI_CHECK_AND_FIX(ch, fix_ch);
     }
 
     if (MLI_PRV_TENSOR_CALC_MEM_STRIDES_VAL || row_mem_stride == 0) {
-        // user does not supply memory strides, hence we calculate them.
+        // User does not supply memory strides (all must be zero), so we calculate them here.
         MLI_ASSERT(ch_mem_stride == 0);
         MLI_ASSERT(row_mem_stride == 0);
-        MLI_ASSERT(in->mem_stride[FMAP_W_DIM_CHW] == 0);
+        MLI_ASSERT(col_mem_stride == 0);
 
+        ch_mem_stride  = width * height;
         row_mem_stride = width;
-        ch_mem_stride = width * height;
+        col_mem_stride = 1;
+    } else {
+        // The inner-most memory stride should be 1.
+        MLI_CHECK_AND_FIX(col_mem_stride, 1);
     }
 
     return tensor_private_t<T> {
-        (T)in->data, width, height, ch, 1, row_mem_stride, ch_mem_stride };
+            (T)in->data, width, height, ch,
+            col_mem_stride, row_mem_stride, ch_mem_stride };
 }
 
 // To prevent a compiler name mangling issue, type_is_xy should be true if and only if T has __xy.
 template <typename T, bool type_is_xy> __attribute__((always_inline))
-static inline tensor_private_t<T> mli_prv_get_tensor_hwc (
+static inline tensor_private_t<T> mli_prv_get_tensor_hwc(
         const mli_tensor *in,
-        const int fix_ch = 0)
-{
+        const int fix_ch = 0) {
     const int height   = (int)in->shape[FMAP_H_DIM_HWC];
     const int width    = (int)in->shape[FMAP_W_DIM_HWC];
     int ch             = (int)in->shape[FMAP_C_DIM_HWC];
     int row_mem_stride = in->mem_stride[FMAP_H_DIM_HWC];
     int col_mem_stride = in->mem_stride[FMAP_W_DIM_HWC];
+    int ch_mem_stride  = in->mem_stride[FMAP_C_DIM_HWC];
 
     if (fix_ch != 0) {
-        MLI_ASSERT(ch == fix_ch);
-        ch = fix_ch;
+        MLI_CHECK_AND_FIX(ch, fix_ch);
     }
 
     if (MLI_PRV_TENSOR_CALC_MEM_STRIDES_VAL || col_mem_stride == 0) {
-        // user does not supply memory strides, hence we calculate them.
+        // User does not supply memory strides (all must be zero), so we calculate them here.
         MLI_ASSERT(row_mem_stride == 0);
         MLI_ASSERT(col_mem_stride == 0);
-        MLI_ASSERT(in->mem_stride[FMAP_C_DIM_HWC] == 0);
+        MLI_ASSERT(ch_mem_stride == 0);
 
-        col_mem_stride = ch;
         row_mem_stride = ch * width;
+        col_mem_stride = ch;
+        ch_mem_stride  = 1;
+    } else {
+        // The inner-most memory stride should be 1.
+        MLI_CHECK_AND_FIX(ch_mem_stride, 1);
     }
 
     return tensor_private_t<T> {
-        (T)in->data, width, height, ch, col_mem_stride, row_mem_stride, 1 };
+            (T)in->data, width, height, ch,
+            col_mem_stride, row_mem_stride, ch_mem_stride };
 }
 
 // To prevent a compiler name mangling issue, type_is_xy should be true if and only if T has __xy.
 template <typename T, bool type_is_xy> __attribute__((always_inline))
-static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_nhwc (
+static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_nhwc(
         const mli_tensor *weights,
         const int fix_in_ch = 0,
         const int fix_width = 0,
-        const int fix_height = 0)
-{
+        const int fix_height = 0) {
     const int out_ch = (int)weights->shape[KRNL_C_DIM_HWC];
     int height       = (int)weights->shape[KRNL_H_DIM_HWC];
     int width        = (int)weights->shape[KRNL_W_DIM_HWC];
@@ -112,75 +119,82 @@ static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tens
     int out_ch_mem_stride = weights->mem_stride[KRNL_C_DIM_HWC];
     int row_mem_stride    = weights->mem_stride[KRNL_H_DIM_HWC];
     int col_mem_stride    = weights->mem_stride[KRNL_W_DIM_HWC];
+    int in_ch_mem_stride  = weights->mem_stride[KRNL_D_DIM_HWC];
 
     if (fix_width != 0) {
-        MLI_ASSERT(width == fix_width);
-        width = fix_width;
+        MLI_CHECK_AND_FIX(width, fix_width);
     }
     if (fix_height != 0) {
-        MLI_ASSERT(height == fix_height);
-        height = fix_height;
+        MLI_CHECK_AND_FIX(height, fix_height);
     }
     if (fix_in_ch != 0) {
-        MLI_ASSERT(in_ch == fix_in_ch);
-        in_ch = fix_in_ch;
+        MLI_CHECK_AND_FIX(in_ch, fix_in_ch);
     }
 
     if (MLI_PRV_TENSOR_CALC_MEM_STRIDES_VAL || col_mem_stride == 0) {
-        // user does not supply memory strides, hence we calculate them.
+        // User does not supply memory strides (all must be zero), so we calculate them here.
         MLI_ASSERT(out_ch_mem_stride == 0);
         MLI_ASSERT(row_mem_stride == 0);
         MLI_ASSERT(col_mem_stride == 0);
-        MLI_ASSERT(weights->mem_stride[KRNL_D_DIM_HWC] == 0);
+        MLI_ASSERT(in_ch_mem_stride == 0);
 
-        col_mem_stride    = in_ch;
-        row_mem_stride    = in_ch * width;
         out_ch_mem_stride = in_ch * width * height;
+        row_mem_stride    = in_ch * width;
+        col_mem_stride    = in_ch;
+        in_ch_mem_stride  = 1;
+    } else {
+        // The inner-most memory stride should be 1.
+        MLI_CHECK_AND_FIX(in_ch_mem_stride, 1);
     }
 
     return conv2d_weights_tensor_private_t<T> {
-        (T)weights->data, width, height, in_ch, out_ch, col_mem_stride, row_mem_stride, 1, out_ch_mem_stride };
+            (T)weights->data, width, height, in_ch, out_ch,
+            col_mem_stride, row_mem_stride, in_ch_mem_stride, out_ch_mem_stride };
 }
 
 // To prevent a compiler name mangling issue, type_is_xy should be true if and only if T has __xy.
 template <typename T, bool type_is_xy> __attribute__((always_inline))
-static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_1hwn (
+static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_1hwn(
         const mli_tensor *weights,
         const int fix_width = 0,
-        const int fix_height = 0)
-{
-    const int in_ch    = 1;
-    int height         = (int)weights->shape[KRNL_DW_H_DIM_HWC];
-    int width          = (int)weights->shape[KRNL_DW_W_DIM_HWC];
-    const int out_ch   = (int)weights->shape[KRNL_DW_C_DIM_HWC];
+        const int fix_height = 0) {
+    int in_ch        = (int)weights->shape[KRNL_DW_D_DIM_HWC];
+    int height       = (int)weights->shape[KRNL_DW_H_DIM_HWC];
+    int width        = (int)weights->shape[KRNL_DW_W_DIM_HWC];
+    const int out_ch = (int)weights->shape[KRNL_DW_C_DIM_HWC];
+    int in_ch_mem_stride  = weights->mem_stride[KRNL_DW_D_DIM_HWC];
     int row_mem_stride    = weights->mem_stride[KRNL_DW_H_DIM_HWC];
     int col_mem_stride    = weights->mem_stride[KRNL_DW_W_DIM_HWC];
     int out_ch_mem_stride = weights->mem_stride[KRNL_DW_C_DIM_HWC];
 
-    MLI_ASSERT(weights->shape[0] == 1);
+    MLI_CHECK_AND_FIX(in_ch, 1);
+
     if (fix_width != 0) {
-        MLI_ASSERT(width == fix_width);
-        width = fix_width;
+        MLI_CHECK_AND_FIX(width, fix_width);
     }
     if (fix_height != 0) {
-        MLI_ASSERT(height == fix_height);
-        height = fix_height;
+        MLI_CHECK_AND_FIX(height, fix_height);
     }
 
     if (MLI_PRV_TENSOR_CALC_MEM_STRIDES_VAL || col_mem_stride == 0) {
-        // user does not supply memory strides, hence we calculate them.
-        MLI_ASSERT(weights->mem_stride[0] == 0);
+        // User does not supply memory strides (all must be zero), so we calculate them here.
+        MLI_ASSERT(in_ch_mem_stride == 0);
         MLI_ASSERT(row_mem_stride == 0);
         MLI_ASSERT(col_mem_stride == 0);
         MLI_ASSERT(out_ch_mem_stride == 0);
 
-        col_mem_stride    = out_ch;
+        in_ch_mem_stride  = out_ch * width * height;
         row_mem_stride    = out_ch * width;
-        out_ch_mem_stride = out_ch * width * height;
+        col_mem_stride    = out_ch;
+        out_ch_mem_stride = 1;
+    } else {
+        // The inner-most memory stride should be 1.
+        MLI_CHECK_AND_FIX(out_ch_mem_stride, 1);
     }
 
     return conv2d_weights_tensor_private_t<T> {
-        (T)weights->data, width, height, in_ch, out_ch, col_mem_stride, row_mem_stride, out_ch_mem_stride };
+            (T)weights->data, width, height, in_ch, out_ch,
+            col_mem_stride, row_mem_stride, in_ch_mem_stride, out_ch_mem_stride };
 }
 
 #ifdef __cplusplus
@@ -191,7 +205,7 @@ static inline uint32_t __attribute__ ((always_inline)) mli_prv_norm(int32_t val)
     return _norm(val);
 }
 
-static inline mli_status __attribute__ ((always_inline)) mli_prv_copy_tensor_format (
+static inline mli_status __attribute__ ((always_inline)) mli_prv_copy_tensor_format(
         const mli_tensor * src, 
         mli_tensor * dst) {
     mli_status check = MLI_CHECK_STATUS(mli_chk_tensor (src), __func__);
