@@ -19,6 +19,10 @@
 #include <arc/arc_intrinsics.h>
 #endif
 
+// Depending on memory alignment of input pointers, certain functions below will perform
+// unaligned loads/stores. Since the core supports this, we disable the related compiler warning.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-align"
 
 static inline v2q15_t __attribute__ ((always_inline)) mli_prv_load_2_samples (const MLI_PTR (int8_t) __restrict in) {
 #if defined __Xxy
@@ -77,5 +81,6 @@ static inline void __attribute__ ((always_inline)) mli_prv_store_1_sample (MLI_O
 }
 
 
+#pragma clang diagnostic pop
 
 #endif //_MLI_PRV_LOAD_STORE_H_
