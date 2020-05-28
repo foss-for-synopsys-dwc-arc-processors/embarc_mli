@@ -74,6 +74,7 @@ static void __attribute__ ((always_inline)) rnn_dense_op_fx(
             auto ip_out = mli_prv_init_accu_with_bias(in_ptr, *biases++, bias_shift);
 
 LOOP_PIPELINE_ENABLE
+LOOP_PIPELINE_ENABLE_BACKTRACKING
             for (int jj = 0; jj < (inp_size/4); jj++) {
                 mli_prv_load_mac_vec4(&ip_out, in_ptr, weights);
                 in_ptr += 4;
@@ -83,6 +84,7 @@ LOOP_PIPELINE_ENABLE
             ip_out = mli_prv_ashift_accu(ip_out, in_to_state_fraq_dif);
 
 LOOP_PIPELINE_ENABLE
+LOOP_PIPELINE_ENABLE_BACKTRACKING
             for (int kk = 0; kk < (s_size/4); kk++) {
                 mli_prv_load_mac_vec4(&ip_out, s_ptr, weights);
                 s_ptr += 4;
@@ -104,6 +106,7 @@ LOOP_PIPELINE_ENABLE
             }
 
 LOOP_PIPELINE_ENABLE
+LOOP_PIPELINE_ENABLE_BACKTRACKING
             for (int jj = 0; jj < (inp_size/4); jj++) {
                 mli_prv_load_mac_vec4(&ip_out, in_ptr, weights);
                 in_ptr += 4;
@@ -117,6 +120,7 @@ LOOP_PIPELINE_ENABLE
             }
 
 LOOP_PIPELINE_ENABLE
+LOOP_PIPELINE_ENABLE_BACKTRACKING
             for (int kk = 0; kk < (s_size/4); kk++) {
                 mli_prv_load_mac_vec4(&ip_out, s_ptr, weights);
                 s_ptr += 4;
