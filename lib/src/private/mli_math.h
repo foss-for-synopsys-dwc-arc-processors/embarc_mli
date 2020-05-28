@@ -188,7 +188,7 @@ template <> inline int16_t mli_math_acc_cast_fx(mli_acc32_t acc, int shift_right
 /*
 *   Vectorized version of fx_q7_cast_rnd_q15() with Q7 saturation after rounding
 */
-static v2q15_t __attribute__ ((always_inline)) mli_prv_v2q7_cast_rnd_v2q15(v2q15_t x) {
+static inline v2q15_t __attribute__ ((always_inline)) mli_prv_v2q7_cast_rnd_v2q15(v2q15_t x) {
     return fx_sat_v2q15_n(fx_asr_rnd_v2q15_n(x, 8), 8);
 }
 

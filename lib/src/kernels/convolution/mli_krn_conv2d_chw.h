@@ -397,34 +397,6 @@ static void __attribute__ ((always_inline)) convolution_v (
     mli_prv_clip_relu_store_output_v (o_ptr, &conv_out_v, out_shift, val_min_limit, val_max_limit);
 }
 
-static void __attribute__ ((always_inline)) convolution_v (
-        const MLI_PTR (int16_t) __restrict in_ptr,
-        const MLI_PTR (int16_t) __restrict w_ptr,
-        MLI_CONV_OUT_PTR (int16_t) __restrict o_ptr,
-        const int16_t bias,
-        const int bias_shift,
-        const int out_shift,
-        const int16_t val_min_limit,
-        const int16_t val_max_limit,
-        const int in_width, const int in_height,
-        const int kernel_w, const int kernel_h,
-        const int clmns, const int rows, const int in_ch) {
-    v2q15_t bias_v = { bias, bias };
-
-    v2accum40_t conv_out_v = fx_v2a40_mpy_nf_v2q15 (bias_v, (v2q15_t) 0x00010001);
-    conv_out_v = fx_asr_v2a40_n (conv_out_v, -bias_shift);
-
-    __builtin_assume(in_ch > 0);
-    for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
-        // Convolution core
-        dotprod2D_v (in_ptr, w_ptr, clmns, rows, in_width, kernel_w, &conv_out_v);
-        // move to next channel
-        w_ptr += kernel_w * kernel_h;
-        in_ptr += in_width * in_height;
-    }
-
-    mli_prv_clip_relu_store_output_v(o_ptr, &conv_out_v, out_shift, val_min_limit, val_max_limit);
-}
 
 template < typename io_T, typename w_T > static void
 convolution_chw_nopad (
@@ -532,67 +504,6 @@ static void convolution_chw (
                     dotprod2D (in_ptr, w_ptr, clmns, rows, in_width, kernel_width, &conv_out);
                 }
                 MLI_CONV_OUT_PTR(io_T) o_ptr = &out_ftrs[out_ch_idx * out_width * out_height + H_idx * out_width + W_idx];
-                mli_prv_clip_relu_store_output (o_ptr, conv_out, out_shift, val_min_limit, val_max_limit);
-                CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, *o_ptr);
-            }
-        }
-    }
-}
-
-static void convolution_chw (
-        const MLI_PTR (int16_t) __restrict in_ftrs,
-        const MLI_PTR (int16_t) __restrict weights,
-        const MLI_PTR (int16_t) __restrict biases,
-        MLI_CONV_OUT_PTR (int16_t) __restrict out_ftrs,
-        const rect_t * const perception_area,
-        const int bias_shift,
-        const int out_shift,
-        const int16_t val_min_limit,
-        const int16_t val_max_limit,
-        const int in_ch, const int in_width, const int in_height,
-        const int out_ch, const int out_width, const int out_height,
-        const int kernel_height, const int kernel_width,
-        const int stride_height, const int stride_width,
-        const int padding_top, const int padding_bot, 
-        const int padding_left, const int padding_right, 
-        const int fixed_padding, const int depthwise) {
-    const int row_begin = perception_area->row_beg;
-    const int row_end = perception_area->row_end;
-    const int clmn_begin = perception_area->clmn_beg;
-    const int clmn_end = perception_area->clmn_end;
-
-    for (int out_ch_idx = 0; out_ch_idx < out_ch; out_ch_idx++) {
-        for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
-            for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
-                // Define area of input and filter for convolution
-                // *_comp - compensation values for valid area defining
-                int32_t top_comp = -MIN ((int32_t) (H_idx * stride_height) - padding_top, 0);
-                int32_t left_comp = -MIN ((int32_t) (W_idx * stride_width) - padding_left, 0);
-
-                int32_t right_comp = -MIN ((int32_t) in_width - ((int32_t) (W_idx * stride_width) - padding_left + kernel_width), 0);
-                int32_t bottom_comp = -MIN ((int32_t) in_height - ((int32_t) (H_idx * stride_height) - padding_top + kernel_height), 0);
-
-                int32_t rows = kernel_height - top_comp - bottom_comp;
-                int32_t clmns = kernel_width - right_comp - left_comp;
-
-                auto conv_out = mli_prv_init_accu_with_bias (in_ftrs, biases[out_ch_idx], bias_shift);
-
-                for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
-                    const MLI_PTR (int16_t) in_ptr = in_ftrs +  // starting point
-                        in_width * in_height * in_ch_idx +  // move to channels
-                        in_width * (H_idx * stride_height - padding_top + top_comp) +   // move to row
-                        (W_idx * stride_width) - padding_left + left_comp;  // move to column
-
-                    const MLI_PTR (int16_t) w_ptr = weights +   // Start point
-                        out_ch_idx * in_ch * kernel_width * kernel_height + // move to filter
-                        in_ch_idx * kernel_width * kernel_height +  // move to channel
-                        top_comp * kernel_width +   // move to row
-                        left_comp;  // move to column
-
-                    // Convolution core
-                    dotprod2D (in_ptr, w_ptr, clmns, rows, in_width, kernel_width, &conv_out);
-                }
-                MLI_CONV_OUT_PTR(int16_t) o_ptr = &out_ftrs[out_ch_idx * out_width * out_height + H_idx * out_width + W_idx];
                 mli_prv_clip_relu_store_output (o_ptr, conv_out, out_shift, val_min_limit, val_max_limit);
                 CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, *o_ptr);
             }

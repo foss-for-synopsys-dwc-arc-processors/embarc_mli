@@ -78,6 +78,10 @@ static inline void __attribute__ ((always_inline)) mli_prv_load_mac_vec4(
 //
 //=========================================================================
 
+// Depending on memory alignment of input pointers, certain functions below will perform
+// unaligned loads/stores. Since the core supports this, we disable the related compiler warning.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-align"
 
 static inline void __attribute__ ((always_inline)) mli_prv_clip_div_and_store_result(
         MLI_PTR(int16_t) __restrict o_ptr, 
@@ -243,7 +247,7 @@ v2i8_t FXAPI fx_v2q7_cast_nf_asl_rnd_v2a40(v2accum40_t VQ, int I) {
   return __builtin_convertvector((r >> 8), v2i8_t);
 }
 
-static void __attribute__ ((always_inline)) mli_prv_clip_and_store_output_v(
+static inline void __attribute__ ((always_inline)) mli_prv_clip_and_store_output_v(
         MLI_OUT_PTR(int8_t) __restrict o_ptr,
         v2accum40_t * __restrict acc_v,
         const int out_shift) {
@@ -948,5 +952,6 @@ static inline unsigned __attribute__ ((always_inline)) mli_prv_fx_init_dsp_ctrl(
     return mli_prv_init_dsp_ctrl(mode);
 }
 
+#pragma clang diagnostic pop
 
 #endif //_MLI_PRV_DSP_H_
