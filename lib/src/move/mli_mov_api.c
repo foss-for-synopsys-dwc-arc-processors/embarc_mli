@@ -23,7 +23,7 @@
 static mli_mov_dma_pool_t dma_pool = MLI_MOV_DMA_POOL_INIT;
 
 // singleton for callback functions
-static mli_mov_cb_t callbacktable[MAX_DMA_CHAN] = {0};
+static mli_mov_cb_t callbacktable[MAX_DMA_CHAN] = {{0}};
 
 // internal functions
 static mli_status mli_mov_memcpy(mli_mov_handle_t* h, void* src, void* dst, int size, int dst_capacity) {
