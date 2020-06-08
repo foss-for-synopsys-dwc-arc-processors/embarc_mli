@@ -230,7 +230,7 @@ test_status measure_ref_to_pred(
     float noise_accum = 0.f;
     float quant_accum = 0.f;
     float max_abs_err = -1.f;
-    const float quant_scale = (float)(1u << mli_hlp_tensor_scale_shift(&pred)) / (float)mli_hlp_tensor_scale(&pred, 0);
+    const float quant_scale = (float)((int64_t)1l << mli_hlp_tensor_scale_shift(&pred)) / (float)mli_hlp_tensor_scale(&pred, 0);
     const int16_t quant_zero_offset = mli_hlp_tensor_zero_offset(&pred, 0);
     const float quant_max = (1 << (8*pred_elem_size - 1)) - 1.0f;
     const float quant_min = -(1 << (8*pred_elem_size - 1));
@@ -332,22 +332,22 @@ test_status fill_asym_tensor_element_params(
         return TEST_FAILED;
     }
     
-    const int8_t scale_fraq_bits = FRAQ_BITS(scale_int_bits, int16_t);
-    const uint32_t mult = 1u << FRAQ_BITS(scale_int_bits, int16_t);
-    int16_t* scale_dst;
+    const int8_t scale_fraq_bits = FRAQ_BITS(scale_int_bits, int32_t);
+    const uint64_t mult = (uint64_t)1l << FRAQ_BITS(scale_int_bits, int32_t);
+    int32_t* scale_dst;
     int16_t* zp_dst;
 
     if (num_vals > 1) {
-        if (target_tensor->el_params.asym.scale.pi16 == NULL ||
+        if (target_tensor->el_params.asym.scale.pi32 == NULL ||
                 target_tensor->el_params.asym.zero_point.pi16 == NULL) {
             DEBUG_BREAK;
             return TEST_NOT_ENOUGH_MEM;
         }
 
-        scale_dst = target_tensor->el_params.asym.scale.pi16;
+        scale_dst = target_tensor->el_params.asym.scale.pi32;
         zp_dst = target_tensor->el_params.asym.zero_point.pi16;
     } else {
-        scale_dst = &target_tensor->el_params.asym.scale.i16;
+        scale_dst = &target_tensor->el_params.asym.scale.i32;
         zp_dst = &target_tensor->el_params.asym.zero_point.i16;
     }
     target_tensor->el_params.asym.scale_frac_bits = scale_fraq_bits;
@@ -360,8 +360,8 @@ test_status fill_asym_tensor_element_params(
 
         const float round_val = 0.5f;
 
-        const int32_t dst_val = (int32_t) (mult * scale_rates[i] + round_val);
-        scale_dst[i] = (int16_t) (MIN(MAX(dst_val, INT16_MIN), INT16_MAX));
+        const int64_t dst_val = (int64_t) (mult * scale_rates[i] + round_val);
+        scale_dst[i] = (int32_t) (MIN(MAX(dst_val, INT32_MIN), INT32_MAX));
 
         const int32_t zero_val = (int32_t)(-zero_points[i] / scale_rates[i] + round_val);
         zp_dst[i] = (int16_t)(MIN(MAX(zero_val , INT16_MIN), INT16_MAX));
