@@ -6,7 +6,7 @@ documentation and examples. Read the documentation at [embarc.org](https://embar
 
 ## Release notes
 ----------------
-1. Version 1.0
+1. Version 1.1
 2. This release supports following functional primitives
 	* 2D Convolution
 	* 2D depthwise convolution
@@ -17,16 +17,29 @@ documentation and examples. Read the documentation at [embarc.org](https://embar
 	* Data manipulation (concatenation, permute, 2D padding)
 	* ReLU, Leaky ReLu, ReLu1, ReLu6
 	* Softmax, Sigmoid, TanH
-3. Supported data layout CHW (Channel-Height-Width standard for Caffe)
+	* Helper functions to copy (partial) tensors (mli_mov*)
+3. Supported data layout:
+	* CHW (Channel-Height-Width standard for Caffe)
+	* Data layout HWC (Height-Width-Channel as used in TensorFlow Lite for Microcontrollers)
+4. Supported data format:
+	* Fixed point 8bit and 16bit (fx8 and fx16)
+	* Signed asymmetric 8bit quantization (sa8) support for  the following kernels:
+		* Fully Connected
+		* Convolution 2D (HWC Layout)
+		* Depthwise Convolution 2D(HWC Layout)
+		* Max Pooling(HWC Layout)
+		* Average Pooling (HWC Layout)
+5. Slicing support: creation of sub-tenors and support for non-contiguous tensor data.
 
 ## Package structure
 --------------------
-/bin                             		- directory holder for embARC MLI library and samples binaries created during build  
+./bin                             		- directory holder for embARC MLI library and samples binaries created during build
 ./build                           		- contains common build rules  
 ./doc                             		- contains the API documentation of the embARC MLI library  
 ./include                         		- include files with API prototypes and types  
 ./lib/src                         		- source code of embARC MLI Library  
 ./lib/gen                         		- auxiliary generation scripts for LUT tables and library source code  
+./lib/make                        		- makefiles for library and package
 ./examples                        		- source code of examples  
 ./examples/example_cifar10_caffe  		- example illustrating implementation of CIFAR10 Caffe  
 ./examples/example_har_smartphone 		- example illustrating implementation of Human Activity Recognition  
@@ -41,10 +54,10 @@ defined in [MetaWare Development Tools](https://www.synopsys.com/dw/ipdir.php?ds
 EM or HS configuration.
 
 Build requirements:
-1. MetaWare Development tools 2019.03-1 or later
+1. The library has been tested with MetaWare Development tools 2019.12
 
-Building of embARC MLI library	
-1. Open command line and change working directory to './lib/make/'      
+Building of embARC MLI library
+1. Open command line and change working directory to './lib/make/'
 2. Start building
 	'gmake TCF_FILE=../../hw/em9d.tcf'
 
@@ -72,7 +85,6 @@ Please be aware that the list of specializations is not guaranteed to be backwar
 
 ## Known Issues
 ---------------
-1. Optimal performance for 8-bit data requires version of MetaWare Development Tools 2019.06 or later
 
 ## Frequently Asked Questions
 ---------------
