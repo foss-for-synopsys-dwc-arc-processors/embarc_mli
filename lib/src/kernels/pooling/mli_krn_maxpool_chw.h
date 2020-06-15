@@ -217,7 +217,8 @@ static inline void __attribute__((always_inline)) maxpool_chw_nopad(
         __builtin_assume(in.ch > 0);
         for (int ch_idx = 0; ch_idx < in.ch; ch_idx++) {
             for (int j = 0; j < (row_end - row_begin); j++) {
-LOOP_PIPELINE_ENABLE 
+LOOP_PIPELINE_ENABLE
+LOOP_PIPELINE_ENABLE_BACKTRACKING
 #pragma unroll 2
                 for (int k = 0; k < (clmn_end - clmn_begin); k++) {
                     // Core Max

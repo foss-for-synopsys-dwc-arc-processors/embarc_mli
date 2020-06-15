@@ -27,8 +27,10 @@
 
 #if defined(_ARCVER_ARCv2HS)
 #define LOOP_PIPELINE_ENABLE _Pragma("clang loop pipeline(enable)")
+#define LOOP_PIPELINE_ENABLE_BACKTRACKING _Pragma("clang loop pipeline_options(0x10)")
 #else
-#define LOOP_PIPELINE_ENABLE 
+#define LOOP_PIPELINE_ENABLE
+#define LOOP_PIPELINE_ENABLE_BACKTRACKING
 #endif
 
 //=========================================================================

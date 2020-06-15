@@ -457,6 +457,7 @@ static __attribute__ ((always_inline)) void convolution2D_nhwc(
                 int8_t init_accum_weights_add_val = 0;
                 w_adds = mli_prv_init_accu(init_accum_weights_add_val);
 LOOP_PIPELINE_ENABLE
+LOOP_PIPELINE_ENABLE_BACKTRACKING
                 for (int in_ch_idx = 0; in_ch_idx < in.ch - 1; in_ch_idx += 2) {
                     w_adds = weights_additive_d(
                             &w_ptr[w.col_mem_stride * comp.left + in_ch_idx], &w_adds, &quant_params,
@@ -473,6 +474,7 @@ LOOP_PIPELINE_ENABLE
 
                 // Convolution core
 LOOP_PIPELINE_ENABLE
+LOOP_PIPELINE_ENABLE_BACKTRACKING
                 for (int in_ch_idx = 0; in_ch_idx < in.ch - 1; in_ch_idx += 2) {
                     dotprod2D_hwc_d(in_ptr, w_ptr, &accu, clmns, rows,
                             in.col_mem_stride, in.row_mem_stride,
@@ -564,6 +566,7 @@ static __attribute__ ((always_inline)) void convolution2D_nhwc_nopad(
             acc_T accu = mli_prv_init_accu(init_accum_val);
             for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
 LOOP_PIPELINE_ENABLE
+LOOP_PIPELINE_ENABLE_BACKTRACKING
                 for (int in_ch_idx = 0; in_ch_idx < (in.ch - 1); in_ch_idx += 2) {
                     dotprod2D_hwc_d(in_ptr, w_ptr, &accu, w.kernel_width, w.kernel_height,
                             in.col_mem_stride, in.row_mem_stride, w.col_mem_stride, w.row_mem_stride);
@@ -752,6 +755,7 @@ static __attribute__ ((always_inline)) void pointwise_convolution2D_nhwc_nopad(
 #endif
 
 LOOP_PIPELINE_ENABLE
+LOOP_PIPELINE_ENABLE_BACKTRACKING
                     for (int j = 0; j < (in.ch / 4); j++) {
                         mli_prv_load_mac_vec4(&accu, in_ptr, w_ptr);
                         in_ptr += 4; // chan_mem_stride
@@ -779,6 +783,7 @@ LOOP_PIPELINE_ENABLE
                     }
 
 LOOP_PIPELINE_ENABLE
+LOOP_PIPELINE_ENABLE_BACKTRACKING
                     for (int j = 0; j < (even_in_ch / 4); j++) {
                         mli_prv_load_mac_vec4(&accu, in_ptr, w_ptr);
                         in_ptr += 4;

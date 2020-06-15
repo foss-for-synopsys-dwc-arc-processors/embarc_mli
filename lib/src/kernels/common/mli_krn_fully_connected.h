@@ -52,6 +52,7 @@ static void __attribute__((always_inline)) full_connection(
                 auto ip_out = mli_prv_init_accu_with_bias(in_ptr, *bias_p++, bias_shift);
 
 LOOP_PIPELINE_ENABLE
+LOOP_PIPELINE_ENABLE_BACKTRACKING
                 for (int j = 0; j < (inp_size / 4); j++) {
                     mli_prv_load_mac_vec4(&ip_out, in_ptr, w_ptr);
                     in_ptr += 4;
@@ -75,6 +76,7 @@ LOOP_PIPELINE_ENABLE
 
                 int even_inp_size = inp_size - odd_rest_of_inp_size;
 LOOP_PIPELINE_ENABLE
+LOOP_PIPELINE_ENABLE_BACKTRACKING
                 for (int j = 0; j < (even_inp_size / 4); j++) {
                     mli_prv_load_mac_vec4(&ip_out, in_ptr, w_ptr);
                     in_ptr += 4;
@@ -171,6 +173,7 @@ static inline void ip_op(
 
                 acc_T accu = mli_math_init_accu<b_T, acc_T, true>(biases[o_idx], bias_mul, bias_shift);
 LOOP_PIPELINE_ENABLE
+LOOP_PIPELINE_ENABLE_BACKTRACKING
                 for (int i_idx = 0; i_idx < in_elements/4; i_idx++){
                     mli_prv_load_mac_vec4(&accu, in, weights);
                     in += 4;
@@ -204,7 +207,8 @@ LOOP_PIPELINE_ENABLE
             }
             
             int even_inp_size = in_elements - odd_rest_of_inp_size;
-LOOP_PIPELINE_ENABLE           
+LOOP_PIPELINE_ENABLE
+LOOP_PIPELINE_ENABLE_BACKTRACKING
             for (int i_idx = 0; i_idx < even_inp_size/4; i_idx++){
                 mli_prv_load_mac_vec4(&accu, in, weights);
                 in += 4;
