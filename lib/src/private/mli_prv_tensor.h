@@ -258,11 +258,11 @@ static int32_t inline __attribute__((always_inline)) mli_prv_calc_out_mul(
         MLI_ASSERT(in1->el_type == MLI_EL_ASYM_I8);
         MLI_ASSERT((out->el_type == MLI_EL_ASYM_I8) || (out->el_type == MLI_EL_ASYM_I32));
         MLI_ASSERT((in0->el_params.asym.dim < 0) && (in1->el_params.asym.dim < 0));
-        int32_t out_mul = (int32_t)in0->el_params.asym.scale.i16 * (int32_t)in1->el_params.asym.scale.i16;
+        int32_t out_mul = (int32_t)in0->el_params.asym.scale.i32 * (int32_t)in1->el_params.asym.scale.i32;
         int norm = mli_prv_norm(out_mul);
         out_mul <<= norm;
         *shift += norm;
-        out_mul = out_mul / (int32_t)out->el_params.asym.scale.i16;
+        out_mul = out_mul / (int32_t)out->el_params.asym.scale.i32;
         norm = mli_prv_norm(out_mul);
         out_mul <<= norm;
         *shift += norm;
@@ -287,7 +287,7 @@ static int32_t inline __attribute__((always_inline)) mli_prv_calc_bias_mul(
         /* mix of FX and asym datatypes is not supported */
         MLI_ASSERT(in1->el_type == MLI_EL_ASYM_I8);
         MLI_ASSERT((bias->el_type == MLI_EL_ASYM_I8) || (bias->el_type == MLI_EL_ASYM_I32));
-        int32_t bias_mul = (1 << MLI_BIAS_MUL_SHIFT) / ((int32_t)in0->el_params.asym.scale.i16 * (int32_t)in1->el_params.asym.scale.i16);
+        int32_t bias_mul = (1 << MLI_BIAS_MUL_SHIFT) / ((int32_t)in0->el_params.asym.scale.i32 * (int32_t)in1->el_params.asym.scale.i32);
         return bias_mul;
     } else {
         MLI_ASSERT(0);
