@@ -320,6 +320,18 @@ inline int32_t mli_math_cast_fx(mli_acc40_t in_val, int shift_right) {
     return (int32_t)fx_q31_cast_nf_asl_rnd_a40(in_val, 32 - shift_right);
 }
 
+template <>
+inline int32_t mli_math_cast_fx(int64_t in_val, int shift_right) {
+    in_val = fx_asr_rnd_q63(in_val, shift_right);
+    in_val = fx_asl_q63(in_val, 32);
+    return fx_q31_cast_q63(in_val);
+}
+
+template <>
+inline int32_t mli_math_cast_fx(accum72_t in_val, int shift_right) {
+    return fx_q31_cast_nf_asl_rnd_a72(in_val, 64 - sizeof(int32_t) * 8 - shift_right);
+}
+
 #pragma Code()
 
 

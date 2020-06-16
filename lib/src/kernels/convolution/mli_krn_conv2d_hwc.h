@@ -460,12 +460,12 @@ LOOP_PIPELINE_ENABLE
 LOOP_PIPELINE_ENABLE_BACKTRACKING
                 for (int in_ch_idx = 0; in_ch_idx < in.ch - 1; in_ch_idx += 2) {
                     w_adds = weights_additive_d(
-                            &w_ptr[w.col_mem_stride * comp.left + in_ch_idx], &w_adds, &quant_params,
+                            &w_ptr[w.in_ch_mem_stride * in_ch_idx], &w_adds, &quant_params,
                             clmns, rows, w.col_mem_stride, w.row_mem_stride);
                 }
                 if (in.ch & 1) {
                     w_adds = weights_additive(
-                            &w_ptr[w.col_mem_stride * comp.left + in.ch - 1], w_adds, &quant_params,
+                            &w_ptr[w.in_ch_mem_stride * (in.ch - 1)], w_adds, &quant_params,
                             clmns, rows, w.col_mem_stride, w.row_mem_stride);
                 }
 

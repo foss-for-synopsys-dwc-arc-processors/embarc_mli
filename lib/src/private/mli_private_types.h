@@ -91,8 +91,8 @@ struct s8asym_quant_specific_params {
     int16_t out_offset;
     int16_t weights_offset;
 
-    const int16_t *weight_scales;
-    int16_t in_to_out_scales_ratio;
+    const int32_t *weight_scales;
+    int32_t in_to_out_scales_ratio;
     
     int32_t out_mul;
     int out_shift;

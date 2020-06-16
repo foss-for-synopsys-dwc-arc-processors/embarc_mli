@@ -21,6 +21,7 @@
 #include <assert.h>
 
 static const int kPreDivShiftS16 = 14;
+static const int kPreDivShiftS32 = 30;
 //=========================================================================
 //
 // Declaration
@@ -73,26 +74,30 @@ inline void __attribute__ ((always_inline)) define_quant_params(const mli_tensor
     params->in_offset = in->el_params.asym.zero_point.i16;
     params->out_offset = out->el_params.asym.zero_point.i16;
 
-    if (weights->el_params.asym.dim >= 0 ) {
+    if (weights->el_params.asym.dim >= 0) {
         params->weights_offset = weights->el_params.asym.zero_point.pi16[0];
-        params->weight_scales = weights->el_params.asym.scale.pi16;
-    } else { 
+        params->weight_scales = weights->el_params.asym.scale.pi32;
+    } else {
         params->weights_offset = weights->el_params.asym.zero_point.i16;
-        params->weight_scales = &weights->el_params.asym.scale.i16;
+        params->weight_scales = &weights->el_params.asym.scale.i32;
     }
-    int32_t scale_unfinished = in->el_params.asym.scale.i16 << kPreDivShiftS16;
-    scale_unfinished  = scale_unfinished / out->el_params.asym.scale.i16;
-    params->in_to_out_scales_ratio = mli_math_cast_fx<int32_t, int16_t>(scale_unfinished, 0);
+    int64_t scale_unfinished = (int64_t)(in->el_params.asym.scale.i32) << kPreDivShiftS32;
+    scale_unfinished = scale_unfinished / out->el_params.asym.scale.i32;
+    params->in_to_out_scales_ratio = mli_math_cast_fx<int64_t, int32_t>(scale_unfinished, 0);
+
+
     params->out_shift = in->el_params.asym.scale_frac_bits;
     params->out_shift += weights->el_params.asym.scale_frac_bits;
-    params->out_shift += (kPreDivShiftS16 - out->el_params.asym.scale_frac_bits);
+    params->out_shift += (kPreDivShiftS32 - out->el_params.asym.scale_frac_bits);
+    params->out_shift -= 32; // See Adjust parameters - we already do a shift there
 }
 
 template <>
 inline void __attribute__ ((always_inline)) adjust_quant_params(s8asym_quant_specific_params* params, int krn_idx) {
     // out multiplyer can be different across one of axis (per axis quantization for s8asym)
-    params->out_mul = params->in_to_out_scales_ratio * params->weight_scales[krn_idx];
-    return; 
+    accum72_t accu_scaled = fx_a72_mpy_q31(params->in_to_out_scales_ratio, params->weight_scales[krn_idx]);
+    params->out_mul = mli_math_cast_fx<accum72_t, int32_t>(accu_scaled, 32);
+    return;
 }
 
 template <>
