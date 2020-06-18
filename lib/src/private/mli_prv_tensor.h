@@ -22,7 +22,7 @@
 
 // with a shift of 31, we cannot represent the value one. So we shift only 30
 // and an extra multiplication of 2 is done when bias is loaded.
-#define MLI_BIAS_MUL_SHIFT 30
+#define MLI_BIAS_MUL_SHIFT 60
 
 // Enable the below define to let the functions in this file
 // assume that the user has set all the mli_tensor_t mem_strides to zero.
@@ -289,8 +289,10 @@ static int32_t inline __attribute__((always_inline)) mli_prv_calc_bias_mul(
         /* mix of FX and asym datatypes is not supported */
         MLI_ASSERT(in1->el_type == MLI_EL_ASYM_I8);
         MLI_ASSERT((bias->el_type == MLI_EL_ASYM_I8) || (bias->el_type == MLI_EL_ASYM_I32));
-        int32_t bias_mul = (1 << MLI_BIAS_MUL_SHIFT) / ((int32_t)in0->el_params.asym.scale.i32 * (int32_t)in1->el_params.asym.scale.i32);
-        return bias_mul;
+        int64_t bias_mul = (1ll << MLI_BIAS_MUL_SHIFT) / ((int32_t)in0->el_params.asym.scale.i32 * (int32_t)in1->el_params.asym.scale.i32);
+        bias_mul = fx_asr_rnd_q63(bias_mul, 0);
+        bias_mul = fx_asl_q63(bias_mul, 32);
+        return fx_q31_cast_q63(bias_mul);
     } else {
         MLI_ASSERT(0);
         return 0;
