@@ -258,16 +258,18 @@ static int32_t inline __attribute__((always_inline)) mli_prv_calc_out_mul(
         MLI_ASSERT(in1->el_type == MLI_EL_ASYM_I8);
         MLI_ASSERT((out->el_type == MLI_EL_ASYM_I8) || (out->el_type == MLI_EL_ASYM_I32));
         MLI_ASSERT((in0->el_params.asym.dim < 0) && (in1->el_params.asym.dim < 0));
-        int32_t out_mul = (int32_t)in0->el_params.asym.scale.i32 * (int32_t)in1->el_params.asym.scale.i32;
+        int64_t out_mul = (int64_t)in0->el_params.asym.scale.i32 * in1->el_params.asym.scale.i32;
         int norm = mli_prv_norm(out_mul);
         out_mul <<= norm;
         *shift += norm;
-        out_mul = out_mul / (int32_t)out->el_params.asym.scale.i32;
+        out_mul = out_mul / (int64_t)out->el_params.asym.scale.i32;
         norm = mli_prv_norm(out_mul);
         out_mul <<= norm;
         *shift += norm;
         *shift -= MLI_MAT_MUL_Q31_SHIFT; // compensate for the fact that fractional mul is used (the mull does internal shift right with 31)
-        return out_mul;
+        out_mul = fx_asr_rnd_q63(out_mul, 0);
+        out_mul = fx_asl_q63(out_mul, 32);
+        return fx_q31_cast_q63(out_mul);
     } else {
         MLI_ASSERT(0);
         return 0;

@@ -127,13 +127,13 @@ mli_status mli_chk_bias_scale_asym(const mli_tensor * in, const mli_tensor * wei
     const int scale_in = (int)in->el_params.asym.scale.i32;
     const int out_shift = mli_prv_calc_shift(in, weights, bias);
     for (int idx = 0; idx < num_scale_vals; idx++) {
-        int bias_scale_expected = scale_in * w_scales[idx];
+        int64_t bias_scale_expected = (int64_t) scale_in * w_scales[idx];
         bias_scale_expected = (out_shift > 0)
                 ? bias_scale_expected >> out_shift
                 : bias_scale_expected << out_shift;
-        const int scales_diff = bias_scale_expected - b_scales[idx];
+        const int64_t scales_diff = bias_scale_expected - b_scales[idx];
         // Check that diff is about the rounding error
-        if (MLI_CHECK(scales_diff <= 1 && scales_diff >= -1, "Bias scale must be the multiplication of input and weights scales for correct calculations in current quanization scheme"))
+        if (MLI_CHECK(scales_diff <= 1ll && scales_diff >= -1ll, "Bias scale must be the multiplication of input and weights scales for correct calculations in current quanization scheme"))
             return MLI_STATUS_INCOMPATEBLE_TENSORS;
     }
     return MLI_STATUS_OK;
