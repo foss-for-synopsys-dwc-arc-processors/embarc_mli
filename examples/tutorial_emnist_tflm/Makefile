@@ -24,9 +24,9 @@ SRC_DIRS     = $(EMBARC_MLI_DIR)/examples/tutorial_emnist_tflm/src
 INC_DIRS     = ./src \
                $(EMBARC_MLI_DIR)/include \
                $(EMBARC_MLI_DIR)/include/api \
-				./third_party/gemmlowp \
-				./third_party/flatbuffers/include \
-               $(TENSORFLOW_DIR) 
+			   $(TENSORFLOW_DIR) \
+			   $(TENSORFLOW_DIR)/tensorflow/lite/micro/tools/make/downloads/gemmlowp \
+			   $(TENSORFLOW_DIR)/tensorflow/lite/micro/tools/make/downloads/flatbuffers/include 
 
 EXT_LIBS_DIR ?= $(EMBARC_MLI_DIR)/bin
 EXT_LIBS     ?= ./third_party/libtensorflow-microlite.a $(EXT_LIBS_DIR)/libmli.a 
@@ -60,7 +60,6 @@ clean:
 	-@$(RM) $(call fix_platform_path,$(OUT_DIR)/$(OUT_NAME).elf)
 	-@$(RM) $(call fix_platform_path,$(OUT_DIR)/$(OUT_NAME).map)
 
-
-#   -@$(RM) $(call fix_platform_path,$(OBJS))
-#    -@$(RM) $(call fix_platform_path,$(OUT_DIR)/$(OUT_NAME).elf)
-#	-@$(RM) $(call fix_platform_path,$(OUT_DIR)/$(OUT_NAME).map)
+cleanall: clean
+	@echo Cleaning all files ..
+	@ $(MAKE) clean -C $(EMBARC_MLI_DIR)$(PS)lib$(PS)make$(PS)
