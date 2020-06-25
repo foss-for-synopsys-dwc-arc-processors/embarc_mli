@@ -6,7 +6,6 @@
 * the LICENSE file in the root directory of this source tree.
 *
 */
-
 #ifndef MODEL_SETTINGS_H_
 #define MODEL_SETTINGS_H_
 

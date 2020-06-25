@@ -1,3 +1,11 @@
+/*
+* Copyright 2019-2020, Synopsys, Inc.
+* All rights reserved.
+*
+* This source code is licensed under the BSD-3-Clause license found in
+* the LICENSE file in the root directory of this source tree.
+*
+*/
 #include "tensorflow/lite/micro/kernels/all_ops_resolver.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
@@ -8,56 +16,55 @@
 #include "model.h"
 #include "test_samples.h"
 
-// Globals
-const tflite::Model* model = nullptr;
-tflite::MicroInterpreter* interpreter = nullptr;
-tflite::ErrorReporter* reporter = nullptr;
-TfLiteTensor* input = nullptr;
-TfLiteTensor* output = nullptr;
+//tensor_arena has to be 16 bytes aligned
+typedef uint8_t aligned_uint8_t __attribute__((aligned(16)));
 constexpr int kTensorArenaSize = 50 * 1024; 
-uint8_t tensor_arena[ kTensorArenaSize ] = { 0 };
+aligned_uint8_t tensor_arena[ kTensorArenaSize ] = { 0 };
 
 int main() {
-    static tflite::MicroErrorReporter error_reporter;
+    tflite::ErrorReporter* reporter = nullptr;
+    tflite::MicroErrorReporter error_reporter;
     reporter = &error_reporter;
     reporter->Report( "Run EMNIST letter recognition" );
 
     //Load Model
-    model = tflite::GetModel( emnist_model_int8_tflite );
+    const tflite::Model* model = tflite::GetModel( emnist_model_int8_tflite );
     if( model->version() != TFLITE_SCHEMA_VERSION ) {
-        reporter->Report( "Model is schema version: %d\nSupported schema version is: %d", model->version(), TFLITE_SCHEMA_VERSION );
+        reporter->Report( "Model is schema version: %d\n"
+          "Supported schema version is: %d", model->version(), TFLITE_SCHEMA_VERSION );
         return 1;
     }
 
     // Setup OpResolver 
     // Add Builtins corresponding to Model layers
-    static  tflite::MicroOpResolver<12> resolver;
+    // Note: If you change the model structure/layer types, you'll need to make 
+    // equivalent changes to the resolver
+    tflite::MicroOpResolver<5> resolver;
     resolver.AddBuiltin(tflite::BuiltinOperator_CONV_2D,
-      tflite::ops::micro::Register_CONV_2D(), 1, 3);
+      tflite::ops::micro::Register_CONV_2D(), 3);
     resolver.AddBuiltin(tflite::BuiltinOperator_MAX_POOL_2D,
-      tflite::ops::micro::Register_MAX_POOL_2D(),
-      1, 2);
+      tflite::ops::micro::Register_MAX_POOL_2D(), 2);
     resolver.AddBuiltin(tflite::BuiltinOperator_RESHAPE,
       tflite::ops::micro::Register_RESHAPE());
     resolver.AddBuiltin(tflite::BuiltinOperator_FULLY_CONNECTED,
-      tflite::ops::micro::Register_FULLY_CONNECTED(), 1, 4);
+      tflite::ops::micro::Register_FULLY_CONNECTED(), 4);
     resolver.AddBuiltin(tflite::BuiltinOperator_SOFTMAX,
-      tflite::ops::micro::Register_SOFTMAX(), 1, 2);
+      tflite::ops::micro::Register_SOFTMAX(), 2);
 
-    static tflite::MicroInterpreter static_interpreter(
+    tflite::MicroInterpreter interpreter(
         model, resolver, tensor_arena, kTensorArenaSize, reporter );
-    interpreter = &static_interpreter;
+    //interpreter = &static_interpreter;
 
     // Allocate memory from the tensor_arena for the model's tensors.
-    TfLiteStatus allocate_status = interpreter->AllocateTensors();
-    if( allocate_status != kTfLiteOk ) {
+    //TfLiteStatus allocate_status = interpreter.AllocateTensors();
+    if( interpreter.AllocateTensors() != kTfLiteOk ) {
         reporter->Report( "AllocateTensors() failed" );
         return 1;
     }
 
     // Obtain pointers to the model's input and output tensors.
-    input = interpreter->input(0);
-    output = interpreter->output(0);
+    TfLiteTensor* input = interpreter.input(0);
+    TfLiteTensor* output = interpreter.output(0);
     
     // Obtain quantization parameters for result dequantization
     float scale = input->params.scale;
@@ -72,8 +79,8 @@ int main() {
          }
 
         // Run model
-        TfLiteStatus invoke_status = interpreter->Invoke();
-        if( invoke_status != kTfLiteOk ) {
+        //TfLiteStatus invoke_status = interpreter.Invoke();
+        if ( interpreter.Invoke() != kTfLiteOk ) {
             reporter->Report( "Invoke failed" );
             return 1;
         }
