@@ -16,6 +16,7 @@
 #include "mli_math_macros.h"
 #include "mli_private_types.h"
 #include "mli_types.h"
+#include "mli_krn_reduce_sum2d.h"
 
 #include <arc/arc_intrinsics.h>
 #include <assert.h>
@@ -104,6 +105,41 @@ template <>
 inline void __attribute__ ((always_inline)) adjust_quant_params(fx_quant_specific_params* in, int krn_idx) {
     // No need to adjust something during calculations for MLI_FX specific quantization
     return; 
+}
+
+static int32_t inline __attribute__((always_inline)) mli_prv_calc_out_mul(
+        const mli_tensor *in0,
+        const mli_tensor *in1,
+        const mli_tensor *out,
+        int * shift){
+    if ((in0->el_type == MLI_EL_FX_8) || (in0->el_type == MLI_EL_FX_16)) {
+        /* mix of FX and asym datatypes is not supported */
+        MLI_ASSERT((in1->el_type == MLI_EL_FX_8) || (in1->el_type == MLI_EL_FX_16));
+        MLI_ASSERT((out->el_type == MLI_EL_FX_8) || (out->el_type == MLI_EL_FX_16));
+        return 1;
+    } else if (in0->el_type == MLI_EL_ASYM_I8) {
+        const int kPreDivShiftS32 = 30;
+        const int shiftChangeValue = 32;
+        /* mix of FX and asym datatypes is not supported */
+        MLI_ASSERT(in1->el_type == MLI_EL_ASYM_I8);
+        MLI_ASSERT((out->el_type == MLI_EL_ASYM_I8) || (out->el_type == MLI_EL_ASYM_I32));
+        MLI_ASSERT((in0->el_params.asym.dim < 0) && (in1->el_params.asym.dim < 0));
+
+        *shift = in0->el_params.asym.scale_frac_bits;
+        *shift += in1->el_params.asym.scale_frac_bits;
+        *shift += (kPreDivShiftS32 - out->el_params.asym.scale_frac_bits);
+        *shift -= shiftChangeValue;
+
+        int64_t scale_unfinished = (int64_t)(in0->el_params.asym.scale.i32) << kPreDivShiftS32;
+        scale_unfinished = scale_unfinished / out->el_params.asym.scale.i32;
+        int32_t in_to_out_scales_ratio = mli_math_cast_fx<int64_t, int32_t>(scale_unfinished, 0);
+        int64_t out_mul_scaled = (int64_t)in_to_out_scales_ratio * in1->el_params.asym.scale.i32;
+        int32_t out_mul = mli_math_cast_fx<int64_t, int32_t>(out_mul_scaled, shiftChangeValue);
+        return out_mul;
+    } else {
+        MLI_ASSERT(0);
+        return 0;
+    }
 }
 
 //==========================================================================

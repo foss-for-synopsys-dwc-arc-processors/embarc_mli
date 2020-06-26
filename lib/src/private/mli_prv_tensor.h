@@ -243,37 +243,6 @@ static int inline __attribute__((always_inline)) mli_prv_calc_shift(
     }
 }
 
-static int32_t inline __attribute__((always_inline)) mli_prv_calc_out_mul(
-        const mli_tensor *in0,
-        const mli_tensor *in1,
-        const mli_tensor *out,
-        int * shift){
-    if ((in0->el_type == MLI_EL_FX_8) || (in0->el_type == MLI_EL_FX_16)) {
-        /* mix of FX and asym datatypes is not supported */
-        MLI_ASSERT((in1->el_type == MLI_EL_FX_8) || (in1->el_type == MLI_EL_FX_16));
-        MLI_ASSERT((out->el_type == MLI_EL_FX_8) || (out->el_type == MLI_EL_FX_16));
-        return 1;
-    } else if (in0->el_type == MLI_EL_ASYM_I8) {
-        /* mix of FX and asym datatypes is not supported */
-        MLI_ASSERT(in1->el_type == MLI_EL_ASYM_I8);
-        MLI_ASSERT((out->el_type == MLI_EL_ASYM_I8) || (out->el_type == MLI_EL_ASYM_I32));
-        MLI_ASSERT((in0->el_params.asym.dim < 0) && (in1->el_params.asym.dim < 0));
-        int32_t out_mul = (int32_t)in0->el_params.asym.scale.i16 * (int32_t)in1->el_params.asym.scale.i16;
-        int norm = mli_prv_norm(out_mul);
-        out_mul <<= norm;
-        *shift += norm;
-        out_mul = out_mul / (int32_t)out->el_params.asym.scale.i16;
-        norm = mli_prv_norm(out_mul);
-        out_mul <<= norm;
-        *shift += norm;
-        *shift -= MLI_MAT_MUL_Q31_SHIFT; // compensate for the fact that fractional mul is used (the mull does internal shift right with 31)
-        return out_mul;
-    } else {
-        MLI_ASSERT(0);
-        return 0;
-    }
-}
-
 static int32_t inline __attribute__((always_inline)) mli_prv_calc_bias_mul(
         const mli_tensor *in0,
         const mli_tensor *in1,
@@ -287,7 +256,7 @@ static int32_t inline __attribute__((always_inline)) mli_prv_calc_bias_mul(
         /* mix of FX and asym datatypes is not supported */
         MLI_ASSERT(in1->el_type == MLI_EL_ASYM_I8);
         MLI_ASSERT((bias->el_type == MLI_EL_ASYM_I8) || (bias->el_type == MLI_EL_ASYM_I32));
-        int32_t bias_mul = (1 << MLI_BIAS_MUL_SHIFT) / ((int32_t)in0->el_params.asym.scale.i16 * (int32_t)in1->el_params.asym.scale.i16);
+        int32_t bias_mul = (1 << MLI_BIAS_MUL_SHIFT) / ((int32_t)in0->el_params.asym.scale.i32 * (int32_t)in1->el_params.asym.scale.i32);
         return bias_mul;
     } else {
         MLI_ASSERT(0);
