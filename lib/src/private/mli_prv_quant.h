@@ -119,6 +119,7 @@ static int32_t inline __attribute__((always_inline)) mli_prv_calc_out_mul(
         return 1;
     } else if (in0->el_type == MLI_EL_ASYM_I8) {
         const int kPreDivShiftS32 = 30;
+        const int shiftChangeValue = 32;
         /* mix of FX and asym datatypes is not supported */
         MLI_ASSERT(in1->el_type == MLI_EL_ASYM_I8);
         MLI_ASSERT((out->el_type == MLI_EL_ASYM_I8) || (out->el_type == MLI_EL_ASYM_I32));
@@ -127,13 +128,13 @@ static int32_t inline __attribute__((always_inline)) mli_prv_calc_out_mul(
         *shift = in0->el_params.asym.scale_frac_bits;
         *shift += in1->el_params.asym.scale_frac_bits;
         *shift += (kPreDivShiftS32 - out->el_params.asym.scale_frac_bits);
-        *shift -= 32;
+        *shift -= shiftChangeValue;
 
         int64_t scale_unfinished = (int64_t)(in0->el_params.asym.scale.i32) << kPreDivShiftS32;
         scale_unfinished = scale_unfinished / out->el_params.asym.scale.i32;
         int32_t in_to_out_scales_ratio = mli_math_cast_fx<int64_t, int32_t>(scale_unfinished, 0);
         int64_t out_mul_scaled = (int64_t)in_to_out_scales_ratio * in1->el_params.asym.scale.i32;
-        int32_t out_mul = mli_math_cast_fx<int64_t, int32_t>(out_mul_scaled, 32);
+        int32_t out_mul = mli_math_cast_fx<int64_t, int32_t>(out_mul_scaled, shiftChangeValue);
         return out_mul;
     } else {
         MLI_ASSERT(0);
