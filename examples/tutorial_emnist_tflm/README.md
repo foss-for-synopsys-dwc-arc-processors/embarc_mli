@@ -1,4 +1,4 @@
-EMNIST Convolution Neural Network Example
+EMNIST Conversion Example
 ========================================================================
 This example shows how to convert EMNIST Tensorflow model into Tensorflow Lite Micro format and use it in embARC MLI application. 
 
@@ -49,7 +49,7 @@ Open root directory of tensorflow in terminal (use Cygwin or MinGW terminal if y
 ```bash
 make -f tensorflow/lite/micro/tools/make/Makefile TARGET_ARCH=arc microlite
 ```
-Generated library *libtensorflow-microlite.a* can be found in *<tensorflow-dir>/tensorflow/lite/micro/tools/make/gen/<target>/lib*. Copy it to third_party directory of this example.
+Generated library *libtensorflow-microlite.a* can be found in *\{tensorflow-dir\}/tensorflow/lite/micro/tools/make/gen/\{target\}/lib*. Copy it to third_party directory of this example.
 
 ## Convert the model
 To convert the model, run the Jupyter Notebook:
@@ -57,6 +57,11 @@ To convert the model, run the Jupyter Notebook:
 jupyter notebook conversion_tutorial/model_conversion.ipynb
 ```
 After completing the tutorial you should have model and test samples generated. Copy *conversion_tutorial/generated/model.h* and *conversion_tutorial/generated/test_samples.cc* to *src* folder.
+
+Before building you should set TENSORFLOW_DIR variable to point to your Tensorflow top folder. E.g. on Windows:
+```bash
+set TENSORFLOW_DIR=\{your-path-to-tensorflow\}
+```
 
 Now you can build and run the example with DesignWare ARC nSIM simulator:
 ```bash
