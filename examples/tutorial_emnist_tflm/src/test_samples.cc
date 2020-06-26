@@ -1163,4 +1163,4 @@ TestSample sample25 = {
 const TestSample test_samples[kNumSamples] = {sample1, sample2, sample3, sample4, 
     sample5, sample6, sample7, sample8, sample9, sample10, sample11, sample12, 
     sample13, sample14, sample15, sample16, sample17, sample18, sample19, sample20, 
-    sample21, sample22, sample23, sample24, sample25, };
+    sample21, sample22, sample23, sample24, sample25 };
