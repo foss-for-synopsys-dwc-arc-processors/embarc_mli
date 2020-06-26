@@ -243,46 +243,6 @@ static int inline __attribute__((always_inline)) mli_prv_calc_shift(
     }
 }
 
-inline int32_t mli_math_cast_fc(int64_t in_val, int shift_right) {
-    in_val = fx_asr_rnd_q63(in_val, shift_right);
-    in_val = fx_asl_q63(in_val, 32);
-    return fx_q31_cast_q63(in_val);
-}
-
-static int32_t inline __attribute__((always_inline)) mli_prv_calc_out_mul(
-        const mli_tensor *in0,
-        const mli_tensor *in1,
-        const mli_tensor *out,
-        int * shift){
-    if ((in0->el_type == MLI_EL_FX_8) || (in0->el_type == MLI_EL_FX_16)) {
-        /* mix of FX and asym datatypes is not supported */
-        MLI_ASSERT((in1->el_type == MLI_EL_FX_8) || (in1->el_type == MLI_EL_FX_16));
-        MLI_ASSERT((out->el_type == MLI_EL_FX_8) || (out->el_type == MLI_EL_FX_16));
-        return 1;
-    } else if (in0->el_type == MLI_EL_ASYM_I8) {
-        const int kPreDivShiftS32 = 30;
-        /* mix of FX and asym datatypes is not supported */
-        MLI_ASSERT(in1->el_type == MLI_EL_ASYM_I8);
-        MLI_ASSERT((out->el_type == MLI_EL_ASYM_I8) || (out->el_type == MLI_EL_ASYM_I32));
-        MLI_ASSERT((in0->el_params.asym.dim < 0) && (in1->el_params.asym.dim < 0));
-
-        *shift = in0->el_params.asym.scale_frac_bits;
-        *shift += in1->el_params.asym.scale_frac_bits;
-        *shift += (kPreDivShiftS32 - out->el_params.asym.scale_frac_bits);
-        *shift -= 32;
-
-        int64_t scale_unfinished = (int64_t)(in0->el_params.asym.scale.i32) << kPreDivShiftS32;
-        scale_unfinished = scale_unfinished / out->el_params.asym.scale.i32;
-        int32_t in_to_out_scales_ratio = mli_math_cast_fc(scale_unfinished, 0);
-        int64_t out_mul_scaled = (int64_t)in_to_out_scales_ratio * in1->el_params.asym.scale.i32;
-        int32_t out_mul = mli_math_cast_fc(out_mul_scaled, 32);
-        return out_mul;
-    } else {
-        MLI_ASSERT(0);
-        return 0;
-    }
-}
-
 static int32_t inline __attribute__((always_inline)) mli_prv_calc_bias_mul(
         const mli_tensor *in0,
         const mli_tensor *in1,
