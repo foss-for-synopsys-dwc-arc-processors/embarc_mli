@@ -63,7 +63,7 @@ Building of embARC MLI library
 
 ## Building and running examples
 ---------------------------------------------
-There are several examples supplied with embARC MLI Library. For information on how to build and run each example please go to example directory and examine local README.		
+There are several examples supplied with embARC MLI Library. They're setup to be build for default configuration \([em9d.tcf](/hw/em9d.tcf)\). To build them for other configurations you might have to provide linker file to address its memory requirements. For information on how to build and run each example please go to example directory and examine local README.		
 ### [CIFAR-10](/examples/example_cifar10_caffe)
 This example is a simple image classifier built on convolution, pooling and dense layers. It is based on standard Caffe tutorial for CIFAR-10 dataset.
 ### [Human Activity Recognition](/examples/example_har_smartphone)

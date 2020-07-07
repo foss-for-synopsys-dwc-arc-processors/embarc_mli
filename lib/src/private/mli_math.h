@@ -118,6 +118,13 @@ inline int64_t mli_math_mul_fx(int32_t L, int32_t R) {
     return (int64_t )(fx_q63_cast_a72(fx_a72_mpy_q31(L, R)) >> 1);
 }
 
+template <>
+inline accum72_t mli_math_mul_fx(int32_t L, int32_t R) {
+    // Result of multiplication is fractional number (shifted left by 1)
+    // To return correct result we shift it right afterward
+    return fx_a72_mpy_q31(L, R);
+}
+
 // Multiply-and-accumulate operands
 //========================================================================
 template <> inline mli_acc32_t mli_math_mac_fx(mli_acc32_t acc, int8_t L, int8_t R) {
@@ -330,6 +337,11 @@ inline int32_t mli_math_cast_fx(int64_t in_val, int shift_right) {
 template <>
 inline int32_t mli_math_cast_fx(accum72_t in_val, int shift_right) {
     return fx_q31_cast_nf_asl_rnd_a72(in_val, 64 - sizeof(int32_t) * 8 - shift_right);
+}
+
+template <>
+inline int16_t mli_math_cast_fx(accum72_t in_val, int shift_right) {
+    return fx_q15_cast_nf_asl_rnd_a72(in_val, 64 - sizeof(int16_t) * 8 - shift_right);
 }
 
 #pragma Code()

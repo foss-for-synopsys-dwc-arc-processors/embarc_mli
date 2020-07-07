@@ -62,8 +62,14 @@ jupyter notebook example.ipynb
 
 After completing the tutorial, you can run the example with DesignWare ARC nSIM simulator. The next line executes the model for a single hard-coded letter prediction providing the information on performance:
 ```bash
-gmake run app
+gmake app run
 ```
+The output of the application shows performance and accuracy of model execution. The numbers differ depending on the parameters you choose in a tutorial, but generally output should look like this:
+
+    NN Performance
+            Total: ... cycles
+
+    Result Quality: S/N=...
 
 You can also test the model on a data subset generated during the tutorial:
 ```bash
