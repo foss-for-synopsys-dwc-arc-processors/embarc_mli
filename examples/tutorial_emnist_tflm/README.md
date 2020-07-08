@@ -21,7 +21,7 @@ Installation process of the following dependencies is described in [Getting Star
     * NumPy 1.16.4
     * Matplotlib
     * Jupyter Lab / Notebook
-    * tf-nightly 2.3
+    * TensorFlow 2.3
     * Keras
     * emnist 
     
@@ -41,8 +41,8 @@ Installation process of the following dependencies is described in [Getting Star
 ## Install pip requirements
 ```bash
 pip install --upgrade pip setuptools
-pip install -r requirements.txt
-python -c "import emnist; emnist.ensure_cached_data();
+pip install -r ./conversion_tutorial/requirements.txt
+python -c "import emnist; emnist.ensure_cached_data();"
 ```
 ## Generate Tensorflow Lite Micro library
 Open root directory of tensorflow in terminal (use Cygwin or MinGW terminal if you're on Windows). Run:
