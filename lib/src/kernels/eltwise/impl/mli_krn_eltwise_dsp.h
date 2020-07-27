@@ -7,25 +7,20 @@
 *
 */
 
-#ifndef _MLI_KRN_ELTWISE_DSP_H_
-#define _MLI_KRN_ELTWISE_DSP_H_
+#ifndef _MLI_KRN_ELTWISE_ADD_DSP_H_
+#define _MLI_KRN_ELTWISE_ADD_DSP_H_
 
+#include "mli_krn_eltwise_decl.h"
+
+#include "mli_config.h"
 #include "mli_debug.h"
 #include "mli_math.h"
 #include "mli_prv_dsp.h"
 #include "mli_prv_load_store.h"
-#include "mli_prv_tensor.h"
-#include "mli_types.h"
 
 namespace mli {
-
-typedef enum {
-    ELTWISE_ADD = 0,
-    ELTWISE_SUB,
-    ELTWISE_MUL,
-    ELTWISE_MAX,
-    ELTWISE_MIN
-} mli_eltwise_type;
+namespace krn {
+namespace dsp {
 
 #pragma Code(".mli_lib")
 //======================================================
@@ -67,6 +62,9 @@ static inline void __attribute__ ((always_inline)) eltwise_op_add_fx (
         MLI_OUT_PTR(int8_t) out,
         const int op1_size,
         const int op2_size) {
+
+    MLI_PRINTF_FUNC();
+
     // Simple broadcast (vector on scalar)
     //==============================================
     if (op1_size == 1 || op2_size == 1) {
@@ -155,6 +153,9 @@ static inline void __attribute__ ((always_inline)) eltwise_op_add_fx (
         MLI_OUT_PTR(io_T) out,
         const int op1_size,
         const int op2_size) {
+
+    MLI_PRINTF_FUNC();
+
     // Simple broadcast (vector on scalar)
     //==============================================
     if (op1_size == 1 || op2_size == 1) {
@@ -472,6 +473,8 @@ static inline void __attribute__ ((always_inline)) eltwise_op_mul_with_restricts
 //======================================================
 template <typename io_T, mli_eltwise_type func_type>
 static inline void eltwise_prepare_and_run_fx(const mli_tensor *in1, const mli_tensor *in2, mli_tensor *out) {
+    MLI_PRINTF_FUNC();
+
     mli_prv_fx_init_dsp_ctrl();
     // Extract general parameters for function
     uint32_t in1_sz = mli_prv_count_elem_num(in1);
@@ -525,6 +528,8 @@ static inline void eltwise_prepare_and_run_fx(const mli_tensor *in1, const mli_t
 
 #pragma Code()
 
-}  // namespace mli
+} // namespace dsp
+} // namespace krn
+} // namespace mli
 
-#endif  // _MLI_KRN_ELTWISE_DSP_H_
+#endif // _MLI_KRN_ELTWISE_ADD_DSP_H_

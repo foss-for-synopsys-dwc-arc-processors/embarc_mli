@@ -10,6 +10,55 @@
 #ifndef _MLI_KRN_ELTWISE_H_
 #define _MLI_KRN_ELTWISE_H_
 
+#include "mli_krn_eltwise_decl.h"
+
+// This header file must be included by users inside MLI library that depend
+// on mli_krn_eltwise. Depending on platform capabilities, the right
+// implementation with 'using' is chosen. This header file is responsible for
+// including *_dsp (FXAPI) and *_vdsp (vector DSP) variants of mli_krn_eltwise.
+
+////////////////////////////////////////////////////////////////////////////////
+// Setting up namespace
+////////////////////////////////////////////////////////////////////////////////
+// Selecting between different variants (depending on hardware features) is
+// done with 'using'. A completely different implementation can be used/'using'.
+// However, also only a part of the reference together with optimized functions
+// (from example *_dsp) can be used/'using'.
+
+namespace mli {
+// TODO: namespace krn is commented out since other users inside this library
+// expect eltiwse symbols to be available in namesapce mli directly.
+//namespace krn {
+#if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
+using mli::krn::ref::eltwise_prepare_and_run_fx;
+using mli::krn::vdsp::eltwise_op_basic_fx;
+
+#elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
+using mli::krn::dsp::eltwise_prepare_and_run_fx;
+using mli::krn::ref::eltwise_op_basic_fx; // required for mli::krn::ref::eltwise_prepare_and_run_fx
+
+#else
+using mli::krn::ref::eltwise_prepare_and_run_fx;
+using mli::krn::ref::eltwise_op_basic_fx;
+
+#endif
+//} // namespace krn
+} // namespace mli
+
+////////////////////////////////////////////////////////////////////////////////
+// Include implementation
+////////////////////////////////////////////////////////////////////////////////
+// The reference (*_ref.h) implementation can run on all platforms and is always
+// included. Other variants are included based on capabilities. Implementations
+// below can depend on each other through declarations in *_decl.h.
+#include "impl/mli_krn_eltwise_ref.h"
+
+#if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
+#include "impl/mli_krn_eltwise_vdsp.h"
+#endif
+
+#if !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
 #include "impl/mli_krn_eltwise_dsp.h"
+#endif
 
 #endif // _MLI_KRN_ELTWISE_H_

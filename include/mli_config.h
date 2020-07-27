@@ -38,6 +38,13 @@
 #endif
 
 /**
+* Allow functions to pretty print their function name
+*/
+#ifndef MLI_DEBUG_ENABLE_STACK_TRACE_MESSAGES
+#define MLI_DEBUG_ENABLE_STACK_TRACE_MESSAGES (0)
+#endif
+
+/**
 * Define platform specific data
 */
 #include <stdint.h>
@@ -65,7 +72,7 @@
 #undef V2DSP_VECTOR
 #define ARC_PLATFORM (4)
 #define ARC_PLATFORM_STR  "ARCv2DSP VDSP"
-
+#include "arc_vector.h"
 #elif defined(V2DSP_XY) || ((defined __Xxy) && !(defined(V2DSP) || defined(V2DSP_WIDE)))
 /* Platform with XY memory (EM9D or EM11D) */
 #undef V2DSP_XY

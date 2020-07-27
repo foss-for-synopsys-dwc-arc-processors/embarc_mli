@@ -7,8 +7,8 @@
 *
 */
 
-#ifndef _MLI_MATH_H_
-#define _MLI_MATH_H_
+#ifndef _DSP_MLI_MATH_H_
+#define _DSP_MLI_MATH_H_
 
 #if defined(__FXAPI__)
 #include "fxarc.h"
@@ -347,4 +347,4 @@ inline int16_t mli_math_cast_fx(accum72_t in_val, int shift_right) {
 #pragma Code()
 
 
-#endif // _MLI_MATH_H_
+#endif // _DSP_MLI_MATH_H_

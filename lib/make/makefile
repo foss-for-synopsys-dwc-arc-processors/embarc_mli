@@ -27,7 +27,8 @@ MLI_PLATFORM = EM_HS
 endif
 
 ifeq ($(MLI_PLATFORM),VPX)
-SRC_DIRS    =  ../src/kernels/eltwise_vpx
+SRC_DIRS    =  ../src/helpers/src \
+               ../src/kernels/eltwise
 else
 SRC_DIRS    =  ../src/helpers/src \
                ../src/kernels/common \
@@ -43,14 +44,14 @@ endif
 INC_DIRS    = .  \
               ../../include \
               ../../include/api \
-              ../src/pal/dsp \
               ../src/private \
               ../src/helpers \
               ../src/kernels \
               ../src/kernels/eltwise \
               ../src/kernels/pooling \
               ../src/kernels/transform \
-              ../src/move
+              ../src/move \
+              ../src/pal
 
 # source files that are generated
 CONVOLUTION_SRC_FOLDER = ../src/kernels/convolution
@@ -85,7 +86,14 @@ CFLAGS      += -Hnocopyr -Hpurge -Hsdata0 -Hdense_prologue -Wall
 ifeq ($(MLI_PLATFORM),VPX)
     CFLAGS  += -Hvdsp_vector_c -mllvm -slot_swapping=true
 else
+ifeq ($(MLI_PLATFORM),EM_HS)
     CFLAGS  += -Xdsp_ctrl=postshift,guard,convergent -Hfxapi
+else
+    $(error invalid platform)
+endif
+endif
+ifeq ($(MLI_BUILD_REFERENCE),ON)
+    CFLAGS += -DMLI_BUILD_REFERENCE
 endif
 
 vpath %.py  $(GEN_DIR)

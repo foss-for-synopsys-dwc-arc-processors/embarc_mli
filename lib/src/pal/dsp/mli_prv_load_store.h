@@ -7,8 +7,8 @@
 *
 */
 
-#ifndef _MLI_PRV_LOAD_STORE_H_
-#define _MLI_PRV_LOAD_STORE_H_
+#ifndef _DSP_MLI_PRV_LOAD_STORE_H_
+#define _DSP_MLI_PRV_LOAD_STORE_H_
 
 #include <assert.h>
 
@@ -83,4 +83,4 @@ static inline void __attribute__ ((always_inline)) mli_prv_store_1_sample (MLI_O
 
 #pragma clang diagnostic pop
 
-#endif //_MLI_PRV_LOAD_STORE_H_
+#endif //_DSP_MLI_PRV_LOAD_STORE_H_

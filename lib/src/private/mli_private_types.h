@@ -73,8 +73,9 @@ typedef struct {
 } mli_minmax_t;
 
 typedef int32_t   mli_acc32_t;
+#ifdef __FXAPI__
 typedef accum40_t mli_acc40_t;
-
+#endif // __FXAPI__
 typedef signed char v2i8_t __attribute__((__vector_size__(2)));
 
 typedef enum {

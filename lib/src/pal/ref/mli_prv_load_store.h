@@ -7,8 +7,7 @@
 *
 */
 
-#include "stdio.h"
+#ifndef _REF_MLI_PRV_LOAD_STORE_H_
+#define _REF_MLI_PRV_LOAD_STORE_H_
 
-void test() {
-    printf("test\n");
-}
+#endif // _REF_MLI_PRV_LOAD_STORE_H_

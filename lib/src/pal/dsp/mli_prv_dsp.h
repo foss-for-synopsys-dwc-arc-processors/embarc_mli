@@ -7,8 +7,8 @@
 *
 */
 
-#ifndef _MLI_PRV_DSP_H_
-#define _MLI_PRV_DSP_H_
+#ifndef _DSP_MLI_PRV_DSP_H_
+#define _DSP_MLI_PRV_DSP_H_
 
 #include <arc/arc_reg.h>        // Defines DSP_CTRL
 
@@ -956,4 +956,4 @@ static inline unsigned __attribute__ ((always_inline)) mli_prv_fx_init_dsp_ctrl(
 
 #pragma clang diagnostic pop
 
-#endif //_MLI_PRV_DSP_H_
+#endif //_DSP_MLI_PRV_DSP_H_
