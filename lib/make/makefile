@@ -29,7 +29,8 @@ endif
 ifeq ($(MLI_PLATFORM),VPX)
 SRC_DIRS    =  ../src/helpers/src \
                ../src/kernels/eltwise \
-               ../src/kernels/pooling
+               ../src/kernels/pooling \
+               ../src/private/src
 else
 SRC_DIRS    =  ../src/helpers/src \
                ../src/kernels/common \
@@ -40,12 +41,14 @@ SRC_DIRS    =  ../src/helpers/src \
                ../src/kernels/pooling_chw \
                ../src/kernels/transform \
                ../src/private/src \
+               ../src/bricks \
                ../src/move
 endif
 
 INC_DIRS    = .  \
               ../../include \
               ../../include/api \
+              ../src/bricks \
               ../src/private \
               ../src/helpers \
               ../src/kernels \
