@@ -43,6 +43,7 @@ endif
 INC_DIRS    = .  \
               ../../include \
               ../../include/api \
+              ../src/pal/dsp \
               ../src/private \
               ../src/helpers \
               ../src/kernels \
