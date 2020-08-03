@@ -36,6 +36,7 @@ SRC_DIRS    =  ../src/helpers/src \
                ../src/kernels/data_manip \
                ../src/kernels/eltwise \
                ../src/kernels/pooling \
+               ../src/kernels/pooling_chw \
                ../src/kernels/transform \
                ../src/private/src \
                ../src/move
@@ -49,6 +50,7 @@ INC_DIRS    = .  \
               ../src/kernels \
               ../src/kernels/eltwise \
               ../src/kernels/pooling \
+              ../src/kernels/pooling_chw \
               ../src/kernels/transform \
               ../src/move \
               ../src/pal
