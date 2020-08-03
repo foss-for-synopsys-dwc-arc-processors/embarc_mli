@@ -10,6 +10,8 @@
 #ifndef _MLI_KRN_AVEPOOL_HWC_DSP_H_
 #define _MLI_KRN_AVEPOOL_HWC_DSP_H_
 
+#include "mli_krn_avepool_hwc_decl.h"
+
 #include "mli_krn_reduce_sum2d.h"
 
 #include "mli_config.h"
@@ -17,6 +19,10 @@
 #include "mli_helpers_api.h"
 #include "mli_private_types.h"
 #include "mli_prv_dsp.h"
+
+namespace mli {
+namespace krn {
+namespace dsp {
 
 /******************************************************************************
  *
@@ -239,5 +245,9 @@ static inline void __attribute__((always_inline)) avepool_hwc_krnpad(
         }
     }
 }
+
+} // namespace dsp
+} // namespace krn
+} // namespace mli
 
 #endif  //_MLI_KRN_AVEPOOL_HWC_DSP_H_

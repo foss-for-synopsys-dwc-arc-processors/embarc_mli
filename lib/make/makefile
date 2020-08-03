@@ -28,7 +28,8 @@ endif
 
 ifeq ($(MLI_PLATFORM),VPX)
 SRC_DIRS    =  ../src/helpers/src \
-               ../src/kernels/eltwise
+               ../src/kernels/eltwise \
+               ../src/kernels/pooling
 else
 SRC_DIRS    =  ../src/helpers/src \
                ../src/kernels/common \

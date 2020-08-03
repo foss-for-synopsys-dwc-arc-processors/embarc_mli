@@ -9,6 +9,8 @@
 #ifndef _MLI_KRN_MAXPOOL_HWC_DSP_H_
 #define _MLI_KRN_MAXPOOL_HWC_DSP_H_
 
+#include "mli_krn_maxpool_hwc_decl.h"
+
 #include "mli_check.h"
 #include "mli_config.h"
 #include "mli_debug.h"
@@ -24,6 +26,10 @@
 #ifdef __FXAPI__
 #include <fxarc.h>
 #endif
+
+namespace mli {
+namespace krn {
+namespace dsp {
 
 /**
  * Function Short Description
@@ -299,5 +305,9 @@ static inline void __attribute__((always_inline)) maxpool_hwc_pad(
 }
 
 #pragma code()
+
+} // namespace dsp
+} // namespace krn
+} // namespace mli
 
 #endif //_MLI_KRN_MAXPOOL_HWC_DSP_H_
