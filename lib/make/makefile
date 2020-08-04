@@ -17,8 +17,12 @@ GEN_RULES ?= OFF
 # Directories and files
 SRC_ROOT    =  ../src
 
+#Supported values for runding mode: UP/CONVERGENT
+ROUND_MODE ?= CONVERGENT
+
 # Collect iformation about platform from TCF
 ALL_PLATFORM_FLAGS := '$(shell ccac -tcf=$(TCF_FILE) -Hbatchnotmp _.c)'
+
 # Define type of platform
 ifneq (,$(filter +vdsp, $(ALL_PLATFORM_FLAGS)))
 MLI_PLATFORM = VPX
@@ -91,9 +95,27 @@ CFLAGS      += -Hnocopyr -Hpurge -Hsdata0 -Hdense_prologue -Wall
 
 ifeq ($(MLI_PLATFORM),VPX)
     CFLAGS  += -Hvdsp_vector_c -mllvm -slot_swapping=true
+    ifeq ($(ROUND_MODE), UP)
+        CFLAGS += -DROUND_UP
+    else
+    ifeq ($(ROUND_MODE), CONVERGENT)
+        CFLAGS += -DROUND_CONVERGENT
+    else
+        $(error rounding mode doesn't supported)
+    endif
+    endif
 else
 ifeq ($(MLI_PLATFORM),EM_HS)
-    CFLAGS  += -Xdsp_ctrl=postshift,guard,convergent -Hfxapi
+    CFLAGS += -Hfxapi
+    ifeq ($(ROUND_MODE), UP)
+        CFLAGS += -Xdsp_ctrl=postshift,guard,up
+    else
+    ifeq ($(ROUND_MODE), CONVERGENT)
+        CFLAGS += -Xdsp_ctrl=postshift,guard,convergent
+    else
+        $(error rounding mode doesn't supported)
+    endif
+    endif
 else
     $(error invalid platform)
 endif

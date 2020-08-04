@@ -59,6 +59,13 @@
 
 #endif // if defined (__CCAC__)
 
+#if defined(_ARC) || defined(__clang__) || defined(__GNUC__)
+#define MLI_FORCE_INLINE inline __attribute__((always_inline))
+#elif defined(_MSC_VER)
+#define MLI_FORCE_INLINE inline __forceinline
+#else
+#error "Current compiler isn't supported"
+#endif
 
 /*
 * Define the platform (according to pre-defined macro or according to HW config)

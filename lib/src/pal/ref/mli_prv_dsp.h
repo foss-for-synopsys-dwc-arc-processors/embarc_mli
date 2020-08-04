@@ -14,7 +14,7 @@
 // TODO: TO BE UPDATED
 ////////////////////////////////////////////////////////////////////
 
-static inline unsigned __attribute__ ((always_inline)) mli_prv_fx_init_dsp_ctrl() {
+static MLI_FORCE_INLINE unsigned mli_prv_fx_init_dsp_ctrl() {
     return 0;
 }
 

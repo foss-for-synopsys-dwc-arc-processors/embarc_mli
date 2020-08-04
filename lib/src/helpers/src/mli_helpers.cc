@@ -13,6 +13,7 @@
 
 #include "mli_config.h"
 #include "mli_debug.h"
+#include "mli_math.h"
 #include "mli_helpers_api.h"
 #include "mli_prv_tensor.h"
 
@@ -22,7 +23,6 @@
 extern "C" {
 #endif
 
-#ifdef __FXAPI__
 static void convert_tensor_fx8_to_fx8(
         const MLI_PTR(int8_t) __restrict in, 
         MLI_PTR(int8_t) __restrict out, 
@@ -30,7 +30,7 @@ static void convert_tensor_fx8_to_fx8(
         int shift_right) {
     __builtin_assume(count > 0);
     for (int i = 0; i < count; i++)
-        out[i] = (int8_t)fx_sat_q15(fx_asr_rnd_q15((int16_t)in[i], shift_right), 8);
+        out[i] = mli_math_cast_fx<int16_t, int8_t>((int16_t)in[i], shift_right);
 }
 
 static void convert_tensor_fx16_to_fx16(
@@ -40,7 +40,7 @@ static void convert_tensor_fx16_to_fx16(
         int shift_right) {
     __builtin_assume(count > 0);
     for (int i = 0; i < count; i++)
-        out[i] = fx_asr_rnd_q15(in[i], shift_right);
+        out[i] = mli_math_asr_rnd_fx<int16_t>(in[i], shift_right);
 }
 
 static void convert_tensor_fx8_to_fx16(
@@ -50,7 +50,7 @@ static void convert_tensor_fx8_to_fx16(
         int shift_right) {
     __builtin_assume(count > 0);
     for (int i = 0; i < count; i++)
-        out[i] = (int16_t)fx_asr_rnd_q15((int16_t)in[i], shift_right);
+        out[i] = mli_math_cast_fx<int8_t, int16_t>((int16_t)in[i], shift_right);
 }
 
 static void convert_tensor_fx16_to_fx8(
@@ -59,9 +59,8 @@ static void convert_tensor_fx16_to_fx8(
         int count, 
         int shift_right) {
     for (int i = 0; i < count; i++)
-        out[i] = (int8_t)fx_sat_q15(fx_asr_rnd_q15(in[i], shift_right), 8);
+        out[i] = mli_math_cast_fx<int16_t, int8_t>(in[i], shift_right);
 }
-#endif // __FXAPI__
 
 uint32_t mli_hlp_count_elem_num(const mli_tensor *in, uint32_t start_dim) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_count_elem_num(in, start_dim), __func__);
@@ -222,7 +221,6 @@ mli_status mli_hlp_create_subtensor(const mli_tensor *in, const mli_sub_tensor_c
     return MLI_STATUS_OK;
 }
 
-#ifdef __FXAPI__
 mli_status mli_hlp_convert_tensor(mli_tensor *in, mli_tensor *out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_convert_tensor(in, out), __func__);
     if (ret != MLI_STATUS_OK)
@@ -250,7 +248,6 @@ mli_status mli_hlp_convert_tensor(mli_tensor *in, mli_tensor *out) {
     out->rank = in->rank;
     return MLI_STATUS_OK;
 }
-#endif // __FXAPI__
 
 #ifdef __cplusplus
 }
