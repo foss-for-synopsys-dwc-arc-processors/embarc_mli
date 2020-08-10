@@ -388,10 +388,28 @@ static void __attribute__ ((always_inline)) convolution_v (
     __builtin_assume(in_ch > 0);
     for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
         // Convolution core
-        dotprod2D_v (in_ptr, w_ptr, clmns, rows, in_width, kernel_w, &conv_out_v);
+//        dotprod2D_v (in_ptr, w_ptr, clmns, rows, in_width, kernel_w, &conv_out_v);
+        int in_row_step = in_width - clmns;
+        int kern_row_step = kernel_w - clmns;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
+#pragma clang loop unroll(full)
+        for (int32_t row = 0; row < rows; row++) {
+#pragma clang loop unroll(full)
+            for (int32_t clmn = 0; clmn < clmns; clmn++) {
+                int16_t k = (*w_ptr++);
+                v2q15_t k_v = { k, k };
+                v2q15_t tx = mli_prv_load_2_samples (in_ptr);
+                in_ptr++;
+                mli_math_mac_fx_vec2 (&conv_out_v, tx, k_v);
+            }
+            in_ptr += in_row_step;
+            w_ptr += kern_row_step;
+        }
+#pragma clang diagnostic pop
         // move to next channel
-        w_ptr += kernel_w * kernel_h;
-        in_ptr += in_width * in_height;
+        w_ptr += kernel_w * kernel_h - kernel_w * rows;
+        in_ptr += in_width * in_height - in_width * rows;
     }
 
     mli_prv_clip_relu_store_output_v (o_ptr, &conv_out_v, out_shift, val_min_limit, val_max_limit);
