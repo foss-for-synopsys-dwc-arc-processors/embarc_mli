@@ -1009,7 +1009,7 @@ mli_status mli_krn_conv2d_chw_fx8_k4x4_ch1_str1_krnpad(
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_conv2d_chw_fx8_k4x10_ch1_str1_krnpad(
+mli_status mli_krn_conv2d_chw_fx8_k4x10_ch1_krnpad(
         const mli_tensor * in, 
         const mli_tensor * weights, 
         const mli_tensor * bias, 
@@ -1031,17 +1031,17 @@ mli_status mli_krn_conv2d_chw_fx8_k4x10_ch1_str1_krnpad(
     int in_ch = in->shape[FMAP_C_DIM_CHW];
 
     // assign hard coded values for this variation to some variables
-#if 1
-    MLI_CHECK_AND_FIX(stride_width, 1);
+#if 2
+    MLI_CHECK_AND_FIX(stride_width, 2);
+#endif
+#if 2
+    MLI_CHECK_AND_FIX(stride_height, 2);
 #endif
 #if 1
-    MLI_CHECK_AND_FIX(stride_height, 1);
-#endif
-#if 1
-    MLI_CHECK_AND_FIX(padding_top, 4);
+    MLI_CHECK_AND_FIX(padding_top, 5);
     MLI_CHECK_AND_FIX(padding_bot, 5);
     MLI_CHECK_AND_FIX(padding_left, 1);
-    MLI_CHECK_AND_FIX(padding_right, 2);
+    MLI_CHECK_AND_FIX(padding_right, 1);
 #endif
 #if 4
     MLI_CHECK_AND_FIX(kernel_width, 4);
@@ -1087,7 +1087,7 @@ mli_status mli_krn_conv2d_chw_fx8_k4x10_ch1_str1_krnpad(
 
     mli_prv_fx_init_dsp_ctrl();
 
-    conv2d_chw_str1(
+    conv2d_chw(
         in_ftrs, wt, bs, out_ftrs, &cent_area,
         bias_shift, out_shift,
         val_limit.min, val_limit.max,
