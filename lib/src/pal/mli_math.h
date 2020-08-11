@@ -22,6 +22,7 @@ template < typename io_T > MLI_FORCE_INLINE io_T mli_math_sub_fx(io_T L, io_T R)
 template < typename io_T > MLI_FORCE_INLINE io_T mli_math_max_fx(io_T L, io_T R);
 template <typename l_T, typename r_T> MLI_FORCE_INLINE l_T mli_math_max_fx(l_T L, r_T R);
 template < typename io_T > MLI_FORCE_INLINE io_T mli_math_min_fx(io_T L, io_T R);
+template <typename l_T, typename r_T> MLI_FORCE_INLINE l_T mli_math_min_fx(l_T L, r_T R);
 template < typename in_T, typename acc_T > MLI_FORCE_INLINE acc_T mli_math_mul_fx(in_T L, in_T R);
 template < typename in_T, typename acc_T > MLI_FORCE_INLINE acc_T mli_math_mul_fx_high(in_T L, in_T R);
 template < typename l_T, typename r_T, typename acc_T > MLI_FORCE_INLINE acc_T mli_math_mac_fx(acc_T acc, l_T L, r_T R);

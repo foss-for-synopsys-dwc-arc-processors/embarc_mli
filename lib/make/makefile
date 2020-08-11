@@ -101,7 +101,7 @@ ifeq ($(MLI_PLATFORM),VPX)
     ifeq ($(ROUND_MODE), CONVERGENT)
         CFLAGS += -DROUND_CONVERGENT
     else
-        $(error rounding mode doesn't supported)
+        $(error rounding mode isn't supported)
     endif
     endif
 else
@@ -113,7 +113,7 @@ ifeq ($(MLI_PLATFORM),EM_HS)
     ifeq ($(ROUND_MODE), CONVERGENT)
         CFLAGS += -Xdsp_ctrl=postshift,guard,convergent
     else
-        $(error rounding mode doesn't supported)
+        $(error rounding mode isn't supported)
     endif
     endif
 else

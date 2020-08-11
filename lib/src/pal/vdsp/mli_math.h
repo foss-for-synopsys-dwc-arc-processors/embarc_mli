@@ -326,6 +326,11 @@ MLI_FORCE_INLINE io_T mli_math_min_fx(io_T L, io_T R) {
      return (L < R) ? L : R;
 }
 
+template <typename l_T, typename r_T>
+MLI_FORCE_INLINE l_T mli_math_min_fx(l_T L, r_T R) {
+    return (L < R) ? L : R;
+}
+
 // Multiply two operands
 //========================================================================
 template <typename in_T, typename acc_T>

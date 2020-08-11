@@ -12,9 +12,6 @@
 
 #include <limits>
 
-////////////////////////////////////////////////////////////////////
-// TODO: TO BE UPDATED
-////////////////////////////////////////////////////////////////////
 typedef int32_t   mli_acc32_t;
 
 template <typename io_T>
@@ -130,22 +127,6 @@ MLI_FORCE_INLINE int mli_math_norm_fx(T x)
     while ((x >> r) != hi)
         r++;
     return (inp_size - 1) - r;
-}
-
-// Cast accum to output type
-//========================================================================
-template <>
-MLI_FORCE_INLINE int8_t mli_math_acc_cast_fx(mli_acc32_t acc, int shift_right) {
-    int32_t temp = (int32_t) mli_math_asr_rnd_fx<mli_acc32_t>(acc, shift_right);
-    temp = mli_math_asl_fx<int32_t>(temp, 24);
-    return (int8_t) (temp >> 24);
-}
-
-template <> 
-MLI_FORCE_INLINE int16_t mli_math_acc_cast_fx(mli_acc32_t acc, int shift_right) {
-    int32_t temp = (int32_t) mli_math_asr_rnd_fx<mli_acc32_t>(acc, shift_right);
-    temp = mli_math_asl_fx<mli_acc32_t>(temp, 16);
-    return (int16_t) mli_math_sat_fx<mli_acc32_t>(mli_math_asr_fx<mli_acc32_t>(temp, 16), 16);
 }
 
 // Addition of two fx operands with saturation

@@ -205,14 +205,12 @@ static MLI_FORCE_INLINE bool mli_prv_less_than_1(io_T value, uint8_t frac_bits) 
 }
 
 template <>
-MLI_FORCE_INLINE int16_t mli_math_asr_rnd_fx(int16_t x, int nbits)
-{
+MLI_FORCE_INLINE int16_t mli_math_asr_rnd_fx(int16_t x, int nbits) {
     return fx_asr_rnd_q15(x, nbits);
 }
 
 template <>
-MLI_FORCE_INLINE int32_t mli_math_asr_rnd_fx(int32_t x, int nbits)
-{
+MLI_FORCE_INLINE int32_t mli_math_asr_rnd_fx(int32_t x, int nbits) {
     return fx_asr_rnd_q31(x, nbits);
 }
 
@@ -257,7 +255,6 @@ MLI_FORCE_INLINE int32_t mli_math_init_accu(int32_t bias, int32_t bias_mul, int 
     //accu = mli_math_scale_mul<acc_T, asym_data>(accu, bias_mul);
     return accu;
 }
-
 
 // Cast value to output type (including accumulator type)
 //========================================================================
