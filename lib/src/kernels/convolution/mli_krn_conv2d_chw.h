@@ -615,6 +615,54 @@ static inline void __attribute__ ((always_inline)) conv2d_chw_nopad_k1x1_str1 (
     MLI_ASSERT(kernel_height == 1);
     MLI_ASSERT(kernel_width == 1);
 
+    if ((clmn_end - clmn_begin) == out_width) {
+        int out_cnt = (row_end - row_begin) * out_width;
+
+        for (int out_ch_idx = 0; out_ch_idx < out_ch; out_ch_idx++) {
+            int in_ch_idx = 0;
+            const MLI_PTR (io_T) in_ptr = in_ftrs + // starting point
+                in_width * in_height * in_ch_idx +  // move to channels
+                in_width * (row_begin * stride_height - padding_top) +  // move to row
+                (clmn_begin * stride_width - padding_left);  // move to column
+
+            const MLI_PTR (w_T) w_ptr = weights +   // Start point
+                out_ch_idx * in_ch * kernel_width * kernel_height; // move to filter
+
+            MLI_CONV_OUT_PTR(io_T) __restrict o_ptr = out_ftrs +
+                out_ch_idx * out_width * out_height +
+                row_begin * out_width + clmn_begin;
+
+            for (int idx = 0; idx < out_cnt/2; idx++) {
+                auto conv_out_v = mli_prv_init_accu_with_bias_v(in_ftrs, biases[out_ch_idx], bias_shift);
+
+
+                // Convolution core
+                dotprod1D_v_unroll2 (in_ptr, w_ptr, in_ch & ~1, in_width * in_height, &conv_out_v);
+
+                in_ch_idx = in_ch & ~1;
+
+                if (in_ch & 1) {
+
+                    // Convolution core
+                    dotprod1D_v (&in_ptr[in_ch_idx * in_width * in_height], &w_ptr[in_ch_idx * kernel_width * kernel_height], 1, 1, &conv_out_v);
+
+                }
+
+                mli_prv_clip_relu_store_output_v (o_ptr, &conv_out_v, out_shift, val_min_limit, val_max_limit);
+                CONV2D_DBG_PRINT(out_ch_idx, idx, 0, o_ptr[0]);
+                CONV2D_DBG_PRINT(out_ch_idx, idx, 1, o_ptr[1]);
+                o_ptr += 2;
+                in_ptr += 2;
+            }
+            /* because the main loop is doing 2 pixels at a time, we need an exception for odd widths */
+            if (_Rarely (out_cnt & 1)) {
+
+                convolution (in_ptr, w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
+                        out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_width, kernel_height, kernel_width, kernel_height, in_ch);
+                CONV2D_DBG_PRINT(out_ch_idx, idx, 2, o_ptr[0]);
+            }
+        }
+    } else {
     for (int out_ch_idx = 0; out_ch_idx < out_ch; out_ch_idx++) {
         for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
             int W_idx;
@@ -697,6 +745,7 @@ static inline void __attribute__ ((always_inline)) conv2d_chw_nopad_k1x1_str1 (
                         out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_width, kernel_height, kernel_width, kernel_height, in_ch);
             }
         }
+    }
     }
 }
 
