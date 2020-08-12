@@ -18,7 +18,6 @@
 #include "mli_math_macros.h"
 #include "mli_types.h"
 #include "mli_private_types.h"
-#include <arc/arc_intrinsics.h>
 
 // with a shift of 31, we cannot represent the value one. So we shift only 30
 // and an extra multiplication of 2 is done when bias is loaded.
@@ -273,10 +272,6 @@ static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tens
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-static inline uint32_t __attribute__ ((always_inline)) mli_prv_norm(int32_t val) {
-    return _norm(val);
-}
 
 static inline mli_status __attribute__ ((always_inline)) mli_prv_copy_tensor_format(
         const mli_tensor * src, 

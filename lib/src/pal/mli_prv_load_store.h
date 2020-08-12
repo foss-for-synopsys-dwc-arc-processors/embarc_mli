@@ -10,13 +10,13 @@
 #ifndef _MLI_PRV_LOAD_STORE_H_
 #define _MLI_PRV_LOAD_STORE_H_
 
-// TODO: the reference PAL is not yet fully developed and cannot be used here.
-//#if defined(MLI_BUILD_REFERENCE)
-//#include "ref/mli_prv_load_store.h"
 #if defined(__Xvec_width)
 #include "vdsp/mli_prv_load_store.h"
-#elif defined(__FXAPI__)
+#elif defined(__FXAPI__) //&& !defined(MLI_BUILD_REFERENCE)
+// not ported kernels running EM/HS; always require dsp/* version of PAL.
 #include "dsp/mli_prv_load_store.h"
+#else
+#include "ref/mli_prv_load_store.h"
 #endif
 
 #endif // _MLI_PRV_LOAD_STORE_H_

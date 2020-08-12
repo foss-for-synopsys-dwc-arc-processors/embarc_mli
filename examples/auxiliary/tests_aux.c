@@ -132,7 +132,7 @@ test_status load_tensors_from_idx_files(
             }
 
             elements_accounted += descr.num_elements;
-            tensors[idx]->data += descr.num_elements * elem_size;
+            tensors[idx]->data  = ((char *)tensors[idx]->data) + descr.num_elements * elem_size;
         }
 
         tensors[idx]->data = addr_backup;
@@ -263,7 +263,7 @@ test_status measure_ref_to_pred(
                 max_abs_err = fabsf(pred_buf[i] - ref_buf[i]);
         }
         elements_accounted += descr.num_elements;
-        pred.data += descr.num_elements * pred_elem_size;
+        pred.data = (char *)(pred.data) + descr.num_elements * pred_elem_size;
     }
 
     const float eps = 0.000000000000000001f;

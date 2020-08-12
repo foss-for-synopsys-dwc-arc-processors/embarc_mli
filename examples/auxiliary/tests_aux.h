@@ -44,7 +44,9 @@ extern "C" {
 //==================================================
 
 /** @def Profiling switcher*/
+#ifdef _ARC
 #define PROFILING_ON
+#endif
 
 /** @var Cycles counter variable. Will hold number of cycles spent for code surrounded by PROFILE(F) macro*/
 extern unsigned cycle_cnt;

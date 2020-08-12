@@ -36,13 +36,13 @@ template <typename in_T, typename out_T> MLI_FORCE_INLINE out_T mli_math_cast_fx
 template <typename in_T, typename out_T> MLI_FORCE_INLINE out_T mli_math_cast_fx(in_T in_val);
 template <typename in_T> MLI_FORCE_INLINE in_T mli_math_asr_rnd_fx(in_T x, int nbits);
 
-// TODO: the reference PAL is not yet fully developed and cannot be used here.
-//#if defined(MLI_BUILD_REFERENCE)
-//#include "ref/mli_math.h"
-#if defined(__Xvec_width)
+#if defined(__Xvec_width) && !defined(MLI_BUILD_REFERENCE)
 #include "vdsp/mli_math.h"
-#elif defined(__FXAPI__)
+#elif defined(__FXAPI__) //&& !defined(MLI_BUILD_REFERENCE)
+// not ported kernels running EM/HS; always require dsp/* version of PAL.
 #include "dsp/mli_math.h"
+#else
+#include "ref/mli_math.h"
 #endif
 
 #endif // _MLI_MATH_H_
