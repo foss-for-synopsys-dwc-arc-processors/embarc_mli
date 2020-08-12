@@ -16,26 +16,48 @@ GEN_RULES ?= OFF
 
 # Directories and files
 SRC_ROOT    =  ../src
+
+# Collect iformation about platform from TCF
+ALL_PLATFORM_FLAGS := '$(shell ccac -tcf=$(TCF_FILE) -Hbatchnotmp _.c)'
+# Define type of platform
+ifneq (,$(filter +vdsp, $(ALL_PLATFORM_FLAGS)))
+MLI_PLATFORM = VPX
+else
+MLI_PLATFORM = EM_HS
+endif
+
+ifeq ($(MLI_PLATFORM),VPX)
+SRC_DIRS    =  ../src/helpers/src \
+               ../src/kernels/eltwise \
+               ../src/kernels/pooling \
+               ../src/private/src
+else
 SRC_DIRS    =  ../src/helpers/src \
                ../src/kernels/common \
                ../src/kernels/convolution \
                ../src/kernels/data_manip \
                ../src/kernels/eltwise \
                ../src/kernels/pooling \
+               ../src/kernels/pooling_chw \
                ../src/kernels/transform \
                ../src/private/src \
+               ../src/bricks \
                ../src/move
+endif
 
 INC_DIRS    = .  \
               ../../include \
               ../../include/api \
+              ../src/bricks \
               ../src/private \
               ../src/helpers \
               ../src/kernels \
               ../src/kernels/eltwise \
               ../src/kernels/pooling \
+              ../src/kernels/pooling_chw \
               ../src/kernels/transform \
-              ../src/move
+              ../src/move \
+              ../src/pal
 
 # source files that are generated
 CONVOLUTION_SRC_FOLDER = ../src/kernels/convolution
@@ -65,7 +87,20 @@ LIBRARY_DIR ?= ../../bin
 OUT_NAME    ?= libmli
 BUILD_DIR   ?= ../../obj
 GEN_DIR     ?= ../gen
-CFLAGS      += -Xdsp_ctrl=postshift,guard,convergent -Hnocopyr -Hfxapi -Hpurge -Hsdata0 -Hdense_prologue -Wall
+CFLAGS      += -Hnocopyr -Hpurge -Hsdata0 -Hdense_prologue -Wall
+
+ifeq ($(MLI_PLATFORM),VPX)
+    CFLAGS  += -Hvdsp_vector_c -mllvm -slot_swapping=true
+else
+ifeq ($(MLI_PLATFORM),EM_HS)
+    CFLAGS  += -Xdsp_ctrl=postshift,guard,convergent -Hfxapi
+else
+    $(error invalid platform)
+endif
+endif
+ifeq ($(MLI_BUILD_REFERENCE),ON)
+    CFLAGS += -DMLI_BUILD_REFERENCE
+endif
 
 vpath %.py  $(GEN_DIR)
 vpath %.txt  $(GEN_DIR)

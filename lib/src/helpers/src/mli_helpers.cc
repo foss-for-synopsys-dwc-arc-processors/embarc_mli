@@ -22,6 +22,7 @@
 extern "C" {
 #endif
 
+#ifdef __FXAPI__
 static void convert_tensor_fx8_to_fx8(
         const MLI_PTR(int8_t) __restrict in, 
         MLI_PTR(int8_t) __restrict out, 
@@ -60,8 +61,7 @@ static void convert_tensor_fx16_to_fx8(
     for (int i = 0; i < count; i++)
         out[i] = (int8_t)fx_sat_q15(fx_asr_rnd_q15(in[i], shift_right), 8);
 }
-
-
+#endif // __FXAPI__
 
 uint32_t mli_hlp_count_elem_num(const mli_tensor *in, uint32_t start_dim) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_count_elem_num(in, start_dim), __func__);
@@ -222,7 +222,7 @@ mli_status mli_hlp_create_subtensor(const mli_tensor *in, const mli_sub_tensor_c
     return MLI_STATUS_OK;
 }
 
-
+#ifdef __FXAPI__
 mli_status mli_hlp_convert_tensor(mli_tensor *in, mli_tensor *out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_convert_tensor(in, out), __func__);
     if (ret != MLI_STATUS_OK)
@@ -250,6 +250,7 @@ mli_status mli_hlp_convert_tensor(mli_tensor *in, mli_tensor *out) {
     out->rank = in->rank;
     return MLI_STATUS_OK;
 }
+#endif // __FXAPI__
 
 #ifdef __cplusplus
 }

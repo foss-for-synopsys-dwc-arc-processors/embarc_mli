@@ -32,6 +32,14 @@ extern "C" {
 #    define MLI_PRINTF(fmt, ...) ((void) 0)
 #endif
 
+// Printf wrapper for stack trace printing (__PRETTY_FUNCTION__ works on GCC/LLVM based compilers)
+#if MLI_DEBUG_ENABLE_STACK_TRACE_MESSAGES == 1
+#    include <stdio.h>
+#    define MLI_PRINTF_FUNC() printf("%s\n", __PRETTY_FUNCTION__ )
+#else
+#    define MLI_PRINTF_FUNC() ((void) 0)
+#endif
+
 // Assert wrapper: works only in DBG_MODE_FULL and DBG_MODE_DEBUG
 #if MLI_DBG_ENABLE_ASSERTS
 #    include <assert.h>

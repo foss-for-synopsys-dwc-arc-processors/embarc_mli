@@ -38,6 +38,13 @@
 #endif
 
 /**
+* Allow functions to pretty print their function name
+*/
+#ifndef MLI_DEBUG_ENABLE_STACK_TRACE_MESSAGES
+#define MLI_DEBUG_ENABLE_STACK_TRACE_MESSAGES (0)
+#endif
+
+/**
 * Define platform specific data
 */
 #include <stdint.h>
@@ -48,8 +55,6 @@
 
 #ifdef __FXAPI__
 #include <stdfix.h>
-#else
-#error "ARC FX Library (FXAPI) is a required dependency"
 #endif
 
 #endif // if defined (__CCAC__)
@@ -60,9 +65,15 @@
 * 1 - ARCV2DSP ISA
 * 2 - ARCV2DSP ISA with XY Memory
 * 3 - ARCV2DSP ISA with 64bit operands (HS Only)
+* 4 - ARCV2DSP ISA with vector DSP
 */
 
-#if defined(V2DSP_XY) || ((defined __Xxy) && !(defined(V2DSP) || defined(V2DSP_WIDE)))
+#if defined(V2DSP_VECTOR) || ((defined(__Xvdsp)))
+#undef V2DSP_VECTOR
+#define ARC_PLATFORM (4)
+#define ARC_PLATFORM_STR  "ARCv2DSP VDSP"
+#include "arc_vector.h"
+#elif defined(V2DSP_XY) || ((defined __Xxy) && !(defined(V2DSP) || defined(V2DSP_WIDE)))
 /* Platform with XY memory (EM9D or EM11D) */
 #undef V2DSP_XY
 #define ARC_PLATFORM (2)
@@ -84,9 +95,10 @@
 #error "Target platform is undefined or defined incorrectly"
 #endif
 
-#define     V2DSP      (1)
-#define     V2DSP_XY   (2)
-#define     V2DSP_WIDE (3)
+#define     V2DSP        (1)
+#define     V2DSP_XY     (2)
+#define     V2DSP_WIDE   (3)
+#define     V2DSP_VECTOR (4)
 
 /*
 * Re-define ML pointers for XY specific platform
@@ -102,6 +114,13 @@
 #define MLI_OUT_PTR(p) __xy p *
 #define MLI_OUT_PTR_IS_XY true
 #define MLI_CONV_OUT_PTR(p) p *
+#define MLI_CONV_OUT_PTR_IS_XY false
+#elif (ARC_PLATFORM == V2DSP_VECTOR)
+#define MLI_PTR(p) __vccm p *
+#define MLI_PTR_IS_XY false
+#define MLI_OUT_PTR(p) __vccm p *
+#define MLI_OUT_PTR_IS_XY false
+#define MLI_CONV_OUT_PTR(p) __vccm p *
 #define MLI_CONV_OUT_PTR_IS_XY false
 #else
 #define MLI_PTR(p) p *
