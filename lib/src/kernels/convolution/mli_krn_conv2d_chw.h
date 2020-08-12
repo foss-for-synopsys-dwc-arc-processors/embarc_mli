@@ -31,6 +31,9 @@
  * value 1 gives better codesize. */
 #define VPAD_UNROLL 2
 
+//#define AGU_INC(p, v) _agu_inc(p, v * sizeof(p[0]))
+#define AGU_INC(p, v) (p + v)
+
 template < typename io_T, typename w_T >
 static void convolution_chw_nopad (
         const MLI_PTR (io_T) __restrict in_ftrs,
@@ -259,6 +262,82 @@ static void __attribute__((always_inline)) convolution_odd_even(
     mli_prv_clip_relu_store_output (o_ptr, conv_out, out_shift, val_min_limit, val_max_limit);
 }
 
+template <typename io_T, typename w_T>
+static void __attribute__((always_inline)) convolution_odd_even(
+        const MLI_PTR(io_T) __restrict *in_ptr,
+        const MLI_PTR(w_T) __restrict *w_ptr,
+        MLI_CONV_OUT_PTR(io_T) __restrict o_ptr,
+        const w_T bias,
+        const int bias_shift,
+        const int out_shift,
+        const int16_t val_min_limit,
+        const int16_t val_max_limit,
+        const int in_width, const int in_height,
+        const int kernel_w, const int kernel_h,
+        int clmns, const int rows, const int in_ch) {
+
+    auto conv_out = mli_prv_init_accu_with_bias (*in_ptr, bias, bias_shift);
+    __builtin_assume(in_ch > 0);
+
+    if (clmns & 1)
+    {
+        for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++)
+        {
+            int width = 1;
+            int in_row_step = in_width - width;
+            int kern_row_step = kernel_w - width;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
+#pragma clang loop unroll(full)
+            for (int row = 0; row < rows; row++) {
+#pragma clang loop unroll(full)
+                for (int clmn = 0; clmn < width; clmn++) {
+                    mli_prv_load_mac(&conv_out, *in_ptr, *w_ptr);
+                    *in_ptr = (MLI_PTR(io_T))AGU_INC(*in_ptr, 1);
+                    *w_ptr = (MLI_PTR(w_T))AGU_INC(*w_ptr, 1);
+                }
+                *in_ptr = (MLI_PTR(io_T))AGU_INC(*in_ptr, in_row_step);
+                *w_ptr = (MLI_PTR(w_T))AGU_INC(*w_ptr, kern_row_step);
+            }
+#pragma clang diagnostic pop
+            *w_ptr = (MLI_PTR(w_T))AGU_INC(*w_ptr, kernel_w * kernel_h - kernel_w * rows);
+            *in_ptr = (MLI_PTR(io_T))AGU_INC(*in_ptr, in_width * in_height - in_width * rows);
+        }
+        *in_ptr = (MLI_PTR(io_T))AGU_INC(*in_ptr, 1 - in_height * in_width * in_ch);
+        *w_ptr = (MLI_PTR(w_T))AGU_INC(*w_ptr, 1 - kernel_h * kernel_w * in_ch);
+        clmns--;
+    }
+    for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++)
+    {
+        int width = clmns;
+        int in_row_step = in_width - width;
+        int kern_row_step = kernel_w - width;
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
+#pragma clang loop unroll(full)
+        for (int row = 0; row < rows; row++) {
+            __builtin_assume (width % 2 == 0);
+            /* unroll of 2 enables the use of dmac */
+#pragma clang loop unroll(full)
+            for (int clmn = 0; clmn < width / 2; clmn++) {
+                mli_prv_load_mac_vec2 (&conv_out, *in_ptr, *w_ptr);
+                *in_ptr = (MLI_PTR(io_T))AGU_INC(*in_ptr, 2);
+                *w_ptr = (MLI_PTR(w_T))AGU_INC(*w_ptr, 2);
+            }
+            *in_ptr = (MLI_PTR(io_T))AGU_INC(*in_ptr, in_row_step);
+            *w_ptr = (MLI_PTR(w_T))AGU_INC(*w_ptr, kern_row_step);
+        }
+#pragma clang diagnostic pop
+        *w_ptr = (MLI_PTR(w_T))AGU_INC(*w_ptr, kernel_w * kernel_h - kernel_w * rows);
+        *in_ptr = (MLI_PTR(io_T))AGU_INC(*in_ptr, in_width * in_height - in_width * rows);
+    }
+    //*in_ptr = (MLI_PTR(io_T))AGU_INC(*in_ptr, -odd -in_width * in_height * in_ch);
+    //*w_ptr = (MLI_PTR(w_T))AGU_INC(*w_ptr, -odd -kernel_w * kernel_h * in_ch);
+
+    mli_prv_clip_relu_store_output (o_ptr, conv_out, out_shift, val_min_limit, val_max_limit);
+}
+
 template < typename io_T, typename w_T >
 static void __attribute__ ((always_inline)) convolution_unroll4_plus1 (
         const MLI_PTR (io_T) __restrict in_ptr,
@@ -388,28 +467,9 @@ static void __attribute__ ((always_inline)) convolution_v (
     __builtin_assume(in_ch > 0);
     for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
         // Convolution core
-//        dotprod2D_v (in_ptr, w_ptr, clmns, rows, in_width, kernel_w, &conv_out_v);
-        int in_row_step = in_width - clmns;
-        int kern_row_step = kernel_w - clmns;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wpass-failed"
-#pragma clang loop unroll(full)
-        for (int32_t row = 0; row < rows; row++) {
-#pragma clang loop unroll(full)
-            for (int32_t clmn = 0; clmn < clmns; clmn++) {
-                int16_t k = (*w_ptr++);
-                v2q15_t k_v = { k, k };
-                v2q15_t tx = mli_prv_load_2_samples (in_ptr);
-                in_ptr++;
-                mli_math_mac_fx_vec2 (&conv_out_v, tx, k_v);
-            }
-            in_ptr += in_row_step;
-            w_ptr += kern_row_step;
-        }
-#pragma clang diagnostic pop
-        // move to next channel
-        w_ptr += kernel_w * kernel_h - kernel_w * rows;
-        in_ptr += in_width * in_height - in_width * rows;
+        dotprod2D_v (in_ptr, w_ptr, clmns, rows, in_width, kernel_w, &conv_out_v);
+        w_ptr += kernel_w * kernel_h;
+        in_ptr += in_width * in_height;
     }
 
     mli_prv_clip_relu_store_output_v (o_ptr, &conv_out_v, out_shift, val_min_limit, val_max_limit);
@@ -835,8 +895,13 @@ static inline void __attribute__ ((always_inline)) conv2d_row_str1 (
 
         if (use_padding1 && (((left_comp > 0) && (i==0)) || ((right_comp > 0) && (i==1)))){
             // border processing with kernelsize = kernel width - 1
-            convolution (in_ptr, w_ptr + l_comp, o_ptr, biases[out_ch_idx], bias_shift,
+            w_ptr = (MLI_PTR(w_T))AGU_INC(w_ptr, l_comp);
+            convolution_odd_even
+            (&in_ptr, &w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
                     out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h, kernel_w - 1, rows, in_ch);
+            in_ptr = (MLI_PTR(io_T))AGU_INC(in_ptr, -((kernel_w-1)&1) -in_width * in_height * in_ch);
+            w_ptr = (MLI_PTR(w_T))AGU_INC(w_ptr, -((kernel_w-1)&1) - kernel_w * kernel_h * in_ch);
+            w_ptr = (MLI_PTR(w_T))AGU_INC(w_ptr, -l_comp);
             CONV2D_DBG_PRINT_EXTRA(out_ch_idx, H_idx, W_idx, o_ptr[0], rows, kernel_w - 1);
             W_idx++;
             o_ptr += 1;
@@ -929,26 +994,65 @@ static inline void __attribute__ ((always_inline)) conv2d_row_str1 (
                  */
                 for (int col = 0; col < cols_even; col++) {
                     __builtin_assume(cols_even > 0);
+#if 0
                     convolution_v (in_ptr, w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
                             out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h,
                             kernel_w, rows, in_ch);
+                    in_ptr += 2;
+#else
+                    auto conv_out_v = mli_prv_init_accu_with_bias_v(in_ptr, biases[out_ch_idx], bias_shift);
+                    int clmns = kernel_w;
+
+                    __builtin_assume(in_ch > 0);
+                    for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++) {
+                        // Convolution core
+                        int in_row_step = in_width - clmns;
+                        int kern_row_step = kernel_w - clmns;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
+#pragma clang loop unroll(full)
+                        for (int32_t row = 0; row < rows; row++) {
+#pragma clang loop unroll(full)
+                            for (int32_t clmn = 0; clmn < clmns; clmn++) {
+                                int16_t k = (*w_ptr);
+                                v2q15_t k_v = { k, k };
+                                v2q15_t tx = mli_prv_load_2_samples (in_ptr);
+                                in_ptr = (MLI_PTR(io_T))AGU_INC(in_ptr, 1);
+                                w_ptr = (MLI_PTR(w_T))AGU_INC(w_ptr, 1);
+                                mli_math_mac_fx_vec2 (&conv_out_v, tx, k_v);
+                            }
+                            in_ptr = (MLI_PTR(io_T))AGU_INC(in_ptr, in_row_step);
+                            w_ptr = (MLI_PTR(w_T))AGU_INC(w_ptr, kern_row_step);
+                        }
+#pragma clang diagnostic pop
+                        // move to next channel
+                        w_ptr = (MLI_PTR(w_T))AGU_INC(w_ptr, kernel_w * kernel_h - kernel_w * rows);
+                        in_ptr = (MLI_PTR(io_T))AGU_INC(in_ptr, in_width * in_height - in_width * rows);
+                    }
+                    in_ptr = (MLI_PTR(io_T))AGU_INC(in_ptr, 2 - in_width * in_height * in_ch);
+                    w_ptr = (MLI_PTR(w_T))AGU_INC(w_ptr, -kernel_w * kernel_h * in_ch);
+                    mli_prv_clip_relu_store_output_v (o_ptr, &conv_out_v, out_shift, val_min_limit, val_max_limit);
+#endif
                     CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, o_ptr[0]);
                     CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx + 1, o_ptr[1]);
                     W_idx += 2;
                     o_ptr += 2;
-                    in_ptr += 2;
+
                 }
             }
     #if 1 // if disabled, odd sizes are not supported
             if (_Rarely(odd)) {
                 //odd
-                convolution (in_ptr, w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
+                convolution_odd_even (&in_ptr, &w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
                         out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h,
                         kernel_w, rows, in_ch);
+                in_ptr = (MLI_PTR(io_T))AGU_INC(in_ptr,-(kernel_w&1) - in_width * in_height * in_ch);
+                w_ptr = (MLI_PTR(w_T))AGU_INC(w_ptr, -(kernel_w&1) -kernel_w * kernel_h * in_ch);
                 CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, o_ptr[0]);
                 W_idx++;
                 o_ptr++;
-                in_ptr += 1;
+                in_ptr = (MLI_PTR(io_T))AGU_INC(in_ptr, 1);
+
             }
     #endif
        }
@@ -956,7 +1060,7 @@ static inline void __attribute__ ((always_inline)) conv2d_row_str1 (
             // extra increment because the border pixel with kernel_w - 2 is computed before kernel_w - 1
             W_idx += 1;
             o_ptr += 1;
-            in_ptr += 1;
+            in_ptr = (MLI_PTR(io_T))AGU_INC(in_ptr, 1);
         }
         cols_even = 0;
         odd = 0;
