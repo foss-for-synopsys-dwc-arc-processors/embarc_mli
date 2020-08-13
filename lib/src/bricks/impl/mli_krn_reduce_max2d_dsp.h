@@ -1,0 +1,75 @@
+/*
+* Copyright 2020-2020, Synopsys, Inc.
+* All rights reserved.
+*
+* This source code is licensed under the BSD-3-Clause license found in
+* the LICENSE file in the root directory of this source tree.
+*
+*/
+
+#ifndef _MLI_KRN_RECUCE_MAX2D_DSP_H_
+#define _MLI_KRN_RECUCE_MAX2D_DSP_H_
+
+#include "mli_krn_reduce_max2d_decl.h"
+#include "mli_config.h"
+#include "mli_prv_dsp.h"
+#include "mli_math.h"
+
+#define REDUCE_MAX2D_UNROLL_FACTOR_FOR_WIDTH 7
+#define REDUCE_MAX2D_UNROLL_FACTOR_FOR_HEIGHT 7
+
+namespace mli {
+namespace krn {
+namespace dsp {
+
+template <typename io_T>
+static inline void __attribute__((always_inline)) reduce_max2D_hwc_v(
+		const MLI_PTR(io_T) in,
+		MLI_PTR(io_T) out,
+		const int width,
+        const int height,
+		const int channels,
+		const int col_mem_stride,
+		const int row_mem_stride,
+		const bool fixed_size) {
+
+    v2q15_t cur_max = mli_prv_load_2_samples(in);
+    if (width == 1){
+        for (int row = 0; row < height; row++) {
+            cur_max = fx_max_v2q15(cur_max, mli_prv_load_2_samples(&in[row*row_mem_stride]));
+        }
+    } else if (height == 1){
+        for (int clmn = 0; clmn < width; clmn++) {
+            cur_max = fx_max_v2q15(cur_max, mli_prv_load_2_samples(&in[clmn*col_mem_stride]));
+        }
+    } else {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
+        if (fixed_size && height <= REDUCE_MAX2D_UNROLL_FACTOR_FOR_HEIGHT && width <= REDUCE_MAX2D_UNROLL_FACTOR_FOR_WIDTH) {
+#pragma clang loop unroll(full)
+            for (int row = 0; row < height; row++) {
+#pragma clang loop unroll(full)
+                for (int clmn = 0; clmn < width; clmn++) {
+                    cur_max = fx_max_v2q15(cur_max, mli_prv_load_2_samples(
+                        &in[(row * row_mem_stride) + (clmn * col_mem_stride)]));
+                }
+            }
+        } else {
+            for (int row = 0; row < height; row++) {
+                for (int clmn = 0; clmn < width; clmn++) {
+                    cur_max = fx_max_v2q15(cur_max, mli_prv_load_2_samples(
+                        &in[(row * row_mem_stride) +  (clmn * col_mem_stride)]));
+                }
+            }
+        }
+#pragma clang diagnostic pop
+    }
+
+    mli_prv_store_2_samples(out, cur_max);
+}
+
+} // namespace dsp
+} // namespace ref
+} // namespace mli
+
+#endif // _MLI_KRN_RECUCE_MAX2D_DSP_H_
