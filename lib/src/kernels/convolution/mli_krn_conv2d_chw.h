@@ -31,8 +31,12 @@
  * value 1 gives better codesize. */
 #define VPAD_UNROLL 2
 
-//#define AGU_INC(p, v) _agu_inc(p, v * sizeof(p[0]))
+#define INC(p, v) (p + v)
+#if defined __Xxy
+#define AGU_INC(p, v) _agu_inc(p, v * sizeof(p[0]))
+#else
 #define AGU_INC(p, v) (p + v)
+#endif
 
 template < typename io_T, typename w_T >
 static void convolution_chw_nopad (
@@ -293,18 +297,18 @@ static void __attribute__((always_inline)) convolution_odd_even(
 #pragma clang loop unroll(full)
                 for (int clmn = 0; clmn < width; clmn++) {
                     mli_prv_load_mac(&conv_out, *in_ptr, *w_ptr);
-                    *in_ptr = (MLI_PTR(io_T))AGU_INC(*in_ptr, 1);
-                    *w_ptr = (MLI_PTR(w_T))AGU_INC(*w_ptr, 1);
+                    *in_ptr = (MLI_PTR(io_T))INC(*in_ptr, 1);
+                    *w_ptr = (MLI_PTR(w_T))INC(*w_ptr, 1);
                 }
-                *in_ptr = (MLI_PTR(io_T))AGU_INC(*in_ptr, in_row_step);
-                *w_ptr = (MLI_PTR(w_T))AGU_INC(*w_ptr, kern_row_step);
+                *in_ptr = (MLI_PTR(io_T))INC(*in_ptr, in_row_step);
+                *w_ptr = (MLI_PTR(w_T))INC(*w_ptr, kern_row_step);
             }
 #pragma clang diagnostic pop
-            *w_ptr = (MLI_PTR(w_T))AGU_INC(*w_ptr, kernel_w * kernel_h - kernel_w * rows);
-            *in_ptr = (MLI_PTR(io_T))AGU_INC(*in_ptr, in_width * in_height - in_width * rows);
+            *w_ptr = (MLI_PTR(w_T))INC(*w_ptr, kernel_w * kernel_h - kernel_w * rows);
+            *in_ptr = (MLI_PTR(io_T))INC(*in_ptr, in_width * in_height - in_width * rows);
         }
-        *in_ptr = (MLI_PTR(io_T))AGU_INC(*in_ptr, 1 - in_height * in_width * in_ch);
-        *w_ptr = (MLI_PTR(w_T))AGU_INC(*w_ptr, 1 - kernel_h * kernel_w * in_ch);
+        *in_ptr = (MLI_PTR(io_T))INC(*in_ptr, 1 - in_height * in_width * in_ch);
+        *w_ptr = (MLI_PTR(w_T))INC(*w_ptr, 1 - kernel_h * kernel_w * in_ch);
         clmns--;
     }
     for (int in_ch_idx = 0; in_ch_idx < in_ch; in_ch_idx++)
@@ -322,18 +326,18 @@ static void __attribute__((always_inline)) convolution_odd_even(
 #pragma clang loop unroll(full)
             for (int clmn = 0; clmn < width / 2; clmn++) {
                 mli_prv_load_mac_vec2 (&conv_out, *in_ptr, *w_ptr);
-                *in_ptr = (MLI_PTR(io_T))AGU_INC(*in_ptr, 2);
-                *w_ptr = (MLI_PTR(w_T))AGU_INC(*w_ptr, 2);
+                *in_ptr = (MLI_PTR(io_T))INC(*in_ptr, 2);
+                *w_ptr = (MLI_PTR(w_T))INC(*w_ptr, 2);
             }
-            *in_ptr = (MLI_PTR(io_T))AGU_INC(*in_ptr, in_row_step);
-            *w_ptr = (MLI_PTR(w_T))AGU_INC(*w_ptr, kern_row_step);
+            *in_ptr = (MLI_PTR(io_T))INC(*in_ptr, in_row_step);
+            *w_ptr = (MLI_PTR(w_T))INC(*w_ptr, kern_row_step);
         }
 #pragma clang diagnostic pop
-        *w_ptr = (MLI_PTR(w_T))AGU_INC(*w_ptr, kernel_w * kernel_h - kernel_w * rows);
-        *in_ptr = (MLI_PTR(io_T))AGU_INC(*in_ptr, in_width * in_height - in_width * rows);
+        *w_ptr = (MLI_PTR(w_T))INC(*w_ptr, kernel_w * kernel_h - kernel_w * rows);
+        *in_ptr = (MLI_PTR(io_T))INC(*in_ptr, in_width * in_height - in_width * rows);
     }
-    //*in_ptr = (MLI_PTR(io_T))AGU_INC(*in_ptr, -odd -in_width * in_height * in_ch);
-    //*w_ptr = (MLI_PTR(w_T))AGU_INC(*w_ptr, -odd -kernel_w * kernel_h * in_ch);
+    //*in_ptr = (MLI_PTR(io_T))INC(*in_ptr, -odd -in_width * in_height * in_ch);
+    //*w_ptr = (MLI_PTR(w_T))INC(*w_ptr, -odd -kernel_w * kernel_h * in_ch);
 
     mli_prv_clip_relu_store_output (o_ptr, conv_out, out_shift, val_min_limit, val_max_limit);
 }
@@ -944,13 +948,13 @@ static inline void __attribute__ ((always_inline)) conv2d_row_str1 (
 
         if (use_padding1 && (((left_comp > 0) && (i==0)) || ((right_comp > 0) && (i==1)))){
             // border processing with kernelsize = kernel width - 1
-            w_ptr = (MLI_PTR(w_T))AGU_INC(w_ptr, l_comp);
+            w_ptr = (MLI_PTR(w_T))INC(w_ptr, l_comp);
             convolution_odd_even
             (&in_ptr, &w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
                     out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h, kernel_w - 1, rows, in_ch);
-            in_ptr = (MLI_PTR(io_T))AGU_INC(in_ptr, -((kernel_w-1)&1) -in_width * in_height * in_ch);
-            w_ptr = (MLI_PTR(w_T))AGU_INC(w_ptr, -((kernel_w-1)&1) - kernel_w * kernel_h * in_ch);
-            w_ptr = (MLI_PTR(w_T))AGU_INC(w_ptr, -l_comp);
+            in_ptr = (MLI_PTR(io_T))INC(in_ptr, -((kernel_w-1)&1) -in_width * in_height * in_ch);
+            w_ptr = (MLI_PTR(w_T))INC(w_ptr, -((kernel_w-1)&1) - kernel_w * kernel_h * in_ch);
+            w_ptr = (MLI_PTR(w_T))INC(w_ptr, -l_comp);
             CONV2D_DBG_PRINT_EXTRA(out_ch_idx, H_idx, W_idx, o_ptr[0], rows, kernel_w - 1);
             W_idx++;
             o_ptr += 1;
@@ -1043,7 +1047,7 @@ static inline void __attribute__ ((always_inline)) conv2d_row_str1 (
                  */
                 for (int col = 0; col < cols_even; col++) {
                     __builtin_assume(cols_even > 0);
-#if 0
+#if !defined __Xxy
                     convolution_v (in_ptr, w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
                             out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h,
                             kernel_w, rows, in_ch);
@@ -1075,11 +1079,12 @@ static inline void __attribute__ ((always_inline)) conv2d_row_str1 (
                         }
 #pragma clang diagnostic pop
                         // move to next channel
-                        w_ptr = (MLI_PTR(w_T))AGU_INC(w_ptr, kernel_w * kernel_h - kernel_w * rows);
-                        in_ptr = (MLI_PTR(io_T))AGU_INC(in_ptr, in_width * in_height - in_width * rows);
+                        w_ptr = (MLI_PTR(w_T))INC(w_ptr, kernel_w * kernel_h - kernel_w * rows);
+                        in_ptr = (MLI_PTR(io_T))INC(in_ptr, in_width * in_height - in_width * rows);
                     }
-                    in_ptr = (MLI_PTR(io_T))AGU_INC(in_ptr, 2 - in_width * in_height * in_ch);
-                    w_ptr = (MLI_PTR(w_T))AGU_INC(w_ptr, -kernel_w * kernel_h * in_ch);
+                    in_ptr = (MLI_PTR(io_T))INC(in_ptr, 2 - in_width * in_height * in_ch);
+                    w_ptr = (MLI_PTR(w_T))INC(w_ptr, -kernel_w * kernel_h * in_ch);
+
                     mli_prv_clip_relu_store_output_v (o_ptr, &conv_out_v, out_shift, val_min_limit, val_max_limit);
 #endif
                     CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, o_ptr[0]);
@@ -1095,12 +1100,12 @@ static inline void __attribute__ ((always_inline)) conv2d_row_str1 (
                 convolution_odd_even (&in_ptr, &w_ptr, o_ptr, biases[out_ch_idx], bias_shift,
                         out_shift, val_min_limit, val_max_limit, in_width, in_height, kernel_w, kernel_h,
                         kernel_w, rows, in_ch);
-                in_ptr = (MLI_PTR(io_T))AGU_INC(in_ptr,-(kernel_w&1) - in_width * in_height * in_ch);
-                w_ptr = (MLI_PTR(w_T))AGU_INC(w_ptr, -(kernel_w&1) -kernel_w * kernel_h * in_ch);
+                in_ptr = (MLI_PTR(io_T))INC(in_ptr,-(kernel_w&1) - in_width * in_height * in_ch);
+                w_ptr = (MLI_PTR(w_T))INC(w_ptr, -(kernel_w&1) -kernel_w * kernel_h * in_ch);
                 CONV2D_DBG_PRINT(out_ch_idx, H_idx, W_idx, o_ptr[0]);
                 W_idx++;
                 o_ptr++;
-                in_ptr = (MLI_PTR(io_T))AGU_INC(in_ptr, 1);
+                in_ptr = (MLI_PTR(io_T))INC(in_ptr, 1);
 
             }
     #endif
@@ -1109,7 +1114,7 @@ static inline void __attribute__ ((always_inline)) conv2d_row_str1 (
             // extra increment because the border pixel with kernel_w - 2 is computed before kernel_w - 1
             W_idx += 1;
             o_ptr += 1;
-            in_ptr = (MLI_PTR(io_T))AGU_INC(in_ptr, 1);
+            in_ptr = (MLI_PTR(io_T))INC(in_ptr, 1);
         }
         cols_even = 0;
         odd = 0;
