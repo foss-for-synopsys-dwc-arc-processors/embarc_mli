@@ -120,7 +120,7 @@ static MLI_FORCE_INLINE void eltwise_prepare_and_run_fx(
     // Extract in/out as scalar values
     const io_T in1_scalar = (io_T)((intptr_t)(in1->data.mem.void_p));
     const io_T in2_scalar = (io_T)((intptr_t)(in2->data.mem.void_p));
-    io_T out_scalar;
+    io_T out_scalar = 0;
 
     // Calc outshift for MUL operation
     const int out_shift = (func_type == ELTWISE_MUL)? mli_prv_calc_shift(in1, in2, out): 0;

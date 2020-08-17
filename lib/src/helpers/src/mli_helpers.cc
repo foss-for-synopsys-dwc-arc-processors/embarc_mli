@@ -147,7 +147,7 @@ mli_status mli_hlp_point_to_subtensor(const mli_tensor *in, const mli_point_to_s
 
     out->data.mem.void_p = (void *)((char *)in->data.mem.void_p + size);
     size = out->shape[0] = cfg->first_out_dim_size;
-    for (int i = 1; i < out_rank; i++) {
+    for (int i = 1; i < (int)out_rank; i++) {
         out->shape[i] = in->shape[subtsr_start_axis + i];
         size *= in->shape[subtsr_start_axis + i];
     }
@@ -164,10 +164,10 @@ mli_status mli_hlp_create_subtensor(const mli_tensor *in, const mli_sub_tensor_c
     if (ret != MLI_STATUS_OK)
         return ret;
 
-    const uint32_t elem_size = mli_hlp_tensor_element_size(in);
-    const uint32_t out_rank = cfg->sub_tensor_rank;
-    uint32_t mem_strides[MLI_MAX_RANK];
-    const uint32_t input_rank = in->rank;
+    const int elem_size = mli_hlp_tensor_element_size(in);
+    const int out_rank = cfg->sub_tensor_rank;
+    int mem_strides[MLI_MAX_RANK];
+    const int input_rank = in->rank;
     const bool isAsym = (in->el_type == MLI_EL_SA_8) || (in->el_type == MLI_EL_SA_32);
 
     // compute memory strides for the input tensor if not yet provided by the input tensor.
@@ -243,7 +243,7 @@ mli_status mli_hlp_convert_tensor(mli_tensor *in, mli_tensor *out) {
         convert_tensor_fx16_to_fx8((MLI_PTR(int16_t))in->data.mem.void_p, (MLI_PTR(int8_t))out->data.mem.void_p, in_sz, out_shift);
 
     // Fill the rest output tensor params
-    for (int idx = 0; idx < in->rank; idx++)
+    for (int idx = 0; idx < (int)in->rank; idx++)
         out->shape[idx] = in->shape[idx];
     out->rank = in->rank;
     return MLI_STATUS_OK;

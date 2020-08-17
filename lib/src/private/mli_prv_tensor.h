@@ -327,7 +327,7 @@ static MLI_FORCE_INLINE mli_status mli_prv_copy_tensor_format(
     if (check != MLI_STATUS_OK)
           return check;
 
-    for (int idx = 0; idx < src->rank; idx++) {
+    for (int idx = 0; idx < (int)src->rank; idx++) {
         dst->shape[idx] = src->shape[idx];
         dst->mem_stride[idx] = src->mem_stride[idx];
     }
@@ -345,7 +345,7 @@ static MLI_FORCE_INLINE mli_status mli_prv_copy_tensor_format_except_mem_strides
     if (check != MLI_STATUS_OK)
           return check;
 
-    for (int idx = 0; idx < src->rank; idx++) {
+    for (int idx = 0; idx < (int)src->rank; idx++) {
         dst->shape[idx] = src->shape[idx];
     }
 
@@ -404,7 +404,7 @@ static MLI_FORCE_INLINE uint32_t mli_prv_count_elem_num_part(
     uint32_t rank = in->rank - startrank;
     uint32_t elem_num = 1;
 
-    for (int idx = 0; idx < rank; idx++)
+    for (int idx = 0; idx < (int)rank; idx++)
         elem_num *= shape[idx];
 
     return elem_num;
