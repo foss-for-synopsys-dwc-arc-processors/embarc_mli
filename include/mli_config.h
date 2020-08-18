@@ -49,7 +49,7 @@
 */
 #include <stdint.h>
 
-#if defined (__CCAC__)
+#if defined (_ARC)
 
 #include <arc/xy.h>
 
@@ -57,14 +57,26 @@
 #include <stdfix.h>
 #endif
 
-#endif // if defined (__CCAC__)
+#else
+// Only support restrict on ARC platforms, but not on X86
+#define __restrict
+#endif // if defined (_ARC)
 
-#if defined(_ARC) || defined(__clang__) || defined(__GNUC__)
+#if defined(__clang__)
 #define MLI_FORCE_INLINE inline __attribute__((always_inline))
+
+#elif defined(__GNUC__)
+#define MLI_FORCE_INLINE inline __attribute__((always_inline))
+#define __builtin_assume(x)
+
 #elif defined(_MSC_VER)
 #define MLI_FORCE_INLINE inline __forceinline
+#define __builtin_assume(x) __assume(x)
+#define __attribute__(x)
+
 #else
 #error "Current compiler isn't supported"
+
 #endif
 
 /*
@@ -77,35 +89,42 @@
 
 #if defined(V2DSP_VECTOR) || ((defined(__Xvdsp)))
 #undef V2DSP_VECTOR
-#define ARC_PLATFORM (4)
-#define ARC_PLATFORM_STR  "ARCv2DSP VDSP"
+#define PLATFORM (4)
+#define PLATFORM_STR  "ARCv2DSP VDSP"
 #include "arc_vector.h"
 #elif defined(V2DSP_XY) || ((defined __Xxy) && !(defined(V2DSP) || defined(V2DSP_WIDE)))
 /* Platform with XY memory (EM9D or EM11D) */
 #undef V2DSP_XY
-#define ARC_PLATFORM (2)
-#define ARC_PLATFORM_STR  "ARCv2DSP XY"
+#define PLATFORM (2)
+#define PLATFORM_STR  "ARCv2DSP XY"
 
 #elif defined(V2DSP_WIDE) || ((defined __Xdsp_wide) && !(defined(V2DSP) || defined(V2DSP_XY)))
 /* Platform with wide DSP ISA (HS45D or HS47D) */
 #undef V2DSP_WIDE
-#define ARC_PLATFORM (3)
-#define ARC_PLATFORM_STR  "ARCv2DSP Wide"
+#define PLATFORM (3)
+#define PLATFORM_STR  "ARCv2DSP Wide"
 
 #elif defined(V2DSP) || ((defined(__Xdsp2) || defined(__Xdsp_complex)) && !(defined(V2DSP_XY) || defined(V2DSP_WIDE)))
 /* Platform with DSP ISA (EM5D or EM7D) */
 #undef V2DSP
-#define ARC_PLATFORM (1)
-#define ARC_PLATFORM_STR  "ARCv2DSP"
+#define PLATFORM (1)
+#define PLATFORM_STR  "ARCv2DSP"
+
+#elif (defined(__GNUC__) && !defined(__clang__)) || defined(_MSC_VER)
+#undef X86_PLATFORM
+#define PLATFORM (5)
+#define PLATFORM_STR  "X86"
 
 #else
 #error "Target platform is undefined or defined incorrectly"
+
 #endif
 
 #define     V2DSP        (1)
 #define     V2DSP_XY     (2)
 #define     V2DSP_WIDE   (3)
 #define     V2DSP_VECTOR (4)
+#define     X86_PLATFORM (5)
 
 /*
 * Re-define ML pointers for XY specific platform
@@ -115,7 +134,7 @@
 * this means all the kernels that perform a convolution like operation between inputs and weights.
 * MLI_OUT_PTR is used for the output of all other kernels.
 */
-#if (ARC_PLATFORM == V2DSP_XY)
+#if (PLATFORM == V2DSP_XY)
 #define MLI_PTR(p) __xy p *
 #define MLI_PTR_IS_XY true
 #define MLI_OUT_PTR(p) __xy p *
@@ -123,7 +142,7 @@
 #define MLI_CONV_OUT_PTR(p) p *
 #define MLI_CONV_OUT_PTR_IS_XY false
 #define MLI_CCM_ATT 
-#elif (ARC_PLATFORM == V2DSP_VECTOR)
+#elif (PLATFORM == V2DSP_VECTOR)
 #define MLI_PTR(p) __vccm p *
 #define MLI_PTR_IS_XY false
 #define MLI_OUT_PTR(p) __vccm p *

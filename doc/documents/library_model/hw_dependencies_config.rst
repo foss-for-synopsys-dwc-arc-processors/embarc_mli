@@ -4,16 +4,16 @@ Hardware Dependencies and Configurability
 Global Definitions and Library Configurability
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-All configurable global definitions and constants are defined in **./include/mli_config.h**. This header file is not included in **./include/mli_api.h** header and should be included implicitly in user code in case its content might be useful. For example, use ``ARC_PLATFORM`` define for multi-platform applications.
+All configurable global definitions and constants are defined in **./include/mli_config.h**. This header file is not included in **./include/mli_api.h** header and should be included implicitly in user code in case its content might be useful. For example, use ``PLATFORM`` define for multi-platform applications.
 
 .. _tgt_pf_def:
 
-Target Platform Definition (ARC_PLATFORM)
+Target Platform Definition (PLATFORM)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-ARC_PLATFORM defines main platform type that the library is built
+PLATFORM defines main platform type that the library is built
 for. By default this is determined in compile time according to the
-TCF file. To explicitly set the platform, set ARC_PLATFORM to one of the
+TCF file. To explicitly set the platform, set PLATFORM to one of the
 following macros in advance:
 
 -  **V2DSP** – using ARCv2DSP ISA extensions only (EM5D or EM7D).
@@ -21,6 +21,10 @@ following macros in advance:
 -  **V2DSP_WIDE** – using wide ARCv2DSP ISA extensions (HS45D or HS47D)
 
 -  **V2DSP_XY** – using ARCv2DSP ISA extensions and AGU (EM9D or EM11D).
+
+-  **V2DSP_VECTOR** - using ARCv2VDSP ISA extensions (EV71)
+
+-  **X86_PLATFORM** - using x86 platform with GCC or MSVC
 
 .. _func_param_dbg:
    
