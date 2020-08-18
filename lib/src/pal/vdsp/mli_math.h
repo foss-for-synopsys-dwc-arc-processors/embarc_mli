@@ -267,7 +267,7 @@ MLI_FORCE_INLINE int16_t mli_math_acc_cast_fx(mli_acc32_t acc, int shift_right) 
 //========================================================================
 template <typename io_T>
 MLI_FORCE_INLINE io_T mli_math_add_fx(io_T L, io_T R) {
-    return L + R;
+    return mli_math_sat_fx<io_T>(L + R, sizeof(io_T) * 8);
 }
 
 template <> 
@@ -289,7 +289,7 @@ MLI_FORCE_INLINE int32_t mli_math_add_fx(int32_t L, int32_t R) {
 //========================================================================
 template <typename io_T>
 MLI_FORCE_INLINE io_T mli_math_sub_fx(io_T L, io_T R) {
-    return L - R;
+    return mli_math_sat_fx<io_T>(L - R, sizeof(io_T) * 8);
 }
 
 template <> 

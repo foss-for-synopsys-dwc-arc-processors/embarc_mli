@@ -42,7 +42,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_add_fx (
         const int out_size = (op1_size > op2_size) ? op1_size : op2_size; // TODO TODO MAX(...)
 
         for (int idx = 0; idx < out_size; idx++) {
-            out[idx] = vec[idx] + broadcast_val;
+            out[idx] = mli_math_add_fx<io_T>(vec[idx], broadcast_val);
         }
 
     }
@@ -52,7 +52,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_add_fx (
         MLI_ASSERT(op1_size == op2_size);
 
         for (int idx = 0; idx < op1_size; idx++) {
-            out[idx] = op1[idx] + op2[idx];
+            out[idx] = mli_math_add_fx<io_T>(op1[idx], op2[idx]);
         }
     }
 }
