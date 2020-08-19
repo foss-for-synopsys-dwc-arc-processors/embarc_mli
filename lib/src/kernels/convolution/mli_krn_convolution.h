@@ -7,15 +7,15 @@
 *
 */
 
-#ifndef _MLI_KRN_DOTPROD_H_
-#define _MLI_KRN_DOTPROD_H_
+#ifndef _MLI_KRN_CONVOLUTION_H_
+#define _MLI_KRN_CONVOLUTION_H_
 
-#include "mli_krn_dotprod_decl.h"
+#include "mli_krn_convolution_decl.h"
 
 // This header file must be included by users inside MLI library that depend
-// on mli_krn_eltwise. Depending on platform capabilities, the right
+// on mli_krn_convolution. Depending on platform capabilities, the right
 // implementation with 'using' is chosen. This header file is responsible for
-// including *_dsp (FXAPI) and *_vdsp (vector DSP) variants of mli_krn_eltwise.
+// including *_dsp (FXAPI) and *_vdsp (vector DSP) variants of mli_krn_convolution.
 
 ////////////////////////////////////////////////////////////////////////////////
 // Setting up namespace
@@ -28,21 +28,19 @@
 namespace mli {
 namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-using mli::krn::ref::dotprod2D;
-using mli::krn::ref::dotprod3D;
+using mli::krn::ref::convolution2D;
+using mli::krn::ref::depthwise_convolution2D;
+using mli::krn::ref::conv2d_prepare_and_run;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-using mli::krn::dsp::dotprod2D;
-using mli::krn::dsp::dotprod2D_hwc_v;
-using mli::krn::dsp::dotprod2D_inp_width_v;
-using mli::krn::dsp::dotprod2D_hwc_v_point;
-using mli::krn::dsp::dotprod3D_v_simple;
-using mli::krn::dsp::dotprod2D_inp_width_v;
-using mli::krn::ref::dotprod3D;
+using mli::krn::ref::convolution2D;
+using mli::krn::dsp::depthwise_convolution2D;
+using mli::krn::ref::conv2d_prepare_and_run;
 
 #else
-using mli::krn::ref::dotprod2D;
-using mli::krn::ref::dotprod3D;
+using mli::krn::ref::convolution2D;
+using mli::krn::ref::depthwise_convolution2D;
+using mli::krn::ref::conv2d_prepare_and_run;
 
 #endif
 } // namespace krn
@@ -54,14 +52,14 @@ using mli::krn::ref::dotprod3D;
 // The reference (*_ref.h) implementation can run on all platforms and is always
 // included. Other variants are included based on capabilities. Implementations
 // below can depend on each other through declarations in *_decl.h.
-#include "impl/mli_krn_dotprod_ref.h"
+#include "impl/mli_krn_convolution_ref.h"
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-//#include "impl/mli_krn_dotprod_vdsp.h"
+//#include "impl/mli_krn_convolution_vdsp.h"
 #endif
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-#include "impl/mli_krn_dotprod_dsp.h"
+//#include "impl/mli_krn_convolution_dsp.h"
 #endif
 
-#endif // _MLI_KRN_DOTPROD_H_
+#endif // _MLI_KRN_CONVOLUTION_H_

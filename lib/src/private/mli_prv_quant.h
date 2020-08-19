@@ -17,6 +17,7 @@
 #include "mli_private_types.h"
 #include "mli_types.h"
 #include "mli_krn_reduce_sum2d.h"
+#include "mli_prv_tensor.h"
 
 #include <arc/arc_intrinsics.h>
 #include <assert.h>
@@ -166,6 +167,31 @@ inline mli_acc32_t __attribute__ ((always_inline)) weights_additive(
         return init_accum;
 }
 
+template <typename w_T, typename acc_T, typename quant_T>
+inline acc_T __attribute__ ((always_inline)) weights_additive(const MLI_PTR(w_T) __restrict, acc_T init_accum,
+                              const quant_T*,
+                              const int, const int, const int, int, int, int) {
+    // By default and for FX quantization scheme, weights additive isn't required
+    return init_accum;
+}
+
+template <>
+inline mli_acc32_t __attribute__ ((always_inline)) weights_additive(
+        const MLI_PTR(int8_t) __restrict weights, mli_acc32_t init_accum,
+        const s8asym_quant_specific_params* quant_params,
+        const int width,  const int height, const int ch, int col_step, int row_step, int ch_step) {
+    // returns -(in_zero_point * cumsum(weights)) For S8ASYM 
+    if (quant_params->in_offset != 0) {
+        for (int c = 0; c < ch; c++) {
+            init_accum = reduce_sum2D(weights, -quant_params->in_offset, init_accum, width, height, col_step, row_step);
+            weights += ch_step;
+        }
+        return init_accum;
+    } else {
+        return init_accum;
+    }
+}
+
 //The function uses pointers to pointers for weights. 
 //The caller of the function should compensate for the increment
 //done inside this function.
@@ -230,6 +256,30 @@ inline mli_acc32_t __attribute__ ((always_inline)) in_additive(
     // returns -(wights_zero_point * cumsum(input)) For S8ASYM 
     if (quant_params->weights_offset != 0) {
         return reduce_sum2D(in, -quant_params->weights_offset, init_accum, width, height, col_step, row_step);
+    } else {
+        return init_accum;
+    }
+}
+
+template <typename in_T, typename acc_T, typename quant_T>
+inline acc_T __attribute__ ((always_inline)) in_additive(const MLI_PTR(in_T) __restrict, acc_T init_accum, const quant_T* quant_params,
+                              const int, const int, const int, int, int, int) {
+    // By default and for FX quantization scheme, input additive isn't required
+    return init_accum;
+}
+
+template <>
+inline mli_acc32_t __attribute__ ((always_inline)) in_additive(
+        const MLI_PTR(int8_t) __restrict in, mli_acc32_t init_accum,
+        const s8asym_quant_specific_params* quant_params,
+        const int width, const int height, const int ch, int col_step, int row_step, int ch_step) {
+    // returns -(wights_zero_point * cumsum(input)) For S8ASYM 
+    if (quant_params->weights_offset != 0) {
+        for (int c = 0; c < ch; c++) {
+            init_accum = reduce_sum2D(in, -quant_params->weights_offset, init_accum, width, height, col_step, row_step);
+            in += ch_step;
+        }
+        return init_accum;
     } else {
         return init_accum;
     }

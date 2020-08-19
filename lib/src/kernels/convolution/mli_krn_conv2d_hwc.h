@@ -15,11 +15,11 @@
 #include <stdio.h>
 
 #include "mli_api.h"
-#include "mli_krn_dotprod.h"
+#include "mli_krn_dotprod_deprecated.h"
 #include "mli_krn_reduce_sum2d.h"
 #include "mli_math.h"
 #include "mli_private_types.h"
-#include "mli_prv_aux_calc.h"
+#include "mli_prv_layout.h"
 #include "mli_prv_dsp.h"
 #include "mli_prv_tensor.h"
 #include "mli_prv_quant.h"

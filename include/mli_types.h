@@ -322,20 +322,4 @@ typedef struct {
     uint32_t sub_tensor_rank;        /**< Rank of the sub tensor that will be produced */
 } mli_sub_tensor_cfg;
 
-/**
- * @brief Data layout type for vision kernels (convolutions/pooloing mostly).
- *
- * Provide information on how to interprete dimensions in input and params tensors: 
- * which dimension are height/ width/ channels
- *
- * LAYOUT_HWC - Data is stored in next order: [Height; Width; Channels] 
- *              weights in [Filters(out channel); Height; Width; In Channels] 
- * LAYOUT_HWCN - Data is stored as for HWC 
- *              weights are [Height; Width; In Channels; Filters(out channel)] 
- */
- typedef enum {
-     LAYOUT_HWC,
-     LAYOUT_HWCN
- } mli_layout_type;
-
 #endif // _MLI_TYPES_H_

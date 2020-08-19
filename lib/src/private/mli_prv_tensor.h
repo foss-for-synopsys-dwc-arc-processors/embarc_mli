@@ -36,7 +36,7 @@
 #endif
 
 // To prevent a compiler name mangling issue, type_is_xy should be true if and only if T has __xy.
-template <typename T, bool type_is_xy> __attribute__((always_inline))
+template <typename T, bool type_is_xy=false> __attribute__((always_inline))
 static inline tensor_private_t<T> mli_prv_get_tensor_chw(
         const mli_tensor *in,
         const int fix_ch = 0) {
@@ -71,7 +71,7 @@ static inline tensor_private_t<T> mli_prv_get_tensor_chw(
 }
 
 // To prevent a compiler name mangling issue, type_is_xy should be true if and only if T has __xy.
-template <typename T, bool type_is_xy> __attribute__((always_inline))
+template <typename T, bool type_is_xy=false> __attribute__((always_inline))
 static inline tensor_private_t<T> mli_prv_get_tensor_hwc(
         const mli_tensor *in,
         const int fix_ch = 0) {
@@ -106,7 +106,7 @@ static inline tensor_private_t<T> mli_prv_get_tensor_hwc(
 }
 
 // To prevent a compiler name mangling issue, type_is_xy should be true if and only if T has __xy.
-template <typename T, bool type_is_xy> __attribute__((always_inline))
+template <typename T, bool type_is_xy=false> __attribute__((always_inline))
 static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_nhwc(
         const mli_tensor *weights,
         const int fix_in_ch = 0,
@@ -152,8 +152,53 @@ static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tens
             col_mem_stride, row_mem_stride, in_ch_mem_stride, out_ch_mem_stride };
 }
 
+template <typename T> __attribute__((always_inline))
+static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_hwcn(
+        const mli_tensor *weights,
+        const int fix_in_ch = 0,
+        const int fix_width = 0,
+        const int fix_height = 0) {
+    const int out_ch      = (int)weights->shape[KRNL_C_DIM_HWCN];
+    int height            = (int)weights->shape[KRNL_H_DIM_HWCN];
+    int width             = (int)weights->shape[KRNL_W_DIM_HWCN];
+    int in_ch             = (int)weights->shape[KRNL_D_DIM_HWCN];
+    int out_ch_mem_stride = weights->mem_stride[KRNL_C_DIM_HWCN];
+    int row_mem_stride    = weights->mem_stride[KRNL_H_DIM_HWCN];
+    int col_mem_stride    = weights->mem_stride[KRNL_W_DIM_HWCN];
+    int in_ch_mem_stride  = weights->mem_stride[KRNL_D_DIM_HWCN];
+
+    if (fix_width != 0) {
+        MLI_CHECK_AND_FIX(width, fix_width);
+    }
+    if (fix_height != 0) {
+        MLI_CHECK_AND_FIX(height, fix_height);
+    }
+    if (fix_in_ch != 0) {
+        MLI_CHECK_AND_FIX(in_ch, fix_in_ch);
+    }
+
+    if (MLI_PRV_TENSOR_CALC_MEM_STRIDES_VAL || col_mem_stride == 0) {
+        // user does not supply memory strides, hence we calculate them.
+        MLI_ASSERT(out_ch_mem_stride == 0);
+        MLI_ASSERT(row_mem_stride == 0);
+        MLI_ASSERT(col_mem_stride == 0);
+        MLI_ASSERT(out_ch_mem_stride == 0);
+        out_ch_mem_stride = 1;
+        in_ch_mem_stride  = out_ch;
+        col_mem_stride    = out_ch * in_ch;
+        row_mem_stride    = out_ch * in_ch * width;
+    } else {
+        // The inner-most memory stride should be 1.
+        MLI_CHECK_AND_FIX(out_ch_mem_stride, 1);
+    }
+
+    return conv2d_weights_tensor_private_t<T> {
+        (T)weights->data, width, height, in_ch, out_ch,
+        col_mem_stride, row_mem_stride, in_ch_mem_stride, out_ch_mem_stride };
+}
+
 // To prevent a compiler name mangling issue, type_is_xy should be true if and only if T has __xy.
-template <typename T, bool type_is_xy> __attribute__((always_inline))
+template <typename T, bool type_is_xy=false> __attribute__((always_inline))
 static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_1hwn(
         const mli_tensor *weights,
         const int fix_width = 0,
@@ -195,6 +240,34 @@ static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tens
     return conv2d_weights_tensor_private_t<T> {
             (T)weights->data, width, height, in_ch, out_ch,
             col_mem_stride, row_mem_stride, in_ch_mem_stride, out_ch_mem_stride };
+}
+
+template <typename T>
+static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_nchw(
+        const mli_tensor *weights) {
+    const int out_ch      = (int)weights->shape[KRNL_C_DIM_CHW];
+    const int in_ch       = (int)weights->shape[KRNL_D_DIM_CHW];
+    const int height      = (int)weights->shape[KRNL_H_DIM_CHW];
+    const int width       = (int)weights->shape[KRNL_W_DIM_CHW];
+    int out_ch_mem_stride = weights->mem_stride[KRNL_C_DIM_CHW];
+    int in_ch_mem_stride  = weights->mem_stride[KRNL_D_DIM_CHW];
+    int row_mem_stride    = weights->mem_stride[KRNL_H_DIM_CHW];
+    int col_mem_stride    = weights->mem_stride[KRNL_W_DIM_CHW];
+
+    if (row_mem_stride == 0) {
+        // user does not supply memory strides, hence we calculate them.
+        MLI_ASSERT(out_ch_mem_stride == 0);
+        MLI_ASSERT(in_ch_mem_stride == 0);
+        MLI_ASSERT(col_mem_stride == 0);
+        col_mem_stride    = 1;
+        row_mem_stride    = width;
+        in_ch_mem_stride  = width * height;
+        out_ch_mem_stride = in_ch * width * height;
+    }
+
+    return conv2d_weights_tensor_private_t<T> {
+        (T)weights->data, width, height, in_ch, out_ch,
+        col_mem_stride, row_mem_stride, in_ch_mem_stride, out_ch_mem_stride };
 }
 
 #ifdef __cplusplus
