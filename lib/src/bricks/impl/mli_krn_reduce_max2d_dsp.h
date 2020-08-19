@@ -10,8 +10,7 @@
 #ifndef _MLI_KRN_RECUCE_MAX2D_DSP_H_
 #define _MLI_KRN_RECUCE_MAX2D_DSP_H_
 
-#include "mli_krn_reduce_max2d_decl.h"
-#include "mli_config.h"
+#include "mli_prv_load_store.h"
 #include "mli_prv_dsp.h"
 #include "mli_math.h"
 
@@ -23,12 +22,11 @@ namespace krn {
 namespace dsp {
 
 template <typename io_T>
-static inline void __attribute__((always_inline)) reduce_max2D_hwc_v(
+static MLI_FORCE_INLINE void reduce_max2D_hwc_v(
 		const MLI_PTR(io_T) in,
 		MLI_PTR(io_T) out,
 		const int width,
         const int height,
-		const int channels,
 		const int col_mem_stride,
 		const int row_mem_stride,
 		const bool fixed_size) {
@@ -69,7 +67,7 @@ static inline void __attribute__((always_inline)) reduce_max2D_hwc_v(
 }
 
 } // namespace dsp
-} // namespace ref
+} // namespace krn
 } // namespace mli
 
 #endif // _MLI_KRN_RECUCE_MAX2D_DSP_H_

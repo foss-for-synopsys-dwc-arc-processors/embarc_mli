@@ -22,16 +22,15 @@
 //namespace krn {
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-#define CHANNCEL_LANES 	_VDSP_NUM_8BIT_LANES
+#define CHANNEL_LANES 	_VDSP_NUM_8BIT_LANES
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-#define CHANNCEL_LANES 	2
+#define CHANNEL_LANES 	2
 #else
-#define CHANNCEL_LANES 	1
+#define CHANNEL_LANES 	1
 #endif
 
-
 template <typename io_T>
-static inline void __attribute__((always_inline)) maxpool_hwc_nopad(
+static MLI_FORCE_INLINE void maxpool_hwc_nopad(
         int row_beg,
         int row_end,
         int clmn_beg,
@@ -47,47 +46,47 @@ static inline void __attribute__((always_inline)) maxpool_hwc_nopad(
         int kernel_height,
         int kernel_width) {
 
-	int remaining_chans = in.ch & (CHANNCEL_LANES - 1);
+	int remaining_chans = in.ch & (CHANNEL_LANES - 1);
 
 	MLI_OUT_PTR(io_T) out_ptr;
 
     // Phase 1: Process central part (without border effects - padding free)
     //=======================================================================
     if (in.height >= kernel_height && in.width >= kernel_width) {
-        for (int ch_idx = 0; ch_idx < in.ch - remaining_chans; ch_idx += CHANNCEL_LANES) {
-            for (int H_idx = row_beg; H_idx < row_end; H_idx++) {
-                for (int W_idx = clmn_beg; W_idx < clmn_end; W_idx++) {
-                    // Define area of input and filter for convolution
-                    const MLI_PTR(io_T) in_ptr = in.ptr
-                            + in.row_mem_stride * (H_idx * stride_height - padding_top) // move to row
-                            + in.col_mem_stride * (W_idx * stride_width - padding_left) // move to column
-                            + ch_idx;                                                   // move to channel
+    		for (int ch_idx = 0; ch_idx < in.ch - remaining_chans; ch_idx += CHANNEL_LANES) {
+    			for (int H_idx = row_beg; H_idx < row_end; H_idx++) {
+    				for (int W_idx = clmn_beg; W_idx < clmn_end; W_idx++) {
+    					// Define area of input and filter for pooling
+    					const MLI_PTR(io_T) in_ptr = in.ptr
+    							+ in.row_mem_stride * (H_idx * stride_height - padding_top) // move to row
+								+ in.col_mem_stride * (W_idx * stride_width - padding_left) // move to column
+								+ ch_idx;                                                   // move to channel
 
-                    out_ptr = &out.ptr[out.row_mem_stride * H_idx +
-			                           out.col_mem_stride * W_idx +
-			                           ch_idx];
+    					out_ptr = &out.ptr[out.row_mem_stride * H_idx +
+										   out.col_mem_stride * W_idx +
+										   ch_idx];
 
-                    // Core Max
-                    reduce_max2D_hwc_v(in_ptr, out_ptr, kernel_width, kernel_height, in.ch,
-                        in.col_mem_stride, in.row_mem_stride, true);
-                }
-            }
-        }
+    					// Core Max
+    					reduce_max2D_hwc_v(in_ptr, out_ptr, kernel_width, kernel_height,
+    							in.col_mem_stride, in.row_mem_stride, true);
+    				}
+    			}
+    		}
         if (remaining_chans) {
             for (int H_idx = row_beg; H_idx < row_end; H_idx++) {
                 for (int W_idx = clmn_beg; W_idx < clmn_end; W_idx++) {
-                    // Define area of input and filter for convolution
+                    // Define area of input and filter for pooling
                     const MLI_PTR(io_T) in_ptr = in.ptr
                             + in.row_mem_stride * (H_idx * stride_height - padding_top) // move to row
                             + in.col_mem_stride * (W_idx * stride_width - padding_left) // move to column
-                            + in.ch - (CHANNCEL_LANES - 1);                                                // move to channel
+                            + in.ch - remaining_chans;                                  // move to channel
 
                     out_ptr = &out.ptr[out.row_mem_stride * H_idx +
-									  out.col_mem_stride * W_idx +
-									  out.ch - (CHANNCEL_LANES - 1)];
+									   out.col_mem_stride * W_idx +
+									   out.ch - remaining_chans];
 
                     // Core Max
-                    reduce_max2D_hwc(in_ptr, out_ptr, kernel_width, kernel_height, in.ch,
+                    reduce_max2D_hwc(in_ptr, out_ptr, kernel_width, kernel_height, remaining_chans,
                         in.col_mem_stride, in.row_mem_stride, true);
                 }
             }
@@ -96,7 +95,7 @@ static inline void __attribute__((always_inline)) maxpool_hwc_nopad(
 }
 
 template <typename io_T>
-static inline void __attribute__((always_inline)) maxpool_hwc_pad(
+static MLI_FORCE_INLINE void maxpool_hwc_pad(
         int row_beg,
         int row_end,
         int clmn_beg,
@@ -112,7 +111,7 @@ static inline void __attribute__((always_inline)) maxpool_hwc_pad(
         int kernel_height,
         int kernel_width) {
 
-	int remaining_chans = in.ch & (CHANNCEL_LANES - 1);
+	int remaining_chans = in.ch & (CHANNEL_LANES - 1);
 
 	MLI_OUT_PTR(io_T) out_ptr;
 
@@ -162,66 +161,67 @@ static inline void __attribute__((always_inline)) maxpool_hwc_pad(
             perc_areas[areas_num++].clmn_end = out.width;
         }
 
+
         for (int area_idx = 0; area_idx < areas_num; ++area_idx) {
-            for (int ch_idx = 0; ch_idx < in.ch - remaining_chans; ch_idx += CHANNCEL_LANES) {
-                for (int H_idx = perc_areas[area_idx].row_beg; H_idx < perc_areas[area_idx].row_end; H_idx++) {
-                    for (int W_idx = perc_areas[area_idx].clmn_beg; W_idx < perc_areas[area_idx].clmn_end; W_idx++) {
-                        // Define area of input and filter for convolution
-                        // *_comp - compensation values for valid area defining
-                        int top_comp = -MIN((H_idx * stride_height) - padding_top, 0);
-                        int left_comp = -MIN((W_idx * stride_width) - padding_left, 0);
+        	for (int ch_idx = 0; ch_idx < in.ch - remaining_chans; ch_idx += CHANNEL_LANES) {
+        		for (int H_idx = perc_areas[area_idx].row_beg; H_idx < perc_areas[area_idx].row_end; H_idx++) {
+        			for (int W_idx = perc_areas[area_idx].clmn_beg; W_idx < perc_areas[area_idx].clmn_end; W_idx++) {
+        				// Define area of input and filter for pooling
+        				// *_comp - compensation values for valid area defining
+        				int top_comp = -MIN((H_idx * stride_height) - padding_top, 0);
+        				int left_comp = -MIN((W_idx * stride_width) - padding_left, 0);
 
-                        int right_comp = -MIN(in.width - ((W_idx * stride_width) - padding_left + kernel_width), 0);
-                        int bottom_comp = -MIN(in.height - ((H_idx * stride_height) - padding_top + kernel_height), 0);
+        				int right_comp = -MIN(in.width - ((W_idx * stride_width) - padding_left + kernel_width), 0);
+        				int bottom_comp = -MIN(in.height - ((H_idx * stride_height) - padding_top + kernel_height), 0);
 
-                        int rows = kernel_height - top_comp - bottom_comp;
-                        int clmns = kernel_width - right_comp - left_comp;
+        				int rows = kernel_height - top_comp - bottom_comp;
+        				int clmns = kernel_width - right_comp - left_comp;
 
-                        // Define area of input and filter for convolution
-                        const MLI_PTR(io_T) in_ptr = in.ptr
-                                + in.row_mem_stride * (H_idx * stride_height - padding_top + top_comp)  // move to row
-                                + in.col_mem_stride * (W_idx * stride_width - padding_left + left_comp) // move to column
-                                + ch_idx;                                                               // move to channel
+        				// Define area of input and filter for pooling
+        				const MLI_PTR(io_T) in_ptr = in.ptr
+        						+ in.row_mem_stride * (H_idx * stride_height - padding_top + top_comp)  // move to row
+								+ in.col_mem_stride * (W_idx * stride_width - padding_left + left_comp) // move to column
+								+ ch_idx;                                                               // move to channel
 
-                        out_ptr = &out.ptr[out.row_mem_stride * H_idx +
+        				out_ptr = &out.ptr[out.row_mem_stride * H_idx +
 										   out.col_mem_stride * W_idx +
 										   ch_idx];
 
-                        // Core Max
-                        reduce_max2D_hwc_v(in_ptr, out_ptr, clmns, rows, in.ch,
-                        		in.col_mem_stride, in.row_mem_stride, false);
-                    }
-                }
-            }
-            if (remaining_chans) {
-                for (int H_idx = perc_areas[area_idx].row_beg; H_idx < perc_areas[area_idx].row_end; H_idx++) {
-                    for (int W_idx = perc_areas[area_idx].clmn_beg; W_idx < perc_areas[area_idx].clmn_end; W_idx++) {
-                        // Define area of input and filter for convolution
-                        // *_comp - compensation values for valid area defining
-                        int top_comp = -MIN((H_idx * stride_height) - padding_top, 0);
-                        int left_comp = -MIN((W_idx * stride_width) - padding_left, 0);
+        				// Core Max
+        				reduce_max2D_hwc_v(in_ptr, out_ptr, clmns, rows,
+        						in.col_mem_stride, in.row_mem_stride, false);
+        			}
+        		}
+        	}
+        	if (remaining_chans) {
+        		for (int H_idx = perc_areas[area_idx].row_beg; H_idx < perc_areas[area_idx].row_end; H_idx++) {
+        			for (int W_idx = perc_areas[area_idx].clmn_beg; W_idx < perc_areas[area_idx].clmn_end; W_idx++) {
+        				// Define area of input and filter for pooling
+        				// *_comp - compensation values for valid area defining
+        				int top_comp = -MIN((H_idx * stride_height) - padding_top, 0);
+        				int left_comp = -MIN((W_idx * stride_width) - padding_left, 0);
 
-                        int right_comp = -MIN(in.width - ((W_idx * stride_width) - padding_left + kernel_width), 0);
-                        int bottom_comp = -MIN(in.height - ((H_idx * stride_height) - padding_top + kernel_height), 0);
+        				int right_comp = -MIN(in.width - ((W_idx * stride_width) - padding_left + kernel_width), 0);
+        				int bottom_comp = -MIN(in.height - ((H_idx * stride_height) - padding_top + kernel_height), 0);
 
-                        int rows = kernel_height - top_comp - bottom_comp;
-                        int clmns = kernel_width - right_comp - left_comp;
+        				int rows = kernel_height - top_comp - bottom_comp;
+        				int clmns = kernel_width - right_comp - left_comp;
 
-                        const MLI_PTR(io_T) in_ptr = in.ptr
-                                + in.row_mem_stride * (H_idx * stride_height - padding_top + top_comp)  // move to row
-                                + in.col_mem_stride * (W_idx * stride_width - padding_left + left_comp) // move to column
-                                + in.ch -  (CHANNCEL_LANES - 1);                                        // move to channel
+        				const MLI_PTR(io_T) in_ptr = in.ptr
+        						+ in.row_mem_stride * (H_idx * stride_height - padding_top + top_comp)  // move to row
+								+ in.col_mem_stride * (W_idx * stride_width - padding_left + left_comp) // move to column
+								+ in.ch -  remaining_chans;                                             // move to channel
 
-                        out_ptr = &out.ptr[out.row_mem_stride * H_idx +
-										  out.col_mem_stride * W_idx +
-										  out.ch - (CHANNCEL_LANES - 1)];
+        				out_ptr = &out.ptr[out.row_mem_stride * H_idx +
+										   out.col_mem_stride * W_idx +
+										   out.ch - remaining_chans];
 
-                        // Core Max
-                        reduce_max2D_hwc(in_ptr, out_ptr, clmns, rows, in.ch,
-                        		in.col_mem_stride, in.row_mem_stride, false);
-                    }
-                }
-            }
+        				// Core Max
+        				reduce_max2D_hwc(in_ptr, out_ptr, clmns, rows, remaining_chans,
+        						in.col_mem_stride, in.row_mem_stride, false);
+        			}
+        		}
+        	}
         }
     }
 }

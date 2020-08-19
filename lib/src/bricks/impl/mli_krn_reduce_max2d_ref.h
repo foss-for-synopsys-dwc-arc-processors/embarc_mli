@@ -10,8 +10,7 @@
 #ifndef _MLI_KRN_RECUCE_MAX2D_REF_H_
 #define _MLI_KRN_RECUCE_MAX2D_REF_H_
 
-#include "mli_krn_reduce_max2d_decl.h"
-#include "mli_config.h"
+#include "mli_prv_load_store.h"
 #include "mli_prv_dsp.h"
 #include "mli_math.h"
 
@@ -20,12 +19,11 @@ namespace krn {
 namespace ref {
 
 template <typename io_T>
-static inline void __attribute__((always_inline)) reduce_max2D_hwc_v(
+static MLI_FORCE_INLINE void reduce_max2D_hwc_v(
 		const MLI_PTR(io_T) in,
 		MLI_PTR(io_T) out,
 		const int width,
         const int height,
-		const int channels,
 		const int col_mem_stride,
 		const int row_mem_stride,
 		const bool fixed_size) {
@@ -39,7 +37,7 @@ static inline void __attribute__((always_inline)) reduce_max2D_hwc_v(
 }
 
 template <typename io_T>
-static inline void __attribute__((always_inline)) reduce_max2D_hwc(
+static MLI_FORCE_INLINE void reduce_max2D_hwc(
 		const MLI_PTR(io_T) in,
 		MLI_PTR(io_T) out,
 		const int width,
@@ -48,11 +46,11 @@ static inline void __attribute__((always_inline)) reduce_max2D_hwc(
 		const int col_mem_stride,
 		const int row_mem_stride,
 		const bool fixed_size) {
-	reduce_max2D_hwc_v(in, out, width, height, channels, col_mem_stride, row_mem_stride, fixed_size);
+	reduce_max2D_hwc_v(in, out, width, height, col_mem_stride, row_mem_stride, fixed_size);
 }
 
-} // namespace dsp
 } // namespace ref
+} // namespace krn
 } // namespace mli
 
 #endif // _MLI_KRN_RECUCE_MAX2D_REF_H_
