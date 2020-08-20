@@ -43,6 +43,11 @@ extern "C" {
 #define KRNL_D_DIM_HWC 3 // kernel depth aka input channels
 #define KRNL_C_DIM_HWC 0 // output channels
 
+#define KRNL_H_DIM_HWCN 0 // kernel height
+#define KRNL_W_DIM_HWCN 1 // kernel width
+#define KRNL_D_DIM_HWCN 2 // kernel depth aka input channels
+#define KRNL_C_DIM_HWCN 3 // output channels
+
 // for Depthwise convolution hwc kernel
 #define KRNL_DW_D_DIM_HWC 0 // Depthwise convolution hwc kernel depth (must be == 1)
 #define KRNL_DW_H_DIM_HWC 1 // Depthwise convolution hwc kernel height 

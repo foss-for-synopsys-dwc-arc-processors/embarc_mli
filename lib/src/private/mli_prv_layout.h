@@ -19,8 +19,30 @@
 #include "mli_types.h"
 #include "mli_private_types.h"
 #include <arc/arc_intrinsics.h>
- 
- /**
+
+/**
+ * @brief Data layout type for vision kernels (convolutions/pooloing mostly).
+ *
+ * Provide information on how to interprete dimensions in input and params tensors:
+ * which dimension are height/ width/ channels
+ *
+ * LAYOUT_CHW - Data is stored in next order: [Channels; Height; Width]
+ *              weights in [Filters(out channel); in Channels; Height; Width]
+ * LAYOUT_HWC - Data is stored in next order: [Height; Width; Channels]
+ *              weights in [Filters(out channel); Height; Width; In Channels]
+ * LAYOUT_HWCN - Data is stored as for HWC
+ *              weights are [Height; Width; In Channels; Filters(out channel)]
+ * LAYOUT_1HWN - Data is stored as for HWC
+ *              weights are [Height; Width; Filters(out channel)]
+ */
+typedef enum {
+    LAYOUT_CHW = 0,
+    LAYOUT_HWC,
+    LAYOUT_HWCN,
+    LAYOUT_1HWN
+} mli_layout_type;
+
+/**
  * @brief Structure with compensation values to define valid area for 2d calculations.
  *
  * How much rows/columns need to be skipped from each side to leave only valid area of filter or input

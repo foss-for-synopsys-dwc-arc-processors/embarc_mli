@@ -198,6 +198,10 @@ typedef struct {
     uint8_t padding_right;/**< Number of zero points implicitly added to the right side of input (width dimension).*/
     uint8_t padding_top;  /**< Number of zero points implicitly added to the upper side of input (height dimension).*/
     uint8_t padding_bottom;/**< Number of zero points implicitly added to the bottom side of input (height dimension).*/
+    uint8_t dilation_width;  /**< If set to k>1, there will be k-1 implicitly added zero points between each
+                                  filter point across width dimension. If set to 0 or 1, no dilation logic is used*/
+    uint8_t dilation_height; /**< If set to k>1, there will be k-1 implicitly added zero points between each
+                                  filter point across height dimension. If set to 0 or 1, no dilation logic is used*/
 } mli_conv2d_cfg;
 
 
@@ -319,21 +323,5 @@ typedef struct {
                                           the number of entries in this array is determind by the input tensor */
     uint32_t sub_tensor_rank;        /**< Rank of the sub tensor that will be produced */
 } mli_sub_tensor_cfg;
-
-/**
- * @brief Data layout type for vision kernels (convolutions/pooloing mostly).
- *
- * Provide information on how to interprete dimensions in input and params tensors: 
- * which dimension are height/ width/ channels
- *
- * LAYOUT_HWC - Data is stored in next order: [Height; Width; Channels] 
- *              weights in [Filters(out channel); Height; Width; In Channels] 
- * LAYOUT_HWCN - Data is stored as for HWC 
- *              weights are [Height; Width; In Channels; Filters(out channel)] 
- */
- typedef enum {
-     LAYOUT_HWC,
-     LAYOUT_HWCN
- } mli_layout_type;
 
 #endif // _MLI_TYPES_H_

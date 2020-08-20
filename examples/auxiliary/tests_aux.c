@@ -110,6 +110,9 @@ test_status load_tensors_from_idx_files(
             goto ret_label;
         }
 
+        for (uint32_t j = 0; j < tensors[idx]->rank; j++)
+            tensors[idx]->mem_stride[j] = 0;
+
         // Step 4: Read data by parts;
         //====================================
         uint32_t elements_accounted = 0;
