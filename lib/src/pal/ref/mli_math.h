@@ -335,4 +335,12 @@ MLI_FORCE_INLINE acc_T mli_math_init_accu(b_T bias, int32_t bias_mul, int bias_s
     return accu;
 }
 
+template<typename io_T, typename lr_T>
+MLI_FORCE_INLINE io_T mli_math_bound_range_fx(io_T in, lr_T L, lr_T R) {
+    io_T out;
+    out = mli_math_max_fx(in, L);
+    out = mli_math_min_fx(out, R);
+    return out;
+}
+
 #endif // _REF_MLI_MATH_H_

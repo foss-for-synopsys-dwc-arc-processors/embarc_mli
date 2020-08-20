@@ -85,8 +85,8 @@ static MLI_FORCE_INLINE void mli_prv_load_mac_vec4(
 #pragma clang diagnostic ignored "-Wcast-align"
 
 static MLI_FORCE_INLINE void mli_prv_clip_div_and_store_result(
-        MLI_PTR(int16_t) __restrict o_ptr, 
-        const int kernel_size, 
+        MLI_PTR(int16_t) __restrict o_ptr,
+        const int kernel_size,
         const int32_t accum_32) {
     int32_t temp = fx_asl_q31(accum_32, 1) / kernel_size;
     temp = fx_asl_q31(temp, 16 - 1);
@@ -94,8 +94,8 @@ static MLI_FORCE_INLINE void mli_prv_clip_div_and_store_result(
 }
 
 static MLI_FORCE_INLINE void mli_prv_clip_div_and_store_result(
-        MLI_PTR(int8_t) __restrict o_ptr, 
-        const int kernel_size, 
+        MLI_PTR(int8_t) __restrict o_ptr,
+        const int kernel_size,
         const int32_t accum_32) {
     int32_t temp = fx_asl_q31(accum_32, 1) / kernel_size;
     temp = fx_asl_q31(temp, 32 - sizeof(int8_t) * 8 - 1);
@@ -103,8 +103,8 @@ static MLI_FORCE_INLINE void mli_prv_clip_div_and_store_result(
 }
 
 static MLI_FORCE_INLINE void mli_prv_clip_div_and_store_result(
-            MLI_PTR(int16_t) __restrict o_ptr, 
-            const int kernel_size, 
+            MLI_PTR(int16_t) __restrict o_ptr,
+            const int kernel_size,
             const accum40_t accum_40) {
     int32_t temp = (int32_t) fx_q31_cast_a40(accum_40) / kernel_size;
     temp = fx_asl_q31(temp, 32 - sizeof(int16_t) * 8 - 1);
@@ -138,7 +138,7 @@ static MLI_FORCE_INLINE void mli_prv_clip_and_store_output(
 
 static MLI_FORCE_INLINE void mli_prv_clip_and_store_output(
         MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
-        int32_t * ip_in, 
+        int32_t * ip_in,
         const int out_shift) {
     q31_t temp = fx_asr_rnd_q31(*ip_in, out_shift);
     temp = fx_asl_q31(temp, 32 - sizeof(int8_t) * 8);
@@ -147,7 +147,7 @@ static MLI_FORCE_INLINE void mli_prv_clip_and_store_output(
 
 static MLI_FORCE_INLINE void mli_prv_clip_and_store_output(
         MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
-        int32_t * ip_in, 
+        int32_t * ip_in,
         const int out_shift) {
     q31_t temp = fx_asr_rnd_q31(*ip_in, out_shift);
     temp = fx_asl_q31(temp, 32 - sizeof(int16_t) * 8);
@@ -192,7 +192,7 @@ static MLI_FORCE_INLINE void mli_prv_shift_clip_and_store_output(
 
 static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
         MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
-        __v2i32_t * acc_v, 
+        __v2i32_t * acc_v,
         const int out_shift) {
     v2i16_t out_v;
 
@@ -209,7 +209,7 @@ static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
 
 static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
         MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
-        __v2i32_t * acc_v, 
+        __v2i32_t * acc_v,
         const int out_shift) {
     v2i8_t out_v;
 
@@ -226,7 +226,7 @@ static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
 
 static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
         MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
-        v2accum40_t *__restrict acc_v, 
+        v2accum40_t *__restrict acc_v,
         const int out_shift) {
     v2q15_t out_v;
 
@@ -260,8 +260,8 @@ static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
 static MLI_FORCE_INLINE void mli_prv_clip_relu_store_output_v(
         MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
         __v2i32_t * accu_v,
-        const int out_shift, 
-        const int16_t val_min_limit, 
+        const int out_shift,
+        const int16_t val_min_limit,
         const int16_t val_max_limit) {
     v2i8_t out_v;
     __v2i32_t acc_v = *accu_v;
@@ -285,8 +285,8 @@ static MLI_FORCE_INLINE void mli_prv_clip_relu_store_output_v(
 static MLI_FORCE_INLINE void mli_prv_clip_relu_store_output_v(
         MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
         __v2i32_t * accu_v,
-        const int out_shift, 
-        const int16_t val_min_limit, 
+        const int out_shift,
+        const int16_t val_min_limit,
         const int16_t val_max_limit) {
     v2q15_t out_v;
     __v2i32_t acc_v = *accu_v;
@@ -310,8 +310,8 @@ static MLI_FORCE_INLINE void mli_prv_clip_relu_store_output_v(
 static MLI_FORCE_INLINE void mli_prv_clip_relu_store_output_v(
         MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
         v2accum40_t *acc_v,
-        const int out_shift, 
-        const int16_t val_min_limit, 
+        const int out_shift,
+        const int16_t val_min_limit,
         const int16_t val_max_limit) {
     v2q15_t out_v;
     v2q15_t v2_val_max_limit = { val_max_limit, val_max_limit };
@@ -330,8 +330,8 @@ static MLI_FORCE_INLINE void mli_prv_clip_relu_store_output_v(
 static MLI_FORCE_INLINE void mli_prv_clip_relu_store_output_v(
         MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
         v2accum40_t *acc_v,
-        const int out_shift, 
-        const int16_t val_min_limit, 
+        const int out_shift,
+        const int16_t val_min_limit,
         const int16_t val_max_limit) {
     v2q15_t out_v;
     v2q15_t v2_val_max_limit = { val_max_limit, val_max_limit };
@@ -412,8 +412,8 @@ static MLI_FORCE_INLINE void mli_prv_clip_relu_store_output_inp_width_v(
 static MLI_FORCE_INLINE void mli_prv_clip_relu_store_output(
         MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
         accum40_t conv_out,
-        const int out_shift, 
-        const int16_t val_min_limit, 
+        const int out_shift,
+        const int16_t val_min_limit,
         const int16_t val_max_limit) {
     int16_t out_val = fx_q15_cast_asl_rnd_a40(conv_out, 16 - out_shift - 1);
 
@@ -427,8 +427,8 @@ static MLI_FORCE_INLINE void mli_prv_clip_relu_store_output(
 static MLI_FORCE_INLINE void mli_prv_clip_relu_store_output(
         MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
         accum40_t conv_out,
-        const int out_shift, 
-        const int16_t val_min_limit, 
+        const int out_shift,
+        const int16_t val_min_limit,
         const int16_t val_max_limit) {
     int8_t out_val = fx_q7_cast_asl_rnd_a40(conv_out, 32 - sizeof(int8_t) * 8 - out_shift - 1);
 
@@ -442,8 +442,8 @@ static MLI_FORCE_INLINE void mli_prv_clip_relu_store_output(
 static MLI_FORCE_INLINE void mli_prv_clip_relu_store_output(
         MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
         int32_t conv_out,
-        const int out_shift, 
-        const int16_t val_min_limit, 
+        const int out_shift,
+        const int16_t val_min_limit,
         const int16_t val_max_limit) {
     conv_out = fx_asr_rnd_q31(conv_out, out_shift);
     // no saturation needed because ReLu clipping is done in 32bit domain.
@@ -498,7 +498,7 @@ static MLI_FORCE_INLINE void mli_prv_clip_relu_store_output(
 
 template < typename io_T, typename w_T >
 static MLI_FORCE_INLINE int32_t mli_prv_qmpy_v4i16x8(
-        const MLI_PTR(int8_t) __restrict pIn, 
+        const MLI_PTR(int8_t) __restrict pIn,
         const MLI_PTR(int8_t) __restrict pWt) {
     unsigned tmp = *(MLI_PTR(unsigned)) pIn;
     unsigned in1_v2i16 = (unsigned) (_vsext2bhl(tmp));
@@ -510,7 +510,7 @@ static MLI_FORCE_INLINE int32_t mli_prv_qmpy_v4i16x8(
 
 template < typename io_T, typename w_T >
 static MLI_FORCE_INLINE int32_t mli_prv_qmac_v4i16x8(
-        const MLI_PTR(int8_t) __restrict pIn, 
+        const MLI_PTR(int8_t) __restrict pIn,
         const MLI_PTR(int8_t) __restrict pWt) {
     unsigned tmp = *(MLI_PTR(unsigned)) pIn;
     unsigned in1_v2i16 = (unsigned) (_vsext2bhl(tmp));
@@ -522,7 +522,7 @@ static MLI_FORCE_INLINE int32_t mli_prv_qmac_v4i16x8(
 
 template < typename io_T, typename w_T >
 static MLI_FORCE_INLINE int32_t mli_prv_qmac_v4i16x8(
-        const MLI_PTR(int16_t) __restrict pIn, 
+        const MLI_PTR(int16_t) __restrict pIn,
         const MLI_PTR(int8_t) __restrict pWt) {
     unsigned tmp1 = *(MLI_PTR(unsigned)) pIn;
     unsigned tmp2 = *(MLI_PTR(unsigned)) (pIn + 2);
@@ -533,7 +533,7 @@ static MLI_FORCE_INLINE int32_t mli_prv_qmac_v4i16x8(
 
 template < typename io_T, typename w_T >
 static MLI_FORCE_INLINE int32_t mli_prv_qmpy_v4i16x8(
-        const MLI_PTR(int16_t) __restrict pIn, 
+        const MLI_PTR(int16_t) __restrict pIn,
         const MLI_PTR(int8_t) __restrict pWt) {
     unsigned tmp1 = *(MLI_PTR(unsigned)) pIn;
     unsigned tmp2 = *(MLI_PTR(unsigned)) (pIn + 2);
@@ -575,8 +575,8 @@ static MLI_FORCE_INLINE accum40_t mli_prv_init_accu(int16_t inp_val) {
 }
 
 static MLI_FORCE_INLINE v2accum40_t mli_prv_init_accu_with_bias_v(
-        const MLI_PTR(int16_t) __restrict in, 
-        const int16_t bias, 
+        const MLI_PTR(int16_t) __restrict in,
+        const int16_t bias,
         const int bias_shift) {
     v2q15_t v2bias = {bias, bias};
     v2q15_t v2one = {0x0001, 0x0001};
@@ -587,8 +587,8 @@ static MLI_FORCE_INLINE v2accum40_t mli_prv_init_accu_with_bias_v(
 }
 
 static MLI_FORCE_INLINE __v2i32_t mli_prv_init_accu_with_bias_v(
-        const MLI_PTR(int8_t) __restrict in, 
-        const int8_t bias, 
+        const MLI_PTR(int8_t) __restrict in,
+        const int8_t bias,
         const int bias_shift) {
     int32_t accu = fx_asr_rnd_q31((int32_t) bias, -bias_shift);
     __v2i32_t accu_v = { accu, accu };
@@ -597,8 +597,8 @@ static MLI_FORCE_INLINE __v2i32_t mli_prv_init_accu_with_bias_v(
 
 #ifdef USE_40BIT_ACCU_FOR_16x8
 static MLI_FORCE_INLINE v2accum40_t mli_prv_init_accu_with_bias_v(
-        const MLI_PTR(int16_t) __restrict in, 
-        const int8_t bias, 
+        const MLI_PTR(int16_t) __restrict in,
+        const int8_t bias,
         const int bias_shift) {
     v2q15_t v2bias = {bias, bias};
     v2q15_t v2one = {0x0001, 0x0001};
@@ -609,8 +609,8 @@ static MLI_FORCE_INLINE v2accum40_t mli_prv_init_accu_with_bias_v(
 }
 #else
 static MLI_FORCE_INLINE __v2i32_t mli_prv_init_accu_with_bias_v(
-        const MLI_PTR(int16_t) __restrict in, 
-        const int8_t bias, 
+        const MLI_PTR(int16_t) __restrict in,
+        const int8_t bias,
         const int bias_shift) {
     int32_t accu = fx_asr_rnd_q31((int32_t) bias, -bias_shift);
     __v2i32_t accu_v = { accu, accu };
@@ -659,16 +659,16 @@ static MLI_FORCE_INLINE int32_t mli_prv_init_accu_with_bias(
 
     return accu;
 }
-    
+
 #endif
 static MLI_FORCE_INLINE v2q15_t mli_prv_load_add_vec2(
-        const MLI_PTR(int16_t) __restrict in, 
+        const MLI_PTR(int16_t) __restrict in,
         const MLI_PTR(int16_t) __restrict k) {
    return fx_add_v2q15(mli_prv_load_2_samples(in), mli_prv_load_2_samples(k));
 }
 
 static MLI_FORCE_INLINE v2i8_t mli_prv_load_add_vec2(
-        const MLI_PTR(int8_t) __restrict in, 
+        const MLI_PTR(int8_t) __restrict in,
         const MLI_PTR(int8_t) __restrict k) {
     //in case with AGU repacking it should give improve of performance
     v2q15_t res = fx_add_v2q15(mli_prv_load_2_samples(in), mli_prv_load_2_samples(k));
@@ -677,13 +677,13 @@ static MLI_FORCE_INLINE v2i8_t mli_prv_load_add_vec2(
 }
 
 static MLI_FORCE_INLINE v2q15_t mli_prv_load_sub_vec2(
-        const MLI_PTR(int16_t) __restrict in, 
+        const MLI_PTR(int16_t) __restrict in,
         const MLI_PTR(int16_t) __restrict k) {
    return fx_sub_v2q15(mli_prv_load_2_samples(in), mli_prv_load_2_samples(k));
 }
 
 static MLI_FORCE_INLINE v2i8_t mli_prv_load_sub_vec2(
-        const MLI_PTR(int8_t) __restrict in, 
+        const MLI_PTR(int8_t) __restrict in,
         const MLI_PTR(int8_t) __restrict k) {
     v2q15_t res = fx_sub_v2q15(mli_prv_load_2_samples(in), mli_prv_load_2_samples(k));
     const v2u16_t sat_v2= {8, 8};
@@ -691,13 +691,13 @@ static MLI_FORCE_INLINE v2i8_t mli_prv_load_sub_vec2(
 }
 
 static MLI_FORCE_INLINE v2q15_t mli_prv_load_max_vec2(
-        const MLI_PTR(int16_t) __restrict in, 
+        const MLI_PTR(int16_t) __restrict in,
         const MLI_PTR(int16_t) __restrict k) {
    return fx_max_v2q15(mli_prv_load_2_samples(in), mli_prv_load_2_samples(k));
 }
 
 static MLI_FORCE_INLINE v2q15_t mli_prv_load_max_vec2(
-        const MLI_PTR(int8_t) __restrict in, 
+        const MLI_PTR(int8_t) __restrict in,
         const MLI_PTR(int8_t) __restrict k) {
    return fx_max_v2q15(mli_prv_load_2_samples(in), mli_prv_load_2_samples(k));
 }
@@ -709,7 +709,7 @@ static MLI_FORCE_INLINE v2q15_t mli_prv_load_min_vec2(
 }
 
 static MLI_FORCE_INLINE v2q15_t mli_prv_load_min_vec2(
-        const MLI_PTR(int8_t) __restrict in, 
+        const MLI_PTR(int8_t) __restrict in,
         const MLI_PTR(int8_t) __restrict k) {
    return fx_min_v2q15(mli_prv_load_2_samples(in), mli_prv_load_2_samples(k));
 }
@@ -808,44 +808,44 @@ static MLI_FORCE_INLINE void mli_prv_load_mac(
 }
 
 static MLI_FORCE_INLINE void mli_prv_load_mac_vec2(
-        accum40_t * accu, 
-        const MLI_PTR(int16_t) __restrict in, 
+        accum40_t * accu,
+        const MLI_PTR(int16_t) __restrict in,
         const MLI_PTR(int16_t) __restrict k) {
     *accu = fx_a40_dmac_v2q15(*accu, mli_prv_load_2_samples(in), mli_prv_load_2_samples(k));
 }
 
 static MLI_FORCE_INLINE void mli_prv_load_mac_vec2(
-        accum40_t * accu, 
-        const MLI_PTR(int16_t) __restrict in, 
+        accum40_t * accu,
+        const MLI_PTR(int16_t) __restrict in,
         const MLI_PTR(int8_t) __restrict k) {
     *accu = fx_a40_dmac_v2q15(*accu, mli_prv_load_2_samples(in), mli_prv_load_2_samples(k));
 }
 
 static MLI_FORCE_INLINE void mli_prv_load_mac_vec2(
-        int32_t * accu, 
-        const MLI_PTR(int8_t) __restrict in, 
+        int32_t * accu,
+        const MLI_PTR(int8_t) __restrict in,
         const MLI_PTR(int8_t) __restrict k) {
     int16_t two8bitvalues = *(MLI_PTR(int16_t)) in;
     *accu = _dmachbl((int32_t) mli_prv_load_2_samples(k), two8bitvalues);
 }
 
 static MLI_FORCE_INLINE void mli_prv_load_mac_vec2(
-        int32_t * accu, 
-        const MLI_PTR(int16_t) __restrict in, 
+        int32_t * accu,
+        const MLI_PTR(int16_t) __restrict in,
         const MLI_PTR(int8_t) __restrict k) {
     int16_t two8bitvalues = *(MLI_PTR(int16_t)) k;
     *accu = _dmachbl((int32_t) mli_prv_load_2_samples(in), two8bitvalues);
 }
 
 static MLI_FORCE_INLINE void mli_prv_load_mac_vec2(
-        accum40_t * accu, 
-        const MLI_PTR(int8_t) in, 
+        accum40_t * accu,
+        const MLI_PTR(int8_t) in,
         const MLI_PTR(int8_t) k) {
 
     *accu = fx_a40_dmac_v2q15(*accu, mli_prv_load_2_samples(in), mli_prv_load_2_samples(k));
 }
 
-template < typename in_T, typename w_T, typename acc_T > 
+template < typename in_T, typename w_T, typename acc_T >
 static MLI_FORCE_INLINE void mli_prv_load_mac_vec4(acc_T * accu, MLI_PTR(in_T) in, MLI_PTR(w_T) k) {
     mli_prv_load_mac_vec2(accu, in, k);
     in += 2;
@@ -854,12 +854,12 @@ static MLI_FORCE_INLINE void mli_prv_load_mac_vec4(acc_T * accu, MLI_PTR(in_T) i
 }
 
 //=========================================================================
-//  Multiply and accumulate for 'in' vector (4 elements) with constant k 
-//  
+//  Multiply and accumulate for 'in' vector (4 elements) with constant k
+//
 //  constant k  repilcate to v2k
-//  count the sum: 
-//        accu = accu + v2k.h1*sext(four8bitvalues.b1) + v2k.h0*sext(four8bitvalues.b0) 
-//        accu = accu + v2k.h1*sext(four8bitvalues.b3) + v2k.h0*sext(four8bitvalues.b2) 
+//  count the sum:
+//        accu = accu + v2k.h1*sext(four8bitvalues.b1) + v2k.h0*sext(four8bitvalues.b0)
+//        accu = accu + v2k.h1*sext(four8bitvalues.b3) + v2k.h0*sext(four8bitvalues.b2)
 //=========================================================================
 static MLI_FORCE_INLINE void mli_prv_load_mac_vec4(
         int32_t * accu,
@@ -874,8 +874,8 @@ static MLI_FORCE_INLINE void mli_prv_load_mac_vec4(
 
 #ifdef __Xdsp_wide
 static MLI_FORCE_INLINE void mli_prv_load_mac_vec4(
-        accum40_t * accu, 
-        const MLI_PTR(int16_t) in, 
+        accum40_t * accu,
+        const MLI_PTR(int16_t) in,
         const MLI_PTR(int16_t) k) {
 
     *accu = fx_a40_qmac_v4q15(*accu, mli_prv_load_4_samples(in), mli_prv_load_4_samples(k));
@@ -883,8 +883,8 @@ static MLI_FORCE_INLINE void mli_prv_load_mac_vec4(
 #endif
 
 static MLI_FORCE_INLINE void mli_prv_load_mac_vec4(
-        int32_t * accu, 
-        const MLI_PTR(int8_t) in, 
+        int32_t * accu,
+        const MLI_PTR(int8_t) in,
         const MLI_PTR(int8_t) k) {
     int32_t four8bitvalues = *(MLI_PTR(int32_t)) in;
 #if defined __Xxy
@@ -899,8 +899,8 @@ static MLI_FORCE_INLINE void mli_prv_load_mac_vec4(
 }
 
 static MLI_FORCE_INLINE void mli_prv_load_mac_vec4(
-        int32_t * accu, 
-        const MLI_PTR(int16_t) in, 
+        int32_t * accu,
+        const MLI_PTR(int16_t) in,
         const MLI_PTR(int8_t) k) {
     int32_t four8bitvalues = *(MLI_PTR(int32_t)) k;
     *accu = _dmachbl((int32_t) mli_prv_load_2_samples(in), four8bitvalues);
@@ -953,6 +953,17 @@ static MLI_FORCE_INLINE unsigned mli_prv_fx_init_dsp_ctrl() {
     return mli_prv_init_dsp_ctrl(mode);
 }
 
+static MLI_FORCE_INLINE v2q15_t mli_prv_init_v(int16_t first, int16_t second) {
+    v2q15_t out = fx_create_v2q15(first, second);
+
+    return out;
+}
+
+static MLI_FORCE_INLINE v2q15_t mli_prv_init_v(int16_t in_val) {
+    v2q15_t out = fx_replic_v2q15(in_val);
+
+    return out;
+}
 #pragma clang diagnostic pop
 
 #endif //_DSP_MLI_PRV_DSP_H_

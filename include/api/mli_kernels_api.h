@@ -581,6 +581,7 @@ mli_status mli_krn_leaky_relu_fx16(const mli_tensor * in, const mli_tensor * slo
  */
 mli_status mli_krn_sigm_fx8(const mli_tensor * in, mli_tensor * out);
 mli_status mli_krn_sigm_fx16(const mli_tensor * in, mli_tensor * out);
+mli_status mli_krn_sigm_sa8(const mli_tensor * in, mli_tensor * out);
 
 /**
  * @brief Hyperbolic Tangent Activation function
@@ -597,6 +598,7 @@ mli_status mli_krn_sigm_fx16(const mli_tensor * in, mli_tensor * out);
  */
 mli_status mli_krn_tanh_fx8(const mli_tensor * in, mli_tensor * out);
 mli_status mli_krn_tanh_fx16(const mli_tensor * in, mli_tensor * out);
+mli_status mli_krn_tanh_sa8(const mli_tensor * in, mli_tensor * out);
 
 /**
  * @brief Softmax

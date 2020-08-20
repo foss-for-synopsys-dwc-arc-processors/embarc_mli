@@ -50,6 +50,12 @@ template <>
 MLI_FORCE_INLINE mli_acc40_t mli_math_add_fx(mli_acc40_t L, mli_acc40_t R) {
     return fx_add_a40(L, R);
 }
+
+template <>
+MLI_FORCE_INLINE v2q15_t mli_math_add_fx(v2q15_t L, v2q15_t R) {
+    return fx_add_v2q15(L, R);
+}
+
 // Subtraction of two fx operands with saturation
 //========================================================================
 template <> MLI_FORCE_INLINE int8_t mli_math_sub_fx(int8_t L, int8_t R) {
@@ -60,16 +66,28 @@ template <> MLI_FORCE_INLINE int16_t mli_math_sub_fx(int16_t L, int16_t R) {
     return fx_sub_q15(L, R);   // not cast operands intentionally (rise compile warnings)
 }
 
+template <> MLI_FORCE_INLINE v2q15_t mli_math_sub_fx(v2q15_t L, v2q15_t R) {
+    return fx_sub_v2q15(L, R);
+}
+
 // Maximum of two fx operands
 //========================================================================
 template < typename io_T > MLI_FORCE_INLINE io_T mli_math_max_fx(io_T L, io_T R) {
     return MAX(L, R);
 }
 
+template <> MLI_FORCE_INLINE v2q15_t mli_math_max_fx(v2q15_t L, v2q15_t R) {
+    return fx_max_v2q15(L, R);
+}
+
 // Minimum of two fx operands
 //========================================================================
 template < typename io_T > MLI_FORCE_INLINE io_T mli_math_min_fx(io_T L, io_T R) {
     return MIN(L, R);
+}
+
+template <> MLI_FORCE_INLINE v2q15_t mli_math_min_fx(v2q15_t L, v2q15_t R) {
+    return fx_min_v2q15(L, R);
 }
 
 // Multiply two operands
@@ -101,9 +119,12 @@ MLI_FORCE_INLINE int64_t mli_math_mul_fx(int32_t L, int32_t R) {
 
 template <>
 MLI_FORCE_INLINE accum72_t mli_math_mul_fx(int32_t L, int32_t R) {
-    // Result of multiplication is fractional number (shifted left by 1)
-    // To return correct result we shift it right afterward
     return fx_a72_mpy_q31(L, R);
+}
+
+template <>
+MLI_FORCE_INLINE v2accum40_t mli_math_mul_fx(v2q15_t L, v2q15_t R) {
+    return fx_v2a40_mpy_v2q15(L, R);
 }
 
 // Multiply-and-accumulate operands
@@ -151,6 +172,10 @@ template <> MLI_FORCE_INLINE mli_acc40_t mli_math_acc_ashift_fx(mli_acc40_t acc,
     return fx_asr_a40(acc, shift_right);
 }
 
+template <> MLI_FORCE_INLINE v2q15_t mli_math_acc_ashift_fx(v2q15_t acc, int shift_right) {
+    return fx_asr_v2q15_n(acc, shift_right);
+}
+
 // Cast accum to output type
 //========================================================================
 template <> MLI_FORCE_INLINE int8_t mli_math_acc_cast_fx(mli_acc32_t acc, int shift_right) {
@@ -171,6 +196,10 @@ template <> MLI_FORCE_INLINE int16_t mli_math_acc_cast_fx(mli_acc32_t acc, int s
     int32_t temp = (int32_t) fx_asr_rnd_q31(acc, shift_right);
     temp = fx_asl_q31(temp, 16);
     return (int16_t) fx_q15_cast_q31(temp);
+}
+
+template <> MLI_FORCE_INLINE v2q15_t mli_math_acc_cast_fx(v2accum40_t acc, int shift_right) {
+    return fx_v2q15_cast_nf_asr_rnd_v2a40(acc, shift_right);
 }
 
 /*
@@ -332,6 +361,14 @@ MLI_FORCE_INLINE int32_t mli_math_cast_fx(accum72_t in_val, int shift_right) {
 template <>
 MLI_FORCE_INLINE int16_t mli_math_cast_fx(accum72_t in_val, int shift_right) {
     return fx_q15_cast_nf_asl_rnd_a72(in_val, 64 - sizeof(int16_t) * 8 - shift_right);
+}
+
+template<typename io_T, typename l_T, typename r_T>
+MLI_FORCE_INLINE io_T mli_math_bound_range_fx(io_T in, l_T L, r_T R) {
+    io_T out;
+    out = mli_math_max_fx(in, L);
+    out = mli_math_min_fx(out, R);
+    return out;
 }
 
 #pragma Code()

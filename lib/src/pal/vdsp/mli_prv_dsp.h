@@ -11,6 +11,11 @@
 #define _VDSP_MLI_PRV_DSP_H_
 
 #include "../mli_math.h"
+#include "mli_math_macros.h"
+#include "mli_private_types.h"
+#include "arc_vector_ext.h"
+
+
 
 //=========================================================================
 // This file contains functions that combine the math functions from
@@ -171,6 +176,28 @@ static MLI_FORCE_INLINE void  mli_prv_clip_relu_store_output(
     *o_ptr = (int8_t)out_with_offset;
 }
 
+// Initialize Accumulator
+template<typename T>
+static MLI_FORCE_INLINE T mli_prv_init_accu();
+
+template<>
+MLI_FORCE_INLINE vNx4accshort_t mli_prv_init_accu<vNx4accshort_t>() {
+    return vvcmpy((vNx4char_t)0, (int8_t)0);
+}
+
+template<>
+MLI_FORCE_INLINE vNx2accint_t mli_prv_init_accu<vNx2accint_t>() {
+    return vvcmpy((vNx2short_t)0, (short)0);
+}
+
+template<>
+MLI_FORCE_INLINE vNx4accint_t mli_prv_init_accu<vNx4accint_t>() {
+    vNx4accint_t r;
+    r.lo = vvcmpy((vNx2short_t)0, (int16_t)0);
+    r.hi = vvcmpy((vNx2short_t)0, (int16_t)0);
+    return r;
+}
+
 static MLI_FORCE_INLINE int32_t  mli_prv_init_accu(int8_t inp_val) {
     int32_t acc = inp_val;
     // _setacc(acc, 1);
@@ -184,7 +211,6 @@ static MLI_FORCE_INLINE int32_t  mli_prv_init_accu(int32_t inp_val) {
 
     return acc;
 }
-
 
 static MLI_FORCE_INLINE int32_t  mli_prv_init_accu_with_bias(
         const MLI_PTR(int8_t) __restrict in,
@@ -214,20 +240,52 @@ static MLI_FORCE_INLINE int32_t  mli_prv_init_accu_with_bias(
 // For this to work correct it is important to use these functions in combination
 // with the accumulator init functions that are defined elsewhere in this file.
 //
-static MLI_FORCE_INLINE void __attribute__ ((always_inline)) mli_prv_load_mac(
+static MLI_FORCE_INLINE void mli_prv_load_mac(
         int32_t * accu,
         const MLI_PTR(int16_t) __restrict in,
         const MLI_PTR(int8_t) __restrict k) {
     *accu += mli_math_mul_fx<int16_t, int32_t>(*in, (int16_t)(*k << 8));
 }
 
-static MLI_FORCE_INLINE void __attribute__ ((always_inline)) mli_prv_load_mac(
+static MLI_FORCE_INLINE void mli_prv_load_mac(
         int32_t * accu,
         const MLI_PTR(int16_t) __restrict in,
         const MLI_PTR(int16_t) __restrict k) {
     *accu += mli_math_mul_fx<int16_t, int32_t>(*in, *k);
 }
 
+// Accumulator Math
+//////////////////////////////////////////////////
+// double vector accumulator types vvconvert (targetsize is e.g. TARGET_SZ_8)
+//////////////////////////////////////////////////
+static MLI_FORCE_INLINE vNx2int_t
+mli_math_acc_ashift_fx(vNx2accint_t acc, int out_shift, int target_sz) {
+    vNx2int_t v;
+    unsigned ctrlword = target_sz | SIGNED | SAT | SHIFT(out_shift);
+    v.lo = to_vNint_t(vvconvert(__vacc_lo(acc), ctrlword));
+    v.hi = to_vNint_t(vvconvert(__vacc_hi(acc), ctrlword));
+    return v;
+}
+
+static MLI_FORCE_INLINE vNx4short_t
+mli_math_acc_ashift_fx(vNx4accshort_t acc, int out_shift, int target_sz) {
+    vNx4short_t v;
+    unsigned ctrlword = target_sz | SIGNED | SAT | SHIFT(out_shift);
+    v.lo = to_vNx2short_t(vvconvert(__vacc_lo(acc), ctrlword));
+    v.hi = to_vNx2short_t(vvconvert(__vacc_hi(acc), ctrlword));
+    return v;
+}
+
+static MLI_FORCE_INLINE vNx4int_t
+mli_math_acc_ashift_fx(vNx4accint_t acc, int out_shift, int target_sz) {
+    vNx4int_t v;
+    unsigned ctrlword = target_sz | SIGNED | SAT | SHIFT(out_shift);
+    v.lo.lo = to_vNint_t(vvconvert(__vacc_lo(acc.lo), ctrlword));
+    v.lo.hi = to_vNint_t(vvconvert(__vacc_hi(acc.lo), ctrlword));
+    v.hi.lo = to_vNint_t(vvconvert(__vacc_lo(acc.hi), ctrlword));
+    v.hi.hi = to_vNint_t(vvconvert(__vacc_hi(acc.hi), ctrlword));
+    return v;
+}
 #pragma clang diagnostic pop
 
 #endif // _VDSP_MLI_PRV_DSP_H_

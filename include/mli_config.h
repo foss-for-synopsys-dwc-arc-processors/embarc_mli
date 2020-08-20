@@ -122,6 +122,7 @@
 #define MLI_OUT_PTR_IS_XY true
 #define MLI_CONV_OUT_PTR(p) p *
 #define MLI_CONV_OUT_PTR_IS_XY false
+#define MLI_CCM_ATT 
 #elif (ARC_PLATFORM == V2DSP_VECTOR)
 #define MLI_PTR(p) __vccm p *
 #define MLI_PTR_IS_XY false
@@ -129,6 +130,7 @@
 #define MLI_OUT_PTR_IS_XY false
 #define MLI_CONV_OUT_PTR(p) __vccm p *
 #define MLI_CONV_OUT_PTR_IS_XY false
+#define MLI_CCM_ATT __vccm
 #else
 #define MLI_PTR(p) p *
 #define MLI_PTR_IS_XY false
@@ -136,6 +138,7 @@
 #define MLI_OUT_PTR_IS_XY false
 #define MLI_CONV_OUT_PTR(p) p *
 #define MLI_CONV_OUT_PTR_IS_XY false
+#define MLI_CCM_ATT
 #endif
 
 #endif // _MLI_CONFIG_H_
