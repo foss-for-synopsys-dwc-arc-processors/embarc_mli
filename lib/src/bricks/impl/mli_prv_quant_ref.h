@@ -10,6 +10,8 @@
 #ifndef _MLI_PRV_QUANT_REF_H_
 #define _MLI_PRV_QUANT_REF_H_
 
+#include "mli_prv_quant_decl.h"
+
 #include "mli_config.h"
 #include "mli_check.h"
 #include "mli_debug.h"
@@ -23,43 +25,12 @@
 #include <arc/arc_intrinsics.h>
 #include <assert.h>
 
+namespace mli {
+namespace krn {
+namespace ref {
+
 static const int kPreDivShiftS16 = 14;
 static const int kPreDivShiftS32 = 30;
-//=========================================================================
-//
-// Declaration
-//
-//=========================================================================
-template <typename quant_T>
-MLI_FORCE_INLINE void define_quant_params(const mli_tensor* in, const mli_tensor* weights, const mli_tensor* bias,
-                                const mli_tensor* out, quant_T* params);
-
-template <typename quant_T>
-MLI_FORCE_INLINE void adjust_quant_params(quant_T* params, int krn_idx = 0);
-
-template <typename w_T, typename acc_T, typename quant_T>
-MLI_FORCE_INLINE acc_T weights_additive(const w_T* __restrict weights, acc_T init_accum, const quant_T* quant_params,
-                              const int width, const int height = 1, int col_step = 1, int row_step = 1);
-
-template <typename in_T, typename acc_T, typename quant_T>
-MLI_FORCE_INLINE acc_T in_additive(const in_T* __restrict in, acc_T init_accum, const quant_T* quant_params,
-                              const int width, const int height = 1, int col_step = 1, int row_step = 1);
-
-template <typename acc_T, typename quant_T>
-MLI_FORCE_INLINE acc_T zp_additive(const quant_T* quant_params, acc_T init_accum,
-                        const int mac_serias_len);
-
-template <typename b_T, typename acc_T, typename quant_T>
-MLI_FORCE_INLINE acc_T bias_additive(const b_T bias, acc_T init_accum, const quant_T* quant_params);
-
-template <typename o_T, typename acc_T, typename quant_T>
-MLI_FORCE_INLINE o_T result_cast(const acc_T acc, const quant_T* quant_params);
-
-//=========================================================================
-//
-// Definitions
-//
-//=========================================================================
 
 //==========================================================================
 // Operating with quantization params set
@@ -262,14 +233,14 @@ MLI_FORCE_INLINE mli_acc32_t in_additive(
 }
 
 template <typename in_T, typename acc_T, typename quant_T>
-inline acc_T __attribute__ ((always_inline)) in_additive(const MLI_PTR(in_T) __restrict, acc_T init_accum, const quant_T* quant_params,
+MLI_FORCE_INLINE inline acc_T in_additive(const MLI_PTR(in_T) __restrict, acc_T init_accum, const quant_T* quant_params,
                               const int, const int, const int, int, int, int) {
     // By default and for FX quantization scheme, input additive isn't required
     return init_accum;
 }
 
 template <>
-inline mli_acc32_t __attribute__ ((always_inline)) in_additive(
+MLI_FORCE_INLINE inline mli_acc32_t in_additive(
         const MLI_PTR(int8_t) __restrict in, mli_acc32_t init_accum,
         const s8asym_quant_specific_params* quant_params,
         const int width, const int height, const int ch, int col_step, int row_step, int ch_step) {
@@ -424,5 +395,9 @@ MLI_FORCE_INLINE out_T mli_prv_convert_fx16_sa8(
     mli_acc32_t fx_output32_shifted = mli_math_acc_ashift_fx<mli_acc32_t>(fx_output32, scale) + zero_point;
     return mli_math_acc_cast_fx<out_T, mli_acc32_t>(fx_output32_shifted, 0);
 }
+
+} // namespace ref
+} // namespace krn
+} // namespace mli
 
 #endif /* _MLI_PRV_QUANT_REF_H_ */
