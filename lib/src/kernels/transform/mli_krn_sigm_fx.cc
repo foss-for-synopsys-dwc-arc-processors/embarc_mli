@@ -13,6 +13,7 @@
 #include "mli_helpers_api.h"
 #include "mli_prv_dsp.h"
 #include "mli_prv_lut.h"
+#include "mli_prv_activation_lut.h"
 #include "mli_prv_tensor.h"
 #include "mli_types.h"
 
@@ -46,6 +47,23 @@ mli_status mli_krn_sigm_fx16(const mli_tensor* in, mli_tensor* out) {
             (int)mli_prv_count_elem_num(in));
     mli_prv_copy_tensor_format(in, out);
     out->el_params.fx.frac_bits = 15;
+
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_krn_sigm_sa8(const mli_tensor* in, mli_tensor* out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_basic_activation_sa8(in, out), __func__);
+    if (ret != MLI_STATUS_OK) return ret;
+    mli_prv_fx_init_dsp_ctrl();
+
+    mli_prv_activation_lut_sa8(
+            (MLI_PTR(int8_t))in->data, (MLI_OUT_PTR(int8_t))out->data, &sigmoid_lut_fx16, in->el_params.asym.scale.i32, 
+            in->el_params.asym.scale_frac_bits, in->el_params.asym.zero_point.i16, (int)mli_prv_count_elem_num(in));
+    // Update output shape
+    mli_prv_copy_tensor_format(in, out);
+    out->el_params.asym.zero_point.i16 = kAsymZeroPointFx16;
+    out->el_params.asym.scale.i32 = kAsymScaleFx16;
+    out->el_params.asym.scale_frac_bits = kAsymScaleFracBits;
 
     return MLI_STATUS_OK;
 }

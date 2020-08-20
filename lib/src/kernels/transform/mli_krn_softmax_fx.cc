@@ -15,6 +15,7 @@
 #include "mli_prv_dsp.h"
 #include "mli_prv_load_store.h"
 #include "mli_prv_lut.h"
+#include "mli_prv_activation_lut.h"
 #include "mli_prv_tensor.h"
 #include "mli_types.h"
 

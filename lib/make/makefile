@@ -34,6 +34,7 @@ ifeq ($(MLI_PLATFORM),VPX)
 SRC_DIRS    =  ../src/helpers/src \
                ../src/kernels/eltwise \
                ../src/kernels/pooling \
+               ../src/bricks \
                ../src/private/src
 else
 SRC_DIRS    =  ../src/helpers/src \
@@ -49,10 +50,10 @@ SRC_DIRS    =  ../src/helpers/src \
 endif
 
 SRC_DIRS_EXTRA = ../src/kernels/transform
-ifneq ($(MLI_PLATFORM),VPX)
 CC_SRCS     += mli_krn_sigm_fx \
-               mli_krn_tanh_fx \
-               mli_krn_leaky_relu_fx \
+               mli_krn_tanh_fx
+ifneq ($(MLI_PLATFORM),VPX)
+CC_SRCS     += mli_krn_leaky_relu_fx \
                mli_krn_relu_fx \
                mli_krn_softmax_fx
 endif

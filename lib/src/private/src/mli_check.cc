@@ -1425,6 +1425,15 @@ mli_status mli_chk_basic_activation_fx16(const mli_tensor * in, mli_tensor * out
     return MLI_STATUS_OK;
 }
 
+mli_status mli_chk_basic_activation_sa8(const mli_tensor * in, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_basic_activation(in, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    if (MLI_CHECK(in->el_type == MLI_EL_ASYM_I8, "Wrong input tensor type"))
+        return MLI_STATUS_TYPE_MISMATCH;
+    return MLI_STATUS_OK;
+}
+
 mli_status mli_chk_leaky_relu (const mli_tensor * in, const mli_tensor * slope_coeff, mli_tensor * out) {
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;

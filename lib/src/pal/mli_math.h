@@ -26,6 +26,7 @@ template <typename l_T, typename r_T> MLI_FORCE_INLINE l_T mli_math_min_fx(l_T L
 template < typename in_T, typename acc_T > MLI_FORCE_INLINE acc_T mli_math_mul_fx(in_T L, in_T R);
 template < typename in_T, typename acc_T > MLI_FORCE_INLINE acc_T mli_math_mul_fx_high(in_T L, in_T R);
 template < typename l_T, typename r_T, typename acc_T > MLI_FORCE_INLINE acc_T mli_math_mac_fx(acc_T acc, l_T L, r_T R);
+template < typename out_T, typename acc_T > MLI_FORCE_INLINE out_T mli_math_acc_cast_fx(acc_T acc);
 template < typename out_T, typename acc_T > MLI_FORCE_INLINE out_T mli_math_acc_cast_fx(acc_T acc, int shift_right);
 template < typename acc_T > MLI_FORCE_INLINE acc_T mli_math_acc_ashift_fx(acc_T acc, int shift_right);
 template < typename out_T > MLI_FORCE_INLINE out_T mli_math_cast_ptr_to_scalar_fx(void *src);
