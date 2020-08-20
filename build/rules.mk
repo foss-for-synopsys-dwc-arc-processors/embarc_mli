@@ -95,15 +95,19 @@ endif
 
 
 # Sources and objects lists
-C_SRCS 		= $(basename $(notdir $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))))
-CPP_SRCS 	= $(basename $(notdir $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.cpp))))
-CC_SRCS 	= $(basename $(notdir $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.cc))))
+C_SRCS     ?=
+CPP_SRCS   ?=
+CC_SRCS    ?=
 
-C_OBJS		= $(addsuffix .o, $(addprefix $(BUILD_DIR)/, $(C_SRCS)) )
+C_SRCS     += $(basename $(notdir $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))))
+CPP_SRCS   += $(basename $(notdir $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.cpp))))
+CC_SRCS    += $(basename $(notdir $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.cc))))
+
+C_OBJS      = $(addsuffix .o, $(addprefix $(BUILD_DIR)/, $(C_SRCS)) )
 CPP_OBJS	= $(addsuffix .o, $(addprefix $(BUILD_DIR)/, $(CPP_SRCS)) )
 CC_OBJS		= $(addsuffix .o, $(addprefix $(BUILD_DIR)/, $(CC_SRCS)) )
 
-C_DEPNDS		= $(addsuffix .d, $(addprefix $(BUILD_DIR)/, $(C_SRCS)) )
+C_DEPNDS	= $(addsuffix .d, $(addprefix $(BUILD_DIR)/, $(C_SRCS)) )
 CPP_DEPENDS	= $(addsuffix .d, $(addprefix $(BUILD_DIR)/, $(CPP_SRCS)) )
 CC_DEPENDS	= $(addsuffix .d, $(addprefix $(BUILD_DIR)/, $(CC_SRCS)) )
 
@@ -177,9 +181,11 @@ endif
 CFLAGS  := $(TCF_CFLAGS) $(call quote,  $(CFLAGS))
 LDFLAGS := $(call quote, $(LDFLAGS))
 
-vpath %.c  $(SRC_DIRS) 
-vpath %.cpp  $(SRC_DIRS) 
-vpath %.cc  $(SRC_DIRS)
+SRC_DIRS_EXTRA ?=
+
+vpath %.c  $(SRC_DIRS)  $(SRC_DIRS_EXTRA)
+vpath %.cpp  $(SRC_DIRS) $(SRC_DIRS_EXTRA)
+vpath %.cc  $(SRC_DIRS) $(SRC_DIRS_EXTRA)
 vpath %.o  $(BUILD_DIR)
 vpath %.d  $(BUILD_DIR)
 

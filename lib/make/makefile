@@ -43,10 +43,18 @@ SRC_DIRS    =  ../src/helpers/src \
                ../src/kernels/eltwise \
                ../src/kernels/pooling \
                ../src/kernels/pooling_chw \
-               ../src/kernels/transform \
                ../src/private/src \
                ../src/bricks \
                ../src/move
+endif
+
+SRC_DIRS_EXTRA = ../src/kernels/transform
+ifneq ($(MLI_PLATFORM),VPX)
+CC_SRCS     += mli_krn_sigm_fx \
+               mli_krn_tanh_fx \
+               mli_krn_leaky_relu_fx \
+               mli_krn_relu_fx \
+               mli_krn_softmax_fx
 endif
 
 INC_DIRS    = .  \
