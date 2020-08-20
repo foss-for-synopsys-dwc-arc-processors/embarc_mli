@@ -198,8 +198,10 @@ typedef struct {
     uint8_t padding_right;/**< Number of zero points implicitly added to the right side of input (width dimension).*/
     uint8_t padding_top;  /**< Number of zero points implicitly added to the upper side of input (height dimension).*/
     uint8_t padding_bottom;/**< Number of zero points implicitly added to the bottom side of input (height dimension).*/
-    uint8_t dilation_width;  /**< */
-    uint8_t dilation_height; /**< .*/
+    uint8_t dilation_width;  /**< If set to k>1, there will be k-1 implicitly added zero points between each
+                                  filter point across width dimension. If set to 0 or 1, no dilation logic is used*/
+    uint8_t dilation_height; /**< If set to k>1, there will be k-1 implicitly added zero points between each
+                                  filter point across height dimension. If set to 0 or 1, no dilation logic is used*/
 } mli_conv2d_cfg;
 
 
