@@ -224,7 +224,9 @@ void conv2d_prepare_and_run(
         const mli_tensor *weights,
         const mli_tensor *bias,
         const mli_conv2d_cfg *cfg,
-        mli_tensor *out) {
+        mli_tensor *out,
+        const int fix_kernel_width,
+        const int fix_kernel_height) {
     fx_init_dsp_ctrl();
     const uint8_t stride_width = cfg->stride_width;
     const uint8_t stride_height = cfg->stride_height;
@@ -249,10 +251,10 @@ void conv2d_prepare_and_run(
         weights_prv = mli_prv_get_conv2d_weights_tensor_nhwc<w_T *>(weights);
         out_ch = weights_prv.out_ch;
     } else if (data_layout == LAYOUT_HWCN) {
-        weights_prv = mli_prv_get_conv2d_weights_tensor_hwcn<w_T *>(weights);
+        weights_prv = mli_prv_get_conv2d_weights_tensor_hwcn<w_T *>(weights, 0, fix_kernel_width, fix_kernel_height);
         out_ch = weights_prv.out_ch;
     } else if ( data_layout == LAYOUT_1HWN) {
-        weights_prv = mli_prv_get_conv2d_weights_tensor_1hwn<w_T *>(weights);
+        weights_prv = mli_prv_get_conv2d_weights_tensor_1hwn<w_T *>(weights, fix_kernel_width, fix_kernel_height);
         out_ch = weights_prv.out_ch;
     } else {
         // LAYOUT_CHW

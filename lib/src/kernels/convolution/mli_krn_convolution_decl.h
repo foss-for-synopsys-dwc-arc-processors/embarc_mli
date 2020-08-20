@@ -68,7 +68,9 @@ void conv2d_prepare_and_run(
         const mli_tensor *weights,
         const mli_tensor *bias,
         const mli_conv2d_cfg *cfg,
-        mli_tensor *out);
+        mli_tensor *out,
+        const int fix_kernel_width = 0,
+        const int fix_kernel_height = 0);
 } // namespace ref
 
 ////////////////////////////////////////////////////////////////////////////////
