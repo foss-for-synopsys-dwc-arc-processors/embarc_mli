@@ -10,8 +10,6 @@
 #ifndef _MLI_KRN_AVEPOOL_HWC_REF_H_
 #define _MLI_KRN_AVEPOOL_HWC_REF_H_
 
-#include "mli_krn_maxpool_hwc_decl.h"
-
 #include "mli_config.h"
 #include "mli_prv_dsp.h"
 
