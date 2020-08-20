@@ -29,10 +29,10 @@ namespace ref {
 //========================================================
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
 static void convolution2D(
-        const tensor_private_t<io_T *> &in,
-        const conv2d_weights_tensor_private_t<w_T *> &weights,
+        const tensor_private_t<MLI_PTR(io_T)> &in,
+        const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const b_T*  __restrict biases,
-        const tensor_private_t<io_T *> &out,
+        const tensor_private_t<MLI_CONV_OUT_PTR(io_T)> &out,
         const rect_t &perception_area,
         quant_T quant_params,
         const io_T val_min_limit,
@@ -83,15 +83,15 @@ static void convolution2D(
             const int h_idx_in = (H_idx * stride_height - padding_top + comp.top);
             const int w_idx_in = (W_idx * stride_width - padding_left + comp.left);
             for (int out_ch_idx = 0; out_ch_idx < out.ch; out_ch_idx++) {
-                io_T* out_ptr = out.ptr
+                MLI_CONV_OUT_PTR(io_T) out_ptr = out.ptr
                         + out.row_mem_stride * H_idx
                         + out.col_mem_stride * W_idx
                         + out.ch_mem_stride * out_ch_idx;
-                const io_T *in_ptr = in.ptr
+                const MLI_PTR(io_T) in_ptr = in.ptr
                         + in.row_mem_stride * h_idx_in
                         + in.col_mem_stride * w_idx_in;
 
-                const w_T *w_ptr = weights.ptr
+                const MLI_PTR(w_T) w_ptr = weights.ptr
                         + weights.row_mem_stride * comp.top
                         + weights.col_mem_stride * comp.left
                         + weights.out_ch_mem_stride * out_ch_idx;
@@ -129,10 +129,10 @@ static void convolution2D(
 //========================================================
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
 static void depthwise_convolution2D(
-        const tensor_private_t<io_T *> &in,
-        const conv2d_weights_tensor_private_t<w_T *> &weights,
+        const tensor_private_t<MLI_PTR(io_T)> &in,
+        const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const b_T*  __restrict biases,
-        const tensor_private_t<io_T *> &out,
+        const tensor_private_t<MLI_CONV_OUT_PTR(io_T)> &out,
         const rect_t &perception_area,
         quant_T quant_params,
         const io_T val_min_limit,
@@ -164,7 +164,7 @@ static void depthwise_convolution2D(
             const int w_idx_in = (W_idx * stride_width - padding_left + comp.left);
 
             for (int in_ch_idx = 0; in_ch_idx < in.ch; in_ch_idx++) {
-                const io_T *in_ptr = in.ptr
+                const MLI_PTR(io_T) in_ptr = in.ptr
                         + in.row_mem_stride * h_idx_in
                         + in.col_mem_stride * w_idx_in
                         + in.ch_mem_stride * in_ch_idx;
@@ -178,7 +178,7 @@ static void depthwise_convolution2D(
                                                in.row_mem_stride);
 
                 const int out_ch_idx = in_ch_idx;
-                const w_T *w_ptr = weights.ptr
+                const MLI_PTR(w_T) w_ptr = weights.ptr
                         + weights.row_mem_stride * comp.top
                         + weights.col_mem_stride * comp.left
                         + weights.in_ch_mem_stride * 0
@@ -204,7 +204,7 @@ static void depthwise_convolution2D(
                 out_val = MIN(out_val, val_max_limit);
                 out_val = MAX(out_val, val_min_limit);
 
-                io_T* out_ptr = out.ptr
+                MLI_CONV_OUT_PTR(io_T) out_ptr = out.ptr
                         + out.row_mem_stride * H_idx
                         + out.col_mem_stride * W_idx
                         + out.ch_mem_stride * out_ch_idx;
@@ -242,23 +242,23 @@ void conv2d_prepare_and_run(
     const b_T *bs = static_cast<b_T *>(bias->data);
 
     const auto in_prv = (data_layout == LAYOUT_HWC || data_layout == LAYOUT_HWCN || data_layout == LAYOUT_1HWN) ?
-            mli_prv_get_tensor_hwc<io_T *>(in)
-            : mli_prv_get_tensor_chw<io_T *>(in);
+            mli_prv_get_tensor_hwc<MLI_PTR(io_T)>(in)
+            : mli_prv_get_tensor_chw<MLI_PTR(io_T)>(in);
 
-    conv2d_weights_tensor_private_t<w_T *> weights_prv;
+    conv2d_weights_tensor_private_t<MLI_PTR(w_T)> weights_prv;
     int out_ch;
     if (data_layout == LAYOUT_HWC) {
-        weights_prv = mli_prv_get_conv2d_weights_tensor_nhwc<w_T *>(weights);
+        weights_prv = mli_prv_get_conv2d_weights_tensor_nhwc<MLI_PTR(w_T)>(weights);
         out_ch = weights_prv.out_ch;
     } else if (data_layout == LAYOUT_HWCN) {
-        weights_prv = mli_prv_get_conv2d_weights_tensor_hwcn<w_T *>(weights, 0, fix_kernel_width, fix_kernel_height);
+        weights_prv = mli_prv_get_conv2d_weights_tensor_hwcn<MLI_PTR(w_T)>(weights, 0, fix_kernel_width, fix_kernel_height);
         out_ch = weights_prv.out_ch;
     } else if ( data_layout == LAYOUT_1HWN) {
-        weights_prv = mli_prv_get_conv2d_weights_tensor_1hwn<w_T *>(weights, fix_kernel_width, fix_kernel_height);
+        weights_prv = mli_prv_get_conv2d_weights_tensor_1hwn<MLI_PTR(w_T)>(weights, fix_kernel_width, fix_kernel_height);
         out_ch = weights_prv.out_ch;
     } else {
         // LAYOUT_CHW
-        weights_prv= mli_prv_get_conv2d_weights_tensor_nchw<w_T *>(weights);
+        weights_prv= mli_prv_get_conv2d_weights_tensor_nchw<MLI_PTR(w_T)>(weights);
         out_ch = (conv_type == CONV_GENERAL) ? weights_prv.out_ch : in_prv.ch;
     }
 
@@ -282,8 +282,8 @@ void conv2d_prepare_and_run(
         out->shape[FMAP_C_DIM_CHW] = out_ch;
     }
     const auto out_prv = (data_layout == LAYOUT_HWC || data_layout == LAYOUT_HWCN || data_layout == LAYOUT_1HWN) ?
-            mli_prv_get_tensor_hwc<io_T *>(out)
-            : mli_prv_get_tensor_chw<io_T *>(out);
+            mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(io_T)>(out)
+            : mli_prv_get_tensor_chw<MLI_CONV_OUT_PTR(io_T)>(out);
 
     // Define quantization specific params
     quant_T params;
