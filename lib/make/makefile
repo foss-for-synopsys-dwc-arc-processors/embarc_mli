@@ -17,9 +17,6 @@ GEN_RULES ?= OFF
 # Directories and files
 SRC_ROOT    =  ../src
 
-#Supported values for runding mode: UP/CONVERGENT
-ROUND_MODE ?= CONVERGENT
-
 # Collect iformation about platform from TCF
 ALL_PLATFORM_FLAGS := '$(shell ccac -tcf=$(TCF_FILE) -Hbatchnotmp _.c)'
 
@@ -101,6 +98,13 @@ OUT_NAME    ?= libmli
 BUILD_DIR   ?= ../../obj
 GEN_DIR     ?= ../gen
 CFLAGS      += -Hnocopyr -Hpurge -Hsdata0 -Hdense_prologue -Wall
+
+# Supported values for rounding mode: UP/CONVERGENT (depends on platform)
+ifeq ($(MLI_PLATFORM),VPX)
+ROUND_MODE ?= UP
+else
+ROUND_MODE ?= CONVERGENT
+endif
 
 ifeq ($(MLI_PLATFORM),VPX)
     CFLAGS  += -Hvdsp_vector_c -mllvm -slot_swapping=true
