@@ -605,7 +605,8 @@ mli_status mli_krn_tanh_sa8(const mli_tensor * in, mli_tensor * out);
  *
  * @detail This kernel performs activation function which is a generalization of the logistic function.
  * The SoftMax function is often used as the final layer of a neural network-based classifier and it's output can be considered 
- * as a probability distribution over N different possible outcomes. The sum of all the entries tends to 1
+ * as a probability distribution over N different possible outcomes. The sum of all the entries tends to 1.
+ * Softmax function might be applied to the whole tensor, or along a specific axis. 
  *
  * For more info on primitive see MLI Documentation
  *
@@ -614,8 +615,10 @@ mli_status mli_krn_tanh_sa8(const mli_tensor * in, mli_tensor * out);
  *
  * @return MLI status code
  */
-mli_status mli_krn_softmax_fx8(const mli_tensor * in, mli_tensor * out);
-mli_status mli_krn_softmax_fx16(const mli_tensor * in, mli_tensor * out);
+mli_status mli_krn_softmax_sa8(const mli_tensor* in, const mli_softmax_cfg* cfg, mli_tensor* out);
+mli_status mli_krn_softmax_fx16(const mli_tensor* in, const mli_softmax_cfg* cfg, mli_tensor* out);
+
+mli_status mli_krn_softmax_fx8(const mli_tensor * in, mli_tensor * out); /* DEPRECATED */
 
 
 

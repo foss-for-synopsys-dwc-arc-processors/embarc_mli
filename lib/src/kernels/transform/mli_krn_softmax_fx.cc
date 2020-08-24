@@ -141,7 +141,7 @@ mli_status mli_krn_softmax_fx8(const mli_tensor *in, mli_tensor *out) {
     return MLI_STATUS_OK;
 }
 
-mli_status mli_krn_softmax_fx16(const mli_tensor *in, mli_tensor *out) {
+mli_status mli_krn_softmax_fx16(const mli_tensor *in, const mli_softmax_cfg* cfg, mli_tensor *out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_basic_activation_fx16(in, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
 
@@ -238,6 +238,10 @@ mli_status mli_krn_softmax_fx16(const mli_tensor *in, mli_tensor *out) {
     out->el_params.fx.frac_bits = 15;
 
     return MLI_STATUS_OK;
+}
+
+mli_status mli_krn_softmax_sa8(const mli_tensor* in, const mli_softmax_cfg* cfg, mli_tensor* out) {
+    return MLI_STATUS_NOT_SUPPORTED;
 }
 
 #pragma code()

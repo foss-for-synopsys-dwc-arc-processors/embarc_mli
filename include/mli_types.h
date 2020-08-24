@@ -183,6 +183,24 @@ typedef struct {
 } mli_relu_cfg;
 
 
+/**
+ * @brief Parametric RELU layer config
+ *
+ * Configuration struct to provide axis along which the function will be applied
+ */
+typedef struct {
+    int32_t axis; /**< An axis along which the function will be computed. Axis corresponds to index of tensor`s dimension
+                  starting from 0. For instance, having future map in HWC layout, axis == 0 corresponds to H dimension. 
+                  If axis < 0 the function will be applied to the whole tensor */
+} mli_prelu_cfg;
+
+
+/**
+ * @brief Softmax Layer config
+ *
+ * Configuration struct alias to store required parameter (axis)
+ */
+typedef mli_prelu_cfg mli_softmax_cfg;
 
 /**
  * @brief Convolutional layer config definition
