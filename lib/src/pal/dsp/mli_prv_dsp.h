@@ -189,6 +189,21 @@ static MLI_FORCE_INLINE void mli_prv_shift_clip_and_store_output(
 }
 
 //=========================================================================
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        accum40_t * ip_out_v,
+        const int out_shift) {
+    *o_ptr = fx_q15_cast_asl_rnd_a40(*ip_out_v, 16 - out_shift - 1);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
+        int32_t * ip_in,
+        const int out_shift) {
+    q31_t temp = fx_asr_rnd_q31(*ip_in, out_shift);
+    temp = fx_asl_q31(temp, 32 - sizeof(int8_t) * 8);
+    *o_ptr = (int8_t) fx_q7_cast_q31(temp);
+}
 
 static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
         MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
@@ -463,6 +478,20 @@ static MLI_FORCE_INLINE int32_t mli_prv_qmpy_v4i16x8(
     return _dmachbm(tmp2, wt1_v4i8);
 }
 
+#if defined(MLI_BUILD_REFERENCE)
+static MLI_FORCE_INLINE int32_t mli_prv_init_accu_v(int8_t inp_val) {
+    int32_t acc = inp_val;
+    _setacc(acc, 1);
+
+    return acc;
+}
+
+static MLI_FORCE_INLINE accum40_t mli_prv_init_accu_v(int16_t inp_val) {
+    accum40_t acc = {inp_val};
+
+    return acc;
+}
+#else
 static MLI_FORCE_INLINE v2accum40_t mli_prv_init_accu_v(int16_t inp_val) {
     v2accum40_t acc_v = {inp_val, inp_val};
 
@@ -474,6 +503,7 @@ static MLI_FORCE_INLINE __v2i32_t mli_prv_init_accu_v(int8_t inp_val) {
 
     return acc_v;
 }
+#endif
 
 static MLI_FORCE_INLINE int32_t mli_prv_init_accu(int8_t inp_val) {
     int32_t acc = inp_val;
