@@ -131,36 +131,24 @@ MLI_FORCE_INLINE int mli_math_norm_fx(T x)
 
 // Addition of two fx operands with saturation
 //========================================================================
-template <> 
-MLI_FORCE_INLINE int8_t mli_math_add_fx(int8_t L, int8_t R) {
-    return (int8_t)mli_math_sat_fx<int16_t>(L + R, 8);
-}
-
-template <> 
-MLI_FORCE_INLINE int16_t mli_math_add_fx(int16_t L, int16_t R) {
-    return (int16_t)mli_math_sat_fx<int32_t>(L + R, 16);
-}
-
-template <> 
-MLI_FORCE_INLINE int32_t mli_math_add_fx(int32_t L, int32_t R) {
-    return (int32_t)mli_math_sat_fx<int64_t>(L + R, 32);
+template <typename T>
+MLI_FORCE_INLINE T mli_math_add_fx(T L, T R) {
+    if ((R > 0) && (L > std::numeric_limits<T>::max() - R)) // `L + R` would overflow
+        return std::numeric_limits<T>::max();
+    if ((R < 0) && (L < std::numeric_limits<T>::lowest() - R)) // `L + R` would underflow
+        return std::numeric_limits<T>::lowest();
+    return L + R;
 }
 
 // Subtraction of two fx operands with saturation
 //========================================================================
-template <> 
-MLI_FORCE_INLINE int8_t mli_math_sub_fx(int8_t L, int8_t R) {
-    return (int8_t)mli_math_sat_fx<int16_t>(L - R, 8);
-}
-
-template <> 
-MLI_FORCE_INLINE int16_t mli_math_sub_fx(int16_t L, int16_t R) {
-    return (int16_t)mli_math_sat_fx<int32_t>(L - R, 16);
-}
-
-template <> 
-MLI_FORCE_INLINE int32_t mli_math_sub_fx(int32_t L, int32_t R) {
-    return (int32_t)mli_math_sat_fx<int64_t>(L - R, 32);
+template <typename T>
+MLI_FORCE_INLINE T mli_math_sub_fx(T L, T R) {
+    if ((R < 0) && (L > std::numeric_limits<T>::max() + R)) // `L - R` would overflow
+        return std::numeric_limits<T>::max();
+    if ((R > 0) && (L < std::numeric_limits<T>::lowest() + R)) // `L - R` would underflow
+        return std::numeric_limits<T>::lowest();
+    return L - R;
 }
 
 // Maximum of two fx operands
