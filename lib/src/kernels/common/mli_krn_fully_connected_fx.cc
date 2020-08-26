@@ -21,12 +21,8 @@ extern "C" {
 
 #pragma Code(".mli_lib")
 
-// /*******************************************************************************
-// *
-// * Placeholders for kernels (for future optimizations)
-// *
-// *******************************************************************************/
 
+ /* DEPRECATED */
 mli_status mli_krn_fully_connected_fx8(
         const mli_tensor* in,
         const mli_tensor* weights,
@@ -44,6 +40,7 @@ mli_status mli_krn_fully_connected_fx16(
         const mli_tensor* in,
         const mli_tensor* weights,
         const mli_tensor* bias,
+        const mli_fully_connected_cfg cfg,
         mli_tensor* out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_fully_connected_fx16(in, weights, bias, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
@@ -53,6 +50,7 @@ mli_status mli_krn_fully_connected_fx16(
     return MLI_STATUS_OK;
 }
 
+/* DEPRECATED */
 mli_status mli_krn_fully_connected_fx8w16d(
         const mli_tensor* in,
         const mli_tensor* weights,
@@ -66,10 +64,25 @@ mli_status mli_krn_fully_connected_fx8w16d(
     return MLI_STATUS_OK;
 }
 
+mli_status mli_krn_fully_connected_fx16_fx8_fx8(
+        const mli_tensor* in,
+        const mli_tensor* weights,
+        const mli_tensor* bias,
+        const mli_fully_connected_cfg cfg,
+        mli_tensor* out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_fully_connected_fx8w16d(in, weights, bias, out), __func__);
+    if (ret != MLI_STATUS_OK) return ret;
+
+    fully_connected_prepare_and_run_fx<int16_t, int8_t>(in, weights, bias, out);
+
+    return MLI_STATUS_OK;
+}
+
 mli_status mli_krn_fully_connected_sa8_sa8_sa32(
         const mli_tensor* in,
         const mli_tensor* weights,
         const mli_tensor* bias,
+        const mli_fully_connected_cfg cfg,
         mli_tensor* out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_fully_connected_sa8_sa8_sa32(in, weights, bias, out), __func__);
     if (ret != MLI_STATUS_OK)

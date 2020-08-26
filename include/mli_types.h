@@ -203,6 +203,17 @@ typedef struct {
 typedef mli_prelu_cfg mli_softmax_cfg;
 
 /**
+ * @brief Fully Connected Layer config definition
+ *
+ * Data structure to provide the configuration for a Fully Connected function.
+ */
+typedef struct {
+    mli_relu_cfg relu; /**< Type of ReLU activation applied to output values.*/
+} mli_fully_connected_cfg;
+
+
+
+/**
  * @brief Convolutional layer config definition
  *
  * Data structure to provide the configuration for a 2D convolution function.

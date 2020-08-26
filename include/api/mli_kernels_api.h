@@ -402,7 +402,7 @@ mli_status mli_krn_maxpool_hwc_sa8_generic(const mli_tensor * in, const mli_pool
  *
  * @return MLI status code
  */
-mli_status mli_krn_fully_connected_fx8(
+mli_status mli_krn_fully_connected_fx8( /* DEPRECATED */
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
@@ -412,9 +412,17 @@ mli_status mli_krn_fully_connected_fx16(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
+        const mli_fully_connected_cfg * cfg,
         mli_tensor * out);
 
-mli_status mli_krn_fully_connected_fx8w16d(
+mli_status mli_krn_fully_connected_fx16_fx8_fx8(
+    const mli_tensor* in,
+    const mli_tensor* weights,
+    const mli_tensor* bias,
+    const mli_fully_connected_cfg * cfg,
+    mli_tensor* out);
+
+mli_status mli_krn_fully_connected_fx8w16d( /* DEPRECATED */
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
@@ -424,7 +432,9 @@ mli_status mli_krn_fully_connected_sa8_sa8_sa32(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
+        const mli_fully_connected_cfg * cfg,
         mli_tensor * out);
+
 /**
  * @brief Long Short Term Memory (LSTM) Cell
  *
