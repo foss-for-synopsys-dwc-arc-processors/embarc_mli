@@ -18,6 +18,9 @@
 #include "mli_prv_tensor.h"
 #include "mli_types.h"
 
+const int kTanhAsymZeroPoint = 0;
+const int kTanhOutputShift = 7;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -53,18 +56,27 @@ mli_status mli_krn_tanh_fx16(const mli_tensor* in, mli_tensor* out) {
 }
 
 mli_status mli_krn_tanh_sa8(const mli_tensor* in, mli_tensor* out) {
+    struct s8asym_quant_params in_params;
+    struct s8asym_quant_params out_params;
     mli_status ret = MLI_CHECK_STATUS(mli_chk_basic_activation_sa8(in, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     mli_prv_fx_init_dsp_ctrl();
 
+    in_params.offset = in->el_params.asym.zero_point.i16;
+    in_params.scale  = in->el_params.asym.scale.i32;
+    in_params.shift = in->el_params.asym.scale_frac_bits;
+    out_params.offset = kTanhAsymZeroPoint;
+    out_params.scale  = 1;
+    out_params.shift = kTanhOutputShift;
+
     mli_prv_activation_lut_sa8(
-            (MLI_PTR(int8_t))in->data, (MLI_OUT_PTR(int8_t))out->data, &tanh_lut_fx16, in->el_params.asym.scale.i32, 
-            in->el_params.asym.scale_frac_bits, in->el_params.asym.zero_point.i16, (int)mli_prv_count_elem_num(in));
+            (MLI_PTR(int8_t))in->data, (MLI_OUT_PTR(int8_t))out->data, &tanh_lut_fx16,  
+            &in_params, &out_params, (int)mli_prv_count_elem_num(in));
     // Update output shape
     mli_prv_copy_tensor_format(in, out);
-    out->el_params.asym.zero_point.i16 = kAsymZeroPointFx16;
-    out->el_params.asym.scale.i32 = kAsymScaleFx16;
-    out->el_params.asym.scale_frac_bits = kAsymScaleFracBits;
+    out->el_params.asym.zero_point.i16 = out_params.offset;
+    out->el_params.asym.scale.i32 = out_params.scale;
+    out->el_params.asym.scale_frac_bits = out_params.shift;
 
     return MLI_STATUS_OK;
 }

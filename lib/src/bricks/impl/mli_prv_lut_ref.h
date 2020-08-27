@@ -24,27 +24,26 @@ static void activation_lut(
         const MLI_PTR(io_T) in,
         MLI_OUT_PTR(io_T) out,
         const mli_lut *lut,
-        int8_t scale_frac_bits,
+        int8_t in_frac_bits,
         int length,
-        int scale,
-        int16_t zero_point) {
+        struct s8asym_quant_params *in_params,
+        struct s8asym_quant_params *out_params) {
 
-    MLI_ASSERT(scale_frac_bits >= -1);  // -1 may be required by softmax
+    MLI_ASSERT(in_frac_bits >= -1);  // -1 may be required by softmax
     MLI_ASSERT(length >= 0);
     MLI_ASSERT(lut->frac_bits >= 0);
     MLI_ASSERT(lut->length >= 0);
 
-    int8_t in_frac_bits;
-    int32_t scale_fx;
+    int32_t scale_fx = 0;
 
-    if (convert == true) {
+    if (convert) {
+        MLI_ASSERT(in_params != nullptr);
+        MLI_ASSERT(out_params != nullptr);
         /* Calculating Scaling Factor to transform SA8 to Qmn (FX16) */
         int lut_int_bits_fx8 = kMaxFracBitsFx8 - lut->frac_bits;
         int frac_bits_fx16 = kMaxFracBitsFx16 - lut_int_bits_fx8;
-        scale_fx = mli_math_acc_ashift_fx<int32_t>(scale, ((int32_t) scale_frac_bits - frac_bits_fx16));
+        scale_fx = mli_math_acc_ashift_fx<int32_t>(in_params->scale, ((int32_t) in_params->shift - frac_bits_fx16));
         in_frac_bits = frac_bits_fx16;
-    } else {
-        in_frac_bits = scale_frac_bits;
     }
 
     int shift_in = in_frac_bits - lut->frac_bits;
@@ -60,16 +59,15 @@ static void activation_lut(
         for (int idx = 0; idx < length; idx++) {
             /* Convert Input SA8 to FX */
             int16_t input;
-            if ( convert == true ) {
-                input = mli_prv_convert_sa8_fx16<io_T, int16_t>(in[idx], zero_point, scale_fx);
+            if (convert) {
+                input = mli_prv_convert_sa8_fx16<io_T, int16_t>(in[idx], in_params->offset, scale_fx);
             } else {
                 input = in[idx];
             }
 
             int16_t x = input >> preshift_in;
             int lut_idx = (x >> shift_in) + lut->offset;
-            lut_idx = mli_math_max_fx(lut_idx, 0);
-            lut_idx = mli_math_min_fx(lut_idx, lut->length - 2);
+            lut_idx = mli_math_bound_range_fx(lut_idx, 0, lut->length - 2);
             // perform linear interpolation
             int16_t frac = x & mask;
             int16_t res = lut_data[lut_idx];
@@ -77,9 +75,10 @@ static void activation_lut(
             res -= mli_math_acc_cast_fx<int16_t, mli_acc32_t>(
                     mli_math_mul_fx<int16_t, mli_acc32_t>(diff, frac), shift_in);
 
-            if ( convert == true ) {
+            if (convert) {
+                MLI_ASSERT(out_params->scale == 1);
                 out[idx] = mli_prv_convert_fx16_sa8<int16_t, io_T>(
-				                   res, kAsymZeroPointFx16, kLutOutFracBits - kAsymScalePowerFx16);
+				                   res, out_params->offset, kLutOutFracBits - out_params->shift);
             } else {
                 out[idx] = mli_math_cast_fx<int16_t, io_T>(res, 16 - sizeof(io_T) * 8);
             }
@@ -89,21 +88,21 @@ static void activation_lut(
         for (int idx = 0; idx < length; idx++) {
             /* Convert Input SA8 to FX */
             int16_t input;
-            if ( convert == true ) {
-                input = mli_prv_convert_sa8_fx16<io_T, int16_t>(in[idx], zero_point, scale_fx);
+            if (convert) {
+                input = mli_prv_convert_sa8_fx16<io_T, int16_t>(in[idx], in_params->offset, scale_fx);
             } else {
                 input = in[idx];
             }
             int x = (int)input;
             int lut_idx = (x << -shift_in) + lut->offset;
-            lut_idx = mli_math_max_fx(lut_idx, 0);
-            lut_idx = mli_math_min_fx(lut_idx, lut->length - 1);
+            lut_idx = mli_math_bound_range_fx(lut_idx, 0, lut->length - 1);
             // no interpolation
             int16_t res = lut_data[lut_idx];
 
-            if ( convert == true ) {
+            if (convert) {
+                MLI_ASSERT(out_params->scale == 1);
                 out[idx] = mli_prv_convert_fx16_sa8<int16_t, io_T>(
-				                    res, kAsymZeroPointFx16, kLutOutFracBits - kAsymScalePowerFx16);
+				                    res, out_params->offset, kLutOutFracBits - out_params->shift );
             } else {
                 out[idx] = mli_math_cast_fx<int16_t, io_T>(res, 16 - sizeof(io_T) * 8);
             }

@@ -104,6 +104,12 @@ struct s8asym_quant_specific_params {
     int out_shift;
 };
 
+struct s8asym_quant_params {
+    int16_t offset;
+    int16_t shift;
+    int32_t scale;
+
+};
 /**
  * @brief Quantization specific parameter to perform correct calculations in MLI_FX quantization scheme.
  */
