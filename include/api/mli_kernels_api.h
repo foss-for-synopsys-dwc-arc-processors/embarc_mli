@@ -372,12 +372,15 @@ mli_status mli_krn_maxpool_chw_fx8(const mli_tensor * in, const mli_pool_cfg * c
 mli_status mli_krn_maxpool_chw_fx16(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_maxpool_chw_fx8_generic(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_maxpool_chw_fx16_generic(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_maxpool_hwc_fx8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_maxpool_hwc_fx16(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_maxpool_hwc_sa8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_maxpool_hwc_fx8_generic(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_maxpool_hwc_fx16_generic(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_maxpool_hwc_sa8_generic(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
+mli_status mli_krn_maxpool_hwc_sa8_k2x2(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
+mli_status mli_krn_maxpool_hwc_sa8_k3x3(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
+mli_status mli_krn_maxpool_hwc_fx8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
+mli_status mli_krn_maxpool_hwc_fx8_k2x2(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
+mli_status mli_krn_maxpool_hwc_fx8_k3x3(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
+mli_status mli_krn_maxpool_hwc_fx16(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
+mli_status mli_krn_maxpool_hwc_fx16_k2x2(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
+mli_status mli_krn_maxpool_hwc_fx16_k3x3(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 
 //================================================
 //

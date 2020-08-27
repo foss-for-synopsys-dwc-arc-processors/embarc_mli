@@ -43,7 +43,8 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc_v(
     } else {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wpass-failed"
-        if (fixed_size && height <= REDUCE_MAX2D_UNROLL_FACTOR_FOR_HEIGHT && width <= REDUCE_MAX2D_UNROLL_FACTOR_FOR_WIDTH) {
+        if (fixed_size && height <= REDUCE_MAX2D_UNROLL_FACTOR_FOR_HEIGHT &&
+        		width <= REDUCE_MAX2D_UNROLL_FACTOR_FOR_WIDTH) {
 #pragma clang loop unroll(full)
             for (int row = 0; row < height; row++) {
 #pragma clang loop unroll(full)
