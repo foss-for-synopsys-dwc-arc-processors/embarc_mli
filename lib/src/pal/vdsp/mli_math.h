@@ -31,8 +31,7 @@ MLI_FORCE_INLINE T mli_math_limit_fx(T sign) {
 }
 
 template <typename T>
-MLI_FORCE_INLINE T mli_math_asr_fx(T x, int nbits)
-{
+MLI_FORCE_INLINE T mli_math_asr_fx(T x, int nbits) {
     if (nbits > (sizeof(T) * 8 - 1))
         return x < (T)0 ? -1 : 0;
     if (nbits < 0)
@@ -40,9 +39,20 @@ MLI_FORCE_INLINE T mli_math_asr_fx(T x, int nbits)
     return x >> nbits;
 }
 
+template <>
+MLI_FORCE_INLINE vNx4short_t mli_math_asl_fx(vNx4short_t x, int nbits);
+
+template<>
+MLI_FORCE_INLINE vNx4short_t mli_math_asr_fx(vNx4short_t x, int nbits) {
+    if (nbits > (sizeof(short) * 8 - 1))
+        return x < 0 ? (vNx4short_t)-1 : (vNx4short_t)0;
+    if (nbits < 0)
+        return mli_math_asl_fx<vNx4short_t>(x, (-nbits));
+    return x >> nbits;
+}
+
 template <typename T>
-MLI_FORCE_INLINE T mli_math_asl_fx(T x, int nbits)
-{
+MLI_FORCE_INLINE T mli_math_asl_fx(T x, int nbits) {
     int inp_size = sizeof(T) * 8;
     T hi = 0;
 
@@ -59,9 +69,16 @@ MLI_FORCE_INLINE T mli_math_asl_fx(T x, int nbits)
     return mli_math_limit_fx<T>(hi);
 }
 
+template <>
+MLI_FORCE_INLINE vNx4short_t mli_math_asl_fx(vNx4short_t x, int nbits) {
+    if (nbits < 0)
+        return mli_math_asr_fx<vNx4short_t>(x, (-nbits));
+
+    return vvslm_sat(x, nbits);
+}
+
 template <typename T>
-MLI_FORCE_INLINE T mli_math_asr_rnd_fx(T x, int nbits)
-{
+MLI_FORCE_INLINE T mli_math_asr_rnd_fx(T x, int nbits) {
     T r = 0;
     T last_deleted_mask = (T)1 << (nbits-1);
 
@@ -97,8 +114,7 @@ MLI_FORCE_INLINE T mli_math_asr_rnd_fx(T x, int nbits)
 }
 
 template <typename T>
-MLI_FORCE_INLINE T mli_math_asl_rnd_fx(T x, int nbits)
-{
+MLI_FORCE_INLINE T mli_math_asl_rnd_fx(T x, int nbits) {
     return mli_math_asr_rnd_fx<T>(x, -nbits);
 }
 
@@ -108,20 +124,17 @@ MLI_FORCE_INLINE T mli_math_neg_fx(T x) {
 }
 
 template <typename T>
-MLI_FORCE_INLINE T mli_math_sat_fx(T x, unsigned nbits)
-{
+MLI_FORCE_INLINE T mli_math_sat_fx(T x, unsigned nbits) {
     return mli_math_asr_fx<T>(mli_math_asl_fx<T>(x, nbits), nbits);
 }
 
 template <typename T>
-MLI_FORCE_INLINE T mli_math_abs_fx(T x)
-{    
+MLI_FORCE_INLINE T mli_math_abs_fx(T x) {    
     return x >= (T)0 ? x : mli_math_neg_fx(x);
 }
 
 template <typename T>
-MLI_FORCE_INLINE int mli_math_norm_fx(T x)
-{
+MLI_FORCE_INLINE int mli_math_norm_fx(T x) {
     int inp_size = sizeof(T) * 8;
     T hi = x < (T)0 ? (T)-1 : (T)0;
     int r = 0;
@@ -415,6 +428,14 @@ MLI_FORCE_INLINE l_T mli_math_sub(l_T L, r_T R) {
     return L - R;
 }
 
+template <> 
+MLI_FORCE_INLINE vNx4short_t mli_math_add_fx(vNx4short_t L, vNx4short_t R) {
+    return vvadd_sat(L, R);
+}
+template <> 
+MLI_FORCE_INLINE vNx4short_t mli_math_sub_fx(vNx4short_t L, vNx4short_t R) {
+    return vvsub_sat(L, R);
+}
 // Maximum of two fx operands
 //========================================================================
 template <typename io_T>

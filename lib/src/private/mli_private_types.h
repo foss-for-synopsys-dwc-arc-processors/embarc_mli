@@ -78,6 +78,13 @@ typedef struct {
 typedef signed char v2i8_t __attribute__((__vector_size__(2)));
 #endif
 
+struct s8asym_quant_params {
+    int16_t offset;
+    int16_t shift;
+    int32_t scale;
+
+};
+
 #ifdef __cplusplus
 }
 #endif

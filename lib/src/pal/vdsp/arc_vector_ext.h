@@ -167,4 +167,42 @@ static MLI_FORCE_INLINE vNx4int_t vvrelu(vNx4int_t a, int16_t min, int16_t max) 
     return r;
 }
 
+//////////////////////////////////////////////////
+// vvadd_sat
+//////////////////////////////////////////////////
+template <typename T>
+T vvadd_sat(T L, T R);
+
+static MLI_FORCE_INLINE vNx4short_t vvadd_sat(vNx4short_t L, vNx4short_t R) {
+    vNx4short_t out;
+    out.lo = vvadd_sat(L.lo, R.lo);
+    out.hi = vvadd_sat(L.hi, R.hi);
+    return out;
+}
+
+//////////////////////////////////////////////////
+// vvadd_sat
+//////////////////////////////////////////////////
+template <typename T>
+T vvsub_sat(T L, T R);
+
+static MLI_FORCE_INLINE vNx4short_t vvsub_sat(vNx4short_t L, vNx4short_t R) {
+    vNx4short_t out;
+    out.lo = vvsub_sat(L.lo, R.lo);
+    out.hi = vvsub_sat(L.hi, R.hi);
+    return out;
+}
+
+//////////////////////////////////////////////////
+// vvslm_sat
+//////////////////////////////////////////////////
+template <typename T>
+T vvslm_sat(T L, int nbits);
+
+static MLI_FORCE_INLINE vNx4short_t vvslm_sat(vNx4short_t L, int nbits) {
+    vNx4short_t out;
+    out.lo = vvslm_sat(L.lo, (vNx2short_t)nbits);
+    out.hi = vvslm_sat(L.hi, (vNx2short_t)nbits);
+    return out;
+}
 #endif /* ARC_VECTOR_EXT_H_ */
