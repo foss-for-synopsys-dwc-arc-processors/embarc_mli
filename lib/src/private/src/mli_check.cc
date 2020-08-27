@@ -21,10 +21,6 @@
 
 #pragma Code(".mli_lib")
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 static inline mli_status check_tensor_private(
         const uint32_t *shape,
         const int32_t *mem_stride,
@@ -70,10 +66,17 @@ static inline mli_status check_tensor_private(
 /******************************************************
  *  mli_tensor data structure correctness checking
  ******************************************************/
+#ifdef __cplusplus
+extern "C" {
+#endif
 mli_status mli_chk_tensor (const mli_tensor * in) {
     if (MLI_CHECK(in != NULL, "Bad tensor null pointer")) return MLI_STATUS_BAD_TENSOR;
     return check_tensor_private(in->shape, in->mem_stride, in->rank, in->capacity, mli_hlp_tensor_element_size(in));
 }
+#ifdef __cplusplus
+}
+#endif
+
 
 mli_status mli_chk_scalar_tensor (const mli_tensor * in) {
     mli_status stat = MLI_STATUS_OK;
@@ -189,6 +192,9 @@ static inline bool check_layout_is_contiguous(const mli_tensor *t) {
 /******************************************************
  *  mli_krn_conv2d_hwc parameters checking function
  ******************************************************/
+#ifdef __cplusplus
+extern "C" {
+#endif
 mli_status mli_chk_conv2d_hwc (
         const mli_tensor * in,
         const mli_tensor * weights,

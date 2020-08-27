@@ -249,9 +249,9 @@ static mli_status mli_krn_conv2d_hwc_fx16_1x1_str1_nopad (
  * All platform specific implementations for functions
   *
  ******************************************************************************/
-#if (ARC_PLATFORM == V2DSP) || \
-	(ARC_PLATFORM == V2DSP_XY) || \
-	(ARC_PLATFORM == V2DSP_WIDE)
+#if (PLATFORM == V2DSP) || \
+	(PLATFORM == V2DSP_XY) || \
+	(PLATFORM == V2DSP_WIDE)
 
 /******************************************************************************
  *

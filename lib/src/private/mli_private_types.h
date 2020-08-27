@@ -76,7 +76,12 @@ typedef int32_t   mli_acc32_t;
 #ifdef __FXAPI__
 typedef accum40_t mli_acc40_t;
 #endif // __FXAPI__
+
+#if (PLATFORM == V2DSP) || \
+	(PLATFORM == V2DSP_XY) || \
+	(PLATFORM == V2DSP_WIDE)
 typedef signed char v2i8_t __attribute__((__vector_size__(2)));
+#endif
 
 typedef enum {
     FX_MATH = 0,
