@@ -700,8 +700,7 @@ mli_status mli_chk_depthwise_conv2d_hwc(
     fail |= MLI_CHECK(bias->rank == 1, "Wrong bias rank");
     fail |= MLI_CHECK(weights->shape[0] == 1, "Wrong weights shape");
     fail |= MLI_CHECK(bias->shape[0] == weights->shape[KRNL_DW_C_DIM_HWC], "Shape mismatch bias and weights");
-    fail |= MLI_CHECK((weights->shape[KRNL_DW_C_DIM_HWC] % in->shape[FMAP_C_DIM_HWC]) == 0, "Shape mismatch in and weights (number of filters must be multiple to in_channels)");
-    fail |= MLI_CHECK((weights->shape[KRNL_DW_C_DIM_HWC] / in->shape[FMAP_C_DIM_HWC]) > 0, "Shape mismatch in and weights (number of filters must be multiple to in_channels)");
+    fail |= MLI_CHECK(weights->shape[KRNL_DW_C_DIM_HWC] == in->shape[FMAP_C_DIM_HWC], "Shape mismatch in and weights");
     if (fail) return MLI_STATUS_SHAPE_MISMATCH;
 
     fail |= MLI_CHECK(check_inner_most_dimension_is_one(in), "Memory stride for inner most dimension of input must be 1");

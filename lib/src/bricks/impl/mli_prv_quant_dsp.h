@@ -32,6 +32,151 @@ namespace dsp {
 static const int kPreDivShiftS16 = 14;
 static const int kPreDivShiftS32 = 30;
 
+template <>
+MLI_FORCE_INLINE void adjust_quant_params(s8asym_quant_specific_params* params, int krn_idx) {
+    // out multiplyer can be different across one of axis (per axis quantization for s8asym)
+    accum72_t accu_scaled = fx_a72_mpy_q31(params->in_to_out_scales_ratio, params->weight_scales[krn_idx]);
+    params->out_mul = mli_math_cast_fx<accum72_t, int32_t>(accu_scaled, 32);
+    return;
+}
+
+template <>
+MLI_FORCE_INLINE void adjust_quant_params(fx_quant_specific_params* in, int krn_idx) {
+    // No need to adjust something during calculations for MLI_FX specific quantization
+    return;
+}
+
+//The function uses pointers to pointers for weights.
+//The caller of the function should compensate for the increment
+//done inside this function.
+template <typename acc_T>
+MLI_FORCE_INLINE acc_T weights_additive_v(
+        const MLI_PTR(int8_t) __restrict *weights, acc_T *init_accum,
+        const s8asym_quant_specific_params* quant_params,
+        const int width,  const int height, int col_step, int row_step) {
+
+    // returns -(in_zero_point * cumsum(weights)) For S8ASYM
+    if (quant_params->in_offset != 0) {
+        acc_T tmp_acc = reduce_sum2D_v(weights, -quant_params->in_offset, init_accum, width, height, col_step, row_step);
+        //compensite increment of weights pointer from reduce_sum2D_v function
+        weights -= height * row_step;
+        return tmp_acc;
+    } else {
+        return *init_accum;
+    }
+}
+
+template <typename acc_T>
+MLI_FORCE_INLINE acc_T weights_additive_v(
+        const MLI_PTR(int8_t) __restrict weights, acc_T *init_accum,
+        const s8asym_quant_specific_params* quant_params,
+        const int width,  const int height, int col_step, int row_step) {
+
+    // returns -(in_zero_point * cumsum(weights)) For S8ASYM
+    if (quant_params->in_offset != 0)
+        return reduce_sum2D_v(weights, -quant_params->in_offset, init_accum, width, height, col_step, row_step);
+    else
+        return *init_accum;
+}
+
+MLI_FORCE_INLINE mli_acc32_t weights_additive_d(
+        const MLI_PTR(int8_t) __restrict weights, mli_acc32_t *init_accum,
+        const s8asym_quant_specific_params* quant_params,
+        const int width,  const int height, int col_step, int row_step) {
+    // returns -(in_zero_point * cumsum(weights)) For S8ASYM
+    if (quant_params->in_offset != 0)
+        return reduce_sum2D_d(weights, -quant_params->in_offset, init_accum, width, height, col_step, row_step);
+    else
+        return *init_accum;
+}
+
+// Depending on memory alignment of input pointers, certain functions below will perform
+// unaligned loads/stores. Since the core supports this, we disable the related compiler warning.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-align"
+
+template<>
+MLI_FORCE_INLINE void result_cast_relu_store(
+        MLI_PTR(int8_t) __restrict o_ptr,
+        int32_t conv_out,
+        const s8asym_quant_specific_params* quant_params,
+        const int16_t val_min_limit,
+        const int16_t val_max_limit) {
+
+    accum72_t accu_scaled = fx_a72_mpy_q31(conv_out, quant_params->out_mul);
+    int16_t out_no_offset = fx_q15_cast_nf_asl_rnd_a72(accu_scaled, 64 - sizeof(int16_t) * 8 - quant_params->out_shift);
+    int16_t out_with_offset = fx_add_q15(out_no_offset, quant_params->out_offset);
+
+    // no saturation needed because ReLu clipping is done in 32bit domain.
+    // ReLU truncation
+    out_with_offset = MIN(out_with_offset, val_max_limit);
+    out_with_offset = MAX(out_with_offset, val_min_limit);
+
+    *o_ptr = (int8_t)out_with_offset;
+}
+
+MLI_FORCE_INLINE void result_cast_relu_store_v(
+        MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
+        __v2i32_t *conv_out_v,
+        const s8asym_quant_specific_params quant_params[],
+        const int16_t val_min_limit,
+        const int16_t val_max_limit) {
+    accum72_t accu_scaled = fx_a72_mpy_q31((*conv_out_v)[0], quant_params[0].out_mul);
+    int16_t out_no_offset_ch1 = fx_q15_cast_nf_asl_rnd_a72(accu_scaled, 64 - sizeof(int16_t) * 8 - quant_params[0].out_shift);
+
+    accu_scaled = fx_a72_mpy_q31((*conv_out_v)[1], quant_params[1].out_mul);
+    int16_t out_no_offset_ch2 = fx_q15_cast_nf_asl_rnd_a72(accu_scaled, 64 - sizeof(int16_t) * 8 - quant_params[1].out_shift);
+
+    v2q15_t v2quant_out_offset = {quant_params[0].out_offset, quant_params[1].out_offset};
+
+    v2q15_t v2out_no_offset = {out_no_offset_ch1, out_no_offset_ch2};
+
+    v2q15_t v2val_max_limit = {val_max_limit, val_max_limit};
+    v2q15_t v2val_min_limit = {val_min_limit, val_min_limit};
+    v2q15_t v2out_offset = fx_add_v2q15(v2out_no_offset, v2quant_out_offset);
+
+    // no saturation needed because ReLu clipping is done in 32bit domain.
+    // ReLU truncation
+    v2out_offset = fx_min_v2q15(v2out_offset, v2val_max_limit);
+    v2out_offset = fx_max_v2q15(v2out_offset, v2val_min_limit);
+
+    // Write result
+    *((v2i8_t *) o_ptr) = __builtin_convertvector((v2out_offset), v2i8_t);
+}
+
+MLI_FORCE_INLINE void result_cast_relu_store_inp_width_v(
+        MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
+        __v2i32_t *conv_out_v,
+        const s8asym_quant_specific_params *quant_params,
+        const int16_t val_min_limit,
+        const int16_t val_max_limit,
+        const int next_out_indx) {
+    accum72_t accu_scaled = fx_a72_mpy_q31((*conv_out_v)[0], quant_params->out_mul);
+    int16_t out_no_offset_ch1 = fx_q15_cast_nf_asl_rnd_a72(accu_scaled, 64 - sizeof(int16_t) * 8 - quant_params->out_shift);
+
+    accu_scaled = fx_a72_mpy_q31((*conv_out_v)[1], quant_params->out_mul);
+    int16_t out_no_offset_ch2 = fx_q15_cast_nf_asl_rnd_a72(accu_scaled, 64 - sizeof(int16_t) * 8 - quant_params->out_shift);
+
+    v2q15_t v2quant_out_offset = {quant_params->out_offset, quant_params->out_offset};
+
+    v2q15_t v2out_no_offset = {out_no_offset_ch1, out_no_offset_ch2};
+
+    v2q15_t v2val_max_limit = {val_max_limit, val_max_limit};
+    v2q15_t v2val_min_limit = {val_min_limit, val_min_limit};
+    v2q15_t v2out_offset = fx_add_v2q15(v2out_no_offset, v2quant_out_offset);
+
+    // no saturation needed because ReLu clipping is done in 32bit domain.
+    // ReLU truncation
+    v2out_offset = fx_min_v2q15(v2out_offset, v2val_max_limit);
+    v2out_offset = fx_max_v2q15(v2out_offset, v2val_min_limit);
+
+    // Write result
+    o_ptr[0]             = (int8_t)(v2out_offset[0]);
+    o_ptr[next_out_indx] = (int8_t)(v2out_offset[1]);
+}
+
+#pragma clang diagnostic pop
+
 // Convert between SA8 and FX16
 //=========================================================================
 template<>
