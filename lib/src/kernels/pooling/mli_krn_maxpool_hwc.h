@@ -29,8 +29,12 @@
 #define CHANNEL_LANES 	1
 #endif
 
+#define MAXPOOL_FIXED_KRN_SIZE_3 3
+#define MAXPOOL_FIXED_KRN_SIZE_2 2
+#define MAXPOOL_NO_FIXED_KRN_SIZE 0
+
 template <typename io_T>
-static MLI_FORCE_INLINE void maxpool_hwc_nopad(
+static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_nopad(
         int row_beg,
         int row_end,
         int clmn_beg,
@@ -95,7 +99,7 @@ static MLI_FORCE_INLINE void maxpool_hwc_nopad(
 }
 
 template <typename io_T>
-static MLI_FORCE_INLINE void maxpool_hwc_pad(
+static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_pad(
         int row_beg,
         int row_end,
         int clmn_beg,
@@ -123,7 +127,7 @@ static MLI_FORCE_INLINE void maxpool_hwc_pad(
     clmn_end = out.width - CEIL_DIV(padding_right, stride_width);
 
     if ((row_end - row_beg > 0) && (clmn_end - clmn_beg > 0)) {
-        maxpool_hwc_nopad(
+        mli_krn_maxpool_hwc_nopad(
                 row_beg, row_end, clmn_beg, clmn_end,
                 stride_width, stride_height, padding_top,
                 padding_bot, padding_left, padding_right,
@@ -224,6 +228,79 @@ static MLI_FORCE_INLINE void maxpool_hwc_pad(
         	}
         }
     }
+}
+
+template <typename io_T ,int fixed_kernel_size>
+static mli_status mli_krn_maxpool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx8(in, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+
+    // Extract general maxpool parameters
+    int32_t stride_width = cfg->stride_width;
+    int32_t stride_height = cfg->stride_height;
+    int32_t padding_top = cfg->padding_top;
+    int32_t padding_bot = cfg->padding_bottom;
+    int32_t padding_left = cfg->padding_left;
+    int32_t padding_right = cfg->padding_right;
+    int32_t kernel_height = cfg->kernel_height;
+    int32_t kernel_width = cfg->kernel_width;
+
+    // Define Data dimensions
+    auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(io_T), MLI_PTR_IS_XY>(in,
+            0); // channels
+
+    if (fixed_kernel_size) {
+    	MLI_CHECK_AND_FIX(kernel_width, fixed_kernel_size);
+    	MLI_CHECK_AND_FIX(kernel_height, fixed_kernel_size);
+    }
+
+    // Define Data dimensions
+    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
+    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
+
+    // fill output tensor parameters
+    out->el_type = in->el_type;
+    out->rank = in->rank;
+    out->shape[FMAP_H_DIM_HWC] = out_height;
+    out->shape[FMAP_W_DIM_HWC] = out_width;
+    out->shape[FMAP_C_DIM_HWC] = in_prv.ch;
+    out->el_params = in->el_params;
+    const auto out_prv = mli_prv_get_tensor_hwc<MLI_OUT_PTR(io_T), MLI_OUT_PTR_IS_XY>(out);
+
+    const int32_t row_beg = 0;
+    const int32_t row_end = out_height;
+    const int32_t clmn_beg = 0;
+    const int32_t clmn_end = out_width;
+
+    mli_prv_fx_init_dsp_ctrl();
+
+    /* TODO Investigating performance and size tradeoffs:
+     * The pad function also calls the nopad function, so that function will be there twice (size increases).
+     * The compiler will propagate constant zero values into the nopad function which will improve the performance.
+     * ACTION: should measure the performance benefit and code size impact.
+     * */
+    if (((padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0))) {
+    	padding_top = 0;
+    	padding_bot = 0;
+    	padding_left = 0;
+    	padding_right = 0;
+        mli_krn_maxpool_hwc_nopad(
+            row_beg, row_end, clmn_beg, clmn_end,
+            stride_width, stride_height, padding_top,
+            padding_bot, padding_left, padding_right,
+            in_prv, out_prv,
+            kernel_height, kernel_width);
+    } else {
+        mli_krn_maxpool_hwc_pad(
+            row_beg, row_end, clmn_beg, clmn_end,
+            stride_width, stride_height, padding_top,
+            padding_bot, padding_left, padding_right,
+            in_prv, out_prv,
+            kernel_height, kernel_width);
+    }
+
+    return MLI_STATUS_OK;
 }
 
 //} // krn
