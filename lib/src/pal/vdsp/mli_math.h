@@ -19,7 +19,8 @@
 // Definitions
 //
 //=========================================================================
-typedef int32_t   mli_acc32_t;
+typedef int32_t mli_acc32_t;
+typedef int64_t mli_acc40_t;
 
 template <typename T>
 MLI_FORCE_INLINE T mli_math_asl_fx(T x, int nbits);
@@ -281,6 +282,11 @@ MLI_FORCE_INLINE int32_t mli_math_cast_fx(mli_acc32_t in_val, int shift_right) {
 }
 
 template <>
+MLI_FORCE_INLINE mli_acc40_t mli_math_cast_fx(int16_t in_val, int shift_right) {
+    return (int32_t)mli_math_asr_rnd_fx<mli_acc40_t>((mli_acc40_t)in_val, shift_right);
+}
+
+template <>
 MLI_FORCE_INLINE int16_t mli_math_cast_fx(int64_t in_val, int shift_right) {
     int32_t temp = (int32_t)mli_math_asr_rnd_fx<int64_t>(in_val, shift_right);
     return (int16_t)mli_math_sat_fx<int32_t>(temp, 16);
@@ -483,21 +489,25 @@ MLI_FORCE_INLINE vNx4accint_t mli_math_mul_fx(vNx4short_t L, vNx4short_t R) {
 
 // Multiply-and-accumulate operands
 //========================================================================
-template <> 
+template <>
 MLI_FORCE_INLINE mli_acc32_t mli_math_mac_fx(mli_acc32_t acc, int8_t L, int8_t R) {
     return acc + (mli_acc32_t) (L * R);
 }
 
-template <> 
+template <>
 MLI_FORCE_INLINE mli_acc32_t mli_math_mac_fx(mli_acc32_t acc, int16_t L, int16_t R) {
     return acc + (mli_acc32_t) (L * R);
 }
 
-template <> 
+template <>
 MLI_FORCE_INLINE mli_acc32_t mli_math_mac_fx(mli_acc32_t acc, int16_t L, int8_t R) {
     return acc + (mli_acc32_t)(L * (int16_t)R);
 }
 
+template <>
+MLI_FORCE_INLINE mli_acc40_t mli_math_mac_fx(mli_acc40_t acc, int16_t L, int16_t R) {
+    return acc + (mli_acc40_t) ((int32_t)L * (int32_t)R);
+}
 // Accumulator shift
 //========================================================================
 

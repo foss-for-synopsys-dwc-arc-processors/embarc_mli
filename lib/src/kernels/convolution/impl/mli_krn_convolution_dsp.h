@@ -96,7 +96,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_nopad(
                     w_ptr -= w.kernel_height * w.row_mem_stride;
 
                     // Cast result to output type
-                    mli_prv_clip_relu_store_output_v(out_ptr, &v2accu_dotprod, v2quant_params, val_min_limit, val_max_limit);
+                    result_cast_relu_store_v(out_ptr, &v2accu_dotprod, v2quant_params, val_min_limit, val_max_limit);
                     out_ptr += out.col_mem_stride;
 
                     v2accu_dotprod = v2acc_weights_add;
@@ -135,7 +135,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_nopad(
                     //compensite increment of weights pointer from dotprod2D_hwc_v function
                     w_ptr -= w.kernel_height * w.row_mem_stride;
                     // Cast result to output type
-                    mli_prv_clip_relu_store_output_inp_width_v(out_ptr, &accu, &quant_params, val_min_limit, val_max_limit, out.col_mem_stride);
+                    result_cast_relu_store_inp_width_v(out_ptr, &accu, &quant_params, val_min_limit, val_max_limit, out.col_mem_stride);
                     out_ptr += 2 * out.col_mem_stride;
                 } // for W_idx
                 if (amount_columns & 0x1) {
@@ -152,7 +152,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_nopad(
                     accu += global_other_additives;
 
                     // Cast result to output type
-                    mli_prv_clip_relu_store_output(out_ptr, accu, &quant_params, val_min_limit, val_max_limit);
+                    result_cast_relu_store(out_ptr, accu, &quant_params, val_min_limit, val_max_limit);
                     out_ptr += out.col_mem_stride;
                 }
                 in_ptr += in_increment_row_loop;
@@ -253,7 +253,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn(
                     v2accu_dotprod += v2_bias_add;
 
                     // Cast result to output type
-                    mli_prv_clip_relu_store_output_v(out_ptr, &v2accu_dotprod, v2quant_params, val_min_limit, val_max_limit);
+                    result_cast_relu_store_v(out_ptr, &v2accu_dotprod, v2quant_params, val_min_limit, val_max_limit);
 
                     out_ptr += out.col_mem_stride;
                 } // for W_idx
@@ -310,7 +310,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn(
                     accu += bias_add;
 
                     // Cast result to output type
-                    mli_prv_clip_relu_store_output(out_ptr, accu, &quant_params, val_min_limit, val_max_limit);
+                    result_cast_relu_store(out_ptr, accu, &quant_params, val_min_limit, val_max_limit);
 
                     out_ptr += out.col_mem_stride;
                 } // for W_idx

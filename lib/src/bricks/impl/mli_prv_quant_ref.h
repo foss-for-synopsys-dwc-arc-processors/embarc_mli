@@ -10,6 +10,8 @@
 #ifndef _MLI_PRV_QUANT_REF_H_
 #define _MLI_PRV_QUANT_REF_H_
 
+#include "mli_prv_quant_decl.h"
+
 #include "mli_config.h"
 #include "mli_check.h"
 #include "mli_debug.h"
@@ -18,48 +20,54 @@
 #include "mli_private_types.h"
 #include "mli_prv_tensor.h"
 #include "mli_types.h"
-#include "mli_krn_reduce_sum2d.h"
+//#include "mli_krn_reduce_sum2d.h"
+
+
 
 #include <arc/arc_intrinsics.h>
 #include <assert.h>
 
+namespace mli {
+namespace krn {
+namespace ref {
+
+template <typename io_T, typename acc_T>
+inline acc_T reduce_sum(
+        const io_T* __restrict in,
+        const int16_t mul,
+        acc_T accu,
+
+        const int vals,
+        const int step = 1) {
+    for (int idx = 0; idx < vals; idx++) {
+        accu = mli_math_mac_fx(accu, mul, (*in));
+        in += step;
+    }
+    return accu;
+}
+
+template <typename io_T, typename acc_T>
+inline acc_T __attribute__((always_inline)) reduce_sum2D(
+        const MLI_PTR(io_T) __restrict in,
+        const int16_t mul,
+        acc_T accu,
+        const int width,
+        const int height,
+        int in_col_step,
+        int in_row_step) {
+    in_row_step -= width * in_col_step;
+    for (int row = 0; row < height; row++) {
+        for (int clmn = 0; clmn < width; clmn++) {
+            accu = mli_math_mac_fx(accu, mul, (*in));
+            in += in_col_step;
+        }
+        in += in_row_step;
+    }
+    return accu;
+}
+
 static const int kPreDivShiftS16 = 14;
 static const int kPreDivShiftS32 = 30;
-//=========================================================================
-//
-// Declaration
-//
-//=========================================================================
-template <typename quant_T>
-MLI_FORCE_INLINE void define_quant_params(const mli_tensor* in, const mli_tensor* weights, const mli_tensor* bias,
-                                const mli_tensor* out, quant_T* params);
-
-template <typename quant_T>
-MLI_FORCE_INLINE void adjust_quant_params(quant_T* params, int krn_idx = 0);
-
-template <typename w_T, typename acc_T, typename quant_T>
-MLI_FORCE_INLINE acc_T weights_additive(const w_T* __restrict weights, acc_T init_accum, const quant_T* quant_params,
-                              const int width, const int height = 1, int col_step = 1, int row_step = 1);
-
-template <typename in_T, typename acc_T, typename quant_T>
-MLI_FORCE_INLINE acc_T in_additive(const in_T* __restrict in, acc_T init_accum, const quant_T* quant_params,
-                              const int width, const int height = 1, int col_step = 1, int row_step = 1);
-
-template <typename acc_T, typename quant_T>
-MLI_FORCE_INLINE acc_T zp_additive(const quant_T* quant_params, acc_T init_accum,
-                        const int mac_serias_len);
-
-template <typename b_T, typename acc_T, typename quant_T>
-MLI_FORCE_INLINE acc_T bias_additive(const b_T bias, acc_T init_accum, const quant_T* quant_params);
-
-template <typename o_T, typename acc_T, typename quant_T>
-MLI_FORCE_INLINE o_T result_cast(const acc_T acc, const quant_T* quant_params);
-
-//=========================================================================
-//
-// Definitions
-//
-//=========================================================================
 
 //==========================================================================
 // Operating with quantization params set
@@ -98,8 +106,8 @@ MLI_FORCE_INLINE void define_quant_params(const mli_tensor *in, const mli_tensor
 template <>
 MLI_FORCE_INLINE void adjust_quant_params(s8asym_quant_specific_params* params, int krn_idx) {
     // out multiplyer can be different across one of axis (per axis quantization for s8asym)
-    accum72_t accu_scaled = fx_a72_mpy_q31(params->in_to_out_scales_ratio, params->weight_scales[krn_idx]);
-    params->out_mul = mli_math_cast_fx<accum72_t, int32_t>(accu_scaled, 32);
+    const int64_t out_mul_scaled = (int64_t)params->in_to_out_scales_ratio * params->weight_scales[krn_idx];
+    params->out_mul = mli_math_cast_fx<int64_t, int32_t>(out_mul_scaled, 32);
     return;
 }
 
@@ -193,50 +201,6 @@ inline mli_acc32_t __attribute__ ((always_inline)) weights_additive(
     }
 }
 
-//The function uses pointers to pointers for weights.
-//The caller of the function should compensate for the increment
-//done inside this function.
-template <typename acc_T>
-MLI_FORCE_INLINE acc_T weights_additive_v(
-        const MLI_PTR(int8_t) __restrict *weights, acc_T *init_accum,
-        const s8asym_quant_specific_params* quant_params,
-        const int width,  const int height, int col_step, int row_step) {
-
-    // returns -(in_zero_point * cumsum(weights)) For S8ASYM
-    if (quant_params->in_offset != 0) {
-        acc_T tmp_acc = reduce_sum2D_v(weights, -quant_params->in_offset, init_accum, width, height, col_step, row_step);
-        //compensite increment of weights pointer from reduce_sum2D_v function
-        weights -= height * row_step;
-        return tmp_acc;
-    } else {
-        return *init_accum;
-    }
-}
-
-template <typename acc_T>
-MLI_FORCE_INLINE acc_T weights_additive_v(
-        const MLI_PTR(int8_t) __restrict weights, acc_T *init_accum,
-        const s8asym_quant_specific_params* quant_params,
-        const int width,  const int height, int col_step, int row_step) {
-
-    // returns -(in_zero_point * cumsum(weights)) For S8ASYM
-    if (quant_params->in_offset != 0)
-        return reduce_sum2D_v(weights, -quant_params->in_offset, init_accum, width, height, col_step, row_step);
-    else
-        return *init_accum;
-}
-
-MLI_FORCE_INLINE mli_acc32_t weights_additive_d(
-        const MLI_PTR(int8_t) __restrict weights, mli_acc32_t *init_accum,
-        const s8asym_quant_specific_params* quant_params,
-        const int width,  const int height, int col_step, int row_step) {
-    // returns -(in_zero_point * cumsum(weights)) For S8ASYM
-    if (quant_params->in_offset != 0)
-        return reduce_sum2D_d(weights, -quant_params->in_offset, init_accum, width, height, col_step, row_step);
-    else
-        return *init_accum;
-}
-
 //==========================================================================
 // Calculation of input additive (in_add) in
 // dot_prod_asym = dot_prod_gen + w_add + in_add + zp_add + bias_add
@@ -262,14 +226,14 @@ MLI_FORCE_INLINE mli_acc32_t in_additive(
 }
 
 template <typename in_T, typename acc_T, typename quant_T>
-inline acc_T __attribute__ ((always_inline)) in_additive(const MLI_PTR(in_T) __restrict, acc_T init_accum, const quant_T* quant_params,
+MLI_FORCE_INLINE acc_T in_additive(const MLI_PTR(in_T) __restrict, acc_T init_accum, const quant_T* quant_params,
                               const int, const int, const int, int, int, int) {
     // By default and for FX quantization scheme, input additive isn't required
     return init_accum;
 }
 
 template <>
-inline mli_acc32_t __attribute__ ((always_inline)) in_additive(
+MLI_FORCE_INLINE mli_acc32_t in_additive(
         const MLI_PTR(int8_t) __restrict in, mli_acc32_t init_accum,
         const s8asym_quant_specific_params* quant_params,
         const int width, const int height, const int ch, int col_step, int row_step, int ch_step) {
@@ -369,6 +333,21 @@ MLI_FORCE_INLINE int8_t result_cast(
     return out_val;
 }
 
+template <typename o_T, typename acc_T, typename quant_T>
+static MLI_FORCE_INLINE void result_cast_relu_store(
+        MLI_PTR(o_T) __restrict o_ptr,
+        acc_T acc,
+        const quant_T* quant_params,
+        const int16_t val_min_limit,
+        const int16_t val_max_limit) {
+
+    o_T out = result_cast<o_T, acc_T, quant_T>(acc, quant_params);
+    out = MIN(out, val_max_limit);
+    out = MAX(out, val_min_limit);
+
+    *o_ptr = (o_T) out;
+}
+
 
 
 template <typename io_T, typename acc_T, typename b_T, mli_math_type math_type>
@@ -424,5 +403,9 @@ MLI_FORCE_INLINE out_T mli_prv_convert_fx16_sa8(
     mli_acc32_t fx_output32_shifted = mli_math_acc_ashift_fx<mli_acc32_t>(fx_output32, scale) + zero_point;
     return mli_math_acc_cast_fx<out_T, mli_acc32_t>(fx_output32_shifted, 0);
 }
+
+} // namespace ref
+} // namespace krn
+} // namespace mli
 
 #endif /* _MLI_PRV_QUANT_REF_H_ */

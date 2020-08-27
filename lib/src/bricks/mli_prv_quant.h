@@ -12,21 +12,59 @@
 
 #include "mli_config.h"
 #include "mli_math.h"
+#include "mli_prv_quant_decl.h"
 
-template <typename in_T, typename out_T> MLI_FORCE_INLINE out_T mli_prv_convert_sa8_fx16(
-    const in_T in, 
-    const int16_t zero_point, 
-    const int scale);
-template <typename in_T, typename out_T> MLI_FORCE_INLINE out_T mli_prv_convert_fx16_sa8(
-    const in_T in, 
-    const int16_t zero_point, 
-    const int scale);
+////////////////////////////////////////////////////////////////////////////////
+// Setting up namespace
+////////////////////////////////////////////////////////////////////////////////
+#if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
+// Reference code is not yet suitable for VDSP
+using mli::krn::vdsp::mli_prv_convert_sa8_fx16;
+using mli::krn::vdsp::mli_prv_convert_fx16_sa8;
 
-#if defined(MLI_BUILD_REFERENCE)
+#elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
+using mli::krn::ref::define_quant_params;
+//using mli::krn::dsp::adjust_quant_params;
+using mli::krn::ref::adjust_quant_params;
+using mli::krn::ref::mli_prv_calc_out_mul;
+using mli::krn::ref::weights_additive;
+using mli::krn::dsp::weights_additive_d;
+using mli::krn::dsp::weights_additive_v;
+using mli::krn::ref::zp_additive;
+using mli::krn::ref::bias_additive;
+using mli::krn::ref::result_cast;
+using mli::krn::ref::result_cast_relu_store;
+using mli::krn::dsp::result_cast_relu_store_v;
+using mli::krn::dsp::result_cast_relu_store_inp_width_v;
+using mli::krn::dsp::mli_prv_convert_sa8_fx16;
+using mli::krn::dsp::mli_prv_convert_fx16_sa8;
+
+#else
+using mli::krn::ref::define_quant_params;
+using mli::krn::ref::adjust_quant_params;
+using mli::krn::ref::mli_prv_calc_out_mul;
+using mli::krn::ref::weights_additive;
+using mli::krn::ref::zp_additive;
+using mli::krn::ref::bias_additive;
+using mli::krn::ref::result_cast;
+using mli::krn::ref::result_cast_relu_store;
+using mli::krn::ref::mli_prv_convert_sa8_fx16;
+using mli::krn::ref::mli_prv_convert_fx16_sa8;
+
+#endif
+
+////////////////////////////////////////////////////////////////////////////////
+// Include implementation
+////////////////////////////////////////////////////////////////////////////////
+//#if defined(__FXAPI__)
 #include "impl/mli_prv_quant_ref.h"
-#elif defined(__Xvec_width)
+//#endif
+
+#if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
 #include "impl/mli_prv_quant_vdsp.h"
-#elif defined(__FXAPI__)
+#endif
+
+#if !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
 #include "impl/mli_prv_quant_dsp.h"
 #endif
 

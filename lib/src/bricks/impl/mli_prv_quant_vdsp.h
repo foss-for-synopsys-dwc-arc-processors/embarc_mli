@@ -10,7 +10,13 @@
 #ifndef _MLI_PRV_QUANT_VDSP_H_
 #define _MLI_PRV_QUANT_VDSP_H_
 
+#include "mli_prv_quant_decl.h"
+
 #include "mli_config.h"
+
+namespace mli {
+namespace krn {
+namespace vdsp {
 
 // Convert between SA8 and FX16
 //=========================================================================
@@ -28,5 +34,9 @@ MLI_FORCE_INLINE vNx4char_t mli_prv_convert_fx16_sa8(
     vNx4short_t res = mli_math_cast_fx<vNx4short_t, vNx4short_t>(in_val, scale) + zero_point;
     return to_vNx4char_t(mli_math_bound_range_fx(res, INT8_MIN, INT8_MAX));
 }
+
+} // namespace vdsp
+} // namespace krn
+} // namespace mli
 
 #endif /* _MLI_PRV_QUANT_VDSP_H_ */

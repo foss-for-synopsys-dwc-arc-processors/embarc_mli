@@ -227,7 +227,7 @@ void conv2d_prepare_and_run(
         mli_tensor *out,
         const int fix_kernel_width,
         const int fix_kernel_height) {
-    fx_init_dsp_ctrl();
+    mli_prv_fx_init_dsp_ctrl();
     const uint8_t stride_width = cfg->stride_width;
     const uint8_t stride_height = cfg->stride_height;
     const uint8_t padding_top = cfg->padding_top;

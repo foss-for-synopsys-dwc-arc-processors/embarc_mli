@@ -12,7 +12,8 @@
 
 #include <limits>
 
-typedef int32_t   mli_acc32_t;
+typedef int32_t mli_acc32_t;
+typedef int64_t mli_acc40_t;
 
 template <typename io_T>
 inline io_T mli_math_ashift_right_fx(io_T in_val, int shift_right);
@@ -293,6 +294,11 @@ MLI_FORCE_INLINE int32_t mli_math_cast_fx(mli_acc32_t in_val, int shift_right) {
 }
 
 template <>
+MLI_FORCE_INLINE mli_acc40_t mli_math_cast_fx(int16_t in_val, int shift_right) {
+    return (int32_t)mli_math_asr_rnd_fx<mli_acc40_t>((mli_acc40_t)in_val, shift_right);
+}
+
+template <>
 MLI_FORCE_INLINE int16_t mli_math_cast_fx(int64_t in_val, int shift_right) {
     int32_t temp = (int32_t)mli_math_asr_rnd_fx<int64_t>(in_val, shift_right);
     return (int16_t)mli_math_sat_fx<int32_t>(temp, 16);
@@ -331,4 +337,26 @@ MLI_FORCE_INLINE io_T mli_math_bound_range_fx(io_T in, lr_T L, lr_T R) {
     return out;
 }
 
+
+// Multiply-and-accumulate operands
+//========================================================================
+template <>
+MLI_FORCE_INLINE mli_acc32_t mli_math_mac_fx(mli_acc32_t acc, int8_t L, int8_t R) {
+    return acc + (mli_acc32_t) (L * R);
+}
+
+template <>
+MLI_FORCE_INLINE mli_acc32_t mli_math_mac_fx(mli_acc32_t acc, int16_t L, int16_t R) {
+    return acc + (mli_acc32_t) (L * R);
+}
+
+template <>
+MLI_FORCE_INLINE mli_acc32_t mli_math_mac_fx(mli_acc32_t acc, int16_t L, int8_t R) {
+    return acc + (mli_acc32_t)(L * (int16_t)R);
+}
+
+template <>
+MLI_FORCE_INLINE mli_acc40_t mli_math_mac_fx(mli_acc40_t acc, int16_t L, int16_t R) {
+    return acc + (mli_acc40_t) ((int32_t)L * (int32_t)R);
+}
 #endif // _REF_MLI_MATH_H_
