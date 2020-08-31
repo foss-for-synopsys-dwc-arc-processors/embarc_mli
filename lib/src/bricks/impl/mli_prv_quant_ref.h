@@ -32,7 +32,7 @@ namespace krn {
 namespace ref {
 
 template <typename io_T, typename acc_T>
-inline acc_T reduce_sum(
+MLI_FORCE_INLINE acc_T reduce_sum(
         const io_T* __restrict in,
         const int16_t mul,
         acc_T accu,
@@ -47,7 +47,7 @@ inline acc_T reduce_sum(
 }
 
 template <typename io_T, typename acc_T>
-inline acc_T __attribute__((always_inline)) reduce_sum2D(
+MLI_FORCE_INLINE acc_T reduce_sum2D(
         const MLI_PTR(io_T) __restrict in,
         const int16_t mul,
         acc_T accu,
@@ -177,7 +177,7 @@ MLI_FORCE_INLINE mli_acc32_t weights_additive(
 }
 
 template <typename w_T, typename acc_T, typename quant_T>
-inline acc_T __attribute__ ((always_inline)) weights_additive(const MLI_PTR(w_T) __restrict, acc_T init_accum,
+MLI_FORCE_INLINE acc_T weights_additive(const MLI_PTR(w_T) __restrict, acc_T init_accum,
         const quant_T*,
         const int, const int, const int, int, int, int) {
     // By default and for FX quantization scheme, weights additive isn't required
@@ -185,7 +185,7 @@ inline acc_T __attribute__ ((always_inline)) weights_additive(const MLI_PTR(w_T)
 }
 
 template <>
-inline mli_acc32_t __attribute__ ((always_inline)) weights_additive(
+MLI_FORCE_INLINE mli_acc32_t weights_additive(
         const MLI_PTR(int8_t) __restrict weights, mli_acc32_t init_accum,
         const s8asym_quant_specific_params* quant_params,
         const int width,  const int height, const int ch, int col_step, int row_step, int ch_step) {
@@ -278,24 +278,24 @@ MLI_FORCE_INLINE mli_acc32_t zp_additive(const s8asym_quant_specific_params* qua
 //==========================================================================
 template <>
 MLI_FORCE_INLINE mli_acc32_t bias_additive(
-        const int8_t bias, mli_acc32_t init_accum, const fx_quant_specific_params* quant_params) {
-    mli_acc32_t accu = mli_math_mul_fx<int8_t, mli_acc32_t>(bias, 1);
+        const MLI_PTR(int8_t) bias, mli_acc32_t init_accum, const fx_quant_specific_params* quant_params) {
+    mli_acc32_t accu = mli_math_mul_fx<int8_t, mli_acc32_t>(*bias, 1);
     accu = mli_math_acc_ashift_fx(accu, -quant_params->bias_shift);
     return mli_math_add_fx(init_accum, accu);
 }
 
 template <>
 MLI_FORCE_INLINE mli_acc40_t bias_additive(
-        const int16_t bias, mli_acc40_t init_accum, const fx_quant_specific_params* quant_params) {
-    return mli_math_add_fx(init_accum, mli_math_cast_fx<int16_t, mli_acc40_t>(bias, -quant_params->bias_shift));
+        const MLI_PTR(int16_t) bias, mli_acc40_t init_accum, const fx_quant_specific_params* quant_params) {
+    return mli_math_add_fx(init_accum, mli_math_cast_fx<int16_t, mli_acc40_t>(*bias, -quant_params->bias_shift));
 }
 
 template <>
 MLI_FORCE_INLINE mli_acc32_t bias_additive(
-        const int32_t bias, mli_acc32_t init_accum, const s8asym_quant_specific_params* quant_params) {
+        const MLI_PTR(int32_t) bias, mli_acc32_t init_accum, const s8asym_quant_specific_params* quant_params) {
     // For I8ASYM Bias is of the similar format as result accumulator.
     // To prevent saturation during dotproduct we add bias in the end. (saturate final result - not IR)
-    return mli_math_add_fx(init_accum, mli_math_cast_fx<mli_acc32_t, int32_t>(bias, /*right_shift =*/0));
+    return mli_math_add_fx(init_accum, mli_math_cast_fx<mli_acc32_t, int32_t>(*bias, /*right_shift =*/0));
 }
 
 //==========================================================================
@@ -335,7 +335,7 @@ MLI_FORCE_INLINE int8_t result_cast(
 
 template <typename o_T, typename acc_T, typename quant_T>
 static MLI_FORCE_INLINE void result_cast_relu_store(
-        MLI_PTR(o_T) __restrict o_ptr,
+        MLI_CONV_OUT_PTR(o_T) __restrict o_ptr,
         acc_T acc,
         const quant_T* quant_params,
         const int16_t val_min_limit,

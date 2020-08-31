@@ -24,6 +24,13 @@
 #include "mli_prv_tensor.h"
 #include "mli_prv_quant.h"
 #include "mli_types.h"
+#include "impl/mli_prv_quant_dsp.h"
+using mli::krn::s8asym_quant_specific_params;
+using mli::krn::dsp::weights_additive_d;
+using mli::krn::dsp::weights_additive_v;
+using mli::krn::dsp::result_cast_relu_store;
+using mli::krn::dsp::result_cast_relu_store_v;
+using mli::krn::dsp::result_cast_relu_store_inp_width_v;
 
 //========================================================
 // Depthwise convolution 2D template
@@ -78,8 +85,8 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_nopad(
             adjust_quant_params(&v2quant_params[0], out_ch_idx++);
             adjust_quant_params(&v2quant_params[1], out_ch_idx++);
 
-            acc_T bias_add_ch1 = bias_additive(*biases++, 0x0, &v2quant_params[0]);
-            acc_T bias_add_ch2 = bias_additive(*biases++, 0x0, &v2quant_params[1]);
+            acc_T bias_add_ch1 = bias_additive(biases++, 0x0, &v2quant_params[0]);
+            acc_T bias_add_ch2 = bias_additive(biases++, 0x0, &v2quant_params[1]);
 
             __v2i32_t v2acc_weights_add = {bias_add_ch1, bias_add_ch2};
             v2acc_weights_add = weights_additive_v(w_ptr, &v2acc_weights_add, &quant_params, w.kernel_width, w.kernel_height,
@@ -121,7 +128,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_nopad(
 
             acc_T global_other_additives = weights_additive(w_ptr, 0x0, &quant_params, w.kernel_width, w.kernel_height,
                     w.col_mem_stride, w.row_mem_stride);
-            global_other_additives += bias_additive(*biases, 0x0, &quant_params);
+            global_other_additives += bias_additive(biases, 0x0, &quant_params);
             __v2i32_t v2global_other_additives = {global_other_additives, global_other_additives};
 
             for (int H_idx = 0; H_idx < amount_rows; H_idx++) {
@@ -210,8 +217,8 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn(
             adjust_quant_params(&v2quant_params[0], out_ch_idx);
             adjust_quant_params(&v2quant_params[1], out_ch_idx + 1);
 
-            acc_T bias_add_ch1 = bias_additive(*biases++, 0x0, &v2quant_params[0]);
-            acc_T bias_add_ch2 = bias_additive(*biases++, 0x0, &v2quant_params[1]);
+            acc_T bias_add_ch1 = bias_additive(biases++, 0x0, &v2quant_params[0]);
+            acc_T bias_add_ch2 = bias_additive(biases++, 0x0, &v2quant_params[1]);
             __v2i32_t v2_bias_add = {bias_add_ch1, bias_add_ch2};
 
             for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
@@ -270,7 +277,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn(
         for (int ch_mult_idx = 0; ch_mult_idx < ch_mul; ch_mult_idx++) {
 
             adjust_quant_params(&quant_params, out_ch_idx);
-            int32_t bias_add = bias_additive(*biases++, 0x0, &quant_params);
+            int32_t bias_add = bias_additive(biases++, 0x0, &quant_params);
 
             for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
                 // Define area of input and filter for convolution
@@ -428,7 +435,7 @@ static __attribute__ ((always_inline)) void convolution2D_nhwc(
 
     for (int out_ch_idx = 0; out_ch_idx < out.ch; out_ch_idx++) {
         adjust_quant_params(&quant_params, out_ch_idx);
-        const int bias_add = bias_additive(biases[out_ch_idx], 0x0, &quant_params);
+        const int bias_add = bias_additive(&biases[out_ch_idx], 0x0, &quant_params);
 
         for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
             mli_compensations comp;
@@ -540,7 +547,7 @@ static __attribute__ ((always_inline)) void convolution2D_nhwc_nopad(
 
     for (int out_ch_idx = 0; out_ch_idx < out.ch; out_ch_idx++) {
         adjust_quant_params(&quant_params, out_ch_idx);
-        const int bias_add = bias_additive(biases[out_ch_idx], 0x0, &quant_params);
+        const int bias_add = bias_additive(&biases[out_ch_idx], 0x0, &quant_params);
         int8_t init_accum_val = 0;
         int weights_add = mli_prv_init_accu(init_accum_val);
 
@@ -707,7 +714,7 @@ static __attribute__ ((always_inline)) void pointwise_convolution2D_nhwc_nopad(
 
     for (int out_ch_idx = 0; out_ch_idx < out.ch; out_ch_idx++) {
         adjust_quant_params(&quant_params, out_ch_idx);
-        const int bias_add = bias_additive(biases[out_ch_idx], 0x0, &quant_params);
+        const int bias_add = bias_additive(&biases[out_ch_idx], 0x0, &quant_params);
         const MLI_PTR(w_T) __restrict w_ptr = w.ptr + w.out_ch_mem_stride * out_ch_idx;
         int8_t init_accum_val = 0;
         int weights_add = mli_prv_init_accu(init_accum_val);

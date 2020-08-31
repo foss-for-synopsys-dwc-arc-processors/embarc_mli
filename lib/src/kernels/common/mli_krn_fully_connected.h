@@ -252,8 +252,8 @@ static void __attribute__((always_inline)) fully_connected_prepare_and_run(
     int bias_shift = 0;
     int out_shift = 0;
 
-    int32_t out_mul = mli_prv_calc_out_mul(in, weights, out, &out_shift);
-    int32_t bias_mul = mli_prv_calc_out_mul(in, weights, bias, &bias_shift);
+    int32_t out_mul = mli::krn::mli_prv_calc_out_mul(in, weights, out, &out_shift);
+    int32_t bias_mul = mli::krn::mli_prv_calc_out_mul(in, weights, bias, &bias_shift);
     int16_t input_offset = mli_hlp_tensor_zero_offset(in, 0);
     int16_t output_offset = mli_hlp_tensor_zero_offset(out, 0);
     MLI_ASSERT(mli_hlp_tensor_zero_offset(weights, 0) == 0);

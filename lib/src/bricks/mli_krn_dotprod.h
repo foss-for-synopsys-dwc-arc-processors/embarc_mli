@@ -30,6 +30,7 @@ namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
 using mli::krn::ref::dotprod2D;
 using mli::krn::ref::dotprod3D;
+using mli::krn::vdsp::dotprod3D_v;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
 using mli::krn::dsp::dotprod2D;
@@ -57,7 +58,7 @@ using mli::krn::ref::dotprod3D;
 #include "impl/mli_krn_dotprod_ref.h"
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-//#include "impl/mli_krn_dotprod_vdsp.h"
+#include "impl/mli_krn_dotprod_vdsp.h"
 #endif
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)

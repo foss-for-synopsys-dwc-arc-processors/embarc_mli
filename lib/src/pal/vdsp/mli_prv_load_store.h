@@ -26,6 +26,19 @@ static MLI_FORCE_INLINE vNx4short_t mli_prv_load_n_samples(const MLI_PTR(int16_t
     return *(MLI_PTR (vNx4short_t)) in;
 }
 
+static MLI_FORCE_INLINE vNx4int_t mli_prv_load_n_samples(const MLI_PTR(int32_t) __restrict in) {
+    return *(MLI_PTR (vNx4int_t)) in;
+}
+
+/* vector load from dcache */
+static MLI_FORCE_INLINE vNx4int_t mli_prv_load_n_samples(const int32_t* __restrict in) {
+    vNx4int_t r;
+    for (int i = 0; i < (4 * _VDSP_NUM_32BIT_LANES); i++) {
+        r[i] = in[i];
+    }
+    return r;
+}
+
 static MLI_FORCE_INLINE vNx4short_t mli_prv_gather_load_n_samples(const MLI_PTR(short) in, vNx4int_t offsets) {
     vNx4short_t out;
     out.lo = vgather(in, offsets.lo);

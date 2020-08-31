@@ -97,7 +97,7 @@ MLI_FORCE_INLINE mli_acc32_t weights_additive_d(
 
 template<>
 MLI_FORCE_INLINE void result_cast_relu_store(
-        MLI_PTR(int8_t) __restrict o_ptr,
+        MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
         int32_t conv_out,
         const s8asym_quant_specific_params* quant_params,
         const int16_t val_min_limit,
