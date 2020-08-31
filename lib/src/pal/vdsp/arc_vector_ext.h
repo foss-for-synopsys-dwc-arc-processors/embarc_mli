@@ -112,35 +112,6 @@ vvcmpy(vNx4short_t a, vNx4short_t b) {
 }
 
 //////////////////////////////////////////////////
-// vvmpy_hi
-//////////////////////////////////////////////////
-template <typename T1, typename T2>
-T1 vvmpy_hi_(T1 a, T2 b);
-
-static MLI_FORCE_INLINE vNint_t
-vvmpy_hi_(vNint_t a, int32_t b) {
-    vNint_t r;
-    r = vvmpy_hi(a, b);
-    return r;
-}
-
-static MLI_FORCE_INLINE vNx2int_t
-vvmpy_hi_(vNx2int_t a, int32_t b) {
-    vNx2int_t r;
-    r.lo = vvmpy_hi_(a.lo, b);
-    r.hi = vvmpy_hi_(a.hi, b);
-    return r;
-}
-
-static MLI_FORCE_INLINE vNx4int_t
-vvmpy_hi_(vNx4int_t a, int32_t b) {
-    vNx4int_t r;
-    r.lo = vvmpy_hi_(a.lo, b);
-    r.hi = vvmpy_hi_(a.hi, b);
-    return r;
-}
-
-//////////////////////////////////////////////////
 // relu
 //////////////////////////////////////////////////
 template <typename T>

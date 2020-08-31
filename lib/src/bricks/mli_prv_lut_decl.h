@@ -13,7 +13,7 @@
 #include "mli_config.h"
 #include "mli_types.h"
 #include "mli_prv_tensor.h"
-
+#include "mli_prv_quant.h"
 
 //TODO: Remove extra
 const int kTmpBufSize = 32;

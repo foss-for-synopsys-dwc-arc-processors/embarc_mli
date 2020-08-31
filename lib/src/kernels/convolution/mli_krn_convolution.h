@@ -28,7 +28,7 @@
 namespace mli {
 namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-using mli::krn::ref::convolution2D;
+using mli::krn::vdsp::convolution2D;
 using mli::krn::ref::depthwise_convolution2D;
 using mli::krn::ref::conv2d_prepare_and_run;
 
@@ -55,11 +55,11 @@ using mli::krn::ref::conv2d_prepare_and_run;
 #include "impl/mli_krn_convolution_ref.h"
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-//#include "impl/mli_krn_convolution_vdsp.h"
+#include "impl/mli_krn_convolution_vdsp.h"
 #endif
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-//#include "impl/mli_krn_convolution_dsp.h"
+#include "impl/mli_krn_convolution_dsp.h"
 #endif
 
 #endif // _MLI_KRN_CONVOLUTION_H_
