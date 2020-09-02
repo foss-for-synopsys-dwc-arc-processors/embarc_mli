@@ -18,8 +18,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Setting up namespace
 ////////////////////////////////////////////////////////////////////////////////
-//namespace mli { // TODO: callers of below functions expect global namespace
-//namespace krn {
+namespace mli {
+namespace krn {
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
 #define CHANNEL_LANES 	_VDSP_NUM_8BIT_LANES
@@ -71,7 +71,7 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_nopad(
 										   ch_idx];
 
     					// Core Max
-    					reduce_max2D_hwc_v(in_ptr, out_ptr, kernel_width, kernel_height,
+    					mli::krn::reduce_max2D_hwc_v(in_ptr, out_ptr, kernel_width, kernel_height,
     							in.col_mem_stride, in.row_mem_stride, true);
     				}
     			}
@@ -90,7 +90,7 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_nopad(
 									   out.ch - remaining_chans];
 
                     // Core Max
-                    reduce_max2D_hwc(in_ptr, out_ptr, kernel_width, kernel_height, remaining_chans,
+                    mli::krn::reduce_max2D_hwc(in_ptr, out_ptr, kernel_width, kernel_height, remaining_chans,
                         in.col_mem_stride, in.row_mem_stride, true);
                 }
             }
@@ -192,7 +192,7 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_pad(
 										   ch_idx];
 
         				// Core Max
-        				reduce_max2D_hwc_v(in_ptr, out_ptr, clmns, rows,
+        				mli::krn::reduce_max2D_hwc_v(in_ptr, out_ptr, clmns, rows,
         						in.col_mem_stride, in.row_mem_stride, false);
         			}
         		}
@@ -221,7 +221,7 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_pad(
 										   out.ch - remaining_chans];
 
         				// Core Max
-        				reduce_max2D_hwc(in_ptr, out_ptr, clmns, rows, remaining_chans,
+        				mli::krn::reduce_max2D_hwc(in_ptr, out_ptr, clmns, rows, remaining_chans,
         						in.col_mem_stride, in.row_mem_stride, false);
         			}
         		}
@@ -231,11 +231,7 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_pad(
 }
 
 template <typename io_T ,int fixed_kernel_size>
-static mli_status mli_krn_maxpool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx8(in, cfg, out), __func__);
-    if (ret != MLI_STATUS_OK)
-        return ret;
-
+static void mli_krn_maxpool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
     // Extract general maxpool parameters
     int32_t stride_width = cfg->stride_width;
     int32_t stride_height = cfg->stride_height;
@@ -299,11 +295,9 @@ static mli_status mli_krn_maxpool_hwc(const mli_tensor * in, const mli_pool_cfg 
             in_prv, out_prv,
             kernel_height, kernel_width);
     }
-
-    return MLI_STATUS_OK;
 }
 
-//} // krn
-//} // mli
+} // krn
+} // mli
 
 #endif // _MLI_KRN_MAXPOOL_HWC_H_
