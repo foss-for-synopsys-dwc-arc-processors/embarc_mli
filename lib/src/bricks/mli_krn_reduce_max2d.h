@@ -20,10 +20,8 @@
 // However, also only a part of the reference together with optimized functions
 // (from example *_dsp) can be used/'using'.
 
-//namespace mli {
-// TODO: namespace krn is commented out since other users inside this library
-// expect reducemax symbols to be available in namesapce mli directly.
-//namespace krn {
+namespace mli {
+namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
 using mli::krn::vdsp::reduce_max2D_hwc_v;
 using mli::krn::vdsp::reduce_max2D_hwc;
@@ -37,8 +35,8 @@ using mli::krn::ref::reduce_max2D_hwc_v;
 using mli::krn::ref::reduce_max2D_hwc;
 
 #endif
-//} // namespace krn
-//} // namespace mli
+} // namespace krn
+} // namespace mli
 
 ////////////////////////////////////////////////////////////////////////////////
 // Include implementation

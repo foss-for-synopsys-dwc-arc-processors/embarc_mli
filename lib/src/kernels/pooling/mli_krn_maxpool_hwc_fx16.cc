@@ -30,14 +30,28 @@ extern "C" {
 #pragma Code(".mli_lib")
 
 mli_status mli_krn_maxpool_hwc_fx16_k2x2(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-	return mli_krn_maxpool_hwc<int16_t, MAXPOOL_FIXED_KRN_SIZE_2>(in, cfg, out);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx16(in, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+
+    mli::krn::mli_krn_maxpool_hwc<int16_t, MAXPOOL_FIXED_KRN_SIZE_2>(in, cfg, out);
+    return MLI_STATUS_OK;
 }
 
 mli_status mli_krn_maxpool_hwc_fx16_k3x3(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-	return mli_krn_maxpool_hwc<int16_t, MAXPOOL_FIXED_KRN_SIZE_3>(in, cfg, out);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx16(in, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+
+    mli::krn::mli_krn_maxpool_hwc<int16_t, MAXPOOL_FIXED_KRN_SIZE_3>(in, cfg, out);
+    return MLI_STATUS_OK;
 }
 
 mli_status mli_krn_maxpool_hwc_fx16(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_fx16(in, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+
     int kernel_w = cfg->kernel_width;
     int kernel_h = cfg->kernel_height;
 
@@ -46,8 +60,10 @@ mli_status mli_krn_maxpool_hwc_fx16(const mli_tensor * in, const mli_pool_cfg * 
     } else if ((kernel_w == 2) && (kernel_h == 2)) {
         return mli_krn_maxpool_hwc_fx16_k2x2(in, cfg, out);
     } else {
-    	return mli_krn_maxpool_hwc<int16_t, MAXPOOL_NO_FIXED_KRN_SIZE>(in, cfg, out);
+        mli::krn::mli_krn_maxpool_hwc<int16_t, MAXPOOL_NO_FIXED_KRN_SIZE>(in, cfg, out);
     }
+
+    return MLI_STATUS_OK;
 }
 
 char * mli_debug_krn_maxpool_hwc_fx16(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
