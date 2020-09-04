@@ -42,9 +42,11 @@ else
 BUILD_FOLDER=$(BUILD_FOLDER_ARC)
 TOOL_CHAIN_OPTIONS = \
 	-DARC_CFG_TCF_PATH=$(TCF_FILE) \
-	-DBUILDLIB_DIR=$(BUILDLIB_DIR) \
 	-DCMAKE_TOOLCHAIN_FILE=$(subst \,$(PS),$(METAWARE_ROOT))$(PS)arc$(PS)cmake$(PS)arc-mwdt.toolchain.cmake \
 	-G "Unix Makefiles"
+ifdef BUILDLIB_DIR
+TOOL_CHAIN_OPTIONS += -DBUILDLIB_DIR=$(BUILDLIB_DIR)
+endif
 endif
 
 # Targets

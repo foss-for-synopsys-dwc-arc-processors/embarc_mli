@@ -6,7 +6,15 @@
 # the LICENSE file in the root directory of this source tree.
 #
 
-if(_MLI_SETTINGS_CMAKE_LOADED)
+# This function sets common flags for MLI compilation:
+#   MLI_PLATFORM
+#   MLI_PLATFORM_LINK_OPTIONS
+#   MLI_PLATFORM_COMPILE_OPTIONS
+# FLAGS here are similar to build/rules.mk, notable excpetions:
+#   MLI_PLATFORM: is set here
+#   -Hvdsp_vector_c / -Hfxapi is set here.
+
+if (_MLI_SETTINGS_CMAKE_LOADED)
   return()
 endif()
 set(_MLI_SETTINGS_CMAKE_LOADED TRUE)
@@ -31,41 +39,61 @@ endfunction()
 
 get_mli_platform(MLI_PLATFORM)
 
-if (ARC AND (${MLI_PLATFORM} STREQUAL VPX))
-set(MLI_PLATFORM_COMPILE_OPTIONS
-   -O3
-   -Hvdsp_vector_c
-)
-set(MLI_PLATFORM_LINK_OPTIONS
-    -Hnocopyr
-    -Hpurge
-    -Hheap=1024K
-    -Hstack=8K
-    -Hon=Long_enums
-    -Hvdsp_vector_c
-    -Hlib=${BUILDLIB_DIR}
-)
+set(MLI_PLATFORM_LINK_OPTIONS)
+set(MLI_PLATFORM_COMPILE_OPTIONS)
+set(MLI_PLATFORM_FLAGS)
 
-elseif (ARC AND (${MLI_PLATFORM} STREQUAL EM_HS))
-set(MLI_PLATFORM_COMPILE_OPTIONS
-   -O3
-   -Xdsp_ctrl=postshift,guard,convergent
-)
-set(MLI_PLATFORM_LINK_OPTIONS
-    -Hnocopyr
-    -Hpurge
-    -Hheap=1024K
-    -Hstack=8K
-    -Hon=Long_enums
-    -Hfxapi
-)
+if (ARC)
+    if (NOT DEFINED DEBUG_BUILD)
+        set(DEBUG_BUILD ON)
+    endif()
+    if (DEBUG_BUILD STREQUAL ON)
+        list(APPEND MLI_PLATFORM_FLAGS
+            -g
+        )
+    endif()
 
+    if (NOT DEFINED OPTMODE)
+        set(OPTMODE speed)
+    endif()
+
+    if (OPTMODE STREQUAL size)
+        list(APPEND MLI_PLATFORM_FLAGS
+            -O2
+            -Hlto
+        )
+    elseif (OPTMODE STREQUAL speed)
+        list(APPEND MLI_PLATFORM_FLAGS
+            -O3
+        )
+    else()
+        message(FATAL_ERROR invalid OPTMODE)
+    endif()
+
+    list(APPEND MLI_PLATFORM_FLAGS
+        -Hon=Long_enums
+        "SHELL: -mllvm -gen-lpcc=false"
+    )
+    if (EXISTS ${BUILDLIB_DIR})
+        list(APPEND MLI_PLATFORM_LINK_OPTIONS
+            -Hlib=${BUILDLIB_DIR}
+        )
+    endif()
+
+    if (${MLI_PLATFORM} STREQUAL VPX)
+        list(APPEND MLI_PLATFORM_FLAGS
+            -Hvdsp_vector_c
+        )
+    elseif (${MLI_PLATFORM} STREQUAL EM_HS)
+        list(APPEND MLI_PLATFORM_FLAGS
+            -Hfxapi
+        )
+    endif()
 elseif ((NOT ARC) AND (NOT MSVC))
-set(MLI_PLATFORM_COMPILE_OPTIONS
-    -m32
-)
-set(MLI_PLATFORM_LINK_OPTIONS
-    -m32
-)
-
+    list(APPEND MLI_PLATFORM_FLAGS
+        -m32
+    )
 endif()
+
+list(APPEND MLI_PLATFORM_COMPILE_OPTIONS ${MLI_PLATFORM_FLAGS})
+list(APPEND MLI_PLATFORM_LINK_OPTIONS    ${MLI_PLATFORM_FLAGS})

@@ -21,6 +21,15 @@ target_link_options(hello_world PRIVATE
     ${MLI_PLATFORM_LINK_OPTIONS}
 )
 
+if (ARC)
+target_link_options(hello_world PRIVATE
+    -m
+    -Coutput=./elf_files/hello_world.map
+    -Hheap=1024K
+    -Hstack=8K
+)
+endif()
+
 set_target_properties(hello_world
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "./elf_files$<0:>"
