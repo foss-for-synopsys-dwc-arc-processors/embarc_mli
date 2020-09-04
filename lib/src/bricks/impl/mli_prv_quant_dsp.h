@@ -35,8 +35,19 @@ static const int kPreDivShiftS32 = 30;
 template <>
 MLI_FORCE_INLINE void adjust_quant_params(s8asym_quant_specific_params* params, int krn_idx) {
     // out multiplyer can be different across one of axis (per axis quantization for s8asym)
-    accum72_t accu_scaled = fx_a72_mpy_q31(params->in_to_out_scales_ratio, params->weight_scales[krn_idx]);
-    params->out_mul = mli_math_cast_fx<accum72_t, int32_t>(accu_scaled, 32);
+    int mul_fx_high_shift = 31;
+    params->out_mul = mli_math_mul_fx_high<int32_t, int32_t>(params->in_to_out_scales_ratio, params->weight_scales[krn_idx]);
+    params->out_shift = params->in_to_out_shift;
+    params->out_shift += params->weight_shifts[0];
+    params->out_shift -= mul_fx_high_shift;
+
+#if !defined(FULL_ACCU)
+    // When the accumulator is pre-shifted before the output multiplier,
+    // we need to normalize mul for max use of the headroom.
+    int norm = mli_math_norm_fx<int32_t, int>(params->out_mul);
+    params->out_mul = mli_math_asl_fx(params->out_mul, norm);
+    params->out_shift += norm;
+#endif
     return;
 }
 

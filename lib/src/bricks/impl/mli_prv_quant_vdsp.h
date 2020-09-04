@@ -42,10 +42,23 @@ MLI_FORCE_INLINE s8asym_quant_specific_out_params_v adjust_quant_params_v(s8asym
     // out multiplyer can be different across one of axis (per axis quantization for s8asym)
     s8asym_quant_specific_out_params_v out_params;
     vNx4int_t wscales = mli_prv_load_n_samples(&params->weight_scales[krn_idx]);
+    vNx4int_t w_norm = mli_math_norm_fx<vNx4int_t, vNx4int_t>(wscales);
+    wscales = wscales << w_norm;
+    vNx4int_t outmul32 = mli_math_mul_fx_high(wscales, params->in_to_out_scales_ratio);
+    vNx4int_t mul_norm = mli_math_norm_fx<vNx4int_t, vNx4int_t>(outmul32);
+    int int_to_short_shift = 16;
+
+    int out_shift = params->in_to_out_shift;
+    out_shift += params->weight_shifts[0];
+    out_shift -= 32; // for the mul_hi of outmul32
+
+    out_params.out_mul = to_vNx4short_t(mli_math_asr_fx(outmul32, int_to_short_shift - mul_norm));
+    out_params.out_shift = out_shift - sizeof(int16_t) * 8; // compensate for the mul_hi output multiplier
+    out_params.out_shift += to_vNx4short_t(w_norm);
+    out_params.out_shift -= int_to_short_shift; // for the outmul int to short
+    out_params.out_shift += to_vNx4short_t(mul_norm);
 
     out_params.out_offset = params->out_offset;
-    out_params.out_mul = mli_math_mul_fx_high(wscales, params->in_to_out_scales_ratio);
-    out_params.out_shift = params->out_shift - 32; // compensate for the mul_hi output multiplier
     return out_params;
 }
 
@@ -131,7 +144,6 @@ MLI_FORCE_INLINE vNx4char_t mli_prv_convert_fx16_sa8(
 //==========================================================================
 // Storing result
 //==========================================================================
-
 template <>
 MLI_FORCE_INLINE void result_cast_relu_store_v(
         MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
@@ -140,20 +152,30 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
         const int16_t val_min_limit,
         const int16_t val_max_limit,
         int num) {
-
     // adding the output offset needs to happen after the output mul and output shift
     // but before the cast to the output container size.
+#ifndef FULL_ACCU
+    // The accumulator has 8 guard bits. If we pre-shift the accumulator to make it fit into
+    // 16bit, we can do the rest of the post processing in 16bit.
+    // shifting too much will lose accuracy, shifting too little will case saturation
+    // a 3bit headroom is required (1 sign bit, 1bit for the range of mul, and 1bit for the offset)
+    // From the 16 bits that come out of the mul_hi, we need 8 bits for the output, 3 bits of headroom.
+    // this means that the last output shift will need to shift 5 bits. the rest is shifted here.
+    // adding clipping to avoid negative shift. and shifting more than 8 is also not needed.
+    int target_out_shift = 16 - 8 - 3;
+    vNx4short_t preshift = mli_math_min_fx(mli_math_max_fx(quant_params->out_shift - target_out_shift, 0),8);
+    acc = mli_math_asr_rnd_fx(acc, preshift);
 
+    vNx4short_t accu_result = mli_math_acc_cast_fx<vNx4short_t, vNx4accshort_t>(acc, 0);
+    vNx4short_t accu_scaled = mli_math_mul_fx_high(accu_result, quant_params->out_mul);
+    accu_scaled = mli_math_asr_rnd_fx(accu_scaled, quant_params->out_shift - preshift);
+
+#else
     vNx4int_t accu_result = to_vNx4int_t(acc);
-    vNx4int_t accu_scaled = mli_math_mul_fx_high(accu_result, quant_params->out_mul);
-#ifdef ROUND_UP
-    accu_scaled = accu_scaled + (1 << (quant_params->out_shift - 1));
+    vNx4int_t accu_scaled = mli_math_mul_fx_high(accu_result, to_vNx4int_t(quant_params->out_mul)<<16);
+    vNx4int_t shift = to_vNx4int_t(quant_params->out_shift);
+    accu_scaled = mli_math_asr_rnd_fx(accu_scaled, shift);
 #endif
-#ifdef ROUND_CONVERGENT
-#error "Convergent rounding not supported"
-#endif
-
-    accu_scaled = mli_math_asr_fx(accu_scaled, quant_params->out_shift);
 
     accu_scaled = accu_scaled + quant_params->out_offset;
 
@@ -161,9 +183,9 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
     accu_scaled = MAX(accu_scaled, val_min_limit);
 
     vNx4char_t out = to_vNx4char_t(accu_scaled);
-
     mli_prv_store_n_samples(o_ptr, out, num);
 }
+
 } // namespace vdsp
 
 } // namespace krn
