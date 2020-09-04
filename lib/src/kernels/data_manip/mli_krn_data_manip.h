@@ -60,8 +60,8 @@ inline void permute_data(const mli_tensor *in, const mli_permute_cfg *cfg, mli_t
     }
 
     // Main transpose operation.
-    const io_T *dim0_data_ptr = static_cast<io_T *>(in->data);
-    io_T *output = static_cast<io_T *>(out->data);
+    const io_T *dim0_data_ptr = static_cast<io_T *>(in->data.mem.void_p);
+    io_T *output = static_cast<io_T *>(out->data.mem.void_p);
     for (int d0_cnt = 0; d0_cnt < out_shape[0]; d0_cnt++, dim0_data_ptr += strides[0]) {
         const io_T *dim1_data_ptr = dim0_data_ptr;
         for (int d1_cnt = 0; d1_cnt < out_shape[1]; d1_cnt++, dim1_data_ptr += strides[1]) {
@@ -126,12 +126,12 @@ inline void padding2D_data(const mli_tensor *in, const mli_padding2d_cfg *cfg, m
 
     const int padding_fmaps = (layout_type == LAYOUT_HWC) ? 1 : channels;
     const int rows_to_copy = in_height;
-    const io_T *in_ptr = static_cast<io_T *>(in->data);
-    io_T *out_ptr = static_cast<io_T *>(out->data);
+    const io_T *in_ptr = static_cast<io_T *>(in->data.mem.void_p);
+    io_T *out_ptr = static_cast<io_T *>(out->data.mem.void_p);
 
     // For simplicity - use memset for all out memory at first,
     // and then copying input row-by-row (once in case of HWC, or for each channel in case of CHW)
-    memset(out->data, 0, elem_size * out_width * out_height * channels);
+    memset(out->data.mem.void_p, 0, elem_size * out_width * out_height * channels);
     for (int fmap_idx = 0; fmap_idx < padding_fmaps; fmap_idx++) {
         out_ptr += indent_top;
         for (int row_idx = 0; row_idx < rows_to_copy; row_idx++) {
@@ -172,12 +172,12 @@ inline void concat_data(const mli_tensor **inputs, const mli_concat_cfg *cfg, ml
     uint32_t elem_size = mli_hlp_tensor_element_size(inputs[0]);
 
     int concat_dim_total = 0;
-    io_T *out_ptr = static_cast<io_T *>(out->data);
+    io_T *out_ptr = static_cast<io_T *>(out->data.mem.void_p);
     const io_T *inputs_ptr[MLI_CONCAT_MAX_TENSORS];
     int sub_tsr_sz[MLI_CONCAT_MAX_TENSORS];
 
     for (int idx = 0; idx < tensors_num; idx++) {
-        inputs_ptr[idx] = static_cast<io_T *>(inputs[idx]->data);
+        inputs_ptr[idx] = static_cast<io_T *>(inputs[idx]->data.mem.void_p);
         sub_tsr_sz[idx] = mli_prv_count_elem_num_part(inputs[idx], concat_dim);
         concat_dim_total += inputs[idx]->shape[concat_dim];
     }

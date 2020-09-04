@@ -45,8 +45,8 @@ static d_type  _Y    y_mem_buf[IR_BUF_SZ_NEXT];
 // Module Input/Output tensors and their's external interface
 //============================================================
 static mli_tensor input = {
-    .data = (void *)x_mem_buf,
-    .capacity = sizeof(d_type) * IN_POINTS,
+    .data.mem.void_p = (void *)x_mem_buf,
+    .data.capacity = sizeof(d_type) * IN_POINTS,
     .shape = {32, 32, 3},
     .rank = 3,
     .el_type = D_EL_TYPE,
@@ -54,8 +54,8 @@ static mli_tensor input = {
 };
 
 static mli_tensor output = {
-    .data = (void *)y_mem_buf,
-    .capacity = sizeof(d_type) * OUT_POINTS,
+    .data.mem.void_p = (void *)y_mem_buf,
+    .data.capacity = sizeof(d_type) * OUT_POINTS,
     .shape = {10},
     .rank = 1,
     .el_type = D_EL_TYPE,
@@ -98,8 +98,8 @@ static const mli_pool_cfg shared_pool_cfg = {
 // Conv 1 Layer related tensors
 //===================================
 static const mli_tensor L1_conv_wt = {
-    .data = (void *)L1_conv_wt_buf,
-    .capacity = CONV1_W_ELEMENTS * sizeof(w_type),
+    .data.mem.void_p = (void *)L1_conv_wt_buf,
+    .data.capacity = CONV1_W_ELEMENTS * sizeof(w_type),
     .shape = CONV1_W_SHAPE,
     .rank = CONV1_W_RANK,
     .el_type = W_EL_TYPE,
@@ -108,8 +108,8 @@ static const mli_tensor L1_conv_wt = {
 
 
 static const mli_tensor L1_conv_bias = {
-    .data = (void *)L1_conv_bias_buf,
-    .capacity = CONV1_B_ELEMENTS * sizeof(w_type),
+    .data.mem.void_p = (void *)L1_conv_bias_buf,
+    .data.capacity = CONV1_B_ELEMENTS * sizeof(w_type),
     .shape = CONV1_B_SHAPE,
     .rank = CONV1_B_RANK,
     .el_type = W_EL_TYPE,
@@ -120,8 +120,8 @@ static const mli_tensor L1_conv_bias = {
 // Conv 2 Layer related data
 //===================================
 static mli_tensor L2_conv_wt = {
-    .data = (void *)L2_conv_wt_buf,
-    .capacity = CONV2_W_ELEMENTS * sizeof(w_type),
+    .data.mem.void_p = (void *)L2_conv_wt_buf,
+    .data.capacity = CONV2_W_ELEMENTS * sizeof(w_type),
     .shape = CONV2_W_SHAPE,
     .rank = CONV2_W_RANK,
     .el_type = W_EL_TYPE,
@@ -129,8 +129,8 @@ static mli_tensor L2_conv_wt = {
 };
 
 static mli_tensor L2_conv_bias = {
-    .data = (void *)L2_conv_bias_buf,
-    .capacity = CONV2_B_ELEMENTS * sizeof(w_type),
+    .data.mem.void_p = (void *)L2_conv_bias_buf,
+    .data.capacity = CONV2_B_ELEMENTS * sizeof(w_type),
     .shape = CONV2_B_SHAPE,
     .rank = CONV2_B_RANK,
     .el_type = W_EL_TYPE,
@@ -141,8 +141,8 @@ static mli_tensor L2_conv_bias = {
 // Conv 3 Layer related data
 //===================================
 static mli_tensor L3_conv_wt = {
-    .data = (void *)L3_conv_wt_buf,
-    .capacity = CONV3_W_ELEMENTS * sizeof(w_type),
+    .data.mem.void_p = (void *)L3_conv_wt_buf,
+    .data.capacity = CONV3_W_ELEMENTS * sizeof(w_type),
     .shape = CONV3_W_SHAPE,
     .rank = CONV3_W_RANK,
     .el_type = W_EL_TYPE,
@@ -150,8 +150,8 @@ static mli_tensor L3_conv_wt = {
 };
 
 static mli_tensor L3_conv_bias = {
-    .data = (void *)L3_conv_bias_buf,
-    .capacity = CONV3_B_ELEMENTS * sizeof(w_type),
+    .data.mem.void_p = (void *)L3_conv_bias_buf,
+    .data.capacity = CONV3_B_ELEMENTS * sizeof(w_type),
     .shape = CONV3_B_SHAPE,
     .rank = CONV3_B_RANK,
     .el_type = W_EL_TYPE,
@@ -162,8 +162,8 @@ static mli_tensor L3_conv_bias = {
 // FC4 Layer related data
 //===================================
 static mli_tensor L4_fc_wt = {
-    .data = (void *)L4_fc_wt_buf,
-    .capacity = FC4_W_ELEMENTS * sizeof(w_type),
+    .data.mem.void_p = (void *)L4_fc_wt_buf,
+    .data.capacity = FC4_W_ELEMENTS * sizeof(w_type),
     .shape = FC4_W_SHAPE,
     .rank = FC4_W_RANK,
     .el_type = W_EL_TYPE,
@@ -171,8 +171,8 @@ static mli_tensor L4_fc_wt = {
 };
 
 static mli_tensor L4_fc_bias = {
-    .data = (void *)L4_fc_bias_buf,
-    .capacity = FC4_B_ELEMENTS * sizeof(w_type),
+    .data.mem.void_p = (void *)L4_fc_bias_buf,
+    .data.capacity = FC4_B_ELEMENTS * sizeof(w_type),
     .shape = FC4_B_SHAPE,
     .rank = FC4_B_RANK,
     .el_type = W_EL_TYPE,
@@ -183,8 +183,8 @@ static mli_tensor L4_fc_bias = {
 // FC5 Layer related data
 //===================================
 static mli_tensor L5_fc_wt = {
-    .data = (void *)L5_fc_wt_buf,
-    .capacity = FC5_W_ELEMENTS * sizeof(w_type),
+    .data.mem.void_p = (void *)L5_fc_wt_buf,
+    .data.capacity = FC5_W_ELEMENTS * sizeof(w_type),
     .shape = FC5_W_SHAPE,
     .rank = FC5_W_RANK,
     .el_type = W_EL_TYPE,
@@ -192,8 +192,8 @@ static mli_tensor L5_fc_wt = {
 };
 
 static mli_tensor L5_fc_bias = {
-    .data = (void *)L5_fc_bias_buf,
-    .capacity = FC5_B_ELEMENTS * sizeof(w_type),
+    .data.mem.void_p = (void *)L5_fc_bias_buf,
+    .data.capacity = FC5_B_ELEMENTS * sizeof(w_type),
     .shape = FC5_B_SHAPE,
     .rank = FC5_B_RANK,
     .el_type = W_EL_TYPE,
@@ -204,8 +204,8 @@ static mli_tensor L5_fc_bias = {
 // Intermediate result tensors
 //===============================================
 static mli_tensor ir_tensor_X = {
-    .data = (void *)x_mem_buf,
-    .capacity = sizeof(x_mem_buf),
+    .data.mem.void_p = (void *)x_mem_buf,
+    .data.capacity = sizeof(x_mem_buf),
     .shape = {0, 0, 0, 0},
     .rank = 4,
     .el_type = D_EL_TYPE,
@@ -213,8 +213,8 @@ static mli_tensor ir_tensor_X = {
 };
 
 static mli_tensor ir_tensor_Y = {
-    .data = (void *)y_mem_buf,
-    .capacity = sizeof(y_mem_buf),
+    .data.mem.void_p = (void *)y_mem_buf,
+    .data.capacity = sizeof(y_mem_buf),
     .shape = {0, 0, 0, 0},
     .rank = 4,
     .el_type = D_EL_TYPE,

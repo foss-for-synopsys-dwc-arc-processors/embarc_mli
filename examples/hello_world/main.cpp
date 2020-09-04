@@ -19,8 +19,8 @@ int main() {
     in.rank = 1;
     in.shape[0] = 8;
     in.mem_stride[0] = 1;
-    in.capacity = sizeof(data_in);
-    in.data = data_in;
+    in.data.capacity = sizeof(data_in);
+    in.data.mem.void_p = data_in;
 
     int8_t data_out[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
     mli_tensor out = { 0 };
@@ -28,21 +28,21 @@ int main() {
     out.rank = 1;
     out.shape[0] = 8;
     out.mem_stride[0] = 1;
-    out.capacity = sizeof(data_out);
-    out.data = data_out;
+    out.data.capacity = sizeof(data_out);
+    out.data.mem.void_p = data_out;
 
     mli_status status;
     status = mli_krn_eltwise_add_fx8(&in, &in, &out);
     assert(status == MLI_STATUS_OK);
     for (int i = 0; i < sizeof(data_out)/sizeof(data_out[0]); i++) {
-        printf("%d ", ((int8_t*)(out.data))[i]);
+        printf("%d ", ((int8_t*)(out.data.mem.void_p))[i]);
     }
     printf("\n");
 
     status = mli_krn_eltwise_sub_fx8(&in, &in, &out);
     assert(status == MLI_STATUS_OK);
     for (int i = 0; i < sizeof(data_out)/sizeof(data_out[0]); i++) {
-        printf("%d ", ((int8_t*)(out.data))[i]);
+        printf("%d ", ((int8_t*)(out.data.mem.void_p))[i]);
     }
     printf("\n");
     printf("************************************\n");

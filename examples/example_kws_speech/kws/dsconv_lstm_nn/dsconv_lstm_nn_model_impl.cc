@@ -254,8 +254,8 @@ kws_status kws_dsconv_lstm_nn::audio_features_extract(const sample_t *in_frame, 
                                                y_mem->nn.fex_phase.ir_buf_y, x_mem->nn.fex_phase.ir_buf_x);
     if (fbanks_num == kFbankNumBins) {
         mli_tensor out_fx_features = {
-            .data = (void *)out_features, 
-            .capacity = kFbankNumBins * sizeof(out_features[0]), 
+            .data.mem.void_p = (void *)out_features, 
+            .data.capacity = kFbankNumBins * sizeof(out_features[0]), 
             .el_type = MLI_EL_FX_8,
             .el_params.fx.frac_bits = kFbankFraqBits,
         };
@@ -281,8 +281,8 @@ kws_status kws_dsconv_lstm_nn::nn_inference(const int8_t *in_features, float *ou
     // Convolution Phase
     {
         mli_tensor input = {
-            .data = (void *)in_features, 
-            .capacity = kFeatureVectorsForInference * kFbankNumBins * sizeof(in_features[0]),
+            .data.mem.void_p = (void *)in_features, 
+            .data.capacity = kFeatureVectorsForInference * kFbankNumBins * sizeof(in_features[0]),
             .shape = {1, kFeatureVectorsForInference, kFbankNumBins}, 
             .rank = 3,
             .el_type = MLI_EL_FX_8, 
@@ -335,22 +335,22 @@ kws_status kws_dsconv_lstm_nn::nn_inference(const int8_t *in_features, float *ou
     // LSTM (RNN) Phase
     {
         // Update intermediate tensor for the RNN phase
-        ir_Y.data = (void *)y_mem->nn.rnn_phase.ir_data_y;
-        ir_Y.capacity = sizeof(y_mem->nn.rnn_phase.ir_data_y);
+        ir_Y.data.mem.void_p = (void *)y_mem->nn.rnn_phase.ir_data_y;
+        ir_Y.data.capacity = sizeof(y_mem->nn.rnn_phase.ir_data_y);
 
         // Move timestep dimension at first (least frequently changing)
         mli_krn_permute_fx16(&ir_X, &m->permute_chw2hwc_cfg, &ir_Y);
 
         // Update intermediate tensor for the RNN phase
-        ir_X.data = (void *)x_mem->nn.rnn_phase.ir_data_x;
-        ir_X.capacity = sizeof(x_mem->nn.rnn_phase.ir_data_x);
+        ir_X.data.mem.void_p = (void *)x_mem->nn.rnn_phase.ir_data_x;
+        ir_X.data.capacity = sizeof(x_mem->nn.rnn_phase.ir_data_x);
 
         // LAYER 5
         // init structures for LSTM layer 
         const uint32_t lstm_cell_size = m->L5_lstm_bias.shape[1];
         mli_tensor lstm_prev_out = { 
-            .data = ir_X.data, 
-            .capacity = ir_X.capacity, 
+            .data.mem.void_p = ir_X.data.mem.void_p, 
+            .data.capacity = ir_X.data.capacity, 
             .shape = {lstm_cell_size}, 
             .rank = 1, 
             .el_type = MLI_EL_FX_16, 
@@ -359,8 +359,8 @@ kws_status kws_dsconv_lstm_nn::nn_inference(const int8_t *in_features, float *ou
         mli_tensor lstm_ir = { (void *)x_mem->nn.rnn_phase.lstm_ir_data, sizeof(x_mem->nn.rnn_phase.lstm_ir_data) };
         const mli_rnn_cell_cfg lstm_cfg = {m->lstm_mode, m->lstm_act, &lstm_ir};
         mli_tensor lstm_cell = {
-            .data = (void *)y_mem->nn.rnn_phase.lstm_cell_data,
-            .capacity = sizeof(y_mem->nn.rnn_phase.lstm_cell_data),
+            .data.mem.void_p = (void *)y_mem->nn.rnn_phase.lstm_cell_data,
+            .data.capacity = sizeof(y_mem->nn.rnn_phase.lstm_cell_data),
             .shape = {lstm_cell_size},
             .rank = 1,
             .el_type = MLI_EL_FX_16,
@@ -368,8 +368,8 @@ kws_status kws_dsconv_lstm_nn::nn_inference(const int8_t *in_features, float *ou
         };
 
         // Clear state buffers and state tensors description completion
-        int16_t *cell_ptr = (int16_t *)lstm_cell.data;
-        int16_t *prev_out_ptr = (int16_t *)lstm_prev_out.data;
+        int16_t *cell_ptr = (int16_t *)lstm_cell.data.mem.void_p;
+        int16_t *prev_out_ptr = (int16_t *)lstm_prev_out.data.mem.void_p;
         for (uint32_t idx = 0; idx < lstm_cell_size; idx++)
             cell_ptr[idx] = prev_out_ptr[idx] = 0;
         lstm_prev_out.el_params.fx.frac_bits = sizeof(int16_t) * 8 - 1;

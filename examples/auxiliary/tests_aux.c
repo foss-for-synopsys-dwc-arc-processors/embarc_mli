@@ -95,7 +95,7 @@ test_status load_tensors_from_idx_files(
 
         // Step 3: Check memory requirements and read shape;
         //====================================
-        if (elem_size * descr.num_elements > tensors[idx]->capacity) {
+        if (elem_size * descr.num_elements > tensors[idx]->data.capacity) {
             DEBUG_BREAK;
             ret =  TEST_NOT_ENOUGH_MEM;
             goto ret_label;
@@ -116,7 +116,7 @@ test_status load_tensors_from_idx_files(
         // Step 4: Read data by parts;
         //====================================
         uint32_t elements_accounted = 0;
-        void *addr_backup = tensors[idx]->data;
+        void *addr_backup = tensors[idx]->data.mem.void_p;
         while (elements_accounted  < total_elements) {
             descr.num_elements =
                     ((total_elements - elements_accounted ) < data_buf_size) ?
@@ -127,16 +127,16 @@ test_status load_tensors_from_idx_files(
                     mli_hlp_float_to_fx_tensor(data, descr.num_elements, tensors[idx]) != MLI_STATUS_OK) {
                 DEBUG_BREAK;
                 ret =  TEST_SUIT_ERROR;
-                tensors[idx]->data = addr_backup;
+                tensors[idx]->data.mem.void_p = addr_backup;
                 goto ret_label;
             }
 
             elements_accounted += descr.num_elements;
-            tensors[idx]->data  = ((char *)tensors[idx]->data) + descr.num_elements * elem_size;
+            tensors[idx]->data.mem.void_p  = ((char *)tensors[idx]->data.mem.void_p) + descr.num_elements * elem_size;
         }
 
-        tensors[idx]->data = addr_backup;
-        tensors[idx]->capacity = total_elements * elem_size;
+        tensors[idx]->data.mem.void_p = addr_backup;
+        tensors[idx]->data.capacity = total_elements * elem_size;
         fclose(descr.opened_file);
         descr.opened_file = NULL;
     }
@@ -263,7 +263,7 @@ test_status measure_ref_to_pred(
                 max_abs_err = fabsf(pred_buf[i] - ref_buf[i]);
         }
         elements_accounted += descr.num_elements;
-        pred.data = (char *)(pred.data) + descr.num_elements * pred_elem_size;
+        pred.data.mem.void_p = (char *)(pred.data.mem.void_p) + descr.num_elements * pred_elem_size;
     }
 
     const float eps = 0.000000000000000001f;
@@ -329,8 +329,8 @@ test_status fill_asym_tensor_element_params(
         const int num_vals,
         const int scale_int_bits,
         mli_tensor *target_tensor) {
-    if (target_tensor->el_type != MLI_EL_ASYM_I8 &&
-            target_tensor->el_type != MLI_EL_ASYM_I32) {
+    if (target_tensor->el_type != MLI_EL_SA_8 &&
+            target_tensor->el_type != MLI_EL_SA_32) {
         DEBUG_BREAK;
         return TEST_FAILED;
     }
@@ -341,17 +341,17 @@ test_status fill_asym_tensor_element_params(
     int16_t* zp_dst;
 
     if (num_vals > 1) {
-        if (target_tensor->el_params.asym.scale.pi32 == NULL ||
-                target_tensor->el_params.asym.zero_point.pi16 == NULL) {
+        if (target_tensor->el_params.asym.scale.mem.pi32 == NULL ||
+                target_tensor->el_params.asym.zero_point.mem.pi16 == NULL) {
             DEBUG_BREAK;
             return TEST_NOT_ENOUGH_MEM;
         }
 
-        scale_dst = target_tensor->el_params.asym.scale.pi32;
-        zp_dst = target_tensor->el_params.asym.zero_point.pi16;
+        scale_dst = target_tensor->el_params.asym.scale.mem.pi32;
+        zp_dst = target_tensor->el_params.asym.zero_point.mem.pi16;
     } else {
-        scale_dst = &target_tensor->el_params.asym.scale.i32;
-        zp_dst = &target_tensor->el_params.asym.zero_point.i16;
+        scale_dst = &target_tensor->el_params.asym.scale.mem.i32;
+        zp_dst = &target_tensor->el_params.asym.zero_point.mem.i16;
     }
     target_tensor->el_params.asym.scale_frac_bits = scale_fraq_bits;
 

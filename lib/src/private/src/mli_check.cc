@@ -23,7 +23,7 @@
 
 static inline mli_status check_tensor_private(
         const uint32_t *shape,
-        const int32_t *mem_stride,
+        const uint32_t *mem_stride,
         uint32_t rank,
         uint32_t capacity,
         uint32_t element_size) {
@@ -71,7 +71,7 @@ extern "C" {
 #endif
 mli_status mli_chk_tensor (const mli_tensor * in) {
     if (MLI_CHECK(in != NULL, "Bad tensor null pointer")) return MLI_STATUS_BAD_TENSOR;
-    return check_tensor_private(in->shape, in->mem_stride, in->rank, in->capacity, mli_hlp_tensor_element_size(in));
+    return check_tensor_private(in->shape, in->mem_stride, in->rank, in->data.capacity, mli_hlp_tensor_element_size(in));
 }
 #ifdef __cplusplus
 }
@@ -120,14 +120,14 @@ mli_status mli_chk_bias_scale_asym(const mli_tensor * in, const mli_tensor * wei
     // For asym it is assumed that bias is stored in intermediate result format to avoid this requantization in runtime, 
     // which is not a matter of shifts anymore. Here we check bias format is similar to IR
     MLI_ASSERT(in->el_params.asym.dim < 0);
-    MLI_ASSERT(in->el_type == MLI_EL_ASYM_I8);
-    MLI_ASSERT(weights->el_type == MLI_EL_ASYM_I8);
-    MLI_ASSERT(bias->el_type == MLI_EL_ASYM_I32);
+    MLI_ASSERT(in->el_type == MLI_EL_SA_8);
+    MLI_ASSERT(weights->el_type == MLI_EL_SA_8);
+    MLI_ASSERT(bias->el_type == MLI_EL_SA_32);
     const bool is_per_axis = weights->el_params.asym.dim >= 0;
     const int num_scale_vals = (is_per_axis)? weights->shape[weights->el_params.asym.dim]: 1;
-    const int32_t* w_scales = (is_per_axis)? weights->el_params.asym.scale.pi32: &weights->el_params.asym.scale.i32;
-    const int32_t* b_scales = (is_per_axis)? bias->el_params.asym.scale.pi32: &bias->el_params.asym.scale.i32;
-    const int scale_in = (int)in->el_params.asym.scale.i32;
+    const int32_t* w_scales = (is_per_axis)? weights->el_params.asym.scale.mem.pi32: &weights->el_params.asym.scale.mem.i32;
+    const int32_t* b_scales = (is_per_axis)? bias->el_params.asym.scale.mem.pi32: &bias->el_params.asym.scale.mem.i32;
+    const int scale_in = (int)in->el_params.asym.scale.mem.i32;
     const int out_shift = mli_prv_calc_shift(in, weights, bias);
     for (int idx = 0; idx < num_scale_vals; idx++) {
         long long bias_scale_expected = scale_in * w_scales[idx];
@@ -146,7 +146,7 @@ static inline bool check_inner_most_dimension_is_one(const mli_tensor *t) {
     return (t->mem_stride[t->rank - 1] == 1) || (t->mem_stride[t->rank - 1] == 0);
 }
 
-static inline bool check_layout_is_contiguous(const int32_t *mem_stride, uint32_t rank) {
+static inline bool check_layout_is_contiguous(const uint32_t *mem_stride, uint32_t rank) {
     // When only mem_stride and rank is under considiration, contiguous means 
     // all memory strides are zero OR rank is 1 and memory stride between elements is 1
     // If all memory strides are zero, the kernel itself will calculate the actual memory
@@ -162,7 +162,7 @@ static inline bool check_layout_is_contiguous(const int32_t *mem_stride, uint32_
         return false;
 }
 
-static inline bool check_layout_is_contiguous(const uint32_t *shape, const int32_t *mem_stride, uint32_t rank) {
+static inline bool check_layout_is_contiguous(const uint32_t *shape, const uint32_t *mem_stride, uint32_t rank) {
     // This function either requires that all memory strides are zero,
     // or that the memory strides are set such that it results in the
     // same memory layout. If all memory strides are zero, the kernel itself
@@ -211,7 +211,7 @@ mli_status mli_chk_conv2d_hwc (
     stat = MLI_CHECK_STATUS(mli_chk_tensor (bias), "Bad bias tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out != NULL, "Bad Output tensor pointer")) return MLI_STATUS_BAD_TENSOR;
-    if (MLI_CHECK(out->data != NULL, "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
+    if (MLI_CHECK(out->data.mem.void_p != NULL, "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
 
     fail |= MLI_CHECK(in->rank == 3, "Wrong input rank");
     fail |= MLI_CHECK(weights->rank == 4, "Wrong weights rank");
@@ -244,7 +244,7 @@ mli_status mli_chk_conv2d_hwc (
             (uint32_t)CEIL_DIV(in_width + cfg->padding_left + cfg->padding_right - kernel_width + 1,
                     cfg->stride_width), // w
             weights->shape[KRNL_C_DIM_HWC]}; // c
-    stat = check_tensor_private(out_shape, out->mem_stride, 3, out->capacity, mli_hlp_tensor_element_size(out));
+    stat = check_tensor_private(out_shape, out->mem_stride, 3, out->data.capacity, mli_hlp_tensor_element_size(out));
 
     return stat;
 }
@@ -322,7 +322,7 @@ mli_status mli_chk_conv2d_hwcn (
     stat = MLI_CHECK_STATUS(mli_chk_tensor (bias), "Bad bias tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out != NULL, "Bad Output tensor pointer")) return MLI_STATUS_BAD_TENSOR;
-    if (MLI_CHECK(out->data != NULL, "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
+    if (MLI_CHECK(out->data.mem.void_p != NULL, "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
 
     fail |= MLI_CHECK(in->rank == 3, "Wrong input rank");
     fail |= MLI_CHECK(weights->rank == 4, "Wrong weights rank");
@@ -355,7 +355,7 @@ mli_status mli_chk_conv2d_hwcn (
             (uint32_t)CEIL_DIV(in_width + cfg->padding_left + cfg->padding_right - kernel_width + 1,
                     cfg->stride_width), // w
             weights->shape[KRNL_C_DIM_HWCN]}; // c
-    stat = check_tensor_private(out_shape, out->mem_stride, 3, out->capacity, mli_hlp_tensor_element_size(out));
+    stat = check_tensor_private(out_shape, out->mem_stride, 3, out->data.capacity, mli_hlp_tensor_element_size(out));
 
     return stat;
 }
@@ -366,9 +366,9 @@ mli_status mli_chk_conv2d_hwcn_sa8_sa8_sa32(
         const mli_tensor * bias,
         const mli_conv2d_cfg * cfg,
         const mli_tensor * out) {
-    if (MLI_CHECK(in->el_type      == MLI_EL_ASYM_I8, "Wrong input tensor type") ||
-        MLI_CHECK(weights->el_type == MLI_EL_ASYM_I8, "Wrong weights tensor type") ||
-        MLI_CHECK(bias->el_type    == MLI_EL_ASYM_I32, "Wrong bias tensor type"))
+    if (MLI_CHECK(in->el_type      == MLI_EL_SA_8, "Wrong input tensor type") ||
+        MLI_CHECK(weights->el_type == MLI_EL_SA_8, "Wrong weights tensor type") ||
+        MLI_CHECK(bias->el_type    == MLI_EL_SA_32, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
     mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwcn(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
@@ -420,13 +420,13 @@ mli_status mli_chk_conv2d_nhwc_sa8_sa8_sa32(
         const mli_tensor * bias,
         const mli_conv2d_cfg * cfg,
         const mli_tensor * out) {
-    if (MLI_CHECK(in->el_type      == MLI_EL_ASYM_I8, "Wrong input tensor type") ||
-        MLI_CHECK(weights->el_type == MLI_EL_ASYM_I8, "Wrong weights tensor type") ||
-        MLI_CHECK(bias->el_type    == MLI_EL_ASYM_I32, "Wrong bias tensor type"))
+    if (MLI_CHECK(in->el_type      == MLI_EL_SA_8, "Wrong input tensor type") ||
+        MLI_CHECK(weights->el_type == MLI_EL_SA_8, "Wrong weights tensor type") ||
+        MLI_CHECK(bias->el_type    == MLI_EL_SA_32, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
 
-    if (MLI_CHECK(in->el_params.asym.zero_point.i16 != INT16_MIN,"Input tensor: INT16_MIN doesn't support as offset value") ||
-        MLI_CHECK(out->el_params.asym.zero_point.i16 != INT16_MIN,"Input tensor: INT16_MIN doesn't support as offset value"))
+    if (MLI_CHECK(in->el_params.asym.zero_point.mem.i16 != INT16_MIN,"Input tensor: INT16_MIN doesn't support as offset value") ||
+        MLI_CHECK(out->el_params.asym.zero_point.mem.i16 != INT16_MIN,"Input tensor: INT16_MIN doesn't support as offset value"))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
     mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwc(in, weights, bias, cfg, out), __func__);
@@ -460,7 +460,7 @@ mli_status mli_chk_conv2d_chw (
     stat = MLI_CHECK_STATUS(mli_chk_tensor (bias), "Bad bias tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
-    if (MLI_CHECK(out->data != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
+    if (MLI_CHECK(out->data.mem.void_p != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
 
     fail |= MLI_CHECK(in->rank == 3, "Wrong input rank");
     fail |= MLI_CHECK(weights->rank == 4, "Wrong weights rank");
@@ -498,7 +498,7 @@ mli_status mli_chk_conv2d_chw (
                       "Memory Layout of output tensor must be contiguous");
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
-    stat = check_tensor_private(out_shape, out->mem_stride, 3, out->capacity, mli_hlp_tensor_element_size(out));
+    stat = check_tensor_private(out_shape, out->mem_stride, 3, out->data.capacity, mli_hlp_tensor_element_size(out));
 
     return stat;
 }
@@ -576,7 +576,7 @@ mli_status mli_chk_depthwise_conv2d_chw (
     stat = MLI_CHECK_STATUS(mli_chk_tensor (bias), "Bad bias tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
-    if (MLI_CHECK(out->data != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
+    if (MLI_CHECK(out->data.mem.void_p != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
 
     fail |= MLI_CHECK(in->rank == 3, "Wrong input rank");
     fail |= MLI_CHECK(weights->rank == 4, "Wrong weights rank");
@@ -614,7 +614,7 @@ mli_status mli_chk_depthwise_conv2d_chw (
         "Memory Layout of out tensor must be contiguous");
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
-    stat = check_tensor_private(out_shape, out->mem_stride, 3, out->capacity, mli_hlp_tensor_element_size(out));
+    stat = check_tensor_private(out_shape, out->mem_stride, 3, out->data.capacity, mli_hlp_tensor_element_size(out));
 
     return stat;
 }
@@ -693,7 +693,7 @@ mli_status mli_chk_depthwise_conv2d_hwc(
     stat = MLI_CHECK_STATUS(mli_chk_tensor (bias), "Bad bias tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
-    if (MLI_CHECK(out->data != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
+    if (MLI_CHECK(out->data.mem.void_p != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
 
     fail |= MLI_CHECK(in->rank == 3, "Wrong input rank");
     fail |= MLI_CHECK(weights->rank == 4, "Wrong weights rank");
@@ -727,7 +727,7 @@ mli_status mli_chk_depthwise_conv2d_hwc(
             (uint32_t)CEIL_DIV(in_width + cfg->padding_left + cfg->padding_right - kernel_width + 1,
                     cfg->stride_width), // w
             weights->shape[KRNL_DW_C_DIM_HWC]}; // c
-    stat = check_tensor_private(out_shape, out->mem_stride, 3, out->capacity, mli_hlp_tensor_element_size(out));
+    stat = check_tensor_private(out_shape, out->mem_stride, 3, out->data.capacity, mli_hlp_tensor_element_size(out));
 
     return stat;
 }
@@ -796,9 +796,9 @@ mli_status mli_chk_depthwise_conv2d_hwcn_sa8_sa8_sa32(
         const mli_tensor * bias,
         const mli_conv2d_cfg * cfg,
         const mli_tensor * out) {
-    if (MLI_CHECK(in->el_type      == MLI_EL_ASYM_I8, "Wrong input tensor type") ||
-        MLI_CHECK(weights->el_type == MLI_EL_ASYM_I8, "Wrong weights tensor type") ||
-        MLI_CHECK(bias->el_type    == MLI_EL_ASYM_I32, "Wrong bias tensor type"))
+    if (MLI_CHECK(in->el_type      == MLI_EL_SA_8, "Wrong input tensor type") ||
+        MLI_CHECK(weights->el_type == MLI_EL_SA_8, "Wrong weights tensor type") ||
+        MLI_CHECK(bias->el_type    == MLI_EL_SA_32, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
     mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
@@ -809,8 +809,8 @@ mli_status mli_chk_depthwise_conv2d_hwcn_sa8_sa8_sa32(
         MLI_CHECK(in->el_params.asym.dim < 0, "Input tensor: Per-tensor quantization is expected"))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
-    if (MLI_CHECK(in->el_params.asym.zero_point.i16 != INT16_MIN,"Input tensor: INT16_MIN doesn't support as offset value") ||
-        MLI_CHECK(out->el_params.asym.zero_point.i16 != INT16_MIN,"Input tensor: INT16_MIN doesn't support as offset value"))
+    if (MLI_CHECK(in->el_params.asym.zero_point.mem.i16 != INT16_MIN,"Input tensor: INT16_MIN doesn't support as offset value") ||
+        MLI_CHECK(out->el_params.asym.zero_point.mem.i16 != INT16_MIN,"Input tensor: INT16_MIN doesn't support as offset value"))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
     ret = MLI_CHECK_STATUS(mli_chk_bias_scale_asym(in, weights, bias), __func__);
@@ -826,7 +826,7 @@ mli_status mli_chk_maxpool_chw (const mli_tensor * in, const mli_pool_cfg * cfg,
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
-    if (MLI_CHECK(out->data != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
+    if (MLI_CHECK(out->data.mem.void_p != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
 
     fail |= MLI_CHECK(in->rank == 3, "Wrong input rank");
     if (fail) return MLI_STATUS_SHAPE_MISMATCH;
@@ -852,7 +852,7 @@ mli_status mli_chk_maxpool_chw (const mli_tensor * in, const mli_pool_cfg * cfg,
             (uint32_t)CEIL_DIV(in_width + cfg->padding_left + cfg->padding_right - cfg->kernel_width + 1,
                     cfg->stride_width)}; // w
 
-    stat = check_tensor_private(out_shape, out->mem_stride, 3, out->capacity, mli_hlp_tensor_element_size(out));
+    stat = check_tensor_private(out_shape, out->mem_stride, 3, out->data.capacity, mli_hlp_tensor_element_size(out));
 
     return stat;
 }
@@ -883,7 +883,7 @@ mli_status mli_chk_maxpool_hwc (const mli_tensor * in, const mli_pool_cfg * cfg,
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
-    if (MLI_CHECK(out->data != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
+    if (MLI_CHECK(out->data.mem.void_p != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
 
     fail |= MLI_CHECK(in->rank == 3, "Wrong input rank");
     if (fail) return MLI_STATUS_SHAPE_MISMATCH;
@@ -908,7 +908,7 @@ mli_status mli_chk_maxpool_hwc (const mli_tensor * in, const mli_pool_cfg * cfg,
             (uint32_t)CEIL_DIV(in_width + cfg->padding_left + cfg->padding_right - cfg->kernel_width + 1,
                     cfg->stride_width), // w
             in->shape[FMAP_C_DIM_HWC]}; // c
-    stat = check_tensor_private(out_shape, out->mem_stride, 3, out->capacity, mli_hlp_tensor_element_size(out));
+    stat = check_tensor_private(out_shape, out->mem_stride, 3, out->data.capacity, mli_hlp_tensor_element_size(out));
 
     return stat;
 }
@@ -935,7 +935,7 @@ mli_status mli_chk_maxpool_hwc_sa8 (const mli_tensor * in, const mli_pool_cfg * 
     mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
-    if (MLI_CHECK(in->el_type == MLI_EL_ASYM_I8, "Wrong input tensor type"))
+    if (MLI_CHECK(in->el_type == MLI_EL_SA_8, "Wrong input tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;    
     if (MLI_CHECK(in->el_params.asym.dim < 0, "Input tensor: Per-tensor quantization is expected"))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
@@ -950,7 +950,7 @@ mli_status mli_chk_avepool_chw (const mli_tensor * in, const mli_pool_cfg * cfg,
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
-    if (MLI_CHECK(out->data != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
+    if (MLI_CHECK(out->data.mem.void_p != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
 
     fail |= MLI_CHECK(in->rank == 3, "Wrong input rank");
     if (fail) return MLI_STATUS_SHAPE_MISMATCH;
@@ -975,7 +975,7 @@ mli_status mli_chk_avepool_chw (const mli_tensor * in, const mli_pool_cfg * cfg,
                     cfg->stride_height), // h
             (uint32_t)CEIL_DIV(in_width + cfg->padding_left + cfg->padding_right - cfg->kernel_width + 1,
                     cfg->stride_width)}; // w
-    stat = check_tensor_private(out_shape, out->mem_stride, 3, out->capacity, mli_hlp_tensor_element_size(out));
+    stat = check_tensor_private(out_shape, out->mem_stride, 3, out->data.capacity, mli_hlp_tensor_element_size(out));
 
     return stat;
 }
@@ -1005,7 +1005,7 @@ mli_status mli_chk_avepool_hwc (const mli_tensor * in, const mli_pool_cfg * cfg,
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
-    if (MLI_CHECK(out->data != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
+    if (MLI_CHECK(out->data.mem.void_p != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
 
     fail |= MLI_CHECK(in->rank == 3, "Wrong input rank");
     if (fail) return MLI_STATUS_SHAPE_MISMATCH;
@@ -1030,7 +1030,7 @@ mli_status mli_chk_avepool_hwc (const mli_tensor * in, const mli_pool_cfg * cfg,
             (uint32_t)CEIL_DIV(in_width + cfg->padding_left + cfg->padding_right - cfg->kernel_width + 1,
                     cfg->stride_width), // w
             in->shape[FMAP_C_DIM_HWC]}; // c
-    stat = check_tensor_private(out_shape, out->mem_stride, 3, out->capacity, mli_hlp_tensor_element_size(out));
+    stat = check_tensor_private(out_shape, out->mem_stride, 3, out->data.capacity, mli_hlp_tensor_element_size(out));
 
     return MLI_STATUS_OK;
 }
@@ -1057,7 +1057,7 @@ mli_status mli_chk_avepool_hwc_sa8 (const mli_tensor * in, const mli_pool_cfg * 
     mli_status ret = MLI_CHECK_STATUS(mli_chk_avepool_hwc(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
-    if (MLI_CHECK(in->el_type == MLI_EL_ASYM_I8, "Wrong input tensor type"))
+    if (MLI_CHECK(in->el_type == MLI_EL_SA_8, "Wrong input tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
     if (MLI_CHECK(in->el_params.asym.dim < 0, "Input tensor: Per-tensor quantization is expected"))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
@@ -1079,7 +1079,7 @@ mli_status mli_chk_fully_connected (
     stat = MLI_CHECK_STATUS(mli_chk_tensor (bias), "Bad bias tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
-    if (MLI_CHECK(out->data != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
+    if (MLI_CHECK(out->data.mem.void_p != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
 
     fail |= MLI_CHECK(weights->rank == 2, "Wrong weights rank");
     fail |= MLI_CHECK(bias->rank == 1, "Wrong bias rank");
@@ -1093,7 +1093,7 @@ mli_status mli_chk_fully_connected (
     fail |= MLI_CHECK(check_layout_is_contiguous(out->mem_stride, 1), "Memory Layout of output tensor must be contiguous");
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
-    fail |= MLI_CHECK((weights->shape[0] * mli_hlp_tensor_element_size (in)) <= out->capacity, "capacity of output tensor is too small");
+    fail |= MLI_CHECK((weights->shape[0] * mli_hlp_tensor_element_size (in)) <= out->data.capacity, "capacity of output tensor is too small");
     if (fail) return MLI_STATUS_NOT_ENGH_MEM;
 
     return MLI_STATUS_OK;
@@ -1158,9 +1158,9 @@ mli_status mli_chk_fully_connected_sa8_sa8_sa32(
         const mli_tensor * weights,
         const mli_tensor * bias,
         mli_tensor * out) {
-    if (MLI_CHECK(in->el_type      == MLI_EL_ASYM_I8, "Wrong input tensor type") ||
-        MLI_CHECK(weights->el_type == MLI_EL_ASYM_I8, "Wrong weights tensor type") ||
-        MLI_CHECK(bias->el_type    == MLI_EL_ASYM_I32, "Wrong bias tensor type"))
+    if (MLI_CHECK(in->el_type      == MLI_EL_SA_8, "Wrong input tensor type") ||
+        MLI_CHECK(weights->el_type == MLI_EL_SA_8, "Wrong weights tensor type") ||
+        MLI_CHECK(bias->el_type    == MLI_EL_SA_32, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
     mli_status ret = MLI_CHECK_STATUS(mli_chk_fully_connected(in, weights, bias, out), __func__);
     if (ret != MLI_STATUS_OK)
@@ -1184,14 +1184,14 @@ mli_status mli_chk_relu(const mli_tensor * in, const mli_relu_cfg * cfg, mli_ten
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
-    if (MLI_CHECK(out->data != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
+    if (MLI_CHECK(out->data.mem.void_p != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
     fail |= MLI_CHECK(check_layout_is_contiguous(in), "Memory Layout of input tensor must be contiguous");
     fail |= MLI_CHECK(check_layout_is_contiguous(in->shape, out->mem_stride, in->rank),
                       "Memory Layout of output tensor must be contiguous");
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
     // Check that output contains enough space
-    if (MLI_CHECK((mli_prv_count_elem_num(in) * mli_hlp_tensor_element_size(in)) <= out->capacity, "capacity of output tensor is too small"))
+    if (MLI_CHECK((mli_prv_count_elem_num(in) * mli_hlp_tensor_element_size(in)) <= out->data.capacity, "capacity of output tensor is too small"))
         return MLI_STATUS_NOT_ENGH_MEM;
 
     return MLI_STATUS_OK;
@@ -1233,7 +1233,7 @@ mli_status mli_chk_eltwise (
         fail |= MLI_CHECK2(mli_chk_scalar_tensor(in2) == MLI_STATUS_OK, "bad in2 tensor", funcname);
     }
     fail |= MLI_CHECK2(out != NULL , "Bad Output tensor  pointer", funcname);
-    fail |= MLI_CHECK2(out->data != NULL , "Bad data pointer of output", funcname);
+    fail |= MLI_CHECK2(out->data.mem.void_p != NULL , "Bad data pointer of output", funcname);
     if (fail) return MLI_STATUS_BAD_TENSOR;
 
     fail |= MLI_CHECK(check_layout_is_contiguous(in1), "Memory Layout of in1 tensor must be contiguous");
@@ -1281,7 +1281,7 @@ mli_status mli_chk_eltwise (
     // Check that output contains enough space
     int in1_sz = mli_prv_count_elem_num(in1);
     int in2_sz = mli_prv_count_elem_num(in2);
-    fail |= MLI_CHECK2((MAX (in1_sz, in2_sz) * mli_hlp_tensor_element_size (in1)) <= out->capacity,
+    fail |= MLI_CHECK2((MAX (in1_sz, in2_sz) * mli_hlp_tensor_element_size (in1)) <= out->data.capacity,
             "capacity of output tensor is too small", funcname);
     if (fail) return MLI_STATUS_NOT_ENGH_MEM;
 
@@ -1398,14 +1398,14 @@ mli_status mli_chk_basic_activation(const mli_tensor * in, mli_tensor * out) {
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
-    if (MLI_CHECK(out->data != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
+    if (MLI_CHECK(out->data.mem.void_p != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
     fail |= MLI_CHECK(check_layout_is_contiguous(in), "Memory Layout of input tensor must be contiguous");
     fail |= MLI_CHECK(check_layout_is_contiguous(in->shape, out->mem_stride, in->rank),  // output has shape of input
                       "Memory Layout of output tensor must be contiguous");
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
     // Check that output contains enough space
-    fail |= MLI_CHECK((mli_prv_count_elem_num (in) * mli_hlp_tensor_element_size (in)) <= out->capacity,
+    fail |= MLI_CHECK((mli_prv_count_elem_num (in) * mli_hlp_tensor_element_size (in)) <= out->data.capacity,
                       "capacity of output tensor is too small");
     if (fail) return MLI_STATUS_NOT_ENGH_MEM;
 
@@ -1434,7 +1434,7 @@ mli_status mli_chk_basic_activation_sa8(const mli_tensor * in, mli_tensor * out)
     mli_status ret = MLI_CHECK_STATUS(mli_chk_basic_activation(in, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
-    if (MLI_CHECK(in->el_type == MLI_EL_ASYM_I8, "Wrong input tensor type"))
+    if (MLI_CHECK(in->el_type == MLI_EL_SA_8, "Wrong input tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
     return MLI_STATUS_OK;
 }
@@ -1447,7 +1447,7 @@ mli_status mli_chk_leaky_relu (const mli_tensor * in, const mli_tensor * slope_c
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
-    if (MLI_CHECK(out->data != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
+    if (MLI_CHECK(out->data.mem.void_p != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
     fail |= MLI_CHECK(check_layout_is_contiguous(in), "Memory Layout of input tensor must be contiguous");
     fail |= MLI_CHECK(check_layout_is_contiguous(in->shape, out->mem_stride, in->rank),  // output has shape of input
                       "Memory Layout of output tensor must be contiguous");
@@ -1462,7 +1462,7 @@ mli_status mli_chk_leaky_relu (const mli_tensor * in, const mli_tensor * slope_c
     if (fail) return MLI_STATUS_TYPE_MISMATCH;
 
     // Check that output contains enough space
-    fail |= MLI_CHECK((mli_prv_count_elem_num (in) * mli_hlp_tensor_element_size (in)) <= out->capacity,
+    fail |= MLI_CHECK((mli_prv_count_elem_num (in) * mli_hlp_tensor_element_size (in)) <= out->data.capacity,
                       "capacity of output tensor is too small");
     if (fail) return MLI_STATUS_NOT_ENGH_MEM;
 
@@ -1509,7 +1509,7 @@ mli_status mli_chk_basic_rnn_cell (
     stat = MLI_CHECK_STATUS(mli_chk_tensor (bias), "Bad bias tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
-    if (MLI_CHECK(out->data != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
+    if (MLI_CHECK(out->data.mem.void_p != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
 
     fail |= MLI_CHECK(check_layout_is_contiguous(in), "Memory Layout of input tensor must be contiguous");
     fail |= MLI_CHECK(check_layout_is_contiguous(prev_out), "Memory Layout of prev_out tensor must be contiguous");
@@ -1523,7 +1523,7 @@ mli_status mli_chk_basic_rnn_cell (
 
     // Check config and IR tensors are valid
     if (MLI_CHECK(cfg != NULL , "Bad cfg pointer")) return MLI_STATUS_BAD_FUNC_CFG;
-    fail |= MLI_CHECK(!(cfg->mode == RNN_BATCH_TO_LAST && (cfg->ir_tsr == NULL || cfg->ir_tsr->data == NULL)),
+    fail |= MLI_CHECK(!(cfg->mode == RNN_BATCH_TO_LAST && (cfg->ir_tsr == NULL || cfg->ir_tsr->data.mem.void_p == NULL)),
                       "BasicRNN in Batch-to-last mode requires IR of sufficient capacity");
     fail |= MLI_CHECK(!(cfg->mode != RNN_ONE_TO_ONE && in->rank < 2),
                       "Input tensor isn't capable for batch mode of BasicRNN");
@@ -1573,12 +1573,12 @@ mli_status mli_chk_basic_rnn_cell (
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
     // Check capacity of output and IR
-    fail |= MLI_CHECK((out_elements * out_batches * mli_hlp_tensor_element_size (in)) <= out->capacity,
+    fail |= MLI_CHECK((out_elements * out_batches * mli_hlp_tensor_element_size (in)) <= out->data.capacity,
                       "capacity of output tensor is too small");
 
     // Check capacity of IR
     if (cfg->mode == RNN_BATCH_TO_LAST){
-        fail |= MLI_CHECK((out_elements * mli_hlp_tensor_element_size (in)) <= cfg->ir_tsr->capacity,
+        fail |= MLI_CHECK((out_elements * mli_hlp_tensor_element_size (in)) <= cfg->ir_tsr->data.capacity,
                           "capacity of IR tensor is too small");
         if (fail) return MLI_STATUS_NOT_ENGH_MEM;
     }
@@ -1663,12 +1663,12 @@ mli_status mli_chk_lstm_cell (
     stat = MLI_CHECK_STATUS(mli_chk_tensor (cell), "Bad cell tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
-    if (MLI_CHECK(out->data != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
+    if (MLI_CHECK(out->data.mem.void_p != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
 
     // Check config and IR tensors are valid
     if (MLI_CHECK(cfg != NULL , "Bad cfg pointer")) return MLI_STATUS_BAD_FUNC_CFG;
     if (MLI_CHECK(cfg->ir_tsr != NULL, "bad cfg->ir_tsr pointer")) return MLI_STATUS_BAD_FUNC_CFG;
-    if (MLI_CHECK(cfg->ir_tsr->data != NULL, "bad cfg->ir_tsr->data pointer")) return MLI_STATUS_BAD_FUNC_CFG;
+    if (MLI_CHECK(cfg->ir_tsr->data.mem.void_p != NULL, "bad cfg->ir_tsr->data.mem.void_p pointer")) return MLI_STATUS_BAD_FUNC_CFG;
     if (MLI_CHECK(!(cfg->mode != RNN_ONE_TO_ONE && in->rank < 2), "bad rank")) return MLI_STATUS_BAD_FUNC_CFG;
 
     // Get number of elements and check input
@@ -1715,9 +1715,9 @@ mli_status mli_chk_lstm_cell (
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
     // Check capacity of output and IR
-    fail |= MLI_CHECK((4 * out_elements * mli_hlp_tensor_element_size (in)) <= cfg->ir_tsr->capacity,
+    fail |= MLI_CHECK((4 * out_elements * mli_hlp_tensor_element_size (in)) <= cfg->ir_tsr->data.capacity,
                       "capacity of IR tensor is too small");
-    fail |= MLI_CHECK((out_batches * out_elements * mli_hlp_tensor_element_size (in)) <= out->capacity,
+    fail |= MLI_CHECK((out_batches * out_elements * mli_hlp_tensor_element_size (in)) <= out->data.capacity,
                       "capacity of output tensor is too small");
     if (fail) return MLI_STATUS_NOT_ENGH_MEM;
 
@@ -1790,7 +1790,7 @@ mli_status mli_chk_concat (const mli_tensor ** inputs, const mli_concat_cfg * cf
     stat = MLI_CHECK_STATUS(mli_chk_tensor (inputs[0]), "Bad inputs[0] tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
-    if (MLI_CHECK(out->data != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
+    if (MLI_CHECK(out->data.mem.void_p != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
     fail |= MLI_CHECK(check_layout_is_contiguous(out->mem_stride, inputs[0]->rank), // output rank is input rank
                       "Memory Layout of output tensor must be contiguous");
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
@@ -1830,7 +1830,7 @@ mli_status mli_chk_concat (const mli_tensor ** inputs, const mli_concat_cfg * cf
     }
 
     // Check that output contains enough space
-    fail |= MLI_CHECK((tot_elem * mli_hlp_tensor_element_size(anchor_tsr)) <= out->capacity,
+    fail |= MLI_CHECK((tot_elem * mli_hlp_tensor_element_size(anchor_tsr)) <= out->data.capacity,
                       "capacity of output tensor is too small");
     if (fail) return MLI_STATUS_NOT_ENGH_MEM;
 
@@ -1865,7 +1865,7 @@ mli_status mli_chk_padding2d_chw (const mli_tensor * in, const mli_padding2d_cfg
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
-    if (MLI_CHECK(out->data != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
+    if (MLI_CHECK(out->data.mem.void_p != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
 
     if (MLI_CHECK(in->rank == 3, "in rank should be 3")) return MLI_STATUS_SHAPE_MISMATCH;
     fail |= MLI_CHECK(check_layout_is_contiguous(in), "Memory Layout of input tensor must be contiguous");
@@ -1882,7 +1882,7 @@ mli_status mli_chk_padding2d_chw (const mli_tensor * in, const mli_padding2d_cfg
     out_elements *= (in->shape[FMAP_H_DIM_CHW] + cfg->padding_top + cfg->padding_bottom);
     out_elements *= (in->shape[FMAP_W_DIM_CHW] + cfg->padding_left + cfg->padding_right);
 
-    fail |= MLI_CHECK((out_elements * mli_hlp_tensor_element_size(in)) <= out->capacity,
+    fail |= MLI_CHECK((out_elements * mli_hlp_tensor_element_size(in)) <= out->data.capacity,
                       "capacity of output tensor is too small");
     if (fail) return MLI_STATUS_NOT_ENGH_MEM;
 
@@ -1915,7 +1915,7 @@ mli_status mli_chk_padding2d_hwc (const mli_tensor * in, const mli_padding2d_cfg
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
-    if (MLI_CHECK(out->data != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
+    if (MLI_CHECK(out->data.mem.void_p != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
 
     if (MLI_CHECK(in->rank == 3, "in rank should be 3")) return MLI_STATUS_SHAPE_MISMATCH;
     fail |= MLI_CHECK(check_layout_is_contiguous(in), "Memory Layout of input tensor must be contiguous");
@@ -1932,7 +1932,7 @@ mli_status mli_chk_padding2d_hwc (const mli_tensor * in, const mli_padding2d_cfg
     out_elements *= (in->shape[FMAP_H_DIM_HWC] + cfg->padding_top + cfg->padding_bottom);
     out_elements *= (in->shape[FMAP_W_DIM_HWC] + cfg->padding_left + cfg->padding_right);
 
-    fail |= MLI_CHECK((out_elements * mli_hlp_tensor_element_size(in)) <= out->capacity,
+    fail |= MLI_CHECK((out_elements * mli_hlp_tensor_element_size(in)) <= out->data.capacity,
                       "capacity of output tensor is too small");
     if (fail) return MLI_STATUS_NOT_ENGH_MEM;
 
@@ -1965,7 +1965,7 @@ mli_status mli_chk_permute (const mli_tensor * in, const mli_permute_cfg * cfg, 
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
-    if (MLI_CHECK(out->data != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
+    if (MLI_CHECK(out->data.mem.void_p != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
 
     fail |= MLI_CHECK(check_layout_is_contiguous(in), "Memory Layout of input tensor must be contiguous");
     fail |= MLI_CHECK(check_layout_is_contiguous(out->mem_stride, in->rank), // output rank is input rank
@@ -1986,7 +1986,7 @@ mli_status mli_chk_permute (const mli_tensor * in, const mli_permute_cfg * cfg, 
     }
 
     // Check that output contains enough space
-    fail |= MLI_CHECK((mli_prv_count_elem_num (in) * mli_hlp_tensor_element_size (in)) <= out->capacity,
+    fail |= MLI_CHECK((mli_prv_count_elem_num (in) * mli_hlp_tensor_element_size (in)) <= out->data.capacity,
                       "capacity of output tensor is too small");
     if (fail) return MLI_STATUS_NOT_ENGH_MEM;
 
@@ -2027,7 +2027,7 @@ mli_status mli_chk_convert_tensor(mli_tensor *in, mli_tensor *out) {
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
-    if (MLI_CHECK(out->data != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
+    if (MLI_CHECK(out->data.mem.void_p != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
 
     fail |= MLI_CHECK(check_layout_is_contiguous(in), "Memory Layout of input tensor must be contiguous");
     fail |= MLI_CHECK(check_layout_is_contiguous(out->mem_stride, in->rank), // output rank is input rank
@@ -2036,7 +2036,7 @@ mli_status mli_chk_convert_tensor(mli_tensor *in, mli_tensor *out) {
 
     // Check that output contains enough space
     const unsigned out_elements = mli_prv_count_elem_num(in);
-    fail |= MLI_CHECK((out_elements * mli_hlp_tensor_element_size(out)) <= out->capacity,
+    fail |= MLI_CHECK((out_elements * mli_hlp_tensor_element_size(out)) <= out->data.capacity,
                       "capacity of output tensor is too small");
     if (fail) return MLI_STATUS_NOT_ENGH_MEM;
 

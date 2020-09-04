@@ -102,10 +102,10 @@ static void __attribute__((always_inline)) fully_connected_prepare_and_run_fx(
         mli_tensor* out) {
     mli_prv_fx_init_dsp_ctrl();
 
-    const MLI_PTR(io_T) in_ptr = (MLI_PTR(io_T))(in->data);
-    const MLI_PTR(w_T) w_ptr = (MLI_PTR(w_T))(weights->data);
-    const MLI_PTR(w_T) b_ptr = (MLI_PTR(w_T))(bias->data);
-    MLI_CONV_OUT_PTR(io_T) out_ptr = (MLI_CONV_OUT_PTR(io_T))(out->data);
+    const MLI_PTR(io_T) in_ptr = (MLI_PTR(io_T))(in->data.mem.void_p);
+    const MLI_PTR(w_T) w_ptr = (MLI_PTR(w_T))(weights->data.mem.void_p);
+    const MLI_PTR(w_T) b_ptr = (MLI_PTR(w_T))(bias->data.mem.void_p);
+    MLI_CONV_OUT_PTR(io_T) out_ptr = (MLI_CONV_OUT_PTR(io_T))(out->data.mem.void_p);
 
     int ch_out = weights->shape[0];
     int in_sz = mli_prv_count_elem_num(in);
@@ -237,10 +237,10 @@ static void __attribute__((always_inline)) fully_connected_prepare_and_run(
         mli_tensor* out) {
     mli_prv_fx_init_dsp_ctrl();
 
-    const MLI_PTR(io_T) in_ptr = (MLI_PTR(io_T))(in->data);
-    const MLI_PTR(w_T)  w_ptr  = (MLI_PTR(w_T)) (weights->data);
-    const MLI_PTR(b_T)  b_ptr  = (MLI_PTR(b_T)) (bias->data);
-    MLI_CONV_OUT_PTR(io_T) out_ptr = (MLI_CONV_OUT_PTR(io_T)) (out->data);
+    const MLI_PTR(io_T) in_ptr = (MLI_PTR(io_T))(in->data.mem.void_p);
+    const MLI_PTR(w_T)  w_ptr  = (MLI_PTR(w_T)) (weights->data.mem.void_p);
+    const MLI_PTR(b_T)  b_ptr  = (MLI_PTR(b_T)) (bias->data.mem.void_p);
+    MLI_CONV_OUT_PTR(io_T) out_ptr = (MLI_CONV_OUT_PTR(io_T)) (out->data.mem.void_p);
 
     int ch_out = bias->shape[0];
     int in_sz = weights->shape[1];

@@ -149,14 +149,14 @@ static void __attribute__ ((always_inline))  basic_rnn_cell_prepare_and_run_fx(
     const int in_elements = static_cast<int>((cfg->mode == RNN_ONE_TO_ONE) ? 
             mli_prv_count_elem_num(in) : mli_prv_count_elem_num_part(in, 1));
 
-    const MLI_PTR (w_T) w_ptr = (const MLI_PTR (w_T)) weights->data;
-    const MLI_PTR (w_T) b_ptr = (const MLI_PTR (w_T)) bias->data;
-    const MLI_PTR (io_T) in_ptr = (const MLI_PTR (io_T)) in->data;
-    MLI_PTR (io_T) state_ptr = (MLI_PTR (io_T)) prev_out->data;
+    const MLI_PTR (w_T) w_ptr = (const MLI_PTR (w_T)) weights->data.mem.void_p;
+    const MLI_PTR (w_T) b_ptr = (const MLI_PTR (w_T)) bias->data.mem.void_p;
+    const MLI_PTR (io_T) in_ptr = (const MLI_PTR (io_T)) in->data.mem.void_p;
+    MLI_PTR (io_T) state_ptr = (MLI_PTR (io_T)) prev_out->data.mem.void_p;
 
-    mli_tensor dense_out = { 0 };
-    dense_out.data = (cfg->mode != RNN_BATCH_TO_LAST) ? out->data : cfg->ir_tsr->data;
-    dense_out.capacity = (cfg->mode != RNN_BATCH_TO_LAST) ? out->capacity : cfg->ir_tsr->capacity;
+    mli_tensor dense_out = {{ 0 }};
+    dense_out.data.mem.void_p = (cfg->mode != RNN_BATCH_TO_LAST) ? out->data.mem.void_p : cfg->ir_tsr->data.mem.void_p;
+    dense_out.data.capacity = (cfg->mode != RNN_BATCH_TO_LAST) ? out->data.capacity : cfg->ir_tsr->data.capacity;
     dense_out.shape[0] = out_elements;
     dense_out.mem_stride[0] = 0;
     dense_out.rank = 1;
@@ -165,11 +165,11 @@ static void __attribute__ ((always_inline))  basic_rnn_cell_prepare_and_run_fx(
     dense_out.el_params.fx.frac_bits = (cfg->act == RNN_ACT_NONE) ? out->el_params.fx.frac_bits : 
             (sizeof(io_T) * 8) - 1 - 3;
 
-    MLI_CONV_OUT_PTR (io_T) dense_out_ptr = (MLI_CONV_OUT_PTR (io_T)) dense_out.data;
+    MLI_CONV_OUT_PTR (io_T) dense_out_ptr = (MLI_CONV_OUT_PTR (io_T)) dense_out.data.mem.void_p;
 
     mli_tensor rnn_out = {
-        .data = out->data,
-        .capacity = out_elements * sizeof(io_T),
+        .data.mem.void_p = out->data.mem.void_p,
+        .data.capacity = out_elements * sizeof(io_T),
         .shape = {static_cast<unsigned>(out_elements)},
         .rank = 1,
         .el_type = in->el_type,
@@ -177,10 +177,10 @@ static void __attribute__ ((always_inline))  basic_rnn_cell_prepare_and_run_fx(
 
     int b_half = batch_sz&1;
     if(b_half == 0 && cfg->act == RNN_ACT_NONE && cfg->mode == RNN_BATCH_TO_LAST) {
-        rnn_out.data = cfg->ir_tsr->data;
+        rnn_out.data.mem.void_p = cfg->ir_tsr->data.mem.void_p;
     }
 
-    MLI_CONV_OUT_PTR (io_T) rnn_out_ptr = (MLI_CONV_OUT_PTR (io_T)) rnn_out.data;
+    MLI_CONV_OUT_PTR (io_T) rnn_out_ptr = (MLI_CONV_OUT_PTR (io_T)) rnn_out.data.mem.void_p;
 
     // Define shift values
     const int bias_shift = mli_prv_calc_shift (in, weights, bias);
@@ -196,10 +196,10 @@ static void __attribute__ ((always_inline))  basic_rnn_cell_prepare_and_run_fx(
                     prev_elements, out_elements, bias_shift, in_to_state_dif, out_shift);
             // Update pointers for next batch
             //=======================================
-            state_ptr = (MLI_PTR (io_T)) rnn_out.data;
+            state_ptr = (MLI_PTR (io_T)) rnn_out.data.mem.void_p;
             b_half ^= 1;
-            rnn_out.data = b_half ? out->data : cfg->ir_tsr->data;
-            rnn_out_ptr = (MLI_CONV_OUT_PTR (io_T)) rnn_out.data;
+            rnn_out.data.mem.void_p = b_half ? out->data.mem.void_p : cfg->ir_tsr->data.mem.void_p;
+            rnn_out_ptr = (MLI_CONV_OUT_PTR (io_T)) rnn_out.data.mem.void_p;
         }
         else {
             // Applying Dense
@@ -222,10 +222,10 @@ static void __attribute__ ((always_inline))  basic_rnn_cell_prepare_and_run_fx(
             }
             // Update pointers for next batch
             //=======================================
-            state_ptr = (MLI_PTR (io_T)) rnn_out.data;
+            state_ptr = (MLI_PTR (io_T)) rnn_out.data.mem.void_p;
             if (cfg->mode == RNN_BATCH_TO_BATCH) {
-                rnn_out.data = static_cast < io_T * >(rnn_out.data) + out_elements;
-                dense_out.data = static_cast < io_T * >(dense_out.data) + out_elements;
+                rnn_out.data.mem.void_p = static_cast < io_T * >(rnn_out.data.mem.void_p) + out_elements;
+                dense_out.data.mem.void_p = static_cast < io_T * >(dense_out.data.mem.void_p) + out_elements;
                 dense_out_ptr += out_elements;
             }
         }
@@ -263,11 +263,11 @@ static void __attribute__ ((always_inline)) lstm_cell_prepare_and_run_fx(
     const int batch_sz = static_cast<int>((cfg->mode == RNN_ONE_TO_ONE) ? 1 : in->shape[0]);
     const int in_elements = static_cast<int>((cfg->mode == RNN_ONE_TO_ONE) ? mli_prv_count_elem_num (in) : mli_prv_count_elem_num_part(in, 1));
 
-    const MLI_PTR (w_T) w_ptr = (const MLI_PTR (w_T)) weights->data;
-    const MLI_PTR (w_T) b_ptr = (const MLI_PTR (w_T)) bias->data;
-    const MLI_PTR (io_T) in_ptr = (const MLI_PTR (io_T)) in->data;
-    const MLI_PTR (io_T) prev_ptr = (const MLI_PTR (io_T)) prev_out->data;
-    MLI_CONV_OUT_PTR (io_T) dense_out_ptr = (MLI_CONV_OUT_PTR (io_T)) cfg->ir_tsr->data;
+    const MLI_PTR (w_T) w_ptr = (const MLI_PTR (w_T)) weights->data.mem.void_p;
+    const MLI_PTR (w_T) b_ptr = (const MLI_PTR (w_T)) bias->data.mem.void_p;
+    const MLI_PTR (io_T) in_ptr = (const MLI_PTR (io_T)) in->data.mem.void_p;
+    const MLI_PTR (io_T) prev_ptr = (const MLI_PTR (io_T)) prev_out->data.mem.void_p;
+    MLI_CONV_OUT_PTR (io_T) dense_out_ptr = (MLI_CONV_OUT_PTR (io_T)) cfg->ir_tsr->data.mem.void_p;
 
     // Fill intermediate tensor of dense output
     mli_tensor *ir_tensor = cfg->ir_tsr;
@@ -286,8 +286,8 @@ static void __attribute__ ((always_inline)) lstm_cell_prepare_and_run_fx(
     const int dense_out_shift = mli_prv_calc_shift(prev_out, weights, ir_tensor);
 
     // Paricular subtensors of intermediate tensor (mli_tensor.mem_stride[] should be zero and cannot be left uninitialized)
-    mli_tensor in_gate = { 0 }, forget_gate = { 0 }, out_gate = { 0 }; // Various gates to controll info flow
-    mli_tensor g_tsr = { 0 }; // Information tensors
+    mli_tensor in_gate = {{ 0 }}, forget_gate = {{ 0 }}, out_gate = {{ 0 }}; // Various gates to controll info flow
+    mli_tensor g_tsr = {{ 0 }}; // Information tensors
 
     // Init subtensors
     mli_point_to_subtsr_cfg iterator = {.start_coord = {0}, .coord_num=1, .first_out_dim_size=1};
@@ -298,18 +298,18 @@ static void __attribute__ ((always_inline)) lstm_cell_prepare_and_run_fx(
 
     // lstm output for one step
     mli_tensor rnn_out = {
-        .data = out->data,
-        .capacity = out->capacity,
+        .data.mem.void_p = out->data.mem.void_p,
+        .data.capacity = out->data.capacity,
         .shape = {static_cast<unsigned>(lstm_out_elements)},
         .rank = 1,
         .el_type = in->el_type};
     if (cfg->act == RNN_ACT_NONE)   // fx Parameters in case of No activation
         rnn_out.el_params.fx.frac_bits = prev_out->el_params.fx.frac_bits;
 
-    io_T *f_g = (io_T *) forget_gate.data;
-    io_T *i_g = (io_T *) in_gate.data;
-    io_T *g = (io_T *) g_tsr.data;
-    io_T *c = (io_T *) cell->data;
+    io_T *f_g = (io_T *) forget_gate.data.mem.void_p;
+    io_T *i_g = (io_T *) in_gate.data.mem.void_p;
+    io_T *g = (io_T *) g_tsr.data.mem.void_p;
+    io_T *c = (io_T *) cell->data.mem.void_p;
 
     // For elementwise (assuming gates have 7 (fx8) or 15 (fx16) fractional bits)
     int eltwise_ir_shift = ((sizeof(io_T) * 8) - 1) - (int) cell->el_params.fx.frac_bits;
@@ -379,10 +379,10 @@ static void __attribute__ ((always_inline)) lstm_cell_prepare_and_run_fx(
         // Step 5: Update pointers and tensors for next batch
         //=======================================
         in_ptr += in_elements;
-        prev_ptr = (MLI_PTR (io_T)) rnn_out.data;
+        prev_ptr = (MLI_PTR (io_T)) rnn_out.data.mem.void_p;
         if (cfg->mode == RNN_BATCH_TO_BATCH) {
-            rnn_out.data = static_cast<io_T*>(rnn_out.data) + lstm_out_elements;
-            rnn_out.capacity -= lstm_out_elements;
+            rnn_out.data.mem.void_p = static_cast<io_T*>(rnn_out.data.mem.void_p) + lstm_out_elements;
+            rnn_out.data.capacity -= lstm_out_elements;
         }
     }
 

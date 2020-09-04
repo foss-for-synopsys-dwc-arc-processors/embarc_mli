@@ -59,8 +59,8 @@ static d_type  _X    lstm_cell_mem_buf[LSTM_CELL_SZ];
 // Module Input/Output tensors and their's external interface
 //============================================================
 static mli_tensor input = {
-    .data = (void *)x_mem_buf,
-    .capacity = sizeof(d_type) * IN_POINTS,
+    .data.mem.void_p = (void *)x_mem_buf,
+    .data.capacity = sizeof(d_type) * IN_POINTS,
     .shape = {128, 9},
     .rank = 2,
     .el_type = D_EL_TYPE,
@@ -68,8 +68,8 @@ static mli_tensor input = {
 };
 
 static mli_tensor output = {
-    .data = (void *)y_mem_buf,
-    .capacity = sizeof(d_type) * OUT_POINTS,
+    .data.mem.void_p = (void *)y_mem_buf,
+    .data.capacity = sizeof(d_type) * OUT_POINTS,
     .shape = {6},
     .rank = 1,
     .el_type = D_EL_TYPE,
@@ -90,8 +90,8 @@ mli_tensor * const har_smartphone_net_output = &output;
 // Intermediate and helper tensors
 //===============================================
 static mli_tensor ir_tensor_X = {
-    .data = (void *)x_mem_buf,
-    .capacity = sizeof(x_mem_buf),
+    .data.mem.void_p = (void *)x_mem_buf,
+    .data.capacity = sizeof(x_mem_buf),
     .shape = {0, 0, 0, 0},
     .rank = 4,
     .el_type = D_EL_TYPE,
@@ -99,8 +99,8 @@ static mli_tensor ir_tensor_X = {
 };
 
 static mli_tensor ir_tensor_Y = {
-    .data = (void *)y_mem_buf,
-    .capacity = sizeof(y_mem_buf),
+    .data.mem.void_p = (void *)y_mem_buf,
+    .data.capacity = sizeof(y_mem_buf),
     .shape = {0, 0, 0, 0},
     .rank = 4,
     .el_type = D_EL_TYPE,
@@ -108,8 +108,8 @@ static mli_tensor ir_tensor_Y = {
 };
 
 static mli_tensor lstm_ir_tensor = {
-    .data = (void *)lstm_ir_mem_buf,
-    .capacity = sizeof(lstm_ir_mem_buf),
+    .data.mem.void_p = (void *)lstm_ir_mem_buf,
+    .data.capacity = sizeof(lstm_ir_mem_buf),
     .shape = {0, 0, 0, 0},
     .rank = 4,
     .el_type = D_EL_TYPE,
@@ -117,8 +117,8 @@ static mli_tensor lstm_ir_tensor = {
 };
 
 static mli_tensor lstm_cell_tensor = {
-    .data = lstm_cell_mem_buf,
-    .capacity = sizeof(lstm_cell_mem_buf),
+    .data.mem.void_p = lstm_cell_mem_buf,
+    .data.capacity = sizeof(lstm_cell_mem_buf),
     .shape = {LSTM_CELL_SZ},
     .rank = 1,
     .el_type = D_EL_TYPE,
@@ -126,8 +126,8 @@ static mli_tensor lstm_cell_tensor = {
 };
 
 static mli_tensor lstm_prev_tensor = {
-    .data = NULL, // TO BE UPDATED BEFORE usage
-    .capacity = sizeof(lstm_cell_mem_buf),
+    .data.mem.void_p = NULL, // TO BE UPDATED BEFORE usage
+    .data.capacity = sizeof(lstm_cell_mem_buf),
     .shape = {LSTM_CELL_SZ},
     .rank = 1,
     .el_type = D_EL_TYPE,
@@ -137,8 +137,8 @@ static mli_tensor lstm_prev_tensor = {
 // Layer 1: Fully Connected related data
 //===================================
 static const mli_tensor L1_fc_wt = {
-    .data = (void *)L1_fc_wt_buf,
-    .capacity = FC1_W_ELEMENTS * sizeof(w_type),
+    .data.mem.void_p = (void *)L1_fc_wt_buf,
+    .data.capacity = FC1_W_ELEMENTS * sizeof(w_type),
     .shape = FC1_W_SHAPE,
     .rank = FC1_W_RANK,
     .el_type = W_EL_TYPE,
@@ -146,8 +146,8 @@ static const mli_tensor L1_fc_wt = {
 };
 
 static const mli_tensor L1_fc_bias = {
-    .data = (void *)L1_fc_bias_buf,
-    .capacity = FC1_B_ELEMENTS * sizeof(w_type),
+    .data.mem.void_p = (void *)L1_fc_bias_buf,
+    .data.capacity = FC1_B_ELEMENTS * sizeof(w_type),
     .shape = FC1_B_SHAPE,
     .rank = FC1_B_RANK,
     .el_type = W_EL_TYPE,
@@ -159,8 +159,8 @@ static const mli_relu_cfg L1_relu_cfg = {.type = MLI_RELU_GEN};
 // LSTM Layer 2 related data
 //===================================
 static const mli_tensor L2_lstm_wt = {
-    .data = (void *)L2_lstm_wt_buf,
-    .capacity = LSTM2_W_ELEMENTS * sizeof(w_type),
+    .data.mem.void_p = (void *)L2_lstm_wt_buf,
+    .data.capacity = LSTM2_W_ELEMENTS * sizeof(w_type),
     .shape = LSTM2_W_SHAPE,
     .rank = LSTM2_W_RANK,
     .el_type = W_EL_TYPE,
@@ -168,8 +168,8 @@ static const mli_tensor L2_lstm_wt = {
 };
 
 static const mli_tensor L2_lstm_bias = {
-    .data = (void *)L2_lstm_bias_buf,
-    .capacity = LSTM2_B_ELEMENTS * sizeof(w_type),
+    .data.mem.void_p = (void *)L2_lstm_bias_buf,
+    .data.capacity = LSTM2_B_ELEMENTS * sizeof(w_type),
     .shape = LSTM2_B_SHAPE,
     .rank = LSTM2_B_RANK,
     .el_type = W_EL_TYPE,
@@ -185,8 +185,8 @@ static const mli_rnn_cell_cfg L2_lstm_cfg = {
 // LSTM Layer 3 related data
 //===================================
 static const mli_tensor L3_lstm_wt = {
-    .data = (void *)L3_lstm_wt_buf,
-    .capacity = LSTM3_W_ELEMENTS * sizeof(w_type),
+    .data.mem.void_p = (void *)L3_lstm_wt_buf,
+    .data.capacity = LSTM3_W_ELEMENTS * sizeof(w_type),
     .shape = LSTM3_W_SHAPE,
     .rank = LSTM3_W_RANK,
     .el_type = W_EL_TYPE,
@@ -194,8 +194,8 @@ static const mli_tensor L3_lstm_wt = {
 };
 
 static const mli_tensor L3_lstm_bias = {
-    .data = (void *)L3_lstm_bias_buf,
-    .capacity = LSTM3_B_ELEMENTS * sizeof(w_type),
+    .data.mem.void_p = (void *)L3_lstm_bias_buf,
+    .data.capacity = LSTM3_B_ELEMENTS * sizeof(w_type),
     .shape = LSTM3_B_SHAPE,
     .rank = LSTM3_B_RANK,
     .el_type = W_EL_TYPE,
@@ -211,8 +211,8 @@ static const mli_rnn_cell_cfg L3_lstm_cfg = {
 // FC4 Layer related data
 //===================================
 static const mli_tensor L4_fc_wt = {
-    .data = (void *)L4_fc_wt_buf,
-    .capacity = FC4_W_ELEMENTS * sizeof(w_type),
+    .data.mem.void_p = (void *)L4_fc_wt_buf,
+    .data.capacity = FC4_W_ELEMENTS * sizeof(w_type),
     .shape = FC4_W_SHAPE,
     .rank = FC4_W_RANK,
     .el_type = W_EL_TYPE,
@@ -220,8 +220,8 @@ static const mli_tensor L4_fc_wt = {
 };
 
 static const mli_tensor L4_fc_bias = {
-    .data = (void *)L4_fc_bias_buf,
-    .capacity = FC4_B_ELEMENTS * sizeof(w_type),
+    .data.mem.void_p = (void *)L4_fc_bias_buf,
+    .data.capacity = FC4_B_ELEMENTS * sizeof(w_type),
     .shape = FC4_B_SHAPE,
     .rank = FC4_B_RANK,
     .el_type = W_EL_TYPE,
@@ -311,13 +311,13 @@ void har_smartphone_net(const char * debug_ir_root) {
 
         // LAYER 2
         //=======================================
-        d_type *cell_ptr = (d_type *)lstm_cell_tensor.data;
-        d_type *prev_out_ptr = (d_type *)ir_tensor_Y.data;
+        d_type *cell_ptr = (d_type *)lstm_cell_tensor.data.mem.void_p;
+        d_type *prev_out_ptr = (d_type *)ir_tensor_Y.data.mem.void_p;
         for (int idx =0; idx < LSTM_CELL_SZ; idx++)
             cell_ptr[idx] = prev_out_ptr[idx] = 0;
 
         // Completion of state tensors description
-        lstm_prev_tensor.data = prev_out_ptr;
+        lstm_prev_tensor.data.mem.void_p = prev_out_ptr;
         lstm_prev_tensor.el_params.fx.frac_bits = LSTM2_OUT_FRAQ;
         lstm_cell_tensor.el_params.fx.frac_bits = LSTM2_CELL_FRAQ;
 
@@ -326,13 +326,13 @@ void har_smartphone_net(const char * debug_ir_root) {
 
         // LAYER 3
         //=======================================
-        cell_ptr = (d_type *)lstm_cell_tensor.data;
-        prev_out_ptr = (d_type *)ir_tensor_X.data;
+        cell_ptr = (d_type *)lstm_cell_tensor.data.mem.void_p;
+        prev_out_ptr = (d_type *)ir_tensor_X.data.mem.void_p;
         for (int idx =0; idx < LSTM_CELL_SZ; idx++)
             cell_ptr[idx] = prev_out_ptr[idx] = 0;
 
         // Completion state tensors description
-        lstm_prev_tensor.data = prev_out_ptr;
+        lstm_prev_tensor.data.mem.void_p = prev_out_ptr;
         lstm_prev_tensor.el_params.fx.frac_bits = LSTM3_OUT_FRAQ;
         lstm_cell_tensor.el_params.fx.frac_bits = LSTM3_CELL_FRAQ;
 
@@ -367,13 +367,13 @@ void har_smartphone_net(const char * debug_ir_root) {
         // LAYER 2
         //=======================================
         // Clear state buffers
-        d_type *cell_ptr = (d_type *)lstm_cell_tensor.data;
-        d_type *prev_out_ptr = (d_type *)ir_tensor_Y.data;
+        d_type *cell_ptr = (d_type *)lstm_cell_tensor.data.mem.void_p;
+        d_type *prev_out_ptr = (d_type *)ir_tensor_Y.data.mem.void_p;
         for (int idx =0; idx < LSTM_CELL_SZ; idx++)
             cell_ptr[idx] = prev_out_ptr[idx] = 0;
 
         // Completion state tensors description
-        lstm_prev_tensor.data = prev_out_ptr;
+        lstm_prev_tensor.data.mem.void_p = prev_out_ptr;
         lstm_prev_tensor.el_params.fx.frac_bits = LSTM2_OUT_FRAQ;
         lstm_cell_tensor.el_params.fx.frac_bits = LSTM2_CELL_FRAQ;
 
@@ -384,13 +384,13 @@ void har_smartphone_net(const char * debug_ir_root) {
 
         // LAYER 3
         //=======================================
-        cell_ptr = (d_type *)lstm_cell_tensor.data;
-        prev_out_ptr = (d_type *)ir_tensor_X.data;
+        cell_ptr = (d_type *)lstm_cell_tensor.data.mem.void_p;
+        prev_out_ptr = (d_type *)ir_tensor_X.data.mem.void_p;
         for (int idx =0; idx < LSTM_CELL_SZ; idx++)
             cell_ptr[idx] = prev_out_ptr[idx] = 0;
 
         // Completion state tensors description
-        lstm_prev_tensor.data = prev_out_ptr;
+        lstm_prev_tensor.data.mem.void_p = prev_out_ptr;
         lstm_prev_tensor.el_params.fx.frac_bits = LSTM3_OUT_FRAQ;
         lstm_cell_tensor.el_params.fx.frac_bits = LSTM3_CELL_FRAQ;
 
@@ -426,7 +426,7 @@ static mli_status user_fc_on_multiple_samples(const mli_tensor *layer_input, mli
     mli_status ret_val = MLI_STATUS_OK;
     mli_tensor fc1_in = {.rank=1, .shape={0}};
     mli_tensor fc1_out = {
-            .data = layer_output->data, .capacity = layer_output->capacity,
+            .data.mem.void_p = layer_output->data.mem.void_p, .data.capacity = layer_output->data.capacity,
             .el_params.fx.frac_bits = layer_output->el_params.fx.frac_bits
     };
     mli_point_to_subtsr_cfg iterator = {.start_coord = {0}, .coord_num=1, .first_out_dim_size=1};
@@ -435,15 +435,15 @@ static mli_status user_fc_on_multiple_samples(const mli_tensor *layer_input, mli
                 return ret_val;
 
     unsigned next_out_add = mli_hlp_count_elem_num(&L1_fc_bias, 0) * mli_hlp_tensor_element_size(&fc1_in);
-    unsigned next_in_add = fc1_in.capacity;
+    unsigned next_in_add = fc1_in.data.capacity;
     for (int batch_idx = 0; batch_idx < layer_input->shape[0]; batch_idx++) {
         ret_val = nn_fully_connected(&fc1_in, &L1_fc_wt, &L1_fc_bias, &fc1_out);
         if (ret_val != MLI_STATUS_OK)
             return ret_val;
 
-        fc1_in.data += next_in_add;
-        fc1_out.data += next_out_add;
-        fc1_out.capacity -= next_out_add;
+        fc1_in.data.mem.void_p += next_in_add;
+        fc1_out.data.mem.void_p += next_out_add;
+        fc1_out.data.capacity -= next_out_add;
     }
 
     layer_output->rank = 2;
@@ -481,7 +481,7 @@ static mli_status user_lstm_batch_to_last(
 
     // Various gates to controll info flow.
     mli_tensor in_gate = {0}, g_tsr = {0}, forget_gate = {0}, out_gate = {0};
-    mli_tensor new_g = {.data=out->data, .capacity=out->capacity,
+    mli_tensor new_g = {.data.mem = out->data.mem.void_p, .data.capacity=out->data.capacity,
         .el_params.fx.frac_bits = cell->el_params.fx.frac_bits};
 
 
@@ -547,7 +547,7 @@ static mli_status user_lstm_batch_to_last(
 
         //Next sample: Step 1: Fully connected
         if (batch_idx < in->shape[0]-1) {
-            rnn_in.data += next_in_add;
+            rnn_in.data.mem.void_p += next_in_add;
             ret_val = nn_rnn_cell(&rnn_in, rnn_prev, weights, bias, &rnn_cfg, ir_tensor);
             if (ret_val != MLI_STATUS_OK)
                         return ret_val;

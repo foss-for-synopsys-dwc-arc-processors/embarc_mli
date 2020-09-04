@@ -243,7 +243,7 @@ void conv2d_prepare_and_run(
     out->el_type = in->el_type;
     mli_minmax_t val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
-    const MLI_PTR(b_T) bs = (MLI_PTR(b_T))(bias->data);
+    const MLI_PTR(b_T) bs = (MLI_PTR(b_T))(bias->data.mem.void_p);
 
     const auto in_prv = (data_layout == LAYOUT_HWC || data_layout == LAYOUT_HWCN || data_layout == LAYOUT_1HWN) ?
             mli_prv_get_tensor_hwc<MLI_PTR(io_T)>(in)
