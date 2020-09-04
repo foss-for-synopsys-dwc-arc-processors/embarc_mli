@@ -37,6 +37,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_nopad(
         const io_T val_min_limit,
         const io_T val_max_limit,
         const int stride_height, const int stride_width,
+        const int dilation_height, const int dilation_width,
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right) {
     const int row_begin = perception_area.row_beg;
@@ -89,9 +90,10 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_nopad(
                 __v2i32_t v2accu_dotprod = v2acc_weights_add;
                 for (int W_idx = 0; W_idx < amount_columns; W_idx++) {
                     dotprod2D_hwc_v(&in_ptr, &w_ptr, &v2accu_dotprod, w.kernel_width, w.kernel_height,
-                                    in.col_mem_stride, in.row_mem_stride, w.col_mem_stride, w.row_mem_stride);
+                                    in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height,
+                                    w.col_mem_stride, w.row_mem_stride);
                     //compensite increment of input tensor pointer from dotprod2D_hwc_v function
-                    in_ptr += in_increment_clmn_loop - w.kernel_height * in.row_mem_stride;
+                    in_ptr += in_increment_clmn_loop - w.kernel_height * in.row_mem_stride * dilation_height;
                     //compensite increment of weights pointer from dotprod2D_hwc_v function
                     w_ptr -= w.kernel_height * w.row_mem_stride;
 
@@ -129,9 +131,10 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_nopad(
                     //============================================
                     __v2i32_t accu = v2global_other_additives;
                     accu = dotprod2D_inp_width_v(&in_ptr, &w_ptr, &accu, w.kernel_width, w.kernel_height,
-                            in.col_mem_stride, in.row_mem_stride, w.col_mem_stride, w.row_mem_stride, in_increment_clmn_loop);
+                            in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height,
+                            w.col_mem_stride, w.row_mem_stride, in_increment_clmn_loop);
                     //compensite increment of input tensor pointer from dotprod2D_hwc_v function
-                    in_ptr += 2 * in_increment_clmn_loop - w.kernel_height * in.row_mem_stride;
+                    in_ptr += 2 * in_increment_clmn_loop - w.kernel_height * in.row_mem_stride * dilation_height;
                     //compensite increment of weights pointer from dotprod2D_hwc_v function
                     w_ptr -= w.kernel_height * w.row_mem_stride;
                     // Cast result to output type
@@ -144,9 +147,9 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_nopad(
                     //============================================
                     acc_T accu = 0;
                     accu = dotprod2D(&in_ptr, &w_ptr, accu, w.kernel_width, w.kernel_height,
-                            in.col_mem_stride, in.row_mem_stride, w.col_mem_stride, w.row_mem_stride);
+                            in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, w.col_mem_stride, w.row_mem_stride);
                     //compensite increment of input tensor pointer from dotprod2D_hwc_v function
-                    in_ptr += in_increment_clmn_loop - w.kernel_height * in.row_mem_stride;
+                    in_ptr += in_increment_clmn_loop - w.kernel_height * in.row_mem_stride * dilation_height;
                     //compensite increment of weights pointer from dotprod2D_hwc_v function
                     w_ptr -= w.kernel_height * w.row_mem_stride;
                     accu += global_other_additives;
@@ -179,6 +182,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn(
         const io_T val_min_limit,
         const io_T val_max_limit,
         const int stride_height, const int stride_width,
+        const int dilation_height, const int dilation_width,
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right) {
 
@@ -242,7 +246,8 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn(
                     dotprod2D_hwc_v(
                             &in_ptr[in.col_mem_stride * w_idx_in],
                             &w_ptr[w.col_mem_stride * comp.left], &v2accu_dotprod, clmns, rows,
-                            in.col_mem_stride, in.row_mem_stride, w.col_mem_stride, w.row_mem_stride);
+                            in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height,
+                            w.col_mem_stride, w.row_mem_stride);
 
                     __v2i32_t v2acc_weights_add = {0, 0};
                     v2acc_weights_add = weights_additive_v(
@@ -300,7 +305,8 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn(
                     accu = dotprod2D(
                             &in_ptr[in.col_mem_stride * w_idx_in],
                             &w_ptr[w.col_mem_stride * comp.left], accu, clmns, rows,
-                            in.col_mem_stride, in.row_mem_stride, w.col_mem_stride, w.row_mem_stride);
+                            in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height,
+                            w.col_mem_stride, w.row_mem_stride);
 
                     int32_t w_adds = weights_additive(
                             &w_ptr[w.col_mem_stride * comp.left], 0x0, &quant_params, clmns, rows,
@@ -333,12 +339,14 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_nopad(
         const io_T val_min_limit,
         const io_T val_max_limit,
         const int stride_height, const int stride_width,
+        const int dilation_height, const int dilation_width,
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right) {
     mli::krn::ref::depthwise_convolution2D<io_T, w_T, b_T, acc_T, fx_quant_specific_params>(
                 in, w, biases, out, perception_area, quant_params,
                 val_min_limit, val_max_limit,
                 stride_height, stride_width,
+                dilation_height, dilation_width,
                 padding_top, padding_left,
                 padding_bot, padding_right);
 }
@@ -354,12 +362,14 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn(
         const io_T val_min_limit,
         const io_T val_max_limit,
         const int stride_height, const int stride_width,
+        const int dilation_height, const int dilation_width,
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right) {
     mli::krn::ref::depthwise_convolution2D<io_T, w_T, b_T, acc_T, fx_quant_specific_params>(
                 in, w, biases, out, perception_area, quant_params,
                 val_min_limit, val_max_limit,
                 stride_height, stride_width,
+                dilation_height, dilation_width,
                 padding_top, padding_left,
                 padding_bot, padding_right);
 
@@ -376,6 +386,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D(
         const io_T val_min_limit,
         const io_T val_max_limit,
         const int stride_height, const int stride_width,
+        const int dilation_height, const int dilation_width,
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right) {
 
@@ -393,6 +404,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D(
                 in, w, biases, out, perception_area_nopad, quant_params,
                 val_min_limit, val_max_limit,
                 stride_height, stride_width,
+                dilation_height, dilation_width,
                 padding_top, padding_left,
                 padding_bot, padding_right);
     }
@@ -431,6 +443,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D(
                     in, w, biases, out, perc_areas[i], quant_params,
                     val_min_limit, val_max_limit,
                     stride_height, stride_width,
+                    dilation_height, dilation_width,
                     padding_top, padding_left,
                     padding_bot, padding_right);
         }

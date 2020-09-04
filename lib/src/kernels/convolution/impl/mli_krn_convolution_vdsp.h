@@ -215,7 +215,7 @@ static void convolution2D_pad(
 // Convolution 2D
 //========================================================
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
-void convolution2D(
+static void convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,
