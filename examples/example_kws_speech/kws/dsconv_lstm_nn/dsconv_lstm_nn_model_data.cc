@@ -68,16 +68,16 @@ const dsconv_lstm_model_data kDsconvLstmModelStruct = {
     // Layer 1: Conv2D related tensors
     //===================================
     .L1_conv_wt = {
-        .data.mem.void_p = (void *)L1_conv_wt_buf,
-        .data.capacity = sizeof(L1_conv_wt_buf),
+        .data = {.capacity = sizeof(L1_conv_wt_buf),
+                .mem = {.void_p = (void *)L1_conv_wt_buf}},
         .shape = {64,1,3,3},
         .rank = 4,
         .el_type = MLI_EL_FX_8,
         .el_params.fx.frac_bits = 7,
     },
     .L1_conv_bias = {
-        .data.mem.void_p = (void *)L1_conv_bias_buf,
-        .data.capacity = sizeof(L1_conv_bias_buf),
+        .data = {.capacity = sizeof(L1_conv_bias_buf),
+                .mem = {.void_p = (void *)L1_conv_bias_buf}},
         .shape = {64},
         .rank = 1,
         .el_type = MLI_EL_FX_8,
@@ -88,16 +88,16 @@ const dsconv_lstm_model_data kDsconvLstmModelStruct = {
     // Layer 2: Depthwise Separable Conv 2D related tensors
     //======================================================
     .L2a_conv_dw_wt = {
-        .data.mem.void_p = (void *)L2a_conv_dw_wt_buf,
-        .data.capacity = sizeof(L2a_conv_dw_wt_buf),
+        .data = {.capacity = sizeof(L2a_conv_dw_wt_buf),
+                .mem = {.void_p = (void *)L2a_conv_dw_wt_buf}},
         .shape = {64,1,3,3},
         .rank = 4,
         .el_type = MLI_EL_FX_8,
         .el_params.fx.frac_bits = 5,
     },
     .L2a_conv_dw_bias = {
-        .data.mem.void_p = (void *)L2a_conv_dw_bias_buf,
-        .data.capacity = sizeof(L2a_conv_dw_bias_buf),
+        .data = {.capacity = sizeof(L2a_conv_dw_bias_buf),
+                .mem = {.void_p = (void *)L2a_conv_dw_bias_buf}},
         .shape = {64},
         .rank = 1,
         .el_type = MLI_EL_FX_8,
@@ -106,16 +106,16 @@ const dsconv_lstm_model_data kDsconvLstmModelStruct = {
     .L2a_conv_dw_out_fraq = 2,
 
     .L2b_conv_pw_wt = {
-        .data.mem.void_p = (void *)L2b_conv_pw_wt_buf,
-        .data.capacity = sizeof(L2b_conv_pw_wt_buf),
+        .data = {.capacity = sizeof(L2b_conv_pw_wt_buf),
+                .mem = {.void_p = (void *)L2b_conv_pw_wt_buf}},
         .shape = {64,64,1,1},
         .rank = 4,
         .el_type = MLI_EL_FX_8,
         .el_params.fx.frac_bits = 7,
     },
     .L2b_conv_pw_bias = {
-        .data.mem.void_p = (void *)L2b_conv_pw_bias_buf,
-        .data.capacity = sizeof(L2b_conv_pw_bias_buf),
+        .data = {.capacity = sizeof(L2b_conv_pw_bias_buf),
+                .mem = {.void_p = (void *)L2b_conv_pw_bias_buf}},
         .shape = {64},
         .rank = 1,
         .el_type = MLI_EL_FX_8,
@@ -126,16 +126,16 @@ const dsconv_lstm_model_data kDsconvLstmModelStruct = {
     // Layer 3: Depthwise Separable Conv 2D related tensors
     //======================================================
     .L3a_conv_dw_wt = {
-        .data.mem.void_p = (void *)L3a_conv_dw_wt_buf,
-        .data.capacity = sizeof(L3a_conv_dw_wt_buf),
+        .data = {.capacity = sizeof(L3a_conv_dw_wt_buf),
+                .mem = {.void_p = (void *)L3a_conv_dw_wt_buf}},
         .shape = {64,1,3,3},
         .rank = 4,
         .el_type = MLI_EL_FX_8,
         .el_params.fx.frac_bits = 5,
     },
     .L3a_conv_dw_bias = {
-        .data.mem.void_p = (void *)L3a_conv_dw_bias_buf,
-        .data.capacity = sizeof(L3a_conv_dw_bias_buf),
+        .data = {.capacity = sizeof(L3a_conv_dw_bias_buf),
+                .mem = {.void_p = (void *)L3a_conv_dw_bias_buf}},
         .shape = {64},
         .rank = 1,
         .el_type = MLI_EL_FX_8,
@@ -144,16 +144,16 @@ const dsconv_lstm_model_data kDsconvLstmModelStruct = {
     .L3a_conv_dw_out_fraq = 2,
 
     .L3b_conv_pw_wt = {
-        .data.mem.void_p = (void *)L3b_conv_pw_wt_buf,
-        .data.capacity = sizeof(L3b_conv_pw_wt_buf),
+        .data = {.capacity = sizeof(L3b_conv_pw_wt_buf),
+                .mem = {.void_p = (void *)L3b_conv_pw_wt_buf}},
         .shape = {64,64,1,1},
         .rank = 4,
         .el_type = MLI_EL_FX_8,
         .el_params.fx.frac_bits = 7,
     },
     .L3b_conv_pw_bias = {
-        .data.mem.void_p = (void *)L3b_conv_pw_bias_buf,
-        .data.capacity = sizeof(L3b_conv_pw_bias_buf),
+        .data = {.capacity = sizeof(L3b_conv_pw_bias_buf),
+                .mem = {.void_p = (void *)L3b_conv_pw_bias_buf}},
         .shape = {64},
         .rank = 1,
         .el_type = MLI_EL_FX_8,
@@ -165,16 +165,16 @@ const dsconv_lstm_model_data kDsconvLstmModelStruct = {
     // Layer 4: Depthwise Separable Conv 2D related tensors
     //======================================================
     .L4a_conv_dw_wt = {
-        .data.mem.void_p = (void *)L4a_conv_dw_wt_buf,
-        .data.capacity = sizeof(L4a_conv_dw_wt_buf),
+        .data = {.capacity = sizeof(L4a_conv_dw_wt_buf),
+                .mem = {.void_p = (void *)L4a_conv_dw_wt_buf}},
         .shape = {64,1,3,3},
         .rank = 4,
         .el_type = MLI_EL_FX_8,
         .el_params.fx.frac_bits = 6,
     },
     .L4a_conv_dw_bias = {
-        .data.mem.void_p = (void *)L4a_conv_dw_bias_buf,
-        .data.capacity = sizeof(L4a_conv_dw_bias_buf),
+        .data = {.capacity = sizeof(L4a_conv_dw_bias_buf),
+                .mem = {.void_p = (void *)L4a_conv_dw_bias_buf}},
         .shape = {64},
         .rank = 1,
         .el_type = MLI_EL_FX_8,
@@ -183,16 +183,16 @@ const dsconv_lstm_model_data kDsconvLstmModelStruct = {
     .L4a_conv_dw_out_fraq = 3,
     
     .L4b_conv_pw_wt = {
-        .data.mem.void_p = (void *)L4b_conv_pw_wt_buf,
-        .data.capacity = sizeof(L4b_conv_pw_wt_buf),
+        .data = {.capacity = sizeof(L4b_conv_pw_wt_buf),
+                .mem = {.void_p = (void *)L4b_conv_pw_wt_buf}},
         .shape = {64,64,1,1},
         .rank = 4,
         .el_type = MLI_EL_FX_8,
         .el_params.fx.frac_bits = 7,
     },
     .L4b_conv_pw_bias = {
-        .data.mem.void_p = (void *)L4b_conv_pw_bias_buf,
-        .data.capacity = sizeof(L4b_conv_pw_bias_buf),
+        .data = {.capacity = sizeof(L4b_conv_pw_bias_buf),
+                .mem = {.void_p = (void *)L4b_conv_pw_bias_buf}},
         .shape = {64},
         .rank = 1,
         .el_type = MLI_EL_FX_8,
@@ -203,16 +203,16 @@ const dsconv_lstm_model_data kDsconvLstmModelStruct = {
     // Layer 5: LSTM Layer
     //======================================================
     .L5_lstm_wt = {
-        .data.mem.void_p = (void *)L5_lstm_wt_buf,
-        .data.capacity = sizeof(L5_lstm_wt_buf),
+        .data = {.capacity = sizeof(L5_lstm_wt_buf),
+                .mem = {.void_p = (void *)L5_lstm_wt_buf}},
         .shape = {4,32,96},
         .rank = 3,
         .el_type = MLI_EL_FX_8,
         .el_params.fx.frac_bits = 6,
     },
     .L5_lstm_bias = {
-        .data.mem.void_p = (void *)L5_lstm_bias_buf,
-        .data.capacity = sizeof(L5_lstm_bias_buf),
+        .data = {.capacity = sizeof(L5_lstm_bias_buf),
+                .mem = {.void_p = (void *)L5_lstm_bias_buf}},
         .shape = {4, 32},
         .rank = 2,
         .el_type = MLI_EL_FX_8,
@@ -223,16 +223,16 @@ const dsconv_lstm_model_data kDsconvLstmModelStruct = {
     // Layer 6: Fully connected related tensors
     //======================================================
     .L6_fc_wt = {
-        .data.mem.void_p = (void *)L6_fc_wt_buf,
-        .data.capacity = sizeof(L6_fc_wt_buf),
+        .data = {.capacity = sizeof(L6_fc_wt_buf),
+                .mem = {.void_p = (void *)L6_fc_wt_buf}},
         .shape = {12,32},
         .rank = 2,
         .el_type = MLI_EL_FX_8,
         .el_params.fx.frac_bits = 5,
     },
     .L6_fc_bias = {
-        .data.mem.void_p = (void *)L6_fc_bias_buf,
-        .data.capacity = sizeof(L6_fc_bias_buf),
+        .data = {.capacity = sizeof(L6_fc_bias_buf),
+                .mem = {.void_p = (void *)L6_fc_bias_buf}},
         .shape = {12},
         .rank = 1,
         .el_type = MLI_EL_FX_8,
@@ -243,8 +243,8 @@ const dsconv_lstm_model_data kDsconvLstmModelStruct = {
     // Configuration objects for layers
     //===============================================
     .leaky_relu_slope_coeff = {
-        .data.mem.void_p = (void *)(LRELU_SLOPE_COEFF_VAL), // 0.2
-        .data.capacity = 0,
+        .data = {.capacity = 0,
+                .mem = {.void_p = (void *)(LRELU_SLOPE_COEFF_VAL)}}, // 0.2
         .shape = {0}, 
         .rank = 0,
         .el_type = MLI_EL_FX_8,
@@ -252,27 +252,27 @@ const dsconv_lstm_model_data kDsconvLstmModelStruct = {
     },
     .L1_conv_cfg = {
         .stride_height = 2, .stride_width = 1,
-        .padding_bottom = 0, .padding_top = 0,
         .padding_left = 0, .padding_right = 0,
+        .padding_top = 0, .padding_bottom = 0,
         .relu.type = MLI_RELU_NONE
     },
     .depthw_conv_cfg = {
         .stride_height = 1, .stride_width = 1,
-        .padding_bottom = 0, .padding_top = 0,
         .padding_left = 0, .padding_right = 0,
+        .padding_top = 0, .padding_bottom = 0,
         .relu.type = MLI_RELU_NONE
     },
     .pointw_conv_cfg = {
         .stride_height = 1, .stride_width = 1,
-        .padding_bottom = 0, .padding_top = 0,
         .padding_left = 0, .padding_right = 0,
+        .padding_top = 0, .padding_bottom = 0,
         .relu.type = MLI_RELU_NONE
     },
     .avg_pool_cfg = {
         .kernel_height = 1, .kernel_width = 5,
         .stride_height = 1, .stride_width = 1,
-        .padding_bottom = 0, .padding_top = 0,
-        .padding_left = 0, .padding_right = 0
+        .padding_left = 0, .padding_right = 0,
+        .padding_top = 0, .padding_bottom = 0
     },
     .permute_chw2hwc_cfg = {
         .perm_dim = {1, 2, 0}

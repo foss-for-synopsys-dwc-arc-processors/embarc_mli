@@ -168,8 +168,8 @@ static void __attribute__ ((always_inline))  basic_rnn_cell_prepare_and_run_fx(
     MLI_CONV_OUT_PTR (io_T) dense_out_ptr = (MLI_CONV_OUT_PTR (io_T)) dense_out.data.mem.void_p;
 
     mli_tensor rnn_out = {
-        .data.mem.void_p = out->data.mem.void_p,
-        .data.capacity = out_elements * sizeof(io_T),
+        .data = {.capacity = out_elements * sizeof(io_T),
+                .mem = {.void_p = out->data.mem.void_p}},
         .shape = {static_cast<unsigned>(out_elements)},
         .rank = 1,
         .el_type = in->el_type,
@@ -298,8 +298,8 @@ static void __attribute__ ((always_inline)) lstm_cell_prepare_and_run_fx(
 
     // lstm output for one step
     mli_tensor rnn_out = {
-        .data.mem.void_p = out->data.mem.void_p,
-        .data.capacity = out->data.capacity,
+        .data = {.capacity = out->data.capacity,
+                .mem = {.void_p = out->data.mem.void_p}},
         .shape = {static_cast<unsigned>(lstm_out_elements)},
         .rank = 1,
         .el_type = in->el_type};
