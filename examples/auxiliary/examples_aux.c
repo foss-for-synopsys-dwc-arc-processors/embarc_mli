@@ -331,9 +331,9 @@ static inline int arg_max(mli_tensor * net_output_) {
     int tot_points = (int)mli_hlp_count_elem_num(net_output_, 0);
     int arg_max = 0;
 
-    int16_t *out_16 = (int16_t *)(net_output_->data);
+    int16_t *out_16 = (int16_t *)(net_output_->data.mem.void_p);
     int16_t max_16 = out_16[0];
-    int8_t *out_8 = (int8_t *)(net_output_->data);
+    int8_t *out_8 = (int8_t *)(net_output_->data.mem.void_p);
     int8_t max_8 = out_8[0];
 
     switch (net_output_->el_type) {

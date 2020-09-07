@@ -67,14 +67,18 @@ typedef enum _mli_status{
  * algorithms for processing, and other  implementation specific things.
  */
 typedef enum {
-    MLI_EL_FX_8 = 0,    /**< 8 bit depth fixed point data with configurable number 
-                             of fractional bits Data container is int8_t*/
-    MLI_EL_FX_16,       /**< 16 bit depth fixed point data with configurable number 
-                             of fractional bits Data container is int16_t*/
-    MLI_EL_ASYM_I8,     /**< 8 bit asymetrical signed data with configurable zero offset vector
-                             and multiplier vector. Data container is int8_t */
-    MLI_EL_ASYM_I32,    /**< 32 bit asymetrical signed data with configurable zero offset vector
-                             and multiplier vector. Data container is int32_t */
+    MLI_EL_FX_4  = 0x4,   /**< 4 bit depth fixed point data with configurable number 
+                               of fractional bits Data container is int8_t*/
+    MLI_EL_FX_8  = 0x8,   /**< 8 bit depth fixed point data with configurable number 
+                               of fractional bits Data container is int8_t*/
+    MLI_EL_FX_16 = 0x10,  /**< 16 bit depth fixed point data with configurable number 
+                               of fractional bits Data container is int16_t*/
+    MLI_EL_SA_8  = 0x108, /**< 8 bit asymetrical signed data with configurable zero offset vector
+                               and multiplier vector. Data container is int8_t */
+    MLI_EL_SA_32 = 0x120, /**< 32 bit asymetrical signed data with configurable zero offset vector
+                               and multiplier vector. Data container is int32_t */
+    MLI_EL_FP_16 = 0x210,
+    MLI_EL_FP_32 = 0x220,
     MLI_EL_LARGE_ENUM = 0x02000000      /**< Utility field. Prevent size optimization of public enums */
 } mli_element_type;
 
@@ -86,13 +90,19 @@ typedef enum {
  * NOTE: As compiler pointer to XY memory (or another fast memory) is a separate type, it should be somehow reflected if we are going to
  * use it in tensor type.
  */
-typedef union _mli_data_container {
-    int32_t*  pi32;
-    int16_t*  pi16;
-    int8_t*   pi8;
-    int32_t   i32;
-    int16_t   i16;
-    int8_t    i8;
+typedef struct _mli_data_container {
+    uint32_t capacity;
+    union {
+        int32_t* pi32;
+        int16_t* pi16;
+        int8_t*  pi8;
+        float*   pf32;
+        int32_t  i32;
+        int16_t  i16;
+        int8_t   i8;
+        float    f32;
+        void*    void_p;
+    } mem;
 } mli_data_container;
 
 /**
@@ -132,10 +142,9 @@ typedef union _mli_element_params {
  */
 typedef struct _mli_tensor {
 
-    void *data;                /**< main data. Layer cast this pointer to actual type (XY ptr for L1) */
-    uint32_t capacity;         /**< data buffer size in bytes. Necessary for auxiliary tensors where dimensions are variable. */
+    mli_data_container data;   /**< main data. Layer cast this pointer to actual type (XY ptr for L1) */
 
-    int32_t mem_stride[MLI_MAX_RANK]; /**< Array with the distance (in elements) to the next element in the same dimension.
+    uint32_t mem_stride[MLI_MAX_RANK]; /**< Array with the distance (in elements) to the next element in the same dimension.
                                          To compute the size in bytes, the number of elements needs to be multiplied by the bytes per element.
                                          For example, for a matrix A[rows][columns], mem_stride[0] contains the distance
                                          to the next element (=1 in this example), and mem_stride[1] contains the distance from

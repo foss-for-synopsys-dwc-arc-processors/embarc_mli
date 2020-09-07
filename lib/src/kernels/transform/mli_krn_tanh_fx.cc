@@ -33,7 +33,7 @@ mli_status mli_krn_tanh_fx8(const mli_tensor* in, mli_tensor* out) {
     mli_prv_fx_init_dsp_ctrl();
 
     mli_prv_activation_lut_fx8(
-            (MLI_PTR(int8_t))in->data, (MLI_OUT_PTR(int8_t))out->data, &tanh_lut_fx16, in->el_params.fx.frac_bits,
+            (MLI_PTR(int8_t))in->data.mem.void_p, (MLI_OUT_PTR(int8_t))out->data.mem.void_p, &tanh_lut_fx16, in->el_params.fx.frac_bits,
             (int)mli_prv_count_elem_num(in));
     mli_prv_copy_tensor_format(in, out);
     out->el_params.fx.frac_bits = 7;
@@ -47,7 +47,7 @@ mli_status mli_krn_tanh_fx16(const mli_tensor* in, mli_tensor* out) {
     mli_prv_fx_init_dsp_ctrl();
 
     mli_prv_activation_lut_fx16(
-            (MLI_PTR(int16_t))in->data, (MLI_OUT_PTR(int16_t))out->data, &tanh_lut_fx16, in->el_params.fx.frac_bits,
+            (MLI_PTR(int16_t))in->data.mem.void_p, (MLI_OUT_PTR(int16_t))out->data.mem.void_p, &tanh_lut_fx16, in->el_params.fx.frac_bits,
             (int)mli_prv_count_elem_num(in));
     mli_prv_copy_tensor_format(in, out);
     out->el_params.fx.frac_bits = 15;
@@ -62,20 +62,20 @@ mli_status mli_krn_tanh_sa8(const mli_tensor* in, mli_tensor* out) {
     if (ret != MLI_STATUS_OK) return ret;
     mli_prv_fx_init_dsp_ctrl();
 
-    in_params.offset = in->el_params.asym.zero_point.i16;
-    in_params.scale  = in->el_params.asym.scale.i32;
+    in_params.offset = in->el_params.asym.zero_point.mem.i16;
+    in_params.scale  = in->el_params.asym.scale.mem.i32;
     in_params.shift = in->el_params.asym.scale_frac_bits;
     out_params.offset = kTanhAsymZeroPoint;
     out_params.scale  = 1;
     out_params.shift = kTanhOutputShift;
 
     mli_prv_activation_lut_sa8(
-            (MLI_PTR(int8_t))in->data, (MLI_OUT_PTR(int8_t))out->data, &tanh_lut_fx16,  
+            (MLI_PTR(int8_t))in->data.mem.void_p, (MLI_OUT_PTR(int8_t))out->data.mem.void_p, &tanh_lut_fx16,  
             &in_params, &out_params, (int)mli_prv_count_elem_num(in));
     // Update output shape
     mli_prv_copy_tensor_format(in, out);
-    out->el_params.asym.zero_point.i16 = out_params.offset;
-    out->el_params.asym.scale.i32 = out_params.scale;
+    out->el_params.asym.zero_point.mem.i16 = out_params.offset;
+    out->el_params.asym.scale.mem.i32 = out_params.scale;
     out->el_params.asym.scale_frac_bits = out_params.shift;
 
     return MLI_STATUS_OK;

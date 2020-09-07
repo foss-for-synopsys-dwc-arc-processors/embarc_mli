@@ -74,12 +74,12 @@ mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_k3x3_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = MLI_EL_ASYM_I8;
+    out->el_type = MLI_EL_SA_8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int32_t) bs = (MLI_PTR(int32_t ))bias->data;
+    MLI_PTR(int32_t) bs = (MLI_PTR(int32_t ))bias->data.mem.void_p;
 
     // Define Data dimensions
     int out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - w.kernel_width + 1, stride_width);
@@ -158,12 +158,12 @@ mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_k5x5_krnpad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = MLI_EL_ASYM_I8;
+    out->el_type = MLI_EL_SA_8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int32_t) bs = (MLI_PTR(int32_t ))bias->data;
+    MLI_PTR(int32_t) bs = (MLI_PTR(int32_t ))bias->data.mem.void_p;
 
     // Define Data dimensions
     int out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - w.kernel_width + 1, stride_width);
@@ -242,12 +242,12 @@ mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_k3x3_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = MLI_EL_ASYM_I8;
+    out->el_type = MLI_EL_SA_8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int32_t) bs = (MLI_PTR(int32_t ))bias->data;
+    MLI_PTR(int32_t) bs = (MLI_PTR(int32_t ))bias->data.mem.void_p;
 
     // Define Data dimensions
     int out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - w.kernel_width + 1, stride_width);
@@ -326,12 +326,12 @@ mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_k5x5_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = MLI_EL_ASYM_I8;
+    out->el_type = MLI_EL_SA_8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int32_t) bs = (MLI_PTR(int32_t ))bias->data;
+    MLI_PTR(int32_t) bs = (MLI_PTR(int32_t ))bias->data.mem.void_p;
 
     // Define Data dimensions
     int out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - w.kernel_width + 1, stride_width);
@@ -410,12 +410,12 @@ mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_k1x1_nopad(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = MLI_EL_ASYM_I8;
+    out->el_type = MLI_EL_SA_8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int32_t) bs = (MLI_PTR(int32_t ))bias->data;
+    MLI_PTR(int32_t) bs = (MLI_PTR(int32_t ))bias->data.mem.void_p;
 
     // Define Data dimensions
     int out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - w.kernel_width + 1, stride_width);
@@ -494,12 +494,12 @@ mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_generic(
 
     mli_minmax_t val_limit;
     // fill output tensor el_type parameter
-    out->el_type = MLI_EL_ASYM_I8;
+    out->el_type = MLI_EL_SA_8;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int32_t) bs = (MLI_PTR(int32_t ))bias->data;
+    MLI_PTR(int32_t) bs = (MLI_PTR(int32_t ))bias->data.mem.void_p;
 
     // Define Data dimensions
     int out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - w.kernel_width + 1, stride_width);

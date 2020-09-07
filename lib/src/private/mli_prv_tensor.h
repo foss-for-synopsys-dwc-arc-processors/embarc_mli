@@ -65,7 +65,7 @@ static inline tensor_private_t<T> mli_prv_get_tensor_chw(
     }
 
     return tensor_private_t<T> {
-            (T)in->data, width, height, ch,
+            (T)in->data.mem.void_p, width, height, ch,
             col_mem_stride, row_mem_stride, ch_mem_stride };
 }
 
@@ -100,7 +100,7 @@ static inline tensor_private_t<T> mli_prv_get_tensor_hwc(
     }
 
     return tensor_private_t<T> {
-            (T)in->data, width, height, ch,
+            (T)in->data.mem.void_p, width, height, ch,
             col_mem_stride, row_mem_stride, ch_mem_stride };
 }
 
@@ -147,7 +147,7 @@ static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tens
     }
 
     return conv2d_weights_tensor_private_t<T> {
-            (T)weights->data, width, height, in_ch, out_ch,
+            (T)weights->data.mem.void_p, width, height, in_ch, out_ch,
             col_mem_stride, row_mem_stride, in_ch_mem_stride, out_ch_mem_stride };
 }
 
@@ -192,7 +192,7 @@ static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tens
     }
 
     return conv2d_weights_tensor_private_t<T> {
-        (T)weights->data, width, height, in_ch, out_ch,
+        (T)weights->data.mem.void_p, width, height, in_ch, out_ch,
         col_mem_stride, row_mem_stride, in_ch_mem_stride, out_ch_mem_stride };
 }
 
@@ -237,7 +237,7 @@ static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tens
     }
 
     return conv2d_weights_tensor_private_t<T> {
-            (T)weights->data, width, height, in_ch, out_ch,
+            (T)weights->data.mem.void_p, width, height, in_ch, out_ch,
             col_mem_stride, row_mem_stride, in_ch_mem_stride, out_ch_mem_stride };
 }
 
@@ -265,7 +265,7 @@ static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tens
     }
 
     return conv2d_weights_tensor_private_t<T> {
-        (T)weights->data, width, height, in_ch, out_ch,
+        (T)weights->data.mem.void_p, width, height, in_ch, out_ch,
         col_mem_stride, row_mem_stride, in_ch_mem_stride, out_ch_mem_stride };
 }
 
@@ -300,10 +300,10 @@ static int inline __attribute__((always_inline)) mli_prv_calc_shift(
         MLI_ASSERT((in1->el_type == MLI_EL_FX_8) || (in1->el_type == MLI_EL_FX_16));
         MLI_ASSERT((out->el_type == MLI_EL_FX_8) || (out->el_type == MLI_EL_FX_16));
         return (in0->el_params.fx.frac_bits + in1->el_params.fx.frac_bits) - out->el_params.fx.frac_bits;
-    } else if (in0->el_type == MLI_EL_ASYM_I8) {
+    } else if (in0->el_type == MLI_EL_SA_8) {
         /* mix of FX and asym datatypes is not supported */
-        MLI_ASSERT(in1->el_type == MLI_EL_ASYM_I8);
-        MLI_ASSERT((out->el_type == MLI_EL_ASYM_I8) || (out->el_type == MLI_EL_ASYM_I32));
+        MLI_ASSERT(in1->el_type == MLI_EL_SA_8);
+        MLI_ASSERT((out->el_type == MLI_EL_SA_8) || (out->el_type == MLI_EL_SA_32));
         return (in0->el_params.asym.scale_frac_bits + in1->el_params.asym.scale_frac_bits) - out->el_params.asym.scale_frac_bits;
     } else {
         MLI_ASSERT(0);
@@ -320,11 +320,11 @@ static int32_t inline __attribute__((always_inline)) mli_prv_calc_bias_mul(
         MLI_ASSERT((in1->el_type == MLI_EL_FX_8) || (in1->el_type == MLI_EL_FX_16));
         MLI_ASSERT((bias->el_type == MLI_EL_FX_8) || (bias->el_type == MLI_EL_FX_16));
         return 1;
-    } else if (in0->el_type == MLI_EL_ASYM_I8) {
+    } else if (in0->el_type == MLI_EL_SA_8) {
         /* mix of FX and asym datatypes is not supported */
-        MLI_ASSERT(in1->el_type == MLI_EL_ASYM_I8);
-        MLI_ASSERT((bias->el_type == MLI_EL_ASYM_I8) || (bias->el_type == MLI_EL_ASYM_I32));
-        int32_t bias_mul = (1 << MLI_BIAS_MUL_SHIFT) / ((int32_t)in0->el_params.asym.scale.i32 * (int32_t)in1->el_params.asym.scale.i32);
+        MLI_ASSERT(in1->el_type == MLI_EL_SA_8);
+        MLI_ASSERT((bias->el_type == MLI_EL_SA_8) || (bias->el_type == MLI_EL_SA_32));
+        int32_t bias_mul = (1 << MLI_BIAS_MUL_SHIFT) / ((int32_t)in0->el_params.asym.scale.mem.i32 * (int32_t)in1->el_params.asym.scale.mem.i32);
         return bias_mul;
     } else {
         MLI_ASSERT(0);
@@ -356,9 +356,9 @@ mli_prv_get_relu_min_max (const mli_relu_cfg * cfg, const mli_tensor * out) {
     mli_minmax_t val_limit;
     int min_val, max_val;
     int zero, one, neg_one, six;
-    if (out->el_type == MLI_EL_ASYM_I8 || out->el_type == MLI_EL_ASYM_I32) {
+    if (out->el_type == MLI_EL_SA_8 || out->el_type == MLI_EL_SA_32) {
         MLI_ASSERT(out->el_params.asym.dim < 0);
-        zero = out->el_params.asym.zero_point.i16;
+        zero = out->el_params.asym.zero_point.mem.i16;
         // In theory it is possible that scale of input is really small value and shift might be bigger than 16 bit to 
         // represent six and one in such format before int div (may exceed 32 bits). 
         // One and six are not casted to 16bit directly, only after comparison with min_val and max_val and all of them are int.
@@ -378,7 +378,7 @@ mli_prv_get_relu_min_max (const mli_relu_cfg * cfg, const mli_tensor * out) {
 
     switch (out->el_type) {
     case MLI_EL_FX_8:
-    case MLI_EL_ASYM_I8:
+    case MLI_EL_SA_8:
         min_val = INT8_MIN;
         max_val = INT8_MAX;
         break;

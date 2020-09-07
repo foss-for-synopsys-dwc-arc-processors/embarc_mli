@@ -27,8 +27,8 @@ mli_status mli_krn_relu_fx8(const mli_tensor* in, const mli_relu_cfg* cfg, mli_t
     if (ret != MLI_STATUS_OK) return ret;
     mli_prv_fx_init_dsp_ctrl();
 
-    const MLI_PTR(int8_t) in_data = (MLI_PTR(int8_t))in->data;
-    MLI_OUT_PTR(int8_t) out_data = (MLI_OUT_PTR(int8_t))out->data;
+    const MLI_PTR(int8_t) in_data = (MLI_PTR(int8_t))in->data.mem.void_p;
+    MLI_OUT_PTR(int8_t) out_data = (MLI_OUT_PTR(int8_t))out->data.mem.void_p;
     int el_num = (int)mli_prv_count_elem_num(in);
     int vec_num = el_num >> 1;
 
@@ -79,8 +79,8 @@ mli_status mli_krn_relu_fx16(const mli_tensor* in, const mli_relu_cfg* cfg, mli_
     if (ret != MLI_STATUS_OK) return ret;
     mli_prv_fx_init_dsp_ctrl();
 
-    const MLI_PTR(int16_t) in_data = (MLI_PTR(int16_t))in->data;
-    MLI_OUT_PTR(int16_t) out_data = (MLI_OUT_PTR(int16_t))out->data;
+    const MLI_PTR(int16_t) in_data = (MLI_PTR(int16_t))in->data.mem.void_p;
+    MLI_OUT_PTR(int16_t) out_data = (MLI_OUT_PTR(int16_t))out->data.mem.void_p;
     int el_num = (int)mli_prv_count_elem_num(in);
     int vec_num = el_num >> 1;
 

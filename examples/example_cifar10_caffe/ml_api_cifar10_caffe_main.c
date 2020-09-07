@@ -159,7 +159,7 @@ int main(int argc, char ** argv ) {
 //========================================================================================
 static void cifar10_preprocessing(const void * image_, mli_tensor * net_input_) {
     const unsigned char * in = image_;
-    d_type * const dst = (d_type * const)net_input_->data;
+    d_type * const dst = (d_type * const)net_input_->data.mem.void_p;
 
     // Copying data  to input tensor with subtraction of average.
     // Data shft may be required depending on tensor format

@@ -16,7 +16,7 @@
 using namespace mli_kws;
 using au_fex::fbank_features;
 
-// Init static member with a model description global structure 
+// Init static member with a model description global structure
 const dsconv_lstm_model_data* const kws_dsconv_lstm_nn::model = &kDsconvLstmModelStruct;
 
 // Constant sizes of buffers
@@ -95,7 +95,7 @@ kws_info dsconv_lstm_factory::info() {
     fbank_features::info aufex_info = fbank_features::get_info(fex_config);
     return kws_info {
         /* .input_samples_num = */    kAudioFrameStride,
-        /* .output_values_num = */    kOutputClassesNum,   
+        /* .output_values_num = */    kOutputClassesNum,
         /* .timestamp_duration_ms =*/ ((kAudioFrameStride) * 1000 / kAudioSampleRate),
         /* .state_fastmem_a_sz = */   sizeof(kws_dsconv_lstm_nn::state_fastmem_x_map)
                                         + aufex_info.state_fastbuf_a_len * sizeof(float),
@@ -103,9 +103,9 @@ kws_info dsconv_lstm_factory::info() {
         /* .temp_fastmem_b_sz = */    sizeof(kws_dsconv_lstm_nn::fastmem_y_map),
         /* .coeff_fastmem_sz = */     kDsconvLstmModelCoeffTotalSize,
         /* .dynamic_mem_sz = */       sizeof(kws_dsconv_lstm_nn) + (sizeof(float) * kOutputClassesNum)
-                                        + sizeof(fbank_features) + aufex_info.dynamic_mem_sz, 
+                                        + sizeof(fbank_features) + aufex_info.dynamic_mem_sz,
         /* .silence_id; */            kSilenceID,
-        /* .name = */                 "Depthwise CNN + LSTM Model on FBANKs features (monolit nn inference)" 
+        /* .name = */                 "Depthwise CNN + LSTM Model on FBANKs features (monolit nn inference)"
     };
 }
 
@@ -115,7 +115,7 @@ kws_module* dsconv_lstm_factory::create_module(void* state_fastmem_a) {
     // Initial params check
     kws_dsconv_lstm_nn* instance = nullptr;
     bool is_valid = (state_fastmem_a != nullptr);
-    
+
     // Instance allocation
     if (is_valid) {
         instance = new kws_dsconv_lstm_nn(state_fastmem_a);
@@ -124,14 +124,14 @@ kws_module* dsconv_lstm_factory::create_module(void* state_fastmem_a) {
 
     // Feature Extractor Module construction
     if (is_valid) {
-        const fbank_features::params fex_config {kFbankNumBins,kAudioFrameLength, 
+        const fbank_features::params fex_config {kFbankNumBins,kAudioFrameLength,
                                                  kAudioSampleRate, kFbankLowFreq, kFbankHighFreq};
         fbank_features::info fex_info = fbank_features::get_info(fex_config);
         instance->state_mem->fex_state_len = fex_info.state_fastbuf_a_len;
 
         instance->fex_module.reset(fbank_features::create_fbank_fex_module(
-                                        fex_config, 
-                                        &(instance->state_mem->fex_state_start), 
+                                        fex_config,
+                                        &(instance->state_mem->fex_state_start),
                                         instance->state_mem->fex_state_len));
         const unsigned int fex_temp_buf_a_size = sizeof(kws_dsconv_lstm_nn::fastmem_x_map::nn_t::fex_phase_t::ir_buf_x);
         const unsigned int fex_temp_buf_b_size = sizeof(kws_dsconv_lstm_nn::fastmem_y_map::nn_t::fex_phase_t::ir_buf_y);
@@ -180,7 +180,7 @@ kws_status kws_dsconv_lstm_nn::reset() {
     return KWS_STATUS_NONE;
 }
 
-// General process function: fill buffers, extract features, envoke NN 
+// General process function: fill buffers, extract features, envoke NN
 //========================================================================
 kws_status kws_dsconv_lstm_nn::process(const sample_t* in_samples, void* temp_fast_mem_a, void* temp_fast_mem_b) {
     kws_status ret_val = KWS_STATUS_NONE;
@@ -194,7 +194,7 @@ kws_status kws_dsconv_lstm_nn::process(const sample_t* in_samples, void* temp_fa
 
     // Extract features from the single input in case it's length is enough
     if (subframes_num >= kAudioSubframesInFrame) {
-        ret_val = audio_features_extract(&state_mem->samples_buf[subframes_tail - subframes_num][0], 
+        ret_val = audio_features_extract(&state_mem->samples_buf[subframes_tail - subframes_num][0],
                                          &state_mem->features_buf[features_tail][0], fatmem_x, fatmem_y);
         subframes_num--;
         features_tail++;
@@ -234,12 +234,12 @@ kws_status kws_dsconv_lstm_nn::process(const sample_t* in_samples, void* temp_fa
 //====================================================
 kws_result kws_dsconv_lstm_nn::get_result() {
     const timestamp_t end = last_result_frame_idx;
-    const timestamp_t start = (last_result_frame_idx > kFeatureVectorsForInference)? 
+    const timestamp_t start = (last_result_frame_idx > kFeatureVectorsForInference)?
         last_result_frame_idx - kFeatureVectorsForInference : 0;
     return kws_result{start, end, probs.get()};
 }
 
-// Return CString regarding to KeyWord ID 
+// Return CString regarding to KeyWord ID
 //====================================================
 const char* kws_dsconv_lstm_nn::label_id_to_str(int id) const {
     return dsconv_lstm_model_id_to_str(id);
@@ -250,16 +250,16 @@ const char* kws_dsconv_lstm_nn::label_id_to_str(int id) const {
 kws_status kws_dsconv_lstm_nn::audio_features_extract(const sample_t *in_frame, int8_t *out_features,
                                                       fastmem_x_map *x_mem, fastmem_y_map *y_mem) {
     kws_status ret = KWS_STATUS_NONE;
-    const int fbanks_num = fex_module->compute(in_frame, y_mem->nn.fex_phase.out_features, 
+    const int fbanks_num = fex_module->compute(in_frame, y_mem->nn.fex_phase.out_features,
                                                y_mem->nn.fex_phase.ir_buf_y, x_mem->nn.fex_phase.ir_buf_x);
     if (fbanks_num == kFbankNumBins) {
         mli_tensor out_fx_features = {
-            .data = (void *)out_features, 
-            .capacity = kFbankNumBins * sizeof(out_features[0]), 
+            .data = {.capacity = kFbankNumBins * sizeof(out_features[0]),
+                    .mem = {.void_p = (void *)out_features}},
             .el_type = MLI_EL_FX_8,
             .el_params.fx.frac_bits = kFbankFraqBits,
         };
-        if (MLI_STATUS_OK != 
+        if (MLI_STATUS_OK !=
                 mli_hlp_float_to_fx_tensor(y_mem->nn.fex_phase.out_features, kFbankNumBins,&out_fx_features))
             ret = KWS_STATUS_ERROR;
     } else {
@@ -271,21 +271,21 @@ kws_status kws_dsconv_lstm_nn::audio_features_extract(const sample_t *in_frame, 
 
 // MLI Based Full Neural Network Inference
 //====================================================
-kws_status kws_dsconv_lstm_nn::nn_inference(const int8_t *in_features, float *out_probs, 
+kws_status kws_dsconv_lstm_nn::nn_inference(const int8_t *in_features, float *out_probs,
                                             fastmem_x_map *x_mem, fastmem_y_map *y_mem) {
     kws_status ret = KWS_STATUS_NONE;
     const dsconv_lstm_model_data *m = model;
-    mli_tensor ir_X = { (void *)x_mem->nn.cnn_phase.ir_data_x, sizeof(x_mem->nn.cnn_phase.ir_data_x) };
-    mli_tensor ir_Y = { (void *)y_mem->nn.cnn_phase.ir_data_y, sizeof(y_mem->nn.cnn_phase.ir_data_y) };
-    
+    mli_tensor ir_X = {.data = {.capacity = sizeof(x_mem->nn.cnn_phase.ir_data_x), .mem = {.void_p = (void *)x_mem->nn.cnn_phase.ir_data_x}}};
+    mli_tensor ir_Y = {.data = {.capacity = sizeof(y_mem->nn.cnn_phase.ir_data_y), .mem = {.void_p = (void *)y_mem->nn.cnn_phase.ir_data_y}}};
+
     // Convolution Phase
     {
         mli_tensor input = {
-            .data = (void *)in_features, 
-            .capacity = kFeatureVectorsForInference * kFbankNumBins * sizeof(in_features[0]),
-            .shape = {1, kFeatureVectorsForInference, kFbankNumBins}, 
+            .data = {.capacity = kFeatureVectorsForInference * kFbankNumBins * sizeof(in_features[0]),
+                    .mem = {.void_p = (void *)in_features}},
+            .shape = {1, kFeatureVectorsForInference, kFbankNumBins},
             .rank = 3,
-            .el_type = MLI_EL_FX_8, 
+            .el_type = MLI_EL_FX_8,
             .el_params.fx.frac_bits = kFbankFraqBits,
         };
 
@@ -325,7 +325,7 @@ kws_status kws_dsconv_lstm_nn::nn_inference(const int8_t *in_features, float *ou
         mli_krn_leaky_relu_fx8(&ir_Y, &m->leaky_relu_slope_coeff, &ir_X);
 
         const uint8_t fx8_to_fx16_extra_bits = 8;
-        ir_Y.el_type = MLI_EL_FX_16; 
+        ir_Y.el_type = MLI_EL_FX_16;
         ir_Y.el_params.fx.frac_bits = ir_X.el_params.fx.frac_bits + fx8_to_fx16_extra_bits;
         mli_hlp_convert_tensor(&ir_X, &ir_Y);
         mli_krn_avepool_chw_fx16_generic(&ir_Y, &m->avg_pool_cfg, &ir_X);
@@ -335,32 +335,32 @@ kws_status kws_dsconv_lstm_nn::nn_inference(const int8_t *in_features, float *ou
     // LSTM (RNN) Phase
     {
         // Update intermediate tensor for the RNN phase
-        ir_Y.data = (void *)y_mem->nn.rnn_phase.ir_data_y;
-        ir_Y.capacity = sizeof(y_mem->nn.rnn_phase.ir_data_y);
+        ir_Y.data.mem.void_p = (void *)y_mem->nn.rnn_phase.ir_data_y;
+        ir_Y.data.capacity = sizeof(y_mem->nn.rnn_phase.ir_data_y);
 
         // Move timestep dimension at first (least frequently changing)
         mli_krn_permute_fx16(&ir_X, &m->permute_chw2hwc_cfg, &ir_Y);
 
         // Update intermediate tensor for the RNN phase
-        ir_X.data = (void *)x_mem->nn.rnn_phase.ir_data_x;
-        ir_X.capacity = sizeof(x_mem->nn.rnn_phase.ir_data_x);
+        ir_X.data.mem.void_p = (void *)x_mem->nn.rnn_phase.ir_data_x;
+        ir_X.data.capacity = sizeof(x_mem->nn.rnn_phase.ir_data_x);
 
         // LAYER 5
-        // init structures for LSTM layer 
+        // init structures for LSTM layer
         const uint32_t lstm_cell_size = m->L5_lstm_bias.shape[1];
-        mli_tensor lstm_prev_out = { 
-            .data = ir_X.data, 
-            .capacity = ir_X.capacity, 
-            .shape = {lstm_cell_size}, 
-            .rank = 1, 
-            .el_type = MLI_EL_FX_16, 
+        mli_tensor lstm_prev_out = {
+            .data = {.capacity = ir_X.data.capacity,
+                    .mem = {.void_p = ir_X.data.mem.void_p}},
+            .shape = {lstm_cell_size},
+            .rank = 1,
+            .el_type = MLI_EL_FX_16,
             .el_params.fx.frac_bits = 7,
         };
-        mli_tensor lstm_ir = { (void *)x_mem->nn.rnn_phase.lstm_ir_data, sizeof(x_mem->nn.rnn_phase.lstm_ir_data) };
+        mli_tensor lstm_ir = {.data = {.capacity = sizeof(x_mem->nn.rnn_phase.lstm_ir_data), .mem = {.void_p = (void *)x_mem->nn.rnn_phase.lstm_ir_data}}};
         const mli_rnn_cell_cfg lstm_cfg = {m->lstm_mode, m->lstm_act, &lstm_ir};
         mli_tensor lstm_cell = {
-            .data = (void *)y_mem->nn.rnn_phase.lstm_cell_data,
-            .capacity = sizeof(y_mem->nn.rnn_phase.lstm_cell_data),
+            .data = {.capacity = sizeof(y_mem->nn.rnn_phase.lstm_cell_data),
+                    .mem = {.void_p = (void *)y_mem->nn.rnn_phase.lstm_cell_data}},
             .shape = {lstm_cell_size},
             .rank = 1,
             .el_type = MLI_EL_FX_16,
@@ -368,8 +368,8 @@ kws_status kws_dsconv_lstm_nn::nn_inference(const int8_t *in_features, float *ou
         };
 
         // Clear state buffers and state tensors description completion
-        int16_t *cell_ptr = (int16_t *)lstm_cell.data;
-        int16_t *prev_out_ptr = (int16_t *)lstm_prev_out.data;
+        int16_t *cell_ptr = (int16_t *)lstm_cell.data.mem.void_p;
+        int16_t *prev_out_ptr = (int16_t *)lstm_prev_out.data.mem.void_p;
         for (uint32_t idx = 0; idx < lstm_cell_size; idx++)
             cell_ptr[idx] = prev_out_ptr[idx] = 0;
         lstm_prev_out.el_params.fx.frac_bits = sizeof(int16_t) * 8 - 1;
@@ -382,7 +382,7 @@ kws_status kws_dsconv_lstm_nn::nn_inference(const int8_t *in_features, float *ou
         mli_krn_fully_connected_fx8w16d(&ir_X, &m->L6_fc_wt, &m->L6_fc_bias, &ir_Y);
         mli_krn_softmax_fx16(&ir_Y, &ir_X);
     }
-    
+
     // Transform probabilities into floats
     mli_hlp_fx_tensor_to_float(&ir_X, out_probs, kOutputClassesNum);
 

@@ -46,7 +46,7 @@ mli_status mli_krn_conv2d_hwc_fx8w16d (
     out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max (&cfg->relu, out);
-    MLI_PTR(int8_t) bs = (MLI_PTR(int8_t))bias->data;
+    MLI_PTR(int8_t) bs = (MLI_PTR(int8_t))bias->data.mem.void_p;
 
     const auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in);
     const auto w = mli_prv_get_conv2d_weights_tensor_nhwc<MLI_PTR(int8_t), MLI_PTR_IS_XY>(weights);
