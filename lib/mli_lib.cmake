@@ -112,6 +112,12 @@ else()
     )
 endif()
 
+if ((DEFINED MLI_BUILD_REFERENCE) AND (MLI_BUILD_REFERENCE STREQUAL "ON"))
+    list(APPEND MLI_LIB_PRIVATE_COMPILE_DEFINITIONS
+        -DMLI_BUILD_REFERENCE
+    )
+endif()
+
 # Supported values for rounding mode: UP/CONVERGENT (depends on platform)
 if (NOT DEFINED ROUND_MODE)
     if(${MLI_PLATFORM} STREQUAL VPX)

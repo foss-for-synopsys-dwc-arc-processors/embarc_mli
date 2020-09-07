@@ -6,4 +6,6 @@
 # the LICENSE file in the root directory of this source tree.
 #
 
+project(mli_examples)
+
 add_subdirectory(hello_world)
