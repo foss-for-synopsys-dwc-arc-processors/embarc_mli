@@ -127,7 +127,6 @@ static void convolution2D(
     } // for H_idx 
 }
 
-
 //========================================================
 // Unified Depthwise convolution 2D template
 //========================================================
@@ -143,7 +142,8 @@ static void depthwise_convolution2D(
         const io_T val_max_limit,
         const int stride_height, const int stride_width,
         const int dilation_height, const int dilation_width,
-        const int padding_top, const int padding_left) {
+        const int padding_top, const int padding_left,
+        const int padding_bot, const int padding_right) {
     // Unified Depthwise convolutions for all layouts (NCHW/HWCN) and quantization schemes:  
     // MLI_FX (symmetric data, scales are power of two) and s8asym (assymetric data, scales of any value)
     // For more info on calculations see generic convolution 2D notes above 
@@ -178,8 +178,8 @@ static void depthwise_convolution2D(
                                                clmns * rows);
                 other_additives  = mli::krn::in_additive(in_ptr, other_additives, &quant_params,
                                                clmns, rows,
-                                               in.col_mem_stride,
-                                               in.row_mem_stride);
+                                               in.col_mem_stride * dilation_width,
+                                               in.row_mem_stride * dilation_height);
 
                 const int out_ch_idx = in_ch_idx;
                 const MLI_PTR(w_T) w_ptr = weights.ptr
@@ -311,7 +311,8 @@ void conv2d_prepare_and_run(
                 in_prv, weights_prv, bs, out_prv, cent_area, params,
                 (io_T)val_limit.min, (io_T)val_limit.max,
                 stride_height, stride_width, dilation_height, dilation_width,
-                padding_top, padding_left);
+                padding_top, padding_left,
+                padding_bot, padding_right);
     }
 }
 #pragma Code()

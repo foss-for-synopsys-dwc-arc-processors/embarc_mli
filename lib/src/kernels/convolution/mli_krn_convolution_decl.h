@@ -60,7 +60,8 @@ static void depthwise_convolution2D(
         const io_T val_max_limit,
         const int stride_height, const int stride_width,
         const int dilation_height, const int dilation_width,
-        const int padding_top, const int padding_left);
+        const int padding_top, const int padding_left,
+        const int padding_bot, const int padding_right);
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T,
           mli_layout_type data_layout, mli_conv_type conv_type>
@@ -89,6 +90,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D(
         const io_T val_min_limit,
         const io_T val_max_limit,
         const int stride_height, const int stride_width,
+        const int dilation_height, const int dilation_width,
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right);
 } // namespace dsp
@@ -98,7 +100,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D(
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
-void convolution2D(
+static void convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,

@@ -88,26 +88,42 @@ MLI_FORCE_INLINE void define_quant_params(const mli_tensor *in, const mli_tensor
     if (weights->el_params.asym.dim >= 0) {
         params->weights_offset = weights->el_params.asym.zero_point.pi16[0];
         params->weight_scales = weights->el_params.asym.scale.pi32;
+        params->weight_shifts = &weights->el_params.asym.scale_frac_bits;
     } else {
         params->weights_offset = weights->el_params.asym.zero_point.i16;
         params->weight_scales = &weights->el_params.asym.scale.i32;
+        params->weight_shifts = &weights->el_params.asym.scale_frac_bits;
     }
     int64_t scale_unfinished = (int64_t)(in->el_params.asym.scale.i32) << kPreDivShiftS32;
     scale_unfinished = scale_unfinished / out->el_params.asym.scale.i32;
     params->in_to_out_scales_ratio = mli_math_cast_fx<int64_t, int32_t>(scale_unfinished, 0);
 
+    int in_to_out_norm = mli_math_norm_fx<int32_t, int>(params->in_to_out_scales_ratio);
+    params->in_to_out_scales_ratio = params->in_to_out_scales_ratio << in_to_out_norm;
+    params->in_to_out_shift = in->el_params.asym.scale_frac_bits;
+    params->in_to_out_shift += (kPreDivShiftS32 - out->el_params.asym.scale_frac_bits);
+    params->in_to_out_shift += in_to_out_norm;
 
-    params->out_shift = in->el_params.asym.scale_frac_bits;
-    params->out_shift += weights->el_params.asym.scale_frac_bits;
-    params->out_shift += (kPreDivShiftS32 - out->el_params.asym.scale_frac_bits);
-    params->out_shift -= 32; // See Adjust parameters - we already do a shift there
 }
 
 template <>
 MLI_FORCE_INLINE void adjust_quant_params(s8asym_quant_specific_params* params, int krn_idx) {
     // out multiplyer can be different across one of axis (per axis quantization for s8asym)
     const int64_t out_mul_scaled = (int64_t)params->in_to_out_scales_ratio * params->weight_scales[krn_idx];
-    params->out_mul = mli_math_cast_fx<int64_t, int32_t>(out_mul_scaled, 32);
+    int int64_to_int32_shift = 32;
+    params->out_mul = mli_math_cast_fx<int64_t, int32_t>(out_mul_scaled, int64_to_int32_shift);
+
+    params->out_shift = params->in_to_out_shift;
+    params->out_shift += params->weight_shifts[0];
+    params->out_shift -= int64_to_int32_shift;
+
+#if !defined(FULL_ACCU)
+    // When the accumulator is pre-shifted before the output multiplier,
+    // we need to normalize mul for max use of the headroom.
+    int norm = mli_math_norm_fx<int32_t, int>(params->out_mul);
+    params->out_mul = mli_math_asl_fx(params->out_mul, norm);
+    params->out_shift += norm;
+#endif
     return;
 }
 
@@ -324,11 +340,36 @@ MLI_FORCE_INLINE int8_t result_cast(
 
     // adding the output offset needs to happen after the output mul and output shift
     // but before the cast to the output container size.
-    // because the cast and shift are combined in one function, the output offset is
-    // added before, and multiplied with 1<< out_shift to compensate.
-    const int32_t accu_result = mli_math_cast_fx<mli_acc32_t, int32_t>(acc, 0);
-    const int64_t accu_scaled = mli_math_mul_fx<int32_t, int64_t>(accu_result, quant_params->out_mul);
-    const int16_t out_no_offset = mli_math_cast_fx<int64_t, int16_t>(accu_scaled, quant_params->out_shift);
+
+    int32_t out_mul = quant_params->out_mul;
+    int out_shift = quant_params->out_shift;
+    mli_acc32_t accu = acc;
+    int preshift = 0;
+
+#if !defined(FULL_ACCU)
+    // The accumulator has 8 guard bits. If we pre-shift the accumulator to make it fit into
+    // 16bit, we can do the rest of the post processing in 16bit. (output multiplier and relu)
+    // shifting too much will lose accuracy, shifting too little will case saturation
+    // a 3bit headroom is required (1 sign bit, 1bit for the range of mul, and 1bit for the offset)
+    // From the 32 bits that come out of the multiplier (16bit reduced accu x 16bit multiplier),
+    // we need 8 bits for the output, 3 bits of headroom.
+    // this means that the last output shift will need to shift 5 bits. the rest is shifted here.
+    // adding clipping to avoid negative shift. and shifting more than 8 is also not needed.
+    int target_out_shift = 32 - 8 - 3;
+
+    // reduce out_mul to 16bit
+    int int_to_short_shift = 16;
+    out_mul = mli_math_asr_fx(out_mul, int_to_short_shift);
+    out_shift -= int_to_short_shift;
+
+    // preshift and clip to 16bit, but keep 32bit container for easy connection to rest of code.
+    preshift = mli_math_min_fx(mli_math_max_fx(out_shift - target_out_shift, 0),8);
+    accu = mli_math_asr_rnd_fx(accu, preshift);
+    accu = mli_math_sat_fx(accu, 16);
+#endif
+    const int32_t accu_result = mli_math_cast_fx<mli_acc32_t, int32_t>(accu, 0);
+    const int64_t accu_scaled = mli_math_mul_fx<int32_t, int64_t>(accu_result, out_mul);
+    const int16_t out_no_offset = mli_math_cast_fx<int64_t, int16_t>(accu_scaled, out_shift - preshift);
     int8_t out_val = mli_math_cast_fx<int16_t, int8_t>(mli_math_add_fx(out_no_offset, quant_params->out_offset), 0);
     return out_val;
 }

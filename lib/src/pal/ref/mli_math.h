@@ -125,12 +125,12 @@ MLI_FORCE_INLINE T mli_math_abs_fx(T x)
     return x >= (T)0 ? x : mli_math_neg_fx(x);
 }
 
-template <typename T>
-MLI_FORCE_INLINE int mli_math_norm_fx(T x)
+template <typename T, typename o_T>
+MLI_FORCE_INLINE o_T mli_math_norm_fx(T x)
 {
-    int inp_size = sizeof(T) * 8;
+    o_T inp_size = sizeof(T) * 8;
     T hi = x < (T)0 ? (T)-1 : (T)0;
-    int r = 0;
+    o_T r = 0;
 
     if (x == (T)0)
         return inp_size - 1;

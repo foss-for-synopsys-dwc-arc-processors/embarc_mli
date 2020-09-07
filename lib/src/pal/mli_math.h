@@ -34,7 +34,6 @@ template < typename in_T > MLI_FORCE_INLINE void *mli_math_cast_scalar_to_ptr_fx
 
 template <typename in_T, typename out_T> MLI_FORCE_INLINE out_T mli_math_cast_fx(in_T in_val, int shift_right);
 template <typename in_T, typename out_T> MLI_FORCE_INLINE out_T mli_math_cast_fx(in_T in_val);
-template <typename in_T> MLI_FORCE_INLINE in_T mli_math_asr_rnd_fx(in_T x, int nbits);
 
 #if defined(__Xvec_width) && !defined(MLI_BUILD_REFERENCE)
 #include "vdsp/mli_math.h"

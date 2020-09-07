@@ -35,7 +35,8 @@ SRC_DIRS    =  ../src/helpers/src \
                ../src/private/src
 
 SRC_DIRS_EXTRA += ../src/kernels/convolution
-CC_SRCS     +=  mli_krn_conv2d_hwcn
+CC_SRCS     +=  mli_krn_conv2d_hwcn \
+                mli_krn_depthwise_conv2d_hwcn
 else
 SRC_DIRS    =  ../src/helpers/src \
                ../src/kernels/common \
