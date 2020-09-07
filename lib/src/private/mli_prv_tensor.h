@@ -304,7 +304,7 @@ static int inline __attribute__((always_inline)) mli_prv_calc_shift(
         /* mix of FX and asym datatypes is not supported */
         MLI_ASSERT(in1->el_type == MLI_EL_SA_8);
         MLI_ASSERT((out->el_type == MLI_EL_SA_8) || (out->el_type == MLI_EL_SA_32));
-        return (in0->el_params.asym.scale_frac_bits + in1->el_params.asym.scale_frac_bits) - out->el_params.asym.scale_frac_bits;
+        return (in0->el_params.sa.scale_frac_bits + in1->el_params.sa.scale_frac_bits) - out->el_params.sa.scale_frac_bits;
     } else {
         MLI_ASSERT(0);
         return 0;
@@ -324,7 +324,7 @@ static int32_t inline __attribute__((always_inline)) mli_prv_calc_bias_mul(
         /* mix of FX and asym datatypes is not supported */
         MLI_ASSERT(in1->el_type == MLI_EL_SA_8);
         MLI_ASSERT((bias->el_type == MLI_EL_SA_8) || (bias->el_type == MLI_EL_SA_32));
-        int32_t bias_mul = (1 << MLI_BIAS_MUL_SHIFT) / ((int32_t)in0->el_params.asym.scale.mem.i32 * (int32_t)in1->el_params.asym.scale.mem.i32);
+        int32_t bias_mul = (1 << MLI_BIAS_MUL_SHIFT) / ((int32_t)in0->el_params.sa.scale.mem.i32 * (int32_t)in1->el_params.sa.scale.mem.i32);
         return bias_mul;
     } else {
         MLI_ASSERT(0);
@@ -357,8 +357,8 @@ mli_prv_get_relu_min_max (const mli_relu_cfg * cfg, const mli_tensor * out) {
     int min_val, max_val;
     int zero, one, neg_one, six;
     if (out->el_type == MLI_EL_SA_8 || out->el_type == MLI_EL_SA_32) {
-        MLI_ASSERT(out->el_params.asym.dim < 0);
-        zero = out->el_params.asym.zero_point.mem.i16;
+        MLI_ASSERT(out->el_params.sa.dim < 0);
+        zero = out->el_params.sa.zero_point.mem.i16;
         // In theory it is possible that scale of input is really small value and shift might be bigger than 16 bit to 
         // represent six and one in such format before int div (may exceed 32 bits). 
         // One and six are not casted to 16bit directly, only after comparison with min_val and max_val and all of them are int.

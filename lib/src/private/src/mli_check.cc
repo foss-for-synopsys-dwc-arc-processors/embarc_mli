@@ -119,15 +119,15 @@ mli_status mli_chk_bias_scale_asym(const mli_tensor * in, const mli_tensor * wei
     // For FX it's just the matter of shift. That's why we are ok to not store bias in this format in advance (but it could be done).
     // For asym it is assumed that bias is stored in intermediate result format to avoid this requantization in runtime, 
     // which is not a matter of shifts anymore. Here we check bias format is similar to IR
-    MLI_ASSERT(in->el_params.asym.dim < 0);
+    MLI_ASSERT(in->el_params.sa.dim < 0);
     MLI_ASSERT(in->el_type == MLI_EL_SA_8);
     MLI_ASSERT(weights->el_type == MLI_EL_SA_8);
     MLI_ASSERT(bias->el_type == MLI_EL_SA_32);
-    const bool is_per_axis = weights->el_params.asym.dim >= 0;
-    const int num_scale_vals = (is_per_axis)? weights->shape[weights->el_params.asym.dim]: 1;
-    const int32_t* w_scales = (is_per_axis)? weights->el_params.asym.scale.mem.pi32: &weights->el_params.asym.scale.mem.i32;
-    const int32_t* b_scales = (is_per_axis)? bias->el_params.asym.scale.mem.pi32: &bias->el_params.asym.scale.mem.i32;
-    const int scale_in = (int)in->el_params.asym.scale.mem.i32;
+    const bool is_per_axis = weights->el_params.sa.dim >= 0;
+    const int num_scale_vals = (is_per_axis)? weights->shape[weights->el_params.sa.dim]: 1;
+    const int32_t* w_scales = (is_per_axis)? weights->el_params.sa.scale.mem.pi32: &weights->el_params.sa.scale.mem.i32;
+    const int32_t* b_scales = (is_per_axis)? bias->el_params.sa.scale.mem.pi32: &bias->el_params.sa.scale.mem.i32;
+    const int scale_in = (int)in->el_params.sa.scale.mem.i32;
     const int out_shift = mli_prv_calc_shift(in, weights, bias);
     for (int idx = 0; idx < num_scale_vals; idx++) {
         long long bias_scale_expected = scale_in * w_scales[idx];
@@ -425,17 +425,17 @@ mli_status mli_chk_conv2d_nhwc_sa8_sa8_sa32(
         MLI_CHECK(bias->el_type    == MLI_EL_SA_32, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
 
-    if (MLI_CHECK(in->el_params.asym.zero_point.mem.i16 != INT16_MIN,"Input tensor: INT16_MIN doesn't support as offset value") ||
-        MLI_CHECK(out->el_params.asym.zero_point.mem.i16 != INT16_MIN,"Input tensor: INT16_MIN doesn't support as offset value"))
+    if (MLI_CHECK(in->el_params.sa.zero_point.mem.i16 != INT16_MIN,"Input tensor: INT16_MIN doesn't support as offset value") ||
+        MLI_CHECK(out->el_params.sa.zero_point.mem.i16 != INT16_MIN,"Input tensor: INT16_MIN doesn't support as offset value"))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
     mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwc(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
-    if (MLI_CHECK(weights->el_params.asym.dim == KRNL_C_DIM_HWC, "Weights tensor: per output channels quantization is expected") ||
-        MLI_CHECK(bias->el_params.asym.dim == 0, "Bias tensor: per output channels quantization is expected") || 
-        MLI_CHECK(in->el_params.asym.dim < 0, "Input tensor: Per-tensor quantization is expected"))
+    if (MLI_CHECK(weights->el_params.sa.dim == KRNL_C_DIM_HWC, "Weights tensor: per output channels quantization is expected") ||
+        MLI_CHECK(bias->el_params.sa.dim == 0, "Bias tensor: per output channels quantization is expected") || 
+        MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor: Per-tensor quantization is expected"))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
     ret = MLI_CHECK_STATUS(mli_chk_bias_scale_asym(in, weights, bias), __func__);
     if (ret != MLI_STATUS_OK)
@@ -804,13 +804,13 @@ mli_status mli_chk_depthwise_conv2d_hwcn_sa8_sa8_sa32(
     if (ret != MLI_STATUS_OK)
         return ret;
 
-    if (MLI_CHECK(weights->el_params.asym.dim == KRNL_DW_C_DIM_HWC, "Weights tensor: per output channels quantization is expected") ||
-        MLI_CHECK(bias->el_params.asym.dim == 0, "Bias tensor: per output channels quantization is expected") || 
-        MLI_CHECK(in->el_params.asym.dim < 0, "Input tensor: Per-tensor quantization is expected"))
+    if (MLI_CHECK(weights->el_params.sa.dim == KRNL_DW_C_DIM_HWC, "Weights tensor: per output channels quantization is expected") ||
+        MLI_CHECK(bias->el_params.sa.dim == 0, "Bias tensor: per output channels quantization is expected") || 
+        MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor: Per-tensor quantization is expected"))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
-    if (MLI_CHECK(in->el_params.asym.zero_point.mem.i16 != INT16_MIN,"Input tensor: INT16_MIN doesn't support as offset value") ||
-        MLI_CHECK(out->el_params.asym.zero_point.mem.i16 != INT16_MIN,"Input tensor: INT16_MIN doesn't support as offset value"))
+    if (MLI_CHECK(in->el_params.sa.zero_point.mem.i16 != INT16_MIN,"Input tensor: INT16_MIN doesn't support as offset value") ||
+        MLI_CHECK(out->el_params.sa.zero_point.mem.i16 != INT16_MIN,"Input tensor: INT16_MIN doesn't support as offset value"))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
     ret = MLI_CHECK_STATUS(mli_chk_bias_scale_asym(in, weights, bias), __func__);
@@ -937,7 +937,7 @@ mli_status mli_chk_maxpool_hwc_sa8 (const mli_tensor * in, const mli_pool_cfg * 
         return ret;
     if (MLI_CHECK(in->el_type == MLI_EL_SA_8, "Wrong input tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;    
-    if (MLI_CHECK(in->el_params.asym.dim < 0, "Input tensor: Per-tensor quantization is expected"))
+    if (MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor: Per-tensor quantization is expected"))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
     return MLI_STATUS_OK;
@@ -1059,7 +1059,7 @@ mli_status mli_chk_avepool_hwc_sa8 (const mli_tensor * in, const mli_pool_cfg * 
         return ret;
     if (MLI_CHECK(in->el_type == MLI_EL_SA_8, "Wrong input tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
-    if (MLI_CHECK(in->el_params.asym.dim < 0, "Input tensor: Per-tensor quantization is expected"))
+    if (MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor: Per-tensor quantization is expected"))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
     return MLI_STATUS_OK;
 }
@@ -1166,9 +1166,9 @@ mli_status mli_chk_fully_connected_sa8_sa8_sa32(
     if (ret != MLI_STATUS_OK)
         return ret;
 
-    if (MLI_CHECK(weights->el_params.asym.dim < 0, "Weights tensor: Per-tensor quantization is expected") ||
-        MLI_CHECK(bias->el_params.asym.dim < 0, "Bias tensor: Per-tensor quantization is expected") || 
-        MLI_CHECK(in->el_params.asym.dim < 0, "Input tensor: Per-tensor quantization is expected"))
+    if (MLI_CHECK(weights->el_params.sa.dim < 0, "Weights tensor: Per-tensor quantization is expected") ||
+        MLI_CHECK(bias->el_params.sa.dim < 0, "Bias tensor: Per-tensor quantization is expected") || 
+        MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor: Per-tensor quantization is expected"))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
     ret = MLI_CHECK_STATUS(mli_chk_bias_scale_asym(in, weights, bias), __func__);
     if (ret != MLI_STATUS_OK)

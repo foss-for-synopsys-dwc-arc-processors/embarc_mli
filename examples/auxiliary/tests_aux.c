@@ -341,19 +341,19 @@ test_status fill_asym_tensor_element_params(
     int16_t* zp_dst;
 
     if (num_vals > 1) {
-        if (target_tensor->el_params.asym.scale.mem.pi32 == NULL ||
-                target_tensor->el_params.asym.zero_point.mem.pi16 == NULL) {
+        if (target_tensor->el_params.sa.scale.mem.pi32 == NULL ||
+                target_tensor->el_params.sa.zero_point.mem.pi16 == NULL) {
             DEBUG_BREAK;
             return TEST_NOT_ENOUGH_MEM;
         }
 
-        scale_dst = target_tensor->el_params.asym.scale.mem.pi32;
-        zp_dst = target_tensor->el_params.asym.zero_point.mem.pi16;
+        scale_dst = target_tensor->el_params.sa.scale.mem.pi32;
+        zp_dst = target_tensor->el_params.sa.zero_point.mem.pi16;
     } else {
-        scale_dst = &target_tensor->el_params.asym.scale.mem.i32;
-        zp_dst = &target_tensor->el_params.asym.zero_point.mem.i16;
+        scale_dst = &target_tensor->el_params.sa.scale.mem.i32;
+        zp_dst = &target_tensor->el_params.sa.zero_point.mem.i16;
     }
-    target_tensor->el_params.asym.scale_frac_bits = scale_fraq_bits;
+    target_tensor->el_params.sa.scale_frac_bits = scale_fraq_bits;
 
     for (int i = 0; i < num_vals; i++) {
         if (scale_rates[i] <= 0.0f) {

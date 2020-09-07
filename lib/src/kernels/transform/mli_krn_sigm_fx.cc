@@ -61,9 +61,9 @@ mli_status mli_krn_sigm_sa8(const mli_tensor* in, mli_tensor* out) {
     if (ret != MLI_STATUS_OK) return ret;
     mli_prv_fx_init_dsp_ctrl();
 
-    in_params.offset = in->el_params.asym.zero_point.mem.i16;
-    in_params.scale  = in->el_params.asym.scale.mem.i32;
-    in_params.shift = in->el_params.asym.scale_frac_bits;
+    in_params.offset = in->el_params.sa.zero_point.mem.i16;
+    in_params.scale  = in->el_params.sa.scale.mem.i32;
+    in_params.shift = in->el_params.sa.scale_frac_bits;
     out_params.offset = kSigmAsymZeroPoint;
     out_params.scale  = 1;
     out_params.shift = kSigmOutputShift;
@@ -73,9 +73,9 @@ mli_status mli_krn_sigm_sa8(const mli_tensor* in, mli_tensor* out) {
             &in_params, &out_params, (int)mli_prv_count_elem_num(in));
     // Update output shape
     mli_prv_copy_tensor_format(in, out);
-    out->el_params.asym.zero_point.mem.i16 = out_params.offset;
-    out->el_params.asym.scale.mem.i32 = out_params.scale;
-    out->el_params.asym.scale_frac_bits = out_params.shift;
+    out->el_params.sa.zero_point.mem.i16 = out_params.offset;
+    out->el_params.sa.scale.mem.i32 = out_params.scale;
+    out->el_params.sa.scale_frac_bits = out_params.shift;
 
     return MLI_STATUS_OK;
 }

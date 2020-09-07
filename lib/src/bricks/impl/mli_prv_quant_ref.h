@@ -82,26 +82,26 @@ MLI_FORCE_INLINE void define_quant_params(const mli_tensor* in, const mli_tensor
 template <>
 MLI_FORCE_INLINE void define_quant_params(const mli_tensor *in, const mli_tensor  *weights, const mli_tensor  *bias,
                                 const mli_tensor   *out, s8asym_quant_specific_params* params) {
-    params->in_offset = in->el_params.asym.zero_point.mem.i16;
-    params->out_offset = out->el_params.asym.zero_point.mem.i16;
+    params->in_offset = in->el_params.sa.zero_point.mem.i16;
+    params->out_offset = out->el_params.sa.zero_point.mem.i16;
 
-    if (weights->el_params.asym.dim >= 0) {
-        params->weights_offset = weights->el_params.asym.zero_point.mem.pi16[0];
-        params->weight_scales = weights->el_params.asym.scale.mem.pi32;
-        params->weight_shifts = &weights->el_params.asym.scale_frac_bits;
+    if (weights->el_params.sa.dim >= 0) {
+        params->weights_offset = weights->el_params.sa.zero_point.mem.pi16[0];
+        params->weight_scales = weights->el_params.sa.scale.mem.pi32;
+        params->weight_shifts = &weights->el_params.sa.scale_frac_bits;
     } else {
-        params->weights_offset = weights->el_params.asym.zero_point.mem.i16;
-        params->weight_scales = &weights->el_params.asym.scale.mem.i32;
-        params->weight_shifts = &weights->el_params.asym.scale_frac_bits;
+        params->weights_offset = weights->el_params.sa.zero_point.mem.i16;
+        params->weight_scales = &weights->el_params.sa.scale.mem.i32;
+        params->weight_shifts = &weights->el_params.sa.scale_frac_bits;
     }
-    int64_t scale_unfinished = (int64_t)(in->el_params.asym.scale.mem.i32) << kPreDivShiftS32;
-    scale_unfinished = scale_unfinished / out->el_params.asym.scale.mem.i32;
+    int64_t scale_unfinished = (int64_t)(in->el_params.sa.scale.mem.i32) << kPreDivShiftS32;
+    scale_unfinished = scale_unfinished / out->el_params.sa.scale.mem.i32;
     params->in_to_out_scales_ratio = mli_math_cast_fx<int64_t, int32_t>(scale_unfinished, 0);
 
     int in_to_out_norm = mli_math_norm_fx<int32_t, int>(params->in_to_out_scales_ratio);
     params->in_to_out_scales_ratio = params->in_to_out_scales_ratio << in_to_out_norm;
-    params->in_to_out_shift = in->el_params.asym.scale_frac_bits;
-    params->in_to_out_shift += (kPreDivShiftS32 - out->el_params.asym.scale_frac_bits);
+    params->in_to_out_shift = in->el_params.sa.scale_frac_bits;
+    params->in_to_out_shift += (kPreDivShiftS32 - out->el_params.sa.scale_frac_bits);
     params->in_to_out_shift += in_to_out_norm;
 
 }
@@ -149,17 +149,17 @@ static MLI_FORCE_INLINE int32_t mli_prv_calc_out_mul(
         /* mix of FX and asym datatypes is not supported */
         MLI_ASSERT(in1->el_type == MLI_EL_SA_8);
         MLI_ASSERT((out->el_type == MLI_EL_SA_8) || (out->el_type == MLI_EL_SA_32));
-        MLI_ASSERT((in0->el_params.asym.dim < 0) && (in1->el_params.asym.dim < 0));
+        MLI_ASSERT((in0->el_params.sa.dim < 0) && (in1->el_params.sa.dim < 0));
 
-        *shift = in0->el_params.asym.scale_frac_bits;
-        *shift += in1->el_params.asym.scale_frac_bits;
-        *shift += (kPreDivShiftS32 - out->el_params.asym.scale_frac_bits);
+        *shift = in0->el_params.sa.scale_frac_bits;
+        *shift += in1->el_params.sa.scale_frac_bits;
+        *shift += (kPreDivShiftS32 - out->el_params.sa.scale_frac_bits);
         *shift -= shiftChangeValue;
 
-        int64_t scale_unfinished = (int64_t)(in0->el_params.asym.scale.mem.i32) << kPreDivShiftS32;
-        scale_unfinished = scale_unfinished / out->el_params.asym.scale.mem.i32;
+        int64_t scale_unfinished = (int64_t)(in0->el_params.sa.scale.mem.i32) << kPreDivShiftS32;
+        scale_unfinished = scale_unfinished / out->el_params.sa.scale.mem.i32;
         int32_t in_to_out_scales_ratio = mli_math_cast_fx<int64_t, int32_t>(scale_unfinished, 0);
-        int64_t out_mul_scaled = (int64_t)in_to_out_scales_ratio * in1->el_params.asym.scale.mem.i32;
+        int64_t out_mul_scaled = (int64_t)in_to_out_scales_ratio * in1->el_params.sa.scale.mem.i32;
         int32_t out_mul = mli_math_cast_fx<int64_t, int32_t>(out_mul_scaled, shiftChangeValue);
         return out_mul;
     } else {

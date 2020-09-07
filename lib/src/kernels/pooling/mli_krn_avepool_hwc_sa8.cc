@@ -78,7 +78,7 @@ mli_status mli_krn_avepool_hwc_sa8_k2x2_nopad(const mli_tensor * in, const mli_p
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = in_prv.ch;
-    out->el_params.asym = in->el_params.asym;
+    out->el_params.sa = in->el_params.sa;
     const auto out_prv = mli_prv_get_tensor_hwc<MLI_OUT_PTR(int8_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int row_beg = 0;
@@ -148,7 +148,7 @@ mli_status mli_krn_avepool_hwc_sa8_k3x3_nopad(const mli_tensor * in, const mli_p
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = in_prv.ch;
-    out->el_params.asym = in->el_params.asym;
+    out->el_params.sa = in->el_params.sa;
     const auto out_prv = mli_prv_get_tensor_hwc<MLI_OUT_PTR(int8_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int row_beg = 0;
@@ -218,7 +218,7 @@ mli_status mli_krn_avepool_hwc_sa8_k2x2_krnpad(const mli_tensor * in, const mli_
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = in_prv.ch;
-    out->el_params.asym = in->el_params.asym;
+    out->el_params.sa = in->el_params.sa;
     const auto out_prv = mli_prv_get_tensor_hwc<MLI_OUT_PTR(int8_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int row_beg = 0;
@@ -288,7 +288,7 @@ mli_status mli_krn_avepool_hwc_sa8_k3x3_krnpad(const mli_tensor * in, const mli_
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = in_prv.ch;
-    out->el_params.asym = in->el_params.asym;
+    out->el_params.sa = in->el_params.sa;
     const auto out_prv = mli_prv_get_tensor_hwc<MLI_OUT_PTR(int8_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int row_beg = 0;
@@ -358,7 +358,7 @@ mli_status mli_krn_avepool_hwc_sa8_generic(const mli_tensor * in, const mli_pool
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = in_prv.ch;
-    out->el_params.asym = in->el_params.asym;
+    out->el_params.sa = in->el_params.sa;
     const auto out_prv = mli_prv_get_tensor_hwc<MLI_OUT_PTR(int8_t), MLI_OUT_PTR_IS_XY>(out);
 
     const int row_beg = 0;

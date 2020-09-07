@@ -90,7 +90,7 @@ uint32_t mli_hlp_tensor_scale_shift(const mli_tensor *in) {
             return in->el_params.fx.frac_bits;
         case MLI_EL_SA_8:
         case MLI_EL_SA_32:
-            return in->el_params.asym.scale_frac_bits;
+            return in->el_params.sa.scale_frac_bits;
         default:
             MLI_ASSERT(0);
             return 0;
@@ -104,7 +104,7 @@ int32_t mli_hlp_tensor_scale(const mli_tensor *in, const uint32_t scale_idx) {
             return 1;
         case MLI_EL_SA_8:
         case MLI_EL_SA_32:
-            return (in->el_params.asym.dim >= 0)? in->el_params.asym.scale.mem.pi32[scale_idx]: in->el_params.asym.scale.mem.i32;
+            return (in->el_params.sa.dim >= 0)? in->el_params.sa.scale.mem.pi32[scale_idx]: in->el_params.sa.scale.mem.i32;
         default:
             MLI_ASSERT(0);
             return 0;
@@ -118,7 +118,7 @@ int16_t mli_hlp_tensor_zero_offset(const mli_tensor *in, const uint32_t zero_idx
             return 0;
         case MLI_EL_SA_8:
         case MLI_EL_SA_32:
-            return (in->el_params.asym.dim >= 0)? in->el_params.asym.zero_point.mem.pi16[zero_idx]: in->el_params.asym.zero_point.mem.i16;
+            return (in->el_params.sa.dim >= 0)? in->el_params.sa.zero_point.mem.pi16[zero_idx]: in->el_params.sa.zero_point.mem.i16;
         default:
             MLI_ASSERT(0);
             return 0;
@@ -200,7 +200,7 @@ mli_status mli_hlp_create_subtensor(const mli_tensor *in, const mli_sub_tensor_c
         }
         out->shape[out_idx] = cfg->size[in_idx];
         out->mem_stride[out_idx] = mem_strides[in_idx];
-        if (isAsym && (in->el_params.asym.dim == in_idx)) {
+        if (isAsym && (in->el_params.sa.dim == in_idx)) {
             out_asym_dim = out_idx;
             out_asym_offset = cfg->offset[in_idx];
         }
@@ -212,10 +212,10 @@ mli_status mli_hlp_create_subtensor(const mli_tensor *in, const mli_sub_tensor_c
     out->el_type = in->el_type;
 
     if (isAsym){
-        if (out->el_params.asym.dim >= 0) {
-            out->el_params.asym.scale.mem.pi32 += out_asym_offset;
-            out->el_params.asym.dim = out_asym_dim;
-            out->el_params.asym.zero_point.mem.pi16 += out_asym_offset;
+        if (out->el_params.sa.dim >= 0) {
+            out->el_params.sa.scale.mem.pi32 += out_asym_offset;
+            out->el_params.sa.dim = out_asym_dim;
+            out->el_params.sa.zero_point.mem.pi16 += out_asym_offset;
         }
     }
     return MLI_STATUS_OK;
