@@ -207,15 +207,15 @@ test_status measure_err_vfloat(
  * @param[in] scale_int_bits - integer bits of quantized of scale values
  * @param[in/out] target_tensor - Tensor structure to fill. Fields of the structure to be filled beforehand:
  *                                el_type - MLI_EL_SA_8 or MLI_EL_SA_32.
- *                                el_params.asym.dim - quantization axis (negative in case of quantization across whole tensor)
- *                                Additionaly, if el_params.asym.dim >= 0: 
- *                                el_params.asym.zero_point(scale).pi16 - pointers to valid memory,
+ *                                el_params.sa.dim - quantization axis (negative in case of quantization across whole tensor)
+ *                                Additionaly, if el_params.sa.dim >= 0: 
+ *                                el_params.sa.zero_point(scale).pi16 - pointers to valid memory,
  *                                                           which can keep num_vals elements of int16_t size
  
  *                                Fields that will be filledby function:
- *                                el_params.asym.scale_frac_bits - number of fractional bits derived from scale_int_bits
- *                                el_params.asym.zero_point - quantized version of zero points (pointer to filled array if num_vals > 1)
- *                                el_params.asym.scale - quantized version of scale rates (pointer to filled array if num_vals > 1)
+ *                                el_params.sa.scale_frac_bits - number of fractional bits derived from scale_int_bits
+ *                                el_params.sa.zero_point - quantized version of zero points (pointer to filled array if num_vals > 1)
+ *                                el_params.sa.scale - quantized version of scale rates (pointer to filled array if num_vals > 1)
  *
  * @return Operation status code (test_status)
  */
