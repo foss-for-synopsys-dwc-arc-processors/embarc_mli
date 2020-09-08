@@ -137,11 +137,10 @@ void mli_prv_activation_lut_sa8(
         const MLI_PTR(int8_t) in,
         MLI_OUT_PTR(int8_t) out,
         const mli_lut *lut,
-        int scale,
-        int8_t scale_frac_bits,
-        int16_t zero_point,
+        struct s8asym_quant_params *in_params,
+        struct s8asym_quant_params *out_params,
         int length) {
-    activation_lut<int8_t, true>(in, out, lut, scale_frac_bits, length, scale, zero_point);
+    activation_lut<int8_t, true>(in, out, lut, 0 /*Unused*/, length, in_params, out_params);
 }
 
 #pragma code()

@@ -10,6 +10,8 @@
 #ifndef _MLI_PRV_QUANT_REF_H_
 #define _MLI_PRV_QUANT_REF_H_
 
+#include "mli_prv_quant_decl.h"
+
 #include "mli_config.h"
 #include "mli_check.h"
 #include "mli_debug.h"
@@ -18,48 +20,54 @@
 #include "mli_private_types.h"
 #include "mli_prv_tensor.h"
 #include "mli_types.h"
-#include "mli_krn_reduce_sum2d.h"
+//#include "mli_krn_reduce_sum2d.h"
+
+
 
 #include <arc/arc_intrinsics.h>
 #include <assert.h>
 
+namespace mli {
+namespace krn {
+namespace ref {
+
+template <typename io_T, typename acc_T>
+MLI_FORCE_INLINE acc_T reduce_sum(
+        const io_T* __restrict in,
+        const int16_t mul,
+        acc_T accu,
+
+        const int vals,
+        const int step = 1) {
+    for (int idx = 0; idx < vals; idx++) {
+        accu = mli_math_mac_fx(accu, mul, (*in));
+        in += step;
+    }
+    return accu;
+}
+
+template <typename io_T, typename acc_T>
+MLI_FORCE_INLINE acc_T reduce_sum2D(
+        const MLI_PTR(io_T) __restrict in,
+        const int16_t mul,
+        acc_T accu,
+        const int width,
+        const int height,
+        int in_col_step,
+        int in_row_step) {
+    in_row_step -= width * in_col_step;
+    for (int row = 0; row < height; row++) {
+        for (int clmn = 0; clmn < width; clmn++) {
+            accu = mli_math_mac_fx(accu, mul, (*in));
+            in += in_col_step;
+        }
+        in += in_row_step;
+    }
+    return accu;
+}
+
 static const int kPreDivShiftS16 = 14;
 static const int kPreDivShiftS32 = 30;
-//=========================================================================
-//
-// Declaration
-//
-//=========================================================================
-template <typename quant_T>
-MLI_FORCE_INLINE void define_quant_params(const mli_tensor* in, const mli_tensor* weights, const mli_tensor* bias,
-                                const mli_tensor* out, quant_T* params);
-
-template <typename quant_T>
-MLI_FORCE_INLINE void adjust_quant_params(quant_T* params, int krn_idx = 0);
-
-template <typename w_T, typename acc_T, typename quant_T>
-MLI_FORCE_INLINE acc_T weights_additive(const w_T* __restrict weights, acc_T init_accum, const quant_T* quant_params,
-                              const int width, const int height = 1, int col_step = 1, int row_step = 1);
-
-template <typename in_T, typename acc_T, typename quant_T>
-MLI_FORCE_INLINE acc_T in_additive(const in_T* __restrict in, acc_T init_accum, const quant_T* quant_params,
-                              const int width, const int height = 1, int col_step = 1, int row_step = 1);
-
-template <typename acc_T, typename quant_T>
-MLI_FORCE_INLINE acc_T zp_additive(const quant_T* quant_params, acc_T init_accum,
-                        const int mac_serias_len);
-
-template <typename b_T, typename acc_T, typename quant_T>
-MLI_FORCE_INLINE acc_T bias_additive(const b_T bias, acc_T init_accum, const quant_T* quant_params);
-
-template <typename o_T, typename acc_T, typename quant_T>
-MLI_FORCE_INLINE o_T result_cast(const acc_T acc, const quant_T* quant_params);
-
-//=========================================================================
-//
-// Definitions
-//
-//=========================================================================
 
 //==========================================================================
 // Operating with quantization params set
@@ -74,32 +82,48 @@ MLI_FORCE_INLINE void define_quant_params(const mli_tensor* in, const mli_tensor
 template <>
 MLI_FORCE_INLINE void define_quant_params(const mli_tensor *in, const mli_tensor  *weights, const mli_tensor  *bias,
                                 const mli_tensor   *out, s8asym_quant_specific_params* params) {
-    params->in_offset = in->el_params.asym.zero_point.i16;
-    params->out_offset = out->el_params.asym.zero_point.i16;
+    params->in_offset = in->el_params.sa.zero_point.mem.i16;
+    params->out_offset = out->el_params.sa.zero_point.mem.i16;
 
-    if (weights->el_params.asym.dim >= 0) {
-        params->weights_offset = weights->el_params.asym.zero_point.pi16[0];
-        params->weight_scales = weights->el_params.asym.scale.pi32;
+    if (weights->el_params.sa.dim >= 0) {
+        params->weights_offset = weights->el_params.sa.zero_point.mem.pi16[0];
+        params->weight_scales = weights->el_params.sa.scale.mem.pi32;
+        params->weight_shifts = &weights->el_params.sa.scale_frac_bits;
     } else {
-        params->weights_offset = weights->el_params.asym.zero_point.i16;
-        params->weight_scales = &weights->el_params.asym.scale.i32;
+        params->weights_offset = weights->el_params.sa.zero_point.mem.i16;
+        params->weight_scales = &weights->el_params.sa.scale.mem.i32;
+        params->weight_shifts = &weights->el_params.sa.scale_frac_bits;
     }
-    int64_t scale_unfinished = (int64_t)(in->el_params.asym.scale.i32) << kPreDivShiftS32;
-    scale_unfinished = scale_unfinished / out->el_params.asym.scale.i32;
+    int64_t scale_unfinished = (int64_t)(in->el_params.sa.scale.mem.i32) << kPreDivShiftS32;
+    scale_unfinished = scale_unfinished / out->el_params.sa.scale.mem.i32;
     params->in_to_out_scales_ratio = mli_math_cast_fx<int64_t, int32_t>(scale_unfinished, 0);
 
+    int in_to_out_norm = mli_math_norm_fx<int32_t, int>(params->in_to_out_scales_ratio);
+    params->in_to_out_scales_ratio = params->in_to_out_scales_ratio << in_to_out_norm;
+    params->in_to_out_shift = in->el_params.sa.scale_frac_bits;
+    params->in_to_out_shift += (kPreDivShiftS32 - out->el_params.sa.scale_frac_bits);
+    params->in_to_out_shift += in_to_out_norm;
 
-    params->out_shift = in->el_params.asym.scale_frac_bits;
-    params->out_shift += weights->el_params.asym.scale_frac_bits;
-    params->out_shift += (kPreDivShiftS32 - out->el_params.asym.scale_frac_bits);
-    params->out_shift -= 32; // See Adjust parameters - we already do a shift there
 }
 
 template <>
 MLI_FORCE_INLINE void adjust_quant_params(s8asym_quant_specific_params* params, int krn_idx) {
     // out multiplyer can be different across one of axis (per axis quantization for s8asym)
-    accum72_t accu_scaled = fx_a72_mpy_q31(params->in_to_out_scales_ratio, params->weight_scales[krn_idx]);
-    params->out_mul = mli_math_cast_fx<accum72_t, int32_t>(accu_scaled, 32);
+    const int64_t out_mul_scaled = (int64_t)params->in_to_out_scales_ratio * params->weight_scales[krn_idx];
+    int int64_to_int32_shift = 32;
+    params->out_mul = mli_math_cast_fx<int64_t, int32_t>(out_mul_scaled, int64_to_int32_shift);
+
+    params->out_shift = params->in_to_out_shift;
+    params->out_shift += params->weight_shifts[0];
+    params->out_shift -= int64_to_int32_shift;
+
+#if !defined(FULL_ACCU)
+    // When the accumulator is pre-shifted before the output multiplier,
+    // we need to normalize mul for max use of the headroom.
+    int norm = mli_math_norm_fx<int32_t, int>(params->out_mul);
+    params->out_mul = mli_math_asl_fx(params->out_mul, norm);
+    params->out_shift += norm;
+#endif
     return;
 }
 
@@ -119,23 +143,23 @@ static MLI_FORCE_INLINE int32_t mli_prv_calc_out_mul(
         MLI_ASSERT((in1->el_type == MLI_EL_FX_8) || (in1->el_type == MLI_EL_FX_16));
         MLI_ASSERT((out->el_type == MLI_EL_FX_8) || (out->el_type == MLI_EL_FX_16));
         return 1;
-    } else if (in0->el_type == MLI_EL_ASYM_I8) {
+    } else if (in0->el_type == MLI_EL_SA_8) {
         const int kPreDivShiftS32 = 30;
         const int shiftChangeValue = 32;
         /* mix of FX and asym datatypes is not supported */
-        MLI_ASSERT(in1->el_type == MLI_EL_ASYM_I8);
-        MLI_ASSERT((out->el_type == MLI_EL_ASYM_I8) || (out->el_type == MLI_EL_ASYM_I32));
-        MLI_ASSERT((in0->el_params.asym.dim < 0) && (in1->el_params.asym.dim < 0));
+        MLI_ASSERT(in1->el_type == MLI_EL_SA_8);
+        MLI_ASSERT((out->el_type == MLI_EL_SA_8) || (out->el_type == MLI_EL_SA_32));
+        MLI_ASSERT((in0->el_params.sa.dim < 0) && (in1->el_params.sa.dim < 0));
 
-        *shift = in0->el_params.asym.scale_frac_bits;
-        *shift += in1->el_params.asym.scale_frac_bits;
-        *shift += (kPreDivShiftS32 - out->el_params.asym.scale_frac_bits);
+        *shift = in0->el_params.sa.scale_frac_bits;
+        *shift += in1->el_params.sa.scale_frac_bits;
+        *shift += (kPreDivShiftS32 - out->el_params.sa.scale_frac_bits);
         *shift -= shiftChangeValue;
 
-        int64_t scale_unfinished = (int64_t)(in0->el_params.asym.scale.i32) << kPreDivShiftS32;
-        scale_unfinished = scale_unfinished / out->el_params.asym.scale.i32;
+        int64_t scale_unfinished = (int64_t)(in0->el_params.sa.scale.mem.i32) << kPreDivShiftS32;
+        scale_unfinished = scale_unfinished / out->el_params.sa.scale.mem.i32;
         int32_t in_to_out_scales_ratio = mli_math_cast_fx<int64_t, int32_t>(scale_unfinished, 0);
-        int64_t out_mul_scaled = (int64_t)in_to_out_scales_ratio * in1->el_params.asym.scale.i32;
+        int64_t out_mul_scaled = (int64_t)in_to_out_scales_ratio * in1->el_params.sa.scale.mem.i32;
         int32_t out_mul = mli_math_cast_fx<int64_t, int32_t>(out_mul_scaled, shiftChangeValue);
         return out_mul;
     } else {
@@ -169,7 +193,7 @@ MLI_FORCE_INLINE mli_acc32_t weights_additive(
 }
 
 template <typename w_T, typename acc_T, typename quant_T>
-inline acc_T __attribute__ ((always_inline)) weights_additive(const MLI_PTR(w_T) __restrict, acc_T init_accum,
+MLI_FORCE_INLINE acc_T weights_additive(const MLI_PTR(w_T) __restrict, acc_T init_accum,
         const quant_T*,
         const int, const int, const int, int, int, int) {
     // By default and for FX quantization scheme, weights additive isn't required
@@ -177,7 +201,7 @@ inline acc_T __attribute__ ((always_inline)) weights_additive(const MLI_PTR(w_T)
 }
 
 template <>
-inline mli_acc32_t __attribute__ ((always_inline)) weights_additive(
+MLI_FORCE_INLINE mli_acc32_t weights_additive(
         const MLI_PTR(int8_t) __restrict weights, mli_acc32_t init_accum,
         const s8asym_quant_specific_params* quant_params,
         const int width,  const int height, const int ch, int col_step, int row_step, int ch_step) {
@@ -191,50 +215,6 @@ inline mli_acc32_t __attribute__ ((always_inline)) weights_additive(
     } else {
         return init_accum;
     }
-}
-
-//The function uses pointers to pointers for weights.
-//The caller of the function should compensate for the increment
-//done inside this function.
-template <typename acc_T>
-MLI_FORCE_INLINE acc_T weights_additive_v(
-        const MLI_PTR(int8_t) __restrict *weights, acc_T *init_accum,
-        const s8asym_quant_specific_params* quant_params,
-        const int width,  const int height, int col_step, int row_step) {
-
-    // returns -(in_zero_point * cumsum(weights)) For S8ASYM
-    if (quant_params->in_offset != 0) {
-        acc_T tmp_acc = reduce_sum2D_v(weights, -quant_params->in_offset, init_accum, width, height, col_step, row_step);
-        //compensite increment of weights pointer from reduce_sum2D_v function
-        weights -= height * row_step;
-        return tmp_acc;
-    } else {
-        return *init_accum;
-    }
-}
-
-template <typename acc_T>
-MLI_FORCE_INLINE acc_T weights_additive_v(
-        const MLI_PTR(int8_t) __restrict weights, acc_T *init_accum,
-        const s8asym_quant_specific_params* quant_params,
-        const int width,  const int height, int col_step, int row_step) {
-
-    // returns -(in_zero_point * cumsum(weights)) For S8ASYM
-    if (quant_params->in_offset != 0)
-        return reduce_sum2D_v(weights, -quant_params->in_offset, init_accum, width, height, col_step, row_step);
-    else
-        return *init_accum;
-}
-
-MLI_FORCE_INLINE mli_acc32_t weights_additive_d(
-        const MLI_PTR(int8_t) __restrict weights, mli_acc32_t *init_accum,
-        const s8asym_quant_specific_params* quant_params,
-        const int width,  const int height, int col_step, int row_step) {
-    // returns -(in_zero_point * cumsum(weights)) For S8ASYM
-    if (quant_params->in_offset != 0)
-        return reduce_sum2D_d(weights, -quant_params->in_offset, init_accum, width, height, col_step, row_step);
-    else
-        return *init_accum;
 }
 
 //==========================================================================
@@ -262,14 +242,14 @@ MLI_FORCE_INLINE mli_acc32_t in_additive(
 }
 
 template <typename in_T, typename acc_T, typename quant_T>
-inline acc_T __attribute__ ((always_inline)) in_additive(const MLI_PTR(in_T) __restrict, acc_T init_accum, const quant_T* quant_params,
+MLI_FORCE_INLINE acc_T in_additive(const MLI_PTR(in_T) __restrict, acc_T init_accum, const quant_T* quant_params,
                               const int, const int, const int, int, int, int) {
     // By default and for FX quantization scheme, input additive isn't required
     return init_accum;
 }
 
 template <>
-inline mli_acc32_t __attribute__ ((always_inline)) in_additive(
+MLI_FORCE_INLINE mli_acc32_t in_additive(
         const MLI_PTR(int8_t) __restrict in, mli_acc32_t init_accum,
         const s8asym_quant_specific_params* quant_params,
         const int width, const int height, const int ch, int col_step, int row_step, int ch_step) {
@@ -314,24 +294,24 @@ MLI_FORCE_INLINE mli_acc32_t zp_additive(const s8asym_quant_specific_params* qua
 //==========================================================================
 template <>
 MLI_FORCE_INLINE mli_acc32_t bias_additive(
-        const int8_t bias, mli_acc32_t init_accum, const fx_quant_specific_params* quant_params) {
-    mli_acc32_t accu = mli_math_mul_fx<int8_t, mli_acc32_t>(bias, 1);
+        const MLI_PTR(int8_t) bias, mli_acc32_t init_accum, const fx_quant_specific_params* quant_params) {
+    mli_acc32_t accu = mli_math_mul_fx<int8_t, mli_acc32_t>(*bias, 1);
     accu = mli_math_acc_ashift_fx(accu, -quant_params->bias_shift);
     return mli_math_add_fx(init_accum, accu);
 }
 
 template <>
 MLI_FORCE_INLINE mli_acc40_t bias_additive(
-        const int16_t bias, mli_acc40_t init_accum, const fx_quant_specific_params* quant_params) {
-    return mli_math_add_fx(init_accum, mli_math_cast_fx<int16_t, mli_acc40_t>(bias, -quant_params->bias_shift));
+        const MLI_PTR(int16_t) bias, mli_acc40_t init_accum, const fx_quant_specific_params* quant_params) {
+    return mli_math_add_fx(init_accum, mli_math_cast_fx<int16_t, mli_acc40_t>(*bias, -quant_params->bias_shift));
 }
 
 template <>
 MLI_FORCE_INLINE mli_acc32_t bias_additive(
-        const int32_t bias, mli_acc32_t init_accum, const s8asym_quant_specific_params* quant_params) {
+        const MLI_PTR(int32_t) bias, mli_acc32_t init_accum, const s8asym_quant_specific_params* quant_params) {
     // For I8ASYM Bias is of the similar format as result accumulator.
     // To prevent saturation during dotproduct we add bias in the end. (saturate final result - not IR)
-    return mli_math_add_fx(init_accum, mli_math_cast_fx<mli_acc32_t, int32_t>(bias, /*right_shift =*/0));
+    return mli_math_add_fx(init_accum, mli_math_cast_fx<mli_acc32_t, int32_t>(*bias, /*right_shift =*/0));
 }
 
 //==========================================================================
@@ -360,13 +340,53 @@ MLI_FORCE_INLINE int8_t result_cast(
 
     // adding the output offset needs to happen after the output mul and output shift
     // but before the cast to the output container size.
-    // because the cast and shift are combined in one function, the output offset is
-    // added before, and multiplied with 1<< out_shift to compensate.
-    const int32_t accu_result = mli_math_cast_fx<mli_acc32_t, int32_t>(acc, 0);
-    const int64_t accu_scaled = mli_math_mul_fx<int32_t, int64_t>(accu_result, quant_params->out_mul);
-    const int16_t out_no_offset = mli_math_cast_fx<int64_t, int16_t>(accu_scaled, quant_params->out_shift);
+
+    int32_t out_mul = quant_params->out_mul;
+    int out_shift = quant_params->out_shift;
+    mli_acc32_t accu = acc;
+    int preshift = 0;
+
+#if !defined(FULL_ACCU)
+    // The accumulator has 8 guard bits. If we pre-shift the accumulator to make it fit into
+    // 16bit, we can do the rest of the post processing in 16bit. (output multiplier and relu)
+    // shifting too much will lose accuracy, shifting too little will case saturation
+    // a 3bit headroom is required (1 sign bit, 1bit for the range of mul, and 1bit for the offset)
+    // From the 32 bits that come out of the multiplier (16bit reduced accu x 16bit multiplier),
+    // we need 8 bits for the output, 3 bits of headroom.
+    // this means that the last output shift will need to shift 5 bits. the rest is shifted here.
+    // adding clipping to avoid negative shift. and shifting more than 8 is also not needed.
+    int target_out_shift = 32 - 8 - 3;
+
+    // reduce out_mul to 16bit
+    int int_to_short_shift = 16;
+    out_mul = mli_math_asr_fx(out_mul, int_to_short_shift);
+    out_shift -= int_to_short_shift;
+
+    // preshift and clip to 16bit, but keep 32bit container for easy connection to rest of code.
+    preshift = mli_math_min_fx(mli_math_max_fx(out_shift - target_out_shift, 0),8);
+    accu = mli_math_asr_rnd_fx(accu, preshift);
+    accu = mli_math_sat_fx(accu, 16);
+#endif
+    const int32_t accu_result = mli_math_cast_fx<mli_acc32_t, int32_t>(accu, 0);
+    const int64_t accu_scaled = mli_math_mul_fx<int32_t, int64_t>(accu_result, out_mul);
+    const int16_t out_no_offset = mli_math_cast_fx<int64_t, int16_t>(accu_scaled, out_shift - preshift);
     int8_t out_val = mli_math_cast_fx<int16_t, int8_t>(mli_math_add_fx(out_no_offset, quant_params->out_offset), 0);
     return out_val;
+}
+
+template <typename o_T, typename acc_T, typename quant_T>
+static MLI_FORCE_INLINE void result_cast_relu_store(
+        MLI_CONV_OUT_PTR(o_T) __restrict o_ptr,
+        acc_T acc,
+        const quant_T* quant_params,
+        const int16_t val_min_limit,
+        const int16_t val_max_limit) {
+
+    o_T out = result_cast<o_T, acc_T, quant_T>(acc, quant_params);
+    out = MIN(out, val_max_limit);
+    out = MAX(out, val_min_limit);
+
+    *o_ptr = (o_T) out;
 }
 
 
@@ -424,5 +444,9 @@ MLI_FORCE_INLINE out_T mli_prv_convert_fx16_sa8(
     mli_acc32_t fx_output32_shifted = mli_math_acc_ashift_fx<mli_acc32_t>(fx_output32, scale) + zero_point;
     return mli_math_acc_cast_fx<out_T, mli_acc32_t>(fx_output32_shifted, 0);
 }
+
+} // namespace ref
+} // namespace krn
+} // namespace mli
 
 #endif /* _MLI_PRV_QUANT_REF_H_ */

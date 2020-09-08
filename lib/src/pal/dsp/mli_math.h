@@ -26,11 +26,62 @@
 
 #pragma Code(".mli_lib")
 
+typedef accum40_t mli_acc40_t;
+typedef int32_t   mli_acc32_t;
+//typedef signed char v2i8_t __attribute__((__vector_size__(2)));
+
 //=========================================================================
 //
 // Definitions
 //
 //=========================================================================
+
+template <typename T>
+MLI_FORCE_INLINE T mli_math_asl_fx(T x, int nbits);
+template <typename T>
+MLI_FORCE_INLINE T mli_math_asr_fx(T x, int nbits);
+
+template <>
+MLI_FORCE_INLINE int32_t mli_math_asl_fx(int32_t x, int nbits) {
+    return fx_asl_q31(x, nbits);
+}
+
+template <>
+MLI_FORCE_INLINE int16_t mli_math_asl_fx(int16_t x, int nbits) {
+    return fx_asl_q15(x, nbits);
+}
+
+template <>
+MLI_FORCE_INLINE int32_t mli_math_asr_fx(int32_t acc, int shift_right) {
+    return fx_asr_q31(acc, shift_right);
+}
+
+template <>
+MLI_FORCE_INLINE int16_t mli_math_asr_fx(int16_t acc, int shift_right) {
+    return fx_asr_q15(acc, shift_right);
+}
+
+template <typename T>
+MLI_FORCE_INLINE T mli_math_sat_fx(T x, unsigned nbits);
+
+template <>
+MLI_FORCE_INLINE int32_t mli_math_sat_fx(int32_t x, unsigned nbits) {
+    return fx_sat_q31(x, nbits);
+}
+
+template <typename T, typename o_T>
+MLI_FORCE_INLINE o_T mli_math_norm_fx(T x) {
+    o_T inp_size = sizeof(T) * 8;
+    T hi = x < (T)0 ? (T)-1 : (T)0;
+    o_T r = 0;
+
+    if (x == (T)0)
+        return inp_size - 1;
+
+    while ((x >> r) != hi)
+        r++;
+    return (inp_size - 1) - r;
+}
 
 // Addition of two fx operands with saturation
 //========================================================================
@@ -232,6 +283,9 @@ static MLI_FORCE_INLINE bool mli_prv_less_than_1(io_T value, uint8_t frac_bits) 
     io_T unit = (io_T) 1 << frac_bits;
     return (value < unit);
 }
+
+template <typename in_T>
+MLI_FORCE_INLINE in_T mli_math_asr_rnd_fx(in_T x, int nbits);
 
 template <>
 MLI_FORCE_INLINE int16_t mli_math_asr_rnd_fx(int16_t x, int nbits) {

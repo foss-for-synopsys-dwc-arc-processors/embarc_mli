@@ -169,10 +169,10 @@ mli_status mli_mov_prepare(mli_mov_handle_t* h, const mli_tensor* src, const mli
     if (is_possible_in_single1d_transfer) {
         // in case source and destination pointer match, and the transfer is a single 1d transfer, there
         // is no need in actually copying the data.
-        if (src->data != dst->data) {
+        if (src->data.mem.void_p != dst->data.mem.void_p) {
             int copy_size = mli_hlp_count_elem_num(src, 0);
             copy_size *= mli_hlp_tensor_element_size(src);
-            retval = mli_mov_memcpy(h, src->data, dst->data, copy_size, dst->capacity);
+            retval = mli_mov_memcpy(h, src->data.mem.void_p, dst->data.mem.void_p, copy_size, dst->data.capacity);
         }
 
     } else {
@@ -201,16 +201,16 @@ mli_status mli_mov_prepare(mli_mov_handle_t* h, const mli_tensor* src, const mli
                                             || (((src_pos3 < 0) || (src_pos3 >= src->shape[pdim[3]])) && (rank > 3));
 
                         if ((mli_hlp_tensor_element_size(src) == sizeof(uint8_t)) && (mli_hlp_tensor_element_size(dst) == sizeof(uint8_t))) {
-                            uint8_t* psrc = (uint8_t*)src->data;
-                            uint8_t* pdst = (uint8_t*)dst->data;
+                            uint8_t* psrc = (uint8_t*)src->data.mem.void_p;
+                            uint8_t* pdst = (uint8_t*)dst->data.mem.void_p;
                             pdst[dst_pos] = in_padding_area ? 0 : psrc[src_pos];
                         } else if ((mli_hlp_tensor_element_size(src) == sizeof(uint16_t)) && (mli_hlp_tensor_element_size(dst) == sizeof(uint16_t))) {
-                            uint16_t* psrc = (uint16_t*)src->data;
-                            uint16_t* pdst = (uint16_t*)dst->data;
+                            uint16_t* psrc = (uint16_t*)src->data.mem.void_p;
+                            uint16_t* pdst = (uint16_t*)dst->data.mem.void_p;
                             pdst[dst_pos] = in_padding_area ? 0 : psrc[src_pos];
                         } else if ((mli_hlp_tensor_element_size(src) == sizeof(uint32_t)) && (mli_hlp_tensor_element_size(dst) == sizeof(uint32_t))) {
-                            uint32_t* psrc = (uint32_t*)src->data;
-                            uint32_t* pdst = (uint32_t*)dst->data;
+                            uint32_t* psrc = (uint32_t*)src->data.mem.void_p;
+                            uint32_t* pdst = (uint32_t*)dst->data.mem.void_p;
                             pdst[dst_pos] = in_padding_area ? 0 : psrc[src_pos];
                         } else {
                             MLI_ASSERT(0);

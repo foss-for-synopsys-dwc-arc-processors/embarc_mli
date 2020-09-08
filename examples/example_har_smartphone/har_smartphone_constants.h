@@ -27,7 +27,7 @@ typedef int16_t w_type;
 
 // Defining data sections attributes
 //===================================
-#if (ARC_PLATFORM == V2DSP_XY)
+#if (PLATFORM == V2DSP_XY)
 #if defined (__GNUC__) && !defined (__CCAC__)
 //ARC GNU tools
 // Model Weights attribute

@@ -70,6 +70,21 @@ static inline void __attribute__ ((always_inline)) dotprod3D (
         int kern_ch_step,
         acc_T * accu);
 
+template < typename in_T, typename w_T, typename acc_T >
+static inline acc_T __attribute__ ((always_inline)) dotprod3D (
+        const MLI_PTR (in_T) __restrict in,
+        const MLI_PTR (w_T) __restrict krn,
+        const int width,
+        const int height,
+        const int channels,
+        int in_col_step,
+        int in_row_step,
+        int in_ch_step,
+        int kern_col_step,
+        int kern_row_step,
+        int kern_ch_step,
+        acc_T accu);
+
 } // namespace ref
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -184,6 +199,32 @@ dotprod3D_v_simple (
 // VDSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
+template <typename io_T, typename w_T, typename acc_T>
+static acc_T __attribute__ ((always_inline)) dotprod2D_vv(
+        const MLI_PTR(io_T) __restrict in,
+        const MLI_PTR(w_T)  __restrict krn,
+        acc_T accu,
+        const int width,
+        const int height,
+        int in_col_step,
+        int in_row_step,
+        int kern_col_step,
+        int kern_row_step);
+
+template < typename in_T, typename w_T, typename acc_T >
+static inline acc_T __attribute__ ((always_inline)) dotprod3D_v (
+        const MLI_PTR (in_T) __restrict in,
+        const MLI_PTR (w_T) __restrict krn,
+        const int width,
+        const int height,
+        const int channels,
+        int in_col_step,
+        int in_row_step,
+        int in_ch_step,
+        int kern_col_step,
+        int kern_row_step,
+        int kern_ch_step,
+        acc_T accu);
 
 } // namespace vdsp
 

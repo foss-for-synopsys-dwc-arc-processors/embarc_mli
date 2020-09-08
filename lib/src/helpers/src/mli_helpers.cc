@@ -75,8 +75,8 @@ uint32_t mli_hlp_tensor_element_size(const mli_tensor *in) {
     switch (in->el_type) {
         case MLI_EL_FX_8:  return sizeof(int8_t);
         case MLI_EL_FX_16: return sizeof(int16_t);
-        case MLI_EL_ASYM_I8:  return sizeof(int8_t);
-        case MLI_EL_ASYM_I32:  return sizeof(int32_t);
+        case MLI_EL_SA_8:  return sizeof(int8_t);
+        case MLI_EL_SA_32:  return sizeof(int32_t);
         default:
             MLI_ASSERT(0);
             return 0;
@@ -88,9 +88,9 @@ uint32_t mli_hlp_tensor_scale_shift(const mli_tensor *in) {
         case MLI_EL_FX_8:
         case MLI_EL_FX_16:
             return in->el_params.fx.frac_bits;
-        case MLI_EL_ASYM_I8:
-        case MLI_EL_ASYM_I32:
-            return in->el_params.asym.scale_frac_bits;
+        case MLI_EL_SA_8:
+        case MLI_EL_SA_32:
+            return in->el_params.sa.scale_frac_bits;
         default:
             MLI_ASSERT(0);
             return 0;
@@ -102,9 +102,9 @@ int32_t mli_hlp_tensor_scale(const mli_tensor *in, const uint32_t scale_idx) {
         case MLI_EL_FX_8:
         case MLI_EL_FX_16:
             return 1;
-        case MLI_EL_ASYM_I8:
-        case MLI_EL_ASYM_I32:
-            return (in->el_params.asym.dim >= 0)? in->el_params.asym.scale.pi32[scale_idx]: in->el_params.asym.scale.i32;
+        case MLI_EL_SA_8:
+        case MLI_EL_SA_32:
+            return (in->el_params.sa.dim >= 0)? in->el_params.sa.scale.mem.pi32[scale_idx]: in->el_params.sa.scale.mem.i32;
         default:
             MLI_ASSERT(0);
             return 0;
@@ -116,9 +116,9 @@ int16_t mli_hlp_tensor_zero_offset(const mli_tensor *in, const uint32_t zero_idx
         case MLI_EL_FX_8:
         case MLI_EL_FX_16:
             return 0;
-        case MLI_EL_ASYM_I8:
-        case MLI_EL_ASYM_I32:
-            return (in->el_params.asym.dim >= 0)? in->el_params.asym.zero_point.pi16[zero_idx]: in->el_params.asym.zero_point.i16;
+        case MLI_EL_SA_8:
+        case MLI_EL_SA_32:
+            return (in->el_params.sa.dim >= 0)? in->el_params.sa.zero_point.mem.pi16[zero_idx]: in->el_params.sa.zero_point.mem.i16;
         default:
             MLI_ASSERT(0);
             return 0;
@@ -145,14 +145,14 @@ mli_status mli_hlp_point_to_subtensor(const mli_tensor *in, const mli_point_to_s
     for (int i = 1; i < cfg->coord_num; i++)
         size += cfg->start_coord[i] * dimension_sizes[i];
 
-    out->data = (void *)((char *)in->data + size);
+    out->data.mem.void_p = (void *)((char *)in->data.mem.void_p + size);
     size = out->shape[0] = cfg->first_out_dim_size;
     for (int i = 1; i < out_rank; i++) {
         out->shape[i] = in->shape[subtsr_start_axis + i];
         size *= in->shape[subtsr_start_axis + i];
     }
     out->rank = out_rank;
-    out->capacity = size * elem_size;
+    out->data.capacity = size * elem_size;
     out->el_params = in->el_params;
     out->el_type = in->el_type;
 
@@ -168,7 +168,7 @@ mli_status mli_hlp_create_subtensor(const mli_tensor *in, const mli_sub_tensor_c
     const uint32_t out_rank = cfg->sub_tensor_rank;
     uint32_t mem_strides[MLI_MAX_RANK];
     const uint32_t input_rank = in->rank;
-    const bool isAsym = (in->el_type == MLI_EL_ASYM_I8) || (in->el_type == MLI_EL_ASYM_I32);
+    const bool isAsym = (in->el_type == MLI_EL_SA_8) || (in->el_type == MLI_EL_SA_32);
 
     // compute memory strides for the input tensor if not yet provided by the input tensor.
     mem_strides[input_rank - 1] = in->mem_stride[input_rank - 1] != 0 ? in->mem_stride[input_rank - 1] : 1;
@@ -182,8 +182,8 @@ mli_status mli_hlp_create_subtensor(const mli_tensor *in, const mli_sub_tensor_c
         buf_offset += cfg->offset[i] * mem_strides[i];
     }
     buf_offset *= elem_size;
-    out->data = (void *)((char *)in->data + buf_offset);
-    out->capacity = in->capacity - buf_offset;
+    out->data.mem.void_p = (void *)((char *)in->data.mem.void_p + buf_offset);
+    out->data.capacity = in->data.capacity - buf_offset;
 
     // Fill the shape[] of the output tensor.
     // If the sub_tensor_rank is smaller than the input rank, the dimensions with
@@ -200,7 +200,7 @@ mli_status mli_hlp_create_subtensor(const mli_tensor *in, const mli_sub_tensor_c
         }
         out->shape[out_idx] = cfg->size[in_idx];
         out->mem_stride[out_idx] = mem_strides[in_idx];
-        if (isAsym && (in->el_params.asym.dim == in_idx)) {
+        if (isAsym && (in->el_params.sa.dim == in_idx)) {
             out_asym_dim = out_idx;
             out_asym_offset = cfg->offset[in_idx];
         }
@@ -212,10 +212,10 @@ mli_status mli_hlp_create_subtensor(const mli_tensor *in, const mli_sub_tensor_c
     out->el_type = in->el_type;
 
     if (isAsym){
-        if (out->el_params.asym.dim >= 0) {
-            out->el_params.asym.scale.pi32 += out_asym_offset;
-            out->el_params.asym.dim = out_asym_dim;
-            out->el_params.asym.zero_point.pi16 += out_asym_offset;
+        if (out->el_params.sa.dim >= 0) {
+            out->el_params.sa.scale.mem.pi32 += out_asym_offset;
+            out->el_params.sa.dim = out_asym_dim;
+            out->el_params.sa.zero_point.mem.pi16 += out_asym_offset;
         }
     }
     return MLI_STATUS_OK;
@@ -234,13 +234,13 @@ mli_status mli_hlp_convert_tensor(mli_tensor *in, mli_tensor *out) {
 
     // Switchnig functionality depending on tensors type
     if (in->el_type == MLI_EL_FX_8 && out->el_type == MLI_EL_FX_8)
-        convert_tensor_fx8_to_fx8((MLI_PTR(int8_t))in->data, (MLI_PTR(int8_t))out->data, in_sz, out_shift);
+        convert_tensor_fx8_to_fx8((MLI_PTR(int8_t))in->data.mem.void_p, (MLI_PTR(int8_t))out->data.mem.void_p, in_sz, out_shift);
     else if (in->el_type == MLI_EL_FX_16 && out->el_type == MLI_EL_FX_16)
-        convert_tensor_fx16_to_fx16((MLI_PTR(int16_t))in->data, (MLI_PTR(int16_t))out->data, in_sz, out_shift);
+        convert_tensor_fx16_to_fx16((MLI_PTR(int16_t))in->data.mem.void_p, (MLI_PTR(int16_t))out->data.mem.void_p, in_sz, out_shift);
     else if (in->el_type == MLI_EL_FX_8 && out->el_type == MLI_EL_FX_16)
-        convert_tensor_fx8_to_fx16((MLI_PTR(int8_t))in->data, (MLI_PTR(int16_t))out->data, in_sz, out_shift);
+        convert_tensor_fx8_to_fx16((MLI_PTR(int8_t))in->data.mem.void_p, (MLI_PTR(int16_t))out->data.mem.void_p, in_sz, out_shift);
     else if (in->el_type == MLI_EL_FX_16 && out->el_type == MLI_EL_FX_8)
-        convert_tensor_fx16_to_fx8((MLI_PTR(int16_t))in->data, (MLI_PTR(int8_t))out->data, in_sz, out_shift);
+        convert_tensor_fx16_to_fx8((MLI_PTR(int16_t))in->data.mem.void_p, (MLI_PTR(int8_t))out->data.mem.void_p, in_sz, out_shift);
 
     // Fill the rest output tensor params
     for (int idx = 0; idx < in->rank; idx++)

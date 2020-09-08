@@ -112,35 +112,6 @@ vvcmpy(vNx4short_t a, vNx4short_t b) {
 }
 
 //////////////////////////////////////////////////
-// vvmpy_hi
-//////////////////////////////////////////////////
-template <typename T1, typename T2>
-T1 vvmpy_hi_(T1 a, T2 b);
-
-static MLI_FORCE_INLINE vNint_t
-vvmpy_hi_(vNint_t a, int32_t b) {
-    vNint_t r;
-    r = vvmpy_hi(a, b);
-    return r;
-}
-
-static MLI_FORCE_INLINE vNx2int_t
-vvmpy_hi_(vNx2int_t a, int32_t b) {
-    vNx2int_t r;
-    r.lo = vvmpy_hi_(a.lo, b);
-    r.hi = vvmpy_hi_(a.hi, b);
-    return r;
-}
-
-static MLI_FORCE_INLINE vNx4int_t
-vvmpy_hi_(vNx4int_t a, int32_t b) {
-    vNx4int_t r;
-    r.lo = vvmpy_hi_(a.lo, b);
-    r.hi = vvmpy_hi_(a.hi, b);
-    return r;
-}
-
-//////////////////////////////////////////////////
 // relu
 //////////////////////////////////////////////////
 template <typename T>
@@ -167,4 +138,42 @@ static MLI_FORCE_INLINE vNx4int_t vvrelu(vNx4int_t a, int16_t min, int16_t max) 
     return r;
 }
 
+//////////////////////////////////////////////////
+// vvadd_sat
+//////////////////////////////////////////////////
+template <typename T>
+T vvadd_sat(T L, T R);
+
+static MLI_FORCE_INLINE vNx4short_t vvadd_sat(vNx4short_t L, vNx4short_t R) {
+    vNx4short_t out;
+    out.lo = vvadd_sat(L.lo, R.lo);
+    out.hi = vvadd_sat(L.hi, R.hi);
+    return out;
+}
+
+//////////////////////////////////////////////////
+// vvadd_sat
+//////////////////////////////////////////////////
+template <typename T>
+T vvsub_sat(T L, T R);
+
+static MLI_FORCE_INLINE vNx4short_t vvsub_sat(vNx4short_t L, vNx4short_t R) {
+    vNx4short_t out;
+    out.lo = vvsub_sat(L.lo, R.lo);
+    out.hi = vvsub_sat(L.hi, R.hi);
+    return out;
+}
+
+//////////////////////////////////////////////////
+// vvslm_sat
+//////////////////////////////////////////////////
+template <typename T>
+T vvslm_sat(T L, int nbits);
+
+static MLI_FORCE_INLINE vNx4short_t vvslm_sat(vNx4short_t L, int nbits) {
+    vNx4short_t out;
+    out.lo = vvslm_sat(L.lo, (vNx2short_t)nbits);
+    out.hi = vvslm_sat(L.hi, (vNx2short_t)nbits);
+    return out;
+}
 #endif /* ARC_VECTOR_EXT_H_ */

@@ -25,7 +25,7 @@
 
 // Defining data sections attributes
 //===================================
-#if (ARC_PLATFORM == V2DSP_XY)
+#if (PLATFORM == V2DSP_XY)
 #if defined (__GNUC__) && !defined (__CCAC__)
 //ARC GNU tools
 // Model Weights attribute
@@ -132,18 +132,19 @@ static const mli_conv2d_cfg shared_conv_cfg = {
 // Intermediate and helper tensors
 //===============================================
 static mli_tensor ir_tensor_X = {
-    .data = (void *)x_mem_buf,
-    .capacity = sizeof(x_mem_buf),
+    .data = {.capacity = sizeof(x_mem_buf),
+            .mem = {.void_p = (void *)x_mem_buf}},
 };
 
 static mli_tensor ir_tensor_Y = {
-    .data = (void *)y1_mem_buf,
-    .capacity = sizeof(y1_mem_buf),
+    .data = {.capacity = sizeof(y1_mem_buf),
+            .mem = {.void_p = (void *)y1_mem_buf}},
 };
 
 static mli_tensor custom_l2_ir_tensor = {
-    .data = (void *)y2_mem_buf,
-    .capacity = sizeof(y2_mem_buf),
+    .data = {.capacity = sizeof(y2_mem_buf),
+            .mem = {.void_p = (void *)y2_mem_buf}},
+
 };
 
 
@@ -151,8 +152,8 @@ static mli_tensor custom_l2_ir_tensor = {
 // Conv 1 Layer related tensors
 //===================================
 static const mli_tensor L1_conv_wt = {
-    .data = (void *)kL1convWeightsBuf,
-    .capacity = sizeof(kL1convWeightsBuf),
+    .data = {.capacity = sizeof(kL1convWeightsBuf),
+            .mem = {.void_p = (void *)kL1convWeightsBuf}},
     .shape = {4,1,6,6},
     .rank = 4,
     .el_type = MLI_EL_FX_16,
@@ -161,8 +162,8 @@ static const mli_tensor L1_conv_wt = {
 
 
 static const mli_tensor L1_conv_bias = {
-    .data = (void *)kL1convBiasBuf,
-    .capacity = sizeof(kL1convBiasBuf),
+    .data = {.capacity = sizeof(kL1convBiasBuf),
+            .mem = {.void_p = (void *)kL1convBiasBuf}},
     .shape = {4},
     .rank = 1,
     .el_type = MLI_EL_FX_16,
@@ -175,8 +176,8 @@ static const int8_t kL1ConvOutFracBits = 16;
 //===================================
 //2.a Convolution: considering each input fmap separately
 static const mli_tensor L2a_conv_wt = {
-    .data = (void *)kL2AconvWeightsBuf,
-    .capacity = sizeof(kL2AconvWeightsBuf),
+    .data = {.capacity = sizeof(kL2AconvWeightsBuf),
+            .mem = {.void_p = (void *)kL2AconvWeightsBuf}},
     .shape = {8,1,4,4},
     .rank = 4,
     .el_type = MLI_EL_FX_16,
@@ -184,8 +185,8 @@ static const mli_tensor L2a_conv_wt = {
 };
 
 static const mli_tensor L2a_conv_bias = {
-    .data = (void *)kL2AconvBiasBuf,
-    .capacity = sizeof(kL2AconvBiasBuf),
+    .data = {.capacity = sizeof(kL2AconvBiasBuf),
+            .mem = {.void_p = (void *)kL2AconvBiasBuf}},
     .shape = {8},
     .rank = 1,
     .el_type = MLI_EL_FX_16,
@@ -194,17 +195,17 @@ static const mli_tensor L2a_conv_bias = {
 
 //2.b Convolution: considering input fmaps in pairs
 static const mli_tensor L2b_conv_wt = {
-    .data = (void *)(kL2BconvWeightsBuf),
-    .capacity = sizeof(kL2BconvWeightsBuf),
-    .shape = {6,2,4,4},
+    .data = {.capacity = sizeof(kL2BconvWeightsBuf),
+            .mem = {.void_p = (void *)(kL2BconvWeightsBuf)}},
+.shape = {6,2,4,4},
     .rank = 4,
     .el_type = MLI_EL_FX_16,
     .el_params.fx.frac_bits = 12,
 };
 
 static const mli_tensor L2b_conv_bias = {
-    .data = (void *)(kL2BconvBiasBuf),
-    .capacity = sizeof(kL2BconvBiasBuf),
+    .data = {.capacity = sizeof(kL2BconvBiasBuf),
+            .mem = {.void_p = (void *)(kL2BconvBiasBuf)}},
     .shape = {6},
     .rank = 1,
     .el_type = MLI_EL_FX_16,
@@ -216,8 +217,8 @@ static const int8_t kL2ConvOutFracBits = 16;
 // Conv 3 Layer related data
 //===================================
 static const mli_tensor L3_conv_wt = {
-    .data = (void *)kL3convWeightsBuf,
-    .capacity = sizeof(kL3convWeightsBuf),
+    .data = {.capacity = sizeof(kL3convWeightsBuf),
+            .mem = {.void_p = (void *)kL3convWeightsBuf}},
     .shape = {14,1,6,6},
     .rank = 4,
     .el_type = MLI_EL_FX_16,
@@ -225,8 +226,8 @@ static const mli_tensor L3_conv_wt = {
 };
 
 static const mli_tensor L3_conv_bias = {
-    .data = (void *)kL3convBiasBuf,
-    .capacity = sizeof(kL3convBiasBuf),
+    .data = {.capacity = sizeof(kL3convBiasBuf),
+            .mem = {.void_p = (void *)kL3convBiasBuf}},
     .shape = {14},
     .rank = 1,
     .el_type = MLI_EL_FX_16,
@@ -238,8 +239,8 @@ static const int8_t kL3ConvOutFracBits = 16;
 // FC4 Layer related data
 //===================================
 static const mli_tensor L4_fc_wt = {
-    .data = (void *)kL4fcWeightsBuf,
-    .capacity = sizeof(kL4fcWeightsBuf),
+    .data = {.capacity = sizeof(kL4fcWeightsBuf),
+            .mem = {.void_p = (void *)kL4fcWeightsBuf}},
     .shape = {1, 14},
     .rank = 2,
     .el_type = MLI_EL_FX_16,
@@ -247,8 +248,8 @@ static const mli_tensor L4_fc_wt = {
 };
 
 static const mli_tensor L4_fc_bias = {
-    .data = (void *)kL4convBiasBuf,
-    .capacity = sizeof(kL4convBiasBuf),
+    .data = {.capacity = sizeof(kL4convBiasBuf),
+            .mem = {.void_p = (void *)kL4convBiasBuf}},
     .shape = {1},
     .rank = 1,
     .el_type = MLI_EL_FX_16,
@@ -388,7 +389,7 @@ int mli_face_trigger_process(const uint8_t *image_buffer){
 #endif
     // Decision by threshold
     //=============================================
-    const int16_t out_score = ((int16_t *)ir_tensor_X.data)[0];
+    const int16_t out_score = ((int16_t *)ir_tensor_X.data.mem.void_p)[0];
     return (out_score > kOutputDecisionThreshold)? 1: 0;
 }
 
@@ -402,7 +403,7 @@ static void user_custom_preprocessing(const uint8_t *in_image36x36, mli_tensor *
     const int columns_in = 36;
     const int rows_out = 32;
     const int columns_out = 32;
-    int16_t * vec_out = (int16_t *)(output->data);
+    int16_t * vec_out = (int16_t *)(output->data.mem.void_p);
 
     for (int r_idx = 0; r_idx < rows_out; r_idx++)
         for (int c_idx = 0; c_idx < columns_out; c_idx++)
@@ -422,9 +423,9 @@ static void user_custom_preprocessing(const uint8_t *in_image36x36, mli_tensor *
 // Custom activation function
 //=============================================================================
 static void user_custom_activation(const mli_tensor *input, mli_tensor *output) {
-    const int16_t * vec_in = (int16_t *)input->data;
+    const int16_t * vec_in = (int16_t *)input->data.mem.void_p;
     const uint32_t el_num = mli_hlp_count_elem_num(input, 0);
-    int16_t * vec_out = (int16_t *)(output->data);
+    int16_t * vec_out = (int16_t *)(output->data.mem.void_p);
 
     for (uint32_t i = 0; i < el_num; i++) {
         int16_t index = (vec_in[i] >> (sizeof(int16_t) * 8 - ACT_LUT_IDX_BITS));
@@ -450,8 +451,8 @@ static inline void increment_sub_tensor(mli_tensor *t, mli_increment_subtsr_cfg 
     for (int i = 1; i < t->rank; i++) {
         inc *= t->shape[i];
     }
-    t->data += inc * mli_hlp_tensor_element_size(t);
-    t->capacity -=  inc * mli_hlp_tensor_element_size(t);
+    t->data.mem.void_p += inc * mli_hlp_tensor_element_size(t);
+    t->data.capacity -=  inc * mli_hlp_tensor_element_size(t);
 }
 
 //=============================================================================
@@ -466,7 +467,7 @@ static void user_custom_convolution_layer2(
     mli_tensor filter_bias = {0};
     mli_tensor input_sub = {0};
     mli_tensor out_feature_map = {
-        .data=output->data, .capacity=output->capacity,
+        .data.mem = output->data.mem.void_p, .data.capacity=output->data.capacity,
         .el_params.fx.frac_bits = output->el_params.fx.frac_bits};
 
     mli_point_to_subtsr_cfg fmap_sub = {.start_coord = {0}, .coord_num = 1, .first_out_dim_size = 1};

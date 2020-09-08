@@ -113,13 +113,13 @@ static inline void __attribute__ ((always_inline)) eltwise_prepare_and_run_fx(
     uint32_t in2_sz = mli_prv_count_elem_num(in2);
 
     // Extract in/out pointers to mem
-    const io_T *in1_ptr = static_cast<io_T *>(in1->data);
-    const io_T *in2_ptr = static_cast<io_T *>(in2->data);
-    io_T *out_ptr       = static_cast<io_T *>(out->data);
+    const io_T *in1_ptr = static_cast<io_T *>(in1->data.mem.void_p);
+    const io_T *in2_ptr = static_cast<io_T *>(in2->data.mem.void_p);
+    io_T *out_ptr       = static_cast<io_T *>(out->data.mem.void_p);
 
     // Extract in/out as scalar values
-    const io_T in1_scalar = (io_T)((intptr_t)(in1->data));
-    const io_T in2_scalar = (io_T)((intptr_t)(in2->data));
+    const io_T in1_scalar = (io_T)((intptr_t)(in1->data.mem.void_p));
+    const io_T in2_scalar = (io_T)((intptr_t)(in2->data.mem.void_p));
     io_T out_scalar;
 
     // Calc outshift for MUL operation
@@ -128,14 +128,14 @@ static inline void __attribute__ ((always_inline)) eltwise_prepare_and_run_fx(
     mli::eltwise_op_basic_fx<io_T, func_type>(
             (in1->rank != 0)? in1_ptr: &in1_scalar,
             (in2->rank != 0)? in2_ptr: &in2_scalar,
-            (out->capacity > 0)? out_ptr: &out_scalar,
+            (out->data.capacity > 0)? out_ptr: &out_scalar,
             in1_sz, in2_sz, out_shift);
 
     // Fill output tensor parameters
     //======================================
-    if (out->capacity == 0) {
+    if (out->data.capacity == 0) {
         // In case we calculated 1 scalar value
-        out->data = mli_math_cast_scalar_to_ptr_fx<io_T>(out_scalar);
+        out->data.mem.void_p = mli_math_cast_scalar_to_ptr_fx<io_T>(out_scalar);
         out->rank = 0;
     } else {
         const unsigned *shape_ptr = (in1_sz > in2_sz)? in1->shape: in2->shape;

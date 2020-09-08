@@ -11,7 +11,8 @@
 #define _MLI_PRIVATE_ACTIVATION_LUT_H_
 
 #include "mli_config.h" /* for MLI_PTR */
-#include "mli_private_types.h"
+#include "mli_prv_quant.h"
+using mli::krn::s8asym_quant_params;
 
 extern const mli_lut tanh_lut_fx16;
 extern const mli_lut sigmoid_lut_fx16;
@@ -39,9 +40,8 @@ void mli_prv_activation_lut_sa8(
         const MLI_PTR(int8_t) in,
         MLI_OUT_PTR(int8_t) out,
         const mli_lut *lut,
-        int scale,
-        int8_t scale_frac_bits,
-        int16_t zero_point,
+        struct s8asym_quant_params *in_params,
+        struct s8asym_quant_params *out_params,
         int length);
 #ifdef __cplusplus
 }

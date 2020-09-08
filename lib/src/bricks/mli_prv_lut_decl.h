@@ -13,7 +13,7 @@
 #include "mli_config.h"
 #include "mli_types.h"
 #include "mli_prv_tensor.h"
-
+#include "mli_prv_quant.h"
 
 //TODO: Remove extra
 const int kTmpBufSize = 32;
@@ -22,10 +22,6 @@ const int kTransfFuncIntBits = 0;
 const int kMaxFracBitsFx16 = (sizeof(int16_t) * 8) - 1;
 const int kMaxFracBitsFx8 = (sizeof(int8_t) * 8) - 1;   //
 
-const int kAsymZeroPointFx16 = -128;
-const int kAsymScaleFx16 = 256;
-const int kAsymScalePowerFx16 = 8;
-const int kAsymScaleFracBits = 16;
 
 namespace mli {
 namespace krn {
@@ -42,13 +38,13 @@ namespace krn {
 namespace ref {
 template <typename io_T, bool convert = false>
 static void activation_lut(
-    const MLI_PTR(io_T) in,
-    MLI_OUT_PTR(io_T) out,
-    const mli_lut *lut,
-    int8_t scale_frac_bits,
-    int length,
-    int scale = 0,
-    int16_t zero_point = 0);
+        const MLI_PTR(io_T) in,
+        MLI_OUT_PTR(io_T) out,
+        const mli_lut *lut,
+        int8_t in_frac_bits,
+        int length,
+        struct s8asym_quant_params *in_params  = nullptr,
+        struct s8asym_quant_params *out_params = nullptr);
 } // namespace ref
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -57,13 +53,13 @@ static void activation_lut(
 namespace dsp {
 template <typename io_T, bool convert = false>
 static void activation_lut(
-    const MLI_PTR(io_T) in,
-    MLI_OUT_PTR(io_T) out,
-    const mli_lut *lut,
-    int8_t scale_frac_bits,
-    int length,
-    int scale = 0,
-    int16_t zero_point = 0);
+        const MLI_PTR(io_T) in,
+        MLI_OUT_PTR(io_T) out,
+        const mli_lut *lut,
+        int8_t in_frac_bits,
+        int length,
+        struct s8asym_quant_params *in_params  = nullptr,
+        struct s8asym_quant_params *out_params = nullptr);
 } // namespace dsp
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -72,13 +68,13 @@ static void activation_lut(
 namespace vdsp {
 template <typename io_T, bool convert = false>
 static void activation_lut(
-    const MLI_PTR(io_T) in,
-    MLI_OUT_PTR(io_T) out,
-    const mli_lut *lut,
-    int8_t scale_frac_bits,
-    int length,
-    int scale = 0,
-    int16_t zero_point = 0);
+        const MLI_PTR(io_T) in,
+        MLI_OUT_PTR(io_T) out,
+        const mli_lut *lut,
+        int8_t in_frac_bits,
+        int length,
+        struct s8asym_quant_params *in_params  = nullptr,
+        struct s8asym_quant_params *out_params = nullptr);
 } // namespace vdsp
 } // namespace krn
 } // namespace mli

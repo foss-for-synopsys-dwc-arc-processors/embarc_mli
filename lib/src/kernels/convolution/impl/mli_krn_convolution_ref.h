@@ -31,7 +31,7 @@ template <typename io_T, typename w_T, typename b_T, typename acc_T, typename qu
 static void convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
-        const b_T*  __restrict biases,
+        const MLI_PTR(b_T)  __restrict biases,
         const tensor_private_t<MLI_CONV_OUT_PTR(io_T)> &out,
         const rect_t &perception_area,
         quant_T quant_params,
@@ -39,7 +39,8 @@ static void convolution2D(
         const io_T val_max_limit,
         const int stride_height, const int stride_width,
         const int dilation_height, const int dilation_width,
-        const int padding_top, const int padding_left) {
+        const int padding_top, const int padding_left,
+        const int padding_bot, const int padding_right) {
     // Unified Generic convolution for all layouts (CHW/HWC/HWCN) and quantization scheme:  
     // MLI_FX (symmetric data, scales are power of two) and s8asym (assymetric data, scales of any value)
     // For each output point Calculation implies dotproduct and bias add:
@@ -96,25 +97,28 @@ static void convolution2D(
                         + weights.col_mem_stride * comp.left
                         + weights.out_ch_mem_stride * out_ch_idx;
 
-                adjust_quant_params(&quant_params, out_ch_idx);
+                mli::krn::adjust_quant_params(&quant_params, out_ch_idx);
 
                 acc_T accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
 
-                dotprod3D(in_ptr, w_ptr, clmns, rows, in.ch,
+                mli::krn::dotprod3D(in_ptr, w_ptr, clmns, rows, in.ch,
                           in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride,
                           weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride,
                           &accu);
-                accu = weights_additive(w_ptr, accu, &quant_params, clmns, rows, in.ch,
+
+                accu = mli::krn::weights_additive(w_ptr, accu, &quant_params, clmns, rows, in.ch,
                                             weights.col_mem_stride,
                                             weights.row_mem_stride,
                                             weights.in_ch_mem_stride);
-                accu = in_additive(in_ptr , accu, &quant_params, clmns, rows, in.ch,
+
+                accu = mli::krn::in_additive(in_ptr , accu, &quant_params, clmns, rows, in.ch,
                                        in.col_mem_stride, in.row_mem_stride, in.ch_mem_stride);
-                accu = zp_additive(&quant_params, accu , clmns * rows);
-                accu = bias_additive(biases[out_ch_idx], accu, &quant_params);
-                
+                accu = mli::krn::zp_additive(&quant_params, accu , clmns * rows);
+
+                accu = mli::krn::bias_additive(&biases[out_ch_idx], accu, &quant_params);
+
                 // Cast result to output type, apply built-in ReLU Applying and write result
-                io_T out_val = result_cast<io_T, acc_T, quant_T>(accu, &quant_params);
+                io_T out_val = mli::krn::result_cast<io_T, acc_T, quant_T>(accu, &quant_params);
                 out_val = MIN(out_val, val_max_limit);
                 out_val = MAX(out_val, val_min_limit);
                 *out_ptr = out_val;
@@ -123,7 +127,6 @@ static void convolution2D(
     } // for H_idx 
 }
 
-
 //========================================================
 // Unified Depthwise convolution 2D template
 //========================================================
@@ -131,7 +134,7 @@ template <typename io_T, typename w_T, typename b_T, typename acc_T, typename qu
 static void depthwise_convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
-        const b_T*  __restrict biases,
+        const MLI_PTR(b_T)  __restrict biases,
         const tensor_private_t<MLI_CONV_OUT_PTR(io_T)> &out,
         const rect_t &perception_area,
         quant_T quant_params,
@@ -139,7 +142,8 @@ static void depthwise_convolution2D(
         const io_T val_max_limit,
         const int stride_height, const int stride_width,
         const int dilation_height, const int dilation_width,
-        const int padding_top, const int padding_left) {
+        const int padding_top, const int padding_left,
+        const int padding_bot, const int padding_right) {
     // Unified Depthwise convolutions for all layouts (NCHW/HWCN) and quantization schemes:  
     // MLI_FX (symmetric data, scales are power of two) and s8asym (assymetric data, scales of any value)
     // For more info on calculations see generic convolution 2D notes above 
@@ -170,12 +174,12 @@ static void depthwise_convolution2D(
                         + in.ch_mem_stride * in_ch_idx;
 
                 acc_T other_additives = mli_math_mul_fx<io_T, acc_T>(0, 0);
-                other_additives  = zp_additive(&quant_params, other_additives,
+                other_additives  = mli::krn::zp_additive(&quant_params, other_additives,
                                                clmns * rows);
-                other_additives  = in_additive(in_ptr, other_additives, &quant_params, 
+                other_additives  = mli::krn::in_additive(in_ptr, other_additives, &quant_params,
                                                clmns, rows,
-                                               in.col_mem_stride,
-                                               in.row_mem_stride);
+                                               in.col_mem_stride * dilation_width,
+                                               in.row_mem_stride * dilation_height);
 
                 const int out_ch_idx = in_ch_idx;
                 const MLI_PTR(w_T) w_ptr = weights.ptr
@@ -183,24 +187,24 @@ static void depthwise_convolution2D(
                         + weights.col_mem_stride * comp.left
                         + weights.in_ch_mem_stride * 0
                         + weights.out_ch_mem_stride * out_ch_idx;
-                adjust_quant_params(&quant_params, out_ch_idx);
+                mli::krn::adjust_quant_params(&quant_params, out_ch_idx);
 
                 // Convolution core. Here calculations performes in a unfolded expression way:
                 // out_val = (x-x_zp)*(w) + b) = -sum_i(w*x_zp) + sum(x*w) + b
                 //============================================
-                acc_T accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
-                accu = dotprod2D(in_ptr, w_ptr, accu, clmns, rows,
+                acc_T accu = other_additives;//mli_math_mul_fx<io_T, acc_T>(0, 0);
+                accu = mli::krn::dotprod2D(in_ptr, w_ptr, accu, clmns, rows,
                                     in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height,
                                     weights.col_mem_stride,
                                     weights.row_mem_stride);
-                accu = weights_additive(w_ptr, accu, &quant_params, clmns, rows,
+                accu = mli::krn::ref::weights_additive(w_ptr, accu, &quant_params, clmns, rows,
                                         weights.col_mem_stride,
                                         weights.row_mem_stride);
-                accu = bias_additive(biases[out_ch_idx], accu, &quant_params);
-                accu = mli_math_add_fx(accu, other_additives);
+                accu = mli::krn::bias_additive(&biases[out_ch_idx], accu, &quant_params);
+                //accu = mli_math_add(accu, other_additives);
 
                 // Cast result to output type, apply built-in ReLU Applying and write result
-                io_T out_val = result_cast<io_T, acc_T, quant_T>(accu, &quant_params);
+                io_T out_val = mli::krn::result_cast<io_T, acc_T, quant_T>(accu, &quant_params);
                 out_val = MIN(out_val, val_max_limit);
                 out_val = MAX(out_val, val_min_limit);
 
@@ -227,7 +231,7 @@ void conv2d_prepare_and_run(
         mli_tensor *out,
         const int fix_kernel_width,
         const int fix_kernel_height) {
-    fx_init_dsp_ctrl();
+    mli_prv_fx_init_dsp_ctrl();
     const uint8_t stride_width = cfg->stride_width;
     const uint8_t stride_height = cfg->stride_height;
     const uint8_t padding_top = cfg->padding_top;
@@ -239,7 +243,7 @@ void conv2d_prepare_and_run(
     out->el_type = in->el_type;
     mli_minmax_t val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
-    const b_T *bs = static_cast<b_T *>(bias->data);
+    const MLI_PTR(b_T) bs = (MLI_PTR(b_T))(bias->data.mem.void_p);
 
     const auto in_prv = (data_layout == LAYOUT_HWC || data_layout == LAYOUT_HWCN || data_layout == LAYOUT_1HWN) ?
             mli_prv_get_tensor_hwc<MLI_PTR(io_T)>(in)
@@ -296,17 +300,19 @@ void conv2d_prepare_and_run(
     // Applying main convolution core (depends on layout)
     //=======================================================================
     if (conv_type == CONV_GENERAL) {
-        convolution2D<io_T, w_T, b_T, acc_T, quant_T>(
+        mli::krn::convolution2D<io_T, w_T, b_T, acc_T, quant_T>(
                 in_prv, weights_prv, bs, out_prv, cent_area, params,
                 (io_T)val_limit.min, (io_T)val_limit.max,
                 stride_height, stride_width, dilation_height, dilation_width,
-                padding_top, padding_left);
+                padding_top, padding_left,
+                padding_bot, padding_right);
     } else {
-        depthwise_convolution2D<io_T, w_T, b_T, acc_T, quant_T>(
+        mli::krn::depthwise_convolution2D<io_T, w_T, b_T, acc_T, quant_T>(
                 in_prv, weights_prv, bs, out_prv, cent_area, params,
                 (io_T)val_limit.min, (io_T)val_limit.max,
                 stride_height, stride_width, dilation_height, dilation_width,
-                padding_top, padding_left);
+                padding_top, padding_left,
+                padding_bot, padding_right);
     }
 }
 #pragma Code()

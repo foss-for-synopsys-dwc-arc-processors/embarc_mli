@@ -87,7 +87,7 @@ static MLI_FORCE_INLINE void  mli_prv_clip_and_store_output(
         int32_t * ip_in,
         const int out_shift) {
     int32_t temp = mli_math_asr_rnd_fx<int32_t>(*ip_in, out_shift);
-    *o_ptr = (int8_t) mli_math_sat_fx<int32_t>(temp, 8);
+    *o_ptr = (int8_t) mli_math_sat_fx<int32_t>(temp, 24);
 }
 
 static MLI_FORCE_INLINE void  mli_prv_clip_and_store_output(
@@ -105,7 +105,7 @@ static MLI_FORCE_INLINE void  mli_prv_shift_clip_and_store_output(
         int32_t * ip_in,
         const int out_shift) {
     int32_t temp = mli_math_asr_rnd_fx<int32_t>(*ip_in, out_shift);
-    *o_ptr = (int8_t) mli_math_sat_fx<int32_t>(temp, 8);
+    *o_ptr = (int8_t) mli_math_sat_fx<int32_t>(temp, 24);
 }
 
 static MLI_FORCE_INLINE void  mli_prv_shift_clip_and_store_output(
@@ -153,27 +153,6 @@ static MLI_FORCE_INLINE void  mli_prv_clip_relu_store_output(
 
     // Write result
     *o_ptr = out_val;
-}
-
-static MLI_FORCE_INLINE void  mli_prv_clip_relu_store_output(
-        MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
-        int32_t conv_out,
-        const s8asym_quant_specific_params* quant_params,
-        const int16_t val_min_limit,
-        const int16_t val_max_limit) {
-
-    int64_t accu_scaled = mli_math_mul_fx<int32_t, int64_t>(conv_out, quant_params->out_mul);
-    int64_t shifted_acc = mli_math_asr_rnd_fx<int64_t>(accu_scaled, (-quant_params->out_shift));
-    int16_t out_no_offset = (int16_t)mli_math_sat_fx<int64_t>(shifted_acc, 16);
-    int16_t out_with_offset = mli_math_add_fx<int16_t>(out_no_offset, quant_params->out_offset);
-
-    // no saturation needed because ReLu clipping is done in 32bit domain.
-    // ReLU truncation
-    out_with_offset = MIN(out_with_offset, val_max_limit);
-    out_with_offset = MAX(out_with_offset, val_min_limit);
-
-    // Write result
-    *o_ptr = (int8_t)out_with_offset;
 }
 
 // Initialize Accumulator

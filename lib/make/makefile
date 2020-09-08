@@ -33,6 +33,10 @@ SRC_DIRS    =  ../src/helpers/src \
                ../src/kernels/pooling \
                ../src/bricks \
                ../src/private/src
+
+SRC_DIRS_EXTRA += ../src/kernels/convolution
+CC_SRCS     +=  mli_krn_conv2d_hwcn \
+                mli_krn_depthwise_conv2d_hwcn
 else
 SRC_DIRS    =  ../src/helpers/src \
                ../src/kernels/common \
@@ -46,7 +50,7 @@ SRC_DIRS    =  ../src/helpers/src \
                ../src/move
 endif
 
-SRC_DIRS_EXTRA = ../src/kernels/transform
+SRC_DIRS_EXTRA += ../src/kernels/transform
 CC_SRCS     += mli_krn_sigm_fx \
                mli_krn_tanh_fx
 ifneq ($(MLI_PLATFORM),VPX)

@@ -27,35 +27,34 @@ static void activation_lut(
         const MLI_PTR(io_T) in,
         MLI_OUT_PTR(io_T) out,
         const mli_lut *lut,
-        int8_t scale_frac_bits,
+        int8_t in_frac_bits,
         int length,
-        int scale,
-        int16_t zero_point) {
+        struct s8asym_quant_params *in_params,
+        struct s8asym_quant_params *out_params) {
 
-    MLI_ASSERT(scale_frac_bits >= -1);  // -1 may be required by softmax
+    MLI_ASSERT(in_frac_bits >= -1);  // -1 may be required by softmax
     MLI_ASSERT(length >= 0);
     MLI_ASSERT(lut->frac_bits >= 0);
     MLI_ASSERT(lut->length >= 0);
 
-    int8_t in_frac_bits;
     int32_t scale_fx = 0;
 
     if (convert) {
+        MLI_ASSERT(in_params != nullptr);
+        MLI_ASSERT(out_params != nullptr);
         /* Calculating Scaling Factor to transform SA8 to Qmn (FX16) */
         int lut_int_bits_fx8 = kMaxFracBitsFx8 - lut->frac_bits;
         int frac_bits_fx16 = kMaxFracBitsFx16 - lut_int_bits_fx8;
-        scale_fx = mli_math_acc_ashift_fx<int32_t>(scale, ((int32_t) scale_frac_bits - frac_bits_fx16));
+        scale_fx = mli_math_acc_ashift_fx<int32_t>(in_params->scale, ((int32_t) in_params->shift  - frac_bits_fx16));
         in_frac_bits = frac_bits_fx16;
-    } else {
-        in_frac_bits = scale_frac_bits;
     }
 
     int shift_in = in_frac_bits - lut->frac_bits;
     int16_t *lut_data = (int16_t *)lut->data;
     // if shift amount is too high, preshift argument itself and
     // limit shift amount to prevent overflows
-    int preshift_in = MAX(shift_in - (int)kMaxFracBitsFx16, 0);
-    shift_in = MIN(shift_in, (int)kMaxFracBitsFx16);
+    int preshift_in = mli_math_max_fx(shift_in - (int)kMaxFracBitsFx16, 0);
+    shift_in = mli_math_min_fx(shift_in, (int)kMaxFracBitsFx16);
 
     v2q15_t offset = mli_prv_init_v(lut->offset);
     v2q15_t lower = mli_prv_init_v(0);
@@ -68,7 +67,7 @@ static void activation_lut(
         if (length & 1) {
             v2q15_t x = mli_prv_load_1_sample(in);
             if (convert) {
-                x = mli_prv_convert_sa8_fx16<v2q15_t, v2q15_t>(x, zero_point, scale_fx);
+                x = mli_prv_convert_sa8_fx16<v2q15_t, v2q15_t>(x, in_params->offset, scale_fx);
             }
             x = mli_math_acc_ashift_fx(x, preshift_in);
             v2q15_t lut_idx = mli_math_add_fx(mli_math_acc_ashift_fx(x, shift_in), offset);
@@ -81,8 +80,9 @@ static void activation_lut(
             res = mli_math_sub_fx(res, mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(
                                   mli_math_mul_fx<v2q15_t, v2accum40_t>(diff, frac), shift_in - 16));
             if (convert) {
+                MLI_ASSERT(out_params->scale == 1);
                 res = mli_prv_convert_fx16_sa8<v2q15_t, v2q15_t>(
-                                  res, kAsymZeroPointFx16, kLutOutFracBits - kAsymScalePowerFx16);
+                                res, out_params->offset, kLutOutFracBits - out_params->shift);
             } else {
                 if(sizeof(io_T) == 1) {
                     res = mli_prv_v2q7_cast_rnd_v2q15(res);
@@ -95,7 +95,7 @@ static void activation_lut(
         for (int idx = 0; idx < (length >> 1); idx++) {
             v2q15_t x = mli_prv_load_2_samples(in);
             if (convert) {
-                x = mli_prv_convert_sa8_fx16<v2q15_t, v2q15_t>(x, zero_point, scale_fx);
+                x = mli_prv_convert_sa8_fx16<v2q15_t, v2q15_t>(x, in_params->offset, scale_fx);
             }
             x = mli_math_acc_ashift_fx(x, preshift_in);
             v2q15_t lut_idx = mli_math_add_fx(mli_math_acc_ashift_fx(x, shift_in), offset);
@@ -108,8 +108,9 @@ static void activation_lut(
             res = mli_math_sub_fx(res, mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(
                                   mli_math_mul_fx<v2q15_t, v2accum40_t>(diff, frac), shift_in - 16));
             if (convert) {
+                MLI_ASSERT(out_params->scale == 1);
                 res = mli_prv_convert_fx16_sa8<v2q15_t, v2q15_t>(
-                                  res, kAsymZeroPointFx16, kLutOutFracBits - kAsymScalePowerFx16);
+                                res, out_params->offset, kLutOutFracBits - out_params->shift);
             } else {
                 if(sizeof(io_T) == 1) {
                     res = mli_prv_v2q7_cast_rnd_v2q15(res);
@@ -126,15 +127,16 @@ static void activation_lut(
         if (length & 1) {
             v2q15_t x = mli_prv_load_1_sample(in);
             if (convert) {
-                x = mli_prv_convert_sa8_fx16<v2q15_t, v2q15_t>(x, zero_point, scale_fx);
+                x = mli_prv_convert_sa8_fx16<v2q15_t, v2q15_t>(x, in_params->offset, scale_fx);
             }
             v2q15_t lut_idx = mli_math_add_fx(mli_math_acc_ashift_fx(x, shift_in), offset);
             lut_idx = mli_math_bound_range_fx(lut_idx, lower, upper);
             // no interpolation
             v2q15_t res = mli_prv_init_v(lut_data[lut_idx[0]], lut_data[lut_idx[1]]);
             if (convert) {
+                MLI_ASSERT(out_params->scale == 1);
                 res = mli_prv_convert_fx16_sa8<v2q15_t, v2q15_t>(
-                                    res, kAsymZeroPointFx16, kLutOutFracBits - kAsymScalePowerFx16);
+                                res, out_params->offset, kLutOutFracBits - out_params->shift);
             } else {
                 if(sizeof(io_T) == 1) {
                     res = mli_prv_v2q7_cast_rnd_v2q15(res);
@@ -147,15 +149,16 @@ static void activation_lut(
         for (int idx = 0; idx < (length >> 1); idx++) {
             v2q15_t x = mli_prv_load_2_samples(in);
             if (convert) {
-                x = mli_prv_convert_sa8_fx16<v2q15_t, v2q15_t>(x, zero_point, scale_fx);
+                x = mli_prv_convert_sa8_fx16<v2q15_t, v2q15_t>(x, in_params->offset, scale_fx);
             }
             v2q15_t lut_idx = mli_math_add_fx(mli_math_acc_ashift_fx(x, shift_in), offset);
             lut_idx = mli_math_bound_range_fx(lut_idx, lower, upper);
             // no interpolation
             v2q15_t res = mli_prv_init_v(lut_data[lut_idx[0]], lut_data[lut_idx[1]]);
             if (convert) {
+                MLI_ASSERT(out_params->scale == 1);
                 res = mli_prv_convert_fx16_sa8<v2q15_t, v2q15_t>(
-                                    res, kAsymZeroPointFx16, kLutOutFracBits - kAsymScalePowerFx16);
+                                res, out_params->offset, kLutOutFracBits - out_params->shift);
             } else {
                 if(sizeof(io_T) == 1) {
                     res = mli_prv_v2q7_cast_rnd_v2q15(res);

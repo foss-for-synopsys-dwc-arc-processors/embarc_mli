@@ -12,7 +12,8 @@
 
 #include <limits>
 
-typedef int32_t   mli_acc32_t;
+typedef int32_t mli_acc32_t;
+typedef int64_t mli_acc40_t;
 
 template <typename io_T>
 inline io_T mli_math_ashift_right_fx(io_T in_val, int shift_right);
@@ -23,6 +24,16 @@ MLI_FORCE_INLINE T mli_math_asl_fx(T x, int nbits);
 template <typename T>
 MLI_FORCE_INLINE T mli_math_limit_fx(T sign) {
     return sign < (T)0 ? std::numeric_limits<T>::lowest() : std::numeric_limits<T>::max();
+}
+
+template <typename T>
+MLI_FORCE_INLINE T mli_math_asr_pos_nbits_fx(T x, int nbits)
+{
+    // This function is internal to this file
+    // and is required to avoid compiler issues.
+    if (nbits > (sizeof(T) * 8 - 1))
+        return x < (T)0 ? -1 : 0;
+    return x >> nbits;
 }
 
 template <typename T>
@@ -42,7 +53,7 @@ MLI_FORCE_INLINE T mli_math_asl_fx(T x, int nbits)
     T hi = 0;
 
     if (nbits < 0)
-        return mli_math_asr_fx<T>(x, (-nbits));
+        return mli_math_asr_pos_nbits_fx<T>(x, (-nbits));
 
     if (nbits > (inp_size - 1))
         return x != (T)0 ? mli_math_limit_fx<T>(x) : 0;
@@ -114,12 +125,12 @@ MLI_FORCE_INLINE T mli_math_abs_fx(T x)
     return x >= (T)0 ? x : mli_math_neg_fx(x);
 }
 
-template <typename T>
-MLI_FORCE_INLINE int mli_math_norm_fx(T x)
+template <typename T, typename o_T>
+MLI_FORCE_INLINE o_T mli_math_norm_fx(T x)
 {
-    int inp_size = sizeof(T) * 8;
+    o_T inp_size = sizeof(T) * 8;
     T hi = x < (T)0 ? (T)-1 : (T)0;
-    int r = 0;
+    o_T r = 0;
 
     if (x == (T)0)
         return inp_size - 1;
@@ -293,6 +304,11 @@ MLI_FORCE_INLINE int32_t mli_math_cast_fx(mli_acc32_t in_val, int shift_right) {
 }
 
 template <>
+MLI_FORCE_INLINE mli_acc40_t mli_math_cast_fx(int16_t in_val, int shift_right) {
+    return (int32_t)mli_math_asr_rnd_fx<mli_acc40_t>((mli_acc40_t)in_val, shift_right);
+}
+
+template <>
 MLI_FORCE_INLINE int16_t mli_math_cast_fx(int64_t in_val, int shift_right) {
     int32_t temp = (int32_t)mli_math_asr_rnd_fx<int64_t>(in_val, shift_right);
     return (int16_t)mli_math_sat_fx<int32_t>(temp, 16);
@@ -331,4 +347,26 @@ MLI_FORCE_INLINE io_T mli_math_bound_range_fx(io_T in, lr_T L, lr_T R) {
     return out;
 }
 
+
+// Multiply-and-accumulate operands
+//========================================================================
+template <>
+MLI_FORCE_INLINE mli_acc32_t mli_math_mac_fx(mli_acc32_t acc, int8_t L, int8_t R) {
+    return acc + (mli_acc32_t) (L * R);
+}
+
+template <>
+MLI_FORCE_INLINE mli_acc32_t mli_math_mac_fx(mli_acc32_t acc, int16_t L, int16_t R) {
+    return acc + (mli_acc32_t) (L * R);
+}
+
+template <>
+MLI_FORCE_INLINE mli_acc32_t mli_math_mac_fx(mli_acc32_t acc, int16_t L, int8_t R) {
+    return acc + (mli_acc32_t)(L * (int16_t)R);
+}
+
+template <>
+MLI_FORCE_INLINE mli_acc40_t mli_math_mac_fx(mli_acc40_t acc, int16_t L, int16_t R) {
+    return acc + (mli_acc40_t) ((int32_t)L * (int32_t)R);
+}
 #endif // _REF_MLI_MATH_H_
