@@ -18,7 +18,7 @@ function(get_path_to_mli_lib_cmake MLI_LIB_CMAKE_DIR)
 endfunction()
 get_path_to_mli_lib_cmake(MLI_LIB_CMAKE_DIR)
 
-include(../cmake/settings.cmake)
+include(${MLI_LIB_CMAKE_DIR}/../cmake/settings.cmake)
 
 # To keep code similar to our make files, we use file(GLOB...) to add source files, consider to explicitly add them.
 if (ARC AND (${MLI_PLATFORM} STREQUAL VPX))
