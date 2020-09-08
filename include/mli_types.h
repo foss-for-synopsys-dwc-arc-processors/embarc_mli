@@ -126,7 +126,7 @@ typedef union _mli_element_params {
                                         or pointer to an array of scale factors regarding configured dimension (dim) otherwise.
                                         In case of array it's size can be looked up in the shape using the dimension to which the scales apply*/
         int32_t dim;               /**< dimension of the tensor to which the array's of quantization parameters apply */
-        int8_t scale_frac_bits;     /**< number of fractional bits in the elements of the scales array */
+        mli_data_container scale_frac_bits;     /**< number of fractional bits in the elements of the scales array */
     } sa;
 } mli_element_params;
 

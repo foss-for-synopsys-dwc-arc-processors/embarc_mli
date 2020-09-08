@@ -233,7 +233,7 @@ test_status measure_ref_to_pred(
     float noise_accum = 0.f;
     float quant_accum = 0.f;
     float max_abs_err = -1.f;
-    const float quant_scale = (float)((int64_t)1l << mli_hlp_tensor_scale_shift(&pred)) / (float)mli_hlp_tensor_scale(&pred, 0);
+    const float quant_scale = (float)((int64_t)1l << mli_hlp_tensor_scale_shift(&pred, 0)) / (float)mli_hlp_tensor_scale(&pred, 0);
     const int16_t quant_zero_offset = mli_hlp_tensor_zero_offset(&pred, 0);
     const float quant_max = (1 << (8*pred_elem_size - 1)) - 1.0f;
     const float quant_min = -(1 << (8*pred_elem_size - 1));
@@ -339,21 +339,24 @@ test_status fill_asym_tensor_element_params(
     const uint64_t mult = (uint64_t)1l << FRAQ_BITS(scale_int_bits, int32_t);
     int32_t* scale_dst;
     int16_t* zp_dst;
+    int8_t* frac_dst;
 
     if (num_vals > 1) {
         if (target_tensor->el_params.sa.scale.mem.pi32 == NULL ||
-                target_tensor->el_params.sa.zero_point.mem.pi16 == NULL) {
+                target_tensor->el_params.sa.zero_point.mem.pi16 == NULL ||
+                target_tensor->el_params.sa.scale_frac_bits.mem.pi8 == NULL) {
             DEBUG_BREAK;
             return TEST_NOT_ENOUGH_MEM;
         }
 
         scale_dst = target_tensor->el_params.sa.scale.mem.pi32;
         zp_dst = target_tensor->el_params.sa.zero_point.mem.pi16;
+        frac_dst = target_tensor->el_params.sa.scale_frac_bits.mem.pi8;
     } else {
         scale_dst = &target_tensor->el_params.sa.scale.mem.i32;
         zp_dst = &target_tensor->el_params.sa.zero_point.mem.i16;
+        frac_dst = &target_tensor->el_params.sa.scale_frac_bits.mem.i8;
     }
-    target_tensor->el_params.sa.scale_frac_bits = scale_fraq_bits;
 
     for (int i = 0; i < num_vals; i++) {
         if (scale_rates[i] <= 0.0f) {
@@ -365,6 +368,8 @@ test_status fill_asym_tensor_element_params(
 
         const int64_t dst_val = (int64_t) (mult * scale_rates[i] + round_val);
         scale_dst[i] = (int32_t) (MIN(MAX(dst_val, INT32_MIN), INT32_MAX));
+
+        frac_dst[i] = scale_fraq_bits;
 
         const int32_t zero_val = (int32_t)(-zero_points[i] / scale_rates[i] + round_val);
         zp_dst[i] = (int16_t)(MIN(MAX(zero_val , INT16_MIN), INT16_MAX));

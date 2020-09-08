@@ -370,7 +370,7 @@ static MLI_FORCE_INLINE int mli_prv_calc_shift(
         /* mix of FX and asym datatypes is not supported */
         MLI_ASSERT(in1->el_type == MLI_EL_SA_8);
         MLI_ASSERT((out->el_type == MLI_EL_SA_8) || (out->el_type == MLI_EL_SA_32));
-        return (in0->el_params.sa.scale_frac_bits + in1->el_params.sa.scale_frac_bits) - out->el_params.sa.scale_frac_bits;
+        return (in0->el_params.sa.scale_frac_bits.mem.i8 + in1->el_params.sa.scale_frac_bits.mem.i8) - out->el_params.sa.scale_frac_bits.mem.i8;
     } else {
         MLI_ASSERT(0);
         return 0;
@@ -430,8 +430,8 @@ mli_prv_get_relu_min_max (const mli_relu_cfg * cfg, const mli_tensor * out) {
         // One and six are not casted to 16bit directly, only after comparison with min_val and max_val and all of them are int.
         // Min val and max val always fit to container range, while six and one don't have to.
         // TODO: think about how to define whether it is required to extract six and one at all or not.
-        six = ((int64_t)6l << mli_hlp_tensor_scale_shift(out)) /  mli_hlp_tensor_scale(out, 0);
-        one = ((int64_t)1l << mli_hlp_tensor_scale_shift(out)) /  mli_hlp_tensor_scale(out, 0);
+        six = ((int64_t)6l << mli_hlp_tensor_scale_shift(out, 0)) /  mli_hlp_tensor_scale(out, 0);
+        one = ((int64_t)1l << mli_hlp_tensor_scale_shift(out, 0)) /  mli_hlp_tensor_scale(out, 0);
         six = six + zero;
         neg_one = -one + zero;
         one = one + zero;

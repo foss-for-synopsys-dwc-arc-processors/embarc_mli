@@ -63,7 +63,7 @@ mli_status mli_krn_sigm_sa8(const mli_tensor* in, mli_tensor* out) {
 
     in_params.offset = in->el_params.sa.zero_point.mem.i16;
     in_params.scale  = in->el_params.sa.scale.mem.i32;
-    in_params.shift = in->el_params.sa.scale_frac_bits;
+    in_params.shift = in->el_params.sa.scale_frac_bits.mem.i8;
     out_params.offset = kSigmAsymZeroPoint;
     out_params.scale  = 1;
     out_params.shift = kSigmOutputShift;
@@ -76,7 +76,7 @@ mli_status mli_krn_sigm_sa8(const mli_tensor* in, mli_tensor* out) {
 
     out->el_params.sa.zero_point.mem.i16 = out_params.offset;
     out->el_params.sa.scale.mem.i32 = out_params.scale;
-    out->el_params.sa.scale_frac_bits = (uint8_t)out_params.shift;
+    out->el_params.sa.scale_frac_bits.mem.i8 = (uint8_t)out_params.shift;
 
     return MLI_STATUS_OK;
 }
