@@ -21,7 +21,7 @@ namespace krn {
 namespace ref {
 
 template <typename io_T, typename w_T, typename acc_T>
-static acc_T __attribute__ ((always_inline)) dotprod2D(
+static MLI_FORCE_INLINE acc_T dotprod2D(
         const MLI_PTR(io_T) __restrict in,
         const MLI_PTR(w_T)  __restrict krn,
         acc_T accu,
@@ -46,7 +46,7 @@ static acc_T __attribute__ ((always_inline)) dotprod2D(
 }
 
 template < typename in_T, typename w_T, typename acc_T >
-static inline void __attribute__ ((always_inline)) dotprod2D (
+static MLI_FORCE_INLINE void dotprod2D (
         const MLI_PTR (in_T) __restrict in,
         const MLI_PTR (w_T) __restrict krn,
         const int width,
@@ -76,7 +76,7 @@ static inline void __attribute__ ((always_inline)) dotprod2D (
 }
 
 template < typename in_T, typename w_T, typename acc_T >
-static inline void __attribute__ ((always_inline)) dotprod3D (
+static MLI_FORCE_INLINE void dotprod3D (
         const MLI_PTR (in_T) __restrict in,
         const MLI_PTR (w_T) __restrict krn,
         const int width,
@@ -116,7 +116,7 @@ static inline void __attribute__ ((always_inline)) dotprod3D (
 }
 
 template < typename in_T, typename w_T, typename acc_T >
-static inline acc_T __attribute__ ((always_inline)) dotprod3D (
+static MLI_FORCE_INLINE acc_T dotprod3D (
         const MLI_PTR (in_T) __restrict in,
         const MLI_PTR (w_T) __restrict krn,
         const int width,

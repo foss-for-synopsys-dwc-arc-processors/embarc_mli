@@ -22,9 +22,6 @@
 #include "mli_types.h"
 //#include "mli_krn_reduce_sum2d.h"
 
-
-
-#include <arc/arc_intrinsics.h>
 #include <assert.h>
 
 namespace mli {

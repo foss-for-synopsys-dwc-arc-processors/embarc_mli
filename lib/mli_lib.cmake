@@ -23,47 +23,53 @@ include(../cmake/settings.cmake)
 # To keep code similar to our make files, we use file(GLOB...) to add source files, consider to explicitly add them.
 if (ARC AND (${MLI_PLATFORM} STREQUAL VPX))
     file(GLOB temp
-        "${MLI_LIB_CMAKE_DIR}/src/helpers/src/*.cc"
-        "${MLI_LIB_CMAKE_DIR}/src/kernels/eltwise/*.cc"
-        "${MLI_LIB_CMAKE_DIR}/src/kernels/pooling/*.cc"
-        "${MLI_LIB_CMAKE_DIR}/src/bricks/*.cc"
-        "${MLI_LIB_CMAKE_DIR}/src/private/src/*.cc"
+        ${MLI_LIB_CMAKE_DIR}/src/helpers/src/*.cc
+        ${MLI_LIB_CMAKE_DIR}/src/kernels/eltwise/*.cc
+        ${MLI_LIB_CMAKE_DIR}/src/kernels/pooling/*.cc
+        ${MLI_LIB_CMAKE_DIR}/src/bricks/*.cc
+        ${MLI_LIB_CMAKE_DIR}/src/private/src/*.cc
     )
     set(MLI_LIB_SOURCE_FILES
         ${temp}
         ${MLI_LIB_CMAKE_DIR}/src/kernels/transform/mli_krn_sigm_fx.cc
         ${MLI_LIB_CMAKE_DIR}/src/kernels/transform/mli_krn_tanh_fx.cc
         ${MLI_LIB_CMAKE_DIR}/src/kernels/convolution/mli_krn_conv2d_hwcn.cc
+        ${MLI_LIB_CMAKE_DIR}/src/kernels/convolution/mli_krn_depthwise_conv2d_hwcn.cc
+        ${MLI_LIB_CMAKE_DIR}/src/kernels/common/mli_krn_fully_connected_stub_fx.cc
     )
 
 elseif (ARC AND (${MLI_PLATFORM} STREQUAL EM_HS))
     file(GLOB temp
-        "${MLI_LIB_CMAKE_DIR}/src/helpers/src/*.cc"
-        "${MLI_LIB_CMAKE_DIR}/src/kernels/common/*.cc"
-        "${MLI_LIB_CMAKE_DIR}/src/kernels/convolution/*.cc"
-        "${MLI_LIB_CMAKE_DIR}/src/kernels/data_manip/*.cc"
-        "${MLI_LIB_CMAKE_DIR}/src/kernels/eltwise/*.cc"
-        "${MLI_LIB_CMAKE_DIR}/src/kernels/pooling/*.cc"
-        "${MLI_LIB_CMAKE_DIR}/src/kernels/pooling_chw/*.cc"
-        "${MLI_LIB_CMAKE_DIR}/src/private/src/*.cc"
-        "${MLI_LIB_CMAKE_DIR}/src/bricks/*.cc"
-        "${MLI_LIB_CMAKE_DIR}/src/move/*.cc"
-        "${MLI_LIB_CMAKE_DIR}/src/kernels/transform/*.cc"
+        ${MLI_LIB_CMAKE_DIR}/src/helpers/src/*.cc
+        ${MLI_LIB_CMAKE_DIR}/src/kernels/common/*.cc
+        ${MLI_LIB_CMAKE_DIR}/src/kernels/convolution/*.cc
+        ${MLI_LIB_CMAKE_DIR}/src/kernels/data_manip/*.cc
+        ${MLI_LIB_CMAKE_DIR}/src/kernels/eltwise/*.cc
+        ${MLI_LIB_CMAKE_DIR}/src/kernels/pooling/*.cc
+        ${MLI_LIB_CMAKE_DIR}/src/kernels/pooling_chw/*.cc
+        ${MLI_LIB_CMAKE_DIR}/src/kernels/transform/*.cc
+        ${MLI_LIB_CMAKE_DIR}/src/private/src/*.cc
+        ${MLI_LIB_CMAKE_DIR}/src/bricks/*.cc
+        ${MLI_LIB_CMAKE_DIR}/src/move/*.cc
     )
     set(MLI_LIB_SOURCE_FILES
         ${temp}
-        ${MLI_LIB_CMAKE_DIR}/src/kernels/transform/mli_krn_sigm_fx.cc
     )
 
 else()
     file(GLOB temp
-        "${MLI_LIB_CMAKE_DIR}/src/kernels/eltwise/*.cc"
-        "${MLI_LIB_CMAKE_DIR}/src/kernels/pooling/*hwc*.cc"
+        ${MLI_LIB_CMAKE_DIR}/src/helpers/src/*.cc
+        ${MLI_LIB_CMAKE_DIR}/src/kernels/eltwise/*.cc
+        ${MLI_LIB_CMAKE_DIR}/src/kernels/pooling/*hwc*.cc
+        ${MLI_LIB_CMAKE_DIR}/src/private/src/*.cc
     )
     set(MLI_LIB_SOURCE_FILES
         ${temp}
-        ${MLI_LIB_CMAKE_DIR}/src/helpers/src/mli_helpers.cc
-        ${MLI_LIB_CMAKE_DIR}/src/private/src/mli_check.cc
+        ${MLI_LIB_CMAKE_DIR}/src/kernels/transform/mli_krn_sigm_fx.cc
+        ${MLI_LIB_CMAKE_DIR}/src/kernels/transform/mli_krn_tanh_fx.cc
+        ${MLI_LIB_CMAKE_DIR}/src/kernels/convolution/mli_krn_conv2d_hwcn.cc
+        ${MLI_LIB_CMAKE_DIR}/src/kernels/convolution/mli_krn_depthwise_conv2d_hwcn.cc
+        ${MLI_LIB_CMAKE_DIR}/src/kernels/common/mli_krn_fully_connected_stub_fx.cc
     )
 endif()
 

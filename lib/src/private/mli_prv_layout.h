@@ -18,7 +18,6 @@
 #include "mli_math_macros.h"
 #include "mli_types.h"
 #include "mli_private_types.h"
-#include <arc/arc_intrinsics.h>
 
 /**
  * @brief Data layout type for vision kernels (convolutions/pooloing mostly).
