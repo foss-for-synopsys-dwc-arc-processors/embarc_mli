@@ -38,11 +38,12 @@ static const MLI_CCM_ATT int16_t sigmoid_lut_data_fx16[] = {
         +32766, +32766, +32767, +32767, +32767, +32767, +32767, +32767, +32767, +32767, +32767, +32767};
 
 const mli_lut sigmoid_lut_fx16 = {
-        .data = (const void*)sigmoid_lut_data_fx16,
-        .type = MLI_EL_FX_16,
-        .length = sizeof(sigmoid_lut_data_fx16) / sizeof(sigmoid_lut_data_fx16[0]),
-        .frac_bits = 3,
-        .offset = sizeof(sigmoid_lut_data_fx16) / (sizeof(sigmoid_lut_data_fx16[0]) * 2) /*center-aligned */
+        // Designated initializers in C++ is a C++20 feature
+        /*.data =*/ (const void*)sigmoid_lut_data_fx16,
+        /*.type =*/ MLI_EL_FX_16,
+        /*.length =*/ sizeof(sigmoid_lut_data_fx16) / sizeof(sigmoid_lut_data_fx16[0]),
+        /*.frac_bits =*/ 3,
+        /*.offset =*/ sizeof(sigmoid_lut_data_fx16) / (sizeof(sigmoid_lut_data_fx16[0]) * 2) /*center-aligned */
 };
 
 /*
@@ -70,11 +71,11 @@ static const MLI_CCM_ATT int16_t tanh_lut_data_fx16[] = {
         +32765, +32765, +32765, +32766, +32766, +32766, +32766, +32767, +32767, +32767};
 
 const mli_lut tanh_lut_fx16 = {
-        .data = (const void*)tanh_lut_data_fx16,
-        .type = MLI_EL_FX_16,
-        .length = sizeof(tanh_lut_data_fx16) / sizeof(tanh_lut_data_fx16[0]),
-        .frac_bits = 4,
-        .offset = sizeof(tanh_lut_data_fx16) / (sizeof(tanh_lut_data_fx16[0]) * 2) /*center-aligned */
+        /*.data =*/ (const void*)tanh_lut_data_fx16,
+        /*.type =*/ MLI_EL_FX_16,
+        /*.length =*/ sizeof(tanh_lut_data_fx16) / sizeof(tanh_lut_data_fx16[0]),
+        /*.frac_bits =*/ 4,
+        /*.offset =*/ sizeof(tanh_lut_data_fx16) / (sizeof(tanh_lut_data_fx16[0]) * 2) /*center-aligned */
 };
 
 /*
@@ -102,11 +103,11 @@ static const MLI_CCM_ATT int16_t expneg_lut_data_fx16[] = {
         +16477, +17539, +18671, +19875, +21157, +22521, +23974, +25520, +27166, +28918, +30783, +32767, +32767};
 
 const mli_lut expneg_lut_fx16 = {
-        .data = (const void*)expneg_lut_data_fx16,
-        .type = MLI_EL_FX_16,
-        .length = sizeof(expneg_lut_data_fx16) / sizeof(expneg_lut_data_fx16[0]),
-        .frac_bits = 4,
-        .offset = sizeof(expneg_lut_data_fx16) / sizeof(expneg_lut_data_fx16[0]) - 2 /*right-minus-one-aligned */
+        /*.data =*/ (const void*)expneg_lut_data_fx16,
+        /*.type =*/ MLI_EL_FX_16,
+        /*.length =*/ sizeof(expneg_lut_data_fx16) / sizeof(expneg_lut_data_fx16[0]),
+        /*.frac_bits =*/ 4,
+        /*.offset =*/ sizeof(expneg_lut_data_fx16) / sizeof(expneg_lut_data_fx16[0]) - 2 /*right-minus-one-aligned */
 };
 
 #ifdef __cplusplus

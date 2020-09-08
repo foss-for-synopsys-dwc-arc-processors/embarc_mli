@@ -28,16 +28,24 @@ MLI_PLATFORM = EM_HS
 endif
 
 ifeq ($(MLI_PLATFORM),VPX)
+SRC_DIRS_EXTRA  = ../src/kernels/transform \
+                  ../src/kernels/convolution \
+                  ../src/kernels/common
+
 SRC_DIRS    =  ../src/helpers/src \
                ../src/kernels/eltwise \
                ../src/kernels/pooling \
                ../src/bricks \
                ../src/private/src
 
-SRC_DIRS_EXTRA += ../src/kernels/convolution
-CC_SRCS     +=  mli_krn_conv2d_hwcn \
-                mli_krn_depthwise_conv2d_hwcn
+CC_SRCS     =  mli_krn_sigm_fx \
+               mli_krn_tanh_fx \
+               mli_krn_conv2d_hwcn \
+               mli_krn_depthwise_conv2d_hwcn \
+               mli_krn_fully_connected_stub_fx
 else
+SRC_DIRS_EXTRA =
+
 SRC_DIRS    =  ../src/helpers/src \
                ../src/kernels/common \
                ../src/kernels/convolution \
@@ -45,18 +53,12 @@ SRC_DIRS    =  ../src/helpers/src \
                ../src/kernels/eltwise \
                ../src/kernels/pooling \
                ../src/kernels/pooling_chw \
+               ../src/kernels/transform \
                ../src/private/src \
                ../src/bricks \
                ../src/move
-endif
 
-SRC_DIRS_EXTRA += ../src/kernels/transform
-CC_SRCS     += mli_krn_sigm_fx \
-               mli_krn_tanh_fx
-ifneq ($(MLI_PLATFORM),VPX)
-CC_SRCS     += mli_krn_leaky_relu_fx \
-               mli_krn_relu_fx \
-               mli_krn_softmax_fx
+CC_SRCS     =
 endif
 
 INC_DIRS    = .  \
