@@ -29,7 +29,7 @@ namespace mli {
 namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
 using mli::krn::vdsp::convolution2D;
-using mli::krn::ref::depthwise_convolution2D;
+using mli::krn::vdsp::depthwise_convolution2D;
 using mli::krn::ref::conv2d_prepare_and_run;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
