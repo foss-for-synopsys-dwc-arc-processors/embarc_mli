@@ -198,9 +198,10 @@ typedef struct {
  * Configuration struct to provide axis along which the function will be applied
  */
 typedef struct {
-    int32_t axis; /**< An axis along which the function will be computed. Axis corresponds to index of tensor`s dimension
-                  starting from 0. For instance, having future map in HWC layout, axis == 0 corresponds to H dimension. 
-                  If axis < 0 the function will be applied to the whole tensor */
+    int32_t axis; /**< An axis along which the function will be computed.
+                       Axis corresponds to index of tensor`s dimension starting from 0.
+                       For instance, having future map in HWC layout, axis == 0 corresponds to H dimension.
+                       If axis < 0 the function will be applied to the whole tensor */
 } mli_prelu_cfg;
 
 

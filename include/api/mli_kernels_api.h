@@ -699,7 +699,7 @@ mli_status mli_krn_tanh_sa8(const mli_tensor * in, mli_tensor * out);
 mli_status mli_krn_softmax_sa8(const mli_tensor* in, const mli_softmax_cfg* cfg, mli_tensor* out);
 mli_status mli_krn_softmax_fx16(const mli_tensor* in, const mli_softmax_cfg* cfg, mli_tensor* out);
 
-mli_status mli_krn_softmax_fx8(const mli_tensor * in, mli_tensor * out); /* DEPRECATED */
+mli_status mli_krn_softmax_fx8(const mli_tensor * in, const mli_softmax_cfg* cfg, mli_tensor * out); /* DEPRECATED */
 
 
 

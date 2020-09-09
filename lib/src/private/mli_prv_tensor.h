@@ -34,6 +34,18 @@
 #define MLI_PRV_TENSOR_CALC_MEM_STRIDES_VAL false
 #endif
 
+/* To move inside tensor using memory strides (using 4 nested loops with counters pos0 pos1 pos2 pos4) */
+template <typename io_T>
+static MLI_FORCE_INLINE int pos(
+        const struct generic_tensor_private_t<io_T *> *in,
+        int pos0, int pos1, int pos2, int pos3) {
+
+    int res = pos0 * in->mem_stride[0] + pos1 * in->mem_stride[1] +
+              pos2 * in->mem_stride[2] + pos3 * in->mem_stride[3];
+
+    return res;
+}
+
 // To prevent a compiler name mangling issue, type_is_xy should be true if and only if T has __xy.
 template <typename T, bool type_is_xy=false> __attribute__((always_inline))
 static inline tensor_private_t<T> mli_prv_get_tensor_chw(
@@ -102,6 +114,41 @@ static inline tensor_private_t<T> mli_prv_get_tensor_hwc(
     return tensor_private_t<T> {
             (T)in->data.mem.void_p, width, height, ch,
             col_mem_stride, row_mem_stride, ch_mem_stride };
+}
+
+template <typename T>
+static MLI_FORCE_INLINE generic_tensor_private_t<T> mli_prv_get_generic_tensor(
+        const mli_tensor *in,
+        const int axis) {
+    generic_tensor_private_t<T> tensor;
+    int rank = in->rank;
+
+    tensor.ptr = (T)in->data.mem.void_p;
+
+    /* Convert the input tensor to a private tensor that contains only the axis in case of per axis,
+     * and the complete tensor in case of per tensor.
+     */
+    for (int i = 0; i < rank; i++) {
+        if (axis < 0) {
+            tensor.shape[i] = in->shape[i];
+        } else if (i == axis) {
+            tensor.shape[i] = in->shape[i];
+        } else {
+            tensor.shape[i] = 1;
+        }
+    }
+
+    tensor.mem_stride[rank - 1] = in->mem_stride[rank - 1] != 0 ? in->mem_stride[rank - 1] : 1;
+    for (int i = rank - 2; i >= 0; i--) {
+        tensor.mem_stride[i] = in->mem_stride[i] != 0 ? in->mem_stride[i] : tensor.mem_stride[i+1] * in->shape[i+1];
+    }
+
+    for (int i = rank; i < MLI_MAX_RANK; i++) {
+        tensor.shape[i] = 1;
+        tensor.mem_stride[i] = 1;
+    }
+
+    return tensor;
 }
 
 // To prevent a compiler name mangling issue, type_is_xy should be true if and only if T has __xy.
@@ -283,6 +330,23 @@ static inline mli_status __attribute__ ((always_inline)) mli_prv_copy_tensor_for
     for (int idx = 0; idx < src->rank; idx++) {
         dst->shape[idx] = src->shape[idx];
         dst->mem_stride[idx] = src->mem_stride[idx];
+    }
+
+    dst->rank = src->rank;
+    dst->el_type = src->el_type;
+    dst->el_params = src->el_params;
+    return MLI_STATUS_OK;
+}
+
+static MLI_FORCE_INLINE mli_status mli_prv_copy_tensor_format_except_mem_strides(
+        const mli_tensor * src,
+        mli_tensor * dst) {
+    mli_status check = MLI_CHECK_STATUS(mli_chk_tensor (src), __func__);
+    if (check != MLI_STATUS_OK)
+          return check;
+
+    for (int idx = 0; idx < src->rank; idx++) {
+        dst->shape[idx] = src->shape[idx];
     }
 
     dst->rank = src->rank;

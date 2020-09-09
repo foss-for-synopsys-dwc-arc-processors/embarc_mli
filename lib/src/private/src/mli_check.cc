@@ -1397,13 +1397,13 @@ mli_status mli_chk_basic_activation(const mli_tensor * in, mli_tensor * out) {
     // Check that tensors are valid
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
-    if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
+    if (MLI_CHECK(out != NULL , "Bad Output tensor pointer")) return MLI_STATUS_BAD_TENSOR;
     if (MLI_CHECK(out->data.mem.void_p != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
-    fail |= MLI_CHECK(check_layout_is_contiguous(in), "Memory Layout of input tensor must be contiguous");
-    fail |= MLI_CHECK(check_layout_is_contiguous(in->shape, out->mem_stride, in->rank),  // output has shape of input
-                      "Memory Layout of output tensor must be contiguous");
+    fail |= MLI_CHECK(check_inner_most_dimension_is_one(in),
+                      "Memory stride of the innermost dimension should be equal to 1 for the input tensor");
+    fail |= MLI_CHECK(check_inner_most_dimension_is_one(out),
+                      "Memory stride of the innermost dimension should be equal to 1 for the output tensor");
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
-
     // Check that output contains enough space
     fail |= MLI_CHECK((mli_prv_count_elem_num (in) * mli_hlp_tensor_element_size (in)) <= out->data.capacity,
                       "capacity of output tensor is too small");
@@ -1436,6 +1436,28 @@ mli_status mli_chk_basic_activation_sa8(const mli_tensor * in, mli_tensor * out)
         return ret;
     if (MLI_CHECK(in->el_type == MLI_EL_SA_8, "Wrong input tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_chk_softmax_fx8(const mli_tensor * in, const mli_softmax_cfg* cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_basic_activation(in, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    if (MLI_CHECK(in->el_type == MLI_EL_FX_8, "Wrong input tensor type"))
+        return MLI_STATUS_TYPE_MISMATCH;
+    if (MLI_CHECK(cfg->axis < (int)in->rank, "Wrong axis parameter, axis parameter must be less than in tensor rank"))
+        return MLI_STATUS_BAD_FUNC_CFG;
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_chk_softmax_fx16(const mli_tensor * in, const mli_softmax_cfg* cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_basic_activation(in, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    if (MLI_CHECK(in->el_type == MLI_EL_FX_16, "Wrong input tensor type"))
+        return MLI_STATUS_TYPE_MISMATCH;
+    if (MLI_CHECK(cfg->axis < (int)in->rank, "Wrong axis parameter, axis parameter must be less than in tensor rank"))
+        return MLI_STATUS_BAD_FUNC_CFG;
     return MLI_STATUS_OK;
 }
 
