@@ -7,21 +7,12 @@
 *
 */
 
-#ifndef _MLI_PRV_LUT_DECL_H_
-#define _MLI_PRV_LUT_DECL_H_
+#ifndef _MLI_KRN_SOFTMAX_DECL_H_
+#define _MLI_KRN_SOFTMAX_DECL_H_
 
 #include "mli_config.h"
 #include "mli_types.h"
 #include "mli_prv_tensor.h"
-#include "mli_prv_quant.h"
-
-//TODO: Remove extra
-const int kTmpBufSize = 32;
-const int kLutOutFracBits = 15;
-const int kTransfFuncIntBits = 0;
-const int kMaxFracBitsFx16 = (sizeof(int16_t) * 8) - 1;
-const int kMaxFracBitsFx8 = (sizeof(int8_t) * 8) - 1;   //
-
 
 namespace mli {
 namespace krn {
@@ -36,44 +27,36 @@ namespace krn {
 // REF
 ////////////////////////////////////////////////////////////////////////////////
 namespace ref {
-template <typename io_T, bool convert = false>
-static void activation_lut(
-        const struct generic_tensor_private_t<io_T *> *in,
-        struct generic_tensor_private_t<io_T *> *out,
-        const mli_lut *lut,
-        int8_t in_frac_bits,
-        struct s8asym_quant_params *in_params  = nullptr,
-        struct s8asym_quant_params *out_params = nullptr);
+
+template <typename io_T>
+static MLI_FORCE_INLINE mli_status mli_krn_softmax_fx_run(const mli_tensor *in,
+        const mli_softmax_cfg* cfg, mli_tensor *out);
+
 } // namespace ref
 
 ////////////////////////////////////////////////////////////////////////////////
 // DSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace dsp {
-template <typename io_T, bool convert = false>
-static void activation_lut(
-        const struct generic_tensor_private_t<io_T> *in,
-        struct generic_tensor_private_t<io_T> *out,
-        const mli_lut *lut,
-        int8_t in_frac_bits,
-        struct s8asym_quant_params *in_params  = nullptr,
-        struct s8asym_quant_params *out_params = nullptr);
+
+template <typename io_T>
+static MLI_FORCE_INLINE mli_status mli_krn_softmax_fx_run(const mli_tensor *in,
+        const mli_softmax_cfg* cfg, mli_tensor *out);
+
 } // namespace dsp
 
 ////////////////////////////////////////////////////////////////////////////////
 // VDSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
-template <typename io_T, bool convert = false>
-static void activation_lut(
-        const struct generic_tensor_private_t<io_T> *in,
-        struct generic_tensor_private_t<io_T> *out,
-        const mli_lut *lut,
-        int8_t in_frac_bits,
-        struct s8asym_quant_params *in_params  = nullptr,
-        struct s8asym_quant_params *out_params = nullptr);
+
+template <typename io_T>
+static MLI_FORCE_INLINE mli_status mli_krn_softmax_fx_run(const mli_tensor *in,
+        const mli_softmax_cfg* cfg, mli_tensor *out);
+
 } // namespace vdsp
+
 } // namespace krn
 } // namespace mli
 
-#endif // _MLI_PRV_LUT_DECL_H_
+#endif // _MLI_KRN_SOFTMAX_DECL_H_

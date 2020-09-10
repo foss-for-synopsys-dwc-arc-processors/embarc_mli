@@ -44,6 +44,16 @@ struct conv2d_weights_tensor_private_t {
     int32_t out_ch_mem_stride;
 };
 
+/**
+ * Private tensor struct typically used for transform functions (i.e. softmax).
+ */
+template <typename T>
+struct generic_tensor_private_t {
+    T __restrict ptr;
+    int shape[MLI_MAX_RANK];
+    int mem_stride[MLI_MAX_RANK];
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -73,8 +83,8 @@ typedef struct {
 } mli_minmax_t;
 
 #if (PLATFORM == V2DSP) || \
-	(PLATFORM == V2DSP_XY) || \
-	(PLATFORM == V2DSP_WIDE)
+    (PLATFORM == V2DSP_XY) || \
+    (PLATFORM == V2DSP_WIDE)
 typedef signed char v2i8_t __attribute__((__vector_size__(2)));
 #endif
 

@@ -83,6 +83,11 @@ MLI_FORCE_INLINE o_T mli_math_norm_fx(T x) {
     return (inp_size - 1) - r;
 }
 
+template <>
+MLI_FORCE_INLINE int mli_math_norm_fx(mli_acc40_t acc) {
+    return fx_norm_a40(acc);
+}
+
 // Addition of two fx operands with saturation
 //========================================================================
 template <> MLI_FORCE_INLINE int8_t mli_math_add_fx(int8_t L, int8_t R) {

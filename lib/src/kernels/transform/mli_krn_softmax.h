@@ -7,12 +7,10 @@
 *
 */
 
-#ifndef _MLI_PRIVATE_LUT_H_
-#define _MLI_PRIVATE_LUT_H_
+#ifndef _MLI_KRN_SOFTMAX_H_
+#define _MLI_KRN_SOFTMAX_H_
 
-#include "mli_config.h" /* for MLI_PTR */
-#include "mli_private_types.h"
-#include "mli_prv_lut_decl.h"
+#include "mli_krn_softmax_decl.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Setting up namespace
@@ -25,19 +23,19 @@
 namespace mli {
 namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-/* TODO: fix ::vdsp::activation_lut when vpx version supported */
-using mli::krn::ref::activation_lut;
+/* TODO: fix ::vdsp::mli_krn_softmax_fx_run when vpx version supported */
+using mli::krn::ref::mli_krn_softmax_fx_run;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-/* TODO: fix ::dsp::activation_lut when dsp version supported */
-using mli::krn::ref::activation_lut;
+/* TODO: fix ::dsp::mli_krn_softmax_fx_run when dsp version supported */
+using mli::krn::ref::mli_krn_softmax_fx_run;
 
 #else
-using mli::krn::ref::activation_lut;
+using mli::krn::ref::mli_krn_softmax_fx_run;
 
 #endif
-} // krn
-} // mli
+} // namespace krn
+} // namespace mli
 
 ////////////////////////////////////////////////////////////////////////////////
 // Include implementation
@@ -46,14 +44,14 @@ using mli::krn::ref::activation_lut;
 // included. Other variants are included based on capabilities. Implementations
 // below can depend on each other through declarations in *_decl.h.
 
-#include "impl/mli_prv_lut_ref.h"
+#include "impl/mli_krn_softmax_ref.h"
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-#include "impl/mli_prv_lut_vdsp.h"
+#include "impl/mli_krn_softmax_vdsp.h"
 #endif
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-#include "impl/mli_prv_lut_dsp.h"
+#include "impl/mli_krn_softmax_dsp.h"
 #endif
 
-#endif  //_MLI_PRIVATE_LUT_H_
+#endif // _MLI_KRN_SOFTMAX_H_

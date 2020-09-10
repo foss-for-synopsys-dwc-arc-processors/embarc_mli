@@ -103,16 +103,19 @@ MLI_FORCE_INLINE void activation_lut_store_output(
 
 template <typename io_T, bool convert>
 static void activation_lut(
-        const MLI_PTR(io_T) in,
-        MLI_OUT_PTR(io_T) out,
+        const struct generic_tensor_private_t<io_T *> *in,
+        struct generic_tensor_private_t<io_T *> *out,
         const mli_lut *lut,
         int8_t in_frac_bits,
-        int length,
         struct s8asym_quant_params *in_params,
         struct s8asym_quant_params *out_params) {
 
+    /* TODO use axis_mem_stride */
+    /* TODO fix this and support mem strides*/
+    int axis_len = in->shape[0];
+
     MLI_ASSERT(in_frac_bits >= -1);  // -1 may be required by softmax
-    MLI_ASSERT(length >= 0);
+    MLI_ASSERT(axis_len >= 0);
     MLI_ASSERT(lut->frac_bits >= 0);
     MLI_ASSERT(lut->length >= 0);
 
@@ -148,7 +151,7 @@ static void activation_lut(
         vNx4int_t lut_idx_int = mli_math_cast_fx<vNx4short_t, vNx4int_t>(lut_idx);
 
         vNx4short_t frac = x & mask;
-        for (int idx = 1; idx <= (length / _VDSP_NUM_8BIT_LANES); idx++) {
+        for (int idx = 1; idx <= (axis_len / _VDSP_NUM_8BIT_LANES); idx++) {
             /* Update input ptr */
             in += _VDSP_NUM_8BIT_LANES;
             /* Load from LUT */
@@ -178,8 +181,8 @@ static void activation_lut(
         }
 
         /* Handle the remaining part with predicates */
-        if ((length & (_VDSP_NUM_8BIT_LANES - 1)) != 0) {
-            int remaining_part = length & (_VDSP_NUM_8BIT_LANES - 1);
+        if ((axis_len & (_VDSP_NUM_8BIT_LANES - 1)) != 0) {
+            int remaining_part = axis_len & (_VDSP_NUM_8BIT_LANES - 1);
             /* Load from LUT */
             vNx4short_t lut_values = mli_prv_gather_load_n_samples(lut_data, lut_idx_int);
             vNx4short_t lut_values_next = mli_prv_gather_load_n_samples(lut_data, lut_idx_int + 1);
@@ -203,12 +206,12 @@ static void activation_lut(
         /* Calculate lut_idx_acc */
         lut_idx = mli_math_bound_range_fx(lut_idx , 0, lut->length - 1);
 
-        for (int idx = 1; idx <= (length / _VDSP_NUM_8BIT_LANES); idx++) {
+        for (int idx = 1; idx <= (axis_len / _VDSP_NUM_8BIT_LANES); idx++) {
             // no interpolation
             in += _VDSP_NUM_8BIT_LANES;
             /* Load from LUT */
             vNx4short_t lut_values = mli_prv_gather_load_n_samples(lut_data,
-			                         mli_math_cast_fx<vNx4short_t, vNx4int_t>(lut_idx));
+                                     mli_math_cast_fx<vNx4short_t, vNx4int_t>(lut_idx));
             /* Load Next Input */
             x = activation_lut_load_input<io_T, vNx4short_t>(in);
             if (convert) {
@@ -223,11 +226,11 @@ static void activation_lut(
         }
 
         /* Handle the remaining part with predicates */
-        if ((length & (_VDSP_NUM_8BIT_LANES - 1)) != 0) {
-            int remaining_part = length & (_VDSP_NUM_8BIT_LANES - 1);
+        if ((axis_len & (_VDSP_NUM_8BIT_LANES - 1)) != 0) {
+            int remaining_part = axis_len & (_VDSP_NUM_8BIT_LANES - 1);
             /* Load from LUT */
             vNx4short_t lut_values = mli_prv_gather_load_n_samples(lut_data,
-			                         mli_math_cast_fx<vNx4short_t, vNx4int_t>(lut_idx));
+                                     mli_math_cast_fx<vNx4short_t, vNx4int_t>(lut_idx));
             /* Store O/P */
             activation_lut_store_output<io_T, convert>(out, lut_values, remaining_part, out_params);
         }
