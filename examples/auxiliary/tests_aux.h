@@ -37,6 +37,8 @@ extern "C" {
 
 #define CEIL_DIV(num,den) (((num) + (den) - 1)/(den))
 
+/** @def Round upwards to a multiple of the second argument */
+#define CEIL_MUL(num, den) ((den) * CEIL_DIV((num), (den)))
 //==================================================
 //
 //      Profiling related functionality
