@@ -380,7 +380,9 @@ kws_status kws_dsconv_lstm_nn::nn_inference(const int8_t *in_features, float *ou
         // LAYER 6
         ir_Y.el_params.fx.frac_bits = m->L6_fc_out_fraq;
         mli_krn_fully_connected_fx8w16d(&ir_X, &m->L6_fc_wt, &m->L6_fc_bias, &ir_Y);
-        mli_krn_softmax_fx16(&ir_Y, &ir_X);
+        mli_softmax_cfg softmax_cfg = {0};
+        softmax_cfg.axis = -1;
+        mli_krn_softmax_fx16(&ir_Y, &softmax_cfg, &ir_X);
     }
 
     // Transform probabilities into floats

@@ -9,7 +9,8 @@
 include(../../cmake/settings.cmake)
 
 add_executable(hello_world
-    main.cpp)
+    main.cpp
+)
 
 target_link_libraries(hello_world PUBLIC mli)
 
@@ -32,8 +33,6 @@ endif()
 
 set_target_properties(hello_world
     PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "./elf_files$<0:>"
-    LIBRARY_OUTPUT_DIRECTORY "./elf_files$<0:>"
     RUNTIME_OUTPUT_DIRECTORY "./elf_files$<0:>"
 )
 

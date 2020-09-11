@@ -316,9 +316,11 @@ int mli_face_trigger_process(const uint8_t *image_buffer){
 
     // Layer 4: fully connected layer
     //=============================================
+    mli_fully_connected_cfg fully_connected_config = {0};
+    fully_connected_config.relu.type = MLI_RELU_NONE;
     ir_tensor_X.el_params.fx.frac_bits = kL4ConvOutFracBits;
     mli_krn_fully_connected_fx16(&ir_tensor_Y, &L4_fc_wt, &L4_fc_bias,
-                                 &ir_tensor_X);
+                                 &fully_connected_config, &ir_tensor_X);
 #else
     mli_status ret = MLI_STATUS_OK;
     unsigned preproc_cycles = 0;

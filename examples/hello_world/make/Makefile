@@ -6,28 +6,26 @@
 # the LICENSE file in the root directory of this source tree.
 #
 
-# Not providing a TCF_FILE tries to compile with the native compiler on the host platform.
-# Provide a build lib for those targets that need.
-# BUILDLIB_DIR?=ev71_buildlib
-# TCF_FILE=$(CURDIR)/../../../hw/em9d.tcf
+# TCF_FILE: withouts NOT setting this parameter,
+#           the default native compiler is used to compile
+# BUILDLIB_DIR ?= ev71_buildlib can be specified if no MWDT buildlib is available
 
 include ../../../lib/make/settings.mk
 PUBLIC_DIR = ..$(PS)..$(PS)..$(PS)
+BUILD_SUBDIR = examples$(PS)hello_world
 
-# Targets
 app:
-	$(MAKE) -C $(PUBLIC_DIR)lib/make lib
-	cmake --build $(BUILD_DIR)$(PS)examples
+	$(MAKE) -C $(PUBLIC_DIR)lib$(PS)make lib BUILD_SUBDIR=$(BUILD_SUBDIR)
 
 clean:
-	$(MAKE) -C $(PUBLIC_DIR)lib/make clean
+	$(MAKE) -C $(PUBLIC_DIR)lib$(PS)make clean
 
 ifndef TCF_FILE
 run: app
-	$(BUILD_DIR)$(PS)examples$(PS)hello_world$(PS)elf_files$(PS)hello_world
+	$(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)elf_files$(PS)hello_world
 else
 run: app
-	mdb $(BUILD_DIR)$(PS)examples$(PS)hello_world$(PS)elf_files$(PS)hello_world \
+	mdb $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)elf_files$(PS)hello_world.elf \
 		-cl  -nsim -cmd=run -off=cr_for_more -cmd=exit -tcf=$(TCF_FILE)
 endif
 

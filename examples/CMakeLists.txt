@@ -8,4 +8,12 @@
 
 project(mli_examples)
 
+include(../cmake/settings.cmake)
+
 add_subdirectory(hello_world)
+
+if (ARC AND (${MLI_PLATFORM} STREQUAL EM_HS))
+    add_subdirectory(example_face_detect)
+    add_subdirectory(example_har_smartphone)
+    add_subdirectory(example_cifar10_caffe)
+endif()
