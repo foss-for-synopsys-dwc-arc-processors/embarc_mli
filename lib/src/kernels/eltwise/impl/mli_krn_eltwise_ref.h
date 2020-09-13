@@ -26,7 +26,7 @@ namespace ref {
 //
 //======================================================
 template <typename io_T, mli_eltwise_type func_type>
-static inline void __attribute__ ((always_inline)) eltwise_op_basic_fx(
+static MLI_FORCE_INLINE void eltwise_op_basic_fx(
         const io_T* op1,
         const io_T* op2,
               io_T* out,
@@ -99,7 +99,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_basic_fx(
 //
 //======================================================
 template <typename io_T, mli_eltwise_type func_type>
-static inline void __attribute__ ((always_inline)) eltwise_prepare_and_run_fx(
+static MLI_FORCE_INLINE void eltwise_prepare_and_run_fx(
         const mli_tensor *in1,
         const mli_tensor *in2,
         mli_tensor *out) {

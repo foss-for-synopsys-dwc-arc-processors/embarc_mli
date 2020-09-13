@@ -29,7 +29,7 @@ namespace krn {
 ////////////////////////////////////////////////////////////////////////////////
 namespace ref {
 template <typename io_T, typename w_T, typename acc_T>
-static acc_T __attribute__ ((always_inline)) dotprod2D(
+static MLI_FORCE_INLINE acc_T dotprod2D(
         const MLI_PTR(io_T) __restrict in,
         const MLI_PTR(w_T)  __restrict krn,
         acc_T accu,
@@ -41,7 +41,7 @@ static acc_T __attribute__ ((always_inline)) dotprod2D(
         int kern_row_step);
 
 template <typename io_T, typename w_T, typename acc_T>
-static acc_T __attribute__ ((always_inline)) dotprod2D(
+static MLI_FORCE_INLINE acc_T dotprod2D(
         const MLI_PTR(io_T) __restrict in,
         const MLI_PTR(w_T)  __restrict krn,
         acc_T accu,
@@ -56,7 +56,7 @@ static acc_T __attribute__ ((always_inline)) dotprod2D(
         int kern_ch_step);
 
 template < typename in_T, typename w_T, typename acc_T >
-static inline void __attribute__ ((always_inline)) dotprod3D (
+static MLI_FORCE_INLINE void dotprod3D (
         const MLI_PTR (in_T) __restrict in,
         const MLI_PTR (w_T) __restrict krn,
         const int width,
@@ -71,7 +71,7 @@ static inline void __attribute__ ((always_inline)) dotprod3D (
         acc_T * accu);
 
 template < typename in_T, typename w_T, typename acc_T >
-static inline acc_T __attribute__ ((always_inline)) dotprod3D (
+static MLI_FORCE_INLINE acc_T dotprod3D (
         const MLI_PTR (in_T) __restrict in,
         const MLI_PTR (w_T) __restrict krn,
         const int width,
@@ -93,7 +93,7 @@ static inline acc_T __attribute__ ((always_inline)) dotprod3D (
 namespace dsp {
 
 template <typename io_T, typename w_T, typename acc_T>
-static acc_T __attribute__ ((always_inline)) dotprod2D(
+static MLI_FORCE_INLINE acc_T dotprod2D(
         const MLI_PTR(io_T) __restrict in,
         const MLI_PTR(w_T)  __restrict krn,
         acc_T accu,
@@ -105,7 +105,7 @@ static acc_T __attribute__ ((always_inline)) dotprod2D(
         int kern_row_step);
 
 template < typename in_T, typename w_T, typename acc_T >
-static void __attribute__ ((always_inline)) dotprod2D_hwc_v (
+static MLI_FORCE_INLINE void dotprod2D_hwc_v (
         const MLI_PTR(in_T) __restrict in, 
         const MLI_PTR(w_T) __restrict krn,
         acc_T * accu,        
@@ -120,7 +120,7 @@ static void __attribute__ ((always_inline)) dotprod2D_hwc_v (
 //The caller of the function should compensate for the increment
 //done inside this function.
 template < typename in_T, typename w_T, typename acc_T >
-static void __attribute__ ((always_inline)) dotprod2D_hwc_v (
+static MLI_FORCE_INLINE void dotprod2D_hwc_v (
         const MLI_PTR(in_T) __restrict *in, 
         const MLI_PTR(w_T) __restrict *krn,
         acc_T * accu,        
@@ -134,7 +134,7 @@ static void __attribute__ ((always_inline)) dotprod2D_hwc_v (
 //The caller of the function should compensate for the increment
 //done inside this function.
 template <typename io_T, typename w_T, typename acc_T>
-static acc_T __attribute__ ((always_inline)) dotprod2D_inp_width_v(
+static MLI_FORCE_INLINE acc_T dotprod2D_inp_width_v(
         const MLI_PTR(io_T) __restrict *inp,
         const MLI_PTR(w_T)  __restrict *krn,
         acc_T *accu,
@@ -150,7 +150,7 @@ static acc_T __attribute__ ((always_inline)) dotprod2D_inp_width_v(
 //The caller of the function should compensate for the increment
 //done inside this function.
 template <typename io_T, typename w_T, typename acc_T>
-static acc_T __attribute__ ((always_inline)) dotprod2D(
+static MLI_FORCE_INLINE acc_T dotprod2D(
         const MLI_PTR(io_T) __restrict *in,
         const MLI_PTR(w_T)  __restrict *krn,
         acc_T accu,
@@ -162,13 +162,13 @@ static acc_T __attribute__ ((always_inline)) dotprod2D(
         int kern_row_step);
 
 template < typename in_T, typename w_T, typename acc_T >
-static void __attribute__ ((always_inline)) dotprod2D_hwc_v_point (
+static MLI_FORCE_INLINE void dotprod2D_hwc_v_point (
         const MLI_PTR(in_T) __restrict in, 
         const MLI_PTR(w_T) __restrict krn,
         acc_T * accu);
 
 template <typename io_T, typename w_T, typename acc_T>
-static acc_T __attribute__ ((always_inline)) dotprod2D_inp_width_v(
+static MLI_FORCE_INLINE acc_T dotprod2D_inp_width_v(
         const MLI_PTR(io_T) __restrict inp,
         const MLI_PTR(w_T)  __restrict krn,
         acc_T *accu,
@@ -180,8 +180,8 @@ static acc_T __attribute__ ((always_inline)) dotprod2D_inp_width_v(
         int kern_row_step,
         int in_width_step);
 
-template < typename in_T, typename w_T, typename acc_T > static inline void
-dotprod3D_v_simple (
+template < typename in_T, typename w_T, typename acc_T > 
+static MLI_FORCE_INLINE void dotprod3D_v_simple (
         const MLI_PTR (in_T) __restrict in,
         const MLI_PTR (w_T) __restrict krn,
         const int width,
@@ -200,7 +200,7 @@ dotprod3D_v_simple (
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
 template <typename io_T, typename w_T, typename acc_T>
-static acc_T __attribute__ ((always_inline)) dotprod2D_vv(
+static MLI_FORCE_INLINE acc_T dotprod2D_vv(
         const MLI_PTR(io_T) __restrict in,
         const MLI_PTR(w_T)  __restrict krn,
         acc_T accu,
@@ -212,7 +212,7 @@ static acc_T __attribute__ ((always_inline)) dotprod2D_vv(
         int kern_row_step);
 
 template < typename in_T, typename w_T, typename acc_T >
-static inline acc_T __attribute__ ((always_inline)) dotprod3D_v (
+static MLI_FORCE_INLINE acc_T dotprod3D_v (
         const MLI_PTR (in_T) __restrict in,
         const MLI_PTR (w_T) __restrict krn,
         const int width,

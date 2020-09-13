@@ -32,7 +32,7 @@ typedef enum {
 //
 //======================================================
 template <typename io_T>
-inline void permute_data(const mli_tensor *in, const mli_permute_cfg *cfg, mli_tensor *out) {
+MLI_FORCE_INLINE void permute_data(const mli_tensor *in, const mli_permute_cfg *cfg, mli_tensor *out) {
     mli_prv_fx_init_dsp_ctrl();
 
     int total_count = mli_prv_count_elem_num(in);
@@ -87,7 +87,7 @@ inline void permute_data(const mli_tensor *in, const mli_permute_cfg *cfg, mli_t
 //
 //======================================================
 template <typename io_T, mli_layout_type layout_type>
-inline void padding2D_data(const mli_tensor *in, const mli_padding2d_cfg *cfg, mli_tensor *out) {
+MLI_FORCE_INLINE void padding2D_data(const mli_tensor *in, const mli_padding2d_cfg *cfg, mli_tensor *out) {
     mli_prv_fx_init_dsp_ctrl();
     const uint32_t elem_size = mli_hlp_tensor_element_size(in);
 
@@ -159,7 +159,7 @@ inline void padding2D_data(const mli_tensor *in, const mli_padding2d_cfg *cfg, m
 }
 
 template <typename io_T>
-inline void concat_data(const mli_tensor **inputs, const mli_concat_cfg *cfg, mli_tensor *out) {
+MLI_FORCE_INLINE void concat_data(const mli_tensor **inputs, const mli_concat_cfg *cfg, mli_tensor *out) {
     mli_prv_fx_init_dsp_ctrl();
     // Consider each tensor as 2-DIM: [sub_tensors_num, subtensor_sz]
     // where:

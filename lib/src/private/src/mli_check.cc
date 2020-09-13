@@ -21,7 +21,7 @@
 
 #pragma MLI_CODE_SECTION_START(".mli_lib")
 
-static inline mli_status check_tensor_private(
+static MLI_FORCE_INLINE mli_status check_tensor_private(
         const uint32_t *shape,
         const uint32_t *mem_stride,
         uint32_t rank,
@@ -142,11 +142,11 @@ mli_status mli_chk_bias_scale_asym(const mli_tensor * in, const mli_tensor * wei
     return MLI_STATUS_OK;
 }
 
-static inline bool check_inner_most_dimension_is_one(const mli_tensor *t) {
+static MLI_FORCE_INLINE bool check_inner_most_dimension_is_one(const mli_tensor *t) {
     return (t->mem_stride[t->rank - 1] == 1) || (t->mem_stride[t->rank - 1] == 0);
 }
 
-static inline bool check_layout_is_contiguous(const uint32_t *mem_stride, uint32_t rank) {
+static MLI_FORCE_INLINE bool check_layout_is_contiguous(const uint32_t *mem_stride, uint32_t rank) {
     // When only mem_stride and rank is under considiration, contiguous means 
     // all memory strides are zero OR rank is 1 and memory stride between elements is 1
     // If all memory strides are zero, the kernel itself will calculate the actual memory
@@ -162,7 +162,7 @@ static inline bool check_layout_is_contiguous(const uint32_t *mem_stride, uint32
         return false;
 }
 
-static inline bool check_layout_is_contiguous(const uint32_t *shape, const uint32_t *mem_stride, uint32_t rank) {
+static MLI_FORCE_INLINE bool check_layout_is_contiguous(const uint32_t *shape, const uint32_t *mem_stride, uint32_t rank) {
     // This function either requires that all memory strides are zero,
     // or that the memory strides are set such that it results in the
     // same memory layout. If all memory strides are zero, the kernel itself
@@ -185,7 +185,7 @@ static inline bool check_layout_is_contiguous(const uint32_t *shape, const uint3
     return !fail;
 }
 
-static inline bool check_layout_is_contiguous(const mli_tensor *t) {
+static MLI_FORCE_INLINE bool check_layout_is_contiguous(const mli_tensor *t) {
     return check_layout_is_contiguous(t->shape, t->mem_stride, t->rank);
 }
 

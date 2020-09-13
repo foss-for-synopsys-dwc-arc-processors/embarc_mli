@@ -36,7 +36,7 @@ using mli::krn::dsp::result_cast_relu_store_inp_width_v;
 // Depthwise convolution 2D template
 //========================================================
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_nopad(
+static MLI_FORCE_INLINE void depthwise_convolution2D_hwcn_nopad(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
@@ -178,7 +178,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_nopad(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn(
+static MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
@@ -332,7 +332,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_krnpad(
+static MLI_FORCE_INLINE void depthwise_convolution2D_hwcn_krnpad(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
@@ -407,7 +407,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_krnpad(
 // Convolution 2D template
 //========================================================
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static __attribute__ ((always_inline)) void convolution2D_nhwc(
+static MLI_FORCE_INLINE void convolution2D_nhwc(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
@@ -514,7 +514,7 @@ LOOP_PIPELINE_ENABLE_BACKTRACKING
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static __attribute__ ((always_inline)) void convolution2D_nhwc_nopad(
+static MLI_FORCE_INLINE void convolution2D_nhwc_nopad(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
@@ -608,7 +608,7 @@ LOOP_PIPELINE_ENABLE_BACKTRACKING
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static __attribute__ ((always_inline)) void convolution2D_nhwc_krnpad(
+static MLI_FORCE_INLINE void convolution2D_nhwc_krnpad(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
@@ -681,7 +681,7 @@ static __attribute__ ((always_inline)) void convolution2D_nhwc_krnpad(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static __attribute__ ((always_inline)) void pointwise_convolution2D_nhwc_nopad(
+static MLI_FORCE_INLINE void pointwise_convolution2D_nhwc_nopad(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,

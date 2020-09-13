@@ -26,7 +26,7 @@
  ******************************************************************************/
 
 template <typename io_T, typename w_T>
-static void __attribute__((always_inline)) full_connection(
+static MLI_FORCE_INLINE void full_connection(
         const MLI_PTR(io_T) __restrict in_ptr,
         const MLI_PTR(w_T) __restrict w_ptr,
         const MLI_PTR(w_T) bias_p,
@@ -95,7 +95,7 @@ LOOP_PIPELINE_ENABLE_BACKTRACKING
 }
 
 template <typename io_T, typename w_T>
-static void __attribute__((always_inline)) fully_connected_prepare_and_run_fx(
+static MLI_FORCE_INLINE void fully_connected_prepare_and_run_fx(
         const mli_tensor* in,
         const mli_tensor* weights,
         const mli_tensor* bias,
@@ -128,7 +128,7 @@ static void __attribute__((always_inline)) fully_connected_prepare_and_run_fx(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static void __attribute__((always_inline)) ip_op(
+static MLI_FORCE_INLINE void ip_op(
         const MLI_PTR(io_T) __restrict in,
         const MLI_PTR(w_T)  __restrict weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -230,7 +230,7 @@ LOOP_PIPELINE_ENABLE_BACKTRACKING
 }
 
 template <typename io_T, typename w_T, typename b_T>
-static void __attribute__((always_inline)) fully_connected_prepare_and_run(
+static MLI_FORCE_INLINE void fully_connected_prepare_and_run(
         const mli_tensor* in,
         const mli_tensor* weights,
         const mli_tensor* bias,

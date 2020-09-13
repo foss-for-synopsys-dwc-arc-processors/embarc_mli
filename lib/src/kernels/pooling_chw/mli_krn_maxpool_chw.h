@@ -33,7 +33,7 @@
 #endif
 
 template <typename io_T>
-static inline io_T __attribute__((always_inline)) reduce_max2D (
+static MLI_FORCE_INLINE io_T reduce_max2D (
         const MLI_PTR(io_T) __restrict in,
         const int width,
         const int height,
@@ -138,7 +138,7 @@ static inline io_T __attribute__((always_inline)) reduce_max2D (
 }
 
 template <typename io_T>
-static inline io_T __attribute__((always_inline)) reduce_max2D_small(
+static MLI_FORCE_INLINE io_T reduce_max2D_small(
         const MLI_PTR(io_T) __restrict in,
         const int width,
         const int height,
@@ -187,7 +187,7 @@ static inline io_T __attribute__((always_inline)) reduce_max2D_small(
 }
 
 template <typename io_T>
-static inline void __attribute__((always_inline)) maxpool_chw_nopad(
+static MLI_FORCE_INLINE void maxpool_chw_nopad(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
         const int row_begin,
@@ -258,7 +258,7 @@ LOOP_PIPELINE_ENABLE_BACKTRACKING
 }
 
 template <typename io_T>
-static inline void __attribute__((always_inline)) maxpool_chw(
+static MLI_FORCE_INLINE void maxpool_chw(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
         const int row_begin,
@@ -322,7 +322,7 @@ static inline void __attribute__((always_inline)) maxpool_chw(
 }
 
 template <typename io_T>
-static inline void __attribute__((always_inline)) maxpool_chw_small(
+static MLI_FORCE_INLINE void maxpool_chw_small(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
         const int row_begin,
@@ -387,7 +387,7 @@ static inline void __attribute__((always_inline)) maxpool_chw_small(
 }
 
 template <typename io_T>
-static inline void __attribute__((always_inline)) maxpool_chw_pad(
+static MLI_FORCE_INLINE void maxpool_chw_pad(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
         const int row_beg,
@@ -454,7 +454,7 @@ static inline void __attribute__((always_inline)) maxpool_chw_pad(
 }
 
 template <typename io_T>
-static inline void __attribute__((always_inline)) maxpool_chw_krnpad_small(
+static MLI_FORCE_INLINE void maxpool_chw_krnpad_small(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
         const int row_beg,

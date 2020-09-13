@@ -21,7 +21,7 @@ namespace krn {
 namespace vdsp {
 
 template <typename io_T, typename w_T, typename acc_T>
-static acc_T __attribute__ ((always_inline)) dotprod2D_vv(
+static MLI_FORCE_INLINE acc_T dotprod2D_vv(
         const MLI_PTR(io_T) __restrict in,
         const MLI_PTR(w_T)  __restrict krn,
         acc_T accu,
@@ -46,7 +46,7 @@ static acc_T __attribute__ ((always_inline)) dotprod2D_vv(
 }
 
 template < typename in_T, typename w_T, typename acc_T >
-static inline acc_T __attribute__ ((always_inline)) dotprod3D_v (
+static MLI_FORCE_INLINE acc_T dotprod3D_v (
         const MLI_PTR (in_T) __restrict in,
         const MLI_PTR (w_T) __restrict krn,
         const int width,
