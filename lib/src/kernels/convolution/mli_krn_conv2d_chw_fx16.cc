@@ -27,7 +27,7 @@
 extern "C" {
 #endif
 
-#pragma Code(".mli_lib")
+#pragma MLI_CODE_SECTION_START(".mli_lib")
 
 mli_status mli_krn_conv2d_chw_fx16_k1x1_str1_nopad(
         const mli_tensor * in, 
@@ -3883,7 +3883,7 @@ char * mli_debug_krn_conv2d_chw_fx16(
     }
 }
 
-#pragma code()
+#pragma MLI_CODE_SECTION_END()
 
 #ifdef __cplusplus
     }

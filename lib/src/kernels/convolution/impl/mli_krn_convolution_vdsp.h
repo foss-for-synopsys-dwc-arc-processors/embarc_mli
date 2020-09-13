@@ -22,7 +22,7 @@ namespace mli {
 namespace krn {
 namespace vdsp {
 
-#pragma Code(".mli_lib")
+#pragma MLI_CODE_SECTION_START(".mli_lib")
 
 //========================================================
 // Convolution 2D without padding
@@ -611,7 +611,7 @@ void depthwise_convolution2D<int16_t, int8_t, int8_t, mli_acc32_t, fx_quant_spec
                     padding_top, padding_left,
                     padding_bot, padding_right);
 }
-#pragma Code()
+#pragma MLI_CODE_SECTION_END()
 } // namespace vdsp
 } // namespace krn
 } // namespace mli

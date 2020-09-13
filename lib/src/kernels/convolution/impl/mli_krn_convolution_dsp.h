@@ -22,7 +22,7 @@ namespace mli {
 namespace krn {
 namespace dsp {
 
-#pragma Code(".mli_lib")
+#pragma MLI_CODE_SECTION_START(".mli_lib")
 //========================================================
 // Depthwise convolution 2D template
 //========================================================
@@ -450,7 +450,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D(
     }
 }
 
-#pragma Code()
+#pragma MLI_CODE_SECTION_END()
 } // namespace ref
 } // namespace krn
 } // namespace mli

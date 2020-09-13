@@ -64,15 +64,21 @@
 
 #if defined(__clang__)
 #define MLI_FORCE_INLINE inline __attribute__((always_inline))
+#define MLI_CODE_SECTION_START(x) code(x) 
+#define MLI_CODE_SECTION_END()    code()
 
 #elif defined(__GNUC__)
 #define MLI_FORCE_INLINE inline __attribute__((always_inline))
 #define __builtin_assume(x)
+#define MLI_CODE_SECTION_START(x) section(x) // TODO: Need to verify
+#define MLI_CODE_SECTION_END()    section()
 
 #elif defined(_MSC_VER)
 #define MLI_FORCE_INLINE inline __forceinline
 #define __builtin_assume(x) __assume(x)
 #define __attribute__(x)
+#define MLI_CODE_SECTION_START(x) code_seg(x)
+#define MLI_CODE_SECTION_END()    code_seg()
 
 #else
 #error "Current compiler isn't supported"

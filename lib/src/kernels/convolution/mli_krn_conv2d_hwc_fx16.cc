@@ -20,7 +20,7 @@
 extern "C" {
 #endif
 
-#pragma Code(".mli_lib")
+#pragma MLI_CODE_SECTION_START(".mli_lib")
 
 static void convolution_hwc_no_pad (
         const tensor_private_t<MLI_PTR(int16_t)> &in,
@@ -458,7 +458,7 @@ static void convolution_hwc (
 #error "Target platform is undefined or defined incorrectly"
 
 #endif
-#pragma code()
+#pragma MLI_CODE_SECTION_END()
 #ifdef __cplusplus
 }
 #endif

@@ -17,7 +17,7 @@
 extern "C" {
 #endif
 
-#pragma Code(".mli_lib")
+#pragma MLI_CODE_SECTION_START(".mli_lib")
 
 /*******************************************************************************
  *
@@ -43,7 +43,7 @@ mli_status mli_krn_eltwise_max_fx16(const mli_tensor* in1, const mli_tensor* in2
     return MLI_STATUS_OK;
 }
 
-#pragma code()
+#pragma MLI_CODE_SECTION_END()
 
 #ifdef __cplusplus
 }  // extern "C"

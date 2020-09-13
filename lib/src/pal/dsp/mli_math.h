@@ -24,7 +24,7 @@
 #include <arc/arc_intrinsics.h>
 #endif
 
-#pragma Code(".mli_lib")
+#pragma MLI_CODE_SECTION_START(".mli_lib")
 
 typedef accum40_t mli_acc40_t;
 typedef int32_t   mli_acc32_t;
@@ -430,7 +430,7 @@ MLI_FORCE_INLINE io_T mli_math_bound_range_fx(io_T in, l_T L, r_T R) {
     return out;
 }
 
-#pragma Code()
+#pragma MLI_CODE_SECTION_END()
 
 
 #endif // _DSP_MLI_MATH_H_

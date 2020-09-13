@@ -35,7 +35,7 @@ typedef vNx4accshort_t mli_sa8_sa8_sa32_accu_t;
 typedef mli_acc32_t mli_sa8_sa8_sa32_accu_t;
 #endif
 
-#pragma Code(".mli_lib")
+#pragma MLI_CODE_SECTION_START(".mli_lib")
 
 //========================================================
 //
@@ -239,7 +239,7 @@ mli_status mli_krn_conv2d_hwcn_sa8_sa8_sa32_k5x5(
 }
 
 
-#pragma code()
+#pragma MLI_CODE_SECTION_END()
 
 #ifdef __cplusplus
 } //extern "C"

@@ -17,7 +17,7 @@
 extern "C" {
 #endif
 
-#pragma Code(".mli_lib")
+#pragma MLI_CODE_SECTION_START(".mli_lib")
 /*******************************************************************************
  *
  * Placeholders for kernels (for future optimizations)
@@ -60,7 +60,7 @@ mli_status mli_krn_padding2d_hwc_fx16(const mli_tensor* in, const mli_padding2d_
     return MLI_STATUS_OK;
 }
 
-#pragma code()
+#pragma MLI_CODE_SECTION_END()
 
 #ifdef __cplusplus
 }  // extern "C"

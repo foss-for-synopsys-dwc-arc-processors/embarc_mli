@@ -26,7 +26,7 @@ typedef enum {
     LAYOUT_HWC
 } mli_layout_type;
 
-#pragma Code(".mli_lib")
+#pragma MLI_CODE_SECTION_START(".mli_lib")
 
 //======================================================
 //
@@ -202,7 +202,7 @@ inline void concat_data(const mli_tensor **inputs, const mli_concat_cfg *cfg, ml
     out->shape[concat_dim] = concat_dim_total;
 }
 
-#pragma Code()
+#pragma MLI_CODE_SECTION_END()
 }  // namespace mli
 
 #endif  //_MLI_KRN_DATA_MANIP_H_

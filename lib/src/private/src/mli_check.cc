@@ -19,7 +19,7 @@
 #include "mli_math_macros.h"
 #include "mli_prv_tensor.h"
 
-#pragma Code(".mli_lib")
+#pragma MLI_CODE_SECTION_START(".mli_lib")
 
 static inline mli_status check_tensor_private(
         const uint32_t *shape,
@@ -2120,7 +2120,7 @@ mli_status mli_chk_create_subtensor(const mli_tensor *in, const mli_sub_tensor_c
     return MLI_STATUS_OK;
 }
 
-#pragma code()
+#pragma MLI_CODE_SECTION_END()
 
 #ifdef __cplusplus
 }

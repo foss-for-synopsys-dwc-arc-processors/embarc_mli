@@ -17,7 +17,7 @@
 #include "mli_helpers_api.h"
 #include "mli_prv_tensor.h"
 
-#pragma Code(".mli_lib")
+#pragma MLI_CODE_SECTION_START(".mli_lib")
 
 #ifdef __cplusplus
 extern "C" {
@@ -253,4 +253,4 @@ mli_status mli_hlp_convert_tensor(mli_tensor *in, mli_tensor *out) {
 }
 #endif
 
-#pragma code()
+#pragma MLI_CODE_SECTION_END()

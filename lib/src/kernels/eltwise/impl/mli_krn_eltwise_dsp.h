@@ -22,7 +22,7 @@ namespace mli {
 namespace krn {
 namespace dsp {
 
-#pragma Code(".mli_lib")
+#pragma MLI_CODE_SECTION_START(".mli_lib")
 //======================================================
 //
 //======================================================
@@ -526,7 +526,7 @@ static inline void eltwise_prepare_and_run_fx(const mli_tensor *in1, const mli_t
     out->el_type = in1->el_type;
 }
 
-#pragma Code()
+#pragma MLI_CODE_SECTION_END()
 
 } // namespace dsp
 } // namespace krn

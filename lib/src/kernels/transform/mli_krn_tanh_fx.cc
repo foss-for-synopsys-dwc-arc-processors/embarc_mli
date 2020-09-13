@@ -25,7 +25,7 @@ const int kTanhOutputShift = 7;
 extern "C" {
 #endif
 
-#pragma Code(".mli_lib")
+#pragma MLI_CODE_SECTION_START(".mli_lib")
 
 mli_status mli_krn_tanh_fx8(const mli_tensor* in, mli_tensor* out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_basic_activation_fx8(in, out), __func__);
@@ -81,7 +81,7 @@ mli_status mli_krn_tanh_sa8(const mli_tensor* in, mli_tensor* out) {
     return MLI_STATUS_OK;
 }
 
-#pragma code()
+#pragma MLI_CODE_SECTION_END()
 
 #ifdef __cplusplus
 }

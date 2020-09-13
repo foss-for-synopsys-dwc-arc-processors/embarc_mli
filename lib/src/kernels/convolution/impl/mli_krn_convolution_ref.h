@@ -22,7 +22,7 @@ namespace mli {
 namespace krn {
 namespace ref {
 
-#pragma Code(".mli_lib")
+#pragma MLI_CODE_SECTION_START(".mli_lib")
 
 //========================================================
 // Unified Generic Convolution 2D template
@@ -315,7 +315,7 @@ void conv2d_prepare_and_run(
                 padding_bot, padding_right);
     }
 }
-#pragma Code()
+#pragma MLI_CODE_SECTION_END()
 } // namespace ref
 } // namespace krn
 } // namespace mli
