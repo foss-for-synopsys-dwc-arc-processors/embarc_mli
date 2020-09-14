@@ -12,6 +12,6 @@ project(mli)
 
 add_subdirectory(lib)
 
-if (${GEN_EXAMPLES})
-add_subdirectory(examples)
+if (GEN_EXAMPLES)
+	add_subdirectory(examples EXCLUDE_FROM_ALL)
 endif()

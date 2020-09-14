@@ -1,209 +1,57 @@
 #
-# Copyright 2019-2020, Synopsys, Inc.
+# Copyright 2020, Synopsys, Inc.
 # All rights reserved.
 #
 # This source code is licensed under the BSD-3-Clause license found in
 # the LICENSE file in the root directory of this source tree.
 #
 
-# Target toolchain. The library project doesn't support GCC
-TOOLCHAIN = mwdt
-TCF_FILE ?= ../../hw/em9d.tcf
+DEBUG_BUILD         ?= ON
+OPTMODE             ?= speed
+GEN_EXAMPLES        ?= 1
+MLI_BUILD_REFERENCE ?= OFF
 
-# Make rules for code generation are default disabled to avoid
-# dependency to python when re-generation is not needed
-GEN_RULES ?= OFF
+include settings.mk
 
-# Directories and files
-SRC_ROOT    =  ../src
-
-# Collect iformation about platform from TCF
-ALL_PLATFORM_FLAGS := '$(shell ccac -tcf=$(TCF_FILE) -Hbatchnotmp _.c)'
-
-# Define type of platform
-ifneq (,$(filter +vdsp, $(ALL_PLATFORM_FLAGS)))
-MLI_PLATFORM = VPX
+TOOL_CHAIN_OPTIONS =
+ifndef TCF_FILE
+ifeq ($(O_SYS),Windows)
+TOOL_CHAIN_OPTIONS += -AWin32
+endif
 else
-MLI_PLATFORM = EM_HS
+TOOL_CHAIN_OPTIONS += \
+	-DARC_CFG_TCF_PATH=$(TCF_FILE) \
+	-DCMAKE_TOOLCHAIN_FILE=$(subst \,$(PS),$(METAWARE_ROOT))$(PS)arc$(PS)cmake$(PS)arc-mwdt.toolchain.cmake \
+	-G "Unix Makefiles"
+ifdef BUILDLIB_DIR
+TOOL_CHAIN_OPTIONS += -DBUILDLIB_DIR=$(BUILDLIB_DIR)
+endif
 endif
 
-ifeq ($(MLI_PLATFORM),VPX)
-SRC_DIRS_EXTRA  = ../src/kernels/transform \
-                  ../src/kernels/convolution \
-                  ../src/kernels/common
-
-SRC_DIRS    =  ../src/helpers/src \
-               ../src/kernels/eltwise \
-               ../src/kernels/pooling \
-               ../src/bricks \
-               ../src/private/src
-
-CC_SRCS     =  mli_krn_sigm_fx \
-               mli_krn_tanh_fx \
-               mli_krn_conv2d_hwcn \
-               mli_krn_depthwise_conv2d_hwcn \
-               mli_krn_fully_connected_stub_fx
+# $(MAKE) can be called through CMAKE; but to facilitate parallel builds with -j, we call $(MAKE).
+ifndef TCF_FILE
+lib: $(BUILD_DIR)/cmake_install.cmake
+	cmake --build $(BUILD_DIR) --verbose  --target install
 else
-SRC_DIRS_EXTRA =
-
-SRC_DIRS    =  ../src/helpers/src \
-               ../src/kernels/common \
-               ../src/kernels/convolution \
-               ../src/kernels/data_manip \
-               ../src/kernels/eltwise \
-               ../src/kernels/pooling \
-               ../src/kernels/pooling_chw \
-               ../src/kernels/transform \
-               ../src/private/src \
-               ../src/bricks \
-               ../src/move
-
-CC_SRCS     =
+lib: $(BUILD_DIR)/cmake_install.cmake
+	$(MAKE) -C $(BUILD_DIR) VERBOSE=true install 
 endif
-
-INC_DIRS    = .  \
-              ../../include \
-              ../../include/api \
-              ../src/bricks \
-              ../src/private \
-              ../src/helpers \
-              ../src/kernels \
-              ../src/kernels/eltwise \
-              ../src/kernels/pooling \
-              ../src/kernels/pooling_chw \
-              ../src/kernels/transform \
-              ../src/move \
-              ../src/pal
-
-# source files that are generated
-CONVOLUTION_SRC_FOLDER = ../src/kernels/convolution
-POOLING_SRC_FOLDER = ../src/kernels/pooling
-GEN_HEADER_FOLDER = ../../include/api
-
-GEN_FILES_BASE = $(CONVOLUTION_SRC_FOLDER)/mli_krn_conv2d \
-                 $(CONVOLUTION_SRC_FOLDER)/mli_krn_depthwise_conv2d \
-                 $(POOLING_SRC_FOLDER)/mli_krn_avepool \
-                 $(POOLING_SRC_FOLDER)/mli_krn_maxpool
-
-GEN_FILES  = $(addsuffix _chw_fx16.cc, $(GEN_FILES_BASE))
-GEN_FILES += $(addsuffix _chw_fx8.cc, $(GEN_FILES_BASE))
-GEN_FILES += $(CONVOLUTION_SRC_FOLDER)/mli_krn_conv2d_chw_fx8w16d.cc \
-             $(CONVOLUTION_SRC_FOLDER)/mli_krn_conv2d_hwc_sa8_sa8_sa32.cc \
-             $(CONVOLUTION_SRC_FOLDER)/mli_krn_depthwise_conv2d_chw_fx8w16d.cc \
-             $(CONVOLUTION_SRC_FOLDER)/mli_krn_depthwise_conv2d_hwc_sa8_sa8_sa32.cc \
-             $(POOLING_SRC_FOLDER)/mli_krn_maxpool_hwc_fx8.cc  \
-             $(POOLING_SRC_FOLDER)/mli_krn_maxpool_hwc_fx16.cc \
-             $(POOLING_SRC_FOLDER)/mli_krn_avepool_hwc_sa8.cc  \
-             $(POOLING_SRC_FOLDER)/mli_krn_maxpool_hwc_sa8.cc
-
-GEN_FILES_HEADERS = $(addprefix $(GEN_HEADER_FOLDER)/, $(addsuffix _spec_api.h, $(notdir $(GEN_FILES_BASE))))
-
-EXT_LIBS     = 
-LIBRARY_DIR ?= ../../bin
-OUT_NAME    ?= libmli
-BUILD_DIR   ?= ../../obj
-GEN_DIR     ?= ../gen
-CFLAGS      += -Hnocopyr -Hpurge -Hsdata0 -Hdense_prologue -Wall
-
-# Supported values for rounding mode: UP/CONVERGENT (depends on platform)
-ifeq ($(MLI_PLATFORM),VPX)
-ROUND_MODE ?= UP
-else
-ROUND_MODE ?= CONVERGENT
-endif
-
-ifeq ($(MLI_PLATFORM),VPX)
-    CFLAGS  += -Hvdsp_vector_c -mllvm -slot_swapping=true
-    ifeq ($(ROUND_MODE), UP)
-        CFLAGS += -DROUND_UP
-    else
-    ifeq ($(ROUND_MODE), CONVERGENT)
-        CFLAGS += -DROUND_CONVERGENT
-    else
-        $(error rounding mode isn't supported)
-    endif
-    endif
-else
-ifeq ($(MLI_PLATFORM),EM_HS)
-    CFLAGS += -Hfxapi
-    ifeq ($(ROUND_MODE), UP)
-        CFLAGS += -Xdsp_ctrl=postshift,guard,up
-    else
-    ifeq ($(ROUND_MODE), CONVERGENT)
-        CFLAGS += -Xdsp_ctrl=postshift,guard,convergent
-    else
-        $(error rounding mode isn't supported)
-    endif
-    endif
-else
-    $(error invalid platform)
-endif
-endif
-ifeq ($(MLI_BUILD_REFERENCE),ON)
-    CFLAGS += -DMLI_BUILD_REFERENCE
-endif
-
-vpath %.py  $(GEN_DIR)
-vpath %.txt  $(GEN_DIR)
-vpath %.h  $(INC_DIRS)
 
 all: lib
 
-include ../../build/rules.mk
-
-
-.PHONY: clean
-
-#lib: scripts generic_lib
-lib: generic_lib
-
-run:
-	$(error Unsupported target 'run')
+$(BUILD_DIR)/cmake_install.cmake:
+	cmake \
+		-DDEBUG_BUILD=$(DEBUG_BUILD) \
+		-DOPTMODE=$(OPTMODE) \
+		-DGEN_EXAMPLES=$(GEN_EXAMPLES) \
+		-DMLI_BUILD_REFERENCE=$(MLI_BUILD_REFERENCE) \
+		-DCMAKE_INSTALL_PREFIX=${LIBRARY_DIR} \
+		$(TOOL_CHAIN_OPTIONS) -B$(BUILD_DIR) -S..$(PS)..$(PS)
 
 clean:
-	@echo Cleaning library...
-	-@$(RM) $(call fix_platform_path,$(OBJS))
-	-@$(RM) $(call fix_platform_path,$(LIBRARY_DIR)/$(OUT_NAME).a)
+	-$(RMDIR) $(BUILD_DIR_ARC)
+	-$(RMDIR) $(BUILD_DIR_NATIVE)
+	-$(RMDIR) $(LIBRARY_DIR_ARC)
+	-$(RMDIR) $(LIBRARY_DIR_NATIVE)
 
-
-ifeq ($(GEN_RULES),ON)
-
-$(filter $(CONVOLUTION_SRC_FOLDER)/mli_krn_conv2d_chw_%, $(GEN_FILES)): $(CONVOLUTION_SRC_FOLDER)/mli_krn_conv2d_chw_%.cc : mli_krn_conv2d_gen.py mli_krn_conv2d_chw_func_body.txt filetemplate.txt codegen.py func.py
-	@echo [generate] $@
-	cd $(GEN_DIR) && python $< $*
-
-$(filter $(CONVOLUTION_SRC_FOLDER)/mli_krn_conv2d_hwc_%, $(GEN_FILES)): $(CONVOLUTION_SRC_FOLDER)/mli_krn_conv2d_hwc_%.cc : mli_krn_conv2d_gen.py mli_krn_conv2d_hwc_func_body.txt filetemplate.txt codegen.py func.py
-	@echo [generate] $@
-	cd $(GEN_DIR) && python $< $*
-
-$(filter $(CONVOLUTION_SRC_FOLDER)/mli_krn_depthwise_conv2d_chw_%, $(GEN_FILES)): $(CONVOLUTION_SRC_FOLDER)/mli_krn_depthwise_conv2d_chw_%.cc : mli_krn_depthwise_conv2d_gen.py mli_krn_depthwise_conv2d_chw_func_body.txt filetemplate.txt codegen.py func.py
-	@echo [generate] $@
-	cd $(GEN_DIR) && python $< $*
-
-$(filter $(CONVOLUTION_SRC_FOLDER)/mli_krn_depthwise_conv2d_hwc_%, $(GEN_FILES)): $(CONVOLUTION_SRC_FOLDER)/mli_krn_depthwise_conv2d_hwc_%.cc : mli_krn_depthwise_conv2d_gen.py mli_krn_depthwise_conv2d_hwc_func_body.txt filetemplate.txt codegen.py func.py
-	@echo [generate] $@
-	cd $(GEN_DIR) && python $< $*
-
-$(filter $(POOLING_SRC_FOLDER)/mli_krn_avepool_chw_%, $(GEN_FILES)): $(POOLING_SRC_FOLDER)/mli_krn_avepool_chw_%.cc : mli_krn_avepool_gen.py mli_krn_avepool_chw_func_body.txt filetemplate.txt codegen.py func.py
-	@echo [generate] $@
-	cd $(GEN_DIR) && python $< $*
-
-$(filter $(POOLING_SRC_FOLDER)/mli_krn_avepool_hwc_%, $(GEN_FILES)): $(POOLING_SRC_FOLDER)/mli_krn_avepool_hwc_%.cc : mli_krn_avepool_gen.py mli_krn_avepool_hwc_func_body.txt filetemplate.txt codegen.py func.py
-	@echo [generate] $@
-	cd $(GEN_DIR) && python $< $*
-
-$(filter $(POOLING_SRC_FOLDER)/mli_krn_maxpool_chw_%, $(GEN_FILES)): $(POOLING_SRC_FOLDER)/mli_krn_maxpool_chw_%.cc : mli_krn_maxpool_gen.py mli_krn_maxpool_chw_func_body.txt filetemplate.txt codegen.py func.py
-	@echo [generate] $@
-	cd $(GEN_DIR) && python $< $*
-
-$(filter $(POOLING_SRC_FOLDER)/mli_krn_maxpool_hwc_%, $(GEN_FILES)): $(POOLING_SRC_FOLDER)/mli_krn_maxpool_hwc_%.cc : mli_krn_maxpool_gen.py mli_krn_maxpool_hwc_func_body.txt filetemplate.txt codegen.py func.py
-	@echo [generate] $@
-	cd $(GEN_DIR) && python $< $*
-
-$(GEN_FILES_HEADERS): $(GEN_HEADER_FOLDER)/%_spec_api.h : %_gen.py header_filetemplate.txt codegen.py func.py
-	@echo [generate] $@
-	cd $(GEN_DIR) && python $< header
-
-gen: $(GEN_FILES) $(GEN_FILES_HEADERS)
-
-endif
+.PHONY:	all clean lib
