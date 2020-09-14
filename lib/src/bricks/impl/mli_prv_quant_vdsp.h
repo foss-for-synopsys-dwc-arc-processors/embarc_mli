@@ -40,8 +40,15 @@ MLI_FORCE_INLINE vNx4accshort_t reduce_sum2D(
 
 MLI_FORCE_INLINE s8asym_quant_specific_out_params_v adjust_quant_params_v(s8asym_quant_specific_params* params, int krn_idx) {
     // out multiplyer can be different across one of axis (per axis quantization for s8asym)
+    // but will be the same in case of per tensor quantization.
+    vNx4int_t wscales;
+    if (params->weight_dim < 0) {
+        krn_idx = 0;
+        wscales = params->weight_scales[krn_idx];
+    } else {
+        wscales = mli_prv_load_n_samples(&params->weight_scales[krn_idx]);
+    }
     s8asym_quant_specific_out_params_v out_params;
-    vNx4int_t wscales = mli_prv_load_n_samples(&params->weight_scales[krn_idx]);
     vNx4int_t w_norm = mli_math_norm_fx<vNx4int_t, vNx4int_t>(wscales);
     wscales = wscales << w_norm;
     vNx4int_t outmul32 = mli_math_mul_fx_high(wscales, params->in_to_out_scales_ratio);
