@@ -433,7 +433,7 @@ MLI_FORCE_INLINE out_T mli_prv_convert_sa8_fx16(
     const in_T in,
     const int16_t zero_point,
     const int scale) {
-    int16_t in_biased_shifted_no_zp = mli_math_cast_fx<int8_t, int16_t>(in, 0) - zero_point;
+    int16_t in_biased_shifted_no_zp = mli_math_cast_fx<in_T, int16_t>(in, 0) - zero_point;
     return mli_math_cast_fx<int64_t, out_T>(mli_math_mul_fx<int32_t, int64_t>((int32_t)in_biased_shifted_no_zp, scale), 0);
 }
 

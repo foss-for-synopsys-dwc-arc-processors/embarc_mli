@@ -57,9 +57,12 @@
 #include <stdfix.h>
 #endif
 
+#define DO_PRAGMA(x) _Pragma(#x)
+#define PRAGMA_CLANG(x) DO_PRAGMA(clang x)
 #else
 // Only support restrict on ARC platforms, but not on X86
 #define __restrict
+#define PRAGMA_CLANG(x)
 #endif // if defined (_ARC)
 
 #if defined(__clang__)
