@@ -35,6 +35,10 @@ static const int kPreDivShiftS32 = 30;
 template <>
 MLI_FORCE_INLINE void adjust_quant_params(s8asym_quant_specific_params* params, int krn_idx) {
     // out multiplyer can be different across one of axis (per axis quantization for s8asym)
+    // but will be the same in case of per tensor quantization.
+    if (params->weight_dim < 0) {
+        krn_idx = 0;
+    }
     int mul_fx_high_shift = 31;
     params->out_mul = mli_math_mul_fx_high<int32_t, int32_t>(params->in_to_out_scales_ratio, params->weight_scales[krn_idx]);
     params->out_shift = params->in_to_out_shift;

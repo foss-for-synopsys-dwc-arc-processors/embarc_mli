@@ -31,6 +31,7 @@ struct s8asym_quant_specific_params {
 
     const int32_t *weight_scales;
     const int8_t *weight_shifts;
+    int weight_dim;
     int32_t in_to_out_scales_ratio;
     int32_t in_to_out_shift;
 
