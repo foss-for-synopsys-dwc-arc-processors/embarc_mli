@@ -246,6 +246,7 @@ mli_status mli_chk_basic_activation_fx16(const mli_tensor * in, mli_tensor * out
 mli_status mli_chk_basic_activation_sa8(const mli_tensor * in, mli_tensor * out);
 mli_status mli_chk_softmax_fx8(const mli_tensor * in, const mli_softmax_cfg* cfg, mli_tensor * out);
 mli_status mli_chk_softmax_fx16(const mli_tensor * in, const mli_softmax_cfg* cfg, mli_tensor * out);
+mli_status mli_chk_softmax_sa8(const mli_tensor * in, const mli_softmax_cfg* cfg, mli_tensor * out);
 mli_status mli_chk_leaky_relu(const mli_tensor * in, const mli_tensor * slope_coeff, mli_tensor * out);
 mli_status mli_chk_leaky_relu_fx8(const mli_tensor * in, const mli_tensor * slope_coeff, mli_tensor * out);
 mli_status mli_chk_leaky_relu_fx16(const mli_tensor * in, const mli_tensor * slope_coeff, mli_tensor * out);

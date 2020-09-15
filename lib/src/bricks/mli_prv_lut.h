@@ -34,6 +34,8 @@ using mli::krn::ref::activation_lut;
 
 #else
 using mli::krn::ref::activation_lut;
+using mli::krn::ref::activation_lut_one_elem_interpolate;
+using mli::krn::ref::activation_lut_one_elem_no_interpolate;
 
 #endif
 } // krn

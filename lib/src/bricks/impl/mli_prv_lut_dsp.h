@@ -28,7 +28,7 @@ static void activation_lut(
         struct generic_tensor_private_t<io_T *> *out,
         const mli_lut *lut,
         int8_t in_frac_bits,
-        struct s8asym_quant_params *in_params,
+        const struct s8asym_quant_params *in_params,
         struct s8asym_quant_params *out_params) {
 
     /* TODO use mem strides */

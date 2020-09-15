@@ -40,7 +40,12 @@ mli_status mli_krn_softmax_fx16(const mli_tensor *in, const mli_softmax_cfg* cfg
 }
 
 mli_status mli_krn_softmax_sa8(const mli_tensor* in, const mli_softmax_cfg* cfg, mli_tensor* out) {
-    return MLI_STATUS_NOT_SUPPORTED;
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_softmax_sa8(in, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK) return ret;
+    mli_prv_fx_init_dsp_ctrl();
+
+    ret = mli::krn::mli_krn_softmax_sa8_run(in, cfg, out);
+    return ret;
 }
 
 #pragma MLI_CODE_SECTION_END()
