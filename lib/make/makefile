@@ -10,6 +10,7 @@ DEBUG_BUILD         ?= ON
 OPTMODE             ?= speed
 GEN_EXAMPLES        ?= 1
 MLI_BUILD_REFERENCE ?= OFF
+BUILD_SUBDIR        ?=
 
 include settings.mk
 
@@ -31,10 +32,10 @@ endif
 # $(MAKE) can be called through CMAKE; but to facilitate parallel builds with -j, we call $(MAKE).
 ifndef TCF_FILE
 lib: $(BUILD_DIR)/cmake_install.cmake
-	cmake --build $(BUILD_DIR) --verbose  --target install
+	cmake --build $(BUILD_DIR)$(PS)$(BUILD_SUBDIR) --verbose --target install
 else
 lib: $(BUILD_DIR)/cmake_install.cmake
-	$(MAKE) -C $(BUILD_DIR) VERBOSE=true install 
+	$(MAKE) -C $(BUILD_DIR)$(PS)$(BUILD_SUBDIR) VERBOSE=true install
 endif
 
 all: lib
@@ -49,9 +50,7 @@ $(BUILD_DIR)/cmake_install.cmake:
 		$(TOOL_CHAIN_OPTIONS) -B$(BUILD_DIR) -S..$(PS)..$(PS)
 
 clean:
-	-$(RMDIR) $(BUILD_DIR_ARC)
-	-$(RMDIR) $(BUILD_DIR_NATIVE)
-	-$(RMDIR) $(LIBRARY_DIR_ARC)
-	-$(RMDIR) $(LIBRARY_DIR_NATIVE)
+	-$(RMDIR) $(BUILD_DIR_BASE)
+	-$(RMDIR) $(LIBRARY_DIR_BASE)
 
 .PHONY:	all clean lib

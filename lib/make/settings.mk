@@ -26,17 +26,16 @@ POSTFIX = _ref
 else
 POSTFIX =
 endif
+
+BUILD_DIR_BASE     ?= $(PUBLIC_DIR)$(PS)obj
+LIBRARY_DIR_BASE   ?= $(PUBLIC_DIR)$(PS)bin
 # we do not use CURDIR, since slashes in there cause problems on Windows
 PUBLIC_DIR         ?= ..$(PS)..$(PS)
-BUILD_DIR_ARC       = $(PUBLIC_DIR)$(PS)obj$(POSTFIX)
-BUILD_DIR_NATIVE    = $(PUBLIC_DIR)$(PS)obj_native$(POSTFIX)
-LIBRARY_DIR_ARC     = $(PUBLIC_DIR)$(PS)bin$(POSTFIX)
-LIBRARY_DIR_NATIVE  = $(PUBLIC_DIR)$(PS)bin_native$(POSTFIX)
 
 ifndef TCF_FILE
-BUILD_DIR          ?= $(BUILD_DIR_NATIVE)
-LIBRARY_DIR        ?= $(LIBRARY_DIR_NATIVE)
+BUILD_DIR          ?= $(BUILD_DIR_BASE)$(PS)native$(POSTFIX)
+LIBRARY_DIR        ?= $(LIBRARY_DIR_BASE)$(PS)native$(POSTFIX)
 else
-BUILD_DIR          ?= $(BUILD_DIR_ARC)
-LIBRARY_DIR        ?= $(LIBRARY_DIR_ARC)
+BUILD_DIR          ?= $(BUILD_DIR_BASE)$(PS)arc$(POSTFIX)
+LIBRARY_DIR        ?= $(LIBRARY_DIR_BASE)$(PS)arc$(POSTFIX)
 endif

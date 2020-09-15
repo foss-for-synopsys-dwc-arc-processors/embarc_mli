@@ -685,7 +685,9 @@ static inline mli_status nn_fully_connected(
         const mli_tensor *weights,
         const mli_tensor *bias,
         mli_tensor *out) {
-    return mli_krn_fully_connected_fx16(in, weights, bias, out);
+    mli_fully_connected_cfg fully_connected_cfg = {0};
+    fully_connected_cfg.relu.type = MLI_RELU_NONE;
+    return mli_krn_fully_connected_fx16(in, weights, bias, &fully_connected_cfg, out);
 }
 
 static inline mli_status nn_lstm_cell(
