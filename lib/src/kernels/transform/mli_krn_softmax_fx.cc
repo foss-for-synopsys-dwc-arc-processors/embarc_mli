@@ -17,7 +17,7 @@
 extern "C" {
 #endif
 
-#pragma Code(".mli_lib")
+#pragma MLI_CODE_SECTION_START(".mli_lib")
 
 
 /* DEPRECATED */
@@ -43,7 +43,7 @@ mli_status mli_krn_softmax_sa8(const mli_tensor* in, const mli_softmax_cfg* cfg,
     return MLI_STATUS_NOT_SUPPORTED;
 }
 
-#pragma code()
+#pragma MLI_CODE_SECTION_END()
 
 #ifdef __cplusplus
 }

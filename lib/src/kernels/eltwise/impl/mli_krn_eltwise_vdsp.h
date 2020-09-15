@@ -25,7 +25,7 @@ namespace vdsp {
 //
 //======================================================
 template <typename io_T>
-static inline void __attribute__ ((always_inline)) eltwise_op_add_fx (
+static MLI_FORCE_INLINE void eltwise_op_add_fx (
         const io_T* op1,
         const io_T* op2,
         io_T* out,
@@ -58,7 +58,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_add_fx (
 }
 
 template <typename io_T, mli_eltwise_type func_type>
-static inline void eltwise_op_basic_fx(
+static MLI_FORCE_INLINE void eltwise_op_basic_fx(
         const io_T* op1,
         const io_T* op2,
               io_T* out,

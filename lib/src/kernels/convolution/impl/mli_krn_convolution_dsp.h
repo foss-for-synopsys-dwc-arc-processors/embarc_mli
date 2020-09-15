@@ -22,12 +22,12 @@ namespace mli {
 namespace krn {
 namespace dsp {
 
-#pragma Code(".mli_lib")
+#pragma MLI_CODE_SECTION_START(".mli_lib")
 //========================================================
 // Depthwise convolution 2D template
 //========================================================
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_nopad(
+static MLI_FORCE_INLINE void depthwise_convolution2D_hwcn_nopad(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
@@ -172,7 +172,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_nopad(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn(
+static MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
@@ -329,7 +329,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_nopad(
+static MLI_FORCE_INLINE void depthwise_convolution2D_hwcn_nopad(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
@@ -352,7 +352,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_nopad(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn(
+static MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
@@ -376,7 +376,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
-static __attribute__ ((always_inline)) void depthwise_convolution2D(
+static MLI_FORCE_INLINE void depthwise_convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
@@ -450,7 +450,7 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D(
     }
 }
 
-#pragma Code()
+#pragma MLI_CODE_SECTION_END()
 } // namespace ref
 } // namespace krn
 } // namespace mli

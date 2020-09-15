@@ -19,7 +19,7 @@
 extern "C" {
 #endif
 
-#pragma Code(".mli_lib")
+#pragma MLI_CODE_SECTION_START(".mli_lib")
 
 
  /* DEPRECATED */
@@ -92,7 +92,7 @@ mli_status mli_krn_fully_connected_sa8_sa8_sa32(
     return MLI_STATUS_OK;
 }
 
-#pragma code()
+#pragma MLI_CODE_SECTION_END()
 
 #ifdef __cplusplus
 }

@@ -28,7 +28,7 @@ namespace krn {
 ////////////////////////////////////////////////////////////////////////////////
 namespace ref {
 template <typename io_T>
-static inline void __attribute__((always_inline)) avepool_hwc_nopad(
+static MLI_FORCE_INLINE void avepool_hwc_nopad(
         const int row_beg,
         const int row_end,
         const int clmn_beg,
@@ -44,7 +44,7 @@ static inline void __attribute__((always_inline)) avepool_hwc_nopad(
         const int padding_right,
         const int padding_bot);
 template <typename io_T>
-static inline void __attribute__((always_inline)) avepool_hwc(
+static MLI_FORCE_INLINE void avepool_hwc(
         const int row_beg,
         const int row_end,
         const int clmn_beg,
@@ -60,7 +60,7 @@ static inline void __attribute__((always_inline)) avepool_hwc(
         const int padding_right,
         const int padding_bot);
 template <typename io_T>
-static inline void __attribute__((always_inline)) avepool_hwc_krnpad(
+static MLI_FORCE_INLINE void avepool_hwc_krnpad(
         int row_beg,
         int row_end,
         int clmn_beg,
@@ -83,7 +83,7 @@ static inline void __attribute__((always_inline)) avepool_hwc_krnpad(
 ////////////////////////////////////////////////////////////////////////////////
 namespace dsp {
 template <typename io_T>
-static inline void __attribute__((always_inline)) avepool_hwc_nopad(
+static MLI_FORCE_INLINE void avepool_hwc_nopad(
         const int row_beg,
         const int row_end,
         const int clmn_beg,
@@ -99,7 +99,7 @@ static inline void __attribute__((always_inline)) avepool_hwc_nopad(
         const int padding_right,
         const int padding_bot);
 template <typename io_T>
-static inline void __attribute__((always_inline)) avepool_hwc(
+static MLI_FORCE_INLINE void avepool_hwc(
         const int row_beg,
         const int row_end,
         const int clmn_beg,
@@ -115,7 +115,7 @@ static inline void __attribute__((always_inline)) avepool_hwc(
         const int padding_right,
         const int padding_bot);
 template <typename io_T>
-static inline void __attribute__((always_inline)) avepool_hwc_krnpad(
+static MLI_FORCE_INLINE void avepool_hwc_krnpad(
         int row_beg,
         int row_end,
         int clmn_beg,

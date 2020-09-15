@@ -27,7 +27,7 @@
 extern "C" {
 #endif
 
-#pragma Code(".mli_lib")
+#pragma MLI_CODE_SECTION_START(".mli_lib")
 
 mli_status mli_krn_avepool_hwc_fx16_k2x2_nopad(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_avepool_hwc_fx16(in, cfg, out), __func__);
@@ -421,7 +421,7 @@ char * mli_debug_krn_avepool_hwc_fx16(const mli_tensor * in, const mli_pool_cfg 
     }
 }
 
-#pragma code()
+#pragma MLI_CODE_SECTION_END()
 
 #ifdef __cplusplus
     }

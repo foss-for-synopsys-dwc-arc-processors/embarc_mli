@@ -47,8 +47,8 @@ static MLI_FORCE_INLINE int pos(
 }
 
 // To prevent a compiler name mangling issue, type_is_xy should be true if and only if T has __xy.
-template <typename T, bool type_is_xy=false> __attribute__((always_inline))
-static inline tensor_private_t<T> mli_prv_get_tensor_chw(
+template <typename T, bool type_is_xy=false>
+static MLI_FORCE_INLINE tensor_private_t<T> mli_prv_get_tensor_chw(
         const mli_tensor *in,
         const int fix_ch = 0) {
     int ch             = (int)in->shape[FMAP_C_DIM_CHW];
@@ -82,8 +82,8 @@ static inline tensor_private_t<T> mli_prv_get_tensor_chw(
 }
 
 // To prevent a compiler name mangling issue, type_is_xy should be true if and only if T has __xy.
-template <typename T, bool type_is_xy=false> __attribute__((always_inline))
-static inline tensor_private_t<T> mli_prv_get_tensor_hwc(
+template <typename T, bool type_is_xy=false>
+static MLI_FORCE_INLINE tensor_private_t<T> mli_prv_get_tensor_hwc(
         const mli_tensor *in,
         const int fix_ch = 0) {
     const int height   = (int)in->shape[FMAP_H_DIM_HWC];
@@ -152,8 +152,8 @@ static MLI_FORCE_INLINE generic_tensor_private_t<T> mli_prv_get_generic_tensor(
 }
 
 // To prevent a compiler name mangling issue, type_is_xy should be true if and only if T has __xy.
-template <typename T, bool type_is_xy=false> __attribute__((always_inline))
-static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_nhwc(
+template <typename T, bool type_is_xy=false>
+static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_nhwc(
         const mli_tensor *weights,
         const int fix_in_ch = 0,
         const int fix_width = 0,
@@ -198,8 +198,8 @@ static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tens
             col_mem_stride, row_mem_stride, in_ch_mem_stride, out_ch_mem_stride };
 }
 
-template <typename T> __attribute__((always_inline))
-static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_hwcn(
+template <typename T>
+static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_hwcn(
         const mli_tensor *weights,
         const int fix_in_ch = 0,
         const int fix_width = 0,
@@ -244,8 +244,8 @@ static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tens
 }
 
 // To prevent a compiler name mangling issue, type_is_xy should be true if and only if T has __xy.
-template <typename T, bool type_is_xy=false> __attribute__((always_inline))
-static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_1hwn(
+template <typename T, bool type_is_xy=false>
+static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_1hwn(
         const mli_tensor *weights,
         const int fix_width = 0,
         const int fix_height = 0) {
@@ -289,7 +289,7 @@ static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tens
 }
 
 template <typename T>
-static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_nchw(
+static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_nchw(
         const mli_tensor *weights) {
     const int out_ch      = (int)weights->shape[KRNL_C_DIM_CHW];
     const int in_ch       = (int)weights->shape[KRNL_D_DIM_CHW];
@@ -320,14 +320,14 @@ static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tens
 extern "C" {
 #endif
 
-static inline mli_status __attribute__ ((always_inline)) mli_prv_copy_tensor_format(
+static MLI_FORCE_INLINE mli_status mli_prv_copy_tensor_format(
         const mli_tensor * src, 
         mli_tensor * dst) {
     mli_status check = MLI_CHECK_STATUS(mli_chk_tensor (src), __func__);
     if (check != MLI_STATUS_OK)
           return check;
 
-    for (int idx = 0; idx < src->rank; idx++) {
+    for (int idx = 0; idx < (int)src->rank; idx++) {
         dst->shape[idx] = src->shape[idx];
         dst->mem_stride[idx] = src->mem_stride[idx];
     }
@@ -345,7 +345,7 @@ static MLI_FORCE_INLINE mli_status mli_prv_copy_tensor_format_except_mem_strides
     if (check != MLI_STATUS_OK)
           return check;
 
-    for (int idx = 0; idx < src->rank; idx++) {
+    for (int idx = 0; idx < (int)src->rank; idx++) {
         dst->shape[idx] = src->shape[idx];
     }
 
@@ -355,7 +355,7 @@ static MLI_FORCE_INLINE mli_status mli_prv_copy_tensor_format_except_mem_strides
     return MLI_STATUS_OK;
 }
 
-static int inline __attribute__((always_inline)) mli_prv_calc_shift(
+static MLI_FORCE_INLINE int mli_prv_calc_shift(
         const mli_tensor *in0,
         const mli_tensor *in1,
         const mli_tensor *out){
@@ -375,7 +375,7 @@ static int inline __attribute__((always_inline)) mli_prv_calc_shift(
     }
 }
 
-static int32_t inline __attribute__((always_inline)) mli_prv_calc_bias_mul(
+static MLI_FORCE_INLINE int32_t mli_prv_calc_bias_mul(
         const mli_tensor *in0,
         const mli_tensor *in1,
         const mli_tensor *bias){
@@ -397,25 +397,25 @@ static int32_t inline __attribute__((always_inline)) mli_prv_calc_bias_mul(
 }
 
 /* partial element counting. starting at startrank */
-static uint32_t inline __attribute__((always_inline)) mli_prv_count_elem_num_part(
+static MLI_FORCE_INLINE uint32_t mli_prv_count_elem_num_part(
         const mli_tensor *in,
         uint32_t startrank) {
     const uint32_t *shape = &in->shape[startrank];
     uint32_t rank = in->rank - startrank;
     uint32_t elem_num = 1;
 
-    for (int idx = 0; idx < rank; idx++)
+    for (int idx = 0; idx < (int)rank; idx++)
         elem_num *= shape[idx];
 
     return elem_num;
 }
 
 /* full element counting */
-static uint32_t inline __attribute__((always_inline)) mli_prv_count_elem_num(const mli_tensor *in) {
+static MLI_FORCE_INLINE uint32_t mli_prv_count_elem_num(const mli_tensor *in) {
     return mli_prv_count_elem_num_part(in, 0);
 }
 
-static inline mli_minmax_t __attribute__((always_inline))
+static MLI_FORCE_INLINE mli_minmax_t
 mli_prv_get_relu_min_max (const mli_relu_cfg * cfg, const mli_tensor * out) {
     mli_minmax_t val_limit;
     int min_val, max_val;

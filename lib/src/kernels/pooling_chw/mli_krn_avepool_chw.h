@@ -26,7 +26,7 @@
  ******************************************************************************/
 
 template <typename io_T>
-static inline void __attribute__((always_inline)) avepool_chw_nopad(
+static MLI_FORCE_INLINE void avepool_chw_nopad(
         const int row_beg,
         const int row_end,
         const int clmn_beg,
@@ -78,7 +78,7 @@ static inline void __attribute__((always_inline)) avepool_chw_nopad(
 }
 
 template <typename io_T>
-static inline void __attribute__((always_inline)) avepool_chw(
+static MLI_FORCE_INLINE void avepool_chw(
         const int row_beg,
         const int row_end,
         const int clmn_beg,
@@ -140,7 +140,7 @@ static inline void __attribute__((always_inline)) avepool_chw(
 }
 
 template <typename io_T>
-static inline void __attribute__((always_inline)) avepool_chw_krnpad(
+static MLI_FORCE_INLINE void avepool_chw_krnpad(
         const int row_beg,
         const int row_end,
         const int clmn_beg,

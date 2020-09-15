@@ -168,8 +168,8 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_pad(
 
         for (int area_idx = 0; area_idx < areas_num; ++area_idx) {
         	for (int ch_idx = 0; ch_idx < in.ch - remaining_chans; ch_idx += CHANNEL_LANES) {
-        		for (int H_idx = perc_areas[area_idx].row_beg; H_idx < perc_areas[area_idx].row_end; H_idx++) {
-        			for (int W_idx = perc_areas[area_idx].clmn_beg; W_idx < perc_areas[area_idx].clmn_end; W_idx++) {
+        		for (int H_idx = perc_areas[area_idx].row_beg; H_idx < (int)perc_areas[area_idx].row_end; H_idx++) {
+        			for (int W_idx = perc_areas[area_idx].clmn_beg; W_idx < (int)perc_areas[area_idx].clmn_end; W_idx++) {
         				// Define area of input and filter for pooling
         				// *_comp - compensation values for valid area defining
         				int top_comp = -MIN((H_idx * stride_height) - padding_top, 0);
@@ -198,8 +198,8 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_pad(
         		}
         	}
         	if (remaining_chans) {
-        		for (int H_idx = perc_areas[area_idx].row_beg; H_idx < perc_areas[area_idx].row_end; H_idx++) {
-        			for (int W_idx = perc_areas[area_idx].clmn_beg; W_idx < perc_areas[area_idx].clmn_end; W_idx++) {
+        		for (int H_idx = perc_areas[area_idx].row_beg; H_idx < (int)perc_areas[area_idx].row_end; H_idx++) {
+        			for (int W_idx = perc_areas[area_idx].clmn_beg; W_idx < (int)perc_areas[area_idx].clmn_end; W_idx++) {
         				// Define area of input and filter for pooling
         				// *_comp - compensation values for valid area defining
         				int top_comp = -MIN((H_idx * stride_height) - padding_top, 0);

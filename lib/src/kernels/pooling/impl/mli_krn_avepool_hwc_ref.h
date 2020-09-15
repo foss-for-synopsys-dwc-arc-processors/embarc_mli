@@ -18,7 +18,7 @@ namespace krn {
 namespace ref {
 
 template <typename io_T>
-static inline void __attribute__((always_inline)) avepool_hwc_nopad(
+static MLI_FORCE_INLINE void avepool_hwc_nopad(
         const int row_beg,
         const int row_end,
         const int clmn_beg,
@@ -38,7 +38,7 @@ static inline void __attribute__((always_inline)) avepool_hwc_nopad(
 }
 
 template <typename io_T>
-static inline void __attribute__((always_inline)) avepool_hwc(
+static MLI_FORCE_INLINE void avepool_hwc(
         const int row_beg,
         const int row_end,
         const int clmn_beg,
@@ -58,7 +58,7 @@ static inline void __attribute__((always_inline)) avepool_hwc(
 }
 
 template <typename io_T>
-static inline void __attribute__((always_inline)) avepool_hwc_krnpad(
+static MLI_FORCE_INLINE void avepool_hwc_krnpad(
         const int row_beg,
         const int row_end,
         const int clmn_beg,

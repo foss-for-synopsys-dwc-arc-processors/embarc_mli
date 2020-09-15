@@ -59,11 +59,11 @@ static MLI_FORCE_INLINE void dotprod2D (
     in_row_step -= width * in_col_step;
     kern_row_step -= width * kern_col_step;
     __builtin_assume (height > 0);
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wpass-failed"
-#pragma clang loop unroll(full)
+PRAGMA_CLANG(diagnostic push)
+PRAGMA_CLANG(diagnostic ignored "-Wpass-failed")
+PRAGMA_CLANG(loop unroll(full))
     for (int row = 0; row < height; row++) {
-#pragma clang loop unroll(full)
+PRAGMA_CLANG(loop unroll(full))
         for (int clmn = 0; clmn < width; clmn++) {
             *accu = mli_math_mac_fx (*accu, in, krn);
             in += in_col_step;
@@ -72,7 +72,7 @@ static MLI_FORCE_INLINE void dotprod2D (
         in += in_row_step;
         krn += kern_row_step;
     }
-#pragma clang diagnostic pop
+PRAGMA_CLANG(diagnostic pop)
 }
 
 template < typename in_T, typename w_T, typename acc_T >
@@ -95,12 +95,12 @@ static MLI_FORCE_INLINE void dotprod3D (
     kern_row_step -= width * kern_col_step;
 
     __builtin_assume (height > 0);
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wpass-failed"
+PRAGMA_CLANG(diagnostic push)
+PRAGMA_CLANG(diagnostic ignored "-Wpass-failed")
     for (int ch = 0; ch < channels; ch++) {
-#pragma clang loop unroll(full)
+PRAGMA_CLANG(loop unroll(full))
         for (int row = 0; row < height; row++) {
-#pragma clang loop unroll(full)
+PRAGMA_CLANG(loop unroll(full))
             for (int clmn = 0; clmn < width; clmn++) {
                 *accu = mli_math_mac_fx(*accu, (*in), (*krn));
                 in += in_col_step;
@@ -112,7 +112,7 @@ static MLI_FORCE_INLINE void dotprod3D (
         in += in_ch_step;
         krn += kern_ch_step;
     }
-#pragma clang diagnostic pop
+PRAGMA_CLANG(diagnostic pop)
 }
 
 template < typename in_T, typename w_T, typename acc_T >
@@ -135,12 +135,12 @@ static MLI_FORCE_INLINE acc_T dotprod3D (
     kern_row_step -= width * kern_col_step;
 
     __builtin_assume (height > 0);
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wpass-failed"
+PRAGMA_CLANG(diagnostic push)
+PRAGMA_CLANG(diagnostic ignored "-Wpass-failed")
     for (int ch = 0; ch < channels; ch++) {
-#pragma clang loop unroll(full)
+PRAGMA_CLANG(loop unroll(full))
         for (int row = 0; row < height; row++) {
-#pragma clang loop unroll(full)
+PRAGMA_CLANG(loop unroll(full))
             for (int clmn = 0; clmn < width; clmn++) {
                 accu = mli_math_mac_fx(accu, (*in), (*krn));
                 in += in_col_step;
@@ -152,7 +152,7 @@ static MLI_FORCE_INLINE acc_T dotprod3D (
         in += in_ch_step;
         krn += kern_ch_step;
     }
-#pragma clang diagnostic pop
+PRAGMA_CLANG(diagnostic pop)
     return accu;
 }
 

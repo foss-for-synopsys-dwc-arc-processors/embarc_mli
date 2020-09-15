@@ -19,9 +19,9 @@
 #include "mli_math_macros.h"
 #include "mli_prv_tensor.h"
 
-#pragma Code(".mli_lib")
+#pragma MLI_CODE_SECTION_START(".mli_lib")
 
-static inline mli_status check_tensor_private(
+static MLI_FORCE_INLINE mli_status check_tensor_private(
         const uint32_t *shape,
         const uint32_t *mem_stride,
         uint32_t rank,
@@ -30,20 +30,20 @@ static inline mli_status check_tensor_private(
     bool fail = false;
 
     fail |= MLI_CHECK(rank <= MLI_MAX_RANK, "Wrong tensor rank");
-    for (int i = 0; i < rank; i++) {
+    for (int i = 0; i < (int)rank; i++) {
         fail |= MLI_CHECK(mem_stride[i] >= 0, "Negative memory strides are not supported");
         fail |= MLI_CHECK(shape[i] > 0, "Shape invalid");
     }
     if (fail) return MLI_STATUS_BAD_TENSOR;
 
     bool strides_set = true;
-    for (int i = 0; i < rank; i++) {
+    for (int i = 0; i < (int)rank; i++) {
         strides_set &= (mem_stride[i] != 0);
     }
     uint32_t size = 1;
     if (strides_set) {
         uint32_t previous_shape = 1;
-        int32_t previous_mem_stride = 1;
+        uint32_t previous_mem_stride = 1;
         for (int i = rank - 1; i >= 0; i--) {
             fail |= MLI_CHECK(mem_stride[i] >= (previous_shape * previous_mem_stride), "Tensor mem stride too small");
             previous_shape = shape[i];
@@ -142,17 +142,17 @@ mli_status mli_chk_bias_scale_asym(const mli_tensor * in, const mli_tensor * wei
     return MLI_STATUS_OK;
 }
 
-static inline bool check_inner_most_dimension_is_one(const mli_tensor *t) {
+static MLI_FORCE_INLINE bool check_inner_most_dimension_is_one(const mli_tensor *t) {
     return (t->mem_stride[t->rank - 1] == 1) || (t->mem_stride[t->rank - 1] == 0);
 }
 
-static inline bool check_layout_is_contiguous(const uint32_t *mem_stride, uint32_t rank) {
+static MLI_FORCE_INLINE bool check_layout_is_contiguous(const uint32_t *mem_stride, uint32_t rank) {
     // When only mem_stride and rank is under considiration, contiguous means 
     // all memory strides are zero OR rank is 1 and memory stride between elements is 1
     // If all memory strides are zero, the kernel itself will calculate the actual memory
     // strides such that all data is contiguous.
     bool strides_set = true;
-    for (int i = 0; i < rank; i++) {
+    for (int i = 0; i < (int)rank; i++) {
         strides_set &= (mem_stride[i] != 0);
     }
     
@@ -162,20 +162,20 @@ static inline bool check_layout_is_contiguous(const uint32_t *mem_stride, uint32
         return false;
 }
 
-static inline bool check_layout_is_contiguous(const uint32_t *shape, const uint32_t *mem_stride, uint32_t rank) {
+static MLI_FORCE_INLINE bool check_layout_is_contiguous(const uint32_t *shape, const uint32_t *mem_stride, uint32_t rank) {
     // This function either requires that all memory strides are zero,
     // or that the memory strides are set such that it results in the
     // same memory layout. If all memory strides are zero, the kernel itself
     // will calculate the actual memory strides such that all data is contiguous.
     bool strides_set = true;
-    for (int i = 0; i < rank; i++) {
+    for (int i = 0; i < (int)rank; i++) {
         strides_set &= (mem_stride[i] != 0);
     }
     if (!strides_set) return true;
 
     bool fail = false;
     uint32_t previous_shape = 1;
-    int32_t previous_mem_stride = 1;
+    uint32_t previous_mem_stride = 1;
     for (int i = rank - 1; i >= 0; i--) {
         fail |= MLI_CHECK(mem_stride[i] == (previous_shape * previous_mem_stride),
                 "Tensor mem stride set incorrectly");
@@ -185,7 +185,7 @@ static inline bool check_layout_is_contiguous(const uint32_t *shape, const uint3
     return !fail;
 }
 
-static inline bool check_layout_is_contiguous(const mli_tensor *t) {
+static MLI_FORCE_INLINE bool check_layout_is_contiguous(const mli_tensor *t) {
     return check_layout_is_contiguous(t->shape, t->mem_stride, t->rank);
 }
 
@@ -1271,7 +1271,7 @@ mli_status mli_chk_eltwise (
     if (!mli_tensor_is_scalar(in1) && !mli_tensor_is_scalar(in2)) {
         fail |= MLI_CHECK2(in1->rank == in2->rank,
                 "If both tensors are not scalar their shapes must be exactly the same.", funcname);
-        for (int idx = 0; idx < in1->rank; idx++) {
+        for (int idx = 0; idx < (int)in1->rank; idx++) {
             fail |= MLI_CHECK2(in1->shape[idx] == in2->shape[idx],
                     "If both tensors are not scalar their shapes must be exactly the same.", funcname);
         }
@@ -1552,10 +1552,10 @@ mli_status mli_chk_basic_rnn_cell (
     if (fail) return MLI_STATUS_BAD_FUNC_CFG;
 
     // Get number of elements and check input
-    int in_elements;
-    int out_elements = mli_prv_count_elem_num (bias);
-    int prev_out_elements = mli_prv_count_elem_num (prev_out);
-    int out_batches = (cfg->mode == RNN_BATCH_TO_BATCH) ? in->shape[0] : 1;
+    uint32_t in_elements;
+    uint32_t out_elements = mli_prv_count_elem_num (bias);
+    uint32_t prev_out_elements = mli_prv_count_elem_num (prev_out);
+    uint32_t out_batches = (cfg->mode == RNN_BATCH_TO_BATCH) ? in->shape[0] : 1;
     if (cfg->mode == RNN_ONE_TO_ONE)
         in_elements = mli_prv_count_elem_num (in);
     else
@@ -1842,7 +1842,7 @@ mli_status mli_chk_concat (const mli_tensor ** inputs, const mli_concat_cfg * cf
         fail |= MLI_CHECK(check_layout_is_contiguous(inputs[idx]), "Memory Layout of all input tensors must be contiguous");
         if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
-        for (int dim_idx = 0; dim_idx < anchor_tsr->rank; dim_idx++) {
+        for (int dim_idx = 0; dim_idx < (int)anchor_tsr->rank; dim_idx++) {
             fail |= MLI_CHECK(dim_idx == conc_axis || inputs[idx]->shape[dim_idx] == anchor_tsr->shape[dim_idx],
                               "shape mismatch");
             if (fail) return MLI_STATUS_SHAPE_MISMATCH;
@@ -1997,12 +1997,12 @@ mli_status mli_chk_permute (const mli_tensor * in, const mli_permute_cfg * cfg, 
     // Check config structure
     if (MLI_CHECK(cfg != NULL , "Bad cfg pointer")) return MLI_STATUS_BAD_FUNC_CFG;
 
-    for (int idx = 0; idx < in->rank; idx++) {
+    for (int idx = 0; idx < (int)in->rank; idx++) {
         if (MLI_CHECK(cfg->perm_dim[idx] < in->rank, "rank mismatch"))
             return MLI_STATUS_BAD_FUNC_CFG;
 
         // Each permute dimension must be unique
-        for (int jdx = idx + 1; jdx < in->rank; jdx++)
+        for (int jdx = idx + 1; jdx < (int)in->rank; jdx++)
             if (MLI_CHECK(cfg->perm_dim[idx] != cfg->perm_dim[jdx], "Each permute dimension must be unique"))
                 return MLI_STATUS_BAD_FUNC_CFG;
     }
@@ -2110,7 +2110,7 @@ mli_status mli_chk_create_subtensor(const mli_tensor *in, const mli_sub_tensor_c
     if (MLI_CHECK(cfg->sub_tensor_rank <= in->rank, "incorrect number of coordinates"))
         return MLI_STATUS_BAD_FUNC_CFG;
 
-    for (int i = 0; i < in->rank; i++) {
+    for (int i = 0; i < (int)in->rank; i++) {
         if (MLI_CHECK(cfg->offset[i] < in->shape[i], "bad config"))
             return MLI_STATUS_BAD_FUNC_CFG;
         if (MLI_CHECK(cfg->offset[i] + cfg->size[i] <= in->shape[i], "bad config"))
@@ -2120,7 +2120,7 @@ mli_status mli_chk_create_subtensor(const mli_tensor *in, const mli_sub_tensor_c
     return MLI_STATUS_OK;
 }
 
-#pragma code()
+#pragma MLI_CODE_SECTION_END()
 
 #ifdef __cplusplus
 }

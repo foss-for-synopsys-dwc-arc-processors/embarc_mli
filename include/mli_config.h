@@ -57,22 +57,34 @@
 #include <stdfix.h>
 #endif
 
+#define DO_PRAGMA(x) _Pragma(#x)
+#define PRAGMA_CLANG(x) DO_PRAGMA(clang x)
 #else
 // Only support restrict on ARC platforms, but not on X86
 #define __restrict
+#define PRAGMA_CLANG(x)
 #endif // if defined (_ARC)
 
 #if defined(__clang__)
 #define MLI_FORCE_INLINE inline __attribute__((always_inline))
+#define MLI_NO_INLINE __attribute__((noinline))
+#define MLI_CODE_SECTION_START(x) code(x) 
+#define MLI_CODE_SECTION_END()    code()
 
 #elif defined(__GNUC__)
 #define MLI_FORCE_INLINE inline __attribute__((always_inline))
+#define MLI_NO_INLINE __attribute__((noinline))
 #define __builtin_assume(x)
+#define MLI_CODE_SECTION_START(x) section(x) // TODO: Need to verify
+#define MLI_CODE_SECTION_END()    section()
 
 #elif defined(_MSC_VER)
 #define MLI_FORCE_INLINE inline __forceinline
+#define MLI_NO_INLINE __declspec(noinline)
 #define __builtin_assume(x) __assume(x)
 #define __attribute__(x)
+#define MLI_CODE_SECTION_START(x) code_seg(x)
+#define MLI_CODE_SECTION_END()    code_seg()
 
 #else
 #error "Current compiler isn't supported"

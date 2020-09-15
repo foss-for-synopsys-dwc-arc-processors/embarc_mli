@@ -114,7 +114,7 @@ const mli_lut expneg_lut_fx16 = {
 extern "C" {
 #endif
 
-#pragma Code(".mli_lib")
+#pragma MLI_CODE_SECTION_START(".mli_lib")
 
 void mli_prv_activation_lut_fx8(
         const mli_tensor *in,
@@ -156,7 +156,7 @@ void mli_prv_activation_lut_sa8(
     activation_lut<int8_t, true>(&in_prv, &out_prv, lut, 0 /*Unused*/, in_params, out_params);
 }
 
-#pragma code()
+#pragma MLI_CODE_SECTION_END()
 
 #ifdef __cplusplus
 }

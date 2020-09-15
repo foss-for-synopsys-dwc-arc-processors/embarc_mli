@@ -18,12 +18,12 @@
 #include "mli_math.h"
 #include "mli_types.h"
 
-static inline accum40_t __attribute__ ((always_inline)) mli_prv_ashift_accu(accum40_t accu, const int shift_right)
+static MLI_FORCE_INLINE accum40_t mli_prv_ashift_accu(accum40_t accu, const int shift_right)
 {
     return fx_asr_a40(accu, shift_right);
 }
 
-static inline int32_t __attribute__ ((always_inline)) mli_prv_ashift_accu(int32_t accu, const int shift_right)
+static MLI_FORCE_INLINE int32_t mli_prv_ashift_accu(int32_t accu, const int shift_right)
 {
     accu = fx_asr_rnd_q31(accu, shift_right);
     _setacc(accu,1);
@@ -33,7 +33,7 @@ static inline int32_t __attribute__ ((always_inline)) mli_prv_ashift_accu(int32_
 namespace mli {
 
 template <typename io_T, typename w_T>
-static void __attribute__ ((always_inline)) rnn_dense_op_fx(
+static MLI_FORCE_INLINE void rnn_dense_op_fx(
         const MLI_PTR (io_T) __restrict in,
         const MLI_PTR (io_T) __restrict state,
         const MLI_PTR (w_T) __restrict weights,
@@ -133,7 +133,7 @@ LOOP_PIPELINE_ENABLE_BACKTRACKING
 }
 //==================================================================////==================================================================
 template <typename io_T, typename w_T>
-static void __attribute__ ((always_inline))  basic_rnn_cell_prepare_and_run_fx(
+static MLI_FORCE_INLINE void basic_rnn_cell_prepare_and_run_fx(
         const mli_tensor *in,
         const mli_tensor *prev_out,
         const mli_tensor *weights,
@@ -250,7 +250,7 @@ static void __attribute__ ((always_inline))  basic_rnn_cell_prepare_and_run_fx(
 //
 //==================================================================
 template <typename io_T, typename w_T>
-static void __attribute__ ((always_inline)) lstm_cell_prepare_and_run_fx(
+static MLI_FORCE_INLINE void lstm_cell_prepare_and_run_fx(
         const mli_tensor *in,
         const mli_tensor *prev_out,
         const mli_tensor *weights,

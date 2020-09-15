@@ -80,7 +80,7 @@ void conv2d_prepare_and_run(
 ////////////////////////////////////////////////////////////////////////////////
 namespace dsp {
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
-static __attribute__ ((always_inline)) void depthwise_convolution2D(
+static MLI_FORCE_INLINE void depthwise_convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,

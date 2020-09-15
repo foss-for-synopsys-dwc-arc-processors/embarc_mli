@@ -17,7 +17,7 @@
 extern "C" {
 #endif
 
-#pragma Code(".mli_lib")
+#pragma MLI_CODE_SECTION_START(".mli_lib")
 /*******************************************************************************
  *
  * Placeholders for kernels (for future optimizations)
@@ -42,7 +42,7 @@ mli_status mli_krn_concat_fx16(const mli_tensor** inputs, const mli_concat_cfg* 
     return MLI_STATUS_OK;
 }
 
-#pragma code()
+#pragma MLI_CODE_SECTION_END()
 
 #ifdef __cplusplus
 }  // extern "C"

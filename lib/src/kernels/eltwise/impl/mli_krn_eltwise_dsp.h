@@ -22,13 +22,13 @@ namespace mli {
 namespace krn {
 namespace dsp {
 
-#pragma Code(".mli_lib")
+#pragma MLI_CODE_SECTION_START(".mli_lib")
 //======================================================
 //
 //======================================================
 #ifdef __Xxy
 template <typename io_T>
-static inline void __attribute__ ((always_inline)) eltwise_op_sub_fx (
+static MLI_FORCE_INLINE void eltwise_op_sub_fx (
         const MLI_PTR(int8_t) op1,
         const MLI_PTR(int8_t) op2,
         MLI_OUT_PTR(int8_t) out,
@@ -56,7 +56,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_sub_fx (
 }
 
 template <typename io_T>
-static inline void __attribute__ ((always_inline)) eltwise_op_add_fx (
+static MLI_FORCE_INLINE void eltwise_op_add_fx (
         const MLI_PTR(int8_t) op1,
         const MLI_PTR(int8_t) op2,
         MLI_OUT_PTR(int8_t) out,
@@ -88,7 +88,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_add_fx (
 }
 
 template <typename io_T>
-static inline void __attribute__ ((always_inline)) eltwise_op_max_fx (
+static MLI_FORCE_INLINE void eltwise_op_max_fx (
         const MLI_PTR(int8_t) op1,
         const MLI_PTR(int8_t) op2,
         MLI_OUT_PTR(int8_t) out,
@@ -117,7 +117,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_max_fx (
 }
 
 template <typename io_T>
-static inline void __attribute__ ((always_inline)) eltwise_op_min_fx (
+static MLI_FORCE_INLINE void eltwise_op_min_fx (
         const MLI_PTR(int8_t) op1,
         const MLI_PTR(int8_t) op2,
         MLI_OUT_PTR(int8_t) out,
@@ -147,7 +147,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_min_fx (
 #endif
 
 template <typename io_T>
-static inline void __attribute__ ((always_inline)) eltwise_op_add_fx (
+static MLI_FORCE_INLINE void eltwise_op_add_fx (
         const MLI_PTR(io_T) op1,
         const MLI_PTR(io_T) op2,
         MLI_OUT_PTR(io_T) out,
@@ -191,7 +191,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_add_fx (
 }
 
 template <typename io_T>
-static inline void __attribute__ ((always_inline)) eltwise_op_sub_fx (
+static MLI_FORCE_INLINE void eltwise_op_sub_fx (
         const MLI_PTR(io_T) op1,
         const MLI_PTR(io_T) op2,
         MLI_OUT_PTR(io_T) out,
@@ -241,7 +241,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_sub_fx (
 }
 
 template <typename io_T>
-static inline void __attribute__ ((always_inline)) eltwise_op_max_fx (
+static MLI_FORCE_INLINE void eltwise_op_max_fx (
         const MLI_PTR(io_T) op1,
         const MLI_PTR(io_T) op2,
         MLI_OUT_PTR(io_T) out,
@@ -281,7 +281,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_max_fx (
 }
 
 template <typename io_T>
-static inline void __attribute__ ((always_inline)) eltwise_op_min_fx (
+static MLI_FORCE_INLINE void eltwise_op_min_fx (
         const MLI_PTR(io_T) op1,
         const MLI_PTR(io_T) op2,
         MLI_OUT_PTR(io_T) out,
@@ -321,7 +321,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_min_fx (
 }
 
 template <typename io_T>
-static inline void __attribute__ ((always_inline)) eltwise_op_mul_fx (
+static MLI_FORCE_INLINE void eltwise_op_mul_fx (
         const MLI_PTR(io_T) op1,
         const MLI_PTR(io_T) op2,
         MLI_OUT_PTR(io_T) out,
@@ -395,7 +395,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_mul_fx (
 }
 
 template <typename io_T>
-static inline void __attribute__ ((always_inline)) eltwise_op_mul_with_restricts_fx (
+static MLI_FORCE_INLINE void eltwise_op_mul_with_restricts_fx (
         const MLI_PTR(io_T) __restrict op1,
         const MLI_PTR(io_T) __restrict op2,
         MLI_OUT_PTR(io_T) __restrict out,
@@ -472,7 +472,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_mul_with_restricts
 //
 //======================================================
 template <typename io_T, mli_eltwise_type func_type>
-static inline void eltwise_prepare_and_run_fx(const mli_tensor *in1, const mli_tensor *in2, mli_tensor *out) {
+static MLI_FORCE_INLINE void eltwise_prepare_and_run_fx(const mli_tensor *in1, const mli_tensor *in2, mli_tensor *out) {
     MLI_PRINTF_FUNC();
 
     mli_prv_fx_init_dsp_ctrl();
@@ -526,7 +526,7 @@ static inline void eltwise_prepare_and_run_fx(const mli_tensor *in1, const mli_t
     out->el_type = in1->el_type;
 }
 
-#pragma Code()
+#pragma MLI_CODE_SECTION_END()
 
 } // namespace dsp
 } // namespace krn

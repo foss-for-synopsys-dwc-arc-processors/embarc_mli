@@ -94,7 +94,7 @@ static const int8_t shift_lut[] = {
     19, // 31
 };
 
-static inline void calc_mul(unsigned div, int16_t* mul, int* shift_val) {
+static MLI_FORCE_INLINE void calc_mul(unsigned div, int16_t* mul, int* shift_val) {
     unsigned int one = (1<<31); // u1.31
     unsigned int val = one / div; // u1.31
     int shift_norm_val = 0;
@@ -108,7 +108,7 @@ static inline void calc_mul(unsigned div, int16_t* mul, int* shift_val) {
     *shift_val = 14 + shift_norm_val;
 }
 
-static inline void get_mul_shift_value(
+static MLI_FORCE_INLINE void get_mul_shift_value(
         unsigned div,
         int16_t* mul, int* shift) {
     if (div < DIV_LUT_THRESHOLD) {
@@ -120,7 +120,7 @@ static inline void get_mul_shift_value(
 }
 
 template <typename io_T>
-static inline void __attribute__((always_inline)) reduce_sum2D_chw_even(
+static MLI_FORCE_INLINE void reduce_sum2D_chw_even(
         accum40_t *__restrict acc40,
         const MLI_PTR(io_T) __restrict in,
         const int32_t width,
@@ -142,7 +142,7 @@ static inline void __attribute__((always_inline)) reduce_sum2D_chw_even(
 }
 
 template <typename io_T>
-static inline void __attribute__((always_inline)) reduce_sum2D_chw(
+static MLI_FORCE_INLINE void reduce_sum2D_chw(
         accum40_t *__restrict acc40,
         const MLI_PTR(io_T) __restrict in,
         const int32_t width,
@@ -176,7 +176,7 @@ static inline void __attribute__((always_inline)) reduce_sum2D_chw(
 }
 
 template <typename io_T>
-static inline accum40_t reduce_sum2D_hwc(
+static MLI_FORCE_INLINE accum40_t reduce_sum2D_hwc(
         MLI_PTR(io_T) __restrict in,
         uint32_t width,
         uint32_t height,
@@ -214,7 +214,7 @@ static inline accum40_t reduce_sum2D_hwc(
 }
 
 template <typename io_T>
-static inline v2accum40_t __attribute__((always_inline)) reduce_sum2D_hwc_v(
+static MLI_FORCE_INLINE v2accum40_t reduce_sum2D_hwc_v(
         MLI_PTR(io_T) __restrict in,
         uint32_t width,
         uint32_t height,
@@ -257,7 +257,7 @@ static inline v2accum40_t __attribute__((always_inline)) reduce_sum2D_hwc_v(
 // Sequential reducing summation
 //==========================================================================
 template <typename io_T, typename acc_T>
-inline acc_T reduce_sum(
+MLI_FORCE_INLINE acc_T reduce_sum(
         const io_T* __restrict in,
         const int16_t mul,
         acc_T accu,
@@ -274,7 +274,7 @@ inline acc_T reduce_sum(
 // Two dimensional reducing summation across width and height 
 //==========================================================================
 template <typename io_T, typename acc_T>
-inline acc_T __attribute__((always_inline)) reduce_sum2D(
+MLI_FORCE_INLINE acc_T reduce_sum2D(
         const MLI_PTR(io_T) __restrict in,
         const int16_t mul,
         acc_T accu,
@@ -317,7 +317,7 @@ inline acc_T __attribute__((always_inline)) reduce_sum2D(
 //The caller of the function should compensate for the increment
 //done inside this function.
 template <typename io_T, typename acc_T>
-static inline acc_T __attribute__((always_inline)) reduce_sum2D_v(
+static MLI_FORCE_INLINE acc_T reduce_sum2D_v(
         const MLI_PTR(io_T) __restrict *in,
         const int16_t mul,
         acc_T *v2acc,
@@ -359,7 +359,7 @@ static inline acc_T __attribute__((always_inline)) reduce_sum2D_v(
 }
 
 template <typename io_T, typename acc_T>
-static inline acc_T __attribute__((always_inline)) reduce_sum2D_v(
+static MLI_FORCE_INLINE acc_T reduce_sum2D_v(
         const MLI_PTR(io_T) __restrict in,
         const int16_t mul,
         acc_T *v2acc,
@@ -401,7 +401,7 @@ static inline acc_T __attribute__((always_inline)) reduce_sum2D_v(
 }
 
 template <typename io_T, typename acc_T>
-inline acc_T __attribute__((always_inline)) reduce_sum2D_d(
+MLI_FORCE_INLINE acc_T reduce_sum2D_d(
         const MLI_PTR(io_T) __restrict in,
         const int16_t mul,
         acc_T *accu,

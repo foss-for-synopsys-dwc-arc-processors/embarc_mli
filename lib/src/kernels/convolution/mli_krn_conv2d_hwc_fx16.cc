@@ -20,7 +20,7 @@
 extern "C" {
 #endif
 
-#pragma Code(".mli_lib")
+#pragma MLI_CODE_SECTION_START(".mli_lib")
 
 static void convolution_hwc_no_pad (
         const tensor_private_t<MLI_PTR(int16_t)> &in,
@@ -35,7 +35,7 @@ static void convolution_hwc_no_pad (
         const int stride_height, const int stride_width,
         const int padding_top, const int padding_left);
 
-static inline void convolution_hwc_no_pad_unroll4 (
+static MLI_FORCE_INLINE void convolution_hwc_no_pad_unroll4 (
         const tensor_private_t<MLI_PTR(int16_t)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(int16_t)> &w,
         const MLI_PTR (int16_t) __restrict biases,
@@ -259,8 +259,7 @@ static mli_status mli_krn_conv2d_hwc_fx16_1x1_str1_nopad (
  * Targets:
  *
  ******************************************************************************/
-__attribute__((always_inline))
-static inline void convolution_hwc_no_pad (
+static MLI_FORCE_INLINE void convolution_hwc_no_pad (
         const tensor_private_t<MLI_PTR(int16_t)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(int16_t)> &w,
         const MLI_PTR (int16_t) __restrict biases,
@@ -322,8 +321,7 @@ static inline void convolution_hwc_no_pad (
     }
 }
 
-__attribute__((always_inline))
-static inline void convolution_hwc_no_pad_unroll4 (
+static MLI_FORCE_INLINE void convolution_hwc_no_pad_unroll4 (
         const tensor_private_t<MLI_PTR(int16_t)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(int16_t)> &w,
         const MLI_PTR (int16_t) __restrict biases,
@@ -378,8 +376,7 @@ static inline void convolution_hwc_no_pad_unroll4 (
     } // H_idx
 }
 
-__attribute__((noinline))
-static void convolution_hwc (
+static MLI_NO_INLINE void convolution_hwc (
         const tensor_private_t<MLI_PTR(int16_t)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(int16_t)> &w,
         const MLI_PTR (int16_t) __restrict biases,
@@ -458,7 +455,7 @@ static void convolution_hwc (
 #error "Target platform is undefined or defined incorrectly"
 
 #endif
-#pragma code()
+#pragma MLI_CODE_SECTION_END()
 #ifdef __cplusplus
 }
 #endif
