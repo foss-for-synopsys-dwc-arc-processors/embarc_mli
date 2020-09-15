@@ -42,8 +42,25 @@ static void activation_lut(
         struct generic_tensor_private_t<io_T *> *out,
         const mli_lut *lut,
         int8_t in_frac_bits,
-        struct s8asym_quant_params *in_params  = nullptr,
+        const struct s8asym_quant_params *in_params  = nullptr,
         struct s8asym_quant_params *out_params = nullptr);
+
+template <typename in_T, typename out_T, bool convert_input, bool convert_output>
+static MLI_FORCE_INLINE out_T activation_lut_one_elem_interpolate(
+        const in_T in,
+        const mli_lut *lut,
+        int8_t in_frac_bits,
+        const struct s8asym_quant_params *in_params,
+        struct s8asym_quant_params *out_params);
+
+template <typename in_T, typename out_T, bool convert_input, bool convert_output>
+static MLI_FORCE_INLINE out_T activation_lut_one_elem_no_interpolate(
+        const in_T in,
+        const mli_lut *lut,
+        int8_t in_frac_bits,
+        const struct s8asym_quant_params *in_params,
+        struct s8asym_quant_params *out_params);
+
 } // namespace ref
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -56,7 +73,7 @@ static void activation_lut(
         struct generic_tensor_private_t<io_T> *out,
         const mli_lut *lut,
         int8_t in_frac_bits,
-        struct s8asym_quant_params *in_params  = nullptr,
+        const struct s8asym_quant_params *in_params  = nullptr,
         struct s8asym_quant_params *out_params = nullptr);
 } // namespace dsp
 
@@ -70,7 +87,7 @@ static void activation_lut(
         struct generic_tensor_private_t<io_T> *out,
         const mli_lut *lut,
         int8_t in_frac_bits,
-        struct s8asym_quant_params *in_params  = nullptr,
+        const struct s8asym_quant_params *in_params  = nullptr,
         struct s8asym_quant_params *out_params = nullptr);
 } // namespace vdsp
 } // namespace krn

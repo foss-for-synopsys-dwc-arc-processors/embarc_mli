@@ -1461,6 +1461,17 @@ mli_status mli_chk_softmax_fx16(const mli_tensor * in, const mli_softmax_cfg* cf
     return MLI_STATUS_OK;
 }
 
+mli_status mli_chk_softmax_sa8(const mli_tensor * in, const mli_softmax_cfg* cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_basic_activation(in, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    if (MLI_CHECK(in->el_type == MLI_EL_SA_8, "Wrong input tensor type"))
+        return MLI_STATUS_TYPE_MISMATCH;
+    if (MLI_CHECK(cfg->axis < (int)in->rank, "Wrong axis parameter, axis parameter must be less than in tensor rank"))
+        return MLI_STATUS_BAD_FUNC_CFG;
+    return MLI_STATUS_OK;
+}
+
 mli_status mli_chk_leaky_relu (const mli_tensor * in, const mli_tensor * slope_coeff, mli_tensor * out) {
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;

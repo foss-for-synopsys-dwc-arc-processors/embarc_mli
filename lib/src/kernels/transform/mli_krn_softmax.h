@@ -23,15 +23,18 @@
 namespace mli {
 namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-/* TODO: fix ::vdsp::mli_krn_softmax_fx_run when vpx version supported */
+/* TODO: fix ::vdsp::mli_krn_softmax_*_run when vpx version supported */
 using mli::krn::ref::mli_krn_softmax_fx_run;
+using mli::krn::ref::mli_krn_softmax_sa8_run;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-/* TODO: fix ::dsp::mli_krn_softmax_fx_run when dsp version supported */
+/* TODO: fix ::dsp::mli_krn_softmax_*_run when dsp version supported */
 using mli::krn::ref::mli_krn_softmax_fx_run;
+using mli::krn::ref::mli_krn_softmax_sa8_run;
 
 #else
 using mli::krn::ref::mli_krn_softmax_fx_run;
+using mli::krn::ref::mli_krn_softmax_sa8_run;
 
 #endif
 } // namespace krn

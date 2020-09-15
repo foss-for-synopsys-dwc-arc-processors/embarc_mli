@@ -29,7 +29,10 @@ namespace krn {
 namespace ref {
 
 template <typename io_T>
-static MLI_FORCE_INLINE mli_status mli_krn_softmax_fx_run(const mli_tensor *in,
+static mli_status mli_krn_softmax_fx_run(const mli_tensor *in,
+        const mli_softmax_cfg* cfg, mli_tensor *out);
+
+static mli_status mli_krn_softmax_sa8_run(const mli_tensor *in,
         const mli_softmax_cfg* cfg, mli_tensor *out);
 
 } // namespace ref
@@ -43,6 +46,9 @@ template <typename io_T>
 static MLI_FORCE_INLINE mli_status mli_krn_softmax_fx_run(const mli_tensor *in,
         const mli_softmax_cfg* cfg, mli_tensor *out);
 
+static MLI_FORCE_INLINE mli_status mli_krn_softmax_sa8_run(const mli_tensor *in,
+        const mli_softmax_cfg* cfg, mli_tensor *out);
+
 } // namespace dsp
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -52,6 +58,9 @@ namespace vdsp {
 
 template <typename io_T>
 static MLI_FORCE_INLINE mli_status mli_krn_softmax_fx_run(const mli_tensor *in,
+        const mli_softmax_cfg* cfg, mli_tensor *out);
+
+static MLI_FORCE_INLINE mli_status mli_krn_softmax_sa8_run(const mli_tensor *in,
         const mli_softmax_cfg* cfg, mli_tensor *out);
 
 } // namespace vdsp

@@ -34,9 +34,11 @@
 #define MLI_PRV_TENSOR_CALC_MEM_STRIDES_VAL false
 #endif
 
+#define POS mli_prv_get_tensor_idx_pos
+
 /* To move inside tensor using memory strides (using 4 nested loops with counters pos0 pos1 pos2 pos4) */
 template <typename io_T>
-static MLI_FORCE_INLINE int pos(
+static MLI_FORCE_INLINE int mli_prv_get_tensor_idx_pos(
         const struct generic_tensor_private_t<io_T *> *in,
         int pos0, int pos1, int pos2, int pos3) {
 
@@ -119,7 +121,7 @@ static inline tensor_private_t<T> mli_prv_get_tensor_hwc(
 template <typename T>
 static MLI_FORCE_INLINE generic_tensor_private_t<T> mli_prv_get_generic_tensor(
         const mli_tensor *in,
-        const int axis) {
+        const int axis = -1) {
     generic_tensor_private_t<T> tensor;
     int rank = in->rank;
 
