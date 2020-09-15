@@ -35,10 +35,6 @@ static const int kPreDivShiftS32 = 30;
 template <>
 MLI_FORCE_INLINE void adjust_quant_params(s8asym_quant_specific_params* params, int krn_idx) {
     // out multiplyer can be different across one of axis (per axis quantization for s8asym)
-    // but will be the same in case of per tensor quantization.
-    if (params->weight_dim < 0) {
-        krn_idx = 0;
-    }
     int mul_fx_high_shift = 31;
     params->out_mul = mli_math_mul_fx_high<int32_t, int32_t>(params->in_to_out_scales_ratio, params->weight_scales[krn_idx]);
     params->out_shift = params->in_to_out_shift;
@@ -72,10 +68,10 @@ MLI_FORCE_INLINE acc_T weights_additive_v(
 
     // returns -(in_zero_point * cumsum(weights)) For S8ASYM
     if (quant_params->in_offset != 0) {
-        acc_T tmp_acc = reduce_sum2D_v(weights, -quant_params->in_offset, init_accum, width, height, col_step, row_step);
+        reduce_sum2D_v(weights, -quant_params->in_offset, init_accum, width, height, col_step, row_step, true);
         //compensite increment of weights pointer from reduce_sum2D_v function
         weights -= height * row_step;
-        return tmp_acc;
+        return *init_accum;
     } else {
         return *init_accum;
     }
@@ -88,10 +84,12 @@ MLI_FORCE_INLINE acc_T weights_additive_v(
         const int width,  const int height, int col_step, int row_step) {
 
     // returns -(in_zero_point * cumsum(weights)) For S8ASYM
-    if (quant_params->in_offset != 0)
-        return reduce_sum2D_v(weights, -quant_params->in_offset, init_accum, width, height, col_step, row_step);
-    else
+    if (quant_params->in_offset != 0) {
+        reduce_sum2D_v(weights, -quant_params->in_offset, init_accum, width, height, col_step, row_step, true);
         return *init_accum;
+    } else {
+        return *init_accum;
+    }
 }
 
 MLI_FORCE_INLINE mli_acc32_t weights_additive_d(
@@ -99,10 +97,12 @@ MLI_FORCE_INLINE mli_acc32_t weights_additive_d(
         const s8asym_quant_specific_params* quant_params,
         const int width,  const int height, int col_step, int row_step) {
     // returns -(in_zero_point * cumsum(weights)) For S8ASYM
-    if (quant_params->in_offset != 0)
-        return reduce_sum2D_d(weights, -quant_params->in_offset, init_accum, width, height, col_step, row_step);
-    else
+    if (quant_params->in_offset != 0) {
+        reduce_sum2D_d(weights, -quant_params->in_offset, init_accum, width, height, col_step, row_step, true);
         return *init_accum;
+    } else {
+        return *init_accum;
+    }
 }
 
 // Depending on memory alignment of input pointers, certain functions below will perform

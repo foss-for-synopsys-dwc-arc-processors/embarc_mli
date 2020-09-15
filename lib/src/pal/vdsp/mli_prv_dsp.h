@@ -98,6 +98,28 @@ static MLI_FORCE_INLINE void  mli_prv_clip_and_store_output(
     *o_ptr = (int16_t) mli_math_sat_fx<int32_t>(temp, 16);
 }
 
+static MLI_FORCE_INLINE void  mli_prv_clip_and_store_output(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        int64_t * ip_in,
+        const int out_shift) {
+    int64_t temp = mli_math_asr_rnd_fx<int64_t>(*ip_in, out_shift);
+    *o_ptr = (int64_t) mli_math_sat_fx<int64_t>(temp, 48);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        int64_t * ip_in,
+        const int out_shift) {
+    mli_prv_clip_and_store_output(o_ptr, ip_in, out_shift);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
+        int32_t * ip_in,
+        const int out_shift) {
+    mli_prv_clip_and_store_output(o_ptr, ip_in, out_shift);
+}
+
 //=========================================================================
 
 static MLI_FORCE_INLINE void  mli_prv_shift_clip_and_store_output(
@@ -179,15 +201,22 @@ MLI_FORCE_INLINE vNx4accint_t mli_prv_init_accu<vNx4accint_t>() {
 
 static MLI_FORCE_INLINE int32_t  mli_prv_init_accu(int8_t inp_val) {
     int32_t acc = inp_val;
-    // _setacc(acc, 1);
-
     return acc;
 }
 
 static MLI_FORCE_INLINE int32_t  mli_prv_init_accu(int32_t inp_val) {
     int32_t acc = inp_val;
-    // _setacc(acc, 1);
+    return acc;
+}
 
+
+static MLI_FORCE_INLINE int32_t mli_prv_init_accu_v(int8_t inp_val) {
+    int32_t acc = inp_val;
+    return acc;
+}
+
+static MLI_FORCE_INLINE int64_t mli_prv_init_accu_v(int16_t inp_val) {
+    int64_t acc = inp_val;
     return acc;
 }
 
@@ -196,8 +225,6 @@ static MLI_FORCE_INLINE int32_t  mli_prv_init_accu_with_bias(
         const int8_t bias,
         const int bias_shift) {
     int32_t accu = mli_math_asr_rnd_fx<int32_t>((int32_t) bias, -bias_shift);
-    // _setacc(accu, 1);
-
     return accu;
 }
 
@@ -206,8 +233,6 @@ static MLI_FORCE_INLINE int32_t  mli_prv_init_accu_with_bias(
         const int8_t bias,
         const int bias_shift) {
     int32_t accu = mli_math_asr_rnd_fx<int32_t>((int32_t) bias, -bias_shift);
-    // _setacc(accu, 1);
-
     return accu;
 }
 
