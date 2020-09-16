@@ -50,6 +50,7 @@ struct conv2d_weights_tensor_private_t {
 template <typename T>
 struct generic_tensor_private_t {
     T __restrict ptr;
+    int rank;
     int shape[MLI_MAX_RANK];
     int mem_stride[MLI_MAX_RANK];
 };
