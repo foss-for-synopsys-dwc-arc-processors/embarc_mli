@@ -125,9 +125,9 @@ mli_status mli_chk_bias_scale_asym(const mli_tensor * in, const mli_tensor * wei
     MLI_ASSERT(bias->el_type == MLI_EL_SA_32);
     const bool is_per_axis = weights->el_params.sa.dim >= 0;
     const int num_scale_vals = (is_per_axis)? weights->shape[weights->el_params.sa.dim]: 1;
-    const int32_t* w_scales = (is_per_axis)? weights->el_params.sa.scale.mem.pi32: &weights->el_params.sa.scale.mem.i32;
-    const int32_t* b_scales = (is_per_axis)? bias->el_params.sa.scale.mem.pi32: &bias->el_params.sa.scale.mem.i32;
-    const int scale_in = (int)in->el_params.sa.scale.mem.i32;
+    const int16_t* w_scales = (is_per_axis)? weights->el_params.sa.scale.mem.pi16: &weights->el_params.sa.scale.mem.i16;
+    const int16_t* b_scales = (is_per_axis)? bias->el_params.sa.scale.mem.pi16: &bias->el_params.sa.scale.mem.i16;
+    const int scale_in = (int)in->el_params.sa.scale.mem.i16;
     const int out_shift = mli_prv_calc_shift(in, weights, bias);
     for (int idx = 0; idx < num_scale_vals; idx++) {
         long long bias_scale_expected = scale_in * w_scales[idx];

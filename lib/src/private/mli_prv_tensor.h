@@ -390,7 +390,7 @@ static MLI_FORCE_INLINE int32_t mli_prv_calc_bias_mul(
         /* mix of FX and asym datatypes is not supported */
         MLI_ASSERT(in1->el_type == MLI_EL_SA_8);
         MLI_ASSERT((bias->el_type == MLI_EL_SA_8) || (bias->el_type == MLI_EL_SA_32));
-        int32_t bias_mul = (1 << MLI_BIAS_MUL_SHIFT) / ((int32_t)in0->el_params.sa.scale.mem.i32 * (int32_t)in1->el_params.sa.scale.mem.i32);
+        int32_t bias_mul = (1 << MLI_BIAS_MUL_SHIFT) / ((int32_t)in0->el_params.sa.scale.mem.i16 * (int32_t)in1->el_params.sa.scale.mem.i16);
         return bias_mul;
     } else {
         MLI_ASSERT(0);

@@ -35,11 +35,10 @@ static const int kPreDivShiftS32 = 30;
 template <>
 MLI_FORCE_INLINE void adjust_quant_params(s8asym_quant_specific_params* params, int krn_idx) {
     // out multiplyer can be different across one of axis (per axis quantization for s8asym)
-    int mul_fx_high_shift = 31;
-    params->out_mul = mli_math_mul_fx_high<int32_t, int32_t>(params->in_to_out_scales_ratio, params->weight_scales[krn_idx]);
+    params->out_mul = params->in_to_out_scales_ratio * params->weight_scales[krn_idx];
+
     params->out_shift = params->in_to_out_shift;
     params->out_shift += params->weight_shifts[0];
-    params->out_shift -= mul_fx_high_shift;
 
 #if !defined(FULL_ACCU)
     // When the accumulator is pre-shifted before the output multiplier,

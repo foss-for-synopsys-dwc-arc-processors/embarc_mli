@@ -335,25 +335,25 @@ test_status fill_asym_tensor_element_params(
         return TEST_FAILED;
     }
     
-    const int8_t scale_fraq_bits = FRAQ_BITS(scale_int_bits, int32_t);
-    const uint64_t mult = (uint64_t)1l << FRAQ_BITS(scale_int_bits, int32_t);
-    int32_t* scale_dst;
+    const int8_t scale_fraq_bits = FRAQ_BITS(scale_int_bits, int16_t);
+    const uint32_t mult = (uint32_t)1l << scale_fraq_bits;
+    int16_t* scale_dst;
     int16_t* zp_dst;
     int8_t* frac_dst;
 
     if (num_vals > 1) {
-        if (target_tensor->el_params.sa.scale.mem.pi32 == NULL ||
+        if (target_tensor->el_params.sa.scale.mem.pi16 == NULL ||
                 target_tensor->el_params.sa.zero_point.mem.pi16 == NULL ||
                 target_tensor->el_params.sa.scale_frac_bits.mem.pi8 == NULL) {
             DEBUG_BREAK;
             return TEST_NOT_ENOUGH_MEM;
         }
 
-        scale_dst = target_tensor->el_params.sa.scale.mem.pi32;
+        scale_dst = target_tensor->el_params.sa.scale.mem.pi16;
         zp_dst = target_tensor->el_params.sa.zero_point.mem.pi16;
         frac_dst = target_tensor->el_params.sa.scale_frac_bits.mem.pi8;
     } else {
-        scale_dst = &target_tensor->el_params.sa.scale.mem.i32;
+        scale_dst = &target_tensor->el_params.sa.scale.mem.i16;
         zp_dst = &target_tensor->el_params.sa.zero_point.mem.i16;
         frac_dst = &target_tensor->el_params.sa.scale_frac_bits.mem.i8;
     }
@@ -366,8 +366,8 @@ test_status fill_asym_tensor_element_params(
 
         const float round_val = 0.5f;
 
-        const int64_t dst_val = (int64_t) (mult * scale_rates[i] + round_val);
-        scale_dst[i] = (int32_t) (MIN(MAX(dst_val, INT32_MIN), INT32_MAX));
+        const int32_t dst_val = (int32_t) (mult * scale_rates[i] + round_val);
+        scale_dst[i] = (int16_t) (MIN(MAX(dst_val, INT16_MIN), INT16_MAX));
 
         frac_dst[i] = scale_fraq_bits;
 

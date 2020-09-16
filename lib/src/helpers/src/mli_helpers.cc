@@ -104,7 +104,7 @@ int32_t mli_hlp_tensor_scale(const mli_tensor *in, const uint32_t scale_idx) {
             return 1;
         case MLI_EL_SA_8:
         case MLI_EL_SA_32:
-            return (in->el_params.sa.dim >= 0)? in->el_params.sa.scale.mem.pi32[scale_idx]: in->el_params.sa.scale.mem.i32;
+            return (in->el_params.sa.dim >= 0)? in->el_params.sa.scale.mem.pi16[scale_idx]: in->el_params.sa.scale.mem.i16;
         default:
             MLI_ASSERT(0);
             return 0;
@@ -213,7 +213,7 @@ mli_status mli_hlp_create_subtensor(const mli_tensor *in, const mli_sub_tensor_c
 
     if (isAsym){
         if (out->el_params.sa.dim >= 0) {
-            out->el_params.sa.scale.mem.pi32 += out_asym_offset;
+            out->el_params.sa.scale.mem.pi16 += out_asym_offset;
             out->el_params.sa.scale_frac_bits.mem.pi8 += out_asym_offset;
             out->el_params.sa.dim = out_asym_dim;
             out->el_params.sa.zero_point.mem.pi16 += out_asym_offset;

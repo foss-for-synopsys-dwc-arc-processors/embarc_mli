@@ -41,7 +41,7 @@ MLI_FORCE_INLINE vNx4accshort_t reduce_sum2D(
 MLI_FORCE_INLINE s8asym_quant_specific_out_params_v adjust_quant_params_v(s8asym_quant_specific_params* params, int krn_idx) {
     // out multiplyer can be different across one of axis (per axis quantization for s8asym)
     // but will be the same in case of per tensor quantization.
-    vNx4int_t wscales;
+    vNx4short_t wscales;
     if (params->weight_dim < 0) {
         krn_idx = 0;
         wscales = params->weight_scales[krn_idx];
@@ -49,19 +49,18 @@ MLI_FORCE_INLINE s8asym_quant_specific_out_params_v adjust_quant_params_v(s8asym
         wscales = mli_prv_load_n_samples(&params->weight_scales[krn_idx]);
     }
     s8asym_quant_specific_out_params_v out_params;
-    vNx4int_t w_norm = mli_math_norm_fx<vNx4int_t, vNx4int_t>(wscales);
+    vNx4short_t w_norm = mli_math_norm_fx<vNx4short_t, vNx4short_t>(wscales);
     wscales = wscales << w_norm;
-    vNx4int_t outmul32 = mli_math_mul_fx_high(wscales, params->in_to_out_scales_ratio);
+    vNx4int_t outmul32 = to_vNx4int_t(wscales) * (int32_t)params->in_to_out_scales_ratio;
     vNx4int_t mul_norm = mli_math_norm_fx<vNx4int_t, vNx4int_t>(outmul32);
     int int_to_short_shift = 16;
 
     int out_shift = params->in_to_out_shift;
     out_shift += params->weight_shifts[0];
-    out_shift -= 32; // for the mul_hi of outmul32
 
-    out_params.out_mul = to_vNx4short_t(mli_math_asr_fx(outmul32, int_to_short_shift - mul_norm));
+    out_params.out_mul = to_vNx4short_t(mli_math_asr_rnd_fx(outmul32, int_to_short_shift - mul_norm));
     out_params.out_shift = out_shift - sizeof(int16_t) * 8; // compensate for the mul_hi output multiplier
-    out_params.out_shift += to_vNx4short_t(w_norm);
+    out_params.out_shift += w_norm;
     out_params.out_shift -= int_to_short_shift; // for the outmul int to short
     out_params.out_shift += to_vNx4short_t(mul_norm);
 
