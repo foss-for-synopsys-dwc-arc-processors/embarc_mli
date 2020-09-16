@@ -274,10 +274,24 @@ static mli_status mli_krn_softmax_sa8_run(const mli_tensor *in, const mli_softma
                     }
                 }
 
+                /* Subtract maximum from each input tensor element.
+                 * This subtraction is done by overwriting offset with max_value.
+                 * 1. Offset value is not needed here due to subtraction operation:
+                 *    (in_value + offset) - (max_value + offset) = in_value - max_value
+                 * 2. Subtraction operation is done in activation_lut_one_elem_interpolate() in
+                 *    mli_prv_convert_sa8_fx16() function.
+                 */
                 in_params.offset = max_val;
 
                 mli_acc40_t sum_acc = mli_math_mul_fx<int16_t, mli_acc40_t>(0, 0);
 
+                /* TODO: There is another approach that can be implemented but will leads to lower accuracy:
+                 * sum of exps (sum_acc) can be calculated, and each fx16 exp converted to sa8 exp and stored in out[i]
+                 * array in the same loop,
+                 * but the sa8 exp will need to be converted again to multiply it with 1/(sum of exp).
+                 * In this approach there is no need to call activation_lut_one_elem_interpolate() again in the second
+                 * for loop (but instead out[i] is converted to int16 and multiplied by 1 / sum_of_exp).
+                 */
                 for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
                     for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
                         for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
