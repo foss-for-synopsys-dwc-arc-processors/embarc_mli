@@ -358,19 +358,46 @@ static MLI_FORCE_INLINE mli_status mli_prv_copy_tensor_format_except_mem_strides
 }
 
 static MLI_FORCE_INLINE int mli_prv_calc_shift(
-        const mli_tensor *in0,
-        const mli_tensor *in1,
+        const mli_tensor *in,
+        const mli_tensor *w,
         const mli_tensor *out){
-    if ((in0->el_type == MLI_EL_FX_8) || (in0->el_type == MLI_EL_FX_16)) {
+    if ((in->el_type == MLI_EL_FX_8) || (in->el_type == MLI_EL_FX_16)) {
         /* mix of FX and asym datatypes is not supported */
-        MLI_ASSERT((in1->el_type == MLI_EL_FX_8) || (in1->el_type == MLI_EL_FX_16));
+        MLI_ASSERT((w->el_type == MLI_EL_FX_8) || (w->el_type == MLI_EL_FX_16));
         MLI_ASSERT((out->el_type == MLI_EL_FX_8) || (out->el_type == MLI_EL_FX_16));
-        return (in0->el_params.fx.frac_bits + in1->el_params.fx.frac_bits) - out->el_params.fx.frac_bits;
-    } else if (in0->el_type == MLI_EL_SA_8) {
+        return (in->el_params.fx.frac_bits + w->el_params.fx.frac_bits) - out->el_params.fx.frac_bits;
+    } else if (in->el_type == MLI_EL_SA_8) {
         /* mix of FX and asym datatypes is not supported */
-        MLI_ASSERT(in1->el_type == MLI_EL_SA_8);
+        MLI_ASSERT(w->el_type == MLI_EL_SA_8);
         MLI_ASSERT((out->el_type == MLI_EL_SA_8) || (out->el_type == MLI_EL_SA_32));
-        return (in0->el_params.sa.scale_frac_bits.mem.i8 + in1->el_params.sa.scale_frac_bits.mem.i8) - out->el_params.sa.scale_frac_bits.mem.i8;
+        MLI_ASSERT(in->el_params.sa.dim < 0); // this function can only be used for per tensor quantization.
+        MLI_ASSERT(w->el_params.sa.dim < 0); // this function can only be used for per tensor quantization.
+        MLI_ASSERT(out->el_params.sa.dim < 0); // this function can only be used for per tensor quantization.
+        return (in->el_params.sa.scale_frac_bits.mem.i8 + w->el_params.sa.scale_frac_bits.mem.i8) - out->el_params.sa.scale_frac_bits.mem.i8;
+    } else {
+        MLI_ASSERT(0);
+        return 0;
+    }
+}
+
+static MLI_FORCE_INLINE int mli_prv_calc_shift_idx(
+        const mli_tensor *in,
+        const mli_tensor *w,
+        const mli_tensor *out,
+        const int idx){
+    if ((in->el_type == MLI_EL_FX_8) || (in->el_type == MLI_EL_FX_16)) {
+        /* mix of FX and asym datatypes is not supported */
+        MLI_ASSERT((w->el_type == MLI_EL_FX_8) || (w->el_type == MLI_EL_FX_16));
+        MLI_ASSERT((out->el_type == MLI_EL_FX_8) || (out->el_type == MLI_EL_FX_16));
+        return (in->el_params.fx.frac_bits + w->el_params.fx.frac_bits) - out->el_params.fx.frac_bits;
+    } else if (in->el_type == MLI_EL_SA_8) {
+        /* mix of FX and asym datatypes is not supported */
+        MLI_ASSERT(w->el_type == MLI_EL_SA_8);
+        MLI_ASSERT((out->el_type == MLI_EL_SA_8) || (out->el_type == MLI_EL_SA_32));
+        int in_shift = (in->el_params.sa.dim < 0) ? in->el_params.sa.scale_frac_bits.mem.i8 : in->el_params.sa.scale_frac_bits.mem.pi8[idx];
+        int w_shift = (w->el_params.sa.dim < 0) ? w->el_params.sa.scale_frac_bits.mem.i8 : w->el_params.sa.scale_frac_bits.mem.pi8[idx];
+        int out_shift = (out->el_params.sa.dim < 0) ? out->el_params.sa.scale_frac_bits.mem.i8 : out->el_params.sa.scale_frac_bits.mem.pi8[idx];
+        return in_shift + w_shift - out_shift;
     } else {
         MLI_ASSERT(0);
         return 0;

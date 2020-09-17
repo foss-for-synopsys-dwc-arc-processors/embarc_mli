@@ -16,6 +16,7 @@
 #include "mli_config.h"
 #include "mli_debug.h"
 #include "mli_helpers_api.h"
+#include "mli_math.h"
 #include "mli_math_macros.h"
 #include "mli_prv_tensor.h"
 
@@ -127,14 +128,14 @@ mli_status mli_chk_bias_scale_asym(const mli_tensor * in, const mli_tensor * wei
     const int num_scale_vals = (is_per_axis)? weights->shape[weights->el_params.sa.dim]: 1;
     const int16_t* w_scales = (is_per_axis)? weights->el_params.sa.scale.mem.pi16: &weights->el_params.sa.scale.mem.i16;
     const int16_t* b_scales = (is_per_axis)? bias->el_params.sa.scale.mem.pi16: &bias->el_params.sa.scale.mem.i16;
-    const int scale_in = (int)in->el_params.sa.scale.mem.i16;
-    const int out_shift = mli_prv_calc_shift(in, weights, bias);
+    const int16_t scale_in = in->el_params.sa.scale.mem.i16;
     for (int idx = 0; idx < num_scale_vals; idx++) {
-        long long bias_scale_expected = scale_in * w_scales[idx];
+        int32_t bias_scale_expected = scale_in * w_scales[idx];
+        int out_shift = mli_prv_calc_shift_idx(in, weights, bias, idx);
         bias_scale_expected = (out_shift > 0)
-                ? bias_scale_expected >> out_shift
+                ? mli_math_asr_rnd_fx(bias_scale_expected, out_shift)
                 : bias_scale_expected << out_shift;
-        const long long scales_diff = bias_scale_expected - b_scales[idx];
+        const int32_t scales_diff = bias_scale_expected - b_scales[idx];
         // Check that diff is about the rounding error
         if (MLI_CHECK(scales_diff <= 1 && scales_diff >= -1, "Bias scale must be the multiplication of input and weights scales for correct calculations in current quanization scheme"))
             return MLI_STATUS_INCOMPATEBLE_TENSORS;
@@ -789,6 +790,43 @@ mli_status mli_chk_depthwise_conv2d_hwc_fx8w16d(
     return MLI_STATUS_OK;
 }
 
+mli_status mli_chk_depthwise_conv2d_hwcn_fx16(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg * cfg,
+        const mli_tensor * out) {
+    if (MLI_CHECK(in->el_type      == MLI_EL_FX_16, "Wrong input tensor type") ||
+        MLI_CHECK(weights->el_type == MLI_EL_FX_16, "Wrong weights tensor type") ||
+        MLI_CHECK(bias->el_type    == MLI_EL_FX_16, "Wrong bias tensor type"))
+        return MLI_STATUS_TYPE_MISMATCH;
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc(in, weights, bias, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_chk_depthwise_conv2d_hwcn_fx16_fx8_fx8(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg * cfg,
+        const mli_tensor * out) {
+    if (MLI_CHECK(in->el_type      == MLI_EL_FX_16, "Wrong input tensor type") ||
+        MLI_CHECK(weights->el_type == MLI_EL_FX_8, "Wrong weights tensor type") ||
+        MLI_CHECK(bias->el_type    == MLI_EL_FX_8, "Wrong bias tensor type"))
+        return MLI_STATUS_TYPE_MISMATCH;
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwc(in, weights, bias, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    return MLI_STATUS_OK;
+}
 
 mli_status mli_chk_depthwise_conv2d_hwcn_sa8_sa8_sa32(
         const mli_tensor * in,
