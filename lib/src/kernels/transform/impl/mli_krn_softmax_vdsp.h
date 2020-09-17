@@ -25,9 +25,6 @@ namespace mli {
 namespace krn {
 namespace vdsp {
 
-const int kTanhAsymZeroPoint = 0;
-const int kTanhOutputShift = 7;
-
 template <typename io_T>
 static MLI_FORCE_INLINE mli_status mli_krn_softmax_fx_run(const mli_tensor *in, const mli_softmax_cfg* cfg,
         mli_tensor *out) {

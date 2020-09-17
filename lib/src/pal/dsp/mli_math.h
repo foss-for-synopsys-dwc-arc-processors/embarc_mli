@@ -89,7 +89,7 @@ MLI_FORCE_INLINE o_T mli_math_norm_fx(T x) {
 
 template <>
 MLI_FORCE_INLINE int mli_math_norm_fx(mli_acc40_t acc) {
-    return fx_norm_a40(acc);
+    return fx_norm_a40(acc) + 1;
 }
 
 // Addition of two fx operands with saturation

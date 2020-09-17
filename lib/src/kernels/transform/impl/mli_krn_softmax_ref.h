@@ -170,7 +170,7 @@ static mli_status mli_krn_softmax_fx_run(const mli_tensor *in, const mli_softmax
                 mli::krn::activation_lut<io_T, false>(&out_vec_tensor, &out_vec_tensor, &expneg_lut_fx16, in_frac);
 
                 // Accumulation through MAC and reciprocal calculation
-                mli_acc40_t sum_acc = mli_math_mul_fx<io_T, mli_acc40_t>(0, 0);
+                mli_acc32_t sum_acc = mli_math_mul_fx<io_T, mli_acc32_t>(0, 0);
                 for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
                     for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
                         for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
@@ -182,8 +182,8 @@ static mli_status mli_krn_softmax_fx_run(const mli_tensor *in, const mli_softmax
                     }
                 }
 
-                int sum_exp = mli_math_norm_fx<mli_acc40_t, int>(sum_acc) + 1;
-                io_T sum_mnt = mli_math_acc_cast_fx<io_T, mli_acc40_t>(sum_acc, 16 - sum_exp);
+                int sum_exp = mli_math_norm_fx<mli_acc32_t, int>(sum_acc);
+                io_T sum_mnt = mli_math_acc_cast_fx<io_T, mli_acc32_t>(sum_acc, 16 - sum_exp);
                 // sum_mnt is normalized (that is inside [0.5, 1) range)
                 // so we use Q30(0.5) as a dividend to get Q15 result inside (0.5, 1)
                 // saturation prevents it from reaching 1
@@ -191,17 +191,19 @@ static mli_status mli_krn_softmax_fx_run(const mli_tensor *in, const mli_softmax
 
                 // sum_recip * vec_out[idx] = Q15 * Q15 (default LUT output)
                 int lut_frac_bits = kLutOutFracBits * 2;
+                // 15 - sum_exp: sum_of_exps overhead
+                int sum_exp_overhead = kMaxFracBitsFx16 - sum_exp;
 
                 // final result: normalizing
                 for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
                     for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
                         for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
                             for (int pos3 = 0; pos3 < in_prv.shape[3]; pos3++) {
-                                mli_acc40_t tmp_acc = mli_math_mul_fx<io_T, mli_acc40_t>(sum_recip,
-                                        static_cast<io_T>(vec_out[POS(&out_prv, pos0, pos1, pos2, pos3)]));
+                                mli_acc32_t tmp_acc = mli_math_mul_fx<io_T, mli_acc32_t>(sum_recip,
+                                        vec_out[POS(&out_prv, pos0, pos1, pos2, pos3)]);
                                 vec_out[POS(&out_prv, pos0, pos1, pos2, pos3)] =
-                                        mli_math_acc_cast_fx<io_T, mli_acc40_t>(tmp_acc,
-                                            lut_frac_bits - sum_exp + kMaxFracBitsFx16 - out->el_params.fx.frac_bits);
+                                        mli_math_acc_cast_fx<io_T, mli_acc32_t>(tmp_acc,
+                                            lut_frac_bits + sum_exp_overhead - out->el_params.fx.frac_bits);
                             }
                         }
                     }
@@ -283,7 +285,7 @@ static mli_status mli_krn_softmax_sa8_run(const mli_tensor *in, const mli_softma
                  */
                 in_params.offset = max_val;
 
-                mli_acc40_t sum_acc = mli_math_mul_fx<int16_t, mli_acc40_t>(0, 0);
+                mli_acc32_t sum_acc = mli_math_mul_fx<int16_t, mli_acc32_t>(0, 0);
 
                 /* TODO: There is another approach that can be implemented but will leads to lower accuracy:
                  * sum of exps (sum_acc) can be calculated, and each fx16 exp converted to sa8 exp and stored in out[i]
@@ -310,8 +312,8 @@ static mli_status mli_krn_softmax_sa8_run(const mli_tensor *in, const mli_softma
                     }
                 }
 
-                int sum_exp = mli_math_norm_fx<mli_acc40_t, int>(sum_acc) + 1;
-                int16_t sum_mnt = mli_math_acc_cast_fx<int16_t, mli_acc40_t>(sum_acc, 16 - sum_exp);
+                int sum_exp = mli_math_norm_fx<mli_acc32_t, int>(sum_acc);
+                int16_t sum_mnt = mli_math_acc_cast_fx<int16_t, mli_acc32_t>(sum_acc, 16 - sum_exp);
                 // sum_mnt is normalized (that is inside [0.5, 1) range)
                 // so we use Q30(0.5) as a dividend to get Q15 result inside (0.5, 1)
                 // saturation prevents it from reaching 1
