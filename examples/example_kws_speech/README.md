@@ -30,7 +30,7 @@ Here we will consider building for [/hw/em9d.tcf](/hw/em9d.tcf) template. This t
 
 3. Build example with pointing the runtime libraries which had been built on step 2:
 
-        gmake TCF_FILE=../../hw/em9d.tcf RT_LIB=./em9d_rt_libs
+        gmake TCF_FILE=../../hw/em9d.tcf BUILDLIB_DIR=./em9d_rt_libs
 
 ### Run example with MetaWare Debuger on nSim simulator.
 
