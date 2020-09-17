@@ -38,8 +38,8 @@ namespace krn {
 namespace ref {
 template <typename io_T, bool convert = false>
 static void activation_lut(
-        const struct generic_tensor_private_t<io_T *> *in,
-        struct generic_tensor_private_t<io_T *> *out,
+        const struct generic_tensor_private_t<MLI_PTR(io_T)> *in,
+        struct generic_tensor_private_t<MLI_PTR(io_T)> *out,
         const mli_lut *lut,
         int8_t in_frac_bits,
         const struct s8asym_quant_params *in_params  = nullptr,
@@ -69,8 +69,8 @@ static MLI_FORCE_INLINE out_T activation_lut_one_elem_no_interpolate(
 namespace dsp {
 template <typename io_T, bool convert = false>
 static void activation_lut(
-        const struct generic_tensor_private_t<io_T> *in,
-        struct generic_tensor_private_t<io_T> *out,
+        const struct generic_tensor_private_t<MLI_PTR(io_T)> *in,
+        struct generic_tensor_private_t<MLI_PTR(io_T)> *out,
         const mli_lut *lut,
         int8_t in_frac_bits,
         const struct s8asym_quant_params *in_params  = nullptr,
@@ -83,8 +83,8 @@ static void activation_lut(
 namespace vdsp {
 template <typename io_T, bool convert = false>
 static void activation_lut(
-        const struct generic_tensor_private_t<io_T> *in,
-        struct generic_tensor_private_t<io_T> *out,
+        const struct generic_tensor_private_t<MLI_PTR(io_T)> *in,
+        struct generic_tensor_private_t<MLI_PTR(io_T)> *out,
         const mli_lut *lut,
         int8_t in_frac_bits,
         const struct s8asym_quant_params *in_params  = nullptr,

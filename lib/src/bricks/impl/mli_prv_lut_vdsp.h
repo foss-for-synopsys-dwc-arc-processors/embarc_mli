@@ -103,8 +103,8 @@ MLI_FORCE_INLINE void activation_lut_store_output(
 
 template <typename io_T, bool convert>
 static void activation_lut(
-        const struct generic_tensor_private_t<io_T *> *in,
-        struct generic_tensor_private_t<io_T *> *out,
+        const struct generic_tensor_private_t<MLI_PTR(io_T)> *in,
+        struct generic_tensor_private_t<MLI_PTR(io_T)> *out,
         const mli_lut *lut,
         int8_t in_frac_bits,
         const struct s8asym_quant_params *in_params,
