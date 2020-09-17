@@ -28,6 +28,16 @@ namespace krn {
 // REF
 ////////////////////////////////////////////////////////////////////////////////
 namespace ref {
+        
+template <typename io_T, typename w_T, typename acc_T>
+static acc_T __attribute__ ((always_inline)) dotprod1D(
+        const MLI_PTR(io_T) __restrict in,
+        const MLI_PTR(w_T)  __restrict krn,
+        acc_T accu,
+        const int vals,
+        const int in_step = 1,
+        const int krn_step = 1);
+
 template <typename io_T, typename w_T, typename acc_T>
 static MLI_FORCE_INLINE acc_T dotprod2D(
         const MLI_PTR(io_T) __restrict in,

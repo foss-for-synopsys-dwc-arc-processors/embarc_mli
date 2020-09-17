@@ -47,11 +47,14 @@ MLI_FORCE_INLINE void define_quant_params(const mli_tensor *in, const mli_tensor
     params->in_offset = in->el_params.sa.zero_point.mem.i16;
     params->out_offset = out->el_params.sa.zero_point.mem.i16;
 
+    params->weight_dim = weights->el_params.sa.dim;
     if (weights->el_params.sa.dim >= 0) {
+        // per axis quantization
         params->weights_offset = weights->el_params.sa.zero_point.mem.pi16[0];
         params->weight_scales = weights->el_params.sa.scale.mem.pi16;
         params->weight_shifts = weights->el_params.sa.scale_frac_bits.mem.pi8;
     } else {
+        // per tensor quantization
         params->weights_offset = weights->el_params.sa.zero_point.mem.i16;
         params->weight_scales = &weights->el_params.sa.scale.mem.i16;
         params->weight_shifts = &weights->el_params.sa.scale_frac_bits.mem.i8;
@@ -72,6 +75,9 @@ MLI_FORCE_INLINE void define_quant_params(const mli_tensor *in, const mli_tensor
 template <>
 MLI_FORCE_INLINE void adjust_quant_params(s8asym_quant_specific_params* params, int krn_idx) {
     // out multiplyer can be different across one of axis (per axis quantization for s8asym)
+    if (params->weight_dim < 0) {
+        krn_idx = 0;
+    }
     const int32_t out_mul_scaled = (int32_t)params->in_to_out_scales_ratio * params->weight_scales[krn_idx];
     params->out_mul = out_mul_scaled;
 
