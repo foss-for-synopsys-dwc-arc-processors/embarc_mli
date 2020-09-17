@@ -32,7 +32,7 @@ template <typename io_T>
 static MLI_FORCE_INLINE mli_status mli_krn_softmax_fx_run(const mli_tensor *in, const mli_softmax_cfg* cfg,
         mli_tensor *out) {
     /* TODO */
-    return 0;
+    return MLI_STATUS_NOT_SUPPORTED;
 }
 
 } // namespace vdsp
