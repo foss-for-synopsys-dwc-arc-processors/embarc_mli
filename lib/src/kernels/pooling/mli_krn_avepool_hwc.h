@@ -23,7 +23,9 @@ namespace mli {
 namespace krn {
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-#define CHANNEL_LANES     _VDSP_NUM_8BIT_LANES
+// TODO change after vectorized version is available
+// #define CHANNEL_LANES     _VDSP_NUM_8BIT_LANES
+#define CHANNEL_LANES 1
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
 #define CHANNEL_LANES 2
 #else
