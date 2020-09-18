@@ -35,6 +35,9 @@ static const int kPreDivShiftS32 = 30;
 template <>
 MLI_FORCE_INLINE void adjust_quant_params(s8asym_quant_specific_params* params, int krn_idx) {
     // out multiplyer can be different across one of axis (per axis quantization for s8asym)
+    if (params->weight_dim < 0) {
+        krn_idx = 0;
+    }
     params->out_mul = params->in_to_out_scales_ratio * params->weight_scales[krn_idx];
 
     params->out_shift = params->in_to_out_shift;

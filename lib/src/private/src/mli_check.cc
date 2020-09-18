@@ -115,6 +115,31 @@ mli_status mli_chk_bias_frac_fx(const mli_tensor * in, const mli_tensor * weight
     return MLI_STATUS_OK;
 }
 
+int scale_fluctuations_headroom(int32_t scale) {
+    // This functions finds acceptabla fluctuations of scale representation
+    // assuming that it was transformed from another representation 
+    // (for instance float number transformed to q31)
+
+    // assuming scale > 0, we try to find unused MSB (zero bits in the front)
+    // Note: an external norm operation can be used for it
+    MLI_ASSERT(scale > 0);  
+    int unused_bits = 0;
+    int32_t norm_value = 1 << 30;
+    for (; norm_value > scale; norm_value = norm_value >> 1)
+        ++unused_bits;
+    
+    // Knowing unused bits we can estimate fluctuations
+    // For instance: int32 have 31 significant bits, while floats have only 24.
+    // It means that (31 - 24) = 7 bits of Q31 might keep some trash after float->q31 transfromation 
+    // But if 3 MSB of q31 number are not used, than only (7 - 3) = 4 bits are expected to have noise.
+    // We conclude that some fluctuations in range of (+16 : -16) are acceptable (2**4 = 16).
+    constexpr int kSignifacntBitsFloatSP = 24;
+    constexpr int kSignifacntBitsScale = 31;
+    const int fluctuations_bits = MAX(0, (kSignifacntBitsScale - kSignifacntBitsFloatSP) - unused_bits);
+    const int fluctuations_headroom = 1 << fluctuations_bits;
+    return fluctuations_headroom;
+};
+
 mli_status mli_chk_bias_scale_asym(const mli_tensor * in, const mli_tensor * weights, const mli_tensor * bias) {
     // For FX in runtime, before adding bias, we requantize it to intermediate result format. 
     // For FX it's just the matter of shift. That's why we are ok to not store bias in this format in advance (but it could be done).
@@ -1106,6 +1131,7 @@ mli_status mli_chk_fully_connected (
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
+        const mli_fully_connected_cfg * cfg,
         mli_tensor * out) {
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;
@@ -1121,8 +1147,8 @@ mli_status mli_chk_fully_connected (
 
     fail |= MLI_CHECK(weights->rank == 2, "Wrong weights rank");
     fail |= MLI_CHECK(bias->rank == 1, "Wrong bias rank");
-    fail |= MLI_CHECK(mli_prv_count_elem_num (in) == weights->shape[1], "weights shape doesn't match number of input elements");
-    fail |= MLI_CHECK(bias->shape[0] == weights->shape[0], "Shape mismatch bias and weights");
+    fail |= MLI_CHECK(mli_prv_count_elem_num (in) == weights->shape[0], "weights shape doesn't match number of input elements");
+    fail |= MLI_CHECK(bias->shape[0] == weights->shape[1], "Shape mismatch bias and weights");
     if (fail) return MLI_STATUS_SHAPE_MISMATCH;
 
     fail |= MLI_CHECK(check_layout_is_contiguous(in), "Memory Layout of input tensor must be contiguous");
@@ -1141,6 +1167,7 @@ mli_status mli_chk_fully_connected_fx8w16d(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
+        const mli_fully_connected_cfg * cfg,
         mli_tensor * out) {
     if (MLI_CHECK(in->el_type      == MLI_EL_FX_16, "Wrong input tensor type") ||
         MLI_CHECK(weights->el_type == MLI_EL_FX_8, "Wrong weights tensor type") ||
@@ -1149,7 +1176,7 @@ mli_status mli_chk_fully_connected_fx8w16d(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
-    ret = MLI_CHECK_STATUS(mli_chk_fully_connected(in, weights, bias, out), __func__);
+    ret = MLI_CHECK_STATUS(mli_chk_fully_connected(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     return MLI_STATUS_OK;
@@ -1159,6 +1186,7 @@ mli_status mli_chk_fully_connected_fx8(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
+        const mli_fully_connected_cfg * cfg,
         mli_tensor * out) {
     if (MLI_CHECK(in->el_type      == MLI_EL_FX_8, "Wrong input tensor type") ||
         MLI_CHECK(weights->el_type == MLI_EL_FX_8, "Wrong weights tensor type") ||
@@ -1167,7 +1195,7 @@ mli_status mli_chk_fully_connected_fx8(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
-    ret = MLI_CHECK_STATUS(mli_chk_fully_connected(in, weights, bias, out), __func__);
+    ret = MLI_CHECK_STATUS(mli_chk_fully_connected(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     return MLI_STATUS_OK;
@@ -1177,6 +1205,7 @@ mli_status mli_chk_fully_connected_fx16(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
+        const mli_fully_connected_cfg * cfg,
         mli_tensor * out) {
     if (MLI_CHECK(in->el_type      == MLI_EL_FX_16, "Wrong input tensor type") ||
         MLI_CHECK(weights->el_type == MLI_EL_FX_16, "Wrong weights tensor type") ||
@@ -1185,7 +1214,7 @@ mli_status mli_chk_fully_connected_fx16(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
-    ret = MLI_CHECK_STATUS(mli_chk_fully_connected(in, weights, bias, out), __func__);
+    ret = MLI_CHECK_STATUS(mli_chk_fully_connected(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     return MLI_STATUS_OK;
@@ -1195,18 +1224,31 @@ mli_status mli_chk_fully_connected_sa8_sa8_sa32(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
+        const mli_fully_connected_cfg * cfg,
         mli_tensor * out) {
     if (MLI_CHECK(in->el_type      == MLI_EL_SA_8, "Wrong input tensor type") ||
         MLI_CHECK(weights->el_type == MLI_EL_SA_8, "Wrong weights tensor type") ||
         MLI_CHECK(bias->el_type    == MLI_EL_SA_32, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_fully_connected(in, weights, bias, out), __func__);
+
+    if (MLI_CHECK(in->el_params.sa.zero_point.mem.i16 != INT16_MIN,"Input tensor: INT16_MIN doesn't support as offset value") ||
+        MLI_CHECK(out->el_params.sa.zero_point.mem.i16 != INT16_MIN,"Input tensor: INT16_MIN doesn't support as offset value"))
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_fully_connected(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
-    if (MLI_CHECK(weights->el_params.sa.dim < 0, "Weights tensor: Per-tensor quantization is expected") ||
-        MLI_CHECK(bias->el_params.sa.dim < 0, "Bias tensor: Per-tensor quantization is expected") || 
-        MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor: Per-tensor quantization is expected"))
+    if (weights->el_params.sa.dim < 0)
+    {
+        if (MLI_CHECK(bias->el_params.sa.dim < 0, "Bias tensor: Per-tensor quantization is expected"))
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    }
+    else if (MLI_CHECK(weights->el_params.sa.dim == 1, "Weights tensor: per output channels quantization is expected") ||
+        MLI_CHECK(bias->el_params.sa.dim == 0, "Bias tensor: per output channels quantization is expected"))
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+
+    if (MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor: Per-tensor quantization is expected"))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
     ret = MLI_CHECK_STATUS(mli_chk_bias_scale_asym(in, weights, bias), __func__);
     if (ret != MLI_STATUS_OK)

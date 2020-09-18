@@ -11,6 +11,7 @@
 #define _MLI_PRV_QUANT_DECL_H_
 
 #include "mli_config.h"
+#include "mli_types.h"
 
 namespace mli {
 namespace krn {
