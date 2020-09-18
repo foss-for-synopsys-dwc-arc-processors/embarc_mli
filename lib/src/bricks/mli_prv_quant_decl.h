@@ -29,10 +29,10 @@ struct s8asym_quant_specific_params {
     int16_t out_offset;
     int16_t weights_offset;
 
-    const int32_t *weight_scales;
+    const int16_t *weight_scales;
     const int8_t *weight_shifts;
     int weight_dim;
-    int32_t in_to_out_scales_ratio;
+    int16_t in_to_out_scales_ratio;
     int32_t in_to_out_shift;
 
     int32_t out_mul;
@@ -42,7 +42,7 @@ struct s8asym_quant_specific_params {
 struct s8asym_quant_params {
 	int16_t offset;
 	int16_t shift;
-	int32_t scale;
+	int16_t scale;
 };
 #if defined(__Xvec_width)
 struct s8asym_quant_specific_out_params_v {

@@ -49,35 +49,34 @@ MLI_FORCE_INLINE void define_quant_params(const mli_tensor *in, const mli_tensor
 
     if (weights->el_params.sa.dim >= 0) {
         params->weights_offset = weights->el_params.sa.zero_point.mem.pi16[0];
-        params->weight_scales = weights->el_params.sa.scale.mem.pi32;
-        params->weight_shifts = &weights->el_params.sa.scale_frac_bits;
+        params->weight_scales = weights->el_params.sa.scale.mem.pi16;
+        params->weight_shifts = weights->el_params.sa.scale_frac_bits.mem.pi8;
     } else {
         params->weights_offset = weights->el_params.sa.zero_point.mem.i16;
-        params->weight_scales = &weights->el_params.sa.scale.mem.i32;
-        params->weight_shifts = &weights->el_params.sa.scale_frac_bits;
+        params->weight_scales = &weights->el_params.sa.scale.mem.i16;
+        params->weight_shifts = &weights->el_params.sa.scale_frac_bits.mem.i8;
     }
-    int64_t scale_unfinished = (int64_t)(in->el_params.sa.scale.mem.i32) << kPreDivShiftS32;
-    scale_unfinished = scale_unfinished / out->el_params.sa.scale.mem.i32;
-    params->in_to_out_scales_ratio = mli_math_cast_fx<int64_t, int32_t>(scale_unfinished, 0);
+    int32_t scale_unfinished = (int32_t)(in->el_params.sa.scale.mem.i16) << kPreDivShiftS16;
+    scale_unfinished = scale_unfinished / out->el_params.sa.scale.mem.i16;
+    params->in_to_out_scales_ratio = scale_unfinished;
 
-    int in_to_out_norm = mli_math_norm_fx<int32_t, int>(params->in_to_out_scales_ratio);
-    params->in_to_out_scales_ratio = params->in_to_out_scales_ratio << in_to_out_norm;
-    params->in_to_out_shift = in->el_params.sa.scale_frac_bits;
-    params->in_to_out_shift += (kPreDivShiftS32 - out->el_params.sa.scale_frac_bits);
-    params->in_to_out_shift += in_to_out_norm;
+    int in_to_out_norm = mli_math_norm_fx<int32_t, int>(scale_unfinished);
+    int int32_to_int16_shift = 16;
+    params->in_to_out_scales_ratio = mli_math_cast_fx<int32_t, int16_t>(scale_unfinished, int32_to_int16_shift - in_to_out_norm);
+    params->in_to_out_shift = in->el_params.sa.scale_frac_bits.mem.i8;
+    params->in_to_out_shift += (kPreDivShiftS16 - out->el_params.sa.scale_frac_bits.mem.i8);
+    params->in_to_out_shift -= int32_to_int16_shift - in_to_out_norm;
 
 }
 
 template <>
 MLI_FORCE_INLINE void adjust_quant_params(s8asym_quant_specific_params* params, int krn_idx) {
     // out multiplyer can be different across one of axis (per axis quantization for s8asym)
-    const int64_t out_mul_scaled = (int64_t)params->in_to_out_scales_ratio * params->weight_scales[krn_idx];
-    int int64_to_int32_shift = 32;
-    params->out_mul = mli_math_cast_fx<int64_t, int32_t>(out_mul_scaled, int64_to_int32_shift);
+    const int32_t out_mul_scaled = (int32_t)params->in_to_out_scales_ratio * params->weight_scales[krn_idx];
+    params->out_mul = out_mul_scaled;
 
     params->out_shift = params->in_to_out_shift;
-    params->out_shift += params->weight_shifts[0];
-    params->out_shift -= int64_to_int32_shift;
+    params->out_shift += params->weight_shifts[krn_idx];
 
 #if !defined(FULL_ACCU)
     // When the accumulator is pre-shifted before the output multiplier,
@@ -106,22 +105,21 @@ static MLI_FORCE_INLINE int32_t mli_prv_calc_out_mul(
         MLI_ASSERT((out->el_type == MLI_EL_FX_8) || (out->el_type == MLI_EL_FX_16));
         return 1;
     } else if (in0->el_type == MLI_EL_SA_8) {
-        const int kPreDivShiftS32 = 30;
         const int shiftChangeValue = 32;
         /* mix of FX and asym datatypes is not supported */
         MLI_ASSERT(in1->el_type == MLI_EL_SA_8);
         MLI_ASSERT((out->el_type == MLI_EL_SA_8) || (out->el_type == MLI_EL_SA_32));
         MLI_ASSERT((in0->el_params.sa.dim < 0) && (in1->el_params.sa.dim < 0));
 
-        *shift = in0->el_params.sa.scale_frac_bits;
-        *shift += in1->el_params.sa.scale_frac_bits;
-        *shift += (kPreDivShiftS32 - out->el_params.sa.scale_frac_bits);
+        *shift = in0->el_params.sa.scale_frac_bits.mem.i8;
+        *shift += in1->el_params.sa.scale_frac_bits.mem.i8;
+        *shift += (kPreDivShiftS16 - out->el_params.sa.scale_frac_bits.mem.i8);
         *shift -= shiftChangeValue;
 
-        int64_t scale_unfinished = (int64_t)(in0->el_params.sa.scale.mem.i32) << kPreDivShiftS32;
-        scale_unfinished = scale_unfinished / out->el_params.sa.scale.mem.i32;
-        int32_t in_to_out_scales_ratio = mli_math_cast_fx<int64_t, int32_t>(scale_unfinished, 0);
-        int64_t out_mul_scaled = (int64_t)in_to_out_scales_ratio * in1->el_params.sa.scale.mem.i32;
+        int32_t scale_unfinished = (int32_t)(in0->el_params.sa.scale.mem.i16) << kPreDivShiftS16;
+        scale_unfinished = scale_unfinished / out->el_params.sa.scale.mem.i16;
+        int32_t in_to_out_scales_ratio = scale_unfinished;
+        int64_t out_mul_scaled = (int64_t)in_to_out_scales_ratio * in1->el_params.sa.scale.mem.i16;
         int32_t out_mul = mli_math_cast_fx<int64_t, int32_t>(out_mul_scaled, shiftChangeValue);
         return out_mul;
     } else {
