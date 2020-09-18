@@ -90,6 +90,10 @@ MLI_FORCE_INLINE void adjust_quant_params(s8asym_quant_specific_params* params, 
 template <>
 MLI_FORCE_INLINE void adjust_quant_params(fx_quant_specific_params* in, int krn_idx);
 
+MLI_FORCE_INLINE int16_t quant_params_get_weigths_zeropoint(s8asym_quant_specific_params* params);
+
+MLI_FORCE_INLINE int16_t quant_params_get_weigths_zeropoint(fx_quant_specific_params* params);
+
 static MLI_FORCE_INLINE int32_t mli_prv_calc_out_mul(const mli_tensor *in0, const mli_tensor *in1,
         const mli_tensor* out, int* shift);
 

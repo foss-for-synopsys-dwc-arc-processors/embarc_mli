@@ -10,9 +10,11 @@
 #ifndef _VDSP_MLI_MATH_H_
 #define _VDSP_MLI_MATH_H_
 
-#include <limits>
 #include <arc_vector.h>
+#include <type_traits>
+#include <limits>
 #include "arc_vector_ext.h"
+#include "mli_debug.h"
 
 //=========================================================================
 //
@@ -746,6 +748,47 @@ MLI_FORCE_INLINE vNx4accshort_t mli_math_mac_fx(vNx4accshort_t acc, vNx4char_t L
 template <>
 MLI_FORCE_INLINE mli_acc32_t mli_math_acc_ashift_fx(mli_acc32_t acc, int shift_right) {
     return mli_math_asr_rnd_fx<mli_acc32_t, int>(acc, shift_right);
+}
+
+// Number of lanes in a vector
+//========================================================================
+template <typename T>
+MLI_FORCE_INLINE int get_number_lanes() {
+    int lanes = 0;
+    if (  std::is_same<T, int8_t>::value
+       || std::is_same<T, int16_t>::value
+       || std::is_same<T, int32_t>::value
+       || std::is_same<T, mli_acc40_t>::value
+       || std::is_same<T, int64_t>::value
+       || std::is_same<T, uint8_t>::value
+       || std::is_same<T, uint16_t>::value
+       || std::is_same<T, uint32_t>::value
+       || std::is_same<T, uint64_t>::value) {
+        lanes = 1;
+    }
+    if (  std::is_same<T, vNx4char_t>::value
+       || std::is_same<T, vNx4short_t>::value
+       || std::is_same<T, vNx4int_t>::value
+       || std::is_same<T, vNx4accshort_t>::value
+       || std::is_same<T, vNx4accint_t>::value) {
+        lanes = _VDSP_NUM_8BIT_LANES;
+    }
+    if (  std::is_same<T, vNx2short_t>::value
+       || std::is_same<T, vNx2int_t>::value
+       || std::is_same<T, vNx2accshort_t>::value
+       || std::is_same<T, vNx2accint_t>::value) {
+        lanes = _VDSP_NUM_16BIT_LANES;
+    }
+    if (  std::is_same<T, vNint_t>::value){
+        lanes = _VDSP_NUM_32BIT_LANES;
+    }
+    MLI_ASSERT(lanes > 0);
+    return lanes;
+}
+
+template <typename T>
+MLI_FORCE_INLINE int get_number_lanes(T dummy) {
+    return get_number_lanes<T>();
 }
 
 #endif // _VDSP_MLI_MATH_H_

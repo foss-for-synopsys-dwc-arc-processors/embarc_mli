@@ -28,7 +28,7 @@
 namespace mli {
 namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-using mli::krn::ref::inner_product;
+using mli::krn::vdsp::inner_product;
 using mli::krn::ref::fully_connected_prepare_and_run;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
@@ -52,7 +52,7 @@ using mli::krn::ref::fully_connected_prepare_and_run;
 #include "impl/mli_krn_fully_connected_ref.h"
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-//#include "impl/mli_krn_fully_connected_vdsp.h"
+#include "impl/mli_krn_fully_connected_vdsp.h"
 #endif
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)

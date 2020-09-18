@@ -11,6 +11,8 @@
 #define _REF_MLI_MATH_H_
 
 #include <limits>
+#include <type_traits>
+#include "mli_debug.h"
 
 typedef int32_t mli_acc32_t;
 typedef int64_t mli_acc40_t;
@@ -369,4 +371,30 @@ template <>
 MLI_FORCE_INLINE mli_acc40_t mli_math_mac_fx(mli_acc40_t acc, int16_t L, int16_t R) {
     return acc + (mli_acc40_t) ((int32_t)L * (int32_t)R);
 }
+
+// Number of lanes in a vector
+//========================================================================
+template <typename T>
+MLI_FORCE_INLINE int get_number_lanes() {
+    int lanes = 0;
+    if (  std::is_same<T, int8_t>::value
+       || std::is_same<T, int16_t>::value
+       || std::is_same<T, int32_t>::value
+       || std::is_same<T, mli_acc40_t>::value
+       || std::is_same<T, int64_t>::value
+       || std::is_same<T, uint8_t>::value
+       || std::is_same<T, uint16_t>::value
+       || std::is_same<T, uint32_t>::value
+       || std::is_same<T, uint64_t>::value) {
+        lanes = 1;
+    }
+    MLI_ASSERT(lanes > 0);
+    return lanes;
+}
+
+template <typename T>
+MLI_FORCE_INLINE int get_number_lanes(T dummy) {
+    return get_number_lanes<T>();
+}
+
 #endif // _REF_MLI_MATH_H_
