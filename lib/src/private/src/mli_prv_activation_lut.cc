@@ -114,37 +114,49 @@ const mli_lut expneg_lut_fx16 = {
 extern "C" {
 #endif
 
-#pragma Code(".mli_lib")
+#pragma MLI_CODE_SECTION_START(".mli_lib")
 
 void mli_prv_activation_lut_fx8(
-        const MLI_PTR(int8_t) in,
-        MLI_OUT_PTR(int8_t) out,
+        const mli_tensor *in,
+        const mli_tensor *out,
         const mli_lut *lut,
         int in_frac_bits,
         int length) {
-    activation_lut<int8_t>(in, out, lut, in_frac_bits, length);
+
+    auto in_prv =  mli_prv_get_generic_tensor<int8_t *>(in);
+    auto out_prv =  mli_prv_get_generic_tensor<int8_t *>(out);
+
+    activation_lut<int8_t>(&in_prv, &out_prv, lut, in_frac_bits);
 }
 
 void mli_prv_activation_lut_fx16(
-        const MLI_PTR(int16_t) in,
-        MLI_OUT_PTR(int16_t) out,
+        const mli_tensor *in,
+        const mli_tensor *out,
         const mli_lut *lut,
         int in_frac_bits,
         int length) {
-    activation_lut<int16_t>(in, out, lut, in_frac_bits, length);
+
+    auto in_prv =  mli_prv_get_generic_tensor<int16_t *>(in);
+    auto out_prv =  mli_prv_get_generic_tensor<int16_t *>(out);
+
+    activation_lut<int16_t>(&in_prv, &out_prv, lut, in_frac_bits);
 }
 
 void mli_prv_activation_lut_sa8(
-        const MLI_PTR(int8_t) in,
-        MLI_OUT_PTR(int8_t) out,
+        const mli_tensor *in,
+        const mli_tensor *out,
         const mli_lut *lut,
         struct s8asym_quant_params *in_params,
         struct s8asym_quant_params *out_params,
         int length) {
-    activation_lut<int8_t, true>(in, out, lut, 0 /*Unused*/, length, in_params, out_params);
+
+    auto in_prv =  mli_prv_get_generic_tensor<int8_t *>(in);
+    auto out_prv =  mli_prv_get_generic_tensor<int8_t *>(out);
+
+    activation_lut<int8_t, true>(&in_prv, &out_prv, lut, 0 /*Unused*/, in_params, out_params);
 }
 
-#pragma code()
+#pragma MLI_CODE_SECTION_END()
 
 #ifdef __cplusplus
 }

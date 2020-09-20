@@ -111,7 +111,7 @@ static void conv2d_chw_str1 (
 /******************************************************************************/
 
 template < typename io_T, typename w_T >
-static void __attribute__ ((always_inline)) convolution (
+static MLI_FORCE_INLINE void convolution (
         const MLI_PTR (io_T) __restrict in_ptr,
         const MLI_PTR (w_T) __restrict w_ptr,
         MLI_CONV_OUT_PTR (io_T) __restrict o_ptr,
@@ -138,7 +138,7 @@ static void __attribute__ ((always_inline)) convolution (
 }
 
 #ifdef __FXAPI__
-static void __attribute__ ((always_inline)) convolution (
+static MLI_FORCE_INLINE void convolution (
         const MLI_PTR (int16_t) __restrict in_ptr,
         const MLI_PTR (int16_t) __restrict w_ptr,
         MLI_CONV_OUT_PTR (int16_t) __restrict o_ptr,
@@ -172,7 +172,7 @@ static void __attribute__ ((always_inline)) convolution (
 #endif //__FXAPI__
 
 template < typename io_T, typename w_T >
-static void __attribute__ ((always_inline)) convolution_even (
+static MLI_FORCE_INLINE void convolution_even (
         const MLI_PTR (io_T) __restrict in_ptr,
         const MLI_PTR (w_T) __restrict w_ptr,
         MLI_CONV_OUT_PTR (io_T) __restrict o_ptr,
@@ -199,7 +199,7 @@ static void __attribute__ ((always_inline)) convolution_even (
 }
 
 template <typename io_T, typename w_T>
-static void __attribute__((always_inline)) convolution_odd_even(
+static MLI_FORCE_INLINE void convolution_odd_even(
         const MLI_PTR(io_T) __restrict in_ptr,
         const MLI_PTR(w_T) __restrict w_ptr,
         MLI_CONV_OUT_PTR(io_T) __restrict o_ptr,
@@ -260,7 +260,7 @@ static void __attribute__((always_inline)) convolution_odd_even(
 }
 
 template < typename io_T, typename w_T >
-static void __attribute__ ((always_inline)) convolution_unroll4_plus1 (
+static MLI_FORCE_INLINE void convolution_unroll4_plus1 (
         const MLI_PTR (io_T) __restrict in_ptr,
         const MLI_PTR (w_T) __restrict w_ptr,
         MLI_CONV_OUT_PTR (io_T) __restrict o_ptr,
@@ -288,7 +288,7 @@ static void __attribute__ ((always_inline)) convolution_unroll4_plus1 (
 }
 
 template < typename io_T, typename w_T >
-static void __attribute__ ((always_inline)) convolution_unroll4_plus2 (
+static MLI_FORCE_INLINE void convolution_unroll4_plus2 (
         const MLI_PTR (io_T) __restrict in_ptr,
         const MLI_PTR (w_T) __restrict w_ptr,
         MLI_CONV_OUT_PTR (io_T) __restrict o_ptr,
@@ -316,7 +316,7 @@ static void __attribute__ ((always_inline)) convolution_unroll4_plus2 (
 }
 
 template < typename io_T, typename w_T >
-static void __attribute__ ((always_inline)) convolution_unroll4 (
+static MLI_FORCE_INLINE void convolution_unroll4 (
         const MLI_PTR (io_T) __restrict in_ptr,
         const MLI_PTR (w_T) __restrict w_ptr,
         MLI_CONV_OUT_PTR (io_T) __restrict o_ptr,
@@ -344,7 +344,7 @@ static void __attribute__ ((always_inline)) convolution_unroll4 (
 }
 
 template < typename io_T, typename w_T >
-static void __attribute__ ((always_inline)) convolution_unroll4_plus3 (
+static MLI_FORCE_INLINE void convolution_unroll4_plus3 (
         const MLI_PTR (io_T) __restrict in_ptr,
         const MLI_PTR (w_T) __restrict w_ptr,
         MLI_CONV_OUT_PTR (io_T) __restrict o_ptr,
@@ -371,7 +371,7 @@ static void __attribute__ ((always_inline)) convolution_unroll4_plus3 (
 }
 
 template < typename io_T, typename w_T >
-static void __attribute__ ((always_inline)) convolution_v (
+static MLI_FORCE_INLINE void convolution_v (
         const MLI_PTR (io_T) __restrict in_ptr,
         const MLI_PTR (w_T) __restrict w_ptr,
         MLI_CONV_OUT_PTR (io_T) __restrict o_ptr,
@@ -512,7 +512,7 @@ static void convolution_chw (
 }
 
 template < typename io_T, typename w_T >
-static inline void __attribute__ ((always_inline)) conv2d_chw_nopad_k1x1_str1 (
+static MLI_FORCE_INLINE void conv2d_chw_nopad_k1x1_str1 (
         const MLI_PTR (io_T) __restrict in_ftrs,
         const MLI_PTR (w_T) __restrict weights,
         const MLI_PTR (w_T) __restrict biases,
@@ -622,7 +622,7 @@ static inline void __attribute__ ((always_inline)) conv2d_chw_nopad_k1x1_str1 (
     }
 }
 
-static inline void __attribute__ ((always_inline)) conv2d_chw_nopad_k1x1_str1 (
+static MLI_FORCE_INLINE void conv2d_chw_nopad_k1x1_str1 (
         const MLI_PTR (int16_t) __restrict in_ftrs,
         const MLI_PTR (int16_t) __restrict weights,
         const MLI_PTR (int16_t) __restrict biases,
@@ -737,7 +737,7 @@ static inline void __attribute__ ((always_inline)) conv2d_chw_nopad_k1x1_str1 (
 }
 
 template < typename io_T, typename w_T >
-static inline void __attribute__ ((always_inline)) conv2d_row_str1 (
+static MLI_FORCE_INLINE void conv2d_row_str1 (
         const MLI_PTR (io_T) __restrict in_ftrs,
         const MLI_PTR (w_T) __restrict weights,
         const MLI_PTR (w_T) __restrict biases,
@@ -949,7 +949,7 @@ static inline void __attribute__ ((always_inline)) conv2d_row_str1 (
 /* optimized function that can do both the borders and the main part
  * for multiple kernel sizes and padding sizes. */
 template < typename io_T, typename w_T >
-static inline void __attribute__ ((always_inline)) conv2d_chw_str1_impl (
+static MLI_FORCE_INLINE void conv2d_chw_str1_impl (
         const MLI_PTR (io_T) __restrict in_ftrs,
         const MLI_PTR (w_T) __restrict weights,
         const MLI_PTR (w_T) __restrict biases,
@@ -1056,7 +1056,7 @@ static inline void __attribute__ ((always_inline)) conv2d_chw_str1_impl (
 }
 
 template < typename io_T, typename w_T >
-static inline void __attribute__ ((always_inline)) conv2d_row_anystride (
+static MLI_FORCE_INLINE void conv2d_row_anystride (
         const MLI_PTR (io_T) __restrict in_ftrs,
         const MLI_PTR (w_T) __restrict weights,
         const MLI_PTR (w_T) __restrict biases,
@@ -1227,7 +1227,7 @@ static inline void __attribute__ ((always_inline)) conv2d_row_anystride (
 /* optimized function that can do both the borders and the main part
  * for multiple kernel sizes and padding sizes. */
 template < typename io_T, typename w_T >
-static inline void __attribute__ ((always_inline)) conv2d_chw (
+static MLI_FORCE_INLINE void conv2d_chw (
         const MLI_PTR (io_T) __restrict in_ftrs,
         const MLI_PTR (w_T) __restrict weights,
         const MLI_PTR (w_T) __restrict biases,
@@ -1319,7 +1319,7 @@ static inline void __attribute__ ((always_inline)) conv2d_chw (
 }
 
 template < typename io_T, typename w_T >
-static inline void __attribute__ ((always_inline)) conv2d_chw_str1 (
+static MLI_FORCE_INLINE void conv2d_chw_str1 (
         const MLI_PTR (io_T) __restrict in_ftrs,
         const MLI_PTR (w_T) __restrict weights,
         const MLI_PTR (w_T) __restrict biases,
@@ -1355,7 +1355,7 @@ static inline void __attribute__ ((always_inline)) conv2d_chw_str1 (
  * sign extention from 8 to 16bit.
  * For platforms with AGU, the sign extention is done by the AGU
  */
-static inline void __attribute__ ((always_inline)) conv2d_chw_str1 (
+static MLI_FORCE_INLINE void conv2d_chw_str1 (
         const MLI_PTR (int8_t) __restrict in_ftrs,
         const MLI_PTR (int8_t) __restrict weights,
         const MLI_PTR (int8_t) __restrict biases,

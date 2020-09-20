@@ -26,7 +26,7 @@ namespace ref {
 //
 //======================================================
 template <typename io_T, mli_eltwise_type func_type>
-static inline void __attribute__ ((always_inline)) eltwise_op_basic_fx(
+static MLI_FORCE_INLINE void eltwise_op_basic_fx(
         const io_T* op1,
         const io_T* op2,
               io_T* out,
@@ -99,7 +99,7 @@ static inline void __attribute__ ((always_inline)) eltwise_op_basic_fx(
 //
 //======================================================
 template <typename io_T, mli_eltwise_type func_type>
-static inline void __attribute__ ((always_inline)) eltwise_prepare_and_run_fx(
+static MLI_FORCE_INLINE void eltwise_prepare_and_run_fx(
         const mli_tensor *in1,
         const mli_tensor *in2,
         mli_tensor *out) {
@@ -120,7 +120,7 @@ static inline void __attribute__ ((always_inline)) eltwise_prepare_and_run_fx(
     // Extract in/out as scalar values
     const io_T in1_scalar = (io_T)((intptr_t)(in1->data.mem.void_p));
     const io_T in2_scalar = (io_T)((intptr_t)(in2->data.mem.void_p));
-    io_T out_scalar;
+    io_T out_scalar = 0;
 
     // Calc outshift for MUL operation
     const int out_shift = (func_type == ELTWISE_MUL)? mli_prv_calc_shift(in1, in2, out): 0;

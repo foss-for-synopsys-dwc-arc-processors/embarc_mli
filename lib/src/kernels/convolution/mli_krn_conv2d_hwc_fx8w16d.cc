@@ -21,7 +21,7 @@
 extern "C" {
 #endif
 
-#pragma Code(".mli_lib")
+#pragma MLI_CODE_SECTION_START(".mli_lib")
 
 mli_status mli_krn_conv2d_hwc_fx8w16d (
         const mli_tensor * in, 
@@ -204,7 +204,7 @@ mli_status mli_krn_conv2d_hwc_fx8w16d (
     return MLI_STATUS_OK;
 }
 
-#pragma code()
+#pragma MLI_CODE_SECTION_END()
 #ifdef __cplusplus
 }
 #endif

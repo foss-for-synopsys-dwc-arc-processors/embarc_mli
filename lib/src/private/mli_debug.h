@@ -69,7 +69,7 @@ extern "C" {
 
 #define MLI_CHECK_AND_FIX(variable, value) (variable = value, MLI_CHECK(variable == value, "Expected fixed value for specialized function"))
 
-static inline mli_status __attribute__ ((always_inline)) mli_check_status(
+static MLI_FORCE_INLINE mli_status mli_check_status(
         mli_status stat, const char* msg, const char* funcname) {
     if (stat != MLI_STATUS_OK){
         //printf("%s: %s: %s\n", funcname, msg, err_status_to_string[status]); TODO
@@ -79,7 +79,7 @@ static inline mli_status __attribute__ ((always_inline)) mli_check_status(
     return stat;
 }
 
-static inline bool __attribute__ ((always_inline)) mli_check(
+static MLI_FORCE_INLINE bool mli_check(
         int cond,
         const char* msg,
         const char* msg2,

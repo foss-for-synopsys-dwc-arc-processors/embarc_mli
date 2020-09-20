@@ -412,9 +412,15 @@ mli_status mli_krn_avepool_chw_fx8(const mli_tensor * in, const mli_pool_cfg * c
 mli_status mli_krn_avepool_chw_fx16(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_avepool_chw_fx8_generic(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_avepool_chw_fx16_generic(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_avepool_hwc_fx8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_avepool_hwc_fx16(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_avepool_hwc_sa8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
+mli_status mli_krn_avepool_hwc_sa8_k2x2(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
+mli_status mli_krn_avepool_hwc_sa8_k3x3(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
+mli_status mli_krn_avepool_hwc_fx8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
+mli_status mli_krn_avepool_hwc_fx8_k2x2(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
+mli_status mli_krn_avepool_hwc_fx8_k3x3(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
+mli_status mli_krn_avepool_hwc_fx16(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
+mli_status mli_krn_avepool_hwc_fx16_k2x2(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
+mli_status mli_krn_avepool_hwc_fx16_k3x3(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 
 /**
  * @brief MAX pooling
@@ -477,6 +483,7 @@ mli_status mli_krn_fully_connected_fx8( /* DEPRECATED */
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
+        const mli_fully_connected_cfg * cfg,
         mli_tensor * out);
 
 mli_status mli_krn_fully_connected_fx16(
@@ -497,6 +504,7 @@ mli_status mli_krn_fully_connected_fx8w16d( /* DEPRECATED */
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
+        const mli_fully_connected_cfg * cfg,
         mli_tensor * out);
 
 mli_status mli_krn_fully_connected_sa8_sa8_sa32(
@@ -699,7 +707,7 @@ mli_status mli_krn_tanh_sa8(const mli_tensor * in, mli_tensor * out);
 mli_status mli_krn_softmax_sa8(const mli_tensor* in, const mli_softmax_cfg* cfg, mli_tensor* out);
 mli_status mli_krn_softmax_fx16(const mli_tensor* in, const mli_softmax_cfg* cfg, mli_tensor* out);
 
-mli_status mli_krn_softmax_fx8(const mli_tensor * in, mli_tensor * out); /* DEPRECATED */
+mli_status mli_krn_softmax_fx8(const mli_tensor * in, const mli_softmax_cfg* cfg, mli_tensor * out); /* DEPRECATED */
 
 
 

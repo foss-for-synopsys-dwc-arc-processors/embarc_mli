@@ -34,9 +34,23 @@
 #define MLI_PRV_TENSOR_CALC_MEM_STRIDES_VAL false
 #endif
 
+#define POS mli_prv_get_tensor_idx_pos
+
+/* To move inside tensor using memory strides (using 4 nested loops with counters pos0 pos1 pos2 pos4) */
+template <typename io_T>
+static MLI_FORCE_INLINE int mli_prv_get_tensor_idx_pos(
+        const struct generic_tensor_private_t<io_T *> *in,
+        int pos0, int pos1, int pos2, int pos3) {
+
+    int res = pos0 * in->mem_stride[0] + pos1 * in->mem_stride[1] +
+              pos2 * in->mem_stride[2] + pos3 * in->mem_stride[3];
+
+    return res;
+}
+
 // To prevent a compiler name mangling issue, type_is_xy should be true if and only if T has __xy.
-template <typename T, bool type_is_xy=false> __attribute__((always_inline))
-static inline tensor_private_t<T> mli_prv_get_tensor_chw(
+template <typename T, bool type_is_xy=false>
+static MLI_FORCE_INLINE tensor_private_t<T> mli_prv_get_tensor_chw(
         const mli_tensor *in,
         const int fix_ch = 0) {
     int ch             = (int)in->shape[FMAP_C_DIM_CHW];
@@ -70,8 +84,8 @@ static inline tensor_private_t<T> mli_prv_get_tensor_chw(
 }
 
 // To prevent a compiler name mangling issue, type_is_xy should be true if and only if T has __xy.
-template <typename T, bool type_is_xy=false> __attribute__((always_inline))
-static inline tensor_private_t<T> mli_prv_get_tensor_hwc(
+template <typename T, bool type_is_xy=false>
+static MLI_FORCE_INLINE tensor_private_t<T> mli_prv_get_tensor_hwc(
         const mli_tensor *in,
         const int fix_ch = 0) {
     const int height   = (int)in->shape[FMAP_H_DIM_HWC];
@@ -104,9 +118,44 @@ static inline tensor_private_t<T> mli_prv_get_tensor_hwc(
             col_mem_stride, row_mem_stride, ch_mem_stride };
 }
 
+template <typename T>
+static MLI_FORCE_INLINE generic_tensor_private_t<T> mli_prv_get_generic_tensor(
+        const mli_tensor *in,
+        const int axis = -1) {
+    generic_tensor_private_t<T> tensor;
+    int rank = in->rank;
+
+    tensor.ptr = (T)in->data.mem.void_p;
+
+    /* Convert the input tensor to a private tensor that contains only the axis in case of per axis,
+     * and the complete tensor in case of per tensor.
+     */
+    for (int i = 0; i < rank; i++) {
+        if (axis < 0) {
+            tensor.shape[i] = in->shape[i];
+        } else if (i == axis) {
+            tensor.shape[i] = in->shape[i];
+        } else {
+            tensor.shape[i] = 1;
+        }
+    }
+
+    tensor.mem_stride[rank - 1] = in->mem_stride[rank - 1] != 0 ? in->mem_stride[rank - 1] : 1;
+    for (int i = rank - 2; i >= 0; i--) {
+        tensor.mem_stride[i] = in->mem_stride[i] != 0 ? in->mem_stride[i] : tensor.mem_stride[i+1] * in->shape[i+1];
+    }
+
+    for (int i = rank; i < MLI_MAX_RANK; i++) {
+        tensor.shape[i] = 1;
+        tensor.mem_stride[i] = 1;
+    }
+
+    return tensor;
+}
+
 // To prevent a compiler name mangling issue, type_is_xy should be true if and only if T has __xy.
-template <typename T, bool type_is_xy=false> __attribute__((always_inline))
-static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_nhwc(
+template <typename T, bool type_is_xy=false>
+static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_nhwc(
         const mli_tensor *weights,
         const int fix_in_ch = 0,
         const int fix_width = 0,
@@ -151,8 +200,8 @@ static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tens
             col_mem_stride, row_mem_stride, in_ch_mem_stride, out_ch_mem_stride };
 }
 
-template <typename T> __attribute__((always_inline))
-static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_hwcn(
+template <typename T>
+static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_hwcn(
         const mli_tensor *weights,
         const int fix_in_ch = 0,
         const int fix_width = 0,
@@ -197,8 +246,8 @@ static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tens
 }
 
 // To prevent a compiler name mangling issue, type_is_xy should be true if and only if T has __xy.
-template <typename T, bool type_is_xy=false> __attribute__((always_inline))
-static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_1hwn(
+template <typename T, bool type_is_xy=false>
+static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_1hwn(
         const mli_tensor *weights,
         const int fix_width = 0,
         const int fix_height = 0) {
@@ -242,7 +291,7 @@ static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tens
 }
 
 template <typename T>
-static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_nchw(
+static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_nchw(
         const mli_tensor *weights) {
     const int out_ch      = (int)weights->shape[KRNL_C_DIM_CHW];
     const int in_ch       = (int)weights->shape[KRNL_D_DIM_CHW];
@@ -273,14 +322,14 @@ static inline conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tens
 extern "C" {
 #endif
 
-static inline mli_status __attribute__ ((always_inline)) mli_prv_copy_tensor_format(
+static MLI_FORCE_INLINE mli_status mli_prv_copy_tensor_format(
         const mli_tensor * src, 
         mli_tensor * dst) {
     mli_status check = MLI_CHECK_STATUS(mli_chk_tensor (src), __func__);
     if (check != MLI_STATUS_OK)
           return check;
 
-    for (int idx = 0; idx < src->rank; idx++) {
+    for (int idx = 0; idx < (int)src->rank; idx++) {
         dst->shape[idx] = src->shape[idx];
         dst->mem_stride[idx] = src->mem_stride[idx];
     }
@@ -291,27 +340,71 @@ static inline mli_status __attribute__ ((always_inline)) mli_prv_copy_tensor_for
     return MLI_STATUS_OK;
 }
 
-static int inline __attribute__((always_inline)) mli_prv_calc_shift(
-        const mli_tensor *in0,
-        const mli_tensor *in1,
+static MLI_FORCE_INLINE mli_status mli_prv_copy_tensor_format_except_mem_strides(
+        const mli_tensor * src,
+        mli_tensor * dst) {
+    mli_status check = MLI_CHECK_STATUS(mli_chk_tensor (src), __func__);
+    if (check != MLI_STATUS_OK)
+          return check;
+
+    for (int idx = 0; idx < (int)src->rank; idx++) {
+        dst->shape[idx] = src->shape[idx];
+    }
+
+    dst->rank = src->rank;
+    dst->el_type = src->el_type;
+    dst->el_params = src->el_params;
+    return MLI_STATUS_OK;
+}
+
+static MLI_FORCE_INLINE int mli_prv_calc_shift(
+        const mli_tensor *in,
+        const mli_tensor *w,
         const mli_tensor *out){
-    if ((in0->el_type == MLI_EL_FX_8) || (in0->el_type == MLI_EL_FX_16)) {
+    if ((in->el_type == MLI_EL_FX_8) || (in->el_type == MLI_EL_FX_16)) {
         /* mix of FX and asym datatypes is not supported */
-        MLI_ASSERT((in1->el_type == MLI_EL_FX_8) || (in1->el_type == MLI_EL_FX_16));
+        MLI_ASSERT((w->el_type == MLI_EL_FX_8) || (w->el_type == MLI_EL_FX_16));
         MLI_ASSERT((out->el_type == MLI_EL_FX_8) || (out->el_type == MLI_EL_FX_16));
-        return (in0->el_params.fx.frac_bits + in1->el_params.fx.frac_bits) - out->el_params.fx.frac_bits;
-    } else if (in0->el_type == MLI_EL_SA_8) {
+        return (in->el_params.fx.frac_bits + w->el_params.fx.frac_bits) - out->el_params.fx.frac_bits;
+    } else if (in->el_type == MLI_EL_SA_8) {
         /* mix of FX and asym datatypes is not supported */
-        MLI_ASSERT(in1->el_type == MLI_EL_SA_8);
+        MLI_ASSERT(w->el_type == MLI_EL_SA_8);
         MLI_ASSERT((out->el_type == MLI_EL_SA_8) || (out->el_type == MLI_EL_SA_32));
-        return (in0->el_params.sa.scale_frac_bits + in1->el_params.sa.scale_frac_bits) - out->el_params.sa.scale_frac_bits;
+        MLI_ASSERT(in->el_params.sa.dim < 0); // this function can only be used for per tensor quantization.
+        MLI_ASSERT(w->el_params.sa.dim < 0); // this function can only be used for per tensor quantization.
+        MLI_ASSERT(out->el_params.sa.dim < 0); // this function can only be used for per tensor quantization.
+        return (in->el_params.sa.scale_frac_bits.mem.i8 + w->el_params.sa.scale_frac_bits.mem.i8) - out->el_params.sa.scale_frac_bits.mem.i8;
     } else {
         MLI_ASSERT(0);
         return 0;
     }
 }
 
-static int32_t inline __attribute__((always_inline)) mli_prv_calc_bias_mul(
+static MLI_FORCE_INLINE int mli_prv_calc_shift_idx(
+        const mli_tensor *in,
+        const mli_tensor *w,
+        const mli_tensor *out,
+        const int idx){
+    if ((in->el_type == MLI_EL_FX_8) || (in->el_type == MLI_EL_FX_16)) {
+        /* mix of FX and asym datatypes is not supported */
+        MLI_ASSERT((w->el_type == MLI_EL_FX_8) || (w->el_type == MLI_EL_FX_16));
+        MLI_ASSERT((out->el_type == MLI_EL_FX_8) || (out->el_type == MLI_EL_FX_16));
+        return (in->el_params.fx.frac_bits + w->el_params.fx.frac_bits) - out->el_params.fx.frac_bits;
+    } else if (in->el_type == MLI_EL_SA_8) {
+        /* mix of FX and asym datatypes is not supported */
+        MLI_ASSERT(w->el_type == MLI_EL_SA_8);
+        MLI_ASSERT((out->el_type == MLI_EL_SA_8) || (out->el_type == MLI_EL_SA_32));
+        int in_shift = (in->el_params.sa.dim < 0) ? in->el_params.sa.scale_frac_bits.mem.i8 : in->el_params.sa.scale_frac_bits.mem.pi8[idx];
+        int w_shift = (w->el_params.sa.dim < 0) ? w->el_params.sa.scale_frac_bits.mem.i8 : w->el_params.sa.scale_frac_bits.mem.pi8[idx];
+        int out_shift = (out->el_params.sa.dim < 0) ? out->el_params.sa.scale_frac_bits.mem.i8 : out->el_params.sa.scale_frac_bits.mem.pi8[idx];
+        return in_shift + w_shift - out_shift;
+    } else {
+        MLI_ASSERT(0);
+        return 0;
+    }
+}
+
+static MLI_FORCE_INLINE int32_t mli_prv_calc_bias_mul(
         const mli_tensor *in0,
         const mli_tensor *in1,
         const mli_tensor *bias){
@@ -324,7 +417,7 @@ static int32_t inline __attribute__((always_inline)) mli_prv_calc_bias_mul(
         /* mix of FX and asym datatypes is not supported */
         MLI_ASSERT(in1->el_type == MLI_EL_SA_8);
         MLI_ASSERT((bias->el_type == MLI_EL_SA_8) || (bias->el_type == MLI_EL_SA_32));
-        int32_t bias_mul = (1 << MLI_BIAS_MUL_SHIFT) / ((int32_t)in0->el_params.sa.scale.mem.i32 * (int32_t)in1->el_params.sa.scale.mem.i32);
+        int32_t bias_mul = (1 << MLI_BIAS_MUL_SHIFT) / ((int32_t)in0->el_params.sa.scale.mem.i16 * (int32_t)in1->el_params.sa.scale.mem.i16);
         return bias_mul;
     } else {
         MLI_ASSERT(0);
@@ -333,25 +426,25 @@ static int32_t inline __attribute__((always_inline)) mli_prv_calc_bias_mul(
 }
 
 /* partial element counting. starting at startrank */
-static uint32_t inline __attribute__((always_inline)) mli_prv_count_elem_num_part(
+static MLI_FORCE_INLINE uint32_t mli_prv_count_elem_num_part(
         const mli_tensor *in,
         uint32_t startrank) {
     const uint32_t *shape = &in->shape[startrank];
     uint32_t rank = in->rank - startrank;
     uint32_t elem_num = 1;
 
-    for (int idx = 0; idx < rank; idx++)
+    for (int idx = 0; idx < (int)rank; idx++)
         elem_num *= shape[idx];
 
     return elem_num;
 }
 
 /* full element counting */
-static uint32_t inline __attribute__((always_inline)) mli_prv_count_elem_num(const mli_tensor *in) {
+static MLI_FORCE_INLINE uint32_t mli_prv_count_elem_num(const mli_tensor *in) {
     return mli_prv_count_elem_num_part(in, 0);
 }
 
-static inline mli_minmax_t __attribute__((always_inline))
+static MLI_FORCE_INLINE mli_minmax_t
 mli_prv_get_relu_min_max (const mli_relu_cfg * cfg, const mli_tensor * out) {
     mli_minmax_t val_limit;
     int min_val, max_val;
@@ -364,8 +457,8 @@ mli_prv_get_relu_min_max (const mli_relu_cfg * cfg, const mli_tensor * out) {
         // One and six are not casted to 16bit directly, only after comparison with min_val and max_val and all of them are int.
         // Min val and max val always fit to container range, while six and one don't have to.
         // TODO: think about how to define whether it is required to extract six and one at all or not.
-        six = ((int64_t)6l << mli_hlp_tensor_scale_shift(out)) /  mli_hlp_tensor_scale(out, 0);
-        one = ((int64_t)1l << mli_hlp_tensor_scale_shift(out)) /  mli_hlp_tensor_scale(out, 0);
+        six = ((int64_t)6l << mli_hlp_tensor_scale_shift(out, 0)) /  mli_hlp_tensor_scale(out, 0);
+        one = ((int64_t)1l << mli_hlp_tensor_scale_shift(out, 0)) /  mli_hlp_tensor_scale(out, 0);
         six = six + zero;
         neg_one = -one + zero;
         one = one + zero;

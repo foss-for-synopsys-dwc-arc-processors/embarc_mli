@@ -27,7 +27,7 @@
 extern "C" {
 #endif
 
-#pragma Code(".mli_lib")
+#pragma MLI_CODE_SECTION_START(".mli_lib")
 
 mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_k3x3_krnpad(
         const mli_tensor * in, 
@@ -589,7 +589,7 @@ char * mli_debug_krn_conv2d_nhwc_sa8_sa8_sa32(
     }
 }
 
-#pragma code()
+#pragma MLI_CODE_SECTION_END()
 
 #ifdef __cplusplus
     }

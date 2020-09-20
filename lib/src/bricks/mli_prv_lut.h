@@ -17,16 +17,29 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Setting up namespace
 ////////////////////////////////////////////////////////////////////////////////
+// Selecting between different variants (depending on hardware features) is
+// done with 'using'. A completely different implementation can be used/'using'.
+// However, also only a part of the reference together with optimized functions
+// (from example *_dsp) can be used/'using'.
+
 namespace mli {
 namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-using mli::krn::vdsp::activation_lut;
+/* TODO: fix ::vdsp::activation_lut when vpx version supported */
+using mli::krn::ref::activation_lut;
+using mli::krn::ref::activation_lut_one_elem_interpolate;
+using mli::krn::ref::activation_lut_one_elem_no_interpolate;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-using mli::krn::dsp::activation_lut;
+/* TODO: fix ::dsp::activation_lut when dsp version supported */
+using mli::krn::ref::activation_lut;
+using mli::krn::ref::activation_lut_one_elem_interpolate;
+using mli::krn::ref::activation_lut_one_elem_no_interpolate;
 
 #else
 using mli::krn::ref::activation_lut;
+using mli::krn::ref::activation_lut_one_elem_interpolate;
+using mli::krn::ref::activation_lut_one_elem_no_interpolate;
 
 #endif
 } // krn
@@ -35,6 +48,10 @@ using mli::krn::ref::activation_lut;
 ////////////////////////////////////////////////////////////////////////////////
 // Include implementation
 ////////////////////////////////////////////////////////////////////////////////
+// The reference (*_ref.h) implementation can run on all platforms and is always
+// included. Other variants are included based on capabilities. Implementations
+// below can depend on each other through declarations in *_decl.h.
+
 #include "impl/mli_prv_lut_ref.h"
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)

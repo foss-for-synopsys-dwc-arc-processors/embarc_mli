@@ -24,16 +24,18 @@ namespace dsp {
 
 template <typename io_T, bool convert>
 static void activation_lut(
-        const MLI_PTR(io_T) in,
-        MLI_OUT_PTR(io_T) out,
+        const struct generic_tensor_private_t<io_T *> *in,
+        struct generic_tensor_private_t<io_T *> *out,
         const mli_lut *lut,
         int8_t in_frac_bits,
-        int length,
-        struct s8asym_quant_params *in_params,
+        const struct s8asym_quant_params *in_params,
         struct s8asym_quant_params *out_params) {
 
+    /* TODO use mem strides */
+    /* TODO fix this and support mem strides*/
+    int axis_len = in->shape[0];
+
     MLI_ASSERT(in_frac_bits >= -1);  // -1 may be required by softmax
-    MLI_ASSERT(length >= 0);
     MLI_ASSERT(lut->frac_bits >= 0);
     MLI_ASSERT(lut->length >= 0);
 
@@ -64,7 +66,7 @@ static void activation_lut(
         v2q15_t mask = mli_prv_init_v((1 << shift_in) - 1);
         v2q15_t upper = mli_prv_init_v(lut->length - 2);
 
-        if (length & 1) {
+        if (axis_len & 1) {
             v2q15_t x = mli_prv_load_1_sample(in);
             if (convert) {
                 x = mli_prv_convert_sa8_fx16<v2q15_t, v2q15_t>(x, in_params->offset, scale_fx);
@@ -92,7 +94,7 @@ static void activation_lut(
             in += 1;
             out += 1;
         }
-        for (int idx = 0; idx < (length >> 1); idx++) {
+        for (int idx = 0; idx < (axis_len >> 1); idx++) {
             v2q15_t x = mli_prv_load_2_samples(in);
             if (convert) {
                 x = mli_prv_convert_sa8_fx16<v2q15_t, v2q15_t>(x, in_params->offset, scale_fx);
@@ -124,7 +126,7 @@ static void activation_lut(
         // input data isn't more precise than LUT
         v2q15_t upper = mli_prv_init_v(lut->length - 1);
 
-        if (length & 1) {
+        if (axis_len & 1) {
             v2q15_t x = mli_prv_load_1_sample(in);
             if (convert) {
                 x = mli_prv_convert_sa8_fx16<v2q15_t, v2q15_t>(x, in_params->offset, scale_fx);
@@ -146,7 +148,7 @@ static void activation_lut(
             in += 1;
             out += 1;
         }
-        for (int idx = 0; idx < (length >> 1); idx++) {
+        for (int idx = 0; idx < (axis_len >> 1); idx++) {
             v2q15_t x = mli_prv_load_2_samples(in);
             if (convert) {
                 x = mli_prv_convert_sa8_fx16<v2q15_t, v2q15_t>(x, in_params->offset, scale_fx);

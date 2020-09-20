@@ -82,6 +82,11 @@ typedef enum {
     MLI_EL_LARGE_ENUM = 0x02000000      /**< Utility field. Prevent size optimization of public enums */
 } mli_element_type;
 
+typedef enum {
+    MLI_EL_PARAM_SC16_ZP16 = 0, /**< element params have 16bit scale values and 16bit zeropoint */
+    MLI_EL_PARAM_LARGE_ENUM = 0x02000000      /**< Prevent size optimization of public enums */
+} mli_el_param_type;
+
 /**
  * @brief Container union to represent polymorphic data.
  *
@@ -119,6 +124,7 @@ typedef union _mli_element_params {
     } fx;
 
     struct {
+        mli_el_param_type type;
         mli_data_container zero_point;  /**< 16bit signed zero point offset. Single value for all data in tensor if dim < 0 
                                         or pointer to an array of zero points regarding configured dimension (dim) otherwise.
                                         In case of array it's size can be looked up in the shape using the dimension to which the scales apply*/
@@ -126,7 +132,7 @@ typedef union _mli_element_params {
                                         or pointer to an array of scale factors regarding configured dimension (dim) otherwise.
                                         In case of array it's size can be looked up in the shape using the dimension to which the scales apply*/
         int32_t dim;               /**< dimension of the tensor to which the array's of quantization parameters apply */
-        int8_t scale_frac_bits;     /**< number of fractional bits in the elements of the scales array */
+        mli_data_container scale_frac_bits;     /**< number of fractional bits in the elements of the scales array */
     } sa;
 } mli_element_params;
 
@@ -198,9 +204,10 @@ typedef struct {
  * Configuration struct to provide axis along which the function will be applied
  */
 typedef struct {
-    int32_t axis; /**< An axis along which the function will be computed. Axis corresponds to index of tensor`s dimension
-                  starting from 0. For instance, having future map in HWC layout, axis == 0 corresponds to H dimension. 
-                  If axis < 0 the function will be applied to the whole tensor */
+    int32_t axis; /**< An axis along which the function will be computed.
+                       Axis corresponds to index of tensor`s dimension starting from 0.
+                       For instance, having future map in HWC layout, axis == 0 corresponds to H dimension.
+                       If axis < 0 the function will be applied to the whole tensor */
 } mli_prelu_cfg;
 
 

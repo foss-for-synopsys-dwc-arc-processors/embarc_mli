@@ -442,7 +442,9 @@ static inline mli_status avepool_chw(const mli_tensor *in, const mli_pool_cfg *c
 }
 
 static inline mli_status softmax(const mli_tensor *in,	mli_tensor *out) {
-    return mli_krn_softmax_fx16(in, out);
+    mli_softmax_cfg cfg = {0};
+    cfg.axis = -1;
+    return mli_krn_softmax_fx16(in, &cfg, out);
 }
 
 static inline mli_status relu(const mli_tensor *in, const mli_relu_cfg *cfg, mli_tensor *out) {
@@ -512,7 +514,9 @@ static inline mli_status fully_connected(
         const mli_tensor *weights,
         const mli_tensor *bias,
         mli_tensor *out) {
-    return mli_krn_fully_connected_fx16(in, weights, bias, out);
+    mli_fully_connected_cfg cfg = {0};
+    cfg.relu.type = MLI_RELU_NONE;
+    return mli_krn_fully_connected_fx16(in, weights, bias, &cfg, out);
 }
 
 #else // MODEL_BIT_DEPTH == MODEL_FX_8W16D

@@ -183,6 +183,20 @@ mli_status mli_chk_depthwise_conv2d_hwc_fx8w16d(
         const mli_conv2d_cfg * cfg,
         const mli_tensor * out);
 
+mli_status mli_chk_depthwise_conv2d_hwcn_fx16(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg * cfg,
+        const mli_tensor * out);
+
+mli_status mli_chk_depthwise_conv2d_hwcn_fx16_fx8_fx8(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg * cfg,
+        const mli_tensor * out);
+
 mli_status mli_chk_depthwise_conv2d_hwcn_sa8_sa8_sa32(
         const mli_tensor * in,
         const mli_tensor * weights,
@@ -210,30 +224,35 @@ mli_status mli_chk_fully_connected(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
+        const mli_fully_connected_cfg * cfg,
         mli_tensor * out);
 
 mli_status mli_chk_fully_connected_fx8w16d(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
+        const mli_fully_connected_cfg * cfg,
         mli_tensor * out);
 
 mli_status mli_chk_fully_connected_fx8(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
+        const mli_fully_connected_cfg * cfg,
         mli_tensor * out);
 
 mli_status mli_chk_fully_connected_fx16(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
+        const mli_fully_connected_cfg * cfg,
         mli_tensor * out);
 
 mli_status mli_chk_fully_connected_sa8_sa8_sa32(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
+        const mli_fully_connected_cfg * cfg,
         mli_tensor * out);
 
 mli_status mli_chk_relu(const mli_tensor * in, const mli_relu_cfg * cfg, mli_tensor * out);
@@ -244,6 +263,9 @@ mli_status mli_chk_basic_activation(const mli_tensor * in, mli_tensor * out);
 mli_status mli_chk_basic_activation_fx8(const mli_tensor * in, mli_tensor * out);
 mli_status mli_chk_basic_activation_fx16(const mli_tensor * in, mli_tensor * out);
 mli_status mli_chk_basic_activation_sa8(const mli_tensor * in, mli_tensor * out);
+mli_status mli_chk_softmax_fx8(const mli_tensor * in, const mli_softmax_cfg* cfg, mli_tensor * out);
+mli_status mli_chk_softmax_fx16(const mli_tensor * in, const mli_softmax_cfg* cfg, mli_tensor * out);
+mli_status mli_chk_softmax_sa8(const mli_tensor * in, const mli_softmax_cfg* cfg, mli_tensor * out);
 mli_status mli_chk_leaky_relu(const mli_tensor * in, const mli_tensor * slope_coeff, mli_tensor * out);
 mli_status mli_chk_leaky_relu_fx8(const mli_tensor * in, const mli_tensor * slope_coeff, mli_tensor * out);
 mli_status mli_chk_leaky_relu_fx16(const mli_tensor * in, const mli_tensor * slope_coeff, mli_tensor * out);

@@ -57,7 +57,7 @@ struct mli_compensations {
 // Step in linear array to get next column (array is considered as n-dimensional with particular layout)
 //====================================================================================================
 template <mli_layout_type layout>
-inline int mli_prv_column_step(int height = 1, int width = 1, int channels = 1, int filters = 1) {
+MLI_FORCE_INLINE int mli_prv_column_step(int height = 1, int width = 1, int channels = 1, int filters = 1) {
     int column_step = 1;
     if (layout == LAYOUT_HWC) {
         column_step = channels;
@@ -71,7 +71,7 @@ inline int mli_prv_column_step(int height = 1, int width = 1, int channels = 1, 
 // Step in linear array to get next row (array is considered as n-dimensional with particular layout)
 //====================================================================================================
 template <mli_layout_type layout>
-inline int mli_prv_row_step(int height = 1, int width = 1, int channels = 1, int filters = 1) {
+MLI_FORCE_INLINE int mli_prv_row_step(int height = 1, int width = 1, int channels = 1, int filters = 1) {
     int row_step = 1;
     if (layout == LAYOUT_HWC) {
         row_step = width * channels;
@@ -85,7 +85,7 @@ inline int mli_prv_row_step(int height = 1, int width = 1, int channels = 1, int
 // Compensation values definition: 
 // How much rows/columns need to be skipped from each side to left only valid area of filter or input
 //====================================================================================================
-inline mli_compensations mli_prv_valid_area_compensations(int out_h_idx, int out_w_idx, 
+MLI_FORCE_INLINE mli_compensations mli_prv_valid_area_compensations(int out_h_idx, int out_w_idx, 
                                                               int in_height, int in_width,
                                                               int kernel_height, int kernel_width,
                                                               int stride_h, int stride_w,
@@ -103,7 +103,7 @@ inline mli_compensations mli_prv_valid_area_compensations(int out_h_idx, int out
 // Element index definition in linear array which is considered as n-dimensional with particular layout
 //====================================================================================================
 template <mli_layout_type layout>
-inline int mli_prv_calc_index(int height = 1, int width = 1, int channels = 1, int filters = 1,
+MLI_FORCE_INLINE int mli_prv_calc_index(int height = 1, int width = 1, int channels = 1, int filters = 1,
                                       int h_idx = 0, int w_idx = 0, int c_idx = 0, int f_idx = 0) {
     int result_idx = 0; // starting point
     if (layout == LAYOUT_HWC) {

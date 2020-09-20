@@ -262,6 +262,13 @@ MLI_FORCE_INLINE o_T mli_math_norm_fx(T x) {
 }
 
 template <>
+MLI_FORCE_INLINE vNx4short_t mli_math_norm_fx(vNx4short_t x) {
+    vNx4short_t r;
+    r.lo = vvnorm(x.lo);
+    r.hi = vvnorm(x.hi);
+    return r;
+}
+template <>
 MLI_FORCE_INLINE vNx4int_t mli_math_norm_fx(vNx4int_t x) {
     vNx4int_t r;
     r.lo.lo = vvnorm(x.lo.lo);
