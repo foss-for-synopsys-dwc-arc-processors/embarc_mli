@@ -13,17 +13,18 @@
 #include <assert.h>
 
 
-//using namespace std;
-
 namespace mli {
 namespace tst {
 
+// Separator string and it's length. All fields sizes assume it is fixed. 
+//==========================================================
 static const int kSeparatorStringLength = 111;
 static const char kSeparatorString[kSeparatorStringLength] =
     "|============================================================================================================|";
 
-void reporter_full::report_header(const char* case_descr) const {
-    
+//Print header of test report
+//==========================================================
+void reporter_full::report_header(const char* case_descr) const {  
     assert(kSeparatorStringLength == 111);
     printf("\n%s\n", kSeparatorString);
     printf("|  %-106s|\n", case_descr);
@@ -33,6 +34,8 @@ void reporter_full::report_header(const char* case_descr) const {
     printf("%s\n", kSeparatorString);
 }
 
+// evaluate provided results and populate report table field accrdingly
+//==========================================================
 bool reporter_full::evaluate_and_report_case(const char* case_descr, 
                                              const quality_metrics& result, const quality_metrics& threshold,
                                              const crc32_calc& crc_result, const crc32_calc& crc_checksum) const {
@@ -82,11 +85,15 @@ bool reporter_full::evaluate_and_report_case(const char* case_descr,
     return is_case_passed;
 }
 
+// print an external message regarding testcase
+//==========================================================
 void reporter_full::report_message(const char* case_descr, const char* message) const {
     assert(kSeparatorStringLength == 111);
     printf("| %-30s| %-75s|\n", case_descr, message);
 }
 
+// print an outline of test repor with external final status
+//===========================================================
 void reporter_full::report_outline(const char* outline_marker, bool is_passed) const {
     assert(kSeparatorStringLength == 111);
     printf("%s\n", kSeparatorString);

@@ -12,8 +12,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "test_infra.h"
 #include "mli_types.h"
-#include "test_metrics.h"
 #include "test_quantizer.h"
 #include "test_report.h"
 
@@ -51,9 +51,9 @@ crc32_calc  test_1_chksum_fx16, test_1_chksum_fx8w16d, test_1_chksum_sa8,
             test_5_chksum_fx16, test_5_chksum_fx8w16d, test_5_chksum_sa8;
 #else
 // Need to distinquish platforms and update checksums
-crc32_calc test_1_chksum_fx16{ 0x3669E8DA }, test_1_chksum_fx8w16d{ 0x627FD168 }, test_1_chksum_sa8{ 0xCDBA5893 },
-            test_2_chksum_fx16{ 0x6075722F}, test_2_chksum_fx8w16d{ 0xBFE5DC3D }, test_2_chksum_sa8{ 0x8748D3A9 },
-            test_3_chksum_fx16{ 0xE2100158 }, test_3_chksum_fx8w16d{ 0x550F135E }, test_3_chksum_sa8{ 0x53FABFE8 },
+crc32_calc test_1_chksum_fx16{ 0x3669E8DA }, test_1_chksum_fx8w16d{ 0x627FD168 }, test_1_chksum_sa8{ 0xA3FFD976 },
+            test_2_chksum_fx16{ 0x6075722F}, test_2_chksum_fx8w16d{ 0xBFE5DC3D }, test_2_chksum_sa8{ 0x314ECCA6 },
+            test_3_chksum_fx16{ 0xE2100158 }, test_3_chksum_fx8w16d{ 0x550F135E }, test_3_chksum_sa8{ 0x9740102D },
             test_4_chksum_fx16, test_4_chksum_fx8w16d, test_4_chksum_sa8,
             test_5_chksum_fx16, test_5_chksum_fx8w16d, test_5_chksum_sa8;
 #endif

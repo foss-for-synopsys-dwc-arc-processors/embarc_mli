@@ -7,7 +7,7 @@
 *
 */
 
-#include "test_metrics.h"
+#include "test_infra.h"
 
 #include <memory>
 #include <algorithm>
@@ -20,6 +20,12 @@
 
 namespace mli {
 namespace tst {
+
+//===============================================================================================
+//
+// Methods of the module to calculate and handle result quality metrics
+//
+//===============================================================================================
 
 
 // Constructors
@@ -40,7 +46,8 @@ quality_metrics::quality_metrics()
 {}
 
 
-
+// Get metric itself
+//====================================================
 float quality_metrics::get_metric_float(const metric_id id) const {
     switch (id) {
     case kMetricMaxAbsErr:
@@ -54,7 +61,8 @@ float quality_metrics::get_metric_float(const metric_id id) const {
     }
 }
 
-
+// Compare instance metric with some threshold (float)
+//====================================================
 bool quality_metrics::is_threshold_met(const metric_id id, const float threshold) const {
     switch (id) {
     case kMetricMaxAbsErr:
@@ -68,6 +76,8 @@ bool quality_metrics::is_threshold_met(const metric_id id, const float threshold
     }
 }
 
+// Compare instance metric with some threshold (another instance).
+//====================================================
 bool quality_metrics::is_threshold_met(const metric_id id, const quality_metrics& threshold) const {
     switch (id) {
     case kMetricMaxAbsErr:
@@ -81,6 +91,8 @@ bool quality_metrics::is_threshold_met(const metric_id id, const quality_metrics
     }
 }
 
+// Populate instance metrics with measured ones.
+//===================================================
 bool quality_metrics::calculate_metrics(const mli_tensor& pred_tsr, const tensor_quantizer& ref_keeper) {
     const uint32_t elem_num = mli_hlp_count_elem_num(&pred_tsr, 0);
 
@@ -159,21 +171,33 @@ bool quality_metrics::calculate_metrics(const mli_tensor& pred_tsr, const tensor
     return true;
 }
 
+//===============================================================================================
+//
+// Methods and dataof the Module to calculate and handle CRC32 sum.
+//
+//===============================================================================================
+
+// Half-byte lookup table
+//=========================================
 const uint32_t crc32_calc::crc32_lookup_table_[16] = {
   0x00000000,0x1DB71064,0x3B6E20C8,0x26D930AC,0x76DC4190,0x6B6B51F4,0x4DB26158,0x5005713C,
   0xEDB88320,0xF00F9344,0xD6D6A3E8,0xCB61B38C,0x9B64C2B0,0x86D3D2D4,0xA00AE278,0xBDBDF21C
 };
 
+
+// Constructors
+//================================
 crc32_calc::crc32_calc()
     : crc32_sum_(0x00000000)
     , valid_crc32_(false)
 {}
-
 crc32_calc::crc32_calc(uint32_t init_val)
     : crc32_sum_(init_val)
     , valid_crc32_(true)
 {}
 
+// Reset instance state
+//================================
 void crc32_calc::reset() {
     crc32_sum_ = 0x00000000;
     valid_crc32_ = false;
@@ -183,10 +207,20 @@ void crc32_calc::reset(uint32_t new_val) {
     valid_crc32_ = true;
 }
 
+// Get accumulatec CRC sum
+//================================
 uint32_t crc32_calc::get() const {
     return crc32_sum_;
 }
 
+// Get status of CRC instance
+//================================
+bool crc32_calc::is_valid() const {
+    return valid_crc32_;
+}
+
+// Get accumulatec CRC sum
+//================================
 uint32_t crc32_calc::operator()(const mli_tensor& in) {
     const int8_t* current = in.data.mem.pi8;
     uint32_t length = mli_hlp_count_elem_num(&in, 0) * mli_hlp_tensor_element_size(&in);
@@ -207,8 +241,6 @@ uint32_t crc32_calc::operator()(const mli_tensor& in) {
     return crc32_sum_;
 }
 
-bool crc32_calc::is_valid() const {
-    return valid_crc32_;
-}
+
 } // namespace mli {
 } // namespace tst {

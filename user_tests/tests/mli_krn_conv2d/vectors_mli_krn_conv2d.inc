@@ -7,6 +7,8 @@
 *
 */
 
+//#include "vectors_mli_krn_conv2d.h"
+
 #include <stdint.h>
 
 #include "mli_types.h"
@@ -14,7 +16,63 @@
 
 using mli::tst::tensor_quantizer;
 
-// Generated input vectors
+// Generated input vectors Declaration
+//========================================
+
+extern mli::tst::tensor_quantizer input_1_fx16;
+extern mli::tst::tensor_quantizer input_1_sa8;
+extern mli::tst::tensor_quantizer input_1_memstr_fx16;
+extern mli::tst::tensor_quantizer input_1_memstr_sa8;
+
+// Generated weights vectors Declaration
+//========================================
+
+extern mli::tst::tensor_quantizer weights_1_fx16;
+extern mli::tst::tensor_quantizer weights_1_fx8;
+extern mli::tst::tensor_quantizer weights_1_sa8;
+
+extern mli::tst::tensor_quantizer weights_2_fx16;
+extern mli::tst::tensor_quantizer weights_2_fx8;
+extern mli::tst::tensor_quantizer weights_2_sa8;
+
+extern mli::tst::tensor_quantizer weights_2_memstr_fx16;
+extern mli::tst::tensor_quantizer weights_2_memstr_fx8;
+extern mli::tst::tensor_quantizer weights_2_memstr_sa8;
+
+extern mli::tst::tensor_quantizer bias_1_fx16;
+extern mli::tst::tensor_quantizer bias_1_fx8;
+extern mli::tst::tensor_quantizer bias_1_sa32;
+extern mli::tst::tensor_quantizer bias_1_w2_sa32;
+
+
+// Extracted Output vectors Declaration
+//===================================================
+
+extern mli::tst::tensor_quantizer test_1_out_fx16;
+extern mli::tst::tensor_quantizer test_1_out_sa8;
+
+extern mli::tst::tensor_quantizer test_2_out_fx16;
+extern mli::tst::tensor_quantizer test_2_out_sa8;
+
+extern mli::tst::tensor_quantizer test_3_out_fx16;
+extern mli::tst::tensor_quantizer test_3_out_sa8;
+
+extern mli::tst::tensor_quantizer test_4_out_fx16;
+extern mli::tst::tensor_quantizer test_4_out_sa8;
+
+extern mli::tst::tensor_quantizer test_5_out_fx16;
+extern mli::tst::tensor_quantizer test_5_out_sa8;
+
+// Tests configuration structures Declaration
+//========================================
+extern const mli_conv2d_cfg test_1_cfg;
+extern const mli_conv2d_cfg test_2_cfg;
+extern const mli_conv2d_cfg test_3_cfg;
+extern const mli_conv2d_cfg test_4_cfg;
+extern const mli_conv2d_cfg test_5_cfg;
+
+
+// Generated input vectors 
 //========================================
 static const float input_1_data[] = {
     -0.795256615f, -0.020611584f, -0.857786238f, -0.116273165f, 0.808907866f, -0.496227741f, -0.107275546f, -0.577136159f,
@@ -40,7 +98,7 @@ static const float input_1_data[] = {
 
 static const float input_1_scale = 0.011679563f;
 static const float input_1_zero_point = 0.509154201f;
-static const int8_t input_1_scales_frac = -6;
+static const int8_t input_1_scales_frac[] = { 21 };
 
 
 #define INPUT_1_TSR_SHARED_DESCR \
@@ -56,7 +114,7 @@ static const mli_tensor input_1_tsr_sa8 = {
     .el_params.sa.dim = -1,
     .el_params.sa.zero_point = {.capacity = 0, .mem.pi8 = nullptr},
     .el_params.sa.scale = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale_frac_bits = 37
+    .el_params.sa.scale_frac_bits = {.capacity = 0, .mem.pi8 = nullptr} // 21
 };
 
 static const mli_tensor input_1_tsr_fx8 = {
@@ -73,9 +131,9 @@ static const mli_tensor input_1_tsr_fx16 = {
     .el_params.fx.frac_bits = 14
 };
 
-static tensor_quantizer input_1_fx16(input_1_tsr_fx16, input_1_data, sizeof(input_1_data) / sizeof(input_1_data[0]));
-static tensor_quantizer input_1_sa8(input_1_tsr_sa8, input_1_data, sizeof(input_1_data) / sizeof(input_1_data[0]),
-    &input_1_scale, 1, &input_1_zero_point, 1);
+tensor_quantizer input_1_fx16(input_1_tsr_fx16, input_1_data, sizeof(input_1_data) / sizeof(input_1_data[0]));
+tensor_quantizer input_1_sa8(input_1_tsr_sa8, input_1_data, sizeof(input_1_data) / sizeof(input_1_data[0]),
+    &input_1_scale, 1, &input_1_zero_point, 1, input_1_scales_frac, 1);
 
 #define INPUT_1_MEMSTR_TSR_SHARED_DESCR \
     .data = {.capacity=0, .mem.pi8=nullptr},\
@@ -90,7 +148,7 @@ static const mli_tensor input_1_memstr_tsr_sa8 = {
     .el_params.sa.dim = -1,
     .el_params.sa.zero_point = {.capacity = 0, .mem.pi8 = nullptr},
     .el_params.sa.scale = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale_frac_bits = 37
+    .el_params.sa.scale_frac_bits = {.capacity = 0, .mem.pi8 = nullptr} // 37
 };
 
 static const mli_tensor input_1_memstr_tsr_fx8 = {
@@ -107,9 +165,9 @@ static const mli_tensor input_1_memstr_tsr_fx16 = {
     .el_params.fx.frac_bits = 14,
 };
 
-static tensor_quantizer input_1_memstr_fx16(input_1_memstr_tsr_fx16, input_1_data, sizeof(input_1_data) / sizeof(input_1_data[0]));
-static tensor_quantizer input_1_memstr_sa8(input_1_memstr_tsr_sa8, input_1_data, sizeof(input_1_data) / sizeof(input_1_data[0]),
-                                    &input_1_scale, 1, &input_1_zero_point, 1);
+tensor_quantizer input_1_memstr_fx16(input_1_memstr_tsr_fx16, input_1_data, sizeof(input_1_data) / sizeof(input_1_data[0]));
+tensor_quantizer input_1_memstr_sa8(input_1_memstr_tsr_sa8, input_1_data, sizeof(input_1_data) / sizeof(input_1_data[0]),
+                                    &input_1_scale, 1, &input_1_zero_point, 1, input_1_scales_frac, 1);
 
 // Generated weights vectors
 //========================================
@@ -150,7 +208,7 @@ static const float weights_1_data[] = {
 
 static const float weights_1_scales[] = { 0.001980767f, 0.004078924f, 0.006295920f, 0.006523276f, 0.011210217f, 0.011233028f, 0.016087674f };
 static const float weights_1_zero_points[] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-static const int8_t weights_1_scales_frac[] = { -8, -7, -7, -7, -6, -6, -5};
+static const int8_t weights_1_scales_frac[] = { 23, 22, 22, 22, 21, 21, 20};
 
 #define WEIGHTS_1_TSR_SHARED_DESCR \
     .data = {.capacity=0, .mem.pi8=nullptr},\
@@ -165,7 +223,7 @@ static const mli_tensor weights_1_tsr_sa8 = {
     .el_params.sa.dim = 3,
     .el_params.sa.zero_point = {.capacity = 0, .mem.pi8 = nullptr},
     .el_params.sa.scale = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale_frac_bits = 36
+     .el_params.sa.scale_frac_bits = {.capacity = 0, .mem.pi8 = nullptr} //36
 };
 
 static const mli_tensor weights_1_tsr_fx8 = {
@@ -182,14 +240,15 @@ static const mli_tensor weights_1_tsr_fx16 = {
     .el_params.fx.frac_bits = 13
 };
 
-static tensor_quantizer weights_1_fx16(weights_1_tsr_fx16, weights_1_data,
+tensor_quantizer weights_1_fx16(weights_1_tsr_fx16, weights_1_data,
                                        sizeof(weights_1_data) / sizeof(weights_1_data[0]));
-static tensor_quantizer weights_1_fx8(weights_1_tsr_fx8, weights_1_data,
+tensor_quantizer weights_1_fx8(weights_1_tsr_fx8, weights_1_data,
                                       sizeof(weights_1_data) / sizeof(weights_1_data[0]));
-static tensor_quantizer weights_1_sa8(weights_1_tsr_sa8, weights_1_data,
+tensor_quantizer weights_1_sa8(weights_1_tsr_sa8, weights_1_data,
                                       sizeof(weights_1_data) / sizeof(weights_1_data[0]),
                                       weights_1_scales, sizeof(weights_1_scales) / sizeof(weights_1_scales[0]),
-                                      weights_1_zero_points, sizeof(weights_1_zero_points) / sizeof(weights_1_zero_points[0]));
+                                      weights_1_zero_points, sizeof(weights_1_zero_points) / sizeof(weights_1_zero_points[0]),
+                                      weights_1_scales_frac, sizeof(weights_1_scales_frac) / sizeof(weights_1_scales_frac[0]));
 
 static const float weights_2_data[] = {
     -0.001188097f, 0.158430964f, 0.033262957f, -0.633298337f, -0.13963680f, 0.305942148f, -0.591342807f, -0.036758021f,
@@ -228,7 +287,7 @@ static const float weights_2_data[] = {
 
 static const float weights_2_scales[] = { 0.001695078f, 0.002629036f, 0.005313884f, 0.007353230f, 0.008648979f, 0.008822490f, 0.008727884f };
 static const float weights_2_zero_points[] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-static const int8_t weights_2_scales_frac[] = { -9, -8, -7, -7, -6, -6, -6 };
+static const int8_t weights_2_scales_frac[] = { 24, 23, 22, 22, 21, 21, 21 };
 
 #define WEIGHTS_2_TSR_SHARED_DESCR \
     .data = {.capacity=0, .mem.pi8=nullptr},\
@@ -243,7 +302,7 @@ static const mli_tensor weights_2_tsr_sa8 = {
     .el_params.sa.dim = 3,
     .el_params.sa.zero_point = {.capacity = 0, .mem.pi8 = nullptr},
     .el_params.sa.scale = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale_frac_bits = 37
+    .el_params.sa.scale_frac_bits = {.capacity = 0, .mem.pi8 = nullptr} //37
 };
 
 static const mli_tensor weights_2_tsr_fx8 = {
@@ -260,14 +319,15 @@ static const mli_tensor weights_2_tsr_fx16 = {
     .el_params.fx.frac_bits = 14
 };
 
-static tensor_quantizer weights_2_fx16(weights_2_tsr_fx16, weights_2_data,
+tensor_quantizer weights_2_fx16(weights_2_tsr_fx16, weights_2_data,
     sizeof(weights_2_data) / sizeof(weights_2_data[0]));
-static tensor_quantizer weights_2_fx8(weights_2_tsr_fx8, weights_2_data,
+tensor_quantizer weights_2_fx8(weights_2_tsr_fx8, weights_2_data,
     sizeof(weights_2_data) / sizeof(weights_2_data[0]));
-static tensor_quantizer weights_2_sa8(weights_2_tsr_sa8, weights_2_data,
+tensor_quantizer weights_2_sa8(weights_2_tsr_sa8, weights_2_data,
     sizeof(weights_2_data) / sizeof(weights_2_data[0]),
     weights_2_scales, sizeof(weights_2_scales) / sizeof(weights_2_scales[0]),
-    weights_2_zero_points, sizeof(weights_2_zero_points) / sizeof(weights_2_zero_points[0]));
+    weights_2_zero_points, sizeof(weights_2_zero_points) / sizeof(weights_2_zero_points[0]),
+    weights_2_scales_frac, sizeof(weights_2_scales_frac) / sizeof(weights_2_scales_frac[0]));
 
 #define WEIGHTS_2_MEMSTR_TSR_SHARED_DESCR \
     .data = {.capacity=0, .mem.pi8=nullptr},\
@@ -282,7 +342,7 @@ static const mli_tensor weights_2_memstr_tsr_sa8 = {
     .el_params.sa.dim = 3,
     .el_params.sa.zero_point = {.capacity = 0, .mem.pi8 = nullptr},
     .el_params.sa.scale = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale_frac_bits = 37
+    .el_params.sa.scale_frac_bits = {.capacity = 0, .mem.pi8 = nullptr} //37
 };
 
 static const mli_tensor weights_2_memstr_tsr_fx8 = {
@@ -299,19 +359,20 @@ static const mli_tensor weights_2_memstr_tsr_fx16 = {
     .el_params.fx.frac_bits = 14
 };
 
-static tensor_quantizer weights_2_memstr_fx16(weights_2_memstr_tsr_fx16, weights_2_data,
+tensor_quantizer weights_2_memstr_fx16(weights_2_memstr_tsr_fx16, weights_2_data,
     sizeof(weights_2_data) / sizeof(weights_2_data[0]));
-static tensor_quantizer weights_2_memstr_fx8(weights_2_memstr_tsr_fx8, weights_2_data,
+tensor_quantizer weights_2_memstr_fx8(weights_2_memstr_tsr_fx8, weights_2_data,
     sizeof(weights_2_data) / sizeof(weights_2_data[0]));
-static tensor_quantizer weights_2_memstr_sa8(weights_2_memstr_tsr_sa8, weights_2_data,
+tensor_quantizer weights_2_memstr_sa8(weights_2_memstr_tsr_sa8, weights_2_data,
     sizeof(weights_2_data) / sizeof(weights_2_data[0]),
     weights_2_scales, sizeof(weights_2_scales) / sizeof(weights_2_scales[0]),
-    weights_2_zero_points, sizeof(weights_2_zero_points) / sizeof(weights_2_zero_points[0]));
+    weights_2_zero_points, sizeof(weights_2_zero_points) / sizeof(weights_2_zero_points[0]),
+    weights_2_scales_frac, sizeof(weights_2_scales_frac) / sizeof(weights_2_scales_frac[0]));
 
 static const float bias_1_data[] = { 0.478962898f, -0.367202461f, 0.641515911f, 0.216426253f, 0.080585465f, -0.270597309f, 0.376852006f };
 static const float bias_1_scales[] = { 0.0000231345f, 0.000047640f, 0.0000735336f, 0.0000761890f, 0.0001309304f, 0.0001311969f, 0.0001878970f};
 static const float bias_1_zero_points[] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-static const int8_t bias_1_scales_frac[] = { -8, -8, -7, -9, -10, -8, -8 };
+static const int8_t bias_1_scales_frac[] = { 30, 29, 28, 28, 27, 27, 27 };
 
 #define BIAS_1_TSR_SHARED_DESCR \
     .data = {.capacity=0, .mem.pi8=nullptr},\
@@ -326,7 +387,7 @@ static const mli_tensor bias_1_tsr_sa32 = {
     .el_params.sa.dim = 0,
     .el_params.sa.zero_point = {.capacity = 0, .mem.pi8 = nullptr},
     .el_params.sa.scale = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale_frac_bits = 43
+    .el_params.sa.scale_frac_bits = {.capacity = 0, .mem.pi8 = nullptr} //43
 };
 
 static const mli_tensor bias_1_tsr_fx8 = {
@@ -344,6 +405,7 @@ static const mli_tensor bias_1_tsr_fx16 = {
 };
 
 static const float bias_1_w2_scales[] = { 0.0000197978f, 0.0000307060f, 0.0000620638f, 0.0000858825f, 0.0001010163f, 0.0001030428f, 0.0001019379f };
+static const int8_t bias_1_w2_scales_frac[] = { 30, 29, 28, 28, 28, 28, 28 };
 
 static const mli_tensor bias_1_w2_tsr_sa32 = {
     BIAS_1_TSR_SHARED_DESCR
@@ -352,22 +414,25 @@ static const mli_tensor bias_1_w2_tsr_sa32 = {
     .el_params.sa.dim = 0,
     .el_params.sa.zero_point = {.capacity = 0, .mem.pi8 = nullptr},
     .el_params.sa.scale = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale_frac_bits = 44
+    .el_params.sa.scale_frac_bits = {.capacity = 0, .mem.pi8 = nullptr} // 44
 };
 
-static tensor_quantizer bias_1_fx16(bias_1_tsr_fx16, bias_1_data,
+tensor_quantizer bias_1_fx16(bias_1_tsr_fx16, bias_1_data,
                                    sizeof(bias_1_data) / sizeof(bias_1_data[0]));
-static tensor_quantizer bias_1_fx8(bias_1_tsr_fx8, bias_1_data,
+tensor_quantizer bias_1_fx8(bias_1_tsr_fx8, bias_1_data,
                                    sizeof(bias_1_data) / sizeof(bias_1_data[0]));
-static tensor_quantizer bias_1_sa32(bias_1_tsr_sa32, bias_1_data,
+tensor_quantizer bias_1_sa32(bias_1_tsr_sa32, bias_1_data,
                                    sizeof(bias_1_data) / sizeof(bias_1_data[0]),
                                    bias_1_scales, sizeof(bias_1_scales) / sizeof(bias_1_scales[0]),
-                                   bias_1_zero_points, sizeof(bias_1_zero_points) / sizeof(bias_1_zero_points[0]));
+                                   bias_1_zero_points, sizeof(bias_1_zero_points) / sizeof(bias_1_zero_points[0]),
+                                   bias_1_scales_frac, sizeof(bias_1_scales_frac) / sizeof(bias_1_scales_frac[0]));
+                                   
 
-static tensor_quantizer bias_1_w2_sa32(bias_1_w2_tsr_sa32, bias_1_data,
+tensor_quantizer bias_1_w2_sa32(bias_1_w2_tsr_sa32, bias_1_data,
     sizeof(bias_1_data) / sizeof(bias_1_data[0]),
     bias_1_w2_scales, sizeof(bias_1_w2_scales) / sizeof(bias_1_w2_scales[0]),
-    bias_1_zero_points, sizeof(bias_1_zero_points) / sizeof(bias_1_zero_points[0]));
+    bias_1_zero_points, sizeof(bias_1_zero_points) / sizeof(bias_1_zero_points[0]),
+    bias_1_w2_scales_frac, sizeof(bias_1_w2_scales_frac) / sizeof(bias_1_w2_scales_frac[0]));
 
 
 // Extracted Output vectors 
@@ -403,7 +468,7 @@ static const float test_1_out_data[] = {
 
 static const float test_1_out_scale = 0.077402197f;
 static const float test_1_out_zero_point = -1.262352943f;
-static const int8_t test_1_out_scales_frac = -3;
+static const int8_t test_1_out_scales_frac[] = {18};
 
 #define TEST_1_OUT_TSR_SHARED_DESCR \
     .data = {.capacity=0, .mem.pi8=nullptr},\
@@ -418,7 +483,7 @@ static mli_tensor test_1_out_tsr_sa8 = {
     .el_params.sa.dim = -1,
     .el_params.sa.zero_point = {.capacity = 0, .mem.pi8 = nullptr},
     .el_params.sa.scale = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale_frac_bits = 34
+    .el_params.sa.scale_frac_bits = {.capacity = 0, .mem.pi8 = nullptr} //34
 };
 
 static mli_tensor test_1_out_tsr_fx8 = {
@@ -435,11 +500,12 @@ static mli_tensor test_1_out_tsr_fx16 = {
     .el_params.fx.frac_bits = 11
 };
 
-static tensor_quantizer test_1_out_fx16(test_1_out_tsr_fx16, test_1_out_data,
+tensor_quantizer test_1_out_fx16(test_1_out_tsr_fx16, test_1_out_data,
     sizeof(test_1_out_data) / sizeof(test_1_out_data[0]));
-static tensor_quantizer test_1_out_sa8(test_1_out_tsr_sa8, test_1_out_data,
+tensor_quantizer test_1_out_sa8(test_1_out_tsr_sa8, test_1_out_data,
     sizeof(test_1_out_data) / sizeof(test_1_out_data[0]),
-    &test_1_out_scale, 1, &test_1_out_zero_point, 1);
+    &test_1_out_scale, 1, &test_1_out_zero_point, 1,
+    test_1_out_scales_frac, sizeof(test_1_out_scales_frac) / sizeof(test_1_out_scales_frac[0]));
 
 
 static const float test_2_out_data[] = {
@@ -472,7 +538,7 @@ static const float test_2_out_data[] = {
 
 static const float test_2_out_scale = 0.019512054f;
 static const float test_2_out_zero_point = 2.487786770f;
-static const int8_t test_2_out_scales_frac = -5;
+static const int8_t test_2_out_scales_frac[] = {20};
 
 #define TEST_2_OUT_TSR_SHARED_DESCR \
     .data = {.capacity=0, .mem.pi8=nullptr},\
@@ -487,7 +553,7 @@ static mli_tensor test_2_out_tsr_sa8 = {
     .el_params.sa.dim = -1,
     .el_params.sa.zero_point = {.capacity = 0, .mem.pi8 = nullptr},
     .el_params.sa.scale = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale_frac_bits = 36
+    .el_params.sa.scale_frac_bits = {.capacity = 0, .mem.pi8 = nullptr} //36
 };
 
 static mli_tensor test_2_out_tsr_fx8 = {
@@ -504,11 +570,12 @@ static mli_tensor test_2_out_tsr_fx16 = {
     .el_params.fx.frac_bits = 12
 };
 
-static tensor_quantizer test_2_out_fx16(test_2_out_tsr_fx16, test_2_out_data,
+tensor_quantizer test_2_out_fx16(test_2_out_tsr_fx16, test_2_out_data,
     sizeof(test_2_out_data) / sizeof(test_2_out_data[0]));
-static tensor_quantizer test_2_out_sa8(test_2_out_tsr_sa8, test_2_out_data,
+tensor_quantizer test_2_out_sa8(test_2_out_tsr_sa8, test_2_out_data,
     sizeof(test_2_out_data) / sizeof(test_2_out_data[0]),
-    &test_2_out_scale, 1, &test_2_out_zero_point, 1);
+    &test_2_out_scale, 1, &test_2_out_zero_point, 1,
+    test_2_out_scales_frac, sizeof(test_2_out_scales_frac) / sizeof(test_2_out_scales_frac[0]));
 
 
 static const float test_3_out_data[] = {
@@ -519,7 +586,7 @@ static const float test_3_out_data[] = {
 
 static const float test_3_out_scale = 0.043495640f;
 static const float test_3_out_zero_point = -0.533776760f;
-static const int8_t test_3_out_scales_frac = -4;
+static const int8_t test_3_out_scales_frac[] = {19};
 
 #define TEST_3_OUT_TSR_SHARED_DESCR \
     .data = {.capacity=0, .mem.pi8=nullptr},\
@@ -534,7 +601,7 @@ static mli_tensor test_3_out_tsr_sa8 = {
     .el_params.sa.dim = -1,
     .el_params.sa.zero_point = {.capacity = 0, .mem.pi8 = nullptr},
     .el_params.sa.scale = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale_frac_bits = 35
+    .el_params.sa.scale_frac_bits = {.capacity = 0, .mem.pi8 = nullptr} //35
 };
 
 static mli_tensor test_3_out_tsr_fx8 = {
@@ -551,11 +618,12 @@ static mli_tensor test_3_out_tsr_fx16 = {
     .el_params.fx.frac_bits = 12
 };
 
-static tensor_quantizer test_3_out_fx16(test_3_out_tsr_fx16, test_3_out_data,
+tensor_quantizer test_3_out_fx16(test_3_out_tsr_fx16, test_3_out_data,
     sizeof(test_3_out_data) / sizeof(test_3_out_data[0]));
-static tensor_quantizer test_3_out_sa8(test_3_out_tsr_sa8, test_3_out_data,
+tensor_quantizer test_3_out_sa8(test_3_out_tsr_sa8, test_3_out_data,
     sizeof(test_3_out_data) / sizeof(test_3_out_data[0]),
-    &test_3_out_scale, 1, &test_3_out_zero_point, 1);
+    &test_3_out_scale, 1, &test_3_out_zero_point, 1,
+    test_3_out_scales_frac, sizeof(test_3_out_scales_frac) / sizeof(test_3_out_scales_frac[0]));
 
 static const float test_4_out_data[] = {
     0.631586492f, -1.0f, 1.0f, -0.829536438f, 1.0f, -1.0f, 1.0f, 0.136842549f,
@@ -566,7 +634,7 @@ static const float test_4_out_data[] = {
 
 static const float test_4_out_scale = 0.007843138f;
 static const float test_4_out_zero_point = 0.0f;
-static const int8_t test_4_out_scales_frac = -6;
+static const int8_t test_4_out_scales_frac[] = {21};
 
 #define TEST_4_OUT_TSR_SHARED_DESCR \
     .data = {.capacity=0, .mem.pi8=nullptr},\
@@ -581,7 +649,7 @@ static mli_tensor test_4_out_tsr_sa8 = {
     .el_params.sa.dim = -1,
     .el_params.sa.zero_point = {.capacity = 0, .mem.pi8 = nullptr},
     .el_params.sa.scale = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale_frac_bits = 37
+    .el_params.sa.scale_frac_bits = {.capacity = 0, .mem.pi8 = nullptr} //37
 };
 
 static mli_tensor test_4_out_tsr_fx8 = {
@@ -598,11 +666,12 @@ static mli_tensor test_4_out_tsr_fx16 = {
     .el_params.fx.frac_bits = 15
 };
 
-static tensor_quantizer test_4_out_fx16(test_4_out_tsr_fx16, test_4_out_data,
+tensor_quantizer test_4_out_fx16(test_4_out_tsr_fx16, test_4_out_data,
     sizeof(test_4_out_data) / sizeof(test_4_out_data[0]));
-static tensor_quantizer test_4_out_sa8(test_4_out_tsr_sa8, test_4_out_data,
+tensor_quantizer test_4_out_sa8(test_4_out_tsr_sa8, test_4_out_data,
     sizeof(test_4_out_data) / sizeof(test_4_out_data[0]),
-    &test_4_out_scale, 1, &test_4_out_zero_point, 1);
+    &test_4_out_scale, 1, &test_4_out_zero_point, 1,
+    test_4_out_scales_frac, sizeof(test_4_out_scales_frac) / sizeof(test_4_out_scales_frac[0]));
 
 
 static const float test_5_out_data[] = {
@@ -628,7 +697,7 @@ static const float test_5_out_data[] = {
 
 static const float test_5_out_scale = 0.023529412f;
 static const float test_5_out_zero_point = 3.0f;
-static const int8_t test_5_out_scales_frac = -5;
+static const int8_t test_5_out_scales_frac[] = {20};
 
 #define TEST_5_OUT_TSR_SHARED_DESCR \
     .data = {.capacity=0, .mem.pi8=nullptr},\
@@ -643,7 +712,7 @@ static mli_tensor test_5_out_tsr_sa8 = {
     .el_params.sa.dim = -1,
     .el_params.sa.zero_point = {.capacity = 0, .mem.pi8 = nullptr},
     .el_params.sa.scale = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale_frac_bits = 36
+    .el_params.sa.scale_frac_bits = {.capacity = 0, .mem.pi8 = nullptr} // 36
 };
 
 static mli_tensor test_5_out_tsr_fx8 = {
@@ -660,15 +729,16 @@ static mli_tensor test_5_out_tsr_fx16 = {
     .el_params.fx.frac_bits = 12
 };
 
-static tensor_quantizer test_5_out_fx16(test_5_out_tsr_fx16, test_5_out_data,
+tensor_quantizer test_5_out_fx16(test_5_out_tsr_fx16, test_5_out_data,
     sizeof(test_5_out_data) / sizeof(test_5_out_data[0]));
-static tensor_quantizer test_5_out_sa8(test_5_out_tsr_sa8, test_5_out_data,
+tensor_quantizer test_5_out_sa8(test_5_out_tsr_sa8, test_5_out_data,
     sizeof(test_5_out_data) / sizeof(test_5_out_data[0]),
-    &test_5_out_scale, 1, &test_5_out_zero_point, 1);
+    &test_5_out_scale, 1, &test_5_out_zero_point, 1,
+    test_5_out_scales_frac, sizeof(test_5_out_scales_frac) / sizeof(test_5_out_scales_frac[0]));
 
 // Tests configuration structures
 //========================================
-static const mli_conv2d_cfg test_1_cfg = {
+const mli_conv2d_cfg test_1_cfg = {
     .stride_height = 1,
     .stride_width = 2,
     .padding_bottom = 1,
@@ -680,7 +750,7 @@ static const mli_conv2d_cfg test_1_cfg = {
     .relu.type = MLI_RELU_NONE
 };
 
-static const mli_conv2d_cfg test_2_cfg = {
+const mli_conv2d_cfg test_2_cfg = {
     .stride_height = 2,
     .stride_width = 1,
     .padding_bottom = 2,
@@ -692,7 +762,7 @@ static const mli_conv2d_cfg test_2_cfg = {
     .relu.type = MLI_RELU_GEN
 };
 
-static const mli_conv2d_cfg test_3_cfg = {
+const mli_conv2d_cfg test_3_cfg = {
     .stride_height = 1,
     .stride_width = 1,
     .padding_bottom = 0,
@@ -704,7 +774,7 @@ static const mli_conv2d_cfg test_3_cfg = {
     .relu.type = MLI_RELU_NONE
 };
 
-static const mli_conv2d_cfg test_4_cfg = {
+const mli_conv2d_cfg test_4_cfg = {
     .stride_height = 3,
     .stride_width = 3,
     .padding_bottom = 0,
@@ -716,7 +786,7 @@ static const mli_conv2d_cfg test_4_cfg = {
     .relu.type = MLI_RELU_1
 };
 
-static const mli_conv2d_cfg test_5_cfg = {
+const mli_conv2d_cfg test_5_cfg = {
     .stride_height = 1,
     .stride_width = 1,
     .padding_bottom = 0,

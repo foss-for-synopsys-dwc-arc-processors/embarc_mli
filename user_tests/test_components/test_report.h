@@ -11,10 +11,30 @@
 #define _MLI_USER_TESTS_TEST_REPORT_H_
 
 #include "mli_api.h"
-#include "test_metrics.h"
+#include "test_infra.h"
 
 namespace mli {
 namespace tst {
+
+//===============================================================================================
+// Full test reporter with all fields to validate
+//===============================================================================================
+class reporter_full /*: public reporter */{
+public:
+    // Print header of test report
+    void report_header(const char* case_descr) const;
+
+    // Evaluate provided results and populate report table field accrdingly
+    bool evaluate_and_report_case(const char* case_descr, 
+                                  const quality_metrics& result, const quality_metrics& threshold, 
+                                  const crc32_calc& crc_result, const crc32_calc& crc_checksum) const;
+
+    // print an external message regarding testcase
+    void report_message(const char* case_descr, const char* message) const;
+
+    // print an outline of test repor with external final status
+    void report_outline(const char* outline_marker, bool is_passed) const;
+};
 
 //===============================================================================================
 // Mock reporter
@@ -32,21 +52,6 @@ namespace tst {
 //
 //     void report_outline(bool status) {};
 //};
-
-class reporter_full /*: public reporter */{
-public:
-    void report_header(const char* case_descr) const;
-
-    bool evaluate_and_report_case(const char* case_descr, 
-                                  const quality_metrics& result, const quality_metrics& threshold, 
-                                  const crc32_calc& crc_result, const crc32_calc& crc_checksum) const;
-
-    void report_message(const char* case_descr, const char* message) const;
-
-    void report_outline(const char* outline_marker, bool is_passed) const;
-
-};
-
 
 } // namespace mli {
 } // namespace tst {
