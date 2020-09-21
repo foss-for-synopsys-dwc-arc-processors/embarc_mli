@@ -6,6 +6,7 @@
 # the LICENSE file in the root directory of this source tree.
 #
 
+RECONFIGURE         ?= ON
 DEBUG_BUILD         ?= ON
 OPTMODE             ?= speed
 GEN_EXAMPLES        ?= 1
@@ -29,18 +30,28 @@ TOOL_CHAIN_OPTIONS += -DBUILDLIB_DIR=$(BUILDLIB_DIR)
 endif
 endif
 
+ifdef ROUND_MODE
+TOOL_CHAIN_OPTIONS += -DROUND_MODE=${ROUND_MODE}
+endif
+
+ifeq ($(RECONFIGURE),ON)
+CONFIG_TARGET=config
+else
+CONFIG_TARGET=$(BUILD_DIR)/cmake_install.cmake
+endif
+
 # $(MAKE) can be called through CMAKE; but to facilitate parallel builds with -j, we call $(MAKE).
 ifndef TCF_FILE
-lib: $(BUILD_DIR)/cmake_install.cmake
+lib: $(CONFIG_TARGET)
 	cmake --build $(BUILD_DIR)$(PS)$(BUILD_SUBDIR) --verbose --target install
 else
-lib: $(BUILD_DIR)/cmake_install.cmake
+lib: $(CONFIG_TARGET)
 	$(MAKE) -C $(BUILD_DIR)$(PS)$(BUILD_SUBDIR) VERBOSE=true install
 endif
 
 all: lib
 
-$(BUILD_DIR)/cmake_install.cmake:
+$(CONFIG_TARGET):
 	cmake \
 		-DDEBUG_BUILD=$(DEBUG_BUILD) \
 		-DOPTMODE=$(OPTMODE) \
@@ -53,4 +64,4 @@ clean:
 	-$(RMDIR) $(BUILD_DIR_BASE)
 	-$(RMDIR) $(LIBRARY_DIR_BASE)
 
-.PHONY:	all clean lib
+.PHONY:	all clean lib config

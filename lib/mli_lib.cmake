@@ -108,28 +108,30 @@ endif()
 if (NOT DEFINED ROUND_MODE)
     if(${MLI_PLATFORM} STREQUAL VPX)
         set(ROUND_MODE UP)
-    else()
+    elseif (${MLI_PLATFORM} STREQUAL EM_HS)
         set(ROUND_MODE CONVERGENT)
+    else()
+        message(FATAL_ERROR "Please specify a rounding mode: UP or CONVERGENT")
     endif()
+endif()
+
+if(ROUND_MODE STREQUAL UP)
+    list(APPEND MLI_LIB_PRIVATE_COMPILE_DEFINITIONS
+        ROUND_UP
+    )
+elseif(ROUND_MODE STREQUAL CONVERGENT)
+    list(APPEND MLI_LIB_PRIVATE_COMPILE_DEFINITIONS
+        ROUND_CONVERGENT
+    )
+else()
+    message(FATAL_ERROR "rounding mode ${ROUND_MODE} is not supported")
 endif()
 
 if (${MLI_PLATFORM} STREQUAL VPX)
     list(APPEND MLI_LIB_PRIVATE_COMPILE_OPTIONS
         "SHELL: -mllvm -slot_swapping=true")
-    if(ROUND_MODE STREQUAL UP)
-        list(APPEND MLI_LIB_PRIVATE_COMPILE_DEFINITIONS
-            ROUND_UP
-        )
-    elseif(ROUND_MODE STREQUAL CONVERGENT)
-        list(APPEND MLI_LIB_PRIVATE_COMPILE_DEFINITIONS
-            ROUND_CONVERGENT
-        )
-    else()
-        message(FATAL_ERROR rounding mode isn't supported)
-    endif()
-endif()
 
-if (${MLI_PLATFORM} STREQUAL EM_HS)
+elseif (${MLI_PLATFORM} STREQUAL EM_HS)
     if(ROUND_MODE STREQUAL UP)
         list(APPEND MLI_LIB_PRIVATE_COMPILE_OPTIONS
             -Xdsp_ctrl=postshift,guard,up
@@ -139,7 +141,7 @@ if (${MLI_PLATFORM} STREQUAL EM_HS)
             -Xdsp_ctrl=postshift,guard,convergent
         )
     else()
-        message(FATAL_ERROR rounding mode isn't supported)
+        message(FATAL_ERROR "rounding mode ${ROUND_MODE} is not supported")
     endif()
 endif()
 
