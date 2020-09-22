@@ -39,7 +39,7 @@
 /* To move inside tensor using memory strides (using 4 nested loops with counters pos0 pos1 pos2 pos4) */
 template <typename io_T>
 static MLI_FORCE_INLINE int mli_prv_get_tensor_idx_pos(
-        const struct generic_tensor_private_t<io_T *> *in,
+        const struct generic_tensor_private_t<MLI_PTR(io_T)> *in,
         int pos0, int pos1, int pos2, int pos3) {
 
     int res = pos0 * in->mem_stride[0] + pos1 * in->mem_stride[1] +
