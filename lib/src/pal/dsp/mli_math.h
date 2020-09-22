@@ -202,6 +202,10 @@ template <> MLI_FORCE_INLINE mli_acc32_t mli_math_mac_fx(mli_acc32_t acc, int16_
     return acc + (mli_acc32_t)(L * (int16_t)R);
 }
 
+template <> MLI_FORCE_INLINE mli_acc32_t mli_math_mac_fx(mli_acc32_t acc, int8_t L, int16_t R) {
+    return acc + (mli_acc32_t)((int16_t)L * R);
+}
+
 template <> MLI_FORCE_INLINE mli_acc40_t mli_math_mac_fx(mli_acc40_t acc, int16_t L, int16_t R) {
     return fx_a40_mac_nf_q15(acc, L, R);
 }

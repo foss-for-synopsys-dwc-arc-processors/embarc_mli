@@ -77,6 +77,64 @@ MLI_FORCE_INLINE fx_quant_specific_params adjust_quant_params_v(fx_quant_specifi
 }
 
 //==========================================================================
+// Calculation of a dotprod with an offset on the input values.
+// offset on the weights is assumed zero
+//==========================================================================
+template <typename io_T, typename w_T, typename acc_T>
+static MLI_FORCE_INLINE acc_T dotprod_inputzp_1D_v(
+        const MLI_PTR(io_T) __restrict in,
+        const MLI_PTR(w_T)  __restrict krn,
+        acc_T accu,
+        const int vals,
+        const int in_step,
+        const int krn_step,
+        const s8asym_quant_specific_params* quant_params) {
+
+    if (get_number_lanes<acc_T>() == 1) {
+        for (int idx = 0; idx < vals; idx++) {
+            accu = mli_math_mac_fx(accu, *krn, *in);
+            accu = mli_math_mac_fx(accu, *krn, (io_T)-quant_params->in_offset);
+            in += in_step;
+            krn += krn_step;
+        }
+    } else {
+        for (int idx = 0; idx < vals; idx++) {
+            accu = mli_math_mac_fx(accu, mli_prv_load_n_samples(krn), *in);
+            accu = mli_math_mac_fx(accu, mli_prv_load_n_samples(krn), (io_T)-quant_params->in_offset);
+            in += in_step;
+            krn += krn_step;
+        }
+    }
+    return accu;
+}
+
+template <typename io_T, typename w_T, typename acc_T>
+static MLI_FORCE_INLINE acc_T dotprod_inputzp_1D_v(
+        const MLI_PTR(io_T) __restrict in,
+        const MLI_PTR(w_T)  __restrict krn,
+        acc_T accu,
+        const int vals,
+        const int in_step,
+        const int krn_step,
+        const fx_quant_specific_params* quant_params) {
+
+    if (get_number_lanes<acc_T>() == 1) {
+        for (int idx = 0; idx < vals; idx++) {
+            accu = mli_math_mac_fx(accu, *krn, *in);
+            in += in_step;
+            krn += krn_step;
+        }
+    } else {
+        for (int idx = 0; idx < vals; idx++) {
+            accu = mli_math_mac_fx(accu, mli_prv_load_n_samples(krn), *in);
+            in += in_step;
+            krn += krn_step;
+        }
+    }
+
+    return accu;
+}
+//==========================================================================
 // Calculation of weights additive (w_add) in
 // dot_prod_asym = dot_prod_gen + w_add + in_add + zp_add + bias_add
 //==========================================================================
