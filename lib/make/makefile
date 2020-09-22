@@ -22,11 +22,11 @@ TOOL_CHAIN_OPTIONS += -AWin32
 endif
 else
 TOOL_CHAIN_OPTIONS += \
-	-DARC_CFG_TCF_PATH=$(TCF_FILE) \
-	-DCMAKE_TOOLCHAIN_FILE=$(subst \,$(PS),$(METAWARE_ROOT))$(PS)arc$(PS)cmake$(PS)arc-mwdt.toolchain.cmake \
+	-DARC_CFG_TCF_PATH=$(abspath $(TCF_FILE)) \
+	-DCMAKE_TOOLCHAIN_FILE=$(abspath $(METAWARE_ROOT)$(PS)arc$(PS)cmake$(PS)arc-mwdt.toolchain.cmake) \
 	-G "Unix Makefiles"
 ifdef BUILDLIB_DIR
-TOOL_CHAIN_OPTIONS += -DBUILDLIB_DIR=$(BUILDLIB_DIR)
+TOOL_CHAIN_OPTIONS += -DBUILDLIB_DIR=$(abspath $(BUILDLIB_DIR))
 endif
 endif
 
@@ -43,10 +43,10 @@ endif
 # $(MAKE) can be called through CMAKE; but to facilitate parallel builds with -j, we call $(MAKE).
 ifndef TCF_FILE
 lib: $(CONFIG_TARGET)
-	cmake --build $(BUILD_DIR)$(PS)$(BUILD_SUBDIR) --verbose --target install
+	cmake --build $(abspath $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)) --verbose --target install
 else
 lib: $(CONFIG_TARGET)
-	$(MAKE) -C $(BUILD_DIR)$(PS)$(BUILD_SUBDIR) VERBOSE=true install
+	$(MAKE) -C $(abspath $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)) VERBOSE=true install
 endif
 
 all: lib
@@ -57,8 +57,10 @@ $(CONFIG_TARGET):
 		-DOPTMODE=$(OPTMODE) \
 		-DGEN_EXAMPLES=$(GEN_EXAMPLES) \
 		-DMLI_BUILD_REFERENCE=$(MLI_BUILD_REFERENCE) \
-		-DCMAKE_INSTALL_PREFIX=${LIBRARY_DIR} \
-		$(TOOL_CHAIN_OPTIONS) -B$(BUILD_DIR) -S..$(PS)..$(PS)
+		-DCMAKE_INSTALL_PREFIX=$(abspath $(LIBRARY_DIR)) \
+		$(TOOL_CHAIN_OPTIONS) \
+		-B$(abspath $(BUILD_DIR)) \
+		-S$(abspath ..$(PS)..$(PS))
 
 clean:
 	-$(RMDIR) $(BUILD_DIR_BASE)
