@@ -42,11 +42,14 @@ MLI_FORCE_INLINE s8asym_quant_specific_out_params_v adjust_quant_params_v(s8asym
     // out multiplyer can be different across one of axis (per axis quantization for s8asym)
     // but will be the same in case of per tensor quantization.
     vNx4short_t wscales;
+    vNx4short_t wshifts;
     if (params->weight_dim < 0) {
         krn_idx = 0;
         wscales = params->weight_scales[krn_idx];
+        wshifts = params->weight_shifts[krn_idx];
     } else {
         wscales = mli_prv_load_n_samples(&params->weight_scales[krn_idx]);
+        wshifts = to_vNx4short_t(mli_prv_load_n_samples(&params->weight_shifts[krn_idx]));
     }
     s8asym_quant_specific_out_params_v out_params;
     vNx4short_t w_norm = mli_math_norm_fx<vNx4short_t, vNx4short_t>(wscales);
@@ -56,10 +59,10 @@ MLI_FORCE_INLINE s8asym_quant_specific_out_params_v adjust_quant_params_v(s8asym
     int int_to_short_shift = 16;
 
     int out_shift = params->in_to_out_shift;
-    out_shift += params->weight_shifts[0];
 
     out_params.out_mul = to_vNx4short_t(mli_math_asr_rnd_fx(outmul32, int_to_short_shift - mul_norm));
     out_params.out_shift = out_shift - sizeof(int16_t) * 8; // compensate for the mul_hi output multiplier
+    out_params.out_shift += wshifts;
     out_params.out_shift += w_norm;
     out_params.out_shift -= int_to_short_shift; // for the outmul int to short
     out_params.out_shift += to_vNx4short_t(mul_norm);
@@ -73,6 +76,64 @@ MLI_FORCE_INLINE fx_quant_specific_params adjust_quant_params_v(fx_quant_specifi
     return *in;
 }
 
+//==========================================================================
+// Calculation of a dotprod with an offset on the input values.
+// offset on the weights is assumed zero
+//==========================================================================
+template <typename io_T, typename w_T, typename acc_T>
+static MLI_FORCE_INLINE acc_T dotprod_inputzp_1D_v(
+        const MLI_PTR(io_T) __restrict in,
+        const MLI_PTR(w_T)  __restrict krn,
+        acc_T accu,
+        const int vals,
+        const int in_step,
+        const int krn_step,
+        const s8asym_quant_specific_params* quant_params) {
+
+    if (get_number_lanes<acc_T>() == 1) {
+        for (int idx = 0; idx < vals; idx++) {
+            accu = mli_math_mac_fx(accu, *krn, *in);
+            accu = mli_math_mac_fx(accu, *krn, (io_T)-quant_params->in_offset);
+            in += in_step;
+            krn += krn_step;
+        }
+    } else {
+        for (int idx = 0; idx < vals; idx++) {
+            accu = mli_math_mac_fx(accu, mli_prv_load_n_samples(krn), *in);
+            accu = mli_math_mac_fx(accu, mli_prv_load_n_samples(krn), (io_T)-quant_params->in_offset);
+            in += in_step;
+            krn += krn_step;
+        }
+    }
+    return accu;
+}
+
+template <typename io_T, typename w_T, typename acc_T>
+static MLI_FORCE_INLINE acc_T dotprod_inputzp_1D_v(
+        const MLI_PTR(io_T) __restrict in,
+        const MLI_PTR(w_T)  __restrict krn,
+        acc_T accu,
+        const int vals,
+        const int in_step,
+        const int krn_step,
+        const fx_quant_specific_params* quant_params) {
+
+    if (get_number_lanes<acc_T>() == 1) {
+        for (int idx = 0; idx < vals; idx++) {
+            accu = mli_math_mac_fx(accu, *krn, *in);
+            in += in_step;
+            krn += krn_step;
+        }
+    } else {
+        for (int idx = 0; idx < vals; idx++) {
+            accu = mli_math_mac_fx(accu, mli_prv_load_n_samples(krn), *in);
+            in += in_step;
+            krn += krn_step;
+        }
+    }
+
+    return accu;
+}
 //==========================================================================
 // Calculation of weights additive (w_add) in
 // dot_prod_asym = dot_prod_gen + w_add + in_add + zp_add + bias_add
@@ -120,6 +181,7 @@ MLI_FORCE_INLINE vNx4accshort_t bias_additive(
     // For I8ASYM with a 24bit accumulator the bias cannot be loaded directly into the accumulator.
     // 16 bits are loaded into the accumulator and then shifted to the correct position.
     // for this reason the bias additve has to be the first operation on the accumulator.
+    MLI_ASSERT(to_vNx4int_t(init_accum)[0] == 0);
     vNx4int_t bias32 = mli_prv_load_n_samples(bias);
     vNx4int_t norm = mli_math_norm_fx<vNx4int_t,vNx4int_t>(bias32);
     vNx4int_t shift = mli_math_max_fx(16 - norm, 0);
@@ -150,6 +212,18 @@ MLI_FORCE_INLINE vNx4char_t mli_prv_convert_fx16_sa8(
 //==========================================================================
 // Storing result
 //==========================================================================
+template <typename o_T, typename acc_T, typename quant_T>
+static MLI_FORCE_INLINE void result_cast_relu_store_v(
+        MLI_CONV_OUT_PTR(o_T) __restrict o_ptr,
+        acc_T acc,
+        const quant_T* quant_params,
+        const int16_t val_min_limit,
+        const int16_t val_max_limit,
+        int num) {
+    MLI_ASSERT(num == 1);
+    mli::krn::result_cast_relu_store(o_ptr, acc, quant_params, val_min_limit, val_max_limit);
+}
+
 template <>
 MLI_FORCE_INLINE void result_cast_relu_store_v(
         MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
