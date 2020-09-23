@@ -21,8 +21,10 @@ ifeq ($(O_SYS),Windows)
 TOOL_CHAIN_OPTIONS += -AWin32
 endif
 else
+
+# For TCF_FILE, we only take the realpath if the file exists (otherwise it is a file inside MWDT)
 TOOL_CHAIN_OPTIONS += \
-	-DARC_CFG_TCF_PATH=$(abspath $(TCF_FILE)) \
+	-DARC_CFG_TCF_PATH=$(if $(realpath $(TCF_FILE)),$(realpath $(TCF_FILE)),$(TCF_FILE)) \
 	-DCMAKE_TOOLCHAIN_FILE=$(abspath $(METAWARE_ROOT)$(PS)arc$(PS)cmake$(PS)arc-mwdt.toolchain.cmake) \
 	-G "Unix Makefiles"
 ifdef BUILDLIB_DIR
