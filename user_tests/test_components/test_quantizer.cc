@@ -128,12 +128,12 @@ mli_tensor tensor_quantizer::get_not_quantized_tensor(mli_data_container memory)
     // For SA format preparation of quantization parameters is required
     if (is_mem_spread_ok && (ret_tsr.el_type == MLI_EL_SA_8 || ret_tsr.el_type == MLI_EL_SA_32)) {
         int num_vals = (ret_tsr.el_params.sa.dim < 0) ? 1 : ret_tsr.shape[ret_tsr.el_params.sa.dim];
-        int16_t* scale_dst = (num_vals > 1) ? ret_tsr.el_params.sa.scale.mem.pi16 
-                                            : &ret_tsr.el_params.sa.scale.mem.i16;
-        int16_t* zp_dst = (num_vals > 1) ? ret_tsr.el_params.sa.zero_point.mem.pi16
-                                         : &ret_tsr.el_params.sa.zero_point.mem.i16;
-        int8_t* frac_dst = (num_vals > 1) ? ret_tsr.el_params.sa.scale_frac_bits.mem.pi8
-                                          : &ret_tsr.el_params.sa.scale_frac_bits.mem.i8;
+        int16_t* scale_dst = (ret_tsr.el_params.sa.dim >= 0) ? ret_tsr.el_params.sa.scale.mem.pi16
+                                                             : &ret_tsr.el_params.sa.scale.mem.i16;
+        int16_t* zp_dst = (ret_tsr.el_params.sa.dim >= 0) ? ret_tsr.el_params.sa.zero_point.mem.pi16
+                                                          : &ret_tsr.el_params.sa.zero_point.mem.i16;
+        int8_t* frac_dst = (ret_tsr.el_params.sa.dim >= 0) ? ret_tsr.el_params.sa.scale_frac_bits.mem.pi8
+                                                           : &ret_tsr.el_params.sa.scale_frac_bits.mem.i8;
 
         for (int i = 0; i < num_vals; i++) {
             const int8_t scale_fraq_bits = source_scales_fraq_[i];
@@ -163,7 +163,7 @@ uint32_t tensor_quantizer::get_required_data_capacity(const mli_tensor& tsr) {
     if (tsr.mem_stride[0] == 0) {
         ret_val = mli_hlp_tensor_element_size(&tsr) * mli_hlp_count_elem_num(&tsr, 0);
     } else {
-        // Method that implie removing "trash tail
+        // Method that implies removing unused tail
         for (int idx = 0; idx < tsr.rank; ++idx)
             ret_val += tsr.mem_stride[idx] * (tsr.shape[idx] - 1);
         ret_val += 1;
@@ -226,9 +226,9 @@ bool tensor_quantizer::spread_memory(mli_tensor* tsr, const mli_data_container* 
     tsr->data.capacity = get_required_data_capacity(*tsr);
     if ((tsr->el_type == MLI_EL_SA_8 || tsr->el_type == MLI_EL_SA_32)) {
         const int num_vals = (tsr->el_params.sa.dim >= 0) ? tsr->shape[tsr->el_params.sa.dim] : 1;
-        tsr->el_params.sa.scale.capacity = (num_vals > 1) ? sizeof(int16_t) * num_vals : 0;
-        tsr->el_params.sa.zero_point.capacity = (num_vals > 1) ? sizeof(int16_t) * num_vals : 0;
-        tsr->el_params.sa.scale_frac_bits.capacity = (num_vals > 1) ? sizeof(int8_t) * num_vals : 0;
+        tsr->el_params.sa.scale.capacity = (tsr->el_params.sa.dim >= 0) ? sizeof(int16_t) * num_vals : 0;
+        tsr->el_params.sa.zero_point.capacity = (tsr->el_params.sa.dim >= 0) ? sizeof(int16_t) * num_vals : 0;
+        tsr->el_params.sa.scale_frac_bits.capacity = (tsr->el_params.sa.dim >= 0) ? sizeof(int8_t) * num_vals : 0;
     }
 
     // If no data container is provided, just return memory requirements

@@ -19,7 +19,7 @@ namespace tst {
 //===============================================================================================
 // Full test reporter with all fields to validate
 //===============================================================================================
-class reporter_full /*: public reporter */{
+class reporter_full {
 public:
     // Print header of test report
     void report_header(const char* case_descr) const;
@@ -36,22 +36,6 @@ public:
     void report_outline(const char* outline_marker, bool is_passed) const;
 };
 
-//===============================================================================================
-// Mock reporter
-//===============================================================================================
-//class reporter {
-// public:
-//     void report_header(const char* case_descr) {};
-//
-//     bool evaluate_and_report_case(const char* case_descr, const quality_metrics& result,
-//                                   const quality_metrics& threshold, int32_t crc_result) {
-//         return true;
-//     };
-//
-//     void report_message(const char* case_descr, const char* message) {};
-//
-//     void report_outline(bool status) {};
-//};
 
 } // namespace mli {
 } // namespace tst {

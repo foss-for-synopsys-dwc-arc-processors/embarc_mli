@@ -23,6 +23,7 @@ using mli::tst::tensor_quantizer;
 using mli::tst::quality_metrics;
 using mli::tst::crc32_calc;
 using mli::tst::reporter_full;
+using mli::tst::memory_keeper;
 
 typedef mli_status(*conv2d_func_ptr)(
     const mli_tensor* /*input*/,
@@ -43,64 +44,83 @@ struct conv2d_test_operands {
     const crc32_calc check_sum;
 };
 
-#if defined NO_CRC_CHECk
-crc32_calc  test_1_chksum_fx16, test_1_chksum_fx8w16d, test_1_chksum_sa8,
-            test_2_chksum_fx16, test_2_chksum_fx8w16d, test_2_chksum_sa8,
-            test_3_chksum_fx16, test_3_chksum_fx8w16d, test_3_chksum_sa8,
-            test_4_chksum_fx16, test_4_chksum_fx8w16d, test_4_chksum_sa8,
-            test_5_chksum_fx16, test_5_chksum_fx8w16d, test_5_chksum_sa8;
+// Checksums of test tensors for various platforms. 
+// When developer finished implementation of kernel and consider it as ok, He need to populate
+// proper checksums for tests in order to highlight any change which affects results.
+#if defined NO_CRC_CHECK
+const crc32_calc  test_1_chksum_fx16, test_1_chksum_fx8w16d, test_1_chksum_sa8,
+                  test_2_chksum_fx16, test_2_chksum_fx8w16d, test_2_chksum_sa8,
+                  test_3_chksum_fx16, test_3_chksum_fx8w16d, test_3_chksum_sa8,
+                  test_4_chksum_fx16, test_4_chksum_fx8w16d, test_4_chksum_sa8,
+                  test_5_chksum_fx16, test_5_chksum_fx8w16d, test_5_chksum_sa8;
 #else
 // Need to distinquish platforms and update checksums
-crc32_calc test_1_chksum_fx16{ 0x3669E8DA }, test_1_chksum_fx8w16d{ 0x627FD168 }, test_1_chksum_sa8{ 0xA3FFD976 },
-            test_2_chksum_fx16{ 0x6075722F}, test_2_chksum_fx8w16d{ 0xBFE5DC3D }, test_2_chksum_sa8{ 0x314ECCA6 },
-            test_3_chksum_fx16{ 0xE2100158 }, test_3_chksum_fx8w16d{ 0x550F135E }, test_3_chksum_sa8{ 0x9740102D },
-            test_4_chksum_fx16, test_4_chksum_fx8w16d, test_4_chksum_sa8,
-            test_5_chksum_fx16, test_5_chksum_fx8w16d, test_5_chksum_sa8;
+const crc32_calc test_1_chksum_fx16{ 0x3669E8DA }, test_1_chksum_fx8w16d{ 0x627FD168 }, test_1_chksum_sa8{ 0xA3FFD976 },
+                 test_2_chksum_fx16{ 0x6075722F}, test_2_chksum_fx8w16d{ 0xBFE5DC3D }, test_2_chksum_sa8{ 0x314ECCA6 },
+                 test_3_chksum_fx16{ 0xE2100158 }, test_3_chksum_fx8w16d{ 0x550F135E }, test_3_chksum_sa8{ 0x9740102D },
+                 test_4_chksum_fx16, test_4_chksum_fx8w16d, test_4_chksum_sa8,
+                 test_5_chksum_fx16, test_5_chksum_fx8w16d, test_5_chksum_sa8;
 #endif
+
+const quality_metrics thresholds_fx16_general { quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
+                                                /* SNR_DB = */70.f, quality_metrics::kPassValueQuantErrPerc };
+
+const quality_metrics thresholds_fx8w16d_general{ quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
+                                                  /* SNR_DB = */30.f, quality_metrics::kPassValueQuantErrPerc };
+
+const quality_metrics thresholds_sa8_general{ quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
+                                             /* SNR_DB = */35.f, /*Quant Error Perc = */50.f };
+
 static const conv2d_test_operands tests_list[] = {
     {"Test 1 FX16",         mli_krn_conv2d_hwcn_fx16, 
                             input_1_fx16, weights_1_fx16, bias_1_fx16, test_1_out_fx16, test_1_cfg,
-                            quality_metrics(), test_1_chksum_fx16},
+                            thresholds_fx16_general, test_1_chksum_fx16},
     {"Test 1 FX16_FX8_FX8", mli_krn_conv2d_hwcn_fx16_fx8_fx8, 
                             input_1_fx16, weights_1_fx8, bias_1_fx8, test_1_out_fx16, test_1_cfg, 
-                            quality_metrics(), test_1_chksum_fx8w16d},
+                            thresholds_fx8w16d_general, test_1_chksum_fx8w16d},
     {"Test 1 SA8_SA8_SA32", mli_krn_conv2d_hwcn_sa8_sa8_sa32,
                             input_1_sa8, weights_1_sa8, bias_1_sa32, test_1_out_sa8, test_1_cfg, 
-                            quality_metrics(quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr, 
-                                            /* SNR_DB = */30.f, quality_metrics::kPassValueQuantErrPerc),
-                            test_1_chksum_sa8},
+                            thresholds_sa8_general, test_1_chksum_sa8},
 
-    {"Test 2 FX16 ReluGen",         mli_krn_conv2d_hwcn_fx16, input_1_fx16, weights_2_fx16, bias_1_fx16,
-                                    test_2_out_fx16, test_2_cfg, quality_metrics(), test_2_chksum_fx16},
-    {"Test 2 FX16_FX8_FX8 ReluGen", mli_krn_conv2d_hwcn_fx16_fx8_fx8, input_1_fx16, weights_2_fx8, bias_1_fx8,
-                                    test_2_out_fx16, test_2_cfg, quality_metrics(), test_2_chksum_fx8w16d},
-    {"Test 2 SA8_SA8_SA32 ReluGen", mli_krn_conv2d_hwcn_sa8_sa8_sa32, input_1_sa8, weights_2_sa8, bias_1_w2_sa32, test_2_out_sa8, test_2_cfg,
-                                    quality_metrics(quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr, 30.f, quality_metrics::kPassValueQuantErrPerc),
-                                    test_2_chksum_sa8},
+    {"Test 2 FX16 ReluGen",         mli_krn_conv2d_hwcn_fx16, 
+                                    input_1_fx16, weights_2_fx16, bias_1_fx16, test_2_out_fx16, test_2_cfg, 
+                                    thresholds_fx16_general, test_2_chksum_fx16},
+    {"Test 2 FX16_FX8_FX8 ReluGen", mli_krn_conv2d_hwcn_fx16_fx8_fx8,
+                                    input_1_fx16, weights_2_fx8, bias_1_fx8, test_2_out_fx16, test_2_cfg,
+                                    thresholds_fx8w16d_general, test_2_chksum_fx8w16d},
+    {"Test 2 SA8_SA8_SA32 ReluGen", mli_krn_conv2d_hwcn_sa8_sa8_sa32, 
+                                    input_1_sa8, weights_2_sa8, bias_1_w2_sa32, test_2_out_sa8, test_2_cfg,
+                                    thresholds_sa8_general, test_2_chksum_sa8},
 
-    {"Test 3 FX16 Dilation",         mli_krn_conv2d_hwcn_fx16, input_1_fx16, weights_1_fx16, bias_1_fx16, test_3_out_fx16, test_3_cfg,
-                                    quality_metrics(), test_3_chksum_fx16},
-    {"Test 3 FX16_FX8_FX8 Dilation", mli_krn_conv2d_hwcn_fx16_fx8_fx8, input_1_fx16, weights_1_fx8, bias_1_fx8, test_3_out_fx16, test_3_cfg,
-                                    quality_metrics(), test_3_chksum_fx8w16d},
-    {"Test 3 SA8_SA8_SA32 Dilation", mli_krn_conv2d_hwcn_sa8_sa8_sa32, input_1_sa8, weights_1_sa8, bias_1_sa32, test_3_out_sa8, test_3_cfg,
-                                    quality_metrics(quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr, 30.f, quality_metrics::kPassValueQuantErrPerc),
-                                    test_3_chksum_sa8},
+    {"Test 3 FX16 Dilation",         mli_krn_conv2d_hwcn_fx16,
+                                     input_1_fx16, weights_1_fx16, bias_1_fx16, test_3_out_fx16, test_3_cfg,
+                                     thresholds_fx16_general, test_3_chksum_fx16},
+    {"Test 3 FX16_FX8_FX8 Dilation", mli_krn_conv2d_hwcn_fx16_fx8_fx8,
+                                     input_1_fx16, weights_1_fx8, bias_1_fx8, test_3_out_fx16, test_3_cfg,
+                                     thresholds_fx8w16d_general, test_3_chksum_fx8w16d},
+    {"Test 3 SA8_SA8_SA32 Dilation", mli_krn_conv2d_hwcn_sa8_sa8_sa32,
+                                    input_1_sa8, weights_1_sa8, bias_1_sa32, test_3_out_sa8, test_3_cfg,
+                                    thresholds_sa8_general, test_3_chksum_sa8},
 
-    {"Test 4 FX16 InMemstr",         mli_krn_conv2d_hwcn_fx16, input_1_memstr_fx16, weights_1_fx16, bias_1_fx16, test_4_out_fx16, test_4_cfg,
-                                    quality_metrics(), test_4_chksum_fx16},
-    {"Test 4 FX16_FX8_FX8 InMemstr", mli_krn_conv2d_hwcn_fx16_fx8_fx8, input_1_memstr_fx16, weights_1_fx8, bias_1_fx8, test_4_out_fx16, test_4_cfg,
-                                    quality_metrics(), test_4_chksum_fx8w16d},
-    {"Test 4 SA8_SA8_SA32 InMemstr", mli_krn_conv2d_hwcn_sa8_sa8_sa32, input_1_memstr_sa8, weights_1_sa8, bias_1_sa32, test_4_out_sa8, test_4_cfg,
-                                    quality_metrics(quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr, 30.f, quality_metrics::kPassValueQuantErrPerc),
-                                    test_4_chksum_sa8},
+    {"Test 4 FX16 InMemstr",         mli_krn_conv2d_hwcn_fx16,
+                                     input_1_memstr_fx16, weights_1_fx16, bias_1_fx16, test_4_out_fx16, test_4_cfg,
+                                     thresholds_fx16_general, test_4_chksum_fx16},
+    {"Test 4 FX16_FX8_FX8 InMemstr", mli_krn_conv2d_hwcn_fx16_fx8_fx8,
+                                     input_1_memstr_fx16, weights_1_fx8, bias_1_fx8, test_4_out_fx16, test_4_cfg,
+                                     thresholds_fx8w16d_general, test_4_chksum_fx8w16d},
+    {"Test 4 SA8_SA8_SA32 InMemstr", mli_krn_conv2d_hwcn_sa8_sa8_sa32,
+                                     input_1_memstr_sa8, weights_1_sa8, bias_1_sa32, test_4_out_sa8, test_4_cfg,
+                                     thresholds_sa8_general, test_4_chksum_sa8},
 
-    {"Test 5 FX16 InMemstr",         mli_krn_conv2d_hwcn_fx16, input_1_fx16, weights_2_memstr_fx16, bias_1_fx16, test_5_out_fx16, test_5_cfg,
-                                    quality_metrics(), test_5_chksum_fx16},
-    {"Test 5 FX16_FX8_FX8 InMemstr", mli_krn_conv2d_hwcn_fx16_fx8_fx8, input_1_fx16, weights_2_memstr_fx8, bias_1_fx8, test_5_out_fx16, test_5_cfg,
-                                    quality_metrics(), test_5_chksum_fx8w16d},
-    {"Test 5 SA8_SA8_SA32 InMemstr", mli_krn_conv2d_hwcn_sa8_sa8_sa32, input_1_sa8, weights_2_memstr_sa8, bias_1_w2_sa32, test_5_out_sa8, test_5_cfg,
-                                    quality_metrics(quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr, 30.f, quality_metrics::kPassValueQuantErrPerc),
-                                    test_5_chksum_sa8},
+    {"Test 5 FX16 InMemstr",         mli_krn_conv2d_hwcn_fx16, 
+                                     input_1_fx16, weights_2_memstr_fx16, bias_1_fx16, test_5_out_fx16, test_5_cfg,
+                                     thresholds_fx16_general, test_5_chksum_fx16},
+    {"Test 5 FX16_FX8_FX8 InMemstr", mli_krn_conv2d_hwcn_fx16_fx8_fx8, 
+                                     input_1_fx16, weights_2_memstr_fx8, bias_1_fx8, test_5_out_fx16, test_5_cfg,
+                                     thresholds_fx8w16d_general, test_5_chksum_fx8w16d},
+    {"Test 5 SA8_SA8_SA32 InMemstr", mli_krn_conv2d_hwcn_sa8_sa8_sa32,
+                                     input_1_sa8, weights_2_memstr_sa8, bias_1_w2_sa32, test_5_out_sa8, test_5_cfg,
+                                     thresholds_sa8_general, test_5_chksum_sa8},
 };
 
 constexpr int kMemSize = 2047;
@@ -108,11 +128,6 @@ static int8_t scratch_mem_in[kMemSize] = { 0 };
 static int8_t scratch_mem_out[kMemSize] = { 0 };
 static int8_t scratch_mem_w[kMemSize] = { 0 };
 static int8_t scratch_mem_b[kMemSize] = { 0 };
-
-static mli_data_container container_in = { kMemSize, {.pi8 = scratch_mem_in + 1} };
-static mli_data_container container_out = { kMemSize, {.pi8 = scratch_mem_out + 3} };
-static mli_data_container container_w = { kMemSize, {.pi8 = scratch_mem_w + 1} };
-static mli_data_container container_b = { kMemSize, {.pi8 = scratch_mem_b + 3} };
 
 static const int tests_num = sizeof(tests_list) / sizeof(tests_list[0]);
 
@@ -122,6 +137,10 @@ int main() {
 
     reporter.report_header("MLI|Kernels|Convolution 2D  Tests");
     for (int i = 0; i < tests_num; ++i) {
+        memory_keeper mem_in_keeper(scratch_mem_in, sizeof(scratch_mem_in));
+        memory_keeper mem_out_keeper(scratch_mem_out, sizeof(scratch_mem_out));
+        memory_keeper mem_w_keeper(scratch_mem_w, sizeof(scratch_mem_w));
+        memory_keeper mem_b_keeper(scratch_mem_b, sizeof(scratch_mem_b));
         bool is_test_passed = true;
         const conv2d_test_operands* cur_test = &tests_list[i];
         quality_metrics test_metics;
@@ -131,10 +150,10 @@ int main() {
             is_test_passed = false;
         }
 
-        mli_tensor input = cur_test->in.get_quantized_tensor(container_in);
-        mli_tensor weights = cur_test->weights.get_quantized_tensor(container_w);
-        mli_tensor bias = cur_test->bias.get_quantized_tensor(container_b);
-        mli_tensor out = cur_test->out.get_not_quantized_tensor(container_out);
+        mli_tensor input = cur_test->in.get_quantized_tensor(mem_in_keeper.afford_memory(cur_test->in));
+        mli_tensor weights = cur_test->weights.get_quantized_tensor(mem_w_keeper.afford_memory(cur_test->weights));
+        mli_tensor bias = cur_test->bias.get_quantized_tensor(mem_b_keeper.afford_memory(cur_test->bias));
+        mli_tensor out = cur_test->out.get_not_quantized_tensor(mem_out_keeper.afford_memory(cur_test->out));
         if (is_test_passed &&
                 (tensor_quantizer::validate_tensor(input) != tensor_quantizer::kOk ||
                  tensor_quantizer::validate_tensor(weights) != tensor_quantizer::kOk||
@@ -152,6 +171,13 @@ int main() {
             is_test_passed = false;
         }
 
+        if (is_test_passed &&
+                (mem_in_keeper.is_memory_corrupted() || mem_out_keeper.is_memory_corrupted() ||
+                mem_w_keeper.is_memory_corrupted() || mem_b_keeper.is_memory_corrupted())) {
+            reporter.report_message(cur_test->descr,
+                "FAILED after kernel run: memory beside one of operands is corrupted");
+            is_test_passed = false;
+        }
 
         if (is_test_passed &&
                 test_metics.calculate_metrics(out, cur_test->out) == false) {
