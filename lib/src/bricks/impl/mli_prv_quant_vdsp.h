@@ -108,6 +108,53 @@ static MLI_FORCE_INLINE acc_T dotprod_inputzp_1D_v(
     return accu;
 }
 
+template <>
+MLI_FORCE_INLINE vNx4accshort_t dotprod_inputzp_1D_v(
+        const MLI_PTR(int8_t) __restrict in,
+        const MLI_PTR(int8_t) __restrict krn,
+        vNx4accshort_t accu,
+        const int vals,
+        const int in_step,
+        const int krn_step,
+        const s8asym_quant_specific_params* quant_params) {
+
+    int unroll_count = 4;
+    int idx;
+    // using a second accumulators allows for using two accumulators in parallel.
+    vNx4accshort_t accu2 = mli_math_mul_fx<int8_t, vNx4accshort_t>(0, 0);
+
+// the extra unroll factor enables the compiler to combine the scalar loads into an ldd
+#pragma clang loop unroll_count(2)
+    for (idx = 0; idx < vals - (unroll_count - 1); idx+=unroll_count) {
+        // load 4 input samples at once to reduce load bottleneck
+        int32_t in4x = *(int32_t*)in;
+
+        accu = mli_math_mac_fx(accu, mli_prv_load_n_samples(krn), (int8_t)in4x);
+        accu2 = mli_math_mac_fx(accu2, mli_prv_load_n_samples(krn), (int8_t)-quant_params->in_offset);
+        krn += krn_step;
+        in4x = in4x >> 8;
+        accu = mli_math_mac_fx(accu, mli_prv_load_n_samples(krn), (int8_t)in4x);
+        accu2 = mli_math_mac_fx(accu2, mli_prv_load_n_samples(krn), (int8_t)-quant_params->in_offset);
+        krn += krn_step;
+        in4x = in4x >> 8;
+        accu = mli_math_mac_fx(accu, mli_prv_load_n_samples(krn), (int8_t)in4x);
+        accu2 = mli_math_mac_fx(accu2, mli_prv_load_n_samples(krn), (int8_t)-quant_params->in_offset);
+        krn += krn_step;
+        in4x = in4x >> 8;
+        accu = mli_math_mac_fx(accu, mli_prv_load_n_samples(krn), (int8_t)in4x);
+        accu2 = mli_math_mac_fx(accu2, mli_prv_load_n_samples(krn), (int8_t)-quant_params->in_offset);
+        krn += krn_step;
+        in += in_step * 4;
+    }
+    for ( ; idx < vals; idx++) {
+        accu = mli_math_mac_fx(accu, mli_prv_load_n_samples(krn), *in);
+        accu2 = mli_math_mac_fx(accu2, mli_prv_load_n_samples(krn), (int8_t)-quant_params->in_offset);
+        in += in_step;
+        krn += krn_step;
+    }
+    return mli_math_add(accu, accu2);
+}
+
 template <typename io_T, typename w_T, typename acc_T>
 static MLI_FORCE_INLINE acc_T dotprod_inputzp_1D_v(
         const MLI_PTR(io_T) __restrict in,

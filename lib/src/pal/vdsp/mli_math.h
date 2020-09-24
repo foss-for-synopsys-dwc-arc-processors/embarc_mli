@@ -585,6 +585,16 @@ MLI_FORCE_INLINE vNx4accshort_t mli_math_add(vNx4accshort_t L, vNx4short_t R) {
     return __vacc_concat(vvcadd(__vacc_lo(L), R.lo,(int16_t)0), vvcadd(__vacc_hi(L), R.hi,(int16_t)0));
 }
 
+template <>
+MLI_FORCE_INLINE vNx2accshort_t mli_math_add(vNx2accshort_t L, vNx2accshort_t R) {
+    return vvcaddacc(L, R);
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accshort_t mli_math_add(vNx4accshort_t L, vNx4accshort_t R) {
+    return __vacc_concat(vvcaddacc(__vacc_lo(L), __vacc_lo(R)), vvcaddacc(__vacc_hi(L), __vacc_hi(R)));
+}
+
 // Maximum of two fx operands
 //========================================================================
 template <typename io_T>
