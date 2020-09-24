@@ -25,6 +25,14 @@
 extern "C" {
 #endif
 
+#if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
+typedef vNx4accint_t mli_sa8_accu_t;
+#elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
+typedef __v2i32_t mli_sa8_accu_t;
+#else
+typedef mli_acc32_t mli_sa8_accu_t;
+#endif
+
 #pragma MLI_CODE_SECTION_START(".mli_lib")
 
 mli_status mli_krn_avepool_hwc_sa8_k2x2(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
@@ -32,7 +40,7 @@ mli_status mli_krn_avepool_hwc_sa8_k2x2(const mli_tensor * in, const mli_pool_cf
     if (ret != MLI_STATUS_OK)
         return ret;
 
-    mli::krn::mli_krn_avepool_hwc<int8_t, mli_acc32_t, AVEPOOL_FIXED_KRN_SIZE_2>(in, cfg, out);
+    mli::krn::mli_krn_avepool_hwc<int8_t, mli_sa8_accu_t, AVEPOOL_FIXED_KRN_SIZE_2>(in, cfg, out);
     return MLI_STATUS_OK;
 }
 
@@ -41,7 +49,7 @@ mli_status mli_krn_avepool_hwc_sa8_k3x3(const mli_tensor * in, const mli_pool_cf
     if (ret != MLI_STATUS_OK)
         return ret;
 
-    mli::krn::mli_krn_avepool_hwc<int8_t, mli_acc32_t, AVEPOOL_FIXED_KRN_SIZE_3>(in, cfg, out);
+    mli::krn::mli_krn_avepool_hwc<int8_t, mli_sa8_accu_t, AVEPOOL_FIXED_KRN_SIZE_3>(in, cfg, out);
     return MLI_STATUS_OK;
 }
 
@@ -58,7 +66,7 @@ mli_status mli_krn_avepool_hwc_sa8(const mli_tensor * in, const mli_pool_cfg * c
     } else if ((kernel_w == 2) && (kernel_h == 2)) {
         return mli_krn_avepool_hwc_sa8_k2x2(in, cfg, out);
     } else {
-        mli::krn::mli_krn_avepool_hwc<int8_t, mli_acc32_t, AVEPOOL_NO_FIXED_KRN_SIZE>(in, cfg, out);
+        mli::krn::mli_krn_avepool_hwc<int8_t, mli_sa8_accu_t, AVEPOOL_NO_FIXED_KRN_SIZE>(in, cfg, out);
     }
 
     return MLI_STATUS_OK;

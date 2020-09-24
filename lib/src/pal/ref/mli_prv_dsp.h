@@ -97,21 +97,37 @@ static MLI_FORCE_INLINE void  mli_prv_clip_and_store_output(
         int64_t * ip_in,
         const int out_shift) {
     int64_t temp = mli_math_asr_rnd_fx<int64_t>(*ip_in, out_shift);
-    *o_ptr = (int64_t) mli_math_sat_fx<int64_t>(temp, 48);
+    *o_ptr = (int16_t) mli_math_sat_fx<int64_t>(temp, 48);
 }
 
 static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
         MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
-        int64_t * ip_in,
+        int64_t ip_in,
         const int out_shift) {
-    mli_prv_clip_and_store_output(o_ptr, ip_in, out_shift);
+    mli_prv_clip_and_store_output(o_ptr, &ip_in, out_shift);
 }
 
 static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
         MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
-        int32_t * ip_in,
+        int32_t ip_in,
         const int out_shift) {
-    mli_prv_clip_and_store_output(o_ptr, ip_in, out_shift);
+    mli_prv_clip_and_store_output(o_ptr, &ip_in, out_shift);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        int64_t ip_in,
+        const int out_shift,
+        int num) {
+    mli_prv_clip_and_store_output(o_ptr, &ip_in, out_shift);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
+        int32_t ip_in,
+        const int out_shift,
+        int num) {
+    mli_prv_clip_and_store_output(o_ptr, &ip_in, out_shift);
 }
 
 //=========================================================================
@@ -169,6 +185,21 @@ static MLI_FORCE_INLINE void  mli_prv_clip_relu_store_output(
 
     // Write result
     *o_ptr = out_val;
+}
+
+template<typename T>
+static MLI_FORCE_INLINE T mli_prv_init_accu();
+
+template<>
+MLI_FORCE_INLINE int32_t mli_prv_init_accu<int32_t>() {
+    int32_t acc = 0;
+    return acc;
+}
+
+template<>
+MLI_FORCE_INLINE int64_t mli_prv_init_accu<int64_t>() {
+    int64_t acc = 0;
+    return acc;
 }
 
 static MLI_FORCE_INLINE int32_t  mli_prv_init_accu(int8_t inp_val) {

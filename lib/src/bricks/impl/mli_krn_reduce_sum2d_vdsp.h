@@ -18,33 +18,64 @@ namespace mli {
 namespace krn {
 namespace vdsp {
 
-template <typename io_T, typename acc_T>
-static MLI_FORCE_INLINE void reduce_sum2D_v(
-        const MLI_PTR(io_T) in,
+template <typename acc_T>
+static MLI_FORCE_INLINE acc_T reduce_sum2D_v(
+        const MLI_PTR(int8_t) in,
         const int16_t mul,
-        acc_T * accu,
+        acc_T accu,
         const int width,
         const int height,
         const int col_mem_stride,
         const int row_mem_stride,
         const bool fixed_size) {
 
-    // TODO
+    auto acc_short = mli_prv_init_accu<vNx4accshort_t>();
+
+    for (int row = 0; row < height; row++) {
+		for (int clmn = 0; clmn < width; clmn++) {
+			acc_short = mli_math_mac_fx(acc_short, 
+					mli_prv_load_nx4_samples(&in[(row * row_mem_stride) + (clmn * col_mem_stride)]), (int8_t)1);
+		}
+	}
+
+    vNx4short_t acc_casted = mli_math_acc_cast_fx<vNx4short_t, vNx4accshort_t>(acc_short); 
+    accu = mli_math_mul_fx<vNx4short_t, vNx4accint_t>(acc_casted, (vNx4short_t)mul);
+    return accu;
+}
+
+template <typename acc_T>
+static MLI_FORCE_INLINE acc_T reduce_sum2D_v(
+        const MLI_PTR(int16_t) in,
+        const int16_t mul,
+        acc_T accu,
+        const int width,
+        const int height,
+        const int col_mem_stride,
+        const int row_mem_stride,
+        const bool fixed_size) {
+            
+    for (int row = 0; row < height; row++) {
+		for (int clmn = 0; clmn < width; clmn++) {
+			accu = mli_math_mac_fx(accu, in[(row * row_mem_stride) + (clmn * col_mem_stride)], mul);
+		}
+	}
+
+    return accu;
 }
 
 template <typename io_T, typename acc_T>
-static MLI_FORCE_INLINE void reduce_sum2D(
+static MLI_FORCE_INLINE acc_T reduce_sum2D(
         const MLI_PTR(io_T) in,
         const int16_t mul,
-        acc_T * accu,
+        acc_T accu,
         const int width,
         const int height,
         const int channels,
         const int col_mem_stride,
         const int row_mem_stride,
         const bool fixed_size) {
-    
-    // TODO
+
+    return reduce_sum2D_v(in, mul, accu, width, height, col_mem_stride, row_mem_stride, fixed_size);
 }
 
 } // namespace vdsp

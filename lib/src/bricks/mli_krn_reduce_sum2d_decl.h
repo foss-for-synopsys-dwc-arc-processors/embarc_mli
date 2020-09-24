@@ -29,10 +29,10 @@ namespace krn {
 namespace ref {
 
 template <typename io_T, typename acc_T>
-static MLI_FORCE_INLINE void reduce_sum2D_v(
+static MLI_FORCE_INLINE acc_T reduce_sum2D_v(
         const MLI_PTR(io_T) in,
         const int16_t mul,
-        acc_T * accu,
+        acc_T accu,
         const int width,
         const int height,
         const int col_mem_stride,
@@ -40,10 +40,10 @@ static MLI_FORCE_INLINE void reduce_sum2D_v(
         const bool fixed_size);
 
 template <typename io_T, typename acc_T>
-static MLI_FORCE_INLINE void reduce_sum2D(
+static MLI_FORCE_INLINE acc_T reduce_sum2D(
         const MLI_PTR(io_T) in,
         const int16_t mul,
-        acc_T * accu,
+        acc_T accu,
         const int width,
         const int height,
         const int channels,
@@ -52,10 +52,10 @@ static MLI_FORCE_INLINE void reduce_sum2D(
         const bool fixed_size);
 
 template <typename io_T, typename acc_T>
-static MLI_FORCE_INLINE void reduce_sum(
+static MLI_FORCE_INLINE acc_T reduce_sum(
         const io_T* __restrict in,
         const int16_t mul,
-        acc_T * accu,
+        acc_T accu,
         const int vals,
         const int step = 1);
 
@@ -67,10 +67,10 @@ static MLI_FORCE_INLINE void reduce_sum(
 namespace dsp {
 
 template <typename io_T, typename acc_T>
-static MLI_FORCE_INLINE void reduce_sum2D_v(
+static MLI_FORCE_INLINE acc_T reduce_sum2D_v(
         const MLI_PTR(io_T) in,
         const int16_t mul,
-        acc_T * accu,
+        acc_T accu,
         const int width,
         const int height,
         const int col_mem_stride,
@@ -78,10 +78,10 @@ static MLI_FORCE_INLINE void reduce_sum2D_v(
         const bool fixed_size);
 
 template <typename io_T, typename acc_T>
-static MLI_FORCE_INLINE void reduce_sum2D_d(
+static MLI_FORCE_INLINE acc_T reduce_sum2D_d(
         const MLI_PTR(io_T) in,
         const int16_t mul,
-        acc_T * accu,
+        acc_T accu,
         const int width,
         const int height,
         int col_mem_stride,
@@ -95,11 +95,22 @@ static MLI_FORCE_INLINE void reduce_sum2D_d(
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
 
-template <typename io_T, typename acc_T>
-static MLI_FORCE_INLINE void reduce_sum2D_v(
-        const MLI_PTR(io_T) in,
+template <typename acc_T>
+static MLI_FORCE_INLINE acc_T reduce_sum2D_v(
+        const MLI_PTR(int8_t) in,
         const int16_t mul,
-        acc_T * accu,
+        acc_T accu,
+        const int width,
+        const int height,
+        const int col_mem_stride,
+        const int row_mem_stride,
+        const bool fixed_size);
+
+template <typename acc_T>
+static MLI_FORCE_INLINE acc_T reduce_sum2D_v(
+        const MLI_PTR(int16_t) in,
+        const int16_t mul,
+        acc_T accu,
         const int width,
         const int height,
         const int col_mem_stride,
@@ -107,10 +118,10 @@ static MLI_FORCE_INLINE void reduce_sum2D_v(
         const bool fixed_size);
 
 template <typename io_T, typename acc_T>
-static MLI_FORCE_INLINE void reduce_sum2D(
+static MLI_FORCE_INLINE acc_T reduce_sum2D(
         const MLI_PTR(io_T) in,
         const int16_t mul,
-        acc_T * accu,
+        acc_T accu,
         const int width,
         const int height,
         const int channels,

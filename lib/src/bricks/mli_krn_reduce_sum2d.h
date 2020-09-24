@@ -23,7 +23,7 @@
 namespace mli {
 namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-using mli::krn::ref::reduce_sum2D_v;
+using mli::krn::vdsp::reduce_sum2D_v;
 using mli::krn::ref::reduce_sum2D;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)

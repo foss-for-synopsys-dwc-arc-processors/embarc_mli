@@ -15,7 +15,7 @@
 #include "mli_private_types.h"
 #include "arc_vector_ext.h"
 
-
+#include "../mli_prv_load_store.h"
 
 //=========================================================================
 // This file contains functions that combine the math functions from
@@ -108,6 +108,42 @@ static MLI_FORCE_INLINE void  mli_prv_clip_and_store_output(
 
 static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
         MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        vNx4accint_t ip_in,
+        const int out_shift) {
+    vNx4short_t out = mli_math_acc_cast_fx<vNx4short_t, vNx4accint_t>(ip_in, out_shift);
+    mli_prv_store_n_samples(o_ptr, out);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        vNx4accint_t ip_in,
+        const int out_shift, 
+        int num) {
+    vNx4short_t out = mli_math_acc_cast_fx<vNx4short_t, vNx4accint_t>(ip_in, out_shift);
+    mli_prv_store_n_samples(o_ptr, out, num);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
+        vNx4accint_t ip_in,
+        const int out_shift) {
+    vNx4short_t out_short = mli_math_acc_cast_fx<vNx4short_t, vNx4accint_t>(ip_in, out_shift);
+    vNx4char_t out = mli_math_cast_fx<vNx4short_t, vNx4char_t>(out_short, 0);
+    mli_prv_store_n_samples(o_ptr, out);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
+        vNx4accint_t ip_in,
+        const int out_shift,
+        int num) {
+    vNx4short_t out_short = mli_math_acc_cast_fx<vNx4short_t, vNx4accint_t>(ip_in, out_shift);
+    vNx4char_t out = mli_math_cast_fx<vNx4short_t, vNx4char_t>(out_short, 0);
+    mli_prv_store_n_samples(o_ptr, out, num);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
         int64_t * ip_in,
         const int out_shift) {
     mli_prv_clip_and_store_output(o_ptr, ip_in, out_shift);
@@ -120,6 +156,21 @@ static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
     mli_prv_clip_and_store_output(o_ptr, ip_in, out_shift);
 }
 
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        int64_t ip_in,
+        const int out_shift) {
+    mli_prv_clip_and_store_output(o_ptr, &ip_in, out_shift);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        int64_t ip_in,
+        const int out_shift,
+        int num) {
+    MLI_ASSERT(num == 1);
+    mli_prv_clip_and_store_output(o_ptr, &ip_in, out_shift);
+}
 //=========================================================================
 
 static MLI_FORCE_INLINE void  mli_prv_shift_clip_and_store_output(
@@ -199,6 +250,11 @@ MLI_FORCE_INLINE vNx4accint_t mli_prv_init_accu<vNx4accint_t>() {
     return r;
 }
 
+template<>
+MLI_FORCE_INLINE mli_acc40_t mli_prv_init_accu<int64_t>() {
+    return (int64_t)0;
+}
+
 static MLI_FORCE_INLINE int32_t  mli_prv_init_accu(int8_t inp_val) {
     int32_t acc = inp_val;
     return acc;
@@ -206,17 +262,6 @@ static MLI_FORCE_INLINE int32_t  mli_prv_init_accu(int8_t inp_val) {
 
 static MLI_FORCE_INLINE int32_t  mli_prv_init_accu(int32_t inp_val) {
     int32_t acc = inp_val;
-    return acc;
-}
-
-
-static MLI_FORCE_INLINE int32_t mli_prv_init_accu_v(int8_t inp_val) {
-    int32_t acc = inp_val;
-    return acc;
-}
-
-static MLI_FORCE_INLINE int64_t mli_prv_init_accu_v(int16_t inp_val) {
-    int64_t acc = inp_val;
     return acc;
 }
 

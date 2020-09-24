@@ -10,7 +10,7 @@
 #ifndef _MLI_PRV_DSP_H_
 #define _MLI_PRV_DSP_H_
 
-#if defined(__Xvec_width)
+#if defined(__Xvec_width) && !defined(MLI_BUILD_REFERENCE)
 #include "vdsp/mli_prv_dsp.h"
 #elif defined(__FXAPI__) //&& !defined(MLI_BUILD_REFERENCE)
 // not ported kernels running EM/HS; always require dsp/* version of PAL.

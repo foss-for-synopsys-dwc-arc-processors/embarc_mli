@@ -22,10 +22,10 @@ namespace krn {
 namespace dsp {
 
 template <typename io_T, typename acc_T>
-static MLI_FORCE_INLINE void reduce_sum2D_v(
+static MLI_FORCE_INLINE acc_T reduce_sum2D_v(
         const MLI_PTR(io_T) in,
         const int16_t mul,
-        acc_T * accu,
+        acc_T accu,
         const int width,
         const int height,
         const int col_mem_stride,
@@ -39,13 +39,13 @@ static MLI_FORCE_INLINE void reduce_sum2D_v(
     if (width == 1){
 #pragma clang loop unroll(full)
         for (int row = 0; row < height; row++) {
-            mli_math_mac_fx_vec2(accu, mli_prv_load_2_samples(in), v2mul);
+            mli_math_mac_fx_vec2(&accu, mli_prv_load_2_samples(in), v2mul);
             in += row_mem_stride;
         }
     } else if (height == 1){
 #pragma clang loop unroll(full)
         for (int clmn = 0; clmn < width; clmn++) {
-            mli_math_mac_fx_vec2(accu, mli_prv_load_2_samples(in), v2mul);
+            mli_math_mac_fx_vec2(&accu, mli_prv_load_2_samples(in), v2mul);
             in += col_mem_stride;
         }
     } else {
@@ -53,7 +53,7 @@ static MLI_FORCE_INLINE void reduce_sum2D_v(
         for (int row = 0; row < height; row++) {
 #pragma clang loop unroll(full)
             for (int clmn = 0; clmn < width; clmn++) {
-                mli_math_mac_fx_vec2(accu, mli_prv_load_2_samples(in), v2mul);
+                mli_math_mac_fx_vec2(&accu, mli_prv_load_2_samples(in), v2mul);
                 in += col_mem_stride;
             }
             in += row_mem_stride - col_mem_stride * width;
@@ -61,13 +61,14 @@ static MLI_FORCE_INLINE void reduce_sum2D_v(
     } 
 #pragma clang diagnostic pop
     
+    return accu;
 }
 
 template <typename io_T, typename acc_T>
-static MLI_FORCE_INLINE void reduce_sum2D_d(
+static MLI_FORCE_INLINE acc_T reduce_sum2D_d(
         const MLI_PTR(io_T) in,
         const int16_t mul,
-        acc_T * accu,
+        acc_T accu,
         const int width,
         const int height,
         int col_mem_stride,
@@ -81,13 +82,13 @@ static MLI_FORCE_INLINE void reduce_sum2D_d(
     if (width == 1){
 #pragma clang loop unroll(full)
         for (int row = 0; row < height; row++) {
-            mli_prv_load_mac_vec2(accu, v2mul_ptr, in);
+            mli_prv_load_mac_vec2(&accu, v2mul_ptr, in);
             in += row_mem_stride;
         }
     } else if( height == 1) {
 #pragma clang loop unroll(full)
         for (int clmn = 0; clmn < width; clmn++) {
-            mli_prv_load_mac_vec2(accu, v2mul_ptr, in);
+            mli_prv_load_mac_vec2(&accu, v2mul_ptr, in);
             in += col_mem_stride;
         }
     } else {
@@ -96,7 +97,7 @@ static MLI_FORCE_INLINE void reduce_sum2D_d(
         for (int row = 0; row < height; row++) {
 #pragma clang loop unroll(full)
             for (int clmn = 0; clmn < width; clmn++) {
-                mli_prv_load_mac_vec2(accu, v2mul_ptr, in);
+                mli_prv_load_mac_vec2(&accu, v2mul_ptr, in);
                 in += col_mem_stride;
             }
             in += row_mem_stride;
@@ -104,6 +105,7 @@ static MLI_FORCE_INLINE void reduce_sum2D_d(
     }
 #pragma clang diagnostic pop
 
+    return accu;
 }
 
 } // namespace dsp
