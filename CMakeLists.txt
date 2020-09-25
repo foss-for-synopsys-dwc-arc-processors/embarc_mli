@@ -1,5 +1,5 @@
 #
-# Copyright 2020, Synopsys, Inc.
+# Copyright 2020-2022, Synopsys, Inc.
 # All rights reserved.
 #
 # This source code is licensed under the BSD-3-Clause license found in
@@ -17,10 +17,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXT_CFLAGS}")
 
 set(MLI_LIB_HOME_DIR ${PROJECT_SOURCE_DIR})
 
+include(cmake/settings.cmake)
+
 add_subdirectory(lib)
 
 add_subdirectory(user_tests)
 
 if (GEN_EXAMPLES)
-	add_subdirectory(examples EXCLUDE_FROM_ALL)
+    add_subdirectory(examples EXCLUDE_FROM_ALL)
 endif()

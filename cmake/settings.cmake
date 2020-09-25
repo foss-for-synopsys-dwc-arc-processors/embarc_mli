@@ -1,5 +1,5 @@
 #
-# Copyright 2020-2021, Synopsys, Inc.
+# Copyright 2020-2022, Synopsys, Inc.
 # All rights reserved.
 #
 # This source code is licensed under the BSD-3-Clause license found in
@@ -10,15 +10,37 @@
 #   MLI_PLATFORM
 #   MLI_PLATFORM_LINK_OPTIONS
 #   MLI_PLATFORM_COMPILE_OPTIONS
-# FLAGS here are similar to build/rules.mk, notable excpetions:
-#   MLI_PLATFORM: is set here
-#   -Hvdsp_vector_c / -Hfxapi is set here.
 
 if (_MLI_SETTINGS_CMAKE_LOADED)
-  return()
+    return()
 endif()
 set(_MLI_SETTINGS_CMAKE_LOADED TRUE)
 
+# Workaround to handle differences in used build systems.
+if(DEFINED BUILD_DEVICE_ARC AND DEFINED ARC)
+    message(FATAL_ERROR "Both BUILD_DEVICE_ARC and ARC are set, use only 1 when calling the top-level CMake.")
+endif()
+# Make sure BUILD_DEVICE_ARC and ARC are qual to each other.
+if(DEFINED BUILD_DEVICE_ARC)
+    set(ARC ON)
+endif()
+if(DEFINED ARC)
+    set(BUILD_DEVICE_ARC ON)
+endif()
+
+# Workaround to handle differences in used build systems.
+if(DEFINED EVSS_CFG_TCF_PATH AND DEFINED ARC_CFG_TCF_PATH)
+    message(FATAL_ERROR "Both EVSS_CFG_TCF_PATH and ARC_CFG_TCF_PATH are set, use only 1 when calling the top-level CMake.")
+endif()
+# Make sure ARC_CFG_TCF_PATH and EVSS_CFG_TCF_PATH are qual to each other.
+if(DEFINED ARC_CFG_TCF_PATH)
+    set(EVSS_CFG_TCF_PATH ${ARC_CFG_TCF_PATH})
+endif()
+if(DEFINED EVSS_CFG_TCF_PATH)
+    set(ARC_CFG_TCF_PATH ${EVSS_CFG_TCF_PATH})
+endif()
+
+# Query the compiler to get more information about the ARC platform
 function(get_mli_platform MLI_PLATFORM)
     if (DEFINED ARC_CFG_TCF_PATH)
         execute_process (

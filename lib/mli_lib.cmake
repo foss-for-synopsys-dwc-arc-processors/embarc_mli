@@ -35,10 +35,10 @@ file(GLOB temp
     ${MLI_LIB_CMAKE_DIR}/src/kernels/diverse/*.cc
 )
 if (NOT DEFINED MLI_INCLUDE_RUNTIME)
-set(MLI_INCLUDE_RUNTIME "ON")
+    set(MLI_INCLUDE_RUNTIME ON)
 endif()
 
-if ( ${MLI_INCLUDE_RUNTIME} STREQUAL "ON")
+if ( ${MLI_INCLUDE_RUNTIME} STREQUAL ON)
 file(GLOB temp_runtime
     ${MLI_LIB_CMAKE_DIR}/src/private/src/mli_runtime.cc
 )
@@ -67,10 +67,10 @@ set(MLI_LIB_SOURCE_FILES
 )
 
 set(MLI_LIB_PUBLIC_INCLUDES
-    ${MLI_LIB_CMAKE_DIR}/../include
-    ${MLI_LIB_CMAKE_DIR}/../include/api
-    ${MLI_LIB_CMAKE_DIR}/../include/internal
-    ${MLI_LIB_CMAKE_DIR}/../lib/src/private
+    $<BUILD_INTERFACE:${MLI_LIB_CMAKE_DIR}/../include>
+    $<BUILD_INTERFACE:${MLI_LIB_CMAKE_DIR}/../include/internal>
+    $<BUILD_INTERFACE:${MLI_LIB_CMAKE_DIR}/../include/api>
+    $<BUILD_INTERFACE:${MLI_LIB_CMAKE_DIR}/../lib/src/private>
 )
 
 set(MLI_LIB_PRIVATE_INCLUDES
