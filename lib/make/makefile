@@ -6,17 +6,18 @@
 # the LICENSE file in the root directory of this source tree.
 #
 
-RECONFIGURE         ?= ON
+RECONFIGURE         ?= OFF
 DEBUG_BUILD         ?= ON
 OPTMODE             ?= speed
 GEN_EXAMPLES        ?= 1
 MLI_BUILD_REFERENCE ?= OFF
 BUILD_SUBDIR        ?=
+EXT_CFLAGS          ?=
 
 include settings.mk
 
 TOOL_CHAIN_OPTIONS =
-ifndef TCF_FILE
+ifeq ($(TCF_FILE),)
 ifeq ($(O_SYS),Windows)
 TOOL_CHAIN_OPTIONS += -AWin32
 endif
@@ -36,6 +37,10 @@ ifdef ROUND_MODE
 TOOL_CHAIN_OPTIONS += -DROUND_MODE=${ROUND_MODE}
 endif
 
+ifdef MLI_DEBUG_MODE
+TOOL_CHAIN_OPTIONS += -DMLI_DEBUG_MODE=${MLI_DEBUG_MODE}
+endif
+
 ifeq ($(RECONFIGURE),ON)
 CONFIG_TARGET=config
 else
@@ -43,7 +48,7 @@ CONFIG_TARGET=$(BUILD_DIR)/cmake_install.cmake
 endif
 
 # $(MAKE) can be called through CMAKE; but to facilitate parallel builds with -j, we call $(MAKE).
-ifndef TCF_FILE
+ifeq ($(TCF_FILE),)
 lib: $(CONFIG_TARGET)
 	cmake --build $(abspath $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)) --verbose --target install
 else
@@ -56,6 +61,7 @@ all: lib
 $(CONFIG_TARGET):
 	cmake \
 		-DDEBUG_BUILD=$(DEBUG_BUILD) \
+		-DEXT_CFLAGS=$(EXT_CFLAGS) \
 		-DOPTMODE=$(OPTMODE) \
 		-DGEN_EXAMPLES=$(GEN_EXAMPLES) \
 		-DMLI_BUILD_REFERENCE=$(MLI_BUILD_REFERENCE) \
