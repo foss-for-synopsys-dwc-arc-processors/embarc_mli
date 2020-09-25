@@ -100,6 +100,14 @@ MLI_FORCE_INLINE void adjust_quant_params(fx_quant_specific_params* in, int krn_
     return;
 }
 
+MLI_FORCE_INLINE int16_t quant_params_get_weigths_zeropoint(s8asym_quant_specific_params* params) {
+    return params->weights_offset;
+}
+
+MLI_FORCE_INLINE int16_t quant_params_get_weigths_zeropoint(fx_quant_specific_params* params) {
+    return 0;
+}
+
 static MLI_FORCE_INLINE int32_t mli_prv_calc_out_mul(
         const mli_tensor *in0,
         const mli_tensor *in1,

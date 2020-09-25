@@ -21,6 +21,26 @@ namespace krn {
 namespace vdsp {
 
 template <typename io_T, typename w_T, typename acc_T>
+static MLI_FORCE_INLINE acc_T dotprod1D_v(
+        const MLI_PTR(io_T) __restrict in,
+        const MLI_PTR(w_T)  __restrict krn,
+        acc_T accu,
+        const int vals,
+        const int in_step,
+        const int krn_step) {
+    if (get_number_lanes<acc_T>() == 1) {
+        // For vector length of 1, the non vectorized verions of dotprod can be used.
+        return mli::krn::dotprod1D(in, krn, accu, vals, in_step, krn_step);
+    }
+    for (int idx = 0; idx < vals; idx++) {
+        accu = mli_math_mac_fx(accu, mli_prv_load_n_samples(krn), *in);
+        in += in_step;
+        krn += krn_step;
+    }
+    return accu;
+}
+
+template <typename io_T, typename w_T, typename acc_T>
 static MLI_FORCE_INLINE acc_T dotprod2D_vv(
         const MLI_PTR(io_T) __restrict in,
         const MLI_PTR(w_T)  __restrict krn,

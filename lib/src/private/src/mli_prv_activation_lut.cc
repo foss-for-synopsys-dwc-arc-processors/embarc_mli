@@ -123,8 +123,8 @@ void mli_prv_activation_lut_fx8(
         int in_frac_bits,
         int length) {
 
-    auto in_prv =  mli_prv_get_generic_tensor<int8_t *>(in);
-    auto out_prv =  mli_prv_get_generic_tensor<int8_t *>(out);
+    auto in_prv =  mli_prv_get_generic_tensor<MLI_PTR(int8_t)>(in);
+    auto out_prv =  mli_prv_get_generic_tensor<MLI_PTR(int8_t)>(out);
 
     activation_lut<int8_t>(&in_prv, &out_prv, lut, in_frac_bits);
 }
@@ -136,8 +136,8 @@ void mli_prv_activation_lut_fx16(
         int in_frac_bits,
         int length) {
 
-    auto in_prv =  mli_prv_get_generic_tensor<int16_t *>(in);
-    auto out_prv =  mli_prv_get_generic_tensor<int16_t *>(out);
+    auto in_prv =  mli_prv_get_generic_tensor<MLI_PTR(int16_t)>(in);
+    auto out_prv =  mli_prv_get_generic_tensor<MLI_PTR(int16_t)>(out);
 
     activation_lut<int16_t>(&in_prv, &out_prv, lut, in_frac_bits);
 }
@@ -150,8 +150,8 @@ void mli_prv_activation_lut_sa8(
         struct s8asym_quant_params *out_params,
         int length) {
 
-    auto in_prv =  mli_prv_get_generic_tensor<int8_t *>(in);
-    auto out_prv =  mli_prv_get_generic_tensor<int8_t *>(out);
+    auto in_prv =  mli_prv_get_generic_tensor<MLI_PTR(int8_t)>(in);
+    auto out_prv =  mli_prv_get_generic_tensor<MLI_PTR(int8_t)>(out);
 
     activation_lut<int8_t, true>(&in_prv, &out_prv, lut, 0 /*Unused*/, in_params, out_params);
 }

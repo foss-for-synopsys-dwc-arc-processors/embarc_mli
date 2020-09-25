@@ -29,9 +29,9 @@ const int kSoftmaxAsymZeroPoint = -128;
 const int kSoftmaxOutputShift = 8;
 
 template <typename io_T>
-static MLI_FORCE_INLINE void mli_krn_softmax_subtract_max(const io_T *vec_in, io_T *vec_out,
-        struct generic_tensor_private_t<io_T*> *in_prv,
-        struct generic_tensor_private_t<io_T*> *out_prv,
+static MLI_FORCE_INLINE void mli_krn_softmax_subtract_max(const MLI_PTR(io_T) vec_in, MLI_PTR(io_T) vec_out,
+        struct generic_tensor_private_t<MLI_PTR(io_T)> *in_prv,
+        struct generic_tensor_private_t<MLI_PTR(io_T)> *out_prv,
         int *in_frac_p) {
     // Looking for maximum value
     io_T max_val = vec_in[0];
@@ -82,8 +82,8 @@ template <typename io_T>
 static MLI_FORCE_INLINE void mli_krn_softmax_convert_tensor(const mli_tensor *in,
         const mli_softmax_cfg* cfg,
         mli_tensor *out,
-        generic_tensor_private_t<io_T *> *in_prv,
-        generic_tensor_private_t<io_T *> *out_prv,
+        generic_tensor_private_t<MLI_PTR(io_T)> *in_prv,
+        generic_tensor_private_t<MLI_PTR(io_T)> *out_prv,
         int *shape,
         int *in_mem_str,
         int *out_mem_str) {
@@ -95,8 +95,8 @@ static MLI_FORCE_INLINE void mli_krn_softmax_convert_tensor(const mli_tensor *in
      */
 
     /* conversion (1) is done here */
-    *in_prv =  mli_prv_get_generic_tensor<io_T *>(in, cfg->axis);
-    *out_prv = mli_prv_get_generic_tensor<io_T *>(out, cfg->axis);
+    *in_prv =  mli_prv_get_generic_tensor<MLI_PTR(io_T)>(in, cfg->axis);
+    *out_prv = mli_prv_get_generic_tensor<MLI_PTR(io_T)>(out, cfg->axis);
 
     for (int i = 0; i < MLI_MAX_RANK - 1; i++) {
         shape[i] = 1;
@@ -124,18 +124,18 @@ static mli_status mli_krn_softmax_fx_run(const mli_tensor *in, const mli_softmax
 
     MLI_ASSERT(MLI_MAX_RANK == 4);
 
-    const io_T *vec_in = nullptr;
-    io_T *vec_out = nullptr;
+    const MLI_PTR(io_T) vec_in = nullptr;
+    MLI_PTR(io_T) vec_out = nullptr;
 
-    const io_T *in_ptr = (io_T *)(in->data.mem.void_p);
-    io_T *out_ptr = (io_T *) (out->data.mem.void_p);
+    const MLI_PTR(io_T) in_ptr = (MLI_PTR(io_T))(in->data.mem.void_p);
+    MLI_PTR(io_T) out_ptr = (MLI_PTR(io_T)) (out->data.mem.void_p);
 
     int shape[MLI_MAX_RANK - 1];
     int in_mem_str[MLI_MAX_RANK - 1];
     int out_mem_str[MLI_MAX_RANK - 1];
 
-    struct generic_tensor_private_t<io_T *> in_prv;
-    struct generic_tensor_private_t<io_T *> out_prv;
+    struct generic_tensor_private_t<MLI_PTR(io_T)> in_prv;
+    struct generic_tensor_private_t<MLI_PTR(io_T)> out_prv;
 
     /* Copy tensor format */
     mli_prv_copy_tensor_format_except_mem_strides(in, out);
@@ -165,7 +165,7 @@ static mli_status mli_krn_softmax_fx_run(const mli_tensor *in, const mli_softmax
                 mli_krn_softmax_subtract_max(vec_in, vec_out, &in_prv, &out_prv, &in_frac);
 
                 /* Activation lookup table */
-                struct generic_tensor_private_t<io_T *> out_vec_tensor = out_prv;
+                struct generic_tensor_private_t<MLI_PTR(io_T)> out_vec_tensor = out_prv;
                 out_vec_tensor.ptr = vec_out;
                 mli::krn::activation_lut<io_T, false>(&out_vec_tensor, &out_vec_tensor, &expneg_lut_fx16, in_frac);
 
@@ -230,18 +230,18 @@ static mli_status mli_krn_softmax_sa8_run(const mli_tensor *in, const mli_softma
     out_params.scale  = 1;
     out_params.shift = kSoftmaxOutputShift;
 
-    const int8_t *vec_in = nullptr;
-    int8_t *vec_out = nullptr;
+    const MLI_PTR(int8_t) vec_in = nullptr;
+    MLI_PTR(int8_t) vec_out = nullptr;
 
-    const int8_t *in_ptr = (int8_t *)(in->data.mem.void_p);
-    int8_t *out_ptr = (int8_t *) (out->data.mem.void_p);
+    const MLI_PTR(int8_t) in_ptr = (MLI_PTR(int8_t))(in->data.mem.void_p);
+    MLI_PTR(int8_t) out_ptr = (MLI_PTR(int8_t)) (out->data.mem.void_p);
 
     int shape[MLI_MAX_RANK - 1];
     int in_mem_str[MLI_MAX_RANK - 1];
     int out_mem_str[MLI_MAX_RANK - 1];
 
-    struct generic_tensor_private_t<int8_t *> in_prv;
-    struct generic_tensor_private_t<int8_t *> out_prv;
+    struct generic_tensor_private_t<MLI_PTR(int8_t)> in_prv;
+    struct generic_tensor_private_t<MLI_PTR(int8_t)> out_prv;
 
     /* Copy tensor format */
     mli_prv_copy_tensor_format_except_mem_strides(in, out);

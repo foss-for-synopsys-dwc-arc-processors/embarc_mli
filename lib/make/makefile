@@ -6,6 +6,7 @@
 # the LICENSE file in the root directory of this source tree.
 #
 
+RECONFIGURE         ?= ON
 DEBUG_BUILD         ?= ON
 OPTMODE             ?= speed
 GEN_EXAMPLES        ?= 1
@@ -20,37 +21,51 @@ ifeq ($(O_SYS),Windows)
 TOOL_CHAIN_OPTIONS += -AWin32
 endif
 else
+
+# For TCF_FILE, we only take the realpath if the file exists (otherwise it is a file inside MWDT)
 TOOL_CHAIN_OPTIONS += \
-	-DARC_CFG_TCF_PATH=$(TCF_FILE) \
-	-DCMAKE_TOOLCHAIN_FILE=$(subst \,$(PS),$(METAWARE_ROOT))$(PS)arc$(PS)cmake$(PS)arc-mwdt.toolchain.cmake \
+	-DARC_CFG_TCF_PATH=$(if $(realpath $(TCF_FILE)),$(realpath $(TCF_FILE)),$(TCF_FILE)) \
+	-DCMAKE_TOOLCHAIN_FILE=$(abspath $(METAWARE_ROOT)$(PS)arc$(PS)cmake$(PS)arc-mwdt.toolchain.cmake) \
 	-G "Unix Makefiles"
 ifdef BUILDLIB_DIR
-TOOL_CHAIN_OPTIONS += -DBUILDLIB_DIR=$(BUILDLIB_DIR)
+TOOL_CHAIN_OPTIONS += -DBUILDLIB_DIR=$(abspath $(BUILDLIB_DIR))
 endif
+endif
+
+ifdef ROUND_MODE
+TOOL_CHAIN_OPTIONS += -DROUND_MODE=${ROUND_MODE}
+endif
+
+ifeq ($(RECONFIGURE),ON)
+CONFIG_TARGET=config
+else
+CONFIG_TARGET=$(BUILD_DIR)/cmake_install.cmake
 endif
 
 # $(MAKE) can be called through CMAKE; but to facilitate parallel builds with -j, we call $(MAKE).
 ifndef TCF_FILE
-lib: $(BUILD_DIR)/cmake_install.cmake
-	cmake --build $(BUILD_DIR)$(PS)$(BUILD_SUBDIR) --verbose --target install
+lib: $(CONFIG_TARGET)
+	cmake --build $(abspath $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)) --verbose --target install
 else
-lib: $(BUILD_DIR)/cmake_install.cmake
-	$(MAKE) -C $(BUILD_DIR)$(PS)$(BUILD_SUBDIR) VERBOSE=true install
+lib: $(CONFIG_TARGET)
+	$(MAKE) -C $(abspath $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)) VERBOSE=true install
 endif
 
 all: lib
 
-$(BUILD_DIR)/cmake_install.cmake:
+$(CONFIG_TARGET):
 	cmake \
 		-DDEBUG_BUILD=$(DEBUG_BUILD) \
 		-DOPTMODE=$(OPTMODE) \
 		-DGEN_EXAMPLES=$(GEN_EXAMPLES) \
 		-DMLI_BUILD_REFERENCE=$(MLI_BUILD_REFERENCE) \
-		-DCMAKE_INSTALL_PREFIX=${LIBRARY_DIR} \
-		$(TOOL_CHAIN_OPTIONS) -B$(BUILD_DIR) -S..$(PS)..$(PS)
+		-DCMAKE_INSTALL_PREFIX=$(abspath $(LIBRARY_DIR)) \
+		$(TOOL_CHAIN_OPTIONS) \
+		-B$(abspath $(BUILD_DIR)) \
+		-S$(abspath ..$(PS)..$(PS))
 
 clean:
 	-$(RMDIR) $(BUILD_DIR_BASE)
 	-$(RMDIR) $(LIBRARY_DIR_BASE)
 
-.PHONY:	all clean lib
+.PHONY:	all clean lib config
