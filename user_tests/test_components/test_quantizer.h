@@ -93,7 +93,8 @@ class tensor_quantizer {
      static uint32_t get_required_data_capacity(const mli_tensor& tsr);
      static bool  tensor_assign_data_ptr(mli_tensor* tsr, void* ptr);
      static bool spread_memory(mli_tensor* tsr, const mli_data_container* data_mem,
-                       const mli_data_container* quant_params_mem = nullptr);
+                               const mli_data_container* quant_params_mem = nullptr);
+     static tensor_state quantize_float_data(const float* src, uint32_t src_size, mli_tensor* dst);
 };
 
 } // namespace tst

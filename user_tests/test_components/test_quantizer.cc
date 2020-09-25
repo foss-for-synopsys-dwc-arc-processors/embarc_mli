@@ -9,21 +9,21 @@
 
 #include "test_quantizer.h"
 
+// standart asserts should be intentionally turned-on defining DEBUG.
+#if !defined(DEBUG)
+#define NDEBUG
+#endif
+
 #include <algorithm>
+#include <assert.h>
 #include <limits>
 #include <memory>
+#include <type_traits>
 
 #include "tensor_transform.h"
 #include "tests_aux.h"
 
-// Assert wrapper: works only in DBG_MODE_FULL and DBG_MODE_DEBUG
-// TODO: Replace with something external
-#if defined(DEBUG)
-#include <assert.h>
-#define ASSERT(cond) assert(cond)
-#else
-#define ASSERT(cond) (void)(cond)
-#endif
+
 
 namespace mli {
 namespace tst {
@@ -108,9 +108,10 @@ mli_tensor tensor_quantizer::get_quantized_tensor(mli_data_container memory) con
 
     mli_tensor ret_tsr = get_not_quantized_tensor(memory);
     if (ret_tsr.data.mem.pi8 != nullptr) {
-        mli_status fp_to_fx_stat = mli_hlp_float_to_fx_tensor(source_data_, mli_hlp_count_elem_num(&ret_tsr, 0), 
-                                                              &ret_tsr);
-        ASSERT(fp_to_fx_stat == MLI_STATUS_OK);
+        // Note: it's better to replace it with API function whent time will come
+        tensor_state fp_to_fx_stat;
+        fp_to_fx_stat = quantize_float_data(source_data_, mli_hlp_count_elem_num(&ret_tsr, 0), &ret_tsr);
+        assert(fp_to_fx_stat == MLI_STATUS_OK);
     }
 
     return ret_tsr;
@@ -341,6 +342,132 @@ tensor_quantizer::tensor_state tensor_quantizer::validate_tensor(const mli_tenso
     return kOk;
 }
 
+// Quantize float data to destonation tensor according to it's format
+// Main template of quantization rutine
+//====================================================================
+template <mli_element_type dst_el_type>
+static void quantize_float_data_routine(const float* src, uint32_t src_size, mli_tensor* dst) {
+    assert(dst_el_type == dst->el_type);
+    assert(MLI_MAX_RANK == 4);
 
+    // Put type traits magic to derive output type (derived_T) 
+    typedef typename std::conditional<dst_el_type == MLI_EL_FX_16, int16_t,
+        typename std::conditional<dst_el_type == MLI_EL_FX_8 || dst_el_type == MLI_EL_SA_8, int8_t,
+        typename std::conditional<dst_el_type == MLI_EL_SA_32, int32_t, void>::type >::type >::type
+        derived_T;
+
+    // And use derived_T as o_T if it's in supported set (not a void). Otherwise, break compilation
+    typedef typename std::enable_if<!std::is_same<derived_T, void>::value, derived_T>::type    o_T;
+
+    // Extend shape to the MLI_MAX_RANK complimenting it with 1s in a front.
+    // Calculate strides on input float array and output tensor 
+    // for easier definition of element position in total arrays
+    int dst_strides[MLI_MAX_RANK] = { 0 };
+    int src_strides[MLI_MAX_RANK] = { 0 };
+    int dst_extended_shape[MLI_MAX_RANK] = { 0 };
+    int extended_shape_idx = 3;
+    int shape_idx = dst->rank - 1;
+    int src_memstride = 1;
+    for (; extended_shape_idx >= 0; --extended_shape_idx, --shape_idx) {
+        if (shape_idx >= 0) {
+            src_strides[extended_shape_idx] = src_memstride;
+            dst_extended_shape[extended_shape_idx] = dst->shape[shape_idx];
+            dst_strides[extended_shape_idx] = (dst->mem_stride[shape_idx] == 0) ? src_memstride
+                : dst->mem_stride[shape_idx];
+            src_memstride *= dst->shape[shape_idx];
+        }
+        else {
+            src_strides[extended_shape_idx] = src_memstride;
+            dst_extended_shape[extended_shape_idx] = 1;
+            dst_strides[extended_shape_idx] = dst_strides[extended_shape_idx + 1];
+        }
+    }
+
+    // Lambda to define a linear element position in memory using strides
+    auto val_pos = [](int strides[MLI_MAX_RANK], int dim0_idx, int dim1_idx, int dim2_idx, int dim3_idx) -> int {
+        return (strides[0] * dim0_idx) + (strides[1] * dim1_idx) + (strides[2] * dim2_idx) + (strides[3] * dim3_idx);
+    };
+
+    // Lambda to saturate 32bit value to the final element type range.
+    auto sat = [](int32_t val) -> o_T {
+        constexpr int32_t lim_min = static_cast<int32_t>(std::numeric_limits<o_T>::min());
+        constexpr int32_t lim_max = static_cast<int32_t>(std::numeric_limits<o_T>::max());
+        return static_cast<o_T>(std::min(std::max(val, lim_min), lim_max));
+    };
+
+    o_T* dst_arr = static_cast<o_T*>(dst->data.mem.void_p);
+    int scale_dim = -1;
+    int scales_num = 1;
+    if ((dst_el_type == MLI_EL_SA_8 || dst_el_type == MLI_EL_SA_32) && dst->el_params.sa.dim >= 0) {
+        scale_dim = dst->el_params.sa.dim + (MLI_MAX_RANK - dst->rank);
+        scales_num = dst_extended_shape[scale_dim];
+    }
+
+    // Transformation will be applied on slices across scales dimension (or all tensor)
+    for (int scale_idx = 0; scale_idx < scales_num; ++scale_idx) {
+        // calculate current scale ans zero offset.
+        float scale_val = (float)((int64_t)1l << mli_hlp_tensor_scale_shift(dst, scale_idx));
+        scale_val = scale_val / (float)mli_hlp_tensor_scale(dst, scale_idx);
+        int16_t zero_offset = mli_hlp_tensor_zero_offset(dst, scale_idx);
+
+        // calculate borders across all dimensions for slice where this scale is applicable.
+        int dim_start[MLI_MAX_RANK] = { 0 };
+        int dim_end[MLI_MAX_RANK] = { 0 };
+        for (int i = 0; i < MLI_MAX_RANK; ++i) {
+            dim_start[i] = (scale_dim == i) ? scale_idx : 0;
+            dim_end[i] = (scale_dim == i) ? scale_idx + 1 : dst_extended_shape[i];
+        }
+
+        // Apply transformation of defined slice
+        for (int dim0_idx = dim_start[0]; dim0_idx < dim_end[0]; ++dim0_idx) {
+            for (int dim1_idx = dim_start[1]; dim1_idx < dim_end[1]; ++dim1_idx) {
+                for (int dim2_idx = dim_start[2]; dim2_idx < dim_end[2]; ++dim2_idx) {
+                    for (int dim3_idx = dim_start[3]; dim3_idx < dim_end[3]; ++dim3_idx) {
+                        const int src_pos = val_pos(src_strides, dim0_idx, dim1_idx, dim2_idx, dim3_idx);
+                        const int dst_pos = val_pos(dst_strides, dim0_idx, dim1_idx, dim2_idx, dim3_idx);
+                        assert(src_pos < src_size);
+                        assert(dst_pos < dst->data.capacity / sizeof(dst_arr[0]));
+                        const float round_val = (src[src_pos] > 0) ? 0.5f : -0.5f;
+                        const int32_t dst_val = static_cast<int32_t>(scale_val * src[src_pos] + round_val);
+                        dst_arr[dst_pos] = sat(dst_val + zero_offset);
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Quantize float data to destonation tensor according to it's format
+// Instantiation of quantization routines depending on type
+//====================================================================
+tensor_quantizer::tensor_state tensor_quantizer::quantize_float_data(const float* src, uint32_t src_size,
+                                                                     mli_tensor* dst) {
+    tensor_state ret_status = (src == nullptr || dst == nullptr) ? kBad : kOk;
+    if (ret_status == kOk) 
+        ret_status = validate_tensor(*dst);
+    if (ret_status == kOk && src_size > mli_hlp_count_elem_num(dst, 0))
+        ret_status = kIncompleteMem;
+
+    if (ret_status == kOk) {
+        switch (dst->el_type) {
+        case MLI_EL_FX_8:
+            quantize_float_data_routine<MLI_EL_FX_8>(src, src_size, dst);
+            break;
+        case MLI_EL_SA_8:
+            quantize_float_data_routine<MLI_EL_SA_8>(src, src_size, dst);
+            break;
+        case MLI_EL_FX_16:
+            quantize_float_data_routine<MLI_EL_FX_16>(src, src_size, dst);
+            break;
+        case MLI_EL_SA_32:
+            quantize_float_data_routine<MLI_EL_SA_32>(src, src_size, dst);
+            break;
+        default:
+            ret_status = kBad;
+        }
+    }
+
+    return ret_status;
+}
 } // namespace tst
 } // namespace mli

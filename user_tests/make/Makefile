@@ -24,14 +24,14 @@ INC_DIRS     = $(EMBARC_MLI_DIR)/user_tests/test_components \
                $(EMBARC_MLI_DIR)/include \
                $(EMBARC_MLI_DIR)/examples/auxiliary
 
-EXT_LIBS_DIR ?= $(EMBARC_MLI_DIR)/bin
+EXT_LIBS_DIR ?= $(EMBARC_MLI_DIR)/bin/arc_ref
 EXT_LIBS     ?= $(EXT_LIBS_DIR)/libmli.a
 OUT_DIR      ?= ./bin
 BUILD_DIR    ?= ./obj
 OUT_NAME     ?= test_mli_krn_conv2d
 ifeq ($(TOOLCHAIN),mwdt)
 # MWDT specific options
-CFLAGS       =  -Hnocopyr -Hpurge -Hheap=4K -Hstack=4K -Hdsplib -Hfxapi -e_start -Bgrouplib -Hldopt=-q -Hsdata0 -Xdsp_ctrl=postshift,guard,convergent -Hdense_prologue
+CFLAGS       =  -Hnocopyr -Hpurge -Hheap=16K -Hstack=16K -Hdsplib -Hfxapi -e_start -Bgrouplib -Hldopt=-q -Hsdata0 -Xdsp_ctrl=postshift,guard,convergent -Hdense_prologue
 
 ifneq ($(RT_LIB),)
 CFLAGS       +=  -Hlib=$(RT_LIB)

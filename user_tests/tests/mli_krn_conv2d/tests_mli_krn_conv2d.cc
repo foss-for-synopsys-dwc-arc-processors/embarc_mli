@@ -19,6 +19,7 @@
 
 #include "vectors_mli_krn_conv2d.inc"
 
+
 using mli::tst::tensor_quantizer;
 using mli::tst::quality_metrics;
 using mli::tst::crc32_calc;
@@ -58,8 +59,8 @@ const crc32_calc  test_1_chksum_fx16, test_1_chksum_fx8w16d, test_1_chksum_sa8,
 const crc32_calc test_1_chksum_fx16{ 0x3669E8DA }, test_1_chksum_fx8w16d{ 0x627FD168 }, test_1_chksum_sa8{ 0xA3FFD976 },
                  test_2_chksum_fx16{ 0x6075722F}, test_2_chksum_fx8w16d{ 0xBFE5DC3D }, test_2_chksum_sa8{ 0x314ECCA6 },
                  test_3_chksum_fx16{ 0xE2100158 }, test_3_chksum_fx8w16d{ 0x550F135E }, test_3_chksum_sa8{ 0x9740102D },
-                 test_4_chksum_fx16, test_4_chksum_fx8w16d, test_4_chksum_sa8,
-                 test_5_chksum_fx16, test_5_chksum_fx8w16d, test_5_chksum_sa8;
+                 test_4_chksum_fx16{ 0x456456F2 }, test_4_chksum_fx8w16d{ 0xB052CA56 }, test_4_chksum_sa8{ 0xFC470924 },
+                 test_5_chksum_fx16{ 0xC855C4A8 }, test_5_chksum_fx8w16d{ 0xAFC02586 }, test_5_chksum_sa8{ 0xE1147362 };
 #endif
 
 const quality_metrics thresholds_fx16_general { quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
@@ -68,8 +69,12 @@ const quality_metrics thresholds_fx16_general { quality_metrics::kPassValueMaxAb
 const quality_metrics thresholds_fx8w16d_general{ quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
                                                   /* SNR_DB = */30.f, quality_metrics::kPassValueQuantErrPerc };
 
+const quality_metrics thresholds_fx8w16d_test4{ quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
+                                                /* SNR_DB = */26.f, quality_metrics::kPassValueQuantErrPerc };
+
 const quality_metrics thresholds_sa8_general{ quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
-                                             /* SNR_DB = */35.f, /*Quant Error Perc = */50.f };
+                                             /* SNR_DB = */35.f, /*Quant Error Perc = */40.f };
+
 
 static const conv2d_test_operands tests_list[] = {
     {"Test 1 FX16",         mli_krn_conv2d_hwcn_fx16, 
@@ -107,18 +112,18 @@ static const conv2d_test_operands tests_list[] = {
                                      thresholds_fx16_general, test_4_chksum_fx16},
     {"Test 4 FX16_FX8_FX8 InMemstr", mli_krn_conv2d_hwcn_fx16_fx8_fx8,
                                      input_1_memstr_fx16, weights_1_fx8, bias_1_fx8, test_4_out_fx16, test_4_cfg,
-                                     thresholds_fx8w16d_general, test_4_chksum_fx8w16d},
+                                     thresholds_fx8w16d_test4, test_4_chksum_fx8w16d},
     {"Test 4 SA8_SA8_SA32 InMemstr", mli_krn_conv2d_hwcn_sa8_sa8_sa32,
                                      input_1_memstr_sa8, weights_1_sa8, bias_1_sa32, test_4_out_sa8, test_4_cfg,
                                      thresholds_sa8_general, test_4_chksum_sa8},
 
-    {"Test 5 FX16 InMemstr",         mli_krn_conv2d_hwcn_fx16, 
+    {"Test 5 FX16 W_Memstr",         mli_krn_conv2d_hwcn_fx16, 
                                      input_1_fx16, weights_2_memstr_fx16, bias_1_fx16, test_5_out_fx16, test_5_cfg,
                                      thresholds_fx16_general, test_5_chksum_fx16},
-    {"Test 5 FX16_FX8_FX8 InMemstr", mli_krn_conv2d_hwcn_fx16_fx8_fx8, 
+    {"Test 5 FX16_FX8_FX8 W_Memstr", mli_krn_conv2d_hwcn_fx16_fx8_fx8, 
                                      input_1_fx16, weights_2_memstr_fx8, bias_1_fx8, test_5_out_fx16, test_5_cfg,
                                      thresholds_fx8w16d_general, test_5_chksum_fx8w16d},
-    {"Test 5 SA8_SA8_SA32 InMemstr", mli_krn_conv2d_hwcn_sa8_sa8_sa32,
+    {"Test 5 SA8_SA8_SA32 W_Memstr", mli_krn_conv2d_hwcn_sa8_sa8_sa32,
                                      input_1_sa8, weights_2_memstr_sa8, bias_1_w2_sa32, test_5_out_sa8, test_5_cfg,
                                      thresholds_sa8_general, test_5_chksum_sa8},
 };
@@ -161,6 +166,14 @@ int main() {
                  tensor_quantizer::validate_tensor(out) != tensor_quantizer::kOk)) {
             reporter.report_message(cur_test->descr, 
                                     "FAILED at quantization step: more memory for one of tensors might be required");
+            is_test_passed = false;
+        }
+
+        if (is_test_passed &&
+            (mem_in_keeper.is_memory_corrupted() || mem_out_keeper.is_memory_corrupted() ||
+                mem_w_keeper.is_memory_corrupted() || mem_b_keeper.is_memory_corrupted())) {
+            reporter.report_message(cur_test->descr,
+                "FAILED at quantization step: memory beside one of operands is corrupted");
             is_test_passed = false;
         }
 

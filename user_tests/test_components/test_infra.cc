@@ -124,7 +124,9 @@ bool quality_metrics::calculate_metrics(const mli_tensor& pred_tsr, const tensor
 
     mem_required += quantized_ref.data.capacity;
     if (quantized_ref.el_type == MLI_EL_SA_8 || quantized_ref.el_type == MLI_EL_SA_32)
-        mem_required += quantized_ref.el_params.sa.scale.capacity + quantized_ref.el_params.sa.zero_point.capacity;
+        mem_required += quantized_ref.el_params.sa.scale.capacity 
+                        + quantized_ref.el_params.sa.zero_point.capacity
+                        + quantized_ref.el_params.sa.scale_frac_bits.capacity;
 
     std::unique_ptr<float[]> pred_values(new (std::nothrow) float[elem_num]);
     std::unique_ptr<int8_t[]> quantized_out_mem(new (std::nothrow) int8_t[mem_required]);
