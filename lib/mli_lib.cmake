@@ -98,9 +98,34 @@ else()
     )
 endif()
 
-if ((DEFINED MLI_BUILD_REFERENCE) AND (MLI_BUILD_REFERENCE STREQUAL "ON"))
+if (DEFINED MLI_BUILD_REFERENCE)
+    set(choices
+        ON
+        OFF
+    )
+    if (NOT MLI_BUILD_REFERENCE IN_LIST choices)
+        message(FATAL_ERROR "invalid MLI_BUILD_REFERENCE ${MLI_BUILD_REFERENCE}")
+    endif()
+    if (MLI_BUILD_REFERENCE STREQUAL "ON")
+        list(APPEND MLI_LIB_PRIVATE_COMPILE_DEFINITIONS
+            MLI_BUILD_REFERENCE
+        )
+    endif()
+endif()
+
+if (DEFINED MLI_DEBUG_MODE)
+    set(choices
+        DBG_MODE_RELEASE
+        DBG_MODE_RET_CODES
+        DBG_MODE_ASSERT
+        DBG_MODE_DEBUG
+        DBG_MODE_FULL
+    )
+    if (NOT MLI_DEBUG_MODE IN_LIST choices)
+        message(FATAL_ERROR "invalid MLI_DEBUG_MODE ${MLI_DEBUG_MODE}")
+    endif()
     list(APPEND MLI_LIB_PRIVATE_COMPILE_DEFINITIONS
-        -DMLI_BUILD_REFERENCE
+        MLI_DEBUG_MODE=${MLI_DEBUG_MODE}
     )
 endif()
 
@@ -143,13 +168,4 @@ elseif (${MLI_PLATFORM} STREQUAL EM_HS)
     else()
         message(FATAL_ERROR "rounding mode ${ROUND_MODE} is not supported")
     endif()
-endif()
-
-if (NOT DEFINED MLI_BUILD_REFERENCE)
-    set(MLI_BUILD_REFERENCE OFF)
-endif()
-if (${MLI_BUILD_REFERENCE} STREQUAL ON)
-    list(APPEND MLI_LIB_PRIVATE_COMPILE_DEFINITIONS
-        MLI_BUILD_REFERENCE
-    )
 endif()
