@@ -14,6 +14,10 @@ add_library(mli STATIC ${MLI_LIB_SOURCE_FILES})
 target_compile_definitions(mli PUBLIC  ${MLI_LIB_PUBLIC_COMPILE_DEFINITIONS})
 target_compile_definitions(mli PRIVATE ${MLI_LIB_PRIVATE_COMPILE_DEFINITIONS})
 
+target_include_directories(mli PUBLIC
+    $<INSTALL_INTERFACE:../../include>
+    $<INSTALL_INTERFACE:../../include/api>
+)
 target_include_directories(mli PUBLIC  ${MLI_LIB_PUBLIC_INCLUDES})
 target_include_directories(mli PRIVATE ${MLI_LIB_PRIVATE_INCLUDES})
 
@@ -33,6 +37,12 @@ endif()
 
 install(TARGETS mli
     EXPORT      mli
-    DESTINATION ./
+    DESTINATION ${CMAKE_INSTALL_PREFIX}
+)
+
+install(EXPORT mli
+    FILE        mliConfig.cmake
+    NAMESPACE   mli::
+    DESTINATION cmake
 )
 
