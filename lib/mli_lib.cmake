@@ -50,6 +50,7 @@ else()
     )
     set(MLI_LIB_SOURCE_FILES
         ${temp}
+        ${MLI_LIB_CMAKE_DIR}/src/kernels/transform/mli_krn_relu_fx.cc
         ${MLI_LIB_CMAKE_DIR}/src/kernels/transform/mli_krn_sigm_fx.cc
         ${MLI_LIB_CMAKE_DIR}/src/kernels/transform/mli_krn_tanh_fx.cc
         ${MLI_LIB_CMAKE_DIR}/src/kernels/transform/mli_krn_softmax_fx.cc
