@@ -49,10 +49,10 @@ extern "C" {
 #define KRNL_C_DIM_HWCN 3 // output channels
 
 // for Depthwise convolution hwc kernel
-#define KRNL_DW_D_DIM_HWC 0 // Depthwise convolution hwc kernel depth (must be == 1)
-#define KRNL_DW_H_DIM_HWC 1 // Depthwise convolution hwc kernel height 
-#define KRNL_DW_W_DIM_HWC 2 // Depthwise convolution hwc kernel width
-#define KRNL_DW_C_DIM_HWC 3 // Depthwise convolution hwc output channels
+#define KRNL_DW_H_DIM_HW1N 0 // Depthwise convolution hwc kernel height
+#define KRNL_DW_W_DIM_HW1N 1 // Depthwise convolution hwc kernel width
+#define KRNL_DW_D_DIM_HW1N 2 // Depthwise convolution hwc kernel depth (must be == 1)
+#define KRNL_DW_N_DIM_HW1N 3 // Depthwise convolution hwc output channels
 
 /** 
  * @brief Count Number of Elements in Tensor
