@@ -100,11 +100,11 @@ public:
     // Process input tensor data to calculate CRC32 sum
     uint32_t operator()(const mli_tensor& in);
 
-    // Process input tensor data to calculate CRC32 sum
+    // Process in array to calculate CRC32 sum
     uint32_t operator()(const int8_t* in, uint32_t size);
 
 private:
-    // State and flag whether it valid or not
+    // State and flag whether crc instance valid or not
     uint32_t crc32_sum_;
     bool valid_crc32_;
 
@@ -116,19 +116,19 @@ private:
 //=======================================================================
 // Module to handle and check externally allocated memory for test needs
 //=======================================================================
-class memory_keeper {
-    // This keeper intend to handle some memory region for test needs. 
+class memory_manager {
+    // This memory_manager intend to handle some memory region for test needs. 
     // - It returns container with requested memory size 
     // - It can return the only one container. return_memory() method should 
-    //   be called to mark memory as unused and able to be afforded again.
+    //   be called to mark memory as unused and able to be allocated again.
     // - it initialize all the memory with some pre-defined pattern
-    // - It checks that memory beside the afforded region is not corrupted
+    // - It checks that memory beside the allocated region is not corrupted
 
 public:
-    // Parametrized constructors to initialize keeper.
-    memory_keeper(int8_t* memory, uint32_t mem_size);
+    // Parametrized constructors to initialize memory_manager.
+    memory_manager(int8_t* memory, uint32_t mem_size);
 
-    // Methods to get(afford) memory from internally handled area by keeper.
+    // Methods to get(allocate) memory from internally handled area by memory_manager.
     // The whole memory is initialized with fill_pattern. if requested size less than internal memory,
     // returns container that points to the middle of the region, e.g.:
     // /*                   All handeled memory region                          */
@@ -136,24 +136,24 @@ public:
     // CRC32 sum for head and tail regions are kept to check that it wasn't modifyed after a while
     // If requested memory is bigger, then returns emty container (nullptr and 0 capacity)
     
-    // * Method to afford memory of exact size
-    mli_data_container afford_memory(uint32_t size, uint32_t fill_pattern = 0xDEADBEEF);
-    // * Method to afford memory according to tensor_quantizer requirements
-    mli_data_container afford_memory(const tensor_quantizer& quant_unit, uint32_t fill_pattern = 0xBEADED37);
+    // * Method to allocate memory of exact size
+    mli_data_container allocate_memory(uint32_t size, uint32_t fill_pattern = 0xDEADBEEF);
+    // * Method to allocate memory according to tensor_quantizer requirements
+    mli_data_container allocate_memory(const tensor_quantizer& quant_unit, uint32_t fill_pattern = 0xBEADED37);
     
-    // Reset module to mark memory as unused and get an opportunity to afford one more time
+    // Reset module to mark memory as unused and get an opportunity to allocate again
     void return_memory();
 
     // Check that head and tail regions are not corrupted using pre-calculated CRC32 checksums. 
-    // Return false (not corrupted) if regions aren't corrupted OR memory wasn't properly afforded before OR 
-    // memory keeper don't handle a valid memory region
+    // Return false (not corrupted) if regions aren't corrupted OR memory wasn't properly allocated before OR 
+    // memory manager don't handle a valid memory region
     bool is_memory_corrupted() const;
 
 private:
     int8_t* source_memory_;
-    int8_t* afforded_memory_start_;
+    int8_t* allocated_memory_start_;
     uint32_t source_mem_size_;
-    uint32_t afforded_mem_size_;
+    uint32_t allocated_mem_size_;
     crc32_calc head_mem_crc_;
     crc32_calc tail_mem_crc_;
 };

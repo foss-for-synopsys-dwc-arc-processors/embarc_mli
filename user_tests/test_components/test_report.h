@@ -37,8 +37,8 @@ public:
 };
 
 
-} // namespace mli {
-} // namespace tst {
+} // namespace tst
+} // namespace mli
 
 #endif // _MLI_USER_TESTS_TEST_REPORT_H_
 

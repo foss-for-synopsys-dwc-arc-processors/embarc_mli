@@ -105,10 +105,10 @@ static const int8_t input_1_scales_frac[] = { 21 };
     .data = {.capacity=0, .mem.pi8=nullptr},\
     .shape = { 7, 7, 3 }, \
     .rank = 3, \
-    .mem_stride = { 0 },
+    .mem_stride = { 0 }
 
 static const mli_tensor input_1_tsr_sa8 = {
-    INPUT_1_TSR_SHARED_DESCR
+    INPUT_1_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_SA_8,
     .el_params.sa.dim = -1,
@@ -118,14 +118,14 @@ static const mli_tensor input_1_tsr_sa8 = {
 };
 
 static const mli_tensor input_1_tsr_fx8 = {
-    INPUT_1_TSR_SHARED_DESCR
+    INPUT_1_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_FX_8,
     .el_params.fx.frac_bits = 6
 };
 
 static const mli_tensor input_1_tsr_fx16 = {
-    INPUT_1_TSR_SHARED_DESCR
+    INPUT_1_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_FX_16,
     .el_params.fx.frac_bits = 14
@@ -139,10 +139,10 @@ tensor_quantizer input_1_sa8(input_1_tsr_sa8, input_1_data, sizeof(input_1_data)
     .data = {.capacity=0, .mem.pi8=nullptr},\
     .shape = { 7, 7, 3 }, \
     .rank = 3, \
-    .mem_stride = { 13*6*1, 6*1, 1},
+    .mem_stride = { 13*6*1, 6*1, 1}
 
 static const mli_tensor input_1_memstr_tsr_sa8 = {
-    INPUT_1_MEMSTR_TSR_SHARED_DESCR
+    INPUT_1_MEMSTR_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_SA_8,
     .el_params.sa.dim = -1,
@@ -152,14 +152,14 @@ static const mli_tensor input_1_memstr_tsr_sa8 = {
 };
 
 static const mli_tensor input_1_memstr_tsr_fx8 = {
-    INPUT_1_MEMSTR_TSR_SHARED_DESCR
+    INPUT_1_MEMSTR_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_FX_8,
     .el_params.fx.frac_bits = 6
 };
 
 static const mli_tensor input_1_memstr_tsr_fx16 = {
-    INPUT_1_MEMSTR_TSR_SHARED_DESCR
+    INPUT_1_MEMSTR_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_FX_16,
     .el_params.fx.frac_bits = 14,
@@ -214,10 +214,10 @@ static const int8_t weights_1_scales_frac[] = { 23, 22, 22, 22, 21, 21, 20};
     .data = {.capacity=0, .mem.pi8=nullptr},\
     .shape = {3, 4, 3, 7}, \
     .rank = 4, \
-    .mem_stride = {0}, 
+    .mem_stride = {0}
 
 static const mli_tensor weights_1_tsr_sa8 = {
-    WEIGHTS_1_TSR_SHARED_DESCR
+    WEIGHTS_1_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_SA_8,
     .el_params.sa.dim = 3,
@@ -227,14 +227,14 @@ static const mli_tensor weights_1_tsr_sa8 = {
 };
 
 static const mli_tensor weights_1_tsr_fx8 = {
-    WEIGHTS_1_TSR_SHARED_DESCR
+    WEIGHTS_1_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_FX_8,
     .el_params.fx.frac_bits = 5
 };
 
 static const mli_tensor weights_1_tsr_fx16 = {
-    WEIGHTS_1_TSR_SHARED_DESCR
+    WEIGHTS_1_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_FX_16,
     .el_params.fx.frac_bits = 13
@@ -293,10 +293,10 @@ static const int8_t weights_2_scales_frac[] = { 24, 23, 22, 22, 21, 21, 21 };
     .data = {.capacity=0, .mem.pi8=nullptr},\
     .shape = { 4, 3, 3, 7 }, \
     .rank = 4, \
-    .mem_stride = {0}, 
+    .mem_stride = {0}
 
 static const mli_tensor weights_2_tsr_sa8 = {
-    WEIGHTS_2_TSR_SHARED_DESCR
+    WEIGHTS_2_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_SA_8,
     .el_params.sa.dim = 3,
@@ -306,14 +306,14 @@ static const mli_tensor weights_2_tsr_sa8 = {
 };
 
 static const mli_tensor weights_2_tsr_fx8 = {
-    WEIGHTS_2_TSR_SHARED_DESCR
+    WEIGHTS_2_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_FX_8,
     .el_params.fx.frac_bits = 6
 };
 
 static const mli_tensor weights_2_tsr_fx16 = {
-    WEIGHTS_2_TSR_SHARED_DESCR
+    WEIGHTS_2_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_FX_16,
     .el_params.fx.frac_bits = 14
@@ -333,10 +333,10 @@ tensor_quantizer weights_2_sa8(weights_2_tsr_sa8, weights_2_data,
     .data = {.capacity=0, .mem.pi8=nullptr},\
     .shape = { 4, 3, 3, 7 }, \
     .rank = 4, \
-    .mem_stride = {3*3*8*1, 3*8*1, 8*1, 1}, 
+    .mem_stride = {3*3*8*1, 3*8*1, 8*1, 1}
 
 static const mli_tensor weights_2_memstr_tsr_sa8 = {
-    WEIGHTS_2_MEMSTR_TSR_SHARED_DESCR
+    WEIGHTS_2_MEMSTR_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_SA_8,
     .el_params.sa.dim = 3,
@@ -346,14 +346,14 @@ static const mli_tensor weights_2_memstr_tsr_sa8 = {
 };
 
 static const mli_tensor weights_2_memstr_tsr_fx8 = {
-    WEIGHTS_2_MEMSTR_TSR_SHARED_DESCR
+    WEIGHTS_2_MEMSTR_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_FX_8,
     .el_params.fx.frac_bits = 6
 };
 
 static const mli_tensor weights_2_memstr_tsr_fx16 = {
-    WEIGHTS_2_MEMSTR_TSR_SHARED_DESCR
+    WEIGHTS_2_MEMSTR_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_FX_16,
     .el_params.fx.frac_bits = 14
@@ -378,10 +378,10 @@ static const int8_t bias_1_scales_frac[] = { 30, 29, 28, 28, 27, 27, 27 };
     .data = {.capacity=0, .mem.pi8=nullptr},\
     .shape = {7}, \
     .rank = 1, \
-    .mem_stride = {0}, 
+    .mem_stride = {0}
 
 static const mli_tensor bias_1_tsr_sa32 = {
-    BIAS_1_TSR_SHARED_DESCR
+    BIAS_1_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_SA_32,
     .el_params.sa.dim = 0,
@@ -391,14 +391,14 @@ static const mli_tensor bias_1_tsr_sa32 = {
 };
 
 static const mli_tensor bias_1_tsr_fx8 = {
-    BIAS_1_TSR_SHARED_DESCR
+    BIAS_1_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_FX_8,
     .el_params.fx.frac_bits = 7
 };
 
 static const mli_tensor bias_1_tsr_fx16 = {
-    BIAS_1_TSR_SHARED_DESCR
+    BIAS_1_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_FX_16,
     .el_params.fx.frac_bits = 15
@@ -408,7 +408,7 @@ static const float bias_1_w2_scales[] = { 0.0000197978f, 0.0000307060f, 0.000062
 static const int8_t bias_1_w2_scales_frac[] = { 30, 29, 28, 28, 28, 28, 28 };
 
 static const mli_tensor bias_1_w2_tsr_sa32 = {
-    BIAS_1_TSR_SHARED_DESCR
+    BIAS_1_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_SA_32,
     .el_params.sa.dim = 0,
@@ -474,10 +474,10 @@ static const int8_t test_1_out_scales_frac[] = {18};
     .data = {.capacity=0, .mem.pi8=nullptr},\
     .shape = { 7, 4, 7 }, \
     .rank = 3, \
-    .mem_stride = { 0 },
+    .mem_stride = { 0 }
 
 static mli_tensor test_1_out_tsr_sa8 = {
-    TEST_1_OUT_TSR_SHARED_DESCR
+    TEST_1_OUT_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_SA_8,
     .el_params.sa.dim = -1,
@@ -487,14 +487,14 @@ static mli_tensor test_1_out_tsr_sa8 = {
 };
 
 static mli_tensor test_1_out_tsr_fx8 = {
-    TEST_1_OUT_TSR_SHARED_DESCR
+    TEST_1_OUT_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_FX_8,
     .el_params.fx.frac_bits = 3
 };
 
 static mli_tensor test_1_out_tsr_fx16 = {
-    TEST_1_OUT_TSR_SHARED_DESCR
+    TEST_1_OUT_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_FX_16,
     .el_params.fx.frac_bits = 11
@@ -544,10 +544,10 @@ static const int8_t test_2_out_scales_frac[] = {20};
     .data = {.capacity=0, .mem.pi8=nullptr},\
     .shape = { 4, 7, 7 }, \
     .rank = 3, \
-    .mem_stride = { 0 },
+    .mem_stride = { 0 }
 
 static mli_tensor test_2_out_tsr_sa8 = {
-    TEST_2_OUT_TSR_SHARED_DESCR
+    TEST_2_OUT_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_SA_8,
     .el_params.sa.dim = -1,
@@ -557,14 +557,14 @@ static mli_tensor test_2_out_tsr_sa8 = {
 };
 
 static mli_tensor test_2_out_tsr_fx8 = {
-    TEST_2_OUT_TSR_SHARED_DESCR
+    TEST_2_OUT_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_FX_8,
     .el_params.fx.frac_bits = 4
 };
 
 static mli_tensor test_2_out_tsr_fx16 = {
-    TEST_2_OUT_TSR_SHARED_DESCR
+    TEST_2_OUT_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_FX_16,
     .el_params.fx.frac_bits = 12
@@ -592,10 +592,10 @@ static const int8_t test_3_out_scales_frac[] = {19};
     .data = {.capacity=0, .mem.pi8=nullptr},\
     .shape = { 3, 1, 7 }, \
     .rank = 3, \
-    .mem_stride = { 0 },
+    .mem_stride = { 0 }
 
 static mli_tensor test_3_out_tsr_sa8 = {
-    TEST_3_OUT_TSR_SHARED_DESCR
+    TEST_3_OUT_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_SA_8,
     .el_params.sa.dim = -1,
@@ -605,14 +605,14 @@ static mli_tensor test_3_out_tsr_sa8 = {
 };
 
 static mli_tensor test_3_out_tsr_fx8 = {
-    TEST_3_OUT_TSR_SHARED_DESCR
+    TEST_3_OUT_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_FX_8,
     .el_params.fx.frac_bits = 4
 };
 
 static mli_tensor test_3_out_tsr_fx16 = {
-    TEST_3_OUT_TSR_SHARED_DESCR
+    TEST_3_OUT_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_FX_16,
     .el_params.fx.frac_bits = 12
@@ -640,10 +640,10 @@ static const int8_t test_4_out_scales_frac[] = {21};
     .data = {.capacity=0, .mem.pi8=nullptr},\
     .shape = { 2, 2, 7 }, \
     .rank = 3, \
-    .mem_stride = { 0 },
+    .mem_stride = { 0 }
 
 static mli_tensor test_4_out_tsr_sa8 = {
-    TEST_4_OUT_TSR_SHARED_DESCR
+    TEST_4_OUT_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_SA_8,
     .el_params.sa.dim = -1,
@@ -653,14 +653,14 @@ static mli_tensor test_4_out_tsr_sa8 = {
 };
 
 static mli_tensor test_4_out_tsr_fx8 = {
-    TEST_4_OUT_TSR_SHARED_DESCR
+    TEST_4_OUT_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_FX_8,
     .el_params.fx.frac_bits = 7
 };
 
 static mli_tensor test_4_out_tsr_fx16 = {
-    TEST_4_OUT_TSR_SHARED_DESCR
+    TEST_4_OUT_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_FX_16,
     .el_params.fx.frac_bits = 15
@@ -703,10 +703,10 @@ static const int8_t test_5_out_scales_frac[] = {20};
     .data = {.capacity=0, .mem.pi8=nullptr},\
     .shape = { 4, 5, 7 }, \
     .rank = 3, \
-    .mem_stride = { 0 },
+    .mem_stride = { 0 }
 
 static mli_tensor test_5_out_tsr_sa8 = {
-    TEST_5_OUT_TSR_SHARED_DESCR
+    TEST_5_OUT_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_SA_8,
     .el_params.sa.dim = -1,
@@ -716,14 +716,14 @@ static mli_tensor test_5_out_tsr_sa8 = {
 };
 
 static mli_tensor test_5_out_tsr_fx8 = {
-    TEST_5_OUT_TSR_SHARED_DESCR
+    TEST_5_OUT_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_FX_8,
     .el_params.fx.frac_bits = 4
 };
 
 static mli_tensor test_5_out_tsr_fx16 = {
-    TEST_5_OUT_TSR_SHARED_DESCR
+    TEST_5_OUT_TSR_SHARED_DESCR,
 
     .el_type = MLI_EL_FX_16,
     .el_params.fx.frac_bits = 12

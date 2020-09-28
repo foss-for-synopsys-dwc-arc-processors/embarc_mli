@@ -23,7 +23,7 @@ using mli::tst::tensor_quantizer;
 using mli::tst::quality_metrics;
 using mli::tst::crc32_calc;
 using mli::tst::reporter_full;
-using mli::tst::memory_keeper;
+using mli::tst::memory_manager;
 
 typedef mli_status(*conv2d_func_ptr)(
     const mli_tensor* /*input*/,
@@ -137,10 +137,10 @@ int main() {
 
     reporter.report_header("MLI|Kernels|Convolution 2D  Tests");
     for (int i = 0; i < tests_num; ++i) {
-        memory_keeper mem_in_keeper(scratch_mem_in, sizeof(scratch_mem_in));
-        memory_keeper mem_out_keeper(scratch_mem_out, sizeof(scratch_mem_out));
-        memory_keeper mem_w_keeper(scratch_mem_w, sizeof(scratch_mem_w));
-        memory_keeper mem_b_keeper(scratch_mem_b, sizeof(scratch_mem_b));
+        memory_manager mem_in_keeper(scratch_mem_in, sizeof(scratch_mem_in));
+        memory_manager mem_out_keeper(scratch_mem_out, sizeof(scratch_mem_out));
+        memory_manager mem_w_keeper(scratch_mem_w, sizeof(scratch_mem_w));
+        memory_manager mem_b_keeper(scratch_mem_b, sizeof(scratch_mem_b));
         bool is_test_passed = true;
         const conv2d_test_operands* cur_test = &tests_list[i];
         quality_metrics test_metics;
@@ -150,10 +150,10 @@ int main() {
             is_test_passed = false;
         }
 
-        mli_tensor input = cur_test->in.get_quantized_tensor(mem_in_keeper.afford_memory(cur_test->in));
-        mli_tensor weights = cur_test->weights.get_quantized_tensor(mem_w_keeper.afford_memory(cur_test->weights));
-        mli_tensor bias = cur_test->bias.get_quantized_tensor(mem_b_keeper.afford_memory(cur_test->bias));
-        mli_tensor out = cur_test->out.get_not_quantized_tensor(mem_out_keeper.afford_memory(cur_test->out));
+        mli_tensor input = cur_test->in.get_quantized_tensor(mem_in_keeper.allocate_memory(cur_test->in));
+        mli_tensor weights = cur_test->weights.get_quantized_tensor(mem_w_keeper.allocate_memory(cur_test->weights));
+        mli_tensor bias = cur_test->bias.get_quantized_tensor(mem_b_keeper.allocate_memory(cur_test->bias));
+        mli_tensor out = cur_test->out.get_not_quantized_tensor(mem_out_keeper.allocate_memory(cur_test->out));
         if (is_test_passed &&
                 (tensor_quantizer::validate_tensor(input) != tensor_quantizer::kOk ||
                  tensor_quantizer::validate_tensor(weights) != tensor_quantizer::kOk||

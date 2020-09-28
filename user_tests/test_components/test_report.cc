@@ -101,6 +101,6 @@ void reporter_full::report_outline(const char* outline_marker, bool is_passed) c
     printf("%s\n\n", kSeparatorString);
 }
 
-} // namespace mli {
-} // namespace tst {
+} // namespace tst
+} // namespace mli
 
