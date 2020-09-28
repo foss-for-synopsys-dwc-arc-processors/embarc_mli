@@ -138,7 +138,7 @@ bool quality_metrics::calculate_metrics(const mli_tensor& pred_tsr, const tensor
     //===============================================
     constexpr float eps = 0.000000000000000001f;
     ref_to_pred_output metrics_pred = { 0 };
-    if (MLI_STATUS_OK != mli_hlp_fx_tensor_to_float(&pred_tsr, pred_values.get(), elem_num) ||
+    if (tensor_quantizer::kOk != tensor_quantizer::dequantize_tensor_data(&pred_tsr, pred_values.get(), elem_num) ||
             TEST_PASSED != measure_err_vfloat(ref_tensor.data.mem.pf32, pred_values.get(), elem_num, &metrics_pred))
         return false;
 
@@ -155,7 +155,7 @@ bool quality_metrics::calculate_metrics(const mli_tensor& pred_tsr, const tensor
     quantized_ref = std::move(ref_keeper.get_quantized_tensor(quantized_out_container));
     ref_to_pred_output metrics_quant = { 0 };
     if (ref_keeper.validate_tensor(quantized_ref) != tensor_quantizer::kOk ||
-            mli_hlp_fx_tensor_to_float(&quantized_ref, pred_values.get(), elem_num) != MLI_STATUS_OK ||
+            tensor_quantizer::kOk != tensor_quantizer::dequantize_tensor_data(&quantized_ref, pred_values.get(), elem_num) ||
             measure_err_vfloat(ref_tensor.data.mem.pf32, pred_values.get(), elem_num, &metrics_quant) != TEST_PASSED)
         return false;
 
@@ -221,9 +221,14 @@ bool crc32_calc::is_valid() const {
 
 // Accumulate CRC using tensor data
 //=========================================
+// Note: It was planned to calculate CRC only using valid values of tensor via proper 
+// handling of memstrides. But as we have an opportunity to initialize memory before usage
+// it found out that calculating CRC over all tensor's data container (pointer + capacity)
+// is beneficial as we can track memory corruption of inner tensor data ("holes" that excluded by memstride)
+// TODO: add an optional flag to calculated CRC on valid data, in case of appeared need
 uint32_t crc32_calc::operator()(const mli_tensor& in) {
     const int8_t* current = in.data.mem.pi8;
-    uint32_t length = mli_hlp_count_elem_num(&in, 0) * mli_hlp_tensor_element_size(&in);
+    uint32_t length = in.data.capacity;
 
     return (*this)(current, length);
 }

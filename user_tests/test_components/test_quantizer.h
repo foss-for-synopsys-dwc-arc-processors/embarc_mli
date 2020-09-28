@@ -78,6 +78,20 @@ class tensor_quantizer {
     // memory but with memory requirements (kNotEnoughMemory), or tensor is ok (kOk)
     static tensor_state validate_tensor(const mli_tensor& tsr);
 
+    // Quantize float data to destonation tensor according to tensor's internal format
+    // Tensor structure must be fully valid, including all quantization parameters
+    // and containers. src array must contains exactly the same values (defined by src_size) as
+    // required to populate dst tensor (defined by shape)
+    // It modifies only memory pointed by tensor's data container. 
+    static tensor_state quantize_float_data(const float* src, uint32_t src_size, mli_tensor* dst);
+    
+    // De-Quantize tensor data to float values 
+    // Tensor structure must be fully valid, including all quantization parameters
+    // and containers. dst array must be of enough size (defined by dst_size) to keep
+    // all values from src tensor (defined by shape)
+    // It modifies only memory pointed by dst. 
+    static tensor_state dequantize_tensor_data(const mli_tensor* src, float* dst, uint32_t dst_size);
+
  private:
      // Source data used for quantization
      const mli_tensor source_tsr_;
@@ -90,11 +104,20 @@ class tensor_quantizer {
      bool is_valid_;
 
      // Internal methods for quantization
+
      static uint32_t get_required_data_capacity(const mli_tensor& tsr);
+     
      static bool  tensor_assign_data_ptr(mli_tensor* tsr, void* ptr);
+     
      static bool spread_memory(mli_tensor* tsr, const mli_data_container* data_mem,
                                const mli_data_container* quant_params_mem = nullptr);
-     static tensor_state quantize_float_data(const float* src, uint32_t src_size, mli_tensor* dst);
+     
+     template <mli_element_type src_el_type>
+     static void dequantize_tensor_data_routine(const mli_tensor* src, float* dst, uint32_t dst_size);
+     
+     template <mli_element_type dst_el_type>
+     static void quantize_float_data_routine(const float* src, uint32_t src_size, mli_tensor* dst);
+
 };
 
 } // namespace tst
