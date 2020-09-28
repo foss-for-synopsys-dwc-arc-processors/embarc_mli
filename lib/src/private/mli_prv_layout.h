@@ -31,14 +31,14 @@
  *              weights in [Filters(out channel); Height; Width; In Channels]
  * LAYOUT_HWCN - Data is stored as for HWC
  *              weights are [Height; Width; In Channels; Filters(out channel)]
- * LAYOUT_1HWN - Data is stored as for HWC
+ * LAYOUT_HW1N - Data is stored as for HWC
  *              weights are [Height; Width; Filters(out channel)]
  */
 typedef enum {
     LAYOUT_CHW = 0,
     LAYOUT_HWC,
     LAYOUT_HWCN,
-    LAYOUT_1HWN
+    LAYOUT_HW1N
 } mli_layout_type;
 
 /**

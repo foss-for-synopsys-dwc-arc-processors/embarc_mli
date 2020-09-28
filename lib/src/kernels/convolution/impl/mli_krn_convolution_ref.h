@@ -245,7 +245,7 @@ void conv2d_prepare_and_run(
 
     const MLI_PTR(b_T) bs = (MLI_PTR(b_T))(bias->data.mem.void_p);
 
-    const auto in_prv = (data_layout == LAYOUT_HWC || data_layout == LAYOUT_HWCN || data_layout == LAYOUT_1HWN) ?
+    const auto in_prv = (data_layout == LAYOUT_HWC || data_layout == LAYOUT_HWCN || data_layout == LAYOUT_HW1N) ?
             mli_prv_get_tensor_hwc<MLI_PTR(io_T)>(in)
             : mli_prv_get_tensor_chw<MLI_PTR(io_T)>(in);
 
@@ -257,8 +257,8 @@ void conv2d_prepare_and_run(
     } else if (data_layout == LAYOUT_HWCN) {
         weights_prv = mli_prv_get_conv2d_weights_tensor_hwcn<MLI_PTR(w_T)>(weights, 0, fix_kernel_width, fix_kernel_height);
         out_ch = weights_prv.out_ch;
-    } else if ( data_layout == LAYOUT_1HWN) {
-        weights_prv = mli_prv_get_conv2d_weights_tensor_1hwn<MLI_PTR(w_T)>(weights, fix_kernel_width, fix_kernel_height);
+    } else if ( data_layout == LAYOUT_HW1N) {
+        weights_prv = mli_prv_get_conv2d_weights_tensor_hw1n<MLI_PTR(w_T)>(weights, fix_kernel_width, fix_kernel_height);
         out_ch = weights_prv.out_ch;
     } else {
         // LAYOUT_CHW
@@ -276,7 +276,7 @@ void conv2d_prepare_and_run(
     const int out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - effective_kernel_height + 1,
                                     stride_height);
     out->rank = in->rank;
-    if (data_layout == LAYOUT_HWC || data_layout == LAYOUT_HWCN || data_layout == LAYOUT_1HWN) {
+    if (data_layout == LAYOUT_HWC || data_layout == LAYOUT_HWCN || data_layout == LAYOUT_HW1N) {
         out->shape[FMAP_H_DIM_HWC] = out_height;
         out->shape[FMAP_W_DIM_HWC] = out_width;
         out->shape[FMAP_C_DIM_HWC] = out_ch;
@@ -285,7 +285,7 @@ void conv2d_prepare_and_run(
         out->shape[FMAP_W_DIM_CHW] = out_width;
         out->shape[FMAP_C_DIM_CHW] = out_ch;
     }
-    const auto out_prv = (data_layout == LAYOUT_HWC || data_layout == LAYOUT_HWCN || data_layout == LAYOUT_1HWN) ?
+    const auto out_prv = (data_layout == LAYOUT_HWC || data_layout == LAYOUT_HWCN || data_layout == LAYOUT_HW1N) ?
             mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(io_T)>(out)
             : mli_prv_get_tensor_chw<MLI_CONV_OUT_PTR(io_T)>(out);
 

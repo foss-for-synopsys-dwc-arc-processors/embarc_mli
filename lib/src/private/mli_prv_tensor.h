@@ -310,18 +310,18 @@ static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_we
 
 // To prevent a compiler name mangling issue, type_is_xy should be true if and only if T has __xy.
 template <typename T, bool type_is_xy=false>
-static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_1hwn(
+static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_hw1n(
         const mli_tensor *weights,
         const int fix_width = 0,
         const int fix_height = 0) {
-    int in_ch        = (int)weights->shape[KRNL_DW_D_DIM_HWC];
-    int height       = (int)weights->shape[KRNL_DW_H_DIM_HWC];
-    int width        = (int)weights->shape[KRNL_DW_W_DIM_HWC];
-    const int out_ch = (int)weights->shape[KRNL_DW_C_DIM_HWC];
-    int in_ch_mem_stride  = weights->mem_stride[KRNL_DW_D_DIM_HWC];
-    int row_mem_stride    = weights->mem_stride[KRNL_DW_H_DIM_HWC];
-    int col_mem_stride    = weights->mem_stride[KRNL_DW_W_DIM_HWC];
-    int out_ch_mem_stride = weights->mem_stride[KRNL_DW_C_DIM_HWC];
+    int in_ch        = (int)weights->shape[KRNL_DW_D_DIM_HW1N];
+    int height       = (int)weights->shape[KRNL_DW_H_DIM_HW1N];
+    int width        = (int)weights->shape[KRNL_DW_W_DIM_HW1N];
+    const int out_ch = (int)weights->shape[KRNL_DW_N_DIM_HW1N];
+    int in_ch_mem_stride  = weights->mem_stride[KRNL_DW_D_DIM_HW1N];
+    int row_mem_stride    = weights->mem_stride[KRNL_DW_H_DIM_HW1N];
+    int col_mem_stride    = weights->mem_stride[KRNL_DW_W_DIM_HW1N];
+    int out_ch_mem_stride = weights->mem_stride[KRNL_DW_N_DIM_HW1N];
 
     MLI_CHECK_AND_FIX(in_ch, 1);
 
