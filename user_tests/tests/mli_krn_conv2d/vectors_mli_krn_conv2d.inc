@@ -7,8 +7,6 @@
 *
 */
 
-//#include "vectors_mli_krn_conv2d.h"
-
 #include <stdint.h>
 
 #include "mli_types.h"

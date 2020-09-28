@@ -44,9 +44,9 @@ class quality_metrics {
 
     // Values which always under any threshold in comparison with it
     static constexpr auto kPassValueMaxAbsErr    = std::numeric_limits<float>::max();
-    static constexpr auto kPassValueSnr          = std::numeric_limits<float>::min();
-    static constexpr auto kPassValueSnrDb        = std::numeric_limits<float>::min();
-    static constexpr auto kPassValueQuantErrPerc = std::numeric_limits<float>::min();
+    static constexpr auto kPassValueSnr          = std::numeric_limits<float>::lowest();
+    static constexpr auto kPassValueSnrDb        = std::numeric_limits<float>::lowest();
+    static constexpr auto kPassValueQuantErrPerc = std::numeric_limits<float>::lowest();
 
     // Default and parametrized constructors
     quality_metrics();

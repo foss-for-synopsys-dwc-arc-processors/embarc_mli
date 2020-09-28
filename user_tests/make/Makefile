@@ -15,7 +15,7 @@ TCF_FILE  ?= ../../hw/em9d.tcf
 # Directories and files
 EMBARC_MLI_DIR ?= ../..
 SRC_DIRS     = $(EMBARC_MLI_DIR)/user_tests/test_components \
-               $(EMBARC_MLI_DIR)/user_tests/tests/mli_krn_conv2d \
+               $(EMBARC_MLI_DIR)/user_tests/tests/mli_krn_softmax \
                $(EMBARC_MLI_DIR)/examples/auxiliary \
 
 
