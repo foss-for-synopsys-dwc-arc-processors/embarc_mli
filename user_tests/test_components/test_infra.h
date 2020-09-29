@@ -12,7 +12,20 @@
 #include <limits>
 
 #include "mli_api.h"
+#include "mli_config.h"
 #include "test_quantizer.h"
+
+#if (PLATFORM == V2DSP_XY)
+#define W_DATA_ATTR __xy __attribute__((section(".Xdata")))
+#define IO_DATA_ATTR __xy __attribute__((section(".Ydata")))
+#elif (PLATFORM == V2DSP_VECTOR)
+#define W_DATA_ATTR __vccm __attribute__((section(".vecmem_data")))
+#define IO_DATA_ATTR __vccm __attribute__((section(".vecmem_data")))
+#else
+#define W_DATA_ATTR 
+#define IO_DATA_ATTR 
+#endif
+
 
 namespace mli {
 namespace tst {

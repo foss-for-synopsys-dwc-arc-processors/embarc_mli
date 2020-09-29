@@ -121,8 +121,8 @@ static const softmax_test_operands tests_list[] = {
 };
 
 constexpr int kMemSize = 2047;
-static int8_t scratch_mem_in[kMemSize] = { 0 };
-static int8_t scratch_mem_out[kMemSize] = { 0 };
+static IO_DATA_ATTR int8_t scratch_mem_in[kMemSize] = { 0 };
+static IO_DATA_ATTR int8_t scratch_mem_out[kMemSize] = { 0 };
 
 static const int tests_num = sizeof(tests_list) / sizeof(tests_list[0]);
 
