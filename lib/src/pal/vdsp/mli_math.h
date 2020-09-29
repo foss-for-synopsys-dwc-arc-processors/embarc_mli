@@ -161,6 +161,21 @@ MLI_FORCE_INLINE vNx2accint_t mli_math_asl_fx(vNx2accint_t x, int nbits) {
     return __vacc_concat(vvcslm(__vacc_lo(x), nbits_v), vvcslm(__vacc_hi(x), nbits_v));
 }
 
+template <>
+MLI_FORCE_INLINE vNx4accint_t mli_math_asl_fx(vNx4accint_t x, vNx4int_t nbits) {
+    vNx4accint_t r;
+    r.lo = mli_math_asl_fx(x.lo, nbits.lo);
+    r.hi = mli_math_asl_fx(x.hi, nbits.hi);
+    return r;
+}
+template <>
+MLI_FORCE_INLINE vNx4accint_t mli_math_asl_fx(vNx4accint_t x, int nbits) {
+    vNx4accint_t r;
+    r.lo = mli_math_asl_fx(x.lo, nbits);
+    r.hi = mli_math_asl_fx(x.hi, nbits);
+    return r;
+}
+
 template <typename T, typename shift_T>
 MLI_FORCE_INLINE T mli_math_asr_rnd_fx(T x, shift_T nbits) {
     T r = 0;
@@ -654,6 +669,14 @@ MLI_FORCE_INLINE vNx2accint_t mli_math_add(vNx2accint_t L, vNx2int_t R) {
 }
 
 template <>
+MLI_FORCE_INLINE vNx4accint_t mli_math_add(vNx4accint_t L, vNx4int_t R) {
+    vNx4accint_t r;
+    r.lo = mli_math_add(L.lo, R.lo);
+    r.hi = mli_math_add(L.hi, R.hi);
+    return r;
+}
+
+template <>
 MLI_FORCE_INLINE vNaccint_t mli_math_add(vNaccint_t L, vNaccint_t R) {
     return vvcaddacc(L, R);
 }
@@ -662,6 +685,15 @@ template <>
 MLI_FORCE_INLINE vNx2accint_t mli_math_add(vNx2accint_t L, vNx2accint_t R) {
     return __vacc_concat(vvcaddacc(__vacc_lo(L), __vacc_lo(R)), vvcaddacc(__vacc_hi(L), __vacc_hi(R)));
 }
+
+template <>
+MLI_FORCE_INLINE vNx4accint_t mli_math_add(vNx4accint_t L, vNx4accint_t R) {
+    vNx4accint_t r;
+    r.lo = mli_math_add(L.lo, R.lo);
+    r.hi = mli_math_add(L.hi, R.hi);
+    return r;
+}
+
 // Maximum of two fx operands
 //========================================================================
 template <typename io_T>
@@ -779,6 +811,11 @@ MLI_FORCE_INLINE int64_t mli_math_mul_fx(int32_t L, int32_t R) {
 }
 
 template <>
+MLI_FORCE_INLINE vNx4accint_t mli_math_mul_fx(int16_t L, int16_t R) {
+    return vvcmpy((vNx4short_t)L, R);
+}
+
+template <>
 MLI_FORCE_INLINE vNx4accint_t mli_math_mul_fx(vNx4short_t L, vNx4short_t R) {
     return vvcmpy(L, R);
 }
@@ -841,6 +878,40 @@ MLI_FORCE_INLINE vNx2accint_t mli_math_mac_fx(vNx2accint_t acc, vNx2short_t L, i
 template <>
 MLI_FORCE_INLINE vNx2accint_t mli_math_mac_fx(vNx2accint_t acc, vNx2short_t L, vNx2short_t R) {
     return vvcmac(acc, L, R);
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accint_t mli_math_mac_fx(vNx4accint_t acc, vNx4short_t L, int16_t R) {
+    vNx4accint_t r;
+    r.lo = mli_math_mac_fx(acc.lo, L.lo, R);
+    r.hi = mli_math_mac_fx(acc.hi, L.hi, R);
+    return r;
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accint_t mli_math_mac_fx(vNx4accint_t acc, vNx4short_t L, vNx4short_t R) {
+    vNx4accint_t r;
+    r.lo = mli_math_mac_fx(acc.lo, L.lo, R.lo);
+    r.hi = mli_math_mac_fx(acc.hi, L.hi, R.hi);
+    return r;
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accint_t mli_math_mac_fx(vNx4accint_t acc, vNx4char_t L, int16_t R) {
+    vNx4accint_t r;
+    vNx4short_t Lshort = to_vNx4short_t(L);
+    r.lo = mli_math_mac_fx(acc.lo, Lshort.lo, R);
+    r.hi = mli_math_mac_fx(acc.hi, Lshort.hi, R);
+    return r;
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accint_t mli_math_mac_fx(vNx4accint_t acc, vNx4char_t L, vNx4short_t R) {
+    vNx4accint_t r;
+    vNx4short_t Lshort = to_vNx4short_t(L);
+    r.lo = mli_math_mac_fx(acc.lo, Lshort.lo, R.lo);
+    r.hi = mli_math_mac_fx(acc.hi, Lshort.hi, R.hi);
+    return r;
 }
 
 // Accumulator shift

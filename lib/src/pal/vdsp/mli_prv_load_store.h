@@ -11,6 +11,7 @@
 #define _VDSP_MLI_PRV_LOAD_STORE_H_
 
 #include <arc_vector.h>
+#include "arc_vector_ext.h"
 #include "mli_config.h"
 #include "../mli_math.h"
 
@@ -142,6 +143,19 @@ static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int16_t) __res
     }
 }
 
+static MLI_FORCE_INLINE void mli_prv_store_Nx4_samples(MLI_OUT_PTR (int16_t) __restrict out,
+        vNx4short_t data, int predicate_limit) {
+    if (predicate_limit > _VDSP_NUM_16BIT_LANES) {
+        mli_prv_store_n_samples(out, data.lo);
+        out += _VDSP_NUM_16BIT_LANES;
+        pvNx2 predicate = mli_prv_pvNx2_init(predicate_limit - _VDSP_NUM_16BIT_LANES);
+        vvst(data.hi, predicate, (int16_t __vccm *)(out));
+    } else {
+        pvNx2 predicate = mli_prv_pvNx2_init(predicate_limit);
+        vvst(data.lo, predicate, (int16_t __vccm *)(out));
+    }
+}
+
 //-------------------------------------
 // loads combined with mac operation
 // _v_s means vector x scalar
@@ -164,12 +178,21 @@ MLI_FORCE_INLINE vNx4accshort_t mli_prv_mac_load_v_s(
         const MLI_PTR(int8_t) __restrict in2) {
     return mli_math_mac_fx(accu, mli_prv_load_nx4_samples(in1), *in2);
 }
+
 template <>
 MLI_FORCE_INLINE vNx2accint_t mli_prv_mac_load_v_s(
         vNx2accint_t accu,
         const MLI_PTR(int16_t) __restrict in1,
         const MLI_PTR(int16_t) __restrict in2) {
     return mli_math_mac_fx(accu, mli_prv_load_nx2_samples(in1), *in2);
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accint_t mli_prv_mac_load_v_s(
+        vNx4accint_t accu,
+        const MLI_PTR(int8_t) __restrict in1,
+        const MLI_PTR(int16_t) __restrict in2) {
+    return mli_math_mac_fx(accu, mli_prv_load_nx4_samples(in1), *in2);
 }
 
 

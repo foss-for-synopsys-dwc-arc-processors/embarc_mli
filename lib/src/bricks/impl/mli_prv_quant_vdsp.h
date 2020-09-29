@@ -232,6 +232,15 @@ MLI_FORCE_INLINE vNx2accint_t bias_additive(
     return mli_math_add(accu, init_accum);
 }
 
+template <>
+MLI_FORCE_INLINE vNx4accint_t bias_additive(
+        const MLI_PTR(int8_t) bias, vNx4accint_t init_accum, const fx_quant_specific_params* quant_params) {
+    vNx4char_t bias_v = *(vNx4char_t*)bias;
+    vNx4accint_t accu = mli_math_mul_fx<vNx4short_t, vNx4accint_t>(to_vNx4short_t(bias_v), 1);
+    accu = mli_math_asl_fx(accu, quant_params->bias_shift);
+    return accu;
+}
+
 //=========================================================================
 // Convert between SA8 and FX16
 //=========================================================================
@@ -322,6 +331,23 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
     out = MAX(out, val_min_limit);
 
     mli_prv_store_Nx2_samples(o_ptr, out, num);
+}
+
+template <>
+MLI_FORCE_INLINE void result_cast_relu_store_v(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        vNx4accint_t acc,
+        const fx_quant_specific_params* quant_params,
+        const int16_t val_min_limit,
+        const int16_t val_max_limit,
+        int num) {
+
+    vNx4short_t out = mli_math_acc_cast_fx<vNx4short_t, vNx4accint_t>(acc, quant_params->out_shift);
+
+    out = MIN(out, val_max_limit);
+    out = MAX(out, val_min_limit);
+
+    mli_prv_store_Nx4_samples(o_ptr, out, num);
 }
 
 } // namespace vdsp
