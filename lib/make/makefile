@@ -26,6 +26,17 @@ TOOLCHAIN_OPTIONS += \
 ifdef BUILDLIB_DIR
 TOOLCHAIN_OPTIONS += -DBUILDLIB_DIR=$(abspath $(BUILDLIB_DIR))
 endif
+
+else
+
+ifeq ($(MLI_NATIVE_BUILD_32BIT),ON)
+ifeq ($(O_SYS),Windows)
+TOOLCHAIN_OPTIONS += -AWin32
+else
+override EXT_CFLAGS += -m32
+endif
+endif
+
 endif
 
 ifdef ROUND_MODE
@@ -56,7 +67,7 @@ all: lib
 $(CONFIG_TARGET):
 	cmake \
 		-DDEBUG_BUILD=$(DEBUG_BUILD) \
-		-DEXT_CFLAGS=$(EXT_CFLAGS) \
+		-DEXT_CFLAGS="$(EXT_CFLAGS)" \
 		-DOPTMODE=$(OPTMODE) \
 		-DGEN_EXAMPLES=$(GEN_EXAMPLES) \
 		-DMLI_BUILD_REFERENCE=$(MLI_BUILD_REFERENCE) \
