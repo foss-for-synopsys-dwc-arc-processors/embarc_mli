@@ -21,8 +21,10 @@ extern "C" {
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
 typedef vNx4accshort_t mli_sa8_sa8_sa32_accu_t;
+typedef vNx2accint_t mli_fx16_accu_t;
 #else
 typedef mli_acc32_t mli_sa8_sa8_sa32_accu_t;
+typedef mli_acc40_t mli_fx16_accu_t;
 #endif
 
 #pragma MLI_CODE_SECTION_START(".mli_lib")
@@ -59,7 +61,7 @@ mli_status mli_krn_fully_connected_fx16(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_fully_connected_fx16(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
 
-    mli::krn::fully_connected_prepare_and_run<int16_t, int16_t, int16_t, mli_acc40_t, mli::krn::fx_quant_specific_params>(in, weights, bias, cfg, out);
+    mli::krn::fully_connected_prepare_and_run<int16_t, int16_t, int16_t, mli_fx16_accu_t, mli::krn::fx_quant_specific_params>(in, weights, bias, cfg, out);
 
     return ret;
 }

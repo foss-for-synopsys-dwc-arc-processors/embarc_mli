@@ -19,8 +19,12 @@
 #define SIGNED (1)
 #define UNSIGNED (0)
 #define TARGET_SZ_8 (0 << 8)
+#define TARGET_SZ_10 (1 << 8)
+#define TARGET_SZ_12 (2 << 8)
 #define TARGET_SZ_16 (3 << 8)
+#define TARGET_SZ_20 (4 << 8)
 #define TARGET_SZ_24 (5 << 8)
+#define TARGET_SZ_32 (6 << 8)
 #define SAT (1<<7)
 #define SHIFT(a) ((a)<< 1)
 

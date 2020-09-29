@@ -115,6 +115,11 @@ MLI_FORCE_INLINE vNx4accshort_t mli_math_asr_fx(vNx4accshort_t x, vNx4short_t nb
     return __vacc_concat(vvcasrm(__vacc_lo(x), nbits.lo), vvcasrm(__vacc_hi(x), nbits.hi));
 }
 
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_math_asr_fx(vNx2accint_t x, vNx2int_t nbits) {
+    return __vacc_concat(vvcasrm(__vacc_lo(x), nbits.lo), vvcasrm(__vacc_hi(x), nbits.hi));
+}
+
 template <typename T, typename shift_T>
 MLI_FORCE_INLINE T mli_math_asl_fx(T x, shift_T nbits) {
     shift_T inp_size = sizeof(T) * 8;
@@ -144,6 +149,16 @@ MLI_FORCE_INLINE vNx4short_t mli_math_asl_fx(vNx4short_t x, int nbits) {
 template <>
 MLI_FORCE_INLINE vNx4accshort_t mli_math_asl_fx(vNx4accshort_t x, vNx4short_t nbits) {
     return __vacc_concat(vvcslm(__vacc_lo(x), nbits.lo), vvcslm(__vacc_hi(x), nbits.hi));
+}
+
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_math_asl_fx(vNx2accint_t x, vNx2int_t nbits) {
+    return __vacc_concat(vvcslm(__vacc_lo(x), nbits.lo), vvcslm(__vacc_hi(x), nbits.hi));
+}
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_math_asl_fx(vNx2accint_t x, int nbits) {
+    vNint_t nbits_v = nbits;
+    return __vacc_concat(vvcslm(__vacc_lo(x), nbits_v), vvcslm(__vacc_hi(x), nbits_v));
 }
 
 template <typename T, typename shift_T>
@@ -192,6 +207,24 @@ MLI_FORCE_INLINE vNx4accshort_t mli_math_asr_rnd_fx(vNx4accshort_t x, vNx4short_
     // adding 1 << (nbits-1)
     // when nbits >= 8, 1 << nbits would result in overflow. that is why nbits is divided by 2 and multiplied
     r = mli_math_mac_fx(x, to_vNx4char_t(1 << ((nbits - 1)/2)), to_vNx4char_t(1 << (nbits/2)));
+#endif
+#ifdef ROUND_CONVERGENT
+#error "Convergent rounding not supported"
+#endif
+    r = mli_math_asr_fx(r, nbits);
+    return r;
+}
+
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_math_mac_fx(vNx2accint_t acc, vNx2short_t L, vNx2short_t R);
+
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_math_asr_rnd_fx(vNx2accint_t x, vNx2int_t nbits) {
+    vNx2accint_t r;
+#ifdef ROUND_UP
+    // adding 1 << (nbits-1)
+    // when nbits >= 8, 1 << nbits would result in overflow. that is why nbits is divided by 2 and multiplied
+    r = mli_math_mac_fx(x, to_vNx2short_t(1 << ((nbits - 1)/2)), to_vNx2short_t(1 << (nbits/2)));
 #endif
 #ifdef ROUND_CONVERGENT
 #error "Convergent rounding not supported"
@@ -560,6 +593,26 @@ MLI_FORCE_INLINE vNx4short_t mli_math_acc_cast_fx(vNx4accshort_t acc, int shift_
     return accu_result;
 }
 
+template<>
+MLI_FORCE_INLINE vNx2int_t mli_math_acc_cast_fx(vNx2accint_t acc, int shift_right) {
+    int ctrlword = SAT|SIGNED|TARGET_SZ_32|SHIFT(shift_right);
+    vNx2int_t accu_result;
+    accu_result.lo = to_vNint_t(vvconvert(__vacc_lo(acc), ctrlword));
+    accu_result.hi = to_vNint_t(vvconvert(__vacc_hi(acc), ctrlword));
+
+    return accu_result;
+}
+
+template<>
+MLI_FORCE_INLINE vNx2short_t mli_math_acc_cast_fx(vNx2accint_t acc, int shift_right) {
+    int ctrlword = SAT|SIGNED|TARGET_SZ_16|SHIFT(shift_right);
+    vNx2int_t accu_result;
+    accu_result.lo = to_vNint_t(vvconvert(__vacc_lo(acc), ctrlword));
+    accu_result.hi = to_vNint_t(vvconvert(__vacc_hi(acc), ctrlword));
+
+    return to_vNx2short_t(accu_result);
+}
+
 // Addition/subtraction of two operands
 template <typename l_T, typename r_T>
 MLI_FORCE_INLINE l_T mli_math_add(l_T L, r_T R) {
@@ -595,6 +648,20 @@ MLI_FORCE_INLINE vNx4accshort_t mli_math_add(vNx4accshort_t L, vNx4accshort_t R)
     return __vacc_concat(vvcaddacc(__vacc_lo(L), __vacc_lo(R)), vvcaddacc(__vacc_hi(L), __vacc_hi(R)));
 }
 
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_math_add(vNx2accint_t L, vNx2int_t R) {
+    return __vacc_concat(vvcadd(__vacc_lo(L), R.lo,(int32_t)0), vvcadd(__vacc_hi(L), R.hi,(int32_t)0));
+}
+
+template <>
+MLI_FORCE_INLINE vNaccint_t mli_math_add(vNaccint_t L, vNaccint_t R) {
+    return vvcaddacc(L, R);
+}
+
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_math_add(vNx2accint_t L, vNx2accint_t R) {
+    return __vacc_concat(vvcaddacc(__vacc_lo(L), __vacc_lo(R)), vvcaddacc(__vacc_hi(L), __vacc_hi(R)));
+}
 // Maximum of two fx operands
 //========================================================================
 template <typename io_T>
@@ -721,6 +788,16 @@ MLI_FORCE_INLINE vNx4accshort_t mli_math_mul_fx(int8_t L, int8_t R) {
     return vvcmpy((vNx4char_t)L, R);
 }
 
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_math_mul_fx(int16_t L, int16_t R) {
+    return vvcmpy((vNx2short_t)L, R);
+}
+
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_math_mul_fx(vNx2short_t L, vNx2short_t R) {
+    return vvcmpy(L, R);
+}
+
 // Multiply-and-accumulate operands
 //========================================================================
 template <>
@@ -757,6 +834,15 @@ MLI_FORCE_INLINE vNx4accshort_t mli_math_mac_fx(vNx4accshort_t acc, vNx4char_t L
     return vvcmac(acc, L, R);
 }
 
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_math_mac_fx(vNx2accint_t acc, vNx2short_t L, int16_t R) {
+    return vvcmac(acc, L, R);
+}
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_math_mac_fx(vNx2accint_t acc, vNx2short_t L, vNx2short_t R) {
+    return vvcmac(acc, L, R);
+}
+
 // Accumulator shift
 //========================================================================
 
@@ -768,9 +854,9 @@ MLI_FORCE_INLINE mli_acc32_t mli_math_acc_ashift_fx(mli_acc32_t acc, int shift_r
 // Number of lanes in a vector
 //========================================================================
 template <typename T>
-MLI_FORCE_INLINE int get_number_lanes() {
-    int lanes = 0;
-    if (  std::is_same<T, int8_t>::value
+constexpr int get_number_lanes() {
+    return 
+     (  std::is_same<T, int8_t>::value
        || std::is_same<T, int16_t>::value
        || std::is_same<T, int32_t>::value
        || std::is_same<T, mli_acc40_t>::value
@@ -778,27 +864,25 @@ MLI_FORCE_INLINE int get_number_lanes() {
        || std::is_same<T, uint8_t>::value
        || std::is_same<T, uint16_t>::value
        || std::is_same<T, uint32_t>::value
-       || std::is_same<T, uint64_t>::value) {
-        lanes = 1;
-    }
-    if (  std::is_same<T, vNx4char_t>::value
+       || std::is_same<T, uint64_t>::value) ?
+        1
+    :
+     (  std::is_same<T, vNx4char_t>::value
        || std::is_same<T, vNx4short_t>::value
        || std::is_same<T, vNx4int_t>::value
        || std::is_same<T, vNx4accshort_t>::value
-       || std::is_same<T, vNx4accint_t>::value) {
-        lanes = _VDSP_NUM_8BIT_LANES;
-    }
-    if (  std::is_same<T, vNx2short_t>::value
+       || std::is_same<T, vNx4accint_t>::value) ?
+         _VDSP_NUM_8BIT_LANES
+    :
+     (  std::is_same<T, vNx2short_t>::value
        || std::is_same<T, vNx2int_t>::value
        || std::is_same<T, vNx2accshort_t>::value
-       || std::is_same<T, vNx2accint_t>::value) {
-        lanes = _VDSP_NUM_16BIT_LANES;
-    }
-    if (  std::is_same<T, vNint_t>::value){
-        lanes = _VDSP_NUM_32BIT_LANES;
-    }
-    MLI_ASSERT(lanes > 0);
-    return lanes;
+       || std::is_same<T, vNx2accint_t>::value) ?
+         _VDSP_NUM_16BIT_LANES
+    :
+     (  std::is_same<T, vNint_t>::value) ?
+        _VDSP_NUM_32BIT_LANES
+    : 0;
 }
 
 template <typename T>

@@ -90,21 +90,14 @@ static MLI_FORCE_INLINE acc_T dotprod_inputzp_1D_v(
         const int krn_step,
         const s8asym_quant_specific_params* quant_params) {
 
-    if (get_number_lanes<acc_T>() == 1) {
-        for (int idx = 0; idx < vals; idx++) {
-            accu = mli_math_mac_fx(accu, *krn, *in);
-            accu = mli_math_mac_fx(accu, *krn, (io_T)-quant_params->in_offset);
-            in += in_step;
-            krn += krn_step;
-        }
-    } else {
-        for (int idx = 0; idx < vals; idx++) {
-            accu = mli_math_mac_fx(accu, mli_prv_load_n_samples(krn), *in);
-            accu = mli_math_mac_fx(accu, mli_prv_load_n_samples(krn), (io_T)-quant_params->in_offset);
-            in += in_step;
-            krn += krn_step;
-        }
+    for (int idx = 0; idx < vals; idx++) {
+        io_T offset = (io_T)-quant_params->in_offset;
+        accu = mli_prv_mac_load_v_s(accu, krn, in);
+        accu = mli_prv_mac_load_v_s(accu, krn, &offset);
+        in += in_step;
+        krn += krn_step;
     }
+
     return accu;
 }
 
@@ -165,18 +158,10 @@ static MLI_FORCE_INLINE acc_T dotprod_inputzp_1D_v(
         const int krn_step,
         const fx_quant_specific_params* quant_params) {
 
-    if (get_number_lanes<acc_T>() == 1) {
-        for (int idx = 0; idx < vals; idx++) {
-            accu = mli_math_mac_fx(accu, *krn, *in);
-            in += in_step;
-            krn += krn_step;
-        }
-    } else {
-        for (int idx = 0; idx < vals; idx++) {
-            accu = mli_math_mac_fx(accu, mli_prv_load_n_samples(krn), *in);
-            in += in_step;
-            krn += krn_step;
-        }
+    for (int idx = 0; idx < vals; idx++) {
+        accu = mli_prv_mac_load_v_s(accu, krn, in);
+        in += in_step;
+        krn += krn_step;
     }
 
     return accu;
@@ -236,6 +221,15 @@ MLI_FORCE_INLINE vNx4accshort_t bias_additive(
     vNx4accshort_t accu = mli_math_add(init_accum, bias16);
     accu = mli_math_asl_fx(accu, to_vNx4short_t(shift));
     return accu;
+}
+
+template <>
+MLI_FORCE_INLINE vNx2accint_t bias_additive(
+        const MLI_PTR(int16_t) bias, vNx2accint_t init_accum, const fx_quant_specific_params* quant_params) {
+    vNx2short_t bias_v = *(vNx2short_t*)bias;
+    vNx2accint_t accu = mli_math_mul_fx<vNx2short_t, vNx2accint_t>(bias_v, 1);
+    accu = mli_math_asl_fx(accu, quant_params->bias_shift);
+    return mli_math_add(accu, init_accum);
 }
 
 //=========================================================================
@@ -311,6 +305,23 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
 
     vNx4char_t out = to_vNx4char_t(accu_scaled);
     mli_prv_store_n_samples(o_ptr, out, num);
+}
+
+template <>
+MLI_FORCE_INLINE void result_cast_relu_store_v(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        vNx2accint_t acc,
+        const fx_quant_specific_params* quant_params,
+        const int16_t val_min_limit,
+        const int16_t val_max_limit,
+        int num) {
+
+    vNx2short_t out = mli_math_acc_cast_fx<vNx2short_t, vNx2accint_t>(acc, quant_params->out_shift);
+
+    out = MIN(out, val_max_limit);
+    out = MAX(out, val_min_limit);
+
+    mli_prv_store_Nx2_samples(o_ptr, out, num);
 }
 
 } // namespace vdsp
