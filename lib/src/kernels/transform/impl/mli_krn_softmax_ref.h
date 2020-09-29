@@ -79,46 +79,6 @@ static MLI_FORCE_INLINE void mli_krn_softmax_subtract_max(const MLI_PTR(io_T) ve
 }
 
 template <typename io_T>
-static MLI_FORCE_INLINE void mli_krn_softmax_convert_tensor(const mli_tensor *in,
-        const mli_softmax_cfg* cfg,
-        mli_tensor *out,
-        generic_tensor_private_t<MLI_PTR(io_T)> *in_prv,
-        generic_tensor_private_t<MLI_PTR(io_T)> *out_prv,
-        int *shape,
-        int *in_mem_str,
-        int *out_mem_str) {
-
-    /* (1) Convert the input tensor to a private tensor that contains only the axis in case of per axis,
-     * and the complete tensor in case of per tensor, this is used in inner 4 loops.
-     * (2) Also convert this input tensor into a tensor that is basically the opposite of this
-     * which we use in outer 3 loops.
-     */
-
-    /* conversion (1) is done here */
-    *in_prv =  mli_prv_get_generic_tensor<MLI_PTR(io_T)>(in, cfg->axis);
-    *out_prv = mli_prv_get_generic_tensor<MLI_PTR(io_T)>(out, cfg->axis);
-
-    for (int i = 0; i < MLI_MAX_RANK - 1; i++) {
-        shape[i] = 1;
-    }
-
-    /* conversion (2) is done here,
-     * This loop is just added to eliminate axis shape, to iterate across the other dimensions(without axis dimension),
-     * as the loop body will handle the axis dimension
-     */
-    if (cfg->axis >= 0) {
-        for (int all_dim_idx = 0, not_axis_dim_idx = 0; all_dim_idx < MLI_MAX_RANK; all_dim_idx++) {
-            if (all_dim_idx != cfg->axis) {
-                shape[not_axis_dim_idx] = (all_dim_idx < in->rank) ? in->shape[all_dim_idx] : 1;
-                in_mem_str[not_axis_dim_idx] = in_prv->mem_stride[all_dim_idx];
-                out_mem_str[not_axis_dim_idx] = out_prv->mem_stride[all_dim_idx];
-                not_axis_dim_idx++;
-            }
-        }
-    }
-}
-
-template <typename io_T>
 static mli_status mli_krn_softmax_fx_run(const mli_tensor *in, const mli_softmax_cfg* cfg,
         mli_tensor *out) {
 
@@ -130,23 +90,22 @@ static mli_status mli_krn_softmax_fx_run(const mli_tensor *in, const mli_softmax
     const MLI_PTR(io_T) in_ptr = (MLI_PTR(io_T))(in->data.mem.void_p);
     MLI_PTR(io_T) out_ptr = (MLI_PTR(io_T)) (out->data.mem.void_p);
 
-    int shape[MLI_MAX_RANK - 1];
-    int in_mem_str[MLI_MAX_RANK - 1];
-    int out_mem_str[MLI_MAX_RANK - 1];
-
-    struct generic_tensor_private_t<MLI_PTR(io_T)> in_prv;
-    struct generic_tensor_private_t<MLI_PTR(io_T)> out_prv;
-
     /* Copy tensor format */
     mli_prv_copy_tensor_format_except_mem_strides(in, out);
     out->el_params.fx.frac_bits = (sizeof(io_T) * 8) - kTransfFuncIntBits - 1;
 
-    /* (1) Convert the input tensor to a private tensor that contains only the axis in case of per axis,
-     * and the complete tensor in case of per tensor, this is used in inner 4 loops.
-     * (2) Also convert this input tensor into a tensor that is basically the opposite of this
-     * which we use in outer 3 loops.
-     */
-    mli_krn_softmax_convert_tensor(in, cfg, out, &in_prv, &out_prv, shape, in_mem_str, out_mem_str);
+    /* Get Generic Private Tensor */
+    auto in_prv =  mli_prv_get_generic_tensor<MLI_PTR(io_T)>(in);
+    auto out_prv = mli_prv_get_generic_tensor<MLI_PTR(io_T)>(out);
+    /* Get Non Axis Tensor */
+    auto in_non_axis_prv  = mli_prv_get_non_axis_tensor<MLI_PTR(io_T)>(&in_prv,  cfg->axis);
+    auto out_non_axis_prv = mli_prv_get_non_axis_tensor<MLI_PTR(io_T)>(&out_prv, cfg->axis);
+    /* Get Axis Tensor */
+    in_prv  = mli_prv_get_axis_tensor<MLI_PTR(io_T)>(&in_prv,  cfg->axis);
+    out_prv = mli_prv_get_axis_tensor<MLI_PTR(io_T)>(&out_prv, cfg->axis);
+    /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
+    mli_prv_reorder_generic_tensor<MLI_PTR(io_T)>(&in_prv );
+    mli_prv_reorder_generic_tensor<MLI_PTR(io_T)>(&out_prv);
 
     int in_frac = static_cast<int>(in->el_params.fx.frac_bits);
 
@@ -154,12 +113,16 @@ static mli_status mli_krn_softmax_fx_run(const mli_tensor *in, const mli_softmax
      * axis dimension elements.
      * For applying the function to the whole tensor, loop body is executed only one time. (i.e. shape[i] = 1).
      */
-    for (int dim0 = 0; dim0 < shape[0]; dim0++) {
-        for (int dim1 = 0; dim1 < shape[1]; dim1++) {
-            for (int dim2 = 0; dim2 < shape[2]; dim2++) {
+    for (int dim0 = 0; dim0 < in_non_axis_prv.shape[0]; dim0++) {
+        for (int dim1 = 0; dim1 < in_non_axis_prv.shape[1]; dim1++) {
+            for (int dim2 = 0; dim2 < in_non_axis_prv.shape[2]; dim2++) {
 
-                vec_in = &in_ptr[dim0 * in_mem_str[0] + dim1 * in_mem_str[1] + dim2 * in_mem_str[2]];
-                vec_out = &out_ptr[dim0 * out_mem_str[0] + dim1 * out_mem_str[1] + dim2 * out_mem_str[2]];
+                vec_in = &in_ptr[dim0 * in_non_axis_prv.mem_stride[0] + 
+                                 dim1 * in_non_axis_prv.mem_stride[1] + 
+                                 dim2 * in_non_axis_prv.mem_stride[2]];
+                vec_out = &out_ptr[dim0 * out_non_axis_prv.mem_stride[0] + 
+                                   dim1 * out_non_axis_prv.mem_stride[1] + 
+                                   dim2 * out_non_axis_prv.mem_stride[2]];
 
                 /* Subtract maximum from each element */
                 mli_krn_softmax_subtract_max(vec_in, vec_out, &in_prv, &out_prv, &in_frac);
@@ -236,33 +199,35 @@ static mli_status mli_krn_softmax_sa8_run(const mli_tensor *in, const mli_softma
     const MLI_PTR(int8_t) in_ptr = (MLI_PTR(int8_t))(in->data.mem.void_p);
     MLI_PTR(int8_t) out_ptr = (MLI_PTR(int8_t)) (out->data.mem.void_p);
 
-    int shape[MLI_MAX_RANK - 1];
-    int in_mem_str[MLI_MAX_RANK - 1];
-    int out_mem_str[MLI_MAX_RANK - 1];
-
-    struct generic_tensor_private_t<MLI_PTR(int8_t)> in_prv;
-    struct generic_tensor_private_t<MLI_PTR(int8_t)> out_prv;
-
     /* Copy tensor format */
     mli_prv_copy_tensor_format_except_mem_strides(in, out);
-
-    /* (1) Convert the input tensor to a private tensor that contains only the axis in case of per axis,
-     * and the complete tensor in case of per tensor, this is used in inner 4 loops.
-     * (2) Also convert this input tensor into a tensor that is basically the opposite of this
-     * which we use in outer 3 loops.
-     */
-    mli_krn_softmax_convert_tensor(in, cfg, out, &in_prv, &out_prv, shape, in_mem_str, out_mem_str);
+    /* Get Generic Private Tensor */
+    auto in_prv =  mli_prv_get_generic_tensor<MLI_PTR(int8_t)>(in);
+    auto out_prv = mli_prv_get_generic_tensor<MLI_PTR(int8_t)>(out);
+    /* Get Non Axis Tensor */
+    auto in_non_axis_prv  = mli_prv_get_non_axis_tensor<MLI_PTR(int8_t)>(&in_prv,  cfg->axis);
+    auto out_non_axis_prv = mli_prv_get_non_axis_tensor<MLI_PTR(int8_t)>(&out_prv, cfg->axis);
+    /* Get Axis Tensor */
+    in_prv  = mli_prv_get_axis_tensor<MLI_PTR(int8_t)>(&in_prv,  cfg->axis);
+    out_prv = mli_prv_get_axis_tensor<MLI_PTR(int8_t)>(&out_prv, cfg->axis);
+    /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
+    mli_prv_reorder_generic_tensor<MLI_PTR(int8_t)>(&in_prv );
+    mli_prv_reorder_generic_tensor<MLI_PTR(int8_t)>(&out_prv);
 
     /* For applying the function to specific axis dimension, we should first loop across other dimensions then process
      * axis dimension elements.
      * For applying the function to the whole tensor, loop body is executed only one time. (i.e. shape[i] = 1).
      */
-    for (int dim0 = 0; dim0 < shape[0]; dim0++) {
-        for (int dim1 = 0; dim1 < shape[1]; dim1++) {
-            for (int dim2 = 0; dim2 < shape[2]; dim2++) {
+    for (int dim0 = 0; dim0 < in_non_axis_prv.shape[0]; dim0++) {
+        for (int dim1 = 0; dim1 < in_non_axis_prv.shape[1]; dim1++) {
+            for (int dim2 = 0; dim2 < in_non_axis_prv.shape[2]; dim2++) {
 
-                vec_in = &in_ptr[dim0 * in_mem_str[0] + dim1 * in_mem_str[1] + dim2 * in_mem_str[2]];
-                vec_out = &out_ptr[dim0 * out_mem_str[0] + dim1 * out_mem_str[1] + dim2 * out_mem_str[2]];
+                vec_in = &in_ptr[dim0 * in_non_axis_prv.mem_stride[0] + 
+                                 dim1 * in_non_axis_prv.mem_stride[1] + 
+                                 dim2 * in_non_axis_prv.mem_stride[2]];
+                vec_out = &out_ptr[dim0 * out_non_axis_prv.mem_stride[0] + 
+                                   dim1 * out_non_axis_prv.mem_stride[1] + 
+                                   dim2 * out_non_axis_prv.mem_stride[2]];
 
                 /* Look for the maximum */
                 int8_t max_val = vec_in[0];

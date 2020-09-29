@@ -31,8 +31,9 @@ using mli::krn::ref::activation_lut_one_elem_interpolate;
 using mli::krn::ref::activation_lut_one_elem_no_interpolate;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-/* TODO: fix ::dsp::activation_lut when dsp version supported */
-using mli::krn::ref::activation_lut;
+using mli::krn::dsp::activation_lut;
+using mli::krn::dsp::activation_lut_two_elem_interpolate;
+using mli::krn::dsp::activation_lut_two_elem_no_interpolate;
 using mli::krn::ref::activation_lut_one_elem_interpolate;
 using mli::krn::ref::activation_lut_one_elem_no_interpolate;
 

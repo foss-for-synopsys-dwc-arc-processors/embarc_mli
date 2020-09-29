@@ -210,13 +210,19 @@ typedef struct {
                        If axis < 0 the function will be applied to the whole tensor */
 } mli_prelu_cfg;
 
-
 /**
  * @brief Softmax Layer config
  *
  * Configuration struct alias to store required parameter (axis)
  */
 typedef mli_prelu_cfg mli_softmax_cfg;
+
+/**
+ * @brief L2 Normalization Layer config
+ *
+ * Configuration struct alias to store required parameter (axis)
+ */
+typedef mli_prelu_cfg mli_l2_normalize_cfg;
 
 /**
  * @brief Fully Connected Layer config definition
