@@ -34,7 +34,7 @@ namespace krn {
 ////////////////////////////////////////////////////////////////////////////////
 namespace ref {
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
-static void convolution2D(
+MLI_FORCE_INLINE void convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -49,7 +49,7 @@ static void convolution2D(
         const int padding_bot, const int padding_right);
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
-static void depthwise_convolution2D(
+MLI_FORCE_INLINE void depthwise_convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -65,7 +65,7 @@ static void depthwise_convolution2D(
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T,
           mli_layout_type data_layout, mli_conv_type conv_type>
-void conv2d_prepare_and_run(
+MLI_FORCE_INLINE void conv2d_prepare_and_run(
         const mli_tensor *in,
         const mli_tensor *weights,
         const mli_tensor *bias,
@@ -80,7 +80,7 @@ void conv2d_prepare_and_run(
 ////////////////////////////////////////////////////////////////////////////////
 namespace dsp {
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
-static MLI_FORCE_INLINE void depthwise_convolution2D(
+MLI_FORCE_INLINE void depthwise_convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
@@ -100,7 +100,7 @@ static MLI_FORCE_INLINE void depthwise_convolution2D(
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
-static void convolution2D(
+MLI_FORCE_INLINE void convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -115,7 +115,7 @@ static void convolution2D(
         const int padding_bot, const int padding_right);
 
 template <>
-void convolution2D<int16_t, int16_t, int16_t, mli_acc40_t, fx_quant_specific_params>(
+MLI_FORCE_INLINE void convolution2D<int16_t, int16_t, int16_t, mli_acc40_t, fx_quant_specific_params>(
         const tensor_private_t<MLI_PTR(int16_t)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(int16_t)> &weights,
         const MLI_PTR(int16_t)  __restrict biases,
@@ -130,7 +130,7 @@ void convolution2D<int16_t, int16_t, int16_t, mli_acc40_t, fx_quant_specific_par
         const int padding_bot, const int padding_right);
 
 template <>
-void convolution2D<int16_t, int8_t, int8_t, mli_acc32_t, fx_quant_specific_params>(
+MLI_FORCE_INLINE void convolution2D<int16_t, int8_t, int8_t, mli_acc32_t, fx_quant_specific_params>(
         const tensor_private_t<MLI_PTR(int16_t)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(int8_t)> &weights,
         const MLI_PTR(int8_t)  __restrict biases,
@@ -145,7 +145,7 @@ void convolution2D<int16_t, int8_t, int8_t, mli_acc32_t, fx_quant_specific_param
         const int padding_bot, const int padding_right);
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
-static void depthwise_convolution2D(
+MLI_FORCE_INLINE void depthwise_convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -160,7 +160,7 @@ static void depthwise_convolution2D(
         const int padding_bot, const int padding_right);
 
 template <>
-void depthwise_convolution2D<int16_t, int16_t, int16_t, mli_acc40_t, fx_quant_specific_params>(
+MLI_FORCE_INLINE void depthwise_convolution2D<int16_t, int16_t, int16_t, mli_acc40_t, fx_quant_specific_params>(
         const tensor_private_t<MLI_PTR(int16_t)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(int16_t)> &weights,
         const MLI_PTR(int16_t)  __restrict biases,
@@ -175,7 +175,7 @@ void depthwise_convolution2D<int16_t, int16_t, int16_t, mli_acc40_t, fx_quant_sp
         const int padding_bot, const int padding_right);
 
 template <>
-void depthwise_convolution2D<int16_t, int8_t, int8_t, mli_acc32_t, fx_quant_specific_params>(
+MLI_FORCE_INLINE void depthwise_convolution2D<int16_t, int8_t, int8_t, mli_acc32_t, fx_quant_specific_params>(
         const tensor_private_t<MLI_PTR(int16_t)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(int8_t)> &weights,
         const MLI_PTR(int8_t)  __restrict biases,
