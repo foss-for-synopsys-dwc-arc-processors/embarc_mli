@@ -548,11 +548,11 @@ mli_prv_get_relu_min_max (const mli_relu_cfg * cfg, const mli_tensor * out) {
 
     switch (cfg->type) {
     case MLI_RELU_GEN:
-        val_limit.min = (int16_t) zero;
+        val_limit.min = (int16_t) MAX(zero, min_val);
         val_limit.max = (int16_t) max_val;
         break;
     case MLI_RELU_6:
-        val_limit.min = (int16_t) zero;
+        val_limit.min = (int16_t) MAX(zero, min_val);
         val_limit.max = (int16_t) MIN (six, max_val);
         break;
     case MLI_RELU_1:
