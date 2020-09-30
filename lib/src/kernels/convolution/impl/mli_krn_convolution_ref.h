@@ -28,7 +28,7 @@ namespace ref {
 // Unified Generic Convolution 2D template
 //========================================================
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
-static void convolution2D(
+MLI_FORCE_INLINE void convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -131,7 +131,7 @@ static void convolution2D(
 // Unified Depthwise convolution 2D template
 //========================================================
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
-static void depthwise_convolution2D(
+MLI_FORCE_INLINE void depthwise_convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -223,7 +223,7 @@ static void depthwise_convolution2D(
 //====================================================================================
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T,
           mli_layout_type data_layout, mli_conv_type conv_type>
-void conv2d_prepare_and_run(
+MLI_FORCE_INLINE void conv2d_prepare_and_run(
         const mli_tensor *in,
         const mli_tensor *weights,
         const mli_tensor *bias,
