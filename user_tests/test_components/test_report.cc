@@ -9,8 +9,14 @@
 
 #include "test_report.h"
 
-#include <cstdio>
+// Standard asserts should be intentionally turned-on by defenition of TEST_DEBUG.
+#if !defined(TEST_DEBUG)
+#define NDEBUG
+#endif
+
 #include <assert.h>
+
+#include <cstdio>
 
 
 namespace mli {
@@ -22,24 +28,27 @@ static const int kSeparatorStringLength = 111;
 static const char kSeparatorString[kSeparatorStringLength] =
     "|============================================================================================================|";
 
-//Print header of test report
+// Print header of test report
 //==========================================================
 void reporter_full::report_header(const char* case_descr) const {  
     assert(kSeparatorStringLength == 111);
+    assert(case_descr != nullptr);
     printf("\n%s\n", kSeparatorString);
     printf("|  %-106s|\n", case_descr);
     printf("%s\n", kSeparatorString);
     printf("| %-30s| %-8s| %-9s|  %-7s| %-10s | %-10s| %-19s|\n",
-           "Test Case", "Result", "|S|/|N| ", "SNR[dB]", "|MaxErr|", /*"|N|/|Qer|", */"Qerr[%]", "CRC32 (Status)");
+           "Test Case", "Result", "|S|/|N| ", "SNR[dB]", "|MaxErr|", "Qerr[%]", "CRC32 (Status)");
     printf("%s\n", kSeparatorString);
 }
 
-// evaluate provided results and populate report table field accrdingly
-//==========================================================
+// Evaluate provided results and populate report table field accordingly
+//=======================================================================
 bool reporter_full::evaluate_and_report_case(const char* case_descr, 
                                              const quality_metrics& result, const quality_metrics& threshold,
                                              const crc32_calc& crc_result, const crc32_calc& crc_checksum) const {
     assert(kSeparatorStringLength == 111);
+    assert(case_descr != nullptr);
+    assert(crc_result.is_valid());
     constexpr int kMetricsToPrint = 4;
     const char* kMetricsPrintfFormat[kMetricsToPrint] = {
         "|%-2s%-8.1f",
@@ -85,17 +94,21 @@ bool reporter_full::evaluate_and_report_case(const char* case_descr,
     return is_case_passed;
 }
 
-// print an external message regarding testcase
+
+// Print an external message regarding testcase
 //==========================================================
 void reporter_full::report_message(const char* case_descr, const char* message) const {
     assert(kSeparatorStringLength == 111);
+    assert(case_descr != nullptr);
+    assert(message != nullptr);
     printf("| %-30s| %-75s|\n", case_descr, message);
 }
 
-// print an outline of test repor with external final status
+// Print an outline of test report with external final status
 //===========================================================
 void reporter_full::report_outline(const char* outline_marker, bool is_passed) const {
     assert(kSeparatorStringLength == 111);
+    assert(outline_marker != nullptr);
     printf("%s\n", kSeparatorString);
     printf("|======= %-30s: Summary Status: %-8s\n", outline_marker, (is_passed)? "PASSED" : "FAILED");
     printf("%s\n\n", kSeparatorString);

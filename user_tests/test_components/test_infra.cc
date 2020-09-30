@@ -9,6 +9,13 @@
 
 #include "test_infra.h"
 
+// Standard asserts should be intentionally turned-on by defenition of TEST_DEBUG.
+#if !defined(TEST_DEBUG)
+#define NDEBUG
+#endif
+
+#include <assert.h>
+
 #include <algorithm>
 #include <memory>
 
@@ -56,6 +63,9 @@ float quality_metrics::get_metric_float(const metric_id id) const {
         return ref_to_noise_snr_;
     case kMetricQuantErrorPercent:
         return quant_error_percentage_;
+    default:
+        assert(kMetricQuantErrorPercent == id); // at least last case must match
+        return kPassValueMaxAbsErr;
     }
 }
 
@@ -71,6 +81,9 @@ bool quality_metrics::is_threshold_met(const metric_id id, const float threshold
         return ref_to_noise_snr_ >= threshold;
     case kMetricQuantErrorPercent:
         return quant_error_percentage_ >= threshold;
+    default:
+        assert(kMetricQuantErrorPercent == id); // at least last case must match
+        return false;
     }
 }
 
@@ -86,16 +99,21 @@ bool quality_metrics::is_threshold_met(const metric_id id, const quality_metrics
         return is_threshold_met(id, threshold.ref_to_noise_snr_);
     case kMetricQuantErrorPercent:
         return is_threshold_met(id, threshold.quant_error_percentage_);
+    default:
+        assert(kMetricQuantErrorPercent == id); // at least last case must match
+        return false;
     }
 }
 
 // Populate instance metrics with measured ones.
 //===================================================
 bool quality_metrics::calculate_metrics(const mli_tensor& pred_tsr, const tensor_quantizer& ref_keeper) {
-    const uint32_t elem_num = mli_hlp_count_elem_num(&pred_tsr, 0);
-
-    if (elem_num == 0 || ref_keeper.is_valid() == false)
+    if (tensor_quantizer::validate_tensor(pred_tsr) != tensor_quantizer::kOk || 
+            ref_keeper.is_valid() == false)
         return false; 
+
+    const uint32_t elem_num = mli_hlp_count_elem_num(&pred_tsr, 0);
+    assert(elem_num != 0);
 
     // To measure percentage of quantization error in total noise, 
     // we also need to quantize and dequantize ref data to get know how quantization affects values 
@@ -128,6 +146,7 @@ bool quality_metrics::calculate_metrics(const mli_tensor& pred_tsr, const tensor
                         + quantized_ref.el_params.sa.zero_point.capacity
                         + quantized_ref.el_params.sa.scale_frac_bits.capacity;
 
+    assert(mem_required != 0);
     std::unique_ptr<float[]> pred_values(new (std::nothrow) float[elem_num]);
     std::unique_ptr<int8_t[]> quantized_out_mem(new (std::nothrow) int8_t[mem_required]);
     if (quantized_out_mem == nullptr || pred_values == nullptr)
@@ -159,7 +178,7 @@ bool quality_metrics::calculate_metrics(const mli_tensor& pred_tsr, const tensor
             measure_err_vfloat(ref_tensor.data.mem.pf32, pred_values.get(), elem_num, &metrics_quant) != TEST_PASSED)
         return false;
 
-    // Originaly, quntization noise were reflected as ratio against total noise
+    // Originally, quantization noise were reflected as ratio against total noise
     // (how many times the total noise is greater than the quantization noise)
     //noise_to_quant_ratio_ = metrics_pred.noise_vec_length / std::max(metrics_quant.noise_vec_length, eps);
 
@@ -171,9 +190,11 @@ bool quality_metrics::calculate_metrics(const mli_tensor& pred_tsr, const tensor
     return true;
 }
 
+
+
 //===============================================================================================
 //
-// Methods and dataof the Module to calculate and handle CRC32 sum.
+// Methods and data of the Module to calculate and handle CRC32 sum.
 //
 //===============================================================================================
 
@@ -207,7 +228,7 @@ void crc32_calc::reset(uint32_t new_val) {
     valid_crc32_ = true;
 }
 
-// Get accumulate CRC sum
+// Get accumulated CRC sum
 //================================
 uint32_t crc32_calc::get() const {
     return crc32_sum_;
@@ -225,7 +246,7 @@ bool crc32_calc::is_valid() const {
 // handling of memstrides. But as we have an opportunity to initialize memory before usage
 // it found out that calculating CRC over all tensor's data container (pointer + capacity)
 // is beneficial as we can track memory corruption of inner tensor data ("holes" that excluded by memstride)
-// TODO: add an optional flag to calculated CRC on valid data, in case of appeared need
+// TODO: add an optional flag to calculated CRC on valid data, if needed
 uint32_t crc32_calc::operator()(const mli_tensor& in) {
     const int8_t* current = in.data.mem.pi8;
     uint32_t length = in.data.capacity;
@@ -252,6 +273,7 @@ uint32_t crc32_calc::operator()(const int8_t* in, uint32_t size) {
     return crc32_sum_;
 }
 
+
 //=======================================================================
 //
 // Module to handle and check externally allocated memory for test needs
@@ -271,8 +293,9 @@ memory_manager::memory_manager(int8_t* memory, uint32_t mem_size)
 // Allocate memory of exact size
 //=========================================
 mli_data_container memory_manager::allocate_memory(uint32_t size, uint32_t fill_pattern) {
+    mli_data_container ret_val{ 0 };
     if (source_memory_ == nullptr || allocated_memory_start_ != nullptr || source_mem_size_ < size )
-        return mli_data_container{ 0 };
+        return ret_val;
 
     // Fill the whole memory region with a pre-defined pattern
     int pattern_byte = 0;
@@ -299,8 +322,11 @@ mli_data_container memory_manager::allocate_memory(uint32_t size, uint32_t fill_
         tail_mem_crc_(allocated_memory_start_ + allocated_mem_size_, tail_size);
     }
 
-    return mli_data_container{ allocated_mem_size_, {.pi8 = allocated_memory_start_} };
+    ret_val.capacity = allocated_mem_size_;
+    ret_val.mem.pi8 = allocated_memory_start_;
+    return ret_val;
 }
+
 
 // Allocate memory according to quantizer requirements
 //===================================================
@@ -347,9 +373,9 @@ bool memory_manager::is_memory_corrupted() const {
     head_current_crc(source_memory_, head_size);
     tail_current_crc(allocated_memory_start_ + allocated_mem_size_, tail_size);
 
-    bool is_corrupted = head_mem_crc_.is_valid() != head_current_crc.is_valid(); 
-    is_corrupted |= tail_mem_crc_.is_valid() != tail_current_crc.is_valid();
-    is_corrupted |= head_mem_crc_.get() != head_current_crc.get();
+    assert(head_mem_crc_.is_valid() == head_current_crc.is_valid()); 
+    assert(tail_mem_crc_.is_valid() == tail_current_crc.is_valid());
+    bool is_corrupted = head_mem_crc_.get() != head_current_crc.get();
     is_corrupted |= tail_mem_crc_.get() != tail_current_crc.get();
     return is_corrupted;
 }

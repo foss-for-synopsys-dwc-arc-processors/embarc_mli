@@ -9,13 +9,14 @@
 
 #include "test_quantizer.h"
 
-// standart asserts should be intentionally turned-on defining DEBUG.
-#if !defined(DEBUG)
+// Standard asserts should be intentionally turned-on by defenition of TEST_DEBUG.
+#if !defined(TEST_DEBUG)
 #define NDEBUG
 #endif
 
-#include <algorithm>
 #include <assert.h>
+
+#include <algorithm>
 #include <limits>
 #include <memory>
 #include <type_traits>
@@ -83,22 +84,26 @@ tensor_quantizer::tensor_quantizer(mli_tensor tsr, const float* data, uint32_t d
 // Return complete tensor with source float point data
 //=================================================================================
 const mli_tensor tensor_quantizer::get_source_float_tensor() const {
-    mli_tensor ret_tsr = source_tsr_; //TODO return 0 if not ok
-    if (is_valid_) {
-        ret_tsr.data.capacity = sizeof(source_data_[0]) * mli_hlp_count_elem_num(&ret_tsr, 0);
-        uint32_t cur_memstr = 1;
-        for (int i = ret_tsr.rank - 1; i >= 0; --i) {
-            ret_tsr.mem_stride[i] = cur_memstr;
-            cur_memstr *= ret_tsr.shape[i];
-        }
-        ret_tsr.el_type = MLI_EL_FP_32;
+    if (!is_valid_)
+        return mli_tensor{ 0 };
 
-        // As we return const tensor just after this assignment, 
-        // removing cv qualfiers here is considered as and acceptable.
-        ret_tsr.data.mem.pf32 = const_cast<float*>(source_data_);
+    assert(validate_tensor(source_tsr_) == kBad);
+    mli_tensor ret_tsr = source_tsr_;
+    ret_tsr.data.capacity = sizeof(source_data_[0]) * mli_hlp_count_elem_num(&ret_tsr, 0);
+    uint32_t cur_memstr = 1;
+    for (int i = static_cast<int>(ret_tsr.rank) - 1; i >= 0; --i) {
+        assert(i < MLI_MAX_RANK);
+        ret_tsr.mem_stride[i] = cur_memstr;
+        cur_memstr *= ret_tsr.shape[i];
     }
+    ret_tsr.el_type = MLI_EL_FP_32;
+
+    // As we return const tensor just after this assignment, 
+    // removing cv qualfiers here is considered as and acceptable.
+    ret_tsr.data.mem.pf32 = const_cast<float*>(source_data_);
     return ret_tsr;
 }
+
 
 // Return complete quantized tensor using source tensor, data and quant params
 //=================================================================================
@@ -106,6 +111,7 @@ mli_tensor tensor_quantizer::get_quantized_tensor(mli_data_container memory) con
     if (!is_valid_)
         return mli_tensor{ 0 };
 
+    assert(validate_tensor(source_tsr_) != kBad);
     mli_tensor ret_tsr = get_not_quantized_tensor(memory);
     if (ret_tsr.data.mem.pi8 != nullptr) {
         // Note: it's better to replace it with API function whent time will come
@@ -113,9 +119,9 @@ mli_tensor tensor_quantizer::get_quantized_tensor(mli_data_container memory) con
         fp_to_fx_stat = quantize_float_data(source_data_, mli_hlp_count_elem_num(&ret_tsr, 0), &ret_tsr);
         assert(fp_to_fx_stat == kOk);
     }
-
     return ret_tsr;
 }
+
 
 // Return tensor structure populated with source tensor fields and quant params ONLY
 //=================================================================================
@@ -123,25 +129,26 @@ mli_tensor tensor_quantizer::get_not_quantized_tensor(mli_data_container memory)
     if (!is_valid_)
         return mli_tensor{ 0 };
     
+    assert(validate_tensor(source_tsr_) != kBad);
     mli_tensor ret_tsr = source_tsr_;
     const bool is_mem_spread_ok = spread_memory(&ret_tsr, &memory);
 
     // For SA format preparation of quantization parameters is required
     if (is_mem_spread_ok && (ret_tsr.el_type == MLI_EL_SA_8 || ret_tsr.el_type == MLI_EL_SA_32)) {
-        int num_vals = (ret_tsr.el_params.sa.dim < 0) ? 1 : ret_tsr.shape[ret_tsr.el_params.sa.dim];
+        int num_vals = static_cast<int>((ret_tsr.el_params.sa.dim < 0) ? 1 : ret_tsr.shape[ret_tsr.el_params.sa.dim]);
         int16_t* scale_dst = (ret_tsr.el_params.sa.dim >= 0) ? ret_tsr.el_params.sa.scale.mem.pi16
                                                              : &ret_tsr.el_params.sa.scale.mem.i16;
         int16_t* zp_dst = (ret_tsr.el_params.sa.dim >= 0) ? ret_tsr.el_params.sa.zero_point.mem.pi16
                                                           : &ret_tsr.el_params.sa.zero_point.mem.i16;
         int8_t* frac_dst = (ret_tsr.el_params.sa.dim >= 0) ? ret_tsr.el_params.sa.scale_frac_bits.mem.pi8
                                                            : &ret_tsr.el_params.sa.scale_frac_bits.mem.i8;
-
+        assert(num_vals >= 0);
         for (int i = 0; i < num_vals; i++) {
             const int8_t scale_fraq_bits = source_scales_fraq_[i];
-            const uint32_t mult = (uint32_t)1l << scale_fraq_bits;
+            const uint32_t mult = static_cast<uint32_t>(1l << scale_fraq_bits);
             const float round_val = 0.5f;
-            const int32_t dst_val = (int32_t)(mult * source_scales_[i] + round_val);
-            const int32_t zero_val = (int32_t)(-source_zero_points_[i] / source_scales_[i] + round_val);
+            const int32_t dst_val = static_cast<int32_t>(mult * source_scales_[i] + round_val);
+            const int32_t zero_val = static_cast<int32_t>(-source_zero_points_[i] / source_scales_[i] + round_val);
 
             auto sat_short = [](int32_t val) -> int16_t{
                 constexpr int32_t lim_min = std::numeric_limits<int16_t>::min();
@@ -155,6 +162,7 @@ mli_tensor tensor_quantizer::get_not_quantized_tensor(mli_data_container memory)
     }
     return ret_tsr;
 }
+
 
 // Validate tensor in terms of three state: Bad, Incomplete, Ok
 //=======================================================
@@ -203,6 +211,7 @@ tensor_quantizer::tensor_state tensor_quantizer::validate_tensor(const mli_tenso
 
 // Quantize float data to destonation tensor according to it's format
 // Instantiation of quantization routines depending on type
+// Note: This function should be replaced by MLI API transform kernel when it will be done
 //====================================================================
 tensor_quantizer::tensor_state tensor_quantizer::quantize_float_data(const float* src, uint32_t src_size,
                                                                      mli_tensor* dst) {
@@ -230,19 +239,20 @@ tensor_quantizer::tensor_state tensor_quantizer::quantize_float_data(const float
             ret_status = kBad;
         }
     }
-
     return ret_status;
 }
 
+
 // De-Quantize tensor data to float values 
 // Instantiation of de-quantization routines depending on type
+// Note: This function should be replaced by MLI API transform kernel when it will be done
 //====================================================================
 tensor_quantizer::tensor_state tensor_quantizer::dequantize_tensor_data(const mli_tensor* src, float* dst,
                                                                         uint32_t dst_size) {
     tensor_state ret_status = (src == nullptr || dst == nullptr) ? kBad : kOk;
     if (ret_status == kOk)
         ret_status = validate_tensor(*src);
-    if (ret_status == kOk && dst_size > mli_hlp_count_elem_num(src, 0))
+    if (ret_status == kOk && dst_size < mli_hlp_count_elem_num(src, 0))
         ret_status = kIncompleteMem;
 
     if (ret_status == kOk) {
@@ -260,6 +270,7 @@ tensor_quantizer::tensor_state tensor_quantizer::dequantize_tensor_data(const ml
             dequantize_tensor_data_routine<MLI_EL_SA_32>(src, dst, dst_size);
             break;
         default:
+            assert(src->el_type == MLI_EL_FP_32); // at least last case must match
             ret_status = kBad;
         }
     }
@@ -288,7 +299,7 @@ uint32_t tensor_quantizer::get_required_data_capacity(const mli_tensor& tsr) {
         ret_val += 1;
         ret_val *= mli_hlp_tensor_element_size(&tsr);
 
-        // ROugh method which implies allocation for tail
+        // Rough method which implies allocation for tail
         //ret_val = tsr.mem_stride[0] * tsr.shape[0]; 
     }
     return ret_val;
@@ -316,7 +327,7 @@ bool  tensor_quantizer::tensor_assign_data_ptr(mli_tensor* tsr, void* ptr) {
         tsr->data.mem.pf32 = static_cast<float*>(ptr);
         return true;
     default:
-        assert(tsr->el_type == MLI_EL_FP_32);
+        assert(tsr->el_type == MLI_EL_FP_32); // at least last case must match
         tsr->data.mem.pi8 = nullptr;
         return false;
     };
@@ -327,7 +338,7 @@ bool  tensor_quantizer::tensor_assign_data_ptr(mli_tensor* tsr, void* ptr) {
 bool tensor_quantizer::spread_memory(mli_tensor* tsr, const mli_data_container* data_mem, 
                                      const mli_data_container* quant_params_mem) {
     // This functions assigns provided memory to tensor data according to tensor type and alignment needs.
-    // It takes tensor to be populated with data pointers and data containers as a memory donors.
+    // It takes tensor to be populated with data pointers and data containers as memory donors.
     // tsr structure must contains properly filled shape, rank and elemet type data. 
     // data_mem container must keep pointer and capacity to a valid memory which is sufficint for tsr needs 
     // quant_params memory container is optional even for SA type of tensor. 
@@ -339,14 +350,15 @@ bool tensor_quantizer::spread_memory(mli_tensor* tsr, const mli_data_container* 
     // will keep minimal requirements for containers. 
 
     // Data container and target tensors must be provided. Others are opional
-    if (tsr == nullptr /*|| data_mem == nullptr || data_mem->mem.pi8 == nullptr*/)
+    assert(tsr != nullptr && validate_tensor(*tsr) != kBad);
+    if (tsr == nullptr && validate_tensor(*tsr) == kBad)
         return false;
 
     // First fill required minimal mem capacity
     //=================================================
     tsr->data.capacity = get_required_data_capacity(*tsr);
     if ((tsr->el_type == MLI_EL_SA_8 || tsr->el_type == MLI_EL_SA_32)) {
-        const int num_vals = (tsr->el_params.sa.dim >= 0) ? tsr->shape[tsr->el_params.sa.dim] : 1;
+        const uint32_t num_vals = (tsr->el_params.sa.dim >= 0) ? tsr->shape[tsr->el_params.sa.dim] : 1;
         tsr->el_params.sa.scale.capacity = (tsr->el_params.sa.dim >= 0) ? sizeof(int16_t) * num_vals : 0;
         tsr->el_params.sa.zero_point.capacity = (tsr->el_params.sa.dim >= 0) ? sizeof(int16_t) * num_vals : 0;
         tsr->el_params.sa.scale_frac_bits.capacity = (tsr->el_params.sa.dim >= 0) ? sizeof(int8_t) * num_vals : 0;
@@ -355,7 +367,7 @@ bool tensor_quantizer::spread_memory(mli_tensor* tsr, const mli_data_container* 
     // If no data container is provided, just return memory requirements
     bool success = !(data_mem == nullptr || data_mem->mem.pi8 == nullptr);
     
-    // Asign aligned memory for scales if it is needed
+    // Assign aligned memory for scales if it is needed
     //=================================================
     // If there are no specific containers for qantization params we will use data memory for it
     const bool use_data_mem_spare = (quant_params_mem == nullptr);
@@ -409,19 +421,24 @@ bool tensor_quantizer::spread_memory(mli_tensor* tsr, const mli_data_container* 
         // Provide info on required memory and clear pointer to data
         tsr->data.mem.pi8 = tsr->el_params.sa.scale.mem.pi8 = tsr->el_params.sa.zero_point.mem.pi8 = nullptr;
         tsr->data.capacity += mli_hlp_tensor_element_size(tsr) - 1;
-        tsr->el_params.sa.scale_frac_bits.capacity += alignof(int8_t) - 1;
-        tsr->el_params.sa.zero_point.capacity += alignof(int16_t) - 1;
-        tsr->el_params.sa.scale.capacity += alignof(int16_t) - 1;
+        if ((tsr->el_type == MLI_EL_SA_8 || tsr->el_type == MLI_EL_SA_32)) {
+            tsr->el_params.sa.scale_frac_bits.capacity += alignof(int8_t) - 1;
+            tsr->el_params.sa.zero_point.capacity += alignof(int16_t) - 1;
+            tsr->el_params.sa.scale.capacity += alignof(int16_t) - 1;
+        }
     }
     return success;
 }
 
 // Quantize float data to destonation tensor according to it's format
-// Main template of quantization rutine
+// Main template of quantization routine
 //====================================================================
 template <mli_element_type dst_el_type>
 void tensor_quantizer::quantize_float_data_routine(const float* src, uint32_t src_size, mli_tensor* dst) {
+    assert(src != nullptr && dst != nullptr);
+    assert(validate_tensor(*dst) == kOk);
     assert(dst_el_type == dst->el_type);
+    assert(src_size <= mli_hlp_count_elem_num(dst, 0));
     assert(MLI_MAX_RANK == 4);
 
     // Put type traits magic to derive output type (derived_T) 
@@ -478,7 +495,7 @@ void tensor_quantizer::quantize_float_data_routine(const float* src, uint32_t sr
 
     // Transformation will be applied on slices across scales dimension (or all tensor)
     for (int scale_idx = 0; scale_idx < scales_num; ++scale_idx) {
-        // calculate current scale ans zero offset.
+        // calculate current scale and zero offset.
         float scale_val = (float)((int64_t)1l << mli_hlp_tensor_scale_shift(dst, scale_idx));
         scale_val = scale_val / (float)mli_hlp_tensor_scale(dst, scale_idx);
         int16_t zero_offset = mli_hlp_tensor_zero_offset(dst, scale_idx);
@@ -516,10 +533,13 @@ void tensor_quantizer::quantize_float_data_routine(const float* src, uint32_t sr
 //====================================================================
 template <mli_element_type src_el_type>
 void tensor_quantizer::dequantize_tensor_data_routine(const mli_tensor* src, float* dst, uint32_t dst_size) {
+    assert(src != nullptr && dst != nullptr);
+    assert(validate_tensor(*src) == kOk);
     assert(src_el_type == src->el_type);
+    assert(dst_size >= mli_hlp_count_elem_num(src, 0));
     assert(MLI_MAX_RANK == 4);
 
-    // Put type traits magic to derive output type (derived_T) 
+    // Put type traits magic to derive input type (derived_T) 
     typedef typename std::conditional<src_el_type == MLI_EL_FX_16, int16_t,
         typename std::conditional<src_el_type == MLI_EL_FX_8 || src_el_type == MLI_EL_SA_8, int8_t,
         typename std::conditional<src_el_type == MLI_EL_SA_32, int32_t, void>::type >::type >::type

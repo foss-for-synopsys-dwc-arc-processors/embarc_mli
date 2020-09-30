@@ -24,7 +24,7 @@ using mli::tst::tensor_quantizer;
 using mli::tst::quality_metrics;
 using mli::tst::crc32_calc;
 using mli::tst::reporter_full;
-using mli::tst::memory_keeper;
+using mli::tst::memory_manager;
 
 typedef mli_status(*softmax_func_ptr)(
     const mli_tensor* /*in*/,
@@ -74,9 +74,9 @@ const quality_metrics thresholds_sa8_test3{ /* MaxAbsErr = */0.025, quality_metr
                                                 quality_metrics::kPassValueSnrDb, /*Quant Error Perc = */ 20.f };
 
 
-
-
 static const softmax_test_operands tests_list[] = {
+    // Old cifar10 output test : input tensor of shape(10), per-tensor softmax
+    // Test with mostly evenly spread probabilities over output
     {"Test 1 FX16 similar Probs",  mli_krn_softmax_fx16,
                                    input_1_fx16, test_1_out_fx16, test_1_cfg,
                                    thresholds_fx16_general, test_1_chksum_fx16},
@@ -84,6 +84,8 @@ static const softmax_test_operands tests_list[] = {
                                    input_1_sa8, test_1_out_sa8, test_1_cfg,
                                    thresholds_sa8_general, test_1_chksum_sa8},
 
+    // Old MNIST output test : input tensor of shape(10). Per-tensor softmax. 
+    // Test with one highly probable out value(others are small)
     {"Test 2 FX16 OneHot",  mli_krn_softmax_fx16,
                             input_2_fx16, test_2_out_fx16, test_2_cfg,
                             thresholds_fx16_general, test_2_chksum_fx16},
@@ -91,6 +93,9 @@ static const softmax_test_operands tests_list[] = {
                             input_2_sa8, test_2_out_sa8, test_2_cfg,
                             thresholds_sa8_test2, test_2_chksum_sa8},
 
+    // Axis test 1: input tensor of shape(3, 4, 5); axis = 0. Softmax should be applied over 0th dimension
+    // Considering shape as(H = 3, W = 4, C = 5), For each out value calculation, 
+    // W and C coordinates are fixed, and H coordinate is variable.
     {"Test 3 FX16 Axis=0",  mli_krn_softmax_fx16,
                             input_3_fx16, test_3_out_fx16, test_3_cfg,
                             thresholds_fx16_general, test_3_chksum_fx16},
@@ -98,6 +103,8 @@ static const softmax_test_operands tests_list[] = {
                             input_3_sa8, test_3_out_sa8, test_3_cfg, 
                             thresholds_sa8_test3, test_3_chksum_sa8},
 
+    // Axis test 2 : input tensor of shape(3, 4, 5); axis = 2. Softmax should be applied over last dimension.
+    // Now H and W coordinates are fixed and C coordinate is variable.
     {"Test 4 FX16 Axis=2",  mli_krn_softmax_fx16,
                             input_3_fx16, test_4_out_fx16, test_4_cfg,
                             thresholds_fx16_general, test_4_chksum_fx16},
@@ -105,6 +112,8 @@ static const softmax_test_operands tests_list[] = {
                             input_3_sa8, test_4_out_sa8, test_4_cfg,
                             thresholds_sa8_general, test_4_chksum_sa8},
 
+    // Multidimensional test : input tensor of shape(3, 4, 5); axis = -1. 
+    // Softmax should be applied on per-tensor level.
     {"Test 5 FX16 MultiDim Axis=-1",  mli_krn_softmax_fx16,
                                       input_3_fx16, test_5_out_fx16, test_5_cfg,
                                       thresholds_fx16_general, test_5_chksum_fx16},
@@ -112,6 +121,10 @@ static const softmax_test_operands tests_list[] = {
                                       input_3_sa8, test_5_out_sa8, test_5_cfg,
                                       thresholds_sa8_general, test_5_chksum_sa8},
 
+    // Multidimensional test with memstride : input tensor of shape(3, 4, 5); axis = -1; 
+    // input is implicitly padded to (6, 4, 6) shape, where memstride is {((5 + 1) * 3) * 2, (5 + 1), 1}.
+    // Output shape must be still {3, 4, 5}, but memstride is set to {(5 * 2 * 4), 5 * 2, 1}.
+    // Softmax should be applied over the whole tensor but not touching padded values (Checked with CRC).
     {"Test 6 FX16 Memstride",  mli_krn_softmax_fx16,
                                input_3_fx16, test_6_out_fx16, test_6_cfg,
                                thresholds_fx16_general, test_6_chksum_fx16},
@@ -124,16 +137,16 @@ constexpr int kMemSize = 2047;
 static IO_DATA_ATTR int8_t scratch_mem_in[kMemSize] = { 0 };
 static IO_DATA_ATTR int8_t scratch_mem_out[kMemSize] = { 0 };
 
-static const int tests_num = sizeof(tests_list) / sizeof(tests_list[0]);
+constexpr int kTestsNum = sizeof(tests_list) / sizeof(tests_list[0]);
 
 int main() {
     const reporter_full reporter;
     bool final_status = true;
 
     reporter.report_header("MLI|Kernels|Softmax Activation Function Tests");
-    for (int i = 0; i < tests_num; ++i) {
-        memory_keeper mem_in_keeper(scratch_mem_in, sizeof(scratch_mem_in));
-        memory_keeper mem_out_keeper(scratch_mem_out, sizeof(scratch_mem_out));
+    for (int i = 0; i < kTestsNum; ++i) {
+        memory_manager mem_in_keeper(scratch_mem_in, sizeof(scratch_mem_in));
+        memory_manager mem_out_keeper(scratch_mem_out, sizeof(scratch_mem_out));
         bool is_test_passed = true;
         const softmax_test_operands* cur_test = &tests_list[i];
         quality_metrics test_metics;
@@ -142,8 +155,8 @@ int main() {
             is_test_passed = false;
         }
 
-        mli_tensor input = cur_test->in.get_quantized_tensor(mem_in_keeper.afford_memory(cur_test->in));
-        mli_tensor out = cur_test->out.get_not_quantized_tensor(mem_out_keeper.afford_memory(cur_test->out));
+        mli_tensor input = cur_test->in.get_quantized_tensor(mem_in_keeper.allocate_memory(cur_test->in));
+        mli_tensor out = cur_test->out.get_not_quantized_tensor(mem_out_keeper.allocate_memory(cur_test->out));
         if (is_test_passed &&
                 (tensor_quantizer::validate_tensor(input) != tensor_quantizer::kOk ||
                  tensor_quantizer::validate_tensor(out) != tensor_quantizer::kOk)) {
@@ -153,13 +166,13 @@ int main() {
         }
 
         if (is_test_passed &&
-            (mem_in_keeper.is_memory_corrupted() || mem_out_keeper.is_memory_corrupted())) {
+                (mem_in_keeper.is_memory_corrupted() || mem_out_keeper.is_memory_corrupted())) {
             reporter.report_message(cur_test->descr,
                 "FAILED at quantization step: memory beside one of operands is corrupted");
             is_test_passed = false;
         }
 
-        // Run specific for test function
+        // Run specific kernel for test 
         if (is_test_passed &&
                 cur_test->mli_krn_softmax(&input, &cur_test->cfg, &out) != MLI_STATUS_OK) {
             reporter.report_message(cur_test->descr, "FAILED at kernel run: kernel returned bad status");

@@ -55,7 +55,7 @@ const crc32_calc  test_1_chksum_fx16, test_1_chksum_fx8w16d, test_1_chksum_sa8,
                   test_4_chksum_fx16, test_4_chksum_fx8w16d, test_4_chksum_sa8,
                   test_5_chksum_fx16, test_5_chksum_fx8w16d, test_5_chksum_sa8;
 #else
-// Need to distinquish platforms and update checksums
+// Need to distinquish platforms
 const crc32_calc test_1_chksum_fx16{ 0x3669E8DA }, test_1_chksum_fx8w16d{ 0x627FD168 }, test_1_chksum_sa8{ 0xA3FFD976 },
                  test_2_chksum_fx16{ 0x6075722F}, test_2_chksum_fx8w16d{ 0xBFE5DC3D }, test_2_chksum_sa8{ 0x314ECCA6 },
                  test_3_chksum_fx16{ 0xE2100158 }, test_3_chksum_fx8w16d{ 0x550F135E }, test_3_chksum_sa8{ 0x9740102D },
@@ -77,6 +77,7 @@ const quality_metrics thresholds_sa8_general{ quality_metrics::kPassValueMaxAbsE
 
 
 static const conv2d_test_operands tests_list[] = {
+    // Basic functionality test kernel_size=(3, 4), strides=(1, 1), with krn_padding and w/o ReLU
     {"Test 1 FX16",         mli_krn_conv2d_hwcn_fx16, 
                             input_1_fx16, weights_1_fx16, bias_1_fx16, test_1_out_fx16, test_1_cfg,
                             thresholds_fx16_general, test_1_chksum_fx16},
@@ -87,6 +88,7 @@ static const conv2d_test_operands tests_list[] = {
                             input_1_sa8, weights_1_sa8, bias_1_sa32, test_1_out_sa8, test_1_cfg, 
                             thresholds_sa8_general, test_1_chksum_sa8},
 
+    // Basic functionality test with 7 kernels of (4, 3) size, strides = (2, 2), with krn_padding and with Gen_ReLU
     {"Test 2 FX16 ReluGen",         mli_krn_conv2d_hwcn_fx16, 
                                     input_1_fx16, weights_2_fx16, bias_1_fx16, test_2_out_fx16, test_2_cfg, 
                                     thresholds_fx16_general, test_2_chksum_fx16},
@@ -97,6 +99,7 @@ static const conv2d_test_operands tests_list[] = {
                                     input_1_sa8, weights_2_sa8, bias_1_w2_sa32, test_2_out_sa8, test_2_cfg,
                                     thresholds_sa8_general, test_2_chksum_sa8},
 
+    // Dilation Rate Test: kernel_size=(3, 4), strides=(1, 1), w/o padding and w/o ReLU
     {"Test 3 FX16 Dilation",         mli_krn_conv2d_hwcn_fx16,
                                      input_1_fx16, weights_1_fx16, bias_1_fx16, test_3_out_fx16, test_3_cfg,
                                      thresholds_fx16_general, test_3_chksum_fx16},
@@ -107,6 +110,8 @@ static const conv2d_test_operands tests_list[] = {
                                     input_1_sa8, weights_1_sa8, bias_1_sa32, test_3_out_sa8, test_3_cfg,
                                     thresholds_sa8_general, test_3_chksum_sa8},
 
+    // Input/output Memstride test : kernel_size = (4, 3), strides = (3, 3), w / o padding and with ReLU_1
+    // padded with 3 extra values on c Dim and extra 1 line. Output is also expected to have a memstride
     {"Test 4 FX16 IO_Memstr",         mli_krn_conv2d_hwcn_fx16,
                                       input_1_memstr_fx16, weights_1_fx16, bias_1_fx16, test_4_out_fx16, test_4_cfg,
                                       thresholds_fx16_general, test_4_chksum_fx16},
@@ -117,6 +122,8 @@ static const conv2d_test_operands tests_list[] = {
                                       input_1_memstr_sa8, weights_1_sa8, bias_1_sa32, test_4_out_sa8, test_4_cfg,
                                       thresholds_sa8_general, test_4_chksum_sa8},
 
+    // Weights Memstride test with 7 kernels of (4, 3) size, strides = (1, 1), w / o padding and with ReLU_6
+    // padded with extra channel on N dimension
     {"Test 5 FX16 W_Memstr",         mli_krn_conv2d_hwcn_fx16, 
                                      input_1_fx16, weights_2_memstr_fx16, bias_1_fx16, test_5_out_fx16, test_5_cfg,
                                      thresholds_fx16_general, test_5_chksum_fx16},
@@ -134,14 +141,14 @@ static IO_DATA_ATTR int8_t scratch_mem_out[kMemSize] = { 0 };
 static W_DATA_ATTR int8_t scratch_mem_w[kMemSize] = { 0 };
 static W_DATA_ATTR int8_t scratch_mem_b[kMemSize] = { 0 };
 
-static const int tests_num = sizeof(tests_list) / sizeof(tests_list[0]);
+constexpr int kTestsNum = sizeof(tests_list) / sizeof(tests_list[0]);
 
 int main() {
     const reporter_full reporter;
     bool final_status = true;
 
     reporter.report_header("MLI|Kernels|Convolution 2D  Tests");
-    for (int i = 0; i < tests_num; ++i) {
+    for (int i = 0; i < kTestsNum; ++i) {
         memory_manager mem_in_keeper(scratch_mem_in, sizeof(scratch_mem_in));
         memory_manager mem_out_keeper(scratch_mem_out, sizeof(scratch_mem_out));
         memory_manager mem_w_keeper(scratch_mem_w, sizeof(scratch_mem_w));
@@ -170,17 +177,16 @@ int main() {
         }
 
         if (is_test_passed &&
-            (mem_in_keeper.is_memory_corrupted() || mem_out_keeper.is_memory_corrupted() ||
+                (mem_in_keeper.is_memory_corrupted() || mem_out_keeper.is_memory_corrupted() ||
                 mem_w_keeper.is_memory_corrupted() || mem_b_keeper.is_memory_corrupted())) {
             reporter.report_message(cur_test->descr,
                 "FAILED at quantization step: memory beside one of operands is corrupted");
             is_test_passed = false;
         }
 
-        // Run specific for test function
-        mli_status stat = cur_test->mli_krn_conv2d(&input, &weights, &bias, &cur_test->cfg, &out);
+        // Run specific kernel for test
         if (is_test_passed &&
-                stat != MLI_STATUS_OK) {
+                cur_test->mli_krn_conv2d(&input, &weights, &bias, &cur_test->cfg, &out) != MLI_STATUS_OK) {
             reporter.report_message(cur_test->descr, "FAILED at kernel run: kernel returned bad status");
             is_test_passed = false;
         }
