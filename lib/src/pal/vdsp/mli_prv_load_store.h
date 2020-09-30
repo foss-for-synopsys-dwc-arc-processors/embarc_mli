@@ -163,7 +163,7 @@ static MLI_FORCE_INLINE void mli_prv_store_Nx4_samples(MLI_OUT_PTR (int16_t) __r
 //-------------------------------------
 
 template <typename acc_T, typename l_T, typename r_T>
-static MLI_FORCE_INLINE acc_T mli_prv_mac_load_v_s(
+MLI_FORCE_INLINE acc_T mli_prv_mac_load_v_s(
         acc_T accu,
         const MLI_PTR(l_T) __restrict in1,
         const MLI_PTR(r_T) __restrict in2) {
@@ -195,6 +195,41 @@ MLI_FORCE_INLINE vNx4accint_t mli_prv_mac_load_v_s(
     return mli_math_mac_fx(accu, mli_prv_load_nx4_samples(in1), *in2);
 }
 
+// _v_v versions
+
+// for scalar datatypes fall back to scalar * scalar
+template <typename acc_T, typename l_T, typename r_T>
+MLI_FORCE_INLINE acc_T mli_prv_mac_load_v_v(
+        acc_T accu,
+        const MLI_PTR(l_T) __restrict in1,
+        const MLI_PTR(r_T) __restrict in2) {
+    return mli_math_mac_fx(accu, *in1, *in2);
+}
+
+// vector * vector
+template <>
+MLI_FORCE_INLINE vNx4accshort_t mli_prv_mac_load_v_v(
+        vNx4accshort_t accu,
+        const MLI_PTR(int8_t) __restrict in1,
+        const MLI_PTR(int8_t) __restrict in2) {
+    return mli_math_mac_fx(accu, mli_prv_load_nx4_samples(in1), mli_prv_load_nx4_samples(in2));
+}
+
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_prv_mac_load_v_v(
+        vNx2accint_t accu,
+        const MLI_PTR(int16_t) __restrict in1,
+        const MLI_PTR(int16_t) __restrict in2) {
+    return mli_math_mac_fx(accu, mli_prv_load_nx2_samples(in1), mli_prv_load_nx2_samples(in2));
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accint_t mli_prv_mac_load_v_v(
+        vNx4accint_t accu,
+        const MLI_PTR(int8_t) __restrict in1,
+        const MLI_PTR(int16_t) __restrict in2) {
+    return mli_math_mac_fx(accu, mli_prv_load_nx4_samples(in1), mli_prv_load_nx4_samples(in2));
+}
 
 
 #pragma clang diagnostic pop
