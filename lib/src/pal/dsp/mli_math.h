@@ -129,22 +129,46 @@ template <> MLI_FORCE_INLINE v2q15_t mli_math_sub_fx(v2q15_t L, v2q15_t R) {
 
 // Maximum of two fx operands
 //========================================================================
-template < typename io_T > MLI_FORCE_INLINE io_T mli_math_max_fx(io_T L, io_T R) {
+template < typename io_T > 
+MLI_FORCE_INLINE io_T mli_math_max_fx(io_T L, io_T R) {
     return MAX(L, R);
 }
 
-template <> MLI_FORCE_INLINE v2q15_t mli_math_max_fx(v2q15_t L, v2q15_t R) {
+template <typename l_T, typename r_T>
+MLI_FORCE_INLINE l_T mli_math_max_fx(l_T L, r_T R) {
+    return MAX(L, R);
+}
+
+template <> 
+MLI_FORCE_INLINE v2q15_t mli_math_max_fx(v2q15_t L, v2q15_t R) {
     return fx_max_v2q15(L, R);
+}
+
+template <typename l_T, typename r_T> 
+MLI_FORCE_INLINE v2q15_t mli_math_max_fx(v2q15_t L, r_T R) {
+    return fx_max_v2q15(L, fx_replic_v2q15(R));
 }
 
 // Minimum of two fx operands
 //========================================================================
-template < typename io_T > MLI_FORCE_INLINE io_T mli_math_min_fx(io_T L, io_T R) {
+template < typename io_T > 
+MLI_FORCE_INLINE io_T mli_math_min_fx(io_T L, io_T R) {
     return MIN(L, R);
 }
 
-template <> MLI_FORCE_INLINE v2q15_t mli_math_min_fx(v2q15_t L, v2q15_t R) {
+template <typename l_T, typename r_T>
+MLI_FORCE_INLINE l_T mli_math_min_fx(l_T L, r_T R) {
+    return (L < R) ? L : R;
+}
+
+template <> 
+MLI_FORCE_INLINE v2q15_t mli_math_min_fx(v2q15_t L, v2q15_t R) {
     return fx_min_v2q15(L, R);
+}
+
+template <typename l_T, typename r_T> 
+MLI_FORCE_INLINE v2q15_t mli_math_min_fx(v2q15_t L, r_T R) {
+    return fx_min_v2q15(L, fx_replic_v2q15(R));
 }
 
 // Multiply two operands
@@ -455,6 +479,13 @@ MLI_FORCE_INLINE int get_number_lanes() {
        || std::is_same<T, uint64_t>::value) {
         lanes = 1;
     }
+
+    if (  std::is_same<T, v2q15_t>::value
+       || std::is_same<T, v2accum32_t>::value
+       || std::is_same<T, v2accum40_t>::value) {
+        lanes = 2;
+    }
+
     MLI_ASSERT(lanes > 0);
     return lanes;
 }
