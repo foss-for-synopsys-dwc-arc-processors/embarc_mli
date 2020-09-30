@@ -634,6 +634,7 @@ mli_status mli_krn_basic_rnn_cell_fx8w16d(
  */
 mli_status mli_krn_relu_fx8(const mli_tensor * in, const mli_relu_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_relu_fx16(const mli_tensor * in, const mli_relu_cfg * cfg, mli_tensor * out);
+mli_status mli_krn_relu_sa8(const mli_tensor * in, const mli_relu_cfg * cfg, mli_tensor * out);
 
 /**
  * @brief Leaky ReLU Activation function

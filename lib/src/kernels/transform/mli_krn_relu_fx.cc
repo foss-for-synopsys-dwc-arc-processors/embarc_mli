@@ -41,6 +41,20 @@ mli_status mli_krn_relu_fx16(const mli_tensor* in, const mli_relu_cfg* cfg, mli_
     return ret;
 }
 
+
+mli_status mli_krn_relu_sa8(const mli_tensor* in, const mli_relu_cfg* cfg, mli_tensor* out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_relu_sa8(in, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK) return ret;
+    
+    ret = mli_krn_relu_fx_run<int8_t>(in, cfg, out);
+
+    out->el_params.sa.zero_point.mem.i16 = in->el_params.sa.zero_point.mem.i16;
+    out->el_params.sa.scale.mem.i16 = in->el_params.sa.scale.mem.i16;
+    out->el_params.sa.scale_frac_bits.mem.i8 = in->el_params.sa.scale_frac_bits.mem.i8;
+
+    return ret;
+}
+
 #pragma MLI_CODE_SECTION_END()
 
 #ifdef __cplusplus
