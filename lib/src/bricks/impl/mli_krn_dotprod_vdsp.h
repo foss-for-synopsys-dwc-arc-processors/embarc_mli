@@ -55,7 +55,7 @@ static MLI_FORCE_INLINE acc_T dotprod2D_vv(
     kern_row_step -= width * kern_col_step;
     for (int row = 0; row < height; row++) {
         for (int clmn = 0; clmn < width; clmn++) {
-            accu = mli_math_mac_fx(accu, mli_prv_load_n_samples(in), mli_prv_load_n_samples(krn));
+            accu = mli_prv_mac_load_v_v(accu, krn, in);
             in += in_col_step;
             krn += kern_col_step;
         }
@@ -92,7 +92,7 @@ static MLI_FORCE_INLINE acc_T dotprod3D_v (
         for (int row = 0; row < height; row++) {
 #pragma clang loop unroll(full)
             for (int clmn = 0; clmn < width; clmn++) {
-                accu = mli_math_mac_fx(accu, mli_prv_load_n_samples(krn), *in);
+                accu = mli_prv_mac_load_v_s(accu, krn, in);
                 in += in_col_step;
                 krn += kern_col_step;
             }

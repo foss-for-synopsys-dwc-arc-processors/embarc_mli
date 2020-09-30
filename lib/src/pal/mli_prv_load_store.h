@@ -1,5 +1,5 @@
 /*
-* Copyright 2020-2020, Synopsys, Inc.
+* Copyright 2020, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -12,8 +12,7 @@
 
 #if defined(__Xvec_width) && !defined(MLI_BUILD_REFERENCE)
 #include "vdsp/mli_prv_load_store.h"
-#elif defined(__FXAPI__) //&& !defined(MLI_BUILD_REFERENCE)
-// not ported kernels running EM/HS; always require dsp/* version of PAL.
+#elif defined(__FXAPI__) && !defined(MLI_BUILD_REFERENCE)
 #include "dsp/mli_prv_load_store.h"
 #else
 #include "ref/mli_prv_load_store.h"
