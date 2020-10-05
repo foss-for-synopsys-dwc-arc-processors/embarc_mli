@@ -27,8 +27,7 @@ namespace krn {
 using mli::krn::ref::mli_krn_prelu_fx_run;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-/*TODO update to mli::krn::dsp:: when implmented */
-using mli::krn::ref::mli_krn_prelu_fx_run;
+using mli::krn::dsp::mli_krn_prelu_fx_run;
 
 #else
 using mli::krn::ref::mli_krn_prelu_fx_run;
