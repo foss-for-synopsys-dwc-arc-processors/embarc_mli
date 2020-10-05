@@ -13,10 +13,10 @@ if (_MLI_LIB_CMAKE_LOADED)
 endif()
 set(_MLI_LIB_CMAKE_LOADED TRUE)
 
-function(get_path_to_mli_lib_cmake MLI_LIB_CMAKE_DIR)
-    set(${MLI_LIB_CMAKE_DIR} ${CMAKE_CURRENT_FUNCTION_LIST_DIR} PARENT_SCOPE)
-endfunction()
-get_path_to_mli_lib_cmake(MLI_LIB_CMAKE_DIR)
+if (NOT DEFINED MLI_LIB_HOME_DIR)
+    message(FATAL_ERROR "Please define MLI_LIB_HOME_DIR")
+endif()
+set(MLI_LIB_CMAKE_DIR ${MLI_LIB_HOME_DIR}/lib)
 
 include(${MLI_LIB_CMAKE_DIR}/../cmake/settings.cmake)
 
