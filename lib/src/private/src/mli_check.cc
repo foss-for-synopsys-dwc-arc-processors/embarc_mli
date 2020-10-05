@@ -1571,9 +1571,10 @@ mli_status mli_chk_leaky_relu (const mli_tensor * in, const mli_tensor * slope_c
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
     if (MLI_CHECK(out->data.mem.void_p != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
-    fail |= MLI_CHECK(check_layout_is_contiguous(in), "Memory Layout of input tensor must be contiguous");
-    fail |= MLI_CHECK(check_layout_is_contiguous(in->shape, out->mem_stride, in->rank),  // output has shape of input
-                      "Memory Layout of output tensor must be contiguous");
+    fail |= MLI_CHECK(check_inner_most_dimension_is_one(in),
+                      "Memory stride of the innermost dimension should be equal to 1 for the input tensor");
+    fail |= MLI_CHECK(check_inner_most_dimension_is_one(out),
+                      "Memory stride of the innermost dimension should be equal to 1 for the output tensor");
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
     // Check that slope tensors is valid scalar
