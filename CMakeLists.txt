@@ -6,7 +6,7 @@
 # the LICENSE file in the root directory of this source tree.
 #
 
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.16.3)
 
 # set global flags for the compiler; only set EXT_CFLAGS
 # if there are no other methods available.
@@ -14,6 +14,8 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXT_CFLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXT_CFLAGS}")
 
 project(mli)
+
+set(MLI_LIB_HOME_DIR ${PROJECT_SOURCE_DIR})
 
 add_subdirectory(lib)
 
