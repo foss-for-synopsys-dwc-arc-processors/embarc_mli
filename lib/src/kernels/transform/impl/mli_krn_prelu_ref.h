@@ -23,19 +23,50 @@ namespace mli {
 namespace krn {
 namespace ref {
 
+template <typename io_T, prelu_elem_func_type func_type>
+static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+        const MLI_PTR(io_T) vec_in,
+        MLI_OUT_PTR(io_T) vec_out,
+        const io_T scale,
+        const int shift) {
+    io_T input = mli_prv_load_1vec(vec_in);
+    io_T output;
+    if (func_type == PRELU_ELEM_FUNC_MAX) {
+        output = mli_math_max_fx(input, mli_math_acc_cast_fx<io_T, mli_acc32_t>(
+                                      mli_math_mul_fx<io_T, mli_acc32_t>(input, scale), shift));
+    } else {
+        output = mli_math_min_fx(input,mli_math_acc_cast_fx<io_T, mli_acc32_t>(
+                                      mli_math_mul_fx<io_T, mli_acc32_t>(input, scale), shift));
+    }
+
+    mli_prv_store_n_samples(vec_out, output);
+}
+
+template <typename io_T, prelu_elem_func_type func_type>
+static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+        const MLI_PTR(io_T) vec_in,
+        MLI_OUT_PTR(io_T) vec_out,
+        const io_T scale,
+        const int shift,
+        const int remaining_part) {
+
+    MLI_ASSERT(remaining_part == 1);
+    mli_krn_scale_elem_v<io_T, func_type>(vec_in, vec_out, scale, shift);
+}
+
 template <typename io_T>
 static MLI_FORCE_INLINE mli_status mli_krn_prelu_fx_run(const mli_tensor *in, 
         const mli_tensor *slope_coeff,
         const mli_prelu_cfg *cfg, 
         mli_tensor *out) {
-
+   
     mli_prv_fx_init_dsp_ctrl();
 
     const MLI_PTR(io_T) vec_in = nullptr;
-    MLI_PTR(io_T) vec_out = nullptr;
+    MLI_OUT_PTR(io_T) vec_out = nullptr;
 
     const MLI_PTR(io_T) in_ptr = (MLI_PTR(io_T))(in->data.mem.void_p);
-    MLI_PTR(io_T) out_ptr = (MLI_PTR(io_T)) (out->data.mem.void_p);
+    MLI_OUT_PTR(io_T) out_ptr = (MLI_PTR(io_T)) (out->data.mem.void_p);
 
     /* Copy tensor format */
     mli_prv_copy_tensor_format_except_mem_strides(in, out);
@@ -51,6 +82,11 @@ static MLI_FORCE_INLINE mli_status mli_krn_prelu_fx_run(const mli_tensor *in,
     /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
     mli_prv_reorder_generic_tensor<MLI_PTR(io_T)>(&in_prv );
     mli_prv_reorder_generic_tensor<MLI_PTR(io_T)>(&out_prv);
+
+    /* Dummy Load to get num_lanes, remaining part */
+    auto input = mli_prv_load_1vec(in_ptr);
+    int num_lanes = get_number_lanes(input);
+    int remaining_part = in_prv.shape[3] & (num_lanes - 1);
 
     int shift = mli_prv_calc_shift(in, slope_coeff, out);
     io_T scale;
@@ -79,14 +115,24 @@ static MLI_FORCE_INLINE mli_status mli_krn_prelu_fx_run(const mli_tensor *in,
                                     dim1 * out_non_axis_prv.mem_stride[1] + 
                                     dim2 * out_non_axis_prv.mem_stride[2]];
 
+                    const MLI_PTR(io_T) orig_vec_in = vec_in;
+                    MLI_OUT_PTR(io_T) orig_vec_out = vec_out;
                     for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
                         for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
                             for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
-                                for (int pos3 = 0; pos3 < in_prv.shape[3]; pos3++) {
-                                    io_T input = vec_in[POS(&in_prv, pos0, pos1, pos2, pos3)];
-                                    vec_out[POS(&out_prv, pos0, pos1, pos2, pos3)] = mli_math_max_fx(input, 
-                                            mli_math_acc_cast_fx<io_T, mli_acc32_t>(
-                                            mli_math_mul_fx<io_T, mli_acc32_t>(input, scale), shift));
+                                vec_in  = (MLI_PTR(io_T))orig_vec_in  + POS(&in_prv,  pos0, pos1, pos2, 0);
+                                vec_out = orig_vec_out + POS(&out_prv, pos0, pos1, pos2, 0);
+                                if (remaining_part) {
+                                    mli::krn::mli_krn_scale_elem_v<io_T, PRELU_ELEM_FUNC_MAX>(vec_in, vec_out, 
+                                                                   scale, shift, remaining_part);
+                                    vec_in  += remaining_part;
+                                    vec_out += remaining_part;
+                                }
+                                for (int pos3 = remaining_part; pos3 < in_prv.shape[3]; pos3 += num_lanes) {
+                                    mli::krn::mli_krn_scale_elem_v<io_T, PRELU_ELEM_FUNC_MAX>(vec_in, vec_out, 
+                                                                   scale, shift);
+                                    vec_in  += num_lanes;
+                                    vec_out += num_lanes;
                                 }
                             }
                         }
@@ -106,14 +152,24 @@ static MLI_FORCE_INLINE mli_status mli_krn_prelu_fx_run(const mli_tensor *in,
                                     dim1 * out_non_axis_prv.mem_stride[1] + 
                                     dim2 * out_non_axis_prv.mem_stride[2]];
 
+                    const MLI_PTR(io_T) orig_vec_in = vec_in;
+                    MLI_OUT_PTR(io_T) orig_vec_out = vec_out;
                     for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
                         for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
                             for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
-                                for (int pos3 = 0; pos3 < in_prv.shape[3]; pos3++) {
-                                    io_T input = vec_in[POS(&in_prv, pos0, pos1, pos2, pos3)];
-                                    vec_out[POS(&out_prv, pos0, pos1, pos2, pos3)] = mli_math_min_fx(input, 
-                                            mli_math_acc_cast_fx<io_T, mli_acc32_t>(
-                                            mli_math_mul_fx<io_T, mli_acc32_t>(input, scale), shift));
+                                vec_in  = (MLI_PTR(io_T))orig_vec_in  + POS(&in_prv,  pos0, pos1, pos2, 0);
+                                vec_out = orig_vec_out + POS(&out_prv, pos0, pos1, pos2, 0);
+                                if (remaining_part) {
+                                    mli::krn::mli_krn_scale_elem_v<io_T, PRELU_ELEM_FUNC_MIN>(vec_in, vec_out, 
+                                                                   scale, shift, remaining_part);
+                                    vec_in  += remaining_part;
+                                    vec_out += remaining_part;
+                                }
+                                for (int pos3 = remaining_part; pos3 < in_prv.shape[3]; pos3 += num_lanes) {
+                                    mli::krn::mli_krn_scale_elem_v<io_T, PRELU_ELEM_FUNC_MIN>(vec_in, vec_out, 
+                                                                   scale, shift);
+                                    vec_in  += num_lanes;
+                                    vec_out += num_lanes;
                                 }
                             }
                         }
@@ -125,7 +181,6 @@ static MLI_FORCE_INLINE mli_status mli_krn_prelu_fx_run(const mli_tensor *in,
 
     return MLI_STATUS_OK;
 }
-
 
 } // namespace ref
 } // namespace krn

@@ -23,141 +23,48 @@ namespace mli {
 namespace krn {
 namespace dsp {
 
-template <typename io_T>
-static MLI_FORCE_INLINE mli_status mli_krn_prelu_fx_run(const mli_tensor *in, 
-        const mli_tensor *slope_coeff,
-        const mli_prelu_cfg *cfg, 
-        mli_tensor *out) {
-
-    mli_prv_fx_init_dsp_ctrl();
-
-    const MLI_PTR(io_T) vec_in = nullptr;
-    MLI_PTR(io_T) vec_out = nullptr;
-
-    const MLI_PTR(io_T) in_ptr = (MLI_PTR(io_T))(in->data.mem.void_p);
-    MLI_PTR(io_T) out_ptr = (MLI_PTR(io_T)) (out->data.mem.void_p);
-
-    /* Copy tensor format */
-    mli_prv_copy_tensor_format_except_mem_strides(in, out);
-    /* Get Generic Private Tensor */
-    auto in_prv =  mli_prv_get_generic_tensor<MLI_PTR(io_T)>(in);
-    auto out_prv = mli_prv_get_generic_tensor<MLI_PTR(io_T)>(out);
-    /* Get Non Axis Tensor */
-    auto in_non_axis_prv  = mli_prv_get_non_axis_tensor<MLI_PTR(io_T)>(&in_prv,  cfg->axis);
-    auto out_non_axis_prv = mli_prv_get_non_axis_tensor<MLI_PTR(io_T)>(&out_prv, cfg->axis);
-    /* Get Axis Tensor */
-    in_prv  = mli_prv_get_axis_tensor<MLI_PTR(io_T)>(&in_prv,  cfg->axis);
-    out_prv = mli_prv_get_axis_tensor<MLI_PTR(io_T)>(&out_prv, cfg->axis);
-    /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
-    mli_prv_reorder_generic_tensor<MLI_PTR(io_T)>(&in_prv );
-    mli_prv_reorder_generic_tensor<MLI_PTR(io_T)>(&out_prv);
-
-    int shift = mli_prv_calc_shift(in, slope_coeff, out);
-    v2q15_t scale;
-    // Getscalar value (casting or getting from memory)
-    if (slope_coeff->rank == 0) {
-        // value is stored in tensor`s field: analog of reinterpret_cast
-        scale = mli_prv_init_v(mli_math_cast_ptr_to_scalar_fx<io_T>(slope_coeff->data.mem.void_p));
+template <typename io_T, prelu_elem_func_type func_type>
+static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+        const MLI_PTR(io_T) vec_in,
+        MLI_OUT_PTR(io_T) vec_out,
+        const io_T scale,
+        const int shift) {
+    v2q15_t input = mli_prv_load_1vec(vec_in);
+    v2q15_t scale_v = mli_prv_init_v(scale);
+    v2q15_t output;
+    v2accum40_t tmp_acc = mli_math_mul_fx<v2q15_t, v2accum40_t>(scale_v, input);
+    if (func_type == PRELU_ELEM_FUNC_MAX) {
+        output = mli_math_max_fx(input, 
+                mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(tmp_acc,  shift - 16));
     } else {
-        // pointer access to value
-        scale = mli_prv_init_v(static_cast<io_T *>(slope_coeff->data.mem.void_p)[0]);
+        output = mli_math_min_fx(input, 
+                mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(tmp_acc,  shift - 16));
     }
-
-    /* For applying the function to specific axis dimension, we should first loop across other dimensions then process
-     * axis dimension elements.
-     * For applying the function to the whole tensor, loop body is executed only one time. (i.e. shape[i] = 1).
-     */
-    if (mli_prv_less_than_1(scale[0], slope_coeff->el_params.fx.frac_bits)) {
-        for (int dim0 = 0; dim0 < in_non_axis_prv.shape[0]; dim0++) {
-            for (int dim1 = 0; dim1 < in_non_axis_prv.shape[1]; dim1++) {
-                for (int dim2 = 0; dim2 < in_non_axis_prv.shape[2]; dim2++) {
-
-                    vec_in = &in_ptr[dim0 * in_non_axis_prv.mem_stride[0] + 
-                                    dim1 * in_non_axis_prv.mem_stride[1] + 
-                                    dim2 * in_non_axis_prv.mem_stride[2]];
-                    vec_out = &out_ptr[dim0 * out_non_axis_prv.mem_stride[0] + 
-                                    dim1 * out_non_axis_prv.mem_stride[1] + 
-                                    dim2 * out_non_axis_prv.mem_stride[2]];
-
-                    const MLI_PTR(io_T) orig_vec_in = vec_in;
-                    MLI_PTR(io_T) orig_vec_out = vec_out;
-                    for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
-                        for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
-                            for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
-                                vec_in  = (MLI_PTR(io_T))orig_vec_in  + POS(&in_prv,  pos0, pos1, pos2, 0);
-                                vec_out = orig_vec_out + POS(&out_prv, pos0, pos1, pos2, 0);
-                                if (in_prv.shape[3] & 1) {
-                                    v2q15_t input = mli_prv_load_1_sample(vec_in);
-                                    v2accum40_t tmp_acc = mli_math_mul_fx<v2q15_t, v2accum40_t>(scale, input);
-                                    input = mli_math_max_fx(input, 
-                                            mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(tmp_acc,  shift - 16));
-                                    mli_prv_store_1_sample(vec_out, input);
-                                    vec_in  += 1;
-                                    vec_out += 1;
-                                }
-                                for (int pos3 = 0; pos3 < in_prv.shape[3] >> 1; pos3++) {
-                                    v2q15_t input = mli_prv_load_2_samples(vec_in);
-                                    v2accum40_t tmp_acc = mli_math_mul_fx<v2q15_t, v2accum40_t>(scale, input);
-                                    input = mli_math_max_fx(input, 
-                                            mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(tmp_acc, shift - 16));
-                                    mli_prv_store_2_samples(vec_out, input);
-                                    vec_in  += 2;
-                                    vec_out += 2;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    } else {
-        for (int dim0 = 0; dim0 < in_non_axis_prv.shape[0]; dim0++) {
-            for (int dim1 = 0; dim1 < in_non_axis_prv.shape[1]; dim1++) {
-                for (int dim2 = 0; dim2 < in_non_axis_prv.shape[2]; dim2++) {
-
-                    vec_in = &in_ptr[dim0 * in_non_axis_prv.mem_stride[0] + 
-                                    dim1 * in_non_axis_prv.mem_stride[1] + 
-                                    dim2 * in_non_axis_prv.mem_stride[2]];
-                    vec_out = &out_ptr[dim0 * out_non_axis_prv.mem_stride[0] + 
-                                    dim1 * out_non_axis_prv.mem_stride[1] + 
-                                    dim2 * out_non_axis_prv.mem_stride[2]];
-
-                    const MLI_PTR(io_T) orig_vec_in = vec_in;
-                    MLI_PTR(io_T) orig_vec_out = vec_out;
-                    for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
-                        for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
-                            for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
-                                vec_in  = (MLI_PTR(io_T))orig_vec_in  + POS(&in_prv,  pos0, pos1, pos2, 0);
-                                vec_out = orig_vec_out + POS(&out_prv, pos0, pos1, pos2, 0);
-                                if (in_prv.shape[3] & 1) {
-                                    v2q15_t input = mli_prv_load_1_sample(vec_in);
-                                    v2accum40_t tmp_acc = mli_math_mul_fx<v2q15_t, v2accum40_t>(scale, input);
-                                    input = mli_math_min_fx(input, 
-                                            mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(tmp_acc,  shift - 16));
-                                    mli_prv_store_1_sample(vec_out, input);
-                                    vec_in  += 1;
-                                    vec_out += 1;
-                                }
-                                for (int pos3 = 0; pos3 < in_prv.shape[3] >> 1; pos3++) {
-                                    v2q15_t input = mli_prv_load_2_samples(vec_in);
-                                    v2accum40_t tmp_acc = mli_math_mul_fx<v2q15_t, v2accum40_t>(scale, input);
-                                    input = mli_math_min_fx(input, 
-                                            mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(tmp_acc, shift - 16));
-                                    mli_prv_store_2_samples(vec_out, input);
-                                    vec_in  += 2;
-                                    vec_out += 2;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    return MLI_STATUS_OK;
+    mli_prv_store_n_samples(vec_out, output);
 }
 
+template <typename io_T, prelu_elem_func_type func_type>
+static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+        const MLI_PTR(io_T) vec_in,
+        MLI_OUT_PTR(io_T) vec_out,
+        const io_T scale,
+        const int shift,
+        const int remaining_part) {
+
+    MLI_ASSERT(remaining_part == 1);
+    v2q15_t input = mli_prv_load_1_sample(vec_in);
+    v2q15_t scale_v = mli_prv_init_v(scale);
+    v2q15_t output;
+    v2accum40_t tmp_acc = mli_math_mul_fx<v2q15_t, v2accum40_t>(scale_v, input);
+    if (func_type == PRELU_ELEM_FUNC_MAX) {
+        output = mli_math_max_fx(input, 
+                mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(tmp_acc,  shift - 16));
+    } else {
+        output = mli_math_min_fx(input, 
+                mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(tmp_acc,  shift - 16));
+    }
+    mli_prv_store_1_sample(vec_out, output);
+}
 
 } // namespace dsp
 } // namespace krn

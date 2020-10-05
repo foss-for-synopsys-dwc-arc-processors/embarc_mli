@@ -14,6 +14,11 @@
 #include "mli_types.h"
 #include "mli_prv_tensor.h"
 
+typedef enum {
+    PRELU_ELEM_FUNC_MAX,
+    PRELU_ELEM_FUNC_MIN
+} prelu_elem_func_type;
+
 namespace mli {
 namespace krn {
 ////////////////////////////////////////////////////////////////////////////////
@@ -28,11 +33,26 @@ namespace krn {
 ////////////////////////////////////////////////////////////////////////////////
 namespace ref {
 
+template <typename io_T, prelu_elem_func_type func_type>
+static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+        const MLI_PTR(io_T) vec_in,
+        MLI_OUT_PTR(io_T) vec_out,
+        const io_T scale,
+        const int shift);
+
+template <typename io_T, prelu_elem_func_type func_type>
+static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+        const MLI_PTR(io_T) vec_in,
+        MLI_OUT_PTR(io_T) vec_out,
+        const io_T scale,
+        const int shift,
+        const int remaining_part);
+
 template <typename io_T>
 static MLI_FORCE_INLINE mli_status mli_krn_prelu_fx_run(const mli_tensor *in, 
         const mli_tensor *slope_coeff,
         const mli_prelu_cfg *cfg, 
-        mli_tensor *out); 
+        mli_tensor *out);
 
 } // namespace ref
 
@@ -41,11 +61,20 @@ static MLI_FORCE_INLINE mli_status mli_krn_prelu_fx_run(const mli_tensor *in,
 ////////////////////////////////////////////////////////////////////////////////
 namespace dsp {
 
-template <typename io_T>
-static MLI_FORCE_INLINE mli_status mli_krn_prelu_fx_run(const mli_tensor *in, 
-        const mli_tensor *slope_coeff,
-        const mli_prelu_cfg *cfg, 
-        mli_tensor *out);
+template <typename io_T, prelu_elem_func_type func_type>
+static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+        const MLI_PTR(io_T) vec_in,
+        MLI_OUT_PTR(io_T) vec_out,
+        const io_T scale,
+        const int shift);
+
+template <typename io_T, prelu_elem_func_type func_type>
+static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+        const MLI_PTR(io_T) vec_in,
+        MLI_OUT_PTR(io_T) vec_out,
+        const io_T scale,
+        const int shift,
+        const int remaining_part);
 
 } // namespace dsp
 
@@ -54,11 +83,50 @@ static MLI_FORCE_INLINE mli_status mli_krn_prelu_fx_run(const mli_tensor *in,
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
 
-template <typename io_T>
-static MLI_FORCE_INLINE mli_status mli_krn_prelu_fx_run(const mli_tensor *in, 
-        const mli_tensor *slope_coeff,
-        const mli_prelu_cfg *cfg, 
-        mli_tensor *out);
+template <typename io_T, prelu_elem_func_type func_type>
+static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+        const MLI_PTR(io_T) vec_in,
+        MLI_OUT_PTR(io_T) vec_out,
+        const io_T scale,
+        const int shift);
+
+template <typename io_T, prelu_elem_func_type func_type>
+static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+        const MLI_PTR(io_T) vec_in,
+        MLI_OUT_PTR(io_T) vec_out,
+        const io_T scale,
+        const int shift,
+        const int remaining_part);
+
+template <typename io_T, prelu_elem_func_type func_type>
+static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+        const MLI_PTR(int8_t) vec_in,
+        MLI_OUT_PTR(int8_t) vec_out,
+        const int8_t scale,
+        const int shift);
+
+template <typename io_T, prelu_elem_func_type func_type>
+static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+        const MLI_PTR(int8_t) vec_in,
+        MLI_OUT_PTR(int8_t) vec_out,
+        const int8_t scale,
+        const int shift,
+        const int remaining_part);
+
+template <typename io_T, prelu_elem_func_type func_type>
+static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+        const MLI_PTR(int16_t) vec_in,
+        MLI_OUT_PTR(int16_t) vec_out,
+        const int16_t scale,
+        const int shift);
+
+template <typename io_T, prelu_elem_func_type func_type>
+static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+        const MLI_PTR(int16_t) vec_in,
+        MLI_OUT_PTR(int16_t) vec_out,
+        const int16_t scale,
+        const int shift,
+        const int remaining_part);
 
 } // namespace vdsp
 
