@@ -20,7 +20,11 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-align"
 
-
+//
+// load function where number of samples is based on N, and number or vectors depends on the type.
+//
+// this type of load functions is used in code where data from different types is combined and same
+// amount of samples need to be loaded from each buffer.
 static MLI_FORCE_INLINE vNx4char_t mli_prv_load_nx4_samples(const MLI_PTR(int8_t) __restrict in) {
     return *(MLI_PTR (vNx4char_t)) in;
 }
@@ -41,39 +45,12 @@ static MLI_FORCE_INLINE vNx2int_t mli_prv_load_nx2_samples(const MLI_PTR(int32_t
     return *(MLI_PTR (vNx2int_t)) in;
 }
 
-
-// The load_n_samples functions below are in fact nx4 functions.
-// after all callers are updated to use nx4 they can be removed (or updated to 'real' nx1 versions)
-static MLI_FORCE_INLINE vNx4char_t mli_prv_load_n_samples(const MLI_PTR(int8_t) __restrict in) {
-    return *(MLI_PTR (vNx4char_t)) in;
-}
-
-static MLI_FORCE_INLINE vNx4short_t mli_prv_load_n_samples(const MLI_PTR(int16_t) __restrict in) {
-    return *(MLI_PTR (vNx4short_t)) in;
-}
-
-static MLI_FORCE_INLINE vNx4int_t mli_prv_load_n_samples(const MLI_PTR(int32_t) __restrict in) {
-    return *(MLI_PTR (vNx4int_t)) in;
+static MLI_FORCE_INLINE vNint_t mli_prv_load_nx1_samples(const MLI_PTR(int32_t) __restrict in) {
+    return *(MLI_PTR (vNint_t)) in;
 }
 
 /* vector load from dcache */
-static MLI_FORCE_INLINE vNx4int_t mli_prv_load_n_samples(const int32_t* __restrict in) {
-    vNx4int_t r;
-    for (int i = 0; i < (4 * _VDSP_NUM_32BIT_LANES); i++) {
-        r[i] = in[i];
-    }
-    return r;
-}
-
-static MLI_FORCE_INLINE vNx4short_t mli_prv_load_n_samples(const int16_t* __restrict in) {
-    vNx4short_t r;
-    for (int i = 0; i < (2 * _VDSP_NUM_16BIT_LANES); i++) {
-        r[i] = in[i];
-    }
-    return r;
-}
-
-static MLI_FORCE_INLINE vNx4char_t mli_prv_load_n_samples(const int8_t* __restrict in) {
+static MLI_FORCE_INLINE vNx4char_t mli_prv_load_nx4_samples(const int8_t* __restrict in) {
     vNx4char_t r;
     for (int i = 0; i < (1 * _VDSP_NUM_8BIT_LANES); i++) {
         r[i] = in[i];
@@ -81,12 +58,76 @@ static MLI_FORCE_INLINE vNx4char_t mli_prv_load_n_samples(const int8_t* __restri
     return r;
 }
 
-static MLI_FORCE_INLINE vNx4short_t mli_prv_gather_load_n_samples(const MLI_PTR(short) in, vNx4int_t offsets) {
+static MLI_FORCE_INLINE vNx4short_t mli_prv_load_nx4_samples(const int16_t* __restrict in) {
+    vNx4short_t r;
+    for (int i = 0; i < (2 * _VDSP_NUM_16BIT_LANES); i++) {
+        r[i] = in[i];
+    }
+    return r;
+}
+
+static MLI_FORCE_INLINE vNx4int_t mli_prv_load_nx4_samples(const int32_t* __restrict in) {
+    vNx4int_t r;
+    for (int i = 0; i < (4 * _VDSP_NUM_32BIT_LANES); i++) {
+        r[i] = in[i];
+    }
+    return r;
+}
+
+static MLI_FORCE_INLINE vNx2short_t mli_prv_load_nx2_samples(const int16_t* __restrict in) {
+    vNx2short_t r;
+    for (int i = 0; i < (1 * _VDSP_NUM_16BIT_LANES); i++) {
+        r[i] = in[i];
+    }
+    return r;
+}
+
+static MLI_FORCE_INLINE vNx2int_t mli_prv_load_nx2_samples(const int32_t* __restrict in) {
+    vNx2int_t r;
+    for (int i = 0; i < (2 * _VDSP_NUM_32BIT_LANES); i++) {
+        r[i] = in[i];
+    }
+    return r;
+}
+
+static MLI_FORCE_INLINE vNint_t mli_prv_load_nx1_samples(const int32_t* __restrict in) {
+    vNint_t r;
+    for (int i = 0; i < (1 * _VDSP_NUM_32BIT_LANES); i++) {
+        r[i] = in[i];
+    }
+    return r;
+}
+
+// vector gather load
+static MLI_FORCE_INLINE vNx4short_t mli_prv_gather_load_nx4_samples(const MLI_PTR(short) in, vNx4int_t offsets) {
     vNx4short_t out;
     out.lo = vgather(in, offsets.lo);
     out.hi = vgather(in, offsets.hi);
     return out;
 }
+
+//
+// load functions where number of samples is based on amount of vectors, and N depends on the type
+//
+// This type of load functions is used in type agnostic code with a single datatype where we want to
+// do operations on vectors.
+
+static MLI_FORCE_INLINE vNx4char_t mli_prv_load_1vec(const MLI_PTR(int8_t) __restrict in) {
+    return *(MLI_PTR (vNx4char_t)) in;
+}
+
+static MLI_FORCE_INLINE vNx2short_t mli_prv_load_1vec(const MLI_PTR(int16_t) __restrict in) {
+    return *(MLI_PTR (vNx2short_t)) in;
+}
+
+static MLI_FORCE_INLINE vNint_t mli_prv_load_1vec(const MLI_PTR(int32_t) __restrict in) {
+    return *(MLI_PTR (vNint_t)) in;
+}
+
+//
+// Store functions
+//
+// The store functions determine the number of samples or vectors to be stored based on the type of the data argument
 
 static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int8_t) __restrict out, vNx4char_t data) {
     *(MLI_OUT_PTR (vNx4char_t)) out = data;
@@ -124,26 +165,13 @@ static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int8_t) __rest
     vvst(data, predicate, (int8_t __vccm *)(out));
 }
 
-static MLI_FORCE_INLINE void mli_prv_store_Nx2_samples(MLI_OUT_PTR (int16_t) __restrict out,
+static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int16_t) __restrict out,
         vNx2short_t data, int predicate_limit) {
     pvNx2 predicate = mli_prv_pvNx2_init(predicate_limit);
     vvst(data, predicate, (int16_t __vccm *)(out));
 }
 
 static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int16_t) __restrict out,
-        vNx4short_t data, int predicate_limit) {
-    if (predicate_limit > _VDSP_NUM_16BIT_LANES) {
-        mli_prv_store_n_samples(out, data.lo);
-        out += _VDSP_NUM_16BIT_LANES;
-        pvNx2 predicate = mli_prv_pvNx2_init(predicate_limit - _VDSP_NUM_16BIT_LANES);
-        vvst(data.hi, predicate, (int16_t __vccm *)(out));
-    } else {
-        pvNx2 predicate = mli_prv_pvNx2_init(predicate_limit);
-        vvst(data.lo, predicate, (int16_t __vccm *)(out));
-    }
-}
-
-static MLI_FORCE_INLINE void mli_prv_store_Nx4_samples(MLI_OUT_PTR (int16_t) __restrict out,
         vNx4short_t data, int predicate_limit) {
     if (predicate_limit > _VDSP_NUM_16BIT_LANES) {
         mli_prv_store_n_samples(out, data.lo);

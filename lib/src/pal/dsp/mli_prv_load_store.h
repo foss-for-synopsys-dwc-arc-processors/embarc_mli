@@ -39,7 +39,7 @@ static MLI_FORCE_INLINE v2q15_t mli_prv_load_2_samples (const MLI_PTR (int16_t) 
 }
 
 template <typename in_T>
-static MLI_FORCE_INLINE v2q15_t mli_prv_load_n_samples (in_T __restrict in) {
+static MLI_FORCE_INLINE v2q15_t mli_prv_load_1vec (in_T __restrict in) {
     return mli_prv_load_2_samples(in);
 }
 
