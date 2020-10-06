@@ -54,6 +54,9 @@ extern const mli_softmax_cfg test_6_cfg;
 
 // Generated input vectors 
 //========================================
+constexpr int input_sa_dim = -1;
+
+
 static const float input_1_data[] = {
     -1.919013619f, -3.533751488f, 0.860428214f, 2.761076927f, 3.128014326f, 3.955837488f, 2.771568537f, 0.069868460f, 
     -3.750723839f, -4.342554092f
@@ -62,33 +65,33 @@ static const float input_1_data[] = {
 static const float input_1_scale[] = { 0.032542713f };
 static const float input_1_zero_point[] = { -0.19335818f };
 static const int8_t input_1_scales_frac[] = { 19 };
+constexpr int input_1_fx16_frac = 12;
 
 
 #define INPUT_1_TSR_SHARED_DESCR \
-    .data = {.capacity=0, .mem.pi8=nullptr},\
-    .shape = {10}, \
-    .rank = 1, \
-    .mem_stride = { 0 } \
+    /*.data = */ { 0 },\
+    /*.mem_stride =*/ { 0 }, \
+    /*.shape =*/ {10}, \
+    /*.rank =*/ 1
+
 
 static const mli_tensor input_1_tsr_sa8 = {
     INPUT_1_TSR_SHARED_DESCR,
 
-    .el_type = MLI_EL_SA_8,
-    .el_params.sa.dim = -1,
-    .el_params.sa.zero_point = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale_frac_bits = {.capacity = 0, .mem.pi8 = nullptr}
+    /* .el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ { 0 }
 };
 
 static const mli_tensor input_1_tsr_fx16 = {
     INPUT_1_TSR_SHARED_DESCR,
 
-    .el_type = MLI_EL_FX_16,
-    .el_params.fx.frac_bits = 12
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
 };
 
-tensor_quantizer input_1_fx16(input_1_tsr_fx16, input_1_data, sizeof(input_1_data) / sizeof(input_1_data[0]));
-tensor_quantizer input_1_sa8(input_1_tsr_sa8, input_1_data, sizeof(input_1_data) / sizeof(input_1_data[0]),
+tensor_quantizer input_1_fx16(input_1_tsr_fx16, input_1_fx16_frac, input_1_data, sizeof(input_1_data) / sizeof(input_1_data[0]));
+tensor_quantizer input_1_sa8(input_1_tsr_sa8, input_sa_dim,
+    input_1_data, sizeof(input_1_data) / sizeof(input_1_data[0]),
     input_1_scale, sizeof(input_1_scale) / sizeof(input_1_scale[0]),
     input_1_zero_point, sizeof(input_1_zero_point) / sizeof(input_1_zero_point[0]),
     input_1_scales_frac, sizeof(input_1_scales_frac) / sizeof(input_1_scales_frac[0]));
@@ -102,33 +105,33 @@ static const float input_2_data[] = {
 static const float input_2_scale[] = { 0.04341326f };
 static const float input_2_zero_point[] = { 0.21423721f };
 static const int8_t input_2_scales_frac[] = { 19 };
+static const int input_2_fx16_frac = 12;
 
 
 #define INPUT_2_TSR_SHARED_DESCR \
-    .data = {.capacity=0, .mem.pi8=nullptr},\
-    .shape = {10}, \
-    .rank = 1, \
-    .mem_stride = { 0 } \
+    /*.data = */ { 0 },\
+    /*.mem_stride =*/ { 0 }, \
+    /*.shape =*/ {10}, \
+    /*.rank =*/ 1
+
 
 static const mli_tensor input_2_tsr_sa8 = {
     INPUT_2_TSR_SHARED_DESCR,
 
-    .el_type = MLI_EL_SA_8,
-    .el_params.sa.dim = -1,
-    .el_params.sa.zero_point = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale_frac_bits = {.capacity = 0, .mem.pi8 = nullptr}
+    /* .el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ { 0 }
 };
 
 static const mli_tensor input_2_tsr_fx16 = {
     INPUT_2_TSR_SHARED_DESCR,
 
-    .el_type = MLI_EL_FX_16,
-    .el_params.fx.frac_bits = 12
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
 };
 
-tensor_quantizer input_2_fx16(input_2_tsr_fx16, input_2_data, sizeof(input_2_data) / sizeof(input_2_data[0]));
-tensor_quantizer input_2_sa8(input_2_tsr_sa8, input_2_data, sizeof(input_2_data) / sizeof(input_2_data[0]),
+tensor_quantizer input_2_fx16(input_2_tsr_fx16, input_2_fx16_frac, input_2_data, sizeof(input_2_data) / sizeof(input_2_data[0]));
+tensor_quantizer input_2_sa8(input_2_tsr_sa8, input_sa_dim, 
+    input_2_data, sizeof(input_2_data) / sizeof(input_2_data[0]),
     input_2_scale, sizeof(input_2_scale) / sizeof(input_2_scale[0]),
     input_2_zero_point, sizeof(input_2_zero_point) / sizeof(input_2_zero_point[0]),
     input_2_scales_frac, sizeof(input_2_scales_frac) / sizeof(input_2_scales_frac[0]));
@@ -148,62 +151,62 @@ static const float input_3_data[] = {
 static const float input_3_scale[] = { 0.06169934570789337f };
 static const float input_3_zero_point[] = {4.86666679f};
 static const int8_t input_3_scales_frac[] = { 19 };
+static const int input_3_fx16_frac = 11;
 
 
 #define INPUT_3_TSR_SHARED_DESCR \
-    .data = {.capacity=0, .mem.pi8=nullptr},\
-    .shape = {3, 4, 5}, \
-    .rank = 3, \
-    .mem_stride = { 0 }
+    /*.data = */ { 0 },\
+    /*.mem_stride =*/ { 0 }, \
+    /*.shape =*/ {3, 4, 5}, \
+    /*.rank =*/ 3
+
 
 static const mli_tensor input_3_tsr_sa8 = {
     INPUT_3_TSR_SHARED_DESCR,
 
-    .el_type = MLI_EL_SA_8,
-    .el_params.sa.dim = -1,
-    .el_params.sa.zero_point = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale_frac_bits = {.capacity = 0, .mem.pi8 = nullptr}
+    /* .el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ { 0 }
 };
 
 static const mli_tensor input_3_tsr_fx16 = {
     INPUT_3_TSR_SHARED_DESCR,
 
-    .el_type = MLI_EL_FX_16,
-    .el_params.fx.frac_bits = 11
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
 };
 
-tensor_quantizer input_3_fx16(input_3_tsr_fx16, input_3_data, sizeof(input_3_data) / sizeof(input_3_data[0]));
-tensor_quantizer input_3_sa8(input_3_tsr_sa8, input_3_data, sizeof(input_3_data) / sizeof(input_3_data[0]),
+tensor_quantizer input_3_fx16(input_3_tsr_fx16, input_3_fx16_frac, input_3_data, sizeof(input_3_data) / sizeof(input_3_data[0]));
+tensor_quantizer input_3_sa8(input_3_tsr_sa8, input_sa_dim,
+                             input_3_data, sizeof(input_3_data) / sizeof(input_3_data[0]),
                              input_3_scale, sizeof(input_3_scale) / sizeof(input_3_scale[0]),
                              input_3_zero_point, sizeof(input_3_zero_point) / sizeof(input_3_zero_point[0]),
                              input_3_scales_frac, sizeof(input_3_scales_frac) / sizeof(input_3_scales_frac[0]));
 
 #define INPUT_3_MEMSTR_TSR_SHARED_DESCR \
-    .data = {.capacity=0, .mem.pi8=nullptr},\
-    .shape = {3, 4, 5}, \
-    .rank = 3, \
-    .mem_stride = { (4*(5+1))*2, (5+1)*1, 1}
+    /*.data = */ { 0 },\
+    /*.mem_stride =*/ { (4*(5+1))*2, (5+1)*1, 1}, \
+    /*.shape =*/ {3, 4, 5}, \
+    /*.rank =*/ 3
+
 
 static const mli_tensor input_3_memstr_tsr_sa8 = {
     INPUT_3_MEMSTR_TSR_SHARED_DESCR,
 
-    .el_type = MLI_EL_SA_8,
-    .el_params.sa.dim = -1,
-    .el_params.sa.zero_point = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale_frac_bits = {.capacity = 0, .mem.pi8 = nullptr} // 37
+    /* .el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ { 0 }
 };
 
 static const mli_tensor input_3_memstr_tsr_fx16 = {
     INPUT_3_MEMSTR_TSR_SHARED_DESCR,
 
-    .el_type = MLI_EL_FX_16,
-    .el_params.fx.frac_bits = 11,
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
 };
 
-tensor_quantizer input_3_memstr_fx16(input_3_memstr_tsr_fx16, input_3_data, sizeof(input_3_data) / sizeof(input_3_data[0]));
-tensor_quantizer input_3_memstr_sa8(input_3_memstr_tsr_sa8, input_3_data, sizeof(input_3_data) / sizeof(input_3_data[0]),
+tensor_quantizer input_3_memstr_fx16(input_3_memstr_tsr_fx16, input_3_fx16_frac, 
+                                     input_3_data, sizeof(input_3_data) / sizeof(input_3_data[0]));
+tensor_quantizer input_3_memstr_sa8(input_3_memstr_tsr_sa8, input_sa_dim,
+                                    input_3_data, sizeof(input_3_data) / sizeof(input_3_data[0]),
                                     input_3_scale, sizeof(input_3_scale) / sizeof(input_3_scale[0]),
                                     input_3_zero_point, sizeof(input_3_zero_point) / sizeof(input_3_zero_point[0]),
                                     input_3_scales_frac, sizeof(input_3_scales_frac) / sizeof(input_3_scales_frac[0]));
@@ -214,7 +217,8 @@ tensor_quantizer input_3_memstr_sa8(input_3_memstr_tsr_sa8, input_3_data, sizeof
 static const float test_out_scale[] = { 1.0f / 256.0f };
 static const float test_out_zero_point[] = { 0.5 };
 static const int8_t test_out_scales_frac[] = { 23 };
-constexpr uint8_t test_out_frac_fx16 = 15;
+constexpr int test_out_frac_fx16 = 15;
+constexpr int test_out_sa_dim = -1;
 
 static const float test_1_out_data[] = {
     0.001327858f, 0.000264168f, 0.021391824f, 0.143116325f, 0.206560850f, 0.472679824f, 0.144625738f, 0.009703138f,
@@ -222,32 +226,30 @@ static const float test_1_out_data[] = {
 };
 
 #define TEST_1_2_OUT_TSR_SHARED_DESCR \
-    .data = {.capacity=0, .mem.pi8=nullptr},\
-    .shape = { 10 }, \
-    .rank = 1, \
-    .mem_stride = { 0 }
+    /*.data = */ { 0 },\
+    /*.mem_stride =*/ { 0 }, \
+    /*.shape =*/ { 10 }, \
+    /*.rank =*/ 1
+
 
 static mli_tensor test_1_out_tsr_sa8 = {
     TEST_1_2_OUT_TSR_SHARED_DESCR,
 
-    .el_type = MLI_EL_SA_8,
-    .el_params.sa.dim = -1,
-    .el_params.sa.zero_point = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale_frac_bits = {.capacity = 0, .mem.pi8 = nullptr}
+    /* .el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ { 0 }
 };
 
 static mli_tensor test_1_out_tsr_fx16 = {
     TEST_1_2_OUT_TSR_SHARED_DESCR,
 
-    .el_type = MLI_EL_FX_16,
-    .el_params.fx.frac_bits = test_out_frac_fx16
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
 };
 
-tensor_quantizer test_1_out_fx16(test_1_out_tsr_fx16, test_1_out_data,
-    sizeof(test_1_out_data) / sizeof(test_1_out_data[0]));
-tensor_quantizer test_1_out_sa8(test_1_out_tsr_sa8, test_1_out_data,
-    sizeof(test_1_out_data) / sizeof(test_1_out_data[0]),
+tensor_quantizer test_1_out_fx16(test_1_out_tsr_fx16, test_out_frac_fx16, 
+    test_1_out_data, sizeof(test_1_out_data) / sizeof(test_1_out_data[0]));
+tensor_quantizer test_1_out_sa8(test_1_out_tsr_sa8, test_out_sa_dim, 
+    test_1_out_data, sizeof(test_1_out_data) / sizeof(test_1_out_data[0]),
     test_out_scale, sizeof(test_out_scale) / sizeof(test_out_scale[0]),
     test_out_zero_point, sizeof(test_out_zero_point) / sizeof(test_out_zero_point[0]),
     test_out_scales_frac, sizeof(test_out_scales_frac) / sizeof(test_out_scales_frac[0]));
@@ -261,24 +263,21 @@ static const float test_2_out_data[] = {
 static mli_tensor test_2_out_tsr_sa8 = {
     TEST_1_2_OUT_TSR_SHARED_DESCR,
 
-    .el_type = MLI_EL_SA_8,
-    .el_params.sa.dim = -1,
-    .el_params.sa.zero_point = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale_frac_bits = {.capacity = 0, .mem.pi8 = nullptr}
+    /* .el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ { 0 }
 };
 
 static mli_tensor test_2_out_tsr_fx16 = {
     TEST_1_2_OUT_TSR_SHARED_DESCR,
 
-    .el_type = MLI_EL_FX_16,
-    .el_params.fx.frac_bits = test_out_frac_fx16
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
 };
 
-tensor_quantizer test_2_out_fx16(test_2_out_tsr_fx16, test_2_out_data,
-    sizeof(test_2_out_data) / sizeof(test_2_out_data[0]));
-tensor_quantizer test_2_out_sa8(test_2_out_tsr_sa8, test_2_out_data,
-    sizeof(test_2_out_data) / sizeof(test_2_out_data[0]),
+tensor_quantizer test_2_out_fx16(test_2_out_tsr_fx16, test_out_frac_fx16, 
+    test_2_out_data, sizeof(test_2_out_data) / sizeof(test_2_out_data[0]));
+tensor_quantizer test_2_out_sa8(test_2_out_tsr_sa8, test_out_sa_dim, 
+    test_2_out_data, sizeof(test_2_out_data) / sizeof(test_2_out_data[0]),
     test_out_scale, sizeof(test_out_scale) / sizeof(test_out_scale[0]),
     test_out_zero_point, sizeof(test_out_zero_point) / sizeof(test_out_zero_point[0]),
     test_out_scales_frac, sizeof(test_out_scales_frac) / sizeof(test_out_scales_frac[0]));
@@ -296,32 +295,30 @@ static const float test_3_out_data[] = {
 }; 
 
 #define TEST_3_4_5_OUT_TSR_SHARED_DESCR \
-    .data = {.capacity=0, .mem.pi8=nullptr},\
-    .shape = { 3, 4, 5 }, \
-    .rank = 3, \
-    .mem_stride = { 0 }
+    /*.data = */ { 0 },\
+    /*.mem_stride =*/ { 0 }, \
+    /*.shape =*/ { 3, 4, 5 }, \
+    /*.rank =*/ 3
+
 
 static mli_tensor test_3_out_tsr_sa8 = {
     TEST_3_4_5_OUT_TSR_SHARED_DESCR,
 
-    .el_type = MLI_EL_SA_8,
-    .el_params.sa.dim = -1,
-    .el_params.sa.zero_point = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale_frac_bits = {.capacity = 0, .mem.pi8 = nullptr}
+    /* .el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ { 0 }
 };
 
 static mli_tensor test_3_out_tsr_fx16 = {
     TEST_3_4_5_OUT_TSR_SHARED_DESCR,
 
-    .el_type = MLI_EL_FX_16,
-    .el_params.fx.frac_bits = test_out_frac_fx16
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
 };
 
-tensor_quantizer test_3_out_fx16(test_3_out_tsr_fx16, test_3_out_data,
-    sizeof(test_3_out_data) / sizeof(test_3_out_data[0]));
-tensor_quantizer test_3_out_sa8(test_3_out_tsr_sa8, test_3_out_data,
-    sizeof(test_3_out_data) / sizeof(test_3_out_data[0]),
+tensor_quantizer test_3_out_fx16(test_3_out_tsr_fx16, test_out_frac_fx16, 
+    test_3_out_data, sizeof(test_3_out_data) / sizeof(test_3_out_data[0]));
+tensor_quantizer test_3_out_sa8(test_3_out_tsr_sa8, test_out_sa_dim,
+    test_3_out_data, sizeof(test_3_out_data) / sizeof(test_3_out_data[0]),
     test_out_scale, sizeof(test_out_scale) / sizeof(test_out_scale[0]),
     test_out_zero_point, sizeof(test_out_zero_point) / sizeof(test_out_zero_point[0]),
     test_out_scales_frac, sizeof(test_out_scales_frac) / sizeof(test_out_scales_frac[0]));
@@ -340,25 +337,22 @@ static const float test_4_out_data[] = {
 static mli_tensor test_4_out_tsr_sa8 = {
     TEST_3_4_5_OUT_TSR_SHARED_DESCR,
 
-    .el_type = MLI_EL_SA_8,
-    .el_params.sa.dim = -1,
-    .el_params.sa.zero_point = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale_frac_bits = {.capacity = 0, .mem.pi8 = nullptr}
+    /* .el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ { 0 }
 };
 
 
 static mli_tensor test_4_out_tsr_fx16 = {
     TEST_3_4_5_OUT_TSR_SHARED_DESCR,
 
-    .el_type = MLI_EL_FX_16,
-    .el_params.fx.frac_bits = test_out_frac_fx16
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
 };
 
-tensor_quantizer test_4_out_fx16(test_4_out_tsr_fx16, test_4_out_data,
-    sizeof(test_4_out_data) / sizeof(test_4_out_data[0]));
-tensor_quantizer test_4_out_sa8(test_4_out_tsr_sa8, test_4_out_data,
-    sizeof(test_4_out_data) / sizeof(test_4_out_data[0]),
+tensor_quantizer test_4_out_fx16(test_4_out_tsr_fx16, test_out_frac_fx16, 
+    test_4_out_data, sizeof(test_4_out_data) / sizeof(test_4_out_data[0]));
+tensor_quantizer test_4_out_sa8(test_4_out_tsr_sa8, test_out_sa_dim, 
+    test_4_out_data, sizeof(test_4_out_data) / sizeof(test_4_out_data[0]),
     test_out_scale, sizeof(test_out_scale) / sizeof(test_out_scale[0]),
     test_out_zero_point, sizeof(test_out_zero_point) / sizeof(test_out_zero_point[0]),
     test_out_scales_frac, sizeof(test_out_scales_frac) / sizeof(test_out_scales_frac[0]));
@@ -379,24 +373,21 @@ static const float test_5_out_data[] = {
 static mli_tensor test_5_out_tsr_sa8 = {
     TEST_3_4_5_OUT_TSR_SHARED_DESCR,
 
-    .el_type = MLI_EL_SA_8,
-    .el_params.sa.dim = -1,
-    .el_params.sa.zero_point = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale_frac_bits = {.capacity = 0, .mem.pi8 = nullptr}
+    /* .el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ { 0 }
 };
 
 static mli_tensor test_5_out_tsr_fx16 = {
     TEST_3_4_5_OUT_TSR_SHARED_DESCR,
 
-    .el_type = MLI_EL_FX_16,
-    .el_params.fx.frac_bits = test_out_frac_fx16
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
 };
 
-tensor_quantizer test_5_out_fx16(test_5_out_tsr_fx16, test_5_out_data,
-    sizeof(test_5_out_data) / sizeof(test_5_out_data[0]));
-tensor_quantizer test_5_out_sa8(test_5_out_tsr_sa8, test_5_out_data,
-    sizeof(test_5_out_data) / sizeof(test_5_out_data[0]),
+tensor_quantizer test_5_out_fx16(test_5_out_tsr_fx16, test_out_frac_fx16, 
+    test_5_out_data, sizeof(test_5_out_data) / sizeof(test_5_out_data[0]));
+tensor_quantizer test_5_out_sa8(test_5_out_tsr_sa8, test_out_sa_dim, 
+    test_5_out_data, sizeof(test_5_out_data) / sizeof(test_5_out_data[0]),
     test_out_scale, sizeof(test_out_scale) / sizeof(test_out_scale[0]),
     test_out_zero_point, sizeof(test_out_zero_point) / sizeof(test_out_zero_point[0]),
     test_out_scales_frac, sizeof(test_out_scales_frac) / sizeof(test_out_scales_frac[0]));
@@ -415,48 +406,46 @@ static const float test_6_out_data[] = {
 };
 
 #define TEST_6_OUT_TSR_SHARED_DESCR \
-    .data = {.capacity=0, .mem.pi8=nullptr},\
-    .shape = { 3, 4, 5 }, \
-    .rank = 3, \
-    .mem_stride = { (5*2)*4*2, 5*2, 1 }
+    /*.data = */ { 0 },\
+    /*.mem_stride =*/ { (5*2)*4*2, 5*2, 1 }, \
+    /*.shape =*/ { 3, 4, 5 }, \
+    /*.rank =*/ 3
+
 
 static mli_tensor test_6_out_tsr_sa8 = {
     TEST_6_OUT_TSR_SHARED_DESCR,
 
-    .el_type = MLI_EL_SA_8,
-    .el_params.sa.dim = -1,
-    .el_params.sa.zero_point = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale = {.capacity = 0, .mem.pi8 = nullptr},
-    .el_params.sa.scale_frac_bits = {.capacity = 0, .mem.pi8 = nullptr}
+    /* .el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ { 0 }
 };
 
 static mli_tensor test_6_out_tsr_fx16 = {
     TEST_6_OUT_TSR_SHARED_DESCR,
 
-    .el_type = MLI_EL_FX_16,
-    .el_params.fx.frac_bits = test_out_frac_fx16
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
 };
 
-tensor_quantizer test_6_out_fx16(test_6_out_tsr_fx16, test_6_out_data,
-    sizeof(test_6_out_data) / sizeof(test_6_out_data[0]));
-tensor_quantizer test_6_out_sa8(test_6_out_tsr_sa8, test_6_out_data,
-    sizeof(test_6_out_data) / sizeof(test_6_out_data[0]),
+tensor_quantizer test_6_out_fx16(test_6_out_tsr_fx16, test_out_frac_fx16, 
+    test_6_out_data, sizeof(test_6_out_data) / sizeof(test_6_out_data[0]));
+tensor_quantizer test_6_out_sa8(test_6_out_tsr_sa8, test_out_sa_dim, 
+    test_6_out_data, sizeof(test_6_out_data) / sizeof(test_6_out_data[0]),
     test_out_scale, sizeof(test_out_scale) / sizeof(test_out_scale[0]),
     test_out_zero_point, sizeof(test_out_zero_point) / sizeof(test_out_zero_point[0]),
     test_out_scales_frac, sizeof(test_out_scales_frac) / sizeof(test_out_scales_frac[0]));
 
 // Tests configuration structures
 //========================================
-const mli_softmax_cfg test_1_cfg = { .axis = -1 };
+const mli_softmax_cfg test_1_cfg = {/* .axis = */-1 };
 
-const mli_softmax_cfg test_2_cfg = { .axis = -1 };
+const mli_softmax_cfg test_2_cfg = {/* .axis = */-1 };
 
-const mli_softmax_cfg test_3_cfg = {.axis = 0};
+const mli_softmax_cfg test_3_cfg = {/* .axis = */0};
 
-const mli_softmax_cfg test_4_cfg = {.axis = 2};
+const mli_softmax_cfg test_4_cfg = {/* .axis = */2};
 
-const mli_softmax_cfg test_5_cfg = {.axis = -1};
+const mli_softmax_cfg test_5_cfg = {/* .axis = */-1};
 
-const mli_softmax_cfg test_6_cfg = {.axis = -1};
+const mli_softmax_cfg test_6_cfg = {/* .axis = */-1};
 
 

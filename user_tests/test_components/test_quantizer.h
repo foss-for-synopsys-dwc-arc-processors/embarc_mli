@@ -34,16 +34,17 @@ class tensor_quantizer {
 
     // Constructor gets all necessary inputs for quantization
     // Tensor parameters are expected to be complete enough for quantization and output valid tensor.
-    // For FX types next fields must be filled: Shape, rank, memstride, el_type, el_params.fx.frac_bits
-    // For SA types next fields must be filled: Shape, rank, memstride, el_type, el_params.sa.dim, el_params.sa.scale_frac_bits, 
+    // For FX types next fields must be filled: Shape, rank, memstride, el_type
+    // For SA types next fields must be filled: Shape, rank, memstride, el_type
     
     // This Constructor intended to be used with FX type of tensors ONLY
-    tensor_quantizer(mli_tensor tsr, const float* data, uint32_t data_size);
+    tensor_quantizer(mli_tensor tsr, const int frac_bits, const float* data, const uint32_t data_size);
     
-    // This Constructor intended to be used (but not limited) with SA type of tensors
-    tensor_quantizer(mli_tensor tsr, const float *data, uint32_t data_size, const float *scales, uint32_t scales_size,
-                     const float* zero_points, uint32_t zero_points_size, 
-                     const int8_t* scales_fraq_bits, uint32_t scales_fraq_bits_size);
+    // This Constructor intended to be used with SA type ONLY
+    tensor_quantizer(mli_tensor tsr, const int quant_dim, const float *data, const uint32_t data_size, 
+                     const float *scales, const uint32_t scales_size,
+                     const float* zero_points, const uint32_t zero_points_size, 
+                     const int8_t* scales_fraq_bits, const uint32_t scales_fraq_bits_size);
 
 
     // Get mli_tensor with assigned memory only
@@ -121,7 +122,7 @@ class tensor_quantizer {
 
  private:
      // Source data used for quantization
-     const mli_tensor source_tsr_;
+     mli_tensor source_tsr_;
      const float* source_data_;
      const float* source_scales_;
      const float* source_zero_points_;

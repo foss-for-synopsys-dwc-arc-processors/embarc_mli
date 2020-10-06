@@ -35,27 +35,33 @@ namespace tst {
 //
 //======================================================================================================
 
-// Constructor intended to be used (but not limited) with SA type of tensors
+// Constructor intended to be used with SA type ONLY
 //==========================================
-tensor_quantizer::tensor_quantizer(mli_tensor tsr, const float* data, uint32_t data_size, 
-                                   const float* scales, uint32_t scales_size, 
-                                   const float* zero_points, uint32_t zero_points_size, 
-                                   const int8_t* scales_fraq_bits, uint32_t scales_fraq_bits_size)
+tensor_quantizer::tensor_quantizer(mli_tensor tsr, const int quant_dim, const float* data, const uint32_t data_size,
+                                   const float* scales, const uint32_t scales_size,
+                                   const float* zero_points, const uint32_t zero_points_size,
+                                   const int8_t* scales_fraq_bits, const uint32_t scales_fraq_bits_size)
         : source_tsr_(tsr)
         , source_data_(data)
         , source_scales_(scales)
         , source_zero_points_(zero_points)
         , source_scales_fraq_(scales_fraq_bits)
         , is_valid_(false) {
-    // check that input tensor in general not bad
-    const tensor_state state = validate_tensor(tsr);
-    is_valid_ = (state == kIncompleteMem || state == kOk);
+    // if tensor not of a type that constructor intend to work with, keep is_valid_ state false 
+    // and skip the rest initialization code
+    if (source_tsr_.el_type == MLI_EL_SA_8 || source_tsr_.el_type == MLI_EL_SA_32) {
+        source_tsr_.el_params.sa.dim = quant_dim;
+        source_tsr_.el_params.sa.dim = quant_dim;
 
-    // check that arrays are of expectd size
-    if (is_valid_) {
-        is_valid_ = (data_size == mli_hlp_count_elem_num(&tsr, 0));
-        if ((tsr.el_type == MLI_EL_SA_8 || tsr.el_type == MLI_EL_SA_32)) {
-            const uint32_t expected_vals = (tsr.el_params.sa.dim < 0) ? 1 : tsr.shape[tsr.el_params.sa.dim];
+        // check that input tensor in general not bad
+        const tensor_state state = validate_tensor(source_tsr_);
+        is_valid_ = (state == kIncompleteMem || state == kOk);
+
+        // check that arrays are of expectd size
+        if (is_valid_) {
+            is_valid_ = (data_size == mli_hlp_count_elem_num(&source_tsr_, 0));
+            const uint32_t expected_vals = (source_tsr_.el_params.sa.dim < 0) ? 
+                                            1 : source_tsr_.shape[source_tsr_.el_params.sa.dim];
             is_valid_ &= (scales_size == expected_vals);
             is_valid_ &= (zero_points_size == expected_vals);
             is_valid_ &= (scales_fraq_bits_size == expected_vals);
@@ -67,17 +73,23 @@ tensor_quantizer::tensor_quantizer(mli_tensor tsr, const float* data, uint32_t d
 
 // Constructor intended to be used with FX type of tensors ONLY
 //==========================================
-tensor_quantizer::tensor_quantizer(mli_tensor tsr, const float* data, uint32_t data_size)
+tensor_quantizer::tensor_quantizer(mli_tensor tsr, const int frac_bits, const float* data, const uint32_t data_size)
         : source_tsr_(tsr)
         , source_data_(data)
         , source_scales_(nullptr)
         , source_zero_points_(nullptr)
         , source_scales_fraq_(nullptr)
         , is_valid_(false) {
-    // check that input tensor in general not bad
-    const tensor_state state = validate_tensor(tsr);
-    is_valid_ = (state == kIncompleteMem || state == kOk);
-    is_valid_ &= (tsr.el_type != MLI_EL_SA_8 && tsr.el_type != MLI_EL_SA_32);
+    // SImilar as for SA constructor - keep is_valid false if not FX
+    if (source_tsr_.el_type == MLI_EL_FX_8 || source_tsr_.el_type == MLI_EL_FX_16) {
+        source_tsr_.el_params.fx.frac_bits = frac_bits;
+        source_tsr_.el_params.fx.frac_bits = frac_bits;
+        // check that input tensor in general not bad
+        const tensor_state state = validate_tensor(source_tsr_);
+        is_valid_ = (state == kIncompleteMem || state == kOk);
+        if(is_valid_)
+            is_valid_ = (data_size == mli_hlp_count_elem_num(&source_tsr_, 0));
+    }
 }
 
 
