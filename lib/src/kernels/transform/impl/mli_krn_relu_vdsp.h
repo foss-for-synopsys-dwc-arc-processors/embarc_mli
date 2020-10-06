@@ -53,7 +53,7 @@ static MLI_FORCE_INLINE mli_status mli_krn_relu_fx_run(const mli_tensor *in,
             for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
                 vec_in  = (MLI_PTR(io_T))orig_vec_in + POS(&in_prv,  pos0, pos1, pos2, 0);
                 vec_out = orig_vec_out + POS(&out_prv, pos0, pos1, pos2, 0);
-                auto input = mli_prv_load_n_samples(vec_in);
+                auto input = mli_prv_load_1vec(vec_in);
                 int num_lanes = get_number_lanes(input);
                 int remaining_part = in_prv.shape[3] & (num_lanes - 1);
                 if (remaining_part) {
@@ -61,14 +61,14 @@ static MLI_FORCE_INLINE mli_status mli_krn_relu_fx_run(const mli_tensor *in,
                         mli_math_max_fx(input, min_val), max_val), remaining_part);
                     vec_in  += remaining_part;
                     vec_out += remaining_part;
-                    input = mli_prv_load_n_samples(vec_in);
+                    input = mli_prv_load_1vec(vec_in);
                 }
                 for (int pos3 = remaining_part; pos3 < in_prv.shape[3]; pos3 += num_lanes) {
                     mli_prv_store_n_samples(vec_out, mli_math_min_fx( 
                         mli_math_max_fx(input, min_val), max_val));
                     vec_in  += num_lanes;
                     vec_out += num_lanes;
-                    input = mli_prv_load_n_samples(vec_in);
+                    input = mli_prv_load_1vec(vec_in);
                 }
             }
         }

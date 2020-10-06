@@ -30,7 +30,7 @@ MLI_FORCE_INLINE vNx4accshort_t reduce_sum2D(
     in_row_step -= width * in_col_step;
     for (int row = 0; row < height; row++) {
         for (int clmn = 0; clmn < width; clmn++) {
-            accu = mli_math_mac_fx(accu, mli_prv_load_n_samples(in), mul);
+            accu = mli_math_mac_fx(accu, mli_prv_load_nx4_samples(in), mul);
             in += in_col_step;
         }
         in += in_row_step;
@@ -48,8 +48,8 @@ MLI_FORCE_INLINE s8asym_quant_specific_out_params_v adjust_quant_params_v(s8asym
         wscales = params->weight_scales[krn_idx];
         wshifts = params->weight_shifts[krn_idx];
     } else {
-        wscales = mli_prv_load_n_samples(&params->weight_scales[krn_idx]);
-        wshifts = to_vNx4short_t(mli_prv_load_n_samples(&params->weight_shifts[krn_idx]));
+        wscales = mli_prv_load_nx4_samples(&params->weight_scales[krn_idx]);
+        wshifts = to_vNx4short_t(mli_prv_load_nx4_samples(&params->weight_shifts[krn_idx]));
     }
     s8asym_quant_specific_out_params_v out_params;
     vNx4short_t w_norm = mli_math_norm_fx<vNx4short_t, vNx4short_t>(wscales);
@@ -122,26 +122,26 @@ MLI_FORCE_INLINE vNx4accshort_t dotprod_inputzp_1D_v(
         // load 4 input samples at once to reduce load bottleneck
         int32_t in4x = *(int32_t*)in;
 
-        accu = mli_math_mac_fx(accu, mli_prv_load_n_samples(krn), (int8_t)in4x);
-        accu2 = mli_math_mac_fx(accu2, mli_prv_load_n_samples(krn), (int8_t)-quant_params->in_offset);
+        accu = mli_math_mac_fx(accu, mli_prv_load_nx4_samples(krn), (int8_t)in4x);
+        accu2 = mli_math_mac_fx(accu2, mli_prv_load_nx4_samples(krn), (int8_t)-quant_params->in_offset);
         krn += krn_step;
         in4x = in4x >> 8;
-        accu = mli_math_mac_fx(accu, mli_prv_load_n_samples(krn), (int8_t)in4x);
-        accu2 = mli_math_mac_fx(accu2, mli_prv_load_n_samples(krn), (int8_t)-quant_params->in_offset);
+        accu = mli_math_mac_fx(accu, mli_prv_load_nx4_samples(krn), (int8_t)in4x);
+        accu2 = mli_math_mac_fx(accu2, mli_prv_load_nx4_samples(krn), (int8_t)-quant_params->in_offset);
         krn += krn_step;
         in4x = in4x >> 8;
-        accu = mli_math_mac_fx(accu, mli_prv_load_n_samples(krn), (int8_t)in4x);
-        accu2 = mli_math_mac_fx(accu2, mli_prv_load_n_samples(krn), (int8_t)-quant_params->in_offset);
+        accu = mli_math_mac_fx(accu, mli_prv_load_nx4_samples(krn), (int8_t)in4x);
+        accu2 = mli_math_mac_fx(accu2, mli_prv_load_nx4_samples(krn), (int8_t)-quant_params->in_offset);
         krn += krn_step;
         in4x = in4x >> 8;
-        accu = mli_math_mac_fx(accu, mli_prv_load_n_samples(krn), (int8_t)in4x);
-        accu2 = mli_math_mac_fx(accu2, mli_prv_load_n_samples(krn), (int8_t)-quant_params->in_offset);
+        accu = mli_math_mac_fx(accu, mli_prv_load_nx4_samples(krn), (int8_t)in4x);
+        accu2 = mli_math_mac_fx(accu2, mli_prv_load_nx4_samples(krn), (int8_t)-quant_params->in_offset);
         krn += krn_step;
         in += in_step * 4;
     }
     for ( ; idx < vals; idx++) {
-        accu = mli_math_mac_fx(accu, mli_prv_load_n_samples(krn), *in);
-        accu2 = mli_math_mac_fx(accu2, mli_prv_load_n_samples(krn), (int8_t)-quant_params->in_offset);
+        accu = mli_math_mac_fx(accu, mli_prv_load_nx4_samples(krn), *in);
+        accu2 = mli_math_mac_fx(accu2, mli_prv_load_nx4_samples(krn), (int8_t)-quant_params->in_offset);
         in += in_step;
         krn += krn_step;
     }
@@ -214,7 +214,7 @@ MLI_FORCE_INLINE vNx4accshort_t bias_additive(
     // 16 bits are loaded into the accumulator and then shifted to the correct position.
     // for this reason the bias additve has to be the first operation on the accumulator.
     MLI_ASSERT(to_vNx4int_t(init_accum)[0] == 0);
-    vNx4int_t bias32 = mli_prv_load_n_samples(bias);
+    vNx4int_t bias32 = mli_prv_load_nx4_samples(bias);
     vNx4int_t norm = mli_math_norm_fx<vNx4int_t,vNx4int_t>(bias32);
     vNx4int_t shift = mli_math_max_fx(16 - norm, 0);
     vNx4short_t bias16 = to_vNx4short_t(bias32 >> shift);
@@ -330,7 +330,7 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
     out = MIN(out, val_max_limit);
     out = MAX(out, val_min_limit);
 
-    mli_prv_store_Nx2_samples(o_ptr, out, num);
+    mli_prv_store_n_samples(o_ptr, out, num);
 }
 
 template <>
@@ -347,7 +347,7 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
     out = MIN(out, val_max_limit);
     out = MAX(out, val_min_limit);
 
-    mli_prv_store_Nx4_samples(o_ptr, out, num);
+    mli_prv_store_n_samples(o_ptr, out, num);
 }
 
 } // namespace vdsp

@@ -28,12 +28,12 @@ static MLI_FORCE_INLINE out_T activation_lut_load_input(const MLI_PTR(in_T) in);
 
 template<>
 vNx4short_t activation_lut_load_input(const MLI_PTR(int8_t) in) {
-    return mli_math_cast_fx<vNx4char_t,vNx4short_t>(mli_prv_load_n_samples(in));
+    return mli_math_cast_fx<vNx4char_t,vNx4short_t>(mli_prv_load_nx4_samples(in));
 }
 
 template<>
 vNx4short_t activation_lut_load_input(const MLI_PTR(int16_t) in) {
-    return mli_prv_load_n_samples(in);
+    return mli_prv_load_nx4_samples(in);
 }
 
 template<typename out_T, bool convert = false>
@@ -155,8 +155,8 @@ static void activation_lut(
             /* Update input ptr */
             in += _VDSP_NUM_8BIT_LANES;
             /* Load from LUT */
-            vNx4short_t lut_values = mli_prv_gather_load_n_samples(lut_data, lut_idx_int);
-            vNx4short_t lut_values_next = mli_prv_gather_load_n_samples(lut_data, lut_idx_int + 1);
+            vNx4short_t lut_values = mli_prv_gather_load_nx4_samples(lut_data, lut_idx_int);
+            vNx4short_t lut_values_next = mli_prv_gather_load_nx4_samples(lut_data, lut_idx_int + 1);
             /* Load Next Input */
             x = activation_lut_load_input<io_T, vNx4short_t>(in) >> preshift_in;
             if (convert) {
@@ -184,8 +184,8 @@ static void activation_lut(
         if ((axis_len & (_VDSP_NUM_8BIT_LANES - 1)) != 0) {
             int remaining_part = axis_len & (_VDSP_NUM_8BIT_LANES - 1);
             /* Load from LUT */
-            vNx4short_t lut_values = mli_prv_gather_load_n_samples(lut_data, lut_idx_int);
-            vNx4short_t lut_values_next = mli_prv_gather_load_n_samples(lut_data, lut_idx_int + 1);
+            vNx4short_t lut_values = mli_prv_gather_load_nx4_samples(lut_data, lut_idx_int);
+            vNx4short_t lut_values_next = mli_prv_gather_load_nx4_samples(lut_data, lut_idx_int + 1);
 
             vNx4short_t diffs = mli_math_sub_fx<vNx4short_t>(lut_values, lut_values_next);
             vNx4short_t diffs_mul_frac_cast =  mli_math_acc_cast_fx<vNx4short_t, vNx4accint_t>(
@@ -210,7 +210,7 @@ static void activation_lut(
             // no interpolation
             in += _VDSP_NUM_8BIT_LANES;
             /* Load from LUT */
-            vNx4short_t lut_values = mli_prv_gather_load_n_samples(lut_data,
+            vNx4short_t lut_values = mli_prv_gather_load_nx4_samples(lut_data,
                                      mli_math_cast_fx<vNx4short_t, vNx4int_t>(lut_idx));
             /* Load Next Input */
             x = activation_lut_load_input<io_T, vNx4short_t>(in);
@@ -229,7 +229,7 @@ static void activation_lut(
         if ((axis_len & (_VDSP_NUM_8BIT_LANES - 1)) != 0) {
             int remaining_part = axis_len & (_VDSP_NUM_8BIT_LANES - 1);
             /* Load from LUT */
-            vNx4short_t lut_values = mli_prv_gather_load_n_samples(lut_data,
+            vNx4short_t lut_values = mli_prv_gather_load_nx4_samples(lut_data,
                                      mli_math_cast_fx<vNx4short_t, vNx4int_t>(lut_idx));
             /* Store O/P */
             activation_lut_store_output<io_T, convert>(out, lut_values, remaining_part, out_params);
