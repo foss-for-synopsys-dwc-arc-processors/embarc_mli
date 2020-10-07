@@ -66,22 +66,22 @@ static MLI_FORCE_INLINE mli_status mli_krn_prelu_fx_run(const mli_tensor *in,
     MLI_OUT_PTR(io_T) vec_out = nullptr;
 
     const MLI_PTR(io_T) in_ptr = (MLI_PTR(io_T))(in->data.mem.void_p);
-    MLI_OUT_PTR(io_T) out_ptr = (MLI_PTR(io_T)) (out->data.mem.void_p);
+    MLI_OUT_PTR(io_T) out_ptr = (MLI_OUT_PTR(io_T)) (out->data.mem.void_p);
 
     /* Copy tensor format */
     mli_prv_copy_tensor_format_except_mem_strides(in, out);
     /* Get Generic Private Tensor */
     auto in_prv =  mli_prv_get_generic_tensor<MLI_PTR(io_T)>(in);
-    auto out_prv = mli_prv_get_generic_tensor<MLI_PTR(io_T)>(out);
+    auto out_prv = mli_prv_get_generic_tensor<MLI_OUT_PTR(io_T)>(out);
     /* Get Non Axis Tensor */
     auto in_non_axis_prv  = mli_prv_get_non_axis_tensor<MLI_PTR(io_T)>(&in_prv,  cfg->axis);
-    auto out_non_axis_prv = mli_prv_get_non_axis_tensor<MLI_PTR(io_T)>(&out_prv, cfg->axis);
+    auto out_non_axis_prv = mli_prv_get_non_axis_tensor<MLI_OUT_PTR(io_T)>(&out_prv, cfg->axis);
     /* Get Axis Tensor */
     in_prv  = mli_prv_get_axis_tensor<MLI_PTR(io_T)>(&in_prv,  cfg->axis);
-    out_prv = mli_prv_get_axis_tensor<MLI_PTR(io_T)>(&out_prv, cfg->axis);
+    out_prv = mli_prv_get_axis_tensor<MLI_OUT_PTR(io_T)>(&out_prv, cfg->axis);
     /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
     mli_prv_reorder_generic_tensor<MLI_PTR(io_T)>(&in_prv );
-    mli_prv_reorder_generic_tensor<MLI_PTR(io_T)>(&out_prv);
+    mli_prv_reorder_generic_tensor<MLI_OUT_PTR(io_T)>(&out_prv);
 
     /* Dummy Load to get num_lanes, remaining part */
     auto input = mli_prv_load_1vec(in_ptr);

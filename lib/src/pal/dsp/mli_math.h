@@ -288,7 +288,7 @@ template <> MLI_FORCE_INLINE int16_t mli_math_acc_cast_fx(mli_acc32_t acc, int s
 }
 
 template <> MLI_FORCE_INLINE v2q15_t mli_math_acc_cast_fx(v2accum40_t acc, int shift_right) {
-    return fx_v2q15_cast_nf_asr_rnd_v2a40(acc, shift_right);
+    return fx_v2q15_cast_nf_asl_rnd_v2a40(acc, 16 - shift_right);
 }
 
 /*

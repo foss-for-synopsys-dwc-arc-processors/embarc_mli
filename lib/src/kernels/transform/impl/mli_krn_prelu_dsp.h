@@ -35,10 +35,10 @@ static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
     v2accum40_t tmp_acc = mli_math_mul_fx<v2q15_t, v2accum40_t>(scale_v, input);
     if (func_type == PRELU_ELEM_FUNC_MAX) {
         output = mli_math_max_fx(input, 
-                mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(tmp_acc,  shift - 16));
+                mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(tmp_acc,  shift));
     } else {
         output = mli_math_min_fx(input, 
-                mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(tmp_acc,  shift - 16));
+                mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(tmp_acc,  shift));
     }
     mli_prv_store_n_samples(vec_out, output);
 }
@@ -58,10 +58,10 @@ static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
     v2accum40_t tmp_acc = mli_math_mul_fx<v2q15_t, v2accum40_t>(scale_v, input);
     if (func_type == PRELU_ELEM_FUNC_MAX) {
         output = mli_math_max_fx(input, 
-                mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(tmp_acc,  shift - 16));
+                mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(tmp_acc,  shift));
     } else {
         output = mli_math_min_fx(input, 
-                mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(tmp_acc,  shift - 16));
+                mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(tmp_acc,  shift));
     }
     mli_prv_store_1_sample(vec_out, output);
 }

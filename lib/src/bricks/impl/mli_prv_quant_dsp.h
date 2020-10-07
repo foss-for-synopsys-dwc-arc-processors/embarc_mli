@@ -231,7 +231,7 @@ MLI_FORCE_INLINE v2q15_t mli_prv_convert_fx16_sa8(
     const int16_t zero_point,
     const int scale) {
 
-    v2q15_t x = fx_v2q15_cast_nf_asl_rnd_v2a40(in, scale) + zero_point;
+    v2q15_t x = mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(in, scale) + zero_point;
     return fx_sat_v2q15_n(x, 8);
 }
 
