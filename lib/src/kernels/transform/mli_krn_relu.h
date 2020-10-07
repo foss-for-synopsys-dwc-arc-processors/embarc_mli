@@ -23,10 +23,10 @@
 namespace mli {
 namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-using mli::krn::vdsp::mli_krn_relu_fx_run;
+using mli::krn::ref::mli_krn_relu_fx_run;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-using mli::krn::vdsp::mli_krn_relu_fx_run;
+using mli::krn::ref::mli_krn_relu_fx_run;
 
 #else
 using mli::krn::ref::mli_krn_relu_fx_run;
@@ -49,8 +49,6 @@ using mli::krn::ref::mli_krn_relu_fx_run;
 #endif
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-/* DSP is using the VDSP version of mli_krn_relu_fx_run */
-#include "impl/mli_krn_relu_vdsp.h"
 #include "impl/mli_krn_relu_dsp.h"
 #endif
 
