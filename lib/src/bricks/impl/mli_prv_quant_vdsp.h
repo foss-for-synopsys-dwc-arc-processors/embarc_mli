@@ -244,19 +244,41 @@ MLI_FORCE_INLINE vNx4accint_t bias_additive(
 //=========================================================================
 // Convert between SA8 and FX16
 //=========================================================================
+template<>
 MLI_FORCE_INLINE vNx4short_t mli_prv_convert_sa8_fx16(
         const vNx4short_t in_val,
         const int16_t zero_point,
         const int scale) {
-    return (in_val - zero_point) * scale;
+    vNx4int_t in_biased_shifted_no_zp = mli_math_cast_fx<vNx4short_t, vNx4int_t>(in_val) - (vNx4int_t) zero_point;
+    return mli_math_cast_fx<vNx4int_t, vNx4short_t>(mli_math_bound_range_fx(in_biased_shifted_no_zp * (vNx4int_t) scale, INT16_MIN, INT16_MAX));
 }
 
+template<>
 MLI_FORCE_INLINE vNx4char_t mli_prv_convert_fx16_sa8(
         const vNx4short_t in_val,
         const int16_t zero_point,
         const int scale) {
     vNx4short_t res = mli_math_cast_fx<vNx4short_t, vNx4short_t>(in_val, scale) + zero_point;
     return to_vNx4char_t(mli_math_bound_range_fx(res, INT8_MIN, INT8_MAX));
+}
+
+template<>
+MLI_FORCE_INLINE vNx4char_t mli_prv_convert_fx16_sa8(
+    const vNx4int_t in,
+    const int16_t zero_point,
+    const int scale) {
+    // Converting to float and back to asym8
+    vNx4int_t in_shifted = mli_math_asr_rnd_fx<vNx4int_t>(in, (vNx4int_t) scale) + (vNx4int_t) ((int32_t) zero_point);
+    return mli_math_cast_fx<vNx4int_t, vNx4char_t>(in_shifted);
+}
+
+template<>
+MLI_FORCE_INLINE vNx4short_t mli_prv_convert_fx16_sa8(
+    const vNx4short_t in,
+    const int16_t zero_point,
+    const int scale) {
+    // Converting to float and back to asym8
+    return mli_math_cast_fx<vNx4short_t, vNx4short_t>(in, scale) + zero_point;
 }
 
 //==========================================================================

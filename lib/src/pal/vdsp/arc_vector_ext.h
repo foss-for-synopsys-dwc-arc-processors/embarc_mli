@@ -180,4 +180,34 @@ static MLI_FORCE_INLINE vNx4short_t vvslm_sat(vNx4short_t L, int nbits) {
     out.hi = vvslm_sat(L.hi, (vNx2short_t)nbits);
     return out;
 }
+
+//////////////////////////////////////////////////
+// MAX
+//////////////////////////////////////////////////
+template <typename acc_T>
+static acc_T vvcmax(acc_T acc, vNx4short_t a);
+
+static MLI_FORCE_INLINE vNx4accshort_t
+vvcmax(vNx4accshort_t acc, vNx4short_t a) {
+    vNx2accshort_t hi = __vacc_hi(acc);
+    vNx2accshort_t lo = __vacc_lo(acc);
+    hi = vvcmax(hi, a.hi);
+    lo = vvcmax(lo, a.lo);
+    return __vacc_concat(hi, lo);
+}
+
+//////////////////////////////////////////////////
+// MIN
+//////////////////////////////////////////////////
+template <typename acc_T>
+static acc_T vvcmin(acc_T acc, vNx4short_t a);
+
+static MLI_FORCE_INLINE vNx4accshort_t
+vvcmin(vNx4accshort_t acc, vNx4short_t a) {
+    vNx2accshort_t hi = __vacc_hi(acc);
+    vNx2accshort_t lo = __vacc_lo(acc);
+    hi = vvcmin(hi, a.hi);
+    lo = vvcmin(lo, a.lo);
+    return __vacc_concat(hi, lo);
+}
 #endif /* ARC_VECTOR_EXT_H_ */

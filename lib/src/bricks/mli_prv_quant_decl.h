@@ -367,12 +367,18 @@ MLI_FORCE_INLINE out_T mli_prv_convert_fx16_sa8(
         const in_T in, const int16_t zero_point, const int scale);
 
 #if defined(__Xvec_width)
+template<>
 MLI_FORCE_INLINE vNx4short_t mli_prv_convert_sa8_fx16(
         const vNx4short_t in_val,
         const int16_t zero_point,
         const int scale);
-
+template<>
 MLI_FORCE_INLINE vNx4char_t mli_prv_convert_fx16_sa8(
+        const vNx4short_t in_val,
+        const int16_t zero_point,
+        const int scale);
+template<>
+MLI_FORCE_INLINE vNx4short_t mli_prv_convert_fx16_sa8(
         const vNx4short_t in_val,
         const int16_t zero_point,
         const int scale);

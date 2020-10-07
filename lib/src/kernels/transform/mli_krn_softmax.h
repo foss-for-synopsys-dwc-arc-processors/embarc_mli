@@ -25,7 +25,7 @@ namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
 /* TODO: fix ::vdsp::mli_krn_softmax_*_run when vpx version supported */
 using mli::krn::ref::mli_krn_softmax_fx_run;
-using mli::krn::ref::mli_krn_softmax_sa8_run;
+using mli::krn::vdsp::mli_krn_softmax_sa8_run;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
 using mli::krn::dsp::mli_krn_softmax_fx_run;

@@ -494,6 +494,11 @@ MLI_FORCE_INLINE vNx4short_t mli_math_cast_fx(vNx4int_t in_val) {
     return to_vNx4short_t(in_val);
 }
 
+template <>
+MLI_FORCE_INLINE vNx4char_t mli_math_cast_fx(vNx4int_t in_val) {
+    return to_vNx4char_t(mli_math_bound_range_fx(in_val, INT8_MIN, INT8_MAX));
+}
+
 template<>
 MLI_FORCE_INLINE vNx4short_t mli_math_cast_fx(vNx4short_t in_val, int shift_right) {
     /* Shift, round and Sat */
@@ -626,6 +631,19 @@ MLI_FORCE_INLINE vNx2short_t mli_math_acc_cast_fx(vNx2accint_t acc, int shift_ri
     accu_result.hi = to_vNint_t(vvconvert(__vacc_hi(acc), ctrlword));
 
     return to_vNx2short_t(accu_result);
+}
+
+template<>
+MLI_FORCE_INLINE vNx4int_t mli_math_acc_cast_fx(vNx4accint_t acc, int shift_right) {
+    int ctrlword = SAT|SIGNED|TARGET_SZ_32|SHIFT(shift_right);
+    vNx4int_t accu_result;
+    accu_result.lo.lo = to_vNint_t(vvconvert(__vacc_lo(acc.lo), ctrlword));
+    accu_result.lo.hi = to_vNint_t(vvconvert(__vacc_hi(acc.lo), ctrlword));
+
+    accu_result.hi.lo = to_vNint_t(vvconvert(__vacc_lo(acc.hi), ctrlword));
+    accu_result.hi.hi = to_vNint_t(vvconvert(__vacc_hi(acc.hi), ctrlword));
+
+    return accu_result;
 }
 
 // Addition/subtraction of two operands
@@ -964,6 +982,11 @@ constexpr int get_number_lanes() {
 template <typename T>
 MLI_FORCE_INLINE int get_number_lanes(T dummy) {
     return get_number_lanes<T>();
+}
+
+template<typename vec_T, typename pred_T>
+MLI_FORCE_INLINE vec_T mli_math_select_fx(pred_T predicate, vec_T L, vec_T R) {
+    return (vec_T) vvsel(predicate, L, R);
 }
 
 #endif // _VDSP_MLI_MATH_H_
