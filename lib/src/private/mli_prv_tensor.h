@@ -127,18 +127,20 @@ static MLI_FORCE_INLINE generic_tensor_private_t<T> mli_prv_get_generic_tensor(
     tensor.ptr = (T)in->data.mem.void_p;
     tensor.rank = rank;
 
-    for (int i = 0; i < rank; i++) {
-            tensor.shape[i] = in->shape[i];
-    }
+    if (rank) {
+        for (int i = 0; i < rank; i++) {
+                tensor.shape[i] = in->shape[i];
+        }
 
-    tensor.mem_stride[rank - 1] = in->mem_stride[rank - 1] != 0 ? in->mem_stride[rank - 1] : 1;
-    for (int i = rank - 2; i >= 0; i--) {
-        tensor.mem_stride[i] = in->mem_stride[i] != 0 ? in->mem_stride[i] : tensor.mem_stride[i+1] * in->shape[i+1];
-    }
+        tensor.mem_stride[rank - 1] = in->mem_stride[rank - 1] != 0 ? in->mem_stride[rank - 1] : 1;
+        for (int i = rank - 2; i >= 0; i--) {
+            tensor.mem_stride[i] = in->mem_stride[i] != 0 ? in->mem_stride[i] : tensor.mem_stride[i+1] * in->shape[i+1];
+        }
 
-    for (int i = rank; i < MLI_MAX_RANK; i++) {
-        tensor.shape[i] = 1;
-        tensor.mem_stride[i] = 0;
+        for (int i = rank; i < MLI_MAX_RANK; i++) {
+            tensor.shape[i] = 1;
+            tensor.mem_stride[i] = 0;
+        }
     }
 
     return tensor;

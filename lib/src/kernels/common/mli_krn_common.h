@@ -344,11 +344,11 @@ static MLI_FORCE_INLINE void lstm_cell_prepare_and_run_fx(
         //=======================================
 //      LOGICALY (NOT BITWISE) EQUAL TO THE NEXT:
 //      //Forget some old info
-//      eltwise_prepare_and_run_fx<io_T, ELTWISE_MUL>(&forget_gate, cell, cell);
+//      mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL>(&forget_gate, cell, cell);
 //      // Decide what new info we want to add to the mem cell
-//      eltwise_prepare_and_run_fx<io_T, ELTWISE_MUL>(&in_gate, &g_tsr, &new_cell_info);
+//      mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL>(&in_gate, &g_tsr, &new_cell_info);
 //      //Adding new info into cell
-//      eltwise_prepare_and_run_fx<io_T, ELTWISE_ADD>(cell, &new_cell_info, cell);
+//      mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_ADD>(cell, &new_cell_info, cell);
         for (int idx = 0; idx < lstm_out_elements; idx++) {
             mli_acc32_t new_val = mli_math_mul_fx<io_T, mli_acc32_t>(i_g[idx], g[idx]);
             new_val = mli_math_acc_ashift_fx(new_val, eltwise_ir_shift);
@@ -359,7 +359,7 @@ static MLI_FORCE_INLINE void lstm_cell_prepare_and_run_fx(
         // Step4: Calculate output: Activation + pointwise operation
         //===========================================================
         if (cfg->act == RNN_ACT_NONE) {
-            eltwise_prepare_and_run_fx<io_T, ELTWISE_MUL>(cell, &out_gate, &rnn_out);
+            mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL>(cell, &out_gate, &rnn_out);
         } else {             // Non - Linear activation
             if (sizeof(io_T)==sizeof(int8_t)) {
                 if (cfg->act == RNN_ACT_TANH)
@@ -373,7 +373,7 @@ static MLI_FORCE_INLINE void lstm_cell_prepare_and_run_fx(
                     mli_krn_sigm_fx16(cell, &rnn_out);
             }
 
-            eltwise_prepare_and_run_fx<io_T, ELTWISE_MUL>(&rnn_out, &out_gate, &rnn_out);
+            mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL>(&rnn_out, &out_gate, &rnn_out);
         }
 
         // Step 5: Update pointers and tensors for next batch

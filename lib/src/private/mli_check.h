@@ -270,21 +270,9 @@ mli_status mli_chk_softmax_sa8(const mli_tensor * in, const mli_softmax_cfg* cfg
 mli_status mli_chk_leaky_relu(const mli_tensor * in, const mli_tensor * slope_coeff, mli_tensor * out);
 mli_status mli_chk_leaky_relu_fx8(const mli_tensor * in, const mli_tensor * slope_coeff, mli_tensor * out);
 mli_status mli_chk_leaky_relu_fx16(const mli_tensor * in, const mli_tensor * slope_coeff, mli_tensor * out);
-mli_status mli_chk_eltwise_add(const mli_tensor * left, const mli_tensor * right, mli_tensor * out);
-mli_status mli_chk_eltwise_add_fx8(const mli_tensor * left, const mli_tensor * right, mli_tensor * out);
-mli_status mli_chk_eltwise_add_fx16(const mli_tensor * left, const mli_tensor * right, mli_tensor * out);
-mli_status mli_chk_eltwise_mul(const mli_tensor * left, const mli_tensor * right, mli_tensor * out);
-mli_status mli_chk_eltwise_mul_fx8(const mli_tensor * left, const mli_tensor * right, mli_tensor * out);
-mli_status mli_chk_eltwise_mul_fx16(const mli_tensor * left, const mli_tensor * right, mli_tensor * out);
-mli_status mli_chk_eltwise_sub(const mli_tensor * left, const mli_tensor * right, mli_tensor * out);
-mli_status mli_chk_eltwise_sub_fx8(const mli_tensor * left, const mli_tensor * right, mli_tensor * out);
-mli_status mli_chk_eltwise_sub_fx16(const mli_tensor * left, const mli_tensor * right, mli_tensor * out);
-mli_status mli_chk_eltwise_max(const mli_tensor * left, const mli_tensor * right, mli_tensor * out);
-mli_status mli_chk_eltwise_max_fx8(const mli_tensor * left, const mli_tensor * right, mli_tensor * out);
-mli_status mli_chk_eltwise_max_fx16(const mli_tensor * left, const mli_tensor * right, mli_tensor * out);
-mli_status mli_chk_eltwise_min(const mli_tensor * left, const mli_tensor * right, mli_tensor * out);
-mli_status mli_chk_eltwise_min_fx8(const mli_tensor * left, const mli_tensor * right, mli_tensor * out);
-mli_status mli_chk_eltwise_min_fx16(const mli_tensor * left, const mli_tensor * right, mli_tensor * out);
+mli_status mli_chk_eltwise_fx8(const mli_tensor * left, const mli_tensor * right, mli_tensor * out);
+mli_status mli_chk_eltwise_fx16(const mli_tensor * left, const mli_tensor * right, mli_tensor * out);
+mli_status mli_chk_eltwise_sa8(const mli_tensor * left, const mli_tensor * right, mli_tensor * out);
 
 mli_status mli_chk_basic_rnn_cell(
         const mli_tensor * in,
