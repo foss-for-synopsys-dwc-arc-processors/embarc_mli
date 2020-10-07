@@ -12,6 +12,7 @@
 
 #include "mli_config.h"
 #include "mli_types.h"
+#include "mli_prv_quant.h"
 
 namespace mli {
 typedef enum {
@@ -34,19 +35,23 @@ namespace krn {
 // REF
 ////////////////////////////////////////////////////////////////////////////////
 namespace ref {
-template <typename io_T, mli_eltwise_type func_type>
-static MLI_FORCE_INLINE void eltwise_prepare_and_run_fx(
+
+template <typename io_T, mli_eltwise_type func_type, bool convert = false>
+static MLI_FORCE_INLINE void eltwise_prepare_and_run(
         const mli_tensor *in1,
         const mli_tensor *in2,
         mli_tensor *out);
-template <typename io_T, mli_eltwise_type func_type>
-static MLI_FORCE_INLINE void eltwise_op_basic_fx(
-        const io_T* op1,
-        const io_T* op2,
-              io_T* out,
+
+template <typename io_T, mli_eltwise_type func_type, bool convert = false>
+static MLI_FORCE_INLINE void eltwise_op_basic(
+        const generic_tensor_private_t<MLI_PTR(io_T)> *in1,
+        const generic_tensor_private_t<MLI_PTR(io_T)> *in2,
+        generic_tensor_private_t<MLI_OUT_PTR(io_T)> *out,
         const int op1_size,
         const int op2_size,
-        const int mul_out_shift);
+        const int mul_out_shift,
+        const struct s8asym_quant_params *in_quant_params = nullptr,
+        const struct s8asym_quant_params *out_quant_params = nullptr);
 
 } // namespace ref
 
@@ -54,11 +59,17 @@ static MLI_FORCE_INLINE void eltwise_op_basic_fx(
 // DSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace dsp {
-template <typename io_T, mli_eltwise_type func_type>
-static MLI_FORCE_INLINE void eltwise_prepare_and_run_fx(
-        const mli_tensor *in1,
-        const mli_tensor *in2,
-        mli_tensor *out);
+
+template <typename io_T, mli_eltwise_type func_type, bool convert = false>
+static MLI_FORCE_INLINE void eltwise_op_basic(
+        const generic_tensor_private_t<MLI_PTR(io_T)> *in1,
+        const generic_tensor_private_t<MLI_PTR(io_T)> *in2,
+        generic_tensor_private_t<MLI_OUT_PTR(io_T)> *out,
+        const int op1_size,
+        const int op2_size,
+        const int mul_out_shift,
+        const struct s8asym_quant_params *in_quant_params = nullptr,
+        const struct s8asym_quant_params *out_quant_params = nullptr);
 
 } // namespace dsp
 
@@ -66,14 +77,17 @@ static MLI_FORCE_INLINE void eltwise_prepare_and_run_fx(
 // VDSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
-template <typename io_T, mli_eltwise_type func_type>
-static MLI_FORCE_INLINE void eltwise_op_basic_fx(
-        const io_T* op1,
-        const io_T* op2,
-              io_T* out,
+
+template <typename io_T, mli_eltwise_type func_type, bool convert = false>
+static MLI_FORCE_INLINE void eltwise_op_basic(
+        const generic_tensor_private_t<MLI_PTR(io_T)> *in1,
+        const generic_tensor_private_t<MLI_PTR(io_T)> *in2,
+        generic_tensor_private_t<MLI_OUT_PTR(io_T)> *out,
         const int op1_size,
         const int op2_size,
-        const int mul_out_shift);
+        const int mul_out_shift,
+        const struct s8asym_quant_params *in_quant_params = nullptr,
+        const struct s8asym_quant_params *out_quant_params = nullptr);
 
 } // namespace vdsp
 

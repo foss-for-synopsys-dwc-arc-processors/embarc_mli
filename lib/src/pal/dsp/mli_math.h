@@ -70,6 +70,11 @@ MLI_FORCE_INLINE int32_t mli_math_sat_fx(int32_t x, unsigned nbits) {
     return fx_sat_q31(x, nbits);
 }
 
+template <>
+MLI_FORCE_INLINE int16_t mli_math_sat_fx(int16_t x, unsigned nbits) {
+    return fx_sat_q15(x, nbits);
+}
+
 template <typename T, typename o_T>
 MLI_FORCE_INLINE o_T mli_math_norm_fx(T x) {
     o_T inp_size = sizeof(T) * 8;
@@ -121,6 +126,10 @@ template <> MLI_FORCE_INLINE int8_t mli_math_sub_fx(int8_t L, int8_t R) {
 
 template <> MLI_FORCE_INLINE int16_t mli_math_sub_fx(int16_t L, int16_t R) {
     return fx_sub_q15(L, R);   // not cast operands intentionally (rise compile warnings)
+}
+
+template <> MLI_FORCE_INLINE int32_t mli_math_sub_fx(int32_t L, int32_t R) {
+    return (int32_t)fx_sub_q31(L, R);
 }
 
 template <> MLI_FORCE_INLINE v2q15_t mli_math_sub_fx(v2q15_t L, v2q15_t R) {
@@ -189,6 +198,10 @@ template <> MLI_FORCE_INLINE mli_acc32_t mli_math_mul_fx_high(int32_t L, int32_t
     // this function takes the MSB part of the result. (L * R) >> 31
     // in optimized code check if mpyfr instruction is used here.
     return (mli_acc32_t)fx_q31_cast_rnd_a72(fx_a72_mpy_q31(L, R));
+}
+
+template <> MLI_FORCE_INLINE int16_t mli_math_mul_fx_high(int16_t L, int16_t R) {
+    return (int16_t)fx_q15_cast_rnd_a40(fx_a40_mpy_q15(L, R));
 }
 
 template <>
@@ -291,6 +304,10 @@ template <> MLI_FORCE_INLINE v2q15_t mli_math_acc_cast_fx(v2accum40_t acc, int s
     return fx_v2q15_cast_nf_asl_rnd_v2a40(acc, 16 - shift_right);
 }
 
+template <> MLI_FORCE_INLINE mli_acc32_t mli_math_acc_cast_fx(mli_acc32_t acc, int shift_right) {
+    return (int32_t) fx_asr_rnd_q31(acc, shift_right);
+}
+
 /*
 *   Vectorized version of fx_q7_cast_rnd_q15() with Q7 saturation after rounding
 */
@@ -333,6 +350,20 @@ MLI_FORCE_INLINE int16_t mli_math_asr_rnd_fx(int16_t x, int nbits) {
 template <>
 MLI_FORCE_INLINE int32_t mli_math_asr_rnd_fx(int32_t x, int nbits) {
     return fx_asr_rnd_q31(x, nbits);
+}
+
+// Arithmetic shift (right is default, left on the negative val)
+//========================================================================
+
+template <>
+MLI_FORCE_INLINE int8_t mli_math_ashift_right_fx(int8_t in_val, int shift_right) {
+    int16_t shifted_in_val = mli_math_asr_rnd_fx<int16_t>((int16_t)in_val, shift_right);
+    return (int8_t)mli_math_sat_fx<int16_t>(shifted_in_val, 8);
+}
+
+template <>
+MLI_FORCE_INLINE int16_t mli_math_ashift_right_fx(int16_t in_val, int shift_right) {
+    return mli_math_asr_rnd_fx<int16_t>(in_val, shift_right);
 }
 
 template <typename in_T, typename acc_T>
@@ -431,6 +462,13 @@ MLI_FORCE_INLINE int16_t mli_math_cast_fx(int64_t in_val, int shift_right) {
     int32_t temp = (int32_t)fx_asr_rnd_q63(in_val, shift_right);
     temp = fx_asl_q31(temp, 16);
     return (int16_t)fx_q15_cast_q31(temp);
+}
+
+template <>
+MLI_FORCE_INLINE int8_t mli_math_cast_fx(int64_t in_val, int shift_right) {
+    int64_t temp = (int64_t)fx_asr_rnd_q63((int64_t)in_val, shift_right);
+    temp = fx_asl_q63(temp, 56);
+    return (int8_t)fx_q7_cast_q63(temp);
 }
 
 template <>

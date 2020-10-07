@@ -735,6 +735,7 @@ mli_status mli_krn_softmax_fx8(const mli_tensor * in, const mli_softmax_cfg* cfg
  */
 mli_status mli_krn_eltwise_add_fx8(const mli_tensor * in1, const mli_tensor * in2, mli_tensor * out);
 mli_status mli_krn_eltwise_add_fx16(const mli_tensor * in1, const mli_tensor * in2, mli_tensor * out);
+mli_status mli_krn_eltwise_add_sa8(const mli_tensor * in1, const mli_tensor * in2, mli_tensor * out);
 
 /*
  * @brief Elementwise Subtraction
@@ -753,6 +754,7 @@ mli_status mli_krn_eltwise_add_fx16(const mli_tensor * in1, const mli_tensor * i
  */
 mli_status mli_krn_eltwise_sub_fx8(const mli_tensor * in1, const mli_tensor * in2, mli_tensor * out);
 mli_status mli_krn_eltwise_sub_fx16(const mli_tensor * in1, const mli_tensor * in2, mli_tensor * out);
+mli_status mli_krn_eltwise_sub_sa8(const mli_tensor * in1, const mli_tensor * in2, mli_tensor * out);
 
 /* @brief Elementwise Multiplication
  *
@@ -770,6 +772,7 @@ mli_status mli_krn_eltwise_sub_fx16(const mli_tensor * in1, const mli_tensor * i
  */
 mli_status mli_krn_eltwise_mul_fx8(const mli_tensor * in1, const mli_tensor * in2, mli_tensor * out);
 mli_status mli_krn_eltwise_mul_fx16(const mli_tensor * in1, const mli_tensor * in2, mli_tensor * out);
+mli_status mli_krn_eltwise_mul_sa8(const mli_tensor * in1, const mli_tensor * in2, mli_tensor * out);
 
 /* @brief Elementwise MAX/MIN
  *
@@ -787,8 +790,10 @@ mli_status mli_krn_eltwise_mul_fx16(const mli_tensor * in1, const mli_tensor * i
  */
 mli_status mli_krn_eltwise_min_fx8(const mli_tensor * in1, const mli_tensor * in2, mli_tensor * out);
 mli_status mli_krn_eltwise_min_fx16(const mli_tensor * in1, const mli_tensor * in2, mli_tensor * out);
+mli_status mli_krn_eltwise_min_sa8(const mli_tensor * in1, const mli_tensor * in2, mli_tensor * out);
 mli_status mli_krn_eltwise_max_fx8(const mli_tensor * in1, const mli_tensor * in2, mli_tensor * out);
 mli_status mli_krn_eltwise_max_fx16(const mli_tensor * in1, const mli_tensor * in2, mli_tensor * out);
+mli_status mli_krn_eltwise_max_sa8(const mli_tensor * in1, const mli_tensor * in2, mli_tensor * out);
 
 
 

@@ -17,9 +17,6 @@
 typedef int32_t mli_acc32_t;
 typedef int64_t mli_acc40_t;
 
-template <typename io_T>
-MLI_FORCE_INLINE io_T mli_math_ashift_right_fx(io_T in_val, int shift_right);
-
 template <typename T>
 MLI_FORCE_INLINE T mli_math_asl_fx(T x, int nbits);
 
@@ -267,6 +264,10 @@ MLI_FORCE_INLINE int16_t mli_math_acc_cast_fx(mli_acc32_t acc, int shift_right) 
     int32_t temp = (int32_t) mli_math_asr_rnd_fx<mli_acc32_t>(acc, shift_right);
     temp = mli_math_asl_fx<mli_acc32_t>(temp, 16);
     return (int16_t) mli_math_sat_fx<mli_acc32_t>(mli_math_asr_fx<mli_acc32_t>(temp, 16), 16);
+}
+
+template <> MLI_FORCE_INLINE mli_acc32_t mli_math_acc_cast_fx(mli_acc32_t acc, int shift_right) {
+    return (int32_t) mli_math_asr_rnd_fx<mli_acc32_t>(acc, shift_right);
 }
 
 // Cast value to output type (including accumulator type)

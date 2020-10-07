@@ -58,7 +58,7 @@ static MLI_FORCE_INLINE void eltwise_op_add_fx (
 }
 
 template <typename io_T, mli_eltwise_type func_type>
-static MLI_FORCE_INLINE void eltwise_op_basic_fx(
+static MLI_FORCE_INLINE void eltwise_op_basic(
         const io_T* op1,
         const io_T* op2,
               io_T* out,
@@ -72,7 +72,7 @@ static MLI_FORCE_INLINE void eltwise_op_basic_fx(
     if (func_type == ELTWISE_ADD) {
         mli::krn::vdsp::eltwise_op_add_fx(op1, op2, out, op1_size, op2_size);
     } else {
-        mli::krn::ref::eltwise_op_basic_fx<io_T, func_type>(op1, op2, out, op1_size, op2_size, mul_out_shift);
+        mli::krn::ref::eltwise_op_basic<io_T, func_type>(op1, op2, out, op1_size, op2_size, mul_out_shift);
     }
 }
 
