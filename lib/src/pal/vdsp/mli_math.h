@@ -377,7 +377,7 @@ MLI_FORCE_INLINE void *mli_math_cast_scalar_to_ptr_fx(in_T src) {
 //========================================================================
 template < typename io_T > 
 MLI_FORCE_INLINE bool mli_prv_less_than_1(io_T value, uint8_t frac_bits) {
-    if (frac_bits > sizeof(io_T) * 8 - 1)
+    if (frac_bits >= sizeof(io_T) * 8 - 1)
         return true;
 
     io_T unit = (io_T) 1 << frac_bits;
@@ -832,6 +832,11 @@ MLI_FORCE_INLINE vNx2accint_t mli_math_mul_fx(int16_t L, int16_t R) {
 
 template <>
 MLI_FORCE_INLINE vNx2accint_t mli_math_mul_fx(vNx2short_t L, vNx2short_t R) {
+    return vvcmpy(L, R);
+}
+
+template<>
+MLI_FORCE_INLINE vNx4accshort_t mli_math_mul_fx(vNx4char_t L, vNx4char_t R) {
     return vvcmpy(L, R);
 }
 

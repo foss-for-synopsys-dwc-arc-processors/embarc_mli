@@ -7,10 +7,10 @@
 *
 */
 
-#ifndef _MLI_KRN_RELU_H_
-#define _MLI_KRN_RELU_H_
+#ifndef _MLI_KRN_PRELU_H_
+#define _MLI_KRN_PRELU_H_
 
-#include "mli_krn_relu_decl.h"
+#include "mli_krn_prelu_decl.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Setting up namespace
@@ -23,13 +23,16 @@
 namespace mli {
 namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-using mli::krn::ref::mli_krn_relu_fx_run;
+using mli::krn::vdsp::mli_krn_scale_elem_v;
+using mli::krn::ref::mli_krn_prelu_fx_run;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-using mli::krn::ref::mli_krn_relu_fx_run;
+using mli::krn::dsp::mli_krn_scale_elem_v;
+using mli::krn::ref::mli_krn_prelu_fx_run;
 
 #else
-using mli::krn::ref::mli_krn_relu_fx_run;
+using mli::krn::ref::mli_krn_scale_elem_v;
+using mli::krn::ref::mli_krn_prelu_fx_run;
 
 #endif
 } // namespace krn
@@ -42,14 +45,14 @@ using mli::krn::ref::mli_krn_relu_fx_run;
 // included. Other variants are included based on capabilities. Implementations
 // below can depend on each other through declarations in *_decl.h.
 
-#include "impl/mli_krn_relu_ref.h"
+#include "impl/mli_krn_prelu_ref.h"
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-#include "impl/mli_krn_relu_vdsp.h"
+#include "impl/mli_krn_prelu_vdsp.h"
 #endif
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-#include "impl/mli_krn_relu_dsp.h"
+#include "impl/mli_krn_prelu_dsp.h"
 #endif
 
-#endif // _MLI_KRN_RELU_H_
+#endif // _MLI_KRN_PRELU_H_

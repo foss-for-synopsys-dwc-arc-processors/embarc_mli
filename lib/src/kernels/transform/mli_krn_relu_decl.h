@@ -46,10 +46,6 @@ namespace dsp {
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
 
-template <typename io_T>
-static MLI_FORCE_INLINE mli_status mli_krn_relu_fx_run(const mli_tensor *in, 
-        const mli_relu_cfg *cfg, mli_tensor *out); 
-
 } // namespace vdsp
 
 } // namespace krn

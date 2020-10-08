@@ -288,7 +288,7 @@ template <> MLI_FORCE_INLINE int16_t mli_math_acc_cast_fx(mli_acc32_t acc, int s
 }
 
 template <> MLI_FORCE_INLINE v2q15_t mli_math_acc_cast_fx(v2accum40_t acc, int shift_right) {
-    return fx_v2q15_cast_nf_asr_rnd_v2a40(acc, shift_right);
+    return fx_v2q15_cast_nf_asl_rnd_v2a40(acc, 16 - shift_right);
 }
 
 /*
@@ -315,7 +315,7 @@ template < typename in_T > MLI_FORCE_INLINE void *mli_math_cast_scalar_to_ptr_fx
 //========================================================================
 template < typename io_T > 
 static MLI_FORCE_INLINE bool mli_prv_less_than_1(io_T value, uint8_t frac_bits) {
-    if (frac_bits > sizeof(io_T) * 8 - 1)
+    if (frac_bits >= sizeof(io_T) * 8 - 1)
         return true;
 
     io_T unit = (io_T) 1 << frac_bits;

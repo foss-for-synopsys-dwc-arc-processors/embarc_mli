@@ -197,12 +197,12 @@ static MLI_FORCE_INLINE void normalizeTensor(MLI_PTR(io_T) orig_vec_out,
                 vec_out = orig_vec_out + POS(out_prv, pos0, pos1, pos2, 0);
                 if (out_prv->shape[3] & 1) {
                     v2accum40_t tmp_acc = mli_math_mul_fx<v2q15_t, v2accum40_t>(sum_recip, mli_prv_load_1_sample(vec_out));
-                    mli_prv_store_1_sample(vec_out, mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(tmp_acc,  -shift));
+                    mli_prv_store_1_sample(vec_out, mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(tmp_acc,  shift));
                     vec_out += 1;
                 }
                 for (int pos3 = 0; pos3 < out_prv->shape[3] >> 1; pos3++) {
                     v2accum40_t tmp_acc = mli_math_mul_fx<v2q15_t, v2accum40_t>(sum_recip, mli_prv_load_2_samples(vec_out));
-                    mli_prv_store_2_samples(vec_out, mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(tmp_acc, -shift));
+                    mli_prv_store_2_samples(vec_out, mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(tmp_acc, shift));
                     vec_out += 2;
                 }
             }
@@ -314,7 +314,7 @@ static mli_status mli_krn_softmax_fx_run(const mli_tensor *in, const mli_softmax
                 int sum_exp_overhead = kMaxFracBitsFx16 - sum_exp;
                 /* Normalize Output */
                 normalizeTensor<io_T>(vec_out, &out_prv, sum_recip, 
-                                      16 - (lut_frac_bits + sum_exp_overhead - out->el_params.fx.frac_bits));
+                                      lut_frac_bits + sum_exp_overhead - out->el_params.fx.frac_bits);
             }
         }
     }
@@ -396,7 +396,7 @@ static mli_status mli_krn_softmax_sa8_run(const mli_tensor *in, const mli_softma
                 /* 15 - sum_exp: sum_of_exps overhead */
                 int sum_exp_overhead = kMaxFracBitsFx16 - sum_exp;
 				/* Output Scale Shift Value */
-                int shift = 16 - (lut_frac_bits + sum_exp_overhead - out_params.shift);
+                int shift = lut_frac_bits + sum_exp_overhead - out_params.shift;
 
                 const MLI_PTR(int8_t) orig_vec_in = vec_in;
                 MLI_PTR(int8_t) orig_vec_out = vec_out;

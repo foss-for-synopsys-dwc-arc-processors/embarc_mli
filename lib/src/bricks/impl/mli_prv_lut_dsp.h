@@ -73,7 +73,7 @@ static MLI_FORCE_INLINE v2q15_t activation_lut_two_elem_interpolate(
     v2q15_t next = mli_prv_init_v(lut_data[lut_idx[0] + 1], lut_data[lut_idx[1] + 1]);
     v2q15_t diff = mli_math_sub_fx(res, next);
     res = mli_math_sub_fx(res, mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(
-                            mli_math_mul_fx<v2q15_t, v2accum40_t>(diff, frac), shift_in - 16));
+                            mli_math_mul_fx<v2q15_t, v2accum40_t>(diff, frac), shift_in));
     if (convert_output) {
         MLI_ASSERT(out_params->scale == 1);
         res = mli_prv_convert_fx16_sa8<v2q15_t, v2q15_t>(
