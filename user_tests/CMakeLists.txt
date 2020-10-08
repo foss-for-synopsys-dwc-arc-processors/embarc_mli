@@ -6,19 +6,18 @@
 # the LICENSE file in the root directory of this source tree.
 #
 
+project(mli_user_tests)
+
 include(../cmake/settings.cmake)
 
-file(GLOB test_components_src
-    test_components/*.cc
-    test_components/*.c
-    ../examples/auxiliary/*.cc
-    ../examples/auxiliary/*.c
-)
+#======================================================
+# Set User Tests specific flags and options:
+#======================================================
+#   TEST_COMPILE_OPTIONS - test specific compilation options
+#
+# TODO: Extra options regarding assertions inside tests and CRC checking 
+# need to be taken into account
 
-set(test_components_inc
-    test_components
-    ../examples/auxiliary
-)
 
 if (ARC)
 set(TEST_COMPILE_OPTIONS
@@ -35,23 +34,49 @@ set(TEST_COMPILE_OPTIONS
     -Hdense_prologue
 )
 else()
-set(EXAMPLE_FLAGS)
+set(TEST_COMPILE_OPTIONS)
 endif()
+
+#======================================================
+# Test Components as an object library target
+#======================================================
+add_library(test_components_obj OBJECT
+    test_components/test_infra.cc
+    test_components/test_quantizer.cc
+    test_components/test_report.cc
+    ../examples/auxiliary/tensor_transform.c
+    ../examples/auxiliary/tests_aux.c
+    ../examples/auxiliary/idx_file.c
+)
+
+target_compile_options(test_components_obj PRIVATE
+    ${MLI_PLATFORM_COMPILE_OPTIONS}
+    ${TEST_COMPILE_OPTIONS}
+)
+
+set(test_components_inc
+    test_components
+    ../examples/auxiliary
+)
+
+get_property(mli_include_dirs TARGET mli PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
+
+target_include_directories(test_components_obj PUBLIC ${test_components_inc})
+target_include_directories(test_components_obj PRIVATE ${mli_include_dirs})
 
 #======================================================
 # Convolution 2D Tests
 #======================================================
 add_executable(test_mli_krn_conv2d
     tests/mli_krn_conv2d/tests_mli_krn_conv2d.cc
-    ${test_components_src}
 )
 
 target_include_directories(test_mli_krn_conv2d PRIVATE
     tests/mli_krn_conv2d
-    ${test_components_inc}
 )
 
 target_link_libraries(test_mli_krn_conv2d PUBLIC mli)
+target_link_libraries(test_mli_krn_conv2d PUBLIC test_components_obj)
 
 target_compile_options(test_mli_krn_conv2d PRIVATE
     ${MLI_PLATFORM_COMPILE_OPTIONS}
@@ -81,15 +106,14 @@ set_target_properties(test_mli_krn_conv2d
 #======================================================
 add_executable(test_mli_krn_softmax
     tests/mli_krn_softmax/tests_mli_krn_softmax.cc
-    ${test_components_src}
 )
 
 target_include_directories(test_mli_krn_softmax PRIVATE
     tests/mli_krn_softmax
-    ${test_components_inc}
 )
 
 target_link_libraries(test_mli_krn_softmax PUBLIC mli)
+target_link_libraries(test_mli_krn_softmax PUBLIC test_components_obj)
 
 target_compile_options(test_mli_krn_softmax PRIVATE
     ${MLI_PLATFORM_COMPILE_OPTIONS}

@@ -178,7 +178,7 @@ bool quality_metrics::calculate_metrics(const mli_tensor& pred_tsr, const tensor
             measure_err_vfloat(ref_tensor.data.mem.pf32, pred_values.get(), elem_num, &metrics_quant) != TEST_PASSED)
         return false;
 
-    // Originally, quantization noise were reflected as ratio against total noise
+    // Originally, quantization noise was reflected as ratio against total noise
     // (how many times the total noise is greater than the quantization noise)
     //noise_to_quant_ratio_ = metrics_pred.noise_vec_length / std::max(metrics_quant.noise_vec_length, eps);
 

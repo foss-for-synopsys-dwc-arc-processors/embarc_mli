@@ -85,12 +85,12 @@ class tensor_quantizer {
     // memory requirements don't met (kNotEnoughMemory), or tensor is ok (kOk)
     static tensor_state validate_tensor(const mli_tensor& tsr);
 
-    // Quantize float data to destonation tensor according to tensor's internal format
+    // Quantize float data to destination tensor according to tensor's internal format
     // Note: This function should be replaced by MLI API transform kernel when it will be done
     //
     // params:
     // [IN] src - pointer to float array that keeps input data to be quantized. src array must 
-    //            contains exactly the same number of values (defined by src_size) as required 
+    //            contain exactly the same number of values (defined by src_size) as required 
     //            to populate dst tensor (defined by shape)
     // [IN] src_size - uint32_t number of values in src array
     // [IN] dst - mli_tensor to keep result of quantization. Tensor structure must be fully valid, 

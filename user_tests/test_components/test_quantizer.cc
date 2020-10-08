@@ -87,7 +87,7 @@ const mli_tensor tensor_quantizer::get_source_float_tensor() const {
     if (!is_valid_)
         return mli_tensor{ 0 };
 
-    assert(validate_tensor(source_tsr_) == kBad);
+    assert(validate_tensor(source_tsr_) != kBad);
     mli_tensor ret_tsr = source_tsr_;
     ret_tsr.data.capacity = sizeof(source_data_[0]) * mli_hlp_count_elem_num(&ret_tsr, 0);
     uint32_t cur_memstr = 1;
@@ -114,7 +114,7 @@ mli_tensor tensor_quantizer::get_quantized_tensor(mli_data_container memory) con
     assert(validate_tensor(source_tsr_) != kBad);
     mli_tensor ret_tsr = get_not_quantized_tensor(memory);
     if (ret_tsr.data.mem.pi8 != nullptr) {
-        // Note: it's better to replace it with API function whent time will come
+        // Note: it's better to replace it with API function when time will come
         tensor_state fp_to_fx_stat;
         fp_to_fx_stat = quantize_float_data(source_data_, mli_hlp_count_elem_num(&ret_tsr, 0), &ret_tsr);
         assert(fp_to_fx_stat == kOk);
@@ -188,7 +188,7 @@ tensor_quantizer::tensor_state tensor_quantizer::validate_tensor(const mli_tenso
         return kBad;
     }
 
-    // Next need to define whether memory is properly assignet for data 
+    // Next need to define whether memory is properly assigned to data 
     // and additional fields like scales/zero_points.
     // If they are broken - tensor is considered as incomplete and requires proper memory assignment
     if (tsr.data.mem.pi16 == nullptr || get_required_data_capacity(tsr) < tsr.data.capacity)
@@ -209,7 +209,7 @@ tensor_quantizer::tensor_state tensor_quantizer::validate_tensor(const mli_tenso
     return kOk;
 }
 
-// Quantize float data to destonation tensor according to it's format
+// Quantize float data to destination tensor according to it's format
 // Instantiation of quantization routines depending on type
 // Note: This function should be replaced by MLI API transform kernel when it will be done
 //====================================================================
@@ -288,14 +288,20 @@ tensor_quantizer::tensor_state tensor_quantizer::dequantize_tensor_data(const ml
 // Calculate capacity requirement of data field of the tensor taking memstride into account
 //=================================================================================
 uint32_t tensor_quantizer::get_required_data_capacity(const mli_tensor& tsr) {
-    assert(validate_tensor(tsr) != kBad);
+    assert(mli_hlp_tensor_element_size(&tsr) != 0);
+    assert(tsr.rank > 0);
+    assert(tsr.rank <= MLI_MAX_RANK);
+
     uint32_t ret_val = 0;
     if (tsr.mem_stride[0] == 0) {
         ret_val = mli_hlp_tensor_element_size(&tsr) * mli_hlp_count_elem_num(&tsr, 0);
     } else {
         // Method that implies removing unused tail
-        for (int idx = 0; idx < tsr.rank; ++idx)
-            ret_val += tsr.mem_stride[idx] * (tsr.shape[idx] - 1);
+        for (int dim = static_cast<int>(tsr.rank - 1); dim >= 0; --dim) {
+            assert(tsr.mem_stride[dim] > 0);
+            assert(tsr.shape[dim] > 0);
+            ret_val += tsr.mem_stride[dim] * (tsr.shape[dim] - 1);
+        }
         ret_val += 1;
         ret_val *= mli_hlp_tensor_element_size(&tsr);
 
@@ -430,7 +436,7 @@ bool tensor_quantizer::spread_memory(mli_tensor* tsr, const mli_data_container* 
     return success;
 }
 
-// Quantize float data to destonation tensor according to it's format
+// Quantize float data to destination tensor according to it's format
 // Main template of quantization routine
 //====================================================================
 template <mli_element_type dst_el_type>
@@ -456,7 +462,7 @@ void tensor_quantizer::quantize_float_data_routine(const float* src, uint32_t sr
     int dst_strides[MLI_MAX_RANK] = { 0 };
     int src_strides[MLI_MAX_RANK] = { 0 };
     int dst_extended_shape[MLI_MAX_RANK] = { 0 };
-    int extended_shape_idx = 3;
+    int extended_shape_idx = MLI_MAX_RANK - 1;
     int shape_idx = dst->rank - 1;
     int src_memstride = 1;
     for (; extended_shape_idx >= 0; --extended_shape_idx, --shape_idx) {
@@ -554,7 +560,7 @@ void tensor_quantizer::dequantize_tensor_data_routine(const mli_tensor* src, flo
     int dst_strides[MLI_MAX_RANK] = { 0 };
     int src_strides[MLI_MAX_RANK] = { 0 };
     int src_extended_shape[MLI_MAX_RANK] = { 0 };
-    int extended_shape_idx = 3;
+    int extended_shape_idx = MLI_MAX_RANK - 1;
     int shape_idx = src->rank - 1;
     int dst_memstride = 1;
     for (; extended_shape_idx >= 0; --extended_shape_idx, --shape_idx) {
