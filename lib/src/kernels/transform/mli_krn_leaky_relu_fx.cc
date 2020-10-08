@@ -14,6 +14,9 @@
 #include "mli_prv_dsp.h"
 #include "mli_prv_load_store.h"
 #include "mli_prv_tensor.h"
+#include "mli_krn_prelu.h"
+
+using mli::krn::mli_krn_prelu_fx_run;
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,109 +27,23 @@ extern "C" {
 mli_status mli_krn_leaky_relu_fx8(const mli_tensor *in, const mli_tensor *slope_coeff, mli_tensor *out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_leaky_relu_fx8(in, slope_coeff, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    
+    mli_prelu_cfg cfg;
+    /* Leaky RELU is Parameteric RELU with axis = -1 to work per tensor */
+    cfg.axis = -1;
 
-    mli_prv_fx_init_dsp_ctrl();
-    mli_prv_copy_tensor_format(in, out);
-
-    const MLI_PTR(int8_t) in_data = (MLI_PTR(int8_t))in->data.mem.void_p;
-    MLI_OUT_PTR(int8_t) out_data = (MLI_OUT_PTR(int8_t))out->data.mem.void_p;
-    int el_num = (int)mli_prv_count_elem_num(in);
-    int shift = mli_prv_calc_shift(in, slope_coeff, out);
-    v2q15_t x;
-
-    // scalar value is stored in data field or is pointed by data field
-    v2q15_t scale = fx_replic_v2q15(
-            (slope_coeff->rank == 0) ? (int8_t)(intptr_t)(slope_coeff->data.mem.void_p) : ((int8_t *)slope_coeff->data.mem.void_p)[0]);
-
-    if (mli_prv_less_than_1(scale[0], slope_coeff->el_params.fx.frac_bits)) {
-        if (el_num & 1) {
-            x = mli_prv_load_1_sample(in_data);
-            x = fx_max_v2q15(
-                    x, fx_sat_v2q15_n(fx_v2q15_cast_nf_asl_rnd_v2a40(fx_v2a40_mpy_nf_v2q15(x, scale), 16 - shift), 8));
-            mli_prv_store_1_sample(out_data, x);
-            in_data++;
-            out_data++;
-        }
-        for (int i = 0; i < (el_num >> 1); i++) {
-            x = mli_prv_load_2_samples(in_data);
-            x = fx_max_v2q15(
-                    x, fx_sat_v2q15_n(fx_v2q15_cast_nf_asl_rnd_v2a40(fx_v2a40_mpy_nf_v2q15(x, scale), 16 - shift), 8));
-            mli_prv_store_2_samples(out_data, x);
-            in_data += 2;
-            out_data += 2;
-        }
-    } else {
-        if (el_num & 1) {
-            x = mli_prv_load_1_sample(in_data);
-            x = fx_min_v2q15(
-                    x, fx_sat_v2q15_n(fx_v2q15_cast_nf_asl_rnd_v2a40(fx_v2a40_mpy_nf_v2q15(x, scale), 16 - shift), 8));
-            mli_prv_store_1_sample(out_data, x);
-            in_data++;
-            out_data++;
-        }
-        for (int i = 0; i < (el_num >> 1); i++) {
-            x = mli_prv_load_2_samples(in_data);
-            x = fx_min_v2q15(
-                    x, fx_sat_v2q15_n(fx_v2q15_cast_nf_asl_rnd_v2a40(fx_v2a40_mpy_nf_v2q15(x, scale), 16 - shift), 8));
-            mli_prv_store_2_samples(out_data, x);
-            in_data += 2;
-            out_data += 2;
-        }
-    }
-
-    return MLI_STATUS_OK;
+    return mli_krn_prelu_fx_run<int8_t>(in, slope_coeff, &cfg, out);
 }
 
 mli_status mli_krn_leaky_relu_fx16(const mli_tensor *in, const mli_tensor *slope_coeff, mli_tensor *out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_leaky_relu_fx16(in, slope_coeff, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
 
-    mli_prv_fx_init_dsp_ctrl();
-    mli_prv_copy_tensor_format(in, out);
+    mli_prelu_cfg cfg;
+    /* Leaky RELU is Parameteric RELU with axis = -1 to work per tensor */
+    cfg.axis = -1;
 
-    const MLI_PTR(int16_t) in_data = (MLI_PTR(int16_t))in->data.mem.void_p;
-    MLI_OUT_PTR(int16_t) out_data = (MLI_OUT_PTR(int16_t))out->data.mem.void_p;
-    int el_num = (int)mli_prv_count_elem_num(in);
-    int shift = mli_prv_calc_shift(in, slope_coeff, out);
-    v2q15_t x;
-
-    // scalar value is stored in data field or is pointed by data field
-    v2q15_t scale = fx_replic_v2q15(
-            (slope_coeff->rank == 0) ? (int16_t)(intptr_t)(slope_coeff->data.mem.void_p) : ((int16_t *)slope_coeff->data.mem.void_p)[0]);
-
-    if (mli_prv_less_than_1(scale[0], slope_coeff->el_params.fx.frac_bits)) {
-        if (el_num & 1) {
-            x = mli_prv_load_1_sample(in_data);
-            x = fx_max_v2q15(x, fx_v2q15_cast_nf_asl_rnd_v2a40(fx_v2a40_mpy_nf_v2q15(x, scale), 16 - shift));
-            mli_prv_store_1_sample(out_data, x);
-            in_data++;
-            out_data++;
-        }
-        for (int i = 0; i < (el_num >> 1); i++) {
-            x = mli_prv_load_2_samples(in_data);
-            x = fx_max_v2q15(x, fx_v2q15_cast_nf_asl_rnd_v2a40(fx_v2a40_mpy_nf_v2q15(x, scale), 16 - shift));
-            mli_prv_store_2_samples(out_data, x);
-            in_data += 2;
-            out_data += 2;
-        }
-    } else {
-        if (el_num & 1) {
-            x = mli_prv_load_1_sample(in_data);
-            x = fx_min_v2q15(x, fx_v2q15_cast_nf_asl_rnd_v2a40(fx_v2a40_mpy_nf_v2q15(x, scale), 16 - shift));
-            mli_prv_store_1_sample(out_data, x);
-            in_data++;
-            out_data++;
-        }
-        for (int i = 0; i < (el_num >> 1); i++) {
-            x = mli_prv_load_2_samples(in_data);
-            x = fx_min_v2q15(x, fx_v2q15_cast_nf_asl_rnd_v2a40(fx_v2a40_mpy_nf_v2q15(x, scale), 16 - shift));
-            mli_prv_store_2_samples(out_data, x);
-            in_data += 2;
-            out_data += 2;
-        }
-    }
-
-    return MLI_STATUS_OK;
+    return mli_krn_prelu_fx_run<int16_t>(in, slope_coeff, &cfg, out);
 }
 #pragma MLI_CODE_SECTION_END()
 

@@ -220,6 +220,17 @@ MLI_FORCE_INLINE void *mli_math_cast_scalar_to_ptr_fx(in_T src) {
     return static_cast < void *>((intptr_t *) out_upcast);
 }
 
+// Comparators
+//========================================================================
+template < typename io_T > 
+MLI_FORCE_INLINE bool mli_prv_less_than_1(io_T value, uint8_t frac_bits) {
+    if (frac_bits >= sizeof(io_T) * 8 - 1)
+        return true;
+
+    io_T unit = (io_T) 1 << frac_bits;
+    return (value < unit);
+}
+
 // Accumulator shift
 //========================================================================
 

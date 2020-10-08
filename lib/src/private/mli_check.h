@@ -258,6 +258,7 @@ mli_status mli_chk_fully_connected_sa8_sa8_sa32(
 mli_status mli_chk_relu(const mli_tensor * in, const mli_relu_cfg * cfg, mli_tensor * out);
 mli_status mli_chk_relu_fx8(const mli_tensor * in, const mli_relu_cfg * cfg, mli_tensor * out);
 mli_status mli_chk_relu_fx16(const mli_tensor * in, const mli_relu_cfg * cfg, mli_tensor * out);
+mli_status mli_chk_relu_sa8(const mli_tensor * in, const mli_relu_cfg * cfg, mli_tensor * out);
 
 mli_status mli_chk_basic_activation(const mli_tensor * in, mli_tensor * out);
 mli_status mli_chk_basic_activation_fx8(const mli_tensor * in, mli_tensor * out);

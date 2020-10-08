@@ -1,5 +1,5 @@
 /*
-* Copyright 2020-2020, Synopsys, Inc.
+* Copyright 2020, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -28,7 +28,7 @@ namespace ref {
 // Unified Generic Convolution 2D template
 //========================================================
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
-static void convolution2D(
+MLI_FORCE_INLINE void convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -131,7 +131,7 @@ static void convolution2D(
 // Unified Depthwise convolution 2D template
 //========================================================
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
-static void depthwise_convolution2D(
+MLI_FORCE_INLINE void depthwise_convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -223,7 +223,7 @@ static void depthwise_convolution2D(
 //====================================================================================
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T,
           mli_layout_type data_layout, mli_conv_type conv_type>
-void conv2d_prepare_and_run(
+MLI_FORCE_INLINE void conv2d_prepare_and_run(
         const mli_tensor *in,
         const mli_tensor *weights,
         const mli_tensor *bias,
@@ -245,7 +245,7 @@ void conv2d_prepare_and_run(
 
     const MLI_PTR(b_T) bs = (MLI_PTR(b_T))(bias->data.mem.void_p);
 
-    const auto in_prv = (data_layout == LAYOUT_HWC || data_layout == LAYOUT_HWCN || data_layout == LAYOUT_1HWN) ?
+    const auto in_prv = (data_layout == LAYOUT_HWC || data_layout == LAYOUT_HWCN || data_layout == LAYOUT_HW1N) ?
             mli_prv_get_tensor_hwc<MLI_PTR(io_T)>(in)
             : mli_prv_get_tensor_chw<MLI_PTR(io_T)>(in);
 
@@ -257,8 +257,8 @@ void conv2d_prepare_and_run(
     } else if (data_layout == LAYOUT_HWCN) {
         weights_prv = mli_prv_get_conv2d_weights_tensor_hwcn<MLI_PTR(w_T)>(weights, 0, fix_kernel_width, fix_kernel_height);
         out_ch = weights_prv.out_ch;
-    } else if ( data_layout == LAYOUT_1HWN) {
-        weights_prv = mli_prv_get_conv2d_weights_tensor_1hwn<MLI_PTR(w_T)>(weights, fix_kernel_width, fix_kernel_height);
+    } else if ( data_layout == LAYOUT_HW1N) {
+        weights_prv = mli_prv_get_conv2d_weights_tensor_hw1n<MLI_PTR(w_T)>(weights, fix_kernel_width, fix_kernel_height);
         out_ch = weights_prv.out_ch;
     } else {
         // LAYOUT_CHW
@@ -276,7 +276,7 @@ void conv2d_prepare_and_run(
     const int out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - effective_kernel_height + 1,
                                     stride_height);
     out->rank = in->rank;
-    if (data_layout == LAYOUT_HWC || data_layout == LAYOUT_HWCN || data_layout == LAYOUT_1HWN) {
+    if (data_layout == LAYOUT_HWC || data_layout == LAYOUT_HWCN || data_layout == LAYOUT_HW1N) {
         out->shape[FMAP_H_DIM_HWC] = out_height;
         out->shape[FMAP_W_DIM_HWC] = out_width;
         out->shape[FMAP_C_DIM_HWC] = out_ch;
@@ -285,7 +285,7 @@ void conv2d_prepare_and_run(
         out->shape[FMAP_W_DIM_CHW] = out_width;
         out->shape[FMAP_C_DIM_CHW] = out_ch;
     }
-    const auto out_prv = (data_layout == LAYOUT_HWC || data_layout == LAYOUT_HWCN || data_layout == LAYOUT_1HWN) ?
+    const auto out_prv = (data_layout == LAYOUT_HWC || data_layout == LAYOUT_HWCN || data_layout == LAYOUT_HW1N) ?
             mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(io_T)>(out)
             : mli_prv_get_tensor_chw<MLI_CONV_OUT_PTR(io_T)>(out);
 

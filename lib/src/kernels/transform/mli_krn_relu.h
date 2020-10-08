@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2020, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -7,10 +7,10 @@
 *
 */
 
-#ifndef _MLI_KRN_SOFTMAX_H_
-#define _MLI_KRN_SOFTMAX_H_
+#ifndef _MLI_KRN_RELU_H_
+#define _MLI_KRN_RELU_H_
 
-#include "mli_krn_softmax_decl.h"
+#include "mli_krn_relu_decl.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Setting up namespace
@@ -23,17 +23,13 @@
 namespace mli {
 namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-/* TODO: fix ::vdsp::mli_krn_softmax_*_run when vpx version supported */
-using mli::krn::ref::mli_krn_softmax_fx_run;
-using mli::krn::ref::mli_krn_softmax_sa8_run;
+using mli::krn::ref::mli_krn_relu_fx_run;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-using mli::krn::dsp::mli_krn_softmax_fx_run;
-using mli::krn::dsp::mli_krn_softmax_sa8_run;
+using mli::krn::ref::mli_krn_relu_fx_run;
 
 #else
-using mli::krn::ref::mli_krn_softmax_fx_run;
-using mli::krn::ref::mli_krn_softmax_sa8_run;
+using mli::krn::ref::mli_krn_relu_fx_run;
 
 #endif
 } // namespace krn
@@ -46,14 +42,14 @@ using mli::krn::ref::mli_krn_softmax_sa8_run;
 // included. Other variants are included based on capabilities. Implementations
 // below can depend on each other through declarations in *_decl.h.
 
-#include "impl/mli_krn_softmax_ref.h"
+#include "impl/mli_krn_relu_ref.h"
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-#include "impl/mli_krn_softmax_vdsp.h"
+#include "impl/mli_krn_relu_vdsp.h"
 #endif
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-#include "impl/mli_krn_softmax_dsp.h"
+#include "impl/mli_krn_relu_dsp.h"
 #endif
 
-#endif // _MLI_KRN_SOFTMAX_H_
+#endif // _MLI_KRN_RELU_H_

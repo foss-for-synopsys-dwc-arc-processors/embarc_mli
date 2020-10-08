@@ -225,6 +225,16 @@ MLI_FORCE_INLINE v2q15_t mli_prv_convert_fx16_sa8(
     return fx_create_v2q15(res_1, res_2);
 }
 
+template<>
+MLI_FORCE_INLINE v2q15_t mli_prv_convert_fx16_sa8(
+    const v2accum40_t in,
+    const int16_t zero_point,
+    const int scale) {
+
+    v2q15_t x = mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(in, scale) + zero_point;
+    return fx_sat_v2q15_n(x, 8);
+}
+
 } // namespace dsp
 } // namespace krn
 } // namespace mli

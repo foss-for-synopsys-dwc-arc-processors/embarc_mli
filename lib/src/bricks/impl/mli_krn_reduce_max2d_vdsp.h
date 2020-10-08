@@ -28,12 +28,12 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc_v(
 		const int row_mem_stride,
 		const bool fixed_size) {
 
-	auto curr_max = mli_prv_load_n_samples(in);
+	auto curr_max = mli_prv_load_1vec(in);
 
 	for (int row = 0; row < height; row++) {
 		for (int clmn = 0; clmn < width; clmn++) {
 			curr_max = mli_math_max_fx(curr_max,
-					mli_prv_load_n_samples(&in[(row * row_mem_stride) + (clmn * col_mem_stride)]));
+					mli_prv_load_1vec(&in[(row * row_mem_stride) + (clmn * col_mem_stride)]));
 		}
 	}
 
@@ -51,12 +51,12 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc(
 		const int row_mem_stride,
 		const bool fixed_size) {
 
-	auto curr_max = mli_prv_load_n_samples(in);
+	auto curr_max = mli_prv_load_1vec(in);
 
 	for (int row = 0; row < height; row++) {
 		for (int clmn = 0; clmn < width; clmn++) {
 			curr_max = mli_math_max_fx(curr_max,
-					mli_prv_load_n_samples(&in[(row * row_mem_stride) + (clmn * col_mem_stride)]));
+					mli_prv_load_1vec(&in[(row * row_mem_stride) + (clmn * col_mem_stride)]));
 		}
 	}
 

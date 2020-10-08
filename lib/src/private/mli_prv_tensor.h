@@ -120,24 +120,15 @@ static MLI_FORCE_INLINE tensor_private_t<T> mli_prv_get_tensor_hwc(
 
 template <typename T>
 static MLI_FORCE_INLINE generic_tensor_private_t<T> mli_prv_get_generic_tensor(
-        const mli_tensor *in,
-        const int axis = -1) {
+        const mli_tensor *in) {
     generic_tensor_private_t<T> tensor;
     int rank = in->rank;
 
     tensor.ptr = (T)in->data.mem.void_p;
+    tensor.rank = rank;
 
-    /* Convert the input tensor to a private tensor that contains only the axis in case of per axis,
-     * and the complete tensor in case of per tensor.
-     */
     for (int i = 0; i < rank; i++) {
-        if (axis < 0) {
             tensor.shape[i] = in->shape[i];
-        } else if (i == axis) {
-            tensor.shape[i] = in->shape[i];
-        } else {
-            tensor.shape[i] = 1;
-        }
     }
 
     tensor.mem_stride[rank - 1] = in->mem_stride[rank - 1] != 0 ? in->mem_stride[rank - 1] : 1;
@@ -147,10 +138,82 @@ static MLI_FORCE_INLINE generic_tensor_private_t<T> mli_prv_get_generic_tensor(
 
     for (int i = rank; i < MLI_MAX_RANK; i++) {
         tensor.shape[i] = 1;
-        tensor.mem_stride[i] = 1;
+        tensor.mem_stride[i] = 0;
     }
 
     return tensor;
+}
+
+template <typename T>
+static MLI_FORCE_INLINE generic_tensor_private_t<T> mli_prv_get_axis_tensor(
+        generic_tensor_private_t<T> *in,
+        const int axis) {
+    generic_tensor_private_t<T> axis_prv_tensor;
+
+    MLI_ASSERT(axis < in->rank);
+
+    axis_prv_tensor = *in;
+
+    /* Convert input tensor to a tensor that has the Axis parameter only in case of axis.
+     * and the whole tensor in case of no axis.
+     */
+    if( axis > -1) {
+        for (int i = 0; i < in->rank; i++) {
+            if (i != axis) {
+                axis_prv_tensor.shape[i] = 1;
+            }
+        }
+    }
+
+    return axis_prv_tensor;
+}
+
+template <typename T>
+static MLI_FORCE_INLINE generic_tensor_private_t<T> mli_prv_get_non_axis_tensor(
+        generic_tensor_private_t<T> *in,
+        const int axis) {
+    generic_tensor_private_t<T> non_axis_prv_tensor;
+
+    MLI_ASSERT(axis < in->rank);
+
+    for (int i = 0; i < MLI_MAX_RANK - 1; i++) {
+        non_axis_prv_tensor.shape[i] = 1;
+        non_axis_prv_tensor.rank = 0;
+    }
+    
+    if (axis > -1) {
+        /* Convert input tensor to a tensor that has the Non Axis parameters only in case of axis. */
+        non_axis_prv_tensor.rank = in->rank - 1;
+        for (int all_dim_idx = 0, not_axis_dim_idx = 0; all_dim_idx < MLI_MAX_RANK; all_dim_idx++) {
+            if (all_dim_idx != axis) {
+                non_axis_prv_tensor.shape[not_axis_dim_idx] = (all_dim_idx < (int)in->rank) ? 
+                                                               in->shape[all_dim_idx] : 1;
+                non_axis_prv_tensor.mem_stride[not_axis_dim_idx] = in->mem_stride[all_dim_idx];
+                not_axis_dim_idx++;
+            }
+        }
+
+    }
+    return non_axis_prv_tensor;
+}
+
+/* To move the inner most dim with mem_stride = 1 to be at shape MLI_MAX_RANK - 1
+ * so we can vectorize the inner most loop for kernels with mem_strides.
+ */
+template <typename T>
+static MLI_FORCE_INLINE void mli_prv_reorder_generic_tensor(
+        generic_tensor_private_t<T> *in_prv) {
+    
+    int i = MLI_MAX_RANK - 1;
+    for (int j = in_prv->rank - 1 ; j >= 0; i--, j--) {
+        in_prv->shape[i]  = in_prv->shape[j];
+        in_prv->mem_stride[i] = in_prv->mem_stride[j];
+    }
+
+    for(; i >= 0; i--) {
+        in_prv->shape[i]  = 1;
+        in_prv->mem_stride[i] = 0;
+    }
 }
 
 // To prevent a compiler name mangling issue, type_is_xy should be true if and only if T has __xy.
@@ -247,18 +310,18 @@ static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_we
 
 // To prevent a compiler name mangling issue, type_is_xy should be true if and only if T has __xy.
 template <typename T, bool type_is_xy=false>
-static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_1hwn(
+static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_hw1n(
         const mli_tensor *weights,
         const int fix_width = 0,
         const int fix_height = 0) {
-    int in_ch        = (int)weights->shape[KRNL_DW_D_DIM_HWC];
-    int height       = (int)weights->shape[KRNL_DW_H_DIM_HWC];
-    int width        = (int)weights->shape[KRNL_DW_W_DIM_HWC];
-    const int out_ch = (int)weights->shape[KRNL_DW_C_DIM_HWC];
-    int in_ch_mem_stride  = weights->mem_stride[KRNL_DW_D_DIM_HWC];
-    int row_mem_stride    = weights->mem_stride[KRNL_DW_H_DIM_HWC];
-    int col_mem_stride    = weights->mem_stride[KRNL_DW_W_DIM_HWC];
-    int out_ch_mem_stride = weights->mem_stride[KRNL_DW_C_DIM_HWC];
+    int in_ch        = (int)weights->shape[KRNL_DW_D_DIM_HW1N];
+    int height       = (int)weights->shape[KRNL_DW_H_DIM_HW1N];
+    int width        = (int)weights->shape[KRNL_DW_W_DIM_HW1N];
+    const int out_ch = (int)weights->shape[KRNL_DW_N_DIM_HW1N];
+    int in_ch_mem_stride  = weights->mem_stride[KRNL_DW_D_DIM_HW1N];
+    int row_mem_stride    = weights->mem_stride[KRNL_DW_H_DIM_HW1N];
+    int col_mem_stride    = weights->mem_stride[KRNL_DW_W_DIM_HW1N];
+    int out_ch_mem_stride = weights->mem_stride[KRNL_DW_N_DIM_HW1N];
 
     MLI_CHECK_AND_FIX(in_ch, 1);
 
@@ -485,11 +548,11 @@ mli_prv_get_relu_min_max (const mli_relu_cfg * cfg, const mli_tensor * out) {
 
     switch (cfg->type) {
     case MLI_RELU_GEN:
-        val_limit.min = (int16_t) zero;
+        val_limit.min = (int16_t) MAX(zero, min_val);
         val_limit.max = (int16_t) max_val;
         break;
     case MLI_RELU_6:
-        val_limit.min = (int16_t) zero;
+        val_limit.min = (int16_t) MAX(zero, min_val);
         val_limit.max = (int16_t) MIN (six, max_val);
         break;
     case MLI_RELU_1:

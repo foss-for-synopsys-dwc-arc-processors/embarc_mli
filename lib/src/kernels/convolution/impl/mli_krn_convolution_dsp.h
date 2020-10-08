@@ -1,5 +1,5 @@
 /*
-* Copyright 2020-2020, Synopsys, Inc.
+* Copyright 2020, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -27,7 +27,7 @@ namespace dsp {
 // Depthwise convolution 2D template
 //========================================================
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static MLI_FORCE_INLINE void depthwise_convolution2D_hwcn_nopad(
+MLI_FORCE_INLINE void depthwise_convolution2D_hwcn_nopad(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
@@ -172,7 +172,7 @@ static MLI_FORCE_INLINE void depthwise_convolution2D_hwcn_nopad(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
+MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
@@ -329,7 +329,7 @@ static MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static MLI_FORCE_INLINE void depthwise_convolution2D_hwcn_nopad(
+MLI_FORCE_INLINE void depthwise_convolution2D_hwcn_nopad(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
@@ -352,7 +352,7 @@ static MLI_FORCE_INLINE void depthwise_convolution2D_hwcn_nopad(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
+MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
@@ -376,7 +376,7 @@ static MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
-static MLI_FORCE_INLINE void depthwise_convolution2D(
+MLI_FORCE_INLINE void depthwise_convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,

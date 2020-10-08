@@ -28,12 +28,9 @@ static MLI_FORCE_INLINE acc_T dotprod1D_v(
         const int vals,
         const int in_step,
         const int krn_step) {
-    if (get_number_lanes<acc_T>() == 1) {
-        // For vector length of 1, the non vectorized verions of dotprod can be used.
-        return mli::krn::dotprod1D(in, krn, accu, vals, in_step, krn_step);
-    }
+
     for (int idx = 0; idx < vals; idx++) {
-        accu = mli_math_mac_fx(accu, mli_prv_load_n_samples(krn), *in);
+        accu = mli_prv_mac_load_v_s(accu, krn, in);
         in += in_step;
         krn += krn_step;
     }
@@ -55,7 +52,7 @@ static MLI_FORCE_INLINE acc_T dotprod2D_vv(
     kern_row_step -= width * kern_col_step;
     for (int row = 0; row < height; row++) {
         for (int clmn = 0; clmn < width; clmn++) {
-            accu = mli_math_mac_fx(accu, mli_prv_load_n_samples(in), mli_prv_load_n_samples(krn));
+            accu = mli_prv_mac_load_v_v(accu, krn, in);
             in += in_col_step;
             krn += kern_col_step;
         }
@@ -92,7 +89,7 @@ static MLI_FORCE_INLINE acc_T dotprod3D_v (
         for (int row = 0; row < height; row++) {
 #pragma clang loop unroll(full)
             for (int clmn = 0; clmn < width; clmn++) {
-                accu = mli_math_mac_fx(accu, mli_prv_load_n_samples(krn), *in);
+                accu = mli_prv_mac_load_v_s(accu, krn, in);
                 in += in_col_step;
                 krn += kern_col_step;
             }

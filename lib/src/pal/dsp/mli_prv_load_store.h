@@ -38,6 +38,11 @@ static MLI_FORCE_INLINE v2q15_t mli_prv_load_2_samples (const MLI_PTR (int16_t) 
     return *(MLI_PTR (v2q15_t)) in;
 }
 
+template <typename in_T>
+static MLI_FORCE_INLINE v2q15_t mli_prv_load_1vec (in_T __restrict in) {
+    return mli_prv_load_2_samples(in);
+}
+
 static MLI_FORCE_INLINE v4q15_t mli_prv_load_4_samples (const MLI_PTR (int16_t) __restrict in) {
     return *(MLI_PTR (v4q15_t)) in;
 }
@@ -80,6 +85,20 @@ static MLI_FORCE_INLINE void mli_prv_store_1_sample (MLI_OUT_PTR (int16_t) __res
     *(MLI_OUT_PTR (q15_t)) out = data[0];
 }
 
+template <typename out_T>
+static MLI_FORCE_INLINE void mli_prv_store_n_samples(out_T __restrict out, v2q15_t data, int predicate) { 
+    MLI_ASSERT(predicate <= 2);
+    if (predicate == 1) {
+        mli_prv_store_1_sample(out, data);
+    } else if(predicate == 2) {
+        mli_prv_store_2_samples(out, data);
+    }
+}
+
+template <typename out_T>
+static MLI_FORCE_INLINE void mli_prv_store_n_samples(out_T __restrict out, v2q15_t data) {
+    mli_prv_store_2_samples(out, data);
+}
 
 #pragma clang diagnostic pop
 

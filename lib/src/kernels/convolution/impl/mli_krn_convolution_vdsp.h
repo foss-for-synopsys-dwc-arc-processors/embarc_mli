@@ -1,5 +1,5 @@
 /*
-* Copyright 2020-2020, Synopsys, Inc.
+* Copyright 2020, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -28,7 +28,7 @@ namespace vdsp {
 // Convolution 2D without padding
 //========================================================
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
-static void convolution2D_nopad(
+MLI_FORCE_INLINE void convolution2D_nopad(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -118,7 +118,7 @@ static void convolution2D_nopad(
 // Convolution 2D with padding
 //========================================================
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
-static void convolution2D_pad(
+MLI_FORCE_INLINE void convolution2D_pad(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -215,7 +215,7 @@ static void convolution2D_pad(
 // Convolution 2D
 //========================================================
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
-static void convolution2D(
+MLI_FORCE_INLINE void convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -229,7 +229,8 @@ static void convolution2D(
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right) {
 
-    MLI_ASSERT(quant_params.weights_offset == 0); /* this optimized implementation assumes no zero offset for weights */
+    MLI_ASSERT(quant_params_get_weigths_zeropoint(&quant_params) == 0); /* this optimized implementation assumes no zero offset for weights */
+
     // Phase 1: Process central part (without border effects - padding free)
     //=======================================================================
     rect_t perception_area_nopad;
@@ -291,57 +292,8 @@ static void convolution2D(
     }
 }
 
-// temporary call the reference implementation for the template variants that are not yet supported by the above function
-template <>
-void convolution2D<int16_t, int16_t, int16_t, mli_acc40_t, fx_quant_specific_params>(
-        const tensor_private_t<MLI_PTR(int16_t)> &in,
-        const conv2d_weights_tensor_private_t<MLI_PTR(int16_t)> &weights,
-        const MLI_PTR(int16_t)  __restrict biases,
-        const tensor_private_t<MLI_CONV_OUT_PTR(int16_t)> &out,
-        const rect_t &perception_area,
-        fx_quant_specific_params quant_params,
-        const int16_t val_min_limit,
-        const int16_t val_max_limit,
-        const int stride_height, const int stride_width,
-        const int dilation_height, const int dilation_width,
-        const int padding_top, const int padding_left,
-        const int padding_bot, const int padding_right) {
-
-    mli::krn::ref::convolution2D<int16_t, int16_t, int16_t, mli_acc40_t, fx_quant_specific_params>(
-                    in, weights, biases, out, perception_area, quant_params,
-                    val_min_limit, val_max_limit,
-                    stride_height, stride_width,
-                    dilation_height, dilation_width,
-                    padding_top, padding_left,
-                    padding_bot, padding_right);
-}
-
-template <>
-void convolution2D<int16_t, int8_t, int8_t, mli_acc32_t, fx_quant_specific_params>(
-        const tensor_private_t<MLI_PTR(int16_t)> &in,
-        const conv2d_weights_tensor_private_t<MLI_PTR(int8_t)> &weights,
-        const MLI_PTR(int8_t)  __restrict biases,
-        const tensor_private_t<MLI_CONV_OUT_PTR(int16_t)> &out,
-        const rect_t &perception_area,
-        fx_quant_specific_params quant_params,
-        const int16_t val_min_limit,
-        const int16_t val_max_limit,
-        const int stride_height, const int stride_width,
-        const int dilation_height, const int dilation_width,
-        const int padding_top, const int padding_left,
-        const int padding_bot, const int padding_right) {
-
-    mli::krn::ref::convolution2D<int16_t, int8_t, int8_t, mli_acc32_t, fx_quant_specific_params>(
-                    in, weights, biases, out, perception_area, quant_params,
-                    val_min_limit, val_max_limit,
-                    stride_height, stride_width,
-                    dilation_height, dilation_width,
-                    padding_top, padding_left,
-                    padding_bot, padding_right);
-}
-
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
-static void depthwise_convolution2D_nopad(
+MLI_FORCE_INLINE void depthwise_convolution2D_nopad(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -359,7 +311,7 @@ static void depthwise_convolution2D_nopad(
     const int clmn_begin = perception_area.clmn_beg;
     const int clmn_end = perception_area.clmn_end;
 
-    MLI_ASSERT(quant_params.weights_offset == 0); /* this optimized implementation assumes no zero offset for weights */
+    MLI_ASSERT(quant_params_get_weigths_zeropoint(&quant_params) == 0); /* this optimized implementation assumes no zero offset for weights */
 
     for (int in_ch_idx = 0; in_ch_idx < in.ch; in_ch_idx++) {
         const int out_ch_idx = in_ch_idx;
@@ -410,7 +362,7 @@ static void depthwise_convolution2D_nopad(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
-static void depthwise_convolution2D_pad(
+MLI_FORCE_INLINE void depthwise_convolution2D_pad(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -428,7 +380,7 @@ static void depthwise_convolution2D_pad(
     const int clmn_begin = perception_area.clmn_beg;
     const int clmn_end = perception_area.clmn_end;
 
-    MLI_ASSERT(quant_params.weights_offset == 0); /* this optimized implementation assumes no zero offset for weights */
+    MLI_ASSERT(quant_params_get_weigths_zeropoint(&quant_params) == 0); /* this optimized implementation assumes no zero offset for weights */
 
     for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
         for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
@@ -487,7 +439,7 @@ static void depthwise_convolution2D_pad(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
-static void depthwise_convolution2D(
+MLI_FORCE_INLINE void depthwise_convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,
@@ -501,7 +453,7 @@ static void depthwise_convolution2D(
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right) {
 
-    MLI_ASSERT(quant_params.weights_offset == 0); /* this optimized implementation assumes no zero offset for weights */
+    MLI_ASSERT(quant_params_get_weigths_zeropoint(&quant_params) == 0); /* this optimized implementation assumes no zero offset for weights */
     // Phase 1: Process central part (without border effects - padding free)
     //=======================================================================
     rect_t perception_area_nopad;
@@ -563,54 +515,6 @@ static void depthwise_convolution2D(
     }
 }
 
-// temporary call the reference implementation for the template variants that are not yet supported by the above function
-template <>
-void depthwise_convolution2D<int16_t, int16_t, int16_t, mli_acc40_t, fx_quant_specific_params>(
-        const tensor_private_t<MLI_PTR(int16_t)> &in,
-        const conv2d_weights_tensor_private_t<MLI_PTR(int16_t)> &weights,
-        const MLI_PTR(int16_t)  __restrict biases,
-        const tensor_private_t<MLI_CONV_OUT_PTR(int16_t)> &out,
-        const rect_t &perception_area,
-        fx_quant_specific_params quant_params,
-        const int16_t val_min_limit,
-        const int16_t val_max_limit,
-        const int stride_height, const int stride_width,
-        const int dilation_height, const int dilation_width,
-        const int padding_top, const int padding_left,
-        const int padding_bot, const int padding_right) {
-
-    mli::krn::ref::depthwise_convolution2D<int16_t, int16_t, int16_t, mli_acc40_t, fx_quant_specific_params>(
-                    in, weights, biases, out, perception_area, quant_params,
-                    val_min_limit, val_max_limit,
-                    stride_height, stride_width,
-                    dilation_height, dilation_width,
-                    padding_top, padding_left,
-                    padding_bot, padding_right);
-}
-
-template <>
-void depthwise_convolution2D<int16_t, int8_t, int8_t, mli_acc32_t, fx_quant_specific_params>(
-        const tensor_private_t<MLI_PTR(int16_t)> &in,
-        const conv2d_weights_tensor_private_t<MLI_PTR(int8_t)> &weights,
-        const MLI_PTR(int8_t)  __restrict biases,
-        const tensor_private_t<MLI_CONV_OUT_PTR(int16_t)> &out,
-        const rect_t &perception_area,
-        fx_quant_specific_params quant_params,
-        const int16_t val_min_limit,
-        const int16_t val_max_limit,
-        const int stride_height, const int stride_width,
-        const int dilation_height, const int dilation_width,
-        const int padding_top, const int padding_left,
-        const int padding_bot, const int padding_right) {
-
-    mli::krn::ref::depthwise_convolution2D<int16_t, int8_t, int8_t, mli_acc32_t, fx_quant_specific_params>(
-                    in, weights, biases, out, perception_area, quant_params,
-                    val_min_limit, val_max_limit,
-                    stride_height, stride_width,
-                    dilation_height, dilation_width,
-                    padding_top, padding_left,
-                    padding_bot, padding_right);
-}
 #pragma MLI_CODE_SECTION_END()
 } // namespace vdsp
 } // namespace krn

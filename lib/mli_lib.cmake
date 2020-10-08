@@ -13,10 +13,10 @@ if (_MLI_LIB_CMAKE_LOADED)
 endif()
 set(_MLI_LIB_CMAKE_LOADED TRUE)
 
-function(get_path_to_mli_lib_cmake MLI_LIB_CMAKE_DIR)
-    set(${MLI_LIB_CMAKE_DIR} ${CMAKE_CURRENT_FUNCTION_LIST_DIR} PARENT_SCOPE)
-endfunction()
-get_path_to_mli_lib_cmake(MLI_LIB_CMAKE_DIR)
+if (NOT DEFINED MLI_LIB_HOME_DIR)
+    message(FATAL_ERROR "Please define MLI_LIB_HOME_DIR")
+endif()
+set(MLI_LIB_CMAKE_DIR ${MLI_LIB_HOME_DIR}/lib)
 
 include(${MLI_LIB_CMAKE_DIR}/../cmake/settings.cmake)
 
@@ -50,6 +50,8 @@ else()
     )
     set(MLI_LIB_SOURCE_FILES
         ${temp}
+        ${MLI_LIB_CMAKE_DIR}/src/kernels/transform/mli_krn_relu_fx.cc
+        ${MLI_LIB_CMAKE_DIR}/src/kernels/transform/mli_krn_leaky_relu_fx.cc
         ${MLI_LIB_CMAKE_DIR}/src/kernels/transform/mli_krn_sigm_fx.cc
         ${MLI_LIB_CMAKE_DIR}/src/kernels/transform/mli_krn_tanh_fx.cc
         ${MLI_LIB_CMAKE_DIR}/src/kernels/transform/mli_krn_softmax_fx.cc
@@ -98,9 +100,34 @@ else()
     )
 endif()
 
-if ((DEFINED MLI_BUILD_REFERENCE) AND (MLI_BUILD_REFERENCE STREQUAL "ON"))
+if (DEFINED MLI_BUILD_REFERENCE)
+    set(choices
+        ON
+        OFF
+    )
+    if (NOT MLI_BUILD_REFERENCE IN_LIST choices)
+        message(FATAL_ERROR "invalid MLI_BUILD_REFERENCE ${MLI_BUILD_REFERENCE}")
+    endif()
+    if (MLI_BUILD_REFERENCE STREQUAL "ON")
+        list(APPEND MLI_LIB_PRIVATE_COMPILE_DEFINITIONS
+            MLI_BUILD_REFERENCE
+        )
+    endif()
+endif()
+
+if (DEFINED MLI_DEBUG_MODE)
+    set(choices
+        DBG_MODE_RELEASE
+        DBG_MODE_RET_CODES
+        DBG_MODE_ASSERT
+        DBG_MODE_DEBUG
+        DBG_MODE_FULL
+    )
+    if (NOT MLI_DEBUG_MODE IN_LIST choices)
+        message(FATAL_ERROR "invalid MLI_DEBUG_MODE ${MLI_DEBUG_MODE}")
+    endif()
     list(APPEND MLI_LIB_PRIVATE_COMPILE_DEFINITIONS
-        -DMLI_BUILD_REFERENCE
+        MLI_DEBUG_MODE=${MLI_DEBUG_MODE}
     )
 endif()
 
@@ -143,13 +170,4 @@ elseif (${MLI_PLATFORM} STREQUAL EM_HS)
     else()
         message(FATAL_ERROR "rounding mode ${ROUND_MODE} is not supported")
     endif()
-endif()
-
-if (NOT DEFINED MLI_BUILD_REFERENCE)
-    set(MLI_BUILD_REFERENCE OFF)
-endif()
-if (${MLI_BUILD_REFERENCE} STREQUAL ON)
-    list(APPEND MLI_LIB_PRIVATE_COMPILE_DEFINITIONS
-        MLI_BUILD_REFERENCE
-    )
 endif()

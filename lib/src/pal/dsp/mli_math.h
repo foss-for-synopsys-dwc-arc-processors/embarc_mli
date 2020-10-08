@@ -31,10 +31,6 @@ typedef accum40_t mli_acc40_t;
 typedef int32_t   mli_acc32_t;
 //typedef signed char v2i8_t __attribute__((__vector_size__(2)));
 
-typedef accum40_t mli_acc40_t;
-typedef int32_t   mli_acc32_t;
-//typedef signed char v2i8_t __attribute__((__vector_size__(2)));
-
 //=========================================================================
 //
 // Definitions
@@ -133,22 +129,46 @@ template <> MLI_FORCE_INLINE v2q15_t mli_math_sub_fx(v2q15_t L, v2q15_t R) {
 
 // Maximum of two fx operands
 //========================================================================
-template < typename io_T > MLI_FORCE_INLINE io_T mli_math_max_fx(io_T L, io_T R) {
+template < typename io_T > 
+MLI_FORCE_INLINE io_T mli_math_max_fx(io_T L, io_T R) {
     return MAX(L, R);
 }
 
-template <> MLI_FORCE_INLINE v2q15_t mli_math_max_fx(v2q15_t L, v2q15_t R) {
+template <typename l_T, typename r_T>
+MLI_FORCE_INLINE l_T mli_math_max_fx(l_T L, r_T R) {
+    return MAX(L, R);
+}
+
+template <> 
+MLI_FORCE_INLINE v2q15_t mli_math_max_fx(v2q15_t L, v2q15_t R) {
     return fx_max_v2q15(L, R);
+}
+
+template <typename l_T, typename r_T> 
+MLI_FORCE_INLINE v2q15_t mli_math_max_fx(v2q15_t L, r_T R) {
+    return fx_max_v2q15(L, fx_replic_v2q15(R));
 }
 
 // Minimum of two fx operands
 //========================================================================
-template < typename io_T > MLI_FORCE_INLINE io_T mli_math_min_fx(io_T L, io_T R) {
+template < typename io_T > 
+MLI_FORCE_INLINE io_T mli_math_min_fx(io_T L, io_T R) {
     return MIN(L, R);
 }
 
-template <> MLI_FORCE_INLINE v2q15_t mli_math_min_fx(v2q15_t L, v2q15_t R) {
+template <typename l_T, typename r_T>
+MLI_FORCE_INLINE l_T mli_math_min_fx(l_T L, r_T R) {
+    return (L < R) ? L : R;
+}
+
+template <> 
+MLI_FORCE_INLINE v2q15_t mli_math_min_fx(v2q15_t L, v2q15_t R) {
     return fx_min_v2q15(L, R);
+}
+
+template <typename l_T, typename r_T> 
+MLI_FORCE_INLINE v2q15_t mli_math_min_fx(v2q15_t L, r_T R) {
+    return fx_min_v2q15(L, fx_replic_v2q15(R));
 }
 
 // Multiply two operands
@@ -218,6 +238,10 @@ template <> MLI_FORCE_INLINE mli_acc40_t mli_math_mac_fx(mli_acc40_t acc, int8_t
     return fx_a40_mac_nf_q15(acc, (int16_t)L, (int16_t)R);
 }
 
+static MLI_FORCE_INLINE mli_acc40_t mli_math_mac_fx(mli_acc40_t acc, v2q15_t in, v2q15_t k) {
+    return fx_a40_dmac_v2q15(acc, in, k);
+}
+
 static MLI_FORCE_INLINE void mli_math_mac_fx_vec2(__v2i32_t * accu, v2q15_t in, v2q15_t k) { //mli_math_mac_fx_vec2 , acc by value
     *accu += __builtin_convertvector(in, __v2i32_t) * __builtin_convertvector(k, __v2i32_t);
 }
@@ -264,7 +288,7 @@ template <> MLI_FORCE_INLINE int16_t mli_math_acc_cast_fx(mli_acc32_t acc, int s
 }
 
 template <> MLI_FORCE_INLINE v2q15_t mli_math_acc_cast_fx(v2accum40_t acc, int shift_right) {
-    return fx_v2q15_cast_nf_asr_rnd_v2a40(acc, shift_right);
+    return fx_v2q15_cast_nf_asl_rnd_v2a40(acc, 16 - shift_right);
 }
 
 /*
@@ -291,7 +315,7 @@ template < typename in_T > MLI_FORCE_INLINE void *mli_math_cast_scalar_to_ptr_fx
 //========================================================================
 template < typename io_T > 
 static MLI_FORCE_INLINE bool mli_prv_less_than_1(io_T value, uint8_t frac_bits) {
-    if (frac_bits > sizeof(io_T) * 8 - 1)
+    if (frac_bits >= sizeof(io_T) * 8 - 1)
         return true;
 
     io_T unit = (io_T) 1 << frac_bits;
@@ -455,6 +479,13 @@ MLI_FORCE_INLINE int get_number_lanes() {
        || std::is_same<T, uint64_t>::value) {
         lanes = 1;
     }
+
+    if (  std::is_same<T, v2q15_t>::value
+       || std::is_same<T, v2accum32_t>::value
+       || std::is_same<T, v2accum40_t>::value) {
+        lanes = 2;
+    }
+
     MLI_ASSERT(lanes > 0);
     return lanes;
 }

@@ -50,16 +50,16 @@ static MLI_FORCE_INLINE out_T activation_lut_one_elem_interpolate(
         const in_T in,
         const mli_lut *lut,
         int8_t in_frac_bits,
-        const struct s8asym_quant_params *in_params,
-        struct s8asym_quant_params *out_params);
+        const struct s8asym_quant_params *in_params = nullptr,
+        struct s8asym_quant_params *out_params = nullptr);
 
 template <typename in_T, typename out_T, bool convert_input, bool convert_output>
 static MLI_FORCE_INLINE out_T activation_lut_one_elem_no_interpolate(
         const in_T in,
         const mli_lut *lut,
         int8_t in_frac_bits,
-        const struct s8asym_quant_params *in_params,
-        struct s8asym_quant_params *out_params);
+        const struct s8asym_quant_params *in_params = nullptr,
+        struct s8asym_quant_params *out_params = nullptr);
 
 } // namespace ref
 
@@ -75,6 +75,25 @@ static void activation_lut(
         int8_t in_frac_bits,
         const struct s8asym_quant_params *in_params  = nullptr,
         struct s8asym_quant_params *out_params = nullptr);
+
+#if !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
+template <typename out_T, bool convert_input, bool convert_output>
+static MLI_FORCE_INLINE v2q15_t activation_lut_two_elem_interpolate(
+        const v2q15_t in,
+        const mli_lut *lut,
+        int8_t in_frac_bits,
+        const struct s8asym_quant_params *in_params = nullptr,
+        struct s8asym_quant_params *out_params = nullptr);
+
+template <typename out_T, bool convert_input, bool convert_output>
+static MLI_FORCE_INLINE v2q15_t activation_lut_two_elem_no_interpolate(
+        const v2q15_t in,
+        const mli_lut *lut,
+        int8_t in_frac_bits,
+        const struct s8asym_quant_params *in_params = nullptr,
+        struct s8asym_quant_params *out_params = nullptr);
+#endif
+
 } // namespace dsp
 
 ////////////////////////////////////////////////////////////////////////////////
