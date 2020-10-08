@@ -7,8 +7,8 @@
 *
 */
 
-#ifndef _MLI_USER_TESTS_TEST_QUANTIZER_H_
-#define _MLI_USER_TESTS_TEST_QUANTIZER_H_
+#ifndef _MLI_USER_TESTS_TEST_TENSOR_QUANTIZER_H_
+#define _MLI_USER_TESTS_TEST_TENSOR_QUANTIZER_H_
 
 #include <stdint.h>
 
@@ -149,4 +149,4 @@ class tensor_quantizer {
 } // namespace tst
 } // namespace mli
 
-#endif //_MLI_USER_TESTS_TEST_QUANTIZER_H_
+#endif //_MLI_USER_TESTS_TEST_TENSOR_QUANTIZER_H_

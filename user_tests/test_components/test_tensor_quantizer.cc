@@ -7,7 +7,7 @@
 *
 */
 
-#include "test_quantizer.h"
+#include "test_tensor_quantizer.h"
 
 // Standard asserts should be intentionally turned-on by defenition of TEST_DEBUG.
 #if !defined(TEST_DEBUG)
@@ -17,13 +17,8 @@
 #include <assert.h>
 
 #include <algorithm>
-#include <limits>
 #include <memory>
 #include <type_traits>
-
-#include "tensor_transform.h"
-#include "tests_aux.h"
-
 
 
 namespace mli {

@@ -41,8 +41,10 @@ endif()
 # Test Components as an object library target
 #======================================================
 add_library(test_components_obj OBJECT
-    test_components/test_infra.cc
-    test_components/test_quantizer.cc
+    test_components/test_crc32_calc.cc
+    test_components/test_memory_manager.cc
+    test_components/test_quality_metrics.cc
+    test_components/test_tensor_quantizer.cc
     test_components/test_report.cc
     ../examples/auxiliary/tensor_transform.c
     ../examples/auxiliary/tests_aux.c

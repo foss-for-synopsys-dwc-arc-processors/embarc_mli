@@ -10,7 +10,7 @@
 #include <stdint.h>
 
 #include "mli_types.h"
-#include "test_quantizer.h"
+#include "test_tensor_quantizer.h"
 
 using mli::tst::tensor_quantizer;
 

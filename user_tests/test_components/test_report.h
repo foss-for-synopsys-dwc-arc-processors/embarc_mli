@@ -11,7 +11,8 @@
 #define _MLI_USER_TESTS_TEST_REPORT_H_
 
 #include "mli_api.h"
-#include "test_infra.h"
+#include "test_crc32_calc.h"
+#include "test_quality_metrics.h"
 
 namespace mli {
 namespace tst {

@@ -12,9 +12,11 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "test_infra.h"
+#include "test_crc32_calc.h"
+#include "test_memory_manager.h"
+#include "test_quality_metrics.h"
 #include "mli_types.h"
-#include "test_quantizer.h"
+#include "test_tensor_quantizer.h"
 #include "test_report.h"
 
 #include "vectors_mli_krn_softmax.inc"
