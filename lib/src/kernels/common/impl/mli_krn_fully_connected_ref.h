@@ -59,17 +59,27 @@ MLI_FORCE_INLINE void inner_product(
     //      b_r             - bias_additive
     //                        (must be of the same type as accumulator, that may require bias re-quantization)
     //============================================
+    // in FC we iterate over all elements as it linear array for this reason inner_increment == 1 and 
+    // equal for input and wights tensor during output point calculation
+    const int inner_increment = 1;
+
+    // Also we look at input kernel as linear array height and ch lenghts == 1
+    const int ch_len = 1;
+    const int height_len = 1;
+
     acc_T other_additives = mli_math_mul_fx<io_T, acc_T>(0, 0);
-    other_additives  = mli::krn::in_additive(in, other_additives, &quant_params, in_elements, 1, 1, 1);
+    other_additives  = mli::krn::in_additive(in, other_additives, &quant_params, in_elements, height_len,
+            inner_increment, inner_increment);
     other_additives  = mli::krn::zp_additive(&quant_params, other_additives, in_elements);
     
+
     for (int o_idx = 0; o_idx < out_elements; o_idx++) {
         mli::krn::adjust_quant_params(&quant_params, o_idx);
         acc_T accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
-        accu = dotprod1D(in, &weights[o_idx], accu, in_elements, 
-                         1, w_ch_out_mem_stride);
-        accu = mli::krn::weights_additive(&weights[o_idx], accu, &quant_params,
-                                in_elements, 1, 1, w_ch_out_mem_stride, 1, 1);
+        accu = dotprod1D(in, weights, accu, in_elements, 
+                         inner_increment, inner_increment);
+        accu = mli::krn::weights_additive(weights, accu, &quant_params,
+                                in_elements, height_len, ch_len, w_ch_out_mem_stride, inner_increment, inner_increment);
         accu = mli_math_add_fx(accu, other_additives);
         accu = mli::krn::bias_additive(&biases[o_idx], accu, &quant_params);
         
@@ -78,6 +88,7 @@ MLI_FORCE_INLINE void inner_product(
         out_val = MIN(out_val, val_max_limit);
         out_val = MAX(out_val, val_min_limit);
         out[o_idx] = out_val;
+        weights += w_ch_out_mem_stride;
     }
 }
 
@@ -98,7 +109,7 @@ MLI_FORCE_INLINE void fully_connected_prepare_and_run(
     const MLI_PTR(b_T) b_ptr = (MLI_PTR(b_T))(bias->data.mem.void_p);
     MLI_CONV_OUT_PTR(io_T) out_ptr = (MLI_CONV_OUT_PTR(io_T))(out->data.mem.void_p);
 
-    const int ch_out = weights->shape[1];
+    const int ch_out = weights->shape[0];
     const int in_sz = mli_prv_count_elem_num(in);
 
     out->el_type = in->el_type;
@@ -114,13 +125,14 @@ MLI_FORCE_INLINE void fully_connected_prepare_and_run(
    
    // Define memory stride
     const int w_ch_out_mem_stride_from_tensor = weights->mem_stride[0];
-    const int w_ch_out_mem_stride = (w_ch_out_mem_stride_from_tensor != 0) ?
+    const int w_ch_out_mem_stride = w_ch_out_mem_stride_from_tensor ?
             w_ch_out_mem_stride_from_tensor : ch_out;
 
     // Run basic calculation
     //=======================================================================
     mli::krn::inner_product<io_T, w_T, b_T, acc_T, quant_T>(
-            in_ptr, w_ptr, b_ptr, out_ptr, in_sz, ch_out, w_ch_out_mem_stride, /* cent_area, */ params, (io_T)val_limit.min, (io_T)val_limit.max);
+                                in_ptr, w_ptr, b_ptr, out_ptr, in_sz, ch_out, w_ch_out_mem_stride, 
+                                /* cent_area, */ params, (io_T)val_limit.min, (io_T)val_limit.max);
 }
 #pragma MLI_CODE_SECTION_END()
 } // namespace ref
