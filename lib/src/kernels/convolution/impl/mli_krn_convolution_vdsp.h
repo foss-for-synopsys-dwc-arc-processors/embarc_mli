@@ -70,9 +70,9 @@ MLI_FORCE_INLINE void convolution2D_nopad(
     const int clmn_begin = perception_area.clmn_beg;
     const int clmn_end = perception_area.clmn_end;
 
-    for (int out_ch_idx = 0; out_ch_idx < out.ch; out_ch_idx+=_VDSP_NUM_8BIT_LANES) {
+    for (int out_ch_idx = 0; out_ch_idx < out.ch; out_ch_idx+= get_number_lanes<acc_T>()) {
         int remaining_ch = out.ch - out_ch_idx;
-        int current_ch = MIN(remaining_ch, _VDSP_NUM_8BIT_LANES); /* nr channels computed in this loop iteration */
+        int current_ch = MIN(remaining_ch, get_number_lanes<acc_T>()); /* nr channels computed in this loop iteration */
         const MLI_PTR(w_T) w_ptr = weights.ptr
                 + weights.out_ch_mem_stride * out_ch_idx;
         const int rows = weights.kernel_height;
@@ -173,9 +173,9 @@ MLI_FORCE_INLINE void convolution2D_pad(
             const int clmns = weights.kernel_width - comp.right - comp.left;
             const int h_idx_in = (H_idx * stride_height - padding_top + comp.top);
             const int w_idx_in = (W_idx * stride_width - padding_left + comp.left);
-            for (int out_ch_idx = 0; out_ch_idx < out.ch; out_ch_idx+=_VDSP_NUM_8BIT_LANES) {
+            for (int out_ch_idx = 0; out_ch_idx < out.ch; out_ch_idx+= get_number_lanes<acc_T>()) {
                 int remaining_ch = out.ch - out_ch_idx;
-                int current_ch = MIN(remaining_ch, _VDSP_NUM_8BIT_LANES); /* nr channels computed in this loop iteration */
+                int current_ch = MIN(remaining_ch, get_number_lanes<acc_T>()); /* nr channels computed in this loop iteration */
                 MLI_CONV_OUT_PTR(io_T) out_ptr = out.ptr
                         + out.row_mem_stride * H_idx
                         + out.col_mem_stride * W_idx
@@ -313,10 +313,10 @@ MLI_FORCE_INLINE void depthwise_convolution2D_nopad(
 
     MLI_ASSERT(quant_params_get_weigths_zeropoint(&quant_params) == 0); /* this optimized implementation assumes no zero offset for weights */
 
-    for (int in_ch_idx = 0; in_ch_idx < in.ch; in_ch_idx++) {
+    for (int in_ch_idx = 0; in_ch_idx < in.ch; in_ch_idx += get_number_lanes<acc_T>()) {
         const int out_ch_idx = in_ch_idx;
         int remaining_ch = in.ch - in_ch_idx;
-        int current_ch = MIN(remaining_ch, _VDSP_NUM_8BIT_LANES); /* nr channels computed in this loop iteration */
+        int current_ch = MIN(remaining_ch, get_number_lanes<acc_T>()); /* nr channels computed in this loop iteration */
         const int rows = weights.kernel_height;
         const int clmns = weights.kernel_width;
 
@@ -396,10 +396,10 @@ MLI_FORCE_INLINE void depthwise_convolution2D_pad(
             const int h_idx_in = (H_idx * stride_height - padding_top + comp.top);
             const int w_idx_in = (W_idx * stride_width - padding_left + comp.left);
 
-            for (int in_ch_idx = 0; in_ch_idx < in.ch; in_ch_idx++) {
+            for (int in_ch_idx = 0; in_ch_idx < in.ch; in_ch_idx += get_number_lanes<acc_T>()) {
                 const int out_ch_idx = in_ch_idx;
                 int remaining_ch = in.ch - in_ch_idx;
-                int current_ch = MIN(remaining_ch, _VDSP_NUM_8BIT_LANES); /* nr channels computed in this loop iteration */
+                int current_ch = MIN(remaining_ch, get_number_lanes<acc_T>()); /* nr channels computed in this loop iteration */
 
                 const MLI_PTR(io_T) in_ptr = in.ptr
                         + in.row_mem_stride * h_idx_in
