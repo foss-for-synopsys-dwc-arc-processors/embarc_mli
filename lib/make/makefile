@@ -17,14 +17,15 @@ TOOLCHAIN_OPTIONS   ?=
 
 include settings.mk
 
-ifneq ($(TCF_FILE),)
+ifdef TCF_FILE
 # For TCF_FILE, we only take the realpath if the file exists (otherwise it is a file inside MWDT)
 TOOLCHAIN_OPTIONS += \
 	-DARC_CFG_TCF_PATH=$(if $(realpath $(TCF_FILE)),$(realpath $(TCF_FILE)),$(TCF_FILE)) \
 	-DCMAKE_TOOLCHAIN_FILE=$(abspath $(METAWARE_ROOT)$(PS)arc$(PS)cmake$(PS)arc-mwdt.toolchain.cmake) \
 	-G "Unix Makefiles"
 ifdef BUILDLIB_DIR
-TOOLCHAIN_OPTIONS += -DBUILDLIB_DIR=$(abspath $(BUILDLIB_DIR))
+# For BUILDLIB_DIR, we only take the realpath if the dir exists (otherwise it is a dir inside MWDT)
+TOOLCHAIN_OPTIONS += -DBUILDLIB_DIR=$(if $(realpath $(BUILDLIB_DIR)),$(realpath $(BUILDLIB_DIR)),$(BUILDLIB_DIR))
 endif
 endif
 
@@ -43,7 +44,7 @@ CONFIG_TARGET=$(BUILD_DIR)/cmake_install.cmake
 endif
 
 # $(MAKE) can be called through CMAKE; but to facilitate parallel builds with -j, we call $(MAKE).
-ifeq ($(TCF_FILE),)
+ifndef TCF_FILE
 lib: $(CONFIG_TARGET)
 	cmake --build $(abspath $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)) --verbose --target install
 else
