@@ -14,6 +14,9 @@ VERBOSE ?= false
 PUBLIC_DIR = ..$(PS)..
 BUILD_SUBDIR = user_tests
 BIN_PATH = $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)bin
+# User need to define BUILD_LIB (target specific libs including runtime)
+# if default one doesn't fit.
+BUILDLIB_DIR ?=
 
 ifndef TCF_FILE
 
@@ -25,7 +28,7 @@ BIN_EXT =
 endif
 
 else
-RUN_TEST_CMD = mdb -run -jit  -tcf=$(TCF_FILE)
+RUN_TEST_CMD = mdb -run  -tcf=$(TCF_FILE)
 BIN_EXT = .elf
 endif
 
@@ -41,7 +44,7 @@ TEST_TARGETS = test_softmax test_conv2d
 # Build rules to generate project, library and test apps
 #===========================================
 $(BUILD_DIR): 
-	$(MAKE) -C $(PUBLIC_DIR)$(PS)lib$(PS)make lib
+	$(MAKE) -C $(PUBLIC_DIR)$(PS)lib$(PS)make RECONFIGURE=ON config
 
 $(BIN_FILES): build
 
@@ -49,7 +52,7 @@ $(BIN_FILES): build
 # Public rules to run tests or clean current test build
 #====================================================
 build: $(BUILD_DIR)
-	cmake --build $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)
+	cmake --build $(BUILD_DIR)$(PS)$(BUILD_SUBDIR) --verbose
 
 
 clean:

@@ -43,24 +43,33 @@ struct softmax_test_operands {
     const crc32_calc check_sum;
 };
 
-// Checksums of test tensors for various platforms. 
+// Checksums of test tensors for various mli calculations mode. 
 // When developer finished implementation of kernel and consider it as ok, He need to populate
 // proper checksums for tests in order to highlight any change which affects results.
-#if defined NO_CRC_CHECK
+#if defined(CRC_RM_CONVERGENT) || defined(CRC_RM_UP)
+
+// Shared CRC Results
+const crc32_calc  test_1_chksum_fx16{ 0xFE566434 }, test_1_chksum_sa8{ 0xC2D91AF1 },
+                  test_2_chksum_fx16{ 0x57D65150 }, test_2_chksum_sa8{ 0x426712EC },
+                                                    test_3_chksum_sa8{ 0xA4C61305 },
+                                                    test_4_chksum_sa8{ 0x283A9958 },
+                  test_5_chksum_fx16{ 0xCD358702 }, test_5_chksum_sa8{ 0x2866E46F },
+                  test_6_chksum_fx16{ 0x767E77D1 }, test_6_chksum_sa8{ 0x4899968F };
+
+// Platform Specific CRC Results
+#if defined(CRC_RM_UP)
+const crc32_calc test_3_chksum_fx16{ 0x875BA219 }, test_4_chksum_fx16{ 0xCD5A958F };
+#else 
+const crc32_calc test_3_chksum_fx16{ 0xBF9EAF0C }, test_4_chksum_fx16{ 0xC98520CF };
+#endif
+
+#else  // Not defined CRC_*
 const crc32_calc  test_1_chksum_fx16, test_1_chksum_sa8,
                   test_2_chksum_fx16, test_2_chksum_sa8,
                   test_3_chksum_fx16, test_3_chksum_sa8,
                   test_4_chksum_fx16, test_4_chksum_sa8,
                   test_5_chksum_fx16, test_5_chksum_sa8,
                   test_6_chksum_fx16, test_6_chksum_sa8;
-#else
-// Need to distinquish platforms and update checksums
-const crc32_calc  test_1_chksum_fx16{ 0xFE566434 }, test_1_chksum_sa8{ 0xC2D91AF1 },
-                  test_2_chksum_fx16{ 0x57D65150 }, test_2_chksum_sa8{ 0x426712EC },
-                  test_3_chksum_fx16{ 0xBF9EAF0C }, test_3_chksum_sa8{ 0xA4C61305 },
-                  test_4_chksum_fx16{ 0xC98520CF }, test_4_chksum_sa8{ 0x283A9958 },
-                  test_5_chksum_fx16{ 0xCD358702 }, test_5_chksum_sa8{ 0x2866E46F },
-                  test_6_chksum_fx16{ 0x767E77D1 }, test_6_chksum_sa8{ 0x4899968F };
 #endif
 
 const quality_metrics thresholds_fx16_general { /* MaxAbsErr = */0.0002, quality_metrics::kPassValueSnr,
@@ -147,8 +156,8 @@ int main() {
 
     reporter.report_header("MLI|Kernels|Softmax Activation Function Tests");
     for (int i = 0; i < kTestsNum; ++i) {
-        memory_manager mem_in_keeper(scratch_mem_in, sizeof(scratch_mem_in));
-        memory_manager mem_out_keeper(scratch_mem_out, sizeof(scratch_mem_out));
+        memory_manager mem_in_keeper((int8_t*)(scratch_mem_in), sizeof(scratch_mem_in));
+        memory_manager mem_out_keeper((int8_t*)(scratch_mem_out), sizeof(scratch_mem_out));
         bool is_test_passed = true;
         const softmax_test_operands* cur_test = &tests_list[i];
         quality_metrics test_metics;

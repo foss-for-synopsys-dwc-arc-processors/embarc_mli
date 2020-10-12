@@ -47,31 +47,32 @@ struct conv2d_test_operands {
     const crc32_calc check_sum;
 };
 
-// Checksums of test tensors for various platforms. 
+// Checksums of test tensors for various mli calculations mode. 
 // When developer finished implementation of kernel and consider it as ok, He need to populate
 // proper checksums for tests in order to highlight any change which affects results.
-#if defined NO_CRC_CHECK
-const crc32_calc  test_1_chksum_fx16, test_1_chksum_fx8w16d, test_1_chksum_sa8,
-                  test_2_chksum_fx16, test_2_chksum_fx8w16d, test_2_chksum_sa8,
-                  test_3_chksum_fx16, test_3_chksum_fx8w16d, test_3_chksum_sa8,
-                  test_4_chksum_fx16, test_4_chksum_fx8w16d, test_4_chksum_sa8,
-                  test_5_chksum_fx16, test_5_chksum_fx8w16d, test_5_chksum_sa8;
-#else
-// Need to distinquish platforms
-const crc32_calc test_1_chksum_fx16{ 0x3669E8DA }, test_1_chksum_fx8w16d{ 0x627FD168 }, test_1_chksum_sa8{ 0xA3FFD976 },
-                 test_2_chksum_fx16{ 0x6075722F}, test_2_chksum_fx8w16d{ 0xBFE5DC3D }, test_2_chksum_sa8{ 0x314ECCA6 },
-                 test_3_chksum_fx16{ 0xE2100158 }, test_3_chksum_fx8w16d{ 0x550F135E }, test_3_chksum_sa8{ 0x9740102D },
-                 test_4_chksum_fx16{ 0x5F13DD22 }, test_4_chksum_fx8w16d{ 0xF92F0A5A }, test_4_chksum_sa8{ 0x45AA03B7 },
-                 test_5_chksum_fx16{ 0xD8CA1273 }, test_5_chksum_fx8w16d{ 0x186AA252 }, test_5_chksum_sa8{ 0x01D390FA };
+#if defined(CRC_RM_CONVERGENT) || defined(CRC_RM_UP)
+// Shared CRC Results
+const crc32_calc test_1_chksum_fx16{ 0x3669E8DA }, test_1_chksum_fx16_fx8_fx8{ 0x627FD168 }, test_1_chksum_sa8{ 0xA3FFD976 },
+                 test_2_chksum_fx16{ 0x6075722F }, test_2_chksum_fx16_fx8_fx8{ 0xBFE5DC3D }, test_2_chksum_sa8{ 0x314ECCA6 },
+                 test_3_chksum_fx16{ 0xE2100158 }, test_3_chksum_fx16_fx8_fx8{ 0x550F135E }, test_3_chksum_sa8{ 0x9740102D },
+                 test_4_chksum_fx16{ 0x5F13DD22 }, test_4_chksum_fx16_fx8_fx8{ 0xF92F0A5A }, test_4_chksum_sa8{ 0x45AA03B7 },
+                 test_5_chksum_fx16{ 0xD8CA1273 }, test_5_chksum_fx16_fx8_fx8{ 0x186AA252 }, test_5_chksum_sa8{ 0x01D390FA };
+
+#else // Not defined CRC_*
+const crc32_calc  test_1_chksum_fx16, test_1_chksum_fx16_fx8_fx8, test_1_chksum_sa8,
+                  test_2_chksum_fx16, test_2_chksum_fx16_fx8_fx8, test_2_chksum_sa8,
+                  test_3_chksum_fx16, test_3_chksum_fx16_fx8_fx8, test_3_chksum_sa8,
+                  test_4_chksum_fx16, test_4_chksum_fx16_fx8_fx8, test_4_chksum_sa8,
+                  test_5_chksum_fx16, test_5_chksum_fx16_fx8_fx8, test_5_chksum_sa8;
 #endif
 
 const quality_metrics thresholds_fx16_general { quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
                                                 /* SNR_DB = */70.f, quality_metrics::kPassValueQuantErrPerc };
 
-const quality_metrics thresholds_fx8w16d_general{ quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
+const quality_metrics thresholds_fx16_fx8_fx8_general{ quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
                                                   /* SNR_DB = */30.f, quality_metrics::kPassValueQuantErrPerc };
 
-const quality_metrics thresholds_fx8w16d_test4{ quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
+const quality_metrics thresholds_fx16_fx8_fx8_test4{ quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
                                                 /* SNR_DB = */26.f, quality_metrics::kPassValueQuantErrPerc };
 
 const quality_metrics thresholds_sa8_general{ quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
@@ -85,7 +86,7 @@ static const conv2d_test_operands tests_list[] = {
                             thresholds_fx16_general, test_1_chksum_fx16},
     {"Test 1 FX16_FX8_FX8", mli_krn_conv2d_hwcn_fx16_fx8_fx8, 
                             input_1_fx16, weights_1_fx8, bias_1_fx8, test_1_out_fx16, test_1_cfg, 
-                            thresholds_fx8w16d_general, test_1_chksum_fx8w16d},
+                            thresholds_fx16_fx8_fx8_general, test_1_chksum_fx16_fx8_fx8},
     {"Test 1 SA8_SA8_SA32", mli_krn_conv2d_hwcn_sa8_sa8_sa32,
                             input_1_sa8, weights_1_sa8, bias_1_sa32, test_1_out_sa8, test_1_cfg, 
                             thresholds_sa8_general, test_1_chksum_sa8},
@@ -96,7 +97,7 @@ static const conv2d_test_operands tests_list[] = {
                                     thresholds_fx16_general, test_2_chksum_fx16},
     {"Test 2 FX16_FX8_FX8 ReluGen", mli_krn_conv2d_hwcn_fx16_fx8_fx8,
                                     input_1_fx16, weights_2_fx8, bias_1_fx8, test_2_out_fx16, test_2_cfg,
-                                    thresholds_fx8w16d_general, test_2_chksum_fx8w16d},
+                                    thresholds_fx16_fx8_fx8_general, test_2_chksum_fx16_fx8_fx8},
     {"Test 2 SA8_SA8_SA32 ReluGen", mli_krn_conv2d_hwcn_sa8_sa8_sa32, 
                                     input_1_sa8, weights_2_sa8, bias_1_w2_sa32, test_2_out_sa8, test_2_cfg,
                                     thresholds_sa8_general, test_2_chksum_sa8},
@@ -107,7 +108,7 @@ static const conv2d_test_operands tests_list[] = {
                                      thresholds_fx16_general, test_3_chksum_fx16},
     {"Test 3 FX16_FX8_FX8 Dilation", mli_krn_conv2d_hwcn_fx16_fx8_fx8,
                                      input_1_fx16, weights_1_fx8, bias_1_fx8, test_3_out_fx16, test_3_cfg,
-                                     thresholds_fx8w16d_general, test_3_chksum_fx8w16d},
+                                     thresholds_fx16_fx8_fx8_general, test_3_chksum_fx16_fx8_fx8},
     {"Test 3 SA8_SA8_SA32 Dilation", mli_krn_conv2d_hwcn_sa8_sa8_sa32,
                                     input_1_sa8, weights_1_sa8, bias_1_sa32, test_3_out_sa8, test_3_cfg,
                                     thresholds_sa8_general, test_3_chksum_sa8},
@@ -119,7 +120,7 @@ static const conv2d_test_operands tests_list[] = {
                                       thresholds_fx16_general, test_4_chksum_fx16},
     {"Test 4 FX16_FX8_FX8 IO_Memstr", mli_krn_conv2d_hwcn_fx16_fx8_fx8,
                                       input_1_memstr_fx16, weights_1_fx8, bias_1_fx8, test_4_out_fx16, test_4_cfg,
-                                      thresholds_fx8w16d_test4, test_4_chksum_fx8w16d},
+                                      thresholds_fx16_fx8_fx8_test4, test_4_chksum_fx16_fx8_fx8},
     {"Test 4 SA8_SA8_SA32 IO_Memstr", mli_krn_conv2d_hwcn_sa8_sa8_sa32,
                                       input_1_memstr_sa8, weights_1_sa8, bias_1_sa32, test_4_out_sa8, test_4_cfg,
                                       thresholds_sa8_general, test_4_chksum_sa8},
@@ -131,7 +132,7 @@ static const conv2d_test_operands tests_list[] = {
                                      thresholds_fx16_general, test_5_chksum_fx16},
     {"Test 5 FX16_FX8_FX8 W_Memstr", mli_krn_conv2d_hwcn_fx16_fx8_fx8, 
                                      input_1_fx16, weights_2_memstr_fx8, bias_1_fx8, test_5_out_fx16, test_5_cfg,
-                                     thresholds_fx8w16d_general, test_5_chksum_fx8w16d},
+                                     thresholds_fx16_fx8_fx8_general, test_5_chksum_fx16_fx8_fx8},
     {"Test 5 SA8_SA8_SA32 W_Memstr", mli_krn_conv2d_hwcn_sa8_sa8_sa32,
                                      input_1_sa8, weights_2_memstr_sa8, bias_1_w2_sa32, test_5_out_sa8, test_5_cfg,
                                      thresholds_sa8_general, test_5_chksum_sa8},
@@ -151,10 +152,10 @@ int main() {
 
     reporter.report_header("MLI|Kernels|Convolution 2D  Tests");
     for (int i = 0; i < kTestsNum; ++i) {
-        memory_manager mem_in_keeper(scratch_mem_in, sizeof(scratch_mem_in));
-        memory_manager mem_out_keeper(scratch_mem_out, sizeof(scratch_mem_out));
-        memory_manager mem_w_keeper(scratch_mem_w, sizeof(scratch_mem_w));
-        memory_manager mem_b_keeper(scratch_mem_b, sizeof(scratch_mem_b));
+        memory_manager mem_in_keeper((int8_t*)(scratch_mem_in), sizeof(scratch_mem_in));
+        memory_manager mem_out_keeper((int8_t*)(scratch_mem_out), sizeof(scratch_mem_out));
+        memory_manager mem_w_keeper((int8_t*)(scratch_mem_w), sizeof(scratch_mem_w));
+        memory_manager mem_b_keeper((int8_t*)(scratch_mem_b), sizeof(scratch_mem_b));
         bool is_test_passed = true;
         const conv2d_test_operands* cur_test = &tests_list[i];
         quality_metrics test_metics;

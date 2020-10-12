@@ -18,7 +18,7 @@
 // Attributes for data arrays allocation. 
 // const W_DATA_ATTR int arr[] will be placed in a HW specific memory according to MLI requirements
 // W_DATA_ATTR for weights and IO_DATA_ATTR for activations (feature maps).
-// Allocation works only with CCAC copiler. For others #else branch will be used
+// Allocation works only with CCAC compiler. For others #else branch will be used
 #if (PLATFORM == V2DSP_XY)
 #define W_DATA_ATTR __xy __attribute__((section(".Xdata")))
 #define IO_DATA_ATTR __xy __attribute__((section(".Ydata")))

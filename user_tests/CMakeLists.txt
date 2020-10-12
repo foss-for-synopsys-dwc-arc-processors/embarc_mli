@@ -15,27 +15,64 @@ include(../cmake/settings.cmake)
 #======================================================
 #   TEST_COMPILE_OPTIONS - test specific compilation options
 #
-# TODO: Extra options regarding assertions inside tests and CRC checking 
-# need to be taken into account
+# TODO: Extra options regarding assertions inside tests 
+# need to be taken into account during reconfiguration
 
+# Note: The ROUND_MODE and DSP_CONTROL_OPTION should be shared on upper level (settings.cmake)
+set(TEST_COMPILE_OPTIONS)
+set(TEST_COMPILE_DEFINITIONS)
+set(DSP_CONTROL_OPTION)
+if (NOT DEFINED ROUND_MODE)
+    if(${MLI_PLATFORM} STREQUAL VPX)
+        set(ROUND_MODE UP)
+    else()
+        set(ROUND_MODE CONVERGENT)
+    endif()
+endif()
+
+
+if(ROUND_MODE STREQUAL UP)
+    list(APPEND TEST_COMPILE_DEFINITIONS CRC_RM_UP)
+elseif(ROUND_MODE STREQUAL CONVERGENT)
+    list(APPEND TEST_COMPILE_DEFINITIONS CRC_RM_CONVERGENT)
+else()
+    message(FATAL_ERROR "Rounding mode ${ROUND_MODE} is not supported")
+endif()
 
 if (ARC)
-set(TEST_COMPILE_OPTIONS
-    -Hnocopyr
-    -Hpurge
-    -Hheap=16K
-    -Hstack=16K
-    -Hfxapi 
-    -e_start
-    -Bgrouplib
-    -Hldopt=-q
-    -Hsdata0
-    -Xdsp_ctrl=postshift,guard,convergent
-    -Hdense_prologue
-)
-else()
-set(TEST_COMPILE_OPTIONS)
-endif()
+    list(APPEND TEST_COMPILE_OPTIONS
+        -Hnocopyr
+        -Hpurge
+        -Hheap=16K
+        -Hstack=16K
+        -e_start
+        -Bgrouplib
+        -Hldopt=-q
+        -Hsdata0
+        -Hdense_prologue
+    )
+
+    if (${MLI_PLATFORM} STREQUAL VPX)
+        list(APPEND DSP_CONTROL_OPTION
+            "SHELL: -mllvm -slot_swapping=true")
+
+    elseif (${MLI_PLATFORM} STREQUAL EM_HS)
+        if(ROUND_MODE STREQUAL UP)
+            list(APPEND DSP_CONTROL_OPTION
+                -Xdsp_ctrl=postshift,guard,up
+                -Hfxapi
+            )
+        elseif(ROUND_MODE STREQUAL CONVERGENT)
+            list(APPEND DSP_CONTROL_OPTION
+                -Xdsp_ctrl=postshift,guard,convergent
+                -Hfxapi
+            )
+        endif()
+
+    else()
+        message(WARNING "ARC kind of platform isn't supported - can't provide proper test defines")
+    endif()
+endif() # ARC
 
 #======================================================
 # Test Components as an object library target
@@ -54,7 +91,10 @@ add_library(test_components_obj OBJECT
 target_compile_options(test_components_obj PRIVATE
     ${MLI_PLATFORM_COMPILE_OPTIONS}
     ${TEST_COMPILE_OPTIONS}
+    ${DSP_CONTROL_OPTION}
 )
+
+target_compile_definitions(test_components_obj PRIVATE ${TEST_COMPILE_DEFINITIONS})
 
 set(test_components_inc
     test_components
@@ -83,19 +123,21 @@ target_link_libraries(test_mli_krn_conv2d PUBLIC test_components_obj)
 target_compile_options(test_mli_krn_conv2d PRIVATE
     ${MLI_PLATFORM_COMPILE_OPTIONS}
     ${TEST_COMPILE_OPTIONS}
+    ${DSP_CONTROL_OPTION}
 )
+target_compile_definitions(test_mli_krn_conv2d PRIVATE ${TEST_COMPILE_DEFINITIONS})
 
 target_link_options(test_mli_krn_conv2d PRIVATE
-    ${MLI_PLATFORM_COMPILE_OPTIONS}
+    ${MLI_PLATFORM_LINK_OPTIONS}
     ${TEST_COMPILE_OPTIONS}
-    ${EXAMPLE_FLAGS}
+    ${DSP_CONTROL_OPTION}
 )
 
 if (ARC)
-target_link_options(test_mli_krn_conv2d PRIVATE
-    -m
-    -Coutput=./bin/test_mli_krn_conv2d.map
-)
+    target_link_options(test_mli_krn_conv2d PRIVATE
+        -m
+        -Coutput=./bin/test_mli_krn_conv2d.map
+    )
 endif()
 
 set_target_properties(test_mli_krn_conv2d
@@ -120,19 +162,22 @@ target_link_libraries(test_mli_krn_softmax PUBLIC test_components_obj)
 target_compile_options(test_mli_krn_softmax PRIVATE
     ${MLI_PLATFORM_COMPILE_OPTIONS}
     ${TEST_COMPILE_OPTIONS}
+    ${DSP_CONTROL_OPTION}
 )
 
+target_compile_definitions(test_mli_krn_softmax PRIVATE ${TEST_COMPILE_DEFINITIONS})
+
 target_link_options(test_mli_krn_softmax PRIVATE
-    ${MLI_PLATFORM_COMPILE_OPTIONS}
+    ${MLI_PLATFORM_LINK_OPTIONS}
     ${TEST_COMPILE_OPTIONS}
-    ${EXAMPLE_FLAGS}
+    ${DSP_CONTROL_OPTION}
 )
 
 if (ARC)
-target_link_options(test_mli_krn_softmax PRIVATE
-    -m
-    -Coutput=./bin/test_mli_krn_softmax.map
-)
+    target_link_options(test_mli_krn_softmax PRIVATE
+        -m
+        -Coutput=./bin/test_mli_krn_softmax.map
+    )
 endif()
 
 set_target_properties(test_mli_krn_softmax
