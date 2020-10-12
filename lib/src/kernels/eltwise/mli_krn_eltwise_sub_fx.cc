@@ -26,19 +26,28 @@ extern "C" {
  *******************************************************************************/
 
 mli_status mli_krn_eltwise_sub_fx8(const mli_tensor* in1, const mli_tensor* in2, mli_tensor* out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_eltwise_sub_fx8(in1, in2, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_eltwise_fx8(in1, in2, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
 
-    mli::eltwise_prepare_and_run_fx<int8_t, mli::ELTWISE_SUB>(in1, in2, out);
+    mli::krn::eltwise_prepare_and_run<int8_t, mli::ELTWISE_SUB>(in1, in2, out);
 
     return MLI_STATUS_OK;
 }
 
 mli_status mli_krn_eltwise_sub_fx16(const mli_tensor* in1, const mli_tensor* in2, mli_tensor* out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_eltwise_sub_fx16(in1, in2, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_eltwise_fx16(in1, in2, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
 
-    mli::eltwise_prepare_and_run_fx<int16_t, mli::ELTWISE_SUB>(in1, in2, out);
+    mli::krn::eltwise_prepare_and_run<int16_t, mli::ELTWISE_SUB>(in1, in2, out);
+
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_krn_eltwise_sub_sa8(const mli_tensor* in1, const mli_tensor* in2, mli_tensor* out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_eltwise_sa8(in1, in2, out), __func__);
+    if (ret != MLI_STATUS_OK) return ret;
+
+    mli::krn::eltwise_prepare_and_run<int8_t, mli::ELTWISE_SUB, true>(in1, in2, out);
 
     return MLI_STATUS_OK;
 }

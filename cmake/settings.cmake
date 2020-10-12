@@ -74,7 +74,7 @@ if (ARC)
         -Hon=Long_enums
         "SHELL: -mllvm -gen-lpcc=false"
     )
-    if (EXISTS ${BUILDLIB_DIR})
+    if (DEFINED BUILDLIB_DIR)
         list(APPEND MLI_PLATFORM_LINK_OPTIONS
             -Hlib=${BUILDLIB_DIR}
         )
