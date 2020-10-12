@@ -25,8 +25,9 @@
 namespace mli {
 namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-/* TODO: fix ::vdsp::activation_lut when vpx version supported */
-using mli::krn::ref::activation_lut;
+using mli::krn::vdsp::activation_lut;
+using mli::krn::vdsp::activation_lut_vec_elem_interpolate;
+using mli::krn::vdsp::activation_lut_vec_elem_no_interpolate;
 using mli::krn::ref::activation_lut_one_elem_interpolate;
 using mli::krn::ref::activation_lut_one_elem_no_interpolate;
 

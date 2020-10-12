@@ -35,8 +35,7 @@ mli_status mli_krn_tanh_fx8(const mli_tensor* in, mli_tensor* out) {
     mli_prv_copy_tensor_format_except_mem_strides(in, out);
     out->el_params.fx.frac_bits = 7;
 
-    mli_prv_activation_lut_fx8(in, out, &tanh_lut_fx16, in->el_params.fx.frac_bits,
-            (int)mli_prv_count_elem_num(in));
+    mli_prv_activation_lut_fx8(in, out, &tanh_lut_fx16, in->el_params.fx.frac_bits);
 
     return MLI_STATUS_OK;
 }
@@ -49,8 +48,7 @@ mli_status mli_krn_tanh_fx16(const mli_tensor* in, mli_tensor* out) {
     mli_prv_copy_tensor_format_except_mem_strides(in, out);
     out->el_params.fx.frac_bits = 15;
 
-    mli_prv_activation_lut_fx16(in, out, &tanh_lut_fx16, in->el_params.fx.frac_bits,
-            (int)mli_prv_count_elem_num(in));
+    mli_prv_activation_lut_fx16(in, out, &tanh_lut_fx16, in->el_params.fx.frac_bits);
 
     return MLI_STATUS_OK;
 }
@@ -72,8 +70,7 @@ mli_status mli_krn_tanh_sa8(const mli_tensor* in, mli_tensor* out) {
     // Update output shape
     mli_prv_copy_tensor_format_except_mem_strides(in, out);
 
-    mli_prv_activation_lut_sa8(in, out, &tanh_lut_fx16,
-            &in_params, &out_params, (int)mli_prv_count_elem_num(in));
+    mli_prv_activation_lut_sa8(in, out, &tanh_lut_fx16, &in_params, &out_params);
     out->el_params.sa.zero_point.mem.i16 = out_params.offset;
     out->el_params.sa.scale.mem.i16 = out_params.scale;
     out->el_params.sa.scale_frac_bits.mem.i8 = (int8_t)out_params.shift;
