@@ -109,7 +109,7 @@ MLI_FORCE_INLINE void fully_connected_prepare_and_run(
     const MLI_PTR(b_T) b_ptr = (MLI_PTR(b_T))(bias->data.mem.void_p);
     MLI_CONV_OUT_PTR(io_T) out_ptr = (MLI_CONV_OUT_PTR(io_T))(out->data.mem.void_p);
 
-    const int ch_out = weights->shape[0];
+    const int ch_out = weights->shape[1];
     const int in_sz = mli_prv_count_elem_num(in);
 
     out->el_type = in->el_type;

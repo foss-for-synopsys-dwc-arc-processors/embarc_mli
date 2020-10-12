@@ -105,7 +105,7 @@ static MLI_FORCE_INLINE void fully_connected_prepare_and_run_fx(
     const MLI_PTR(w_T) b_ptr = (MLI_PTR(w_T))(bias->data.mem.void_p);
     MLI_CONV_OUT_PTR(io_T) out_ptr = (MLI_CONV_OUT_PTR(io_T))(out->data.mem.void_p);
 
-    int ch_out = weights->shape[0];
+    int ch_out = weights->shape[1];
     int in_sz = mli_prv_count_elem_num(in);
     int w_ch_out_mem_stride_from_tensor = weights->mem_stride[0];
     int w_ch_out_mem_stride = (w_ch_out_mem_stride_from_tensor != 0) ?
