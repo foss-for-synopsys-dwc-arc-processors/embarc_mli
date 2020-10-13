@@ -77,6 +77,7 @@ uint32_t mli_hlp_tensor_element_size(const mli_tensor *in) {
         case MLI_EL_FX_16: return sizeof(int16_t);
         case MLI_EL_SA_8:  return sizeof(int8_t);
         case MLI_EL_SA_32:  return sizeof(int32_t);
+        case MLI_EL_FP_32: return sizeof(float);
         default:
             MLI_ASSERT(0);
             return 0;
