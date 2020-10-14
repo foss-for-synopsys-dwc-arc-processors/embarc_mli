@@ -111,23 +111,20 @@ static MLI_FORCE_INLINE v2q15_t activation_lut_two_elem_no_interpolate(
 
     int16_t *lut_data = (int16_t *)lut->data;
     int shift_in = in_frac_bits - lut->frac_bits;
-    // if shift amount is too high, preshift argument itself and
-    // limit shift amount to prevent overflows
-    int preshift_in = mli_math_max_fx(shift_in - (int)kMaxFracBitsFx16, 0);
     shift_in = mli_math_min_fx(shift_in, (int)kMaxFracBitsFx16);
 
     v2q15_t offset = mli_prv_init_v(lut->offset);
     v2q15_t lower = mli_prv_init_v(0);
-    // input data is more precise than LUT
+    
     v2q15_t upper = mli_prv_init_v(lut->length - 1);
 
-    /* Convert Input SA8 to FX */
+    // input data isn't more precise than LUT
     v2q15_t x = in;
+    /* Convert Input SA8 to FX */
     if (convert_input) {
         x = mli_prv_convert_sa8_fx16<v2q15_t, v2q15_t>(x, in_params->offset, scale_fx);
     }
 
-    x = mli_math_acc_ashift_fx(x, preshift_in);
     v2q15_t lut_idx = mli_math_add_fx(mli_math_acc_ashift_fx(x, shift_in), offset);
     lut_idx = mli_math_bound_range_fx(lut_idx, lower, upper);
     // no interpolation

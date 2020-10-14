@@ -26,23 +26,21 @@ void mli_prv_activation_lut_fx8(
         const mli_tensor *in,
         const mli_tensor *out,
         const mli_lut *lut,
-        int in_frac_bits,
-        int length);
+        int in_frac_bits);
 
 void mli_prv_activation_lut_fx16(
         const mli_tensor *in,
         const mli_tensor *out,
         const mli_lut *lut,
-        int in_frac_bits,
-        int length);
+        int in_frac_bits);
 
 void mli_prv_activation_lut_sa8(
         const mli_tensor *in,
         const mli_tensor *out,
         const mli_lut *lut,
         struct s8asym_quant_params *in_params,
-        struct s8asym_quant_params *out_params,
-        int length);
+        struct s8asym_quant_params *out_params);
+        
 #ifdef __cplusplus
 }
 #endif

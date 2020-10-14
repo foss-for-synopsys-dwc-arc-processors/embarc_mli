@@ -100,10 +100,27 @@ static MLI_FORCE_INLINE v2q15_t activation_lut_two_elem_no_interpolate(
 // VDSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
+
+#if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
+template <bool convert>
+static MLI_FORCE_INLINE vNx4short_t activation_lut_vec_elem_interpolate(
+        vNx4short_t in,
+        const mli_lut *lut,
+        int8_t in_frac_bits,
+        const struct s8asym_quant_params *in_params);
+
+template <bool convert>
+static MLI_FORCE_INLINE vNx4short_t activation_lut_vec_elem_no_interpolate(
+        vNx4short_t in,
+        const mli_lut *lut,
+        int8_t in_frac_bits,
+        const struct s8asym_quant_params *in_params);
+#endif
+
 template <typename io_T, bool convert = false>
 static void activation_lut(
         const struct generic_tensor_private_t<MLI_PTR(io_T)> *in,
-        struct generic_tensor_private_t<MLI_PTR(io_T)> *out,
+        struct generic_tensor_private_t<MLI_OUT_PTR(io_T)> *out,
         const mli_lut *lut,
         int8_t in_frac_bits,
         const struct s8asym_quant_params *in_params  = nullptr,

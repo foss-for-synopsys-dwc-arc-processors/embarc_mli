@@ -120,11 +120,14 @@ void mli_prv_activation_lut_fx8(
         const mli_tensor *in,
         const mli_tensor *out,
         const mli_lut *lut,
-        int in_frac_bits,
-        int length) {
+        int in_frac_bits) {
 
     auto in_prv =  mli_prv_get_generic_tensor<MLI_PTR(int8_t)>(in);
-    auto out_prv =  mli_prv_get_generic_tensor<MLI_PTR(int8_t)>(out);
+    auto out_prv =  mli_prv_get_generic_tensor<MLI_OUT_PTR(int8_t)>(out);
+
+    /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
+    mli_prv_reorder_generic_tensor<MLI_PTR(int8_t)>(&in_prv );
+    mli_prv_reorder_generic_tensor<MLI_OUT_PTR(int8_t)>(&out_prv);
 
     activation_lut<int8_t>(&in_prv, &out_prv, lut, in_frac_bits);
 }
@@ -133,11 +136,14 @@ void mli_prv_activation_lut_fx16(
         const mli_tensor *in,
         const mli_tensor *out,
         const mli_lut *lut,
-        int in_frac_bits,
-        int length) {
+        int in_frac_bits) {
 
     auto in_prv =  mli_prv_get_generic_tensor<MLI_PTR(int16_t)>(in);
-    auto out_prv =  mli_prv_get_generic_tensor<MLI_PTR(int16_t)>(out);
+    auto out_prv =  mli_prv_get_generic_tensor<MLI_OUT_PTR(int16_t)>(out);
+
+    /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
+    mli_prv_reorder_generic_tensor<MLI_PTR(int16_t)>(&in_prv );
+    mli_prv_reorder_generic_tensor<MLI_OUT_PTR(int16_t)>(&out_prv);
 
     activation_lut<int16_t>(&in_prv, &out_prv, lut, in_frac_bits);
 }
@@ -147,11 +153,14 @@ void mli_prv_activation_lut_sa8(
         const mli_tensor *out,
         const mli_lut *lut,
         struct s8asym_quant_params *in_params,
-        struct s8asym_quant_params *out_params,
-        int length) {
+        struct s8asym_quant_params *out_params) {
 
     auto in_prv =  mli_prv_get_generic_tensor<MLI_PTR(int8_t)>(in);
-    auto out_prv =  mli_prv_get_generic_tensor<MLI_PTR(int8_t)>(out);
+    auto out_prv =  mli_prv_get_generic_tensor<MLI_OUT_PTR(int8_t)>(out);
+
+    /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
+    mli_prv_reorder_generic_tensor<MLI_PTR(int8_t)>(&in_prv );
+    mli_prv_reorder_generic_tensor<MLI_OUT_PTR(int8_t)>(&out_prv);
 
     activation_lut<int8_t, true>(&in_prv, &out_prv, lut, 0 /*Unused*/, in_params, out_params);
 }
