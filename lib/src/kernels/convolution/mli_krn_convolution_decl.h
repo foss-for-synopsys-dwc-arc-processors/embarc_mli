@@ -21,6 +21,11 @@ typedef enum {
     CONV_DEPTHWISE
 } mli_conv_type;
 
+#define KRN_SZ_VAR 0
+#define KRN_SZ_1 1
+#define KRN_SZ_3 3
+#define KRN_SZ_5 5
+
 namespace krn {
 ////////////////////////////////////////////////////////////////////////////////
 // Functions (in *_ref/*_dsp/*vdsp) that can be called from outside their own
@@ -33,7 +38,7 @@ namespace krn {
 // REF
 ////////////////////////////////////////////////////////////////////////////////
 namespace ref {
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
@@ -64,15 +69,13 @@ MLI_FORCE_INLINE void depthwise_convolution2D(
         const int padding_bot, const int padding_right);
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T,
-          mli_layout_type data_layout, mli_conv_type conv_type>
+          mli_layout_type data_layout, mli_conv_type conv_type, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void conv2d_prepare_and_run(
         const mli_tensor *in,
         const mli_tensor *weights,
         const mli_tensor *bias,
         const mli_conv2d_cfg *cfg,
-        mli_tensor *out,
-        const int fix_kernel_width = 0,
-        const int fix_kernel_height = 0);
+        mli_tensor *out);
 } // namespace ref
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -99,7 +102,7 @@ MLI_FORCE_INLINE void depthwise_convolution2D(
 // VDSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,

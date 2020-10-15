@@ -27,7 +27,7 @@ namespace ref {
 //========================================================
 // Unified Generic Convolution 2D template
 //========================================================
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
@@ -222,22 +222,21 @@ MLI_FORCE_INLINE void depthwise_convolution2D(
 // Common routin for pre-calculation of various convolution parameters and running it.
 //====================================================================================
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T,
-          mli_layout_type data_layout, mli_conv_type conv_type>
+          mli_layout_type data_layout, mli_conv_type conv_type, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void conv2d_prepare_and_run(
         const mli_tensor *in,
         const mli_tensor *weights,
         const mli_tensor *bias,
         const mli_conv2d_cfg *cfg,
-        mli_tensor *out,
-        const int fix_kernel_width,
-        const int fix_kernel_height) {
+        mli_tensor *out) {
     mli_prv_fx_init_dsp_ctrl();
     const uint8_t stride_width = cfg->stride_width;
     const uint8_t stride_height = cfg->stride_height;
-    const uint8_t padding_top = cfg->padding_top;
-    const uint8_t padding_bot = cfg->padding_bottom;
-    const uint8_t padding_left = cfg->padding_left;
-    const uint8_t padding_right = cfg->padding_right;
+    const bool    no_pad = (fix_kernel_height == 1) && (fix_kernel_width == 1);
+    const uint8_t padding_top = no_pad ? 0 : cfg->padding_top;
+    const uint8_t padding_bot = no_pad ? 0 : cfg->padding_bottom;
+    const uint8_t padding_left = no_pad ? 0 : cfg->padding_left;
+    const uint8_t padding_right = no_pad ? 0 : cfg->padding_right;
 
     // Define output val limits (may affect built in ReLU)
     out->el_type = in->el_type;
@@ -300,7 +299,7 @@ MLI_FORCE_INLINE void conv2d_prepare_and_run(
     // Applying main convolution core (depends on layout)
     //=======================================================================
     if (conv_type == CONV_GENERAL) {
-        mli::krn::convolution2D<io_T, w_T, b_T, acc_T, quant_T>(
+        mli::krn::convolution2D<io_T, w_T, b_T, acc_T, quant_T, fix_kernel_width, fix_kernel_height>(
                 in_prv, weights_prv, bs, out_prv, cent_area, params,
                 (io_T)val_limit.min, (io_T)val_limit.max,
                 stride_height, stride_width, dilation_height, dilation_width,

@@ -20,6 +20,14 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-align"
 
+static MLI_FORCE_INLINE pvNx4 mli_prv_pvNx4_init(int limit) {
+    return to_pvNx4(vvci_b() < limit);
+}
+
+static MLI_FORCE_INLINE pvNx2 mli_prv_pvNx2_init(int limit) {
+    return to_pvNx2(vvci_h() < limit);
+}
+
 //
 // load function where number of samples is based on N, and number or vectors depends on the type.
 //
@@ -106,6 +114,15 @@ static MLI_FORCE_INLINE vNx4short_t mli_prv_gather_load_nx4_samples(const MLI_PT
     return out;
 }
 
+static MLI_FORCE_INLINE vNx2short_t mli_prv_gather_load_nx2_samples(const MLI_PTR(int16_t) in, vNx2int_t offsets, int num) {
+    return vgather(in, offsets, (vNx2short_t)0, mli_prv_pvNx2_init(num));
+}
+
+static MLI_FORCE_INLINE vNx4char_t mli_prv_gather_load_nx2_samples(const MLI_PTR(int8_t) in, vNx2int_t offsets, int num) {
+    return vgather_lo(in, offsets, (vNx4char_t)0, mli_prv_pvNx4_init(num));
+}
+
+
 //
 // load functions where number of samples is based on amount of vectors, and N depends on the type
 //
@@ -149,14 +166,6 @@ static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int8_t) __rest
 static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int16_t) __restrict out,
         vNx2short_t data, pvNx2 predicate) {
     vvst(data, predicate, (int16_t __vccm *)(out));
-}
-
-static MLI_FORCE_INLINE pvNx4 mli_prv_pvNx4_init(int limit) {
-    return to_pvNx4(vvci_b() < limit);
-}
-
-static MLI_FORCE_INLINE pvNx2 mli_prv_pvNx2_init(int limit) {
-    return to_pvNx2(vvci_h() < limit);
 }
 
 static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int8_t) __restrict out,
@@ -221,6 +230,39 @@ MLI_FORCE_INLINE vNx4accint_t mli_prv_mac_load_v_s(
         const MLI_PTR(int8_t) __restrict in1,
         const MLI_PTR(int16_t) __restrict in2) {
     return mli_math_mac_fx(accu, mli_prv_load_nx4_samples(in1), *in2);
+}
+
+template <typename acc_T, typename l_T, typename r_T>
+MLI_FORCE_INLINE acc_T mli_prv_mac_load_v_s(
+        acc_T accu,
+        const MLI_PTR(l_T) __restrict in1,
+        const r_T  in2) {
+    return mli_math_mac_fx(accu, *in1, in2);
+}
+
+// vector * scalar
+template <>
+MLI_FORCE_INLINE vNx4accshort_t mli_prv_mac_load_v_s(
+        vNx4accshort_t accu,
+        const MLI_PTR(int8_t) __restrict in1,
+        const int8_t in2) {
+    return mli_math_mac_fx(accu, mli_prv_load_nx4_samples(in1), in2);
+}
+
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_prv_mac_load_v_s(
+        vNx2accint_t accu,
+        const MLI_PTR(int16_t) __restrict in1,
+        const int16_t in2) {
+    return mli_math_mac_fx(accu, mli_prv_load_nx2_samples(in1), in2);
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accint_t mli_prv_mac_load_v_s(
+        vNx4accint_t accu,
+        const MLI_PTR(int8_t) __restrict in1,
+        const int16_t in2) {
+    return mli_math_mac_fx(accu, mli_prv_load_nx4_samples(in1), in2);
 }
 
 // _v_v versions
