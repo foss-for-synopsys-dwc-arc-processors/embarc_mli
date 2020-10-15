@@ -51,7 +51,7 @@ MLI_FORCE_INLINE void activation_lut_store_output(
     if(convert) {
         MLI_ASSERT(out_params != nullptr);
         MLI_ASSERT(out_params->scale == 1);
-        result = mli_prv_convert_fx16_sa8(data, out_params->offset, kLutOutFracBits - out_params->shift);
+        result = mli_prv_convert_fx16_sa8<vNx4short_t, vNx4char_t>(data, out_params->offset, kLutOutFracBits - out_params->shift);
     } else {
         result = mli_math_cast_fx<vNx4short_t, vNx4char_t>(data, 8);
     }
@@ -83,7 +83,7 @@ MLI_FORCE_INLINE void activation_lut_store_output(
     if(convert) {
         MLI_ASSERT(out_params != nullptr);
         MLI_ASSERT(out_params->scale == 1);
-        result = mli_prv_convert_fx16_sa8(data, out_params->offset, kLutOutFracBits - out_params->shift);
+        result = mli_prv_convert_fx16_sa8<vNx4short_t, vNx4char_t>(data, out_params->offset, kLutOutFracBits - out_params->shift);
     } else {
         result = mli_math_cast_fx<vNx4short_t, vNx4char_t>(data, 8);
     }
@@ -134,7 +134,7 @@ static MLI_FORCE_INLINE vNx4short_t activation_lut_vec_elem_interpolate(
     int16_t mask = (1 << shift_in) - 1;
     vNx4short_t x = in;
     if (convert) {
-        x = mli_prv_convert_sa8_fx16(x, in_params->offset, scale_fx);
+        x = mli_prv_convert_sa8_fx16<vNx4short_t, vNx4short_t>(x, in_params->offset, scale_fx);
     }
     x = mli_math_asr_fx(x, preshift_in);
     vNx4short_t lut_idx = mli_math_add_fx<vNx4short_t>(mli_math_asr_fx(x, shift_in), lut->offset);
@@ -187,7 +187,7 @@ static MLI_FORCE_INLINE vNx4short_t activation_lut_vec_elem_no_interpolate(
     // input data isn't more precise than LUT
     vNx4short_t x = in;
     if (convert) {
-        x = mli_prv_convert_sa8_fx16(x, in_params->offset, scale_fx);
+        x = mli_prv_convert_sa8_fx16<vNx4short_t, vNx4short_t>(x, in_params->offset, scale_fx);
     }
     vNx4short_t lut_idx = mli_math_add_fx<vNx4short_t>(mli_math_asl_fx(x, -shift_in), lut->offset);
     /* Calculate lut_idx_acc */
