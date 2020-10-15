@@ -38,10 +38,16 @@ static MLI_FORCE_INLINE v2q15_t mli_prv_load_2_samples (const MLI_PTR (int16_t) 
     return *(MLI_PTR (v2q15_t)) in;
 }
 
+/* workaround
+ * TODO: remove this condition after reverting the workaround in pal/mli_prv_dsp.h,
+ * which is using dsp/dsp/mli_prv_dsp.h while building reference variation
+ */
+#ifndef _REF_MLI_PRV_LOAD_STORE_H_
 template <typename in_T>
-static MLI_FORCE_INLINE v2q15_t mli_prv_load_1vec (in_T __restrict in) {
+static MLI_FORCE_INLINE v2q15_t mli_prv_load_1vec (const in_T __restrict in) {
     return mli_prv_load_2_samples(in);
 }
+#endif
 
 static MLI_FORCE_INLINE v4q15_t mli_prv_load_4_samples (const MLI_PTR (int16_t) __restrict in) {
     return *(MLI_PTR (v4q15_t)) in;
