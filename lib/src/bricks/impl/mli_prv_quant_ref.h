@@ -161,8 +161,7 @@ MLI_FORCE_INLINE mli_acc32_t weights_additive(
         const int width,  const int height, int col_step, int row_step) {
     // returns -(in_zero_point * cumsum(weights)) For S8ASYM
     if (quant_params->in_offset != 0) {
-        reduce_sum2D(weights, -quant_params->in_offset, &init_accum, width, height, /*channels = */0, col_step, row_step, true);
-        return init_accum;
+        return reduce_sum2D(weights, -quant_params->in_offset, init_accum, width, height, /*channels = */0, col_step, row_step, true);
     } else {
         return init_accum;
     }
@@ -184,7 +183,7 @@ MLI_FORCE_INLINE mli_acc32_t weights_additive(
     // returns -(in_zero_point * cumsum(weights)) For S8ASYM
     if (quant_params->in_offset != 0) {
         for (int c = 0; c < ch; c++) {
-            reduce_sum2D(weights, -quant_params->in_offset, &init_accum, width, height, /*channels = */0, col_step, row_step, true);
+            init_accum = reduce_sum2D(weights, -quant_params->in_offset, init_accum, width, height, /*channels = */0, col_step, row_step, true);
             weights += ch_step;
         }
         return init_accum;
@@ -211,7 +210,7 @@ MLI_FORCE_INLINE mli_acc32_t in_additive(
         const int width, const int height, int col_step, int row_step) {
     // returns -(wights_zero_point * cumsum(input)) For S8ASYM
     if (quant_params->weights_offset != 0) {
-        reduce_sum2D(in, -quant_params->weights_offset, &init_accum, width, height, /*channels = */0, col_step, row_step, true);
+        init_accum = reduce_sum2D(in, -quant_params->weights_offset, init_accum, width, height, /*channels = */0, col_step, row_step, true);
         return init_accum;
     } else {
         return init_accum;
@@ -233,7 +232,7 @@ MLI_FORCE_INLINE mli_acc32_t in_additive(
     // returns -(wights_zero_point * cumsum(input)) For S8ASYM
     if (quant_params->weights_offset != 0) {
         for (int c = 0; c < ch; c++) {
-            reduce_sum2D(in, -quant_params->weights_offset, &init_accum, width, height, /*channels = */0, col_step, row_step, true);
+            init_accum = reduce_sum2D(in, -quant_params->weights_offset, init_accum, width, height, /*channels = */0, col_step, row_step, true);
             in += ch_step;
         }
         return init_accum;
@@ -260,8 +259,7 @@ MLI_FORCE_INLINE mli_acc32_t zp_additive(const s8asym_quant_specific_params* qua
     if (quant_params->weights_offset != 0 || quant_params->in_offset != 0) {
         // Calculating (w_zp * in_zp * mac_serias_len) via reduce sum because of complexity with accum casts.
         // Subject for optimization
-        reduce_sum(&quant_params->weights_offset, quant_params->in_offset, &init_accum, mac_serias_len, /*step = */0);
-        return init_accum;
+        return reduce_sum(&quant_params->weights_offset, quant_params->in_offset, init_accum, mac_serias_len, /*step = */0);
     } else {
         return init_accum;
     }

@@ -22,16 +22,6 @@
 namespace mli {
 namespace krn {
 
-#if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-// TODO change after vectorized version is available
-// #define CHANNEL_LANES     _VDSP_NUM_8BIT_LANES
-#define CHANNEL_LANES 1
-#elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-#define CHANNEL_LANES 2
-#else
-#define CHANNEL_LANES 1
-#endif
-
 #define AVEPOOL_FIXED_KRN_SIZE_3 3
 #define AVEPOOL_FIXED_KRN_SIZE_2 2
 #define AVEPOOL_NO_FIXED_KRN_SIZE 0
@@ -110,6 +100,7 @@ static const int8_t shift_lut[] = {
 //====================================================================================
 // Normalized scale multiplier (1/x) for average pooling
 //====================================================================================
+
 static inline void calc_mul(unsigned div, int16_t* mul, int* shift_val) {
     unsigned int one = (1<<31); // u1.31
     unsigned int val = one / div; // u1.31
@@ -152,16 +143,17 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_nopad(
         int kernel_height,
         int kernel_width) {
 
-    int remaining_chans = in.ch & (CHANNEL_LANES - 1);
-
+    int number_lanes = get_number_lanes<acc_T>();
+    int remaining_chans = in.ch & (number_lanes - 1);
     MLI_OUT_PTR(io_T) out_ptr;
 
     // Phase 1: Process central part (without border effects - padding free)
     //=======================================================================
     if (in.height >= kernel_height && in.width >= kernel_width) {
-            for (int ch_idx = 0; ch_idx < in.ch - remaining_chans; ch_idx += CHANNEL_LANES) {
+            for (int ch_idx = 0; ch_idx < in.ch - remaining_chans; ch_idx += number_lanes) {
                 for (int H_idx = row_beg; H_idx < row_end; H_idx++) {
                     for (int W_idx = clmn_beg; W_idx < clmn_end; W_idx++) {
+                        
                         // Define area of input and filter for pooling
                         const MLI_PTR(io_T) in_ptr = in.ptr
                                 + in.row_mem_stride * (H_idx * stride_height - padding_top) // move to row
@@ -172,18 +164,20 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_nopad(
                                            out.col_mem_stride * W_idx +
                                            ch_idx];
                         
-                        auto acc = mli_prv_init_accu_v(io_T{0});
+                        acc_T acc = mli_prv_init_accu<acc_T>();
                         int shift_value = 0;
                         int16_t mul = 0;
                         get_mul_shift_value(kernel_width * kernel_height, &mul, &shift_value);
 
-                        mli::krn::reduce_sum2D_v(in_ptr, mul, &acc, kernel_width, kernel_height,
+                        acc = mli::krn::reduce_sum2D_v(in_ptr, mul, acc, kernel_width, kernel_height,
                                 in.col_mem_stride, in.row_mem_stride, true);
 
-                        mli_prv_clip_and_store_output_v(out_ptr, &acc, shift_value);
+                        mli_prv_clip_and_store_output_v(out_ptr, acc, shift_value);
+
                     }
                 }
             }
+        
         if (remaining_chans) {
             for (int H_idx = row_beg; H_idx < row_end; H_idx++) {
                 for (int W_idx = clmn_beg; W_idx < clmn_end; W_idx++) {
@@ -197,16 +191,16 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_nopad(
                                        out.col_mem_stride * W_idx +
                                        out.ch - remaining_chans];
 
-                    acc_T acc = mli_prv_init_accu(io_T{0});
- 
+                    acc_T acc = mli_prv_init_accu<acc_T>();
                     int shift_value = 0;
                     int16_t mul = 0;
                     get_mul_shift_value(kernel_width * kernel_height, &mul, &shift_value);
 
-                    mli::krn::reduce_sum2D(in_ptr, mul, &acc, kernel_width, kernel_height, remaining_chans,
+                    acc = mli::krn::reduce_sum2D_v(in_ptr, mul, acc, kernel_width, kernel_height,
                         in.col_mem_stride, in.row_mem_stride, true);
 
-                    mli_prv_clip_and_store_output(out_ptr, &acc, shift_value);
+                    mli_prv_clip_and_store_output_v(out_ptr, acc, shift_value, remaining_chans);
+
                 }
             }
         }
@@ -230,8 +224,8 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_pad(
         int kernel_height,
         int kernel_width) {
 
-    int remaining_chans = in.ch & (CHANNEL_LANES - 1);
-
+    int number_lanes = get_number_lanes<acc_T>();
+    int remaining_chans = in.ch & (number_lanes - 1);
     MLI_OUT_PTR(io_T) out_ptr;
 
     // Phase 1: Process central part (without border effects - padding free)
@@ -282,7 +276,7 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_pad(
 
 
         for (int area_idx = 0; area_idx < areas_num; ++area_idx) {
-            for (int ch_idx = 0; ch_idx < in.ch - remaining_chans; ch_idx += CHANNEL_LANES) {
+            for (int ch_idx = 0; ch_idx < in.ch - remaining_chans; ch_idx += number_lanes) {
                 for (int H_idx = perc_areas[area_idx].row_beg; H_idx < perc_areas[area_idx].row_end; H_idx++) {
                     for (int W_idx = perc_areas[area_idx].clmn_beg; W_idx < perc_areas[area_idx].clmn_end; W_idx++) {
                         // Define area of input and filter for pooling
@@ -306,19 +300,21 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_pad(
                                            out.col_mem_stride * W_idx +
                                            ch_idx];
 
-                        auto acc = mli_prv_init_accu_v(io_T{0});
+                        acc_T acc = mli_prv_init_accu<acc_T>();
 
                         int shift_value = 0;
                         int16_t mul = 0;
                         get_mul_shift_value(rows * clmns, &mul, &shift_value);
 
-                        mli::krn::reduce_sum2D_v(in_ptr, mul, &acc, clmns, rows,
+                        acc = mli::krn::reduce_sum2D_v(in_ptr, mul, acc, clmns, rows,
                                 in.col_mem_stride, in.row_mem_stride, false);
 
-                        mli_prv_clip_and_store_output_v(out_ptr, &acc, shift_value);
+                        mli_prv_clip_and_store_output_v(out_ptr, acc, shift_value);
+
                     }
                 }
             }
+
             if (remaining_chans) {
                 for (int H_idx = perc_areas[area_idx].row_beg; H_idx < perc_areas[area_idx].row_end; H_idx++) {
                     for (int W_idx = perc_areas[area_idx].clmn_beg; W_idx < perc_areas[area_idx].clmn_end; W_idx++) {
@@ -342,16 +338,16 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_pad(
                                            out.col_mem_stride * W_idx +
                                            out.ch - remaining_chans];
 
-                        acc_T acc = mli_prv_init_accu(io_T{0});
+                        acc_T acc = mli_prv_init_accu<acc_T>();
 
                         int shift_value = 0;
                         int16_t mul = 0;
                         get_mul_shift_value(rows * clmns, &mul, &shift_value);
 
-                        mli::krn::reduce_sum2D(in_ptr, mul, &acc, clmns, rows, remaining_chans,
+                        acc = mli::krn::reduce_sum2D_v(in_ptr, mul, acc, clmns, rows,
                                 in.col_mem_stride, in.row_mem_stride, false);
 
-                        mli_prv_clip_and_store_output(out_ptr, &acc, shift_value);
+                        mli_prv_clip_and_store_output_v(out_ptr, acc, shift_value, remaining_chans);
                     }
                 }
             }

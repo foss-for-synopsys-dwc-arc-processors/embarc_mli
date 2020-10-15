@@ -520,6 +520,7 @@ MLI_FORCE_INLINE int get_number_lanes() {
 
     if (  std::is_same<T, v2q15_t>::value
        || std::is_same<T, v2accum32_t>::value
+       || std::is_same<T, __v2i32_t>::value
        || std::is_same<T, v2accum40_t>::value) {
         lanes = 2;
     }

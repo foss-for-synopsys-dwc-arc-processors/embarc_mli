@@ -19,10 +19,10 @@ namespace krn {
 namespace ref {
 
 template <typename io_T, typename acc_T>
-static MLI_FORCE_INLINE void reduce_sum2D_v(
+static MLI_FORCE_INLINE acc_T reduce_sum2D_v(
         const MLI_PTR(io_T) in,
         const int16_t mul,
-        acc_T * accu,
+        acc_T accu,
         const int width,
         const int height,
         const int col_mem_stride,
@@ -31,37 +31,42 @@ static MLI_FORCE_INLINE void reduce_sum2D_v(
 
     for (int row = 0; row < height; row++) {
         for (int clmn = 0; clmn < width; clmn++) {
-            *accu = mli_math_mac_fx(*accu, mul, in[(row_mem_stride * row) + (col_mem_stride * clmn)]);
+            accu = mli_math_mac_fx(accu, mul, in[(row_mem_stride * row) + (col_mem_stride * clmn)]);
         }
     }
+
+    return accu;
 }
 
 template <typename io_T, typename acc_T>
-static MLI_FORCE_INLINE void reduce_sum2D(
+static MLI_FORCE_INLINE acc_T reduce_sum2D(
         const MLI_PTR(io_T) in,
         const int16_t mul,
-        acc_T * accu,
+        acc_T accu,
         const int width,
         const int height,
         const int channels,
         const int col_mem_stride,
         const int row_mem_stride,
         const bool fixed_size) {
-    reduce_sum2D_v(in, mul, accu, width, height, col_mem_stride, row_mem_stride, fixed_size);
+            
+    return reduce_sum2D_v(in, mul, accu, width, height, col_mem_stride, row_mem_stride, fixed_size);
 }
 
 template <typename io_T, typename acc_T>
-static MLI_FORCE_INLINE void reduce_sum(
+static MLI_FORCE_INLINE acc_T reduce_sum(
         const io_T* __restrict in,
         const int16_t mul,
-        acc_T * accu,
+        acc_T accu,
         const int vals,
         const int step) {
 
     for (int idx = 0; idx < vals; idx++) {
-        *accu = mli_math_mac_fx(*accu, mul, (*in));
+        accu = mli_math_mac_fx(accu, mul, (*in));
         in += step;
     }
+
+    return accu;
 }
 
 } // namespace ref
