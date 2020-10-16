@@ -227,3 +227,44 @@ set_target_properties(test_mli_krn_eltwise
 
 
 
+#======================================================
+# Average Pooling
+#======================================================
+add_executable(test_mli_krn_avepool
+    tests/mli_krn_avepool/tests_mli_krn_avepool.cc
+)
+
+target_include_directories(test_mli_krn_avepool PRIVATE
+    tests/mli_krn_avepool
+)
+
+target_link_libraries(test_mli_krn_avepool PUBLIC mli)
+target_link_libraries(test_mli_krn_avepool PUBLIC test_components_obj)
+
+target_compile_options(test_mli_krn_avepool PRIVATE
+    ${MLI_PLATFORM_COMPILE_OPTIONS}
+    ${TEST_COMPILE_OPTIONS}
+    ${DSP_CONTROL_OPTION}
+)
+
+target_compile_definitions(test_mli_krn_avepool PRIVATE ${TEST_COMPILE_DEFINITIONS})
+
+target_link_options(test_mli_krn_avepool PRIVATE
+    ${MLI_PLATFORM_LINK_OPTIONS}
+    ${TEST_COMPILE_OPTIONS}
+    ${DSP_CONTROL_OPTION}
+)
+
+if (ARC)
+    target_link_options(test_mli_krn_avepool PRIVATE
+        -m
+        -Coutput=./bin/test_mli_krn_avepool.map
+    )
+endif()
+
+set_target_properties(test_mli_krn_avepool
+    PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "./bin$<0:>"
+)
+
+
