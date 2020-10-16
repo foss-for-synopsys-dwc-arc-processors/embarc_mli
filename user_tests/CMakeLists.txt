@@ -267,4 +267,43 @@ set_target_properties(test_mli_krn_avepool
     RUNTIME_OUTPUT_DIRECTORY "./bin$<0:>"
 )
 
+#======================================================
+# Max Pooling
+#======================================================
+add_executable(test_mli_krn_maxpool
+    tests/mli_krn_maxpool/tests_mli_krn_maxpool.cc
+)
+
+target_include_directories(test_mli_krn_maxpool PRIVATE
+    tests/mli_krn_maxpool
+)
+
+target_link_libraries(test_mli_krn_maxpool PUBLIC mli)
+target_link_libraries(test_mli_krn_maxpool PUBLIC test_components_obj)
+
+target_compile_options(test_mli_krn_maxpool PRIVATE
+    ${MLI_PLATFORM_COMPILE_OPTIONS}
+    ${TEST_COMPILE_OPTIONS}
+    ${DSP_CONTROL_OPTION}
+)
+
+target_compile_definitions(test_mli_krn_maxpool PRIVATE ${TEST_COMPILE_DEFINITIONS})
+
+target_link_options(test_mli_krn_maxpool PRIVATE
+    ${MLI_PLATFORM_LINK_OPTIONS}
+    ${TEST_COMPILE_OPTIONS}
+    ${DSP_CONTROL_OPTION}
+)
+
+if (ARC)
+    target_link_options(test_mli_krn_maxpool PRIVATE
+        -m
+        -Coutput=./bin/test_mli_krn_maxpool.map
+    )
+endif()
+
+set_target_properties(test_mli_krn_maxpool
+    PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "./bin$<0:>"
+)
 
