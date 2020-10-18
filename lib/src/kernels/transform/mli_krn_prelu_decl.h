@@ -53,6 +53,11 @@ static MLI_FORCE_INLINE mli_status mli_krn_prelu_fx_run(const mli_tensor *in,
         const mli_tensor *slope_coeff,
         const mli_prelu_cfg *cfg, 
         mli_tensor *out);
+        
+static MLI_FORCE_INLINE mli_status mli_krn_prelu_sa8_run(const mli_tensor *in, 
+        const mli_tensor *slope_coeff,
+        const mli_prelu_cfg *cfg, 
+        mli_tensor *out);
 
 } // namespace ref
 

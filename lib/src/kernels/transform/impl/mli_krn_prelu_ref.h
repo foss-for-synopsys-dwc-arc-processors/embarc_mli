@@ -17,6 +17,7 @@
 #include "mli_math.h"
 #include "mli_prv_dsp.h"
 #include "mli_prv_tensor.h"
+#include "mli_prv_quant.h"
 #include "mli_types.h"
 
 namespace mli {
@@ -171,6 +172,124 @@ static MLI_FORCE_INLINE mli_status mli_krn_prelu_fx_run(const mli_tensor *in,
                                     vec_in  += num_lanes;
                                     vec_out += num_lanes;
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return MLI_STATUS_OK;
+}
+
+static MLI_FORCE_INLINE mli_status mli_krn_prelu_sa8_run(const mli_tensor *in, 
+        const mli_tensor *slope_coeff,
+        const mli_prelu_cfg *cfg, 
+        mli_tensor *out) {
+
+    mli_prv_fx_init_dsp_ctrl();
+
+    const MLI_PTR(int8_t) vec_in = nullptr;
+    MLI_OUT_PTR(int8_t) vec_out = nullptr;
+
+    const MLI_PTR(int8_t) in_ptr = (MLI_PTR(int8_t))(in->data.mem.void_p);
+    MLI_OUT_PTR(int8_t) out_ptr = (MLI_OUT_PTR(int8_t)) (out->data.mem.void_p);
+
+    /* Copy tensor format */
+    for (int idx = 0; idx < (int)in->rank; idx++) {
+        out->shape[idx] = in->shape[idx];
+    }
+    out->rank = in->rank;
+    out->el_type = in->el_type;
+
+    /* Get Generic Private Tensor */
+    auto in_prv =  mli_prv_get_generic_tensor<MLI_PTR(int8_t)>(in);
+    auto out_prv = mli_prv_get_generic_tensor<MLI_OUT_PTR(int8_t)>(out);
+    /* Get Non Axis Tensor */
+    auto in_non_axis_prv  = mli_prv_get_non_axis_tensor<MLI_PTR(int8_t)>(&in_prv,  cfg->axis);
+    auto out_non_axis_prv = mli_prv_get_non_axis_tensor<MLI_OUT_PTR(int8_t)>(&out_prv, cfg->axis);
+    /* Get Axis Tensor */
+    in_prv  = mli_prv_get_axis_tensor<MLI_PTR(int8_t)>(&in_prv,  cfg->axis);
+    out_prv = mli_prv_get_axis_tensor<MLI_OUT_PTR(int8_t)>(&out_prv, cfg->axis);
+    /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
+    mli_prv_reorder_generic_tensor<MLI_PTR(int8_t)>(&in_prv );
+    mli_prv_reorder_generic_tensor<MLI_OUT_PTR(int8_t)>(&out_prv);
+
+    int8_t scale;
+    // Getscalar value
+    if (slope_coeff->rank == 0) {
+        scale = slope_coeff->data.mem.i8;
+    } else {
+        scale = slope_coeff->data.mem.pi8[0];
+    }
+
+    int32_t in_scale_fx = 0, out_scale_fx = 0, slope_scale_fx = 0, alpha_fx = 0;
+    int32_t scale_mul = 0, scale_identity_mul = 0;
+    int16_t in_offset = 0, out_offset = 0, zp_mod = 0, zp_identity_mod = 0 ;
+    const int kMaxFracBitsFx16 = (sizeof(int16_t) * 8) - 1;
+    const int kDivScale = 14;
+    const int shift_back = kDivScale + kMaxFracBitsFx16;
+
+    /* Slope Scale Fx */
+    slope_scale_fx = mli_math_acc_ashift_fx<int32_t>(slope_coeff->el_params.sa.scale.mem.i16,
+                                                    (int32_t) slope_coeff->el_params.sa.scale_frac_bits.mem.i8 - kMaxFracBitsFx16);
+    /* alpha_fx = slope_scale_fx * ( scale - scale_zp) */                                                
+    alpha_fx = mli_prv_convert_sa8_fx16<int8_t, int32_t>(scale, slope_coeff->el_params.sa.zero_point.mem.i16, slope_scale_fx);
+    /* Input Scale Fx */
+    in_scale_fx = mli_math_acc_ashift_fx<int32_t>(in->el_params.sa.scale.mem.i16,
+                                                    (int32_t) in->el_params.sa.scale_frac_bits.mem.i8 - kMaxFracBitsFx16);
+    /* Output Scale Fx */
+    out_scale_fx = mli_math_acc_ashift_fx<int32_t>(out->el_params.sa.scale.mem.i16,
+                                                    (int32_t) out->el_params.sa.scale_frac_bits.mem.i8 - kMaxFracBitsFx16);
+    /* Input Zero Point */
+    in_offset = in->el_params.sa.zero_point.mem.i16;
+    /* Output Zero Point */
+    out_offset = out->el_params.sa.zero_point.mem.i16;
+    /* scale_identity_mul = in_scale_fx / out_scale_fx */
+    scale_identity_mul = (mli_math_acc_ashift_fx<int32_t>(in_scale_fx,  -kDivScale) / out_scale_fx);
+    /* scale_mul = in_scale_fx * alpha_fx / out_scale_fx */
+    scale_mul = mli_math_mul_fx<int32_t, int32_t>(scale_identity_mul, alpha_fx);
+    /* zp_identity_mod = out_zp - scale_identity_mul * in_zp */
+    zp_identity_mod = mli_math_sub_fx<int16_t>(out_offset, 
+                      mli_math_cast_fx<int64_t, int16_t>(
+                      mli_math_mul_fx<int32_t, int64_t>(scale_identity_mul, in_offset), kDivScale));
+    /* zp_mod = out_zp - scale_mul * in_zp */
+    zp_mod = mli_math_sub_fx<int16_t>(out_offset,
+             mli_math_cast_fx<int64_t, int16_t>(
+             mli_math_mul_fx<int32_t, int64_t>(scale_mul, in_offset), shift_back));
+
+    for (int dim0 = 0; dim0 < in_non_axis_prv.shape[0]; dim0++) {
+        for (int dim1 = 0; dim1 < in_non_axis_prv.shape[1]; dim1++) {
+            for (int dim2 = 0; dim2 < in_non_axis_prv.shape[2]; dim2++) {
+
+                vec_in = &in_ptr[dim0 * in_non_axis_prv.mem_stride[0] + 
+                                dim1 * in_non_axis_prv.mem_stride[1] + 
+                                dim2 * in_non_axis_prv.mem_stride[2]];
+                vec_out = &out_ptr[dim0 * out_non_axis_prv.mem_stride[0] + 
+                                dim1 * out_non_axis_prv.mem_stride[1] + 
+                                dim2 * out_non_axis_prv.mem_stride[2]];
+
+                for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
+                    for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
+                        for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
+                            for (int pos3 = 0; pos3 < in_prv.shape[3]; pos3++) {
+                                /* Load Input */
+                                int8_t input = vec_in[POS(&in_prv, pos0, pos1, pos2, pos3)];
+                                int16_t output;
+                                if (input > in_offset) {
+                                    /* Identity -> output = scale_identity_mul * in_sa8 + zp_identity_mod */
+                                   output =  mli_math_add_fx<int16_t>(
+                                        mli_math_cast_fx<int64_t, int16_t>(
+                                        mli_math_mul_fx<int32_t, int64_t>(scale_identity_mul, input), kDivScale), zp_identity_mod);
+                                } else {
+                                    /* Alpha -> output = scale_mul * in_sa8 + zp_mod */
+                                    output =  mli_math_add_fx<int16_t>(
+                                        mli_math_cast_fx<int64_t, int16_t>(
+                                        mli_math_mul_fx<int32_t, int64_t>(scale_mul, input), shift_back), zp_mod);
+                                }
+                                /* Store Output */
+                                vec_out[POS(&out_prv, pos0, pos1, pos2, pos3)] = mli_math_cast_fx<int16_t, int8_t>(output, 0);
                             }
                         }
                     }
