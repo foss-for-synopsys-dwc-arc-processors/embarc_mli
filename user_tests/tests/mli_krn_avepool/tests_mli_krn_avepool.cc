@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2020, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -64,19 +64,19 @@ const quality_metrics thresholds_sa8_general{ /* MaxAbsErr = */0.02, quality_met
 static const avepool_test_operands tests_list[] = {
     // Basic functionality test kernel_size=(4, 3), strides=(1, 1), w/o padding
     {"Test 1 FX16",  mli_krn_avepool_hwc_fx16,
-                                   input_1_fx16, test_1_out_fx16, test_1_cfg,
-                                   thresholds_fx16_general, test_1_chksum_fx16},
+                     input_1_fx16, test_1_out_fx16, test_1_cfg,
+                     thresholds_fx16_general, test_1_chksum_fx16},
     {"Test 1 SA8",   mli_krn_avepool_hwc_sa8,
-                                   input_1_sa8, test_1_out_sa8, test_1_cfg,
-                                   thresholds_sa8_general, test_1_chksum_sa8},
+                     input_1_sa8, test_1_out_sa8, test_1_cfg,
+                     thresholds_sa8_general, test_1_chksum_sa8},
 
     // Basic functionality test kernel_size=(3, 4), strides=(2, 2), with krn_padding
     {"Test 2 FX16",  mli_krn_avepool_hwc_fx16,
-                            input_1_fx16, test_2_out_fx16, test_2_cfg,
-                            thresholds_fx16_general, test_2_chksum_fx16},
+                     input_1_fx16, test_2_out_fx16, test_2_cfg,
+                     thresholds_fx16_general, test_2_chksum_fx16},
     {"Test 2 SA8",   mli_krn_avepool_hwc_sa8,
-                            input_1_sa8, test_2_out_sa8, test_2_cfg,
-                            thresholds_sa8_general, test_2_chksum_sa8},
+                     input_1_sa8, test_2_out_sa8, test_2_cfg,
+                     thresholds_sa8_general, test_2_chksum_sa8},
     
     // Memstride test kernel_size=(3, 4), strides=(3, 3), with krn_padding
     {"Test 3 FX16 Memstr",  mli_krn_avepool_hwc_fx16,
@@ -88,35 +88,35 @@ static const avepool_test_operands tests_list[] = {
 
     // Global Pooling test with memstride
     {"Test 4 FX16 GlobalPool",  mli_krn_avepool_hwc_fx16,
-                            input_2_memstr_fx16, test_4_out_fx16, test_4_cfg,
-                            thresholds_fx16_general, test_4_chksum_fx16},
+                                input_2_memstr_fx16, test_4_out_fx16, test_4_cfg,
+                                thresholds_fx16_general, test_4_chksum_fx16},
     {"Test 4 SA8 GlobalPool",   mli_krn_avepool_hwc_sa8,
-                    input_2_memstr_sa8, test_4_out_sa8, test_4_cfg,
-                    thresholds_sa8_general, test_4_chksum_sa8},
+                                input_2_memstr_sa8, test_4_out_sa8, test_4_cfg,
+                                thresholds_sa8_general, test_4_chksum_sa8},
                     
     // Padding only areas test with memstride, kernel_size=(4, 4), strides=(2, 2), with krn_padding
     {"Test 5 FX16 Pad areas only",  mli_krn_avepool_hwc_fx16,
-                            input_2_memstr_fx16, test_5_out_fx16, test_5_cfg,
-                            thresholds_fx16_general, test_5_chksum_fx16},
+                                    input_2_memstr_fx16, test_5_out_fx16, test_5_cfg,
+                                    thresholds_fx16_general, test_5_chksum_fx16},
     {"Test 5 SA8 pad areas only",   mli_krn_avepool_hwc_sa8,
-                    input_2_memstr_sa8, test_5_out_sa8, test_5_cfg,
-                    thresholds_sa8_general, test_5_chksum_sa8},
+                                    input_2_memstr_sa8, test_5_out_sa8, test_5_cfg,
+                                    thresholds_sa8_general, test_5_chksum_sa8},
 
     // k2x2 specialization test with memstride, kernel_size=(2, 2), strides=(2, 2), krn_padding
     {"Test 6 FX16 k2x2 spec",  mli_krn_avepool_hwc_fx16_k2x2,
-                        input_1_memstr_fx16, test_6_out_fx16, test_6_cfg,
-                        thresholds_fx16_general, test_6_chksum_fx16},
+                               input_1_memstr_fx16, test_6_out_fx16, test_6_cfg,
+                               thresholds_fx16_general, test_6_chksum_fx16},
     {"Test 6 SA8 k2x2 spec",   mli_krn_avepool_hwc_sa8_k2x2,
-                    input_1_memstr_sa8, test_6_out_sa8, test_6_cfg,
-                    thresholds_sa8_general, test_6_chksum_sa8},
+                               input_1_memstr_sa8, test_6_out_sa8, test_6_cfg,
+                               thresholds_sa8_general, test_6_chksum_sa8},
 
     // k3x3 specialization test with memstride, kernel_size=(3, 3), strides=(2, 2), krn_padding
     {"Test 7 FX16 k3x3 spec",  mli_krn_avepool_hwc_fx16_k3x3,
-                            input_1_memstr_fx16, test_7_out_fx16, test_7_cfg,
-                            thresholds_fx16_general, test_7_chksum_fx16},
+                               input_1_memstr_fx16, test_7_out_fx16, test_7_cfg,
+                               thresholds_fx16_general, test_7_chksum_fx16},
     {"Test 7 SA8 k3x3 spec",   mli_krn_avepool_hwc_sa8_k3x3,
-                    input_1_memstr_sa8, test_7_out_sa8, test_7_cfg,
-                    thresholds_sa8_general, test_7_chksum_sa8},
+                               input_1_memstr_sa8, test_7_out_sa8, test_7_cfg,
+                               thresholds_sa8_general, test_7_chksum_sa8},
 };
 
 constexpr int kMemSize = 2047;
@@ -200,7 +200,7 @@ int main() {
             }
             if (!is_test_passed) {
                 reporter.report_message(cur_test->descr,
-                    is_per_tensor_quant ? "FAILED as element params of output tensor was modifyed"
+                    is_per_tensor_quant ? "FAILED as element params of output tensor was modified"
                                         : "FAILED as per-axis quantization of output tensor isn't supported");
             }
         }

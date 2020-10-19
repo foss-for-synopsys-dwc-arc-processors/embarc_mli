@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2020, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -183,6 +183,30 @@ int main() {
                 test_metics.calculate_metrics(out, cur_test->out) == false) {
             reporter.report_message(cur_test->descr, "FAILED at comparison output with reference");
             is_test_passed = false;
+        }
+
+        // Check that kernel output quantization parameters are same as for input (according spec).
+        if (is_test_passed) {
+            bool is_per_tensor_quant = true;
+
+            if (out.el_type == MLI_EL_FX_8 || out.el_type == MLI_EL_FX_16) {
+                is_test_passed &= out.el_params.fx.frac_bits == input.el_params.fx.frac_bits;
+            } else if (out.el_type == MLI_EL_SA_8 || out.el_type == MLI_EL_SA_32) {
+                if (out.el_params.sa.dim < 0 || input.el_params.sa.dim < 0) {
+                    is_test_passed &=
+                        (out.el_params.sa.scale.mem.i16 == input.el_params.sa.scale.mem.i16) &&
+                        (out.el_params.sa.zero_point.mem.i16 == input.el_params.sa.zero_point.mem.i16) &&
+                        (out.el_params.sa.scale_frac_bits.mem.i8 == input.el_params.sa.scale_frac_bits.mem.i8);
+                } else {
+                    is_per_tensor_quant = false;
+                    is_test_passed = false;
+                }
+            }
+            if (!is_test_passed) {
+                reporter.report_message(cur_test->descr,
+                    is_per_tensor_quant ? "FAILED as element params of input and output tensors are different"
+                                        : "FAILED as per-axis quantization of tensors isn't supported by kernel");
+            }
         }
 
         if (is_test_passed) {
