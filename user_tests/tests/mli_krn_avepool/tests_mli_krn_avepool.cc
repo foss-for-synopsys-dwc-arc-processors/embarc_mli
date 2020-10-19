@@ -46,6 +46,23 @@ struct avepool_test_operands {
 // Checksums of test tensors for various mli calculations mode. 
 // When developer finished implementation of kernel and consider it as ok, He need to populate
 // proper checksums for tests in order to highlight any change which affects results.
+#if defined(CRC_RM_UP)
+const crc32_calc  test_1_chksum_fx16{ 0x292DDF4E }, test_1_chksum_sa8,
+                  test_2_chksum_fx16{ 0xA7542BBE }, test_2_chksum_sa8,
+                  test_3_chksum_fx16{ 0x872AD40B }, test_3_chksum_sa8,
+                  test_4_chksum_fx16{ 0x128DE247 }, test_4_chksum_sa8,
+                  test_5_chksum_fx16{ 0x2F40CE76 }, test_5_chksum_sa8,
+                  test_6_chksum_fx16{ 0x4871DD9B }, test_6_chksum_sa8,
+                  test_7_chksum_fx16{ 0x56FC93D9 }, test_7_chksum_sa8;
+#elif defined(CRC_RM_CONVERGENT)
+const crc32_calc  test_1_chksum_fx16{ 0x292DDF4E }, test_1_chksum_sa8,
+                  test_2_chksum_fx16{ 0xA7542BBE }, test_2_chksum_sa8,
+                  test_3_chksum_fx16{ 0x872AD40B }, test_3_chksum_sa8,
+                  test_4_chksum_fx16{ 0x8F820331 }, test_4_chksum_sa8,
+                  test_5_chksum_fx16{ 0x2F40CE76 }, test_5_chksum_sa8,
+                  test_6_chksum_fx16{ 0x4871DD9B }, test_6_chksum_sa8,
+                  test_7_chksum_fx16{ 0x56FC93D9 }, test_7_chksum_sa8;
+#else
 const crc32_calc  test_1_chksum_fx16, test_1_chksum_sa8,
                   test_2_chksum_fx16, test_2_chksum_sa8,
                   test_3_chksum_fx16, test_3_chksum_sa8,
@@ -53,9 +70,10 @@ const crc32_calc  test_1_chksum_fx16, test_1_chksum_sa8,
                   test_5_chksum_fx16, test_5_chksum_sa8,
                   test_6_chksum_fx16, test_6_chksum_sa8,
                   test_7_chksum_fx16, test_7_chksum_sa8;
+#endif
 
 const quality_metrics thresholds_fx16_general { /* MaxAbsErr = */0.0003, quality_metrics::kPassValueSnr,
-                                                /* SNR_DB = */86.f, /*Quant Error Perc = */ 30.f };
+                                                /* SNR_DB = */80.f, /*Quant Error Perc = */ 27.f };
 
 const quality_metrics thresholds_sa8_general{ /* MaxAbsErr = */0.02, quality_metrics::kPassValueSnr,
                                               /* SNR_DB = */40.f, /*Quant Error Perc = */ 30.f };
@@ -143,6 +161,8 @@ int main() {
 
         mli_tensor input = cur_test->in.get_quantized_tensor(mem_in_keeper.allocate_memory(cur_test->in));
         mli_tensor out = cur_test->out.get_not_quantized_tensor(mem_out_keeper.allocate_memory(cur_test->out));
+        // Workaround until the next FIXME fixed
+        mli_tensor source_out_tensor = out;
         if (is_test_passed &&
                 (tensor_quantizer::validate_tensor(input) != tensor_quantizer::kOk ||
                  tensor_quantizer::validate_tensor(out) != tensor_quantizer::kOk)) {
@@ -180,8 +200,9 @@ int main() {
 
         // Check that kernel didn't modify quantization parameters provided by user.
         if (is_test_passed) {
-            const mli_data_container empty_container{ 0 };
-            mli_tensor source_out_tensor = cur_test->out.get_not_quantized_tensor(empty_container);
+            // FIXME: SA8 parameters are not filled
+            // const mli_data_container empty_container{ 0 };
+            // mli_tensor source_out_tensor = cur_test->out.get_not_quantized_tensor(empty_container);
             bool is_per_tensor_quant = true;
             
             if (out.el_type == MLI_EL_FX_8 || out.el_type == MLI_EL_FX_16) {

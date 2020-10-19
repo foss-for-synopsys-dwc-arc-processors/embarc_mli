@@ -141,11 +141,17 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_nopad(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
         int kernel_height,
-        int kernel_width) {
+        int kernel_width,
+        int out_shift) {
 
     int number_lanes = get_number_lanes<acc_T>();
     int remaining_chans = in.ch & (number_lanes - 1);
     MLI_OUT_PTR(io_T) out_ptr;
+
+    int shift_value = 0;
+    int16_t mul = 0;
+    get_mul_shift_value(kernel_width * kernel_height, &mul, &shift_value);
+    shift_value += out_shift;
 
     // Phase 1: Process central part (without border effects - padding free)
     //=======================================================================
@@ -165,9 +171,7 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_nopad(
                                            ch_idx];
                         
                         acc_T acc = mli_prv_init_accu<acc_T>();
-                        int shift_value = 0;
-                        int16_t mul = 0;
-                        get_mul_shift_value(kernel_width * kernel_height, &mul, &shift_value);
+                        
 
                         acc = mli::krn::reduce_sum2D_v(in_ptr, mul, acc, kernel_width, kernel_height,
                                 in.col_mem_stride, in.row_mem_stride, true);
@@ -192,9 +196,6 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_nopad(
                                        out.ch - remaining_chans];
 
                     acc_T acc = mli_prv_init_accu<acc_T>();
-                    int shift_value = 0;
-                    int16_t mul = 0;
-                    get_mul_shift_value(kernel_width * kernel_height, &mul, &shift_value);
 
                     acc = mli::krn::reduce_sum2D_v(in_ptr, mul, acc, kernel_width, kernel_height,
                         in.col_mem_stride, in.row_mem_stride, true);
@@ -222,7 +223,8 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_pad(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
         int kernel_height,
-        int kernel_width) {
+        int kernel_width,
+        int out_shift) {
 
     int number_lanes = get_number_lanes<acc_T>();
     int remaining_chans = in.ch & (number_lanes - 1);
@@ -241,7 +243,7 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_pad(
                 stride_width, stride_height, padding_top,
                 padding_bot, padding_left, padding_right,
                 in, out,
-                kernel_height, kernel_width);
+                kernel_height, kernel_width, out_shift);
     }
     // Phase 2: Process border part with more complex algorithm
     // (usually significantly smaller part of computations)
@@ -305,6 +307,7 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_pad(
                         int shift_value = 0;
                         int16_t mul = 0;
                         get_mul_shift_value(rows * clmns, &mul, &shift_value);
+                        shift_value += out_shift;
 
                         acc = mli::krn::reduce_sum2D_v(in_ptr, mul, acc, clmns, rows,
                                 in.col_mem_stride, in.row_mem_stride, false);
@@ -343,6 +346,7 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_pad(
                         int shift_value = 0;
                         int16_t mul = 0;
                         get_mul_shift_value(rows * clmns, &mul, &shift_value);
+                        shift_value += out_shift;
 
                         acc = mli::krn::reduce_sum2D_v(in_ptr, mul, acc, clmns, rows,
                                 in.col_mem_stride, in.row_mem_stride, false);
@@ -386,7 +390,10 @@ static void mli_krn_avepool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg,
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = in_prv.ch;
-    out->el_params = in->el_params;
+    int out_shift = 0;
+    if (in->el_type == MLI_EL_FX_8 || in->el_type == MLI_EL_FX_16) {
+        out_shift = in->el_params.fx.frac_bits - out->el_params.fx.frac_bits;
+    }
     const auto out_prv = mli_prv_get_tensor_hwc<MLI_OUT_PTR(io_T), MLI_OUT_PTR_IS_XY>(out);
 
     const int32_t row_beg = 0;
@@ -411,14 +418,14 @@ static void mli_krn_avepool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg,
             stride_width, stride_height, padding_top,
             padding_bot, padding_left, padding_right,
             in_prv, out_prv,
-            kernel_height, kernel_width);
+            kernel_height, kernel_width, out_shift);
     } else {
         mli_krn_avepool_hwc_pad<io_T, acc_T>(
             row_beg, row_end, clmn_beg, clmn_end,
             stride_width, stride_height, padding_top,
             padding_bot, padding_left, padding_right,
             in_prv, out_prv,
-            kernel_height, kernel_width);
+            kernel_height, kernel_width, out_shift);
     }
 }
 
