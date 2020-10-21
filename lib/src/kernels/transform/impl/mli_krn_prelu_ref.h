@@ -216,48 +216,110 @@ static MLI_FORCE_INLINE mli_status mli_krn_prelu_sa8_run(const mli_tensor *in,
     mli_prv_reorder_generic_tensor<MLI_PTR(int8_t)>(&in_prv );
     mli_prv_reorder_generic_tensor<MLI_OUT_PTR(int8_t)>(&out_prv);
 
-    int8_t scale;
+    int8_t scale_sa8;
     // Getscalar value
     if (slope_coeff->rank == 0) {
-        scale = slope_coeff->data.mem.i8;
+        scale_sa8 = slope_coeff->data.mem.i8;
     } else {
-        scale = slope_coeff->data.mem.pi8[0];
+        scale_sa8 = slope_coeff->data.mem.pi8[0];
     }
 
-    int32_t in_scale_fx = 0, out_scale_fx = 0, slope_scale_fx = 0, alpha_fx = 0;
-    int32_t scale_mul = 0, scale_identity_mul = 0;
-    int16_t in_offset = 0, out_offset = 0, zp_mod = 0, zp_identity_mod = 0 ;
-    const int kMaxFracBitsFx16 = (sizeof(int16_t) * 8) - 1;
-    const int kDivScale = 14;
-    const int shift_back = kDivScale + kMaxFracBitsFx16;
+    int32_t alpha = 0;
+	int16_t in_zp = 0, out_zp = 0;
+	int16_t zp_identity_mod = 0, zp_mod = 0 ;
+    int16_t scale_identity_mul = 0, scale_mul = 0, alpha_norm = 0;
+    /* ****************************************************************************************************************
+     *                        Mathematical Derivations for Leaky RELU SA8 
+     * ----------------------------------------------------------------------------------------------------------------
+     *      If (in_sa8 > in_offset)
+     *          out_sa8 = scale_identity_mul_val * in_sa8 + zp_identity_mul;   
+     *      else
+     *          out_sa8 = scale_mul_val * in_sa8 + zp_mod;
+     * 
+     *      scale_identity_mul_val = in_scale_val / out_scale_val;
+     *                             = in_scale * 2^(-in_scale_frac_bits) / (out_scale * 2^(-out_scale_frac_bits));
+     *                             = (in_scale_val * 2^kPreDivShift / out_scale_val) 
+     *                               * 2^(-(kPreDivShift + in_scale_frac_bits - out_scale_frac_bits));
+     *                             = (in_scale_val * 2^kPreDivShift / out_scale_val) * 2^(-norm_shift) 
+     *                              * 2^(-(kPreDivShift + in_scale_frac_bits - out_scale_frac_bits - norm_shift));
+     *                             = (in_scale_val * 2^kPreDivShift / out_scale_val) * 2^(-norm_shift) 
+     *                              * 2^(-scale_identity_shift)
+     *                             = scale_identity_mul * 2 ^(-(scale_identity_shift))
+     * 
+     *      where scale_identity_mul = (in_scale_val * 2^kPreDivShift / out_scale_val) * 2^(-norm_shift) 
+     *            scale_identity_shift = kPreDivShift + in_scale_frac_bits - out_scale_frac_bits - norm_shift
+     *            norm_shift is the shift value due to normalizing the result of 
+     *                       (in_scale_val * 2^kPreDivShift / out_scale_val) and casting it from int32_t to int16_t
+     *            kPreDivShift is derived from norm_32(in_scale) - norm_16(out_scale)
+     * 
+     *      zp_identity_mul = out_zp - (scale_identity_mul * in_zp) * 2^(-(scale_identity_shift));
+     * 
+     *      For scale_mul_val = scale_identity_mul_val * alpha_val * (alpha_sa8 - alpha_zp) 
+     *                        = scale_identity_mul * 2 ^(-(scale_identity_shift)) * alpha_scale 
+     *                          * 2^(-alpha_scale_frac_bits) * (alpha_sa8 - alpha_zp)
+     *                        = scale_identity_mul * alpha_scale * (alpha_sa8 - alpha_zp) 
+     *                          * 2^(-(scale_identity_shift + alpha_scale_frac_bits))
+     *                        = scale_identity_mul * alpha_scale * (alpha_sa8 - alpha_zp) 
+     *                          * 2^(-(alpha_norm_shift)) * 2^(-(scale_mul_norm_shift))
+     *                          * 2^(-(scale_identity_shift + alpha_scale_frac_bits - alpha_norm_shift))
+     *                        = scale_mul * 2^(-(scale_shift))
+     * 
+     *      where scale_mul = scale_identity_mul * alpha_scale * (alpha_sa8 - alpha_zp) * 2^(-(alpha_norm_shift))
+     *            scale_shift = scale_identity_shift + alpha_scale_frac_bits - alpha_norm_shift - scale_mul_norm_shift
+     *            alpha_norm_shift is the shift value due to normalizing the result of 
+     *                             alpha_scale * (alpha_sa8 - alpha_zp) and casting it from int32_t to int16_t
+     *            scale_mul_norm_shift is the shift value due to normalizing the result of 
+     *                             scale_identity_mul * alpha_scale * (alpha_sa8 - alpha_zp) * 2^(-(alpha_norm_shift))
+     * 
+     *      zp_mul = out_zp - (scale_mul * in_zp) * 2^(-(scale_shift));
+     * 
+     *      and finally
+     *          If (in_sa8 > in_offset)
+     *              out_sa8 = (scale_identity_mul * in_sa8) * 2^(-(scale_identity_shift)) + zp_identity_mul; 
+     *          else
+     *              out_sa8 = (scale_mul * in_sa8) * 2^(-(scale_shift)) + zp_identity_mul;
+     * ***************************************************************************************************************/
 
-    /* Slope Scale Fx */
-    slope_scale_fx = mli_math_acc_ashift_fx<int32_t>(slope_coeff->el_params.sa.scale.mem.i16,
-                                                    (int32_t) slope_coeff->el_params.sa.scale_frac_bits.mem.i8 - kMaxFracBitsFx16);
-    /* alpha_fx = slope_scale_fx * ( scale - scale_zp) */                                                
-    alpha_fx = mli_prv_convert_sa8_fx16<int8_t, int32_t>(scale, slope_coeff->el_params.sa.zero_point.mem.i16, slope_scale_fx);
-    /* Input Scale Fx */
-    in_scale_fx = mli_math_acc_ashift_fx<int32_t>(in->el_params.sa.scale.mem.i16,
-                                                    (int32_t) in->el_params.sa.scale_frac_bits.mem.i8 - kMaxFracBitsFx16);
-    /* Output Scale Fx */
-    out_scale_fx = mli_math_acc_ashift_fx<int32_t>(out->el_params.sa.scale.mem.i16,
-                                                    (int32_t) out->el_params.sa.scale_frac_bits.mem.i8 - kMaxFracBitsFx16);
     /* Input Zero Point */
-    in_offset = in->el_params.sa.zero_point.mem.i16;
+    in_zp = in->el_params.sa.zero_point.mem.i16;
     /* Output Zero Point */
-    out_offset = out->el_params.sa.zero_point.mem.i16;
-    /* scale_identity_mul = in_scale_fx / out_scale_fx */
-    scale_identity_mul = (mli_math_acc_ashift_fx<int32_t>(in_scale_fx,  -kDivScale) / out_scale_fx);
-    /* scale_mul = in_scale_fx * alpha_fx / out_scale_fx */
-    scale_mul = mli_math_mul_fx<int32_t, int32_t>(scale_identity_mul, alpha_fx);
+    out_zp = out->el_params.sa.zero_point.mem.i16;
+
+    /* kPreDivShift = norm_32(in_scale) - norm_16(out_scale) */
+    int kPreDivShift = mli_math_norm_fx<int32_t,int16_t>(in->el_params.sa.scale.mem.i16) - 
+                       mli_math_norm_fx<int16_t,int16_t>(out->el_params.sa.scale.mem.i16);
+
+    int norm_shift;
+    scale_identity_mul = mli_math_norm_cast_fx<int32_t,int16_t>(
+                                                ((int32_t)(in->el_params.sa.scale.mem.i16) << kPreDivShift) / 
+                                                out->el_params.sa.scale.mem.i16, &norm_shift);
+    int scale_identity_shift  = kPreDivShift;
+    scale_identity_shift += in->el_params.sa.scale_frac_bits.mem.i8 - out->el_params.sa.scale_frac_bits.mem.i8; 
+    scale_identity_shift -= norm_shift;
     /* zp_identity_mod = out_zp - scale_identity_mul * in_zp */
-    zp_identity_mod = mli_math_sub_fx<int16_t>(out_offset, 
-                      mli_math_cast_fx<int64_t, int16_t>(
-                      mli_math_mul_fx<int32_t, int64_t>(scale_identity_mul, in_offset), kDivScale));
+    zp_identity_mod = mli_math_sub_fx<int16_t>(out_zp, 
+                      mli_math_cast_fx<int32_t, int16_t>(
+                      mli_math_mul_fx<int16_t, int32_t>(scale_identity_mul, in_zp), scale_identity_shift));
+
+    /* alpha = slope_scale * ( scale_sa8 - scale_zp) */                                                
+    alpha = mli_prv_convert_sa8_fx16<int8_t, int32_t>(scale_sa8, slope_coeff->el_params.sa.zero_point.mem.i16, 
+                                                                 slope_coeff->el_params.sa.scale.mem.i16);
+    /* Normalize alpha and cast to 16bit */
+    alpha_norm = mli_math_norm_cast_fx<int32_t,int16_t>(alpha, &norm_shift);
+    
+    int scale_shift  = scale_identity_shift;
+        scale_shift += slope_coeff->el_params.sa.scale_frac_bits.mem.i8;
+        scale_shift -= norm_shift;
+    
+    /* scale_identity_mul = in_scale_fx / out_scale_fx */
+    scale_mul = mli_math_norm_cast_fx<int32_t,int16_t>(
+                mli_math_mul_fx<int16_t, int32_t>(scale_identity_mul, alpha_norm), &norm_shift);
+    scale_shift -= norm_shift;
+
     /* zp_mod = out_zp - scale_mul * in_zp */
-    zp_mod = mli_math_sub_fx<int16_t>(out_offset,
-             mli_math_cast_fx<int64_t, int16_t>(
-             mli_math_mul_fx<int32_t, int64_t>(scale_mul, in_offset), shift_back));
+    zp_mod = mli_math_sub_fx<int16_t>(out_zp,
+             mli_math_cast_fx<int32_t, int16_t>(
+             mli_math_mul_fx<int32_t, int32_t>(scale_mul, in_zp), scale_shift));
 
     for (int dim0 = 0; dim0 < in_non_axis_prv.shape[0]; dim0++) {
         for (int dim1 = 0; dim1 < in_non_axis_prv.shape[1]; dim1++) {
@@ -277,16 +339,16 @@ static MLI_FORCE_INLINE mli_status mli_krn_prelu_sa8_run(const mli_tensor *in,
                                 /* Load Input */
                                 int8_t input = vec_in[POS(&in_prv, pos0, pos1, pos2, pos3)];
                                 int16_t output;
-                                if (input > in_offset) {
+                                if (input > in_zp) {
                                     /* Identity -> output = scale_identity_mul * in_sa8 + zp_identity_mod */
                                    output =  mli_math_add_fx<int16_t>(
-                                        mli_math_cast_fx<int64_t, int16_t>(
-                                        mli_math_mul_fx<int32_t, int64_t>(scale_identity_mul, input), kDivScale), zp_identity_mod);
+                                        mli_math_cast_fx<int32_t, int16_t>(
+                                        mli_math_mul_fx<int16_t, int32_t>(scale_identity_mul, input), scale_identity_shift), zp_identity_mod);
                                 } else {
                                     /* Alpha -> output = scale_mul * in_sa8 + zp_mod */
                                     output =  mli_math_add_fx<int16_t>(
-                                        mli_math_cast_fx<int64_t, int16_t>(
-                                        mli_math_mul_fx<int32_t, int64_t>(scale_mul, input), shift_back), zp_mod);
+                                        mli_math_cast_fx<int32_t, int16_t>(
+                                        mli_math_mul_fx<int16_t, int32_t>(scale_mul, input), scale_shift), zp_mod);
                                 }
                                 /* Store Output */
                                 vec_out[POS(&out_prv, pos0, pos1, pos2, pos3)] = mli_math_cast_fx<int16_t, int8_t>(output, 0);
