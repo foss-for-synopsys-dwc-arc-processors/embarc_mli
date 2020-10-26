@@ -34,7 +34,7 @@ static MLI_FORCE_INLINE out_T eltwise_perform_operation(
         const in_T op2,
         bool reverse_sub) {
     in_T sub_op1, sub_op2;
-    out_T res;
+    out_T res = 0;
 
     switch (func_type) {
 

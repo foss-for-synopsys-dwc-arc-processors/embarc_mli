@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2020, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -54,7 +54,7 @@ const crc32_calc  test_1_chksum_fx16{ 0xFE566434 }, test_1_chksum_sa8{ 0xC2D91AF
                                                     test_3_chksum_sa8{ 0xA4C61305 },
                                                     test_4_chksum_sa8{ 0x283A9958 },
                   test_5_chksum_fx16{ 0xCD358702 }, test_5_chksum_sa8{ 0x2866E46F },
-                  test_6_chksum_fx16{ 0x767E77D1 }, test_6_chksum_sa8{ 0x4899968F };
+                  test_6_chksum_fx16{ 0x2E4C5413 }, test_6_chksum_sa8{ 0x43DB50AA };
 
 // Platform Specific CRC Results
 #if defined(CRC_RM_UP)
@@ -137,10 +137,10 @@ static const softmax_test_operands tests_list[] = {
     // Output shape must be still {3, 4, 5}, but memstride is set to {(5 * 2 * 4), 5 * 2, 1}.
     // Softmax should be applied over the whole tensor but not touching padded values (Checked with CRC).
     {"Test 6 FX16 Memstride",  mli_krn_softmax_fx16,
-                               input_3_fx16, test_6_out_fx16, test_6_cfg,
+                               input_3_memstr_fx16, test_6_out_fx16, test_6_cfg,
                                thresholds_fx16_general, test_6_chksum_fx16},
     {"Test 6 SA8 Memstride",   mli_krn_softmax_sa8,
-                               input_3_sa8, test_6_out_sa8, test_6_cfg,
+                               input_3_memstr_sa8, test_6_out_sa8, test_6_cfg,
                                thresholds_sa8_general, test_6_chksum_sa8},
 };
 

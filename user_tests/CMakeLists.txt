@@ -185,3 +185,45 @@ set_target_properties(test_mli_krn_softmax
     RUNTIME_OUTPUT_DIRECTORY "./bin$<0:>"
 )
 
+#======================================================
+# Eltwise
+#======================================================
+add_executable(test_mli_krn_eltwise
+    tests/mli_krn_eltwise/tests_mli_krn_eltwise.cc
+)
+
+target_include_directories(test_mli_krn_eltwise PRIVATE
+    tests/mli_krn_eltwise
+)
+
+target_link_libraries(test_mli_krn_eltwise PUBLIC mli)
+target_link_libraries(test_mli_krn_eltwise PUBLIC test_components_obj)
+
+target_compile_options(test_mli_krn_eltwise PRIVATE
+    ${MLI_PLATFORM_COMPILE_OPTIONS}
+    ${TEST_COMPILE_OPTIONS}
+    ${DSP_CONTROL_OPTION}
+)
+
+target_compile_definitions(test_mli_krn_eltwise PRIVATE ${TEST_COMPILE_DEFINITIONS})
+
+target_link_options(test_mli_krn_eltwise PRIVATE
+    ${MLI_PLATFORM_LINK_OPTIONS}
+    ${TEST_COMPILE_OPTIONS}
+    ${DSP_CONTROL_OPTION}
+)
+
+if (ARC)
+    target_link_options(test_mli_krn_eltwise PRIVATE
+        -m
+        -Coutput=./bin/test_mli_krn_eltwise.map
+    )
+endif()
+
+set_target_properties(test_mli_krn_eltwise
+    PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "./bin$<0:>"
+)
+
+
+
