@@ -1325,6 +1325,8 @@ mli_status mli_chk_relu_sa8(const mli_tensor * in, const mli_relu_cfg * cfg, mli
         return ret;
     if (MLI_CHECK(in->el_type == MLI_EL_SA_8, "Wrong input tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
+    if (MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor: Per-tensor quantization is expected"))
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
     return MLI_STATUS_OK;
 }
 
@@ -1478,6 +1480,8 @@ mli_status mli_chk_basic_activation_sa8(const mli_tensor * in, mli_tensor * out)
         return ret;
     if (MLI_CHECK(in->el_type == MLI_EL_SA_8, "Wrong input tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
+    if (MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor: Per-tensor quantization is expected"))
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
     return MLI_STATUS_OK;
 }
 
@@ -1562,6 +1566,20 @@ mli_status mli_chk_leaky_relu_fx16 (const mli_tensor * in, const mli_tensor * sl
     if (MLI_CHECK(in->el_type == MLI_EL_FX_16, "Wrong input tensor type") ||
         MLI_CHECK(slope_coeff->el_type == MLI_EL_FX_16, "Wrong slope_coeff tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_chk_leaky_relu_sa8 (const mli_tensor * in, const mli_tensor * slope_coeff, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_leaky_relu(in, slope_coeff, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    if (MLI_CHECK(in->el_type == MLI_EL_SA_8, "Wrong input tensor type") ||
+        MLI_CHECK(slope_coeff->el_type == MLI_EL_SA_8, "Wrong slope_coeff tensor type"))
+        return MLI_STATUS_TYPE_MISMATCH;
+    if (MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor: Per-tensor quantization is expected"))
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    if (MLI_CHECK(out->el_params.sa.dim < 0, "Output tensor: Per-tensor quantization is expected"))
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
     return MLI_STATUS_OK;
 }
 

@@ -34,6 +34,61 @@ static const int kPreDivShiftS32 = 30;
 //==========================================================================
 // Operating with quantization params set
 //==========================================================================
+
+MLI_FORCE_INLINE void define_requant_params(const mli_tensor *in, const mli_tensor *out, 
+        s8asym_quant_params *params) {
+
+    /* ****************************************************************************************************************
+     *             Mathematical Derivations out_sa8 Requantization Params to use with in_sa8
+     * ----------------------------------------------------------------------------------------------------------------
+     *      out_sa8 = (in_scale_val/out_scale_val) *(in_sa8 - in_zp) + out_zp
+     *              = scale_val * (in_sa8 - in_zp) + out_zp
+     *              = scale_val * in_sa8 + out_zp - scale_val * in_zp
+     *              = scale_val * in_sa8 + offset;
+     *      where:
+     * 
+     *      scale_val = in_scale_val / out_scale_val;
+     *                = in_scale * 2^(-in_scale_frac_bits) / (out_scale * 2^(-out_scale_frac_bits));
+     *                = (in_scale_val * 2^kPreDivShift / out_scale_val) 
+     *                 * 2^(-(kPreDivShift + in_scale_frac_bits - out_scale_frac_bits));
+     *                = (in_scale_val * 2^kPreDivShift / out_scale_val) * 2^(-norm_shift) 
+     *                 * 2^(-(kPreDivShift + in_scale_frac_bits - out_scale_frac_bits - norm_shift));
+     *                = (in_scale_val * 2^kPreDivShift / out_scale_val) * 2^(-norm_shift) 
+     *                 * 2^(-scale_shift)
+     *                = scale * 2 ^(-(scale_shift))
+     * 
+     *      where scale = (in_scale_val * 2^kPreDivShift / out_scale_val) * 2^(-norm_shift)
+     *            scale_shift = kPreDivShift + in_scale_frac_bits - out_scale_frac_bits - norm_shift
+     *            norm_shift is the shift value due to normalizing the result of 
+     *                       (in_scale_val * 2^kPreDivShift / out_scale_val) and casting it from int32_t to int16_t
+     *            kPreDivShift is derived from norm_32(in_scale) - norm_16(out_scale)
+     * 
+     *      offset = out_zp - scale_val * in_zp
+     *             = out_zp - (scale * in_zp) * 2^(-(scale_shift));
+     * 
+     * ***************************************************************************************************************/
+
+    /* kPreDivShift = norm_32(in_scale_val) - norm_16(out_scale_val) */
+    int kPreDivShift = mli_math_norm_fx<int32_t,int16_t>(in->el_params.sa.scale.mem.i16) - 
+                       mli_math_norm_fx<int16_t,int16_t>(out->el_params.sa.scale.mem.i16);
+    /* Normalize In/Out Scale ratio and cast to 16bit */
+    int norm_shift;
+    params->scale = mli_math_norm_cast_fx<int32_t,int16_t>(
+                    ((int32_t)(in->el_params.sa.scale.mem.i16) << kPreDivShift) / 
+                               out->el_params.sa.scale.mem.i16, &norm_shift);
+    
+    params->shift  = kPreDivShift;
+    params->shift += in->el_params.sa.scale_frac_bits.mem.i8 - out->el_params.sa.scale_frac_bits.mem.i8; 
+    params->shift -= norm_shift;
+    
+    int16_t in_zp = in->el_params.sa.zero_point.mem.i16;
+    int16_t out_zp = out->el_params.sa.zero_point.mem.i16;
+    
+    params->offset = mli_math_sub_fx<int16_t>(out_zp, 
+                     mli_math_cast_fx<int32_t, int16_t>(
+                     mli_math_mul_fx<int16_t, int32_t>(params->scale, in_zp), params->shift));
+}
+
 template <>
 MLI_FORCE_INLINE void define_quant_params(const mli_tensor* in, const mli_tensor* weights, const mli_tensor* bias,
                                 const mli_tensor* out, fx_quant_specific_params* params) {

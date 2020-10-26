@@ -21,6 +21,7 @@ namespace krn {
 // Setting up namespace
 ////////////////////////////////////////////////////////////////////////////////
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
+using mli::krn::ref::define_requant_params;
 using mli::krn::ref::define_quant_params;
 using mli::krn::ref::adjust_quant_params;
 using mli::krn::vdsp::adjust_quant_params_v;
@@ -37,6 +38,7 @@ using mli::krn::vdsp::mli_prv_convert_sa8_fx16;
 using mli::krn::vdsp::mli_prv_convert_fx16_sa8;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
+using mli::krn::ref::define_requant_params;
 using mli::krn::ref::define_quant_params;
 using mli::krn::dsp::adjust_quant_params;
 using mli::krn::ref::quant_params_get_weigths_zeropoint;
@@ -55,6 +57,7 @@ using mli::krn::dsp::mli_prv_convert_sa8_fx16;
 using mli::krn::dsp::mli_prv_convert_fx16_sa8;
 
 #else
+using mli::krn::ref::define_requant_params;
 using mli::krn::ref::define_quant_params;
 using mli::krn::ref::adjust_quant_params;
 using mli::krn::ref::quant_params_get_weigths_zeropoint;

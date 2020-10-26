@@ -139,6 +139,14 @@ MLI_FORCE_INLINE o_T mli_math_norm_fx(T x)
     return (inp_size - 1) - r;
 }
 
+template<typename in_T, typename out_T>
+MLI_FORCE_INLINE out_T mli_math_norm_cast_fx(in_T val , int *norm_shift) {
+    int cast_shift = (sizeof(in_T) - sizeof(out_T)) * 8;
+    int norm = mli_math_norm_fx<in_T, in_T>(val);
+    *norm_shift = cast_shift - norm;
+    return mli_math_cast_fx<in_T, out_T>(val, *norm_shift);
+}
+
 // Addition of two fx operands with saturation
 //========================================================================
 template <typename T>
