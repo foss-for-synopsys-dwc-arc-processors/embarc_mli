@@ -648,6 +648,50 @@ static MLI_FORCE_INLINE __v2i32_t mli_prv_init_accu_with_bias_v(
     return accu_v;
 }
 
+template<typename T>
+static MLI_FORCE_INLINE T mli_prv_init_accu_with_bias_v(
+        const int16_t bias,
+        const int bias_shift);
+
+template<>
+MLI_FORCE_INLINE accum40_t mli_prv_init_accu_with_bias_v(
+        const int16_t bias,
+        const int bias_shift) {
+    accum40_t acc_v = fx_a40_mpy_nf_q15(bias, 0x0001);
+    acc_v = fx_asl_a40(acc_v, bias_shift);
+
+    return acc_v;
+}
+
+template<>
+MLI_FORCE_INLINE int32_t mli_prv_init_accu_with_bias_v(
+        const int16_t bias,
+        const int bias_shift) {
+    int32_t accu = fx_asl_q31((int32_t) bias, bias_shift);
+    return accu;
+}
+
+template<>
+MLI_FORCE_INLINE v2accum40_t mli_prv_init_accu_with_bias_v(
+        const int16_t bias,
+        const int bias_shift) {
+    v2q15_t v2bias = {bias, bias};
+    v2q15_t v2one = {0x0001, 0x0001};
+    v2accum40_t acc_v = fx_v2a40_mpy_nf_v2q15(v2bias, v2one);
+    acc_v = fx_asl_v2a40_n(acc_v, bias_shift);
+
+    return acc_v;
+}
+
+template<>
+MLI_FORCE_INLINE __v2i32_t mli_prv_init_accu_with_bias_v(
+        const int16_t bias,
+        const int bias_shift) {
+    int32_t accu = fx_asr_rnd_q31((int32_t) bias, -bias_shift);
+    __v2i32_t accu_v = { accu, accu };
+    return accu_v;
+}
+
 #ifdef USE_40BIT_ACCU_FOR_16x8
 static MLI_FORCE_INLINE v2accum40_t mli_prv_init_accu_with_bias_v(
         const MLI_PTR(int16_t) __restrict in,

@@ -46,23 +46,25 @@ struct avepool_test_operands {
 // Checksums of test tensors for various mli calculations mode. 
 // When developer finished implementation of kernel and consider it as ok, He need to populate
 // proper checksums for tests in order to highlight any change which affects results.
+#if defined(CRC_RM_UP) || defined(CRC_RM_CONVERGENT)
+
+// Shared CRC Results
+const crc32_calc  test_1_chksum_fx16{ 0x292DDF4E }, test_1_chksum_sa8{ 0x1564B755 },
+                  test_2_chksum_fx16{ 0xA7542BBE }, test_2_chksum_sa8{ 0xD825FD74 },
+                  test_3_chksum_fx16{ 0x872AD40B }, test_3_chksum_sa8{ 0x0F472106 },
+                                                    test_4_chksum_sa8{ 0xFEE5E73E },
+                  test_5_chksum_fx16{ 0x2F40CE76 }, test_5_chksum_sa8{ 0x999C378F },
+                  test_6_chksum_fx16{ 0x4871DD9B }, test_6_chksum_sa8{ 0x784CA521 },
+                  test_7_chksum_fx16{ 0x56FC93D9 }, test_7_chksum_sa8{ 0x67A9C0DA };
+
+// Platform Specific CRC Results
 #if defined(CRC_RM_UP)
-const crc32_calc  test_1_chksum_fx16{ 0x292DDF4E }, test_1_chksum_sa8,
-                  test_2_chksum_fx16{ 0xA7542BBE }, test_2_chksum_sa8,
-                  test_3_chksum_fx16{ 0x872AD40B }, test_3_chksum_sa8,
-                  test_4_chksum_fx16{ 0x128DE247 }, test_4_chksum_sa8,
-                  test_5_chksum_fx16{ 0x2F40CE76 }, test_5_chksum_sa8,
-                  test_6_chksum_fx16{ 0x4871DD9B }, test_6_chksum_sa8,
-                  test_7_chksum_fx16{ 0x56FC93D9 }, test_7_chksum_sa8;
-#elif defined(CRC_RM_CONVERGENT)
-const crc32_calc  test_1_chksum_fx16{ 0x292DDF4E }, test_1_chksum_sa8,
-                  test_2_chksum_fx16{ 0xA7542BBE }, test_2_chksum_sa8,
-                  test_3_chksum_fx16{ 0x872AD40B }, test_3_chksum_sa8,
-                  test_4_chksum_fx16{ 0x8F820331 }, test_4_chksum_sa8,
-                  test_5_chksum_fx16{ 0x2F40CE76 }, test_5_chksum_sa8,
-                  test_6_chksum_fx16{ 0x4871DD9B }, test_6_chksum_sa8,
-                  test_7_chksum_fx16{ 0x56FC93D9 }, test_7_chksum_sa8;
+const crc32_calc  test_4_chksum_fx16{ 0x128DE247 };
 #else
+const crc32_calc  test_4_chksum_fx16{ 0x8F820331 };
+#endif
+
+#else // Not defined CRC_*
 const crc32_calc  test_1_chksum_fx16, test_1_chksum_sa8,
                   test_2_chksum_fx16, test_2_chksum_sa8,
                   test_3_chksum_fx16, test_3_chksum_sa8,
@@ -75,8 +77,8 @@ const crc32_calc  test_1_chksum_fx16, test_1_chksum_sa8,
 const quality_metrics thresholds_fx16_general { /* MaxAbsErr = */0.0003, quality_metrics::kPassValueSnr,
                                                 /* SNR_DB = */80.f, /*Quant Error Perc = */ 27.f };
 
-const quality_metrics thresholds_sa8_general{ /* MaxAbsErr = */0.02, quality_metrics::kPassValueSnr,
-                                              /* SNR_DB = */40.f, /*Quant Error Perc = */ 30.f };
+const quality_metrics thresholds_sa8_general{ /* MaxAbsErr = */0.04, quality_metrics::kPassValueSnr,
+                                              /* SNR_DB = */37.f, /*Quant Error Perc = */ 30.f };
 
 
 static const avepool_test_operands tests_list[] = {

@@ -15,6 +15,8 @@
 #include "mli_private_types.h"
 #include "mli_krn_reduce_sum2d.h"
 #include "mli_math.h"
+#include "mli_prv_quant.h"
+#include "mli_prv_dsp.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Setting up namespace
@@ -112,7 +114,7 @@ static inline void calc_mul(unsigned div, int16_t* mul, int* shift_val) {
     }
 
     *mul = val >> 17;
-    *shift_val = 14 + shift_norm_val;
+    *shift_val += 14 + shift_norm_val;
 }
 
 static inline void get_mul_shift_value(
@@ -120,13 +122,13 @@ static inline void get_mul_shift_value(
         int16_t* mul, int* shift) {
     if (div < DIV_LUT_THRESHOLD) {
         *mul = multiplier_lut[div];
-        *shift = (int)shift_lut[div];
+        *shift += (int)shift_lut[div];
     } else {
         calc_mul(div, mul, shift);
     }
 }
 
-template <typename io_T, typename acc_T>
+template <typename io_T, typename acc_T, bool convert = false>
 static MLI_FORCE_INLINE void mli_krn_avepool_hwc_nopad(
         int row_beg,
         int row_end,
@@ -142,16 +144,25 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_nopad(
         const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
         int kernel_height,
         int kernel_width,
-        int out_shift) {
+        s8asym_quant_params *params) {
 
     int number_lanes = get_number_lanes<acc_T>();
     int remaining_chans = in.ch & (number_lanes - 1);
     MLI_OUT_PTR(io_T) out_ptr;
 
-    int shift_value = 0;
     int16_t mul = 0;
+    int shift_value = params->shift;
+    int32_t zp = params->offset;
     get_mul_shift_value(kernel_width * kernel_height, &mul, &shift_value);
-    shift_value += out_shift;
+    if (convert) {
+        int norm_shift;
+        mul = mli_math_norm_cast_fx<int32_t,int16_t>(
+                            mli_math_mul_fx<int16_t, int32_t>(params->scale, mul), &norm_shift);
+        shift_value -= norm_shift;
+    } else {
+        MLI_ASSERT(params->offset == 0);
+        MLI_ASSERT(params->scale  == 1);
+    }
 
     // Phase 1: Process central part (without border effects - padding free)
     //=======================================================================
@@ -170,9 +181,8 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_nopad(
                                            out.col_mem_stride * W_idx +
                                            ch_idx];
                         
-                        acc_T acc = mli_prv_init_accu<acc_T>();
+                        acc_T acc = mli_prv_init_accu_with_bias_v<acc_T>(zp, shift_value);
                         
-
                         acc = mli::krn::reduce_sum2D_v(in_ptr, mul, acc, kernel_width, kernel_height,
                                 in.col_mem_stride, in.row_mem_stride, true);
 
@@ -195,7 +205,7 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_nopad(
                                        out.col_mem_stride * W_idx +
                                        out.ch - remaining_chans];
 
-                    acc_T acc = mli_prv_init_accu<acc_T>();
+                    acc_T acc = mli_prv_init_accu_with_bias_v<acc_T>(zp, shift_value);
 
                     acc = mli::krn::reduce_sum2D_v(in_ptr, mul, acc, kernel_width, kernel_height,
                         in.col_mem_stride, in.row_mem_stride, true);
@@ -208,7 +218,7 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_nopad(
     }
 }
 
-template <typename io_T, typename acc_T>
+template <typename io_T, typename acc_T, bool convert = false>
 static MLI_FORCE_INLINE void mli_krn_avepool_hwc_pad(
         int row_beg,
         int row_end,
@@ -224,7 +234,7 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_pad(
         const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
         int kernel_height,
         int kernel_width,
-        int out_shift) {
+        s8asym_quant_params *params) {
 
     int number_lanes = get_number_lanes<acc_T>();
     int remaining_chans = in.ch & (number_lanes - 1);
@@ -238,12 +248,12 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_pad(
     clmn_end = out.width - CEIL_DIV(padding_right, stride_width);
 
     if ((row_end - row_beg > 0) && (clmn_end - clmn_beg > 0)) {
-        mli_krn_avepool_hwc_nopad<io_T, acc_T>(
+        mli_krn_avepool_hwc_nopad<io_T, acc_T, convert>(
                 row_beg, row_end, clmn_beg, clmn_end,
                 stride_width, stride_height, padding_top,
                 padding_bot, padding_left, padding_right,
                 in, out,
-                kernel_height, kernel_width, out_shift);
+                kernel_height, kernel_width, params);
     }
     // Phase 2: Process border part with more complex algorithm
     // (usually significantly smaller part of computations)
@@ -279,8 +289,8 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_pad(
 
         for (int area_idx = 0; area_idx < areas_num; ++area_idx) {
             for (int ch_idx = 0; ch_idx < in.ch - remaining_chans; ch_idx += number_lanes) {
-                for (int H_idx = perc_areas[area_idx].row_beg; H_idx < perc_areas[area_idx].row_end; H_idx++) {
-                    for (int W_idx = perc_areas[area_idx].clmn_beg; W_idx < perc_areas[area_idx].clmn_end; W_idx++) {
+                for (int H_idx = perc_areas[area_idx].row_beg; H_idx < (int)perc_areas[area_idx].row_end; H_idx++) {
+                    for (int W_idx = perc_areas[area_idx].clmn_beg; W_idx < (int)perc_areas[area_idx].clmn_end; W_idx++) {
                         // Define area of input and filter for pooling
                         // *_comp - compensation values for valid area defining
                         int top_comp = -MIN((H_idx * stride_height) - padding_top, 0);
@@ -302,13 +312,23 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_pad(
                                            out.col_mem_stride * W_idx +
                                            ch_idx];
 
-                        acc_T acc = mli_prv_init_accu<acc_T>();
 
-                        int shift_value = 0;
+                        int shift_value = params->shift;
                         int16_t mul = 0;
+                        int32_t zp = params->offset;
                         get_mul_shift_value(rows * clmns, &mul, &shift_value);
-                        shift_value += out_shift;
+                        if (convert) {
+                            int norm_shift;
+                            mul = mli_math_norm_cast_fx<int32_t,int16_t>(
+                                                mli_math_mul_fx<int16_t, int32_t>(params->scale, mul), &norm_shift);
+                            shift_value -= norm_shift;
+                        } else {
+                            MLI_ASSERT(params->offset == 0);
+                            MLI_ASSERT(params->scale  == 1);
+                        }
 
+                        acc_T acc = mli_prv_init_accu_with_bias_v<acc_T>(zp, shift_value);
+                        
                         acc = mli::krn::reduce_sum2D_v(in_ptr, mul, acc, clmns, rows,
                                 in.col_mem_stride, in.row_mem_stride, false);
 
@@ -319,8 +339,8 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_pad(
             }
 
             if (remaining_chans) {
-                for (int H_idx = perc_areas[area_idx].row_beg; H_idx < perc_areas[area_idx].row_end; H_idx++) {
-                    for (int W_idx = perc_areas[area_idx].clmn_beg; W_idx < perc_areas[area_idx].clmn_end; W_idx++) {
+                for (int H_idx = perc_areas[area_idx].row_beg; H_idx < (int)perc_areas[area_idx].row_end; H_idx++) {
+                    for (int W_idx = perc_areas[area_idx].clmn_beg; W_idx < (int)perc_areas[area_idx].clmn_end; W_idx++) {
                         // Define area of input and filter for pooling
                         // *_comp - compensation values for valid area defining
                         int top_comp = -MIN((H_idx * stride_height) - padding_top, 0);
@@ -341,12 +361,22 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_pad(
                                            out.col_mem_stride * W_idx +
                                            out.ch - remaining_chans];
 
-                        acc_T acc = mli_prv_init_accu<acc_T>();
 
-                        int shift_value = 0;
+                        int shift_value = params->shift;
                         int16_t mul = 0;
+                        int32_t zp = params->offset;
                         get_mul_shift_value(rows * clmns, &mul, &shift_value);
-                        shift_value += out_shift;
+                        if (convert) {
+                            int norm_shift;
+                            mul = mli_math_norm_cast_fx<int32_t,int16_t>(
+                                                mli_math_mul_fx<int16_t, int32_t>(params->scale, mul), &norm_shift);
+                            shift_value -= norm_shift;
+                        } else {
+                            MLI_ASSERT(params->offset == 0);
+                            MLI_ASSERT(params->scale  == 1);
+                        }
+                        
+                        acc_T acc = mli_prv_init_accu_with_bias_v<acc_T>(zp, shift_value);
 
                         acc = mli::krn::reduce_sum2D_v(in_ptr, mul, acc, clmns, rows,
                                 in.col_mem_stride, in.row_mem_stride, false);
@@ -359,7 +389,7 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_pad(
     }
 }
 
-template <typename io_T, typename acc_T, int fixed_kernel_size>
+template <typename io_T, typename acc_T, int fixed_kernel_size, bool convert = false>
 static void mli_krn_avepool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
     // Extract general avepool parameters
     int32_t stride_width = cfg->stride_width;
@@ -390,9 +420,16 @@ static void mli_krn_avepool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg,
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = in_prv.ch;
-    int out_shift = 0;
-    if (in->el_type == MLI_EL_FX_8 || in->el_type == MLI_EL_FX_16) {
-        out_shift = in->el_params.fx.frac_bits - out->el_params.fx.frac_bits;
+    
+    s8asym_quant_params params;
+    if (convert) {
+        MLI_ASSERT(in->el_type == MLI_EL_SA_8);
+        define_requant_params(in, out, &params);
+    } else {
+        MLI_ASSERT(in->el_type == MLI_EL_FX_8 || in->el_type == MLI_EL_FX_16);
+        params.shift  = in->el_params.fx.frac_bits - out->el_params.fx.frac_bits;
+        params.offset = 0;
+        params.scale  = 1;
     }
     const auto out_prv = mli_prv_get_tensor_hwc<MLI_OUT_PTR(io_T), MLI_OUT_PTR_IS_XY>(out);
 
@@ -413,19 +450,19 @@ static void mli_krn_avepool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg,
         padding_bot = 0;
         padding_left = 0;
         padding_right = 0;
-        mli_krn_avepool_hwc_nopad<io_T, acc_T>(
+        mli_krn_avepool_hwc_nopad<io_T, acc_T, convert>(
             row_beg, row_end, clmn_beg, clmn_end,
             stride_width, stride_height, padding_top,
             padding_bot, padding_left, padding_right,
             in_prv, out_prv,
-            kernel_height, kernel_width, out_shift);
+            kernel_height, kernel_width, &params);
     } else {
-        mli_krn_avepool_hwc_pad<io_T, acc_T>(
+        mli_krn_avepool_hwc_pad<io_T, acc_T, convert>(
             row_beg, row_end, clmn_beg, clmn_end,
             stride_width, stride_height, padding_top,
             padding_bot, padding_left, padding_right,
             in_prv, out_prv,
-            kernel_height, kernel_width, out_shift);
+            kernel_height, kernel_width, &params);
     }
 }
 
