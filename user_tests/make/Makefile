@@ -32,18 +32,11 @@ RUN_TEST_CMD = mdb -run  -tcf=$(TCF_FILE)
 BIN_EXT = .elf
 endif
 
+KERNELS=conv2d depthwise_conv fully_connected avepool maxpool softmax relu eltwise
 
-BIN_FILES = \
-	$(BIN_PATH)$(PS)test_mli_krn_softmax$(BIN_EXT) \
-	$(BIN_PATH)$(PS)test_mli_krn_eltwise$(BIN_EXT) \
-	$(BIN_PATH)$(PS)test_mli_krn_conv2d$(BIN_EXT) \
-	$(BIN_PATH)$(PS)test_mli_krn_avepool$(BIN_EXT) \
-	$(BIN_PATH)$(PS)test_mli_krn_maxpool$(BIN_EXT) \
-	$(BIN_PATH)$(PS)test_mli_krn_relu$(BIN_EXT) \
-  	$(BIN_PATH)$(PS)test_mli_krn_fully_connected$(BIN_EXT) \
-	$(BIN_PATH)$(PS)test_mli_krn_depthwise_conv$(BIN_EXT)
+BIN_FILES=$(patsubst %,$(BIN_PATH)$(PS)test_mli_krn_%$(BIN_EXT),$(KERNELS))
+TEST_TARGETS = $(patsubst %,test_%,$(KERNELS))
 
-TEST_TARGETS = test_softmax test_conv2d test_eltwise test_avepool test_maxpool test_relu test_fully_connected test_depthwise_conv
 
 
 # Build rules to generate project, library and test apps
@@ -75,39 +68,9 @@ endif
 cleanall:
 	$(MAKE) -C $(PUBLIC_DIR)$(PS)lib$(PS)make clean
 
-
 test_all: $(TEST_TARGETS)
 
-
-test_conv2d: $(BIN_PATH)$(PS)test_mli_krn_conv2d$(BIN_EXT)
+$(TEST_TARGETS): test_%: $(BIN_PATH)$(PS)test_mli_krn_%$(BIN_EXT)
 	$(RUN_TEST_CMD) $<
-
-
-test_avepool: $(BIN_PATH)$(PS)test_mli_krn_avepool$(BIN_EXT)
-	$(RUN_TEST_CMD) $<
-
-
-test_maxpool: $(BIN_PATH)$(PS)test_mli_krn_maxpool$(BIN_EXT)
-	$(RUN_TEST_CMD) $<
-
-
-test_softmax: $(BIN_PATH)$(PS)test_mli_krn_softmax$(BIN_EXT)
-	$(RUN_TEST_CMD) $<
-
-
-test_eltwise: $(BIN_PATH)$(PS)test_mli_krn_eltwise$(BIN_EXT)
-	$(RUN_TEST_CMD) $<
-
-test_relu: $(BIN_PATH)$(PS)test_mli_krn_relu$(BIN_EXT)
-	$(RUN_TEST_CMD) $<
-
-test_fully_connected: $(BIN_PATH)$(PS)test_mli_krn_fully_connected$(BIN_EXT)
-	$(RUN_TEST_CMD) $<
-
-
-test_depthwise_conv: $(BIN_PATH)$(PS)test_mli_krn_depthwise_conv$(BIN_EXT)
-	$(RUN_TEST_CMD) $<
-
 
 .PHONY: build clean cleanall test_all $(TEST_TARGETS)
-	
