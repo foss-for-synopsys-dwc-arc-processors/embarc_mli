@@ -347,6 +347,72 @@ MLI_FORCE_INLINE T mli_math_add_fx(T L, T R) {
     return L + R;
 }
 
+// Addition/subtraction of two operands
+template <typename l_T, typename r_T>
+MLI_FORCE_INLINE l_T mli_math_add(l_T L, r_T R) {
+    return L + R;
+}
+
+template <typename l_T, typename r_T>
+MLI_FORCE_INLINE l_T mli_math_sub(l_T L, r_T R) {
+    return L - R;
+}
+
+template <> 
+MLI_FORCE_INLINE vNx4short_t mli_math_add_fx(vNx4short_t L, vNx4short_t R) {
+    return vvadd_sat(L, R);
+}
+template <> 
+MLI_FORCE_INLINE vNx4short_t mli_math_sub_fx(vNx4short_t L, vNx4short_t R) {
+    return vvsub_sat(L, R);
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accshort_t mli_math_add(vNx4accshort_t L, vNx4short_t R) {
+    return __vacc_concat(vvcadd(__vacc_lo(L), R.lo,(int16_t)0), vvcadd(__vacc_hi(L), R.hi,(int16_t)0));
+}
+
+template <>
+MLI_FORCE_INLINE vNx2accshort_t mli_math_add(vNx2accshort_t L, vNx2accshort_t R) {
+    return vvcaddacc(L, R);
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accshort_t mli_math_add(vNx4accshort_t L, vNx4accshort_t R) {
+    return __vacc_concat(vvcaddacc(__vacc_lo(L), __vacc_lo(R)), vvcaddacc(__vacc_hi(L), __vacc_hi(R)));
+}
+
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_math_add(vNx2accint_t L, vNx2int_t R) {
+    return __vacc_concat(vvcadd(__vacc_lo(L), R.lo,(int32_t)0), vvcadd(__vacc_hi(L), R.hi,(int32_t)0));
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accint_t mli_math_add(vNx4accint_t L, vNx4int_t R) {
+    vNx4accint_t r;
+    r.lo = mli_math_add(L.lo, R.lo);
+    r.hi = mli_math_add(L.hi, R.hi);
+    return r;
+}
+
+template <>
+MLI_FORCE_INLINE vNaccint_t mli_math_add(vNaccint_t L, vNaccint_t R) {
+    return vvcaddacc(L, R);
+}
+
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_math_add(vNx2accint_t L, vNx2accint_t R) {
+    return __vacc_concat(vvcaddacc(__vacc_lo(L), __vacc_lo(R)), vvcaddacc(__vacc_hi(L), __vacc_hi(R)));
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accint_t mli_math_add(vNx4accint_t L, vNx4accint_t R) {
+    vNx4accint_t r;
+    r.lo = mli_math_add(L.lo, R.lo);
+    r.hi = mli_math_add(L.hi, R.hi);
+    return r;
+}
+
 // Subtraction of two fx operands with saturation
 //========================================================================
 template <typename T>
@@ -593,26 +659,35 @@ MLI_FORCE_INLINE vNx4int_t mli_math_acc_cast_fx(vNx4accint_t acc) {
 
 template<>
 MLI_FORCE_INLINE vNx4short_t mli_math_acc_cast_fx(vNx4accint_t acc, int shift_right) {
-    vNx4int_t acc_int = mli_math_acc_cast_fx<vNx4int_t>(acc);
-    /* Shift, round and Sat */
     if (shift_right > 0) {
-        int round = 0;
 #ifdef ROUND_UP
-        // Rounding up:
-        round = 1 << (shift_right - 1);
+        int round = 1 << (shift_right - 1);
+        acc = mli_math_add<vNx4accint_t, vNx4int_t>(acc, (vNx4int_t)round);
 #else
         #error Rounding mode not supported
 #endif
-        acc_int = (acc_int + round) >> shift_right;
-    } else {
-        acc_int = (acc_int << (-shift_right));
     }
-    acc_int = mli_math_bound_range_fx(acc_int, INT16_MIN, INT16_MAX);
-    return mli_math_cast_fx<vNx4int_t, vNx4short_t>(acc_int);
+
+    int ctrlword = SAT|SIGNED|TARGET_SZ_16|SHIFT(shift_right);
+    vNx4int_t accu_result;
+    accu_result.lo.lo = to_vNint_t(vvconvert(__vacc_lo(acc.lo), ctrlword));
+    accu_result.lo.hi = to_vNint_t(vvconvert(__vacc_hi(acc.lo), ctrlword));
+    accu_result.hi.lo = to_vNint_t(vvconvert(__vacc_lo(acc.hi), ctrlword));
+    accu_result.hi.hi = to_vNint_t(vvconvert(__vacc_hi(acc.hi), ctrlword));
+
+    return to_vNx4short_t(accu_result);
 }
 
 template<>
 MLI_FORCE_INLINE vNx4short_t mli_math_acc_cast_fx(vNx4accshort_t acc, int shift_right) {
+    if (shift_right > 0) {
+#ifdef ROUND_UP
+        int round = 1 << (shift_right - 1);
+        acc = mli_math_add<vNx4accshort_t, vNx4short_t>(acc, (vNx4short_t)round);
+#else
+        #error Rounding mode not supported
+#endif
+    }
     int ctrlword = SAT|SIGNED|TARGET_SZ_16|SHIFT(shift_right);
     vNx4short_t accu_result;
     accu_result.lo = to_vNx2short_t(vvconvert(__vacc_lo(acc), ctrlword));
@@ -623,6 +698,15 @@ MLI_FORCE_INLINE vNx4short_t mli_math_acc_cast_fx(vNx4accshort_t acc, int shift_
 
 template<>
 MLI_FORCE_INLINE vNx2int_t mli_math_acc_cast_fx(vNx2accint_t acc, int shift_right) {
+    if (shift_right > 0) {
+#ifdef ROUND_UP
+        int round = 1 << (shift_right - 1);
+        acc = mli_math_add<vNx2accint_t, vNx2int_t>(acc, (vNx2int_t)round);
+#else
+        #error Rounding mode not supported
+#endif
+    }
+
     int ctrlword = SAT|SIGNED|TARGET_SZ_32|SHIFT(shift_right);
     vNx2int_t accu_result;
     accu_result.lo = to_vNint_t(vvconvert(__vacc_lo(acc), ctrlword));
@@ -633,91 +717,42 @@ MLI_FORCE_INLINE vNx2int_t mli_math_acc_cast_fx(vNx2accint_t acc, int shift_righ
 
 template<>
 MLI_FORCE_INLINE vNx2short_t mli_math_acc_cast_fx(vNx2accint_t acc, int shift_right) {
+    if (shift_right > 0) {
+#ifdef ROUND_UP
+        int round = 1 << (shift_right - 1);
+        acc = mli_math_add<vNx2accint_t, vNx2int_t>(acc, (vNx2int_t)round);
+#else
+        #error Rounding mode not supported
+#endif
+    }
     int ctrlword = SAT|SIGNED|TARGET_SZ_16|SHIFT(shift_right);
     vNx2int_t accu_result;
     accu_result.lo = to_vNint_t(vvconvert(__vacc_lo(acc), ctrlword));
     accu_result.hi = to_vNint_t(vvconvert(__vacc_hi(acc), ctrlword));
 
     return to_vNx2short_t(accu_result);
+
 }
 
 template<>
 MLI_FORCE_INLINE vNx4int_t mli_math_acc_cast_fx(vNx4accint_t acc, int shift_right) {
+    if (shift_right > 0) {
+#ifdef ROUND_UP
+        int round = 1 << (shift_right - 1);
+        acc = mli_math_add<vNx4accint_t, vNx4int_t>(acc, (vNx4int_t)round);
+#else
+        #error Rounding mode not supported
+#endif
+    }
+
     int ctrlword = SAT|SIGNED|TARGET_SZ_32|SHIFT(shift_right);
     vNx4int_t accu_result;
     accu_result.lo.lo = to_vNint_t(vvconvert(__vacc_lo(acc.lo), ctrlword));
     accu_result.lo.hi = to_vNint_t(vvconvert(__vacc_hi(acc.lo), ctrlword));
-
     accu_result.hi.lo = to_vNint_t(vvconvert(__vacc_lo(acc.hi), ctrlword));
     accu_result.hi.hi = to_vNint_t(vvconvert(__vacc_hi(acc.hi), ctrlword));
 
     return accu_result;
-}
-
-// Addition/subtraction of two operands
-template <typename l_T, typename r_T>
-MLI_FORCE_INLINE l_T mli_math_add(l_T L, r_T R) {
-    return L + R;
-}
-
-template <typename l_T, typename r_T>
-MLI_FORCE_INLINE l_T mli_math_sub(l_T L, r_T R) {
-    return L - R;
-}
-
-template <> 
-MLI_FORCE_INLINE vNx4short_t mli_math_add_fx(vNx4short_t L, vNx4short_t R) {
-    return vvadd_sat(L, R);
-}
-template <> 
-MLI_FORCE_INLINE vNx4short_t mli_math_sub_fx(vNx4short_t L, vNx4short_t R) {
-    return vvsub_sat(L, R);
-}
-
-template <>
-MLI_FORCE_INLINE vNx4accshort_t mli_math_add(vNx4accshort_t L, vNx4short_t R) {
-    return __vacc_concat(vvcadd(__vacc_lo(L), R.lo,(int16_t)0), vvcadd(__vacc_hi(L), R.hi,(int16_t)0));
-}
-
-template <>
-MLI_FORCE_INLINE vNx2accshort_t mli_math_add(vNx2accshort_t L, vNx2accshort_t R) {
-    return vvcaddacc(L, R);
-}
-
-template <>
-MLI_FORCE_INLINE vNx4accshort_t mli_math_add(vNx4accshort_t L, vNx4accshort_t R) {
-    return __vacc_concat(vvcaddacc(__vacc_lo(L), __vacc_lo(R)), vvcaddacc(__vacc_hi(L), __vacc_hi(R)));
-}
-
-template <>
-MLI_FORCE_INLINE vNx2accint_t mli_math_add(vNx2accint_t L, vNx2int_t R) {
-    return __vacc_concat(vvcadd(__vacc_lo(L), R.lo,(int32_t)0), vvcadd(__vacc_hi(L), R.hi,(int32_t)0));
-}
-
-template <>
-MLI_FORCE_INLINE vNx4accint_t mli_math_add(vNx4accint_t L, vNx4int_t R) {
-    vNx4accint_t r;
-    r.lo = mli_math_add(L.lo, R.lo);
-    r.hi = mli_math_add(L.hi, R.hi);
-    return r;
-}
-
-template <>
-MLI_FORCE_INLINE vNaccint_t mli_math_add(vNaccint_t L, vNaccint_t R) {
-    return vvcaddacc(L, R);
-}
-
-template <>
-MLI_FORCE_INLINE vNx2accint_t mli_math_add(vNx2accint_t L, vNx2accint_t R) {
-    return __vacc_concat(vvcaddacc(__vacc_lo(L), __vacc_lo(R)), vvcaddacc(__vacc_hi(L), __vacc_hi(R)));
-}
-
-template <>
-MLI_FORCE_INLINE vNx4accint_t mli_math_add(vNx4accint_t L, vNx4accint_t R) {
-    vNx4accint_t r;
-    r.lo = mli_math_add(L.lo, R.lo);
-    r.hi = mli_math_add(L.hi, R.hi);
-    return r;
 }
 
 // Maximum of two fx operands
