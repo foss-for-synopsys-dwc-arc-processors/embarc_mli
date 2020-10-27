@@ -61,8 +61,7 @@ static mli_status mli_krn_softmax_sa8_run(const mli_tensor *in, const mli_softma
     in_prv  = mli_prv_get_axis_tensor<MLI_PTR(int8_t)>(&in_prv,  cfg->axis);
     out_prv = mli_prv_get_axis_tensor<MLI_PTR(int8_t)>(&out_prv, cfg->axis);
     /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
-    mli_prv_reorder_generic_tensor<MLI_PTR(int8_t)>(&in_prv );
-    mli_prv_reorder_generic_tensor<MLI_PTR(int8_t)>(&out_prv);
+    mli_prv_squash_generic_tensor<MLI_PTR(int8_t)>(&in_prv, &out_prv);
 
     int in_step[4];
     in_step[3] = _VDSP_NUM_8BIT_LANES * in_prv.mem_stride[3];
@@ -102,7 +101,6 @@ static mli_status mli_krn_softmax_sa8_run(const mli_tensor *in, const mli_softma
                             if ((in_prv.shape[3] & (_VDSP_NUM_8BIT_LANES - 1)) != 0) {
                                 int remaining_part = in_prv.shape[3] & (_VDSP_NUM_8BIT_LANES - 1);
                                 pvNx4 predicate = mli_prv_pvNx4_init(remaining_part);
-                                curr_vec = mli_prv_load_nx4_samples(vec_in);
                                 curr_vec = mli_math_select_fx<vNx4char_t, pvNx4>(predicate, curr_vec, (vNx4char_t) INT8_MIN);
                                 max_vec = mli_math_max_fx(max_vec, curr_vec);
                             }
@@ -115,10 +113,7 @@ static mli_status mli_krn_softmax_sa8_run(const mli_tensor *in, const mli_softma
                 vec_in = &in_ptr[dim0 * in_non_axis_prv.mem_stride[0] + 
                                 dim1 * in_non_axis_prv.mem_stride[1] + 
                                 dim2 * in_non_axis_prv.mem_stride[2]];
-                int8_t max_val = INT8_MIN;
-                for (int vec_el=0; vec_el < _VDSP_NUM_8BIT_LANES; vec_el++) {
-                    max_val = mli_math_max_fx(max_val, max_vec[vec_el]);
-                }
+                int8_t max_val = mli_math_intra_max(max_vec);
 
                 /* Subtract maximum from each input tensor element.
                  * This subtraction is done by overwriting offset with max_value.
@@ -140,8 +135,7 @@ static mli_status mli_krn_softmax_sa8_run(const mli_tensor *in, const mli_softma
                  */
                 int remaining_part_tmp = in_prv.shape[3] & (_VDSP_NUM_8BIT_LANES - 1);
 
-                pvNx2 predicate_lo = mli_prv_pvNx2_init(remaining_part_tmp);
-                pvNx2 predicate_hi = mli_prv_pvNx2_init(MAX(remaining_part_tmp - _VDSP_NUM_16BIT_LANES, 0));
+                grp_pvNx2_t predicate_grp = init_predicate_grp(remaining_part_tmp);
 
                 for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
                     for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
@@ -162,8 +156,7 @@ static mli_status mli_krn_softmax_sa8_run(const mli_tensor *in, const mli_softma
                                                 mli_math_cast_fx<vNx4char_t, vNx4short_t>(curr_vec), &expneg_lut_fx16, /*in_frac_bits*/ 0, &in_params);
                                 /* Accumulation through MAC and reciprocal calculation */
                                 
-                                exp_res.lo = mli_math_select_fx<vNx2short_t, pvNx2>(predicate_lo, exp_res.lo, (vNx2short_t) 0);
-                                exp_res.hi = mli_math_select_fx<vNx2short_t, pvNx2>(predicate_hi, exp_res.hi, (vNx2short_t) 0);
+                                exp_res = mli_math_select_fx<vNx4short_t, grp_pvNx2_t>(predicate_grp, exp_res, (vNx4short_t) 0);
                                 sum_vec = mli_math_mac_fx(sum_vec, exp_res, (vNx4short_t) 1);
                             }
                             vec_in += in_step[2];
@@ -175,17 +168,14 @@ static mli_status mli_krn_softmax_sa8_run(const mli_tensor *in, const mli_softma
                 vec_in = &in_ptr[dim0 * in_non_axis_prv.mem_stride[0] + 
                                 dim1 * in_non_axis_prv.mem_stride[1] + 
                                 dim2 * in_non_axis_prv.mem_stride[2]];
-                vNx4int_t sum_vec_non_accum = mli_math_acc_cast_fx<vNx4int_t, vNx4accint_t>(sum_vec);
-                for (int vec_el=0; vec_el < _VDSP_NUM_8BIT_LANES; vec_el++) {
-                    sum_acc += sum_vec_non_accum[vec_el];
-                }
-
+                
+                sum_acc = mli_math_intra_sum(sum_vec);
                 int sum_exp = mli_math_norm_fx<mli_acc32_t, int>(sum_acc);
                 int16_t sum_mnt = mli_math_acc_cast_fx<int16_t, mli_acc32_t>(sum_acc, 16 - sum_exp);
                 // sum_mnt is normalized (that is inside [0.5, 1) range)
                 // so we use Q30(0.5) as a dividend to get Q15 result inside (0.5, 1)
                 // saturation prevents it from reaching 1
-                vNx4short_t sum_recip = (vNx4short_t) MIN((1L << 29) / sum_mnt, 32767L);
+                int16_t sum_recip = (int16_t) MIN((1L << 29) / sum_mnt, 32767L);
 
                 for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
                     for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
@@ -196,7 +186,7 @@ static mli_status mli_krn_softmax_sa8_run(const mli_tensor *in, const mli_softma
                                 vNx4short_t exp_res = mli::krn::vdsp::activation_lut_vec_elem_interpolate</* convert */ true>(
                                                 mli_math_cast_fx<vNx4char_t, vNx4short_t>(curr_vec), &expneg_lut_fx16, /*in_frac_bits*/ 0, &in_params);
                                 /* multiply input by sum_recip */
-                                vNx4accint_t fx_output32 = mli_math_mul_fx<vNx4short_t, vNx4accint_t>(sum_recip, exp_res);
+                                vNx4accint_t fx_output32 = mli_math_mul_fx<vNx4short_t, vNx4accint_t>((vNx4short_t) sum_recip, exp_res);
                                 vNx4int_t fx_output32_non_accum = mli_math_acc_cast_fx<vNx4int_t, vNx4accint_t>(fx_output32, 0);
 
                                 // sum_recip * vec_out[idx] = Q15 * Q15 (default LUT output)
@@ -213,12 +203,12 @@ static mli_status mli_krn_softmax_sa8_run(const mli_tensor *in, const mli_softma
                             }
                             if ((in_prv.shape[3] & (_VDSP_NUM_8BIT_LANES - 1)) != 0) {
                                 int remaining_part = in_prv.shape[3] & (_VDSP_NUM_8BIT_LANES - 1);
-                                curr_vec = mli_prv_load_nx4_samples(vec_in);
+                                // curr_vec = mli_prv_load_nx4_samples(vec_in);
                                 vNx4short_t exp_res = mli::krn::vdsp::activation_lut_vec_elem_interpolate</* convert */ true>(
                                                 mli_math_cast_fx<vNx4char_t, vNx4short_t>(curr_vec), &expneg_lut_fx16, /*in_frac_bits*/ 0, &in_params);
 
                                 /* multiply input by sum_recip */
-                                vNx4accint_t fx_output32 = mli_math_mul_fx<vNx4short_t, vNx4accint_t>(sum_recip, exp_res);
+                                vNx4accint_t fx_output32 = mli_math_mul_fx<vNx4short_t, vNx4accint_t>((vNx4short_t) sum_recip, exp_res);
                                 vNx4int_t fx_output32_non_accum = mli_math_acc_cast_fx<vNx4int_t, vNx4accint_t>(fx_output32, 0);
 
                                 // sum_recip * vec_out[idx] = Q15 * Q15 (default LUT output)

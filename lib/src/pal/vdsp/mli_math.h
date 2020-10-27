@@ -24,6 +24,45 @@
 typedef int32_t mli_acc32_t;
 typedef int64_t mli_acc40_t;
 
+// Number of lanes in a vector
+//========================================================================
+template <typename T>
+constexpr int get_number_lanes() {
+    return 
+     (  std::is_same<T, int8_t>::value
+       || std::is_same<T, int16_t>::value
+       || std::is_same<T, int32_t>::value
+       || std::is_same<T, mli_acc40_t>::value
+       || std::is_same<T, int64_t>::value
+       || std::is_same<T, uint8_t>::value
+       || std::is_same<T, uint16_t>::value
+       || std::is_same<T, uint32_t>::value
+       || std::is_same<T, uint64_t>::value) ?
+        1
+    :
+     (  std::is_same<T, vNx4char_t>::value
+       || std::is_same<T, vNx4short_t>::value
+       || std::is_same<T, vNx4int_t>::value
+       || std::is_same<T, vNx4accshort_t>::value
+       || std::is_same<T, vNx4accint_t>::value) ?
+         _VDSP_NUM_8BIT_LANES
+    :
+     (  std::is_same<T, vNx2short_t>::value
+       || std::is_same<T, vNx2int_t>::value
+       || std::is_same<T, vNx2accshort_t>::value
+       || std::is_same<T, vNx2accint_t>::value) ?
+         _VDSP_NUM_16BIT_LANES
+    :
+     (  std::is_same<T, vNint_t>::value) ?
+        _VDSP_NUM_32BIT_LANES
+    : 0;
+}
+
+template <typename T>
+MLI_FORCE_INLINE int get_number_lanes(T dummy) {
+    return get_number_lanes<T>();
+}
+
 template <typename T, typename shift_T>
 MLI_FORCE_INLINE T mli_math_asl_fx(T x, shift_T nbits);
 
@@ -633,6 +672,11 @@ MLI_FORCE_INLINE int16_t mli_math_acc_cast_fx(mli_acc32_t acc, int shift_right) 
 }
 
 template <>
+MLI_FORCE_INLINE vNx4char_t mli_math_acc_cast_fx(vNx4accchar_t acc) {
+    return to_vNx4char_t(acc);
+}
+
+template <>
 MLI_FORCE_INLINE vNx2short_t mli_math_acc_cast_fx(vNx2accshort_t acc) {
     return to_vNx2short_t(acc);
 }
@@ -755,6 +799,34 @@ MLI_FORCE_INLINE vNx4int_t mli_math_acc_cast_fx(vNx4accint_t acc, int shift_righ
     return accu_result;
 }
 
+//This function works only on acc_T which supported by vvc4add and vvc4pack
+template<typename acc_T, typename vec_T, typename out_T>
+MLI_FORCE_INLINE out_T mli_math_intra_sum(acc_T L) {
+    int acc_len = get_number_lanes<vec_T>();
+    while (acc_len > 8){
+        L = vvc4add(L);
+        L = vvc4pack(L);
+        acc_len >>= 2;
+    }
+    L = vvc4add(L);
+    acc_len >>= 2;
+    if (acc_len == 2){
+        L = vvc2add(L);
+    }
+    vec_T vec = mli_math_acc_cast_fx<vec_T, acc_T>(L);
+    return (out_T) vec[0];
+}
+
+MLI_FORCE_INLINE int32_t mli_math_intra_sum(vNx2accint_t L) {
+    int32_t sum_acc = mli_math_intra_sum<vNaccint_t, vNint_t, int32_t>(vvcaddacc(__vacc_lo(L), __vacc_hi(L)));
+    return sum_acc;
+}
+
+MLI_FORCE_INLINE int32_t mli_math_intra_sum(vNx4accint_t L) {
+    int32_t sum_acc = mli_math_intra_sum(mli_math_add(L.lo, L.hi));
+    return sum_acc;
+}
+
 // Maximum of two fx operands
 //========================================================================
 template <typename io_T>
@@ -765,6 +837,26 @@ MLI_FORCE_INLINE io_T mli_math_max_fx(io_T L, io_T R) {
 template <typename l_T, typename r_T>
 MLI_FORCE_INLINE l_T mli_math_max_fx(l_T L, r_T R) {
     return (L > R) ? L : R;
+}
+
+//This function works only on acc_T which supported by vvc2max and vvceven
+template<typename acc_T, typename vec_T, typename out_T>
+MLI_FORCE_INLINE out_T mli_math_intra_max(acc_T L) {
+    int acc_len = get_number_lanes<vec_T>();
+    while (acc_len > 2){
+        L = vvc2max(L);
+        L = vvceven(L);
+        acc_len >>= 1;
+    }
+    L = vvc2max(L);
+    vec_T vec = mli_math_acc_cast_fx<vec_T, acc_T>(L);
+    return (out_T) vec[0];
+}
+
+MLI_FORCE_INLINE int8_t mli_math_intra_max(vNx4char_t L) {
+    vNx4accchar_t acc = vvcadd_init(L, (vNx4char_t) 0);
+    int8_t max_val = mli_math_intra_max<vNx4accchar_t, vNx4char_t, int8_t>(acc);
+    return max_val;
 }
 
 // Minimum of two fx operands
@@ -988,48 +1080,32 @@ MLI_FORCE_INLINE mli_acc32_t mli_math_acc_ashift_fx(mli_acc32_t acc, int shift_r
     return mli_math_asr_rnd_fx<mli_acc32_t, int>(acc, shift_right);
 }
 
-// Number of lanes in a vector
-//========================================================================
-template <typename T>
-constexpr int get_number_lanes() {
-    return 
-     (  std::is_same<T, int8_t>::value
-       || std::is_same<T, int16_t>::value
-       || std::is_same<T, int32_t>::value
-       || std::is_same<T, mli_acc40_t>::value
-       || std::is_same<T, int64_t>::value
-       || std::is_same<T, uint8_t>::value
-       || std::is_same<T, uint16_t>::value
-       || std::is_same<T, uint32_t>::value
-       || std::is_same<T, uint64_t>::value) ?
-        1
-    :
-     (  std::is_same<T, vNx4char_t>::value
-       || std::is_same<T, vNx4short_t>::value
-       || std::is_same<T, vNx4int_t>::value
-       || std::is_same<T, vNx4accshort_t>::value
-       || std::is_same<T, vNx4accint_t>::value) ?
-         _VDSP_NUM_8BIT_LANES
-    :
-     (  std::is_same<T, vNx2short_t>::value
-       || std::is_same<T, vNx2int_t>::value
-       || std::is_same<T, vNx2accshort_t>::value
-       || std::is_same<T, vNx2accint_t>::value) ?
-         _VDSP_NUM_16BIT_LANES
-    :
-     (  std::is_same<T, vNint_t>::value) ?
-        _VDSP_NUM_32BIT_LANES
-    : 0;
+typedef struct {
+    pvNx2 lo;
+    pvNx2 hi;
+} grp_pvNx2_t;
+
+MLI_FORCE_INLINE grp_pvNx2_t init_predicate_grp(int remaining_part_tmp) {
+    pvNx2 predicate_lo = to_pvNx2(vvci_h() < remaining_part_tmp);
+    pvNx2 predicate_hi = to_pvNx2(vvci_h() < mli_math_max_fx(remaining_part_tmp - _VDSP_NUM_16BIT_LANES, 0));
+    grp_pvNx2_t r;
+    r.lo = predicate_lo;
+    r.hi = predicate_hi;
+    return r;
 }
 
-template <typename T>
-MLI_FORCE_INLINE int get_number_lanes(T dummy) {
-    return get_number_lanes<T>();
-}
 
 template<typename vec_T, typename pred_T>
 MLI_FORCE_INLINE vec_T mli_math_select_fx(pred_T predicate, vec_T L, vec_T R) {
     return (vec_T) vvsel(predicate, L, R);
+}
+
+template<>
+MLI_FORCE_INLINE vNx4short_t mli_math_select_fx(grp_pvNx2_t predicate, vNx4short_t L, vNx4short_t R) {
+    vNx4short_t res;
+    res.lo = mli_math_select_fx<vNx2short_t, pvNx2>(predicate.lo, L.lo, R.lo);
+    res.hi = mli_math_select_fx<vNx2short_t, pvNx2>(predicate.hi, L.hi, R.hi);
+    return res;
 }
 
 #endif // _VDSP_MLI_MATH_H_
