@@ -264,13 +264,6 @@ int main() {
             reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
             continue;
         }
-#if PLATFORM == V2DSP_XY
-        if (strstr(cur_test->descr, "SA8_SA8_SA32") != nullptr) {
-            // em9d kind of configurations produces wrong results for sa8 data type.
-            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
-            continue;
-        }
-#endif
 #if PLATFORM == V2DSP_VECTOR
         if (strstr(cur_test->descr, " FX16 ") != nullptr) {
             // VPX fails bitwise comparison with reference .
