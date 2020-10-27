@@ -41,7 +41,7 @@ MLI_FORCE_INLINE void adjust_quant_params(s8asym_quant_specific_params* params, 
     params->out_mul = params->in_to_out_scales_ratio * params->weight_scales[krn_idx];
 
     params->out_shift = params->in_to_out_shift;
-    params->out_shift += params->weight_shifts[0];
+    params->out_shift += params->weight_shifts[krn_idx];
 
 #if !defined(FULL_ACCU)
     // When the accumulator is pre-shifted before the output multiplier,
