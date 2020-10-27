@@ -35,9 +35,10 @@ endif
 
 BIN_FILES = \
 	$(BIN_PATH)$(PS)test_mli_krn_softmax$(BIN_EXT) \
+	$(BIN_PATH)$(PS)test_mli_krn_eltwise$(BIN_EXT) \
 	$(BIN_PATH)$(PS)test_mli_krn_conv2d$(BIN_EXT)
 	
-TEST_TARGETS = test_softmax test_conv2d
+TEST_TARGETS = test_eltwise test_softmax test_conv2d
 
 
 
@@ -79,6 +80,10 @@ test_conv2d: $(BIN_PATH)$(PS)test_mli_krn_conv2d$(BIN_EXT)
 
 
 test_softmax: $(BIN_PATH)$(PS)test_mli_krn_softmax$(BIN_EXT)
+	$(RUN_TEST_CMD) $<
+
+
+test_eltwise: $(BIN_PATH)$(PS)test_mli_krn_eltwise$(BIN_EXT)
 	$(RUN_TEST_CMD) $<
 
 

@@ -175,7 +175,7 @@ tensor_quantizer::tensor_state tensor_quantizer::validate_tensor(const mli_tenso
     // First check general tensor parameters like shape, rank, memstride, 
     // quantization dimension of sa type if applicable.
     // If they are broken - tensor is considered as bad and can't be used at all
-    if (mli_hlp_tensor_element_size(&tsr) == 0 || tsr.rank <= 0 || tsr.rank > MLI_MAX_RANK ||
+    if (mli_hlp_tensor_element_size(&tsr) == 0 || tsr.rank < 0 || tsr.rank > MLI_MAX_RANK ||
         ((tsr.el_type == MLI_EL_SA_8 || tsr.el_type == MLI_EL_SA_32) && tsr.el_params.sa.dim >= (int32_t)tsr.rank)) {
         return kBad;
     }

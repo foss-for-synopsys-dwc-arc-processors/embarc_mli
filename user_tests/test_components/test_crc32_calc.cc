@@ -78,8 +78,8 @@ bool crc32_calc::is_valid() const {
 // is beneficial as we can track memory corruption of inner tensor data ("holes" that excluded by memstride)
 // TODO: add an optional flag to calculated CRC on valid data, if needed
 uint32_t crc32_calc::operator()(const mli_tensor& in) {
-    const int8_t* current = in.data.mem.pi8;
-    uint32_t length = in.data.capacity;
+    const int8_t* current = (in.rank == 0) ? &in.data.mem.i8 : in.data.mem.pi8;
+    uint32_t length = (in.rank == 0) ? mli_hlp_tensor_element_size(&in) : in.data.capacity;
 
     return (*this)(current, length);
 }
