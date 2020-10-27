@@ -39,7 +39,7 @@ static MLI_FORCE_INLINE acc_T reduce_sum2D_v(
 	}
 
     vNx4short_t acc_casted = mli_math_acc_cast_fx<vNx4short_t, vNx4accshort_t>(acc_short); 
-    accu = mli_math_mul_fx<vNx4short_t, vNx4accint_t>(acc_casted, (vNx4short_t)mul);
+    accu = mli_math_mac_fx(accu, acc_casted, mul);
     return accu;
 }
 
