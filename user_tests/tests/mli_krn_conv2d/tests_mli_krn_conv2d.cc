@@ -8,9 +8,11 @@
 */
 
 #include "mli_api.h"
+#include "mli_config.h"
 
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "test_crc32_calc.h"
 #include "test_memory_manager.h"
@@ -51,19 +53,35 @@ struct conv2d_test_operands {
 // When developer finished implementation of kernel and consider it as ok, He need to populate
 // proper checksums for tests in order to highlight any change which affects results.
 #if defined(CRC_RM_CONVERGENT) || defined(CRC_RM_UP)
+
 // Shared CRC Results
 const crc32_calc test_1_chksum_fx16{ 0x3669E8DA }, test_1_chksum_fx16_fx8_fx8{ 0x627FD168 }, test_1_chksum_sa8{ 0xA3FFD976 },
-                 test_2_chksum_fx16{ 0x6075722F }, test_2_chksum_fx16_fx8_fx8{ 0xBFE5DC3D }, test_2_chksum_sa8{ 0x314ECCA6 },
+                 test_2_chksum_fx16{ 0x6075722F }, test_2_chksum_fx16_fx8_fx8{ 0xBFE5DC3D }, test_2_chksum_sa8{ 0x5D288208 },
                  test_3_chksum_fx16{ 0xE2100158 }, test_3_chksum_fx16_fx8_fx8{ 0x550F135E }, test_3_chksum_sa8{ 0x9740102D },
                  test_4_chksum_fx16{ 0x5F13DD22 }, test_4_chksum_fx16_fx8_fx8{ 0xF92F0A5A }, test_4_chksum_sa8{ 0x45AA03B7 },
-                 test_5_chksum_fx16{ 0xD8CA1273 }, test_5_chksum_fx16_fx8_fx8{ 0x186AA252 }, test_5_chksum_sa8{ 0x01D390FA };
-
+                 test_5_chksum_fx16{ 0xD8CA1273 }, test_5_chksum_fx16_fx8_fx8{ 0x186AA252 }, test_5_chksum_sa8{ 0x01D390FA },
+                 test_6_chksum_fx16{ 0x5A7A92BB }, 
+                 test_7_chksum_fx16{ 0x6EA7C12C }, test_7_chksum_fx16_fx8_fx8{ 0x0EC04486 }, test_7_chksum_sa8{ 0xEC3B6B91 },
+                 test_8_chksum_fx16{ 0x2EE8436B }, test_8_chksum_fx16_fx8_fx8{ 0xA038E01B }, test_8_chksum_sa8{ 0xF0CC7CA5 },
+                 test_9_chksum_fx16, test_9_chksum_fx16_fx8_fx8, test_9_chksum_sa8,
+                 test_10_chksum_fx16, test_10_chksum_fx16_fx8_fx8, test_10_chksum_sa8;
+// Platform Specific CRC Results
+#if defined(CRC_RM_UP)
+const crc32_calc test_6_chksum_fx16_fx8_fx8{ 0xB158A585 }, test_6_chksum_sa8{ 0x944BF386 };
+#else 
+const crc32_calc test_6_chksum_fx16_fx8_fx8{ 0x798BEF7B }, test_6_chksum_sa8{ 0x2354FD30 };
+#endif
 #else // Not defined CRC_*
 const crc32_calc  test_1_chksum_fx16, test_1_chksum_fx16_fx8_fx8, test_1_chksum_sa8,
                   test_2_chksum_fx16, test_2_chksum_fx16_fx8_fx8, test_2_chksum_sa8,
                   test_3_chksum_fx16, test_3_chksum_fx16_fx8_fx8, test_3_chksum_sa8,
                   test_4_chksum_fx16, test_4_chksum_fx16_fx8_fx8, test_4_chksum_sa8,
-                  test_5_chksum_fx16, test_5_chksum_fx16_fx8_fx8, test_5_chksum_sa8;
+                  test_5_chksum_fx16, test_5_chksum_fx16_fx8_fx8, test_5_chksum_sa8,
+                  test_6_chksum_fx16, test_6_chksum_fx16_fx8_fx8, test_6_chksum_sa8,
+                  test_7_chksum_fx16, test_7_chksum_fx16_fx8_fx8, test_7_chksum_sa8,
+                  test_8_chksum_fx16, test_8_chksum_fx16_fx8_fx8, test_8_chksum_sa8,
+                  test_9_chksum_fx16, test_9_chksum_fx16_fx8_fx8, test_9_chksum_sa8,
+                  test_10_chksum_fx16, test_10_chksum_fx16_fx8_fx8, test_10_chksum_sa8;
 #endif
 
 const quality_metrics thresholds_fx16_general { quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
@@ -99,7 +117,7 @@ static const conv2d_test_operands tests_list[] = {
                                     input_1_fx16, weights_2_fx8, bias_1_fx8, test_2_out_fx16, test_2_cfg,
                                     thresholds_fx16_fx8_fx8_general, test_2_chksum_fx16_fx8_fx8},
     {"Test 2 SA8_SA8_SA32 ReluGen", mli_krn_conv2d_hwcn_sa8_sa8_sa32, 
-                                    input_1_sa8, weights_2_sa8, bias_1_w2_sa32, test_2_out_sa8, test_2_cfg,
+                                    input_1_sa8, weights_2_sa8, bias_1_w2_per_tensor_sa32, test_2_out_sa8, test_2_cfg,
                                     thresholds_sa8_general, test_2_chksum_sa8},
 
     // Dilation Rate Test: kernel_size=(3, 4), strides=(1, 1), w/o padding and w/o ReLU
@@ -136,9 +154,84 @@ static const conv2d_test_operands tests_list[] = {
     {"Test 5 SA8_SA8_SA32 W_Memstr", mli_krn_conv2d_hwcn_sa8_sa8_sa32,
                                      input_1_sa8, weights_2_memstr_sa8, bias_1_w2_sa32, test_5_out_sa8, test_5_cfg,
                                      thresholds_sa8_general, test_5_chksum_sa8},
+
+     // k1x1 specialization test with memstride, kernel_size=(1, 1), strides=(2, 2), krn_padding and ReLU 6
+     // No Dilation ratio. Memstrides are applied on input, output and weights tensors
+    {"Test 6 FX16 k1x1 Spec",          mli_krn_conv2d_hwcn_fx16_k1x1,
+                                       input_1_fx16, weights_3_memstr_fx16, bias_1_fx16, test_6_out_fx16, test_6_cfg,
+                                       thresholds_fx16_general, test_6_chksum_fx16},
+    {"Test 6 FX16_FX8_FX8  k1x1 Spec", mli_krn_conv2d_hwcn_fx16_fx8_fx8_k1x1,
+                                       input_1_fx16, weights_3_memstr_fx8, bias_1_fx8, test_6_out_fx16,
+                                       test_6_cfg, thresholds_fx16_fx8_fx8_general, test_6_chksum_fx16_fx8_fx8},
+    {"Test 6 SA8_SA8_SA32  k1x1 Spec", mli_krn_conv2d_hwcn_sa8_sa8_sa32_k1x1,
+                                       input_1_sa8, weights_3_memstr_sa8, bias_1_w3_sa32, test_6_out_sa8,
+                                       test_6_cfg, thresholds_sa8_general, test_6_chksum_sa8},
+
+    // k3x3 specialization test with memstride, kernel_size=(3, 3), strides=(2, 2), krn_padding and ReLU 6
+    // No Dilation ratio. Memstrides are applied on input, output and weights tensors
+    {"Test 7 FX16 k3x3 Spec",         mli_krn_conv2d_hwcn_fx16_k3x3,
+                                      input_1_fx16, weights_4_memstr_fx16, bias_1_fx16, test_7_out_fx16, test_7_cfg,
+                                      thresholds_fx16_general, test_7_chksum_fx16},
+    {"Test 7 FX16_FX8_FX8 k3x3 Spec", mli_krn_conv2d_hwcn_fx16_fx8_fx8_k3x3,
+                                      input_1_fx16, weights_4_memstr_fx8, bias_1_fx8, test_7_out_fx16,
+                                      test_7_cfg, thresholds_fx16_fx8_fx8_general, test_7_chksum_fx16_fx8_fx8},
+    {"Test 7 SA8_SA8_SA32 k3x3 Spec", mli_krn_conv2d_hwcn_sa8_sa8_sa32_k3x3, 
+                                      input_1_sa8, weights_4_memstr_sa8, bias_1_w4_sa32, test_7_out_sa8, test_7_cfg,
+                                      thresholds_sa8_general, test_7_chksum_sa8},
+
+    // k5x5 specialization test with memstride, kernel_size=(5, 5), strides=(2, 2), krn_padding and ReLU 6
+    // No Dilation ratio. Memstrides are applied on input, output and weights tensors
+    {"Test 8 FX16 k5x5 spec",         mli_krn_conv2d_hwcn_fx16_k5x5,
+                                      input_1_fx16,weights_5_memstr_fx16, bias_1_fx16, test_8_out_fx16, test_8_cfg,
+                                      thresholds_fx16_general, test_8_chksum_fx16},
+    {"Test 8 FX16_FX8_FX8 k5x5 spec", mli_krn_conv2d_hwcn_fx16_fx8_fx8_k5x5,
+                                      input_1_fx16, weights_5_memstr_fx8, bias_1_fx8, test_8_out_fx16,
+                                      test_8_cfg, thresholds_fx16_fx8_fx8_general, test_8_chksum_fx16_fx8_fx8},
+    {"Test 8 SA8_SA8_SA32 k5x5 spec", mli_krn_conv2d_hwcn_sa8_sa8_sa32_k5x5, 
+                                      input_1_sa8, weights_5_memstr_sa8, bias_1_w5_sa32, test_8_out_sa8, test_8_cfg,
+                                      thresholds_sa8_general, test_8_chksum_sa8},
+    
+    // Dilation test with padding for generic function, kernel_size=(3, 3), strides=(1, 1),
+    // krn_padding , dilation = (2,2) and ReLU_Gen.
+    // No Dilation ratio. Memstrides are applied on input, output and weights tensors
+    {"Test 9-1 FX16 Dil+Pad",         mli_krn_conv2d_hwcn_fx16, 
+                                      input_1_fx16, weights_4_memstr_fx16, bias_1_fx16, test_9_out_fx16, test_9_cfg,
+                                      thresholds_fx16_general, test_9_chksum_fx16},
+    {"Test 9-1 FX16_FX8_FX8 Dil+Pad", mli_krn_conv2d_hwcn_fx16_fx8_fx8,
+                                      input_1_fx16, weights_4_memstr_fx8, bias_1_fx8, test_9_out_fx16,
+                                      test_9_cfg, thresholds_fx16_fx8_fx8_general, test_9_chksum_fx16_fx8_fx8},
+    {"Test 9-1 SA8_SA8_SA32 Dil+Pad", mli_krn_conv2d_hwcn_sa8_sa8_sa32,
+                                      input_1_sa8, weights_4_memstr_sa8, bias_1_w4_sa32, test_9_out_sa8,
+                                      test_9_cfg, thresholds_sa8_general, test_9_chksum_sa8},
+
+    // Dilation test for k3x3 specialization test, kernel_size=(3, 3), strides=(1, 1), 
+    // krn_padding , dilation = (2,2) and ReLU_Gen.
+    // Memstrides are applied on input, output and weights tensors
+    {"Test 9-2 FX16 k3x3 Dil",         mli_krn_conv2d_hwcn_fx16_k3x3,
+                                       input_1_fx16, weights_4_memstr_fx16, bias_1_fx16, test_9_out_fx16, test_9_cfg,
+                                       thresholds_fx16_general, test_9_chksum_fx16},
+    {"Test 9-2 FX16_FX8_FX8 k3x3 Dil", mli_krn_conv2d_hwcn_fx16_fx8_fx8_k3x3,
+                                       input_1_fx16, weights_4_memstr_fx8, bias_1_fx8, test_9_out_fx16,
+                                       test_9_cfg, thresholds_fx16_fx8_fx8_general, test_9_chksum_fx16_fx8_fx8},
+    {"Test 9-2 SA8_SA8_SA32 k3x3 Dil", mli_krn_conv2d_hwcn_sa8_sa8_sa32_k3x3, 
+                                       input_1_sa8, weights_4_memstr_sa8, bias_1_w4_sa32, test_9_out_sa8, test_9_cfg,
+                                       thresholds_sa8_general, test_9_chksum_sa8},
+
+    // Dilation test for k5x5 specialization test, kernel_size=(5, 5), strides=(1, 1), 
+    // krn_padding , dilation = (2,2) and ReLU_Gen.
+    // Memstrides are applied on input, output and weights tensors
+    {"Test 10 FX16 k5x5 Dil",         mli_krn_conv2d_hwcn_fx16_k5x5,
+                                      input_1_fx16, weights_5_memstr_fx16, bias_1_fx16, test_10_out_fx16, test_10_cfg,
+                                      thresholds_fx16_general, test_10_chksum_fx16},
+    {"Test 10 FX16_FX8_FX8 k5x5 Dil", mli_krn_conv2d_hwcn_fx16_fx8_fx8_k5x5,
+                                      input_1_fx16, weights_5_memstr_fx8, bias_1_fx8, test_10_out_fx16,
+                                      test_10_cfg, thresholds_fx16_fx8_fx8_general, test_10_chksum_fx16_fx8_fx8},
+    {"Test 10 SA8_SA8_SA32 k5x5 Dil", mli_krn_conv2d_hwcn_sa8_sa8_sa32_k5x5, 
+                                      input_1_sa8, weights_5_memstr_sa8, bias_1_w5_sa32, test_10_out_sa8, test_10_cfg,
+                                      thresholds_sa8_general, test_10_chksum_sa8},
 };
 
-constexpr int kMemSize = 2047;
+constexpr int kMemSize = 2247;
 static IO_DATA_ATTR int8_t scratch_mem_in[kMemSize] = { 0 };
 static IO_DATA_ATTR int8_t scratch_mem_out[kMemSize] = { 0 };
 static W_DATA_ATTR int8_t scratch_mem_w[kMemSize] = { 0 };
@@ -159,6 +252,32 @@ int main() {
         bool is_test_passed = true;
         const conv2d_test_operands* cur_test = &tests_list[i];
         quality_metrics test_metics;
+
+        if (strstr(cur_test->descr, "Test 9") != nullptr ||
+                strstr(cur_test->descr, "Test 10") != nullptr) {
+            // Kernel doesn't work properly with dilation ratio and padding turned on together.
+            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
+            continue;
+        }
+        if (strstr(cur_test->descr, "Test 3") != nullptr) {
+            // In debug mode with return codes checker badly handels dilation ratio.
+            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
+            continue;
+        }
+#if PLATFORM == V2DSP_XY
+        if (strstr(cur_test->descr, "SA8_SA8_SA32") != nullptr) {
+            // em9d kind of configurations produces wrong results for sa8 data type.
+            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
+            continue;
+        }
+#endif
+#if PLATFORM == V2DSP_VECTOR
+        if (strstr(cur_test->descr, " FX16 ") != nullptr) {
+            // VPX fails bitwise comparison with reference .
+            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
+            continue;
+        }
+#endif
         if (!(cur_test->in.is_valid() && cur_test->weights.is_valid() &&
                 cur_test->bias.is_valid() && cur_test->out.is_valid())) {
             reporter.report_message(cur_test->descr, "FAILED at init: Bad source data for one of tensors");

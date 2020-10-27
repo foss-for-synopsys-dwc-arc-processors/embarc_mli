@@ -46,7 +46,6 @@ tensor_quantizer::tensor_quantizer(mli_tensor tsr, const int quant_dim, const fl
     // and skip the rest initialization code
     if (source_tsr_.el_type == MLI_EL_SA_8 || source_tsr_.el_type == MLI_EL_SA_32) {
         source_tsr_.el_params.sa.dim = quant_dim;
-        source_tsr_.el_params.sa.dim = quant_dim;
 
         // check that input tensor in general not bad
         const tensor_state state = validate_tensor(source_tsr_);
@@ -77,7 +76,6 @@ tensor_quantizer::tensor_quantizer(mli_tensor tsr, const int frac_bits, const fl
         , is_valid_(false) {
     // SImilar as for SA constructor - keep is_valid false if not FX
     if (source_tsr_.el_type == MLI_EL_FX_8 || source_tsr_.el_type == MLI_EL_FX_16) {
-        source_tsr_.el_params.fx.frac_bits = frac_bits;
         source_tsr_.el_params.fx.frac_bits = frac_bits;
         // check that input tensor in general not bad
         const tensor_state state = validate_tensor(source_tsr_);
