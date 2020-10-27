@@ -1,5 +1,5 @@
 #
-# Copyright 2019-2020, Synopsys, Inc.
+# Copyright 2020, Synopsys, Inc.
 # All rights reserved.
 #
 # This source code is licensed under the BSD-3-Clause license found in
@@ -36,9 +36,11 @@ endif
 BIN_FILES = \
 	$(BIN_PATH)$(PS)test_mli_krn_softmax$(BIN_EXT) \
 	$(BIN_PATH)$(PS)test_mli_krn_eltwise$(BIN_EXT) \
-	$(BIN_PATH)$(PS)test_mli_krn_conv2d$(BIN_EXT)
-	
-TEST_TARGETS = test_eltwise test_softmax test_conv2d
+	$(BIN_PATH)$(PS)test_mli_krn_conv2d$(BIN_EXT) \
+	$(BIN_PATH)$(PS)test_mli_krn_avepool$(BIN_EXT) \
+	$(BIN_PATH)$(PS)test_mli_krn_maxpool$(BIN_EXT)
+
+TEST_TARGETS = test_softmax test_conv2d test_eltwise test_avepool test_maxpool
 
 
 
@@ -76,6 +78,14 @@ test_all: $(TEST_TARGETS)
 
 
 test_conv2d: $(BIN_PATH)$(PS)test_mli_krn_conv2d$(BIN_EXT)
+	$(RUN_TEST_CMD) $<
+
+
+test_avepool: $(BIN_PATH)$(PS)test_mli_krn_avepool$(BIN_EXT)
+	$(RUN_TEST_CMD) $<
+
+
+test_maxpool: $(BIN_PATH)$(PS)test_mli_krn_maxpool$(BIN_EXT)
 	$(RUN_TEST_CMD) $<
 
 

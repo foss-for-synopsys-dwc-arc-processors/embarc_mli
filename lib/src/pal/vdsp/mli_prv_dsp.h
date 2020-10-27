@@ -281,6 +281,30 @@ static MLI_FORCE_INLINE int32_t  mli_prv_init_accu_with_bias(
     return accu;
 }
 
+template<typename T>
+static MLI_FORCE_INLINE T mli_prv_init_accu_with_bias_v(
+        const int16_t bias,
+        const int bias_shift);
+
+template<>
+MLI_FORCE_INLINE vNx4accint_t mli_prv_init_accu_with_bias_v(
+        const int16_t bias,
+        const int bias_shift) {
+
+    vNx4accint_t r;
+    r.lo = vvcmpy((vNx2short_t)1, (int16_t)bias);
+    r.hi = vvcmpy((vNx2short_t)1, (int16_t)bias);
+    return mli_math_asl_fx(r, bias_shift);
+}
+
+template<>
+MLI_FORCE_INLINE mli_acc40_t mli_prv_init_accu_with_bias_v(
+        const int16_t bias,
+        const int bias_shift) {
+
+    mli_acc40_t r = bias;
+    return mli_math_asl_fx(r, bias_shift);
+}
 // Multiply and accumulate for vectors of 1, 2, and 4 elements
 //=========================================================================
 // Note:

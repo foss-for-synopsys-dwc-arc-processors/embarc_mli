@@ -239,6 +239,27 @@ static MLI_FORCE_INLINE int32_t  mli_prv_init_accu_with_bias(
     return accu;
 }
 
+template<typename T>
+static MLI_FORCE_INLINE T mli_prv_init_accu_with_bias_v(
+        const int16_t bias,
+        const int bias_shift);
+
+template<>
+MLI_FORCE_INLINE mli_acc40_t mli_prv_init_accu_with_bias_v(
+        const int16_t bias,
+        const int bias_shift) {
+    mli_acc40_t accu = mli_math_asl_fx((mli_acc40_t) bias, bias_shift);
+    return accu;
+}
+
+template<>
+MLI_FORCE_INLINE mli_acc32_t mli_prv_init_accu_with_bias_v(
+        const int16_t bias,
+        const int bias_shift) {
+    mli_acc32_t accu = mli_math_asl_fx((mli_acc32_t) bias, bias_shift);
+    return accu;
+}
+
 // Multiply and accumulate
 //=========================================================================
 static MLI_FORCE_INLINE void mli_prv_load_mac(
