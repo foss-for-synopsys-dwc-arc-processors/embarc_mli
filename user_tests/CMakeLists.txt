@@ -386,3 +386,43 @@ set_target_properties(test_mli_krn_depthwise_conv
     PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "./bin$<0:>"
 )
+
+#======================================================
+# Relu
+#======================================================
+add_executable(test_mli_krn_relu
+    tests/mli_krn_relu/tests_mli_krn_relu.cc
+)
+
+target_include_directories(test_mli_krn_relu PRIVATE
+    tests/mli_krn_relu
+)
+
+target_link_libraries(test_mli_krn_relu PUBLIC mli)
+target_link_libraries(test_mli_krn_relu PUBLIC test_components_obj)
+
+target_compile_options(test_mli_krn_relu PRIVATE
+    ${MLI_PLATFORM_COMPILE_OPTIONS}
+    ${TEST_COMPILE_OPTIONS}
+    ${DSP_CONTROL_OPTION}
+)
+
+target_compile_definitions(test_mli_krn_relu PRIVATE ${TEST_COMPILE_DEFINITIONS})
+
+target_link_options(test_mli_krn_relu PRIVATE
+    ${MLI_PLATFORM_LINK_OPTIONS}
+    ${TEST_COMPILE_OPTIONS}
+    ${DSP_CONTROL_OPTION}
+)
+
+if (ARC)
+    target_link_options(test_mli_krn_relu PRIVATE
+        -m
+        -Coutput=./bin/test_mli_krn_relu.map
+    )
+endif()
+
+set_target_properties(test_mli_krn_relu
+    PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "./bin$<0:>"
+)
