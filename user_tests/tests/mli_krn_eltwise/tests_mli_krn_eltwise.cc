@@ -220,23 +220,6 @@ int main() {
             is_test_passed = false;
         }
 
-        // assign data values for scalar inputs
-        if (input1.rank == 0) {
-            if (input1.el_type == MLI_EL_FX_16) {
-                input1.data.mem.i16 = input1.data.mem.pi16[0];
-            } else {
-                input1.data.mem.i8 = input1.data.mem.pi8[0];
-            }
-        }
-
-        if (input2.rank == 0) {
-            if (input2.el_type == MLI_EL_FX_16) {
-                input2.data.mem.i16 = input2.data.mem.pi16[0];
-            } else {
-                input2.data.mem.i8 = input2.data.mem.pi8[0];
-            }
-        }
-
         if (is_test_passed &&
                 (mem_in1_keeper.is_memory_corrupted() || mem_in2_keeper.is_memory_corrupted() ||
                         mem_out_keeper.is_memory_corrupted())) {
