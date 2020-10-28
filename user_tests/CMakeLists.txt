@@ -307,3 +307,82 @@ set_target_properties(test_mli_krn_maxpool
     RUNTIME_OUTPUT_DIRECTORY "./bin$<0:>"
 )
 
+#======================================================
+# Fully connected
+#======================================================
+add_executable(test_mli_krn_fully_connected
+    tests/mli_krn_fully_connected/tests_mli_krn_fully_connected.cc
+)
+
+target_include_directories(test_mli_krn_fully_connected PRIVATE
+    tests/mli_krn_fully_connected
+)
+
+target_link_libraries(test_mli_krn_fully_connected PUBLIC mli)
+target_link_libraries(test_mli_krn_fully_connected PUBLIC test_components_obj)
+
+target_compile_options(test_mli_krn_fully_connected PRIVATE
+    ${MLI_PLATFORM_COMPILE_OPTIONS}
+    ${TEST_COMPILE_OPTIONS}
+    ${DSP_CONTROL_OPTION}
+)
+
+target_compile_definitions(test_mli_krn_fully_connected PRIVATE ${TEST_COMPILE_DEFINITIONS})
+
+target_link_options(test_mli_krn_fully_connected PRIVATE
+    ${MLI_PLATFORM_LINK_OPTIONS}
+    ${TEST_COMPILE_OPTIONS}
+    ${DSP_CONTROL_OPTION}
+)
+
+if (ARC)
+    target_link_options(test_mli_krn_fully_connected PRIVATE
+        -m
+        -Coutput=./bin/test_mli_krn_fully_connected.map
+    )
+endif()
+
+set_target_properties(test_mli_krn_fully_connected
+    PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "./bin$<0:>"
+)
+
+#======================================================
+# Depthwise conv
+#======================================================
+add_executable(test_mli_krn_depthwise_conv
+    tests/mli_krn_depthwise_conv/tests_mli_krn_depthwise_conv.cc
+)
+
+target_include_directories(test_mli_krn_depthwise_conv PRIVATE
+    tests/mli_krn_depthwise_conv
+)
+
+target_link_libraries(test_mli_krn_depthwise_conv PUBLIC mli)
+target_link_libraries(test_mli_krn_depthwise_conv PUBLIC test_components_obj)
+
+target_compile_options(test_mli_krn_depthwise_conv PRIVATE
+    ${MLI_PLATFORM_COMPILE_OPTIONS}
+    ${TEST_COMPILE_OPTIONS}
+    ${DSP_CONTROL_OPTION}
+)
+
+target_compile_definitions(test_mli_krn_depthwise_conv PRIVATE ${TEST_COMPILE_DEFINITIONS})
+
+target_link_options(test_mli_krn_depthwise_conv PRIVATE
+    ${MLI_PLATFORM_LINK_OPTIONS}
+    ${TEST_COMPILE_OPTIONS}
+    ${DSP_CONTROL_OPTION}
+)
+
+if (ARC)
+    target_link_options(test_mli_krn_depthwise_conv PRIVATE
+        -m
+        -Coutput=./bin/test_mli_krn_depthwise_conv.map
+    )
+endif()
+
+set_target_properties(test_mli_krn_depthwise_conv
+    PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "./bin$<0:>"
+)
