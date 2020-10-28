@@ -1,3 +1,11 @@
+/*
+* Copyright 2020, Synopsys, Inc.
+* All rights reserved.
+*
+* This source code is licensed under the BSD-3-Clause license found in
+* the LICENSE file in the root directory of this source tree.
+*
+*/
 
 #include <stdint.h>
 
@@ -18,7 +26,7 @@ extern mli::tst::tensor_quantizer test_3_out_fx16;
 extern mli::tst::tensor_quantizer test_3_out_sa8;
 extern mli::tst::tensor_quantizer test_4_out_fx16;
 extern mli::tst::tensor_quantizer test_4_out_sa8;
-extern const mli_relu_cfg test_1_cfg;
+
 static const float input_1_data[] = {
     -2.999756f, -2.952881f, -2.906006f, -2.859131f, -2.812256f, -2.765381f, -2.718506f, -2.671631f, -2.624756f, -2.577881f, 
     -2.531006f, -2.484131f, -2.437256f, -2.390381f, -2.343506f, -2.296631f, -2.249756f, -2.202881f, -2.156006f, -2.109131f, 
@@ -306,5 +314,3 @@ sizeof(test_3_out_data) / sizeof(test_3_out_data[0]), &test_3_out_scale, 1, &tes
 tensor_quantizer test_4_out_fx16(test_4_out_tsr_fx16, test_4_out_fx8_frac + 8, test_4_out_data, sizeof(test_4_out_data) / sizeof(test_4_out_data[0]));
 tensor_quantizer test_4_out_sa8(test_4_out_tsr_sa8, test_4_out_sa_dim, test_4_out_data, 
 sizeof(test_4_out_data) / sizeof(test_4_out_data[0]), &test_4_out_scale, 1, &test_4_out_zero_point, 1, test_4_out_scales_frac, 1);
-
-const mli_relu_cfg test_1_cfg = {};

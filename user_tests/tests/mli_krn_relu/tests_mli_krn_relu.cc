@@ -41,21 +41,26 @@ struct relu_test_operands {
     tensor_quantizer out;
     const quality_metrics threshold;
     const crc32_calc check_sum;
+    const bool in_place_comp;
 };
 
 #if defined(CRC_RM_CONVERGENT) || defined(CRC_RM_UP)
 
 // Shared CRC Results
-const crc32_calc  test_1_chksum_fx16{ 0x895392AA }, test_1_chksum_sa8{ 0x3AB22E41 },
+const crc32_calc  test_0_chksum_fx16{ 0x0FAE0670 }, test_0_chksum_sa8{ 0x1173F0AE },
+                  test_1_chksum_fx16{ 0x895392AA }, test_1_chksum_sa8{ 0x3AB22E41 },
                   test_2_chksum_fx16{ 0x8647B40C }, test_2_chksum_sa8{ 0x33AA87EB },
                   test_3_chksum_fx16{ 0x1DB97F6A }, test_3_chksum_sa8{ 0x6411B870 },
-                  test_4_chksum_fx16{ 0x59BBFEC7 }, test_4_chksum_sa8{ 0x5E5C0C88 };
+                  test_4_chksum_fx16{ 0x59BBFEC7 }, test_4_chksum_sa8{ 0x5E5C0C88 },
+                  test_5_chksum_fx16{ 0x53B89125 }, test_5_chksum_sa8{ 0x263FFFA7 };
 
 #else  // Not defined CRC_*
-const crc32_calc  test_1_chksum_fx16, test_1_chksum_sa8,
+const crc32_calc  test_0_chksum_fx16, test_0_chksum_sa8,
+                  test_1_chksum_fx16, test_1_chksum_sa8,
                   test_2_chksum_fx16, test_2_chksum_sa8,
                   test_3_chksum_fx16, test_3_chksum_sa8,
-                  test_4_chksum_fx16, test_4_chksum_sa8;
+                  test_4_chksum_fx16, test_4_chksum_sa8,
+                  test_5_chksum_fx16, test_5_chksum_sa8;
 
 #endif
 
@@ -66,37 +71,53 @@ const quality_metrics thresholds_sa8_general { quality_metrics::kPassValueMaxAbs
                                                /* SNR DB = */ 30.f, quality_metrics::kPassValueQuantErrPerc };
 
 static const relu_test_operands tests_list[] = {
-    // Gen Relu input range [-3:3], 2D Shape, MemStr
-    {"Test 1 FX16 Gen Relu 2D",  mli_krn_relu_fx16, MLI_RELU_GEN,
+    // Relu None input range [-3:3], 2D Shape, MemStr, Identity, Using Same Input
+    {"Test 1 FX16 Relu NONE 2D",  mli_krn_relu_fx16, MLI_RELU_NONE,
+                                    input_1_fx16, input_1_fx16,
+                                    thresholds_fx16_general, test_0_chksum_fx16, false},
+    {"Test 1 SA8  Relu NONE 2D",  mli_krn_relu_sa8, MLI_RELU_NONE,
+                                    input_1_sa8, input_1_sa8,
+                                    thresholds_sa8_general, test_0_chksum_sa8, false},
+
+    // Relu Gen input range [-3:3], 2D Shape, MemStr
+    {"Test 1 FX16 Relu Gen 2D",  mli_krn_relu_fx16, MLI_RELU_GEN,
                                     input_1_fx16, test_1_out_fx16,
-                                    thresholds_fx16_general, test_1_chksum_fx16},
-    {"Test 1 SA8  Gen Relu 2D",  mli_krn_relu_sa8, MLI_RELU_GEN,
+                                    thresholds_fx16_general, test_1_chksum_fx16, false},
+    {"Test 1 SA8  Relu Gen 2D",  mli_krn_relu_sa8, MLI_RELU_GEN,
                                     input_1_sa8, test_1_out_sa8,
-                                    thresholds_sa8_general, test_1_chksum_sa8},
+                                    thresholds_sa8_general, test_1_chksum_sa8, false},
 
     // Relu1 input range [-3:3], 2D Shape, MemStr
     {"Test 2 FX16 Relu1 2D",  mli_krn_relu_fx16, MLI_RELU_1,
                                     input_1_fx16, test_2_out_fx16,
-                                    thresholds_fx16_general, test_2_chksum_fx16},
+                                    thresholds_fx16_general, test_2_chksum_fx16, false},
     {"Test 2 SA8  Relu1 2D",  mli_krn_relu_sa8, MLI_RELU_1,
                                     input_1_sa8, test_2_out_sa8,
-                                    thresholds_sa8_general, test_2_chksum_sa8},
+                                    thresholds_sa8_general, test_2_chksum_sa8, false},
 
     // Relu6 input range [-3:3], 2D Shape, MemStr
     {"Test 3 FX16 Relu6 2D",  mli_krn_relu_fx16, MLI_RELU_6,
                                     input_1_fx16, test_3_out_fx16,
-                                    thresholds_fx16_general, test_3_chksum_fx16},
+                                    thresholds_fx16_general, test_3_chksum_fx16, false},
     {"Test 3 SA8  Relu6 2D",  mli_krn_relu_sa8, MLI_RELU_6,
                                     input_1_sa8, test_3_out_sa8,
-                                    thresholds_sa8_general, test_3_chksum_sa8},
+                                    thresholds_sa8_general, test_3_chksum_sa8, false},
 
     // Relu6 input range [3:8], 4D Shape, MemStr
     {"Test 4 FX16 Relu6 4D",  mli_krn_relu_fx16, MLI_RELU_6,
                                     input_2_fx16, test_4_out_fx16,
-                                    thresholds_fx16_general, test_4_chksum_fx16},
+                                    thresholds_fx16_general, test_4_chksum_fx16, false},
     {"Test 4 SA8  Relu6 4D",  mli_krn_relu_sa8, MLI_RELU_6,
                                     input_2_sa8, test_4_out_sa8,
-                                    thresholds_sa8_general, test_4_chksum_sa8},
+                                    thresholds_sa8_general, test_4_chksum_sa8, false},
+
+    // Relu6 input range [3:8], 4D Shape, MemStr, In Place Computation 
+    {"Test 5 FX16 Relu6 4D, IPC",  mli_krn_relu_fx16, MLI_RELU_6,
+                                    input_2_fx16, test_4_out_fx16,
+                                    thresholds_fx16_general, test_5_chksum_fx16, true},
+    {"Test 5 SA8  Relu6 4D, IPC",  mli_krn_relu_sa8, MLI_RELU_6,
+                                    input_2_sa8, test_4_out_sa8,
+                                    thresholds_sa8_general, test_5_chksum_sa8, true},
 };
 
 constexpr int kMemSize = 2048;
@@ -111,7 +132,7 @@ int main() {
 
     reporter.report_header("MLI|Kernels|Basic Relu Functions Tests");
     for (int i = 0; i < kTestsNum; ++i) {
-        memory_manager mem_in1_keeper((int8_t*)(scratch_mem_in), sizeof(scratch_mem_in));
+        memory_manager mem_in_keeper((int8_t*)(scratch_mem_in), sizeof(scratch_mem_in));
         memory_manager mem_out_keeper((int8_t*)(scratch_mem_out), sizeof(scratch_mem_out));
         bool is_test_passed = true;
         const relu_test_operands* cur_test = &tests_list[i];
@@ -121,8 +142,14 @@ int main() {
             is_test_passed = false;
         }
 
-        mli_tensor input = cur_test->in.get_quantized_tensor(mem_in1_keeper.allocate_memory(cur_test->in));
-        mli_tensor out = cur_test->out.get_not_quantized_tensor(mem_out_keeper.allocate_memory(cur_test->out));
+        mli_tensor input = cur_test->in.get_quantized_tensor(mem_in_keeper.allocate_memory(cur_test->in));
+        mli_tensor out;
+        if (cur_test->in_place_comp) {
+            out = input;
+        } else {
+            out = cur_test->out.get_not_quantized_tensor(mem_out_keeper.allocate_memory(cur_test->out));
+        }
+
         mli_tensor source_out_tensor = out;
         if (is_test_passed &&
                 (tensor_quantizer::validate_tensor(input) != tensor_quantizer::kOk ||
@@ -133,7 +160,7 @@ int main() {
         }
 
         if (is_test_passed &&
-                (mem_in1_keeper.is_memory_corrupted() || mem_out_keeper.is_memory_corrupted())) {
+                (mem_in_keeper.is_memory_corrupted() || mem_out_keeper.is_memory_corrupted())) {
             reporter.report_message(cur_test->descr,
                 "FAILED at quantization step: memory beside one of operands is corrupted");
             is_test_passed = false;
@@ -147,9 +174,16 @@ int main() {
         }
 
         if (is_test_passed &&
-                (mem_in1_keeper.is_memory_corrupted() || mem_out_keeper.is_memory_corrupted())) {
+                (mem_in_keeper.is_memory_corrupted() || mem_out_keeper.is_memory_corrupted())) {
             reporter.report_message(cur_test->descr,
                 "FAILED after kernel run: memory beside one of operands is corrupted");
+            is_test_passed = false;
+        }
+
+        if (is_test_passed && cur_test->in_place_comp &&
+                (input.data.mem.void_p != out.data.mem.void_p)) {
+            reporter.report_message(cur_test->descr,
+                "FAILED after kernel run: memory corrupted for In Place Computation");
             is_test_passed = false;
         }
 
