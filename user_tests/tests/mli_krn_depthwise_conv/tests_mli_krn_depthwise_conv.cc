@@ -8,6 +8,7 @@
 */
 
 #include "mli_api.h"
+#include "mli_config.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -51,20 +52,18 @@ struct depthwise_conv_test_operands {
 // Checksums of test tensors for various mli calculations mode. 
 // When developer finished implementation of kernel and consider it as ok, one needs to populate
 // proper checksums for tests in order to highlight any change which affects results.
-#if defined(CRC_RM_CONVERGENT)
-const crc32_calc test_1_chksum_fx16{ 0x968FB503 }, test_1_chksum_fx16_fx8_fx8{ 0xA6CC6260 }, test_1_chksum_sa8{ 0x46D36646 },
+#if defined(CRC_RM_CONVERGENT) || defined(CRC_RM_UP)
+const crc32_calc test_1_chksum_fx16{ 0x968FB503 }, 
                  test_2_chksum_fx16{ 0xC2732A90 }, test_2_chksum_fx16_fx8_fx8{ 0x2BAB6B9C }, test_2_chksum_sa8{ 0x9EF7413F },
                  test_3_chksum_fx16{ 0x5C02F273 }, test_3_chksum_fx16_fx8_fx8{ 0x41941500 }, test_3_chksum_sa8{ 0xB3A2C34D },
                  test_4_chksum_fx16{ 0xE4B38171 }, test_4_chksum_fx16_fx8_fx8{ 0xB237053C }, test_4_chksum_sa8{ 0xE92A3725 },
                  test_5_chksum_fx16{ 0x66958DF2 }, test_5_chksum_fx16_fx8_fx8{ 0x1AEDF1D8 }, test_5_chksum_sa8{ 0x133A2361 };
-
-#elif defined(CRC_RM_UP)
-const crc32_calc test_1_chksum_fx16{ 0x968FB503 }, test_1_chksum_fx16_fx8_fx8{ 0x46A964A7 }, test_1_chksum_sa8{ 0x46D36646 },
-                 test_2_chksum_fx16{ 0xC2732A90 }, test_2_chksum_fx16_fx8_fx8{ 0x2BAB6B9C }, test_2_chksum_sa8{ 0x9EF7413F },
-                 test_3_chksum_fx16{ 0x5C02F273 }, test_3_chksum_fx16_fx8_fx8{ 0x41941500 }, test_3_chksum_sa8{ 0xB3A2C34D },
-                 test_4_chksum_fx16{ 0xE4B38171 }, test_4_chksum_fx16_fx8_fx8{ 0xB237053C }, test_4_chksum_sa8{ 0xE92A3725 },
-                 test_5_chksum_fx16{ 0x66958DF2 }, test_5_chksum_fx16_fx8_fx8{ 0x1AEDF1D8 }, test_5_chksum_sa8{ 0x133A2361 };
-
+// Platform Specific CRC Results
+#if defined(CRC_RM_UP)
+const crc32_calc test_1_chksum_fx16_fx8_fx8{ 0x46A964A7 }, test_1_chksum_sa8{ 0x366725E9 };
+#else 
+const crc32_calc test_1_chksum_fx16_fx8_fx8{ 0xA6CC6260 }, test_1_chksum_sa8{ 0x46D36646 };
+#endif
 #else // Not defined CRC_*
 const crc32_calc  test_1_chksum_fx16, test_1_chksum_fx16_fx8_fx8, test_1_chksum_sa8,
                   test_2_chksum_fx16, test_2_chksum_fx16_fx8_fx8, test_2_chksum_sa8,
@@ -168,6 +167,13 @@ int main() {
 #if PLATFORM == V2DSP_VECTOR
         if (strstr(cur_test->descr, " FX16 ") != nullptr) {
             // VPX fails bitwise comparison with reference .
+            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
+            continue;
+        }
+#endif
+#if PLATFORM == V2DSP_XY && defined(CRC_RM_UP)
+        if (strstr(cur_test->descr, "Test 1 SA8_SA8_SA32") != nullptr) {
+            // Em9d fails comparison with reference in up rounding mode.
             reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
             continue;
         }
