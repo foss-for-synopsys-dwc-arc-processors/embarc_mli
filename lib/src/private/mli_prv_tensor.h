@@ -218,6 +218,47 @@ static MLI_FORCE_INLINE void mli_prv_reorder_generic_tensor(
     }
 }
 
+//This function squash tensor dimentions, where it's possible (where data is adjacent in memory)
+//it's needed for better vectorizing of some kernels
+//we also need to squash input and output tensors together because data in one of them can be not adjacent in memory
+template <typename T>
+static MLI_FORCE_INLINE void mli_prv_squash_generic_tensor(
+        generic_tensor_private_t<T> *in_prv,
+        generic_tensor_private_t<T> *out_prv) {
+    int shift = 0;
+    for (int i = in_prv->rank - 1; i > 0; i--){
+        if (((in_prv->mem_stride[i - 1] == 0) || (in_prv->mem_stride[i - 1] == in_prv->shape[i])) &&
+           ((out_prv->mem_stride[i - 1] == 0) || (out_prv->mem_stride[i - 1] == out_prv->shape[i]))){
+            in_prv->mem_stride[i - 1] = 1;
+            in_prv->mem_stride[i] = 1;
+            in_prv->shape[i - 1] *= in_prv->shape[i];
+            in_prv->shape[i] = 1;
+            out_prv->mem_stride[i - 1] = 1;
+            out_prv->mem_stride[i] = 1;
+            out_prv->shape[i - 1] *= out_prv->shape[i];
+            out_prv->shape[i] = 1;
+            shift++;
+        }
+        else {
+            break;
+        }
+    }
+    int i = MLI_MAX_RANK - 1;
+    for (int j = in_prv->rank - shift - 1 ; j >= 0; i--, j--) {
+        in_prv->shape[i]  = in_prv->shape[j];
+        in_prv->mem_stride[i] = in_prv->mem_stride[j];
+        out_prv->shape[i]  = out_prv->shape[j];
+        out_prv->mem_stride[i] = out_prv->mem_stride[j];
+    }
+
+    for(; i >= 0; i--) {
+        in_prv->shape[i]  = 1;
+        in_prv->mem_stride[i] = 0;
+        out_prv->shape[i]  = 1;
+        out_prv->mem_stride[i] = 0;
+    }
+}
+
 // To prevent a compiler name mangling issue, type_is_xy should be true if and only if T has __xy.
 template <typename T, bool type_is_xy=false>
 static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_nhwc(
