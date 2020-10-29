@@ -73,4 +73,7 @@ test_all: $(TEST_TARGETS)
 $(TEST_TARGETS): test_%: $(BIN_PATH)$(PS)test_mli_krn_%$(BIN_EXT)
 	$(RUN_TEST_CMD) $<
 
+get_tests_list:
+	@echo $(TEST_TARGETS)
+
 .PHONY: build clean cleanall test_all $(TEST_TARGETS)
