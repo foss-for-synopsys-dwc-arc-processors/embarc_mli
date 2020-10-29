@@ -107,282 +107,82 @@ target_include_directories(test_components_obj PUBLIC ${test_components_inc})
 target_include_directories(test_components_obj PRIVATE ${mli_include_dirs})
 
 #======================================================
+# Function to add new user test
+#======================================================
+function(ADD_USER_TEST TEST_NAME)
+    add_executable(test_mli_krn_${TEST_NAME}
+        tests/mli_krn_${TEST_NAME}/tests_mli_krn_${TEST_NAME}.cc
+    )
+
+    target_include_directories(test_mli_krn_${TEST_NAME} PRIVATE
+        tests/mli_krn_${TEST_NAME}
+    )
+
+    target_link_libraries(test_mli_krn_${TEST_NAME} PUBLIC mli)
+    target_link_libraries(test_mli_krn_${TEST_NAME} PUBLIC test_components_obj)
+
+    target_compile_options(test_mli_krn_${TEST_NAME} PRIVATE
+        ${MLI_PLATFORM_COMPILE_OPTIONS}
+        ${TEST_COMPILE_OPTIONS}
+        ${DSP_CONTROL_OPTION}
+    )
+    target_compile_definitions(test_mli_krn_${TEST_NAME} PRIVATE ${TEST_COMPILE_DEFINITIONS})
+
+    target_link_options(test_mli_krn_${TEST_NAME} PRIVATE
+        ${MLI_PLATFORM_LINK_OPTIONS}
+        ${TEST_COMPILE_OPTIONS}
+        ${DSP_CONTROL_OPTION}
+    )
+
+    if (ARC)
+        target_link_options(test_mli_krn_${TEST_NAME} PRIVATE
+            -m
+            -Coutput=./bin/test_mli_krn_${TEST_NAME}.map
+        )
+    endif()
+
+    set_target_properties(test_mli_krn_${TEST_NAME}
+        PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "./bin$<0:>"
+    )
+endfunction()
+
+#======================================================
 # Convolution 2D Tests
 #======================================================
-add_executable(test_mli_krn_conv2d
-    tests/mli_krn_conv2d/tests_mli_krn_conv2d.cc
-)
-
-target_include_directories(test_mli_krn_conv2d PRIVATE
-    tests/mli_krn_conv2d
-)
-
-target_link_libraries(test_mli_krn_conv2d PUBLIC mli)
-target_link_libraries(test_mli_krn_conv2d PUBLIC test_components_obj)
-
-target_compile_options(test_mli_krn_conv2d PRIVATE
-    ${MLI_PLATFORM_COMPILE_OPTIONS}
-    ${TEST_COMPILE_OPTIONS}
-    ${DSP_CONTROL_OPTION}
-)
-target_compile_definitions(test_mli_krn_conv2d PRIVATE ${TEST_COMPILE_DEFINITIONS})
-
-target_link_options(test_mli_krn_conv2d PRIVATE
-    ${MLI_PLATFORM_LINK_OPTIONS}
-    ${TEST_COMPILE_OPTIONS}
-    ${DSP_CONTROL_OPTION}
-)
-
-if (ARC)
-    target_link_options(test_mli_krn_conv2d PRIVATE
-        -m
-        -Coutput=./bin/test_mli_krn_conv2d.map
-    )
-endif()
-
-set_target_properties(test_mli_krn_conv2d
-    PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "./bin$<0:>"
-)
+add_user_test(conv2d)
 
 #======================================================
 # Softmax
 #======================================================
-add_executable(test_mli_krn_softmax
-    tests/mli_krn_softmax/tests_mli_krn_softmax.cc
-)
-
-target_include_directories(test_mli_krn_softmax PRIVATE
-    tests/mli_krn_softmax
-)
-
-target_link_libraries(test_mli_krn_softmax PUBLIC mli)
-target_link_libraries(test_mli_krn_softmax PUBLIC test_components_obj)
-
-target_compile_options(test_mli_krn_softmax PRIVATE
-    ${MLI_PLATFORM_COMPILE_OPTIONS}
-    ${TEST_COMPILE_OPTIONS}
-    ${DSP_CONTROL_OPTION}
-)
-
-target_compile_definitions(test_mli_krn_softmax PRIVATE ${TEST_COMPILE_DEFINITIONS})
-
-target_link_options(test_mli_krn_softmax PRIVATE
-    ${MLI_PLATFORM_LINK_OPTIONS}
-    ${TEST_COMPILE_OPTIONS}
-    ${DSP_CONTROL_OPTION}
-)
-
-if (ARC)
-    target_link_options(test_mli_krn_softmax PRIVATE
-        -m
-        -Coutput=./bin/test_mli_krn_softmax.map
-    )
-endif()
-
-set_target_properties(test_mli_krn_softmax
-    PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "./bin$<0:>"
-)
+add_user_test(softmax)
 
 #======================================================
 # Eltwise
 #======================================================
-add_executable(test_mli_krn_eltwise
-    tests/mli_krn_eltwise/tests_mli_krn_eltwise.cc
-)
-
-target_include_directories(test_mli_krn_eltwise PRIVATE
-    tests/mli_krn_eltwise
-)
-
-target_link_libraries(test_mli_krn_eltwise PUBLIC mli)
-target_link_libraries(test_mli_krn_eltwise PUBLIC test_components_obj)
-
-target_compile_options(test_mli_krn_eltwise PRIVATE
-    ${MLI_PLATFORM_COMPILE_OPTIONS}
-    ${TEST_COMPILE_OPTIONS}
-    ${DSP_CONTROL_OPTION}
-)
-
-target_compile_definitions(test_mli_krn_eltwise PRIVATE ${TEST_COMPILE_DEFINITIONS})
-
-target_link_options(test_mli_krn_eltwise PRIVATE
-    ${MLI_PLATFORM_LINK_OPTIONS}
-    ${TEST_COMPILE_OPTIONS}
-    ${DSP_CONTROL_OPTION}
-)
-
-if (ARC)
-    target_link_options(test_mli_krn_eltwise PRIVATE
-        -m
-        -Coutput=./bin/test_mli_krn_eltwise.map
-    )
-endif()
-
-set_target_properties(test_mli_krn_eltwise
-    PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "./bin$<0:>"
-)
-
-
+add_user_test(eltwise)
 
 #======================================================
 # Average Pooling
 #======================================================
-add_executable(test_mli_krn_avepool
-    tests/mli_krn_avepool/tests_mli_krn_avepool.cc
-)
-
-target_include_directories(test_mli_krn_avepool PRIVATE
-    tests/mli_krn_avepool
-)
-
-target_link_libraries(test_mli_krn_avepool PUBLIC mli)
-target_link_libraries(test_mli_krn_avepool PUBLIC test_components_obj)
-
-target_compile_options(test_mli_krn_avepool PRIVATE
-    ${MLI_PLATFORM_COMPILE_OPTIONS}
-    ${TEST_COMPILE_OPTIONS}
-    ${DSP_CONTROL_OPTION}
-)
-
-target_compile_definitions(test_mli_krn_avepool PRIVATE ${TEST_COMPILE_DEFINITIONS})
-
-target_link_options(test_mli_krn_avepool PRIVATE
-    ${MLI_PLATFORM_LINK_OPTIONS}
-    ${TEST_COMPILE_OPTIONS}
-    ${DSP_CONTROL_OPTION}
-)
-
-if (ARC)
-    target_link_options(test_mli_krn_avepool PRIVATE
-        -m
-        -Coutput=./bin/test_mli_krn_avepool.map
-    )
-endif()
-
-set_target_properties(test_mli_krn_avepool
-    PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "./bin$<0:>"
-)
+add_user_test(avepool)
 
 #======================================================
 # Max Pooling
 #======================================================
-add_executable(test_mli_krn_maxpool
-    tests/mli_krn_maxpool/tests_mli_krn_maxpool.cc
-)
-
-target_include_directories(test_mli_krn_maxpool PRIVATE
-    tests/mli_krn_maxpool
-)
-
-target_link_libraries(test_mli_krn_maxpool PUBLIC mli)
-target_link_libraries(test_mli_krn_maxpool PUBLIC test_components_obj)
-
-target_compile_options(test_mli_krn_maxpool PRIVATE
-    ${MLI_PLATFORM_COMPILE_OPTIONS}
-    ${TEST_COMPILE_OPTIONS}
-    ${DSP_CONTROL_OPTION}
-)
-
-target_compile_definitions(test_mli_krn_maxpool PRIVATE ${TEST_COMPILE_DEFINITIONS})
-
-target_link_options(test_mli_krn_maxpool PRIVATE
-    ${MLI_PLATFORM_LINK_OPTIONS}
-    ${TEST_COMPILE_OPTIONS}
-    ${DSP_CONTROL_OPTION}
-)
-
-if (ARC)
-    target_link_options(test_mli_krn_maxpool PRIVATE
-        -m
-        -Coutput=./bin/test_mli_krn_maxpool.map
-    )
-endif()
-
-set_target_properties(test_mli_krn_maxpool
-    PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "./bin$<0:>"
-)
+add_user_test(maxpool)
 
 #======================================================
 # Fully connected
 #======================================================
-add_executable(test_mli_krn_fully_connected
-    tests/mli_krn_fully_connected/tests_mli_krn_fully_connected.cc
-)
-
-target_include_directories(test_mli_krn_fully_connected PRIVATE
-    tests/mli_krn_fully_connected
-)
-
-target_link_libraries(test_mli_krn_fully_connected PUBLIC mli)
-target_link_libraries(test_mli_krn_fully_connected PUBLIC test_components_obj)
-
-target_compile_options(test_mli_krn_fully_connected PRIVATE
-    ${MLI_PLATFORM_COMPILE_OPTIONS}
-    ${TEST_COMPILE_OPTIONS}
-    ${DSP_CONTROL_OPTION}
-)
-
-target_compile_definitions(test_mli_krn_fully_connected PRIVATE ${TEST_COMPILE_DEFINITIONS})
-
-target_link_options(test_mli_krn_fully_connected PRIVATE
-    ${MLI_PLATFORM_LINK_OPTIONS}
-    ${TEST_COMPILE_OPTIONS}
-    ${DSP_CONTROL_OPTION}
-)
-
-if (ARC)
-    target_link_options(test_mli_krn_fully_connected PRIVATE
-        -m
-        -Coutput=./bin/test_mli_krn_fully_connected.map
-    )
-endif()
-
-set_target_properties(test_mli_krn_fully_connected
-    PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "./bin$<0:>"
-)
+add_user_test(fully_connected)
 
 #======================================================
 # Depthwise conv
 #======================================================
-add_executable(test_mli_krn_depthwise_conv
-    tests/mli_krn_depthwise_conv/tests_mli_krn_depthwise_conv.cc
-)
+add_user_test(depthwise_conv)
 
-target_include_directories(test_mli_krn_depthwise_conv PRIVATE
-    tests/mli_krn_depthwise_conv
-)
-
-target_link_libraries(test_mli_krn_depthwise_conv PUBLIC mli)
-target_link_libraries(test_mli_krn_depthwise_conv PUBLIC test_components_obj)
-
-target_compile_options(test_mli_krn_depthwise_conv PRIVATE
-    ${MLI_PLATFORM_COMPILE_OPTIONS}
-    ${TEST_COMPILE_OPTIONS}
-    ${DSP_CONTROL_OPTION}
-)
-
-target_compile_definitions(test_mli_krn_depthwise_conv PRIVATE ${TEST_COMPILE_DEFINITIONS})
-
-target_link_options(test_mli_krn_depthwise_conv PRIVATE
-    ${MLI_PLATFORM_LINK_OPTIONS}
-    ${TEST_COMPILE_OPTIONS}
-    ${DSP_CONTROL_OPTION}
-)
-
-if (ARC)
-    target_link_options(test_mli_krn_depthwise_conv PRIVATE
-        -m
-        -Coutput=./bin/test_mli_krn_depthwise_conv.map
-    )
-endif()
-
-set_target_properties(test_mli_krn_depthwise_conv
-    PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "./bin$<0:>"
-)
+#======================================================
+# Relu
+#======================================================
+add_user_test(relu)
