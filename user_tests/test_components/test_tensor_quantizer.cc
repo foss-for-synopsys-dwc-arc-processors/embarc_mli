@@ -294,7 +294,7 @@ tensor_quantizer::tensor_state tensor_quantizer::dequantize_tensor_data(const ml
 //=================================================================================
 uint32_t tensor_quantizer::get_required_data_capacity(const mli_tensor& tsr) {
     assert(mli_hlp_tensor_element_size(&tsr) != 0);
-    assert(tsr.rank > 0);
+    assert(tsr.rank >= 0);
     assert(tsr.rank <= MLI_MAX_RANK);
 
     uint32_t ret_val = 0;
