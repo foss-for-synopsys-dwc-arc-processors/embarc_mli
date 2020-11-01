@@ -2108,8 +2108,10 @@ mli_status mli_chk_permute_fx16 (const mli_tensor * in, const mli_permute_cfg * 
 mli_status mli_chk_count_elem_num(const mli_tensor *in, uint32_t start_dim) {
     if (MLI_CHECK(in->rank <= MLI_MAX_RANK, "rank should not exceed MAX_RANK"))
         return MLI_STATUS_BAD_TENSOR;
-    if (MLI_CHECK(start_dim < in->rank, "start_dim should be smaller than rank"))
-        return MLI_STATUS_BAD_FUNC_CFG;
+    if (in->rank != 0) {
+        if (MLI_CHECK(start_dim < in->rank, "start_dim should be smaller than rank"))
+            return MLI_STATUS_BAD_FUNC_CFG;
+    }
     return MLI_STATUS_OK;
 }
 
