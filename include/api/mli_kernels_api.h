@@ -379,6 +379,100 @@ mli_status mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32_k5x5(
         const mli_conv2d_cfg* cfg,
         mli_tensor* out);
 
+/**
+ * @brief 2D Group convolution
+ *
+ * @detail This kernel implements a grouped 2D convolution which applies general 2D convolution operation 
+ * on a separate subset (groups) of inputs. Each group performs convolutions independent of the other groups 
+ * to give M different outputs. These individual outputs are then concatenated together to give the final output. 
+ *
+ * TensorFlow-like “channel multiplier” functionality of depthwise convolution can be expressed by group 
+ * convolution with number of groups equal to input channels and N equal to channel multiplier number of 
+ * filters per each group. 
+ *
+ * ReLU activation function may be applied to result of convolution. 
+ *
+ * For full list of specialized and highly optimized versions of kernel see @ref mli_krn_group_conv2d_spec_api.h
+ * For more info on primitive see MLI Documentation
+ *
+ * @param in      [I] Input feature map tensor (3-dimensional tensor)
+ * @param weights [I] Convolution filters weights tensor (4-dimensional tensor)
+ * @param bias    [I] Convolution filters biases tensor (1-dimensional tensor)
+ * @param cfg     [I] Convolution parameters structure (for more info see @ref mli_conv2d_cfg)
+ * @param out     [O] Output feature map tensor. Result will be stored here
+ *
+ * @return MLI status code
+ */
+
+mli_status mli_krn_group_conv2d_hwcn_fx16(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg * cfg,
+        mli_tensor * out);
+
+mli_status mli_krn_group_conv2d_hwcn_fx16_fx8_fx8(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg * cfg,
+        mli_tensor * out);
+
+mli_status mli_krn_group_conv2d_hwcn_sa8_sa8_sa32(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg * cfg,
+        mli_tensor * out);
+
+//========================================================
+// Specializations for k3x3
+//========================================================
+mli_status mli_krn_group_conv2d_hwcn_fx16_k3x3(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg* cfg,
+        mli_tensor* out);
+
+mli_status mli_krn_group_conv2d_hwcn_fx16_fx8_fx8_k3x3(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg* cfg,
+        mli_tensor* out);
+
+mli_status mli_krn_group_conv2d_hwcn_sa8_sa8_sa32_k3x3(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg* cfg,
+        mli_tensor* out);
+
+//========================================================
+// Specializations for k5x5
+//========================================================
+mli_status mli_krn_group_conv2d_hwcn_fx16_k5x5(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg* cfg,
+        mli_tensor* out);
+
+mli_status mli_krn_group_conv2d_hwcn_fx16_fx8_fx8_k5x5(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg* cfg,
+        mli_tensor* out);
+
+mli_status mli_krn_group_conv2d_hwcn_sa8_sa8_sa32_k5x5(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg* cfg,
+        mli_tensor* out);
+
 //================================================
 //
 // Pooling group of kernels
