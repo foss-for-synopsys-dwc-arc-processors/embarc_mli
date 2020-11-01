@@ -9,25 +9,22 @@
 # TCF_FILE: withouts NOT setting this parameter,
 #           the default native compiler is used to compile
 # BUILDLIB_DIR ?= ev71_buildlib can be specified if no MWDT buildlib is available
+# See rules.mk for all flags
 
-include ../../lib/make/settings.mk
-PUBLIC_DIR = ..$(PS)..$(PS)
+PUBLIC_DIR = ../..
+include $(PUBLIC_DIR)/make/rules.mk
+
 BUILD_SUBDIR = examples$(PS)example_cifar10_caffe
+BUILD_TARGET = example_cifar10_caffe
 
-# Targets
-app:
-	$(MAKE) -C $(PUBLIC_DIR)lib$(PS)make lib BUILD_SUBDIR=$(BUILD_SUBDIR)
+app: build
 
-clean:
-	$(MAKE) -C $(PUBLIC_DIR)lib$(PS)make clean
-
-ifndef TCF_FILE
 run: app
+ifndef TCF_FILE
 	$(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)elf_files$(PS)example_cifar10_caffe
 else
-run: app
 	mdb $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)elf_files$(PS)example_cifar10_caffe.elf \
 		-cl  -nsim -cmd=run -off=cr_for_more -cmd=exit -tcf=$(TCF_FILE)
 endif
 
-.PHONY:	app clean run
+.PHONY:	app run
