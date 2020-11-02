@@ -6,17 +6,18 @@
 # the LICENSE file in the root directory of this source tree.
 #
 
-include ../../lib/make/settings.mk
+PUBLIC_DIR ?= ../..
+include $(PUBLIC_DIR)/lib/make/settings.mk
 
 # Configuring variables
 #===========================================
 VERBOSE ?= false
-PUBLIC_DIR = ..$(PS)..
 BUILD_SUBDIR = user_tests
 BIN_PATH = $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)bin
 # User need to define BUILD_LIB (target specific libs including runtime)
 # if default one doesn't fit.
 BUILDLIB_DIR ?=
+PERFORM_BUILD?=ON
 
 ifndef TCF_FILE
 
@@ -41,7 +42,7 @@ TEST_TARGETS = $(patsubst %,test_%,$(KERNELS))
 
 # Build rules to generate project, library and test apps
 #===========================================
-$(BUILD_DIR): 
+$(BUILD_DIR):
 	$(MAKE) -C $(PUBLIC_DIR)$(PS)lib$(PS)make RECONFIGURE=ON config
 
 $(BIN_FILES): build
@@ -50,8 +51,9 @@ $(BIN_FILES): build
 # Public rules to run tests or clean current test build
 #====================================================
 build: $(BUILD_DIR)
+ifeq ($(PERFORM_BUILD),ON)
 	cmake --build $(BUILD_DIR)$(PS)$(BUILD_SUBDIR) --verbose
-
+endif
 
 clean:
 # Check that cmake generated a Makefile project. 
