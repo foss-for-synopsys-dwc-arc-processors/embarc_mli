@@ -26,7 +26,7 @@ mli_status mli_krn_softmax_fx8(const mli_tensor *in, const mli_softmax_cfg* cfg,
     if (ret != MLI_STATUS_OK) return ret;
     mli_prv_fx_init_dsp_ctrl();
 
-    ret = mli::krn::mli_krn_softmax_fx_run<int8_t>(in, cfg, out);
+    ret = mli::krn::mli_krn_softmax_run<int8_t, false>(in, cfg, out);
     return ret;
 }
 
@@ -35,7 +35,7 @@ mli_status mli_krn_softmax_fx16(const mli_tensor *in, const mli_softmax_cfg* cfg
     if (ret != MLI_STATUS_OK) return ret;
     mli_prv_fx_init_dsp_ctrl();
 
-    ret = mli::krn::mli_krn_softmax_fx_run<int16_t>(in, cfg, out);
+    ret = mli::krn::mli_krn_softmax_run<int16_t, false>(in, cfg, out);
     return ret;
 }
 
@@ -44,7 +44,7 @@ mli_status mli_krn_softmax_sa8(const mli_tensor* in, const mli_softmax_cfg* cfg,
     if (ret != MLI_STATUS_OK) return ret;
     mli_prv_fx_init_dsp_ctrl();
 
-    ret = mli::krn::mli_krn_softmax_sa8_run(in, cfg, out);
+    ret = mli::krn::mli_krn_softmax_run<int8_t, true>(in, cfg, out);
     return ret;
 }
 

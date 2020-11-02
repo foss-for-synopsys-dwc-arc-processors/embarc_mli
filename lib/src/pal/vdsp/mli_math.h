@@ -111,6 +111,16 @@ MLI_FORCE_INLINE vNx4short_t mli_math_sub_fx(vNx4short_t L, vNx4short_t R) {
     return vvsub_sat(L, R);
 }
 
+template <> 
+MLI_FORCE_INLINE vNx4char_t mli_math_sub_fx(vNx4char_t L, vNx4char_t R) {
+    return vvsub_sat(L, R);
+}
+
+template <> 
+MLI_FORCE_INLINE vNx2short_t mli_math_sub_fx(vNx2short_t L, vNx2short_t R) {
+    return vvsub_sat(L, R);
+}
+
 template <>
 MLI_FORCE_INLINE vNx4accchar_t mli_math_add(vNx4accchar_t L, vNx4char_t R) {
     return vvcadd(L, R,(int8_t)0);
@@ -1000,6 +1010,11 @@ MLI_FORCE_INLINE int32_t mli_math_intra_sum(vNx4accint_t L) {
     return sum_acc;
 }
 
+MLI_FORCE_INLINE int32_t mli_math_intra_sum(vNx4accshort_t L) {
+    int32_t sum_acc = mli_math_intra_sum<vNx2accshort_t, vNx2short_t, int32_t>(mli_math_add(__vacc_lo(L), __vacc_hi(L)));
+    return sum_acc;
+}
+
 // Maximum of two fx operands
 //========================================================================
 template <typename io_T>
@@ -1040,6 +1055,19 @@ MLI_FORCE_INLINE int8_t mli_math_intra_max(vNx4char_t L) {
     return max_val;
 }
 
+MLI_FORCE_INLINE int16_t mli_math_intra_max(vNx4short_t L) {
+    vNx2short_t half_acc = mli_math_max_fx(L.lo, L.hi);
+    vNx2accshort_t acc = vvcadd_init(half_acc, (vNx2short_t) 0);
+    int16_t max_val = mli_math_intra_max<vNx2accshort_t, vNx2short_t, int16_t>(acc);
+    return max_val;
+}
+
+MLI_FORCE_INLINE int16_t mli_math_intra_max(vNx2short_t L) {
+    vNx2accshort_t acc = vvcadd_init(L, (vNx2short_t) 0);
+    int16_t max_val = mli_math_intra_max<vNx2accshort_t, vNx2short_t, int16_t>(acc);
+    return max_val;
+}
+
 // Minimum of two fx operands
 //========================================================================
 template <typename io_T>
@@ -1050,6 +1078,39 @@ MLI_FORCE_INLINE io_T mli_math_min_fx(io_T L, io_T R) {
 template <typename l_T, typename r_T>
 MLI_FORCE_INLINE l_T mli_math_min_fx(l_T L, r_T R) {
     return (L < R) ? L : R;
+}
+
+//This function works only on acc_T which supported by vvc2max and vvceven
+template<typename acc_T, typename vec_T, typename out_T>
+MLI_FORCE_INLINE out_T mli_math_intra_min(acc_T L) {
+    int acc_len = get_number_lanes<vec_T>();
+    while (acc_len > 2){
+        L = vvc2min(L);
+        L = vvceven(L);
+        acc_len >>= 1;
+    }
+    L = vvc2min(L);
+    vec_T vec = mli_math_acc_cast_fx<vec_T, acc_T>(L);
+    return (out_T) vec[0];
+}
+
+MLI_FORCE_INLINE int8_t mli_math_intra_min(vNx4char_t L) {
+    vNx4accchar_t acc = vvcadd_init(L, (vNx4char_t) 0);
+    int8_t min_val = mli_math_intra_min<vNx4accchar_t, vNx4char_t, int8_t>(acc);
+    return min_val;
+}
+
+MLI_FORCE_INLINE int16_t mli_math_intra_min(vNx4short_t L) {
+    vNx2short_t half_acc = mli_math_min_fx(L.lo, L.hi);
+    vNx2accshort_t acc = vvcadd_init(half_acc, (vNx2short_t) 0);
+    int16_t min_val = mli_math_intra_min<vNx2accshort_t, vNx2short_t, int16_t>(acc);
+    return min_val;
+}
+
+MLI_FORCE_INLINE int16_t mli_math_intra_min(vNx2short_t L) {
+    vNx2accshort_t acc = vvcadd_init(L, (vNx2short_t) 0);
+    int16_t min_val = mli_math_intra_min<vNx2accshort_t, vNx2short_t, int16_t>(acc);
+    return min_val;
 }
 
 // Multiply two operands
@@ -1275,6 +1336,13 @@ MLI_FORCE_INLINE grp_pvNx2_t init_predicate_grp(int remaining_part_tmp) {
     return r;
 }
 
+MLI_FORCE_INLINE pvNx4 init_predicate(int limit, vNx4char_t in) {
+      return to_pvNx4(vvci_b() < limit);
+}
+
+MLI_FORCE_INLINE pvNx2 init_predicate(int limit, vNx2short_t in) {
+      return to_pvNx2(vvci_h() < limit);
+}
 
 template<typename vec_T, typename pred_T>
 MLI_FORCE_INLINE vec_T mli_math_select_fx(pred_T predicate, vec_T L, vec_T R) {
