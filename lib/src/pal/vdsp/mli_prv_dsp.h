@@ -273,10 +273,19 @@ MLI_FORCE_INLINE vNx4accshort_t mli_prv_init_accu<vNx4accshort_t>() {
     return vvcmpy((vNx4char_t)0, (int8_t)0);
 }
 
+MLI_FORCE_INLINE vNx4accshort_t mli_prv_init_accu(vNx4char_t l, int8_t r) {
+    return vvcmpy(l, r);
+}
+
 template<>
 MLI_FORCE_INLINE vNx2accint_t mli_prv_init_accu<vNx2accint_t>() {
     return vvcmpy((vNx2short_t)0, (short)0);
 }
+
+MLI_FORCE_INLINE vNx2accint_t mli_prv_init_accu(vNx2short_t l, int16_t r) {
+    return vvcmpy(l, r);
+}
+
 
 template<>
 MLI_FORCE_INLINE vNx4accint_t mli_prv_init_accu<vNx4accint_t>() {
