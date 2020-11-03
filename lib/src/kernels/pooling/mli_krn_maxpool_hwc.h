@@ -269,30 +269,11 @@ static void mli_krn_maxpool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg,
 
     mli_prv_fx_init_dsp_ctrl();
 
-    /* TODO Investigating performance and size tradeoffs:
-     * The pad function also calls the nopad function, so that function will be there twice (size increases).
-     * The compiler will propagate constant zero values into the nopad function which will improve the performance.
-     * ACTION: should measure the performance benefit and code size impact.
-     * */
-    if (((padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0))) {
-        padding_top = 0;
-        padding_bot = 0;
-        padding_left = 0;
-        padding_right = 0;
-        mli_krn_maxpool_hwc_nopad(
-            row_beg, row_end, clmn_beg, clmn_end,
-            stride_width, stride_height, padding_top,
-            padding_bot, padding_left, padding_right,
-            in_prv, out_prv,
-            kernel_height, kernel_width);
-    } else {
-        mli_krn_maxpool_hwc_pad(
-            row_beg, row_end, clmn_beg, clmn_end,
-            stride_width, stride_height, padding_top,
-            padding_bot, padding_left, padding_right,
-            in_prv, out_prv,
-            kernel_height, kernel_width);
-    }
+    mli_krn_maxpool_hwc_pad(row_beg, row_end, clmn_beg, clmn_end,
+                            stride_width, stride_height,
+                            padding_top, padding_bot, padding_left, padding_right,
+                            in_prv, out_prv,
+                            kernel_height, kernel_width);
 }
 
 } // krn

@@ -839,6 +839,14 @@ MLI_FORCE_INLINE l_T mli_math_max_fx(l_T L, r_T R) {
     return (L > R) ? L : R;
 }
 
+MLI_FORCE_INLINE vNx4accchar_t mli_math_max_fx(vNx4accchar_t L, vNx4char_t R) {
+    return vvcmax(L, R);
+}
+
+MLI_FORCE_INLINE vNx2accshort_t mli_math_max_fx(vNx2accshort_t L, vNx2short_t R) {
+    return vvcmax(L, R);
+}
+
 //This function works only on acc_T which supported by vvc2max and vvceven
 template<typename acc_T, typename vec_T, typename out_T>
 MLI_FORCE_INLINE out_T mli_math_intra_max(acc_T L) {
