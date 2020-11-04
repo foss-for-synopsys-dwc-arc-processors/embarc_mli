@@ -69,11 +69,11 @@ MLI_FORCE_INLINE void convolution2D_nopad(
     const int row_end = perception_area.row_end;
     const int clmn_begin = perception_area.clmn_beg;
     const int clmn_end = perception_area.clmn_end;
-    int height = row_end - row_begin;
+    int width = clmn_end - clmn_begin;
     constexpr int numaccuregs = sizeof(acc_T) / sizeof(vNint_t);
     constexpr int unroll = numaccuregs > 2 ? 2 : 4;
-    int remainder_height = height & (unroll - 1);
-    int unroll_height = height - remainder_height;
+    int remainder_width = width & (unroll - 1);
+    int unroll_width = width - remainder_width;
 
     for (int out_ch_idx = 0; out_ch_idx < out.ch; out_ch_idx+= get_number_lanes<acc_T>()) {
         int remaining_ch = out.ch - out_ch_idx;
@@ -82,7 +82,6 @@ MLI_FORCE_INLINE void convolution2D_nopad(
                 + weights.out_ch_mem_stride * out_ch_idx;
         const int rows = (fix_kernel_height > 0) ? fix_kernel_height : weights.kernel_height;
         const int clmns = (fix_kernel_width > 0) ? fix_kernel_width : weights.kernel_width;
-        int H_idx = row_begin;
 
         auto output_params = adjust_quant_params_v(&quant_params, out_ch_idx);
 
@@ -94,8 +93,9 @@ MLI_FORCE_INLINE void convolution2D_nopad(
                                     weights.row_mem_stride,
                                     weights.in_ch_mem_stride);
 
-        for (int H_cnt = 0; H_cnt < remainder_height; H_cnt++, H_idx++) {
-            for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
+        for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
+            int W_idx = clmn_begin;
+            for (int W_cnt = 0; W_cnt < remainder_width; W_cnt++, W_idx++) {
 
                 acc_T accu = pre_accu;
 
@@ -111,6 +111,11 @@ MLI_FORCE_INLINE void convolution2D_nopad(
 
                 if ((fix_kernel_width == 1) && (fix_kernel_height == 1)) {
                     accu = mli::krn::dotprod1D_v(in_ptr, w_ptr, accu, in.ch, in.ch_mem_stride, weights.in_ch_mem_stride);
+                } else if ((fix_kernel_width > 0) && (fix_kernel_height > 0)) {
+                    accu = mli::krn::dotprod3D_v<io_T, w_T, acc_T, /*fixedsize*/true>(in_ptr, w_ptr, clmns, rows, in.ch,
+                              in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride,
+                              weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride,
+                              accu);
                 } else {
                     accu = mli::krn::dotprod3D_v_nopad(in_ptr, w_ptr, clmns, rows, in.ch,
                               in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride,
@@ -120,11 +125,9 @@ MLI_FORCE_INLINE void convolution2D_nopad(
                 // Cast result to output type, apply built-in ReLU Applying and write result
                 mli::krn::result_cast_relu_store_v(out_ptr, accu, &output_params, val_min_limit, val_max_limit, current_ch);
             } // for W_idx
-        } // for H_idx
-
-        for (int H_cnt = 0; H_cnt < unroll_height; H_cnt+=unroll, H_idx+=unroll) {
-            for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
-
+            for (int W_cnt = 0; W_cnt < unroll_width; W_cnt+=unroll, W_idx+=unroll) {
+                int in_unroll_inc = stride_width * in.col_mem_stride;
+                int out_unroll_inc = out.col_mem_stride;
                 auto accu = init_accu_grp(pre_accu);
 
                 const int h_idx_in = H_idx * stride_height - padding_top;
@@ -138,38 +141,27 @@ MLI_FORCE_INLINE void convolution2D_nopad(
                         + in.col_mem_stride * w_idx_in;
 
                 if ((fix_kernel_width == 1) && (fix_kernel_height == 1)) {
-                    accu.accu0 = mli::krn::dotprod1D_v(in_ptr, w_ptr, accu.accu0, in.ch, in.ch_mem_stride, weights.in_ch_mem_stride);
-                    in_ptr += stride_height * in.row_mem_stride;
-                    accu.accu1 = mli::krn::dotprod1D_v(in_ptr, w_ptr, accu.accu1, in.ch, in.ch_mem_stride, weights.in_ch_mem_stride);
-                    if (unroll > 2) {
-                        in_ptr += stride_height * in.row_mem_stride;
-                        accu.accu2 = mli::krn::dotprod1D_v(in_ptr, w_ptr, accu.accu2, in.ch, in.ch_mem_stride, weights.in_ch_mem_stride);
-                        in_ptr += stride_height * in.row_mem_stride;
-                        accu.accu3 = mli::krn::dotprod1D_v(in_ptr, w_ptr, accu.accu3, in.ch, in.ch_mem_stride, weights.in_ch_mem_stride);
-                    }
+                    accu = mli::krn::dotprod1D_v_unroll<unroll>(in_ptr, w_ptr, accu, in.ch, in.ch_mem_stride, in.col_mem_stride, weights.in_ch_mem_stride);
+                } else if ((fix_kernel_width > 0) && (fix_kernel_height > 0) && (dilation_width == stride_width)) {
+                    // unrolled version with fixed kernelsize
+                    accu = mli::krn::dotprod3D_v_unroll<unroll, true>(in_ptr, w_ptr, clmns, rows, in.ch,
+                              in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride, in_unroll_inc,
+                              weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride,
+                              accu);
                 } else {
-                    if (unroll == 2) {
-                    accu = mli::krn::dotprod3D_v_nopad_unrollH2(in_ptr, w_ptr, clmns, rows, in.ch,
+                    accu = mli::krn::dotprod3D_v_nopad_unroll<unroll>(in_ptr, w_ptr, clmns, rows, in.ch,
                               in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride,
-                              weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride, stride_height * in.row_mem_stride,
+                              weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride, in_unroll_inc,
                               accu);
-                    } else if (unroll == 4) {
-                    accu = mli::krn::dotprod3D_v_nopad_unrollH4(in_ptr, w_ptr, clmns, rows, in.ch,
-                              in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride,
-                              weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride, stride_height * in.row_mem_stride,
-                              accu);
-                    } else {
-                        MLI_ASSERT(0);
-                    }
                 }
                 // Cast result to output type, apply built-in ReLU Applying and write result
                 mli::krn::result_cast_relu_store_v(out_ptr, accu.accu0, &output_params, val_min_limit, val_max_limit, current_ch);
-                out_ptr += out.row_mem_stride;
+                out_ptr += out_unroll_inc;
                 mli::krn::result_cast_relu_store_v(out_ptr, accu.accu1, &output_params, val_min_limit, val_max_limit, current_ch);
                 if (unroll > 2) {
-                    out_ptr += out.row_mem_stride;
+                    out_ptr += out_unroll_inc;
                     mli::krn::result_cast_relu_store_v(out_ptr, accu.accu2, &output_params, val_min_limit, val_max_limit, current_ch);
-                    out_ptr += out.row_mem_stride;
+                    out_ptr += out_unroll_inc;
                     mli::krn::result_cast_relu_store_v(out_ptr, accu.accu3, &output_params, val_min_limit, val_max_limit, current_ch);
                 }
             } // for W_idx
