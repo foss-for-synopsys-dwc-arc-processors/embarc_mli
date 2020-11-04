@@ -56,8 +56,12 @@ struct depthwise_conv_test_operands {
 const crc32_calc test_1_chksum_fx16{ 0x968FB503 }, 
                  test_2_chksum_fx16{ 0xC2732A90 }, test_2_chksum_fx16_fx8_fx8{ 0x2BAB6B9C }, test_2_chksum_sa8{ 0x9EF7413F },
                  test_3_chksum_fx16{ 0x5C02F273 }, test_3_chksum_fx16_fx8_fx8{ 0x41941500 }, test_3_chksum_sa8{ 0xB3A2C34D },
-                 test_4_chksum_fx16{ 0xE4B38171 }, test_4_chksum_fx16_fx8_fx8{ 0xB237053C }, test_4_chksum_sa8{ 0xE92A3725 },
-                 test_5_chksum_fx16{ 0x66958DF2 }, test_5_chksum_fx16_fx8_fx8{ 0x1AEDF1D8 }, test_5_chksum_sa8{ 0x133A2361 };
+                 test_4_chksum_fx16{ 0xA2378C61 }, test_4_chksum_fx16_fx8_fx8{ 0x749FB380 }, test_4_chksum_sa8{ 0x911CFE38 },
+                 test_5_chksum_fx16{ 0xFAD19A42 }, test_5_chksum_fx16_fx8_fx8{ 0x70C8D5DD }, test_5_chksum_sa8{ 0x8DAAACEC },
+                 test_6_chksum_fx16{ 0xF03253BB }, test_6_chksum_fx16_fx8_fx8{ 0x122832FF }, test_6_chksum_sa8{ 0x42F80E2D },
+                 test_7_chksum_fx16{ 0xDC4EBBE7 }, test_7_chksum_fx16_fx8_fx8{ 0x10447ABF }, test_7_chksum_sa8{ 0xBC318965 },
+                 test_8_chksum_fx16, test_8_chksum_fx16_fx8_fx8, test_8_chksum_sa8,
+                 test_9_chksum_fx16, test_9_chksum_fx16_fx8_fx8, test_9_chksum_sa8;
 // Platform Specific CRC Results
 #if defined(CRC_RM_UP)
 const crc32_calc test_1_chksum_fx16_fx8_fx8{ 0x46A964A7 }, test_1_chksum_sa8{ 0x366725E9 };
@@ -70,6 +74,10 @@ const crc32_calc  test_1_chksum_fx16, test_1_chksum_fx16_fx8_fx8, test_1_chksum_
                   test_3_chksum_fx16, test_3_chksum_fx16_fx8_fx8, test_3_chksum_sa8,
                   test_4_chksum_fx16, test_4_chksum_fx16_fx8_fx8, test_4_chksum_sa8,
                   test_5_chksum_fx16, test_5_chksum_fx16_fx8_fx8, test_5_chksum_sa8;
+                  test_6_chksum_fx16, test_6_chksum_fx16_fx8_fx8, test_6_chksum_sa8,
+                  test_7_chksum_fx16, test_7_chksum_fx16_fx8_fx8, test_7_chksum_sa8,
+                  test_8_chksum_fx16, test_8_chksum_fx16_fx8_fx8, test_8_chksum_sa8,
+                  test_9_chksum_fx16, test_9_chksum_fx16_fx8_fx8, test_9_chksum_sa8;
 #endif
 
 
@@ -84,7 +92,6 @@ const quality_metrics thresholds_sa8_general{ quality_metrics::kPassValueMaxAbsE
 
 
 static const depthwise_conv_test_operands tests_list[] = {
-
     // Basic functionality test: kernel_size=(3, 4), strides=(1, 1), with krn_padding, w/o ReLU
     {"Test 1 FX16 ",         mli_krn_depthwise_conv2d_hwcn_fx16, 
                             input_1_fx16, weights_1_fx16, bias_1_fx16, test_1_out_fx16, test_1_cfg,
@@ -131,15 +138,75 @@ static const depthwise_conv_test_operands tests_list[] = {
 
     // Weights memstride test: kernel_size=(8, 6), strides=(1, 1), w/o padding, with ReLU_6
     {"Test 5 FX16 Relu6 Mstr",         mli_krn_depthwise_conv2d_hwcn_fx16,
-                                       input_1_fx16, weights_2_memstr_fx16, bias_2_fx16, test_5_out_fx16, test_5_cfg,
+                                       input_1_fx16, weights_3_fx16, bias_2_fx16, test_5_out_fx16, test_5_cfg,
                                        thresholds_fx16_general, test_5_chksum_fx16},
     {"Test 5 FX16_FX8_FX8 Relu6 Mstr", mli_krn_depthwise_conv2d_hwcn_fx16_fx8_fx8,
-                                       input_1_fx16, weights_2_memstr_fx8, bias_2_fx8, test_5_out_fx16, test_5_cfg,
+                                       input_1_fx16, weights_3_fx8, bias_2_fx8, test_5_out_fx16, test_5_cfg,
                                        thresholds_fx16_fx8_fx8_general, test_5_chksum_fx16_fx8_fx8},
     {"Test 5 SA8_SA8_SA32 Relu6 Mstr", mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32,
-                                       input_1_sa8, weights_2_memstr_sa8_per_axis, bias_2_i1_w2_sa32_per_axis, test_5_out_sa8, 
+                                       input_1_sa8, weights_3_sa8_per_axis, bias_2_i1_w3_sa32_per_axis, test_5_out_sa8, 
                                        test_5_cfg, thresholds_sa8_general, test_5_chksum_sa8},
 
+    // k3x3 specialization test with memstride, strides=(2, 2), krn_padding and ReLU 6
+    // No Dilation ratio. Memstrides are applied on input, output and weights tensors
+    {"Test 6 FX16 k3x3 Spec",         mli_krn_depthwise_conv2d_hwcn_fx16_k3x3,
+                                       input_1_memstr_fx16, weights_3_fx16, bias_2_fx16, test_6_out_fx16, test_6_cfg,
+                                       thresholds_fx16_general, test_6_chksum_fx16},
+    {"Test 6 FX16_FX8_FX8 k3x3 Spec", mli_krn_depthwise_conv2d_hwcn_fx16_fx8_fx8_k3x3,
+                                       input_1_memstr_fx16, weights_3_fx8, bias_2_fx8, test_6_out_fx16, test_6_cfg,
+                                       thresholds_fx16_fx8_fx8_general, test_6_chksum_fx16_fx8_fx8},
+    {"Test 6 SA8_SA8_SA32 k3x3 Spec", mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32_k3x3,
+                                       input_1_memstr_sa8, weights_3_sa8_per_axis, bias_2_i1_w3_sa32_per_axis, test_6_out_sa8, 
+                                       test_6_cfg, thresholds_sa8_general, test_6_chksum_sa8},
+
+    // k5x5 specialization test with memstride, strides=(2, 2), krn_padding and ReLU 6
+    // No Dilation ratio. Memstrides are applied on input, output and weights tensors
+    {"Test 7 FX16 k5x5 Spec",         mli_krn_depthwise_conv2d_hwcn_fx16_k5x5,
+                                       input_1_memstr_fx16, weights_4_fx16, bias_2_fx16, test_7_out_fx16, test_7_cfg,
+                                       thresholds_fx16_general, test_7_chksum_fx16},
+    {"Test 7 FX16_FX8_FX8 k5x5 Spec", mli_krn_depthwise_conv2d_hwcn_fx16_fx8_fx8_k5x5,
+                                       input_1_memstr_fx16, weights_4_fx8, bias_2_fx8, test_7_out_fx16, test_7_cfg,
+                                       thresholds_fx16_fx8_fx8_general, test_7_chksum_fx16_fx8_fx8},
+    {"Test 7 SA8_SA8_SA32 k5x5 Spec", mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32_k5x5,
+                                       input_1_memstr_sa8, weights_4_sa8_per_axis, bias_2_i1_w4_sa32_per_axis, test_7_out_sa8, 
+                                       test_7_cfg, thresholds_sa8_general, test_7_chksum_sa8},
+
+    // Dilation test with padding for generic function, kernel_size=(3, 3), strides=(1, 1),
+    // krn_padding , dilation = (2,2) and ReLU_Gen.
+    // No Dilation ratio. Memstrides are applied on input, output and weights tensors
+    {"Test 8-1 FX16 Dil+Pad",         mli_krn_depthwise_conv2d_hwcn_fx16,
+                                       input_1_memstr_fx16, weights_3_fx16, bias_2_fx16, test_8_out_fx16, test_8_cfg,
+                                       thresholds_fx16_general, test_8_chksum_fx16},
+    {"Test 8-1 FX16_FX8_FX8 Dil+Pad", mli_krn_depthwise_conv2d_hwcn_fx16_fx8_fx8,
+                                       input_1_memstr_fx16, weights_3_fx8, bias_2_fx8, test_8_out_fx16, test_8_cfg,
+                                       thresholds_fx16_fx8_fx8_general, test_8_chksum_fx16_fx8_fx8},
+    {"Test 8-1 SA8_SA8_SA32 Dil+Pad", mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32,
+                                       input_1_memstr_sa8, weights_3_sa8_per_axis, bias_2_i1_w3_sa32_per_axis, test_8_out_sa8, 
+                                       test_8_cfg, thresholds_sa8_general, test_8_chksum_sa8},
+
+    // Dilation test for k3x3 specialization test, strides=(1, 1), krn_padding , dilation = (2,2) and ReLU_1.
+    // Memstrides are applied on input, output and weights tensors
+    {"Test 8-2 FX16 k3x3 Dil",         mli_krn_depthwise_conv2d_hwcn_fx16_k3x3,
+                                       input_1_memstr_fx16, weights_3_fx16, bias_2_fx16, test_8_out_fx16, test_8_cfg,
+                                       thresholds_fx16_general, test_8_chksum_fx16},
+    {"Test 8-2 FX16_FX8_FX8 k3x3 Dil", mli_krn_depthwise_conv2d_hwcn_fx16_fx8_fx8_k3x3,
+                                       input_1_memstr_fx16, weights_3_fx8, bias_2_fx8, test_8_out_fx16, test_8_cfg,
+                                       thresholds_fx16_fx8_fx8_general, test_8_chksum_fx16_fx8_fx8},
+    {"Test 8-2 SA8_SA8_SA32 k3x3 Dil", mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32_k3x3,
+                                       input_1_memstr_sa8, weights_3_sa8_per_axis, bias_2_i1_w3_sa32_per_axis, test_8_out_sa8, 
+                                       test_8_cfg, thresholds_sa8_general, test_8_chksum_sa8},
+
+    // Dilation test for k5x5 specialization test, strides=(1, 1), krn_padding , dilation = (2,2) and ReLU_Gen.
+    // Memstrides are applied on input, output and weights tensors
+    {"Test 9 FX16 k5x5 Dil",         mli_krn_depthwise_conv2d_hwcn_fx16_k5x5,
+                                       input_1_memstr_fx16, weights_4_fx16, bias_2_fx16, test_9_out_fx16, test_9_cfg,
+                                       thresholds_fx16_general, test_9_chksum_fx16},
+    {"Test 9 FX16_FX8_FX8 k5x5 Dil", mli_krn_depthwise_conv2d_hwcn_fx16_fx8_fx8_k5x5,
+                                       input_1_memstr_fx16, weights_4_fx8, bias_2_fx8, test_9_out_fx16, test_9_cfg,
+                                       thresholds_fx16_fx8_fx8_general, test_9_chksum_fx16_fx8_fx8},
+    {"Test 9 SA8_SA8_SA32 k5x5 Dil", mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32_k5x5,
+                                       input_1_memstr_sa8, weights_4_sa8_per_axis, bias_2_i1_w4_sa32_per_axis, test_9_out_sa8, 
+                                       test_9_cfg, thresholds_sa8_general, test_9_chksum_sa8},
 };
 
 constexpr int kMemSize = 2047;
@@ -164,8 +231,14 @@ int main() {
         const depthwise_conv_test_operands* cur_test = &tests_list[i];
         quality_metrics test_metrics;
 
+        if (strstr(cur_test->descr, "Test 8") != nullptr ||
+                strstr(cur_test->descr, "Test 9") != nullptr) {
+            // Kernel doesn't work properly with dilation ratio and padding turned on together.
+            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
+            continue;
+        }
 #if PLATFORM == V2DSP_VECTOR
-        if (strstr(cur_test->descr, " FX16 ") != nullptr) {
+        if (strstr(cur_test->descr, "Test 7 SA8_SA8_SA32") != nullptr) {
             // VPX fails bitwise comparison with reference .
             reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
             continue;

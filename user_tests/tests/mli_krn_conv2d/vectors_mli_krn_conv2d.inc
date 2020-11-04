@@ -1012,7 +1012,7 @@ static const int test_6_out_fx8_frac = 5;
 
 #define TEST_6_OUT_TSR_SHARED_DESCR \
     /* .data = */ { 0 },\
-    /* .mem_stride = */ {0}, \
+    /* .mem_stride = */ {(7*1+3)*7+6, 7*1+3, 1}, \
     /* .shape = */ {7, 7, 7}, \
     /* .rank =  */ 3
 
@@ -1053,7 +1053,7 @@ static const int test_7_out_fx8_frac = 4;
 
 #define TEST_7_OUT_TSR_SHARED_DESCR \
     /* .data = */ { 0 },\
-    /* .mem_stride = */ {0}, \
+    /* .mem_stride = */ {(7*1+3)*4+6, 7*1+3, 1}, \
     /* .shape = */ {4, 4, 7}, \
     /* .rank =  */ 3
 
@@ -1094,7 +1094,7 @@ static const int test_8_out_fx8_frac = 4;
 
 #define TEST_8_OUT_TSR_SHARED_DESCR \
     /* .data = */ { 0 },\
-    /* .mem_stride = */ {0}, \
+    /* .mem_stride = */ {(7*1+3)*7+6, 7*1+3, 1}, \
     /* .shape = */ {4, 4, 7}, \
     /* .rank =  */ 3
 
@@ -1154,7 +1154,7 @@ static const int test_9_out_fx8_frac = 4;
 
 #define TEST_9_OUT_TSR_SHARED_DESCR \
     /* .data = */ { 0 },\
-    /* .mem_stride = */ {0}, \
+    /* .mem_stride = */ {(7*1+3)*7+6, 7*1+3, 1}, \
     /* .shape = */ {7, 7, 7}, \
     /* .rank =  */ 3
 
@@ -1214,7 +1214,7 @@ static const int test_10_out_fx8_frac = 3;
 
 #define TEST_10_OUT_TSR_SHARED_DESCR \
     /* .data = */ { 0 },\
-    /* .mem_stride = */ {0}, \
+    /* .mem_stride = */ {(7*1+3)*7+6, 7*1+3, 1}, \
     /* .shape = */ {7, 7, 7}, \
     /* .rank =  */ 3
 
