@@ -75,8 +75,8 @@ namespace vdsp {
 
 template <typename io_T>
 static MLI_FORCE_INLINE void reduce_max2D_hwc_v(
-		const MLI_PTR(io_T) in,
-		MLI_PTR(io_T) out,
+		const MLI_PTR(io_T) __restrict in,
+		MLI_PTR(io_T) __restrict out,
 		const int width,
         const int height,
 		const int col_mem_stride,
@@ -85,8 +85,8 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc_v(
 
 template <typename io_T>
 static MLI_FORCE_INLINE void reduce_max2D_hwc(
-		const MLI_PTR(io_T) in,
-		MLI_PTR(io_T) out,
+		const MLI_PTR(io_T) __restrict in,
+		MLI_PTR(io_T) __restrict out,
 		const int width,
         const int height,
 		const int channels,

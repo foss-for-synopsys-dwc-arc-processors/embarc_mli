@@ -255,6 +255,14 @@ MLI_FORCE_INLINE mli_acc40_t mli_prv_init_accu<int64_t>() {
     return (int64_t)0;
 }
 
+MLI_FORCE_INLINE vNx4accchar_t mli_prv_init_accu(vNx4char_t inp_val) {
+    return vvcadd_init(inp_val, (int8_t)0);
+}
+
+MLI_FORCE_INLINE vNx2accshort_t mli_prv_init_accu(vNx2short_t inp_val) {
+    return vvcadd_init(inp_val, (int16_t)0);
+}
+
 static MLI_FORCE_INLINE int32_t  mli_prv_init_accu(int8_t inp_val) {
     int32_t acc = inp_val;
     return acc;
