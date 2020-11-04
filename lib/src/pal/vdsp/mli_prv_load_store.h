@@ -68,8 +68,9 @@ static MLI_FORCE_INLINE vNx4char_t mli_prv_load_nx4_samples(const int8_t* __rest
 
 static MLI_FORCE_INLINE vNx4short_t mli_prv_load_nx4_samples(const int16_t* __restrict in) {
     vNx4short_t r;
-    for (int i = 0; i < (2 * _VDSP_NUM_16BIT_LANES); i++) {
-        r[i] = in[i];
+    for (int i = 0; i < _VDSP_NUM_16BIT_LANES; i++) {
+        r.lo[i] = in[i];
+        r.hi[i] = in[i + _VDSP_NUM_16BIT_LANES];
     }
     return r;
 }

@@ -28,18 +28,23 @@
 namespace mli {
 namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-/* TODO replace with vdsp version */
 using mli::krn::ref::eltwise_prepare_and_run;
 using mli::krn::ref::eltwise_op_basic;
+using mli::krn::vdsp::eltwise_perform_operation;
+using mli::krn::vdsp::eltwise_innerloop;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
 /* TODO replace with dsp version */
 using mli::krn::ref::eltwise_prepare_and_run;
-using mli::krn::ref::eltwise_op_basic; // required for mli::krn::ref::eltwise_prepare_and_run
+using mli::krn::ref::eltwise_op_basic;
+using mli::krn::ref::eltwise_perform_operation;
+using mli::krn::ref::eltwise_innerloop;
 
 #else
 using mli::krn::ref::eltwise_prepare_and_run;
 using mli::krn::ref::eltwise_op_basic;
+using mli::krn::ref::eltwise_perform_operation;
+using mli::krn::ref::eltwise_innerloop;
 
 #endif
 } // namespace krn
