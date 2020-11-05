@@ -60,16 +60,16 @@ const crc32_calc test_1_chksum_fx16{ 0x3669E8DA }, test_1_chksum_fx16_fx8_fx8{ 0
                  test_3_chksum_fx16{ 0xE2100158 }, test_3_chksum_fx16_fx8_fx8{ 0x550F135E }, test_3_chksum_sa8{ 0x9740102D },
                  test_4_chksum_fx16{ 0x5F13DD22 }, test_4_chksum_fx16_fx8_fx8{ 0xF92F0A5A }, test_4_chksum_sa8{ 0x45AA03B7 },
                  test_5_chksum_fx16{ 0xD8CA1273 }, test_5_chksum_fx16_fx8_fx8{ 0x186AA252 }, test_5_chksum_sa8{ 0x01D390FA },
-                 test_6_chksum_fx16{ 0x5A7A92BB }, 
-                 test_7_chksum_fx16{ 0x6EA7C12C }, test_7_chksum_fx16_fx8_fx8{ 0x0EC04486 }, test_7_chksum_sa8{ 0xEC3B6B91 },
-                 test_8_chksum_fx16{ 0x2EE8436B }, test_8_chksum_fx16_fx8_fx8{ 0xA038E01B }, test_8_chksum_sa8{ 0xF0CC7CA5 },
+                 test_6_chksum_fx16{ 0x150A5D20 }, 
+                 test_7_chksum_fx16{ 0x05737544 }, test_7_chksum_fx16_fx8_fx8{ 0x7FFA25C2 }, test_7_chksum_sa8{ 0x5E7CF172 },
+                 test_8_chksum_fx16{ 0x69862892 }, test_8_chksum_fx16_fx8_fx8{ 0xA124C817 }, test_8_chksum_sa8{ 0x99E3EE1D },
                  test_9_chksum_fx16, test_9_chksum_fx16_fx8_fx8, test_9_chksum_sa8,
                  test_10_chksum_fx16, test_10_chksum_fx16_fx8_fx8, test_10_chksum_sa8;
 // Platform Specific CRC Results
 #if defined(CRC_RM_UP)
-const crc32_calc test_6_chksum_fx16_fx8_fx8{ 0xB158A585 }, test_6_chksum_sa8{ 0x944BF386 };
+const crc32_calc test_6_chksum_fx16_fx8_fx8{ 0x8C24C65A }, test_6_chksum_sa8{ 0x1E4FA484 };
 #else 
-const crc32_calc test_6_chksum_fx16_fx8_fx8{ 0x798BEF7B }, test_6_chksum_sa8{ 0x2354FD30 };
+const crc32_calc test_6_chksum_fx16_fx8_fx8{ 0x0BA52872 }, test_6_chksum_sa8{ 0x51F01BF8 };
 #endif
 #else // Not defined CRC_*
 const crc32_calc  test_1_chksum_fx16, test_1_chksum_fx16_fx8_fx8, test_1_chksum_sa8,
@@ -259,14 +259,9 @@ int main() {
             reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
             continue;
         }
-        if (strstr(cur_test->descr, "Test 3") != nullptr) {
-            // In debug mode with return codes checker badly handels dilation ratio.
-            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
-            continue;
-        }
+
 #if PLATFORM == V2DSP_VECTOR
-        if (strstr(cur_test->descr, " FX16 ") != nullptr || 
-                strstr(cur_test->descr, "Test 6 SA8_SA8_SA32") != nullptr) {
+        if (strstr(cur_test->descr, "Test 6 SA8_SA8_SA32") != nullptr) {
             // VPX fails bitwise comparison with reference .
             reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
             continue;

@@ -70,10 +70,10 @@ static const crc32_calc test_1_chksum_fx16, test_1_chksum_sa8,
 
 #endif
 
-static const quality_metrics thresholds_fx16_general { /* MaxAbsErr = */ 0.0004, quality_metrics::kPassValueSnr,
+static const quality_metrics thresholds_fx16_general { /* MaxAbsErr = */ 0.0004f, quality_metrics::kPassValueSnr,
                                                        /* SNR DB = */ 60.f, quality_metrics::kPassValueQuantErrPerc };
 
-static const quality_metrics thresholds_sa8_general { /* MaxAbsErr = */ 0.008, quality_metrics::kPassValueSnr,
+static const quality_metrics thresholds_sa8_general { /* MaxAbsErr = */ 0.008f, quality_metrics::kPassValueSnr,
                                                       /* SNR DB = */ 30.f, quality_metrics::kPassValueQuantErrPerc };
 
 static const tanh_test_operands tests_list[] = {

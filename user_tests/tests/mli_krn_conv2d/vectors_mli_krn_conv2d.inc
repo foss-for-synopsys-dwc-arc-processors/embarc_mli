@@ -592,7 +592,7 @@ static const float bias_1_w3_scales[] = {
 static const int8_t bias_1_w3_scales_frac[] = {30, 30, 29, 29, 29, 27, 27};
 
 static const float bias_1_w4_scales[] = {
-    0.0000160019205, 0.0000413842773, 0.0000614326630, 0.0000869989449, 0.0001298546545, 0.0001317859403, 0.0001328895189f
+    0.0000160019205f, 0.0000413842773f, 0.0000614326630f, 0.0000869989449f, 0.0001298546545f, 0.0001317859403f, 0.0001328895189f
 };
 static const int8_t bias_1_w4_scales_frac[] = {30, 29, 28, 28, 27, 27, 27};
 
@@ -1012,7 +1012,7 @@ static const int test_6_out_fx8_frac = 5;
 
 #define TEST_6_OUT_TSR_SHARED_DESCR \
     /* .data = */ { 0 },\
-    /* .mem_stride = */ {0}, \
+    /* .mem_stride = */ {(7*1+3)*7+6, 7*1+3, 1}, \
     /* .shape = */ {7, 7, 7}, \
     /* .rank =  */ 3
 
@@ -1053,7 +1053,7 @@ static const int test_7_out_fx8_frac = 4;
 
 #define TEST_7_OUT_TSR_SHARED_DESCR \
     /* .data = */ { 0 },\
-    /* .mem_stride = */ {0}, \
+    /* .mem_stride = */ {(7*1+3)*4+6, 7*1+3, 1}, \
     /* .shape = */ {4, 4, 7}, \
     /* .rank =  */ 3
 
@@ -1094,7 +1094,7 @@ static const int test_8_out_fx8_frac = 4;
 
 #define TEST_8_OUT_TSR_SHARED_DESCR \
     /* .data = */ { 0 },\
-    /* .mem_stride = */ {0}, \
+    /* .mem_stride = */ {(7*1+3)*7+6, 7*1+3, 1}, \
     /* .shape = */ {4, 4, 7}, \
     /* .rank =  */ 3
 
@@ -1154,7 +1154,7 @@ static const int test_9_out_fx8_frac = 4;
 
 #define TEST_9_OUT_TSR_SHARED_DESCR \
     /* .data = */ { 0 },\
-    /* .mem_stride = */ {0}, \
+    /* .mem_stride = */ {(7*1+3)*7+6, 7*1+3, 1}, \
     /* .shape = */ {7, 7, 7}, \
     /* .rank =  */ 3
 
@@ -1214,7 +1214,7 @@ static const int test_10_out_fx8_frac = 3;
 
 #define TEST_10_OUT_TSR_SHARED_DESCR \
     /* .data = */ { 0 },\
-    /* .mem_stride = */ {0}, \
+    /* .mem_stride = */ {(7*1+3)*7+6, 7*1+3, 1}, \
     /* .shape = */ {7, 7, 7}, \
     /* .rank =  */ 3
 
