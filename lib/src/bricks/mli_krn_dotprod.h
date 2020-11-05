@@ -30,13 +30,14 @@ namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
 using mli::krn::ref::dotprod1D;
 using mli::krn::vdsp::dotprod1D_v;
+using mli::krn::vdsp::dotprod1D_v_unroll;
 using mli::krn::ref::dotprod2D;
 using mli::krn::vdsp::dotprod2D_vv;
 using mli::krn::ref::dotprod3D;
 using mli::krn::vdsp::dotprod3D_v;
+using mli::krn::vdsp::dotprod3D_v_unroll;
 using mli::krn::vdsp::dotprod3D_v_nopad;
-using mli::krn::vdsp::dotprod3D_v_nopad_unrollH2;
-using mli::krn::vdsp::dotprod3D_v_nopad_unrollH4;
+using mli::krn::vdsp::dotprod3D_v_nopad_unroll;
 using mli::krn::vdsp::init_accu_grp;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
