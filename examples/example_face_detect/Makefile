@@ -9,26 +9,23 @@
 # TCF_FILE: withouts NOT setting this parameter,
 #           the default native compiler is used to compile
 # BUILDLIB_DIR ?= ev71_buildlib can be specified if no MWDT buildlib is available
+# See rules.mk for all flags
 
-include ../../lib/make/settings.mk
-PUBLIC_DIR = ..$(PS)..$(PS)
+PUBLIC_DIR = ../..
+include $(PUBLIC_DIR)/make/rules.mk
+
 BUILD_SUBDIR = examples$(PS)example_face_detect
+BUILD_TARGET = example_face_detect
 RUN_ARGS ?= "grace_hopper.bmp"
 
-# Targets
-app:
-	$(MAKE) -C $(PUBLIC_DIR)lib$(PS)make lib BUILD_SUBDIR=$(BUILD_SUBDIR)
+app: build
 
-clean:
-	$(MAKE) -C $(PUBLIC_DIR)lib$(PS)make clean
-
-ifndef TCF_FILE
 run: app
+ifndef TCF_FILE
 	$(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)elf_files$(PS)example_face_detect
 else
-run: app
 	mdb $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)elf_files$(PS)example_face_detect.elf \
 		-cl  -nsim -cmd=run -off=cr_for_more -cmd=exit -tcf=$(TCF_FILE) -- $(RUN_ARGS)
 endif
 
-.PHONY:	app clean run
+.PHONY:	app run
