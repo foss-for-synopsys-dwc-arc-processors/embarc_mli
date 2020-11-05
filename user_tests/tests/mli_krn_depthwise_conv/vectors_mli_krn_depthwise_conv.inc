@@ -353,7 +353,7 @@ static const mli_tensor weights_4_tsr_sa8 = {
 
 static const float bias_1_data[] = {-0.161161f, 0.359392f, -0.036637f};
 
-static const float bias_1_scales[] = {0.00002018, 0.00003019, 0.00004346};
+static const float bias_1_scales[] = {0.00002018f, 0.00003019f, 0.00004346f};
 static const float bias_1_zero_points[] = {0.0f, 0.0f, 0.0f};
 static const int8_t bias_1_scales_frac[] = {27, 27, 26};
 static const int bias_1_sa_dim = 0;
@@ -390,12 +390,12 @@ static const mli_tensor bias_1_tsr_sa32 = {
 
 static const float bias_2_data[] = {-0.161161f, 0.359392f, -0.036637f};
 
-static const float bias_2_i1_w2_scale = 0.00004835;
+static const float bias_2_i1_w2_scale = 0.00004835f;
 static const float bias_2_i1_w2_zero_point = 0.0f;
 static const int8_t bias_2_i1_w2_scale_frac[] = {26};
 static const int bias_2_i1_w2_sa_dim = -1;
 
-static const float bias_2_i1_w2_scales[] = {0.00002088, 0.00002737, 0.00004835};
+static const float bias_2_i1_w2_scales[] = {0.00002088f, 0.00002737f, 0.00004835f};
 static const float bias_2_i1_w2_zero_points[] = {0.0f, 0.0f, 0.0f};
 static const int8_t bias_2_i1_w2_scales_frac[] = {28, 27, 26};
 static const int bias_2_i1_w2_sa_dim_per_axis = 0;

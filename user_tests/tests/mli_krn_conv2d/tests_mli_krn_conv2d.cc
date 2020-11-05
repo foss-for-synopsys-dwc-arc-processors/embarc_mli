@@ -259,11 +259,7 @@ int main() {
             reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
             continue;
         }
-        if (strstr(cur_test->descr, "Test 3") != nullptr) {
-            // In debug mode with return codes checker badly handels dilation ratio.
-            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
-            continue;
-        }
+
 #if PLATFORM == V2DSP_VECTOR
         if (strstr(cur_test->descr, "Test 6 SA8_SA8_SA32") != nullptr) {
             // VPX fails bitwise comparison with reference .

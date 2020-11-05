@@ -74,10 +74,10 @@ const crc32_calc  test_1_chksum_fx16, test_1_chksum_sa8,
                   test_7_chksum_fx16, test_7_chksum_sa8;
 #endif
 
-const quality_metrics thresholds_fx16_general { /* MaxAbsErr = */0.0003, quality_metrics::kPassValueSnr,
+const quality_metrics thresholds_fx16_general { /* MaxAbsErr = */0.0003f, quality_metrics::kPassValueSnr,
                                                 /* SNR_DB = */80.f, /*Quant Error Perc = */ 27.f };
 
-const quality_metrics thresholds_sa8_general{ /* MaxAbsErr = */0.04, quality_metrics::kPassValueSnr,
+const quality_metrics thresholds_sa8_general{ /* MaxAbsErr = */0.04f, quality_metrics::kPassValueSnr,
                                               /* SNR_DB = */37.f, /*Quant Error Perc = */ 30.f };
 
 

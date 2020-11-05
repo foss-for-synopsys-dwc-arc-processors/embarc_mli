@@ -405,11 +405,11 @@ static const int8_t bias_2_i1_w2_scales_frac[] = {32};
 static const int bias_2_i1_w2_sa_dim = -1;
 
 static const float bias_2_i1_w2_scales[] = {
-    0.00001206f, 0.00001603f, 0.00003282f, 0.00003014f, 0.00004913f, 0.00004392f, 
-    0.00005548f, 0.00005353f
+    0.00001206050f, 0.00001603253f, 0.00003282271f, 0.00003013773f, 0.00004912672f,
+    0.00004391887f, 0.00005547642f, 0.00005352871f
 };
 static const float bias_2_i1_w2_zero_points[] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-static const int8_t bias_2_i1_w2_scales_fracs[] = {29, 29, 29, 29, 29, 29, 29, 29, 29, 29};
+static const int8_t bias_2_i1_w2_scales_fracs[] = {31, 30, 29, 30, 29, 29, 29, 29};
 static const int bias_2_i1_w2_sa_dim_2 = 0;
 
 static const int bias_2_fx8_frac = 6;

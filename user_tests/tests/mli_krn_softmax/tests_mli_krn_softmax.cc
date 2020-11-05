@@ -72,16 +72,16 @@ const crc32_calc  test_1_chksum_fx16, test_1_chksum_sa8,
                   test_6_chksum_fx16, test_6_chksum_sa8;
 #endif
 
-const quality_metrics thresholds_fx16_general { /* MaxAbsErr = */0.0002, quality_metrics::kPassValueSnr,
+const quality_metrics thresholds_fx16_general { /* MaxAbsErr = */0.0002f, quality_metrics::kPassValueSnr,
                                                 quality_metrics::kPassValueSnrDb, /*Quant Error Perc = */ 15.f };
 
-const quality_metrics thresholds_sa8_general{ /* MaxAbsErr = */0.02, quality_metrics::kPassValueSnr,
+const quality_metrics thresholds_sa8_general{ /* MaxAbsErr = */0.02f, quality_metrics::kPassValueSnr,
                                                 quality_metrics::kPassValueSnrDb, /*Quant Error Perc = */ 20.f };
 
-const quality_metrics thresholds_sa8_test2{ /* MaxAbsErr = */0.015, quality_metrics::kPassValueSnr,
+const quality_metrics thresholds_sa8_test2{ /* MaxAbsErr = */0.015f, quality_metrics::kPassValueSnr,
                                                 quality_metrics::kPassValueSnrDb, /*Quant Error Perc = */ 16.f }; 
 
-const quality_metrics thresholds_sa8_test3{ /* MaxAbsErr = */0.025, quality_metrics::kPassValueSnr,
+const quality_metrics thresholds_sa8_test3{ /* MaxAbsErr = */0.025f, quality_metrics::kPassValueSnr,
                                                 quality_metrics::kPassValueSnrDb, /*Quant Error Perc = */ 20.f };
 
 
