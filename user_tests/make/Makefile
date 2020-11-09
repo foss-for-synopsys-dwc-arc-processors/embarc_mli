@@ -21,7 +21,18 @@ RUN_TEST_CMD = mdb -run  -tcf=$(TCF_FILE)
 BIN_EXT = .elf
 endif
 
-KERNELS=conv2d depthwise_conv fully_connected avepool maxpool softmax relu eltwise
+KERNELS = \
+	conv2d \
+	depthwise_conv \
+	fully_connected \
+	avepool \
+	maxpool \
+	softmax \
+	relu \
+	leaky_relu \
+	eltwise \
+	tanh \
+	sigm
 
 BIN_FILES=$(patsubst %,$(BIN_PATH)$(PS)test_mli_krn_%$(BIN_EXT),$(KERNELS))
 TEST_TARGETS = $(patsubst %,test_%,$(KERNELS))
