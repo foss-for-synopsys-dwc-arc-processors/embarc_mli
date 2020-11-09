@@ -222,12 +222,13 @@ MLI_FORCE_INLINE void convolution2D_pad(
             const mli_compensations comp = mli_prv_valid_area_compensations(
                     H_idx, W_idx, in.height, in.width,
                     weights.kernel_height, weights.kernel_width,
-                    stride_height, stride_width, padding_left, padding_top);
+                    stride_height, stride_width, padding_left, padding_top,
+                    dilation_height, dilation_width);
 
-            const int rows = weights.kernel_height - comp.top - comp.bottom;
-            const int clmns = weights.kernel_width - comp.right - comp.left;
-            const int h_idx_in = (H_idx * stride_height - padding_top + comp.top);
-            const int w_idx_in = (W_idx * stride_width - padding_left + comp.left);
+            const int rows = weights.kernel_height - comp.kernel_top - comp.kernel_bottom;
+            const int clmns = weights.kernel_width - comp.kernel_right - comp.kernel_left;
+            const int h_idx_in = (H_idx * stride_height - padding_top + comp.in_top);
+            const int w_idx_in = (W_idx * stride_width - padding_left + comp.in_left);
             for (int out_ch_idx = 0; out_ch_idx < out.ch; out_ch_idx+= get_number_lanes<acc_T>()) {
                 int remaining_ch = out.ch - out_ch_idx;
                 int current_ch = MIN(remaining_ch, get_number_lanes<acc_T>()); /* nr channels computed in this loop iteration */
@@ -240,8 +241,8 @@ MLI_FORCE_INLINE void convolution2D_pad(
                         + in.col_mem_stride * w_idx_in;
 
                 const MLI_PTR(w_T) w_ptr = weights.ptr
-                        + weights.row_mem_stride * comp.top
-                        + weights.col_mem_stride * comp.left
+                        + weights.row_mem_stride * comp.kernel_top
+                        + weights.col_mem_stride * comp.kernel_left
                         + weights.out_ch_mem_stride * out_ch_idx;
 
                 auto output_params = adjust_quant_params_v(&quant_params, out_ch_idx);
@@ -444,12 +445,13 @@ MLI_FORCE_INLINE void depthwise_convolution2D_pad(
             const mli_compensations comp = mli_prv_valid_area_compensations(
                     H_idx, W_idx, in.height, in.width,
                     weights.kernel_height, weights.kernel_width,
-                    stride_height, stride_width, padding_left, padding_top);
+                    stride_height, stride_width, padding_left, padding_top,
+                    dilation_height, dilation_width);
 
-            const int rows = weights.kernel_height - comp.top - comp.bottom;
-            const int clmns = weights.kernel_width - comp.right - comp.left;
-            const int h_idx_in = (H_idx * stride_height - padding_top + comp.top);
-            const int w_idx_in = (W_idx * stride_width - padding_left + comp.left);
+            const int rows = weights.kernel_height - comp.kernel_top - comp.kernel_bottom;
+            const int clmns = weights.kernel_width - comp.kernel_right - comp.kernel_left;
+            const int h_idx_in = (H_idx * stride_height - padding_top + comp.in_top);
+            const int w_idx_in = (W_idx * stride_width - padding_left + comp.in_left);
 
             for (int in_ch_idx = 0; in_ch_idx < in.ch; in_ch_idx += get_number_lanes<acc_T>()) {
                 const int out_ch_idx = in_ch_idx;
@@ -466,8 +468,8 @@ MLI_FORCE_INLINE void depthwise_convolution2D_pad(
                         + out.ch_mem_stride * out_ch_idx;
 
                 const MLI_PTR(w_T) w_ptr = weights.ptr
-                        + weights.row_mem_stride * comp.top
-                        + weights.col_mem_stride * comp.left
+                        + weights.row_mem_stride * comp.kernel_top
+                        + weights.col_mem_stride * comp.kernel_left
                         + weights.in_ch_mem_stride * 0
                         + weights.out_ch_mem_stride * out_ch_idx;
                 auto output_params = adjust_quant_params_v(&quant_params, out_ch_idx);
