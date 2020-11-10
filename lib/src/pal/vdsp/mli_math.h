@@ -207,6 +207,20 @@ MLI_FORCE_INLINE vNx4short_t mli_math_asr_fx(vNx4short_t x, int nbits) {
     return r;
 }
 
+
+template <>
+MLI_FORCE_INLINE vNx2short_t mli_math_asl_fx(vNx2short_t x, vNx2short_t nbits) {
+    return x << nbits;
+}
+
+template <>
+MLI_FORCE_INLINE vNx4short_t mli_math_asl_fx(vNx4short_t x, vNx4short_t nbits) {
+    vNx4short_t r;
+    r.lo = mli_math_asl_fx(x.lo, nbits.lo);
+    r.hi = mli_math_asl_fx(x.hi, nbits.hi);
+    return r;
+}
+
 template <>
 MLI_FORCE_INLINE vNx2short_t mli_math_asr_fx(vNx2short_t x, vNx2short_t nbits) {
     return x >> nbits;
