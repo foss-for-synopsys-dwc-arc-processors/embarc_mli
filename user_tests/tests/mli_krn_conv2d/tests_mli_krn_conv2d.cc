@@ -63,13 +63,15 @@ const crc32_calc test_1_chksum_fx16{ 0x3669E8DA }, test_1_chksum_fx16_fx8_fx8{ 0
                  test_6_chksum_fx16{ 0x150A5D20 }, 
                  test_7_chksum_fx16{ 0x05737544 }, test_7_chksum_fx16_fx8_fx8{ 0x7FFA25C2 }, test_7_chksum_sa8{ 0x5E7CF172 },
                  test_8_chksum_fx16{ 0x69862892 }, test_8_chksum_fx16_fx8_fx8{ 0xA124C817 }, test_8_chksum_sa8{ 0x99E3EE1D },
-                 test_9_chksum_fx16, test_9_chksum_fx16_fx8_fx8, test_9_chksum_sa8,
-                 test_10_chksum_fx16, test_10_chksum_fx16_fx8_fx8, test_10_chksum_sa8;
+                 test_9_chksum_fx16{ 0x3B2662E7 }, test_9_chksum_fx16_fx8_fx8{ 0x5C4D2278 }, test_9_chksum_sa8{ 0x7D8D9C29 },
+                 test_10_chksum_fx16{ 0x0AD3FF47 }, test_10_chksum_fx16_fx8_fx8{ 0x0CDE9B47 };
 // Platform Specific CRC Results
 #if defined(CRC_RM_UP)
-const crc32_calc test_6_chksum_fx16_fx8_fx8{ 0x8C24C65A }, test_6_chksum_sa8{ 0x1E4FA484 };
+const crc32_calc test_6_chksum_fx16_fx8_fx8{ 0x8C24C65A }, test_6_chksum_sa8{ 0x1E4FA484 },
+                 test_10_chksum_sa8{ 0xA4EB24F1 };
 #else 
-const crc32_calc test_6_chksum_fx16_fx8_fx8{ 0x0BA52872 }, test_6_chksum_sa8{ 0x51F01BF8 };
+const crc32_calc test_6_chksum_fx16_fx8_fx8{ 0x0BA52872 }, test_6_chksum_sa8{ 0x51F01BF8 },
+                 test_10_chksum_sa8{ 0x36F53B9E };
 #endif
 #else // Not defined CRC_*
 const crc32_calc  test_1_chksum_fx16, test_1_chksum_fx16_fx8_fx8, test_1_chksum_sa8,
@@ -252,13 +254,6 @@ int main() {
         bool is_test_passed = true;
         const conv2d_test_operands* cur_test = &tests_list[i];
         quality_metrics test_metics;
-
-        if (strstr(cur_test->descr, "Test 9") != nullptr ||
-                strstr(cur_test->descr, "Test 10") != nullptr) {
-            // Kernel doesn't work properly with dilation ratio and padding turned on together.
-            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
-            continue;
-        }
 
 #if PLATFORM == V2DSP_VECTOR
         if (strstr(cur_test->descr, "Test 6 SA8_SA8_SA32") != nullptr) {
