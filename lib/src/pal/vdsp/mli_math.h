@@ -80,6 +80,117 @@ MLI_FORCE_INLINE T mli_math_asr_fx(T x, shift_T nbits) {
     return x >> nbits;
 }
 
+// Addition of two fx operands with saturation
+//========================================================================
+template <typename T>
+MLI_FORCE_INLINE T mli_math_add_fx(T L, T R) {
+    if ((R > 0) && (L > std::numeric_limits<T>::max() - R)) // `L + R` would overflow
+        return std::numeric_limits<T>::max();
+    if ((R < 0) && (L < std::numeric_limits<T>::lowest() - R)) // `L + R` would underflow
+        return std::numeric_limits<T>::lowest();
+    return L + R;
+}
+
+// Addition/subtraction of two operands
+template <typename l_T, typename r_T>
+MLI_FORCE_INLINE l_T mli_math_add(l_T L, r_T R) {
+    return L + R;
+}
+
+template <typename l_T, typename r_T>
+MLI_FORCE_INLINE l_T mli_math_sub(l_T L, r_T R) {
+    return L - R;
+}
+
+template <> 
+MLI_FORCE_INLINE vNx4short_t mli_math_add_fx(vNx4short_t L, vNx4short_t R) {
+    return vvadd_sat(L, R);
+}
+template <> 
+MLI_FORCE_INLINE vNx4short_t mli_math_sub_fx(vNx4short_t L, vNx4short_t R) {
+    return vvsub_sat(L, R);
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accchar_t mli_math_add(vNx4accchar_t L, vNx4char_t R) {
+    return vvcadd(L, R,(int8_t)0);
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accchar_t mli_math_add(vNx4accchar_t L, vNx4accchar_t R) {
+    return vvcaddacc(L, R);
+}
+
+template <>
+MLI_FORCE_INLINE vNx2accshort_t mli_math_add(vNx2accshort_t L, vNx2short_t R) {
+    return vvcadd(L, R,(int16_t)0);
+}
+
+template <>
+MLI_FORCE_INLINE vNx2accshort_t mli_math_add(vNx2accshort_t L, vNx2accshort_t R) {
+    return vvcaddacc(L, R);
+}
+template <>
+MLI_FORCE_INLINE vNx4accshort_t mli_math_add(vNx4accshort_t L, vNx4short_t R) {
+    return __vacc_concat(vvcadd(__vacc_lo(L), R.lo,(int16_t)0), vvcadd(__vacc_hi(L), R.hi,(int16_t)0));
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accshort_t mli_math_add(vNx4accshort_t L, vNx4accshort_t R) {
+    return __vacc_concat(vvcaddacc(__vacc_lo(L), __vacc_lo(R)), vvcaddacc(__vacc_hi(L), __vacc_hi(R)));
+}
+
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_math_add(vNx2accint_t L, vNx2int_t R) {
+    return __vacc_concat(vvcadd(__vacc_lo(L), R.lo,(int32_t)0), vvcadd(__vacc_hi(L), R.hi,(int32_t)0));
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accint_t mli_math_add(vNx4accint_t L, vNx4int_t R) {
+    vNx4accint_t r;
+    r.lo = mli_math_add(L.lo, R.lo);
+    r.hi = mli_math_add(L.hi, R.hi);
+    return r;
+}
+
+template <>
+MLI_FORCE_INLINE vNaccint_t mli_math_add(vNaccint_t L, vNaccint_t R) {
+    return vvcaddacc(L, R);
+}
+
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_math_add(vNx2accint_t L, vNx2accint_t R) {
+    return __vacc_concat(vvcaddacc(__vacc_lo(L), __vacc_lo(R)), vvcaddacc(__vacc_hi(L), __vacc_hi(R)));
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accint_t mli_math_add(vNx4accint_t L, vNx4accint_t R) {
+    vNx4accint_t r;
+    r.lo = mli_math_add(L.lo, R.lo);
+    r.hi = mli_math_add(L.hi, R.hi);
+    return r;
+}
+
+// Subtraction of two fx operands with saturation
+//========================================================================
+template <typename T>
+MLI_FORCE_INLINE T mli_math_sub_fx(T L, T R) {
+    if ((R < 0) && (L > std::numeric_limits<T>::max() + R)) // `L - R` would overflow
+        return std::numeric_limits<T>::max();
+    if ((R > 0) && (L < std::numeric_limits<T>::lowest() + R)) // `L - R` would underflow
+        return std::numeric_limits<T>::lowest();
+    return L - R;
+}
+
+template<typename io_T, typename lr_T>
+MLI_FORCE_INLINE io_T mli_math_bound_range_fx(io_T in, lr_T L, lr_T R) {
+    io_T out;
+    out = mli_math_max_fx(in, L);
+    out = mli_math_min_fx(out, R);
+    return out;
+}
+
+
 template <>
 MLI_FORCE_INLINE vNx4short_t mli_math_asl_fx(vNx4short_t x, int nbits);
 
@@ -259,8 +370,8 @@ MLI_FORCE_INLINE vNx4accshort_t mli_math_asr_rnd_fx(vNx4accshort_t x, vNx4short_
     vNx4accshort_t r;
 #ifdef ROUND_UP
     // adding 1 << (nbits-1)
-    // when nbits >= 8, 1 << nbits would result in overflow. that is why nbits is divided by 2 and multiplied
-    r = mli_math_mac_fx(x, to_vNx4char_t(1 << ((nbits - 1)/2)), to_vNx4char_t(1 << (nbits/2)));
+    // shift twice to prevent negative shift if nbits = 0
+    r = mli_math_add<vNx4accshort_t, vNx4short_t>(x, (vNx4short_t)((1 << nbits) >> 1));
 #endif
 #ifdef ROUND_CONVERGENT
 #error "Convergent rounding not supported"
@@ -277,8 +388,8 @@ MLI_FORCE_INLINE vNx2accint_t mli_math_asr_rnd_fx(vNx2accint_t x, vNx2int_t nbit
     vNx2accint_t r;
 #ifdef ROUND_UP
     // adding 1 << (nbits-1)
-    // when nbits >= 8, 1 << nbits would result in overflow. that is why nbits is divided by 2 and multiplied
-    r = mli_math_mac_fx(x, to_vNx2short_t(1 << ((nbits - 1)/2)), to_vNx2short_t(1 << (nbits/2)));
+    // shift twice to prevent negative shift if nbits = 0
+    r = mli_math_add<vNx2accint_t, vNx2int_t>(x, (vNx2int_t)((1 << nbits) >> 1));
 #endif
 #ifdef ROUND_CONVERGENT
 #error "Convergent rounding not supported"
@@ -291,7 +402,8 @@ template <>
 MLI_FORCE_INLINE vNx4short_t mli_math_asr_rnd_fx(vNx4short_t x, vNx4short_t nbits) {
     vNx4short_t r;
 #ifdef ROUND_UP
-    r = x + (1 << (nbits - 1));
+    // shift twice to prevent negative shift if nbits = 0
+    r = x + (vNx4short_t)((1 << nbits) >> 1);
 #endif
 #ifdef ROUND_CONVERGENT
 #error "Convergent rounding not supported"
@@ -305,7 +417,8 @@ template <>
 MLI_FORCE_INLINE vNx4int_t mli_math_asr_rnd_fx(vNx4int_t x, vNx4int_t nbits) {
     vNx4int_t r;
 #ifdef ROUND_UP
-    r = x + (1 << (nbits - 1));
+    // shift twice to prevent negative shift if nbits = 0
+    r = x + (vNx4int_t)((1 << nbits) >> 1);
 #endif
 #ifdef ROUND_CONVERGENT
 #error "Convergent rounding not supported"
@@ -373,116 +486,6 @@ MLI_FORCE_INLINE out_T mli_math_norm_cast_fx(in_T val , int *norm_shift) {
     int norm = mli_math_norm_fx<in_T, in_T>(val);
     *norm_shift = cast_shift - norm;
     return mli_math_cast_fx<in_T, out_T>(val, *norm_shift);
-}
-
-// Addition of two fx operands with saturation
-//========================================================================
-template <typename T>
-MLI_FORCE_INLINE T mli_math_add_fx(T L, T R) {
-    if ((R > 0) && (L > std::numeric_limits<T>::max() - R)) // `L + R` would overflow
-        return std::numeric_limits<T>::max();
-    if ((R < 0) && (L < std::numeric_limits<T>::lowest() - R)) // `L + R` would underflow
-        return std::numeric_limits<T>::lowest();
-    return L + R;
-}
-
-// Addition/subtraction of two operands
-template <typename l_T, typename r_T>
-MLI_FORCE_INLINE l_T mli_math_add(l_T L, r_T R) {
-    return L + R;
-}
-
-template <typename l_T, typename r_T>
-MLI_FORCE_INLINE l_T mli_math_sub(l_T L, r_T R) {
-    return L - R;
-}
-
-template <> 
-MLI_FORCE_INLINE vNx4short_t mli_math_add_fx(vNx4short_t L, vNx4short_t R) {
-    return vvadd_sat(L, R);
-}
-template <> 
-MLI_FORCE_INLINE vNx4short_t mli_math_sub_fx(vNx4short_t L, vNx4short_t R) {
-    return vvsub_sat(L, R);
-}
-
-template <>
-MLI_FORCE_INLINE vNx4accchar_t mli_math_add(vNx4accchar_t L, vNx4char_t R) {
-    return vvcadd(L, R,(int8_t)0);
-}
-
-template <>
-MLI_FORCE_INLINE vNx4accchar_t mli_math_add(vNx4accchar_t L, vNx4accchar_t R) {
-    return vvcaddacc(L, R);
-}
-
-template <>
-MLI_FORCE_INLINE vNx2accshort_t mli_math_add(vNx2accshort_t L, vNx2short_t R) {
-    return vvcadd(L, R,(int16_t)0);
-}
-
-template <>
-MLI_FORCE_INLINE vNx2accshort_t mli_math_add(vNx2accshort_t L, vNx2accshort_t R) {
-    return vvcaddacc(L, R);
-}
-template <>
-MLI_FORCE_INLINE vNx4accshort_t mli_math_add(vNx4accshort_t L, vNx4short_t R) {
-    return __vacc_concat(vvcadd(__vacc_lo(L), R.lo,(int16_t)0), vvcadd(__vacc_hi(L), R.hi,(int16_t)0));
-}
-
-template <>
-MLI_FORCE_INLINE vNx4accshort_t mli_math_add(vNx4accshort_t L, vNx4accshort_t R) {
-    return __vacc_concat(vvcaddacc(__vacc_lo(L), __vacc_lo(R)), vvcaddacc(__vacc_hi(L), __vacc_hi(R)));
-}
-
-template <>
-MLI_FORCE_INLINE vNx2accint_t mli_math_add(vNx2accint_t L, vNx2int_t R) {
-    return __vacc_concat(vvcadd(__vacc_lo(L), R.lo,(int32_t)0), vvcadd(__vacc_hi(L), R.hi,(int32_t)0));
-}
-
-template <>
-MLI_FORCE_INLINE vNx4accint_t mli_math_add(vNx4accint_t L, vNx4int_t R) {
-    vNx4accint_t r;
-    r.lo = mli_math_add(L.lo, R.lo);
-    r.hi = mli_math_add(L.hi, R.hi);
-    return r;
-}
-
-template <>
-MLI_FORCE_INLINE vNaccint_t mli_math_add(vNaccint_t L, vNaccint_t R) {
-    return vvcaddacc(L, R);
-}
-
-template <>
-MLI_FORCE_INLINE vNx2accint_t mli_math_add(vNx2accint_t L, vNx2accint_t R) {
-    return __vacc_concat(vvcaddacc(__vacc_lo(L), __vacc_lo(R)), vvcaddacc(__vacc_hi(L), __vacc_hi(R)));
-}
-
-template <>
-MLI_FORCE_INLINE vNx4accint_t mli_math_add(vNx4accint_t L, vNx4accint_t R) {
-    vNx4accint_t r;
-    r.lo = mli_math_add(L.lo, R.lo);
-    r.hi = mli_math_add(L.hi, R.hi);
-    return r;
-}
-
-// Subtraction of two fx operands with saturation
-//========================================================================
-template <typename T>
-MLI_FORCE_INLINE T mli_math_sub_fx(T L, T R) {
-    if ((R < 0) && (L > std::numeric_limits<T>::max() + R)) // `L - R` would overflow
-        return std::numeric_limits<T>::max();
-    if ((R > 0) && (L < std::numeric_limits<T>::lowest() + R)) // `L - R` would underflow
-        return std::numeric_limits<T>::lowest();
-    return L - R;
-}
-
-template<typename io_T, typename lr_T>
-MLI_FORCE_INLINE io_T mli_math_bound_range_fx(io_T in, lr_T L, lr_T R) {
-    io_T out;
-    out = mli_math_max_fx(in, L);
-    out = mli_math_min_fx(out, R);
-    return out;
 }
 
 // Cast scalar to/from void pointer
