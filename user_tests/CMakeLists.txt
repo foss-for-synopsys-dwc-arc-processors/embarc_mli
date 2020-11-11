@@ -1,5 +1,5 @@
 #
-# Copyright 2020, Synopsys, Inc.
+# Copyright 2020-2021, Synopsys, Inc.
 # All rights reserved.
 #
 # This source code is licensed under the BSD-3-Clause license found in
@@ -170,6 +170,7 @@ add_user_test(maxpool)
 # Fully Connected And Recurrent Group
 #======================================================
 add_user_test(fully_connected)
+add_user_test(rnn_dense)
 
 #======================================================
 # Transform (Activation) Group

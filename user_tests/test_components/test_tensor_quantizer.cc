@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -29,6 +29,17 @@ namespace tst {
 // Interface Methods of Quantizer class
 //
 //======================================================================================================
+
+// Default constructor
+//=========================================
+tensor_quantizer::tensor_quantizer()
+    : source_tsr_(mli_tensor())
+    , source_data_(nullptr)
+    , source_scales_(nullptr)
+    , source_zero_points_(nullptr)
+    , source_scales_fraq_(nullptr)
+    , is_valid_(false)
+{}
 
 // Constructor intended to be used with SA type ONLY
 //==========================================

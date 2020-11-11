@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -26,6 +26,18 @@ namespace tst {
 // Module to handle and check externally allocated memory for test needs
 //
 //=======================================================================
+
+// Default constructor
+//=========================================
+memory_manager::memory_manager()
+    : source_memory_(nullptr)
+    , source_mem_size_(0)
+    , allocated_memory_start_(nullptr)
+    , allocated_mem_size_(0)
+    , head_mem_crc_()
+    , tail_mem_crc_()
+{}
+
 // Parametrized constructor
 //=========================================
 memory_manager::memory_manager(int8_t* memory, uint32_t mem_size)

@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -132,120 +132,6 @@ LOOP_PIPELINE_ENABLE_BACKTRACKING
     }
 }
 //==================================================================////==================================================================
-template <typename io_T, typename w_T>
-static MLI_FORCE_INLINE void basic_rnn_cell_prepare_and_run_fx(
-        const mli_tensor *in,
-        const mli_tensor *prev_out,
-        const mli_tensor *weights,
-        const mli_tensor *bias,
-        const mli_rnn_cell_cfg *cfg,
-        mli_tensor *out) {
-    // WARNING: In the row with other usual input restrictions, this procedure
-    // MUST NOT be used in the BATCH mode with multiple weights matrix.
-    // It is a shape mismatch between in + output vector and weights matrix in this case
-    const int prev_elements = static_cast<int>(mli_prv_count_elem_num(prev_out));
-    const int out_elements = static_cast<int>(mli_prv_count_elem_num(bias));
-    const int batch_sz = static_cast<int>((cfg->mode == RNN_ONE_TO_ONE) ? 1 : in->shape[0]);
-    const int in_elements = static_cast<int>((cfg->mode == RNN_ONE_TO_ONE) ? 
-            mli_prv_count_elem_num(in) : mli_prv_count_elem_num_part(in, 1));
-
-    const MLI_PTR (w_T) w_ptr = (const MLI_PTR (w_T)) weights->data.mem.void_p;
-    const MLI_PTR (w_T) b_ptr = (const MLI_PTR (w_T)) bias->data.mem.void_p;
-    const MLI_PTR (io_T) in_ptr = (const MLI_PTR (io_T)) in->data.mem.void_p;
-    MLI_PTR (io_T) state_ptr = (MLI_PTR (io_T)) prev_out->data.mem.void_p;
-
-    mli_tensor dense_out = {{ 0 }};
-    dense_out.data.mem.void_p = (cfg->mode != RNN_BATCH_TO_LAST) ? out->data.mem.void_p : cfg->ir_tsr->data.mem.void_p;
-    dense_out.data.capacity = (cfg->mode != RNN_BATCH_TO_LAST) ? out->data.capacity : cfg->ir_tsr->data.capacity;
-    dense_out.shape[0] = out_elements;
-    dense_out.mem_stride[0] = 0;
-    dense_out.rank = 1;
-    dense_out.el_type = in->el_type;
-    // 1sign and 3 integer bits for typical rnn nonlinearity (TANH/SIGM) is enough
-    dense_out.el_params.fx.frac_bits = (cfg->act == RNN_ACT_NONE) ? out->el_params.fx.frac_bits : 
-            (sizeof(io_T) * 8) - 1 - 3;
-
-    MLI_CONV_OUT_PTR (io_T) dense_out_ptr = (MLI_CONV_OUT_PTR (io_T)) dense_out.data.mem.void_p;
-
-    mli_tensor rnn_out = {
-        .data = {.capacity = out_elements * sizeof(io_T),
-                .mem = {.void_p = out->data.mem.void_p}},
-        .shape = {static_cast<unsigned>(out_elements)},
-        .rank = 1,
-        .el_type = in->el_type,
-        .el_params = (cfg->act == RNN_ACT_NONE) ? out->el_params : prev_out->el_params};
-
-    int b_half = batch_sz&1;
-    if(b_half == 0 && cfg->act == RNN_ACT_NONE && cfg->mode == RNN_BATCH_TO_LAST) {
-        rnn_out.data.mem.void_p = cfg->ir_tsr->data.mem.void_p;
-    }
-
-    MLI_CONV_OUT_PTR (io_T) rnn_out_ptr = (MLI_CONV_OUT_PTR (io_T)) rnn_out.data.mem.void_p;
-
-    // Define shift values
-    const int bias_shift = mli_prv_calc_shift (in, weights, bias);
-    const int in_to_state_dif = in->el_params.fx.frac_bits - prev_out->el_params.fx.frac_bits;
-    const int out_shift = mli_prv_calc_shift (prev_out, weights, &dense_out);
-
-    // Perform sequential run (or only one run for RNN_ONE_VEC)
-    for (int batch = 0; batch < batch_sz; batch++) {
-        if(cfg->mode == RNN_BATCH_TO_LAST && cfg->act == RNN_ACT_NONE) {
-            // Applying Dense
-            //=======================================
-            rnn_dense_op_fx(in_ptr, state_ptr, w_ptr, b_ptr, rnn_out_ptr, in_elements,
-                    prev_elements, out_elements, bias_shift, in_to_state_dif, out_shift);
-            // Update pointers for next batch
-            //=======================================
-            state_ptr = (MLI_PTR (io_T)) rnn_out.data.mem.void_p;
-            b_half ^= 1;
-            rnn_out.data.mem.void_p = b_half ? out->data.mem.void_p : cfg->ir_tsr->data.mem.void_p;
-            rnn_out_ptr = (MLI_CONV_OUT_PTR (io_T)) rnn_out.data.mem.void_p;
-        }
-        else {
-            // Applying Dense
-            //=======================================
-            rnn_dense_op_fx(in_ptr, state_ptr, w_ptr, b_ptr, dense_out_ptr, in_elements,
-                    prev_elements, out_elements, bias_shift, in_to_state_dif, out_shift);
-            // Applying Non-Linearity
-            //=======================================
-            if (cfg->act == RNN_ACT_TANH) {
-                if (sizeof(io_T)==sizeof(int8_t)) 
-                    mli_krn_tanh_fx8 (&dense_out, &rnn_out);
-                else 
-                    mli_krn_tanh_fx16 (&dense_out, &rnn_out);
-            }
-            else if (cfg->act == RNN_ACT_SIGM) {
-                if (sizeof(io_T)==sizeof(int8_t)) 
-                    mli_krn_sigm_fx8 (&dense_out, &rnn_out);
-                else 
-                    mli_krn_sigm_fx16 (&dense_out, &rnn_out);
-            }
-            // Update pointers for next batch
-            //=======================================
-            state_ptr = (MLI_PTR (io_T)) rnn_out.data.mem.void_p;
-            if (cfg->mode == RNN_BATCH_TO_BATCH) {
-                rnn_out.data.mem.void_p = static_cast < io_T * >(rnn_out.data.mem.void_p) + out_elements;
-                dense_out.data.mem.void_p = static_cast < io_T * >(dense_out.data.mem.void_p) + out_elements;
-                dense_out_ptr += out_elements;
-            }
-        }
-        in_ptr += in_elements;
-    }
-
-    // Fill output tensor params
-    out->el_type = rnn_out.el_type;
-    out->el_params.fx.frac_bits = rnn_out.el_params.fx.frac_bits;
-    if (cfg->mode == RNN_ONE_TO_ONE || cfg->mode == RNN_BATCH_TO_LAST) {
-        out->rank = bias->rank;
-        for (int k = 0; k < bias->rank; k++)
-            out->shape[k] = bias->shape[k];
-    } else {
-        out->rank = 2;
-        out->shape[0] = batch_sz;
-        out->shape[1] = out_elements;
-    }
-}
-
 //==================================================================
 //
 //==================================================================
@@ -255,7 +141,7 @@ static MLI_FORCE_INLINE void lstm_cell_prepare_and_run_fx(
         const mli_tensor *prev_out,
         const mli_tensor *weights,
         const mli_tensor *bias,
-        const mli_rnn_cell_cfg *cfg,
+        const mli_rnn_cell_cfg_depr *cfg,
         mli_tensor *cell,
         mli_tensor *out) {
     const int lstm_out_elements = static_cast<int>(mli_prv_count_elem_num(prev_out));

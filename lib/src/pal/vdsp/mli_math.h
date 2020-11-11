@@ -1736,6 +1736,11 @@ MLI_FORCE_INLINE mli_acc32_t mli_math_acc_ashift_fx(mli_acc32_t acc, int shift_r
     return mli_math_asr_rnd_fx<mli_acc32_t, int>(acc, shift_right);
 }
 
+template <>
+MLI_FORCE_INLINE mli_acc40_t mli_math_acc_ashift_fx(mli_acc40_t acc, int shift_right) {
+    return mli_math_asr_rnd_fx<mli_acc40_t, int>(acc, shift_right);
+}
+
 typedef struct {
     pvNx2 lo;
     pvNx2 hi;

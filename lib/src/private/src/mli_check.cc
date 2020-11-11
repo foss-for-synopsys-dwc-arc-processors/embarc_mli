@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -2168,156 +2168,157 @@ mli_status mli_chk_prelu_sa8 (
     return MLI_STATUS_OK;
 }
 
-mli_status mli_chk_basic_rnn_cell (
-        const mli_tensor * in,
-        const mli_tensor * prev_out,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        const mli_rnn_cell_cfg * cfg,
-        mli_tensor * out) {
+mli_status mli_chk_rnn_dense (
+        const mli_tensor **in,
+        const mli_tensor **weights,
+        const mli_tensor *bias,
+        const mli_rnn_dense_cfg *cfg,
+        mli_tensor *out) {
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;
 
     stat = MLI_CHECK_STATUS(mli_mem_chk(out, MLI_CONV_OUT_PTR_IS_XY), "Memory check error");
     if (stat != MLI_STATUS_OK) return stat;
-    // Check that tensors are valid
-    stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
-    if (stat != MLI_STATUS_OK) return stat;
-    stat = MLI_CHECK_STATUS(mli_chk_tensor (prev_out), "Bad prev_out tensor");
-    if (stat != MLI_STATUS_OK) return stat;
-    stat = MLI_CHECK_STATUS(mli_chk_tensor (weights), "Bad weights tensor");
-    if (stat != MLI_STATUS_OK) return stat;
-    stat = MLI_CHECK_STATUS(mli_chk_tensor (bias), "Bad bias tensor");
-    if (stat != MLI_STATUS_OK) return stat;
-    if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
-    if (MLI_CHECK(out->data.mem.void_p != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
 
-    fail |= MLI_CHECK(check_layout_is_contiguous(in), "Memory Layout of input tensor must be contiguous");
-    fail |= MLI_CHECK(check_layout_is_contiguous(prev_out), "Memory Layout of prev_out tensor must be contiguous");
-    fail |= MLI_CHECK(check_layout_is_contiguous(weights), "Memory Layout of weights tensor must be contiguous");
-    fail |= MLI_CHECK(check_layout_is_contiguous(bias), "Memory Layout of bias tensor must be contiguous");
-    fail |= MLI_CHECK(check_layout_is_contiguous(
-                          out->mem_stride,
-                          (cfg->mode == RNN_ONE_TO_ONE || cfg->mode == RNN_BATCH_TO_LAST) ? bias->rank : 2),
-                      "Memory Layout of output tensor must be contiguous");
-    if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
-
-    // Check config and IR tensors are valid
-    if (MLI_CHECK(cfg != NULL , "Bad cfg pointer")) return MLI_STATUS_BAD_FUNC_CFG;
-    fail |= MLI_CHECK(!(cfg->mode == RNN_BATCH_TO_LAST && (cfg->ir_tsr == NULL || cfg->ir_tsr->data.mem.void_p == NULL)),
-                      "BasicRNN in Batch-to-last mode requires IR of sufficient capacity");
-    fail |= MLI_CHECK(!(cfg->mode != RNN_ONE_TO_ONE && in->rank < 2),
-                      "Input tensor isn't capable for batch mode of BasicRNN");
+    // Check config is valid
+    fail |= MLI_CHECK(cfg != NULL , "Bad cfg pointer");
     if (fail) return MLI_STATUS_BAD_FUNC_CFG;
 
-    // Get number of elements and check input
-    uint32_t in_elements;
-    uint32_t out_elements = mli_prv_count_elem_num (bias);
-    uint32_t prev_out_elements = mli_prv_count_elem_num (prev_out);
-    uint32_t out_batches = (cfg->mode == RNN_BATCH_TO_BATCH) ? in->shape[0] : 1;
-    if (cfg->mode == RNN_ONE_TO_ONE)
-        in_elements = mli_prv_count_elem_num (in);
-    else
-        in_elements = mli_prv_count_elem_num_part (in, 1);
+    const int inputs_num = cfg->inputs_num;
+    fail |= MLI_CHECK(inputs_num > 0, "number of inputs should be > 0");
+    fail |= MLI_CHECK(inputs_num <= MLI_RNN_MAX_INPUT, "number of inputs should not exceed MLI_RNN_MAX_INPUT");
+    if (fail) return MLI_STATUS_BAD_FUNC_CFG;
 
-    // Check shapes of Learned parameters inputs
-    if (cfg->mode == RNN_ONE_TO_ONE && weights->rank == 3) {
-        // Stacked weights -> stacked output case
-        fail |= MLI_CHECK(bias->rank == 2, "bias should have rank 2 in stacked output case");
-        fail |= MLI_CHECK(weights->shape[0] == bias->shape[0], "shape mismatch weights and bias in stacked output case");
-        fail |= MLI_CHECK(weights->shape[1] == bias->shape[1], "shape mismatch weights and bias in stacked output case");
-        fail |= MLI_CHECK(bias->shape[1] == prev_out_elements, "shape mismatch weights and prev in stacked output case");
-        fail |= MLI_CHECK(in_elements + prev_out_elements == weights->shape[2],
-                          "weights shape mismatch in stacked output case");
+    for (int idx = 0; idx < inputs_num; idx++) {
+        // Check that input and weights are valid
+        stat = MLI_CHECK_STATUS(mli_chk_tensor (in[idx]), "Bad input tensor");
+        if (stat != MLI_STATUS_OK) return stat;
+        stat = MLI_CHECK_STATUS(mli_chk_tensor (weights[idx]), "Bad weights tensor");
+        if (stat != MLI_STATUS_OK) return stat;
+
+        fail |= MLI_CHECK(weights[idx]->rank == 2, "weights should have rank 2 in RNN general case");
+        // Check that number of input and weights is equal
+        fail |= MLI_CHECK(in[idx]->shape[0] == weights[idx]->shape[0], "number of input and weights tensors should be equal");
+        // Check that all weights have the same number of output neurons
+        fail |= MLI_CHECK(weights[idx]->shape[1] == weights[0]->shape[1], "number of outputs should be the same for all weights tensors");
         if (fail) return MLI_STATUS_SHAPE_MISMATCH;
-    } else {
-        // Basic RNN general case
-        fail |= MLI_CHECK(weights->rank == 2, "weights should have rank 2 in RNN general case");
-        fail |= MLI_CHECK(bias->rank == 1, "bias should have rank 1 in RNN general case");
-        fail |= MLI_CHECK(weights->shape[0] == bias->shape[0], "shape mismatch weights and bias in RNN general case");
-        fail |= MLI_CHECK(bias->shape[0] == prev_out_elements, "shape mismatch weights and prev in RNN general case");
-        fail |= MLI_CHECK(in_elements + prev_out_elements == weights->shape[1],
-                          "weights shape mismatch in RNN general case");
-        if (fail) return MLI_STATUS_SHAPE_MISMATCH;
+
+        fail |= MLI_CHECK(check_inner_most_dimension_is_one(in[idx]), "Memory stride for inner most dimension of input must be 1");
+        fail |= MLI_CHECK(check_inner_most_dimension_is_one(weights[idx]), "Memory stride for inner most dimension of weights must be 1");
+        if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
     }
 
-    // Check shapes of variable tensors
-    if (MLI_CHECK(prev_out->rank == 1, "prev_out rank should be 1")) return MLI_STATUS_SHAPE_MISMATCH;
+    // Check bias
+    stat = MLI_CHECK_STATUS(mli_chk_tensor (bias), "Bad bias tensor");
+    if (stat != MLI_STATUS_OK) return stat;
 
-    // Check data type of tensors
-    fail |= MLI_CHECK(weights->el_type == bias->el_type, "element type of weights and bias has to be the same");
-    fail |= MLI_CHECK(in->el_type == prev_out->el_type, "element type of in and prev_out has to be the same");
-    if (fail) return MLI_STATUS_TYPE_MISMATCH;
+    fail |= MLI_CHECK(bias->rank == 1, "bias should have rank 1 in RNN general case");
+    fail |= MLI_CHECK(weights[0]->shape[1] == bias->shape[0], "shape mismatch weights and bias in RNN general case");
+    if (fail) return MLI_STATUS_SHAPE_MISMATCH;
 
-    fail |= MLI_CHECK(bias->el_params.fx.frac_bits <= in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits,
-                      "The number of fractional bits of the accumulator will be the sum of the frac bits of in and weights. If bias has more frac bits, precision will be lost.");
+    // Check output
+    uint32_t out_elements = mli_prv_count_elem_num (bias);
+    fail |= MLI_CHECK(out != NULL, "Bad Output tensor  pointer");
+    fail |= MLI_CHECK(out->data.mem.void_p != NULL, "Bad data pointer of output");
+    fail |= MLI_CHECK((out_elements * mli_hlp_tensor_element_size (in[0])) <= out->data.capacity,
+                      "capacity of output tensor is too small");
+    if (fail) return MLI_STATUS_BAD_TENSOR;
+
+    fail |= MLI_CHECK(check_inner_most_dimension_is_one(bias), "Memory stride for inner most dimension of bias must be 1");
+    fail |= MLI_CHECK(check_inner_most_dimension_is_one(out), "Memory stride for inner most dimension of output must be 1");
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
-    // Check capacity of output and IR
-    fail |= MLI_CHECK((out_elements * out_batches * mli_hlp_tensor_element_size (in)) <= out->data.capacity,
-                      "capacity of output tensor is too small");
+    return MLI_STATUS_OK;
+}
 
-    // Check capacity of IR
-    if (cfg->mode == RNN_BATCH_TO_LAST){
-        fail |= MLI_CHECK((out_elements * mli_hlp_tensor_element_size (in)) <= cfg->ir_tsr->data.capacity,
-                          "capacity of IR tensor is too small");
-        if (fail) return MLI_STATUS_NOT_ENGH_MEM;
+mli_status mli_chk_rnn_dense_fx16 (
+        const mli_tensor **in,
+        const mli_tensor **weights,
+        const mli_tensor *bias,
+        const mli_rnn_dense_cfg *cfg,
+        mli_tensor *out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_rnn_dense(in, weights, bias, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK) return ret;
+
+    bool fail = false;
+    const int inputs_num = cfg->inputs_num;
+    for (int idx = 0; idx < inputs_num; idx++) {
+        fail |= MLI_CHECK(in[idx]->el_type == MLI_EL_FX_16, "Wrong input tensor type");
+        fail |= MLI_CHECK(weights[idx]->el_type == MLI_EL_FX_16, "Wrong weights tensor type");
     }
 
+    fail |= MLI_CHECK(bias->el_type == MLI_EL_FX_16, "Wrong bias tensor type");
+    if (fail) return MLI_STATUS_TYPE_MISMATCH;
+
+    ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in[0], weights[0], bias), __func__);
+    if (ret != MLI_STATUS_OK) return ret;
+
     return MLI_STATUS_OK;
 }
 
-mli_status mli_chk_basic_rnn_cell_fx8 (
-        const mli_tensor * in,
-        const mli_tensor * prev_out,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        const mli_rnn_cell_cfg * cfg,
-        mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_basic_rnn_cell(in, prev_out, weights, bias, cfg, out), __func__);
-    if (ret != MLI_STATUS_OK)
-        return ret;
-    if (MLI_CHECK(in->el_type       == MLI_EL_FX_8, "Wrong input tensor type") ||
-        MLI_CHECK(prev_out->el_type == MLI_EL_FX_8, "Wrong prev_out tensor type") ||
-        MLI_CHECK(weights->el_type  == MLI_EL_FX_8, "Wrong weights tensor type") ||
-        MLI_CHECK(bias->el_type     == MLI_EL_FX_8, "Wrong bias tensor type"))
-        return MLI_STATUS_TYPE_MISMATCH;
+mli_status mli_chk_rnn_dense_fx16_fx8_fx8 (
+        const mli_tensor **in,
+        const mli_tensor **weights,
+        const mli_tensor *bias,
+        const mli_rnn_dense_cfg *cfg,
+        mli_tensor *out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_rnn_dense(in, weights, bias, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK) return ret;
+
+    bool fail = false;
+    const int inputs_num = cfg->inputs_num;
+    for (int idx = 0; idx < inputs_num; idx++) {
+        fail |= MLI_CHECK(in[idx]->el_type == MLI_EL_FX_16, "Wrong input tensor type");
+        fail |= MLI_CHECK(weights[idx]->el_type == MLI_EL_FX_8, "Wrong weights tensor type");
+    }
+
+    fail |= MLI_CHECK(bias->el_type == MLI_EL_FX_8, "Wrong bias tensor type");
+    if (fail) return MLI_STATUS_TYPE_MISMATCH;
+
+    ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in[0], weights[0], bias), __func__);
+    if (ret != MLI_STATUS_OK) return ret;
+
     return MLI_STATUS_OK;
 }
 
-mli_status mli_chk_basic_rnn_cell_fx16 (
-        const mli_tensor * in,
-        const mli_tensor * prev_out,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        const mli_rnn_cell_cfg * cfg,
-        mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_basic_rnn_cell(in, prev_out, weights, bias, cfg, out), __func__);
-    if (ret != MLI_STATUS_OK)
-        return ret;
-    if (MLI_CHECK(in->el_type       == MLI_EL_FX_16, "Wrong input tensor type") ||
-        MLI_CHECK(prev_out->el_type == MLI_EL_FX_16, "Wrong prev_out tensor type") ||
-        MLI_CHECK(weights->el_type  == MLI_EL_FX_16, "Wrong weights tensor type") ||
-        MLI_CHECK(bias->el_type     == MLI_EL_FX_16, "Wrong bias tensor type"))
-        return MLI_STATUS_TYPE_MISMATCH;
-    return MLI_STATUS_OK;
-}
+mli_status mli_chk_rnn_dense_sa8_sa8_sa32(
+        const mli_tensor **in,
+        const mli_tensor **weights,
+        const mli_tensor *bias,
+        const mli_rnn_dense_cfg *cfg,
+        mli_tensor *out) {
 
-mli_status mli_chk_basic_rnn_cell_fx8w16d (
-        const mli_tensor * in,
-        const mli_tensor * prev_out,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        const mli_rnn_cell_cfg * cfg,
-        mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_basic_rnn_cell(in, prev_out, weights, bias, cfg, out), __func__);
-    if (ret != MLI_STATUS_OK)
-        return ret;
-    if (MLI_CHECK(in->el_type       == MLI_EL_FX_16, "Wrong input tensor type") ||
-        MLI_CHECK(prev_out->el_type == MLI_EL_FX_16, "Wrong prev_out tensor type") ||
-        MLI_CHECK(weights->el_type  == MLI_EL_FX_8, "Wrong weights tensor type") ||
-        MLI_CHECK(bias->el_type     == MLI_EL_FX_8, "Wrong bias tensor type"))
-        return MLI_STATUS_TYPE_MISMATCH;
+    bool fail = false;
+    const int inputs_num = cfg->inputs_num;
+    for (int idx = 0; idx < inputs_num; idx++) {
+        fail |= MLI_CHECK(in[idx]->el_type == MLI_EL_SA_8, "Wrong input tensor type");
+        fail |= MLI_CHECK(weights[idx]->el_type == MLI_EL_SA_8, "Wrong weights tensor type");
+    }
+
+    fail |= MLI_CHECK(bias->el_type == MLI_EL_SA_32, "Wrong bias tensor type");
+    if (fail) return MLI_STATUS_TYPE_MISMATCH;
+
+    for (int idx = 0; idx < inputs_num; idx++) {
+        fail |= MLI_CHECK(in[idx]->el_params.sa.zero_point.mem.i16 != INT16_MIN,"Input tensor: INT16_MIN cannot be an offset value");
+    }
+
+    fail |= MLI_CHECK(out->el_params.sa.zero_point.mem.i16 != INT16_MIN,"Input tensor: INT16_MIN cannot be an offset value");
+    if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
+
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_rnn_dense(in, weights, bias, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK) return ret;
+
+    for (int idx = 0; idx < inputs_num; idx++) {
+        fail |= MLI_CHECK(in[idx]->el_params.sa.dim < 0, "Input tensor: Per-tensor quantization is expected");
+        fail |= MLI_CHECK(weights[idx]->el_params.sa.dim < 0, "Weights tensor: Per-tensor quantization is expected");
+    }
+
+    fail |= MLI_CHECK(bias->el_params.sa.dim < 0, "Bias tensor: Per-tensor quantization is expected");
+    if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
+
+    ret = MLI_CHECK_STATUS(mli_chk_bias_scale_asym(in[0], weights[0], bias), __func__);
+    if (ret != MLI_STATUS_OK) return ret;
+    
     return MLI_STATUS_OK;
 }
 
@@ -2350,18 +2351,18 @@ mli_status mli_chk_lstm_cell (
 
     // Check config and IR tensors are valid
     if (MLI_CHECK(cfg != NULL , "Bad cfg pointer")) return MLI_STATUS_BAD_FUNC_CFG;
-    if (MLI_CHECK(cfg->ir_tsr != NULL, "bad cfg->ir_tsr pointer")) return MLI_STATUS_BAD_FUNC_CFG;
-    if (MLI_CHECK(cfg->ir_tsr->data.mem.void_p != NULL, "bad cfg->ir_tsr->data.mem.void_p pointer")) return MLI_STATUS_BAD_FUNC_CFG;
-    if (MLI_CHECK(!(cfg->mode != RNN_ONE_TO_ONE && in->rank < 2), "bad rank")) return MLI_STATUS_BAD_FUNC_CFG;
+    // if (MLI_CHECK(cfg->ir_tsr != NULL, "bad cfg->ir_tsr pointer")) return MLI_STATUS_BAD_FUNC_CFG;
+    // if (MLI_CHECK(cfg->ir_tsr->data.mem.void_p != NULL, "bad cfg->ir_tsr->data.mem.void_p pointer")) return MLI_STATUS_BAD_FUNC_CFG;
+    // if (MLI_CHECK(!(cfg->mode != RNN_ONE_TO_ONE && in->rank < 2), "bad rank")) return MLI_STATUS_BAD_FUNC_CFG;
 
     // Get number of elements and check input
     uint32_t in_elements;
     uint32_t out_elements = mli_prv_count_elem_num (prev_out);
-    uint32_t out_batches = (cfg->mode == RNN_BATCH_TO_BATCH) ? in->shape[0] : 1;
-    if (cfg->mode == RNN_ONE_TO_ONE)
-        in_elements = mli_prv_count_elem_num (in);
-    else
-        in_elements = mli_prv_count_elem_num_part (in, 1);
+    uint32_t out_batches = 1; //(cfg->mode == RNN_BATCH_TO_BATCH) ? in->shape[0] : 1;
+    // if (cfg->mode == RNN_ONE_TO_ONE)
+    in_elements = mli_prv_count_elem_num (in);
+    // else
+    //     in_elements = mli_prv_count_elem_num_part (in, 1);
 
     // Check shapes of Learned parameters input tensors
     fail |= MLI_CHECK(weights->rank == 3, "Wrong weights rank");
@@ -2382,9 +2383,9 @@ mli_status mli_chk_lstm_cell (
     fail |= MLI_CHECK(check_layout_is_contiguous(prev_out), "Memory Layout of prev_out tensor must be contiguous");
     fail |= MLI_CHECK(check_layout_is_contiguous(weights), "Memory Layout of weights tensor must be contiguous");
     fail |= MLI_CHECK(check_layout_is_contiguous(bias), "Memory Layout of bias tensor must be contiguous");
-    fail |= MLI_CHECK(check_layout_is_contiguous(
-                          out->mem_stride, (cfg->mode == RNN_ONE_TO_ONE || cfg->mode == RNN_BATCH_TO_LAST) ? 1 : 2),
-                     "Memory Layout of output tensor must be contiguous"); 
+    // fail |= MLI_CHECK(check_layout_is_contiguous(
+    //                       out->mem_stride, (cfg->mode == RNN_ONE_TO_ONE || cfg->mode == RNN_BATCH_TO_LAST) ? 1 : 2),
+    //                  "Memory Layout of output tensor must be contiguous"); 
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
     // Check data type of tensors
@@ -2398,8 +2399,8 @@ mli_status mli_chk_lstm_cell (
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
     // Check capacity of output and IR
-    fail |= MLI_CHECK((4 * out_elements * mli_hlp_tensor_element_size (in)) <= cfg->ir_tsr->data.capacity,
-                      "capacity of IR tensor is too small");
+    // fail |= MLI_CHECK((4 * out_elements * mli_hlp_tensor_element_size (in)) <= cfg->ir_tsr->data.capacity,
+    //                   "capacity of IR tensor is too small");
     fail |= MLI_CHECK((out_batches * out_elements * mli_hlp_tensor_element_size (in)) <= out->data.capacity,
                       "capacity of output tensor is too small");
     if (fail) return MLI_STATUS_NOT_ENGH_MEM;
