@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -741,7 +741,7 @@ mli_status mli_krn_lstm_cell_fx8(
         const mli_tensor * prev_out,
         const mli_tensor * weights,
         const mli_tensor * bias,
-        const mli_rnn_cell_cfg * cfg,
+        const mli_rnn_cell_cfg_depr * cfg,
         mli_tensor * cell,
         mli_tensor * out);
 
@@ -750,7 +750,7 @@ mli_status mli_krn_lstm_cell_fx16(
         const mli_tensor * prev_out,
         const mli_tensor * weights,
         const mli_tensor * bias,
-        const mli_rnn_cell_cfg * cfg,
+        const mli_rnn_cell_cfg_depr * cfg,
         mli_tensor * cell,
         mli_tensor * out);
 
@@ -759,59 +759,72 @@ mli_status mli_krn_lstm_cell_fx8w16d(
         const mli_tensor * prev_out,
         const mli_tensor * weights,
         const mli_tensor * bias,
-        const mli_rnn_cell_cfg * cfg,
+        const mli_rnn_cell_cfg_depr * cfg,
         mli_tensor * cell,
         mli_tensor * out);
 
 /**
  * @brief Basic Recurrent Neural Network Cell
  *
- * @detail This kernel implements the basic recurrent cell without memory state.
+ * @detail This kernel implements a single basic dense calculation typically used in the majority of RNN architectures
  *
- * The Kernel supports three types of output activation: Sigmoid, Hyperbolic tangent and No activation (identity function)
- * Kernel supports three modes of input processing: ONE_TO_ONE, BATCH_TO_BATCH, BATCH_TO_LAST 
- * To support user-specific complex recurrent cells beside LSTM, basic RNN cell kernel in One-to-One mode 
- * can work with matrices with stacked weights to produce stacked output tensor. For example, if weights tensor 
- * is 3-dimensionl tensor of shape [L, M, M+N], and Bias of shape [L, M], the output tensor is of shape [L, M]. 
- * Kernel REQUIRES extra intermediate tensor for calculations in BATCH-TO-LAST mode. It must be passed through 
- * configuration structure.
+ * The Kernel supports multiple number of inputs restricted by MLI_RNN_MAX_INPUT parameter
  *
  * For more info on primitive see MLI Documentation.
  *
- * @param in        [I] Input feature tensor (of any shape or with the batchsize in the first dimensions for batched modes)
- * @param prev_out  [I] Previous output feature tensor (1-dimensional tensor)
- * @param weights   [I] Weights tensor (2-dimensional tensor. 3-dimensional tensor in case of stacked output for ONE-TO_ONE mode)
- * @param bias      [I] Biases tensor (1-dimensional tensor. 2-dimensional tensor in case of stacked output for ONE-TO_ONE mode)
- * @param cfg       [I] Configuration structure (for more info see @ref mli_rnn_cell_cfg)
- * @param out       [O] Output feature tensor. Result will be stored here (single output or batch of outputs depending on mode)
+ * @param in        [I] Pointer to the array of pointers to constant input tensors
+ * @param weights   [I] Pointer to the array of pointers to constant weights tensors
+ * @param bias      [I] Pointer to constant bias tensor
+ * @param cfg       [I] Configuration structure (for more info see @ref mli_rnn_dense_cfg)
+ * @param out       [O] Output feature tensor. Result will be stored here
  *
  * @return MLI status code
  */
-mli_status mli_krn_basic_rnn_cell_fx8(
+
+mli_status mli_krn_rnn_dense_fx16(
+        const mli_tensor ** in,
+        const mli_tensor ** weights,
+        const mli_tensor * bias,
+        const mli_rnn_dense_cfg * cfg,
+        mli_tensor * out);
+
+mli_status mli_krn_rnn_dense_fx16_fx8_fx8(
+        const mli_tensor ** in,
+        const mli_tensor ** weights,
+        const mli_tensor * bias,
+        const mli_rnn_dense_cfg * cfg,
+        mli_tensor * out);
+
+mli_status mli_krn_rnn_dense_sa8_sa8_sa32(
+        const mli_tensor ** in,
+        const mli_tensor ** weights,
+        const mli_tensor * bias,
+        const mli_rnn_dense_cfg * cfg,
+        mli_tensor * out);
+
+mli_status mli_krn_basic_rnn_cell_fx8( /* DEPRECATED */
         const mli_tensor * in,
         const mli_tensor * prev_out,
         const mli_tensor * weights,
         const mli_tensor * bias,
-        const mli_rnn_cell_cfg * cfg,
+        const mli_rnn_cell_cfg_depr * cfg,
         mli_tensor * out);
 
-mli_status mli_krn_basic_rnn_cell_fx16(
+mli_status mli_krn_basic_rnn_cell_fx16( /* DEPRECATED */
         const mli_tensor * in,
         const mli_tensor * prev_out,
         const mli_tensor * weights,
         const mli_tensor * bias,
-        const mli_rnn_cell_cfg * cfg,
+        const mli_rnn_cell_cfg_depr * cfg,
         mli_tensor * out);
 
-mli_status mli_krn_basic_rnn_cell_fx8w16d(
+mli_status mli_krn_basic_rnn_cell_fx8w16d( /* DEPRECATED */
         const mli_tensor * in,
         const mli_tensor * prev_out,
         const mli_tensor * weights,
         const mli_tensor * bias,
-        const mli_rnn_cell_cfg * cfg,
+        const mli_rnn_cell_cfg_depr * cfg,
         mli_tensor * out);
-
-
 
 //================================================
 //

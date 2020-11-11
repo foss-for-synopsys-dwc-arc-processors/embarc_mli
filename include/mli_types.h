@@ -304,6 +304,30 @@ typedef enum {
 
 
 /**
+ * @brief Recurent layers direction definition
+ *
+ * enum used for selection of the input sequence processing direction for RNN, LSTM and GRU
+ */
+typedef enum {
+    RNN_DIR_FORWARD = 0,   /**< Process input in forward direction.*/
+    RNN_DIR_BACKWARD       /**< Process output in backward direction.*/
+} mli_rnn_direction;
+
+
+
+/**
+ * @brief Recurent layers output mode definition
+ *
+ * enum used for selection of the type of output for RNN, LSTM and GRU
+ */
+typedef enum {
+    RNN_OUT_LAST = 0,   /**< Preserve only the last result.*/
+    RNN_OUT_ALL         /**< Preserve result of each iteration.*/
+} mli_rnn_results;
+
+
+
+/**
  * @brief Recurrent layers config definition
  *
  * Data structure to provide the configuration for LSTM and Basic RNN primitives.
@@ -312,6 +336,32 @@ typedef struct {
     mli_rnn_mode mode;              /**< Recurrent layer processing mode.*/
     mli_rnn_out_activation act;     /**< Output activation type.*/
     mli_tensor *ir_tsr;             /**< Pointer to tensor for holding intermediate results. */
+} mli_rnn_cell_cfg_depr;
+
+
+
+/**
+ * @brief RNN dense layer config definition
+ *
+ * Data structure to provide the configuration for RNN dense primitive.
+ */
+typedef struct {
+    uint8_t inputs_num;   /**< Number of input tensors.*/
+} mli_rnn_dense_cfg;
+
+
+
+/**
+ * @brief Recurrent layers config definition
+ *
+ * Data structure to provide the configuration for RNN, LSTM and GRU primitives.
+ */
+typedef struct {
+    mli_rnn_direction direction;        /**< Input processing direction.*/
+    mli_rnn_results results;            /**< Results to preserve.*/
+    mli_rnn_out_activation act;         /**< Output activation type. */
+    mli_data_container scratch_data;    /**< Container to keep intermediate results. */
+    uint32_t scratch_capacity;          /**< Size of a memory pointed by scratch_data field. */
 } mli_rnn_cell_cfg;
 
 

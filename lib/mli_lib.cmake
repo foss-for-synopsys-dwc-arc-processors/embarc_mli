@@ -63,6 +63,7 @@ else()
         ${MLI_LIB_CMAKE_DIR}/src/kernels/convolution/mli_krn_depthwise_conv2d_hwcn.cc
         ${MLI_LIB_CMAKE_DIR}/src/kernels/convolution/mli_krn_group_conv2d_hwcn.cc
         ${MLI_LIB_CMAKE_DIR}/src/kernels/common/mli_krn_fully_connected.cc
+        ${MLI_LIB_CMAKE_DIR}/src/kernels/common/mli_krn_rnn_dense.cc
     )
 endif()
 

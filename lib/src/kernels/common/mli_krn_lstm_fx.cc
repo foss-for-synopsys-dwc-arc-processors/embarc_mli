@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -23,7 +23,7 @@ mli_status mli_krn_lstm_cell_fx8 (
         const mli_tensor * prev_out,
         const mli_tensor * weights, 
         const mli_tensor * bias, 
-        const mli_rnn_cell_cfg * cfg, 
+        const mli_rnn_cell_cfg_depr * cfg, 
         mli_tensor * cell, 
         mli_tensor * out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_lstm_cell_fx8(in, prev_out, weights, bias, cfg, cell, out), __func__);
@@ -40,7 +40,7 @@ mli_status mli_krn_lstm_cell_fx16 (
         const mli_tensor * prev_out,
         const mli_tensor * weights, 
         const mli_tensor * bias, 
-        const mli_rnn_cell_cfg * cfg, 
+        const mli_rnn_cell_cfg_depr * cfg, 
         mli_tensor * cell, 
         mli_tensor * out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_lstm_cell_fx16(in, prev_out, weights, bias, cfg, cell, out), __func__);
@@ -57,7 +57,7 @@ mli_status mli_krn_lstm_cell_fx8w16d (
         const mli_tensor * prev_out,
         const mli_tensor * weights, 
         const mli_tensor * bias, 
-        const mli_rnn_cell_cfg * cfg, 
+        const mli_rnn_cell_cfg_depr * cfg, 
         mli_tensor * cell, 
         mli_tensor * out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_lstm_cell_fx8w16d(in, prev_out, weights, bias, cfg, cell, out), __func__);

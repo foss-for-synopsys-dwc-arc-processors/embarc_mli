@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -31,6 +31,7 @@ using mli::krn::ref::in_additive;
 using mli::krn::ref::zp_additive;
 using mli::krn::vdsp::bias_additive;
 using mli::krn::ref::result_cast;
+using mli::krn::ref::ir_rnn_result_requantize;
 using mli::krn::ref::result_cast_relu_store;
 using mli::krn::vdsp::result_cast_relu_store_v;
 using mli::krn::vdsp::mli_prv_convert_sa8_fx16;
@@ -48,6 +49,7 @@ using mli::krn::ref::in_additive;
 using mli::krn::ref::zp_additive;
 using mli::krn::ref::bias_additive;
 using mli::krn::ref::result_cast;
+using mli::krn::ref::ir_rnn_result_requantize;
 using mli::krn::dsp::result_cast_relu_store;
 using mli::krn::dsp::result_cast_relu_store_v;
 using mli::krn::dsp::result_cast_relu_store_inp_width_v;
@@ -65,6 +67,7 @@ using mli::krn::ref::in_additive;
 using mli::krn::ref::zp_additive;
 using mli::krn::ref::bias_additive;
 using mli::krn::ref::result_cast;
+using mli::krn::ref::ir_rnn_result_requantize;
 using mli::krn::ref::result_cast_relu_store;
 using mli::krn::ref::mli_prv_convert_sa8_fx16;
 using mli::krn::ref::mli_prv_convert_fx16_sa8;

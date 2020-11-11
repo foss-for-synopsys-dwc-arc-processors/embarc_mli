@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -364,37 +364,33 @@ mli_status mli_chk_prelu_sa8(
         const mli_prelu_cfg *cfg, 
         mli_tensor * out);
 
-mli_status mli_chk_basic_rnn_cell(
-        const mli_tensor * in,
-        const mli_tensor * prev_out,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        const mli_rnn_cell_cfg * cfg,
-        mli_tensor * out);
+mli_status mli_chk_rnn_dense(
+        const mli_tensor **in,
+        const mli_tensor **weights,
+        const mli_tensor *bias,
+        const mli_rnn_dense_cfg *cfg,
+        mli_tensor *out);
 
-mli_status mli_chk_basic_rnn_cell_fx8(
-        const mli_tensor * in,
-        const mli_tensor * prev_out,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        const mli_rnn_cell_cfg * cfg,
-        mli_tensor * out);
+mli_status mli_chk_rnn_dense_fx16(
+        const mli_tensor **in,
+        const mli_tensor **weights,
+        const mli_tensor *bias,
+        const mli_rnn_dense_cfg *cfg,
+        mli_tensor *out);
 
-mli_status mli_chk_basic_rnn_cell_fx16(
-        const mli_tensor * in,
-        const mli_tensor * prev_out,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        const mli_rnn_cell_cfg * cfg,
-        mli_tensor * out);
+mli_status mli_chk_rnn_dense_fx16_fx8_fx8(
+        const mli_tensor **in,
+        const mli_tensor **weights,
+        const mli_tensor *bias,
+        const mli_rnn_dense_cfg *cfg,
+        mli_tensor *out);
 
-mli_status mli_chk_basic_rnn_cell_fx8w16d(
-        const mli_tensor * in,
-        const mli_tensor * prev_out,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        const mli_rnn_cell_cfg * cfg,
-        mli_tensor * out);
+mli_status mli_chk_rnn_dense_sa8_sa8_sa32(
+        const mli_tensor **in,
+        const mli_tensor **weights,
+        const mli_tensor *bias,
+        const mli_rnn_dense_cfg *cfg,
+        mli_tensor *out);
 
 mli_status mli_chk_lstm_cell(
         const mli_tensor * in,

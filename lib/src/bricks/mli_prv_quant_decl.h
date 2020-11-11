@@ -203,6 +203,16 @@ MLI_FORCE_INLINE void result_cast_relu_store(
         const int16_t val_max_limit);
 #endif
 
+template <typename acc_T, typename quant_T>
+MLI_FORCE_INLINE acc_T ir_rnn_result_requantize(const acc_T acc, const quant_T* current_params, 
+                                                        const quant_T* next_params, int krn_idx);
+template <typename acc_T>
+MLI_FORCE_INLINE acc_T ir_rnn_result_requantize(const acc_T acc, const fx_quant_specific_params* params,
+                                                        const fx_quant_specific_params* next_params, int krn_idx);
+template <>
+MLI_FORCE_INLINE mli_acc32_t ir_rnn_result_requantize(const mli_acc32_t acc, const s8asym_quant_specific_params* params,
+                                                        const s8asym_quant_specific_params* next_params, int krn_idx);
+
 template <typename in_T, typename out_T>
 MLI_FORCE_INLINE out_T mli_prv_convert_sa8_fx16(
         const in_T in, const int16_t zero_point, const int scale);

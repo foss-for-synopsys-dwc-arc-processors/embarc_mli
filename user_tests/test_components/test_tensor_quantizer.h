@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -36,6 +36,7 @@ class tensor_quantizer {
     // Tensor parameters are expected to be complete enough for quantization and output valid tensor.
     // For FX types next fields must be filled: Shape, rank, memstride, el_type
     // For SA types next fields must be filled: Shape, rank, memstride, el_type
+    tensor_quantizer();
     
     // This Constructor intended to be used with FP32 type of tensors ONLY
     tensor_quantizer(mli_tensor tsr, const float* data, const uint32_t data_size);
