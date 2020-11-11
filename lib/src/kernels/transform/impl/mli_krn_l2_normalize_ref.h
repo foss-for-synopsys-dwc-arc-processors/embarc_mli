@@ -57,7 +57,6 @@ static MLI_FORCE_INLINE mli_status mli_krn_l2_normalize_run(const mli_tensor *in
     mli_prv_reorder_generic_tensor<MLI_PTR(io_T)>(&in_prv );
     mli_prv_reorder_generic_tensor<MLI_PTR(io_T)>(&out_prv);
 
-    // int in_frac = static_cast<int>(in->el_params.fx.frac_bits);
     int16_t in_zp = 0;
     int out_shift = 0;
     if (convert) {
@@ -87,7 +86,7 @@ static MLI_FORCE_INLINE mli_status mli_krn_l2_normalize_run(const mli_tensor *in
                                    dim2 * out_non_axis_prv.mem_stride[2]];
 
                 // Accumulation through MAC and reciprocal calculation
-                mli_acc40_t sum_acc = mli_math_mul_fx<io_T, mli_acc32_t>(0, 0);
+                mli_acc40_t sum_acc = mli_math_mul_fx<io_T, mli_acc40_t>(0, 0);
                 for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
                     for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
                         for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
@@ -104,18 +103,18 @@ static MLI_FORCE_INLINE mli_status mli_krn_l2_normalize_run(const mli_tensor *in
                 int norm_shift;
                 int16_t sum_acc_cast = mli_math_norm_cast_fx<mli_acc40_t, int16_t>(sum_acc, &norm_shift);
                 /* Adjust norm_shift to even number because we are going to use divide it by 2 */
-                if (norm_shift & 0x1 == 0x1) {
+                if ((norm_shift & 0x1) == 0x1) {
                     sum_acc_cast = sum_acc_cast >> 1;
                     norm_shift +=1;
                 }
                 /* Cast Sum_acc to 8 bit to bring it to LUT input range */
-                sum_acc_cast = mli_math_cast_fx<int16_t, int8_t>(sum_acc_cast, 8);
+                const int8_t sum_acc_cast_8b = mli_math_cast_fx<int16_t, int8_t>(sum_acc_cast, 8);
                 norm_shift += 8;
                 /* Norm_shift is divided by 2 because of the sequare root */
                 norm_shift >>=1;
                 /* Activation lookup table */
-                int16_t out_lut = mli::krn::activation_lut_one_elem_interpolate<int16_t, int16_t, false, false>(
-                    sum_acc_cast, &invsqrt_lut_fx16, 0);
+                int16_t out_lut = mli::krn::activation_lut_one_elem_interpolate<int8_t, int16_t, false, false>(
+                    sum_acc_cast_8b, &invsqrt_lut_fx16, 0);
 
                 // final result: normalizing
                 for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {

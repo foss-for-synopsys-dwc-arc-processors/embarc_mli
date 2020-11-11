@@ -46,17 +46,19 @@ struct l2_normalize_test_operands {
     const bool in_place_comp;
 };
 
-// #if defined(CRC_RM_CONVERGENT) || defined(CRC_RM_UP)
+#if defined(CRC_RM_CONVERGENT) || defined(CRC_RM_UP)
 
-// // Shared CRC Results
-// const crc32_calc  test_1_chksum_fx16{ 0x7695FBF8 }, test_1_chksum_sa8{ 0x97AACEC4 },
-//                   test_2_chksum_fx16{ 0x0E245804 }, test_2_chksum_sa8{ 0x6A2A3EB5 },
-//                   test_3_chksum_fx16{ 0xB4A6991D }, test_3_chksum_sa8{ 0x6FEF833F };
+// Shared CRC Results
+const crc32_calc  test_1_chksum_fx16{ 0x7F975802 }, test_1_chksum_sa8{ 0x413C9B30 },
+                  test_2_chksum_fx16{ 0x190B2346 }, test_2_chksum_sa8{ 0xB208DA92 },
+                  test_3_chksum_fx16{ 0x39FFC9A2 }, test_3_chksum_sa8{ 0x7DB7E5FE };
 
-// #else  // Not defined CRC_*
-const crc32_calc  test_1_chksum_fx16, test_1_chksum_sa8;
+#else  // Not defined CRC_*
+const crc32_calc  test_1_chksum_fx16{}, test_1_chksum_sa8{},
+                  test_2_chksum_fx16{}, test_2_chksum_sa8{},
+                  test_3_chksum_fx16{}, test_3_chksum_sa8{};
 
-// #endif
+#endif
 
 const quality_metrics thresholds_fx16_general { quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
                                                 /* SNR DB = */ 50.f, quality_metrics::kPassValueQuantErrPerc };
@@ -71,6 +73,18 @@ static const l2_normalize_test_operands tests_list[] = {
     {"Test 1 SA8 ",  mli_krn_l2_normalize_sa8,
                                     input_1_sa8, test_1_cfg, test_1_out_sa8,
                                     thresholds_sa8_general, test_1_chksum_sa8, false},
+    {"Test 2 FX16 Axis = 2",  mli_krn_l2_normalize_fx16,
+                                    input_1_fx16, test_2_cfg, test_2_out_fx16,
+                                    thresholds_fx16_general, test_2_chksum_fx16, false},
+    {"Test 2 SA8  Axis = 2",  mli_krn_l2_normalize_sa8,
+                                    input_1_sa8, test_2_cfg, test_2_out_sa8,
+                                    thresholds_sa8_general, test_2_chksum_sa8, false},
+    {"Test 3 FX16 Axis = 0",  mli_krn_l2_normalize_fx16,
+                                    input_1_fx16, test_3_cfg, test_3_out_fx16,
+                                    thresholds_fx16_general, test_3_chksum_fx16, false},
+    {"Test 3 SA8  Axis = 0",  mli_krn_l2_normalize_sa8,
+                                    input_1_sa8, test_3_cfg, test_3_out_sa8,
+                                    thresholds_sa8_general, test_3_chksum_sa8, false},
 };
 
 constexpr int kMemSize = 2048;
