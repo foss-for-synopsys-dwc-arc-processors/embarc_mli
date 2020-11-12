@@ -97,7 +97,7 @@ MLI_FORCE_INLINE mli_compensations mli_prv_valid_area_compensations(int out_h_id
     MLI_ASSERT(kernel_height > 0 && kernel_width > 0 && in_height > 0 && in_width > 0);
     MLI_ASSERT(pad_left >= 0 && pad_top >= 0 && out_h_idx >= 0 && out_w_idx >= 0);
     mli_compensations comp;
-    if (dilation_h == 1 || dilation_w == 1) {
+    if (dilation_h == 1 && dilation_w == 1) {
         comp.in_left   = comp.kernel_left   = -MIN((out_w_idx * stride_w)- pad_left, 0);
         comp.in_right  = comp.kernel_right  = -MIN(in_width - ((out_w_idx * stride_w)- pad_left + kernel_width), 0);
         comp.in_top    = comp.kernel_top    = -MIN((out_h_idx * stride_h)- pad_top, 0);
