@@ -9,6 +9,7 @@
 
 #include "mli_api.h"
 
+#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -45,6 +46,11 @@ struct l2_normalize_test_operands {
     const crc32_calc check_sum;
     const bool in_place_comp;
 };
+
+static constexpr int kOutFx16FracBits = 15;
+static constexpr int kOutSa8Scale = 1;
+static constexpr int kOutSa8ZeroPoint = 0;
+static constexpr int kOutSa8ScaleFracBits = 7;
 
 #if defined(CRC_RM_CONVERGENT) || defined(CRC_RM_UP)
 
@@ -163,6 +169,32 @@ int main() {
                 test_metics.calculate_metrics(out, cur_test->out) == false) {
             reporter.report_message(cur_test->descr, "FAILED at comparison output with reference");
             is_test_passed = false;
+        }
+
+        // Check that kernel output quantization parameters are set by kernel (according to spec).
+        if (is_test_passed) {
+            bool is_per_tensor_quant = true;
+
+            if (out.el_type == MLI_EL_FX_16) {
+                is_test_passed &= out.el_params.fx.frac_bits == kOutFx16FracBits;
+            } else if (out.el_type == MLI_EL_SA_8) {
+                if (out.el_params.sa.dim < 0 || input.el_params.sa.dim < 0) {
+                    is_test_passed &=
+                        (out.el_params.sa.scale.mem.i16 == kOutSa8Scale) &&
+                        (out.el_params.sa.zero_point.mem.i16 == kOutSa8ZeroPoint) &&
+                        (out.el_params.sa.scale_frac_bits.mem.i8 == kOutSa8ScaleFracBits);
+                } else {
+                    is_per_tensor_quant = false;
+                    is_test_passed = false;
+                }
+            } else {
+                assert(0);
+            }
+            if (!is_test_passed) {
+                reporter.report_message(cur_test->descr,
+                    is_per_tensor_quant ? "FAILED as element params of output tensor are incorrect"
+                                        : "FAILED as per-axis quantization of tensors isn't supported by kernel");
+            }
         }
 
         if (is_test_passed) {

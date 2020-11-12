@@ -16,9 +16,6 @@
 #include "mli_types.h"
 #include "mli_krn_l2_normalize.h"
 
-const int kL2NormAsymZeroPoint = 0;
-const int kL2NormOutputShift = 7;
-
 using mli::krn::mli_krn_l2_normalize_run;
 #ifdef __cplusplus
 extern "C" {
@@ -31,6 +28,9 @@ mli_status mli_krn_l2_normalize_fx16(const mli_tensor *in,
         const mli_l2_normalize_cfg *cfg, 
         mli_tensor *out) {
 
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_l2_normalize_fx16(in, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK) return ret;
+
     return mli_krn_l2_normalize_run<int16_t>(in, epsilon, cfg, out);
 }
 
@@ -38,6 +38,9 @@ mli_status mli_krn_l2_normalize_sa8(const mli_tensor *in,
         const mli_tensor *epsilon, 
         const mli_l2_normalize_cfg *cfg, 
         mli_tensor *out) {
+
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_l2_normalize_sa8(in, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK) return ret;
 
     return mli_krn_l2_normalize_run<int8_t, true>(in, epsilon, cfg, out);
 }

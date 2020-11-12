@@ -21,6 +21,9 @@
 #include "mli_prv_activation_lut.h"
 #include "mli_prv_lut.h"
 
+const int kL2NormAsymZeroPoint = 0;
+const int kL2NormOutputShift = 7;
+
 namespace mli {
 namespace krn {
 namespace ref {
@@ -61,9 +64,9 @@ static MLI_FORCE_INLINE mli_status mli_krn_l2_normalize_run(const mli_tensor *in
     int out_shift = 0;
     if (convert) {
         in_zp = in->el_params.sa.zero_point.mem.i16;
-        out->el_params.sa.zero_point.mem.i16 = 0;
+        out->el_params.sa.zero_point.mem.i16 = kL2NormAsymZeroPoint;
         out->el_params.sa.scale.mem.i16 = 1;
-        out->el_params.sa.scale_frac_bits.mem.i8 = 7;
+        out->el_params.sa.scale_frac_bits.mem.i8 = kL2NormOutputShift;
         out_shift = out->el_params.sa.scale_frac_bits.mem.i8;
     } else {
         out->el_params.fx.frac_bits = (sizeof(io_T) * 8) - kTransfFuncIntBits - 1;
@@ -85,7 +88,7 @@ static MLI_FORCE_INLINE mli_status mli_krn_l2_normalize_run(const mli_tensor *in
                                    dim1 * out_non_axis_prv.mem_stride[1] + 
                                    dim2 * out_non_axis_prv.mem_stride[2]];
 
-                // Accumulation through MAC and reciprocal calculation
+                /* Accumulation through MAC */
                 mli_acc40_t sum_acc = mli_math_mul_fx<io_T, mli_acc40_t>(0, 0);
                 for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
                     for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
@@ -102,7 +105,7 @@ static MLI_FORCE_INLINE mli_status mli_krn_l2_normalize_run(const mli_tensor *in
                 }
                 int norm_shift;
                 int16_t sum_acc_cast = mli_math_norm_cast_fx<mli_acc40_t, int16_t>(sum_acc, &norm_shift);
-                /* Adjust norm_shift to even number because we are going to use divide it by 2 */
+                /* Adjust norm_shift to even number because we are going to divide it by 2 */
                 if ((norm_shift & 0x1) == 0x1) {
                     sum_acc_cast = sum_acc_cast >> 1;
                     norm_shift +=1;
@@ -110,7 +113,7 @@ static MLI_FORCE_INLINE mli_status mli_krn_l2_normalize_run(const mli_tensor *in
                 /* Cast Sum_acc to 8 bit to bring it to LUT input range */
                 const int8_t sum_acc_cast_8b = mli_math_cast_fx<int16_t, int8_t>(sum_acc_cast, 8);
                 norm_shift += 8;
-                /* Norm_shift is divided by 2 because of the sequare root */
+                /* Norm_shift is divided by 2 because of the square root */
                 norm_shift >>=1;
                 /* Activation lookup table */
                 int16_t out_lut = mli::krn::activation_lut_one_elem_interpolate<int8_t, int16_t, false, false>(
