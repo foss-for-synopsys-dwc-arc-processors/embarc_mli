@@ -259,6 +259,10 @@ template <> MLI_FORCE_INLINE mli_acc40_t mli_math_mac_fx(mli_acc40_t acc, int8_t
     return fx_a40_mac_nf_q15(acc, (int16_t)L, (int16_t)R);
 }
 
+template <> MLI_FORCE_INLINE int64_t mli_math_mac_fx(int64_t acc, int16_t L, int16_t R) {
+    return acc + (int64_t) (L * R);
+}
+
 static MLI_FORCE_INLINE mli_acc40_t mli_math_mac_fx(mli_acc40_t acc, v2q15_t in, v2q15_t k) {
     return fx_a40_dmac_v2q15(acc, in, k);
 }

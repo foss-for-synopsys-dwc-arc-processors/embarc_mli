@@ -27,7 +27,7 @@ template <typename io_T>
 static MLI_FORCE_INLINE mli_status mli_krn_l2_normalize_run(const mli_tensor *in, 
         const mli_tensor *epsilon, 
         const mli_l2_normalize_cfg *cfg, 
-        mli_tensor *out)) {
+        mli_tensor *out) {
 
     mli_prv_fx_init_dsp_ctrl();
     

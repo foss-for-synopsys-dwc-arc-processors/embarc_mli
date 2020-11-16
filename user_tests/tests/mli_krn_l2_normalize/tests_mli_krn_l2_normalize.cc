@@ -56,8 +56,15 @@ static constexpr int kOutSa8ScaleFracBits = 7;
 
 // Shared CRC Results
 const crc32_calc  test_1_chksum_fx16{ 0x7F975802 }, test_1_chksum_sa8{ 0x413C9B30 },
-                  test_2_chksum_fx16{ 0x190B2346 }, test_2_chksum_sa8{ 0xB208DA92 },
-                  test_3_chksum_fx16{ 0x39FFC9A2 }, test_3_chksum_sa8{ 0x7DB7E5FE };
+                                                    test_2_chksum_sa8{ 0xB208DA92 },
+                  test_3_chksum_fx16{ 0x39FFC9A2 };
+
+// Platform Specific CRC Results
+#if defined(__FXAPI__)
+const crc32_calc  test_2_chksum_fx16{ 0xCF5836B8 }, test_3_chksum_sa8{ 0xA2EC187A };
+#else
+const crc32_calc  test_2_chksum_fx16{ 0x190B2346 }, test_3_chksum_sa8{ 0x7DB7E5FE };
+#endif
 
 #else  // Not defined CRC_*
 const crc32_calc  test_1_chksum_fx16{}, test_1_chksum_sa8{},
@@ -125,7 +132,6 @@ int main() {
             out.el_params = params;
         }
 
-        mli_tensor source_out_tensor = out;
         if (is_test_passed &&
                 (tensor_quantizer::validate_tensor(input) != tensor_quantizer::kOk ||
                  tensor_quantizer::validate_tensor(out) != tensor_quantizer::kOk)) {

@@ -8,12 +8,6 @@
 */
 
 #include "mli_check.h"
-#include "mli_config.h"
-#include "mli_debug.h"
-#include "mli_helpers_api.h"
-#include "mli_prv_dsp.h"
-#include "mli_prv_tensor.h"
-#include "mli_types.h"
 #include "mli_krn_l2_normalize.h"
 
 using mli::krn::mli_krn_l2_normalize_run;

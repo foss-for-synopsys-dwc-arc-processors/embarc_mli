@@ -89,7 +89,7 @@ static MLI_FORCE_INLINE mli_status mli_krn_l2_normalize_run(const mli_tensor *in
                                    dim2 * out_non_axis_prv.mem_stride[2]];
 
                 /* Accumulation through MAC */
-                mli_acc40_t sum_acc = mli_math_mul_fx<io_T, mli_acc40_t>(0, 0);
+                int64_t sum_acc = mli_math_mul_fx<int32_t, int64_t>(0, 0);
                 for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
                     for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
                         for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
@@ -98,23 +98,29 @@ static MLI_FORCE_INLINE mli_status mli_krn_l2_normalize_run(const mli_tensor *in
                                 if (convert) {
                                     input -= in_zp;
                                 }
-                                sum_acc = mli_math_mac_fx(sum_acc, input ,input);
+                                sum_acc = mli_math_mac_fx(sum_acc, input, input);
                             }
                         }
                     }
                 }
-                int norm_shift;
-                int16_t sum_acc_cast = mli_math_norm_cast_fx<mli_acc40_t, int16_t>(sum_acc, &norm_shift);
+                /* inv_sqrt = 1/sqrt(sum_acc)
+                 * sum_acc can be approximated to sum_acc = (sum_acc_cast_8b * 2^norm_shift)
+                 * inv_sqrt = 1/sqrt(sum_acc * 2^-norm_shift * 2^norm_shift)
+                 *          = 1/sqrt(sum_acc_cast_8b * 2^norm_shift)
+                 *          = 1/(2^(norm_shift/2) * sqrt(sum_acc_cast_8b))
+                 *          = 2^(-norm_shift/2) * (1/sqrt(sum_acc_cast_8b))
+                 */
+                int norm_shift = mli_math_norm_fx<int64_t, int>(sum_acc);
+                /* To Cast int64_t to int8_t */
+                norm_shift = (sizeof(int64_t) - sizeof(int8_t)) * 8 - norm_shift;
                 /* Adjust norm_shift to even number because we are going to divide it by 2 */
                 if ((norm_shift & 0x1) == 0x1) {
-                    sum_acc_cast = sum_acc_cast >> 1;
                     norm_shift +=1;
                 }
                 /* Cast Sum_acc to 8 bit to bring it to LUT input range */
-                const int8_t sum_acc_cast_8b = mli_math_cast_fx<int16_t, int8_t>(sum_acc_cast, 8);
-                norm_shift += 8;
+                const int8_t sum_acc_cast_8b = mli_math_cast_fx<int64_t, int8_t>(sum_acc, norm_shift);
                 /* Norm_shift is divided by 2 because of the square root */
-                norm_shift >>=1;
+                norm_shift >>= 1;
                 /* Activation lookup table */
                 int16_t out_lut = mli::krn::activation_lut_one_elem_interpolate<int8_t, int16_t, false, false>(
                     sum_acc_cast_8b, &invsqrt_lut_fx16, 0);
