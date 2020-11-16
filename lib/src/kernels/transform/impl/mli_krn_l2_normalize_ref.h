@@ -122,7 +122,7 @@ static MLI_FORCE_INLINE mli_status mli_krn_l2_normalize_run(const mli_tensor *in
                 /* Norm_shift is divided by 2 because of the square root */
                 norm_shift >>= 1;
                 /* Activation lookup table */
-                int16_t out_lut = mli::krn::activation_lut_one_elem_interpolate<int8_t, int16_t, false, false>(
+                int16_t out_lut = mli::krn::activation_lut_one_elem_no_interpolate<int8_t, int16_t, false, false>(
                     sum_acc_cast_8b, &invsqrt_lut_fx16, 0);
 
                 // final result: normalizing
