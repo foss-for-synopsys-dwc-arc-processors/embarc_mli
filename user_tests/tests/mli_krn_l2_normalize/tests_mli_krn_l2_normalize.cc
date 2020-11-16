@@ -55,15 +55,17 @@ static constexpr int kOutSa8ScaleFracBits = 7;
 #if defined(CRC_RM_CONVERGENT) || defined(CRC_RM_UP)
 
 // Shared CRC Results
-const crc32_calc  test_1_chksum_fx16{ 0x7F975802 }, test_1_chksum_sa8{ 0x413C9B30 },
-                                                    test_2_chksum_sa8{ 0xB208DA92 },
-                  test_3_chksum_fx16{ 0x39FFC9A2 };
+const crc32_calc                                    test_1_chksum_sa8{ 0x5827AA71 },
+                                                    test_2_chksum_sa8{ 0x5690814C },
+                  test_3_chksum_fx16{ 0x37F42D6C }, test_3_chksum_sa8{ 0xF7C243B9 };
 
 // Platform Specific CRC Results
-#if defined(__FXAPI__)
-const crc32_calc  test_2_chksum_fx16{ 0xCF5836B8 }, test_3_chksum_sa8{ 0xA2EC187A };
+#if defined(CRC_RM_CONVERGENT)
+const crc32_calc  test_1_chksum_fx16{ 0x33B8DBD1 }, 
+                  test_2_chksum_fx16{ 0x592F1FC0 };
 #else
-const crc32_calc  test_2_chksum_fx16{ 0x190B2346 }, test_3_chksum_sa8{ 0x7DB7E5FE };
+const crc32_calc  test_1_chksum_fx16{ 0xA553F9C3 }, 
+                  test_2_chksum_fx16{ 0x3D15791A };
 #endif
 
 #else  // Not defined CRC_*

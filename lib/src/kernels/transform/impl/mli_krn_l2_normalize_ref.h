@@ -23,6 +23,7 @@
 
 const int kL2NormAsymZeroPoint = 0;
 const int kL2NormOutputShift = 7;
+const int kL2NormLutFracBits = 8;
 
 namespace mli {
 namespace krn {
@@ -104,27 +105,27 @@ static MLI_FORCE_INLINE mli_status mli_krn_l2_normalize_run(const mli_tensor *in
                     }
                 }
                 /* inv_sqrt = 1/sqrt(sum_acc)
-                 * sum_acc can be approximated to sum_acc = (sum_acc_cast_8b * 2^norm_shift)
+                 * sum_acc can be approximated to sum_acc = (sum_acc_cast * 2^norm_shift)
                  * inv_sqrt = 1/sqrt(sum_acc * 2^-norm_shift * 2^norm_shift)
-                 *          = 1/sqrt(sum_acc_cast_8b * 2^norm_shift)
-                 *          = 1/(2^(norm_shift/2) * sqrt(sum_acc_cast_8b))
-                 *          = 2^(-norm_shift/2) * (1/sqrt(sum_acc_cast_8b))
+                 *          = 1/sqrt(sum_acc_cast * 2^norm_shift)
+                 *          = 1/(2^(norm_shift/2) * sqrt(sum_acc_cast))
+                 *          = 2^(-norm_shift/2) * (1/sqrt(sum_acc_cast))
                  */
                 int norm_shift = mli_math_norm_fx<int64_t, int>(sum_acc);
-                /* To Cast int64_t to int8_t */
-                norm_shift = (sizeof(int64_t) - sizeof(int8_t)) * 8 - norm_shift;
+                /* To Cast int64_t to int16_t */
+                norm_shift = (sizeof(int64_t) - sizeof(int16_t)) * 8 - norm_shift;
                 /* Adjust norm_shift to even number because we are going to divide it by 2 */
                 if ((norm_shift & 0x1) == 0x1) {
-                    norm_shift +=1;
+                    norm_shift += 1;
                 }
-                /* Cast Sum_acc to 8 bit to bring it to LUT input range */
-                const int8_t sum_acc_cast_8b = mli_math_cast_fx<int64_t, int8_t>(sum_acc, norm_shift);
-                /* Norm_shift is divided by 2 because of the square root */
-                norm_shift >>= 1;
-                /* Activation lookup table */
-                int16_t out_lut = mli::krn::activation_lut_one_elem_no_interpolate<int8_t, int16_t, false, false>(
-                    sum_acc_cast_8b, &invsqrt_lut_fx16, 0);
+                /* Cast Sum_acc to Q7.8 to bring it to LUT input range */
+                const int16_t sum_acc_cast = mli_math_cast_fx<int64_t, int16_t>(sum_acc, norm_shift);
+                /* Activation lookup table of input Q7.8 */
+                int16_t out_lut = mli::krn::activation_lut_one_elem_interpolate<int16_t, int16_t, false, false>(
+                    sum_acc_cast, &invsqrt_lut_fx16, kL2NormLutFracBits);
 
+                /* (Norm_shift + kL2NormLutFracBits) is divided by 2 because of the square root */
+                int shift = kLutOutFracBits + ((norm_shift + kL2NormLutFracBits) >> 1) - out_shift;
                 // final result: normalizing
                 for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
                     for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
@@ -136,8 +137,7 @@ static MLI_FORCE_INLINE mli_status mli_krn_l2_normalize_run(const mli_tensor *in
                                 }
                                 mli_acc32_t tmp_acc = mli_math_mul_fx<int16_t, mli_acc32_t>(out_lut, input);
                                 vec_out[POS(&out_prv, pos0, pos1, pos2, pos3)] =
-                                        mli_math_acc_cast_fx<io_T, mli_acc32_t>(tmp_acc,
-                                            kLutOutFracBits + norm_shift - out_shift);
+                                        mli_math_acc_cast_fx<io_T, mli_acc32_t>(tmp_acc, shift);
                             }
                         }
                     }
