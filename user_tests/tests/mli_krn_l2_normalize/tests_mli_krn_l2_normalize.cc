@@ -56,23 +56,25 @@ static constexpr int kOutSa8ScaleFracBits = 7;
 
 // Shared CRC Results
 const crc32_calc                                    test_1_chksum_sa8{ 0x5827AA71 },
-                                                    test_2_chksum_sa8{ 0x5690814C },
-                  test_3_chksum_fx16{ 0x37F42D6C }, test_3_chksum_sa8{ 0xF7C243B9 },
-                  test_4_chksum_fx16{ 0xCDF2CA3A }, test_4_chksum_sa8{ 0xC8856D4A },
-                  test_5_chksum_fx16{ 0xFA001A00 }, test_5_chksum_sa8{ 0x277004ED },
-                                                    test_6_chksum_sa8{ 0x844338A9 },
-                  test_7_chksum_fx16{ 0xC73BBA50 }, test_7_chksum_sa8{ 0x735D468E },
-                  test_8_chksum_fx16{ 0xF26D0818 }, test_8_chksum_sa8{ 0x082A5005 };
+                                                    test_2_chksum_sa8{ 0x6AB2B7E2 },
+                                                    test_3_chksum_sa8{ 0xF7C243B9 },
+                  test_4_chksum_fx16{ 0xBD6B3431 }, test_4_chksum_sa8{ 0xC8856D4A },
+                  test_5_chksum_fx16{ 0xCB86AA5F }, test_5_chksum_sa8{ 0x73701BB8 },
+                                                    test_6_chksum_sa8{ 0xCE87C84D },
+                  test_7_chksum_fx16{ 0x5FB149F8 }, test_7_chksum_sa8{ 0x735D468E },
+                  test_8_chksum_fx16{ 0x7F2E302F }, test_8_chksum_sa8{ 0x082A5005 };
 
 // Platform Specific CRC Results
 #if defined(CRC_RM_CONVERGENT)
-const crc32_calc  test_1_chksum_fx16{ 0x33B8DBD1 }, 
-                  test_2_chksum_fx16{ 0x592F1FC0 },
-                  test_6_chksum_fx16{ 0x433D0A51 };
+const crc32_calc  test_1_chksum_fx16{ 0xA0D2FBE9 },
+                  test_2_chksum_fx16{ 0xFC8B4CA8 },
+                  test_3_chksum_fx16{ 0x06A11B7C },
+                  test_6_chksum_fx16{ 0xAC710778 };
 #else
-const crc32_calc  test_1_chksum_fx16{ 0xA553F9C3 }, 
-                  test_2_chksum_fx16{ 0x3D15791A },
-                  test_6_chksum_fx16{ 0xED0B7095 };
+const crc32_calc  test_1_chksum_fx16{ 0xA0D2FBE9 },
+                  test_2_chksum_fx16{ 0xFC8B4CA8 },
+                  test_3_chksum_fx16{ 0x629B7DA6 },
+                  test_6_chksum_fx16{ 0x94E25844 };
 #endif
 
 #else  // Not defined CRC_*
