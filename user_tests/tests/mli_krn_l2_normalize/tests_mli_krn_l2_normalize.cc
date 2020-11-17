@@ -57,21 +57,33 @@ static constexpr int kOutSa8ScaleFracBits = 7;
 // Shared CRC Results
 const crc32_calc                                    test_1_chksum_sa8{ 0x5827AA71 },
                                                     test_2_chksum_sa8{ 0x5690814C },
-                  test_3_chksum_fx16{ 0x37F42D6C }, test_3_chksum_sa8{ 0xF7C243B9 };
+                  test_3_chksum_fx16{ 0x37F42D6C }, test_3_chksum_sa8{ 0xF7C243B9 },
+                  test_4_chksum_fx16{ 0xCDF2CA3A }, test_4_chksum_sa8{ 0xC8856D4A },
+                  test_5_chksum_fx16{ 0xFA001A00 }, test_5_chksum_sa8{ 0x277004ED },
+                                                    test_6_chksum_sa8{ 0x844338A9 },
+                  test_7_chksum_fx16{ 0xC73BBA50 }, test_7_chksum_sa8{ 0x735D468E },
+                  test_8_chksum_fx16{ 0xF26D0818 }, test_8_chksum_sa8{ 0x082A5005 };
 
 // Platform Specific CRC Results
 #if defined(CRC_RM_CONVERGENT)
 const crc32_calc  test_1_chksum_fx16{ 0x33B8DBD1 }, 
-                  test_2_chksum_fx16{ 0x592F1FC0 };
+                  test_2_chksum_fx16{ 0x592F1FC0 },
+                  test_6_chksum_fx16{ 0x433D0A51 };
 #else
 const crc32_calc  test_1_chksum_fx16{ 0xA553F9C3 }, 
-                  test_2_chksum_fx16{ 0x3D15791A };
+                  test_2_chksum_fx16{ 0x3D15791A },
+                  test_6_chksum_fx16{ 0xED0B7095 };
 #endif
 
 #else  // Not defined CRC_*
 const crc32_calc  test_1_chksum_fx16{}, test_1_chksum_sa8{},
                   test_2_chksum_fx16{}, test_2_chksum_sa8{},
-                  test_3_chksum_fx16{}, test_3_chksum_sa8{};
+                  test_3_chksum_fx16{}, test_3_chksum_sa8{},
+                  test_4_chksum_fx16{}, test_4_chksum_sa8{},
+                  test_5_chksum_fx16{}, test_5_chksum_sa8{},
+                  test_6_chksum_fx16{}, test_6_chksum_sa8{},
+                  test_7_chksum_fx16{}, test_7_chksum_sa8{},
+                  test_8_chksum_fx16{}, test_8_chksum_sa8{};
 
 #endif
 
@@ -79,27 +91,61 @@ const quality_metrics thresholds_fx16_general { quality_metrics::kPassValueMaxAb
                                                 /* SNR DB = */ 50.f, quality_metrics::kPassValueQuantErrPerc };
 
 const quality_metrics thresholds_sa8_general { quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
-                                               /* SNR DB = */ 30.f, quality_metrics::kPassValueQuantErrPerc };
+                                               /* SNR DB = */ 28.f, quality_metrics::kPassValueQuantErrPerc };
 
 static const l2_normalize_test_operands tests_list[] = {
-    {"Test 1 FX16",  mli_krn_l2_normalize_fx16,
+    /* Unifrom Distrbution, per tensor and per axis */
+    {"Test 1 FX16 3D",  mli_krn_l2_normalize_fx16,
                                     input_1_fx16, test_1_cfg, test_1_out_fx16,
                                     thresholds_fx16_general, test_1_chksum_fx16, false},
-    {"Test 1 SA8 ",  mli_krn_l2_normalize_sa8,
+    {"Test 1 SA8  3D",  mli_krn_l2_normalize_sa8,
                                     input_1_sa8, test_1_cfg, test_1_out_sa8,
                                     thresholds_sa8_general, test_1_chksum_sa8, false},
-    {"Test 2 FX16 Axis = 2",  mli_krn_l2_normalize_fx16,
+    {"Test 2 FX16 3D, Axis=2",  mli_krn_l2_normalize_fx16,
                                     input_1_fx16, test_2_cfg, test_2_out_fx16,
                                     thresholds_fx16_general, test_2_chksum_fx16, false},
-    {"Test 2 SA8  Axis = 2",  mli_krn_l2_normalize_sa8,
+    {"Test 2 SA8  3D, Axis=2",  mli_krn_l2_normalize_sa8,
                                     input_1_sa8, test_2_cfg, test_2_out_sa8,
                                     thresholds_sa8_general, test_2_chksum_sa8, false},
-    {"Test 3 FX16 Axis = 0",  mli_krn_l2_normalize_fx16,
+    {"Test 3 FX16 3D, Axis=0",  mli_krn_l2_normalize_fx16,
                                     input_1_fx16, test_3_cfg, test_3_out_fx16,
                                     thresholds_fx16_general, test_3_chksum_fx16, false},
-    {"Test 3 SA8  Axis = 0",  mli_krn_l2_normalize_sa8,
+    {"Test 3 SA8  3D, Axis=0",  mli_krn_l2_normalize_sa8,
                                     input_1_sa8, test_3_cfg, test_3_out_sa8,
                                     thresholds_sa8_general, test_3_chksum_sa8, false},
+    /* Normal Distrbution with LeakyRELU Emulation , per tensor and per axis,  Memory Strides  */
+    {"Test 4 FX16 4D, Memstr",  mli_krn_l2_normalize_fx16,
+                                    input_2_fx16, test_4_cfg, test_4_out_fx16,
+                                    thresholds_fx16_general, test_4_chksum_fx16, false},
+    {"Test 4 SA8  4D, Memstr",  mli_krn_l2_normalize_sa8,
+                                    input_2_sa8, test_4_cfg, test_4_out_sa8,
+                                    thresholds_sa8_general, test_4_chksum_sa8, false},
+    {"Test 5 FX16 4D, Axis=3, Memstr",  mli_krn_l2_normalize_fx16,
+                                    input_2_fx16, test_5_cfg, test_5_out_fx16,
+                                    thresholds_fx16_general, test_5_chksum_fx16, false},
+    {"Test 5 SA8  4D, Axis=3, Memstr",  mli_krn_l2_normalize_sa8,
+                                    input_2_sa8, test_5_cfg, test_5_out_sa8,
+                                    thresholds_sa8_general, test_5_chksum_sa8, false},
+    {"Test 6 FX16 4D, Axis=0, Memstr",  mli_krn_l2_normalize_fx16,
+                                    input_2_fx16, test_6_cfg, test_6_out_fx16,
+                                    thresholds_fx16_general, test_6_chksum_fx16, false},
+    {"Test 6 SA8  4D, Axis=0, Memstr",  mli_krn_l2_normalize_sa8,
+                                    input_2_sa8, test_6_cfg, test_6_out_sa8,
+                                    thresholds_sa8_general, test_6_chksum_sa8, false},
+    /* Special Case: Zeros, Equal Values, In Place Computation */
+    {"Test 7 FX16 2D, Axis=1, IPC",  mli_krn_l2_normalize_fx16,
+                                    input_3_fx16, test_7_cfg, test_7_out_fx16,
+                                    thresholds_fx16_general, test_7_chksum_fx16, true},
+    {"Test 7 SA8  2D, Axis=1, IPC",  mli_krn_l2_normalize_sa8,
+                                    input_3_sa8, test_7_cfg, test_7_out_sa8,
+                                    thresholds_sa8_general, test_7_chksum_sa8, true},
+    /* Special Case: One Hot Value, In Place Computation */
+    {"Test 8 FX16 2D, Axis=0, IPC",  mli_krn_l2_normalize_fx16,
+                                    input_3_fx16, test_8_cfg, test_8_out_fx16,
+                                    thresholds_fx16_general, test_8_chksum_fx16, true},
+    {"Test 8 SA8  2D, Axis=0, IPC",  mli_krn_l2_normalize_sa8,
+                                    input_3_sa8, test_8_cfg, test_8_out_sa8,
+                                    thresholds_sa8_general, test_8_chksum_sa8, true},
 };
 
 constexpr int kMemSize = 2048;

@@ -95,7 +95,7 @@ static MLI_FORCE_INLINE mli_status mli_krn_l2_normalize_run(const mli_tensor *in
                     for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
                         for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
                             for (int pos3 = 0; pos3 < in_prv.shape[3]; pos3++) {
-                                int16_t input = vec_in[POS(&out_prv, pos0, pos1, pos2, pos3)];
+                                int16_t input = vec_in[POS(&in_prv, pos0, pos1, pos2, pos3)];
                                 if (convert) {
                                     input -= in_zp;
                                 }
