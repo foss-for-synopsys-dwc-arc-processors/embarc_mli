@@ -125,7 +125,7 @@ static MLI_FORCE_INLINE mli_status mli_krn_l2_normalize_run(const mli_tensor *in
                     sum_acc_cast, &invsqrt_lut_fx16, kL2NormLutFracBits);
 
                 /* (Norm_shift + kL2NormLutFracBits) is divided by 2 because of the square root */
-                int shift = kLutOutFracBits + ((norm_shift + kL2NormLutFracBits) >> 1) - out_shift;
+                int shift = invsqrt_lut_fx16.out_frac_bits + ((norm_shift + kL2NormLutFracBits) >> 1) - out_shift;
                 // final result: normalizing
                 for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
                     for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {

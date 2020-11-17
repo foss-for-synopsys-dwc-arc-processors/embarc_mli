@@ -17,7 +17,6 @@
 
 //TODO: Remove extra
 const int kTmpBufSize = 32;
-const int kLutOutFracBits = 15;
 const int kTransfFuncIntBits = 0;
 const int kMaxFracBitsFx16 = (sizeof(int16_t) * 8) - 1;
 const int kMaxFracBitsFx8 = (sizeof(int8_t) * 8) - 1;   //

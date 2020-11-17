@@ -42,7 +42,8 @@ const mli_lut sigmoid_lut_fx16 = {
         /*.data =*/ (const void*)sigmoid_lut_data_fx16,
         /*.type =*/ MLI_EL_FX_16,
         /*.length =*/ sizeof(sigmoid_lut_data_fx16) / sizeof(sigmoid_lut_data_fx16[0]),
-        /*.frac_bits =*/ 3,
+        /*.in_frac_bits =*/ 3,
+        /*.out_frac_bits =*/ 15,
         /*.offset =*/ sizeof(sigmoid_lut_data_fx16) / (sizeof(sigmoid_lut_data_fx16[0]) * 2) /*center-aligned */
 };
 
@@ -74,7 +75,8 @@ const mli_lut tanh_lut_fx16 = {
         /*.data =*/ (const void*)tanh_lut_data_fx16,
         /*.type =*/ MLI_EL_FX_16,
         /*.length =*/ sizeof(tanh_lut_data_fx16) / sizeof(tanh_lut_data_fx16[0]),
-        /*.frac_bits =*/ 4,
+        /*.in_frac_bits =*/ 4,
+        /*.out_frac_bits =*/ 15,
         /*.offset =*/ sizeof(tanh_lut_data_fx16) / (sizeof(tanh_lut_data_fx16[0]) * 2) /*center-aligned */
 };
 
@@ -106,7 +108,8 @@ const mli_lut expneg_lut_fx16 = {
         /*.data =*/ (const void*)expneg_lut_data_fx16,
         /*.type =*/ MLI_EL_FX_16,
         /*.length =*/ sizeof(expneg_lut_data_fx16) / sizeof(expneg_lut_data_fx16[0]),
-        /*.frac_bits =*/ 4,
+        /*.in_frac_bits =*/ 4,
+        /*.out_frac_bits =*/ 15,
         /*.offset =*/ sizeof(expneg_lut_data_fx16) / sizeof(expneg_lut_data_fx16[0]) - 2 /*right-minus-one-aligned */
 };
 
@@ -138,7 +141,8 @@ const mli_lut invsqrt_lut_fx16 = {
         /*.data =*/ (const void*)invsqrt_lut_data_fx16,
         /*.type =*/ MLI_EL_FX_16,
         /*.length =*/ sizeof(invsqrt_lut_data_fx16) / sizeof(invsqrt_lut_data_fx16[0]),
-        /*.frac_bits =*/ 0,
+        /*.in_frac_bits =*/ 0,
+        /*.out_frac_bits =*/ 15,
         /*.offset =*/ -32
 };
 #ifdef __cplusplus

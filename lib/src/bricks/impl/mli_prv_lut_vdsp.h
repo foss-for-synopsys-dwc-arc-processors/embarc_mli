@@ -40,18 +40,21 @@ template<typename out_T, bool convert = false>
 static MLI_FORCE_INLINE void activation_lut_store_output(
     MLI_OUT_PTR(out_T) out,
     vNx4short_t data,
+    const mli_lut *lut,
     struct s8asym_quant_params *out_params);
 
 template<typename out_T, bool convert = false>
 MLI_FORCE_INLINE void activation_lut_store_output(
         MLI_OUT_PTR(int8_t) out,
         vNx4short_t data,
+        const mli_lut *lut,
         struct s8asym_quant_params *out_params) {
     vNx4char_t result;
     if(convert) {
         MLI_ASSERT(out_params != nullptr);
         MLI_ASSERT(out_params->scale == 1);
-        result = mli_prv_convert_fx16_sa8<vNx4short_t, vNx4char_t>(data, out_params->offset, kLutOutFracBits - out_params->shift);
+        result = mli_prv_convert_fx16_sa8<vNx4short_t, vNx4char_t>(data, out_params->offset, 
+                                                                   lut->out_frac_bits - out_params->shift);
     } else {
         result = mli_math_cast_fx<vNx4short_t, vNx4char_t>(data, 8);
     }
@@ -62,6 +65,7 @@ template<typename out_T, bool convert = false>
 MLI_FORCE_INLINE void activation_lut_store_output(
         MLI_OUT_PTR(int16_t) out,
         vNx4short_t data,
+        const mli_lut *lut,
         struct s8asym_quant_params *out_params) {
     mli_prv_store_n_samples(out, data);
 }
@@ -71,6 +75,7 @@ static MLI_FORCE_INLINE void activation_lut_store_output(
         MLI_OUT_PTR(out_T) out,
         vNx4short_t data,
         int elem_num,
+        const mli_lut *lut,
         struct s8asym_quant_params *out_params);
 
 template<typename out_T, bool convert = false>
@@ -78,12 +83,14 @@ MLI_FORCE_INLINE void activation_lut_store_output(
         MLI_OUT_PTR(int8_t) out,
         vNx4short_t data,
         int elem_num,
+        const mli_lut *lut,
         struct s8asym_quant_params *out_params) {
     vNx4char_t result;
     if(convert) {
         MLI_ASSERT(out_params != nullptr);
         MLI_ASSERT(out_params->scale == 1);
-        result = mli_prv_convert_fx16_sa8<vNx4short_t, vNx4char_t>(data, out_params->offset, kLutOutFracBits - out_params->shift);
+        result = mli_prv_convert_fx16_sa8<vNx4short_t, vNx4char_t>(data, out_params->offset, 
+                                                                   lut->out_frac_bits - out_params->shift);
     } else {
         result = mli_math_cast_fx<vNx4short_t, vNx4char_t>(data, 8);
     }
@@ -95,6 +102,7 @@ MLI_FORCE_INLINE void activation_lut_store_output(
         MLI_OUT_PTR(int16_t) out,
         vNx4short_t data,
         int elem_num,
+        const mli_lut *lut,
         struct s8asym_quant_params *out_params) {
     mli_prv_store_n_samples(out, data, elem_num);
 }
@@ -109,7 +117,7 @@ static MLI_FORCE_INLINE vNx4short_t activation_lut_vec_elem_interpolate(
         const struct s8asym_quant_params *in_params) {
 
     MLI_ASSERT(in_frac_bits >= -1);  // -1 may be required by softmax
-    MLI_ASSERT(lut->frac_bits >= 0);
+    MLI_ASSERT(lut->in_frac_bits >= 0);
     MLI_ASSERT(lut->length >= 0);
 
     int32_t scale_fx;
@@ -117,13 +125,13 @@ static MLI_FORCE_INLINE vNx4short_t activation_lut_vec_elem_interpolate(
     if (convert) {
         MLI_ASSERT(in_params != nullptr);
         /* Calculating Scaling Factor to transform SA8 to Qmn (FX16) */
-        int lut_int_bits_fx8 = kMaxFracBitsFx8 - lut->frac_bits;
+        int lut_int_bits_fx8 = kMaxFracBitsFx8 - lut->in_frac_bits;
         int frac_bits_fx16 = kMaxFracBitsFx16 - lut_int_bits_fx8;
         scale_fx = mli_math_acc_ashift_fx<int32_t>(in_params->scale, ((int32_t) in_params->shift - frac_bits_fx16));
         in_frac_bits = frac_bits_fx16;
     }
 
-    int shift_in = in_frac_bits - lut->frac_bits;
+    int shift_in = in_frac_bits - lut->in_frac_bits;
     const MLI_PTR(short) lut_data = (const MLI_PTR(short))lut->data;
     // if shift amount is too high, preshift argument itself and
     // limit shift amount to prevent overflows
@@ -165,7 +173,7 @@ static MLI_FORCE_INLINE vNx4short_t activation_lut_vec_elem_no_interpolate(
         const struct s8asym_quant_params *in_params) {
 
     MLI_ASSERT(in_frac_bits >= -1);  // -1 may be required by softmax
-    MLI_ASSERT(lut->frac_bits >= 0);
+    MLI_ASSERT(lut->in_frac_bits >= 0);
     MLI_ASSERT(lut->length >= 0);
 
     int32_t scale_fx;
@@ -173,13 +181,13 @@ static MLI_FORCE_INLINE vNx4short_t activation_lut_vec_elem_no_interpolate(
     if (convert) {
         MLI_ASSERT(in_params != nullptr);
         /* Calculating Scaling Factor to transform SA8 to Qmn (FX16) */
-        int lut_int_bits_fx8 = kMaxFracBitsFx8 - lut->frac_bits;
+        int lut_int_bits_fx8 = kMaxFracBitsFx8 - lut->in_frac_bits;
         int frac_bits_fx16 = kMaxFracBitsFx16 - lut_int_bits_fx8;
         scale_fx = mli_math_acc_ashift_fx<int32_t>(in_params->scale, ((int32_t) in_params->shift - frac_bits_fx16));
         in_frac_bits = frac_bits_fx16;
     }
 
-    int shift_in = in_frac_bits - lut->frac_bits;
+    int shift_in = in_frac_bits - lut->in_frac_bits;
     const MLI_PTR(short) lut_data = (const MLI_PTR(short))lut->data;
     
     shift_in = mli_math_min_fx(shift_in, (int)kMaxFracBitsFx16);
@@ -210,7 +218,7 @@ static void activation_lut(
         struct s8asym_quant_params *out_params) {
 
     MLI_ASSERT(in_frac_bits >= -1);  // -1 may be required by softmax
-    MLI_ASSERT(lut->frac_bits >= 0);
+    MLI_ASSERT(lut->in_frac_bits >= 0);
     MLI_ASSERT(lut->length >= 0);
     MLI_ASSERT(MLI_MAX_RANK == 4);
 
@@ -221,12 +229,12 @@ static void activation_lut(
         MLI_ASSERT(in_params != nullptr);
         MLI_ASSERT(out_params != nullptr);
         /* Calculating Scaling Factor to transform SA8 to Qmn (FX16) */
-        int lut_int_bits_fx8 = kMaxFracBitsFx8 - lut->frac_bits;
+        int lut_int_bits_fx8 = kMaxFracBitsFx8 - lut->in_frac_bits;
         int frac_bits_fx16 = kMaxFracBitsFx16 - lut_int_bits_fx8;
         in_frac_bits = frac_bits_fx16;
     }
 
-    int shift_in = in_frac_bits - lut->frac_bits;
+    int shift_in = in_frac_bits - lut->in_frac_bits;
     // if shift amount is too high, preshift argument itself and
     // limit shift amount to prevent overflows
     shift_in = mli_math_min_fx(shift_in, (int)kMaxFracBitsFx16);
@@ -246,7 +254,7 @@ static void activation_lut(
                         vNx4short_t res = mli::krn::activation_lut_vec_elem_interpolate<convert>
                                             (x, lut, in_frac_bits, in_params);
                         /* Store O/P */
-                        activation_lut_store_output<io_T, convert>(vec_out, res, remaining_part, out_params);
+                        activation_lut_store_output<io_T, convert>(vec_out, res, remaining_part, lut, out_params);
                         vec_in  += remaining_part;
                         vec_out += remaining_part;
                     }
@@ -255,7 +263,7 @@ static void activation_lut(
                         vNx4short_t res = mli::krn::activation_lut_vec_elem_interpolate<convert>
                                             (x, lut, in_frac_bits, in_params);
                         /* Store O/P */
-                        activation_lut_store_output<io_T, convert>(vec_out, res, out_params);
+                        activation_lut_store_output<io_T, convert>(vec_out, res, lut, out_params);
                         vec_in  += _VDSP_NUM_8BIT_LANES;
                         vec_out += _VDSP_NUM_8BIT_LANES;
                     }
@@ -274,7 +282,7 @@ static void activation_lut(
                         vNx4short_t res = mli::krn::activation_lut_vec_elem_no_interpolate<convert>
                                             (x, lut, in_frac_bits, in_params);
                         /* Store O/P */
-                        activation_lut_store_output<io_T, convert>(vec_out, res, remaining_part, out_params);
+                        activation_lut_store_output<io_T, convert>(vec_out, res, remaining_part, lut, out_params);
                         vec_in  += remaining_part;
                         vec_out += remaining_part;
                     }
@@ -283,7 +291,7 @@ static void activation_lut(
                         vNx4short_t res = mli::krn::activation_lut_vec_elem_no_interpolate<convert>
                                             (x, lut, in_frac_bits, in_params);
                         /* Store O/P */
-                        activation_lut_store_output<io_T, convert>(vec_out, res, out_params);
+                        activation_lut_store_output<io_T, convert>(vec_out, res, lut, out_params);
                         vec_in  += _VDSP_NUM_8BIT_LANES;
                         vec_out += _VDSP_NUM_8BIT_LANES;
                     }
