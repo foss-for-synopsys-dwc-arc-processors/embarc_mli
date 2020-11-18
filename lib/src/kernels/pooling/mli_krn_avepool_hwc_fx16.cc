@@ -26,7 +26,7 @@ extern "C" {
 #endif
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-typedef mli_acc40_t mli_fx16_accu_t; // vNx4accint_t
+typedef vNx2accint_t mli_fx16_accu_t;
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
 typedef v2accum40_t mli_fx16_accu_t;
 #else

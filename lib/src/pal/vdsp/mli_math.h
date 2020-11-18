@@ -284,6 +284,20 @@ MLI_FORCE_INLINE vNx2accint_t mli_math_asr_fx(vNx2accint_t x, vNx2int_t nbits) {
     return __vacc_concat(vvcasrm(__vacc_lo(x), nbits.lo), vvcasrm(__vacc_hi(x), nbits.hi));
 }
 
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_math_asr_fx(vNx2accint_t x, int nbits) {
+    vNint_t nbits_v = nbits;
+    return __vacc_concat(vvcasrm(__vacc_lo(x), nbits_v), vvcasrm(__vacc_hi(x), nbits_v));
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accint_t mli_math_asr_fx(vNx4accint_t x, int nbits) {
+    vNx4accint_t r;
+    r.lo = mli_math_asr_fx(x.lo, nbits);
+    r.hi = mli_math_asr_fx(x.hi, nbits);
+    return r;
+}
+
 template <typename T, typename shift_T>
 MLI_FORCE_INLINE T mli_math_asl_fx(T x, shift_T nbits) {
     shift_T inp_size = sizeof(T) * 8;
@@ -442,6 +456,21 @@ MLI_FORCE_INLINE vNx4int_t mli_math_asr_rnd_fx(vNx4int_t x, vNx4int_t nbits) {
     return r;
 }
 
+template <>
+MLI_FORCE_INLINE vNx2int_t mli_math_asr_rnd_fx(vNx2int_t x, int nbits) {
+    vNx2int_t r;
+#ifdef ROUND_UP
+    // shift twice to prevent negative shift if nbits = 0
+    r = x + (vNx2int_t)((1 << nbits) >> 1);
+#endif
+#ifdef ROUND_CONVERGENT
+#error "Convergent rounding not supported"
+#endif
+    r = mli_math_asr_fx(r, nbits);
+
+    return r;
+}
+
 template <typename T>
 MLI_FORCE_INLINE T mli_math_asl_rnd_fx(T x, int nbits) {
     return mli_math_asr_rnd_fx<T, int>(x, -nbits);
@@ -491,6 +520,14 @@ MLI_FORCE_INLINE vNx4int_t mli_math_norm_fx(vNx4int_t x) {
     r.lo.hi = vvnorm(x.lo.hi);
     r.hi.lo = vvnorm(x.hi.lo);
     r.hi.hi = vvnorm(x.hi.hi);
+    return r;
+}
+
+template <>
+MLI_FORCE_INLINE vNx2int_t mli_math_norm_fx(vNx2accint_t x) {
+    vNx2int_t r;
+    r.lo = vvcnorm (__vacc_lo(x));
+    r.hi = vvcnorm (__vacc_hi(x));
     return r;
 }
 
@@ -652,6 +689,11 @@ MLI_FORCE_INLINE vNx4int_t mli_math_cast_fx(vNx4short_t in_val) {
 template <>
 MLI_FORCE_INLINE vNx4short_t mli_math_cast_fx(vNx4int_t in_val) {
     return to_vNx4short_t(in_val);
+}
+
+template <>
+MLI_FORCE_INLINE vNx2short_t mli_math_cast_fx(vNx2int_t in_val) {
+    return to_vNx2short_t(in_val);
 }
 
 template <>
