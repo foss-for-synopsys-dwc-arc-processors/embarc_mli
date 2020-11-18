@@ -6,6 +6,8 @@
 
 using mli::tst::tensor_quantizer;
 
+extern mli::tst::tensor_quantizer epsilon_fx16;
+extern mli::tst::tensor_quantizer epsilon_sa8;
 extern mli::tst::tensor_quantizer input_1_fx16;
 extern mli::tst::tensor_quantizer input_1_sa8;
 extern mli::tst::tensor_quantizer input_2_fx16;
@@ -36,6 +38,39 @@ extern const mli_l2_normalize_cfg test_5_cfg;
 extern const mli_l2_normalize_cfg test_6_cfg;
 extern const mli_l2_normalize_cfg test_7_cfg;
 extern const mli_l2_normalize_cfg test_8_cfg;
+
+static const float epsilon_data[] = {0.0000000001f};
+
+static const float epsilon_scale = 1.000000f;
+static const float epsilon_zero_point = 0.000000f;
+static const int8_t epsilon_scales_frac[] = {48};
+static const int epsilon_sa_dim = -1;
+
+static const int epsilon_fx8_frac = 40;
+
+#define EPSILON_TSR_SHARED_DESCR \
+    /* .data = */ { 0 },\
+    /* .mem_stride = */ {0}, \
+    /* .shape = */ {0}, \
+    /* .rank =  */ 0
+
+
+static const mli_tensor epsilon_tsr_fx16 = {
+    EPSILON_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
+};
+
+
+static const mli_tensor epsilon_tsr_sa8 = {
+    EPSILON_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ { 0 }
+};
+
+
 static const float input_1_data[] = {
       4.733333f,  -2.733333f,   5.800000f,   2.066667f,   3.666667f,  -0.066667f,  -1.933333f,  -1.666667f,   2.333333f,   7.933333f, 
      -0.866667f,   1.800000f,   6.066667f,   9.000000f,  11.666667f,  10.066667f,  11.400000f,  11.933333f,  12.200000f,  -2.466667f, 
@@ -461,6 +496,10 @@ static const mli_tensor test_8_out_tsr_sa8 = {
     /* .el_type = */ MLI_EL_SA_8,
     /* .el_params = */ { 0 }
 };
+
+tensor_quantizer epsilon_fx16(epsilon_tsr_fx16, epsilon_fx8_frac + 8, epsilon_data, sizeof(epsilon_data) / sizeof(epsilon_data[0]));
+tensor_quantizer epsilon_sa8(epsilon_tsr_sa8, epsilon_sa_dim, epsilon_data, 
+sizeof(epsilon_data) / sizeof(epsilon_data[0]), &epsilon_scale, 1, &epsilon_zero_point, 1, epsilon_scales_frac, 1);
 
 tensor_quantizer input_1_fx16(input_1_tsr_fx16, input_1_fx8_frac + 8, input_1_data, sizeof(input_1_data) / sizeof(input_1_data[0]));
 tensor_quantizer input_1_sa8(input_1_tsr_sa8, input_1_sa_dim, input_1_data, 

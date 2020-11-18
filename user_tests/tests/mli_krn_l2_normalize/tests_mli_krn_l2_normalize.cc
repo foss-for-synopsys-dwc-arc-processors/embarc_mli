@@ -39,7 +39,7 @@ struct l2_normalize_test_operands {
     const char* descr;
     const l2_normalize_func_ptr mli_krn_l2_normalize;
     tensor_quantizer in;
-    // tensor_quantizer epsilon;
+    tensor_quantizer epsilon;
     const mli_l2_normalize_cfg cfg;
     tensor_quantizer out;
     const quality_metrics threshold;
@@ -98,60 +98,61 @@ const quality_metrics thresholds_sa8_general { quality_metrics::kPassValueMaxAbs
 static const l2_normalize_test_operands tests_list[] = {
     /* Unifrom Distrbution, per tensor and per axis */
     {"Test 1 FX16 3D",  mli_krn_l2_normalize_fx16,
-                                    input_1_fx16, test_1_cfg, test_1_out_fx16,
+                                    input_1_fx16, epsilon_fx16, test_1_cfg, test_1_out_fx16,
                                     thresholds_fx16_general, test_1_chksum_fx16, false},
     {"Test 1 SA8  3D",  mli_krn_l2_normalize_sa8,
-                                    input_1_sa8, test_1_cfg, test_1_out_sa8,
+                                    input_1_sa8, epsilon_sa8, test_1_cfg, test_1_out_sa8,
                                     thresholds_sa8_general, test_1_chksum_sa8, false},
     {"Test 2 FX16 3D, Axis=2",  mli_krn_l2_normalize_fx16,
-                                    input_1_fx16, test_2_cfg, test_2_out_fx16,
+                                    input_1_fx16, epsilon_fx16, test_2_cfg, test_2_out_fx16,
                                     thresholds_fx16_general, test_2_chksum_fx16, false},
     {"Test 2 SA8  3D, Axis=2",  mli_krn_l2_normalize_sa8,
-                                    input_1_sa8, test_2_cfg, test_2_out_sa8,
+                                    input_1_sa8, epsilon_sa8, test_2_cfg, test_2_out_sa8,
                                     thresholds_sa8_general, test_2_chksum_sa8, false},
     {"Test 3 FX16 3D, Axis=0",  mli_krn_l2_normalize_fx16,
-                                    input_1_fx16, test_3_cfg, test_3_out_fx16,
+                                    input_1_fx16, epsilon_fx16, test_3_cfg, test_3_out_fx16,
                                     thresholds_fx16_general, test_3_chksum_fx16, false},
     {"Test 3 SA8  3D, Axis=0",  mli_krn_l2_normalize_sa8,
-                                    input_1_sa8, test_3_cfg, test_3_out_sa8,
+                                    input_1_sa8, epsilon_sa8, test_3_cfg, test_3_out_sa8,
                                     thresholds_sa8_general, test_3_chksum_sa8, false},
     /* Normal Distrbution with LeakyRELU Emulation , per tensor and per axis,  Memory Strides  */
     {"Test 4 FX16 4D, Memstr",  mli_krn_l2_normalize_fx16,
-                                    input_2_fx16, test_4_cfg, test_4_out_fx16,
+                                    input_2_fx16, epsilon_fx16, test_4_cfg, test_4_out_fx16,
                                     thresholds_fx16_general, test_4_chksum_fx16, false},
     {"Test 4 SA8  4D, Memstr",  mli_krn_l2_normalize_sa8,
-                                    input_2_sa8, test_4_cfg, test_4_out_sa8,
+                                    input_2_sa8, epsilon_sa8, test_4_cfg, test_4_out_sa8,
                                     thresholds_sa8_general, test_4_chksum_sa8, false},
     {"Test 5 FX16 4D, Axis=3, Memstr",  mli_krn_l2_normalize_fx16,
-                                    input_2_fx16, test_5_cfg, test_5_out_fx16,
+                                    input_2_fx16, epsilon_fx16, test_5_cfg, test_5_out_fx16,
                                     thresholds_fx16_general, test_5_chksum_fx16, false},
     {"Test 5 SA8  4D, Axis=3, Memstr",  mli_krn_l2_normalize_sa8,
-                                    input_2_sa8, test_5_cfg, test_5_out_sa8,
+                                    input_2_sa8, epsilon_sa8, test_5_cfg, test_5_out_sa8,
                                     thresholds_sa8_general, test_5_chksum_sa8, false},
     {"Test 6 FX16 4D, Axis=0, Memstr",  mli_krn_l2_normalize_fx16,
-                                    input_2_fx16, test_6_cfg, test_6_out_fx16,
+                                    input_2_fx16, epsilon_fx16, test_6_cfg, test_6_out_fx16,
                                     thresholds_fx16_general, test_6_chksum_fx16, false},
     {"Test 6 SA8  4D, Axis=0, Memstr",  mli_krn_l2_normalize_sa8,
-                                    input_2_sa8, test_6_cfg, test_6_out_sa8,
+                                    input_2_sa8, epsilon_sa8, test_6_cfg, test_6_out_sa8,
                                     thresholds_sa8_general, test_6_chksum_sa8, false},
     /* Special Case: Zeros, Equal Values, In Place Computation */
     {"Test 7 FX16 2D, Axis=1, IPC",  mli_krn_l2_normalize_fx16,
-                                    input_3_fx16, test_7_cfg, test_7_out_fx16,
+                                    input_3_fx16, epsilon_fx16, test_7_cfg, test_7_out_fx16,
                                     thresholds_fx16_general, test_7_chksum_fx16, true},
     {"Test 7 SA8  2D, Axis=1, IPC",  mli_krn_l2_normalize_sa8,
-                                    input_3_sa8, test_7_cfg, test_7_out_sa8,
+                                    input_3_sa8, epsilon_sa8, test_7_cfg, test_7_out_sa8,
                                     thresholds_sa8_general, test_7_chksum_sa8, true},
     /* Special Case: One Hot Value, In Place Computation */
     {"Test 8 FX16 2D, Axis=0, IPC",  mli_krn_l2_normalize_fx16,
-                                    input_3_fx16, test_8_cfg, test_8_out_fx16,
+                                    input_3_fx16, epsilon_fx16, test_8_cfg, test_8_out_fx16,
                                     thresholds_fx16_general, test_8_chksum_fx16, true},
     {"Test 8 SA8  2D, Axis=0, IPC",  mli_krn_l2_normalize_sa8,
-                                    input_3_sa8, test_8_cfg, test_8_out_sa8,
+                                    input_3_sa8, epsilon_sa8, test_8_cfg, test_8_out_sa8,
                                     thresholds_sa8_general, test_8_chksum_sa8, true},
 };
 
 constexpr int kMemSize = 2048;
 static IO_DATA_ATTR int8_t scratch_mem_in[kMemSize]  = { 0 };
+static IO_DATA_ATTR int8_t scratch_mem_epsilon[kMemSize]  = { 0 };
 static IO_DATA_ATTR int8_t scratch_mem_out[kMemSize] = { 0 };
 
 constexpr int kTestsNum = sizeof(tests_list) / sizeof(tests_list[0]);
@@ -163,16 +164,19 @@ int main() {
     reporter.report_header("MLI|Kernels|L2 Normalize Functions Tests");
     for (int i = 0; i < kTestsNum; ++i) {
         memory_manager mem_in_keeper((int8_t*)(scratch_mem_in), sizeof(scratch_mem_in));
+        memory_manager mem_epsilon_keeper((int8_t*)(scratch_mem_epsilon), sizeof(scratch_mem_epsilon));
         memory_manager mem_out_keeper((int8_t*)(scratch_mem_out), sizeof(scratch_mem_out));
         bool is_test_passed = true;
         const l2_normalize_test_operands* cur_test = &tests_list[i];
         quality_metrics test_metics;
-        if (!(cur_test->in.is_valid() && cur_test->out.is_valid())) {
+        if (!(cur_test->in.is_valid() && cur_test->epsilon.is_valid() && cur_test->out.is_valid())) {
             reporter.report_message(cur_test->descr, "FAILED at init: Bad source data for one of tensors");
             is_test_passed = false;
         }
 
         mli_tensor input = cur_test->in.get_quantized_tensor(mem_in_keeper.allocate_memory(cur_test->in));
+        mli_tensor epsilon = cur_test->epsilon.get_quantized_tensor(
+                                       mem_epsilon_keeper.allocate_memory(cur_test->epsilon));
         mli_tensor out = cur_test->out.get_not_quantized_tensor(mem_out_keeper.allocate_memory(cur_test->out));
         if (cur_test->in_place_comp) {
             mli_element_params params = out.el_params;
@@ -184,6 +188,7 @@ int main() {
 
         if (is_test_passed &&
                 (tensor_quantizer::validate_tensor(input) != tensor_quantizer::kOk ||
+                 tensor_quantizer::validate_tensor(epsilon) != tensor_quantizer::kOk ||
                  tensor_quantizer::validate_tensor(out) != tensor_quantizer::kOk)) {
             reporter.report_message(cur_test->descr, 
                                     "FAILED at quantization step: more memory for one of tensors might be required");
@@ -192,6 +197,7 @@ int main() {
 
         if (is_test_passed &&
                 (mem_in_keeper.is_memory_corrupted() ||
+                 mem_epsilon_keeper.is_memory_corrupted() ||
                  mem_out_keeper.is_memory_corrupted())) {
             reporter.report_message(cur_test->descr,
                 "FAILED at quantization step: memory beside one of operands is corrupted");
@@ -199,7 +205,6 @@ int main() {
         }
 
         // Run specific kernel for test 
-        mli_tensor epsilon;
         if (is_test_passed &&
                 cur_test->mli_krn_l2_normalize(&input, &epsilon, &cur_test->cfg, &out) != MLI_STATUS_OK) {
             reporter.report_message(cur_test->descr, "FAILED at kernel run: kernel returned bad status");
@@ -208,6 +213,7 @@ int main() {
 
         if (is_test_passed &&
                 (mem_in_keeper.is_memory_corrupted() || 
+                 mem_epsilon_keeper.is_memory_corrupted() ||
                  mem_out_keeper.is_memory_corrupted())) {
             reporter.report_message(cur_test->descr,
                 "FAILED after kernel run: memory beside one of operands is corrupted");
