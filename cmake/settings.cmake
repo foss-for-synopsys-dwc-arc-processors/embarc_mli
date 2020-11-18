@@ -72,7 +72,7 @@ if (ARC)
 
     list(APPEND MLI_PLATFORM_FLAGS
         -Hon=Long_enums
-        "SHELL: -mllvm -gen-lpcc=false"
+        "SHELL: -mllvm -gen-lpcc=false -mllvm -arc-scev-aa-vdsp=false"
     )
     if (DEFINED BUILDLIB_DIR)
         list(APPEND MLI_PLATFORM_LINK_OPTIONS

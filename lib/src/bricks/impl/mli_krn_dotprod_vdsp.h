@@ -154,7 +154,12 @@ static MLI_FORCE_INLINE acc_T dotprod2D_vv(
         int kern_row_step) {
     in_row_step -= width * in_col_step;
     kern_row_step -= width * kern_col_step;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
+
+#pragma clang loop unroll(full)
     for (int row = 0; row < height; row++) {
+#pragma clang loop unroll(full)
         for (int clmn = 0; clmn < width; clmn++) {
             accu = mli_prv_mac_load_v_v(accu, krn, in);
             in += in_col_step;
@@ -164,6 +169,7 @@ static MLI_FORCE_INLINE acc_T dotprod2D_vv(
         krn += kern_row_step;
     }
     return accu;
+#pragma clang diagnostic pop
 }
 
 template < typename in_T, typename w_T, typename acc_T >

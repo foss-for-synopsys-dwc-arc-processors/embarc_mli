@@ -792,14 +792,13 @@ MLI_FORCE_INLINE vNx4int_t mli_math_acc_cast_fx(vNx4accint_t acc) {
 
 template<>
 MLI_FORCE_INLINE vNx4short_t mli_math_acc_cast_fx(vNx4accint_t acc, int shift_right) {
-    if (shift_right > 0) {
+
 #ifdef ROUND_UP
-        int round = 1 << (shift_right - 1);
-        acc = mli_math_add<vNx4accint_t, vNx4int_t>(acc, (vNx4int_t)round);
+    int round = (1 << shift_right) >> 1;
+    acc = mli_math_add<vNx4accint_t, vNx4int_t>(acc, (vNx4int_t)round);
 #else
-        #error Rounding mode not supported
+    #error Rounding mode not supported
 #endif
-    }
 
     int ctrlword = SAT|SIGNED|TARGET_SZ_16|SHIFT(shift_right);
     vNx4int_t accu_result;
@@ -813,14 +812,14 @@ MLI_FORCE_INLINE vNx4short_t mli_math_acc_cast_fx(vNx4accint_t acc, int shift_ri
 
 template<>
 MLI_FORCE_INLINE vNx4char_t mli_math_acc_cast_fx(vNx4accchar_t acc, int shift_right) {
+
 #ifdef ROUND_UP
-    if (shift_right > 0) {
-        int round = 1 << (shift_right - 1);
-        acc = mli_math_add<vNx4accchar_t, vNx4char_t>(acc, (vNx4char_t)round);
-    }
+    int round = (1 << shift_right) >> 1;
+    acc = mli_math_add<vNx4accchar_t, vNx4char_t>(acc, (vNx4char_t)round);
 #else
     #error Rounding mode not supported
 #endif
+
     int ctrlword = SAT|SIGNED|TARGET_SZ_8|SHIFT(shift_right);
     vNx4char_t accu_result;
     accu_result = to_vNx4char_t(vvconvert(acc, ctrlword));
@@ -830,14 +829,14 @@ MLI_FORCE_INLINE vNx4char_t mli_math_acc_cast_fx(vNx4accchar_t acc, int shift_ri
 
 template<>
 MLI_FORCE_INLINE vNx2short_t mli_math_acc_cast_fx(vNx2accshort_t acc, int shift_right) {
+
 #ifdef ROUND_UP
-    if (shift_right > 0) {
-        int round = 1 << (shift_right - 1);
-        acc = mli_math_add<vNx2accshort_t, vNx2short_t>(acc, (vNx2short_t)round);
-    }
+    int round = (1 << shift_right) >> 1;
+    acc = mli_math_add<vNx2accshort_t, vNx2short_t>(acc, (vNx2short_t)round);
 #else
     #error Rounding mode not supported
 #endif
+
     int ctrlword = SAT|SIGNED|TARGET_SZ_16|SHIFT(shift_right);
     vNx2short_t accu_result;
     accu_result = to_vNx2short_t(vvconvert(acc, ctrlword));
@@ -847,14 +846,14 @@ MLI_FORCE_INLINE vNx2short_t mli_math_acc_cast_fx(vNx2accshort_t acc, int shift_
 
 template<>
 MLI_FORCE_INLINE vNx4short_t mli_math_acc_cast_fx(vNx4accshort_t acc, int shift_right) {
-    if (shift_right > 0) {
+
 #ifdef ROUND_UP
-        int round = 1 << (shift_right - 1);
-        acc = mli_math_add<vNx4accshort_t, vNx4short_t>(acc, (vNx4short_t)round);
+    int round = (1 << shift_right) >> 1;
+    acc = mli_math_add<vNx4accshort_t, vNx4short_t>(acc, (vNx4short_t)round);
 #else
-        #error Rounding mode not supported
+    #error Rounding mode not supported
 #endif
-    }
+
     int ctrlword = SAT|SIGNED|TARGET_SZ_16|SHIFT(shift_right);
     vNx4short_t accu_result;
     accu_result.lo = to_vNx2short_t(vvconvert(__vacc_lo(acc), ctrlword));
@@ -865,14 +864,13 @@ MLI_FORCE_INLINE vNx4short_t mli_math_acc_cast_fx(vNx4accshort_t acc, int shift_
 
 template<>
 MLI_FORCE_INLINE vNx2int_t mli_math_acc_cast_fx(vNx2accint_t acc, int shift_right) {
-    if (shift_right > 0) {
+
 #ifdef ROUND_UP
-        int round = 1 << (shift_right - 1);
-        acc = mli_math_add<vNx2accint_t, vNx2int_t>(acc, (vNx2int_t)round);
+    int round = (1 << shift_right) >> 1;
+    acc = mli_math_add<vNx2accint_t, vNx2int_t>(acc, (vNx2int_t)round);
 #else
-        #error Rounding mode not supported
+    #error Rounding mode not supported
 #endif
-    }
 
     int ctrlword = SAT|SIGNED|TARGET_SZ_32|SHIFT(shift_right);
     vNx2int_t accu_result;
@@ -884,14 +882,14 @@ MLI_FORCE_INLINE vNx2int_t mli_math_acc_cast_fx(vNx2accint_t acc, int shift_righ
 
 template<>
 MLI_FORCE_INLINE vNx2short_t mli_math_acc_cast_fx(vNx2accint_t acc, int shift_right) {
-    if (shift_right > 0) {
+
 #ifdef ROUND_UP
-        int round = 1 << (shift_right - 1);
-        acc = mli_math_add<vNx2accint_t, vNx2int_t>(acc, (vNx2int_t)round);
+    int round = (1 << shift_right) >> 1;
+    acc = mli_math_add<vNx2accint_t, vNx2int_t>(acc, (vNx2int_t)round);
 #else
-        #error Rounding mode not supported
+    #error Rounding mode not supported
 #endif
-    }
+
     int ctrlword = SAT|SIGNED|TARGET_SZ_16|SHIFT(shift_right);
     vNx2int_t accu_result;
     accu_result.lo = to_vNint_t(vvconvert(__vacc_lo(acc), ctrlword));
@@ -903,14 +901,13 @@ MLI_FORCE_INLINE vNx2short_t mli_math_acc_cast_fx(vNx2accint_t acc, int shift_ri
 
 template<>
 MLI_FORCE_INLINE vNx4int_t mli_math_acc_cast_fx(vNx4accint_t acc, int shift_right) {
-    if (shift_right > 0) {
+
 #ifdef ROUND_UP
-        int round = 1 << (shift_right - 1);
-        acc = mli_math_add<vNx4accint_t, vNx4int_t>(acc, (vNx4int_t)round);
+    int round = (1 << shift_right) >> 1;
+    acc = mli_math_add<vNx4accint_t, vNx4int_t>(acc, (vNx4int_t)round);
 #else
-        #error Rounding mode not supported
+    #error Rounding mode not supported
 #endif
-    }
 
     int ctrlword = SAT|SIGNED|TARGET_SZ_32|SHIFT(shift_right);
     vNx4int_t accu_result;
@@ -924,14 +921,14 @@ MLI_FORCE_INLINE vNx4int_t mli_math_acc_cast_fx(vNx4accint_t acc, int shift_righ
 
 template<>
 MLI_FORCE_INLINE vNx4char_t mli_math_acc_cast_fx(vNx4accint_t acc, int shift_right) {
+
 #ifdef ROUND_UP
-    if (shift_right > 0) {
-        int round = 1 << (shift_right - 1);
-        acc = mli_math_add<vNx4accint_t, vNx4int_t>(acc, (vNx4int_t)round);
-    }
+    int round = (1 << shift_right) >> 1;
+    acc = mli_math_add<vNx4accint_t, vNx4int_t>(acc, (vNx4int_t)round);
 #else
-        #error Rounding mode not supported
+    #error Rounding mode not supported
 #endif
+
     int ctrlword = SAT|SIGNED|TARGET_SZ_8|SHIFT(shift_right);
     vNx4int_t accu_result;
     accu_result.lo.lo = to_vNint_t(vvconvert(__vacc_lo(acc.lo), ctrlword));
@@ -959,14 +956,14 @@ MLI_FORCE_INLINE vNx4char_t mli_math_acc_cast_fx<vNx4char_t, vNx4accint_t,/*roun
 
 template<>
 MLI_FORCE_INLINE vNx4char_t mli_math_acc_cast_fx(vNx4accshort_t acc, int shift_right) {
+
 #ifdef ROUND_UP
-    if (shift_right > 0) {
-        int round = 1 << (shift_right - 1);
-        acc = mli_math_add<vNx4accshort_t, vNx4short_t>(acc, (vNx4short_t)round);
-    }
+    int round = (1 << shift_right) >> 1;
+    acc = mli_math_add<vNx4accshort_t, vNx4short_t>(acc, (vNx4short_t)round);
 #else
     #error Rounding mode not supported
 #endif
+
     int ctrlword = SAT|SIGNED|TARGET_SZ_8|SHIFT(shift_right);
     vNx4short_t accu_result;
     accu_result.lo = to_vNx2short_t(vvconvert(__vacc_lo(acc), ctrlword));
