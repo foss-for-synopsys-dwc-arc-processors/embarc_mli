@@ -124,6 +124,42 @@ static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
 }
 
 static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        vNx2accint_t ip_in,
+        const int out_shift) {
+    vNx2short_t out = mli_math_acc_cast_fx<vNx2short_t, vNx2accint_t>(ip_in, out_shift);
+    mli_prv_store_n_samples(o_ptr, out);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        vNx2accint_t ip_in,
+        const int out_shift,
+        int num) {
+    vNx2short_t out = mli_math_acc_cast_fx<vNx2short_t, vNx2accint_t>(ip_in, out_shift);
+    mli_prv_store_n_samples(o_ptr, out, num);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        vNx2int_t ip_in,
+        const int out_shift) {
+    vNx2int_t ip_in_shifted = mli_math_asr_rnd_fx(ip_in, out_shift);
+    vNx2short_t out = mli_math_cast_fx<vNx2int_t, vNx2short_t>(ip_in_shifted);
+    mli_prv_store_n_samples(o_ptr, out);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        vNx2int_t ip_in,
+        const int out_shift,
+        int num) {
+    vNx2int_t ip_in_shifted = mli_math_asr_rnd_fx(ip_in, out_shift);
+    vNx2short_t out = mli_math_cast_fx<vNx2int_t, vNx2short_t>(ip_in_shifted);
+    mli_prv_store_n_samples(o_ptr, out, num);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
         MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
         vNx4accint_t ip_in,
         const int out_shift) {
@@ -302,6 +338,16 @@ MLI_FORCE_INLINE vNx4accint_t mli_prv_init_accu_with_bias_v(
     vNx4accint_t r;
     r.lo = vvcmpy((vNx2short_t)1, (int16_t)bias);
     r.hi = vvcmpy((vNx2short_t)1, (int16_t)bias);
+    return mli_math_asl_fx(r, bias_shift);
+}
+
+template<>
+MLI_FORCE_INLINE vNx2accint_t mli_prv_init_accu_with_bias_v(
+        const int16_t bias,
+        const int bias_shift) {
+
+    vNx2accint_t r;
+    r = vvcmpy((vNx2short_t)1, (int16_t)bias);
     return mli_math_asl_fx(r, bias_shift);
 }
 

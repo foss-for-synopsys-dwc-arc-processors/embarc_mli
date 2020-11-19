@@ -30,15 +30,15 @@ namespace krn {
 
 #define DIV_LUT_THRESHOLD 32
 static const int16_t multiplier_lut[] = {
-    0, // 0
-    0x0001, // 1
-    0x0001, // 2
+    0,      // 0
+    0x4000, // 1
+    0x4000, // 2
     0x5555, // 3
-    0x0001, // 4
+    0x4000, // 4
     0x6666, // 5
     0x5555, // 6
     0x4924, // 7*
-    0x0001, // 8
+    0x4000, // 8
     0x71c7, // 9
     0x6666, // 10
     0x5d17, // 11
@@ -46,7 +46,7 @@ static const int16_t multiplier_lut[] = {
     0x4ec4, // 13*
     0x4924, // 14*
     0x4444, // 15
-    0x0001, // 16
+    0x4000, // 16
     0x7878, // 17
     0x71c7, // 18
     0x6bca, // 19
@@ -65,15 +65,15 @@ static const int16_t multiplier_lut[] = {
 };
 
 static const int8_t shift_lut[] = {
-    0,  // 0
-    0,  // 1
-    1,  // 2
+     0, // 0
+    14, // 1
+    15, // 2
     16, // 3
-    2,  // 4
+    16, // 4
     17, // 5
     17, // 6
     17, // 7
-    3,  // 8
+    17, // 8
     18, // 9
     18, // 10
     18, // 11
@@ -81,7 +81,7 @@ static const int8_t shift_lut[] = {
     18, // 13
     18, // 14
     18, // 15
-    4,  // 16
+    18, // 16
     19, // 17
     19, // 18
     19, // 19
@@ -150,6 +150,7 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_nopad(
     int remaining_chans = in.ch & (number_lanes - 1);
     MLI_OUT_PTR(io_T) out_ptr;
 
+    int accum_shift_amout = 0;
     int16_t mul = 0;
     int shift_value = params->shift;
     int32_t zp = params->offset;
@@ -183,10 +184,10 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_nopad(
                         
                         acc_T acc = mli_prv_init_accu_with_bias_v<acc_T>(zp, shift_value);
                         
-                        acc = mli::krn::reduce_sum2D_v(in_ptr, mul, acc, kernel_width, kernel_height,
-                                in.col_mem_stride, in.row_mem_stride, true);
+                        auto res = mli::krn::reduce_sum2D_v(in_ptr, mul, acc, kernel_width, kernel_height,
+                                in.col_mem_stride, in.row_mem_stride, true, &accum_shift_amout);
 
-                        mli_prv_clip_and_store_output_v(out_ptr, acc, shift_value);
+                        mli_prv_clip_and_store_output_v(out_ptr, res, shift_value - accum_shift_amout);
 
                     }
                 }
@@ -207,10 +208,10 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_nopad(
 
                     acc_T acc = mli_prv_init_accu_with_bias_v<acc_T>(zp, shift_value);
 
-                    acc = mli::krn::reduce_sum2D_v(in_ptr, mul, acc, kernel_width, kernel_height,
-                        in.col_mem_stride, in.row_mem_stride, true);
+                    auto res = mli::krn::reduce_sum2D_v(in_ptr, mul, acc, kernel_width, kernel_height,
+                        in.col_mem_stride, in.row_mem_stride, true, &accum_shift_amout);
 
-                    mli_prv_clip_and_store_output_v(out_ptr, acc, shift_value, remaining_chans);
+                    mli_prv_clip_and_store_output_v(out_ptr, res, shift_value - accum_shift_amout, remaining_chans);
 
                 }
             }
@@ -312,7 +313,7 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_pad(
                                            out.col_mem_stride * W_idx +
                                            ch_idx];
 
-
+                        int accum_shift_amout = 0;
                         int shift_value = params->shift;
                         int16_t mul = 0;
                         int32_t zp = params->offset;
@@ -329,10 +330,10 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_pad(
 
                         acc_T acc = mli_prv_init_accu_with_bias_v<acc_T>(zp, shift_value);
                         
-                        acc = mli::krn::reduce_sum2D_v(in_ptr, mul, acc, clmns, rows,
-                                in.col_mem_stride, in.row_mem_stride, false);
+                        auto res = mli::krn::reduce_sum2D_v(in_ptr, mul, acc, clmns, rows,
+                                in.col_mem_stride, in.row_mem_stride, false, &accum_shift_amout);
 
-                        mli_prv_clip_and_store_output_v(out_ptr, acc, shift_value);
+                        mli_prv_clip_and_store_output_v(out_ptr, res, shift_value - accum_shift_amout);
 
                     }
                 }
@@ -361,7 +362,7 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_pad(
                                            out.col_mem_stride * W_idx +
                                            out.ch - remaining_chans];
 
-
+                        int accum_shift_amout = 0;
                         int shift_value = params->shift;
                         int16_t mul = 0;
                         int32_t zp = params->offset;
@@ -378,10 +379,10 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_pad(
                         
                         acc_T acc = mli_prv_init_accu_with_bias_v<acc_T>(zp, shift_value);
 
-                        acc = mli::krn::reduce_sum2D_v(in_ptr, mul, acc, clmns, rows,
-                                in.col_mem_stride, in.row_mem_stride, false);
+                        auto res = mli::krn::reduce_sum2D_v(in_ptr, mul, acc, clmns, rows,
+                                in.col_mem_stride, in.row_mem_stride, false, &accum_shift_amout);
 
-                        mli_prv_clip_and_store_output_v(out_ptr, acc, shift_value, remaining_chans);
+                        mli_prv_clip_and_store_output_v(out_ptr, res, shift_value - accum_shift_amout, remaining_chans);
                     }
                 }
             }
