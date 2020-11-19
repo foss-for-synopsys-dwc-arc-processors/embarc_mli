@@ -32,7 +32,8 @@ KERNELS = \
 	leaky_relu \
 	eltwise \
 	tanh \
-	sigm
+	sigm \
+	l2_normalize
 
 BIN_FILES=$(patsubst %,$(BIN_PATH)$(PS)test_mli_krn_%$(BIN_EXT),$(KERNELS))
 TEST_TARGETS = $(patsubst %,test_%,$(KERNELS))

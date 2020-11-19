@@ -73,7 +73,8 @@ typedef struct {
     const void* data;
     mli_element_type type;
     int length;
-    int frac_bits;
+    int in_frac_bits;
+    int out_frac_bits;
     int offset;
 } mli_lut;
 

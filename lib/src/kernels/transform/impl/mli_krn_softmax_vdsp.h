@@ -190,7 +190,7 @@ static mli_status mli_krn_softmax_sa8_run(const mli_tensor *in, const mli_softma
                                 vNx4int_t fx_output32_non_accum = mli_math_acc_cast_fx<vNx4int_t, vNx4accint_t>(fx_output32, 0);
 
                                 // sum_recip * vec_out[idx] = Q15 * Q15 (default LUT output)
-                                int lut_frac_bits = kLutOutFracBits * 2;
+                                int lut_frac_bits = expneg_lut_fx16.out_frac_bits * 2;
                                 // 15 - sum_exp: sum_of_exps overhead
                                 int sum_exp_overhead = kMaxFracBitsFx16 - sum_exp;
                                 // Converting to float and back to asym8
@@ -212,7 +212,7 @@ static mli_status mli_krn_softmax_sa8_run(const mli_tensor *in, const mli_softma
                                 vNx4int_t fx_output32_non_accum = mli_math_acc_cast_fx<vNx4int_t, vNx4accint_t>(fx_output32, 0);
 
                                 // sum_recip * vec_out[idx] = Q15 * Q15 (default LUT output)
-                                int lut_frac_bits = kLutOutFracBits * 2;
+                                int lut_frac_bits = expneg_lut_fx16.out_frac_bits * 2;
                                 // 15 - sum_exp: sum_of_exps overhead
                                 int sum_exp_overhead = kMaxFracBitsFx16 - sum_exp;
                                 // Converting to float and back to asym8

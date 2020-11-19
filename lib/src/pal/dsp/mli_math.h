@@ -202,6 +202,10 @@ template <> MLI_FORCE_INLINE mli_acc40_t mli_math_mul_fx(int16_t L, int16_t R) {
     return fx_a40_mpy_nf_q15(L, R);
 }
 
+template <> MLI_FORCE_INLINE int64_t mli_math_mul_fx(int16_t L, int16_t R) {
+    return (int64_t) (L * R);
+}
+
 template <> MLI_FORCE_INLINE mli_acc32_t mli_math_mul_fx_high(int32_t L, int32_t R) {
     // this function takes the MSB part of the result. (L * R) >> 31
     // in optimized code check if mpyfr instruction is used here.
@@ -257,6 +261,10 @@ template <> MLI_FORCE_INLINE mli_acc40_t mli_math_mac_fx(mli_acc40_t acc, int16_
 
 template <> MLI_FORCE_INLINE mli_acc40_t mli_math_mac_fx(mli_acc40_t acc, int8_t L, int8_t R) {
     return fx_a40_mac_nf_q15(acc, (int16_t)L, (int16_t)R);
+}
+
+template <> MLI_FORCE_INLINE int64_t mli_math_mac_fx(int64_t acc, int16_t L, int16_t R) {
+    return acc + (int64_t) (L * R);
 }
 
 static MLI_FORCE_INLINE mli_acc40_t mli_math_mac_fx(mli_acc40_t acc, v2q15_t in, v2q15_t k) {

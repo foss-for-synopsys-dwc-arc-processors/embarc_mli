@@ -47,6 +47,9 @@ def sigmoid(x):
 def expneg(x):
     return math.exp(x) if x <= 0 else 1.0
 
+def invsqrt(x):
+    return 1.0 / math.sqrt(x) if x > 0 else 1
+
 def main():
     args = parser.parse_args()
 
@@ -54,7 +57,7 @@ def main():
     lut_size = eval('lambda : int(' + args.lut_size + ')', {})()
     # build dict of helper symbols
     evalsymbols = {name: getattr(math, name) for name in dir(math) if name[0] != '_'}
-    evalsymbols.update({'size': lut_size, 'sigm': sigmoid, 'expneg': expneg})
+    evalsymbols.update({'size': lut_size, 'sigm': sigmoid, 'expneg': expneg, 'invsqrt': invsqrt})
     # parse lut_in_offset and lut_function arguments
     lut_in_offset = eval('lambda : int(' + args.lut_offset + ')', evalsymbols)()
     lut_function = eval('lambda x: float(' + args.function + ')', evalsymbols)

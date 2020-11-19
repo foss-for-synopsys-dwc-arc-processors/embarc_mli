@@ -712,6 +712,22 @@ mli_status mli_krn_softmax_fx16(const mli_tensor* in, const mli_softmax_cfg* cfg
 mli_status mli_krn_softmax_fx8(const mli_tensor * in, const mli_softmax_cfg* cfg, mli_tensor * out); /* DEPRECATED */
 
 
+/**
+ * @brief L2 Normalization Activation function
+ *
+ * @detail This kernel performs L2 Normalization activation function on input tensor element-wise 
+ * and store result to the output tensor. Kernel outputs a tensor of the same shape and type as input tensor.
+ *
+ * For more info on primitive see MLI Documentation
+ *
+ * @param in      [I] Input feature tensor (of any shape)
+ * @param out     [O] Output feature tensor. Result will be stored here
+ *
+ * @return MLI status code
+ */
+mli_status mli_krn_l2_normalize_fx16(const mli_tensor *in, const mli_tensor *epsilon, const mli_l2_normalize_cfg *cfg, mli_tensor *out);
+mli_status mli_krn_l2_normalize_sa8(const mli_tensor *in, const mli_tensor *epsilon, const mli_l2_normalize_cfg *cfg, mli_tensor *out);
+
 
 //================================================
 //

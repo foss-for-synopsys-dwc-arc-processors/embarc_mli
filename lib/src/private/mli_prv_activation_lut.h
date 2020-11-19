@@ -17,6 +17,7 @@ using mli::krn::s8asym_quant_params;
 extern const mli_lut tanh_lut_fx16;
 extern const mli_lut sigmoid_lut_fx16;
 extern const mli_lut expneg_lut_fx16;
+extern const mli_lut invsqrt_lut_fx16;
 
 #ifdef __cplusplus
 extern "C" {
