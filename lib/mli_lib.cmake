@@ -143,6 +143,10 @@ if (NOT DEFINED ROUND_MODE)
     endif()
 endif()
 
+if (NOT DEFINED FULL_ACCU)
+    set(FULL_ACCU OFF)
+endif()
+
 if(ROUND_MODE STREQUAL UP)
     list(APPEND MLI_LIB_PRIVATE_COMPILE_DEFINITIONS
         ROUND_UP
@@ -153,6 +157,16 @@ elseif(ROUND_MODE STREQUAL CONVERGENT)
     )
 else()
     message(FATAL_ERROR "rounding mode ${ROUND_MODE} is not supported")
+endif()
+
+if(FULL_ACCU STREQUAL ON)
+    list(APPEND MLI_LIB_PRIVATE_COMPILE_DEFINITIONS
+        FULL_ACCU
+    )
+elseif(FULL_ACCU STREQUAL OFF)
+    # we don't do anything in this case
+else()
+    message(FATAL_ERROR "Please specify full accumulator length: ON or OFF")
 endif()
 
 if (${MLI_PLATFORM} STREQUAL VPX)
