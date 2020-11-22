@@ -12,13 +12,13 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "mli_types.h"
 #include "mli_config.h"
 #include "mli_debug.h"
 #include "mli_helpers_api.h"
 #include "mli_math.h"
 #include "mli_math_macros.h"
 #include "mli_prv_tensor.h"
+#include "mli_types.h"
 #if _ARC
 #include <arc/arc_reg.h>
 #endif
@@ -1423,7 +1423,7 @@ mli_status mli_chk_relu(const mli_tensor * in, const mli_relu_cfg * cfg, mli_ten
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
     // Check that output contains enough space
-    if (MLI_CHECK((mli_prv_count_elem_num(in) * mli_hlp_tensor_element_size(in)) <= out->data.capacity, "capacity of output tensor is too small"))
+    if (MLI_CHECK((mli_prv_count_elem_num(in) * mli_hlp_tensor_element_size(in)) <= out->data.capacity, "Capacity of output tensor is too small"))
         return MLI_STATUS_NOT_ENGH_MEM;
 
     return MLI_STATUS_OK;
@@ -1528,7 +1528,7 @@ mli_status mli_chk_eltwise (
     int in1_sz = mli_prv_count_elem_num(in1);
     int in2_sz = mli_prv_count_elem_num(in2);
     fail |= MLI_CHECK2((MAX (in1_sz, in2_sz) * mli_hlp_tensor_element_size (in1)) <= out->data.capacity,
-            "capacity of output tensor is too small", funcname);
+            "Capacity of output tensor is too small", funcname);
     if (fail) return MLI_STATUS_NOT_ENGH_MEM;
 
     return MLI_STATUS_OK;
@@ -1582,7 +1582,7 @@ mli_status mli_chk_basic_activation(const mli_tensor * in, mli_tensor * out) {
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
     // Check that output contains enough space
     fail |= MLI_CHECK((mli_prv_count_elem_num (in) * mli_hlp_tensor_element_size (in)) <= out->data.capacity,
-                      "capacity of output tensor is too small");
+                      "Capacity of output tensor is too small");
     if (fail) return MLI_STATUS_NOT_ENGH_MEM;
 
     return MLI_STATUS_OK;
@@ -1694,12 +1694,12 @@ mli_status mli_chk_leaky_relu (const mli_tensor * in, const mli_tensor * slope_c
     if (stat != MLI_STATUS_OK) return stat;
 
     // Slope must be scalar tensor of the same el_type as input
-    fail |= MLI_CHECK(slope_coeff->el_type == in->el_type, "element type has to be the same");
+    fail |= MLI_CHECK(slope_coeff->el_type == in->el_type, "Element type has to be the same");
     if (fail) return MLI_STATUS_TYPE_MISMATCH;
 
     // Check that output contains enough space
     fail |= MLI_CHECK((mli_prv_count_elem_num (in) * mli_hlp_tensor_element_size (in)) <= out->data.capacity,
-                      "capacity of output tensor is too small");
+                      "Capacity of output tensor is too small");
     if (fail) return MLI_STATUS_NOT_ENGH_MEM;
 
     return MLI_STATUS_OK;
@@ -1727,6 +1727,105 @@ mli_status mli_chk_leaky_relu_fx16 (const mli_tensor * in, const mli_tensor * sl
 
 mli_status mli_chk_leaky_relu_sa8 (const mli_tensor * in, const mli_tensor * slope_coeff, mli_tensor * out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_leaky_relu(in, slope_coeff, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    if (MLI_CHECK(in->el_type == MLI_EL_SA_8, "Wrong input tensor type") ||
+        MLI_CHECK(slope_coeff->el_type == MLI_EL_SA_8, "Wrong slope_coeff tensor type"))
+        return MLI_STATUS_TYPE_MISMATCH;
+    if (MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor: Per-tensor quantization is expected"))
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    if (MLI_CHECK(out->el_params.sa.dim < 0, "Output tensor: Per-tensor quantization is expected"))
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_chk_prelu (
+        const mli_tensor * in, 
+        const mli_tensor * slope_coeff, 
+        const mli_prelu_cfg *cfg, 
+        mli_tensor * out) {
+    mli_status stat = MLI_STATUS_OK;
+    bool fail = false;
+
+    stat = MLI_CHECK_STATUS(mli_mem_chk(out, MLI_OUT_PTR_IS_XY), "Memory check error");
+    if (stat != MLI_STATUS_OK) return stat;
+    // Check that tensors are valid
+    stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
+    if (stat != MLI_STATUS_OK) return stat;
+    if (cfg->axis == -1) {
+        // Check that slope tensors is valid scalar
+        stat = MLI_CHECK_STATUS(mli_chk_scalar_tensor (slope_coeff), "Slope should be scalar tensor");
+    } else {
+        stat = MLI_CHECK_STATUS(mli_chk_tensor (slope_coeff), "Bad slope_coeff tensor");
+    }
+    if (stat != MLI_STATUS_OK) return stat;
+
+    if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
+    if (MLI_CHECK(out->data.mem.void_p != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
+    fail |= MLI_CHECK(check_inner_most_dimension_is_one(in),
+                      "Memory stride of the innermost dimension should be equal to 1 for the input tensor");
+    if (cfg->axis != -1) {
+        fail |= MLI_CHECK(check_inner_most_dimension_is_one(slope_coeff),
+                      "Memory stride of the innermost dimension should be equal to 1 for the slope_coeff tensor");
+        /* slope tensor must be of the same shape of input tensor at axis and others should be 1 */
+        for(uint32_t i = 0; i < in->rank; i++) {
+            if( i == cfg->axis) {
+                fail |= MLI_CHECK(in->shape[i] == slope_coeff->shape[i], "Bad Slope_Coeff Shape");
+            } else {
+                fail |= MLI_CHECK(slope_coeff->shape[i] == 1, "Bad Slope_Coeff Shape");
+            }
+        }
+    }
+    fail |= MLI_CHECK(check_inner_most_dimension_is_one(out),
+                      "Memory stride of the innermost dimension should be equal to 1 for the output tensor");
+    if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
+
+    // Slope must be  of the same el_type as input
+    fail |= MLI_CHECK(slope_coeff->el_type == in->el_type, "Element type has to be the same");
+    if (fail) return MLI_STATUS_TYPE_MISMATCH;
+
+    // Check that output contains enough space
+    fail |= MLI_CHECK((mli_prv_count_elem_num (in) * mli_hlp_tensor_element_size (in)) <= out->data.capacity,
+                      "Capacity of output tensor is too small");
+    if (fail) return MLI_STATUS_NOT_ENGH_MEM;
+
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_chk_prelu_fx8 (
+        const mli_tensor * in, 
+        const mli_tensor * slope_coeff, 
+        const mli_prelu_cfg *cfg, 
+        mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_prelu(in, slope_coeff, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    if (MLI_CHECK(in->el_type == MLI_EL_FX_8, "Wrong input tensor type") ||
+        MLI_CHECK(slope_coeff->el_type == MLI_EL_FX_8, "Wrong slope_coeff tensor type"))
+        return MLI_STATUS_TYPE_MISMATCH;
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_chk_prelu_fx16 (
+        const mli_tensor * in, 
+        const mli_tensor * slope_coeff, 
+        const mli_prelu_cfg *cfg, 
+        mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_prelu(in, slope_coeff, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    if (MLI_CHECK(in->el_type == MLI_EL_FX_16, "Wrong input tensor type") ||
+        MLI_CHECK(slope_coeff->el_type == MLI_EL_FX_16, "Wrong slope_coeff tensor type"))
+        return MLI_STATUS_TYPE_MISMATCH;
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_chk_prelu_sa8 (
+        const mli_tensor * in, 
+        const mli_tensor * slope_coeff, 
+        const mli_prelu_cfg *cfg, 
+        mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_prelu(in, slope_coeff, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     if (MLI_CHECK(in->el_type == MLI_EL_SA_8, "Wrong input tensor type") ||

@@ -658,6 +658,41 @@ mli_status mli_krn_leaky_relu_fx16(const mli_tensor * in, const mli_tensor * slo
 mli_status mli_krn_leaky_relu_sa8(const mli_tensor * in, const mli_tensor * slope_coeff, mli_tensor * out);
 
 /**
+ * @brief Parametric ReLU Activation function
+ *
+ * @detail This kernel represents Rectified Linear unit (ReLU) with a negative slope. 
+ * The function accepts two tensors as input and one as output. The first input tensor is the feature map 
+ * to be processed by the kernel, and the second input is a tensor that holds a negative slope coefficients
+ * Kernel outputs a tensor of the same shape and type as input tensor.
+ *
+ * For more info on primitive see MLI Documentation
+ *
+ * @param in           [I] Input feature tensor (of any shape)
+ * @param slope_coeff  [I] Slope coefficients tensor 
+ * @param cfg          [I] Parametric Relu Configuration 
+ * @param out          [O] Output feature tensor. Result will be stored here
+ *
+ * @return MLI status code
+ */
+mli_status mli_krn_prelu_fx8(
+        const mli_tensor * in,
+        const mli_tensor * slope_coeff,
+        const mli_prelu_cfg *cfg,
+        mli_tensor * out);
+
+mli_status mli_krn_prelu_fx16(
+        const mli_tensor * in,
+        const mli_tensor * slope_coeff,
+        const mli_prelu_cfg *cfg,
+        mli_tensor * out);
+
+mli_status mli_krn_prelu_sa8(
+        const mli_tensor * in,
+        const mli_tensor * slope_coeff,
+        const mli_prelu_cfg *cfg,
+        mli_tensor * out);
+
+/**
  * @brief Sigmoid Activation function
  *
  * @detail This kernel performs sigmoid (also mentioned as logistic) activation function on input tensor element-wise

@@ -16,9 +16,6 @@
 #include "mli_prv_tensor.h"
 #include "mli_krn_prelu.h"
 
-using mli::krn::mli_krn_prelu_fx_run;
-using mli::krn::mli_krn_prelu_sa8_run;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -28,34 +25,22 @@ extern "C" {
 mli_status mli_krn_leaky_relu_fx8(const mli_tensor *in, const mli_tensor *slope_coeff, mli_tensor *out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_leaky_relu_fx8(in, slope_coeff, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
-    
-    mli_prelu_cfg cfg;
-    /* Leaky RELU is Parameteric RELU with axis = -1 to work per tensor */
-    cfg.axis = -1;
 
-    return mli_krn_prelu_fx_run<int8_t>(in, slope_coeff, &cfg, out);
+    return mli::krn::leaky_relu_fx_run<int8_t>(in, slope_coeff, out);
 }
 
 mli_status mli_krn_leaky_relu_fx16(const mli_tensor *in, const mli_tensor *slope_coeff, mli_tensor *out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_leaky_relu_fx16(in, slope_coeff, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
 
-    mli_prelu_cfg cfg;
-    /* Leaky RELU is Parameteric RELU with axis = -1 to work per tensor */
-    cfg.axis = -1;
-
-    return mli_krn_prelu_fx_run<int16_t>(in, slope_coeff, &cfg, out);
+    return mli::krn::leaky_relu_fx_run<int16_t>(in, slope_coeff, out);
 }
 
 mli_status mli_krn_leaky_relu_sa8(const mli_tensor *in, const mli_tensor *slope_coeff, mli_tensor *out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_leaky_relu_sa8(in, slope_coeff, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
-    
-    mli_prelu_cfg cfg;
-    /* Leaky RELU is Parameteric RELU with axis = -1 to work per tensor */
-    cfg.axis = -1;
 
-    return mli_krn_prelu_sa8_run(in, slope_coeff, &cfg, out);
+    return mli::krn::leaky_relu_sa8_run(in, slope_coeff, out);
 }
 #pragma MLI_CODE_SECTION_END()
 

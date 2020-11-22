@@ -277,6 +277,30 @@ mli_status mli_chk_eltwise_fx8(const mli_tensor * left, const mli_tensor * right
 mli_status mli_chk_eltwise_fx16(const mli_tensor * left, const mli_tensor * right, mli_tensor * out);
 mli_status mli_chk_eltwise_sa8(const mli_tensor * left, const mli_tensor * right, mli_tensor * out);
 
+mli_status mli_chk_prelu(
+        const mli_tensor * in, 
+        const mli_tensor * slope_coeff, 
+        const mli_prelu_cfg *cfg, 
+        mli_tensor * out);
+
+mli_status mli_chk_prelu_fx8(
+        const mli_tensor * in, 
+        const mli_tensor * slope_coeff, 
+        const mli_prelu_cfg *cfg, 
+        mli_tensor * out);
+
+mli_status mli_chk_prelu_fx16(
+        const mli_tensor * in, 
+        const mli_tensor * slope_coeff, 
+        const mli_prelu_cfg *cfg, 
+        mli_tensor * out);
+
+mli_status mli_chk_prelu_sa8(
+        const mli_tensor * in, 
+        const mli_tensor * slope_coeff, 
+        const mli_prelu_cfg *cfg, 
+        mli_tensor * out);
+
 mli_status mli_chk_basic_rnn_cell(
         const mli_tensor * in,
         const mli_tensor * prev_out,

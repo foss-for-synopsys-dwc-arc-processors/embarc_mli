@@ -30,6 +30,7 @@ KERNELS = \
 	softmax \
 	relu \
 	leaky_relu \
+	prelu \
 	eltwise \
 	tanh \
 	sigm \
