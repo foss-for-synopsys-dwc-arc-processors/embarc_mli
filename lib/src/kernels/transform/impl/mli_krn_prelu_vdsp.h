@@ -23,80 +23,124 @@ namespace mli {
 namespace krn {
 namespace vdsp {
 
-template <typename io_T, prelu_elem_func_type func_type>
-static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+static MLI_FORCE_INLINE vNx4char_t calc_prelu(
+        vNx4char_t input,
+        vNx4char_t scale,
+        const int shift ) {
+    /* out  = max(0, in) + alpha * min(0, in) */
+    vNx4char_t pos = mli_math_max_fx(input, 0);
+    vNx4accshort_t acc = mli_math_mul_fx<vNx4char_t, vNx4accshort_t>(mli_math_min_fx(input, 0), scale);
+    vNx4char_t neg = mli_math_acc_cast_fx<vNx4char_t, vNx4accshort_t>(acc, shift);
+
+    return mli_math_add(pos, neg);
+}
+
+static MLI_FORCE_INLINE vNx2short_t calc_prelu(
+        vNx2short_t input,
+        vNx2short_t scale,
+        const int shift ) {
+    /* out  = max(0, in) + alpha * min(0, in) */
+    vNx2short_t pos = mli_math_max_fx(input, 0);
+    vNx2accint_t acc = mli_math_mul_fx<vNx2short_t, vNx2accint_t>(mli_math_min_fx(input, 0), scale);
+    vNx2short_t neg = mli_math_acc_cast_fx<vNx2short_t, vNx2accint_t>(acc, shift);
+
+    return mli_math_add(pos, neg);
+}
+
+template <>
+MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(int8_t) vec_in,
-        MLI_OUT_PTR(int8_t) vec_out,
         const int8_t scale,
+        MLI_OUT_PTR(int8_t) vec_out,
         const int shift) {
 
     vNx4char_t input = mli_prv_load_1vec(vec_in);
-    vNx4accshort_t acc_res = mli_math_mul_fx<vNx4char_t, vNx4accshort_t>(input, scale);
-    vNx4short_t res_short = mli_math_acc_cast_fx<vNx4short_t, vNx4accshort_t>(acc_res);
-    vNx4char_t res = mli_math_cast_fx<vNx4short_t, vNx4char_t>(res_short, shift);
-
-    if (func_type == PRELU_ELEM_FUNC_MAX) {
-        mli_prv_store_n_samples(vec_out, mli_math_max_fx(input, res));
-    } else {
-        mli_prv_store_n_samples(vec_out, mli_math_min_fx(input, res));
-    }
+    mli_prv_store_n_samples(vec_out, calc_prelu(input, scale, shift));
 }
 
-template <typename io_T, prelu_elem_func_type func_type>
-static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+template <>
+MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(int16_t) vec_in,
-        MLI_OUT_PTR(int16_t) vec_out,
         const int16_t scale,
+        MLI_OUT_PTR(int16_t) vec_out,
         const int shift) {
 
     vNx2short_t input = mli_prv_load_1vec(vec_in);
-    vNx2accint_t acc = mli_math_mul_fx<vNx2short_t, vNx2accint_t>(input, scale);
-    vNx2short_t res = mli_math_acc_cast_fx<vNx2short_t, vNx2accint_t>(acc, shift);
-
-    if (func_type == PRELU_ELEM_FUNC_MAX) {
-        mli_prv_store_n_samples(vec_out, mli_math_max_fx(input, res));
-    } else {
-        mli_prv_store_n_samples(vec_out, mli_math_min_fx(input, res));
-    }
+    mli_prv_store_n_samples(vec_out, calc_prelu(input, scale, shift));
 }
 
-template <typename io_T, prelu_elem_func_type func_type>
-static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+template <>
+MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(int8_t) vec_in,
-        MLI_OUT_PTR(int8_t) vec_out,
         const int8_t scale,
+        MLI_OUT_PTR(int8_t) vec_out,
         const int shift,
         const int remaining_part) {
 
     vNx4char_t input = mli_prv_load_1vec(vec_in);
-    vNx4accshort_t acc_res = mli_math_mul_fx<vNx4char_t, vNx4accshort_t>(input, scale);
-    vNx4short_t res_short = mli_math_acc_cast_fx<vNx4short_t, vNx4accshort_t>(acc_res);
-    vNx4char_t res = mli_math_cast_fx<vNx4short_t, vNx4char_t>(res_short, shift);
-
-    if (func_type == PRELU_ELEM_FUNC_MAX) {
-        mli_prv_store_n_samples(vec_out, mli_math_max_fx(input, res), remaining_part);
-    } else {
-        mli_prv_store_n_samples(vec_out, mli_math_min_fx(input, res), remaining_part);
-    }
+    mli_prv_store_n_samples(vec_out, calc_prelu(input, scale, shift), remaining_part);
 }
 
-template <typename io_T, prelu_elem_func_type func_type>
-static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+template <>
+MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(int16_t) vec_in,
-        MLI_OUT_PTR(int16_t) vec_out,
         const int16_t scale,
+        MLI_OUT_PTR(int16_t) vec_out,
         const int shift,
         const int remaining_part) {
 
     vNx2short_t input = mli_prv_load_1vec(vec_in);
-    vNx2accint_t acc = mli_math_mul_fx<vNx2short_t, vNx2accint_t>(input, scale);
-    vNx2short_t res = mli_math_acc_cast_fx<vNx2short_t, vNx2accint_t>(acc, shift);
+    mli_prv_store_n_samples(vec_out, calc_prelu(input, scale, shift), remaining_part);
+}
 
-    if (func_type == PRELU_ELEM_FUNC_MAX) {
-        mli_prv_store_n_samples(vec_out, mli_math_max_fx(input, res), remaining_part);
-    } else {
-        mli_prv_store_n_samples(vec_out, mli_math_min_fx(input, res), remaining_part);
-    }
+template <>
+MLI_FORCE_INLINE void compute_prelu(
+        const MLI_PTR(int8_t) vec_in,
+        const MLI_PTR(int8_t) scale_in,
+        MLI_OUT_PTR(int8_t) vec_out,
+        const int shift) {
+
+    vNx4char_t input = mli_prv_load_1vec(vec_in);
+    vNx4char_t scale = mli_prv_load_1vec(scale_in);
+    mli_prv_store_n_samples(vec_out, calc_prelu(input, scale, shift));
+}
+
+template <>
+MLI_FORCE_INLINE void compute_prelu(
+        const MLI_PTR(int16_t) vec_in,
+        const MLI_PTR(int16_t) scale_in,
+        MLI_OUT_PTR(int16_t) vec_out,
+        const int shift) {
+
+    vNx2short_t input = mli_prv_load_1vec(vec_in);
+    vNx2short_t scale = mli_prv_load_1vec(scale_in);
+    mli_prv_store_n_samples(vec_out, calc_prelu(input, scale, shift));
+}
+
+template <>
+MLI_FORCE_INLINE void compute_prelu(
+        const MLI_PTR(int8_t) vec_in,
+        const MLI_PTR(int8_t) scale_in,
+        MLI_OUT_PTR(int8_t) vec_out,
+        const int shift,
+        const int remaining_part) {
+
+    vNx4char_t input = mli_prv_load_1vec(vec_in);
+    vNx4char_t scale = mli_prv_load_1vec(scale_in);
+    mli_prv_store_n_samples(vec_out, calc_prelu(input, scale, shift), remaining_part);
+}
+
+template <>
+MLI_FORCE_INLINE void compute_prelu(
+        const MLI_PTR(int16_t) vec_in,
+        const MLI_PTR(int16_t) scale_in,
+        MLI_OUT_PTR(int16_t) vec_out,
+        const int shift,
+        const int remaining_part) {
+
+    vNx2short_t input = mli_prv_load_1vec(vec_in);
+    vNx2short_t scale = mli_prv_load_1vec(scale_in);
+    mli_prv_store_n_samples(vec_out, calc_prelu(input, scale, shift), remaining_part);
 }
 
 } // namespace vdsp

@@ -14,11 +14,6 @@
 #include "mli_types.h"
 #include "mli_prv_tensor.h"
 
-typedef enum {
-    PRELU_ELEM_FUNC_MAX,
-    PRELU_ELEM_FUNC_MIN
-} prelu_elem_func_type;
-
 namespace mli {
 namespace krn {
 ////////////////////////////////////////////////////////////////////////////////
@@ -33,28 +28,52 @@ namespace krn {
 ////////////////////////////////////////////////////////////////////////////////
 namespace ref {
 
-template <typename io_T, prelu_elem_func_type func_type>
-static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+template <typename io_T>
+static MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(io_T) vec_in,
+        const MLI_PTR(io_T) scale_in,
         MLI_OUT_PTR(io_T) vec_out,
-        const io_T scale,
         const int shift);
 
-template <typename io_T, prelu_elem_func_type func_type>
-static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+template <typename io_T>
+static MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(io_T) vec_in,
+        const MLI_PTR(io_T) scale_in,
         MLI_OUT_PTR(io_T) vec_out,
-        const io_T scale,
         const int shift,
         const int remaining_part);
 
 template <typename io_T>
-static MLI_FORCE_INLINE mli_status mli_krn_prelu_fx_run(const mli_tensor *in, 
+static MLI_FORCE_INLINE void compute_prelu(
+        const MLI_PTR(io_T) vec_in,
+        const io_T scale,
+        MLI_OUT_PTR(io_T) vec_out,
+        const int shift);
+
+template <typename io_T>
+static MLI_FORCE_INLINE void compute_prelu(
+        const MLI_PTR(io_T) vec_in,
+        const io_T scale,
+        MLI_OUT_PTR(io_T) vec_out,
+        const int shift,
+        const int remaining_part);
+
+template <typename io_T>
+static MLI_FORCE_INLINE mli_status leaky_relu_fx_run(const mli_tensor *in, 
+        const mli_tensor *slope_coeff,
+        mli_tensor *out);
+        
+static MLI_FORCE_INLINE mli_status leaky_relu_sa8_run(const mli_tensor *in, 
+        const mli_tensor *slope_coeff,
+        mli_tensor *out);
+
+template <typename io_T>
+static MLI_FORCE_INLINE mli_status prelu_fx_run(const mli_tensor *in, 
         const mli_tensor *slope_coeff,
         const mli_prelu_cfg *cfg, 
         mli_tensor *out);
         
-static MLI_FORCE_INLINE mli_status mli_krn_prelu_sa8_run(const mli_tensor *in, 
+static MLI_FORCE_INLINE mli_status prelu_sa8_run(const mli_tensor *in, 
         const mli_tensor *slope_coeff,
         const mli_prelu_cfg *cfg, 
         mli_tensor *out);
@@ -66,18 +85,33 @@ static MLI_FORCE_INLINE mli_status mli_krn_prelu_sa8_run(const mli_tensor *in,
 ////////////////////////////////////////////////////////////////////////////////
 namespace dsp {
 
-template <typename io_T, prelu_elem_func_type func_type>
-static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+template <typename io_T>
+static MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(io_T) vec_in,
-        MLI_OUT_PTR(io_T) vec_out,
         const io_T scale,
+        MLI_OUT_PTR(io_T) vec_out,
         const int shift);
 
-template <typename io_T, prelu_elem_func_type func_type>
-static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+template <typename io_T>
+static MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(io_T) vec_in,
-        MLI_OUT_PTR(io_T) vec_out,
         const io_T scale,
+        MLI_OUT_PTR(io_T) vec_out,
+        const int shift,
+        const int remaining_part);
+
+template <typename io_T>
+static MLI_FORCE_INLINE void compute_prelu(
+        const MLI_PTR(io_T) vec_in,
+        const MLI_PTR(io_T) scale_in,
+        MLI_OUT_PTR(io_T) vec_out,
+        const int shift);
+
+template <typename io_T>
+static MLI_FORCE_INLINE void compute_prelu(
+        const MLI_PTR(io_T) vec_in,
+        const MLI_PTR(io_T) scale_in,
+        MLI_OUT_PTR(io_T) vec_out,
         const int shift,
         const int remaining_part);
 
@@ -88,48 +122,93 @@ static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
 
-template <typename io_T, prelu_elem_func_type func_type>
-static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+template <typename io_T>
+static MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(io_T) vec_in,
-        MLI_OUT_PTR(io_T) vec_out,
         const io_T scale,
+        MLI_OUT_PTR(io_T) vec_out,
         const int shift);
 
-template <typename io_T, prelu_elem_func_type func_type>
-static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+template <typename io_T>
+static MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(io_T) vec_in,
-        MLI_OUT_PTR(io_T) vec_out,
         const io_T scale,
+        MLI_OUT_PTR(io_T) vec_out,
         const int shift,
         const int remaining_part);
 
-template <typename io_T, prelu_elem_func_type func_type>
-static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+template <>
+MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(int8_t) vec_in,
-        MLI_OUT_PTR(int8_t) vec_out,
         const int8_t scale,
+        MLI_OUT_PTR(int8_t) vec_out,
         const int shift);
 
-template <typename io_T, prelu_elem_func_type func_type>
-static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+template <>
+MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(int8_t) vec_in,
-        MLI_OUT_PTR(int8_t) vec_out,
         const int8_t scale,
+        MLI_OUT_PTR(int8_t) vec_out,
         const int shift,
         const int remaining_part);
 
-template <typename io_T, prelu_elem_func_type func_type>
-static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+template <>
+MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(int16_t) vec_in,
-        MLI_OUT_PTR(int16_t) vec_out,
         const int16_t scale,
+        MLI_OUT_PTR(int16_t) vec_out,
         const int shift);
 
-template <typename io_T, prelu_elem_func_type func_type>
-static MLI_FORCE_INLINE void mli_krn_scale_elem_v(
+template <>
+MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(int16_t) vec_in,
-        MLI_OUT_PTR(int16_t) vec_out,
         const int16_t scale,
+        MLI_OUT_PTR(int16_t) vec_out,
+        const int shift,
+        const int remaining_part);
+
+template <typename io_T>
+static MLI_FORCE_INLINE void compute_prelu(
+        const MLI_PTR(io_T) vec_in,
+        const MLI_PTR(io_T) scale_in,
+        MLI_OUT_PTR(io_T) vec_out,
+        const int shift);
+
+template <typename io_T>
+static MLI_FORCE_INLINE void compute_prelu(
+        const MLI_PTR(io_T) vec_in,
+        const MLI_PTR(io_T) scale_in,
+        MLI_OUT_PTR(io_T) vec_out,
+        const int shift,
+        const int remaining_part);
+
+template <>
+MLI_FORCE_INLINE void compute_prelu(
+        const MLI_PTR(int8_t) vec_in,
+        const MLI_PTR(int8_t) scale_in,
+        MLI_OUT_PTR(int8_t) vec_out,
+        const int shift);
+
+template <>
+MLI_FORCE_INLINE void compute_prelu(
+        const MLI_PTR(int8_t) vec_in,
+        const MLI_PTR(int8_t) scale_in,
+        MLI_OUT_PTR(int8_t) vec_out,
+        const int shift,
+        const int remaining_part);
+
+template <>
+MLI_FORCE_INLINE void compute_prelu(
+        const MLI_PTR(int16_t) vec_in,
+        const MLI_PTR(int16_t) scale_in,
+        MLI_OUT_PTR(int16_t) vec_out,
+        const int shift);
+
+template <>
+MLI_FORCE_INLINE void compute_prelu(
+        const MLI_PTR(int16_t) vec_in,
+        const MLI_PTR(int16_t) scale_in,
+        MLI_OUT_PTR(int16_t) vec_out,
         const int shift,
         const int remaining_part);
 
