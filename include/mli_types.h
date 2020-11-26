@@ -47,6 +47,8 @@ typedef enum _mli_status{
 
     MLI_STATUS_RANK_MISMATCH,
     MLI_STATUS_TYPE_MISMATCH,
+    MLI_STATUS_MEM_BANK_MISMATCH,
+    MLI_STATUS_MISALIGNMENT_ERROR,
     /* other return codes*/
 
     MLI_STATUS_LARGE_ENUM = 0x02000000  /**< Utility field. Prevent size optimization of public enums */
