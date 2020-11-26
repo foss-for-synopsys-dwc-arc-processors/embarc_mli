@@ -47,6 +47,7 @@ else()
         ${MLI_LIB_CMAKE_DIR}/src/kernels/pooling/*hwc*.cc
         ${MLI_LIB_CMAKE_DIR}/src/bricks/*.cc
         ${MLI_LIB_CMAKE_DIR}/src/private/src/*.cc
+        ${MLI_LIB_CMAKE_DIR}/src/move/*.cc
     )
     set(MLI_LIB_SOURCE_FILES
         ${temp}
