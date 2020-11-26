@@ -13,7 +13,7 @@
     int32_t kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR($d_type), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR($d_type)>(in,
             $channels); // channels
 
     // assign hard coded values for this variation to some variables
@@ -47,7 +47,7 @@
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR($d_type), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR($d_type)>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;

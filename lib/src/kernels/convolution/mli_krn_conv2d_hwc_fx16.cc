@@ -79,8 +79,8 @@ mli_status mli_krn_conv2d_hwc_fx16 (
     if (ret != MLI_STATUS_OK)
             return ret;
 
-    const auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in);
-    const auto w = mli_prv_get_conv2d_weights_tensor_nhwc<MLI_PTR(int16_t), MLI_PTR_IS_XY>(weights);
+    const auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(int16_t)>(in);
+    const auto w = mli_prv_get_conv2d_weights_tensor_nhwc<MLI_PTR(int16_t)>(weights);
     __builtin_assume(in_prv.ch == w.in_ch);
 
     mli_prv_fx_init_dsp_ctrl();
@@ -114,7 +114,7 @@ mli_status mli_krn_conv2d_hwc_fx16 (
     out->shape[1] = out_width;
     out->shape[2] = w.out_ch;
 
-    const auto out_prv = mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(int16_t), MLI_CONV_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(int16_t)>(out);
 
     // Phase 1: Process central part (without border effects - padding free)
     //=======================================================================
@@ -182,8 +182,8 @@ static mli_status mli_krn_conv2d_hwc_fx16_1x1_str1_nopad (
 
     mli_prv_fx_init_dsp_ctrl();
 
-    auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in);
-    auto w = mli_prv_get_conv2d_weights_tensor_nhwc<MLI_PTR(int16_t), MLI_PTR_IS_XY>(weights);
+    auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(int16_t)>(in);
+    auto w = mli_prv_get_conv2d_weights_tensor_nhwc<MLI_PTR(int16_t)>(weights);
     __builtin_assume(in_prv.ch == w.in_ch);
 
     uint8_t stride_width = cfg->stride_width;
@@ -226,7 +226,7 @@ static mli_status mli_krn_conv2d_hwc_fx16_1x1_str1_nopad (
     out->shape[0] = out_height;
     out->shape[1] = out_width;
     out->shape[2] = w.out_ch;
-    const auto out_prv = mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(int16_t), MLI_CONV_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(int16_t)>(out);
 
     uint8_t bias_shift = (in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits) - bias->el_params.fx.frac_bits;
     uint8_t out_shift = (in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits) - out->el_params.fx.frac_bits;

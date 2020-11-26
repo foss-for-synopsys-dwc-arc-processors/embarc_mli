@@ -48,8 +48,7 @@ static MLI_FORCE_INLINE int mli_prv_get_tensor_idx_pos(
     return res;
 }
 
-// To prevent a compiler name mangling issue, type_is_xy should be true if and only if T has __xy.
-template <typename T, bool type_is_xy=false>
+template <typename T>
 static MLI_FORCE_INLINE tensor_private_t<T> mli_prv_get_tensor_chw(
         const mli_tensor *in,
         const int fix_ch = 0) {
@@ -83,8 +82,7 @@ static MLI_FORCE_INLINE tensor_private_t<T> mli_prv_get_tensor_chw(
             col_mem_stride, row_mem_stride, ch_mem_stride };
 }
 
-// To prevent a compiler name mangling issue, type_is_xy should be true if and only if T has __xy.
-template <typename T, bool type_is_xy=false>
+template <typename T>
 static MLI_FORCE_INLINE tensor_private_t<T> mli_prv_get_tensor_hwc(
         const mli_tensor *in,
         const int fix_ch = 0) {
@@ -259,8 +257,7 @@ static MLI_FORCE_INLINE void mli_prv_squash_generic_tensor(
     }
 }
 
-// To prevent a compiler name mangling issue, type_is_xy should be true if and only if T has __xy.
-template <typename T, bool type_is_xy=false>
+template <typename T>
 static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_nhwc(
         const mli_tensor *weights,
         const int fix_in_ch = 0,
@@ -351,8 +348,7 @@ static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_we
         col_mem_stride, row_mem_stride, in_ch_mem_stride, out_ch_mem_stride };
 }
 
-// To prevent a compiler name mangling issue, type_is_xy should be true if and only if T has __xy.
-template <typename T, bool type_is_xy=false>
+template <typename T>
 static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_hw1n(
         const mli_tensor *weights,
         const int fix_width = 0,

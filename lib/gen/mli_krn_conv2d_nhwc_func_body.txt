@@ -13,9 +13,9 @@
     int padding_right = cfg->padding_right;
 
     // Define Data dimensions
-    const auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR($d_type), MLI_PTR_IS_XY>(in,
+    const auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR($d_type)>(in,
             $channels); // channels
-    const auto w = mli_prv_get_conv2d_weights_tensor_nhwc<MLI_PTR($w_type), MLI_PTR_IS_XY>(weights,
+    const auto w = mli_prv_get_conv2d_weights_tensor_nhwc<MLI_PTR($w_type)>(weights,
             $channels,  // channels
             $kernel_w,  // kernel_width
             $kernel_h); // kernel_height
@@ -53,7 +53,7 @@
     out->shape[FMAP_C_DIM_HWC] = w.out_ch;
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
-    const auto out_prv = mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR($d_type), MLI_CONV_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR($d_type)>(out);
 
     // Define quantization specific params
     s8asym_quant_specific_params params;

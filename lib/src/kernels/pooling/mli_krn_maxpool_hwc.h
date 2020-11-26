@@ -302,7 +302,7 @@ static void mli_krn_maxpool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg,
     int32_t kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(io_T), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(io_T)>(in,
             0); // channels
 
     if (fixed_kernel_size) {
@@ -321,8 +321,8 @@ static void mli_krn_maxpool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg,
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = in_prv.ch;
     out->el_params = in->el_params;
-    auto out_prv = mli_prv_get_tensor_hwc<MLI_OUT_PTR(io_T), MLI_OUT_PTR_IS_XY>(out);
 
+    auto out_prv = mli_prv_get_tensor_hwc<MLI_OUT_PTR(io_T)>(out);
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
     const int32_t clmn_beg = 0;
