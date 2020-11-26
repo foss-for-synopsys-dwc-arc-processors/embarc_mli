@@ -48,8 +48,8 @@ mli_status mli_krn_conv2d_hwc_fx8w16d (
     val_limit = mli_prv_get_relu_min_max (&cfg->relu, out);
     MLI_PTR(int8_t) bs = (MLI_PTR(int8_t))bias->data.mem.void_p;
 
-    const auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in);
-    const auto w = mli_prv_get_conv2d_weights_tensor_nhwc<MLI_PTR(int8_t), MLI_PTR_IS_XY>(weights);
+    const auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(int16_t)>(in);
+    const auto w = mli_prv_get_conv2d_weights_tensor_nhwc<MLI_PTR(int8_t)>(weights);
     __builtin_assume(in_prv.ch == w.in_ch);
 
     uint16_t out_width = CEIL_DIV (in_prv.width + padding_left + padding_right - w.kernel_width + 1, stride_width);
@@ -61,7 +61,7 @@ mli_status mli_krn_conv2d_hwc_fx8w16d (
     out->shape[1] = out_width;
     out->shape[2] = w.out_ch;
 
-    const auto out_prv = mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(int16_t), MLI_CONV_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(int16_t)>(out);
 
     uint8_t bias_shift = (in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits) - bias->el_params.fx.frac_bits;
     uint8_t out_shift = (in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits) - out->el_params.fx.frac_bits;

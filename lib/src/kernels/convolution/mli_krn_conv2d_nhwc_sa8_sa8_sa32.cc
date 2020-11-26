@@ -50,9 +50,9 @@ mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_k3x3_krnpad(
     int padding_right = cfg->padding_right;
 
     // Define Data dimensions
-    const auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(int8_t), MLI_PTR_IS_XY>(in,
+    const auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(int8_t)>(in,
             0); // channels
-    const auto w = mli_prv_get_conv2d_weights_tensor_nhwc<MLI_PTR(int8_t), MLI_PTR_IS_XY>(weights,
+    const auto w = mli_prv_get_conv2d_weights_tensor_nhwc<MLI_PTR(int8_t)>(weights,
             0,  // channels
             3,  // kernel_width
             3); // kernel_height
@@ -90,7 +90,7 @@ mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_k3x3_krnpad(
     out->shape[FMAP_C_DIM_HWC] = w.out_ch;
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
-    const auto out_prv = mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(int8_t), MLI_CONV_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(int8_t)>(out);
 
     // Define quantization specific params
     s8asym_quant_specific_params params;
@@ -134,9 +134,9 @@ mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_k5x5_krnpad(
     int padding_right = cfg->padding_right;
 
     // Define Data dimensions
-    const auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(int8_t), MLI_PTR_IS_XY>(in,
+    const auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(int8_t)>(in,
             0); // channels
-    const auto w = mli_prv_get_conv2d_weights_tensor_nhwc<MLI_PTR(int8_t), MLI_PTR_IS_XY>(weights,
+    const auto w = mli_prv_get_conv2d_weights_tensor_nhwc<MLI_PTR(int8_t)>(weights,
             0,  // channels
             5,  // kernel_width
             5); // kernel_height
@@ -174,7 +174,7 @@ mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_k5x5_krnpad(
     out->shape[FMAP_C_DIM_HWC] = w.out_ch;
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
-    const auto out_prv = mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(int8_t), MLI_CONV_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(int8_t)>(out);
 
     // Define quantization specific params
     s8asym_quant_specific_params params;
@@ -218,9 +218,9 @@ mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_k3x3_nopad(
     int padding_right = cfg->padding_right;
 
     // Define Data dimensions
-    const auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(int8_t), MLI_PTR_IS_XY>(in,
+    const auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(int8_t)>(in,
             0); // channels
-    const auto w = mli_prv_get_conv2d_weights_tensor_nhwc<MLI_PTR(int8_t), MLI_PTR_IS_XY>(weights,
+    const auto w = mli_prv_get_conv2d_weights_tensor_nhwc<MLI_PTR(int8_t)>(weights,
             0,  // channels
             3,  // kernel_width
             3); // kernel_height
@@ -258,7 +258,7 @@ mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_k3x3_nopad(
     out->shape[FMAP_C_DIM_HWC] = w.out_ch;
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
-    const auto out_prv = mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(int8_t), MLI_CONV_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(int8_t)>(out);
 
     // Define quantization specific params
     s8asym_quant_specific_params params;
@@ -302,9 +302,9 @@ mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_k5x5_nopad(
     int padding_right = cfg->padding_right;
 
     // Define Data dimensions
-    const auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(int8_t), MLI_PTR_IS_XY>(in,
+    const auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(int8_t)>(in,
             0); // channels
-    const auto w = mli_prv_get_conv2d_weights_tensor_nhwc<MLI_PTR(int8_t), MLI_PTR_IS_XY>(weights,
+    const auto w = mli_prv_get_conv2d_weights_tensor_nhwc<MLI_PTR(int8_t)>(weights,
             0,  // channels
             5,  // kernel_width
             5); // kernel_height
@@ -342,7 +342,7 @@ mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_k5x5_nopad(
     out->shape[FMAP_C_DIM_HWC] = w.out_ch;
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
-    const auto out_prv = mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(int8_t), MLI_CONV_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(int8_t)>(out);
 
     // Define quantization specific params
     s8asym_quant_specific_params params;
@@ -386,9 +386,9 @@ mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_k1x1_nopad(
     int padding_right = cfg->padding_right;
 
     // Define Data dimensions
-    const auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(int8_t), MLI_PTR_IS_XY>(in,
+    const auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(int8_t)>(in,
             0); // channels
-    const auto w = mli_prv_get_conv2d_weights_tensor_nhwc<MLI_PTR(int8_t), MLI_PTR_IS_XY>(weights,
+    const auto w = mli_prv_get_conv2d_weights_tensor_nhwc<MLI_PTR(int8_t)>(weights,
             0,  // channels
             1,  // kernel_width
             1); // kernel_height
@@ -426,7 +426,7 @@ mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_k1x1_nopad(
     out->shape[FMAP_C_DIM_HWC] = w.out_ch;
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
-    const auto out_prv = mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(int8_t), MLI_CONV_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(int8_t)>(out);
 
     // Define quantization specific params
     s8asym_quant_specific_params params;
@@ -470,9 +470,9 @@ mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_generic(
     int padding_right = cfg->padding_right;
 
     // Define Data dimensions
-    const auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(int8_t), MLI_PTR_IS_XY>(in,
+    const auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(int8_t)>(in,
             0); // channels
-    const auto w = mli_prv_get_conv2d_weights_tensor_nhwc<MLI_PTR(int8_t), MLI_PTR_IS_XY>(weights,
+    const auto w = mli_prv_get_conv2d_weights_tensor_nhwc<MLI_PTR(int8_t)>(weights,
             0,  // channels
             0,  // kernel_width
             0); // kernel_height
@@ -510,7 +510,7 @@ mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_generic(
     out->shape[FMAP_C_DIM_HWC] = w.out_ch;
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
-    const auto out_prv = mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(int8_t), MLI_CONV_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(int8_t)>(out);
 
     // Define quantization specific params
     s8asym_quant_specific_params params;

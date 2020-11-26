@@ -45,7 +45,7 @@ mli_status mli_krn_avepool_chw_fx16_k2x2_krnpad(const mli_tensor * in, const mli
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -79,7 +79,7 @@ mli_status mli_krn_avepool_chw_fx16_k2x2_krnpad(const mli_tensor * in, const mli
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -115,7 +115,7 @@ mli_status mli_krn_avepool_chw_fx16_k3x3_krnpad(const mli_tensor * in, const mli
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -149,7 +149,7 @@ mli_status mli_krn_avepool_chw_fx16_k3x3_krnpad(const mli_tensor * in, const mli
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -185,7 +185,7 @@ mli_status mli_krn_avepool_chw_fx16_k4x4_krnpad(const mli_tensor * in, const mli
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -219,7 +219,7 @@ mli_status mli_krn_avepool_chw_fx16_k4x4_krnpad(const mli_tensor * in, const mli
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -255,7 +255,7 @@ mli_status mli_krn_avepool_chw_fx16_k5x5_krnpad(const mli_tensor * in, const mli
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -289,7 +289,7 @@ mli_status mli_krn_avepool_chw_fx16_k5x5_krnpad(const mli_tensor * in, const mli
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -325,7 +325,7 @@ mli_status mli_krn_avepool_chw_fx16_k6x6_krnpad(const mli_tensor * in, const mli
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -359,7 +359,7 @@ mli_status mli_krn_avepool_chw_fx16_k6x6_krnpad(const mli_tensor * in, const mli
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -395,7 +395,7 @@ mli_status mli_krn_avepool_chw_fx16_k7x7_krnpad(const mli_tensor * in, const mli
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -429,7 +429,7 @@ mli_status mli_krn_avepool_chw_fx16_k7x7_krnpad(const mli_tensor * in, const mli
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -465,7 +465,7 @@ mli_status mli_krn_avepool_chw_fx16_k8x8_krnpad(const mli_tensor * in, const mli
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -499,7 +499,7 @@ mli_status mli_krn_avepool_chw_fx16_k8x8_krnpad(const mli_tensor * in, const mli
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -535,7 +535,7 @@ mli_status mli_krn_avepool_chw_fx16_k9x9_krnpad(const mli_tensor * in, const mli
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -569,7 +569,7 @@ mli_status mli_krn_avepool_chw_fx16_k9x9_krnpad(const mli_tensor * in, const mli
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -605,7 +605,7 @@ mli_status mli_krn_avepool_chw_fx16_k10x10_krnpad(const mli_tensor * in, const m
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -639,7 +639,7 @@ mli_status mli_krn_avepool_chw_fx16_k10x10_krnpad(const mli_tensor * in, const m
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -675,7 +675,7 @@ mli_status mli_krn_avepool_chw_fx16_k2x2_nopad(const mli_tensor * in, const mli_
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -709,7 +709,7 @@ mli_status mli_krn_avepool_chw_fx16_k2x2_nopad(const mli_tensor * in, const mli_
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -745,7 +745,7 @@ mli_status mli_krn_avepool_chw_fx16_k3x3_nopad(const mli_tensor * in, const mli_
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -779,7 +779,7 @@ mli_status mli_krn_avepool_chw_fx16_k3x3_nopad(const mli_tensor * in, const mli_
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -815,7 +815,7 @@ mli_status mli_krn_avepool_chw_fx16_k4x4_nopad(const mli_tensor * in, const mli_
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -849,7 +849,7 @@ mli_status mli_krn_avepool_chw_fx16_k4x4_nopad(const mli_tensor * in, const mli_
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -885,7 +885,7 @@ mli_status mli_krn_avepool_chw_fx16_k5x5_nopad(const mli_tensor * in, const mli_
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -919,7 +919,7 @@ mli_status mli_krn_avepool_chw_fx16_k5x5_nopad(const mli_tensor * in, const mli_
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -955,7 +955,7 @@ mli_status mli_krn_avepool_chw_fx16_k6x6_nopad(const mli_tensor * in, const mli_
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -989,7 +989,7 @@ mli_status mli_krn_avepool_chw_fx16_k6x6_nopad(const mli_tensor * in, const mli_
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -1025,7 +1025,7 @@ mli_status mli_krn_avepool_chw_fx16_k7x7_nopad(const mli_tensor * in, const mli_
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -1059,7 +1059,7 @@ mli_status mli_krn_avepool_chw_fx16_k7x7_nopad(const mli_tensor * in, const mli_
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -1095,7 +1095,7 @@ mli_status mli_krn_avepool_chw_fx16_k8x8_nopad(const mli_tensor * in, const mli_
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -1129,7 +1129,7 @@ mli_status mli_krn_avepool_chw_fx16_k8x8_nopad(const mli_tensor * in, const mli_
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -1165,7 +1165,7 @@ mli_status mli_krn_avepool_chw_fx16_k9x9_nopad(const mli_tensor * in, const mli_
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -1199,7 +1199,7 @@ mli_status mli_krn_avepool_chw_fx16_k9x9_nopad(const mli_tensor * in, const mli_
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -1235,7 +1235,7 @@ mli_status mli_krn_avepool_chw_fx16_k10x10_nopad(const mli_tensor * in, const ml
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -1269,7 +1269,7 @@ mli_status mli_krn_avepool_chw_fx16_k10x10_nopad(const mli_tensor * in, const ml
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -1305,7 +1305,7 @@ mli_status mli_krn_avepool_chw_fx16_k1xn_krnpad(const mli_tensor * in, const mli
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -1339,7 +1339,7 @@ mli_status mli_krn_avepool_chw_fx16_k1xn_krnpad(const mli_tensor * in, const mli
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -1375,7 +1375,7 @@ mli_status mli_krn_avepool_chw_fx16_k1x2_krnpad(const mli_tensor * in, const mli
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -1409,7 +1409,7 @@ mli_status mli_krn_avepool_chw_fx16_k1x2_krnpad(const mli_tensor * in, const mli
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -1445,7 +1445,7 @@ mli_status mli_krn_avepool_chw_fx16_k1x3_krnpad(const mli_tensor * in, const mli
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -1479,7 +1479,7 @@ mli_status mli_krn_avepool_chw_fx16_k1x3_krnpad(const mli_tensor * in, const mli
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -1515,7 +1515,7 @@ mli_status mli_krn_avepool_chw_fx16_knx1_krnpad(const mli_tensor * in, const mli
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -1549,7 +1549,7 @@ mli_status mli_krn_avepool_chw_fx16_knx1_krnpad(const mli_tensor * in, const mli
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -1585,7 +1585,7 @@ mli_status mli_krn_avepool_chw_fx16_k2x1_krnpad(const mli_tensor * in, const mli
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -1619,7 +1619,7 @@ mli_status mli_krn_avepool_chw_fx16_k2x1_krnpad(const mli_tensor * in, const mli
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -1655,7 +1655,7 @@ mli_status mli_krn_avepool_chw_fx16_k3x1_krnpad(const mli_tensor * in, const mli
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -1689,7 +1689,7 @@ mli_status mli_krn_avepool_chw_fx16_k3x1_krnpad(const mli_tensor * in, const mli
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -1725,7 +1725,7 @@ mli_status mli_krn_avepool_chw_fx16_k1xn_nopad(const mli_tensor * in, const mli_
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -1759,7 +1759,7 @@ mli_status mli_krn_avepool_chw_fx16_k1xn_nopad(const mli_tensor * in, const mli_
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -1795,7 +1795,7 @@ mli_status mli_krn_avepool_chw_fx16_k1x2_nopad(const mli_tensor * in, const mli_
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -1829,7 +1829,7 @@ mli_status mli_krn_avepool_chw_fx16_k1x2_nopad(const mli_tensor * in, const mli_
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -1865,7 +1865,7 @@ mli_status mli_krn_avepool_chw_fx16_k1x3_nopad(const mli_tensor * in, const mli_
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -1899,7 +1899,7 @@ mli_status mli_krn_avepool_chw_fx16_k1x3_nopad(const mli_tensor * in, const mli_
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -1935,7 +1935,7 @@ mli_status mli_krn_avepool_chw_fx16_knx1_nopad(const mli_tensor * in, const mli_
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -1969,7 +1969,7 @@ mli_status mli_krn_avepool_chw_fx16_knx1_nopad(const mli_tensor * in, const mli_
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -2005,7 +2005,7 @@ mli_status mli_krn_avepool_chw_fx16_k2x1_nopad(const mli_tensor * in, const mli_
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -2039,7 +2039,7 @@ mli_status mli_krn_avepool_chw_fx16_k2x1_nopad(const mli_tensor * in, const mli_
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -2075,7 +2075,7 @@ mli_status mli_krn_avepool_chw_fx16_k3x1_nopad(const mli_tensor * in, const mli_
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -2109,7 +2109,7 @@ mli_status mli_krn_avepool_chw_fx16_k3x1_nopad(const mli_tensor * in, const mli_
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;
@@ -2145,7 +2145,7 @@ mli_status mli_krn_avepool_chw_fx16_generic(const mli_tensor * in, const mli_poo
     int kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_chw<MLI_PTR(int16_t)>(in,
             0); // channels
 
     // assign hard coded values for this variation to some variables
@@ -2179,7 +2179,7 @@ mli_status mli_krn_avepool_chw_fx16_generic(const mli_tensor * in, const mli_poo
     out->shape[FMAP_H_DIM_CHW] = out_height;
     out->shape[FMAP_W_DIM_CHW] = out_width;
     out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_chw<MLI_OUT_PTR(int16_t)>(out);
 
     const int row_beg = 0;
     const int row_end = out_height;

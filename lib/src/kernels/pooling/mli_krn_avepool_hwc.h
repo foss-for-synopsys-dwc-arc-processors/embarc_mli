@@ -403,7 +403,7 @@ static void mli_krn_avepool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg,
     int32_t kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(io_T), MLI_PTR_IS_XY>(in,
+    auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(io_T)>(in,
             0); // channels
 
     if (fixed_kernel_size) {
@@ -432,7 +432,7 @@ static void mli_krn_avepool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg,
         params.offset = 0;
         params.scale  = 1;
     }
-    const auto out_prv = mli_prv_get_tensor_hwc<MLI_OUT_PTR(io_T), MLI_OUT_PTR_IS_XY>(out);
+    const auto out_prv = mli_prv_get_tensor_hwc<MLI_OUT_PTR(io_T)>(out);
 
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
