@@ -89,6 +89,7 @@ if (ARC)
         -Hdense_prologue
         -Wall
         -Wno-nonportable-include-path
+        -tcf_core_config
     )
 elseif (MSVC)
     set(MLI_LIB_PRIVATE_COMPILE_OPTIONS

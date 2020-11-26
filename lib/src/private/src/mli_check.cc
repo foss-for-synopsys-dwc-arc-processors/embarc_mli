@@ -19,8 +19,72 @@
 #include "mli_math.h"
 #include "mli_math_macros.h"
 #include "mli_prv_tensor.h"
-
+#if _ARC
+#include <arc/arc_reg.h>
+#endif
 #pragma MLI_CODE_SECTION_START(".mli_lib")
+#define SUPPORT_NON_ALIGNMENT  22
+#define DISABLE_ALIGNMENT_CHECK 19
+
+#if core_config_dccm_size
+static MLI_FORCE_INLINE bool mli_chk_inside_dccm (const void *ptr) {
+	return ((uint32_t)ptr >= core_config_dccm_base) &&
+		   ((uint32_t)ptr < core_config_dccm_base + core_config_dccm_size);
+}
+#endif
+
+#if core_config_xy_size
+static MLI_FORCE_INLINE bool mli_chk_inside_yccm (const void *ptr) {
+	return ((uint32_t)ptr >= core_config_xy_y_base) &&
+		   ((uint32_t)ptr < core_config_xy_y_base + core_config_xy_size);
+}
+
+static MLI_FORCE_INLINE bool mli_chk_inside_xccm (const void *ptr) {
+	return ((uint32_t)ptr >= core_config_xy_x_base) &&
+		   ((uint32_t)ptr < core_config_xy_x_base + core_config_xy_size);
+}
+#endif
+
+#if core_config_xy_size || core_config_dccm_size
+static MLI_FORCE_INLINE bool mli_chk_inside_ccm (const void *ptr) {
+	return mli_chk_inside_xccm(ptr)||mli_chk_inside_yccm(ptr)||mli_chk_inside_dccm(ptr);
+}
+#endif
+
+#if core_config_vec_mem_size
+static MLI_FORCE_INLINE bool mli_chk_inside_vccm (const void *ptr) {
+	return ((uint32_t)ptr >= core_config_vec_mem_base) &&
+		   ((uint32_t)ptr < core_config_vec_mem_base + core_config_vec_mem_size);
+}
+#endif
+
+/*check_bank checks whether the tensor buffer have to be allocated in ccm memory or not and its value will be:
+ *  -false: if the out_buffer uses MLI_CONV_OUT_PTR which means for the output buffers of all weights based kernels.
+ *  -true: Otherwise.
+ */
+static MLI_FORCE_INLINE mli_status mli_mem_chk(const mli_tensor *t, bool check_bank) {
+#if (PLATFORM == V2DSP_XY) || (PLATFORM == V2DSP_VECTOR)
+	void *p = t->data.mem.void_p;
+	uint32_t align_mask = mli_hlp_tensor_element_size(t) - 1;
+#if MLI_PTR_IS_VCCM
+	if (!mli_chk_inside_vccm(p))
+		return MLI_STATUS_MEM_BANK_MISMATCH;
+	if (((uint32_t)p & align_mask) != 0)
+		return MLI_STATUS_MISALIGNMENT_ERROR;
+#endif
+#if MLI_PTR_IS_XY
+	if (check_bank && (!mli_chk_inside_ccm(p)))
+		return MLI_STATUS_MEM_BANK_MISMATCH;
+#endif
+#if (PLATFORM == V2DSP_XY) || ((PLATFORM == V2DSP_VECTOR) && (!MLI_PTR_IS_VCCM))
+	if (((_lr(ISA_CONFIG)&(1<<SUPPORT_NON_ALIGNMENT)) == 0) || ((_lr(STATUS32)&(1<<DISABLE_ALIGNMENT_CHECK)) == 0)) {
+		if (((uint32_t)p & align_mask) != 0)
+			return MLI_STATUS_MISALIGNMENT_ERROR;
+	}
+#endif
+#endif
+	return MLI_STATUS_OK;
+}
 
 static MLI_FORCE_INLINE mli_status check_tensor_private(
         const uint32_t *shape,
@@ -71,6 +135,9 @@ static MLI_FORCE_INLINE mli_status check_tensor_private(
 extern "C" {
 #endif
 mli_status mli_chk_tensor (const mli_tensor * in) {
+	mli_status stat = MLI_STATUS_OK;
+	stat = MLI_CHECK_STATUS(mli_mem_chk(in, MLI_PTR_IS_XY), "Memory check error");
+	if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(in != NULL, "Bad tensor null pointer")) return MLI_STATUS_BAD_TENSOR;
     return check_tensor_private(in->shape, in->mem_stride, in->rank, in->data.capacity, mli_hlp_tensor_element_size(in));
 }
@@ -251,8 +318,11 @@ mli_status mli_chk_conv2d_hwc (
         const mli_conv2d_cfg * cfg,
         const mli_tensor * out) {
     mli_status stat = MLI_STATUS_OK;
+
     bool fail = false;
 
+    stat = MLI_CHECK_STATUS(mli_mem_chk(out, MLI_CONV_OUT_PTR_IS_XY), "Memory check error");
+    if (stat != MLI_STATUS_OK) return stat;
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
     stat = MLI_CHECK_STATUS(mli_chk_tensor (weights), "Bad weights tensor");
@@ -364,6 +434,8 @@ mli_status mli_chk_conv2d_hwcn (
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;
 
+    stat = MLI_CHECK_STATUS(mli_mem_chk(out, MLI_CONV_OUT_PTR_IS_XY), "Memory check error");
+    if (stat != MLI_STATUS_OK) return stat;
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
     stat = MLI_CHECK_STATUS(mli_chk_tensor (weights), "Bad weights tensor");
@@ -519,6 +591,8 @@ mli_status mli_chk_conv2d_chw (
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;
 
+    stat = MLI_CHECK_STATUS(mli_mem_chk(out, MLI_CONV_OUT_PTR_IS_XY), "Memory check error");
+    if (stat != MLI_STATUS_OK) return stat;
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
     stat = MLI_CHECK_STATUS(mli_chk_tensor (weights), "Bad weights tensor");
@@ -635,6 +709,8 @@ mli_status mli_chk_depthwise_conv2d_chw (
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;
 
+    stat = MLI_CHECK_STATUS(mli_mem_chk(out, MLI_CONV_OUT_PTR_IS_XY), "Memory check error");
+    if (stat != MLI_STATUS_OK) return stat;
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
     stat = MLI_CHECK_STATUS(mli_chk_tensor (weights), "Bad weights tensor");
@@ -752,6 +828,8 @@ mli_status mli_chk_depthwise_conv2d_hwc(
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;
 
+    stat = MLI_CHECK_STATUS(mli_mem_chk(out, MLI_CONV_OUT_PTR_IS_XY), "Memory check error");
+    if (stat != MLI_STATUS_OK) return stat;
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
     stat = MLI_CHECK_STATUS(mli_chk_tensor (weights), "Bad weights tensor");
@@ -938,6 +1016,8 @@ mli_status mli_chk_maxpool_chw (const mli_tensor * in, const mli_pool_cfg * cfg,
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;
 
+    stat = MLI_CHECK_STATUS(mli_mem_chk(out, MLI_OUT_PTR_IS_XY), "Memory check error");
+    if (stat != MLI_STATUS_OK) return stat;
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
@@ -995,6 +1075,8 @@ mli_status mli_chk_maxpool_hwc (const mli_tensor * in, const mli_pool_cfg * cfg,
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;
 
+    stat = MLI_CHECK_STATUS(mli_mem_chk(out, MLI_OUT_PTR_IS_XY), "Memory check error");
+    if (stat != MLI_STATUS_OK) return stat;
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
@@ -1062,6 +1144,8 @@ mli_status mli_chk_avepool_chw (const mli_tensor * in, const mli_pool_cfg * cfg,
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;
 
+    stat = MLI_CHECK_STATUS(mli_mem_chk(out, MLI_OUT_PTR_IS_XY), "Memory check error");
+    if (stat != MLI_STATUS_OK) return stat;
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
@@ -1117,6 +1201,8 @@ mli_status mli_chk_avepool_hwc (const mli_tensor * in, const mli_pool_cfg * cfg,
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;
 
+    stat = MLI_CHECK_STATUS(mli_mem_chk(out, MLI_OUT_PTR_IS_XY), "Memory check error");
+    if (stat != MLI_STATUS_OK) return stat;
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
@@ -1187,7 +1273,8 @@ mli_status mli_chk_fully_connected (
         mli_tensor * out) {
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;
-
+    stat = MLI_CHECK_STATUS(mli_mem_chk(out, MLI_CONV_OUT_PTR_IS_XY), "Memory check error");
+    if (stat != MLI_STATUS_OK) return stat;
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
     stat = MLI_CHECK_STATUS(mli_chk_tensor (weights), "Bad weights tensor");
@@ -1278,7 +1365,7 @@ mli_status mli_chk_fully_connected_sa8_sa8_sa32(
         const mli_tensor * bias,
         const mli_fully_connected_cfg * cfg,
         mli_tensor * out) {
-    if (MLI_CHECK(in->el_type      == MLI_EL_SA_8, "Wrong input tensor type") ||
+	if (MLI_CHECK(in->el_type      == MLI_EL_SA_8, "Wrong input tensor type") ||
         MLI_CHECK(weights->el_type == MLI_EL_SA_8, "Wrong weights tensor type") ||
         MLI_CHECK(bias->el_type    == MLI_EL_SA_32, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
@@ -1312,6 +1399,8 @@ mli_status mli_chk_relu(const mli_tensor * in, const mli_relu_cfg * cfg, mli_ten
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;
 
+    stat = MLI_CHECK_STATUS(mli_mem_chk(out, MLI_OUT_PTR_IS_XY), "Memory check error");
+    if (stat != MLI_STATUS_OK) return stat;
     // Check that tensors are valid
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
@@ -1367,6 +1456,8 @@ mli_status mli_chk_eltwise (
     bool fail = false;
     mli_status stat = MLI_STATUS_OK;
 
+    stat = MLI_CHECK_STATUS(mli_mem_chk(out, MLI_OUT_PTR_IS_XY), "Memory check error");
+    if (stat != MLI_STATUS_OK) return stat;
     // Check that tensors are valid
     // One of tensors may be scalar - check through it at first
     if (mli_tensor_is_scalar(in1)){
@@ -1467,6 +1558,8 @@ mli_status mli_chk_basic_activation(const mli_tensor * in, mli_tensor * out) {
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;
 
+    stat = MLI_CHECK_STATUS(mli_mem_chk(out, MLI_OUT_PTR_IS_XY), "Memory check error");
+    if (stat != MLI_STATUS_OK) return stat;
     // Check that tensors are valid
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
@@ -1573,6 +1666,8 @@ mli_status mli_chk_leaky_relu (const mli_tensor * in, const mli_tensor * slope_c
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;
 
+    stat = MLI_CHECK_STATUS(mli_mem_chk(out, MLI_OUT_PTR_IS_XY), "Memory check error");
+    if (stat != MLI_STATUS_OK) return stat;
     // Check that tensors are valid
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
@@ -1644,6 +1739,8 @@ mli_status mli_chk_basic_rnn_cell (
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;
 
+    stat = MLI_CHECK_STATUS(mli_mem_chk(out, MLI_CONV_OUT_PTR_IS_XY), "Memory check error");
+    if (stat != MLI_STATUS_OK) return stat;
     // Check that tensors are valid
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
@@ -1796,6 +1893,8 @@ mli_status mli_chk_lstm_cell (
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;
 
+    stat = MLI_CHECK_STATUS(mli_mem_chk(out, MLI_CONV_OUT_PTR_IS_XY), "Memory check error");
+    if (stat != MLI_STATUS_OK) return stat;
     // Check that tensors are valid
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
@@ -1929,6 +2028,8 @@ mli_status mli_chk_concat (const mli_tensor ** inputs, const mli_concat_cfg * cf
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;
 
+    stat = MLI_CHECK_STATUS(mli_mem_chk(out, MLI_OUT_PTR_IS_XY), "Memory check error");
+    if (stat != MLI_STATUS_OK) return stat;
     // Check first input and output tensors
     if (MLI_CHECK(inputs != NULL , "Bad inputs tensor array")) return MLI_STATUS_BAD_TENSOR;
 
@@ -2006,6 +2107,8 @@ mli_status mli_chk_padding2d_chw (const mli_tensor * in, const mli_padding2d_cfg
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;
 
+    stat = MLI_CHECK_STATUS(mli_mem_chk(out, MLI_OUT_PTR_IS_XY), "Memory check error");
+    if (stat != MLI_STATUS_OK) return stat;
     // Check that in tensor is valid and out provides valid pointers
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
@@ -2056,6 +2159,8 @@ mli_status mli_chk_padding2d_hwc (const mli_tensor * in, const mli_padding2d_cfg
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;
 
+    stat = MLI_CHECK_STATUS(mli_mem_chk(out, MLI_OUT_PTR_IS_XY), "Memory check error");
+    if (stat != MLI_STATUS_OK) return stat;
     // Check that in tensor is valid and out provides valid pointers
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
@@ -2106,6 +2211,8 @@ mli_status mli_chk_permute (const mli_tensor * in, const mli_permute_cfg * cfg, 
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;
 
+    stat = MLI_CHECK_STATUS(mli_mem_chk(out, MLI_OUT_PTR_IS_XY), "Memory check error");
+    if (stat != MLI_STATUS_OK) return stat;
     // Check that in tensor is valid and out provides valid pointers
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
