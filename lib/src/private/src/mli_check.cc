@@ -47,7 +47,17 @@ static MLI_FORCE_INLINE bool mli_chk_inside_xccm (const void *ptr) {
 
 #if core_config_xy_size || core_config_dccm_size
 static MLI_FORCE_INLINE bool mli_chk_inside_ccm (const void *ptr) {
-	return mli_chk_inside_xccm(ptr)||mli_chk_inside_yccm(ptr)||mli_chk_inside_dccm(ptr);
+#if core_config_xy_size
+    if (mli_chk_inside_xccm(ptr) || mli_chk_inside_yccm(ptr)) {
+        return true;
+    }
+#endif
+#if core_config_dccm_size
+    if (mli_chk_inside_dccm(ptr)) {
+        return true;
+    }
+#endif
+    return false;
 }
 #endif
 
