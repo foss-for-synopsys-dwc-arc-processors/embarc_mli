@@ -13,6 +13,7 @@
 #include "mli_prv_quant_decl.h"
 #include "mli_prv_load_store.h"
 #include "mli_config.h"
+#include "mli_krn_dotprod.h"
 
 namespace mli {
 namespace krn {
@@ -52,18 +53,15 @@ MLI_FORCE_INLINE s8asym_quant_specific_out_params_v adjust_quant_params_v(s8asym
         wshifts = to_vNx4short_t(mli_prv_load_nx4_samples(&params->weight_shifts[krn_idx]));
     }
     s8asym_quant_specific_out_params_v out_params;
-    vNx4short_t w_norm = mli_math_norm_fx<vNx4short_t, vNx4short_t>(wscales);
-    wscales = wscales << w_norm;
-    vNx4int_t outmul32 = to_vNx4int_t(wscales) * (int32_t)params->in_to_out_scales_ratio;
+
+    vNx4int_t outmul32 = to_vNx4int_t(mli_math_mul_fx<vNx4short_t, vNx4accint_t>(wscales, (vNx4short_t)(params->in_to_out_scales_ratio)));
     vNx4int_t mul_norm = mli_math_norm_fx<vNx4int_t, vNx4int_t>(outmul32);
     int int_to_short_shift = 16;
+    out_params.out_mul = to_vNx4short_t(mli_math_asr_rnd_fx(outmul32, int_to_short_shift - mul_norm));
 
     int out_shift = params->in_to_out_shift;
-
-    out_params.out_mul = to_vNx4short_t(mli_math_asr_rnd_fx(outmul32, int_to_short_shift - mul_norm));
     out_params.out_shift = out_shift - sizeof(int16_t) * 8; // compensate for the mul_hi output multiplier
     out_params.out_shift += wshifts;
-    out_params.out_shift += w_norm;
     out_params.out_shift -= int_to_short_shift; // for the outmul int to short
     out_params.out_shift += to_vNx4short_t(mul_norm);
 
@@ -158,13 +156,7 @@ static MLI_FORCE_INLINE acc_T dotprod_inputzp_1D_v(
         const int krn_step,
         const fx_quant_specific_params* quant_params) {
 
-    for (int idx = 0; idx < vals; idx++) {
-        accu = mli_prv_mac_load_v_s(accu, krn, in);
-        in += in_step;
-        krn += krn_step;
-    }
-
-    return accu;
+    return mli::krn::dotprod1D_v(in, krn, accu, vals, in_step, krn_step);
 }
 //==========================================================================
 // Calculation of weights additive (w_add) in
@@ -218,15 +210,24 @@ MLI_FORCE_INLINE vNx4accshort_t bias_additive(
     vNx4int_t norm = mli_math_norm_fx<vNx4int_t,vNx4int_t>(bias32);
     vNx4int_t shift = mli_math_max_fx(16 - norm, 0);
     vNx4short_t bias16 = to_vNx4short_t(bias32 >> shift);
-    vNx4accshort_t accu = mli_math_add(init_accum, bias16);
+    vNx4accshort_t accu = mli_math_init_accu<vNx4short_t, vNx4accshort_t>(bias16);
     accu = mli_math_asl_fx(accu, to_vNx4short_t(shift));
     return accu;
 }
 
 template <>
+MLI_FORCE_INLINE vNx4accshort_t bias_additive(
+        const MLI_PTR(int8_t) bias, vNx4accshort_t init_accum, const fx_quant_specific_params* quant_params) {
+    vNx4char_t bias_v = mli_prv_load_nx4_samples(bias);
+    vNx4accshort_t accu = mli_math_mul_fx<vNx4char_t, vNx4accshort_t>(bias_v, 1);
+    accu = mli_math_asl_fx(accu, quant_params->bias_shift);
+    return mli_math_add(accu, init_accum);
+}
+
+template <>
 MLI_FORCE_INLINE vNx2accint_t bias_additive(
         const MLI_PTR(int16_t) bias, vNx2accint_t init_accum, const fx_quant_specific_params* quant_params) {
-    vNx2short_t bias_v = *(vNx2short_t*)bias;
+    vNx2short_t bias_v = mli_prv_load_nx2_samples(bias);
     vNx2accint_t accu = mli_math_mul_fx<vNx2short_t, vNx2accint_t>(bias_v, 1);
     accu = mli_math_asl_fx(accu, quant_params->bias_shift);
     return mli_math_add(accu, init_accum);
@@ -235,7 +236,7 @@ MLI_FORCE_INLINE vNx2accint_t bias_additive(
 template <>
 MLI_FORCE_INLINE vNx4accint_t bias_additive(
         const MLI_PTR(int8_t) bias, vNx4accint_t init_accum, const fx_quant_specific_params* quant_params) {
-    vNx4char_t bias_v = *(vNx4char_t*)bias;
+    vNx4char_t bias_v = mli_prv_load_nx4_samples(bias);
     vNx4accint_t accu = mli_math_mul_fx<vNx4short_t, vNx4accint_t>(to_vNx4short_t(bias_v), 1);
     accu = mli_math_asl_fx(accu, quant_params->bias_shift);
     return accu;
@@ -318,7 +319,7 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
     vNx4short_t preshift = mli_math_min_fx(mli_math_max_fx(quant_params->out_shift - target_out_shift, 0),8);
     acc = mli_math_asr_rnd_fx(acc, preshift);
 
-    vNx4short_t accu_result = mli_math_acc_cast_fx<vNx4short_t, vNx4accshort_t>(acc, 0);
+    vNx4short_t accu_result = mli_math_acc_cast_fx<vNx4short_t, vNx4accshort_t>(acc);
     vNx4short_t accu_scaled = mli_math_mul_fx_high(accu_result, quant_params->out_mul);
     vNx4short_t shift = quant_params->out_shift - preshift;
     vNx4short_t shift_right = mli_math_max_fx(shift, 0);
@@ -339,6 +340,23 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
     accu_scaled = MAX(accu_scaled, val_min_limit);
 
     vNx4char_t out = to_vNx4char_t(accu_scaled);
+    mli_prv_store_n_samples(o_ptr, out, num);
+}
+
+template <>
+MLI_FORCE_INLINE void result_cast_relu_store_v(
+        MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
+        vNx4accshort_t acc,
+        const fx_quant_specific_params* quant_params,
+        const int16_t val_min_limit,
+        const int16_t val_max_limit,
+        int num) {
+
+    vNx4char_t out = mli_math_acc_cast_fx<vNx4char_t, vNx4accshort_t>(acc, quant_params->out_shift);
+
+    out = MIN(out, val_max_limit);
+    out = MAX(out, val_min_limit);
+
     mli_prv_store_n_samples(o_ptr, out, num);
 }
 

@@ -143,7 +143,7 @@ MLI_FORCE_INLINE void adjust_quant_params(s8asym_quant_specific_params* params, 
     // When the accumulator is pre-shifted before the output multiplier,
     // we need to normalize mul for max use of the headroom.
     int norm = mli_math_norm_fx<int32_t, int>(params->out_mul);
-    params->out_mul = mli_math_asl_fx(params->out_mul, norm);
+    params->out_mul <<= norm;
     params->out_shift += norm;
 #endif
     return;
