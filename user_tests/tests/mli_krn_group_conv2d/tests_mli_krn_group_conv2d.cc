@@ -63,10 +63,15 @@ const crc32_calc test_1_chksum_fx16{ 0xB782413A }, test_1_chksum_fx16_fx8_fx8{ 0
                  test_5_chksum_fx16{ 0xB719F4A0 }, test_5_chksum_fx16_fx8_fx8{ 0x985577E0 }, test_5_chksum_sa8{ 0xBD32CF0A },
                  test_6_chksum_fx16{ 0x3013D414 }, test_6_chksum_fx16_fx8_fx8{ 0xCB153206 }, test_6_chksum_sa8{ 0xC61C378D },
                  test_7_chksum_fx16{ 0x80FF4E78 }, test_7_chksum_fx16_fx8_fx8{ 0x104610B9 }, test_7_chksum_sa8{ 0x50001245 },
-                 test_8_chksum_fx16{ 0xAC7AFCAE }, test_8_chksum_fx16_fx8_fx8{ 0x629A3BD0 }, test_8_chksum_sa8{ 0xE97450E4 },
+                 test_8_chksum_fx16{ 0xAC7AFCAE }, test_8_chksum_sa8{ 0xE97450E4 },
                  test_9_chksum_fx16{ 0x2DDBDF54 }, test_9_chksum_fx16_fx8_fx8{ 0x575372E7 }, test_9_chksum_sa8{ 0x396D8D7A },
                  test_10_chksum_fx16{ 0x78039E74 }, test_10_chksum_fx16_fx8_fx8{ 0x1783EEEC }, test_10_chksum_sa8{ 0x079DC058 };
-
+// Platform Specific CRC Results
+#if defined(CRC_RM_UP)
+const crc32_calc test_8_chksum_fx16_fx8_fx8{ 0x629A3BD0 };
+#else 
+const crc32_calc test_8_chksum_fx16_fx8_fx8{ 0x0597C4DB };
+#endif
 #else // Not defined CRC_*
 const crc32_calc  test_1_chksum_fx16, test_1_chksum_fx16_fx8_fx8, test_1_chksum_sa8,
                   test_2_chksum_fx16, test_2_chksum_fx16_fx8_fx8, test_2_chksum_sa8,
