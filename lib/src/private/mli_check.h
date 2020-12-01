@@ -204,6 +204,34 @@ mli_status mli_chk_depthwise_conv2d_hwcn_sa8_sa8_sa32(
         const mli_conv2d_cfg * cfg,
         const mli_tensor * out);
 
+mli_status mli_chk_group_conv2d_hwcn(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg * cfg,
+        const mli_tensor * out);
+
+mli_status mli_chk_group_conv2d_hwcn_fx16(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg * cfg,
+        const mli_tensor * out);
+
+mli_status mli_chk_group_conv2d_hwcn_fx16_fx8_fx8(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg * cfg,
+        const mli_tensor * out);
+
+mli_status mli_chk_group_conv2d_hwcn_sa8_sa8_sa32(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg * cfg,
+        const mli_tensor * out);
+
 mli_status mli_chk_maxpool_chw(const mli_tensor * in, const mli_pool_cfg * cfg, const mli_tensor * out);
 mli_status mli_chk_maxpool_chw_fx8(const mli_tensor * in, const mli_pool_cfg * cfg, const mli_tensor * out);
 mli_status mli_chk_maxpool_chw_fx16(const mli_tensor * in, const mli_pool_cfg * cfg, const mli_tensor * out);

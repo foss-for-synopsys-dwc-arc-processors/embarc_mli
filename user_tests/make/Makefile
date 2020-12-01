@@ -24,6 +24,7 @@ endif
 KERNELS = \
 	conv2d \
 	depthwise_conv \
+	group_conv2d \
 	fully_connected \
 	avepool \
 	maxpool \
