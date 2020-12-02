@@ -11,6 +11,7 @@
 #define _MLI_PRV_TENSOR_H_
 
 #include <assert.h>
+#include <limits>
 
 #include "mli_check.h"
 #include "mli_debug.h"
@@ -617,4 +618,60 @@ mli_prv_get_relu_min_max (const mli_relu_cfg * cfg, const mli_tensor * out) {
 }
 #endif
 
+template <typename out_T, bool asym>
+static MLI_FORCE_INLINE mli_minmax_t
+mli_prv_get_relu_limits (const mli_relu_cfg * cfg, const mli_tensor * out) {
+    mli_minmax_t val_limit;
+    int min_val, max_val;
+    int zero, one, neg_one, six;
+    int16_t scale = 1;
+    int shift;
+    if (asym) {
+        MLI_ASSERT((out->el_type == MLI_EL_SA_8 || out->el_type == MLI_EL_SA_32));
+        // only per tensor quantization for output tensor supported.
+        MLI_ASSERT(out->el_params.sa.dim < 0);
+        zero = out->el_params.sa.zero_point.mem.i16;
+        scale = out->el_params.sa.scale.mem.i16;
+        shift = out->el_params.sa.scale_frac_bits.mem.i8;
+    } else {
+        zero = 0;
+        scale = 1;
+        shift = out->el_params.fx.frac_bits;
+    }
+
+    min_val = std::numeric_limits<out_T>::min();
+    max_val = std::numeric_limits<out_T>::max();
+
+    switch (cfg->type) {
+    case MLI_RELU_GEN:
+        val_limit.min = (int16_t) MAX(zero, min_val);
+        val_limit.max = (int16_t) max_val;
+        break;
+    case MLI_RELU_6:
+        // In theory it is possible that scale of input is really small value and shift might be bigger than 16 bit to
+        // represent six and one in such format before int div (may exceed 32 bits).
+        // One and six are not casted to 16bit directly, only after comparison with min_val and max_val and all of them are int.
+        // Min val and max val always fit to container range, while six and one don't have to.
+        // when six doesn't fit in the container range, it will be clipped to the container range.
+        six = (shift < 30) ? ((int32_t)6 << shift) / scale : max_val;
+        six = six + zero;
+        val_limit.min = (int16_t) MAX(zero, min_val);
+        val_limit.max = (int16_t) MIN (six, max_val);
+        break;
+    case MLI_RELU_1:
+        one = (shift < 30) ? ((int32_t)1 << shift) / scale : max_val;
+        neg_one = -one + zero;
+        one = one + zero;
+        val_limit.min = (int16_t) MAX(neg_one, min_val);
+        val_limit.max = (int16_t) MIN(one, max_val);
+        break;
+    default:
+        // For leaky and param relu there is no saturation in the function domain.
+        // only container type limitations (8bit or 16 bit)
+        val_limit.min = (int16_t) min_val;
+        val_limit.max = (int16_t) max_val;
+    }
+
+    return val_limit;
+}
 #endif //_MLI_PRV_TENSOR_H_

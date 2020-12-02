@@ -275,7 +275,9 @@ MLI_FORCE_INLINE void conv2d_prepare_and_run(
 
     // Define output val limits (may affect built in ReLU)
     out->el_type = in->el_type;
-    mli_minmax_t val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
+
+    constexpr bool asym = std::is_same<quant_T, s8asym_quant_specific_params>::value;
+    mli_minmax_t val_limit = mli_prv_get_relu_limits<io_T, asym>(&cfg->relu, out);
 
     const MLI_PTR(b_T) bs = (MLI_PTR(b_T))(bias->data.mem.void_p);
 

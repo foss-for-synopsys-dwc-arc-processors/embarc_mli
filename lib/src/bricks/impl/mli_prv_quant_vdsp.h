@@ -218,24 +218,27 @@ MLI_FORCE_INLINE vNx4accshort_t bias_additive(
 template <>
 MLI_FORCE_INLINE vNx4accshort_t bias_additive(
         const MLI_PTR(int8_t) bias, vNx4accshort_t init_accum, const fx_quant_specific_params* quant_params) {
+    MLI_ASSERT(to_vNx4int_t(init_accum)[0] == 0);
     vNx4char_t bias_v = mli_prv_load_nx4_samples(bias);
     vNx4accshort_t accu = mli_math_mul_fx<vNx4char_t, vNx4accshort_t>(bias_v, 1);
     accu = mli_math_asl_fx(accu, quant_params->bias_shift);
-    return mli_math_add(accu, init_accum);
+    return accu;
 }
 
 template <>
 MLI_FORCE_INLINE vNx2accint_t bias_additive(
         const MLI_PTR(int16_t) bias, vNx2accint_t init_accum, const fx_quant_specific_params* quant_params) {
+    MLI_ASSERT(to_vNx2int_t(init_accum)[0] == 0);
     vNx2short_t bias_v = mli_prv_load_nx2_samples(bias);
     vNx2accint_t accu = mli_math_mul_fx<vNx2short_t, vNx2accint_t>(bias_v, 1);
     accu = mli_math_asl_fx(accu, quant_params->bias_shift);
-    return mli_math_add(accu, init_accum);
+    return accu;
 }
 
 template <>
 MLI_FORCE_INLINE vNx4accint_t bias_additive(
         const MLI_PTR(int8_t) bias, vNx4accint_t init_accum, const fx_quant_specific_params* quant_params) {
+    MLI_ASSERT(to_vNx4int_t(init_accum)[0] == 0);
     vNx4char_t bias_v = mli_prv_load_nx4_samples(bias);
     vNx4accint_t accu = mli_math_mul_fx<vNx4short_t, vNx4accint_t>(to_vNx4short_t(bias_v), 1);
     accu = mli_math_asl_fx(accu, quant_params->bias_shift);

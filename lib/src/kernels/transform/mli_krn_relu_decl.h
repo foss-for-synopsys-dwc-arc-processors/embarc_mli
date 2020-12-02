@@ -28,7 +28,7 @@ namespace krn {
 ////////////////////////////////////////////////////////////////////////////////
 namespace ref {
 
-template <typename io_T>
+template <typename io_T, bool asym>
 static MLI_FORCE_INLINE mli_status mli_krn_relu_fx_run(const mli_tensor *in, 
         const mli_relu_cfg *cfg, mli_tensor *out); 
 

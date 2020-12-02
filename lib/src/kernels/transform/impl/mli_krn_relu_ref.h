@@ -23,7 +23,7 @@ namespace mli {
 namespace krn {
 namespace ref {
 
-template <typename io_T>
+template <typename io_T, bool asym>
 static MLI_FORCE_INLINE mli_status mli_krn_relu_fx_run(const mli_tensor *in, 
         const mli_relu_cfg *cfg, mli_tensor *out) {
 
@@ -49,7 +49,7 @@ static MLI_FORCE_INLINE mli_status mli_krn_relu_fx_run(const mli_tensor *in,
     const MLI_PTR(io_T) orig_vec_in = vec_in;
     MLI_OUT_PTR(io_T) orig_vec_out = vec_out;
     
-    const mli_minmax_t limits = mli_prv_get_relu_min_max(cfg, in);
+    const mli_minmax_t limits = mli_prv_get_relu_limits<io_T, asym>(cfg, in);
     const io_T min_val = static_cast<io_T>(limits.min);
     const io_T max_val = static_cast<io_T>(limits.max);
 
