@@ -422,6 +422,12 @@ mli_math_acc_ashift_fx(vNx4accint_t acc, int out_shift, int target_sz) {
     v.hi.hi = to_vNint_t(vvconvert(__vacc_hi(acc.hi), ctrlword));
     return v;
 }
+
+template<typename io_T>
+static MLI_FORCE_INLINE io_T mli_prv_init_v(io_T in) {
+    return in;
+}
+
 #pragma clang diagnostic pop
 
 #endif // _VDSP_MLI_PRV_DSP_H_

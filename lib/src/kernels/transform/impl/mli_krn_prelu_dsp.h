@@ -36,56 +36,28 @@ static MLI_FORCE_INLINE v2q15_t calc_prelu(
     return mli_math_add_fx(pos, neg);
 }
 
-template <typename io_T>
+template <typename io_T, typename scale_T>
 static MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(io_T) vec_in,
-        const io_T scale,
+        const scale_T scale,
         MLI_OUT_PTR(io_T) vec_out,
         const int shift) {
 
     v2q15_t input = mli_prv_load_1vec(vec_in);
-    v2q15_t scale_v = mli_prv_init_v(scale);
-    mli_prv_store_n_samples(vec_out, calc_prelu(input, scale_v, shift));
+    mli_prv_store_n_samples(vec_out, calc_prelu(input, scale, shift));
 }
 
-template <typename io_T>
+template <typename io_T, typename scale_T>
 static MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(io_T) vec_in,
-        const io_T scale,
+        const scale_T scale,
         MLI_OUT_PTR(io_T) vec_out,
         const int shift,
         const int remaining_part) {
 
     MLI_ASSERT(remaining_part == 1);
-    v2q15_t input = mli_prv_load_1vec(vec_in); 
-    v2q15_t scale_v = mli_prv_init_v(scale);
-    mli_prv_store_1_sample(vec_out, calc_prelu(input, scale_v, shift));
-}
-
-template <typename io_T>
-static MLI_FORCE_INLINE void compute_prelu(
-        const MLI_PTR(io_T) vec_in,
-        const MLI_PTR(io_T) scale_in,
-        MLI_OUT_PTR(io_T) vec_out,
-        const int shift) {
-
     v2q15_t input = mli_prv_load_1vec(vec_in);
-    v2q15_t scale_v = mli_prv_load_1vec(scale_in);
-    mli_prv_store_n_samples(vec_out, calc_prelu(input, scale_v, shift));
-}
-
-template <typename io_T>
-static MLI_FORCE_INLINE void compute_prelu(
-        const MLI_PTR(io_T) vec_in,
-        const MLI_PTR(io_T) scale_in,
-        MLI_OUT_PTR(io_T) vec_out,
-        const int shift,
-        const int remaining_part) {
-
-    MLI_ASSERT(remaining_part == 1);
-    v2q15_t input = mli_prv_load_1vec(vec_in); 
-    v2q15_t scale_v = mli_prv_load_1vec(scale_in);
-    mli_prv_store_1_sample(vec_out, calc_prelu(input, scale_v, shift));
+    mli_prv_store_1_sample(vec_out, calc_prelu(input, scale, shift));
 }
 
 } // namespace dsp

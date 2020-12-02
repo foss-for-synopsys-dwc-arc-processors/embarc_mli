@@ -50,7 +50,7 @@ static MLI_FORCE_INLINE vNx2short_t calc_prelu(
 template <>
 MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(int8_t) vec_in,
-        const int8_t scale,
+        const vNx4char_t scale,
         MLI_OUT_PTR(int8_t) vec_out,
         const int shift) {
 
@@ -61,7 +61,7 @@ MLI_FORCE_INLINE void compute_prelu(
 template <>
 MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(int16_t) vec_in,
-        const int16_t scale,
+        const vNx2short_t scale,
         MLI_OUT_PTR(int16_t) vec_out,
         const int shift) {
 
@@ -72,7 +72,7 @@ MLI_FORCE_INLINE void compute_prelu(
 template <>
 MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(int8_t) vec_in,
-        const int8_t scale,
+        const vNx4char_t scale,
         MLI_OUT_PTR(int8_t) vec_out,
         const int shift,
         const int remaining_part) {
@@ -84,62 +84,12 @@ MLI_FORCE_INLINE void compute_prelu(
 template <>
 MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(int16_t) vec_in,
-        const int16_t scale,
+        const vNx2short_t scale,
         MLI_OUT_PTR(int16_t) vec_out,
         const int shift,
         const int remaining_part) {
 
     vNx2short_t input = mli_prv_load_1vec(vec_in);
-    mli_prv_store_n_samples(vec_out, calc_prelu(input, scale, shift), remaining_part);
-}
-
-template <>
-MLI_FORCE_INLINE void compute_prelu(
-        const MLI_PTR(int8_t) vec_in,
-        const MLI_PTR(int8_t) scale_in,
-        MLI_OUT_PTR(int8_t) vec_out,
-        const int shift) {
-
-    vNx4char_t input = mli_prv_load_1vec(vec_in);
-    vNx4char_t scale = mli_prv_load_1vec(scale_in);
-    mli_prv_store_n_samples(vec_out, calc_prelu(input, scale, shift));
-}
-
-template <>
-MLI_FORCE_INLINE void compute_prelu(
-        const MLI_PTR(int16_t) vec_in,
-        const MLI_PTR(int16_t) scale_in,
-        MLI_OUT_PTR(int16_t) vec_out,
-        const int shift) {
-
-    vNx2short_t input = mli_prv_load_1vec(vec_in);
-    vNx2short_t scale = mli_prv_load_1vec(scale_in);
-    mli_prv_store_n_samples(vec_out, calc_prelu(input, scale, shift));
-}
-
-template <>
-MLI_FORCE_INLINE void compute_prelu(
-        const MLI_PTR(int8_t) vec_in,
-        const MLI_PTR(int8_t) scale_in,
-        MLI_OUT_PTR(int8_t) vec_out,
-        const int shift,
-        const int remaining_part) {
-
-    vNx4char_t input = mli_prv_load_1vec(vec_in);
-    vNx4char_t scale = mli_prv_load_1vec(scale_in);
-    mli_prv_store_n_samples(vec_out, calc_prelu(input, scale, shift), remaining_part);
-}
-
-template <>
-MLI_FORCE_INLINE void compute_prelu(
-        const MLI_PTR(int16_t) vec_in,
-        const MLI_PTR(int16_t) scale_in,
-        MLI_OUT_PTR(int16_t) vec_out,
-        const int shift,
-        const int remaining_part) {
-
-    vNx2short_t input = mli_prv_load_1vec(vec_in);
-    vNx2short_t scale = mli_prv_load_1vec(scale_in);
     mli_prv_store_n_samples(vec_out, calc_prelu(input, scale, shift), remaining_part);
 }
 
