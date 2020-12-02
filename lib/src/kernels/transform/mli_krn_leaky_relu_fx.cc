@@ -26,14 +26,16 @@ mli_status mli_krn_leaky_relu_fx8(const mli_tensor *in, const mli_tensor *slope_
     mli_status ret = MLI_CHECK_STATUS(mli_chk_leaky_relu_fx8(in, slope_coeff, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
 
-    return mli::krn::leaky_relu_fx_run<int8_t>(in, slope_coeff, out);
+    const mli_prelu_cfg cfg = {/*axis*/ -1};
+    return mli::krn::prelu_fx_run<int8_t>(in, slope_coeff, &cfg, out);
 }
 
 mli_status mli_krn_leaky_relu_fx16(const mli_tensor *in, const mli_tensor *slope_coeff, mli_tensor *out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_leaky_relu_fx16(in, slope_coeff, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
 
-    return mli::krn::leaky_relu_fx_run<int16_t>(in, slope_coeff, out);
+    const mli_prelu_cfg cfg = {/*axis*/ -1};
+    return mli::krn::prelu_fx_run<int16_t>(in, slope_coeff, &cfg, out);
 }
 
 mli_status mli_krn_leaky_relu_sa8(const mli_tensor *in, const mli_tensor *slope_coeff, mli_tensor *out) {
