@@ -92,8 +92,13 @@ MLI_FORCE_INLINE void define_requant_params(const mli_tensor *in, const mli_tens
 template <>
 MLI_FORCE_INLINE void define_quant_params(const mli_tensor* in, const mli_tensor* weights, const mli_tensor* bias,
                                 const mli_tensor* out, fx_quant_specific_params* params) {
-    params->bias_shift = mli_prv_calc_shift(in, weights, bias);
-    params->out_shift = mli_prv_calc_shift(in, weights, out);
+
+    MLI_ASSERT((in->el_type == MLI_EL_FX_8) || (in->el_type == MLI_EL_FX_16));
+    MLI_ASSERT((weights->el_type == MLI_EL_FX_8) || (weights->el_type == MLI_EL_FX_16));
+    MLI_ASSERT((out->el_type == MLI_EL_FX_8) || (out->el_type == MLI_EL_FX_16));
+
+    params->bias_shift = in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits - bias->el_params.fx.frac_bits;
+    params->out_shift = in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits - out->el_params.fx.frac_bits;
 }
 
 template <>
@@ -161,40 +166,6 @@ MLI_FORCE_INLINE int16_t quant_params_get_weigths_zeropoint(s8asym_quant_specifi
 
 MLI_FORCE_INLINE int16_t quant_params_get_weigths_zeropoint(fx_quant_specific_params* params) {
     return 0;
-}
-
-static MLI_FORCE_INLINE int32_t mli_prv_calc_out_mul(
-        const mli_tensor *in0,
-        const mli_tensor *in1,
-        const mli_tensor *out,
-        int * shift){
-    if ((in0->el_type == MLI_EL_FX_8) || (in0->el_type == MLI_EL_FX_16)) {
-        /* mix of FX and asym datatypes is not supported */
-        MLI_ASSERT((in1->el_type == MLI_EL_FX_8) || (in1->el_type == MLI_EL_FX_16));
-        MLI_ASSERT((out->el_type == MLI_EL_FX_8) || (out->el_type == MLI_EL_FX_16));
-        return 1;
-    } else if (in0->el_type == MLI_EL_SA_8) {
-        const int shiftChangeValue = 32;
-        /* mix of FX and asym datatypes is not supported */
-        MLI_ASSERT(in1->el_type == MLI_EL_SA_8);
-        MLI_ASSERT((out->el_type == MLI_EL_SA_8) || (out->el_type == MLI_EL_SA_32));
-        MLI_ASSERT((in0->el_params.sa.dim < 0) && (in1->el_params.sa.dim < 0));
-
-        *shift = in0->el_params.sa.scale_frac_bits.mem.i8;
-        *shift += in1->el_params.sa.scale_frac_bits.mem.i8;
-        *shift += (kPreDivShiftS16 - out->el_params.sa.scale_frac_bits.mem.i8);
-        *shift -= shiftChangeValue;
-
-        int32_t scale_unfinished = (int32_t)(in0->el_params.sa.scale.mem.i16) << kPreDivShiftS16;
-        scale_unfinished = scale_unfinished / out->el_params.sa.scale.mem.i16;
-        int32_t in_to_out_scales_ratio = scale_unfinished;
-        int64_t out_mul_scaled = (int64_t)in_to_out_scales_ratio * in1->el_params.sa.scale.mem.i16;
-        int32_t out_mul = mli_math_cast_fx<int64_t, int32_t>(out_mul_scaled, shiftChangeValue);
-        return out_mul;
-    } else {
-        MLI_ASSERT(0);
-        return 0;
-    }
 }
 
 //==========================================================================

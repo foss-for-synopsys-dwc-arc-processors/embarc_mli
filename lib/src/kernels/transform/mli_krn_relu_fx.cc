@@ -29,7 +29,7 @@ mli_status mli_krn_relu_fx8(const mli_tensor* in, const mli_relu_cfg* cfg, mli_t
     mli_status ret = MLI_CHECK_STATUS(mli_chk_relu_fx8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     
-    ret = mli_krn_relu_fx_run<int8_t>(in, cfg, out);
+    ret = mli_krn_relu_fx_run<int8_t, /*asym = */ false>(in, cfg, out);
     return ret;
 }
 
@@ -37,7 +37,7 @@ mli_status mli_krn_relu_fx16(const mli_tensor* in, const mli_relu_cfg* cfg, mli_
     mli_status ret = MLI_CHECK_STATUS(mli_chk_relu_fx16(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     
-    ret = mli_krn_relu_fx_run<int16_t>(in, cfg, out);
+    ret = mli_krn_relu_fx_run<int16_t, /*asym = */ false>(in, cfg, out);
     return ret;
 }
 
@@ -46,7 +46,7 @@ mli_status mli_krn_relu_sa8(const mli_tensor* in, const mli_relu_cfg* cfg, mli_t
     mli_status ret = MLI_CHECK_STATUS(mli_chk_relu_sa8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     
-    ret = mli_krn_relu_fx_run<int8_t>(in, cfg, out);
+    ret = mli_krn_relu_fx_run<int8_t, /*asym = */ true>(in, cfg, out);
 
     out->el_params.sa.zero_point.mem.i16 = in->el_params.sa.zero_point.mem.i16;
     out->el_params.sa.scale.mem.i16 = in->el_params.sa.scale.mem.i16;

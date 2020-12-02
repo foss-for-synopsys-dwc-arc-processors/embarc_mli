@@ -102,7 +102,9 @@ MLI_FORCE_INLINE void fully_connected_prepare_and_run(
     const int in_sz = mli_prv_count_elem_num(in);
 
     out->el_type = in->el_type;
-    mli_minmax_t val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
+
+    constexpr bool asym = std::is_same<quant_T, s8asym_quant_specific_params>::value;
+    mli_minmax_t val_limit = mli_prv_get_relu_limits<io_T, asym>(&cfg->relu, out);
 
     // fill output tensor parameters
     out->shape[0] = ch_out;
