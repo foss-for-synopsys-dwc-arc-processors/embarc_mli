@@ -175,6 +175,7 @@ add_user_test(maxpool)
 # Diverse Kernels Group
 #======================================================
 add_user_test(argmax)
+add_user_test(permute)
 
 #======================================================
 # Fully Connected And Recurrent Group

@@ -32,6 +32,7 @@ if (ARC AND (${MLI_PLATFORM} STREQUAL EM_HS))
         ${MLI_LIB_CMAKE_DIR}/src/kernels/pooling/*.cc
         ${MLI_LIB_CMAKE_DIR}/src/kernels/pooling_chw/*.cc
         ${MLI_LIB_CMAKE_DIR}/src/kernels/transform/*.cc
+        ${MLI_LIB_CMAKE_DIR}/src/kernels/diverse/*.cc
         ${MLI_LIB_CMAKE_DIR}/src/private/src/*.cc
         ${MLI_LIB_CMAKE_DIR}/src/bricks/*.cc
         ${MLI_LIB_CMAKE_DIR}/src/move/*.cc
@@ -67,6 +68,7 @@ else()
         ${MLI_LIB_CMAKE_DIR}/src/kernels/common/mli_krn_fully_connected.cc
         ${MLI_LIB_CMAKE_DIR}/src/kernels/common/mli_krn_rnn_dense.cc
         ${MLI_LIB_CMAKE_DIR}/src/kernels/diverse/mli_krn_argmax.cc
+        ${MLI_LIB_CMAKE_DIR}/src/kernels/diverse/mli_krn_permute_fx.cc
     )
 endif()
 
@@ -87,6 +89,7 @@ set(MLI_LIB_PRIVATE_INCLUDES
     ${MLI_LIB_CMAKE_DIR}/src/kernels/pooling_chw
     ${MLI_LIB_CMAKE_DIR}/src/kernels/diverse
     ${MLI_LIB_CMAKE_DIR}/src/kernels/transform
+    ${MLI_LIB_CMAKE_DIR}/src/kernels/diverse
     ${MLI_LIB_CMAKE_DIR}/src/move
     ${MLI_LIB_CMAKE_DIR}/src/pal
 )
