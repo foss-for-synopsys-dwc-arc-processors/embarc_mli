@@ -1056,11 +1056,25 @@ static MLI_FORCE_INLINE v2q15_t mli_prv_init_v(int16_t first, int16_t second) {
     return out;
 }
 
-static MLI_FORCE_INLINE v2q15_t mli_prv_init_v(int16_t in_val) {
+template<typename in_T, typename out_T>
+static MLI_FORCE_INLINE out_T mli_prv_init_v(in_T in) {
+    return static_cast<out_T>(in);
+}
+
+template<>
+MLI_FORCE_INLINE v2q15_t mli_prv_init_v<int16_t, v2q15_t>(int16_t in_val) {
     v2q15_t out = fx_replic_v2q15(in_val);
 
     return out;
 }
+
+template<>
+MLI_FORCE_INLINE v2q15_t mli_prv_init_v<int8_t, v2q15_t>(int8_t in_val) {
+    v2q15_t out = fx_replic_v2q15(in_val);
+
+    return out;
+}
+
 #pragma clang diagnostic pop
 
 #endif //_DSP_MLI_PRV_DSP_H_

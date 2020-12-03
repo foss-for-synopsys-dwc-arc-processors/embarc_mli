@@ -120,7 +120,7 @@ static MLI_FORCE_INLINE mli_status prelu_fx_run(const mli_tensor *in,
         decltype(input) scale_v;
         if (broadcasting) {
             /* Load Scale Elem */
-            scale_v = mli_prv_init_v((is_leaky_relu)? scale: slope_ptr[scale_idx]);
+            scale_v = mli_prv_init_v<io_T, decltype(input)>((is_leaky_relu)? scale: slope_ptr[scale_idx]);
             scale_idx++;
         } else {
             /* Load Scale Vector */
