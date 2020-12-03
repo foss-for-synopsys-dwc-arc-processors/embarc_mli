@@ -423,9 +423,9 @@ mli_math_acc_ashift_fx(vNx4accint_t acc, int out_shift, int target_sz) {
     return v;
 }
 
-template<typename io_T>
-static MLI_FORCE_INLINE io_T mli_prv_init_v(io_T in) {
-    return in;
+template<typename in_T, typename out_T>
+static MLI_FORCE_INLINE out_T mli_prv_init_v(in_T in) {
+    return static_cast<out_T>(in);
 }
 
 #pragma clang diagnostic pop

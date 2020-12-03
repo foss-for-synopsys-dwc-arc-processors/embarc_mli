@@ -52,11 +52,11 @@ static MLI_FORCE_INLINE v2q15_t activation_lut_two_elem_interpolate(
     int preshift_in = mli_math_max_fx(shift_in - (int)kMaxFracBitsFx16, 0);
     shift_in = mli_math_min_fx(shift_in, (int)kMaxFracBitsFx16);
 
-    v2q15_t offset = mli_prv_init_v(lut->offset);
-    v2q15_t lower = mli_prv_init_v(0);
+    v2q15_t offset = mli_prv_init_v<int16_t, v2q15_t>(lut->offset);
+    v2q15_t lower = mli_prv_init_v<int16_t, v2q15_t>(0);
     // input data is more precise than LUT
-    v2q15_t mask = mli_prv_init_v((1 << shift_in) - 1);
-    v2q15_t upper = mli_prv_init_v(lut->length - 2);
+    v2q15_t mask = mli_prv_init_v<int16_t, v2q15_t>((1 << shift_in) - 1);
+    v2q15_t upper = mli_prv_init_v<int16_t, v2q15_t>(lut->length - 2);
 
     /* Convert Input SA8 to FX */
     v2q15_t x = in;
@@ -113,10 +113,10 @@ static MLI_FORCE_INLINE v2q15_t activation_lut_two_elem_no_interpolate(
     int shift_in = in_frac_bits - lut->in_frac_bits;
     shift_in = mli_math_min_fx(shift_in, (int)kMaxFracBitsFx16);
 
-    v2q15_t offset = mli_prv_init_v(lut->offset);
-    v2q15_t lower = mli_prv_init_v(0);
+    v2q15_t offset = mli_prv_init_v<int16_t, v2q15_t>(lut->offset);
+    v2q15_t lower = mli_prv_init_v<int16_t, v2q15_t>(0);
     
-    v2q15_t upper = mli_prv_init_v(lut->length - 1);
+    v2q15_t upper = mli_prv_init_v<int16_t, v2q15_t>(lut->length - 1);
 
     // input data isn't more precise than LUT
     v2q15_t x = in;

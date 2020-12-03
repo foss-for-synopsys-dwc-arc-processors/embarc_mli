@@ -276,9 +276,9 @@ static MLI_FORCE_INLINE void mli_prv_load_mac(
     *accu += mli_math_mul_fx<int16_t, int32_t>(*in, *k);
 }
 
-template<typename io_T>
-static MLI_FORCE_INLINE io_T mli_prv_init_v(io_T in) {
-    return in;
+template<typename in_T, typename out_T>
+static MLI_FORCE_INLINE out_T mli_prv_init_v(in_T in) {
+    return static_cast<out_T>(in);
 }
 
 PRAGMA_CLANG(diagnostic pop)

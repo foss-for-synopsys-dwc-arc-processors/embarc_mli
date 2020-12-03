@@ -41,15 +41,15 @@ static MLI_FORCE_INLINE void mli_krn_softmax_subtract_max(
     
     // look for max & min values
     v2q15_t one_val = mli_prv_load_1_sample(vec_in);
-    v2q15_t max_val = mli_prv_init_v(one_val[0]);
-    v2q15_t min_val = mli_prv_init_v(one_val[0]);
+    v2q15_t max_val = mli_prv_init_v<int16_t, v2q15_t>(one_val[0]);
+    v2q15_t min_val = mli_prv_init_v<int16_t, v2q15_t>(one_val[0]);
 
     for (int pos0 = 0; pos0 < in_prv->shape[0]; pos0++) {
         for (int pos1 = 0; pos1 < in_prv->shape[1]; pos1++) {
             for (int pos2 = 0; pos2 < in_prv->shape[2]; pos2++) {
                 vec_in  = (MLI_PTR(io_T))orig_vec_in + POS(in_prv,  pos0, pos1, pos2, 0);
                 if (in_prv->shape[3] & 1) {
-                    v2q15_t one_val = mli_prv_init_v(mli_prv_load_1_sample(vec_in)[0]);
+                    v2q15_t one_val = mli_prv_init_v<int16_t, v2q15_t>(mli_prv_load_1_sample(vec_in)[0]);
                     max_val = mli_math_max_fx(max_val, one_val);
                     min_val = mli_math_min_fx(min_val, one_val);
                     vec_in += 1;
@@ -64,8 +64,8 @@ static MLI_FORCE_INLINE void mli_krn_softmax_subtract_max(
         }
     }
 
-    max_val = mli_prv_init_v(mli_math_max_fx(max_val[0], max_val[1]));
-    min_val = mli_prv_init_v(mli_math_min_fx(min_val[0], min_val[1]));
+    max_val = mli_prv_init_v<int16_t, v2q15_t>(mli_math_max_fx(max_val[0], max_val[1]));
+    min_val = mli_prv_init_v<int16_t, v2q15_t>(mli_math_min_fx(min_val[0], min_val[1]));
     // reset input data pointer
     vec_in = (MLI_PTR(io_T))orig_vec_in;
 
@@ -219,14 +219,14 @@ static MLI_FORCE_INLINE int8_t mli_krn_softmax_get_max(
     MLI_PTR(io_T) vec_in  = (MLI_PTR(io_T))orig_vec_in;
     // look for max value
     v2q15_t one_val = mli_prv_load_1_sample(vec_in);
-    v2q15_t max_val = mli_prv_init_v(one_val[0]);
+    v2q15_t max_val = mli_prv_init_v<int16_t, v2q15_t>(one_val[0]);
 
     for (int pos0 = 0; pos0 < in_prv->shape[0]; pos0++) {
         for (int pos1 = 0; pos1 < in_prv->shape[1]; pos1++) {
             for (int pos2 = 0; pos2 < in_prv->shape[2]; pos2++) {
                 vec_in  = (MLI_PTR(io_T))orig_vec_in + POS(in_prv,  pos0, pos1, pos2, 0);
                 if (in_prv->shape[3] & 1) {
-                    v2q15_t one_val = mli_prv_init_v(mli_prv_load_1_sample(vec_in)[0]);
+                    v2q15_t one_val = mli_prv_init_v<int16_t, v2q15_t>(mli_prv_load_1_sample(vec_in)[0]);
                     max_val = mli_math_max_fx(max_val, one_val);
                     vec_in += 1;
                 }
@@ -265,7 +265,7 @@ static MLI_FORCE_INLINE void mli_krn_softmax_fx_run(const MLI_PTR(io_T) vec_in, 
         * so we use Q30(0.5) as a dividend to get Q15 result inside (0.5, 1)
         * saturation prevents it from reaching 1
         */
-    v2q15_t sum_recip = mli_prv_init_v((int16_t)mli_math_sat_fx<int32_t>((1L << 29) / sum_mnt, 16));
+    v2q15_t sum_recip = mli_prv_init_v<int16_t, v2q15_t>((int16_t)mli_math_sat_fx<int32_t>((1L << 29) / sum_mnt, 16));
 
     /* sum_recip * vec_out[idx] = Q15 * Q15 (default LUT output) */
     int lut_frac_bits = expneg_lut_fx16.out_frac_bits * 2;
@@ -298,7 +298,7 @@ static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in,
         * so we use Q30(0.5) as a dividend to get Q15 result inside (0.5, 1)
         * saturation prevents it from reaching 1
         */
-    v2q15_t sum_recip = mli_prv_init_v((int16_t)mli_math_sat_fx<int32_t>((1L << 29) / sum_mnt, 16)); 
+    v2q15_t sum_recip = mli_prv_init_v<int16_t, v2q15_t>((int16_t)mli_math_sat_fx<int32_t>((1L << 29) / sum_mnt, 16));
     /* sum_recip * vec_out[idx] = Q15 * Q15 (default LUT output) */
     int lut_frac_bits = expneg_lut_fx16.out_frac_bits * 2;
     /* 15 - sum_exp: sum_of_exps overhead */

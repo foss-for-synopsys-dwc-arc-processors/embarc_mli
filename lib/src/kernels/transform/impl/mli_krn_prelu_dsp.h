@@ -29,7 +29,7 @@ static MLI_FORCE_INLINE v2q15_t calc_prelu(
         const int shift) {
 
     /* out  = max(0, in) + alpha * min(0, in) */
-    v2q15_t zero = mli_prv_init_v(0);
+    v2q15_t zero = mli_prv_init_v<int16_t, v2q15_t>(0);
     v2q15_t pos = mli_math_max_fx(zero, input);
     v2q15_t neg = mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(
                   mli_math_mul_fx<v2q15_t, v2accum40_t>(scale_v, mli_math_min_fx(zero, input)), shift);
