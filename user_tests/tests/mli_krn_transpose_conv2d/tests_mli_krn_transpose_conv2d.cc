@@ -55,14 +55,22 @@ struct transpose_conv2d_test_operands {
 #if defined(CRC_RM_CONVERGENT) || defined(CRC_RM_UP)
 
 // Shared CRC Results
-const crc32_calc test_1_chksum_fx16 {0x7CD22049}, test_1_chksum_fx16_fx8_fx8 {0x9E58234E}, test_1_chksum_sa8 {0x59A71A0B},
-                 test_2_chksum_fx16 {0x0B88C56E}, test_2_chksum_fx16_fx8_fx8 {0xB808A08B}, test_2_chksum_sa8 {0xC2336ACA},
-                 test_3_chksum_fx16 {0x85E46A29}, test_3_chksum_fx16_fx8_fx8 {0xF9B0F692}, test_3_chksum_sa8 {0xCE83CE66},
-                 test_4_chksum_fx16 {0xC724EBF9}, test_4_chksum_fx16_fx8_fx8 {0xB617F5E9}, test_4_chksum_sa8 {0xDEE32B04},
-                 test_5_chksum_fx16 {0xE82A4691}, test_5_chksum_fx16_fx8_fx8 {0xD261DE7C}, test_5_chksum_sa8 {0x591EA9A4};
+const crc32_calc test_1_chksum_fx16 {0x7CD22049}, /*test_1_chksum_fx16_fx8_fx8,             */ test_1_chksum_sa8 {0x59A71A0B},
+                 test_2_chksum_fx16 {0x0B88C56E}, /*test_2_chksum_fx16_fx8_fx8,                test_2_chksum_sa8,*/
+                 test_3_chksum_fx16 {0x85E46A29},   test_3_chksum_fx16_fx8_fx8 {0xF9B0F692},   test_3_chksum_sa8 {0xCE83CE66},
+                 test_4_chksum_fx16 {0xC724EBF9}, /*test_4_chksum_fx16_fx8_fx8,             */ test_4_chksum_sa8 {0xDEE32B04},
+                 test_5_chksum_fx16 {0xE82A4691}, /*test_5_chksum_fx16_fx8_fx8,             */ test_5_chksum_sa8 {0x591EA9A4};
 // Platform Specific CRC Results
 #if defined(CRC_RM_UP)
+const crc32_calc test_1_chksum_fx16_fx8_fx8 {0xB8EF2F73},
+                 test_2_chksum_fx16_fx8_fx8 {0x2A904693}, test_2_chksum_sa8 {0xE08E482A},
+                 test_4_chksum_fx16_fx8_fx8 {0xF0F39D2C}, 
+                 test_5_chksum_fx16_fx8_fx8 {0xA3E639A8};
 #else 
+const crc32_calc test_1_chksum_fx16_fx8_fx8 {0x9E58234E},
+                 test_2_chksum_fx16_fx8_fx8 {0xB808A08B}, test_2_chksum_sa8 {0xC2336ACA},
+                 test_4_chksum_fx16_fx8_fx8 {0xB617F5E9},
+                 test_5_chksum_fx16_fx8_fx8 {0xD261DE7C};
 #endif
 #else // Not defined CRC_*
 const crc32_calc  test_1_chksum_fx16, test_1_chksum_fx16_fx8_fx8, test_1_chksum_sa8,
@@ -108,7 +116,7 @@ static const transpose_conv2d_test_operands tests_list[] = {
                                     input_1_sa8, weights_2_sa8, bias_1_i1_w2_sa32, test_2_out_sa8, test_2_cfg,
                                     thresholds_sa8_general, test_2_chksum_sa8},
 
-    //// No strides case: kernel_size=(3, 4), strides=(1, 1), w/o padding and Relu1
+    // No strides case: kernel_size=(3, 4), strides=(1, 1), w/o padding and Relu1
     {"Test 3 FX16 Dilation",         mli_krn_transpose_conv2d_hwcn_fx16,
                                      input_1_fx16, weights_1_fx16, bias_1_fx16, test_3_out_fx16, test_3_cfg,
                                      thresholds_fx16_general, test_3_chksum_fx16},
@@ -119,7 +127,7 @@ static const transpose_conv2d_test_operands tests_list[] = {
                                      input_1_sa8, weights_1_sa8, bias_1_i1_w1_sa32, test_3_out_sa8, test_3_cfg,
                                      thresholds_sa8_test3, test_3_chksum_sa8},
 
-    //// Input/output Memstride test : kernel_size = (4, 3), strides = (3, 2), w / o padding and with ReLU_6
+    // Input/output Memstride test : kernel_size = (4, 3), strides = (3, 2), w / o padding and with ReLU_6
     {"Test 4 FX16 IO_Memstr",         mli_krn_transpose_conv2d_hwcn_fx16,
                                       input_1_memstr_fx16, weights_2_fx16, bias_1_fx16, test_4_out_fx16, test_4_cfg,
                                       thresholds_fx16_general, test_4_chksum_fx16},
@@ -130,7 +138,7 @@ static const transpose_conv2d_test_operands tests_list[] = {
                                       input_1_memstr_sa8, weights_2_sa8, bias_1_i1_w2_sa32, test_4_out_sa8, test_4_cfg,
                                       thresholds_sa8_general, test_4_chksum_sa8},
 
-    //// Weights Memstride test : kernels of (3, 4) size, strides = (3, 2), krn_padding and no ReLU
+    // Weights Memstride test : kernels of (3, 4) size, strides = (3, 2), krn_padding and no ReLU
     {"Test 5 FX16 W_Memstr",         mli_krn_transpose_conv2d_hwcn_fx16, 
                                      input_1_memstr_fx16, weights_1_memstr_fx16, bias_1_fx16, test_5_out_fx16, test_5_cfg,
                                      thresholds_fx16_general, test_5_chksum_fx16},

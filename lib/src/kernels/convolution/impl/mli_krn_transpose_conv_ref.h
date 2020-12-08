@@ -10,7 +10,6 @@
 #define _MLI_KRN_TRANSPOSE_CONV_REF_H_
 
 #include "mli_api.h"
-#include "mli_krn_convolution.h"
 #include "mli_private_types.h"
 #include "mli_prv_quant.h"
 #include "mli_prv_tensor.h"
@@ -87,7 +86,7 @@ MLI_FORCE_INLINE void transpose_convolution2D(
         const io_T val_max_limit,
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right) {
-
+    // We reuse general 2d convolution from reference, which is declared in mli_krn_transpose_conv_decl.h
     mli::krn::ref::convolution2D<io_T, w_T, b_T, acc_T, quant_T, KRN_SZ_VAR, KRN_SZ_VAR>(
         in, weights, biases, out, perception_area, quant_params,
         val_min_limit, val_max_limit,
@@ -144,6 +143,14 @@ MLI_FORCE_INLINE void transpose_conv2d_prepare_and_run(
 
     // Applying main convolution for each subtensor of weights pattern independently
     //=======================================================================
+    // There are two main ways to calculate transpose convolution using general conv2d:
+    // 1) mirror weights, extend input with zeroes between each pixel according to strides params, 
+    //    apply a general convolution
+    // 2) mirror weights, create several patterns from it according to strides, and apply
+    //      general convolution of each weights subtensor on input. Results need to be concatenated
+    // 2nd option looks more complicated, but doesn't require extra memory for input, can be implemented
+    // using memstrides for weights and output, and more efficient as no extra multplications with 0 
+    // is needed. 
     for (int krn_h_offset = 0; krn_h_offset < stride_height; krn_h_offset++) {
         for (int krn_w_offset = 0; krn_w_offset < stride_width; krn_w_offset++) {
             const auto weights_subtensor = 

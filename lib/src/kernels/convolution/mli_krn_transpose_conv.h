@@ -10,6 +10,7 @@
 #ifndef _MLI_KRN_TRANSPOSE_CONV_H_
 #define _MLI_KRN_TRANSPOSE_CONV_H_
 
+#include "mli_krn_convolution.h"
 #include "mli_krn_transpose_conv_decl.h"
 
 // This header file must be included by users inside MLI library that depend
