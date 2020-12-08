@@ -23,15 +23,12 @@
 namespace mli {
 namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-using mli::krn::vdsp::reduce_max2D_hwc_v;
 using mli::krn::vdsp::reduce_max2D_hwc;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-using mli::krn::dsp::reduce_max2D_hwc_v;
-using mli::krn::ref::reduce_max2D_hwc;
+using mli::krn::dsp::reduce_max2D_hwc;
 
 #else
-using mli::krn::ref::reduce_max2D_hwc_v;
 using mli::krn::ref::reduce_max2D_hwc;
 
 #endif

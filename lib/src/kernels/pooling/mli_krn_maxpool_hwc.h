@@ -42,8 +42,6 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_nopad(
         const int kernel_height,
         const int kernel_width) {
 
-    bool fixed_size = fixed_kernel_size == MAXPOOL_NO_FIXED_KRN_SIZE ? false : true;
-
     /* Dummy Load to get num_lanes, remaining part */
     auto input = mli_prv_load_1vec(in.ptr);
     const int num_lanes = get_number_lanes(input);
@@ -77,8 +75,8 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_nopad(
 // #pragma clang loop unroll_count(2)
                     for (int W_idx = clmn_beg; W_idx < clmn_end; W_idx++) {
                         // Core Max
-                        mli::krn::reduce_max2D_hwc_v(in_ptr, out_ptr, kernel_width, kernel_height,
-                                in.col_mem_stride, in.row_mem_stride, fixed_size);
+                        mli::krn::reduce_max2D_hwc<io_T, /*remaining_chans*/ false, fixed_kernel_size, /*varying_kernel*/ false>
+                            (in_ptr, out_ptr, kernel_width, kernel_height, in.col_mem_stride, in.row_mem_stride);
 
                         in_ptr += in_col_inc;
                         out_ptr += out_col_inc;
@@ -102,8 +100,8 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_nopad(
             for (int H_idx = row_beg; H_idx < row_end; H_idx++) {
                 for (int W_idx = clmn_beg; W_idx < clmn_end; W_idx++) {
                     // Core Max
-                    mli::krn::reduce_max2D_hwc(in_ptr, out_ptr, kernel_width, kernel_height, remaining_chans,
-                        in.col_mem_stride, in.row_mem_stride, fixed_size);
+                    mli::krn::reduce_max2D_hwc<io_T, /*remaining_chans*/ true, fixed_kernel_size, /*varying_kernel*/ false>
+                        (in_ptr, out_ptr, kernel_width, kernel_height, in.col_mem_stride, in.row_mem_stride, remaining_chans);
 
                     in_ptr += in_col_inc;
                     out_ptr += out_col_inc;
@@ -187,16 +185,18 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_pad(
 
 
         for (int area_idx = 0; area_idx < areas_num; ++area_idx) {
+            int top_comp_val = (perc_areas[area_idx].row_beg * stride_height) - padding_top;
             for (int H_idx = perc_areas[area_idx].row_beg; H_idx < (int)perc_areas[area_idx].row_end; H_idx++) {
+                int left_comp_val = (perc_areas[area_idx].clmn_beg * stride_width) - padding_left;
                 for (int W_idx = perc_areas[area_idx].clmn_beg; W_idx < (int)perc_areas[area_idx].clmn_end; W_idx++) {
                     for (int ch_idx = 0; ch_idx < in.ch - remaining_chans; ch_idx += num_lanes) {
                         // Define area of input and filter for pooling
                         // *_comp - compensation values for valid area defining
-                        int top_comp = -MIN((H_idx * stride_height) - padding_top, 0);
-                        int left_comp = -MIN((W_idx * stride_width) - padding_left, 0);
+                        int top_comp = -MIN(top_comp_val, 0);
+                        int left_comp = -MIN(left_comp_val, 0);
 
-                        int right_comp = -MIN(in.width - ((W_idx * stride_width) - padding_left + kernel_width), 0);
-                        int bottom_comp = -MIN(in.height - ((H_idx * stride_height) - padding_top + kernel_height), 0);
+                        int right_comp = -MIN(in.width - (left_comp_val + kernel_width), 0);
+                        int bottom_comp = -MIN(in.height - (top_comp_val + kernel_height), 0);
 
                         int rows = kernel_height - top_comp - bottom_comp;
                         int clmns = kernel_width - right_comp - left_comp;
@@ -212,21 +212,25 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_pad(
                                            ch_idx];
 
                         // Core Max
-                        mli::krn::reduce_max2D_hwc_v(in_ptr, out_ptr, clmns, rows,
-                                in.col_mem_stride, in.row_mem_stride, false);
+                        mli::krn::reduce_max2D_hwc<io_T, /*remaining_chans*/ false, fixed_kernel_size, /*varying_kernel*/ true>
+                            (in_ptr, out_ptr, clmns, rows, in.col_mem_stride, in.row_mem_stride);
                     }
+                    left_comp_val += stride_width;
                 }
+                top_comp_val += stride_height;
             }
             if (remaining_chans) {
+                int top_comp_val = (perc_areas[area_idx].row_beg * stride_height) - padding_top;
                 for (int H_idx = perc_areas[area_idx].row_beg; H_idx < (int)perc_areas[area_idx].row_end; H_idx++) {
+                    int left_comp_val = (perc_areas[area_idx].clmn_beg * stride_width) - padding_left;
                     for (int W_idx = perc_areas[area_idx].clmn_beg; W_idx < (int)perc_areas[area_idx].clmn_end; W_idx++) {
                         // Define area of input and filter for pooling
                         // *_comp - compensation values for valid area defining
-                        int top_comp = -MIN((H_idx * stride_height) - padding_top, 0);
-                        int left_comp = -MIN((W_idx * stride_width) - padding_left, 0);
+                        int top_comp = -MIN(top_comp_val, 0);
+                        int left_comp = -MIN(left_comp_val, 0);
 
-                        int right_comp = -MIN(in.width - ((W_idx * stride_width) - padding_left + kernel_width), 0);
-                        int bottom_comp = -MIN(in.height - ((H_idx * stride_height) - padding_top + kernel_height), 0);
+                        int right_comp = -MIN(in.width - (left_comp_val + kernel_width), 0);
+                        int bottom_comp = -MIN(in.height - (top_comp_val + kernel_height), 0);
 
                         int rows = kernel_height - top_comp - bottom_comp;
                         int clmns = kernel_width - right_comp - left_comp;
@@ -241,9 +245,11 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_pad(
                                            out.ch - remaining_chans];
 
                         // Core Max
-                        mli::krn::reduce_max2D_hwc(in_ptr, out_ptr, clmns, rows, remaining_chans,
-                                in.col_mem_stride, in.row_mem_stride, false);
+                        mli::krn::reduce_max2D_hwc<io_T, /*remaining_chans*/ true, fixed_kernel_size, /*varying_kernel*/ true>
+                            (in_ptr, out_ptr, clmns, rows, in.col_mem_stride, in.row_mem_stride, remaining_chans);
+                        left_comp_val += stride_width;
                     }
+                    top_comp_val += stride_height;
                 }
             }
         }
