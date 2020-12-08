@@ -233,16 +233,6 @@ int main() {
         bool is_test_passed = true;
         const depthwise_conv_test_operands* cur_test = &tests_list[i];
         quality_metrics test_metrics;
-#if PLATFORM == V2DSP_XY
-        if (strstr(cur_test->descr, "Test 8-1 SA8") != nullptr ||
-                strstr(cur_test->descr, "Test 8-2 SA8") != nullptr ||
-                strstr(cur_test->descr, "Test 9 SA8") != nullptr) {
-            // EMxD vectorized code for sa8 doesn't work properly with 
-            // dilation ratio and padding turned-on together.
-            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
-            continue;
-        }
-#endif
 #if PLATFORM == V2DSP_VECTOR
         if (strstr(cur_test->descr, "Test 7 SA8_SA8_SA32") != nullptr ||
                 strstr(cur_test->descr, "Test 8-1 SA8") != nullptr ||
