@@ -1151,6 +1151,81 @@ mli_status mli_chk_group_conv2d_hwcn_sa8_sa8_sa32(
     return MLI_STATUS_OK;
 }
 
+mli_status mli_chk_transpose_conv2d_hwcn_fx16(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg * cfg,
+        const mli_tensor * out) {
+    if (MLI_CHECK(in->el_type      == MLI_EL_FX_16, "Wrong input tensor type") ||
+        MLI_CHECK(weights->el_type == MLI_EL_FX_16, "Wrong weights tensor type") ||
+        MLI_CHECK(bias->el_type    == MLI_EL_FX_16, "Wrong bias tensor type"))
+        return MLI_STATUS_TYPE_MISMATCH;
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(/*mli_chk_transpose_conv2d_hwcn(in, weights, bias, cfg, out)*/MLI_STATUS_OK, __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_chk_transpose_conv2d_hwcn_fx16_fx8_fx8(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg * cfg,
+        const mli_tensor * out) {
+    if (MLI_CHECK(in->el_type      == MLI_EL_FX_16, "Wrong input tensor type") ||
+        MLI_CHECK(weights->el_type == MLI_EL_FX_8, "Wrong weights tensor type") ||
+        MLI_CHECK(bias->el_type    == MLI_EL_FX_8, "Wrong bias tensor type"))
+        return MLI_STATUS_TYPE_MISMATCH;
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(/*mli_chk_transpose_conv2d_hwcn(in, weights, bias, cfg, out)*/MLI_STATUS_OK, __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_chk_transpose_conv2d_hwcn_sa8_sa8_sa32(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg * cfg,
+        const mli_tensor * out) {
+    if (MLI_CHECK(in->el_type      == MLI_EL_SA_8, "Wrong input tensor type") ||
+        MLI_CHECK(weights->el_type == MLI_EL_SA_8, "Wrong weights tensor type") ||
+        MLI_CHECK(bias->el_type    == MLI_EL_SA_32, "Wrong bias tensor type"))
+        return MLI_STATUS_TYPE_MISMATCH;
+    mli_status ret = MLI_CHECK_STATUS(/*mli_chk_transpose_conv2d_hwcn(in, weights, bias, cfg, out)*/MLI_STATUS_OK, __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+
+    if (weights->el_params.sa.dim < 0) {
+        if (MLI_CHECK(bias->el_params.sa.dim < 0, "Bias tensor: per tensor quantization is expected (similar to weights)"))
+            return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    } else {
+        if (MLI_CHECK(weights->el_params.sa.dim == KRNL_C_DIM_HWCN, "Weights tensor: per output channels quantization is expected") ||
+            MLI_CHECK(bias->el_params.sa.dim == 0, "Bias tensor: per output channels quantization is expected"))
+            return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    }
+
+    if (MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor: Per-tensor quantization is expected") ||
+        MLI_CHECK(out->el_params.sa.dim < 0, "Output tensor: Per-tensor quantization is expected"))
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+
+    if (MLI_CHECK(in->el_params.sa.zero_point.mem.i16 != INT16_MIN,"Input tensor: INT16_MIN doesn't support as offset value") ||
+        MLI_CHECK(out->el_params.sa.zero_point.mem.i16 != INT16_MIN,"Input tensor: INT16_MIN doesn't support as offset value"))
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+
+    ret = MLI_CHECK_STATUS(mli_chk_bias_scale_asym(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    return MLI_STATUS_OK;
+}
+
 mli_status mli_chk_maxpool_chw (const mli_tensor * in, const mli_pool_cfg * cfg, const mli_tensor * out) {
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;

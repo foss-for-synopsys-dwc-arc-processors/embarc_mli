@@ -219,7 +219,7 @@ tensor_quantizer::tensor_state tensor_quantizer::validate_tensor(const mli_tenso
     // Next need to define whether memory is properly assigned to data 
     // and additional fields like scales/zero_points.
     // If they are broken - tensor is considered as incomplete and requires proper memory assignment
-    if (tsr.data.mem.pi16 == nullptr || get_required_data_capacity(tsr) < tsr.data.capacity)
+    if (tsr.data.mem.pi16 == nullptr || get_required_data_capacity(tsr) > tsr.data.capacity)
         return kIncompleteMem;
     if ((tsr.el_type == MLI_EL_SA_8 || tsr.el_type == MLI_EL_SA_32) && tsr.el_params.sa.dim >= 0) {
         const uint32_t num_values = tsr.shape[tsr.el_params.sa.dim];

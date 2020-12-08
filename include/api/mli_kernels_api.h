@@ -306,7 +306,7 @@ char * mli_debug_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32(
         mli_tensor * out);
 //========================================================
 //
-// MLI 2.0 functions for conv2d
+// MLI 2.0 functions for depthwise conv2d
 //
 //========================================================
 
@@ -473,6 +473,48 @@ mli_status mli_krn_group_conv2d_hwcn_sa8_sa8_sa32_k5x5(
         const mli_conv2d_cfg* cfg,
         mli_tensor* out);
 
+/**
+* @brief 2D Transpose convolution
+*
+* @detail This kernel implements a general 2D transposed convolution operation which work by swapping the
+* forward and backward passes of a convolution i.e., from something that has the shape of the output of some 
+* convolution to something that has the shape of its input while maintaining a connectivity pattern that is 
+* compatible with said convolution.
+*
+* ReLU activation function may be applied to result of convolution. 
+* Dilation parameter of convolutions config isn\92t applicable in MLI transposed convolution and is ignored.
+*
+* For More information on implementation, see MLI Documentation. 
+*
+* @param in      [I] Input feature map tensor (3-dimensional tensor)
+* @param weights [I] Convolution filters weights tensor (4-dimensional tensor)
+* @param bias    [I] Convolution filters biases tensor (1-dimensional tensor)
+* @param cfg     [I] Convolution parameters structure (for more info see @ref mli_conv2d_cfg)
+* @param out     [O] Output feature map tensor. Result will be stored here
+*
+* @return MLI status code
+*/
+
+mli_status mli_krn_transpose_conv2d_hwcn_fx16(
+    const mli_tensor * in,
+    const mli_tensor * weights,
+    const mli_tensor * bias,
+    const mli_conv2d_cfg * cfg,
+    mli_tensor * out);
+
+mli_status mli_krn_transpose_conv2d_hwcn_fx16_fx8_fx8(
+    const mli_tensor * in,
+    const mli_tensor * weights,
+    const mli_tensor * bias,
+    const mli_conv2d_cfg * cfg,
+    mli_tensor * out);
+
+mli_status mli_krn_transpose_conv2d_hwcn_sa8_sa8_sa32(
+    const mli_tensor * in,
+    const mli_tensor * weights,
+    const mli_tensor * bias,
+    const mli_conv2d_cfg * cfg,
+    mli_tensor * out);
 //================================================
 //
 // Pooling group of kernels
