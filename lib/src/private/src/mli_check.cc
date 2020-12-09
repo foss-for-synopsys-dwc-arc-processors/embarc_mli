@@ -1151,6 +1151,149 @@ mli_status mli_chk_group_conv2d_hwcn_sa8_sa8_sa32(
     return MLI_STATUS_OK;
 }
 
+mli_status mli_chk_transpose_conv2d_hwcn (
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg * cfg,
+        const mli_tensor * out) {
+    mli_status stat = MLI_STATUS_OK;
+    bool fail = false;
+
+    stat = MLI_CHECK_STATUS(mli_mem_chk(out, MLI_CONV_OUT_PTR_IS_XY), "Memory check error");
+    if (stat != MLI_STATUS_OK) return stat;
+    stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
+    if (stat != MLI_STATUS_OK) return stat;
+    stat = MLI_CHECK_STATUS(mli_chk_tensor (weights), "Bad weights tensor");
+    if (stat != MLI_STATUS_OK) return stat;
+    stat = MLI_CHECK_STATUS(mli_chk_tensor (bias), "Bad bias tensor");
+    if (stat != MLI_STATUS_OK) return stat;
+    if (MLI_CHECK(out != NULL, "Bad Output tensor pointer")) return MLI_STATUS_BAD_TENSOR;
+    if (MLI_CHECK(out->data.mem.void_p != NULL, "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
+
+    fail |= MLI_CHECK(in->rank == 3, "Wrong input rank");
+    fail |= MLI_CHECK(weights->rank == 4, "Wrong weights rank");
+    fail |= MLI_CHECK(bias->rank == 1, "Wrong bias rank");
+    fail |= MLI_CHECK(in->shape[FMAP_C_DIM_HWC] == weights->shape[KRNL_D_DIM_HWCN], "Shape mismatch in and weights");
+    fail |= MLI_CHECK(bias->shape[0] == weights->shape[KRNL_C_DIM_HWCN], "Shape mismatch bias and weights");
+    if (fail) return MLI_STATUS_SHAPE_MISMATCH;
+
+    fail |= MLI_CHECK(check_inner_most_dimension_is_one(in), "Memory stride for inner most dimension of input must be 1");
+    fail |= MLI_CHECK(check_inner_most_dimension_is_one(weights), "Memory stride for inner most dimension of weights must be 1");
+    fail |= MLI_CHECK(check_inner_most_dimension_is_one(bias), "Memory stride for inner most dimension of bias must be 1");
+    fail |= MLI_CHECK(check_inner_most_dimension_is_one(out), "Memory stride for inner most dimension of output must be 1");
+    if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
+
+    const int kernel_width = weights->shape[KRNL_W_DIM_HWCN];
+    const int kernel_height = weights->shape[KRNL_H_DIM_HWCN];
+    const int dilation_width = (cfg->dilation_width > 0) ? cfg->dilation_width : 1;
+    const int dilation_height = (cfg->dilation_height > 0) ? cfg->dilation_height : 1;
+
+    fail |= MLI_CHECK(dilation_width == 1, "Dilation ratio isn't supported by transpose convolution");
+    fail |= MLI_CHECK(dilation_height == 1, "Dilation ratio isn't supported by transpose convolution");
+    fail |= MLI_CHECK(cfg->padding_left < kernel_width, "Padding should be smaller than effective kernel size");
+    fail |= MLI_CHECK(cfg->padding_right < kernel_width, "Padding should be smaller than effective kernel size");
+    fail |= MLI_CHECK(cfg->padding_top < kernel_height, "Padding should be smaller than effective kernel size");
+    fail |= MLI_CHECK(cfg->padding_bottom < kernel_height, "Padding should be smaller than effective kernel size");
+    fail |= MLI_CHECK(cfg->stride_height > 0, "Stride should be greater than zero");
+    fail |= MLI_CHECK(cfg->stride_width > 0, "Stride should be greater than zero");
+    if (fail) return MLI_STATUS_BAD_FUNC_CFG;
+
+    const int in_height = in->shape[FMAP_H_DIM_HWC];
+    const int in_width = in->shape[FMAP_W_DIM_HWC];
+    const int stride_width = cfg->stride_width;
+    const int stride_height = cfg->stride_height;
+    const int effective_padding_top = kernel_height - cfg->padding_top - 1;
+    const int effective_padding_bot = kernel_height - cfg->padding_bottom - 1;
+    const int effective_padding_left = kernel_width - cfg->padding_left - 1;
+    const int effective_padding_right = kernel_width - cfg->padding_right - 1;
+    const int effective_in_width = (in_width - 1) * stride_width + 1;
+    const int effective_in_height = (in_height - 1) * stride_height + 1;
+
+    uint32_t out_shape[3] = {
+        (uint32_t)(effective_in_height + effective_padding_top + effective_padding_bot - kernel_height + 1), // h
+        (uint32_t)(effective_in_width + effective_padding_left + effective_padding_right - kernel_width + 1), // w
+        weights->shape[KRNL_C_DIM_HWCN]}; // c
+    stat = check_tensor_private(out_shape, out->mem_stride, 3, out->data.capacity, mli_hlp_tensor_element_size(out));
+
+    return stat;
+}
+
+mli_status mli_chk_transpose_conv2d_hwcn_fx16(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg * cfg,
+        const mli_tensor * out) {
+    if (MLI_CHECK(in->el_type      == MLI_EL_FX_16, "Wrong input tensor type") ||
+        MLI_CHECK(weights->el_type == MLI_EL_FX_16, "Wrong weights tensor type") ||
+        MLI_CHECK(bias->el_type    == MLI_EL_FX_16, "Wrong bias tensor type"))
+        return MLI_STATUS_TYPE_MISMATCH;
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_transpose_conv2d_hwcn(in, weights, bias, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_chk_transpose_conv2d_hwcn_fx16_fx8_fx8(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg * cfg,
+        const mli_tensor * out) {
+    if (MLI_CHECK(in->el_type      == MLI_EL_FX_16, "Wrong input tensor type") ||
+        MLI_CHECK(weights->el_type == MLI_EL_FX_8, "Wrong weights tensor type") ||
+        MLI_CHECK(bias->el_type    == MLI_EL_FX_8, "Wrong bias tensor type"))
+        return MLI_STATUS_TYPE_MISMATCH;
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_transpose_conv2d_hwcn(in, weights, bias, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_chk_transpose_conv2d_hwcn_sa8_sa8_sa32(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_conv2d_cfg * cfg,
+        const mli_tensor * out) {
+    if (MLI_CHECK(in->el_type      == MLI_EL_SA_8, "Wrong input tensor type") ||
+        MLI_CHECK(weights->el_type == MLI_EL_SA_8, "Wrong weights tensor type") ||
+        MLI_CHECK(bias->el_type    == MLI_EL_SA_32, "Wrong bias tensor type"))
+        return MLI_STATUS_TYPE_MISMATCH;
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_transpose_conv2d_hwcn(in, weights, bias, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+
+    if (weights->el_params.sa.dim < 0) {
+        if (MLI_CHECK(bias->el_params.sa.dim < 0, "Bias tensor: per tensor quantization is expected (similar to weights)"))
+            return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    } else {
+        if (MLI_CHECK(weights->el_params.sa.dim == KRNL_C_DIM_HWCN, "Weights tensor: per output channels quantization is expected") ||
+            MLI_CHECK(bias->el_params.sa.dim == 0, "Bias tensor: per output channels quantization is expected"))
+            return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    }
+
+    if (MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor: Per-tensor quantization is expected") ||
+        MLI_CHECK(out->el_params.sa.dim < 0, "Output tensor: Per-tensor quantization is expected"))
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+
+    if (MLI_CHECK(in->el_params.sa.zero_point.mem.i16 != INT16_MIN,"Input tensor: INT16_MIN doesn't support as offset value") ||
+        MLI_CHECK(out->el_params.sa.zero_point.mem.i16 != INT16_MIN,"Input tensor: INT16_MIN doesn't support as offset value"))
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+
+    ret = MLI_CHECK_STATUS(mli_chk_bias_scale_asym(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    return MLI_STATUS_OK;
+}
+
 mli_status mli_chk_maxpool_chw (const mli_tensor * in, const mli_pool_cfg * cfg, const mli_tensor * out) {
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;
