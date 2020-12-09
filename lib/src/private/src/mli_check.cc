@@ -1189,8 +1189,6 @@ mli_status mli_chk_transpose_conv2d_hwcn (
     const int dilation_width = (cfg->dilation_width > 0) ? cfg->dilation_width : 1;
     const int dilation_height = (cfg->dilation_height > 0) ? cfg->dilation_height : 1;
 
-    //int effective_kernel_width = (kernel_width - 1) * dilation_width + 1;
-    //int effective_kernel_height = (kernel_height - 1) * dilation_height + 1;
     fail |= MLI_CHECK(dilation_width == 1, "Dilation ratio isn't supported by transpose convolution");
     fail |= MLI_CHECK(dilation_height == 1, "Dilation ratio isn't supported by transpose convolution");
     fail |= MLI_CHECK(cfg->padding_left < kernel_width, "Padding should be smaller than effective kernel size");

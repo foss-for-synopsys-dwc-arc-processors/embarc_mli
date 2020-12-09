@@ -62,13 +62,13 @@ public:
     // params:
     // [IN] size - uint32_t requested size of memory
     // [IN] fill_pattern - optional uint32_t value to initialize all memory with
-    mli_data_container allocate_memory(uint32_t size, uint32_t fill_pattern = 0xDEADBEEF);
+    mli_data_container allocate_memory(uint32_t size, uint32_t fill_pattern = 0xBEADED37);
     // Method to allocate memory according to tensor_quantizer requirements
     // params:
     // [IN] quant_unit - valid tensor_quantizer Which will be analyzed to return memory container 
     //                   to exactly fit it's requirements
     // [IN] fill_pattern - optional uint32_t value to initialize all memory with
-    mli_data_container allocate_memory(const tensor_quantizer& quant_unit, uint32_t fill_pattern = 0xBEADED37);
+    mli_data_container allocate_memory(const tensor_quantizer& quant_unit, uint32_t fill_pattern = 0xDEADBEEF);
     
     // Reset module to mark memory as unused and get an opportunity to allocate again
     // No return

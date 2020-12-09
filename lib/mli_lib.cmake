@@ -77,6 +77,7 @@ set(MLI_LIB_PRIVATE_INCLUDES
     ${MLI_LIB_CMAKE_DIR}/src/private
     ${MLI_LIB_CMAKE_DIR}/src/helpers
     ${MLI_LIB_CMAKE_DIR}/src/kernels
+    ${MLI_LIB_CMAKE_DIR}/src/kernels/convolution
     ${MLI_LIB_CMAKE_DIR}/src/kernels/eltwise
     ${MLI_LIB_CMAKE_DIR}/src/kernels/pooling
     ${MLI_LIB_CMAKE_DIR}/src/kernels/pooling_chw

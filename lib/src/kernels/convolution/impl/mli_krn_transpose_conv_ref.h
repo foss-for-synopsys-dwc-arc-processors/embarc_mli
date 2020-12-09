@@ -10,6 +10,7 @@
 #define _MLI_KRN_TRANSPOSE_CONV_REF_H_
 
 #include "mli_api.h"
+#include "mli_krn_convolution.h"
 #include "mli_private_types.h"
 #include "mli_prv_quant.h"
 #include "mli_prv_tensor.h"
@@ -25,7 +26,7 @@ namespace ref {
 // Constructing mirrored weights subtensor for a specific pattern
 //===================================================================
 template <typename T>
-static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> get_mirrored_wights_subtensor_hwcn(
+static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> get_mirrored_weights_subtensor_hwcn(
         const conv2d_weights_tensor_private_t<T> &weights,
         const int weights_stride_width,
         const int weights_stride_height,
@@ -60,7 +61,7 @@ static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> get_mirrored_wights_s
         krn_top_offset = (in_padding_top - krn_top_offset) % weights_stride_height;
     }
 
-    // Do a pointer adjustement according to a specific subkernel.
+    // Do a pointer adjustment according to a specific subkernel.
     mem_offset += result_subtensor.row_mem_stride * krn_top_offset;
     mem_offset += result_subtensor.col_mem_stride * krn_left_offset;
     
@@ -86,7 +87,7 @@ MLI_FORCE_INLINE void transpose_convolution2D(
         const io_T val_max_limit,
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right) {
-    // We reuse general 2d convolution from reference, which is declared in mli_krn_transpose_conv_decl.h
+    // We reuse general 2d convolution from reference, which is included in mli_krn_transpose_conv.h
     mli::krn::ref::convolution2D<io_T, w_T, b_T, acc_T, quant_T, KRN_SZ_VAR, KRN_SZ_VAR>(
         in, weights, biases, out, perception_area, quant_params,
         val_min_limit, val_max_limit,
@@ -96,7 +97,7 @@ MLI_FORCE_INLINE void transpose_convolution2D(
 }
 
 //====================================================================================
-// Common routin for pre-calculation of various convolution parameters and running it.
+// Common routine  for pre-calculation of various convolution parameters and running it.
 //====================================================================================
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
 MLI_FORCE_INLINE void transpose_conv2d_prepare_and_run(
@@ -149,12 +150,12 @@ MLI_FORCE_INLINE void transpose_conv2d_prepare_and_run(
     // 2) mirror weights, create several patterns from it according to strides, and apply
     //      general convolution of each weights subtensor on input. Results need to be concatenated
     // 2nd option looks more complicated, but doesn't require extra memory for input, can be implemented
-    // using memstrides for weights and output, and more efficient as no extra multplications with 0 
+    // using memstrides for weights and output, and more efficient as no extra multiplications with 0 
     // is needed. 
     for (int krn_h_offset = 0; krn_h_offset < stride_height; krn_h_offset++) {
         for (int krn_w_offset = 0; krn_w_offset < stride_width; krn_w_offset++) {
             const auto weights_subtensor = 
-                get_mirrored_wights_subtensor_hwcn(weights_prv, stride_width, stride_height, 
+                get_mirrored_weights_subtensor_hwcn(weights_prv, stride_width, stride_height, 
                                                    effective_padding_left, effective_padding_top,
                                                    krn_w_offset, krn_h_offset);
             const int cur_out_height = CEIL_DIV(out_height - krn_h_offset, stride_height);
@@ -165,15 +166,15 @@ MLI_FORCE_INLINE void transpose_conv2d_prepare_and_run(
             cur_out.ptr += out_prv.row_mem_stride * krn_h_offset;
             cur_out.ptr += out_prv.col_mem_stride * krn_w_offset;
 
-            // Define paddings for current calculations according to a new kernel size and offset inex.
-            // Right and bottom paddings are derevatives from other already known parameters:
+            // Define paddings for the current calculations according to the new kernel size and offset index.
+            // Right and bottom paddings are derived from other already known parameters:
             // input size, current output size, current kernel size, and current left or top padding.
             const int cur_pad_left = (effective_padding_left - krn_w_offset) / stride_width;
             const int cur_pad_top = (effective_padding_top - krn_h_offset) / stride_height;
             const int cur_pad_bot = 
                 (cur_out_height + (weights_subtensor.kernel_height - 1)) - in_prv.height - cur_pad_top;
             const int cur_pad_right = 
-                (cur_out_width + (weights_subtensor.kernel_width - 1)) // how much in point  are required for cur output
+                (cur_out_width + (weights_subtensor.kernel_width - 1)) // how much in point are required for cur output
                 - in_prv.width - cur_pad_left;                         // subtract real input points and left padding
             
             rect_t cent_area;

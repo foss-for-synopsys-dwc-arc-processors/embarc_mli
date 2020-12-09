@@ -94,7 +94,7 @@ mli_data_container memory_manager::allocate_memory(const tensor_quantizer& quant
         required_size += tensor_with_requirements.el_params.sa.zero_point.capacity;
     }
 
-    return allocate_memory(required_size);
+    return allocate_memory(required_size, fill_pattern);
 }
 
 // Mark memory as unused 

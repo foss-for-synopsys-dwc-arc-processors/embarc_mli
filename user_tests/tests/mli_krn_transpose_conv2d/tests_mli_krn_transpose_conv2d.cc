@@ -47,6 +47,7 @@ struct transpose_conv2d_test_operands {
     const mli_conv2d_cfg cfg;
     const quality_metrics threshold;
     const crc32_calc check_sum;
+    const uint32_t mem_fill_pattern;
 };
 
 // Checksums of test tensors for various mli calculations mode. 
@@ -92,62 +93,78 @@ const quality_metrics thresholds_sa8_general{ quality_metrics::kPassValueMaxAbsE
 const quality_metrics thresholds_sa8_test3{ quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
 /* SNR_DB = */35.f, /*Quant Error Perc = */30.f };
 
+const uint32_t mem_fill_pattern_general = 0xDEADBEEF;
+const uint32_t mem_fill_pattern_test2_2 = 0xFEEDBEEF;
+
 
 static const transpose_conv2d_test_operands tests_list[] = {
     // Basic functionality test kernel_size=(3, 4), strides=(2, 2), with krn_padding and w/o ReLU
     {"Test 1 FX16",         mli_krn_transpose_conv2d_hwcn_fx16, 
                             input_1_fx16, weights_1_fx16, bias_1_fx16, test_1_out_fx16, test_1_cfg,
-                            thresholds_fx16_general, test_1_chksum_fx16},
+                            thresholds_fx16_general, test_1_chksum_fx16, mem_fill_pattern_general},
     {"Test 1 FX16_FX8_FX8", mli_krn_transpose_conv2d_hwcn_fx16_fx8_fx8, 
                             input_1_fx16, weights_1_fx8, bias_1_fx8, test_1_out_fx16, test_1_cfg, 
-                            thresholds_fx16_fx8_fx8_general, test_1_chksum_fx16_fx8_fx8},
+                            thresholds_fx16_fx8_fx8_general, test_1_chksum_fx16_fx8_fx8, mem_fill_pattern_general},
     {"Test 1 SA8_SA8_SA32", mli_krn_transpose_conv2d_hwcn_sa8_sa8_sa32,
                             input_1_sa8, weights_1_sa8, bias_1_i1_w1_sa32, test_1_out_sa8, test_1_cfg, 
-                            thresholds_sa8_general, test_1_chksum_sa8},
+                            thresholds_sa8_general, test_1_chksum_sa8, mem_fill_pattern_general},
 
     // Basic functionality test with 7 kernels of (4, 3) size, strides = (4, 3), w/o padding and with Gen_ReLU
-    {"Test 2 FX16 ReluGen",         mli_krn_transpose_conv2d_hwcn_fx16, 
+    {"Test 2-1 FX16 ReluGen",       mli_krn_transpose_conv2d_hwcn_fx16, 
                                     input_1_fx16, weights_2_fx16, bias_1_fx16, test_2_out_fx16, test_2_cfg, 
-                                    thresholds_fx16_general, test_2_chksum_fx16},
-    {"Test 2 FX16_FX8_FX8 ReluGen", mli_krn_transpose_conv2d_hwcn_fx16_fx8_fx8,
+                                    thresholds_fx16_general, test_2_chksum_fx16, mem_fill_pattern_general},
+    {"Test 2-1 FX16_FX8_FX8 ReluGen", mli_krn_transpose_conv2d_hwcn_fx16_fx8_fx8,
                                     input_1_fx16, weights_2_fx8, bias_1_fx8, test_2_out_fx16, test_2_cfg,
-                                    thresholds_fx16_fx8_fx8_general, test_2_chksum_fx16_fx8_fx8},
-    {"Test 2 SA8_SA8_SA32 ReluGen", mli_krn_transpose_conv2d_hwcn_sa8_sa8_sa32, 
+                                    thresholds_fx16_fx8_fx8_general, test_2_chksum_fx16_fx8_fx8, 
+                                    mem_fill_pattern_general},
+    {"Test 2-1 SA8_SA8_SA32 ReluGen", mli_krn_transpose_conv2d_hwcn_sa8_sa8_sa32, 
                                     input_1_sa8, weights_2_sa8, bias_1_i1_w2_sa32, test_2_out_sa8, test_2_cfg,
-                                    thresholds_sa8_general, test_2_chksum_sa8},
+                                    thresholds_sa8_general, test_2_chksum_sa8, mem_fill_pattern_general},
+
+    // Memory access test: The same 2-1 test with different memory fill pattern
+    {"Test 2-2 FX16 Mem",         mli_krn_transpose_conv2d_hwcn_fx16, 
+                                  input_1_fx16, weights_2_fx16, bias_1_fx16, test_2_out_fx16, test_2_cfg, 
+                                  thresholds_fx16_general, test_2_chksum_fx16, mem_fill_pattern_test2_2},
+    {"Test 2-2 FX16_FX8_FX8 Mem", mli_krn_transpose_conv2d_hwcn_fx16_fx8_fx8,
+                                  input_1_fx16, weights_2_fx8, bias_1_fx8, test_2_out_fx16, test_2_cfg,
+                                  thresholds_fx16_fx8_fx8_general, test_2_chksum_fx16_fx8_fx8, 
+                                  mem_fill_pattern_test2_2},
+    {"Test 2-2 SA8_SA8_SA32 Mem", mli_krn_transpose_conv2d_hwcn_sa8_sa8_sa32, 
+                                  input_1_sa8, weights_2_sa8, bias_1_i1_w2_sa32, test_2_out_sa8, test_2_cfg,
+                                  thresholds_sa8_general, test_2_chksum_sa8, mem_fill_pattern_test2_2},
 
     // No strides case: kernel_size=(3, 4), strides=(1, 1), w/o padding and Relu1
-    {"Test 3 FX16 Dilation",         mli_krn_transpose_conv2d_hwcn_fx16,
-                                     input_1_fx16, weights_1_fx16, bias_1_fx16, test_3_out_fx16, test_3_cfg,
-                                     thresholds_fx16_general, test_3_chksum_fx16},
-    {"Test 3 FX16_FX8_FX8 Dilation", mli_krn_transpose_conv2d_hwcn_fx16_fx8_fx8,
-                                     input_1_fx16, weights_1_fx8, bias_1_fx8, test_3_out_fx16, test_3_cfg,
-                                     thresholds_fx16_fx8_fx8_general, test_3_chksum_fx16_fx8_fx8},
-    {"Test 3 SA8_SA8_SA32 Dilation", mli_krn_transpose_conv2d_hwcn_sa8_sa8_sa32,
-                                     input_1_sa8, weights_1_sa8, bias_1_i1_w1_sa32, test_3_out_sa8, test_3_cfg,
-                                     thresholds_sa8_test3, test_3_chksum_sa8},
+    {"Test 3 FX16 Str_1x1",         mli_krn_transpose_conv2d_hwcn_fx16,
+                                    input_1_fx16, weights_1_fx16, bias_1_fx16, test_3_out_fx16, test_3_cfg,
+                                    thresholds_fx16_general, test_3_chksum_fx16, mem_fill_pattern_general},
+    {"Test 3 FX16_FX8_FX8 Str_1x1", mli_krn_transpose_conv2d_hwcn_fx16_fx8_fx8,
+                                    input_1_fx16, weights_1_fx8, bias_1_fx8, test_3_out_fx16, test_3_cfg,
+                                    thresholds_fx16_fx8_fx8_general, test_3_chksum_fx16_fx8_fx8, mem_fill_pattern_general},
+    {"Test 3 SA8_SA8_SA32 Str_1x1", mli_krn_transpose_conv2d_hwcn_sa8_sa8_sa32,
+                                    input_1_sa8, weights_1_sa8, bias_1_i1_w1_sa32, test_3_out_sa8, test_3_cfg,
+                                    thresholds_sa8_test3, test_3_chksum_sa8, mem_fill_pattern_general},
 
     // Input/output Memstride test : kernel_size = (4, 3), strides = (3, 2), w / o padding and with ReLU_6
     {"Test 4 FX16 IO_Memstr",         mli_krn_transpose_conv2d_hwcn_fx16,
                                       input_1_memstr_fx16, weights_2_fx16, bias_1_fx16, test_4_out_fx16, test_4_cfg,
-                                      thresholds_fx16_general, test_4_chksum_fx16},
+                                      thresholds_fx16_general, test_4_chksum_fx16, mem_fill_pattern_general},
     {"Test 4 FX16_FX8_FX8 IO_Memstr", mli_krn_transpose_conv2d_hwcn_fx16_fx8_fx8,
                                       input_1_memstr_fx16, weights_2_fx8, bias_1_fx8, test_4_out_fx16, test_4_cfg,
-                                      thresholds_fx16_fx8_fx8_general, test_4_chksum_fx16_fx8_fx8},
+                                      thresholds_fx16_fx8_fx8_general, test_4_chksum_fx16_fx8_fx8, mem_fill_pattern_general},
     {"Test 4 SA8_SA8_SA32 IO_Memstr", mli_krn_transpose_conv2d_hwcn_sa8_sa8_sa32,
                                       input_1_memstr_sa8, weights_2_sa8, bias_1_i1_w2_sa32, test_4_out_sa8, test_4_cfg,
-                                      thresholds_sa8_general, test_4_chksum_sa8},
+                                      thresholds_sa8_general, test_4_chksum_sa8, mem_fill_pattern_general},
 
     // Weights Memstride test : kernels of (3, 4) size, strides = (3, 2), krn_padding and no ReLU
-    {"Test 5 FX16 W_Memstr",         mli_krn_transpose_conv2d_hwcn_fx16, 
-                                     input_1_memstr_fx16, weights_1_memstr_fx16, bias_1_fx16, test_5_out_fx16, test_5_cfg,
-                                     thresholds_fx16_general, test_5_chksum_fx16},
-    {"Test 5 FX16_FX8_FX8 W_Memstr", mli_krn_transpose_conv2d_hwcn_fx16_fx8_fx8, 
-                                     input_1_memstr_fx16, weights_1_memstr_fx8, bias_1_fx8, test_5_out_fx16, test_5_cfg,
-                                     thresholds_fx16_fx8_fx8_general, test_5_chksum_fx16_fx8_fx8},
-    {"Test 5 SA8_SA8_SA32 W_Memstr", mli_krn_transpose_conv2d_hwcn_sa8_sa8_sa32,
-                                     input_1_memstr_sa8, weights_1_memstr_sa8, bias_1_i1_w1_sa32, test_5_out_sa8, test_5_cfg,
-                                     thresholds_sa8_general, test_5_chksum_sa8},
+    {"Test 5 FX16 IOW_Memstr",         mli_krn_transpose_conv2d_hwcn_fx16, 
+                                       input_1_memstr_fx16, weights_1_memstr_fx16, bias_1_fx16, test_5_out_fx16, test_5_cfg,
+                                       thresholds_fx16_general, test_5_chksum_fx16, mem_fill_pattern_general},
+    {"Test 5 FX16_FX8_FX8 IOW_Memstr", mli_krn_transpose_conv2d_hwcn_fx16_fx8_fx8, 
+                                       input_1_memstr_fx16, weights_1_memstr_fx8, bias_1_fx8, test_5_out_fx16, test_5_cfg,
+                                       thresholds_fx16_fx8_fx8_general, test_5_chksum_fx16_fx8_fx8, mem_fill_pattern_general},
+    {"Test 5 SA8_SA8_SA32 IOW_Memstr", mli_krn_transpose_conv2d_hwcn_sa8_sa8_sa32,
+                                       input_1_memstr_sa8, weights_1_memstr_sa8, bias_1_i1_w1_sa32, test_5_out_sa8, test_5_cfg,
+                                       thresholds_sa8_general, test_5_chksum_sa8, mem_fill_pattern_general},
 };
 
 constexpr int kMemIOSize = 2047;
@@ -171,25 +188,21 @@ int main() {
         memory_manager mem_b_keeper((int8_t*)(scratch_mem_b), sizeof(scratch_mem_b));
         bool is_test_passed = true;
         const transpose_conv2d_test_operands* cur_test = &tests_list[i];
-        quality_metrics test_metics;
+        quality_metrics test_metrics;
 
-//#if PLATFORM == V2DSP_VECTOR
-//        if (strstr(cur_test->descr, "Test 6 SA8_SA8_SA32") != nullptr) {
-//            // VPX fails bitwise comparison with reference .
-//            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
-//            continue;
-//        }
-//#endif
         if (!(cur_test->in.is_valid() && cur_test->weights.is_valid() &&
                 cur_test->bias.is_valid() && cur_test->out.is_valid())) {
             reporter.report_message(cur_test->descr, "FAILED at init: Bad source data for one of tensors");
             is_test_passed = false;
         }
 
-        mli_tensor input = cur_test->in.get_quantized_tensor(mem_in_keeper.allocate_memory(cur_test->in));
-        mli_tensor weights = cur_test->weights.get_quantized_tensor(mem_w_keeper.allocate_memory(cur_test->weights));
-        mli_tensor bias = cur_test->bias.get_quantized_tensor(mem_b_keeper.allocate_memory(cur_test->bias));
-        mli_tensor out = cur_test->out.get_not_quantized_tensor(mem_out_keeper.allocate_memory(cur_test->out));
+        const uint32_t fill_val = cur_test->mem_fill_pattern;
+        mli_tensor input = cur_test->in.get_quantized_tensor(mem_in_keeper.allocate_memory(cur_test->in, fill_val));
+        mli_tensor out = cur_test->out.get_not_quantized_tensor(mem_out_keeper.allocate_memory(cur_test->out, fill_val));
+        mli_tensor bias = cur_test->bias.get_quantized_tensor(mem_b_keeper.allocate_memory(cur_test->bias, fill_val));
+        mli_tensor weights = cur_test->weights.get_quantized_tensor(mem_w_keeper.allocate_memory(cur_test->weights,
+                                                                                                 fill_val));
+        mli_tensor source_out_tensor = out;
         if (is_test_passed &&
                 (tensor_quantizer::validate_tensor(input) != tensor_quantizer::kOk ||
                  tensor_quantizer::validate_tensor(weights) != tensor_quantizer::kOk||
@@ -224,9 +237,34 @@ int main() {
         }
 
         if (is_test_passed &&
-                test_metics.calculate_metrics(out, cur_test->out) == false) {
+                test_metrics.calculate_metrics(out, cur_test->out) == false) {
             reporter.report_message(cur_test->descr, "FAILED at comparison output with reference");
             is_test_passed = false;
+        }
+
+        // Check that kernel didn't modify quantization parameters provided by user.
+        if (is_test_passed) {
+            bool is_per_tensor_quant = true;
+
+            if (out.el_type == MLI_EL_FX_8 || out.el_type == MLI_EL_FX_16) {
+                is_test_passed &= out.el_params.fx.frac_bits == source_out_tensor.el_params.fx.frac_bits;
+            } else if (out.el_type == MLI_EL_SA_8 || out.el_type == MLI_EL_SA_32) {
+                if (out.el_params.sa.dim < 0 || source_out_tensor.el_params.sa.dim < 0) {
+                    is_test_passed &=
+                        (out.el_params.sa.scale.mem.i16 == source_out_tensor.el_params.sa.scale.mem.i16) &&
+                        (out.el_params.sa.zero_point.mem.i16 == source_out_tensor.el_params.sa.zero_point.mem.i16) &&
+                        (out.el_params.sa.scale_frac_bits.mem.i8 ==
+                            source_out_tensor.el_params.sa.scale_frac_bits.mem.i8);
+                } else {
+                    is_per_tensor_quant = false;
+                    is_test_passed = false;
+                }
+            }
+            if (!is_test_passed) {
+                reporter.report_message(cur_test->descr,
+                    is_per_tensor_quant ? "FAILED as element params of output tensor was modified"
+                                        : "FAILED as per-axis quantization of output tensor isn't supported");
+            }
         }
 
         if (is_test_passed) {
@@ -235,7 +273,7 @@ int main() {
             data_crc(weights);
             data_crc(bias);
             data_crc(out);
-            is_test_passed &= reporter.evaluate_and_report_case(cur_test->descr, test_metics, cur_test->threshold, 
+            is_test_passed &= reporter.evaluate_and_report_case(cur_test->descr, test_metrics, cur_test->threshold, 
                                                                 data_crc, cur_test->check_sum);
         }
         final_status &= is_test_passed;

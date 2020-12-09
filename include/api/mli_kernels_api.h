@@ -482,7 +482,7 @@ mli_status mli_krn_group_conv2d_hwcn_sa8_sa8_sa32_k5x5(
 * compatible with said convolution.
 *
 * ReLU activation function may be applied to result of convolution. 
-* Dilation parameter of convolutions config isn\92t applicable in MLI transposed convolution and is ignored.
+* Dilation parameter of convolutions config isn't applicable in MLI transposed convolution and is ignored.
 *
 * For More information on implementation, see MLI Documentation. 
 *

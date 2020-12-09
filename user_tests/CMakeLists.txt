@@ -181,6 +181,3 @@ add_user_test(l2_normalize)
 # Eltwise Group
 #======================================================
 add_user_test(eltwise)
-
-
-
