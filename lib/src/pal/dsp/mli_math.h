@@ -294,16 +294,6 @@ template <> MLI_FORCE_INLINE v2q15_t mli_math_acc_ashift_fx(v2q15_t acc, int shi
     return fx_asr_v2q15_n(acc, shift_right);
 }
 
-// Multiply and cast float to accum
-//========================================================================
-
-MLI_FORCE_INLINE int32_t mli_math_float_scale(float value, float scale) {
-    /* This function is taken from reference mli_math as is */
-    const float round_val = value > 0 ? 0.5f : -0.5f;
-    return (int32_t)(value * scale + round_val);
-}
-
-
 // Cast accum to output type
 //========================================================================
 template <> MLI_FORCE_INLINE int8_t mli_math_acc_cast_fx(mli_acc32_t acc, int shift_right) {
