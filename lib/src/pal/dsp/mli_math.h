@@ -294,6 +294,16 @@ template <> MLI_FORCE_INLINE v2q15_t mli_math_acc_ashift_fx(v2q15_t acc, int shi
     return fx_asr_v2q15_n(acc, shift_right);
 }
 
+// Multiply and cast float to accum
+//========================================================================
+
+MLI_FORCE_INLINE int32_t mli_math_float_scale(float value, float scale) {
+    /* This function is taken from reference mli_math as is */
+    const float round_val = value > 0 ? 0.5f : -0.5f;
+    return (int32_t)(value * scale + round_val);
+}
+
+
 // Cast accum to output type
 //========================================================================
 template <> MLI_FORCE_INLINE int8_t mli_math_acc_cast_fx(mli_acc32_t acc, int shift_right) {
@@ -384,6 +394,15 @@ MLI_FORCE_INLINE int16_t mli_math_ashift_right_fx(int16_t in_val, int shift_righ
 
 template <typename in_T, typename acc_T>
 MLI_FORCE_INLINE acc_T mli_math_mul_fx_high(in_T L, in_T R);
+
+// Multiply and cast float to accum
+//========================================================================
+
+MLI_FORCE_INLINE int32_t mli_math_float_scale(float value, float scale) {
+    /* This function is taken from reference mli_math as is */
+    const float round_val = value > 0 ? 0.5f : -0.5f;
+    return (int32_t)(value * scale + round_val);
+}
 
 // Multipliers used to apply scale factors in asymetric data types
 //========================================================================
@@ -507,6 +526,12 @@ MLI_FORCE_INLINE int32_t mli_math_cast_fx(accum72_t in_val, int shift_right) {
 template <>
 MLI_FORCE_INLINE int16_t mli_math_cast_fx(accum72_t in_val, int shift_right) {
     return fx_q15_cast_nf_asl_rnd_a72(in_val, 64 - sizeof(int16_t) * 8 - shift_right);
+}
+
+template <>
+MLI_FORCE_INLINE float mli_math_cast_fx(int32_t in_val, int shift_right) {
+    /* This function is taken from reference mli_math as is */
+    return (float)in_val / (float)(1 << shift_right);
 }
 
 template<typename io_T, typename l_T, typename r_T>

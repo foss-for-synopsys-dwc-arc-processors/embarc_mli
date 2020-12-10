@@ -11,6 +11,8 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "mli_hlp_convert_tensor.h"
+
 #include "mli_config.h"
 #include "mli_debug.h"
 #include "mli_math.h"
@@ -22,45 +24,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-static void convert_tensor_fx8_to_fx8(
-        const MLI_PTR(int8_t) __restrict in, 
-        MLI_PTR(int8_t) __restrict out, 
-        int count, 
-        int shift_right) {
-    __builtin_assume(count > 0);
-    for (int i = 0; i < count; i++)
-        out[i] = mli_math_cast_fx<int16_t, int8_t>((int16_t)in[i], shift_right);
-}
-
-static void convert_tensor_fx16_to_fx16(
-        const MLI_PTR(int16_t) __restrict in, 
-        MLI_PTR(int16_t) __restrict out, 
-        int count, 
-        int shift_right) {
-    __builtin_assume(count > 0);
-    for (int i = 0; i < count; i++)
-        out[i] = mli_math_asr_rnd_fx<int16_t>(in[i], shift_right);
-}
-
-static void convert_tensor_fx8_to_fx16(
-        const MLI_PTR(int8_t) __restrict in, 
-        MLI_PTR(int16_t) __restrict out, 
-        int count, 
-        int shift_right) {
-    __builtin_assume(count > 0);
-    for (int i = 0; i < count; i++)
-        out[i] = mli_math_cast_fx<int8_t, int16_t>((int16_t)in[i], shift_right);
-}
-
-static void convert_tensor_fx16_to_fx8(
-        const MLI_PTR(int16_t) __restrict in, 
-        MLI_PTR(int8_t) __restrict out, 
-        int count, 
-        int shift_right) {
-    for (int i = 0; i < count; i++)
-        out[i] = mli_math_cast_fx<int16_t, int8_t>(in[i], shift_right);
-}
 
 uint32_t mli_hlp_count_elem_num(const mli_tensor *in, uint32_t start_dim) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_count_elem_num(in, start_dim), __func__);
@@ -92,6 +55,8 @@ uint32_t mli_hlp_tensor_scale_shift(const mli_tensor *in, const uint32_t scale_i
         case MLI_EL_SA_8:
         case MLI_EL_SA_32:
             return (in->el_params.sa.dim >= 0)? in->el_params.sa.scale_frac_bits.mem.pi8[scale_idx]: in->el_params.sa.scale_frac_bits.mem.i8;
+        case MLI_EL_FP_32:
+            return 0;
         default:
             MLI_ASSERT(0);
             return 0;
@@ -102,6 +67,7 @@ int32_t mli_hlp_tensor_scale(const mli_tensor *in, const uint32_t scale_idx) {
     switch (in->el_type) {
         case MLI_EL_FX_8:
         case MLI_EL_FX_16:
+        case MLI_EL_FP_32:
             return 1;
         case MLI_EL_SA_8:
         case MLI_EL_SA_32:
@@ -116,6 +82,7 @@ int16_t mli_hlp_tensor_zero_offset(const mli_tensor *in, const uint32_t zero_idx
     switch (in->el_type) {
         case MLI_EL_FX_8:
         case MLI_EL_FX_16:
+        case MLI_EL_FP_32:
             return 0;
         case MLI_EL_SA_8:
         case MLI_EL_SA_32:
@@ -223,31 +190,69 @@ mli_status mli_hlp_create_subtensor(const mli_tensor *in, const mli_sub_tensor_c
     return MLI_STATUS_OK;
 }
 
-mli_status mli_hlp_convert_tensor(mli_tensor *in, mli_tensor *out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_convert_tensor(in, out), __func__);
+mli_status mli_hlp_convert_tensor_safx(const mli_tensor * src, mli_tensor * dst) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_convert_tensor(src, dst), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
 
-    const int in_sz = (int)mli_prv_count_elem_num(in);
-    const int out_shift = (int)(in->el_params.fx.frac_bits) - out->el_params.fx.frac_bits;
+    if ((src->el_type == MLI_EL_FX_8 || src->el_type == MLI_EL_SA_8) &&
+            (dst->el_type == MLI_EL_FX_8 || dst->el_type == MLI_EL_SA_8)) {
+        ret = mli::hlp::convert_quantized_data<int8_t, int8_t>(src, dst);
+    } else if ((src->el_type == MLI_EL_FX_8 || src->el_type == MLI_EL_SA_8) &&
+            dst->el_type == MLI_EL_FX_16) {
+        ret = mli::hlp::convert_quantized_data<int8_t, int16_t>(src, dst);
+    } else if ((src->el_type == MLI_EL_FX_8 || src->el_type == MLI_EL_SA_8) &&
+            dst->el_type == MLI_EL_SA_32) {
+        ret = mli::hlp::convert_quantized_data<int8_t, int32_t>(src, dst);
+    } else if (src->el_type == MLI_EL_FX_16 &&
+            (dst->el_type == MLI_EL_FX_8 || dst->el_type == MLI_EL_SA_8)) {
+        ret = mli::hlp::convert_quantized_data<int16_t, int8_t>(src, dst);
+    } else if (src->el_type == MLI_EL_FX_16 && dst->el_type == MLI_EL_FX_16) {
+        ret = mli::hlp::convert_quantized_data<int16_t, int16_t>(src, dst);
+    } else if (src->el_type == MLI_EL_FX_16 && dst->el_type == MLI_EL_SA_32) {
+        ret = mli::hlp::convert_quantized_data<int16_t, int32_t>(src, dst);
+    } else if (src->el_type == MLI_EL_SA_32 &&
+            (dst->el_type == MLI_EL_FX_8 || dst->el_type == MLI_EL_SA_8)) {
+        ret = mli::hlp::convert_quantized_data<int32_t, int8_t>(src, dst);
+    } else if (src->el_type == MLI_EL_SA_32 && dst->el_type == MLI_EL_FX_16) {
+        ret = mli::hlp::convert_quantized_data<int32_t, int16_t>(src, dst);
+    } else if (src->el_type == MLI_EL_SA_32 && dst->el_type == MLI_EL_SA_32) {
+        ret = mli::hlp::convert_quantized_data<int32_t, int32_t>(src, dst);
+    } else {
+        ret = MLI_STATUS_TYPE_MISMATCH;
+    }
+    return ret;
+}
 
-    if(in_sz <= 0)
-        return MLI_STATUS_BAD_TENSOR;
+mli_status mli_hlp_convert_tensor(const mli_tensor * src, mli_tensor * dst) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_convert_tensor(src, dst), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
 
-    // Switchnig functionality depending on tensors type
-    if (in->el_type == MLI_EL_FX_8 && out->el_type == MLI_EL_FX_8)
-        convert_tensor_fx8_to_fx8((MLI_PTR(int8_t))in->data.mem.void_p, (MLI_PTR(int8_t))out->data.mem.void_p, in_sz, out_shift);
-    else if (in->el_type == MLI_EL_FX_16 && out->el_type == MLI_EL_FX_16)
-        convert_tensor_fx16_to_fx16((MLI_PTR(int16_t))in->data.mem.void_p, (MLI_PTR(int16_t))out->data.mem.void_p, in_sz, out_shift);
-    else if (in->el_type == MLI_EL_FX_8 && out->el_type == MLI_EL_FX_16)
-        convert_tensor_fx8_to_fx16((MLI_PTR(int8_t))in->data.mem.void_p, (MLI_PTR(int16_t))out->data.mem.void_p, in_sz, out_shift);
-    else if (in->el_type == MLI_EL_FX_16 && out->el_type == MLI_EL_FX_8)
-        convert_tensor_fx16_to_fx8((MLI_PTR(int16_t))in->data.mem.void_p, (MLI_PTR(int8_t))out->data.mem.void_p, in_sz, out_shift);
-
-    // Fill the rest output tensor params
-    for (int idx = 0; idx < (int)in->rank; idx++)
-        out->shape[idx] = in->shape[idx];
-    out->rank = in->rank;
+    // To check if output tensor has enough memory.
+    if (src->el_type != MLI_EL_FP_32 && dst->el_type != MLI_EL_FP_32) {
+        ret = mli_hlp_convert_tensor_safx(src, dst);
+        return ret;
+    } else {
+        mli::hlp::convert_mode mode;
+        if (src->el_type == MLI_EL_FP_32) {
+            mode = mli::hlp::QUANTIZE;
+        } else {
+            mode = mli::hlp::DEQUANTIZE;
+        }
+        if ((src->el_type == MLI_EL_FX_8 || src->el_type == MLI_EL_SA_8) ||
+            (dst->el_type == MLI_EL_FX_8 || dst->el_type == MLI_EL_SA_8)) {
+            ret = mli::hlp::convert_float_data<int8_t>(src, dst, mode);
+        } else if (src->el_type == MLI_EL_FX_16 || dst->el_type == MLI_EL_FX_16) {
+            ret = mli::hlp::convert_float_data<int16_t>(src, dst, mode);
+        } else if (src->el_type == MLI_EL_SA_32 || dst->el_type == MLI_EL_SA_32) {
+            ret = mli::hlp::convert_float_data<int32_t>(src, dst, mode);
+        } else if (src->el_type == MLI_EL_FP_32 || dst->el_type == MLI_EL_FP_32) {
+            ret = mli::hlp::convert_float_data<float>(src, dst, mode);
+        } else {
+            ret = MLI_STATUS_TYPE_MISMATCH;
+        }
+    }
     return MLI_STATUS_OK;
 }
 

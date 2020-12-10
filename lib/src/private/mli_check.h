@@ -431,7 +431,7 @@ mli_status mli_chk_permute_fx8(const mli_tensor * in, const mli_permute_cfg * cf
 mli_status mli_chk_permute_fx16(const mli_tensor * in, const mli_permute_cfg * cfg, mli_tensor * out);
 
 mli_status mli_chk_count_elem_num(const mli_tensor *in, uint32_t start_dim);
-mli_status mli_chk_convert_tensor(mli_tensor *in, mli_tensor *out);
+mli_status mli_chk_convert_tensor(const mli_tensor *in, mli_tensor *out);
 mli_status mli_chk_point_to_subtensor(const mli_tensor *in, const mli_point_to_subtsr_cfg *cfg, mli_tensor *out);
 mli_status mli_chk_create_subtensor(const mli_tensor *in, const mli_sub_tensor_cfg *cfg, mli_tensor *out);
 

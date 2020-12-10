@@ -75,6 +75,8 @@ namespace ref {
 
 MLI_FORCE_INLINE void define_requant_params(const mli_tensor *in, const mli_tensor *out, 
         s8asym_quant_params *params);
+MLI_FORCE_INLINE void define_requant_params(const mli_tensor *in, const mli_tensor *out,
+    s8asym_quant_params *params, const uint32_t index);
 template <typename quant_T>
 MLI_FORCE_INLINE void define_quant_params(const mli_tensor* in, const mli_tensor* weights,
         const mli_tensor* bias, const mli_tensor* out, quant_T* params);

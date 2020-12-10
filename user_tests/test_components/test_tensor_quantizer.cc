@@ -85,6 +85,26 @@ tensor_quantizer::tensor_quantizer(mli_tensor tsr, const int frac_bits, const fl
     }
 }
 
+// Constructor intended to be used with FP32 type of tensors ONLY
+//==========================================
+tensor_quantizer::tensor_quantizer(mli_tensor tsr, const float* data, const uint32_t data_size)
+    : source_tsr_(tsr)
+    , source_data_(data)
+    , source_scales_(nullptr)
+    , source_zero_points_(nullptr)
+    , source_scales_fraq_(nullptr)
+    , is_valid_(false) {
+    // SImilar as for FX constructor - keep is_valid false if not FP32
+    if (source_tsr_.el_type == MLI_EL_FP_32) {
+        // check that input tensor in general not bad
+        const tensor_state state = validate_tensor(source_tsr_);
+        is_valid_ = (state == kIncompleteMem || state == kOk);
+        if (is_valid_)
+            is_valid_ = (data_size == mli_hlp_count_elem_num(&source_tsr_, 0));
+    }
+}
+
+
 
 // Return complete tensor with source float point data
 //=================================================================================
@@ -263,6 +283,9 @@ tensor_quantizer::tensor_state tensor_quantizer::quantize_float_data(const float
         case MLI_EL_SA_32:
             quantize_float_data_routine<MLI_EL_SA_32>(src, src_size, dst);
             break;
+        case MLI_EL_FP_32:
+            quantize_float_data_routine<MLI_EL_FP_32>(src, src_size, dst);
+            break;
         default:
             ret_status = kBad;
         }
@@ -296,6 +319,9 @@ tensor_quantizer::tensor_state tensor_quantizer::dequantize_tensor_data(const ml
             break;
         case MLI_EL_SA_32:
             dequantize_tensor_data_routine<MLI_EL_SA_32>(src, dst, dst_size);
+            break;
+        case MLI_EL_FP_32:
+            dequantize_tensor_data_routine<MLI_EL_FP_32>(src, dst, dst_size);
             break;
         default:
             assert(src->el_type == MLI_EL_FP_32); // at least last case must match
@@ -464,6 +490,20 @@ bool tensor_quantizer::spread_memory(mli_tensor* tsr, const mli_data_container* 
     return success;
 }
 
+// Saturate 32bit value to the final element type range.
+//====================================================================
+template <typename i_T, typename o_T>
+o_T tensor_quantizer::saturate(i_T val) {
+    constexpr int32_t lim_min = static_cast<int32_t>(std::numeric_limits<o_T>::min());
+    constexpr int32_t lim_max = static_cast<int32_t>(std::numeric_limits<o_T>::max());
+    return static_cast<o_T>(std::min(std::max(val, lim_min), lim_max));
+}
+
+template <>
+float tensor_quantizer::saturate(int32_t val) {
+    return val;
+}
+
 // Quantize float data to destination tensor according to it's format
 // Main template of quantization routine
 //====================================================================
@@ -478,7 +518,8 @@ void tensor_quantizer::quantize_float_data_routine(const float* src, uint32_t sr
     // Put type traits magic to derive output type (derived_T) 
     typedef typename std::conditional<dst_el_type == MLI_EL_FX_16, int16_t,
         typename std::conditional<dst_el_type == MLI_EL_FX_8 || dst_el_type == MLI_EL_SA_8, int8_t,
-        typename std::conditional<dst_el_type == MLI_EL_SA_32, int32_t, void>::type >::type >::type
+        typename std::conditional<dst_el_type == MLI_EL_SA_32, int32_t, 
+        typename std::conditional<dst_el_type == MLI_EL_FP_32, float, void>::type >::type >::type >::type
         derived_T;
 
     // And use derived_T as o_T if it's in supported set (not a void). Otherwise, break compilation
@@ -510,13 +551,6 @@ void tensor_quantizer::quantize_float_data_routine(const float* src, uint32_t sr
     // Lambda to define a linear element position in memory using strides
     auto val_pos = [](int strides[MLI_MAX_RANK], int dim0_idx, int dim1_idx, int dim2_idx, int dim3_idx) -> int {
         return (strides[0] * dim0_idx) + (strides[1] * dim1_idx) + (strides[2] * dim2_idx) + (strides[3] * dim3_idx);
-    };
-
-    // Lambda to saturate 32bit value to the final element type range.
-    auto sat = [](int32_t val) -> o_T {
-        constexpr int32_t lim_min = static_cast<int32_t>(std::numeric_limits<o_T>::min());
-        constexpr int32_t lim_max = static_cast<int32_t>(std::numeric_limits<o_T>::max());
-        return static_cast<o_T>(std::min(std::max(val, lim_min), lim_max));
     };
 
     o_T* dst_arr = static_cast<o_T*>(dst->data.mem.void_p);
@@ -551,9 +585,13 @@ void tensor_quantizer::quantize_float_data_routine(const float* src, uint32_t sr
                         const int dst_pos = val_pos(dst_strides, dim0_idx, dim1_idx, dim2_idx, dim3_idx);
                         assert(src_pos < src_size);
                         assert(dst_pos < dst->data.capacity / sizeof(dst_arr[0]));
-                        const float round_val = (src[src_pos] > 0) ? 0.5f : -0.5f;
-                        const int32_t dst_val = static_cast<int32_t>(scale_val * src[src_pos] + round_val);
-                        dst_arr[dst_pos] = sat(dst_val + zero_offset);
+                        if (dst_el_type == MLI_EL_FP_32) {
+                            dst_arr[dst_pos] = src[src_pos];
+                        } else {
+                            const float round_val = (src[src_pos] > 0) ? 0.5f : -0.5f;
+                            const int32_t dst_val = static_cast<int32_t>(scale_val * src[src_pos] + round_val);
+                            dst_arr[dst_pos] = saturate<int32_t, o_T>(dst_val + zero_offset);
+                        }
                     }
                 }
             }
@@ -576,7 +614,8 @@ void tensor_quantizer::dequantize_tensor_data_routine(const mli_tensor* src, flo
     // Put type traits magic to derive input type (derived_T) 
     typedef typename std::conditional<src_el_type == MLI_EL_FX_16, int16_t,
         typename std::conditional<src_el_type == MLI_EL_FX_8 || src_el_type == MLI_EL_SA_8, int8_t,
-        typename std::conditional<src_el_type == MLI_EL_SA_32, int32_t, void>::type >::type >::type
+        typename std::conditional<src_el_type == MLI_EL_SA_32, int32_t, 
+        typename std::conditional<src_el_type == MLI_EL_FP_32, float, void>::type >::type >::type >::type
         derived_T;
 
     // And use derived_T as o_T if it's in supported set (not a void). Otherwise, break compilation
@@ -595,8 +634,7 @@ void tensor_quantizer::dequantize_tensor_data_routine(const mli_tensor* src, flo
         if (shape_idx >= 0) {
             dst_strides[extended_shape_idx] = dst_memstride;
             src_extended_shape[extended_shape_idx] = src->shape[shape_idx];
-            src_strides[extended_shape_idx] = (src->mem_stride[shape_idx] == 0) ? dst_memstride
-                : src->mem_stride[shape_idx];
+            src_strides[extended_shape_idx] = (src->mem_stride[shape_idx] == 0) ? dst_memstride : src->mem_stride[shape_idx];
             dst_memstride *= src->shape[shape_idx];
         } else {
             dst_strides[extended_shape_idx] = dst_memstride;
@@ -621,8 +659,8 @@ void tensor_quantizer::dequantize_tensor_data_routine(const mli_tensor* src, flo
     // Transformation will be applied on slices across scales dimension (or all tensor)
     for (int scale_idx = 0; scale_idx < scales_num; ++scale_idx) {
         // calculate current scale and zero offset.
-        float scale_val = (float)mli_hlp_tensor_scale(src, 0);
-        scale_val = scale_val / (float)((int64_t)1l << mli_hlp_tensor_scale_shift(src, 0));
+        float scale_val = (float)mli_hlp_tensor_scale(src, scale_idx);
+        scale_val = scale_val / (float)((int64_t)1l << mli_hlp_tensor_scale_shift(src, scale_idx));
         int16_t zero_offset = mli_hlp_tensor_zero_offset(src, scale_idx);
 
         // calculate borders across all dimensions for slice where this scale is applicable.
@@ -642,8 +680,12 @@ void tensor_quantizer::dequantize_tensor_data_routine(const mli_tensor* src, flo
                         const int src_pos = val_pos(src_strides, dim0_idx, dim1_idx, dim2_idx, dim3_idx);
                         assert(dst_pos < dst_size);
                         assert(src_pos < src->data.capacity / sizeof(src_arr[0]));
-                        const float dst_val_unscaled = static_cast<float>(src_arr[src_pos]) - zero_offset;
-                        dst[dst_pos] = dst_val_unscaled * scale_val;
+                        if (src_el_type == MLI_EL_FP_32) {
+                            dst[dst_pos] = src_arr[src_pos];
+                        } else {
+                            const float dst_val_unscaled = static_cast<float>(src_arr[src_pos]) - zero_offset;
+                            dst[dst_pos] = dst_val_unscaled * scale_val;
+                        }
                     }
                 }
             }

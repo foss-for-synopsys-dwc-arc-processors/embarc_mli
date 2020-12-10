@@ -37,6 +37,9 @@ class tensor_quantizer {
     // For FX types next fields must be filled: Shape, rank, memstride, el_type
     // For SA types next fields must be filled: Shape, rank, memstride, el_type
     
+    // This Constructor intended to be used with FP32 type of tensors ONLY
+    tensor_quantizer(mli_tensor tsr, const float* data, const uint32_t data_size);
+
     // This Constructor intended to be used with FX type of tensors ONLY
     tensor_quantizer(mli_tensor tsr, const int frac_bits, const float* data, const uint32_t data_size);
     
@@ -144,6 +147,9 @@ class tensor_quantizer {
      
      template <mli_element_type dst_el_type>
      static void quantize_float_data_routine(const float* src, uint32_t src_size, mli_tensor* dst);
+
+     template<typename i_T, typename o_T>
+     static o_T saturate(i_T val);
 };
 
 } // namespace tst

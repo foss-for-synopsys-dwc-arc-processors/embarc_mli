@@ -244,6 +244,11 @@ MLI_FORCE_INLINE mli_acc32_t mli_math_acc_ashift_fx(mli_acc32_t acc, int shift_r
     return mli_math_asr_rnd_fx<mli_acc32_t>(acc, shift_right);
 }
 
+template <>
+MLI_FORCE_INLINE mli_acc40_t mli_math_acc_ashift_fx(mli_acc40_t acc, int shift_right) {
+    return mli_math_asr_rnd_fx<mli_acc40_t>(acc, shift_right);
+}
+
 // Arithmetic shift (right is default, left on the negative val)
 //========================================================================
 
@@ -256,6 +261,14 @@ MLI_FORCE_INLINE int8_t mli_math_ashift_right_fx(int8_t in_val, int shift_right)
 template <>
 MLI_FORCE_INLINE int16_t mli_math_ashift_right_fx(int16_t in_val, int shift_right) {
     return mli_math_asr_rnd_fx<int16_t>(in_val, shift_right);
+}
+
+// Multiply and cast float to accum
+//========================================================================
+
+MLI_FORCE_INLINE int32_t mli_math_float_scale(float value, float scale) {
+    const float round_val = value > 0 ? 0.5f : -0.5f;
+    return (int32_t)(value * scale + round_val);
 }
 
 // Cast accum to output type
@@ -347,6 +360,12 @@ MLI_FORCE_INLINE int32_t mli_math_cast_fx(int64_t in_val, int shift_right) {
     in_val = mli_math_asr_rnd_fx<int64_t>(in_val, shift_right);
     return (int32_t)mli_math_sat_fx<int64_t>(in_val, 32);
 }
+
+template <>
+MLI_FORCE_INLINE float mli_math_cast_fx(int32_t in_val, int shift_right) {
+    return (float)in_val / (float)(1 << shift_right);
+}
+
 
 // Multipliers used to apply scale factors in asymetric data types
 //========================================================================
