@@ -148,6 +148,11 @@ function(ADD_USER_TEST TEST_NAME)
 endfunction()
 
 #======================================================
+# Data Conversion Group
+#======================================================
+add_user_test(hlp_convert_tensor)
+
+#======================================================
 # Convolution Group
 #======================================================
 add_user_test(conv2d)
@@ -162,7 +167,7 @@ add_user_test(avepool)
 add_user_test(maxpool)
 
 #======================================================
-# Fully connected and recurrent group
+# Fully Connected And Recurrent Group
 #======================================================
 add_user_test(fully_connected)
 

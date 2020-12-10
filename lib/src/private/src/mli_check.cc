@@ -315,6 +315,18 @@ static MLI_FORCE_INLINE bool check_layout_is_contiguous(const mli_tensor *t) {
     return check_layout_is_contiguous(t->shape, t->mem_stride, t->rank);
 }
 
+static MLI_FORCE_INLINE bool check_mem_stride_matches(const mli_tensor *t1, const mli_tensor *t2) {
+    bool fail = false;
+    fail |= MLI_CHECK(t1->rank == t2->rank, "Tensors ranks doesn't match");
+    if (fail) return !fail;
+    for (uint32_t i = 0; i < t1->rank - 1; ++i) {
+        fail |= MLI_CHECK(t1->mem_stride[i] == t2->mem_stride[i], 
+                "Tensors memstrides doesn't match");
+    }
+    return !fail;
+}
+
+
 /******************************************************
  *  mli_krn_conv2d_hwc parameters checking function
  ******************************************************/
@@ -2654,28 +2666,48 @@ mli_status mli_chk_count_elem_num(const mli_tensor *in, uint32_t start_dim) {
     return MLI_STATUS_OK;
 }
 
-mli_status mli_chk_convert_tensor(mli_tensor *in, mli_tensor *out) {
+mli_status mli_chk_convert_tensor(const mli_tensor *in, mli_tensor *out) {
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;
 
     // Check that in tensor is valid and out provides valid pointers
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
-    if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
+    if (MLI_CHECK(in->data.mem.void_p != NULL , "Bad data pointer of input")) return MLI_STATUS_BAD_TENSOR;
+    
+    // Rank and shapes are copied from input to output tensor, so they don't need to be checked.
+    // But mem_strides of output tensor still must be valid.
+    if (MLI_CHECK(out != NULL , "Bad Output tensor pointer")) return MLI_STATUS_BAD_TENSOR;
+    stat = MLI_CHECK_STATUS(check_tensor_private(in->shape, out->mem_stride, in->rank, out->data.capacity, mli_hlp_tensor_element_size(out)), "Bad output tensor");
+    if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out->data.mem.void_p != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
 
-    fail |= MLI_CHECK(check_layout_is_contiguous(in), "Memory Layout of input tensor must be contiguous");
-    fail |= MLI_CHECK(check_layout_is_contiguous(out->mem_stride, in->rank), // output rank is input rank
-        "Memory Layout of output tensor must be contiguous");
+    fail |= MLI_CHECK(check_inner_most_dimension_is_one(in), "mem_stride of the innermost dimension for input tensor must be not more than 1.");
+    fail |= MLI_CHECK(check_inner_most_dimension_is_one(out), "mem_stride of the innermost dimension for output tensor must be not more than 1.");
+    
+    if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
+
+    // Check when output data points to the same memory as input, they have an equal container size.
+    if (in->data.mem.void_p == out->data.mem.void_p)
+        fail |= MLI_CHECK(mli_hlp_tensor_element_size(in) == mli_hlp_tensor_element_size(out) && check_mem_stride_matches(in, out), 
+                          "In-place computation is permitted only when tensors have the same container size and mem_stride.");
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
     // Check that output contains enough space
     const unsigned out_elements = mli_prv_count_elem_num(in);
     fail |= MLI_CHECK((out_elements * mli_hlp_tensor_element_size(out)) <= out->data.capacity,
-                      "capacity of output tensor is too small");
+        "capacity of output tensor is too small");
     if (fail) return MLI_STATUS_NOT_ENGH_MEM;
 
-    // TODO: Check fraq bits and etc.
+    if (in->el_type == MLI_EL_FX_8 || in->el_type == MLI_EL_FX_16)
+        fail |= MLI_CHECK(in->el_params.fx.frac_bits <= mli_hlp_tensor_element_size(in) * 8, "Wrong number of input tensor fractional bits");
+    if (out->el_type == MLI_EL_FX_8 || out->el_type == MLI_EL_FX_16)
+        fail |= MLI_CHECK(out->el_params.fx.frac_bits <= mli_hlp_tensor_element_size(out) * 8, "Wrong number of output tensor fractional bits");
+
+    if ((in->el_type == MLI_EL_SA_8 || in->el_type == MLI_EL_SA_32) &&
+        (out->el_type == MLI_EL_SA_8 || out->el_type == MLI_EL_SA_32))
+        fail |= MLI_CHECK(in->el_params.sa.dim == out->el_params.sa.dim || in->el_params.sa.dim < 0 || out->el_params.sa.dim < 0, "Scale axises doesn't match.");
+
     return MLI_STATUS_OK;
 }
 

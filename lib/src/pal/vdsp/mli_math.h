@@ -718,6 +718,13 @@ MLI_FORCE_INLINE mli_acc40_t mli_math_cast_fx(int16_t in_val, int shift_right) {
 }
 
 template <>
+MLI_FORCE_INLINE int8_t mli_math_cast_fx(int64_t in_val, int shift_right) {
+    /* This function is taken from reference mli_math as is */
+    int64_t temp = (int64_t)mli_math_asr_rnd_fx<int64_t>((int64_t)in_val, shift_right);
+    return (int8_t)mli_math_sat_fx<int64_t>(temp, 56);
+}
+
+template <>
 MLI_FORCE_INLINE int16_t mli_math_cast_fx(int64_t in_val, int shift_right) {
     int64_t temp = mli_math_asr_rnd_fx<int64_t, int>(in_val, shift_right);
     return (int16_t)mli_math_sat_fx<int64_t>(temp, 48);
@@ -727,6 +734,12 @@ template <>
 MLI_FORCE_INLINE int32_t mli_math_cast_fx(int64_t in_val, int shift_right) {
     in_val = mli_math_asr_rnd_fx<int64_t, int>(in_val, shift_right);
     return (int32_t)mli_math_sat_fx<int64_t>(in_val, 32);
+}
+
+template <>
+MLI_FORCE_INLINE float mli_math_cast_fx(int32_t in_val, int shift_right) {
+    /* This function is taken from reference mli_math as is */
+    return (float)in_val / (float)(1 << shift_right);
 }
 
 template <>
@@ -797,6 +810,16 @@ MLI_FORCE_INLINE vNx4char_t mli_math_cast_fx(vNx4short_t in_val, int shift_right
     acc = mli_math_bound_range_fx(acc, INT8_MIN, INT8_MAX);
     return to_vNx4char_t(acc);
 }
+
+// Multiply and cast float to accum
+//========================================================================
+
+MLI_FORCE_INLINE int32_t mli_math_float_scale(float value, float scale) {
+    /* This function is taken from reference mli_math as is */
+    const float round_val = value > 0 ? 0.5f : -0.5f;
+    return (int32_t)(value * scale + round_val);
+}
+
 // Cast accum to output type
 //========================================================================
 MLI_FORCE_INLINE vNx4char_t mli_math_acc_cast(vNx4accchar_t acc) {

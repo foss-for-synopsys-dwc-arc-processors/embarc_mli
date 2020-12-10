@@ -84,26 +84,44 @@ uint32_t mli_hlp_count_elem_num(const mli_tensor *in, uint32_t start_dim);
  */
 uint32_t mli_hlp_tensor_element_size(const mli_tensor *in);
 
+/**
+ * @brief Convert Tensor
+ *
+ * @detail This function can be used only for FX and SA quantization types.
+ * This function should be used in all places where it is known that neither of the source or destination tensor is a float tensor.
+ * This function copies elements from input tensor to output with data conversion according to
+ * the output tensor type parameters. This operation does not change tensor shape. It copies it from input to output.
+ *
+ * For more info on primitive see MLI Documentation
+ *
+ * @param src      [I] Input tensor (of any shape)
+ * @param dst      [O] Output tensor. Result will be stored here
+ *
+ * @return MLI status code
+ */
+mli_status mli_hlp_convert_tensor_safx(const mli_tensor *src, mli_tensor *dst);
+
 /** 
  * @brief Convert Tensor
  *
  * @detail This function copies elements from input tensor to output with data conversion according to 
- * the output tensor type parameters. This operation does not change tensor shape. It copies it from input to output. 
+ * the output tensor type parameters. This operation does not change tensor shape. It copies it from input to output.
+ * For conversions with equal container size, in-place computation is permitted.
  *
  * For more info on primitive see MLI Documentation
  *
- * @param in      [I] Input tensor (of any shape)
- * @param out     [O] Output tensor. Result will be stored here
+ * @param src      [I] Input tensor (of any shape)
+ * @param dst      [O] Output tensor. Result will be stored here
  *
  * @return MLI status code
  */
-mli_status mli_hlp_convert_tensor(mli_tensor *in, mli_tensor *out);
+mli_status mli_hlp_convert_tensor(const mli_tensor *src, mli_tensor *dst);
 
 /** 
  * @brief Point to Sub-Tensor
  *
  * @detail This function points to sub tensors in input tensor. This can be considered as indexing in 
- * a multidimensional array. This function performs operations on pointers and doesn’t copy data 
+ * a multidimensional array. This function performs operations on pointers and doesn't copy data 
  * (only points to subsequence of data in input). For this reason, this function takes only parameters that 
  * can be translated to starting coordinates and size of required data.
  *
@@ -121,7 +139,7 @@ mli_status mli_hlp_point_to_subtensor(const mli_tensor *in, const mli_point_to_s
  * @brief Create a Sub-Tensor from a larger tensor
  *
  * @detail This function points to sub tensors in input tensor. This function performs operations 
- * on pointers and doesn’t copy data (only points to subsequence of data in input).
+ * on pointers and doesn't copy data (only points to subsequence of data in input).
  * For this reason, depending on the parameters, it can happen that the sub tensor contains
  * data that is not adjacent in memory.
  *
