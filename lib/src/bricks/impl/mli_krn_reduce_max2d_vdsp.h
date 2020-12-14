@@ -99,11 +99,6 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc_k2x2_padding_kernel_unroll(
                         col_mem_stride, row_mem_stride, remaining_chans);
             break;
 
-        case 2:
-            reduce_max2D_hwc_v<io_T, remaining_channels, /*fixed_kernel_size*/ 2>(in_ptr, out_ptr, 2, 2,
-                        col_mem_stride, row_mem_stride, remaining_chans);
-            break;
-
         default:
             MLI_ASSERT(0);
             break;

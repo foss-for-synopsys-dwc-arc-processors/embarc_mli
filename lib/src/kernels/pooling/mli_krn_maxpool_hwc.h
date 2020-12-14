@@ -115,10 +115,6 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_nopad(
 
 template <typename io_T, int fixed_kernel_size>
 static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_pad(
-        int row_beg,
-        int row_end,
-        int clmn_beg,
-        int clmn_end,
         int stride_width,
         int stride_height,
         int padding_top,
@@ -139,14 +135,14 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_pad(
 
     // Phase 1: Process central part (without border effects - padding free)
     //=======================================================================
-    row_beg = CEIL_DIV(padding_top, stride_height);
-    row_end = out.height - CEIL_DIV(padding_bot, stride_height);
-    clmn_beg = CEIL_DIV(padding_left, stride_width);
-    clmn_end = out.width - CEIL_DIV(padding_right, stride_width);
+    const int nopad_row_beg = CEIL_DIV(padding_top, stride_height);
+    const int nopad_row_end = CEIL_DIV(in.height + padding_top - kernel_height + 1, stride_height);
+    const int nopad_clmn_beg = CEIL_DIV(padding_left, stride_width);
+    const int nopad_clmn_end = CEIL_DIV(in.width + padding_left - kernel_width + 1, stride_width);
 
-    if ((row_end - row_beg > 0) && (clmn_end - clmn_beg > 0)) {
+    if ((nopad_row_end - nopad_row_beg > 0) && (nopad_clmn_end - nopad_clmn_beg > 0)) {
         mli_krn_maxpool_hwc_nopad<io_T, fixed_kernel_size>(
-                row_beg, row_end, clmn_beg, clmn_end,
+                nopad_row_beg, nopad_row_end, nopad_clmn_beg, nopad_clmn_end,
                 stride_width, stride_height, padding_top,
                 padding_bot, padding_left, padding_right,
                 in, out,
@@ -160,26 +156,26 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_pad(
         int areas_num = 0;
         if (padding_top) {
             perc_areas[areas_num].row_beg = 0;
-            perc_areas[areas_num].row_end = CEIL_DIV(padding_top, stride_height);
+            perc_areas[areas_num].row_end = nopad_row_beg;
             perc_areas[areas_num].clmn_beg = 0;
             perc_areas[areas_num++].clmn_end = out.width;
         }
         if (padding_bot) {
-            perc_areas[areas_num].row_beg = out.height - CEIL_DIV(padding_bot, stride_height);
+            perc_areas[areas_num].row_beg = nopad_row_end;
             perc_areas[areas_num].row_end = out.height;
             perc_areas[areas_num].clmn_beg = 0;
             perc_areas[areas_num++].clmn_end = out.width;
         }
         if (padding_left) {
-            perc_areas[areas_num].row_beg = CEIL_DIV(padding_top, stride_height);
-            perc_areas[areas_num].row_end = out.height - CEIL_DIV(padding_bot, stride_height);
+            perc_areas[areas_num].row_beg = nopad_row_beg;
+            perc_areas[areas_num].row_end = nopad_row_end;
             perc_areas[areas_num].clmn_beg = 0;
-            perc_areas[areas_num++].clmn_end = CEIL_DIV(padding_left, stride_width);
+            perc_areas[areas_num++].clmn_end = nopad_clmn_beg;
         }
         if (padding_right) {
-            perc_areas[areas_num].row_beg = CEIL_DIV(padding_top, stride_height);
-            perc_areas[areas_num].row_end = out.height - CEIL_DIV(padding_bot, stride_height);
-            perc_areas[areas_num].clmn_beg = out.width - CEIL_DIV(padding_right, stride_width);
+            perc_areas[areas_num].row_beg = nopad_row_beg;
+            perc_areas[areas_num].row_end = nopad_row_end;
+            perc_areas[areas_num].clmn_beg = nopad_clmn_end;
             perc_areas[areas_num++].clmn_end = out.width;
         }
 
@@ -281,8 +277,7 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_wrapper(
     out_.ptr = out_ptr;
 
     if (padding_top || padding_left || padding_bot || padding_right) {
-        mli_krn_maxpool_hwc_pad<io_T, fixed_kernel_size>(row_beg, row_end, clmn_beg, clmn_end,
-                                stride_width, stride_height,
+        mli_krn_maxpool_hwc_pad<io_T, fixed_kernel_size>(stride_width, stride_height,
                                 padding_top, padding_bot, padding_left, padding_right,
                                 in_, out_,
                                 kernel_height, kernel_width);
