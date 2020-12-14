@@ -72,26 +72,6 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc(
 		const int row_mem_stride,
         const int channels = 0 /*unused in full vector case*/);
 
-template <typename io_T, bool remaining_channels, bool varying_kernel>
-static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_k2x2_max2D_wrapper(
-        const MLI_PTR(io_T) __restrict in_ptr,
-        MLI_OUT_PTR(io_T) __restrict out_ptr,
-        int clmns,
-        int rows,
-        int32_t col_mem_stride,
-        int32_t row_mem_stride,
-        int remaining_chans = 0);
-
-template <typename io_T, bool remaining_channels, bool varying_kernel>
-static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_k3x3_max2D_wrapper(
-        const MLI_PTR(io_T) __restrict in_ptr,
-        MLI_OUT_PTR(io_T) __restrict out_ptr,
-        int clmns,
-        int rows,
-        int32_t col_mem_stride,
-        int32_t row_mem_stride,
-        int remaining_chans = 0);
-
 } // namespace vdsp
 
 } // namespace krn
