@@ -155,8 +155,22 @@ static MLI_FORCE_INLINE vNx4short_t vvadd_sat(vNx4short_t L, vNx4short_t R) {
     return out;
 }
 
+static MLI_FORCE_INLINE vNx2int_t vvadd_sat(vNx2int_t L, vNx2int_t R) {
+    vNx2int_t out;
+    out.lo = vvadd_sat(L.lo, R.lo);
+    out.hi = vvadd_sat(L.hi, R.hi);
+    return out;
+}
+
+static MLI_FORCE_INLINE vNx4int_t vvadd_sat(vNx4int_t L, vNx4int_t R) {
+    vNx4int_t out;
+    out.lo = vvadd_sat(L.lo, R.lo);
+    out.hi = vvadd_sat(L.hi, R.hi);
+    return out;
+}
+
 //////////////////////////////////////////////////
-// vvadd_sat
+// vvsub_sat
 //////////////////////////////////////////////////
 template <typename T>
 T vvsub_sat(T L, T R);
@@ -180,6 +194,21 @@ static MLI_FORCE_INLINE vNx4short_t vvslm_sat(vNx4short_t L, int nbits) {
     out.hi = vvslm_sat(L.hi, (vNx2short_t)nbits);
     return out;
 }
+
+static MLI_FORCE_INLINE vNx2int_t vvslm_sat(vNx2int_t L, int nbits) {
+    vNx2int_t out;
+    out.lo = vvslm_sat(L.lo, (vNint_t)nbits);
+    out.hi = vvslm_sat(L.hi, (vNint_t)nbits);
+    return out;
+}
+
+static MLI_FORCE_INLINE vNx4int_t vvslm_sat(vNx4int_t L, int nbits) {
+    vNx4int_t out;
+    out.lo = vvslm_sat(L.lo, nbits);
+    out.hi = vvslm_sat(L.hi, nbits);
+    return out;
+}
+
 
 //////////////////////////////////////////////////
 // MAX

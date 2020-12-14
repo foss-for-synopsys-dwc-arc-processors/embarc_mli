@@ -180,8 +180,8 @@ static MLI_FORCE_INLINE void eltwise_op_basic(
         shift_back = (func_type == ELTWISE_MUL) ? IN_SCALE_SHIFT + frac_bits_fx16 : IN_SCALE_SHIFT;
 
         int norm = (scale_factor != 0) ? mli_math_norm_fx<int32_t, int>(scale_factor) : 0;
-        scale16 = mli_math_asr_rnd_fx(scale_factor, 16 - norm);
-        shift_back -= (16 - norm);
+        scale16 = mli_math_asr_rnd_fx(scale_factor, MAX((IN_SCALE_SHIFT - norm), 0));
+        shift_back -= MAX((IN_SCALE_SHIFT - norm), 0);
     }
 
     for (int pos0 = 0; pos0 < shape[0]; pos0++) {
