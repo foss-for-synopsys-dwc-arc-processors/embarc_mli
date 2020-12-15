@@ -6,6 +6,10 @@
 # the LICENSE file in the root directory of this source tree.
 #
 
+ifneq (3.82,$(firstword $(sort $(MAKE_VERSION) 3.82)))
+$(error "Requires make version 3.82 or later (current is $(MAKE_VERSION))")
+endif
+
 RECONFIGURE         ?= OFF
 DEBUG_BUILD         ?= ON
 OPTMODE             ?= speed
@@ -86,8 +90,9 @@ $(CONFIG_TARGET):
 		-S$(abspath $(PUBLIC_DIR))
 
 cleanall:
-	-$(RMDIR) $(BUILD_DIR_BASE)
-	-$(RMDIR) $(LIBRARY_DIR_BASE)
+# quotes are required if path contains slashes on Windows
+	-$(RMDIR) "$(BUILD_DIR_BASE)"
+	-$(RMDIR) "$(LIBRARY_DIR_BASE)"
 
 clean:
 # Check that cmake generated a Makefile project. 
