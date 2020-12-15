@@ -122,6 +122,7 @@ if (DEFINED MLI_BUILD_REFERENCE)
     endif()
 endif()
 
+set(MLI_DEBUG_MODE DBG_MODE_FULL)
 if (DEFINED MLI_DEBUG_MODE)
     set(choices
         DBG_MODE_RELEASE
