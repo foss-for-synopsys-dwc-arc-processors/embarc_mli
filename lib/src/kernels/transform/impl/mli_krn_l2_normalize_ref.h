@@ -36,6 +36,70 @@ namespace mli {
 namespace krn {
 namespace ref {
 
+template<typename io_T, bool convert>
+static MLI_FORCE_INLINE int16_t compute_normalized_sum_square(
+        struct generic_tensor_private_t<MLI_PTR(io_T)> *in_prv,
+        const MLI_PTR(io_T) vec_in,
+        int16_t in_zp,
+        int *norm_shift) {
+
+    /* Accumulation through MAC */
+    acc_t sum_acc = mli_math_mul_fx<int16_t, acc_t>(0, 0);
+    for (int pos0 = 0; pos0 < in_prv->shape[0]; pos0++) {
+        for (int pos1 = 0; pos1 < in_prv->shape[1]; pos1++) {
+            for (int pos2 = 0; pos2 < in_prv->shape[2]; pos2++) {
+                for (int pos3 = 0; pos3 < in_prv->shape[3]; pos3++) {
+                    int16_t input = vec_in[POS(in_prv, pos0, pos1, pos2, pos3)];
+                    if (convert) {
+                        input = mli_math_sub_fx(input, in_zp);
+                    }
+                    sum_acc = mli_math_mac_fx(sum_acc, input, input);
+                }
+            }
+        }
+    }
+
+    int norm_shift_val = mli_math_norm_fx<acc_t, int>(sum_acc);
+    /* To Cast acc_t to int16_t */
+    norm_shift_val = (sizeof(acc_t) - sizeof(int16_t)) * 8 - norm_shift_val;
+    /* Adjust norm_shift to even number because we are going to divide it by 2 */
+    if ((norm_shift_val & 0x1) == 0x1) {
+        norm_shift_val += 1;
+    }
+
+    *norm_shift = norm_shift_val;
+    /* Cast Sum_acc to Q7.8 to bring it to LUT input range */
+    return mli_math_cast_fx<acc_t, int16_t>(sum_acc, norm_shift_val);
+}
+
+template<typename io_T, bool convert>
+static MLI_FORCE_INLINE void normalize_tensor(
+        struct generic_tensor_private_t<MLI_PTR(io_T)> *in_prv,
+        struct generic_tensor_private_t<MLI_PTR(io_T)> *out_prv,
+        const MLI_PTR(io_T) vec_in,
+        MLI_PTR(io_T) vec_out,
+        int16_t scale,
+        int16_t in_zp,
+        int shift) {
+
+    // final result: normalizing
+    for (int pos0 = 0; pos0 < in_prv->shape[0]; pos0++) {
+        for (int pos1 = 0; pos1 < in_prv->shape[1]; pos1++) {
+            for (int pos2 = 0; pos2 < in_prv->shape[2]; pos2++) {
+                for (int pos3 = 0; pos3 < in_prv->shape[3]; pos3++) {
+                    int16_t input = vec_in[POS(in_prv, pos0, pos1, pos2, pos3)];
+                    if (convert) {
+                        input = mli_math_sub_fx(input, in_zp);
+                    }
+                    mli_acc32_t tmp_acc = mli_math_mul_fx<int16_t, mli_acc32_t>(scale, input);
+                    vec_out[POS(out_prv, pos0, pos1, pos2, pos3)] =
+                            mli_math_acc_cast_fx<io_T, mli_acc32_t>(tmp_acc, shift);
+                }
+            }
+        }
+    }
+}
+
 template <typename io_T, bool convert>
 static MLI_FORCE_INLINE mli_status mli_krn_l2_normalize_run(const mli_tensor *in, 
         const mli_tensor *epsilon, 
@@ -97,21 +161,7 @@ static MLI_FORCE_INLINE mli_status mli_krn_l2_normalize_run(const mli_tensor *in
                                    dim1 * out_non_axis_prv.mem_stride[1] + 
                                    dim2 * out_non_axis_prv.mem_stride[2]];
 
-                /* Accumulation through MAC */
-                acc_t sum_acc = mli_math_mul_fx<int16_t, acc_t>(0, 0);
-                for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
-                    for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
-                        for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
-                            for (int pos3 = 0; pos3 < in_prv.shape[3]; pos3++) {
-                                int16_t input = vec_in[POS(&in_prv, pos0, pos1, pos2, pos3)];
-                                if (convert) {
-                                    input -= in_zp;
-                                }
-                                sum_acc = mli_math_mac_fx(sum_acc, input, input);
-                            }
-                        }
-                    }
-                }
+                int norm_shift;
                 /* inv_sqrt = 1/sqrt(sum_acc)
                  * sum_acc can be approximated to sum_acc = (sum_acc_cast * 2^norm_shift)
                  * inv_sqrt = 1/sqrt(sum_acc * 2^-norm_shift * 2^norm_shift)
@@ -119,37 +169,16 @@ static MLI_FORCE_INLINE mli_status mli_krn_l2_normalize_run(const mli_tensor *in
                  *          = 1/(2^(norm_shift/2) * sqrt(sum_acc_cast))
                  *          = 2^(-norm_shift/2) * (1/sqrt(sum_acc_cast))
                  */
-                int norm_shift = mli_math_norm_fx<acc_t, int>(sum_acc);
-                /* To Cast acc_t to int16_t */
-                norm_shift = (sizeof(acc_t) - sizeof(int16_t)) * 8 - norm_shift;
-                /* Adjust norm_shift to even number because we are going to divide it by 2 */
-                if ((norm_shift & 0x1) == 0x1) {
-                    norm_shift += 1;
-                }
-                /* Cast Sum_acc to Q7.8 to bring it to LUT input range */
-                const int16_t sum_acc_cast = mli_math_cast_fx<acc_t, int16_t>(sum_acc, norm_shift);
+                const int16_t sum_acc_cast = mli::krn::compute_normalized_sum_square<io_T, convert>(&in_prv, vec_in, in_zp, &norm_shift);
                 /* Activation lookup table of input Q7.8 */
                 int16_t out_lut = mli::krn::activation_lut_one_elem_interpolate<int16_t, int16_t, false, false>(
                     sum_acc_cast, &invsqrt_lut_fx16, kL2NormLutFracBits);
 
                 /* (Norm_shift + kL2NormLutFracBits) is divided by 2 because of the square root */
                 int shift = invsqrt_lut_fx16.out_frac_bits + ((norm_shift + kL2NormLutFracBits) >> 1) - out_shift;
+                
                 // final result: normalizing
-                for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
-                    for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
-                        for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
-                            for (int pos3 = 0; pos3 < in_prv.shape[3]; pos3++) {
-                                int16_t input = vec_in[POS(&in_prv, pos0, pos1, pos2, pos3)];
-                                if (convert) {
-                                    input -= in_zp;
-                                }
-                                mli_acc32_t tmp_acc = mli_math_mul_fx<int16_t, mli_acc32_t>(out_lut, input);
-                                vec_out[POS(&out_prv, pos0, pos1, pos2, pos3)] =
-                                        mli_math_acc_cast_fx<io_T, mli_acc32_t>(tmp_acc, shift);
-                            }
-                        }
-                    }
-                }
+                mli::krn::normalize_tensor<io_T, convert>(&in_prv, &out_prv, vec_in, vec_out, out_lut, in_zp, shift);
 
             }
         }

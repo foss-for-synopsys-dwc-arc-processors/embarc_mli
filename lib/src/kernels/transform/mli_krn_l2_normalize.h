@@ -23,12 +23,18 @@
 namespace mli {
 namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
+using mli::krn::vdsp::compute_normalized_sum_square;
+using mli::krn::vdsp::normalize_tensor;
 using mli::krn::ref::mli_krn_l2_normalize_run;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
+using mli::krn::ref::compute_normalized_sum_square;
+using mli::krn::ref::normalize_tensor;
 using mli::krn::ref::mli_krn_l2_normalize_run;
 
 #else
+using mli::krn::ref::compute_normalized_sum_square;
+using mli::krn::ref::normalize_tensor;
 using mli::krn::ref::mli_krn_l2_normalize_run;
 
 #endif
