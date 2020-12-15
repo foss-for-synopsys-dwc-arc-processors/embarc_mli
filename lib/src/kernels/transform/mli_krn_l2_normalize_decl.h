@@ -28,6 +28,23 @@ namespace krn {
 ////////////////////////////////////////////////////////////////////////////////
 namespace ref {
 
+template<typename io_T, bool convert>
+static MLI_FORCE_INLINE int16_t compute_normalized_sum_square(
+        struct generic_tensor_private_t<MLI_PTR(io_T)> *in_prv,
+        const MLI_PTR(io_T) vec_in,
+        int16_t in_zp,
+        int *norm_shift);
+
+template<typename io_T, bool convert>
+static MLI_FORCE_INLINE void normalize_tensor(
+        struct generic_tensor_private_t<MLI_PTR(io_T)> *in_prv,
+        struct generic_tensor_private_t<MLI_PTR(io_T)> *out_prv,
+        const MLI_PTR(io_T) vec_in,
+        MLI_PTR(io_T) vec_out,
+        int16_t scale,
+        int16_t in_zp,
+        int shift);
+
 template <typename io_T, bool convert = false>
 static MLI_FORCE_INLINE mli_status mli_krn_l2_normalize_run(const mli_tensor *in, 
         const mli_tensor *epsilon, 
@@ -47,6 +64,23 @@ namespace dsp {
 // VDSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
+
+template<typename io_T, bool convert>
+static MLI_FORCE_INLINE int16_t compute_normalized_sum_square(
+        struct generic_tensor_private_t<MLI_PTR(io_T)> *in_prv,
+        const MLI_PTR(io_T) vec_in,
+        int16_t in_zp,
+        int *norm_shift);
+
+template<typename io_T, bool convert>
+static MLI_FORCE_INLINE void normalize_tensor(
+        struct generic_tensor_private_t<MLI_PTR(io_T)> *in_prv,
+        struct generic_tensor_private_t<MLI_PTR(io_T)> *out_prv,
+        const MLI_PTR(io_T) vec_in,
+        MLI_PTR(io_T) vec_out,
+        int16_t scale,
+        int16_t in_zp,
+        int shift);
 
 } // namespace vdsp
 

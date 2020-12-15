@@ -531,6 +531,19 @@ MLI_FORCE_INLINE T mli_math_abs_fx(T x) {
     return x >= (T)0 ? x : mli_math_neg_fx(x);
 }
 
+template<>
+MLI_FORCE_INLINE vNx2short_t mli_math_abs_fx(vNx2short_t x) {
+    return vvabs_sat(x);
+}
+
+template<>
+MLI_FORCE_INLINE vNx4short_t mli_math_abs_fx(vNx4short_t x) {
+    vNx4short_t res;
+    res.lo = mli_math_abs_fx(x.lo);
+    res.hi = mli_math_abs_fx(x.hi);
+    return res;
+}
+
 template <typename T, typename o_T>
 MLI_FORCE_INLINE o_T mli_math_norm_fx(T x) {
     o_T inp_size = sizeof(T) * 8;
