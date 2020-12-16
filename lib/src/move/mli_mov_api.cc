@@ -17,6 +17,10 @@
 #include "mli_mov_private_types.h"
 #include "mli_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #pragma MLI_CODE_SECTION_START(".mli_lib")
 
 // singleton for dma channel pool
@@ -540,3 +544,6 @@ mli_status mli_mov_cfg_all(
 }
 
 #pragma MLI_CODE_SECTION_END()
+#ifdef __cplusplus
+}
+#endif
