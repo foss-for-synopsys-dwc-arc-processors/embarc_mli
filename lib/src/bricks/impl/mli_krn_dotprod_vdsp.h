@@ -58,22 +58,32 @@ static MLI_FORCE_INLINE acc_T dotprod1D_v(
 
     constexpr int ch_unroll = sizeof(int32_t) / sizeof(io_T);
     int idx;
+    int unroll = 4;
 
-// the extra unroll factor enables the compiler to combine the scalar loads into an ldd
-#pragma clang loop unroll_count(2)
-    for (idx = 0; idx < vals - (ch_unroll - 1); idx+=ch_unroll) {
-        int32_t multi_in = *(int32_t*)in;
+#pragma clang loop unroll(disable)
+    for (idx = 0; idx < vals - (unroll * ch_unroll - 1); idx+=ch_unroll*unroll) {
+        int32_t multi_in  = *(int32_t*)in;
+        int32_t multi_in1 = *(int32_t*)(in +     ch_unroll);
+        int32_t multi_in2 = *(int32_t*)(in + 2 * ch_unroll);
+        int32_t multi_in3 = *(int32_t*)(in + 3 * ch_unroll);
 #pragma clang loop unroll(full)
         for (int i = 0; i < ch_unroll; i++) {
             accu = mli_prv_mac_load_v_s(accu, krn, (io_T)multi_in);
+            accu = mli_prv_mac_load_v_s(accu, krn +     ch_unroll*krn_step, (io_T)multi_in1);
+            accu = mli_prv_mac_load_v_s(accu, krn + 2 * ch_unroll*krn_step, (io_T)multi_in2);
+            accu = mli_prv_mac_load_v_s(accu, krn + 3 * ch_unroll*krn_step, (io_T)multi_in3);
 
             krn += krn_step;
-            multi_in = multi_in >> (sizeof(io_T) * 8);
+            multi_in  = multi_in  >> (sizeof(io_T) * 8);
+            multi_in1 = multi_in1 >> (sizeof(io_T) * 8);
+            multi_in2 = multi_in2 >> (sizeof(io_T) * 8);
+            multi_in3 = multi_in3 >> (sizeof(io_T) * 8);
         } // ch_unroll
-        in += in_step * ch_unroll;
+        krn += krn_step * (unroll * ch_unroll - ch_unroll);
+        in += in_step * ch_unroll * unroll;
     } // vals
     for ( ; idx < vals; idx++) {
-        accu = mli_prv_mac_load_v_s(accu, krn, in);
+        accu = mli_prv_mac_load_v_s(accu, krn, *in);
         in += in_step;
         krn += krn_step;
     }
