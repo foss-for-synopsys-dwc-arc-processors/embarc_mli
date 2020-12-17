@@ -515,6 +515,56 @@ mli_status mli_krn_transpose_conv2d_hwcn_sa8_sa8_sa32(
     const mli_tensor * bias,
     const mli_conv2d_cfg * cfg,
     mli_tensor * out);
+
+//========================================================
+// Specializations for k2x2 and stride 2x2
+//========================================================
+mli_status mli_krn_transpose_conv2d_hwcn_fx16_k2x2_str2(
+    const mli_tensor* in,
+    const mli_tensor* weights,
+    const mli_tensor* bias,
+    const mli_conv2d_cfg* cfg,
+    mli_tensor* out);
+
+mli_status mli_krn_transpose_conv2d_hwcn_fx16_fx8_fx8_k2x2_str2(
+    const mli_tensor* in,
+    const mli_tensor* weights,
+    const mli_tensor* bias,
+    const mli_conv2d_cfg* cfg,
+    mli_tensor* out);
+
+mli_status mli_krn_transpose_conv2d_hwcn_sa8_sa8_sa32_k2x2_str2(
+    const mli_tensor* in,
+    const mli_tensor* weights,
+    const mli_tensor* bias,
+    const mli_conv2d_cfg* cfg,
+    mli_tensor* out);
+
+
+//========================================================
+// Specializations for k4x4 and stride 2x2
+//========================================================
+mli_status mli_krn_transpose_conv2d_hwcn_fx16_k4x4_str2(
+    const mli_tensor* in,
+    const mli_tensor* weights,
+    const mli_tensor* bias,
+    const mli_conv2d_cfg* cfg,
+    mli_tensor* out);
+
+mli_status mli_krn_transpose_conv2d_hwcn_fx16_fx8_fx8_k4x4_str2(
+    const mli_tensor* in,
+    const mli_tensor* weights,
+    const mli_tensor* bias,
+    const mli_conv2d_cfg* cfg,
+    mli_tensor* out);
+
+mli_status mli_krn_transpose_conv2d_hwcn_sa8_sa8_sa32_k4x4_str2(
+    const mli_tensor* in,
+    const mli_tensor* weights,
+    const mli_tensor* bias,
+    const mli_conv2d_cfg* cfg,
+    mli_tensor* out);
+
 //================================================
 //
 // Pooling group of kernels
