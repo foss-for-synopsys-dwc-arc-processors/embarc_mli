@@ -21,6 +21,8 @@ extern mli::tst::tensor_quantizer input_1_fx16;
 extern mli::tst::tensor_quantizer input_1_memstr_fx16;
 extern mli::tst::tensor_quantizer input_1_sa8;
 extern mli::tst::tensor_quantizer input_1_memstr_sa8;
+extern mli::tst::tensor_quantizer input_2_memstr_fx16;
+extern mli::tst::tensor_quantizer input_2_memstr_sa8;
 
 // Generated weights vectors Declaration
 //========================================
@@ -33,9 +35,22 @@ extern mli::tst::tensor_quantizer weights_2_memstr_fx8;
 extern mli::tst::tensor_quantizer weights_2_memstr_fx16;
 extern mli::tst::tensor_quantizer weights_2_memstr_sa8;
 
+extern mli::tst::tensor_quantizer weights_3_memstr_fx8;
+extern mli::tst::tensor_quantizer weights_3_memstr_fx16;
+extern mli::tst::tensor_quantizer weights_3_memstr_sa8;
+
+extern mli::tst::tensor_quantizer weights_4_memstr_fx8;
+extern mli::tst::tensor_quantizer weights_4_memstr_fx16;
+extern mli::tst::tensor_quantizer weights_4_memstr_sa8;
+
 extern mli::tst::tensor_quantizer bias_1_fx8;
 extern mli::tst::tensor_quantizer bias_1_fx16;
+extern mli::tst::tensor_quantizer bias_1_i1_w1_sa32;
 extern mli::tst::tensor_quantizer bias_1_i1_w2_sa32;
+extern mli::tst::tensor_quantizer bias_2_fx8;
+extern mli::tst::tensor_quantizer bias_2_fx16;
+extern mli::tst::tensor_quantizer bias_2_i2_w3_sa32;
+extern mli::tst::tensor_quantizer bias_2_i2_w4_sa32;
 
 // Extracted Output vectors Declaration
 //===================================================
@@ -55,6 +70,12 @@ extern mli::tst::tensor_quantizer test_4_out_sa8;
 extern mli::tst::tensor_quantizer test_5_out_fx16;
 extern mli::tst::tensor_quantizer test_5_out_sa8;
 
+extern mli::tst::tensor_quantizer test_6_out_fx16;
+extern mli::tst::tensor_quantizer test_6_out_sa8;
+
+extern mli::tst::tensor_quantizer test_7_out_fx16;
+extern mli::tst::tensor_quantizer test_7_out_sa8;
+
 // Tests configuration structures Declaration
 //========================================
 extern const mli_conv2d_cfg test_1_cfg;
@@ -62,6 +83,8 @@ extern const mli_conv2d_cfg test_2_cfg;
 extern const mli_conv2d_cfg test_3_cfg;
 extern const mli_conv2d_cfg test_4_cfg;
 extern const mli_conv2d_cfg test_5_cfg;
+extern const mli_conv2d_cfg test_6_cfg;
+extern const mli_conv2d_cfg test_7_cfg;
 
 
 // Generated input vectors 
@@ -111,12 +134,6 @@ static const mli_tensor input_1_tsr_sa8 = {
 };
 
 
-tensor_quantizer input_1_fx16(input_1_tsr_fx16, input_1_fx8_frac + 8, input_1_data,
-                                sizeof(input_1_data) / sizeof(input_1_data[0]));
-tensor_quantizer input_1_sa8(input_1_tsr_sa8, input_1_sa_dim, input_1_data, 
-                            sizeof(input_1_data) / sizeof(input_1_data[0]),
-                            &input_1_scale, 1, &input_1_zero_point, 1, input_1_scales_frac, 1);
-
 #define INPUT_1_MEMSTR_TSR_SHARED_DESCR \
     /* .data = */ { 0 },\
     /* .mem_stride = */ {7*12*1, 12*1, 1}, \
@@ -139,11 +156,86 @@ static const mli_tensor input_1_memstr_tsr_sa8 = {
     /* .el_params = */ { 0 }
 };
 
+
+static const float input_2_data[] = {
+    -0.647099f, 2.476065f, 2.78113f, 0.098039f, -0.252552f, -0.310425f, 2.586953f, 0.472886f, -1.119638f, 0.106922f, 
+    -0.341404f, 2.035476f, 2.752784f, 1.600119f, -1.552247f, 1.962506f, 0.528303f, 0.197099f, 0.31535f, -0.460923f, 
+    2.06248f, -0.293721f, -0.720762f, 0.637147f, -1.732849f, 1.167793f, 1.678034f, -0.892122f, 0.216196f, 1.509061f, 
+    -1.303623f, -0.704221f, 1.420887f, 0.82633f, 0.431202f, -1.28906f, -0.791522f, 0.945917f, -0.000907f, 2.866447f, 
+    -0.279242f, 2.624524f, 0.934735f, -1.650267f, -0.810861f, 2.664924f, -1.361016f, 2.269444f, -0.25824f, 1.487748f, 
+    -1.87167f, -1.026415f, 1.788182f, 2.134732f, 0.727358f, 1.804821f, 2.446338f, 1.28467f, 0.878259f, 0.310652f, 
+    -0.663583f, 0.426819f, -1.621781f, 1.180519f, -1.285246f, -1.709839f, 2.186806f, 0.309499f, -1.83694f, 1.641386f, 
+    -0.030603f, -1.9107f, 2.502872f, 0.750357f, -1.649416f, 1.189143f, 1.696514f, -1.3433f, 1.123679f, -1.629001f, 
+    -1.163403f, 1.670298f, 1.301242f, 0.210077f, 2.425141f, -1.384105f, 0.39949f, 1.071621f, 0.268424f, -0.279311f, 
+    -1.929832f, 1.174778f, 2.712368f, 1.259047f, 0.037541f, -1.488749f, 0.424381f, -0.327814f, 1.452811f, 0.273991f, 
+    0.258519f, 0.042854f, -0.346574f, -0.615438f, -0.79936f, -1.042715f, 1.770572f, -1.297297f, 1.649647f, -0.298651f, 
+    -1.048315f, 2.919409f, -0.240338f, 1.922086f, -0.913307f, 0.441175f, -0.214455f, 2.137821f, -1.785499f, 0.820243f, 
+    2.749585f, -0.501614f, 0.777862f, 0.920702f, 1.217655f, 0.06251f, -1.516837f, 1.644894f, -0.847783f, -0.345033f, 
+    -1.713706f, -1.233106f, -0.582036f, 1.028212f, 1.301552f, 2.143174f, 1.806924f, 2.207125f, -0.579078f, 1.906502f, 
+    0.982897f, -0.865886f, -0.989911f, 1.919585f, -1.447719f, 0.344478f, 1.894133f, -0.52895f, 2.858046f, 2.373685f, 
+    -1.349178f, 0.362629f, 2.065136f, -1.441838f, 0.724043f, 2.071793f, 2.334071f, -0.52413f, 2.822581f, 2.40418f, 
+    0.036858f, 2.324529f, 0.740669f, 2.940693f, 0.317033f, 1.637373f, -1.629464f, -0.746877f, 0.00927f, 1.425529f, 
+    1.31462f, -0.908295f, -0.468471f, 0.516123f, 1.388376f, 1.530926f, 0.201057f, -1.503039f, 0.645908f, -1.16199f, 
+    2.467333f, 0.957414f, 0.49212f, 2.376532f, 1.713727f, 1.630455f, -0.228587f, -1.105875f, -0.187591f, -1.187659f, 
+    -0.359362f, 2.593583f, -1.517742f, 0.332665f, 1.637244f, 1.99322f, 0.203073f, 1.909803f, 1.451433f, 0.550977f, 
+    2.933184f, -1.04719f, -1.221934f, 2.949385f, 1.593447f, 0.817332f, 0.671072f, -0.552762f, 0.499745f, 0.830748f, 
+    -1.974666f, 2.115046f, -1.418005f, -0.173569f, -0.284441f, -0.885543f, -1.857606f, 1.274526f, 1.336182f, 0.679476f, 
+    -1.579514f, 0.95177f, -1.523659f, 1.676437f, -1.655538f, 0.942799f, 0.264698f, 0.264226f, 2.191175f, -1.748495f, 
+    -0.807964f, -1.651592f, -1.570845f, -1.87921f, -1.39217f, -0.303364f, -1.318291f, -0.870099f, 0.85997f, -0.907592f, 
+    1.153272f, -1.236432f, -1.130912f, -1.73134f, 2.574367f, 0.109466f, 2.412357f, 0.433988f, 0.383013f, 2.387408f, 
+    2.274064f, -0.161339f, -1.298869f, -0.005196f, 0.525504f, -0.39202f, 1.484107f, -1.451721f, 2.152957f, -0.8672f, 
+    -0.943481f, 1.142861f, 0.184091f, 1.221996f, 2.729434f, 1.887683f, 1.727574f, 0.81034f, -1.176404f, 2.767824f, 
+    -0.844923f, 1.67775f, -1.405007f, 1.50139f, 1.086983f, -0.698317f, 0.42956f, -1.312916f, -0.549957f, 1.191849f, 
+    2.787362f, -1.667168f, 0.586058f, 2.610515f, 1.065882f, -1.418429f, 0.493697f, -0.266616f, 0.365524f, 1.723124f, 
+    0.808873f, -0.438026f, 0.893164f, 2.160716f
+};
+
+static const float input_2_scale = 0.0193100013f;
+static const float input_2_zero_point = 0.4873595238f;
+static const int8_t input_2_scales_frac[] = {20};
+static const int input_2_sa_dim = -1;
+
+static const int input_2_fx8_frac = 5;
+
+#define INPUT_2_MEMSTR_TSR_SHARED_DESCR \
+    /* .data = */ { 0 },\
+    /* .mem_stride = */ {8*10*1, 10*1, 1}, \
+    /* .shape = */ {6, 7, 7}, \
+    /* .rank =  */ 3
+
+
+static const mli_tensor input_2_memstr_tsr_fx16 = {
+    INPUT_2_MEMSTR_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
+};
+
+
+static const mli_tensor input_2_memstr_tsr_sa8 = {
+    INPUT_2_MEMSTR_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ { 0 }
+};
+
+tensor_quantizer input_1_fx16(input_1_tsr_fx16, input_1_fx8_frac + 8, input_1_data,
+                              sizeof(input_1_data) / sizeof(input_1_data[0]));
+tensor_quantizer input_1_sa8(input_1_tsr_sa8, input_1_sa_dim, input_1_data, 
+                            sizeof(input_1_data) / sizeof(input_1_data[0]),
+                            &input_1_scale, 1, &input_1_zero_point, 1, input_1_scales_frac, 1);
+
 tensor_quantizer input_1_memstr_fx16(input_1_memstr_tsr_fx16, input_1_fx8_frac + 8, input_1_data,
                                     sizeof(input_1_data) / sizeof(input_1_data[0]));
 tensor_quantizer input_1_memstr_sa8(input_1_memstr_tsr_sa8, input_1_sa_dim, input_1_data, 
                                     sizeof(input_1_data) / sizeof(input_1_data[0]),
                                     &input_1_scale, 1, &input_1_zero_point, 1, input_1_scales_frac, 1);
+
+tensor_quantizer input_2_memstr_fx16(input_2_memstr_tsr_fx16, input_2_fx8_frac + 8, input_2_data,
+                                     sizeof(input_2_data) / sizeof(input_2_data[0]));
+tensor_quantizer input_2_memstr_sa8(input_2_memstr_tsr_sa8, input_2_sa_dim, input_2_data,
+                                    sizeof(input_2_data) / sizeof(input_2_data[0]),
+                                    &input_2_scale, 1, &input_2_zero_point, 1, input_2_scales_frac, 1);
 
 // Generated weights vectors
 //========================================
@@ -339,6 +431,157 @@ static const mli_tensor weights_2_memstr_tsr_sa8 = {
     /* .el_params = */ { 0 }
 };
 
+static const float weights_3_data[] = {
+    -0.568325f, 0.556923f, -0.175918f, -1.959237f, 0.93365f, 0.03384f, -0.184951f, -0.237696f, -2.490783f, 0.941078f, 
+    -0.159079f, -0.469947f, -0.503309f, 2.349342f, -0.607883f, 0.157542f, 0.420767f, 0.117734f, -1.614202f, -0.497699f, 
+    0.293307f, 0.403358f, 0.085876f, -2.161647f, -1.593411f, 0.30968f, 0.877831f, -0.328494f, -0.3652f, 2.348464f, 
+    0.174293f, 0.281362f, 0.913772f, -0.488018f, -3.460793f, -0.017046f, 0.645641f, 0.9744f, -0.369711f, -0.596923f, 
+    0.369745f, -0.458423f, -0.055117f, -0.070666f, 3.610572f, -0.222589f, -0.641287f, 0.983673f, 0.593106f, -1.545344f, 
+    0.200386f, 0.458f, -0.905701f, 1.423956f, 0.787442f, 0.363842f, -0.681295f, -0.172728f, -0.864614f, -0.078431f, 
+    -0.180629f, -0.112668f, -0.675433f, -0.199799f, -3.813763f, -0.138011f, 0.349825f, -1.14939f, 0.016379f, 2.524868f, 
+    0.425882f, -0.960518f, -0.9648f, 1.099253f, -1.599318f, -0.395179f, 0.085577f, -1.153976f, -0.54708f, 1.700083f, 
+    0.052158f, -0.334696f, 0.58405f, 1.995081f, -0.361351f, 0.045629f, 0.663931f, -1.441008f, 0.466744f, 1.221385f, 
+    0.403004f, 0.420114f, -0.112318f, 0.274544f, 1.151413f, -0.307708f, 0.594736f, -0.446652f, 0.466613f, 1.521286f, 
+    -0.292203f, 0.290332f, -0.408482f, -0.323337f, 2.951766f, 0.274716f, -0.702756f, 0.535653f, 0.253097f, -0.439136f, 
+    0.349553f, 0.341441f, -0.707367f, -1.37812f, -1.032227f, 0.524842f, 0.719258f, 0.666874f, -0.829071f, 1.764994f, 
+    0.430323f, 0.114432f, -1.733507f, -1.931313f, 1.54837f, 0.325035f, -0.765372f, 0.492583f, -2.074497f, 2.171005f, 
+    0.132712f, 1.377192f, -0.006062f, 0.313715f, -2.427777f, -0.499898f, 0.31632f, 0.57408f, -0.74169f, -2.1614f
+};
+
+static const float weights_3_scales[] = {0.0044750031f, 0.0108440351f, 0.0136496602f, 0.0196124688f, 0.0300296284f};
+static const float weights_3_zero_points[] = {0.f, 0.f, 0.f, 0.f, 0.f};
+static const int8_t weights_3_scales_frac[] = {22, 21, 21, 20, 20};
+static const int weights_3_sa_dim = 3;
+
+static const int weights_3_fx8_frac = 5;
+
+#define WEIGHTS_3_MEMSTR_TSR_SHARED_DESCR \
+    /* .data = */ { 0 },\
+    /* .mem_stride = */ {2*8*8*1, 8*8*1, 8*1, 1}, \
+    /* .shape = */ {2, 2, 7, 5}, \
+    /* .rank =  */ 4
+
+
+static const mli_tensor weights_3_memstr_tsr_fx8 = {
+    WEIGHTS_3_MEMSTR_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_FX_8,
+    /* .el_params = */ { 0 }
+};
+
+
+static const mli_tensor weights_3_memstr_tsr_fx16 = {
+    WEIGHTS_3_MEMSTR_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
+};
+
+
+static const mli_tensor weights_3_memstr_tsr_sa8 = {
+    WEIGHTS_3_MEMSTR_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ { 0 }
+};
+
+static const float weights_4_data[] = {
+    -0.344528f, -0.400265f, -1.08055f, 0.012469f, 0.998779f, -0.101981f, 0.165913f, 0.043027f, -1.375209f, -0.310435f, 
+    -0.179534f, 0.606649f, -0.347562f, 0.316881f, 0.896875f, -0.128827f, -0.031994f, 2.370403f, -1.093224f, 0.462575f, 
+    -0.332328f, -0.066358f, 1.36381f, -1.555277f, -0.465427f, 0.425626f, -0.770176f, -0.594575f, -0.764326f, 0.875896f, 
+    -0.195446f, 0.188799f, -0.4947f, 0.043171f, 4.298376f, -0.019003f, -0.062621f, -0.258114f, -0.462567f, 2.256041f, 
+    -0.631018f, 0.465196f, -0.825707f, -0.582521f, 0.649454f, -0.157315f, -0.591495f, -0.753531f, 0.316908f, -1.718512f, 
+    0.138504f, 0.235726f, -0.125792f, 0.730334f, 0.475339f, 0.056903f, -0.544169f, 0.494625f, 0.282371f, 1.38829f, 
+    0.589399f, -0.096448f, 0.550256f, -1.173738f, 0.039171f, 0.023616f, -0.256351f, -0.447438f, -0.770704f, -1.008304f, 
+    0.501402f, -0.25799f, 1.637521f, -1.818654f, -0.955313f, -0.082082f, -0.074182f, -1.100386f, -0.923971f, 0.904258f, 
+    0.45864f, 0.525086f, -0.329574f, -0.321235f, -1.978449f, 0.160233f, -0.307255f, 0.021051f, 2.813702f, -2.577382f, 
+    -0.595801f, 0.133921f, -0.620319f, -1.194616f, 0.176514f, -0.293285f, 0.704665f, -0.447282f, -1.338537f, 1.867033f, 
+    0.277741f, -0.133158f, 1.977369f, 0.153608f, 1.947577f, -0.319231f, 0.059418f, 0.953515f, -0.997706f, 0.375757f, 
+    0.169746f, -0.415115f, 1.480352f, -0.538222f, 1.911838f, -0.068688f, -0.119414f, -0.793959f, -0.859162f, -2.618059f, 
+    0.079576f, -0.834957f, -0.155428f, -2.593916f, 0.29742f, 0.059524f, 0.325789f, -0.62481f, 2.665011f, -0.936745f, 
+    0.535077f, 1.387748f, -0.626463f, -1.216554f, -0.625897f, -0.089359f, 0.022044f, 0.020826f, -0.396088f, -1.219117f, 
+    0.525558f, -0.172327f, -0.050953f, -0.129161f, -0.272397f, -0.132263f, -0.4808f, 0.401722f, 1.444905f, 0.05363f, 
+    -0.246401f, 0.732324f, -2.409892f, 2.529404f, 1.144917f, 0.063518f, -0.879115f, 0.226441f, -0.792624f, 0.261524f, 
+    -0.015104f, -0.423009f, 1.078093f, 0.305413f, -1.773685f, -0.087819f, -0.414863f, -0.148039f, 0.059361f, 0.469314f, 
+    -0.461809f, 0.083518f, -0.296167f, -1.259929f, -0.115881f, -0.205164f, -0.265681f, -0.511037f, -0.226399f, 
+    -1.312477f, 0.225248f, -0.412041f, 1.357132f, 0.450887f, 2.281838f, 0.044501f, -0.647276f, 0.172765f, 1.051127f, 
+    -0.364579f, 0.068451f, 0.041836f, -0.965833f, -1.088727f, -2.244696f, 0.114904f, -0.680508f, 0.687137f, -0.29416f, 
+    -1.655159f, 0.089186f, 0.131592f, -1.62994f, -0.734126f, 0.22862f, 0.403415f, -0.243093f, -0.23304f, -1.380456f, 
+    0.039886f, 0.07141f, 1.074497f, 0.434464f, -1.934811f, 1.54225f, 0.098378f, -0.206137f, 1.069564f, 0.521499f, 
+    0.092448f, 0.336436f, 0.204255f, -0.943613f, 0.791198f, -0.574255f, 0.413339f, 0.636192f, -0.152099f, -1.02228f, 
+    -0.584094f, 0.69757f, -0.577982f, 0.098476f, 1.312457f, 0.307292f, 0.171578f, -0.109153f, 0.638828f, -0.489385f, 
+    -0.10175f, 0.026741f, -0.623864f, -0.469475f, 1.56992f, 0.171912f, -0.229814f, 0.476844f, -1.322632f, -0.763036f, 
+    0.623563f, -0.291115f, 0.638934f, -1.457311f, 0.501265f, 0.947283f, 0.289122f, -0.599772f, 1.203439f, -1.051804f, 
+    0.322984f, 0.160236f, -0.445703f, 0.096532f, 1.363351f, -0.090388f, 0.208069f, -1.313838f, -0.783447f, -3.629148f, 
+    1.879543f, 0.374365f, 0.211391f, 0.830345f, 0.119511f, 1.013509f, -0.424619f, 0.400326f, 0.945775f, -0.50562f, 
+    0.973882f, -0.040006f, -0.370981f, -0.393675f, 1.076107f, 2.921102f, -0.100603f, 0.625333f, -0.621957f, 1.971185f, 
+    2.289851f, -0.055599f, -0.09115f, -0.935977f, -0.294526f, 3.296776f, 0.493616f, -0.138253f, -1.339782f, -0.469213f, 
+    -0.049293f, -0.152734f, -0.847742f, -0.925832f, 0.195313f, -0.671833f, 0.43588f, -0.18745f, 0.554728f, -1.705622f, 
+    1.960333f, -0.231184f, -0.169869f, -0.215575f, -0.947481f, -0.926851f, 0.186117f, -0.524379f, -1.911913f, 0.095015f, 
+    2.45384f, 0.111198f, -0.317669f, 0.909094f, -1.791777f, 2.919982f, -0.357588f, -0.404184f, -0.761821f, 2.239159f, 
+    -1.253623f, 0.191457f, -0.023778f, 2.120935f, 0.330579f, 0.490848f, 0.303447f, -0.144574f, 0.424506f, 0.860524f, 
+    1.498205f, 0.419289f, 0.199116f, 0.365511f, 0.389156f, 0.327333f, -0.020039f, -0.339562f, 0.665056f, 1.516554f, 
+    2.632515f, -0.380281f, 1.051786f, -2.458638f, 2.236818f, 2.512681f, -0.075958f, 0.607398f, 0.280214f, 0.442161f, 
+    0.410975f, -0.279364f, 0.780394f, -0.117713f, -2.876006f, 2.501356f, 0.367281f, -0.303711f, 0.598453f, -1.202611f, 
+    -1.365246f, 0.334674f, 0.339662f, 0.32637f, -1.348392f, 1.78494f, 0.315385f, -0.271596f, -0.212651f, 0.567281f, 
+    -1.479356f, 0.39542f, 0.29205f, -1.112317f, -1.298018f, 1.106737f, 0.672203f, -0.418357f, 1.274226f, 1.698393f, 
+    -1.640805f, 0.37544f, -0.426982f, 0.860954f, -1.922582f, 2.685942f, -0.437885f, -0.868749f, -0.186408f, 0.76756f, 
+    -0.329038f, 0.363715f, 0.47353f, 0.288331f, -0.026119f, 0.135635f, -0.21518f, 0.252147f, -0.075959f, -1.333704f, 
+    0.581556f, 0.115971f, -1.156862f, 3.378402f, 3.23628f, -0.739628f, 0.33939f, 0.012322f, -0.102582f, -0.621741f, 
+    -0.575499f, -0.135253f, 0.296085f, -2.052871f, 2.683316f, -1.319392f, 0.047499f, -0.422186f, -0.837261f, -2.117929f, 
+    1.005204f, 0.154911f, 0.022836f, -0.081964f, -1.343868f, -1.121452f, 0.608304f, 0.384536f, -0.431087f, 3.143294f, 
+    -0.548279f, -0.412794f, -1.502661f, -0.726238f, 1.453353f, 0.999264f, 0.031758f, 0.171434f, 1.285993f, -0.026693f, 
+    2.246813f, -0.074892f, -0.217566f, 1.101416f, -0.58148f, -0.243949f, 0.107617f, -0.510983f, -1.563234f, 1.066056f, 
+    0.164167f, -0.349182f, 0.287206f, 0.52598f, -0.454179f, 2.664182f, -0.322559f, -0.633737f, -0.779715f, 0.589299f, 
+    -0.52149f, -0.147741f, 0.278779f, -1.175372f, -0.373419f, 0.254431f, 0.060055f, -0.279541f, 0.41905f, -1.127611f, 
+    0.125829f, -0.171088f, -1.019682f, -0.562197f, -0.459236f, 2.64527f, -0.067399f, 0.590729f, -0.406416f, -0.256065f, 
+    1.512456f, 0.215486f, -0.179604f, 0.254883f, 1.040926f, -0.221491f, 0.001435f, -0.093505f, -0.51147f, -0.360849f, 
+    -0.09995f, -0.164271f, 0.414829f, -0.192947f, -0.756399f, -0.351075f, -0.235017f, -1.223457f, 2.04016f, 0.700707f, 
+    1.236093f, 0.289558f, -0.794435f, -1.265162f, -0.792799f, -0.77841f, 0.032208f, 0.009678f, 0.315327f, 1.439786f, 
+    -1.086806f, 0.033071f, -0.879137f, 1.107125f, 1.194098f, 0.021064f, 0.670591f, -1.059507f, 1.262136f, 0.057799f, 
+    1.377281f, 0.252204f, 0.019616f, 0.07012f, 0.251184f, 3.745033f, -0.558119f, 0.325928f, -0.260324f, 0.552917f, 
+    -0.067908f, 0.287515f, -0.1643f, 0.364718f, -1.353579f, 0.091137f, -0.178431f, 0.473426f, -1.89655f, -0.339556f, 
+    -2.865804f, -0.113939f, -0.13395f, 1.731968f, 1.046747f, 0.191813f, 0.285615f, 0.258428f, -0.173027f, 0.301153f, 
+    -1.587649f
+};
+
+static const float weights_4_scales[] = {0.0054926742f, 0.0118319755f, 0.0266015865f, 0.028575968f, 0.0338454805f};
+static const float weights_4_zero_points[] = {0.f, 0.f, 0.f, 0.f, 0.f};
+static const int8_t weights_4_scales_frac[] = {22, 21, 20, 20, 19};
+static const int weights_4_sa_dim = 3;
+
+static const int weights_4_fx8_frac = 4;
+
+#define WEIGHTS_4_MEMSTR_TSR_SHARED_DESCR \
+    /* .data = */ { 0 },\
+    /* .mem_stride = */ {4*8*8*1, 8*8*1, 8*1, 1}, \
+    /* .shape = */ {4, 4, 7, 5}, \
+    /* .rank =  */ 4
+
+
+static const mli_tensor weights_4_memstr_tsr_fx8 = {
+    WEIGHTS_4_MEMSTR_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_FX_8,
+    /* .el_params = */ { 0 }
+};
+
+
+static const mli_tensor weights_4_memstr_tsr_fx16 = {
+    WEIGHTS_4_MEMSTR_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
+};
+
+
+static const mli_tensor weights_4_memstr_tsr_sa8 = {
+    WEIGHTS_4_MEMSTR_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ { 0 }
+};
+
 static const float bias_1_data[] = {-0.149134f, -0.723882f, 0.276216f};
 
 static const float bias_1_i1_w1_scales[] = {0.0000638685f, 0.0001414482f, 0.0002085013f};
@@ -391,6 +634,58 @@ static const mli_tensor bias_1_i1_w2_tsr_sa32 = {
     /* .el_params = */ { 0 }
 };
 
+static const float bias_2_data[] = {-0.195573f, 0.092147f, -0.123712f, -0.580636f, -0.688343f};
+
+static const float bias_2_i2_w3_scales[] = {0.0000864123f, 0.0002093983f, 0.000263575f, 0.0003787168f, 0.0005798722f};
+static const float bias_2_i2_w3_zero_points[] = {0.f, 0.f, 0.f, 0.f, 0.f};
+static const int8_t bias_2_i2_w3_scales_frac[] = {28, 27, 26, 26, 25};
+static const int bias_2_i2_w3_sa_dim = 0;
+
+static const float bias_2_i2_w4_scales[] = {0.0001060635f, 0.0002284755f, 0.0005136767f, 0.000551802f, 0.0006535563f};
+static const float bias_2_i2_w4_zero_points[] = {0.f, 0.f, 0.f, 0.f, 0.f};
+static const int8_t bias_2_i2_w4_scales_frac[] = {28, 27, 25, 25, 25};
+static const int bias_2_i2_w4_sa_dim = 0;
+
+static const int bias_2_fx8_frac = 7;
+
+#define BIAS_2_TSR_SHARED_DESCR \
+    /* .data = */ { 0 },\
+    /* .mem_stride = */ {0}, \
+    /* .shape = */ {5}, \
+    /* .rank =  */ 1
+
+
+static const mli_tensor bias_2_tsr_fx8 = {
+    BIAS_2_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_FX_8,
+    /* .el_params = */ { 0 }
+};
+
+
+static const mli_tensor bias_2_tsr_fx16 = {
+    BIAS_2_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
+};
+
+
+static const mli_tensor bias_2_i2_w3_tsr_sa32 = {
+    BIAS_2_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_SA_32,
+    /* .el_params = */ { 0 }
+};
+
+
+static const mli_tensor bias_2_i2_w4_tsr_sa32 = {
+    BIAS_2_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_SA_32,
+    /* .el_params = */ { 0 }
+};
+
 tensor_quantizer weights_1_fx8(weights_1_tsr_fx8, weights_1_fx8_frac, weights_1_data,
                         sizeof(weights_1_data) / sizeof(weights_1_data[0]));
 tensor_quantizer weights_1_fx16(weights_1_tsr_fx16, weights_1_fx8_frac + 8, weights_1_data,
@@ -430,16 +725,56 @@ tensor_quantizer weights_2_memstr_sa8(weights_2_tsr_sa8, weights_2_sa_dim, weigh
                         weights_2_zero_points, sizeof(weights_2_zero_points) / sizeof(weights_2_zero_points[0]), 
                         weights_2_scales_frac, sizeof(weights_2_scales_frac) / sizeof(weights_2_scales_frac[0]));
 
-tensor_quantizer bias_1_fx8(bias_1_tsr_fx8, bias_1_fx8_frac, bias_1_data, sizeof(bias_1_data) / sizeof(bias_1_data[0]));
-tensor_quantizer bias_1_fx16(bias_1_tsr_fx16, bias_1_fx8_frac + 8, bias_1_data, sizeof(bias_1_data) / sizeof(bias_1_data[0]));
+tensor_quantizer weights_3_memstr_fx8(weights_3_memstr_tsr_fx8, weights_3_fx8_frac, weights_3_data,
+                                      sizeof(weights_3_data) / sizeof(weights_3_data[0]));
+tensor_quantizer weights_3_memstr_fx16(weights_3_memstr_tsr_fx16, weights_3_fx8_frac + 8, weights_3_data,
+                                       sizeof(weights_3_data) / sizeof(weights_3_data[0]));
+tensor_quantizer weights_3_memstr_sa8(weights_3_memstr_tsr_sa8, weights_3_sa_dim, weights_3_data, 
+                                      sizeof(weights_3_data) / sizeof(weights_3_data[0]),
+                                      weights_3_scales, sizeof(weights_3_scales) / sizeof(weights_3_scales[0]), 
+                                      weights_3_zero_points, sizeof(weights_3_zero_points) / sizeof(weights_3_zero_points[0]), 
+                                      weights_3_scales_frac, sizeof(weights_3_scales_frac) / sizeof(weights_3_scales_frac[0]));
+
+tensor_quantizer weights_4_memstr_fx8(weights_4_memstr_tsr_fx8, weights_4_fx8_frac, weights_4_data,
+                                      sizeof(weights_4_data) / sizeof(weights_4_data[0]));
+tensor_quantizer weights_4_memstr_fx16(weights_4_memstr_tsr_fx16, weights_4_fx8_frac + 8, weights_4_data,
+                                       sizeof(weights_4_data) / sizeof(weights_4_data[0]));
+tensor_quantizer weights_4_memstr_sa8(weights_4_memstr_tsr_sa8, weights_4_sa_dim, weights_4_data, 
+                                      sizeof(weights_4_data) / sizeof(weights_4_data[0]),
+                                      weights_4_scales, sizeof(weights_4_scales) / sizeof(weights_4_scales[0]), 
+                                      weights_4_zero_points, sizeof(weights_4_zero_points) / sizeof(weights_4_zero_points[0]), 
+                                      weights_4_scales_frac, sizeof(weights_4_scales_frac) / sizeof(weights_4_scales_frac[0]));
+
+
+tensor_quantizer bias_1_fx8(bias_1_tsr_fx8, bias_1_fx8_frac, bias_1_data,
+                            sizeof(bias_1_data) / sizeof(bias_1_data[0]));
+tensor_quantizer bias_1_fx16(bias_1_tsr_fx16, bias_1_fx8_frac + 8, bias_1_data,
+                             sizeof(bias_1_data) / sizeof(bias_1_data[0]));
 tensor_quantizer bias_1_i1_w1_sa32(bias_1_i1_w1_tsr_sa32, bias_1_i1_w1_sa_dim, bias_1_data, 
-    sizeof(bias_1_data) / sizeof(bias_1_data[0]), bias_1_i1_w1_scales, sizeof(bias_1_i1_w1_scales) / sizeof(bias_1_i1_w1_scales[0]), 
-    bias_1_i1_w1_zero_points, sizeof(bias_1_i1_w1_zero_points) / sizeof(bias_1_i1_w1_zero_points[0]), 
-    bias_1_i1_w1_scales_frac, sizeof(bias_1_i1_w1_scales_frac) / sizeof(bias_1_i1_w1_scales_frac[0]));
+                                   sizeof(bias_1_data) / sizeof(bias_1_data[0]),
+                                   bias_1_i1_w1_scales, sizeof(bias_1_i1_w1_scales) / sizeof(bias_1_i1_w1_scales[0]), 
+                                   bias_1_i1_w1_zero_points, sizeof(bias_1_i1_w1_zero_points) / sizeof(bias_1_i1_w1_zero_points[0]), 
+                                   bias_1_i1_w1_scales_frac, sizeof(bias_1_i1_w1_scales_frac) / sizeof(bias_1_i1_w1_scales_frac[0]));
 tensor_quantizer bias_1_i1_w2_sa32(bias_1_i1_w2_tsr_sa32, bias_1_i1_w2_sa_dim, bias_1_data, 
-    sizeof(bias_1_data) / sizeof(bias_1_data[0]), bias_1_i1_w2_scales, sizeof(bias_1_i1_w2_scales) / sizeof(bias_1_i1_w2_scales[0]), 
-    bias_1_i1_w2_zero_points, sizeof(bias_1_i1_w2_zero_points) / sizeof(bias_1_i1_w2_zero_points[0]), 
-    bias_1_i1_w2_scales_frac, sizeof(bias_1_i1_w2_scales_frac) / sizeof(bias_1_i1_w2_scales_frac[0]));
+                                   sizeof(bias_1_data) / sizeof(bias_1_data[0]),
+                                   bias_1_i1_w2_scales, sizeof(bias_1_i1_w2_scales) / sizeof(bias_1_i1_w2_scales[0]), 
+                                   bias_1_i1_w2_zero_points, sizeof(bias_1_i1_w2_zero_points) / sizeof(bias_1_i1_w2_zero_points[0]), 
+                                   bias_1_i1_w2_scales_frac, sizeof(bias_1_i1_w2_scales_frac) / sizeof(bias_1_i1_w2_scales_frac[0]));
+
+tensor_quantizer bias_2_fx8(bias_2_tsr_fx8, bias_2_fx8_frac, bias_2_data,
+                            sizeof(bias_2_data) / sizeof(bias_2_data[0]));
+tensor_quantizer bias_2_fx16(bias_2_tsr_fx16, bias_2_fx8_frac + 8, bias_2_data,
+                             sizeof(bias_2_data) / sizeof(bias_2_data[0]));
+tensor_quantizer bias_2_i2_w3_sa32(bias_2_i2_w3_tsr_sa32, bias_2_i2_w3_sa_dim, bias_2_data, 
+                                   sizeof(bias_2_data) / sizeof(bias_2_data[0]),
+                                   bias_2_i2_w3_scales, sizeof(bias_2_i2_w3_scales) / sizeof(bias_2_i2_w3_scales[0]), 
+                                   bias_2_i2_w3_zero_points, sizeof(bias_2_i2_w3_zero_points) / sizeof(bias_2_i2_w3_zero_points[0]), 
+                                   bias_2_i2_w3_scales_frac, sizeof(bias_2_i2_w3_scales_frac) / sizeof(bias_2_i2_w3_scales_frac[0]));
+tensor_quantizer bias_2_i2_w4_sa32(bias_2_i2_w4_tsr_sa32, bias_2_i2_w4_sa_dim, bias_2_data, 
+                                   sizeof(bias_2_data) / sizeof(bias_2_data[0]),
+                                   bias_2_i2_w4_scales, sizeof(bias_2_i2_w4_scales) / sizeof(bias_2_i2_w4_scales[0]), 
+                                   bias_2_i2_w4_zero_points, sizeof(bias_2_i2_w4_zero_points) / sizeof(bias_2_i2_w4_zero_points[0]), 
+                                   bias_2_i2_w4_scales_frac, sizeof(bias_2_i2_w4_scales_frac) / sizeof(bias_2_i2_w4_scales_frac[0]));
 
 // Extracted Output vectors 
 //===================================================
@@ -727,6 +1062,177 @@ static const mli_tensor test_5_out_tsr_sa8 = {
 };
 
 
+static const float test_6_out_data[] = {
+    0.109683f, 0.f, 0.457518f, 0.292227f, 0.f, 0.f, 0.f, 0.f, 1.595493f, 6.f, 1.155381f, 4.056403f, 0.697891f, 0.f, 
+    0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1.009259f, 0.f, 1.50331f, 0.f, 0.f, 0.391764f, 0.f, 0.f, 0.301781f, 6.f, 0.279297f, 
+    0.726381f, 0.f, 3.382336f, 4.001736f, 0.f, 0.f, 1.516286f, 0.f, 0.f, 0.576868f, 1.669597f, 0.297368f, 0.f, 
+    0.260843f, 0.815974f, 0.f, 0.f, 0.f, 3.917051f, 1.571339f, 0.725238f, 2.551107f, 0.f, 0.f, 0.054169f, 0.f, 0.f, 
+    0.f, 3.227523f, 0.024772f, 3.790867f, 0.f, 0.f, 6.f, 0.f, 3.773921f, 0.f, 3.2233f, 0.f, 0.f, 0.5202f, 0.f, 
+    1.897129f, 6.f, 0.577519f, 3.987985f, 0.825489f, 0.f, 0.f, 0.f, 2.236537f, 0.f, 1.931621f, 6.f, 0.f, 2.154737f, 
+    3.489267f, 0.f, 0.f, 0.f, 2.162251f, 0.f, 0.f, 6.f, 0.f, 2.031881f, 0.f, 0.f, 0.f, 0.133293f, 0.178428f, 3.344342f, 
+    1.345227f, 0.f, 0.108747f, 1.447427f, 3.710516f, 1.922274f, 0.f, 0.f, 1.195964f, 0.f, 0.f, 5.308278f, 0.f, 0.f, 
+    0.218493f, 0.f, 0.f, 0.09175f, 2.745521f, 1.31784f, 0.130206f, 6.f, 0.f, 0.f, 3.298417f, 0.f, 3.591253f, 0.f, 
+    1.796774f, 0.f, 1.744599f, 0.f, 0.193461f, 2.678981f, 0.f, 1.182585f, 0.f, 0.506508f, 4.50901f, 2.380171f, 0.f, 
+    0.f, 0.070061f, 2.482965f, 0.f, 0.f, 0.f, 0.f, 0.585651f, 0.f, 0.f, 6.f, 0.009773f, 0.498412f, 4.462146f, 0.f, 0.f, 
+    0.f, 1.685122f, 3.222003f, 0.f, 0.f, 0.345772f, 4.111879f, 0.f, 1.299842f, 6.f, 0.f, 0.423892f, 0.182416f, 6.f, 
+    0.f, 0.f, 1.270145f, 0.f, 3.334949f, 0.f, 1.611233f, 1.287335f, 0.436375f, 0.f, 0.351639f, 0.715957f, 0.f, 0.f, 
+    0.f, 1.208663f, 0.f, 1.282022f, 0.f, 0.f, 5.092241f, 0.f, 1.700527f, 4.098455f, 0.175568f, 0.f, 0.f, 0.f, 0.f, 0.f, 
+    6.f, 0.f, 0.f, 2.423279f, 0.790603f, 4.158094f, 1.314851f, 1.887146f, 0.f, 1.207476f, 5.197121f, 0.f, 0.f, 
+    0.296084f, 0.f, 0.515182f, 0.473713f, 0.f, 0.f, 3.844239f, 0.f, 2.171844f, 0.061549f, 0.f, 0.f, 0.f, 1.036042f, 
+    0.386492f, 0.f, 0.f, 0.93423f, 0.f, 0.f, 0.f, 0.f, 2.071953f, 0.f, 0.12535f, 1.452377f, 5.328173f, 1.041893f, 0.f, 
+    4.784076f, 1.734066f, 1.057033f, 0.f, 0.f, 2.787976f, 0.f, 0.f, 6.f, 0.f, 0.695138f, 0.227793f, 0.f, 0.f, 
+    2.211977f, 0.f, 0.f, 4.70696f, 0.f, 1.672544f, 0.f, 0.f, 0.326651f, 6.f, 0.f, 0.f, 0.f, 1.65157f, 0.f, 1.488527f, 
+    2.722763f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 2.620761f, 0.f, 0.784203f, 2.886619f, 0.f, 0.f, 1.019799f, 0.268447f, 
+    3.472416f, 0.f, 0.f, 0.773975f, 1.537597f, 0.f, 1.774826f, 6.f, 0.508791f, 1.505414f, 0.f, 0.f, 6.f, 0.593139f, 
+    0.f, 0.f, 0.f, 0.f, 0.291676f, 2.061306f, 0.f, 0.f, 3.759059f, 1.181035f, 0.f, 0.f, 0.f, 5.57907f, 0.f, 0.f, 0.f, 
+    1.298159f, 1.979551f, 0.237584f, 0.f, 0.f, 0.588316f, 6.f, 0.00817f, 1.095521f, 0.641961f, 0.f, 0.f, 0.797703f, 
+    0.f, 0.f, 1.029973f, 6.f, 0.f, 2.323977f, 2.12675f, 0.f, 0.f, 0.f, 4.247802f, 0.f, 2.477363f, 2.222142f, 0.613596f, 
+    0.f, 0.f, 1.278385f, 0.f, 0.658708f, 0.f, 0.f, 0.231149f, 1.382964f, 0.f, 2.873325f, 0.f, 0.f, 6.f, 0.f, 0.393463f, 
+    0.f, 0.f, 0.f, 0.f, 1.749029f, 0.f, 0.f, 1.567543f, 1.227356f, 2.854445f, 0.f, 0.f, 0.f, 0.f, 1.353055f, 0.f, 0.f, 
+    6.f, 1.49196f, 1.174797f, 0.f, 0.f, 0.f, 0.f, 0.122226f, 0.424614f, 0.f, 0.f, 0.f, 0.499778f, 0.f, 1.737761f, 0.f, 
+    0.432792f, 0.834636f, 0.f, 4.676056f, 6.f, 2.131729f, 0.f, 0.f, 0.f, 6.f, 0.f, 0.826343f, 0.f, 0.f, 3.418039f, 0.f, 
+    0.795031f, 0.f, 0.f, 0.f, 0.106193f, 0.f, 0.f, 0.256952f, 6.f, 0.029383f, 0.f, 2.959972f, 0.f, 0.f, 0.588003f, 
+    2.054121f, 0.f, 0.f, 1.800437f, 0.521175f, 0.f, 1.084507f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.440775f, 0.f, 6.f, 
+    0.f, 0.503795f, 0.f, 0.f, 0.f, 0.55181f, 0.f, 0.f, 0.f, 0.059078f, 0.f, 3.280165f, 0.f, 3.852277f, 0.356285f, 0.f, 
+    5.854979f, 0.f, 3.096708f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.762485f, 0.f, 1.43591f, 2.823121f, 6.f, 
+    0.767548f, 0.f, 0.f, 6.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.116515f, 0.044869f, 2.909683f, 1.81416f, 2.436089f, 
+    5.103088f, 0.8314f, 0.f, 0.f, 0.f, 1.071154f, 0.f, 5.378685f, 6.f, 2.945085f, 3.071891f, 2.660661f, 0.f, 0.374578f, 
+    2.049059f, 0.f, 0.f, 6.f, 0.f, 3.071057f, 0.f, 2.396651f, 0.f, 6.f, 0.f, 0.f, 0.f, 0.511811f, 4.479856f, 0.f, 
+    2.922506f, 1.887252f, 0.f, 0.f, 0.f, 0.827982f, 0.f, 0.f, 3.77871f, 0.f, 2.667964f, 0.f, 2.002911f, 0.f, 0.f, 0.f, 
+    0.f, 2.322087f, 1.437781f, 2.244118f, 0.569552f, 0.f, 0.f, 4.785712f, 0.f, 1.018603f, 3.555861f, 2.987246f, 6.f, 
+    0.f, 5.126541f, 5.153133f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1.719448f, 0.f, 2.502758f, 0.f, 4.955278f, 0.f, 
+    1.787752f, 0.f, 0.f, 1.913436f, 0.f, 1.66003f, 1.66162f, 0.048368f, 2.804704f, 0.515052f, 0.f, 0.f, 0.f, 5.209158f, 
+    1.213798f, 0.f, 0.f, 0.f, 6.f, 0.f, 0.f, 0.92065f, 0.f, 0.f, 0.199136f, 0.f, 2.081343f, 0.f, 6.f, 0.737126f, 0.f, 
+    0.f, 0.f, 0.f, 1.399849f, 0.f, 0.f, 0.f, 6.f, 0.120651f, 0.f, 0.934061f, 5.962024f, 0.f, 0.f, 0.364249f, 0.f, 0.f, 
+    0.f, 0.f, 0.f, 2.038712f, 6.f, 0.f, 0.f, 1.623705f, 1.42434f, 0.f, 5.957133f, 1.098408f, 0.19525f, 0.f, 2.462419f, 
+    0.559546f, 2.951918f, 0.f, 0.f, 0.f, 6.f, 0.f, 0.f, 0.f, 3.54642f, 0.403911f, 1.360778f, 0.602278f, 0.f, 0.f, 0.f, 
+    0.f, 1.343728f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.771486f, 0.145112f, 0.f, 0.f, 0.f, 1.096589f, 0.f, 0.f, 
+    4.245515f, 0.f, 0.f, 0.409818f, 1.495909f, 1.024328f, 0.f, 1.267362f, 0.815871f, 0.f, 0.f, 0.f, 6.f, 0.097905f, 
+    0.084664f, 5.169346f, 0.f, 0.f, 0.f, 0.f, 0.621962f, 6.f, 0.608554f, 0.f, 0.f, 2.397951f, 0.63425f, 0.f, 0.f, 0.f, 
+    4.822704f, 2.213126f, 0.f, 1.191506f, 2.577979f, 0.f, 0.f, 3.324433f, 1.154811f, 0.f, 0.f, 0.f, 0.f, 0.758051f, 
+    0.f, 2.367014f, 0.115854f, 0.f, 0.134193f, 0.f, 0.f, 0.f, 6.f, 1.645228f, 2.74406f, 0.632816f, 1.296696f, 0.f, 0.f, 
+    0.f, 0.f, 0.f, 0.f, 0.f, 3.358515f, 0.f, 0.f, 6.f, 0.474522f, 2.753243f, 0.f, 2.339234f, 0.f, 0.f, 0.55918f, 
+    0.912825f, 0.f, 0.f, 0.f, 2.581152f, 0.f, 0.249537f, 6.f, 0.f, 2.09954f, 0.803202f, 0.f, 0.f, 0.109034f, 3.082171f, 
+    1.102823f, 1.941421f, 0.f, 0.346354f, 0.621936f, 0.707661f, 1.340015f, 0.f, 0.f, 0.f, 0.f, 1.901561f, 0.848242f, 
+    0.f, 2.611092f, 0.f, 1.033275f, 6.f, 2.228781f, 2.448407f, 0.f, 0.f, 0.f, 0.f, 1.288306f, 1.609535f, 0.f, 6.f, 0.f, 
+    0.f, 2.19005f, 0.f, 2.300975f, 0.f, 3.268804f, 0.076487f, 2.346999f, 6.f, 0.f, 4.643297f, 2.191251f, 0.f, 0.f, 0.f, 
+    0.968446f, 0.f, 0.825108f, 0.f, 1.786297f, 1.13819f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.705121f, 0.f, 0.f, 0.f, 
+    0.f, 0.f, 2.521783f, 0.f, 0.f, 5.254272f, 0.f, 1.329757f, 0.f, 0.f, 0.f, 6.f, 0.f, 1.314329f, 0.f, 2.339489f, 6.f, 
+    0.00742f, 3.985039f, 0.24108f, 0.f, 0.f
+};
+
+static const float test_6_out_scale = 0.0235294122f;
+static const float test_6_out_zero_point = 3.f;
+static const int8_t test_6_out_scales_frac[] = {20};
+static const int test_6_out_sa_dim = -1;
+
+static const int test_6_out_fx8_frac = 4;
+
+#define TEST_6_OUT_TSR_SHARED_DESCR \
+    /* .data = */ { 0 },\
+    /* .mem_stride = */ {16*8*1, 8*1, 1}, \
+    /* .shape = */ {12, 14, 5}, \
+    /* .rank =  */ 3
+
+
+static const mli_tensor test_6_out_tsr_fx16 = {
+    TEST_6_OUT_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
+};
+
+
+static const mli_tensor test_6_out_tsr_sa8 = {
+    TEST_6_OUT_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ { 0 }
+};
+
+static const float test_7_out_data[] = {
+    1.612303f, 0.f, 3.682693f, 0.229883f, 5.027158f, 0.154888f, 0.f, 0.f, 5.575845f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 
+    0.f, 0.f, 3.877062f, 0.86577f, 2.397208f, 0.f, 6.f, 0.f, 6.f, 0.262792f, 0.f, 0.f, 6.f, 0.f, 0.f, 0.048185f, 
+    0.275913f, 1.012161f, 3.303212f, 0.186678f, 0.f, 5.105071f, 0.551304f, 0.f, 1.838547f, 0.f, 3.470774f, 0.f, 
+    4.90499f, 0.f, 0.f, 3.209132f, 0.582248f, 0.f, 0.739024f, 0.f, 0.f, 0.f, 0.f, 2.993297f, 0.f, 0.f, 3.644969f, 
+    1.002667f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 3.666512f, 0.314131f, 0.f, 0.f, 0.879693f, 0.f, 5.311986f, 4.507118f, 6.f, 
+    0.f, 0.f, 3.441069f, 0.f, 6.f, 0.611324f, 0.f, 0.f, 0.f, 6.f, 0.880783f, 1.682268f, 0.f, 0.f, 0.935548f, 0.f, 0.f, 
+    6.f, 4.367838f, 6.f, 2.354864f, 0.f, 6.f, 1.208347f, 6.f, 0.447068f, 0.f, 0.f, 0.f, 0.f, 2.594644f, 0.020454f, 6.f, 
+    0.989673f, 0.f, 0.f, 0.f, 3.185384f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 2.934988f, 1.318326f, 6.f, 6.f, 6.f, 
+    5.642881f, 0.f, 0.f, 0.f, 0.f, 0.f, 2.999222f, 0.f, 0.f, 0.f, 2.559106f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.633486f, 0.f, 
+    0.f, 0.f, 1.628865f, 0.f, 2.338941f, 6.f, 6.f, 0.f, 0.f, 0.f, 0.f, 6.f, 1.945178f, 0.f, 6.f, 0.f, 0.f, 0.f, 
+    5.543451f, 0.f, 0.f, 0.f, 0.f, 0.406046f, 0.f, 0.f, 6.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 
+    0.856572f, 6.f, 1.313051f, 5.714135f, 2.297852f, 0.f, 3.328464f, 5.076805f, 0.f, 0.f, 0.822006f, 0.f, 0.f, 0.f, 
+    3.011547f, 5.216634f, 0.f, 6.f, 4.519185f, 0.f, 0.f, 0.f, 1.309921f, 0.f, 0.f, 0.f, 6.f, 4.929738f, 2.19647f, 
+    0.862602f, 0.f, 1.323422f, 6.f, 6.f, 2.799471f, 1.364977f, 0.f, 0.f, 6.f, 0.f, 0.886486f, 0.f, 0.f, 0.f, 0.f, 0.f, 
+    0.f, 6.f, 0.f, 1.915524f, 0.f, 6.f, 0.471624f, 6.f, 0.f, 0.f, 0.f, 0.f, 6.f, 1.930647f, 6.f, 0.f, 0.f, 2.613482f, 
+    0.f, 1.437104f, 0.f, 0.f, 0.f, 0.f, 1.100758f, 6.f, 3.722325f, 0.f, 0.f, 0.f, 2.4696f, 0.99466f, 6.f, 0.f, 0.f, 
+    0.f, 0.f, 6.f, 0.f, 2.601814f, 0.f, 6.f, 6.f, 0.849792f, 0.f, 0.f, 0.f, 0.f, 0.024752f, 1.727437f, 4.829096f, 6.f, 
+    2.193951f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1.381432f, 0.f, 0.f, 2.373422f, 0.f, 0.f, 0.f, 0.f, 0.967325f, 0.f, 
+    0.f, 6.f, 0.f, 0.f, 3.20644f, 0.406951f, 5.442923f, 6.f, 1.564964f, 0.f, 6.f, 0.97099f, 0.f, 3.344471f, 0.f, 0.f, 
+    0.f, 0.f, 0.f, 0.f, 6.f, 0.f, 6.f, 0.f, 2.905131f, 6.f, 0.f, 6.f, 0.f, 0.f, 0.f, 6.f, 0.f, 0.297123f, 0.f, 0.f, 
+    6.f, 0.f, 4.127302f, 0.232429f, 0.f, 0.f, 1.49025f, 0.f, 0.f, 0.f, 0.f, 6.f, 0.f, 3.450019f, 0.f, 0.f, 0.f, 0.f, 
+    0.f, 0.f, 0.f, 0.f, 0.f, 5.865136f, 0.f, 0.f, 1.02392f, 2.168701f, 0.f, 6.f, 0.f, 6.f, 0.f, 6.f, 0.f, 0.f, 
+    5.276888f, 2.871476f, 5.381645f, 0.f, 0.f, 4.970076f, 2.17714f, 0.236733f, 0.f, 4.765553f, 0.f, 0.f, 0.f, 6.f, 0.f, 
+    6.f, 1.803472f, 3.319622f, 0.f, 0.979825f, 6.f, 2.748632f, 0.819249f, 6.f, 0.f, 4.124219f, 0.f, 0.f, 3.476707f, 
+    0.f, 6.f, 0.f, 2.079974f, 0.f, 0.f, 6.f, 3.552917f, 4.753067f, 0.f, 0.f, 6.f, 1.615141f, 0.f, 5.257527f, 0.f, 0.f, 
+    1.106647f, 2.306467f, 0.f, 0.f, 1.918906f, 0.323499f, 0.f, 1.10438f, 6.f, 6.f, 1.098096f, 0.f, 2.193317f, 6.f, 0.f, 
+    2.188545f, 0.f, 3.010049f, 0.f, 6.f, 4.013948f, 0.f, 2.90343f, 6.f, 6.f, 1.907748f, 0.f, 1.458995f, 0.f, 6.f, 
+    0.775694f, 2.998086f, 0.f, 5.264673f, 6.f, 0.133925f, 0.f, 1.462426f, 0.f, 6.f, 1.401253f, 0.f, 2.551511f, 0.f, 
+    0.f, 0.505411f, 5.560861f, 1.462368f, 0.f, 6.f, 0.f, 0.f, 0.f, 2.028553f, 3.725128f, 0.f, 2.617194f, 0.f, 
+    4.787561f, 6.f, 0.025402f, 2.977197f, 0.f, 6.f, 0.f, 1.265011f, 0.84491f, 0.f, 1.356137f, 2.945519f, 0.07234f, 0.f, 
+    5.740277f, 6.f, 0.503783f, 0.f, 0.f, 0.f, 0.701316f, 4.874044f, 0.f, 0.295278f, 0.f, 0.f, 6.f, 0.f, 0.f, 5.072755f, 
+    6.f, 6.f, 2.348612f, 2.890643f, 0.f, 0.f, 6.f, 0.f, 0.f, 6.f, 0.532404f, 6.f, 0.f, 6.f, 0.f, 0.f, 6.f, 0.f, 0.f, 
+    0.f, 1.206985f, 6.f, 0.910795f, 3.605764f, 6.f, 0.f, 4.756282f, 0.f, 0.f, 6.f, 6.f, 6.f, 0.f, 0.785079f, 0.f, 6.f, 
+    0.f, 2.458167f, 0.f, 6.f, 6.f, 0.f, 0.f, 3.593995f, 0.f, 0.f, 6.f, 0.f, 0.f, 0.f, 6.f, 1.258649f, 3.150318f, 
+    0.476788f, 6.f, 0.f, 5.961527f, 0.f, 0.f, 6.f, 1.805623f, 5.768168f, 2.210758f, 0.f, 0.f, 0.f, 2.739697f, 0.f, 0.f, 
+    0.f, 0.f, 6.f, 0.899466f, 0.f, 0.f, 0.613579f, 0.f, 0.f, 3.140562f, 0.f, 6.f, 6.f, 0.f, 0.f, 0.640394f, 0.f, 0.f, 
+    0.f, 0.f, 0.f, 5.821669f, 6.f, 0.f, 1.636458f, 3.601084f, 6.f, 0.695965f, 0.f, 0.f, 0.f, 0.f, 6.f, 2.997504f, 0.f, 
+    3.043015f, 6.f, 0.f, 0.395517f, 0.f, 5.693463f, 0.f, 6.f, 0.f, 0.f, 2.685422f, 0.f, 5.10919f, 0.f, 0.f, 0.766391f, 
+    0.f, 6.f, 0.f, 1.067741f, 0.f, 3.204967f, 0.f, 0.049364f, 0.f, 1.445834f, 0.f, 6.f, 0.f, 6.f, 0.f, 0.f, 6.f, 
+    0.56214f, 0.f, 0.f, 0.f, 6.f, 0.f, 6.f, 0.f, 6.f, 6.f, 4.297416f, 0.f, 6.f, 0.f, 0.f, 0.f, 0.f, 6.f, 1.515633f, 
+    0.f, 0.962949f, 6.f, 0.f, 0.f, 6.f, 0.f, 3.391435f, 0.f, 5.703098f, 6.f, 0.123188f, 0.74395f, 1.311747f, 0.f, 6.f, 
+    0.f, 0.f, 6.f, 0.f, 0.f, 0.f, 2.024087f, 0.f, 0.f, 6.f, 0.f, 0.f, 6.f, 6.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 
+    0.218827f, 3.539775f, 0.f, 0.f, 6.f, 0.026009f, 0.f, 1.993029f, 0.f, 0.472078f, 1.526834f, 0.f, 0.f, 0.f, 0.f, 
+    0.288532f, 0.f, 0.f, 0.f, 6.f, 0.f, 0.f, 0.f, 5.20411f, 2.876878f, 2.40597f, 0.f, 6.f, 0.f, 6.f, 1.409823f, 0.f, 
+    0.f, 0.f, 0.f, 0.025228f, 1.600513f, 0.f, 0.f, 6.f, 1.168078f, 0.f, 0.f, 0.f, 0.824512f, 1.234117f, 3.922958f, 0.f, 
+    3.501705f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.7285f, 0.f, 6.f, 0.f, 0.f, 0.f, 0.f, 6.f, 0.f, 0.f, 0.f, 0.263715f, 0.f, 0.f, 
+    0.f, 0.f, 0.627931f, 0.f, 0.f, 4.004261f, 0.f, 1.692368f, 0.f, 4.079147f, 0.f, 6.f, 0.f, 1.174236f, 0.f, 0.f, 0.f, 
+    0.f, 0.f, 6.f, 4.476387f, 6.f, 1.621733f, 0.f, 0.757781f, 0.f, 6.f, 0.f, 2.089746f, 0.f, 0.f, 3.368918f, 4.436606f, 
+    0.f, 0.f, 0.f, 6.f, 0.965486f, 0.f, 6.f, 1.450709f, 0.478212f, 0.f, 0.630363f, 0.f, 6.f, 0.f, 2.770687f, 0.f, 6.f, 
+    4.487434f, 6.f, 0.f, 0.f, 0.f, 5.13682f, 3.160626f, 2.649455f, 0.f, 0.f, 5.103724f, 3.963688f, 0.004791f, 
+    2.462662f, 0.f, 0.f, 6.f, 1.246739f, 1.096148f, 0.534888f, 6.f, 0.f, 0.68324f, 1.37247f, 0.f, 0.f, 2.285978f
+};
+
+static const float test_7_out_scale = 0.0235294122f;
+static const float test_7_out_zero_point = 3.f;
+static const int8_t test_7_out_scales_frac[] = {20};
+static const int test_7_out_sa_dim = -1;
+
+static const int test_7_out_fx8_frac = 4;
+
+#define TEST_7_OUT_TSR_SHARED_DESCR \
+    /* .data = */ { 0 },\
+    /* .mem_stride = */ {16*7*1, 7*1, 1}, \
+    /* .shape = */ {12, 14, 5}, \
+    /* .rank =  */ 3
+
+
+static const mli_tensor test_7_out_tsr_fx16 = {
+    TEST_7_OUT_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
+};
+
+
+static const mli_tensor test_7_out_tsr_sa8 = {
+    TEST_7_OUT_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ { 0 }
+};
+
 tensor_quantizer test_1_out_fx16(test_1_out_tsr_fx16, test_1_out_fx8_frac + 8, test_1_out_data,
                                 sizeof(test_1_out_data) / sizeof(test_1_out_data[0]));
 tensor_quantizer test_1_out_sa8(test_1_out_tsr_sa8, test_1_out_sa_dim, test_1_out_data, 
@@ -756,6 +1262,18 @@ tensor_quantizer test_5_out_fx16(test_5_out_tsr_fx16, test_5_out_fx8_frac + 8, t
 tensor_quantizer test_5_out_sa8(test_5_out_tsr_sa8, test_5_out_sa_dim, test_5_out_data, 
                                 sizeof(test_5_out_data) / sizeof(test_5_out_data[0]),
                                 &test_5_out_scale, 1, &test_5_out_zero_point, 1, test_5_out_scales_frac, 1);
+
+tensor_quantizer test_6_out_fx16(test_6_out_tsr_fx16, test_6_out_fx8_frac + 8, test_6_out_data,
+                                 sizeof(test_6_out_data) / sizeof(test_6_out_data[0]));
+tensor_quantizer test_6_out_sa8(test_6_out_tsr_sa8, test_6_out_sa_dim, test_6_out_data, 
+                                sizeof(test_6_out_data) / sizeof(test_6_out_data[0]),
+                                &test_6_out_scale, 1, &test_6_out_zero_point, 1, test_6_out_scales_frac, 1);
+
+tensor_quantizer test_7_out_fx16(test_7_out_tsr_fx16, test_7_out_fx8_frac + 8, test_7_out_data,
+                                 sizeof(test_7_out_data) / sizeof(test_7_out_data[0]));
+tensor_quantizer test_7_out_sa8(test_7_out_tsr_sa8, test_7_out_sa_dim, test_7_out_data, 
+                                sizeof(test_7_out_data) / sizeof(test_7_out_data[0]),
+                                &test_7_out_scale, 1, &test_7_out_zero_point, 1, test_7_out_scales_frac, 1);
 
 
 // Tests configuration structures
@@ -820,4 +1338,26 @@ const mli_conv2d_cfg test_5_cfg = {
     /* .dilation_width = */1
 };
 
+const mli_conv2d_cfg test_6_cfg = {
+    /* .relu.type = */MLI_RELU_6,
+    /* .stride_width = */2,
+    /* .stride_height = */2,
+    /* .padding_left = */0,
+    /* .padding_right = */0,
+    /* .padding_top = */0,
+    /* .padding_bottom = */0,
+    /* .dilation_height = */1,
+    /* .dilation_width = */1
+};
 
+const mli_conv2d_cfg test_7_cfg = {
+    /* .relu.type = */MLI_RELU_6,
+    /* .stride_width = */2,
+    /* .stride_height = */2,
+    /* .padding_left = */1,
+    /* .padding_right = */1,
+    /* .padding_top = */1,
+    /* .padding_bottom = */1,
+    /* .dilation_height = */1,
+    /* .dilation_width = */1
+};

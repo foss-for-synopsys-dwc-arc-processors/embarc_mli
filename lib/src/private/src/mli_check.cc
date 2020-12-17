@@ -1306,6 +1306,52 @@ mli_status mli_chk_transpose_conv2d_hwcn_sa8_sa8_sa32(
     return MLI_STATUS_OK;
 }
 
+mli_status mli_chk_transpose_conv2d_hwcn_k2x2_str2(
+        const mli_tensor * /*in*/,
+        const mli_tensor * weights,
+        const mli_tensor * /*bias*/,
+        const mli_conv2d_cfg * cfg,
+        const mli_tensor * /*out*/) {
+    bool fail = false;
+
+    const int kernel_width = weights->shape[KRNL_W_DIM_HWCN];
+    const int kernel_height = weights->shape[KRNL_H_DIM_HWCN];
+    const int stride_width = cfg->stride_width;
+    const int stride_height = cfg->stride_height;
+    fail |= MLI_CHECK(stride_width == 2, "Stride width should be 2 for k2x2_str2 specialization");
+    fail |= MLI_CHECK(stride_height == 2, "Stride height should be 2 for k2x2_str2 specialization");
+    if (fail) return MLI_STATUS_BAD_FUNC_CFG;
+
+    fail |= MLI_CHECK(kernel_width == 2, "Kernel width should be 2 for k2x2_str2 specialization");
+    fail |= MLI_CHECK(kernel_height == 2, "Kernel height should be 2 for k2x2_str2 specialization");
+    if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_chk_transpose_conv2d_hwcn_k4x4_str2(
+        const mli_tensor * /*in*/,
+        const mli_tensor * weights,
+        const mli_tensor * /*bias*/,
+        const mli_conv2d_cfg * cfg,
+        const mli_tensor * /*out*/) {
+    bool fail = false;
+
+    const int kernel_width = weights->shape[KRNL_W_DIM_HWCN];
+    const int kernel_height = weights->shape[KRNL_H_DIM_HWCN];
+    const int stride_width = cfg->stride_width;
+    const int stride_height = cfg->stride_height;
+    fail |= MLI_CHECK(stride_width == 2, "Stride width should be 2 for k4x4_str2 specialization");
+    fail |= MLI_CHECK(stride_height == 2, "Stride height should be 2 for k4x4_str2 specialization");
+    if (fail) return MLI_STATUS_BAD_FUNC_CFG;
+
+    fail |= MLI_CHECK(kernel_width == 4, "Kernel width should be 4 for k4x4_str2 specialization");
+    fail |= MLI_CHECK(kernel_height == 4, "Kernel height should be 4 for k4x4_str2 specialization");
+    if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
+
+    return MLI_STATUS_OK;
+}
+
 mli_status mli_chk_maxpool_chw (const mli_tensor * in, const mli_pool_cfg * cfg, const mli_tensor * out) {
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;

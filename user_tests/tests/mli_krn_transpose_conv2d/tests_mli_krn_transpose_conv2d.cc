@@ -60,25 +60,33 @@ const crc32_calc test_1_chksum_fx16 {0x7CD22049}, /*test_1_chksum_fx16_fx8_fx8, 
                  test_2_chksum_fx16 {0x0B88C56E}, /*test_2_chksum_fx16_fx8_fx8,                test_2_chksum_sa8,*/
                  test_3_chksum_fx16 {0x85E46A29},   test_3_chksum_fx16_fx8_fx8 {0xF9B0F692},   test_3_chksum_sa8 {0xCE83CE66},
                  test_4_chksum_fx16 {0xC724EBF9}, /*test_4_chksum_fx16_fx8_fx8,             */ test_4_chksum_sa8 {0xDEE32B04},
-                 test_5_chksum_fx16 {0xE82A4691}, /*test_5_chksum_fx16_fx8_fx8,             */ test_5_chksum_sa8 {0x591EA9A4};
+                 test_5_chksum_fx16 {0xE82A4691}, /*test_5_chksum_fx16_fx8_fx8,             */ test_5_chksum_sa8 {0x591EA9A4},
+                 test_6_chksum_fx16 {0x6D691353}, /*test_6_chksum_fx16_fx8_fx8,                test_6_chksum_sa8,*/
+                 test_7_chksum_fx16 {0x314BD269}, /*test_7_chksum_fx16_fx8_fx8,             */ test_7_chksum_sa8 {0xA422B61F};
 // Platform Specific CRC Results
 #if defined(CRC_RM_UP)
 const crc32_calc test_1_chksum_fx16_fx8_fx8 {0xB8EF2F73},
                  test_2_chksum_fx16_fx8_fx8 {0x2A904693}, test_2_chksum_sa8 {0xE08E482A},
                  test_4_chksum_fx16_fx8_fx8 {0xF0F39D2C}, 
-                 test_5_chksum_fx16_fx8_fx8 {0xA3E639A8};
+                 test_5_chksum_fx16_fx8_fx8 {0xA3E639A8},
+                 test_6_chksum_fx16_fx8_fx8 {0x1BE42216}, test_6_chksum_sa8 {0x179FAFCC},
+                 test_7_chksum_fx16_fx8_fx8 {0x91D2A974};
 #else 
 const crc32_calc test_1_chksum_fx16_fx8_fx8 {0x9E58234E},
                  test_2_chksum_fx16_fx8_fx8 {0xB808A08B}, test_2_chksum_sa8 {0xC2336ACA},
                  test_4_chksum_fx16_fx8_fx8 {0xB617F5E9},
-                 test_5_chksum_fx16_fx8_fx8 {0xD261DE7C};
+                 test_5_chksum_fx16_fx8_fx8 {0xD261DE7C},
+                 test_6_chksum_fx16_fx8_fx8 {0x069E2E0E}, test_6_chksum_sa8 {0x2CC75486},
+                 test_7_chksum_fx16_fx8_fx8 {0x118C5E59};
 #endif
 #else // Not defined CRC_*
 const crc32_calc  test_1_chksum_fx16, test_1_chksum_fx16_fx8_fx8, test_1_chksum_sa8,
                   test_2_chksum_fx16, test_2_chksum_fx16_fx8_fx8, test_2_chksum_sa8,
                   test_3_chksum_fx16, test_3_chksum_fx16_fx8_fx8, test_3_chksum_sa8,
                   test_4_chksum_fx16, test_4_chksum_fx16_fx8_fx8, test_4_chksum_sa8,
-                  test_5_chksum_fx16, test_5_chksum_fx16_fx8_fx8, test_5_chksum_sa8;
+                  test_5_chksum_fx16, test_5_chksum_fx16_fx8_fx8, test_5_chksum_sa8,
+                  test_6_chksum_fx16, test_6_chksum_fx16_fx8_fx8, test_6_chksum_sa8,
+                  test_7_chksum_fx16, test_7_chksum_fx16_fx8_fx8, test_7_chksum_sa8;
 #endif
 
 const quality_metrics thresholds_fx16_general { quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
@@ -90,7 +98,7 @@ const quality_metrics thresholds_fx16_fx8_fx8_general{ quality_metrics::kPassVal
 const quality_metrics thresholds_sa8_general{ quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
                                              /* SNR_DB = */35.f, /*Quant Error Perc = */40.f };
 
-const quality_metrics thresholds_sa8_test3{ quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
+const quality_metrics thresholds_sa8_test3_7{ quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
 /* SNR_DB = */35.f, /*Quant Error Perc = */30.f };
 
 const uint32_t mem_fill_pattern_general = 0xDEADBEEF;
@@ -142,7 +150,7 @@ static const transpose_conv2d_test_operands tests_list[] = {
                                     thresholds_fx16_fx8_fx8_general, test_3_chksum_fx16_fx8_fx8, mem_fill_pattern_general},
     {"Test 3 SA8_SA8_SA32 Str_1x1", mli_krn_transpose_conv2d_hwcn_sa8_sa8_sa32,
                                     input_1_sa8, weights_1_sa8, bias_1_i1_w1_sa32, test_3_out_sa8, test_3_cfg,
-                                    thresholds_sa8_test3, test_3_chksum_sa8, mem_fill_pattern_general},
+                                    thresholds_sa8_test3_7, test_3_chksum_sa8, mem_fill_pattern_general},
 
     // Input/output Memstride test : kernel_size = (4, 3), strides = (3, 2), w / o padding and with ReLU_6
     {"Test 4 FX16 IO_Memstr",         mli_krn_transpose_conv2d_hwcn_fx16,
@@ -165,9 +173,33 @@ static const transpose_conv2d_test_operands tests_list[] = {
     {"Test 5 SA8_SA8_SA32 IOW_Memstr", mli_krn_transpose_conv2d_hwcn_sa8_sa8_sa32,
                                        input_1_memstr_sa8, weights_1_memstr_sa8, bias_1_i1_w1_sa32, test_5_out_sa8, test_5_cfg,
                                        thresholds_sa8_general, test_5_chksum_sa8, mem_fill_pattern_general},
+
+    // k2x2 str2x2 specialization test with memstride, kernel_size=(2, 2), strides=(2, 2), no_padding and ReLU 6
+    // Memstrides are applied on input, output and weights tensors
+    {"Test 6 FX16 k2x2 str2 Spec",   mli_krn_transpose_conv2d_hwcn_fx16_k2x2_str2,
+                                     input_2_memstr_fx16, weights_3_memstr_fx16, bias_2_fx16, test_6_out_fx16, test_6_cfg,
+                                     thresholds_fx16_general, test_6_chksum_fx16, mem_fill_pattern_general},
+    {"Test 6 FX16_FX8_FX8 k2x2 st2", mli_krn_transpose_conv2d_hwcn_fx16_fx8_fx8_k2x2_str2,
+                                     input_2_memstr_fx16, weights_3_memstr_fx8, bias_2_fx8, test_6_out_fx16,
+                                     test_6_cfg, thresholds_fx16_fx8_fx8_general, test_6_chksum_fx16_fx8_fx8, mem_fill_pattern_general},
+    {"Test 6 SA8_SA8_SA32 k2x2 st2", mli_krn_transpose_conv2d_hwcn_sa8_sa8_sa32_k2x2_str2,
+                                     input_2_memstr_sa8, weights_3_memstr_sa8, bias_2_i2_w3_sa32, test_6_out_sa8,
+                                     test_6_cfg, thresholds_sa8_general, test_6_chksum_sa8, mem_fill_pattern_general},
+
+    // k4x4 str2x2 specialization test with memstride, kernel_size=(4, 4), strides=(2, 2), krn_padding and ReLU 6
+    // Memstrides are applied on input, output and weights tensors
+    {"Test 7 FX16 k4x4 str2 Spec",   mli_krn_transpose_conv2d_hwcn_fx16_k4x4_str2,
+                                     input_2_memstr_fx16, weights_4_memstr_fx16, bias_2_fx16, test_7_out_fx16, test_7_cfg,
+                                     thresholds_fx16_general, test_7_chksum_fx16, mem_fill_pattern_general},
+    {"Test 7 FX16_FX8_FX8 k4x4 st2", mli_krn_transpose_conv2d_hwcn_fx16_fx8_fx8_k4x4_str2,
+                                     input_2_memstr_fx16, weights_4_memstr_fx8, bias_2_fx8, test_7_out_fx16,
+                                     test_7_cfg, thresholds_fx16_fx8_fx8_general, test_7_chksum_fx16_fx8_fx8, mem_fill_pattern_general},
+    {"Test 7 SA8_SA8_SA32 k4x4 st2", mli_krn_transpose_conv2d_hwcn_sa8_sa8_sa32_k4x4_str2, 
+                                     input_2_memstr_sa8, weights_4_memstr_sa8, bias_2_i2_w4_sa32, test_7_out_sa8, test_7_cfg,
+                                     thresholds_sa8_test3_7, test_7_chksum_sa8, mem_fill_pattern_general}
 };
 
-constexpr int kMemIOSize = 2047;
+constexpr int kMemIOSize = 3047;
 constexpr int kMemWSize = 2047;
 static IO_DATA_ATTR int8_t scratch_mem_in[kMemIOSize] = { 0 };
 static IO_DATA_ATTR int8_t scratch_mem_out[kMemIOSize] = { 0 };
