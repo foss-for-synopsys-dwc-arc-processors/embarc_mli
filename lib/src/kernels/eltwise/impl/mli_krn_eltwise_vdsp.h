@@ -395,8 +395,13 @@ MLI_FORCE_INLINE vNx2short_t eltwise_perform_operation<vNx2short_t, vNx2short_t,
         const int16_t scale_factor,
         const int shift,
         bool reverse_sub) {
-    vNx2short_t res = {0};
+    vNx2short_t res;
 
+    int shift_right = MAX(shift,0);
+    int shift_left = MAX(-shift,0);
+    res = mli_math_max_fx(op1, op2);
+    res = mli_math_asl_fx(res, shift_left);
+    res = mli_math_asr_rnd_fx(res, shift_right);
 
     return res;
 }
@@ -410,8 +415,13 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
         const int16_t scale_factor,
         const int shift,
         bool reverse_sub) {
-    vNx4char_t res = {0};
+    vNx4char_t res ;
 
+    int shift_right = MAX(shift,0);
+    int shift_left = MAX(-shift,0);
+    res = mli_math_max_fx(op1, op2);
+    res = mli_math_asl_fx(res, shift_left);
+    res = mli_math_asr_rnd_fx(res, shift_right);
 
     return res;
 }
@@ -425,9 +435,14 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
         const int16_t scale_factor,
         const int shift,
         bool reverse_sub) {
-    vNx4char_t res = {0};
-
-
+    vNx4char_t res;
+    vNx4short_t max = to_vNx4short_t(mli_math_max_fx(op1, op2));
+    max = mli_math_sub_fx(max, (vNx4short_t)in_offset);
+    vNx4accint_t acc = mli_math_mul_fx<vNx4short_t, vNx4accint_t>(max, scale_factor);
+    vNx4int_t temp = mli_math_acc_cast_fx<vNx4int_t, vNx4accint_t>(acc);
+    temp = mli_math_asr_rnd_fx(temp, shift);
+    temp = mli_math_add_fx(temp, (vNx4int_t)out_offset);
+    res = mli_math_cast_fx<vNx4int_t, vNx4char_t>(temp);
     return res;
 }
 
@@ -440,10 +455,15 @@ MLI_FORCE_INLINE vNx2short_t eltwise_perform_operation<vNx2short_t, vNx2short_t,
         const int16_t scale_factor,
         const int shift,
         bool reverse_sub) {
-    vNx2short_t res = {0};
+     vNx2short_t res;
 
+     int shift_right = MAX(shift,0);
+     int shift_left = MAX(-shift,0);
+     res = mli_math_min_fx(op1, op2);
+     res = mli_math_asl_fx(res, shift_left);
+     res = mli_math_asr_rnd_fx(res, shift_right);
 
-    return res;
+     return res;
 }
 
 template <>
@@ -455,10 +475,17 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
         const int16_t scale_factor,
         const int shift,
         bool reverse_sub) {
-    vNx4char_t res = {0};
+    vNx4char_t res ;
 
+    int shift_right = MAX(shift,0);
+    int shift_left = MAX(-shift,0);
+    res = mli_math_min_fx(op1, op2);
+    res = mli_math_asl_fx(res, shift_left);
+    res = mli_math_asr_rnd_fx(res, shift_right);
 
     return res;
+
+
 }
 
 template <>
@@ -470,11 +497,18 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
         const int16_t scale_factor,
         const int shift,
         bool reverse_sub) {
-    vNx4char_t res = {0};
-
-
+    vNx4char_t res;
+    vNx4short_t min = to_vNx4short_t(mli_math_min_fx(op1, op2));
+    min = mli_math_sub_fx(min, (vNx4short_t)in_offset);
+    vNx4accint_t acc = mli_math_mul_fx<vNx4short_t, vNx4accint_t>(min, scale_factor);
+    vNx4int_t temp = mli_math_acc_cast_fx<vNx4int_t, vNx4accint_t>(acc);
+    temp = mli_math_asr_rnd_fx(temp, shift);
+    temp = mli_math_add_fx(temp, (vNx4int_t)out_offset);
+    res = mli_math_cast_fx<vNx4int_t, vNx4char_t>(temp);
     return res;
+
 }
+
 
 template <typename io_T, mli_eltwise_type func_type, bool convert>
 MLI_FORCE_INLINE void eltwise_innerloop(
@@ -491,41 +525,37 @@ MLI_FORCE_INLINE void eltwise_innerloop(
         const int16_t scale,
         const int shift,
         const bool reverse_sub) {
-    /* for now only eltwise_add is vectorized. when all functions are vectorized this bool can be removed. */
-    bool vectorized = (func_type == ELTWISE_ADD || func_type == ELTWISE_MUL || func_type == ELTWISE_SUB);
     /* Dummy Load to get num_lanes, remaining part */
     auto input = mli_prv_load_1vec(op1_ptr);
-    int num_lanes = vectorized ? get_number_lanes(input) : 1;
+    int num_lanes = get_number_lanes(input);
     int remaining_part = count & (num_lanes - 1);
 
-    if (vectorized) {
-        if (remaining_part) {
-            auto val1 = mli_prv_load_1vec(op1_ptr + idx1);
-            auto val2 = mli_prv_load_1vec(op2_ptr + idx2);
-            val2 = (scalar_op) ? op2_ptr[0] : val2;
-            auto res = mli::krn::eltwise_perform_operation<decltype(val1), decltype(val1), func_type, convert>(
-                                                           val1, val2, in_offset, out_offset, scale, shift, reverse_sub);
-            mli_prv_store_n_samples(&out_ptr[idx_out], res, remaining_part);
-            idx1 += remaining_part;
-            idx2 += remaining_part;
-            idx_out += remaining_part;
-        }
 
-        for (int pos = remaining_part; pos < count; pos+=num_lanes) {
-            auto val1 = mli_prv_load_1vec(op1_ptr + idx1);
-            auto val2 = mli_prv_load_1vec(op2_ptr + idx2);
-            /* op1_ptr is always vector, op2_ptr can be scalar or vector. */
-            val2 = (scalar_op) ? op2_ptr[0] : val2;
-            auto res = mli::krn::eltwise_perform_operation<decltype(val1), decltype(val1), func_type, convert>(
-                    val1, val2, in_offset, out_offset, scale, shift, reverse_sub);
-            mli_prv_store_n_samples(&out_ptr[idx_out], res);
-            idx1 += num_lanes;
-            idx2 += num_lanes;
-            idx_out += num_lanes;
-        }
-    } else {
-        mli::krn::ref::eltwise_innerloop<io_T, func_type, convert>(op1_ptr, op2_ptr, out_ptr, idx1, idx2, idx_out, count, scalar_op, in_offset, out_offset, scale, shift, reverse_sub);
+    if (remaining_part) {
+        auto val1 = mli_prv_load_1vec(op1_ptr + idx1);
+        auto val2 = mli_prv_load_1vec(op2_ptr + idx2);
+        val2 = (scalar_op) ? op2_ptr[0] : val2;
+        auto res = mli::krn::eltwise_perform_operation<decltype(val1), decltype(val1), func_type, convert>(
+                                                       val1, val2, in_offset, out_offset, scale, shift, reverse_sub);
+        mli_prv_store_n_samples(&out_ptr[idx_out], res, remaining_part);
+        idx1 += remaining_part;
+        idx2 += remaining_part;
+        idx_out += remaining_part;
     }
+
+    for (int pos = remaining_part; pos < count; pos+=num_lanes) {
+        auto val1 = mli_prv_load_1vec(op1_ptr + idx1);
+        auto val2 = mli_prv_load_1vec(op2_ptr + idx2);
+        /* op1_ptr is always vector, op2_ptr can be scalar or vector. */
+        val2 = (scalar_op) ? op2_ptr[0] : val2;
+        auto res = mli::krn::eltwise_perform_operation<decltype(val1), decltype(val1), func_type, convert>(
+                val1, val2, in_offset, out_offset, scale, shift, reverse_sub);
+        mli_prv_store_n_samples(&out_ptr[idx_out], res);
+        idx1 += num_lanes;
+        idx2 += num_lanes;
+        idx_out += num_lanes;
+    }
+
 }
 
 } // namespace vdsp
