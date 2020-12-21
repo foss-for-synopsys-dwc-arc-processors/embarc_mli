@@ -42,7 +42,8 @@ mli_status mli_krn_leaky_relu_sa8(const mli_tensor *in, const mli_tensor *slope_
     mli_status ret = MLI_CHECK_STATUS(mli_chk_leaky_relu_sa8(in, slope_coeff, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
 
-    return mli::krn::leaky_relu_sa8_run(in, slope_coeff, out);
+    const mli_prelu_cfg cfg = {/*axis*/ -1};
+    return mli::krn::prelu_sa8_run(in, slope_coeff, &cfg, out);
 }
 #pragma MLI_CODE_SECTION_END()
 

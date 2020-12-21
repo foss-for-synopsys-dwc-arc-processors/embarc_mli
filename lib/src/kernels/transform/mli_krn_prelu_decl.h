@@ -13,6 +13,7 @@
 #include "mli_config.h"
 #include "mli_types.h"
 #include "mli_prv_tensor.h"
+#include "mli_prv_quant.h"
 
 namespace mli {
 namespace krn {
@@ -42,10 +43,27 @@ static MLI_FORCE_INLINE void compute_prelu(
         MLI_OUT_PTR(io_T) vec_out,
         const int shift,
         const int remaining_part);
-        
-static MLI_FORCE_INLINE mli_status leaky_relu_sa8_run(const mli_tensor *in, 
+
+static MLI_FORCE_INLINE void compute_prelu(
+        const MLI_PTR(int8_t) vec_in,
+        MLI_OUT_PTR(int8_t) vec_out,
+        int16_t in_zp,
+        const s8asym_quant_params *identity_params,
+        const s8asym_quant_params *alpha_params);
+
+static MLI_FORCE_INLINE void compute_prelu(
+        const MLI_PTR(int8_t) vec_in,
+        MLI_OUT_PTR(int8_t) vec_out,
+        int16_t in_zp,
+        const s8asym_quant_params *identity_params,
+        const s8asym_quant_params *alpha_params,
+        const int remaining_part);
+
+static MLI_FORCE_INLINE s8asym_quant_params prelu_define_requant_params(const mli_tensor *in, 
         const mli_tensor *slope_coeff,
-        mli_tensor *out);
+        mli_tensor *out,
+        int8_t alpha_sa8,
+        s8asym_quant_params *identity_params);
 
 template <typename io_T>
 static MLI_FORCE_INLINE mli_status prelu_fx_run(const mli_tensor *in, 
