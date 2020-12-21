@@ -21,8 +21,11 @@ namespace ref {
 
 #pragma MLI_CODE_SECTION_START(".mli_lib")
 
-template <typename in_T, typename out_T>
+template <typename in_T, typename out_T, typename acc_T>
 mli_status convert_quantized_data(const mli_tensor * src, mli_tensor * dst) {
+
+    /* If the accumulator is int64_t, so int32_t should be used for multiplying. */
+    typedef typename std::conditional<std::is_same<acc_T, int64_t>::value, int32_t, int16_t>::type mul_T;
 
     /* Copy shape and rank from source tensor to destination */
     const int rank = dst->rank = src->rank;
@@ -64,7 +67,7 @@ mli_status convert_quantized_data(const mli_tensor * src, mli_tensor * dst) {
         mli::krn::s8asym_quant_params params;
         mli::krn::define_requant_params(src, dst, &params, scale_idx);
         const int16_t scale_shift = params.shift;
-        const int32_t scale = params.scale;
+        const int16_t scale = params.scale;
         const int16_t zero_point = params.offset;
         /* Calculate borders across all dimensions for slice where this scale is applicable */
         int dim_start[MLI_MAX_RANK] = { 0 };
@@ -83,8 +86,8 @@ mli_status convert_quantized_data(const mli_tensor * src, mli_tensor * dst) {
                         const int dst_pos = POS(&dst_prv, dim0_idx, dim1_idx, dim2_idx, dim3_idx);
                         MLI_ASSERT(src_pos < src_tensor_size);
                         MLI_ASSERT(dst_pos < dst_tensor_size);
-                        int64_t dst_acc = mli_math_mul_fx<int32_t, int64_t>(src_tensor_arr[src_pos], scale);
-                        out_T dst_val = mli_math_cast_fx<int64_t, out_T>(dst_acc, scale_shift);
+                        acc_T dst_acc = mli_math_mul_fx<mul_T, acc_T>(src_tensor_arr[src_pos], scale);
+                        out_T dst_val = mli_math_cast_fx<acc_T, out_T>(dst_acc, scale_shift);
                         dst_tensor_arr[dst_pos] = mli_math_add_fx<out_T>(dst_val, zero_point);
                     }
                 }

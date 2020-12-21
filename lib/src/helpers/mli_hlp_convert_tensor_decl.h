@@ -34,7 +34,7 @@ typedef enum {
 ////////////////////////////////////////////////////////////////////////////////
 namespace ref {
 
-template <typename in_T, typename out_T>
+    template <typename in_T, typename out_T, typename acc_T>
 mli_status convert_quantized_data(
         const mli_tensor *src,
         mli_tensor *dst);
