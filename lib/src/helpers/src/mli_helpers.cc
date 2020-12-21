@@ -197,27 +197,27 @@ mli_status mli_hlp_convert_tensor_safx(const mli_tensor * src, mli_tensor * dst)
 
     if ((src->el_type == MLI_EL_FX_8 || src->el_type == MLI_EL_SA_8) &&
             (dst->el_type == MLI_EL_FX_8 || dst->el_type == MLI_EL_SA_8)) {
-        ret = mli::hlp::convert_quantized_data<int8_t, int8_t>(src, dst);
+        ret = mli::hlp::convert_quantized_data<int8_t, int8_t, int32_t>(src, dst);
     } else if ((src->el_type == MLI_EL_FX_8 || src->el_type == MLI_EL_SA_8) &&
             dst->el_type == MLI_EL_FX_16) {
-        ret = mli::hlp::convert_quantized_data<int8_t, int16_t>(src, dst);
+        ret = mli::hlp::convert_quantized_data<int8_t, int16_t, int32_t>(src, dst);
     } else if ((src->el_type == MLI_EL_FX_8 || src->el_type == MLI_EL_SA_8) &&
             dst->el_type == MLI_EL_SA_32) {
-        ret = mli::hlp::convert_quantized_data<int8_t, int32_t>(src, dst);
+        ret = mli::hlp::convert_quantized_data<int8_t, int32_t, int64_t>(src, dst);
     } else if (src->el_type == MLI_EL_FX_16 &&
             (dst->el_type == MLI_EL_FX_8 || dst->el_type == MLI_EL_SA_8)) {
-        ret = mli::hlp::convert_quantized_data<int16_t, int8_t>(src, dst);
+        ret = mli::hlp::convert_quantized_data<int16_t, int8_t, int32_t>(src, dst);
     } else if (src->el_type == MLI_EL_FX_16 && dst->el_type == MLI_EL_FX_16) {
-        ret = mli::hlp::convert_quantized_data<int16_t, int16_t>(src, dst);
+        ret = mli::hlp::convert_quantized_data<int16_t, int16_t, int32_t>(src, dst);
     } else if (src->el_type == MLI_EL_FX_16 && dst->el_type == MLI_EL_SA_32) {
-        ret = mli::hlp::convert_quantized_data<int16_t, int32_t>(src, dst);
+        ret = mli::hlp::convert_quantized_data<int16_t, int32_t, int64_t>(src, dst);
     } else if (src->el_type == MLI_EL_SA_32 &&
             (dst->el_type == MLI_EL_FX_8 || dst->el_type == MLI_EL_SA_8)) {
-        ret = mli::hlp::convert_quantized_data<int32_t, int8_t>(src, dst);
+        ret = mli::hlp::convert_quantized_data<int32_t, int8_t, int64_t>(src, dst);
     } else if (src->el_type == MLI_EL_SA_32 && dst->el_type == MLI_EL_FX_16) {
-        ret = mli::hlp::convert_quantized_data<int32_t, int16_t>(src, dst);
+        ret = mli::hlp::convert_quantized_data<int32_t, int16_t, int64_t>(src, dst);
     } else if (src->el_type == MLI_EL_SA_32 && dst->el_type == MLI_EL_SA_32) {
-        ret = mli::hlp::convert_quantized_data<int32_t, int32_t>(src, dst);
+        ret = mli::hlp::convert_quantized_data<int32_t, int32_t, int64_t>(src, dst);
     } else {
         ret = MLI_STATUS_TYPE_MISMATCH;
     }

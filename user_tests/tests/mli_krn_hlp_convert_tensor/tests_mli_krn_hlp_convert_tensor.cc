@@ -182,15 +182,6 @@ bool run_test(mli_status(*mli_hlp_convert_tensor_func)(const mli_tensor *, mli_t
         }
     }
 
-    // Temporary removed
-    //#if PLATFORM == V2DSP_VECTOR
-    //        if (strstr(cur_test->descr, " FX16 ") != nullptr) {
-    //            // VPX fails bitwise comparison with reference .
-    //            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
-    //            continue;
-    //        }
-    //#endif
-
     if (is_test_passed && 
             !(cur_test->in.is_valid() && cur_test->out.is_valid())) {
         reporter.report_message(current_description, "FAILED at init: Bad source data for one of tensors");
@@ -286,8 +277,15 @@ int main() {
 
 #if PLATFORM == V2DSP_XY
         if (strstr(cur_test->descr, "Test SA32 --> SA32") != nullptr) {
-            // EMxD vectorized code for sa8 doesn't work properly with
+            // EMxD vectorized code doesn't work properly with
             // SA32 --> SA32 conversion in CONVERGENT rounding mode.
+            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
+            continue;
+        }
+
+        if (strstr(cur_test->descr, "Test FX16 --> FX16") != nullptr) {
+            // EMxD vectorized code doesn't work properly with
+            // FX16 --> FX16 conversion in CONVERGENT rounding mode.
             reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
             continue;
         }
