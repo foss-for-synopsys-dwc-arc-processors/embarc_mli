@@ -388,6 +388,11 @@ MLI_FORCE_INLINE int16_t mli_math_ashift_right_fx(int16_t in_val, int shift_righ
     return mli_math_asr_rnd_fx<int16_t>(in_val, shift_right);
 }
 
+template <>
+MLI_FORCE_INLINE int32_t mli_math_ashift_right_fx(int32_t in_val, int shift_right) {
+    return mli_math_asr_rnd_fx<int32_t>(in_val, shift_right);
+}
+
 template <typename in_T, typename acc_T>
 MLI_FORCE_INLINE acc_T mli_math_mul_fx_high(in_T L, in_T R);
 
@@ -441,6 +446,11 @@ MLI_FORCE_INLINE int32_t mli_math_init_accu(int32_t bias, int32_t bias_mul, int 
 
 // Cast value to output type (including accumulator type)
 //========================================================================
+template <>
+MLI_FORCE_INLINE int8_t mli_math_cast_fx(int8_t in_val, int shift_right) {
+    return (int8_t)fx_sat_q15(fx_asr_rnd_q15((int16_t)in_val, shift_right), 8);
+}
+
 template <>
 MLI_FORCE_INLINE int16_t mli_math_cast_fx(int8_t in_val, int shift_right) {
     return (int16_t)fx_asr_rnd_q15((int16_t)in_val, shift_right);

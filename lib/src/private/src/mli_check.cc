@@ -259,29 +259,6 @@ static MLI_FORCE_INLINE bool check_inner_most_dimension_is_one(const mli_tensor 
     return (t->mem_stride[t->rank - 1] == 1) || (t->mem_stride[t->rank - 1] == 0);
 }
 
-static MLI_FORCE_INLINE bool check_same_data_format(const mli_tensor *in1, const mli_tensor *in2) {
-    bool fail = false;
-
-    /* check both have same element type */
-    if (in1->el_type != in2->el_type) {
-        return false;
-    }
-
-    /* check both have same data format */
-    if (in1->el_type == MLI_EL_FX_4 || in1->el_type == MLI_EL_FX_8 || in1->el_type == MLI_EL_FX_16) {
-        fail |= (in1->el_params.fx.frac_bits == in2->el_params.fx.frac_bits);
-
-    } else if (in1->el_type == MLI_EL_SA_8 || in1->el_type == MLI_EL_SA_32) {
-        fail |= (in1->el_params.sa.dim == in2->el_params.sa.dim &&
-                 in1->el_params.sa.zero_point.mem.i16 == in2->el_params.sa.zero_point.mem.i16 &&
-                 in1->el_params.sa.scale.mem.i16 == in2->el_params.sa.scale.mem.i16 &&
-                 in1->el_params.sa.scale_frac_bits.mem.i8 == in2->el_params.sa.scale_frac_bits.mem.i8 &&
-                 in1->el_params.sa.type == in2->el_params.sa.type);
-    }
-
-    return fail;
-}
-
 static MLI_FORCE_INLINE bool check_layout_is_contiguous(const uint32_t *mem_stride, uint32_t rank) {
     // When only mem_stride and rank is under considiration, contiguous means 
     // all memory strides are zero OR rank is 1 and memory stride between elements is 1
@@ -333,6 +310,15 @@ static MLI_FORCE_INLINE bool check_mem_stride_matches(const mli_tensor *t1, cons
         fail |= MLI_CHECK(t1->mem_stride[i] == t2->mem_stride[i], 
                 "Tensors memstrides doesn't match");
     }
+    return !fail;
+}
+
+static MLI_FORCE_INLINE bool check_quantized_on_tensor(const mli_tensor *t1, const mli_tensor *t2) {
+    bool fail = false;
+    if (t1->el_type == MLI_EL_SA_8 || t1->el_type == MLI_EL_SA_32) {
+        fail |= ((t1->el_params.sa.dim >= 0) || (t2->el_params.sa.dim >= 0));
+    }
+
     return !fail;
 }
 
@@ -1855,11 +1841,6 @@ mli_status mli_chk_eltwise (
     }
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
-    // Elements of input tensors must be of the same data format
-    fail |= MLI_CHECK2(check_same_data_format(in1, in2),
-                       "Elements of input tensors must be of the same data format", funcname);
-    if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
-
     // Output tensor holds the same element type as the input tensors
     fail |= MLI_CHECK2(out->el_type == in1->el_type,
             "Output tensor holds the same element type as the input tensors", funcname);
@@ -1876,6 +1857,9 @@ mli_status mli_chk_eltwise (
         if (fail) return MLI_STATUS_SHAPE_MISMATCH;
     }
 
+    fail |= MLI_CHECK(check_quantized_on_tensor(in1, in2), "Tensors should be quantized on tensor level");
+    if (fail) return MLI_STATUS_NOT_SUPPORTED;
+
     // Check that output contains enough space
     int in1_sz = mli_prv_count_elem_num(in1);
     int in2_sz = mli_prv_count_elem_num(in2);
@@ -1883,6 +1867,67 @@ mli_status mli_chk_eltwise (
             "Capacity of output tensor is too small", funcname);
     if (fail) return MLI_STATUS_NOT_ENGH_MEM;
 
+    return MLI_STATUS_OK;
+}
+
+static MLI_FORCE_INLINE bool check_same_data_format(const mli_tensor *in1, const mli_tensor *in2) {
+    /* check both have same element type */
+    if (in1->el_type != in2->el_type) {
+        return false;
+    }
+
+    /* check both have same data format */
+    if (in1->el_type == MLI_EL_FX_4 || in1->el_type == MLI_EL_FX_8 || in1->el_type == MLI_EL_FX_16) {
+        if (in1->el_params.fx.frac_bits != in2->el_params.fx.frac_bits) {
+            return false;
+        }
+
+    } else if (in1->el_type == MLI_EL_SA_8 || in1->el_type == MLI_EL_SA_32) {
+        if ((in1->el_params.sa.dim != in2->el_params.sa.dim) ||
+            (in1->el_params.sa.zero_point.mem.i16 != in2->el_params.sa.zero_point.mem.i16) ||
+            (in1->el_params.sa.scale.mem.i16 != in2->el_params.sa.scale.mem.i16) ||
+            (in1->el_params.sa.scale_frac_bits.mem.i8 != in2->el_params.sa.scale_frac_bits.mem.i8) ||
+            (in1->el_params.sa.type != in2->el_params.sa.type)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+mli_status mli_chk_eltwise_maxmin_fx8 (const mli_tensor * in1, const mli_tensor * in2, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_eltwise(in1, in2, out, __func__), "");
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    if (!check_same_data_format(in1, in2))
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    if (MLI_CHECK(in1->el_type == MLI_EL_FX_8, "Wrong input tensor type") ||
+        MLI_CHECK(in2->el_type == MLI_EL_FX_8, "Wrong input tensor type"))
+        return MLI_STATUS_TYPE_MISMATCH;
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_chk_eltwise_maxmin_fx16 (const mli_tensor * in1, const mli_tensor * in2, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_eltwise(in1, in2, out, __func__), "");
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    if (!check_same_data_format(in1, in2))
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    if (MLI_CHECK(in1->el_type == MLI_EL_FX_16, "Wrong input tensor type") ||
+        MLI_CHECK(in2->el_type == MLI_EL_FX_16, "Wrong input tensor type"))
+        return MLI_STATUS_TYPE_MISMATCH;
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_chk_eltwise_maxmin_sa8 (const mli_tensor * in1, const mli_tensor * in2, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_eltwise(in1, in2, out, __func__), "");
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    if (!check_same_data_format(in1, in2))
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    if (MLI_CHECK(in1->el_type == MLI_EL_SA_8, "Wrong input tensor type") ||
+        MLI_CHECK(in2->el_type == MLI_EL_SA_8, "Wrong input tensor type"))
+        return MLI_STATUS_TYPE_MISMATCH;
     return MLI_STATUS_OK;
 }
 

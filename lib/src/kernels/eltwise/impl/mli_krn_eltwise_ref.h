@@ -32,41 +32,51 @@ template <typename in_T, typename out_T, mli_eltwise_type func_type, bool conver
 static MLI_FORCE_INLINE out_T eltwise_perform_operation(
         const in_T op1,
         const in_T op2,
-        const int16_t in_offset,
+        const int16_t in_offset1,
+        const int16_t in_offset2,
         const int16_t out_offset,
-        const int16_t scale_factor,
-        const int shift,
-        bool reverse_sub) {
-    int16_t sub_op1, sub_op2;
+        const int16_t scale_factor1,
+        const int16_t scale_factor2,
+        const int pre_op_shift1,
+        const int pre_op_shift2,
+        const int post_op_shift) {
     out_T res = 0;
-    int32_t tmp;
+    typedef typename std::conditional<convert, int32_t, in_T>::type op_T;
+    typedef typename std::conditional<(func_type == ELTWISE_MAX) ||
+                                      (func_type == ELTWISE_MIN), op_T, int64_t>::type accu_T;
+    accu_T acc;
+    op_T input1, input2;
 
-    /* convert to FX16 */
-    int16_t input1 = mli_math_sub_fx<int16_t> (op1, in_offset);
-    int16_t input2 = mli_math_sub_fx<int16_t> (op2, in_offset);
+    if (convert) {
+        input1 = mli_math_sub_fx<int16_t> (op1, in_offset1);
+        input2 = mli_math_sub_fx<int16_t> (op2, in_offset2);
+        input1 = mli_math_mul_fx<int16_t, int32_t>((int16_t) input1, scale_factor1);
+        input2 = mli_math_mul_fx<int16_t, int32_t>((int16_t) input2, scale_factor2);
+    } else {
+        input1 = mli_math_ashift_right_fx<op_T>(op1, pre_op_shift1);
+        input2 = mli_math_ashift_right_fx<op_T>(op2, pre_op_shift2);
+    }
 
     switch (func_type) {
 
     case ELTWISE_ADD:
-        tmp = mli_math_add_fx<int32_t> (input1, input2);
+        acc = mli_math_add_fx<int32_t> (input1, input2);
         break;
 
     case ELTWISE_SUB:
-        sub_op1 = (reverse_sub) ? input2 : input1;
-        sub_op2 = (reverse_sub) ? input1 : input2;
-        tmp = mli_math_sub_fx<int32_t> (sub_op1, sub_op2);
+        acc = mli_math_sub_fx<int32_t> (input1, input2);
         break;
 
     case ELTWISE_MUL:
-        tmp = mli_math_mul_fx<int16_t, int32_t> (input1, input2);
+        acc = mli_math_mul_fx<int32_t, int64_t> (input1, input2);
         break;
 
     case ELTWISE_MAX:
-        tmp = mli_math_max_fx(input1, input2);
+        acc = mli_math_max_fx(input1, input2);
         break;
 
     case ELTWISE_MIN:
-        tmp = mli_math_min_fx(input1, input2);
+        acc = mli_math_min_fx(input1, input2);
         break;
 
     default:
@@ -75,12 +85,11 @@ static MLI_FORCE_INLINE out_T eltwise_perform_operation(
     }
 
     if (convert) {
-        int64_t acc64 = mli_math_mul_fx<int32_t, int64_t>(tmp, scale_factor);
-        int16_t acc = mli_math_cast_fx<int64_t, int16_t>(acc64, shift);
-        acc = mli_math_add_fx<int16_t>(acc, out_offset);
-        res = mli_math_cast_fx<int16_t, int8_t>(acc, 0);
+        int16_t tmp16 = mli_math_cast_fx<accu_T, int16_t>(acc, post_op_shift);
+        tmp16 = mli_math_add_fx<int16_t>(tmp16, out_offset);
+        res = mli_math_cast_fx<int16_t, int8_t>(tmp16, 0);
     } else {
-        res = mli_math_acc_cast_fx<out_T, int32_t> (tmp, shift);
+        res = mli_math_cast_fx<accu_T, out_T> (acc, post_op_shift);
     }
 
     return res;
@@ -95,18 +104,22 @@ MLI_FORCE_INLINE void eltwise_innerloop(
         int idx2,
         int idx_out,
         const int count,
-        const bool scalar_op,
-        const int16_t in_offset,
+        const bool scalar_op1,
+        const bool scalar_op2,
+        const int16_t in_offset1,
+        const int16_t in_offset2,
         const int16_t out_offset,
-        const int16_t scale,
-        const int shift,
-        const bool reverse_sub) {
+        const int16_t scale1,
+        const int16_t scale2,
+        const int pre_op_shift1,
+        const int pre_op_shift2,
+        const int post_op_shift) {
     for (int pos = 0; pos < count; pos++) {
         /* op1_ptr is always vector, op2_ptr can be scalar or vector.*/
-        io_T val1 = op1_ptr[idx1];
-        io_T val2 = scalar_op ? op2_ptr[0] : op2_ptr[idx2];
+        io_T val1 = scalar_op1? op1_ptr[0] : op1_ptr[idx1];
+        io_T val2 = scalar_op2? op2_ptr[0] : op2_ptr[idx2];
         io_T res = mli::krn::eltwise_perform_operation<io_T, io_T, func_type, convert>(
-                val1, val2, in_offset, out_offset, scale, shift, reverse_sub);
+                val1, val2, in_offset1, in_offset2, out_offset, scale1, scale2, pre_op_shift1, pre_op_shift2, post_op_shift);
         out_ptr[idx_out] = res;
         idx1++;
         idx2++;
@@ -121,8 +134,11 @@ static MLI_FORCE_INLINE void eltwise_op_basic(
         generic_tensor_private_t<MLI_OUT_PTR(io_T)> *out,
         const int in1_size,
         const int in2_size,
-        const int mul_out_shift,
-        const struct s8asym_quant_params *in_quant_params,
+        const int pre_op_shift1,
+        const int pre_op_shift2,
+        int post_op_shift,
+        const struct s8asym_quant_params *in_quant_params1,
+        const struct s8asym_quant_params *in_quant_params2,
         const struct s8asym_quant_params *out_quant_params) {
 
     MLI_PRINTF_FUNC();
@@ -130,58 +146,66 @@ static MLI_FORCE_INLINE void eltwise_op_basic(
     MLI_PTR(io_T) op1_ptr;
     MLI_PTR(io_T) op2_ptr;
     int *shape;
-    bool scalar_op = (in1_size == 1 || in2_size == 1);
+    bool scalar_op1 = (in1_size == 1);
+    bool scalar_op2 = (in2_size == 1);
     const generic_tensor_private_t<MLI_PTR(io_T)> *op1 = in1;
     const generic_tensor_private_t<MLI_PTR(io_T)> *op2 = in2;
-    bool reverse_sub = false;
-
-    /* op1 should always be vector. op2 can be scalar */
-    if (in1_size == 1) {
-        /* if op1 is scalar, swap.*/
-        op1 = in2;
-        op2 = in1;
-        reverse_sub = true;
-    }
-
-    shape = (int *) op1->shape;
+    shape = (scalar_op2)? ((int *) op1->shape) : ((int *) op2->shape);
     op1_ptr = op1->ptr;
     op2_ptr = op2->ptr;
 
-    int32_t in_scale_fx = 0, out_scale_fx = 0, in_scale_fx_shifted = 0, scale_factor = 0;
-    int16_t scale16 = 1;
-    int16_t in_offset = 0, out_offset = 0;
+    int32_t in_scale_fx1 = 0, in_scale_fx2 = 0, out_scale_fx = 0, in_scale_fx_shifted = 0,
+            scale_factor1 = 0, scale_factor2 = 0;
+    int16_t scale16_1 = 1, scale16_2 = 1;
+    int16_t in_offset1 = 0, in_offset2 = 0, out_offset = 0;
     const int kMaxFracBitsFx16 = (sizeof(int16_t) * 8) - 1;
     const int frac_bits_fx16 = kMaxFracBitsFx16;
-    int shift_back = 0;
-
     /* For SA8 conversion:
-     *  out_fx = scale_in * [(sa8_in1 - off_in) + (sa8_in2 - off_in)]
-     *  out_sa8 = (out_fx / scale_out) + off_out
+     *  out_fx = scale_in * ADD,SUB,MAX,MIN,MUL[(sa8_in1 - off_in1), (sa8_in2 - off_in2)]
      *
-     *            --------- 1 ----------   -------------------------- 2 --------------------------   --- 3 ---
-     *  out_sa8 = [scale_in / scale_out] * ADD,SUB,MAX,MIN[(sa8_in1 - off_in), (sa8_in2 - off_in)] + [off_out]
+     *  out_sa8 = (out_fx / scale_out) + off_out
+     *                            ---------- 1 ---------    -------- 2 -------  ---------- 3 ---------     ------- 4 -------    --- 5 ---
+     *  out_sa8 = ADD,SUB,MAX,MIN[[scale_in1 / scale_out] * (sa8_in1 - off_in1), [scale_in2 / scale_out] * (sa8_in2 - off_in2)] + [off_out]
      *
      *            ----------------- 1 ---------------   -------------------- 2 --------------------   --- 3 ---
-     *  out_sa8 = [(scale_in / scale_out) * scale_in] * MUL[(sa8_in1 - off_in), (sa8_in2 - off_in)] + [off_out]
+     *  out_sa8 = [(scale_in / scale_out) * scale_in] * MUL[(sa8_in1 - off_in1), (sa8_in2 - off_in2)] + [off_out]
      */
     if (convert) {
-        in_scale_fx = mli_math_acc_ashift_fx<int32_t>(in_quant_params->scale,
-                                                      (int32_t) in_quant_params->shift - frac_bits_fx16);
-        out_scale_fx = mli_math_acc_ashift_fx<int32_t>(out_quant_params->scale,
-                                                       (int32_t) out_quant_params->shift - frac_bits_fx16);
-
-        in_offset = in_quant_params->offset;
+        in_offset1 = in_quant_params1->offset;
+        in_offset2 = in_quant_params2->offset;
         out_offset = out_quant_params->offset;
-
-        in_scale_fx_shifted = mli_math_acc_ashift_fx<int32_t>(in_scale_fx, -IN_SCALE_SHIFT);
-        scale_factor = (func_type == ELTWISE_MUL) ? (in_scale_fx_shifted / out_scale_fx) * in_scale_fx :
-                                                    (in_scale_fx_shifted / out_scale_fx);
-
-        shift_back = (func_type == ELTWISE_MUL) ? IN_SCALE_SHIFT + frac_bits_fx16 : IN_SCALE_SHIFT;
-
-        int norm = (scale_factor != 0) ? mli_math_norm_fx<int32_t, int>(scale_factor) : 0;
-        scale16 = mli_math_asr_rnd_fx(scale_factor, MAX((IN_SCALE_SHIFT - norm), 0));
-        shift_back -= MAX((IN_SCALE_SHIFT - norm), 0);
+        if (func_type == ELTWISE_MUL) {
+            in_scale_fx1 = mli_math_acc_ashift_fx<int32_t>(in_quant_params1->scale,
+                                                          (int32_t) in_quant_params1->shift - frac_bits_fx16);
+            in_scale_fx2 = mli_math_acc_ashift_fx<int32_t>(in_quant_params2->scale,
+                                                          (int32_t) in_quant_params2->shift - frac_bits_fx16);
+            out_scale_fx = mli_math_acc_ashift_fx<int32_t>(out_quant_params->scale,
+                                                           (int32_t) out_quant_params->shift - frac_bits_fx16);
+            in_scale_fx_shifted = mli_math_acc_ashift_fx<int32_t>(in_scale_fx1, -IN_SCALE_SHIFT);
+            scale_factor1 = (in_scale_fx_shifted / out_scale_fx) * in_scale_fx2;
+            post_op_shift = IN_SCALE_SHIFT + frac_bits_fx16;
+            int norm = (scale_factor1 != 0) ? mli_math_norm_fx<int32_t, int>(scale_factor1) : 0;
+            int shift = MAX((IN_SCALE_SHIFT - norm), 0);
+            scale16_1 = mli_math_cast_fx<int32_t, int16_t>(scale_factor1, shift);
+            post_op_shift -= shift;
+        } else {
+            in_scale_fx1 = mli_math_acc_ashift_fx<int32_t>(in_quant_params1->scale,
+                                                           (int32_t) in_quant_params1->shift - frac_bits_fx16);
+            in_scale_fx2 = mli_math_acc_ashift_fx<int32_t>(in_quant_params2->scale,
+                                                           (int32_t) in_quant_params2->shift - frac_bits_fx16);
+            out_scale_fx = mli_math_acc_ashift_fx<int32_t>(out_quant_params->scale, (int32_t) out_quant_params->shift - frac_bits_fx16);
+            in_scale_fx1 = mli_math_acc_ashift_fx<int32_t>(in_scale_fx1, -IN_SCALE_SHIFT);
+            in_scale_fx2 = mli_math_acc_ashift_fx<int32_t>(in_scale_fx2, -IN_SCALE_SHIFT);
+            scale_factor1 = (in_scale_fx1 / out_scale_fx);
+            scale_factor2 = (in_scale_fx2 / out_scale_fx);
+            post_op_shift = IN_SCALE_SHIFT;
+            int norm1 = (scale_factor1 != 0) ? mli_math_norm_fx<int32_t, int>(scale_factor1) : 0;
+            int norm2 = (scale_factor2 != 0) ? mli_math_norm_fx<int32_t, int>(scale_factor2) : 0;
+            int shift = MAX(IN_SCALE_SHIFT - MIN(norm1, norm2), 0);
+            scale16_1 = mli_math_cast_fx<int32_t, int16_t>(scale_factor1, shift);
+            scale16_2 = mli_math_cast_fx<int32_t, int16_t>(scale_factor2, shift);
+            post_op_shift -= shift;
+        }
     }
 
     for (int pos0 = 0; pos0 < shape[0]; pos0++) {
@@ -193,13 +217,11 @@ static MLI_FORCE_INLINE void eltwise_op_basic(
                 int idx = POS(out, pos0, pos1, pos2, pos3);
 
                 mli::krn::eltwise_innerloop<io_T, func_type, convert>(
-                        op1_ptr, op2_ptr, out->ptr, idx1, idx2, idx, shape[3], scalar_op,
-                        in_offset, out_offset, scale16, convert ? shift_back : mul_out_shift, reverse_sub);
-
+                        op1_ptr, op2_ptr, out->ptr, idx1, idx2, idx, shape[3], scalar_op1, scalar_op2, in_offset1,
+                        in_offset2, out_offset, scale16_1, scale16_2, pre_op_shift1, pre_op_shift2, post_op_shift);
             } /* pos1 */
         } /* pos2 */
     } /* pos3 */
-
 }
 
 //======================================================
@@ -215,13 +237,17 @@ static MLI_FORCE_INLINE void eltwise_prepare_and_run(
 
     mli_prv_fx_init_dsp_ctrl();
 
-    struct s8asym_quant_params in_quant_params;
+    struct s8asym_quant_params in_quant_params1;
+    struct s8asym_quant_params in_quant_params2;
     struct s8asym_quant_params out_quant_params;
 
     if (convert) {
-        in_quant_params.offset = in1->el_params.sa.zero_point.mem.i16;
-        in_quant_params.scale = in1->el_params.sa.scale.mem.i16;
-        in_quant_params.shift = in1->el_params.sa.scale_frac_bits.mem.i8;
+        in_quant_params1.offset = in1->el_params.sa.zero_point.mem.i16;
+        in_quant_params1.scale = in1->el_params.sa.scale.mem.i16;
+        in_quant_params1.shift = in1->el_params.sa.scale_frac_bits.mem.i8;
+        in_quant_params2.offset = in2->el_params.sa.zero_point.mem.i16;
+        in_quant_params2.scale = in2->el_params.sa.scale.mem.i16;
+        in_quant_params2.shift = in2->el_params.sa.scale_frac_bits.mem.i8;
         out_quant_params.offset = out->el_params.sa.zero_point.mem.i16;
         out_quant_params.scale = out->el_params.sa.scale.mem.i16;
         out_quant_params.shift = out->el_params.sa.scale_frac_bits.mem.i8;
@@ -240,10 +266,6 @@ static MLI_FORCE_INLINE void eltwise_prepare_and_run(
     io_T in1_scalar = (io_T)(in1->data.mem.i32);
     io_T in2_scalar = (io_T)(in2->data.mem.i32);
 
-    /* Calc outshift for MUL operation */
-    const int out_shift = (func_type == ELTWISE_MUL)? mli_prv_calc_shift(in1, in2, out):
-                                                      in1->el_params.fx.frac_bits - out->el_params.fx.frac_bits;
-
     /* Fill output tensor parameters
     //======================================
     */
@@ -256,6 +278,14 @@ static MLI_FORCE_INLINE void eltwise_prepare_and_run(
     auto in1_prv =  mli_prv_get_generic_tensor<MLI_PTR(io_T)>(in1);
     auto in2_prv =  mli_prv_get_generic_tensor<MLI_PTR(io_T)>(in2);
     auto out_prv =  mli_prv_get_generic_tensor<MLI_OUT_PTR(io_T)>(out);
+    int pre_op_shift1 = 0, pre_op_shift2 = 0, post_op_shift = 0;
+    if (func_type == ELTWISE_MUL) {
+        post_op_shift = mli_prv_calc_shift(in1, in2, out);
+    } else {
+        pre_op_shift1 = MAX(in1->el_params.fx.frac_bits -  in2->el_params.fx.frac_bits, 0);
+        pre_op_shift2 = MAX(in2->el_params.fx.frac_bits -  in1->el_params.fx.frac_bits, 0);
+        post_op_shift = MIN(in1->el_params.fx.frac_bits, in2->el_params.fx.frac_bits) - out->el_params.fx.frac_bits;
+    }
 
     /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
     mli_prv_reorder_generic_tensor<MLI_PTR(io_T)>(&in1_prv );
@@ -266,9 +296,9 @@ static MLI_FORCE_INLINE void eltwise_prepare_and_run(
     in2_prv.ptr = (in2->rank != 0)? in2_ptr: (MLI_PTR(io_T)) &in2_scalar;
     out_prv.ptr = out_ptr;
 
-    mli::krn::eltwise_op_basic<io_T, func_type, convert>(
-            &in1_prv, &in2_prv, &out_prv,
-            in1_sz, in2_sz, out_shift, &in_quant_params, &out_quant_params);
+    mli::krn::eltwise_op_basic<io_T, func_type, convert>(&in1_prv, &in2_prv, &out_prv,
+                                                         in1_sz, in2_sz, pre_op_shift1, pre_op_shift2,
+                                                         post_op_shift, &in_quant_params1, &in_quant_params2, &out_quant_params);
 
 }
 
