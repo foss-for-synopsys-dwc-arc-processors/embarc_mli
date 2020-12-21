@@ -339,6 +339,10 @@ mli_status mli_chk_leaky_relu_sa8(const mli_tensor * in, const mli_tensor * slop
 mli_status mli_chk_eltwise_fx8(const mli_tensor * left, const mli_tensor * right, mli_tensor * out);
 mli_status mli_chk_eltwise_fx16(const mli_tensor * left, const mli_tensor * right, mli_tensor * out);
 mli_status mli_chk_eltwise_sa8(const mli_tensor * left, const mli_tensor * right, mli_tensor * out);
+mli_status mli_chk_eltwise_maxmin_fx8(const mli_tensor * left, const mli_tensor * right, mli_tensor * out);
+mli_status mli_chk_eltwise_maxmin_fx16(const mli_tensor * left, const mli_tensor * right, mli_tensor * out);
+mli_status mli_chk_eltwise_maxmin_sa8(const mli_tensor * left, const mli_tensor * right, mli_tensor * out);
+
 
 mli_status mli_chk_prelu(
         const mli_tensor * in, 

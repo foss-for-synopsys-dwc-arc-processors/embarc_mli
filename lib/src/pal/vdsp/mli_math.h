@@ -527,9 +527,6 @@ MLI_FORCE_INLINE T mli_math_asr_rnd_fx(T x, shift_T nbits) {
 }
 
 template <>
-MLI_FORCE_INLINE vNx4accshort_t mli_math_mac_fx(vNx4accshort_t acc, vNx4char_t L, vNx4char_t R);
-
-template <>
 MLI_FORCE_INLINE vNx4accshort_t mli_math_asr_rnd_fx(vNx4accshort_t x, vNx4short_t nbits) {
     vNx4accshort_t r;
 #ifdef ROUND_UP
@@ -543,9 +540,6 @@ MLI_FORCE_INLINE vNx4accshort_t mli_math_asr_rnd_fx(vNx4accshort_t x, vNx4short_
     r = mli_math_asr_fx(r, nbits);
     return r;
 }
-
-template <>
-MLI_FORCE_INLINE vNx2accint_t mli_math_mac_fx(vNx2accint_t acc, vNx2short_t L, vNx2short_t R);
 
 template <>
 MLI_FORCE_INLINE vNx2accint_t mli_math_asr_rnd_fx(vNx2accint_t x, vNx2int_t nbits) {
@@ -797,6 +791,13 @@ MLI_FORCE_INLINE vNx4accshort_t mli_math_init_accu(vNx4short_t val) {
 }
 
 template <>
+MLI_FORCE_INLINE vNx2accint_t mli_math_init_accu(int32_t val) {
+    vNx2accint_t acc;
+    acc = __vacc_concat(vvcadd_init((vNint_t)val,(int32_t)0), vvcadd_init((vNint_t)val,(int32_t)0));
+    return acc;
+}
+
+template <>
 MLI_FORCE_INLINE vNx4accint_t mli_math_init_accu(int32_t val) {
     vNx4accint_t acc;
     acc.lo = __vacc_concat(vvcadd_init((vNint_t)val,(int32_t)0), vvcadd_init((vNint_t)val,(int32_t)0));
@@ -809,6 +810,11 @@ MLI_FORCE_INLINE vNx4accint_t mli_math_init_accu(int32_t val) {
 template <>
 MLI_FORCE_INLINE int8_t mli_math_cast_fx(int16_t in_val, int shift_right) {
     return (int8_t)mli_math_sat_fx<int16_t>(mli_math_asr_rnd_fx<int16_t, int>(in_val, shift_right), 8);
+}
+
+template <>
+MLI_FORCE_INLINE int8_t mli_math_cast_fx(int8_t in_val, int shift_right) {
+    return (int8_t)mli_math_asr_rnd_fx<int8_t, int>((int8_t)in_val, shift_right);
 }
 
 template <>
@@ -1284,6 +1290,19 @@ MLI_FORCE_INLINE vNx4char_t mli_math_acc_cast_fx<vNx4char_t, vNx4accshort_t,/*ro
 }
 
 template<>
+MLI_FORCE_INLINE vNx2short_t mli_math_acc_cast_fx<vNx2short_t, vNx2accint_t,/*round = */ false>(
+        vNx2accint_t acc, int shift_right) {
+    MLI_EXTRA_ASSERT(shift_right >= 0);
+
+    int ctrlword = SAT|SIGNED|TARGET_SZ_16|SHIFT(shift_right);
+    vNx2int_t accu_result;
+    accu_result.lo = to_vNint_t(vvconvert(__vacc_lo(acc), ctrlword));
+    accu_result.hi = to_vNint_t(vvconvert(__vacc_hi(acc), ctrlword));
+
+    return to_vNx2short_t(accu_result);
+}
+
+template<>
 MLI_FORCE_INLINE vNx4char_t mli_math_acc_cast_fx(vNx4accshort_t acc, int shift_right) {
     MLI_EXTRA_ASSERT(shift_right >= 0);
 
@@ -1735,6 +1754,7 @@ MLI_FORCE_INLINE vNx4accint_t mli_math_msub_fx(vNx4accint_t acc, vNx4short_t L, 
     return r;
 }
 
+
 template <>
 MLI_FORCE_INLINE vNx4accshort_t mli_math_msub_fx(vNx4accshort_t acc, vNx4char_t L, vNx4char_t R) {
     return vvcmsub(acc, L, R);
@@ -1761,7 +1781,6 @@ MLI_FORCE_INLINE vNx4accint_t mli_math_msub_fx(vNx4accint_t acc, vNx4char_t L, v
     r.hi = mli_math_msub_fx(acc.hi, l_short.hi, R.lo);
     return r;
 }
-
 
 // Accumulator shift
 //========================================================================
@@ -1839,6 +1858,13 @@ MLI_FORCE_INLINE vNx4accshort_t mli_math_init_accu_sub(vNx4short_t L, vNx4short_
     return acc;
 }
 
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_math_init_accu_sub(vNx2int_t L, vNx2int_t R) {
+    vNx2accint_t acc;
+    acc = __vacc_concat(vvcsub_init(L.lo, R.lo), vvcsub_init(L.hi, R.hi));
+    return acc;
+}
+
 template <typename in_T, typename acc_T>
 MLI_FORCE_INLINE acc_T mli_math_init_accu_add(in_T L, in_T R) {
     acc_T acc = vvcadd_init(L, R);
@@ -1848,6 +1874,13 @@ MLI_FORCE_INLINE acc_T mli_math_init_accu_add(in_T L, in_T R) {
 template <>
 MLI_FORCE_INLINE vNx4accshort_t mli_math_init_accu_add(vNx4short_t L, vNx4short_t R) {
     vNx4accshort_t acc;
+    acc = __vacc_concat(vvcadd_init(L.lo, R.lo), vvcadd_init(L.hi, R.hi));
+    return acc;
+}
+
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_math_init_accu_add(vNx2int_t L, vNx2int_t R) {
+    vNx2accint_t acc;
     acc = __vacc_concat(vvcadd_init(L.lo, R.lo), vvcadd_init(L.hi, R.hi));
     return acc;
 }

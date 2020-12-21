@@ -50,27 +50,27 @@ struct eltwise_test_operands {
 #if defined(CRC_RM_CONVERGENT) || defined(CRC_RM_UP)
 
 // Shared CRC Results
-const crc32_calc                                    test_1_chksum_sa8{ 0x4008A4D1 },
-                                                    test_2_chksum_sa8{ 0x50D0137A },
-                                                    test_3_chksum_sa8{ 0x854D8C34 },
-                                                    test_4_chksum_sa8{ 0x7BA6BC9C },
-                                                    test_5_chksum_sa8{ 0xC9B4EB5C },
-                  test_6_chksum_fx16{ 0xD4017460 }, test_6_chksum_sa8{ 0x69C44156 },
-                  test_7_chksum_fx16{ 0x50942AAD }, test_7_chksum_sa8{ 0xB8868F20 },
-                  test_8_chksum_fx16{ 0x258BC1E6 }, test_8_chksum_sa8{ 0x2BFAA444 },
-                  test_9_chksum_fx16{ 0xC2B112D5 }, test_9_chksum_sa8{ 0x2474658A },
-                  test_10_chksum_fx16{ 0xA5E10AE2 }, test_10_chksum_sa8{ 0x9F546EC7 },
-                  test_11_chksum_fx16{ 0x1F25CA48 }, test_11_chksum_sa8{ 0x15960DF3 };
+const crc32_calc                                    test_1_chksum_sa8{ 0xd48163e7 },
+                                                    test_2_chksum_sa8{ 0x6CE064A1 },
+                                                    test_3_chksum_sa8{ 0x3b9100e1 },
+                                                    test_4_chksum_sa8{ 0xF22D7321 },
+                                                    test_5_chksum_sa8{ 0x8ECBC7B8 },
+                  test_6_chksum_fx16{ 0xfc026def }, test_6_chksum_sa8{ 0x3a54561 },
+                  test_7_chksum_fx16{ 0x488ed527 }, test_7_chksum_sa8{ 0xDA50B98A },
+                  test_8_chksum_fx16{ 0x68889D84 }, test_8_chksum_sa8{ 0x168B3B32 },
+                  test_9_chksum_fx16{ 0x9417F3D7 }, test_9_chksum_sa8{ 0x3382BC48 },
+                  test_10_chksum_fx16{ 0xD728E430 }, test_10_chksum_sa8{ 0xE34DA6B0 },
+                  test_11_chksum_fx16{ 0xBF03F2E0 }, test_11_chksum_sa8{ 0xD36B7E94 };
 
 // Platform Specific CRC Results
 #if defined(CRC_RM_UP)
-const crc32_calc test_1_chksum_fx16{ 0x57EFA36F }, test_2_chksum_fx16{ 0xE792F0B1 },
-                 test_3_chksum_fx16{ 0xECCC8FD7 }, test_4_chksum_fx16{ 0x101552B7 },
-                 test_5_chksum_fx16{ 0xC9F6FD2F };
+const crc32_calc test_1_chksum_fx16{ 0xC5BD8154 }, test_2_chksum_fx16{ 0x170065BD },
+                 test_3_chksum_fx16{ 0x34f32ee0 }, test_4_chksum_fx16{ 0x0DECE100 },
+                 test_5_chksum_fx16{ 0x1a678d57 };
 #else
-const crc32_calc test_1_chksum_fx16{ 0x0A4EBC56 }, test_2_chksum_fx16{ 0xCADC283E },
-                 test_3_chksum_fx16{ 0xECCC8FD7 }, test_4_chksum_fx16{ 0x70CC812E },
-                 test_5_chksum_fx16{ 0x339BA897 };
+const crc32_calc test_1_chksum_fx16{ 0x80C6E2B7 }, test_2_chksum_fx16{ 0x10D03580 },
+                 test_3_chksum_fx16{ 0xD6C9167D }, test_4_chksum_fx16{ 0x5B406931 },
+                 test_5_chksum_fx16{ 0x1DB7DD6A };
 #endif
 
 #else  // Not defined CRC_*
@@ -97,91 +97,91 @@ const quality_metrics thresholds_sa8_general { quality_metrics::kPassValueMaxAbs
 static const eltwise_test_operands tests_list[] = {
     // Eltwise add of two vectors
     {"Test 1 FX16 Add two vectors",  mli_krn_eltwise_add_fx16,
-                                     input_1_fx16_12, input_2_fx16_12, test_1_out_fx16,
+                                     input_1_fx16, input_2_fx16, test_1_out_fx16,
                                      thresholds_fx16_general, test_1_chksum_fx16},
     {"Test 1 SA8 Add two vectors",  mli_krn_eltwise_add_sa8,
-                                    input_1_sa8_12, input_2_sa8_12, test_1_out_sa8,
+                                    input_1_sa8, input_2_sa8, test_1_out_sa8,
                                     thresholds_sa8_general, test_1_chksum_sa8},
 
     // Eltwise add of vector and scalar
     {"Test 2 FX16 Add vec & scalar",  mli_krn_eltwise_add_fx16,
-                                      input_2_fx16_23, input_3_fx16_23, test_2_out_fx16,
+                                      input_2_fx16, input_3_fx16, test_2_out_fx16,
                                       thresholds_fx16_general, test_2_chksum_fx16},
     {"Test 2 SA8 Add vec & scalar",  mli_krn_eltwise_add_sa8,
-                                     input_2_sa8_23, input_3_sa8_23, test_2_out_sa8,
+                                     input_2_sa8, input_3_sa8, test_2_out_sa8,
                                      thresholds_sa8_general, test_2_chksum_sa8},
 
     // Eltwise sub of two vectors
     {"Test 3 FX16 Sub two vectors",  mli_krn_eltwise_sub_fx16,
-                                     input_1_fx16_12, input_2_fx16_12, test_3_out_fx16,
+                                     input_1_fx16, input_2_fx16, test_3_out_fx16,
                                      thresholds_fx16_general, test_3_chksum_fx16},
     {"Test 3 SA8 Sub two vectors",  mli_krn_eltwise_sub_sa8,
-                                    input_1_sa8_12, input_2_sa8_12, test_3_out_sa8,
+                                    input_1_sa8, input_2_sa8, test_3_out_sa8,
                                     thresholds_sa8_general, test_3_chksum_sa8},
 
     // Eltwise sub scalar from vec
     {"Test 4 FX16 Sub scalar - vec",  mli_krn_eltwise_sub_fx16,
-                                      input_1_fx16_13, input_3_fx16_13, test_4_out_fx16,
+                                      input_1_fx16, input_3_fx16, test_4_out_fx16,
                                       thresholds_fx16_general, test_4_chksum_fx16},
     {"Test 4 SA8 Sub scalar - vec",  mli_krn_eltwise_sub_sa8,
-                                     input_1_sa8_13, input_3_sa8_13, test_4_out_sa8,
+                                     input_1_sa8, input_3_sa8, test_4_out_sa8,
                                      thresholds_sa8_general, test_4_chksum_sa8},
 
     // Eltwise sub vec from scalar
     {"Test 5 FX16 Sub vec - scalar",  mli_krn_eltwise_sub_fx16,
-                                      input_3_fx16_23, input_2_fx16_23, test_5_out_fx16,
+                                      input_3_fx16, input_2_fx16, test_5_out_fx16,
                                       thresholds_fx16_general, test_5_chksum_fx16},
     {"Test 5 SA8 Sub vec - scalar",  mli_krn_eltwise_sub_sa8,
-                                     input_3_sa8_23, input_2_sa8_23, test_5_out_sa8,
+                                     input_3_sa8, input_2_sa8, test_5_out_sa8,
                                      thresholds_sa8_general, test_5_chksum_sa8},
 
     // Eltwise Mul of two vectors
     {"Test 6 FX16 Mul two vectors",  mli_krn_eltwise_mul_fx16,
-                                     input_1_fx16_12, input_2_fx16_12, test_6_out_fx16,
+                                     input_1_fx16, input_2_fx16, test_6_out_fx16,
                                      thresholds_fx16_general, test_6_chksum_fx16},
     {"Test 6 SA8 Mul two vectors",  mli_krn_eltwise_mul_sa8,
-                                    input_1_sa8_12, input_2_sa8_12, test_6_out_sa8,
+                                    input_1_sa8, input_2_sa8, test_6_out_sa8,
                                     thresholds_sa8_general, test_6_chksum_sa8},
 
     // Eltwise Mul vector & scalar
     {"Test 7 FX16 Mul vec & scalar",  mli_krn_eltwise_mul_fx16,
-                                      input_1_fx16_13, input_3_fx16_13, test_7_out_fx16,
+                                      input_1_fx16, input_3_fx16, test_7_out_fx16,
                                       thresholds_fx16_general, test_7_chksum_fx16},
     {"Test 7 SA8 Mul vec & scalar",  mli_krn_eltwise_mul_sa8,
-                                     input_1_sa8_13, input_3_sa8_13, test_7_out_sa8,
+                                     input_1_sa8, input_3_sa8, test_7_out_sa8,
                                      thresholds_sa8_general, test_7_chksum_sa8},
 
     // Eltwise Max two vectors
     {"Test 8 FX16 Max two vectors",  mli_krn_eltwise_max_fx16,
-                                     input_1_fx16_12, input_2_fx16_12, test_8_out_fx16,
-                                     thresholds_fx16_general, test_8_chksum_fx16},
+                                   input_1_fx16_12, input_2_fx16_12, test_8_out_fx16,
+                                   thresholds_fx16_general, test_8_chksum_fx16},
     {"Test 8 SA8 Max two vectors",  mli_krn_eltwise_max_sa8,
-                                    input_1_sa8_12, input_2_sa8_12, test_8_out_sa8,
-                                    thresholds_sa8_general, test_8_chksum_sa8},
+                                  input_1_sa8_12, input_2_sa8_12, test_8_out_sa8,
+                                  thresholds_sa8_general, test_8_chksum_sa8},
 
     // Eltwise Max vector & scalar
     {"Test 9 FX16 Max vec & scalar",  mli_krn_eltwise_max_fx16,
-                                      input_1_fx16_13, input_3_fx16_13, test_9_out_fx16,
-                                      thresholds_fx16_general, test_9_chksum_fx16},
+                                    input_1_fx16_13, input_3_fx16_13, test_9_out_fx16,
+                                    thresholds_fx16_general, test_9_chksum_fx16},
     {"Test 9 SA8 Max vec & scalar",  mli_krn_eltwise_max_sa8,
-                                     input_1_sa8_13, input_3_sa8_13, test_9_out_sa8,
-                                     thresholds_sa8_general, test_9_chksum_sa8},
+                                   input_1_sa8_13, input_3_sa8_13, test_9_out_sa8,
+                                   thresholds_sa8_general, test_9_chksum_sa8},
 
     // Eltwise Min two vectors
     {"Test 10 FX16 Min two vectors",  mli_krn_eltwise_min_fx16,
-                                      input_1_fx16_12, input_2_fx16_12, test_10_out_fx16,
-                                      thresholds_fx16_general, test_10_chksum_fx16},
+                                    input_1_fx16_12, input_2_fx16_12, test_10_out_fx16,
+                                    thresholds_fx16_general, test_10_chksum_fx16},
     {"Test 10 SA8 Min two vectors",  mli_krn_eltwise_min_sa8,
-                                     input_1_sa8_12, input_2_sa8_12, test_10_out_sa8,
-                                     thresholds_sa8_general, test_10_chksum_sa8},
+                                   input_1_sa8_12, input_2_sa8_12, test_10_out_sa8,
+                                   thresholds_sa8_general, test_10_chksum_sa8},
 
     // Eltwise Min vector & scalar
     {"Test 11 FX16 Min vec & scalar",  mli_krn_eltwise_min_fx16,
-                                       input_1_fx16_13, input_3_fx16_13, test_11_out_fx16,
-                                       thresholds_fx16_general, test_11_chksum_fx16},
+                                     input_1_fx16_13, input_3_fx16_13, test_11_out_fx16,
+                                     thresholds_fx16_general, test_11_chksum_fx16},
     {"Test 11 SA8 Min vec & scalar",  mli_krn_eltwise_min_sa8,
-                                      input_1_sa8_13, input_3_sa8_13, test_11_out_sa8,
-                                      thresholds_sa8_general, test_11_chksum_sa8},
+                                    input_1_sa8_13, input_3_sa8_13, test_11_out_sa8,
+                                    thresholds_sa8_general, test_11_chksum_sa8},
 };
 
 constexpr int kMemSize = 2048;
@@ -203,16 +203,6 @@ int main() {
         bool is_test_passed = true;
         const eltwise_test_operands* cur_test = &tests_list[i];
         quality_metrics test_metics;
-
-#if __Xvec_guard_bit_option == 0 && defined(__Xvec_guard_bit_option)
-        if (strstr(cur_test->descr, "Test 1 FX16 Add two vectors") != nullptr ||
-                strstr(cur_test->descr, "Test 2 FX16 Add vec & scalar") != nullptr) {
-            // VPX fails bitwise comparison with reference .
-            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
-            continue;
-        }
-#endif
-
         if (!(cur_test->in1.is_valid() && cur_test->in2.is_valid() && cur_test->out.is_valid())) {
             reporter.report_message(cur_test->descr, "FAILED at init: Bad source data for one of tensors");
             is_test_passed = false;
@@ -284,7 +274,7 @@ int main() {
                                         : "FAILED as per-axis quantization of output tensor isn't supported");
             }
         }
-
+        
         if (is_test_passed) {
             crc32_calc data_crc;
             data_crc(input1);
@@ -293,6 +283,7 @@ int main() {
             is_test_passed &= reporter.evaluate_and_report_case(cur_test->descr, test_metics, cur_test->threshold, 
                                                                 data_crc, cur_test->check_sum);
         }
+
         final_status &= is_test_passed;
     }
 
