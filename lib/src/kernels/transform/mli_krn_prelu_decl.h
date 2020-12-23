@@ -150,6 +150,27 @@ MLI_FORCE_INLINE void compute_prelu(
         MLI_OUT_PTR(int16_t) vec_out,
         const int shift,
         const int remaining_part);
+
+static MLI_FORCE_INLINE s8asym_quant_params_v prelu_define_requant_params(const mli_tensor *in, 
+        const mli_tensor *slope_coeff,
+        mli_tensor *out,
+        vNx4char_t alpha_sa8,
+        s8asym_quant_params *identity_params);
+
+static MLI_FORCE_INLINE void compute_prelu(
+        const MLI_PTR(int8_t) vec_in,
+        MLI_OUT_PTR(int8_t) vec_out,
+        int16_t in_zp,
+        const s8asym_quant_params *identity_params,
+        const s8asym_quant_params_v *alpha_params);
+
+static MLI_FORCE_INLINE void compute_prelu(
+        const MLI_PTR(int8_t) vec_in,
+        MLI_OUT_PTR(int8_t) vec_out,
+        int16_t in_zp,
+        const s8asym_quant_params *identity_params,
+        const s8asym_quant_params_v *alpha_params,
+        const int remaining_part);
 #endif
 
 } // namespace vdsp

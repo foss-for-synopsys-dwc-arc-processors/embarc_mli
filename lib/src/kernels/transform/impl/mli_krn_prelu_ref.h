@@ -30,7 +30,7 @@ static MLI_FORCE_INLINE void compute_prelu(
         const scale_T scale,
         MLI_OUT_PTR(io_T) vec_out,
         const int shift) {
-    io_T input = mli_prv_load_1vec(vec_in);
+    io_T input = vec_in[0];
     io_T zero = 0;
     /* out  = max(0, in) + alpha * min(0, in) */
     io_T pos = mli_math_max_fx(zero, input);
@@ -61,7 +61,7 @@ static MLI_FORCE_INLINE void compute_prelu(
         const s8asym_quant_params *alpha_params) {
 
     /* Load Input */
-    int8_t input = mli_prv_load_1vec(vec_in);
+    int8_t input = vec_in[0];
     int16_t output;
     if (input >= in_zp) {
         /* out_sa8 = (idendity_scale * in_sa8) * 2^(-(identity_shift)) + identity_offset */

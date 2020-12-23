@@ -46,6 +46,11 @@ struct s8asym_quant_params {
 	int16_t scale;
 };
 #if defined(__Xvec_width)
+struct s8asym_quant_params_v {
+	vNx4short_t offset;
+	vNx4short_t shift;
+	vNx4short_t scale;
+};
 struct s8asym_quant_specific_out_params_v {
     int16_t out_offset;
     vNx4short_t out_mul;
