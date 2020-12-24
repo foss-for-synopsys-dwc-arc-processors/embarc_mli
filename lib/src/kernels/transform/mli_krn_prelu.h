@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -30,6 +30,7 @@ using mli::krn::ref::prelu_sa8_run;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
 using mli::krn::dsp::compute_prelu;
+using mli::krn::dsp::prelu_define_requant_params;
 using mli::krn::ref::prelu_fx_run;
 using mli::krn::ref::prelu_sa8_run;
 

@@ -1,5 +1,5 @@
 /*
-* Copyright 2020-2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -1679,19 +1679,19 @@ MLI_FORCE_INLINE grp_pvNx2_t init_predicate_grp(vNx4short_t in) {
 }
 
 MLI_FORCE_INLINE pvNx4 init_predicate(int limit, vNx4char_t in) {
-      return to_pvNx4(vvci_b() < limit);
+    return to_pvNx4(vvci_b() < limit);
 }
 
 MLI_FORCE_INLINE pvNx2 init_predicate(int limit, vNx2short_t in) {
-      return to_pvNx2(vvci_h() < limit);
+    return to_pvNx2(vvci_h() < limit);
 }
 
 MLI_FORCE_INLINE pvNx4 init_predicate(vNx4char_t in) {
-      return to_pvNx4(in);
+    return to_pvNx4(in);
 }
 
 MLI_FORCE_INLINE pvNx2 init_predicate(vNx2short_t in) {
-      return to_pvNx2(in);
+    return to_pvNx2(in);
 }
 
 template<typename vec_T, typename pred_T>

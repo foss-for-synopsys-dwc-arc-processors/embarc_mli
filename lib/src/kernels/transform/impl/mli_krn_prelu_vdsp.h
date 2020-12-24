@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -24,8 +24,8 @@ namespace krn {
 namespace vdsp {
 
 static MLI_FORCE_INLINE vNx4char_t calc_prelu(
-        vNx4char_t input,
-        vNx4char_t scale,
+        const vNx4char_t input,
+        const vNx4char_t scale,
         const int shift ) {
     /* out  = max(0, in) + alpha * min(0, in) */
     vNx4char_t pos = mli_math_max_fx(input, 0);
@@ -36,8 +36,8 @@ static MLI_FORCE_INLINE vNx4char_t calc_prelu(
 }
 
 static MLI_FORCE_INLINE vNx2short_t calc_prelu(
-        vNx2short_t input,
-        vNx2short_t scale,
+        const vNx2short_t input,
+        const vNx2short_t scale,
         const int shift ) {
     /* out  = max(0, in) + alpha * min(0, in) */
     vNx2short_t pos = mli_math_max_fx(input, 0);
@@ -96,10 +96,10 @@ MLI_FORCE_INLINE void compute_prelu(
 static MLI_FORCE_INLINE s8asym_quant_params_v prelu_define_requant_params(const mli_tensor *in, 
         const mli_tensor *slope_coeff,
         mli_tensor *out,
-        vNx4char_t alpha_sa8,
-        s8asym_quant_params *identity_params) {
+        const vNx4char_t alpha_sa8,
+        const s8asym_quant_params *identity_params) {
 
-    vNx4int_t alpha_val = mli_prv_convert_sa8_fx16<vNx4char_t, vNx4int_t>(alpha_sa8, 
+    vNx4int_t alpha_val = mli_prv_convert_sa8_fx32(alpha_sa8, 
                             slope_coeff->el_params.sa.zero_point.mem.i16,
                             slope_coeff->el_params.sa.scale.mem.i16);
     /* Normalize alpha and cast to 16bit */
@@ -137,7 +137,7 @@ static MLI_FORCE_INLINE s8asym_quant_params_v prelu_define_requant_params(const 
 
 static MLI_FORCE_INLINE vNx4char_t calc_prelu(
         const MLI_PTR(int8_t) vec_in,
-        int16_t in_zp,
+        const int16_t in_zp,
         const s8asym_quant_params *identity_params,
         const s8asym_quant_params_v *alpha_params) {
     /* Load Input */
@@ -172,7 +172,7 @@ static MLI_FORCE_INLINE vNx4char_t calc_prelu(
 static MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(int8_t) vec_in,
         MLI_OUT_PTR(int8_t) vec_out,
-        int16_t in_zp,
+        const int16_t in_zp,
         const s8asym_quant_params *identity_params,
         const s8asym_quant_params_v *alpha_params) {
 
@@ -183,7 +183,7 @@ static MLI_FORCE_INLINE void compute_prelu(
 static MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(int8_t) vec_in,
         MLI_OUT_PTR(int8_t) vec_out,
-        int16_t in_zp,
+        const int16_t in_zp,
         const s8asym_quant_params *identity_params,
         const s8asym_quant_params_v *alpha_params,
         const int remaining_part) {

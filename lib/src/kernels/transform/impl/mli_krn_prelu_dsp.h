@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -24,8 +24,8 @@ namespace krn {
 namespace dsp {
 
 static MLI_FORCE_INLINE v2q15_t calc_prelu(
-        v2q15_t input,
-        v2q15_t scale_v,
+        const v2q15_t input,
+        const v2q15_t scale_v,
         const int shift) {
 
     /* out  = max(0, in) + alpha * min(0, in) */
@@ -58,6 +58,50 @@ static MLI_FORCE_INLINE void compute_prelu(
     MLI_ASSERT(remaining_part == 1);
     v2q15_t input = mli_prv_load_1vec(vec_in);
     mli_prv_store_1_sample(vec_out, calc_prelu(input, scale, shift));
+}
+
+static MLI_FORCE_INLINE s8asym_quant_params_v prelu_define_requant_params(const mli_tensor *in, 
+        const mli_tensor *slope_coeff,
+        mli_tensor *out,
+        const v2q15_t alpha_sa8,
+        const s8asym_quant_params *identity_params) {
+
+    s8asym_quant_params scale0 = mli::krn::ref::prelu_define_requant_params(in, slope_coeff, out, 
+                                                                            alpha_sa8[0], identity_params);
+    s8asym_quant_params scale1 = mli::krn::ref::prelu_define_requant_params(in, slope_coeff, out, 
+                                                                            alpha_sa8[1], identity_params);
+    s8asym_quant_params_v alpha_params;
+    alpha_params.scale  = mli_prv_init_v(scale0.scale,  scale1.scale );
+    alpha_params.shift  = mli_prv_init_v(scale0.shift,  scale1.shift );
+    alpha_params.offset = mli_prv_init_v(scale0.offset, scale1.offset);
+    return alpha_params;
+}
+
+static MLI_FORCE_INLINE void compute_prelu(
+        const MLI_PTR(int8_t) vec_in,
+        MLI_OUT_PTR(int8_t) vec_out,
+        const int16_t in_zp,
+        const s8asym_quant_params *identity_params,
+        const s8asym_quant_params_v *alpha_params) {
+
+    s8asym_quant_params alpha_param0 = {alpha_params->offset[0], alpha_params->shift[0], alpha_params->scale[0]};
+    mli::krn::ref::compute_prelu(vec_in, vec_out, in_zp, identity_params, &alpha_param0);
+
+    s8asym_quant_params alpha_param1 = {alpha_params->offset[1], alpha_params->shift[1], alpha_params->scale[1]};
+    mli::krn::ref::compute_prelu(vec_in + 1, vec_out + 1, in_zp, identity_params, &alpha_param1);
+}
+
+static MLI_FORCE_INLINE void compute_prelu(
+        const MLI_PTR(int8_t) vec_in,
+        MLI_OUT_PTR(int8_t) vec_out,
+        const int16_t in_zp,
+        const s8asym_quant_params *identity_params,
+        const s8asym_quant_params_v *alpha_params,
+        const int remaining_part) {
+
+    MLI_ASSERT(remaining_part == 1);
+    s8asym_quant_params alpha_param = {alpha_params->offset[0], alpha_params->shift[0], alpha_params->scale[0]};
+    mli::krn::ref::compute_prelu(vec_in, vec_out, in_zp, identity_params, &alpha_param);
 }
 
 } // namespace dsp

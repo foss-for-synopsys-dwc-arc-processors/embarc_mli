@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -47,14 +47,14 @@ static MLI_FORCE_INLINE void compute_prelu(
 static MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(int8_t) vec_in,
         MLI_OUT_PTR(int8_t) vec_out,
-        int16_t in_zp,
+        const int16_t in_zp,
         const s8asym_quant_params *identity_params,
         const s8asym_quant_params *alpha_params);
 
 static MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(int8_t) vec_in,
         MLI_OUT_PTR(int8_t) vec_out,
-        int16_t in_zp,
+        const int16_t in_zp,
         const s8asym_quant_params *identity_params,
         const s8asym_quant_params *alpha_params,
         const int remaining_part);
@@ -62,8 +62,8 @@ static MLI_FORCE_INLINE void compute_prelu(
 static MLI_FORCE_INLINE s8asym_quant_params prelu_define_requant_params(const mli_tensor *in, 
         const mli_tensor *slope_coeff,
         mli_tensor *out,
-        int8_t alpha_sa8,
-        s8asym_quant_params *identity_params);
+        const int8_t alpha_sa8,
+        const s8asym_quant_params *identity_params);
 
 template <typename io_T>
 static MLI_FORCE_INLINE mli_status prelu_fx_run(const mli_tensor *in, 
@@ -97,6 +97,29 @@ static MLI_FORCE_INLINE void compute_prelu(
         MLI_OUT_PTR(io_T) vec_out,
         const int shift,
         const int remaining_part);
+
+#if !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
+static MLI_FORCE_INLINE s8asym_quant_params_v prelu_define_requant_params(const mli_tensor *in, 
+        const mli_tensor *slope_coeff,
+        mli_tensor *out,
+        const v2q15_t alpha_sa8,
+        const s8asym_quant_params *identity_params);
+
+static MLI_FORCE_INLINE void compute_prelu(
+        const MLI_PTR(int8_t) vec_in,
+        MLI_OUT_PTR(int8_t) vec_out,
+        const int16_t in_zp,
+        const s8asym_quant_params *identity_params,
+        const s8asym_quant_params_v *alpha_params);
+
+static MLI_FORCE_INLINE void compute_prelu(
+        const MLI_PTR(int8_t) vec_in,
+        MLI_OUT_PTR(int8_t) vec_out,
+        const int16_t in_zp,
+        const s8asym_quant_params *identity_params,
+        const s8asym_quant_params_v *alpha_params,
+        const int remaining_part);
+#endif
 
 } // namespace dsp
 
@@ -155,19 +178,19 @@ static MLI_FORCE_INLINE s8asym_quant_params_v prelu_define_requant_params(const 
         const mli_tensor *slope_coeff,
         mli_tensor *out,
         vNx4char_t alpha_sa8,
-        s8asym_quant_params *identity_params);
+        const s8asym_quant_params *identity_params);
 
 static MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(int8_t) vec_in,
         MLI_OUT_PTR(int8_t) vec_out,
-        int16_t in_zp,
+        const int16_t in_zp,
         const s8asym_quant_params *identity_params,
         const s8asym_quant_params_v *alpha_params);
 
 static MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(int8_t) vec_in,
         MLI_OUT_PTR(int8_t) vec_out,
-        int16_t in_zp,
+        const int16_t in_zp,
         const s8asym_quant_params *identity_params,
         const s8asym_quant_params_v *alpha_params,
         const int remaining_part);

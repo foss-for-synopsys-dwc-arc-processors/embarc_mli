@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -36,9 +36,7 @@ static MLI_FORCE_INLINE void compute_prelu(
     io_T pos = mli_math_max_fx(zero, input);
     io_T neg = mli_math_acc_cast_fx<io_T, mli_acc32_t>(
                mli_math_mul_fx<io_T, mli_acc32_t>( mli_math_min_fx(zero, input), scale), shift);
-    io_T output = mli_math_add_fx(pos, neg);
-    
-    mli_prv_store_n_samples(vec_out, output);
+    vec_out[0] = mli_math_add_fx(pos, neg);
 }
 
 template <typename io_T, typename scale_T>
@@ -56,7 +54,7 @@ static MLI_FORCE_INLINE void compute_prelu(
 static MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(int8_t) vec_in,
         MLI_OUT_PTR(int8_t) vec_out,
-        int16_t in_zp,
+        const int16_t in_zp,
         const s8asym_quant_params *identity_params,
         const s8asym_quant_params *alpha_params) {
 
@@ -77,13 +75,13 @@ static MLI_FORCE_INLINE void compute_prelu(
                   alpha_params->shift), alpha_params->offset);
     }
     
-    mli_prv_store_n_samples(vec_out, mli_math_cast_fx<int16_t, int8_t>(output, 0));
+    vec_out[0] = mli_math_cast_fx<int16_t, int8_t>(output, 0);
 }
 
 static MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(int8_t) vec_in,
         MLI_OUT_PTR(int8_t) vec_out,
-        int16_t in_zp,
+        const int16_t in_zp,
         const s8asym_quant_params *identity_params,
         const s8asym_quant_params *alpha_params,
         const int remaining_part) {
@@ -206,8 +204,8 @@ static MLI_FORCE_INLINE mli_status prelu_fx_run(const mli_tensor *in,
 static MLI_FORCE_INLINE s8asym_quant_params prelu_define_requant_params(const mli_tensor *in, 
         const mli_tensor *slope_coeff,
         mli_tensor *out,
-        int8_t alpha_sa8,
-        s8asym_quant_params *identity_params) {
+        const int8_t alpha_sa8,
+        const s8asym_quant_params *identity_params) {
     
     /* ****************************************************************************************************************
      *             Mathematical Derivations out_sa8 Requantization Params with alpha scale to use with in_sa8
