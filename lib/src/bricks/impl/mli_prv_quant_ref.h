@@ -187,7 +187,7 @@ MLI_FORCE_INLINE mli_acc32_t weights_additive(
         const int width,  const int height, int col_step, int row_step) {
     // returns -(in_zero_point * cumsum(weights)) For S8ASYM
     if (quant_params->in_offset != 0) {
-        return reduce_sum2D(weights, -quant_params->in_offset, init_accum, width, height, /*channels = */0, col_step, row_step, true);
+        return reduce_sum2D(weights, -quant_params->in_offset, init_accum, width, height, /*channels = */0, col_step, row_step);
     } else {
         return init_accum;
     }
@@ -209,7 +209,7 @@ MLI_FORCE_INLINE mli_acc32_t weights_additive(
     // returns -(in_zero_point * cumsum(weights)) For S8ASYM
     if (quant_params->in_offset != 0) {
         for (int c = 0; c < ch; c++) {
-            init_accum = reduce_sum2D(weights, -quant_params->in_offset, init_accum, width, height, /*channels = */0, col_step, row_step, true);
+            init_accum = reduce_sum2D(weights, -quant_params->in_offset, init_accum, width, height, /*channels = */0, col_step, row_step);
             weights += ch_step;
         }
         return init_accum;
@@ -236,7 +236,7 @@ MLI_FORCE_INLINE mli_acc32_t in_additive(
         const int width, const int height, int col_step, int row_step) {
     // returns -(wights_zero_point * cumsum(input)) For S8ASYM
     if (quant_params->weights_offset != 0) {
-        init_accum = reduce_sum2D(in, -quant_params->weights_offset, init_accum, width, height, /*channels = */0, col_step, row_step, true);
+        init_accum = reduce_sum2D(in, -quant_params->weights_offset, init_accum, width, height, /*channels = */0, col_step, row_step);
         return init_accum;
     } else {
         return init_accum;
@@ -258,7 +258,7 @@ MLI_FORCE_INLINE mli_acc32_t in_additive(
     // returns -(wights_zero_point * cumsum(input)) For S8ASYM
     if (quant_params->weights_offset != 0) {
         for (int c = 0; c < ch; c++) {
-            init_accum = reduce_sum2D(in, -quant_params->weights_offset, init_accum, width, height, /*channels = */0, col_step, row_step, true);
+            init_accum = reduce_sum2D(in, -quant_params->weights_offset, init_accum, width, height, /*channels = */0, col_step, row_step);
             in += ch_step;
         }
         return init_accum;

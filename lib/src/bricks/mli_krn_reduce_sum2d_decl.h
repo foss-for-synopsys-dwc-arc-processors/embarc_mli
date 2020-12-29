@@ -37,7 +37,6 @@ static MLI_FORCE_INLINE acc_T reduce_sum2D_v(
         const int height,
         const int col_mem_stride,
         const int row_mem_stride,
-        const bool fixed_size,
         int *accum_shift_amout = nullptr);
 
 template <typename io_T, typename acc_T>
@@ -49,8 +48,7 @@ static MLI_FORCE_INLINE acc_T reduce_sum2D(
         const int height,
         const int channels,
         const int col_mem_stride,
-        const int row_mem_stride,
-        const bool fixed_size);
+        const int row_mem_stride);
 
 template <typename io_T, typename acc_T>
 static MLI_FORCE_INLINE acc_T reduce_sum(
@@ -76,7 +74,6 @@ static MLI_FORCE_INLINE acc_T reduce_sum2D_v(
         const int height,
         const int col_mem_stride,
         const int row_mem_stride,
-        const bool fixed_size,
         int *accum_shift_amout = nullptr);
 
 template <typename io_T, typename acc_T>
@@ -87,8 +84,7 @@ static MLI_FORCE_INLINE acc_T reduce_sum2D_d(
         const int width,
         const int height,
         int col_mem_stride,
-        int row_mem_stride,
-        const bool fixed_size);
+        int row_mem_stride);
 
 } // namespace dsp
 
@@ -106,7 +102,6 @@ static MLI_FORCE_INLINE acc_T reduce_sum2D_v(
         const int height,
         const int col_mem_stride,
         const int row_mem_stride,
-        const bool fixed_size,
         int *accum_shift_amout = nullptr);
 
 #if (__Xvec_guard_bit_option == 0) && !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
@@ -118,7 +113,6 @@ static MLI_FORCE_INLINE vNx2int_t reduce_sum2D_v(
         const int height,
         const int col_mem_stride,
         const int row_mem_stride,
-        const bool fixed_size,
         int *accum_shift_amout);
 #else
 template <typename acc_T>
@@ -130,7 +124,6 @@ static MLI_FORCE_INLINE acc_T reduce_sum2D_v(
         const int height,
         const int col_mem_stride,
         const int row_mem_stride,
-        const bool fixed_size,
         int *accum_shift_amout = nullptr);
 #endif
 
@@ -143,8 +136,7 @@ static MLI_FORCE_INLINE acc_T reduce_sum2D(
         const int height,
         const int channels,
         const int col_mem_stride,
-        const int row_mem_stride,
-        const bool fixed_size);
+        const int row_mem_stride);
 
 } // namespace vdsp
 } // namespace krn

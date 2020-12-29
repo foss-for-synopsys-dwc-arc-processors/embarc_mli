@@ -148,7 +148,6 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_nopad(
 
     int number_lanes = get_number_lanes<acc_T>();
     int remaining_chans = in.ch & (number_lanes - 1);
-    MLI_OUT_PTR(io_T) out_ptr;
 
     int accum_shift_amout = 0;
     int16_t mul = 0;
@@ -165,55 +164,72 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_nopad(
         MLI_ASSERT(params->scale  == 1);
     }
 
+    const int h_idx_in = (row_beg * stride_height - padding_top);
+    const int w_idx_in = (clmn_beg * stride_width - padding_left);
+
+    const int in_col_inc = in.col_mem_stride * stride_width;
+    const int in_row_inc = in.row_mem_stride * stride_height - (in_col_inc * (clmn_end - clmn_beg));
+    const int out_col_inc = out.col_mem_stride;
+    const int out_row_inc = out.row_mem_stride - out_col_inc * (clmn_end - clmn_beg);
+
     // Phase 1: Process central part (without border effects - padding free)
     //=======================================================================
     if (in.height >= kernel_height && in.width >= kernel_width) {
             for (int ch_idx = 0; ch_idx < in.ch - remaining_chans; ch_idx += number_lanes) {
+                // Define area of input and filter for pooling
+                const MLI_PTR(io_T) __restrict in_ptr = in.ptr
+                                                      + in.row_mem_stride * h_idx_in
+                                                      + in.col_mem_stride * w_idx_in
+                                                      + ch_idx;
+
+                MLI_OUT_PTR(io_T) __restrict out_ptr = out.ptr
+                                                     + out.row_mem_stride * row_beg
+                                                     + out.col_mem_stride * clmn_beg
+                                                     + ch_idx;
+
                 for (int H_idx = row_beg; H_idx < row_end; H_idx++) {
                     for (int W_idx = clmn_beg; W_idx < clmn_end; W_idx++) {
-                        
-                        // Define area of input and filter for pooling
-                        const MLI_PTR(io_T) in_ptr = in.ptr
-                                + in.row_mem_stride * (H_idx * stride_height - padding_top) // move to row
-                                + in.col_mem_stride * (W_idx * stride_width - padding_left) // move to column
-                                + ch_idx;                                                   // move to channel
-
-                        out_ptr = &out.ptr[out.row_mem_stride * H_idx +
-                                           out.col_mem_stride * W_idx +
-                                           ch_idx];
-                        
                         acc_T acc = mli_prv_init_accu_with_bias_v<acc_T>(zp, shift_value);
                         
                         auto res = mli::krn::reduce_sum2D_v(in_ptr, mul, acc, kernel_width, kernel_height,
-                                in.col_mem_stride, in.row_mem_stride, true, &accum_shift_amout);
+                                in.col_mem_stride, in.row_mem_stride, &accum_shift_amout);
 
                         mli_prv_clip_and_store_output_v(out_ptr, res, shift_value - accum_shift_amout);
 
+                        in_ptr += in_col_inc;
+                        out_ptr += out_col_inc;
                     }
+                    in_ptr += in_row_inc;
+                    out_ptr += out_row_inc;
                 }
             }
         
         if (remaining_chans) {
+            // Define area of input and filter for pooling
+            const MLI_PTR(io_T) __restrict in_ptr = in.ptr
+                                                  + in.row_mem_stride * h_idx_in
+                                                  + in.col_mem_stride * w_idx_in
+                                                  + in.ch - remaining_chans;
+
+            MLI_OUT_PTR(io_T) __restrict out_ptr = out.ptr
+                                                 + out.row_mem_stride * row_beg
+                                                 + out.col_mem_stride * clmn_beg
+                                                 + out.ch - remaining_chans;
+
             for (int H_idx = row_beg; H_idx < row_end; H_idx++) {
                 for (int W_idx = clmn_beg; W_idx < clmn_end; W_idx++) {
-                    // Define area of input and filter for pooling
-                    const MLI_PTR(io_T) in_ptr = in.ptr
-                            + in.row_mem_stride * (H_idx * stride_height - padding_top) // move to row
-                            + in.col_mem_stride * (W_idx * stride_width - padding_left) // move to column
-                            + in.ch - remaining_chans;                                  // move to channel
-
-                    out_ptr = &out.ptr[out.row_mem_stride * H_idx +
-                                       out.col_mem_stride * W_idx +
-                                       out.ch - remaining_chans];
-
                     acc_T acc = mli_prv_init_accu_with_bias_v<acc_T>(zp, shift_value);
 
                     auto res = mli::krn::reduce_sum2D_v(in_ptr, mul, acc, kernel_width, kernel_height,
-                        in.col_mem_stride, in.row_mem_stride, true, &accum_shift_amout);
+                        in.col_mem_stride, in.row_mem_stride, &accum_shift_amout);
 
                     mli_prv_clip_and_store_output_v(out_ptr, res, shift_value - accum_shift_amout, remaining_chans);
 
+                    in_ptr += in_col_inc;
+                    out_ptr += out_col_inc;
                 }
+                in_ptr += in_row_inc;
+                out_ptr += out_row_inc;
             }
         }
     }
@@ -221,10 +237,6 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_nopad(
 
 template <typename io_T, typename acc_T, bool convert = false>
 static MLI_FORCE_INLINE void mli_krn_avepool_hwc_pad(
-        int row_beg,
-        int row_end,
-        int clmn_beg,
-        int clmn_end,
         int stride_width,
         int stride_height,
         int padding_top,
@@ -243,14 +255,14 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_pad(
 
     // Phase 1: Process central part (without border effects - padding free)
     //=======================================================================
-    row_beg = CEIL_DIV(padding_top, stride_height);
-    row_end = out.height - CEIL_DIV(padding_bot, stride_height);
-    clmn_beg = CEIL_DIV(padding_left, stride_width);
-    clmn_end = out.width - CEIL_DIV(padding_right, stride_width);
+    const int nopad_row_beg = CEIL_DIV(padding_top, stride_height);
+    const int nopad_row_end = CEIL_DIV(in.height + padding_top - kernel_height + 1, stride_height);
+    const int nopad_clmn_beg = CEIL_DIV(padding_left, stride_width);
+    const int nopad_clmn_end = CEIL_DIV(in.width + padding_left - kernel_width + 1, stride_width);
 
-    if ((row_end - row_beg > 0) && (clmn_end - clmn_beg > 0)) {
+    if ((nopad_row_end - nopad_row_beg > 0) && (nopad_clmn_end - nopad_clmn_beg > 0)) {
         mli_krn_avepool_hwc_nopad<io_T, acc_T, convert>(
-                row_beg, row_end, clmn_beg, clmn_end,
+                nopad_row_beg, nopad_row_end, nopad_clmn_beg, nopad_clmn_end,
                 stride_width, stride_height, padding_top,
                 padding_bot, padding_left, padding_right,
                 in, out,
@@ -264,41 +276,43 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_pad(
         int areas_num = 0;
         if (padding_top) {
             perc_areas[areas_num].row_beg = 0;
-            perc_areas[areas_num].row_end = CEIL_DIV(padding_top, stride_height);
+            perc_areas[areas_num].row_end = nopad_row_beg;
             perc_areas[areas_num].clmn_beg = 0;
             perc_areas[areas_num++].clmn_end = out.width;
         }
         if (padding_bot) {
-            perc_areas[areas_num].row_beg = out.height - CEIL_DIV(padding_bot, stride_height);
+            perc_areas[areas_num].row_beg = nopad_row_end;
             perc_areas[areas_num].row_end = out.height;
             perc_areas[areas_num].clmn_beg = 0;
             perc_areas[areas_num++].clmn_end = out.width;
         }
         if (padding_left) {
-            perc_areas[areas_num].row_beg = CEIL_DIV(padding_top, stride_height);
-            perc_areas[areas_num].row_end = out.height - CEIL_DIV(padding_bot, stride_height);
+            perc_areas[areas_num].row_beg = nopad_row_beg;
+            perc_areas[areas_num].row_end = nopad_row_end;
             perc_areas[areas_num].clmn_beg = 0;
-            perc_areas[areas_num++].clmn_end = CEIL_DIV(padding_left, stride_width);
+            perc_areas[areas_num++].clmn_end = nopad_clmn_beg;
         }
         if (padding_right) {
-            perc_areas[areas_num].row_beg = CEIL_DIV(padding_top, stride_height);
-            perc_areas[areas_num].row_end = out.height - CEIL_DIV(padding_bot, stride_height);
-            perc_areas[areas_num].clmn_beg = out.width - CEIL_DIV(padding_right, stride_width);
+            perc_areas[areas_num].row_beg = nopad_row_beg;
+            perc_areas[areas_num].row_end = nopad_row_end;
+            perc_areas[areas_num].clmn_beg = nopad_clmn_end;
             perc_areas[areas_num++].clmn_end = out.width;
         }
 
 
         for (int area_idx = 0; area_idx < areas_num; ++area_idx) {
-            for (int ch_idx = 0; ch_idx < in.ch - remaining_chans; ch_idx += number_lanes) {
-                for (int H_idx = perc_areas[area_idx].row_beg; H_idx < (int)perc_areas[area_idx].row_end; H_idx++) {
-                    for (int W_idx = perc_areas[area_idx].clmn_beg; W_idx < (int)perc_areas[area_idx].clmn_end; W_idx++) {
+            int top_comp_val = (perc_areas[area_idx].row_beg * stride_height) - padding_top;
+            for (int H_idx = perc_areas[area_idx].row_beg; H_idx < (int)perc_areas[area_idx].row_end; H_idx++) {
+                int left_comp_val = (perc_areas[area_idx].clmn_beg * stride_width) - padding_left;
+                for (int W_idx = perc_areas[area_idx].clmn_beg; W_idx < (int)perc_areas[area_idx].clmn_end; W_idx++) {
+                    for (int ch_idx = 0; ch_idx < in.ch - remaining_chans; ch_idx += number_lanes) {
                         // Define area of input and filter for pooling
                         // *_comp - compensation values for valid area defining
-                        int top_comp = -MIN((H_idx * stride_height) - padding_top, 0);
-                        int left_comp = -MIN((W_idx * stride_width) - padding_left, 0);
+                        int top_comp = -MIN(top_comp_val, 0);
+                        int left_comp = -MIN(left_comp_val, 0);
 
-                        int right_comp = -MIN(in.width - ((W_idx * stride_width) - padding_left + kernel_width), 0);
-                        int bottom_comp = -MIN(in.height - ((H_idx * stride_height) - padding_top + kernel_height), 0);
+                        int right_comp = -MIN(in.width - (left_comp_val + kernel_width), 0);
+                        int bottom_comp = -MIN(in.height - (top_comp_val + kernel_height), 0);
 
                         int rows = kernel_height - top_comp - bottom_comp;
                         int clmns = kernel_width - right_comp - left_comp;
@@ -331,24 +345,28 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_pad(
                         acc_T acc = mli_prv_init_accu_with_bias_v<acc_T>(zp, shift_value);
                         
                         auto res = mli::krn::reduce_sum2D_v(in_ptr, mul, acc, clmns, rows,
-                                in.col_mem_stride, in.row_mem_stride, false, &accum_shift_amout);
+                                in.col_mem_stride, in.row_mem_stride, &accum_shift_amout);
 
                         mli_prv_clip_and_store_output_v(out_ptr, res, shift_value - accum_shift_amout);
 
                     }
+                    left_comp_val += stride_width;
                 }
+                top_comp_val += stride_height;
             }
 
             if (remaining_chans) {
+                int top_comp_val = (perc_areas[area_idx].row_beg * stride_height) - padding_top;
                 for (int H_idx = perc_areas[area_idx].row_beg; H_idx < (int)perc_areas[area_idx].row_end; H_idx++) {
+                    int left_comp_val = (perc_areas[area_idx].clmn_beg * stride_width) - padding_left;
                     for (int W_idx = perc_areas[area_idx].clmn_beg; W_idx < (int)perc_areas[area_idx].clmn_end; W_idx++) {
                         // Define area of input and filter for pooling
                         // *_comp - compensation values for valid area defining
-                        int top_comp = -MIN((H_idx * stride_height) - padding_top, 0);
-                        int left_comp = -MIN((W_idx * stride_width) - padding_left, 0);
+                        int top_comp = -MIN(top_comp_val, 0);
+                        int left_comp = -MIN(left_comp_val, 0);
 
-                        int right_comp = -MIN(in.width - ((W_idx * stride_width) - padding_left + kernel_width), 0);
-                        int bottom_comp = -MIN(in.height - ((H_idx * stride_height) - padding_top + kernel_height), 0);
+                        int right_comp = -MIN(in.width - (left_comp_val + kernel_width), 0);
+                        int bottom_comp = -MIN(in.height - (top_comp_val + kernel_height), 0);
 
                         int rows = kernel_height - top_comp - bottom_comp;
                         int clmns = kernel_width - right_comp - left_comp;
@@ -380,10 +398,12 @@ static MLI_FORCE_INLINE void mli_krn_avepool_hwc_pad(
                         acc_T acc = mli_prv_init_accu_with_bias_v<acc_T>(zp, shift_value);
 
                         auto res = mli::krn::reduce_sum2D_v(in_ptr, mul, acc, clmns, rows,
-                                in.col_mem_stride, in.row_mem_stride, false, &accum_shift_amout);
+                                in.col_mem_stride, in.row_mem_stride, &accum_shift_amout);
 
                         mli_prv_clip_and_store_output_v(out_ptr, res, shift_value - accum_shift_amout, remaining_chans);
+                        left_comp_val += stride_width;
                     }
+                    top_comp_val += stride_height;
                 }
             }
         }
@@ -441,27 +461,17 @@ static void mli_krn_avepool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg,
 
     mli_prv_fx_init_dsp_ctrl();
 
-    /* TODO Investigating performance and size tradeoffs:
-     * The pad function also calls the nopad function, so that function will be there twice (size increases).
-     * The compiler will propagate constant zero values into the nopad function which will improve the performance.
-     * ACTION: should measure the performance benefit and code size impact.
-     * */
-    if (((padding_top == 0) && (padding_bot == 0) && (padding_left == 0) && (padding_right == 0))) {
-        padding_top = 0;
-        padding_bot = 0;
-        padding_left = 0;
-        padding_right = 0;
-        mli_krn_avepool_hwc_nopad<io_T, acc_T, convert>(
-            row_beg, row_end, clmn_beg, clmn_end,
+    if ((padding_top || padding_bot || padding_left || padding_right)) {
+        mli_krn_avepool_hwc_pad<io_T, acc_T, convert>(
             stride_width, stride_height, padding_top,
             padding_bot, padding_left, padding_right,
             in_prv, out_prv,
             kernel_height, kernel_width, &params);
     } else {
-        mli_krn_avepool_hwc_pad<io_T, acc_T, convert>(
+        mli_krn_avepool_hwc_nopad<io_T, acc_T, convert>(
             row_beg, row_end, clmn_beg, clmn_end,
-            stride_width, stride_height, padding_top,
-            padding_bot, padding_left, padding_right,
+            stride_width, stride_height, /* padding_top */ 0,
+            /* padding_bot */ 0, /* padding_left */ 0 , /* padding_right */ 0,
             in_prv, out_prv,
             kernel_height, kernel_width, &params);
     }

@@ -30,7 +30,6 @@ static MLI_FORCE_INLINE acc_T reduce_sum2D_v(
         const int height,
         const int col_mem_stride,
         const int row_mem_stride,
-        const bool fixed_size,
         int *accum_shift_amout) {
 
     v2q15_t v2mul = {mul, mul};
@@ -73,8 +72,7 @@ static MLI_FORCE_INLINE acc_T reduce_sum2D_d(
         const int width,
         const int height,
         int col_mem_stride,
-        int row_mem_stride,
-        const bool fixed_size) {
+        int row_mem_stride) {
 
         v2q15_t v2mul = {mul, mul};
         const MLI_PTR(int16_t) __restrict v2mul_ptr = (const MLI_PTR(int16_t) __restrict)&v2mul;
