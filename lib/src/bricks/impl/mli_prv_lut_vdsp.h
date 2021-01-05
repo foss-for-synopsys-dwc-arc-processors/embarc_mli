@@ -27,12 +27,12 @@ template<typename in_T, typename out_T>
 static MLI_FORCE_INLINE out_T activation_lut_load_input(const MLI_PTR(in_T) in);
 
 template<>
-vNx4short_t activation_lut_load_input(const MLI_PTR(int8_t) in) {
+MLI_FORCE_INLINE vNx4short_t activation_lut_load_input(const MLI_PTR(int8_t) in) {
     return mli_math_cast_fx<vNx4char_t,vNx4short_t>(mli_prv_load_nx4_samples(in));
 }
 
 template<>
-vNx4short_t activation_lut_load_input(const MLI_PTR(int16_t) in) {
+MLI_FORCE_INLINE vNx4short_t activation_lut_load_input(const MLI_PTR(int16_t) in) {
     return mli_prv_load_nx4_samples(in);
 }
 
@@ -209,7 +209,9 @@ static MLI_FORCE_INLINE vNx4short_t activation_lut_vec_elem_no_interpolate(
 }
 
 template <typename io_T, bool convert>
-static void activation_lut(
+static MLI_FORCE_INLINE void compute_activation_lut_func(
+        MLI_PTR(io_T) __restrict in_ptr,
+        MLI_OUT_PTR(io_T) __restrict out_ptr,
         const struct generic_tensor_private_t<MLI_PTR(io_T)> *in,
         struct generic_tensor_private_t<MLI_OUT_PTR(io_T)> *out,
         const mli_lut *lut,
@@ -222,8 +224,8 @@ static void activation_lut(
     MLI_ASSERT(lut->length >= 0);
     MLI_ASSERT(MLI_MAX_RANK == 4);
 
-    MLI_PTR(io_T) vec_in  = in->ptr;
-    MLI_OUT_PTR(io_T) vec_out = out->ptr;
+    MLI_PTR(io_T) __restrict vec_in  = in_ptr;
+    MLI_OUT_PTR(io_T) __restrict vec_out = out_ptr;
 
     if (convert) {
         MLI_ASSERT(in_params != nullptr);
@@ -247,8 +249,8 @@ static void activation_lut(
         for (int pos0 = 0; pos0 < in->shape[0]; pos0++) {
             for (int pos1 = 0; pos1 < in->shape[1]; pos1++) {
                 for (int pos2 = 0; pos2 < in->shape[2]; pos2++) {
-                    vec_in  = in->ptr  + POS(in,  pos0, pos1, pos2, 0);
-                    vec_out = out->ptr + POS(out, pos0, pos1, pos2, 0);
+                    vec_in  = in_ptr  + POS(in,  pos0, pos1, pos2, 0);
+                    vec_out = out_ptr + POS(out, pos0, pos1, pos2, 0);
                     if (remaining_part) {
                         vNx4short_t x = activation_lut_load_input<io_T, vNx4short_t>(vec_in);
                         vNx4short_t res = mli::krn::activation_lut_vec_elem_interpolate<convert>
@@ -275,8 +277,8 @@ static void activation_lut(
         for (int pos0 = 0; pos0 < in->shape[0]; pos0++) {
             for (int pos1 = 0; pos1 < in->shape[1]; pos1++) {
                 for (int pos2 = 0; pos2 < in->shape[2]; pos2++) {
-                    vec_in  = in->ptr  + POS(in,  pos0, pos1, pos2, 0);
-                    vec_out = out->ptr + POS(out, pos0, pos1, pos2, 0);
+                    vec_in  = in_ptr  + POS(in,  pos0, pos1, pos2, 0);
+                    vec_out = out_ptr + POS(out, pos0, pos1, pos2, 0);
                     if (remaining_part) {
                         vNx4short_t x = activation_lut_load_input<io_T, vNx4short_t>(vec_in);
                         vNx4short_t res = mli::krn::activation_lut_vec_elem_no_interpolate<convert>
@@ -299,6 +301,17 @@ static void activation_lut(
             }
         }
     }
+}
+
+template <typename io_T, bool convert>
+static MLI_FORCE_INLINE void compute_activation_lut(
+        const struct generic_tensor_private_t<MLI_PTR(io_T)> *in,
+        struct generic_tensor_private_t<MLI_OUT_PTR(io_T)> *out,
+        const mli_lut *lut,
+        int8_t in_frac_bits,
+        const struct s8asym_quant_params *in_params,
+        struct s8asym_quant_params *out_params) {
+    compute_activation_lut_func<io_T, convert>(in->ptr, out->ptr, in, out, lut, in_frac_bits, in_params, out_params);
 }
 
 } // namespace vdsp

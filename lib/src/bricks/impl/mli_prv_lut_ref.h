@@ -20,7 +20,7 @@ namespace krn {
 namespace ref {
 
 template <typename io_T, bool convert>
-static void activation_lut(
+static MLI_FORCE_INLINE void compute_activation_lut(
         const struct generic_tensor_private_t<MLI_PTR(io_T)> *in,
         struct generic_tensor_private_t<MLI_PTR(io_T)> *out,
         const mli_lut *lut,
@@ -187,6 +187,35 @@ static MLI_FORCE_INLINE out_T activation_lut_one_elem_no_interpolate(
     }
 
     return out;
+}
+
+template <typename io_T, bool convert>
+static MLI_FORCE_INLINE void activation_lut(
+        const struct generic_tensor_private_t<MLI_PTR(io_T)> *in,
+        struct generic_tensor_private_t<MLI_OUT_PTR(io_T)> *out,
+        const mli_lut *lut,
+        int8_t in_frac_bits,
+        const struct s8asym_quant_params *in_params,
+        struct s8asym_quant_params *out_params) {
+    mli::krn::compute_activation_lut<io_T, convert>(in, out, lut, in_frac_bits, in_params, out_params);
+}
+
+template <typename io_T, bool convert>
+static MLI_FORCE_INLINE void activation_lut(
+        const mli_tensor *in,
+        const mli_tensor *out,
+        const mli_lut *lut,
+        int in_frac_bits,
+        struct s8asym_quant_params *in_params,
+        struct s8asym_quant_params *out_params) {
+
+    auto in_prv =  mli_prv_get_generic_tensor<MLI_PTR(io_T)>(in);
+    auto out_prv =  mli_prv_get_generic_tensor<MLI_OUT_PTR(io_T)>(out);
+
+    /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
+    mli_prv_squash_generic_tensor<MLI_PTR(io_T)>(&in_prv, &out_prv);
+
+    mli::krn::compute_activation_lut<io_T, convert>(&in_prv, &out_prv, lut, in_frac_bits, in_params, out_params);
 }
 
 } // namespace ref

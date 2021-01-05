@@ -25,21 +25,24 @@
 namespace mli {
 namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-using mli::krn::vdsp::activation_lut;
+using mli::krn::vdsp::compute_activation_lut;
 using mli::krn::vdsp::activation_lut_vec_elem_interpolate;
 using mli::krn::vdsp::activation_lut_vec_elem_no_interpolate;
+using mli::krn::ref::activation_lut;
 using mli::krn::ref::activation_lut_one_elem_interpolate;
 using mli::krn::ref::activation_lut_one_elem_no_interpolate;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-using mli::krn::dsp::activation_lut;
+using mli::krn::dsp::compute_activation_lut;
 using mli::krn::dsp::activation_lut_two_elem_interpolate;
 using mli::krn::dsp::activation_lut_two_elem_no_interpolate;
+using mli::krn::ref::activation_lut;
 using mli::krn::ref::activation_lut_one_elem_interpolate;
 using mli::krn::ref::activation_lut_one_elem_no_interpolate;
 
 #else
 using mli::krn::ref::activation_lut;
+using mli::krn::ref::compute_activation_lut;
 using mli::krn::ref::activation_lut_one_elem_interpolate;
 using mli::krn::ref::activation_lut_one_elem_no_interpolate;
 
