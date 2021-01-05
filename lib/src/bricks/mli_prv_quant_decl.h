@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -41,17 +41,28 @@ struct s8asym_quant_specific_params {
 };
 
 struct s8asym_quant_params {
-	int16_t offset;
-	int16_t shift;
-	int16_t scale;
+    int16_t offset;
+    int16_t shift;
+    int16_t scale;
 };
 #if defined(__Xvec_width)
+struct s8asym_quant_params_v {
+    vNx4short_t offset;
+    vNx4short_t shift;
+    vNx4short_t scale;
+};
 struct s8asym_quant_specific_out_params_v {
     int16_t out_offset;
     vNx4short_t out_mul;
     vNx4short_t out_shift;
 };
 
+#elif defined(__FXAPI__) 
+struct s8asym_quant_params_v {
+    v2i16_t offset;
+    v2i16_t shift;
+    v2i16_t scale;
+};
 #endif
 /**
  * @brief Quantization specific parameter to perform correct calculations in MLI_FX quantization scheme.

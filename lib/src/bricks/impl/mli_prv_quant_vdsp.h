@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -255,6 +255,14 @@ MLI_FORCE_INLINE vNx4short_t mli_prv_convert_sa8_fx16(
         const int scale) {
     vNx4int_t in_biased_shifted_no_zp = mli_math_cast_fx<vNx4short_t, vNx4int_t>(in_val) - (vNx4int_t) zero_point;
     return mli_math_cast_fx<vNx4int_t, vNx4short_t>(mli_math_bound_range_fx(in_biased_shifted_no_zp * (vNx4int_t) scale, INT16_MIN, INT16_MAX));
+}
+
+MLI_FORCE_INLINE vNx4int_t mli_prv_convert_sa8_fx32(
+        const vNx4char_t in_val,
+        const int16_t zero_point,
+        const int scale) {
+    vNx4int_t in_biased_shifted_no_zp = mli_math_cast_fx<vNx4char_t, vNx4int_t>(in_val) - (vNx4int_t) zero_point;
+    return in_biased_shifted_no_zp * (vNx4int_t) scale;
 }
 
 template<>

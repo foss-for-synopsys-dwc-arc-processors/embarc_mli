@@ -1,5 +1,5 @@
 /*
-* Copyright 2020-2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -381,6 +381,27 @@ MLI_FORCE_INLINE vNx2int_t mli_math_asl_fx(vNx2int_t x, int nbits) {
 }
 
 template <>
+MLI_FORCE_INLINE vNint_t mli_math_asl_fx(vNint_t x, vNint_t nbits) {
+    return vvslm_sat(x, nbits);
+}
+
+template <>
+MLI_FORCE_INLINE vNx2int_t mli_math_asl_fx(vNx2int_t x, vNx2int_t nbits) {
+    vNx2int_t r;
+    r.lo = mli_math_asl_fx(x.lo, nbits.lo);
+    r.hi = mli_math_asl_fx(x.hi, nbits.hi);
+    return r;
+}
+
+template <>
+MLI_FORCE_INLINE vNx4int_t mli_math_asl_fx(vNx4int_t x, vNx4int_t nbits) {
+    vNx4int_t r;
+    r.lo = mli_math_asl_fx(x.lo, nbits.lo);
+    r.hi = mli_math_asl_fx(x.hi, nbits.hi);
+    return r;
+}
+
+template <>
 MLI_FORCE_INLINE vNx2short_t mli_math_asl_fx(vNx2short_t x, vNx2short_t nbits) {
     return vvslm_sat(x, nbits);
 }
@@ -686,61 +707,6 @@ MLI_FORCE_INLINE vNx4short_t mli_math_abs_fx(vNx4short_t x) {
     return res;
 }
 
-template <typename T, typename o_T>
-MLI_FORCE_INLINE o_T mli_math_norm_fx(T x) {
-    o_T inp_size = sizeof(T) * 8;
-    T hi = x < (T)0 ? (T)-1 : (T)0;
-    o_T r = 0;
-
-    if (x == (T)0)
-        return inp_size - 1;
-
-    while ((x >> r) != hi)
-        r++;
-    return (inp_size - 1) - r;
-}
-
-template <>
-MLI_FORCE_INLINE vNx4short_t mli_math_norm_fx(vNx4short_t x) {
-    vNx4short_t r;
-    r.lo = vvnorm(x.lo);
-    r.hi = vvnorm(x.hi);
-    return r;
-}
-template <>
-MLI_FORCE_INLINE vNx4int_t mli_math_norm_fx(vNx4int_t x) {
-    vNx4int_t r;
-    r.lo.lo = vvnorm(x.lo.lo);
-    r.lo.hi = vvnorm(x.lo.hi);
-    r.hi.lo = vvnorm(x.hi.lo);
-    r.hi.hi = vvnorm(x.hi.hi);
-    return r;
-}
-
-template <>
-MLI_FORCE_INLINE vNx2int_t mli_math_norm_fx(vNx2accint_t x) {
-    vNx2int_t r;
-    r.lo = vvcnorm (__vacc_lo(x));
-    r.hi = vvcnorm (__vacc_hi(x));
-    return r;
-}
-
-template <>
-MLI_FORCE_INLINE vNx4int_t mli_math_norm_fx(vNx4accint_t x) {
-    vNx4int_t r;
-    r.lo = mli_math_norm_fx<vNx2accint_t, vNx2int_t>(x.lo);
-    r.hi = mli_math_norm_fx<vNx2accint_t, vNx2int_t>(x.hi);
-    return r;
-}
-
-template<typename in_T, typename out_T>
-MLI_FORCE_INLINE out_T mli_math_norm_cast_fx(in_T val , int *norm_shift) {
-    int cast_shift = (sizeof(in_T) - sizeof(out_T)) * 8;
-    int norm = mli_math_norm_fx<in_T, in_T>(val);
-    *norm_shift = cast_shift - norm;
-    return mli_math_cast_fx<in_T, out_T>(val, *norm_shift);
-}
-
 // Cast scalar to/from void pointer
 //========================================================================
 template < typename out_T > 
@@ -903,6 +869,11 @@ MLI_FORCE_INLINE vNx4short_t mli_math_cast_fx(vNx4char_t in_val) {
 }
 
 template <>
+MLI_FORCE_INLINE vNx4int_t mli_math_cast_fx(vNx4char_t in_val) {
+    return to_vNx4int_t(in_val);
+}
+
+template <>
 MLI_FORCE_INLINE vNx4int_t mli_math_cast_fx(vNx4short_t in_val) {
     return to_vNx4int_t(in_val);
 }
@@ -944,6 +915,14 @@ MLI_FORCE_INLINE vNx2short_t mli_math_cast_fx(vNx2int_t in_val, int shift_right)
     r = mli_math_bound_range_fx(r, INT16_MIN, INT16_MAX);
 
     return to_vNx2short_t(r);
+}
+
+template <>
+MLI_FORCE_INLINE vNx4short_t mli_math_cast_fx(vNx4int_t in_val, int shift_right) {
+    vNx4short_t r;
+    r.lo = mli_math_cast_fx<vNx2int_t, vNx2short_t>(in_val.lo, shift_right);
+    r.hi = mli_math_cast_fx<vNx2int_t, vNx2short_t>(in_val.hi, shift_right);
+    return r;
 }
 
 template<>
@@ -1266,6 +1245,73 @@ MLI_FORCE_INLINE vNx4char_t mli_math_acc_cast_fx(vNx4accshort_t acc, int shift_r
     return to_vNx4char_t(accu_result);
 }
 
+// Norm
+template <typename T, typename o_T>
+MLI_FORCE_INLINE o_T mli_math_norm_fx(T x) {
+    o_T inp_size = sizeof(T) * 8;
+    T hi = x < (T)0 ? (T)-1 : (T)0;
+    o_T r = 0;
+
+    if (x == (T)0)
+        return inp_size - 1;
+
+    while ((x >> r) != hi)
+        r++;
+    return (inp_size - 1) - r;
+}
+
+template <>
+MLI_FORCE_INLINE vNx4short_t mli_math_norm_fx(vNx4short_t x) {
+    vNx4short_t r;
+    r.lo = vvnorm(x.lo);
+    r.hi = vvnorm(x.hi);
+    return r;
+}
+template <>
+MLI_FORCE_INLINE vNx4int_t mli_math_norm_fx(vNx4int_t x) {
+    vNx4int_t r;
+    r.lo.lo = vvnorm(x.lo.lo);
+    r.lo.hi = vvnorm(x.lo.hi);
+    r.hi.lo = vvnorm(x.hi.lo);
+    r.hi.hi = vvnorm(x.hi.hi);
+    return r;
+}
+
+template <>
+MLI_FORCE_INLINE vNx2int_t mli_math_norm_fx(vNx2accint_t x) {
+    vNx2int_t r;
+    r.lo = vvcnorm (__vacc_lo(x));
+    r.hi = vvcnorm (__vacc_hi(x));
+    return r;
+}
+
+template <>
+MLI_FORCE_INLINE vNx4int_t mli_math_norm_fx(vNx4accint_t x) {
+    vNx4int_t r;
+    r.lo = mli_math_norm_fx<vNx2accint_t, vNx2int_t>(x.lo);
+    r.hi = mli_math_norm_fx<vNx2accint_t, vNx2int_t>(x.hi);
+    return r;
+}
+
+template<typename in_T, typename out_T>
+MLI_FORCE_INLINE out_T mli_math_norm_cast_fx(in_T val , int *norm_shift) {
+    int cast_shift = (sizeof(in_T) - sizeof(out_T)) * 8;
+    int norm = mli_math_norm_fx<in_T, in_T>(val);
+    *norm_shift = cast_shift - norm;
+    return mli_math_cast_fx<in_T, out_T>(val, *norm_shift);
+}
+
+MLI_FORCE_INLINE vNx4short_t mli_math_norm_cast_fx(vNx4int_t val , vNx4int_t *norm_shift) {
+    int cast_shift = 16; // Casting from int to short.
+    vNx4int_t norm_val = cast_shift - mli_math_norm_fx<vNx4int_t, vNx4int_t>(val);
+    vNx4int_t shift_left = mli_math_max_fx(-norm_val, 0);
+    vNx4int_t shift_right = mli_math_max_fx(norm_val, 0);
+    val = mli_math_asl_fx(val, shift_left);
+    val = mli_math_asr_rnd_fx(val , shift_right);
+    *norm_shift = norm_val;
+    return mli_math_cast_fx<vNx4int_t, vNx4short_t>(val);
+}
+
 //This function works only on acc_T which supported by vvc4add and vvc4pack
 template<typename acc_T, typename vec_T, typename out_T>
 MLI_FORCE_INLINE out_T mli_math_intra_sum(acc_T L) {
@@ -1514,9 +1560,14 @@ MLI_FORCE_INLINE vNx2accint_t mli_math_mul_fx(vNx2short_t L, vNx2short_t R) {
     return vvcmpy(L, R);
 }
 
-template<>
+template <>
 MLI_FORCE_INLINE vNx4accshort_t mli_math_mul_fx(vNx4char_t L, vNx4char_t R) {
     return vvcmpy(L, R);
+}
+
+template <>
+MLI_FORCE_INLINE vNx4int_t mli_math_mul_fx(vNx4short_t L, vNx4short_t R) {
+    return to_vNx4int_t(vvcmpy(L, R));
 }
 
 // Multiply-and-accumulate operands
@@ -1620,12 +1671,27 @@ MLI_FORCE_INLINE grp_pvNx2_t init_predicate_grp(int remaining_part_tmp) {
     return r;
 }
 
+MLI_FORCE_INLINE grp_pvNx2_t init_predicate_grp(vNx4short_t in) {
+    grp_pvNx2_t r;
+    r.lo = to_pvNx2(in.lo);
+    r.hi = to_pvNx2(in.hi);
+    return r;
+}
+
 MLI_FORCE_INLINE pvNx4 init_predicate(int limit, vNx4char_t in) {
-      return to_pvNx4(vvci_b() < limit);
+    return to_pvNx4(vvci_b() < limit);
 }
 
 MLI_FORCE_INLINE pvNx2 init_predicate(int limit, vNx2short_t in) {
-      return to_pvNx2(vvci_h() < limit);
+    return to_pvNx2(vvci_h() < limit);
+}
+
+MLI_FORCE_INLINE pvNx4 init_predicate(vNx4char_t in) {
+    return to_pvNx4(in);
+}
+
+MLI_FORCE_INLINE pvNx2 init_predicate(vNx2short_t in) {
+    return to_pvNx2(in);
 }
 
 template<typename vec_T, typename pred_T>
