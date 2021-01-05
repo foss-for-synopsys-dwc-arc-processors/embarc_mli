@@ -143,7 +143,7 @@ static MLI_FORCE_INLINE v2q15_t activation_lut_two_elem_no_interpolate(
 }
 
 template <typename io_T, bool convert>
-static void activation_lut(
+static MLI_FORCE_INLINE void compute_activation_lut(
         const struct generic_tensor_private_t<MLI_PTR(io_T)> *in,
         struct generic_tensor_private_t<MLI_PTR(io_T)> *out,
         const mli_lut *lut,
@@ -228,6 +228,7 @@ static void activation_lut(
         }
     }
 }
+
 } // namespace dsp
 } // namespace krn
 } // namespace mli

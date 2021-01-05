@@ -36,13 +36,31 @@ namespace krn {
 ////////////////////////////////////////////////////////////////////////////////
 namespace ref {
 template <typename io_T, bool convert = false>
-static void activation_lut(
+static MLI_FORCE_INLINE void activation_lut(
         const struct generic_tensor_private_t<MLI_PTR(io_T)> *in,
         struct generic_tensor_private_t<MLI_PTR(io_T)> *out,
         const mli_lut *lut,
         int8_t in_frac_bits,
         const struct s8asym_quant_params *in_params  = nullptr,
         struct s8asym_quant_params *out_params = nullptr);
+
+template <typename io_T, bool convert = false>
+static MLI_FORCE_INLINE void activation_lut(
+        const mli_tensor *in,
+        const mli_tensor *out,
+        const mli_lut *lut,
+        int in_frac_bits,
+        struct s8asym_quant_params *in_params = nullptr,
+        struct s8asym_quant_params *out_params = nullptr);
+
+template <typename io_T, bool convert>
+static MLI_FORCE_INLINE void compute_activation_lut(
+        const struct generic_tensor_private_t<MLI_PTR(io_T)> *in,
+        struct generic_tensor_private_t<MLI_PTR(io_T)> *out,
+        const mli_lut *lut,
+        int8_t in_frac_bits,
+        const struct s8asym_quant_params *in_params,
+        struct s8asym_quant_params *out_params);
 
 template <typename in_T, typename out_T, bool convert_input, bool convert_output>
 static MLI_FORCE_INLINE out_T activation_lut_one_elem_interpolate(
@@ -66,14 +84,15 @@ static MLI_FORCE_INLINE out_T activation_lut_one_elem_no_interpolate(
 // DSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace dsp {
-template <typename io_T, bool convert = false>
-static void activation_lut(
+
+template <typename io_T, bool convert>
+static MLI_FORCE_INLINE void compute_activation_lut(
         const struct generic_tensor_private_t<MLI_PTR(io_T)> *in,
         struct generic_tensor_private_t<MLI_PTR(io_T)> *out,
         const mli_lut *lut,
         int8_t in_frac_bits,
-        const struct s8asym_quant_params *in_params  = nullptr,
-        struct s8asym_quant_params *out_params = nullptr);
+        const struct s8asym_quant_params *in_params,
+        struct s8asym_quant_params *out_params);
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
 template <typename out_T, bool convert_input, bool convert_output>
@@ -99,14 +118,15 @@ static MLI_FORCE_INLINE v2q15_t activation_lut_two_elem_no_interpolate(
 // VDSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
-template <typename io_T, bool convert = false>
-static void activation_lut(
+
+template <typename io_T, bool convert>
+static MLI_FORCE_INLINE void compute_activation_lut(
         const struct generic_tensor_private_t<MLI_PTR(io_T)> *in,
-        struct generic_tensor_private_t<MLI_OUT_PTR(io_T)> *out,
+        struct generic_tensor_private_t<MLI_PTR(io_T)> *out,
         const mli_lut *lut,
         int8_t in_frac_bits,
-        const struct s8asym_quant_params *in_params  = nullptr,
-        struct s8asym_quant_params *out_params = nullptr);
+        const struct s8asym_quant_params *in_params,
+        struct s8asym_quant_params *out_params);
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
 template <bool convert>
