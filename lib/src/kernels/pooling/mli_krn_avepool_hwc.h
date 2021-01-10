@@ -26,19 +26,16 @@
 namespace mli {
 namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-using mli::krn::vdsp::compute_avepool_func;
+using mli::krn::vdsp::compute_avepool;
 using mli::krn::ref::get_mul_shift_value;
-using mli::krn::ref::compute_avepool;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-using mli::krn::dsp::compute_avepool_func;
+using mli::krn::dsp::compute_avepool;
 using mli::krn::ref::get_mul_shift_value;
-using mli::krn::ref::compute_avepool;
 
 #else
-using mli::krn::ref::compute_avepool_func;
-using mli::krn::ref::get_mul_shift_value;
 using mli::krn::ref::compute_avepool;
+using mli::krn::ref::get_mul_shift_value;
 
 #endif
 } // krn

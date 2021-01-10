@@ -33,34 +33,8 @@ namespace ref {
 static MLI_FORCE_INLINE void get_mul_shift_value(
         unsigned div,
         int16_t* mul, int* shift);
-        
-template<bool remaining_channels>
-static MLI_FORCE_INLINE void compute_avepool_func(
-        const MLI_PTR(int8_t) __restrict in,
-        MLI_OUT_PTR(int8_t) __restrict out,
-        const int16_t mul,
-        const int width,
-        const int height,
-        const int col_mem_stride,
-        const int row_mem_stride,
-        const int32_t zp,
-        const int shift_value,
-        const int channels = 1 /*unused*/);
 
-template<bool remaining_channels>
-static MLI_FORCE_INLINE void compute_avepool_func(
-        const MLI_PTR(int16_t) __restrict in,
-        MLI_OUT_PTR(int16_t) __restrict out,
-        const int16_t mul,
-        const int width,
-        const int height,
-        const int col_mem_stride,
-        const int row_mem_stride,
-        const int32_t zp,
-        const int shift_value,
-        const int channels = 1 /*unused*/);
-
-template<typename io_T, bool remaining_channels>
+template<typename io_T, bool remaining_channels, int fixed_kernel_size, bool varying_kernel>
 static MLI_FORCE_INLINE void compute_avepool(
         const MLI_PTR(io_T) __restrict in,
         MLI_OUT_PTR(io_T) __restrict out,
@@ -79,23 +53,10 @@ static MLI_FORCE_INLINE void compute_avepool(
 // DSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace dsp {
-template<bool remaining_channels>
-static MLI_FORCE_INLINE void compute_avepool_func(
-        const MLI_PTR(int8_t) __restrict in,
-        MLI_OUT_PTR(int8_t) __restrict out,
-        const int16_t mul,
-        const int width,
-        const int height,
-        const int col_mem_stride,
-        const int row_mem_stride,
-        const int32_t zp,
-        const int shift_value,
-        const int channels = 1 /*unused*/);
-
-template<bool remaining_channels>
-static MLI_FORCE_INLINE void compute_avepool_func(
-        const MLI_PTR(int16_t) __restrict in,
-        MLI_OUT_PTR(int16_t) __restrict out,
+template<typename io_T, bool remaining_channels, int fixed_kernel_size, bool varying_kernel>
+static MLI_FORCE_INLINE void compute_avepool(
+        const MLI_PTR(io_T) __restrict in,
+        MLI_OUT_PTR(io_T) __restrict out,
         const int16_t mul,
         const int width,
         const int height,
@@ -112,23 +73,10 @@ static MLI_FORCE_INLINE void compute_avepool_func(
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
 
-template<bool remaining_channels>
-static MLI_FORCE_INLINE void compute_avepool_func(
-        const MLI_PTR(int8_t) __restrict in,
-        MLI_OUT_PTR(int8_t) __restrict out,
-        const int16_t mul,
-        const int width,
-        const int height,
-        const int col_mem_stride,
-        const int row_mem_stride,
-        const int32_t zp,
-        const int shift_value,
-        const int channels = 0 /*unused in full vector case*/);
-
-template<bool remaining_channels>
-static MLI_FORCE_INLINE void compute_avepool_func(
-        const MLI_PTR(int16_t) __restrict in,
-        MLI_OUT_PTR(int16_t) __restrict out,
+template<typename io_T, bool remaining_channels, int fixed_kernel_size, bool varying_kernel>
+static MLI_FORCE_INLINE void compute_avepool(
+        const MLI_PTR(io_T) __restrict in,
+        MLI_OUT_PTR(io_T) __restrict out,
         const int16_t mul,
         const int width,
         const int height,

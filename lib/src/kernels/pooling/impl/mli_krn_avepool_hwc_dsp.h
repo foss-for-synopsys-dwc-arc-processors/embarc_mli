@@ -69,6 +69,23 @@ static MLI_FORCE_INLINE void compute_avepool_func(
  
 }
 
+template<typename io_T, bool remaining_channels, int fixed_kernel_size, bool varying_kernel>
+static MLI_FORCE_INLINE void compute_avepool(
+        const MLI_PTR(io_T) __restrict in,
+        MLI_OUT_PTR(io_T) __restrict out,
+        const int16_t mul,
+        const int width,
+        const int height,
+        const int col_mem_stride,
+        const int row_mem_stride,
+        const int32_t zp,
+        const int shift_value,
+        const int channels) {
+    
+    compute_avepool_func<remaining_channels>(
+              in, out, mul, width, height, col_mem_stride, row_mem_stride, zp ,shift_value, channels);
+}
+
 } // namespace dsp
 } // namespace krn
 } // namespace mli
