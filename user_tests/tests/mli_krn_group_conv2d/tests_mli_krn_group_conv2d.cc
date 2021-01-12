@@ -56,7 +56,7 @@ struct group_conv2d_test_operands {
 #if defined(CRC_RM_CONVERGENT) || defined(CRC_RM_UP)
 
 // Shared CRC Results
-const crc32_calc test_1_chksum_fx16{ 0xB782413A }, test_1_chksum_fx16_fx8_fx8{ 0xEE4193A9 }, test_1_chksum_sa8{ 0xDC08498E },
+const crc32_calc test_1_chksum_fx16{ 0xB782413A }, test_1_chksum_fx16_fx8_fx8{ 0xEE4193A9 }, test_1_chksum_sa8{ 0xB28452CF },
                  test_2_chksum_fx16{ 0x65FD03D2 }, test_2_chksum_fx16_fx8_fx8{ 0xB34C4A01 }, test_2_chksum_sa8{ 0x33341D2B },
                  test_3_chksum_fx16{ 0x71B9E656 }, test_3_chksum_fx16_fx8_fx8{ 0x67578BCF }, test_3_chksum_sa8{ 0xAAD727F2 },
                  test_4_chksum_fx16{ 0x2D7FD678 }, test_4_chksum_fx16_fx8_fx8{ 0x96994E5E }, test_4_chksum_sa8{ 0xCC24BECE },

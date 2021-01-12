@@ -31,7 +31,7 @@ namespace krn {
 // REF
 ////////////////////////////////////////////////////////////////////////////////
 namespace ref {
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height, int fix_stride>
 MLI_FORCE_INLINE void transpose_conv2d_prepare_and_run(
         const mli_tensor *in,
         const mli_tensor *weights,
@@ -39,7 +39,7 @@ MLI_FORCE_INLINE void transpose_conv2d_prepare_and_run(
         const mli_conv2d_cfg *cfg,
         mli_tensor *out);
 
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int conv_fix_kernel_width, int conv_fix_kernel_height>
 MLI_FORCE_INLINE void transpose_convolution2D(
     const tensor_private_t<MLI_PTR(io_T)>& in,
     const conv2d_weights_tensor_private_t<MLI_PTR(w_T)>& weights,

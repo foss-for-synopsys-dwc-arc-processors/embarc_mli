@@ -75,7 +75,7 @@ static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> get_mirrored_weights_
 //========================================================
 // Main Transpose Convolution Routine
 //========================================================
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int conv_fix_kernel_width, int conv_fix_kernel_height>
 MLI_FORCE_INLINE void transpose_convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
@@ -87,8 +87,8 @@ MLI_FORCE_INLINE void transpose_convolution2D(
         const io_T val_max_limit,
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right) {
-    // We reuse general 2d convolution from reference, which is included in mli_krn_transpose_conv.h
-    mli::krn::ref::convolution2D<io_T, w_T, b_T, acc_T, quant_T, KRN_SZ_VAR, KRN_SZ_VAR>(
+
+    mli::krn::convolution2D<io_T, w_T, b_T, acc_T, quant_T, conv_fix_kernel_width, conv_fix_kernel_height>(
         in, weights, biases, out, perception_area, quant_params,
         val_min_limit, val_max_limit,
         /*stride_height = */1, /*stride_width = */1,
@@ -99,7 +99,7 @@ MLI_FORCE_INLINE void transpose_convolution2D(
 //====================================================================================
 // Common routine  for pre-calculation of various convolution parameters and running it.
 //====================================================================================
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height, int fix_stride>
 MLI_FORCE_INLINE void transpose_conv2d_prepare_and_run(
         const mli_tensor *in,
         const mli_tensor *weights,
@@ -107,6 +107,9 @@ MLI_FORCE_INLINE void transpose_conv2d_prepare_and_run(
         const mli_conv2d_cfg *cfg,
         mli_tensor *out) {
     mli_prv_fx_init_dsp_ctrl();
+
+    constexpr int conv_fix_kernel_width = (fix_stride == 2) ? fix_kernel_width / 2 : KRN_SZ_VAR;
+    constexpr int conv_fix_kernel_height = (fix_stride == 2) ? fix_kernel_height / 2 : KRN_SZ_VAR;
 
     // Define output val limits (may affect built in ReLU)
     mli_minmax_t val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
@@ -165,6 +168,8 @@ MLI_FORCE_INLINE void transpose_conv2d_prepare_and_run(
             cur_out.row_mem_stride *= stride_height;
             cur_out.ptr += out_prv.row_mem_stride * krn_h_offset;
             cur_out.ptr += out_prv.col_mem_stride * krn_w_offset;
+            cur_out.height = cur_out_height;
+            cur_out.width = cur_out_width;
 
             // Define paddings for the current calculations according to the new kernel size and offset index.
             // Right and bottom paddings are derived from other already known parameters:
@@ -180,7 +185,7 @@ MLI_FORCE_INLINE void transpose_conv2d_prepare_and_run(
             rect_t cent_area;
             cent_area.row_beg = 0;  cent_area.row_end = cur_out_height;
             cent_area.clmn_beg = 0; cent_area.clmn_end = cur_out_width;
-            transpose_convolution2D<io_T, w_T, b_T, acc_T, quant_T>(
+            transpose_convolution2D<io_T, w_T, b_T, acc_T, quant_T, conv_fix_kernel_width, conv_fix_kernel_height>(
                 in_prv, weights_subtensor, bs, cur_out, cent_area, quant_params,
                 (io_T)val_limit.min, (io_T)val_limit.max,
                 cur_pad_top, cur_pad_left, cur_pad_bot, cur_pad_right);

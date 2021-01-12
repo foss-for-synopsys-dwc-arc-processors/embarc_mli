@@ -23,8 +23,12 @@ typedef enum {
 
 #define KRN_SZ_VAR 0
 #define KRN_SZ_1 1
+#define KRN_SZ_2 2
 #define KRN_SZ_3 3
+#define KRN_SZ_4 4
 #define KRN_SZ_5 5
+#define STR_VAR 0
+#define STR_2 2
 
 namespace krn {
 ////////////////////////////////////////////////////////////////////////////////

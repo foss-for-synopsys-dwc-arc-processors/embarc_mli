@@ -116,8 +116,13 @@ MLI_FORCE_INLINE void convolution2D_nopad(
                               in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride,
                               weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride,
                               accu);
-                } else {
+                } else if (weights.row_mem_stride == clmns * weights.col_mem_stride) {
                     accu = mli::krn::dotprod3D_v_nopad(in_ptr, w_ptr, clmns, rows, in.ch,
+                              in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride,
+                              weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride,
+                              accu);
+                } else {
+                    accu = mli::krn::dotprod3D_v<io_T, w_T, acc_T, /*fixedsize*/false>(in_ptr, w_ptr, clmns, rows, in.ch,
                               in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride,
                               weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride,
                               accu);
@@ -148,10 +153,15 @@ MLI_FORCE_INLINE void convolution2D_nopad(
                               in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride, in_unroll_inc,
                               weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride,
                               accu);
-                } else {
+                } else if (weights.row_mem_stride == clmns * weights.col_mem_stride) {
                     accu = mli::krn::dotprod3D_v_nopad_unroll<unroll>(in_ptr, w_ptr, clmns, rows, in.ch,
                               in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride,
                               weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride, in_unroll_inc,
+                              accu);
+                } else {
+                    accu = mli::krn::dotprod3D_v_unroll<unroll, false>(in_ptr, w_ptr, clmns, rows, in.ch,
+                              in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride, in_unroll_inc,
+                              weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride,
                               accu);
                 }
                 // Cast result to output type, apply built-in ReLU Applying and write result
