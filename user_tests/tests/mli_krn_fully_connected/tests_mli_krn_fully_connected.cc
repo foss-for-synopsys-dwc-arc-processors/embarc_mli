@@ -59,11 +59,17 @@ const crc32_calc test_1_chksum_fx16{ 0x933AC67B }, test_1_chksum_fx16_fx8_fx8{ 0
                  test_3_chksum_fx16{ 0xB5E17BAF }, test_3_chksum_fx16_fx8_fx8{ 0xD1D009B6 }, test_3_chksum_sa8{ 0xDA985432 },
                  test_4_chksum_fx16{ 0x4BCFDBF2 }, test_4_chksum_fx16_fx8_fx8{ 0x923FDE15 }, test_4_chksum_sa8{ 0x33950BC3 };
 
+const crc32_calc test_1_chksum_sa8_spec{ 0xD33291C2 }, test_2_chksum_sa8_spec{ 0xF39F7D6F }, 
+                 test_3_chksum_sa8_spec{ 0x5E436805 }, test_4_chksum_sa8_spec{ 0x686E0B8E };
+
 #else // Not defined CRC_*
 const crc32_calc  test_1_chksum_fx16, test_1_chksum_fx16_fx8_fx8, test_1_chksum_sa8,
                   test_2_chksum_fx16, test_2_chksum_fx16_fx8_fx8, test_2_chksum_sa8,
                   test_3_chksum_fx16, test_3_chksum_fx16_fx8_fx8, test_3_chksum_sa8,
                   test_4_chksum_fx16, test_4_chksum_fx16_fx8_fx8, test_4_chksum_sa8;
+
+const crc32_calc test_1_chksum_sa8_spec, test_2_chksum_sa8_spec, 
+                 test_3_chksum_sa8_spec, test_4_chksum_sa8_spec;
 #endif
 
 
@@ -80,15 +86,18 @@ const quality_metrics thresholds_sa8_general{ quality_metrics::kPassValueMaxAbsE
 static const fully_connected_test_operands tests_list[] = {
 
     // Basic functionality test: with ReLU 
-    {"Test 1 FX16 ",         mli_krn_fully_connected_fx16, 
-                            input_1_fx16, weights_1_fx16, bias_1_fx16, test_1_out_fx16, test_1_cfg,
-                            thresholds_fx16_general, test_1_chksum_fx16},
-    {"Test 1 FX16_FX8_FX8", mli_krn_fully_connected_fx16_fx8_fx8, 
-                            input_1_fx16, weights_1_fx8, bias_1_fx8, test_1_out_fx16, test_1_cfg, 
-                            thresholds_fx16_fx8_fx8_general, test_1_chksum_fx16_fx8_fx8},
-    {"Test 1 SA8_SA8_SA32", mli_krn_fully_connected_sa8_sa8_sa32,
-                            input_1_sa8, weights_1_sa8_per_axis, bias_1_sa32_per_axis, test_1_out_sa8, test_1_cfg, 
-                            thresholds_sa8_general, test_1_chksum_sa8},
+    {"Test 1 FX16 ",             mli_krn_fully_connected_fx16, 
+                                 input_1_fx16, weights_1_fx16, bias_1_fx16, test_1_out_fx16, test_1_cfg,
+                                 thresholds_fx16_general, test_1_chksum_fx16},
+    {"Test 1 FX16_FX8_FX8",      mli_krn_fully_connected_fx16_fx8_fx8, 
+                                 input_1_fx16, weights_1_fx8, bias_1_fx8, test_1_out_fx16, test_1_cfg, 
+                                 thresholds_fx16_fx8_fx8_general, test_1_chksum_fx16_fx8_fx8},
+    {"Test 1 SA8_SA8_SA32",      mli_krn_fully_connected_sa8_sa8_sa32,
+                                 input_1_sa8, weights_1_sa8_per_axis, bias_1_sa32_per_axis, test_1_out_sa8, test_1_cfg, 
+                                 thresholds_sa8_general, test_1_chksum_sa8},
+    {"Test 1 SA8_SA8_SA32 Spec", mli_krn_fully_connected_sa8_sa8_sa32_ext_bias,
+                                 input_1_sa8, weights_1_sa8_per_axis, bias_1_sa32_per_axis_spec, test_1_out_sa8, test_1_cfg, 
+                                 thresholds_sa8_general, test_1_chksum_sa8_spec},
 
     // Basic functionality test: with Gen_ReLU 
     {"Test 2 FX16 ReluGen",         mli_krn_fully_connected_fx16, 
@@ -100,6 +109,9 @@ static const fully_connected_test_operands tests_list[] = {
     {"Test 2 SA8_SA8_SA32 ReluGen", mli_krn_fully_connected_sa8_sa8_sa32, 
                                     input_1_sa8, weights_1_sa8, bias_1_sa32, test_2_out_sa8, test_2_cfg,
                                     thresholds_sa8_general, test_2_chksum_sa8},
+    {"Test 2 SA8_SA8_SA32 Spec",    mli_krn_fully_connected_sa8_sa8_sa32_ext_bias, 
+                                    input_1_sa8, weights_1_sa8, bias_1_sa32_spec, test_2_out_sa8, test_2_cfg,
+                                    thresholds_sa8_general, test_2_chksum_sa8_spec},
 
     // Weights memstride test: with ReLU_1
     {"Test 3 FX16 Relu1 Mstr",         mli_krn_fully_connected_fx16,
@@ -111,6 +123,9 @@ static const fully_connected_test_operands tests_list[] = {
     {"Test 3 SA8_SA8_SA32 Relu1 Mstr", mli_krn_fully_connected_sa8_sa8_sa32,
                                        input_1_sa8, weights_2_memstr_sa8_per_axis, bias_2_i1_w2_sa32_per_axis, test_3_out_sa8, test_3_cfg,
                                        thresholds_sa8_general, test_3_chksum_sa8},
+    {"Test 3 SA8_SA8_SA32 Spec",       mli_krn_fully_connected_sa8_sa8_sa32_ext_bias,
+                                       input_1_sa8, weights_2_memstr_sa8_per_axis, bias_2_i1_w2_sa32_per_axis_spec, test_3_out_sa8, test_3_cfg,
+                                       thresholds_sa8_general, test_3_chksum_sa8_spec},
 
     // Multidimensional input test: with ReLU_6
     {"Test 4 FX16 Relu6",         mli_krn_fully_connected_fx16,
@@ -122,6 +137,9 @@ static const fully_connected_test_operands tests_list[] = {
     {"Test 4 SA8_SA8_SA32 Relu6", mli_krn_fully_connected_sa8_sa8_sa32,
                                   input_2_sa8, weights_3_sa8_per_axis, bias_3_i2_w3_sa32_per_axis, test_4_out_sa8, test_4_cfg,
                                   thresholds_sa8_general, test_4_chksum_sa8},
+    {"Test 4 SA8_SA8_SA32 Spec",  mli_krn_fully_connected_sa8_sa8_sa32_ext_bias,
+                                  input_2_sa8, weights_3_sa8_per_axis, bias_3_i2_w3_sa32_per_axis_spec, test_4_out_sa8, test_4_cfg,
+                                  thresholds_sa8_general, test_4_chksum_sa8_spec},
 };
 
 constexpr int kMemSize = 2047;

@@ -164,7 +164,20 @@ MLI_FORCE_INLINE int16_t quant_params_get_weigths_zeropoint(s8asym_quant_specifi
     return params->weights_offset;
 }
 
-MLI_FORCE_INLINE int16_t quant_params_get_weigths_zeropoint(fx_quant_specific_params* params) {
+MLI_FORCE_INLINE int16_t quant_params_get_weigths_zeropoint(fx_quant_specific_params*) {
+    // Function parameters are not used since for MLI_FX quantization zero_point 
+    // is always 0 and isn't present in params structure
+    return 0;
+}
+
+MLI_FORCE_INLINE int16_t quant_params_set_in_zeropoint(s8asym_quant_specific_params* params, int16_t new_zp) {
+    params->in_offset = new_zp;
+    return params->in_offset;
+}
+
+MLI_FORCE_INLINE int16_t quant_params_set_in_zeropoint(fx_quant_specific_params*, int16_t) {
+    // Function parameters are not used since for MLI_FX quantization zero_point 
+    // is always 0 and isn't present in params structure (can't be changed)
     return 0;
 }
 

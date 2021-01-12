@@ -351,6 +351,16 @@ static const float bias_1_data[] = {
     0.050303f, 0.257336f
 };
 
+static const float bias_1_w1_per_axis_sa_spec_data[] = {
+    -0.00011308f, 0.86583763f, -0.06195948f, -0.88614585f, -0.62361642f, 0.08568881f,
+    0.3485856f, -0.04798725f, 0.2467104f, 0.60665255f
+};
+
+static const float bias_1_w1_per_tsr_sa_spec_data[] = {
+    0.002244661f, 0.866307026f, -0.059813608f, -0.885848779f, -0.620846767f, 0.087145654f,
+    0.348582617f, -0.050967004f, 0.243479676f, 0.605794336f
+};
+
 static const float bias_1_scale = 0.00013203887f;
 static const float bias_1_zero_point = 0.0f;
 static const int8_t bias_1_scales_frac[] = {21};
@@ -399,6 +409,12 @@ static const float bias_2_data[] = {
     -1.157919f, 0.772353f
 };
 
+static const float bias2_w2_per_axis_sa_spec_data[] = {
+    -0.022384288f, 0.431194894f, -0.233467936f, 0.220457495f, -1.053326004f, -0.340195567f,
+    -1.32694049f, 0.626928252f
+};
+
+
 static const float bias_2_i1_w2_scale = 0.0000535334f;
 static const float bias_2_i1_w2_zero_point = 0.0f;
 static const int8_t bias_2_i1_w2_scales_frac[] = {32};
@@ -445,6 +461,11 @@ static const mli_tensor bias_2_i1_w2_tsr_sa32 = {
 static const float bias_3_data[] = {
     -0.413987f, -0.036830f, -0.774361f, -0.733625f, 0.407069f, 0.270810f, 
     0.239078f, -0.396362f
+};
+
+static const float bias3_w3_per_axis_sa_spec_data[] = {
+    -1.01143887f, 1.90641965f, 7.3551735f, 4.55262423f, -14.89876688f, 1.72153521f, 16.13824786f,
+    4.83833187f
 };
 
 static const float bias_3_i2_w3_scale = 0.0005360940f;
@@ -668,7 +689,15 @@ tensor_quantizer bias_1_sa32(bias_1_tsr_sa32, bias_1_sa_dim, bias_1_data,
     sizeof(bias_1_data) / sizeof(bias_1_data[0]), &bias_1_scale, 1,
     &bias_1_zero_point, 1, bias_1_scales_frac, 1);
 
+tensor_quantizer bias_1_sa32_spec(bias_1_tsr_sa32, bias_1_sa_dim, bias_1_w1_per_tsr_sa_spec_data,
+    sizeof(bias_1_data) / sizeof(bias_1_data[0]), &bias_1_scale, 1,
+    &bias_1_zero_point, 1, bias_1_scales_frac, 1);
+
 tensor_quantizer bias_1_sa32_per_axis(bias_1_tsr_sa32, bias_1_sa_dim_1, bias_1_data,
+    sizeof(bias_1_data) / sizeof(bias_1_data[0]), bias_1_scales_1, 10,
+    bias_1_zero_points_1, 10, bias_1_scales_fracs_1, 10);
+
+tensor_quantizer bias_1_sa32_per_axis_spec(bias_1_tsr_sa32, bias_1_sa_dim_1, bias_1_w1_per_axis_sa_spec_data,
     sizeof(bias_1_data) / sizeof(bias_1_data[0]), bias_1_scales_1, 10,
     bias_1_zero_points_1, 10, bias_1_scales_fracs_1, 10);
 
@@ -685,6 +714,10 @@ tensor_quantizer bias_2_i1_w2_sa32_per_axis(bias_2_i1_w2_tsr_sa32, bias_2_i1_w2_
     sizeof(bias_2_data) / sizeof(bias_2_data[0]), bias_2_i1_w2_scales, 8,
     bias_2_i1_w2_zero_points, 8, bias_2_i1_w2_scales_fracs, 8);
 
+tensor_quantizer bias_2_i1_w2_sa32_per_axis_spec(bias_2_i1_w2_tsr_sa32, bias_2_i1_w2_sa_dim_2, bias2_w2_per_axis_sa_spec_data,
+    sizeof(bias_2_data) / sizeof(bias_2_data[0]), bias_2_i1_w2_scales, 8,
+    bias_2_i1_w2_zero_points, 8, bias_2_i1_w2_scales_fracs, 8);
+
 
 tensor_quantizer bias_3_fx16(bias_3_tsr_fx16, bias_3_fx8_frac + 8, bias_3_data, sizeof(bias_3_data) / sizeof(bias_3_data[0]));
 
@@ -695,6 +728,10 @@ tensor_quantizer bias_3_i2_w3_sa32(bias_3_i2_w3_tsr_sa32, bias_3_i2_w3_sa_dim, b
     &bias_3_i2_w3_zero_point, 1, bias_3_i2_w3_scales_frac, 1);
 
 tensor_quantizer bias_3_i2_w3_sa32_per_axis(bias_3_i2_w3_tsr_sa32, bias_3_i2_w3_sa_dim_2, bias_3_data,
+    sizeof(bias_3_data) / sizeof(bias_3_data[0]), bias_3_i2_w3_scales, 8,
+    bias_3_i2_w3_zero_points, 8, bias_3_i2_w3_scales_fracs, 8);
+
+tensor_quantizer bias_3_i2_w3_sa32_per_axis_spec(bias_3_i2_w3_tsr_sa32, bias_3_i2_w3_sa_dim_2, bias3_w3_per_axis_sa_spec_data,
     sizeof(bias_3_data) / sizeof(bias_3_data[0]), bias_3_i2_w3_scales, 8,
     bias_3_i2_w3_zero_points, 8, bias_3_i2_w3_scales_fracs, 8);
 

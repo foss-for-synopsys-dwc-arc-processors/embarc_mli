@@ -72,7 +72,7 @@ MLI_FORCE_INLINE void inner_product(
                                 in_elements, 1, 1, w_ch_out_mem_stride, 1, 1);
         accu = mli_math_add_fx(accu, other_additives);
         accu = mli::krn::bias_additive(&biases[o_idx], accu, &quant_params);
-        
+
         // Cast result to output type with scaling
         io_T out_val = mli::krn::result_cast<io_T, acc_T, quant_T>(accu, &quant_params);
         out_val = MIN(out_val, val_max_limit);
@@ -84,7 +84,7 @@ MLI_FORCE_INLINE void inner_product(
 //========================================================================================
 // Common routin for pre-calculation of various fully connected parameters and running it.
 //========================================================================================
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, bool is_bias_ext>
 MLI_FORCE_INLINE void fully_connected_prepare_and_run(
         const mli_tensor *in,
         const mli_tensor *weights,
@@ -113,6 +113,12 @@ MLI_FORCE_INLINE void fully_connected_prepare_and_run(
     // Define quantization specific params
     quant_T params;
     define_quant_params(in, weights, bias, out, &params);
+    
+    // Various additives might be merged into bias in advance for sa data type.
+    // In this case we assign 0 to input zero point to have no effect on final result
+    // as bias already "biased" to take it into account. 
+    if (is_bias_ext)
+        quant_params_set_in_zeropoint(&params, 0);
    
    // Define memory stride
     const int w_ch_out_mem_stride_from_tensor = weights->mem_stride[0];
