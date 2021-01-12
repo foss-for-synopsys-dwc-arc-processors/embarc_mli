@@ -375,7 +375,7 @@ MLI_FORCE_INLINE int8_t result_cast(
 
     // reduce out_mul to 16bit
     int int_to_short_shift = 16;
-    out_mul = mli_math_asr_fx(out_mul, int_to_short_shift);
+    out_mul = mli_math_asr_rnd_fx(out_mul, int_to_short_shift);
     out_shift -= int_to_short_shift;
 
     // preshift and clip to 16bit, but keep 32bit container for easy connection to rest of code.
