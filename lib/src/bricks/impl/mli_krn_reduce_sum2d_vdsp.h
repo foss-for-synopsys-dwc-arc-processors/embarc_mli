@@ -27,17 +27,23 @@ static MLI_FORCE_INLINE acc_T reduce_sum2D_v(
         const int height,
         const int col_mem_stride,
         const int row_mem_stride,
-        const bool fixed_size,
         int *accum_shift_amout) {
 
+    int row_inc = row_mem_stride - width * col_mem_stride;
     vNx4accshort_t acc_short = mli_prv_init_accu<vNx4accshort_t>();
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
+#pragma clang loop unroll(full)
     for (int row = 0; row < height; row++) {
+#pragma clang loop unroll(full)
 		for (int clmn = 0; clmn < width; clmn++) {
-			acc_short = mli_math_mac_fx(acc_short, 
-			        mli_prv_load_nx4_samples(&in[(row * row_mem_stride) + (clmn * col_mem_stride)]), (int8_t)1);
+			acc_short = mli_math_mac_fx(acc_short, mli_prv_load_nx4_samples(in), (int8_t)1);
+            in += col_mem_stride;
 		}
+        in += row_inc;
 	}
+#pragma clang diagnostic pop
 
     vNx4short_t acc_casted = mli_math_acc_cast_fx<vNx4short_t, vNx4accshort_t>(acc_short); 
     accu = mli_math_mac_fx(accu, acc_casted, mul);
@@ -56,9 +62,9 @@ static MLI_FORCE_INLINE vNx2int_t reduce_sum2D_v(
         const int height,
         const int col_mem_stride,
         const int row_mem_stride,
-        const bool fixed_size,
         int *accum_shift_amout) {
 
+    int row_inc = row_mem_stride - width * col_mem_stride;
     /* The sum elements (int16) are left shifted with 8 bits to have max (24 bits) leaving 8 bits of 32 as guard bits,
      * This is done to enlarge the multiplication value as we use multiply high.
      * Note: The output of this function is shifted right by 8 bits as result of the following:
@@ -69,13 +75,18 @@ static MLI_FORCE_INLINE vNx2int_t reduce_sum2D_v(
      */
     *accum_shift_amout = MULTIPLY_FX_HI_SHIFT - ACUMM_SUM_PRE_SHIFT - MUL_SHIFT;
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
+#pragma clang loop unroll(full)
     for (int row = 0; row < height; row++) {
+#pragma clang loop unroll(full)
         for (int clmn = 0; clmn < width; clmn++) {
-            accu = mli_math_mac_fx(accu,
-                    mli_prv_load_nx2_samples(&in[(row * row_mem_stride) + (clmn * col_mem_stride)]),
-                    (int16_t) (1 << ACUMM_SUM_PRE_SHIFT));
+            accu = mli_math_mac_fx(accu, mli_prv_load_nx2_samples(in), (int16_t) (1 << ACUMM_SUM_PRE_SHIFT));
+            in += col_mem_stride;
         }
+        in += row_inc;
     }
+#pragma clang diagnostic pop
 
     vNx2int_t sum = mli_math_acc_cast_fx<vNx2int_t, vNx2accint_t>(accu);
     vNx2int_t average = mli_math_mul_fx_high(sum, (int32_t) (mul << MUL_SHIFT));
@@ -92,15 +103,22 @@ static MLI_FORCE_INLINE acc_T reduce_sum2D_v(
         const int height,
         const int col_mem_stride,
         const int row_mem_stride,
-        const bool fixed_size,
         int *accum_shift_amout) {
+    int row_inc = row_mem_stride - width * col_mem_stride;
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
+#pragma clang loop unroll(full)
     for (int row = 0; row < height; row++) {
+#pragma clang loop unroll(full)
         for (int clmn = 0; clmn < width; clmn++) {
-            accu = mli_math_mac_fx(accu,
-                    mli_prv_load_nx2_samples(&in[(row * row_mem_stride) + (clmn * col_mem_stride)]), mul);
+            accu = mli_math_mac_fx(accu, mli_prv_load_nx2_samples(in), mul);
+            in += col_mem_stride;
         }
+        in += row_inc;
     }
+#pragma clang diagnostic pop
+
     return accu;
 }
 
@@ -115,10 +133,9 @@ static MLI_FORCE_INLINE acc_T reduce_sum2D(
         const int height,
         const int channels,
         const int col_mem_stride,
-        const int row_mem_stride,
-        const bool fixed_size) {
+        const int row_mem_stride) {
 
-    return reduce_sum2D_v(in, mul, accu, width, height, col_mem_stride, row_mem_stride, fixed_size);
+    return reduce_sum2D_v(in, mul, accu, width, height, col_mem_stride, row_mem_stride);
 }
 
 } // namespace vdsp

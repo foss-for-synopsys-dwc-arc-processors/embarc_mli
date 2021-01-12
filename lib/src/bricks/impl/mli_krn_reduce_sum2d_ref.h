@@ -27,7 +27,6 @@ static MLI_FORCE_INLINE acc_T reduce_sum2D_v(
         const int height,
         const int col_mem_stride,
         const int row_mem_stride,
-        const bool fixed_size,
         int *accum_shift_amout) {
 
     for (int row = 0; row < height; row++) {
@@ -48,10 +47,9 @@ static MLI_FORCE_INLINE acc_T reduce_sum2D(
         const int height,
         const int channels,
         const int col_mem_stride,
-        const int row_mem_stride,
-        const bool fixed_size) {
+        const int row_mem_stride) {
             
-    return reduce_sum2D_v(in, mul, accu, width, height, col_mem_stride, row_mem_stride, fixed_size);
+    return reduce_sum2D_v(in, mul, accu, width, height, col_mem_stride, row_mem_stride);
 }
 
 template <typename io_T, typename acc_T>

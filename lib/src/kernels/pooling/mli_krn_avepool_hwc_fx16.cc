@@ -4,7 +4,7 @@
  * mli_krn_avepool_hwc_func_body.txt
  */
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -12,7 +12,7 @@
 *
 */
 
-#include "mli_krn_avepool_hwc.h"
+#include "mli_krn_pool_hwc.h"
 
 #include "mli_config.h"
 #include "mli_debug.h"
@@ -25,14 +25,6 @@
 extern "C" {
 #endif
 
-#if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-typedef vNx2accint_t mli_fx16_accu_t;
-#elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-typedef v2accum40_t mli_fx16_accu_t;
-#else
-typedef mli_acc40_t mli_fx16_accu_t;
-#endif
-
 #pragma MLI_CODE_SECTION_START(".mli_lib")
 
 mli_status mli_krn_avepool_hwc_fx16_k2x2(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
@@ -40,7 +32,7 @@ mli_status mli_krn_avepool_hwc_fx16_k2x2(const mli_tensor * in, const mli_pool_c
     if (ret != MLI_STATUS_OK)
         return ret;
 
-    mli::krn::mli_krn_avepool_hwc<int16_t, mli_fx16_accu_t, AVEPOOL_FIXED_KRN_SIZE_2>(in, cfg, out);
+    mli::krn::mli_krn_pool_hwc<mli::krn::AVEPOOL, int16_t, POOL_FIXED_KRN_SIZE_2>(in, cfg, out);
     return MLI_STATUS_OK;
 }
 
@@ -49,7 +41,7 @@ mli_status mli_krn_avepool_hwc_fx16_k3x3(const mli_tensor * in, const mli_pool_c
     if (ret != MLI_STATUS_OK)
         return ret;
 
-    mli::krn::mli_krn_avepool_hwc<int16_t, mli_fx16_accu_t, AVEPOOL_FIXED_KRN_SIZE_3>(in, cfg, out);
+    mli::krn::mli_krn_pool_hwc<mli::krn::AVEPOOL, int16_t, POOL_FIXED_KRN_SIZE_3>(in, cfg, out);
     return MLI_STATUS_OK;    
 }
 
@@ -66,7 +58,7 @@ mli_status mli_krn_avepool_hwc_fx16(const mli_tensor * in, const mli_pool_cfg * 
     } else if ((kernel_w == 2) && (kernel_h == 2)) {
         return mli_krn_avepool_hwc_fx16_k2x2(in, cfg, out);
     } else {
-        mli::krn::mli_krn_avepool_hwc<int16_t, mli_fx16_accu_t, AVEPOOL_NO_FIXED_KRN_SIZE>(in, cfg, out);
+        mli::krn::mli_krn_pool_hwc<mli::krn::AVEPOOL, int16_t, POOL_NO_FIXED_KRN_SIZE>(in, cfg, out);
     }
 
     return MLI_STATUS_OK;

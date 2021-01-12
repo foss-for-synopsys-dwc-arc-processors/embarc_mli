@@ -70,7 +70,7 @@ MLI_FORCE_INLINE acc_T weights_additive_v(
 
     // returns -(in_zero_point * cumsum(weights)) For S8ASYM
     if (quant_params->in_offset != 0) {
-        acc_T tmp_acc = reduce_sum2D_v(weights, -quant_params->in_offset, *init_accum, width, height, col_step, row_step, true);
+        acc_T tmp_acc = reduce_sum2D_v(weights, -quant_params->in_offset, *init_accum, width, height, col_step, row_step);
         return tmp_acc;
     } else {
         return *init_accum;
@@ -85,7 +85,7 @@ MLI_FORCE_INLINE acc_T weights_additive_v(
 
     // returns -(in_zero_point * cumsum(weights)) For S8ASYM
     if (quant_params->in_offset != 0) {
-        acc_T tmp_acc = reduce_sum2D_v(weights, -quant_params->in_offset, *init_accum, width, height, col_step, row_step, true);
+        acc_T tmp_acc = reduce_sum2D_v(weights, -quant_params->in_offset, *init_accum, width, height, col_step, row_step);
         return tmp_acc;
     } else {
         return *init_accum;
@@ -98,7 +98,7 @@ MLI_FORCE_INLINE mli_acc32_t weights_additive_d(
         const int width,  const int height, int col_step, int row_step) {
     // returns -(in_zero_point * cumsum(weights)) For S8ASYM
     if (quant_params->in_offset != 0) {
-        mli_acc32_t tmp_acc = reduce_sum2D_d(weights, -quant_params->in_offset, *init_accum, width, height, col_step, row_step, true);
+        mli_acc32_t tmp_acc = reduce_sum2D_d(weights, -quant_params->in_offset, *init_accum, width, height, col_step, row_step);
         return tmp_acc;
     } else {
         return *init_accum;

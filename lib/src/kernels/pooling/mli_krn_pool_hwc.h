@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -7,26 +7,32 @@
 *
 */
 
-#ifndef _MLI_KRN_MAXPOOL_HWC_H_
-#define _MLI_KRN_MAXPOOL_HWC_H_
+#ifndef _MLI_KRN_POOL_HWC_H_
+#define _MLI_KRN_POOL_HWC_H_
 
 #include "mli_config.h"
-#include "mli_math_macros.h"
-#include "mli_private_types.h"
+#include "mli_krn_avepool_hwc.h"
 #include "mli_krn_reduce_max2d.h"
+#include "mli_math.h"
+#include "mli_math_macros.h"
+#include "mli_prv_quant.h"
+#include "mli_prv_dsp.h"
+#include "mli_private_types.h"
 
-////////////////////////////////////////////////////////////////////////////////
-// Setting up namespace
-////////////////////////////////////////////////////////////////////////////////
 namespace mli {
 namespace krn {
 
-#define MAXPOOL_FIXED_KRN_SIZE_3 3
-#define MAXPOOL_FIXED_KRN_SIZE_2 2
-#define MAXPOOL_NO_FIXED_KRN_SIZE 0
+#define POOL_FIXED_KRN_SIZE_3   (3)
+#define POOL_FIXED_KRN_SIZE_2   (2)
+#define POOL_NO_FIXED_KRN_SIZE  (0)
 
-template <typename io_T, int fixed_kernel_size>
-static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_nopad(
+typedef enum {
+    AVEPOOL,
+    MAXPOOL
+} pool_type;
+
+template <pool_type type, typename io_T, int fixed_kernel_size, bool convert = false>
+static MLI_FORCE_INLINE void mli_krn_pool_hwc_nopad(
         const int row_beg,
         const int row_end,
         const int clmn_beg,
@@ -40,12 +46,32 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_nopad(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
         const int kernel_height,
-        const int kernel_width) {
+        const int kernel_width,
+        const s8asym_quant_params *params = nullptr) {
 
-    /* Dummy Load to get num_lanes, remaining part */
     auto input = mli_prv_load_1vec(in.ptr);
     const int num_lanes = get_number_lanes(input);
     const int remaining_chans = in.ch & (num_lanes - 1);
+
+    int shift_value = 0;
+    int16_t mul = 0;
+    int32_t zp = 0;
+
+    if (type == AVEPOOL) {
+        MLI_ASSERT(params != nullptr);
+        shift_value = params->shift;
+        zp = params->offset;
+        mli::krn::get_mul_shift_value(kernel_width * kernel_height, &mul, &shift_value);
+        if (convert) {
+            int norm_shift;
+            mul = mli_math_norm_cast_fx<int32_t,int16_t>(
+                                mli_math_mul_fx<int16_t, int32_t>(params->scale, mul), &norm_shift);
+            shift_value -= norm_shift;
+        } else {
+            MLI_ASSERT(params->offset == 0);
+            MLI_ASSERT(params->scale  == 1);
+        }
+    }
 
     const int h_idx_in = (row_beg * stride_height - padding_top);
     const int w_idx_in = (clmn_beg * stride_width - padding_left);
@@ -71,12 +97,18 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_nopad(
                                                      + ch_idx;
 
                 for (int H_idx = row_beg; H_idx < row_end; H_idx++) {
-// TODO unroll in case of MAXPOOL_FIXED_KRN_SIZE_2
-// #pragma clang loop unroll_count(2)
                     for (int W_idx = clmn_beg; W_idx < clmn_end; W_idx++) {
-                        // Core Max
-                        mli::krn::reduce_max2D_hwc<io_T, /*remaining_chans*/ false, fixed_kernel_size, /*varying_kernel*/ false>
-                            (in_ptr, out_ptr, kernel_width, kernel_height, in.col_mem_stride, in.row_mem_stride);
+                        if (type == AVEPOOL) {
+                            mli::krn::compute_avepool<io_T, /*remaining_chans*/ false, 
+                                                      fixed_kernel_size, /*varying_kernel*/ false>(
+                                                      in_ptr, out_ptr, mul, kernel_width, kernel_height,
+                                                      in.col_mem_stride, in.row_mem_stride, zp, shift_value);
+                        } else if (type == MAXPOOL) {
+                            mli::krn::reduce_max2D_hwc<io_T, /*remaining_chans*/ false, 
+                                                       fixed_kernel_size, /*varying_kernel*/ false>(
+                                                       in_ptr, out_ptr, kernel_width, kernel_height, 
+                                                       in.col_mem_stride, in.row_mem_stride);
+                        }
 
                         in_ptr += in_col_inc;
                         out_ptr += out_col_inc;
@@ -85,6 +117,7 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_nopad(
                     out_ptr += out_row_inc;
                 }
             }
+        
         if (remaining_chans) {
             // Define area of input and filter for pooling
             const MLI_PTR(io_T) __restrict in_ptr = in.ptr
@@ -99,9 +132,18 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_nopad(
 
             for (int H_idx = row_beg; H_idx < row_end; H_idx++) {
                 for (int W_idx = clmn_beg; W_idx < clmn_end; W_idx++) {
-                    // Core Max
-                    mli::krn::reduce_max2D_hwc<io_T, /*remaining_chans*/ true, fixed_kernel_size, /*varying_kernel*/ false>
-                        (in_ptr, out_ptr, kernel_width, kernel_height, in.col_mem_stride, in.row_mem_stride, remaining_chans);
+                    if (type == AVEPOOL) {
+                        mli::krn::compute_avepool<io_T, /*remaining_chans*/ true, 
+                                                  fixed_kernel_size, /*varying_kernel*/ false>(
+                                                  in_ptr, out_ptr, mul, kernel_width, kernel_height,
+                                                  in.col_mem_stride, in.row_mem_stride, zp, shift_value, 
+                                                  remaining_chans);
+                    } else if (type == MAXPOOL) {
+                        mli::krn::reduce_max2D_hwc<io_T, /*remaining_chans*/ true, 
+                                                   fixed_kernel_size, /*varying_kernel*/ false>(
+                                                   in_ptr, out_ptr, kernel_width, kernel_height, 
+                                                   in.col_mem_stride, in.row_mem_stride, remaining_chans);
+                    }
 
                     in_ptr += in_col_inc;
                     out_ptr += out_col_inc;
@@ -113,25 +155,24 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_nopad(
     }
 }
 
-template <typename io_T, int fixed_kernel_size>
-static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_pad(
-        int stride_width,
-        int stride_height,
-        int padding_top,
-        int padding_bot,
-        int padding_left,
-        int padding_right,
+template <pool_type type, typename io_T, int fixed_kernel_size, bool convert = false>
+static MLI_FORCE_INLINE void mli_krn_pool_hwc_pad(
+        const int stride_width,
+        const int stride_height,
+        const int padding_top,
+        const int padding_bot,
+        const int padding_left,
+        const int padding_right,
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
-        int kernel_height,
-        int kernel_width) {
+        const int kernel_height,
+        const int kernel_width,
+        const s8asym_quant_params *params = nullptr) {
 
-    /* Dummy Load to get num_lanes, remaining part */
     auto input = mli_prv_load_1vec(in.ptr);
-    int num_lanes = get_number_lanes(input);
-    int remaining_chans = in.ch & (num_lanes - 1);
-
-    MLI_OUT_PTR(io_T) __restrict out_ptr;
+    const int num_lanes = get_number_lanes(input);
+    const int remaining_chans = in.ch & (num_lanes - 1);
+    MLI_OUT_PTR(io_T) out_ptr;
 
     // Phase 1: Process central part (without border effects - padding free)
     //=======================================================================
@@ -141,12 +182,12 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_pad(
     const int nopad_clmn_end = CEIL_DIV(in.width + padding_left - kernel_width + 1, stride_width);
 
     if ((nopad_row_end - nopad_row_beg > 0) && (nopad_clmn_end - nopad_clmn_beg > 0)) {
-        mli_krn_maxpool_hwc_nopad<io_T, fixed_kernel_size>(
+        mli_krn_pool_hwc_nopad<type, io_T, fixed_kernel_size, convert>(
                 nopad_row_beg, nopad_row_end, nopad_clmn_beg, nopad_clmn_end,
                 stride_width, stride_height, padding_top,
                 padding_bot, padding_left, padding_right,
                 in, out,
-                kernel_height, kernel_width);
+                kernel_height, kernel_width, params);
     }
     // Phase 2: Process border part with more complex algorithm
     // (usually significantly smaller part of computations)
@@ -207,14 +248,40 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_pad(
                                            out.col_mem_stride * W_idx +
                                            ch_idx];
 
-                        // Core Max
-                        mli::krn::reduce_max2D_hwc<io_T, /*remaining_chans*/ false, fixed_kernel_size, /*varying_kernel*/ true>
-                            (in_ptr, out_ptr, clmns, rows, in.col_mem_stride, in.row_mem_stride);
+                        if (type == AVEPOOL) {
+                            MLI_ASSERT(params != nullptr);
+                            int shift_value = params->shift;
+                            int16_t mul = 0;
+                            int32_t zp = params->offset;
+                            mli::krn::get_mul_shift_value(rows * clmns, &mul, &shift_value);
+                            if (convert) {
+                                int norm_shift;
+                                mul = mli_math_norm_cast_fx<int32_t,int16_t>(
+                                                    mli_math_mul_fx<int16_t, int32_t>(params->scale, mul), &norm_shift);
+                                shift_value -= norm_shift;
+                            } else {
+                                MLI_ASSERT(params->offset == 0);
+                                MLI_ASSERT(params->scale  == 1);
+                            }
+                            
+                            mli::krn::compute_avepool<io_T, /*remaining_chans*/ false, 
+                                                      fixed_kernel_size, /*varying_kernel*/ true>(
+                                                      in_ptr, out_ptr, mul, clmns, rows,
+                                                      in.col_mem_stride, in.row_mem_stride, zp, shift_value);
+                            
+                        } else if (type == MAXPOOL) {
+                            mli::krn::reduce_max2D_hwc<io_T, /*remaining_chans*/ false, 
+                                                       fixed_kernel_size, /*varying_kernel*/ true>(
+                                                       in_ptr, out_ptr, clmns, rows, 
+                                                       in.col_mem_stride, in.row_mem_stride);
+                        }
+
                     }
                     left_comp_val += stride_width;
                 }
                 top_comp_val += stride_height;
             }
+
             if (remaining_chans) {
                 int top_comp_val = (perc_areas[area_idx].row_beg * stride_height) - padding_top;
                 for (int H_idx = perc_areas[area_idx].row_beg; H_idx < (int)perc_areas[area_idx].row_end; H_idx++) {
@@ -240,9 +307,34 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_pad(
                                            out.col_mem_stride * W_idx +
                                            out.ch - remaining_chans];
 
-                        // Core Max
-                        mli::krn::reduce_max2D_hwc<io_T, /*remaining_chans*/ true, fixed_kernel_size, /*varying_kernel*/ true>
-                            (in_ptr, out_ptr, clmns, rows, in.col_mem_stride, in.row_mem_stride, remaining_chans);
+                        if (type == AVEPOOL) {
+                            MLI_ASSERT(params != nullptr);
+                            int shift_value = params->shift;
+                            int16_t mul = 0;
+                            int32_t zp = params->offset;
+                            mli::krn::get_mul_shift_value(rows * clmns, &mul, &shift_value);
+                            if (convert) {
+                                int norm_shift;
+                                mul = mli_math_norm_cast_fx<int32_t,int16_t>(
+                                                    mli_math_mul_fx<int16_t, int32_t>(params->scale, mul), &norm_shift);
+                                shift_value -= norm_shift;
+                            } else {
+                                MLI_ASSERT(params->offset == 0);
+                                MLI_ASSERT(params->scale  == 1);
+                            }
+                            
+                            mli::krn::compute_avepool<io_T, /*remaining_chans*/ true, 
+                                                      fixed_kernel_size, /*varying_kernel*/ true>(
+                                                      in_ptr, out_ptr, mul, clmns, rows,
+                                                      in.col_mem_stride, in.row_mem_stride, zp, shift_value, 
+                                                      remaining_chans);
+                        } else if (type == MAXPOOL) {
+                            mli::krn::reduce_max2D_hwc<io_T, /*remaining_chans*/ true, 
+                                                       fixed_kernel_size, /*varying_kernel*/ true>(
+                                                       in_ptr, out_ptr, clmns, rows, 
+                                                       in.col_mem_stride, in.row_mem_stride, remaining_chans);
+                        }
+
                         left_comp_val += stride_width;
                     }
                     top_comp_val += stride_height;
@@ -252,24 +344,25 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_pad(
     }
 }
 
-template <typename io_T, int fixed_kernel_size>
-static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_wrapper(
+template <pool_type type, typename io_T, int fixed_kernel_size, bool convert = false>
+static MLI_FORCE_INLINE void mli_krn_pool_hwc_wrapper(
         MLI_PTR(io_T) __restrict in_ptr,
         MLI_OUT_PTR(io_T) __restrict out_ptr,
-        int row_beg,
-        int row_end,
-        int clmn_beg,
-        int clmn_end,
-        int stride_width,
-        int stride_height,
-        int padding_top,
-        int padding_bot,
-        int padding_left,
-        int padding_right,
-        tensor_private_t<MLI_PTR(io_T)> &in,
-        tensor_private_t<MLI_OUT_PTR(io_T)> &out,
-        int kernel_height,
-        int kernel_width) {
+        const int row_beg,
+        const int row_end,
+        const int clmn_beg,
+        const int clmn_end,
+        const int stride_width,
+        const int stride_height,
+        const int padding_top,
+        const int padding_bot,
+        const int padding_left,
+        const int padding_right,
+        const tensor_private_t<MLI_PTR(io_T)> &in,
+        const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
+        const int kernel_height,
+        const int kernel_width,
+        const s8asym_quant_params *params = nullptr) {
 
     tensor_private_t<MLI_PTR(io_T)> in_ = in;
     tensor_private_t<MLI_OUT_PTR(io_T)> out_ = out;
@@ -277,22 +370,23 @@ static MLI_FORCE_INLINE void mli_krn_maxpool_hwc_wrapper(
     out_.ptr = out_ptr;
 
     if (padding_top || padding_left || padding_bot || padding_right) {
-        mli_krn_maxpool_hwc_pad<io_T, fixed_kernel_size>(stride_width, stride_height,
+        mli_krn_pool_hwc_pad<type, io_T, fixed_kernel_size, convert>(stride_width, stride_height,
                                 padding_top, padding_bot, padding_left, padding_right,
                                 in_, out_,
-                                kernel_height, kernel_width);
+                                kernel_height, kernel_width, params);
     } else {
-        mli_krn_maxpool_hwc_nopad<io_T, fixed_kernel_size>(/*row_beg*/ 0, row_end, /*clmn_beg*/ 0, clmn_end,
+        mli_krn_pool_hwc_nopad<type, io_T, fixed_kernel_size, convert>(
+                                /*row_beg*/ 0, row_end, /*clmn_beg*/ 0, clmn_end,
                                 stride_width, stride_height,
                                 /*padding_top*/ 0, /*padding_bot*/ 0, /*padding_left*/ 0, /*padding_right*/ 0,
                                 in_, out_,
-                                kernel_height, kernel_width);
+                                kernel_height, kernel_width, params);
     }
 }
 
-template <typename io_T, int fixed_kernel_size>
-static void mli_krn_maxpool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    // Extract general maxpool parameters
+template <pool_type type, typename io_T, int fixed_kernel_size, bool convert = false>
+static void mli_krn_pool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
+    // Extract general avepool parameters
     int32_t stride_width = cfg->stride_width;
     int32_t stride_height = cfg->stride_height;
     int32_t padding_top = cfg->padding_top;
@@ -311,19 +405,33 @@ static void mli_krn_maxpool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg,
         MLI_CHECK_AND_FIX(kernel_height, fixed_kernel_size);
     }
 
-    // Define Data dimensions
+    // Define data dimensions
     const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
     const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
 
-    // fill output tensor parameters
+    // Fill output tensor parameters
     out->el_type = in->el_type;
     out->rank = in->rank;
     out->shape[FMAP_H_DIM_HWC] = out_height;
     out->shape[FMAP_W_DIM_HWC] = out_width;
     out->shape[FMAP_C_DIM_HWC] = in_prv.ch;
-    out->el_params = in->el_params;
+    
+    s8asym_quant_params params;
+    if (type == AVEPOOL) {
+        if (convert) {
+            MLI_ASSERT(in->el_type == MLI_EL_SA_8);
+            define_requant_params(in, out, &params);
+        } else {
+            MLI_ASSERT(in->el_type == MLI_EL_FX_8 || in->el_type == MLI_EL_FX_16);
+            params.shift  = in->el_params.fx.frac_bits - out->el_params.fx.frac_bits;
+            params.offset = 0;
+            params.scale  = 1;
+        }
+    } else if (type == MAXPOOL) {
+        out->el_params = in->el_params;
+    }
 
-    auto out_prv = mli_prv_get_tensor_hwc<MLI_OUT_PTR(io_T)>(out);
+    const auto out_prv = mli_prv_get_tensor_hwc<MLI_OUT_PTR(io_T)>(out);
     const int32_t row_beg = 0;
     const int32_t row_end = out_height;
     const int32_t clmn_beg = 0;
@@ -331,15 +439,17 @@ static void mli_krn_maxpool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg,
 
     mli_prv_fx_init_dsp_ctrl();
 
-    mli_krn_maxpool_hwc_wrapper<io_T, fixed_kernel_size>(in_prv.ptr, out_prv.ptr,
+
+    mli_krn_pool_hwc_wrapper<type, io_T, fixed_kernel_size, convert>(in_prv.ptr, out_prv.ptr,
                             row_beg, row_end, clmn_beg, clmn_end,
                             stride_width, stride_height,
                             padding_top, padding_bot, padding_left, padding_right,
                             in_prv, out_prv,
-                            kernel_height, kernel_width);
+                            kernel_height, kernel_width, &params);
+
 }
 
 } // krn
 } // mli
 
-#endif // _MLI_KRN_MAXPOOL_HWC_H_
+#endif // _MLI_KRN_POOL_HWC_H_
