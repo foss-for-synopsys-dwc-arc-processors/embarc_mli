@@ -59,6 +59,7 @@ using mli::krn::ref::define_requant_params;
 using mli::krn::ref::define_quant_params;
 using mli::krn::ref::adjust_quant_params;
 using mli::krn::ref::quant_params_get_weigths_zeropoint;
+using mli::krn::ref::quant_params_set_in_zeropoint;
 using mli::krn::ref::weights_additive;
 using mli::krn::ref::in_additive;
 using mli::krn::ref::zp_additive;

@@ -107,6 +107,9 @@ MLI_FORCE_INLINE int16_t quant_params_get_weigths_zeropoint(s8asym_quant_specifi
 
 MLI_FORCE_INLINE int16_t quant_params_get_weigths_zeropoint(fx_quant_specific_params* params);
 
+MLI_FORCE_INLINE int16_t quant_params_set_in_zeropoint(s8asym_quant_specific_params* params, int16_t new_zp);
+MLI_FORCE_INLINE int16_t quant_params_set_in_zeropoint(fx_quant_specific_params* params, int16_t new_zp);
+
 template <typename w_T, typename acc_T, typename quant_T>
 MLI_FORCE_INLINE acc_T weights_additive(const MLI_PTR(w_T) __restrict weights,
         acc_T init_accum, const quant_T* quant_params,

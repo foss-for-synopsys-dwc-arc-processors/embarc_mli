@@ -41,7 +41,7 @@ MLI_FORCE_INLINE void inner_product(
         const io_T val_min_limit,
         const io_T val_max_limit);
 
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, bool is_bias_ext>
 MLI_FORCE_INLINE void fully_connected_prepare_and_run(
         const mli_tensor *in,
         const mli_tensor *weights,

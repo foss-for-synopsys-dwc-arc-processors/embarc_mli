@@ -700,6 +700,21 @@ mli_status mli_krn_fully_connected_sa8_sa8_sa32(
         const mli_fully_connected_cfg * cfg,
         mli_tensor * out);
 
+/*
+* mli_krn_fully_connected_sa8_sa8_sa32_ext_bias is a specialized version of the kernel
+* which performs calculations much faster, but requires bias data to be adjusted according to the following formula:
+*
+* bias__i = orig_bias__i + SUM_j(in_zero_point * W__i_j)
+* 
+* For more info on the specialization see Fully Connected primitive description in the MLI Documentation
+*/
+mli_status mli_krn_fully_connected_sa8_sa8_sa32_ext_bias(
+        const mli_tensor * in,
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_fully_connected_cfg * cfg,
+        mli_tensor * out);
+
 /**
  * @brief Long Short Term Memory (LSTM) Cell
  *
