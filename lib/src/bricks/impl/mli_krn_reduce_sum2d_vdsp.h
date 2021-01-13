@@ -45,9 +45,46 @@ static MLI_FORCE_INLINE acc_T reduce_sum2D_v(
 	}
 #pragma clang diagnostic pop
 
-    vNx4short_t acc_casted = mli_math_acc_cast_fx<vNx4short_t, vNx4accshort_t>(acc_short); 
+    vNx4short_t acc_casted = mli_math_acc_cast(acc_short); 
     accu = mli_math_mac_fx(accu, acc_casted, mul);
     return accu;
+}
+
+static MLI_FORCE_INLINE vNx4short_t reduce_sum2D_v(
+        const MLI_PTR(int8_t) in,
+        const int16_t mul,
+        const int width,
+        const int height,
+        const int col_mem_stride,
+        const int row_mem_stride,
+        int shift_value) {
+
+    constexpr int mul_hi_shift = 16;
+    constexpr int accu_preshift = 4;
+    int row_inc = row_mem_stride - width * col_mem_stride;
+    
+    vNx4accshort_t acc_short = mli_math_mul_fx<vNx4char_t, vNx4accshort_t>
+                                              (mli_prv_load_1vec(in), (int8_t)(1 << accu_preshift));
+    in += col_mem_stride;
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
+#pragma clang loop unroll(full)
+    for (int row = 0, clmn = 1; row < height; row++, clmn = 0) {
+#pragma clang loop unroll(full)
+		for (; clmn < width; clmn++) {
+			acc_short = mli_math_mac_fx(acc_short, mli_prv_load_1vec(in), (int8_t)(1 << accu_preshift));
+            in += col_mem_stride;
+		}
+        in += row_inc;
+	}
+#pragma clang diagnostic pop
+
+    shift_value -= (mul_hi_shift - accu_preshift);
+    vNx4short_t acc_casted = mli_math_acc_cast(acc_short); 
+    acc_casted = mli_math_mul_fx_high(acc_casted, mul);
+    
+    return mli_math_asr_rnd_fx(acc_casted, shift_value);
 }
 
 #if (__Xvec_guard_bit_option == 0) && !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)

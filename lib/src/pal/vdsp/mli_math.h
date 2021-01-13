@@ -998,6 +998,10 @@ MLI_FORCE_INLINE vNx2short_t mli_math_acc_cast(vNx2accshort_t acc) {
     return to_vNx2short_t(acc);
 }
 
+MLI_FORCE_INLINE vNx4short_t mli_math_acc_cast(vNx4accshort_t acc) {
+    return to_vNx4short_t(acc);
+}
+
 template <>
 MLI_FORCE_INLINE int8_t mli_math_acc_cast_fx(mli_acc32_t acc, int shift_right) {
     int32_t temp = (int32_t) mli_math_asr_rnd_fx<mli_acc32_t, int>(acc, shift_right);

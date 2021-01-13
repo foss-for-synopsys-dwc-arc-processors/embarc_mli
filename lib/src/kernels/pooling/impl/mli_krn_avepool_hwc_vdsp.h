@@ -32,14 +32,15 @@ static MLI_FORCE_INLINE void compute_avepool_func(
         const int shift_value,
         const int channels)
 {
-    vNx4accint_t accu = mli_prv_init_accu_with_bias_v<vNx4accint_t>(zp, shift_value);
-    
-    accu = mli::krn::reduce_sum2D_v(in, mul, accu, width, height, col_mem_stride, row_mem_stride);
+    vNx4short_t res = mli::krn::reduce_sum2D_v(in, mul, width, height, col_mem_stride, row_mem_stride, shift_value);
+    res = mli_math_add_fx<vNx4short_t>(res, zp);
+
+    vNx4char_t out_v = mli_math_cast_fx<vNx4short_t, vNx4char_t>(res);
 
     if (remaining_channels) {
-        mli_prv_clip_and_store_output_v(out, accu, shift_value, channels);
+        mli_prv_store_n_samples(out, out_v, channels);
 	} else {
-	    mli_prv_clip_and_store_output_v(out, accu, shift_value);
+        mli_prv_store_n_samples(out, out_v);
 	}
 
 }
@@ -63,11 +64,10 @@ static MLI_FORCE_INLINE void compute_avepool_func(
     vNx2int_t res = mli::krn::reduce_sum2D_v(in, mul, accu, width, height, 
 		                                col_mem_stride, row_mem_stride, &accum_shift_amout);
 
-    shift_value -= accum_shift_amout;
     if (remaining_channels) {
-        mli_prv_clip_and_store_output_v(out, res, shift_value, channels);
+        mli_prv_clip_and_store_output_v(out, res, shift_value - accum_shift_amout, channels);
 	} else {
-	    mli_prv_clip_and_store_output_v(out, res, shift_value);
+	    mli_prv_clip_and_store_output_v(out, res, shift_value - accum_shift_amout);
 	}
 #else
     accu = mli::krn::reduce_sum2D_v(in, mul, accu, width, height, col_mem_stride, row_mem_stride);
