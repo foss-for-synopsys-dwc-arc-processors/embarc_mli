@@ -18,7 +18,7 @@ namespace mli {
 namespace krn {
 namespace ref {
 
-template <typename io_T, bool remaining_channels, int fixed_kernel_size, bool varying_kernel>
+template <typename io_T, int fixed_kernel_size, bool varying_kernel>
 static MLI_FORCE_INLINE void reduce_max2D_hwc(
 		const MLI_PTR(io_T) in,
 		MLI_PTR(io_T) out,
