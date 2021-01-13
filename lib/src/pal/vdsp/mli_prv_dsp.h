@@ -163,8 +163,7 @@ static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
         MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
         vNx4accint_t ip_in,
         const int out_shift) {
-    vNx4short_t out_short = mli_math_acc_cast_fx<vNx4short_t, vNx4accint_t>(ip_in, out_shift);
-    vNx4char_t out = mli_math_cast_fx<vNx4short_t, vNx4char_t>(out_short, 0);
+    vNx4char_t out = mli_math_acc_cast_fx<vNx4char_t, vNx4accint_t>(ip_in, out_shift);
     mli_prv_store_n_samples(o_ptr, out);
 }
 
@@ -173,8 +172,7 @@ static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
         vNx4accint_t ip_in,
         const int out_shift,
         int num) {
-    vNx4short_t out_short = mli_math_acc_cast_fx<vNx4short_t, vNx4accint_t>(ip_in, out_shift);
-    vNx4char_t out = mli_math_cast_fx<vNx4short_t, vNx4char_t>(out_short, 0);
+    vNx4char_t out = mli_math_acc_cast_fx<vNx4char_t, vNx4accint_t>(ip_in, out_shift);
     mli_prv_store_n_samples(o_ptr, out, num);
 }
 

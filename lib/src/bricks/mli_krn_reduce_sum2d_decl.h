@@ -104,6 +104,17 @@ static MLI_FORCE_INLINE acc_T reduce_sum2D_v(
         const int row_mem_stride,
         int *accum_shift_amout = nullptr);
 
+#if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
+static MLI_FORCE_INLINE vNx4short_t reduce_sum2D_v(
+        const MLI_PTR(int8_t) in,
+        const int16_t mul,
+        const int width,
+        const int height,
+        const int col_mem_stride,
+        const int row_mem_stride,
+        int shift_value);
+#endif
+
 #if (__Xvec_guard_bit_option == 0) && !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
 static MLI_FORCE_INLINE vNx2int_t reduce_sum2D_v(
         const MLI_PTR(int16_t) in,
