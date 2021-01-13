@@ -34,7 +34,7 @@ static MLI_FORCE_INLINE void get_mul_shift_value(
         unsigned div,
         int16_t* mul, int* shift);
 
-template<typename io_T, bool remaining_channels, int fixed_kernel_size, bool varying_kernel>
+template<typename io_T, int fixed_kernel_size, bool varying_kernel>
 static MLI_FORCE_INLINE void compute_avepool(
         const MLI_PTR(io_T) __restrict in,
         MLI_OUT_PTR(io_T) __restrict out,
@@ -53,7 +53,7 @@ static MLI_FORCE_INLINE void compute_avepool(
 // DSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace dsp {
-template<typename io_T, bool remaining_channels, int fixed_kernel_size, bool varying_kernel>
+template<typename io_T, int fixed_kernel_size, bool varying_kernel>
 static MLI_FORCE_INLINE void compute_avepool(
         const MLI_PTR(io_T) __restrict in,
         MLI_OUT_PTR(io_T) __restrict out,
@@ -73,7 +73,7 @@ static MLI_FORCE_INLINE void compute_avepool(
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
 
-template<typename io_T, bool remaining_channels, int fixed_kernel_size, bool varying_kernel>
+template<typename io_T, int fixed_kernel_size, bool varying_kernel>
 static MLI_FORCE_INLINE void compute_avepool(
         const MLI_PTR(io_T) __restrict in,
         MLI_OUT_PTR(io_T) __restrict out,

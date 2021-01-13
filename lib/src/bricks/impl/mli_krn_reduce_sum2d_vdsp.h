@@ -60,7 +60,20 @@ static MLI_FORCE_INLINE vNx4short_t reduce_sum2D_v(
         int shift_value) {
 
     constexpr int mul_hi_shift = 16;
-    constexpr int accu_preshift = 4;
+    /* To avoid using guardbits and have some space for bit growth 
+     * and aligning the accu result on msb to avoid lossing precision from mul_hi
+     * accu_preshift = 16(size_of_short) - (log2(width * height) + 8(in_size))
+     * For Kernels: WxH = 16 and less, accu_preshift = 4
+     * For Kernels: WxH = 64 and less, accu_preshift = 2
+     * Otherwise, accu_preshift = 1
+     * */
+    int accu_preshift = 1;
+    if (width * height <= 16) {
+        accu_preshift = 4;
+    } else if (width * height <= 64) {
+        accu_preshift = 2;
+    }
+
     int row_inc = row_mem_stride - width * col_mem_stride;
     
     vNx4accshort_t acc_short = mli_math_mul_fx<vNx4char_t, vNx4accshort_t>

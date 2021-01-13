@@ -18,7 +18,7 @@ namespace mli {
 namespace krn {
 namespace vdsp {
 
-template <typename io_T, bool remaining_channels, int fixed_kernel_size>
+template <typename io_T, int fixed_kernel_size>
 static MLI_FORCE_INLINE void reduce_max2D_hwc_v(
 		const MLI_PTR(io_T) __restrict in,
 		MLI_PTR(io_T) __restrict out,
@@ -53,37 +53,33 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc_v(
 	}
 
 	auto max = mli_math_acc_cast(acc);
-
-	if (remaining_channels) {
-	    mli_prv_store_n_samples(out, max, channels);
-	} else {
-	    mli_prv_store_n_samples(out, max);
-	}
+	
+    mli_prv_store_n_samples(out, max, channels);
 
 #pragma clang diagnostic pop
 }
 
-template <typename io_T, bool remaining_channels>
+template <typename io_T>
 static MLI_FORCE_INLINE void reduce_max2D_hwc_k2x2_padding_kernel_unroll(
         const MLI_PTR(io_T) __restrict in_ptr,
         MLI_OUT_PTR(io_T) __restrict out_ptr,
-        int clmns,
-        int rows,
-        int32_t col_mem_stride,
-        int32_t row_mem_stride,
-        int remaining_chans)
+        const int clmns,
+        const int rows,
+        const int32_t col_mem_stride,
+        const int32_t row_mem_stride,
+        const int channels)
 {
     switch (rows) {
     case 1:
         switch (clmns) {
         case 1:
-            reduce_max2D_hwc_v<io_T, remaining_channels, /*fixed_kernel_size*/ 2>(in_ptr, out_ptr, 1, 1,
-                        col_mem_stride, row_mem_stride, remaining_chans);
+            reduce_max2D_hwc_v<io_T, /*fixed_kernel_size*/ 2>(in_ptr, out_ptr, 1, 1,
+                        col_mem_stride, row_mem_stride, channels);
             break;
 
         case 2:
-            reduce_max2D_hwc_v<io_T, remaining_channels, /*fixed_kernel_size*/ 2>(in_ptr, out_ptr, 2, 1,
-                        col_mem_stride, row_mem_stride, remaining_chans);
+            reduce_max2D_hwc_v<io_T, /*fixed_kernel_size*/ 2>(in_ptr, out_ptr, 2, 1,
+                        col_mem_stride, row_mem_stride, channels);
             break;
 
         default:
@@ -95,8 +91,8 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc_k2x2_padding_kernel_unroll(
     case 2:
         switch (clmns) {
         case 1:
-            reduce_max2D_hwc_v<io_T, remaining_channels, /*fixed_kernel_size*/ 2>(in_ptr, out_ptr, 1, 2,
-                        col_mem_stride, row_mem_stride, remaining_chans);
+            reduce_max2D_hwc_v<io_T, /*fixed_kernel_size*/ 2>(in_ptr, out_ptr, 1, 2,
+                        col_mem_stride, row_mem_stride, channels);
             break;
 
         default:
@@ -111,32 +107,32 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc_k2x2_padding_kernel_unroll(
     }
 }
 
-template <typename io_T, bool remaining_channels>
+template <typename io_T>
 static MLI_FORCE_INLINE void reduce_max2D_hwc_k3x3_padding_kernel_unroll(
         const MLI_PTR(io_T) __restrict in_ptr,
         MLI_OUT_PTR(io_T) __restrict out_ptr,
-        int clmns,
-        int rows,
-        int32_t col_mem_stride,
-        int32_t row_mem_stride,
-        int remaining_chans)
+        const int clmns,
+        const int rows,
+        const int32_t col_mem_stride,
+        const int32_t row_mem_stride,
+        const int channels)
 {
     switch (rows) {
     case 1:
         switch (clmns) {
         case 1:
-            reduce_max2D_hwc_v<io_T, remaining_channels, /*fixed_kernel_size*/ 3>(in_ptr, out_ptr, 1, 1,
-                        col_mem_stride, row_mem_stride, remaining_chans);
+            reduce_max2D_hwc_v<io_T, /*fixed_kernel_size*/ 3>(in_ptr, out_ptr, 1, 1,
+                        col_mem_stride, row_mem_stride, channels);
             break;
 
         case 2:
-            reduce_max2D_hwc_v<io_T, remaining_channels, /*fixed_kernel_size*/ 3>(in_ptr, out_ptr, 2, 1,
-                        col_mem_stride, row_mem_stride, remaining_chans);
+            reduce_max2D_hwc_v<io_T, /*fixed_kernel_size*/ 3>(in_ptr, out_ptr, 2, 1,
+                        col_mem_stride, row_mem_stride, channels);
             break;
 
         case 3:
-            reduce_max2D_hwc_v<io_T, remaining_channels, /*fixed_kernel_size*/ 3>(in_ptr, out_ptr, 3, 1,
-                        col_mem_stride, row_mem_stride, remaining_chans);
+            reduce_max2D_hwc_v<io_T, /*fixed_kernel_size*/ 3>(in_ptr, out_ptr, 3, 1,
+                        col_mem_stride, row_mem_stride, channels);
             break;
 
         default:
@@ -148,18 +144,18 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc_k3x3_padding_kernel_unroll(
     case 2:
         switch (clmns) {
         case 1:
-            reduce_max2D_hwc_v<io_T, remaining_channels, /*fixed_kernel_size*/ 3>(in_ptr, out_ptr, 1, 2,
-                        col_mem_stride, row_mem_stride, remaining_chans);
+            reduce_max2D_hwc_v<io_T, /*fixed_kernel_size*/ 3>(in_ptr, out_ptr, 1, 2,
+                        col_mem_stride, row_mem_stride, channels);
             break;
 
         case 2:
-            reduce_max2D_hwc_v<io_T, remaining_channels, /*fixed_kernel_size*/ 3>(in_ptr, out_ptr, 2, 2,
-                        col_mem_stride, row_mem_stride, remaining_chans);
+            reduce_max2D_hwc_v<io_T, /*fixed_kernel_size*/ 3>(in_ptr, out_ptr, 2, 2,
+                        col_mem_stride, row_mem_stride, channels);
             break;
 
         case 3:
-            reduce_max2D_hwc_v<io_T, remaining_channels, /*fixed_kernel_size*/ 3>(in_ptr, out_ptr, 3, 2,
-                        col_mem_stride, row_mem_stride, remaining_chans);
+            reduce_max2D_hwc_v<io_T, /*fixed_kernel_size*/ 3>(in_ptr, out_ptr, 3, 2,
+                        col_mem_stride, row_mem_stride, channels);
             break;
 
         default:
@@ -171,13 +167,13 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc_k3x3_padding_kernel_unroll(
     case 3:
         switch (clmns) {
         case 1:
-            reduce_max2D_hwc_v<io_T, remaining_channels, /*fixed_kernel_size*/ 3>(in_ptr, out_ptr, 1, 3,
-                    col_mem_stride, row_mem_stride, remaining_chans);
+            reduce_max2D_hwc_v<io_T, /*fixed_kernel_size*/ 3>(in_ptr, out_ptr, 1, 3,
+                        col_mem_stride, row_mem_stride, channels);
             break;
 
         case 2:
-            reduce_max2D_hwc_v<io_T, remaining_channels, /*fixed_kernel_size*/ 3>(in_ptr, out_ptr, 2, 3,
-                    col_mem_stride, row_mem_stride, remaining_chans);
+            reduce_max2D_hwc_v<io_T, /*fixed_kernel_size*/ 3>(in_ptr, out_ptr, 2, 3,
+                        col_mem_stride, row_mem_stride, channels);
             break;
 
         default:
@@ -192,7 +188,7 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc_k3x3_padding_kernel_unroll(
     }
 }
 
-template <typename io_T, bool remaining_channels, int fixed_kernel_size, bool varying_kernel>
+template <typename io_T, int fixed_kernel_size, bool varying_kernel>
 static MLI_FORCE_INLINE void reduce_max2D_hwc(
         const MLI_PTR(io_T) __restrict in,
         MLI_PTR(io_T) __restrict out,
@@ -203,13 +199,13 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc(
         const int channels) {
 
     if (varying_kernel && fixed_kernel_size == 3) {
-        reduce_max2D_hwc_k3x3_padding_kernel_unroll<io_T, remaining_channels>
+        reduce_max2D_hwc_k3x3_padding_kernel_unroll<io_T>
             (in, out, width, height, col_mem_stride, row_mem_stride, channels);
     } else if (varying_kernel && fixed_kernel_size == 2) {
-        reduce_max2D_hwc_k2x2_padding_kernel_unroll<io_T, remaining_channels>
+        reduce_max2D_hwc_k2x2_padding_kernel_unroll<io_T>
             (in, out, width, height, col_mem_stride, row_mem_stride, channels);
     } else {
-        reduce_max2D_hwc_v<io_T, remaining_channels, fixed_kernel_size>
+        reduce_max2D_hwc_v<io_T, fixed_kernel_size>
             (in, out, width, height, col_mem_stride, row_mem_stride, channels);
     }
 }

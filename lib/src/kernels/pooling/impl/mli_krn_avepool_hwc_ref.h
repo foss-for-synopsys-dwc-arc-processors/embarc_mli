@@ -119,7 +119,6 @@ static MLI_FORCE_INLINE void get_mul_shift_value(
     }
 }
 
-template<bool remaining_channels>
 static MLI_FORCE_INLINE void compute_avepool_func(
         const MLI_PTR(int8_t) __restrict in,
         MLI_OUT_PTR(int8_t) __restrict out,
@@ -138,7 +137,6 @@ static MLI_FORCE_INLINE void compute_avepool_func(
     mli_prv_clip_and_store_output_v(out, accu, shift_value);
 }
 
-template<bool remaining_channels>
 static MLI_FORCE_INLINE void compute_avepool_func(
         const MLI_PTR(int16_t) __restrict in,
         MLI_OUT_PTR(int16_t) __restrict out,
@@ -157,7 +155,7 @@ static MLI_FORCE_INLINE void compute_avepool_func(
     mli_prv_clip_and_store_output_v(out, accu, shift_value);
 }
 
-template<typename io_T, bool remaining_channels, int fixed_kernel_size, bool varying_kernel>
+template<typename io_T, int fixed_kernel_size, bool varying_kernel>
 static MLI_FORCE_INLINE void compute_avepool(
         const MLI_PTR(io_T) __restrict in,
         MLI_OUT_PTR(io_T) __restrict out,
@@ -170,8 +168,7 @@ static MLI_FORCE_INLINE void compute_avepool(
         const int shift_value,
         const int channels) {
 
-    compute_avepool_func<remaining_channels>(
-              in, out, mul, width, height, col_mem_stride, row_mem_stride, zp ,shift_value, channels);
+    compute_avepool_func(in, out, mul, width, height, col_mem_stride, row_mem_stride, zp ,shift_value, channels);
 }
 
 } // namespace ref

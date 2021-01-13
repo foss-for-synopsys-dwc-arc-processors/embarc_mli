@@ -28,7 +28,8 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc_v(
 		const int width,
         const int height,
 		const int col_mem_stride,
-		const int row_mem_stride) {
+		const int row_mem_stride,
+        const int channels) {
 
     v2q15_t cur_max = mli_prv_load_2_samples(in);
     if (width == 1){
@@ -63,10 +64,10 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc_v(
 #pragma clang diagnostic pop
     }
 
-    mli_prv_store_2_samples(out, cur_max);
+    mli_prv_store_n_samples(out, cur_max, channels);
 }
 
-template <typename io_T, bool remaining_channels, int fixed_kernel_size, bool varying_kernel>
+template <typename io_T, int fixed_kernel_size, bool varying_kernel>
 static MLI_FORCE_INLINE void reduce_max2D_hwc(
         const MLI_PTR(io_T) in,
         MLI_PTR(io_T) out,
@@ -75,12 +76,8 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc(
         const int col_mem_stride,
         const int row_mem_stride,
         const int channels) {
-    if (remaining_channels) {
-        mli::krn::ref::reduce_max2D_hwc<io_T, remaining_channels, fixed_kernel_size, varying_kernel>
-            (in, out, width, height, col_mem_stride, row_mem_stride, channels);
-    } else {
-        reduce_max2D_hwc_v<io_T, varying_kernel>(in, out, width, height, col_mem_stride, row_mem_stride);
-    }
+
+    reduce_max2D_hwc_v<io_T, varying_kernel>(in, out, width, height, col_mem_stride, row_mem_stride, channels);
 }
 
 } // namespace dsp
