@@ -39,6 +39,25 @@ MLI_FORCE_INLINE vNx4accshort_t reduce_sum2D(
     return accu;
 }
 
+MLI_FORCE_INLINE vNx4accshort_t reduce_sub_sum2D(
+        const MLI_PTR(int8_t) __restrict in,
+        const int8_t mul,
+        vNx4accshort_t accu,
+        const int width,
+        const int height,
+        int in_col_step,
+        int in_row_step) {
+    in_row_step -= width * in_col_step;
+    for (int row = 0; row < height; row++) {
+        for (int clmn = 0; clmn < width; clmn++) {
+            accu = mli_math_msub_fx(accu, mli_prv_load_nx4_samples(in), mul);
+            in += in_col_step;
+        }
+        in += in_row_step;
+    }
+    return accu;
+}
+
 MLI_FORCE_INLINE s8asym_quant_specific_out_params_v adjust_quant_params_v(s8asym_quant_specific_params* params, int krn_idx) {
     // out multiplyer can be different across one of axis (per axis quantization for s8asym)
     // but will be the same in case of per tensor quantization.
@@ -89,9 +108,9 @@ static MLI_FORCE_INLINE acc_T dotprod_inputzp_1D_v(
         const s8asym_quant_specific_params* quant_params) {
 
     for (int idx = 0; idx < vals; idx++) {
-        io_T offset = (io_T)-quant_params->in_offset;
+        io_T offset = (io_T)quant_params->in_offset;
         accu = mli_prv_mac_load_v_s(accu, krn, in);
-        accu = mli_prv_mac_load_v_s(accu, krn, &offset);
+        accu = mli_prv_msub_load_v_s(accu, krn, &offset);
         in += in_step;
         krn += krn_step;
     }
@@ -121,25 +140,25 @@ MLI_FORCE_INLINE vNx4accshort_t dotprod_inputzp_1D_v(
         int32_t in4x = *(int32_t*)in;
 
         accu = mli_math_mac_fx(accu, mli_prv_load_nx4_samples(krn), (int8_t)in4x);
-        accu2 = mli_math_mac_fx(accu2, mli_prv_load_nx4_samples(krn), (int8_t)-quant_params->in_offset);
+        accu2 = mli_math_msub_fx(accu2, mli_prv_load_nx4_samples(krn), (int8_t)quant_params->in_offset);
         krn += krn_step;
         in4x = in4x >> 8;
         accu = mli_math_mac_fx(accu, mli_prv_load_nx4_samples(krn), (int8_t)in4x);
-        accu2 = mli_math_mac_fx(accu2, mli_prv_load_nx4_samples(krn), (int8_t)-quant_params->in_offset);
+        accu2 = mli_math_msub_fx(accu2, mli_prv_load_nx4_samples(krn), (int8_t)quant_params->in_offset);
         krn += krn_step;
         in4x = in4x >> 8;
         accu = mli_math_mac_fx(accu, mli_prv_load_nx4_samples(krn), (int8_t)in4x);
-        accu2 = mli_math_mac_fx(accu2, mli_prv_load_nx4_samples(krn), (int8_t)-quant_params->in_offset);
+        accu2 = mli_math_msub_fx(accu2, mli_prv_load_nx4_samples(krn), (int8_t)quant_params->in_offset);
         krn += krn_step;
         in4x = in4x >> 8;
         accu = mli_math_mac_fx(accu, mli_prv_load_nx4_samples(krn), (int8_t)in4x);
-        accu2 = mli_math_mac_fx(accu2, mli_prv_load_nx4_samples(krn), (int8_t)-quant_params->in_offset);
+        accu2 = mli_math_msub_fx(accu2, mli_prv_load_nx4_samples(krn), (int8_t)quant_params->in_offset);
         krn += krn_step;
         in += in_step * 4;
     }
     for ( ; idx < vals; idx++) {
         accu = mli_math_mac_fx(accu, mli_prv_load_nx4_samples(krn), *in);
-        accu2 = mli_math_mac_fx(accu2, mli_prv_load_nx4_samples(krn), (int8_t)-quant_params->in_offset);
+        accu2 = mli_math_msub_fx(accu2, mli_prv_load_nx4_samples(krn), (int8_t)quant_params->in_offset);
         in += in_step;
         krn += krn_step;
     }
@@ -180,7 +199,7 @@ MLI_FORCE_INLINE vNx4accshort_t weights_additive(
     // returns -(in_zero_point * cumsum(weights)) For S8ASYM
     if (quant_params->in_offset != 0) {
         for (int c = 0; c < ch; c++) {
-            init_accum = reduce_sum2D(weights, (int8_t)-quant_params->in_offset, init_accum, width, height, col_step, row_step);
+            init_accum = reduce_sub_sum2D(weights, (int8_t)quant_params->in_offset, init_accum, width, height, col_step, row_step);
             weights += ch_step;
         }
         return init_accum;

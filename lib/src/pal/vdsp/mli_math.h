@@ -1671,6 +1671,63 @@ MLI_FORCE_INLINE vNx4accint_t mli_math_mac_fx(vNx4accint_t acc, vNx4char_t L, vN
     return r;
 }
 
+template < typename l_T, typename r_T, typename acc_T > MLI_FORCE_INLINE acc_T mli_math_msub_fx(acc_T acc, l_T L, r_T R);
+
+template <>
+MLI_FORCE_INLINE vNx4accshort_t mli_math_msub_fx(vNx4accshort_t acc, vNx4char_t L, int8_t R) {
+    return vvcmsub(acc, L, R);
+}
+
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_math_msub_fx(vNx2accint_t acc, vNx2short_t L, int16_t R) {
+    return vvcmsub(acc, L, R);
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accint_t mli_math_msub_fx(vNx4accint_t acc, vNx4char_t L, int16_t R) {
+    vNx4accint_t r;
+    vNx4short_t l_short = to_vNx4short_t(L);
+    r.lo = mli_math_msub_fx(acc.lo, l_short.lo, R);
+    r.hi = mli_math_msub_fx(acc.hi, l_short.hi, R);
+    return r;
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accint_t mli_math_msub_fx(vNx4accint_t acc, vNx4short_t L, int16_t R) {
+    vNx4accint_t r;
+    r.lo = mli_math_msub_fx(acc.lo, L.lo, R);
+    r.hi = mli_math_msub_fx(acc.hi, L.hi, R);
+    return r;
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accshort_t mli_math_msub_fx(vNx4accshort_t acc, vNx4char_t L, vNx4char_t R) {
+    return vvcmsub(acc, L, R);
+}
+
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_math_msub_fx(vNx2accint_t acc, vNx2short_t L, vNx2short_t R) {
+    return vvcmsub(acc, L, R);
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accint_t mli_math_msub_fx(vNx4accint_t acc, vNx4short_t L, vNx4short_t R) {
+    vNx4accint_t r;
+    r.lo = mli_math_msub_fx(acc.lo, L.lo, R.lo);
+    r.hi = mli_math_msub_fx(acc.hi, L.hi, R.lo);
+    return r;
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accint_t mli_math_msub_fx(vNx4accint_t acc, vNx4char_t L, vNx4short_t R) {
+    vNx4accint_t r;
+    vNx4short_t l_short = to_vNx4short_t(L);
+    r.lo = mli_math_msub_fx(acc.lo, l_short.lo, R.lo);
+    r.hi = mli_math_msub_fx(acc.hi, l_short.hi, R.lo);
+    return r;
+}
+
+
 // Accumulator shift
 //========================================================================
 
