@@ -302,6 +302,114 @@ MLI_FORCE_INLINE vNx4accint_t mli_prv_mac_load_v_v(
     return mli_math_mac_fx(accu, mli_prv_load_nx4_samples(in1), mli_prv_load_nx4_samples(in2));
 }
 
+//-------------------------------------
+// loads combined with msub operation
+// _v_s means vector x scalar
+// _v_v means vector x vector
+//-------------------------------------
+
+template <typename acc_T, typename l_T, typename r_T>
+MLI_FORCE_INLINE acc_T mli_prv_msub_load_v_s(
+        acc_T accu,
+        const MLI_PTR(l_T) __restrict in1,
+        const MLI_PTR(r_T) __restrict in2) {
+    return mli_math_msub_fx(accu, *in1, *in2);
+}
+
+// vector * scalar
+template <>
+MLI_FORCE_INLINE vNx4accshort_t mli_prv_msub_load_v_s(
+        vNx4accshort_t accu,
+        const MLI_PTR(int8_t) __restrict in1,
+        const MLI_PTR(int8_t) __restrict in2) {
+    return mli_math_msub_fx(accu, mli_prv_load_nx4_samples(in1), *in2);
+}
+
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_prv_msub_load_v_s(
+        vNx2accint_t accu,
+        const MLI_PTR(int16_t) __restrict in1,
+        const MLI_PTR(int16_t) __restrict in2) {
+    return mli_math_msub_fx(accu, mli_prv_load_nx2_samples(in1), *in2);
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accint_t mli_prv_msub_load_v_s(
+        vNx4accint_t accu,
+        const MLI_PTR(int8_t) __restrict in1,
+        const MLI_PTR(int16_t) __restrict in2) {
+    return mli_math_msub_fx(accu, mli_prv_load_nx4_samples(in1), *in2);
+}
+
+template <typename acc_T, typename l_T, typename r_T>
+MLI_FORCE_INLINE acc_T mli_prv_msub_load_v_s(
+        acc_T accu,
+        const MLI_PTR(l_T) __restrict in1,
+        const r_T  in2) {
+    return mli_math_msub_fx(accu, *in1, in2);
+}
+
+// vector * scalar
+template <>
+MLI_FORCE_INLINE vNx4accshort_t mli_prv_msub_load_v_s(
+        vNx4accshort_t accu,
+        const MLI_PTR(int8_t) __restrict in1,
+        const int8_t in2) {
+    return mli_math_msub_fx(accu, mli_prv_load_nx4_samples(in1), in2);
+}
+
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_prv_msub_load_v_s(
+        vNx2accint_t accu,
+        const MLI_PTR(int16_t) __restrict in1,
+        const int16_t in2) {
+    return mli_math_msub_fx(accu, mli_prv_load_nx2_samples(in1), in2);
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accint_t mli_prv_msub_load_v_s(
+        vNx4accint_t accu,
+        const MLI_PTR(int8_t) __restrict in1,
+        const int16_t in2) {
+    return mli_math_msub_fx(accu, mli_prv_load_nx4_samples(in1), in2);
+}
+
+// _v_v versions
+
+// for scalar datatypes fall back to scalar * scalar
+template <typename acc_T, typename l_T, typename r_T>
+MLI_FORCE_INLINE acc_T mli_prv_msub_load_v_v(
+        acc_T accu,
+        const MLI_PTR(l_T) __restrict in1,
+        const MLI_PTR(r_T) __restrict in2) {
+    return mli_math_msub_fx(accu, *in1, *in2);
+}
+
+// vector * vector
+template <>
+MLI_FORCE_INLINE vNx4accshort_t mli_prv_msub_load_v_v(
+        vNx4accshort_t accu,
+        const MLI_PTR(int8_t) __restrict in1,
+        const MLI_PTR(int8_t) __restrict in2) {
+    return mli_math_msub_fx(accu, mli_prv_load_nx4_samples(in1), mli_prv_load_nx4_samples(in2));
+}
+
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_prv_msub_load_v_v(
+        vNx2accint_t accu,
+        const MLI_PTR(int16_t) __restrict in1,
+        const MLI_PTR(int16_t) __restrict in2) {
+    return mli_math_msub_fx(accu, mli_prv_load_nx2_samples(in1), mli_prv_load_nx2_samples(in2));
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accint_t mli_prv_msub_load_v_v(
+        vNx4accint_t accu,
+        const MLI_PTR(int8_t) __restrict in1,
+        const MLI_PTR(int16_t) __restrict in2) {
+    return mli_math_msub_fx(accu, mli_prv_load_nx4_samples(in1), mli_prv_load_nx4_samples(in2));
+}
+
 
 #pragma clang diagnostic pop
 
