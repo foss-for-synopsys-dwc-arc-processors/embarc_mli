@@ -1,0 +1,11 @@
+Element-wise Group
+------------------
+
+The Element-wise Group describes operations that are applied element-by-element on two tensors of the same shape and return a tensor of same shape. The kernels can also be used for broadcasting a scalar value. One of the input tensors can be a scalar tensor. In that case the operation is applied to the scalar value and each element of the other tensor. 
+〖out〗_i=operation(〖in〗_i^1,〖in〗_i^2)
+〖out〗_i=operation(〖in〗_scalar^1,〖in〗_i^2)
+Kernels which implement Element-wise functions have the following prototype:
+mli_status mli_krn_eltwise_<operation>_<datatype> (
+   const mli_tensor *in1,
+   const mli_tensor *in2,
+   mli_tensor *out);
