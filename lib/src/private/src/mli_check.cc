@@ -326,6 +326,18 @@ static MLI_FORCE_INLINE bool check_mem_stride_matches(const mli_tensor *t1, cons
     return !fail;
 }
 
+/* This function returns maximum value can be stored in tensor according to its type */
+static MLI_FORCE_INLINE const uint32_t mli_hlp_tensor_element_positive_limit(const mli_tensor *in) {
+    switch (in->el_type) {
+    case MLI_EL_FX_8:  return (uint32_t)mli_math_limit_fx<int8_t>(1);
+    case MLI_EL_SA_8:  return (uint32_t)mli_math_limit_fx<int8_t>(1);
+    case MLI_EL_FX_16: return (uint32_t)mli_math_limit_fx<int16_t>(1);
+    case MLI_EL_SA_32: return (uint32_t)mli_math_limit_fx<int32_t>(1);
+    default:
+        MLI_ASSERT(0);
+        return 0;
+    }
+}
 
 /******************************************************
  *  mli_krn_conv2d_hwc parameters checking function
@@ -2746,14 +2758,11 @@ mli_status mli_chk_convert_tensor(const mli_tensor *in, mli_tensor *out) {
         "capacity of output tensor is too small");
     if (fail) return MLI_STATUS_NOT_ENGH_MEM;
 
-    if (in->el_type == MLI_EL_FX_8 || in->el_type == MLI_EL_FX_16)
-        fail |= MLI_CHECK(in->el_params.fx.frac_bits <= mli_hlp_tensor_element_size(in) * 8, "Wrong number of input tensor fractional bits");
-    if (out->el_type == MLI_EL_FX_8 || out->el_type == MLI_EL_FX_16)
-        fail |= MLI_CHECK(out->el_params.fx.frac_bits <= mli_hlp_tensor_element_size(out) * 8, "Wrong number of output tensor fractional bits");
-
     if ((in->el_type == MLI_EL_SA_8 || in->el_type == MLI_EL_SA_32) &&
         (out->el_type == MLI_EL_SA_8 || out->el_type == MLI_EL_SA_32))
         fail |= MLI_CHECK(in->el_params.sa.dim == out->el_params.sa.dim || in->el_params.sa.dim < 0 || out->el_params.sa.dim < 0, "Scale axises doesn't match.");
+
+    if (fail) return MLI_STATUS_SIZE_MISMATCH;
 
     return MLI_STATUS_OK;
 }
@@ -2809,6 +2818,61 @@ mli_status mli_chk_create_subtensor(const mli_tensor *in, const mli_sub_tensor_c
             return MLI_STATUS_BAD_FUNC_CFG;
     }
 
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_chk_argmax(const mli_tensor *in, const mli_argmax_cfg *cfg, mli_tensor *out) {
+    mli_status stat = MLI_STATUS_OK;
+
+    // Check that in tensor is valid and out provides valid pointers
+    stat = MLI_CHECK_STATUS(mli_chk_tensor(in), "Bad input tensor");
+    if (stat != MLI_STATUS_OK) return stat;
+    if (MLI_CHECK(in->data.mem.void_p != NULL, "Bad data pointer of input")) return MLI_STATUS_BAD_TENSOR;
+
+    if (MLI_CHECK(out != NULL, "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
+    if (MLI_CHECK(out->data.mem.void_p != NULL, "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
+
+    // Check if cfg is valid
+    if (MLI_CHECK(cfg != NULL, "Bad cfg pointer")) return MLI_STATUS_BAD_FUNC_CFG;
+    if (MLI_CHECK(cfg->axis <= (int32_t)in->rank, "Incorrect axis")) return MLI_STATUS_BAD_FUNC_CFG;
+
+    if (MLI_CHECK(check_inner_most_dimension_is_one(in), "mem_stride of the innermost dimension for input tensor must be not more than 1."))
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+
+    if (MLI_CHECK(out->el_type == MLI_EL_FX_8 || out->el_type == MLI_EL_FX_16 ||
+        out->el_type == MLI_EL_SA_8 || out->el_type == MLI_EL_SA_32, "Output el_type is invalid")) return MLI_STATUS_TYPE_MISMATCH;
+
+    if (MLI_CHECK(mli_prv_count_elem_num(in) <= mli_hlp_tensor_element_positive_limit(out),
+                  "Chosen output type must be able to keep maximum index of element in flatten input tensor.")) return MLI_STATUS_TYPE_MISMATCH;
+
+    uint32_t dim_size = 1;
+    if (cfg->axis >= 0)
+        dim_size = in->shape[cfg->axis];
+    if (MLI_CHECK(out->data.capacity == cfg->topk * dim_size * mli_hlp_tensor_element_size(out), "Insufficient output buffer."))
+        return MLI_STATUS_NOT_ENGH_MEM;
+
+    if (in->el_type == MLI_EL_SA_8 || in->el_type == MLI_EL_SA_32)
+        if (MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor must be quantized on the tensor level.")) 
+            return MLI_STATUS_INCOMPATEBLE_TENSORS;
+
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_chk_argmax_sa8(const mli_tensor *in, const mli_argmax_cfg *cfg, mli_tensor *out) {
+    if (MLI_CHECK(in->el_type == MLI_EL_SA_8, "Wrong input tensor type"))
+        return MLI_STATUS_TYPE_MISMATCH;
+    mli_status ret = mli_chk_argmax(in, cfg, out);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_chk_argmax_fx16(const mli_tensor *in, const mli_argmax_cfg *cfg, mli_tensor *out) {
+    if (MLI_CHECK(in->el_type == MLI_EL_FX_16, "Wrong input tensor type"))
+        return MLI_STATUS_TYPE_MISMATCH;
+    mli_status ret = mli_chk_argmax(in, cfg, out);
+    if (ret != MLI_STATUS_OK)
+        return ret;
     return MLI_STATUS_OK;
 }
 
