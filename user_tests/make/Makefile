@@ -31,6 +31,7 @@ KERNELS = \
 	rnn_dense \
 	avepool \
 	maxpool \
+	argmax \
 	softmax \
 	relu \
 	leaky_relu \

@@ -167,6 +167,11 @@ add_user_test(avepool)
 add_user_test(maxpool)
 
 #======================================================
+# Diverse Kernels Group
+#======================================================
+add_user_test(argmax)
+
+#======================================================
 # Fully Connected And Recurrent Group
 #======================================================
 add_user_test(fully_connected)
