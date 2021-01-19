@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -669,5 +669,14 @@ mli_prv_get_relu_limits (const mli_relu_cfg * cfg, const mli_tensor * out) {
     }
 
     return val_limit;
+}
+
+static MLI_FORCE_INLINE bool mli_prv_is_inside_vccm (const void *ptr) {
+#if core_config_vec_mem_size
+	return ((uint32_t)ptr >= core_config_vec_mem_base) &&
+		   ((uint32_t)ptr < core_config_vec_mem_base + core_config_vec_mem_size);
+#else
+	return false;
+#endif
 }
 #endif //_MLI_PRV_TENSOR_H_

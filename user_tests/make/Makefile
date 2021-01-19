@@ -38,7 +38,8 @@ KERNELS = \
 	eltwise \
 	tanh \
 	sigm \
-	l2_normalize
+	l2_normalize\
+	data_movement
 
 BIN_FILES=$(patsubst %,$(BIN_PATH)$(PS)test_mli_krn_%$(BIN_EXT),$(KERNELS))
 TEST_TARGETS = $(patsubst %,test_%,$(KERNELS))

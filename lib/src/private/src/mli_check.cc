@@ -19,6 +19,7 @@
 #include "mli_math_macros.h"
 #include "mli_prv_tensor.h"
 #include "mli_types.h"
+
 #if _ARC
 #include <arc/arc_reg.h>
 #endif
@@ -61,13 +62,9 @@ static MLI_FORCE_INLINE bool mli_chk_inside_ccm (const void *ptr) {
 }
 #endif
 
-#if core_config_vec_mem_size
-static MLI_FORCE_INLINE bool mli_chk_inside_vccm (const void *ptr) {
-	return ((uint32_t)ptr >= core_config_vec_mem_base) &&
-		   ((uint32_t)ptr < core_config_vec_mem_base + core_config_vec_mem_size);
-}
-#endif
 
+// vccm_chk_bank will be false for the APIs that does't require the tensor to be in VCCM like data Movement API.
+template <bool vccm_chk_bank = true>
 /*check_bank checks whether the tensor buffer have to be allocated in ccm memory or not and its value will be:
  *  -false: if the out_buffer uses MLI_CONV_OUT_PTR which means for the output buffers of all weights based kernels.
  *  -true: Otherwise.
@@ -77,10 +74,15 @@ static MLI_FORCE_INLINE mli_status mli_mem_chk(const mli_tensor *t, bool check_b
 	void *p = t->data.mem.void_p;
 	uint32_t align_mask = mli_hlp_tensor_element_size(t) - 1;
 #if MLI_PTR_IS_VCCM
-	if (!mli_chk_inside_vccm(p))
+	bool is_inside_vccm = mli_prv_is_inside_vccm(p);
+	if (vccm_chk_bank && (!is_inside_vccm))
 		return MLI_STATUS_MEM_BANK_MISMATCH;
-	if (((uint32_t)p & align_mask) != 0)
-		return MLI_STATUS_MISALIGNMENT_ERROR;
+	//Check the alignment if the pointer is inside the VCCM memory or the non_alignment isn't supported
+	if (is_inside_vccm ||
+		(((_lr(ISA_CONFIG)&(1<<SUPPORT_NON_ALIGNMENT)) == 0) || ((_lr(STATUS32)&(1<<DISABLE_ALIGNMENT_CHECK)) == 0))) {
+		if (((uint32_t)p & align_mask) != 0)
+			return MLI_STATUS_MISALIGNMENT_ERROR;
+	}
 #endif
 #if MLI_PTR_IS_XY
 	if (check_bank && (!mli_chk_inside_ccm(p)))
@@ -2811,6 +2813,73 @@ mli_status mli_chk_create_subtensor(const mli_tensor *in, const mli_sub_tensor_c
 
     return MLI_STATUS_OK;
 }
+
+
+mli_status mli_chk_data_movement(const mli_tensor *in, const mli_mov_cfg_t *cfg, mli_tensor *out) {
+    mli_status stat = MLI_STATUS_OK;
+    if (MLI_CHECK(in != NULL, "Bad in tensor pointer")) return MLI_STATUS_BAD_TENSOR;
+    // For data movement the tensor data can be allocated in external memory.
+    stat = MLI_CHECK_STATUS(mli_mem_chk<false>(out, false), "Memory check error");
+    if (stat != MLI_STATUS_OK) {
+       	return stat;
+    }
+    stat = MLI_CHECK_STATUS(check_tensor_private(in->shape, in->mem_stride, in->rank, in->data.capacity, mli_hlp_tensor_element_size(in)),
+    		"bad in tensor");
+    if (stat != MLI_STATUS_OK) {
+    	return stat;
+    }
+
+    if ((in->el_type == MLI_EL_SA_8 || in->el_type == MLI_EL_SA_32) && (in->el_params.sa.dim != -1)) {
+    	if ((out->el_params.sa.scale.mem.pi16 != NULL) && (out->el_params.sa.scale.capacity < in->el_params.sa.scale.capacity)) {
+    		return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    	}
+    	if ((out->el_params.sa.zero_point.mem.pi16 != NULL) && (out->el_params.sa.zero_point.capacity < in->el_params.sa.scale.capacity)) {
+    		return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    	}
+    	if ((out->el_params.sa.scale_frac_bits.mem.pi16 != NULL) && (out->el_params.sa.scale_frac_bits.capacity < in->el_params.sa.scale_frac_bits.capacity)) {
+    	    return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    	}
+    }
+
+    if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
+    //check that the configurations are valid
+    if (MLI_CHECK(cfg != NULL , "Bad cfg pointer")) return MLI_STATUS_BAD_FUNC_CFG;
+    for (uint32_t i=0; i < in->rank; i++) {
+    	if (MLI_CHECK((cfg->size[i] + cfg->offset[i]) <= in->shape[i],"Bad configurations"))
+		    return MLI_STATUS_BAD_FUNC_CFG;
+        if (MLI_CHECK(cfg->dst_offset[i] <= out->shape[i],"Bad configurations"))
+        	return MLI_STATUS_BAD_FUNC_CFG;
+        //check that in case cfg->size is provided the post padding should be 0 in case we will slice from the tensor
+        if (MLI_CHECK(((cfg->size[i] == 0) || ((cfg->size[i] + cfg->offset[i]) == in->shape[i]) || (cfg->padding_post[i] == 0)),
+        		"Bad Configurations"))
+        	return MLI_STATUS_BAD_FUNC_CFG;
+    }
+
+    //check that input and output are not overlapped
+    if (MLI_CHECK((out->data.mem.i32 > (in->data.mem.i32 + in->data.capacity)) ||
+    		(in->data.mem.i32 > (out->data.mem.i32 + out->data.capacity)),"in and out buffer are overlapped")) {
+    	return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    }
+
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_chk_data_movement_dst_tensor(const mli_tensor *t) {
+    mli_status stat = MLI_STATUS_OK;
+    // For data movement the tensor data can be allocated in external memory.
+    stat = MLI_CHECK_STATUS(mli_mem_chk<false>(t, false), "Memory check error");
+    if (stat != MLI_STATUS_OK) {
+       	return stat;
+    }
+    stat = MLI_CHECK_STATUS(check_tensor_private(t->shape, t->mem_stride, t->rank, t->data.capacity, mli_hlp_tensor_element_size(t)),
+    		"bad in tensor");
+    if (stat != MLI_STATUS_OK) {
+    	return stat;
+    }
+    return MLI_STATUS_OK;
+
+}
+
 
 #pragma MLI_CODE_SECTION_END()
 
