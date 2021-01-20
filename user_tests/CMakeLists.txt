@@ -194,6 +194,7 @@ add_user_test(permute)
 #======================================================
 add_user_test(fully_connected)
 add_user_test(rnn_dense)
+add_user_test(lstm_cell)
 
 #======================================================
 # Transform (Activation) Group

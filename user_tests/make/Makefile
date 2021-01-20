@@ -30,6 +30,7 @@ KERNELS = \
 	transpose_conv2d \
 	fully_connected \
 	rnn_dense \
+	lstm_cell \
 	avepool \
 	maxpool \
 	argmax \
