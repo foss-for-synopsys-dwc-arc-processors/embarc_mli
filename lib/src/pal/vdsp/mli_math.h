@@ -788,7 +788,7 @@ MLI_FORCE_INLINE acc_T mli_math_init_accu(in_T val);
 
 template <>
 MLI_FORCE_INLINE vNx4accshort_t mli_math_init_accu(int16_t val) {
-    return __vacc_concat(vvcadd_init((vNx2short_t)val,(int16_t)0), vvcadd_init((vNx2short_t)val,(int16_t)0));
+    return __vacc_concat(vvcadd_init((vNx2short_t)val,(int16_t)0), vvcadd_init((vNx2short_t)0,(int16_t)val));
 }
 
 template <>
@@ -1244,6 +1244,19 @@ MLI_FORCE_INLINE vNx4char_t mli_math_acc_cast_fx<vNx4char_t, vNx4accint_t,/*roun
 
     accu_result.hi.lo = to_vNint_t(vvconvert(__vacc_lo(acc.hi), ctrlword));
     accu_result.hi.hi = to_vNint_t(vvconvert(__vacc_hi(acc.hi), ctrlword));
+
+    return to_vNx4char_t(accu_result);
+}
+
+template<>
+MLI_FORCE_INLINE vNx4char_t mli_math_acc_cast_fx<vNx4char_t, vNx4accshort_t,/*round = */ false>(
+        vNx4accshort_t acc, int shift_right) {
+    MLI_EXTRA_ASSERT(shift_right >= 0);
+
+    int ctrlword = SAT|SIGNED|TARGET_SZ_8|SHIFT(shift_right);
+    vNx4short_t accu_result;
+    accu_result.lo = to_vNx2short_t(vvconvert(__vacc_lo(acc), ctrlword));
+    accu_result.hi = to_vNx2short_t(vvconvert(__vacc_hi(acc), ctrlword));
 
     return to_vNx4char_t(accu_result);
 }
