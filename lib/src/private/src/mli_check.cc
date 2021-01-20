@@ -2210,7 +2210,7 @@ mli_status mli_chk_rnn_dense (
 
         fail |= MLI_CHECK(weights[idx]->rank == 2, "weights should have rank 2 in RNN general case");
         // Check that number of input and weights is equal
-        fail |= MLI_CHECK(in[idx]->shape[0] == weights[idx]->shape[0], "number of input and weights tensors should be equal");
+        fail |= MLI_CHECK(mli_prv_count_elem_num(in[idx]) == weights[idx]->shape[0], "number of input and weights tensors should be equal");
         // Check that all weights have the same number of output neurons
         fail |= MLI_CHECK(weights[idx]->shape[1] == weights[0]->shape[1], "number of outputs should be the same for all weights tensors");
         if (fail) return MLI_STATUS_SHAPE_MISMATCH;
