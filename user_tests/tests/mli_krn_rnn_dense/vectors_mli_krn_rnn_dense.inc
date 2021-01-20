@@ -141,8 +141,8 @@ static const int input_1_fx8_frac = 8;
 #define INPUT_1_TSR_SHARED_DESCR \
     /* .data = */ { 0 },\
     /* .mem_stride = */ {0}, \
-    /* .shape = */ {16}, \
-    /* .rank =  */ 1
+    /* .shape = */ {2, 8}, \
+    /* .rank =  */ 2
 
 static const mli_tensor input_1_tsr_fx16 = {
     INPUT_1_TSR_SHARED_DESCR,
@@ -178,8 +178,8 @@ static const int input_2_fx8_frac = 7;
 #define INPUT_2_TSR_SHARED_DESCR \
     /* .data = */ { 0 },\
     /* .mem_stride = */ {0}, \
-    /* .shape = */ {8}, \
-    /* .rank =  */ 1
+    /* .shape = */ {1, 1, 2, 4}, \
+    /* .rank =  */ 4
 
 static const mli_tensor input_2_tsr_fx16 = {
     INPUT_2_TSR_SHARED_DESCR,
