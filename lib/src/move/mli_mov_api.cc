@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -9,14 +9,15 @@
 
 #include <stdbool.h>
 #include <string.h>
-
 #include "mli_api.h"
 #include "mli_debug.h"
 #include "mli_math_macros.h"
 #include "mli_mov_api.h"
-#include "mli_mov_private_types.h"
+#include "mli_mov.h"
 #include "mli_types.h"
-
+#include "mli_check.h"
+#include "mli_prv_load_store.h"
+#include "mli_prv_tensor.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -28,22 +29,6 @@ static mli_mov_dma_pool_t dma_pool = MLI_MOV_DMA_POOL_INIT;
 
 // singleton for callback functions
 static mli_mov_cb_t callbacktable[MAX_DMA_CHAN] = {{0}};
-
-// internal functions
-static mli_status mli_mov_memcpy(mli_mov_handle_t* h, void* src, void* dst, int size, int dst_capacity) {
-    mli_status retval = MLI_STATUS_OK;
-    if (MLI_CHECK(dst_capacity >= size, "dst tensor is too small"))
-        retval = MLI_STATUS_NOT_ENGH_MEM;
-    if (retval == MLI_STATUS_OK) {
-#if USE_DMA
-        // TODO program DMA
-        h->state = MLI_MOV_STATE_DMA_CONFIGURED;
-#else
-        memcpy(dst, src, size);
-#endif
-    }
-    return retval;
-}
 
 //=====================================================================
 // Public functions
@@ -93,7 +78,6 @@ mli_status mli_mov_tensor_sync(const mli_tensor* src, const mli_mov_cfg_t* cfg, 
     return retval;
 }
 
-
 //---------------------------------------------------------------------
 // Asynchronous data movement functions
 //---------------------------------------------------------------------
@@ -110,20 +94,44 @@ mli_status mli_mov_tensor_sync(const mli_tensor* src, const mli_mov_cfg_t* cfg, 
  * The function returns after the transfer has been prepared.
  * In case the DMA is used, this function will not start the DMA transfer.
  */
+
 mli_status mli_mov_prepare(mli_mov_handle_t* h, const mli_tensor* src, const mli_mov_cfg_t* cfg, mli_tensor* dst) {
     mli_status retval = MLI_STATUS_OK;
-    int src_mem_stride[MLI_MAX_RANK] = {0};
+    uint32_t src_mem_stride[MLI_MAX_RANK] = {0};
     // check tensor, check if handle is valid
     MLI_ASSERT(h != NULL);
     MLI_ASSERT(h->state == MLI_MOV_STATE_OPEN || h->state == MLI_MOV_STATE_DONE);
-    MLI_ASSERT(src != NULL);
-    MLI_ASSERT(dst != NULL);
-    MLI_ASSERT(cfg != NULL);
-
+    retval = MLI_CHECK_STATUS(mli_chk_data_movement(src,cfg,dst),__func__);
+    if (retval != MLI_STATUS_OK) return retval;
     // copy tensor parameters from source to destination and compute missing parameters.
     int rank = dst->rank = src->rank;
     dst->el_type = src->el_type;
-    dst->el_params = src->el_params;
+    if ((src->el_type == MLI_EL_SA_8 || src->el_type == MLI_EL_SA_32) && (src->el_params.sa.dim != -1)) {
+        if ((dst->el_params.sa.scale.mem.pi16 != src->el_params.sa.scale.mem.pi16) &&
+                (dst->el_params.sa.scale.mem.pi16 != NULL)) {
+            mli::mov::mli_mov_memcpy<int8_t>(h, src->el_params.sa.scale.mem.pi8,
+                        dst->el_params.sa.scale.mem.pi8, src->el_params.sa.scale.capacity, 1, 1);
+        } else {
+            dst->el_params.sa.scale = src->el_params.sa.scale;
+        }
+        if ((dst->el_params.sa.zero_point.mem.pi16 != src->el_params.sa.scale.mem.pi16) &&
+                (dst->el_params.sa.zero_point.mem.pi16 != NULL)) {
+            mli::mov::mli_mov_memcpy<int8_t>(h, src->el_params.sa.scale.mem.pi8,
+                        dst->el_params.sa.scale.mem.pi8, src->el_params.sa.scale.capacity, 1, 1);
+        } else {
+            dst->el_params.sa.zero_point = src->el_params.sa.zero_point;
+        }
+        if ((dst->el_params.sa.scale_frac_bits.mem.pi8 != src->el_params.sa.scale_frac_bits.mem.pi8)
+                && (dst->el_params.sa.scale_frac_bits.mem.pi8 != NULL)) {
+            mli::mov::mli_mov_memcpy<int8_t>(h, src->el_params.sa.scale.mem.pi8,
+                        dst->el_params.sa.scale.mem.pi8, src->el_params.sa.scale.capacity, 1, 1);
+        } else {
+            dst->el_params.sa.scale_frac_bits = src->el_params.sa.scale_frac_bits;
+        }
+        dst->el_params.sa.dim = src->el_params.sa.dim;
+    } else {
+        dst->el_params = src->el_params;
+    }
 
     src_mem_stride[rank - 1] = src->mem_stride[rank - 1] != 0 ? src->mem_stride[rank - 1] : 1;
     for (int i = rank - 2; i >= 0; i--) {
@@ -131,8 +139,13 @@ mli_status mli_mov_prepare(mli_mov_handle_t* h, const mli_tensor* src, const mli
     }
 
     const uint8_t* pdim = cfg->perm_dim;
+    uint32_t dst_write_size[4] = {1, 1, 1, 1};
+    uint32_t src_cpy_size[4] = {1, 1, 1, 1};
     for (int i = 0; i < rank; i++) {
-        dst->shape[i] = cfg->size[pdim[i]] > 0 ? cfg->size[pdim[i]] : CEIL_DIV(src->shape[pdim[i]], cfg->sub_sample_step[pdim[i]]) + cfg->padding_pre[pdim[i]] + cfg->padding_post[pdim[i]];
+        src_cpy_size[i] = cfg->size[pdim[i]] > 0 ? cfg->size[pdim[i]] : (src->shape[pdim[i]] - cfg->offset[pdim[i]]);
+        dst_write_size[i] = CEIL_DIV((src_cpy_size[i] + cfg->padding_pre[pdim[i]] + cfg->padding_post[pdim[i]]),
+                cfg->sub_sample_step[pdim[i]]);
+        dst->shape[i] = dst_write_size[i] + cfg->dst_offset[i];
     }
     for (int i = rank; i < MLI_MAX_RANK; i++) {
         dst->shape[i] = 1;
@@ -154,7 +167,10 @@ mli_status mli_mov_prepare(mli_mov_handle_t* h, const mli_tensor* src, const mli
             dst->mem_stride[i] = dst->mem_stride[i + 1] * dst->shape[i + 1];
         }
     }
-
+    retval = MLI_CHECK_STATUS(mli_chk_data_movement_dst_tensor(dst), __func__);
+    if (retval != MLI_STATUS_OK) {
+        return retval;
+    }
     // update state in the handle
     h->state = MLI_MOV_STATE_PREPARED;
 
@@ -168,6 +184,8 @@ mli_status mli_mov_prepare(mli_mov_handle_t* h, const mli_tensor* src, const mli
         // this also means that the shape of src and dst needs to be the same.
         is_possible_in_single1d_transfer &= (src_mem_stride[i] == stride) && (dst->mem_stride[i] == stride);
         is_possible_in_single1d_transfer &= (src->shape[i] == dst->shape[i]);
+        is_possible_in_single1d_transfer &= !(cfg->padding_pre[i] || cfg->padding_post[i]);
+        is_possible_in_single1d_transfer &= (cfg->perm_dim[i] == i);
         stride *= src->shape[i];
     }
     if (is_possible_in_single1d_transfer) {
@@ -176,56 +194,102 @@ mli_status mli_mov_prepare(mli_mov_handle_t* h, const mli_tensor* src, const mli
         if (src->data.mem.void_p != dst->data.mem.void_p) {
             int copy_size = mli_hlp_count_elem_num(src, 0);
             copy_size *= mli_hlp_tensor_element_size(src);
-            retval = mli_mov_memcpy(h, src->data.mem.void_p, dst->data.mem.void_p, copy_size, dst->data.capacity);
+            mli::mov::mli_mov_memcpy<int8_t>(h, src->data.mem.pi8, dst->data.mem.pi8, copy_size, 1, 1);
         }
 
     } else {
         MLI_ASSERT(MLI_MAX_RANK == 4); // because 4 nested loops are hard coded below. add more loops if MLI_MAX_RANK is increased
+        //reorder the dimensions
+        int i = MLI_MAX_RANK - 1;
+        uint32_t ordered_dst_write_size[4] = {1, 1, 1, 1};
+        uint32_t ordered_src_shape[4] = {1, 1, 1, 1};
+        uint32_t ordered_src_cpy_size[4] = {1, 1 ,1, 1};
+        uint32_t ordered_dst_mem_stride[4] = {0};
+        uint32_t ordered_src_mem_stride[4] = {0};
+        uint8_t ordered_pre_padding[4] = {0};
+        uint8_t ordered_post_padding[4] = {0};
+        uint8_t ordered_pdim[4] = {0, 1, 2, 3};
+        uint32_t ordered_offset[4] = {0};
+        uint32_t ordered_dst_offset[4] = {0};
+        uint32_t ordered_subsample[4] = {1, 1, 1, 1};
+        for (int j = rank - 1 ; j >= 0; i--, j--) {
+            ordered_dst_write_size[i]  = dst_write_size[j];
+            ordered_src_shape[i] = src->shape[j];
+            ordered_src_cpy_size[i] = src_cpy_size[j];
+            ordered_dst_mem_stride[i] = dst->mem_stride[j];
+            ordered_src_mem_stride[i] = src_mem_stride[j];
+            ordered_pre_padding[i] = cfg->padding_pre[j];
+            ordered_post_padding[i] = cfg->padding_post[j];
+            ordered_pdim[i] = pdim[j] + MLI_MAX_RANK - rank;
+            ordered_offset[i] = cfg->offset[j];
+            ordered_dst_offset[i] = cfg->dst_offset[j];
+            ordered_subsample[i] = cfg->sub_sample_step[j];
+        }
 
-        for (int pos0 = 0; pos0 < dst->shape[0]; pos0++) {
-            for (int pos1 = 0; pos1 < dst->shape[1]; pos1++) {
-                for (int pos2 = 0; pos2 < dst->shape[2]; pos2++) {
-                    for (int pos3 = 0; pos3 < dst->shape[3]; pos3++) {
-                        int dst_pos = (pos0 + cfg->dst_offset[0]) * dst->mem_stride[0]
-                                    + (pos1 + cfg->dst_offset[1]) * dst->mem_stride[1]
-                                    + (pos2 + cfg->dst_offset[2]) * dst->mem_stride[2]
-                                    + (pos3 + cfg->dst_offset[3]) * dst->mem_stride[3];
-                        int src_pos0 = pos0 * cfg->sub_sample_step[pdim[0]] + cfg->offset[pdim[0]] - cfg->padding_pre[pdim[0]];
-                        int src_pos1 = pos1 * cfg->sub_sample_step[pdim[1]] + cfg->offset[pdim[1]] - cfg->padding_pre[pdim[1]];
-                        int src_pos2 = pos2 * cfg->sub_sample_step[pdim[2]] + cfg->offset[pdim[2]] - cfg->padding_pre[pdim[2]];
-                        int src_pos3 = pos3 * cfg->sub_sample_step[pdim[3]] + cfg->offset[pdim[3]] - cfg->padding_pre[pdim[3]];
+        for (int pos0 = 0; pos0 < ordered_dst_write_size[0]; pos0++) {
+            for (int pos1 = 0; pos1 < ordered_dst_write_size[1]; pos1++) {
+                for (int pos2 = 0; pos2 < ordered_dst_write_size[2]; pos2++) {
 
-                        int src_pos = src_pos0 * src_mem_stride[pdim[0]]
-                                    + src_pos1 * src_mem_stride[pdim[1]]
-                                    + src_pos2 * src_mem_stride[pdim[2]]
-                                    + src_pos3 * src_mem_stride[pdim[3]];
-                        bool in_padding_area = (((src_pos0 < 0) || (src_pos0 >= src->shape[pdim[0]])) && (rank > 0))
-                                            || (((src_pos1 < 0) || (src_pos1 >= src->shape[pdim[1]])) && (rank > 1))
-                                            || (((src_pos2 < 0) || (src_pos2 >= src->shape[pdim[2]])) && (rank > 2))
-                                            || (((src_pos3 < 0) || (src_pos3 >= src->shape[pdim[3]])) && (rank > 3));
+                        int dst_pos = (pos0 + ordered_dst_offset[0]) * ordered_dst_mem_stride[0]
+                                    + (pos1 + ordered_dst_offset[1]) * ordered_dst_mem_stride[1]
+                                    + (pos2 + ordered_dst_offset[2]) * ordered_dst_mem_stride[2];
 
-                        if ((mli_hlp_tensor_element_size(src) == sizeof(uint8_t)) && (mli_hlp_tensor_element_size(dst) == sizeof(uint8_t))) {
-                            uint8_t* psrc = (uint8_t*)src->data.mem.void_p;
-                            uint8_t* pdst = (uint8_t*)dst->data.mem.void_p;
-                            pdst[dst_pos] = in_padding_area ? 0 : psrc[src_pos];
-                        } else if ((mli_hlp_tensor_element_size(src) == sizeof(uint16_t)) && (mli_hlp_tensor_element_size(dst) == sizeof(uint16_t))) {
-                            uint16_t* psrc = (uint16_t*)src->data.mem.void_p;
-                            uint16_t* pdst = (uint16_t*)dst->data.mem.void_p;
-                            pdst[dst_pos] = in_padding_area ? 0 : psrc[src_pos];
-                        } else if ((mli_hlp_tensor_element_size(src) == sizeof(uint32_t)) && (mli_hlp_tensor_element_size(dst) == sizeof(uint32_t))) {
-                            uint32_t* psrc = (uint32_t*)src->data.mem.void_p;
-                            uint32_t* pdst = (uint32_t*)dst->data.mem.void_p;
-                            pdst[dst_pos] = in_padding_area ? 0 : psrc[src_pos];
+                        int src_pos0 = pos0 * ordered_subsample[ordered_pdim[0]] + ordered_offset[ordered_pdim[0]] - ordered_pre_padding[ordered_pdim[0]];
+                        int src_pos1 = pos1 * ordered_subsample[ordered_pdim[1]] + ordered_offset[ordered_pdim[1]] - ordered_pre_padding[ordered_pdim[1]];
+                        int src_pos2 = pos2 * ordered_subsample[ordered_pdim[2]] + ordered_offset[ordered_pdim[2]] - ordered_pre_padding[ordered_pdim[2]];
+
+
+                        bool in_padding_area = (((src_pos0 < 0) || (src_pos0  >= ordered_src_shape[ordered_pdim[0]])) && (rank > 3))
+                                            || (((src_pos1 < 0) || (src_pos1  >= ordered_src_shape[ordered_pdim[1]])) && (rank > 2))
+                                            || (((src_pos2 < 0) || (src_pos2  >= ordered_src_shape[ordered_pdim[2]])) && (rank > 1));
+
+                        int src_pos = src_pos0 * ordered_src_mem_stride[ordered_pdim[0]]
+                                    + src_pos1 * ordered_src_mem_stride[ordered_pdim[1]]
+                                    + src_pos2 * ordered_src_mem_stride[ordered_pdim[2]];
+
+                        uint32_t elem_size = mli_hlp_tensor_element_size(src);
+
+                        if (elem_size == sizeof(uint8_t)) {
+                            int8_t* psrc = src->data.mem.pi8;
+                            int8_t* pdst = dst->data.mem.pi8;
+                            mli::mov::mov_inner_loop<int8_t>(h, &psrc[src_pos], &pdst[dst_pos],
+                                     ordered_dst_write_size[3], ordered_src_cpy_size[3],
+                                     ordered_src_mem_stride[ordered_pdim[3]], ordered_dst_mem_stride[3],
+                                     ordered_offset[ordered_pdim[3]], ordered_dst_offset[3],
+                                     ordered_pre_padding[ordered_pdim[3]], ordered_post_padding[ordered_pdim[3]],
+                                     ordered_subsample[ordered_pdim[3]], ordered_src_shape[ordered_pdim[3]],
+                                     in_padding_area);
+
+                        } else if (elem_size == sizeof(uint16_t)) {
+                            int16_t* psrc = src->data.mem.pi16;
+                            int16_t* pdst = dst->data.mem.pi16;
+                            mli::mov::mov_inner_loop<int16_t>(h, &psrc[src_pos], &pdst[dst_pos],
+                                     ordered_dst_write_size[3], ordered_src_cpy_size[3],
+                                     ordered_src_mem_stride[ordered_pdim[3]], ordered_dst_mem_stride[3],
+                                     ordered_offset[ordered_pdim[3]], ordered_dst_offset[3],
+                                     ordered_pre_padding[ordered_pdim[3]], ordered_post_padding[ordered_pdim[3]],
+                                     ordered_subsample[ordered_pdim[3]], ordered_src_shape[ordered_pdim[3]],
+                                     in_padding_area);
+
+                        } else if (elem_size == sizeof(uint32_t)) {
+                            int32_t* psrc = src->data.mem.pi32;
+                            int32_t* pdst = dst->data.mem.pi32;
+                            mli::mov::mov_inner_loop<int32_t>(h, &psrc[src_pos], &pdst[dst_pos],
+                                     ordered_dst_write_size[3], ordered_src_cpy_size[3],
+                                     ordered_src_mem_stride[ordered_pdim[3]], ordered_dst_mem_stride[3],
+                                     ordered_offset[ordered_pdim[3]], ordered_dst_offset[3],
+                                     ordered_pre_padding[ordered_pdim[3]], ordered_post_padding[ordered_pdim[3]],
+                                     ordered_subsample[ordered_pdim[3]], ordered_src_shape[ordered_pdim[3]],
+                                     in_padding_area);
+
                         } else {
                             MLI_ASSERT(0);
                             retval = MLI_STATUS_TYPE_MISMATCH;
                         }
-                    }
                 }
             }
         }
     }
-
     return retval;
 }
 

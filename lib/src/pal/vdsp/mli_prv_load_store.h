@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -26,6 +26,30 @@ static MLI_FORCE_INLINE pvNx4 mli_prv_pvNx4_init(int limit) {
 
 static MLI_FORCE_INLINE pvNx2 mli_prv_pvNx2_init(int limit) {
     return to_pvNx2(vvci_h() < limit);
+}
+
+static MLI_FORCE_INLINE pvN mli_prv_pvN_init(int limit) {
+    return to_pvN(vvci_w() < limit);
+}
+
+
+//generate stride vectors
+static MLI_FORCE_INLINE vNint_t mli_prv_vNint_vector_stride_init (int stride) {
+    return vvci_stride_w(stride);
+}
+
+static MLI_FORCE_INLINE vNx2int_t mli_prv_vNx2int_vector_stride_init (int stride) {
+    vNx2int_t v_stride;
+    v_stride.lo = vvci_stride_w(stride);
+    v_stride.hi = vvci_stride_w(stride) + v_stride.lo[_VDSP_NUM_32BIT_LANES - 1] + stride;
+    return v_stride;
+}
+
+static MLI_FORCE_INLINE vNx4int_t mli_prv_vNx4int_vector_stride_init (int stride) {
+    vNx4int_t v_stride;
+    v_stride.lo = mli_prv_vNx2int_vector_stride_init(stride);
+    v_stride.hi = mli_prv_vNx2int_vector_stride_init(stride) + v_stride.lo[_VDSP_NUM_16BIT_LANES - 1] + stride;
+    return v_stride;
 }
 
 //
@@ -65,6 +89,7 @@ static MLI_FORCE_INLINE vNx4char_t mli_prv_load_nx4_samples(const int8_t* __rest
     }
     return r;
 }
+
 
 static MLI_FORCE_INLINE vNx4short_t mli_prv_load_nx4_samples(const int16_t* __restrict in) {
     vNx4short_t r;
@@ -124,6 +149,91 @@ static MLI_FORCE_INLINE vNx4char_t mli_prv_gather_load_nx2_samples(const MLI_PTR
 }
 
 
+
+
+// load with stride
+static MLI_FORCE_INLINE vNx4char_t mli_prv_stride_load_1vec(const MLI_PTR(int8_t) in, int stride, int num) {
+    return vgather(in, mli_prv_vNx4int_vector_stride_init(stride), mli_prv_pvNx4_init(num));
+}
+
+static MLI_FORCE_INLINE vNx4char_t mli_prv_stride_load_1vec(const MLI_PTR(int8_t) in, int stride) {
+    return vgather(in, mli_prv_vNx4int_vector_stride_init(stride));
+}
+
+
+static MLI_FORCE_INLINE vNx2short_t mli_prv_stride_load_1vec(const MLI_PTR(int16_t) in, int stride, int num) {
+    return vgather(in, mli_prv_vNx2int_vector_stride_init(stride), mli_prv_pvNx2_init(num));
+}
+
+static MLI_FORCE_INLINE vNx2short_t mli_prv_stride_load_1vec(const MLI_PTR(int16_t) in, int  stride) {
+    return vgather(in, mli_prv_vNx2int_vector_stride_init(stride));
+}
+
+
+
+static MLI_FORCE_INLINE vNint_t mli_prv_stride_load_1vec(const MLI_PTR(int32_t) in, int stride, int num) {
+    return vgather(in, mli_prv_vNint_vector_stride_init(stride), mli_prv_pvN_init(num));
+}
+
+static MLI_FORCE_INLINE vNint_t mli_prv_stride_load_1vec(const MLI_PTR(int32_t) in, int stride) {
+    return vgather(in, mli_prv_vNint_vector_stride_init(stride));
+}
+
+
+
+//load with stride from dchache
+static MLI_FORCE_INLINE vNx4char_t mli_prv_stride_load_1vec(const int8_t* __restrict in, int stride, int limit) {
+    vNx4char_t r;
+    for (int i = 0; i < (1 * limit); i++) {
+        r[i] = in[i * stride];
+    }
+    return r;
+}
+
+static MLI_FORCE_INLINE vNx4char_t mli_prv_stride_load_1vec(const int8_t* __restrict in, int stride) {
+    vNx4char_t r;
+    for (int i = 0; i < (1 * _VDSP_NUM_8BIT_LANES); i++) {
+        r[i] = in[i * stride];
+    }
+    return r;
+}
+
+
+
+static MLI_FORCE_INLINE vNx2short_t mli_prv_stride_load_1vec(const int16_t* __restrict in, int stride, int limit) {
+    vNx2short_t r;
+    for (int i = 0; i < (1 * limit); i++) {
+        r[i] = in[i * stride];
+    }
+    return r;
+}
+
+static MLI_FORCE_INLINE vNx2short_t mli_prv_stride_load_1vec(const int16_t* __restrict in, int stride) {
+    vNx2short_t r;
+    for (int i = 0; i < (1 * _VDSP_NUM_16BIT_LANES); i++) {
+        r[i] = in[i * stride];
+    }
+    return r;
+}
+
+
+static MLI_FORCE_INLINE vNint_t mli_prv_stride_load_1vec(const int32_t* __restrict in, int stride, int limit) {
+    vNint_t r;
+    for (int i = 0; i < (1 * limit); i++) {
+        r[i] = in[i * stride];
+    }
+    return r;
+}
+
+static MLI_FORCE_INLINE vNint_t mli_prv_stride_load_1vec(const int32_t* __restrict in, int stride) {
+    vNint_t r;
+    for (int i = 0; i < (1 * _VDSP_NUM_32BIT_LANES); i++) {
+        r[i] = in[i * stride];
+    }
+    return r;
+}
+
+
 //
 // load functions where number of samples is based on amount of vectors, and N depends on the type
 //
@@ -159,6 +269,11 @@ static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int16_t) __res
     *(MLI_OUT_PTR (vNx2short_t)) out = data;
 }
 
+static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int32_t) __restrict out, vNint_t data) {
+    *(MLI_OUT_PTR (vNint_t)) out = data;
+}
+
+
 static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int8_t) __restrict out,
         vNx4char_t data, pvNx4 predicate) {
     vvst(data, predicate, (int8_t __vccm *)(out));
@@ -181,6 +296,12 @@ static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int16_t) __res
     vvst(data, predicate, (int16_t __vccm *)(out));
 }
 
+static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int32_t) __restrict out,
+        vNint_t data, int predicate_limit) {
+    pvN predicate = mli_prv_pvN_init(predicate_limit);
+    vvst(data, predicate, (int32_t __vccm *)(out));
+}
+
 static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int16_t) __restrict out,
         vNx4short_t data, int predicate_limit) {
     if (predicate_limit > _VDSP_NUM_16BIT_LANES) {
@@ -193,6 +314,81 @@ static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int16_t) __res
         vvst(data.lo, predicate, (int16_t __vccm *)(out));
     }
 }
+
+
+
+
+//store with stride
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int8_t) __restrict out, vNx4char_t data, int  stride, int predicate_limit) {
+    vscatter(data, out, mli_prv_vNx4int_vector_stride_init(stride), mli_prv_pvNx4_init(predicate_limit));
+}
+
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int8_t) __restrict out, vNx4char_t data, int  stride) {
+    vscatter(data, out, mli_prv_vNx4int_vector_stride_init(stride));
+}
+
+
+
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int16_t) __restrict out, vNx2short_t data, int  stride, int predicate_limit) {
+    vscatter(data, out, mli_prv_vNx2int_vector_stride_init(stride), mli_prv_pvNx2_init(predicate_limit));
+}
+
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int16_t) __restrict out, vNx2short_t data, int  stride) {
+    vscatter(data, out,mli_prv_vNx2int_vector_stride_init(stride));
+}
+
+
+
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int32_t) __restrict out, vNint_t data, int  stride, int predicate_limit) {
+    vscatter(data, out,mli_prv_vNint_vector_stride_init(stride), mli_prv_pvN_init(predicate_limit));
+}
+
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int32_t) __restrict out, vNint_t data, int  stride) {
+    vscatter(data, out,mli_prv_vNint_vector_stride_init(stride));
+}
+
+
+
+/*store with stride in dcache*/
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(int8_t* __restrict out, vNx4char_t data, int stride) {
+    for (int i = 0; i < _VDSP_NUM_8BIT_LANES; i++) {
+        out[i * stride] = data[i];
+    }
+}
+
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(int8_t* __restrict out, vNx4char_t data, int stride, int limit) {
+    for (int i = 0; i < limit; i++) {
+        out[i * stride] = data[i];
+    }
+}
+
+
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(int16_t* __restrict out, vNx2short_t data, int stride) {
+    for (int i = 0; i < _VDSP_NUM_16BIT_LANES; i++) {
+        out[i * stride] = data[i];
+    }
+}
+
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(int16_t* __restrict out, vNx2short_t data, int stride, int limit) {
+    for (int i = 0; i < limit; i++) {
+        out[i * stride] = data[i];
+    }
+}
+
+
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(int32_t* __restrict out, vNint_t data, int stride) {
+    for (int i = 0; i < _VDSP_NUM_32BIT_LANES; i++) {
+        out[i * stride] = data[i];
+    }
+}
+
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(int32_t* __restrict out, vNint_t data, int stride, int limit) {
+    for (int i = 0; i < limit; i++) {
+        out[i * stride] = data[i];
+    }
+}
+
+
 
 //-------------------------------------
 // loads combined with mac operation

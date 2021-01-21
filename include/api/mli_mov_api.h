@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -23,17 +23,6 @@ extern "C" {
 #include <stdbool.h>
 
 #include "mli_types.h"
-
-typedef struct _mli_mov_cfg {
-    uint32_t offset[MLI_MAX_RANK];
-    uint32_t size[MLI_MAX_RANK]; // if zero, compute from input and other parameters
-    uint32_t sub_sample_step[MLI_MAX_RANK];
-    uint32_t dst_offset[MLI_MAX_RANK];
-    int32_t  dst_mem_stride[MLI_MAX_RANK]; // if zero, compute from input and other parameters
-    uint8_t  perm_dim[MLI_MAX_RANK];
-    uint8_t  padding_pre[MLI_MAX_RANK];
-    uint8_t  padding_post[MLI_MAX_RANK];
-} mli_mov_cfg_t;
 
 typedef enum _mli_mov_state {
     MLI_MOV_STATE_INVALID = 0,
