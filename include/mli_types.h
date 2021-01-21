@@ -421,7 +421,7 @@ typedef struct {
  */
 typedef struct {
     uint32_t offset[MLI_MAX_RANK];   /**< subtensor start coordinates in the input tensor 
-                                          The size of this array is determined by the rank of the input tensor*/
+                                          The size of this array is determined by the rank of the input tensor */
     uint32_t size[MLI_MAX_RANK];     /**< Size of the sub tensor in elements per dimension
                                           the number of entries in this array is determind by the input tensor */
     uint32_t sub_tensor_rank;        /**< Rank of the sub tensor that will be produced */
@@ -442,5 +442,18 @@ typedef struct _mli_mov_cfg {
     uint8_t  padding_pre[MLI_MAX_RANK];
     uint8_t  padding_post[MLI_MAX_RANK];
 } mli_mov_cfg_t;
+
+/**
+ * @brief Argmax helper config
+ *
+ * Data structure to provide axis along which the function will be computed in the input tensor and
+ * number of indexes per slice to be returned.
+ */
+typedef struct {
+    int32_t axis;   /**< An axis along which the function will be computed. Axis corresponds to index of tensor’s
+                         dimension starting from 0. For instance, having future map in HWC layout, axis == 0
+                         corresponds to H dimension. If axis < 0 the function will be applied to the whole tensor. */
+    int32_t topk;   /**< Number of indexes per slice to be returned.*/
+} mli_argmax_cfg;
 
 #endif // _MLI_TYPES_H_

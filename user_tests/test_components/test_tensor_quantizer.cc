@@ -85,7 +85,7 @@ tensor_quantizer::tensor_quantizer(mli_tensor tsr, const int frac_bits, const fl
         , source_zero_points_(nullptr)
         , source_scales_fraq_(nullptr)
         , is_valid_(false) {
-    // SImilar as for SA constructor - keep is_valid false if not FX
+    // Similar as for SA constructor - keep is_valid false if not FX
     if (source_tsr_.el_type == MLI_EL_FX_8 || source_tsr_.el_type == MLI_EL_FX_16) {
         source_tsr_.el_params.fx.frac_bits = frac_bits;
         // check that input tensor in general not bad

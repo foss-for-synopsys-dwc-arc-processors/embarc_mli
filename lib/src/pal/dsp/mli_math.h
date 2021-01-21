@@ -16,6 +16,7 @@
 #error "ARC FX Library (FXAPI) is required dependency"
 #endif
 
+#include <limits>
 #include <type_traits>
 #include "mli_debug.h"
 #include "mli_math_macros.h"
@@ -60,6 +61,11 @@ MLI_FORCE_INLINE int32_t mli_math_asr_fx(int32_t acc, int shift_right) {
 template <>
 MLI_FORCE_INLINE int16_t mli_math_asr_fx(int16_t acc, int shift_right) {
     return fx_asr_q15(acc, shift_right);
+}
+
+template <typename T>
+MLI_FORCE_INLINE T mli_math_limit_fx(T sign) {
+    return sign < (T)0 ? std::numeric_limits<T>::lowest() : std::numeric_limits<T>::max();
 }
 
 template <typename T>

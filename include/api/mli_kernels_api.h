@@ -644,6 +644,39 @@ mli_status mli_krn_maxpool_hwc_fx16_k3x3(const mli_tensor * in, const mli_pool_c
 
 //================================================
 //
+// Diverse group of kernels
+//
+//================================================
+/**
+ * @brief Argmax
+ *
+ * @detail This kernel returns the indexes of maximum values across the whole tensor, or for each slice across a dimension.
+ *
+ * Ensure that in tensor is quantized on the tensor level. It implies that the tensor contains a single scale factor and a single zero offset.
+ * For out tensor only integer types are allowed (fx8, fx16, sa8, sa32). 
+ * el_params field of out tensor is configured by the kernel to reflect fully integer values
+ * (frac_bits = 0 for fx data format, zero_offset = 0, scale = 1 and scale_frac_bits = 0 for sa data format)
+ *
+ * For more info on primitive see MLI Documentation
+ *
+ * @param in      [I] Input feature tensor (of any shape)
+ * @param cfg     [I] Configuration structure (for more info see @ref mli_argmax_cfg)
+ * @param out     [O] Output feature tensor. Result will be stored here.
+ *
+ * @return MLI status code
+ */
+mli_status mli_krn_argmax_sa8(
+    const mli_tensor *in,
+    const mli_argmax_cfg *cfg,
+    mli_tensor *out);
+
+mli_status mli_krn_argmax_fx16(
+    const mli_tensor *in,
+    const mli_argmax_cfg *cfg,
+    mli_tensor *out);
+
+//================================================
+//
 // Common group of kernels
 //
 //================================================

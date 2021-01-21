@@ -447,6 +447,11 @@ mli_status mli_chk_point_to_subtensor(const mli_tensor *in, const mli_point_to_s
 mli_status mli_chk_create_subtensor(const mli_tensor *in, const mli_sub_tensor_cfg *cfg, mli_tensor *out);
 mli_status mli_chk_data_movement(const mli_tensor *in, const mli_mov_cfg_t *cfg, mli_tensor *out);
 mli_status mli_chk_data_movement_dst_tensor(const mli_tensor *t);
+
+mli_status mli_chk_argmax(const mli_tensor *in, const mli_argmax_cfg *cfg, mli_tensor *out);
+mli_status mli_chk_argmax_sa8(const mli_tensor *in, const mli_argmax_cfg *cfg, mli_tensor *out);
+mli_status mli_chk_argmax_fx16(const mli_tensor *in, const mli_argmax_cfg *cfg, mli_tensor *out);
+
 #ifdef __cplusplus
 }
 #endif
