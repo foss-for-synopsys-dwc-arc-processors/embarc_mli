@@ -62,8 +62,13 @@ static MLI_FORCE_INLINE void mli_krn_pool_hwc_nopad(
         mli::krn::get_mul_shift_value(kernel_width * kernel_height, &mul, &shift_value);
         if (convert) {
             int norm_shift;
+#ifdef AVEPOOL_16BIT_MUL
+            mul = mli_math_norm_cast_fx<int32_t,int16_t>(
+                                        mli_math_mul_fx<int16_t, int32_t>(params->scale, mul), &norm_shift);
+#else
             mul = mli_math_norm_cast_fx<int32_t,int8_t>(
-                                mli_math_mul_fx<int16_t, int32_t>(params->scale, mul), &norm_shift);
+                                        mli_math_mul_fx<int16_t, int32_t>(params->scale, mul), &norm_shift);
+#endif
             shift_value -= norm_shift;
         } else {
             MLI_ASSERT(params->offset == 0);
@@ -165,8 +170,13 @@ static MLI_FORCE_INLINE void mli_krn_pool_hwc_compute_pad(
                 mli::krn::get_mul_shift_value(rows * clmns, &mul, &shift_value);
                 if (convert) {
                     int norm_shift;
-                    mul = mli_math_norm_cast_fx<int32_t,int8_t>(
+#ifdef AVEPOOL_16BIT_MUL
+                    mul = mli_math_norm_cast_fx<int32_t,int16_t>(
                                         mli_math_mul_fx<int16_t, int32_t>(params->scale, mul), &norm_shift);
+#else
+                    mul = mli_math_norm_cast_fx<int32_t,int8_t>(
+                                                            mli_math_mul_fx<int16_t, int32_t>(params->scale, mul), &norm_shift);
+#endif
                     shift_value -= norm_shift;
                 } else {
                     MLI_ASSERT(params->offset == 0);

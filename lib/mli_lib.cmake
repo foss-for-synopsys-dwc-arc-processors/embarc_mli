@@ -158,6 +158,11 @@ if (NOT DEFINED FULL_ACCU)
     set(FULL_ACCU OFF)
 endif()
 
+if (NOT DEFINED AVEPOOL_16BIT_MUL)
+    set(AVEPOOL_16BIT_MUL OFF)
+endif()
+
+
 if(ROUND_MODE STREQUAL UP)
     list(APPEND MLI_LIB_PRIVATE_COMPILE_DEFINITIONS
         ROUND_UP
@@ -178,6 +183,16 @@ elseif(FULL_ACCU STREQUAL OFF)
     # we don't do anything in this case
 else()
     message(FATAL_ERROR "Please specify full accumulator length: ON or OFF")
+endif()
+
+if(AVEPOOL_16BIT_MUL STREQUAL ON)
+    list(APPEND MLI_LIB_PRIVATE_COMPILE_DEFINITIONS
+        AVEPOOL_16BIT_MUL
+    )
+elseif(AVEPOOL_16BIT_MUL STREQUAL OFF)
+    # we don't do anything in this case
+else()
+    message(FATAL_ERROR "Please specify AVEPOOL_16BIT_MUL : ON or OFF")
 endif()
 
 if (${MLI_PLATFORM} STREQUAL VPX)

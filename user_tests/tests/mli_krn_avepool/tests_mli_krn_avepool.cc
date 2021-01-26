@@ -50,22 +50,41 @@ struct avepool_test_operands {
 
 // Shared CRC Results
 const crc32_calc  test_1_chksum_fx16{ 0x292DDF4E },
-                  test_2_chksum_fx16{ 0xA7542BBE }, test_2_chksum_sa8{ 0x60655C05 },
-                  test_3_chksum_fx16{ 0x872AD40B }, test_3_chksum_sa8{ 0x978CB97E },
+                  test_2_chksum_fx16{ 0xA7542BBE },
+                  test_3_chksum_fx16{ 0x872AD40B },
                                                     test_4_chksum_sa8{ 0xFEE5E73E },
-                  test_5_chksum_fx16{ 0x2F40CE76 }, test_5_chksum_sa8{ 0x72125356 },
+                  test_5_chksum_fx16{ 0x2F40CE76 },
                   test_6_chksum_fx16{ 0x4871DD9B },
-                  test_7_chksum_fx16{ 0x56FC93D9 }, test_7_chksum_sa8{ 0x891BA7D0 };
+                  test_7_chksum_fx16{ 0x56FC93D9 };
 
+#if defined(AVEPOOL_16BIT_MUL)
+// Shared CRC Results
+const crc32_calc  test_1_chksum_sa8{ 0x1564B755 },
+                  test_2_chksum_sa8{ 0xD825FD74 },
+                  test_3_chksum_sa8{ 0x0F472106 },
+                  test_5_chksum_sa8{ 0x999C378F },
+                  test_6_chksum_sa8{ 0x784CA521 },
+                  test_7_chksum_sa8{ 0x67A9C0DA };
+#else
+// Shared CRC Results
+const crc32_calc  test_2_chksum_sa8{ 0x60655C05 },
+                  test_3_chksum_sa8{ 0x978CB97E },
+                  test_5_chksum_sa8{ 0x72125356 },
+                  test_7_chksum_sa8{ 0x891BA7D0 };
 // Platform Specific CRC Results
 #if defined(CRC_RM_UP)
-const crc32_calc                                    test_1_chksum_sa8{ 0x65011354 },
-                                                    test_6_chksum_sa8{ 0x5F756A81 },
-                  test_4_chksum_fx16{ 0x128DE247 };
+const crc32_calc  test_1_chksum_sa8{ 0x65011354 },
+                  test_6_chksum_sa8{ 0x5F756A81 };
 #else
-const crc32_calc                                    test_1_chksum_sa8{ 0x5777AF45 },
-                                                    test_6_chksum_sa8{ 0x27D77849 },
-                  test_4_chksum_fx16{ 0x8F820331 };
+const crc32_calc  test_1_chksum_sa8{ 0x5777AF45 },
+                  test_6_chksum_sa8{ 0x27D77849 };
+#endif
+#endif
+// Platform Specific CRC Results
+#if defined(CRC_RM_UP)
+const crc32_calc test_4_chksum_fx16{ 0x128DE247 };
+#else
+const crc32_calc  test_4_chksum_fx16{ 0x8F820331 };
 #endif
 
 #else // Not defined CRC_*
@@ -101,13 +120,13 @@ static const avepool_test_operands tests_list[] = {
     {"Test 2 SA8",   mli_krn_avepool_hwc_sa8,
                      input_1_sa8, test_2_out_sa8, test_2_cfg,
                      thresholds_sa8_general, test_2_chksum_sa8},
-    
+
     // Memstride test kernel_size=(3, 4), strides=(3, 3), with krn_padding
     {"Test 3 FX16 Memstr",  mli_krn_avepool_hwc_fx16,
                             input_1_memstr_fx16, test_3_out_fx16, test_3_cfg,
                             thresholds_fx16_general, test_3_chksum_fx16},
     {"Test 3 SA8 Memstr",   mli_krn_avepool_hwc_sa8,
-                            input_1_memstr_sa8, test_3_out_sa8, test_3_cfg, 
+                            input_1_memstr_sa8, test_3_out_sa8, test_3_cfg,
                             thresholds_sa8_general, test_3_chksum_sa8},
 
     // Global Pooling test with memstride
@@ -117,7 +136,7 @@ static const avepool_test_operands tests_list[] = {
     {"Test 4 SA8 GlobalPool",   mli_krn_avepool_hwc_sa8,
                                 input_2_memstr_sa8, test_4_out_sa8, test_4_cfg,
                                 thresholds_sa8_general, test_4_chksum_sa8},
-                    
+
     // Padding only areas test with memstride, kernel_size=(4, 4), strides=(2, 2), with krn_padding
     {"Test 5 FX16 Pad areas only",  mli_krn_avepool_hwc_fx16,
                                     input_2_memstr_fx16, test_5_out_fx16, test_5_cfg,
