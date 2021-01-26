@@ -30,13 +30,25 @@ if (NOT DEFINED ROUND_MODE)
     endif()
 endif()
 
-
 if(ROUND_MODE STREQUAL UP)
     list(APPEND TEST_COMPILE_DEFINITIONS CRC_RM_UP)
 elseif(ROUND_MODE STREQUAL CONVERGENT)
     list(APPEND TEST_COMPILE_DEFINITIONS CRC_RM_CONVERGENT)
 else()
     message(FATAL_ERROR "Rounding mode ${ROUND_MODE} is not supported")
+endif()
+
+# Note: AVEPOOL_16BIT_MUL should be same as the one in mli_lib.cmake
+if (NOT DEFINED AVEPOOL_16BIT_MUL)
+    set(AVEPOOL_16BIT_MUL OFF)
+endif()
+
+if(AVEPOOL_16BIT_MUL STREQUAL ON)
+    list(APPEND TEST_COMPILE_DEFINITIONS AVEPOOL_16BIT_MUL)
+elseif(AVEPOOL_16BIT_MUL STREQUAL OFF)
+    # we don't do anything in this case
+else()
+    message(FATAL_ERROR "Please specify AVEPOOL_16BIT_MUL : ON or OFF")
 endif()
 
 if (ARC)

@@ -107,7 +107,7 @@ static MLI_FORCE_INLINE acc_T reduce_sum2D_v(
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
 static MLI_FORCE_INLINE vNx4char_t reduce_sum2D_v(
         const MLI_PTR(int8_t) in,
-        const int8_t mul,
+        const int16_t mul,
         const int16_t accu_init,
         const int width,
         const int height,
