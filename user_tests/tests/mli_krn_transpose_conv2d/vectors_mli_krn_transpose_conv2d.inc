@@ -43,10 +43,15 @@ extern mli::tst::tensor_quantizer weights_4_memstr_fx8;
 extern mli::tst::tensor_quantizer weights_4_memstr_fx16;
 extern mli::tst::tensor_quantizer weights_4_memstr_sa8;
 
+extern mli::tst::tensor_quantizer weights_5_memstr_fx8;
+extern mli::tst::tensor_quantizer weights_5_memstr_fx16;
+extern mli::tst::tensor_quantizer weights_5_memstr_sa8;
+
 extern mli::tst::tensor_quantizer bias_1_fx8;
 extern mli::tst::tensor_quantizer bias_1_fx16;
 extern mli::tst::tensor_quantizer bias_1_i1_w1_sa32;
 extern mli::tst::tensor_quantizer bias_1_i1_w2_sa32;
+extern mli::tst::tensor_quantizer bias_1_i1_w5_sa32;
 extern mli::tst::tensor_quantizer bias_2_fx8;
 extern mli::tst::tensor_quantizer bias_2_fx16;
 extern mli::tst::tensor_quantizer bias_2_i2_w3_sa32;
@@ -76,6 +81,9 @@ extern mli::tst::tensor_quantizer test_6_out_sa8;
 extern mli::tst::tensor_quantizer test_7_out_fx16;
 extern mli::tst::tensor_quantizer test_7_out_sa8;
 
+extern mli::tst::tensor_quantizer test_8_out_fx16;
+extern mli::tst::tensor_quantizer test_8_out_sa8;
+
 // Tests configuration structures Declaration
 //========================================
 extern const mli_conv2d_cfg test_1_cfg;
@@ -85,6 +93,7 @@ extern const mli_conv2d_cfg test_4_cfg;
 extern const mli_conv2d_cfg test_5_cfg;
 extern const mli_conv2d_cfg test_6_cfg;
 extern const mli_conv2d_cfg test_7_cfg;
+extern const mli_conv2d_cfg test_8_cfg;
 
 
 // Generated input vectors 
@@ -582,6 +591,65 @@ static const mli_tensor weights_4_memstr_tsr_sa8 = {
     /* .el_params = */ { 0 }
 };
 
+static const float weights_5_data[] = {
+    0.162124f, -0.346638f, 0.845082f, 0.080916f, -0.158546f, -0.791927f, 0.112239f, -1.218158f, 0.174856f, -0.180816f,
+    0.456323f, -1.192600f, -0.167070f, -0.112744f, 1.795874f, 0.201216f, -0.626168f, 1.975422f, -0.010648f, 0.514551f, 
+    1.412555f, 0.316056f, -0.843186f, 1.071855f, 0.041489f, 0.083707f, -0.201573f, -0.228914f, -0.571671f, -0.514952f, 
+    -0.086343f, -0.450086f, 0.785266f, 0.160865f, -0.859547f, 0.973818f, 0.095020f, -0.113663f, -0.678512f, 0.150543f, 
+    -0.053690f, 0.594102f, 0.180646f, -0.609229f, 1.355713f, 0.051250f, -0.209586f, -0.523649f, -0.229502f, -0.025293f, 
+    -1.294115f, -0.119114f, -0.011287f, 0.480028f, -0.042190f, 0.952942f, -0.112790f, -0.091807f, 0.520569f, -0.025375f,
+    -0.246422f, 0.445169f, 0.087788f, 0.135852f, -1.110783f, -1.154933f, -0.317469f, -0.574920f, -1.332593f, -0.339507f, 
+    0.507098f, 1.066522f, -0.292976f, 0.187145f, -0.103800f, -0.024647f, 1.115174f, -0.563868f, 0.281211f, -0.422818f, 
+    -1.013970f, 0.555492f, 0.145126f, -1.099089f, 0.604236f, 1.122268f, -0.408094f, 0.018153f, -0.393905f, -0.033450f, 
+    -0.127945f, -0.934519f, -0.229592f, -0.161013f, 0.133046f, 0.509755f, -0.152131f, -0.646317f, -0.031912f, 0.185736f, 
+    -0.784153f, -1.109624f, 0.160113f, 0.058988f, -0.389235f, -0.453502f, -0.631380f, -1.169693f, -0.152213f, 0.608713f, 
+    0.649977f, -0.545584f, 0.283266f, -0.374898f, -0.041339f, 0.767390f, 1.445703f, -0.111479f, -0.230255f, 0.780456f, 
+    0.027445f, -0.158883f, 0.259358f, -0.074331f, -0.193207f, -0.371220f, 0.057664f, 0.628225f, 1.759768f, -0.073189f, 
+    0.049544f, -0.011524f, -0.077964f, -0.539795f, 0.389784f, 0.314573f, 0.244022f, -1.029533f, 0.282667f, -0.232915f, 
+    -0.173739f, -0.174215f, -0.403591f, -0.504128f, 0.416343f, 0.670114f, -0.217452f, 0.002100f, -0.212137f, 0.374115f, 
+    -0.061205f, 0.780235f, -0.994838f, -0.023874f, -0.450788f, -0.022117f, 0.070457f, -0.261881f, -0.135130f, -0.283063f,
+    0.437815f, -0.146060f, 0.020644f, -1.297438f, -0.733107f, -0.212464f, 1.094582f, 0.081259f, -0.107395f, -0.427986f,
+    0.854578f, -0.089741f, 0.165120f, -1.317230f, -0.209578f, 0.102788f, -1.051647f, 0.224085f, -0.826160f, -0.008636f,
+    -0.182198f, 0.283343f, -0.559180f, 0.599075f, -0.313968f, -0.175495f, 0.269183f, 0.542840f, -0.410377f
+};
+
+static const float weights_5_scales[] = {0.0047577615f, 0.0102160443f, 0.0155545054f};
+static const float weights_5_zero_points[] = {0.f, 0.f, 0.f};
+static const int8_t weights_5_scales_frac[] = {22, 21, 21};
+static const int weights_5_sa_dim = 3;
+
+static const int weights_5_fx8_frac = 6;
+
+#define WEIGHTS_5_MEMSTR_TSR_SHARED_DESCR \
+    /* .data = */ { 0 },\
+    /* .mem_stride = */ {3*8*4*1, 8*4*1, 4*1, 1}, \
+    /* .shape = */ {3, 3, 7, 3}, \
+    /* .rank =  */ 4
+
+
+static const mli_tensor weights_5_memstr_tsr_fx8 = {
+    WEIGHTS_5_MEMSTR_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_FX_8,
+    /* .el_params = */ { 0 }
+};
+
+
+static const mli_tensor weights_5_memstr_tsr_fx16 = {
+    WEIGHTS_5_MEMSTR_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
+};
+
+
+static const mli_tensor weights_5_memstr_tsr_sa8 = {
+    WEIGHTS_5_MEMSTR_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ { 0 }
+};
+
 static const float bias_1_data[] = {-0.149134f, -0.723882f, 0.276216f};
 
 static const float bias_1_i1_w1_scales[] = {0.0000638685f, 0.0001414482f, 0.0002085013f};
@@ -593,6 +661,12 @@ static const float bias_1_i1_w2_scales[] = {0.0000624f, 0.0001312402f, 0.0001976
 static const float bias_1_i1_w2_zero_points[] = {0.f, 0.f, 0.f};
 static const int8_t bias_1_i1_w2_scales_frac[] = {28, 27, 27};
 static const int bias_1_i1_w2_sa_dim = 0;
+
+static const float bias_1_i1_w5_scales[] = {0.0000558376646f, 0.0001198967f, 0.0001825496f};
+static const float bias_1_i1_w5_zero_points[] = {0.f, 0.f, 0.f};
+static const int8_t bias_1_i1_w5_scales_frac[] = {28, 28, 27};
+static const int bias_1_i1_w5_sa_dim = 0;
+
 
 static const int bias_1_fx8_frac = 7;
 
@@ -633,6 +707,14 @@ static const mli_tensor bias_1_i1_w2_tsr_sa32 = {
     /* .el_type = */ MLI_EL_SA_32,
     /* .el_params = */ { 0 }
 };
+
+static const mli_tensor bias_1_i1_w5_tsr_sa32 = {
+    BIAS_1_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_SA_32,
+    /* .el_params = */ { 0 }
+};
+
 
 static const float bias_2_data[] = {-0.195573f, 0.092147f, -0.123712f, -0.580636f, -0.688343f};
 
@@ -688,6 +770,7 @@ static const mli_tensor bias_2_i2_w4_tsr_sa32 = {
 
 tensor_quantizer weights_1_fx8(weights_1_tsr_fx8, weights_1_fx8_frac, weights_1_data,
                         sizeof(weights_1_data) / sizeof(weights_1_data[0]));
+//tensor_quantizer weights_1_fx16(weights_1_tsr_fx16, weights_1_fx8_frac + 8, weights_1_data, 189);
 tensor_quantizer weights_1_fx16(weights_1_tsr_fx16, weights_1_fx8_frac + 8, weights_1_data,
                         sizeof(weights_1_data) / sizeof(weights_1_data[0]));
 tensor_quantizer weights_1_sa8(weights_1_tsr_sa8, weights_1_sa_dim, weights_1_data,
@@ -745,6 +828,16 @@ tensor_quantizer weights_4_memstr_sa8(weights_4_memstr_tsr_sa8, weights_4_sa_dim
                                       weights_4_zero_points, sizeof(weights_4_zero_points) / sizeof(weights_4_zero_points[0]), 
                                       weights_4_scales_frac, sizeof(weights_4_scales_frac) / sizeof(weights_4_scales_frac[0]));
 
+tensor_quantizer weights_5_memstr_fx8(weights_5_memstr_tsr_fx8, weights_5_fx8_frac, weights_5_data,
+                                      sizeof(weights_5_data) / sizeof(weights_5_data[0]));
+tensor_quantizer weights_5_memstr_fx16(weights_5_memstr_tsr_fx16, weights_5_fx8_frac + 8, weights_5_data,
+                                       sizeof(weights_5_data) / sizeof(weights_5_data[0]));
+tensor_quantizer weights_5_memstr_sa8(weights_5_memstr_tsr_sa8, weights_5_sa_dim, weights_5_data, 
+                                      sizeof(weights_5_data) / sizeof(weights_5_data[0]),
+                                      weights_5_scales, sizeof(weights_5_scales) / sizeof(weights_5_scales[0]), 
+                                      weights_5_zero_points, sizeof(weights_5_zero_points) / sizeof(weights_5_zero_points[0]), 
+                                      weights_5_scales_frac, sizeof(weights_5_scales_frac) / sizeof(weights_5_scales_frac[0]));
+
 
 tensor_quantizer bias_1_fx8(bias_1_tsr_fx8, bias_1_fx8_frac, bias_1_data,
                             sizeof(bias_1_data) / sizeof(bias_1_data[0]));
@@ -760,6 +853,12 @@ tensor_quantizer bias_1_i1_w2_sa32(bias_1_i1_w2_tsr_sa32, bias_1_i1_w2_sa_dim, b
                                    bias_1_i1_w2_scales, sizeof(bias_1_i1_w2_scales) / sizeof(bias_1_i1_w2_scales[0]), 
                                    bias_1_i1_w2_zero_points, sizeof(bias_1_i1_w2_zero_points) / sizeof(bias_1_i1_w2_zero_points[0]), 
                                    bias_1_i1_w2_scales_frac, sizeof(bias_1_i1_w2_scales_frac) / sizeof(bias_1_i1_w2_scales_frac[0]));
+tensor_quantizer bias_1_i1_w5_sa32(bias_1_i1_w5_tsr_sa32, bias_1_i1_w5_sa_dim, bias_1_data, 
+                                   sizeof(bias_1_data) / sizeof(bias_1_data[0]),
+                                   bias_1_i1_w5_scales, sizeof(bias_1_i1_w5_scales) / sizeof(bias_1_i1_w5_scales[0]), 
+                                   bias_1_i1_w5_zero_points, sizeof(bias_1_i1_w5_zero_points) / sizeof(bias_1_i1_w5_zero_points[0]), 
+                                   bias_1_i1_w5_scales_frac, sizeof(bias_1_i1_w5_scales_frac) / sizeof(bias_1_i1_w5_scales_frac[0]));
+
 
 tensor_quantizer bias_2_fx8(bias_2_tsr_fx8, bias_2_fx8_frac, bias_2_data,
                             sizeof(bias_2_data) / sizeof(bias_2_data[0]));
@@ -1233,6 +1332,58 @@ static const mli_tensor test_7_out_tsr_sa8 = {
     /* .el_params = */ { 0 }
 };
 
+static const float test_8_out_data[] = {
+    -0.312073f, -2.104259f, 4.237396f, 0.176413f, -4.830071f, 3.872828f, -1.257123f, 1.113210f, 0.849369f, 0.027653f, 
+    -1.796032f, 1.744342f, 0.056987f, -1.008066f, -2.180445f, -0.172698f, -2.327000f, 0.974763f, -0.291775f, -3.667994f,
+    0.286258f, 0.086746f, -2.842753f, 2.004754f, -0.711948f, 0.959996f, -4.076325f, -0.151023f, -3.230109f, -0.641899f,
+    -2.105740f, 2.232733f, 2.895964f, -0.331767f, -1.306114f, 0.524086f, -1.362217f, -3.114600f, -1.518389f, 0.355776f,
+    -0.596459f, -0.220465f, -2.567690f, 0.945127f, 0.468914f, -0.028781f, -0.964155f, 0.865604f, 1.501502f, -1.153668f,
+    -1.304271f, -1.243225f, 1.284765f, -3.427740f, 0.472312f, -0.758425f, -9.494400f, -0.462167f, 0.638443f, 0.455736f,
+    0.075623f, -3.356467f, 5.081804f, 0.844033f, -5.781651f, 1.273198f, -0.044709f, -4.611673f, 3.766028f, -0.855004f,
+    -0.726928f, -0.322268f, -0.748086f, -0.518450f, -1.148292f, -0.610379f, -3.393690f, -0.178071f, -0.891492f, -1.562042f,
+    -0.001133f, 0.389083f, 0.215367f, 0.113189f, -0.787688f, -0.677359f, -4.355668f, 0.768722f, -1.867935f, -1.649504f,
+    -3.083479f, 3.043895f, 2.019896f, -1.224171f, -4.188751f, 0.690549f, -0.429612f, -0.199854f, 3.518472f, 0.533419f,
+    -0.690197f, 0.888332f, -1.056530f, 2.832343f, 1.741581f, 0.118035f, -2.264989f, 0.784811f, 0.318075f, -0.288014f,
+    3.783076f, -0.278995f, -1.780685f, 0.830560f, 0.243512f, -4.750223f, -3.653229f, -0.845027f, -0.348321f, -0.280776f,
+    0.881041f, -0.863688f, -6.104002f, 0.439807f, -0.883192f, -0.908384f, -0.034352f, 3.042615f, 3.025584f, -0.883616f,
+    -2.287746f, 0.711725f, -0.287448f, -2.571106f, -2.370283f, 0.668616f, -0.048195f, -0.662126f, -2.222355f, -2.506699f,
+    0.698049f, 0.246063f, -0.114123f, 0.532040f, 1.208862f, 0.397897f, 0.918417f, -0.763991f, 1.164098f, 0.194816f, 1.286364f,
+    -0.644931f, 7.787173f, 0.640600f, -0.548635f, 4.177498f, -0.005623f, 1.087955f, 5.720635f, -0.241582f, -4.261491f, 
+    1.011570f, -0.885413f, -3.144013f, 7.373176f, 0.636597f, -1.728365f, 1.220859f, -0.199257f, -1.146761f, -2.794411f,
+    0.210389f, -1.469495f, -0.521409f, 0.655103f, -1.395990f, -7.156060f, 1.545581f, -0.523282f, -3.404558f, -1.774872f, 
+    -4.906569f, -5.075408f, 0.323576f, -2.828363f, -1.496868f, -1.970722f, -0.492529f, -2.152939f, 0.586508f, -1.692890f,
+    -1.400761f
+};
+
+static const float test_8_out_scale = 0.0677708760f;
+static const float test_8_out_zero_point = -0.8536138535f;
+static const int8_t test_8_out_scales_frac[] = {18};
+static const int test_8_out_sa_dim = -1;
+
+static const int test_8_out_fx8_frac = 3;
+
+#define TEST_8_OUT_TSR_SHARED_DESCR \
+    /* .data = */ { 0 },\
+    /* .mem_stride = */ {8*5*1, 5*1, 1}, \
+    /* .shape = */ {8, 8, 3}, \
+    /* .rank =  */ 3
+
+
+static const mli_tensor test_8_out_tsr_fx16 = {
+    TEST_8_OUT_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
+};
+
+
+static const mli_tensor test_8_out_tsr_sa8 = {
+    TEST_8_OUT_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ { 0 }
+};
+
 tensor_quantizer test_1_out_fx16(test_1_out_tsr_fx16, test_1_out_fx8_frac + 8, test_1_out_data,
                                 sizeof(test_1_out_data) / sizeof(test_1_out_data[0]));
 tensor_quantizer test_1_out_sa8(test_1_out_tsr_sa8, test_1_out_sa_dim, test_1_out_data, 
@@ -1274,6 +1425,13 @@ tensor_quantizer test_7_out_fx16(test_7_out_tsr_fx16, test_7_out_fx8_frac + 8, t
 tensor_quantizer test_7_out_sa8(test_7_out_tsr_sa8, test_7_out_sa_dim, test_7_out_data, 
                                 sizeof(test_7_out_data) / sizeof(test_7_out_data[0]),
                                 &test_7_out_scale, 1, &test_7_out_zero_point, 1, test_7_out_scales_frac, 1);
+
+tensor_quantizer test_8_out_fx16(test_8_out_tsr_fx16, test_8_out_fx8_frac + 8, test_8_out_data,
+                                 sizeof(test_8_out_data) / sizeof(test_8_out_data[0]));
+tensor_quantizer test_8_out_sa8(test_8_out_tsr_sa8, test_8_out_sa_dim, test_8_out_data, 
+                                sizeof(test_8_out_data) / sizeof(test_8_out_data[0]),
+                                &test_8_out_scale, 1, &test_8_out_zero_point, 1, test_8_out_scales_frac, 1);
+
 
 
 // Tests configuration structures
@@ -1361,3 +1519,16 @@ const mli_conv2d_cfg test_7_cfg = {
     /* .dilation_height = */1,
     /* .dilation_width = */1
 };
+
+const mli_conv2d_cfg test_8_cfg = {
+    /* .relu.type = */MLI_RELU_NONE,
+    /* .stride_width = */2,
+    /* .stride_height = */2,
+    /* .padding_left = */0,
+    /* .padding_right = */1,
+    /* .padding_top = */0,
+    /* .padding_bottom = */1,
+    /* .dilation_height = */1,
+    /* .dilation_width = */1
+};
+

@@ -30,38 +30,27 @@ static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> get_mirrored_weights_
         const conv2d_weights_tensor_private_t<T> &weights,
         const int weights_stride_width,
         const int weights_stride_height,
-        const int in_padding_left,
-        const int in_padding_top,
         int krn_left_offset,
         int krn_top_offset) {
     MLI_ASSERT(weights_stride_width > 0);
     MLI_ASSERT(weights_stride_height > 0);
-    MLI_ASSERT(in_padding_left >= 0);
-    MLI_ASSERT(in_padding_top >= 0);
     MLI_ASSERT(krn_left_offset >= 0);
     MLI_ASSERT(krn_top_offset >= 0);
 
     auto result_subtensor = weights;
 
     // Find out kernel size for sub tensor first.
-    result_subtensor.kernel_height = CEIL_DIV(weights.kernel_height - krn_top_offset , weights_stride_height);
-    result_subtensor.kernel_width = CEIL_DIV(weights.kernel_width - krn_left_offset , weights_stride_width);
+    result_subtensor.kernel_height = CEIL_DIV(weights.kernel_height - krn_top_offset, weights_stride_height);
+    result_subtensor.kernel_width = CEIL_DIV(weights.kernel_width - krn_left_offset, weights_stride_width);
 
-    // If kernel is bigger then 1x1, we need to mirror it.
-    // Straightforward and mirrored kernels are equal in case of 1x1
+    // Get offsets to mirror original tensor
     int mem_offset = 0;
-    if (result_subtensor.kernel_height > 1 || result_subtensor.kernel_width > 1) {
-        mem_offset += weights.row_mem_stride * (weights.kernel_height - 1);
-        mem_offset += weights.col_mem_stride * (weights.kernel_width - 1);;
-        result_subtensor.col_mem_stride = -result_subtensor.col_mem_stride;
-        result_subtensor.row_mem_stride = -result_subtensor.row_mem_stride;
+    mem_offset += weights.row_mem_stride * (weights.kernel_height - 1);
+    mem_offset += weights.col_mem_stride * (weights.kernel_width - 1);
+    result_subtensor.col_mem_stride = -result_subtensor.col_mem_stride;
+    result_subtensor.row_mem_stride = -result_subtensor.row_mem_stride;
 
-        // Offsets also need to be mirrored
-        krn_left_offset = (in_padding_left - krn_left_offset) % weights_stride_width;
-        krn_top_offset = (in_padding_top - krn_top_offset) % weights_stride_height;
-    }
-
-    // Do a pointer adjustment according to a specific subkernel.
+    // Do offset adjustment according to a specific subkernel.
     mem_offset += result_subtensor.row_mem_stride * krn_top_offset;
     mem_offset += result_subtensor.col_mem_stride * krn_left_offset;
     
@@ -87,7 +76,6 @@ MLI_FORCE_INLINE void transpose_convolution2D(
         const io_T val_max_limit,
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right) {
-
     mli::krn::convolution2D<io_T, w_T, b_T, acc_T, quant_T, conv_fix_kernel_width, conv_fix_kernel_height>(
         in, weights, biases, out, perception_area, quant_params,
         val_min_limit, val_max_limit,
@@ -159,17 +147,24 @@ MLI_FORCE_INLINE void transpose_conv2d_prepare_and_run(
         for (int krn_w_offset = 0; krn_w_offset < stride_width; krn_w_offset++) {
             const auto weights_subtensor = 
                 get_mirrored_weights_subtensor_hwcn(weights_prv, stride_width, stride_height, 
-                                                   effective_padding_left, effective_padding_top,
-                                                   krn_w_offset, krn_h_offset);
-            const int cur_out_height = CEIL_DIV(out_height - krn_h_offset, stride_height);
-            const int cur_out_width = CEIL_DIV(out_width - krn_w_offset, stride_width);
+                                                    krn_w_offset, krn_h_offset);
+            
+            // Loping across kernel patterns defined by krn_*_offset we need to define exact out subtensor
+            // which is being filled with current weights subtensor. For this we need to define out subtensor size 
+            // and offset in the whole output tensor using paddings and strides.
             auto cur_out = out_prv;
-            cur_out.col_mem_stride *= stride_width;
-            cur_out.row_mem_stride *= stride_height;
-            cur_out.ptr += out_prv.row_mem_stride * krn_h_offset;
-            cur_out.ptr += out_prv.col_mem_stride * krn_w_offset;
+            const int out_w_offset = (stride_width - krn_w_offset + effective_padding_left) % stride_width;
+            const int out_h_offset = (stride_height - krn_h_offset + effective_padding_top) % stride_height;
+            const int cur_out_height = CEIL_DIV(out_height - out_h_offset, stride_height);
+            const int cur_out_width = CEIL_DIV(out_width - out_w_offset, stride_width);
+            int out_mem_offset = out_prv.row_mem_stride * out_h_offset;
+            out_mem_offset += out_prv.col_mem_stride * out_w_offset;
             cur_out.height = cur_out_height;
             cur_out.width = cur_out_width;
+            cur_out.col_mem_stride *= stride_width;
+            cur_out.row_mem_stride *= stride_height;
+            cur_out.ptr += out_prv.row_mem_stride * out_h_offset;
+            cur_out.ptr += out_prv.col_mem_stride * out_w_offset;
 
             // Define paddings for the current calculations according to the new kernel size and offset index.
             // Right and bottom paddings are derived from other already known parameters:
