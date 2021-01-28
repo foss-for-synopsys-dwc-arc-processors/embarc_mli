@@ -308,6 +308,7 @@ test_status measure_err_vfloat(
         ref_accum += ref_vec[i] * ref_vec[i];
         pred_accum += pred_vec[i] * pred_vec[i];
         noise_accum += (ref_vec[i] - pred_vec[i]) * (ref_vec[i] - pred_vec[i]);
+
         max_err = MAX(fabsf(ref_vec[i] - pred_vec[i]), max_err);
     }
 

@@ -50,69 +50,125 @@ struct permute_test_operands {
 #if defined(CRC_RM_CONVERGENT) || defined(CRC_RM_UP)
 
 // Shared CRC Results
-//TODO Fill correct checksum for sa8
-const crc32_calc  test_1_chksum_fx16{ 0x7DDA59C8 }, test_1_chksum_sa8{ 0xD7062F9F },
-                  test_2_chksum_fx16{ 0xDA5A558D }, test_2_chksum_sa8{ 0x157694C9 },
-                  test_3_chksum_fx16{ 0xA75B8B96 }, test_3_chksum_sa8{ 0xA831F59E },
-                  test_4_chksum_fx16{ 0x9C1AA0B9 }, test_4_chksum_sa8{ 0x043C46FB },
-                  test_5_chksum_fx16{ 0x0E3D57F3 }, test_5_chksum_sa8{ 0xA88A700C };
-
-// Platform Specific CRC Results
-// #if defined(CRC_RM_UP)
-// const crc32_calc test_3_chksum_fx16{ 0x875BA219 }, test_4_chksum_fx16{ 0xCD5A958F };
-// #else 
-// const crc32_calc test_3_chksum_fx16{ 0xBF9EAF0C }, test_4_chksum_fx16{ 0xC98520CF };
-// #endif
+const crc32_calc  test_1_chksum_fx16{ 0x7DDA59C8 }, test_1_chksum_fx8{ 0xBFE26CDD }, test_1_chksum_sa8{ 0xB555AC5A },
+                  test_2_chksum_fx16{ 0x48A78608 }, test_2_chksum_fx8{ 0x13275726 }, test_2_chksum_sa8{ 0x1C3CD42E },
+                  test_3_chksum_fx16{ 0x8670B52E }, test_3_chksum_fx8{ 0xEDBB5DD4 }, test_3_chksum_sa8{ 0xC7AB060F },
+                  test_4_chksum_fx16{ 0x9C1AA0B9 }, test_4_chksum_fx8{ 0xD6A1C316 }, test_4_chksum_sa8{ 0x043C46FB },
+                  test_5_chksum_fx16{ 0x638D962C }, test_5_chksum_fx8{ 0x0FDF29A8 }, test_5_chksum_sa8{ 0x3441D826 },
+                  test_6_chksum_fx16{ 0x14ECC2F0 }, test_6_chksum_fx8{ 0x5A43F7EB }, test_6_chksum_sa8{ 0x75D4A41F },
+                  test_7_chksum_fx16{ 0xF4951D21 }, test_7_chksum_fx8{ 0xE25FDC5A }, test_7_chksum_sa8{ 0xA8E5DD39 },
+                  test_8_chksum_fx16{ 0x3307AC05 }, test_8_chksum_fx8{ 0x598491BD }, test_8_chksum_sa8{ 0xA496E075 },
+                  test_9_chksum_fx16{ 0xCF6F71BA }, test_9_chksum_fx8{ 0x254C2F3E }, test_9_chksum_sa8{ 0xBA173619 };
 
 #else  // Not defined CRC_*
-const crc32_calc  test_1_chksum_fx16, test_1_chksum_sa8,
-                  test_2_chksum_fx16, test_2_chksum_sa8,
-                  test_3_chksum_fx16, test_3_chksum_sa8,
-                  test_4_chksum_fx16, test_4_chksum_sa8,
-                  test_5_chksum_fx16, test_5_chksum_sa8;
+const crc32_calc  test_1_chksum_fx16, test_1_chksum_fx8, test_1_chksum_sa8,
+                  test_2_chksum_fx16, test_2_chksum_fx8, test_2_chksum_sa8,
+                  test_3_chksum_fx16, test_3_chksum_fx8, test_3_chksum_sa8,
+                  test_4_chksum_fx16, test_4_chksum_fx8, test_4_chksum_sa8,
+                  test_5_chksum_fx16, test_5_chksum_fx8, test_5_chksum_sa8,
+                  test_6_chksum_fx16, test_6_chksum_fx8, test_6_chksum_sa8,
+                  test_7_chksum_fx16, test_7_chksum_fx8, test_7_chksum_sa8,
+                  test_8_chksum_fx16, test_8_chksum_fx8, test_8_chksum_sa8,
+                  test_9_chksum_fx16, test_9_chksum_fx8, test_9_chksum_sa8;
 #endif
 
-const quality_metrics thresholds_fx16_general { /* MaxAbsErr = */0.0f, quality_metrics::kPassValueSnr,
-                                                quality_metrics::kPassValueSnrDb, quality_metrics::kPassValueQuantErrPerc};
+const quality_metrics thresholds_fx_general {/* MaxAbsErr = */0.0f, quality_metrics::kPassValueSnr,
+                                              /* SNR_DB = */84.f, quality_metrics::kPassValueQuantErrPerc };
 
-const quality_metrics thresholds_sa8_general{ /* MaxAbsErr = */0.0f, quality_metrics::kPassValueSnr,
-                                                quality_metrics::kPassValueSnrDb, quality_metrics::kPassValueQuantErrPerc};
+const quality_metrics thresholds_sa8_general{quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
+                                              /* SNR_DB = */40.f, /*Quant Error Perc = */ 99.9f };
+                                                
 //TODO make normaly test description
 static const permute_test_operands tests_list[] = {
-    {"Test 1 FX16 matrix transpose",  mli_krn_permute_fx16,
-                                   input_1_memstr_fx16, test_1_out_fx16, test_1_cfg,
-                                   thresholds_fx16_general, test_1_chksum_fx16},
-    {"Test 1 SA8 matrix transpose",   mli_krn_permute_sa8,
-                                   input_1_memstr_sa8, test_1_out_sa8, test_1_cfg,
-                                   thresholds_sa8_general, test_1_chksum_sa8},
+    {"Test 1 FX16 I_m_str",  mli_krn_permute_fx16,
+                            input_1_memstr_fx16, test_1_out_fx16, test_1_cfg,
+                            thresholds_fx_general, test_1_chksum_fx16},
+    {"Test 1 FX8 I_m_str",  mli_krn_permute_fx8,
+                            input_1_memstr_fx8, test_1_out_fx8, test_1_cfg,
+                            thresholds_fx_general, test_1_chksum_fx8},
+    {"Test 1 SA8 I_m_str 0-axis",   mli_krn_permute_sa8,
+                            input_1_memstr_sa8, test_1_out_sa8, test_1_cfg,
+                            thresholds_sa8_general, test_1_chksum_sa8},
 
-    {"Test 2 FX16 ",  mli_krn_permute_fx16,
+    {"Test 2 FX16 O_m_str",  mli_krn_permute_fx16,
                             input_2_fx16, test_2_out_memstr_fx16, test_2_cfg,
-                            thresholds_fx16_general, test_2_chksum_fx16},
-    {"Test 2 SA8 ",   mli_krn_permute_sa8,
+                            thresholds_fx_general, test_2_chksum_fx16},
+    {"Test 2 FX8 O_m_str",  mli_krn_permute_fx8,
+                            input_2_fx8, test_2_out_memstr_fx8, test_2_cfg,
+                            thresholds_fx_general, test_2_chksum_fx8},
+    {"Test 2 SA8 O_m_str per-tensor",   mli_krn_permute_sa8,
                             input_2_memstr_sa8, test_2_out_memstr_sa8, test_2_cfg,
                             thresholds_sa8_general, test_2_chksum_sa8},
 
-    {"Test 3 FX16 ",  mli_krn_permute_fx16,
+    {"Test 3 FX16 IO_m_str",  mli_krn_permute_fx16,
                             input_2_memstr_fx16, test_3_out_memstr_fx16, test_3_cfg,
-                            thresholds_fx16_general, test_3_chksum_fx16},
-    {"Test 3 SA8 ",   mli_krn_permute_sa8,
+                            thresholds_fx_general, test_3_chksum_fx16},
+    {"Test 3 FX8 IO_m_str",  mli_krn_permute_fx8,
+                            input_2_memstr_fx8, test_3_out_memstr_fx8, test_3_cfg,
+                            thresholds_fx_general, test_3_chksum_fx8},
+    {"Test 3 SA8 IO_m_str per-tensor",   mli_krn_permute_sa8,
                             input_2_memstr_sa8, test_3_out_memstr_sa8, test_3_cfg, 
                             thresholds_sa8_general, test_3_chksum_sa8},
 
     {"Test 4 FX16 ",  mli_krn_permute_fx16,
                             input_3_fx16, test_4_out_fx16, test_4_cfg,
-                            thresholds_fx16_general, test_4_chksum_fx16},
-    {"Test 4 SA8 ",   mli_krn_permute_sa8,
+                            thresholds_fx_general, test_4_chksum_fx16},
+    {"Test 4 FX8 ",  mli_krn_permute_fx8,
+                            input_3_fx8, test_4_out_fx8, test_4_cfg,
+                            thresholds_fx_general, test_4_chksum_fx8},
+    {"Test 4 SA8 per-tensor",   mli_krn_permute_sa8,
                             input_3_sa8, test_4_out_sa8, test_4_cfg,
                             thresholds_sa8_general, test_4_chksum_sa8},
 
-    {"Test 5 FX16 ",  mli_krn_permute_fx16,
-                                      input_4_fx16, test_5_out_fx16, test_5_cfg,
-                                      thresholds_fx16_general, test_5_chksum_fx16},
-    {"Test 5 SA8 ",   mli_krn_permute_sa8,
-                                      input_4_sa8, test_5_out_sa8, test_5_cfg,
-                                      thresholds_sa8_general, test_5_chksum_sa8}
+    {"Test 5 FX16",  mli_krn_permute_fx16,
+                            input_4_fx16, test_5_out_fx16, test_5_cfg,
+                            thresholds_fx_general, test_5_chksum_fx16},
+    {"Test 5 FX8",  mli_krn_permute_fx8,
+                            input_4_fx8, test_5_out_fx8, test_5_cfg,
+                            thresholds_fx_general, test_5_chksum_fx8},
+    {"Test 5 SA8 1-axis",   mli_krn_permute_sa8,
+                            input_4_sa8, test_5_out_sa8, test_5_cfg,
+                            thresholds_sa8_general, test_5_chksum_sa8},
+
+    {"Test 6 FX16",  mli_krn_permute_fx16,
+                           input_2_fx16, test_6_out_fx16, test_6_cfg,
+                           thresholds_fx_general, test_6_chksum_fx16},
+    {"Test 6 FX8",  mli_krn_permute_fx8,
+                           input_2_fx8, test_6_out_fx8, test_6_cfg,
+                           thresholds_fx_general, test_6_chksum_fx8},
+    {"Test 6 SA8 per-tensor",   mli_krn_permute_sa8,
+                            input_2_sa8, test_6_out_sa8, test_6_cfg,
+                            thresholds_sa8_general, test_6_chksum_sa8},
+
+    {"Test 7 FX16",  mli_krn_permute_fx16,
+                            input_2_fx16, test_7_out_fx16, test_7_cfg,
+                            thresholds_fx_general, test_7_chksum_fx16},
+    {"Test 7 FX8",  mli_krn_permute_fx8,
+                            input_2_fx8, test_7_out_fx8, test_7_cfg,
+                            thresholds_fx_general, test_7_chksum_fx8},
+    {"Test 7 SA8 per-tensor",   mli_krn_permute_sa8,
+                            input_2_sa8, test_7_out_sa8, test_7_cfg,
+                            thresholds_sa8_general, test_7_chksum_sa8},
+
+    {"Test 8 FX16",  mli_krn_permute_fx16,
+                            input_2_fx16, test_8_out_fx16, test_8_cfg,
+                            thresholds_fx_general, test_8_chksum_fx16},
+    {"Test 8 FX8",  mli_krn_permute_fx8,
+                            input_2_fx8, test_8_out_fx8, test_8_cfg,
+                            thresholds_fx_general, test_8_chksum_fx8},
+    {"Test 8 SA8 per-tensor",   mli_krn_permute_sa8,
+                            input_2_sa8, test_8_out_sa8, test_8_cfg,
+                            thresholds_sa8_general, test_8_chksum_sa8},
+
+    {"Test 9 FX16",  mli_krn_permute_fx16,
+                            input_2_fx16, test_9_out_fx16, test_9_cfg,
+                            thresholds_fx_general, test_9_chksum_fx16},
+    {"Test 9 FX8",  mli_krn_permute_fx8,
+                            input_2_fx8, test_9_out_fx8, test_9_cfg,
+                            thresholds_fx_general, test_9_chksum_fx8},
+    {"Test 9 SA8 per-tensor",   mli_krn_permute_sa8,
+                            input_2_sa8, test_9_out_sa8, test_9_cfg,
+                            thresholds_sa8_general, test_9_chksum_sa8}
 };
 
 constexpr int kMemSize = 2047;
@@ -137,14 +193,33 @@ int main() {
             is_test_passed = false;
         }
 
-        mli_tensor input = cur_test->in.get_quantized_tensor(mem_in_keeper.allocate_memory(cur_test->in));
+        mli_tensor in = cur_test->in.get_quantized_tensor(mem_in_keeper.allocate_memory(cur_test->in));
         mli_tensor out = cur_test->out.get_not_quantized_tensor(mem_out_keeper.allocate_memory(cur_test->out));
+
+        if (out.el_type == MLI_EL_SA_8) {
+            if (out.el_params.sa.dim >= 0) {
+                if (out.el_params.sa.zero_point.capacity < in.el_params.sa.zero_point.capacity &&
+                        out.el_params.sa.scale.capacity < in.el_params.sa.scale.capacity &&
+                        out.el_params.sa.scale_frac_bits.capacity < in.el_params.sa.scale_frac_bits.capacity) {
+                    reporter.report_message(cur_test->descr, 
+                        "FAILED at init: not enough memory allocated for quantization parameters");
+                }
+            }
+        }
+        
         if (is_test_passed &&
-                (tensor_quantizer::validate_tensor(input) != tensor_quantizer::kOk ||
+                (tensor_quantizer::validate_tensor(in) != tensor_quantizer::kOk ||
                  tensor_quantizer::validate_tensor(out) != tensor_quantizer::kOk)) {
             reporter.report_message(cur_test->descr, 
                                     "FAILED at quantization step: more memory for one of tensors might be required");
             is_test_passed = false;
+        }
+
+        //Fill all fields in out tensor as -1 except data field and capacity field
+        out.rank = -1;
+        for(int i = 0; i < MLI_MAX_RANK; i++) {
+            out.shape[i] = 0;
+            out.mem_stride[i] = 0;
         }
 
         if (is_test_passed &&
@@ -156,8 +231,14 @@ int main() {
 
         // Run specific kernel for test 
         if (is_test_passed &&
-                cur_test->mli_krn_permute(&input, &cur_test->cfg, &out) != MLI_STATUS_OK) {
+                cur_test->mli_krn_permute(&in, &cur_test->cfg, &out) != MLI_STATUS_OK) {
             reporter.report_message(cur_test->descr, "FAILED at kernel run: kernel returned bad status");
+            is_test_passed = false;
+        }
+
+        if(is_test_passed && in.rank != out.rank) {
+            reporter.report_message(cur_test->descr,
+                "FAILED after kernel run: rank input and output tensors are different");
             is_test_passed = false;
         }
 
@@ -176,7 +257,7 @@ int main() {
 
         if (is_test_passed) {
             crc32_calc data_crc;
-            data_crc(input);
+            data_crc(in);
             data_crc(out);
             is_test_passed &= reporter.evaluate_and_report_case(cur_test->descr, test_metics, cur_test->threshold, 
                                                                 data_crc, cur_test->check_sum);

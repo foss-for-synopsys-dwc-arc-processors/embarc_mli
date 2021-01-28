@@ -438,6 +438,7 @@ mli_status mli_chk_padding2d_hwc(const mli_tensor * in, const mli_padding2d_cfg 
 mli_status mli_chk_padding2d_hwc_fx8(const mli_tensor * in, const mli_padding2d_cfg * cfg, mli_tensor * out);
 mli_status mli_chk_padding2d_hwc_fx16(const mli_tensor * in, const mli_padding2d_cfg * cfg, mli_tensor * out);
 mli_status mli_chk_permute(const mli_tensor * in, const mli_permute_cfg * cfg, mli_tensor * out);
+mli_status mli_chk_permute_sa8(const mli_tensor * in, const mli_permute_cfg * cfg, mli_tensor * out);
 mli_status mli_chk_permute_fx8(const mli_tensor * in, const mli_permute_cfg * cfg, mli_tensor * out);
 mli_status mli_chk_permute_fx16(const mli_tensor * in, const mli_permute_cfg * cfg, mli_tensor * out);
 
