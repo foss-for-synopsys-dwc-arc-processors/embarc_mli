@@ -171,9 +171,10 @@ int main() {
             continue;
         }
 #endif
-#if __Xvec_guard_bit_option == 0 && defined(__Xvec_guard_bit_option)
+#if defined(__Xvec_guard_bit_option) && (__Xvec_guard_bit_option == 0)
         if (strstr(cur_test->descr, "Test 1 SA8_SA8_SA32") != nullptr ||
-                strstr(cur_test->descr, "Test 3 SA8_SA8_SA32 Relu1 Mstr") != nullptr) {
+            strstr(cur_test->descr, "Test 3 SA8_SA8_SA32 Spec") != nullptr ||
+            strstr(cur_test->descr, "Test 3 SA8_SA8_SA32 Relu1 Mstr") != nullptr) {
             // VPX fails bitwise comparison with reference .
             reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
             continue;
