@@ -253,16 +253,19 @@ int main() {
         const conv2d_test_operands* cur_test = &tests_list[i];
         quality_metrics test_metics;
 
-#if __Xvec_guard_bit_option == 0 && defined(__Xvec_guard_bit_option)
+#if defined(__Xvec_guard_bit_option) && (__Xvec_guard_bit_option == 0)
         if (strstr(cur_test->descr, "Test 1 SA8_SA8_SA32") != nullptr ||
                 strstr(cur_test->descr, "Test 2 SA8_SA8_SA32 ReluGen") != nullptr ||
                 strstr(cur_test->descr, "Test 3 SA8_SA8_SA32 Dilation") != nullptr ||
                 strstr(cur_test->descr, "Test 4 SA8_SA8_SA32 IO_Memstr") != nullptr ||
                 strstr(cur_test->descr, "Test 5 SA8_SA8_SA32 W_Memstr") != nullptr ||
+                strstr(cur_test->descr, "Test 6 SA8_SA8_SA32  k1x1 Spec") != nullptr ||
+                strstr(cur_test->descr, "Test 7 SA8_SA8_SA32 k3x3 Spec") != nullptr ||
                 strstr(cur_test->descr, "Test 8 FX16 k5x5 spec") != nullptr ||
                 strstr(cur_test->descr, "Test 8 SA8_SA8_SA32 k5x5 spec") != nullptr ||
                 strstr(cur_test->descr, "Test 8 SA8_SA8_SA32 Dil+Pad") != nullptr ||
                 strstr(cur_test->descr, "Test 9-1 SA8_SA8_SA32 Dil+Pad") != nullptr ||
+                strstr(cur_test->descr, "Test 9-2 SA8_SA8_SA32 k3x3 Dil") != nullptr ||
                 strstr(cur_test->descr, "Test 10 FX16 k5x5 Dil") != nullptr ||
                 strstr(cur_test->descr, "Test 10 SA8_SA8_SA32 k5x5 Dil") != nullptr) {
             // VPX fails bitwise comparison with reference .
