@@ -46,7 +46,6 @@ struct permute_test_operands {
 // Checksums of test tensors for various mli calculations mode. 
 // When developer finished implementation of kernel and consider it as ok, He need to populate
 // proper checksums for tests in order to highlight any change which affects results.
-// TODO Make right checksums
 #if defined(CRC_RM_CONVERGENT) || defined(CRC_RM_UP)
 
 // Shared CRC Results
@@ -77,10 +76,11 @@ const quality_metrics thresholds_fx_general {/* MaxAbsErr = */0.0f, quality_metr
 
 const quality_metrics thresholds_sa8_general{quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
                                               /* SNR_DB = */40.f, /*Quant Error Perc = */ 99.9f };
-                                                
-//TODO make normaly test description
+
 static const permute_test_operands tests_list[] = {
-    {"Test 1 FX16 I_m_str",  mli_krn_permute_fx16,
+    // Per-axis quantization, input shape = {16, 32}, input memory stride = {32, 1},
+    // output shape = {32, 16}, perm_dim = {1, 0}
+    {"Test 1 FX16 I_m_str", mli_krn_permute_fx16,
                             input_1_memstr_fx16, test_1_out_fx16, test_1_cfg,
                             thresholds_fx_general, test_1_chksum_fx16},
     {"Test 1 FX8 I_m_str",  mli_krn_permute_fx8,
@@ -90,7 +90,9 @@ static const permute_test_operands tests_list[] = {
                             input_1_memstr_sa8, test_1_out_sa8, test_1_cfg,
                             thresholds_sa8_general, test_1_chksum_sa8},
 
-    {"Test 2 FX16 O_m_str",  mli_krn_permute_fx16,
+    // Per-tensor quantization, input shape = {2, 3, 4, 5}, output shape = {5, 4, 3, 2},
+    // output memstride = {96, 12, 4, 1}, perm_dim = {3, 2, 1, 0}
+    {"Test 2 FX16 O_m_str", mli_krn_permute_fx16,
                             input_2_fx16, test_2_out_memstr_fx16, test_2_cfg,
                             thresholds_fx_general, test_2_chksum_fx16},
     {"Test 2 FX8 O_m_str",  mli_krn_permute_fx8,
@@ -100,75 +102,83 @@ static const permute_test_operands tests_list[] = {
                             input_2_memstr_sa8, test_2_out_memstr_sa8, test_2_cfg,
                             thresholds_sa8_general, test_2_chksum_sa8},
 
-    {"Test 3 FX16 IO_m_str",  mli_krn_permute_fx16,
+    // Per-tensor quantization, input shape = {2, 3, 4, 5}, input memory stride = {192, 32, 8, 1}, 
+    // output shape = {3, 2, 5, 4}, output memory stride = {80, 40, 4, 1}, perm_dim = {1, 0, 3, 2}
+    {"Test 3 FX16 IO_m_str", mli_krn_permute_fx16,
                             input_2_memstr_fx16, test_3_out_memstr_fx16, test_3_cfg,
                             thresholds_fx_general, test_3_chksum_fx16},
-    {"Test 3 FX8 IO_m_str",  mli_krn_permute_fx8,
+    {"Test 3 FX8 IO_m_str", mli_krn_permute_fx8,
                             input_2_memstr_fx8, test_3_out_memstr_fx8, test_3_cfg,
                             thresholds_fx_general, test_3_chksum_fx8},
-    {"Test 3 SA8 IO_m_str per-tensor",   mli_krn_permute_sa8,
+    {"Test 3 SA8 IO_m_str per-tensor", mli_krn_permute_sa8,
                             input_2_memstr_sa8, test_3_out_memstr_sa8, test_3_cfg, 
                             thresholds_sa8_general, test_3_chksum_sa8},
 
-    {"Test 4 FX16 ",  mli_krn_permute_fx16,
+    // Per-tensor quantization, input shape = {10, 1, 1, 1}, output shape = {1, 1, 1, 10}, perm_dim = {1, 2, 3, 0}
+    {"Test 4 FX16 ", mli_krn_permute_fx16,
                             input_3_fx16, test_4_out_fx16, test_4_cfg,
                             thresholds_fx_general, test_4_chksum_fx16},
     {"Test 4 FX8 ",  mli_krn_permute_fx8,
                             input_3_fx8, test_4_out_fx8, test_4_cfg,
                             thresholds_fx_general, test_4_chksum_fx8},
-    {"Test 4 SA8 per-tensor",   mli_krn_permute_sa8,
+    {"Test 4 SA8 per-tensor", mli_krn_permute_sa8,
                             input_3_sa8, test_4_out_sa8, test_4_cfg,
                             thresholds_sa8_general, test_4_chksum_sa8},
 
-    {"Test 5 FX16",  mli_krn_permute_fx16,
+    // Per-axis quantization, input shape = {3, 4, 5}, output shape = {4, 3, 5}, perm_dim = {1, 0, 2}
+    {"Test 5 FX16", mli_krn_permute_fx16,
                             input_4_fx16, test_5_out_fx16, test_5_cfg,
                             thresholds_fx_general, test_5_chksum_fx16},
-    {"Test 5 FX8",  mli_krn_permute_fx8,
+    {"Test 5 FX8", mli_krn_permute_fx8,
                             input_4_fx8, test_5_out_fx8, test_5_cfg,
                             thresholds_fx_general, test_5_chksum_fx8},
-    {"Test 5 SA8 1-axis",   mli_krn_permute_sa8,
+    {"Test 5 SA8 1-axis", mli_krn_permute_sa8,
                             input_4_sa8, test_5_out_sa8, test_5_cfg,
                             thresholds_sa8_general, test_5_chksum_sa8},
 
-    {"Test 6 FX16",  mli_krn_permute_fx16,
+    // Per-tensor quantization, input shape = {2, 3, 4, 5}, output shape = {2, 5, 3, 4}, perm_dim = {0, 3, 1, 2}
+    {"Test 6 FX16", mli_krn_permute_fx16,
                            input_2_fx16, test_6_out_fx16, test_6_cfg,
                            thresholds_fx_general, test_6_chksum_fx16},
-    {"Test 6 FX8",  mli_krn_permute_fx8,
+    {"Test 6 FX8", mli_krn_permute_fx8,
                            input_2_fx8, test_6_out_fx8, test_6_cfg,
                            thresholds_fx_general, test_6_chksum_fx8},
-    {"Test 6 SA8 per-tensor",   mli_krn_permute_sa8,
-                            input_2_sa8, test_6_out_sa8, test_6_cfg,
-                            thresholds_sa8_general, test_6_chksum_sa8},
+    {"Test 6 SA8 per-tensor", mli_krn_permute_sa8,
+                           input_2_sa8, test_6_out_sa8, test_6_cfg,
+                           thresholds_sa8_general, test_6_chksum_sa8},
 
-    {"Test 7 FX16",  mli_krn_permute_fx16,
-                            input_2_fx16, test_7_out_fx16, test_7_cfg,
-                            thresholds_fx_general, test_7_chksum_fx16},
-    {"Test 7 FX8",  mli_krn_permute_fx8,
-                            input_2_fx8, test_7_out_fx8, test_7_cfg,
-                            thresholds_fx_general, test_7_chksum_fx8},
-    {"Test 7 SA8 per-tensor",   mli_krn_permute_sa8,
-                            input_2_sa8, test_7_out_sa8, test_7_cfg,
-                            thresholds_sa8_general, test_7_chksum_sa8},
+    // Per-tensor quantization, input shape = {2, 3, 4, 5}, output shape = {2, 4, 5, 3}, perm_dim = {0, 2, 3, 1}
+    {"Test 7 FX16", mli_krn_permute_fx16,
+                           input_2_fx16, test_7_out_fx16, test_7_cfg,
+                           thresholds_fx_general, test_7_chksum_fx16},
+    {"Test 7 FX8", mli_krn_permute_fx8,
+                           input_2_fx8, test_7_out_fx8, test_7_cfg,
+                           thresholds_fx_general, test_7_chksum_fx8},
+    {"Test 7 SA8 per-tensor", mli_krn_permute_sa8,
+                           input_2_sa8, test_7_out_sa8, test_7_cfg,
+                           thresholds_sa8_general, test_7_chksum_sa8},
 
-    {"Test 8 FX16",  mli_krn_permute_fx16,
-                            input_2_fx16, test_8_out_fx16, test_8_cfg,
-                            thresholds_fx_general, test_8_chksum_fx16},
-    {"Test 8 FX8",  mli_krn_permute_fx8,
-                            input_2_fx8, test_8_out_fx8, test_8_cfg,
-                            thresholds_fx_general, test_8_chksum_fx8},
-    {"Test 8 SA8 per-tensor",   mli_krn_permute_sa8,
-                            input_2_sa8, test_8_out_sa8, test_8_cfg,
-                            thresholds_sa8_general, test_8_chksum_sa8},
+    // Per-tensor quantization, input shape = {2, 3, 4, 5}, output shape = {2, 4, 3, 5}, perm_dim = {0, 2, 1, 3}
+    {"Test 8 FX16", mli_krn_permute_fx16,
+                           input_2_fx16, test_8_out_fx16, test_8_cfg,
+                           thresholds_fx_general, test_8_chksum_fx16},
+    {"Test 8 FX8", mli_krn_permute_fx8,
+                           input_2_fx8, test_8_out_fx8, test_8_cfg,
+                           thresholds_fx_general, test_8_chksum_fx8},
+    {"Test 8 SA8 per-tensor", mli_krn_permute_sa8,
+                           input_2_sa8, test_8_out_sa8, test_8_cfg,
+                           thresholds_sa8_general, test_8_chksum_sa8},
 
-    {"Test 9 FX16",  mli_krn_permute_fx16,
-                            input_2_fx16, test_9_out_fx16, test_9_cfg,
-                            thresholds_fx_general, test_9_chksum_fx16},
-    {"Test 9 FX8",  mli_krn_permute_fx8,
-                            input_2_fx8, test_9_out_fx8, test_9_cfg,
-                            thresholds_fx_general, test_9_chksum_fx8},
-    {"Test 9 SA8 per-tensor",   mli_krn_permute_sa8,
-                            input_2_sa8, test_9_out_sa8, test_9_cfg,
-                            thresholds_sa8_general, test_9_chksum_sa8}
+    // Per-tensor quantization, input shape = {2, 3, 4, 5}, output shape = {3, 2, 4, 5}, perm_dim = {1, 0, 2, 3}
+    {"Test 9 FX16", mli_krn_permute_fx16,
+                           input_2_fx16, test_9_out_fx16, test_9_cfg,
+                           thresholds_fx_general, test_9_chksum_fx16},
+    {"Test 9 FX8", mli_krn_permute_fx8,
+                           input_2_fx8, test_9_out_fx8, test_9_cfg,
+                           thresholds_fx_general, test_9_chksum_fx8},
+    {"Test 9 SA8 per-tensor", mli_krn_permute_sa8,
+                           input_2_sa8, test_9_out_sa8, test_9_cfg,
+                           thresholds_sa8_general, test_9_chksum_sa8}
 };
 
 constexpr int kMemSize = 2047;

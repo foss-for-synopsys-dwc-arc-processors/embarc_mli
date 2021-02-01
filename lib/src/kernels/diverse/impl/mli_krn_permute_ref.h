@@ -47,10 +47,6 @@ static MLI_FORCE_INLINE mli_status mli_krn_permute_run(const mli_tensor *in, con
     }
 
     auto in_prv =  mli_prv_get_generic_tensor<MLI_PTR(io_T)>(in);
-    auto out_prv =  mli_prv_get_generic_tensor<MLI_PTR(io_T)>(out);
-
-    for(int i = 0; i < MLI_MAX_RANK; i++)
-        out->mem_stride[i] = out_prv.mem_stride[i];
 
     for (int dim_ctr = 0; dim_ctr < MLI_MAX_RANK; dim_ctr++)
         perm_dim_inv[perm_dim[dim_ctr]] = dim_ctr;
@@ -67,16 +63,22 @@ static MLI_FORCE_INLINE mli_status mli_krn_permute_run(const mli_tensor *in, con
         out_strides[dim_ctr] -= out_strides[dim_ctr + 1] * out->shape[dim_ctr + 1];
     }
 
+    for (int i = rank; i < MLI_MAX_RANK; i++) {
+        out->shape[i] = 1;
+    }
+
     // Main transpose operation.
     const io_T *input = static_cast<io_T *>(in->data.mem.void_p);
     io_T *output = static_cast<io_T *>(out->data.mem.void_p);
-    for (int d0_cnt = 0; d0_cnt < out_prv.shape[0]; d0_cnt++) {
-        for (int d1_cnt = 0; d1_cnt < out_prv.shape[1]; d1_cnt++) {
-            for (int d2_cnt = 0; d2_cnt < out_prv.shape[2]; d2_cnt++) {
-                for (int d3_cnt = 0; d3_cnt < out_prv.shape[3]; d3_cnt++) {
+    for (int d0_cnt = 0; d0_cnt < out->shape[0]; d0_cnt++) {
+        for (int d1_cnt = 0; d1_cnt < out->shape[1]; d1_cnt++) {
+            for (int d2_cnt = 0; d2_cnt < out->shape[2]; d2_cnt++) {
+                for (int d3_cnt = 0; d3_cnt < out->shape[3]; d3_cnt++) {
                     int pos[] = {d0_cnt, d1_cnt, d2_cnt, d3_cnt};
-                    int in_pos[] = {pos[perm_dim_inv[0]], pos[perm_dim_inv[1]], pos[perm_dim_inv[2]], pos[perm_dim_inv[3]]};
-                    *output = input[in_pos[0] * in_prv.mem_stride[0] + in_pos[1] * in_prv.mem_stride[1] + in_pos[2] * in_prv.mem_stride[2] + in_pos[3] * in_prv.mem_stride[3]];
+                    int in_pos[] = {pos[perm_dim_inv[0]], pos[perm_dim_inv[1]], pos[perm_dim_inv[2]], \
+                            pos[perm_dim_inv[3]]};
+                    *output = input[in_pos[0] * in_prv.mem_stride[0] + in_pos[1] * in_prv.mem_stride[1] + \
+                            in_pos[2] * in_prv.mem_stride[2] + in_pos[3] * in_prv.mem_stride[3]];
                     output += out_strides[3];
                 }
                 output += out_strides[2];
@@ -96,24 +98,23 @@ static MLI_FORCE_INLINE mli_status mli_krn_permute_run(const mli_tensor *in, con
             out->el_params.sa.dim = perm_dim[in->el_params.sa.dim];
             if(out->el_params.sa.zero_point.mem.pi16 == nullptr) {
                 out->el_params.sa.zero_point.mem.pi16 = in->el_params.sa.zero_point.mem.pi16;
-            } else if (out->el_params.sa.scale.mem.pi16 == nullptr) {
+            } else if (out->el_params.sa.zero_point.mem.pi16 != in->el_params.sa.zero_point.mem.pi16) {
+                for (int dim_cnt = 0; dim_cnt < in->shape[in->el_params.sa.dim]; dim_cnt++) 
+                    out->el_params.sa.zero_point.mem.pi16[dim_cnt] = in->el_params.sa.zero_point.mem.pi16[dim_cnt];
+            }
+
+            if (out->el_params.sa.scale.mem.pi16 == nullptr) {
                 out->el_params.sa.scale.mem.pi16 = in->el_params.sa.scale.mem.pi16;
-            } else if (out->el_params.sa.scale_frac_bits.mem.pi8 == nullptr) {
+            } else if (out->el_params.sa.scale.mem.pi16 != in->el_params.sa.scale.mem.pi16){
+                for (int dim_cnt = 0; dim_cnt < in->shape[in->el_params.sa.dim]; dim_cnt++) 
+                    out->el_params.sa.scale.mem.pi16[dim_cnt] = in->el_params.sa.scale.mem.pi16[dim_cnt];
+            }
+
+            if (out->el_params.sa.scale_frac_bits.mem.pi8 == nullptr) {
                 out->el_params.sa.scale_frac_bits.mem.pi8 = in->el_params.sa.scale_frac_bits.mem.pi8;
-            } else {
-                if (out->el_params.sa.zero_point.mem.pi16 != in->el_params.sa.zero_point.mem.pi16){
-                    for (int dim_cnt = 0; dim_cnt < in->shape[in->el_params.sa.dim]; dim_cnt++) 
-                        out->el_params.sa.zero_point.mem.pi16[dim_cnt] = in->el_params.sa.zero_point.mem.pi16[dim_cnt];
-                }
-                if (out->el_params.sa.scale.mem.pi16 != in->el_params.sa.scale.mem.pi16){
-                    for (int dim_cnt = 0; dim_cnt < in->shape[in->el_params.sa.dim]; dim_cnt++) 
-                        out->el_params.sa.scale.mem.pi16[dim_cnt] = in->el_params.sa.scale.mem.pi16[dim_cnt];
-                }
-                if (out->el_params.sa.scale_frac_bits.mem.pi8 != in->el_params.sa.scale_frac_bits.mem.pi8){
-                    for (int dim_cnt = 0; dim_cnt < in->shape[in->el_params.sa.dim]; dim_cnt++) 
-                        out->el_params.sa.scale_frac_bits.mem.pi8[dim_cnt] = 
-                                in->el_params.sa.scale_frac_bits.mem.pi8[dim_cnt];
-                }
+            } else if (out->el_params.sa.scale_frac_bits.mem.pi8 != in->el_params.sa.scale_frac_bits.mem.pi8){
+                for (int dim_cnt = 0; dim_cnt < in->shape[in->el_params.sa.dim]; dim_cnt++) 
+                    out->el_params.sa.scale_frac_bits.mem.pi8[dim_cnt] = in->el_params.sa.scale_frac_bits.mem.pi8[dim_cnt];
             }
         }
     } else {

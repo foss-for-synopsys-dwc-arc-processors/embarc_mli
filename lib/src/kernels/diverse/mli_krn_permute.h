@@ -23,7 +23,6 @@
 namespace mli {
 namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-/* TODO: fix ::vdsp/dsp::mli_krn_permute_run when vpx and dsp versions supported */
 using mli::krn::ref::mli_krn_permute_run;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)

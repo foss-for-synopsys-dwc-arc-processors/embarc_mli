@@ -19,8 +19,6 @@ extern "C" {
 
 #pragma MLI_CODE_SECTION_START(".mli_lib")
 
-
-/* DEPRECATED */
 mli_status mli_krn_permute_fx8(const mli_tensor *in, const mli_permute_cfg* cfg, mli_tensor *out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_permute_fx8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
