@@ -207,6 +207,19 @@ MLI_FORCE_INLINE v2q15_t mli_prv_convert_sa8_fx16(
 }
 
 template<>
+MLI_FORCE_INLINE v2q15_t mli_prv_convert_sa8_fx16(
+    const v2q15_t in,
+    const int16_t zero_point,
+    const int16_t scale,
+    const int shift) {
+    v2q15_t zero_point_v = fx_replic_v2q15(zero_point);
+    v2q15_t scale_v = fx_replic_v2q15(scale);
+    v2q15_t in_biased_shifted_no_zp = fx_sub_v2q15(in, zero_point_v);
+    v2accum40_t in_scaled = mli_math_mul_fx<v2q15_t, v2accum40_t>(in_biased_shifted_no_zp, scale_v);
+    return mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(in_scaled, shift);
+}
+
+template<>
 MLI_FORCE_INLINE v2q15_t mli_prv_convert_fx16_sa8(
     const v2q15_t in,
     const int16_t zero_point,

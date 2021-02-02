@@ -468,6 +468,17 @@ MLI_FORCE_INLINE out_T mli_prv_convert_sa8_fx16(
 }
 
 template <typename in_T, typename out_T>
+MLI_FORCE_INLINE out_T mli_prv_convert_sa8_fx16(
+    const in_T in,
+    const int16_t zero_point,
+    const int16_t scale,
+    const int shift) {
+    int16_t in_biased_shifted_no_zp = mli_math_cast_fx<in_T, int16_t>(in, 0) - zero_point;
+    int32_t in_scaled = mli_math_mul_fx<int16_t, int32_t>(in_biased_shifted_no_zp, scale);
+    return mli_math_cast_fx<int32_t, out_T>(in_scaled, shift);
+}
+
+template <typename in_T, typename out_T>
 MLI_FORCE_INLINE out_T mli_prv_convert_fx16_sa8(
     const in_T in,
     const int16_t zero_point,
