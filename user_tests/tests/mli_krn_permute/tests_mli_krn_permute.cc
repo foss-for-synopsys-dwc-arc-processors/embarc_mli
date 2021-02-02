@@ -207,7 +207,8 @@ int main() {
         mli_tensor out = cur_test->out.get_not_quantized_tensor(mem_out_keeper.allocate_memory(cur_test->out));
 
         if (out.el_type == MLI_EL_SA_8) {
-            if (out.el_params.sa.dim >= 0) {
+            if (out.el_params.sa.dim >= 0 && (out.el_params.sa.zero_point.mem.pi16 \
+                    != in.el_params.sa.zero_point.mem.pi16) && out.el_params.sa.zero_point.mem.pi16 != nullptr) {
                 if (out.el_params.sa.zero_point.capacity < in.el_params.sa.zero_point.capacity &&
                         out.el_params.sa.scale.capacity < in.el_params.sa.scale.capacity &&
                         out.el_params.sa.scale_frac_bits.capacity < in.el_params.sa.scale_frac_bits.capacity) {

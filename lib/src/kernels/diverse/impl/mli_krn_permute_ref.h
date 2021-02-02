@@ -11,7 +11,6 @@
 #define _MLI_KRN_PERMUTE_REF_H_
 
 #include <stdint.h>
-#include <string.h>
 
 #include "mli_prv_tensor.h"
 #include "mli_types.h"
