@@ -49,9 +49,9 @@ struct softmax_test_operands {
 #if defined(CRC_RM_CONVERGENT) || defined(CRC_RM_UP)
 
 // Shared CRC Results
-const crc32_calc  test_1_chksum_fx16{ 0xFE566434 }, test_1_chksum_sa8{ 0xC2D91AF1 },
+const crc32_calc  test_1_chksum_fx16{ 0xFE566434 }, test_1_chksum_sa8{ 0xC31B70C6 },
                   test_2_chksum_fx16{ 0x57D65150 }, test_2_chksum_sa8{ 0x426712EC },
-                                                    test_3_chksum_sa8{ 0xA4C61305 },
+                                                    test_3_chksum_sa8{ 0xA5047932 },
                                                     test_4_chksum_sa8{ 0x283A9958 },
                   test_5_chksum_fx16{ 0xCD358702 }, test_5_chksum_sa8{ 0x2866E46F },
                   test_6_chksum_fx16{ 0x2E4C5413 }, test_6_chksum_sa8{ 0x43DB50AA };

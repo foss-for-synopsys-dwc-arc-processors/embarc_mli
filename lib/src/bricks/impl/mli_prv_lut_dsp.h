@@ -33,15 +33,12 @@ static MLI_FORCE_INLINE v2q15_t activation_lut_two_elem_interpolate(
 
     MLI_ASSERT(lut->length >= 0);
 
-    int32_t scale_fx = 0;
-
     if (convert_input) {
         MLI_ASSERT(in_params != nullptr);
         MLI_ASSERT(out_params != nullptr);
         /* Calculating Scaling Factor to transform SA8 to Qmn (FX16) */
         int lut_int_bits_fx8 = kMaxFracBitsFx8 - lut->in_frac_bits;
         int frac_bits_fx16 = kMaxFracBitsFx16 - lut_int_bits_fx8;
-        scale_fx = mli_math_acc_ashift_fx<int32_t>(in_params->scale, ((int32_t) in_params->shift - frac_bits_fx16));
         in_frac_bits = frac_bits_fx16;
     }
 
@@ -61,10 +58,12 @@ static MLI_FORCE_INLINE v2q15_t activation_lut_two_elem_interpolate(
     /* Convert Input SA8 to FX */
     v2q15_t x = in;
     if (convert_input) {
-        x = mli_prv_convert_sa8_fx16<v2q15_t, v2q15_t>(x, in_params->offset, scale_fx);
+        int shift = ((int32_t) in_params->shift - in_frac_bits) + preshift_in;
+        x = mli_prv_convert_sa8_fx16<v2q15_t, v2q15_t>(x, in_params->offset, in_params->scale, shift);
+    } else {
+        x = mli_math_acc_ashift_fx(x, preshift_in);
     }
 
-    x = mli_math_acc_ashift_fx(x, preshift_in);
     v2q15_t lut_idx = mli_math_add_fx(mli_math_acc_ashift_fx(x, shift_in), offset);
     lut_idx = mli_math_bound_range_fx(lut_idx, lower, upper);
     // perform linear interpolation

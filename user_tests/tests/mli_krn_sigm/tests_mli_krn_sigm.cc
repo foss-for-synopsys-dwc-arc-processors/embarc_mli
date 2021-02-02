@@ -52,12 +52,12 @@ static constexpr int kOutSa8ScaleFracBits = 8;
 #if defined(CRC_RM_UP)
 static const crc32_calc test_1_chksum_fx16{ 0x0DA5079E }, test_1_chksum_sa8{ 0x107F2D4E },
                         test_2_chksum_fx16{ 0x9506BC28 }, test_2_chksum_sa8{ 0x8BB06EE4 },
-                        test_3_chksum_fx16{ 0x8A226DDF }, test_3_chksum_sa8{ 0x38EA0676 },
+                        test_3_chksum_fx16{ 0x8A226DDF }, test_3_chksum_sa8{ 0x9EB91F14 },
                         test_4_chksum_fx16{ 0x0CFDC3A2 }, test_4_chksum_sa8{ 0xE7717C13 };
 #elif defined(CRC_RM_CONVERGENT)
 static const crc32_calc test_1_chksum_fx16{ 0x0DA5079E }, test_1_chksum_sa8{ 0xC46F77E7 },
                         test_2_chksum_fx16{ 0x9506BC28 }, test_2_chksum_sa8{ 0x4192A685 },
-                        test_3_chksum_fx16{ 0x8A226DDF }, test_3_chksum_sa8{ 0xDFA5E72D },
+                        test_3_chksum_fx16{ 0x8A226DDF }, test_3_chksum_sa8{ 0xF8DB1EB8 },
                         test_4_chksum_fx16{ 0x0CFDC3A2 }, test_4_chksum_sa8{ 0xEB6ACB7F };
 
 #else  // Not defined CRC_*

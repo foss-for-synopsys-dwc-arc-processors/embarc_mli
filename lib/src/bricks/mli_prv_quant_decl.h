@@ -218,6 +218,10 @@ MLI_FORCE_INLINE out_T mli_prv_convert_sa8_fx16(
         const in_T in, const int16_t zero_point, const int scale);
 
 template <typename in_T, typename out_T>
+MLI_FORCE_INLINE out_T mli_prv_convert_sa8_fx16(
+        const in_T in, const int16_t zero_point, const int16_t scale, const int shift);
+
+template <typename in_T, typename out_T>
 MLI_FORCE_INLINE out_T mli_prv_convert_fx16_sa8(
         const in_T in, const int16_t zero_point, const int scale);
 
@@ -287,6 +291,10 @@ MLI_FORCE_INLINE void result_cast_relu_store_inp_width_v(
 template <typename in_T, typename out_T>
 MLI_FORCE_INLINE out_T mli_prv_convert_sa8_fx16(
         const in_T in, const int16_t zero_point, const int scale);
+
+template <typename in_T, typename out_T>
+MLI_FORCE_INLINE out_T mli_prv_convert_sa8_fx16(
+        const in_T in, const int16_t zero_point, const int16_t scale, const int shift);
 
 template <typename in_T, typename out_T>
 MLI_FORCE_INLINE out_T mli_prv_convert_fx16_sa8(
@@ -385,6 +393,11 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
 template <typename in_T, typename out_T>
 MLI_FORCE_INLINE out_T mli_prv_convert_sa8_fx16(
         const in_T in, const int16_t zero_point, const int scale);
+
+template <typename in_T, typename out_T>
+MLI_FORCE_INLINE out_T mli_prv_convert_sa8_fx16(
+        const in_T in, const int16_t zero_point, const int16_t scale, const int shift);
+
 template <typename in_T, typename out_T>
 MLI_FORCE_INLINE out_T mli_prv_convert_fx16_sa8(
         const in_T in, const int16_t zero_point, const int scale);
