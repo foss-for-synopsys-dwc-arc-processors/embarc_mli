@@ -50,9 +50,9 @@ namespace dsp {
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
 
-// template <typename io_T, bool asym>
-// static MLI_FORCE_INLINE mli_status mli_krn_permute_run(const mli_tensor *in, 
-//                 const mli_permute_cfg *cfg, mli_tensor *out);
+template <typename io_T, bool asym>
+static MLI_FORCE_INLINE mli_status mli_krn_permute_run(const mli_tensor *in, 
+                const mli_permute_cfg *cfg, mli_tensor *out);
 
 } // namespace vdsp
 
