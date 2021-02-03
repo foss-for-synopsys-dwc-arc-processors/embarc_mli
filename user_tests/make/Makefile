@@ -22,6 +22,7 @@ BIN_EXT = .elf
 endif
 
 KERNELS = \
+	permute \
 	hlp_convert_tensor\
 	conv2d \
 	depthwise_conv \

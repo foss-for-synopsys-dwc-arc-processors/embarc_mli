@@ -31,61 +31,6 @@ typedef enum {
 //======================================================
 //
 //======================================================
-template <typename io_T>
-MLI_FORCE_INLINE void permute_data(const mli_tensor *in, const mli_permute_cfg *cfg, mli_tensor *out) {
-    mli_prv_fx_init_dsp_ctrl();
-
-    int total_count = mli_prv_count_elem_num(in);
-    int rank = in->rank;
-
-    int perm_dim[] = {0, 1, 2, 3};   // default order of output matrix dimension
-    int out_shape[] = {1, 1, 1, 1};  // for work with output matrix with any dimension up to 4
-    int in_shape[] = {1, 1, 1, 1};   // for work with input matrix with any dimension up to 4
-
-    // Strides on input tensor across output dimensions
-    int strides[] = {total_count, total_count, total_count, total_count};
-
-    // Prepare required data - strides on input, shapes
-    for (int k = 0; k < rank; k++) {
-        int idx = MLI_MAX_RANK - rank + k;
-        const int perm_dim_val = cfg->perm_dim[k];
-        perm_dim[idx] = cfg->perm_dim[k];
-        in_shape[idx] = in->shape[k];
-        out_shape[idx] = in->shape[cfg->perm_dim[k]];
-        if (perm_dim_val < (MLI_MAX_RANK - 1)) {
-            strides[idx] = mli_prv_count_elem_num_part(in, perm_dim_val + 1);
-        } else {
-            strides[idx] = 1;
-        }
-    }
-
-    // Main transpose operation.
-    const io_T *dim0_data_ptr = static_cast<io_T *>(in->data.mem.void_p);
-    io_T *output = static_cast<io_T *>(out->data.mem.void_p);
-    for (int d0_cnt = 0; d0_cnt < out_shape[0]; d0_cnt++, dim0_data_ptr += strides[0]) {
-        const io_T *dim1_data_ptr = dim0_data_ptr;
-        for (int d1_cnt = 0; d1_cnt < out_shape[1]; d1_cnt++, dim1_data_ptr += strides[1]) {
-            const io_T *dim2_data_ptr = dim1_data_ptr;
-            for (int d2_cnt = 0; d2_cnt < out_shape[2]; d2_cnt++, dim2_data_ptr += strides[2]) {
-                const io_T *dim3_data_ptr = dim2_data_ptr;
-                for (int d3_cnt = 0; d3_cnt < out_shape[3]; d3_cnt++, dim3_data_ptr += strides[3]) {
-                    (*output++) = *dim3_data_ptr;
-                }
-            }
-        }
-    }
-
-    // Fill output tensor descr
-    int *shape_ptr = &out_shape[MLI_MAX_RANK - rank];
-    for (int k = 0; k < rank; k++) out->shape[k] = shape_ptr[k];
-    out->rank = in->rank;
-    out->el_params.fx.frac_bits = in->el_params.fx.frac_bits;
-    out->el_type = in->el_type;
-}
-
-//======================================================
-//
-//======================================================
 template <typename io_T, mli_layout_type layout_type>
 MLI_FORCE_INLINE void padding2D_data(const mli_tensor *in, const mli_padding2d_cfg *cfg, mli_tensor *out) {
     mli_prv_fx_init_dsp_ctrl();

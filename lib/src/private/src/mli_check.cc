@@ -2673,16 +2673,11 @@ mli_status mli_chk_permute (const mli_tensor * in, const mli_permute_cfg * cfg, 
     if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
     if (MLI_CHECK(out->data.mem.void_p != NULL , "Bad data pointer of output")) return MLI_STATUS_BAD_TENSOR;
 
-    fail |= MLI_CHECK(check_layout_is_contiguous(in), "Memory Layout of input tensor must be contiguous");
-    fail |= MLI_CHECK(check_layout_is_contiguous(out->mem_stride, in->rank), // output rank is input rank
-                      "Memory Layout of output tensor must be contiguous");
-    if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
-
     // Check config structure
     if (MLI_CHECK(cfg != NULL , "Bad cfg pointer")) return MLI_STATUS_BAD_FUNC_CFG;
 
     for (int idx = 0; idx < (int)in->rank; idx++) {
-        if (MLI_CHECK(cfg->perm_dim[idx] < in->rank, "rank mismatch"))
+        if (MLI_CHECK(cfg->perm_dim[idx] < in->rank, "Rank mismatch"))
             return MLI_STATUS_BAD_FUNC_CFG;
 
         // Each permute dimension must be unique
@@ -2693,7 +2688,7 @@ mli_status mli_chk_permute (const mli_tensor * in, const mli_permute_cfg * cfg, 
 
     // Check that output contains enough space
     fail |= MLI_CHECK((mli_prv_count_elem_num (in) * mli_hlp_tensor_element_size (in)) <= out->data.capacity,
-                      "capacity of output tensor is too small");
+                      "Capacity of output tensor is too small");
     if (fail) return MLI_STATUS_NOT_ENGH_MEM;
 
     return MLI_STATUS_OK;
@@ -2714,6 +2709,42 @@ mli_status mli_chk_permute_fx16 (const mli_tensor * in, const mli_permute_cfg * 
         return ret;
     if (MLI_CHECK(in->el_type == MLI_EL_FX_16, "Wrong input tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_chk_permute_sa8 (const mli_tensor * in, const mli_permute_cfg * cfg, mli_tensor * out) {
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_permute(in, cfg, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    if (MLI_CHECK(in->el_type == MLI_EL_SA_8, "Wrong input tensor type"))
+        return MLI_STATUS_TYPE_MISMATCH;
+    if (in->el_params.sa.dim >= 0) {
+        bool fail = false;
+        if (out->el_params.sa.zero_point.mem.pi16 == in->el_params.sa.zero_point.mem.pi16)
+            fail |= MLI_CHECK((out->el_params.sa.zero_point.mem.pi16 == in->el_params.sa.zero_point.mem.pi16) \
+                    && (out->el_params.sa.scale.mem.pi16 == in->el_params.sa.scale.mem.pi16) \
+                    && (out->el_params.sa.scale_frac_bits.mem.pi8 == in->el_params.sa.scale_frac_bits.mem.pi8),
+                    "El_params data for out tensor wasn`t initialized in a consistent way");
+        if (out->el_params.sa.zero_point.mem.pi16 != in->el_params.sa.zero_point.mem.pi16)
+            fail |= MLI_CHECK((out->el_params.sa.zero_point.mem.pi16 != in->el_params.sa.zero_point.mem.pi16) \
+                    && (out->el_params.sa.scale.mem.pi16 != in->el_params.sa.scale.mem.pi16) \
+                    && (out->el_params.sa.scale_frac_bits.mem.pi8 != in->el_params.sa.scale_frac_bits.mem.pi8),
+                    "El_params data for out tensor wasn`t initialized in a consistent way");
+        if (out->el_params.sa.zero_point.mem.pi16 == nullptr)
+            fail |= MLI_CHECK((out->el_params.sa.zero_point.mem.pi16 == nullptr) \
+                    && (out->el_params.sa.scale.mem.pi16 == nullptr) \
+                    && (out->el_params.sa.scale_frac_bits.mem.pi8 == nullptr),
+                    "El_params data for out tensor wasn`t initialized in a consistent way");
+
+        if (!fail && out->el_params.sa.zero_point.mem.pi16 != in->el_params.sa.zero_point.mem.pi16 \
+                && out->el_params.sa.zero_point.mem.pi16 != nullptr)
+            fail |= MLI_CHECK(out->el_params.sa.zero_point.capacity >= in->el_params.sa.zero_point.capacity \
+                    && out->el_params.sa.scale.capacity >= in->el_params.sa.scale.capacity \
+                    && out->el_params.sa.scale_frac_bits.capacity >= in->el_params.sa.scale_frac_bits.capacity,
+                    "Not enough memory allocated for quantization parameters");
+        if (fail) return MLI_STATUS_SPEC_PARAM_MISMATCH;
+    }
+
     return MLI_STATUS_OK;
 }
 
