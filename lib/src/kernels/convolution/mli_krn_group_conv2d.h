@@ -28,7 +28,7 @@
 namespace mli {
 namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-using mli::krn::ref::group_convolution2D;
+using mli::krn::vdsp::group_convolution2D;
 using mli::krn::ref::group_conv2d_prepare_and_run;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
@@ -51,9 +51,9 @@ using mli::krn::ref::group_conv2d_prepare_and_run;
 // below can depend on each other through declarations in *_decl.h.
 #include "impl/mli_krn_group_conv2d_ref.h"
 
-// #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-// #include "impl/mli_krn_group_conv2d_vdsp.h"
-// #endif
+#if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
+#include "impl/mli_krn_group_conv2d_vdsp.h"
+#endif
 
 // #if !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
 // #include "impl/mli_krn_group_conv2d_dsp.h"
