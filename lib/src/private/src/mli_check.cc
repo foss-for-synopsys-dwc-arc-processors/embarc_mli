@@ -2677,7 +2677,7 @@ mli_status mli_chk_permute (const mli_tensor * in, const mli_permute_cfg * cfg, 
     if (MLI_CHECK(cfg != NULL , "Bad cfg pointer")) return MLI_STATUS_BAD_FUNC_CFG;
 
     for (int idx = 0; idx < (int)in->rank; idx++) {
-        if (MLI_CHECK(cfg->perm_dim[idx] < in->rank, "rank mismatch"))
+        if (MLI_CHECK(cfg->perm_dim[idx] < in->rank, "Rank mismatch"))
             return MLI_STATUS_BAD_FUNC_CFG;
 
         // Each permute dimension must be unique
@@ -2688,7 +2688,7 @@ mli_status mli_chk_permute (const mli_tensor * in, const mli_permute_cfg * cfg, 
 
     // Check that output contains enough space
     fail |= MLI_CHECK((mli_prv_count_elem_num (in) * mli_hlp_tensor_element_size (in)) <= out->data.capacity,
-                      "capacity of output tensor is too small");
+                      "Capacity of output tensor is too small");
     if (fail) return MLI_STATUS_NOT_ENGH_MEM;
 
     return MLI_STATUS_OK;
@@ -2724,24 +2724,24 @@ mli_status mli_chk_permute_sa8 (const mli_tensor * in, const mli_permute_cfg * c
             fail |= MLI_CHECK((out->el_params.sa.zero_point.mem.pi16 == in->el_params.sa.zero_point.mem.pi16) \
                     && (out->el_params.sa.scale.mem.pi16 == in->el_params.sa.scale.mem.pi16) \
                     && (out->el_params.sa.scale_frac_bits.mem.pi8 == in->el_params.sa.scale_frac_bits.mem.pi8),
-                    "el_params data didn't initialize in consistent way");
+                    "El_params data for out tensor wasn`t initialized in a consistent way");
         if (out->el_params.sa.zero_point.mem.pi16 != in->el_params.sa.zero_point.mem.pi16)
             fail |= MLI_CHECK((out->el_params.sa.zero_point.mem.pi16 != in->el_params.sa.zero_point.mem.pi16) \
                     && (out->el_params.sa.scale.mem.pi16 != in->el_params.sa.scale.mem.pi16) \
                     && (out->el_params.sa.scale_frac_bits.mem.pi8 != in->el_params.sa.scale_frac_bits.mem.pi8),
-                    "el_params data didn't initialize in consistent way");
+                    "El_params data for out tensor wasn`t initialized in a consistent way");
         if (out->el_params.sa.zero_point.mem.pi16 == nullptr)
             fail |= MLI_CHECK((out->el_params.sa.zero_point.mem.pi16 == nullptr) \
                     && (out->el_params.sa.scale.mem.pi16 == nullptr) \
                     && (out->el_params.sa.scale_frac_bits.mem.pi8 == nullptr),
-                    "el_params data didn't initialize in consistent way");
+                    "El_params data for out tensor wasn`t initialized in a consistent way");
 
         if (!fail && out->el_params.sa.zero_point.mem.pi16 != in->el_params.sa.zero_point.mem.pi16 \
                 && out->el_params.sa.zero_point.mem.pi16 != nullptr)
             fail |= MLI_CHECK(out->el_params.sa.zero_point.capacity >= in->el_params.sa.zero_point.capacity \
                     && out->el_params.sa.scale.capacity >= in->el_params.sa.scale.capacity \
                     && out->el_params.sa.scale_frac_bits.capacity >= in->el_params.sa.scale_frac_bits.capacity,
-                    "not enough memory allocated for quantization parameters");
+                    "Not enough memory allocated for quantization parameters");
         if (fail) return MLI_STATUS_SPEC_PARAM_MISMATCH;
     }
 
