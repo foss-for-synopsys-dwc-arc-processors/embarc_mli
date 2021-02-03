@@ -35,7 +35,6 @@ static MLI_FORCE_INLINE mli_status mli_krn_permute_run(const mli_tensor *in, con
     out->el_type = in->el_type;
 
     int perm_dim[] = {0, 1, 2, 3};   // default order of output matrix dimension 4
-    int perm_dim_inv[MLI_MAX_RANK];
     int out_strides[] = {0, 0, 0, 0};
 
     // Prepare required data - strides on input, shapes
@@ -46,9 +45,6 @@ static MLI_FORCE_INLINE mli_status mli_krn_permute_run(const mli_tensor *in, con
     }
 
     auto in_prv =  mli_prv_get_generic_tensor<MLI_PTR(io_T)>(in);
-
-    for (int dim_ctr = 0; dim_ctr < MLI_MAX_RANK; dim_ctr++)
-        perm_dim_inv[perm_dim[dim_ctr]] = dim_ctr;
 
     //if out memstride not initialized, calculate it from out_shape
     if (out_strides[0] < 1) {
@@ -67,17 +63,18 @@ static MLI_FORCE_INLINE mli_status mli_krn_permute_run(const mli_tensor *in, con
     }
 
     // Main transpose operation.
+    const int inp_stride_3 = in_prv.mem_stride[perm_dim[3]];
+    const int inp_stride_2 = in_prv.mem_stride[perm_dim[2]];
+    const int inp_stride_1 = in_prv.mem_stride[perm_dim[1]];
+    const int inp_stride_0 = in_prv.mem_stride[perm_dim[0]];
     const io_T *input = static_cast<io_T *>(in->data.mem.void_p);
     io_T *output = static_cast<io_T *>(out->data.mem.void_p);
     for (int d0_cnt = 0; d0_cnt < out->shape[0]; d0_cnt++) {
         for (int d1_cnt = 0; d1_cnt < out->shape[1]; d1_cnt++) {
             for (int d2_cnt = 0; d2_cnt < out->shape[2]; d2_cnt++) {
                 for (int d3_cnt = 0; d3_cnt < out->shape[3]; d3_cnt++) {
-                    int pos[] = {d0_cnt, d1_cnt, d2_cnt, d3_cnt};
-                    int in_pos[] = {pos[perm_dim_inv[0]], pos[perm_dim_inv[1]], pos[perm_dim_inv[2]], \
-                            pos[perm_dim_inv[3]]};
-                    *output = input[in_pos[0] * in_prv.mem_stride[0] + in_pos[1] * in_prv.mem_stride[1] + \
-                            in_pos[2] * in_prv.mem_stride[2] + in_pos[3] * in_prv.mem_stride[3]];
+                    *output = input[d0_cnt * inp_stride_0 + d1_cnt * inp_stride_1 \
+                            + d2_cnt * inp_stride_2 + d3_cnt * inp_stride_3];
                     output += out_strides[3];
                 }
                 output += out_strides[2];
