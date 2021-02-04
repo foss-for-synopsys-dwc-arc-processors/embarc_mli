@@ -29,20 +29,28 @@
 
 #if core_config_dccm_size
 static MLI_FORCE_INLINE bool mli_chk_inside_dccm (const void *ptr) {
-	return ((uint32_t)ptr >= core_config_dccm_base) &&
-		   ((uint32_t)ptr < core_config_dccm_base + core_config_dccm_size);
+    return ((uint32_t)ptr >= core_config_dccm_base) &&
+           ((uint32_t)ptr < core_config_dccm_base + core_config_dccm_size);
 }
 #endif
 
 #if core_config_xy_size
 static MLI_FORCE_INLINE bool mli_chk_inside_yccm (const void *ptr) {
-	return ((uint32_t)ptr >= core_config_xy_y_base) &&
-		   ((uint32_t)ptr < core_config_xy_y_base + core_config_xy_size);
+#ifdef core_config_xy_y_base
+    return ((uint32_t)ptr >= core_config_xy_y_base) &&
+           ((uint32_t)ptr < core_config_xy_y_base + core_config_xy_size);
+#else
+    return false;
+#endif
 }
 
 static MLI_FORCE_INLINE bool mli_chk_inside_xccm (const void *ptr) {
-	return ((uint32_t)ptr >= core_config_xy_x_base) &&
-		   ((uint32_t)ptr < core_config_xy_x_base + core_config_xy_size);
+#ifdef core_config_xy_x_base
+    return ((uint32_t)ptr >= core_config_xy_x_base) &&
+           ((uint32_t)ptr < core_config_xy_x_base + core_config_xy_size);
+#else
+    return false;
+#endif
 }
 #endif
 
