@@ -1,5 +1,5 @@
 #
-# Copyright 2020, Synopsys, Inc.
+# Copyright 2020-2021, Synopsys, Inc.
 # All rights reserved.
 #
 # This source code is licensed under the BSD-3-Clause license found in
@@ -11,18 +11,6 @@ include(../../cmake/settings.cmake)
 file(GLOB temp
     ../auxiliary/*.cc
     ../auxiliary/*.c
-)
-add_executable(example_har_smartphone
-    har_smartphone_coefficients.c
-    har_smartphone_model.c
-    ml_api_har_smartphone_main.c
-    ${temp}
-)
-
-target_link_libraries(example_har_smartphone PUBLIC mli)
-
-target_include_directories(example_har_smartphone PRIVATE
-    ../../examples/auxiliary
 )
 
 if (ARC)
@@ -48,25 +36,43 @@ else()
 set(EXAMPLE_FLAGS)
 endif()
 
-target_compile_options(example_har_smartphone PRIVATE
-    ${MLI_PLATFORM_COMPILE_OPTIONS}
-    ${EXAMPLE_FLAGS}
-)
+function(ADD_DATA_TYPE DATA_TYPE DATA_TYPE_SHORT BIT_DEPTH)
+    set(TARGET example_har_smartphone_${DATA_TYPE})
+    add_executable(${TARGET}
+        har_smartphone_coefficients_${DATA_TYPE_SHORT}.c
+        har_smartphone_model_${DATA_TYPE_SHORT}.c
+        ml_api_har_smartphone_main.c
+        ${temp}
+    )
+    target_link_libraries(${TARGET} PUBLIC mli)
 
-target_link_options(example_har_smartphone PRIVATE
-    ${MLI_PLATFORM_LINK_OPTIONS}
-    ${EXAMPLE_FLAGS}
-)
+    target_include_directories(${TARGET} PRIVATE
+        ../../examples/auxiliary
+    )
+ 
+    target_compile_options(${TARGET} PRIVATE
+        ${MLI_PLATFORM_COMPILE_OPTIONS}
+        ${EXAMPLE_FLAGS}
+    )
+    target_compile_definitions(${TARGET} PRIVATE
+        MODEL_BIT_DEPTH=${BIT_DEPTH})
+    target_link_options(${TARGET} PRIVATE
+        ${MLI_PLATFORM_LINK_OPTIONS}
+        ${EXAMPLE_FLAGS}
+    )
+    if (ARC)
+        target_link_options(${TARGET} PRIVATE
+            -m
+            -Coutput=./elf_files/${TARGET}.map
+        )
+    endif()
 
-if (ARC)
-target_link_options(example_har_smartphone PRIVATE
-    -m
-    -Coutput=./elf_files/example_har_smartphone.map
-)
-endif()
+    set_target_properties(${TARGET}
+        PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "./elf_files$<0:>"
+    )
+endfunction()
 
-set_target_properties(example_har_smartphone
-    PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "./elf_files$<0:>"
-)
-
+ADD_DATA_TYPE(FX16 fx 16)
+ADD_DATA_TYPE(SA8 sa 8)
+ADD_DATA_TYPE(FX16_FX8_FX8 fx 816)

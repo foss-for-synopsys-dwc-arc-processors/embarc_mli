@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -62,7 +62,11 @@ extern mli_tensor * const har_smartphone_net_output;
 //                  If NULL is passed, no messages will be printed in inference
 void har_smartphone_net(const char * debug_ir_root);
 
-
+// Model initialization function
+//
+// Initialize module internal data. User must call this function before he can use the inference function.
+// Initialization can be done once during program execution.
+mli_status har_smartphone_init();
 //=============================================
 //
 // Model configuration
@@ -73,7 +77,7 @@ void har_smartphone_net(const char * debug_ir_root);
 // If not defined - uses default mli lib lstm kernel
 #define CUSTOM_USER_LSTM_LAYER3
 
-#define MODEL_FX_8       (8)
+#define MODEL_SA_8       (8)
 #define MODEL_FX_16      (16)
 #define MODEL_FX_8W16D   (816)
 
@@ -82,14 +86,17 @@ void har_smartphone_net(const char * debug_ir_root);
 #endif
 
 #if !defined(MODEL_BIT_DEPTH) || \
-    (MODEL_BIT_DEPTH != MODEL_FX_8 && MODEL_BIT_DEPTH != MODEL_FX_16 && MODEL_BIT_DEPTH != MODEL_FX_8W16D)
+    (MODEL_BIT_DEPTH != MODEL_SA_8 && MODEL_BIT_DEPTH != MODEL_FX_16 && MODEL_BIT_DEPTH != MODEL_FX_8W16D)
 #error "MODEL_BIT_DEPTH must be defined correctly!"
 #endif
 
-#if (MODEL_BIT_DEPTH == MODEL_FX_8)
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+#undef CUSTOM_USER_LSTM_LAYER3
 typedef int8_t d_type;
+#define D_FIELD pi8
 #else
 typedef int16_t d_type;
+#define D_FIELD pi16
 #endif
 
 #endif // _HAR_SMARTPHONE_MODEL_H_
