@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -67,7 +67,7 @@ MLI_FORCE_INLINE void inner_product(
         auto output_params = adjust_quant_params_v(&quant_params, o_idx);
 
         acc_T accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
-        accu = mli::krn::bias_additive(&biases[o_idx], accu, &quant_params); // bias has to be first in optimized code.
+        accu = mli::krn::bias_additive(&biases[o_idx], accu, &output_params); // bias has to be first in optimized code.
 
         accu = dotprod_inputzp_1D_v(in, &weights[o_idx], accu, in_elements, 1, w_ch_out_mem_stride, &quant_params);
 
