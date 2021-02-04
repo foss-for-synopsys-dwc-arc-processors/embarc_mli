@@ -12,8 +12,8 @@ include(../cmake/settings.cmake)
 
 add_subdirectory(hello_world)
 add_subdirectory(example_cifar10_caffe)
+add_subdirectory(example_har_smartphone)
 
 if (ARC AND (${MLI_PLATFORM} STREQUAL EM_HS))
     add_subdirectory(example_face_detect)
-    add_subdirectory(example_har_smartphone)
 endif()

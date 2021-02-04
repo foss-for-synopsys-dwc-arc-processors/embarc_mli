@@ -341,9 +341,9 @@ static inline int arg_max(mli_tensor * net_output_) {
         /* topk = */ 1
     };
 
-    int8_t pred_label = 0;
+    int pred_label = 0;
     mli_tensor out_tensor;
-    out_tensor.data.mem.pi8 = &pred_label;
+    out_tensor.data.mem.pi32 = &pred_label;
     out_tensor.el_type = MLI_EL_SA_8;
 
 if (net_output_->el_type == MLI_EL_SA_8)

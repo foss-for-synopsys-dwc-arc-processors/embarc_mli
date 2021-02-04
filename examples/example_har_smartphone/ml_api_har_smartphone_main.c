@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -37,9 +37,8 @@ extern int start_init(void);
 
 // Root to referenc IR vectors for comparison
 // pass "./ir_idx_300" for debug
-static const char kHarIrRefRoot[] = "";
+static const char kHarIrRefRoot[] = "./ir_idx_300";
 static const char kOutFilePostfix[] =  "_out";
-
 static float kSingleInSeq[IN_POINTS] = IN_SEQ_300;
 static float kSingleOutRef[OUT_POINTS] = OUT_SCORES_300;
 
@@ -102,6 +101,12 @@ int main(int argc, char ** argv ) {
            if (i==2) printf("Please set up labels IDX file.\n");
            return 2; //Error: param not set
        }
+    }
+
+    mli_status status = har_smartphone_init();
+    if (status != MLI_STATUS_OK) {
+    	printf("Failed to initialize lut for tanh and sigm\n");
+    	return 2; // Error: lut couldn't be initialized
     }
 
     switch (mode) {
@@ -172,6 +177,7 @@ int main(int argc, char ** argv ) {
 // Data pre-processing for HAR Smartphone net
 //========================================================================================
 static void har_smartphone_preprocessing(const void * raw_input_, mli_tensor * net_input_) {
-    const float * in = raw_input_;
-    mli_hlp_float_to_fx_tensor(in, IN_POINTS, net_input_);
+    if (net_input_->data.capacity >= IN_POINTS * sizeof(float)) {
+        net_input_->data.mem.pf32 = (float *) raw_input_;
+    }
 }

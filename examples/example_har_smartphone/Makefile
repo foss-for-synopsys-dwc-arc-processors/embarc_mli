@@ -15,14 +15,24 @@ PUBLIC_DIR = ../..
 include $(PUBLIC_DIR)/make/rules.mk
 
 BUILD_SUBDIR = examples$(PS)example_har_smartphone
-BUILD_TARGET = example_har_smartphone
 
-run: app
+TYPES = \
+	FX16 \
+	SA8 \
+	FX16_FX8_FX8
+
+RUN_TARGETS = $(patsubst %,run_%,$(TYPES))
+
+app: build
+
+run: run_FX16
+
+$(RUN_TARGETS): run_%: app
 ifndef TCF_FILE
-	$(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)elf_files$(PS)example_har_smartphone
+	$(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)elf_files$(PS)example_har_smartphone_$* $(RUN_ARGS)
 else
-	mdb $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)elf_files$(PS)example_har_smartphone.elf \
+	mdb $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)elf_files$(PS)example_har_smartphone_$*.elf \
 		-cl  -nsim -cmd=run -off=cr_for_more -cmd=exit -tcf=$(TCF_FILE) -- $(RUN_ARGS)
 endif
 
-.PHONY:	app run
+.PHONY:	app $(RUN_TARGETS)
