@@ -208,6 +208,22 @@ MLI_FORCE_INLINE vNx4accshort_t weights_additive(
     }
 }
 
+#ifndef FULL_ACCU
+    // The accumulator has 8 guard bits. If we pre-shift the accumulator to make it fit into
+    // 16bit, we can do the rest of the post processing in 16bit.
+    // shifting too much will lose accuracy, shifting too little will case saturation
+    // a 3bit headroom is required (1 sign bit, 1bit for the range of mul, and 1bit for the offset)
+    // From the 16 bits that come out of the mul_hi, we need 8 bits for the output, 3 bits of headroom.
+    // this means that the last output shift will need to shift 5 bits. the rest is shifted here.
+    // adding clipping to avoid negative shift. and shifting more than 8 is also not needed.
+MLI_FORCE_INLINE vNx4short_t calculate_preshift(
+        const s8asym_quant_specific_out_params_v* quant_params) {
+    int target_out_shift = 16 - 8 - 3;
+    vNx4short_t preshift = mli_math_min_fx(mli_math_max_fx(quant_params->out_shift - target_out_shift, 0),8);
+    return preshift;
+}
+#endif
+
 //==========================================================================
 // Calculation of bias additive (bias_add) in
 // dot_prod_asym= dot_prod_gen + w_add + in_add + zp_add + bias_add
@@ -220,7 +236,7 @@ MLI_FORCE_INLINE acc_T bias_additive(const MLI_PTR(b_T) bias, acc_T init_accum,
 
 template <>
 MLI_FORCE_INLINE vNx4accshort_t bias_additive(
-        const MLI_PTR(int32_t) bias, vNx4accshort_t init_accum, const s8asym_quant_specific_params* quant_params) {
+        const MLI_PTR(int32_t) bias, vNx4accshort_t init_accum, const s8asym_quant_specific_out_params_v* quant_params) {
     // For I8ASYM with a 24bit accumulator the bias cannot be loaded directly into the accumulator.
     // 16 bits are loaded into the accumulator and then shifted to the correct position.
     // for this reason the bias additve has to be the first operation on the accumulator.
@@ -231,6 +247,20 @@ MLI_FORCE_INLINE vNx4accshort_t bias_additive(
     vNx4short_t bias16 = to_vNx4short_t(bias32 >> shift);
     vNx4accshort_t accu = mli_math_init_accu<vNx4short_t, vNx4accshort_t>(bias16);
     accu = mli_math_asl_fx(accu, to_vNx4short_t(shift));
+
+    // adding the rounding for the preshift already here at the bias in order to take this add out of the innerloop
+#ifndef FULL_ACCU
+    vNx4short_t preshift = calculate_preshift(quant_params);
+#ifdef ROUND_UP
+    // adding 1 << (preshift-1)
+    // shift twice to prevent negative shift if nbits = 0
+    accu = mli_math_add<vNx4accshort_t, vNx4short_t>(accu, ((1 << preshift) >> 1));
+#endif
+#ifdef ROUND_CONVERGENT
+#error "Convergent rounding not supported"
+#endif
+#endif
+
     return accu;
 }
 
@@ -356,9 +386,9 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
     // From the 16 bits that come out of the mul_hi, we need 8 bits for the output, 3 bits of headroom.
     // this means that the last output shift will need to shift 5 bits. the rest is shifted here.
     // adding clipping to avoid negative shift. and shifting more than 8 is also not needed.
-    int target_out_shift = 16 - 8 - 3;
-    vNx4short_t preshift = mli_math_min_fx(mli_math_max_fx(quant_params->out_shift - target_out_shift, 0),8);
-    acc = mli_math_asr_rnd_fx(acc, preshift);
+    vNx4short_t preshift = calculate_preshift(quant_params);
+    // only asr, without rounding because the rounding value is already added to the bias.
+    acc = mli_math_asr_fx(acc, preshift);
 
     vNx4short_t accu_result = mli_math_acc_cast_fx<vNx4short_t, vNx4accshort_t>(acc);
     vNx4short_t shift = quant_params->out_shift - preshift;

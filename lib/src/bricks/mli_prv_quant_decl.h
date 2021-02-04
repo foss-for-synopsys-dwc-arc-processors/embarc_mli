@@ -361,7 +361,7 @@ MLI_FORCE_INLINE acc_T bias_additive(const MLI_PTR(b_T) bias, acc_T init_accum,
 #if defined(__Xvec_width)
 template <>
 MLI_FORCE_INLINE vNx4accshort_t bias_additive(const MLI_PTR(int32_t) bias, vNx4accshort_t init_accum,
-        const s8asym_quant_specific_params* quant_params);
+        const s8asym_quant_specific_out_params_v* quant_params);
 #endif
 
 //==========================================================================

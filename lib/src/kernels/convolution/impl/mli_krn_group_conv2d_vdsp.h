@@ -66,7 +66,7 @@ MLI_FORCE_INLINE void group_convolution2D_nopad(
             auto output_params = adjust_quant_params_v(&quant_params, out_ch_idx);
 
             acc_T pre_accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
-            pre_accu = mli::krn::bias_additive(&biases[out_ch_idx], pre_accu, &quant_params);
+            pre_accu = mli::krn::bias_additive(&biases[out_ch_idx], pre_accu, &output_params);
 
             pre_accu = mli::krn::weights_additive(w_ptr, pre_accu, &quant_params, clmns, rows, weights.in_ch,
                     weights.col_mem_stride,
@@ -172,7 +172,7 @@ MLI_FORCE_INLINE void group_convolution2D_pad(
 
                     acc_T accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
 
-                    accu = mli::krn::bias_additive(&biases[out_ch_idx], accu, &quant_params);
+                    accu = mli::krn::bias_additive(&biases[out_ch_idx], accu, &output_params);
 
                     accu = mli::krn::dotprod3D_v(in_ptr, w_ptr, clmns, rows, weights.in_ch,
                             in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride,
