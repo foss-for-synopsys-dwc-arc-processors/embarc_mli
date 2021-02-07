@@ -23,9 +23,11 @@
 namespace mli {
 namespace mov {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
+using mli::mov::ref::mli_mov_prepare_run;
 using mli::mov::vdsp::mli_mov_memcpy;
 using mli::mov::vdsp::mov_inner_loop;
 #else
+using mli::mov::ref::mli_mov_prepare_run;
 using mli::mov::ref::mli_mov_memcpy;
 using mli::mov::ref::mov_inner_loop;
 #endif
@@ -39,10 +41,10 @@ using mli::mov::ref::mov_inner_loop;
 // included. Other variants are included based on capabilities. Implementations
 // below can depend on each other through declarations in *_decl.h.
 
+#include "impl/mli_mov_ref.h"
+
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
 #include "impl/mli_mov_vdsp.h"
-#else
-#include "impl/mli_mov_ref.h"
 #endif
 
 #endif // _MLI_MOV_H_
