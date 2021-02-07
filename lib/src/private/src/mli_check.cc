@@ -2903,8 +2903,8 @@ mli_status mli_chk_data_movement(const mli_tensor *in, const mli_mov_cfg_t *cfg,
     }
 
     //check that input and output are not overlapped
-    if (MLI_CHECK((out->data.mem.i32 > (in->data.mem.i32 + in->data.capacity)) ||
-    		(in->data.mem.i32 > (out->data.mem.i32 + out->data.capacity)),"in and out buffer are overlapped")) {
+    if (MLI_CHECK((out->data.mem.i32 >= (in->data.mem.i32 + in->data.capacity)) ||
+    		(in->data.mem.i32 >= (out->data.mem.i32 + out->data.capacity)),"in and out buffer are overlapped")) {
     	return MLI_STATUS_INCOMPATEBLE_TENSORS;
     }
 

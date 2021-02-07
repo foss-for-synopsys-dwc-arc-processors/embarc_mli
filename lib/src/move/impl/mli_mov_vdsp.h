@@ -19,16 +19,17 @@ namespace mov {
 namespace vdsp {
 
 template<typename io_T>
-static MLI_FORCE_INLINE void mli_mov_memcpy(mli_mov_handle_t* h, const io_T* src, io_T* dst, uint32_t size, uint32_t out_stride, uint32_t in_stride) {
+static MLI_FORCE_INLINE void mli_mov_memcpy(mli_mov_handle_t* h, const io_T* __restrict src, io_T* __restrict dst, uint32_t size,
+        uint32_t out_stride, uint32_t in_stride, bool src_in_vccm, bool dst_in_vccm) {
 #if USE_DMA
     // TODO program DMA
     h->state = MLI_MOV_STATE_DMA_CONFIGURED;
 #else
-    if (mli_prv_is_inside_vccm(src) && mli_prv_is_inside_vccm(dst)) {
+    if (src_in_vccm && dst_in_vccm) {
         int idx_src = 0;
         int idx_dst = 0;
-        MLI_PTR(io_T) dst_ptr = (MLI_PTR(io_T))dst;
-        MLI_PTR(io_T) src_ptr = (MLI_PTR(io_T))src;
+        MLI_PTR(io_T) __restrict dst_ptr = (MLI_PTR(io_T))dst;
+        MLI_PTR(io_T) __restrict src_ptr = (MLI_PTR(io_T))src;
         //Dummy load to determine the number of lanes
         auto vec = mli_prv_load_1vec(src_ptr);
         int num_of_lanes = get_number_lanes(vec);
@@ -72,11 +73,11 @@ static MLI_FORCE_INLINE void mli_mov_memcpy(mli_mov_handle_t* h, const io_T* src
             idx_src += num_of_lanes * in_stride;
             idx_dst += num_of_lanes * out_stride;
         }
-    } else if (mli_prv_is_inside_vccm(dst)) {
+    } else if (dst_in_vccm) {
         int idx_src = 0;
         int idx_dst = 0;
-        io_T* src_ptr = (io_T*)src;
-        MLI_PTR(io_T) dst_ptr = (MLI_PTR(io_T))dst;
+        io_T* __restrict src_ptr = (io_T*)src;
+        MLI_PTR(io_T) __restrict dst_ptr = (MLI_PTR(io_T))dst;
         //Dummy load to determine the number of lanes
         auto vec = mli_prv_load_1vec(dst_ptr);
         int num_of_lanes = get_number_lanes(vec);
@@ -102,11 +103,11 @@ static MLI_FORCE_INLINE void mli_mov_memcpy(mli_mov_handle_t* h, const io_T* src
             idx_dst += num_of_lanes * out_stride;
         }
 
-    } else if (mli_prv_is_inside_vccm(src)) {
+    } else if (src_in_vccm) {
         int idx_src = 0;
         int idx_dst = 0;
-        io_T* dst_ptr = (io_T*)dst;
-        MLI_PTR(io_T) src_ptr = (MLI_PTR(io_T))src;
+        io_T* __restrict dst_ptr = (io_T*)dst;
+        MLI_PTR(io_T) __restrict src_ptr = (MLI_PTR(io_T))src;
         //Dummy load to determine the number of lanes
         auto vec = mli_prv_load_1vec(src_ptr);
         int num_of_lanes = get_number_lanes(vec);
@@ -148,7 +149,7 @@ static MLI_FORCE_INLINE void mli_mov_memcpy(mli_mov_handle_t* h, const io_T* src
 
 
 template<typename io_T>
-static MLI_FORCE_INLINE void fill_inner_dimension_by_zeros(io_T* p, uint32_t size, uint32_t out_stride) {
+static MLI_FORCE_INLINE void fill_inner_dimension_by_zeros(io_T* __restrict p, uint32_t size, uint32_t out_stride) {
     if (mli_prv_is_inside_vccm(p)) {
         //Dummy load to determine the number of lanes
         MLI_PTR(io_T)p_v = (MLI_PTR(io_T))p;
@@ -182,13 +183,13 @@ static MLI_FORCE_INLINE void fill_inner_dimension_by_zeros(io_T* p, uint32_t siz
 }
 
 template<typename io_T>
-static MLI_FORCE_INLINE void mov_inner_loop (mli_mov_handle_t* h, const io_T* src, io_T* dst,
+static MLI_FORCE_INLINE void mov_inner_loop (mli_mov_handle_t* h, const io_T* __restrict src, io_T* __restrict dst,
         uint32_t inner_dst_size, uint32_t inner_src_size,
         uint32_t inner_src_strde, uint32_t inner_dst_strde,
         uint32_t inner_src_offset, uint32_t inner_dst_offset,
         uint8_t inner_pre_padding, uint8_t inner_post_padding,
         uint32_t inner_subsample, uint32_t inner_src_shape,
-        bool zero_inner_loop) {
+        bool zero_inner_loop, bool src_in_vccm, bool dst_in_vccm) {
     if (zero_inner_loop) {
         fill_inner_dimension_by_zeros<io_T>(dst, inner_dst_size, inner_dst_strde);
     } else {
@@ -207,7 +208,7 @@ static MLI_FORCE_INLINE void mov_inner_loop (mli_mov_handle_t* h, const io_T* sr
         inner_src_pos *= inner_src_strde;
         uint32_t inner_src_step = inner_src_strde * inner_subsample;
         mli::mov::mli_mov_memcpy<io_T>(h, &src[inner_src_pos], &dst[inner_dst_pos], size_of_copy, inner_dst_strde,
-                        inner_src_step);
+                        inner_src_step, src_in_vccm, dst_in_vccm);
         inner_dst_pos += size_of_copy * inner_dst_strde;
         inner_src_pos += size_of_copy * inner_src_step;
 
@@ -217,6 +218,21 @@ static MLI_FORCE_INLINE void mov_inner_loop (mli_mov_handle_t* h, const io_T* sr
         }
     }
 }
+
+template<typename io_T>
+static MLI_FORCE_INLINE void mov_inner_loop (mli_mov_handle_t* h, const io_T* __restrict src, io_T* __restrict dst,
+        uint32_t inner_dst_size,
+        uint32_t inner_src_strde, uint32_t inner_dst_strde,
+        uint32_t inner_subsample,
+        bool src_in_vccm, bool dst_in_vccm) {
+
+        uint32_t inner_src_step = inner_subsample * inner_src_strde;
+        mli::mov::mli_mov_memcpy<io_T>(h, src, dst, inner_dst_size, inner_dst_strde,
+                        inner_src_step, src_in_vccm, dst_in_vccm);
+
+ }
+
+
 
 }
 }
