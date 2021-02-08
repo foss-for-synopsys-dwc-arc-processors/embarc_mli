@@ -166,22 +166,30 @@ MLI_FORCE_INLINE void transpose_conv2d_prepare_and_run(
             cur_out.ptr += out_prv.row_mem_stride * out_h_offset;
             cur_out.ptr += out_prv.col_mem_stride * out_w_offset;
 
+            // Having small or no padding at top/left, krn_*_offset may reduce input area for calculations.
+            auto cur_in = in_prv;
+            const int in_w_offset = MAX(0, krn_w_offset - effective_padding_left); 
+            const int in_h_offset = MAX(0, krn_h_offset - effective_padding_top); 
+            cur_in.height -= in_h_offset;
+            cur_in.width -= in_w_offset;
+            cur_in.ptr += cur_in.row_mem_stride * in_h_offset + cur_in.col_mem_stride * in_w_offset;
+
             // Define paddings for the current calculations according to the new kernel size and offset index.
             // Right and bottom paddings are derived from other already known parameters:
-            // input size, current output size, current kernel size, and current left or top padding.
-            const int cur_pad_left = (effective_padding_left - krn_w_offset) / stride_width;
-            const int cur_pad_top = (effective_padding_top - krn_h_offset) / stride_height;
+            // current input size, current output size, current kernel size, and current left or top padding.
+            const int cur_pad_left = MAX(0, effective_padding_left - krn_w_offset) / stride_width;
+            const int cur_pad_top = MAX(0, effective_padding_top - krn_h_offset) / stride_height;
             const int cur_pad_bot = 
-                (cur_out_height + (weights_subtensor.kernel_height - 1)) - in_prv.height - cur_pad_top;
+                (cur_out_height + (weights_subtensor.kernel_height - 1)) - cur_in.height - cur_pad_top;
             const int cur_pad_right = 
                 (cur_out_width + (weights_subtensor.kernel_width - 1)) // how much in point are required for cur output
-                - in_prv.width - cur_pad_left;                         // subtract real input points and left padding
-            
+                - cur_in.width - cur_pad_left;                         // subtract real input points and left padding
+
             rect_t cent_area;
             cent_area.row_beg = 0;  cent_area.row_end = cur_out_height;
             cent_area.clmn_beg = 0; cent_area.clmn_end = cur_out_width;
             transpose_convolution2D<io_T, w_T, b_T, acc_T, quant_T, conv_fix_kernel_width, conv_fix_kernel_height>(
-                in_prv, weights_subtensor, bs, cur_out, cent_area, quant_params,
+                cur_in, weights_subtensor, bs, cur_out, cent_area, quant_params,
                 (io_T)val_limit.min, (io_T)val_limit.max,
                 cur_pad_top, cur_pad_left, cur_pad_bot, cur_pad_right);
         }
