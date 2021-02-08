@@ -27,7 +27,7 @@ namespace ref {
 //========================================================
 // Unified Group convolution 2D template
 //========================================================
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void group_convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
@@ -208,7 +208,7 @@ MLI_FORCE_INLINE void group_conv2d_prepare_and_run(
     //             padding_top, padding_left,
     //             padding_bot, padding_right);
     // } else {
-        mli::krn::group_convolution2D<io_T, w_T, b_T, acc_T, quant_T>(
+        mli::krn::group_convolution2D<io_T, w_T, b_T, acc_T, quant_T, fix_kernel_width, fix_kernel_height>(
                 in_prv, weights_prv, bs, out_prv, cent_area, params,
                 (io_T)val_limit.min, (io_T)val_limit.max,
                 stride_height, stride_width, dilation_height, dilation_width,
