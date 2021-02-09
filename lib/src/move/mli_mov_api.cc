@@ -187,11 +187,11 @@ mli_status mli_mov_prepare(mli_mov_handle_t* h, const mli_tensor* src, const mli
         // this means that the mem_stride of both source and destination
         // needs to match the product of the shape.
         // this also means that the shape of src and dst needs to be the same.
-        is_possible_in_single1d_transfer = is_possible_in_single1d_transfer && (src_mem_stride[i] == stride) && (dst->mem_stride[i] == stride);
-        is_possible_in_single1d_transfer = is_possible_in_single1d_transfer && (src->shape[i] == dst->shape[i]);
-        no_padding = no_padding && (!(cfg->padding_pre[i] || cfg->padding_post[i]));
-        is_possible_in_single1d_transfer = is_possible_in_single1d_transfer && no_padding;
-        is_possible_in_single1d_transfer = is_possible_in_single1d_transfer && (cfg->perm_dim[i] == i);
+        is_possible_in_single1d_transfer &= (src_mem_stride[i] == stride) && (dst->mem_stride[i] == stride);
+        is_possible_in_single1d_transfer &= (src->shape[i] == dst->shape[i]);
+        no_padding &= !(cfg->padding_pre[i] || cfg->padding_post[i]);
+        is_possible_in_single1d_transfer &= no_padding;
+        is_possible_in_single1d_transfer &= (cfg->perm_dim[i] == i);
         stride *= src->shape[i];
     }
 
