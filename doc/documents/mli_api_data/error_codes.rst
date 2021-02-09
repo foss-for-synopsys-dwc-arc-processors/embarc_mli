@@ -4,10 +4,10 @@ Error Codes
 -----------
 
 Most functions return a value of type mli_status. This is an enumeration type with fields 
-as described in :ref:`t_mli_status_enum` enum fields.
+as described in table :ref:`t_mli_status_enum`.
 
 .. _t_mli_status_enum:
-.. table:: mli_staus Enum Fields
+.. table:: mli_status Enum Fields
    :align: center
    :widths: 50, 50, 130 
    

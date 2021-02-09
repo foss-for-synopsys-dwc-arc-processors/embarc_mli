@@ -3,15 +3,16 @@
 Fully Connected Prototype and Function List 
 -------------------------------------------
 
-This kernel implements fully connected layer, also usually referred to as the inner 
-product or dense layer, as shown in Figure :ref:`f_fully_conn_layer`.  
- 
 .. _f_fully_conn_layer:
 .. figure:: ../images/fully_conn_layer.png
    :align: center
    
-   Fully Connected Layer
 ..
+
+This kernel implements fully connected layer, also usually referred to as the inner 
+product or dense layer.  
+ 
+
 
 
 Each value of output tensor is calculated according to the following formula:
@@ -32,7 +33,10 @@ Where:
     for* :math:`i_{\text{th}}` *neuron.*
 
  -  :math:`b_{i}` *– bias for* :math:`i_{\text{th}}` *neuron*
-	
+
+Optionally, saturating ReLU activation function can be applied to the result of the calculations 
+during the function’s execution. For more info on supported ReLU types see :ref:`relu_prot`.  
+
 Functions which implement fully connected kernels have the following prototype:
 
 .. code::
@@ -41,6 +45,7 @@ Functions which implement fully connected kernels have the following prototype:
       const mli_tensor *in,
       const mli_tensor *weights,
       const mli_tensor *bias,
+      const mli_fully_connected_cfg *cfg,
       mli_tensor *out);
 ..
   
@@ -51,17 +56,41 @@ and the function parameters are shown in the following table:
    :align: center
    :widths: auto 
    
-   +------------------+--------------------+--------------------------------------------------------+
-   | **Parameter**    | **Type**           | **Description**                                        |
-   +==================+====================+========================================================+
-   | ``in``           | ``mli_tensor *``   | [IN] Pointer to constant input tensor.                 |
-   +------------------+--------------------+--------------------------------------------------------+
-   | ``weights``      | ``mli_tensor *``   | [IN] Pointer to constant weights tensor.               |
-   +------------------+--------------------+--------------------------------------------------------+
-   | ``bias``         | ``mli_tensor *``   | [IN] Pointer to constant bias tensor.                  |
-   +------------------+--------------------+--------------------------------------------------------+
-   | ``out``          | ``mli_tensor *``   | [OUT] Pointer to output tensor. Result is stored here. |
-   +------------------+--------------------+--------------------------------------------------------+
+   +------------------+---------------------------------+--------------------------------------------------------+
+   | **Parameter**    | **Type**                        | **Description**                                        |
+   +==================+=================================+========================================================+
+   | ``in``           | ``mli_tensor *``                | [IN] Pointer to constant input tensor.                 |
+   +------------------+---------------------------------+--------------------------------------------------------+
+   | ``weights``      | ``mli_tensor *``                | [IN] Pointer to constant weights tensor.               |
+   +------------------+---------------------------------+--------------------------------------------------------+
+   | ``bias``         | ``mli_tensor *``                | [IN] Pointer to constant bias tensor.                  |
+   +------------------+---------------------------------+--------------------------------------------------------+
+   | ``cfg``          | ``mli_fully_connected_cfg *``   | [IN] Pointer to fully connected parameters structure.  |
+   +------------------+---------------------------------+--------------------------------------------------------+
+   | ``out``          | ``mli_tensor *``                | [OUT] Pointer to output tensor. Result is stored here. |
+   +------------------+---------------------------------+--------------------------------------------------------+
+..
+
+   ``mli_fully_connected_cfg`` is defined as:
+
+.. code::
+   
+   typedef struct {
+        mli_relu_cfg relu;
+   } mli_fully_connected cfg; 
+..
+
+.. _t_mli_fc_cfg_desc:
+.. table:: mli_fully_connected_cfg Structure field description
+   :align: center
+   :widths: auto 
+   
+   +-----------------+--------------------+-------------------------------------------------------+
+   | **Field Name**  | **Type**           | **Description**                                       |
+   +=================+====================+=======================================================+
+   |                 |                    | Type of ReLU activation applied to output values.     |
+   | ``relu``        | ``mli_relu_cfg``   | See :ref:`relu_prot` for definition of this structure |
+   +-----------------+--------------------+-------------------------------------------------------+
 ..
 
 Here is a list of all available Fully Connected functions:
@@ -70,18 +99,44 @@ Here is a list of all available Fully Connected functions:
    :align: center
    :widths: auto 
    
-   +------------------------------------------+----------------------------------------+
-   | **Function Name**                        | **Details**                            |
-   +==========================================+========================================+
-   | ``mli_krn_fully_connected_sa8_sa8_sa32`` || In/out/weights data format: **sa8**   |
-   |                                          || Bias data format: **sa32**            |
-   +------------------------------------------+----------------------------------------+
-   | ``mli_krn_fully_connected_fx16``         || All tensors data format: **fx16**     |
-   +------------------------------------------+----------------------------------------+
-   | ``mli_krn_fully_connected_fx16_fx8_fx8`` || In/out data format: **fx16**          |
-   |                                          || Weights/Bias data format: **fx8**     |
-   +------------------------------------------+----------------------------------------+
+   +---------------------------------------------------+----------------------------------------+
+   | **Function Name**                                 | **Details**                            |
+   +===================================================+========================================+
+   | ``mli_krn_fully_connected_sa8_sa8_sa32``          |  In/out/weights data format: **sa8**   |
+   |                                                   |  Bias data format: **sa32**            |
+   +---------------------------------------------------+----------------------------------------+
+   | ``mli_krn_fully_connected_fx16``                  |  All tensors data format: **fx16**     |
+   +---------------------------------------------------+----------------------------------------+
+   | ``mli_krn_fully_connected_fx16_fx8_fx8``          |  In/out data format: **fx16**          |
+   |                                                   |  Weights/Bias data format: **fx8**     |
+   +---------------------------------------------------+----------------------------------------+
+   | ``mli_krn_fully_connected_sa8_sa8_sa32_ext_bias`` |  In/out/weights data format: **sa8**   |
+   |                                                   |  Bias data format: **sa32**            |
+   |                                                   |  Bias data adjusted to include         |
+   |                                                   |  zero point additives                  |
+   +---------------------------------------------------+----------------------------------------+
 ..
+
+``mli_krn_fully_connected_sa8_sa8_sa32_ext_bias`` is a specialized version of 
+``mli_krn_fully_connected_sa8_sa8_sa32`` which performs calculations much faster, but requires bias
+data to be adjusted according to the following formula:
+
+.. math:: 
+
+   \hat{b}_{i} = b_{i} + \sum_{j}^{}in\_zp*W_{i,j}
+..
+
+Where:
+
+ -  :math:`in\_zp` *–* zero point of input sa8 tensor
+
+ -  :math:`W_{i,j}` *– weight of* :math:`j_{\text{th}}\ `\ *input element
+    for* :math:`i_{\text{th}}` *neuron.*
+
+ -  :math:`b_{i}` *– original sa32 bias for* :math:`i_{\text{th}}` *neuron*
+ 
+ -  :math:`\hat{b}_{i}` *– adjusted sa32 bias for* :math:`i_{\text{th}}` *neuron*
+
 
 All the listed functions must comply to the following conditions:
 
@@ -102,16 +157,32 @@ All the listed functions must comply to the following conditions:
    (number of filters and is equal to output length) of weights tensor.
    
  - ``in`` and ``out`` tensors must not point to overlapped memory regions.
+   
+ - ``mem_stride`` should satisfy the following statements
+   
+    - For ``in`` and ``out`` tensors - memstride must reflect the shape or be set to 0, 
+      e.g memory of these tensors must be contiguous
+      
+    - For ``weights`` and ``bias`` tensor - memstride of the innermost dimension should 
+      be equal to 1.
 
- - ``mem_stride`` of the innermost dimension should be equal to 1 for all the tensors.
  
 For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions: 
 
- - ``in``, ``out``, ``weights`` and ``bias`` tensors must be quantized on the tensor level. 
+ - ``in`` and  ``out`` tensors must be quantized on the tensor level. 
    It implies that each tensor contains a single scale factor and a single zero offset.
    
- - ``weights`` and ``bias`` tensors must be symmetric. It implies that both tensors contain 
-   single zero offset equal to 0.
+ - ``weights`` and ``bias`` tensors must be quantized on the tensor level. 
+   It implies that each tensor contains a single scale factor and a single zero offset.
+   
+ - ``weights`` and ``bias`` tensors must be symmetric. Both must be quantized at the same level.
+   Allowed options are
+   
+    - Per Tensor level. It implies that each tensor contains a single scale factor and a single zero
+      offset equal to 0.
+      
+    - Per M dimension level (number of neurons). It implies that each tensor contains separate scale point
+      for each sub-tensor. All tensors contain single zero offset equal to 0.
    
  - Scale factor of bias tensor must be equal to the multiplication of input scale factor 
    and weights scale factor.

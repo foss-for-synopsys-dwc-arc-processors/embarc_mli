@@ -41,9 +41,11 @@ this type of kernel:
 
 -  :math:`y_{i}` *–* :math:`i_{\text{th}}` *value in output tensor*
 
-This kernel outputs tensor of the same shape and type as input. This kernel performs 
+This kernel outputs a tensor of the same shape and type as input. This kernel performs 
 in-place computation: output and input can point to exactly the same memory (the same 
-starting address).
+starting address and memory strides). If the starting address and memory stride of the 
+input and output tensors are set in such a way that memory regions are overlapped, 
+the behavior is undefined.
 
 Kernels which implement ReLU functions have the following prototype:
 
@@ -123,7 +125,7 @@ All the listed functions must comply to the following conditions:
  
  - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity 
    (that is, the total amount of elements in input tensor). Other fields are filled 
-   by kernel (shape, rank and element specific parameters).
+   by kernel (``shape``, ``rank`` and ``el_params``).
 
 For **sa8** versions of kernel, in addition to the preceding conditions: 
 
@@ -158,7 +160,10 @@ Where:
 -  :math:`\alpha` - coefficient of the negative slope
 
 This kernel outputs tensor of the same shape and type as input. This kernel performs in-place 
-computation: output and input can point to exactly the same memory (the same starting address).
+computation: output and input can point to exactly the same memory (the same starting address
+and memory strides). If the starting address and memory stride of the 
+input and output tensors are set in such a way that memory regions are overlapped, 
+the behavior is undefined.
 
 Kernels which implement Leaky ReLU functions have the following prototype:
 
@@ -249,10 +254,18 @@ Where:
 	
 While for Leaky ReLU the whole tensor shares the only :math:`\alpha` coefficient, for PRelu an 
 array of slope coefficients is shared across an axis.  In other word, for each slice along the 
-specified axis an induvidual :math:`\alpha` slope coefficient is used. 
+specified axis an individual :math:`\alpha` slope coefficient is used. 
+
+The “shared axis” feature found in some frameworks isn’t supported in MLI. This functionality can 
+instead be achieved in several iterations using the PReLU kernel and the mem_strides feature. 
+One iteration implies creating subtensors from input and alpha tensors using memstrides and applying 
+the PReLU kernel on them.
 
 This kernel outputs tensor of the same shape and type as input. This kernel can perform in-place 
-computation: output and input can point to exactly the same memory (the same starting address).
+computation: output and input can point to exactly the same memory (the same starting address
+and memory strides). If the starting address and memory stride of the 
+input and output tensors are set in such a way that memory regions are overlapped, 
+the behavior is undefined.
 
 Kernels which implement Leaky ReLU functions have the following prototype:
 
@@ -304,7 +317,7 @@ are shown in the following table:
    +=================+================+==============================================================+
    |                 |                | An axis along which the function is computed. Axis           |
    |                 |                | corresponds to index of tensor’s dimension starting from 0.  |
-   | ``axis``        | ``int32_t``    | For instance, having future map in HWC layout, axis == 0     |
+   | ``axis``        | ``int32_t``    | For instance, having feature map in HWC layout, axis == 0    |
    |                 |                | corresponds to H dimension. If axis < 0, the function is     |
    |                 |                | applied to the whole tensor.                                 |
    +-----------------+----------------+--------------------------------------------------------------+
@@ -335,7 +348,7 @@ All the listed functions must comply to the following conditions:
    
 For **sa8** versions of kernel, in addition to the preceding conditions: 
 
- - ``in`` and ``slope_coeff`` tensors must be quantized on the tensor level. It implies 
+ - ``in`` ``out`` and ``slope_coeff`` tensors must be quantized on the tensor level. It implies 
    that the tensor contains a single scale factor and a single zero offset.
    
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
@@ -357,9 +370,11 @@ Where:
 
 -  :math:`y_{i}` *–* :math:`i_{\text{th}}` *value in output tensor*
 
-This kernel outputs tensor of the same shape and type as input. This kernel can perform 
+This kernel outputs a tensor of the same shape and type as the input. This kernel can perform 
 in-place computation: output and input can point to exactly the same memory (the same 
-starting address).
+starting address and memory strides). If the starting address and memory stride of the 
+input and output tensors are set in such a way that memory regions are overlapped, 
+the behavior is undefined.
 
 Kernels which implement Sigmoid functions have the following prototype:
 
@@ -418,10 +433,21 @@ For **sa8** versions of kernel, in addition to the preceding conditions:
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
 check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
-The range of this function is (0, 1), and this kernel outputs completely fractional tensor of 
-the same shape and type as input. For fx8 type, the output holds 7 fractional bits, and 15 
-fractional bits for fx16 type. Therefore, the maximum representable value of SoftMax is equivalent 
-to 0.9921875 for **fx8** output tensor, and to 0.999969482421875 for fx16 (not 1.0).
+The range of this function is (0, 1).  Depending on the data type, quantization parameters of the output 
+tensor are configured in the following way:
+
+ - fx16
+
+    - ``out.el_params.fx.frac_bits`` is set to 15. Hence, the maximum representable value of sigmoid is
+      equivalent to 0.999969482421875 (not 1.0).
+
+ - sa8
+
+    - ``out.el_params.sa.zero_point.mem.i16`` is set to -128
+
+    - ``out.el_params.sa.scale.mem.i16`` is set to 1
+
+    - ``out.el_params.sa.scale_frac_bits.mem.i8`` is set to 8
 
 .. _tanh_prot:
 
@@ -439,9 +465,11 @@ Where:
 
 -  :math:`y_{i}` *–* :math:`i_{\text{th}}` *value in output tensor*
 
-This kernel outputs tensor of the same shape and type as input. This kernel performs 
+This kernel outputs a tensor of the same shape and type as the input. This kernel performs 
 in-place computation: output and input can point to exactly the same memory (the same 
-starting address).
+starting address and memory strides). If the starting address and memory stride of the 
+input and output tensors are set in such a way that memory regions are overlapped, 
+the behavior is undefined.
 
 Kernels which implement TanH functions have the following prototype:
 
@@ -499,10 +527,21 @@ For **sa8** versions of kernel, in addition to the preceding conditions:
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
 check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
-The range of function is (-1, 1), and kernel outputs a completely fractional tensor of the 
-same shape and type as input. Output holds 7 fractional bits for fx8 type, and 15 fractional 
-bits for fx16 type. For this reason, the maximum representable value of TanH is equivalent to 
-0.9921875 in case of **fx8** output tensor, and to 0.999969482421875 in case of **fx16** (not 1.0).
+The range of this function is (-1, 1).  Depending on the data type, quantization parameters of the output 
+tensor are configured in the following way:
+
+ - fx16
+
+    - ``out.el_params.fx.frac_bits`` is set to 15. Hence, the maximum representable value of sigmoid is
+      equivalent to 0.999969482421875 (not 1.0).
+
+ - sa8
+
+    - ``out.el_params.sa.zero_point.mem.i16`` is set to 0
+
+    - ``out.el_params.sa.scale.mem.i16`` is set to 1
+
+    - ``out.el_params.sa.scale_frac_bits.mem.i8`` is set to 8
 
 .. _softmax_prot:
 
@@ -524,13 +563,15 @@ Where:
 -  :math:`y_{i}` *–* :math:`i_{\text{th}}` *value in output data subset*
 	
 Softmax function might be applied to the whole tensor, or along a specific axis. 
-In first case all input values are involved in calculation of each output value. 
-If axis is specified, then softmax function is applied to each slice along the 
+In the first case, all the input values are involved in the calculation of each output value. 
+If an axis is specified, then the softmax function is applied to each slice along the 
 specific axis independently. 
 
 This kernel outputs tensor of the same shape and type as input. This kernel performs
 in-place computation: output and input can point to exactly the same memory (the same 
-starting address).
+starting address and memory strides). If the starting address and memory stride of the 
+input and output tensors are set in such a way that memory regions are overlapped, 
+the behavior is undefined.
  
 Kernels which implement SoftMax functions have the following prototype:
 
@@ -599,6 +640,22 @@ All the listed functions must comply to the following conditions:
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
 check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
+The range of this function is (0, 1).  Depending on the data type, quantization parameters of the output 
+tensor are configured in the following way:
+
+ - fx16
+
+    - ``out.el_params.fx.frac_bits`` is set to 15. Hence, the maximum representable value of sigmoid is
+      equivalent to 0.999969482421875 (not 1.0).
+
+ - sa8
+
+    - ``out.el_params.sa.zero_point.mem.i16`` is set to -128
+
+    - ``out.el_params.sa.scale.mem.i16`` is set to 1
+
+    - ``out.el_params.sa.scale_frac_bits.mem.i8`` is set to 8
+
 .. _l2_norm_prot:
 
 L2 Normalization Prototype and Function List
@@ -607,7 +664,7 @@ L2 Normalization Prototype and Function List
 This kernel normalizes data across specified dimension using L2 norm according to the following 
 formula:
 
-.. math:: y_{i} = \frac{x_{i}}{\sqrt{MAX(epsilon,\sum_{j}{x_{j}}^{2})}}
+.. math:: y_{i} = \frac{x_{i}}{\sqrt{epsilon + \sum_{j}{x_{j}}^{2}}}
 
 Where:
 
@@ -624,7 +681,10 @@ first case all input values are involved in calculation of each output value. If
 then the function is applied to each slice along the specific axis independently. 
 
 This kernel outputs tensor of the same shape and type as input. This kernel performs in-place 
-computation: output and input can point to exactly the same memory (the same starting address).
+computation: output and input can point to exactly the same memory (the same starting address
+and memory strides). If the starting address and memory stride of the 
+input and output tensors are set in such a way that memory regions are overlapped, 
+the behavior is undefined.
 
 Kernels which implement L2 normalization functions have the following prototype:
 
@@ -702,3 +762,18 @@ For **sa8** versions of kernel, in addition to the preceding conditions:
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
 check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
+The range of this function is (-1, 1).  Depending on the data type, quantization parameters of the output 
+tensor are configured in the following way:
+
+ - fx16
+
+    - ``out.el_params.fx.frac_bits`` is set to 15. Hence, the maximum representable value of sigmoid is
+      equivalent to 0.999969482421875 (not 1.0).
+
+ - sa8
+
+    - ``out.el_params.sa.zero_point.mem.i16`` is set to 0
+
+    - ``out.el_params.sa.scale.mem.i16`` is set to 1
+
+    - ``out.el_params.sa.scale_frac_bits.mem.i8`` is set to 7

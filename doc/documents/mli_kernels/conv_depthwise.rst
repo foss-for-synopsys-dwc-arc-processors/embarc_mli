@@ -88,7 +88,7 @@ Here is a list of all available Depth-Wise Convolution functions:
    | ``mli_krn_depthwise_conv2d_hwcn_fx16_fx8_fx8``      || In/out layout: **HWC**              |
    |                                                     || Weights layout: **HWCN**            |
    |                                                     || In/out data format: **fx16**        |
-   |                                                     || Wights/Bias data format: **fx8**    |
+   |                                                     || Weights/Bias data format: **fx8**   |
    +-----------------------------------------------------+--------------------------------------+
    | ``mli_krn_depthwise_conv2d_hwcn_fx16_k3x3``         || In/out layout: **HWC**              |
    |                                                     || Weights layout: **HWCN**            |
@@ -106,7 +106,7 @@ Here is a list of all available Depth-Wise Convolution functions:
    | ``mli_krn_depthwise_conv2d_hwcn_fx16_fx8_fx8_k3x3`` || In/out layout: **HWC**              |
    |                                                     || Weights layout: **HWCN**            |
    |                                                     || In/out data format: **fx16**        |
-   |                                                     || Wights/Bias data   format: **fx8**  |
+   |                                                     || Weights/Bias data   format: **fx8** |
    |                                                     || Width of weights tensor: **3**      |
    |                                                     || Height of weights tensor: **3**     |
    +-----------------------------------------------------+--------------------------------------+
@@ -126,7 +126,7 @@ Here is a list of all available Depth-Wise Convolution functions:
    | ``mli_krn_depthwise_conv2d_hwcn_fx16_fx8_fx8_k5x5`` || In/out layout: **HWC**              |
    |                                                     || Weights layout: **HWCN**            |
    |                                                     || In/out data format: **fx16**        |
-   |                                                     || Wights/Bias data format: **fx8**    |
+   |                                                     || Weights/Bias data format: **fx8**   |
    |                                                     || Width of weights tensor: **5**      |
    |                                                     || Height of weights tensor: **5**     |
    +-----------------------------------------------------+--------------------------------------+
@@ -142,7 +142,7 @@ All the listed functions must comply to the following conditions:
 	
  - ``in`` and ``out`` tensors must not point to overlapped memory regions.
  
- - ``Mem_stride`` of the innermost dimension should be equal to 1 for all the tensors.
+ - ``mem_stride`` of the innermost dimension should be equal to 1 for all the tensors.
  
  - Channel (C) dimension of ``weights`` tensors must be 1.
  

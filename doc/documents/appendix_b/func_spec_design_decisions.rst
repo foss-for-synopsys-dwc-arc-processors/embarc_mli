@@ -25,8 +25,6 @@ Here are some principles used to guide the design of the specification:
 
  - All implementations to adherence to a defined coding standard for consistency
 
- - What else?
-
 Function naming
 ---------------
 

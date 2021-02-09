@@ -83,7 +83,7 @@ function parameters are shown in the following table:
    |                 |              | Number of input tensors (number of pointers in inputs      |
    |                 |              | array). Also, the number of weights tensors (number of     |
    | ``inputs_num``  | ``uint8_t``  | pointers in weights   array), as each input is specified   |
-   |                 |              | with it’s own weights tensor. Maximum   number of tensors  |
+   |                 |              | with its own weights tensor. Maximum   number of tensors   |
    |                 |              | in the array is specified by MLI_RNN_MAX_INPUTS define.    |
    +-----------------+--------------+------------------------------------------------------------+
 ..
@@ -146,7 +146,7 @@ For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions
    tensors contain single zero offset equal to 0.
    
 Scale factor of bias tensor must be equal to the multiplication of scale factor of 
-the first input and the first weights tensors in corresponding arrays 
+the **first** input and the **first** weights tensors in corresponding arrays 
 (that is, bias.scale = inputs[0].scale * weights[0].scale).
 
 

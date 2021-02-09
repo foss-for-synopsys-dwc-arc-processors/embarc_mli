@@ -1,10 +1,10 @@
 Utility Functions
 =================
 
-Utility functions is a set of MLI functions that intends to ease interface 
-with user code. Operations in this set are not directly involved into graph 
-calculations and used to prepare data for MLI processing or to get information 
-encoded in MLI interface.
+Utility functions are a set of MLI API that facilitate the interface 
+between MLI kernels and the user code. Operations in this set are not directly 
+involved in graph calculations and are instead used to prepare data for MLI processing or 
+to get information encoded in the MLI interface.
 
 Data Conversion Group
 ---------------------
@@ -20,6 +20,11 @@ includes a combination of:
  - Change of number of fractional bits or scale factor
 
  - Change of zero offset
+
+Change of quantization axis of a per-axis quantized tensor is not allowed. 
+It means that if the input tensor is quantized per specific axis, then the output tensor
+must have per-tensor quantization granularity or must be quantized across the same axis 
+as the input tensor.
 
 The conversion function only supports the conversion between the MLI formats and 
 the conversion formats as listed in Figure :ref:`f_data_conv_fmts`.
@@ -60,12 +65,16 @@ to the destination tensor. For conversions with equal container size, in-place c
 is permitted. Note that this could impact performance on some platforms.
 ``mem_stride`` of the innermost dimension should be equal to 1 for all the tensors.
 
+If ``mem_stride`` of the output tensor is not equal to 0, the function will use these ``mem_strides``
+to store the results in the output buffer. If the ``mem_stride`` is equal to 0, 
+it will be computed from the input shape.
+
 Function prototype:
 
 .. code::
 
    mli_status mli_hlp_convert_tensor(
-       mli_tensor* src,
+       const mli_tensor* src,
        mli_tensor* dst);
 ..
    
@@ -79,7 +88,7 @@ It supports both signed asymmetric data formats and fixed point data formats
 .. code::
 
    mli_status mli_hlp_convert_tensor_safx(
-       mli_tensor* src,
+       const mli_tensor* src,
        mli_tensor* dst);
 ..
    
@@ -89,8 +98,8 @@ check and return the result as an ``mli_status`` code as described in section :r
 Helper Functions Group
 ----------------------
 
-Implementations are required to implement the following Helper functions which are used for 
-getting information from data structures and performing various operations on it.
+The following Helper functions are used for 
+getting information from data structures and performing various operations on them.
 
  - :ref:`get_elem_size`
  
@@ -110,13 +119,14 @@ getting information from data structures and performing various operations on it
 Get Element Size
 ~~~~~~~~~~~~~~~~
 
-This function returns size of tensor basic element in bytes. It returns 0 if the in pointer 
+This function returns the size of the tensor basic element in bytes. It returns 0 if the in pointer 
 does NOT point to a tensor with a supported element type (see description of mli_element_type 
 in section :ref:`kernl_sp_conf`).
 
 .. code::
 
-   uint32_t mli_hlp_count_elem_num(mli_tensor *in)
+   uint32_t mli_hlp_count_elem_num(
+       const mli_tensor *in);
 ..
 
 .. _count_elements:
@@ -139,9 +149,8 @@ Function prototype:
 .. code::
 
    uint32_t mli_hlp_count_elem_num(
-       mli_tensor *in,
-       uint32_t start_dim
-      )
+       const mli_tensor *in,
+       uint32_t start_dim);
 ..
 
 The parameters are described in :ref:`t_mli_hlp_count_elem_num_params`.
@@ -151,13 +160,13 @@ The parameters are described in :ref:`t_mli_hlp_count_elem_num_params`.
    :align: center
    :widths: auto
    
-   +--------------------+-----------------+---------------------------------+
-   | **Field Name**     | Type            | Description                     |
-   +====================+=================+=================================+
-   | ``in`` [IN]        | ``mli_tensor*`` | Pointer to input tensor         |
-   +--------------------+-----------------+---------------------------------+
-   | ``start_dim`` [IN] | ``start_dim``   | Start dimension for counting    |
-   +--------------------+-----------------+---------------------------------+
+   +--------------------+-----------------+-------------------------------------+
+   | **Field Name**     | Type            | Description                         |
+   +====================+=================+=====================================+
+   | ``in``             | ``mli_tensor*`` | [IN] Pointer to input tensor        |
+   +--------------------+-----------------+-------------------------------------+
+   | ``start_dim``      | ``start_dim``   | [IN] Start dimension for counting   |
+   +--------------------+-----------------+-------------------------------------+
 ..
 
 Conditions:
@@ -180,8 +189,7 @@ Function prototype:
 .. code::
 
    int16_t mli_hlp_tensor_scale(
-       mli_tensor *in
-      )
+       const mli_tensor *in);
 ..
   
 The parameters are described in Table :ref:`t_mli_hlp_tensor_scale_params`
@@ -191,11 +199,11 @@ The parameters are described in Table :ref:`t_mli_hlp_tensor_scale_params`
    :align: center
    :widths: auto
    
-   +----------------+-----------------+----------------------------+
-   | **Field name** | **Type**        | **Description**            |
-   +================+=================+============================+
-   | ``in`` [IN]    | ``mli_tensor*`` | Pointer to input tensor    |  
-   +----------------+-----------------+----------------------------+ 
+   +----------------+-----------------+-------------------------------+
+   | **Field name** | **Type**        | **Description**               |
+   +================+=================+===============================+
+   | ``in``         | ``mli_tensor*`` | [IN] Pointer to input tensor  |  
+   +----------------+-----------------+-------------------------------+ 
 ..   
 
 Conditions:
@@ -215,8 +223,7 @@ Function prototype
 .. code::
 
    int16_t mli_hlp_tensor_scale_shift(
-       mli_tensor *in
-      )
+       const mli_tensor *in);
 ..
 	  
 The parameters are described in Table :ref:`t_mli_hlp_tensor_scale_shift_params`
@@ -226,11 +233,11 @@ The parameters are described in Table :ref:`t_mli_hlp_tensor_scale_shift_params`
    :align: center
    :widths: auto
    
-   +----------------+-----------------+----------------------------+
-   | **Field name** | **Type**        | **Description**            |
-   +================+=================+============================+
-   | ``in`` [IN]    | ``mli_tensor*`` | Pointer to input tensor    |  
-   +----------------+-----------------+----------------------------+ 
+   +----------------+-----------------+------------------------------+
+   | **Field name** | **Type**        | **Description**              |
+   +================+=================+==============================+
+   | ``in``         | ``mli_tensor*`` | [IN] Pointer to input tensor |  
+   +----------------+-----------------+------------------------------+ 
 .. 
 
 Conditions:
@@ -250,8 +257,7 @@ Function prototype:
 .. code::
 
    int16_t mli_hlp_tensor_zero_offset(
-       mli_tensor *in
-      )
+       const mli_tensor *in);
 ..
   
 The parameters are described in Table :ref:`t_mli_hlp_tensor_zero_offset_params`
@@ -261,11 +267,11 @@ The parameters are described in Table :ref:`t_mli_hlp_tensor_zero_offset_params`
    :align: center
    :widths: auto
    
-   +----------------+-----------------+----------------------------+
-   | **Field name** | **Type**        | **Description**            |
-   +================+=================+============================+
-   | ``in`` [IN]    | ``mli_tensor*`` | Pointer to input tensor    |  
-   +----------------+-----------------+----------------------------+ 
+   +----------------+-----------------+------------------------------+
+   | **Field name** | **Type**        | **Description**              |
+   +================+=================+==============================+
+   | ``in``         | ``mli_tensor*`` | [IN] Pointer to input tensor |  
+   +----------------+-----------------+------------------------------+ 
 .. 
 
 Conditions:
@@ -341,8 +347,7 @@ The function prototype:
    mli_status mli_hlp_subtensor(
      const mli_tensor *in,
      const mli_subtensor_cfg *cfg,
-     mli_tensor *out
-     );
+     mli_tensor *out);
 ..
  
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 

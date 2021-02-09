@@ -61,25 +61,12 @@ Memory Hierarchy
   The strategy on data movement can be different for each platform or each application. For some 
   platforms and some applications, all the data could fit in CCM, in which case no data movement 
   is needed. Some platforms have a data cache; in those cases the data movement is done by the 
-  hardware in a transparent way.
+  hardware in a transparent way. The caller/user of MLI APIs is responsible for ensuring that all 
+  data buffers passed to the MLI functions are in the CPU's local memory prior to making the call.
   
   The MLI library does not allocate any memory dynamically. The caller is responsible for providing 
   the correct parameters and allocated memory. The MLI library might use internal statically allocated 
   data.
-
-AGU support
-~~~~~~~~~~~
-
-  The MLI Library is optimized for systems with and without AGU (address generation unit). If AGU is 
-  present in the system, then library code optimized for AGU is compiled automatically, otherwise the 
-  AGU optimization is not used. For systems with AGU support, the caller needs to allocate the data 
-  buffers of all tensors in AGU-accessible memory.
-
-VCCM support
-~~~~~~~~~~~~
-
-For platforms with VCCM, the MLI library assumes that (some) tensors are located in VCCM. 
-TODO: document which tensors should be inside VCCM
 
 Header Files
 ------------
@@ -98,30 +85,11 @@ Header Files
 Directory Structure
 -------------------
 
-An MLI Implementation must comply to the following directory structure to ensure consistency:
+The directory structure to use for an MLI implementation is really a decision of the implementor.
+However, we do recommend that developers maintain the same structure that is present for existing 
+MLI implementations. This can be seen by reviewing the MLI public repository on Github and is not 
+specified in this document. 
 
-.. table:: MLI Implementation Directory Structure
-   :widths: auto   
-
-   +---------------------+---------------------------------------------------+
-   | **Directory**       | **Description**                                   |
-   +=====================+===================================================+
-   | ``/bin``            | Built MLI library and samples binaries are        |
-   |                     | created here during build                         |
-   +---------------------+---------------------------------------------------+
-   | ``./build``         | Contains common build rules                       |
-   +---------------------+---------------------------------------------------+
-   | ``./include``       | Include files with API prototypes and types       |
-   +---------------------+---------------------------------------------------+
-   | ``./lib/src``       | Source code of MLI Library                        |
-   +---------------------+---------------------------------------------------+
-   | ``./lib/gen``       | Auxiliary generation scripts for LUT tables and   |
-   |                     | library source code for specialized functions     |
-   +---------------------+---------------------------------------------------+  
-   | ``./examples``      | Source code of examples                           |
-   +---------------------+---------------------------------------------------+
-..   
-    
 .. _terms_and_defs:
    
 Terms and definitions

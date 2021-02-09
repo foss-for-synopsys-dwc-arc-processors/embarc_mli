@@ -13,11 +13,13 @@ describe fields of existing MLI configuration structures:
 
  - Table :ref:`t_mli_conv2d_cfg_desc`
  
+ - Table :ref:`t_mli_fc_cfg_desc` 
+
  - Table :ref:`t_mli_rnn_cell_cfg_desc` 
 
  - Table :ref:`t_mli_rnn_dense_cfg_desc`
 
- - Table :ref:`t_mli_conv2d_cfg_desc`
+ - Table :ref:`t_mli_pool_cfg_desc` 
 
  - Table :ref:`t_mli_argmax_cfg_desc`
 
@@ -26,14 +28,6 @@ describe fields of existing MLI configuration structures:
  - Table :ref:`t_mli_relu_cfg_desc`
 
  - Table :ref:`t_mli_prelu_cfg_desc`
-
- - Table :ref:`t_mli_non_max_supression_cfg_desc`  
-
- - Table :ref:`t_mli_resize_bilinear_nn_cfg_desc`
-
- - Table :ref:`t_mli_proposal_cfg_desc`
-
- - Table :ref:`t_mli_detection_output_cfg_desc` 
 
  - Table :ref:`t_mli_mov_cfg_desc`
  

@@ -12,7 +12,7 @@ The Diverse Kernels Group provides operations for common machine learning proces
 Argmax Prototype and Function List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This kernel returns the indexes of maximum values across whole tensor, or for each slice 
+This kernel returns the indexes of maximum values across the whole tensor, or for each slice 
 across a dimension. 
 
 Argmax functions have the following prototype:
@@ -90,13 +90,15 @@ All the listed functions must comply to the following conditions:
  
  - ``mem_stride`` of the innermost dimension should be equal to 1 for all the tensors.
  
- - ``out`` tensor must contain a valid ``el_type`` field. Allowed types are (``fx8``, 
-   ``fx16``, ``sa8``, ``sa32``). Chosen type must be able to keep maximum index of 
-   element in flatten input tensor.
+ - ``out`` tensor must contain only
+
+    - A valid ``el_type`` field. Allowed types are (``fx8``, ``fx16``, ``sa8``, ``sa32``). 
+      Chosen type must be able to keep maximum index of element in flatten input tensor.
    
- - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity. 
-   That is ``top_k*in.shape[axis]`` values of chosen type. Other fields of the 
-   structure do not have to contain valid data and are filled by the function.
+    - A valid pointer to a buffer with sufficient capacity. That is ``top_k*in.shape[axis]`` values
+      of chosen type. 
+      
+    - Other fields of the structure do not have to contain valid data and are filled by the function.
 
 For **sa8** versions of kernel, in addition to the preceding conditions:
  
@@ -107,14 +109,15 @@ Depending on the debug level (see section :ref:`err_codes`) this function perfor
 check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
 Kernel modifies output tensor which is transformed into two-dimensional tensor of shape 
-``(dim_size, top_k]`` where ``dim_size`` is the size of dimension specified by parameters 
-structure, and top_k is the number of indexes per slice specified by parameters structure. 
+``(dim_size, top_k]`` where ``dim_size`` is the size of dimension specified by  the axis parameter in 
+``mli_argmax_cfg`` structure, and top_k is the number of indexes per slice specified by the 
+``topk`` parameter of the same structure. 
 
-Output tensor type must be defined by user. Only integer types are allowed (``fx8``, ``fx16``, 
-``sa8``, ``sa32``). ``el_params`` field of out tensor is configured to reflect fully integer 
+Output tensor type must be defined by the user. Only integer types are allowed (``fx8``, ``fx16``, 
+``sa8``, ``sa32``). ``el_params`` field of out tensor is configured by the kernel to reflect fully integer 
 values (``frac_bits = 0`` for **fx** data format, ``zero_offset = 0``,  ``scale = 1`` and 
 ``scale_frac_bits = 0`` for **sa** data format). An Index represents the position of Nth 
-(N<``top_k``) maximum value in the flatten slice across defined dimension in input tensor.
+(N<``top_k``) maximum value in the flattened slice across the defined dimension in the input tensor.
 
 .. _permute_prot:
 
@@ -175,7 +178,7 @@ are shown in the following table:
 
 The new order of dimensions is given by ``perm_dim`` array of kernel configuration structure. 
 ``out`` tensor’s dimension ``idx`` corresponds to the dimension of in tensor with ``perm_dim[idx]``. 
-Tensor’s data is reordered according to new shape.
+Tensor’s data is reordered according to the new shape.
 
 For example, if input tensors have the shape (2, 4, 8) and ``perm_dim`` order is (2, 0, 1) then output 
 tensor is of the shape (8, 2, 4). This transpose reflects changing the feature map layout from HWC to CHW.
@@ -203,10 +206,36 @@ All the listed functions must comply to the following conditions:
    (that is, the total amount of elements in input tensor). Other fields are filled 
    by kernel (shape, rank and element specific parameters).
    
- - Buffers of in and out tensors must point to different not-overlapped memory regions.
+ - Buffers of in and out tensors must point to different non-overlapped memory regions.
  
  - Only first N (equal to rank of in tensor) values in permutation order array are considered 
    by kernel. All of them must be unique, nonnegative and less then rank of the ``in`` tensor.
+
+For **sa8** versions of kernel, in addition to above conditions:
+
+ - In case of per-axis quantization, ``el_params`` field of ``out`` tensor are filled by kernel 
+   using ``in`` quantization parameters. The following fields are affected:
+
+    - ``out.el_params.sa.zero_point.mem.pi16`` and related capacity field
+
+    - ``out.el_params.sa.scale.mem.pi16`` and related capacity field
+
+    - ``out.el_params.sa.scale_frac_bits.mem.pi8`` and related capacity field
+
+   Depending on the state of the above pointers, the following options are available:
+
+    - If the pointers are initialized with ``nullptr``, then corresponding fields from in tensor 
+      are copied to out tensor. No copy of quantization parameters itself is performed.
+
+    - If the pointers and capacity fields are initialized with corresponding fields from in tensor 
+      then no action is applied.
+
+    - If pointers and capacity fields are initialized with pre-allocated memory and its capacity,
+      then a copy of quantization parameters itself is performed. Capacity of allocated memory must 
+      be big enough to keep related data from input tensor.
+
+   All of the fields must be initialized in a consistent way, using only one of the above options.
+
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
 check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.

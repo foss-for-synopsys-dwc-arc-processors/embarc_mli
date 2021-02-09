@@ -16,7 +16,7 @@ Kernels which implement max pooling functions have the following prototype:
 
 .. code::
 
-   mli_status mli_krn_maxpool_<layout>_<data_format>(
+   mli_status mli_krn_maxpool_hwc_<data_format>(
       const mli_tensor *in,
       const mli_pool_cfg *cfg,
       mli_tensor *out);
@@ -77,11 +77,14 @@ Kernels which implement max pooling functions have the following prototype:
 
 All the listed functions must comply to the following conditions:
 
- - ``in``, and ``out`` tensors must be valid.
+ - ``in`` tensor must be valid.
  
- - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity 
-   and valid ``el_params`` union. Other fields of the structure do not have to contain 
-   valid data and are filled by the function.
+ - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity. 
+   During the processing, the following output tensor parameters are filled by functions:
+
+    - ``shape`` (new shape is calculated according to input tensor shape, stride, and padding parameters).
+
+    - ``rank``, ``el_type``, and ``el_params`` union (these are copied from the input tensor).
    
  - ``in`` and ``out`` tensors must not point to overlapped memory regions.
  

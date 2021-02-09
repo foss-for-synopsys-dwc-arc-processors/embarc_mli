@@ -1,11 +1,3 @@
-.. _mli_kernels:
-
-MLI Kernels (Operators)
-=======================
-
-This chapter lists and describes a collection of ML algorithms (kernels) included 
-into MLI specification.  
-
 Introduction
 ------------
 
@@ -79,7 +71,7 @@ all function names are built using the following syntax:
 
 .. code::
 
-  mli\_<group>\_<function>\_[layout_]<dataformats>[\_specializations]([input_tensors],[cfg],[output_tensors]);
+  mli_<group>_<function>_[layout_]<dataformats>[_specializations]([input_tensors],[cfg],[output_tensors]);
 ..
   
 An explanation of each of the preceding elements which make up a name is provided in Table :ref:`t_func_name_conv_fields`. 
@@ -163,19 +155,3 @@ The following convention is applied to the layout field:
    
  - If MLI kernel implies using four-dimensional weights tensor in addition to three-dimensional 
    input/output tensors, function name should reflect layout of weights tensor.
-
-
-NN Kernel-Groups
-----------------
-   
-.. toctree::
-   :maxdepth: 2
-   
-   convolution_grp.rst
-   rec_fully_con_grp.rst
-   pooling_grp.rst
-   diverse_kernels_grp.rst
-   transform_grp.rst
-   elemw_grp.rst
-   adv_img_proc_grp.rst
-   

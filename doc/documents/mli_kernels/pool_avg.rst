@@ -8,7 +8,7 @@ Kernels which implement average pooling functions have the following prototype:
 
 .. code::
 
-   mli_status  mli_krn_avepool_<layout>_<data_format>(
+   mli_status  mli_krn_avepool_hwc_<data_format>(
       const mli_tensor *in,
       const mli_pool_cfg *cfg,
       mli_tensor *out);
@@ -70,7 +70,7 @@ Kernels which implement average pooling functions have the following prototype:
 
 All the listed functions must comply to the following conditions:
 
- - ``in``, and ``out`` tensors must be valid.
+ - ``in`` tensor must be valid.
  
  - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity and 
    valid ``el_params`` union. Other fields of the structure do not have to contain valid 

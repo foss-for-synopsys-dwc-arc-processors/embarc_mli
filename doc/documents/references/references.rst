@@ -13,4 +13,7 @@ References
 
 [6] K. Yao, T. Cohn, K. Vylomova, K. Duh and C. Dyer, "Depth-Gated Recurrent Neural Networks," in arXiv preprints; arXiv:1508.03790v4 , 2015. 
 
+[7] "MLI 1.0 Online Documentation" [Online]. Available: https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/tree/e6641aaf1a93d266e9eb06dd3abe77ba44e47b66/doc/build/html.
+
+[8]"TensorFlow Lite for Microcontrollers," [Online]. Available: https://www.tensorflow.org/lite/microcontrollers.
 

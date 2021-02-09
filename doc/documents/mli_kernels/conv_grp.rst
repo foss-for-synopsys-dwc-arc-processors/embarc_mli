@@ -25,7 +25,7 @@ Kernels which implement a group convolution have the following prototype:
 
 .. code::
 
-   mli_status mli_krn_group_conv2d_<layout >_<data_format>(
+   mli_status mli_krn_group_conv2d_hwcn_<data_format>(
       const mli_tensor *in,
       const mli_tensor *weights,
       const mli_tensor *bias,
@@ -83,7 +83,7 @@ Here is a list of all available Group Convolution functions:
    | ``mli_krn_group_conv2d_hwcn_fx16_fx8_fx8``       || In/out layout: **HWC**              |
    |                                                  || Weights layout: **HWCN**            |
    |                                                  || In/out data format: **fx16**        |
-   |                                                  || Wights/Bias data format: **fx8**    |
+   |                                                  || Weights/Bias data format: **fx8**   |
    +--------------------------------------------------+--------------------------------------+
    | ``mli_krn_group_conv2d_hwcn_fx16_k3x3``          || In/out layout: **HWC**              |
    |                                                  || Weights layout: **HWCN**            |
@@ -101,7 +101,7 @@ Here is a list of all available Group Convolution functions:
    | ``mli_krn_group_conv2d_hwcn_fx16_fx8_fx8_k3x3``  || In/out layout: **HWC**              |
    |                                                  || Weights layout: **HWCN**            |
    |                                                  || In/out data format: **fx16**        |
-   |                                                  || Wights/Bias data format: **fx8**    |
+   |                                                  || Weights/Bias data format: **fx8**   |
    |                                                  || Width of weights tensor: **3**      |
    |                                                  || Height of weights tensor: **3**     |
    +--------------------------------------------------+--------------------------------------+
@@ -121,7 +121,7 @@ Here is a list of all available Group Convolution functions:
    | ``mli_krn_group_conv2d_hwcn_fx16_fx8_fx8_k5x5``  || In/out layout: **HWC**              |
    |                                                  || Weights layout: **HWCN**            |
    |                                                  || In/out data format: **fx16**        |
-   |                                                  || Wights/Bias data format: **fx8**    |
+   |                                                  || Weights/Bias data format: **fx8**   |
    |                                                  || Width of weights tensor: **5**      |
    |                                                  || Height of weights tensor: **5**     |
    +--------------------------------------------------+--------------------------------------+

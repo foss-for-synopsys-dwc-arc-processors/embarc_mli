@@ -101,7 +101,7 @@ Benefits of the HWCN layout:
   - Typically, in the beginning of a graph, NN data is wider than it is deep.  However, after just 
     few layers it becomes deeper while the Height/Width dimensions become small. In this case, 
     vectorization across depth becomes more beneficial. As statistics of implemented graphs show, 
-    most implemented layers fit better to “vectorization across depth” strategy [Reference? Appendix?]. 
+    most implemented layers fit better to "vectorization across depth" strategy. 
     
   - This layout is more stable to convolution configuration parameters like stride padding and dilation 
     rate as it typically doesn’t touch depth dimension.

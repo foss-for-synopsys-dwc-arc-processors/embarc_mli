@@ -13,7 +13,7 @@ History of MLI
 
 MLI was originally designed as an open source software library to enable 
 machine learning on ARC EM and HS class processors.  From the original 
-MLI PDD [?Reference], the stated goals were:
+MLI Documentation [7], the stated goals were:
 
  - Deliver easy-to use SW library for fast and simple porting of NN 
    applications to ARCv2 processors
@@ -68,18 +68,16 @@ processor or accelerator. For the immediate future, the plan is to target ARC EM
 (and VPX). In the future, accelerators like the DNN engine on future versions of the EV processor might 
 be considered.
 
-Main differences with MLI 1.0
------------------------------
+New Features in MLI 2.0
+-----------------------
 
-MLI 1.0 was intended for manual graph mapping. The main goal of MLI 2.0 is to add support for 
-graph mapping tools to improve the user experience. The initial graph mapper target is Tensorflow, 
-via the TensorFlow Lite for Microcontrollers framework, mainly due to its availability and customer 
-demand along with intended support for additional graph mappers like the one supplied with the 
-Synopsys EV toolchain.  Creating a formalized MLI spec should simplify adoption of MLI by the Synopsys 
-graph mapper and by any 3rd parties creating front-end tools.  A secondary, but very important goal of 
-MLI 2.0 is to add support for a new target platform, VPX/VDSP.
+ - Added support for Synopsys ARC VPX5 processor
 
-To support these new requirements, the following changes have been made:
+ - Continues to include support for ARC EM and HS processor families
+
+ - Added new kernels (see :ref:`t_mli1_mli2_krn_diff`)
+
+ - Integration with TensorFlow Lite for Microcontrollers (TFLM)
 
  - Data formats have been adapted
  
@@ -166,6 +164,7 @@ for many graphs in a database. (N is the number of output channels).
 Kernels
 ~~~~~~~
 
+.. _t_mli1_mli2_krn_diff:
 .. table:: Supported kernels: Differences between MLI 1.0 and MLI 2.0
    :align: center
    :widths: auto
@@ -187,9 +186,9 @@ Kernels
    +---------------------------------+-----------+----------------+
    | Fully_connected                 | X         | X              |
    +---------------------------------+-----------+----------------+
-   | Lstm                            | X         | X              |
+   | LSTM                            | X         | X              |
    +---------------------------------+-----------+----------------+
-   | rnn                             | X         | X              |
+   | RNN                             | X         | X              |
    +---------------------------------+-----------+----------------+
    | GRU_cell (gated recurrent unit) |           | X              |
    +---------------------------------+-----------+----------------+
@@ -199,41 +198,31 @@ Kernels
    +---------------------------------+-----------+----------------+
    | Parametric ReLu                 |           | X              |
    +---------------------------------+-----------+----------------+
-   | sigm                            | X         | X              |
+   | Sigm                            | X         | X              |
    +---------------------------------+-----------+----------------+
-   | tanh                            | X         | X              |
+   | Tanh                            | X         | X              |
    +---------------------------------+-----------+----------------+
    | Softmax                         | X         | X              |
    +---------------------------------+-----------+----------------+
-   | Elstwise_add                    | X         | X              |
+   | Elementwise_add                 | X         | X              |
    +---------------------------------+-----------+----------------+
-   | Eltwise_sub                     | X         | X              |
+   | Elementwise_sub                 | X         | X              |
    +---------------------------------+-----------+----------------+
-   | Eltwise_mul                     | X         | X              |
+   | Elementwise_mul                 | X         | X              |
    +---------------------------------+-----------+----------------+
-   | Eltwise_min                     | X         | X              |
+   | Elementwise_min                 | X         | X              |
    +---------------------------------+-----------+----------------+
-   | Eltwise_max                     | X         | X              |
+   | Elementwise_max                 | X         | X              |
    +---------------------------------+-----------+----------------+
-   | permute                         | X         | X              |
+   | Permute                         | X         | X              |
    +---------------------------------+-----------+----------------+
-   | concat                          | X         | Supported by   |
+   | Concat                          | X         | Supported by   |
    |                                 |           | data move APIs |
    +---------------------------------+-----------+----------------+
    | Padding2d                       | X         | Supported by   |
    |                                 |           | data move APIs |
    +---------------------------------+-----------+----------------+
-   | argmax                          |           | X              |
-   +---------------------------------+-----------+----------------+
-   | Non-Max suppression             |           | X              |
-   +---------------------------------+-----------+----------------+
-   | Resize nearest neighbor         |           | X              |
-   +---------------------------------+-----------+----------------+
-   | Resize bilinear                 |           | X              |
-   +---------------------------------+-----------+----------------+
-   | RPN (region proposal network)   |           | X              |
-   +---------------------------------+-----------+----------------+
-   | Detection Output                |           | X              |
+   | Argmax                          |           | X              |
    +---------------------------------+-----------+----------------+
 ..
 

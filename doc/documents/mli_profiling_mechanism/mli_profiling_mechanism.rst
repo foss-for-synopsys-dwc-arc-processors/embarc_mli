@@ -21,10 +21,9 @@ at a different level/granularity:
    
 In addition to profiling, efficient compilation and scheduling of graphs 
 requires estimates of costs of running kernels in terms of different metrics. 
-This is discussed in (TODO: add ref)
+This is discussed in other documents prepared by the EV team.
 
 Profiling infrastructure
-------------------------
 
 All profiling MLI functions start with a ``mli_prof_ prefix``.
 

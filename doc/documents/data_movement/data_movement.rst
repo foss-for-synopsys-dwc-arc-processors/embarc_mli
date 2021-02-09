@@ -127,6 +127,41 @@ The size of the array is defined by ``MLI_MAX_RANK``.
    +---------------------+----------------+---------------------------------------------------------------------+ 
 ..
 
+The function must comply to the following conditions:
+
+ - ``src`` tensor must be valid.
+ 
+  - ``dst`` tensor must contain a valid pointer to a buffer with sufficient capacity 
+    (that is, the total amount of elements in input tensor). 
+    Other fields are filled by the kernel (shape, rank and element-specific parameters).
+
+ - Buffers of ``src`` and ``dst`` tensors must point to different, non-overlapped memory regions
+ 
+For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions: 
+
+ - In case of per-axis quantization, ``el_params`` field of ``dst`` tensor are filled by kernel 
+   using ``src`` quantization parameters. The following fields are affected:
+
+    - ``dst.el_params.sa.zero_point.mem.pi16`` and related capacity field
+
+    - ``dst.el_params.sa.scale.mem.pi16`` and related capacity field
+
+    - ``dst.el_params.sa.scale_frac_bits.mem.pi8`` and related capacity field
+
+   Depending on the state of the above pointers, the following options are available:
+
+    - If the pointers are initialized with ``nullptr``, then corresponding fields from ``in`` tensor 
+      are copied to ``dst`` tensor. No copy of quantization parameters itself is performed.
+
+    - If the pointers and capacity fields are initialized with corresponding fields from ``in`` tensor 
+      then no action is applied.
+
+    - If pointers and capacity fields are initialized with pre-allocated memory and its capacity,
+      then a copy of quantization parameters itself is performed. Capacity of allocated memory must 
+      be big enough to keep related data from input tensor.
+
+   All of the fields must be initialized in a consistent way, using only one of the above options.
+
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
 check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
@@ -459,13 +494,53 @@ You can also wait for the DMA to compete using the following function:
 This function takes a pointer to the handle used for mli_mov_prepare and returns 
 after the transaction completes or in case of an error.
 
+
+Restrictions for source and destination tensors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``src`` and ``dst`` tensors for all functions of asynchronous data move set must comply to the following conditions:
+
+  - ``src`` tensor must be valid.
+
+  - ``dst`` tensor must contain a valid pointer to a buffer with sufficient capacity 
+    (that is, the total amount of elements in input tensor). 
+    Other fields are filled by the kernel (shape, rank and element-specific parameters).
+
+ - Buffers of ``src`` and ``dst`` tensors must point to different, non-overlapped memory regions
+ 
+For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions: 
+
+ - In case of per-axis quantization, ``el_params`` field of ``dst`` tensor are filled by kernel 
+   using ``src`` quantization parameters. The following fields are affected:
+
+    - ``dst.el_params.sa.zero_point.mem.pi16`` and related capacity field
+
+    - ``dst.el_params.sa.scale.mem.pi16`` and related capacity field
+
+    - ``dst.el_params.sa.scale_frac_bits.mem.pi8`` and related capacity field
+
+   Depending on the state of the above pointers, the following options are available:
+
+    - If the pointers are initialized with ``nullptr``, then corresponding fields from ``in`` tensor 
+      are copied to ``dst`` tensor. No copy of quantization parameters itself is performed.
+
+    - If the pointers and capacity fields are initialized with corresponding fields from ``in`` tensor 
+      then no action is applied.
+
+    - If pointers and capacity fields are initialized with pre-allocated memory and its capacity,
+      then a copy of quantization parameters itself is performed. Capacity of allocated memory must 
+      be big enough to keep related data from input tensor.
+
+   All of the fields must be initialized in a consistent way, using only one of the above options.
+
+
 .. _dma_res_mgmt:
 
 DMA Resource Management
 -----------------------
 
 The MLI API permits multiple mov transactions occurring in parallel, if the particular 
-Implementation has a DMA engine which supports multiple channels.  MLI also assumes 
+implementation has a DMA engine which supports multiple channels.  MLI also assumes 
 that other parts of the system might want to access the DMA Engine at the same time and 
 relies on the application/caller to provide it with a pool of available DMA channels 
 that can be used exclusively by MLI. The following functions are used for this purpose:
@@ -492,7 +567,7 @@ obtained from the pool using mli_mov_acquire_handle:
    mli_mov_acquire_handle(int num_ch, mli_mov_handle_t* h);
 ..
    
- - ``num_ch`` – Number of dma channels required for this move. Certain complex transactions 
+ - ``num_ch`` – Number of DMA channels required for this move. Certain complex transactions 
    might be more efficient when multiple channels can be used. By default, a value of 1 
    should be used.
 	

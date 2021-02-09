@@ -80,7 +80,7 @@ Here is a list of all available 2D Convolution functions:
    | ``mli_krn_conv2d_hwcn_fx16_fx8_fx8``      || In/out layout: **HWC**                |
    |                                           || Weights layout: **HWCN**              |
    |                                           || In/out data format: **fx16**          |
-   |                                           || Wights/Bias data format: **fx8**      |
+   |                                           || Weights/Bias data format: **fx8**     |
    +-------------------------------------------+----------------------------------------+
    | ``mli_krn_conv2d_hwcn_sa8_sa8_sa32_k1x1`` || In/out layout: **HWC**                |
    |                                           || Weights layout: **HWCN**              |
@@ -98,7 +98,7 @@ Here is a list of all available 2D Convolution functions:
    | ``mli_krn_conv2d_hwcn_fx16_fx8_fx8_k1x1`` || In/out layout: **HWC**                |
    |                                           || Weights layout: **HWCN**              |
    |                                           || In/out data format: **fx16**          |
-   |                                           || Wights/Bias data format: **fx8**      |
+   |                                           || Weights/Bias data format: **fx8**     |
    |                                           || Width of weights tensor: **1**        |
    |                                           || Height of weights tensor: **1**       |
    +-------------------------------------------+----------------------------------------+
@@ -118,7 +118,7 @@ Here is a list of all available 2D Convolution functions:
    | ``mli_krn_conv2d_hwcn_fx16_fx8_fx8_k3x3`` || In/out layout: **HWC**                |
    |                                           || Weights layout: **HWCN**              |
    |                                           || In/out data format: **fx16**          |
-   |                                           || Wights/Bias data format: **fx8**      |
+   |                                           || Weights/Bias data format: **fx8**     |
    |                                           || Width of weights tensor: **3**        |
    |                                           || Height of weights tensor: **3**       |
    +-------------------------------------------+----------------------------------------+
@@ -138,7 +138,7 @@ Here is a list of all available 2D Convolution functions:
    | ``mli_krn_conv2d_hwcn_fx16_fx8_fx8_k5x5`` || In/out layout: **HWC**                |
    |                                           || Weights layout: **HWCN**              |
    |                                           || In/out data format: **fx16**          |
-   |                                           || Wights/Bias data format: **fx8**      |
+   |                                           || Weights/Bias data format: **fx8**     |
    |                                           || Width of weights tensor: **5**        |
    |                                           || Height of weights tensor: **5**       |
    +-------------------------------------------+----------------------------------------+
@@ -156,7 +156,7 @@ The available 2D Convolution functions must comply with the following conditions
  
  - Channel (C) dimension of ``in`` and ``weights`` tensors must be equal.
  
- - ``Mem_stride`` of the innermost dimension should be equal to 1 for all the tensors.
+ - ``mem_stride`` of the innermost dimension should be equal to 1 for all the tensors.
  
  - Bias must be a one-dimensional tensor. Its length must be equal to N dimension 
    (number of filters) of ``weights`` tensor.

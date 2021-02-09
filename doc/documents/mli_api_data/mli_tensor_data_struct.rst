@@ -44,15 +44,25 @@ where ``mli_element_params`` is defined as follows:
       } fx; /* FiXed point \*/
   
       struct {
+         mli_el_param_type type;
          mli_data_container zero_point;
          mli_data_container scale;
+         mli_data_container scale_frac_bits;
          int32_t dim;
-         int8_t scale_frac_bits;
       } sa; /* Signed Asymmetric \*/
    } mli_element_params;
 ..
-   
-where ``mli_data_container`` is defined as follows:
+
+where ``mli_el_param_type`` is defined as follows:
+
+.. code::
+ 
+   typedef enum {
+      MLI_EL_PARAM_SC16_ZP16 = 0
+   } mli_el_param_type;
+..
+
+and ``mli_data_container`` is defined as follows:
 
 .. code::
  
@@ -70,6 +80,7 @@ where ``mli_data_container`` is defined as follows:
      } mem;
    } mli_data_container;
 ..
+
 
 Table :ref:`mli_tnsr_struc` describes the fields in the mli_tensor structure.
 
@@ -107,7 +118,8 @@ Table :ref:`mli_tnsr_struc` describes the fields in the mli_tensor structure.
    |                   |                        | A(rows,columns), ``mem_stride[1]`` contains the distance to the next        |
    |                   |                        | element (=1 in this example), and ``mem_stride[0]`` contains the distance   |
    |                   |                        | from one row to the next (=columns in this example). The size of the array  |
-   |                   |                        | is defined by ``MLI_MAX_RANK*``.                                            |
+   |                   |                        | is defined by ``MLI_MAX_RANK*``.If the mem_stride is set to 0, it will be   |
+   |                   |                        | computed from the shape.                                                    |
    +-------------------+------------------------+-----------------------------------------------------------------------------+
    | ``rank``          | ``uint32_t``           | Number of dimensions of this tensor (Must be less or equal to               |
    |                   |                        | ``MLI_MAX_RANK*``)                                                          |
@@ -138,7 +150,11 @@ channels in the tensor ``(array_size = shape[dim])``.
    +------------------------+------------------------+-----------------------------------------------------------------------------+
    | **Field Name**         | **Type**               | **Comment**                                                                 |
    +========================+========================+=============================================================================+
-   | ``fx.frac_bits``       | ``uint32_t``           | Number of fractional bits.                                                  |    
+   | ``fx.frac_bits``       | ``uint8_t``            | Number of fractional bits.                                                  |
+   +------------------------+------------------------+-----------------------------------------------------------------------------+
+   | ``sa.type``            | ``mli_el_param_type``  | Enum depicting the types of the quantization parameters in the tensor.      |
+   |                        |                        | Only MLI_EL_PARAM_SC16_ZP16 is currently supported which reflects the       |
+   |                        |                        | following parameters according the description below.                       |
    +------------------------+------------------------+-----------------------------------------------------------------------------+
    | ``sa.zeropoint``       | ``mli_data_container`` | 16-bit signed zero-point offset.                                            |
    |                        |                        |                                                                             |

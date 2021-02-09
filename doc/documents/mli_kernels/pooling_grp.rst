@@ -20,7 +20,7 @@ Functions in this group use the mli_pool_cfg structure, defined as:
       uint8_t padding_bottom;
    } mli_pool_cfg;
 
-
+.. _t_mli_pool_cfg_desc:
 .. table:: mli_pool_cfg structure field description
    :align: center
    :widths: auto
