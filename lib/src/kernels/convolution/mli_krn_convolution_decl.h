@@ -106,7 +106,8 @@ MLI_FORCE_INLINE void depthwise_convolution2D(
 // VDSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T,
+          int fix_kernel_width, int fix_kernel_height, bool group_conv2d = false>
 MLI_FORCE_INLINE void convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
