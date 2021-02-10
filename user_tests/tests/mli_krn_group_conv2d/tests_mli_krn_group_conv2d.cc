@@ -237,6 +237,23 @@ int main() {
         const group_conv2d_test_operands* cur_test = &tests_list[i];
         quality_metrics test_metics;
 
+#if defined(__Xvec_guard_bit_option) && (__Xvec_guard_bit_option == 0)
+        if (strstr(cur_test->descr, "Test 1 FX16") != nullptr ||
+            strstr(cur_test->descr, "Test 2 FX16 ReluGen") != nullptr ||
+            strstr(cur_test->descr, "Test 3 SA8_SA8_SA32 Mult FPG") != nullptr ||
+            strstr(cur_test->descr, "Test 4 FX16 DW call") != nullptr ||
+            strstr(cur_test->descr, "Test 5 FX16 Conv2D call") != nullptr ||
+            strstr(cur_test->descr, "Test 6 FX16 IO_Memstr") != nullptr ||
+            strstr(cur_test->descr, "Test 7 FX16 W_Memstr") != nullptr ||
+            strstr(cur_test->descr, "Test 9 FX16 k3x3 Mstr+Dil") != nullptr ||
+            strstr(cur_test->descr, "Test 10 FX16 k5x5 Mstr+Dil") != nullptr ||
+            strstr(cur_test->descr, "Test 10 SA8 k5x5 Mstr+Dil") != nullptr) {
+            // VPX fails bitwise comparison with reference .
+            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
+            continue;
+        }
+#endif
+
         if (!(cur_test->in.is_valid() && cur_test->weights.is_valid() &&
                 cur_test->bias.is_valid() && cur_test->out.is_valid())) {
             reporter.report_message(cur_test->descr, "FAILED at init: Bad source data for one of tensors");

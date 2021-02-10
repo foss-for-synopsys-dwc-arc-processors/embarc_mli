@@ -254,8 +254,8 @@ MLI_FORCE_INLINE mli_acc40_t mli_math_acc_ashift_fx(mli_acc40_t acc, int shift_r
 
 template <>
 MLI_FORCE_INLINE int8_t mli_math_ashift_right_fx(int8_t in_val, int shift_right) {
-    int16_t shifted_in_val = mli_math_asr_rnd_fx<int16_t>((int16_t)in_val, shift_right);
-    return (int8_t)mli_math_sat_fx<int16_t>(shifted_in_val, 8);
+    int8_t shifted_in_val = mli_math_asr_rnd_fx<int8_t>((int8_t)in_val, shift_right);
+    return shifted_in_val;
 }
 
 template <>
