@@ -23,15 +23,17 @@
 namespace mli {
 namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-using mli::krn::vdsp::mli_krn_permute_run;
+using mli::krn::vdsp::mli_krn_permute_inner;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-using mli::krn::ref::mli_krn_permute_run;
+using mli::krn::ref::mli_krn_permute_inner;
 
 #else
-using mli::krn::ref::mli_krn_permute_run;
+using mli::krn::ref::mli_krn_permute_inner;
 
 #endif
+
+using mli::krn::ref::mli_krn_permute_run;
 } // namespace krn
 } // namespace mli
 
@@ -42,11 +44,12 @@ using mli::krn::ref::mli_krn_permute_run;
 // included. Other variants are included based on capabilities. Implementations
 // below can depend on each other through declarations in *_decl.h.
 
+#include "impl/mli_krn_permute_ref.h"
+
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
 #include "impl/mli_krn_permute_vdsp.h"
-#else
-#include "impl/mli_krn_permute_ref.h"
 #endif
+
 // #if !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
 // #include "impl/mli_krn_permute_dsp.h"
 // #endif
