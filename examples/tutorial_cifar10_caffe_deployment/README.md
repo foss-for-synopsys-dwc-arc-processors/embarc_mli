@@ -2,7 +2,7 @@ Model Deployment Tutorial for Caffe and CIFAR-10: Scripts
 ==================================================
 
 This folder contains python scripts to reflect deployment process described in the 
-[heading tutorial](https://embarc.org/embarc_mli/doc/build/html/Examples_Tutorials/Examples_Tutorials.html#model-deployment-tutorial-for-caffe-and-cifar-10).
+[heading tutorial](https://foss-for-synopsys-dwc-arc-processors.github.io/embarc_mli/doc/build/html/Examples_Tutorials/Examples_Tutorials.html#model-deployment-tutorial-for-caffe-and-cifar-10).
 
 ### Requirements
 
@@ -34,6 +34,6 @@ Caffe standard Cifar-10 tutorial provides tool for CIFAR-10 dataset transformati
 ### Details
 
 For more information see:
-1. [Model Deployment Tutorial for Caffe and CIFAR-10](https://embarc.org/embarc_mli/doc/build/html/Examples_Tutorials/Examples_Tutorials.html#model-deployment-tutorial-for-caffe-and-cifar-10)
+1. [Model Deployment Tutorial for Caffe and CIFAR-10](https://foss-for-synopsys-dwc-arc-processors.github.io/embarc_mli/doc/build/html/Examples_Tutorials/Examples_Tutorials.html#model-deployment-tutorial-for-caffe-and-cifar-10)
 2. Python code which is well documented
 
