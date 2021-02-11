@@ -17,6 +17,7 @@
 #include "mli_types.h"
 #include "mli_krn_dotprod.h"
 #include "mli_prv_layout.h"
+#include "mli_krn_convolution.h"
 
 namespace mli {
 namespace krn {
@@ -24,10 +25,24 @@ namespace vdsp {
 
 #pragma MLI_CODE_SECTION_START(".mli_lib")
 
+MLI_FORCE_INLINE s8asym_quant_specific_params quant_params_offset(s8asym_quant_specific_params &params,
+		int offset) {
+    s8asym_quant_specific_params params_prv = params;
+    params_prv.weight_scales = params.weight_scales + offset;
+    params_prv.weight_shifts = params.weight_shifts + offset;
+    return params_prv;
+}
+
+MLI_FORCE_INLINE fx_quant_specific_params quant_params_offset(fx_quant_specific_params &in,
+		int offset) {
+    // No need to adjust something during calculations for MLI_FX specific quantization
+    return in;
+}
+
 //========================================================
 // Group Convolution 2D without padding
 //========================================================
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void group_convolution2D_nopad(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
@@ -42,66 +57,33 @@ MLI_FORCE_INLINE void group_convolution2D_nopad(
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right) {
 
-    const int row_begin = perception_area.row_beg;
-    const int row_end = perception_area.row_end;
-    const int clmn_begin = perception_area.clmn_beg;
-    const int clmn_end = perception_area.clmn_end;
-
     const int group_count = in.ch / weights.in_ch;
     const int filters_per_group = weights.out_ch / group_count;
 
-    const int rows = weights.kernel_height;
-    const int clmns = weights.kernel_width;
+    tensor_private_t<MLI_CONV_OUT_PTR(io_T)> out_prv = out;
+    tensor_private_t<MLI_CONV_OUT_PTR(io_T)> in_prv = in;
+    conv2d_weights_tensor_private_t<MLI_PTR(w_T)> weights_prv = weights;
+    const MLI_PTR(b_T)  __restrict biases_prv = biases;
+    out_prv.ch = filters_per_group;
+    in_prv.ch = weights.in_ch;
 
     for (int M = 0; M < group_count; M++) {
-        int out_ch_idx_beg = M * filters_per_group;
-        int out_ch_idx_end = out_ch_idx_beg + filters_per_group;
-        for (int out_ch_idx = out_ch_idx_beg; out_ch_idx < out_ch_idx_end; out_ch_idx += get_number_lanes<acc_T>()) {
-            int remaining_ch = out_ch_idx_end - out_ch_idx;
-            int current_ch = MIN(remaining_ch, get_number_lanes<acc_T>()); /* nr channels computed in this loop iteration */
 
-            const MLI_PTR(w_T) w_ptr = weights.ptr
-                    + weights.out_ch_mem_stride * out_ch_idx;
+        int group_offset = M * filters_per_group;
+        in_prv.ptr = in.ptr + in.ch_mem_stride * weights.in_ch * M;
+        out_prv.ptr = out.ptr + out.ch_mem_stride * group_offset;
+        weights_prv.ptr = weights.ptr + weights.out_ch_mem_stride * group_offset;
+        biases_prv = biases + group_offset;
+        quant_T quant_params_prv = quant_params_offset(quant_params, group_offset);
 
-            auto output_params = adjust_quant_params_v(&quant_params, out_ch_idx);
+        mli::krn::vdsp::convolution2D_nopad<io_T, w_T, b_T, acc_T, quant_T, fix_kernel_width, fix_kernel_height>(
+                in_prv, weights_prv, biases_prv, out_prv, perception_area, quant_params_prv,
+                val_min_limit, val_max_limit,
+                stride_height, stride_width,
+                dilation_height, dilation_width,
+                padding_top, padding_left,
+                padding_bot, padding_right);
 
-            acc_T pre_accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
-            pre_accu = mli::krn::bias_additive(&biases[out_ch_idx], pre_accu, &output_params);
-
-            pre_accu = mli::krn::weights_additive(w_ptr, pre_accu, &quant_params, clmns, rows, weights.in_ch,
-                    weights.col_mem_stride,
-                    weights.row_mem_stride,
-                    weights.in_ch_mem_stride);
-
-            for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
-                for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
-
-                    const int h_idx_in = H_idx * stride_height - padding_top;
-                    const int w_idx_in = W_idx * stride_width - padding_left;
-
-                    MLI_CONV_OUT_PTR(io_T) out_ptr = out.ptr
-                            + out.row_mem_stride * H_idx
-                            + out.col_mem_stride * W_idx
-                            + out.ch_mem_stride * out_ch_idx;
-
-                    const MLI_PTR(io_T) in_ptr = in.ptr
-                            + in.row_mem_stride * h_idx_in
-                            + in.col_mem_stride * w_idx_in
-                            + in.ch_mem_stride * weights.in_ch
-                            * (out_ch_idx / filters_per_group);
-
-                    acc_T accu = pre_accu;
-                    accu = mli::krn::dotprod3D_v(in_ptr, w_ptr, clmns, rows, weights.in_ch,
-                            in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride,
-                            weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride,
-                            accu);
-
-                    // Cast result to output type, apply built-in ReLU Applying and write result
-                    mli::krn::result_cast_relu_store_v(out_ptr, accu, &output_params, val_min_limit, val_max_limit, current_ch);
-
-                } // for W_idx
-            } // for H_idx
-        } // for out_ch_idx
     } // for M (group_count)
 }
 
@@ -123,80 +105,39 @@ MLI_FORCE_INLINE void group_convolution2D_pad(
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right) {
 
-    const int row_begin = perception_area.row_beg;
-    const int row_end = perception_area.row_end;
-    const int clmn_begin = perception_area.clmn_beg;
-    const int clmn_end = perception_area.clmn_end;
-
     const int group_count = in.ch / weights.in_ch;
     const int filters_per_group = weights.out_ch / group_count;
 
-    for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
-        for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
-            // Define area of input and filter for convolution
-            // comp - compensation values for valid area definition
-            const mli_compensations comp = mli_prv_valid_area_compensations(
-                    H_idx, W_idx, in.height, in.width,
-                    weights.kernel_height, weights.kernel_width,
-                    stride_height, stride_width, padding_left, padding_top,
-                    dilation_height, dilation_width);
+    tensor_private_t<MLI_CONV_OUT_PTR(io_T)> out_prv = out;
+    tensor_private_t<MLI_CONV_OUT_PTR(io_T)> in_prv = in;
+    conv2d_weights_tensor_private_t<MLI_PTR(w_T)> weights_prv = weights;
+    const MLI_PTR(b_T)  __restrict biases_prv = biases;
+    out_prv.ch = filters_per_group;
+    in_prv.ch = weights.in_ch;
 
-            const int rows = weights.kernel_height - comp.kernel_top - comp.kernel_bottom;
-            const int clmns = weights.kernel_width - comp.kernel_right - comp.kernel_left;
-            const int h_idx_in = (H_idx * stride_height - padding_top + comp.in_top);
-            const int w_idx_in = (W_idx * stride_width - padding_left + comp.in_left);
+    for (int M = 0; M < group_count; M++) {
 
-            for (int M = 0; M < group_count; M++) {
-                int out_ch_idx_beg = M * filters_per_group;
-                int out_ch_idx_end = out_ch_idx_beg + filters_per_group;
-                for (int out_ch_idx = out_ch_idx_beg; out_ch_idx < out_ch_idx_end; out_ch_idx += get_number_lanes<acc_T>()) {
-                    int remaining_ch = out_ch_idx_end - out_ch_idx;
-                    int current_ch = MIN(remaining_ch, get_number_lanes<acc_T>()); /* nr channels computed in this loop iteration */
-                    MLI_CONV_OUT_PTR(io_T) out_ptr = out.ptr
-                            + out.row_mem_stride * H_idx
-                            + out.col_mem_stride * W_idx
-                            + out.ch_mem_stride * out_ch_idx;
+        int group_offset = M * filters_per_group;
+        in_prv.ptr = in.ptr + in.ch_mem_stride * weights.in_ch * M;
+        out_prv.ptr = out.ptr + out.ch_mem_stride * group_offset;
+        weights_prv.ptr = weights.ptr + weights.out_ch_mem_stride * group_offset;
+        biases_prv = biases + group_offset;
+        quant_T quant_params_prv = quant_params_offset(quant_params, group_offset);
 
-                    const MLI_PTR(io_T) in_ptr = in.ptr
-                            + in.row_mem_stride * h_idx_in
-                            + in.col_mem_stride * w_idx_in
-                            + in.ch_mem_stride * weights.in_ch
-                            * (out_ch_idx / filters_per_group);
-
-                    const MLI_PTR(w_T) w_ptr = weights.ptr
-                            + weights.row_mem_stride * comp.kernel_top
-                            + weights.col_mem_stride * comp.kernel_left
-                            + weights.out_ch_mem_stride * out_ch_idx;
-
-                    auto output_params = adjust_quant_params_v(&quant_params, out_ch_idx);
-
-                    acc_T accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
-
-                    accu = mli::krn::bias_additive(&biases[out_ch_idx], accu, &output_params);
-
-                    accu = mli::krn::dotprod3D_v(in_ptr, w_ptr, clmns, rows, weights.in_ch,
-                            in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride,
-                            weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride,
-                            accu);
-
-                    accu = mli::krn::weights_additive(w_ptr, accu, &quant_params, clmns, rows, weights.in_ch,
-                            weights.col_mem_stride,
-                            weights.row_mem_stride,
-                            weights.in_ch_mem_stride);
-
-                    // Cast result to output type, apply built-in ReLU Applying and write result
-                    mli::krn::result_cast_relu_store_v(out_ptr, accu, &output_params, val_min_limit, val_max_limit, current_ch);
-
-                } // for out_ch_idx
-            } // for M (group_count)
-        } // for W_idx
-    } // for H_idx
+        mli::krn::vdsp::convolution2D_pad<io_T, w_T, b_T, acc_T, quant_T>(
+                in_prv, weights_prv, biases_prv, out_prv, perception_area, quant_params_prv,
+                val_min_limit, val_max_limit,
+                stride_height, stride_width,
+                dilation_height, dilation_width,
+                padding_top, padding_left,
+                padding_bot, padding_right);
+    }
 }
 
 //========================================================
 // Group Convolution 2D
 //========================================================
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void group_convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
@@ -223,7 +164,7 @@ MLI_FORCE_INLINE void group_convolution2D(
 
     if ((perception_area_nopad.row_end - perception_area_nopad.row_beg > 0)
         && (perception_area_nopad.clmn_end - perception_area_nopad.clmn_beg > 0)){
-        group_convolution2D_nopad<io_T, w_T, b_T, acc_T, quant_T>(
+        group_convolution2D_nopad<io_T, w_T, b_T, acc_T, quant_T, fix_kernel_width, fix_kernel_height>(
                 in, weights, biases, out, perception_area_nopad, quant_params,
                 val_min_limit, val_max_limit,
                 stride_height, stride_width,
