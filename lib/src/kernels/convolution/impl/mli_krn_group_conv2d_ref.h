@@ -17,6 +17,7 @@
 #include "mli_types.h"
 #include "mli_krn_dotprod.h"
 #include "mli_prv_layout.h"
+#include "mli_krn_convolution.h"
 
 namespace mli {
 namespace krn {
@@ -188,32 +189,30 @@ MLI_FORCE_INLINE void group_conv2d_prepare_and_run(
     cent_area.row_beg = 0; cent_area.row_end = out_height;
     cent_area.clmn_beg = 0; cent_area.clmn_end = out_width;
 
-    // While DSP and VDSP version aren't implemented, the following optimization 
-    // cannot be used properly. When they are ready, all optimizations for convolution2d
-    // and depthwise_conv2d can be reused for particular cases of group_convolution2d
-
-    // if (in_prv.ch == weights_prv.in_ch) {
-    //     mli::krn::convolution2D<io_T, w_T, b_T, acc_T, quant_T, fix_kernel_width, fix_kernel_height>(
-    //             in_prv, weights_prv, bs, out_prv, cent_area, params,
-    //             (io_T)val_limit.min, (io_T)val_limit.max,
-    //             stride_height, stride_width, dilation_height, dilation_width,
-    //             padding_top, padding_left,
-    //             padding_bot, padding_right);
-    // } else if (weights_prv.in_ch == 1) {
-    //     depthwise_convolution2D_wrapper<io_T, w_T, b_T, acc_T, quant_T>(
-    //             in_prv.ptr, weights_prv.ptr, out_prv.ptr,
-    //             in_prv, weights_prv, bs, out_prv, cent_area, params,
-    //             (io_T)val_limit.min, (io_T)val_limit.max,
-    //             stride_height, stride_width, dilation_height, dilation_width,
-    //             padding_top, padding_left,
-    //             padding_bot, padding_right);
-    // } else {
+    // Reuse all optimizations for convolution2d and depthwise_conv2d for particular cases of group_convolution2d
+    if (in_prv.ch == weights_prv.in_ch) {
+        mli::krn::convolution2D<io_T, w_T, b_T, acc_T, quant_T, fix_kernel_width, fix_kernel_height>(
+                in_prv, weights_prv, bs, out_prv, cent_area, params,
+                (io_T)val_limit.min, (io_T)val_limit.max,
+                stride_height, stride_width, dilation_height, dilation_width,
+                padding_top, padding_left,
+                padding_bot, padding_right);
+    } else if (weights_prv.in_ch == 1) {
+        depthwise_convolution2D_wrapper<io_T, w_T, b_T, acc_T, quant_T>(
+                in_prv.ptr, weights_prv.ptr, out_prv.ptr,
+                in_prv, weights_prv, bs, out_prv, cent_area, params,
+                (io_T)val_limit.min, (io_T)val_limit.max,
+                stride_height, stride_width, dilation_height, dilation_width,
+                padding_top, padding_left,
+                padding_bot, padding_right);
+    } else {
         mli::krn::group_convolution2D<io_T, w_T, b_T, acc_T, quant_T, fix_kernel_width, fix_kernel_height>(
                 in_prv, weights_prv, bs, out_prv, cent_area, params,
                 (io_T)val_limit.min, (io_T)val_limit.max,
                 stride_height, stride_width, dilation_height, dilation_width,
                 padding_top, padding_left,
                 padding_bot, padding_right);
+    }
     
 }
 #pragma MLI_CODE_SECTION_END()
