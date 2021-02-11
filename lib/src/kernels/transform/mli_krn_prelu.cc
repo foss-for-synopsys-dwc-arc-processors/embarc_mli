@@ -10,6 +10,7 @@
 #include "mli_check.h"
 #include "mli_debug.h"
 #include "mli_krn_prelu.h"
+#include "mli_api.h"
 
 #ifdef __cplusplus
 extern "C" {

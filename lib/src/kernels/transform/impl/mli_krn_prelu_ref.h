@@ -90,25 +90,47 @@ static MLI_FORCE_INLINE void compute_prelu(
     compute_prelu(vec_in, vec_out, in_zp, identity_params, alpha_params);
 }
 
+template<typename io_T, typename scale_T>
+static MLI_FORCE_INLINE void compute_prelu_fx_inner_loop(
+        const MLI_PTR(io_T) __restrict vec_in,
+        const scale_T scale,
+        MLI_OUT_PTR(io_T) __restrict vec_out,
+        const int shift,
+        const int count,
+        const int remaining_part) {
+    /* Dummy Load to get num_lanes */
+    auto input = mli_prv_load_1vec(vec_in);
+    int num_lanes = get_number_lanes(input);
+
+    if (remaining_part) {
+        mli::krn::compute_prelu<io_T, decltype(input)>(vec_in, scale, vec_out,
+                                            shift, remaining_part);
+        vec_in  += remaining_part;
+        vec_out += remaining_part;
+    }
+    for (int pos3 = remaining_part; pos3 < count; pos3 += num_lanes) {
+        mli::krn::compute_prelu<io_T, decltype(input)>(vec_in, scale, vec_out, shift);
+        vec_in  += num_lanes;
+        vec_out += num_lanes;
+    }
+}
+
 template <typename io_T>
-static MLI_FORCE_INLINE mli_status prelu_fx_run(const mli_tensor *in, 
+static MLI_FORCE_INLINE mli_status prelu_fx_run(const mli_tensor *in,
         const mli_tensor *slope_coeff,
-        const mli_prelu_cfg *cfg, 
+        const mli_prelu_cfg *cfg,
         mli_tensor *out) {
 
     mli_prv_fx_init_dsp_ctrl();
 
-    const MLI_PTR(io_T) vec_in = nullptr;
-    MLI_OUT_PTR(io_T) vec_out = nullptr;
-
-    const MLI_PTR(io_T) in_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in);
-    const MLI_PTR(io_T) slope_ptr = nullptr;
-    MLI_OUT_PTR(io_T) out_ptr = mli_prv_tensor_data_ptr<MLI_OUT_PTR(io_T)>(out);
+    const MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T))(in->data.mem.void_p);
+    const MLI_PTR(io_T) __restrict slope_ptr = nullptr;
+    MLI_OUT_PTR(io_T) __restrict out_ptr = (MLI_OUT_PTR(io_T)) (out->data.mem.void_p);
 
     /* Copy tensor format */
     mli_prv_copy_tensor_format_except_mem_strides(in, out);
     /* Get Generic Private Tensor */
-    auto in_prv =  mli_prv_get_generic_tensor<MLI_PTR(io_T)>(in);    
+    auto in_prv =  mli_prv_get_generic_tensor<MLI_PTR(io_T)>(in);
     auto out_prv = mli_prv_get_generic_tensor<MLI_OUT_PTR(io_T)>(out);
 
     /* Define Slope Axis Params */
@@ -117,8 +139,10 @@ static MLI_FORCE_INLINE mli_status prelu_fx_run(const mli_tensor *in,
     int axis_out_mem_stride = 0;
     bool broadcasting = true;
     bool is_leaky_relu = (cfg->axis == -1);
-    io_T scale;
+    io_T scale = 0;
     if (is_leaky_relu) {
+        /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
+        mli_prv_squash_generic_tensor<MLI_PTR(io_T)>(&in_prv, &out_prv);
         // Getscalar value
         scale = mli_prv_tensor_data_val<io_T>(slope_coeff);
     } else {
@@ -129,11 +153,13 @@ static MLI_FORCE_INLINE mli_status prelu_fx_run(const mli_tensor *in,
         axis_in_mem_stride = in_prv.mem_stride[cfg->axis];
         axis_out_mem_stride = out_prv.mem_stride[cfg->axis];
         slope_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(slope_coeff);
+        /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
+        mli_prv_reorder_generic_tensor<MLI_PTR(io_T)>(&in_prv );
+        mli_prv_reorder_generic_tensor<MLI_OUT_PTR(io_T)>(&out_prv);
     }
 
-    /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
-    mli_prv_reorder_generic_tensor<MLI_PTR(io_T)>(&in_prv );
-    mli_prv_reorder_generic_tensor<MLI_OUT_PTR(io_T)>(&out_prv);
+
+    int shift = mli_prv_calc_shift(in, slope_coeff, out);
 
     /* Dummy Load to get num_lanes */
     auto input = mli_prv_load_1vec(in_ptr);
@@ -141,18 +167,25 @@ static MLI_FORCE_INLINE mli_status prelu_fx_run(const mli_tensor *in,
     /* use out_prv instead of in_prv shape[3] as it's modified */
     int remaining_part = out_prv.shape[3] & (num_lanes - 1);
 
-    int shift = mli_prv_calc_shift(in, slope_coeff, out);
-
     for (int scale_idx = 0; scale_idx < axis_shape; ) {
-        
-        /* Define Sub Tensor */
-        vec_in  = (MLI_PTR(io_T))in_ptr  + scale_idx * axis_in_mem_stride;
-        vec_out = out_ptr + scale_idx * axis_out_mem_stride;
 
+        /* Define Sub Tensor */
+        const MLI_PTR(io_T) __restrict vec_in  = (MLI_PTR(io_T))in_ptr  + scale_idx * axis_in_mem_stride;
+        MLI_OUT_PTR(io_T) __restrict  vec_out = out_ptr + scale_idx * axis_out_mem_stride;
+        int shift_val = shift;
         decltype(input) scale_v;
         if (broadcasting) {
+            if (!is_leaky_relu) {
+                scale = slope_ptr[scale_idx];
+            }
+            if (std::is_same<io_T, int16_t>::value) {
+                /* Load Scale Elem */
+                int norm_shift;
+                scale = mli_math_norm_cast_fx<io_T,io_T>(scale, &norm_shift);
+                shift_val -= norm_shift;
+            }
             /* Load Scale Elem */
-            scale_v = mli_prv_init_v<io_T, decltype(input)>((is_leaky_relu)? scale: slope_ptr[scale_idx]);
+            scale_v = mli_prv_init_v<io_T, decltype(input)>(scale);
             scale_idx++;
         } else {
             /* Load Scale Vector */
@@ -160,29 +193,21 @@ static MLI_FORCE_INLINE mli_status prelu_fx_run(const mli_tensor *in,
             if (remaining_part) {
                 scale_idx += remaining_part;
             } else {
+                in_prv.shape[3] = num_lanes;
                 scale_idx += num_lanes;
             }
         }
 
         /* Loop Over Sub Tensor */
-        const MLI_PTR(io_T) orig_vec_in = vec_in;
-        MLI_OUT_PTR(io_T) orig_vec_out = vec_out;
+        const MLI_PTR(io_T) __restrict orig_vec_in = vec_in;
+        MLI_OUT_PTR(io_T) __restrict orig_vec_out = vec_out;
         for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
             for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
                 for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
                     vec_in  = (MLI_PTR(io_T))orig_vec_in  + POS(&in_prv, pos0, pos1, pos2, 0);
                     vec_out = orig_vec_out + POS(&out_prv, pos0, pos1, pos2, 0);
-                    if (remaining_part) {
-                        mli::krn::compute_prelu<io_T, decltype(input)>(vec_in, scale_v, vec_out,
-                                                            shift, remaining_part);
-                        vec_in  += remaining_part;
-                        vec_out += remaining_part;
-                    }
-                    for (int pos3 = remaining_part; pos3 < in_prv.shape[3]; pos3 += num_lanes) {
-                        mli::krn::compute_prelu<io_T, decltype(input)>(vec_in, scale_v, vec_out, shift);
-                        vec_in  += num_lanes;
-                        vec_out += num_lanes;
-                    }
+                    mli::krn::compute_prelu_fx_inner_loop(vec_in, scale_v, vec_out,
+                                                          shift_val, in_prv.shape[3], remaining_part);
                 }
             }
         }
@@ -192,7 +217,7 @@ static MLI_FORCE_INLINE mli_status prelu_fx_run(const mli_tensor *in,
             remaining_part = 0;
         }
     }
-    
+
     return MLI_STATUS_OK;
 }
 
@@ -308,6 +333,8 @@ static MLI_FORCE_INLINE mli_status prelu_sa8_run(const mli_tensor *in,
     int8_t scale;
     if (is_leaky_relu) {
         scale = mli_prv_tensor_data_val<int8_t>(slope_coeff);
+        /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
+        mli_prv_squash_generic_tensor<MLI_PTR(int8_t)>(&in_prv, &out_prv);
     } else {
         /* Broadcasting in case axis is not inner most dim */
         broadcasting = !(cfg->axis == (in_prv.rank - 1));
@@ -316,11 +343,11 @@ static MLI_FORCE_INLINE mli_status prelu_sa8_run(const mli_tensor *in,
         axis_in_mem_stride = in_prv.mem_stride[cfg->axis];
         axis_out_mem_stride = out_prv.mem_stride[cfg->axis];
         slope_ptr = mli_prv_tensor_data_ptr<MLI_PTR(int8_t)>(slope_coeff);
+        /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
+        mli_prv_reorder_generic_tensor<MLI_PTR(int8_t)>(&in_prv );
+        mli_prv_reorder_generic_tensor<MLI_OUT_PTR(int8_t)>(&out_prv);
     }
 
-    /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
-    mli_prv_reorder_generic_tensor<MLI_PTR(int8_t)>(&in_prv );
-    mli_prv_reorder_generic_tensor<MLI_OUT_PTR(int8_t)>(&out_prv);
 
     /* ****************************************************************************************************************
      *                        Mathematical Derivations for Leaky RELU SA8 

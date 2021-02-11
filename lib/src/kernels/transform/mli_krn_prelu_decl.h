@@ -59,6 +59,15 @@ static MLI_FORCE_INLINE void compute_prelu(
         const s8asym_quant_params *alpha_params,
         const int remaining_part);
 
+template<typename io_T, typename scale_T>
+static MLI_FORCE_INLINE void compute_prelu_fx_inner_loop(
+        const MLI_PTR(io_T) __restrict vec_in,
+        const scale_T scale,
+        MLI_OUT_PTR(io_T) __restrict vec_out,
+        const int shift,
+        const int count,
+        const int remaining_part);
+
 static MLI_FORCE_INLINE s8asym_quant_params prelu_define_requant_params(const mli_tensor *in, 
         const mli_tensor *slope_coeff,
         mli_tensor *out,
@@ -129,6 +138,7 @@ static MLI_FORCE_INLINE void compute_prelu(
 namespace vdsp {
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
+
 template <typename io_T, typename scale_T>
 static MLI_FORCE_INLINE void compute_prelu(
         const MLI_PTR(io_T) vec_in,
@@ -172,6 +182,15 @@ MLI_FORCE_INLINE void compute_prelu(
         const vNx2short_t scale,
         MLI_OUT_PTR(int16_t) vec_out,
         const int shift,
+        const int remaining_part);
+
+template<typename io_T, typename scale_T>
+static MLI_FORCE_INLINE void compute_prelu_fx_inner_loop(
+        const MLI_PTR(io_T) __restrict vec_in,
+        const scale_T scale,
+        MLI_OUT_PTR(io_T) __restrict vec_out,
+        const int shift,
+        const int count,
         const int remaining_part);
 
 static MLI_FORCE_INLINE s8asym_quant_params_v prelu_define_requant_params(const mli_tensor *in, 

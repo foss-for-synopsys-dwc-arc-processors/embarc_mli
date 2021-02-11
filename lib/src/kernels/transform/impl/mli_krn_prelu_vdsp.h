@@ -27,24 +27,30 @@ static MLI_FORCE_INLINE vNx4char_t calc_prelu(
         const vNx4char_t input,
         const vNx4char_t scale,
         const int shift ) {
-    /* out  = max(0, in) + alpha * min(0, in) */
-    vNx4char_t pos = mli_math_max_fx(input, 0);
-    vNx4accshort_t acc = mli_math_mul_fx<vNx4char_t, vNx4accshort_t>(mli_math_min_fx(input, 0), scale);
+    pvNx4 sel = init_predicate(input > 0);
+    vNx4accshort_t acc = mli_math_mul_fx<vNx4char_t, vNx4accshort_t>(input, scale);
     vNx4char_t neg = mli_math_acc_cast_fx<vNx4char_t, vNx4accshort_t>(acc, shift);
 
-    return mli_math_add(pos, neg);
+    return mli_math_select_fx(sel, input, neg);
 }
 
 static MLI_FORCE_INLINE vNx2short_t calc_prelu(
         const vNx2short_t input,
         const vNx2short_t scale,
         const int shift ) {
-    /* out  = max(0, in) + alpha * min(0, in) */
-    vNx2short_t pos = mli_math_max_fx(input, 0);
-    vNx2accint_t acc = mli_math_mul_fx<vNx2short_t, vNx2accint_t>(mli_math_min_fx(input, 0), scale);
-    vNx2short_t neg = mli_math_acc_cast_fx<vNx2short_t, vNx2accint_t>(acc, shift);
 
-    return mli_math_add(pos, neg);
+    constexpr int mul_hi_shift = 16;
+    pvNx2 sel = init_predicate(input > 0);
+    vNx2short_t neg;
+    if ( shift > mul_hi_shift) {
+    	neg = mli_math_mul_fx_high(input, scale);
+    	neg = mli_math_asr_rnd_fx(neg, shift - mul_hi_shift);
+    } else {
+    	vNx2accint_t acc = mli_math_mul_fx<vNx2short_t, vNx2accint_t>(input, scale);
+    	neg = mli_math_acc_cast_fx<vNx2short_t, vNx2accint_t>(acc, shift);
+    }
+
+    return mli_math_select_fx(sel, input, neg);
 }
 
 template <>
@@ -91,6 +97,32 @@ MLI_FORCE_INLINE void compute_prelu(
 
     vNx2short_t input = mli_prv_load_1vec(vec_in);
     mli_prv_store_n_samples(vec_out, calc_prelu(input, scale, shift), remaining_part);
+}
+
+template<typename io_T, typename scale_T>
+static MLI_FORCE_INLINE void compute_prelu_fx_inner_loop(
+        const MLI_PTR(io_T) __restrict vec_in,
+        const scale_T scale,
+        MLI_OUT_PTR(io_T) __restrict vec_out,
+        const int shift,
+        const int count,
+        const int remaining_part) {
+    /* Dummy Load to get num_lanes */
+    auto input = mli_prv_load_1vec(vec_in);
+    int num_lanes = get_number_lanes(input);
+
+    if (remaining_part) {
+        compute_prelu<io_T, scale_T>(vec_in, scale, vec_out, shift, remaining_part);
+        vec_in  += remaining_part;
+        vec_out += remaining_part;
+    }
+
+#pragma clang loop unroll_count(4)
+    for (int pos3 = remaining_part; pos3 < count; pos3 += num_lanes) {
+        compute_prelu<io_T, scale_T>(vec_in, scale, vec_out, shift);
+        vec_in  += num_lanes;
+        vec_out += num_lanes;
+    }
 }
 
 static MLI_FORCE_INLINE s8asym_quant_params_v prelu_define_requant_params(const mli_tensor *in, 

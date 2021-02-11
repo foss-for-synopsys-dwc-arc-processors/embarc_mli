@@ -24,18 +24,21 @@ namespace mli {
 namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
 using mli::krn::vdsp::compute_prelu;
+using mli::krn::vdsp::compute_prelu_fx_inner_loop;
 using mli::krn::vdsp::prelu_define_requant_params;
 using mli::krn::ref::prelu_fx_run;
 using mli::krn::ref::prelu_sa8_run;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
 using mli::krn::dsp::compute_prelu;
+using mli::krn::ref::compute_prelu_fx_inner_loop;
 using mli::krn::dsp::prelu_define_requant_params;
 using mli::krn::ref::prelu_fx_run;
 using mli::krn::ref::prelu_sa8_run;
 
 #else
 using mli::krn::ref::compute_prelu;
+using mli::krn::ref::compute_prelu_fx_inner_loop;
 using mli::krn::ref::prelu_define_requant_params;
 using mli::krn::ref::prelu_fx_run;
 using mli::krn::ref::prelu_sa8_run;
