@@ -30,8 +30,11 @@ extern mli::tst::tensor_quantizer input_2_fx8;
 extern mli::tst::tensor_quantizer input_2_fx16;
 extern mli::tst::tensor_quantizer input_2_fp32;
 
-
-static const float input_data[] = {
+// This input data is non-constant because it has to be placed 
+// in a HW specific memory according to MLI requirements.
+// The integrity of the source data is controlled by the entity of 
+// the application itself (CRC and SNR check). 
+static IO_DATA_ATTR float input_data[] = {
     -0.795256615f, -0.020611584f, -0.857786238f, -0.116273165f, 0.808907866f, -0.496227741f, -0.107275546f, -0.577136159f,
     1.860774279f, 0.930648685f, 1.950116396f, 1.566918135f, 0.589830399f, -0.950313091f, 0.618810654f, -0.962112069f,
     1.893128872f, -0.582279801f, 1.939082861f, -0.719187677f, 1.063522339f, 1.109600544f, 1.949721098f, -0.861565351f,
@@ -149,30 +152,30 @@ static const mli_tensor input_2_tsr_fp32 = {
 
 // Quantizers
 //===================================================
-tensor_quantizer input_1_sa8(input_1_tsr_sa8, input_1_sa_dim, input_data,
+tensor_quantizer input_1_sa8(input_1_tsr_sa8, input_1_sa_dim, (float*)input_data,
     sizeof(input_data) / sizeof(input_data[0]), input_1_scales, sizeof(input_1_scales) / sizeof(input_1_scales[0]),
     input_1_zero_points, sizeof(input_1_zero_points) / sizeof(input_1_zero_points[0]), input_1_scales_frac, sizeof(input_1_scales_frac) / sizeof(input_1_scales_frac[0]));
 
-tensor_quantizer input_1_sa32(input_1_tsr_sa32, input_1_sa_dim, input_data,
+tensor_quantizer input_1_sa32(input_1_tsr_sa32, input_1_sa_dim, (float*)input_data,
     sizeof(input_data) / sizeof(input_data[0]), input_1_sa32_scales, sizeof(input_1_sa32_scales) / sizeof(input_1_sa32_scales[0]),
     input_1_zero_points, sizeof(input_1_zero_points) / sizeof(input_1_zero_points[0]), input_1_sa32_scales_frac, sizeof(input_1_sa32_scales_frac) / sizeof(input_1_sa32_scales_frac[0]));
 
-tensor_quantizer input_1_fx8(input_1_tsr_fx8, input_1_fx8_frac, input_data, sizeof(input_data) / sizeof(input_data[0]));
+tensor_quantizer input_1_fx8(input_1_tsr_fx8, input_1_fx8_frac, (float*)input_data, sizeof(input_data) / sizeof(input_data[0]));
 
-tensor_quantizer input_1_fx16(input_1_tsr_fx16, input_1_fx8_frac + 8, input_data, sizeof(input_data) / sizeof(input_data[0]));
+tensor_quantizer input_1_fx16(input_1_tsr_fx16, input_1_fx8_frac + 8, (float*)input_data, sizeof(input_data) / sizeof(input_data[0]));
 
-tensor_quantizer input_1_fp32(input_1_tsr_fp32, input_data, sizeof(input_data) / sizeof(input_data[0]));
+tensor_quantizer input_1_fp32(input_1_tsr_fp32, (float*)input_data, sizeof(input_data) / sizeof(input_data[0]));
 
-tensor_quantizer input_2_sa8(input_2_tsr_sa8, input_2_sa_dim, input_data,
+tensor_quantizer input_2_sa8(input_2_tsr_sa8, input_2_sa_dim, (float*)input_data,
     sizeof(input_data) / sizeof(input_data[0]), &input_2_scale, 1,
     &input_2_zero_point, 1, input_2_scales_frac, 1);
 
-tensor_quantizer input_2_sa32(input_2_tsr_sa32, input_2_sa_dim, input_data,
+tensor_quantizer input_2_sa32(input_2_tsr_sa32, input_2_sa_dim, (float*)input_data,
     sizeof(input_data) / sizeof(input_data[0]), &input_2_sa32_scale, 1,
     &input_2_zero_point, 1, input_2_sa32_scales_frac, 1);
 
-tensor_quantizer input_2_fx8(input_2_tsr_fx8, input_2_fx8_frac, input_data, sizeof(input_data) / sizeof(input_data[0]));
+tensor_quantizer input_2_fx8(input_2_tsr_fx8, input_2_fx8_frac, (float*)input_data, sizeof(input_data) / sizeof(input_data[0]));
 
-tensor_quantizer input_2_fx16(input_2_tsr_fx16, input_2_fx8_frac + 8, input_data, sizeof(input_data) / sizeof(input_data[0]));
+tensor_quantizer input_2_fx16(input_2_tsr_fx16, input_2_fx8_frac + 8, (float*)input_data, sizeof(input_data) / sizeof(input_data[0]));
 
-tensor_quantizer input_2_fp32(input_2_tsr_fp32, input_data, sizeof(input_data) / sizeof(input_data[0]));
+tensor_quantizer input_2_fp32(input_2_tsr_fp32, (float*)input_data, sizeof(input_data) / sizeof(input_data[0]));
