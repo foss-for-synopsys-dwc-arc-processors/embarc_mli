@@ -15,11 +15,11 @@ convolution with number of groups equal to number of input channels, and
 with the single filter per each group. TensorFlow-like “channel multiplier” 
 functionality of depthwise convolution can be expressed by group convolution 
 with number of groups equal to input channels and N equal to channel multiplier 
-number of filters per each group. For more details on group convolutions see [3] [4].
+number of filters per each group. For more details on group convolutions, see [3] [4].
 
-Optionally, saturating ReLU activation function can be  applied to the result of 
+Optionally, saturating ReLU activation function can be applied to the result of 
 the convolution during the function’s execution. For more info on supported ReLU 
-types and calculations see :ref:`relu_prot`.
+types and calculations, see :ref:`relu_prot`.
 
 Kernels which implement a group convolution have the following prototype:
 
@@ -55,7 +55,7 @@ parameters are shown in the following table:
    +---------------+------------------------+-----------------------------------------------------------------------+
 ..
 
-Number of groups to split isn’t provided to the kernel explicitly. Instead, it 
+Number of groups to split is not provided to the kernel explicitly. Instead, it 
 is derived from input and weights tensors shape. For example, in a HWCN data 
 layout, if in feature map is :math:`[(Hi, Wi, Ci])` and weights is :math:`[(Hk, Wk, Cw, Co])`, 
 number of groups is :math:`M = Ci / Cw`, and number of filters per each group is Co / M. 
@@ -136,7 +136,7 @@ All the listed functions must comply to the following conditions:
 
  - ``in`` and ``out`` tensors must not point to overlapped memory regions.
  
- - ``mem_stride`` of the innermost dimension should be equal to 1 for all the tensors.
+ - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
  - Channel (Ci) dimension of ``in`` tensor must be multiple (Cw) channel dimension of 
    ``weights`` tensor (Ci = n_groups * Cw).
@@ -183,5 +183,5 @@ For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions
    broadcasted on weights array of scale factors. 
    
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 

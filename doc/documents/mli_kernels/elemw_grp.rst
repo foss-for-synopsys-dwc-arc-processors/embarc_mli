@@ -21,6 +21,7 @@ Kernels which implement Element-wise functions have the following prototype:
       mli_tensor *out);
 ..
 
+.. _t_elw_data_conv:
 .. table:: Data Format Naming Convention Fields
    :align: center
    :widths: auto 
@@ -70,12 +71,13 @@ Kernels which implement Element-wise functions have the following prototype:
 All of these functions must comply to the following conditions:
 
  - ``in1`` and ``in2`` tensors must be valid and must share the same ``el_type`` field value. 
-   They must be of the same shape, or one of them can be a tensor-scalar (see data field description in the Table 8) 
+   They must be of the same shape, or one of them can be a tensor-scalar (see data field description 
+   in the Table :ref:`t_elw_data_conv`) 
 
  - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity and valid ``el_params`` union. 
    Other fields of the structure do not have to contain valid data and are filled by the function
 
-    - ``shape`` (new shape is calculated according to input tensor shape, stride, and padding parameters).
+    - ``shape`` (a new shape is calculated according to input tensor shape, stride, and padding parameters).
 
     - ``rank``, ``el_type`` (these are copied from the input tensor).
 
@@ -101,11 +103,11 @@ All of these functions must comply to the following conditions:
    can point to the same memory with the same memory strides but without shift.
    It can affect performance for some platforms.
    
- - ``mem_stride`` of the innermost dimension should be equal to 1 for all the tensors.
+ - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
 
  - For sa8 input and output tensors must be quantized on the tensor level. It implies 
    that each tensor contains a single scale factor and a single zero offset.
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 

@@ -5,11 +5,11 @@ Debug Modes
 
 The MLI library supports multiple debug levels. At the beginning of each function, the 
 input parameters can be checked and the result is passed as a return code. This 
-helps to detect user errors. Inside the library preconditions and invariants are 
+helps to detect user errors. Inside, the library preconditions and invariants are 
 checked with asserts. This is used to detect internal programming errors. Also extra 
 messages can be printed to make debugging easier. Because all this debug code also affects 
-the performance it can be compile time enabled in 5 levels by setting the ``MLI_DEBUG_MODE`` 
-preprocessor define as follows:
+the performance, it can be enabled at the compile time in 5 possible levels by setting the 
+``MLI_DEBUG_MODE`` preprocessor define as follows:
 
  - ``DBG_MODE_RELEASE`` (``MLI_DEBUG_MODE = 0``) - No debug. Functions do not examine parameters. 
    Data is processed with assumption that function input is valid. This might lead to 

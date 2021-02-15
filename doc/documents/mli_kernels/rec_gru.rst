@@ -175,7 +175,7 @@ All the listed functions must comply to the following conditions:
    
  - ``in`` and ``out`` tensors must not point to overlapped memory regions.
  
- - ``mem_stride`` of the innermost dimension should be equal to 1 for all the tensors.
+ - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
  - Before processing, scratch_data field in config structure must contain a valid pointer to 
    a buffer with enough capacity for the intermediate result (3*M elements of input type). 
@@ -201,7 +201,6 @@ For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions
    broadcasted on weights_in array of scale factors.
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
-TODO – add posteffects for all kernels (return status, what ``out`` tensor contains after .
-These kernels modify out tensor and memory pointed by scratch_data field of cfg structure.
+These kernels modify ``out`` tensor and memory pointed by scratch_data field of cfg structure.

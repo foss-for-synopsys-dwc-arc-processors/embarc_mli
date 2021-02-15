@@ -2,7 +2,7 @@ Data Layouts
 ------------
 
 Data Layouts define how the multi-dimension tensor data is physically arranged in memory. 
-This is mainly relevant in the context of kernels related to convolution and pooling groups 
+This is relevant in the context of kernels related to convolution and pooling groups 
 or other vision-specific layers. These kernels deal with multi-dimensional tensors which 
 might be considered as images or set of images. In this case, specific layout (order of 
 dimensions and its meaning) is important as it dictates the way calculations are performed. 
@@ -58,7 +58,7 @@ the least frequently-changing index.
 .. admonition:: Example 
    :class: "admonition tip"
    
-   :math:`weights(4,3,2,1)` in this case is 1 filter of 4 rows, 3 columns and 2 (input) channels.
+   :math:`weights(4,3,2,1)` in this case is 1 filter of 4 rows, 3 columns, and 2 (input) channels.
 ..
 
 Refer to Figure :ref:`f_hwcn_conv2d` and Table :ref:`t_hwcn_spec` for details. A 
@@ -76,7 +76,7 @@ Description
 ^^^^^^^^^^^
 
 .. _t_hwcn_spec:
-.. table:: Specification of HWCN Layout
+.. table:: The HWCN Layout
    :align: center
    :widths: 60, 130 
    
@@ -104,7 +104,7 @@ Benefits of the HWCN layout:
     most implemented layers fit better to "vectorization across depth" strategy. 
     
   - This layout is more stable to convolution configuration parameters like stride padding and dilation 
-    rate as it typically doesn’t touch depth dimension.
+    rate as it typically does not touch depth dimension.
     
   - Slicing of variable tensors is more DMA-friendly as it implies longer linear DMA series and less 
     types of jumping. 

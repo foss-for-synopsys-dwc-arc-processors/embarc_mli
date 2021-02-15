@@ -25,13 +25,13 @@ dimensions Ho and Wo are calculated dynamically depending on convolution paramet
 (such as padding or stride), inputs and weights shape. For more details on 
 calculations, see chapter 2 of [2]
 
-This kernel doesn’t support channel multiplier logic that allows applying several 
+This kernel does not support channel multiplier logic that allows applying several 
 filters for each channel of input. Such functionality refers to group convolution 
 and can be obtained by the corresponding kernel (see :ref:`grp_conv`). 
 
 Optionally, saturating ReLU activation function can be applied to the result of the 
 convolution during the function’s execution. For more info on supported ReLU types 
-and calculations see :ref:`relu_prot`.
+and calculations, see :ref:`relu_prot`.
 
 Kernels which implement a Depthwise Convolutions have the following prototype:
 
@@ -55,11 +55,11 @@ parameters are shown in the following table:
    +---------------+----------------------+------------------------------------------------------------------------+
    | **Parameter** | **Type**             | **Description**                                                        |
    +===============+======================+========================================================================+
-   | ``in``        | ``mli_tensor *``     | [IN] Pointer to constant input tensor.                                 |
+   | ``in``        | ``mli_tensor *``     | [IN] Pointer to constant input tensor                                  |
    +---------------+----------------------+------------------------------------------------------------------------+
-   | ``weights``   | ``mli_tensor *``     | [IN] Pointer to constant weights tensor.                               |
+   | ``weights``   | ``mli_tensor *``     | [IN] Pointer to constant weights tensor                                |
    +---------------+----------------------+------------------------------------------------------------------------+
-   | ``bias``      | ``mli_tensor *``     | [IN] Pointer to constant bias tensor.                                  |
+   | ``bias``      | ``mli_tensor *``     | [IN] Pointer to constant bias tensor                                   |
    +---------------+----------------------+------------------------------------------------------------------------+
    | ``cfg``       | ``mli_conv2d_cfg *`` | [IN] Pointer to convolution parameters structure                       |
    +---------------+----------------------+------------------------------------------------------------------------+
@@ -142,7 +142,7 @@ All the listed functions must comply to the following conditions:
 	
  - ``in`` and ``out`` tensors must not point to overlapped memory regions.
  
- - ``mem_stride`` of the innermost dimension should be equal to 1 for all the tensors.
+ - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
  - Channel (C) dimension of ``weights`` tensors must be 1.
  
@@ -188,6 +188,6 @@ For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions
    broadcasted on weights array of scale factors. 
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
    

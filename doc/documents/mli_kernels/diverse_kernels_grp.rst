@@ -88,7 +88,7 @@ All the listed functions must comply to the following conditions:
 
  - ``in`` tensor must be valid.
  
- - ``mem_stride`` of the innermost dimension should be equal to 1 for all the tensors.
+ - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
  - ``out`` tensor must contain only
 
@@ -105,12 +105,12 @@ For **sa8** versions of kernel, in addition to the preceding conditions:
  - ``in`` tensor must be quantized on the tensor level. It implies that the tensor 
    contains a single scale factor and a single zero offset.
    
-Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
+Depending on the debug level (see section :ref:`err_codes`), this function performs a parameter 
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
 Kernel modifies output tensor which is transformed into two-dimensional tensor of shape 
-``(dim_size, top_k]`` where ``dim_size`` is the size of dimension specified by  the axis parameter in 
-``mli_argmax_cfg`` structure, and top_k is the number of indexes per slice specified by the 
+``(dim_size, top_k]`` where ``dim_size`` is the size of dimension specified by the axis parameter in 
+``mli_argmax_cfg`` structure, and ``top_k`` is the number of indexes per slice specified by the 
 ``topk`` parameter of the same structure. 
 
 Output tensor type must be defined by the user. Only integer types are allowed (``fx8``, ``fx16``, 
@@ -183,7 +183,7 @@ Tensor’s data is reordered according to the new shape.
 For example, if input tensors have the shape (2, 4, 8) and ``perm_dim`` order is (2, 0, 1) then output 
 tensor is of the shape (8, 2, 4). This transpose reflects changing the feature map layout from HWC to CHW.
 
-Here is a list of all available permute functions
+Here is a list of all available permute functions:
 
 .. table:: List of Available Permute Functions
    :align: center
@@ -238,7 +238,7 @@ For **sa8** versions of kernel, in addition to above conditions:
 
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
 
 

@@ -3,9 +3,9 @@ Pooling group
 
 The Pooling Group describes operations which divide input features into sub-frames 
 and applies a function with scalar output on each of them. Generally, this results 
-in a feature map with reduced, withheld or emphasized key features. 
+in a feature map with reduced, withheld, or emphasized key features. 
 
-Functions in this group use the mli_pool_cfg structure, defined as:
+Functions in this group use the ``mli_pool_cfg`` structure, defined as:
 
 .. code::
 

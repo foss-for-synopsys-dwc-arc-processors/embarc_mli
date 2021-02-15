@@ -1,7 +1,7 @@
 Introduction
 ------------
 
-The MLI Specification defines the following groups of NN kernels:
+The following groups of NN kernels are defined:
 
   - Convolution Group
 
@@ -30,7 +30,7 @@ and conventions.
 A note on Slicing
 ~~~~~~~~~~~~~~~~~~~
 
-The kernels described in the following sections of this specification have no notion of 
+The kernels described in the following sections of this document have no notion of 
 slicing (also referred to as tiling).  Instead, the responsibility of slicing is left to 
 the caller, which can be either application code, some higher-level API or graph-compiler 
 generated. For cores with any sort of closely-coupled memory (CCMs), the kernels assume 
@@ -42,7 +42,7 @@ tensors. In this case, the caller can copy a ‘slice’ of the input tensor int
 the kernel produces a slice of the output tensor. These output slices can be combined
 into a full tensor. Because the tensor data does not have to be contiguous in memory, 
 it is possible to create a (slice) tensor that points to a subset of the data of a larger 
-tensor. If for instance the output tensor is in system memory, each invocation of the 
+tensor. For instance, if the output tensor is in system memory, each invocation of the 
 kernel that computes a slice can write its output directly into the correct (slice) 
 of the output tensor. This eliminates the need for an extra concatenation copy pass. 
 The slicing concept is illustrated in Figure :ref:`f_slicing_concept`.
@@ -65,13 +65,13 @@ Function Names and Specializations
 
 All function names of the kernels are constructed in a similar way. To make the implementation 
 easier to manage for both the engineer and the compiler, the level of specialization for this 
-API is chosen at a point that the specializations that are useful on most  of the platforms 
+API is chosen at a point that the specializations that are useful on most of the platforms 
 are fixed in the function names. To make it easier to navigate through the list of API functions, 
 all function names are built using the following syntax:
 
 .. code::
 
-  mli_<group>_<function>_[layout_]<dataformats>[_specializations]([input_tensors],[cfg],[output_tensors]);
+  mli_<group>_<function>_[layout_]<dataformats>[_specializations]([input_tensors],[cfg],[output_tensors]); 
 ..
   
 An explanation of each of the preceding elements which make up a name is provided in Table :ref:`t_func_name_conv_fields`. 

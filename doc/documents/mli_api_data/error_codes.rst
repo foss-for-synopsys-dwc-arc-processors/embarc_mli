@@ -28,11 +28,11 @@ as described in table :ref:`t_mli_status_enum`.
    +-------------------------------------+----------------+--------------------------------------------------------------------------+ 
    | ``MLI_STATUS_NOT_SUPPORTED``        |                | Function is not implemented for this combination of inputs               |
    +-------------------------------------+----------------+--------------------------------------------------------------------------+ 
-   | ``MLI_STATUS_SPEC_PARAM_MISMATCH``  |                | Configuration of the function doesn’t match the specialization           |
+   | ``MLI_STATUS_SPEC_PARAM_MISMATCH``  |                | Configuration of the function does not match the specialization          |
    +-------------------------------------+----------------+--------------------------------------------------------------------------+ 
    | ``MLI_STATUS_ARGUMENT_ERROR``       |                | A passed by reference parameter is NULL                                  |
    +-------------------------------------+----------------+--------------------------------------------------------------------------+    
-   | ``MLI_STATUS_TYPE_MISMATCH``        |                | The datatype of the tensors doesn’t match the function specialization    | 
+   | ``MLI_STATUS_TYPE_MISMATCH``        |                | The datatype of the tensors does not match the function specialization   | 
    +-------------------------------------+----------------+--------------------------------------------------------------------------+   
    | ``MLI_STATUS_LARGE_ENUM``           | ``0x02000000`` | Dummy field to prevent size optimizations of public enums                |
    +-------------------------------------+----------------+--------------------------------------------------------------------------+

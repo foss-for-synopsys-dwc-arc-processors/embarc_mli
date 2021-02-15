@@ -3,11 +3,10 @@
 Data Movement
 =============
 
-In the case of most processors and accelerators, achieving optimal performance 
-requires that input data to the kernels resides in “close” local memories on 
-those processors (eg: CCMs).  Meanwhile, the total amount of data that needs to 
-be operated on is usually bigger than the sizes of those CCMs, so you must copy 
-data into CCMs for processing.  
+Most processors and accelerators achieve optimal performance by keeping the kernel 
+input data in “close” local memories on those processors (for example, CCMs). Meanwhile, 
+the total amount of data that needs to be operated on is usually bigger than the 
+sizes of those CCMs, so you must copy data into CCMs for processing.  
 
 The functions in the Data Movement Group assist with this moving (copying) of data.  
 For further efficiency, the APIs allow data to be manipulated in several ways, thus 
@@ -26,7 +25,7 @@ The supported transformations are described here and shown pictorially in Figure
  
  - Permute – Reorder dimensions of a tensor
  
- - Padding – Adds zeros around the specified dimensions
+ - Padding – Add zeros around the specified dimensions
 
  More than one transform can be combined into a single operation.
 
@@ -46,15 +45,15 @@ Synchronous Copy from Source Tensor to Destination Tensor
 ---------------------------------------------------------
 
 This function performs a blocking data copy from the source tensor to the destination tensor 
-according to the settings in the configuration structure, mli_mov_cfg. Any combination of the 
+according to the settings in the configuration structure, ``mli_mov_cfg``. Any combination of the 
 previously mentioned transformations can be specified. The destination tensor needs to contain a valid 
 pointer to a large enough buffer. The size of this buffer needs to be specified in the capacity 
 field of the destination tensor. The other fields of the destination tensor is filled by the 
 move function. The function returns after the complete data transfer completes.
 
 For platforms with a DMA, the synchronous move function internally acquires one or more DMA 
-channels from a pool of resources. The application needs to use the function mli_mov_set_num_dma_ch 
-to assign a set of channels to MLI for its exclusive use. See section 5.4. for a detailed 
+channels from a pool of resources. The application needs to use the function ``mli_mov_set_num_dma_ch`` 
+to assign a set of channels to MLI for its exclusive use. See section :ref:`dma_res_mgmt` for a detailed 
 explanation.
 
 .. code::
@@ -84,7 +83,7 @@ explanation.
 The fields of this structure are described in Table :ref:`t_mli_mov_cfg_desc`. All the fields are arrays with 
 size ``MLI_MAX_RANK``.Fields are stored in order starting from the one with the largest stride between the data 
 portions. For example, for a matrix A(rows, columns), shape[0] = rows, shape[1] = columns. The data move function 
-doesn’t change the number of dimensions. The rank of the source tensor determines the amount of values that are 
+does not change the number of dimensions. The rank of the source tensor determines the amount of values that are 
 read from the array. The other values are don’t care.
 
 The size of the array is defined by ``MLI_MAX_RANK``.
@@ -163,7 +162,7 @@ For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions
    All of the fields must be initialized in a consistent way, using only one of the above options.
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
 Figure :ref:`f_mli_mov_cfg_params` shows the relationship between some of the parameters of the ``mli_mov_cfg``
 structure. 
@@ -299,7 +298,7 @@ the mli_mov_cfg structure is described in detail in Table 19.
    |    mli_mov_cfg_all(                | This function fills the cfg struct with the values provided as      |
    |      mli_mov_cfg_t *cfg,           | function arguments. It is recommended the applications use this     |
    |      int* offsets,                 | function instead of direct structure access, so that application    |
-   |      int* sizes,                   | code doesn’t have to change in case the structure format ever does. |
+   |      int* sizes,                   | code does not have to change if the structure format ever changes.  |
    |      int* subsample_step,          |                                                                     |  
    |      int* dst_offsets,             | - **cfg**: pointer to the config structure that is filled           |
    |      int* dst_mem_strides,         |                                                                     |   
@@ -343,8 +342,8 @@ The operation is divided into three separate steps, each with corresponding APIs
  
  3. Done notification (DMA finished, data is ready) – via either callback or polling 
  
-Between steps 2 & 3, the application can do other processing
-These APIs use the mli_mov_handle_t type. The definition of this type is private to 
+Between steps 2 & 3, the application can do other processing.
+These APIs use the ``mli_mov_handle_t`` type. The definition of this type is private to 
 the implementation, but to avoid dynamic memory allocation the definition is put in 
 the public header file. This way the caller can allocate it on the stack.
 
@@ -386,8 +385,8 @@ describes the parameters of this function.
    +--------------------------+-------------------------------------------------------------+   
 ..
 
-Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
+Depending on the debug level (see section :ref:`err_codes`), this function performs a parameter 
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
 Start Processing
 ~~~~~~~~~~~~~~~~
@@ -424,8 +423,8 @@ an assert is triggered.
    +--------------------------+--------------------------------------------+
 ..
 
-Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
+Depending on the debug level (see section :ref:`err_codes`), this function performs a parameter 
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
 Done Notification – Callback
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -491,7 +490,7 @@ You can also wait for the DMA to compete using the following function:
    mli_mov_wait(mli_mov_handle_t* h);
 ..
 
-This function takes a pointer to the handle used for mli_mov_prepare and returns 
+This function takes a pointer to the handle used for ``mli_mov_prepare`` and returns 
 after the transaction completes or in case of an error.
 
 
@@ -559,7 +558,7 @@ channels to MLI for its exclusive use.
  - ``num_ch`` – max number of channels that MLI can use
  
 The asynchronous move functions require a handle to a DMA resource. This handle can be 
-obtained from the pool using mli_mov_acquire_handle:
+obtained from the pool using ``mli_mov_acquire_handle``:
 
 .. code::
 
@@ -573,7 +572,7 @@ obtained from the pool using mli_mov_acquire_handle:
 	
  - ``mli_mov_handle_t* h`` – Pointer to a handle type which is initialized by this function
  
-After the move has completed, the resources should be released back to the pool to avoid 
+After the move has completed, the resources must be released back to the pool to avoid 
 exhaustion:
 
 .. code::
@@ -586,9 +585,9 @@ exhaustion:
    transaction
 	
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
 .. note:: 
   
-   The synchronous move function mli_mov_tensor_sync manages these DMA operations internally.
+   The synchronous move function ``mli_mov_tensor_sync`` manages these DMA operations internally.
 ..

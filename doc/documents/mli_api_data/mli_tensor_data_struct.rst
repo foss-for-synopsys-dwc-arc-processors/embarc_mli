@@ -19,7 +19,9 @@ shape of this array, its data format, and the way it is organized in memory.
    } mli_tensor;
 ..
 
-where ``mli_element_type`` is defined as follows:   
+where 
+
+``mli_element_type`` is defined as follows:   
 
 .. code::
 
@@ -34,7 +36,7 @@ where ``mli_element_type`` is defined as follows:
   } mli_element_type;
 ..
 
-where ``mli_element_params`` is defined as follows:
+``mli_element_params`` is defined as follows:
 
 .. code::
  
@@ -53,7 +55,7 @@ where ``mli_element_params`` is defined as follows:
    } mli_element_params;
 ..
 
-where ``mli_el_param_type`` is defined as follows:
+``mli_el_param_type`` is defined as follows:
 
 .. code::
  
@@ -118,7 +120,7 @@ Table :ref:`mli_tnsr_struc` describes the fields in the mli_tensor structure.
    |                   |                        | A(rows,columns), ``mem_stride[1]`` contains the distance to the next        |
    |                   |                        | element (=1 in this example), and ``mem_stride[0]`` contains the distance   |
    |                   |                        | from one row to the next (=columns in this example). The size of the array  |
-   |                   |                        | is defined by ``MLI_MAX_RANK*``.If the mem_stride is set to 0, it will be   |
+   |                   |                        | is defined by ``MLI_MAX_RANK*``.If the mem_stride is set to 0, it is        |
    |                   |                        | computed from the shape.                                                    |
    +-------------------+------------------------+-----------------------------------------------------------------------------+
    | ``rank``          | ``uint32_t``           | Number of dimensions of this tensor (Must be less or equal to               |

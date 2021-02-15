@@ -19,8 +19,7 @@ Introduction
 
     
 The figure :ref:`f_mli_impl` shows how different MLI-compliant Implementations for 
-different processors can all be targeted using common front-end mapping tools.  
-For additional background  information on the origins of MLI, see section :ref:`history_mli`.
+different processors can all be targeted using common front-end mapping tools.
 
 Purpose of This Document
 ------------------------
@@ -51,7 +50,7 @@ Context of the MLI API
    :alt: MLI API
    
    MLI API
-
+ 
 Memory Hierarchy
 ----------------
 
@@ -89,71 +88,6 @@ The directory structure to use for an MLI implementation is really a decision of
 However, we do recommend that developers maintain the same structure that is present for existing 
 MLI implementations. This can be seen by reviewing the MLI public repository on Github and is not 
 specified in this document. 
-
-.. _terms_and_defs:
-   
-Terms and definitions
----------------------
-
-.. glossary::
-   :sorted:
-
-   AGU
-      Address Generation Unit
-
-   API 
-      Application Programming Interface
-  
-   ARCv2DSP 
-      Synopsys DesignWare® ARC® Processors Family of 32-bit CPUs 
-
-   ARC EMxD 
-      Family of 32-bit ARC Processor Cores. Single-core, 3-Step Pipeline, ARCv2DSP 
-
-   ARC HS4xD 
-      Family of 32-bit ARC Processor Cores. Multi-core, Dual-Issue, 10-Step Pipeline, ARCv2DSP
-      
-   CCAC 
-      MetaWare Compiler 
-
-   DMA 
-      Direct Memory Access 
-      
-   DSP
-      Digital Signal Processor 
-      
-   FXAPI 
-      Fixed-point API 
-     
-   LTO 
-      Link-Time Optimization 
-
-   MAC
-      Multiple Accumulate 
-
-   MDB 
-      MetaWare Debugger
-
-   MPY 
-      Multiply Command 
-
-   MWDT
-      MetaWare Development Toolset
-      
-   nSIM 
-      Instruction Set Simulator
-      
-   OOB
-      Out-Of-the Box   
-
-   PCM 
-      Pulse Code Modulation 
-   
-   TCF
-      Tool Configuration File. Holds information about ARC processor build configuration and extensions. 
-      
-   xCAM 
-      Cycle Accurate Model
   
     
 .. _Copyright:

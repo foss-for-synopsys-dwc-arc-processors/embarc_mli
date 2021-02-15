@@ -10,6 +10,7 @@ Welcome to embARC Machine Learning Inference 2.0 Library documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   release_notes/release_notes.rst
    preface/preface.rst   
    overview/overview.rst
    mli_api_data/mli_api_data.rst
@@ -17,8 +18,6 @@ Welcome to embARC Machine Learning Inference 2.0 Library documentation!
    data_movement/data_movement.rst
    utility_functions/utility_functions.rst
    mli_profiling_mechanism/mli_profiling_mechanism.rst
-   appendix_a/mli_background.rst
-   appendix_b/func_spec_design_decisions.rst
    references/references.rst
 
   

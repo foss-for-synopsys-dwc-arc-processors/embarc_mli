@@ -192,7 +192,7 @@ All the listed functions must comply to the following conditions:
    
  - ``in`` and ``out`` tensors must not point to overlapped memory regions.
  
- - ``mem_stride`` of the innermost dimension should be equal to 1 for all the tensors.
+ - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
  - ``out`` must contain a valid pointer to a buffer with sufficient capacity for storing the result (to keep M 
    elements if LSTM cell is configured with RNN_OUT_LAST or to keep M*batch_size elements if LSTM cell is configured 
@@ -215,7 +215,7 @@ For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions
    array of scale factors.
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
 These kernels modify ``out`` tensor, ``cell`` tensors, and memory pointed by ``scratch_data`` field of cfg structure.
 

@@ -19,11 +19,11 @@ dimensions Ho and Wo are calculated dynamically depending on convolution paramet
 (such as padding or stride), inputs and weights shape. For more details on 
 calculations, see chapter 2 of [2].
 
-Optionally, saturating ReLU activation function can be  applied to the result of the 
+Optionally, saturating ReLU activation function can be applied to the result of the 
 convolution during the function’s execution. For more info on supported ReLU types 
-and calculations see :ref:`relu_prot`.
+and calculations, see :ref:`relu_prot`.
 
-The function which implement 2D Convolutions have the following prototype:
+The functions which implement 2D Convolutions have the following prototype:
 
 .. code::
 
@@ -156,7 +156,7 @@ The available 2D Convolution functions must comply with the following conditions
  
  - Channel (C) dimension of ``in`` and ``weights`` tensors must be equal.
  
- - ``mem_stride`` of the innermost dimension should be equal to 1 for all the tensors.
+ - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
  - Bias must be a one-dimensional tensor. Its length must be equal to N dimension 
    (number of filters) of ``weights`` tensor.

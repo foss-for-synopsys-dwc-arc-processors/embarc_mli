@@ -21,7 +21,7 @@ Kernels which implement average pooling functions have the following prototype:
    +---------------+----------------------+-----------------------------------------------+
    | **Parameter** | **Type**             | **Description**                               |
    +===============+======================+===============================================+
-   | ``in``        | ``mli_tensor *``     | [IN] Pointer to constant input tensor.        |
+   | ``in``        | ``mli_tensor *``     | [IN] Pointer to constant input tensor         |
    +---------------+----------------------+-----------------------------------------------+
    | ``cfg``       | ``mli_pool_cfg *``   | [IN] Pointer to pooling parameters structure  |
    +---------------+----------------------+-----------------------------------------------+
@@ -78,7 +78,7 @@ All the listed functions must comply to the following conditions:
 	
  - ``in`` and ``out`` tensors must not point to overlapped memory regions.
  
- - ``mem_stride`` of the innermost dimension should be equal to 1 for all the tensors.
+ - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
  - ``padding_top`` and ``padding_bottom`` parameters must be in range of (0, weights (H)eight).
  
@@ -90,5 +90,5 @@ For sa8, ``in`` and ``out`` tensor must be quantized on the tensor level. It imp
 tensor contains a single scale factor and a single zero offset.
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
    

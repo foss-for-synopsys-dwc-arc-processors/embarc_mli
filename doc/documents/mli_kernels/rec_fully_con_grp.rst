@@ -29,17 +29,17 @@ Functions in this group typically use the ``mli_rnn_cell_cfg`` structure, define
    | **Field Name**       | **Type**               | **Enumeration Value** | **Description**                                                       |
    +======================+========================+=======================+=======================================================================+
    |                      | ``mli_rnn_direction``  |                       | Process the input sequence in forward direction (from the first       |
-   | ``direction``        |                        | RNN_DIR_FORWARD       | entity to the last one).                                              |
+   | ``direction``        |                        | ``RNN_DIR_FORWARD``   | entity to the last one).                                              |
    |                      | (enumeration)          |                       |                                                                       |
    |                      |                        +-----------------------+-----------------------------------------------------------------------+
-   |                      |                        | RNN_DIR_BACKWARD      | Process the input sequence in backward direction (from the last       |
+   |                      |                        | ``RNN_DIR_BACKWARD``  | Process the input sequence in backward direction (from the last       |
    |                      |                        |                       | entity to the first one).                                             |
    +----------------------+------------------------+-----------------------+-----------------------------------------------------------------------+
-   |                      |                        | RNN_OUT_LAST          | Preserve only the last result after all RNN iterations in output      |
+   |                      |                        | ``RNN_OUT_LAST``      | Preserve only the last result after all RNN iterations in output      |
    |                      | ``mli_rnn_results``    |                       | tensor                                                                |
    | ``results``          |                        +-----------------------+-----------------------------------------------------------------------+
    |                      | (enumeration)          |                       |                                                                       |
-   |                      |                        | RNN_OUT_ALL           | Preserve result of each RNN iteration in output tensor                |
+   |                      |                        | ``RNN_OUT_ALL``       | Preserve result of each RNN iteration in output tensor                |
    +----------------------+------------------------+-----------------------+-----------------------------------------------------------------------+
    |                      |                        |                       | Container with a scratch memory to keep cell’s intermediate results.  |
    | ``scratch_data``     | ``mli_data_container`` | --                    | Must contain a valid pointer in pi32 field to a memory of sufficient  |

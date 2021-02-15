@@ -88,7 +88,7 @@ All the listed functions must comply to the following conditions:
    
  - ``in`` and ``out`` tensors must not point to overlapped memory regions.
  
- - ``mem_stride`` of the innermost dimension should be equal to 1 for all the tensors.
+ - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
  - ``padding_top`` and ``padding_bottom`` parameters must be in range of (0, weights (H)eight).
  
@@ -100,5 +100,5 @@ All the listed functions must comply to the following conditions:
    each tensor contains a single scale factor and a single zero offset.
    
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 

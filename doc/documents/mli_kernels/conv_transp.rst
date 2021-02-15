@@ -3,13 +3,13 @@ Transpose Convolution Prototype and Function List
 
 This kernel implements a general 2D transposed convolution operation 
 which works by swapping the forward and backward passes of a convolution. 
-For more details on calculations see chapter 4 of [2]
+For more details on calculations, see chapter 4 of [2]
 
 Optionally, saturating ReLU activation function can be applied to the 
 result of the convolution during the function’s execution. For more info 
-on supported ReLU types and calculations see :ref:`relu_prot`.
+on supported ReLU types and calculations, see :ref:`relu_prot`.
 
-Dilation parameter of convolutions config isn’t applicable in MLI transposed 
+Dilation parameter of convolutions config is not applicable in MLI transposed 
 convolution and is ignored.
 
 Kernels which implement a Transpose Convolutions have the following prototype:
@@ -133,7 +133,7 @@ All the listed functions must comply to the following conditions:
 	
  - ``in`` and ``out`` tensors must not point to overlapped memory regions.
  
- - ``mem_stride`` of the innermost dimension should be equal to 1 for all the tensors.
+ - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
  - Channel (C) dimension of ``in`` and ``weights`` tensors must be equal.
  
@@ -164,4 +164,4 @@ Scale factors of bias tensor must be equal to the multiplication of input scale 
 on weights array of scale factors. 
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.

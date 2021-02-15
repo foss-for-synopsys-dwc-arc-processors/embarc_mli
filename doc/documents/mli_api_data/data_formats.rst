@@ -100,7 +100,7 @@ are performed by next formula:
          
 :math:`2^{n}` represents 1.0 in FX format and also might be obtained by shifting :math:`1 <<  n`. 
 Rounding mode (nearest, up, convergence, truncated, and so on) affects only FX representation precision 
-and can be platform specific. In case the calculated :math:`x_{fx}` fixed point value exceeds container type 
+and can be platform specific. If the calculated :math:`x_{fx}` fixed point value exceeds container type 
 range, it must be saturated. In case of immediate forward/backward conversion, :math:`x_{fp32}` might be 
 not equal to the original one due to rounding and saturation operations. Only Per-tensor 
 quantization granularity is supported for these data formats, which means that all values in 
@@ -164,9 +164,9 @@ Where:
     :math:`n` *–-* number of fractional bits of scale ratio. 
     
 Per-axis and per-tensor quantization granularities are supported for this data format. In case of 
-per-tensor all values in tensor share the same quantization parameters (number scale ratio and 
-zero offset). In case of per-axis quantization each slice of tensor across a defined axis is 
-configured with individual quantization parameters (scale ratio and zero offset). 
+per-tensor quantization, all values in tensor share the same quantization parameters (number scale 
+ratio and zero offset). In case of per-axis quantization, each slice of tensor across a defined axis 
+is configured with individual quantization parameters (scale ratio and zero offset). 
 
 Asymmetric integral data format is more generic and flexible representation in comparison with 
 fixed point data format. But this flexibility also implies additional complexity in calculations, 
@@ -211,7 +211,7 @@ Number of available bits depends on the operands’ types and the platform.
      operations without overflow.
 ..
 
-In general, the number of accumulations required for one output value calculation can be easily 
+In general, the number of accumulations required for one output value calculation can be  
 estimated in advance. Using this information, a graph mapper can determine if the accumulator 
 satisfies requirements or not.
 

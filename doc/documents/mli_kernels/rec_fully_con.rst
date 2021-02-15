@@ -35,7 +35,7 @@ Where:
  -  :math:`b_{i}` *– bias for* :math:`i_{\text{th}}` *neuron*
 
 Optionally, saturating ReLU activation function can be applied to the result of the calculations 
-during the function’s execution. For more info on supported ReLU types see :ref:`relu_prot`.  
+during the function’s execution. For more info on supported ReLU types, see :ref:`relu_prot`.  
 
 Functions which implement fully connected kernels have the following prototype:
 
@@ -158,12 +158,12 @@ All the listed functions must comply to the following conditions:
    
  - ``in`` and ``out`` tensors must not point to overlapped memory regions.
    
- - ``mem_stride`` should satisfy the following statements
+ - ``mem_stride`` must satisfy the following statements
    
     - For ``in`` and ``out`` tensors - memstride must reflect the shape or be set to 0, 
       e.g memory of these tensors must be contiguous
       
-    - For ``weights`` and ``bias`` tensor - memstride of the innermost dimension should 
+    - For ``weights`` and ``bias`` tensor - memstride of the innermost dimension must 
       be equal to 1.
 
  
@@ -188,5 +188,5 @@ For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions
    and weights scale factor.
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 

@@ -15,14 +15,14 @@ Where:
 
  -  :math:`{xa}_{j}`, :math:`{xb}_{j}`, :math:`{xn}_{j}` *–*
     :math:`j_{\text{th}}` *value in one of the input tensors. These input
-    tensors might be current input, previous output, cell state or of
-    another meaning depending on RNN Cell architecture*
+    tensors might be current input, previous output, cell state or any other 
+    tensor depending on RNN Cell architecture*
 
  -  :math:`{Wa}_{i,j}, :math:`{Wb}_{i,j}`, :math:`text{Wc}_{i,j}` *– weight
     of* :math:`j_{th}\ `\ *input element for*
     :math:`i_{th}` *neuron in one of input weights tensors. These
     weights tensors might be input-to-a-gate weights, output-to-a-gate
-    weights or of another meaning depending on RNN Cell architecture*
+    weights or any other tensor depending on RNN Cell architecture*
 
  -  :math:`y_{i}` *– output of* :math:`i_{th}` neuron
     ( :math:`i_{th}` *value in output tensor).*
@@ -83,7 +83,7 @@ function parameters are shown in the following table:
    |                 |              | Number of input tensors (number of pointers in inputs      |
    |                 |              | array). Also, the number of weights tensors (number of     |
    | ``inputs_num``  | ``uint8_t``  | pointers in weights   array), as each input is specified   |
-   |                 |              | with its own weights tensor. Maximum   number of tensors   |
+   |                 |              | with its own weights tensor. Maximum number of tensors     |
    |                 |              | in the array is specified by MLI_RNN_MAX_INPUTS define.    |
    +-----------------+--------------+------------------------------------------------------------+
 ..
@@ -134,7 +134,7 @@ All the listed functions must comply to the following conditions :
    
  - ``in`` and ``out`` tensors must not point to overlapped memory regions.
  
- - ``mem_stride`` of the innermost dimension should be equal to 1 for all the tensors.
+ - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
 For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions:
  
@@ -151,7 +151,5 @@ the **first** input and the **first** weights tensors in corresponding arrays
 
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
-
-TODO – add posteffects for all kernels (return status, what out tensor contain after.
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 

@@ -7,7 +7,7 @@ Introduction
 This chapter describes the mechanisms used to profile the performance 
 of the MLI software stack.
 
-The purposes of profiling are threefold. For each purpose, MLI is profiled 
+There are three purposes of profiling. For each purpose, MLI is profiled 
 at a different level/granularity:
 
  - Customer engagement – profiled at graph level for comparing end-to-end 
@@ -24,8 +24,9 @@ requires estimates of costs of running kernels in terms of different metrics.
 This is discussed in other documents prepared by the EV team.
 
 Profiling infrastructure
+------------------------
 
-All profiling MLI functions start with a ``mli_prof_ prefix``.
+All profiling MLI functions start with a ``mli_prof_`` prefix.
 
 mli_prof_get_metric()
 ~~~~~~~~~~~~~~~~~~~~~
@@ -76,7 +77,7 @@ The enum values are used to identify the following metrics respectively:
  - Total amount of data transferred from local to external memory
 
 New metrics might be added to the enum in this document. MLI does not support 
-measuring arbitrary metrics outside of this specification.
+measuring arbitrary metrics outside of this document.
 
 The measured numbers are stored in mli_prof_measurement data structures:
 
@@ -87,7 +88,7 @@ The measured numbers are stored in mli_prof_measurement data structures:
      uint64_t measurement;  // or whichever the widest unsigned integer
    } mli_prof_measurement;
 
-The mli_prof_identifier struct contains the kernel and metric ID that 
+The ``mli_prof_identifier`` struct contains the kernel and metric ID that 
 pertain to the measurement: 
 
 .. code::

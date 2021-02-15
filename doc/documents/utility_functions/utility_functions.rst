@@ -63,7 +63,7 @@ Where:
 Tensor shape and rank are not changed by this function. They are copied from the source 
 to the destination tensor. For conversions with equal container size, in-place computation 
 is permitted. Note that this could impact performance on some platforms.
-``mem_stride`` of the innermost dimension should be equal to 1 for all the tensors.
+``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
 
 If ``mem_stride`` of the output tensor is not equal to 0, the function will use these ``mem_strides``
 to store the results in the output buffer. If the ``mem_stride`` is equal to 0, 
@@ -83,7 +83,7 @@ Because the preceding function uses floating point operations even if no convers
 float is needed by the application, the linker links-in the float support. For that 
 reason, there is also a fixed point specialization. This function should be used in all 
 places where it is known that neither of the source or destination tensor is a float tensor. 
-It supports both signed asymmetric data formats and fixed point data formats 
+It supports both signed asymmetric data formats and fixed point data formats. 
 
 .. code::
 
@@ -93,7 +93,7 @@ It supports both signed asymmetric data formats and fixed point data formats
 ..
    
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
 Helper Functions Group
 ----------------------
@@ -192,7 +192,7 @@ Function prototype:
        const mli_tensor *in);
 ..
   
-The parameters are described in Table :ref:`t_mli_hlp_tensor_scale_params`
+The parameters are described in Table :ref:`t_mli_hlp_tensor_scale_params`.
  
 .. _t_mli_hlp_tensor_scale_params:
 .. table:: mli_hlp_tensor_scale Parameters
@@ -250,7 +250,7 @@ Get Zero Offset Value
 ~~~~~~~~~~~~~~~~~~~~~
 
 This function returns the zero offset value from the quantization parameters.
-For data formats that don’t have a zero offset value, the value 0 is returned.
+For data formats, that don’t have a zero offset value, the value 0 is returned.
 
 Function prototype:
 
@@ -260,7 +260,7 @@ Function prototype:
        const mli_tensor *in);
 ..
   
-The parameters are described in Table :ref:`t_mli_hlp_tensor_zero_offset_params`
+The parameters are described in Table :ref:`t_mli_hlp_tensor_zero_offset_params`.
 
 .. _t_mli_hlp_tensor_zero_offset_params:
 .. table:: mli_hlp_tensor_zero_offset Parameters
@@ -351,5 +351,5 @@ The function prototype:
 ..
  
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 

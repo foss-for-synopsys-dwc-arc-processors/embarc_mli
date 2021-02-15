@@ -3,8 +3,7 @@
 MLI Kernels (Operators)
 =======================
 
-This chapter lists and describes a collection of ML algorithms (kernels) included 
-into MLI specification.  
+This chapter lists and describes a collection of ML algorithms (kernels) included in MLI 2.0.  
 
 .. toctree::
    :maxdepth: 2

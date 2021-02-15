@@ -43,9 +43,10 @@ this type of kernel:
 
 This kernel outputs a tensor of the same shape and type as input. This kernel performs 
 in-place computation: output and input can point to exactly the same memory (the same 
-starting address and memory strides). If the starting address and memory stride of the 
-input and output tensors are set in such a way that memory regions are overlapped, 
-the behavior is undefined.
+starting address and memory strides). 
+
+If the starting address and memory stride of the input and output tensors are set in 
+such a way that memory regions are overlapped, the behavior is undefined.
 
 Kernels which implement ReLU functions have the following prototype:
 
@@ -121,7 +122,7 @@ All the listed functions must comply to the following conditions:
 
  - ``in`` tensor must be valid.
  
- - ``mem_stride`` of the innermost dimension should be equal to 1 for all the tensors.
+ - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
  - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity 
    (that is, the total amount of elements in input tensor). Other fields are filled 
@@ -132,8 +133,8 @@ For **sa8** versions of kernel, in addition to the preceding conditions:
  - ``in`` tensor must be quantized on the tensor level. It implies that the tensor 
    contains a single scale factor and a single zero offset.
 
-Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
+Depending on the debug level (see section :ref:`err_codes`), this function performs a parameter 
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
 .. _leaky_relu_prot:
 
@@ -178,6 +179,7 @@ Kernels which implement Leaky ReLU functions have the following prototype:
 where ``data_format`` is one of the data formats listed in Table :ref:`mli_data_fmts` and the 
 function parameters are shown in the following table:
 
+.. _t_tfm_data_conv:
 .. table:: Data Format Naming Convention Fields
    :align: center
    :widths: auto
@@ -212,9 +214,10 @@ All the listed functions must comply to the following conditions:
 
  - ``in`` and ``slope_coeff`` tensors must be valid.
  
- - ``slope_coeff`` tensor must be a valid tensor-scalar (see data field description in the Table 6).
+ - ``slope_coeff`` tensor must be a valid tensor-scalar (see data field description in the 
+   Table :ref:`t_tfm_data_conv`).
  
- - ``mem_stride`` of the innermost dimension should be equal to 1 for all the tensors.
+ - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
  - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity (that is, 
    the total amount of elements in input tensor). Other fields are filled by kernel (shape, 
@@ -226,7 +229,7 @@ For **sa8** versions of kernel, in addition to the preceding conditions:
    single scale factor and a single zero offset.
    
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
 .. _param_relu_prot:
 
@@ -252,20 +255,21 @@ Where:
  -  :math:`\alpha` - coefficient of the negative slope for the specific
     data subset
 	
-While for Leaky ReLU the whole tensor shares the only :math:`\alpha` coefficient, for PRelu an 
-array of slope coefficients is shared across an axis.  In other word, for each slice along the 
+While for Leaky ReLU, the whole tensor shares only the :math:`\alpha` coefficient, for PRelu an 
+array of slope coefficients is shared across an axis.  Hence, for each slice along the 
 specified axis an individual :math:`\alpha` slope coefficient is used. 
 
-The “shared axis” feature found in some frameworks isn’t supported in MLI. This functionality can 
+The “shared axis” feature found in some frameworks is not supported in MLI. This functionality can 
 instead be achieved in several iterations using the PReLU kernel and the mem_strides feature. 
 One iteration implies creating subtensors from input and alpha tensors using memstrides and applying 
 the PReLU kernel on them.
 
 This kernel outputs tensor of the same shape and type as input. This kernel can perform in-place 
 computation: output and input can point to exactly the same memory (the same starting address
-and memory strides). If the starting address and memory stride of the 
-input and output tensors are set in such a way that memory regions are overlapped, 
-the behavior is undefined.
+and memory strides). 
+
+If the starting address and memory stride of the input and output tensors are set in such a way 
+that memory regions are overlapped, the behavior is undefined.
 
 Kernels which implement Leaky ReLU functions have the following prototype:
 
@@ -340,7 +344,7 @@ All the listed functions must comply to the following conditions:
 
  - ``in`` and ``slope_coeff`` tensors must be valid.
  
- - ``mem_stride`` of the innermost dimension should be equal to 1 for all the tensors.
+ - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
  - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity 
    (that is, the total amount of elements in input tensor). Other fields are filled by 
@@ -352,7 +356,7 @@ For **sa8** versions of kernel, in addition to the preceding conditions:
    that the tensor contains a single scale factor and a single zero offset.
    
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
 .. _sigmoid_prot:
 
@@ -372,9 +376,10 @@ Where:
 
 This kernel outputs a tensor of the same shape and type as the input. This kernel can perform 
 in-place computation: output and input can point to exactly the same memory (the same 
-starting address and memory strides). If the starting address and memory stride of the 
-input and output tensors are set in such a way that memory regions are overlapped, 
-the behavior is undefined.
+starting address and memory strides). 
+
+If the starting address and memory stride of the input and output tensors are 
+set in such a way that memory regions are overlapped, the behavior is undefined.
 
 Kernels which implement Sigmoid functions have the following prototype:
 
@@ -419,7 +424,7 @@ All the listed functions must comply to the following conditions:
 
  - ``in`` tensor must be valid.
  
- - ``mem_stride`` of the innermost dimension should be equal to 1 for all the tensors.
+ - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
  - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity 
    (that is, the total amount of elements in input tensor). Other fields are filled by 
@@ -431,7 +436,7 @@ For **sa8** versions of kernel, in addition to the preceding conditions:
    a single scale factor and a single zero offset.
    
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
 The range of this function is (0, 1).  Depending on the data type, quantization parameters of the output 
 tensor are configured in the following way:
@@ -467,9 +472,10 @@ Where:
 
 This kernel outputs a tensor of the same shape and type as the input. This kernel performs 
 in-place computation: output and input can point to exactly the same memory (the same 
-starting address and memory strides). If the starting address and memory stride of the 
-input and output tensors are set in such a way that memory regions are overlapped, 
-the behavior is undefined.
+starting address and memory strides). 
+
+If the starting address and memory stride of the input and output tensors are set in such 
+a way that memory regions are overlapped, the behavior is undefined.
 
 Kernels which implement TanH functions have the following prototype:
 
@@ -513,7 +519,7 @@ All the listed functions must comply to the following conditions:
 
  - ``in`` tensor must be valid.
  
- - ``mem_stride`` of the innermost dimension should be equal to 1 for all the tensors.
+ - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
  - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity 
    (that is, the total amount of elements in input tensor). Other fields are filled 
@@ -525,7 +531,7 @@ For **sa8** versions of kernel, in addition to the preceding conditions:
    contains a single scale factor and a single zero offset.
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
 The range of this function is (-1, 1).  Depending on the data type, quantization parameters of the output 
 tensor are configured in the following way:
@@ -632,13 +638,13 @@ All the listed functions must comply to the following conditions:
    (that is, the total amount of elements in input tensor). Other fields are filled 
    by kernel (shape, rank and element specific parameters).
    
- - ``mem_stride`` of the innermost dimension should be equal to 1 for all the tensors.
+ - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
  - axis parameter might be negative and must be less than in tensor rank.
  
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
 The range of this function is (0, 1).  Depending on the data type, quantization parameters of the output 
 tensor are configured in the following way:
@@ -682,9 +688,10 @@ then the function is applied to each slice along the specific axis independently
 
 This kernel outputs tensor of the same shape and type as input. This kernel performs in-place 
 computation: output and input can point to exactly the same memory (the same starting address
-and memory strides). If the starting address and memory stride of the 
-input and output tensors are set in such a way that memory regions are overlapped, 
-the behavior is undefined.
+and memory strides). 
+
+If the starting address and memory stride of the input and output tensors are set in such a way 
+that memory regions are overlapped, the behavior is undefined.
 
 Kernels which implement L2 normalization functions have the following prototype:
 
@@ -696,8 +703,8 @@ Kernels which implement L2 normalization functions have the following prototype:
       const mli_softmax_cfg *cfg,
       mli_tensor *out);
 	  
-where data_format is one of the data formats listed in Table :ref:`mli_data_fmts` and the function parameters are 
-shown in the following table:
+where ``data_format`` is one of the data formats listed in Table :ref:`mli_data_fmts` and the function 
+parameters are shown in the following table:
 
 .. table:: Data Format Naming Convention Fields
    :align: center
@@ -716,7 +723,7 @@ shown in the following table:
    +----------------+------------------------------+--------------------------------------------------------+
 ..
 
-mli_L2_normalize_cfg is defined as:
+``mli_L2_normalize_cfg`` is defined as:
 
 .. code::
 
@@ -749,7 +756,7 @@ All the listed functions must comply to the following conditions:
    capacity (that is, the total amount of elements in input tensor). Other 
    fields are filled by kernel (shape, rank and element specific parameters).
 
- - ``mem_stride`` of the innermost dimension should be equal to 1 for all the 
+ - ``mem_stride`` of the innermost dimension must be equal to 1 for all the 
    tensors.
 
  - ``axis`` parameter might be negative and must be less than in tensor rank.
@@ -760,17 +767,17 @@ For **sa8** versions of kernel, in addition to the preceding conditions:
    implies that the tensor contains a single scale factor and a single zero offset.
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
 The range of this function is (-1, 1).  Depending on the data type, quantization parameters of the output 
 tensor are configured in the following way:
 
- - fx16
+ - ``fx16``
 
     - ``out.el_params.fx.frac_bits`` is set to 15. Hence, the maximum representable value of sigmoid is
       equivalent to 0.999969482421875 (not 1.0).
 
- - sa8
+ - ``sa8``
 
     - ``out.el_params.sa.zero_point.mem.i16`` is set to 0
 

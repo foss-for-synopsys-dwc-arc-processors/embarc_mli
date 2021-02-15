@@ -3,10 +3,9 @@
 Preface
 =======
 
-This specification document relates to the MLI (Machine Learning Inference) API, 
-which is expected to be used to define the interface to various processor-specific 
-machine learning Implementations.  This document guides creators of target-specific 
-MLI Implementations on how to create a compliant implementation.
+This document describes the MLI (Machine Learning Inference) API used to define the 
+interface to various processor-specific machine learning Implementations. This 
+document guides you to create a MLI Implementations that is compliant to the desired target.
 
 .. table:: Revision History 
    :align: center
@@ -19,12 +18,14 @@ MLI Implementations on how to create a compliant implementation.
    +-----------------+---------------+----------------------------------------+
 ..
 
-Definitions
------------
- 
+.. _terms_and_defs:
+   
+Terms and definitions
+---------------------
+
 .. glossary::
    :sorted:
-   
+
    AGU
       Address Generation Unit
 
@@ -43,20 +44,11 @@ Definitions
    CCAC 
       MetaWare Compiler 
 
-   CNN
-      Convoluted Neural Networks
-      
    DMA 
       Direct Memory Access 
-
-   DNN
-      Deep Neural Networks
       
    DSP
       Digital Signal Processor 
-
-   EV
-      Embedded Vision
       
    FXAPI 
       Fixed-point API 
@@ -69,30 +61,12 @@ Definitions
 
    MDB 
       MetaWare Debugger
-      
-   MLI
-      Machine Learning Inference
-      
-   MLI Implementation
-      Set of APIs which are targeted at a specific accelerator, which are accessed via an MLI-compliant interface      
-      
+
    MPY 
       Multiply Command 
 
    MWDT
       MetaWare Development Toolset
-      
-   NN
-       Neural Networks
-
-   NN Accelerator      
-      General term to mean any NN processor or NN custom hardware which can be used to accelerate NN processing
-
-   NN Processor      
-      A Synopsys processor that can accelerate NN operations via special SW libraries like MLI
-
-   NN custom hardware
-      Any hardware blocks like EV’s CNN and DNN Engines which can be used to accelerate all or part of NN processing
       
    nSIM 
       Instruction Set Simulator
@@ -108,8 +82,8 @@ Definitions
       
    xCAM 
       Cycle Accurate Model
-..
-   
+
+	  
 MLI Version Numbering 
 ---------------------
 
