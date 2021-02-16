@@ -17,7 +17,7 @@ BIN_PATH = $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)bin
 ifndef TCF_FILE
 RUN_TEST_CMD =
 else
-RUN_TEST_CMD = mdb -run  -tcf=$(TCF_FILE)
+RUN_TEST_CMD = mdb64 -run -tcf=$(TCF_FILE)
 BIN_EXT = .elf
 endif
 
