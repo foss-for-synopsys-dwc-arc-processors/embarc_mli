@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -13,6 +13,7 @@
 
 #include "idx_file.h"
 #include "tensor_transform.h"
+#include "mli_api.h"
 
 // Find maximum value in the whole tensor and return it's argument (index)
 // Tensor data considered as linear array. Index corresponds to number of element in this array
@@ -44,12 +45,17 @@ test_status model_run_single_in(
         return TEST_NOT_ENOUGH_MEM;
     }
 
+    mli_tensor pred_tensor = *model_output;
+    pred_tensor.data.mem.void_p = (void *)pred_data;
+    pred_tensor.data.capacity = output_elements * sizeof(float);
+    pred_tensor.el_type = MLI_EL_FP_32;
+
     // Data preprocessing and model inference
     preprocess(data_in, model_input);
     inference(inf_param);
 
     // Check result
-    if (MLI_STATUS_OK == mli_hlp_fx_tensor_to_float(model_output, pred_data, output_elements)) {
+    if (MLI_STATUS_OK == mli_hlp_convert_tensor(model_output, &pred_tensor)) {
         ref_to_pred_output err;
         measure_err_vfloat(ref_out, pred_data, output_elements, &err);
         printf("Result Quality: S/N=%-10.1f (%-4.1f db)\n", err.ref_vec_length / err.noise_vec_length, err.ref_to_noise_snr);
@@ -117,7 +123,7 @@ test_status model_run_idx_base_to_idx_out(
 
     // Memory allocation for input/output (for it's external representations)
     input_data = malloc((input_elements * data_elem_size(descr_in.data_type)) + (output_elements * sizeof(float)));
-    output_data = (float *)(input_data + input_elements * data_elem_size(descr_in.data_type));
+    output_data = (float *)((char*)input_data + input_elements * data_elem_size(descr_in.data_type));
     if (input_data == NULL) {
         printf("ERROR: Can't allocate memory for input and output\n");
         ret_val =  TEST_NOT_ENOUGH_MEM;
@@ -295,6 +301,7 @@ test_status model_run_acc_on_idx_base(
         // Model inference
         preprocess(input_data, model_input);
         inference(inf_param);
+
         labels_correct += (arg_max(model_output) == label)? 1: 0;
 
         // Notify User on progress (10% step)
@@ -328,35 +335,23 @@ free_ret_lbl:
 // Find argument (index) of maximum value in tensor
 //=================================================
 static inline int arg_max(mli_tensor * net_output_) {
-    int tot_points = (int)mli_hlp_count_elem_num(net_output_, 0);
-    int arg_max = 0;
-
-    int16_t *out_16 = (int16_t *)(net_output_->data.mem.void_p);
-    int16_t max_16 = out_16[0];
-    int8_t *out_8 = (int8_t *)(net_output_->data.mem.void_p);
-    int8_t max_8 = out_8[0];
-
-    switch (net_output_->el_type) {
-        case MLI_EL_FX_16:
-            for (int idx = 1; idx < tot_points; ++idx)
-                if (max_16 < out_16[idx]) {
-                    arg_max = idx;
-                    max_16 = out_16[idx];
-                }
-            break;
-
-        case MLI_EL_FX_8:
-            for (int idx = 1; idx < tot_points; ++idx)
-                if (max_8 < out_8[idx]) {
-                    arg_max = idx;
-                    max_8 = out_8[idx];
-                }
-            break;
-
-        default:
-            assert(0);
+    
+    const mli_argmax_cfg argmax_cfg = {
+        /* axis = */ -1,
+        /* topk = */ 1
     };
-    return arg_max;
+
+    int8_t pred_label = 0;
+    mli_tensor out_tensor;
+    out_tensor.data.mem.void_p = (void *)&pred_label;
+    out_tensor.el_type = MLI_EL_SA_8;
+
+if (net_output_->el_type == MLI_EL_SA_8)
+    mli_krn_argmax_sa8(net_output_, &argmax_cfg, &out_tensor);
+else
+    mli_krn_argmax_fx16(net_output_, &argmax_cfg, &out_tensor);
+
+    return pred_label;
 }
 
 //=================================================

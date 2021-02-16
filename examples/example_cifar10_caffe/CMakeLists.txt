@@ -1,5 +1,5 @@
 #
-# Copyright 2020, Synopsys, Inc.
+# Copyright 2020-2021, Synopsys, Inc.
 # All rights reserved.
 #
 # This source code is licensed under the BSD-3-Clause license found in
@@ -13,9 +13,8 @@ file(GLOB temp
     ../auxiliary/*.c
 )
 add_executable(example_cifar10_caffe
-    cifar10_coefficients_chw_big.c
-    cifar10_coefficients_chw_small.c
-    cifar10_model_chw.c
+    cifar10_coefficients_hwcn_small.c
+    cifar10_model_hwcn.c
     ml_api_cifar10_caffe_main.c
     ${temp}
 )

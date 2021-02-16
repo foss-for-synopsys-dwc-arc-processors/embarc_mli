@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -24,7 +24,7 @@
 extern int start_init(void);
 #endif // if defined (__GNUC__) && !defined (__CCAC__)
 // Root to referenc IR vectors for comparison
-// pass "./ir_idx_12_chw_small" or "./ir_idx_12_chw_big" for debug (regarding to used modelCHW and HWC layout accordingly)
+// pass "./ir_idx_12_hwcn_small" for debug
 static const char kCifar10RootIR[] = "";
 static const char kOutFilePostfix[] = "_out";
 
@@ -163,7 +163,7 @@ static void cifar10_preprocessing(const void * image_, mli_tensor * net_input_) 
 
     // Copying data  to input tensor with subtraction of average.
     // Data shft may be required depending on tensor format
-    if (net_input_->el_params.fx.frac_bits == 7) {
+    if (net_input_->el_params.fx.frac_bits == 7 || net_input_->el_type == MLI_EL_SA_8) {
         for (int idx = 0; idx < IN_POINTS; idx++)
             dst[idx] = (d_type)((int)in[idx] - 128);
     } else if (net_input_->el_params.fx.frac_bits > 7) {

@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -21,8 +21,8 @@
 #include "cifar10_constants.h"
 #include "tests_aux.h"
 
-#if (MODEL_BIT_DEPTH == MODEL_FX_8)
-#define D_EL_TYPE (MLI_EL_FX_8)
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+#define D_EL_TYPE (MLI_EL_SA_8)
 #else
 #define D_EL_TYPE (MLI_EL_FX_16)
 #endif
@@ -35,31 +35,62 @@
 //
 //==============================================================
 
+inline void set_mli_tensor_params(mli_tensor* tensor, int16_t zero_point, int8_t scale_frac_bits, int16_t scale) {
+    tensor->el_params.sa.zero_point.mem.i16 = zero_point;
+    tensor->el_params.sa.scale_frac_bits.mem.i8 = scale_frac_bits;
+    tensor->el_params.sa.scale.mem.i16 = scale;
+}
+
 // Intermediate data buffers (enough size for max intermediate results)
 //==============================
-#define IR_BUF_SZ_MOST (32*32*32) //32768
 #define IR_BUF_SZ_NEXT (32*16*16)
+#define IR_BUF_SZ_MOST (32*32*32)
+
 static d_type  _Z    x_mem_buf[IR_BUF_SZ_MOST];
 static d_type  _Y    y_mem_buf[IR_BUF_SZ_NEXT];
 
 // Module Input/Output tensors and their's external interface
 //============================================================
 static mli_tensor input = {
-    .data = { .capacity =  sizeof(d_type) * IN_POINTS,
-            .mem = {.void_p = x_mem_buf}},
+    .data = {
+        .capacity = sizeof(d_type) * IN_POINTS,
+        .mem = { .void_p = (void *)y_mem_buf }
+    },
+    .mem_stride = { 0 },
     .shape = {32, 32, 3},
     .rank = 3,
     .el_type = D_EL_TYPE,
-    .el_params.fx.frac_bits = 7,
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+    .el_params.sa = {
+        .zero_point.mem = { .i16 = 0 },
+        .scale.mem = { .i16 = 32767 },
+        .dim = -1,
+        .scale_frac_bits.mem = { .i8 = 22 }
+    }
+#else
+        .el_params.fx.frac_bits = 7
+#endif
 };
 
 static mli_tensor output = {
-    .data = { .capacity = sizeof(d_type) * OUT_POINTS,
-            .mem = {.void_p = (void *)y_mem_buf}},
+    .data = {
+        .capacity = sizeof(d_type) * OUT_POINTS,
+        .mem = { .void_p = (void *)x_mem_buf }
+    },
+    .mem_stride = { 0 },
     .shape = {10},
     .rank = 1,
     .el_type = D_EL_TYPE,
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+    .el_params.sa = {
+        .zero_point.mem = { .i16 = 0 },
+        .scale.mem = { .i16 = 1 },
+        .dim = -1,
+        .scale_frac_bits.mem = { .i8 = 0 }
+    }
+#else
     .el_params.fx.frac_bits = 0,
+#endif
 };
 
 // Interface variables: Available to user via main model header
@@ -71,19 +102,15 @@ mli_tensor * const cifar10_cf_net_output = &output;
 //==============================================================
 //  Model description and configuration
 //==============================================================
-#pragma Data(".mli_data")
 
 // Configuration objects for layers
 //===============================================
-
-static const mli_permute_cfg permute_hwc2chw_cfg = {
-        .perm_dim = {2, 0, 1}
-};
 
 static const mli_conv2d_cfg shared_conv_cfg = {
     .stride_height = 1, .stride_width = 1,
     .padding_bottom = 2, .padding_top = 2,
     .padding_left = 2, .padding_right = 2,
+    .dilation_width = 0, .dilation_height = 0,
     .relu.type = MLI_RELU_GEN
 };
 
@@ -94,150 +121,229 @@ static const mli_pool_cfg shared_pool_cfg = {
     .padding_left = 0, .padding_right = 1
 };
 
-
 // Conv 1 Layer related tensors
 //===================================
 static const mli_tensor L1_conv_wt = {
-    .data = { .capacity = CONV1_W_ELEMENTS * sizeof(w_type),
-            .mem = {.void_p = (void *)L1_conv_wt_buf}},
+    .data = {
+        .capacity = CONV1_W_ELEMENTS * sizeof(w_type),
+        .mem = { .void_p = (void *)L1_conv_wt_buf }
+    },
     .shape = CONV1_W_SHAPE,
     .rank = CONV1_W_RANK,
     .el_type = W_EL_TYPE,
-    .el_params.fx.frac_bits = CONV1_W_FRAQ,
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+    .el_params.sa = {
+        .zero_point.mem = { .pi16 = CONV1_W_ZP },
+        .scale.mem = { .pi16 = CONV1_W_SCALE },
+        .dim = CONV1_W_DIM,
+        .scale_frac_bits.mem = { .pi8 = CONV1_W_FRAQ }
+    }
+#else
+    .el_params.fx.frac_bits = CONV1_W_FRAQ
+#endif
 };
 
-
 static const mli_tensor L1_conv_bias = {
-    .data = { .capacity = CONV1_B_ELEMENTS * sizeof(w_type),
-            .mem = {.void_p = (void *)L1_conv_bias_buf}},
+    .data = {
+        .capacity = CONV1_B_ELEMENTS * sizeof(b_type),
+        .mem = { .void_p = (void *)L1_conv_bias_buf }
+    },
     .shape = CONV1_B_SHAPE,
     .rank = CONV1_B_RANK,
-    .el_type = W_EL_TYPE,
-    .el_params.fx.frac_bits = CONV1_B_FRAQ,
+    .el_type = B_EL_TYPE,
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+    .el_params.sa = {
+        .zero_point.mem = { .pi16 = CONV1_B_ZP },
+        .scale.mem = { .pi16 = CONV1_B_SCALE },
+        .dim = CONV1_B_DIM,
+        .scale_frac_bits.mem = { .pi8 = CONV1_B_FRAQ }
+    }
+#else
+    .el_params.fx.frac_bits = CONV1_B_FRAQ
+#endif
 };
 
 
 // Conv 2 Layer related data
 //===================================
 static mli_tensor L2_conv_wt = {
-    .data = { .capacity = CONV2_W_ELEMENTS * sizeof(w_type),
-            .mem = {.void_p = (void *)L2_conv_wt_buf}},
+    .data = {
+        .capacity = CONV2_W_ELEMENTS * sizeof(w_type),
+        .mem = { .void_p = (void *)L2_conv_wt_buf }
+    },
     .shape = CONV2_W_SHAPE,
     .rank = CONV2_W_RANK,
     .el_type = W_EL_TYPE,
-    .el_params.fx.frac_bits = CONV2_W_FRAQ,
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+    .el_params.sa = {
+        .zero_point.mem = { .pi16 = CONV2_W_ZP },
+        .scale.mem = { .pi16 = CONV2_W_SCALE },
+        .dim = CONV2_W_DIM,
+        .scale_frac_bits.mem = { .pi8 = CONV2_W_FRAQ }
+    }
+#else
+    .el_params.fx.frac_bits = CONV2_W_FRAQ
+#endif
 };
 
 static mli_tensor L2_conv_bias = {
-    .data = { .capacity = CONV2_B_ELEMENTS * sizeof(w_type),
-            .mem = {.void_p = (void *)L2_conv_bias_buf}},
+    .data = {
+        .capacity = CONV2_B_ELEMENTS * sizeof(b_type),
+        .mem = { .void_p = (void *)L2_conv_bias_buf }
+    },
     .shape = CONV2_B_SHAPE,
     .rank = CONV2_B_RANK,
-    .el_type = W_EL_TYPE,
-    .el_params.fx.frac_bits = CONV2_B_FRAQ,
+    .el_type = B_EL_TYPE,
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+    .el_params.sa = {
+        .zero_point.mem = { .pi16 = CONV2_B_ZP },
+        .scale.mem = { .pi16 = CONV2_B_SCALE },
+        .dim = CONV2_B_DIM,
+        .scale_frac_bits.mem = { .pi8 = CONV2_B_FRAQ }
+    }
+#else
+    .el_params.fx.frac_bits = CONV2_B_FRAQ
+#endif
 };
 
 
 // Conv 3 Layer related data
 //===================================
 static mli_tensor L3_conv_wt = {
-    .data = { .capacity = CONV3_W_ELEMENTS * sizeof(w_type),
-            .mem = {.void_p = (void *)L3_conv_wt_buf}},
+    .data = {
+        .capacity = CONV3_W_ELEMENTS * sizeof(w_type),
+        .mem = { .void_p = (void *)L3_conv_wt_buf }
+    },
     .shape = CONV3_W_SHAPE,
     .rank = CONV3_W_RANK,
     .el_type = W_EL_TYPE,
-    .el_params.fx.frac_bits = CONV3_W_FRAQ,
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+    .el_params.sa = {
+        .zero_point.mem = { .pi16 = CONV3_W_ZP },
+        .scale.mem = { .pi16 = CONV3_W_SCALE },
+        .dim = CONV3_W_DIM,
+        .scale_frac_bits.mem = { .pi8 = CONV3_W_FRAQ }
+    }
+#else
+    .el_params.fx.frac_bits = CONV3_W_FRAQ
+#endif
 };
 
 static mli_tensor L3_conv_bias = {
-    .data = { .capacity = CONV3_B_ELEMENTS * sizeof(w_type),
-            .mem = {.void_p = (void *)L3_conv_bias_buf}},
+    .data = {
+        .capacity = CONV3_B_ELEMENTS * sizeof(w_type),
+        .mem = { .void_p = (void *)L3_conv_bias_buf }
+    },
     .shape = CONV3_B_SHAPE,
     .rank = CONV3_B_RANK,
-    .el_type = W_EL_TYPE,
-    .el_params.fx.frac_bits = CONV3_B_FRAQ,
+    .el_type = B_EL_TYPE,
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+    .el_params.sa = {
+        .zero_point.mem = { .pi16 = CONV3_B_ZP },
+        .scale.mem = { .pi16 = CONV3_B_SCALE },
+        .dim = CONV3_B_DIM,
+        .scale_frac_bits.mem = { .pi8 = CONV3_B_FRAQ }
+    }
+#else
+    .el_params.fx.frac_bits = CONV3_B_FRAQ
+#endif
 };
-
 
 // FC4 Layer related data
 //===================================
 static mli_tensor L4_fc_wt = {
-    .data = { .capacity = FC4_W_ELEMENTS * sizeof(w_type),
-            .mem = {.void_p = (void *)L4_fc_wt_buf}},
+    .data = {
+        .capacity = FC4_W_ELEMENTS * sizeof(w_type),
+        .mem = { .void_p = (void *)L4_fc_wt_buf }
+    },
     .shape = FC4_W_SHAPE,
     .rank = FC4_W_RANK,
     .el_type = W_EL_TYPE,
-    .el_params.fx.frac_bits = FC4_W_FRAQ,
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+    .el_params.sa = {
+        .zero_point.mem = { .pi16 = CONV4_W_ZP },
+        .scale.mem = { .pi16 = CONV4_W_SCALE },
+        .dim = CONV4_W_DIM,
+        .scale_frac_bits.mem = { .pi8 = CONV4_W_FRAQ }
+    }
+#else
+    .el_params.fx.frac_bits = FC4_W_FRAQ
+#endif
 };
 
 static mli_tensor L4_fc_bias = {
-    .data = { .capacity = FC4_B_ELEMENTS * sizeof(w_type),
-            .mem = {.void_p = (void *)L4_fc_bias_buf}},
+    .data = {
+        .capacity = FC4_B_ELEMENTS * sizeof(b_type),
+        .mem = { .void_p = (void *)L4_fc_bias_buf }
+    },
     .shape = FC4_B_SHAPE,
     .rank = FC4_B_RANK,
-    .el_type = W_EL_TYPE,
+    .el_type = B_EL_TYPE,
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+    .el_params.sa = {
+        .zero_point.mem = { .pi16 = CONV4_B_ZP },
+        .scale.mem = { .pi16 = CONV4_B_SCALE },
+        .dim = CONV4_B_DIM,
+        .scale_frac_bits.mem = { .pi8 = CONV4_B_FRAQ }
+    }
+#else
     .el_params.fx.frac_bits = FC4_B_FRAQ,
+#endif
 };
-
-#if defined(MODEL_BIG)
-// FC5 Layer related data
-//===================================
-static mli_tensor L5_fc_wt = {
-    .data = { .capacity = FC5_W_ELEMENTS * sizeof(w_type),
-            .data.mem = {.void_p = (void *)L5_fc_wt_buf}},
-    .shape = FC5_W_SHAPE,
-    .rank = FC5_W_RANK,
-    .el_type = W_EL_TYPE,
-    .el_params.fx.frac_bits = FC5_W_FRAQ,
-};
-
-static mli_tensor L5_fc_bias = {
-    .data = { .capacity = FC5_B_ELEMENTS * sizeof(w_type),
-            .mem = {.void_p = (void *)L5_fc_bias_buf}},
-    .shape = FC5_B_SHAPE,
-    .rank = FC5_B_RANK,
-    .el_type = W_EL_TYPE,
-    .el_params.fx.frac_bits = FC5_B_FRAQ,
-};
-#endif //#if defined(MODEL_BIG)
 
 // Intermediate result tensors
 //===============================================
 static mli_tensor ir_tensor_X = {
-    .data = {.capacity = sizeof(x_mem_buf),
-            .mem = {.void_p = (void *)x_mem_buf}},
+    .data = {
+        .capacity = sizeof(x_mem_buf),
+        .mem = { .void_p = (void *)x_mem_buf }
+    },
     .shape = {0, 0, 0, 0},
     .rank = 4,
     .el_type = D_EL_TYPE,
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+    .el_params.sa = {
+    .zero_point.mem = { .i16 = 0 },
+    .scale.mem = { .i16 = 1 },
+    .dim = -1,
+    .scale_frac_bits.mem = { .i8 = 0 }
+    }
+#else
     .el_params.fx.frac_bits = FRQ_BITS(0, d_type),
+#endif
 };
 
 static mli_tensor ir_tensor_Y = {
-    .data = { .capacity = sizeof(y_mem_buf),
-            .mem = {.void_p = (void *)y_mem_buf}},
+    .data = {
+        .capacity = sizeof(y_mem_buf),
+        .mem = { .void_p = (void *)y_mem_buf }
+    },
     .shape = {0, 0, 0, 0},
     .rank = 4,
     .el_type = D_EL_TYPE,
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+    .el_params.sa = {
+    .zero_point.mem = { .i16 = 0 },
+    .scale.mem = { .i16 = 1 },
+    .dim = -1,
+    .scale_frac_bits.mem = { .i8 = 0 }
+    }
+#else
     .el_params.fx.frac_bits = FRQ_BITS(0, d_type),
+#endif
 };
-#pragma Data()
-
 
 //==============================================================
 //  Wrappers on MLI calls to deal with various
 //  bit depth configurable in compile time
 //==============================================================
-static inline mli_status maxpool_chw(const mli_tensor *in, const mli_pool_cfg *cfg, mli_tensor *out);
+static inline mli_status maxpool_hwcn(const mli_tensor *in, const mli_pool_cfg *cfg, mli_tensor *out);
 
-static inline mli_status avepool_chw(const mli_tensor *in, const mli_pool_cfg *cfg, mli_tensor *out);
+static inline mli_status avepool_hwcn(const mli_tensor *in, const mli_pool_cfg *cfg, mli_tensor *out);
 
 static inline mli_status softmax(const mli_tensor *in,	mli_tensor *out);
 
-static inline mli_status relu(const mli_tensor *in, const mli_relu_cfg *cfg, mli_tensor *out);
-
-static inline mli_status mli_krn_permute_fx(const mli_tensor *in, const mli_permute_cfg *cfg, mli_tensor *out);
-
-static inline mli_status conv2d_chw(
+static inline mli_status conv2d_hwcn(
         const mli_tensor *in,
         const mli_tensor *weights,
         const mli_tensor *bias,
@@ -263,50 +369,64 @@ static void check_result(
 //==============================================================
 //
 //  CIFAR10 graph based on Caffe example.
-//  Layer-by-Layer execution for CHW layput
+//  Layer-by-Layer execution for hwcn layput
 //
 //==============================================================
 void cifar10_cf_net(const char * debug_ir_root) {
     if (debug_ir_root == NULL) {
         // Version A: Pure implementation: without return status checking and profiling wrappers
         //========================================================================================
-        // LAYER 0: Change RGB Image layout
-        //=======================================
-        mli_krn_permute_fx(&input, &permute_hwc2chw_cfg, &ir_tensor_Y);
-
+        
         // LAYER 1
         //=======================================
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+        set_mli_tensor_params(&ir_tensor_X, -128, 20, QMN(int16_t, 20, 0.027559));
+#else
         ir_tensor_X.el_params.fx.frac_bits = CONV1_OUT_FRAQ;
-        conv2d_chw(&ir_tensor_Y, &L1_conv_wt, &L1_conv_bias, &shared_conv_cfg, &ir_tensor_X);
-        maxpool_chw(&ir_tensor_X, &shared_pool_cfg, &ir_tensor_Y);
-
+#endif
+        conv2d_hwcn(&input, &L1_conv_wt, &L1_conv_bias, &shared_conv_cfg, &ir_tensor_X);
+        maxpool_hwcn(&ir_tensor_X, &shared_pool_cfg, &ir_tensor_Y);
 
         // LAYER 2
         //=======================================
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+        set_mli_tensor_params(&ir_tensor_X, -128, 18, QMN(int16_t, 18, 0.08580));
+#else
         ir_tensor_X.el_params.fx.frac_bits = CONV2_OUT_FRAQ;
-        conv2d_chw(&ir_tensor_Y, &L2_conv_wt, &L2_conv_bias, &shared_conv_cfg, &ir_tensor_X);
-        avepool_chw(&ir_tensor_X, &shared_pool_cfg, &ir_tensor_Y);
+#endif
+        conv2d_hwcn(&ir_tensor_Y, &L2_conv_wt, &L2_conv_bias, &shared_conv_cfg, &ir_tensor_X);
+
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+        set_mli_tensor_params(&ir_tensor_Y, -128, 18, QMN(int16_t, 18, 0.06823));
+#endif
+        avepool_hwcn(&ir_tensor_X, &shared_pool_cfg, &ir_tensor_Y);
 
         // LAYER 3
         //=======================================
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+        set_mli_tensor_params(&ir_tensor_X, -128, 18, QMN(int16_t, 18, 0.10678));
+#else
         ir_tensor_X.el_params.fx.frac_bits = CONV3_OUT_FRAQ;
-        conv2d_chw(&ir_tensor_Y, &L3_conv_wt, &L3_conv_bias, &shared_conv_cfg, &ir_tensor_X);
-        avepool_chw(&ir_tensor_X, &shared_pool_cfg, &ir_tensor_Y);
+#endif
+        conv2d_hwcn(&ir_tensor_Y, &L3_conv_wt, &L3_conv_bias, &shared_conv_cfg, &ir_tensor_X);
+
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+        set_mli_tensor_params(&ir_tensor_Y, -128, 18, QMN(int16_t, 18, 0.086815));
+#endif
+        avepool_hwcn(&ir_tensor_X, &shared_pool_cfg, &ir_tensor_Y);
 
         // LAYER 4
         //=======================================
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+        set_mli_tensor_params(&ir_tensor_X, -11, 17, QMN(int16_t, 17, 0.149543));
+#else
         ir_tensor_X.el_params.fx.frac_bits = FC4_OUT_FRAQ;
+#endif
         fully_connected(&ir_tensor_Y, &L4_fc_wt, &L4_fc_bias, &ir_tensor_X);
-        
-#if defined(MODEL_BIG)
+
         // LAYER 5
         //=======================================
-        ir_tensor_Y.el_params.fx.frac_bits = FC5_OUT_FRAQ;
-        fully_connected(&ir_tensor_X, &L5_fc_wt, &L5_fc_bias, &ir_tensor_Y);
-        softmax(&ir_tensor_Y, &output);
-#else
         softmax(&ir_tensor_X, &output);
-#endif
 
     } else {
         // Version B: Wrapped by service code for profiling and IR results checking purpose
@@ -318,71 +438,74 @@ void cifar10_cf_net(const char * debug_ir_root) {
         unsigned layer4_cycles = 0;
         unsigned layer5_cycles = 0;
 
-        // Change RGB Image layout
-        //=======================================
-        PROFILE(ret = mli_krn_permute_fx(&input, &permute_hwc2chw_cfg, &ir_tensor_Y));
-        check_result(debug_ir_root, "RGB_2_CHW", &ir_tensor_Y, cycle_cnt, ret);
-        layer1_cycles += cycle_cnt;
-
         // LAYER 1
         //=======================================
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+        set_mli_tensor_params(&ir_tensor_X, -128, 20, QMN(int16_t, 20, 0.027559));
+#else
         ir_tensor_X.el_params.fx.frac_bits = CONV1_OUT_FRAQ;
-        PROFILE(ret = conv2d_chw(&ir_tensor_Y, &L1_conv_wt, &L1_conv_bias, &shared_conv_cfg, &ir_tensor_X));
+#endif
+        PROFILE(ret = conv2d_hwcn(&input, &L1_conv_wt, &L1_conv_bias, &shared_conv_cfg, &ir_tensor_X));
         check_result(debug_ir_root, "ir_conv1.idx", &ir_tensor_X, cycle_cnt, ret);
         layer1_cycles += cycle_cnt;
 
-        PROFILE(ret = maxpool_chw(&ir_tensor_X, &shared_pool_cfg, &ir_tensor_Y));
+        PROFILE(ret = maxpool_hwcn(&ir_tensor_X, &shared_pool_cfg, &ir_tensor_Y));
         check_result(debug_ir_root, "ir_pool1.idx", &ir_tensor_Y, cycle_cnt, ret);
         layer1_cycles += cycle_cnt;
 
         // LAYER 2
         //=======================================
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+        set_mli_tensor_params(&ir_tensor_X, -128, 18, QMN(int16_t, 18, 0.08580));
+#else
         ir_tensor_X.el_params.fx.frac_bits = CONV2_OUT_FRAQ;
-        PROFILE(ret = conv2d_chw(&ir_tensor_Y, &L2_conv_wt, &L2_conv_bias, &shared_conv_cfg, &ir_tensor_X));
+#endif
+        PROFILE(ret = conv2d_hwcn(&ir_tensor_Y, &L2_conv_wt, &L2_conv_bias, &shared_conv_cfg, &ir_tensor_X));
         check_result(debug_ir_root, "ir_conv2.idx", &ir_tensor_X, cycle_cnt, ret);
         layer2_cycles += cycle_cnt;
 
-        PROFILE(ret = avepool_chw(&ir_tensor_X, &shared_pool_cfg, &ir_tensor_Y));
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+        set_mli_tensor_params(&ir_tensor_Y, -128, 18, QMN(int16_t, 18, 0.06823));
+#endif
+        PROFILE(ret = avepool_hwcn(&ir_tensor_X, &shared_pool_cfg, &ir_tensor_Y));
         check_result(debug_ir_root, "ir_pool2.idx", &ir_tensor_Y, cycle_cnt, ret);
         layer2_cycles += cycle_cnt;
 
-
         // LAYER 3
         //=======================================
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+        set_mli_tensor_params(&ir_tensor_X, -128, 18, QMN(int16_t, 18, 0.10678));
+#else
         ir_tensor_X.el_params.fx.frac_bits = CONV3_OUT_FRAQ;
-        PROFILE(ret = conv2d_chw(&ir_tensor_Y, &L3_conv_wt, &L3_conv_bias, &shared_conv_cfg, &ir_tensor_X));
+#endif
+        PROFILE(ret = conv2d_hwcn(&ir_tensor_Y, &L3_conv_wt, &L3_conv_bias, &shared_conv_cfg, &ir_tensor_X));
         check_result(debug_ir_root, "ir_conv3.idx", &ir_tensor_X, cycle_cnt, ret);
         layer3_cycles += cycle_cnt;
 
-        PROFILE(ret = avepool_chw(&ir_tensor_X, &shared_pool_cfg, &ir_tensor_Y));
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+        set_mli_tensor_params(&ir_tensor_Y, -128, 18, QMN(int16_t, 18, 0.086815));
+#endif
+
+        PROFILE(ret = avepool_hwcn(&ir_tensor_X, &shared_pool_cfg, &ir_tensor_Y));
         check_result(debug_ir_root, "ir_pool3.idx", &ir_tensor_Y, cycle_cnt, ret);
         layer3_cycles += cycle_cnt;
 
-
         // LAYER 4
         //=======================================
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+        set_mli_tensor_params(&ir_tensor_X, -11, 17, QMN(int16_t, 17, 0.149543));
+#else
         ir_tensor_X.el_params.fx.frac_bits = FC4_OUT_FRAQ;
+#endif
         PROFILE(ret = fully_connected(&ir_tensor_Y, &L4_fc_wt, &L4_fc_bias, &ir_tensor_X));
         check_result(debug_ir_root, "ir_ip1.idx", &ir_tensor_X, cycle_cnt, ret);
         layer4_cycles += cycle_cnt;
 
-
         // LAYER 5
         //=======================================
-#if defined(MODEL_BIG)
-        ir_tensor_Y.el_params.fx.frac_bits = FC5_OUT_FRAQ;
-        PROFILE(ret = fully_connected(&ir_tensor_X, &L5_fc_wt, &L5_fc_bias, &ir_tensor_Y));
-        check_result(debug_ir_root, "ir_ip2.idx", &ir_tensor_Y, cycle_cnt, ret);
-        layer5_cycles += cycle_cnt;
-
-        PROFILE(ret = softmax(&ir_tensor_Y, &output));
-        check_result(debug_ir_root, "ir_prob.idx", &output, cycle_cnt, ret);
-        layer5_cycles += cycle_cnt;
-#else
         PROFILE(ret = softmax(&ir_tensor_X, &output));
         check_result(debug_ir_root, "ir_prob.idx", &output, cycle_cnt, ret);
         layer5_cycles += cycle_cnt;
-#endif
 
         const unsigned total = layer1_cycles + layer2_cycles + layer3_cycles + layer4_cycles + layer5_cycles;
         printf("\n\nSummary:\n"
@@ -432,13 +555,13 @@ static void check_result(
 //========================================================================================
 //  MLI Functions wrappers: Kernels w/o weights
 //========================================================================================
-#if (MODEL_BIT_DEPTH != MODEL_FX_8)
-static inline mli_status maxpool_chw(const mli_tensor *in, const mli_pool_cfg *cfg, mli_tensor *out) {
-    return mli_krn_maxpool_chw_fx16_k3x3_krnpad(in, cfg, out);
+#if (MODEL_BIT_DEPTH != MODEL_SA_8)
+static inline mli_status maxpool_hwcn(const mli_tensor *in, const mli_pool_cfg *cfg, mli_tensor *out) {
+    return mli_krn_maxpool_hwc_fx16_k3x3(in, cfg, out);
 }
 
-static inline mli_status avepool_chw(const mli_tensor *in, const mli_pool_cfg *cfg, mli_tensor *out) {
-    return mli_krn_avepool_chw_fx16_k3x3_krnpad(in, cfg, out);
+static inline mli_status avepool_hwcn(const mli_tensor *in, const mli_pool_cfg *cfg, mli_tensor *out) {
+    return mli_krn_avepool_hwc_fx16_k3x3(in, cfg, out);
 }
 
 static inline mli_status softmax(const mli_tensor *in,	mli_tensor *out) {
@@ -447,33 +570,19 @@ static inline mli_status softmax(const mli_tensor *in,	mli_tensor *out) {
     return mli_krn_softmax_fx16(in, &cfg, out);
 }
 
-static inline mli_status relu(const mli_tensor *in, const mli_relu_cfg *cfg, mli_tensor *out) {
-    return mli_krn_relu_fx16(in, cfg, out);
+#else // MODEL_BIT_DEPTH == (MODEL_SA_8)
+static inline mli_status maxpool_hwcn(const mli_tensor *in, const mli_pool_cfg *cfg, mli_tensor *out) {
+    return mli_krn_maxpool_hwc_sa8_k3x3(in, cfg, out);
 }
 
-static inline mli_status mli_krn_permute_fx(const mli_tensor *in, const mli_permute_cfg *cfg, mli_tensor *out) {
-    return mli_krn_permute_fx16(in, cfg, out);
-}
-
-#else // MODEL_BIT_DEPTH == (MODEL_FX_8W16D || MODEL_FX_8W16D)
-static inline mli_status maxpool_chw(const mli_tensor *in, const mli_pool_cfg *cfg, mli_tensor *out) {
-    return mli_krn_maxpool_chw_fx8_k3x3_krnpad(in, cfg, out);
-}
-
-static inline mli_status avepool_chw(const mli_tensor *in, const mli_pool_cfg *cfg, mli_tensor *out) {
-    return mli_krn_avepool_chw_fx8_k3x3_krnpad(in, cfg, out);
+static inline mli_status avepool_hwcn(const mli_tensor *in, const mli_pool_cfg *cfg, mli_tensor *out) {
+    return mli_krn_avepool_hwc_sa8_k3x3(in, cfg, out);
 }
 
 static inline mli_status softmax(const mli_tensor *in,	mli_tensor *out) {
-    return mli_krn_softmax_fx8(in, out);
-}
-
-static inline mli_status relu(const mli_tensor *in, const mli_relu_cfg *cfg, mli_tensor *out) {
-    return mli_krn_relu_fx8(in, cfg, out);
-}
-
-static inline mli_status mli_krn_permute_fx(const mli_tensor *in, const mli_permute_cfg *cfg, mli_tensor *out) {
-    return mli_krn_permute_fx8(in, cfg, out);
+    mli_softmax_cfg cfg = { 0 };
+    cfg.axis = -1;
+    return mli_krn_softmax_sa8(in, &cfg, out);
 }
 
 #endif
@@ -481,14 +590,14 @@ static inline mli_status mli_krn_permute_fx(const mli_tensor *in, const mli_perm
 //========================================================================================
 //  MLI Functions wrappers: Kernels with weights
 //========================================================================================
-#if (MODEL_BIT_DEPTH == MODEL_FX_8)
-static inline mli_status conv2d_chw(
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+static inline mli_status conv2d_hwcn(
         const mli_tensor *in,
         const mli_tensor *weights,
         const mli_tensor *bias,
         const mli_conv2d_cfg *cfg,
         mli_tensor *out) {
-    return mli_krn_conv2d_chw_fx8_k5x5_str1_krnpad(in, weights, bias, cfg, out);
+    return mli_krn_conv2d_hwcn_sa8_sa8_sa32_k5x5(in, weights, bias, cfg, out);
 }
 
 static inline mli_status fully_connected(
@@ -496,17 +605,19 @@ static inline mli_status fully_connected(
         const mli_tensor *weights,
         const mli_tensor *bias,
         mli_tensor *out) {
-    return mli_krn_fully_connected_fx8(in, weights, bias, out);
+    mli_fully_connected_cfg cfg = { 0 };
+    cfg.relu.type = MLI_RELU_NONE;
+    return mli_krn_fully_connected_sa8_sa8_sa32(in, weights, bias, &cfg, out);
 }
 
 #elif (MODEL_BIT_DEPTH == MODEL_FX_16)
-static inline mli_status conv2d_chw(
+static inline mli_status conv2d_hwcn(
         const mli_tensor *in,
         const mli_tensor *weights,
         const mli_tensor *bias,
         const mli_conv2d_cfg *cfg,
         mli_tensor *out) {
-    return mli_krn_conv2d_chw_fx16_k5x5_str1_krnpad(in, weights, bias, cfg, out);
+    return mli_krn_conv2d_hwcn_fx16_k5x5(in, weights, bias, cfg, out);
 }
 
 static inline mli_status fully_connected(
@@ -520,13 +631,13 @@ static inline mli_status fully_connected(
 }
 
 #else // MODEL_BIT_DEPTH == MODEL_FX_8W16D
-static inline mli_status conv2d_chw(
+static inline mli_status conv2d_hwcn(
         const mli_tensor *in,
         const mli_tensor *weights,
         const mli_tensor *bias,
         const mli_conv2d_cfg *cfg,
         mli_tensor *out) {
-    return mli_krn_conv2d_chw_fx8w16d(in, weights, bias, cfg, out);
+    return mli_krn_conv2d_hwcn_fx16_fx8_fx8(in, weights, bias, cfg, out);
 }
 
 static inline mli_status fully_connected(
@@ -534,7 +645,9 @@ static inline mli_status fully_connected(
         const mli_tensor *weights,
         const mli_tensor *bias,
         mli_tensor *out) {
-    return mli_krn_fully_connected_fx8w16d(in, weights, bias, out);
+    mli_fully_connected_cfg cfg = { 0 };
+    cfg.relu.type = MLI_RELU_NONE;
+    return mli_krn_fully_connected_fx16_fx8_fx8(in, weights, bias, &cfg, out);
 }
 #endif
 
