@@ -22,7 +22,7 @@ using mli::krn::activation_lut;
     out_format = Q15
     out_error  = 0.000191 (6 lsb) (linear interpolation)
 */
-static const MLI_CCM_ATT int16_t sigmoid_lut_data_fx16[] = {
+static const int16_t sigmoid_lut_data_fx16[] = {
         +0,     +0,     +1,     +1,     +1,     +1,     +1,     +1,     +1,     +1,     +1,     +2,     +2,     +2,
         +2,     +3,     +3,     +4,     +4,     +5,     +5,     +6,     +7,     +8,     +9,     +10,    +11,    +12,
         +14,    +16,    +18,    +21,    +23,    +26,    +30,    +34,    +38,    +43,    +49,    +56,    +63,    +72,
@@ -39,12 +39,14 @@ static const MLI_CCM_ATT int16_t sigmoid_lut_data_fx16[] = {
 
 const mli_lut sigmoid_lut_fx16 = {
         // Designated initializers in C++ is a C++20 feature
-        /*.data =*/ (const void*)sigmoid_lut_data_fx16,
+        {
+        /*.capacity =*/ sizeof(sigmoid_lut_data_fx16),
+        {/*.data =*/ (int32_t*)sigmoid_lut_data_fx16 }},
         /*.type =*/ MLI_EL_FX_16,
         /*.length =*/ sizeof(sigmoid_lut_data_fx16) / sizeof(sigmoid_lut_data_fx16[0]),
         /*.in_frac_bits =*/ 3,
         /*.out_frac_bits =*/ 15,
-        /*.offset =*/ sizeof(sigmoid_lut_data_fx16) / (sizeof(sigmoid_lut_data_fx16[0]) * 2) /*center-aligned */
+        /*.input_offset =*/ sizeof(sigmoid_lut_data_fx16) / (sizeof(sigmoid_lut_data_fx16[0]) * 2) /*center-aligned */
 };
 
 /*
@@ -56,7 +58,7 @@ const mli_lut sigmoid_lut_fx16 = {
     out_format = Q15
     out_error  = 0.000377 (12 lsb) (linear interpolation)
 */
-static const MLI_CCM_ATT int16_t tanh_lut_data_fx16[] = {
+static const int16_t tanh_lut_data_fx16[] = {
         -32767, -32767, -32767, -32767, -32766, -32766, -32766, -32766, -32765, -32765, -32765, -32764, -32764, -32763,
         -32762, -32762, -32761, -32760, -32759, -32758, -32756, -32755, -32753, -32751, -32749, -32746, -32743, -32740,
         -32736, -32732, -32727, -32721, -32715, -32708, -32700, -32691, -32681, -32670, -32657, -32642, -32625, -32606,
@@ -72,12 +74,14 @@ static const MLI_CCM_ATT int16_t tanh_lut_data_fx16[] = {
         +32765, +32765, +32765, +32766, +32766, +32766, +32766, +32767, +32767, +32767};
 
 const mli_lut tanh_lut_fx16 = {
-        /*.data =*/ (const void*)tanh_lut_data_fx16,
+        {
+        /*.capacity =*/ sizeof(tanh_lut_data_fx16),
+        {/*.data =*/ (int32_t*)tanh_lut_data_fx16 }},
         /*.type =*/ MLI_EL_FX_16,
         /*.length =*/ sizeof(tanh_lut_data_fx16) / sizeof(tanh_lut_data_fx16[0]),
         /*.in_frac_bits =*/ 4,
         /*.out_frac_bits =*/ 15,
-        /*.offset =*/ sizeof(tanh_lut_data_fx16) / (sizeof(tanh_lut_data_fx16[0]) * 2) /*center-aligned */
+        /*.input_offset =*/ sizeof(tanh_lut_data_fx16) / (sizeof(tanh_lut_data_fx16[0]) * 2) /*center-aligned */
 };
 
 /*
@@ -89,7 +93,7 @@ const mli_lut tanh_lut_fx16 = {
     out_format = Q15
     out_error  = 0.000463 (15 lsb) (linear interpolation)
 */
-static const MLI_CCM_ATT int16_t expneg_lut_data_fx16[] = {
+static const int16_t expneg_lut_data_fx16[] = {
         +0,     +0,     +1,     +1,     +1,     +1,     +1,     +1,     +1,     +1,     +1,     +1,     +1,     +1,
         +1,     +1,     +1,     +1,     +1,     +1,     +2,     +2,     +2,     +2,     +2,     +2,     +2,     +2,
         +3,     +3,     +3,     +3,     +3,     +4,     +4,     +4,     +4,     +5,     +5,     +5,     +6,     +6,
@@ -105,12 +109,14 @@ static const MLI_CCM_ATT int16_t expneg_lut_data_fx16[] = {
         +16477, +17539, +18671, +19875, +21157, +22521, +23974, +25520, +27166, +28918, +30783, +32767, +32767};
 
 const mli_lut expneg_lut_fx16 = {
-        /*.data =*/ (const void*)expneg_lut_data_fx16,
+        {
+        /*.capacity =*/ sizeof(expneg_lut_data_fx16),
+       {/*.data =*/ (int32_t*)expneg_lut_data_fx16 }},
         /*.type =*/ MLI_EL_FX_16,
         /*.length =*/ sizeof(expneg_lut_data_fx16) / sizeof(expneg_lut_data_fx16[0]),
         /*.in_frac_bits =*/ 4,
         /*.out_frac_bits =*/ 15,
-        /*.offset =*/ sizeof(expneg_lut_data_fx16) / sizeof(expneg_lut_data_fx16[0]) - 2 /*right-minus-one-aligned */
+        /*.input_offset =*/ sizeof(expneg_lut_data_fx16) / sizeof(expneg_lut_data_fx16[0]) - 2 /*right-minus-one-aligned */
 };
 
 /*
@@ -138,12 +144,13 @@ static const int16_t invsqrt_lut_data_fx16[] = {
 };
 
 const mli_lut invsqrt_lut_fx16 = {
-        /*.data =*/ (const void*)invsqrt_lut_data_fx16,
+       {/*.capacity =*/ sizeof(invsqrt_lut_data_fx16),
+       {/*.data =*/ (int32_t*)invsqrt_lut_data_fx16 }},
         /*.type =*/ MLI_EL_FX_16,
         /*.length =*/ sizeof(invsqrt_lut_data_fx16) / sizeof(invsqrt_lut_data_fx16[0]),
         /*.in_frac_bits =*/ 0,
         /*.out_frac_bits =*/ 17,
-        /*.offset =*/ -32
+        /*.input_offset =*/ -32
 };
 #ifdef __cplusplus
 extern "C" {

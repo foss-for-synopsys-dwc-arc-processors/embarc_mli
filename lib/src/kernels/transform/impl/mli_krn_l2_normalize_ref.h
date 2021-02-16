@@ -104,7 +104,8 @@ template <typename io_T, bool convert>
 static MLI_FORCE_INLINE mli_status mli_krn_l2_normalize_run(const mli_tensor *in, 
         const mli_tensor *epsilon, 
         const mli_l2_normalize_cfg *cfg, 
-        mli_tensor *out) {
+        mli_tensor *out,
+        const mli_lut *lut) {
     
     /* Epsilon Tensor is Unused */
     mli_prv_fx_init_dsp_ctrl();
@@ -172,10 +173,10 @@ static MLI_FORCE_INLINE mli_status mli_krn_l2_normalize_run(const mli_tensor *in
                 const int16_t sum_acc_cast = mli::krn::compute_normalized_sum_square<io_T, convert>(&in_prv, vec_in, in_zp, &norm_shift);
                 /* Activation lookup table of input Q7.8 */
                 int16_t out_lut = mli::krn::activation_lut_one_elem_interpolate<int16_t, int16_t, false, false>(
-                    sum_acc_cast, &invsqrt_lut_fx16, kL2NormLutFracBits);
+                    sum_acc_cast, lut, kL2NormLutFracBits);
 
                 /* (Norm_shift + kL2NormLutFracBits) is divided by 2 because of the square root */
-                int shift = invsqrt_lut_fx16.out_frac_bits + ((norm_shift + kL2NormLutFracBits) >> 1) - out_shift;
+                int shift = lut->out_frac_bits + ((norm_shift + kL2NormLutFracBits) >> 1) - out_shift;
                 
                 // final result: normalizing
                 mli::krn::normalize_tensor<io_T, convert>(&in_prv, &out_prv, vec_in, vec_out, out_lut, in_zp, shift);

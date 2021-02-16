@@ -122,7 +122,7 @@ static MLI_FORCE_INLINE void mli_krn_softmax_subtract_max(
 
 template <typename io_T, bool convert = false>
 static MLI_FORCE_INLINE mli_acc40_t sumTensor(const MLI_PTR(io_T) orig_vec_in,
-        struct generic_tensor_private_t<MLI_PTR(io_T)> *in_prv,
+        struct generic_tensor_private_t<MLI_PTR(io_T)> *in_prv, const mli_lut *lut,
         const struct s8asym_quant_params *in_params = nullptr,
         struct s8asym_quant_params *out_params = nullptr) {
 
@@ -142,7 +142,7 @@ static MLI_FORCE_INLINE mli_acc40_t sumTensor(const MLI_PTR(io_T) orig_vec_in,
                         /* activation_lut */
                         v2q15_t input = mli_prv_load_1_sample(vec_in);
                         v2q15_t res = mli::krn::activation_lut_two_elem_interpolate<int16_t, true, false>
-                                (input, &expneg_lut_fx16, 0, in_params, out_params);
+                                (input, lut, 0, in_params, out_params);
 
                         /* Accumulation through MAC and reciprocal calculation */
                         res[1] = 0; // Unused
@@ -153,7 +153,7 @@ static MLI_FORCE_INLINE mli_acc40_t sumTensor(const MLI_PTR(io_T) orig_vec_in,
                         /* activation_lut */
                         v2q15_t input = mli_prv_load_2_samples(vec_in);
                         v2q15_t res = mli::krn::activation_lut_two_elem_interpolate<int16_t, true, false>
-                                (input, &expneg_lut_fx16, 0, in_params, out_params);
+                                (input, lut, 0, in_params, out_params);
 
                         /* Accumulation through MAC and reciprocal calculation */
                         sum_acc = mli_math_mac_fx(sum_acc, res, one_v);
@@ -245,7 +245,7 @@ static MLI_FORCE_INLINE int8_t mli_krn_softmax_get_max(
 template <typename io_T>
 static MLI_FORCE_INLINE void mli_krn_softmax_fx_run(const MLI_PTR(io_T) vec_in, MLI_PTR(io_T) vec_out, 
         generic_tensor_private_t<MLI_PTR(io_T)> in_prv, generic_tensor_private_t<MLI_PTR(io_T)> out_prv,
-        int in_frac, int frac_bits) {
+        int in_frac, int frac_bits, const mli_lut *lut) {
 
     /* Subtract maximum from each element */
     mli_krn_softmax_subtract_max(vec_in, vec_out, &in_prv, &out_prv, &in_frac);
@@ -253,10 +253,10 @@ static MLI_FORCE_INLINE void mli_krn_softmax_fx_run(const MLI_PTR(io_T) vec_in, 
     /* Activation lookup table */
     struct generic_tensor_private_t<MLI_PTR(io_T)> out_vec_tensor = out_prv;
     out_vec_tensor.ptr = vec_out;
-    mli::krn::activation_lut<io_T, false>(&out_vec_tensor, &out_vec_tensor, &expneg_lut_fx16, in_frac);
+    mli::krn::activation_lut<io_T, false>(&out_vec_tensor, &out_vec_tensor, lut, in_frac);
 
     /* Accumulation through MAC and reciprocal calculation */
-    mli_acc40_t sum_acc = sumTensor<io_T>(vec_out, &out_prv);
+    mli_acc40_t sum_acc = sumTensor<io_T>(vec_out, &out_prv, lut);
 
     int sum_exp = mli_math_norm_fx<mli_acc40_t, int>(sum_acc);
 
@@ -268,7 +268,7 @@ static MLI_FORCE_INLINE void mli_krn_softmax_fx_run(const MLI_PTR(io_T) vec_in, 
     v2q15_t sum_recip = mli_prv_init_v<int16_t, v2q15_t>((int16_t)mli_math_sat_fx<int32_t>((1L << 29) / sum_mnt, 16));
 
     /* sum_recip * vec_out[idx] = Q15 * Q15 (default LUT output) */
-    int lut_frac_bits = expneg_lut_fx16.out_frac_bits * 2;
+    int lut_frac_bits = lut->out_frac_bits * 2;
     /* 15 - sum_exp: sum_of_exps overhead */
     int sum_exp_overhead = kMaxFracBitsFx16 - sum_exp;
     /* Normalize Output */
@@ -280,7 +280,7 @@ static MLI_FORCE_INLINE void mli_krn_softmax_fx_run(const MLI_PTR(io_T) vec_in, 
 template<typename io_T>
 static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in, MLI_PTR(io_T) vec_out, 
         generic_tensor_private_t<MLI_PTR(io_T)> in_prv, generic_tensor_private_t<MLI_PTR(io_T)> out_prv,
-        s8asym_quant_params in_params, s8asym_quant_params out_params) {
+        s8asym_quant_params in_params, s8asym_quant_params out_params, const mli_lut *lut) {
     /* Subtract maximum from each input tensor element.
         * This subtraction is done by overwriting offset with max_value.
         * 1. Offset value is not needed here due to subtraction operation:
@@ -290,7 +290,7 @@ static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in,
     in_params.offset = mli_krn_softmax_get_max(&in_prv, vec_in);
     
     /* Sum the input tensor after convert it to FX16 */               
-    mli_acc40_t sum_acc = sumTensor<int8_t, true>(vec_in, &in_prv, &in_params, &out_params);
+    mli_acc40_t sum_acc = sumTensor<int8_t, true>(vec_in, &in_prv, lut, &in_params, &out_params);
 
     int sum_exp = mli_math_norm_fx<mli_acc40_t, int>(sum_acc);
     int16_t sum_mnt = mli_math_acc_cast_fx<int16_t, mli_acc40_t>(sum_acc, 16 - sum_exp);
@@ -300,7 +300,7 @@ static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in,
         */
     v2q15_t sum_recip = mli_prv_init_v<int16_t, v2q15_t>((int16_t)mli_math_sat_fx<int32_t>((1L << 29) / sum_mnt, 16));
     /* sum_recip * vec_out[idx] = Q15 * Q15 (default LUT output) */
-    int lut_frac_bits = expneg_lut_fx16.out_frac_bits * 2;
+    int lut_frac_bits = lut->out_frac_bits * 2;
     /* 15 - sum_exp: sum_of_exps overhead */
     int sum_exp_overhead = kMaxFracBitsFx16 - sum_exp;
     /* Output Scale Shift Value */
@@ -317,7 +317,7 @@ static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in,
                     /* activation_lut */
                     v2q15_t input = mli_prv_load_1_sample(vec_in);
                     input = mli::krn::activation_lut_two_elem_interpolate<int16_t, true, false>
-                            (input, &expneg_lut_fx16, 0, &in_params, &out_params);
+                            (input, lut, 0, &in_params, &out_params);
 
                     /* Multiply with Reciprocal of Sum */
                     v2accum40_t tmp_acc = mli_math_mul_fx<v2q15_t, v2accum40_t>(sum_recip, input);
@@ -331,7 +331,7 @@ static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in,
                     /* activation_lut */
                     v2q15_t input = mli_prv_load_2_samples(vec_in);
                     input = mli::krn::activation_lut_two_elem_interpolate<int16_t, true, false>
-                            (input, &expneg_lut_fx16, 0, &in_params, &out_params);
+                            (input, lut, 0, &in_params, &out_params);
 
                     /* Multiply with Reciprocal of Sum */
                     v2accum40_t tmp_acc = mli_math_mul_fx<v2q15_t, v2accum40_t>(sum_recip, input);
@@ -349,7 +349,7 @@ static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in,
 template<>
 MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(int16_t) vec_in, MLI_PTR(int16_t) vec_out, 
         generic_tensor_private_t<MLI_PTR(int16_t)> in_prv, generic_tensor_private_t<MLI_PTR(int16_t)> out_prv,
-        s8asym_quant_params in_params, s8asym_quant_params out_params){
+        s8asym_quant_params in_params, s8asym_quant_params out_params, const mli_lut *lut){
     return ;
 }
 

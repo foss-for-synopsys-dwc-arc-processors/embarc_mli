@@ -17,6 +17,7 @@
 #include "mli_prv_dsp.h"
 #include "mli_math.h"
 #include "mli_types.h"
+#include "mli_prv_activation_lut.h"
 
 static MLI_FORCE_INLINE accum40_t mli_prv_ashift_accu(accum40_t accu, const int shift_right)
 {
@@ -141,6 +142,8 @@ static MLI_FORCE_INLINE void lstm_cell_prepare_and_run_fx(
         const mli_tensor *prev_out,
         const mli_tensor *weights,
         const mli_tensor *bias,
+        const mli_lut *tanh_lut,
+        const mli_lut *sigm_lut,
         const mli_rnn_cell_cfg_depr *cfg,
         mli_tensor *cell,
         mli_tensor *out) {
@@ -214,16 +217,16 @@ static MLI_FORCE_INLINE void lstm_cell_prepare_and_run_fx(
         g_tsr.el_params.fx.frac_bits = forget_gate.el_params.fx.frac_bits = ir_tensor->el_params.fx.frac_bits;
 
         if (sizeof(io_T)==sizeof(int8_t)) {
-            mli_krn_sigm_fx8(&in_gate, &in_gate);
-            mli_krn_tanh_fx8(&g_tsr, &g_tsr);
-            mli_krn_sigm_fx8(&forget_gate, &forget_gate);
-            mli_krn_sigm_fx8(&out_gate, &out_gate);
+            mli_krn_sigm_fx8(&in_gate, sigm_lut, &in_gate);
+            mli_krn_tanh_fx8(&g_tsr, tanh_lut, &g_tsr);
+            mli_krn_sigm_fx8(&forget_gate, sigm_lut, &forget_gate);
+            mli_krn_sigm_fx8(&out_gate, sigm_lut, &out_gate);
         }
         else {
-            mli_krn_sigm_fx16(&in_gate, &in_gate);
-            mli_krn_tanh_fx16(&g_tsr, &g_tsr);
-            mli_krn_sigm_fx16(&forget_gate, &forget_gate);
-            mli_krn_sigm_fx16(&out_gate, &out_gate);
+            mli_krn_sigm_fx16(&in_gate, sigm_lut, &in_gate);
+            mli_krn_tanh_fx16(&g_tsr, tanh_lut, &g_tsr);
+            mli_krn_sigm_fx16(&forget_gate, sigm_lut, &forget_gate);
+            mli_krn_sigm_fx16(&out_gate, sigm_lut, &out_gate);
         }
 
         // Step3: Pointwise operations
@@ -249,14 +252,14 @@ static MLI_FORCE_INLINE void lstm_cell_prepare_and_run_fx(
         } else {             // Non - Linear activation
             if (sizeof(io_T)==sizeof(int8_t)) {
                 if (cfg->act == RNN_ACT_TANH)
-                    mli_krn_tanh_fx8(cell, &rnn_out);
+                    mli_krn_tanh_fx8(cell, tanh_lut, &rnn_out);
                 else            // RNN_ACT_SIGM:
-                    mli_krn_sigm_fx8(cell, &rnn_out);
+                    mli_krn_sigm_fx8(cell, sigm_lut, &rnn_out);
             } else {
                 if (cfg->act == RNN_ACT_TANH)
-                    mli_krn_tanh_fx16(cell, &rnn_out);
+                    mli_krn_tanh_fx16(cell, tanh_lut, &rnn_out);
                 else            // RNN_ACT_SIGM:
-                    mli_krn_sigm_fx16(cell, &rnn_out);
+                    mli_krn_sigm_fx16(cell, sigm_lut, &rnn_out);
             }
 
             mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL>(&rnn_out, &out_gate, &rnn_out);

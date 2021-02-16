@@ -21,8 +21,10 @@ extern "C" {
 mli_status mli_krn_lstm_cell_fx8 (
         const mli_tensor * in,
         const mli_tensor * prev_out,
-        const mli_tensor * weights, 
-        const mli_tensor * bias, 
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_lut *tanh_lut,
+        const mli_lut *sigm_lut,
         const mli_rnn_cell_cfg_depr * cfg, 
         mli_tensor * cell, 
         mli_tensor * out) {
@@ -30,7 +32,7 @@ mli_status mli_krn_lstm_cell_fx8 (
     if (ret != MLI_STATUS_OK)
         return ret;
 
-    mli::lstm_cell_prepare_and_run_fx < int8_t, int8_t > (in, prev_out, weights, bias, cfg, cell, out);
+    mli::lstm_cell_prepare_and_run_fx < int8_t, int8_t > (in, prev_out, weights, bias, tanh_lut, sigm_lut, cfg, cell, out);
 
     return MLI_STATUS_OK;
 } 
@@ -38,8 +40,10 @@ mli_status mli_krn_lstm_cell_fx8 (
 mli_status mli_krn_lstm_cell_fx16 (
         const mli_tensor * in,
         const mli_tensor * prev_out,
-        const mli_tensor * weights, 
-        const mli_tensor * bias, 
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_lut *tanh_lut,
+        const mli_lut *sigm_lut,
         const mli_rnn_cell_cfg_depr * cfg, 
         mli_tensor * cell, 
         mli_tensor * out) {
@@ -47,7 +51,7 @@ mli_status mli_krn_lstm_cell_fx16 (
     if (ret != MLI_STATUS_OK)
         return ret;
 
-    mli::lstm_cell_prepare_and_run_fx < int16_t, int16_t > (in, prev_out, weights, bias, cfg, cell, out);
+    mli::lstm_cell_prepare_and_run_fx < int16_t, int16_t > (in, prev_out, weights, bias, tanh_lut, sigm_lut, cfg, cell, out);
 
     return MLI_STATUS_OK;
 }
@@ -55,8 +59,10 @@ mli_status mli_krn_lstm_cell_fx16 (
 mli_status mli_krn_lstm_cell_fx8w16d (
         const mli_tensor * in,
         const mli_tensor * prev_out,
-        const mli_tensor * weights, 
-        const mli_tensor * bias, 
+        const mli_tensor * weights,
+        const mli_tensor * bias,
+        const mli_lut *tanh_lut,
+        const mli_lut *sigm_lut,
         const mli_rnn_cell_cfg_depr * cfg, 
         mli_tensor * cell, 
         mli_tensor * out) {
@@ -64,7 +70,7 @@ mli_status mli_krn_lstm_cell_fx8w16d (
     if (ret != MLI_STATUS_OK)
         return ret;
 
-    mli::lstm_cell_prepare_and_run_fx < int16_t, int8_t > (in, prev_out, weights, bias, cfg, cell, out);
+    mli::lstm_cell_prepare_and_run_fx < int16_t, int8_t > (in, prev_out, weights, bias, tanh_lut, sigm_lut, cfg, cell, out);
 
     return MLI_STATUS_OK;
 }

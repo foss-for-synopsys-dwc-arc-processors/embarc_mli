@@ -66,18 +66,6 @@ typedef struct {
     uint32_t clmn_end;
 } rect_t;
 
-/**
- * Lookup table config definition 
- */
-typedef struct {
-    const void* data;
-    mli_element_type type;
-    int length;
-    int in_frac_bits;
-    int out_frac_bits;
-    int offset;
-} mli_lut;
-
 // Value range for applying ReLU 
 typedef struct {
     int16_t min;

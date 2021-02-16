@@ -158,7 +158,7 @@ static MLI_FORCE_INLINE void mli_krn_softmax_subtract_max(const MLI_PTR(io_T) ve
 template <typename io_T>
 static MLI_FORCE_INLINE void mli_krn_softmax_fx_run(const MLI_PTR(io_T) vec_in, MLI_PTR(io_T) vec_out, 
         generic_tensor_private_t<MLI_PTR(io_T)> in_prv, generic_tensor_private_t<MLI_PTR(io_T)> out_prv,
-        int in_frac, int* in_step, int* out_step, int frac_bits) {
+        int in_frac, int* in_step, int* out_step, int frac_bits, const mli_lut *lut) {
     MLI_PTR(io_T) vec_out_begin = vec_out;
     
     auto curr_vec = mli_prv_load_1vec(vec_in);
@@ -174,7 +174,7 @@ static MLI_FORCE_INLINE void mli_krn_softmax_fx_run(const MLI_PTR(io_T) vec_in, 
     struct generic_tensor_private_t<MLI_PTR(io_T)> out_vec_tensor = out_prv;
     out_vec_tensor.ptr = vec_out;
 
-    mli::krn::activation_lut<io_T, false>(&out_vec_tensor, &out_vec_tensor, &expneg_lut_fx16, in_frac);
+    mli::krn::activation_lut<io_T, false>(&out_vec_tensor, &out_vec_tensor, lut, in_frac);
 
     // Accumulation through MAC and reciprocal calculation
     auto sum_vec = mli_prv_init_accu(curr_vec, (io_T) 0);
@@ -210,7 +210,7 @@ static MLI_FORCE_INLINE void mli_krn_softmax_fx_run(const MLI_PTR(io_T) vec_in, 
     io_T sum_recip = (io_T) MIN((1L << 29) / sum_mnt, 32767L);
 
     // sum_recip * vec_out[idx] = Q15 * Q15 (default LUT output)
-    int lut_frac_bits = expneg_lut_fx16.out_frac_bits * 2;
+    int lut_frac_bits = lut->out_frac_bits * 2;
     // 15 - sum_exp: sum_of_exps overhead
     int sum_exp_overhead = kMaxFracBitsFx16 - sum_exp;
     // final result: normalizing
@@ -242,7 +242,7 @@ static MLI_FORCE_INLINE void mli_krn_softmax_fx_run(const MLI_PTR(io_T) vec_in, 
 template<typename io_T>
 static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in, MLI_PTR(io_T) vec_out, 
         generic_tensor_private_t<MLI_PTR(io_T)> in_prv, generic_tensor_private_t<MLI_PTR(io_T)> out_prv,
-        int* in_step, int* out_step, s8asym_quant_params in_params, s8asym_quant_params out_params) {
+        int* in_step, int* out_step, s8asym_quant_params in_params, s8asym_quant_params out_params, const mli_lut *lut) {
     const MLI_PTR(io_T) vec_in_begin = vec_in;
 
     auto curr_vec = mli_prv_load_nx4_samples(vec_in);
@@ -304,7 +304,7 @@ static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in,
                 for (int pos3 = 1; pos3 <= (in_prv.shape[3] / num_lanes); pos3++) {
                     /* activation_lut */
                     vNx4short_t exp_res = mli::krn::vdsp::activation_lut_vec_elem_interpolate</* convert */ true>(
-                                    mli_math_cast_fx<vNx4char_t, vNx4short_t>(curr_vec), &expneg_lut_fx16, /*in_frac_bits*/ 0, &in_params);
+                                    mli_math_cast_fx<vNx4char_t, vNx4short_t>(curr_vec), lut, /*in_frac_bits*/ 0, &in_params);
 
                     /* Accumulation through MAC and reciprocal calculation */
                     sum_vec = mli_math_mac_fx(sum_vec, exp_res, (vNx4short_t) 1);
@@ -313,7 +313,7 @@ static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in,
                 }
                 if ((in_prv.shape[3] & (num_lanes - 1)) != 0) {
                     vNx4short_t exp_res = mli::krn::vdsp::activation_lut_vec_elem_interpolate</* convert */ true>(
-                                    mli_math_cast_fx<vNx4char_t, vNx4short_t>(curr_vec), &expneg_lut_fx16, /*in_frac_bits*/ 0, &in_params);
+                                    mli_math_cast_fx<vNx4char_t, vNx4short_t>(curr_vec), lut, /*in_frac_bits*/ 0, &in_params);
                     /* Accumulation through MAC and reciprocal calculation */
                     
                     exp_res = mli_math_select_fx<vNx4short_t, grp_pvNx2_t>(predicate_grp, exp_res, (vNx4short_t) 0);
@@ -342,13 +342,13 @@ static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in,
                 for (int pos3 = 1; pos3 <= (in_prv.shape[3] / num_lanes); pos3++) {
                     /* activation_lut */
                     vNx4short_t exp_res = mli::krn::vdsp::activation_lut_vec_elem_interpolate</* convert */ true>(
-                                    mli_math_cast_fx<vNx4char_t, vNx4short_t>(curr_vec), &expneg_lut_fx16, /*in_frac_bits*/ 0, &in_params);
+                                    mli_math_cast_fx<vNx4char_t, vNx4short_t>(curr_vec), lut, /*in_frac_bits*/ 0, &in_params);
                     /* multiply input by sum_recip */
                     vNx4accint_t fx_output32 = mli_math_mul_fx<vNx4short_t, vNx4accint_t>((vNx4short_t) sum_recip, exp_res);
                     vNx4int_t fx_output32_non_accum = mli_math_acc_cast_fx<vNx4int_t, vNx4accint_t>(fx_output32, 0);
 
                     // sum_recip * vec_out[idx] = Q15 * Q15 (default LUT output)
-                    int lut_frac_bits = expneg_lut_fx16.out_frac_bits * 2;
+                    int lut_frac_bits = lut->out_frac_bits * 2;
                     // 15 - sum_exp: sum_of_exps overhead
                     int sum_exp_overhead = kMaxFracBitsFx16 - sum_exp;
                     // Converting to float and back to asym8
@@ -362,14 +362,14 @@ static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in,
                 if ((in_prv.shape[3] & (num_lanes - 1)) != 0) {
                     int remaining_part = in_prv.shape[3] & (num_lanes - 1);
                     vNx4short_t exp_res = mli::krn::vdsp::activation_lut_vec_elem_interpolate</* convert */ true>(
-                                    mli_math_cast_fx<vNx4char_t, vNx4short_t>(curr_vec), &expneg_lut_fx16, /*in_frac_bits*/ 0, &in_params);
+                                    mli_math_cast_fx<vNx4char_t, vNx4short_t>(curr_vec), lut, /*in_frac_bits*/ 0, &in_params);
 
                     /* multiply input by sum_recip */
                     vNx4accint_t fx_output32 = mli_math_mul_fx<vNx4short_t, vNx4accint_t>((vNx4short_t) sum_recip, exp_res);
                     vNx4int_t fx_output32_non_accum = mli_math_acc_cast_fx<vNx4int_t, vNx4accint_t>(fx_output32, 0);
 
                     // sum_recip * vec_out[idx] = Q15 * Q15 (default LUT output)
-                    int lut_frac_bits = expneg_lut_fx16.out_frac_bits * 2;
+                    int lut_frac_bits = lut->out_frac_bits * 2;
                     // 15 - sum_exp: sum_of_exps overhead
                     int sum_exp_overhead = kMaxFracBitsFx16 - sum_exp;
                     // Converting to float and back to asym8
@@ -392,13 +392,13 @@ static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in,
 template<>
 MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(int16_t) vec_in, MLI_PTR(int16_t) vec_out, 
         generic_tensor_private_t<MLI_PTR(int16_t)> in_prv, generic_tensor_private_t<MLI_PTR(int16_t)> out_prv,
-        int* in_step, int* out_step, s8asym_quant_params in_params, s8asym_quant_params out_params) {
+        int* in_step, int* out_step, s8asym_quant_params in_params, s8asym_quant_params out_params, const mli_lut *lut) {
     return;
 }
 
 template <typename io_T, bool is_asym>
 static MLI_FORCE_INLINE mli_status mli_krn_softmax_run(const mli_tensor *in, const mli_softmax_cfg* cfg,
-        mli_tensor *out) {
+        mli_tensor *out, const mli_lut *lut) {
 
     MLI_ASSERT(MLI_MAX_RANK == 4);
 
@@ -459,10 +459,10 @@ static MLI_FORCE_INLINE mli_status mli_krn_softmax_run(const mli_tensor *in, con
                                    dim1 * out_non_axis_prv.mem_stride[1] + 
                                    dim2 * out_non_axis_prv.mem_stride[2]];
                 if (is_asym) {
-                    mli::krn::mli_krn_softmax_sa8_run<io_T>(vec_in, vec_out, in_prv, out_prv, in_step, out_step, in_params, out_params);
+                    mli::krn::mli_krn_softmax_sa8_run<io_T>(vec_in, vec_out, in_prv, out_prv, in_step, out_step, in_params, out_params, lut);
                 }
                 else {
-                    mli::krn::mli_krn_softmax_fx_run<io_T>(vec_in, vec_out, in_prv, out_prv, in_frac, in_step, out_step, out->el_params.fx.frac_bits);
+                    mli::krn::mli_krn_softmax_fx_run<io_T>(vec_in, vec_out, in_prv, out_prv, in_frac, in_step, out_step, out->el_params.fx.frac_bits, lut);
                 }
             }
         }

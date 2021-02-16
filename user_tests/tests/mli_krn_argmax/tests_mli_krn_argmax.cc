@@ -150,7 +150,6 @@ int main() {
 
         mli_tensor input = cur_test->in.get_quantized_tensor(mem_in_keeper.allocate_memory(cur_test->in));
         mli_tensor out = cur_test->out.get_not_quantized_tensor(mem_out_keeper.allocate_memory(cur_test->out));
-        mli_tensor source_out_tensor = out;
         if (is_test_passed &&
                 (tensor_quantizer::validate_tensor(input) != tensor_quantizer::kOk ||
                  tensor_quantizer::validate_tensor(out) != tensor_quantizer::kOk)) {

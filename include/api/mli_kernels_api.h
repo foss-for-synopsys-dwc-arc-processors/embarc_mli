@@ -774,6 +774,8 @@ mli_status mli_krn_lstm_cell_fx8(
         const mli_tensor * prev_out,
         const mli_tensor * weights,
         const mli_tensor * bias,
+        const mli_lut * tanh_lut,
+        const mli_lut * sigm_lut,
         const mli_rnn_cell_cfg_depr * cfg,
         mli_tensor * cell,
         mli_tensor * out);
@@ -783,6 +785,8 @@ mli_status mli_krn_lstm_cell_fx16(
         const mli_tensor * prev_out,
         const mli_tensor * weights,
         const mli_tensor * bias,
+        const mli_lut * tanh_lut,
+        const mli_lut * sigm_lut,
         const mli_rnn_cell_cfg_depr * cfg,
         mli_tensor * cell,
         mli_tensor * out);
@@ -792,6 +796,8 @@ mli_status mli_krn_lstm_cell_fx8w16d(
         const mli_tensor * prev_out,
         const mli_tensor * weights,
         const mli_tensor * bias,
+        const mli_lut * tanh_lut,
+        const mli_lut * sigm_lut,
         const mli_rnn_cell_cfg_depr * cfg,
         mli_tensor * cell,
         mli_tensor * out);
@@ -952,9 +958,11 @@ mli_status mli_krn_prelu_sa8(
  *
  * @return MLI status code
  */
-mli_status mli_krn_sigm_fx8(const mli_tensor * in, mli_tensor * out);
-mli_status mli_krn_sigm_fx16(const mli_tensor * in, mli_tensor * out);
-mli_status mli_krn_sigm_sa8(const mli_tensor * in, mli_tensor * out);
+mli_status mli_krn_sigm_fx8(const mli_tensor *in, const mli_lut *lut, mli_tensor *out);
+mli_status mli_krn_sigm_fx16(const mli_tensor *in, const mli_lut *lut, mli_tensor *out);
+mli_status mli_krn_sigm_sa8(const mli_tensor *in, const mli_lut *lut, mli_tensor *out);
+mli_status mli_krn_sigm_create_lut(mli_lut *lut);
+int32_t mli_krn_sigm_get_lut_size();
 
 /**
  * @brief Hyperbolic Tangent Activation function
@@ -969,9 +977,11 @@ mli_status mli_krn_sigm_sa8(const mli_tensor * in, mli_tensor * out);
  *
  * @return MLI status code
  */
-mli_status mli_krn_tanh_fx8(const mli_tensor * in, mli_tensor * out);
-mli_status mli_krn_tanh_fx16(const mli_tensor * in, mli_tensor * out);
-mli_status mli_krn_tanh_sa8(const mli_tensor * in, mli_tensor * out);
+mli_status mli_krn_tanh_fx8(const mli_tensor *in, const mli_lut *lut, mli_tensor *out);
+mli_status mli_krn_tanh_fx16(const mli_tensor *in, const mli_lut *lut, mli_tensor *out);
+mli_status mli_krn_tanh_sa8(const mli_tensor *in, const mli_lut *lut, mli_tensor *out);
+mli_status mli_krn_tanh_create_lut(mli_lut *lut);
+int32_t mli_krn_tanh_get_lut_size();
 
 /**
  * @brief Softmax
@@ -988,11 +998,11 @@ mli_status mli_krn_tanh_sa8(const mli_tensor * in, mli_tensor * out);
  *
  * @return MLI status code
  */
-mli_status mli_krn_softmax_sa8(const mli_tensor* in, const mli_softmax_cfg* cfg, mli_tensor* out);
-mli_status mli_krn_softmax_fx16(const mli_tensor* in, const mli_softmax_cfg* cfg, mli_tensor* out);
-
-mli_status mli_krn_softmax_fx8(const mli_tensor * in, const mli_softmax_cfg* cfg, mli_tensor * out); /* DEPRECATED */
-
+mli_status mli_krn_softmax_sa8(const mli_tensor *in, const mli_lut *lut, const mli_softmax_cfg *cfg, mli_tensor* out);
+mli_status mli_krn_softmax_fx16(const mli_tensor *in, const mli_lut *lut, const mli_softmax_cfg *cfg, mli_tensor* out);
+mli_status mli_krn_softmax_fx8(const mli_tensor *in, const mli_lut *lut, const mli_softmax_cfg *cfg, mli_tensor * out); /* DEPRECATED */
+mli_status mli_krn_softmax_create_lut(mli_lut *lut);
+int32_t mli_krn_softmax_get_lut_size();
 
 /**
  * @brief L2 Normalization Activation function
@@ -1007,8 +1017,13 @@ mli_status mli_krn_softmax_fx8(const mli_tensor * in, const mli_softmax_cfg* cfg
  *
  * @return MLI status code
  */
-mli_status mli_krn_l2_normalize_fx16(const mli_tensor *in, const mli_tensor *epsilon, const mli_l2_normalize_cfg *cfg, mli_tensor *out);
-mli_status mli_krn_l2_normalize_sa8(const mli_tensor *in, const mli_tensor *epsilon, const mli_l2_normalize_cfg *cfg, mli_tensor *out);
+mli_status mli_krn_l2_normalize_fx16(const mli_tensor *in, const mli_tensor *epsilon,
+                                     const mli_lut *lut, const mli_l2_normalize_cfg *cfg, mli_tensor *out);
+mli_status mli_krn_l2_normalize_sa8(const mli_tensor *in, const mli_tensor *epsilon,
+                                    const mli_lut *lut, const mli_l2_normalize_cfg *cfg, mli_tensor *out);
+mli_status mli_krn_l2_normalize_create_lut(mli_lut *lut);
+int32_t mli_krn_l2_normalize_get_lut_size();
+
 
 
 //================================================
