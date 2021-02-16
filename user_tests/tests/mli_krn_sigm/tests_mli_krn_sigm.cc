@@ -30,8 +30,10 @@ using mli::tst::reporter_full;
 using mli::tst::memory_manager;
 
 typedef mli_status (*sigm_func_ptr)(
-    const mli_tensor* /*in*/, 
-    mli_tensor* /*out*/);
+    const mli_tensor* /*in*/,
+    const mli_lut* lut /*lut*/,
+    mli_tensor* /*out*/
+    );
 
 struct sigm_test_operands {
     const char* descr;
@@ -113,20 +115,33 @@ static const sigm_test_operands tests_list[] = {
 static constexpr int kMemSize = 2048;
 static IO_DATA_ATTR int8_t scratch_mem_in[kMemSize]  = { 0 };
 static IO_DATA_ATTR int8_t scratch_mem_out[kMemSize] = { 0 };
+static IO_DATA_ATTR int8_t scratch_lut[kMemSize] = { 0 };
 
 static constexpr int kTestsNum = sizeof(tests_list) / sizeof(tests_list[0]);
 
 int main() {
     const reporter_full reporter;
     bool final_status = true;
-
+    bool lut_status = true;
     reporter.report_header("MLI|Kernels|Basic sigm Functions Tests");
+    mli_lut lut;
+    int lut_size = mli_krn_sigm_get_lut_size();
+    lut_status = lut_status && (lut_size < sizeof(scratch_lut));
+    lut.data.mem.void_p = (void*) scratch_lut;
+    lut.data.capacity = sizeof(scratch_lut);
+    lut_status = lut_status && (mli_krn_sigm_create_lut(&lut) == MLI_STATUS_OK);
+
     for (int i = 0; i < kTestsNum; ++i) {
         memory_manager mem_in_keeper((int8_t*)(scratch_mem_in), sizeof(scratch_mem_in));
         memory_manager mem_out_keeper((int8_t*)(scratch_mem_out), sizeof(scratch_mem_out));
         bool is_test_passed = true;
         const sigm_test_operands* cur_test = &tests_list[i];
         quality_metrics test_metics;
+        if (!(lut_status)) {
+            reporter.report_message(cur_test->descr, "FAILED at init: LUT error");
+            is_test_passed = false;
+        }
+
         if (!(cur_test->in.is_valid() && cur_test->out.is_valid())) {
             reporter.report_message(cur_test->descr, "FAILED at init: Bad source data for one of tensors");
             is_test_passed = false;
@@ -140,7 +155,6 @@ int main() {
             out = cur_test->out.get_not_quantized_tensor(mem_out_keeper.allocate_memory(cur_test->out));
         }
 
-        mli_tensor source_out_tensor = out;
         if (is_test_passed &&
                 (tensor_quantizer::validate_tensor(input) != tensor_quantizer::kOk ||
                  tensor_quantizer::validate_tensor(out) != tensor_quantizer::kOk)) {
@@ -158,7 +172,7 @@ int main() {
 
         // Run specific kernel for test 
         if (is_test_passed &&
-                cur_test->mli_krn_sigm(&input, &out) != MLI_STATUS_OK) {
+                cur_test->mli_krn_sigm(&input, &lut, &out) != MLI_STATUS_OK) {
             reporter.report_message(cur_test->descr, "FAILED at kernel run: kernel returned bad status");
             is_test_passed = false;
         }

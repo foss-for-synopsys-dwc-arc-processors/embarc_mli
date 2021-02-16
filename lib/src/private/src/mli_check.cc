@@ -70,7 +70,30 @@ static MLI_FORCE_INLINE bool mli_chk_inside_ccm (const void *ptr) {
 }
 #endif
 
-
+static MLI_FORCE_INLINE mli_status mli_chk_ptr(void *p, uint32_t align_mask, bool check_bank, bool vccm_chk_bank) {
+#if MLI_PTR_IS_VCCM
+    bool is_inside_vccm = mli_prv_is_inside_vccm(p);
+    if (vccm_chk_bank && (!is_inside_vccm))
+        return MLI_STATUS_MEM_BANK_MISMATCH;
+    //Check the alignment if the pointer is inside the VCCM memory or the non_alignment isn't supported
+    if (is_inside_vccm ||
+        (((_lr(ISA_CONFIG)&(1<<SUPPORT_NON_ALIGNMENT)) == 0) || ((_lr(STATUS32)&(1<<DISABLE_ALIGNMENT_CHECK)) == 0))) {
+        if (((uint32_t)p & align_mask) != 0)
+            return MLI_STATUS_MISALIGNMENT_ERROR;
+    }
+#endif
+#if MLI_PTR_IS_XY
+    if (check_bank && (!mli_chk_inside_ccm(p)))
+        return MLI_STATUS_MEM_BANK_MISMATCH;
+#endif
+#if (PLATFORM == V2DSP_XY) || ((PLATFORM == V2DSP_VECTOR) && (!MLI_PTR_IS_VCCM))
+    if (((_lr(ISA_CONFIG)&(1<<SUPPORT_NON_ALIGNMENT)) == 0) || ((_lr(STATUS32)&(1<<DISABLE_ALIGNMENT_CHECK)) == 0)) {
+        if (((uint32_t)p & align_mask) != 0)
+            return MLI_STATUS_MISALIGNMENT_ERROR;
+    }
+#endif
+    return MLI_STATUS_OK;
+}
 // vccm_chk_bank will be false for the APIs that does't require the tensor to be in VCCM like data Movement API.
 template <bool vccm_chk_bank = true>
 /*check_bank checks whether the tensor buffer have to be allocated in ccm memory or not and its value will be:
@@ -79,31 +102,12 @@ template <bool vccm_chk_bank = true>
  */
 static MLI_FORCE_INLINE mli_status mli_mem_chk(const mli_tensor *t, bool check_bank) {
 #if (PLATFORM == V2DSP_XY) || (PLATFORM == V2DSP_VECTOR)
-	void *p = t->data.mem.void_p;
-	uint32_t align_mask = mli_hlp_tensor_element_size(t) - 1;
-#if MLI_PTR_IS_VCCM
-	bool is_inside_vccm = mli_prv_is_inside_vccm(p);
-	if (vccm_chk_bank && (!is_inside_vccm))
-		return MLI_STATUS_MEM_BANK_MISMATCH;
-	//Check the alignment if the pointer is inside the VCCM memory or the non_alignment isn't supported
-	if (is_inside_vccm ||
-		(((_lr(ISA_CONFIG)&(1<<SUPPORT_NON_ALIGNMENT)) == 0) || ((_lr(STATUS32)&(1<<DISABLE_ALIGNMENT_CHECK)) == 0))) {
-		if (((uint32_t)p & align_mask) != 0)
-			return MLI_STATUS_MISALIGNMENT_ERROR;
-	}
+    void *p = t->data.mem.void_p;
+    uint32_t align_mask = mli_hlp_tensor_element_size(t) - 1;
+    return mli_chk_ptr(p, align_mask, check_bank, vccm_chk_bank);
+#else
+    return MLI_STATUS_OK;
 #endif
-#if MLI_PTR_IS_XY
-	if (check_bank && (!mli_chk_inside_ccm(p)))
-		return MLI_STATUS_MEM_BANK_MISMATCH;
-#endif
-#if (PLATFORM == V2DSP_XY) || ((PLATFORM == V2DSP_VECTOR) && (!MLI_PTR_IS_VCCM))
-	if (((_lr(ISA_CONFIG)&(1<<SUPPORT_NON_ALIGNMENT)) == 0) || ((_lr(STATUS32)&(1<<DISABLE_ALIGNMENT_CHECK)) == 0)) {
-		if (((uint32_t)p & align_mask) != 0)
-			return MLI_STATUS_MISALIGNMENT_ERROR;
-	}
-#endif
-#endif
-	return MLI_STATUS_OK;
 }
 
 static MLI_FORCE_INLINE mli_status check_tensor_private(
@@ -148,6 +152,21 @@ static MLI_FORCE_INLINE mli_status check_tensor_private(
     return MLI_STATUS_OK;
 }
 
+mli_status mli_chk_lut(const mli_lut * lut, int buff_size) {
+    if (MLI_CHECK(lut->data.capacity >= buff_size, "Insufficient lut data capacity")) {
+        return MLI_STATUS_NOT_ENGH_MEM;
+    }
+#if (PLATFORM == V2DSP_XY) || (PLATFORM == V2DSP_VECTOR)
+    void *p = lut->data.mem.void_p;
+    mli_tensor dummy = { .el_type = lut->type };
+    uint32_t align_mask = mli_hlp_tensor_element_size(&dummy) - 1;
+
+    mli_status ret = mli_chk_ptr(p, align_mask, true, true);
+    return ret;
+#else
+    return MLI_STATUS_OK;
+#endif
+}
 /******************************************************
  *  mli_tensor data structure correctness checking
  ******************************************************/

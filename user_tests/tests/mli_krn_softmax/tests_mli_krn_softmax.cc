@@ -9,6 +9,7 @@
 
 #include "mli_api.h"
 
+#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -30,6 +31,7 @@ using mli::tst::memory_manager;
 
 typedef mli_status(*softmax_func_ptr)(
     const mli_tensor* /*in*/,
+    const mli_lut* /*lut*/,
     const mli_softmax_cfg* /*cfg*/,
     mli_tensor* /*out*/);
 
@@ -147,6 +149,7 @@ static const softmax_test_operands tests_list[] = {
 constexpr int kMemSize = 2047;
 static IO_DATA_ATTR int8_t scratch_mem_in[kMemSize] = { 0 };
 static IO_DATA_ATTR int8_t scratch_mem_out[kMemSize] = { 0 };
+static IO_DATA_ATTR int8_t scratch_mem_lut[kMemSize] = { 0 };
 
 constexpr int kTestsNum = sizeof(tests_list) / sizeof(tests_list[0]);
 
@@ -155,12 +158,24 @@ int main() {
     bool final_status = true;
 
     reporter.report_header("MLI|Kernels|Softmax Activation Function Tests");
+    mli_lut lut;
+    bool lut_status = true;
+    int lut_size = mli_krn_softmax_get_lut_size();
+    lut_status = lut_status && (lut_size < sizeof(scratch_mem_lut));
+    lut.data.mem.void_p = (void*) scratch_mem_lut;
+    lut.data.capacity = sizeof(scratch_mem_lut);
+    lut_status = lut_status && (mli_krn_softmax_create_lut(&lut) == MLI_STATUS_OK);
     for (int i = 0; i < kTestsNum; ++i) {
         memory_manager mem_in_keeper((int8_t*)(scratch_mem_in), sizeof(scratch_mem_in));
         memory_manager mem_out_keeper((int8_t*)(scratch_mem_out), sizeof(scratch_mem_out));
         bool is_test_passed = true;
         const softmax_test_operands* cur_test = &tests_list[i];
         quality_metrics test_metics;
+        if (!(lut_status)) {
+            reporter.report_message(cur_test->descr, "FAILED at init: LUT error");
+            is_test_passed = false;
+        }
+
         if (!(cur_test->in.is_valid() && cur_test->out.is_valid())) {
             reporter.report_message(cur_test->descr, "FAILED at init: Bad source data for one of tensors");
             is_test_passed = false;
@@ -185,7 +200,7 @@ int main() {
 
         // Run specific kernel for test 
         if (is_test_passed &&
-                cur_test->mli_krn_softmax(&input, &cur_test->cfg, &out) != MLI_STATUS_OK) {
+                cur_test->mli_krn_softmax(&input, &lut, &cur_test->cfg, &out) != MLI_STATUS_OK) {
             reporter.report_message(cur_test->descr, "FAILED at kernel run: kernel returned bad status");
             is_test_passed = false;
         }

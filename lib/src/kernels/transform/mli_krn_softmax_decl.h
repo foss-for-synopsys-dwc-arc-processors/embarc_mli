@@ -31,23 +31,23 @@ namespace krn {
 namespace ref {
 
 template <typename io_T, bool is_asym>
-static MLI_FORCE_INLINE mli_status mli_krn_softmax_run(const mli_tensor *in, const mli_softmax_cfg* cfg,
-        mli_tensor *out);
+static MLI_FORCE_INLINE mli_status mli_krn_softmax_run(const mli_tensor *in, const mli_softmax_cfg *cfg,
+        mli_tensor *out, const mli_lut *lut);
 
 template <typename io_T>
 static MLI_FORCE_INLINE void mli_krn_softmax_fx_run(const MLI_PTR(io_T) vec_in, MLI_PTR(io_T) vec_out, 
         generic_tensor_private_t<MLI_PTR(io_T)> in_prv, generic_tensor_private_t<MLI_PTR(io_T)> out_prv,
-        int in_frac, int frac_bits);
+        int in_frac, int frac_bits, const mli_lut *lut);
 
 template<typename io_T>
 static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in, MLI_PTR(io_T) vec_out, 
         generic_tensor_private_t<MLI_PTR(io_T)> in_prv, generic_tensor_private_t<MLI_PTR(io_T)> out_prv,
-        s8asym_quant_params in_params, s8asym_quant_params out_params);
+        s8asym_quant_params in_params, s8asym_quant_params out_params, const mli_lut* lut);
 
 template<>
 MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(int16_t) vec_in, MLI_PTR(int16_t) vec_out, 
         generic_tensor_private_t<MLI_PTR(int16_t)> in_prv, generic_tensor_private_t<MLI_PTR(int16_t)> out_prv,
-        s8asym_quant_params in_params, s8asym_quant_params out_params);
+        s8asym_quant_params in_params, s8asym_quant_params out_params, const mli_lut *lut);
 
 } // namespace ref
 
@@ -59,17 +59,17 @@ namespace dsp {
 template <typename io_T>
 static MLI_FORCE_INLINE void mli_krn_softmax_fx_run(const MLI_PTR(io_T) vec_in, MLI_PTR(io_T) vec_out, 
         generic_tensor_private_t<MLI_PTR(io_T)> in_prv, generic_tensor_private_t<MLI_PTR(io_T)> out_prv,
-        int in_frac, int frac_bits);
+        int in_frac, int frac_bits, const mli_lut *lut);
 
 template<typename io_T>
 static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in, MLI_PTR(io_T) vec_out, 
         generic_tensor_private_t<MLI_PTR(io_T)> in_prv, generic_tensor_private_t<MLI_PTR(io_T)> out_prv,
-        s8asym_quant_params in_params, s8asym_quant_params out_params);
+        s8asym_quant_params in_params, s8asym_quant_params out_params, const mli_lut *lut);
 
 template<>
 MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(int16_t) vec_in, MLI_PTR(int16_t) vec_out, 
         generic_tensor_private_t<MLI_PTR(int16_t)> in_prv, generic_tensor_private_t<MLI_PTR(int16_t)> out_prv,
-        s8asym_quant_params in_params, s8asym_quant_params out_params);
+        s8asym_quant_params in_params, s8asym_quant_params out_params, const mli_lut *lut);
 
 } // namespace dsp
 
@@ -79,22 +79,22 @@ MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(int16_t) vec_in, MLI
 namespace vdsp {
 
 template <typename io_T, bool is_asym>
-static MLI_FORCE_INLINE mli_status mli_krn_softmax_run(const mli_tensor *in, const mli_softmax_cfg* cfg,
-        mli_tensor *out);
+static MLI_FORCE_INLINE mli_status mli_krn_softmax_run(const mli_tensor *in, const mli_softmax_cfg *cfg,
+        mli_tensor *out, const mli_lut *lut);
 
 template <typename io_T>
 static MLI_FORCE_INLINE void mli_krn_softmax_fx_run(const MLI_PTR(io_T) vec_in, MLI_PTR(io_T) vec_out, 
         generic_tensor_private_t<MLI_PTR(io_T)> in_prv, generic_tensor_private_t<MLI_PTR(io_T)> out_prv,
-        int in_frac, int* in_step, int* out_step, int frac_bits);
+        int in_frac, int* in_step, int* out_step, int frac_bits, const mli_lut *lut);
 
 template<typename io_T>
 static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in, MLI_PTR(io_T) vec_out, 
         generic_tensor_private_t<MLI_PTR(io_T)> in_prv, generic_tensor_private_t<MLI_PTR(io_T)> out_prv,
-        int* in_step, int* out_step, s8asym_quant_params in_params, s8asym_quant_params out_params);
+        int* in_step, int* out_step, s8asym_quant_params in_params, s8asym_quant_params out_params, const mli_lut *lut);
 template<>
 MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(int16_t) vec_in, MLI_PTR(int16_t) vec_out, 
         generic_tensor_private_t<MLI_PTR(int16_t)> in_prv, generic_tensor_private_t<MLI_PTR(int16_t)> out_prv,
-        int* in_step, int* out_step, s8asym_quant_params in_params, s8asym_quant_params out_params);
+        int* in_step, int* out_step, s8asym_quant_params in_params, s8asym_quant_params out_params, const mli_lut *lut);
 
 } // namespace vdsp
 

@@ -49,7 +49,8 @@ template <typename io_T, bool convert = false>
 static MLI_FORCE_INLINE mli_status mli_krn_l2_normalize_run(const mli_tensor *in, 
         const mli_tensor *epsilon, 
         const mli_l2_normalize_cfg *cfg, 
-        mli_tensor *out);
+        mli_tensor *out,
+        const mli_lut *lut);
 
 } // namespace ref
 

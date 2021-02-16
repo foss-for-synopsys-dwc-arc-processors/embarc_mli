@@ -42,14 +42,14 @@ static MLI_FORCE_INLINE v2q15_t activation_lut_two_elem_interpolate(
         in_frac_bits = frac_bits_fx16;
     }
 
-    int16_t *lut_data = (int16_t *)lut->data;
+    int16_t *lut_data = lut->data.mem.pi16;
     int shift_in = in_frac_bits - lut->in_frac_bits;
     // if shift amount is too high, preshift argument itself and
     // limit shift amount to prevent overflows
     int preshift_in = mli_math_max_fx(shift_in - (int)kMaxFracBitsFx16, 0);
     shift_in = mli_math_min_fx(shift_in, (int)kMaxFracBitsFx16);
 
-    v2q15_t offset = mli_prv_init_v<int16_t, v2q15_t>(lut->offset);
+    v2q15_t offset = mli_prv_init_v<int16_t, v2q15_t>(lut->input_offset);
     v2q15_t lower = mli_prv_init_v<int16_t, v2q15_t>(0);
     // input data is more precise than LUT
     v2q15_t mask = mli_prv_init_v<int16_t, v2q15_t>((1 << shift_in) - 1);
@@ -108,11 +108,11 @@ static MLI_FORCE_INLINE v2q15_t activation_lut_two_elem_no_interpolate(
         in_frac_bits = frac_bits_fx16;
     }
 
-    int16_t *lut_data = (int16_t *)lut->data;
+    int16_t *lut_data = lut->data.mem.pi16;
     int shift_in = in_frac_bits - lut->in_frac_bits;
     shift_in = mli_math_min_fx(shift_in, (int)kMaxFracBitsFx16);
 
-    v2q15_t offset = mli_prv_init_v<int16_t, v2q15_t>(lut->offset);
+    v2q15_t offset = mli_prv_init_v<int16_t, v2q15_t>(lut->input_offset);
     v2q15_t lower = mli_prv_init_v<int16_t, v2q15_t>(0);
     
     v2q15_t upper = mli_prv_init_v<int16_t, v2q15_t>(lut->length - 1);

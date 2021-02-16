@@ -30,6 +30,8 @@ extern "C" {
  */
     mli_status mli_chk_tensor(const mli_tensor * in);
 
+    mli_status mli_chk_lut(const mli_lut * lut, int buff_size);
+
 
 /**
  * @brief

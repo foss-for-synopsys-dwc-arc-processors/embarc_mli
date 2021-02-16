@@ -83,7 +83,7 @@ static MLI_FORCE_INLINE void heap_select_k(
         dim_end[i] = (argmax_dim == i) ? slice_idx + 1 : src_prv->shape[i];
     }
 
-    int dim0_idx, dim1_idx, dim2_idx, dim3_idx, i = 0;
+    int dim0_idx, dim1_idx, dim2_idx, dim3_idx;
     for (dim0_idx = dim_start[0]; dim0_idx < dim_end[0]; ++dim0_idx) {
         for (dim1_idx = dim_start[1]; dim1_idx < dim_end[1]; ++dim1_idx) {
             for (dim2_idx = dim_start[2]; dim2_idx < dim_end[2]; ++dim2_idx) {

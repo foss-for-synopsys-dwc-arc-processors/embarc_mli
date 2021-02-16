@@ -168,6 +168,20 @@ typedef struct _mli_tensor {
 } mli_tensor;
 
 
+/**
+ * Lookup table config definition
+ */
+typedef struct _mli_lut{
+    mli_data_container data;
+    mli_element_type type;
+    int length;
+    int in_frac_bits;
+    int out_frac_bits;
+    int input_offset;
+    int output_offset;
+} mli_lut;
+
+
 //================================================================
 //
 //              Layers Configurations Definition

@@ -129,7 +129,7 @@ static MLI_FORCE_INLINE vNx4short_t activation_lut_vec_elem_interpolate(
     }
 
     int shift_in = in_frac_bits - lut->in_frac_bits;
-    const MLI_PTR(short) lut_data = (const MLI_PTR(short))lut->data;
+    const MLI_PTR(short) lut_data = (const MLI_PTR(short))lut->data.mem.pi16;
     // if shift amount is too high, preshift argument itself and
     // limit shift amount to prevent overflows
     int preshift_in = mli_math_max_fx(shift_in - (int)kMaxFracBitsFx16, 0);
@@ -145,7 +145,7 @@ static MLI_FORCE_INLINE vNx4short_t activation_lut_vec_elem_interpolate(
         x = mli_math_asr_fx(x, preshift_in);
     }
 
-    vNx4short_t lut_idx = mli_math_add_fx<vNx4short_t>(mli_math_asr_fx(x, shift_in), lut->offset);
+    vNx4short_t lut_idx = mli_math_add_fx<vNx4short_t>(mli_math_asr_fx(x, shift_in), lut->input_offset);
     /* Calculate lut_idx */
     lut_idx = mli_math_bound_range_fx(lut_idx , 0, lut->length - 2);
     vNx4int_t lut_idx_int = mli_math_mul_fx<vNx4short_t, vNx4int_t>(lut_idx, 1);
@@ -188,7 +188,7 @@ static MLI_FORCE_INLINE vNx4short_t activation_lut_vec_elem_no_interpolate(
     }
 
     int shift_in = in_frac_bits - lut->in_frac_bits;
-    const MLI_PTR(short) lut_data = (const MLI_PTR(short))lut->data;
+    const MLI_PTR(short) lut_data = (const MLI_PTR(short))lut->data.mem.pi16;
     
     shift_in = mli_math_min_fx(shift_in, (int)kMaxFracBitsFx16);
 
@@ -197,7 +197,7 @@ static MLI_FORCE_INLINE vNx4short_t activation_lut_vec_elem_no_interpolate(
     if (convert) {
         x = mli_prv_convert_sa8_fx16<vNx4short_t, vNx4short_t>(x, in_params->offset, scale_fx);
     }
-    vNx4short_t lut_idx = mli_math_add_fx<vNx4short_t>(mli_math_asl_fx(x, -shift_in), lut->offset);
+    vNx4short_t lut_idx = mli_math_add_fx<vNx4short_t>(mli_math_asl_fx(x, -shift_in), lut->input_offset);
     /* Calculate lut_idx_acc */
     lut_idx = mli_math_bound_range_fx(lut_idx , 0, lut->length - 1);
 
@@ -230,7 +230,7 @@ static MLI_FORCE_INLINE void load_input_and_get_lut_idx(
     }
 
     /* Calculate lut_idx */
-    lut_idx = mli_math_add_fx<vNx4short_t>(mli_math_asr_fx(vec, shift_in), lut->offset);
+    lut_idx = mli_math_add_fx<vNx4short_t>(mli_math_asr_fx(vec, shift_in), lut->input_offset);
     lut_idx = mli_math_bound_range_fx(lut_idx , 0, lut->length - 2);
     lut_idx_int = mli_math_mul_fx<vNx4short_t, vNx4int_t>(lut_idx, 1);
 }
@@ -264,7 +264,7 @@ static MLI_FORCE_INLINE void compute_activation_lut_func(
     }
 
     int shift_in = in_frac_bits - lut->in_frac_bits;
-    const MLI_PTR(short) lut_data = (const MLI_PTR(short))lut->data;
+    const MLI_PTR(short) lut_data = (const MLI_PTR(short))lut->data.mem.pi16;
     // if shift amount is too high, preshift argument itself and
     // limit shift amount to prevent overflows
     int preshift_in = mli_math_max_fx(shift_in - (int)kMaxFracBitsFx16, 0);
