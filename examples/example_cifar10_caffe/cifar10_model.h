@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -66,7 +66,7 @@ void cifar10_cf_net(const char * debug_ir_root);
 // Model bit depth configuration
 //
 //=============================================
-#define MODEL_FX_8       (8)
+#define MODEL_SA_8       (8)
 #define MODEL_FX_16      (16)
 #define MODEL_FX_8W16D   (816)
 
@@ -75,11 +75,11 @@ void cifar10_cf_net(const char * debug_ir_root);
 #endif
 
 #if !defined(MODEL_BIT_DEPTH) || \
-    (MODEL_BIT_DEPTH != MODEL_FX_8 && MODEL_BIT_DEPTH != MODEL_FX_16 && MODEL_BIT_DEPTH != MODEL_FX_8W16D)
+    (MODEL_BIT_DEPTH != MODEL_SA_8 && MODEL_BIT_DEPTH != MODEL_FX_16 && MODEL_BIT_DEPTH != MODEL_FX_8W16D)
 #error "MODEL_BIT_DEPTH must be defined correctly!"
 #endif
 
-#if (MODEL_BIT_DEPTH == MODEL_FX_8)
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
 typedef int8_t d_type;
 #else
 typedef int16_t d_type;

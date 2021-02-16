@@ -1,5 +1,5 @@
 #
-# Copyright 2019-2020, Synopsys, Inc.
+# Copyright 2019-2021, Synopsys, Inc.
 # All rights reserved.
 #
 # This source code is licensed under the BSD-3-Clause license found in
@@ -21,10 +21,10 @@ app: build
 
 run: app
 ifndef TCF_FILE
-	$(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)elf_files$(PS)example_cifar10_caffe
+	$(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)elf_files$(PS)example_cifar10_caffe $(RUN_ARGS)
 else
 	mdb $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)elf_files$(PS)example_cifar10_caffe.elf \
-		-cl  -nsim -cmd=run -off=cr_for_more -cmd=exit -tcf=$(TCF_FILE)
+		-cl  -nsim -cmd=run -off=cr_for_more -cmd=exit -tcf=$(TCF_FILE) -- $(RUN_ARGS)
 endif
 
 .PHONY:	app run

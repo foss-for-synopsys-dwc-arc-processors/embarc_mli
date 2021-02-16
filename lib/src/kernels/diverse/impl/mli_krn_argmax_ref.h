@@ -211,6 +211,7 @@ MLI_FORCE_INLINE void argmax_prepare_and_run(const mli_tensor *in, const mli_arg
         dim_size = in->shape[cfg->axis];
     out->shape[0] = dim_size;
     out->shape[1] = cfg->topk;
+    out->rank = 2;
 
     /* Running main argmax funtion */
     if (out->el_type == MLI_EL_FX_8 || out->el_type == MLI_EL_SA_8) {

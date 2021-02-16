@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -165,7 +165,7 @@ test_status measure_ref_to_pred(
     float * pred_buf = NULL;
     uint32_t data_buf_size = kMaxBufSizeToMalloc;
     test_status ret = TEST_PASSED;
-    const uint32_t max_path_sz = 128;
+    const uint32_t max_path_sz = 256;
     const uint32_t buffers_to_alloc = 2;
     char * path = NULL;
 
@@ -245,7 +245,7 @@ test_status measure_ref_to_pred(
         pred.shape[0] = descr.num_elements;
 
         if (idx_file_read_data(&descr, (void *)ref_buf, NULL) != IDX_ERR_NONE ||
-                mli_hlp_fx_tensor_to_float(&pred, pred_buf, data_buf_size) != MLI_STATUS_OK) {
+            mli_hlp_fx_tensor_to_float(&pred, pred_buf, data_buf_size) != MLI_STATUS_OK) {
             DEBUG_BREAK;
             ret =  TEST_SUIT_ERROR;
             goto ret_label;
@@ -268,7 +268,7 @@ test_status measure_ref_to_pred(
 
     const float eps = 0.000000000000000001f;
     out->max_abs_err = max_abs_err;
-    out->quant_err_vec_length = sqrtf(quant_accum)/quant_scale;
+    out->quant_err_vec_length = sqrtf(quant_accum) / quant_scale;
     out->pred_vec_length = sqrtf(pred_accum);
     out->ref_vec_length = sqrtf(ref_accum);
     out->noise_vec_length = sqrtf(noise_accum);
