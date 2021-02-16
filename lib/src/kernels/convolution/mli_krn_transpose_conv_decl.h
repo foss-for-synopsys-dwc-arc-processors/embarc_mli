@@ -45,7 +45,6 @@ MLI_FORCE_INLINE void transpose_convolution2D(
     const conv2d_weights_tensor_private_t<MLI_PTR(w_T)>& weights,
     const MLI_PTR(b_T)  __restrict biases,
     const tensor_private_t<MLI_CONV_OUT_PTR(io_T)>& out,
-    const rect_t& perception_area,
     quant_T quant_params,
     const io_T val_min_limit,
     const io_T val_max_limit,

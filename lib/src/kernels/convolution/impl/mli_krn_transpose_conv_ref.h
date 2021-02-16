@@ -70,14 +70,21 @@ MLI_FORCE_INLINE void transpose_convolution2D(
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,
         const tensor_private_t<MLI_CONV_OUT_PTR(io_T)> &out,
-        const rect_t &perception_area,
         quant_T quant_params,
         const io_T val_min_limit,
         const io_T val_max_limit,
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right) {
+    MLI_ASSERT(padding_top >= 0 && padding_top < weights.kernel_height);
+    MLI_ASSERT(padding_bot >= 0 && padding_bot < weights.kernel_height);
+    MLI_ASSERT(padding_left >= 0 && padding_left < weights.kernel_width);
+    MLI_ASSERT(padding_right >= 0 && padding_right < weights.kernel_width);
+
+    rect_t cent_area;
+    cent_area.row_beg = 0;  cent_area.row_end = out.height;
+    cent_area.clmn_beg = 0; cent_area.clmn_end = out.width;
     mli::krn::convolution2D<io_T, w_T, b_T, acc_T, quant_T, conv_fix_kernel_width, conv_fix_kernel_height>(
-        in, weights, biases, out, perception_area, quant_params,
+        in, weights, biases, out, cent_area, quant_params,
         val_min_limit, val_max_limit,
         /*stride_height = */1, /*stride_width = */1,
         /*dilation_height=  */1, /*dilation_width =  */1,
@@ -166,30 +173,40 @@ MLI_FORCE_INLINE void transpose_conv2d_prepare_and_run(
             cur_out.ptr += out_prv.row_mem_stride * out_h_offset;
             cur_out.ptr += out_prv.col_mem_stride * out_w_offset;
 
-            // Having small or no padding at top/left, krn_*_offset may reduce input area for calculations.
+            // Kernel pattern and output subtensor for current calculations define specific perception area of input. 
+            // The size of this perception area can be defined using output and kernel sizes (see in_percept_area_*). 
+            // This perception area includes specific input subtensor and it's paddings on all sides. 
+            // For instance perception area across width can be the following:
+            //                 _______________________________________________________________   
+            //                 |**pad_l**|================input_tsr=================|**pad_r**|
+            //                 |   [1]   |                    [2]                   |    [3]  |
+            // 
+            // The specific size of each sub-area is defined according to output offsets (coordinates) and kernels offset:
+            //    [1] pad_l (left padding area) - input and kernel offsets reduces this effective value first 
+            //    [2] input_tsr - input tensor area which is reduced according to out offset 
+            //                    if padding on the left is not enough to compensate it.
+            //    [3] pad_r (right padding area) - can be defined as the rest points from input perception area
+
+            // Define input perception area size itself and [1] across width and height
+            const int in_percept_area_w = (cur_out_width + (weights_subtensor.kernel_width - 1)); 
+            const int in_percept_area_h = (cur_out_height + (weights_subtensor.kernel_height - 1));
+            const int cur_pad_left = CEIL_DIV(MAX(0, effective_padding_left - out_w_offset - krn_w_offset), stride_width);
+            const int cur_pad_top = CEIL_DIV(MAX(0, effective_padding_top - out_h_offset - krn_h_offset), stride_height);
+
+            // Define [2]
             auto cur_in = in_prv;
-            const int in_w_offset = MAX(0, krn_w_offset - effective_padding_left); 
-            const int in_h_offset = MAX(0, krn_h_offset - effective_padding_top); 
-            cur_in.height -= in_h_offset;
-            cur_in.width -= in_w_offset;
+            const int in_w_offset = CEIL_DIV(MAX(0, out_w_offset - effective_padding_left), stride_width);
+            const int in_h_offset = CEIL_DIV(MAX(0, out_h_offset - effective_padding_top), stride_height);
+            cur_in.width = MIN(in_percept_area_w - cur_pad_left, cur_in.width - in_w_offset);
+            cur_in.height = MIN(in_percept_area_h - cur_pad_top, cur_in.height - in_h_offset);
             cur_in.ptr += cur_in.row_mem_stride * in_h_offset + cur_in.col_mem_stride * in_w_offset;
 
-            // Define paddings for the current calculations according to the new kernel size and offset index.
-            // Right and bottom paddings are derived from other already known parameters:
-            // current input size, current output size, current kernel size, and current left or top padding.
-            const int cur_pad_left = MAX(0, effective_padding_left - krn_w_offset) / stride_width;
-            const int cur_pad_top = MAX(0, effective_padding_top - krn_h_offset) / stride_height;
-            const int cur_pad_bot = 
-                (cur_out_height + (weights_subtensor.kernel_height - 1)) - cur_in.height - cur_pad_top;
-            const int cur_pad_right = 
-                (cur_out_width + (weights_subtensor.kernel_width - 1)) // how much in point are required for cur output
-                - cur_in.width - cur_pad_left;                         // subtract real input points and left padding
+            // the rest points of perception area is [3]
+            const int cur_pad_right = MAX(0, in_percept_area_w - cur_pad_left - cur_in.width);
+            const int cur_pad_bot = MAX(0, in_percept_area_h - cur_pad_top - cur_in.height);
 
-            rect_t cent_area;
-            cent_area.row_beg = 0;  cent_area.row_end = cur_out_height;
-            cent_area.clmn_beg = 0; cent_area.clmn_end = cur_out_width;
             transpose_convolution2D<io_T, w_T, b_T, acc_T, quant_T, conv_fix_kernel_width, conv_fix_kernel_height>(
-                cur_in, weights_subtensor, bs, cur_out, cent_area, quant_params,
+                cur_in, weights_subtensor, bs, cur_out, quant_params,
                 (io_T)val_limit.min, (io_T)val_limit.max,
                 cur_pad_top, cur_pad_left, cur_pad_bot, cur_pad_right);
         }
