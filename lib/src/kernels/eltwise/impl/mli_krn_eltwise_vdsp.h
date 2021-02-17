@@ -257,9 +257,8 @@ MLI_FORCE_INLINE vNx2short_t eltwise_perform_operation<vNx2short_t, vNx2short_t,
     int shift_right = MAX(post_op_shift, 0);
 
     vNx2accint_t tmp = mli_math_mul_fx<vNx2short_t, vNx2accint_t>(op1, op2);
-    vNx2int_t res_32 = mli_math_acc_cast_fx<vNx2int_t, vNx2accint_t>(tmp);
-    res_32 = mli_math_asl_fx(res_32, shift_left);
-    res = mli_math_cast_fx<vNx2int_t, vNx2short_t>(res_32, shift_right);
+    res = mli_math_acc_cast_fx<vNx2short_t, vNx2accint_t>(tmp, shift_right);
+    res = mli_math_asl_fx(res, shift_left);
 
     return res;
 }
@@ -281,9 +280,8 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
     int shift_right = MAX(post_op_shift, 0);
 
     vNx4accshort_t tmp = mli_math_mul_fx<vNx4char_t, vNx4accshort_t>(op1, op2);
-    vNx4short_t res_32 = mli_math_acc_cast_fx<vNx4short_t, vNx4accshort_t> (tmp);
-    res_32 = mli_math_asl_fx(res_32, shift_left);
-    res = mli_math_cast_fx<vNx4short_t, vNx4char_t>(res_32, shift_right);
+    res = mli_math_acc_cast_fx<vNx4char_t, vNx4accshort_t> (tmp, shift_right);
+    res = mli_math_asl_fx(res, shift_left);
 
     return res;
 }
@@ -300,33 +298,35 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
         const int pre_op_shift1,
         const int pre_op_shift2,
         const int post_op_shift) {
-
     MLI_ASSERT(post_op_shift > 3);
-    int preshift = 3;
-    int preshift_mask = ((1 << preshift) - 1);
+#if defined(__Xvec_guard_bit_option) && __Xvec_guard_bit_option != 0
+    const int preshift_sf = 1;
+#else
+    const int preshift_sf = 3;
+#endif
 
+    const int mask = (1 << preshift_sf) - 1;
     vNx4char_t res;
     vNx4short_t op1_offset = to_vNx4short_t(op1) - in_offset1;
     vNx4short_t op2_offset = to_vNx4short_t(op2) - in_offset2;
-    vNx4accint_t acc = mli_math_mul_fx<vNx4short_t, vNx4accint_t>(op1_offset, op2_offset);
-    vNx4int_t temp = mli_math_acc_cast_fx<vNx4int_t, vNx4accint_t>(acc);
 
     /*
-     * Each operand is 9 bit. The multiplier needs 18 bit. After scaling, 34 bits are needed.
-     * By preshifting the multiplier output by 3 bits (2 bits to fit in 16 bits and 1 bit for
-     * preshift compensation). We can continue the computation in 16 bits.
+     * Each operand is 9 bit. The first multiplier output is 18 bit. After scaling with positive 15 bit scale_factor,
+     * The second multiplier output is 32 bits. A headroom of 3 is sufficient to add the offset, round and compensate.
      *
      * Note: Minimum shift value is 15
      */
 
-    vNx4short_t temp_16 = to_vNx4short_t(temp >> preshift);
-    acc = mli_math_mul_fx<vNx4short_t, vNx4accint_t>(temp_16, scale_factor1);
-    vNx4int_t comp = (((temp & preshift_mask) * scale_factor1) >> preshift);
-    acc = mli_math_add(acc, comp);
-    vNx4short_t res16 = mli_math_acc_cast_fx<vNx4short_t, vNx4accint_t>(acc, post_op_shift - preshift);
-    res16 = mli_math_add_fx(res16, vNx4short_t(out_offset));
-    res = mli_math_cast_fx<vNx4short_t, vNx4char_t>(res16);
-
+    vNx4accint_t acc = mli_math_mul_fx<vNx4short_t, vNx4accint_t>(op1_offset, op2_offset);
+    vNx4int_t temp1 = mli_math_acc_cast_fx<vNx4int_t, vNx4accint_t>(acc);
+    vNx4int_t temp2 = (scale_factor1 & mask);
+    vNx4int_t offset = out_offset << (post_op_shift - preshift_sf);
+    acc = mli_math_mul_fx_low(temp1, temp2);
+    acc = mli_math_asr_fx(acc, preshift_sf);
+    acc = mli_math_add(acc, offset);
+    temp2 = (scale_factor1 >> preshift_sf);
+    acc = mli_math_mac_fx_low(acc, temp1, temp2);
+    res = mli_math_acc_cast_fx<vNx4char_t, vNx4accint_t>(acc, post_op_shift - preshift_sf);
     return res;
 }
 
