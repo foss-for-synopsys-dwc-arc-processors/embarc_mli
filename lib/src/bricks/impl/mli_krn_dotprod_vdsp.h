@@ -273,6 +273,72 @@ static MLI_FORCE_INLINE vNx4short_t make_vindex2(
 }
 
 template < typename in_T, typename w_T, typename acc_T >
+static MLI_FORCE_INLINE acc_T dotprod3D_v_variable_krn_sz (
+        const MLI_PTR (in_T) __restrict in,
+        const MLI_PTR (w_T) __restrict krn,
+        const int width,
+        const int height,
+        const int channels,
+        int in_col_step,
+        int in_row_step,
+        int in_ch_step,
+        int kern_col_step,
+        int kern_row_step,
+        int kern_ch_step,
+        acc_T accu) {
+
+    kern_row_step -= width * kern_col_step;
+    in_row_step -= width * in_col_step;
+
+    __builtin_assume (height > 0);
+
+    for (int row = 0; row < height; row++) {
+        for (int clmn = 0; clmn < width; clmn++) {
+            accu = dotprod1D_v(in, krn, accu, channels, in_ch_step, kern_ch_step);
+            krn += kern_col_step;
+            in += in_col_step;
+        }
+        krn += kern_row_step;
+        in += in_row_step;
+    }
+
+    return accu;
+}
+
+template <int unroll, typename in_T, typename w_T, typename grpacc_T >
+static MLI_FORCE_INLINE grpacc_T dotprod3D_v_variable_krn_sz_unroll (
+        const MLI_PTR (in_T) __restrict in,
+        const MLI_PTR (w_T) __restrict krn,
+        const int width,
+        const int height,
+        const int channels,
+        int in_col_step,
+        int in_row_step,
+        int in_ch_step,
+        int in_unroll_step,
+        int kern_col_step,
+        int kern_row_step,
+        int kern_ch_step,
+        grpacc_T accu) {
+    kern_row_step -= width * kern_col_step;
+    in_row_step -= width * in_col_step;
+
+    __builtin_assume (height > 0);
+
+    for (int row = 0; row < height; row++) {
+        for (int clmn = 0; clmn < width; clmn++) {
+            accu = dotprod1D_v_unroll<unroll>(in, krn, accu, channels, in_ch_step, in_unroll_step, kern_ch_step);
+            krn += kern_col_step;
+            in += in_col_step;
+        }
+        krn += kern_row_step;
+        in += in_row_step;
+    }
+
+    return accu;
+}
+
+template < typename in_T, typename w_T, typename acc_T >
 static MLI_FORCE_INLINE acc_T dotprod3D_v_pad_gather1 (
         const MLI_PTR (in_T) __restrict in,
         const MLI_PTR (w_T) __restrict krn,

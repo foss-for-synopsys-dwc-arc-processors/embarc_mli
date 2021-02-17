@@ -421,6 +421,59 @@ static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_we
         col_mem_stride, row_mem_stride, in_ch_mem_stride, out_ch_mem_stride };
 }
 
+/* rotate n quadrants counter clockwise */
+template <int n, typename T>
+static MLI_FORCE_INLINE tensor_private_t<T> mli_prv_rotate_tensor_private(
+        const tensor_private_t<T> in) {
+    auto out = in;
+    if (n == 1) {
+        out.ptr += in.col_mem_stride * (in.width - 1);
+        out.width = in.height;
+        out.height = in.width;
+        out.row_mem_stride = -in.col_mem_stride;
+        out.col_mem_stride = in.row_mem_stride;
+    } else if (n == 2) {
+        out.ptr += in.col_mem_stride * (in.width - 1);
+        out.ptr += in.row_mem_stride * (in.height - 1);
+        out.col_mem_stride = -in.col_mem_stride;
+        out.row_mem_stride = -in.row_mem_stride;
+    } else if (n == 3) {
+        out.ptr += in.row_mem_stride * (in.height - 1);
+        out.width = in.height;
+        out.height = in.width;
+        out.row_mem_stride = in.col_mem_stride;
+        out.col_mem_stride = -in.row_mem_stride;
+    }
+    return out;
+}
+
+/* rotate n quadrants counter clockwise */
+template <int n, typename T>
+static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_rotate_weights_tensor_private(
+        const conv2d_weights_tensor_private_t<T> weights) {
+    auto out = weights;
+    if (n == 1) {
+        out.ptr += weights.col_mem_stride * (weights.kernel_width - 1);
+        out.kernel_width = weights.kernel_height;
+        out.kernel_height = weights.kernel_width;
+        out.row_mem_stride = -weights.col_mem_stride;
+        out.col_mem_stride = weights.row_mem_stride;
+    } else if (n == 2) {
+        out.ptr += weights.col_mem_stride * (weights.kernel_width - 1);
+        out.ptr += weights.row_mem_stride * (weights.kernel_height - 1);
+        out.col_mem_stride = -weights.col_mem_stride;
+        out.row_mem_stride = -weights.row_mem_stride;
+    } else if (n == 3) {
+        out.ptr += weights.row_mem_stride * (weights.kernel_height - 1);
+        out.kernel_width = weights.kernel_height;
+        out.kernel_height = weights.kernel_width;
+        out.row_mem_stride = weights.col_mem_stride;
+        out.col_mem_stride = -weights.row_mem_stride;
+    }
+    return out;
+}
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
