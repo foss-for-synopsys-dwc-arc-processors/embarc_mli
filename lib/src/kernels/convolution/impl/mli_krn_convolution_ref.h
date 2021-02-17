@@ -268,10 +268,10 @@ MLI_FORCE_INLINE void conv2d_prepare_and_run(
     const uint8_t stride_width = cfg->stride_width;
     const uint8_t stride_height = cfg->stride_height;
     const bool    no_pad = (fix_kernel_height == 1) && (fix_kernel_width == 1);
-    const uint8_t padding_top = no_pad ? 0 : cfg->padding_top;
-    const uint8_t padding_bot = no_pad ? 0 : cfg->padding_bottom;
-    const uint8_t padding_left = no_pad ? 0 : cfg->padding_left;
-    const uint8_t padding_right = no_pad ? 0 : cfg->padding_right;
+    int padding_top = no_pad ? 0 : cfg->padding_top;
+    int padding_bot = no_pad ? 0 : cfg->padding_bottom;
+    int padding_left = no_pad ? 0 : cfg->padding_left;
+    int padding_right = no_pad ? 0 : cfg->padding_right;
 
     // Define output val limits (may affect built in ReLU)
     out->el_type = in->el_type;
@@ -311,6 +311,21 @@ MLI_FORCE_INLINE void conv2d_prepare_and_run(
                                     stride_width);
     const int out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - effective_kernel_height + 1,
                                     stride_height);
+
+    // Adjust the padding at the bottom and at the right in case too much padding was provided
+    // (this can happen when stride > 1)
+    // in case not all input samples can be used, adjust the width and height.
+    padding_right = (out_width * stride_width + effective_kernel_width - stride_width) - in_prv.width - padding_left;
+    padding_bot = (out_height * stride_height + effective_kernel_height - stride_height) - in_prv.height - padding_top;
+    if (padding_right < 0) {
+        in_prv.width += padding_right;
+        padding_right = 0;
+    }
+    if (padding_bot < 0) {
+        in_prv.height += padding_bot;
+        padding_bot = 0;
+    }
+
     out->rank = in->rank;
     if (data_layout == LAYOUT_HWC || data_layout == LAYOUT_HWCN || data_layout == LAYOUT_HW1N) {
         out->shape[FMAP_H_DIM_HWC] = out_height;

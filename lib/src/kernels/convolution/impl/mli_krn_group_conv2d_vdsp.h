@@ -177,40 +177,113 @@ MLI_FORCE_INLINE void group_convolution2D(
     // (usually significantly smaller part of computations)
     //=======================================================================
     if (padding_top || padding_left || padding_bot || padding_right) {
-        rect_t perc_areas[4];
-        int areas_num = 0;
-        if (padding_top) {
-            perc_areas[areas_num].row_beg = 0;
-            perc_areas[areas_num].row_end = CEIL_DIV(padding_top, stride_height);
-            perc_areas[areas_num].clmn_beg = 0;
-            perc_areas[areas_num++].clmn_end = out.width;
-        }
-        if (padding_bot) {
-            perc_areas[areas_num].row_beg = out.height - CEIL_DIV(padding_bot, stride_height);
-            perc_areas[areas_num].row_end = out.height;
-            perc_areas[areas_num].clmn_beg = 0;
-            perc_areas[areas_num++].clmn_end = out.width;
-        }
-        if (padding_left) {
-            perc_areas[areas_num].row_beg = CEIL_DIV(padding_top, stride_height);
-            perc_areas[areas_num].row_end = out.height - CEIL_DIV(padding_bot, stride_height);
-            perc_areas[areas_num].clmn_beg = 0;
-            perc_areas[areas_num++].clmn_end = CEIL_DIV(padding_left, stride_width);
-        }
-        if (padding_right) {
-            perc_areas[areas_num].row_beg = CEIL_DIV(padding_top, stride_height);
-            perc_areas[areas_num].row_end = out.height - CEIL_DIV(padding_bot, stride_height);
-            perc_areas[areas_num].clmn_beg = out.width - CEIL_DIV(padding_right, stride_width);
-            perc_areas[areas_num++].clmn_end = out.width;
-        }
-        for(int i = 0; i < areas_num; i ++) {
+        for(int i = 0; i < 4; i ++) {
+            rect_t area;
+            auto in_ = in;
+            auto w_ = weights;
+            auto out_ = out;
+            int p_top = padding_top;
+            int p_left = padding_left;
+            int p_bot = padding_bot;
+            int p_right = padding_right;
+            int stride_w = stride_width;
+            int stride_h = stride_height;
+            int dilation_w = dilation_width;
+            int dilation_h = dilation_height;
+
+            if (i == 0) {
+                if (padding_top) {
+                    area.row_beg = 0;
+                    area.row_end = CEIL_DIV(padding_top, stride_height);
+                    area.clmn_beg = 0;
+                    area.clmn_end = out.width - CEIL_DIV(padding_right, stride_width);
+                    // compensate for cases where kernel size is larger than input size
+                    area.clmn_end = MAX(CEIL_DIV(padding_left, stride_width), area.clmn_end);
+                } else {
+                    continue;
+                }
+            }
+            if (i == 1) {
+                if (padding_right) {
+                    int row_beg = 0;
+                    int row_end = out.height - CEIL_DIV(padding_bot, stride_height);
+                    int clmn_beg = out.width - CEIL_DIV(padding_right, stride_width);
+                    int clmn_end = out.width;
+                    // rotate the right padding area to the top
+                    area.clmn_beg = row_beg;
+                    area.clmn_end = row_end;
+                    area.row_beg = out.width - clmn_end;
+                    area.row_end = out.width - clmn_beg;
+                    in_ = mli_prv_rotate_tensor_private<1>(in);
+                    out_ = mli_prv_rotate_tensor_private<1>(out);
+                    w_ = mli_prv_rotate_weights_tensor_private<1>(weights);
+                    p_top = padding_right;
+                    p_bot = padding_left;
+                    p_left = padding_top;
+                    p_right = padding_bot;
+                    stride_w = stride_height;
+                    stride_h = stride_width;
+                    dilation_w = dilation_height;
+                    dilation_h = dilation_width;
+                } else {
+                    continue;
+                }
+            }
+            if (i == 2) {
+                if (padding_bot) {
+                    int row_beg = out.height - CEIL_DIV(padding_bot, stride_height);
+                    int row_end = out.height;
+                    int clmn_beg = CEIL_DIV(padding_left, stride_width);
+                    int clmn_end = out.width;
+                    // rotate the bottom padding area to the top
+                    area.clmn_beg = out.width - clmn_end;
+                    area.clmn_end = out.width - clmn_beg;
+                    area.row_beg = out.height - row_end;
+                    area.row_end = out.height - row_beg;
+                    in_ = mli_prv_rotate_tensor_private<2>(in);
+                    out_ = mli_prv_rotate_tensor_private<2>(out);
+                    w_ = mli_prv_rotate_weights_tensor_private<2>(weights);
+                    p_top = padding_bot;
+                    p_bot = padding_top;
+                    p_left = padding_right;
+                    p_right = padding_left;
+                } else {
+                    continue;
+                }
+            }
+            if (i == 3) {
+                if (padding_left) {
+                    int row_beg = CEIL_DIV(padding_top, stride_height);
+                    int row_end = out.height;
+                    int clmn_beg = 0;
+                    int clmn_end = CEIL_DIV(padding_left, stride_width);
+                    // rotate the left padding area to the top
+                    area.clmn_beg = out.height - row_end;
+                    area.clmn_end = out.height - row_beg;
+                    area.row_beg = clmn_beg;
+                    area.row_end = clmn_end;
+                    in_ = mli_prv_rotate_tensor_private<3>(in);
+                    out_ = mli_prv_rotate_tensor_private<3>(out);
+                    w_ = mli_prv_rotate_weights_tensor_private<3>(weights);
+                    p_top = padding_left;
+                    p_bot = padding_right;
+                    p_left = padding_bot;
+                    p_right = padding_top;
+                    stride_w = stride_height;
+                    stride_h = stride_width;
+                    dilation_w = dilation_height;
+                    dilation_h = dilation_width;
+                } else {
+                    continue;
+                }
+            }
             group_convolution2D_pad<io_T, w_T, b_T, acc_T, quant_T>(
-                    in, weights, biases, out, perc_areas[i], quant_params,
+                    in_, w_, biases, out_, area, quant_params,
                     val_min_limit, val_max_limit,
-                    stride_height, stride_width,
-                    dilation_height, dilation_width,
-                    padding_top, padding_left,
-                    padding_bot, padding_right);
+                    stride_h, stride_w,
+                    dilation_h, dilation_w,
+                    p_top, p_left,
+                    p_bot, p_right);
         }
     }
 }
