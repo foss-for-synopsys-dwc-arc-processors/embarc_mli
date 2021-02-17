@@ -154,7 +154,7 @@ static MLI_FORCE_INLINE void eltwise_op_basic(
     op1_ptr = op1->ptr;
     op2_ptr = op2->ptr;
 
-    int32_t in_scale_fx1 = 0, in_scale_fx2 = 0, out_scale_fx = 0, in_scale_fx_shifted = 0,
+    int32_t in_scale_fx1 = 0, in_scale_fx2 = 0, out_scale_fx = 0,
             scale_factor1 = 0, scale_factor2 = 0;
     int16_t scale16_1 = 1, scale16_2 = 1;
     int16_t in_offset1 = 0, in_offset2 = 0, out_offset = 0;
@@ -175,29 +175,30 @@ static MLI_FORCE_INLINE void eltwise_op_basic(
         in_offset2 = in_quant_params2->offset;
         out_offset = out_quant_params->offset;
         if (func_type == ELTWISE_MUL) {
-            in_scale_fx1 = mli_math_acc_ashift_fx<int32_t>(in_quant_params1->scale,
+            in_scale_fx1 = mli_math_asr_rnd_fx<int32_t>(in_quant_params1->scale,
                                                           (int32_t) in_quant_params1->shift - frac_bits_fx16);
-            in_scale_fx2 = mli_math_acc_ashift_fx<int32_t>(in_quant_params2->scale,
+            in_scale_fx2 = mli_math_asr_rnd_fx<int32_t>(in_quant_params2->scale,
                                                           (int32_t) in_quant_params2->shift - frac_bits_fx16);
-            out_scale_fx = mli_math_acc_ashift_fx<int32_t>(out_quant_params->scale,
+            out_scale_fx = mli_math_asr_rnd_fx<int32_t>(out_quant_params->scale,
                                                            (int32_t) out_quant_params->shift - frac_bits_fx16);
-            in_scale_fx_shifted = mli_math_acc_ashift_fx<int32_t>(in_scale_fx1, -IN_SCALE_SHIFT);
-            scale_factor1 = (in_scale_fx_shifted / out_scale_fx) * in_scale_fx2;
+            scale_factor1 = mli_math_asr_rnd_fx<int32_t>(in_scale_fx1, -IN_SCALE_SHIFT);
+            scale_factor1 = (scale_factor1 / out_scale_fx) * in_scale_fx2;
             post_op_shift = IN_SCALE_SHIFT + frac_bits_fx16;
             int norm = (scale_factor1 != 0) ? mli_math_norm_fx<int32_t, int>(scale_factor1) : 0;
             int shift = MAX((IN_SCALE_SHIFT - norm), 0);
             scale16_1 = mli_math_cast_fx<int32_t, int16_t>(scale_factor1, shift);
             post_op_shift -= shift;
         } else {
-            in_scale_fx1 = mli_math_acc_ashift_fx<int32_t>(in_quant_params1->scale,
+            in_scale_fx1 = mli_math_asr_rnd_fx<int32_t>(in_quant_params1->scale,
                                                            (int32_t) in_quant_params1->shift - frac_bits_fx16);
-            in_scale_fx2 = mli_math_acc_ashift_fx<int32_t>(in_quant_params2->scale,
+            in_scale_fx2 = mli_math_asr_rnd_fx<int32_t>(in_quant_params2->scale,
                                                            (int32_t) in_quant_params2->shift - frac_bits_fx16);
-            out_scale_fx = mli_math_acc_ashift_fx<int32_t>(out_quant_params->scale, (int32_t) out_quant_params->shift - frac_bits_fx16);
-            in_scale_fx1 = mli_math_acc_ashift_fx<int32_t>(in_scale_fx1, -IN_SCALE_SHIFT);
-            in_scale_fx2 = mli_math_acc_ashift_fx<int32_t>(in_scale_fx2, -IN_SCALE_SHIFT);
-            scale_factor1 = (in_scale_fx1 / out_scale_fx);
-            scale_factor2 = (in_scale_fx2 / out_scale_fx);
+            out_scale_fx = mli_math_asr_rnd_fx<int32_t>(out_quant_params->scale,
+                                                           (int32_t) out_quant_params->shift - frac_bits_fx16);
+            scale_factor1 = mli_math_asr_rnd_fx<int32_t>(in_scale_fx1, -IN_SCALE_SHIFT);
+            scale_factor2 = mli_math_asr_rnd_fx<int32_t>(in_scale_fx2, -IN_SCALE_SHIFT);
+            scale_factor1 /= out_scale_fx;
+            scale_factor2 /= out_scale_fx;
             post_op_shift = IN_SCALE_SHIFT;
             int norm1 = (scale_factor1 != 0) ? mli_math_norm_fx<int32_t, int>(scale_factor1) : 0;
             int norm2 = (scale_factor2 != 0) ? mli_math_norm_fx<int32_t, int>(scale_factor2) : 0;

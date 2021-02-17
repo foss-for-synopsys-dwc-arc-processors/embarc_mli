@@ -579,13 +579,12 @@ MLI_FORCE_INLINE vNx4char_t mli_math_asr_rnd_fx(vNx4char_t x, int nbits) {
 #ifdef ROUND_UP
     vNx4char_t round = ((1 << nbits) >> 1);
     r = mli_math_add_fx(x, round);
-    r = mli_math_asr_fx(r, nbits);
 #endif
 #ifdef ROUND_CONVERGENT
 #error "Convergent rounding not supported"
 #endif
-
-     return r;
+    r = mli_math_asr_fx(r, nbits);
+    return r;
  }
 
 template <>
@@ -596,13 +595,13 @@ MLI_FORCE_INLINE vNx2short_t mli_math_asr_rnd_fx(vNx2short_t x, int nbits) {
 #ifdef ROUND_UP
     vNx2short_t round = ((1 << nbits) >> 1);
     r = mli_math_add_fx(x, round);
-    r = mli_math_asr_fx(r, nbits);
  #endif
  #ifdef ROUND_CONVERGENT
  #error "Convergent rounding not supported"
  #endif
+    r = mli_math_asr_fx(r, nbits);
 
-     return r;
+    return r;
  }
 
 template <>
@@ -926,16 +925,29 @@ MLI_FORCE_INLINE vNx4char_t mli_math_cast_fx(vNx4int_t in_val) {
 }
 
 template <>
+MLI_FORCE_INLINE vNx4char_t mli_math_cast_fx(vNx4int_t in_val, int shift_right) {
+    vNx4int_t r;
+#ifdef ROUND_UP
+    vNx4int_t round = ((1 << shift_right) >> 1);
+    r = mli_math_add_fx(in_val, round);
+#else
+    #error Rounding mode not supported
+#endif
+
+    r = mli_math_asr_fx(r, shift_right);
+    return to_vNx4char_t(mli_math_bound_range_fx(r, INT8_MIN, INT8_MAX));
+}
+
+template <>
 MLI_FORCE_INLINE vNx2short_t mli_math_cast_fx(vNx2int_t in_val, int shift_right) {
     vNx2int_t r;
 #ifdef ROUND_UP
     vNx2int_t round = ((1 << shift_right) >> 1);
     r = mli_math_add_fx(in_val, round);
-    r = mli_math_asr_fx(r, shift_right);
 #else
         #error Rounding mode not supported
 #endif
-
+    r = mli_math_asr_fx(r, shift_right);
     r = mli_math_bound_range_fx(r, INT16_MIN, INT16_MAX);
 
     return to_vNx2short_t(r);
@@ -976,11 +988,11 @@ MLI_FORCE_INLINE vNx4char_t mli_math_cast_fx(vNx4short_t in_val, int shift_right
     // Rounding up
     vNx4short_t round = ((1 << shift_right) >> 1);
     acc = mli_math_add_fx(in_val, round);
-    acc = mli_math_asr_fx(acc, shift_right);
 #else
     #error Rounding mode not supported
 #endif
 
+    acc = mli_math_asr_fx(acc, shift_right);
     acc = mli_math_bound_range_fx(acc, INT8_MIN, INT8_MAX);
     return to_vNx4char_t(acc);
 }
@@ -1274,6 +1286,20 @@ MLI_FORCE_INLINE vNx4char_t mli_math_acc_cast_fx<vNx4char_t, vNx4accint_t,/*roun
     accu_result.hi.hi = to_vNint_t(vvconvert(__vacc_hi(acc.hi), ctrlword));
 
     return to_vNx4char_t(accu_result);
+}
+
+template<>
+MLI_FORCE_INLINE vNx4int_t mli_math_acc_cast_fx<vNx4int_t, vNx4accint_t,/*round = */ false>(vNx4accint_t acc, int shift_right) {
+    MLI_EXTRA_ASSERT(shift_right >= 0);
+
+    int ctrlword = SAT|SIGNED|TARGET_SZ_32|SHIFT(shift_right);
+    vNx4int_t accu_result;
+    accu_result.lo.lo = to_vNint_t(vvconvert(__vacc_lo(acc.lo), ctrlword));
+    accu_result.lo.hi = to_vNint_t(vvconvert(__vacc_hi(acc.lo), ctrlword));
+    accu_result.hi.lo = to_vNint_t(vvconvert(__vacc_lo(acc.hi), ctrlword));
+    accu_result.hi.hi = to_vNint_t(vvconvert(__vacc_hi(acc.hi), ctrlword));
+
+    return accu_result;
 }
 
 template<>
@@ -1603,6 +1629,26 @@ MLI_FORCE_INLINE vNx4int_t mli_math_mul_fx_high(vNx4int_t L, vNx4int_t R) {
     return r;
 }
 
+
+MLI_FORCE_INLINE vNaccint_t mli_math_mul_fx_low(vNint_t L, vNint_t R) {
+    vNaccint_t r;
+    r = vvcmpy_lo(L, R);
+    return r;
+}
+
+MLI_FORCE_INLINE vNx2accint_t mli_math_mul_fx_low(vNx2int_t L, vNx2int_t R) {
+    vNx2accint_t r;
+    r = __vacc_concat(vvcmpy_lo(L.lo, R.lo), vvcmpy_lo(L.hi, R.hi));
+    return r;
+}
+
+MLI_FORCE_INLINE vNx4accint_t mli_math_mul_fx_low(vNx4int_t L, vNx4int_t R) {
+    vNx4accint_t r;
+    r.lo = mli_math_mul_fx_low(L.lo, R.lo);
+    r.hi = mli_math_mul_fx_low(L.hi, R.hi);
+    return r;
+}
+
 template <>
 MLI_FORCE_INLINE int64_t mli_math_mul_fx(int32_t L, int32_t R) {
     // Result of multiplication is fractional number (shifted left by 1)
@@ -1645,6 +1691,7 @@ template <>
 MLI_FORCE_INLINE vNx4int_t mli_math_mul_fx(vNx4short_t L, vNx4short_t R) {
     return to_vNx4int_t(vvcmpy(L, R));
 }
+
 
 // Multiply-and-accumulate operands
 //========================================================================
@@ -1725,7 +1772,33 @@ MLI_FORCE_INLINE vNx4accint_t mli_math_mac_fx(vNx4accint_t acc, vNx4char_t L, vN
     return r;
 }
 
-template < typename l_T, typename r_T, typename acc_T > MLI_FORCE_INLINE acc_T mli_math_msub_fx(acc_T acc, l_T L, r_T R);
+template <typename l_T, typename r_T, typename acc_T>
+MLI_FORCE_INLINE acc_T mli_math_mac_fx_low(acc_T acc, l_T L, r_T R);
+
+template <>
+MLI_FORCE_INLINE vNaccint_t mli_math_mac_fx_low(vNaccint_t acc, vNint_t L, vNint_t R) {
+    vNaccint_t r;
+    r = vvcmac_lo(acc, L, R);
+    return r;
+}
+
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_math_mac_fx_low(vNx2accint_t acc, vNx2int_t L, vNx2int_t R) {
+    vNx2accint_t r;
+    r = __vacc_concat(vvcmac_lo(__vacc_lo(acc), L.lo, R.lo), vvcmac_lo(__vacc_hi(acc), L.hi, R.hi));
+    return r;
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accint_t mli_math_mac_fx_low(vNx4accint_t acc, vNx4int_t L, vNx4int_t R) {
+    vNx4accint_t r;
+    r.lo = mli_math_mac_fx_low(acc.lo, L.lo, R.lo);
+    r.hi = mli_math_mac_fx_low(acc.hi, L.hi, R.hi);
+    return r;
+}
+
+template <typename l_T, typename r_T, typename acc_T>
+MLI_FORCE_INLINE acc_T mli_math_msub_fx(acc_T acc, l_T L, r_T R);
 
 template <>
 MLI_FORCE_INLINE vNx4accshort_t mli_math_msub_fx(vNx4accshort_t acc, vNx4char_t L, int8_t R) {
@@ -1769,7 +1842,7 @@ template <>
 MLI_FORCE_INLINE vNx4accint_t mli_math_msub_fx(vNx4accint_t acc, vNx4short_t L, vNx4short_t R) {
     vNx4accint_t r;
     r.lo = mli_math_msub_fx(acc.lo, L.lo, R.lo);
-    r.hi = mli_math_msub_fx(acc.hi, L.hi, R.lo);
+    r.hi = mli_math_msub_fx(acc.hi, L.hi, R.hi);
     return r;
 }
 
@@ -1778,7 +1851,7 @@ MLI_FORCE_INLINE vNx4accint_t mli_math_msub_fx(vNx4accint_t acc, vNx4char_t L, v
     vNx4accint_t r;
     vNx4short_t l_short = to_vNx4short_t(L);
     r.lo = mli_math_msub_fx(acc.lo, l_short.lo, R.lo);
-    r.hi = mli_math_msub_fx(acc.hi, l_short.hi, R.lo);
+    r.hi = mli_math_msub_fx(acc.hi, l_short.hi, R.hi);
     return r;
 }
 
