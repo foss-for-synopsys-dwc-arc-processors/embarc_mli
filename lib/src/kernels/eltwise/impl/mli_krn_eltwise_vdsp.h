@@ -40,13 +40,7 @@ MLI_FORCE_INLINE vNx2short_t eltwise_perform_operation<vNx2short_t, vNx2short_t,
     vNx2short_t res;
     int shift_right = MAX(post_op_shift, 0);
     int shift_left = MAX(-post_op_shift, 0);
-    vNx2short_t op1_shifted = mli_math_asr_rnd_fx(op1, pre_op_shift1);
-    vNx2short_t op2_shifted = mli_math_asr_rnd_fx(op2, pre_op_shift2);
 
-#if defined(__Xvec_guard_bit_option) && (__Xvec_guard_bit_option != 0)
-    vNx2accshort_t tmp = mli_math_init_accu_add<vNx2short_t, vNx2accshort_t>(op1_shifted, op2_shifted);
-    res = mli_math_acc_cast_fx<vNx2short_t, vNx2accshort_t> (tmp, shift_right);
-#else
     #ifdef ROUND_UP
         int32_t accu_init = (1 << shift_right) >> 1;
         vNx2accint_t accu = mli_math_init_accu<int32_t, vNx2accint_t>(accu_init);
@@ -54,10 +48,9 @@ MLI_FORCE_INLINE vNx2short_t eltwise_perform_operation<vNx2short_t, vNx2short_t,
         #error Rounding mode not supported
     #endif
 
-    accu = mli_math_mac_fx(accu, op1_shifted, (int16_t) 1);
-    accu = mli_math_mac_fx(accu, op2_shifted, (int16_t) 1);
+    accu = mli_math_mac_su_fx(accu, op1, (uint16_t) (1u << -pre_op_shift1));
+    accu = mli_math_mac_su_fx(accu, op2, (uint16_t) (1u << -pre_op_shift2));
     res = mli_math_acc_cast_fx<vNx2short_t, vNx2accint_t, /*round = */false>(accu, shift_right);
-#endif
 
     res = mli_math_asl_fx(res, shift_left);
     return res;
@@ -76,15 +69,9 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
         const int pre_op_shift2,
         const int post_op_shift) {
     vNx4char_t res;
-    vNx4char_t op1_shifted = mli_math_asr_rnd_fx(op1, pre_op_shift1);
-    vNx4char_t op2_shifted = mli_math_asr_rnd_fx(op2, pre_op_shift2);
     int shift_right = MAX(post_op_shift, 0);
     int shift_left = MAX(-post_op_shift, 0);
 
-#if defined(__Xvec_guard_bit_option) && (__Xvec_guard_bit_option != 0)
-    vNx4accchar_t tmp = mli_math_init_accu_add<vNx4char_t, vNx4accchar_t>(op1_shifted, op2_shifted);
-    res = mli_math_acc_cast_fx<vNx4char_t, vNx4accchar_t> (tmp, shift_right);
-#else
     #ifdef ROUND_UP
         int16_t accu_init = (1 << shift_right) >> 1;
         vNx4accshort_t accu = mli_math_init_accu<int16_t, vNx4accshort_t>(accu_init);
@@ -92,10 +79,9 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
         #error Rounding mode not supported
     #endif
 
-    accu = mli_math_mac_fx(accu, op1_shifted, (int8_t) 1);
-    accu = mli_math_mac_fx(accu, op2_shifted, (int8_t) 1);
+    accu = mli_math_mac_su_fx(accu, op1, (uint8_t) (1u << -pre_op_shift1));
+    accu = mli_math_mac_su_fx(accu, op2, (uint8_t) (1u << -pre_op_shift2));
     res = mli_math_acc_cast_fx<vNx4char_t, vNx4accshort_t, false>(accu, shift_right);
-#endif
 
     res = mli_math_asl_fx(res, shift_left);
     return res;
@@ -148,13 +134,7 @@ MLI_FORCE_INLINE vNx2short_t eltwise_perform_operation<vNx2short_t, vNx2short_t,
     vNx2short_t res;
     int shift_left = MAX(-post_op_shift, 0);
     int shift_right = MAX(post_op_shift, 0);
-    vNx2short_t sub1 = mli_math_asr_rnd_fx(op1, pre_op_shift1);
-    vNx2short_t sub2 = mli_math_asr_rnd_fx(op2, pre_op_shift2);
 
-#if defined(__Xvec_guard_bit_option) && __Xvec_guard_bit_option != 0
-    vNx2accshort_t acc = mli_math_init_accu_sub<vNx2short_t, vNx2accshort_t>(sub1, sub2);
-    res = mli_math_acc_cast_fx<vNx2short_t, vNx2accshort_t> (acc, shift_right);
-#else
     #ifdef ROUND_UP
         int32_t accu_init = (1 << shift_right) >> 1;
         vNx2accint_t accu = mli_math_init_accu<int32_t, vNx2accint_t>(accu_init);
@@ -162,10 +142,9 @@ MLI_FORCE_INLINE vNx2short_t eltwise_perform_operation<vNx2short_t, vNx2short_t,
         #error Rounding mode not supported
     #endif
 
-    accu = mli_math_mac_fx(accu, sub1, (int16_t) 1);
-    accu = mli_math_msub_fx(accu, sub2, (int16_t) 1);
+    accu = mli_math_mac_su_fx(accu, op1, (uint16_t) (1u << -pre_op_shift1));
+    accu = mli_math_msub_su_fx(accu, op2, (uint16_t) (1u << -pre_op_shift2));
     res = mli_math_acc_cast_fx<vNx2short_t, vNx2accint_t, /*round = */false>(accu, shift_right);
-#endif
 
     res = mli_math_asl_fx(res, shift_left);
     return res;
@@ -186,13 +165,7 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
     vNx4char_t res;
     int shift_left = MAX(-post_op_shift, 0);
     int shift_right = MAX(post_op_shift, 0);
-    vNx4char_t sub1 = mli_math_asr_rnd_fx(op1, pre_op_shift1);
-    vNx4char_t sub2 = mli_math_asr_rnd_fx(op2, pre_op_shift2);
 
-#if defined(__Xvec_guard_bit_option) && __Xvec_guard_bit_option != 0
-    vNx4accchar_t acc = mli_math_init_accu_sub<vNx4char_t, vNx4accchar_t>(sub1, sub2);
-    res = mli_math_acc_cast_fx<vNx4char_t, vNx4accchar_t> (acc, shift_right);
-#else
     #ifdef ROUND_UP
         int16_t accu_init = (1 << shift_right) >> 1;
         vNx4accshort_t accu = mli_math_init_accu<int16_t, vNx4accshort_t>(accu_init);
@@ -200,10 +173,9 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
         #error Rounding mode not supported
     #endif
 
-    accu = mli_math_mac_fx(accu, sub1, (vNx4char_t) 1);
-    accu = mli_math_msub_fx(accu, sub2, (vNx4char_t) 1);
+    accu = mli_math_mac_su_fx(accu, op1, (uint8_t) (1u << -pre_op_shift1));
+    accu = mli_math_msub_su_fx(accu, op2, (uint8_t) (1u << -pre_op_shift2));
     res = mli_math_acc_cast_fx<vNx4char_t, vNx4accshort_t, false>(accu, shift_right);
-#endif
 
     res = mli_math_asl_fx(res, shift_left);
     return res;

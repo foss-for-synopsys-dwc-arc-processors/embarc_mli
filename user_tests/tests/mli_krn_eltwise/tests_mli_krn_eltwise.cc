@@ -64,12 +64,12 @@ const crc32_calc                                    test_1_chksum_sa8{ 0xd48163e
 
 // Platform Specific CRC Results
 #if defined(CRC_RM_UP)
-const crc32_calc test_1_chksum_fx16{ 0xC5BD8154 }, test_2_chksum_fx16{ 0x170065BD },
-                 test_3_chksum_fx16{ 0x34f32ee0 }, test_4_chksum_fx16{ 0x0DECE100 },
+const crc32_calc test_1_chksum_fx16{ 0xAC3BE4B7 }, test_2_chksum_fx16{ 0x170065BD },
+                 test_3_chksum_fx16{ 0x1E1FA5DD }, test_4_chksum_fx16{ 0xE27C401E },
                  test_5_chksum_fx16{ 0x1a678d57 };
 #else
-const crc32_calc test_1_chksum_fx16{ 0x80C6E2B7 }, test_2_chksum_fx16{ 0x10D03580 },
-                 test_3_chksum_fx16{ 0xD6C9167D }, test_4_chksum_fx16{ 0x5B406931 },
+const crc32_calc test_1_chksum_fx16{ 0x5C7970C5 }, test_2_chksum_fx16{ 0x10D03580 },
+                 test_3_chksum_fx16{ 0x6DD8F3E6 }, test_4_chksum_fx16{ 0xE27C401E },
                  test_5_chksum_fx16{ 0x1DB7DD6A };
 #endif
 

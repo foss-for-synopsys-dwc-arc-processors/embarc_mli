@@ -45,7 +45,7 @@ static MLI_FORCE_INLINE out_T eltwise_perform_operation(
     typedef typename std::conditional<(func_type == ELTWISE_MAX) ||
                                       (func_type == ELTWISE_MIN), op_T, int64_t>::type accu_T;
     accu_T acc;
-    op_T input1, input2;
+    int32_t input1, input2;
 
     if (convert) {
         input1 = mli_math_sub_fx<int16_t> (op1, in_offset1);
@@ -53,8 +53,8 @@ static MLI_FORCE_INLINE out_T eltwise_perform_operation(
         input1 = mli_math_mul_fx<int16_t, int32_t>((int16_t) input1, scale_factor1);
         input2 = mli_math_mul_fx<int16_t, int32_t>((int16_t) input2, scale_factor2);
     } else {
-        input1 = mli_math_ashift_right_fx<op_T>(op1, pre_op_shift1);
-        input2 = mli_math_ashift_right_fx<op_T>(op2, pre_op_shift2);
+        input1 = mli_math_ashift_right_fx<int32_t>(op1, pre_op_shift1);
+        input2 = mli_math_ashift_right_fx<int32_t>(op2, pre_op_shift2);
     }
 
     switch (func_type) {
@@ -283,9 +283,9 @@ static MLI_FORCE_INLINE void eltwise_prepare_and_run(
     if (func_type == ELTWISE_MUL) {
         post_op_shift = mli_prv_calc_shift(in1, in2, out);
     } else {
-        pre_op_shift1 = MAX(in1->el_params.fx.frac_bits -  in2->el_params.fx.frac_bits, 0);
-        pre_op_shift2 = MAX(in2->el_params.fx.frac_bits -  in1->el_params.fx.frac_bits, 0);
-        post_op_shift = MIN(in1->el_params.fx.frac_bits, in2->el_params.fx.frac_bits) - out->el_params.fx.frac_bits;
+        pre_op_shift1 = MIN(in1->el_params.fx.frac_bits -  in2->el_params.fx.frac_bits, 0);
+        pre_op_shift2 = MIN(in2->el_params.fx.frac_bits -  in1->el_params.fx.frac_bits, 0);
+        post_op_shift = MAX(in1->el_params.fx.frac_bits, in2->el_params.fx.frac_bits) - out->el_params.fx.frac_bits;
     }
 
     /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
