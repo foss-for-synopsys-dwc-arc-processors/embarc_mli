@@ -92,6 +92,43 @@ static MLI_FORCE_INLINE bool mli_check(
     return !cond;
 }
 
+#ifdef MLI_BUILD_REFERENCE
+#    define REF_STR "ON"
+#else
+#    define REF_STR "OFF"
+#endif
+
+#ifdef ROUND_UP
+#    define ROUND_STR "UP"
+#endif
+#ifdef ROUND_CONVERGENT
+#    define ROUND_STR "CONVERGENT"
+#endif
+
+#if MLI_DEBUG_MODE == DBG_MODE_RELEASE
+#    define DBG_MODE_STR "DBG_MODE_RELEASE"
+#endif
+#if MLI_DEBUG_MODE == DBG_MODE_RET_CODES
+#    define DBG_MODE_STR "DBG_MODE_RET_CODES"
+#endif
+#if MLI_DEBUG_MODE == DBG_MODE_ASSERT
+#    define DBG_MODE_STR "DBG_MODE_ASSERT"
+#endif
+#if MLI_DEBUG_MODE == DBG_MODE_DEBUG
+#    define DBG_MODE_STR "DBG_MODE_DEBUG"
+#endif
+#if MLI_DEBUG_MODE == DBG_MODE_FULL
+#    define DBG_MODE_STR "DBG_MODE_FULL"
+#endif
+
+#define OPTIONS_STR " MLI_BUILD_REFERENCE=" REF_STR " ROUND_MODE=" ROUND_STR " MLI_DEBUG_MODE=" DBG_MODE_STR
+
+#ifdef MLI_DBG_ENABLE_COMPILE_OPTION_MSG
+#    include <stdio.h>
+#    define MLI_PRINT_COMPILE_OPTIONS() printf("%s" OPTIONS_STR, __func__)
+#else
+#    define MLI_PRINT_COMPILE_OPTIONS() ((void) 0)
+#endif
 #ifdef __cplusplus
 }
 #endif

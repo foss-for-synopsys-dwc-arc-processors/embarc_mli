@@ -130,6 +130,21 @@ if (DEFINED MLI_BUILD_REFERENCE)
     endif()
 endif()
 
+if (DEFINED MLI_DBG_ENABLE_COMPILE_OPTION_MSG)
+    set(choices
+        ON
+        OFF
+    )
+    if (NOT MLI_DBG_ENABLE_COMPILE_OPTION_MSG IN_LIST choices)
+        message(FATAL_ERROR "invalid MLI_DBG_ENABLE_COMPILE_OPTION_MSG ${MLI_DBG_ENABLE_COMPILE_OPTION_MSG}")
+    endif()
+    if (MLI_DBG_ENABLE_COMPILE_OPTION_MSG STREQUAL "ON")
+        list(APPEND MLI_LIB_PRIVATE_COMPILE_DEFINITIONS
+            MLI_DBG_ENABLE_COMPILE_OPTION_MSG
+        )
+    endif()
+endif()
+
 if (DEFINED MLI_DEBUG_MODE)
     set(choices
         DBG_MODE_RELEASE

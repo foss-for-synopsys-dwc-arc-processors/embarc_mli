@@ -256,6 +256,10 @@ mli_status mli_hlp_convert_tensor(const mli_tensor * src, mli_tensor * dst) {
     return MLI_STATUS_OK;
 }
 
+const char* mli_hlp_compile_options_string() {
+    return OPTIONS_STR;
+}
+
 #ifdef __cplusplus
 }
 #endif
