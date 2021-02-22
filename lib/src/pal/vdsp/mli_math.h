@@ -1798,6 +1798,19 @@ MLI_FORCE_INLINE vNx4accint_t mli_math_mac_fx_low(vNx4accint_t acc, vNx4int_t L,
 }
 
 template <typename l_T, typename r_T, typename acc_T>
+MLI_FORCE_INLINE acc_T mli_math_mac_su_fx(acc_T acc, l_T L, r_T R);
+
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_math_mac_su_fx(vNx2accint_t acc, vNx2short_t L, uint16_t R) {
+    return vvcmac_su(acc, L, R);
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accshort_t mli_math_mac_su_fx(vNx4accshort_t acc, vNx4char_t L, uint8_t R) {
+    return vvcmac_su(acc, L, R);
+}
+
+template <typename l_T, typename r_T, typename acc_T>
 MLI_FORCE_INLINE acc_T mli_math_msub_fx(acc_T acc, l_T L, r_T R);
 
 template <>
@@ -1854,6 +1867,20 @@ MLI_FORCE_INLINE vNx4accint_t mli_math_msub_fx(vNx4accint_t acc, vNx4char_t L, v
     r.hi = mli_math_msub_fx(acc.hi, l_short.hi, R.hi);
     return r;
 }
+
+template <typename l_T, typename r_T, typename acc_T> 
+MLI_FORCE_INLINE acc_T mli_math_msub_su_fx(acc_T acc, l_T L, r_T R);
+
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_math_msub_su_fx(vNx2accint_t acc, vNx2short_t L, uint16_t R) {
+    return vvcmsub_su(acc, L, R);
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accshort_t mli_math_msub_su_fx(vNx4accshort_t acc, vNx4char_t L, uint8_t R) {
+    return vvcmsub_su(acc, L, R);
+}
+
 
 // Accumulator shift
 //========================================================================
