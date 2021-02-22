@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -22,6 +22,9 @@ extern mli::tst::tensor_quantizer input_1_sa8;
 extern mli::tst::tensor_quantizer input_2_fx16;
 extern mli::tst::tensor_quantizer input_2_sa8;
 
+extern mli::tst::tensor_quantizer input_3_fx16;
+extern mli::tst::tensor_quantizer input_3_sa8;
+
 // Generated weights vectors Declaration
 //========================================
 extern mli::tst::tensor_quantizer weights_1_fx16;
@@ -35,6 +38,10 @@ extern mli::tst::tensor_quantizer weights_2_memstr_sa8_per_axis;
 extern mli::tst::tensor_quantizer weights_3_fx16;
 extern mli::tst::tensor_quantizer weights_3_sa8;
 extern mli::tst::tensor_quantizer weights_3_sa8_per_axis;
+
+extern mli::tst::tensor_quantizer weights_4_fx16;
+extern mli::tst::tensor_quantizer weights_4_sa8;
+extern mli::tst::tensor_quantizer weights_4_sa8_per_axis;
 
 extern mli::tst::tensor_quantizer bias_1_fx16;
 extern mli::tst::tensor_quantizer bias_1_fx8;
@@ -51,6 +58,11 @@ extern mli::tst::tensor_quantizer bias_3_fx8;
 extern mli::tst::tensor_quantizer bias_3_i2_w3_sa32;
 extern mli::tst::tensor_quantizer bias_3_i2_w3_sa32_per_axis;
 
+extern mli::tst::tensor_quantizer bias_4_fx16;
+extern mli::tst::tensor_quantizer bias_4_fx8;
+extern mli::tst::tensor_quantizer bias_4_i3_w4_sa32;
+extern mli::tst::tensor_quantizer bias_4_i3_w4_sa32_per_axis;
+
 // Extracted Output vectors Declaration
 //===================================================
 extern mli::tst::tensor_quantizer test_1_out_fx16;
@@ -65,12 +77,16 @@ extern mli::tst::tensor_quantizer test_3_out_sa8;
 extern mli::tst::tensor_quantizer test_4_out_fx16;
 extern mli::tst::tensor_quantizer test_4_out_sa8;
 
+extern mli::tst::tensor_quantizer test_5_out_fx16;
+extern mli::tst::tensor_quantizer test_5_out_sa8;
+
 // Tests configuration structures Declaration
 //========================================
 extern const mli_fully_connected_cfg test_1_cfg;
 extern const mli_fully_connected_cfg test_2_cfg;
 extern const mli_fully_connected_cfg test_3_cfg;
 extern const mli_fully_connected_cfg test_4_cfg;
+extern const mli_fully_connected_cfg test_5_cfg;
 
 
 // Generated input vectors 
@@ -139,6 +155,41 @@ static const mli_tensor input_2_tsr_sa8 = {
     /* .el_params = */ { 0 }
 };
 
+
+static const float input_3_data[] = {
+    -674.f, 52680.f, 28859.f, -486.f, 12770.f, 63099.f, 36506.f, 59798.f, 55153.f, 48468.f, 42168.f, 41656.f, 
+    16596.f, -8266.f, 31462.f, 13677.f, 8671.f, 27913.f, 37478.f, 46331.f, 17071.f, -4269.f, 61068.f, 12080.f,
+    4356.f, -13792.f, -12752.f, -11244.f, 38794.f, 63602.f, 34196.f, 33288.f, 59888.f, 61638.f, -9204.f, 43626.f
+};
+
+static const float input_3_scale = 304.4235229492f;
+static const float input_3_zero_point = 25022.f;
+static const int8_t input_3_scales_frac[] = {6};
+static const int input_3_sa_dim = -1;
+
+static const int input_3_fx8_frac = -9;
+
+#define INPUT_3_TSR_SHARED_DESCR \
+    /* .data = */ { 0 },\
+    /* .mem_stride = */ {0}, \
+    /* .shape = */ {3, 4, 3}, \
+    /* .rank =  */ 3
+
+
+static const mli_tensor input_3_tsr_fx16 = {
+    INPUT_3_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
+};
+
+
+static const mli_tensor input_3_tsr_sa8 = {
+    INPUT_3_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ { 0 }
+};
 
 // Generated weights vectors
 //========================================
@@ -346,6 +397,68 @@ static const mli_tensor weights_3_tsr_sa8 = {
 };
 
 
+static const float weights_4_data[] = {
+    -37798.f, 17539.f, 127380.f, -57113.f, -65318.f, 57991.f, 53494.f, 56842.f, -59365.f, -58440.f, 63503.f,
+    -92040.f, 8892.f, -74480.f, 11816.f, -35286.f, -126782.f, 58495.f, 7156.f, -26529.f, -20754.f, -32442.f,
+    -51703.f, -60096.f, 17366.f, 103456.f, 50471.f, 121316.f, -35268.f, -42236.f, -125680.f, 44329.f, 99714.f,
+    -47937.f, 29080.f, -86232.f, 19292.f, 114326.f, -35481.f, 46324.f, 26066.f, 2146.f, 43226.f, -3223.f, 39210.f,
+    -25123.f, 49258.f, 22975.f, -65428.f, -89086.f, -17107.f, -85988.f, -17513.f, -17042.f, 38736.f, -68692.f,
+    -102390.f, 43565.f, 63790.f, -20337.f, 109634.f, -59175.f, -103964.f, -94434.f, -39244.f, -82820.f, 31054.f,
+    49288.f, -60886.f, -11742.f, 12706.f, -54067.f, 90604.f, 63284.f, 43586.f, 21871.f, -30246.f, 19878.f, 39058.f,
+    -127358.f, 57170.f, -21140.f, 2194.f, -45860.f, 116342.f, -57831.f, -103494.f, -35483.f, 58410.f, 25385.f,
+    -97552.f, 60488.f, -22125.f, -22626.f, 16749.f, -20150.f, 59677.f, 121158.f, 81948.f, -7245.f, 29826.f, 996.f,
+    7010.f, 41029.f, -36652.f, -123620.f, 23541.f, 22452.f, -9744.f, -55732.f, 57478.f, 117018.f, -53628.f, 63810.f,
+    -87464.f, 31823.f, -123716.f, 63503.f, 12672.f, -79954.f, -58853.f, 86448.f, -16931.f, 119338.f, -45440.f,
+    -83848.f, 90362.f, -56106.f, 54554.f, -19455.f, -127304.f, 9487.f, -26436.f, -119728.f, -49397.f, 96052.f,
+    -18788.f, -70488.f, 21002.f, 3482.f, -91688.f, 15414.f, 7634.f, 50866.f, 1120.f, -41228.f, 30538.f, -18840.f,
+    58404.f, -83276.f, 33897.f, 68956.f, 57567.f, -86608.f, 27224.f, -9065.f, -100688.f, -9560.f, 122090.f, 47452.f,
+    68626.f, 113094.f, -18728.f, -104252.f, 15664.f, -52552.f, -10822.f, 51092.f, -78886.f, 39572.f, -105338.f,
+    -55573.f, 29064.f, 44153.f, -23358.f, 78382.f, 15229.f, -21368.f, 44620.f, 124750.f, 63649.f, 29526.f, 58982.f,
+    54555.f, -5944.f, -13758.f, 42280.f, 6460.f, 49170.f, 109650.f, -33655.f, 105114.f, 50134.f, -15942.f, 60272.f,
+    -63198.f, 62784.f, 5220.f, 85012.f, 37534.f, -17198.f, 17480.f, 28386.f, -7600.f, 61116.f, -116220.f, 57591.f,
+    126990.f, 63126.f, -21098.f, 91472.f, 55350.f, -44322.f, 813.f, -22858.f, 6584.f, 29170.f, 83158.f, -15723.f,
+    23352.f, 18652.f, -63060.f, -35969.f, 112086.f, 50922.f, -38531.f, 109658.f, 51734.f, 38984.f, 41142.f, -91198.f,
+    34420.f, 22218.f, 93124.f, 54377.f, -107966.f, -41665.f, -96030.f, 34024.f, -9781.f, -99816.f, 27758.f, 91026.f,
+    -43429.f, 65668.f, 7310.f, -2545.f, 50792.f, -40576.f, -115546.f, 57640.f, -82608.f
+};
+
+static const float weights_4_scales[] = {973.3858032227f, 502.4409484863f, 1002.9921264648f, 500.0236206055f, 1002.3936767578f, 501.1732177734f, 955.2440795898f};
+static const float weights_4_zero_points[] = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
+static const int8_t weights_4_scales_frac[] = {5, 6, 5, 6, 5, 6, 5};
+static const int weights_4_sa_dim = 1;
+
+static const int weights_4_fx8_frac = -10;
+
+#define WEIGHTS_4_TSR_SHARED_DESCR \
+    /* .data = */ { 0 },\
+    /* .mem_stride = */ {0}, \
+    /* .shape = */ {3*4*3, 7}, \
+    /* .rank =  */ 2
+
+
+static const mli_tensor weights_4_tsr_fx8 = {
+    WEIGHTS_4_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_FX_8,
+    /* .el_params = */ { 0 }
+};
+
+
+static const mli_tensor weights_4_tsr_fx16 = {
+    WEIGHTS_4_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
+};
+
+
+static const mli_tensor weights_4_tsr_sa8 = {
+    WEIGHTS_4_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ { 0 }
+};
+
 static const float bias_1_data[] = {
     -0.018097f, 0.948008f, -0.075758f, -0.929695f, -0.589073f, -0.254283f, 0.302161f, -0.222462f, 
     0.050303f, 0.257336f
@@ -510,6 +623,45 @@ static const mli_tensor bias_3_i2_w3_tsr_sa32 = {
     /* .el_params = */ { 0 }
 };
 
+static const float bias_4_data[] = {-830091072.f, 1377955072.f, -361819296.f, -1783368064.f, -236796528.f, -1604637056.f, 1327439232.f};
+static const float bias_4_spec_data[] = {3946410153.f, -2239717777.f, -9290104645.f, 9387342839.f, 8364832620.f, 12199258424.f, -3736764339.f};
+
+static const float bias_4_i3_w4_scales[] = {296321.53125f, 152954.84375f, 305334.40625f, 152218.953125f, 305152.21875f, 152568.921875f, 290798.78125f};
+static const float bias_4_i3_w4_zero_points[] = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
+static const int8_t bias_4_i3_w4_scales_frac[] = {-4, -3, -4, -3, -4, -3, -4};
+static const int bias_4_i3_w4_sa_dim = 0;
+
+static const int bias_4_fx8_frac = -24;
+
+#define BIAS_4_TSR_SHARED_DESCR \
+    /* .data = */ { 0 },\
+    /* .mem_stride = */ {0}, \
+    /* .shape = */ {7}, \
+    /* .rank =  */ 1
+
+
+static const mli_tensor bias_4_tsr_fx8 = {
+    BIAS_4_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_FX_8,
+    /* .el_params = */ { 0 }
+};
+
+
+static const mli_tensor bias_4_tsr_fx16 = {
+    BIAS_4_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
+};
+
+
+static const mli_tensor bias_4_i3_w4_tsr_sa32 = {
+    BIAS_4_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_SA_32,
+    /* .el_params = */ { 0 }
+};
 
 // Extracted Output vectors 
 //===================================================
@@ -634,25 +786,70 @@ static const mli_tensor test_4_out_tsr_sa8 = {
     /* .el_params = */ { 0 }
 };
 
+
+static const float test_5_out_data[] = {
+    -7333843968.f, -6154032128.f, 3043232256.f, 11726278656.f, 3220792832.f, 6539892224.f, -29828861952.f
+};
+
+static const float test_5_out_scale = 275452512.f;
+static const float test_5_out_zero_point = -3701690368.f;
+static const int8_t test_5_out_scales_frac[] = {-14};
+static const int test_5_out_sa_dim = -1;
+
+static const int test_5_out_fx8_frac = -29;
+
+#define TEST_5_OUT_TSR_SHARED_DESCR \
+    /* .data = */ { 0 },\
+    /* .mem_stride = */ {0}, \
+    /* .shape = */ {7}, \
+    /* .rank =  */ 1
+
+
+static const mli_tensor test_5_out_tsr_fx16 = {
+    TEST_5_OUT_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
+};
+
+
+static const mli_tensor test_5_out_tsr_sa8 = {
+    TEST_5_OUT_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ { 0 }
+};
+
+
 // Quantizers
 //===================================================
-tensor_quantizer input_1_fx16(input_1_tsr_fx16, input_1_fx8_frac + 8, input_1_data, sizeof(input_1_data) / sizeof(input_1_data[0]));
+tensor_quantizer input_1_fx16(input_1_tsr_fx16, input_1_fx8_frac + 8, input_1_data,
+    sizeof(input_1_data) / sizeof(input_1_data[0]));
 
 tensor_quantizer input_1_sa8(input_1_tsr_sa8, input_1_sa_dim, input_1_data, 
     sizeof(input_1_data) / sizeof(input_1_data[0]), &input_1_scale, 1, 
     &input_1_zero_point, 1, input_1_scales_frac, 1);
 
 
-tensor_quantizer input_2_fx16(input_2_tsr_fx16, input_2_fx8_frac + 8, input_2_data, sizeof(input_2_data) / sizeof(input_2_data[0]));
+tensor_quantizer input_2_fx16(input_2_tsr_fx16, input_2_fx8_frac + 8, input_2_data,
+    sizeof(input_2_data) / sizeof(input_2_data[0]));
 
 tensor_quantizer input_2_sa8(input_2_tsr_sa8, input_2_sa_dim, input_2_data,
     sizeof(input_2_data) / sizeof(input_2_data[0]), &input_2_scale, 1,
     &input_2_zero_point, 1, input_2_scales_frac, 1);
 
+    
+tensor_quantizer input_3_fx16(input_3_tsr_fx16, input_3_fx8_frac + 8, input_3_data,
+    sizeof(input_3_data) / sizeof(input_3_data[0]));
+tensor_quantizer input_3_sa8(input_3_tsr_sa8, input_3_sa_dim, input_3_data, 
+    sizeof(input_3_data) / sizeof(input_3_data[0]),
+    &input_3_scale, 1, &input_3_zero_point, 1, input_3_scales_frac, 1);
 
-tensor_quantizer weights_1_fx16(weights_1_tsr_fx16, weights_1_fx8_frac + 8, weights_1_data, sizeof(weights_1_data) / sizeof(weights_1_data[0]));
+tensor_quantizer weights_1_fx16(weights_1_tsr_fx16, weights_1_fx8_frac + 8, weights_1_data,
+    sizeof(weights_1_data) / sizeof(weights_1_data[0]));
 
-tensor_quantizer weights_1_fx8(weights_1_tsr_fx8, weights_1_fx8_frac, weights_1_data, sizeof(weights_1_data) / sizeof(weights_1_data[0]));
+tensor_quantizer weights_1_fx8(weights_1_tsr_fx8, weights_1_fx8_frac, weights_1_data,
+    sizeof(weights_1_data) / sizeof(weights_1_data[0]));
 
 tensor_quantizer weights_1_sa8(weights_1_tsr_sa8, weights_1_sa_dim, weights_1_data,
     sizeof(weights_1_data) / sizeof(weights_1_data[0]), &weights_1_scale, 1,
@@ -663,27 +860,44 @@ tensor_quantizer weights_1_sa8_per_axis(weights_1_tsr_sa8, weights_1_sa_dim_1, w
     weights_1_zero_points_1, 10, weights_1_scales_fracs_1, 10);
 
 
-tensor_quantizer weights_2_memstr_fx16(weights_2_memstr_tsr_fx16, weights_2_fx8_frac + 8, weights_2_data, sizeof(weights_2_data) / sizeof(weights_2_data[0]));
+tensor_quantizer weights_2_memstr_fx16(weights_2_memstr_tsr_fx16, weights_2_fx8_frac + 8, weights_2_data,
+    sizeof(weights_2_data) / sizeof(weights_2_data[0]));
 
-tensor_quantizer weights_2_memstr_fx8(weights_2_memstr_tsr_fx8, weights_2_fx8_frac, weights_2_data, sizeof(weights_2_data) / sizeof(weights_2_data[0]));
+tensor_quantizer weights_2_memstr_fx8(weights_2_memstr_tsr_fx8, weights_2_fx8_frac, weights_2_data,
+    sizeof(weights_2_data) / sizeof(weights_2_data[0]));
 
 tensor_quantizer weights_2_memstr_sa8_per_axis(weights_2_memstr_tsr_sa8, weights_2_sa_dim_2, weights_2_data,
     sizeof(weights_2_data) / sizeof(weights_2_data[0]), weights_2_scales_2, 8, 
     weights_2_zero_points_2, 8, weights_2_scales_fracs_2, 8);
 
 
-tensor_quantizer weights_3_fx16(weights_3_tsr_fx16, weights_3_fx8_frac + 8, weights_3_data, sizeof(weights_3_data) / sizeof(weights_3_data[0]));
+tensor_quantizer weights_3_fx16(weights_3_tsr_fx16, weights_3_fx8_frac + 8, weights_3_data,
+    sizeof(weights_3_data) / sizeof(weights_3_data[0]));
 
-tensor_quantizer weights_3_fx8(weights_3_tsr_fx8, weights_3_fx8_frac, weights_3_data, sizeof(weights_3_data) / sizeof(weights_3_data[0]));
+tensor_quantizer weights_3_fx8(weights_3_tsr_fx8, weights_3_fx8_frac, weights_3_data,
+    sizeof(weights_3_data) / sizeof(weights_3_data[0]));
 
 tensor_quantizer weights_3_sa8_per_axis(weights_3_tsr_sa8, weights_3_sa_dim, weights_3_data,
     sizeof(weights_3_data) / sizeof(weights_3_data[0]), weights_3_scales, 8,
     weights_3_zero_points, 8, weights_3_scales_fracs, 8);
 
+tensor_quantizer weights_4_fx8(weights_4_tsr_fx8, weights_4_fx8_frac, weights_4_data,
+    sizeof(weights_4_data) / sizeof(weights_4_data[0]));
 
-tensor_quantizer bias_1_fx16(bias_1_tsr_fx16, bias_1_fx8_frac + 8, bias_1_data, sizeof(bias_1_data) / sizeof(bias_1_data[0]));
+tensor_quantizer weights_4_fx16(weights_4_tsr_fx16, weights_4_fx8_frac + 8, weights_4_data,
+    sizeof(weights_4_data) / sizeof(weights_4_data[0]));
 
-tensor_quantizer bias_1_fx8(bias_1_tsr_fx8, bias_1_fx8_frac, bias_1_data, sizeof(bias_1_data) / sizeof(bias_1_data[0]));
+tensor_quantizer weights_4_sa8(weights_4_tsr_sa8, weights_4_sa_dim, weights_4_data, 
+    sizeof(weights_4_data) / sizeof(weights_4_data[0]),
+    weights_4_scales, sizeof(weights_4_scales) / sizeof(weights_4_scales[0]), 
+    weights_4_zero_points, sizeof(weights_4_zero_points) / sizeof(weights_4_zero_points[0]), 
+    weights_4_scales_frac, sizeof(weights_4_scales_frac) / sizeof(weights_4_scales_frac[0]));
+
+tensor_quantizer bias_1_fx16(bias_1_tsr_fx16, bias_1_fx8_frac + 8, bias_1_data,
+    sizeof(bias_1_data) / sizeof(bias_1_data[0]));
+
+tensor_quantizer bias_1_fx8(bias_1_tsr_fx8, bias_1_fx8_frac, bias_1_data,
+    sizeof(bias_1_data) / sizeof(bias_1_data[0]));
 
 tensor_quantizer bias_1_sa32(bias_1_tsr_sa32, bias_1_sa_dim, bias_1_data,
     sizeof(bias_1_data) / sizeof(bias_1_data[0]), &bias_1_scale, 1,
@@ -702,9 +916,11 @@ tensor_quantizer bias_1_sa32_per_axis_spec(bias_1_tsr_sa32, bias_1_sa_dim_1, bia
     bias_1_zero_points_1, 10, bias_1_scales_fracs_1, 10);
 
 
-tensor_quantizer bias_2_fx16(bias_2_tsr_fx16, bias_2_fx8_frac + 8, bias_2_data, sizeof(bias_2_data) / sizeof(bias_2_data[0]));
+tensor_quantizer bias_2_fx16(bias_2_tsr_fx16, bias_2_fx8_frac + 8, bias_2_data,
+    sizeof(bias_2_data) / sizeof(bias_2_data[0]));
 
-tensor_quantizer bias_2_fx8(bias_2_tsr_fx8, bias_2_fx8_frac, bias_2_data, sizeof(bias_2_data) / sizeof(bias_2_data[0]));
+tensor_quantizer bias_2_fx8(bias_2_tsr_fx8, bias_2_fx8_frac, bias_2_data,
+    sizeof(bias_2_data) / sizeof(bias_2_data[0]));
 
 tensor_quantizer bias_2_i1_w2_sa32(bias_2_i1_w2_tsr_sa32, bias_2_i1_w2_sa_dim, bias_2_data,
     sizeof(bias_2_data) / sizeof(bias_2_data[0]), &bias_2_i1_w2_scale, 1,
@@ -714,14 +930,17 @@ tensor_quantizer bias_2_i1_w2_sa32_per_axis(bias_2_i1_w2_tsr_sa32, bias_2_i1_w2_
     sizeof(bias_2_data) / sizeof(bias_2_data[0]), bias_2_i1_w2_scales, 8,
     bias_2_i1_w2_zero_points, 8, bias_2_i1_w2_scales_fracs, 8);
 
-tensor_quantizer bias_2_i1_w2_sa32_per_axis_spec(bias_2_i1_w2_tsr_sa32, bias_2_i1_w2_sa_dim_2, bias2_w2_per_axis_sa_spec_data,
+tensor_quantizer bias_2_i1_w2_sa32_per_axis_spec(bias_2_i1_w2_tsr_sa32,
+    bias_2_i1_w2_sa_dim_2, bias2_w2_per_axis_sa_spec_data,
     sizeof(bias_2_data) / sizeof(bias_2_data[0]), bias_2_i1_w2_scales, 8,
     bias_2_i1_w2_zero_points, 8, bias_2_i1_w2_scales_fracs, 8);
 
 
-tensor_quantizer bias_3_fx16(bias_3_tsr_fx16, bias_3_fx8_frac + 8, bias_3_data, sizeof(bias_3_data) / sizeof(bias_3_data[0]));
+tensor_quantizer bias_3_fx16(bias_3_tsr_fx16, bias_3_fx8_frac + 8, bias_3_data,
+    sizeof(bias_3_data) / sizeof(bias_3_data[0]));
 
-tensor_quantizer bias_3_fx8(bias_3_tsr_fx8, bias_3_fx8_frac, bias_3_data, sizeof(bias_3_data) / sizeof(bias_3_data[0]));
+tensor_quantizer bias_3_fx8(bias_3_tsr_fx8, bias_3_fx8_frac, bias_3_data,
+    sizeof(bias_3_data) / sizeof(bias_3_data[0]));
 
 tensor_quantizer bias_3_i2_w3_sa32(bias_3_i2_w3_tsr_sa32, bias_3_i2_w3_sa_dim, bias_3_data,
     sizeof(bias_3_data) / sizeof(bias_3_data[0]), &bias_3_i2_w3_scale, 1,
@@ -735,8 +954,26 @@ tensor_quantizer bias_3_i2_w3_sa32_per_axis_spec(bias_3_i2_w3_tsr_sa32, bias_3_i
     sizeof(bias_3_data) / sizeof(bias_3_data[0]), bias_3_i2_w3_scales, 8,
     bias_3_i2_w3_zero_points, 8, bias_3_i2_w3_scales_fracs, 8);
 
+tensor_quantizer bias_4_fx8(bias_4_tsr_fx8, bias_4_fx8_frac, bias_4_data,
+    sizeof(bias_4_data) / sizeof(bias_4_data[0]));
 
-tensor_quantizer test_1_out_fx16(test_1_out_tsr_fx16, test_1_out_fx8_frac + 8, test_1_out_data, sizeof(test_1_out_data) / sizeof(test_1_out_data[0]));
+tensor_quantizer bias_4_fx16(bias_4_tsr_fx16, bias_4_fx8_frac + 8, bias_4_data,
+    sizeof(bias_4_data) / sizeof(bias_4_data[0]));
+
+tensor_quantizer bias_4_i3_w4_sa32(bias_4_i3_w4_tsr_sa32, bias_4_i3_w4_sa_dim, bias_4_data, 
+    sizeof(bias_4_data) / sizeof(bias_4_data[0]),
+    bias_4_i3_w4_scales, sizeof(bias_4_i3_w4_scales) / sizeof(bias_4_i3_w4_scales[0]), 
+    bias_4_i3_w4_zero_points, sizeof(bias_4_i3_w4_zero_points) / sizeof(bias_4_i3_w4_zero_points[0]), 
+    bias_4_i3_w4_scales_frac, sizeof(bias_4_i3_w4_scales_frac) / sizeof(bias_4_i3_w4_scales_frac[0]));
+
+tensor_quantizer bias_4_i3_w4_sa32_spec(bias_4_i3_w4_tsr_sa32, bias_4_i3_w4_sa_dim, bias_4_spec_data, 
+    sizeof(bias_4_spec_data) / sizeof(bias_4_spec_data[0]),
+    bias_4_i3_w4_scales, sizeof(bias_4_i3_w4_scales) / sizeof(bias_4_i3_w4_scales[0]), 
+    bias_4_i3_w4_zero_points, sizeof(bias_4_i3_w4_zero_points) / sizeof(bias_4_i3_w4_zero_points[0]), 
+    bias_4_i3_w4_scales_frac, sizeof(bias_4_i3_w4_scales_frac) / sizeof(bias_4_i3_w4_scales_frac[0]));
+
+tensor_quantizer test_1_out_fx16(test_1_out_tsr_fx16, test_1_out_fx8_frac + 8, test_1_out_data,
+    sizeof(test_1_out_data) / sizeof(test_1_out_data[0]));
 
 tensor_quantizer test_1_out_sa8(test_1_out_tsr_sa8, test_1_out_sa_dim, test_1_out_data,
     sizeof(test_1_out_data) / sizeof(test_1_out_data[0]), &test_1_out_scale, 1,
@@ -744,28 +981,40 @@ tensor_quantizer test_1_out_sa8(test_1_out_tsr_sa8, test_1_out_sa_dim, test_1_ou
 
 
 
-tensor_quantizer test_2_out_fx16(test_2_out_tsr_fx16, test_2_out_fx8_frac + 8, test_2_out_data, sizeof(test_2_out_data) / sizeof(test_2_out_data[0]));
+tensor_quantizer test_2_out_fx16(test_2_out_tsr_fx16, test_2_out_fx8_frac + 8, test_2_out_data,
+    sizeof(test_2_out_data) / sizeof(test_2_out_data[0]));
 
 tensor_quantizer test_2_out_sa8(test_2_out_tsr_sa8, test_2_out_sa_dim, test_2_out_data,
     sizeof(test_2_out_data) / sizeof(test_2_out_data[0]), &test_2_out_scale, 1,
     &test_2_out_zero_point, 1, test_2_out_scales_frac, 1);
 
 
-tensor_quantizer test_3_out_fx16(test_3_out_tsr_fx16, test_3_out_fx8_frac + 8, test_3_out_data, sizeof(test_3_out_data) / sizeof(test_3_out_data[0]));
+tensor_quantizer test_3_out_fx16(test_3_out_tsr_fx16, test_3_out_fx8_frac + 8, test_3_out_data,
+    sizeof(test_3_out_data) / sizeof(test_3_out_data[0]));
 
 tensor_quantizer test_3_out_sa8(test_3_out_tsr_sa8, test_3_out_sa_dim, test_3_out_data,
     sizeof(test_3_out_data) / sizeof(test_3_out_data[0]), &test_3_out_scale, 1,
     &test_3_out_zero_point, 1, test_3_out_scales_frac, 1);
 
 
-tensor_quantizer test_4_out_fx16(test_4_out_tsr_fx16, test_4_out_fx8_frac + 8, test_4_out_data, sizeof(test_4_out_data) / sizeof(test_4_out_data[0]));
+tensor_quantizer test_4_out_fx16(test_4_out_tsr_fx16, test_4_out_fx8_frac + 8, test_4_out_data,
+    sizeof(test_4_out_data) / sizeof(test_4_out_data[0]));
 
 tensor_quantizer test_4_out_sa8(test_4_out_tsr_sa8, test_4_out_sa_dim, test_4_out_data,
     sizeof(test_4_out_data) / sizeof(test_4_out_data[0]), &test_4_out_scale, 1,
     &test_4_out_zero_point, 1, test_4_out_scales_frac, 1);
+
+
+tensor_quantizer test_5_out_fx16(test_5_out_tsr_fx16, test_5_out_fx8_frac + 8, test_5_out_data,
+    sizeof(test_5_out_data) / sizeof(test_5_out_data[0]));
+
+tensor_quantizer test_5_out_sa8(test_5_out_tsr_sa8, test_5_out_sa_dim, test_5_out_data, 
+    sizeof(test_5_out_data) / sizeof(test_5_out_data[0]),
+    &test_5_out_scale, 1, &test_5_out_zero_point, 1, test_5_out_scales_frac, 1);
     
 
 const mli_fully_connected_cfg test_1_cfg = {/* .relu.type = */ MLI_RELU_NONE};
 const mli_fully_connected_cfg test_2_cfg = {/* .relu.type = */ MLI_RELU_GEN};
 const mli_fully_connected_cfg test_3_cfg = {/* .relu.type = */ MLI_RELU_1};
 const mli_fully_connected_cfg test_4_cfg = {/* .relu.type = */ MLI_RELU_6};
+const mli_fully_connected_cfg test_5_cfg = {/* .relu.type = */ MLI_RELU_NONE};

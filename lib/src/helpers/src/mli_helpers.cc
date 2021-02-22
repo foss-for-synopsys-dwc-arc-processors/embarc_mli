@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -47,7 +47,7 @@ uint32_t mli_hlp_tensor_element_size(const mli_tensor *in) {
     }
 }
 
-uint32_t mli_hlp_tensor_scale_shift(const mli_tensor *in, const uint32_t scale_idx) {
+int32_t mli_hlp_tensor_scale_shift(const mli_tensor *in, const uint32_t scale_idx) {
     switch (in->el_type) {
         case MLI_EL_FX_8:
         case MLI_EL_FX_16:

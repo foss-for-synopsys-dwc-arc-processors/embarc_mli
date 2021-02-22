@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -64,7 +64,8 @@ const crc32_calc test_1_chksum_fx16{ 0x3669E8DA }, test_1_chksum_fx16_fx8_fx8{ 0
                  test_7_chksum_fx16{ 0x05737544 }, test_7_chksum_fx16_fx8_fx8{ 0x7FFA25C2 }, test_7_chksum_sa8{ 0x5E7CF172 },
                  test_8_chksum_fx16{ 0x69862892 }, test_8_chksum_fx16_fx8_fx8{ 0xA124C817 }, test_8_chksum_sa8{ 0x99E3EE1D },
                  test_9_chksum_fx16{ 0x3B2662E7 }, test_9_chksum_fx16_fx8_fx8{ 0x5C4D2278 }, test_9_chksum_sa8{ 0x7D8D9C29 },
-                 test_10_chksum_fx16{ 0x0AD3FF47 }, test_10_chksum_fx16_fx8_fx8{ 0x0CDE9B47 }, test_10_chksum_sa8{ 0xA4EB24F1 };
+                 test_10_chksum_fx16{ 0x0AD3FF47 }, test_10_chksum_fx16_fx8_fx8{ 0x0CDE9B47 }, test_10_chksum_sa8{ 0xA4EB24F1 },
+                 test_11_chksum_fx16{ 0xEE754246 }, test_11_chksum_fx16_fx8_fx8{ 0x77A6F1AD }, test_11_chksum_sa8{ 0x10AA2F03 };
 // Platform Specific CRC Results
 #if defined(CRC_RM_UP)
 const crc32_calc test_6_chksum_fx16_fx8_fx8{ 0x8C24C65A }, test_6_chksum_sa8{ 0x694044CD };
@@ -81,7 +82,8 @@ const crc32_calc  test_1_chksum_fx16, test_1_chksum_fx16_fx8_fx8, test_1_chksum_
                   test_7_chksum_fx16, test_7_chksum_fx16_fx8_fx8, test_7_chksum_sa8,
                   test_8_chksum_fx16, test_8_chksum_fx16_fx8_fx8, test_8_chksum_sa8,
                   test_9_chksum_fx16, test_9_chksum_fx16_fx8_fx8, test_9_chksum_sa8,
-                  test_10_chksum_fx16, test_10_chksum_fx16_fx8_fx8, test_10_chksum_sa8;
+                  test_10_chksum_fx16, test_10_chksum_fx16_fx8_fx8, test_10_chksum_sa8,
+                  test_11_chksum_fx16, test_11_chksum_fx16_fx8_fx8, test_11_chksum_sa8;
 #endif
 
 const quality_metrics thresholds_fx16_general { quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
@@ -229,6 +231,17 @@ static const conv2d_test_operands tests_list[] = {
     {"Test 10 SA8_SA8_SA32 k5x5 Dil", mli_krn_conv2d_hwcn_sa8_sa8_sa32_k5x5, 
                                       input_1_sa8, weights_5_memstr_sa8, bias_1_w5_sa32, test_10_out_sa8, test_10_cfg,
                                       thresholds_sa8_general, test_10_chksum_sa8},
+
+    // Test with huge values in operands to check negative fractional and big scales 
+    {"Test 11 FX16 Huge Vals",         mli_krn_conv2d_hwcn_fx16,
+                                       input_2_fx16, weights_6_fx16, bias_2_fx16, test_11_out_fx16, test_11_cfg,
+                                       thresholds_fx16_general, test_11_chksum_fx16},
+    {"Test 11 FX16_FX8_FX8 Huge Vals", mli_krn_conv2d_hwcn_fx16_fx8_fx8,
+                                       input_2_fx16, weights_6_fx8, bias_2_fx8, test_11_out_fx16,
+                                       test_11_cfg, thresholds_fx16_fx8_fx8_general, test_11_chksum_fx16_fx8_fx8},
+    {"Test 11 SA8_SA8_SA32 Huge Vals", mli_krn_conv2d_hwcn_sa8_sa8_sa32, 
+                                       input_2_sa8, weights_6_sa8, bias_2_i2_w6_sa32, test_11_out_sa8, test_11_cfg,
+                                       thresholds_sa8_general, test_11_chksum_sa8},
 };
 
 constexpr int kMemSize = 2247;
@@ -267,7 +280,9 @@ int main() {
                 strstr(cur_test->descr, "Test 9-1 SA8_SA8_SA32 Dil+Pad") != nullptr ||
                 strstr(cur_test->descr, "Test 9-2 SA8_SA8_SA32 k3x3 Dil") != nullptr ||
                 strstr(cur_test->descr, "Test 10 FX16 k5x5 Dil") != nullptr ||
-                strstr(cur_test->descr, "Test 10 SA8_SA8_SA32 k5x5 Dil") != nullptr) {
+                strstr(cur_test->descr, "Test 10 SA8_SA8_SA32 k5x5 Dil") != nullptr || 
+                strstr(cur_test->descr, "Test 11 FX16 Huge Vals") != nullptr ||
+                strstr(cur_test->descr, "Test 11 SA8_SA8_SA32 Huge Vals") != nullptr) {
             // VPX fails bitwise comparison with reference .
             reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
             continue;

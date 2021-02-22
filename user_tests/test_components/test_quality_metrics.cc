@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -185,6 +185,7 @@ bool quality_metrics::calculate_metrics(const mli_tensor& pred_tsr, const tensor
     // (what share of total noise in output is quantization noise, 
     // not calculations in quantized form and quantization of input operands) 
     quant_error_percentage_ = metrics_quant.noise_vec_length / std::max(metrics_pred.noise_vec_length, eps) * 100.f;
+    quant_error_percentage_ = std::min(quant_error_percentage_, 100.f);
     
     return true;
 }
