@@ -15,6 +15,7 @@
 #endif
 
 #include <assert.h>
+#include <math.h>
 
 #include <algorithm>
 #include <memory>
@@ -204,7 +205,8 @@ mli_tensor tensor_quantizer::get_not_quantized_tensor(mli_data_container memory)
         assert(num_vals >= 0);
         for (int i = 0; i < num_vals; i++) {
             const int8_t scale_fraq_bits = source_scales_fraq_[i];
-            const uint32_t mult = static_cast<uint32_t>(1l << scale_fraq_bits);
+            const float mult = (scale_fraq_bits >= 0) ? (float)((int64_t)1l << scale_fraq_bits)
+                                                      : (float)(1.f / ((int64_t)1l << abs(scale_fraq_bits)));
             const float round_val = 0.5f;
             const int32_t dst_val = static_cast<int32_t>(mult * source_scales_[i] + round_val);
             const int32_t zero_val = static_cast<int32_t>(-source_zero_points_[i] / source_scales_[i] + round_val);
@@ -575,7 +577,9 @@ void tensor_quantizer::quantize_float_data_routine(const float* src, uint32_t sr
     // Transformation will be applied on slices across scales dimension (or all tensor)
     for (int scale_idx = 0; scale_idx < scales_num; ++scale_idx) {
         // calculate current scale and zero offset.
-        float scale_val = (float)((int64_t)1l << mli_hlp_tensor_scale_shift(dst, scale_idx));
+        const int32_t scale_fraq_bits = mli_hlp_tensor_scale_shift(dst, scale_idx);
+        float scale_val = (float)((int64_t)1l << abs(scale_fraq_bits));
+        scale_val = scale_fraq_bits >= 0 ? scale_val : 1.f / scale_val;
         scale_val = scale_val / (float)mli_hlp_tensor_scale(dst, scale_idx);
         int16_t zero_offset = mli_hlp_tensor_zero_offset(dst, scale_idx);
 
@@ -670,8 +674,10 @@ void tensor_quantizer::dequantize_tensor_data_routine(const mli_tensor* src, flo
     // Transformation will be applied on slices across scales dimension (or all tensor)
     for (int scale_idx = 0; scale_idx < scales_num; ++scale_idx) {
         // calculate current scale and zero offset.
-        float scale_val = (float)mli_hlp_tensor_scale(src, scale_idx);
-        scale_val = scale_val / (float)((int64_t)1l << mli_hlp_tensor_scale_shift(src, scale_idx));
+        const int32_t scale_fraq_bits = mli_hlp_tensor_scale_shift(src, scale_idx);
+        float scale_val = (float)((int64_t)1l << abs(scale_fraq_bits));
+        scale_val = scale_fraq_bits >= 0 ? scale_val : 1.f / scale_val;
+        scale_val = (float)mli_hlp_tensor_scale(src, scale_idx) / scale_val;
         int16_t zero_offset = mli_hlp_tensor_zero_offset(src, scale_idx);
 
         // calculate borders across all dimensions for slice where this scale is applicable.

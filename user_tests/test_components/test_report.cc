@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -51,10 +51,10 @@ bool reporter_full::evaluate_and_report_case(const char* case_descr,
     assert(crc_result.is_valid());
     constexpr int kMetricsToPrint = 4;
     const char* kMetricsPrintfFormat[kMetricsToPrint] = {
-        "|%-2s%-8.1f",
-        "|%-2s%-7.1f",
-        "|%-2s%-10f",
-        "|%-2s%-9.2f"
+        "|%-2s%7.1f ",
+        "|%-2s%5.1f  ",
+        "|%-2s%.2e  ",
+        "|%-2s%7.2f  "
     };
     constexpr quality_metrics::metric_id metrics[kMetricsToPrint] = {
         quality_metrics::kMetricSignalToNoiseRatio,

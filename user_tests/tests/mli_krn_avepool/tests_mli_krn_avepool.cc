@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -55,7 +55,8 @@ const crc32_calc  test_1_chksum_fx16{ 0x292DDF4E },
                                                     test_4_chksum_sa8{ 0xFEE5E73E },
                   test_5_chksum_fx16{ 0x2F40CE76 },
                   test_6_chksum_fx16{ 0x4871DD9B },
-                  test_7_chksum_fx16{ 0x56FC93D9 };
+                  test_7_chksum_fx16{ 0x56FC93D9 },
+                  test_8_chksum_fx16{ 0x63A4213E }, test_8_chksum_sa8{ 0x6E1BFA56 };
 
 #if defined(AVEPOOL_16BIT_MUL)
 // Shared CRC Results
@@ -94,7 +95,8 @@ const crc32_calc  test_1_chksum_fx16, test_1_chksum_sa8,
                   test_4_chksum_fx16, test_4_chksum_sa8,
                   test_5_chksum_fx16, test_5_chksum_sa8,
                   test_6_chksum_fx16, test_6_chksum_sa8,
-                  test_7_chksum_fx16, test_7_chksum_sa8;
+                  test_7_chksum_fx16, test_7_chksum_sa8,
+                  test_8_chksum_fx16, test_8_chksum_sa8,
 #endif
 
 const quality_metrics thresholds_fx16_general { /* MaxAbsErr = */0.0003f, quality_metrics::kPassValueSnr,
@@ -102,6 +104,15 @@ const quality_metrics thresholds_fx16_general { /* MaxAbsErr = */0.0003f, qualit
 
 const quality_metrics thresholds_sa8_general{ /* MaxAbsErr = */0.06f, quality_metrics::kPassValueSnr,
                                               /* SNR_DB = */30.f, /*Quant Error Perc = */ 13.f };
+
+const quality_metrics thresholds_fx16_test_huge_vals { 
+    quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
+    /* SNR_DB = */90.f, /*Quant Error Perc = */ 91.f };
+
+const quality_metrics thresholds_sa8_test_huge_vals {
+    quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
+    /* SNR_DB = */52.f, /*Quant Error Perc = */ 88.f };
+
 
 
 static const avepool_test_operands tests_list[] = {
@@ -160,6 +171,14 @@ static const avepool_test_operands tests_list[] = {
     {"Test 7 SA8 k3x3 spec",   mli_krn_avepool_hwc_sa8_k3x3,
                                input_1_memstr_sa8, test_7_out_sa8, test_7_cfg,
                                thresholds_sa8_general, test_7_chksum_sa8},
+
+    // Test with huge values in operands to check negative fractional and big scales 
+    {"Test 8 FX16 Huge Vals",  mli_krn_avepool_hwc_fx16,
+                               input_3_fx16, test_8_out_fx16, test_8_cfg,
+                               thresholds_fx16_test_huge_vals, test_8_chksum_fx16},
+    {"Test 8 SA8 Huge Vals",   mli_krn_avepool_hwc_sa8,
+                               input_3_sa8, test_8_out_sa8, test_8_cfg,
+                               thresholds_sa8_test_huge_vals, test_8_chksum_sa8},
 };
 
 constexpr int kMemSize = 2047;

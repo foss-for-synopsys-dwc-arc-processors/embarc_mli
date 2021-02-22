@@ -122,7 +122,7 @@ typedef struct _mli_data_container {
  */
 typedef union _mli_element_params {
     struct {
-        uint8_t frac_bits; /**< Number of fractional bits */
+        int8_t frac_bits; /**< Number of fractional bits */
     } fx;
 
     struct {

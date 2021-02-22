@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -21,6 +21,8 @@ extern mli::tst::tensor_quantizer input_1_fx16;
 extern mli::tst::tensor_quantizer input_1_sa8;
 extern mli::tst::tensor_quantizer input_2_fx16;
 extern mli::tst::tensor_quantizer input_2_sa8;
+extern mli::tst::tensor_quantizer input_3_fx16;
+extern mli::tst::tensor_quantizer input_3_sa8;
 
 // Extracted Output vectors Declaration
 //===================================================
@@ -38,6 +40,8 @@ extern mli::tst::tensor_quantizer test_6_out_fx16;
 extern mli::tst::tensor_quantizer test_6_out_sa8;
 extern mli::tst::tensor_quantizer test_7_out_fx16;
 extern mli::tst::tensor_quantizer test_7_out_sa8;
+extern mli::tst::tensor_quantizer test_8_out_fx16;
+extern mli::tst::tensor_quantizer test_8_out_sa8;
 
 // Tests configuration structures Declaration
 //========================================
@@ -48,6 +52,7 @@ extern const mli_pool_cfg test_4_cfg;
 extern const mli_pool_cfg test_5_cfg;
 extern const mli_pool_cfg test_6_cfg;
 extern const mli_pool_cfg test_7_cfg;
+extern const mli_pool_cfg test_8_cfg;
 
 // Generated input vectors 
 //========================================
@@ -205,6 +210,85 @@ static const mli_tensor input_2_memstr_tsr_fx16 = {
     /* .el_type =  */ MLI_EL_FX_16,
     /* .el_params = */ { 0 }
 };
+static const float input_3_data[] = {
+    51035.0f, 37503.0f, 5141.0f, 112202.0f, 55772.0f, 98830.0f, 72590.0f, 83633.0f, 13016.0f, 99245.0f,
+    84714.0f, -5802.0f, 52382.0f, 3155.0f, 94029.0f, -11833.0f, 7529.0f, 96442.0f, 126398.0f, 19754.0f,
+    -22277.0f, 17227.0f, -16372.0f, 26213.0f, 26673.0f, 73592.0f, 52758.0f, 23884.0f, 18598.0f, 56971.0f,
+    26515.0f, -5908.0f, 92030.0f, 43698.0f, 29386.0f, 79323.0f, 111834.0f, -29272.0f, 102251.0f, 56578.0f,
+    111880.0f, -14901.0f, 45796.0f, 17693.0f, 127967.0f, 90659.0f, 32155.0f, 75653.0f, 76592.0f, 114130.0f,
+    88899.0f, -15226.0f, 46407.0f, 42421.0f, 84588.0f, 88884.0f, 28078.0f, 116193.0f, 109170.0f, -8395.0f,
+    18691.0f, -26728.0f, 50091.0f, 112026.0f, -11656.0f, 72961.0f, 117989.0f, -27650.0f, 119814.0f, 86034.0f,
+    56607.0f, 15584.0f, 17579.0f, -7900.0f, 47999.0
+};
+
+static const int input_3_fx8_frac = -10;
+
+static const int input_3_sa_dim = -1;
+static const float input_3_scale = 616.62353515625f;
+static const float input_3_zero_point = 49347.5f;
+static const int8_t input_3_scales_frac[] = {5};
+
+
+#define INPUT_3_TSR_SHARED_DESCR \
+    /* .data = */ {0},\
+    /* .mem_stride =  */ {0},\
+    /* .shape = */ {5, 5, 3}, \
+    /* .rank = */ 3
+
+
+
+static const mli_tensor input_3_tsr_fx16 = {
+    INPUT_3_TSR_SHARED_DESCR,
+
+    /*.el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ {0},
+};
+
+
+static const mli_tensor input_3_tsr_sa8 = {
+    INPUT_3_TSR_SHARED_DESCR,
+
+    /*.el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ {0},
+};
+
+
+static const float test_8_out_data[] = {
+    61074.0f, 20225.0f, 54552.11f, 56245.445f, 38624.555f, 50278.0f, 64753.11f, 13429.333f,
+    80382.555f, 69040.555f, 40646.555f, 51202.0
+};
+
+static const int test_8_out_fx8_frac = -10;
+
+static const int test_8_out_sa_dim = -1;
+static const float test_8_out_scale = 262.5616455078125f;
+static const float test_8_out_zero_point = 46905.9453125f;
+static const int8_t test_8_out_scales_frac[] = {6};
+
+
+#define TEST_8_OUT_TSR_SHARED_DESCR \
+    /* .data = */ {0},\
+    /* .mem_stride =  */ {0},\
+    /* .shape = */ {2, 2, 3}, \
+    /* .rank = */ 3
+
+
+
+static const mli_tensor test_8_out_tsr_fx16 = {
+    TEST_8_OUT_TSR_SHARED_DESCR,
+
+    /*.el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ {0},
+};
+
+
+static const mli_tensor test_8_out_tsr_sa8 = {
+    TEST_8_OUT_TSR_SHARED_DESCR,
+
+    /*.el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ {0},
+};
+
 
 static const float test_1_out_data[] = {
     -0.7274608f, -0.82200414f, -0.6518219f, -0.52102566f, -0.55328125f, -0.70961565f, -0.6087317f, -0.5917716f, 
@@ -501,7 +585,7 @@ static const mli_tensor test_7_out_tsr_sa8 = {
 // Tensor quantizers 
 //========================================
 tensor_quantizer input_1_fx16(input_1_tsr_fx16, input_1_fx8_frac + 8,
-                            input_1_data, sizeof(input_1_data) / sizeof(input_1_data[0]));
+                              input_1_data, sizeof(input_1_data) / sizeof(input_1_data[0]));
 
 
 tensor_quantizer input_1_sa8(input_1_tsr_sa8, input_1_sa_dim, input_1_data,
@@ -516,96 +600,114 @@ tensor_quantizer input_1_memstr_sa8(input_1_memstr_tsr_sa8, input_1_sa_dim,input
                                     &input_1_scale, 1, &input_1_zero_point, 1, input_1_scales_frac, 1);
 
 tensor_quantizer input_2_fx16(input_2_tsr_fx16, input_2_fx8_frac + 8,
-                                               input_2_data, sizeof(input_2_data) / sizeof(input_2_data[0]));
+                              input_2_data, sizeof(input_2_data) / sizeof(input_2_data[0]));
 
 
 tensor_quantizer input_2_sa8(input_2_tsr_sa8, input_2_sa_dim, input_2_data,
-                                               sizeof(input_2_data) / sizeof(input_2_data[0]),
-                                               &input_2_scale, 1,
-                                               &input_2_zero_point, 1,
-                                               input_2_scales_frac, 1);
+                             sizeof(input_2_data) / sizeof(input_2_data[0]),
+                             &input_2_scale, 1,
+                             &input_2_zero_point, 1,
+                             input_2_scales_frac, 1);
 
 tensor_quantizer input_2_memstr_fx16(input_2_memstr_tsr_fx16, input_2_fx8_frac + 8, 
                                      input_2_data, sizeof(input_2_data) / sizeof(input_2_data[0]));
-tensor_quantizer input_2_memstr_sa8(input_2_memstr_tsr_sa8, input_2_sa_dim,input_2_data, sizeof(input_2_data) / sizeof(input_2_data[0]),
+
+tensor_quantizer input_2_memstr_sa8(input_2_memstr_tsr_sa8, input_2_sa_dim,input_2_data,
+                                    sizeof(input_2_data) / sizeof(input_2_data[0]),
                                     &input_2_scale, 1, &input_2_zero_point, 1, input_2_scales_frac, 1);
 
+tensor_quantizer input_3_fx16(input_3_tsr_fx16, input_3_fx8_frac + 8,
+                              input_3_data, sizeof(input_3_data) / sizeof(input_3_data[0]));
+
+
+tensor_quantizer input_3_sa8(input_3_tsr_sa8, input_3_sa_dim, input_3_data,
+                             sizeof(input_3_data) / sizeof(input_3_data[0]),
+                             &input_3_scale, 1, &input_3_zero_point, 1, input_3_scales_frac, 1);
+
 tensor_quantizer test_1_out_fx16(test_1_out_tsr_fx16, test_1_out_fx8_frac + 8,
-                                               test_1_out_data, sizeof(test_1_out_data) / sizeof(test_1_out_data[0]));
+                                 test_1_out_data, sizeof(test_1_out_data) / sizeof(test_1_out_data[0]));
 
 
 tensor_quantizer test_1_out_sa8(test_1_out_tsr_sa8, test_1_out_sa_dim, test_1_out_data,
-                                               sizeof(test_1_out_data) / sizeof(test_1_out_data[0]),
-                                               &test_1_out_scale, 1,
-                                               &test_1_out_zero_point, 1,
-                                               test_1_out_scales_frac, 1);
+                                sizeof(test_1_out_data) / sizeof(test_1_out_data[0]),
+                                &test_1_out_scale, 1,
+                                &test_1_out_zero_point, 1,
+                                test_1_out_scales_frac, 1);
 
 
 tensor_quantizer test_2_out_fx16(test_2_out_tsr_fx16, test_2_out_fx8_frac + 8,
-                                               test_2_out_data, sizeof(test_2_out_data) / sizeof(test_2_out_data[0]));
+                                 test_2_out_data, sizeof(test_2_out_data) / sizeof(test_2_out_data[0]));
 
 
 tensor_quantizer test_2_out_sa8(test_2_out_tsr_sa8, test_2_out_sa_dim, test_2_out_data,
-                                               sizeof(test_2_out_data) / sizeof(test_2_out_data[0]),
-                                               &test_2_out_scale, 1,
-                                               &test_2_out_zero_point, 1,
-                                               test_2_out_scales_frac, 1);
+                                sizeof(test_2_out_data) / sizeof(test_2_out_data[0]),
+                                &test_2_out_scale, 1,
+                                &test_2_out_zero_point, 1,
+                                test_2_out_scales_frac, 1);
 
 
 tensor_quantizer test_3_out_fx16(test_3_out_tsr_fx16, test_3_out_fx8_frac + 8,
-                                               test_3_out_data, sizeof(test_3_out_data) / sizeof(test_3_out_data[0]));
+                                 test_3_out_data, sizeof(test_3_out_data) / sizeof(test_3_out_data[0]));
 
 
 tensor_quantizer test_3_out_sa8(test_3_out_tsr_sa8, test_3_out_sa_dim, test_3_out_data,
-                                               sizeof(test_3_out_data) / sizeof(test_3_out_data[0]),
-                                               &test_3_out_scale, 1,
-                                               &test_3_out_zero_point, 1,
-                                               test_3_out_scales_frac, 1);
+                                sizeof(test_3_out_data) / sizeof(test_3_out_data[0]),
+                                &test_3_out_scale, 1,
+                                &test_3_out_zero_point, 1,
+                                test_3_out_scales_frac, 1);
 
 
 tensor_quantizer test_4_out_fx16(test_4_out_tsr_fx16, test_4_out_fx8_frac + 8,
-                                               test_4_out_data, sizeof(test_4_out_data) / sizeof(test_4_out_data[0]));
+                                 test_4_out_data, sizeof(test_4_out_data) / sizeof(test_4_out_data[0]));
 
 
 tensor_quantizer test_4_out_sa8(test_4_out_tsr_sa8, test_4_out_sa_dim, test_4_out_data,
-                                               sizeof(test_4_out_data) / sizeof(test_4_out_data[0]),
-                                               &test_4_out_scale, 1,
-                                               &test_4_out_zero_point, 1,
-                                               test_4_out_scales_frac, 1);
+                                sizeof(test_4_out_data) / sizeof(test_4_out_data[0]),
+                                &test_4_out_scale, 1,
+                                &test_4_out_zero_point, 1,
+                                test_4_out_scales_frac, 1);
 
 
 tensor_quantizer test_5_out_fx16(test_5_out_tsr_fx16, test_5_out_fx8_frac + 8,
-                                               test_5_out_data, sizeof(test_5_out_data) / sizeof(test_5_out_data[0]));
+                                 test_5_out_data, sizeof(test_5_out_data) / sizeof(test_5_out_data[0]));
 
 
 tensor_quantizer test_5_out_sa8(test_5_out_tsr_sa8, test_5_out_sa_dim, test_5_out_data,
-                                               sizeof(test_5_out_data) / sizeof(test_5_out_data[0]),
-                                               &test_5_out_scale, 1,
-                                               &test_5_out_zero_point, 1,
-                                               test_5_out_scales_frac, 1);
+                                sizeof(test_5_out_data) / sizeof(test_5_out_data[0]),
+                                &test_5_out_scale, 1,
+                                &test_5_out_zero_point, 1,
+                                test_5_out_scales_frac, 1);
 
 
 tensor_quantizer test_6_out_fx16(test_6_out_tsr_fx16, test_6_out_fx8_frac + 8,
-                                               test_6_out_data, sizeof(test_6_out_data) / sizeof(test_6_out_data[0]));
+                                 test_6_out_data, sizeof(test_6_out_data) / sizeof(test_6_out_data[0]));
 
 
 tensor_quantizer test_6_out_sa8(test_6_out_tsr_sa8, test_6_out_sa_dim, test_6_out_data,
-                                               sizeof(test_6_out_data) / sizeof(test_6_out_data[0]),
-                                               &test_6_out_scale, 1,
-                                               &test_6_out_zero_point, 1,
-                                               test_6_out_scales_frac, 1);
+                                sizeof(test_6_out_data) / sizeof(test_6_out_data[0]),
+                                &test_6_out_scale, 1,
+                                &test_6_out_zero_point, 1,
+                                test_6_out_scales_frac, 1);
 
 
 tensor_quantizer test_7_out_fx16(test_7_out_tsr_fx16, test_7_out_fx8_frac + 8,
-                                               test_7_out_data, sizeof(test_7_out_data) / sizeof(test_7_out_data[0]));
+                                 test_7_out_data, sizeof(test_7_out_data) / sizeof(test_7_out_data[0]));
 
 
 tensor_quantizer test_7_out_sa8(test_7_out_tsr_sa8, test_7_out_sa_dim, test_7_out_data,
-                                               sizeof(test_7_out_data) / sizeof(test_7_out_data[0]),
-                                               &test_7_out_scale, 1,
-                                               &test_7_out_zero_point, 1,
-                                               test_7_out_scales_frac, 1);
+                                sizeof(test_7_out_data) / sizeof(test_7_out_data[0]),
+                                &test_7_out_scale, 1,
+                                &test_7_out_zero_point, 1,
+                                test_7_out_scales_frac, 1);
 
+
+tensor_quantizer test_8_out_fx16(test_8_out_tsr_fx16, test_8_out_fx8_frac + 8,
+                                test_8_out_data, sizeof(test_8_out_data) / sizeof(test_8_out_data[0]));
+
+
+tensor_quantizer test_8_out_sa8(test_8_out_tsr_sa8, test_8_out_sa_dim, test_8_out_data,
+                                sizeof(test_8_out_data) / sizeof(test_8_out_data[0]),
+                                &test_8_out_scale, 1, &test_8_out_zero_point, 1, test_8_out_scales_frac, 1);
 // Tests configuration structures
 //========================================
 const mli_pool_cfg test_1_cfg = {
@@ -641,4 +743,10 @@ const mli_pool_cfg test_6_cfg = {
 const mli_pool_cfg test_7_cfg = {
     /* kernel_width = */3, /* kernel_height = */3, /* stride_width = */2, /* stride_height = */2,
     /* padding_left = */1, /* padding_right = */1, /* padding_top = */0, /* padding_bottom = */1
+};
+
+
+const mli_pool_cfg test_8_cfg = {
+    /* kernel_width = */3, /* kernel_height = */3, /* stride_width = */2, /* stride_height = */2,
+    /* padding_left = */0, /* padding_right = */0, /* padding_top = */0, /* padding_bottom = */0
 };
