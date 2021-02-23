@@ -22,6 +22,8 @@ extern "C" {
 mli_status mli_krn_permute_fx8(const mli_tensor *in, const mli_permute_cfg* cfg, mli_tensor *out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_permute_fx8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
+
     mli_prv_fx_init_dsp_ctrl();
 
     ret = mli::krn::mli_krn_permute_run<int8_t, false>(in, cfg, out);
@@ -31,6 +33,8 @@ mli_status mli_krn_permute_fx8(const mli_tensor *in, const mli_permute_cfg* cfg,
 mli_status mli_krn_permute_fx16(const mli_tensor *in, const mli_permute_cfg* cfg, mli_tensor *out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_permute_fx16(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
+
     mli_prv_fx_init_dsp_ctrl();
 
     ret = mli::krn::mli_krn_permute_run<int16_t, false>(in, cfg, out);
@@ -40,6 +44,8 @@ mli_status mli_krn_permute_fx16(const mli_tensor *in, const mli_permute_cfg* cfg
 mli_status mli_krn_permute_sa8(const mli_tensor* in, const mli_permute_cfg* cfg, mli_tensor* out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_permute_sa8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
+
     mli_prv_fx_init_dsp_ctrl();
 
     ret = mli::krn::mli_krn_permute_run<int8_t, true>(in, cfg, out);

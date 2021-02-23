@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -42,6 +42,8 @@ mli_status mli_krn_conv2d_hwcn_fx16(
         mli_tensor* out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwcn_fx16(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
+
     mli::krn::conv2d_prepare_and_run
             <int16_t, int16_t, int16_t, mli_fx16_accu_t, mli::krn::fx_quant_specific_params, LAYOUT_HWCN, mli::CONV_GENERAL, KRN_SZ_VAR, KRN_SZ_VAR>
             (in, weights, bias, cfg, out);
@@ -56,6 +58,8 @@ mli_status mli_krn_conv2d_hwcn_fx16_fx8_fx8(
     mli_tensor* out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwcn_fx16_fx8_fx8(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
+
     mli::krn::conv2d_prepare_and_run
             <int16_t, int8_t, int8_t, mli_fx16_fx8_fx8_accu_t, mli::krn::fx_quant_specific_params, LAYOUT_HWCN, mli::CONV_GENERAL, KRN_SZ_VAR, KRN_SZ_VAR>
             (in, weights, bias, cfg, out);
@@ -70,6 +74,8 @@ mli_status mli_krn_conv2d_hwcn_sa8_sa8_sa32(
     mli_tensor* out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwcn_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
+
     mli::krn::conv2d_prepare_and_run
             <int8_t, int8_t, int32_t, mli_sa8_sa8_sa32_accu_t, mli::krn::s8asym_quant_specific_params, LAYOUT_HWCN, mli::CONV_GENERAL, KRN_SZ_VAR, KRN_SZ_VAR>
             (in, weights, bias, cfg, out);
@@ -87,6 +93,8 @@ mli_status mli_krn_conv2d_hwcn_fx16_k1x1(
         mli_tensor* out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwcn_fx16(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
+
     mli::krn::conv2d_prepare_and_run
             <int16_t, int16_t, int16_t, mli_fx16_accu_t, mli::krn::fx_quant_specific_params, LAYOUT_HWCN, mli::CONV_GENERAL, KRN_SZ_1, KRN_SZ_1>
             (in, weights, bias, cfg, out);
@@ -101,6 +109,8 @@ mli_status mli_krn_conv2d_hwcn_fx16_fx8_fx8_k1x1(
     mli_tensor* out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwcn_fx16_fx8_fx8(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
+
     mli::krn::conv2d_prepare_and_run
             <int16_t, int8_t, int8_t, mli_fx16_fx8_fx8_accu_t, mli::krn::fx_quant_specific_params, LAYOUT_HWCN, mli::CONV_GENERAL, KRN_SZ_1, KRN_SZ_1>
             (in, weights, bias, cfg, out);
@@ -115,6 +125,8 @@ mli_status mli_krn_conv2d_hwcn_sa8_sa8_sa32_k1x1(
     mli_tensor* out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwcn_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
+
     mli::krn::conv2d_prepare_and_run
             <int8_t, int8_t, int32_t, mli_sa8_sa8_sa32_accu_t, mli::krn::s8asym_quant_specific_params, LAYOUT_HWCN, mli::CONV_GENERAL, KRN_SZ_1, KRN_SZ_1>
             (in, weights, bias, cfg, out);
@@ -132,6 +144,8 @@ mli_status mli_krn_conv2d_hwcn_fx16_k3x3(
         mli_tensor* out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwcn_fx16(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
+
     mli::krn::conv2d_prepare_and_run
             <int16_t, int16_t, int16_t, mli_fx16_accu_t, mli::krn::fx_quant_specific_params, LAYOUT_HWCN, mli::CONV_GENERAL, KRN_SZ_3, KRN_SZ_3>
             (in, weights, bias, cfg, out);
@@ -146,6 +160,8 @@ mli_status mli_krn_conv2d_hwcn_fx16_fx8_fx8_k3x3(
     mli_tensor* out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwcn_fx16_fx8_fx8(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
+
     mli::krn::conv2d_prepare_and_run
             <int16_t, int8_t, int8_t, mli_fx16_fx8_fx8_accu_t, mli::krn::fx_quant_specific_params, LAYOUT_HWCN, mli::CONV_GENERAL, KRN_SZ_3, KRN_SZ_3>
             (in, weights, bias, cfg, out);
@@ -160,6 +176,8 @@ mli_status mli_krn_conv2d_hwcn_sa8_sa8_sa32_k3x3(
     mli_tensor* out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwcn_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
+
     mli::krn::conv2d_prepare_and_run
             <int8_t, int8_t, int32_t, mli_sa8_sa8_sa32_accu_t, mli::krn::s8asym_quant_specific_params, LAYOUT_HWCN, mli::CONV_GENERAL, KRN_SZ_3, KRN_SZ_3>
             (in, weights, bias, cfg, out);
@@ -177,6 +195,8 @@ mli_status mli_krn_conv2d_hwcn_fx16_k5x5(
         mli_tensor* out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwcn_fx16(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
+
     mli::krn::conv2d_prepare_and_run
             <int16_t, int16_t, int16_t, mli_fx16_accu_t, mli::krn::fx_quant_specific_params, LAYOUT_HWCN, mli::CONV_GENERAL, KRN_SZ_5, KRN_SZ_5>
             (in, weights, bias, cfg, out);
@@ -191,6 +211,8 @@ mli_status mli_krn_conv2d_hwcn_fx16_fx8_fx8_k5x5(
     mli_tensor* out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwcn_fx16_fx8_fx8(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
+
     mli::krn::conv2d_prepare_and_run
             <int16_t, int8_t, int8_t, mli_fx16_fx8_fx8_accu_t, mli::krn::fx_quant_specific_params, LAYOUT_HWCN, mli::CONV_GENERAL, KRN_SZ_5, KRN_SZ_5>
             (in, weights, bias, cfg, out);
@@ -205,6 +227,8 @@ mli_status mli_krn_conv2d_hwcn_sa8_sa8_sa32_k5x5(
     mli_tensor* out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwcn_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
+
     mli::krn::conv2d_prepare_and_run
             <int8_t, int8_t, int32_t, mli_sa8_sa8_sa32_accu_t, mli::krn::s8asym_quant_specific_params, LAYOUT_HWCN, mli::CONV_GENERAL, KRN_SZ_5, KRN_SZ_5>
             (in, weights, bias, cfg, out);

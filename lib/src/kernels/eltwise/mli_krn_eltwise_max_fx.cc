@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -28,6 +28,7 @@ extern "C" {
 mli_status mli_krn_eltwise_max_fx8(const mli_tensor* in1, const mli_tensor* in2, mli_tensor* out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_eltwise_maxmin_fx8(in1, in2, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
 
     mli::krn::eltwise_prepare_and_run<int8_t, mli::ELTWISE_MAX>(in1, in2, out);
 
@@ -37,6 +38,7 @@ mli_status mli_krn_eltwise_max_fx8(const mli_tensor* in1, const mli_tensor* in2,
 mli_status mli_krn_eltwise_max_fx16(const mli_tensor* in1, const mli_tensor* in2, mli_tensor* out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_eltwise_maxmin_fx16(in1, in2, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
 
     mli::krn::eltwise_prepare_and_run<int16_t, mli::ELTWISE_MAX>(in1, in2, out);
 
@@ -46,6 +48,7 @@ mli_status mli_krn_eltwise_max_fx16(const mli_tensor* in1, const mli_tensor* in2
 mli_status mli_krn_eltwise_max_sa8(const mli_tensor* in1, const mli_tensor* in2, mli_tensor* out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_eltwise_maxmin_sa8(in1, in2, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
 
     mli::krn::eltwise_prepare_and_run<int8_t, mli::ELTWISE_MAX, true>(in1, in2, out);
 

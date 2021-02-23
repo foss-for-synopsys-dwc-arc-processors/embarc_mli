@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -125,7 +125,7 @@ static MLI_FORCE_INLINE bool mli_check(
 
 #ifdef MLI_DBG_ENABLE_COMPILE_OPTION_MSG
 #    include <stdio.h>
-#    define MLI_PRINT_COMPILE_OPTIONS() printf("%s" OPTIONS_STR, __func__)
+#    define MLI_PRINT_COMPILE_OPTIONS() printf("%s" OPTIONS_STR "\n", __func__)
 #else
 #    define MLI_PRINT_COMPILE_OPTIONS() ((void) 0)
 #endif
