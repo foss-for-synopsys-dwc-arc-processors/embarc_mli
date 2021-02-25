@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -25,6 +25,7 @@ extern "C" {
 mli_status mli_krn_softmax_fx8(const mli_tensor *in, const mli_lut *lut, const mli_softmax_cfg *cfg, mli_tensor *out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_softmax_fx8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
     mli_prv_fx_init_dsp_ctrl();
 
     ret = mli::krn::mli_krn_softmax_run<int8_t, false>(in, cfg, out, lut);
@@ -34,6 +35,7 @@ mli_status mli_krn_softmax_fx8(const mli_tensor *in, const mli_lut *lut, const m
 mli_status mli_krn_softmax_fx16(const mli_tensor *in, const mli_lut *lut, const mli_softmax_cfg *cfg, mli_tensor *out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_softmax_fx16(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
     mli_prv_fx_init_dsp_ctrl();
 
     ret = mli::krn::mli_krn_softmax_run<int16_t, false>(in, cfg, out, lut);
@@ -43,6 +45,7 @@ mli_status mli_krn_softmax_fx16(const mli_tensor *in, const mli_lut *lut, const 
 mli_status mli_krn_softmax_sa8(const mli_tensor *in, const mli_lut *lut, const mli_softmax_cfg *cfg, mli_tensor *out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_softmax_sa8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
     mli_prv_fx_init_dsp_ctrl();
 
     ret = mli::krn::mli_krn_softmax_run<int8_t, true>(in, cfg, out, lut);
@@ -57,6 +60,7 @@ mli_status mli_krn_softmax_create_lut(mli_lut *lut) {
     lut->type = expneg_lut_fx16.type;
     mli_status ret = MLI_CHECK_STATUS(mli_chk_lut(lut, expneg_lut_fx16.data.capacity), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
 
     memcpy(lut->data.mem.pi16, expneg_lut_fx16.data.mem.pi16, expneg_lut_fx16.length * sizeof(int16_t));
     lut->in_frac_bits = expneg_lut_fx16.in_frac_bits;

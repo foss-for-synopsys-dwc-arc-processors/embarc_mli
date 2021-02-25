@@ -29,8 +29,8 @@ mli_status mli_krn_lstm_cell_fx8 (
         mli_tensor * cell, 
         mli_tensor * out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_lstm_cell_fx8(in, prev_out, weights, bias, cfg, cell, out), __func__);
-    if (ret != MLI_STATUS_OK)
-        return ret;
+    if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
 
     mli::lstm_cell_prepare_and_run_fx < int8_t, int8_t > (in, prev_out, weights, bias, tanh_lut, sigm_lut, cfg, cell, out);
 
@@ -48,8 +48,8 @@ mli_status mli_krn_lstm_cell_fx16 (
         mli_tensor * cell, 
         mli_tensor * out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_lstm_cell_fx16(in, prev_out, weights, bias, cfg, cell, out), __func__);
-    if (ret != MLI_STATUS_OK)
-        return ret;
+    if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
 
     mli::lstm_cell_prepare_and_run_fx < int16_t, int16_t > (in, prev_out, weights, bias, tanh_lut, sigm_lut, cfg, cell, out);
 
@@ -67,8 +67,8 @@ mli_status mli_krn_lstm_cell_fx8w16d (
         mli_tensor * cell, 
         mli_tensor * out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_lstm_cell_fx8w16d(in, prev_out, weights, bias, cfg, cell, out), __func__);
-    if (ret != MLI_STATUS_OK)
-        return ret;
+    if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
 
     mli::lstm_cell_prepare_and_run_fx < int16_t, int8_t > (in, prev_out, weights, bias, tanh_lut, sigm_lut, cfg, cell, out);
 

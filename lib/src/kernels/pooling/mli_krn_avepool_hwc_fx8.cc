@@ -1,8 +1,3 @@
-/* This file is generated, do not edit!
- * edit following template files instead:
- * filetemplate.txt
- * mli_krn_avepool_hwc_func_body.txt
- */
 /*
 * Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
@@ -29,8 +24,8 @@ extern "C" {
 
 mli_status mli_krn_avepool_hwc_fx8_k2x2(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_avepool_hwc_fx8(in, cfg, out), __func__);
-    if (ret != MLI_STATUS_OK)
-        return ret;
+    if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
 
     mli::krn::mli_krn_pool_hwc<mli::krn::AVEPOOL, int8_t, POOL_FIXED_KRN_SIZE_2>(in, cfg, out);
     return MLI_STATUS_OK;
@@ -38,8 +33,8 @@ mli_status mli_krn_avepool_hwc_fx8_k2x2(const mli_tensor * in, const mli_pool_cf
 
 mli_status mli_krn_avepool_hwc_fx8_k3x3(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_avepool_hwc_fx8(in, cfg, out), __func__);
-    if (ret != MLI_STATUS_OK)
-        return ret;
+    if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
 
     mli::krn::mli_krn_pool_hwc<mli::krn::AVEPOOL, int8_t, POOL_FIXED_KRN_SIZE_3>(in, cfg, out);
     return MLI_STATUS_OK;
@@ -47,8 +42,8 @@ mli_status mli_krn_avepool_hwc_fx8_k3x3(const mli_tensor * in, const mli_pool_cf
 
 mli_status mli_krn_avepool_hwc_fx8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_avepool_hwc_fx8(in, cfg, out), __func__);
-    if (ret != MLI_STATUS_OK)
-        return ret;
+    if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
 
     int kernel_w = cfg->kernel_width;
     int kernel_h = cfg->kernel_height;

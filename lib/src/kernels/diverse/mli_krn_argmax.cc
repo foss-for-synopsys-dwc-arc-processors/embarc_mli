@@ -27,8 +27,8 @@ mli_status mli_krn_argmax_sa8(
     mli_tensor *out) {
 
     mli_status ret = MLI_CHECK_STATUS(mli_chk_argmax_sa8(in, cfg, out), __func__);
-    if (ret != MLI_STATUS_OK)
-        return ret;
+    if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
 
     mli::krn::argmax_prepare_and_run<int8_t>(in, cfg, out);
     return MLI_STATUS_OK;
@@ -40,8 +40,8 @@ mli_status mli_krn_argmax_fx16(
     mli_tensor *out) {
 
     mli_status ret = MLI_CHECK_STATUS(mli_chk_argmax_fx16(in, cfg, out), __func__);
-    if (ret != MLI_STATUS_OK)
-        return ret;
+    if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
 
     mli::krn::argmax_prepare_and_run<int16_t>(in, cfg, out);
     return MLI_STATUS_OK;

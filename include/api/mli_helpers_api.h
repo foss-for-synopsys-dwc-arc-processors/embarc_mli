@@ -159,6 +159,17 @@ int32_t mli_hlp_tensor_scale(const mli_tensor *in, const uint32_t scale_idx);
 
 int16_t mli_hlp_tensor_zero_offset(const mli_tensor *in, const uint32_t zero_idx);
 
+/**
+ * @brief Get a string with the compile time options of the lib
+ *
+ * @detail This function returns a string with the settings of the following compile options:
+ * - MLI_BUILD_REFERENCE
+ * - ROUND_MODE
+ * - MLI_DEBUG_MODE
+ *
+ * @return string with compile time options
+ */
+const char* mli_hlp_compile_options_string();
 
 
 #ifdef __cplusplus

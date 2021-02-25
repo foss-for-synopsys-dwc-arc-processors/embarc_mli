@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -31,6 +31,7 @@ extern "C" {
 mli_status mli_krn_tanh_fx8(const mli_tensor *in, const mli_lut *lut, mli_tensor *out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_basic_activation_fx8(in, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
     mli_prv_fx_init_dsp_ctrl();
 
     mli_prv_copy_tensor_format_except_mem_strides(in, out);
@@ -44,6 +45,7 @@ mli_status mli_krn_tanh_fx8(const mli_tensor *in, const mli_lut *lut, mli_tensor
 mli_status mli_krn_tanh_fx16(const mli_tensor *in, const mli_lut *lut, mli_tensor *out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_basic_activation_fx16(in, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
     mli_prv_fx_init_dsp_ctrl();
 
     mli_prv_copy_tensor_format_except_mem_strides(in, out);
@@ -59,6 +61,7 @@ mli_status mli_krn_tanh_sa8(const mli_tensor *in, const mli_lut *lut, mli_tensor
     struct s8asym_quant_params out_params;
     mli_status ret = MLI_CHECK_STATUS(mli_chk_basic_activation_sa8(in, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
     mli_prv_fx_init_dsp_ctrl();
 
     in_params.offset = in->el_params.sa.zero_point.mem.i16;
@@ -87,6 +90,7 @@ mli_status mli_krn_tanh_create_lut(mli_lut *lut) {
     lut->type = tanh_lut_fx16.type;
     mli_status ret = MLI_CHECK_STATUS(mli_chk_lut(lut, tanh_lut_fx16.data.capacity), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
 
     memcpy(lut->data.mem.pi16, tanh_lut_fx16.data.mem.pi16, tanh_lut_fx16.length * sizeof(int16_t));
     lut->in_frac_bits = tanh_lut_fx16.in_frac_bits;

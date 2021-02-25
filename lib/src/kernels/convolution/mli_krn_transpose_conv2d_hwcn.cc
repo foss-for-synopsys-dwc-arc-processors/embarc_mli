@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -39,6 +39,8 @@ mli_status mli_krn_transpose_conv2d_hwcn_fx16(
         mli_tensor* out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_transpose_conv2d_hwcn_fx16(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
+
     mli::krn::transpose_conv2d_prepare_and_run
         <int16_t, int16_t, int16_t, mli_fx16_accu_t, mli::krn::fx_quant_specific_params, KRN_SZ_VAR, KRN_SZ_VAR, STR_VAR>
         (in, weights, bias, cfg, out);
@@ -53,6 +55,8 @@ mli_status mli_krn_transpose_conv2d_hwcn_fx16_fx8_fx8(
         mli_tensor* out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_transpose_conv2d_hwcn_fx16_fx8_fx8(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
+
     mli::krn::transpose_conv2d_prepare_and_run
         <int16_t, int8_t, int8_t, mli_fx16_fx8_fx8_accu_t, mli::krn::fx_quant_specific_params, KRN_SZ_VAR, KRN_SZ_VAR, STR_VAR>
         (in, weights, bias, cfg, out);
@@ -67,6 +71,8 @@ mli_status mli_krn_transpose_conv2d_hwcn_sa8_sa8_sa32(
         mli_tensor* out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_transpose_conv2d_hwcn_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
+
     mli::krn::transpose_conv2d_prepare_and_run
         <int8_t, int8_t, int32_t, mli_sa8_sa8_sa32_accu_t, mli::krn::s8asym_quant_specific_params, KRN_SZ_VAR, KRN_SZ_VAR, STR_VAR>
         (in, weights, bias, cfg, out);
@@ -87,6 +93,8 @@ mli_status mli_krn_transpose_conv2d_hwcn_fx16_k2x2_str2(
     if (ret != MLI_STATUS_OK) return ret;
     ret = MLI_CHECK_STATUS(mli_chk_transpose_conv2d_hwcn_k2x2_str2(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
+
     mli::krn::transpose_conv2d_prepare_and_run
         <int16_t, int16_t, int16_t, mli_fx16_accu_t, mli::krn::fx_quant_specific_params, KRN_SZ_2, KRN_SZ_2, STR_2>
         (in, weights, bias, cfg, out);
@@ -103,6 +111,8 @@ mli_status mli_krn_transpose_conv2d_hwcn_fx16_fx8_fx8_k2x2_str2(
     if (ret != MLI_STATUS_OK) return ret;
     ret = MLI_CHECK_STATUS(mli_chk_transpose_conv2d_hwcn_k2x2_str2(in, weights, bias, cfg, out), __func__);    
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
+
     mli::krn::transpose_conv2d_prepare_and_run
         <int16_t, int8_t, int8_t, mli_fx16_fx8_fx8_accu_t, mli::krn::fx_quant_specific_params, KRN_SZ_2, KRN_SZ_2, STR_2>
         (in, weights, bias, cfg, out);
@@ -119,6 +129,8 @@ mli_status mli_krn_transpose_conv2d_hwcn_sa8_sa8_sa32_k2x2_str2(
     if (ret != MLI_STATUS_OK) return ret;
     ret = MLI_CHECK_STATUS(mli_chk_transpose_conv2d_hwcn_k2x2_str2(in, weights, bias, cfg, out), __func__);    
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
+
     mli::krn::transpose_conv2d_prepare_and_run
         <int8_t, int8_t, int32_t, mli_sa8_sa8_sa32_accu_t, mli::krn::s8asym_quant_specific_params, KRN_SZ_2, KRN_SZ_2, STR_2>
         (in, weights, bias, cfg, out);
@@ -138,6 +150,8 @@ mli_status mli_krn_transpose_conv2d_hwcn_fx16_k4x4_str2(
     if (ret != MLI_STATUS_OK) return ret;
     ret = MLI_CHECK_STATUS(mli_chk_transpose_conv2d_hwcn_k4x4_str2(in, weights, bias, cfg, out), __func__);    
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
+
     mli::krn::transpose_conv2d_prepare_and_run
         <int16_t, int16_t, int16_t, mli_fx16_accu_t, mli::krn::fx_quant_specific_params, KRN_SZ_4, KRN_SZ_4, STR_2>
         (in, weights, bias, cfg, out);
@@ -154,6 +168,8 @@ mli_status mli_krn_transpose_conv2d_hwcn_fx16_fx8_fx8_k4x4_str2(
     if (ret != MLI_STATUS_OK) return ret;
     ret = MLI_CHECK_STATUS(mli_chk_transpose_conv2d_hwcn_k4x4_str2(in, weights, bias, cfg, out), __func__);    
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
+
     mli::krn::transpose_conv2d_prepare_and_run
         <int16_t, int8_t, int8_t, mli_fx16_fx8_fx8_accu_t, mli::krn::fx_quant_specific_params, KRN_SZ_4, KRN_SZ_4, STR_2>
         (in, weights, bias, cfg, out);
@@ -170,6 +186,8 @@ mli_status mli_krn_transpose_conv2d_hwcn_sa8_sa8_sa32_k4x4_str2(
     if (ret != MLI_STATUS_OK) return ret;
     ret = MLI_CHECK_STATUS(mli_chk_transpose_conv2d_hwcn_k4x4_str2(in, weights, bias, cfg, out), __func__);    
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
+
     mli::krn::transpose_conv2d_prepare_and_run
         <int8_t, int8_t, int32_t, mli_sa8_sa8_sa32_accu_t, mli::krn::s8asym_quant_specific_params, KRN_SZ_4, KRN_SZ_4, STR_2>
         (in, weights, bias, cfg, out);

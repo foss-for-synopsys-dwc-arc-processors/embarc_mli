@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -26,6 +26,7 @@ mli_status mli_krn_l2_normalize_fx16(const mli_tensor *in,
 
     mli_status ret = MLI_CHECK_STATUS(mli_chk_l2_normalize_fx16(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
 
     return mli_krn_l2_normalize_run<int16_t>(in, epsilon, cfg, out, lut);
 }
@@ -38,6 +39,7 @@ mli_status mli_krn_l2_normalize_sa8(const mli_tensor *in,
 
     mli_status ret = MLI_CHECK_STATUS(mli_chk_l2_normalize_sa8(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
 
     return mli_krn_l2_normalize_run<int8_t, true>(in, epsilon, cfg, out, lut);
 }
@@ -50,6 +52,7 @@ mli_status mli_krn_l2_normalize_create_lut(mli_lut *lut) {
     lut->type = invsqrt_lut_fx16.type;
     mli_status ret = MLI_CHECK_STATUS(mli_chk_lut(lut, invsqrt_lut_fx16.data.capacity), __func__);
     if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
 
     memcpy(lut->data.mem.pi16, invsqrt_lut_fx16.data.mem.pi16, invsqrt_lut_fx16.length * sizeof(int16_t));
     lut->in_frac_bits = invsqrt_lut_fx16.in_frac_bits;

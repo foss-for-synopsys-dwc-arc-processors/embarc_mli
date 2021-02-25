@@ -1,5 +1,5 @@
 #
-# Copyright 2020, Synopsys, Inc.
+# Copyright 2020-2021, Synopsys, Inc.
 # All rights reserved.
 #
 # This source code is licensed under the BSD-3-Clause license found in
@@ -49,6 +49,10 @@ endif
 
 ifdef MLI_DEBUG_MODE
 TOOLCHAIN_OPTIONS += -DMLI_DEBUG_MODE=${MLI_DEBUG_MODE}
+endif
+
+ifdef MLI_DBG_ENABLE_COMPILE_OPTION_MSG
+TOOLCHAIN_OPTIONS += -DMLI_DBG_ENABLE_COMPILE_OPTION_MSG=${MLI_DBG_ENABLE_COMPILE_OPTION_MSG}
 endif
 
 ifeq ($(RECONFIGURE),ON)
