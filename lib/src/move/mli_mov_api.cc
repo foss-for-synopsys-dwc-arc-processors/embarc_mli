@@ -107,28 +107,28 @@ mli_status mli_mov_prepare(mli_mov_handle_t* h, const mli_tensor* src, const mli
     int rank = dst->rank = src->rank;
     dst->el_type = src->el_type;
 
-    bool src_in_vccm = mli_prv_is_inside_vccm(src->data.mem.void_p);
-    bool dst_in_vccm = mli_prv_is_inside_vccm(dst->data.mem.void_p);
+    const bool src_in_vccm = mli_prv_is_inside_vccm(src->data.mem.void_p);
+    const bool dst_in_vccm = mli_prv_is_inside_vccm(dst->data.mem.void_p);
 
     if ((src->el_type == MLI_EL_SA_8 || src->el_type == MLI_EL_SA_32) && (src->el_params.sa.dim != -1)) {
         if ((dst->el_params.sa.scale.mem.pi16 != src->el_params.sa.scale.mem.pi16) &&
                 (dst->el_params.sa.scale.mem.pi16 != NULL)) {
             mli::mov::mli_mov_memcpy<int8_t>(h, src->el_params.sa.scale.mem.pi8,
-                        dst->el_params.sa.scale.mem.pi8, src->el_params.sa.scale.capacity, 1, 1, src_in_vccm, dst_in_vccm);
+                        dst->el_params.sa.scale.mem.pi8, src->el_params.sa.scale.capacity, 1, 1, src_in_vccm, dst_in_vccm, true, true, false);
         } else {
             dst->el_params.sa.scale = src->el_params.sa.scale;
         }
         if ((dst->el_params.sa.zero_point.mem.pi16 != src->el_params.sa.scale.mem.pi16) &&
                 (dst->el_params.sa.zero_point.mem.pi16 != NULL)) {
             mli::mov::mli_mov_memcpy<int8_t>(h, src->el_params.sa.scale.mem.pi8,
-                        dst->el_params.sa.scale.mem.pi8, src->el_params.sa.scale.capacity, 1, 1, src_in_vccm, dst_in_vccm);
+                        dst->el_params.sa.scale.mem.pi8, src->el_params.sa.scale.capacity, 1, 1, src_in_vccm, dst_in_vccm, true, true, false);
         } else {
             dst->el_params.sa.zero_point = src->el_params.sa.zero_point;
         }
         if ((dst->el_params.sa.scale_frac_bits.mem.pi8 != src->el_params.sa.scale_frac_bits.mem.pi8)
                 && (dst->el_params.sa.scale_frac_bits.mem.pi8 != NULL)) {
             mli::mov::mli_mov_memcpy<int8_t>(h, src->el_params.sa.scale.mem.pi8,
-                        dst->el_params.sa.scale.mem.pi8, src->el_params.sa.scale.capacity, 1, 1, src_in_vccm, dst_in_vccm);
+                        dst->el_params.sa.scale.mem.pi8, src->el_params.sa.scale.capacity, 1, 1, src_in_vccm, dst_in_vccm, true, true, false);
         } else {
             dst->el_params.sa.scale_frac_bits = src->el_params.sa.scale_frac_bits;
         }
@@ -198,21 +198,54 @@ mli_status mli_mov_prepare(mli_mov_handle_t* h, const mli_tensor* src, const mli
     if (is_possible_in_single1d_transfer) {
         int copy_size = mli_hlp_count_elem_num(src, 0);
         copy_size *= mli_hlp_tensor_element_size(src);
-        mli::mov::mli_mov_memcpy<int8_t>(h, src->data.mem.pi8, dst->data.mem.pi8, copy_size, 1, 1, src_in_vccm, dst_in_vccm);
+        mli::mov::mli_mov_memcpy<int8_t>(h, src->data.mem.pi8, dst->data.mem.pi8, copy_size, 1, 1, src_in_vccm, dst_in_vccm, true, true, false);
 
     } else {
         MLI_ASSERT(MLI_MAX_RANK == 4); // because 4 nested loops are hard coded below. add more loops if MLI_MAX_RANK is increased
 
         uint32_t elem_size = mli_hlp_tensor_element_size(src);
         if (elem_size == sizeof(uint8_t)) {
-            mli::mov::mli_mov_prepare_run<int8_t>(h, src, cfg, dst, dst_write_size, src_mem_stride, src_cpy_size,
-                    no_padding, src_in_vccm, dst_in_vccm);
+            if (src_in_vccm && dst_in_vccm) {
+                mli::mov::mli_mov_prepare_run<int8_t, true, true>(h, src, cfg, dst, dst_write_size, src_mem_stride, src_cpy_size,
+                        no_padding);
+            } else if (dst_in_vccm) {
+                mli::mov::mli_mov_prepare_run<int8_t, false, true>(h, src, cfg, dst, dst_write_size, src_mem_stride, src_cpy_size,
+                        no_padding);
+            } else if (src_in_vccm) {
+                mli::mov::mli_mov_prepare_run<int8_t, true, false>(h, src, cfg, dst, dst_write_size, src_mem_stride, src_cpy_size,
+                        no_padding);
+            } else {
+                mli::mov::mli_mov_prepare_run<int8_t, false, false>(h, src, cfg, dst, dst_write_size, src_mem_stride, src_cpy_size,
+                        no_padding);
+            }
         } else if (elem_size == sizeof(uint16_t)) {
-            mli::mov::mli_mov_prepare_run<int16_t>(h, src, cfg, dst, dst_write_size, src_mem_stride, src_cpy_size,
-                    no_padding,  src_in_vccm, dst_in_vccm);
+            if (src_in_vccm && dst_in_vccm) {
+                mli::mov::mli_mov_prepare_run<int16_t, true, true>(h, src, cfg, dst, dst_write_size, src_mem_stride, src_cpy_size,
+                        no_padding);
+            } else if (dst_in_vccm) {
+                mli::mov::mli_mov_prepare_run<int16_t, false, true>(h, src, cfg, dst, dst_write_size, src_mem_stride, src_cpy_size,
+                        no_padding);
+            } else if (src_in_vccm) {
+                mli::mov::mli_mov_prepare_run<int16_t, true, false>(h, src, cfg, dst, dst_write_size, src_mem_stride, src_cpy_size,
+                        no_padding);
+            } else {
+                mli::mov::mli_mov_prepare_run<int16_t, false, false>(h, src, cfg, dst, dst_write_size, src_mem_stride, src_cpy_size,
+                        no_padding);
+            }
         } else if (elem_size == sizeof(uint32_t)) {
-            mli::mov::mli_mov_prepare_run<int32_t>(h, src, cfg, dst, dst_write_size, src_mem_stride, src_cpy_size,
-                    no_padding,  src_in_vccm, dst_in_vccm);
+            if(src_in_vccm && dst_in_vccm) {
+                mli::mov::mli_mov_prepare_run<int32_t, true, true>(h, src, cfg, dst, dst_write_size, src_mem_stride, src_cpy_size,
+                        no_padding);
+            } else if(dst_in_vccm) {
+                mli::mov::mli_mov_prepare_run<int32_t, false, true>(h, src, cfg, dst, dst_write_size, src_mem_stride, src_cpy_size,
+                       no_padding);
+            } else if(src_in_vccm) {
+                mli::mov::mli_mov_prepare_run<int32_t, true, false>(h, src, cfg, dst, dst_write_size, src_mem_stride, src_cpy_size,
+                        no_padding);
+            } else {
+                   mli::mov::mli_mov_prepare_run<int32_t, false, false>(h, src, cfg, dst, dst_write_size, src_mem_stride, src_cpy_size,
+                           no_padding);
+            }
         } else {
             MLI_ASSERT(0);
             retval = MLI_STATUS_TYPE_MISMATCH;

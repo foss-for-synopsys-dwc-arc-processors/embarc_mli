@@ -2930,7 +2930,7 @@ mli_status mli_chk_data_movement(const mli_tensor *in, const mli_mov_cfg_t *cfg,
     mli_status stat = MLI_STATUS_OK;
     if (MLI_CHECK(in != NULL, "Bad in tensor pointer")) return MLI_STATUS_BAD_TENSOR;
     // For data movement the tensor data can be allocated in external memory.
-    stat = MLI_CHECK_STATUS(mli_mem_chk<false>(out, false), "Memory check error");
+    stat = MLI_CHECK_STATUS(mli_mem_chk<false>(in, false), "Memory check error");
     if (stat != MLI_STATUS_OK) {
        	return stat;
     }

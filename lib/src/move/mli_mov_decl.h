@@ -39,14 +39,15 @@ namespace mli {
 namespace mov {
 namespace ref {
 
-template<typename io_T>
+template<typename io_T, bool src_in_vccm, bool dst_in_vccm>
 static MLI_FORCE_INLINE void mli_mov_prepare_run (mli_mov_handle_t* h, const mli_tensor* src, const mli_mov_cfg_t* cfg,
         mli_tensor* dst, uint32_t * dst_write_size, uint32_t * src_mem_stride, uint32_t * src_cpy_size,
-        bool no_padding, bool src_in_vccm, bool dst_in_vccm);
+        bool no_padding);
 
 template<typename io_T>
 static MLI_FORCE_INLINE void mli_mov_memcpy(mli_mov_handle_t* h, const io_T* __restrict src, io_T* __restrict dst,
-        uint32_t size, uint32_t out_stride, uint32_t in_stride, bool src_in_vccm, bool dst_in_vccm);
+        uint32_t size, uint32_t out_stride, uint32_t in_stride, bool src_in_vccm, bool dst_in_vccm,
+        bool no_inner_src_stride, bool no_inner_dst_stride, bool small_size);
 template<typename io_T>
 static MLI_FORCE_INLINE void mov_inner_loop (mli_mov_handle_t* h, const io_T* __restrict src, io_T* __restrict dst,
         uint32_t inner_dst_size, uint32_t inner_src_size,
@@ -54,21 +55,25 @@ static MLI_FORCE_INLINE void mov_inner_loop (mli_mov_handle_t* h, const io_T* __
         uint32_t inner_src_offset, uint32_t inner_dst_offset,
         uint8_t inner_pre_padding, uint8_t inner_post_padding,
         uint32_t inner_subsample, uint32_t inner_src_shape,
-        bool zero_inner_loop, bool src_in_vccm, bool dst_in_vccm);
+        bool zero_inner_loop, bool src_in_vccm, bool dst_in_vccm,
+        bool no_inner_src_stride, bool no_inner_dst_stride, bool small_size);
 template<typename io_T>
 static MLI_FORCE_INLINE void mov_inner_loop (mli_mov_handle_t* h, const io_T* __restrict src, io_T* __restrict dst,
         uint32_t inner_dst_size,
         uint32_t inner_src_strde, uint32_t inner_dst_strde,
         uint32_t inner_subsample,
-        bool src_in_vccm, bool dst_in_vccm);
+        bool src_in_vccm, bool dst_in_vccm,
+        bool no_inner_src_stride, bool no_inner_dst_stride, bool small_size);
 
 }
 namespace vdsp {
 template<typename io_T>
    static MLI_FORCE_INLINE void mli_mov_memcpy(mli_mov_handle_t* h, const io_T* __restrict src, io_T* __restrict dst,
-           uint32_t size, uint32_t out_stride, uint32_t in_stride, bool src_in_vccm, bool dst_in_vccm);
+           uint32_t size, uint32_t out_stride, uint32_t in_stride, bool src_in_vccm, bool dst_in_vccm,
+           bool no_inner_src_stride, bool no_inner_dst_stride, bool small_size);
 template<typename io_T>
-static MLI_FORCE_INLINE void fill_inner_dimension_by_zeros(io_T* __restrict p, uint32_t size, uint32_t inner_mem_stride);
+static MLI_FORCE_INLINE void fill_inner_dimension_by_zeros(io_T* __restrict p, uint32_t size, uint32_t inner_mem_stride,
+        const bool dst_in_vccm, bool no_inner_dst_stride);
 template<typename io_T>
 static MLI_FORCE_INLINE void mov_inner_loop (mli_mov_handle_t* h, const io_T* __restrict src, io_T* __restrict dst,
         uint32_t inner_dst_size, uint32_t inner_src_size,
@@ -76,13 +81,15 @@ static MLI_FORCE_INLINE void mov_inner_loop (mli_mov_handle_t* h, const io_T* __
         uint32_t inner_src_offset, uint32_t inner_dst_offset,
         uint8_t inner_pre_padding, uint8_t inner_post_padding,
         uint32_t inner_subsample, uint32_t inner_src_shape,
-        bool zero_inner_loop, bool src_in_vccm, bool dst_in_vccm);
+        bool zero_inner_loop, bool src_in_vccm, bool dst_in_vccm,
+        bool no_inner_src_stride, bool no_inner_dst_stride, bool small_size);
 template<typename io_T>
 static MLI_FORCE_INLINE void mov_inner_loop (mli_mov_handle_t* h, const io_T* src, io_T* dst,
         uint32_t inner_dst_size,
         uint32_t inner_src_strde, uint32_t inner_dst_strde,
         uint32_t inner_subsample,
-        bool src_in_vccm, bool dst_in_vccm);
+        bool src_in_vccm, bool dst_in_vccm,
+        bool no_inner_src_stride, bool no_inner_dst_stride, bool small_size);
 }
 }
 }
