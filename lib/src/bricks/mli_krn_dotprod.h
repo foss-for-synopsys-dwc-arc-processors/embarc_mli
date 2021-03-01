@@ -33,6 +33,7 @@ using mli::krn::vdsp::dotprod1D_v;
 using mli::krn::vdsp::dotprod1D_v_unroll;
 using mli::krn::ref::dotprod2D;
 using mli::krn::vdsp::dotprod2D_vv;
+using mli::krn::vdsp::dotprod2D_vv_ptrvector;
 using mli::krn::ref::dotprod3D;
 using mli::krn::vdsp::dotprod3D_v;
 using mli::krn::vdsp::dotprod3D_v_unroll;

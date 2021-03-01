@@ -71,8 +71,8 @@ if (ARC)
     endif()
 
     list(APPEND MLI_PLATFORM_FLAGS
-        -Hon=Long_enums
-        "SHELL: -mllvm -gen-lpcc=false"
+        -Hon=Long_enums -Wcg,-arc-vdsp-AA=1 
+        "SHELL: -mllvm -gen-lpcc=false -mllvm -arc-sort-out-copy=true -mllvm -arc-vdsp-copy=3"
     )
     if (DEFINED BUILDLIB_DIR)
         list(APPEND MLI_PLATFORM_LINK_OPTIONS
