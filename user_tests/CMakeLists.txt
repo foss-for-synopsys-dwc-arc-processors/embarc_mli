@@ -121,39 +121,39 @@ target_include_directories(test_components_obj PRIVATE ${mli_include_dirs})
 #======================================================
 # Function to add new user test
 #======================================================
-function(ADD_USER_TEST TEST_NAME)
-    add_executable(test_mli_krn_${TEST_NAME}
-        tests/mli_krn_${TEST_NAME}/tests_mli_krn_${TEST_NAME}.cc
+function(ADD_USER_TEST MLI_SET TEST_NAME)
+    add_executable(test_mli_${MLI_SET}_${TEST_NAME}
+        tests/mli_${MLI_SET}_${TEST_NAME}/tests_mli_${MLI_SET}_${TEST_NAME}.cc
     )
 
-    target_include_directories(test_mli_krn_${TEST_NAME} PRIVATE
-        tests/mli_krn_${TEST_NAME}
+    target_include_directories(test_mli_${MLI_SET}_${TEST_NAME} PRIVATE
+        tests/mli_${MLI_SET}_${TEST_NAME}
     )
 
-    target_link_libraries(test_mli_krn_${TEST_NAME} PUBLIC mli)
-    target_link_libraries(test_mli_krn_${TEST_NAME} PUBLIC test_components_obj)
+    target_link_libraries(test_mli_${MLI_SET}_${TEST_NAME} PUBLIC mli)
+    target_link_libraries(test_mli_${MLI_SET}_${TEST_NAME} PUBLIC test_components_obj)
 
-    target_compile_options(test_mli_krn_${TEST_NAME} PRIVATE
+    target_compile_options(test_mli_${MLI_SET}_${TEST_NAME} PRIVATE
         ${MLI_PLATFORM_COMPILE_OPTIONS}
         ${TEST_COMPILE_OPTIONS}
         ${DSP_CONTROL_OPTION}
     )
-    target_compile_definitions(test_mli_krn_${TEST_NAME} PRIVATE ${TEST_COMPILE_DEFINITIONS})
+    target_compile_definitions(test_mli_${MLI_SET}_${TEST_NAME} PRIVATE ${TEST_COMPILE_DEFINITIONS})
 
-    target_link_options(test_mli_krn_${TEST_NAME} PRIVATE
+    target_link_options(test_mli_${MLI_SET}_${TEST_NAME} PRIVATE
         ${MLI_PLATFORM_LINK_OPTIONS}
         ${TEST_COMPILE_OPTIONS}
         ${DSP_CONTROL_OPTION}
     )
 
     if (ARC)
-        target_link_options(test_mli_krn_${TEST_NAME} PRIVATE
+        target_link_options(test_mli_${MLI_SET}_${TEST_NAME} PRIVATE
             -m
-            -Coutput=./bin/test_mli_krn_${TEST_NAME}.map
+            -Coutput=./bin/test_mli_${MLI_SET}_${TEST_NAME}.map
         )
     endif()
 
-    set_target_properties(test_mli_krn_${TEST_NAME}
+    set_target_properties(test_mli_${MLI_SET}_${TEST_NAME}
         PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "./bin$<0:>"
     )
@@ -162,51 +162,56 @@ endfunction()
 #======================================================
 # Data Conversion Group
 #======================================================
-add_user_test(hlp_convert_tensor)
+add_user_test(hlp convert_tensor)
 
 #======================================================
 # Data Movement Group
 #======================================================
-add_user_test(data_movement)
+add_user_test(krn data_movement)
 
 #======================================================
 # Convolution Group
 #======================================================
-add_user_test(conv2d)
-add_user_test(depthwise_conv)
-add_user_test(transpose_conv2d)
-add_user_test(group_conv2d)
+add_user_test(krn conv2d)
+add_user_test(krn depthwise_conv)
+add_user_test(krn transpose_conv2d)
+add_user_test(krn group_conv2d)
 
 #======================================================
 # Pooling Group
 #======================================================
-add_user_test(avepool)
-add_user_test(maxpool)
+add_user_test(krn avepool)
+add_user_test(krn maxpool)
 
 #======================================================
 # Diverse Kernels Group
 #======================================================
-add_user_test(argmax)
-add_user_test(permute)
+add_user_test(krn argmax)
+add_user_test(krn permute)
 
 #======================================================
 # Fully Connected And Recurrent Group
 #======================================================
-add_user_test(fully_connected)
-add_user_test(rnn_dense)
+add_user_test(krn fully_connected)
+add_user_test(krn rnn_dense)
 
 #======================================================
 # Transform (Activation) Group
 #======================================================
-add_user_test(softmax)
-add_user_test(relu)
-add_user_test(leaky_relu)
-add_user_test(prelu)
-add_user_test(tanh)
-add_user_test(sigm)
-add_user_test(l2_normalize)
+add_user_test(krn softmax)
+add_user_test(krn relu)
+add_user_test(krn leaky_relu)
+add_user_test(krn prelu)
+add_user_test(krn tanh)
+add_user_test(krn sigm)
+add_user_test(krn l2_normalize)
 
 #======================================================
 # Eltwise Group
 #======================================================
-add_user_test(eltwise)
+add_user_test(krn eltwise)
+
+#======================================================
+# Helpers functions Group
+#======================================================
+# add_user_test(hlp tensor_struct)

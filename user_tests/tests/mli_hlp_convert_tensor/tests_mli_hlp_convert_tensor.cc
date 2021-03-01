@@ -21,7 +21,7 @@
 #include "test_tensor_quantizer.h"
 #include "test_report.h"
 
-#include "vectors_mli_krn_hlp_convert_tensor.inc"
+#include "vectors_mli_hlp_convert_tensor.inc"
 
 
 using mli::tst::tensor_quantizer;
@@ -188,7 +188,7 @@ bool run_test(mli_status(*mli_hlp_convert_tensor_func)(const mli_tensor *, mli_t
         is_test_passed = false;
     }
 
-    // Quantize input tensor using mli_krn_hlp_convert_tensor to test FP32 --> XX conversion
+    // Quantize input tensor using mli_hlp_convert_tensor to test FP32 --> XX conversion
     mli_tensor input = cur_test->in.get_not_quantized_tensor(mem_in_keeper.allocate_memory(cur_test->in));
     if (is_test_passed &&
             tensor_quantizer::validate_tensor(input) != tensor_quantizer::kOk) {
@@ -300,7 +300,7 @@ int main() {
         final_status &= is_test_passed;
     }
 
-    reporter.report_outline("[AUTO] Group: mli_krn_hlp_convert_tensor", final_status);
+    reporter.report_outline("[AUTO] Group: mli_hlp_convert_tensor", final_status);
 
     return (final_status) ? 0 : 1;
 }
