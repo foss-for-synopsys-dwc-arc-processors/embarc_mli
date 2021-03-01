@@ -131,7 +131,7 @@ MLI_FORCE_INLINE void convolution2D(
 //========================================================
 // Unified Depthwise convolution 2D template
 //========================================================
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void depthwise_convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
@@ -220,7 +220,7 @@ MLI_FORCE_INLINE void depthwise_convolution2D(
     } // for H_idx
 }
 
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void depthwise_convolution2D_wrapper(
         MLI_PTR(io_T) __restrict in_ptr,
         MLI_PTR(w_T) __restrict w_ptr,
@@ -245,7 +245,7 @@ MLI_FORCE_INLINE void depthwise_convolution2D_wrapper(
     weights_.ptr = w_ptr;
     out_.ptr = out_ptr;
 
-    mli::krn::depthwise_convolution2D<io_T, w_T, b_T, acc_T, quant_T>(
+    mli::krn::depthwise_convolution2D<io_T, w_T, b_T, acc_T, quant_T, fix_kernel_width, fix_kernel_height>(
             in_, weights_, biases, out_, perception_area, quant_params,
             val_min_limit, val_max_limit,
             stride_height, stride_width, dilation_height, dilation_width,
@@ -358,7 +358,7 @@ MLI_FORCE_INLINE void conv2d_prepare_and_run(
                 padding_top, padding_left,
                 padding_bot, padding_right);
     } else {
-        depthwise_convolution2D_wrapper<io_T, w_T, b_T, acc_T, quant_T>(
+        depthwise_convolution2D_wrapper<io_T, w_T, b_T, acc_T, quant_T, fix_kernel_width, fix_kernel_height>(
                 in_prv.ptr, weights_prv.ptr, out_prv.ptr,
                 in_prv, weights_prv, bs, out_prv, cent_area, params,
                 (io_T)val_limit.min, (io_T)val_limit.max,

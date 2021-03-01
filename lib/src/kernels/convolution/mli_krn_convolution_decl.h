@@ -57,7 +57,7 @@ MLI_FORCE_INLINE void convolution2D(
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right);
 
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void depthwise_convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
@@ -86,7 +86,7 @@ MLI_FORCE_INLINE void conv2d_prepare_and_run(
 // DSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace dsp {
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void depthwise_convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
@@ -121,7 +121,7 @@ MLI_FORCE_INLINE void convolution2D(
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right);
 
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void depthwise_convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
