@@ -100,7 +100,7 @@ static MLI_FORCE_INLINE void calc_mul(unsigned div, int16_t* mul, int* shift_val
     int shift_norm_val = 0;
 
     if (div > 1) { 
-        shift_norm_val = mli_math_norm_fx<unsigned int, int>(val) + 1;
+        shift_norm_val = mli_math_norm_fx<int, int>(val) + 1;
         val <<= shift_norm_val;
     }
 

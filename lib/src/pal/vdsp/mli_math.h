@@ -11,10 +11,12 @@
 #define _VDSP_MLI_MATH_H_
 
 #include <arc_vector.h>
+#include <arc/arc_intrinsics.h>
 #include <type_traits>
 #include <limits>
 #include "arc_vector_ext.h"
 #include "mli_debug.h"
+
 
 //=========================================================================
 //
@@ -1360,6 +1362,26 @@ MLI_FORCE_INLINE o_T mli_math_norm_fx(T x) {
     while ((x >> r) != hi)
         r++;
     return (inp_size - 1) - r;
+}
+
+template <>
+MLI_FORCE_INLINE int32_t mli_math_norm_fx(int64_t x) {
+    if ((x <= std::numeric_limits<int32_t>::max()) &&
+        (x >= std::numeric_limits<int32_t>::min())) {
+        return (32 + _norm((int32_t) x ));
+    } else {
+        return _norm((int32_t) (x >> 32));
+    }
+}
+
+template <>
+MLI_FORCE_INLINE int32_t mli_math_norm_fx(int32_t x) {
+    return _norm(x);
+}
+
+template <>
+MLI_FORCE_INLINE int32_t mli_math_norm_fx(int16_t x) {
+    return _normh(x);
 }
 
 template <>
