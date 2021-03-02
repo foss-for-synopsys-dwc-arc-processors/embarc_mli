@@ -10,7 +10,7 @@ sizes of those CCMs, so you must copy data into CCMs for processing.
 
 The functions in the Data Movement Group assist with this moving (copying) of data.  
 For further efficiency, the APIs allow data to be manipulated in several ways, thus 
-allowing copy+manipulation to happen at the same time, rather than in two separate steps.
+allowing copy and manipulation to happen at the same time, rather than in two separate steps.
 
 The supported transformations are described here and shown pictorially in Figure  
 :ref:`f_data_mv_grp_t`
@@ -81,7 +81,7 @@ explanation.
 ..
 
 The fields of this structure are described in Table :ref:`t_mli_mov_cfg_desc`. All the fields are arrays with 
-size ``MLI_MAX_RANK``.Fields are stored in order starting from the one with the largest stride between the data 
+size ``MLI_MAX_RANK``. Fields are stored in order starting from the one with the largest stride between the data 
 portions. For example, for a matrix A(rows, columns), shape[0] = rows, shape[1] = columns. The data move function 
 does not change the number of dimensions. The rank of the source tensor determines the amount of values that are 
 read from the array. The other values are don’t care.
@@ -126,20 +126,19 @@ The size of the array is defined by ``MLI_MAX_RANK``.
    +---------------------+----------------+---------------------------------------------------------------------+ 
 ..
 
-The function must comply to the following conditions:
+Ensure that you satisfy the following conditions before calling the function:
 
  - ``src`` tensor must be valid.
  
-  - ``dst`` tensor must contain a valid pointer to a buffer with sufficient capacity 
-    (that is, the total amount of elements in input tensor). 
-    Other fields are filled by the kernel (shape, rank and element-specific parameters).
+ - ``dst`` tensor must contain a valid pointer to a buffer with sufficient capacity (that is, the 
+   total amount of elements in input tensor). Other fields are filled by the kernel (shape, rank and 
+   element-specific parameters).
 
- - Buffers of ``src`` and ``dst`` tensors must point to different, non-overlapped memory regions
- 
-For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions: 
+ - Buffers of ``src`` and ``dst`` tensors must point to different, non-overlapped memory regions.
 
- - In case of per-axis quantization, ``el_params`` field of ``dst`` tensor are filled by kernel 
-   using ``src`` quantization parameters. The following fields are affected:
+For **sa8_sa8_sa32** versions of kernel, and in case of per-axis quantization, the ``el_params`` 
+field of ``dst`` tensor is filled by kernel using ``src`` quantization parameters. 
+The following fields are affected:
 
     - ``dst.el_params.sa.zero_point.mem.pi16`` and related capacity field
 
@@ -147,20 +146,19 @@ For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions
 
     - ``dst.el_params.sa.scale_frac_bits.mem.pi8`` and related capacity field
 
-   Depending on the state of the above pointers, the following options are available:
-
-    - If the pointers are initialized with ``nullptr``, then corresponding fields from ``in`` tensor 
+Depending on the state of the preceding pointer fields, ensure that you choose only one of the 
+following options to initialize all the fields in a consistent way:
+     
+    - If you initialize the pointers with ``nullptr``, then corresponding fields from the ``in`` tensor 
       are copied to ``dst`` tensor. No copy of quantization parameters itself is performed.
 
-    - If the pointers and capacity fields are initialized with corresponding fields from ``in`` tensor 
+    - If you initialize the pointers and capacity fields with corresponding the fields from the ``in`` tensor, 
       then no action is applied.
 
-    - If pointers and capacity fields are initialized with pre-allocated memory and its capacity,
+    - If you initialize the pointers and capacity fields with pre-allocated memory and its capacity,
       then a copy of quantization parameters itself is performed. Capacity of allocated memory must 
       be big enough to keep related data from input tensor.
-
-   All of the fields must be initialized in a consistent way, using only one of the above options.
-
+ 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
@@ -455,7 +453,7 @@ is registered with the following function.  The parameters are described in Tabl
    +--------------------------+-------------------------------------------------+
 ..
 
-.. note::: 
+.. note:: 
 
    If a callback is used, ``mli_mov_registercallback`` must be called before ``mli_mov_start`` 
    to avoid race conditions. A race condition would arise if the DMA transaction is faster  
@@ -501,16 +499,15 @@ Restrictions for source and destination tensors
 
   - ``src`` tensor must be valid.
 
-  - ``dst`` tensor must contain a valid pointer to a buffer with sufficient capacity 
-    (that is, the total amount of elements in input tensor). 
-    Other fields are filled by the kernel (shape, rank and element-specific parameters).
+  - ``dst`` tensor must contain a valid pointer to a buffer with sufficient capacity. (that is, 
+    the total amount of elements in input tensor). Other fields are filled by the kernel (shape, 
+    rank and element-specific parameters).
 
- - Buffers of ``src`` and ``dst`` tensors must point to different, non-overlapped memory regions
+  - Buffers of ``src`` and ``dst`` tensors must point to different, non-overlapped memory regions.
  
-For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions: 
-
- - In case of per-axis quantization, ``el_params`` field of ``dst`` tensor are filled by kernel 
-   using ``src`` quantization parameters. The following fields are affected:
+For **sa8_sa8_sa32** versions of kernel, and in case of per-axis quantization, the ``el_params`` 
+field of ``dst`` tensor is filled by kernel using ``src`` quantization parameters. 
+The following fields are affected:
 
     - ``dst.el_params.sa.zero_point.mem.pi16`` and related capacity field
 
@@ -518,20 +515,18 @@ For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions
 
     - ``dst.el_params.sa.scale_frac_bits.mem.pi8`` and related capacity field
 
-   Depending on the state of the above pointers, the following options are available:
+Depending on the state of the preceding pointer fields, ensure that you choose only one of the 
+following options to initialize all the fields in a consistent way:
 
-    - If the pointers are initialized with ``nullptr``, then corresponding fields from ``in`` tensor 
+    - If you initialize the pointers with ``nullptr``, then corresponding fields from ``in`` tensor 
       are copied to ``dst`` tensor. No copy of quantization parameters itself is performed.
 
-    - If the pointers and capacity fields are initialized with corresponding fields from ``in`` tensor 
+    - If you initialize the pointers and capacity fields with corresponding fields from ``in`` tensor, 
       then no action is applied.
 
-    - If pointers and capacity fields are initialized with pre-allocated memory and its capacity,
+    - If you initialize the pointers and capacity fields with pre-allocated memory and its capacity,
       then a copy of quantization parameters itself is performed. Capacity of allocated memory must 
       be big enough to keep related data from input tensor.
-
-   All of the fields must be initialized in a consistent way, using only one of the above options.
-
 
 .. _dma_res_mgmt:
 

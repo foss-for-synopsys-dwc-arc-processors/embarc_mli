@@ -18,9 +18,9 @@ as described in table :ref:`t_mli_status_enum`.
    +-------------------------------------+----------------+--------------------------------------------------------------------------+
    | ``MLI_STATUS_BAD_TENSOR``           |                | Invalid tensor is passed to the function                                 |
    +-------------------------------------+----------------+--------------------------------------------------------------------------+
-   | ``MLI_STATUS_SHAPE_MISMATCH``       |                | The shapes or rank of the tensors are not compatible for this function   |
+   | ``MLI_STATUS_SHAPE_MISMATCH``       |                | The shapes or rank of the tensors are not compatible with this function  |
    +-------------------------------------+----------------+--------------------------------------------------------------------------+ 
-   | ``MLI_STATUS_INCOMPATEBLE_TENSORS`` |                | Some parameters of the tensors are not compatible for this function      |
+   | ``MLI_STATUS_INCOMPATEBLE_TENSORS`` |                | Some parameters of the tensors are not compatible with this function     |
    +-------------------------------------+----------------+--------------------------------------------------------------------------+ 
    | ``MLI_STATUS_BAD_FUNC_CFG``         |                | Invalid configuration is passed to the function                          |
    +-------------------------------------+----------------+--------------------------------------------------------------------------+ 

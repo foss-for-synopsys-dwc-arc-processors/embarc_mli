@@ -15,7 +15,14 @@ convolution with number of groups equal to number of input channels, and
 with the single filter per each group. TensorFlow-like “channel multiplier” 
 functionality of depthwise convolution can be expressed by group convolution 
 with number of groups equal to input channels and N equal to channel multiplier 
-number of filters per each group. For more details on group convolutions, see [3] [4].
+number of filters per each group. 
+
+.. note::
+
+   For more details on group convolutions, see `ImageNet classification with deep 
+   convolutional neural networks <https://dl.acm.org/doi/10.1145/3065386>`_ and 
+   `Aggregated Residual Transformations for Deep Neural Networks <https://arxiv.org/abs/1611.05431>`_.
+..
 
 Optionally, saturating ReLU activation function can be applied to the result of 
 the convolution during the function’s execution. For more info on supported ReLU 
@@ -57,9 +64,10 @@ parameters are shown in the following table:
 
 Number of groups to split is not provided to the kernel explicitly. Instead, it 
 is derived from input and weights tensors shape. For example, in a HWCN data 
-layout, if in feature map is :math:`[(Hi, Wi, Ci])` and weights is :math:`[(Hk, Wk, Cw, Co])`, 
-number of groups is :math:`M = Ci / Cw`, and number of filters per each group is Co / M. 
-Therefore, number of input channels Ci must be multiple of Cig, and number of 
+layout, if the ``in`` feature map is :math:`(Hi, Wi, Ci)` and the ``weights`` 
+tensor is :math:`(Hk, Wk, Cw, Co)`, number of groups is :math:`M = Ci / Cw`, and 
+number of filters per each group is :math:`Co / M`. 
+Therefore, number of input channels :math:`Ci` must be a multiple of :math:`Cig`, and number of 
 output channels must be multiple of number of groups. 
 
 Here is a list of all available Group Convolution functions:
@@ -126,12 +134,12 @@ Here is a list of all available Group Convolution functions:
    |                                                  || Height of weights tensor: **5**     |
    +--------------------------------------------------+--------------------------------------+
                                                       
-All the listed functions must comply to the following conditions:
+Ensure that you satisfy the following conditions before calling the function:
 
  - ``in``, ``weights`` and ``bias`` tensors must be valid.
  
  - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity 
-   and valid el_params union. Other fields of the structure do not have to contain 
+   and valid ``el_params`` union. Other fields of the structure do not have to contain 
    valid data and are filled by the function.
 
  - ``in`` and ``out`` tensors must not point to overlapped memory regions.
@@ -147,14 +155,14 @@ All the listed functions must comply to the following conditions:
  - ``bias`` must be a one-dimensional tensor. Its length must be equal to N dimension 
    (number of filters) of weights tensor.
    
- - ``padding_top`` and ``padding_bottom`` parameters must be in range of [(0, weights (H)eight).
+ - ``padding_top`` and ``padding_bottom`` parameters must be in range of [0, weights (H)eight).
  
- - ``padding_left`` and ``padding_right`` parameters must be in range of [(0, weights (W)idth).
+ - ``padding_left`` and ``padding_right`` parameters must be in range of [0, weights (W)idth).
  
  - ``stride_width`` and ``stride_height`` parameters must not be equal to 0.
  
  - Width (W) and Height (H) dimensions of ``weights`` tensor must be less than or equal to 
-   the appropriate dimensions of the in tensor.
+   the appropriate dimensions of the ``in`` tensor.
    
  - Effective width and height of ``weights`` after applying dilation factor must not exceed 
    appropriate dimensions of the ``in`` tensor. 
@@ -162,10 +170,11 @@ All the listed functions must comply to the following conditions:
 .. admonition:: Example 
    :class: "admonition tip" 
 
-   :math:`(weights_W * dilation_W + 1) <= in_W`
+   :math:`(weights\_W * dilation\_W + 1) <= in\_W`
 ..
 
-For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions:
+For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions, ensure that you 
+satisfy the following conditions before calling the function:
 
  - ``in`` and ``out`` tensor must be quantized on the tensor level. It implies that each tensor 
    contains a single scale factor and a single zero offset.

@@ -1,5 +1,5 @@
-Release Notes
-=============
+What's New in MLI 2.0 ?
+=======================
 
 New Features in MLI 2.0
 -----------------------
@@ -15,8 +15,6 @@ New Features in MLI 2.0
  - Data formats have been adapted
  
  - Supported Data layouts have been streamlined 
- 
- - List of supported kernels has been extended
  
  - Some kernel functionality and interfaces have changed 
  
@@ -49,17 +47,11 @@ Data Formats
    +-----------------+--------------------------+------------------------------+-------------------------------------------+--------------------------------------+ 
 ..
 
-fx8 has been replaced by sa8 because sa8 gives better accuracy (in most tensors a large part of the 
-negative range is not used) and the performance drawback was estimated around 5% which is not enough
-to justify the effort of supporting both data types.
+fx8 has been replaced by sa8 because sa8 gives better accuracy (in most tensors, a large part of the 
+negative range is not used).
 
 For 16-bit design, the accuracy benefit is relatively lesser (almost one extra bit has a lesser 
-impact on 16-bit design than that on an 8-bit design). So a trade-off was made in favor of performance.
-fp16 has been considered, but for several reasons it was decided to not include it in the MLI 2.0 spec.
-One of the reasons is that for inference, fp16 does not give significant better accuracy than fx16. 
-(fx16 has a larger mantissa) but it can make a difference in area: on many platforms the FP is optional, 
-whereas the int accumulators are always available. Other reasons are implementation cost and cross 
-platform compatibility.
+impact on 16-bit design than that on an 8-bit design). 
  
 The sa8 type can also support per axis quantization. This means that for instance each channel can have 
 a different zero point and scale factor. It depends on the kernel which of the input tensors can have per 
@@ -68,9 +60,7 @@ axis quantization.
 Data Layout
 -----------
 
-It has been decided to support a single data layout because of ease of use and implementation cost 
-reasons. The decision of the used data layout (HWCN) is based on the analysis of optimal vectorization 
-for many graphs in a database. (N is the number of output channels).
+MLI 2.0 supports the HWCN data layout.
 
 .. table:: Supported Data Layouts: Differences between MLI 1.0 and MLI 2.0
    :align: center
@@ -163,3 +153,10 @@ Platforms
 ---------
 
 MLI 2.0 supports EM, HS, and VPX platforms.
+
+
+.. note::
+
+   MLI 1.0 Online Documentation is available `here <https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/tree/e6641aaf1a93d266e9eb06dd3abe77ba44e47b66/doc/build/html>`_.
+..
+   

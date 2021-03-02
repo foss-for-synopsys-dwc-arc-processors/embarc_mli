@@ -94,6 +94,9 @@ Table :ref:`mli_tnsr_struc` describes the fields in the mli_tensor structure.
    +-------------------+------------------------+-----------------------------------------------------------------------------+
    | **Field name**    | **type**               | **Comment**                                                                 |
    +===================+========================+=============================================================================+
+   |                   |                        | The meaning of this field varies based on the setting of the ``rank``       |
+   |                   |                        | field:                                                                      |
+   |                   |                        |                                                                             |   
    | ``data``          | ``mli_data_container`` | - ``rank  > 0``: General Tensor. The tensor contains a pointer to the       |
    |                   |                        |   data.                                                                     |
    |                   |                        |                                                                             |
@@ -102,8 +105,7 @@ Table :ref:`mli_tnsr_struc` describes the fields in the mli_tensor structure.
    |                   |                        |                                                                             |
    |                   |                        | This field has a union of different possible data container types. For      |
    |                   |                        | scalar tensors (tensors with a single element), this field is not a         |
-   |                   |                        | pointer, but it contains the data itself. This is indicated by              |
-   |                   |                        | ``rank == 0``.                                                              |
+   |                   |                        | pointer, but it contains the data itself.                                   |
    +-------------------+------------------------+-----------------------------------------------------------------------------+
    | ``data.capacity`` | ``unit32_t``           | Size in bytes of the allocated memory that the data field points to. In     |
    |                   |                        | case there is no buffer attached (``rank == 0``), the capacity is set to 0. |
@@ -136,7 +138,7 @@ Table :ref:`mli_tnsr_struc` describes the fields in the mli_tensor structure.
      
 ..
 
-``MLI_MAX_RANK`` is set to 4.
+\* ``MLI_MAX_RANK`` is set to 4.
 
 :ref:`t_mli_el_p_union` describes the fields in the mli_element_params union.  Several members of this union 
 are used to support per-axis quantization. ``sa.dim`` indicates over which axis (dimension) of the tensor the 

@@ -2,7 +2,8 @@ Gated Recurrent Unit (GRU) Cell Prototype and Function List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This kernel implements the Gated Recurrent Unit (GRU) cell in version where a reset 
-gate is applied on the hidden state before matrix multiplication [6], as shown in 
+gate is applied on the hidden state before matrix multiplication `Depth-Gated Recurrent 
+Neural Networks <https://en.wikipedia.org/wiki/Gated_recurrent_unit>`_, as shown in 
 Figure :ref:`f_gru_schematic`. 
  
 .. _f_gru_schematic:
@@ -12,7 +13,13 @@ Figure :ref:`f_gru_schematic`.
    Gated Recurrent Unit Schematic Representation
 ..
 
+.. _x_gru:
+
+The GRU Operation
+^^^^^^^^^^^^^^^^^
+
 The GRU operation is described by the following formulas:
+
 
 .. math::
 
@@ -66,7 +73,7 @@ Kernels which implement an GRU cell have the following prototype:
 where data_format is one of the data formats listed in Table :ref:`mli_data_fmts` and the function parameters 
 are shown in the following table:
 
-.. table:: Data Format Naming Convention Fields
+.. table:: GRU Cell Function Parameters 
    :align: center
    :widths: auto 
    
@@ -83,7 +90,7 @@ are shown in the following table:
    +------------------+-------------------------+-----------------------------------------------------------+
    | ``bias``         | ``mli_tensor *``        | [IN] Pointer to constant bias tensor.                     |
    +------------------+-------------------------+-----------------------------------------------------------+
-   | ``cfg``          | ``mli_rnn_dense_cfg *`` | [IN/OUT] Pointer to RNN cell parameters structure.        |
+   | ``cfg``          | ``mli_rnn_cell_cfg *``  | [IN/OUT] Pointer to RNN cell parameters structure.        |
    +------------------+-------------------------+-----------------------------------------------------------+
    | ``out``          | ``mli_tensor *``        | [OUT] Pointer to output tensor. Result is stored here.    |
    +------------------+-------------------------+-----------------------------------------------------------+
@@ -95,7 +102,7 @@ Weights for the cell are consist of two tensors:
 
  - ``weights_in``: a three-dimensional tensor of shape (3, N, M) where N is a number of elements in 
    input tensor, and M is a number of elements in hidden state (equal to number of elements in 
-   output tensor). It represents stacking of next weights from the preceding formulas in order (z, r, u):
+   output tensor). It represents stacking of weights using the :ref:`x_gru` in order (z, r, u):
    
 .. math::
 
@@ -106,7 +113,7 @@ Weights for the cell are consist of two tensors:
 	
  - ``weights_out``: a three-dimensional tensor of shape (3, M, M) where M is a number of cell elements 
    (weights which involved into a single dot product series are stored column wise, that is, with M stride 
-   in memory). It represents stacking of next weights from the preceding formulas in order (z, r, u):
+   in memory). It represents stacking of weights using the :ref:`x_gru` in order (z, r, u):
    
 .. math::
 
@@ -153,7 +160,7 @@ The following table lists all the available GRU cell functions:
    +------------------------------------+--------------------------------------+
 ..
 
-All the listed functions must comply to the following conditions:
+Ensure that you satisfy the following conditions before calling the function:
 
  - ``in``, ``prev_out``, ``weights_in``, ``weights_out`` and ``bias`` tensors must be valid.
  
@@ -173,7 +180,7 @@ All the listed functions must comply to the following conditions:
    or to keep M*batch_size elements if GRU cell is configured with RNN_OUT_ALL). Other 
    fields of the structure do not have to contain valid data and are filled by the function.
    
- - ``in`` and ``out`` tensors must not point to overlapped memory regions.
+ - ``in`` and ``cfg->scratch_data`` tensors must not point to overlapped memory regions.
  
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
@@ -182,7 +189,8 @@ All the listed functions must comply to the following conditions:
    The ``scratch_capacity`` field must reflect the available size of this memory in bytes properly 
    (see Table :ref:`t_mli_rnn_cell_cfg_desc`). 
 
-For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions:
+For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions, ensure that you 
+satisfy the following conditions before calling the function:
  
  - ``in`` and ``prev_out`` tensor must be quantized on the tensor level. It implies that each tensor 
    contains a single scale factor and a single zero offset.

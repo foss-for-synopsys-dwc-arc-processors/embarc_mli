@@ -1,7 +1,8 @@
 Basic Long Short Term Memory (LSTM) Cell Prototype and Function List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This kernel implements the basic non-peephole Long short-term memory (LSTM) cell [5], 
+This kernel implements the basic non-peephole Long short-term memory (LSTM) cell 
+`Long Short-term Memory <https://en.wikipedia.org/wiki/Long_short-term_memory>`_, 
 as shown in Figure :ref:`f_lstm_schematic`. 
  
 .. _f_lstm_schematic:
@@ -11,7 +12,13 @@ as shown in Figure :ref:`f_lstm_schematic`.
    Long Short Term Memory Schematic Representation
 ..
 
+.. _x_lstm:
+
+The LSTM Operation
+^^^^^^^^^^^^^^^^^^
+
 The LSTM operation is described by the following formulas:
+
 
 .. math::
 
@@ -73,7 +80,7 @@ Kernels which implement an LSTM cell have the following prototype:
 where ``data_format`` is one of the data formats listed in Table :ref:`mli_data_fmts` and the function parameters 
 are shown in the following table:
 
-.. table:: Data Format Naming Convention Fields
+.. table:: LSTM Function parameters
    :align: center
    :widths: auto 
    
@@ -90,7 +97,7 @@ are shown in the following table:
    +------------------+-------------------------+-----------------------------------------------------------------+
    | ``bias``         | ``mli_tensor *``        | [IN] Pointer to constant bias tensor.                           |
    +------------------+-------------------------+-----------------------------------------------------------------+
-   | ``cfg``          | ``mli_rnn_dense_cfg *`` | [IN/OUT]   Pointer to RNN cell parameters structure.            |
+   | ``cfg``          | ``mli_rnn_cell_cfg *``  | [IN/OUT]   Pointer to RNN cell parameters structure.            |
    +------------------+-------------------------+-----------------------------------------------------------------+
    | ``cell``         | ``mli_tensor *``        | [IN/OUT] Pointer to cell tensor. Is modified during execution.  |
    +------------------+-------------------------+-----------------------------------------------------------------+
@@ -104,7 +111,7 @@ Weights for the cell are consist of two tensors:
 
  - ``weights_in``: a three-dimensional tensor of shape (4, N, M) where N is a number of elements 
    in input tensor, and M is a number of cell elements (equal to number of elements in cell state 
-   and output tensor). It represents stacking of next weights from the preceding formulas in the order 
+   and output tensor). It represents stacking of weights from :ref:`x_lstm` in the order 
    (I, g, f,o):
 
 .. math::
@@ -118,7 +125,7 @@ Weights for the cell are consist of two tensors:
 
  - ``weights_out``: a three-dimensional tensor of shape (4, M, M) where M is a number of cell 
    elements (weights which involved into a single dot    product series are stored column-wise, 
-   that is, with M stride in memory). It represents stacking of next weights from the preceding formulas in
+   that is, with M stride in memory). It represents stacking of weights from :ref:`x_lstm` in
    order (I, g, f, o):
 
 .. math::
@@ -141,10 +148,11 @@ Weights for the cell are consist of two tensors:
    \end{bmatrix} 
 ..
    
-This kernel implies sequential processing of the set of inputs vectors which is passed by input tensor 
+This kernel implies sequential processing of the set of input vectors that is passed by input tensor 
 of shape (batch_size, N) where N is the length of the single frame :math:`x_{t}`. Both directions 
-of processing (forward and backward) are supported and defined by cfg structure. Kernel can output the bunch 
-of results for according to each step of processing, or only the last one in the sequence.
+of processing (forward and backward) are supported and defined by cfg structure. Kernel can output 
+a pack of results at each step of processing, or it can output the result vector only for the last 
+step in the sequence.
  
 Dense part of calculations uses scratch data from configuration structure for results, and consequently 
 output and previous output tensors might use the same memory if it is acceptable to rewrite previous output 
@@ -170,7 +178,7 @@ Here is a list of all available LSTM cell functions:
    +-------------------------------------+-------------------------------------------+
 ..
 
-All the listed functions must comply to the following conditions:
+Ensure that you satisfy the following conditions before calling the function:
 
  - ``in``, ``prev_out``, ``weights_in``, ``weights_out``, ``bias``, and ``cell`` tensors must be valid.
 
@@ -190,7 +198,7 @@ All the listed functions must comply to the following conditions:
  - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity and valid el_params union. 
    Other fields of the structure do not have to contain valid data and are filled by the function.
    
- - ``in`` and ``out`` tensors must not point to overlapped memory regions.
+ - ``in`` and `` cfg->scratch_data`` tensors must not point to overlapped memory regions.
  
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
@@ -202,7 +210,8 @@ All the listed functions must comply to the following conditions:
    capacity for the result (4*M elements of input type). The ``scratch_capacity`` field must reflect the available size of 
    this memory in bytes properly (see Table :ref:`t_mli_rnn_cell_cfg_desc`). 
    
-For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions: 
+For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions, ensure that you 
+satisfy the following conditions before calling the function: 
 
  - ``in``, ``prev_out`` and ``cell`` tensor must be quantized on the tensor level. It implies that each tensor contains a 
    single scale factor and a single zero offset.

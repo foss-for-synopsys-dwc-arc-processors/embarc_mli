@@ -3,19 +3,17 @@ Introduction
 
 The following groups of NN kernels are defined:
 
-  - Convolution Group
+  - :ref:`chap_conv`
 
-  - Recurrent Group
+  - :ref:`chap_rec_full`
 
-  - Pooling Group
+  - :ref:`chap_pool`
 
-  - Diverse kernels group
+  - :ref:`chap_diverse_kern`
 
-  - Transform (activation) Group
+  - :ref:`chap_transform`
 
-  - Element-wise Group
-
-  - Advanced Image Processing Group
+  - :ref:`chap_element_wise`
 
 Each kernel is implemented as a separate function, and inputs and outputs are 
 represented by the tensor structure defined in section :ref:`mli_tens_data_struct`.  
@@ -23,9 +21,6 @@ A kernel can have multiple specializations, each implemented as a separate funct
 As a result, the neural network graph implementation is represented as series of 
 function calls, which can either be constructed manually by the user or via some 
 automated front-end tool.
-
-The following major sections in this chapter describe each Group’s supported functions 
-and conventions.
 
 A note on Slicing
 ~~~~~~~~~~~~~~~~~~~
@@ -63,11 +58,9 @@ with some kernels requires updating the kernel parameters when passing each slic
 Function Names and Specializations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-All function names of the kernels are constructed in a similar way. To make the implementation 
-easier to manage for both the engineer and the compiler, the level of specialization for this 
-API is chosen at a point that the specializations that are useful on most of the platforms 
-are fixed in the function names. To make it easier to navigate through the list of API functions, 
-all function names are built using the following syntax:
+All function names of the kernels are constructed in a similar way. To make it easier to 
+navigate through the list of API functions, all function names are built using the 
+following syntax:
 
 .. code::
 
@@ -85,12 +78,12 @@ grouped inside the config structure.
    :widths: 50, 30, 130 
    
    +------------------+-----------------+--------------------------------------+
-   | **Field Name**   | **Examples**    | *Description**                       |
+   | **Field Name**   | **Examples**    | **Description**                      |
    +==================+=================+======================================+
-   | Return Codes     | krn             | krn for compute kernels              |
-   |                  | hlp             | hlp for helper functions             |
-   |                  | mov             | mov for data move kernels            |
-   |                  | usr             | usr for user-defined kernels.        |
+   | Group            || krn            || krn for compute kernels             |
+   |                  || hlp            || hlp for helper functions            |
+   |                  || mov            || mov for data move kernels           |
+   |                  || usr            || usr for user-defined kernels.       |
    +------------------+-----------------+--------------------------------------+
    | Functions        || conv2d         | Describes the basic functionality.   | 
    |                  | fully_connected | Full list of supported function      |
@@ -110,14 +103,6 @@ grouped inside the config structure.
    +------------------+-----------------+--------------------------------------+ 
 ..
 
-.. note::
-
-   User-defined kernels are beyond the scope of this document. To incorporate these 
-   functions into future specification versions. it is advised that user-defined 
-   kernels follow the same naming convention, data layouts, and datatypes. 
-   
-..
-
 The naming convention for the data formats is as follows and in :ref:`t_data_fmt_fields`:
 
 .. code::
@@ -131,12 +116,12 @@ The naming convention for the data formats is as follows and in :ref:`t_data_fmt
    :widths: auto
    
    +------------------+------------------+----------------------------------------------+
-   | **Field Name**   | **Examples**     | *Description**                               |
+   | **Field Name**   | **Examples**     | **Description**                              |
    +==================+==================+==============================================+
-   | typename         || **fx**          | Specifies which quantization schema is used: |
-   |                  || **sa**          |                                              |
-   |                  || **fp**          | - fx for Fixed point                         |
-   |                  || **usr**         |                                              |   
+   | typename         |  **fx**          | Specifies which quantization schema is used: |
+   |                  |  **sa**          |                                              |
+   |                  |  **fp**          | - fx for Fixed point                         |
+   |                  |                  |                                              |
    |                  |                  | - sa for Signed Asymmetric                   |
    |                  |                  |                                              |   
    |                  |                  | - fp for Floating Point                      |

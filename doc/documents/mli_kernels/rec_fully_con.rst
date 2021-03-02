@@ -12,9 +12,6 @@ Fully Connected Prototype and Function List
 This kernel implements fully connected layer, also usually referred to as the inner 
 product or dense layer.  
  
-
-
-
 Each value of output tensor is calculated according to the following formula:
 
 .. math:: 
@@ -24,15 +21,15 @@ Each value of output tensor is calculated according to the following formula:
 
 Where:
 
- -  :math:`x_{j}` *–* :math:`j_{\text{th}}` *value in input tensor*
+    :math:`x_{j}` *–* :math:`j_{\text{th}}` *value in input tensor*
 
- -  :math:`y_{i}` *– output of* :math:`i_{\text{th}}` neuron
+    :math:`y_{i}` *– output of* :math:`i_{\text{th}}` neuron
     (:math:`i_{\text{th}}` *value in output tensor)*
 
- -  :math:`W_{i,j}` *– weight of* :math:`j_{\text{th}}\ `\ *input element
+    :math:`W_{i,j}` *– weight of* :math:`j_{\text{th}}\ `\ *input element
     for* :math:`i_{\text{th}}` *neuron.*
 
- -  :math:`b_{i}` *– bias for* :math:`i_{\text{th}}` *neuron*
+    :math:`b_{i}` *– bias for* :math:`i_{\text{th}}` *neuron*
 
 Optionally, saturating ReLU activation function can be applied to the result of the calculations 
 during the function’s execution. For more info on supported ReLU types, see :ref:`relu_prot`.  
@@ -52,7 +49,7 @@ Functions which implement fully connected kernels have the following prototype:
 where ``data_format`` is one of the data formats listed in Table :ref:`mli_data_fmts` 
 and the function parameters are shown in the following table:
 
-.. table:: Data Format Naming Convention Fields
+.. table:: Fully Connected Function Parameters
    :align: center
    :widths: auto 
    
@@ -128,17 +125,17 @@ data to be adjusted according to the following formula:
 
 Where:
 
- -  :math:`in\_zp` *–* zero point of input sa8 tensor
+    :math:`in\_zp` *–* zero point of input sa8 tensor
 
- -  :math:`W_{i,j}` *– weight of* :math:`j_{\text{th}}\ `\ *input element
+    :math:`W_{i,j}` *– weight of* :math:`j_{\text{th}}\ `\ *input element
     for* :math:`i_{\text{th}}` *neuron.*
 
- -  :math:`b_{i}` *– original sa32 bias for* :math:`i_{\text{th}}` *neuron*
+    :math:`b_{i}` *– original sa32 bias for* :math:`i_{\text{th}}` *neuron*
  
- -  :math:`\hat{b}_{i}` *– adjusted sa32 bias for* :math:`i_{\text{th}}` *neuron*
+    :math:`\hat{b}_{i}` *– adjusted sa32 bias for* :math:`i_{\text{th}}` *neuron*
 
 
-All the listed functions must comply to the following conditions:
+Ensure that you satisfy the following conditions before calling the function:
 
  - ``in``, ``weights`` and ``bias`` tensors must be valid.
  
@@ -167,7 +164,8 @@ All the listed functions must comply to the following conditions:
       be equal to 1.
 
  
-For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions: 
+For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions, ensure that you 
+satisfy the following conditions before calling the function: 
 
  - ``in`` and  ``out`` tensors must be quantized on the tensor level. 
    It implies that each tensor contains a single scale factor and a single zero offset.

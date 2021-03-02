@@ -3,16 +3,18 @@ Transpose Convolution Prototype and Function List
 
 This kernel implements a general 2D transposed convolution operation 
 which works by swapping the forward and backward passes of a convolution. 
-For more details on calculations, see chapter 4 of [2]
+For more details on calculations, see chapter 4 of `A guide to convolution 
+arithmetic for deep learning <https://arxiv.org/abs/1603.07285>`_.
 
-Optionally, saturating ReLU activation function can be applied to the 
+Optionally, a saturating ReLU activation function can be applied to the 
 result of the convolution during the function’s execution. For more info 
 on supported ReLU types and calculations, see :ref:`relu_prot`.
 
-Dilation parameter of convolutions config is not applicable in MLI transposed 
-convolution and is ignored.
+The ``dilation_height`` and ``dilation_width`` parameter of ``mli_conv2d_cfg`` 
+configuration structure is not applicable in MLI transposed convolution and is 
+ignored.
 
-Kernels which implement a Transpose Convolutions have the following prototype:
+Kernels which implement Transpose Convolutions have the following prototype:
 
 .. code::
 
@@ -27,7 +29,7 @@ Kernels which implement a Transpose Convolutions have the following prototype:
 where ``data_format`` is one of the data formats listed in Table :ref:`mli_data_fmts` 
 and the function parameters are shown in the following table:
 
-.. table:: Data Format Naming Convention Fields
+.. table:: Transpose Convolution Function Parameters
    :align: center
    :widths: auto 
    
@@ -123,7 +125,7 @@ The following table lists all the available Transpose Convolution functions:
    +-----------------------------------------------------------+-----------------------------------------+
 ..
 
-All the listed functions must comply to the following conditions: 
+Ensure that you satisfy the following conditions before calling the function: 
 
  - ``in``, ``weights`` and ``bias`` tensors must be valid.
  
@@ -140,15 +142,16 @@ All the listed functions must comply to the following conditions:
  - ``bias`` must be a one-dimensional tensor. Its length must be equal to N dimension 
    (number of filters) of ``weights`` tensor.
    
- - ``padding_top`` and ``padding_bottom`` parameters must be in range of [(0, weights (H)eight).
+ - ``padding_top`` and ``padding_bottom`` parameters must be in range of [0, weights (H)eight).
  
- - ``padding_left`` and ``padding_right`` parameters must be in range of [(0, weights (W)idth).
+ - ``padding_left`` and ``padding_right`` parameters must be in range of [0, weights (W)idth).
  
  - ``stride_width`` and ``stride_height`` parameters must not be equal to 0.
  
-For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions:
+For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions, ensure that you 
+satisfy the following conditions before calling the function:
 
- - ``in`` and out ``tensor`` must be quantized on the tensor level. It implies that each tensor 
+ - ``in`` and ``out`` tensor must be quantized on the tensor level. It implies that each tensor 
    contains a single scale factor and a single zero offset.
    
  - ``weights`` and ``bias`` tensors must be symmetric. Both must be quantized on the same level. 
@@ -160,8 +163,8 @@ For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions
    - Per N dimension level (number of filters). It implies that each tensor contains separate 
      scale point for each sub-tensor. All tensors contain single zero offset equal to 0.
 	 
-Scale factors of bias tensor must be equal to the multiplication of input scale factor broadcasted 
-on weights array of scale factors. 
+   - Scale factors of bias tensor must be equal to the multiplication of input scale factor broadcasted 
+     on weights array of scale factors. 
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.

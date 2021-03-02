@@ -19,36 +19,32 @@ these data formats in detail.
    :align: center
    :widths: auto
    
-   +--------------+------------+---------------+-------------+------------------+------------------------+-------------------------------------------------+
-   | **Format**   | **Data**   | **C Type**    | **Format**  | **Quantization** | **Usage in MLI 2.0**   | **Comments**                                    | 
-   | **Category** | **Format** | **Container** | **Name**    | **Granularity**  |                        |                                                 |
-   +==============+============+===============+=============+==================+========================+=================================================+
-   | Fixed Point  |   fx16     | int16_t       | 16-bit      | Per-tensor       | Used as main 16-bit    | Used in MLI 1.x and better accuracy than sa8.   |
-   |              |            |               | fixed point |                  | data format for kernel | It has been considered to replace this datatype |
-   |              |            |               |             |                  | inputs and outputs     | by sa16, but that gives worse performance and   |
-   |              |            |               |             |                  |                        | only very little accuracy improvement.          |
-   |              +------------+---------------+-------------+------------------+------------------------+-------------------------------------------------+
-   |              |   fx8      | int8_t        | 8-bit       | Per-tensor       | Only in conversion     | Used in MLI 1.x and replaced by sa8             |
-   |              |            |               | fixed point |                  | function and in        |                                                 |
-   |              |            |               |             |                  | Combination with fx16  |                                                 |
-   +--------------+------------+---------------+-------------+------------------+------------------------+-------------------------------------------------+
-   | Asymmetric   |   sa32     | int32_t       | 32-bit      | Per-tensor       | Used only for bias     | Required to support TensorFlow Lite Micro       |
-   | Integral     |            |               | signed      | Per-axis         | inputs to kernels      |                                                 |
-   |              |            |               | symmetric   |                  |                        |                                                 |
-   |              +------------+---------------+-------------+------------------+------------------------+-------------------------------------------------+     
-   |              |   sa8      | int8_t        | 8-bit       | Per-tensor       | Used as main 8-bit     | Required to support TensorFlow Lite Micro       |
-   |              |            |               | signed      | Per-axis         | data format for kernel |                                                 |
-   |              |            |               | symmetric   |                  | inputs and outputs     |                                                 |
-   +--------------+------------+---------------+-------------+------------------+------------------------+-------------------------------------------------+
-   | Asymmetric   |   sa8      | int8_t        | 8-bit       | Per-tensor       | Used as main 8-bit     | Required to support TensorFlow Lite Micro       |
-   | Integral     |            |               | signed      | Per-axis         | data format for kernel |                                                 |
-   |              |            |               | symmetric   |                  | inputs and outputs     |                                                 |
-   +--------------+------------+---------------+-------------+------------------+------------------------+-------------------------------------------------+ 
-   | Floating     |   fp32     | float         | 32-bit      | Per-value        | Only in conversion     | Required to support TensorFlow Lite Micro       |
-   | Point        |            |               | floating    |                  | function as interface  |                                                 |
-   |              |            |               | point       |                  | between MLI and user   |                                                 | 
-   |              |            |               |             |                  | code                   |                                                 |
-   +--------------+------------+---------------+-------------+------------------+------------------------+-------------------------------------------------+    
+   +--------------+------------+---------------+-------------+------------------+------------------------+
+   | **Format**   | **Data**   | **C Type**    | **Format**  | **Quantization** | **Usage in MLI 2.0**   | 
+   | **Category** | **Format** | **Container** | **Name**    | **Granularity**  |                        |
+   +==============+============+===============+=============+==================+========================+
+   | Fixed Point  |   fx16     | int16_t       | 16-bit      | Per-tensor       | Used as main 16-bit    |
+   |              |            |               | fixed point |                  | data format for kernel |
+   |              |            |               |             |                  | inputs and outputs     |
+   |              |            |               |             |                  |                        |
+   |              +------------+---------------+-------------+------------------+------------------------+
+   |              |   fx8      | int8_t        | 8-bit       | Per-tensor       | Only in conversion     |
+   |              |            |               | fixed point |                  | function and in        |
+   |              |            |               |             |                  | combination with fx16  |
+   +--------------+------------+---------------+-------------+------------------+------------------------+
+   | Asymmetric   |   sa32     | int32_t       | 32-bit      | Per-tensor       | Used only for bias     |
+   | Integral     |            |               | signed      | Per-axis         | inputs to kernels      |
+   |              |            |               | symmetric   |                  |                        |
+   |              +------------+---------------+-------------+------------------+------------------------+     
+   |              |   sa8      | int8_t        | 8-bit       | Per-tensor       | Used as main 8-bit     |
+   |              |            |               | signed      | Per-axis         | data format for kernel |
+   |              |            |               | symmetric   |                  | inputs and outputs     |
+   +--------------+------------+---------------+-------------+------------------+------------------------+
+   | Floating     |   fp32     | float         | 32-bit      | Per-value        | Only in conversion     |
+   | Point        |            |               | floating    |                  | function as interface  |
+   |              |            |               | point       |                  | between MLI and user   | 
+   |              |            |               |             |                  | code                   |
+   +--------------+------------+---------------+-------------+------------------+------------------------+    
 ..                                                
                                                  
 .. note::
@@ -69,9 +65,10 @@ these data formats in detail.
 Fixed Point Category
 ~~~~~~~~~~~~~~~~~~~~
 
-The Fixed-Point category includes ``fx16`` and ``fx8`` data formats. It’s a default MLI 
-Fixed-point data format and reflects general signed values interpreted by typical 
-Q notation [1]. The following designation is typically used:
+The Fixed-Point category includes ``fx16`` and ``fx8`` data formats. They are the 
+default MLI Fixed-point data format and reflects general signed values interpreted 
+by the typical `Q notation <https://en.wikipedia.org/wiki/Q_(number_format)>`_. 
+The following designation is typically used:
 
   - Value of Qm.n format have m bits for integer part (excluding sign bit), and 
     n bits for fractional part.
@@ -81,7 +78,7 @@ Q notation [1]. The following designation is typically used:
                                 
 The container of the value is always a signed two’s complemented integer number. 
 Approximation of single precision floating point value and backward transformation 
-are performed by next formula:                                                  
+are performed by the following formula:                                                  
                                                  
 .. math::
    x_{fx} &= Round(x_{fp32} * 2^n)
@@ -102,23 +99,23 @@ are performed by next formula:
 Rounding mode (nearest, up, convergence, truncated, and so on) affects only FX representation precision 
 and can be platform specific. If the calculated :math:`x_{fx}` fixed point value exceeds container type 
 range, it must be saturated. In case of immediate forward/backward conversion, :math:`x_{fp32}` might be 
-not equal to the original one due to rounding and saturation operations. Only Per-tensor 
-quantization granularity is supported for these data formats, which means that all values in 
+not equal to the original one due to rounding and saturation operations. Only per-tensor 
+quantization granularity is supported for these data formats, which means that all values in the 
 tensor share the same quantization parameters (number of fractional bits).
 
 An addition of two :math:`{fx}` values might result in overflow if all bits of operands are used and both 
 operands hold the maximum (or minimum) values. It means that an extra bit is required for this 
-operation. But if sum of several operands is needed (accumulation), more than one extra bit is 
+operation. But if the sum of several operands is needed (accumulation), more than one extra bit is 
 required to ensure that the result does not overflow. Assuming that all operands of the same 
 format, the number of extra bits is defined based on the number of additions to be done:
 
 .. math::
 
-   extra\_\_ bits = Ceil({\log}_{2}(number\_\_ of\_\_ operands))         
+   extra\_ bits = Ceil({\log}_{2}(number\_ of\_ operands))         
 ..
 
 Where :math:`Ceil(x)` – function rounds up x to the smallest integer value that is not less 
-than x. From notation point of view, these extra bits are added to integer part.   
+than x. From notation point of view, these extra bits are added to the integer part.   
 
 .. admonition:: Example 
    :class: "admonition tip"
@@ -130,7 +127,7 @@ than x. From notation point of view, these extra bits are added to integer part.
    - Result format is: Q9.4 (since 3+6=9)
 ..
 
-The same logic applies for sequential Multiply-Accumulation (MAC) operation.
+The same logic applies for sequential Multiply-Accumulation (MAC) operations.
 
 Asymmetric Integral category
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -151,25 +148,25 @@ performed by:
 
 Where: 
 
-    :math:`x_{fp32}` *–-* Source single precision floating point value
+    :math:`x_{fp32}` *–* Source single precision floating point value
     
-    :math:`x_{sa}` *–-* signed asymmetric value
+    :math:`x_{sa}` *–* signed asymmetric value
     
-    :math:`z` *–-* zero offset
+    :math:`z` *–* zero offset
     
-    :math:`Round(\ldots)` *–-* rounding to integer value. 
+    :math:`Round(\ldots)` *–* rounding to integer value. 
     
-    :math:`s_{\text{fx}}` *–-* scale ratio in fixed point format
+    :math:`s_{\text{fx}}` *–* scale ratio in fixed point format
     
-    :math:`n` *–-* number of fractional bits of scale ratio. 
+    :math:`n` *–* number of fractional bits of scale ratio. 
     
 Per-axis and per-tensor quantization granularities are supported for this data format. In case of 
 per-tensor quantization, all values in tensor share the same quantization parameters (number scale 
-ratio and zero offset). In case of per-axis quantization, each slice of tensor across a defined axis 
+ratio and zero offset). In case of per-axis quantization, each slice of the tensor across a defined axis 
 is configured with individual quantization parameters (scale ratio and zero offset). 
 
-Asymmetric integral data format is more generic and flexible representation in comparison with 
-fixed point data format. But this flexibility also implies additional complexity in calculations, 
+Asymmetric integral data format is a more generic and flexible representation in comparison with 
+the fixed point data format. But this flexibility also implies additional complexity in calculations, 
 and extra assumptions to simplify it at inference time. These assumptions are listed along with 
 the description of each kernel in :ref:`mli_kernels`. 
 
@@ -180,7 +177,7 @@ specific scale ratios:
 
 .. math::
 
-   x_{\text{sa}} = Round\left( \left( \frac{x_{fp32}}{(s_{fx}*2^{- n})} \right) + z \right) = \ Round\left( \left( \frac{x_{fp32}}{(1*2^{- n})} \right) + 0 \right) = Round\left( x_{fp32}*2^{n} \right) = x_{{fx}}
+   Round\left( \left( \frac{x_{fp32}}{(s_{fx}*2^{- n})} \right) + z \right) = \ Round\left( \left( \frac{x_{fp32}}{(1*2^{- n})} \right) + 0 \right) = Round\left( x_{fp32}*2^{n} \right) = x_{{fx}}
 ..
 
 Quantization: Influence of Accumulator Bit Depth   
@@ -200,7 +197,7 @@ Number of available bits depends on the operands’ types and the platform.
      have 1 sign and 7 significant bits. Single multiplication of such operands results in 
      7 + 7 = 14 significant bits for output. Thus for MAC-based kernels, 17 accumulation bits 
      (as 31-(7+7)=17) are available which can be used to perform up to 2^17 = 131072 operations 
-     without overflow. For simple accumulation, 31 – 7 = 24 bits are available which guaranteed 
+     without overflow. For simple accumulation, 31 – 7 = 24 bits are available which are guaranteed 
      to perform up to 2^24 = 16777216 operations without overflow.
 
    - ``fx16`` operands with 40-bit accumulator is uses 1 sign bit and 39 significant bits. ``fx16`` 
@@ -212,21 +209,20 @@ Number of available bits depends on the operands’ types and the platform.
 ..
 
 In general, the number of accumulations required for one output value calculation can be  
-estimated in advance. Using this information, a graph mapper can determine if the accumulator 
-satisfies requirements or not.
+estimated in advance. 
 
 .. note::
 
    - If the available bits are not enough, ensure that you quantize inputs (including weights for 
-     both the operands of MAC) while keeping some bits unused.
+     both the operands of the MAC) while keeping some bits unused.
      
-   - To reduce the influence of quantization on result, ensure that you evenly distribute these bits 
+   - To reduce the influence of quantization on the result, ensure that you evenly distribute these bits 
      between operands.
 ..
 
 The file ``mli_config.h`` exports a set of defines that hold the number of accumulator bits 
-for the different operand combinations. These values can be different when compiled on a different 
-platform. :ref:`pf_sp_acc_def` lists the defines. 
+for the different operand combinations. These values can vary depending upon the selected
+hardware platform. :ref:`pf_sp_acc_def` lists the defines. 
 
 .. _pf_sp_acc_def:
 .. table:: Platform Specific Accumulator Bit Defines

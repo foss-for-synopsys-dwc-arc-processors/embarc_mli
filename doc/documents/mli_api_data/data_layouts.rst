@@ -4,7 +4,7 @@ Data Layouts
 Data Layouts define how the multi-dimension tensor data is physically arranged in memory. 
 This is relevant in the context of kernels related to convolution and pooling groups 
 or other vision-specific layers. These kernels deal with multi-dimensional tensors which 
-might be considered as images or set of images. In this case, specific layout (order of 
+might be considered as images or a set of images. In this case, specific layout (the order of 
 dimensions and its meaning) is important as it dictates the way calculations are performed. 
 Other kernels are layout-agnostic, or imply non-vision meaning of dimensions. The table 
 :ref:`t_layout_letter_desc` describes the letters used for the layout description.
@@ -35,8 +35,8 @@ Other kernels are layout-agnostic, or imply non-vision meaning of dimensions. Th
    number of batches in batch processing.
 ..
 
-Native MLI Data layout (HWCN)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+MLI Data layout (HWCN)
+~~~~~~~~~~~~~~~~~~~~~~
 
 Layout-dependent MLI kernels use the HWC layout for tensors and HWCN layout for weights. 
 The Height/Width/Channel layout is also referred as “Interleaved” or “Channel last”. 
@@ -87,7 +87,7 @@ Description
    +--------------------+---------------------------------------------+
    | Weights layout     | HWCN (Height; Width; Channel; Filter)       |
    +--------------------+---------------------------------------------+
-   | Output data layout | Number of (input) channels                  |
+   | Output data layout | Number of (output) channels                 |
    +--------------------+---------------------------------------------+
    | Vectorization      | Vectorization across a depth dimension of   |
    |                    | output is beneficial. Depth of output       |

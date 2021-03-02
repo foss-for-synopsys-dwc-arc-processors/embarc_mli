@@ -13,11 +13,16 @@ The convolution operation is shown in Figure :ref:`f_conv_2d`.
    Convolution 2D 
 ..
  
-For example, in a HWCN data layout, if in feature map is (Hi, Wi, Ci) and weights 
-is (Hk, Wk, Ci, Co), the output feature map is (Ho, Wo, Co) tensor where the output 
-dimensions Ho and Wo are calculated dynamically depending on convolution parameters 
-(such as padding or stride), inputs and weights shape. For more details on 
-calculations, see chapter 2 of [2].
+For example, in a HWCN data layout, if the ``in`` feature map is :math:`(Hi, Wi, Ci)` and 
+the ``weights`` feature map is :math:`(Hk, Wk, Ci, Co)`, the output feature map is :math:`(Ho, Wo, Co)` 
+tensor where the output dimensions :math:`Ho` and :math:`Wo` are calculated dynamically depending on 
+convolution parameters (such as padding or stride), inputs and weights shape. 
+
+.. note::
+
+   For more details on calculations, see chapter 2 of `A guide to convolution arithmetic 
+   for deep learning <https://arxiv.org/abs/1603.07285>`_.
+..
 
 Optionally, saturating ReLU activation function can be applied to the result of the 
 convolution during the function’s execution. For more info on supported ReLU types 
@@ -38,12 +43,12 @@ The functions which implement 2D Convolutions have the following prototype:
 where ``data_format`` is one of the data formats listed in Table :ref:`mli_data_fmts` 
 and the function parameters are shown in the following table:
 
-.. table:: Data Format Naming Convention Fields
+.. table:: 2D Convolution Function Parameters
    :align: center
    :widths: 30, 50, 130 
    
    +---------------+-----------------------+--------------------------------------------------+
-   | **Parameter** | **Type**              | *Description**                                   |
+   | **Parameter** | **Type**              | **Description**                                  |
    +===============+=======================+==================================================+
    | ``in``        | ``mli_tensor *``      | [IN] Pointer to constant input tensor            |
    +---------------+-----------------------+--------------------------------------------------+
@@ -85,7 +90,7 @@ Here is a list of all available 2D Convolution functions:
    | ``mli_krn_conv2d_hwcn_sa8_sa8_sa32_k1x1`` || In/out layout: **HWC**                |
    |                                           || Weights layout: **HWCN**              |
    |                                           || In/out/weights data format: **sa8**   |
-   |                                           || Bias data format: **8sa32**           |
+   |                                           || Bias data format: **sa32**            |
    |                                           || Width of weights tensor: **1**        |
    |                                           || Height of weights tensor: **1**       |
    +-------------------------------------------+----------------------------------------+
@@ -144,7 +149,7 @@ Here is a list of all available 2D Convolution functions:
    +-------------------------------------------+----------------------------------------+
 ..
  
-The available 2D Convolution functions must comply with the following conditions:
+Ensure that you satisfy the following conditions before calling the function:
 
  - ``in``, ``weights`` and ``bias`` tensors must be valid.
  
@@ -158,18 +163,20 @@ The available 2D Convolution functions must comply with the following conditions
  
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
- - Bias must be a one-dimensional tensor. Its length must be equal to N dimension 
+ - ``bias`` must be a one-dimensional tensor. Its length must be equal to N dimension 
    (number of filters) of ``weights`` tensor.
    
- - ``Padding_top`` and ``padding_bottom`` parameters must be in the range of (0, weights (H)eight).
+ - ``padding_top`` and ``padding_bottom`` parameters must be in the range of [0, weights (H)eight).
  
- - ``padding_left`` and ``padding_right`` parameters must be in the range of (0, weights (W)idth).
+ - ``padding_left`` and ``padding_right`` parameters must be in the range of [0, weights (W)idth).
  
  - ``stride_width`` and ``stride_height`` parameters must not be equal to 0.
  
- - Width (W) and Height (H) dimensions of weights tensor must be less than or equal to 
-   the appropriate dimensions of the in tensor. Effective width and height of weights 
-   after applying dilation factor must not exceed appropriate dimensions of the in tensor. 
+ - Width (W) and Height (H) dimensions of the ``weights`` tensor must be less than or equal to 
+   the appropriate dimensions of the ``in`` tensor. 
+   
+ - Effective width and height of the ``weights`` tensor after applying dilation factor must not 
+   exceed appropriate dimensions of the ``in`` tensor. 
 
 .. admonition:: Example 
    :class: "admonition tip"
@@ -177,7 +184,8 @@ The available 2D Convolution functions must comply with the following conditions
    :math:`(weights\_W*dilation\_W+1)<=in\_W`.
 ..
                                                                           
-For **sa8_sa8_sa32** versions of kernel, in addition to preceding conditions:
+For **sa8_sa8_sa32** versions of kernel, in addition to preceding conditions, ensure that you satisfy 
+the following conditions before calling the function:
 
  - ``in`` and ``out`` tensors must be quantized on the tensor level. It implies that each tensor 
    contains a single scale factor and a single zero offset.
@@ -185,7 +193,7 @@ For **sa8_sa8_sa32** versions of kernel, in addition to preceding conditions:
  - ``weights`` and ``bias`` tensors must be symmetric. Both must be quantized on the same level. 
    Allowed Options:
    
-   - Per Tensor level. It implies that each tensor contains a single scale factor and a 
+   - Per tensor level. It implies that each tensor contains a single scale factor and a 
      single zero offset equal to 0.
 	 
    - Per N dimension level (number of filters). It implies that each tensor contains 
@@ -194,5 +202,5 @@ For **sa8_sa8_sa32** versions of kernel, in addition to preceding conditions:
  - Scale factors of ``bias`` tensor must be equal to the multiplication of input scale factor 
    broadcasted on weights array of scale factors. 
    
-Depending on the debug level (see section :ref:`err_codes`) this function perform a parameter check 
-and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.   
+Depending on the debug level (see section :ref:`err_codes`) this function might perform a parameter 
+check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.   

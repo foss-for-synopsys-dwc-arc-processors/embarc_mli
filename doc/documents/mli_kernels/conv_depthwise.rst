@@ -5,10 +5,10 @@ Depthwise Convolution Prototype and Function List
 
 This kernel implements a 2D depthwise convolution operation applying each filter 
 channel to each input channel separately. It applies each filter of weights tensor 
-to each framed area of the size of input tensor. The main difference with general 
+to each framed area of the size of the input tensor. The main difference with general 
 2D convolution is that to calculate one channel of output feature map, only one 
 channel of input feature map is used. In contrast, for general 2D convolution all 
-channels of input feature map in a framed area is used to calculate the value in 
+channels of input feature map in a framed area are used to calculate the value in 
 one output channel. A depthwise convolution operation is shown in Figure 
 :ref:`f_conv_depwise`.
  
@@ -19,21 +19,26 @@ one output channel. A depthwise convolution operation is shown in Figure
    Depthwise Convolution
 ..
 
-For example, in a HWCN data layout, if in feature map is (Hi, Wi, Ci) and weights 
-is (Hk, Wk, 1, Co), the output feature map is (Ho, Wo, Co) tensor where the output 
-dimensions Ho and Wo are calculated dynamically depending on convolution parameters 
-(such as padding or stride), inputs and weights shape. For more details on 
-calculations, see chapter 2 of [2]
+For example, in a HWCN data layout, if in feature map is :math:`(Hi, Wi, Ci)` and weights 
+is :math:`(Hk, Wk, 1, Co)`, the output feature map is :math:`(Ho, Wo, Co)` tensor where the output 
+dimensions :math:`Ho` and :math:`Wo` are calculated dynamically depending on convolution parameters 
+(such as padding or stride), inputs and weights shape. 
+
+.. note::
+
+   For more details on    calculations, see chapter 2 of `A guide to convolution 
+   arithmetic for deep learning <https://arxiv.org/abs/1603.07285>`_.
+..
 
 This kernel does not support channel multiplier logic that allows applying several 
 filters for each channel of input. Such functionality refers to group convolution 
 and can be obtained by the corresponding kernel (see :ref:`grp_conv`). 
 
-Optionally, saturating ReLU activation function can be applied to the result of the 
+Optionally, a saturating ReLU activation function can be applied to the result of the 
 convolution during the function’s execution. For more info on supported ReLU types 
 and calculations, see :ref:`relu_prot`.
 
-Kernels which implement a Depthwise Convolutions have the following prototype:
+Kernels which implement depthwise convolution have the following prototype:
 
 .. code::
 
@@ -48,7 +53,7 @@ Kernels which implement a Depthwise Convolutions have the following prototype:
 where ``data_format`` is one of the data formats listed in Table :ref:`mli_data_fmts` and the function 
 parameters are shown in the following table:
 
-.. table:: Data Format Naming Convention Fields
+.. table:: Depth-Wise Convolution Function Parameters
    :align: center
    :widths: auto 
 
@@ -132,7 +137,7 @@ Here is a list of all available Depth-Wise Convolution functions:
    +-----------------------------------------------------+--------------------------------------+
 ..
 
-All the listed functions must comply to the following conditions:
+Ensure that you satisfy the following conditions before calling the function:
 
  - ``in``, ``weights`` and ``bias`` tensors must be valid.
  
@@ -149,20 +154,20 @@ All the listed functions must comply to the following conditions:
  - Channel (C) dimension of ``in`` and Number of Filters (N) dimension of ``weights`` 
    tensors must be equal.
    
- - ``Bias`` must be a one-dimensional tensor. Its length must be equal to N dimension 
+ - ``bias`` must be a one-dimensional tensor. Its length must be equal to N dimension 
    (number of filters) of ``weights`` tensor.
    
- - ``padding_top`` and ``padding_bottom`` parameters must be in range of (0, weights (H)eight).
+ - ``padding_top`` and ``padding_bottom`` parameters must be in range of [0, weights (H)eight).
  
- - ``padding_left`` and ``padding_right`` parameters must be in range of (0, weights (W)idth).
+ - ``padding_left`` and ``padding_right`` parameters must be in range of [0, weights (W)idth).
  
  - ``stride_width`` and ``stride_height`` parameters must not be equal to 0.
  
- - Width (W) and Height (H) dimensions of weights tensor must be less than or equal to 
-   the appropriate dimensions of the in tensor.
+ - Width (W) and Height (H) dimensions of the ``weights`` tensor must be less than or equal to 
+   the appropriate dimensions of the ``in`` tensor.
    
- - Effective width and height of weights after applying dilation factor must not exceed 
-   appropriate dimensions of the in tensor. 
+ - Effective width and effective height of the ``weights`` tensor after applying dilation factor 
+   must not exceed appropriate dimensions of the ``in`` tensor. 
 
 .. admonition:: Example 
    :class: "admonition tip" 
@@ -170,9 +175,10 @@ All the listed functions must comply to the following conditions:
    :math:`(weights\_W*dilation\_W+1)<=in\_W`
 ..
 
-For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions:
+For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions, ensure that you 
+satisfy the following conditions before calling the function:
 
- - ``In`` and ``out`` tensor must be quantized on the tensor level. It implies that each 
+ - ``in`` and ``out`` tensor must be quantized on the tensor level. It implies that each 
    tensor contains a single scale factor and a single zero offset.
    
  - ``weights`` and ``bias`` tensors must be symmetric. Both must be quantized on the same level. 

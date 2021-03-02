@@ -13,21 +13,21 @@ typically used in the majority of RNN architectures:
 
 Where:
 
- -  :math:`{xa}_{j}`, :math:`{xb}_{j}`, :math:`{xn}_{j}` *–*
+    :math:`{xa}_{j}`, :math:`{xb}_{j}`, :math:`{xn}_{j}` *–*
     :math:`j_{\text{th}}` *value in one of the input tensors. These input
     tensors might be current input, previous output, cell state or any other 
     tensor depending on RNN Cell architecture*
-
- -  :math:`{Wa}_{i,j}, :math:`{Wb}_{i,j}`, :math:`text{Wc}_{i,j}` *– weight
+	
+    :math:`{Wa}_{i,j}`, :math:`{Wb}_{i,j}`, :math:`{Wc}_{i,j}` *– weight
     of* :math:`j_{th}\ `\ *input element for*
     :math:`i_{th}` *neuron in one of input weights tensors. These
     weights tensors might be input-to-a-gate weights, output-to-a-gate
     weights or any other tensor depending on RNN Cell architecture*
-
- -  :math:`y_{i}` *– output of* :math:`i_{th}` neuron
+	
+    :math:`y_{i}` *– output of* :math:`i_{th}` neuron
     ( :math:`i_{th}` *value in output tensor).*
-
- -  :math:`b_{i}` *– bias for* :math:`i_{th}` *neuron*
+	
+    :math:`b_{i}` *– bias for* :math:`i_{th}` *neuron*
 	
 Kernels which implement an RNN Dense kernel have the following prototype:
 
@@ -44,7 +44,7 @@ Kernels which implement an RNN Dense kernel have the following prototype:
 where ``data_format`` is one of the data formats listed in Table :ref:`mli_data_fmts` and the 
 function parameters are shown in the following table:
 
-.. table:: Data Format Naming Convention Fields
+.. table:: RNN Dense Function Parameters
    :align: center
    :widths: auto 
    
@@ -113,7 +113,7 @@ All the listed functions must comply to the following conditions :
    must be valid.
 	
  - The number of tensors in inputs and ``weights`` arrays must be the same and 
-   must not exceed MLI_RNN_MAX_INPUTS value. 
+   must not exceed ``MLI_RNN_MAX_INPUTS`` value. 
    
  - Each tensor in ``inputs`` array might be of any shape and rank. Only total 
    number of elements is considered. 
@@ -129,14 +129,15 @@ All the listed functions must comply to the following conditions :
    of filters and is equal to output length) of any weights tensor.
    
  - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity 
-   and valid el_params union. Other fields of the structure do not have to contain 
+   and valid ``el_params`` union. Other fields of the structure do not have to contain 
    valid data and are filled by the function.
    
  - ``in`` and ``out`` tensors must not point to overlapped memory regions.
  
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
-For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions:
+For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions, ensure that you 
+satisfy the following conditions before calling the function:
  
  - ``bias``, ``out``, all the tensors in inputs array, and all tensors in weights array 
    must be quantized on the tensor level. It implies that each tensor contains a 
@@ -145,9 +146,9 @@ For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions
  - ``bias`` and all tensors in weights array must be symmetric. It implies that both 
    tensors contain single zero offset equal to 0.
    
-Scale factor of bias tensor must be equal to the multiplication of scale factor of 
-the **first** input and the **first** weights tensors in corresponding arrays 
-(that is, bias.scale = inputs[0].scale * weights[0].scale).
+ - The scale factor of ``bias`` tensor must be equal to the multiplication of the scale factor of 
+   the **first** input and the **first** weights tensors in corresponding arrays 
+   (that is, :math:`bias.scale = inputs[0].scale * weights[0].scale`).
 
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 

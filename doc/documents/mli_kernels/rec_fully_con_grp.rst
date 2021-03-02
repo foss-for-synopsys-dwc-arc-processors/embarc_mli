@@ -1,3 +1,5 @@
+.. _chap_rec_full:
+
 Recurrent and Fully Connected Group
 -----------------------------------
 
@@ -42,9 +44,9 @@ Functions in this group typically use the ``mli_rnn_cell_cfg`` structure, define
    |                      |                        | ``RNN_OUT_ALL``       | Preserve result of each RNN iteration in output tensor                |
    +----------------------+------------------------+-----------------------+-----------------------------------------------------------------------+
    |                      |                        |                       | Container with a scratch memory to keep cell’s intermediate results.  |
-   | ``scratch_data``     | ``mli_data_container`` | --                    | Must contain a valid pointer in pi32 field to a memory of sufficient  |
-   |                      |                        |                       | size for the kernel. The exact amount of memory is defined in the     |
-   |                      |                        |                       | respective kernel descriptions in subsequent sections.                |
+   | ``scratch_data``     | ``mli_data_container`` | --                    | Must contain a valid pointer in ``pi32`` field to a memory of         |
+   |                      |                        |                       | sufficient size for the kernel. The exact amount of memory is defined |
+   |                      |                        |                       | in the respective kernel descriptions in subsequent sections.         |
    +----------------------+------------------------+-----------------------+-----------------------------------------------------------------------+
    | ``scratch_capacity`` | ``uint32_t``           | --                    | Size of a memory pointed by scratch_data field (in bytes).            |
    +----------------------+------------------------+-----------------------+-----------------------------------------------------------------------+

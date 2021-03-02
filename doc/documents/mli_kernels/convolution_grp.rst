@@ -1,9 +1,11 @@
+.. _chap_conv:
+
 Convolution Group
 -----------------
 
 The Convolution Group describes operations related to convolution layers, where 
 input features are convolved with a set of trained filters. For a comprehensive guide 
-on convolution arithmetic details for various cases, see [2]. 
+on convolution arithmetic details for various cases, see `A guide to convolution arithmetic for deep learning <https://arxiv.org/abs/1603.07285>`_. 
 
 Functions in this group use the ``mli_conv2d_cfg`` structure, defined as:
 
@@ -28,7 +30,7 @@ Functions in this group use the ``mli_conv2d_cfg`` structure, defined as:
    :widths: 30, 50, 130 
    
    +-----------------------+---------------------+---------------------------------------------------+
-   | **Field Name**        | **Type**            | *Description**                                    |
+   | **Field Name**        | **Type**            | **Description**                                   |
    +=======================+=====================+===================================================+
    | ``relu``              | ``mli_relu_cfg``    | Type of ReLU activation applied to output values. | 
    |                       |                     | See :ref:`relu_prot` for more details.            |  
@@ -37,12 +39,12 @@ Functions in this group use the ``mli_conv2d_cfg`` structure, defined as:
    +-----------------------+---------------------+---------------------------------------------------+
    | ``stride_ height``    | ``uint8_t``         | Stride of filter across height dimension of input |
    +-----------------------+---------------------+---------------------------------------------------+
-   | ``dilation_width*``   | ``uint8_t``         | If set to k>1, there are k-1 implicitly added     |
+   | ``dilation_width``    | ``uint8_t``         | If set to k>1, there are k-1 implicitly added     |
    |                       |                     | zero points between each filter point across      |
    |                       |                     | width dimension. If set to 0 or 1, no dilation    |
    |                       |                     | logic is used.                                    |
    +-----------------------+---------------------+---------------------------------------------------+
-   | ``dilation_height*``  | ``uint8_t``         | If set to k>1, there are k-1 implicitly added     |
+   | ``dilation_height``   | ``uint8_t``         | If set to k>1, there are k-1 implicitly added     |
    |                       |                     | zero points between each filter point across      |
    |                       |                     | height dimension. If set to 0 or 1, no dilation   |
    |                       |                     | logic is used.                                    |
@@ -61,7 +63,11 @@ Functions in this group use the ``mli_conv2d_cfg`` structure, defined as:
    +-----------------------+---------------------+---------------------------------------------------+ 
 ..
 
-For more info on dilation rate, see chapter 5.1 of [2].
+.. note::
+
+   For more information on dilation rate, see chapter 5.1 of `A guide to convolution arithmetic for
+   deep learning <https://arxiv.org/abs/1603.07285>`_.
+..
 
 .. toctree::
    :maxdepth: 2

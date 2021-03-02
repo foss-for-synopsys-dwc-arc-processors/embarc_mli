@@ -22,7 +22,7 @@ Kernels which implement max pooling functions have the following prototype:
       mli_tensor *out);
 ..
 
-.. table:: Data Format Naming Convention Fields
+.. table:: Max Pooling Function Parameters
    :align: center
    :widths: auto
    
@@ -75,7 +75,7 @@ Kernels which implement max pooling functions have the following prototype:
    +----------------------------------------+-------------------------------+
 ..
 
-All the listed functions must comply to the following conditions:
+Ensure that you satisfy the following conditions before calling the function:
 
  - ``in`` tensor must be valid.
  
@@ -90,9 +90,9 @@ All the listed functions must comply to the following conditions:
  
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
- - ``padding_top`` and ``padding_bottom`` parameters must be in range of (0, weights (H)eight).
+ - ``padding_top`` and ``padding_bottom`` parameters must be in range of [0, weights (H)eight).
  
- - ``padding_left`` and ``padding_right`` parameters must be in range of (0, weights (W)idth).
+ - ``padding_left`` and ``padding_right`` parameters must be in range of [0, weights (W)idth).
  
  - ``stride_width`` and ``stride_height`` parameters must not be equal to 0.
  

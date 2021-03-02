@@ -1,3 +1,5 @@
+.. _chap_element_wise:
+
 Element-wise Group
 ------------------
 
@@ -22,7 +24,7 @@ Kernels which implement Element-wise functions have the following prototype:
 ..
 
 .. _t_elw_data_conv:
-.. table:: Data Format Naming Convention Fields
+.. table:: Element-Wise Group Function Parameters
    :align: center
    :widths: auto 
    
@@ -72,7 +74,7 @@ All of these functions must comply to the following conditions:
 
  - ``in1`` and ``in2`` tensors must be valid and must share the same ``el_type`` field value. 
    They must be of the same shape, or one of them can be a tensor-scalar (see data field description 
-   in the Table :ref:`t_elw_data_conv`) 
+   in the Table :ref:`mli_tnsr_struc`) 
 
  - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity and valid ``el_params`` union. 
    Other fields of the structure do not have to contain valid data and are filled by the function
@@ -90,16 +92,11 @@ All of these functions must comply to the following conditions:
    - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity. 
      Other fields of the structure do not have to contain valid data and are filled by the function 
      (``shape``, ``rank``, ``el_params``, etc). 
-
- - Output tensor holds the same element and shape parameters as the input tensors
-   (for example, a scalar tensor). 
-   
- - The output tensor must provide information about output format (element parameters).
  
  - If the result of an operation is out of containers’ range, it is saturated to the 
    container’s limit.
    
- - The kernel performs in-place computation. It means that output and input tensor structures 
+ - The kernel supports in-place computation. It means that output and input tensor structures 
    can point to the same memory with the same memory strides but without shift.
    It can affect performance for some platforms.
    

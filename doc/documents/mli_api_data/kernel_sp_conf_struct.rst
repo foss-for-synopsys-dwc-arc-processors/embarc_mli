@@ -3,9 +3,9 @@
 Kernel Specific Configuration Structures
 ----------------------------------------
 
-Significant number of MLI kernels must be configured by specific parameters, which 
-influence calculations and results, but not directly related to input data. For 
-example, padding and stride values are parameters of convolution layer and the type 
+A significant number of MLI kernels must be configured by specific parameters, which 
+influence calculations and results, but are not directly related to input data. For 
+example, padding and stride values are parameters of the convolution layer and the type 
 of ReLU is a parameter for ReLU transform layer. All specific parameters for 
 particular primitive type are grouped into structures. This document describes these 
 structures along with the kernel description they relate to. The following tables 
