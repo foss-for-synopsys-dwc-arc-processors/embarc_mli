@@ -396,10 +396,10 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
 
     vNx4short_t accu_result = mli_math_acc_cast_fx<vNx4short_t, vNx4accshort_t>(acc);
     vNx4short_t shift = quant_params->out_shift - preshift;
-    vNx4short_t shift_left = mli_math_max_fx(-shift, 0);
+    vNx4short_t shift_left = mli_math_max_fx(1 - shift, 0);
     accu_result = mli_math_asl_fx(accu_result, shift_left);
     vNx4short_t accu_scaled = mli_math_mul_fx_high(accu_result, quant_params->out_mul);
-    vNx4short_t shift_right = mli_math_max_fx(shift, 0);
+    vNx4short_t shift_right = mli_math_max_fx(shift, 1);
     accu_scaled = mli_math_asr_rnd_fx(accu_scaled, shift_right);
 
 #else
