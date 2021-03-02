@@ -279,7 +279,7 @@ MLI_FORCE_INLINE void conv2d_prepare_and_run(
     constexpr bool asym = std::is_same<quant_T, s8asym_quant_specific_params>::value;
     mli_minmax_t val_limit = mli_prv_get_relu_limits<io_T, asym>(&cfg->relu, out);
 
-    const MLI_PTR(b_T) bs = (MLI_PTR(b_T))(bias->data.mem.void_p);
+    const MLI_PTR(b_T) bs = mli_prv_tensor_data_ptr<MLI_PTR(b_T)>(bias);
 
     auto in_prv = (data_layout == LAYOUT_HWC || data_layout == LAYOUT_HWCN || data_layout == LAYOUT_HW1N) ?
             mli_prv_get_tensor_hwc<MLI_PTR(io_T)>(in)

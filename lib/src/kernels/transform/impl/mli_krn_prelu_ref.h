@@ -101,9 +101,9 @@ static MLI_FORCE_INLINE mli_status prelu_fx_run(const mli_tensor *in,
     const MLI_PTR(io_T) vec_in = nullptr;
     MLI_OUT_PTR(io_T) vec_out = nullptr;
 
-    const MLI_PTR(io_T) in_ptr = (MLI_PTR(io_T))(in->data.mem.void_p);
-    const MLI_PTR(io_T) slope_ptr = (MLI_PTR(io_T))(slope_coeff->data.mem.void_p);
-    MLI_OUT_PTR(io_T) out_ptr = (MLI_OUT_PTR(io_T)) (out->data.mem.void_p);
+    const MLI_PTR(io_T) in_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in);
+    const MLI_PTR(io_T) slope_ptr = nullptr;
+    MLI_OUT_PTR(io_T) out_ptr = mli_prv_tensor_data_ptr<MLI_OUT_PTR(io_T)>(out);
 
     /* Copy tensor format */
     mli_prv_copy_tensor_format_except_mem_strides(in, out);
@@ -119,14 +119,8 @@ static MLI_FORCE_INLINE mli_status prelu_fx_run(const mli_tensor *in,
     bool is_leaky_relu = (cfg->axis == -1);
     io_T scale;
     if (is_leaky_relu) {
-        // Getscalar value (casting or getting from memory)
-        if (slope_coeff->rank == 0) {
-            // value is stored in tensor`s field: analog of reinterpret_cast
-            scale = mli_math_cast_ptr_to_scalar_fx<io_T>(slope_coeff->data.mem.void_p);
-        } else {
-            // pointer access to value
-            scale = static_cast<io_T *>(slope_coeff->data.mem.void_p)[0];
-        }
+        // Getscalar value
+        scale = mli_prv_tensor_data_val<io_T>(slope_coeff);
     } else {
         /* Broadcasting in case axis is not inner most dim */
         broadcasting = !(cfg->axis == (in_prv.rank - 1));
@@ -134,6 +128,7 @@ static MLI_FORCE_INLINE mli_status prelu_fx_run(const mli_tensor *in,
         axis_shape = slope_coeff->shape[cfg->axis];
         axis_in_mem_stride = in_prv.mem_stride[cfg->axis];
         axis_out_mem_stride = out_prv.mem_stride[cfg->axis];
+        slope_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(slope_coeff);
     }
 
     /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
@@ -289,9 +284,9 @@ static MLI_FORCE_INLINE mli_status prelu_sa8_run(const mli_tensor *in,
     const MLI_PTR(int8_t) vec_in = nullptr;
     MLI_OUT_PTR(int8_t) vec_out = nullptr;
 
-    const MLI_PTR(int8_t) in_ptr = (MLI_PTR(int8_t))(in->data.mem.void_p);
-    const MLI_PTR(int8_t) slope_ptr = (MLI_PTR(int8_t))(slope_coeff->data.mem.void_p);
-    MLI_OUT_PTR(int8_t) out_ptr = (MLI_OUT_PTR(int8_t)) (out->data.mem.void_p);
+    const MLI_PTR(int8_t) in_ptr = mli_prv_tensor_data_ptr<MLI_PTR(int8_t)>(in);
+    const MLI_PTR(int8_t) slope_ptr = nullptr;
+    MLI_OUT_PTR(int8_t) out_ptr = mli_prv_tensor_data_ptr<MLI_OUT_PTR(int8_t)>(out);
 
     /* Copy tensor format */
     for (int idx = 0; idx < (int)in->rank; idx++) {
@@ -312,11 +307,7 @@ static MLI_FORCE_INLINE mli_status prelu_sa8_run(const mli_tensor *in,
     bool is_leaky_relu = (cfg->axis == -1);
     int8_t scale;
     if (is_leaky_relu) {
-        if (slope_coeff->rank == 0) {
-            scale = slope_coeff->data.mem.i8;
-        } else {
-            scale = slope_coeff->data.mem.pi8[0];
-        }
+        scale = mli_prv_tensor_data_val<int8_t>(slope_coeff);
     } else {
         /* Broadcasting in case axis is not inner most dim */
         broadcasting = !(cfg->axis == (in_prv.rank - 1));
@@ -324,6 +315,7 @@ static MLI_FORCE_INLINE mli_status prelu_sa8_run(const mli_tensor *in,
         axis_shape = slope_coeff->shape[cfg->axis];
         axis_in_mem_stride = in_prv.mem_stride[cfg->axis];
         axis_out_mem_stride = out_prv.mem_stride[cfg->axis];
+        slope_ptr = mli_prv_tensor_data_ptr<MLI_PTR(int8_t)>(slope_coeff);
     }
 
     /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
