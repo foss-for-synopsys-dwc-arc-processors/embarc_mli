@@ -70,7 +70,21 @@ static inline void rnn_dense_op(
 // VDSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
-        
+
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+static MLI_FORCE_INLINE void rnn_dense_op(
+        const MLI_PTR(io_T) __restrict * inputs,
+        const MLI_PTR(w_T) __restrict * weights,
+        const MLI_PTR(b_T) __restrict bias,
+        MLI_CONV_OUT_PTR(io_T) __restrict out,
+        const int inputs_num,
+        const int * in_elements,
+        const int out_elements,
+        const int * w_ch_out_mem_strides,
+        quant_T * in_to_out_quant_params,
+        const io_T val_min_limit,
+        const io_T val_max_limit);
+
 } // namespace vdsp
 
 } // namespace krn
