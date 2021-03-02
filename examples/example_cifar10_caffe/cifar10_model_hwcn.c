@@ -45,10 +45,10 @@ inline void set_mli_tensor_params(mli_tensor* tensor, int16_t zero_point, int8_t
 //==============================
 #define IR_BUF_SZ_NEXT (32*16*16)
 #define IR_BUF_SZ_MOST (32*32*32)
-
+#define LUT_BUF_SIZE (512)
 static d_type  _Z    x_mem_buf[IR_BUF_SZ_MOST];
 static d_type  _Y    y_mem_buf[IR_BUF_SZ_NEXT];
-
+static int16_t  _X    lut_mem_buf[LUT_BUF_SIZE];
 // Module Input/Output tensors and their's external interface
 //============================================================
 static mli_tensor input = {
@@ -91,6 +91,14 @@ static mli_tensor output = {
 #else
     .el_params.fx.frac_bits = 0,
 #endif
+};
+
+static mli_lut output_lut = {
+	.data = {
+		.capacity = sizeof(int16_t) * LUT_BUF_SIZE,
+		.mem = { .pi16 = (int16_t *)lut_mem_buf}
+	},
+
 };
 
 // Interface variables: Available to user via main model header
@@ -365,6 +373,15 @@ static void check_result(
         unsigned cycles,
         mli_status ret_code);
 
+// Initialize the lut for softmax
+//==============================================================
+mli_status cifar10_cf_init() {
+	uint32_t lut_size = mli_krn_softmax_get_lut_size();
+	if (lut_size > output_lut.data.capacity) {
+		return MLI_STATUS_NOT_ENGH_MEM;
+	}
+	return mli_krn_softmax_create_lut(&output_lut);
+}
 
 //==============================================================
 //
@@ -567,7 +584,7 @@ static inline mli_status avepool_hwcn(const mli_tensor *in, const mli_pool_cfg *
 static inline mli_status softmax(const mli_tensor *in,	mli_tensor *out) {
     mli_softmax_cfg cfg = {0};
     cfg.axis = -1;
-    return mli_krn_softmax_fx16(in, &cfg, out);
+    return mli_krn_softmax_fx16(in, &output_lut, &cfg, out);
 }
 
 #else // MODEL_BIT_DEPTH == (MODEL_SA_8)
@@ -582,7 +599,7 @@ static inline mli_status avepool_hwcn(const mli_tensor *in, const mli_pool_cfg *
 static inline mli_status softmax(const mli_tensor *in,	mli_tensor *out) {
     mli_softmax_cfg cfg = { 0 };
     cfg.axis = -1;
-    return mli_krn_softmax_sa8(in, &cfg, out);
+    return mli_krn_softmax_sa8(in, &output_lut, &cfg, out);
 }
 
 #endif
