@@ -69,8 +69,8 @@ MLI_FORCE_INLINE void define_requant_params(const mli_tensor *in, const mli_tens
      * ***************************************************************************************************************/
 
     /* kPreDivShift = norm_32(in_scale_val) - norm_16(out_scale_val) */
-    int kPreDivShift =  mli_math_norm_fx<int32_t, int16_t>(mli_hlp_tensor_scale(in, index)) -
-                        mli_math_norm_fx<int16_t, int16_t>(mli_hlp_tensor_scale(out, index));
+    int kPreDivShift =  mli_math_norm_fx<int32_t, int32_t>(mli_hlp_tensor_scale(in, index)) -
+                        mli_math_norm_fx<int16_t, int32_t>(mli_hlp_tensor_scale(out, index));
     /* Normalize In/Out Scale ratio and cast to 16bit */
     int norm_shift;
     params->scale = mli_math_norm_cast_fx<int32_t, int16_t>(
