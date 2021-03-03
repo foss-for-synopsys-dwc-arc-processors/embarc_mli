@@ -11,7 +11,7 @@
 #define _MLI_KRN_ELTWISE_ADD_REF_H_
 
 #include "mli_krn_eltwise_decl.h"
-
+#include "mli_prv_tensor.h"
 #include "mli_config.h"
 #include "mli_debug.h"
 #include "mli_prv_tensor.h"
@@ -104,6 +104,8 @@ MLI_FORCE_INLINE void eltwise_innerloop(
         int idx2,
         int idx_out,
         const int count,
+        const io_T op1_s,
+        const io_T op2_s,
         const bool scalar_op1,
         const bool scalar_op2,
         const int16_t in_offset1,
@@ -116,8 +118,8 @@ MLI_FORCE_INLINE void eltwise_innerloop(
         const int post_op_shift) {
     for (int pos = 0; pos < count; pos++) {
         /* op1_ptr is always vector, op2_ptr can be scalar or vector.*/
-        io_T val1 = scalar_op1? op1_ptr[0] : op1_ptr[idx1];
-        io_T val2 = scalar_op2? op2_ptr[0] : op2_ptr[idx2];
+        io_T val1 = (scalar_op1)? op1_s : op1_ptr[idx1];
+        io_T val2 = (scalar_op2)? op2_s : op2_ptr[idx2];
         io_T res = mli::krn::eltwise_perform_operation<io_T, io_T, func_type, convert>(
                 val1, val2, in_offset1, in_offset2, out_offset, scale1, scale2, pre_op_shift1, pre_op_shift2, post_op_shift);
         out_ptr[idx_out] = res;
@@ -132,8 +134,10 @@ static MLI_FORCE_INLINE void eltwise_op_basic(
         const generic_tensor_private_t<MLI_PTR(io_T)> *in1,
         const generic_tensor_private_t<MLI_PTR(io_T)> *in2,
         generic_tensor_private_t<MLI_OUT_PTR(io_T)> *out,
-        const int in1_size,
-        const int in2_size,
+        const io_T op1_s,
+        const io_T op2_s,
+        const bool scalar_op1,
+        const bool scalar_op2,
         const int pre_op_shift1,
         const int pre_op_shift2,
         int post_op_shift,
@@ -143,16 +147,8 @@ static MLI_FORCE_INLINE void eltwise_op_basic(
 
     MLI_PRINTF_FUNC();
 
-    MLI_PTR(io_T) op1_ptr;
-    MLI_PTR(io_T) op2_ptr;
     int *shape;
-    bool scalar_op1 = (in1_size == 1);
-    bool scalar_op2 = (in2_size == 1);
-    const generic_tensor_private_t<MLI_PTR(io_T)> *op1 = in1;
-    const generic_tensor_private_t<MLI_PTR(io_T)> *op2 = in2;
-    shape = (scalar_op2)? ((int *) op1->shape) : ((int *) op2->shape);
-    op1_ptr = op1->ptr;
-    op2_ptr = op2->ptr;
+    shape = (scalar_op2)? ((int *) in1->shape) : ((int *) in2->shape);
 
     int32_t in_scale_fx1 = 0, in_scale_fx2 = 0, out_scale_fx = 0,
             scale_factor1 = 0, scale_factor2 = 0;
@@ -213,13 +209,14 @@ static MLI_FORCE_INLINE void eltwise_op_basic(
         for (int pos1 = 0; pos1 < shape[1]; pos1++) {
             for (int pos2 = 0; pos2 < shape[2]; pos2++) {
                 int pos3 = 0;
-                int idx1 = POS(op1, pos0, pos1, pos2, pos3);
-                int idx2 = POS(op2, pos0, pos1, pos2, pos3);
+                int idx1 = POS(in1, pos0, pos1, pos2, pos3);
+                int idx2 = POS(in2, pos0, pos1, pos2, pos3);
                 int idx = POS(out, pos0, pos1, pos2, pos3);
 
                 mli::krn::eltwise_innerloop<io_T, func_type, convert>(
-                        op1_ptr, op2_ptr, out->ptr, idx1, idx2, idx, shape[3], scalar_op1, scalar_op2, in_offset1,
-                        in_offset2, out_offset, scale16_1, scale16_2, pre_op_shift1, pre_op_shift2, post_op_shift);
+                        in1->ptr, in2->ptr, out->ptr, idx1, idx2, idx, shape[3],
+                        op1_s, op2_s, scalar_op1, scalar_op2, in_offset1, in_offset2,
+                        out_offset, scale16_1, scale16_2, pre_op_shift1, pre_op_shift2, post_op_shift);
             } /* pos1 */
         } /* pos2 */
     } /* pos3 */
@@ -258,14 +255,16 @@ static MLI_FORCE_INLINE void eltwise_prepare_and_run(
     uint32_t in1_sz = mli_prv_count_elem_num(in1);
     uint32_t in2_sz = mli_prv_count_elem_num(in2);
 
-    /* Extract in/out pointers to mem */
-    MLI_PTR(io_T) in1_ptr = (MLI_PTR(io_T))(in1->data.mem.void_p);
-    MLI_PTR(io_T) in2_ptr = (MLI_PTR(io_T))(in2->data.mem.void_p);
-    MLI_OUT_PTR(io_T) out_ptr = (MLI_OUT_PTR(io_T))(out->data.mem.void_p);
-
     /* Extract in/out as scalar values */
-    io_T in1_scalar = (io_T)(in1->data.mem.i32);
-    io_T in2_scalar = (io_T)(in2->data.mem.i32);
+    io_T in1_scalar = mli_prv_tensor_data_val<io_T>(in1);
+    io_T in2_scalar = mli_prv_tensor_data_val<io_T>(in2);
+
+    /* Extract in/out pointers to mem */
+    MLI_PTR(io_T) in1_ptr = mli_prv_tensor_data_ptr<MLI_OUT_PTR(io_T)>(in1);
+    MLI_PTR(io_T) in2_ptr = mli_prv_tensor_data_ptr<MLI_OUT_PTR(io_T)>(in2);
+    MLI_OUT_PTR(io_T) out_ptr = mli_prv_tensor_data_ptr<MLI_OUT_PTR(io_T)>(out);
+
+
 
     /* Fill output tensor parameters
     //======================================
@@ -279,6 +278,7 @@ static MLI_FORCE_INLINE void eltwise_prepare_and_run(
     auto in1_prv =  mli_prv_get_generic_tensor<MLI_PTR(io_T)>(in1);
     auto in2_prv =  mli_prv_get_generic_tensor<MLI_PTR(io_T)>(in2);
     auto out_prv =  mli_prv_get_generic_tensor<MLI_OUT_PTR(io_T)>(out);
+
     int pre_op_shift1 = 0, pre_op_shift2 = 0, post_op_shift = 0;
     if (func_type == ELTWISE_MUL) {
         post_op_shift = mli_prv_calc_shift(in1, in2, out);
@@ -293,13 +293,17 @@ static MLI_FORCE_INLINE void eltwise_prepare_and_run(
     mli_prv_reorder_generic_tensor<MLI_PTR(io_T)>(&in2_prv );
     mli_prv_reorder_generic_tensor<MLI_OUT_PTR(io_T)>(&out_prv);
 
-    in1_prv.ptr = (in1->rank != 0)? in1_ptr: (MLI_PTR(io_T)) &in1_scalar;
-    in2_prv.ptr = (in2->rank != 0)? in2_ptr: (MLI_PTR(io_T)) &in2_scalar;
+    bool scalar_op1 = (in1_sz == 1);
+    bool scalar_op2 = (in2_sz == 1);
+
+    in1_prv.ptr = in1_ptr;
+    in2_prv.ptr = in2_ptr;
     out_prv.ptr = out_ptr;
 
     mli::krn::eltwise_op_basic<io_T, func_type, convert>(&in1_prv, &in2_prv, &out_prv,
-                                                         in1_sz, in2_sz, pre_op_shift1, pre_op_shift2,
-                                                         post_op_shift, &in_quant_params1, &in_quant_params2, &out_quant_params);
+                                                         in1_scalar, in2_scalar, scalar_op1, scalar_op2,
+                                                         pre_op_shift1, pre_op_shift2, post_op_shift,
+                                                         &in_quant_params1, &in_quant_params2, &out_quant_params);
 
 }
 
