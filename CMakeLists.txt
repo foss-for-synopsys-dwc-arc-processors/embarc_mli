@@ -19,7 +19,7 @@ set(MLI_LIB_HOME_DIR ${PROJECT_SOURCE_DIR})
 
 add_subdirectory(lib)
 
-add_subdirectory(user_tests)
+#add_subdirectory(user_tests)
 
 if (GEN_EXAMPLES)
 	add_subdirectory(examples EXCLUDE_FROM_ALL)
