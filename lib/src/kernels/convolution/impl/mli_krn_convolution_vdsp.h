@@ -292,9 +292,11 @@ MLI_FORCE_INLINE void convolution2D_pad(
                     weights.kernel_height, weights.kernel_width,
                     stride_height, stride_width, padding_left, padding_top,
                     dilation_height, dilation_width);
-            MLI_ASSERT(comp.kernel_right == 0);
-            MLI_ASSERT(comp.kernel_left == 0);
-            MLI_ASSERT(comp.in_left == 0);
+
+            // check the compensations to be zero only in case we use the unrolled loop
+            MLI_ASSERT((width == remainder_width) || (comp.kernel_right == 0));
+            MLI_ASSERT((width == remainder_width) || (comp.kernel_left == 0));
+            MLI_ASSERT((width == remainder_width) || (comp.in_left == 0));
             comp.kernel_right = 0;
             comp.kernel_left = 0;
             comp.in_left = 0;
