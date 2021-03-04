@@ -31,7 +31,7 @@ using mli::krn::ref::in_additive;
 using mli::krn::ref::zp_additive;
 using mli::krn::vdsp::bias_additive;
 using mli::krn::ref::result_cast;
-using mli::krn::ref::ir_rnn_result_requantize;
+using mli::krn::vdsp::ir_rnn_result_requantize;
 using mli::krn::ref::result_cast_relu_store;
 using mli::krn::vdsp::result_cast_relu_store_v;
 using mli::krn::vdsp::mli_prv_convert_sa8_fx16;
