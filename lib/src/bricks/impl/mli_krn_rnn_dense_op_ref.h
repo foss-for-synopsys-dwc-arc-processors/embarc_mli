@@ -60,7 +60,8 @@ static inline void rnn_dense_op_stacked(
     MLI_CONV_OUT_PTR (io_T) dense_out_ptr = (MLI_CONV_OUT_PTR (io_T)) out->data.mem.void_p;
 
     for (int gate = 0; gate < gates_num; ++gate) {
-        mli::krn::rnn_dense_op<io_T, w_T, b_T, acc_T, quant_T>(
+        //TODO modify to mli::krn::rnn_dense_op when adding lstm vdsp version
+        mli::krn::ref::rnn_dense_op<io_T, w_T, b_T, acc_T, quant_T>(
             inputs_ptr, weights_ptr, bias_ptr, dense_out_ptr, inputs_num, inputs_elements,
             out_elements, w_ch_out_mem_strides, in_to_out_quant_params, 
             (io_T)val_limit.min, (io_T)val_limit.max);
@@ -129,7 +130,8 @@ static inline void rnn_dense_op(
             accu = mli_math_add_fx(accu, prev_step);
 
             if(inputs_num - idx != 1) {
-                prev_step = mli::krn::ir_rnn_result_requantize(accu, &in_to_out_quant_params[idx], 
+                //TODO modify to mli::krn::rnn_dense_op when adding lstm vdsp version
+                prev_step = mli::krn::ref::ir_rnn_result_requantize(accu, &in_to_out_quant_params[idx],
                                 &in_to_out_quant_params[idx+1], /* krn_idx= */ 0);
                 accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
             } else {
