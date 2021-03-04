@@ -753,52 +753,59 @@ mli_status mli_krn_fully_connected_sa8_sa8_sa32_ext_bias(
  *
  * @detail This kernel implements the default non-peephole implementation of long short term memory (LSTM) cell 
  *
- * The Kernel supports three types of output activation: Sigmoid, Hyperbolic tangent and No activation (identity function)
- * Kernel supports three modes of input processing: ONE_TO_ONE, BATCH_TO_BATCH, BATCH_TO_LAST
- * Kernel REQUIRES extra intermediate tensor for calculations. It must be passed through configuration structure.
+ * This kernel implies sequential processing of the set of inputs vectors which is passed by input tensor of shape 
+ * (batch_size, N) where N is the length of the single frame. Both directions of processing (forward and backward) 
+ * are supported and defined by cfg structure. Kernel can output the bunch of results for according to each step of 
+ * processing, or only the last one in the sequence. Dense part of calculations uses scratch data from configuration 
+ * structure for results, and consequently output and previous output tensors might use the same memory if it is 
+ * acceptable to rewrite previous output data.
  *
  * For more info on primitive see MLI Documentation.
  *
- * @param in        [I] Input feature tensor (of any shape or with the batchsize in the first dimensions for batched modes)
- * @param prev_out  [I] Previous output feature tensor (1-dimensional tensor)
- * @param weights   [I] Weights tensor (set of 4 matrixes in the [i,g,f,o] order: 3-dimensional tensor)
- * @param bias      [I] Biases tensor (set of 4 vectors in the [i,g,f,o] order: 2-dimensional tensor)
- * @param cfg       [I] LSTM Configuration structure (for more info see @ref mli_rnn_cell_cfg)
- * @param cell      [I/O] Cell memory state (1-dimensional tensor)
- * @param out       [O] Output feature tensor. Result will be stored here (single output or batch of outputs depending on mode)
+ * @param in          [I] Input feature tensor. Must be a tensor of shape (batch_size, input_elements).
+ * @param prev_out    [I] Previous output feature tensor. Must be a one-dimensional tensor of shape (cell_elements).
+ * @param weights_in  [I] Input Weights tensor (set of 4 matrixes in the [i,g,f,o] order: 3-dimensional tensor)
+ * @param weights_out [I] Hidden Weights tensor (set of 4 matrixes in the [i,g,f,o] order: 3-dimensional tensor)
+ * @param bias        [I] Biases tensor (set of 4 vectors in the [i,g,f,o] order: 2-dimensional tensor)
+ * @param cfg         [I] RNN Configuration structure (for more info see @ref mli_rnn_cell_cfg)
+ * @param cell        [I/O] Cell memory state (1-dimensional tensor)
+ * @param out         [O] Output feature tensor. Result will be stored here (single output or batch of outputs depending on mode)
  *
  * @return MLI status code
  */
-mli_status mli_krn_lstm_cell_fx8(
-        const mli_tensor * in,
-        const mli_tensor * prev_out,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        const mli_lut * tanh_lut,
-        const mli_lut * sigm_lut,
-        const mli_rnn_cell_cfg_depr * cfg,
-        mli_tensor * cell,
-        mli_tensor * out);
-
 mli_status mli_krn_lstm_cell_fx16(
         const mli_tensor * in,
         const mli_tensor * prev_out,
-        const mli_tensor * weights,
+        const mli_tensor * weights_in,
+        const mli_tensor * weights_out,
         const mli_tensor * bias,
         const mli_lut * tanh_lut,
         const mli_lut * sigm_lut,
-        const mli_rnn_cell_cfg_depr * cfg,
+        const mli_rnn_cell_cfg * cfg,
         mli_tensor * cell,
         mli_tensor * out);
 
-mli_status mli_krn_lstm_cell_fx8w16d(
+mli_status mli_krn_lstm_cell_fx16_fx8_fx8(
         const mli_tensor * in,
         const mli_tensor * prev_out,
-        const mli_tensor * weights,
+        const mli_tensor * weights_in,
+        const mli_tensor * weights_out,
         const mli_tensor * bias,
         const mli_lut * tanh_lut,
         const mli_lut * sigm_lut,
-        const mli_rnn_cell_cfg_depr * cfg,
+        const mli_rnn_cell_cfg * cfg,
+        mli_tensor * cell,
+        mli_tensor * out);
+
+mli_status mli_krn_lstm_cell_sa8_sa8_sa32(
+        const mli_tensor * in,
+        const mli_tensor * prev_out,
+        const mli_tensor * weights_in,
+        const mli_tensor * weights_out,
+        const mli_tensor * bias,
+        const mli_lut * tanh_lut,
+        const mli_lut * sigm_lut,
+        const mli_rnn_cell_cfg * cfg,
         mli_tensor * cell,
         mli_tensor * out);
 
