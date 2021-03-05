@@ -9,7 +9,7 @@ on convolution arithmetic details for various cases, see `A guide to convolution
 
 Functions in this group use the ``mli_conv2d_cfg`` structure, defined as:
 
-.. code::
+.. code:: c
 
   typedef struct {
      mli_relu_cfg relu;

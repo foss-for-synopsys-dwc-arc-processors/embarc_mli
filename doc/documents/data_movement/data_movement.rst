@@ -46,9 +46,9 @@ Synchronous Copy from Source Tensor to Destination Tensor
 
 This function performs a blocking data copy from the source tensor to the destination tensor 
 according to the settings in the configuration structure, ``mli_mov_cfg``. Any combination of the 
-previously mentioned transformations can be specified. The destination tensor needs to contain a valid 
+previously-mentioned transformations can be specified. The destination tensor needs to contain a valid 
 pointer to a large enough buffer. The size of this buffer needs to be specified in the capacity 
-field of the destination tensor. The other fields of the destination tensor is filled by the 
+field of the destination tensor. The other fields of the destination tensor are filled by the 
 move function. The function returns after the complete data transfer completes.
 
 For platforms with a DMA, the synchronous move function internally acquires one or more DMA 
@@ -56,7 +56,7 @@ channels from a pool of resources. The application needs to use the function ``m
 to assign a set of channels to MLI for its exclusive use. See section :ref:`dma_res_mgmt` for a detailed 
 explanation.
 
-.. code::
+.. code:: c
 
    mli_status mli_mov_tensor_sync (
       mli_tensor *src,
@@ -66,18 +66,19 @@ explanation.
    
    where ``mli_mov_cfg`` is defined as:
 
-.. code::
+.. code:: c
 
    typedef struct {
-       uint32_t offset[MLI_MAX_RANK];
-       uint32_t size[MLI_MAX_RANK];
-       uint32_t sub_sample_step[MLI_MAX_RANK];
-       uint32_t dst_offset[MLI_MAX_RANK];
-       int32¬_t dst_mem_stride[MLI_MAX_RANK];
-       uint8_t perm_dim[MLI_MAX_RANK];
-       uint8_t padding_pre[MLI_MAX_RANK];
-       uint8_t padding_post[MLI_MAX_RANK];
+      uint32_t offset[MLI_MAX_RANK];
+      uint32_t size[MLI_MAX_RANK];
+      uint32_t sub_sample_step[MLI_MAX_RANK];
+      uint32_t dst_offset[MLI_MAX_RANK];
+      int32_t dst_mem_stride[MLI_MAX_RANK];
+      uint8_t perm_dim[MLI_MAX_RANK];
+      uint8_t padding_pre[MLI_MAX_RANK];
+      uint8_t padding_post[MLI_MAX_RANK];
    } mli_mov_cfg_t;
+
 ..
 
 The fields of this structure are described in Table :ref:`t_mli_mov_cfg_desc`. All the fields are arrays with 
@@ -137,7 +138,7 @@ Ensure that you satisfy the following conditions before calling the function:
  - Buffers of ``src`` and ``dst`` tensors must point to different, non-overlapped memory regions.
 
 For **sa8_sa8_sa32** versions of kernel, and in case of per-axis quantization, the ``el_params`` 
-field of ``dst`` tensor is filled by kernel using ``src`` quantization parameters. 
+field of ``dst`` tensor is filled by the kernel using ``src`` quantization parameters. 
 The following fields are affected:
 
     - ``dst.el_params.sa.zero_point.mem.pi16`` and related capacity field
@@ -152,7 +153,7 @@ following options to initialize all the fields in a consistent way:
     - If you initialize the pointers with ``nullptr``, then corresponding fields from the ``in`` tensor 
       are copied to ``dst`` tensor. No copy of quantization parameters itself is performed.
 
-    - If you initialize the pointers and capacity fields with corresponding the fields from the ``in`` tensor, 
+    - If you initialize the pointers and capacity fields with the corresponding fields from the ``in`` tensor, 
       then no action is applied.
 
     - If you initialize the pointers and capacity fields with pre-allocated memory and its capacity,
@@ -175,11 +176,12 @@ Helper Functions for Data Move Config Struct
 --------------------------------------------
 
 When only one of the transformations is needed during the copy, several helper functions can be used to fill 
-the config struct. These are described in Table 20. The arguments to the function are copied into the cfg 
-struct while the remaining parameters are set to their default values.  In the case of multiple transformations, 
-there is a generic helper function available or the user can manually fill the cfg struct parameters.  Note that 
-the mli_mov_cfg structure is described in detail in Table 19.
+the config struct. These are described in :ref:`t_desc_helper_func`. The arguments to the function are copied 
+into the cfg struct while the remaining parameters are set to their default values.  In the case of multiple 
+transformations, there is a generic helper function available or the user can manually fill the cfg struct 
+parameters.  Note that the mli_mov_cfg structure is described in detail in :ref:`t_mli_mov_cfg_desc`.
 
+.. _t_desc_helper_func:
 .. table:: Description of Helper Functions for Data Move Config Struct
    :align: center
    :widths: auto 
@@ -187,14 +189,14 @@ the mli_mov_cfg structure is described in detail in Table 19.
    +------------------------------------+---------------------------------------------------------------------+ 
    | **Function Name**                  | **Description**                                                     |
    +====================================+=====================================================================+
-   | .. code::                          |                                                                     |
+   | .. code:: c                        |                                                                     |
    |                                    |                                                                     | 
    |    mli_mov_cfg_for_copy(           | Fills the cfg struct with the values needed for a full tensor       |
    |      mli_mov_cfg_t *cfg)           | copy and sets all the other fields to a neutral value.              |
    | ..                                 |                                                                     |
    |                                    | - **cfg**: pointer to the config structure that is filled           |
    +------------------------------------+---------------------------------------------------------------------+ 
-   | .. code::                          |                                                                     |
+   | .. code:: c                        |                                                                     |
    |                                    |                                                                     |
    |    mli_mov_cfg_for_slice (         | Fill the cfg struct with the values needed for copying a            |
    |      mli_mov_cfg_t  *cfg,          | slice from the source to the destination tensor.                    |
@@ -209,7 +211,7 @@ the mli_mov_cfg structure is described in detail in Table 19.
    |                                    | - **dst_mem_stride**: Distance in elements to the next dimension in | 
    |                                    |   the destination tensor.                                           |
    +------------------------------------+---------------------------------------------------------------------+ 
-   | .. code::                          |                                                                     |
+   | .. code:: c                        |                                                                     |
    |                                    |                                                                     |
    |    mli_mov_cfg_for_concat(         | Fill the cfg struct with the values needed for copying a complete   |
    |      mli_mov_cfg_t *cfg,           | tensor into a larger tensor at a specified position.                |
@@ -223,7 +225,7 @@ the mli_mov_cfg structure is described in detail in Table 19.
    |                                    | - **dst_mem_strides**: Distance in elements to the next dimension   |
    |                                    |   in the destination tensor.                                        |
    +------------------------------------+---------------------------------------------------------------------+
-   | .. code::                          |                                                                     |
+   | .. code:: c                        |                                                                     |
    |                                    |                                                                     |
    |    mli_mov_cfg_for_subsample(      | Fill the cfg struct with the values needed for subsampling a        |
    |      mli_mov_cfg_t *cfg,           | tensor.                                                             |
@@ -236,7 +238,7 @@ the mli_mov_cfg structure is described in detail in Table 19.
    |                                    | - **dst_mem_strides**: Distance in elements to the next dimension   |
    |                                    |   in the destination tensor                                         |
    +------------------------------------+---------------------------------------------------------------------+  
-   | .. code::                          |                                                                     |
+   | .. code:: c                        |                                                                     |
    |                                    |                                                                     |
    |    mli_mov_cfg_for_permute(        |                                                                     |
    |      mli_mov_cfg_t *cfg,           | Fill the cfg struct with the values needed for reordering the order |
@@ -247,7 +249,7 @@ the mli_mov_cfg structure is described in detail in Table 19.
    |                                    | - **perm_dim**: Array to specify reordering of dimensions, see      |
    |                                    |   :ref:`t_mli_mov_cfg_desc` for details                             |
    +------------------------------------+---------------------------------------------------------------------+  
-   | .. code::                          |                                                                     |
+   | .. code:: c                        |                                                                     |
    |                                    |                                                                     |
    |    mli_mov_cfg_for_padding2d_chw(  | Fill the cfg struct with the values needed to add zero padding to a |
    |      mli_mov_cfg_t *cfg,           | tensor in CHW layout.                                               |
@@ -269,7 +271,7 @@ the mli_mov_cfg structure is described in detail in Table 19.
    |                                    | - **dst_mem_strides**: Distance in elements to the next dimension   |
    |                                    |   in the destination tensor                                         |
    +------------------------------------+---------------------------------------------------------------------+   
-   | .. code::                          |                                                                     |
+   | .. code:: c                        |                                                                     |
    |                                    |                                                                     |
    |    mli_mov_cfg_for_padding2d_hwc(  | Fill the cfg struct with the values needed to add zero padding to a |
    |      mli_mov_cfg_t *cfg,           | tensor in HWC layout.                                               |
@@ -291,10 +293,10 @@ the mli_mov_cfg structure is described in detail in Table 19.
    |                                    | - **dst_mem_strides**: Distance in elements to the next dimension   |
    |                                    |   in the destination tensor                                         |
    +------------------------------------+---------------------------------------------------------------------+
-   | .. code::                          |                                                                     |
+   | .. code:: c                        |                                                                     |
    |                                    |                                                                     |   
    |    mli_mov_cfg_all(                | This function fills the cfg struct with the values provided as      |
-   |      mli_mov_cfg_t *cfg,           | function arguments. It is recommended the applications use this     |
+   |      mli_mov_cfg_t *cfg,           | function arguments. It is recommended that applications use this    |
    |      int* offsets,                 | function instead of direct structure access, so that application    |
    |      int* sizes,                   | code does not have to change if the structure format ever changes.  |
    |      int* subsample_step,          |                                                                     |  
@@ -345,19 +347,20 @@ These APIs use the ``mli_mov_handle_t`` type. The definition of this type is pri
 the implementation, but to avoid dynamic memory allocation the definition is put in 
 the public header file. This way the caller can allocate it on the stack.
 
-.. code::
-
+..
+  .. code:: c
+..
    (ADD IN typedef for mli_move_handle_t)
 ..
 
 Preparation
 ~~~~~~~~~~~
 
-The ``mli_mov_prepare`` function is called first to set up the transfer.  Implementations 
-would typically do target-specific DMA programming here.  Table :ref:`t_mli_mov_prep` 
-describes the parameters of this function.
+The ``mli_mov_prepare`` function is called first to set up the transfer. The functionality 
+of this function varies depending on the implementation, but it often performs DMA 
+initialization. Table :ref:`t_mli_mov_prep` describes the parameters of this function.
 
-.. code::
+.. code:: c
 
    mli_status
    mli_mov_prepare(mli_mov_handle_t* h, mli_tensor* src, mli_mov_cfg_t* cfg, mli_tensor* dst);
@@ -395,7 +398,7 @@ is called without first calling ``mli_mov_prepare`` for a given handle, the DMA 
 be triggered with an old configuration leading to undefined behavior. In a debug build, 
 an assert is triggered. 
 
-.. code::
+.. code:: c
 
    mli_status
    mli_mov_start(mli_mov_handle_t* h, mli_tensor* src, mli_mov_cfg_t* cfg, mli_tensor* dst);
@@ -430,7 +433,7 @@ Done Notification – Callback
 You can register a callback function which is called after the data move is finished. A callback 
 is registered with the following function.  The parameters are described in Table :ref:`t_mli_mov_regcb`.
 
-.. code::
+.. code:: c
 
   mli_status
   mli_mov_registercallback(mli_mov_handle_t* h, void (*cb)(int32_t), int32_t cookie);
@@ -468,7 +471,7 @@ Done Notification – Polling
 
 You can also simply poll for the completion of the DMA transaction using this function:
 
-.. code::
+.. code:: c
 
    bool
    mli_mov_isdone(mli_mov_handle_t* h);
@@ -482,7 +485,7 @@ This function takes a pointer to the handle used for ``mli_mov_prepare`` and ret
 
 You can also wait for the DMA to compete using the following function: 
 
-.. code::
+.. code:: c
 
    mli_status
    mli_mov_wait(mli_mov_handle_t* h);
@@ -506,7 +509,7 @@ Restrictions for source and destination tensors
   - Buffers of ``src`` and ``dst`` tensors must point to different, non-overlapped memory regions.
  
 For **sa8_sa8_sa32** versions of kernel, and in case of per-axis quantization, the ``el_params`` 
-field of ``dst`` tensor is filled by kernel using ``src`` quantization parameters. 
+field of ``dst`` tensor is filled by the kernel using ``src`` quantization parameters. 
 The following fields are affected:
 
     - ``dst.el_params.sa.zero_point.mem.pi16`` and related capacity field
@@ -534,7 +537,7 @@ DMA Resource Management
 -----------------------
 
 The MLI API permits multiple mov transactions occurring in parallel, if the particular 
-implementation has a DMA engine which supports multiple channels.  MLI also assumes 
+target hardware has a DMA engine which supports multiple channels. MLI also assumes 
 that other parts of the system might want to access the DMA Engine at the same time and 
 relies on the application/caller to provide it with a pool of available DMA channels 
 that can be used exclusively by MLI. The following functions are used for this purpose:
@@ -542,7 +545,7 @@ that can be used exclusively by MLI. The following functions are used for this p
 The ``mli_mov_set_num_dma_ch`` is called once at initialization time to assign a set of 
 channels to MLI for its exclusive use.   
 
-.. code::
+.. code:: c
 
    mli_status
    mli_mov_set_num_dma_ch(int ch_offset, int num_ch);
@@ -555,7 +558,7 @@ channels to MLI for its exclusive use.
 The asynchronous move functions require a handle to a DMA resource. This handle can be 
 obtained from the pool using ``mli_mov_acquire_handle``:
 
-.. code::
+.. code:: c
 
    mli_status
    mli_mov_acquire_handle(int num_ch, mli_mov_handle_t* h);
@@ -570,7 +573,7 @@ obtained from the pool using ``mli_mov_acquire_handle``:
 After the move has completed, the resources must be released back to the pool to avoid 
 exhaustion:
 
-.. code::
+.. code:: c
 
    mli_status
    mli_mov_release_handle(mli_mov_handle_t* h);

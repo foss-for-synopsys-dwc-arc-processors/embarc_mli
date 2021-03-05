@@ -30,7 +30,7 @@ the behavior is undefined.
  
 Kernels which implement SoftMax functions have the following prototype:
 
-.. code::
+.. code:: c
 
    mli_status mli_krn_softmax_<data_format>(
       const mli_tensor *in,
@@ -59,7 +59,7 @@ parameters are shown in the following table:
 
 ``mli_softmax_cfg`` is defined as:
 
-.. code::
+.. code:: c
 
    typedef mli_prelu_cfg mli_softmax_cfg;
 ..

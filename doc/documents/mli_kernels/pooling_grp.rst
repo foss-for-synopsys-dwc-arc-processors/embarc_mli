@@ -9,7 +9,7 @@ in a feature map with reduced, withheld, or emphasized key features.
 
 Functions in this group use the ``mli_pool_cfg`` structure, defined as:
 
-.. code::
+.. code:: c
 
    typedef struct {
       uint8_t kernel_width;
@@ -34,10 +34,10 @@ Functions in this group use the ``mli_pool_cfg`` structure, defined as:
    +----------------------+-------------+-------------------------------------------------------------------+
    | ``kernel_height``    | ``uint8_t`` | Height of the pooling kernel.                                     |
    +----------------------+-------------+-------------------------------------------------------------------+
-   | ``stride_width``     | ``uint8_t`` | Stride of filter across width dimension of input, is the step in  |
+   | ``stride_width``     | ``uint8_t`` | Stride of filter across width dimension of input; is the step in  |
    |                      |             | the input tensor in the width dimension to the next filter.       |
    +----------------------+-------------+-------------------------------------------------------------------+
-   | ``stride_height``    | ``uint8_t`` | Stride of filter across height dimension of input, is the step    |
+   | ``stride_height``    | ``uint8_t`` | Stride of filter across height dimension of input; is the step    |
    |                      |             | in the input tensor in the height dimension to the next filter.   |
    +----------------------+-------------+-------------------------------------------------------------------+
    | ``padding_left``     | ``uint8_t`` | Number of zero points implicitly added to the left of input       |

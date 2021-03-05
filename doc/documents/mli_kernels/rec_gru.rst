@@ -2,9 +2,9 @@ Gated Recurrent Unit (GRU) Cell Prototype and Function List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This kernel implements the Gated Recurrent Unit (GRU) cell in version where a reset 
-gate is applied on the hidden state before matrix multiplication `Depth-Gated Recurrent 
-Neural Networks <https://en.wikipedia.org/wiki/Gated_recurrent_unit>`_, as shown in 
-Figure :ref:`f_gru_schematic`. 
+gate is applied on the hidden state before matrix multiplication (see `Depth-Gated Recurrent 
+Neural Networks <https://en.wikipedia.org/wiki/Gated_recurrent_unit>`_ for more details), 
+as shown in Figure :ref:`f_gru_schematic`. 
  
 .. _f_gru_schematic:
 .. figure:: ../images/gru_schematic.png
@@ -36,7 +36,7 @@ Where:
 
    :math:`\ x_{t}\ ` *- frame* :math:`t` *in input sequence.*
 
-   :math:`\ h_{t}\ ` *- hidden stat (also cell output) for frame*
+   :math:`\ h_{t}\ ` *- hidden state (also cell output) for frame*
    :math:`t` *in input sequence.*
 
    :math:`\ {\widetilde{h}}_{t}\ ` *- updated hidden state for frame*
@@ -58,7 +58,7 @@ of elements in the cell output.
 
 Kernels which implement an GRU cell have the following prototype:
 
-.. code::
+.. code:: c
 
    mli_status mli_krn_gru_cell_<data_format>(
       const mli_tensor *in,
@@ -98,7 +98,7 @@ are shown in the following table:
 
 Fields of ``mli_rnn_cell_cfg`` structure are described in table :ref:`t_mli_rnn_cell_cfg_desc`.
 
-Weights for the cell are consist of two tensors:
+Weights for the cell consist of two tensors:
 
  - ``weights_in``: a three-dimensional tensor of shape (3, N, M) where N is a number of elements in 
    input tensor, and M is a number of elements in hidden state (equal to number of elements in 
@@ -133,7 +133,7 @@ Weights for the cell are consist of two tensors:
 
 This kernel implies sequential processing of the set of inputs vectors which is passed by input tensor 
 of shape (batch_size, N) where N is the length of the single frame :math:`x_{t}` . Both 
-directions of processing (forward and backward) are supported and defined by cfg structure. Kernel can 
+directions of processing (forward and backward) are supported and defined by cfg structure. The Kernel can 
 output the bunch of results for according to each step of processing, or only the last one in the sequence. 
 
 Dense part of calculations uses scratch data from configuration structure for results, and consequently 

@@ -62,7 +62,7 @@ All function names of the kernels are constructed in a similar way. To make it e
 navigate through the list of API functions, all function names are built using the 
 following syntax:
 
-.. code::
+.. code:: c
 
   mli_<group>_<function>_[layout_]<dataformats>[_specializations]([input_tensors],[cfg],[output_tensors]); 
 ..
@@ -105,7 +105,7 @@ grouped inside the config structure.
 
 The naming convention for the data formats is as follows and in :ref:`t_data_fmt_fields`:
 
-.. code::
+.. code:: c
 
   <typename><containersize>
 ..

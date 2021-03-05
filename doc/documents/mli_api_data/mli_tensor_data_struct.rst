@@ -1,13 +1,13 @@
 .. _mli_tens_data_struct:
 
 mli_tensor Data Structures
-------------------------------
+--------------------------
 
 All functions use the ``mli_tensor`` structure as the main container for input and output data. 
 It represents a multi-dimensional array of elements. The ``mli_tensor`` struct describes the 
 shape of this array, its data format, and the way it is organized in memory.
 
-.. code::
+.. code:: c
 
    typedef struct mli_tensor {
       mli_data_container data;
@@ -23,7 +23,7 @@ where
 
 ``mli_element_type`` is defined as follows:   
 
-.. code::
+.. code:: c
 
   typedef enum {
      MLI_EL_FX_4  = 0x004,
@@ -38,7 +38,7 @@ where
 
 ``mli_element_params`` is defined as follows:
 
-.. code::
+.. code:: c
  
    typedef union _mli_element_params {
       struct{
@@ -57,16 +57,18 @@ where
 
 ``mli_el_param_type`` is defined as follows:
 
-.. code::
+.. code:: c
  
    typedef enum {
       MLI_EL_PARAM_SC16_ZP16 = 0
    } mli_el_param_type;
 ..
 
+.. _c_mli_data_container:
+
 and ``mli_data_container`` is defined as follows:
 
-.. code::
+.. code:: c
  
    typedef struct _mli_data_container {
      uint32_t  capacity;

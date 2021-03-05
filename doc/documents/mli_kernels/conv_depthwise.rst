@@ -40,7 +40,7 @@ and calculations, see :ref:`relu_prot`.
 
 Kernels which implement depthwise convolution have the following prototype:
 
-.. code::
+.. code:: c
 
    mli_status mli_krn_depthwise_conv2d_hwcn_<data_format>(
       const mli_tensor *in,

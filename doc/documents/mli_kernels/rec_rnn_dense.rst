@@ -29,9 +29,9 @@ Where:
 	
     :math:`b_{i}` *– bias for* :math:`i_{th}` *neuron*
 	
-Kernels which implement an RNN Dense kernel have the following prototype:
+Kernels which implement an RNN Dense functionality have the following prototype:
 
-.. code::
+.. code:: c
 
    mli_status mli_krn_rnn_dense_<data_format>(
       const mli_tensor **inputs,
@@ -65,7 +65,7 @@ function parameters are shown in the following table:
 
  :code:`mli_rnn_dense_cfg` is defined as:
 
-.. code::
+.. code:: c
 
    typedef struct {
         uint8_t inputs_num;
@@ -140,10 +140,10 @@ For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions
 satisfy the following conditions before calling the function:
  
  - ``bias``, ``out``, all the tensors in inputs array, and all tensors in weights array 
-   must be quantized on the tensor level. It implies that each tensor contains a 
+   must be quantized on the tensor level. This implies that each tensor contains a 
    single scale factor and a single zero offset.
    
- - ``bias`` and all tensors in weights array must be symmetric. It implies that both 
+ - ``bias`` and all tensors in weights array must be symmetric. This implies that both 
    tensors contain single zero offset equal to 0.
    
  - The scale factor of ``bias`` tensor must be equal to the multiplication of the scale factor of 

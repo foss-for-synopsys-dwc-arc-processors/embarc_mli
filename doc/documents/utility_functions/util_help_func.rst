@@ -26,7 +26,7 @@ This function returns the size of the tensor basic element in bytes. It returns 
 does NOT point to a tensor with a supported element type (see description of mli_element_type 
 in section :ref:`kernl_sp_conf`).
 
-.. code::
+.. code:: c
 
    uint32_t mli_hlp_count_elem_num(
        const mli_tensor *in);
@@ -49,7 +49,7 @@ When used with :math:`startdim = 0`, the total element count of the tensor is co
 
 Function prototype:
 
-.. code::
+.. code:: c
 
    uint32_t mli_hlp_count_elem_num(
        const mli_tensor *in,
@@ -89,7 +89,7 @@ an invalid tensor, the value 0 is returned.
 
 Function prototype:
 
-.. code::
+.. code:: c
 
    int16_t mli_hlp_tensor_scale(
        const mli_tensor *in);
@@ -123,7 +123,7 @@ For data formats that don’t have a shift value, the value 0 is returned.
 
 Function prototype
 
-.. code::
+.. code:: c
 
    int16_t mli_hlp_tensor_scale_shift(
        const mli_tensor *in);
@@ -157,7 +157,7 @@ For data formats, that don’t have a zero offset value, the value 0 is returned
 
 Function prototype:
 
-.. code::
+.. code:: c
 
    int16_t mli_hlp_tensor_zero_offset(
        const mli_tensor *in);
@@ -196,7 +196,7 @@ tensor for the top half of the HW image for all channels.
 The configuration struct is defined as follows and the fields are explained in 
 Table :ref:`t_mli_sub_tensor_cfg_desc`.
 
-.. code::
+.. code:: c
 
    typedef struct {
      uint32_t offset[MLI_MAX_RANK];
@@ -245,7 +245,7 @@ value as used to increment the data pointer.
 
 The function prototype:
 
-.. code::
+.. code:: c
 
    mli_status mli_hlp_subtensor(
      const mli_tensor *in,

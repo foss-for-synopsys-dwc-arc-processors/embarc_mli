@@ -31,7 +31,7 @@ that memory regions are overlapped, the behavior is undefined.
 
 Kernels which implement L2 normalization functions have the following prototype:
 
-.. code::
+.. code:: c
 
    mli_status mli_krn_L2_normalize_<data_format>(
       const mli_tensor *in,
@@ -61,7 +61,7 @@ parameters are shown in the following table:
 
 ``mli_L2_normalize_cfg`` is defined as:
 
-.. code::
+.. code:: c
 
    typedef mli_prelu_cfg mli_L2_normalize_cfg;
 ..

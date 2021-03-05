@@ -9,7 +9,7 @@ Fully Connected Prototype and Function List
    
 ..
 
-This kernel implements fully connected layer, also usually referred to as the inner 
+This kernel implements a fully connected layer, also usually referred to as the inner 
 product or dense layer.  
  
 Each value of output tensor is calculated according to the following formula:
@@ -31,12 +31,12 @@ Where:
 
     :math:`b_{i}` *– bias for* :math:`i_{\text{th}}` *neuron*
 
-Optionally, saturating ReLU activation function can be applied to the result of the calculations 
+Optionally, a saturating ReLU activation function can be applied to the result of the calculations 
 during the function’s execution. For more info on supported ReLU types, see :ref:`relu_prot`.  
 
-Functions which implement fully connected kernels have the following prototype:
+Functions that implement fully connected kernels have the following prototype:
 
-.. code::
+.. code:: c
 
    mli_status mli_krn_fully_connected_<data_format>(
       const mli_tensor *in,
@@ -70,7 +70,7 @@ and the function parameters are shown in the following table:
 
    ``mli_fully_connected_cfg`` is defined as:
 
-.. code::
+.. code:: c
    
    typedef struct {
         mli_relu_cfg relu;
@@ -99,18 +99,18 @@ Here is a list of all available Fully Connected functions:
    +---------------------------------------------------+----------------------------------------+
    | **Function Name**                                 | **Details**                            |
    +===================================================+========================================+
-   | ``mli_krn_fully_connected_sa8_sa8_sa32``          |  In/out/weights data format: **sa8**   |
-   |                                                   |  Bias data format: **sa32**            |
+   | ``mli_krn_fully_connected_sa8_sa8_sa32``          || In/out/weights data format: **sa8**   |
+   |                                                   || Bias data format: **sa32**            |
    +---------------------------------------------------+----------------------------------------+
-   | ``mli_krn_fully_connected_fx16``                  |  All tensors data format: **fx16**     |
+   | ``mli_krn_fully_connected_fx16``                  || All tensors data format: **fx16**     |
    +---------------------------------------------------+----------------------------------------+
-   | ``mli_krn_fully_connected_fx16_fx8_fx8``          |  In/out data format: **fx16**          |
-   |                                                   |  Weights/Bias data format: **fx8**     |
+   | ``mli_krn_fully_connected_fx16_fx8_fx8``          || In/out data format: **fx16**          |
+   |                                                   || Weights/Bias data format: **fx8**     |
    +---------------------------------------------------+----------------------------------------+
-   | ``mli_krn_fully_connected_sa8_sa8_sa32_ext_bias`` |  In/out/weights data format: **sa8**   |
-   |                                                   |  Bias data format: **sa32**            |
-   |                                                   |  Bias data adjusted to include         |
-   |                                                   |  zero point additives                  |
+   | ``mli_krn_fully_connected_sa8_sa8_sa32_ext_bias`` || In/out/weights data format: **sa8**   |
+   |                                                   || Bias data format: **sa32**            |
+   |                                                   || Bias data adjusted to include         |
+   |                                                   || zero point additives                  |
    +---------------------------------------------------+----------------------------------------+
 ..
 

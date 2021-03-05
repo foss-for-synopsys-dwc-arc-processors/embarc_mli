@@ -115,7 +115,7 @@ Changing the Data Layout of Three-Dimensional Tensors
 Inputs and outputs of vision layers, like convolution or pooling, are typically three-dimensional tensors 
 (also referred to as feature maps) that reflect the value of various features (channels) across 
 image-like input (height and width). The two most frequently used layouts are HWC and CHW, depicted 
-in :ref:`f_var_tnsr_data`. The MLI Native data layout is HWC, but there is a conversion (transpose) function 
+in :ref:`f_var_tnsr_data`. The MLI data layout is HWC, but there is a conversion (transpose) function 
 provided to change from one data layout into another layout.
 
 

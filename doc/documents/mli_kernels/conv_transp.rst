@@ -16,7 +16,7 @@ ignored.
 
 Kernels which implement Transpose Convolutions have the following prototype:
 
-.. code::
+.. code:: c
 
    mli_status mli_krn_transpose_conv2d_hwcn_<data_format>(
       const mli_tensor *in,

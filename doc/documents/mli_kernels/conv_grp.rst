@@ -30,7 +30,7 @@ types and calculations, see :ref:`relu_prot`.
 
 Kernels which implement a group convolution have the following prototype:
 
-.. code::
+.. code:: c
 
    mli_status mli_krn_group_conv2d_hwcn_<data_format>(
       const mli_tensor *in,

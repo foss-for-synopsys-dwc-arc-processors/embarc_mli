@@ -30,7 +30,7 @@ and calculations, see :ref:`relu_prot`.
 
 The functions which implement 2D Convolutions have the following prototype:
 
-.. code::
+.. code:: c
 
    mli_status mli_krn_conv2d_hwcn_<data_format>(
      const mli_tensor *in,

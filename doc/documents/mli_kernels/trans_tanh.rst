@@ -23,7 +23,7 @@ a way that memory regions are overlapped, the behavior is undefined.
 
 Kernels which implement TanH functions have the following prototype:
 
-.. code::
+.. code:: c
 
    mli_status mli_krn_tanh_<data_format>(
       const mli_tensor *in,

@@ -8,7 +8,7 @@ across a dimension.
 
 Argmax functions have the following prototype:
 
-.. code::
+.. code:: c
 
    mli_status mli_krn_argmax_<data_format>(
       const mli_tensor *in,
@@ -37,7 +37,7 @@ parameters are shown in the following table:
 
    ``mli_argmax_cfg`` is defined as:
    
-.. code::
+.. code:: c
 
    typedef struct {
         int32_t axis;
@@ -54,7 +54,7 @@ parameters are shown in the following table:
    | **Field name** | **Type**       | **Description**                                                           |
    +================+================+===========================================================================+
    |                |                | An axis along which the function is computed. Axis corresponds to         |
-   | ``axis``       | ``int32_t``    | index of tensor’s dimension starting from 0. For instance, having future  |
+   | ``axis``       | ``int32_t``    | index of tensor’s dimension starting from 0. For instance, having feature |
    |                |                | map in HWC layout, axis == 0 corresponds to H dimension. If axis < 0,     |
    |                |                | the function is applied to the whole tensor.                              |
    +----------------+----------------+---------------------------------------------------------------------------+
@@ -100,12 +100,12 @@ satisfy the following condition before calling the function:
 Depending on the debug level (see section :ref:`err_codes`), this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
-Kernel modifies output tensor which is transformed into two-dimensional tensor of shape 
+The Kernel modifies the output tensor which is transformed into two-dimensional tensor of shape 
 ``(dim_size, top_k]`` where ``dim_size`` is the size of dimension specified by the axis parameter in 
 ``mli_argmax_cfg`` structure, and ``top_k`` is the number of indexes per slice specified by the 
 ``topk`` parameter of the same structure. 
 
-Output tensor type must be defined by the user. Only integer types are allowed (``fx8``, ``fx16``, 
+The Output tensor type must be defined by the user. Only integer types are allowed (``fx8``, ``fx16``, 
 ``sa8``, ``sa32``). ``el_params`` field of out tensor is configured by the kernel to reflect fully integer 
 values (``frac_bits = 0`` for **fx** data format, ``zero_offset = 0``,  ``scale = 1`` and 
 ``scale_frac_bits = 0`` for **sa** data format). An Index represents the position of Nth 

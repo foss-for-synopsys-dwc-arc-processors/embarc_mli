@@ -63,7 +63,7 @@ it will be computed from the input shape.
 
 Function prototype:
 
-.. code::
+.. code:: c
 
    mli_status mli_hlp_convert_tensor(
        const mli_tensor* src,
@@ -77,7 +77,7 @@ reason, there is also a fixed point specialization. This function should be used
 places where it is known that neither of the source or destination tensor is a float tensor. 
 It supports both signed asymmetric data formats and fixed point data formats. 
 
-.. code::
+.. code:: c
 
    mli_status mli_hlp_convert_tensor_safx(
        const mli_tensor* src,

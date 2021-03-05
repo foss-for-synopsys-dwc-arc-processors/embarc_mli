@@ -36,12 +36,9 @@ MLI supported primitives are intended for
 Purpose of This Document
 ------------------------
 
-This document guides you to create a MLI Implementations that is compliant to the 
-desired target.
-
 The document describes 
   
-  - the usage of MLI primitives 
+  - the usage of MLI primitives and 
   
   - the technical details of MLI primitives such as 
     

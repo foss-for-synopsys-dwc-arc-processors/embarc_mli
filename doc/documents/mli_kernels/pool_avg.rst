@@ -1,12 +1,13 @@
 Average Pooling Prototype and Function List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Average pooling computes the average value of all the values in the kernel for each 
-output element. The kernel is defined as the area of the kernel width x kernel height. 
+Average pooling computes each value of the output tensor as the average of all values 
+in the related perception area of a single channel of the input tensor. The perception 
+area size is defined as :math:`kernel\_width * kernel\_height`.
 
 Kernels which implement average pooling functions have the following prototype:
 
-.. code::
+.. code:: c
 
    mli_status  mli_krn_avepool_hwc_<data_format>(
       const mli_tensor *in,

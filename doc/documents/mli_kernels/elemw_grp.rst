@@ -3,11 +3,11 @@
 Element-wise Group
 ------------------
 
-The Element-wise Group describes operations that are applied element-
-by-element on two tensors of the same shape and return a tensor of 
-same shape. These kernels can also be used for broadcasting a scalar value. 
-One of the input tensors can be a scalar tensor. In that case the operation 
-is applied to the scalar value and each element of the other tensor.
+The Element-wise Group describes operations that are applied element-by-element 
+on two tensors of the same shape and return a tensor of the same shape. These kernels 
+can also be used for broadcasting a scalar value. One of the input tensors can be 
+a scalar tensor. In that case the operation is applied to the scalar value and each 
+element of the other tensor.
  
 :math:`\text{out}_{i} = operation(\text{in}_{i}^{1},\ \text{in}_{i}^{2}`)
 
@@ -15,7 +15,7 @@ is applied to the scalar value and each element of the other tensor.
 
 Kernels which implement Element-wise functions have the following prototype:
 
-.. code::
+.. code:: c
 
    mli_status mli_krn_eltwise_<operation>_<datatype> (
       const mli_tensor *in1,
@@ -48,25 +48,25 @@ Kernels which implement Element-wise functions have the following prototype:
    +--------------------------------+---------------+---------------------------------+
    | **Function Name**              | **Operation** | **in1 / in2 / out data format** |
    +================================+===============+=================================+
-   | ``mli_krn_eltwise_add_sa8()``  | Addition      | **sa8**                         |
+   | ``mli_krn_eltwise_add_sa8``    | Addition      | **sa8**                         |
    +--------------------------------+---------------+---------------------------------+
-   | ``mli_krn_eltwise_add_fx16()`` | Addition      | **fx16**                        |
+   | ``mli_krn_eltwise_add_fx16``   | Addition      | **fx16**                        |
    +--------------------------------+---------------+---------------------------------+
-   | ``mli_krn_eltwise_sub_sa8()``  | Subtract      | **sa8**                         |
+   | ``mli_krn_eltwise_sub_sa8``    | Subtract      | **sa8**                         |
    +--------------------------------+---------------+---------------------------------+
-   | ``mli_krn_eltwise_sub_fx16()`` | Subtract      | **fx16**                        |
+   | ``mli_krn_eltwise_sub_fx16``   | Subtract      | **fx16**                        |
    +--------------------------------+---------------+---------------------------------+
-   | ``mli_krn_eltwise_min_sa8()``  | Minimum       | **sa8**                         |
+   | ``mli_krn_eltwise_min_sa8``    | Minimum       | **sa8**                         |
    +--------------------------------+---------------+---------------------------------+
-   | ``mli_krn_eltwise_min_fx16()`` | Minimum       | **fx16**                        |
+   | ``mli_krn_eltwise_min_fx16``   | Minimum       | **fx16**                        |
    +--------------------------------+---------------+---------------------------------+
-   | ``mli_krn_eltwise_max_sa8()``  | Maximum       | **sa8**                         |
+   | ``mli_krn_eltwise_max_sa8``    | Maximum       | **sa8**                         |
    +--------------------------------+---------------+---------------------------------+
-   | ``mli_krn_eltwise_max_fx16()`` | Maximum       | **fx16**                        |
+   | ``mli_krn_eltwise_max_fx16``   | Maximum       | **fx16**                        |
    +--------------------------------+---------------+---------------------------------+
-   | ``mli_krn_eltwise_mul_sa8()``  | Multiply      | **sa8**                         |
+   | ``mli_krn_eltwise_mul_sa8``    | Multiply      | **sa8**                         |
    +--------------------------------+---------------+---------------------------------+
-   | ``mli_krn_eltwise_mul_fx16()`` | Multiply      | **fx16**                        |
+   | ``mli_krn_eltwise_mul_fx16``   | Multiply      | **fx16**                        |
    +--------------------------------+---------------+---------------------------------+   
 ..
 
@@ -93,7 +93,7 @@ All of these functions must comply to the following conditions:
      Other fields of the structure do not have to contain valid data and are filled by the function 
      (``shape``, ``rank``, ``el_params``, etc). 
  
- - If the result of an operation is out of containers’ range, it is saturated to the 
+ - If the result of an operation is out of container’s range, it is saturated to the 
    container’s limit.
    
  - The kernel supports in-place computation. It means that output and input tensor structures 

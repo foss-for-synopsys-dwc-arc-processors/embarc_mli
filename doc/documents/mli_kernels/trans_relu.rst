@@ -30,7 +30,7 @@ such a way that memory regions are overlapped, the behavior is undefined.
 
 Kernels which implement ReLU functions have the following prototype:
 
-.. code::
+.. code:: c
 
    mli_status mli_krn_relu_<data_format>(
       const mli_tensor *in,
@@ -58,7 +58,7 @@ parameters are shown in the following table:
 
    ``mli_relu_cfg`` is defined as:
 
-.. code::
+.. code:: c
    
    typedef struct {
       mli_relu_type type;

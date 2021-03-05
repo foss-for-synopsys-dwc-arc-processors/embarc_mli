@@ -30,7 +30,7 @@ the behavior is undefined.
 
 Kernels which implement Leaky ReLU functions have the following prototype:
 
-.. code::
+.. code:: c
 
    mli_status mli_krn_leaky_relu_<data_format>(
       const mli_tensor *in,

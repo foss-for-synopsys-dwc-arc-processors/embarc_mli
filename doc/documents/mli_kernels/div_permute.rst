@@ -6,9 +6,9 @@ Permute Prototype and Function List
 The kernel permutes dimensions of input tensor according to provided order. In other words,
 it transposes input tensors.
 
-The function Kernels which implement Permute have the following prototype:
+The functions which implement Permute have the following prototype:
 
-.. code::
+.. code:: c
 
    mli_status mli_krn_permute_<data_format>(
       const mli_tensor *in,
@@ -36,7 +36,7 @@ are shown in the following table:
 
 ``mli_permute_cfg`` structure is defined as:
 
-.. code::
+.. code:: c
 
    typedef struct {
       uint8_t perm_dim[MLI_MAX_RANK];
@@ -55,9 +55,9 @@ are shown in the following table:
    +-----------------+------------------+-------------------------------------------------------------+
 ..
 
-The new order of dimensions is given by ``perm_dim`` array of kernel configuration structure. 
-``out`` tensor’s dimension ``idx`` corresponds to the dimension of in tensor with ``perm_dim[idx]``. 
-Tensor’s data is reordered according to the new shape.
+The new order of dimensions is given by ``perm_dim`` array of kernel configuration structure. The 
+``out`` tensor’s dimension ``idx`` corresponds to the dimension of the ``in`` tensor with ``perm_dim[idx]``. 
+The tensor’s data is reordered according to the new shape.
 
 For example, if input tensors have the shape (2, 4, 8) and ``perm_dim`` order is (2, 0, 1) then output 
 tensor is of the shape (8, 2, 4). This transpose reflects changing the feature map layout from HWC to CHW.

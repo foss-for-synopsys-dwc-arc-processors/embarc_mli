@@ -1,9 +1,9 @@
 Basic Long Short Term Memory (LSTM) Cell Prototype and Function List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This kernel implements the basic non-peephole Long short-term memory (LSTM) cell 
-`Long Short-term Memory <https://en.wikipedia.org/wiki/Long_short-term_memory>`_, 
-as shown in Figure :ref:`f_lstm_schematic`. 
+This kernel implements the basic non-peephole Long Short-Term Memory (LSTM) cell 
+(see `Long Short-term Memory <https://en.wikipedia.org/wiki/Long_short-term_memory>`_ 
+for more details), as shown in Figure :ref:`f_lstm_schematic`. 
  
 .. _f_lstm_schematic:
 .. figure:: ../images/lstm_schematic.png
@@ -64,7 +64,7 @@ elements in the input and M is the total number of elements in the cell output.
 
 Kernels which implement an LSTM cell have the following prototype:
 
-.. code::
+.. code:: c
 
    mli_status mli_krn_lstm_cell_<data_format>(
       const mli_tensor *in,
@@ -107,7 +107,7 @@ are shown in the following table:
 
 Fields of ``mli_rnn_cell_cfg`` structure are described in the Table :ref:`t_mli_rnn_cell_cfg_desc`.
 
-Weights for the cell are consist of two tensors:
+Weights for the cell consist of three tensors:
 
  - ``weights_in``: a three-dimensional tensor of shape (4, N, M) where N is a number of elements 
    in input tensor, and M is a number of cell elements (equal to number of elements in cell state 
@@ -150,7 +150,7 @@ Weights for the cell are consist of two tensors:
    
 This kernel implies sequential processing of the set of input vectors that is passed by input tensor 
 of shape (batch_size, N) where N is the length of the single frame :math:`x_{t}`. Both directions 
-of processing (forward and backward) are supported and defined by cfg structure. Kernel can output 
+of processing (forward and backward) are supported and defined by cfg structure. The Kernel can output 
 a pack of results at each step of processing, or it can output the result vector only for the last 
 step in the sequence.
  
@@ -198,7 +198,7 @@ Ensure that you satisfy the following conditions before calling the function:
  - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity and valid el_params union. 
    Other fields of the structure do not have to contain valid data and are filled by the function.
    
- - ``in`` and `` cfg->scratch_data`` tensors must not point to overlapped memory regions.
+ - ``in`` and ``cfg->scratch_data`` tensors must not point to overlapped memory regions.
  
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
