@@ -95,7 +95,16 @@ static MLI_FORCE_INLINE mli_status mli_krn_permute_run(const mli_tensor *in, con
             out->el_params.sa.scale.mem.i16 = in->el_params.sa.scale.mem.i16;
             out->el_params.sa.scale_frac_bits.mem.i8 = in->el_params.sa.scale_frac_bits.mem.i8;
         } else {
-            out->el_params.sa.dim = perm_dim[in->el_params.sa.dim];
+            int out_dim = -1;
+            for (int k = 0; k < MLI_MAX_RANK; k++) {
+                if (perm_dim[k] == in->el_params.sa.dim) {
+                    out_dim = k;
+                    break;
+                }
+            }
+            MLI_ASSERT(out_dim > -1);
+            out->el_params.sa.dim = out_dim;
+
             if(out->el_params.sa.zero_point.mem.pi16 == nullptr) {
                 out->el_params.sa.zero_point.mem.pi16 = in->el_params.sa.zero_point.mem.pi16;
             } else if (out->el_params.sa.zero_point.mem.pi16 != in->el_params.sa.zero_point.mem.pi16) {
