@@ -100,119 +100,170 @@ const quality_metrics thresholds_sa8_general{ quality_metrics::kPassValueMaxAbsE
 
 static const group_conv2d_test_operands tests_list[] = {
     // Basic functionality test: groups=3, kernel_size=(3, 4), strides=(1, 2), krn_padding, w/o ReLU
+#ifdef COMPILE_FOR_FX16
     {"Test 1 FX16",         mli_krn_group_conv2d_hwcn_fx16, 
                             input_1_fx16, weights_1_fx16, bias_1_fx16, test_1_out_fx16, test_1_cfg,
                             thresholds_fx16_general, test_1_chksum_fx16},
+#elif COMPILE_FOR_FX16_FX8_FX8
     {"Test 1 FX16_FX8_FX8", mli_krn_group_conv2d_hwcn_fx16_fx8_fx8, 
                             input_1_fx16, weights_1_fx8, bias_1_fx8, test_1_out_fx16, test_1_cfg, 
                             thresholds_fx16_fx8_fx8_general, test_1_chksum_fx16_fx8_fx8},
+#elif COMPILE_FOR_SA8_SA8_SA32
     {"Test 1 SA8_SA8_SA32", mli_krn_group_conv2d_hwcn_sa8_sa8_sa32,
                             input_1_sa8, weights_1_sa8, bias_1_sa32, test_1_out_sa8, test_1_cfg, 
                             thresholds_sa8_general, test_1_chksum_sa8},
-
+#else
+#error incorrect make configuration
+#endif
     // Basic functionality test: groups=3, kernel_size=(4, 3), strides=(1, 2), krn_padding, Gen_ReLU
+#ifdef COMPILE_FOR_FX16
     {"Test 2 FX16 ReluGen",         mli_krn_group_conv2d_hwcn_fx16, 
                                     input_1_fx16, weights_2_fx16, bias_2_fx16, test_2_out_fx16, test_2_cfg, 
                                     thresholds_fx16_general, test_2_chksum_fx16},
+#elif COMPILE_FOR_FX16_FX8_FX8
     {"Test 2 FX16_FX8_FX8 ReluGen", mli_krn_group_conv2d_hwcn_fx16_fx8_fx8,
                                     input_1_fx16, weights_2_fx8, bias_2_fx8, test_2_out_fx16, test_2_cfg,
                                     thresholds_fx16_fx8_fx8_general, test_2_chksum_fx16_fx8_fx8},
+#elif COMPILE_FOR_SA8_SA8_SA32
     {"Test 2 SA8_SA8_SA32 ReluGen", mli_krn_group_conv2d_hwcn_sa8_sa8_sa32, 
                                     input_1_sa8, weights_2_sa8, bias_2_i1_w2_sa32, test_2_out_sa8, test_2_cfg,
                                     thresholds_sa8_general, test_2_chksum_sa8},
-
+#else
+#error incorrect make configuration
+#endif
     // Multiple filters per group test: groups=3, fpg=2, kernel_size=(4, 4), strides=(1, 1), w/o padding, w/o ReLU
+#ifdef COMPILE_FOR_FX16
     {"Test 3 FX16 Mult FPG",         mli_krn_group_conv2d_hwcn_fx16,
                                      input_2_fx16, weights_3_fx16, bias_3_fx16, test_3_out_fx16, test_3_cfg,
                                      thresholds_fx16_general, test_3_chksum_fx16},
+#elif COMPILE_FOR_FX16_FX8_FX8
     {"Test 3 FX16_FX8_FX8 Mult FPG", mli_krn_group_conv2d_hwcn_fx16_fx8_fx8,
                                      input_2_fx16, weights_3_fx8, bias_3_fx8, test_3_out_fx16, test_3_cfg,
                                      thresholds_fx16_fx8_fx8_general, test_3_chksum_fx16_fx8_fx8},
+#elif COMPILE_FOR_SA8_SA8_SA32
     {"Test 3 SA8_SA8_SA32 Mult FPG", mli_krn_group_conv2d_hwcn_sa8_sa8_sa32,
                                      input_2_sa8, weights_3_sa8, bias_3_i2_w3_sa32, test_3_out_sa8, test_3_cfg,
                                      thresholds_sa8_general, test_3_chksum_sa8},
-
+#else
+#error incorrect make configuration
+#endif
     // Depthwise kernel call test with dilation: groups=9, kernel_size=(3, 3), strides=(1, 1), dilation=(2, 2),
     // krn_padding, Gen_ReLU
+#ifdef COMPILE_FOR_FX16
     {"Test 4 FX16 DW call",         mli_krn_group_conv2d_hwcn_fx16,
                                     input_1_fx16, weights_4_fx16, bias_4_fx16, test_4_out_fx16, test_4_cfg,
                                     thresholds_fx16_general, test_4_chksum_fx16},
+#elif COMPILE_FOR_FX16_FX8_FX8
     {"Test 4 FX16_FX8_FX8 DW call", mli_krn_group_conv2d_hwcn_fx16_fx8_fx8,
                                     input_1_fx16, weights_4_fx8, bias_4_fx8, test_4_out_fx16, test_4_cfg,
                                     thresholds_fx16_fx8_fx8_test4, test_4_chksum_fx16_fx8_fx8},
+#elif COMPILE_FOR_SA8_SA8_SA32
     {"Test 4 SA8_SA8_SA32 DW call", mli_krn_group_conv2d_hwcn_sa8_sa8_sa32,
                                     input_1_sa8, weights_4_sa8, bias_4_i1_w4_sa32, test_4_out_sa8, test_4_cfg,
                                     thresholds_sa8_general, test_4_chksum_sa8},
-
+#else
+#error incorrect make configuration
+#endif
     // Conv2D kernel call test with dilation: groups=1, kernel_size=(2, 2), strides=(2, 1), dilation=(2, 2),
     // krn_padding, w/o ReLU
+#ifdef COMPILE_FOR_FX16
     {"Test 5 FX16 Conv2D call",       mli_krn_group_conv2d_hwcn_fx16, 
                                       input_1_fx16, weights_5_fx16, bias_5_fx16, test_5_out_fx16, test_5_cfg,
                                       thresholds_fx16_general, test_5_chksum_fx16},
+#elif COMPILE_FOR_FX16_FX8_FX8
     {"Test 5 FX16_FX8_FX8 Conv call", mli_krn_group_conv2d_hwcn_fx16_fx8_fx8, 
                                       input_1_fx16, weights_5_fx8, bias_5_fx8, test_5_out_fx16, test_5_cfg,
                                       thresholds_fx16_fx8_fx8_general, test_5_chksum_fx16_fx8_fx8},
+#elif COMPILE_FOR_SA8_SA8_SA32
     {"Test 5 SA8_SA8_SA32 Conv call", mli_krn_group_conv2d_hwcn_sa8_sa8_sa32,
                                       input_1_sa8, weights_5_sa8, bias_5_i1_w5_sa32, test_5_out_sa8, test_5_cfg,
                                       thresholds_sa8_general, test_5_chksum_sa8},
-
+#else
+#error incorrect make configuration
+#endif
     // Input/output Memstride test: groups=3, kernel_size=(3, 4), strides=(3, 3), krn_padding, ReLU_6
+#ifdef COMPILE_FOR_FX16
     {"Test 6 FX16 IO_Memstr",         mli_krn_group_conv2d_hwcn_fx16,
                                       input_1_memstr_fx16, weights_1_fx16, bias_6_fx16, test_6_out_fx16, test_6_cfg,
                                       thresholds_fx16_general, test_6_chksum_fx16},
+#elif COMPILE_FOR_FX16_FX8_FX8
     {"Test 6 FX16_FX8_FX8 IO_Memstr", mli_krn_group_conv2d_hwcn_fx16_fx8_fx8,
                                       input_1_memstr_fx16, weights_1_fx8, bias_6_fx8, test_6_out_fx16,
                                       test_6_cfg, thresholds_fx16_fx8_fx8_general, test_6_chksum_fx16_fx8_fx8},
+#elif COMPILE_FOR_SA8_SA8_SA32
     {"Test 6 SA8_SA8_SA32 IO_Memstr", mli_krn_group_conv2d_hwcn_sa8_sa8_sa32,
                                       input_1_memstr_sa8, weights_1_sa8, bias_6_i1_w1_sa32, test_6_out_sa8,
                                       test_6_cfg, thresholds_sa8_general, test_6_chksum_sa8},
-
+#else
+#error incorrect make configuration
+#endif
     // Weights Memstride test: groups=3, kernel_size=(4, 3), strides=(3, 3), krn_padding, Gen_ReLU
+#ifdef COMPILE_FOR_FX16
     {"Test 7 FX16 W_Memstr",         mli_krn_group_conv2d_hwcn_fx16,
                                      input_1_fx16, weights_2_memstr_fx16, bias_7_fx16, test_7_out_fx16, test_7_cfg,
                                      thresholds_fx16_general, test_7_chksum_fx16},
+#elif COMPILE_FOR_FX16_FX8_FX8
     {"Test 7 FX16_FX8_FX8 W_Memstr", mli_krn_group_conv2d_hwcn_fx16_fx8_fx8,
                                      input_1_fx16, weights_2_memstr_fx8, bias_7_fx8, test_7_out_fx16,
                                      test_7_cfg, thresholds_fx16_fx8_fx8_general, test_7_chksum_fx16_fx8_fx8},
+#elif COMPILE_FOR_SA8_SA8_SA32
     {"Test 7 SA8_SA8_SA32 W_Memstr", mli_krn_group_conv2d_hwcn_sa8_sa8_sa32, 
                                      input_1_sa8, weights_2_memstr_sa8, bias_7_i1_w2_sa32, test_7_out_sa8, test_7_cfg,
                                      thresholds_sa8_general, test_7_chksum_sa8},
-
+#else
+#error incorrect make configuration
+#endif
     // Multiple filters per group test with dilation: groups=3, fpg=2, kernel_size=(2, 2), strides=(1, 1), 
     // dilation=(2, 2), krn_padding, ReLU_1
+#ifdef COMPILE_FOR_FX16
     {"Test 8 FX16 FPG+Dil",         mli_krn_group_conv2d_hwcn_fx16,
                                     input_2_fx16, weights_6_fx16, bias_8_fx16, test_8_out_fx16, test_8_cfg,
                                     thresholds_fx16_general, test_8_chksum_fx16},
+#elif COMPILE_FOR_FX16_FX8_FX8
     {"Test 8 FX16_FX8_FX8 FPG+Dil", mli_krn_group_conv2d_hwcn_fx16_fx8_fx8,
                                     input_2_fx16, weights_6_fx8, bias_8_fx8, test_8_out_fx16,
                                     test_8_cfg, thresholds_fx16_fx8_fx8_general, test_8_chksum_fx16_fx8_fx8},
+#elif COMPILE_FOR_SA8_SA8_SA32
     {"Test 8 SA8_SA8_SA32 FPG+Dil", mli_krn_group_conv2d_hwcn_sa8_sa8_sa32, 
                                     input_2_sa8, weights_6_sa8, bias_8_i2_w6_sa32, test_8_out_sa8, test_8_cfg,
                                     thresholds_sa8_general, test_8_chksum_sa8},
-    
+#else
+#error incorrect make configuration
+#endif
     // k3x3 specialization test with in/out/w memstride and dilation: groups=3, kernel_size=(3, 3), strides=(1, 1), 
     // dilation=(2, 2), krn_padding, Gen_ReLU
+#ifdef COMPILE_FOR_FX16
     {"Test 9 FX16 k3x3 Mstr+Dil",     mli_krn_group_conv2d_hwcn_fx16_k3x3,
                                       input_1_memstr_fx16, weights_7_memstr_fx16, bias_9_fx16, test_9_out_fx16, 
                                       test_9_cfg, thresholds_fx16_general, test_9_chksum_fx16},
+#elif COMPILE_FOR_FX16_FX8_FX8
     {"Test 9 FX16_FX8 k3x3 Mstr+Dil", mli_krn_group_conv2d_hwcn_fx16_fx8_fx8_k3x3,
                                       input_1_memstr_fx16, weights_7_memstr_fx8, bias_9_fx8, test_9_out_fx16,
                                       test_9_cfg, thresholds_fx16_fx8_fx8_general, test_9_chksum_fx16_fx8_fx8},
+#elif COMPILE_FOR_SA8_SA8_SA32
     {"Test 9 SA8 k3x3 Mstr+Dil",      mli_krn_group_conv2d_hwcn_sa8_sa8_sa32_k3x3, 
                                       input_1_memstr_sa8, weights_7_memstr_sa8, bias_9_i1_w7_sa32, 
                                       test_9_out_sa8, test_9_cfg, thresholds_sa8_general, test_9_chksum_sa8},
-
+#else
+#error incorrect make configuration
+#endif
     // k5x5 specialization test with in/out/w memstride and dilation: groups=3, kernel_size=(5, 5), strides=(1, 1), 
     // dilation=(2, 2), krn_padding, w/o ReLU
+#ifdef COMPILE_FOR_FX16
     {"Test 10 FX16 k5x5 Mstr+Dil",     mli_krn_group_conv2d_hwcn_fx16_k5x5,
                                        input_1_memstr_fx16, weights_8_memstr_fx16, bias_10_fx16, test_10_out_fx16, 
                                        test_10_cfg, thresholds_fx16_general, test_10_chksum_fx16},
+#elif COMPILE_FOR_FX16_FX8_FX8
     {"Test 10 FX16_FX8 k5x5 Mstr+Dil", mli_krn_group_conv2d_hwcn_fx16_fx8_fx8_k5x5,
                                        input_1_memstr_fx16, weights_8_memstr_fx8, bias_10_fx8, test_10_out_fx16,
                                        test_10_cfg, thresholds_fx16_fx8_fx8_general, test_10_chksum_fx16_fx8_fx8},
+#elif COMPILE_FOR_SA8_SA8_SA32
     {"Test 10 SA8 k5x5 Mstr+Dil",      mli_krn_group_conv2d_hwcn_sa8_sa8_sa32_k5x5, 
                                        input_1_memstr_sa8, weights_8_memstr_sa8, bias_10_i1_w8_sa32, 
                                        test_10_out_sa8, test_10_cfg, thresholds_sa8_general, test_10_chksum_sa8},
+#else
+#error incorrect make configuration
+#endif
 };
 
 constexpr int kMemSize = 2247;

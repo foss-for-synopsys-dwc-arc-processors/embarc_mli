@@ -122,38 +122,52 @@ target_include_directories(test_components_obj PRIVATE ${mli_include_dirs})
 # Function to add new user test
 #======================================================
 function(ADD_USER_TEST TEST_NAME)
-    add_executable(test_mli_krn_${TEST_NAME}
+    # Support an optional argument 'DATA_TYPE' to this function.
+    if (${ARGC} GREATER 1)
+        set(DATA_TYPE ${ARGV1})
+        set(TARGET test_mli_krn_${TEST_NAME}_${DATA_TYPE})
+    else()
+        set(DATA_TYPE)
+        set(TARGET test_mli_krn_${TEST_NAME})
+    endif()
+
+    add_executable(${TARGET}
         tests/mli_krn_${TEST_NAME}/tests_mli_krn_${TEST_NAME}.cc
     )
 
-    target_include_directories(test_mli_krn_${TEST_NAME} PRIVATE
+    target_include_directories(${TARGET} PRIVATE
         tests/mli_krn_${TEST_NAME}
     )
 
-    target_link_libraries(test_mli_krn_${TEST_NAME} PUBLIC mli)
-    target_link_libraries(test_mli_krn_${TEST_NAME} PUBLIC test_components_obj)
+    target_link_libraries(${TARGET} PUBLIC mli)
+    target_link_libraries(${TARGET} PUBLIC test_components_obj)
 
-    target_compile_options(test_mli_krn_${TEST_NAME} PRIVATE
+    target_compile_options(${TARGET} PRIVATE
         ${MLI_PLATFORM_COMPILE_OPTIONS}
         ${TEST_COMPILE_OPTIONS}
         ${DSP_CONTROL_OPTION}
     )
-    target_compile_definitions(test_mli_krn_${TEST_NAME} PRIVATE ${TEST_COMPILE_DEFINITIONS})
+    target_compile_definitions(${TARGET} PRIVATE ${TEST_COMPILE_DEFINITIONS})
 
-    target_link_options(test_mli_krn_${TEST_NAME} PRIVATE
+    if (NOT ${DATA_TYPE} STREQUAL "")
+        target_compile_definitions(${TARGET} PRIVATE
+            COMPILE_FOR_${DATA_TYPE})
+    endif()
+
+    target_link_options(${TARGET} PRIVATE
         ${MLI_PLATFORM_LINK_OPTIONS}
         ${TEST_COMPILE_OPTIONS}
         ${DSP_CONTROL_OPTION}
     )
 
     if (ARC)
-        target_link_options(test_mli_krn_${TEST_NAME} PRIVATE
+        target_link_options(${TARGET} PRIVATE
             -m
-            -Coutput=./bin/test_mli_krn_${TEST_NAME}.map
+            -Coutput=./bin/${TARGET}.map
         )
     endif()
 
-    set_target_properties(test_mli_krn_${TEST_NAME}
+    set_target_properties(${TARGET}
         PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "./bin$<0:>"
     )
@@ -175,7 +189,9 @@ add_user_test(data_movement)
 add_user_test(conv2d)
 add_user_test(depthwise_conv)
 add_user_test(transpose_conv2d)
-add_user_test(group_conv2d)
+add_user_test(group_conv2d FX16)
+add_user_test(group_conv2d FX16_FX8_FX8)
+add_user_test(group_conv2d SA8_SA8_SA32)
 
 #======================================================
 # Pooling Group
