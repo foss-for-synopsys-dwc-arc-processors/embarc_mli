@@ -18,6 +18,7 @@
 #include "mli_types.h"
 #include "mli_prv_dsp.h"
 #include "mli_krn_dotprod.h"
+#include "mli_prv_tensor.h"
 
 namespace mli {
 namespace krn {
@@ -49,15 +50,15 @@ static inline void rnn_dense_op_stacked(
     int out_elements = mli_prv_count_elem_num_part(bias, 1);
 
     for(int idx = 0; idx < inputs_num; ++idx) {
-        weights_ptr[idx] = (const MLI_PTR (w_T)) weights[idx]->data.mem.void_p;
+        weights_ptr[idx] = mli_prv_tensor_data_ptr<MLI_PTR (w_T)>(weights[idx]);
         weights_shift[idx] = mli_prv_count_elem_num_part(weights[idx], 1);
 
         weights_scales[idx] = weights[idx]->el_params.sa.scale.mem.pi16;
         weights_scale_frac_bits[idx] = weights[idx]->el_params.sa.scale_frac_bits.mem.pi8;
     }
 
-    const MLI_PTR (b_T) bias_ptr = (const MLI_PTR (b_T)) bias->data.mem.void_p;
-    MLI_CONV_OUT_PTR (io_T) dense_out_ptr = (MLI_CONV_OUT_PTR (io_T)) out->data.mem.void_p;
+    const MLI_PTR (b_T) bias_ptr = mli_prv_tensor_data_ptr<MLI_PTR (b_T)>(bias);
+    MLI_CONV_OUT_PTR (io_T) dense_out_ptr = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR (io_T)>(out);
 
     for (int gate = 0; gate < gates_num; ++gate) {
         //TODO modify to mli::krn::rnn_dense_op when adding lstm vdsp version

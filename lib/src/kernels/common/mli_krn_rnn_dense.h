@@ -39,12 +39,12 @@ MLI_FORCE_INLINE void rnn_dense_prepare_and_run(
     int inputs_elements[MLI_RNN_MAX_INPUT];
     const MLI_PTR (io_T) inputs_ptr[MLI_RNN_MAX_INPUT];
     const MLI_PTR (w_T) weights_ptr[MLI_RNN_MAX_INPUT];
-    const MLI_PTR (b_T) bias_ptr = (const MLI_PTR (b_T)) bias->data.mem.void_p;
+    const MLI_PTR (b_T) bias_ptr = mli_prv_tensor_data_ptr<MLI_PTR (b_T)>(bias);
 
     for(int idx = 0; idx < inputs_num; ++idx) {
         inputs_elements[idx] = static_cast<int>(mli_prv_count_elem_num(inputs[idx]));
-        inputs_ptr[idx] = (const MLI_PTR (io_T)) inputs[idx]->data.mem.void_p;
-        weights_ptr[idx] = (const MLI_PTR (w_T)) weights[idx]->data.mem.void_p;
+        inputs_ptr[idx] = mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(inputs[idx]);
+        weights_ptr[idx] = mli_prv_tensor_data_ptr<MLI_PTR (w_T)>(weights[idx]);
     }
 
     const int out_elements = static_cast<int>(mli_prv_count_elem_num(bias));
@@ -53,7 +53,7 @@ MLI_FORCE_INLINE void rnn_dense_prepare_and_run(
     mli_relu_cfg relu_none = {MLI_RELU_NONE};
     mli_minmax_t val_limit = mli_prv_get_relu_limits<io_T, asym>(&relu_none, out);
 
-    MLI_CONV_OUT_PTR (io_T) out_ptr = (MLI_CONV_OUT_PTR (io_T)) out->data.mem.void_p;
+    MLI_CONV_OUT_PTR (io_T) out_ptr = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR (io_T)>(out);
     quant_T in_to_out_params[MLI_RNN_MAX_INPUT];
 
     int input_idx = 0;

@@ -109,7 +109,7 @@ MLI_FORCE_INLINE void transpose_conv2d_prepare_and_run(
     // Define output val limits (may affect built in ReLU)
     mli_minmax_t val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
-    const MLI_PTR(b_T) bs = (MLI_PTR(b_T))(bias->data.mem.void_p);
+    const MLI_PTR(b_T) bs = mli_prv_tensor_data_ptr<MLI_PTR(b_T)>(bias);
     const auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(io_T)>(in);
     const auto weights_prv = mli_prv_get_conv2d_weights_tensor_hwcn<MLI_PTR(w_T)>(weights);
 
