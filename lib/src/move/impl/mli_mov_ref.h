@@ -102,8 +102,8 @@ static MLI_FORCE_INLINE void mli_mov_basic_operation (mli_mov_handle_t* h, const
                                 + src_pos1 * ordered_src_mem_stride[ordered_pdim[1]]
                                 + src_pos2 * ordered_src_mem_stride[ordered_pdim[2]]
                                 + ordered_offset[ordered_pdim[3]] * ordered_src_mem_stride[ordered_pdim[3]];
-                    io_T* __restrict psrc = (io_T* __restrict) src->data.mem.void_p;
-                    io_T* __restrict pdst = (io_T* __restrict) dst->data.mem.void_p;
+                    io_T* __restrict psrc = mli_prv_tensor_data_ptr<io_T *>(src);
+                    io_T* __restrict pdst = mli_prv_tensor_data_ptr<io_T *>(dst);
                     mli::mov::mov_inner_loop<io_T>(h, &psrc[src_pos], &pdst[dst_pos],
                              ordered_dst_write_size[3],
                              ordered_src_mem_stride[ordered_pdim[3]], ordered_dst_mem_stride[3],
@@ -135,8 +135,8 @@ static MLI_FORCE_INLINE void mli_mov_basic_operation (mli_mov_handle_t* h, const
                                   + src_pos1 * ordered_src_mem_stride[ordered_pdim[1]]
                                   + src_pos2 * ordered_src_mem_stride[ordered_pdim[2]];
 
-                      io_T* __restrict psrc = (io_T* __restrict) src->data.mem.void_p;
-                      io_T* __restrict pdst = (io_T* __restrict) dst->data.mem.void_p;
+                      io_T* __restrict psrc = mli_prv_tensor_data_ptr<io_T *>(src);
+                      io_T* __restrict pdst = mli_prv_tensor_data_ptr<io_T *>(dst);
                       mli::mov::mov_inner_loop<io_T>(h, &psrc[src_pos], &pdst[dst_pos],
                                ordered_dst_write_size[3], ordered_src_cpy_size[3],
                                ordered_src_mem_stride[ordered_pdim[3]], ordered_dst_mem_stride[3],

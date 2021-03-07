@@ -405,8 +405,8 @@ static MLI_FORCE_INLINE mli_status mli_krn_softmax_run(const mli_tensor *in, con
     const MLI_PTR(io_T) vec_in = nullptr;
     MLI_PTR(io_T) vec_out = nullptr;
 
-    const MLI_PTR(io_T) in_ptr = (MLI_PTR(io_T))(in->data.mem.void_p);
-    MLI_PTR(io_T) out_ptr = (MLI_PTR(io_T)) (out->data.mem.void_p);
+    const MLI_PTR(io_T) in_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in);
+    MLI_PTR(io_T) out_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(out);
 
     /* Copy tensor format */
     mli_prv_copy_tensor_format_except_mem_strides(in, out);

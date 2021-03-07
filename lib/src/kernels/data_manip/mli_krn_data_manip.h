@@ -71,12 +71,12 @@ MLI_FORCE_INLINE void padding2D_data(const mli_tensor *in, const mli_padding2d_c
 
     const int padding_fmaps = (layout_type == LAYOUT_HWC) ? 1 : channels;
     const int rows_to_copy = in_height;
-    const io_T *in_ptr = static_cast<io_T *>(in->data.mem.void_p);
-    io_T *out_ptr = static_cast<io_T *>(out->data.mem.void_p);
+    const io_T *in_ptr = mli_prv_tensor_data_ptr<io_T *>(in);
+    io_T *out_ptr = mli_prv_tensor_data_ptr<io_T *>(out);
 
     // For simplicity - use memset for all out memory at first,
     // and then copying input row-by-row (once in case of HWC, or for each channel in case of CHW)
-    memset(out->data.mem.void_p, 0, elem_size * out_width * out_height * channels);
+    memset((void *) out_ptr, 0, elem_size * out_width * out_height * channels);
     for (int fmap_idx = 0; fmap_idx < padding_fmaps; fmap_idx++) {
         out_ptr += indent_top;
         for (int row_idx = 0; row_idx < rows_to_copy; row_idx++) {
@@ -117,12 +117,12 @@ MLI_FORCE_INLINE void concat_data(const mli_tensor **inputs, const mli_concat_cf
     uint32_t elem_size = mli_hlp_tensor_element_size(inputs[0]);
 
     int concat_dim_total = 0;
-    io_T *out_ptr = static_cast<io_T *>(out->data.mem.void_p);
+    io_T *out_ptr = mli_prv_tensor_data_ptr<io_T *>(out);
     const io_T *inputs_ptr[MLI_CONCAT_MAX_TENSORS];
     int sub_tsr_sz[MLI_CONCAT_MAX_TENSORS];
 
     for (int idx = 0; idx < tensors_num; idx++) {
-        inputs_ptr[idx] = static_cast<io_T *>(inputs[idx]->data.mem.void_p);
+        inputs_ptr[idx] = mli_prv_tensor_data_ptr<io_T *>(inputs[idx]);
         sub_tsr_sz[idx] = mli_prv_count_elem_num_part(inputs[idx], concat_dim);
         concat_dim_total += inputs[idx]->shape[concat_dim];
     }

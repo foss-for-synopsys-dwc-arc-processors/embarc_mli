@@ -103,7 +103,7 @@ mli_status mli_hlp_point_to_subtensor(const mli_tensor *in, const mli_point_to_s
     const uint32_t out_rank = in->rank - subtsr_start_axis;
     uint32_t dimension_sizes[MLI_MAX_RANK];
 
-    uint32_t size = elem_size;
+    uint32_t size = 1;
     for (int i = in->rank - 1; i >= 0; i--) {
         dimension_sizes[i] = size;
         size *= in->shape[i];
@@ -113,7 +113,25 @@ mli_status mli_hlp_point_to_subtensor(const mli_tensor *in, const mli_point_to_s
     for (int i = 1; i < cfg->coord_num; i++)
         size += cfg->start_coord[i] * dimension_sizes[i];
 
-    out->data.mem.void_p = (void *)((char *)in->data.mem.void_p + size);
+    switch(in->el_type) {
+    case MLI_EL_FX_8:
+    case MLI_EL_SA_8:
+        out->data.mem.pi8 = in->data.mem.pi8 + size;
+        break;
+    case MLI_EL_FX_16:
+        out->data.mem.pi16 = in->data.mem.pi16 + size;
+        break;
+    case MLI_EL_FP_32:
+        out->data.mem.f32 = in->data.mem.f32 + size;
+        break;
+    case MLI_EL_SA_32:
+        out->data.mem.pi32 = in->data.mem.pi32 + size;
+        break;
+    default:
+        MLI_ASSERT(0);
+        return MLI_STATUS_NOT_SUPPORTED;
+    }
+
     size = out->shape[0] = cfg->first_out_dim_size;
     for (int i = 1; i < (int)out_rank; i++) {
         out->shape[i] = in->shape[subtsr_start_axis + i];
@@ -132,7 +150,6 @@ mli_status mli_hlp_create_subtensor(const mli_tensor *in, const mli_sub_tensor_c
     if (ret != MLI_STATUS_OK)
         return ret;
 
-    const int elem_size = mli_hlp_tensor_element_size(in);
     const int out_rank = cfg->sub_tensor_rank;
     int mem_strides[MLI_MAX_RANK];
     const int input_rank = in->rank;
@@ -149,9 +166,23 @@ mli_status mli_hlp_create_subtensor(const mli_tensor *in, const mli_sub_tensor_c
     for (int i = 0; i < input_rank; i++) {
         buf_offset += cfg->offset[i] * mem_strides[i];
     }
-    buf_offset *= elem_size;
-    out->data.mem.void_p = (void *)((char *)in->data.mem.void_p + buf_offset);
-    out->data.capacity = in->data.capacity - buf_offset;
+    out->data = in->data;
+    switch (in->el_type) {
+    case MLI_EL_FX_8:
+    case MLI_EL_SA_8:
+        mli_prv_tensor_inc_data_ptr<int8_t*>(out, buf_offset);
+        break;
+    case MLI_EL_FX_16:
+        mli_prv_tensor_inc_data_ptr<int16_t*>(out, buf_offset);
+        break;
+    case MLI_EL_SA_32:
+        mli_prv_tensor_inc_data_ptr<int32_t*>(out, buf_offset);
+        break;
+    default:
+        MLI_ASSERT(0);
+        return MLI_STATUS_NOT_SUPPORTED;
+    }
+
 
     // Fill the shape[] of the output tensor.
     // If the sub_tensor_rank is smaller than the input rank, the dimensions with

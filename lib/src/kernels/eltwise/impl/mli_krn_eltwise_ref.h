@@ -277,8 +277,6 @@ static MLI_FORCE_INLINE void eltwise_prepare_and_run(
     MLI_PTR(io_T) in2_ptr = mli_prv_tensor_data_ptr<MLI_OUT_PTR(io_T)>(in2);
     MLI_OUT_PTR(io_T) out_ptr = mli_prv_tensor_data_ptr<MLI_OUT_PTR(io_T)>(out);
 
-
-
     /* Fill output tensor parameters
     //======================================
     */

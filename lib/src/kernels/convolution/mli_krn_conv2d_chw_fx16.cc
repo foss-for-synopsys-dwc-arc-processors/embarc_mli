@@ -80,10 +80,10 @@ mli_status mli_krn_conv2d_chw_fx16_k1x1_str1_nopad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -178,10 +178,10 @@ mli_status mli_krn_conv2d_chw_fx16_k1x1_ch1_str1_nopad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -276,10 +276,10 @@ mli_status mli_krn_conv2d_chw_fx16_k1x1_ch3_str1_nopad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -374,10 +374,10 @@ mli_status mli_krn_conv2d_chw_fx16_k1x1_ch4_str1_nopad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -472,10 +472,10 @@ mli_status mli_krn_conv2d_chw_fx16_k2x2_str1_krnpad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -570,10 +570,10 @@ mli_status mli_krn_conv2d_chw_fx16_k2x2_ch1_str1_krnpad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -668,10 +668,10 @@ mli_status mli_krn_conv2d_chw_fx16_k3x3_str1_krnpad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -766,10 +766,10 @@ mli_status mli_krn_conv2d_chw_fx16_k3x3_ch1_str1_krnpad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -864,10 +864,10 @@ mli_status mli_krn_conv2d_chw_fx16_k4x4_str1_krnpad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -962,10 +962,10 @@ mli_status mli_krn_conv2d_chw_fx16_k4x4_ch1_str1_krnpad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -1060,10 +1060,10 @@ mli_status mli_krn_conv2d_chw_fx16_k5x5_str1_krnpad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -1158,10 +1158,10 @@ mli_status mli_krn_conv2d_chw_fx16_k5x5_ch1_str1_krnpad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -1256,10 +1256,10 @@ mli_status mli_krn_conv2d_chw_fx16_k6x6_str1_krnpad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -1354,10 +1354,10 @@ mli_status mli_krn_conv2d_chw_fx16_k6x6_ch1_str1_krnpad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -1452,10 +1452,10 @@ mli_status mli_krn_conv2d_chw_fx16_k7x7_str1_krnpad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -1550,10 +1550,10 @@ mli_status mli_krn_conv2d_chw_fx16_k7x7_ch1_str1_krnpad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -1648,10 +1648,10 @@ mli_status mli_krn_conv2d_chw_fx16_k5x5_str1_nopad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -1746,10 +1746,10 @@ mli_status mli_krn_conv2d_chw_fx16_k5x5_ch1_str1_nopad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -1844,10 +1844,10 @@ mli_status mli_krn_conv2d_chw_fx16_k1x2_str1_krnpad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -1942,10 +1942,10 @@ mli_status mli_krn_conv2d_chw_fx16_k1x3_str1_krnpad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -2040,10 +2040,10 @@ mli_status mli_krn_conv2d_chw_fx16_k2x1_str1_krnpad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -2138,10 +2138,10 @@ mli_status mli_krn_conv2d_chw_fx16_k3x1_str1_krnpad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -2236,10 +2236,10 @@ mli_status mli_krn_conv2d_chw_fx16_k1xn_str1(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -2334,10 +2334,10 @@ mli_status mli_krn_conv2d_chw_fx16_knx1_str1(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -2432,10 +2432,10 @@ mli_status mli_krn_conv2d_chw_fx16_ch1_str1(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -2530,10 +2530,10 @@ mli_status mli_krn_conv2d_chw_fx16_str1(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -2628,10 +2628,10 @@ mli_status mli_krn_conv2d_chw_fx16_k1x1_nopad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -2726,10 +2726,10 @@ mli_status mli_krn_conv2d_chw_fx16_k1x1_ch1_nopad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -2824,10 +2824,10 @@ mli_status mli_krn_conv2d_chw_fx16_k1x1_ch3_nopad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -2922,10 +2922,10 @@ mli_status mli_krn_conv2d_chw_fx16_k1x1_ch4_nopad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -3020,10 +3020,10 @@ mli_status mli_krn_conv2d_chw_fx16_k1x1_ch8_nopad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -3118,10 +3118,10 @@ mli_status mli_krn_conv2d_chw_fx16_k2x2_krnpad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -3216,10 +3216,10 @@ mli_status mli_krn_conv2d_chw_fx16_k2x2_ch1_krnpad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -3314,10 +3314,10 @@ mli_status mli_krn_conv2d_chw_fx16_k3x3_krnpad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -3412,10 +3412,10 @@ mli_status mli_krn_conv2d_chw_fx16_k3x3_ch1_krnpad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];
@@ -3510,10 +3510,10 @@ mli_status mli_krn_conv2d_chw_fx16_generic(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int16_t) in_ftrs = (MLI_PTR(int16_t ))in->data.mem.void_p;
-    MLI_CONV_OUT_PTR(int16_t) out_ftrs = (MLI_CONV_OUT_PTR(int16_t ))out->data.mem.void_p;
-    MLI_PTR(int16_t) wt = (MLI_PTR(int16_t ))weights->data.mem.void_p;
-    MLI_PTR(int16_t) bs = (MLI_PTR(int16_t ))bias->data.mem.void_p;
+    MLI_PTR(int16_t) in_ftrs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(in);
+    MLI_CONV_OUT_PTR(int16_t) out_ftrs = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(int16_t )>(out);
+    MLI_PTR(int16_t) wt = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(weights);
+    MLI_PTR(int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int16_t )>(bias);
 
     // Define Data dimensions
     int out_ch = weights->shape[KRNL_C_DIM_CHW];

@@ -79,7 +79,7 @@ mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_k3x3_krnpad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int32_t) bs = (MLI_PTR(int32_t ))bias->data.mem.void_p;
+    MLI_PTR(int32_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int32_t )>(bias);
 
     // Define Data dimensions
     int out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - w.kernel_width + 1, stride_width);
@@ -163,7 +163,7 @@ mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_k5x5_krnpad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int32_t) bs = (MLI_PTR(int32_t ))bias->data.mem.void_p;
+    MLI_PTR(int32_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int32_t )>(bias);
 
     // Define Data dimensions
     int out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - w.kernel_width + 1, stride_width);
@@ -247,7 +247,7 @@ mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_k3x3_nopad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int32_t) bs = (MLI_PTR(int32_t ))bias->data.mem.void_p;
+    MLI_PTR(int32_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int32_t )>(bias);
 
     // Define Data dimensions
     int out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - w.kernel_width + 1, stride_width);
@@ -331,7 +331,7 @@ mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_k5x5_nopad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int32_t) bs = (MLI_PTR(int32_t ))bias->data.mem.void_p;
+    MLI_PTR(int32_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int32_t )>(bias);
 
     // Define Data dimensions
     int out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - w.kernel_width + 1, stride_width);
@@ -415,7 +415,7 @@ mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_k1x1_nopad(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int32_t) bs = (MLI_PTR(int32_t ))bias->data.mem.void_p;
+    MLI_PTR(int32_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int32_t )>(bias);
 
     // Define Data dimensions
     int out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - w.kernel_width + 1, stride_width);
@@ -499,7 +499,7 @@ mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_generic(
     val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
 
     // Data pointers
-    MLI_PTR(int32_t) bs = (MLI_PTR(int32_t ))bias->data.mem.void_p;
+    MLI_PTR(int32_t) bs = mli_prv_tensor_data_ptr<MLI_PTR(int32_t )>(bias);
 
     // Define Data dimensions
     int out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - w.kernel_width + 1, stride_width);

@@ -53,8 +53,8 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
     const int8_t num_inputs = 2;
 
     const mli_tensor * weights[2] = {weights_in, weights_out};
-    const MLI_PTR (io_T) inputs_ptr[] = {(const MLI_PTR (io_T)) in->data.mem.void_p, 
-                                         (const MLI_PTR (io_T)) prev_out->data.mem.void_p};
+    const MLI_PTR (io_T) inputs_ptr[] = {mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(in), 
+                                         mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(prev_out)};
 
     if (cfg->direction == RNN_DIR_BACKWARD) 
         inputs_ptr[0] += (batch_sz - 1) * inputs_elements[0];
@@ -105,8 +105,7 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
     mli_hlp_point_to_subtensor(&ir_tensor, &iterator, &out_gate);
 
     mli_tensor rnn_out;
-    rnn_out.data.mem.void_p = out->data.mem.void_p;
-    rnn_out.data.capacity = out->data.capacity;
+    rnn_out.data = out->data;
     rnn_out.rank = 2;
     rnn_out.shape[0] = 1;
     rnn_out.shape[1] = static_cast<unsigned>(lstm_out_elements);
@@ -209,7 +208,7 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
         // Step 5: Update pointers and tensors for next batch
         //=======================================
         inputs_ptr[0] += cfg->direction == RNN_DIR_FORWARD ? inputs_elements[0] : -inputs_elements[0];
-        inputs_ptr[1] = (MLI_PTR (io_T)) rnn_out.data.mem.void_p;
+        inputs_ptr[1] = mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(&rnn_out);
 
         if (asym) {
             rnn_out.el_params = out->el_params;
@@ -220,8 +219,7 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
         }
 
         if (cfg->results == RNN_OUT_ALL) {
-            rnn_out.data.mem.void_p = static_cast<io_T*>(rnn_out.data.mem.void_p) + lstm_out_elements;
-            rnn_out.data.capacity -= lstm_out_elements;
+            mli_prv_tensor_inc_data_ptr<io_T*>(&rnn_out, lstm_out_elements);
         }
     }
 

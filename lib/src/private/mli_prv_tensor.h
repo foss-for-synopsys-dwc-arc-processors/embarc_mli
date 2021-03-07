@@ -201,6 +201,45 @@ MLI_FORCE_INLINE float mli_prv_tensor_data_val(
 }
 
 template <typename T>
+MLI_FORCE_INLINE void mli_prv_tensor_inc_data_ptr
+        (mli_tensor *in, int elements);
+
+
+template <>
+MLI_FORCE_INLINE void mli_prv_tensor_inc_data_ptr<int8_t*>
+        (mli_tensor *tensor, int elements)
+{
+    int element_size = sizeof(int8_t);
+    MLI_ASSERT((tensor->el_type == MLI_EL_FX_8) ||
+               (tensor->el_type == MLI_EL_SA_8));
+    MLI_ASSERT(element_size * elements <= tensor->data.capacity);
+    tensor->data.mem.pi8 += elements;
+    tensor->data.capacity -= elements * element_size;
+}
+
+template <>
+MLI_FORCE_INLINE void mli_prv_tensor_inc_data_ptr<int16_t*>
+        (mli_tensor *tensor, int elements)
+{
+    int element_size = sizeof(int16_t);
+    MLI_ASSERT(tensor->el_type == MLI_EL_FX_16);
+    MLI_ASSERT(element_size * elements <= tensor->data.capacity);
+    tensor->data.mem.pi16 += elements;
+    tensor->data.capacity -= elements * element_size;
+}
+
+template <>
+MLI_FORCE_INLINE void mli_prv_tensor_inc_data_ptr<int32_t*>
+        (mli_tensor *tensor, int elements)
+{
+    int element_size = sizeof(int32_t);
+    MLI_ASSERT(tensor->el_type == MLI_EL_SA_32);
+    MLI_ASSERT(element_size * elements <= tensor->data.capacity);
+    tensor->data.mem.pi32 += elements;
+    tensor->data.capacity -= elements * element_size;
+}
+
+template <typename T>
 static MLI_FORCE_INLINE tensor_private_t<T> mli_prv_get_tensor_chw(
         const mli_tensor *in,
         const int fix_ch = 0) {

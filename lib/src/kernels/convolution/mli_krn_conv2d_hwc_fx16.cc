@@ -100,7 +100,7 @@ mli_status mli_krn_conv2d_hwc_fx16 (
     out->el_type = MLI_EL_FX_16;
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max (&cfg->relu, out);
-    MLI_PTR (int16_t) bs = (MLI_PTR (int16_t)) bias->data.mem.void_p;
+    MLI_PTR (int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR (int16_t)>(bias);
 
     int out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - w.kernel_width + 1, stride_width);
     int out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - w.kernel_height + 1, stride_height);
@@ -216,7 +216,7 @@ static mli_status mli_krn_conv2d_hwc_fx16_1x1_str1_nopad (
     // Define output val limits - we need it in case built-in RELU
     val_limit = mli_prv_get_relu_min_max (&cfg->relu, out);
 
-    MLI_PTR (int16_t) bs = (MLI_PTR (int16_t)) bias->data.mem.void_p;
+    MLI_PTR (int16_t) bs = mli_prv_tensor_data_ptr<MLI_PTR (int16_t)>(bias);
 
     int out_width = (in_prv.width + padding_left + padding_right - w.kernel_width + 1);
     int out_height = (in_prv.height + padding_top + padding_bot - w.kernel_height + 1);
