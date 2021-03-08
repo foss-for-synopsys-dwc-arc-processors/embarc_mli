@@ -174,7 +174,20 @@ static MLI_FORCE_INLINE void eltwise_op_basic(
         in_offset1 = in_quant_params1->offset;
         in_offset2 = in_quant_params2->offset;
         out_offset = out_quant_params->offset;
-        if (func_type == ELTWISE_MUL) {
+        if (func_type == ELTWISE_MAX || func_type == ELTWISE_MIN) {
+            in_scale_fx1 = mli_math_asr_rnd_fx<int32_t>(in_quant_params1->scale,
+                                                           (int32_t) in_quant_params1->shift - frac_bits_fx16);
+            out_scale_fx = mli_math_asr_rnd_fx<int32_t>(out_quant_params->scale,
+                                                           (int32_t) out_quant_params->shift - frac_bits_fx16);
+            scale_factor1 = mli_math_asr_rnd_fx<int32_t>(in_scale_fx1, -IN_SCALE_SHIFT);
+            scale_factor1 /= out_scale_fx;
+            post_op_shift = IN_SCALE_SHIFT;
+            int norm1 = (scale_factor1 != 0) ? mli_math_norm_fx<int32_t, int>(scale_factor1) : 0;
+            int shift = MAX(IN_SCALE_SHIFT - norm1, 0);
+            scale16_1 = mli_math_cast_fx<int32_t, int16_t>(scale_factor1, shift);
+            scale16_2 = scale16_1;
+            post_op_shift -= shift;
+        } else if (func_type == ELTWISE_MUL) {
             in_scale_fx1 = mli_math_asr_rnd_fx<int32_t>(in_quant_params1->scale,
                                                           (int32_t) in_quant_params1->shift - frac_bits_fx16);
             in_scale_fx2 = mli_math_asr_rnd_fx<int32_t>(in_quant_params2->scale,
