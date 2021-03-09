@@ -293,36 +293,90 @@ static MLI_FORCE_INLINE void compute_activation_lut_func(
                     /* Manual software pipelining */
                     vNx4short_t x, lut_idx;
                     vNx4int_t lut_idx_int;
+                    vNx4short_t _lut_values, _lut_values_next, _frac;
 
                     load_input_and_get_lut_idx<io_T, convert>(input_ptr, x, lut_idx, lut_idx_int,
                     		in_frac_bits, preshift_in, shift_in, lut, in_params);
-
                     vNx4short_t frac = x & mask;
                     input_ptr  += _VDSP_NUM_8BIT_LANES;
-                    for (int pos3 = remaining_part; pos3 < in->shape[3]; pos3 += _VDSP_NUM_8BIT_LANES) {
 
+                    if (in->shape[3] >= _VDSP_NUM_8BIT_LANES && !convert) {
                         /* Load from LUT */
-                        vNx4short_t lut_values = mli_prv_gather_load_nx4_samples(lut_data, lut_idx_int);
-                        vNx4short_t lut_values_next = mli_prv_gather_load_nx4_samples(lut_data, lut_idx_int + 1);
+                        _lut_values = mli_prv_gather_load_nx4_samples(lut_data, lut_idx_int);
+                        _lut_values_next = mli_prv_gather_load_nx4_samples(lut_data, lut_idx_int + 1);
 
                         load_input_and_get_lut_idx<io_T, convert>(input_ptr, x, lut_idx, lut_idx_int,
-                        		in_frac_bits, preshift_in, shift_in, lut, in_params);
+                                in_frac_bits, preshift_in, shift_in, lut, in_params);
+
+                        _frac = frac;
+                        frac = x & mask;
+                        input_ptr  += _VDSP_NUM_8BIT_LANES;
+
+                        for (int pos3 = remaining_part; pos3 < in->shape[3] - _VDSP_NUM_8BIT_LANES; pos3 += _VDSP_NUM_8BIT_LANES) {
+                            /* Load from LUT */
+                            vNx4short_t lut_values = mli_prv_gather_load_nx4_samples(lut_data, lut_idx_int);
+                            vNx4short_t lut_values_next = mli_prv_gather_load_nx4_samples(lut_data, lut_idx_int + 1);
+
+                            load_input_and_get_lut_idx<io_T, convert>(input_ptr, x, lut_idx, lut_idx_int,
+                                    in_frac_bits, preshift_in, shift_in, lut, in_params);
+
+                                /* perform linear interpolation */
+                                vNx4short_t diffs = mli_math_sub_fx<vNx4short_t>(_lut_values, _lut_values_next);
+                                vNx4short_t diffs_mul_frac_cast =  mli_math_acc_cast_fx<vNx4short_t, vNx4accint_t>(
+                                                                    mli_math_mul_fx<vNx4short_t, vNx4accint_t>(diffs, _frac), shift_in);
+
+                                /* Calculate O/P */
+                                vNx4short_t res = mli_math_sub_fx<vNx4short_t>(_lut_values, diffs_mul_frac_cast);
+
+                                /* Store O/P */
+                                activation_lut_store_output<io_T, convert>(output_ptr, res, lut, out_params);
+                                output_ptr += _VDSP_NUM_8BIT_LANES;
+
+                            _frac = frac;
+                            frac = x & mask;
+
+                            input_ptr  += _VDSP_NUM_8BIT_LANES;
+
+                            _lut_values = lut_values;
+                            _lut_values_next = lut_values_next;
+                        }
 
                         /* perform linear interpolation */
-                        vNx4short_t diffs = mli_math_sub_fx<vNx4short_t>(lut_values, lut_values_next);
+                        vNx4short_t diffs = mli_math_sub_fx<vNx4short_t>(_lut_values, _lut_values_next);
                         vNx4short_t diffs_mul_frac_cast =  mli_math_acc_cast_fx<vNx4short_t, vNx4accint_t>(
-                                                            mli_math_mul_fx<vNx4short_t, vNx4accint_t>(diffs, frac), shift_in);
-
-                        frac = x & mask;
+                                mli_math_mul_fx<vNx4short_t, vNx4accint_t>(diffs, _frac), shift_in);
 
                         /* Calculate O/P */
-                        vNx4short_t res = mli_math_sub_fx<vNx4short_t>(lut_values, diffs_mul_frac_cast);
+                        vNx4short_t res = mli_math_sub_fx<vNx4short_t>(_lut_values, diffs_mul_frac_cast);
 
                         /* Store O/P */
                         activation_lut_store_output<io_T, convert>(output_ptr, res, lut, out_params);
-                        input_ptr  += _VDSP_NUM_8BIT_LANES;
-                        output_ptr += _VDSP_NUM_8BIT_LANES;
+                    } else {
+                        for (int pos3 = remaining_part; pos3 < in->shape[3]; pos3 += _VDSP_NUM_8BIT_LANES) {
+                            /* Load from LUT */
+                            vNx4short_t lut_values = mli_prv_gather_load_nx4_samples(lut_data, lut_idx_int);
+                            vNx4short_t lut_values_next = mli_prv_gather_load_nx4_samples(lut_data, lut_idx_int + 1);
+
+                            load_input_and_get_lut_idx<io_T, convert>(input_ptr, x, lut_idx, lut_idx_int,
+                            		in_frac_bits, preshift_in, shift_in, lut, in_params);
+
+                            /* perform linear interpolation */
+                            vNx4short_t diffs = mli_math_sub_fx<vNx4short_t>(lut_values, lut_values_next);
+                            vNx4short_t diffs_mul_frac_cast =  mli_math_acc_cast_fx<vNx4short_t, vNx4accint_t>(
+                                                                mli_math_mul_fx<vNx4short_t, vNx4accint_t>(diffs, frac), shift_in);
+
+                            frac = x & mask;
+
+                            /* Calculate O/P */
+                            vNx4short_t res = mli_math_sub_fx<vNx4short_t>(lut_values, diffs_mul_frac_cast);
+
+                            /* Store O/P */
+                            activation_lut_store_output<io_T, convert>(output_ptr, res, lut, out_params);
+                            input_ptr  += _VDSP_NUM_8BIT_LANES;
+                            output_ptr += _VDSP_NUM_8BIT_LANES;
+                        }
                     }
+
                 }
             }
         }
