@@ -210,7 +210,9 @@ add_user_test(permute)
 #======================================================
 add_user_test(fully_connected)
 add_user_test(rnn_dense)
-add_user_test(lstm_cell)
+add_user_test(lstm_cell FX16)
+add_user_test(lstm_cell FX16_FX8_FX8)
+add_user_test(lstm_cell SA8_SA8_SA32)
 
 #======================================================
 # Transform (Activation) Group

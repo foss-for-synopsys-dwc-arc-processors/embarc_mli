@@ -59,7 +59,7 @@ static MLI_FORCE_INLINE void eltwise_op_basic(
         const struct s8asym_quant_params *out_quant_params = nullptr);
 
 template <typename in_T, typename out_T, mli_eltwise_type func_type, bool convert>
-static MLI_FORCE_INLINE out_T eltwise_perform_operation(
+static out_T eltwise_perform_operation(
         const in_T op1,
         const in_T op2,
         const int16_t in_offset1,
@@ -72,7 +72,7 @@ static MLI_FORCE_INLINE out_T eltwise_perform_operation(
         const int post_op_shift);
 
 template <typename io_T, mli_eltwise_type func_type, bool convert>
-MLI_FORCE_INLINE void eltwise_innerloop(
+void eltwise_innerloop(
         const MLI_PTR(io_T) op1_ptr,
         const MLI_PTR(io_T) op2_ptr,
         MLI_PTR(io_T) out_ptr,
