@@ -62,11 +62,13 @@ static MLI_FORCE_INLINE vNx2short_t convert_input(
 }
 
 static MLI_FORCE_INLINE vNx4accint_t init_sum_acc(vNx4char_t input) {
-    return mli_prv_init_accu<vNx4accint_t>();
+//    return mli_prv_init_accu<vNx4accint_t>();
+    return mli_math_mul_fx<vNx4short_t, vNx4accint_t>(mli_math_cast_fx<vNx4char_t, vNx4short_t>(input), 0);
 }
 
 static MLI_FORCE_INLINE vNx2accint_t init_sum_acc(vNx2short_t input) {
-    return mli_prv_init_accu<vNx2accint_t>();
+//    return mli_prv_init_accu<vNx2accint_t>();
+    return mli_math_mul_fx<vNx2short_t, vNx2accint_t>(input, (vNx2short_t) 0);
 }
 
 template<typename io_T, bool convert>
@@ -91,9 +93,10 @@ static MLI_FORCE_INLINE int16_t compute_normalized_sum_square(
      * */
 
     /* Accumulation through MAC */
-    auto sum_acc_hi  = init_sum_acc(input);
-    auto sum_acc_mid = init_sum_acc(input);
-    auto sum_acc_lo  = init_sum_acc(input);
+    auto zero_acc = init_sum_acc(input);
+    auto sum_acc_hi  = zero_acc;
+    auto sum_acc_mid = zero_acc;
+    auto sum_acc_lo  = zero_acc;
     for (int pos0 = 0; pos0 < in_prv->shape[0]; pos0++) {
         for (int pos1 = 0; pos1 < in_prv->shape[1]; pos1++) {
             for (int pos2 = 0; pos2 < in_prv->shape[2]; pos2++) {
