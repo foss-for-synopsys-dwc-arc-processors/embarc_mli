@@ -23,6 +23,7 @@ endif
 
 HELPERS = \
 	convert_tensor\
+	tensor_struct\
 
 KERNELS = \
 	permute \
@@ -55,7 +56,7 @@ TEST_HLP_TARGETS = $(patsubst %,test_%,$(HELPERS))
 #===========================================
 $(BIN_FILES): build
 
-test_all: $(TEST_HLP_TARGETS) $(TEST_TARGETS)
+test_all: $(TEST_HLP_TARGETS) $(TEST_KRN_TARGETS)
 
 $(TEST_KRN_TARGETS): test_%: $(BIN_PATH)$(PS)test_mli_krn_%$(BIN_EXT)
 	$(RUN_TEST_CMD) $<

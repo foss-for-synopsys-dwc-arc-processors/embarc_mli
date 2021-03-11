@@ -270,7 +270,7 @@ int main() {
     const reporter_full reporter;
     bool final_status = true;
 
-    reporter.report_header("MLI|Kernels|Data Conversion Tests");
+    reporter.report_header("MLI|Helpers|Data Conversion Tests");
     for (int i = 0; i < kTestsNum; ++i) {
         bool is_test_passed = true;
         const hlp_convert_test_operands* cur_test = &tests_list[i];

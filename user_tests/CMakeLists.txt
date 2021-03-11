@@ -214,4 +214,4 @@ add_user_test(krn eltwise)
 #======================================================
 # Helpers functions Group
 #======================================================
-# add_user_test(hlp tensor_struct)
+add_user_test(hlp tensor_struct)

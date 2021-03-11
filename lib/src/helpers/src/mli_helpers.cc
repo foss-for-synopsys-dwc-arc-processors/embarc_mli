@@ -260,6 +260,39 @@ const char* mli_hlp_compile_options_string() {
     return OPTIONS_STR;
 }
 
+#if !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
+// FXAPI have an interface level contract on number of bits. 
+// MLI Implementation uses functions with guardbits. it's the only currently allowed case. 
+uint8_t mli_hlp_accu_bits_sa8_sa8() { return (sizeof(mli_acc32_t)*8 - 1) - ((sizeof(int8_t)*8 - 1) * 2); }
+uint8_t mli_hlp_accu_bits_fx16_fx16() { return (40 - 1) - ((sizeof(int16_t)*8 - 1) * 2);}
+uint8_t mli_hlp_accu_bits_fx16_fx8() { 
+    return (sizeof(mli_acc32_t)*8 - 1) - ((sizeof(int8_t)*8 - 1) + (sizeof(int16_t)*8 - 1));
+}
+
+#elif !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width) && (__Xvec_guard_bit_option == 0) 
+// Vector DSP Code w/o guard bits allows to manipulate only with C types
+uint8_t mli_hlp_accu_bits_sa8_sa8() { return (sizeof(int16_t)*8 - 1) - ((sizeof(int8_t)*8 - 1) * 2); }
+uint8_t mli_hlp_accu_bits_fx16_fx16() { return (sizeof(int32_t)*8 - 1) - ((sizeof(int16_t)*8 - 1) * 2);}
+uint8_t mli_hlp_accu_bits_fx16_fx8() { 
+    return (sizeof(int32_t)*8 - 1) - ((sizeof(int8_t)*8 - 1) + (sizeof(int16_t)*8 - 1));
+}
+
+#elif !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width) && (__Xvec_guard_bit_option == 2) 
+// VPX with guard bits provides fixed number of guard bits on the HW level.
+uint8_t mli_hlp_accu_bits_sa8_sa8() { return 8; }
+uint8_t mli_hlp_accu_bits_fx16_fx16() { return 8;}
+uint8_t mli_hlp_accu_bits_fx16_fx8() { return 8;}
+
+#else 
+// Reference use usual C built-in types through the typedef prism. 
+uint8_t mli_hlp_accu_bits_sa8_sa8() { return (sizeof(mli_acc32_t)*8 - 1) - ((sizeof(int8_t)*8 - 1) * 2); }
+uint8_t mli_hlp_accu_bits_fx16_fx16() { return (sizeof(mli_acc40_t)*8 - 1) - ((sizeof(int16_t)*8 - 1) * 2);}
+uint8_t mli_hlp_accu_bits_fx16_fx8() {
+    return (sizeof(mli_acc32_t)*8 - 1) - ((sizeof(int8_t)*8 - 1) + (sizeof(int16_t)*8 - 1));
+}
+#endif
+
+
 #ifdef __cplusplus
 }
 #endif

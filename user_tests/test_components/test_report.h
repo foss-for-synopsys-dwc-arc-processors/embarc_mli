@@ -17,6 +17,65 @@
 namespace mli {
 namespace tst {
 
+
+//===============================================================================================
+// Basic test reporter with external message and status:
+//
+// |============================================================================================================|
+// | MLI | Kernels | Convolution 2D  Tests |
+// |============================================================================================================|
+// | Test Case                     | Result  | Message                                                          |
+// |============================================================================================================|
+// | Test 1 FX16                   | PASSED  |  Seems like it works                                             |
+// | Test 1 FX16_FX8_FX8           | PASSED  |  This one is also fine                                           |
+// | .....................................................................................................      |
+// |============================================================================================================|
+// |=======[AUTO] Group: mli_krn_conv2d: Summary Status : PASSED
+// |============================================================================================================|
+//
+//  where: 
+//      'Test Case' Field - description provided by user
+//      'Result' Field - Test case result. PASSED or FAILED depending on bool status provided by user
+//      'Message' Field - Message with extra info provided by user
+//===============================================================================================
+class reporter_basic {
+public:
+    // Print header of test report in the following way
+    // |=============================================================|
+    // | <case_descr>                 
+    // |=============================================================|
+    // | <Table Header - see above>
+    // |=============================================================|
+    //
+    // params:
+    // [IN] case_descr - Case description string that will be printed in header (<106 characters).
+    //
+    // No return;
+    void report_header(const char* case_descr) const;
+
+    // Print the case status and additional message in the following way:
+    // | <case_descr>       | <status>    |  <message>                            |
+    //
+    // params:
+    // [IN] case_descr - Case description string that will be printed in first field of table (<30 characters)
+    // [IN] message - Case description string that will be printed in first field of table (<65 characters)
+    // [IN] is_passed - status of the test case (true if passed)
+    // 
+    // No return
+    void report_case(const char* case_descr, const char* message, bool is_passed) const;
+
+    // Print an outline of test repor with external marker string and final status in the following way:
+    //|======= <outline_marker>: Summary Status : <is_passed>
+    //
+    // params:
+    // [IN] outline_marker - Case description string that will be printed in first field of table (<30 characters)
+    // [IN] is_passed - bool final status (true if passed)
+    // 
+    // No return
+    void report_outline(const char* outline_marker, bool is_passed) const;
+};
+
+
 //===============================================================================================
 // Full test reporter with all fields to validate. Example output:
 //
@@ -86,7 +145,7 @@ public:
     //
     // params:
     // [IN] outline_marker - Case description string that will be printed in first field of table (<30 characters)
-    // [IN] message - bool final status (true if passed)
+    // [IN] is_passed - bool final status (true if passed)
     // 
     // No return
     void report_outline(const char* outline_marker, bool is_passed) const;

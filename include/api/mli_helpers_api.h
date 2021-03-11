@@ -171,6 +171,24 @@ int16_t mli_hlp_tensor_zero_offset(const mli_tensor *in, const uint32_t zero_idx
  */
 const char* mli_hlp_compile_options_string();
 
+/**
+* @brief Get number of accumulator guard bits for specific MAC variance.
+*
+* @detail An addition might result in overflow if all bits of operands are used and both operands 
+          hold the maximum (or minimum) values. It means that an extra bit is required for this operation. 
+          But if sum of several operands is needed (accumulation), more than one extra bit is required to ensure
+          that the result does not overflow. This function returns a number of such extra bits ussed in accumulation
+          for MAC (multiply-and-accumulate) based kernels. Separate function exists for each combination of input operands.
+*
+* @return number of accumulator guard bits used in MAC based kernels (all convolutions, FC, reccurent layers):
+*           mli_hlp_accu_bits_sa8_sa8 - MAC with sa8 x sa8 input operands 
+*           mli_hlp_accu_bits_fx16_fx16 - MAC with fx16 x fx16 input operands 
+*           mli_hlp_accu_bits_fx16_fx8 - MAC with fx16 x fx8 input operands 
+*/
+uint8_t mli_hlp_accu_bits_sa8_sa8();
+uint8_t mli_hlp_accu_bits_fx16_fx16();
+uint8_t mli_hlp_accu_bits_fx16_fx8();
+
 
 #ifdef __cplusplus
 }
