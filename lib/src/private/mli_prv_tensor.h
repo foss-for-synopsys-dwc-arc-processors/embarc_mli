@@ -50,6 +50,196 @@ static MLI_FORCE_INLINE int mli_prv_get_tensor_idx_pos(
 }
 
 template <typename T>
+MLI_FORCE_INLINE T mli_prv_tensor_data_ptr(
+        const mli_tensor *tensor);
+
+template <>
+MLI_FORCE_INLINE int8_t* mli_prv_tensor_data_ptr(
+        const mli_tensor *tensor) {
+    MLI_ASSERT((tensor->el_type == MLI_EL_FX_8) || (tensor->el_type == MLI_EL_SA_8));
+    MLI_ASSERT(tensor->rank > 0);
+    return tensor->data.mem.pi8;
+}
+
+template <>
+MLI_FORCE_INLINE int16_t* mli_prv_tensor_data_ptr(
+        const mli_tensor *tensor) {
+    MLI_ASSERT(tensor->el_type == MLI_EL_FX_16);
+    MLI_ASSERT(tensor->rank > 0);
+    return tensor->data.mem.pi16;
+}
+
+template <>
+MLI_FORCE_INLINE int32_t* mli_prv_tensor_data_ptr(
+        const mli_tensor *tensor) {
+    MLI_ASSERT(tensor->el_type == MLI_EL_SA_32);
+    MLI_ASSERT(tensor->rank > 0);
+    return tensor->data.mem.pi32;
+}
+
+template <>
+MLI_FORCE_INLINE float* mli_prv_tensor_data_ptr(
+        const mli_tensor *tensor) {
+    MLI_ASSERT(tensor->el_type == MLI_EL_FP_32);
+    MLI_ASSERT(tensor->rank > 0);
+    return tensor->data.mem.pf32;
+}
+#if defined(__Xvec_width)
+template <>
+MLI_FORCE_INLINE __vccm int8_t* mli_prv_tensor_data_ptr(
+        const mli_tensor *tensor) {
+    MLI_ASSERT((tensor->el_type == MLI_EL_FX_8) || (tensor->el_type == MLI_EL_SA_8));
+    MLI_ASSERT(tensor->rank > 0);
+    return (__vccm int8_t*)tensor->data.mem.pi8;
+}
+
+template <>
+MLI_FORCE_INLINE __vccm int16_t* mli_prv_tensor_data_ptr(
+        const mli_tensor *tensor) {
+    MLI_ASSERT(tensor->el_type == MLI_EL_FX_16);
+    MLI_ASSERT(tensor->rank > 0);
+    return (__vccm int16_t*)tensor->data.mem.pi16;
+}
+
+template <>
+MLI_FORCE_INLINE __vccm int32_t* mli_prv_tensor_data_ptr(
+        const mli_tensor *tensor) {
+    MLI_ASSERT(tensor->el_type == MLI_EL_SA_32);
+    MLI_ASSERT(tensor->rank > 0);
+    return (__vccm int32_t*)tensor->data.mem.pi32;
+}
+
+template <>
+MLI_FORCE_INLINE __vccm float* mli_prv_tensor_data_ptr(
+        const mli_tensor *tensor) {
+    MLI_ASSERT(tensor->el_type == MLI_EL_FP_32);
+    MLI_ASSERT(tensor->rank > 0);
+    return (__vccm float*)tensor->data.mem.pf32;
+}
+#endif
+
+#ifdef __Xxy
+template <>
+MLI_FORCE_INLINE __xy int8_t* mli_prv_tensor_data_ptr(
+        const mli_tensor *tensor) {
+    MLI_ASSERT((tensor->el_type == MLI_EL_FX_8) || (tensor->el_type == MLI_EL_SA_8));
+    MLI_ASSERT(tensor->rank > 0);
+    return (__xy int8_t*)tensor->data.mem.pi8;
+}
+
+template <>
+MLI_FORCE_INLINE __xy int16_t* mli_prv_tensor_data_ptr(
+        const mli_tensor *tensor) {
+    MLI_ASSERT(tensor->el_type == MLI_EL_FX_16);
+    MLI_ASSERT(tensor->rank > 0);
+    return (__xy int16_t*)tensor->data.mem.pi16;
+}
+
+template <>
+MLI_FORCE_INLINE __xy int32_t* mli_prv_tensor_data_ptr(
+        const mli_tensor *tensor) {
+    MLI_ASSERT(tensor->el_type == MLI_EL_SA_32);
+    MLI_ASSERT(tensor->rank > 0);
+    return (__xy int32_t*)tensor->data.mem.pi32;
+}
+
+template <>
+MLI_FORCE_INLINE __xy float* mli_prv_tensor_data_ptr(
+        const mli_tensor *tensor) {
+    MLI_ASSERT(tensor->el_type == MLI_EL_FP_32);
+    MLI_ASSERT(tensor->rank > 0);
+    return (__xy float*)tensor->data.mem.pf32;
+}
+#endif
+
+template <typename T>
+MLI_FORCE_INLINE T mli_prv_tensor_data_val(
+        const mli_tensor *tensor);
+
+template <>
+MLI_FORCE_INLINE int8_t mli_prv_tensor_data_val(
+        const mli_tensor *tensor) {
+    MLI_ASSERT((tensor->el_type == MLI_EL_FX_8) || (tensor->el_type == MLI_EL_SA_8));
+    if (tensor->rank == 0) {
+        return tensor->data.mem.i8;
+    } else {
+        return tensor->data.mem.pi8[0];
+    }
+}
+
+template <>
+MLI_FORCE_INLINE int16_t mli_prv_tensor_data_val(
+        const mli_tensor *tensor) {
+    MLI_ASSERT(tensor->el_type == MLI_EL_FX_16);
+    if (tensor->rank == 0) {
+        return tensor->data.mem.i16;
+    } else {
+        return tensor->data.mem.pi16[0];
+    }
+}
+
+template <>
+MLI_FORCE_INLINE int32_t mli_prv_tensor_data_val(
+        const mli_tensor *tensor) {
+    MLI_ASSERT(tensor->el_type == MLI_EL_SA_32);
+    if (tensor->rank == 0) {
+        return tensor->data.mem.i32;
+    } else {
+        return tensor->data.mem.pi32[0];
+    }
+}
+
+template <>
+MLI_FORCE_INLINE float mli_prv_tensor_data_val(
+        const mli_tensor *tensor) {
+    MLI_ASSERT(tensor->el_type == MLI_EL_FP_32);
+    if (tensor->rank == 0) {
+        return tensor->data.mem.f32;
+    } else {
+        return tensor->data.mem.pf32[0];
+    }
+}
+
+template <typename T>
+MLI_FORCE_INLINE void mli_prv_tensor_inc_data_ptr
+        (mli_tensor *in, int elements);
+
+
+template <>
+MLI_FORCE_INLINE void mli_prv_tensor_inc_data_ptr<int8_t*>
+        (mli_tensor *tensor, int elements)
+{
+    int element_size = sizeof(int8_t);
+    MLI_ASSERT((tensor->el_type == MLI_EL_FX_8) ||
+               (tensor->el_type == MLI_EL_SA_8));
+    MLI_ASSERT(element_size * elements <= tensor->data.capacity);
+    tensor->data.mem.pi8 += elements;
+    tensor->data.capacity -= elements * element_size;
+}
+
+template <>
+MLI_FORCE_INLINE void mli_prv_tensor_inc_data_ptr<int16_t*>
+        (mli_tensor *tensor, int elements)
+{
+    int element_size = sizeof(int16_t);
+    MLI_ASSERT(tensor->el_type == MLI_EL_FX_16);
+    MLI_ASSERT(element_size * elements <= tensor->data.capacity);
+    tensor->data.mem.pi16 += elements;
+    tensor->data.capacity -= elements * element_size;
+}
+
+template <>
+MLI_FORCE_INLINE void mli_prv_tensor_inc_data_ptr<int32_t*>
+        (mli_tensor *tensor, int elements)
+{
+    int element_size = sizeof(int32_t);
+    MLI_ASSERT(tensor->el_type == MLI_EL_SA_32);
+    MLI_ASSERT(element_size * elements <= tensor->data.capacity);
+    tensor->data.mem.pi32 += elements;
+    tensor->data.capacity -= elements * element_size;
+}
+
+template <typename T>
 static MLI_FORCE_INLINE tensor_private_t<T> mli_prv_get_tensor_chw(
         const mli_tensor *in,
         const int fix_ch = 0) {
@@ -79,7 +269,7 @@ static MLI_FORCE_INLINE tensor_private_t<T> mli_prv_get_tensor_chw(
     }
 
     return tensor_private_t<T> {
-            (T)in->data.mem.void_p, width, height, ch,
+            mli_prv_tensor_data_ptr<T>(in), width, height, ch,
             col_mem_stride, row_mem_stride, ch_mem_stride };
 }
 
@@ -113,7 +303,7 @@ static MLI_FORCE_INLINE tensor_private_t<T> mli_prv_get_tensor_hwc(
     }
 
     return tensor_private_t<T> {
-            (T)in->data.mem.void_p, width, height, ch,
+            mli_prv_tensor_data_ptr<T>(in), width, height, ch,
             col_mem_stride, row_mem_stride, ch_mem_stride };
 }
 
@@ -123,7 +313,7 @@ static MLI_FORCE_INLINE generic_tensor_private_t<T> mli_prv_get_generic_tensor(
     generic_tensor_private_t<T> tensor;
     int rank = in->rank;
 
-    tensor.ptr = (T)in->data.mem.void_p;
+    tensor.ptr = mli_prv_tensor_data_ptr<T>(in);
     tensor.rank = rank;
 
     if (rank) {
@@ -300,7 +490,7 @@ static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_we
     }
 
     return conv2d_weights_tensor_private_t<T> {
-            (T)weights->data.mem.void_p, width, height, in_ch, out_ch,
+            mli_prv_tensor_data_ptr<T>(weights), width, height, in_ch, out_ch,
             col_mem_stride, row_mem_stride, in_ch_mem_stride, out_ch_mem_stride };
 }
 
@@ -345,7 +535,7 @@ static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_we
     }
 
     return conv2d_weights_tensor_private_t<T> {
-        (T)weights->data.mem.void_p, width, height, in_ch, out_ch,
+        mli_prv_tensor_data_ptr<T>(weights), width, height, in_ch, out_ch,
         col_mem_stride, row_mem_stride, in_ch_mem_stride, out_ch_mem_stride };
 }
 
@@ -389,7 +579,7 @@ static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_we
     }
 
     return conv2d_weights_tensor_private_t<T> {
-            (T)weights->data.mem.void_p, width, height, in_ch, out_ch,
+            mli_prv_tensor_data_ptr<T>(weights), width, height, in_ch, out_ch,
             col_mem_stride, row_mem_stride, in_ch_mem_stride, out_ch_mem_stride };
 }
 
@@ -417,7 +607,7 @@ static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_we
     }
 
     return conv2d_weights_tensor_private_t<T> {
-        (T)weights->data.mem.void_p, width, height, in_ch, out_ch,
+        mli_prv_tensor_data_ptr<T>(weights), width, height, in_ch, out_ch,
         col_mem_stride, row_mem_stride, in_ch_mem_stride, out_ch_mem_stride };
 }
 

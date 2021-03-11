@@ -289,11 +289,10 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
      * Note: Minimum shift value is 15
      */
 
-    vNx4accint_t acc = mli_math_mul_fx<vNx4short_t, vNx4accint_t>(op1_offset, op2_offset);
-    vNx4int_t temp1 = mli_math_acc_cast_fx<vNx4int_t, vNx4accint_t>(acc);
+    vNx4int_t temp1 = mli_math_mul_fx<vNx4short_t, vNx4int_t>(op1_offset, op2_offset);
     vNx4int_t temp2 = (scale_factor1 & mask);
     vNx4int_t offset = out_offset << (post_op_shift - preshift_sf);
-    acc = mli_math_mul_fx_low(temp1, temp2);
+    vNx4accint_t acc = mli_math_mul_fx_low(temp1, temp2);
     acc = mli_math_asr_fx(acc, preshift_sf);
     acc = mli_math_add(acc, offset);
     temp2 = (scale_factor1 >> preshift_sf);
@@ -317,7 +316,6 @@ MLI_FORCE_INLINE vNx2short_t eltwise_perform_operation<vNx2short_t, vNx2short_t,
     vNx2short_t res;
     int shift_right = MAX(post_op_shift,0);
     int shift_left = MAX(-post_op_shift,0);
-
     res = mli_math_max_fx(op1, op2);
     res = mli_math_asl_fx(res, shift_left);
     res = mli_math_asr_rnd_fx(res, shift_right);
@@ -361,15 +359,16 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
         const int pre_op_shift2,
         const int post_op_shift) {
     vNx4char_t res;
-
+    int32_t acc_init = (out_offset << post_op_shift) - scale_factor1 * in_offset1;
+#ifdef ROUND_UP
+    acc_init += ((1 << post_op_shift) >> 1); // rounding half up //
+#else
+    #error Rounding mode not supported
+#endif
+    vNx4accint_t accu = mli_math_init_accu<int32_t, vNx4accint_t>(acc_init);
     vNx4short_t max = to_vNx4short_t(mli_math_max_fx(op1, op2));
-    max = mli_math_sub_fx(max, (vNx4short_t)in_offset1);
-    vNx4accint_t acc = mli_math_mul_fx<vNx4short_t, vNx4accint_t>(max, scale_factor1);
-    vNx4int_t temp = mli_math_acc_cast_fx<vNx4int_t, vNx4accint_t>(acc);
-    temp = mli_math_asr_rnd_fx(temp, post_op_shift);
-    temp = mli_math_add_fx(temp, (vNx4int_t)out_offset);
-    res = mli_math_cast_fx<vNx4int_t, vNx4char_t>(temp);
-
+    accu = mli_math_mac_fx(accu, max, scale_factor1);
+    res = mli_math_acc_cast_fx<vNx4char_t, vNx4accint_t, false>(accu, post_op_shift);
     return res;
 }
 
@@ -434,15 +433,19 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
         const int pre_op_shift2,
         const int post_op_shift) {
     vNx4char_t res;
-    vNx4short_t min = to_vNx4short_t(mli_math_min_fx(op1, op2));
-    min = mli_math_sub_fx(min, (vNx4short_t)in_offset1);
-    vNx4accint_t acc = mli_math_mul_fx<vNx4short_t, vNx4accint_t>(min, scale_factor1);
-    vNx4int_t temp = mli_math_acc_cast_fx<vNx4int_t, vNx4accint_t>(acc);
-    temp = mli_math_asr_rnd_fx(temp, post_op_shift);
-    temp = mli_math_add_fx(temp, (vNx4int_t)out_offset);
-    res = mli_math_cast_fx<vNx4int_t, vNx4char_t>(temp);
+    int32_t acc_init = (out_offset << post_op_shift) - scale_factor1 * in_offset1;
 
+#ifdef ROUND_UP
+    acc_init += ((1 << post_op_shift) >> 1); // rounding half up //
+#else
+    #error Rounding mode not supported
+#endif
+    vNx4accint_t accu = mli_math_init_accu<int32_t, vNx4accint_t>(acc_init);
+    vNx4short_t max = to_vNx4short_t(mli_math_min_fx(op1, op2));
+    accu = mli_math_mac_fx(accu, max, scale_factor1);
+    res = mli_math_acc_cast_fx<vNx4char_t, vNx4accint_t, false>(accu, post_op_shift);
     return res;
+
 }
 
 
@@ -455,6 +458,8 @@ MLI_FORCE_INLINE void eltwise_innerloop(
         int idx2,
         int idx_out,
         const int count,
+        io_T op1_s,
+        io_T op2_s,
         const bool scalar_op1,
         const bool scalar_op2,
         const int16_t in_offset1,
@@ -469,11 +474,12 @@ MLI_FORCE_INLINE void eltwise_innerloop(
     auto input = mli_prv_load_1vec(op1_ptr);
     int num_lanes = get_number_lanes(input);
     int remaining_part = count & (num_lanes - 1);
-
+    decltype(input) op1_scalar = op1_s;
+    decltype(input) op2_scalar = op2_s;
     if (remaining_part) {
-        auto val1 = (scalar_op1) ? op1_ptr[0] : mli_prv_load_1vec(op1_ptr + idx1);
-        auto val2 = (scalar_op2) ? op2_ptr[0] : mli_prv_load_1vec(op2_ptr + idx2);
-        auto res = mli::krn::eltwise_perform_operation<decltype(val1), decltype(val1), func_type, convert>(
+        auto val1 = (scalar_op1) ? op1_scalar : mli_prv_load_1vec(op1_ptr + idx1);
+        auto val2 = (scalar_op2) ? op2_scalar : mli_prv_load_1vec(op2_ptr + idx2);
+        auto res = mli::krn::eltwise_perform_operation<decltype(input), decltype(input), func_type, convert>(
                                                        val1, val2, in_offset1, in_offset2, out_offset, scale1,
                                                        scale2, pre_op_shift1, pre_op_shift2, post_op_shift);
         mli_prv_store_n_samples(&out_ptr[idx_out], res, remaining_part);
@@ -483,11 +489,9 @@ MLI_FORCE_INLINE void eltwise_innerloop(
     }
 
     for (int pos = remaining_part; pos < count; pos+=num_lanes) {
-        auto val1 = mli_prv_load_1vec(op1_ptr + idx1);
-        auto val2 = mli_prv_load_1vec(op2_ptr + idx2);
-        val1 = (scalar_op1) ? op1_ptr[0] : val1;
-        val2 = (scalar_op2) ? op2_ptr[0] : val2;
-        auto res = mli::krn::eltwise_perform_operation<decltype(val1), decltype(val1), func_type, convert>(
+        auto val1 = (scalar_op1) ? op1_scalar : mli_prv_load_1vec(op1_ptr + idx1);
+        auto val2 = (scalar_op2) ? op2_scalar : mli_prv_load_1vec(op2_ptr + idx2);
+        auto res = mli::krn::eltwise_perform_operation<decltype(input), decltype(input), func_type, convert>(
                                                        val1, val2, in_offset1, in_offset2, out_offset, scale1,
                                                        scale2, pre_op_shift1, pre_op_shift2, post_op_shift);
         mli_prv_store_n_samples(&out_ptr[idx_out], res);

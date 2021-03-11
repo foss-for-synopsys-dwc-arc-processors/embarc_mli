@@ -233,6 +233,15 @@ static MLI_FORCE_INLINE vNint_t mli_prv_stride_load_1vec(const int32_t* __restri
     return r;
 }
 
+//load 1vec from dcache
+static MLI_FORCE_INLINE vNint_t mli_prv_load_1vec(const int32_t* __restrict in) {
+    vNint_t r;
+    for (int i = 0; i < _VDSP_NUM_32BIT_LANES; i++) {
+        r[i] = in[i];
+    }
+    return r;
+}
+
 
 //
 // load functions where number of samples is based on amount of vectors, and N depends on the type
@@ -385,6 +394,13 @@ static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(int32_t* __restrict 
 static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(int32_t* __restrict out, vNint_t data, int stride, int limit) {
     for (int i = 0; i < limit; i++) {
         out[i * stride] = data[i];
+    }
+}
+
+//store 1vec in dcache
+static MLI_FORCE_INLINE void mli_prv_store_n_samples(int32_t* __restrict out, vNint_t data) {
+    for (int i = 0; i < _VDSP_NUM_32BIT_LANES; i++) {
+        out[i] = data[i];
     }
 }
 

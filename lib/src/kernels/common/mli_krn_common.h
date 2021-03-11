@@ -152,11 +152,11 @@ static MLI_FORCE_INLINE void lstm_cell_prepare_and_run_fx(
     const int batch_sz = static_cast<int>((cfg->mode == RNN_ONE_TO_ONE) ? 1 : in->shape[0]);
     const int in_elements = static_cast<int>((cfg->mode == RNN_ONE_TO_ONE) ? mli_prv_count_elem_num (in) : mli_prv_count_elem_num_part(in, 1));
 
-    const MLI_PTR (w_T) w_ptr = (const MLI_PTR (w_T)) weights->data.mem.void_p;
-    const MLI_PTR (w_T) b_ptr = (const MLI_PTR (w_T)) bias->data.mem.void_p;
-    const MLI_PTR (io_T) in_ptr = (const MLI_PTR (io_T)) in->data.mem.void_p;
-    const MLI_PTR (io_T) prev_ptr = (const MLI_PTR (io_T)) prev_out->data.mem.void_p;
-    MLI_CONV_OUT_PTR (io_T) dense_out_ptr = (MLI_CONV_OUT_PTR (io_T)) cfg->ir_tsr->data.mem.void_p;
+    const MLI_PTR (w_T) w_ptr = mli_prv_tensor_data_ptr<MLI_PTR (w_T)>(weights);
+    const MLI_PTR (w_T) b_ptr = mli_prv_tensor_data_ptr<MLI_PTR (w_T)>(bias);
+    const MLI_PTR (io_T) in_ptr = mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(in);
+    const MLI_PTR (io_T) prev_ptr = mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(prev_out);
+    MLI_CONV_OUT_PTR (io_T) dense_out_ptr = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR (io_T)>(cfg->ir_tsr);
 
     // Fill intermediate tensor of dense output
     mli_tensor *ir_tensor = cfg->ir_tsr;
@@ -187,18 +187,17 @@ static MLI_FORCE_INLINE void lstm_cell_prepare_and_run_fx(
 
     // lstm output for one step
     mli_tensor rnn_out = {
-        .data = {.capacity = out->data.capacity,
-                .mem = {.void_p = out->data.mem.void_p}},
+        .data = out->data,
         .shape = {static_cast<unsigned>(lstm_out_elements)},
         .rank = 1,
         .el_type = in->el_type};
     if (cfg->act == RNN_ACT_NONE)   // fx Parameters in case of No activation
         rnn_out.el_params.fx.frac_bits = prev_out->el_params.fx.frac_bits;
 
-    io_T *f_g = (io_T *) forget_gate.data.mem.void_p;
-    io_T *i_g = (io_T *) in_gate.data.mem.void_p;
-    io_T *g = (io_T *) g_tsr.data.mem.void_p;
-    io_T *c = (io_T *) cell->data.mem.void_p;
+    io_T *f_g = mli_prv_tensor_data_ptr<io_T *>(forget_gate);
+    io_T *i_g = mli_prv_tensor_data_ptr<io_T *>(in_gate);
+    io_T *g = mli_prv_tensor_data_ptr<io_T *>(g_tsr);
+    io_T *c = mli_prv_tensor_data_ptr<io_T *>(cell);
 
     // For elementwise (assuming gates have 7 (fx8) or 15 (fx16) fractional bits)
     int eltwise_ir_shift = ((sizeof(io_T) * 8) - 1) - (int) cell->el_params.fx.frac_bits;
@@ -268,10 +267,9 @@ static MLI_FORCE_INLINE void lstm_cell_prepare_and_run_fx(
         // Step 5: Update pointers and tensors for next batch
         //=======================================
         in_ptr += in_elements;
-        prev_ptr = (MLI_PTR (io_T)) rnn_out.data.mem.void_p;
+        prev_ptr = mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(rnn_out);
         if (cfg->mode == RNN_BATCH_TO_BATCH) {
-            rnn_out.data.mem.void_p = static_cast<io_T*>(rnn_out.data.mem.void_p) + lstm_out_elements;
-            rnn_out.data.capacity -= lstm_out_elements;
+            mli_prv_tensor_inc_data_ptr<io_T*>(&rnn_out, lstm_out_elements);
         }
     }
 

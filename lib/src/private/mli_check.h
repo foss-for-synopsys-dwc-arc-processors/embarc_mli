@@ -401,36 +401,48 @@ mli_status mli_chk_rnn_dense_sa8_sa8_sa32(
 mli_status mli_chk_lstm_cell(
         const mli_tensor * in,
         const mli_tensor * prev_out,
-        const mli_tensor * weights,
+        const mli_tensor * weights_in,
+        const mli_tensor * weights_out,
         const mli_tensor * bias,
-        const mli_rnn_cell_cfg_depr * cfg,
-        mli_tensor * cell,
-        mli_tensor * out);
-
-mli_status mli_chk_lstm_cell_fx8(
-        const mli_tensor * in,
-        const mli_tensor * prev_out,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        const mli_rnn_cell_cfg_depr * cfg,
+        const mli_lut * tanh_lut,
+        const mli_lut * sigm_lut,
+        const mli_rnn_cell_cfg * cfg,
         mli_tensor * cell,
         mli_tensor * out);
 
 mli_status mli_chk_lstm_cell_fx16(
         const mli_tensor * in,
         const mli_tensor * prev_out,
-        const mli_tensor * weights,
+        const mli_tensor * weights_in,
+        const mli_tensor * weights_out,
         const mli_tensor * bias,
-        const mli_rnn_cell_cfg_depr * cfg,
+        const mli_lut * tanh_lut,
+        const mli_lut * sigm_lut,
+        const mli_rnn_cell_cfg * cfg,
         mli_tensor * cell,
         mli_tensor * out);
 
-mli_status mli_chk_lstm_cell_fx8w16d (
+mli_status mli_chk_lstm_cell_fx16_fx8_fx8(
         const mli_tensor * in,
         const mli_tensor * prev_out,
-        const mli_tensor * weights,
+        const mli_tensor * weights_in,
+        const mli_tensor * weights_out,
         const mli_tensor * bias,
-        const mli_rnn_cell_cfg_depr * cfg,
+        const mli_lut * tanh_lut,
+        const mli_lut * sigm_lut,
+        const mli_rnn_cell_cfg * cfg,
+        mli_tensor * cell,
+        mli_tensor * out);
+
+mli_status mli_chk_lstm_cell_sa8_sa8_sa32(
+        const mli_tensor * in,
+        const mli_tensor * prev_out,
+        const mli_tensor * weights_in,
+        const mli_tensor * weights_out,
+        const mli_tensor * bias,
+        const mli_lut * tanh_lut,
+        const mli_lut * sigm_lut,
+        const mli_rnn_cell_cfg * cfg,
         mli_tensor * cell,
         mli_tensor * out);
 

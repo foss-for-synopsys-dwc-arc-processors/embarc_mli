@@ -29,8 +29,8 @@ static MLI_FORCE_INLINE mli_status mli_krn_relu_fx_run(const mli_tensor *in,
 
     mli_prv_fx_init_dsp_ctrl();
     
-    const MLI_PTR(io_T) vec_in = (MLI_PTR(io_T))(in->data.mem.void_p);
-    MLI_OUT_PTR(io_T) vec_out = (MLI_OUT_PTR(io_T))(out->data.mem.void_p);
+    const MLI_PTR(io_T) vec_in = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in);
+    MLI_OUT_PTR(io_T) vec_out = mli_prv_tensor_data_ptr<MLI_OUT_PTR(io_T)>(out);
 
     /* Copy tensor format */
     mli_prv_copy_tensor_format_except_mem_strides(in, out);

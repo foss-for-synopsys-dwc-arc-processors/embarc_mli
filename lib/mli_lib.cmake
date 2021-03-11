@@ -69,6 +69,7 @@ else()
         ${MLI_LIB_CMAKE_DIR}/src/kernels/common/mli_krn_rnn_dense.cc
         ${MLI_LIB_CMAKE_DIR}/src/kernels/diverse/mli_krn_argmax.cc
         ${MLI_LIB_CMAKE_DIR}/src/kernels/diverse/mli_krn_permute_fx.cc
+        ${MLI_LIB_CMAKE_DIR}/src/kernels/common/mli_krn_lstm_cell.cc
     )
 endif()
 

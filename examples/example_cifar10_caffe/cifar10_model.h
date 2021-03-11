@@ -51,7 +51,8 @@ extern mli_tensor * const cifar10_cf_net_output;
 // Get input data from cifar10_cf_net_input tensor (FX format), fed it to the neural network,
 // and writes results to cifar10_cf_net_output tensor (FX format). It is user responsibility
 // to prepare input tensor correctly before calling this function and get result from output tensor
-// after function finish
+// after function finish. User must call the model initialization function (cifar10_cf_net) before
+// calling this function.
 //
 // params:
 // debug_ir_root -  Path to intermediate vectors prepared in IDX format (hardcoded names). 
@@ -60,7 +61,11 @@ extern mli_tensor * const cifar10_cf_net_output;
 //                  If NULL is passed, no messages will be printed in inference
 void cifar10_cf_net(const char * debug_ir_root);
 
-
+// Model initialization function
+//
+// Initialize module internal data. User must call this function before he can use the inference function.
+// Initialization can be done once during program execution.
+mli_status cifar10_cf_init();
 //=============================================
 //
 // Model bit depth configuration

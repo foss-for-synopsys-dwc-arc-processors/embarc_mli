@@ -47,8 +47,10 @@ static MLI_FORCE_INLINE void eltwise_op_basic(
         const generic_tensor_private_t<MLI_PTR(io_T)> *in1,
         const generic_tensor_private_t<MLI_PTR(io_T)> *in2,
         generic_tensor_private_t<MLI_OUT_PTR(io_T)> *out,
-        const int op1_size,
-        const int op2_size,
+        const io_T op1_s,
+        const io_T op2_s,
+        const bool scalar_op1,
+        const bool scalar_op2,
         const int pre_op_shift1,
         const int pre_op_shift2,
         int post_op_shift,
@@ -78,6 +80,8 @@ MLI_FORCE_INLINE void eltwise_innerloop(
         int idx2,
         int idx_out,
         const int count,
+        const io_T op1_s,
+        const io_T op2_s,
         const bool scalar_op1,
         const bool scalar_op2,
         const int16_t in_offset1,
@@ -94,18 +98,6 @@ MLI_FORCE_INLINE void eltwise_innerloop(
 // DSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace dsp {
-
-template <typename io_T, mli_eltwise_type func_type, bool convert = false>
-static MLI_FORCE_INLINE void eltwise_op_basic(
-        const generic_tensor_private_t<MLI_PTR(io_T)> *in1,
-        const generic_tensor_private_t<MLI_PTR(io_T)> *in2,
-        generic_tensor_private_t<MLI_OUT_PTR(io_T)> *out,
-        const int op1_size,
-        const int op2_size,
-        const int mul_out_shift,
-        const struct s8asym_quant_params *in_quant_params1 = nullptr,
-        const struct s8asym_quant_params *in_quant_params2 = nullptr,
-        const struct s8asym_quant_params *out_quant_params = nullptr);
 
 } // namespace dsp
 
@@ -333,6 +325,8 @@ MLI_FORCE_INLINE void eltwise_innerloop(
         int idx2,
         int idx_out,
         const int count,
+        const io_T op1_s,
+        const io_T op2_s,
         const bool scalar_op1,
         const bool scalar_op2,
         const int16_t in_offset1,

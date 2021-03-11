@@ -90,6 +90,12 @@ int main(int argc, char ** argv ) {
        }
     }
 
+    mli_status status = cifar10_cf_init();
+    if (status != MLI_STATUS_OK) {
+    	printf("Failed to initialize lut for softmax\n");
+    	return 2; // Error: lut couldn't be initialized
+    }
+
     switch (mode) {
     // No Arguments for app. Process single hardcoded input
     // Print various measures to stdout

@@ -31,11 +31,10 @@ set(EXAMPLE_FLAGS
     -Hpurge
     -Hheap=8K
     -Hstack=1K
-    -Hfxapi -e_start
+    -e_start
     -Bgrouplib
     -Hldopt=-q
     -Hsdata0
-    -Xdsp_ctrl=postshift,guard,convergent
     -Hdense_prologue
     -Hcl
     -Hcrt_argv

@@ -387,6 +387,23 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
         int num);
 #endif
 
+template <typename acc_T, typename quant_T>
+MLI_FORCE_INLINE acc_T ir_rnn_result_requantize(
+        const acc_T acc, const quant_T* current_params,
+        const quant_T* next_params, int krn_idx);
+template <typename acc_T>
+MLI_FORCE_INLINE acc_T ir_rnn_result_requantize(
+        const acc_T acc, const fx_quant_specific_params* params,
+        const fx_quant_specific_params* next_params, int krn_idx);
+
+#if defined(__Xvec_width)
+template <>
+MLI_FORCE_INLINE vNx4accshort_t ir_rnn_result_requantize(
+        const vNx4accshort_t acc,
+        const s8asym_quant_specific_params* params,
+        const s8asym_quant_specific_params* next_params, int krn_idx);
+#endif
+
 //==========================================================================
 // Convert functions
 //==========================================================================

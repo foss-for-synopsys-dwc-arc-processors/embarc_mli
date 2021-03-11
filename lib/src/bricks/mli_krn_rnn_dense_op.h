@@ -23,13 +23,16 @@
 namespace mli {
 namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-using mli::krn::ref::rnn_dense_op;
+using mli::krn::vdsp::rnn_dense_op;
+using mli::krn::ref::rnn_dense_op_stacked;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
 using mli::krn::ref::rnn_dense_op;
+using mli::krn::ref::rnn_dense_op_stacked;
 
 #else
 using mli::krn::ref::rnn_dense_op;
+using mli::krn::ref::rnn_dense_op_stacked;
 
 #endif
 } // namespace krn
@@ -44,7 +47,7 @@ using mli::krn::ref::rnn_dense_op;
 #include "impl/mli_krn_rnn_dense_op_ref.h"
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-// #include "impl/mli_krn_rnn_dense_op_vdsp.h"
+#include "impl/mli_krn_rnn_dense_op_vdsp.h"
 #endif
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)

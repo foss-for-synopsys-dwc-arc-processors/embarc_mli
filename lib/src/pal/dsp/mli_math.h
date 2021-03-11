@@ -96,6 +96,26 @@ MLI_FORCE_INLINE o_T mli_math_norm_fx(T x) {
 }
 
 template <>
+MLI_FORCE_INLINE int32_t mli_math_norm_fx(int64_t x) {
+    if ((x <= std::numeric_limits<int32_t>::max()) &&
+        (x >= std::numeric_limits<int32_t>::min())) {
+        return (32 + _norm((int32_t) x ));
+    } else {
+        return _norm((int32_t) (x >> 32));
+    }
+}
+
+template <>
+MLI_FORCE_INLINE int32_t mli_math_norm_fx(int32_t x) {
+    return _norm(x);
+}
+
+template <>
+MLI_FORCE_INLINE int32_t mli_math_norm_fx(int16_t x) {
+    return _normh(x);
+}
+
+template <>
 MLI_FORCE_INLINE int mli_math_norm_fx(mli_acc40_t acc) {
     return fx_norm_a40(acc) + 1;
 }

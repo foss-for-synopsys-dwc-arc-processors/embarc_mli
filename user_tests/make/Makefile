@@ -29,10 +29,13 @@ KERNELS = \
 	permute \
 	conv2d \
 	depthwise_conv \
-	group_conv2d \
+	group_conv2d_FX16 \
+	group_conv2d_FX16_FX8_FX8 \
+	group_conv2d_SA8_SA8_SA32 \
 	transpose_conv2d \
 	fully_connected \
 	rnn_dense \
+	lstm_cell \
 	avepool \
 	maxpool \
 	argmax \

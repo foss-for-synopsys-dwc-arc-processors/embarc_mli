@@ -396,10 +396,10 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
 
     vNx4short_t accu_result = mli_math_acc_cast_fx<vNx4short_t, vNx4accshort_t>(acc);
     vNx4short_t shift = quant_params->out_shift - preshift;
-    vNx4short_t shift_left = mli_math_max_fx(-shift, 0);
+    vNx4short_t shift_left = mli_math_max_fx(1 - shift, 0);
     accu_result = mli_math_asl_fx(accu_result, shift_left);
     vNx4short_t accu_scaled = mli_math_mul_fx_high(accu_result, quant_params->out_mul);
-    vNx4short_t shift_right = mli_math_max_fx(shift, 0);
+    vNx4short_t shift_right = mli_math_max_fx(shift, 1);
     accu_scaled = mli_math_asr_rnd_fx(accu_scaled, shift_right);
 
 #else
@@ -467,6 +467,45 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
     out = MAX(out, val_min_limit);
 
     mli_prv_store_n_samples(o_ptr, out, num);
+}
+
+template <typename acc_T>
+MLI_FORCE_INLINE acc_T ir_rnn_result_requantize(const acc_T acc, const fx_quant_specific_params* current_params,
+                                                const fx_quant_specific_params* next_params, int krn_idx) {
+    const int shift = current_params->out_shift - next_params->out_shift;
+    int shift_right = MAX(shift, 0);
+    int shift_left = MAX(-shift, 0);
+    acc_T acc_shifted = mli_math_asl_fx(acc, shift_left);
+    return mli_math_asr_rnd_fx<acc_T, int>(acc_shifted, shift_right);
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accshort_t ir_rnn_result_requantize(
+        const vNx4accshort_t acc,
+        const s8asym_quant_specific_params* current_params,
+        const s8asym_quant_specific_params* next_params, int krn_idx) {
+
+    MLI_ASSERT(krn_idx == 0);
+
+    const int32_t mul = current_params->out_mul / next_params->weight_scales[0];
+    const int shift = current_params->out_shift - next_params->weight_shifts[0];
+
+    int mul_norm = mli_math_norm_fx<int32_t, int32_t>(mul);
+    int32_t mul_shifted = mul << mul_norm;
+
+    vNx4int_t acc_int = to_vNx4int_t(acc);
+    vNx4int_t acc_norm = mli_math_norm_fx<vNx4int_t, vNx4int_t>(acc_int);
+    acc_int = mli_math_asl_fx<vNx4int_t, vNx4int_t>(acc_int, acc_norm);
+
+    vNx4int_t total_shift = mli_math_add_fx<vNx4int_t>(acc_norm, (mul_norm + shift));
+    vNx4int_t acc_scaled = mli_math_mul_fx_high(acc_int, mul_shifted);
+    vNx4int_t acc_shifted = mli_math_asr_rnd_fx(acc_scaled, total_shift);
+
+    vNx4int_t norm;
+    vNx4short_t acc_short = mli_math_norm_cast_fx</*left_shift*/ false>(acc_shifted , &norm);
+    vNx4accshort_t res = mli_math_init_accu_add<vNx4short_t, vNx4accshort_t>(acc_short, (vNx4short_t)0);
+    res = mli_math_asl_fx<vNx4accshort_t, vNx4short_t>(res, to_vNx4short_t(norm));
+    return res;
 }
 
 } // namespace vdsp
