@@ -314,11 +314,12 @@ MLI_FORCE_INLINE vNx2short_t eltwise_perform_operation<vNx2short_t, vNx2short_t,
         const int pre_op_shift2,
         const int post_op_shift) {
     vNx2short_t res;
-    int shift_right = MAX(post_op_shift,0);
-    int shift_left = MAX(-post_op_shift,0);
     res = mli_math_max_fx(op1, op2);
-    res = mli_math_asl_fx(res, shift_left);
-    res = mli_math_asr_rnd_fx(res, shift_right);
+    if (post_op_shift > 0) {
+    	res = mli_math_asr_rnd_fx(res, post_op_shift);
+    } else {
+        res = mli_math_asl_fx(res, -post_op_shift);
+    }
 
     return res;
 }
@@ -336,13 +337,13 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
         const int pre_op_shift2,
         const int post_op_shift) {
     vNx4char_t res ;
-    int shift_right = MAX(post_op_shift,0);
-    int shift_left = MAX(-post_op_shift,0);
 
     res = mli_math_max_fx(op1, op2);
-    res = mli_math_asl_fx(res, shift_left);
-    res = mli_math_asr_rnd_fx(res, shift_right);
-
+    if (post_op_shift > 0) {
+        res = mli_math_asr_rnd_fx(res, post_op_shift);
+    } else {
+        res = mli_math_asl_fx(res, -post_op_shift);
+    }
     return res;
 }
 
@@ -386,12 +387,12 @@ MLI_FORCE_INLINE vNx2short_t eltwise_perform_operation<vNx2short_t, vNx2short_t,
         const int post_op_shift) {
      vNx2short_t res;
 
-     int shift_right = MAX(post_op_shift,0);
-     int shift_left = MAX(-post_op_shift,0);
      res = mli_math_min_fx(op1, op2);
-     res = mli_math_asl_fx(res, shift_left);
-     res = mli_math_asr_rnd_fx(res, shift_right);
-
+     if (post_op_shift > 0) {
+         res = mli_math_asr_rnd_fx(res, post_op_shift);
+     } else {
+         res = mli_math_asl_fx(res, -post_op_shift);
+     }
      return res;
 }
 
@@ -409,12 +410,12 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
         const int post_op_shift) {
     vNx4char_t res ;
 
-    int shift_right = MAX(post_op_shift,0);
-    int shift_left = MAX(-post_op_shift,0);
     res = mli_math_min_fx(op1, op2);
-    res = mli_math_asl_fx(res, shift_left);
-    res = mli_math_asr_rnd_fx(res, shift_right);
-
+    if (post_op_shift > 0) {
+        res = mli_math_asr_rnd_fx(res, post_op_shift);
+    } else {
+        res = mli_math_asl_fx(res, -post_op_shift);
+    }
     return res;
 
 
