@@ -356,12 +356,12 @@ MLI_FORCE_INLINE vNx4accshort_t weights_additive(
 //==========================================================================
 template <typename b_T, typename acc_T, typename quant_T>
 MLI_FORCE_INLINE acc_T bias_additive(const MLI_PTR(b_T) bias, acc_T init_accum,
-        const quant_T* quant_params);
+        const quant_T* quant_params, bool add_preshift_rnd = true);
 
 #if defined(__Xvec_width)
 template <>
 MLI_FORCE_INLINE vNx4accshort_t bias_additive(const MLI_PTR(int32_t) bias, vNx4accshort_t init_accum,
-        const s8asym_quant_specific_out_params_v* quant_params);
+        const s8asym_quant_specific_out_params_v* quant_params, bool add_preshift_rnd);
 #endif
 
 //==========================================================================
@@ -374,7 +374,8 @@ static MLI_FORCE_INLINE void result_cast_relu_store_v(
         const quant_T* quant_params,
         const int16_t val_min_limit,
         const int16_t val_max_limit,
-        int num);
+        int num,
+        bool add_preshift_rnd = false);
 
 #if defined(__Xvec_width)
 template <>
@@ -384,7 +385,8 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
         const s8asym_quant_specific_out_params_v* quant_params,
         const int16_t val_min_limit,
         const int16_t val_max_limit,
-        int num);
+        int num,
+        bool add_preshift_rnd);
 #endif
 
 template <typename acc_T, typename quant_T>
