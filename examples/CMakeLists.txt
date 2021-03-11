@@ -1,5 +1,5 @@
 #
-# Copyright 2020, Synopsys, Inc.
+# Copyright 2020-2021, Synopsys, Inc.
 # All rights reserved.
 #
 # This source code is licensed under the BSD-3-Clause license found in
@@ -12,8 +12,3 @@ include(../cmake/settings.cmake)
 
 add_subdirectory(hello_world)
 add_subdirectory(example_cifar10_caffe)
-
-if (ARC AND (${MLI_PLATFORM} STREQUAL EM_HS))
-    add_subdirectory(example_face_detect)
-    add_subdirectory(example_har_smartphone)
-endif()
