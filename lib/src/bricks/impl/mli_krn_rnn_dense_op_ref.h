@@ -24,6 +24,14 @@ namespace mli {
 namespace krn {
 namespace ref {
 
+static inline void adjust_weights_dim_for_rnn_dense(fx_quant_specific_params* params) {
+	return;
+}
+
+static inline void adjust_weights_dim_for_rnn_dense(s8asym_quant_specific_params* params) {
+	params->weight_dim = -1;
+}
+
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
 static inline void rnn_dense_op_stacked(
         const MLI_PTR (io_T) * inputs_ptr,
@@ -55,14 +63,15 @@ static inline void rnn_dense_op_stacked(
 
         weights_scales[idx] = weights[idx]->el_params.sa.scale.mem.pi16;
         weights_scale_frac_bits[idx] = weights[idx]->el_params.sa.scale_frac_bits.mem.pi8;
+
+        adjust_weights_dim_for_rnn_dense(&in_to_out_quant_params[idx]);
     }
 
     const MLI_PTR (b_T) bias_ptr = mli_prv_tensor_data_ptr<MLI_PTR (b_T)>(bias);
     MLI_CONV_OUT_PTR (io_T) dense_out_ptr = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR (io_T)>(out);
 
     for (int gate = 0; gate < gates_num; ++gate) {
-        //TODO modify to mli::krn::rnn_dense_op when adding lstm vdsp version
-        mli::krn::ref::rnn_dense_op<io_T, w_T, b_T, acc_T, quant_T>(
+        mli::krn::rnn_dense_op<io_T, w_T, b_T, acc_T, quant_T>(
             inputs_ptr, weights_ptr, bias_ptr, dense_out_ptr, inputs_num, inputs_elements,
             out_elements, w_ch_out_mem_strides, in_to_out_quant_params, 
             (io_T)val_limit.min, (io_T)val_limit.max);
@@ -131,8 +140,7 @@ static inline void rnn_dense_op(
             accu = mli_math_add_fx(accu, prev_step);
 
             if(inputs_num - idx != 1) {
-                //TODO modify to mli::krn::rnn_dense_op when adding lstm vdsp version
-                prev_step = mli::krn::ref::ir_rnn_result_requantize(accu, &in_to_out_quant_params[idx],
+                prev_step = mli::krn::ir_rnn_result_requantize(accu, &in_to_out_quant_params[idx],
                                 &in_to_out_quant_params[idx+1], /* krn_idx= */ 0);
                 accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
             } else {
