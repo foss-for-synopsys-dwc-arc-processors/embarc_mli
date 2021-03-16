@@ -18,7 +18,8 @@
 #include "mli_prv_dsp.h"
 #include "mli_math.h"
 
-#define IN_SCALE_SHIFT 16
+#define INT64_TO_INT16 48
+#define INT32_TO_INT16 16
 
 namespace mli {
 namespace krn {
@@ -175,11 +176,11 @@ static MLI_FORCE_INLINE void eltwise_op_basic(
                                                            (int32_t) in_quant_params1->shift - frac_bits_fx16);
             out_scale_fx = mli_math_asr_rnd_fx<int32_t>(out_quant_params->scale,
                                                            (int32_t) out_quant_params->shift - frac_bits_fx16);
-            scale_factor1 = mli_math_asr_rnd_fx<int32_t>(in_scale_fx1, -IN_SCALE_SHIFT);
+            scale_factor1 = mli_math_asr_rnd_fx<int32_t>(in_scale_fx1, -INT32_TO_INT16);
             scale_factor1 /= out_scale_fx;
-            post_op_shift = IN_SCALE_SHIFT;
+            post_op_shift = INT32_TO_INT16;
             int norm1 = (scale_factor1 != 0) ? mli_math_norm_fx<int32_t, int>(scale_factor1) : 0;
-            int shift = MAX(IN_SCALE_SHIFT - norm1, 0);
+            int shift = MAX(INT32_TO_INT16 - norm1, 0);
             scale16_1 = mli_math_cast_fx<int32_t, int16_t>(scale_factor1, shift);
             scale16_2 = scale16_1;
             post_op_shift -= shift;
@@ -190,12 +191,12 @@ static MLI_FORCE_INLINE void eltwise_op_basic(
                                                           (int32_t) in_quant_params2->shift - frac_bits_fx16);
             out_scale_fx = mli_math_asr_rnd_fx<int32_t>(out_quant_params->scale,
                                                            (int32_t) out_quant_params->shift - frac_bits_fx16);
-            scale_factor1 = mli_math_asr_rnd_fx<int32_t>(in_scale_fx1, -IN_SCALE_SHIFT);
-            scale_factor1 = (scale_factor1 / out_scale_fx) * in_scale_fx2;
-            post_op_shift = IN_SCALE_SHIFT + frac_bits_fx16;
-            int norm = (scale_factor1 != 0) ? mli_math_norm_fx<int32_t, int>(scale_factor1) : 0;
-            int shift = MAX((IN_SCALE_SHIFT - norm), 0);
-            scale16_1 = mli_math_cast_fx<int32_t, int16_t>(scale_factor1, shift);
+            int64_t scale_factor = mli_math_asr_rnd_fx<int64_t>(in_scale_fx1, -INT32_TO_INT16);
+            scale_factor = (scale_factor / out_scale_fx) * in_scale_fx2;
+            post_op_shift = INT32_TO_INT16 + frac_bits_fx16;
+            int norm = (scale_factor != 0) ? mli_math_norm_fx<int64_t, int>(scale_factor) : 0;
+            int shift = MAX((INT64_TO_INT16 - norm), 0);
+            scale16_1 = mli_math_cast_fx<int64_t, int16_t>(scale_factor, shift);
             post_op_shift -= shift;
         } else {
             in_scale_fx1 = mli_math_asr_rnd_fx<int32_t>(in_quant_params1->scale,
@@ -204,14 +205,14 @@ static MLI_FORCE_INLINE void eltwise_op_basic(
                                                            (int32_t) in_quant_params2->shift - frac_bits_fx16);
             out_scale_fx = mli_math_asr_rnd_fx<int32_t>(out_quant_params->scale,
                                                            (int32_t) out_quant_params->shift - frac_bits_fx16);
-            scale_factor1 = mli_math_asr_rnd_fx<int32_t>(in_scale_fx1, -IN_SCALE_SHIFT);
-            scale_factor2 = mli_math_asr_rnd_fx<int32_t>(in_scale_fx2, -IN_SCALE_SHIFT);
+            scale_factor1 = mli_math_asr_rnd_fx<int32_t>(in_scale_fx1, -INT32_TO_INT16);
+            scale_factor2 = mli_math_asr_rnd_fx<int32_t>(in_scale_fx2, -INT32_TO_INT16);
             scale_factor1 /= out_scale_fx;
             scale_factor2 /= out_scale_fx;
-            post_op_shift = IN_SCALE_SHIFT;
+            post_op_shift = INT32_TO_INT16;
             int norm1 = (scale_factor1 != 0) ? mli_math_norm_fx<int32_t, int>(scale_factor1) : 0;
             int norm2 = (scale_factor2 != 0) ? mli_math_norm_fx<int32_t, int>(scale_factor2) : 0;
-            int shift = MAX(IN_SCALE_SHIFT - MIN(norm1, norm2), 0);
+            int shift = MAX(INT32_TO_INT16 - MIN(norm1, norm2), 0);
             scale16_1 = mli_math_cast_fx<int32_t, int16_t>(scale_factor1, shift);
             scale16_2 = mli_math_cast_fx<int32_t, int16_t>(scale_factor2, shift);
             post_op_shift -= shift;

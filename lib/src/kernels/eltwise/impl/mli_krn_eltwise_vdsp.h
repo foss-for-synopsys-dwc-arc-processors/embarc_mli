@@ -271,24 +271,37 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
         const int pre_op_shift2,
         const int post_op_shift) {
     MLI_ASSERT(post_op_shift > 3);
-#if defined(__Xvec_guard_bit_option) && __Xvec_guard_bit_option != 0
-    const int preshift_sf = 1;
-#else
-    const int preshift_sf = 3;
-#endif
-
-    const int mask = (1 << preshift_sf) - 1;
     vNx4char_t res;
+
+#if defined(__Xvec_guard_bit_option) && __Xvec_guard_bit_option != 0
+    /*
+     *  res = ((op1 - in_offset1) * (op2 - in_offset2) * scale_factor1 >> post_op_shift) + out_offset
+     *  acc_init = in_offset1 * in_offset2 * scale_factor + out_offset << post_op_shift
+     *  term1  = op1 * op2 * scale_factor1          // 31 bit
+     *  term2 = - op2 * in_offset1 * scale_factor1  // 32 bit
+     *  term3 = - op1 * in_offset2 * scale_factor1  // 32 bit
+     */
+    int32_t acc_init = in_offset1 * in_offset2 * scale_factor1 + (out_offset << post_op_shift);
+    vNx4short_t term1 = to_vNx4short_t(mli_math_mul_fx<vNx4char_t, vNx4accshort_t>(op1, op2));
+    vNx4short_t term2 = to_vNx4short_t(mli_math_mul_fx<vNx4char_t, vNx4accshort_t>(op2, (vNx4char_t)(int8_t)in_offset1));
+    vNx4short_t term3 = to_vNx4short_t(mli_math_mul_fx<vNx4char_t, vNx4accshort_t>(op1, (vNx4char_t)(int8_t)in_offset2));
+    vNx4accint_t acc = mli_math_init_accu<int32_t, vNx4accint_t>(acc_init);
+    acc = mli_math_mac_fx(acc, term1, scale_factor1);
+    acc = mli_math_msub_fx(acc, term2, scale_factor1);
+    acc = mli_math_msub_fx(acc, term3, scale_factor1);
+    res = mli_math_acc_cast_fx<vNx4char_t, vNx4accint_t>(acc, post_op_shift);
+#else
+    /*
+    * Each operand is 9 bit. The first multiplier output is 18 bit. After scaling with positive 15 bit scale_factor,
+    * The second multiplier output is 32 bits. A headroom of 3 is sufficient to add the offset, round and compensate.
+    *
+    * Note: Minimum shift value is 15
+    */
+
+    const int preshift_sf = 3;
+    const int mask = (1 << preshift_sf) - 1;
     vNx4short_t op1_offset = to_vNx4short_t(op1) - in_offset1;
     vNx4short_t op2_offset = to_vNx4short_t(op2) - in_offset2;
-
-    /*
-     * Each operand is 9 bit. The first multiplier output is 18 bit. After scaling with positive 15 bit scale_factor,
-     * The second multiplier output is 32 bits. A headroom of 3 is sufficient to add the offset, round and compensate.
-     *
-     * Note: Minimum shift value is 15
-     */
-
     vNx4int_t temp1 = mli_math_mul_fx<vNx4short_t, vNx4int_t>(op1_offset, op2_offset);
     vNx4int_t temp2 = (scale_factor1 & mask);
     vNx4int_t offset = out_offset << (post_op_shift - preshift_sf);
@@ -298,6 +311,9 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
     temp2 = (scale_factor1 >> preshift_sf);
     acc = mli_math_mac_fx_low(acc, temp1, temp2);
     res = mli_math_acc_cast_fx<vNx4char_t, vNx4accint_t>(acc, post_op_shift - preshift_sf);
+#endif
+
+
     return res;
 }
 
