@@ -1146,6 +1146,16 @@ MLI_FORCE_INLINE vNx4int_t mli_math_acc_cast_fx(vNx4accint_t acc) {
 }
 
 template <>
+MLI_FORCE_INLINE vNx2short_t mli_math_acc_cast_fx(vNx2accint_t acc) {
+    int ctrlword = SAT|SIGNED|TARGET_SZ_16|SHIFT(0);
+    vNx2int_t accu_result;
+    accu_result.lo = to_vNint_t(vvconvert(__vacc_lo(acc), ctrlword));
+    accu_result.hi = to_vNint_t(vvconvert(__vacc_hi(acc), ctrlword));
+
+    return to_vNx2short_t(accu_result);
+}
+
+template <>
 MLI_FORCE_INLINE vNx4short_t mli_math_acc_cast_fx(vNx4accint_t acc) {
     int ctrlword = SAT|SIGNED|TARGET_SZ_16|SHIFT(0);
     vNx4int_t accu_result;
@@ -1155,6 +1165,18 @@ MLI_FORCE_INLINE vNx4short_t mli_math_acc_cast_fx(vNx4accint_t acc) {
     accu_result.hi.hi = to_vNint_t(vvconvert(__vacc_hi(acc.hi), ctrlword));
 
     return to_vNx4short_t(accu_result);
+}
+
+template <>
+MLI_FORCE_INLINE vNx4char_t mli_math_acc_cast_fx(vNx4accint_t acc) {
+    int ctrlword = SAT|SIGNED|TARGET_SZ_8|SHIFT(0);
+    vNx4int_t accu_result;
+    accu_result.lo.lo = to_vNint_t(vvconvert(__vacc_lo(acc.lo), ctrlword));
+    accu_result.lo.hi = to_vNint_t(vvconvert(__vacc_hi(acc.lo), ctrlword));
+    accu_result.hi.lo = to_vNint_t(vvconvert(__vacc_lo(acc.hi), ctrlword));
+    accu_result.hi.hi = to_vNint_t(vvconvert(__vacc_hi(acc.hi), ctrlword));
+
+    return to_vNx4char_t(accu_result);
 }
 
 template <>

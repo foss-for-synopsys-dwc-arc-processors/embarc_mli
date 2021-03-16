@@ -193,7 +193,7 @@ endif()
 
 if (${MLI_PLATFORM} STREQUAL VPX)
     list(APPEND MLI_LIB_PRIVATE_COMPILE_OPTIONS
-        "SHELL: -mllvm -slot_swapping=true")
+        "SHELL: -mllvm -slot_swapping=true -mllvm -arc-vdsp-AA=1 -mllvm -no-stack-coloring")
 
 elseif (${MLI_PLATFORM} STREQUAL EM_HS)
     if(ROUND_MODE STREQUAL UP)
