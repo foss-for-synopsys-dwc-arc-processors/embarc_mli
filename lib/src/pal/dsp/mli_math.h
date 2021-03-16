@@ -394,6 +394,11 @@ MLI_FORCE_INLINE int32_t mli_math_asr_rnd_fx(int32_t x, int nbits) {
     return fx_asr_rnd_q31(x, nbits);
 }
 
+template <>
+MLI_FORCE_INLINE int64_t mli_math_asr_rnd_fx(int64_t x, int nbits) {
+    return fx_asr_rnd_q63(x, nbits);
+}
+
 // Arithmetic shift (right is default, left on the negative val)
 //========================================================================
 
