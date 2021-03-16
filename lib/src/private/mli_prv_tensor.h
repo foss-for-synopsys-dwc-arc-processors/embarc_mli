@@ -407,9 +407,10 @@ static MLI_FORCE_INLINE void mli_prv_reorder_generic_tensor(
     }
 }
 
-//This function squash tensor dimentions, where it's possible (where data is adjacent in memory)
+//This function squash tensor dimensions, where it's possible (where data is adjacent in memory)
 //it's needed for better vectorizing of some kernels
 //we also need to squash input and output tensors together because data in one of them can be not adjacent in memory
+
 template <typename T>
 static MLI_FORCE_INLINE void mli_prv_squash_generic_tensor(
         generic_tensor_private_t<T> *in_prv,
@@ -443,6 +444,97 @@ static MLI_FORCE_INLINE void mli_prv_squash_generic_tensor(
     for(; i >= 0; i--) {
         in_prv->shape[i]  = 1;
         in_prv->mem_stride[i] = 0;
+        out_prv->shape[i]  = 1;
+        out_prv->mem_stride[i] = 0;
+    }
+}
+
+static MLI_FORCE_INLINE int mli_prv_squash_tensor_to_one_dim(
+                   const mli_tensor *in,
+                    mli_tensor *out) {
+
+    int rank = in->rank;
+    int shape = in->shape[rank - 1];
+    MLI_ASSERT(rank > 0);
+
+    for (int i = rank - 1; i > 0; i--) {
+         if (((in->mem_stride[i - 1] == 0) || (in->mem_stride[i - 1] == shape)) &&
+             ((out->mem_stride[i - 1] == 0) || (out->mem_stride[i - 1] == shape))){
+            shape *= in->shape[i - 1];
+        } else {
+             return 0;
+        }
+    }
+
+    return shape;
+}
+
+static MLI_FORCE_INLINE int mli_prv_squash_tensor_to_one_dim(
+                   const mli_tensor *in1,
+                   const mli_tensor *in2,
+                    mli_tensor *out) {
+
+    int rank = in1->rank;
+    int shape = in1->shape[rank - 1];
+    MLI_ASSERT(rank > 0);
+
+    for (int i = rank - 1; i > 0; i--) {
+         if (((in1->mem_stride[i - 1] == 0) || (in1->mem_stride[i - 1] == shape)) &&
+             ((in2->mem_stride[i - 1] == 0) || (in2->mem_stride[i - 1] == shape)) &&
+             ((out->mem_stride[i - 1] == 0) || (out->mem_stride[i - 1] == shape))){
+
+            shape *= in1->shape[i - 1];
+        } else {
+             return 0;
+        }
+    }
+
+    return shape;
+}
+
+template <typename T>
+static MLI_FORCE_INLINE void mli_prv_squash_generic_tensor(
+        generic_tensor_private_t<T> *in1_prv,
+        generic_tensor_private_t<T> *in2_prv,
+        generic_tensor_private_t<T> *out_prv) {
+    int shift = 0;
+    for (int i = in1_prv->rank - 1; i > 0; i--){
+        if (((in1_prv->mem_stride[i - 1] == 0) || (in1_prv->mem_stride[i - 1] == in1_prv->shape[i])) &&
+            ((in2_prv->mem_stride[i - 1] == 0) || (in2_prv->mem_stride[i - 1] == in2_prv->shape[i])) &&
+           ((out_prv->mem_stride[i - 1] == 0) || (out_prv->mem_stride[i - 1] == out_prv->shape[i]))){
+            in1_prv->mem_stride[i - 1] = 1;
+            in1_prv->mem_stride[i] = 1;
+            in1_prv->shape[i - 1] *= in1_prv->shape[i];
+            in1_prv->shape[i] = 1;
+            in2_prv->mem_stride[i - 1] = 1;
+            in2_prv->mem_stride[i] = 1;
+            in2_prv->shape[i - 1] *= in2_prv->shape[i];
+            in2_prv->shape[i] = 1;
+            out_prv->mem_stride[i - 1] = 1;
+            out_prv->mem_stride[i] = 1;
+            out_prv->shape[i - 1] *= out_prv->shape[i];
+            out_prv->shape[i] = 1;
+            shift++;
+        }
+        else {
+            break;
+        }
+    }
+    int i = MLI_MAX_RANK - 1;
+    for (int j = in1_prv->rank - shift - 1 ; j >= 0; i--, j--) {
+        in1_prv->shape[i]  = in1_prv->shape[j];
+        in1_prv->mem_stride[i] = in1_prv->mem_stride[j];
+        in2_prv->shape[i]  = in2_prv->shape[j];
+        in2_prv->mem_stride[i] = in2_prv->mem_stride[j];
+        out_prv->shape[i]  = out_prv->shape[j];
+        out_prv->mem_stride[i] = out_prv->mem_stride[j];
+    }
+
+    for(; i >= 0; i--) {
+        in1_prv->shape[i]  = 1;
+        in1_prv->mem_stride[i] = 0;
+        in2_prv->shape[i]  = 1;
+        in2_prv->mem_stride[i] = 0;
         out_prv->shape[i]  = 1;
         out_prv->mem_stride[i] = 0;
     }

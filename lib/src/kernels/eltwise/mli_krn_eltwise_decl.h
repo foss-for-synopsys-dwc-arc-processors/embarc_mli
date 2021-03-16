@@ -37,29 +37,50 @@ namespace krn {
 namespace ref {
 
 template <typename io_T, mli_eltwise_type func_type, bool convert = false>
-static MLI_FORCE_INLINE void eltwise_prepare_and_run(
-        const mli_tensor *in1,
-        const mli_tensor *in2,
-        mli_tensor *out);
+void eltwise_prepare_and_run(
+        const mli_tensor *__restrict in1,
+        const mli_tensor *__restrict in2,
+        mli_tensor *__restrict out);
 
 template <typename io_T, mli_eltwise_type func_type, bool convert = false>
-static MLI_FORCE_INLINE void eltwise_op_basic(
-        const generic_tensor_private_t<MLI_PTR(io_T)> *in1,
-        const generic_tensor_private_t<MLI_PTR(io_T)> *in2,
-        generic_tensor_private_t<MLI_OUT_PTR(io_T)> *out,
+void eltwise_op_basic(
+        const generic_tensor_private_t<MLI_PTR(io_T)> * __restrict in1,
+        const generic_tensor_private_t<MLI_PTR(io_T)> * __restrict in2,
+        generic_tensor_private_t<MLI_OUT_PTR(io_T)> * __restrict out,
         const io_T op1_s,
         const io_T op2_s,
         const bool scalar_op1,
         const bool scalar_op2,
         const int pre_op_shift1,
         const int pre_op_shift2,
-        int post_op_shift,
-        const struct s8asym_quant_params *in_quant_params1 = nullptr,
-        const struct s8asym_quant_params *in_quant_params2 = nullptr,
-        const struct s8asym_quant_params *out_quant_params = nullptr);
+        const int post_op_shift,
+        const int scale16_1,
+        const int scale16_2,
+        const int in_offset1,
+        const int in_offset2,
+        const int out_offset);
+
+template <typename io_T, mli_eltwise_type func_type, bool convert = false>
+void eltwise_op_basic(
+        const mli_tensor * __restrict in1,
+        const mli_tensor * __restrict in2,
+        mli_tensor * __restrict out,
+        const int *shape,
+        const io_T op1_s,
+        const io_T op2_s,
+        const bool scalar_op1,
+        const bool scalar_op2,
+        const int pre_op_shift1,
+        const int pre_op_shift2,
+        const int post_op_shift,
+        const int scale16_1,
+        const int scale16_2,
+        const int in_offset1,
+        const int in_offset2,
+        const int out_offset);
 
 template <typename in_T, typename out_T, mli_eltwise_type func_type, bool convert>
-static out_T eltwise_perform_operation(
+MLI_FORCE_INLINE out_T eltwise_perform_operation(
         const in_T op1,
         const in_T op2,
         const int16_t in_offset1,
@@ -73,9 +94,9 @@ static out_T eltwise_perform_operation(
 
 template <typename io_T, mli_eltwise_type func_type, bool convert>
 void eltwise_innerloop(
-        const MLI_PTR(io_T) op1_ptr,
-        const MLI_PTR(io_T) op2_ptr,
-        MLI_PTR(io_T) out_ptr,
+        const MLI_PTR(io_T) __restrict op1_ptr,
+        const MLI_PTR(io_T) __restrict op2_ptr,
+        MLI_PTR(io_T) __restrict out_ptr,
         int idx1,
         int idx2,
         int idx_out,
@@ -98,6 +119,11 @@ void eltwise_innerloop(
 // DSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace dsp {
+template <typename io_T, mli_eltwise_type func_type, bool convert = false>
+static MLI_FORCE_INLINE void eltwise_prepare_and_run(
+        const mli_tensor * in1,
+        const mli_tensor * in2,
+        mli_tensor * out);
 
 } // namespace dsp
 
@@ -105,9 +131,14 @@ namespace dsp {
 // VDSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
+template <typename io_T, mli_eltwise_type func_type, bool convert = false>
+void eltwise_prepare_and_run(
+        const mli_tensor * in1,
+        const mli_tensor * in2,
+        mli_tensor * out);
 
 template <typename in_T, typename out_T, mli_eltwise_type func_type, bool convert>
-static MLI_FORCE_INLINE out_T eltwise_perform_operation(
+out_T eltwise_perform_operation(
         const in_T op1,
         const in_T op2,
         const int16_t in_offset1,
@@ -317,10 +348,10 @@ static MLI_FORCE_INLINE out_T eltwise_perform_operation(
 #endif
 
 template <typename io_T, mli_eltwise_type func_type, bool convert>
-MLI_FORCE_INLINE void eltwise_innerloop(
-        const MLI_PTR(io_T) op1_ptr,
-        const MLI_PTR(io_T) op2_ptr,
-        MLI_PTR(io_T) out_ptr,
+void eltwise_innerloop(
+        const MLI_PTR(io_T) __restrict op1_ptr,
+        const MLI_PTR(io_T) __restrict op2_ptr,
+        MLI_PTR(io_T) __restrict out_ptr,
         int idx1,
         int idx2,
         int idx_out,
@@ -338,7 +369,6 @@ MLI_FORCE_INLINE void eltwise_innerloop(
         const int pre_op_shift2,
         const int post_op_shift);
 } // namespace vdsp
-
 } // namespace krn
 } // namespace mli
 
