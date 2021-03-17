@@ -270,7 +270,7 @@ bool run_test_quant_params_getters() {
     return test_status;
 }
 
-// Tests procedure for mli_hlp_accu_bits_* functions
+// Tests procedure for mli_hlp_accu_guard_bits_* functions
 //=============================================================
 struct acc_bits_range {
     uint8_t min;
@@ -283,21 +283,21 @@ bool run_test_accu_bits_getters() {
 
 #if (PLATFORM == V2DSP) || (PLATFORM == V2DSP_XY) || (PLATFORM == V2DSP_WIDE)
     const char* kPlatformStr = PLATFORM_STR;
-    const acc_bits_range sa8_sa8_acc_bits = {/*min = */ 9, /*max = */ 17 };
-    const acc_bits_range fx16_fx16_acc_bits = {/*min = */ 9, /*max = */ 33 };
-    const acc_bits_range fx16_fx8_acc_bits = {/*min = */ 9, /*max = */ 9 };
+    const acc_bits_range sa8_sa8_acc_bits = {/*min = */ 16, /*max = */ 16 };
+    const acc_bits_range fx16_fx16_acc_bits = {/*min = */ 8, /*max = */ 8 };
+    const acc_bits_range fx16_fx8_acc_bits = {/*min = */ 8, /*max = */ 8 };
 
 #elif (PLATFORM == V2DSP_VECTOR)
     const char* kPlatformStr = PLATFORM_STR;
-    const acc_bits_range sa8_sa8_acc_bits = {/*min = */ 1, /*max = */ 17 };
-    const acc_bits_range fx16_fx16_acc_bits = {/*min = */ 1, /*max = */ 33 };
-    const acc_bits_range fx16_fx8_acc_bits = {/*min = */ 1, /*max = */ 9 };
+    const acc_bits_range sa8_sa8_acc_bits = {/*min = */ 0, /*max = */ 8 };
+    const acc_bits_range fx16_fx16_acc_bits = {/*min = */ 0, /*max = */ 8 };
+    const acc_bits_range fx16_fx8_acc_bits = {/*min = */ 8, /*max = */ 16 };
 
 #elif (PLATFORM == X86_PLATFORM)
     const char* kPlatformStr = PLATFORM_STR;
-    const acc_bits_range sa8_sa8_acc_bits = {/*min = */ 17, /*max = */ 17 };
-    const acc_bits_range fx16_fx16_acc_bits = {/*min = */ 33, /*max = */ 33 };
-    const acc_bits_range fx16_fx8_acc_bits = {/*min = */ 9, /*max = */ 9 };
+    const acc_bits_range sa8_sa8_acc_bits = {/*min = */ 16, /*max = */ 16 };
+    const acc_bits_range fx16_fx16_acc_bits = {/*min = */ 32, /*max = */ 32 };
+    const acc_bits_range fx16_fx8_acc_bits = {/*min = */ 8, /*max = */ 8 };
 #else
     const char* kPlatformStr = "Unknown";
     const acc_bits_range sa8_sa8_acc_bits = {/*min = */ 0, /*max = */ std::numeric_limits<uint8_t>::max() };
@@ -311,30 +311,30 @@ bool run_test_accu_bits_getters() {
     char* message = (char *)scratch_mem_in;
     const char* message_fmt = "%s platform %d guard bits";
 
-    uint8_t cur_acc_bits = mli_hlp_accu_bits_sa8_sa8();
+    uint8_t cur_acc_bits = mli_hlp_accu_guard_bits_sa8_sa8();
     bool is_value_expected = (cur_acc_bits >= sa8_sa8_acc_bits.min) && (cur_acc_bits <= sa8_sa8_acc_bits.max);
     int msg_len = sprintf(message, message_fmt, kPlatformStr, int(cur_acc_bits));
     assert(msg_len < sizeof(scratch_mem_in));
-    reporter.report_case("acc_bits sa8_sa8", message, is_value_expected);
+    reporter.report_case("accu_guard_bits sa8_sa8", message, is_value_expected);
     test_status &= is_value_expected;
 
 
-    cur_acc_bits = mli_hlp_accu_bits_fx16_fx16();
+    cur_acc_bits = mli_hlp_accu_guard_bits_fx16_fx16();
     is_value_expected = (cur_acc_bits >= fx16_fx16_acc_bits.min) && (cur_acc_bits <= fx16_fx16_acc_bits.max);
     msg_len = sprintf(message, message_fmt, kPlatformStr, int(cur_acc_bits));
     assert(msg_len < sizeof(scratch_mem_in));
-    reporter.report_case("acc_bits fx16_fx16", message, is_value_expected);
+    reporter.report_case("accu_guard_bits fx16_fx16", message, is_value_expected);
     test_status &= is_value_expected;
 
 
-    cur_acc_bits = mli_hlp_accu_bits_fx16_fx8();
+    cur_acc_bits = mli_hlp_accu_guard_bits_fx16_fx8();
     is_value_expected = (cur_acc_bits >= fx16_fx8_acc_bits.min) && (cur_acc_bits <= fx16_fx8_acc_bits.max);
     msg_len = sprintf(message, message_fmt, kPlatformStr, int(cur_acc_bits));
     assert(msg_len < sizeof(scratch_mem_in));
-    reporter.report_case("acc_bits fx16_fx8", message, is_value_expected);
+    reporter.report_case("accu_guard_bits fx16_fx8", message, is_value_expected);
     test_status &= is_value_expected;
 
-    reporter.report_outline("[AUTO] Group: mli_hlp_accu_bits_[sa8_sa8|fx16_fx16|fx16_fx8]", test_status);
+    reporter.report_outline("[AUTO] Group: mli_hlp_accu_guard_bits_[sa8_sa8|fx16_fx16|fx16_fx8]", test_status);
     return test_status;
 }
 

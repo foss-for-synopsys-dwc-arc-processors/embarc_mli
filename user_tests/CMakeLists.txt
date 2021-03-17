@@ -174,9 +174,10 @@ function(ADD_USER_TEST MLI_SET TEST_NAME)
 endfunction()
 
 #======================================================
-# Data Conversion Group
+# Helpers functions Group
 #======================================================
 add_user_test(hlp convert_tensor)
+add_user_test(hlp tensor_struct)
 
 #======================================================
 # Data Movement Group
@@ -228,7 +229,3 @@ add_user_test(krn l2_normalize)
 #======================================================
 add_user_test(krn eltwise)
 
-#======================================================
-# Helpers functions Group
-#======================================================
-add_user_test(hlp tensor_struct)
