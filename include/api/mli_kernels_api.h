@@ -20,13 +20,7 @@
 extern "C" {
 #endif
 
-#include "mli_krn_avepool_spec_api.h"
-#include "mli_krn_conv2d_spec_api.h"
-#include "mli_krn_depthwise_conv2d_spec_api.h"
-#include "mli_krn_maxpool_spec_api.h"
 #include "mli_types.h"
-
-
 
 //================================================
 //
@@ -56,89 +50,6 @@ extern "C" {
  *
  * @return MLI status code
  */
-mli_status mli_krn_conv2d_chw_fx8(
-        const mli_tensor * in,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        const mli_conv2d_cfg * cfg,
-        mli_tensor * out);
-
-mli_status mli_krn_conv2d_chw_fx16(
-        const mli_tensor * in,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        const mli_conv2d_cfg * cfg,
-        mli_tensor * out);
-
-mli_status mli_krn_conv2d_chw_fx8w16d(
-        const mli_tensor * in,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        const mli_conv2d_cfg * cfg,
-        mli_tensor * out);
-
-mli_status mli_krn_conv2d_chw_fx8_generic(
-        const mli_tensor * in,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        const mli_conv2d_cfg * cfg,
-        mli_tensor * out);
-
-mli_status mli_krn_conv2d_chw_fx16_generic(
-        const mli_tensor * in,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        const mli_conv2d_cfg * cfg,
-        mli_tensor * out);
-
-mli_status mli_krn_conv2d_hwc_fx8(
-        const mli_tensor * in,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        const mli_conv2d_cfg * cfg,
-        mli_tensor * out);
-
-mli_status mli_krn_conv2d_hwc_fx16(
-        const mli_tensor * in,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        const mli_conv2d_cfg * cfg,
-        mli_tensor * out);
-
-mli_status mli_krn_conv2d_hwc_fx8w16d(
-        const mli_tensor * in,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        const mli_conv2d_cfg * cfg,
-        mli_tensor * out);
-
-mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32(
-        const mli_tensor * in,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        const mli_conv2d_cfg * cfg,
-        mli_tensor * out);
-        
-mli_status mli_krn_conv2d_nhwc_sa8_sa8_sa32_generic(
-        const mli_tensor * in,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        const mli_conv2d_cfg * cfg,
-        mli_tensor * out);
-
-char * mli_debug_krn_conv2d_nhwc_sa8_sa8_sa32(
-        const mli_tensor * in, 
-        const mli_tensor * weights, 
-        const mli_tensor * bias, 
-        const mli_conv2d_cfg * cfg, 
-        mli_tensor * out);
-
-//========================================================
-//
-// MLI 2.0 functions for conv2d
-//
-//========================================================
-
 mli_status mli_krn_conv2d_hwcn_fx16(
         const mli_tensor * in,
         const mli_tensor * weights,
@@ -256,60 +167,6 @@ mli_status mli_krn_conv2d_hwcn_sa8_sa8_sa32_k5x5(
  *
  * @return MLI status code
  */
-mli_status mli_krn_depthwise_conv2d_chw_fx8(
-        const mli_tensor * in,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        const mli_conv2d_cfg * cfg,
-        mli_tensor * out);
-
-mli_status mli_krn_depthwise_conv2d_chw_fx16(
-        const mli_tensor * in,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        const mli_conv2d_cfg * cfg,
-        mli_tensor * out);
-
-mli_status mli_krn_depthwise_conv2d_chw_fx8w16d(
-        const mli_tensor * in,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        const mli_conv2d_cfg * cfg,
-        mli_tensor * out);
-
-mli_status mli_krn_depthwise_conv2d_chw_fx8_generic(
-        const mli_tensor * in,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        const mli_conv2d_cfg * cfg,
-        mli_tensor * out);
-
-mli_status mli_krn_depthwise_conv2d_chw_fx16_generic(
-        const mli_tensor * in,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        const mli_conv2d_cfg * cfg,
-        mli_tensor * out);
-
-mli_status mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32_generic(
-        const mli_tensor * in,
-        const mli_tensor * weights,
-        const mli_tensor * bias,
-        const mli_conv2d_cfg * cfg,
-        mli_tensor * out);
-        
-char * mli_debug_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32(
-        const mli_tensor * in, 
-        const mli_tensor * weights, 
-        const mli_tensor * bias, 
-        const mli_conv2d_cfg * cfg, 
-        mli_tensor * out);
-//========================================================
-//
-// MLI 2.0 functions for depthwise conv2d
-//
-//========================================================
-
 mli_status mli_krn_depthwise_conv2d_hwcn_fx16(
         const mli_tensor * in,
         const mli_tensor * weights,
@@ -594,10 +451,6 @@ mli_status mli_krn_transpose_conv2d_hwcn_sa8_sa8_sa32_k4x4_str2(
  *
  * @return MLI status code
  */
-mli_status mli_krn_avepool_chw_fx8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_avepool_chw_fx16(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_avepool_chw_fx8_generic(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_avepool_chw_fx16_generic(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_avepool_hwc_sa8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_avepool_hwc_sa8_k2x2(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_avepool_hwc_sa8_k3x3(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
@@ -628,10 +481,6 @@ mli_status mli_krn_avepool_hwc_fx16_k3x3(const mli_tensor * in, const mli_pool_c
  *
  * @return MLI status code
  */
-mli_status mli_krn_maxpool_chw_fx8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_maxpool_chw_fx16(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_maxpool_chw_fx8_generic(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_maxpool_chw_fx16_generic(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_maxpool_hwc_sa8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_maxpool_hwc_sa8_k2x2(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_maxpool_hwc_sa8_k3x3(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
@@ -1141,46 +990,6 @@ mli_status mli_krn_eltwise_max_sa8(const mli_tensor * in1, const mli_tensor * in
 mli_status mli_krn_permute_fx8(const mli_tensor * in, const mli_permute_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_permute_fx16(const mli_tensor * in, const mli_permute_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_permute_sa8(const mli_tensor * in, const mli_permute_cfg * cfg, mli_tensor * out);
-
-/** 
- * @brief Concatenation
- *
- * @detail This kernel concatenates multiple input tensors along one dimension to produce a single output tensor.
- * The kernel takes array of pointers to input tensors. Kernel configuration structure keeps number of 
- * input tensors (number of pointer in the array) and axis along which concatenation should be performed.
- * The shape of all input tensors must be the same except the target dimension for concatenation.
- *
- * For more info on primitive see MLI Documentation
- *
- * @param inputs  [I] Tensors for concatenations
- * @param cfg     [I] Concatenation configuration structure (for more info see @ref mli_concat_cfg)
- * @param out     [O] Output tensor. Result will be stored here
- *
- * @return MLI status code
- */
-mli_status mli_krn_concat_fx8(const mli_tensor ** inputs, const mli_concat_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_concat_fx16(const mli_tensor ** inputs, const mli_concat_cfg * cfg, mli_tensor * out);
-
-/** 
- * @brief 2D Padding 
- *
- * @detail The kernel performs zero padding of borders across height and width dimensions of vision specific input 
- * feature maps. Padding for each side of image (top, bottom, left, right) is configured separately according to input 
- * configuration structure, but the same padding for each side is used across all channels. Padding for HWC and CHW layouts 
- * of input tensor is implemented as separate functions.
- *
- * For more info on primitive see MLI Documentation
- *
- * @param in      [I] Input feature map tensor (3-dimensional tensor)
- * @param cfg     [I] 2D Padding configuration structure (for more info see @ref mli_padding2d_cfg)
- * @param out     [O] Output tensor. Result will be stored here
- *
- * @return MLI status code
- */
-mli_status mli_krn_padding2d_chw_fx8(const mli_tensor * in, const mli_padding2d_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_padding2d_chw_fx16(const mli_tensor * in, const mli_padding2d_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_padding2d_hwc_fx8(const mli_tensor * in, const mli_padding2d_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_padding2d_hwc_fx16(const mli_tensor * in, const mli_padding2d_cfg * cfg, mli_tensor * out);
 
 #ifdef __cplusplus
 }
