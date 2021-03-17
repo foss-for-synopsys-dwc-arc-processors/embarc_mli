@@ -32,8 +32,11 @@ static MLI_FORCE_INLINE vNx4short_t convert_input(
     vNx4short_t input_cast = mli_math_cast_fx<vNx4char_t, vNx4short_t>(input);
     
     if (remaining_part) {
+        /* use in_zp directly when a known issue is solved. */
+        vNx4short_t zp = mli_math_mul_fx_high(input_cast, 0);
+        zp = mli_math_add_fx<vNx4short_t>(zp, in_zp);
         grp_pvNx2_t predicate = init_predicate_grp(remaining_part);
-        input_cast = mli_math_select_fx(predicate, input_cast, (vNx4short_t)in_zp);
+        input_cast = mli_math_select_fx(predicate, input_cast, zp);
     }
 
     if (convert) {
@@ -62,12 +65,14 @@ static MLI_FORCE_INLINE vNx2short_t convert_input(
 }
 
 static MLI_FORCE_INLINE vNx4accint_t init_sum_acc(vNx4char_t input) {
-//    return mli_prv_init_accu<vNx4accint_t>();
+    // Update Accu initialization when a known issue is solved.
+    // return mli_prv_init_accu<vNx4accint_t>();
     return mli_math_mul_fx<vNx4short_t, vNx4accint_t>(mli_math_cast_fx<vNx4char_t, vNx4short_t>(input), 0);
 }
 
 static MLI_FORCE_INLINE vNx2accint_t init_sum_acc(vNx2short_t input) {
-//    return mli_prv_init_accu<vNx2accint_t>();
+    // Update Accu initialization when a known issue is solved.
+    // return mli_prv_init_accu<vNx2accint_t>();
     return mli_math_mul_fx<vNx2short_t, vNx2accint_t>(input, (vNx2short_t) 0);
 }
 
@@ -202,7 +207,6 @@ static MLI_FORCE_INLINE void normalize_tensor(
     /* Dummy Load to get num_lanes, remaining part */
     auto input = mli_prv_load_1vec(vec_in);
     int num_lanes = get_number_lanes(input);
-    int remaining_part = in_prv->shape[3] & (num_lanes - 1);
 
     const MLI_PTR(io_T) orig_vec_in = vec_in;
     MLI_OUT_PTR(io_T) orig_vec_out = vec_out;
@@ -212,17 +216,12 @@ static MLI_FORCE_INLINE void normalize_tensor(
             for (int pos2 = 0; pos2 < in_prv->shape[2]; pos2++) {
                 vec_in  = (MLI_PTR(io_T))orig_vec_in + POS(in_prv,  pos0, pos1, pos2, 0);
                 vec_out = orig_vec_out + POS(out_prv, pos0, pos1, pos2, 0);
-                if (remaining_part) {
+                for (int pos3 = 0; pos3 < in_prv->shape[3]; pos3 += num_lanes) {
+                    int remaining_el = in_prv->shape[3] - pos3;
+                    int current_el = MIN(remaining_el, num_lanes); /* nr remaining elements computed in this loop iteration */
                     input = mli_prv_load_1vec(vec_in);
                     mli_prv_store_n_samples(vec_out, 
-                        compute_normalize<convert>(input, scale, in_zp, shift), remaining_part);
-                    vec_in  += remaining_part;
-                    vec_out += remaining_part;
-                }
-                for (int pos3 = remaining_part; pos3 < in_prv->shape[3]; pos3 += num_lanes) {
-                    input = mli_prv_load_1vec(vec_in);
-                    mli_prv_store_n_samples(vec_out, 
-                        compute_normalize<convert>(input, scale, in_zp, shift));
+                        compute_normalize<convert>(input, scale, in_zp, shift), current_el);
                     vec_in  += num_lanes;
                     vec_out += num_lanes;
                 }
