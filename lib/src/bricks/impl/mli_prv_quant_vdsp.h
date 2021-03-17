@@ -230,13 +230,14 @@ MLI_FORCE_INLINE vNx4short_t calculate_preshift(
 //==========================================================================
 template <typename b_T, typename acc_T, typename quant_T>
 MLI_FORCE_INLINE acc_T bias_additive(const MLI_PTR(b_T) bias, acc_T init_accum,
-        const quant_T* quant_params) {
+        const quant_T* quant_params, bool add_preshift_rnd) {
     return mli::krn::ref::bias_additive(bias, init_accum, quant_params);
 }
 
 template <>
 MLI_FORCE_INLINE vNx4accshort_t bias_additive(
-        const MLI_PTR(int32_t) bias, vNx4accshort_t init_accum, const s8asym_quant_specific_out_params_v* quant_params) {
+        const MLI_PTR(int32_t) bias, vNx4accshort_t init_accum, const s8asym_quant_specific_out_params_v* quant_params,
+        bool add_preshift_rnd) {
     // For I8ASYM with a 24bit accumulator the bias cannot be loaded directly into the accumulator.
     // 16 bits are loaded into the accumulator and then shifted to the correct position.
     // for this reason the bias additve has to be the first operation on the accumulator.
@@ -248,25 +249,28 @@ MLI_FORCE_INLINE vNx4accshort_t bias_additive(
     vNx4accshort_t accu = mli_math_init_accu<vNx4short_t, vNx4accshort_t>(bias16);
     accu = mli_math_asl_fx(accu, to_vNx4short_t(shift));
 
-    // adding the rounding for the preshift already here at the bias in order to take this add out of the innerloop
+    if (add_preshift_rnd) {
+        // adding the rounding for the preshift already here at the bias in order to take this add out of the innerloop
 #ifndef FULL_ACCU
-    vNx4short_t preshift = calculate_preshift(quant_params);
+        vNx4short_t preshift = calculate_preshift(quant_params);
 #ifdef ROUND_UP
-    // adding 1 << (preshift-1)
-    // shift twice to prevent negative shift if nbits = 0
-    accu = mli_math_add<vNx4accshort_t, vNx4short_t>(accu, ((1 << preshift) >> 1));
+        // adding 1 << (preshift-1)
+        // shift twice to prevent negative shift if nbits = 0
+        accu = mli_math_add<vNx4accshort_t, vNx4short_t>(accu, ((1 << preshift) >> 1));
 #endif
 #ifdef ROUND_CONVERGENT
 #error "Convergent rounding not supported"
 #endif
 #endif
+    }
 
     return accu;
 }
 
 template <>
 MLI_FORCE_INLINE vNx4accshort_t bias_additive(
-        const MLI_PTR(int8_t) bias, vNx4accshort_t init_accum, const fx_quant_specific_params* quant_params) {
+        const MLI_PTR(int8_t) bias, vNx4accshort_t init_accum, const fx_quant_specific_params* quant_params,
+        bool add_preshift_rnd) {
     MLI_ASSERT(to_vNx4int_t(init_accum)[0] == 0);
     vNx4char_t bias_v = mli_prv_load_nx4_samples(bias);
     vNx4accshort_t accu = mli_math_mul_fx<vNx4char_t, vNx4accshort_t>(bias_v, 1);
@@ -276,7 +280,8 @@ MLI_FORCE_INLINE vNx4accshort_t bias_additive(
 
 template <>
 MLI_FORCE_INLINE vNx2accint_t bias_additive(
-        const MLI_PTR(int16_t) bias, vNx2accint_t init_accum, const fx_quant_specific_params* quant_params) {
+        const MLI_PTR(int16_t) bias, vNx2accint_t init_accum, const fx_quant_specific_params* quant_params,
+        bool add_preshift_rnd) {
     MLI_ASSERT(to_vNx2int_t(init_accum)[0] == 0);
     vNx2short_t bias_v = mli_prv_load_nx2_samples(bias);
     vNx2accint_t accu = mli_math_mul_fx<vNx2short_t, vNx2accint_t>(bias_v, 1);
@@ -286,7 +291,8 @@ MLI_FORCE_INLINE vNx2accint_t bias_additive(
 
 template <>
 MLI_FORCE_INLINE vNx4accint_t bias_additive(
-        const MLI_PTR(int8_t) bias, vNx4accint_t init_accum, const fx_quant_specific_params* quant_params) {
+        const MLI_PTR(int8_t) bias, vNx4accint_t init_accum, const fx_quant_specific_params* quant_params,
+        bool add_preshift_rnd) {
     MLI_ASSERT(to_vNx4int_t(init_accum)[0] == 0);
     vNx4char_t bias_v = mli_prv_load_nx4_samples(bias);
     vNx4accint_t accu = mli_math_mul_fx<vNx4short_t, vNx4accint_t>(to_vNx4short_t(bias_v), 1);
@@ -367,7 +373,8 @@ static MLI_FORCE_INLINE void result_cast_relu_store_v(
         const quant_T* quant_params,
         const int16_t val_min_limit,
         const int16_t val_max_limit,
-        int num) {
+        int num,
+        bool add_preshift_rnd) {
     MLI_ASSERT(num == 1);
     mli::krn::result_cast_relu_store(o_ptr, acc, quant_params, val_min_limit, val_max_limit);
 }
@@ -379,7 +386,8 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
         const s8asym_quant_specific_out_params_v* quant_params,
         const int16_t val_min_limit,
         const int16_t val_max_limit,
-        int num) {
+        int num,
+        bool add_preshift_rnd) {
     // adding the output offset needs to happen after the output mul and output shift
     // but before the cast to the output container size.
 #ifndef FULL_ACCU
@@ -392,7 +400,11 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
     // adding clipping to avoid negative shift. and shifting more than 8 is also not needed.
     vNx4short_t preshift = calculate_preshift(quant_params);
     // only asr, without rounding because the rounding value is already added to the bias.
-    acc = mli_math_asr_fx(acc, preshift);
+    if (add_preshift_rnd) {
+        acc = mli_math_asr_rnd_fx(acc, preshift);
+    } else {
+        acc = mli_math_asr_fx(acc, preshift);
+    }
 
     vNx4short_t accu_result = mli_math_acc_cast_fx<vNx4short_t, vNx4accshort_t>(acc);
     vNx4short_t shift = quant_params->out_shift - preshift;
@@ -425,7 +437,8 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
         const fx_quant_specific_params* quant_params,
         const int16_t val_min_limit,
         const int16_t val_max_limit,
-        int num) {
+        int num,
+        bool add_preshift_rnd) {
 
     vNx4char_t out = mli_math_acc_cast_fx<vNx4char_t, vNx4accshort_t>(acc, quant_params->out_shift);
 
@@ -442,7 +455,8 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
         const fx_quant_specific_params* quant_params,
         const int16_t val_min_limit,
         const int16_t val_max_limit,
-        int num) {
+        int num,
+        bool add_preshift_rnd) {
 
     vNx2short_t out = mli_math_acc_cast_fx<vNx2short_t, vNx2accint_t>(acc, quant_params->out_shift);
 
@@ -459,7 +473,8 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
         const fx_quant_specific_params* quant_params,
         const int16_t val_min_limit,
         const int16_t val_max_limit,
-        int num) {
+        int num,
+        bool add_preshift_rnd) {
 
     vNx4short_t out = mli_math_acc_cast_fx<vNx4short_t, vNx4accint_t>(acc, quant_params->out_shift);
 

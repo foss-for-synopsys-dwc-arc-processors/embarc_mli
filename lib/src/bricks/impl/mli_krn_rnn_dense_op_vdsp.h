@@ -44,7 +44,7 @@ static inline void rnn_dense_op(
         acc_T prev_step = mli_math_mul_fx<io_T, acc_T>(0, 0);
 
         auto output_params = adjust_quant_params_v(&in_to_out_quant_params[0], 0);
-        accu = mli::krn::bias_additive(&bias[o_idx], accu, &output_params);
+        accu = mli::krn::bias_additive(&bias[o_idx], accu, &output_params, /* add_preshift_rnd */ false);
 
         for(int idx = 0; idx < inputs_num; idx++) {
 
@@ -60,7 +60,8 @@ static inline void rnn_dense_op(
                 accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
             } else {
                 // Cast result to output type with scaling
-                mli::krn::result_cast_relu_store_v(&out[o_idx], accu, &output_params, val_min_limit, val_max_limit, current_chs);
+                mli::krn::result_cast_relu_store_v(&out[o_idx], accu, &output_params,
+                        val_min_limit, val_max_limit, current_chs, /* add_preshift_rnd */ true);
             }
         }
 

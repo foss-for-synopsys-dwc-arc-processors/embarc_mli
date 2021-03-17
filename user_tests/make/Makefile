@@ -35,7 +35,9 @@ KERNELS = \
 	transpose_conv2d \
 	fully_connected \
 	rnn_dense \
-	lstm_cell \
+	lstm_cell_FX16 \
+	lstm_cell_FX16_FX8_FX8 \
+	lstm_cell_SA8_SA8_SA32 \
 	avepool \
 	maxpool \
 	argmax \
