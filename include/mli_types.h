@@ -152,7 +152,7 @@ typedef struct _mli_tensor {
 
     mli_data_container data;   /**< main data. Layer cast this pointer to actual type (XY ptr for L1) */
 
-    uint32_t mem_stride[MLI_MAX_RANK]; /**< Array with the distance (in elements) to the next element in the same dimension.
+    int32_t mem_stride[MLI_MAX_RANK]; /**< Array with the distance (in elements) to the next element in the same dimension.
                                          To compute the size in bytes, the number of elements needs to be multiplied by the bytes per element.
                                          For example, for a matrix A[rows][columns], mem_stride[0] contains the distance
                                          to the next element (=1 in this example), and mem_stride[1] contains the distance from
