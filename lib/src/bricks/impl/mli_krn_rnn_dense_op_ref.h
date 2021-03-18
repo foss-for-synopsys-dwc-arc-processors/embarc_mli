@@ -71,7 +71,7 @@ static inline void rnn_dense_op_stacked(
     MLI_CONV_OUT_PTR (io_T) dense_out_ptr = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR (io_T)>(out);
 
     for (int gate = 0; gate < gates_num; ++gate) {
-        mli::krn::rnn_dense_op<io_T, w_T, b_T, acc_T, quant_T>(
+        mli::krn::ref::rnn_dense_op<io_T, w_T, b_T, acc_T, quant_T>(
             inputs_ptr, weights_ptr, bias_ptr, dense_out_ptr, inputs_num, inputs_elements,
             out_elements, w_ch_out_mem_strides, in_to_out_quant_params, 
             (io_T)val_limit.min, (io_T)val_limit.max);
@@ -128,23 +128,23 @@ static inline void rnn_dense_op(
         accu = mli::krn::bias_additive(&bias[o_idx], accu, &in_to_out_quant_params[0]);
 
         for(int idx = 0; idx < inputs_num; idx++) {
-            mli::krn::adjust_quant_params(&in_to_out_quant_params[idx], /* krn_idx= */ 0);
+            mli::krn::ref::adjust_quant_params(&in_to_out_quant_params[idx], /* krn_idx= */ 0);
 
             accu = dotprod1D(inputs[idx], &weights[idx][o_idx], accu, in_elements[idx], 
                          1, w_ch_out_mem_strides[idx]);
 
-            accu = mli::krn::weights_additive(&weights[idx][o_idx], accu, &in_to_out_quant_params[idx],
+            accu = mli::krn::ref::weights_additive(&weights[idx][o_idx], accu, &in_to_out_quant_params[idx],
                     in_elements[idx], /* height= */ 1, /* ch= */ 1, w_ch_out_mem_strides[idx], 
                     /* row_step= */ 1, /* ch_step= */ 1);
             accu = mli_math_add_fx(accu, other_additives[idx]);
             accu = mli_math_add_fx(accu, prev_step);
 
             if(inputs_num - idx != 1) {
-                prev_step = mli::krn::ir_rnn_result_requantize(accu, &in_to_out_quant_params[idx],
+                prev_step = mli::krn::ref::ir_rnn_result_requantize(accu, &in_to_out_quant_params[idx],
                                 &in_to_out_quant_params[idx+1], /* krn_idx= */ 0);
                 accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
             } else {
-                out_val = mli::krn::result_cast<io_T, acc_T, quant_T>(accu, &in_to_out_quant_params[idx]);
+                out_val = mli::krn::ref::result_cast<io_T, acc_T, quant_T>(accu, &in_to_out_quant_params[idx]);
             }
         }
 

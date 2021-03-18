@@ -97,6 +97,18 @@ static MLI_FORCE_INLINE void rnn_dense_op(
         const io_T val_min_limit,
         const io_T val_max_limit);
 
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+static MLI_FORCE_INLINE void rnn_dense_op_stacked(
+        const MLI_PTR (io_T) * inputs_ptr,
+        const mli_tensor ** weights,
+        const mli_tensor * bias,
+        const int gates_num,
+        const int inputs_num,
+        const int * inputs_elements,
+        quant_T * in_to_out_quant_params,
+        const int * w_ch_out_mem_strides,
+        mli_tensor * out);
+
 } // namespace vdsp
 
 } // namespace krn

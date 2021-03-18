@@ -54,6 +54,10 @@ extern "C" {
 #define KRNL_DW_D_DIM_HW1N 2 // Depthwise convolution hwc kernel depth (must be == 1)
 #define KRNL_DW_N_DIM_HW1N 3 // Depthwise convolution hwc output channels
 
+// for Recurrent kernels
+#define KRNL_RNN_W_IN_ELEMS_DIM 1 // Input elements dimension of RNN weights 
+#define KRNL_RNN_W_OUT_ELEMS_DIM 2 // Output elements dimension of RNN weights
+
 /** 
  * @brief Count Number of Elements in Tensor
  *

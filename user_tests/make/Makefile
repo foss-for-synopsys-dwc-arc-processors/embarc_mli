@@ -38,6 +38,9 @@ KERNELS = \
 	lstm_cell_FX16 \
 	lstm_cell_FX16_FX8_FX8 \
 	lstm_cell_SA8_SA8_SA32 \
+	gru_cell_FX16 \
+	gru_cell_FX16_FX8_FX8 \
+	gru_cell_SA8_SA8_SA32 \
 	avepool \
 	maxpool \
 	argmax \
