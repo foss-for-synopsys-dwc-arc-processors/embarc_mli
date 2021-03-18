@@ -121,22 +121,22 @@ target_include_directories(test_components_obj PRIVATE ${mli_include_dirs})
 #======================================================
 # Function to add new user test
 #======================================================
-function(ADD_USER_TEST TEST_NAME)
+function(ADD_USER_TEST MLI_SET TEST_NAME)
     # Support an optional argument 'DATA_TYPE' to this function.
-    if (${ARGC} GREATER 1)
-        set(DATA_TYPE ${ARGV1})
-        set(TARGET test_mli_krn_${TEST_NAME}_${DATA_TYPE})
+    if (${ARGC} GREATER 2)
+        set(DATA_TYPE ${ARGV2})
+        set(TARGET test_mli_${MLI_SET}_${TEST_NAME}_${DATA_TYPE})
     else()
         set(DATA_TYPE)
-        set(TARGET test_mli_krn_${TEST_NAME})
+        set(TARGET test_mli_${MLI_SET}_${TEST_NAME})
     endif()
 
     add_executable(${TARGET}
-        tests/mli_krn_${TEST_NAME}/tests_mli_krn_${TEST_NAME}.cc
+        tests/mli_${MLI_SET}_${TEST_NAME}/tests_mli_${MLI_SET}_${TEST_NAME}.cc
     )
 
     target_include_directories(${TARGET} PRIVATE
-        tests/mli_krn_${TEST_NAME}
+        tests/mli_${MLI_SET}_${TEST_NAME}
     )
 
     target_link_libraries(${TARGET} PUBLIC mli)
@@ -174,58 +174,60 @@ function(ADD_USER_TEST TEST_NAME)
 endfunction()
 
 #======================================================
-# Data Conversion Group
+# Helpers functions Group
 #======================================================
-add_user_test(hlp_convert_tensor)
+add_user_test(hlp convert_tensor)
+add_user_test(hlp tensor_struct)
 
 #======================================================
 # Data Movement Group
 #======================================================
-add_user_test(data_movement)
+add_user_test(krn data_movement)
 
 #======================================================
 # Convolution Group
 #======================================================
-add_user_test(conv2d)
-add_user_test(depthwise_conv)
-add_user_test(transpose_conv2d)
-add_user_test(group_conv2d FX16)
-add_user_test(group_conv2d FX16_FX8_FX8)
-add_user_test(group_conv2d SA8_SA8_SA32)
+add_user_test(krn conv2d)
+add_user_test(krn depthwise_conv)
+add_user_test(krn transpose_conv2d)
+add_user_test(krn group_conv2d FX16)
+add_user_test(krn group_conv2d FX16_FX8_FX8)
+add_user_test(krn group_conv2d SA8_SA8_SA32)
 
 #======================================================
 # Pooling Group
 #======================================================
-add_user_test(avepool)
-add_user_test(maxpool)
+add_user_test(krn avepool)
+add_user_test(krn maxpool)
 
 #======================================================
 # Diverse Kernels Group
 #======================================================
-add_user_test(argmax)
-add_user_test(permute)
+add_user_test(krn argmax)
+add_user_test(krn permute)
 
 #======================================================
 # Fully Connected And Recurrent Group
 #======================================================
-add_user_test(fully_connected)
-add_user_test(rnn_dense)
-add_user_test(lstm_cell FX16)
-add_user_test(lstm_cell FX16_FX8_FX8)
-add_user_test(lstm_cell SA8_SA8_SA32)
+add_user_test(krn fully_connected)
+add_user_test(krn rnn_dense)
+add_user_test(krn lstm_cell FX16)
+add_user_test(krn lstm_cell FX16_FX8_FX8)
+add_user_test(krn lstm_cell SA8_SA8_SA32)
 
 #======================================================
 # Transform (Activation) Group
 #======================================================
-add_user_test(softmax)
-add_user_test(relu)
-add_user_test(leaky_relu)
-add_user_test(prelu)
-add_user_test(tanh)
-add_user_test(sigm)
-add_user_test(l2_normalize)
+add_user_test(krn softmax)
+add_user_test(krn relu)
+add_user_test(krn leaky_relu)
+add_user_test(krn prelu)
+add_user_test(krn tanh)
+add_user_test(krn sigm)
+add_user_test(krn l2_normalize)
 
 #======================================================
 # Eltwise Group
 #======================================================
-add_user_test(eltwise)
+add_user_test(krn eltwise)
+

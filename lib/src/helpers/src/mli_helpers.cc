@@ -291,6 +291,61 @@ const char* mli_hlp_compile_options_string() {
     return OPTIONS_STR;
 }
 
+#if defined(__FXAPI__)
+// FXAPI have an interface level contract on number of bits. 
+// MLI Implementation uses functions with guardbits. it's the only currently allowed case. 
+uint8_t mli_hlp_accu_guard_bits_sa8_sa8() { 
+    return (sizeof(mli_acc32_t)*8) - ((sizeof(int8_t)*8) * 2); 
+}
+uint8_t mli_hlp_accu_guard_bits_fx16_fx16() { 
+    constexpr uint8_t kWiderAccBits = 40;
+    return (kWiderAccBits - (sizeof(int16_t)*8) * 2);
+}
+uint8_t mli_hlp_accu_guard_bits_fx16_fx8() { 
+    return (sizeof(mli_acc32_t)*8) - ((sizeof(int8_t)*8) + (sizeof(int16_t)*8));
+}
+
+
+#elif defined(__Xvec_width)
+// Vector DSP Code. Number of guard bits depends on the guard bits option
+
+#if (__Xvec_guard_bit_option == 0)
+constexpr uint8_t extra_bits = 0;
+#elif (__Xvec_guard_bit_option == 1)
+constexpr uint8_t extra_bits = 4;
+#elif (__Xvec_guard_bit_option == 2)
+constexpr uint8_t extra_bits = 8;
+#else 
+#error "mli_hlp_accu_guard_bits: unknown case for __Xvec_guard_bit_option"
+#endif
+
+uint8_t mli_hlp_accu_guard_bits_sa8_sa8() { 
+    const uint8_t basic_guard_bits = (sizeof(int16_t)*8) - ((sizeof(int8_t)*8) * 2);
+    return basic_guard_bits + extra_bits;
+}
+uint8_t mli_hlp_accu_guard_bits_fx16_fx16() { 
+    const uint8_t basic_guard_bits = (sizeof(int32_t)*8) - ((sizeof(int16_t)*8) * 2);
+    return basic_guard_bits + extra_bits;
+}
+uint8_t mli_hlp_accu_guard_bits_fx16_fx8() { 
+    const uint8_t basic_guard_bits = (sizeof(int32_t)*8) - ((sizeof(int8_t)*8) + (sizeof(int16_t)*8));
+    return basic_guard_bits + extra_bits;
+}
+
+#else 
+// Reference use usual C built-in types through the typedef prism. 
+uint8_t mli_hlp_accu_guard_bits_sa8_sa8() {
+    return (sizeof(mli_acc32_t)*8) - ((sizeof(int8_t)*8) * 2); 
+}
+uint8_t mli_hlp_accu_guard_bits_fx16_fx16() {
+    return (sizeof(mli_acc40_t)*8) - ((sizeof(int16_t)*8) * 2);
+}
+uint8_t mli_hlp_accu_guard_bits_fx16_fx8() {
+    return (sizeof(mli_acc32_t)*8) - ((sizeof(int8_t)*8) + (sizeof(int16_t)*8));
+}
+#endif
+
+
 #ifdef __cplusplus
 }
 #endif

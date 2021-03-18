@@ -28,6 +28,51 @@ static const int kSeparatorStringLength = 111;
 static const char kSeparatorString[kSeparatorStringLength] =
     "|============================================================================================================|";
 
+//==========================================================
+//
+// Basic Reporter Methods
+//
+//==========================================================
+
+// Print header of the basic test report
+//==========================================================
+void reporter_basic::report_header(const char* case_descr) const {  
+    assert(kSeparatorStringLength == 111);
+    assert(case_descr != nullptr);
+    printf("\n%s\n", kSeparatorString);
+    printf("|  %-106s|\n", case_descr);
+    printf("%s\n", kSeparatorString);
+    printf("| %-30s| %-8s| %-65s|\n", "Test Case", "Result", "Message");
+    printf("%s\n", kSeparatorString);
+}
+
+// Report external status with extra message
+//=======================================================================
+void reporter_basic::report_case(const char* case_descr, const char* message, bool is_passed) const {
+    assert(kSeparatorStringLength == 111);
+    assert(case_descr != nullptr);
+    const char *msg_to_print = (message != nullptr) ? message : "";
+    const char* status_to_print = (is_passed) ? "PASSED" : "FAILED";
+    printf("| %-30s| %-8s| %-65s|\n", case_descr, status_to_print, msg_to_print);
+}
+
+// Print an outline of test report with external final status
+//===========================================================
+void reporter_basic::report_outline(const char* outline_marker, bool is_passed) const {
+    assert(kSeparatorStringLength == 111);
+    assert(outline_marker != nullptr);
+    printf("%s\n", kSeparatorString);
+    printf("|======= %-30s: Summary Status: %-8s\n", outline_marker, (is_passed)? "PASSED" : "FAILED");
+    printf("%s\n\n", kSeparatorString);
+}
+
+
+//==========================================================
+//
+// Full Reporter Methods
+//
+//==========================================================
+
 // Print header of test report
 //==========================================================
 void reporter_full::report_header(const char* case_descr) const {  
@@ -113,6 +158,7 @@ void reporter_full::report_outline(const char* outline_marker, bool is_passed) c
     printf("|======= %-30s: Summary Status: %-8s\n", outline_marker, (is_passed)? "PASSED" : "FAILED");
     printf("%s\n\n", kSeparatorString);
 }
+
 
 } // namespace tst
 } // namespace mli

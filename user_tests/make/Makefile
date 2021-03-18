@@ -21,9 +21,12 @@ RUN_TEST_CMD = mdb64 -run -tcf=$(TCF_FILE)
 BIN_EXT = .elf
 endif
 
+HELPERS = \
+	convert_tensor\
+	tensor_struct\
+
 KERNELS = \
 	permute \
-	hlp_convert_tensor\
 	conv2d \
 	depthwise_conv \
 	group_conv2d_FX16 \
@@ -48,19 +51,25 @@ KERNELS = \
 	l2_normalize\
 	data_movement
 
-BIN_FILES=$(patsubst %,$(BIN_PATH)$(PS)test_mli_krn_%$(BIN_EXT),$(KERNELS))
-TEST_TARGETS = $(patsubst %,test_%,$(KERNELS))
+
+BIN_FILES=$(patsubst %,$(BIN_PATH)$(PS)test_mli_hlp_%$(BIN_EXT),$(HELPERS))
+BIN_FILES+=$(patsubst %,$(BIN_PATH)$(PS)test_mli_krn_%$(BIN_EXT),$(KERNELS))
+TEST_KRN_TARGETS = $(patsubst %,test_%,$(KERNELS)) 
+TEST_HLP_TARGETS = $(patsubst %,test_%,$(HELPERS)) 
 
 # Rules (see rules.mk for more rules)
 #===========================================
 $(BIN_FILES): build
 
-test_all: $(TEST_TARGETS)
+test_all: $(TEST_HLP_TARGETS) $(TEST_KRN_TARGETS)
 
-$(TEST_TARGETS): test_%: $(BIN_PATH)$(PS)test_mli_krn_%$(BIN_EXT)
+$(TEST_KRN_TARGETS): test_%: $(BIN_PATH)$(PS)test_mli_krn_%$(BIN_EXT)
+	$(RUN_TEST_CMD) $<
+    
+$(TEST_HLP_TARGETS): test_%: $(BIN_PATH)$(PS)test_mli_hlp_%$(BIN_EXT)
 	$(RUN_TEST_CMD) $<
 
 get_tests_list:
-	@echo $(TEST_TARGETS)
+	@echo $(TEST_HLP_TARGETS) $(TEST_KRN_TARGETS)
 
-.PHONY: test_all $(TEST_TARGETS) get_tests_list
+.PHONY: test_all $(TEST_KRN_TARGETS) $(TEST_HLP_TARGETS) get_tests_list
