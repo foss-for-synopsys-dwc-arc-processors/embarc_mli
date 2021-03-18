@@ -214,7 +214,9 @@ add_user_test(krn rnn_dense)
 add_user_test(krn lstm_cell FX16)
 add_user_test(krn lstm_cell FX16_FX8_FX8)
 add_user_test(krn lstm_cell SA8_SA8_SA32)
-
+add_user_test(krn gru_cell FX16)
+add_user_test(krn gru_cell FX16_FX8_FX8)
+add_user_test(krn gru_cell SA8_SA8_SA32)
 #======================================================
 # Transform (Activation) Group
 #======================================================

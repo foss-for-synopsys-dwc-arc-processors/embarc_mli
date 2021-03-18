@@ -48,6 +48,7 @@ set(MLI_LIB_SOURCE_FILES
     ${MLI_LIB_CMAKE_DIR}/src/kernels/diverse/mli_krn_argmax.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/diverse/mli_krn_permute_fx.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/common/mli_krn_lstm_cell.cc
+    ${MLI_LIB_CMAKE_DIR}/src/kernels/common/mli_krn_gru_cell.cc
 )
 
 set(MLI_LIB_PUBLIC_INCLUDES

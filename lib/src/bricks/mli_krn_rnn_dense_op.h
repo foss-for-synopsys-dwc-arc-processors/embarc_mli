@@ -24,7 +24,7 @@ namespace mli {
 namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
 using mli::krn::vdsp::rnn_dense_op;
-using mli::krn::ref::rnn_dense_op_stacked;
+using mli::krn::vdsp::rnn_dense_op_stacked;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
 using mli::krn::ref::rnn_dense_op;

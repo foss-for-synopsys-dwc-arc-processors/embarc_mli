@@ -600,14 +600,15 @@ mli_status mli_krn_fully_connected_sa8_sa8_sa32_ext_bias(
 /**
  * @brief Long Short Term Memory (LSTM) Cell
  *
- * @detail This kernel implements the default non-peephole implementation of long short term memory (LSTM) cell 
+ * @detail This kernel implements the default non-peephole implementation of long short term memory (LSTM) cell
+ * with input (i), gate (g), forget (f) and out (o) gates  
  *
  * This kernel implies sequential processing of the set of inputs vectors which is passed by input tensor of shape 
  * (batch_size, N) where N is the length of the single frame. Both directions of processing (forward and backward) 
- * are supported and defined by cfg structure. Kernel can output the bunch of results for according to each step of 
- * processing, or only the last one in the sequence. Dense part of calculations uses scratch data from configuration 
- * structure for results, and consequently output and previous output tensors might use the same memory if it is 
- * acceptable to rewrite previous output data.
+ * are supported and defined by cfg structure. Kernel can output the intermediate results of each step, or only the result 
+ * of the last step. Dense part of calculations uses scratch data from configuration structure for results, 
+ * and consequently output and previous output tensors might use the same memory if it is acceptable to rewrite 
+ * previous output data.
  *
  * For more info on primitive see MLI Documentation.
  *
@@ -656,6 +657,64 @@ mli_status mli_krn_lstm_cell_sa8_sa8_sa32(
         const mli_lut * sigm_lut,
         const mli_rnn_cell_cfg * cfg,
         mli_tensor * cell,
+        mli_tensor * out);
+
+/**
+ * @brief Gated Recurrent Unit (GRU) Cell
+ *
+ * @detail This kernel implements the Gated Recurrent Unit (GRU) cell with update (z), reset (r) and new (n) gates 
+ * in version where a reset gate is applied on the hidden state before matrix multiplication
+ * 
+ * This kernel implies sequential processing of the set of inputs vectors which is passed by input tensor 
+ * of shape (batch_size, N) where N is the length of the single frame. Both directions of processing (forward and backward) 
+ * are supported and defined by cfg structure. Kernel can output the intermediate results of each step, or only the result 
+ * of the last step.
+ *
+ * For more info on primitive see MLI Documentation.
+ *
+ * @param in          [I] Input feature tensor. Must be a tensor of shape (batch_size, input_elements).
+ * @param prev_out    [I] Previous output feature tensor. Must be a one-dimensional tensor of shape (out_elements).
+ * @param weights_in  [I] Input Weights tensor (set of 3 matrixes in the [z,r,n] order: 3-dimensional tensor)
+ * @param weights_out [I] Hidden Weights tensor (set of 3 matrixes in the [z,r,n] order: 3-dimensional tensor)
+ * @param bias        [I] Biases tensor (set of 3 vectors in the [z,r,n] order: 2-dimensional tensor)
+ * @param tanh_lut    [I] LUT table structure prepared for the hyperbolic tangent activation
+ * @param sigm_lut    [I] LUT table structure prepared for sigmoid activation
+ * @param cfg         [I] RNN Configuration structure (for more info see @ref mli_rnn_cell_cfg)
+ * @param out         [O] Output feature tensor. Result will be stored here (single output or batch of outputs depending on mode)
+ *
+ * @return MLI status code
+ */
+mli_status mli_krn_gru_cell_fx16(
+        const mli_tensor * in,
+        const mli_tensor * prev_out,
+        const mli_tensor * weights_in,
+        const mli_tensor * weights_out,
+        const mli_tensor * bias,
+        const mli_lut * tanh_lut,
+        const mli_lut * sigm_lut,
+        const mli_rnn_cell_cfg * cfg,
+        mli_tensor * out);
+
+mli_status mli_krn_gru_cell_fx16_fx8_fx8(
+        const mli_tensor * in,
+        const mli_tensor * prev_out,
+        const mli_tensor * weights_in,
+        const mli_tensor * weights_out,
+        const mli_tensor * bias,
+        const mli_lut * tanh_lut,
+        const mli_lut * sigm_lut,
+        const mli_rnn_cell_cfg * cfg,
+        mli_tensor * out);
+
+mli_status mli_krn_gru_cell_sa8_sa8_sa32(
+        const mli_tensor * in,
+        const mli_tensor * prev_out,
+        const mli_tensor * weights_in,
+        const mli_tensor * weights_out,
+        const mli_tensor * bias,
+        const mli_lut * tanh_lut,
+        const mli_lut * sigm_lut,
+        const mli_rnn_cell_cfg * cfg,
         mli_tensor * out);
 
 /**

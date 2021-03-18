@@ -89,7 +89,8 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
     define_quant_params(prev_out, weights_out, bias, &ir_tensor, &in_to_out_params[1]);
 
 
-    const int w_ch_out_mem_stride_from_tensors[] = {(int)weights_in->mem_stride[0], (int)weights_out->mem_stride[0]};
+    const int w_ch_out_mem_stride_from_tensors[] = {(int)weights_in->mem_stride[KRNL_RNN_W_IN_ELEMS_DIM], 
+                                                    (int)weights_out->mem_stride[KRNL_RNN_W_IN_ELEMS_DIM]};
     const int w_ch_out_mem_strides[] = {(w_ch_out_mem_stride_from_tensors[0] != 0) ? w_ch_out_mem_stride_from_tensors[0] : lstm_out_elements, 
                                   (w_ch_out_mem_stride_from_tensors[1] != 0) ? w_ch_out_mem_stride_from_tensors[1] : lstm_out_elements};
 

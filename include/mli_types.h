@@ -375,7 +375,6 @@ typedef struct {
     mli_rnn_results results;            /**< Results to preserve.*/
     mli_rnn_out_activation act;         /**< Output activation type. */
     mli_data_container scratch_data;    /**< Container to keep intermediate results. */
-    uint32_t scratch_capacity;          /**< Size of a memory pointed by scratch_data field. */
 } mli_rnn_cell_cfg;
 
 

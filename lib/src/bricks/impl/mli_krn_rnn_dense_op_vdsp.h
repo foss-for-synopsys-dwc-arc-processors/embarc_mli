@@ -21,6 +21,79 @@ namespace mli {
 namespace krn {
 namespace vdsp {
 
+static inline void adjust_weights_dim_for_rnn_dense(fx_quant_specific_params* params) {
+	return;
+}
+
+static inline void adjust_weights_dim_for_rnn_dense(s8asym_quant_specific_params* params) {
+	params->weight_dim = -1;
+}
+
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+static inline void rnn_dense_op_stacked(
+        const MLI_PTR (io_T) * inputs_ptr,
+        const mli_tensor ** weights,
+        const mli_tensor * bias,
+        const int gates_num,
+        const int inputs_num,
+        const int * inputs_elements,
+        quant_T * in_to_out_quant_params,
+        const int * w_ch_out_mem_strides,
+        mli_tensor * out) {
+
+    constexpr bool asym = std::is_same<quant_T, s8asym_quant_specific_params>::value;
+
+    mli_relu_cfg relu_none = {MLI_RELU_NONE};
+    mli_minmax_t val_limit = mli_prv_get_relu_limits<io_T, asym>(&relu_none, out);
+
+    const MLI_PTR (w_T) weights_ptr[MLI_RNN_MAX_INPUT];
+    uint32_t weights_shift[MLI_RNN_MAX_INPUT];
+
+    const int16_t * weights_scales[MLI_RNN_MAX_INPUT];
+    const int8_t * weights_scale_frac_bits[MLI_RNN_MAX_INPUT];
+
+    int out_elements = mli_prv_count_elem_num_part(bias, 1);
+
+    for(int idx = 0; idx < inputs_num; ++idx) {
+        weights_ptr[idx] = mli_prv_tensor_data_ptr<MLI_PTR (w_T)>(weights[idx]);
+        weights_shift[idx] = mli_prv_count_elem_num_part(weights[idx], 1);
+
+        weights_scales[idx] = weights[idx]->el_params.sa.scale.mem.pi16;
+        weights_scale_frac_bits[idx] = weights[idx]->el_params.sa.scale_frac_bits.mem.pi8;
+
+        adjust_weights_dim_for_rnn_dense(&in_to_out_quant_params[idx]);
+    }
+
+    const MLI_PTR (b_T) bias_ptr = mli_prv_tensor_data_ptr<MLI_PTR (b_T)>(bias);
+    MLI_CONV_OUT_PTR (io_T) dense_out_ptr = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR (io_T)>(out);
+
+    for (int gate = 0; gate < gates_num; ++gate) {
+        rnn_dense_op<io_T, w_T, b_T, acc_T, quant_T>(
+            inputs_ptr, weights_ptr, bias_ptr, dense_out_ptr, inputs_num, inputs_elements,
+            out_elements, w_ch_out_mem_strides, in_to_out_quant_params, 
+            (io_T)val_limit.min, (io_T)val_limit.max);
+
+        for (int weight_idx = 0; weight_idx < inputs_num; ++weight_idx)
+            weights_ptr[weight_idx] += weights_shift[weight_idx];
+        
+        bias_ptr += out_elements;
+        dense_out_ptr += out_elements;
+
+        if (asym) {
+            for (int weight_idx = 0; weight_idx < inputs_num; ++weight_idx) {
+                weights_scales[weight_idx]++;
+                weights_scale_frac_bits[weight_idx]++;
+            }      
+        }
+    }
+
+    for (int weight_idx = 0; weight_idx < inputs_num; ++weight_idx)
+        weights_ptr[weight_idx] -= gates_num * weights_shift[weight_idx];
+
+    bias_ptr -= gates_num * out_elements;
+    dense_out_ptr -= gates_num * out_elements;
+}
+
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
 static inline void rnn_dense_op(
         const MLI_PTR(io_T) __restrict * inputs,
