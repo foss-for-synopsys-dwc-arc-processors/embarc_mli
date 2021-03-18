@@ -113,7 +113,7 @@ static MLI_FORCE_INLINE mli_status mli_mem_chk(const mli_tensor *t, bool check_b
 
 static MLI_FORCE_INLINE mli_status check_tensor_private(
         const uint32_t *shape,
-        const uint32_t *mem_stride,
+        const int32_t *mem_stride,
         uint32_t rank,
         uint32_t capacity,
         uint32_t element_size) {
@@ -279,7 +279,7 @@ static MLI_FORCE_INLINE bool check_inner_most_dimension_is_one(const mli_tensor 
     return (t->mem_stride[t->rank - 1] == 1) || (t->mem_stride[t->rank - 1] == 0);
 }
 
-static MLI_FORCE_INLINE bool check_layout_is_contiguous(const uint32_t *mem_stride, uint32_t rank) {
+static MLI_FORCE_INLINE bool check_layout_is_contiguous(const int32_t *mem_stride, uint32_t rank) {
     // When only mem_stride and rank is under considiration, contiguous means 
     // all memory strides are zero OR rank is 1 and memory stride between elements is 1
     // If all memory strides are zero, the kernel itself will calculate the actual memory
@@ -295,7 +295,7 @@ static MLI_FORCE_INLINE bool check_layout_is_contiguous(const uint32_t *mem_stri
         return false;
 }
 
-static MLI_FORCE_INLINE bool check_layout_is_contiguous(const uint32_t *shape, const uint32_t *mem_stride, uint32_t rank) {
+static MLI_FORCE_INLINE bool check_layout_is_contiguous(const uint32_t *shape, const int32_t *mem_stride, uint32_t rank) {
     // This function either requires that all memory strides are zero,
     // or that the memory strides are set such that it results in the
     // same memory layout. If all memory strides are zero, the kernel itself
@@ -308,7 +308,7 @@ static MLI_FORCE_INLINE bool check_layout_is_contiguous(const uint32_t *shape, c
 
     bool fail = false;
     uint32_t previous_shape = 1;
-    uint32_t previous_mem_stride = 1;
+    int32_t previous_mem_stride = 1;
     for (int i = rank - 1; i >= 0; i--) {
         fail |= MLI_CHECK(mem_stride[i] == (previous_shape * previous_mem_stride),
                 "Tensor mem stride set incorrectly");
