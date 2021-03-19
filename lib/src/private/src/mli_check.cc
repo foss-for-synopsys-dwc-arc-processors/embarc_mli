@@ -2337,16 +2337,10 @@ mli_status mli_chk_argmax(const mli_tensor *in, const mli_argmax_cfg *cfg, mli_t
     if (MLI_CHECK(check_inner_most_dimension_is_one(in), "mem_stride of the innermost dimension for input tensor must be not more than 1."))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
-    if (MLI_CHECK(out->el_type == MLI_EL_FX_8 || out->el_type == MLI_EL_FX_16 ||
-        out->el_type == MLI_EL_SA_8 || out->el_type == MLI_EL_SA_32, "Output el_type is invalid")) return MLI_STATUS_TYPE_MISMATCH;
-
-    if (MLI_CHECK(mli_prv_count_elem_num(in) <= mli_hlp_tensor_element_positive_limit(out),
-                  "Chosen output type must be able to keep maximum index of element in flatten input tensor.")) return MLI_STATUS_TYPE_MISMATCH;
-
     uint32_t dim_size = 1;
     if (cfg->axis >= 0)
         dim_size = in->shape[cfg->axis];
-    if (MLI_CHECK(out->data.capacity == cfg->topk * dim_size * mli_hlp_tensor_element_size(out), "Insufficient output buffer."))
+    if (MLI_CHECK(out->data.capacity == cfg->topk * dim_size * sizeof(int32_t), "Insufficient output buffer."))
         return MLI_STATUS_NOT_ENGH_MEM;
 
     if (in->el_type == MLI_EL_SA_8 || in->el_type == MLI_EL_SA_32)

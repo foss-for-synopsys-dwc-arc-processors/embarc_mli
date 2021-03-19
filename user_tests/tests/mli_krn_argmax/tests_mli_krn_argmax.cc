@@ -47,29 +47,10 @@ struct argmax_test_operands {
 // Checksums of test tensors for various mli calculations mode. 
 // When developer finished implementation of kernel and consider it as ok, one needs to populate
 // proper checksums for tests in order to highlight any change which affects results.
-#if defined(CRC_RM_UP)
-// Shared CRC Results
 
-const crc32_calc    test_1_chksum_fx16_fx8  { 0x23A39F6B }, test_1_chksum_fx16_sa8 { 0x23A39F6B }, test_1_chksum_fx16_fx16 { 0x0841F4C2 },
-                    test_1_chksum_fx16_sa32 { 0x02C59977 }, test_1_chksum_sa8_fx8  { 0x6341BBF5 }, test_1_chksum_sa8_sa8   { 0x6341BBF5 },
-                    test_1_chksum_sa8_fx16  { 0x1FB6A8A5 }, test_1_chksum_sa8_sa32 { 0x4AA46E3F }, test_2_chksum_fx16_fx16 { 0xAD273965 },
-                    test_2_chksum_fx16_sa32 { 0xFF8FA926 }, test_3_chksum_fx16_fx8 { 0x88B589EE }, test_3_chksum_fx16_sa8  { 0x88B589EE },
-                    test_3_chksum_sa8_fx8   { 0x2D84A0F9 }, test_3_chksum_sa8_sa8  { 0x2D84A0F9 };
-#elif defined(CRC_RM_CONVERGENT)
-
-const crc32_calc    test_1_chksum_fx16_fx8  { 0x23A39F6B }, test_1_chksum_fx16_sa8 { 0x23A39F6B }, test_1_chksum_fx16_fx16 { 0x0841F4C2 },
-                    test_1_chksum_fx16_sa32 { 0x02C59977 }, test_1_chksum_sa8_fx8  { 0x6341BBF5 }, test_1_chksum_sa8_sa8   { 0x6341BBF5 },
-                    test_1_chksum_sa8_fx16  { 0x1FB6A8A5 }, test_1_chksum_sa8_sa32 { 0x4AA46E3F }, test_2_chksum_fx16_fx16 { 0xAD273965 },
-                    test_2_chksum_fx16_sa32 { 0xFF8FA926 }, test_3_chksum_fx16_fx8 { 0x88B589EE }, test_3_chksum_fx16_sa8  { 0x88B589EE },
-                    test_3_chksum_sa8_fx8   { 0x2D84A0F9 }, test_3_chksum_sa8_sa8  { 0x2D84A0F9 };
-#else // Not defined CRC_*
-
-const crc32_calc    test_1_chksum_fx16_fx8,  test_1_chksum_fx16_sa8, test_1_chksum_fx16_fx16,
-                    test_1_chksum_fx16_sa32, test_1_chksum_sa8_fx8,  test_1_chksum_sa8_sa8,
-                    test_1_chksum_sa8_fx16 , test_1_chksum_sa8_sa32, test_2_chksum_fx16_fx16,
-                    test_2_chksum_fx16_sa32, test_3_chksum_sa32_fx8, test_3_chksum_sa32_fp32,
-                    test_3_chksum_fx8_sa8,   test_3_chksum_fx8_sa32;
-#endif 
+const crc32_calc    test_1_chksum_sa8_sa32 { 0x4AA46E3F }, test_1_chksum_fx16_sa32 { 0x02C59977 },
+                    test_2_chksum_sa8_sa32 { 0xB1469CC8 }, test_2_chksum_fx16_sa32 { 0xFF8FA926 },
+                    test_3_chksum_sa8_sa32 { 0xCD9EBC45 }, test_3_chksum_fx16_sa32 { 0x5D2A6837 };
 
 const quality_metrics thresholds_test_1_general{ quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
                                                 /* SNR_DB = */0.0f, quality_metrics::kPassValueQuantErrPerc };
@@ -81,48 +62,24 @@ const quality_metrics thresholds_test_2_3_general{ quality_metrics::kPassValueMa
 static const argmax_test_operands tests_list[] = {
 
     // Basic functionality test
-    {"Test 1 FX16 - FX8  (1 elem)",             mli_krn_argmax_fx16,
-                                       input_1_fx16, test_1_out_fx8, test_1_cfg,
-                                       thresholds_test_1_general, test_1_chksum_fx16_fx8},
-    {"Test 1 FX16 - SA8  (1 elem)",             mli_krn_argmax_fx16,
-                                       input_1_fx16, test_1_out_sa8, test_1_cfg,
-                                       thresholds_test_1_general, test_1_chksum_fx16_sa8},
-    {"Test 1 FX16 - FX16 (1 elem)",            mli_krn_argmax_fx16,
-                                       input_1_fx16, test_1_out_fx16, test_1_cfg,
-                                       thresholds_test_1_general, test_1_chksum_fx16_fx16},
-    {"Test 1 FX16 - SA32 (1 elem)",            mli_krn_argmax_fx16,
-                                       input_1_fx16, test_1_out_sa32, test_1_cfg,
-                                       thresholds_test_1_general, test_1_chksum_fx16_sa32},
-    {"Test 1 SA8  - FX8  (1 elem)",             mli_krn_argmax_sa8,
-                                       input_1_sa8, test_1_out_fx8, test_1_cfg,
-                                       thresholds_test_1_general, test_1_chksum_sa8_fx8},
-    {"Test 1 SA8  - SA8  (1 elem)",             mli_krn_argmax_sa8,
-                                       input_1_sa8, test_1_out_sa8, test_1_cfg,
-                                       thresholds_test_1_general, test_1_chksum_sa8_sa8},
-    {"Test 1 SA8  - FX16 (1 elem)",            mli_krn_argmax_sa8,
-                                       input_1_sa8, test_1_out_fx16, test_1_cfg,
-                                       thresholds_test_1_general, test_1_chksum_sa8_fx16},
-    {"Test 1 SA8  - SA32 (1 elem)",            mli_krn_argmax_sa8,
+    {"Test 1 SA8  - SA32 (1 elem)",    mli_krn_argmax_sa8,
                                        input_1_sa8, test_1_out_sa32, test_1_cfg,
                                        thresholds_test_1_general, test_1_chksum_sa8_sa32},
-    {"Test 2 FX16 - FX16 (144 elem)",            mli_krn_argmax_fx16,
-                                       input_2_fx16, test_2_out_fx16, test_2_cfg,
-                                       thresholds_test_2_3_general, test_2_chksum_fx16_fx16},
-    {"Test 2 FX16 - SA32 (144 elem)",            mli_krn_argmax_fx16,
+    {"Test 1 FX16 - SA32 (1 elem)",    mli_krn_argmax_fx16,
+                                       input_1_fx16, test_1_out_sa32, test_1_cfg,
+                                       thresholds_test_1_general, test_1_chksum_fx16_sa32},
+    {"Test 2 SA8  - SA32 (144 elem)",  mli_krn_argmax_sa8,
+                                       input_2_sa8, test_2_out_sa32, test_2_cfg,
+                                       thresholds_test_2_3_general, test_2_chksum_sa8_sa32},
+    {"Test 2 FX16 - SA32 (144 elem)",  mli_krn_argmax_fx16,
                                        input_2_fx16, test_2_out_sa32, test_2_cfg,
                                        thresholds_test_2_3_general, test_2_chksum_fx16_sa32},
-    {"Test 3 FX16 - FX8 (axis = 2)",             mli_krn_argmax_fx16,
-                                       input_3_fx16, test_3_out_fx8, test_3_cfg,
-                                       thresholds_test_2_3_general, test_3_chksum_fx16_fx8},
-    {"Test 3 FX16 - SA8 (axis = 2)",             mli_krn_argmax_fx16,
-                                       input_3_fx16, test_3_out_sa8, test_3_cfg,
-                                       thresholds_test_2_3_general, test_3_chksum_fx16_sa8},
-    {"Test 3 SA8  - FX8 (axis = 2)",             mli_krn_argmax_sa8,
-                                       input_3_sa8, test_3_out_fx8, test_3_cfg,
-                                       thresholds_test_2_3_general, test_3_chksum_sa8_fx8},
-    {"Test 3 SA8  - SA8 (axis = 2)",             mli_krn_argmax_sa8,
-                                       input_3_sa8, test_3_out_sa8, test_3_cfg,
-                                       thresholds_test_2_3_general, test_3_chksum_sa8_sa8}
+    {"Test 3 SA8  - SA32 (axis = 2)",  mli_krn_argmax_sa8,
+                                       input_3_sa8, test_3_out_sa32, test_3_cfg,
+                                       thresholds_test_2_3_general, test_3_chksum_sa8_sa32},
+    {"Test 3 FX16 - SA32 (axis = 2)",  mli_krn_argmax_fx16,
+                                       input_3_fx16, test_3_out_sa32, test_3_cfg,
+                                       thresholds_test_2_3_general, test_3_chksum_fx16_sa32}
 };
 
 constexpr int kMemSize = 10000;

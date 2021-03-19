@@ -197,14 +197,10 @@ template <typename in_T>
 MLI_FORCE_INLINE void argmax_prepare_and_run(const mli_tensor *in, const mli_argmax_cfg *cfg, mli_tensor *out) {
 
     /* Setting output tensor parameters based on user mli_argmax_cfg */
-    if (out->el_type == MLI_EL_FX_8 || out->el_type == MLI_EL_FX_16) {
-        out->el_params.fx.frac_bits = 0;
-    }
-    if (out->el_type == MLI_EL_SA_8 || out->el_type == MLI_EL_SA_32) {
-        out->el_params.sa.scale.mem.i16 = 1;
-        out->el_params.sa.zero_point.mem.i16 = 0;
-        out->el_params.sa.scale_frac_bits.mem.i8 = 0;
-    }
+    out->el_params.sa.scale.mem.i16 = 1;
+    out->el_params.sa.zero_point.mem.i16 = 0;
+    out->el_params.sa.scale_frac_bits.mem.i8 = 0;
+    out->el_type = MLI_EL_SA_32;
 
     uint32_t dim_size = 1;
     if (cfg->axis >= 0)
@@ -214,13 +210,7 @@ MLI_FORCE_INLINE void argmax_prepare_and_run(const mli_tensor *in, const mli_arg
     out->rank = 2;
 
     /* Running main argmax funtion */
-    if (out->el_type == MLI_EL_FX_8 || out->el_type == MLI_EL_SA_8) {
-        argmax<in_T, int8_t>(in, cfg->axis, cfg->topk, out);
-    } else if (out->el_type == MLI_EL_FX_16) {
-        argmax<in_T, int16_t>(in, cfg->axis, cfg->topk, out);
-    } else if (out->el_type == MLI_EL_SA_32) {
-        argmax<in_T, int32_t>(in, cfg->axis, cfg->topk, out);
-    }
+    argmax<in_T, int32_t>(in, cfg->axis, cfg->topk, out);
 }
 
 #pragma MLI_CODE_SECTION_END()
