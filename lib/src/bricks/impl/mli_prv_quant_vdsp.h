@@ -512,14 +512,42 @@ MLI_FORCE_INLINE vNx4accshort_t ir_rnn_result_requantize(
     vNx4int_t acc_norm = mli_math_norm_fx<vNx4int_t, vNx4int_t>(acc_int);
     acc_int = mli_math_asl_fx<vNx4int_t, vNx4int_t>(acc_int, acc_norm);
 
-    vNx4int_t total_shift = mli_math_add_fx<vNx4int_t>(acc_norm, (mul_norm + shift));
     vNx4int_t acc_scaled = mli_math_mul_fx_high(acc_int, mul_shifted);
-    vNx4int_t acc_shifted = mli_math_asr_rnd_fx(acc_scaled, total_shift);
 
+    constexpr int mul_high_shift = 32;
+    constexpr int max_int_shift = 30;
+    vNx4int_t total_shift = mli_math_add_fx<vNx4int_t>(acc_norm, (mul_norm - mul_high_shift + shift));
+    vNx4int_t shift_left = mli_math_max_fx(-total_shift, 0);
+    vNx4int_t shift_right = mli_math_max_fx(total_shift, 0);
+
+    vNx4int_t preshift = mli_math_max_fx(shift_right - max_int_shift, 0);
+    shift_right = shift_right - preshift;
+
+    vNx4int_t acc_shifted = mli_math_asr_fx(acc_scaled, preshift);
+    acc_shifted = mli_math_asr_rnd_fx(acc_shifted, shift_right);
+    acc_shifted = mli_math_asl_fx(acc_shifted, shift_left);
+
+#if (__Xvec_guard_bit_option == 0)
+    vNx4short_t acc_short = mli_math_cast_fx<vNx4int_t, vNx4short_t>(acc_shifted);
+    vNx4accshort_t res = mli_math_init_accu_add<vNx4short_t, vNx4accshort_t>(acc_short, (vNx4short_t)0);
+#else
     vNx4int_t norm;
     vNx4short_t acc_short = mli_math_norm_cast_fx</*left_shift*/ false>(acc_shifted , &norm);
+
+    constexpr int guard_bits = 8;
+    vNx4int_t mask = (1 << norm) - 1;
+    vNx4int_t acc_shifted_low = acc_shifted & mask;
+    // If the norm is more than the number of guardbits,
+    // so the masked_acc has to be shifted, since the result is shifted with max shift equals to number of guardbits.
+    vNx4int_t mask_shift = mli_math_max_fx(norm - guard_bits, 0);
+    acc_shifted_low = mli_math_asr_fx(acc_shifted_low, mask_shift);
+
+    norm = mli_math_min_fx(norm, guard_bits);
     vNx4accshort_t res = mli_math_init_accu_add<vNx4short_t, vNx4accshort_t>(acc_short, (vNx4short_t)0);
     res = mli_math_asl_fx<vNx4accshort_t, vNx4short_t>(res, to_vNx4short_t(norm));
+    res = mli_math_add(res, to_vNx4short_t(acc_shifted_low));
+#endif
+
     return res;
 }
 
