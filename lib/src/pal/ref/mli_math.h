@@ -68,6 +68,7 @@ template <typename T>
 MLI_FORCE_INLINE T mli_math_asr_rnd_fx(T x, int nbits)
 {
     T r = 0;
+    T one = 1u;
 
     if (nbits < 0)
         return mli_math_asl_fx<T>(x, (-nbits));
@@ -80,7 +81,7 @@ MLI_FORCE_INLINE T mli_math_asr_rnd_fx(T x, int nbits)
     // Rounding up:
     // if the most significant deleted bit is 1, add 1 to the remaining bits.
 #ifdef ROUND_UP
-    T round = (T)((1u << nbits) >> 1);
+    T round = (T)((one << nbits) >> 1);
     r = mli_math_add_fx<T>(x, round);
     r = mli_math_asr_fx<T>(r, nbits);
 #endif
@@ -91,7 +92,7 @@ MLI_FORCE_INLINE T mli_math_asr_rnd_fx(T x, int nbits)
     // or at least one other deleted bit is 1, add 1 to the remaining bits.
 #ifdef ROUND_CONVERGENT
     r = mli_math_asr_fx<T>(x, nbits);
-    T last_deleted_mask = (T)((1 << nbits) >> 1);
+    T last_deleted_mask = (T)((one << nbits) >> 1);
     if (((x & last_deleted_mask) != (T)0) && 
             (((r & (T)1) != (T)0) ||  ((x & (last_deleted_mask-(T)1))!= (T)0))) {
         return mli_math_add_fx<T>(r, 1);
