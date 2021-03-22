@@ -94,6 +94,27 @@ static inline void rnn_dense_op_stacked(
     dense_out_ptr -= gates_num * out_elements;
 }
 
+MLI_FORCE_INLINE vNx2accint_t mli_math_add_accus(vNx2accint_t L, vNx2accint_t R) {
+	return mli_math_add(L, R);
+}
+
+MLI_FORCE_INLINE vNx4accint_t mli_math_add_accus(vNx4accint_t L, vNx4accint_t R) {
+	return mli_math_add(L, R);
+}
+
+MLI_FORCE_INLINE vNx4accshort_t mli_math_add_accus(vNx4accshort_t L, vNx4accshort_t R) {
+#if (__Xvec_guard_bit_option == 0)
+	vNx4short_t L_short = mli_math_acc_cast_fx<vNx4short_t, vNx4accshort_t>(L);
+	vNx4short_t R_short = mli_math_acc_cast_fx<vNx4short_t, vNx4accshort_t>(R);
+
+	vNx4short_t res = mli_math_add_fx<vNx4short_t>(L_short, R_short);
+
+	return mli_math_init_accu_add<vNx4short_t, vNx4accshort_t>(res, (vNx4short_t)0);
+#else
+	return mli_math_add(L, R);
+#endif
+}
+
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
 static inline void rnn_dense_op(
         const MLI_PTR(io_T) __restrict * inputs,
@@ -125,7 +146,8 @@ static inline void rnn_dense_op(
             output_params = adjust_quant_params_v(&in_to_out_quant_params[idx], 0);
             accu = dotprod_inputzp_1D_v(inputs[idx], &weights[idx][o_idx], accu, in_elements[idx],
                     1, w_ch_out_mem_strides[idx], &in_to_out_quant_params[idx]);
-            accu = mli_math_add(accu, prev_step);
+
+            accu = mli_math_add_accus(accu, prev_step);
 
             if(inputs_num - idx != 1) {
                 mli::krn::ref::adjust_quant_params(&in_to_out_quant_params[idx], o_idx);
