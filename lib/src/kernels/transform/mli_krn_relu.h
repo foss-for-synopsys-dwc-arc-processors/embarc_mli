@@ -23,12 +23,15 @@
 namespace mli {
 namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
+using mli::krn::vdsp::compute_relu_inner_loop;
 using mli::krn::ref::mli_krn_relu_fx_run;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
+using mli::krn::ref::compute_relu_inner_loop;
 using mli::krn::ref::mli_krn_relu_fx_run;
 
 #else
+using mli::krn::ref::compute_relu_inner_loop;
 using mli::krn::ref::mli_krn_relu_fx_run;
 
 #endif
