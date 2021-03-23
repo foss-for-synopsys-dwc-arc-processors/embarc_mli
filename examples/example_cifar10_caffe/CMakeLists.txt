@@ -53,7 +53,7 @@ target_compile_options(example_cifar10_caffe PRIVATE
 )
 
 target_link_options(example_cifar10_caffe PRIVATE
-    ${MLI_PLATFORM_COMPILE_OPTIONS}
+    ${MLI_PLATFORM_LINK_OPTIONS}
     ${EXAMPLE_FLAGS}
 )
 
