@@ -56,7 +56,7 @@ Memory Hierarchy
 ----------------
 
 The functions in the MLI API operate on the lowest level in the memory hierarchy: the local 
-memories (eg: DCCM, VCCM, and so on). All the memory movement needs to happen at a level above the MLI API. 
+memories (for example: DCCM, VCCM, and so on). All the memory movement needs to happen at a level above the MLI API. 
 The data move functions can be used for the purpose. Inside the MLI kernels, there is no data movement. 
 The strategy on data movement can be different for each platform or each application. For some 
 platforms and some applications, all the data could fit in CCM, in which case no data movement 

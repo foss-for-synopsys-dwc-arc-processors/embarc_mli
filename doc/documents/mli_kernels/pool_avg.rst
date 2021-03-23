@@ -87,7 +87,7 @@ Ensure that you satisfy the following conditions before calling the function:
  
  - ``stride_width`` and ``stride_height`` parameters must not be equal to 0.
  
- - For sa8, ``in`` and ``out`` tensor must be quantized on the tensor level. It implies that each 
+ - For sa8, ``in`` and ``out`` tensor must be quantized on the tensor level. This implies that each 
    tensor contains a single scale factor and a single zero offset.
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 

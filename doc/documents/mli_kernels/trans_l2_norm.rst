@@ -3,31 +3,34 @@
 L2 Normalization Prototype and Function List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This kernel normalizes data across specified dimension using L2 norm according to the following 
+This kernel normalizes data across the specified dimension using L2 norm according to the following 
 formula:
 
 .. math:: y_{i} = \frac{x_{i}}{\sqrt{epsilon + \sum_{j}{x_{j}}^{2}}}
 
 Where:
 
-   :math:`x_{i}-i_{th}` *–* value in input data subset*
+   :math:`x_{i}-i_{th}` *–* value in input data subset
 
-   :math:`x_{j}-j_{th}` *–* value in the same input data subset*
+   :math:`x_{j}-j_{th}` *–* value in the same input data subset
 
-   :math:`y_{i}-i_{th}` *–* value in output data subset*
+   :math:`y_{i}-i_{th}` *–* value in output data subset
 
    :math:`epsilon` *–* lower bound to prevent division on zero
 
 L2 normalization function might be applied to the whole tensor, or along a specific axis. In the 
-first case all input values are involved in calculation of each output value. If axis is specified, 
-then the function is applied to each slice along the specific axis independently. 
+first case all input values are involved in the calculation of each output value. If the axis is 
+specified, then the function is applied to each slice along the specific axis independently. 
 
-This kernel outputs tensor of the same shape and type as input. This kernel supports in-place 
+This kernel outputs a tensor of the same shape and type as the input. This kernel supports in-place 
 computation: output and input can point to exactly the same memory (the same starting address
 and memory strides). 
 
-If the starting address and memory stride of the input and output tensors are set in such a way 
-that memory regions are overlapped, the behavior is undefined.
+.. note::
+
+   Only an exact overlap of starting address and memory stride of the input and output 
+   tensors is acceptable. Partial overlaps result in undefined behavior.
+..
 
 Kernels which implement L2 normalization functions have the following prototype:
 
@@ -95,16 +98,13 @@ Ensure that you satisfy the following conditions before calling the function:
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the 
    tensors.
 
- - ``axis`` parameter might be negative and must be less than in tensor rank.
+ - ``axis`` parameter might be negative and must be less than ``in`` tensor rank.
 
-For **sa8** versions of kernel, in addition to the preceding conditions, ensure that you 
+For **sa8** versions of the kernel, in addition to the preceding conditions, ensure that you 
 satisfy the following conditions before calling the function: 
 
- - ``in`` and ``epsilon`` tensors must be quantized on the tensor level. It 
+ - ``in`` and ``epsilon`` tensors must be quantized on the tensor level. This 
    implies that the tensor contains a single scale factor and a single zero offset.
-
-Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
 The range of this function is (-1, 1).  Depending on the data type, quantization parameters of the output 
 tensor are configured in the following way:
@@ -121,3 +121,6 @@ tensor are configured in the following way:
     - ``out.el_params.sa.scale.mem.i16`` is set to 1
 
     - ``out.el_params.sa.scale_frac_bits.mem.i8`` is set to 7
+
+Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.	

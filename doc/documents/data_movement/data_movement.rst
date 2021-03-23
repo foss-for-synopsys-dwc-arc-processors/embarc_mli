@@ -100,14 +100,15 @@ The size of the array is defined by ``MLI_MAX_RANK``.
    | ``offset``          | ``uint32_t[]`` | Start coordinate in the source tensor. Values must be smaller       |
    |                     |                | than the shape of the source tensor.                                |
    +---------------------+----------------+---------------------------------------------------------------------+
-   |                     |                | Size of the copy in elements per dimension.                         |
-   | ``size``            | ``uint32_t[]`` | Restrictions:  Size[d] + offset[d] <= src->shape[d]                 |
-   |                     |                | If size=0 is provided, the size is computed from the input          |
+   |                     |                || Size of the copy in elements per dimension.                        |
+   | ``size``            | ``uint32_t[]`` || Restrictions:                                                      |
+   |                     |                || :math:`Size[d] + offset[d] <= src->shape[d]`                       |
+   |                     |                || If :math:`size=0` is provided, the size is computed from the input |
    |                     |                | size and the cfg parameters.                                        |
    +---------------------+----------------+---------------------------------------------------------------------+
    |                     |                | Subsample factor for each dimension. Default value is 1, which      |
-   | ``sub_sample_step`` | ``uint32_t[]`` | means no subsampling. Eg: A subsample step of 3 means that every    |
-   |                     |                | third sample is copied to the output.                               |
+   | ``sub_sample_step`` | ``uint32_t[]`` | means no subsampling. For example, a subsample step of 3 means that |
+   |                     |                | every third sample is copied to the output.                         |
    +---------------------+----------------+---------------------------------------------------------------------+
    | ``dst_offset``      | ``uint32_t[]`` | Start coordinate in the destination tensor. Values must be          |
    |                     |                | smaller than the memstride of the destination tensor.               |
@@ -348,10 +349,7 @@ the implementation, but to avoid dynamic memory allocation the definition is put
 the public header file. This way the caller can allocate it on the stack.
 
 ..
-  .. code:: c
-..
-   (ADD IN typedef for mli_move_handle_t)
-..
+
 
 Preparation
 ~~~~~~~~~~~

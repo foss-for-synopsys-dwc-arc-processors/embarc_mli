@@ -180,7 +180,7 @@ Ensure that you satisfy the following conditions before calling the function:
    or to keep M*batch_size elements if GRU cell is configured with RNN_OUT_ALL). Other 
    fields of the structure do not have to contain valid data and are filled by the function.
    
- - ``in`` and ``cfg->scratch_data`` tensors must not point to overlapped memory regions.
+ - ``in`` and ``cfg->scratch_data`` must not point to overlapped memory regions.
  
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
@@ -192,16 +192,16 @@ Ensure that you satisfy the following conditions before calling the function:
 For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions, ensure that you 
 satisfy the following conditions before calling the function:
  
- - ``in`` and ``prev_out`` tensor must be quantized on the tensor level. It implies that each tensor 
+ - ``in`` and ``prev_out`` tensor must be quantized on the tensor level. This implies that each tensor 
    contains a single scale factor and a single zero offset.
 	
  - ``weights_in``, ``weights_out`` and ``bias`` tensors must be symmetric. All these tensors must be 
    quantized on the same level. Allowed Options:
    
-   - Per Tensor level. It implies that each tensor contains a single scale factor and a single 
+   - Per Tensor level. This implies that each tensor contains a single scale factor and a single 
      zero offset equal to 0.
 	 
-   - Per First Dimension level (number of sub-tensors equal to 3). It implies that each tensor 
+   - Per First Dimension level (number of sub-tensors equal to 3). This implies that each tensor 
      contains separate scale point for each sub-tensor. All tensors contain single zero offset 
      equal to 0.
  

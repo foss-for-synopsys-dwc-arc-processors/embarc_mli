@@ -103,7 +103,7 @@ Benefits of the HWCN layout:
     vectorization across depth becomes more beneficial. As statistics of implemented graphs show, 
     most implemented layers fit better to "vectorization across depth" strategy. 
     
-  - This layout is more stable to convolution configuration parameters like stride padding and dilation 
+  - This layout is more stable to convolution configuration parameters such as stride padding and dilation 
     rate as it typically does not touch depth dimension.
     
   - Slicing of variable tensors is more DMA-friendly as it implies longer linear DMA series and less 
@@ -112,7 +112,7 @@ Benefits of the HWCN layout:
 Changing the Data Layout of Three-Dimensional Tensors
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Inputs and outputs of vision layers, like convolution or pooling, are typically three-dimensional tensors 
+Inputs and outputs of vision layers, such as convolution or pooling, are typically three-dimensional tensors 
 (also referred to as feature maps) that reflect the value of various features (channels) across 
 image-like input (height and width). The two most frequently used layouts are HWC and CHW, depicted 
 in :ref:`f_var_tnsr_data`. The MLI data layout is HWC, but there is a conversion (transpose) function 

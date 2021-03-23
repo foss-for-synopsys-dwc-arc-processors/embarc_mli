@@ -3,7 +3,7 @@
 Utility Functions
 =================
 
-Utility functions are a set of MLI API that facilitate the interface 
+Utility functions are a set of MLI APIs that facilitate the interface 
 between MLI kernels and the user code. Operations in this set are not directly 
 involved in graph calculations and are instead used to prepare data for MLI processing or 
 to get information encoded in the MLI interface.

@@ -94,7 +94,7 @@ Ensure that you satisfy the following conditions before calling the function:
 For **sa8** versions of kernel, in addition to the preceding conditions, ensure that you 
 satisfy the following condition before calling the function:
  
- - ``in`` tensor must be quantized on the tensor level. It implies that the tensor 
+ - ``in`` tensor must be quantized on the tensor level. This implies that the tensor 
    contains a single scale factor and a single zero offset.
    
 Depending on the debug level (see section :ref:`err_codes`), this function performs a parameter 

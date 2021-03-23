@@ -151,16 +151,16 @@ Ensure that you satisfy the following conditions before calling the function:
 For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions, ensure that you 
 satisfy the following conditions before calling the function:
 
- - ``in`` and ``out`` tensor must be quantized on the tensor level. It implies that each tensor 
+ - ``in`` and ``out`` tensor must be quantized on the tensor level. This implies that each tensor 
    contains a single scale factor and a single zero offset.
    
  - ``weights`` and ``bias`` tensors must be symmetric. Both must be quantized on the same level. 
    Allowed Options:
    
-   - Per Tensor level. It implies that each tensor contains a single scale factor and a single 
+   - Per Tensor level. This implies that each tensor contains a single scale factor and a single 
      zero offset equal to 0.
 	 
-   - Per N dimension level (number of filters). It implies that each tensor contains separate 
+   - Per N dimension level (number of filters). This implies that each tensor contains separate 
      scale point for each sub-tensor. All tensors contain single zero offset equal to 0.
 	 
    - Scale factors of bias tensor must be equal to the multiplication of input scale factor broadcasted 

@@ -3,7 +3,7 @@
 Parametric ReLU (PReLU) Prototype and Function List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This kernel performs Parametric Rectified Linear unit (PReLU) with a negative slope activation 
+This kernel performs Parametric Rectified Linear Unit (PReLU) with a negative slope activation 
 function. It transforms each element of input tensor according to the following formula:
 
 .. math::
@@ -31,12 +31,15 @@ instead be achieved in several iterations using the PReLU kernel and the mem_str
 One iteration implies creating subtensors from input and alpha tensors using memstrides and applying 
 the PReLU kernel on them.
 
-This kernel outputs tensor of the same shape and type as input. This kernel can perform in-place 
+This kernel outputs a tensor of the same shape and type as input. This kernel can perform in-place 
 computation: output and input can point to exactly the same memory (the same starting address
 and memory strides). 
 
-If the starting address and memory stride of the input and output tensors are set in such a way 
-that memory regions are overlapped, the behavior is undefined.
+.. note::
+
+   Only an exact overlap of starting address and memory stride of the input and output 
+   tensors is acceptable. Partial overlaps result in undefined behavior.
+..
 
 Kernels which implement Leaky ReLU functions have the following prototype:
 
@@ -120,7 +123,7 @@ Ensure that you satisfy the following conditions before calling the function:
 For **sa8** versions of kernel, in addition to the preceding conditions, ensure that you 
 satisfy the following conditions before calling the function: 
 
- - ``in`` ``out`` and ``slope_coeff`` tensors must be quantized on the tensor level. It implies 
+ - ``in``, ``out`` and ``slope_coeff`` tensors must be quantized on the tensor level. This implies 
    that the tensor contains a single scale factor and a single zero offset.
    
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 

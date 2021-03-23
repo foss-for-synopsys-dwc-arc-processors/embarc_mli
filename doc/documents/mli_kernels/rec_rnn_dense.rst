@@ -107,7 +107,7 @@ Here is a list of all available RNN Dense functions:
    +------------------------------------+--------------------------------------+
 ..
 
-All the listed functions must comply to the following conditions :
+Ensure that you satisfy the following conditions before calling the listed functions:
 
  - ``bias``, all tensors in ``inputs`` array and all tensors in ``weights`` array 
    must be valid.

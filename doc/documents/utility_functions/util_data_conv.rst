@@ -3,8 +3,8 @@ Data Conversion Group
 
 This group contains functions which copy elements from the input tensor to the 
 output with data conversion according to the output tensor type parameters. The 
-functions converts the data from the source type to the destination type, 
-considering the quantization parameters of source and destinations. This 
+functions convert the data from the source type to the destination type, 
+considering the quantization parameters of the source and destinations. This 
 includes a combination of:
 
  - Change of container size
@@ -72,10 +72,13 @@ Function prototype:
    
 For some platforms, there is a code size penalty if floating point operations are used. 
 Because the preceding function uses floating point operations even if no conversion from/to 
-float is needed by the application, the linker links-in the float support. For that 
-reason, there is also a fixed point specialization. This function should be used in all 
-places where it is known that neither of the source or destination tensor is a float tensor. 
-It supports both signed asymmetric data formats and fixed point data formats. 
+float is needed by the application, the linker includes the floating point support code. 
+For that reason, the MLI API also includes a conversion specialization which only supports 
+fixed-point data types.  
+
+Ensure that you use this function in all places where it is known that neither the source nor 
+the destination tensor is a float tensor. It supports both signed asymmetric data formats and 
+fixed point data formats.
 
 .. code:: c
 

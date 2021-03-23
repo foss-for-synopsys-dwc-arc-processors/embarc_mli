@@ -24,7 +24,7 @@ Kernels which implement Element-wise functions have the following prototype:
 ..
 
 .. _t_elw_data_conv:
-.. table:: Element-Wise Group Function Parameters
+.. table:: Element-wise Group Function Parameters
    :align: center
    :widths: auto 
    
@@ -70,7 +70,7 @@ Kernels which implement Element-wise functions have the following prototype:
    +--------------------------------+---------------+---------------------------------+   
 ..
 
-All of these functions must comply to the following conditions:
+Ensure that you satisfy the following conditions before calling the listed functions:
 
  - ``in1`` and ``in2`` tensors must be valid and must share the same ``el_type`` field value. 
    They must be of the same shape, or one of them can be a tensor-scalar (see data field description 
@@ -102,7 +102,7 @@ All of these functions must comply to the following conditions:
    
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
 
- - For sa8 input and output tensors must be quantized on the tensor level. It implies 
+ - For sa8 input and output tensors must be quantized on the tensor level. This implies 
    that each tensor contains a single scale factor and a single zero offset.
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 

@@ -3,8 +3,8 @@
 Sigmoid Prototype and Function List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This kernel performs sigmoid (also mentioned as logistic) activation function on input tensor 
-lement-wise and stores the result to the output tensor.
+This kernel performs sigmoid (also called as logistic) activation function on input tensor 
+element-wise and stores the result to the output tensor.
 
 .. math:: y_{i} = \frac{1}{1 + e^{{- x}_{i}}}
 
@@ -18,8 +18,11 @@ This kernel outputs a tensor of the same shape and type as the input. This kerne
 in-place computation: output and input can point to exactly the same memory (the same 
 starting address and memory strides). 
 
-If the starting address and memory stride of the input and output tensors are 
-set in such a way that memory regions are overlapped, the behavior is undefined.
+.. note::
+
+   Only an exact overlap of starting address and memory stride of the input and output 
+   tensors is acceptable. Partial overlaps result in undefined behavior.
+..
 
 Kernels which implement Sigmoid functions have the following prototype:
 
@@ -73,7 +76,7 @@ Ensure that you satisfy the following conditions before calling the function:
 For **sa8** versions of kernel, in addition to the preceding conditions, ensure that you 
 satisfy the following conditions before calling the function: 
 
- - ``in`` tensor must be quantized on the tensor level. It implies that the tensor contains 
+ - ``in`` tensor must be quantized on the tensor level. This implies that the tensor contains 
    a single scale factor and a single zero offset.
    
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 

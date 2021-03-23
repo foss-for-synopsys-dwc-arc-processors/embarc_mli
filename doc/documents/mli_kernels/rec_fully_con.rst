@@ -176,10 +176,10 @@ satisfy the following conditions before calling the function:
  - ``weights`` and ``bias`` tensors must be symmetric. Both must be quantized at the same level.
    Allowed options are
    
-    - Per Tensor level. It implies that each tensor contains a single scale factor and a single zero
+    - Per Tensor level. This implies that each tensor contains a single scale factor and a single zero
       offset equal to 0.
       
-    - Per M dimension level (number of neurons). It implies that each tensor contains separate scale point
+    - Per M dimension level (number of neurons). This implies that each tensor contains separate scale point
       for each sub-tensor. All tensors contain single zero offset equal to 0.
    
  - Scale factor of bias tensor must be equal to the multiplication of input scale factor 

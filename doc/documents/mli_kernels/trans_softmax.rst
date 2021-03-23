@@ -4,7 +4,7 @@ Softmax Prototype and Function List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This kernel performs Softmax activation function that is a generalization of the 
-logistic function that transforms input vector according to the following formula:
+logistic function that transforms the input vector according to the following formula:
 
 .. math:: y_{i} = \frac{e^{x_{i}}}{\sum_{j}^{}e^{x_{j}}}
 
@@ -17,12 +17,12 @@ Where:
 
    :math:`y_{i}` *–* :math:`i_{\text{th}}` *value in output data subset*
 	
-Softmax function might be applied to the whole tensor, or along a specific axis. 
+The softmax function might be applied to the whole tensor, or along a specific axis. 
 In the first case, all the input values are involved in the calculation of each output value. 
 If an axis is specified, then the softmax function is applied to each slice along the 
 specific axis independently. 
 
-This kernel outputs tensor of the same shape and type as input. This kernel supports
+This kernel outputs a tensor of the same shape and type as input. This kernel supports
 in-place computation: output and input can point to exactly the same memory (the same 
 starting address and memory strides). If the starting address and memory stride of the 
 input and output tensors are set in such a way that memory regions are overlapped, 
@@ -41,7 +41,7 @@ Kernels which implement SoftMax functions have the following prototype:
 where ``data_format`` is one of the data formats listed in Table :ref:`mli_data_fmts` and the function 
 parameters are shown in the following table:
 
-.. table:: Softmax ReLU Function Parameters
+.. table:: Softmax Function Parameters
    :align: center
    :widths: auto
    
@@ -91,10 +91,6 @@ Ensure that you satisfy the following conditions before calling the function:
  
  - axis parameter might be negative and must be less than in tensor rank.
  
-
-Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
-
 The range of this function is (0, 1).  Depending on the data type, quantization parameters of the output 
 tensor are configured in the following way:
 
@@ -110,3 +106,6 @@ tensor are configured in the following way:
     - ``out.el_params.sa.scale.mem.i16`` is set to 1
 
     - ``out.el_params.sa.scale_frac_bits.mem.i8`` is set to 8
+
+Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
