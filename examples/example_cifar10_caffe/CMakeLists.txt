@@ -12,18 +12,6 @@ file(GLOB temp
     ../auxiliary/*.cc
     ../auxiliary/*.c
 )
-add_executable(example_cifar10_caffe
-    cifar10_coefficients_hwcn_small.c
-    cifar10_model_hwcn.c
-    ml_api_cifar10_caffe_main.c
-    ${temp}
-)
-
-target_link_libraries(example_cifar10_caffe PUBLIC mli)
-
-target_include_directories(example_cifar10_caffe PRIVATE
-    ../../examples/auxiliary
-)
 
 if (ARC)
 set(EXAMPLE_FLAGS
@@ -47,24 +35,43 @@ else()
 set(EXAMPLE_FLAGS)
 endif()
 
-target_compile_options(example_cifar10_caffe PRIVATE
-    ${MLI_PLATFORM_COMPILE_OPTIONS}
-    ${EXAMPLE_FLAGS}
-)
+function(ADD_DATA_TYPE DATA_TYPE BIT_DEPTH)
+    set(TARGET example_cifar10_caffe_${DATA_TYPE})
+    add_executable(${TARGET}
+        cifar10_coefficients_hwcn_small.c
+        cifar10_model_hwcn.c
+        ml_api_cifar10_caffe_main.c
+        ${temp}
+    )
+    target_link_libraries(${TARGET} PUBLIC mli)
 
-target_link_options(example_cifar10_caffe PRIVATE
-    ${MLI_PLATFORM_LINK_OPTIONS}
-    ${EXAMPLE_FLAGS}
-)
+    target_include_directories(${TARGET} PRIVATE
+        ../../examples/auxiliary
+    )
+    target_compile_options(${TARGET} PRIVATE
+        ${MLI_PLATFORM_COMPILE_OPTIONS}
+        ${EXAMPLE_FLAGS}
+    )
+    target_compile_definitions(${TARGET} PRIVATE
+        MODEL_BIT_DEPTH=${BIT_DEPTH})
+    target_link_options(${TARGET} PRIVATE
+        ${MLI_PLATFORM_LINK_OPTIONS}
+        ${EXAMPLE_FLAGS}
+    )
+    if (ARC)
+        target_link_options(${TARGET} PRIVATE
+            -m
+            -Coutput=./elf_files/${TARGET}.map
+        )
+    endif()
 
-if (ARC)
-target_link_options(example_cifar10_caffe PRIVATE
-    -m
-    -Coutput=./elf_files/example_cifar10_caffe.map
-)
-endif()
+    set_target_properties(${TARGET}
+        PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "./elf_files$<0:>"
+    )
+endfunction()
 
-set_target_properties(example_cifar10_caffe
-    PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "./elf_files$<0:>"
-)
+ADD_DATA_TYPE(FX16 16)
+ADD_DATA_TYPE(SA8 8)
+ADD_DATA_TYPE(FX16_FX8_FX8 816)
+
