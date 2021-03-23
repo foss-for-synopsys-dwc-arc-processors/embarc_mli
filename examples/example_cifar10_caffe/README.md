@@ -144,15 +144,15 @@ For this reason you can build and check application with 8 and 16 bit depth of N
 
 * 16 bit depth of coefficients and data (FX16) (default):
  
-       gmake TCF_FILE=../../hw/em9d.tcf EXT_CFLAGS="-DMODEL_BIT_DEPTH=16"
+       gmake run_FX16 TCF_FILE=../../hw/em9d.tcf
 
 * 8 bit depth of coefficients and data (SA8):
 
-       gmake TCF_FILE=../../hw/em9d.tcf EXT_CFLAGS="-DMODEL_BIT_DEPTH=8"
+       gmake run_SA8 TCF_FILE=../../hw/em9d.tcf
 
 * 8x16: 8 bit depth of coefficients and 16 bit depth of data (FX8 weights and FX16 data):
 
-       gmake TCF_FILE=../../hw/em9d.tcf EXT_CFLAGS="-DMODEL_BIT_DEPTH=816"
+       gmake run_FX16_FX8_FX8 TCF_FILE=../../hw/em9d.tcf
 
 Example application may be used in three modes:
 1. **Built-in input processing.** Uses only hard-coded vector for the single input model inference. 
