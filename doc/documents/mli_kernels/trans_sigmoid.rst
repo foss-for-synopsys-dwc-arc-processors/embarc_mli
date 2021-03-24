@@ -79,8 +79,6 @@ satisfy the following conditions before calling the function:
  - ``in`` tensor must be quantized on the tensor level. This implies that the tensor contains 
    a single scale factor and a single zero offset.
    
-Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
-check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
 The range of this function is (0, 1).  Depending on the data type, quantization parameters of the output 
 tensor are configured in the following way:
@@ -97,3 +95,6 @@ tensor are configured in the following way:
     - ``out.el_params.sa.scale.mem.i16`` is set to 1
 
     - ``out.el_params.sa.scale_frac_bits.mem.i8`` is set to 8
+
+Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.

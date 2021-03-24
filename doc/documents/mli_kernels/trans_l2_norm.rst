@@ -10,13 +10,13 @@ formula:
 
 Where:
 
-   :math:`x_{i}-i_{th}` *–* value in input data subset
+   :math:`x_{i}-i_{th}` *-* value in input data subset
 
-   :math:`x_{j}-j_{th}` *–* value in the same input data subset
+   :math:`x_{j}-j_{th}` *-* value in the same input data subset
 
-   :math:`y_{i}-i_{th}` *–* value in output data subset
+   :math:`y_{i}-i_{th}` *-* value in output data subset
 
-   :math:`epsilon` *–* lower bound to prevent division on zero
+   :math:`epsilon` *-* lower bound to prevent division on zero
 
 L2 normalization function might be applied to the whole tensor, or along a specific axis. In the 
 first case all input values are involved in the calculation of each output value. If the axis is 
