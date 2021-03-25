@@ -540,6 +540,26 @@ static MLI_FORCE_INLINE void mli_prv_squash_generic_tensor(
     }
 }
 
+static MLI_FORCE_INLINE int mli_prv_squash_tensor_to_one_dim(
+        const mli_tensor *in,
+        mli_tensor *out) {
+
+    int rank = in->rank;
+    int shape = in->shape[rank - 1];
+    MLI_ASSERT(rank > 0);
+
+    for (int i = rank - 1; i > 0; i--) {
+        if (((in->mem_stride[i - 1] == 0) || (in->mem_stride[i - 1] == shape)) &&
+           ((out->mem_stride[i - 1] == 0) || (out->mem_stride[i - 1] == shape))){
+
+            shape *= in->shape[i - 1];
+        } else {
+            return 0;
+        }
+    }
+
+    return shape;
+}
 template <typename T>
 static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_weights_tensor_nhwc(
         const mli_tensor *weights,
@@ -1008,10 +1028,10 @@ mli_prv_get_relu_limits (const mli_relu_cfg * cfg, const mli_tensor * out) {
 
 static MLI_FORCE_INLINE bool mli_prv_is_inside_vccm (const void *ptr) {
 #if core_config_vec_mem_size
-	return ((uint32_t)ptr >= core_config_vec_mem_base) &&
-		   ((uint32_t)ptr < core_config_vec_mem_base + core_config_vec_mem_size);
+    return ((uint32_t)ptr >= core_config_vec_mem_base) &&
+           ((uint32_t)ptr < core_config_vec_mem_base + core_config_vec_mem_size);
 #else
-	return false;
+    return false;
 #endif
 }
 #endif //_MLI_PRV_TENSOR_H_
