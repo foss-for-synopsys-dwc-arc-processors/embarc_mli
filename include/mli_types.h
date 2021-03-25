@@ -174,11 +174,11 @@ typedef struct _mli_tensor {
 typedef struct _mli_lut{
     mli_data_container data;
     mli_element_type type;
-    int length;
-    int in_frac_bits;
-    int out_frac_bits;
-    int input_offset;
-    int output_offset;
+    int32_t length;
+    int32_t in_frac_bits;
+    int32_t out_frac_bits;
+    int32_t input_offset;
+    int32_t output_offset;
 } mli_lut;
 
 
