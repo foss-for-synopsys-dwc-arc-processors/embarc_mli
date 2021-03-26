@@ -26,11 +26,30 @@ This function returns the size of the tensor basic element in bytes. It returns 
 does NOT point to a tensor with a supported element type (see description of mli_element_type 
 in section :ref:`kernl_sp_conf`).
 
+Function prototype:
+
 .. code:: c
 
-   uint32_t mli_hlp_count_elem_num(
+   uint32_t mli_hlp_tensor_element_size(
        const mli_tensor *in);
 ..
+
+The parameters are described in :ref:`t_mli_hlp_count_elem_num_params`.
+
+.. _t_mli_hlp_get_elem_size:
+.. table:: mli_hlp_tensor_element_size Parameters
+   :align: center
+   :widths: auto
+   
+   +--------------------+-----------------+-------------------------------------+
+   | **Field Name**     | Type            | Description                         |
+   +====================+=================+=====================================+
+   | ``in``             | ``mli_tensor*`` | [IN] Pointer to input tensor        |
+   +--------------------+-----------------+-------------------------------------+
+..
+
+Conditions:
+ - ``in`` must point to a tensor structure
 
 .. _count_elements:
 
@@ -68,7 +87,7 @@ The parameters are described in :ref:`t_mli_hlp_count_elem_num_params`.
    +====================+=================+=====================================+
    | ``in``             | ``mli_tensor*`` | [IN] Pointer to input tensor        |
    +--------------------+-----------------+-------------------------------------+
-   | ``start_dim``      | ``start_dim``   | [IN] Start dimension for counting   |
+   | ``start_dim``      | ``uint32_t``    | [IN] Start dimension for counting   |
    +--------------------+-----------------+-------------------------------------+
 ..
 
@@ -84,15 +103,18 @@ Get Scale Value
 ~~~~~~~~~~~~~~~
 
 This function returns the scale value from the quantization parameters. For data 
-formats that don’t have a scale value, the value 1 is returned. In case of 
-an invalid tensor, the value 0 is returned.
+formats that don’t have a scale value, the value 1 is returned. 
+For tensors with multiple scale value per-axis scale_idx parameter defines the 
+particular scale value to be fetched. In case of an invalid tensor, the value 0 is returned.
 
 Function prototype:
 
 .. code:: c
 
-   int16_t mli_hlp_tensor_scale(
-       const mli_tensor *in);
+   int32_t mli_hlp_tensor_scale(
+      const mli_tensor *in
+      const uint32_t scale_idx
+   );
 ..
   
 The parameters are described in Table :ref:`t_mli_hlp_tensor_scale_params`.
@@ -102,16 +124,19 @@ The parameters are described in Table :ref:`t_mli_hlp_tensor_scale_params`.
    :align: center
    :widths: auto
    
-   +----------------+-----------------+-------------------------------+
-   | **Field name** | **Type**        | **Description**               |
-   +================+=================+===============================+
-   | ``in``         | ``mli_tensor*`` | [IN] Pointer to input tensor  |  
-   +----------------+-----------------+-------------------------------+ 
+   +----------------+-----------------+-------------------------------------------------------+
+   | **Field name** | **Type**        | **Description**                                       |
+   +================+=================+=======================================================+
+   | ``in``         | ``mli_tensor*`` | [IN] Pointer to input tensor                          |  
+   +----------------+-----------------+-------------------------------------------------------+ 
+   | ``scale_idx``  | ``uint32_t``    | [IN] Index of a specific scale value from the tensor  |  
+   +----------------+-----------------+-------------------------------------------------------+ 
 ..   
 
 Conditions:
 
  - ``in`` must contain a valid data format
+ - ``scale_idx`` must be less or equal to number of scale values in the tensor
 
 .. _get_shift_val:
  
@@ -120,13 +145,17 @@ Get Scale Shift Value
 
 This function returns the shift value from the quantization parameters. 
 For data formats that don’t have a shift value, the value 0 is returned.
+For tensors with multiple scale value per-axis scale_idx parameter defines 
+the particular scale shift value to be fetched.
 
 Function prototype
 
 .. code:: c
 
-   int16_t mli_hlp_tensor_scale_shift(
-       const mli_tensor *in);
+   int32_t mli_hlp_tensor_scale_shift(
+       const mli_tensor *in
+       const uint32_t scale_idx
+   );
 ..
 	  
 The parameters are described in Table :ref:`t_mli_hlp_tensor_scale_shift_params`
@@ -136,16 +165,19 @@ The parameters are described in Table :ref:`t_mli_hlp_tensor_scale_shift_params`
    :align: center
    :widths: auto
    
-   +----------------+-----------------+------------------------------+
-   | **Field name** | **Type**        | **Description**              |
-   +================+=================+==============================+
-   | ``in``         | ``mli_tensor*`` | [IN] Pointer to input tensor |  
-   +----------------+-----------------+------------------------------+ 
+   +----------------+-----------------+-------------------------------------------------------------+
+   | **Field name** | **Type**        | **Description**                                             |
+   +================+=================+=============================================================+
+   | ``in``         | ``mli_tensor*`` | [IN] Pointer to input tensor                                |  
+   +----------------+-----------------+-------------------------------------------------------------+
+   | ``scale_idx``  | ``uint32_t``    | [IN] Index of a specific scale shift value from the tensor  |  
+   +----------------+-----------------+-------------------------------------------------------------+ 
 .. 
 
 Conditions:
 
  - ``in`` must contain a valid data format
+ - ``scale_idx`` must be less or equal to number of scale values in the tensor
 
 .. _get_zero_offset_val:
  
@@ -154,13 +186,17 @@ Get Zero Offset Value
 
 This function returns the zero offset value from the quantization parameters.
 For data formats, that don’t have a zero offset value, the value 0 is returned.
+For tensors with multiple zero offset value per-axis scale_idx parameter defines 
+the particular zero offset value to be fetched.
 
 Function prototype:
 
 .. code:: c
 
    int16_t mli_hlp_tensor_zero_offset(
-       const mli_tensor *in);
+       const mli_tensor *in
+       const uint32_t zero_idx
+   );
 ..
   
 The parameters are described in Table :ref:`t_mli_hlp_tensor_zero_offset_params`.
@@ -170,16 +206,19 @@ The parameters are described in Table :ref:`t_mli_hlp_tensor_zero_offset_params`
    :align: center
    :widths: auto
    
-   +----------------+-----------------+------------------------------+
-   | **Field name** | **Type**        | **Description**              |
-   +================+=================+==============================+
-   | ``in``         | ``mli_tensor*`` | [IN] Pointer to input tensor |  
-   +----------------+-----------------+------------------------------+ 
+   +----------------+-----------------+-------------------------------------------------------------+
+   | **Field name** | **Type**        | **Description**                                             |
+   +================+=================+=============================================================+
+   | ``in``         | ``mli_tensor*`` | [IN] Pointer to input tensor                                |  
+   +----------------+-----------------+-------------------------------------------------------------+ 
+   | ``zero_idx``   | ``uint32_t``    | [IN] Index of a specific zero offset value from the tensor  |  
+   +----------------+-----------------+-------------------------------------------------------------+ 
 .. 
 
 Conditions:
 
  - ``in`` must contain a valid data format
+ - zero_idx must be less or equal to number of zero offset values in the tensor
  
 .. _point_sub_tensor:
  
@@ -256,3 +295,45 @@ The function prototype:
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
+
+.. _num_of_accu_bits:
+ 
+Get Number of Accumulator Guard Bits
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+These functions return number of accumulator guard bits for a specific MAC (multiply-and-accumulate)
+variant. An addition might result in an overflow if all bits of operands are used and both operands
+hold the maximum (or minimum) values. It means that an extra bit is required for this operation.
+But if sum of several operands is needed (accumulation), more than one extra bit is required to 
+ensure that the result does not overflow. This function returns the number of such extra bits used 
+in accumulation for MAC-based kernels. See :ref:`quant_accum_infl` section for more info.
+Separate functions exist for each combination of input operands.
+
+Function prototype
+
+.. code:: c
+
+   uint8_t mli_hlp_accu_guard_bits_<operands>();
+..
+
+Where ``operands`` is a combination of input operands involved into MAC operation.
+
+Here is a list of all available guard bits functions:
+
+.. table:: List of Available Accum Guard Bits Functions
+   :align: center
+   :widths: auto 
+   
+   +---------------------------------------------+-----------------------------------------+
+   | Function Name                               | Details                                 |
+   +=============================================+=========================================+
+   | ``mli_hlp_accu_guard_bits_sa8_sa8``         || Data format of both operands: **sa8**  |
+   +---------------------------------------------+-----------------------------------------+
+   | ``mli_hlp_accu_guard_bits_fx16_fx16``       || Data format of both operands: **fx16** |
+   +---------------------------------------------+-----------------------------------------+
+   | ``mli_hlp_accu_guard_bits_fx16_fx8``        || Data format of operands: **fx16** for  |
+   |                                             || one and **fx8** another                |
+   +---------------------------------------------+-----------------------------------------+
+
+There are no any specific requirements for  ``mli_hlp_accu_guard_bits<operands>`` functions. 
+They can be called at any time.

@@ -71,9 +71,9 @@ Kernels which implement average pooling functions have the following prototype:
 
 Ensure that you satisfy the following conditions before calling the function:
 
- - ``in`` tensor must be valid.
+ - ``in`` tensor must be valid (see :ref:`mli_tnsr_struc`).
  
- - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity and 
+ - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity, valid mem_stride field and 
    valid ``el_params`` union. Other fields of the structure do not have to contain valid 
    data and are filled by the function.
 	
@@ -89,6 +89,8 @@ Ensure that you satisfy the following conditions before calling the function:
  
  - For sa8, ``in`` and ``out`` tensor must be quantized on the tensor level. This implies that each 
    tensor contains a single scale factor and a single zero offset.
+
+ - For sa8, zero offset of in and out tensors must be within [-128, 127] range.
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.

@@ -78,7 +78,7 @@ function parameters are shown in the following table:
 
 Ensure that you satisfy the following conditions before calling the function:
 
- - ``in`` and ``slope_coeff`` tensors must be valid.
+ - ``in`` and ``slope_coeff`` tensors must be valid (see :ref:`mli_tnsr_struc`).
  
  - ``slope_coeff`` tensor must be a valid tensor-scalar (see data field description in the 
    Table :ref:`t_tfm_data_conv`).
@@ -86,14 +86,16 @@ Ensure that you satisfy the following conditions before calling the function:
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
  - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity (that is, 
-   the total amount of elements in input tensor). Other fields are filled by kernel (shape, 
-   rank and element specific parameters).
+   the total amount of elements in input tensor) valid mem_stride field and valid ``el_params`` union.
+   Other fields are filled by kernel (shape, rank and element specific parameters).
    
 For **sa8** versions of kernel, in addition to the preceding conditions, ensure that you 
 satisfy the following conditions before calling the function: 
 
  - ``in`` tensor must be quantized on the tensor level. This implies that the tensor contains a 
    single scale factor and a single zero offset.
+
+ - Zero offset of ``in`` and ``out`` tensors must be within [-128, 127] range.
    
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.

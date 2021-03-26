@@ -103,12 +103,12 @@ parameters are shown in the following table:
 
 Ensure that you satisfy the following conditions before calling the function:
 
- - ``in`` tensor must be valid.
+ - ``in`` tensor must be valid (see :ref:`mli_tnsr_struc`).
  
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
  - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity 
-   (that is, the total amount of elements in input tensor). Other fields are filled 
+   (that is, the total amount of elements in input tensor) and valid mem_stride field. Other fields are filled 
    by kernel (``shape``, ``rank`` and ``el_params``).
 
 For **sa8** versions of kernel, in addition to the preceding conditions, ensure that you 
@@ -116,6 +116,8 @@ satisfy the following condition before calling the function:
 
  - ``in`` tensor must be quantized on the tensor level. This implies that the tensor 
    contains a single scale factor and a single zero offset.
+
+ - Zero offset of ``in`` tensor must be within [-128, 127] range.
 
 Depending on the debug level (see section :ref:`err_codes`), this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.

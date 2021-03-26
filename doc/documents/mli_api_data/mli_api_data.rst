@@ -16,6 +16,7 @@ describe how function parameters are grouped into structures.
    data_formats.rst
    data_layouts.rst
    mli_tensor_data_struct.rst
+   mli_lut_data_struct.rst
    kernel_sp_conf_struct.rst
    error_codes.rst
    debug_modes.rst   

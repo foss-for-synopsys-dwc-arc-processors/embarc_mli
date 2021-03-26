@@ -38,6 +38,9 @@ Optionally, a saturating ReLU activation function can be applied to the result o
 convolution during the function’s execution. For more info on supported ReLU types 
 and calculations, see :ref:`relu_prot`.
 
+This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more info on related quantization aspects. 
+The Number of accumulation series in terms of above-defined variables is equal to (Hk * Wk).
+
 Kernels which implement depthwise convolution have the following prototype:
 
 .. code:: c
@@ -139,9 +142,10 @@ Here is a list of all available Depth-Wise Convolution functions:
 
 Ensure that you satisfy the following conditions before calling the function:
 
- - ``in``, ``weights`` and ``bias`` tensors must be valid.
+ - ``in``, ``weights`` and ``bias`` tensors must be valid (see :ref:`mli_tnsr_struc`).
  
- - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity and 
+ - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity, valid 
+   ``mem_stride`` field  and 
    valid ``el_params`` union. Other fields of the structure do not have to contain valid 
    data and are filled by the function.
 	
@@ -181,6 +185,8 @@ satisfy the following conditions before calling the function:
  - ``in`` and ``out`` tensor must be quantized on the tensor level. This implies that each 
    tensor contains a single scale factor and a single zero offset.
    
+ - Zero offset of ``in`` and ``out`` tensors must be within [-128, 127] range.
+
  - ``weights`` and ``bias`` tensors must be symmetric. Both must be quantized on the same level. 
    Allowed Options:
    

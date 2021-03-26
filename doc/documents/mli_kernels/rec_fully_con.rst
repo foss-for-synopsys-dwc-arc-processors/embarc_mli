@@ -34,6 +34,9 @@ Where:
 Optionally, a saturating ReLU activation function can be applied to the result of the calculations 
 during the function’s execution. For more info on supported ReLU types, see :ref:`relu_prot`.  
 
+This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more info on related quantization aspects. 
+The Number of accumulation series is equal to input size.
+
 Functions that implement fully connected kernels have the following prototype:
 
 .. code:: c
@@ -137,7 +140,7 @@ Where:
 
 Ensure that you satisfy the following conditions before calling the function:
 
- - ``in``, ``weights`` and ``bias`` tensors must be valid.
+ - ``in``, ``weights`` and ``bias`` tensors must be valid (see :ref:`mli_tnsr_struc`).
  
  - ``in`` tensor might be of any shape and rank. Only total number of elements is 
    considered.
@@ -146,7 +149,7 @@ Ensure that you satisfy the following conditions before calling the function:
    total number of elements in the input tensor and M is the total number of 
    neurons and is equal to output length
    
- - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity 
+ - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity, valid mem_stride field 
    and valid ``el_params`` union. Other fields of the structure do not have to contain 
    valid data and are filled by the function.
    
@@ -173,6 +176,8 @@ satisfy the following conditions before calling the function:
  - ``weights`` and ``bias`` tensors must be quantized on the tensor level. 
    It implies that each tensor contains a single scale factor and a single zero offset.
    
+ - Zero offset of in and out tensors must be within [-128, 127] range.
+
  - ``weights`` and ``bias`` tensors must be symmetric. Both must be quantized at the same level.
    Allowed options are
    

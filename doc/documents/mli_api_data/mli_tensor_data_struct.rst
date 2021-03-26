@@ -12,7 +12,7 @@ shape of this array, its data format, and the way it is organized in memory.
    typedef struct mli_tensor {
       mli_data_container data;
       uint32_t shape[MLI_MAX_RANK];
-      uint32_t mem_stride[MLI_MAX_RANK];
+      int32_t mem_stride[MLI_MAX_RANK];
       uint32_t rank;
       mli_element_type el_type;
       mli_element_params el_params;
@@ -109,23 +109,38 @@ Table :ref:`mli_tnsr_struc` describes the fields in the mli_tensor structure.
    |                   |                        | scalar tensors (tensors with a single element), this field is not a         |
    |                   |                        | pointer, but it contains the data itself.                                   |
    +-------------------+------------------------+-----------------------------------------------------------------------------+
-   | ``data.capacity`` | ``unit32_t``           | Size in bytes of the allocated memory that the data field points to. In     |
+   | ``data.capacity`` | ``uint32_t``           | Size in bytes of the allocated memory that the data field points to. In     |
    |                   |                        | case there is no buffer attached (``rank == 0``), the capacity is set to 0. |
    +-------------------+------------------------+-----------------------------------------------------------------------------+
-   | ``shape``         | ``unit32_t[]``         | Array with tensor dimensions. Dimensions are stored in order starting from  |
+   | ``shape``         | ``uint32_t[]``         | Array with tensor dimensions. Dimensions are stored in order starting from  |
    |                   |                        | the one with the largest stride between the data portions.                  |
    |                   |                        | For example, for tensor T of size (channels, height width) stored in HWC    |
    |                   |                        | layout, shape[0] = height, shape[1] = width, shape[2] = channels. Shape[3]  |
    |                   |                        | is unused. The size of the array is defined by ``MLI_MAX_RANK*``.           |
    +-------------------+------------------------+-----------------------------------------------------------------------------+
-   | ``mem_stride``    | ``unit32_t[]``         | Array with the distance (in elements) to the next element in the same       |
-   |                   |                        | dimension. To compute the size in bytes, the number of elements needs to be |
+   | ``mem_stride``    | ``int32_t[]``          | Array with the distance (in elements) to the next element in the same       |
+   |                   |                        | dimension. Positive values are supported only.                              |
+   |                   |                        | To compute the size in bytes, the number of elements needs to be            |
    |                   |                        | multiplied by the bytes per element. For example, for a matrix              |
    |                   |                        | A(rows,columns), ``mem_stride[1]`` contains the distance to the next        |
    |                   |                        | element (=1 in this example), and ``mem_stride[0]`` contains the distance   |
    |                   |                        | from one row to the next (=columns in this example). The size of the array  |
    |                   |                        | is defined by ``MLI_MAX_RANK*``.If the mem_stride is set to 0, it is        |
    |                   |                        | computed from the shape.                                                    |
+   |                   |                        |                                                                             |
+   |                   |                        | Manually-set values of mem_stride array must decrease gradually and must    |
+   |                   |                        | not be less than if they would be computed from the shape. For example,     |
+   |                   |                        | for a tensor of shape [Height, Width, Channels):                            |
+   |                   |                        |                                                                             |
+   |                   |                        |  - mem_stride[0] >= 1 x Channels x Width AND mem_stride[0] >= mem_stride[1] |
+   |                   |                        |                                                                             |
+   |                   |                        |  - mem_stride[1] >= 1*Channels    AND mem_stride[1] >= mem_stride[2]        |
+   |                   |                        |                                                                             |
+   |                   |                        |  - mem_stride[2] >= 1.                                                      |
+   |                   |                        |                                                                             |
+   |                   |                        | In case the mem_stride is computed from the shape, then the kernel will not |
+   |                   |                        | update this field in the tensor struct. The only exception is the           |
+   |                   |                        | mli_move function, which can write the mem_stride field of the dst tensor.  |
    +-------------------+------------------------+-----------------------------------------------------------------------------+
    | ``rank``          | ``uint32_t``           | Number of dimensions of this tensor (Must be less or equal to               |
    |                   |                        | ``MLI_MAX_RANK*``)                                                          |
@@ -169,12 +184,12 @@ channels in the tensor ``(array_size = shape[dim])``.
    |                        |                        | - ``sa.dim >= 0``: Pointer to an array of zero points relating to           |
    |                        |                        |   configured dimension (``sa.dim``).                                        |
    +------------------------+------------------------+-----------------------------------------------------------------------------+
-   | ``sa.scale``           | ``mli_data_container`` | 16-bit signed scale factors.                                                |
+   | ``sa.scale``           | ``mli_data_container`` | 16-bit signed scale factors. Only positive scale factors are supported.     |
    |                        |                        |                                                                             |
-   |                        |                        | - ``sa.dim < 0``: Single value for all data in tensor                       |
+   |                        |                        | - If ``sa.dim < 0``: ``sa.scale`` is a single value for all data in tensor  |
    |                        |                        |                                                                             |
-   |                        |                        | - ``sa.dim >= 0``:  Pointer to an array of scale factors related to         |
-   |                        |                        |   configured dimension (``sa.dim``).                                        |
+   |                        |                        | - If ``sa.dim >= 0``:  ``sa.scale`` is a pointer to an array of             |
+   |                        |                        |   scale factors related to configured dimension (``sa.dim``).               |
    +------------------------+------------------------+-----------------------------------------------------------------------------+
    | ``sa.dim``             | ``int32_t``            | Tensor dimension to which the arrays of quantization parameters apply       |
    +------------------------+------------------------+-----------------------------------------------------------------------------+
