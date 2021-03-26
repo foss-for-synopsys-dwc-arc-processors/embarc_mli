@@ -74,7 +74,7 @@ if (ARC)
         -Hon=Long_enums
         "SHELL: -mllvm -gen-lpcc=false"
     )
-    if (EXISTS ${BUILDLIB_DIR})
+    if (DEFINED BUILDLIB_DIR)
         list(APPEND MLI_PLATFORM_LINK_OPTIONS
             -Hlib=${BUILDLIB_DIR}
         )
@@ -89,15 +89,10 @@ if (ARC)
             -Hfxapi
         )
     endif()
-elseif ((NOT ARC) AND (NOT MSVC))
-    list(APPEND MLI_PLATFORM_FLAGS
-        -m32
-    )
+
+    set(CMAKE_EXECUTABLE_SUFFIX .elf)
 endif()
 
 list(APPEND MLI_PLATFORM_COMPILE_OPTIONS ${MLI_PLATFORM_FLAGS})
 list(APPEND MLI_PLATFORM_LINK_OPTIONS    ${MLI_PLATFORM_FLAGS})
 
-if (ARC)
-    set(CMAKE_EXECUTABLE_SUFFIX .elf)
-endif()

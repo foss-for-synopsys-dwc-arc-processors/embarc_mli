@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -47,6 +47,8 @@ typedef enum _mli_status{
 
     MLI_STATUS_RANK_MISMATCH,
     MLI_STATUS_TYPE_MISMATCH,
+    MLI_STATUS_MEM_BANK_MISMATCH,
+    MLI_STATUS_MISALIGNMENT_ERROR,
     /* other return codes*/
 
     MLI_STATUS_LARGE_ENUM = 0x02000000  /**< Utility field. Prevent size optimization of public enums */
@@ -82,6 +84,11 @@ typedef enum {
     MLI_EL_LARGE_ENUM = 0x02000000      /**< Utility field. Prevent size optimization of public enums */
 } mli_element_type;
 
+typedef enum {
+    MLI_EL_PARAM_SC16_ZP16 = 0, /**< element params have 16bit scale values and 16bit zeropoint */
+    MLI_EL_PARAM_LARGE_ENUM = 0x02000000      /**< Prevent size optimization of public enums */
+} mli_el_param_type;
+
 /**
  * @brief Container union to represent polymorphic data.
  *
@@ -115,10 +122,11 @@ typedef struct _mli_data_container {
  */
 typedef union _mli_element_params {
     struct {
-        uint8_t frac_bits; /**< Number of fractional bits */
+        int8_t frac_bits; /**< Number of fractional bits */
     } fx;
 
     struct {
+        mli_el_param_type type;
         mli_data_container zero_point;  /**< 16bit signed zero point offset. Single value for all data in tensor if dim < 0 
                                         or pointer to an array of zero points regarding configured dimension (dim) otherwise.
                                         In case of array it's size can be looked up in the shape using the dimension to which the scales apply*/
@@ -126,7 +134,7 @@ typedef union _mli_element_params {
                                         or pointer to an array of scale factors regarding configured dimension (dim) otherwise.
                                         In case of array it's size can be looked up in the shape using the dimension to which the scales apply*/
         int32_t dim;               /**< dimension of the tensor to which the array's of quantization parameters apply */
-        int8_t scale_frac_bits;     /**< number of fractional bits in the elements of the scales array */
+        mli_data_container scale_frac_bits;     /**< number of fractional bits in the elements of the scales array */
     } sa;
 } mli_element_params;
 
@@ -144,7 +152,7 @@ typedef struct _mli_tensor {
 
     mli_data_container data;   /**< main data. Layer cast this pointer to actual type (XY ptr for L1) */
 
-    uint32_t mem_stride[MLI_MAX_RANK]; /**< Array with the distance (in elements) to the next element in the same dimension.
+    int32_t mem_stride[MLI_MAX_RANK]; /**< Array with the distance (in elements) to the next element in the same dimension.
                                          To compute the size in bytes, the number of elements needs to be multiplied by the bytes per element.
                                          For example, for a matrix A[rows][columns], mem_stride[0] contains the distance
                                          to the next element (=1 in this example), and mem_stride[1] contains the distance from
@@ -158,6 +166,20 @@ typedef struct _mli_tensor {
     mli_element_type el_type;       /**< Type of elements stored in tensor */
     mli_element_params el_params;   /**< Parameters of elements stored in tensor. */
 } mli_tensor;
+
+
+/**
+ * Lookup table config definition
+ */
+typedef struct _mli_lut{
+    mli_data_container data;
+    mli_element_type type;
+    int length;
+    int in_frac_bits;
+    int out_frac_bits;
+    int input_offset;
+    int output_offset;
+} mli_lut;
 
 
 //================================================================
@@ -204,13 +226,19 @@ typedef struct {
                        If axis < 0 the function will be applied to the whole tensor */
 } mli_prelu_cfg;
 
-
 /**
  * @brief Softmax Layer config
  *
  * Configuration struct alias to store required parameter (axis)
  */
 typedef mli_prelu_cfg mli_softmax_cfg;
+
+/**
+ * @brief L2 Normalization Layer config
+ *
+ * Configuration struct alias to store required parameter (axis)
+ */
+typedef mli_prelu_cfg mli_l2_normalize_cfg;
 
 /**
  * @brief Fully Connected Layer config definition
@@ -290,6 +318,30 @@ typedef enum {
 
 
 /**
+ * @brief Recurent layers direction definition
+ *
+ * enum used for selection of the input sequence processing direction for RNN, LSTM and GRU
+ */
+typedef enum {
+    RNN_DIR_FORWARD = 0,   /**< Process input in forward direction.*/
+    RNN_DIR_BACKWARD       /**< Process output in backward direction.*/
+} mli_rnn_direction;
+
+
+
+/**
+ * @brief Recurent layers output mode definition
+ *
+ * enum used for selection of the type of output for RNN, LSTM and GRU
+ */
+typedef enum {
+    RNN_OUT_LAST = 0,   /**< Preserve only the last result.*/
+    RNN_OUT_ALL         /**< Preserve result of each iteration.*/
+} mli_rnn_results;
+
+
+
+/**
  * @brief Recurrent layers config definition
  *
  * Data structure to provide the configuration for LSTM and Basic RNN primitives.
@@ -298,6 +350,32 @@ typedef struct {
     mli_rnn_mode mode;              /**< Recurrent layer processing mode.*/
     mli_rnn_out_activation act;     /**< Output activation type.*/
     mli_tensor *ir_tsr;             /**< Pointer to tensor for holding intermediate results. */
+} mli_rnn_cell_cfg_depr;
+
+
+
+/**
+ * @brief RNN dense layer config definition
+ *
+ * Data structure to provide the configuration for RNN dense primitive.
+ */
+typedef struct {
+    uint8_t inputs_num;   /**< Number of input tensors.*/
+} mli_rnn_dense_cfg;
+
+
+
+/**
+ * @brief Recurrent layers config definition
+ *
+ * Data structure to provide the configuration for RNN, LSTM and GRU primitives.
+ */
+typedef struct {
+    mli_rnn_direction direction;        /**< Input processing direction.*/
+    mli_rnn_results results;            /**< Results to preserve.*/
+    mli_rnn_out_activation act;         /**< Output activation type. */
+    mli_data_container scratch_data;    /**< Container to keep intermediate results. */
+    uint32_t scratch_capacity;          /**< Size of a memory pointed by scratch_data field. */
 } mli_rnn_cell_cfg;
 
 
@@ -357,10 +435,39 @@ typedef struct {
  */
 typedef struct {
     uint32_t offset[MLI_MAX_RANK];   /**< subtensor start coordinates in the input tensor 
-                                          The size of this array is determined by the rank of the input tensor*/
+                                          The size of this array is determined by the rank of the input tensor */
     uint32_t size[MLI_MAX_RANK];     /**< Size of the sub tensor in elements per dimension
                                           the number of entries in this array is determind by the input tensor */
     uint32_t sub_tensor_rank;        /**< Rank of the sub tensor that will be produced */
 } mli_sub_tensor_cfg;
+
+/**
+ * @brief Data movement layer config definition
+ *
+ * Data structure to provide the configuration for data movement operations.
+ */
+typedef struct _mli_mov_cfg {
+    uint32_t offset[MLI_MAX_RANK];
+    uint32_t size[MLI_MAX_RANK]; // if zero, compute from input and other parameters
+    uint32_t sub_sample_step[MLI_MAX_RANK];
+    uint32_t dst_offset[MLI_MAX_RANK];
+    int32_t  dst_mem_stride[MLI_MAX_RANK]; // if zero, compute from input and other parameters
+    uint8_t  perm_dim[MLI_MAX_RANK];
+    uint8_t  padding_pre[MLI_MAX_RANK];
+    uint8_t  padding_post[MLI_MAX_RANK];
+} mli_mov_cfg_t;
+
+/**
+ * @brief Argmax helper config
+ *
+ * Data structure to provide axis along which the function will be computed in the input tensor and
+ * number of indexes per slice to be returned.
+ */
+typedef struct {
+    int32_t axis;   /**< An axis along which the function will be computed. Axis corresponds to index of tensor’s
+                         dimension starting from 0. For instance, having future map in HWC layout, axis == 0
+                         corresponds to H dimension. If axis < 0 the function will be applied to the whole tensor. */
+    int32_t topk;   /**< Number of indexes per slice to be returned.*/
+} mli_argmax_cfg;
 
 #endif // _MLI_TYPES_H_

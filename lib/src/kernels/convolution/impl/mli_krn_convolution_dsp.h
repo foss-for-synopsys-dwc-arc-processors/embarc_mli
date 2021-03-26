@@ -1,5 +1,5 @@
 /*
-* Copyright 2020-2020, Synopsys, Inc.
+* Copyright 2020, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -27,7 +27,7 @@ namespace dsp {
 // Depthwise convolution 2D template
 //========================================================
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static MLI_FORCE_INLINE void depthwise_convolution2D_hwcn_nopad(
+MLI_FORCE_INLINE void depthwise_convolution2D_hwcn_nopad(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
@@ -172,7 +172,7 @@ static MLI_FORCE_INLINE void depthwise_convolution2D_hwcn_nopad(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
+MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
@@ -217,41 +217,41 @@ static MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
             __v2i32_t v2_bias_add = {bias_add_ch1, bias_add_ch2};
 
             for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
-                // Define area of input and filter for convolution
-                // comp - compensation values for valid area definition
-                mli_compensations comp;
-                comp.top    = -MIN((H_idx * stride_height)- padding_top, 0);
-                comp.bottom = -MIN(in.height - ((H_idx * stride_height)- padding_top + w.kernel_height), 0);
-                const int rows = w.kernel_height - comp.top - comp.bottom;
-                const int h_idx_in = (H_idx * stride_height - padding_top + comp.top);
-                MLI_PTR(io_T) __restrict in_ptr = in.ptr
-                        + in.row_mem_stride * h_idx_in // move to row
-                        + in_ch_idx;                   // move to channel
-                MLI_PTR(w_T) __restrict w_ptr = w.ptr
-                        + w.row_mem_stride * comp.top // move to row
-                        + out_ch_idx;                 // move to filter
-
                 for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
                     // Define area of input and filter for convolution
                     // comp - compensation values for valid area definition
-                    comp.left   = -MIN((W_idx * stride_width)- padding_left, 0);
-                    comp.right  = -MIN(in.width - ((W_idx * stride_width)- padding_left + w.kernel_width), 0);
-                    const int clmns = w.kernel_width - comp.right - comp.left;
-                    const int w_idx_in = (W_idx * stride_width - padding_left + comp.left);
+                    const mli_compensations comp = mli_prv_valid_area_compensations(
+                        H_idx, W_idx, in.height, in.width,
+                        w.kernel_height, w.kernel_width,
+                        stride_height, stride_width, padding_left, padding_top,
+                        dilation_height, dilation_width);
+                    
+                    const int rows = w.kernel_height - comp.kernel_top - comp.kernel_bottom;
+                    const int clmns = w.kernel_width - comp.kernel_right - comp.kernel_left;
+                    const int h_idx_in = (H_idx * stride_height - padding_top + comp.in_top);
+                    const int w_idx_in = (W_idx * stride_width - padding_left + comp.in_left);
+
+                    const MLI_PTR(io_T) __restrict in_ptr = in.ptr
+                        + in.row_mem_stride * h_idx_in
+                        + in.col_mem_stride * w_idx_in
+                        + in.ch_mem_stride * in_ch_idx;
+
+                    const MLI_PTR(w_T) __restrict w_ptr = w.ptr
+                        + w.row_mem_stride * comp.kernel_top
+                        + w.col_mem_stride * comp.kernel_left
+                        + w.in_ch_mem_stride * 0
+                        + w.out_ch_mem_stride * out_ch_idx;
 
                     // Convolution core. Here calculations performes in a unfolded expression way: 
                     // out_val = (x-x_zp)*(w) + b) = -sum_i(w*x_zp) + sum(x*w) + b
                     //============================================
                     __v2i32_t v2accu_dotprod = {0, 0};
-                    dotprod2D_hwc_v(
-                            &in_ptr[in.col_mem_stride * w_idx_in],
-                            &w_ptr[w.col_mem_stride * comp.left], &v2accu_dotprod, clmns, rows,
+                    dotprod2D_hwc_v(in_ptr, w_ptr, &v2accu_dotprod, clmns, rows,
                             in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height,
                             w.col_mem_stride, w.row_mem_stride);
 
                     __v2i32_t v2acc_weights_add = {0, 0};
-                    v2acc_weights_add = weights_additive_v(
-                            &w_ptr[w.col_mem_stride * comp.left], &v2acc_weights_add, &quant_params, clmns, rows,
+                    v2acc_weights_add = weights_additive_v(w_ptr, &v2acc_weights_add, &quant_params, clmns, rows,
                             w.col_mem_stride, w.row_mem_stride);
 
                     v2accu_dotprod += v2acc_weights_add;
@@ -276,47 +276,49 @@ static MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
             int32_t bias_add = bias_additive(biases++, 0x0, &quant_params);
 
             for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
-                // Define area of input and filter for convolution
-                // comp - compensation values for valid area definition
-                mli_compensations comp;
-                comp.top    = -MIN((H_idx * stride_height)- padding_top, 0);
-                comp.bottom = -MIN(in.height - ((H_idx * stride_height)- padding_top + w.kernel_height), 0);
-                const int rows = w.kernel_height - comp.top - comp.bottom;
-                const int h_idx_in = (H_idx * stride_height - padding_top + comp.top);
-                MLI_PTR(io_T) __restrict in_ptr = in.ptr
-                        + in.row_mem_stride * h_idx_in // move to row
-                        + in.ch - 1;                   // move to channel
-                MLI_PTR(w_T) __restrict w_ptr = w.ptr
-                        + w.row_mem_stride * comp.top // move to row
-                        + out_ch_idx;                 // move to filter
-
                 for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
                     // Define area of input and filter for convolution
                     // comp - compensation values for valid area definition
-                    comp.left  = -MIN((W_idx * stride_width) - padding_left, 0);
-                    comp.right = -MIN(in.width - ((W_idx * stride_width) - padding_left + w.kernel_width), 0);
-                    const int clmns = w.kernel_width - comp.right - comp.left;
-                    const int w_idx_in = (W_idx * stride_width - padding_left + comp.left);
+                    const mli_compensations comp = mli_prv_valid_area_compensations(
+                        H_idx, W_idx, in.height, in.width,
+                        w.kernel_height, w.kernel_width,
+                        stride_height, stride_width, padding_left, padding_top,
+                        dilation_height, dilation_width);
+                    
+                    const int rows = w.kernel_height - comp.kernel_top - comp.kernel_bottom;
+                    const int clmns = w.kernel_width - comp.kernel_right - comp.kernel_left;
+                    const int h_idx_in = (H_idx * stride_height - padding_top + comp.in_top);
+                    const int w_idx_in = (W_idx * stride_width - padding_left + comp.in_left);
+                    const MLI_PTR(io_T) __restrict in_ptr = in.ptr
+                        + in.row_mem_stride * h_idx_in
+                        + in.col_mem_stride * w_idx_in
+                        + in.ch_mem_stride * (in.ch - 1);
+
+                    const MLI_PTR(w_T) __restrict w_ptr = w.ptr
+                        + w.row_mem_stride * comp.kernel_top
+                        + w.col_mem_stride * comp.kernel_left
+                        + w.in_ch_mem_stride * 0
+                        + w.out_ch_mem_stride * out_ch_idx;
 
                     // Convolution core. Here calculations performes in a unfolded expression way: 
                     // out_val = (x-x_zp)*(w) + b) = -sum_i(w*x_zp) + sum(x*w) + b
                     //============================================
                     acc_T accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
-                    accu = dotprod2D(
-                            &in_ptr[in.col_mem_stride * w_idx_in],
-                            &w_ptr[w.col_mem_stride * comp.left], accu, clmns, rows,
+                    accu = dotprod2D(in_ptr, w_ptr, accu, clmns, rows,
                             in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height,
                             w.col_mem_stride, w.row_mem_stride);
 
-                    int32_t w_adds = weights_additive(
-                            &w_ptr[w.col_mem_stride * comp.left], 0x0, &quant_params, clmns, rows,
+                    int32_t w_adds = weights_additive(w_ptr, 0x0, &quant_params, clmns, rows,
                             w.col_mem_stride, w.row_mem_stride);
 
                     accu += w_adds;
                     accu += bias_add;
 
                     // Cast result to output type
-                    result_cast_relu_store(out_ptr, accu, &quant_params, val_min_limit, val_max_limit);
+                    io_T out_val = mli::krn::result_cast<io_T, acc_T, s8asym_quant_specific_params>(accu, &quant_params);
+                    out_val = MIN(out_val, val_max_limit);
+                    out_val = MAX(out_val, val_min_limit);
+                    *out_ptr = out_val;
 
                     out_ptr += out.col_mem_stride;
                 } // for W_idx
@@ -329,7 +331,7 @@ static MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static MLI_FORCE_INLINE void depthwise_convolution2D_hwcn_nopad(
+MLI_FORCE_INLINE void depthwise_convolution2D_hwcn_nopad(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
@@ -352,7 +354,7 @@ static MLI_FORCE_INLINE void depthwise_convolution2D_hwcn_nopad(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T>
-static MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
+MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
@@ -376,7 +378,7 @@ static MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
-static MLI_FORCE_INLINE void depthwise_convolution2D(
+MLI_FORCE_INLINE void depthwise_convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
@@ -398,8 +400,8 @@ static MLI_FORCE_INLINE void depthwise_convolution2D(
     perception_area_nopad.clmn_beg = CEIL_DIV(padding_left, stride_width);
     perception_area_nopad.clmn_end = out.width - CEIL_DIV(padding_right, stride_width);
     
-    if ((perception_area_nopad.row_end - perception_area_nopad.row_beg > 0)
-        && (perception_area_nopad.clmn_end - perception_area_nopad.clmn_beg > 0)){
+    if ((perception_area_nopad.row_end > perception_area_nopad.row_beg)
+        && (perception_area_nopad.clmn_end > perception_area_nopad.clmn_beg)){
     depthwise_convolution2D_hwcn_nopad<io_T, w_T, b_T, acc_T>(
                 in, w, biases, out, perception_area_nopad, quant_params,
                 val_min_limit, val_max_limit,

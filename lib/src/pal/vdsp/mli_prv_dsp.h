@@ -15,7 +15,7 @@
 #include "mli_private_types.h"
 #include "arc_vector_ext.h"
 
-
+#include "../mli_prv_load_store.h"
 
 //=========================================================================
 // This file contains functions that combine the math functions from
@@ -98,6 +98,128 @@ static MLI_FORCE_INLINE void  mli_prv_clip_and_store_output(
     *o_ptr = (int16_t) mli_math_sat_fx<int32_t>(temp, 16);
 }
 
+static MLI_FORCE_INLINE void  mli_prv_clip_and_store_output(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        int64_t * ip_in,
+        const int out_shift) {
+    int64_t temp = mli_math_asr_rnd_fx<int64_t>(*ip_in, out_shift);
+    *o_ptr = (int64_t) mli_math_sat_fx<int64_t>(temp, 48);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        vNx4accint_t ip_in,
+        const int out_shift) {
+    vNx4short_t out = mli_math_acc_cast_fx<vNx4short_t, vNx4accint_t>(ip_in, out_shift);
+    mli_prv_store_n_samples(o_ptr, out);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        vNx4accint_t ip_in,
+        const int out_shift, 
+        int num) {
+    vNx4short_t out = mli_math_acc_cast_fx<vNx4short_t, vNx4accint_t>(ip_in, out_shift);
+    mli_prv_store_n_samples(o_ptr, out, num);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        vNx2accint_t ip_in,
+        const int out_shift) {
+    vNx2short_t out = mli_math_acc_cast_fx<vNx2short_t, vNx2accint_t>(ip_in, out_shift);
+    mli_prv_store_n_samples(o_ptr, out);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        vNx2accint_t ip_in,
+        const int out_shift,
+        int num) {
+    vNx2short_t out = mli_math_acc_cast_fx<vNx2short_t, vNx2accint_t>(ip_in, out_shift);
+    mli_prv_store_n_samples(o_ptr, out, num);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        vNx2int_t ip_in,
+        const int out_shift) {
+    vNx2int_t ip_in_shifted = mli_math_asr_rnd_fx(ip_in, out_shift);
+    vNx2short_t out = mli_math_cast_fx<vNx2int_t, vNx2short_t>(ip_in_shifted);
+    mli_prv_store_n_samples(o_ptr, out);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        vNx2int_t ip_in,
+        const int out_shift,
+        int num) {
+    vNx2int_t ip_in_shifted = mli_math_asr_rnd_fx(ip_in, out_shift);
+    vNx2short_t out = mli_math_cast_fx<vNx2int_t, vNx2short_t>(ip_in_shifted);
+    mli_prv_store_n_samples(o_ptr, out, num);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
+        vNx4accint_t ip_in,
+        const int out_shift) {
+    vNx4char_t out = mli_math_acc_cast_fx<vNx4char_t, vNx4accint_t>(ip_in, out_shift);
+    mli_prv_store_n_samples(o_ptr, out);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
+        vNx4accint_t ip_in,
+        const int out_shift,
+        int num) {
+    vNx4char_t out = mli_math_acc_cast_fx<vNx4char_t, vNx4accint_t>(ip_in, out_shift);
+    mli_prv_store_n_samples(o_ptr, out, num);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        int64_t * ip_in,
+        const int out_shift) {
+    mli_prv_clip_and_store_output(o_ptr, ip_in, out_shift);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
+        int32_t * ip_in,
+        const int out_shift) {
+    mli_prv_clip_and_store_output(o_ptr, ip_in, out_shift);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        int64_t ip_in,
+        const int out_shift) {
+    mli_prv_clip_and_store_output(o_ptr, &ip_in, out_shift);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
+        int32_t ip_in,
+        const int out_shift) {
+    mli_prv_clip_and_store_output(o_ptr, &ip_in, out_shift);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        int64_t ip_in,
+        const int out_shift,
+        int num) {
+    MLI_ASSERT(num == 1);
+    mli_prv_clip_and_store_output(o_ptr, &ip_in, out_shift);
+}
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        int32_t ip_in,
+        const int out_shift,
+        int num) {
+    MLI_ASSERT(num == 1);
+    mli_prv_clip_and_store_output(o_ptr, &ip_in, out_shift);
+}
 //=========================================================================
 
 static MLI_FORCE_INLINE void  mli_prv_shift_clip_and_store_output(
@@ -164,10 +286,19 @@ MLI_FORCE_INLINE vNx4accshort_t mli_prv_init_accu<vNx4accshort_t>() {
     return vvcmpy((vNx4char_t)0, (int8_t)0);
 }
 
+MLI_FORCE_INLINE vNx4accshort_t mli_prv_init_accu(vNx4char_t l, int8_t r) {
+    return vvcmpy(l, r);
+}
+
 template<>
 MLI_FORCE_INLINE vNx2accint_t mli_prv_init_accu<vNx2accint_t>() {
     return vvcmpy((vNx2short_t)0, (short)0);
 }
+
+MLI_FORCE_INLINE vNx2accint_t mli_prv_init_accu(vNx2short_t l, int16_t r) {
+    return vvcmpy(l, r);
+}
+
 
 template<>
 MLI_FORCE_INLINE vNx4accint_t mli_prv_init_accu<vNx4accint_t>() {
@@ -177,17 +308,26 @@ MLI_FORCE_INLINE vNx4accint_t mli_prv_init_accu<vNx4accint_t>() {
     return r;
 }
 
+template<>
+MLI_FORCE_INLINE mli_acc40_t mli_prv_init_accu<int64_t>() {
+    return (int64_t)0;
+}
+
+MLI_FORCE_INLINE vNx4accchar_t mli_prv_init_accu(vNx4char_t inp_val) {
+    return vvcadd_init(inp_val, (int8_t)0);
+}
+
+MLI_FORCE_INLINE vNx2accshort_t mli_prv_init_accu(vNx2short_t inp_val) {
+    return vvcadd_init(inp_val, (int16_t)0);
+}
+
 static MLI_FORCE_INLINE int32_t  mli_prv_init_accu(int8_t inp_val) {
     int32_t acc = inp_val;
-    // _setacc(acc, 1);
-
     return acc;
 }
 
 static MLI_FORCE_INLINE int32_t  mli_prv_init_accu(int32_t inp_val) {
     int32_t acc = inp_val;
-    // _setacc(acc, 1);
-
     return acc;
 }
 
@@ -196,8 +336,6 @@ static MLI_FORCE_INLINE int32_t  mli_prv_init_accu_with_bias(
         const int8_t bias,
         const int bias_shift) {
     int32_t accu = mli_math_asr_rnd_fx<int32_t>((int32_t) bias, -bias_shift);
-    // _setacc(accu, 1);
-
     return accu;
 }
 
@@ -206,11 +344,43 @@ static MLI_FORCE_INLINE int32_t  mli_prv_init_accu_with_bias(
         const int8_t bias,
         const int bias_shift) {
     int32_t accu = mli_math_asr_rnd_fx<int32_t>((int32_t) bias, -bias_shift);
-    // _setacc(accu, 1);
-
     return accu;
 }
 
+template<typename T>
+static MLI_FORCE_INLINE T mli_prv_init_accu_with_bias_v(
+        const int16_t bias,
+        const int bias_shift);
+
+template<>
+MLI_FORCE_INLINE vNx4accint_t mli_prv_init_accu_with_bias_v(
+        const int16_t bias,
+        const int bias_shift) {
+
+    vNx4accint_t r;
+    r.lo = vvcmpy((vNx2short_t)1, (int16_t)bias);
+    r.hi = vvcmpy((vNx2short_t)1, (int16_t)bias);
+    return mli_math_asl_fx(r, bias_shift);
+}
+
+template<>
+MLI_FORCE_INLINE vNx2accint_t mli_prv_init_accu_with_bias_v(
+        const int16_t bias,
+        const int bias_shift) {
+
+    vNx2accint_t r;
+    r = vvcmpy((vNx2short_t)1, (int16_t)bias);
+    return mli_math_asl_fx(r, bias_shift);
+}
+
+template<>
+MLI_FORCE_INLINE mli_acc40_t mli_prv_init_accu_with_bias_v(
+        const int16_t bias,
+        const int bias_shift) {
+
+    mli_acc40_t r = bias;
+    return mli_math_asl_fx(r, bias_shift);
+}
 // Multiply and accumulate for vectors of 1, 2, and 4 elements
 //=========================================================================
 // Note:
@@ -265,6 +435,12 @@ mli_math_acc_ashift_fx(vNx4accint_t acc, int out_shift, int target_sz) {
     v.hi.hi = to_vNint_t(vvconvert(__vacc_hi(acc.hi), ctrlword));
     return v;
 }
+
+template<typename in_T, typename out_T>
+static MLI_FORCE_INLINE out_T mli_prv_init_v(in_T in) {
+    return static_cast<out_T>(in);
+}
+
 #pragma clang diagnostic pop
 
 #endif // _VDSP_MLI_PRV_DSP_H_

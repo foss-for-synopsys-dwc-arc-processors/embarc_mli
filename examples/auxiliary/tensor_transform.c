@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -18,7 +18,7 @@
 //=================================================================================
 mli_status mli_hlp_float_to_fx_tensor (const float *src, uint32_t src_size, mli_tensor * dst) {
     mli_status ret = MLI_STATUS_OK;
-    float scale_val = (float) ((int64_t)1l << mli_hlp_tensor_scale_shift(dst)) / (float) mli_hlp_tensor_scale(dst, 0);
+    float scale_val = (float) ((int64_t)1l << mli_hlp_tensor_scale_shift(dst, 0)) / (float) mli_hlp_tensor_scale(dst, 0);
     int16_t zero_offset = mli_hlp_tensor_zero_offset(dst, 0);
 
     if (dst->el_type == MLI_EL_FX_16) {
@@ -63,7 +63,7 @@ mli_status mli_hlp_float_to_fx_tensor (const float *src, uint32_t src_size, mli_
                 return MLI_STATUS_LENGTH_ERROR;
 
             for (int c_idx = 0; c_idx < conversions_num; c_idx++) {
-                scale_val = ((int64_t)1u << mli_hlp_tensor_scale_shift(dst)) / (float)mli_hlp_tensor_scale(dst, (uint32_t)c_idx);
+                scale_val = ((int64_t)1u << mli_hlp_tensor_scale_shift(dst, (uint32_t)c_idx)) / (float)mli_hlp_tensor_scale(dst, (uint32_t)c_idx);
                 zero_offset = mli_hlp_tensor_zero_offset(dst, c_idx);
                 for (int data_idx = c_idx * elements_to_convert; data_idx < total_elements; data_idx += step_after_conv) {
                     for (int el_idx = 0; el_idx < elements_to_convert; ++el_idx) {
@@ -96,7 +96,7 @@ mli_status mli_hlp_float_to_fx_tensor (const float *src, uint32_t src_size, mli_
                 return MLI_STATUS_LENGTH_ERROR;
 
             for (int c_idx = 0; c_idx < conversions_num; c_idx++) {
-                scale_val = ((int64_t)1u << mli_hlp_tensor_scale_shift(dst)) / (float)mli_hlp_tensor_scale(dst, (uint32_t)c_idx);
+                scale_val = ((int64_t)1u << mli_hlp_tensor_scale_shift(dst, (uint32_t)c_idx)) / (float)mli_hlp_tensor_scale(dst, (uint32_t)c_idx);
                 zero_offset = mli_hlp_tensor_zero_offset(dst, c_idx);
                 for (int data_idx = c_idx * elements_to_convert; data_idx < total_elements; data_idx += step_after_conv) {
                     for (int el_idx = 0; el_idx < elements_to_convert; ++el_idx) {
@@ -123,7 +123,7 @@ mli_status mli_hlp_fx_tensor_to_float (const mli_tensor * src, float *dst, uint3
     if (elem_num == 0)
         return MLI_STATUS_BAD_TENSOR;
 
-    float scale_val = (float)mli_hlp_tensor_scale(src, 0) / (float) ((int64_t)1l << mli_hlp_tensor_scale_shift(src));
+    float scale_val = (float)mli_hlp_tensor_scale(src, 0) / (float) ((int64_t)1l << mli_hlp_tensor_scale_shift(src, 0));
     int16_t zero_offset = mli_hlp_tensor_zero_offset(src, 0);
     if (src->el_type == MLI_EL_FX_16) {
         int16_t *src_arr = src->data.mem.void_p;
@@ -146,7 +146,7 @@ mli_status mli_hlp_fx_tensor_to_float (const mli_tensor * src, float *dst, uint3
             const int conversions_num = src->shape[concat_dim];
 
             for (int c_idx = 0; c_idx < conversions_num; c_idx++) {
-                scale_val = (float)mli_hlp_tensor_scale(src, c_idx) / (float) ((int64_t)1l << mli_hlp_tensor_scale_shift(src));
+                scale_val = (float)mli_hlp_tensor_scale(src, c_idx) / (float) ((int64_t)1l << mli_hlp_tensor_scale_shift(src, c_idx));
                 zero_offset = mli_hlp_tensor_zero_offset(src, c_idx);
                 for (int data_idx = c_idx * elements_to_convert; data_idx < total_elements; data_idx += step_after_conv) {
                     for (int el_idx = 0; el_idx < elements_to_convert; ++el_idx) {
@@ -168,7 +168,7 @@ mli_status mli_hlp_fx_tensor_to_float (const mli_tensor * src, float *dst, uint3
             const int conversions_num = src->shape[concat_dim];
 
             for (int c_idx = 0; c_idx < conversions_num; c_idx++) {
-                scale_val = (float)mli_hlp_tensor_scale(src, c_idx) / (float) ((int64_t)1l << mli_hlp_tensor_scale_shift(src));
+                scale_val = (float)mli_hlp_tensor_scale(src, c_idx) / (float) ((int64_t)1l << mli_hlp_tensor_scale_shift(src, c_idx));
                 zero_offset = mli_hlp_tensor_zero_offset(src, c_idx);
                 for (int data_idx = c_idx * elements_to_convert; data_idx < total_elements; data_idx += step_after_conv) {
                     for (int el_idx = 0; el_idx < elements_to_convert; ++el_idx) {

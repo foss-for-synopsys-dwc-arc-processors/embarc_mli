@@ -17,6 +17,7 @@ using mli::krn::s8asym_quant_params;
 extern const mli_lut tanh_lut_fx16;
 extern const mli_lut sigmoid_lut_fx16;
 extern const mli_lut expneg_lut_fx16;
+extern const mli_lut invsqrt_lut_fx16;
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,23 +27,21 @@ void mli_prv_activation_lut_fx8(
         const mli_tensor *in,
         const mli_tensor *out,
         const mli_lut *lut,
-        int in_frac_bits,
-        int length);
+        int in_frac_bits);
 
 void mli_prv_activation_lut_fx16(
         const mli_tensor *in,
         const mli_tensor *out,
         const mli_lut *lut,
-        int in_frac_bits,
-        int length);
+        int in_frac_bits);
 
 void mli_prv_activation_lut_sa8(
         const mli_tensor *in,
         const mli_tensor *out,
         const mli_lut *lut,
         struct s8asym_quant_params *in_params,
-        struct s8asym_quant_params *out_params,
-        int length);
+        struct s8asym_quant_params *out_params);
+        
 #ifdef __cplusplus
 }
 #endif

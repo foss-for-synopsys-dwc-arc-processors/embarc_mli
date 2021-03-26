@@ -472,7 +472,7 @@ static MLI_FORCE_INLINE void eltwise_op_mul_with_restricts_fx (
 //
 //======================================================
 template <typename io_T, mli_eltwise_type func_type>
-static MLI_FORCE_INLINE void eltwise_prepare_and_run_fx(const mli_tensor *in1, const mli_tensor *in2, mli_tensor *out) {
+static MLI_FORCE_INLINE void eltwise_prepare_and_run(const mli_tensor *in1, const mli_tensor *in2, mli_tensor *out) {
     MLI_PRINTF_FUNC();
 
     mli_prv_fx_init_dsp_ctrl();
@@ -481,18 +481,16 @@ static MLI_FORCE_INLINE void eltwise_prepare_and_run_fx(const mli_tensor *in1, c
     uint32_t in2_sz = mli_prv_count_elem_num(in2);
 
     // Extract in/out pointers to mem
-    const MLI_PTR(io_T) inp1_ptr = (const MLI_PTR(io_T))(in1->data.mem.void_p);
-    const MLI_PTR(io_T) inp2_ptr = (const MLI_PTR(io_T))(in2->data.mem.void_p);
-    MLI_OUT_PTR(io_T) out_ptr = (MLI_OUT_PTR(io_T))(out->data.mem.void_p);
+    const MLI_PTR(io_T) inp1_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in1);
+    const MLI_PTR(io_T) inp2_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in2);
+    MLI_OUT_PTR(io_T) out_ptr = mli_prv_tensor_data_ptr<MLI_OUT_PTR(io_T)>(out);
 
     // Extract in/out as scalar values
-    const io_T in1_scalar = (io_T)((intptr_t)(in1->data.mem.void_p));
-    const io_T in2_scalar = (io_T)((intptr_t)(in2->data.mem.void_p));
-    io_T out_scalar;
+    const io_T in1_scalar = mli_prv_tensor_data_val<io_T>(in1);
+    const io_T in2_scalar = mli_prv_tensor_data_val<io_T>(in2);
 
     inp1_ptr = (in1->rank != 0) ? inp1_ptr : (const MLI_PTR(io_T)) & in1_scalar;
     inp2_ptr = (in2->rank != 0) ? inp2_ptr : (const MLI_PTR(io_T)) & in2_scalar;
-    out_ptr = (out->data.capacity > 0) ? out_ptr : (MLI_OUT_PTR(io_T)) & out_scalar;
 
     // Calc outshift for MUL operation
     const int mul_out_shift = mli_prv_calc_shift(in1, in2, out);
@@ -512,16 +510,11 @@ static MLI_FORCE_INLINE void eltwise_prepare_and_run_fx(const mli_tensor *in1, c
     }
     // Fill output tensor parameters
     //======================================
-    if (out->data.capacity == 0) {
-        // In case we calculated 1 scalar value
-        out->data.mem.void_p = mli_math_cast_scalar_to_ptr_fx(out_scalar);
-        out->rank = 0;
-    } else {
-        const unsigned *shape_ptr = (in1_sz > in2_sz) ? in1->shape : in2->shape;
-        int rank = (in1_sz > in2_sz) ? (int)in1->rank : (int)in2->rank;
-        for (int k = 0; k < rank; k++) out->shape[k] = shape_ptr[k];
-        out->rank = rank;
-    }
+    const unsigned *shape_ptr = (in1_sz > in2_sz) ? in1->shape : in2->shape;
+    int rank = (in1_sz > in2_sz) ? (int)in1->rank : (int)in2->rank;
+    for (int k = 0; k < rank; k++) out->shape[k] = shape_ptr[k];
+    out->rank = rank;
+
     if (func_type != ELTWISE_MUL) out->el_params.fx.frac_bits = in1->el_params.fx.frac_bits;
     out->el_type = in1->el_type;
 }

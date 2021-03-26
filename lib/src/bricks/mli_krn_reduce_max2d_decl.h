@@ -28,26 +28,15 @@ namespace krn {
 ////////////////////////////////////////////////////////////////////////////////
 namespace ref {
 
-template <typename io_T>
-static MLI_FORCE_INLINE void reduce_max2D_hwc_v(
-		const MLI_PTR(io_T) in,
-		MLI_PTR(io_T) out,
-		const int width,
-        const int height,
-		const int col_mem_stride,
-		const int row_mem_stride,
-		const bool fixed_size);
-
-template <typename io_T>
+template <typename io_T, int fixed_kernel_size, bool varying_kernel>
 static MLI_FORCE_INLINE void reduce_max2D_hwc(
 		const MLI_PTR(io_T) in,
 		MLI_PTR(io_T) out,
 		const int width,
         const int height,
-		const int channels,
 		const int col_mem_stride,
 		const int row_mem_stride,
-		const bool fixed_size);
+		const int channels = 1 /*unused*/);
 
 } // namespace ref
 
@@ -56,15 +45,15 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc(
 ////////////////////////////////////////////////////////////////////////////////
 namespace dsp {
 
-template <typename io_T>
-static MLI_FORCE_INLINE void reduce_max2D_hwc_v(
-		const MLI_PTR(io_T) in,
-		MLI_PTR(io_T) out,
-		const int width,
+template <typename io_T, int fixed_kernel_size, bool varying_kernel>
+static MLI_FORCE_INLINE void reduce_max2D_hwc(
+        const MLI_PTR(io_T) in,
+        MLI_PTR(io_T) out,
+        const int width,
         const int height,
-		const int col_mem_stride,
-		const int row_mem_stride,
-		const bool fixed_size);
+        const int col_mem_stride,
+        const int row_mem_stride,
+        const int channels = 1 /*unused*/);
 
 } // namespace dsp
 
@@ -73,26 +62,15 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc_v(
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
 
-template <typename io_T>
-static MLI_FORCE_INLINE void reduce_max2D_hwc_v(
-		const MLI_PTR(io_T) in,
-		MLI_PTR(io_T) out,
-		const int width,
-        const int height,
-		const int col_mem_stride,
-		const int row_mem_stride,
-		const bool fixed_size);
-
-template <typename io_T>
+template <typename io_T, int fixed_kernel_size, bool varying_kernel>
 static MLI_FORCE_INLINE void reduce_max2D_hwc(
-		const MLI_PTR(io_T) in,
-		MLI_PTR(io_T) out,
+		const MLI_PTR(io_T) __restrict in,
+		MLI_PTR(io_T) __restrict out,
 		const int width,
         const int height,
-		const int channels,
 		const int col_mem_stride,
 		const int row_mem_stride,
-		const bool fixed_size);
+        const int channels = 0 /*unused in full vector case*/);
 
 } // namespace vdsp
 

@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -11,6 +11,7 @@
 #define _MLI_PRV_QUANT_DECL_H_
 
 #include "mli_config.h"
+#include "mli_types.h"
 
 namespace mli {
 namespace krn {
@@ -29,10 +30,10 @@ struct s8asym_quant_specific_params {
     int16_t out_offset;
     int16_t weights_offset;
 
-    const int32_t *weight_scales;
+    const int16_t *weight_scales;
     const int8_t *weight_shifts;
     int weight_dim;
-    int32_t in_to_out_scales_ratio;
+    int16_t in_to_out_scales_ratio;
     int32_t in_to_out_shift;
 
     int32_t out_mul;
@@ -40,17 +41,28 @@ struct s8asym_quant_specific_params {
 };
 
 struct s8asym_quant_params {
-	int16_t offset;
-	int16_t shift;
-	int32_t scale;
+    int16_t offset;
+    int16_t shift;
+    int16_t scale;
 };
 #if defined(__Xvec_width)
+struct s8asym_quant_params_v {
+    vNx4short_t offset;
+    vNx4short_t shift;
+    vNx4short_t scale;
+};
 struct s8asym_quant_specific_out_params_v {
     int16_t out_offset;
     vNx4short_t out_mul;
     vNx4short_t out_shift;
 };
 
+#elif defined(__FXAPI__) 
+struct s8asym_quant_params_v {
+    v2i16_t offset;
+    v2i16_t shift;
+    v2i16_t scale;
+};
 #endif
 /**
  * @brief Quantization specific parameter to perform correct calculations in MLI_FX quantization scheme.
@@ -72,6 +84,8 @@ typedef union _conv_math_params {
 ////////////////////////////////////////////////////////////////////////////////
 namespace ref {
 
+MLI_FORCE_INLINE void define_requant_params(const mli_tensor *in, const mli_tensor *out,
+    s8asym_quant_params *params, const uint32_t index = 0);
 template <typename quant_T>
 MLI_FORCE_INLINE void define_quant_params(const mli_tensor* in, const mli_tensor* weights,
         const mli_tensor* bias, const mli_tensor* out, quant_T* params);
@@ -89,8 +103,12 @@ MLI_FORCE_INLINE void adjust_quant_params(s8asym_quant_specific_params* params, 
 template <>
 MLI_FORCE_INLINE void adjust_quant_params(fx_quant_specific_params* in, int krn_idx);
 
-static MLI_FORCE_INLINE int32_t mli_prv_calc_out_mul(const mli_tensor *in0, const mli_tensor *in1,
-        const mli_tensor* out, int* shift);
+MLI_FORCE_INLINE int16_t quant_params_get_weigths_zeropoint(s8asym_quant_specific_params* params);
+
+MLI_FORCE_INLINE int16_t quant_params_get_weigths_zeropoint(fx_quant_specific_params* params);
+
+MLI_FORCE_INLINE int16_t quant_params_set_in_zeropoint(s8asym_quant_specific_params* params, int16_t new_zp);
+MLI_FORCE_INLINE int16_t quant_params_set_in_zeropoint(fx_quant_specific_params* params, int16_t new_zp);
 
 template <typename w_T, typename acc_T, typename quant_T>
 MLI_FORCE_INLINE acc_T weights_additive(const MLI_PTR(w_T) __restrict weights,
@@ -185,9 +203,23 @@ MLI_FORCE_INLINE void result_cast_relu_store(
         const int16_t val_max_limit);
 #endif
 
+template <typename acc_T, typename quant_T>
+MLI_FORCE_INLINE acc_T ir_rnn_result_requantize(const acc_T acc, const quant_T* current_params, 
+                                                        const quant_T* next_params, int krn_idx);
+template <typename acc_T>
+MLI_FORCE_INLINE acc_T ir_rnn_result_requantize(const acc_T acc, const fx_quant_specific_params* params,
+                                                        const fx_quant_specific_params* next_params, int krn_idx);
+template <>
+MLI_FORCE_INLINE mli_acc32_t ir_rnn_result_requantize(const mli_acc32_t acc, const s8asym_quant_specific_params* params,
+                                                        const s8asym_quant_specific_params* next_params, int krn_idx);
+
 template <typename in_T, typename out_T>
 MLI_FORCE_INLINE out_T mli_prv_convert_sa8_fx16(
         const in_T in, const int16_t zero_point, const int scale);
+
+template <typename in_T, typename out_T>
+MLI_FORCE_INLINE out_T mli_prv_convert_sa8_fx16(
+        const in_T in, const int16_t zero_point, const int16_t scale, const int shift);
 
 template <typename in_T, typename out_T>
 MLI_FORCE_INLINE out_T mli_prv_convert_fx16_sa8(
@@ -261,6 +293,10 @@ MLI_FORCE_INLINE out_T mli_prv_convert_sa8_fx16(
         const in_T in, const int16_t zero_point, const int scale);
 
 template <typename in_T, typename out_T>
+MLI_FORCE_INLINE out_T mli_prv_convert_sa8_fx16(
+        const in_T in, const int16_t zero_point, const int16_t scale, const int shift);
+
+template <typename in_T, typename out_T>
 MLI_FORCE_INLINE out_T mli_prv_convert_fx16_sa8(
         const in_T in, const int16_t zero_point, const int scale);
 } // namespace dsp
@@ -275,6 +311,26 @@ MLI_FORCE_INLINE s8asym_quant_specific_out_params_v adjust_quant_params_v(s8asym
 #endif
 
 MLI_FORCE_INLINE fx_quant_specific_params adjust_quant_params_v(fx_quant_specific_params* in, int krn_idx);
+
+template <typename io_T, typename w_T, typename acc_T>
+static MLI_FORCE_INLINE acc_T dotprod_inputzp_1D_v(
+        const MLI_PTR(io_T) __restrict in,
+        const MLI_PTR(w_T)  __restrict krn,
+        acc_T accu,
+        const int vals,
+        const int in_step,
+        const int krn_step,
+        const s8asym_quant_specific_params* quant_params);
+
+template <typename io_T, typename w_T, typename acc_T>
+static MLI_FORCE_INLINE acc_T dotprod_inputzp_1D_v(
+        const MLI_PTR(io_T) __restrict in,
+        const MLI_PTR(w_T)  __restrict krn,
+        acc_T accu,
+        const int vals,
+        const int in_step,
+        const int krn_step,
+        const fx_quant_specific_params* quant_params);
 
 //==========================================================================
 // Calculation of weights additive (w_add) in
@@ -300,12 +356,12 @@ MLI_FORCE_INLINE vNx4accshort_t weights_additive(
 //==========================================================================
 template <typename b_T, typename acc_T, typename quant_T>
 MLI_FORCE_INLINE acc_T bias_additive(const MLI_PTR(b_T) bias, acc_T init_accum,
-        const quant_T* quant_params);
+        const quant_T* quant_params, bool add_preshift_rnd = true);
 
 #if defined(__Xvec_width)
 template <>
 MLI_FORCE_INLINE vNx4accshort_t bias_additive(const MLI_PTR(int32_t) bias, vNx4accshort_t init_accum,
-        const s8asym_quant_specific_params* quant_params);
+        const s8asym_quant_specific_out_params_v* quant_params, bool add_preshift_rnd);
 #endif
 
 //==========================================================================
@@ -318,7 +374,8 @@ static MLI_FORCE_INLINE void result_cast_relu_store_v(
         const quant_T* quant_params,
         const int16_t val_min_limit,
         const int16_t val_max_limit,
-        int num);
+        int num,
+        bool add_preshift_rnd = false);
 
 #if defined(__Xvec_width)
 template <>
@@ -328,7 +385,25 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
         const s8asym_quant_specific_out_params_v* quant_params,
         const int16_t val_min_limit,
         const int16_t val_max_limit,
-        int num);
+        int num,
+        bool add_preshift_rnd);
+#endif
+
+template <typename acc_T, typename quant_T>
+MLI_FORCE_INLINE acc_T ir_rnn_result_requantize(
+        const acc_T acc, const quant_T* current_params,
+        const quant_T* next_params, int krn_idx);
+template <typename acc_T>
+MLI_FORCE_INLINE acc_T ir_rnn_result_requantize(
+        const acc_T acc, const fx_quant_specific_params* params,
+        const fx_quant_specific_params* next_params, int krn_idx);
+
+#if defined(__Xvec_width)
+template <>
+MLI_FORCE_INLINE vNx4accshort_t ir_rnn_result_requantize(
+        const vNx4accshort_t acc,
+        const s8asym_quant_specific_params* params,
+        const s8asym_quant_specific_params* next_params, int krn_idx);
 #endif
 
 //==========================================================================
@@ -337,17 +412,28 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
 template <typename in_T, typename out_T>
 MLI_FORCE_INLINE out_T mli_prv_convert_sa8_fx16(
         const in_T in, const int16_t zero_point, const int scale);
+
+template <typename in_T, typename out_T>
+MLI_FORCE_INLINE out_T mli_prv_convert_sa8_fx16(
+        const in_T in, const int16_t zero_point, const int16_t scale, const int shift);
+
 template <typename in_T, typename out_T>
 MLI_FORCE_INLINE out_T mli_prv_convert_fx16_sa8(
         const in_T in, const int16_t zero_point, const int scale);
 
 #if defined(__Xvec_width)
+template<>
 MLI_FORCE_INLINE vNx4short_t mli_prv_convert_sa8_fx16(
         const vNx4short_t in_val,
         const int16_t zero_point,
         const int scale);
-
+template<>
 MLI_FORCE_INLINE vNx4char_t mli_prv_convert_fx16_sa8(
+        const vNx4short_t in_val,
+        const int16_t zero_point,
+        const int scale);
+template<>
+MLI_FORCE_INLINE vNx4short_t mli_prv_convert_fx16_sa8(
         const vNx4short_t in_val,
         const int16_t zero_point,
         const int scale);

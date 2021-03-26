@@ -11,12 +11,11 @@
 #define _REF_MLI_MATH_H_
 
 #include <limits>
+#include <type_traits>
+#include "mli_debug.h"
 
 typedef int32_t mli_acc32_t;
 typedef int64_t mli_acc40_t;
-
-template <typename io_T>
-MLI_FORCE_INLINE io_T mli_math_ashift_right_fx(io_T in_val, int shift_right);
 
 template <typename T>
 MLI_FORCE_INLINE T mli_math_asl_fx(T x, int nbits);
@@ -69,7 +68,6 @@ template <typename T>
 MLI_FORCE_INLINE T mli_math_asr_rnd_fx(T x, int nbits)
 {
     T r = 0;
-    T last_deleted_mask = (T)1 << (nbits-1);
 
     if (nbits < 0)
         return mli_math_asl_fx<T>(x, (-nbits));
@@ -79,20 +77,21 @@ MLI_FORCE_INLINE T mli_math_asr_rnd_fx(T x, int nbits)
     if (nbits > (sizeof(T) * 8 - 1))
         return 0;
 
-    r = mli_math_asr_fx<T>(x, nbits);
     // Rounding up:
     // if the most significant deleted bit is 1, add 1 to the remaining bits.
 #ifdef ROUND_UP
-        if ((last_deleted_mask & x) != (T)0)
-            return mli_math_add_fx<T>(r, 1);
+    T round = (T)((1u << nbits) >> 1);
+    r = mli_math_add_fx<T>(x, round);
+    r = mli_math_asr_fx<T>(r, nbits);
 #endif
-
 
     // Convergent: rounding with half-way value rounded to even value.
     // If the most significant deleted bit is 1, and 
     // either the least significant of the remaining bits
     // or at least one other deleted bit is 1, add 1 to the remaining bits.
 #ifdef ROUND_CONVERGENT
+    r = mli_math_asr_fx<T>(x, nbits);
+    T last_deleted_mask = (T)((1 << nbits) >> 1);
     if (((x & last_deleted_mask) != (T)0) && 
             (((r & (T)1) != (T)0) ||  ((x & (last_deleted_mask-(T)1))!= (T)0))) {
         return mli_math_add_fx<T>(r, 1);
@@ -138,6 +137,14 @@ MLI_FORCE_INLINE o_T mli_math_norm_fx(T x)
     while ((x >> r) != hi)
         r++;
     return (inp_size - 1) - r;
+}
+
+template<typename in_T, typename out_T>
+MLI_FORCE_INLINE out_T mli_math_norm_cast_fx(in_T val , int *norm_shift) {
+    int cast_shift = (sizeof(in_T) - sizeof(out_T)) * 8;
+    int norm = mli_math_norm_fx<in_T, int>(val);
+    *norm_shift = cast_shift - norm;
+    return mli_math_cast_fx<in_T, out_T>(val, *norm_shift);
 }
 
 // Addition of two fx operands with saturation
@@ -218,6 +225,17 @@ MLI_FORCE_INLINE void *mli_math_cast_scalar_to_ptr_fx(in_T src) {
     return static_cast < void *>((intptr_t *) out_upcast);
 }
 
+// Comparators
+//========================================================================
+template < typename io_T > 
+MLI_FORCE_INLINE bool mli_prv_less_than_1(io_T value, uint8_t frac_bits) {
+    if (frac_bits >= sizeof(io_T) * 8 - 1)
+        return true;
+
+    io_T unit = (io_T) 1 << frac_bits;
+    return (value < unit);
+}
+
 // Accumulator shift
 //========================================================================
 
@@ -226,18 +244,36 @@ MLI_FORCE_INLINE mli_acc32_t mli_math_acc_ashift_fx(mli_acc32_t acc, int shift_r
     return mli_math_asr_rnd_fx<mli_acc32_t>(acc, shift_right);
 }
 
+template <>
+MLI_FORCE_INLINE mli_acc40_t mli_math_acc_ashift_fx(mli_acc40_t acc, int shift_right) {
+    return mli_math_asr_rnd_fx<mli_acc40_t>(acc, shift_right);
+}
+
 // Arithmetic shift (right is default, left on the negative val)
 //========================================================================
 
 template <>
 MLI_FORCE_INLINE int8_t mli_math_ashift_right_fx(int8_t in_val, int shift_right) {
-    int16_t shifted_in_val = mli_math_asr_rnd_fx<int16_t>((int16_t)in_val, shift_right);
-    return (int8_t)mli_math_sat_fx<int16_t>(shifted_in_val, 8);
+    int8_t shifted_in_val = mli_math_asr_rnd_fx<int8_t>((int8_t)in_val, shift_right);
+    return shifted_in_val;
 }
 
 template <>
 MLI_FORCE_INLINE int16_t mli_math_ashift_right_fx(int16_t in_val, int shift_right) {
     return mli_math_asr_rnd_fx<int16_t>(in_val, shift_right);
+}
+
+template <>
+MLI_FORCE_INLINE int32_t mli_math_ashift_right_fx(int32_t in_val, int shift_right) {
+    return mli_math_asr_rnd_fx<int32_t>(in_val, shift_right);
+}
+
+// Multiply and cast float to accum
+//========================================================================
+
+MLI_FORCE_INLINE int32_t mli_math_float_scale(float value, float scale) {
+    const float round_val = value > 0 ? 0.5f : -0.5f;
+    return (int32_t)(value * scale + round_val);
 }
 
 // Cast accum to output type
@@ -256,11 +292,20 @@ MLI_FORCE_INLINE int16_t mli_math_acc_cast_fx(mli_acc32_t acc, int shift_right) 
     return (int16_t) mli_math_sat_fx<mli_acc32_t>(mli_math_asr_fx<mli_acc32_t>(temp, 16), 16);
 }
 
+template <> MLI_FORCE_INLINE mli_acc32_t mli_math_acc_cast_fx(mli_acc32_t acc, int shift_right) {
+    return (int32_t) mli_math_asr_rnd_fx<mli_acc32_t>(acc, shift_right);
+}
+
 // Cast value to output type (including accumulator type)
 //========================================================================
 template <>
 MLI_FORCE_INLINE int8_t mli_math_cast_fx(int16_t in_val, int shift_right) {
     return (int8_t)mli_math_sat_fx<int16_t>(mli_math_asr_rnd_fx<int16_t>(in_val, shift_right), 8);
+}
+
+template <>
+MLI_FORCE_INLINE int8_t mli_math_cast_fx(int8_t in_val, int shift_right) {
+    return (int8_t)mli_math_asr_rnd_fx<int8_t>((int8_t)in_val, shift_right);
 }
 
 template <>
@@ -309,9 +354,15 @@ MLI_FORCE_INLINE mli_acc40_t mli_math_cast_fx(int16_t in_val, int shift_right) {
 }
 
 template <>
+MLI_FORCE_INLINE int8_t mli_math_cast_fx(int64_t in_val, int shift_right) {
+    int64_t temp = (int64_t)mli_math_asr_rnd_fx<int64_t>((int64_t)in_val, shift_right);
+    return (int8_t)mli_math_sat_fx<int64_t>(temp, 56);
+}
+
+template <>
 MLI_FORCE_INLINE int16_t mli_math_cast_fx(int64_t in_val, int shift_right) {
-    int32_t temp = (int32_t)mli_math_asr_rnd_fx<int64_t>(in_val, shift_right);
-    return (int16_t)mli_math_sat_fx<int32_t>(temp, 16);
+    int64_t temp = (int64_t)mli_math_asr_rnd_fx<int64_t>(in_val, shift_right);
+    return (int16_t)mli_math_sat_fx<int64_t>(temp, 48);
 }
 
 template <>
@@ -319,6 +370,12 @@ MLI_FORCE_INLINE int32_t mli_math_cast_fx(int64_t in_val, int shift_right) {
     in_val = mli_math_asr_rnd_fx<int64_t>(in_val, shift_right);
     return (int32_t)mli_math_sat_fx<int64_t>(in_val, 32);
 }
+
+template <>
+MLI_FORCE_INLINE float mli_math_cast_fx(int32_t in_val, int shift_right) {
+    return (float)in_val / (float)(1 << shift_right);
+}
+
 
 // Multipliers used to apply scale factors in asymetric data types
 //========================================================================
@@ -366,7 +423,38 @@ MLI_FORCE_INLINE mli_acc32_t mli_math_mac_fx(mli_acc32_t acc, int16_t L, int8_t 
 }
 
 template <>
+MLI_FORCE_INLINE mli_acc32_t mli_math_mac_fx(mli_acc32_t acc, int8_t L, int16_t R) {
+    return acc + (mli_acc32_t)((int16_t)L * R);
+}
+
+template <>
 MLI_FORCE_INLINE mli_acc40_t mli_math_mac_fx(mli_acc40_t acc, int16_t L, int16_t R) {
     return acc + (mli_acc40_t) ((int32_t)L * (int32_t)R);
 }
+
+// Number of lanes in a vector
+//========================================================================
+template <typename T>
+MLI_FORCE_INLINE int get_number_lanes() {
+    int lanes = 0;
+    if (  std::is_same<T, int8_t>::value
+       || std::is_same<T, int16_t>::value
+       || std::is_same<T, int32_t>::value
+       || std::is_same<T, mli_acc40_t>::value
+       || std::is_same<T, int64_t>::value
+       || std::is_same<T, uint8_t>::value
+       || std::is_same<T, uint16_t>::value
+       || std::is_same<T, uint32_t>::value
+       || std::is_same<T, uint64_t>::value) {
+        lanes = 1;
+    }
+    MLI_ASSERT(lanes > 0);
+    return lanes;
+}
+
+template <typename T>
+MLI_FORCE_INLINE int get_number_lanes(T dummy) {
+    return get_number_lanes<T>();
+}
+
 #endif // _REF_MLI_MATH_H_

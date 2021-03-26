@@ -1,10 +1,5 @@
-/* This file is generated, do not edit!
- * edit following template files instead:
- * filetemplate.txt
- * mli_krn_maxpool_hwc_func_body.txt
- */
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -12,7 +7,7 @@
 *
 */
 
-#include "mli_krn_maxpool_hwc.h"
+#include "mli_krn_pool_hwc.h"
 
 #include "mli_config.h"
 #include "mli_debug.h"
@@ -31,26 +26,26 @@ extern "C" {
 
 mli_status mli_krn_maxpool_hwc_sa8_k2x2(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_sa8(in, cfg, out), __func__);
-    if (ret != MLI_STATUS_OK)
-        return ret;
+    if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
 
-    mli::krn::mli_krn_maxpool_hwc<int8_t, MAXPOOL_FIXED_KRN_SIZE_2>(in, cfg, out);
+    mli::krn::mli_krn_pool_hwc<mli::krn::MAXPOOL, int8_t, POOL_FIXED_KRN_SIZE_2>(in, cfg, out);
     return MLI_STATUS_OK;
 }
 
 mli_status mli_krn_maxpool_hwc_sa8_k3x3(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_sa8(in, cfg, out), __func__);
-    if (ret != MLI_STATUS_OK)
-        return ret;
+    if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
 
-    mli::krn::mli_krn_maxpool_hwc<int8_t, MAXPOOL_FIXED_KRN_SIZE_3>(in, cfg, out);
+    mli::krn::mli_krn_pool_hwc<mli::krn::MAXPOOL, int8_t, POOL_FIXED_KRN_SIZE_3>(in, cfg, out);
     return MLI_STATUS_OK;
 }
 
 mli_status mli_krn_maxpool_hwc_sa8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_sa8(in, cfg, out), __func__);
-    if (ret != MLI_STATUS_OK)
-        return ret;
+    if (ret != MLI_STATUS_OK) return ret;
+    MLI_PRINT_COMPILE_OPTIONS();
 
     int kernel_w = cfg->kernel_width;
     int kernel_h = cfg->kernel_height;
@@ -60,7 +55,7 @@ mli_status mli_krn_maxpool_hwc_sa8(const mli_tensor * in, const mli_pool_cfg * c
     } else if ((kernel_w == 2) && (kernel_h == 2)) {
         return mli_krn_maxpool_hwc_sa8_k2x2(in, cfg, out);
     } else {
-        mli::krn::mli_krn_maxpool_hwc<int8_t, MAXPOOL_NO_FIXED_KRN_SIZE>(in, cfg, out);
+        mli::krn::mli_krn_pool_hwc<mli::krn::MAXPOOL, int8_t, POOL_NO_FIXED_KRN_SIZE>(in, cfg, out);
     }
 
     return MLI_STATUS_OK;

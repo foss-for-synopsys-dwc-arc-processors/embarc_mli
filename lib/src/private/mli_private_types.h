@@ -50,6 +50,7 @@ struct conv2d_weights_tensor_private_t {
 template <typename T>
 struct generic_tensor_private_t {
     T __restrict ptr;
+    int rank;
     int shape[MLI_MAX_RANK];
     int mem_stride[MLI_MAX_RANK];
 };
@@ -64,17 +65,6 @@ typedef struct {
     uint32_t clmn_beg;
     uint32_t clmn_end;
 } rect_t;
-
-/**
- * Lookup table config definition 
- */
-typedef struct {
-    const void* data;
-    mli_element_type type;
-    int length;
-    int frac_bits;
-    int offset;
-} mli_lut;
 
 // Value range for applying ReLU 
 typedef struct {

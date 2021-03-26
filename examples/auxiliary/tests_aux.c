@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -165,7 +165,7 @@ test_status measure_ref_to_pred(
     float * pred_buf = NULL;
     uint32_t data_buf_size = kMaxBufSizeToMalloc;
     test_status ret = TEST_PASSED;
-    const uint32_t max_path_sz = 128;
+    const uint32_t max_path_sz = 256;
     const uint32_t buffers_to_alloc = 2;
     char * path = NULL;
 
@@ -233,7 +233,7 @@ test_status measure_ref_to_pred(
     float noise_accum = 0.f;
     float quant_accum = 0.f;
     float max_abs_err = -1.f;
-    const float quant_scale = (float)((int64_t)1l << mli_hlp_tensor_scale_shift(&pred)) / (float)mli_hlp_tensor_scale(&pred, 0);
+    const float quant_scale = (float)((int64_t)1l << mli_hlp_tensor_scale_shift(&pred, 0)) / (float)mli_hlp_tensor_scale(&pred, 0);
     const int16_t quant_zero_offset = mli_hlp_tensor_zero_offset(&pred, 0);
     const float quant_max = (1 << (8*pred_elem_size - 1)) - 1.0f;
     const float quant_min = -(1 << (8*pred_elem_size - 1));
@@ -245,7 +245,7 @@ test_status measure_ref_to_pred(
         pred.shape[0] = descr.num_elements;
 
         if (idx_file_read_data(&descr, (void *)ref_buf, NULL) != IDX_ERR_NONE ||
-                mli_hlp_fx_tensor_to_float(&pred, pred_buf, data_buf_size) != MLI_STATUS_OK) {
+            mli_hlp_fx_tensor_to_float(&pred, pred_buf, data_buf_size) != MLI_STATUS_OK) {
             DEBUG_BREAK;
             ret =  TEST_SUIT_ERROR;
             goto ret_label;
@@ -268,7 +268,7 @@ test_status measure_ref_to_pred(
 
     const float eps = 0.000000000000000001f;
     out->max_abs_err = max_abs_err;
-    out->quant_err_vec_length = sqrtf(quant_accum)/quant_scale;
+    out->quant_err_vec_length = sqrtf(quant_accum) / quant_scale;
     out->pred_vec_length = sqrtf(pred_accum);
     out->ref_vec_length = sqrtf(ref_accum);
     out->noise_vec_length = sqrtf(noise_accum);
@@ -308,6 +308,7 @@ test_status measure_err_vfloat(
         ref_accum += ref_vec[i] * ref_vec[i];
         pred_accum += pred_vec[i] * pred_vec[i];
         noise_accum += (ref_vec[i] - pred_vec[i]) * (ref_vec[i] - pred_vec[i]);
+
         max_err = MAX(fabsf(ref_vec[i] - pred_vec[i]), max_err);
     }
 
@@ -335,25 +336,28 @@ test_status fill_asym_tensor_element_params(
         return TEST_FAILED;
     }
     
-    const int8_t scale_fraq_bits = FRAQ_BITS(scale_int_bits, int32_t);
-    const uint64_t mult = (uint64_t)1l << FRAQ_BITS(scale_int_bits, int32_t);
-    int32_t* scale_dst;
+    const int8_t scale_fraq_bits = FRAQ_BITS(scale_int_bits, int16_t);
+    const uint32_t mult = (uint32_t)1l << scale_fraq_bits;
+    int16_t* scale_dst;
     int16_t* zp_dst;
+    int8_t* frac_dst;
 
     if (num_vals > 1) {
-        if (target_tensor->el_params.sa.scale.mem.pi32 == NULL ||
-                target_tensor->el_params.sa.zero_point.mem.pi16 == NULL) {
+        if (target_tensor->el_params.sa.scale.mem.pi16 == NULL ||
+                target_tensor->el_params.sa.zero_point.mem.pi16 == NULL ||
+                target_tensor->el_params.sa.scale_frac_bits.mem.pi8 == NULL) {
             DEBUG_BREAK;
             return TEST_NOT_ENOUGH_MEM;
         }
 
-        scale_dst = target_tensor->el_params.sa.scale.mem.pi32;
+        scale_dst = target_tensor->el_params.sa.scale.mem.pi16;
         zp_dst = target_tensor->el_params.sa.zero_point.mem.pi16;
+        frac_dst = target_tensor->el_params.sa.scale_frac_bits.mem.pi8;
     } else {
-        scale_dst = &target_tensor->el_params.sa.scale.mem.i32;
+        scale_dst = &target_tensor->el_params.sa.scale.mem.i16;
         zp_dst = &target_tensor->el_params.sa.zero_point.mem.i16;
+        frac_dst = &target_tensor->el_params.sa.scale_frac_bits.mem.i8;
     }
-    target_tensor->el_params.sa.scale_frac_bits = scale_fraq_bits;
 
     for (int i = 0; i < num_vals; i++) {
         if (scale_rates[i] <= 0.0f) {
@@ -363,8 +367,10 @@ test_status fill_asym_tensor_element_params(
 
         const float round_val = 0.5f;
 
-        const int64_t dst_val = (int64_t) (mult * scale_rates[i] + round_val);
-        scale_dst[i] = (int32_t) (MIN(MAX(dst_val, INT32_MIN), INT32_MAX));
+        const int32_t dst_val = (int32_t) (mult * scale_rates[i] + round_val);
+        scale_dst[i] = (int16_t) (MIN(MAX(dst_val, INT16_MIN), INT16_MAX));
+
+        frac_dst[i] = scale_fraq_bits;
 
         const int32_t zero_val = (int32_t)(-zero_points[i] / scale_rates[i] + round_val);
         zp_dst[i] = (int16_t)(MIN(MAX(zero_val , INT16_MIN), INT16_MAX));

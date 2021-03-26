@@ -1,5 +1,5 @@
 /*
-* Copyright 2020-2020, Synopsys, Inc.
+* Copyright 2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -13,6 +13,8 @@
 #include "mli_config.h"
 #include "mli_types.h"
 #include "mli_prv_tensor.h"
+#include "mli_prv_quant.h"
+
 
 namespace mli {
 namespace krn {
@@ -27,54 +29,23 @@ namespace krn {
 // REF
 ////////////////////////////////////////////////////////////////////////////////
 namespace ref {
-template <typename io_T>
-static MLI_FORCE_INLINE void avepool_hwc_nopad(
-        const int row_beg,
-        const int row_end,
-        const int clmn_beg,
-        const int clmn_end,
-        const tensor_private_t<MLI_PTR(io_T)> &in,
-        const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
-        const int kernel_height,
-        const int kernel_width,
-        const int stride_height,
-        const int stride_width,
-        const int padding_top,
-        const int padding_left,
-        const int padding_right,
-        const int padding_bot);
-template <typename io_T>
-static MLI_FORCE_INLINE void avepool_hwc(
-        const int row_beg,
-        const int row_end,
-        const int clmn_beg,
-        const int clmn_end,
-        const tensor_private_t<MLI_PTR(io_T)> &in,
-        const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
-        const int kernel_height,
-        const int kernel_width,
-        const int stride_height,
-        const int stride_width,
-        const int padding_top,
-        const int padding_left,
-        const int padding_right,
-        const int padding_bot);
-template <typename io_T>
-static MLI_FORCE_INLINE void avepool_hwc_krnpad(
-        int row_beg,
-        int row_end,
-        int clmn_beg,
-        int clmn_end,
-        const tensor_private_t<MLI_PTR(io_T)> &in,
-        const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
-        const int kernel_height,
-        const int kernel_width,
-        const int stride_height,
-        const int stride_width,
-        const int padding_top,
-        const int padding_left,
-        const int padding_right,
-        const int padding_bot);
+
+static MLI_FORCE_INLINE void get_mul_shift_value(
+        unsigned div,
+        int16_t* mul, int* shift);
+
+template<typename io_T, int fixed_kernel_size, bool varying_kernel>
+static MLI_FORCE_INLINE void compute_avepool(
+        const MLI_PTR(io_T) __restrict in,
+        MLI_OUT_PTR(io_T) __restrict out,
+        const int16_t mul,
+        const int width,
+        const int height,
+        const int col_mem_stride,
+        const int row_mem_stride,
+        const int32_t zp,
+        const int shift_value,
+        const int channels = 1 /*unused*/);
 
 } // namespace ref
 
@@ -82,54 +53,18 @@ static MLI_FORCE_INLINE void avepool_hwc_krnpad(
 // DSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace dsp {
-template <typename io_T>
-static MLI_FORCE_INLINE void avepool_hwc_nopad(
-        const int row_beg,
-        const int row_end,
-        const int clmn_beg,
-        const int clmn_end,
-        const tensor_private_t<MLI_PTR(io_T)> &in,
-        const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
-        const int kernel_height,
-        const int kernel_width,
-        const int stride_height,
-        const int stride_width,
-        const int padding_top,
-        const int padding_left,
-        const int padding_right,
-        const int padding_bot);
-template <typename io_T>
-static MLI_FORCE_INLINE void avepool_hwc(
-        const int row_beg,
-        const int row_end,
-        const int clmn_beg,
-        const int clmn_end,
-        const tensor_private_t<MLI_PTR(io_T)> &in,
-        const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
-        const int kernel_height,
-        const int kernel_width,
-        const int stride_height,
-        const int stride_width,
-        const int padding_top,
-        const int padding_left,
-        const int padding_right,
-        const int padding_bot);
-template <typename io_T>
-static MLI_FORCE_INLINE void avepool_hwc_krnpad(
-        int row_beg,
-        int row_end,
-        int clmn_beg,
-        int clmn_end,
-        const tensor_private_t<MLI_PTR(io_T)> &in,
-        const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
-        const int kernel_height,
-        const int kernel_width,
-        const int stride_height,
-        const int stride_width,
-        const int padding_top,
-        const int padding_left,
-        const int padding_right,
-        const int padding_bot);
+template<typename io_T, int fixed_kernel_size, bool varying_kernel>
+static MLI_FORCE_INLINE void compute_avepool(
+        const MLI_PTR(io_T) __restrict in,
+        MLI_OUT_PTR(io_T) __restrict out,
+        const int16_t mul,
+        const int width,
+        const int height,
+        const int col_mem_stride,
+        const int row_mem_stride,
+        const int32_t zp,
+        const int shift_value,
+        const int channels = 1 /*unused*/);
 
 } // namespace dsp
 
@@ -138,9 +73,21 @@ static MLI_FORCE_INLINE void avepool_hwc_krnpad(
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
 
-} // namespace vdsp
+template<typename io_T, int fixed_kernel_size, bool varying_kernel>
+static MLI_FORCE_INLINE void compute_avepool(
+        const MLI_PTR(io_T) __restrict in,
+        MLI_OUT_PTR(io_T) __restrict out,
+        const int16_t mul,
+        const int width,
+        const int height,
+        const int col_mem_stride,
+        const int row_mem_stride,
+        const int32_t zp,
+        const int shift_value,
+        const int channels = 0 /*unused in full vector case*/);
 
+} // namespace vdsp
 } // namespace krn
 } // namespace mli
 
-#endif // _MLI_KRN_AVEPOOL_HWC_DECL_H_
+#endif // _MLI_PRV_LUT_DECL_H_

@@ -35,15 +35,13 @@ static const int kPreDivShiftS32 = 30;
 template <>
 MLI_FORCE_INLINE void adjust_quant_params(s8asym_quant_specific_params* params, int krn_idx) {
     // out multiplyer can be different across one of axis (per axis quantization for s8asym)
-    // but will be the same in case of per tensor quantization.
     if (params->weight_dim < 0) {
         krn_idx = 0;
     }
-    int mul_fx_high_shift = 31;
-    params->out_mul = mli_math_mul_fx_high<int32_t, int32_t>(params->in_to_out_scales_ratio, params->weight_scales[krn_idx]);
+    params->out_mul = params->in_to_out_scales_ratio * params->weight_scales[krn_idx];
+
     params->out_shift = params->in_to_out_shift;
-    params->out_shift += params->weight_shifts[0];
-    params->out_shift -= mul_fx_high_shift;
+    params->out_shift += params->weight_shifts[krn_idx];
 
 #if !defined(FULL_ACCU)
     // When the accumulator is pre-shifted before the output multiplier,
@@ -72,9 +70,7 @@ MLI_FORCE_INLINE acc_T weights_additive_v(
 
     // returns -(in_zero_point * cumsum(weights)) For S8ASYM
     if (quant_params->in_offset != 0) {
-        acc_T tmp_acc = reduce_sum2D_v(weights, -quant_params->in_offset, init_accum, width, height, col_step, row_step);
-        //compensite increment of weights pointer from reduce_sum2D_v function
-        weights -= height * row_step;
+        acc_T tmp_acc = reduce_sum2D_v(weights, -quant_params->in_offset, *init_accum, width, height, col_step, row_step);
         return tmp_acc;
     } else {
         return *init_accum;
@@ -88,10 +84,12 @@ MLI_FORCE_INLINE acc_T weights_additive_v(
         const int width,  const int height, int col_step, int row_step) {
 
     // returns -(in_zero_point * cumsum(weights)) For S8ASYM
-    if (quant_params->in_offset != 0)
-        return reduce_sum2D_v(weights, -quant_params->in_offset, init_accum, width, height, col_step, row_step);
-    else
+    if (quant_params->in_offset != 0) {
+        acc_T tmp_acc = reduce_sum2D_v(weights, -quant_params->in_offset, *init_accum, width, height, col_step, row_step);
+        return tmp_acc;
+    } else {
         return *init_accum;
+    }
 }
 
 MLI_FORCE_INLINE mli_acc32_t weights_additive_d(
@@ -99,10 +97,12 @@ MLI_FORCE_INLINE mli_acc32_t weights_additive_d(
         const s8asym_quant_specific_params* quant_params,
         const int width,  const int height, int col_step, int row_step) {
     // returns -(in_zero_point * cumsum(weights)) For S8ASYM
-    if (quant_params->in_offset != 0)
-        return reduce_sum2D_d(weights, -quant_params->in_offset, init_accum, width, height, col_step, row_step);
-    else
+    if (quant_params->in_offset != 0) {
+        mli_acc32_t tmp_acc = reduce_sum2D_d(weights, -quant_params->in_offset, *init_accum, width, height, col_step, row_step);
+        return tmp_acc;
+    } else {
         return *init_accum;
+    }
 }
 
 // Depending on memory alignment of input pointers, certain functions below will perform
@@ -207,6 +207,19 @@ MLI_FORCE_INLINE v2q15_t mli_prv_convert_sa8_fx16(
 }
 
 template<>
+MLI_FORCE_INLINE v2q15_t mli_prv_convert_sa8_fx16(
+    const v2q15_t in,
+    const int16_t zero_point,
+    const int16_t scale,
+    const int shift) {
+    v2q15_t zero_point_v = fx_replic_v2q15(zero_point);
+    v2q15_t scale_v = fx_replic_v2q15(scale);
+    v2q15_t in_biased_shifted_no_zp = fx_sub_v2q15(in, zero_point_v);
+    v2accum40_t in_scaled = mli_math_mul_fx<v2q15_t, v2accum40_t>(in_biased_shifted_no_zp, scale_v);
+    return mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(in_scaled, shift);
+}
+
+template<>
 MLI_FORCE_INLINE v2q15_t mli_prv_convert_fx16_sa8(
     const v2q15_t in,
     const int16_t zero_point,
@@ -221,6 +234,16 @@ MLI_FORCE_INLINE v2q15_t mli_prv_convert_fx16_sa8(
     fx_output32_shifted = mli_math_acc_ashift_fx<mli_acc32_t>(fx_output32, scale) + zero_point;
     int8_t res_2 = mli_math_acc_cast_fx<int8_t, mli_acc32_t>(fx_output32_shifted, 0);
     return fx_create_v2q15(res_1, res_2);
+}
+
+template<>
+MLI_FORCE_INLINE v2q15_t mli_prv_convert_fx16_sa8(
+    const v2accum40_t in,
+    const int16_t zero_point,
+    const int scale) {
+
+    v2q15_t x = mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(in, scale) + zero_point;
+    return fx_sat_v2q15_n(x, 8);
 }
 
 } // namespace dsp

@@ -21,7 +21,7 @@ namespace mli {
 namespace krn {
 namespace dsp {
 
-template <typename io_T>
+template <typename io_T, bool varying_kernel>
 static MLI_FORCE_INLINE void reduce_max2D_hwc_v(
 		const MLI_PTR(io_T) in,
 		MLI_PTR(io_T) out,
@@ -29,7 +29,7 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc_v(
         const int height,
 		const int col_mem_stride,
 		const int row_mem_stride,
-		const bool fixed_size) {
+        const int channels) {
 
     v2q15_t cur_max = mli_prv_load_2_samples(in);
     if (width == 1){
@@ -43,7 +43,7 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc_v(
     } else {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wpass-failed"
-        if (fixed_size && height <= REDUCE_MAX2D_UNROLL_FACTOR_FOR_HEIGHT &&
+        if (!varying_kernel && height <= REDUCE_MAX2D_UNROLL_FACTOR_FOR_HEIGHT &&
         		width <= REDUCE_MAX2D_UNROLL_FACTOR_FOR_WIDTH) {
 #pragma clang loop unroll(full)
             for (int row = 0; row < height; row++) {
@@ -64,7 +64,20 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc_v(
 #pragma clang diagnostic pop
     }
 
-    mli_prv_store_2_samples(out, cur_max);
+    mli_prv_store_n_samples(out, cur_max, channels);
+}
+
+template <typename io_T, int fixed_kernel_size, bool varying_kernel>
+static MLI_FORCE_INLINE void reduce_max2D_hwc(
+        const MLI_PTR(io_T) in,
+        MLI_PTR(io_T) out,
+        const int width,
+        const int height,
+        const int col_mem_stride,
+        const int row_mem_stride,
+        const int channels) {
+
+    reduce_max2D_hwc_v<io_T, varying_kernel>(in, out, width, height, col_mem_stride, row_mem_stride, channels);
 }
 
 } // namespace dsp

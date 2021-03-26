@@ -54,7 +54,7 @@ Application will create `result.bmp` file in the working directory. It's a 'gray
 
 ### Build with ARC GNU toolchain
 
-Here we will consider building with ARC GNU toolchain. As a platform for the assembly, we use the [IoT Devkit](https://embarc.org/embarc_osp/doc/build/html/board/iotdk.html) from [the embARC Open Software Platform (OSP)](https://embarc.org/embarc_osp/doc/build/html/introduction/introduction.html#)
+Here we will consider building with ARC GNU toolchain. As a platform for the assembly, we use the [IoT Devkit](https://foss-for-synopsys-dwc-arc-processors.github.io/embarc_osp/doc/build/html/board/iotdk.html) from [the embARC Open Software Platform (OSP)](https://foss-for-synopsys-dwc-arc-processors.github.io/embarc_osp/doc/build/html/introduction/introduction.html#)
 
     Build requirements:
         - ARC GNU toolchain version 2018.09 or higher
@@ -91,7 +91,7 @@ Here we will consider building with ARC GNU toolchain. As a platform for the ass
 
 ### Run example without MetaWare Development tools
 
-See documentation on [IoT Devkit](https://embarc.org/embarc_osp/doc/build/html/board/iotdk.html) on how to run executable built with [ARC GNU](https://embarc.org/toolchain/index.html) and [ARC open source development tools](https://embarc.org/embarc_osp/doc/build/html/index.html) on IoT Devkit.
+See documentation on [IoT Devkit](https://foss-for-synopsys-dwc-arc-processors.github.io/embarc_osp/doc/build/html/board/iotdk.html) on how to run executable built with [ARC GNU](https://foss-for-synopsys-dwc-arc-processors.github.io/toolchain/index.html) and [ARC open source development tools](https://foss-for-synopsys-dwc-arc-processors.github.io/embarc_osp/doc/build/html/index.html) on IoT Devkit.
 
 Example Structure
 --------------------

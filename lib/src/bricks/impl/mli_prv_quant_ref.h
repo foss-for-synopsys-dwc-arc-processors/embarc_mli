@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -20,7 +20,7 @@
 #include "mli_private_types.h"
 #include "mli_prv_tensor.h"
 #include "mli_types.h"
-//#include "mli_krn_reduce_sum2d.h"
+#include "mli_krn_reduce_sum2d.h"
 
 #include <assert.h>
 
@@ -28,52 +28,77 @@ namespace mli {
 namespace krn {
 namespace ref {
 
-template <typename io_T, typename acc_T>
-MLI_FORCE_INLINE acc_T reduce_sum(
-        const io_T* __restrict in,
-        const int16_t mul,
-        acc_T accu,
-
-        const int vals,
-        const int step = 1) {
-    for (int idx = 0; idx < vals; idx++) {
-        accu = mli_math_mac_fx(accu, mul, (*in));
-        in += step;
-    }
-    return accu;
-}
-
-template <typename io_T, typename acc_T>
-MLI_FORCE_INLINE acc_T reduce_sum2D(
-        const MLI_PTR(io_T) __restrict in,
-        const int16_t mul,
-        acc_T accu,
-        const int width,
-        const int height,
-        int in_col_step,
-        int in_row_step) {
-    in_row_step -= width * in_col_step;
-    for (int row = 0; row < height; row++) {
-        for (int clmn = 0; clmn < width; clmn++) {
-            accu = mli_math_mac_fx(accu, mul, (*in));
-            in += in_col_step;
-        }
-        in += in_row_step;
-    }
-    return accu;
-}
-
 static const int kPreDivShiftS16 = 14;
 static const int kPreDivShiftS32 = 30;
 
 //==========================================================================
 // Operating with quantization params set
 //==========================================================================
+
+MLI_FORCE_INLINE void define_requant_params(const mli_tensor *in, const mli_tensor *out, 
+        s8asym_quant_params *params, const uint32_t index) {
+
+    /* ****************************************************************************************************************
+     *             Mathematical Derivations out_sa8 Requantization Params to use with in_sa8
+     * ----------------------------------------------------------------------------------------------------------------
+     *      out_sa8 = (in_scale_val/out_scale_val) *(in_sa8 - in_zp) + out_zp
+     *              = scale_val * (in_sa8 - in_zp) + out_zp
+     *              = scale_val * in_sa8 + out_zp - scale_val * in_zp
+     *              = scale_val * in_sa8 + offset;
+     *      where:
+     * 
+     *      scale_val = in_scale_val / out_scale_val;
+     *                = in_scale * 2^(-in_scale_frac_bits) / (out_scale * 2^(-out_scale_frac_bits));
+     *                = (in_scale_val * 2^kPreDivShift / out_scale_val) 
+     *                 * 2^(-(kPreDivShift + in_scale_frac_bits - out_scale_frac_bits));
+     *                = (in_scale_val * 2^kPreDivShift / out_scale_val) * 2^(-norm_shift) 
+     *                 * 2^(-(kPreDivShift + in_scale_frac_bits - out_scale_frac_bits - norm_shift));
+     *                = (in_scale_val * 2^kPreDivShift / out_scale_val) * 2^(-norm_shift) 
+     *                 * 2^(-scale_shift)
+     *                = scale * 2 ^(-(scale_shift))
+     * 
+     *      where scale = (in_scale_val * 2^kPreDivShift / out_scale_val) * 2^(-norm_shift)
+     *            scale_shift = kPreDivShift + in_scale_frac_bits - out_scale_frac_bits - norm_shift
+     *            norm_shift is the shift value due to normalizing the result of 
+     *                       (in_scale_val * 2^kPreDivShift / out_scale_val) and casting it from int32_t to int16_t
+     *            kPreDivShift is derived from norm_32(in_scale) - norm_16(out_scale)
+     * 
+     *      offset = out_zp - scale_val * in_zp
+     *             = out_zp - (scale * in_zp) * 2^(-(scale_shift));
+     * 
+     * ***************************************************************************************************************/
+
+    /* kPreDivShift = norm_32(in_scale_val) - norm_16(out_scale_val) */
+    int kPreDivShift =  mli_math_norm_fx<int32_t, int32_t>(mli_hlp_tensor_scale(in, index)) -
+                        mli_math_norm_fx<int16_t, int32_t>(mli_hlp_tensor_scale(out, index));
+    /* Normalize In/Out Scale ratio and cast to 16bit */
+    int norm_shift;
+    params->scale = mli_math_norm_cast_fx<int32_t, int16_t>(
+                    ((int32_t)(mli_hlp_tensor_scale(in, index)) << kPreDivShift) /
+                               mli_hlp_tensor_scale(out, index), &norm_shift);
+    
+    params->shift  = kPreDivShift;
+    params->shift += mli_hlp_tensor_scale_shift(in, index) - mli_hlp_tensor_scale_shift(out, index);
+    params->shift -= norm_shift;
+    
+    int16_t in_zp = mli_hlp_tensor_zero_offset(in, index);
+    int16_t out_zp = mli_hlp_tensor_zero_offset(out, index);
+    
+    params->offset = mli_math_sub_fx<int16_t>(out_zp, 
+                     mli_math_cast_fx<int32_t, int16_t>(
+                     mli_math_mul_fx<int16_t, int32_t>(params->scale, in_zp), params->shift));
+}
+
 template <>
 MLI_FORCE_INLINE void define_quant_params(const mli_tensor* in, const mli_tensor* weights, const mli_tensor* bias,
                                 const mli_tensor* out, fx_quant_specific_params* params) {
-    params->bias_shift = mli_prv_calc_shift(in, weights, bias);
-    params->out_shift = mli_prv_calc_shift(in, weights, out);
+
+    MLI_ASSERT((in->el_type == MLI_EL_FX_8) || (in->el_type == MLI_EL_FX_16));
+    MLI_ASSERT((weights->el_type == MLI_EL_FX_8) || (weights->el_type == MLI_EL_FX_16));
+    MLI_ASSERT((out->el_type == MLI_EL_FX_8) || (out->el_type == MLI_EL_FX_16));
+
+    params->bias_shift = in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits - bias->el_params.fx.frac_bits;
+    params->out_shift = in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits - out->el_params.fx.frac_bits;
 }
 
 template <>
@@ -86,46 +111,44 @@ MLI_FORCE_INLINE void define_quant_params(const mli_tensor *in, const mli_tensor
     if (weights->el_params.sa.dim >= 0) {
         // per axis quantization
         params->weights_offset = weights->el_params.sa.zero_point.mem.pi16[0];
-        params->weight_scales = weights->el_params.sa.scale.mem.pi32;
-        params->weight_shifts = &weights->el_params.sa.scale_frac_bits;
+        params->weight_scales = weights->el_params.sa.scale.mem.pi16;
+        params->weight_shifts = weights->el_params.sa.scale_frac_bits.mem.pi8;
     } else {
         // per tensor quantization
         params->weights_offset = weights->el_params.sa.zero_point.mem.i16;
-        params->weight_scales = &weights->el_params.sa.scale.mem.i32;
-        params->weight_shifts = &weights->el_params.sa.scale_frac_bits;
+        params->weight_scales = &weights->el_params.sa.scale.mem.i16;
+        params->weight_shifts = &weights->el_params.sa.scale_frac_bits.mem.i8;
     }
-    int64_t scale_unfinished = (int64_t)(in->el_params.sa.scale.mem.i32) << kPreDivShiftS32;
-    scale_unfinished = scale_unfinished / out->el_params.sa.scale.mem.i32;
-    params->in_to_out_scales_ratio = mli_math_cast_fx<int64_t, int32_t>(scale_unfinished, 0);
+    int32_t scale_unfinished = (int32_t)(in->el_params.sa.scale.mem.i16) << kPreDivShiftS16;
+    scale_unfinished = scale_unfinished / out->el_params.sa.scale.mem.i16;
+    params->in_to_out_scales_ratio = scale_unfinished;
 
-    int in_to_out_norm = mli_math_norm_fx<int32_t, int>(params->in_to_out_scales_ratio);
-    params->in_to_out_scales_ratio = params->in_to_out_scales_ratio << in_to_out_norm;
-    params->in_to_out_shift = in->el_params.sa.scale_frac_bits;
-    params->in_to_out_shift += (kPreDivShiftS32 - out->el_params.sa.scale_frac_bits);
-    params->in_to_out_shift += in_to_out_norm;
+    int in_to_out_norm = mli_math_norm_fx<int32_t, int>(scale_unfinished);
+    int int32_to_int16_shift = 16;
+    params->in_to_out_scales_ratio = mli_math_cast_fx<int32_t, int16_t>(scale_unfinished, int32_to_int16_shift - in_to_out_norm);
+    params->in_to_out_shift = in->el_params.sa.scale_frac_bits.mem.i8;
+    params->in_to_out_shift += (kPreDivShiftS16 - out->el_params.sa.scale_frac_bits.mem.i8);
+    params->in_to_out_shift -= int32_to_int16_shift - in_to_out_norm;
 
 }
 
 template <>
 MLI_FORCE_INLINE void adjust_quant_params(s8asym_quant_specific_params* params, int krn_idx) {
     // out multiplyer can be different across one of axis (per axis quantization for s8asym)
-    // but will be the same in case of per tensor quantization.
     if (params->weight_dim < 0) {
         krn_idx = 0;
     }
-    const int64_t out_mul_scaled = (int64_t)params->in_to_out_scales_ratio * params->weight_scales[krn_idx];
-    int int64_to_int32_shift = 32;
-    params->out_mul = mli_math_cast_fx<int64_t, int32_t>(out_mul_scaled, int64_to_int32_shift);
+    const int32_t out_mul_scaled = (int32_t)params->in_to_out_scales_ratio * params->weight_scales[krn_idx];
+    params->out_mul = out_mul_scaled;
 
     params->out_shift = params->in_to_out_shift;
-    params->out_shift += params->weight_shifts[0];
-    params->out_shift -= int64_to_int32_shift;
+    params->out_shift += params->weight_shifts[krn_idx];
 
 #if !defined(FULL_ACCU)
     // When the accumulator is pre-shifted before the output multiplier,
     // we need to normalize mul for max use of the headroom.
     int norm = mli_math_norm_fx<int32_t, int>(params->out_mul);
-    params->out_mul = mli_math_asl_fx(params->out_mul, norm);
+    params->out_mul <<= norm;
     params->out_shift += norm;
 #endif
     return;
@@ -137,39 +160,25 @@ MLI_FORCE_INLINE void adjust_quant_params(fx_quant_specific_params* in, int krn_
     return;
 }
 
-static MLI_FORCE_INLINE int32_t mli_prv_calc_out_mul(
-        const mli_tensor *in0,
-        const mli_tensor *in1,
-        const mli_tensor *out,
-        int * shift){
-    if ((in0->el_type == MLI_EL_FX_8) || (in0->el_type == MLI_EL_FX_16)) {
-        /* mix of FX and asym datatypes is not supported */
-        MLI_ASSERT((in1->el_type == MLI_EL_FX_8) || (in1->el_type == MLI_EL_FX_16));
-        MLI_ASSERT((out->el_type == MLI_EL_FX_8) || (out->el_type == MLI_EL_FX_16));
-        return 1;
-    } else if (in0->el_type == MLI_EL_SA_8) {
-        const int kPreDivShiftS32 = 30;
-        const int shiftChangeValue = 32;
-        /* mix of FX and asym datatypes is not supported */
-        MLI_ASSERT(in1->el_type == MLI_EL_SA_8);
-        MLI_ASSERT((out->el_type == MLI_EL_SA_8) || (out->el_type == MLI_EL_SA_32));
-        MLI_ASSERT((in0->el_params.sa.dim < 0) && (in1->el_params.sa.dim < 0));
+MLI_FORCE_INLINE int16_t quant_params_get_weigths_zeropoint(s8asym_quant_specific_params* params) {
+    return params->weights_offset;
+}
 
-        *shift = in0->el_params.sa.scale_frac_bits;
-        *shift += in1->el_params.sa.scale_frac_bits;
-        *shift += (kPreDivShiftS32 - out->el_params.sa.scale_frac_bits);
-        *shift -= shiftChangeValue;
+MLI_FORCE_INLINE int16_t quant_params_get_weigths_zeropoint(fx_quant_specific_params*) {
+    // Function parameters are not used since for MLI_FX quantization zero_point 
+    // is always 0 and isn't present in params structure
+    return 0;
+}
 
-        int64_t scale_unfinished = (int64_t)(in0->el_params.sa.scale.mem.i32) << kPreDivShiftS32;
-        scale_unfinished = scale_unfinished / out->el_params.sa.scale.mem.i32;
-        int32_t in_to_out_scales_ratio = mli_math_cast_fx<int64_t, int32_t>(scale_unfinished, 0);
-        int64_t out_mul_scaled = (int64_t)in_to_out_scales_ratio * in1->el_params.sa.scale.mem.i32;
-        int32_t out_mul = mli_math_cast_fx<int64_t, int32_t>(out_mul_scaled, shiftChangeValue);
-        return out_mul;
-    } else {
-        MLI_ASSERT(0);
-        return 0;
-    }
+MLI_FORCE_INLINE int16_t quant_params_set_in_zeropoint(s8asym_quant_specific_params* params, int16_t new_zp) {
+    params->in_offset = new_zp;
+    return params->in_offset;
+}
+
+MLI_FORCE_INLINE int16_t quant_params_set_in_zeropoint(fx_quant_specific_params*, int16_t) {
+    // Function parameters are not used since for MLI_FX quantization zero_point 
+    // is always 0 and isn't present in params structure (can't be changed)
+    return 0;
 }
 
 //==========================================================================
@@ -190,10 +199,11 @@ MLI_FORCE_INLINE mli_acc32_t weights_additive(
         const s8asym_quant_specific_params* quant_params,
         const int width,  const int height, int col_step, int row_step) {
     // returns -(in_zero_point * cumsum(weights)) For S8ASYM
-    if (quant_params->in_offset != 0)
-        return reduce_sum2D(weights, -quant_params->in_offset, init_accum, width, height, col_step, row_step);
-    else
+    if (quant_params->in_offset != 0) {
+        return reduce_sum2D(weights, -quant_params->in_offset, init_accum, width, height, /*channels = */0, col_step, row_step);
+    } else {
         return init_accum;
+    }
 }
 
 template <typename w_T, typename acc_T, typename quant_T>
@@ -212,7 +222,7 @@ MLI_FORCE_INLINE mli_acc32_t weights_additive(
     // returns -(in_zero_point * cumsum(weights)) For S8ASYM
     if (quant_params->in_offset != 0) {
         for (int c = 0; c < ch; c++) {
-            init_accum = reduce_sum2D(weights, -quant_params->in_offset, init_accum, width, height, col_step, row_step);
+            init_accum = reduce_sum2D(weights, -quant_params->in_offset, init_accum, width, height, /*channels = */0, col_step, row_step);
             weights += ch_step;
         }
         return init_accum;
@@ -239,7 +249,8 @@ MLI_FORCE_INLINE mli_acc32_t in_additive(
         const int width, const int height, int col_step, int row_step) {
     // returns -(wights_zero_point * cumsum(input)) For S8ASYM
     if (quant_params->weights_offset != 0) {
-        return reduce_sum2D(in, -quant_params->weights_offset, init_accum, width, height, col_step, row_step);
+        init_accum = reduce_sum2D(in, -quant_params->weights_offset, init_accum, width, height, /*channels = */0, col_step, row_step);
+        return init_accum;
     } else {
         return init_accum;
     }
@@ -260,7 +271,7 @@ MLI_FORCE_INLINE mli_acc32_t in_additive(
     // returns -(wights_zero_point * cumsum(input)) For S8ASYM
     if (quant_params->weights_offset != 0) {
         for (int c = 0; c < ch; c++) {
-            init_accum = reduce_sum2D(in, -quant_params->weights_offset, init_accum, width, height, col_step, row_step);
+            init_accum = reduce_sum2D(in, -quant_params->weights_offset, init_accum, width, height, /*channels = */0, col_step, row_step);
             in += ch_step;
         }
         return init_accum;
@@ -284,12 +295,13 @@ MLI_FORCE_INLINE acc_T zp_additive(const quant_T*, acc_T init_accum,
 template <>
 MLI_FORCE_INLINE mli_acc32_t zp_additive(const s8asym_quant_specific_params* quant_params, mli_acc32_t init_accum,
                                const int mac_serias_len) {
-    if (quant_params->weights_offset != 0 || quant_params->in_offset != 0)
+    if (quant_params->weights_offset != 0 || quant_params->in_offset != 0) {
         // Calculating (w_zp * in_zp * mac_serias_len) via reduce sum because of complexity with accum casts.
         // Subject for optimization
         return reduce_sum(&quant_params->weights_offset, quant_params->in_offset, init_accum, mac_serias_len, /*step = */0);
-    else
+    } else {
         return init_accum;
+    }
 }
 
 //==========================================================================
@@ -363,7 +375,7 @@ MLI_FORCE_INLINE int8_t result_cast(
 
     // reduce out_mul to 16bit
     int int_to_short_shift = 16;
-    out_mul = mli_math_asr_fx(out_mul, int_to_short_shift);
+    out_mul = mli_math_asr_rnd_fx(out_mul, int_to_short_shift);
     out_shift -= int_to_short_shift;
 
     // preshift and clip to 16bit, but keep 32bit container for easy connection to rest of code.
@@ -426,6 +438,24 @@ MLI_FORCE_INLINE int8_t result_cast<int8_t, mli_acc32_t, int32_t, S8ASYM_MATH>(
     return out_val;
 }
 
+template <typename acc_T>
+MLI_FORCE_INLINE acc_T ir_rnn_result_requantize(const acc_T acc, const fx_quant_specific_params* current_params,
+                                                        const fx_quant_specific_params* next_params, int krn_idx) {
+    const int shift = current_params->out_shift - next_params->out_shift;
+    return mli_math_acc_ashift_fx<acc_T>(acc, shift);
+}
+
+template <>
+MLI_FORCE_INLINE mli_acc32_t ir_rnn_result_requantize(const mli_acc32_t acc, const s8asym_quant_specific_params* current_params,
+                                                        const s8asym_quant_specific_params* next_params, int krn_idx) {
+    const int32_t mul = current_params->out_mul / next_params->weight_scales[krn_idx];
+    const int shift = current_params->out_shift - next_params->weight_shifts[krn_idx];
+
+    auto accu_scaled = mli_math_mul_fx<int32_t, int64_t>(acc, mul);
+    auto out_no_offset = mli_math_cast_fx<int64_t, int32_t>(accu_scaled, shift);
+    return out_no_offset;
+}
+
 // Convert between SA8 and FX16
 //=========================================================================
 template <typename in_T, typename out_T>
@@ -435,6 +465,17 @@ MLI_FORCE_INLINE out_T mli_prv_convert_sa8_fx16(
     const int scale) {
     int16_t in_biased_shifted_no_zp = mli_math_cast_fx<in_T, int16_t>(in, 0) - zero_point;
     return mli_math_cast_fx<int64_t, out_T>(mli_math_mul_fx<int32_t, int64_t>((int32_t)in_biased_shifted_no_zp, scale), 0);
+}
+
+template <typename in_T, typename out_T>
+MLI_FORCE_INLINE out_T mli_prv_convert_sa8_fx16(
+    const in_T in,
+    const int16_t zero_point,
+    const int16_t scale,
+    const int shift) {
+    int16_t in_biased_shifted_no_zp = mli_math_cast_fx<in_T, int16_t>(in, 0) - zero_point;
+    int32_t in_scaled = mli_math_mul_fx<int16_t, int32_t>(in_biased_shifted_no_zp, scale);
+    return mli_math_cast_fx<int32_t, out_T>(in_scaled, shift);
 }
 
 template <typename in_T, typename out_T>

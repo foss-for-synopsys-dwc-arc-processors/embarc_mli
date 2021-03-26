@@ -26,23 +26,28 @@
 // (from example *_dsp) can be used/'using'.
 
 namespace mli {
-// TODO: namespace krn is commented out since other users inside this library
-// expect eltiwse symbols to be available in namesapce mli directly.
-//namespace krn {
+namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-using mli::krn::ref::eltwise_prepare_and_run_fx;
-using mli::krn::vdsp::eltwise_op_basic_fx;
+using mli::krn::ref::eltwise_prepare_and_run;
+using mli::krn::ref::eltwise_op_basic;
+using mli::krn::vdsp::eltwise_perform_operation;
+using mli::krn::vdsp::eltwise_innerloop;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-using mli::krn::dsp::eltwise_prepare_and_run_fx;
-using mli::krn::ref::eltwise_op_basic_fx; // required for mli::krn::ref::eltwise_prepare_and_run_fx
+/* TODO replace with dsp version */
+using mli::krn::ref::eltwise_prepare_and_run;
+using mli::krn::ref::eltwise_op_basic;
+using mli::krn::ref::eltwise_perform_operation;
+using mli::krn::ref::eltwise_innerloop;
 
 #else
-using mli::krn::ref::eltwise_prepare_and_run_fx;
-using mli::krn::ref::eltwise_op_basic_fx;
+using mli::krn::ref::eltwise_prepare_and_run;
+using mli::krn::ref::eltwise_op_basic;
+using mli::krn::ref::eltwise_perform_operation;
+using mli::krn::ref::eltwise_innerloop;
 
 #endif
-//} // namespace krn
+} // namespace krn
 } // namespace mli
 
 ////////////////////////////////////////////////////////////////////////////////

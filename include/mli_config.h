@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -23,6 +23,11 @@
 * Concatenate primitive: Maximum number of tensors that might be concatenated.
 */
 #define MLI_CONCAT_MAX_TENSORS (8)
+
+/**
+* RNN cell primitive: Maximum number of input tensors.
+*/
+#define MLI_RNN_MAX_INPUT (4)
 
 /**
 * Library Debug mode
@@ -154,8 +159,9 @@
 #define MLI_CONV_OUT_PTR(p) p *
 #define MLI_CONV_OUT_PTR_IS_XY false
 #define MLI_CCM_ATT 
-#elif (PLATFORM == V2DSP_VECTOR)
+#elif (PLATFORM == V2DSP_VECTOR) && !defined(MLI_BUILD_REFERENCE)
 #define MLI_PTR(p) __vccm p *
+#define MLI_PTR_IS_VCCM true
 #define MLI_PTR_IS_XY false
 #define MLI_OUT_PTR(p) __vccm p *
 #define MLI_OUT_PTR_IS_XY false

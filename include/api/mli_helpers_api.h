@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -49,10 +49,10 @@ extern "C" {
 #define KRNL_C_DIM_HWCN 3 // output channels
 
 // for Depthwise convolution hwc kernel
-#define KRNL_DW_D_DIM_HWC 0 // Depthwise convolution hwc kernel depth (must be == 1)
-#define KRNL_DW_H_DIM_HWC 1 // Depthwise convolution hwc kernel height 
-#define KRNL_DW_W_DIM_HWC 2 // Depthwise convolution hwc kernel width
-#define KRNL_DW_C_DIM_HWC 3 // Depthwise convolution hwc output channels
+#define KRNL_DW_H_DIM_HW1N 0 // Depthwise convolution hwc kernel height
+#define KRNL_DW_W_DIM_HW1N 1 // Depthwise convolution hwc kernel width
+#define KRNL_DW_D_DIM_HW1N 2 // Depthwise convolution hwc kernel depth (must be == 1)
+#define KRNL_DW_N_DIM_HW1N 3 // Depthwise convolution hwc output channels
 
 /** 
  * @brief Count Number of Elements in Tensor
@@ -84,26 +84,44 @@ uint32_t mli_hlp_count_elem_num(const mli_tensor *in, uint32_t start_dim);
  */
 uint32_t mli_hlp_tensor_element_size(const mli_tensor *in);
 
+/**
+ * @brief Convert Tensor
+ *
+ * @detail This function can be used only for FX and SA quantization types.
+ * This function should be used in all places where it is known that neither of the source or destination tensor is a float tensor.
+ * This function copies elements from input tensor to output with data conversion according to
+ * the output tensor type parameters. This operation does not change tensor shape. It copies it from input to output.
+ *
+ * For more info on primitive see MLI Documentation
+ *
+ * @param src      [I] Input tensor (of any shape)
+ * @param dst      [O] Output tensor. Result will be stored here
+ *
+ * @return MLI status code
+ */
+mli_status mli_hlp_convert_tensor_safx(const mli_tensor *src, mli_tensor *dst);
+
 /** 
  * @brief Convert Tensor
  *
  * @detail This function copies elements from input tensor to output with data conversion according to 
- * the output tensor type parameters. This operation does not change tensor shape. It copies it from input to output. 
+ * the output tensor type parameters. This operation does not change tensor shape. It copies it from input to output.
+ * For conversions with equal container size, in-place computation is permitted.
  *
  * For more info on primitive see MLI Documentation
  *
- * @param in      [I] Input tensor (of any shape)
- * @param out     [O] Output tensor. Result will be stored here
+ * @param src      [I] Input tensor (of any shape)
+ * @param dst      [O] Output tensor. Result will be stored here
  *
  * @return MLI status code
  */
-mli_status mli_hlp_convert_tensor(mli_tensor *in, mli_tensor *out);
+mli_status mli_hlp_convert_tensor(const mli_tensor *src, mli_tensor *dst);
 
 /** 
  * @brief Point to Sub-Tensor
  *
  * @detail This function points to sub tensors in input tensor. This can be considered as indexing in 
- * a multidimensional array. This function performs operations on pointers and doesn’t copy data 
+ * a multidimensional array. This function performs operations on pointers and doesn't copy data 
  * (only points to subsequence of data in input). For this reason, this function takes only parameters that 
  * can be translated to starting coordinates and size of required data.
  *
@@ -121,7 +139,7 @@ mli_status mli_hlp_point_to_subtensor(const mli_tensor *in, const mli_point_to_s
  * @brief Create a Sub-Tensor from a larger tensor
  *
  * @detail This function points to sub tensors in input tensor. This function performs operations 
- * on pointers and doesn’t copy data (only points to subsequence of data in input).
+ * on pointers and doesn't copy data (only points to subsequence of data in input).
  * For this reason, depending on the parameters, it can happen that the sub tensor contains
  * data that is not adjacent in memory.
  *
@@ -135,12 +153,41 @@ mli_status mli_hlp_point_to_subtensor(const mli_tensor *in, const mli_point_to_s
  */
 mli_status mli_hlp_create_subtensor(const mli_tensor *in, const mli_sub_tensor_cfg *cfg, mli_tensor *out);
 
-uint32_t mli_hlp_tensor_scale_shift(const mli_tensor *in);
+int32_t mli_hlp_tensor_scale_shift(const mli_tensor *in, const uint32_t scale_idx);
 
 int32_t mli_hlp_tensor_scale(const mli_tensor *in, const uint32_t scale_idx);
 
 int16_t mli_hlp_tensor_zero_offset(const mli_tensor *in, const uint32_t zero_idx);
 
+/**
+ * @brief Get a string with the compile time options of the lib
+ *
+ * @detail This function returns a string with the settings of the following compile options:
+ * - MLI_BUILD_REFERENCE
+ * - ROUND_MODE
+ * - MLI_DEBUG_MODE
+ *
+ * @return string with compile time options
+ */
+const char* mli_hlp_compile_options_string();
+
+/**
+* @brief Get number of accumulator guard bits for specific MAC variance.
+*
+* @detail An addition might result in overflow if all bits of operands are used and both operands 
+          hold the maximum (or minimum) values. It means that an extra bit is required for this operation. 
+          But if sum of several operands is needed (accumulation), more than one extra bit is required to ensure
+          that the result does not overflow. This function returns a number of such extra bits used in accumulation
+          for MAC (multiply-and-accumulate) based kernels. Separate function exists for each combination of input operands.
+*
+* @return number of accumulator guard bits used in MAC based kernels (all convolutions, FC, reccurent layers):
+*           mli_hlp_accu_guard_bits_sa8_sa8 - MAC with sa8 x sa8 input operands 
+*           mli_hlp_accu_guard_bits_fx16_fx16 - MAC with fx16 x fx16 input operands 
+*           mli_hlp_accu_guard_bits_fx16_fx8 - MAC with fx16 x fx8 input operands 
+*/
+uint8_t mli_hlp_accu_guard_bits_sa8_sa8();
+uint8_t mli_hlp_accu_guard_bits_fx16_fx16();
+uint8_t mli_hlp_accu_guard_bits_fx16_fx8();
 
 
 #ifdef __cplusplus
