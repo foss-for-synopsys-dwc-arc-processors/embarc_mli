@@ -86,7 +86,7 @@ and ``mli_data_container`` is defined as follows:
 ..
 
 
-Table :ref:`mli_tnsr_struc` describes the fields in the mli_tensor structure.
+The table :ref:`mli_tnsr_struc` describes the fields in the mli_tensor structure.
 
 .. _mli_tnsr_struc:  
 .. table:: mli_tensor Structure Field Descriptions
@@ -128,19 +128,21 @@ Table :ref:`mli_tnsr_struc` describes the fields in the mli_tensor structure.
    |                   |                        | is defined by ``MLI_MAX_RANK*``.If the mem_stride is set to 0, it is        |
    |                   |                        | computed from the shape.                                                    |
    |                   |                        |                                                                             |
-   |                   |                        | Manually-set values of mem_stride array must decrease gradually and must    |
-   |                   |                        | not be less than if they would be computed from the shape. For example,     |
-   |                   |                        | for a tensor of shape [Height, Width, Channels):                            |
+   |                   |                        | Manually-set values of ``mem_stride`` array must decrease gradually and     |
+   |                   |                        | must not be less than if they would be computed from the shape. For         |
+   |                   |                        | example, for a tensor of shape :math:`[Height, Width, Channels)`:           |
    |                   |                        |                                                                             |
-   |                   |                        |  - mem_stride[0] >= 1 x Channels x Width AND mem_stride[0] >= mem_stride[1] |
+   |                   |                        |  - ``mem_stride[0] >= 1 x Channels x Width``                                |
+   |                   |                        |    AND ``mem_stride[0] >= mem_stride[1]``                                   |
    |                   |                        |                                                                             |
-   |                   |                        |  - mem_stride[1] >= 1*Channels    AND mem_stride[1] >= mem_stride[2]        |
+   |                   |                        |  - ``mem_stride[1] >= 1*Channels`` AND ``mem_stride[1] >= mem_stride[2]``   |
    |                   |                        |                                                                             |
-   |                   |                        |  - mem_stride[2] >= 1.                                                      |
+   |                   |                        |  - ``mem_stride[2] >= 1``                                                   |
    |                   |                        |                                                                             |
-   |                   |                        | In case the mem_stride is computed from the shape, then the kernel will not |
+   |                   |                        | In case the mem_stride is computed from the shape, the kernel does not      |
    |                   |                        | update this field in the tensor struct. The only exception is the           |
-   |                   |                        | mli_move function, which can write the mem_stride field of the dst tensor.  |
+   |                   |                        | ``mli_move`` function, which can write the ``mem_stride`` field of the      |
+   |                   |                        | ``dst`` tensor.                                                             |
    +-------------------+------------------------+-----------------------------------------------------------------------------+
    | ``rank``          | ``uint32_t``           | Number of dimensions of this tensor (Must be less or equal to               |
    |                   |                        | ``MLI_MAX_RANK*``)                                                          |

@@ -29,7 +29,7 @@ Where:
 	
     :math:`b_{i}` *– bias for* :math:`i_{th}` *neuron*
 
-This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more info on related quantization aspects. 
+This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more information on related quantization aspects. 
 The number of accumulation series is equal to total number of values in all inputs.
 
 Kernels which implement an RNN Dense functionality have the following prototype:
@@ -131,7 +131,7 @@ Ensure that you satisfy the following conditions before calling the listed funct
  - ``bias`` must be a one-dimensional tensor. Its length must be equal to M (number 
    of filters and is equal to output length) of any weights tensor.
    
- - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity, valid mem_stride field 
+ - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity, valid ``mem_stride`` field 
    and valid ``el_params`` union. Other fields of the structure do not have to contain 
    valid data and are filled by the function.
    
@@ -156,6 +156,6 @@ satisfy the following conditions before calling the function:
    (that is, :math:`bias.scale = inputs[0].scale * weights[0].scale`).
 
 
-Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
+Depending on the debug level (see section :ref:`err_codes`), this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 

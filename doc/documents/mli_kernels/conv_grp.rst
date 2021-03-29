@@ -25,10 +25,10 @@ number of filters per each group.
 ..
 
 Optionally, saturating ReLU activation function can be applied to the result of 
-the convolution during the function’s execution. For more info on supported ReLU 
+the convolution during the function’s execution. For more information on supported ReLU 
 types and calculations, see :ref:`relu_prot`.
 
-This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more info on related quantization aspects. 
+This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more information on related quantization aspects. 
 The Number of accumulation series is equal to (kernel_height * kernel_width * (in_channels/number_of_groups)).
 
 Kernels which implement a group convolution have the following prototype:

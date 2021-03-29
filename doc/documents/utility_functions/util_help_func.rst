@@ -16,6 +16,8 @@ getting information from data structures and performing various operations on th
  
  - :ref:`point_sub_tensor`
  
+ - :ref:`num_of_accu_bits`
+ 
  
 .. _get_elem_size:
 
@@ -145,8 +147,8 @@ Get Scale Shift Value
 
 This function returns the shift value from the quantization parameters. 
 For data formats that don’t have a shift value, the value 0 is returned.
-For tensors with multiple scale value per-axis scale_idx parameter defines 
-the particular scale shift value to be fetched.
+For tensors with multiple scale values per-axis, the parameter``scale_idx`` 
+defines the particular scale shift value to be fetched.
 
 Function prototype
 
@@ -185,9 +187,9 @@ Get Zero Offset Value
 ~~~~~~~~~~~~~~~~~~~~~
 
 This function returns the zero offset value from the quantization parameters.
-For data formats, that don’t have a zero offset value, the value 0 is returned.
-For tensors with multiple zero offset value per-axis scale_idx parameter defines 
-the particular zero offset value to be fetched.
+For data formats that do not have a zero offset value, the value 0 is returned.
+For tensors with multiple zero offset values per-axis, the parameter ``scale_idx`` 
+defines the particular zero offset value to be fetched.
 
 Function prototype:
 
@@ -270,17 +272,17 @@ Table :ref:`t_mli_sub_tensor_cfg_desc`.
    +---------------------+----------------+---------------------------------------------------------+ 
 ..
 
-The implementation of this function computes the new data pointer based on the 
-offset vector and it sets the shape of the output tensor according to the size 
-vector. The ``mem_stride`` fields are copied from input to output, so it’s possible 
-that after this operation, the output tensor is not a contiguous block of data.
+This function computes the new data pointer based on the offset vector and it sets 
+the shape of the output tensor according to the size vector. The ``mem_stride`` fields 
+are copied from the input to the output, so after this operation, the output tensor might  
+not be a contiguous block of data.
 
 The function also reduces the rank of the output tensor if requested by the 
-configuration. Only dimensions with a size of 1 can be removed. Data format and 
-quantization parameters are copied from input to output tensor.
+configuration. Only the dimensions with a size of 1 can be removed. Data format and 
+quantization parameters are copied from the input to the output tensor.
 
 The capacity field of the output is the input capacity decremented with the same 
-value as used to increment the data pointer.
+value as that used to increment the data pointer.
 
 The function prototype:
 
@@ -292,7 +294,7 @@ The function prototype:
      mli_tensor *out);
 ..
  
-Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
+Depending on the debug level (see section :ref:`err_codes`), this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
 
@@ -301,15 +303,15 @@ check and returns the result as an ``mli_status`` code as described in section :
 Get Number of Accumulator Guard Bits
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-These functions return number of accumulator guard bits for a specific MAC (multiply-and-accumulate)
+These functions return the number of accumulator guard bits for a specific MAC (multiply-and-accumulate)
 variant. An addition might result in an overflow if all bits of operands are used and both operands
 hold the maximum (or minimum) values. It means that an extra bit is required for this operation.
-But if sum of several operands is needed (accumulation), more than one extra bit is required to 
-ensure that the result does not overflow. This function returns the number of such extra bits used 
-in accumulation for MAC-based kernels. See :ref:`quant_accum_infl` section for more info.
+But, if a sum of several operands is needed (accumulation), more than one extra bit is required to 
+ensure that the result does not overflow. This function returns the number of such extra bits needed 
+in the accumulation for MAC-based kernels. See :ref:`quant_accum_infl` section for more information.
 Separate functions exist for each combination of input operands.
 
-Function prototype
+The function prototype:
 
 .. code:: c
 
@@ -335,5 +337,5 @@ Here is a list of all available guard bits functions:
    |                                             || one and **fx8** another                |
    +---------------------------------------------+-----------------------------------------+
 
-There are no any specific requirements for  ``mli_hlp_accu_guard_bits<operands>`` functions. 
-They can be called at any time.
+There are no specific requirements for ``mli_hlp_accu_guard_bits<operands>`` functions. 
+These can be called at any time.

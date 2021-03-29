@@ -73,10 +73,10 @@ Ensure that you satisfy the following conditions before calling the function:
 
  - ``in`` tensor must be valid (see :ref:`mli_tnsr_struc`).
  
- - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity, valid mem_stride field and 
-   valid ``el_params`` union. Other fields of the structure do not have to contain valid 
+ - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity, valid ``mem_stride`` 
+   field, and valid ``el_params`` union. Other fields of the structure do not have to contain valid 
    data and are filled by the function.
-	
+
  - ``in`` and ``out`` tensors must not point to overlapped memory regions.
  
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.

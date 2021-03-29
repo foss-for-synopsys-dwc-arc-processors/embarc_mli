@@ -84,9 +84,9 @@ Ensure that you satisfy the following conditions before calling the function:
  - ``out`` tensor must contain only
    
     - A valid pointer to a buffer with sufficient capacity. That is ``top_k*in.shape[axis]`` values
-      of int32 type. 
+      of ``int32`` type. 
 
-    - A valid mem_stride field.
+    - A valid ``mem_stride`` field.
       
     - Other fields of the structure do not have to contain valid data and are filled by the function.
 

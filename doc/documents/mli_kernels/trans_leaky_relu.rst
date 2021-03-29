@@ -86,7 +86,7 @@ Ensure that you satisfy the following conditions before calling the function:
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
  - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity (that is, 
-   the total amount of elements in input tensor) valid mem_stride field and valid ``el_params`` union.
+   the total amount of elements in input tensor) valid ``mem_stride`` field and valid ``el_params`` union.
    Other fields are filled by kernel (shape, rank and element specific parameters).
    
 For **sa8** versions of kernel, in addition to the preceding conditions, ensure that you 

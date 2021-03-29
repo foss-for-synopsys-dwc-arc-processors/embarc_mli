@@ -63,16 +63,16 @@ In the Figure :ref:`f_lstm_schematic`, N is the total number of
 elements in the input and M is the total number of elements in the cell output.
 
 This kernel uses two look-up tables (LUTs) to perform data transformation. 
-See :ref:`lut_prot` section and pseudo-code sample there for more details on LUT structure preparation.
-The following functions should be used for it:
+See :ref:`lut_prot` section and the pseudo-code sample for more details on LUT structure preparation.
+Use the following functions for the purpose:
 
- - `mli_krn_tanh_get_lut_size`
- - `mli_krn_tanh_create_lut`
- - `mli_krn_sigm_get_lut_size`
- - `mli_krn_sigm_create_lut`
+ - :code:`mli_krn_tanh_get_lut_size`
+ - :code:`mli_krn_tanh_create_lut`
+ - :code:`mli_krn_sigm_get_lut_size`
+ - :code:`mli_krn_sigm_create_lut`
 
 
-This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more info on related quantization aspects. 
+This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more information on related quantization aspects. 
 The number of accumulation series is equal to a single input frame size plus single output frame size.
 
 Kernels which implement an LSTM cell have the following prototype:
@@ -218,7 +218,7 @@ Ensure that you satisfy the following conditions before calling the function:
  
 - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity for storing the result (to keep M 
    elements if LSTM cell is configured with RNN_OUT_LAST or to keep M*batch_size elements if LSTM cell is configured 
-   with RNN_OUT_ALL), and valid mem_stride field. Other fields of the structure do not have to contain valid data and 
+   with RNN_OUT_ALL), and valid ``mem_stride`` field. Other fields of the structure do not have to contain valid data and 
    are filled by the function.
    
  - ``in`` and ``cfg->scratch_data`` must not point to overlapped memory regions.
@@ -230,7 +230,7 @@ Ensure that you satisfy the following conditions before calling the function:
    this memory in bytes properly (see Table :ref:`t_mli_rnn_cell_cfg_desc`). 
    
 - ``tanh_lut`` and ``sigm_lut`` structures must be valid and prepared for 
-  hyperbolic tangent and sigmoid  activation functions accordingly (see :ref:`lut_prot`).
+  hyperbolic tangent and sigmoid activation functions accordingly (see :ref:`lut_prot`).
 
 For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions, ensure that you 
 satisfy the following conditions before calling the function: 

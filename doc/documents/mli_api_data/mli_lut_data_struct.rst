@@ -5,7 +5,7 @@ mli_lut Data Structure
 
 Several functions use a look-up table (LUT) to perform data transformation.  The LUT represents a function in a 
 table form that can be used to transform input values (function argument) to output values (function result). 
-``mli_lut`` structure is a representation of such table.
+The ``mli_lut`` structure is a representation of such a table.
 
 The ``mli_lut`` struct describes the data in the LUT, including the format of its input and output.
 
@@ -23,7 +23,8 @@ The ``mli_lut`` struct describes the data in the LUT, including the format of it
    } mli_lut;
 ..
 
-See :ref:`mli_tens_data_struct` for ``mli_data_container`` and ``mli_element_type`` structures definition. Te following table describes the fields in the mli_lut structure
+See :ref:`mli_tens_data_struct` for the definition of ``mli_data_container`` and ``mli_element_type`` structures. 
+The following table describes the fields in the mli_lut structure.
    
 .. _mli_lut_struct_table:  
 .. table:: mli_lut Structure Field Descriptions
@@ -34,8 +35,8 @@ See :ref:`mli_tens_data_struct` for ``mli_data_container`` and ``mli_element_typ
    | **Field name**    | **type**               | **Comment**                                                                 |
    +===================+========================+=============================================================================+
    |                   |                        | This field has a union of different possible data container types.          |
-   |   ``data``        | ``mli_data_container`` | Pointer of specified type (see the type field below) should point to        |
-   |                   |                        | an array with the LUT table data.                                           |
+   |   ``data``        | ``mli_data_container`` | Pointer of specified type (see the type field in this table) should point   |
+   |                   |                        | to an array with the LUT table data.                                        |
    +-------------------+------------------------+-----------------------------------------------------------------------------+
    | ``data.capacity`` | ``uint32_t``           | Size in bytes of the allocated memory that the data field points to.        |
    +-------------------+------------------------+-----------------------------------------------------------------------------+
@@ -45,9 +46,9 @@ See :ref:`mli_tens_data_struct` for ``mli_data_container`` and ``mli_element_typ
    +-------------------+------------------------+-----------------------------------------------------------------------------+
    | ``length``        | ``int32_t``            | Number of values stored in the LUT table                                    |
    +-------------------+------------------------+-----------------------------------------------------------------------------+
-   | ``in_frac_bits``  | ``int32_t``            | Number of fractional bits for LUT input (argument)                          |
+   | ``in_frac_bits``  | ``int32_t``            | Number of fractional bits for the LUT input (argument)                      |
    +-------------------+------------------------+-----------------------------------------------------------------------------+
-   | ``out_frac_bits`` | ``int32_t``            | Number of fractional bits for LUT output (result)                           |
+   | ``out_frac_bits`` | ``int32_t``            | Number of fractional bits for the LUT output (result)                       |
    +-------------------+------------------------+-----------------------------------------------------------------------------+
    | ``input_offset``  | ``int32_t``            | Offset of input argument which is added before applying the LUT function.   |
    +-------------------+------------------------+-----------------------------------------------------------------------------+

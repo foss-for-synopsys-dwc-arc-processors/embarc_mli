@@ -4,15 +4,19 @@ Look-Up Tables (LUT) Manipulation Prototypes and Function List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Several MLI kernels use a look-up table (LUT) to perform data transformation. 
-The LUT should be prepared by the user before the kernel call and provided as a 
-kernel parameter. The LUT preparation implies the following steps:
+You must prepare the LUT before the kernel call and provide the LUT as a 
+kernel parameter. The LUT preparation has the following steps:
 
- 1. Getting memory size required for the LUT
+ 1. :ref:`lut_compute`
 
- 2. Memory allocation of defined size
+ 2. :ref:`lut_alloc`
 
- 3. LUT structure creation
+ 3. :ref:`lut_create`
 
+.. _lut_compute:
+ 
+Computing the Memory Size Required for the LUT
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Functions which returns the size of the memory for the LUT table (step 1) have the following prototype:
 
@@ -24,8 +28,18 @@ Functions which returns the size of the memory for the LUT table (step 1) have t
 
 where ``lut_name`` is one of supported LUT tables.
 
-The user is responsible for allocating memory for the LUT table and must assign it to the LUT structure 
+.. _lut_alloc:
+
+Allocating the Required Memory for the LUT
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Ensure that you allocate the required amount of memory for the LUT table and assign it to the LUT structure 
 before calling the creation function (step 2).
+
+.. _lut_create:
+
+Creating the LUT Structure
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Functions which create a specific LUT table (step 3) have the following prototype: 
 
@@ -78,17 +92,18 @@ Here is a list of all available LUT manipulation functions:
 ..
 
 
-There are no any specific requirements for  ``mli_krn_<lut_name>_get_lut_size`` functions. It can be called at any time.
+There are no specific requirements for ``mli_krn_<lut_name>_get_lut_size`` functions. These can be called at any time.
 
 Ensure that you satisfy the following conditions before calling the ``mli_krn_<lut_name>_create_lut`` function:
 
  - ``in`` tensor must be quantized on the tensor level. This implies that the tensor 
    contains a single scale factor and a single zero offset.
+   
  - ``lut`` structure must contain a valid pointer to a buffer with sufficient capacity which was defined 
    by the corresponding ``*_ get_lut_size`` function.
 
 
-Below is a pseudo-code sample of LUT manipulation functions usage together with LUT-consumer kernel call. 
+The following is a pseudo-code sample of LUT manipulation functions usage together with LUT-consumer kernel call. 
 
 
 .. code:: c

@@ -33,11 +33,11 @@ and memory strides).
 ..
 
 This kernel uses a look-up table (LUTs) to perform data transformation. 
-See :ref:`lut_prot` section and pseudo-code sample there for more details on LUT structure preparation.
-The following functions should be used for it:
+See :ref:`lut_prot` section and the pseudo-code sample for more details on LUT structure preparation.
+Use the following functions for the purpose:
 
- - `mli_krn_l2_normalize_get_lut_size`
- - `mli_krn_l2_normalize_create_lut`
+ - :code:`mli_krn_l2_normalize_get_lut_size`
+ - :code:`mli_krn_l2_normalize_create_lut`
 
 Kernels which implement L2 normalization functions have the following prototype:
 
@@ -103,7 +103,7 @@ Ensure that you satisfy the following conditions before calling the function:
    description in the Table :ref:`mli_tnsr_struc`).
    
  - ``out`` tensor must contain a valid pointer to a buffer with sufficient 
-   capacity (that is, the total amount of elements in input tensor) and valid mem_stride field. Other 
+   capacity (that is, the total amount of elements in input tensor) and valid ``mem_stride`` field. Other 
    fields are filled by kernel (shape, rank and element specific parameters).
 
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the 

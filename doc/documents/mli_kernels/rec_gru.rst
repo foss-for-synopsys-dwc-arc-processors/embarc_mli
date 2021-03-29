@@ -57,15 +57,15 @@ In the Figure :ref:`f_gru_schematic`, N is the total number of elements in the i
 of elements in the cell output.
 
 This kernel uses two look-up tables (LUTs) to perform data transformation. 
-See :ref:`lut_prot` section and pseudo-code sample there for more details on LUT structure preparation.
-The following functions should be used for it:
+See :ref:`lut_prot` section and the pseudo-code sample for more details on LUT structure preparation.
+Use the following functions for the purpose:
 
- - `mli_krn_tanh_get_lut_size`
- - `mli_krn_tanh_create_lut`
- - `mli_krn_sigm_get_lut_size`
- - `mli_krn_sigm_create_lut`
+ - :code:`mli_krn_tanh_get_lut_size`
+ - :code:`mli_krn_tanh_create_lut`
+ - :code:`mli_krn_sigm_get_lut_size`
+ - :code:`mli_krn_sigm_create_lut`
 
-This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more info on related quantization aspects. 
+This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more information on related quantization aspects. 
 The number of accumulation series is equal to single input frame size plus single output frame size.
 
 Kernels which implement an GRU cell have the following prototype:
@@ -105,10 +105,10 @@ are shown in the following table:
    | ``bias``         | ``mli_tensor *``        | [IN] Pointer to constant bias tensor.                     |
    +------------------+-------------------------+-----------------------------------------------------------+
    | ``tanh_lut``     | ``mli_lut *``           | [IN] Pointer to a valid LUT table structure prepared      |
-   |                  |                         |  for the hyperbolic tangent activation.                   |
+   |                  |                         | for the hyperbolic tangent activation.                    |
    +------------------+-------------------------+-----------------------------------------------------------+
    | ``sigm_lut``     | ``mli_lut *``           | [IN] Pointer to a valid LUT table structure prepared for  |
-   |                  |                         |  the sigmoid  activation.                                 |
+   |                  |                         | the sigmoid  activation.                                  |
    +------------------+-------------------------+-----------------------------------------------------------+
    | ``cfg``          | ``mli_rnn_cell_cfg *``  | [IN/OUT] Pointer to RNN cell parameters structure.        |
    +------------------+-------------------------+-----------------------------------------------------------+
@@ -197,7 +197,7 @@ Ensure that you satisfy the following conditions before calling the function:
  
  - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity for 
    storing the result (to keep M elements if GRU cell is configured with RNN_OUT_LAST 
-   or to keep M*batch_size elements if GRU cell is configured with RNN_OUT_ALL) and valid mem_stride field. Other 
+   or to keep M*batch_size elements if GRU cell is configured with RNN_OUT_ALL) and valid ``mem_stride`` field. Other 
    fields of the structure do not have to contain valid data and are filled by the function.
    
  - ``in`` and ``cfg->scratch_data`` must not point to overlapped memory regions.

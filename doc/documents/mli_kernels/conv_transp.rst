@@ -14,7 +14,7 @@ The ``dilation_height`` and ``dilation_width`` parameter of ``mli_conv2d_cfg``
 configuration structure is not applicable in MLI transposed convolution and is 
 ignored.
 
-This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more info on related quantization aspects. 
+This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more information on related quantization aspects. 
 The Number of accumulation series is up to (kernel_height * kernel_width * in_channels).
 
 Kernels which implement Transpose Convolutions have the following prototype:
@@ -133,7 +133,7 @@ Ensure that you satisfy the following conditions before calling the function:
  - ``in``, ``weights`` and ``bias`` tensors must be valid (see :ref:`mli_tnsr_struc`).
  
  - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity, valid 
-   ``mem_stride`` field  and 
+   ``mem_stride`` field,  and 
    valid ``el_params`` union. Other fields of the structure do not have to contain valid 
    data and are filled by the function.
 	

@@ -79,8 +79,8 @@ Ensure that you satisfy the following conditions before calling the function:
 
  - ``in`` tensor must be valid (see :ref:`mli_tnsr_struc`).
  
- - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity and valid mem_stride field. 
-   During the processing, the following output tensor parameters are filled by functions:
+ - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity and valid ``mem_stride`` 
+   field. During the processing, the following output tensor parameters are filled by functions:
 
     - ``shape`` (new shape is calculated according to input tensor shape, stride, and padding parameters).
 

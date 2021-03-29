@@ -494,8 +494,8 @@ This function takes a pointer to the handle used for ``mli_mov_prepare`` and ret
 after the transaction completes or in case of an error.
 
 
-Restrictions for source and destination tensors
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Restrictions for Source and Destination Tensors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``src`` and ``dst`` tensors for all functions of asynchronous data move set must comply to the following conditions:
 
