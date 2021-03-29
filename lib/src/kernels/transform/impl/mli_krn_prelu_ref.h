@@ -227,7 +227,7 @@ static MLI_FORCE_INLINE mli_status prelu_fx_run(const mli_tensor *in,
                 for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
                     vec_in  = (MLI_PTR(io_T))orig_vec_in  + POS(&in_prv, pos0, pos1, pos2, 0);
                     vec_out = orig_vec_out + POS(&out_prv, pos0, pos1, pos2, 0);
-                    mli::krn::compute_prelu_fx_inner_loop(vec_in, scale_v, vec_out,
+                    mli::krn::ref::compute_prelu_fx_inner_loop(vec_in, scale_v, vec_out,
                                                           shift_val, in_prv.shape[3], remaining_part);
                 }
             }
