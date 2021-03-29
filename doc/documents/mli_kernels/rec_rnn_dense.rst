@@ -13,21 +13,21 @@ typically used in the majority of RNN architectures:
 
 Where:
 
-    :math:`{xa}_{j}`, :math:`{xb}_{j}`, :math:`{xn}_{j}` *–*
+    :math:`{xa}_{j}`, :math:`{xb}_{j}`, :math:`{xn}_{j}` *-*
     :math:`j_{\text{th}}` *value in one of the input tensors. These input
     tensors might be current input, previous output, cell state or any other 
     tensor depending on RNN Cell architecture*
 	
-    :math:`{Wa}_{i,j}`, :math:`{Wb}_{i,j}`, :math:`{Wc}_{i,j}` *– weight
+    :math:`{Wa}_{i,j}`, :math:`{Wb}_{i,j}`, :math:`{Wc}_{i,j}` *- weight
     of* :math:`j_{th}\ `\ *input element for*
     :math:`i_{th}` *neuron in one of input weights tensors. These
     weights tensors might be input-to-a-gate weights, output-to-a-gate
     weights or any other tensor depending on RNN Cell architecture*
 	
-    :math:`y_{i}` *– output of* :math:`i_{th}` neuron
+    :math:`y_{i}` *- output of* :math:`i_{th}` neuron
     ( :math:`i_{th}` *value in output tensor).*
 	
-    :math:`b_{i}` *– bias for* :math:`i_{th}` *neuron*
+    :math:`b_{i}` *- bias for* :math:`i_{th}` *neuron*
 
 This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more information on related quantization aspects. 
 The number of accumulation series is equal to total number of values in all inputs.

@@ -13,9 +13,10 @@ getting information from data structures and performing various operations on th
  - :ref:`get_shift_val`
  
  - :ref:`get_zero_offset_val`
- 
- - :ref:`point_sub_tensor`
- 
+
+..
+   - :ref:`point_sub_tensor`
+
  - :ref:`num_of_accu_bits`
  
  
@@ -146,8 +147,8 @@ Get Scale Shift Value
 ~~~~~~~~~~~~~~~~~~~~~
 
 This function returns the shift value from the quantization parameters. 
-For data formats that don’t have a shift value, the value 0 is returned.
-For tensors with multiple scale values per-axis, the parameter``scale_idx`` 
+For data formats that don't have a shift value, the value 0 is returned.
+For tensors with multiple scale values per-axis, the parameter ``scale_idx`` 
 defines the particular scale shift value to be fetched.
 
 Function prototype
@@ -223,79 +224,86 @@ Conditions:
  - zero_idx must be less or equal to number of zero offset values in the tensor
  
 .. _point_sub_tensor:
- 
-Point to Sub-Tensor
-~~~~~~~~~~~~~~~~~~~
 
-This function points to sub tensors in the input tensor. This function can 
-be considered as indexing in a multidimensional array without copying or 
-used to create a slice/fragment of the input tensor without copying the data.
-
-For example, given a HWC tensor, this function could be used to create a HWC 
-tensor for the top half of the HW image for all channels.
-
-The configuration struct is defined as follows and the fields are explained in 
-Table :ref:`t_mli_sub_tensor_cfg_desc`.
-
-.. code:: c
-
-   typedef struct {
-     uint32_t offset[MLI_MAX_RANK];
-     uint32_t size[MLI_MAX_RANK];
-     uint32_t sub_tensor_rank;
-   } mli_sub_tensor_cfg;
 ..
+   Point to Sub-Tensor
+   ~~~~~~~~~~~~~~~~~~~
 
-.. _t_mli_sub_tensor_cfg_desc:
-.. table:: mli_sub_tensor_cfg Structure Field Description
-   :align: center
-   :widths: auto
+   .. warning::
+
+      The interface of this function is subject to change. Avoid using it.
+
+   ..
+
+   This function points to sub tensors in the input tensor. This function can 
+   be considered as indexing in a multidimensional array without copying or 
+   used to create a slice/fragment of the input tensor without copying the data.
+
+   For example, given a HWC tensor, this function could be used to create a HWC 
+   tensor for the top half of the HW image for all channels.
+
+   The configuration struct is defined as follows and the fields are explained in 
+   Table :ref:`t_mli_sub_tensor_cfg_desc`.
+
+   .. code:: c
+
+      typedef struct {
+      uint32_t offset[MLI_MAX_RANK];
+      uint32_t size[MLI_MAX_RANK];
+      uint32_t sub_tensor_rank;
+      } mli_sub_tensor_cfg;
+   ..
+
+   .. _t_mli_sub_tensor_cfg_desc:
+   .. table:: mli_sub_tensor_cfg Structure Field Description
+      :align: center
+      :widths: auto
+      
+      +---------------------+----------------+---------------------------------------------------------+
+      | **Field Name**      | **Type**       | Description                                             |
+      +=====================+================+=========================================================+
+      |                     |                | Start coordinate in the input tensor. Values must       |
+      | ``offset``          | ``uint32_t[]`` | be smaller than the shape of the input tensor. Size     |
+      |                     |                | of the array must be equal to the rank of the input     |
+      |                     |                | tensor.                                                 |
+      +---------------------+----------------+---------------------------------------------------------+
+      |                     |                | Size of the sub tensor in elements per dimension:       |
+      | ``size``            | ``uint32_t[]`` |                                                         |
+      |                     |                | Restrictions:  Size[d] +   offset[d] <= input->shape[d] |
+      +---------------------+----------------+---------------------------------------------------------+
+      |                     |                | Rank of the sub tensor that is produced. Must be        |
+      |                     |                | smaller or equal to the rank of the input tensor. If    |
+      | ``sub_tensor_rank`` | ``uint32_t``   | the ``sub_tensor_rank`` is smaller than the input rank, |
+      |                     |                | the dimensions with a size of 1 is removed in the       |
+      |                     |                | output shape starting from the first dimension until    |
+      |                     |                | the requested ``sub_tensor_rank`` value is reached.     |
+      +---------------------+----------------+---------------------------------------------------------+ 
+   ..
+
+   This function computes the new data pointer based on the offset vector and it sets 
+   the shape of the output tensor according to the size vector. The ``mem_stride`` fields 
+   are copied from the input to the output, so after this operation, the output tensor might  
+   not be a contiguous block of data.
+
+   The function also reduces the rank of the output tensor if requested by the 
+   configuration. Only the dimensions with a size of 1 can be removed. Data format and 
+   quantization parameters are copied from the input to the output tensor.
+
+   The capacity field of the output is the input capacity decremented with the same 
+   value as that used to increment the data pointer.
+
+   The function prototype:
+
+   .. code:: c
+
+      mli_status mli_hlp_subtensor(
+      const mli_tensor *in,
+      const mli_subtensor_cfg *cfg,
+      mli_tensor *out);
+   ..
    
-   +---------------------+----------------+---------------------------------------------------------+
-   | **Field Name**      | **Type**       | Description                                             |
-   +=====================+================+=========================================================+
-   |                     |                | Start coordinate in the input tensor. Values must       |
-   | ``offset``          | ``uint32_t[]`` | be smaller than the shape of the input tensor. Size     |
-   |                     |                | of the array must be equal to the rank of the input     |
-   |                     |                | tensor.                                                 |
-   +---------------------+----------------+---------------------------------------------------------+
-   |                     |                | Size of the sub tensor in elements per dimension:       |
-   | ``size``            | ``uint32_t[]`` |                                                         |
-   |                     |                | Restrictions:  Size[d] +   offset[d] <= input->shape[d] |
-   +---------------------+----------------+---------------------------------------------------------+
-   |                     |                | Rank of the sub tensor that is produced. Must be        |
-   |                     |                | smaller or equal to the rank of the input tensor. If    |
-   | ``sub_tensor_rank`` | ``uint32_t``   | the ``sub_tensor_rank`` is smaller than the input rank, |
-   |                     |                | the dimensions with a size of 1 is removed in the       |
-   |                     |                | output shape starting from the first dimension until    |
-   |                     |                | the requested ``sub_tensor_rank`` value is reached.     |
-   +---------------------+----------------+---------------------------------------------------------+ 
-..
-
-This function computes the new data pointer based on the offset vector and it sets 
-the shape of the output tensor according to the size vector. The ``mem_stride`` fields 
-are copied from the input to the output, so after this operation, the output tensor might  
-not be a contiguous block of data.
-
-The function also reduces the rank of the output tensor if requested by the 
-configuration. Only the dimensions with a size of 1 can be removed. Data format and 
-quantization parameters are copied from the input to the output tensor.
-
-The capacity field of the output is the input capacity decremented with the same 
-value as that used to increment the data pointer.
-
-The function prototype:
-
-.. code:: c
-
-   mli_status mli_hlp_subtensor(
-     const mli_tensor *in,
-     const mli_subtensor_cfg *cfg,
-     mli_tensor *out);
-..
- 
-Depending on the debug level (see section :ref:`err_codes`), this function performs a parameter 
-check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
+   Depending on the debug level (see section :ref:`err_codes`), this function performs a parameter 
+   check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
 
 .. _num_of_accu_bits:

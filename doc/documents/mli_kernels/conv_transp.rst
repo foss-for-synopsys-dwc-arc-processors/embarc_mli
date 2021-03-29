@@ -7,7 +7,7 @@ For more details on calculations, see chapter 4 of `A guide to convolution
 arithmetic for deep learning <https://arxiv.org/abs/1603.07285>`_.
 
 Optionally, a saturating ReLU activation function can be applied to the 
-result of the convolution during the function’s execution. For more info 
+result of the convolution during the function's execution. For more info 
 on supported ReLU types and calculations, see :ref:`relu_prot`.
 
 The ``dilation_height`` and ``dilation_width`` parameter of ``mli_conv2d_cfg`` 

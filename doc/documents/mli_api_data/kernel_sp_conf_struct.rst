@@ -30,8 +30,9 @@ describe fields of existing MLI configuration structures:
  - Table :ref:`t_mli_prelu_cfg_desc`
 
  - Table :ref:`t_mli_mov_cfg_desc`
- 
- - Table :ref:`t_mli_sub_tensor_cfg_desc`
+
+..
+   - Table :ref:`t_mli_sub_tensor_cfg_desc`
 
 
 

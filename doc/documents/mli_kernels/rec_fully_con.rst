@@ -21,18 +21,18 @@ Each value of output tensor is calculated according to the following formula:
 
 Where:
 
-    :math:`x_{j}` *–* :math:`j_{\text{th}}` *value in input tensor*
+    :math:`x_{j}` *-* :math:`j_{\text{th}}` *value in input tensor*
 
-    :math:`y_{i}` *– output of* :math:`i_{\text{th}}` neuron
+    :math:`y_{i}` *- output of* :math:`i_{\text{th}}` neuron
     (:math:`i_{\text{th}}` *value in output tensor)*
 
-    :math:`W_{i,j}` *– weight of* :math:`j_{\text{th}}\ `\ *input element
+    :math:`W_{i,j}` *- weight of* :math:`j_{\text{th}}\ `\ *input element
     for* :math:`i_{\text{th}}` *neuron.*
 
-    :math:`b_{i}` *– bias for* :math:`i_{\text{th}}` *neuron*
+    :math:`b_{i}` *- bias for* :math:`i_{\text{th}}` *neuron*
 
 Optionally, a saturating ReLU activation function can be applied to the result of the calculations 
-during the function’s execution. For more information on supported ReLU types, see :ref:`relu_prot`.  
+during the function's execution. For more information on supported ReLU types, see :ref:`relu_prot`.  
 
 This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more information on related quantization aspects. 
 The Number of accumulation series is equal to input size.

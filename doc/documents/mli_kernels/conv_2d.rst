@@ -25,7 +25,7 @@ convolution parameters (such as padding or stride), inputs and weights shape.
 ..
 
 Optionally, saturating ReLU activation function can be applied to the result of the 
-convolution during the function’s execution. For more information on supported ReLU types 
+convolution during the function's execution. For more information on supported ReLU types 
 and calculations, see :ref:`relu_prot`.
 
 This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more information on 
