@@ -79,11 +79,11 @@ Here is a list of all available permute functions:
 
 Ensure that you satisfy the following conditions before calling the function:
 
- - ``in`` tensor must be valid.
+ - ``in`` tensor must be valid (see :ref:`mli_tnsr_struc`).
  
  - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity 
-   (that is, the total amount of elements in input tensor). Other fields are filled 
-   by kernel (shape, rank and element specific parameters).
+   (that is, the total amount of elements in the input tensor) and valid ``mem_stride`` field. Other 
+   fields are filled by kernel (shape, rank and element specific parameters).
    
  - Buffers of ``in`` and ``out`` tensors must point to different non-overlapped memory regions.
  

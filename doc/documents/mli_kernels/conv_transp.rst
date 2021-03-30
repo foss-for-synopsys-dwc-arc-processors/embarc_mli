@@ -7,12 +7,15 @@ For more details on calculations, see chapter 4 of `A guide to convolution
 arithmetic for deep learning <https://arxiv.org/abs/1603.07285>`_.
 
 Optionally, a saturating ReLU activation function can be applied to the 
-result of the convolution during the function’s execution. For more info 
+result of the convolution during the function's execution. For more info 
 on supported ReLU types and calculations, see :ref:`relu_prot`.
 
 The ``dilation_height`` and ``dilation_width`` parameter of ``mli_conv2d_cfg`` 
 configuration structure is not applicable in MLI transposed convolution and is 
 ignored.
+
+This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more information on related quantization aspects. 
+The Number of accumulation series is up to (kernel_height * kernel_width * in_channels).
 
 Kernels which implement Transpose Convolutions have the following prototype:
 
@@ -127,9 +130,10 @@ The following table lists all the available Transpose Convolution functions:
 
 Ensure that you satisfy the following conditions before calling the function: 
 
- - ``in``, ``weights`` and ``bias`` tensors must be valid.
+ - ``in``, ``weights`` and ``bias`` tensors must be valid (see :ref:`mli_tnsr_struc`).
  
- - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity and 
+ - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity, valid 
+   ``mem_stride`` field,  and 
    valid ``el_params`` union. Other fields of the structure do not have to contain valid 
    data and are filled by the function.
 	
@@ -154,17 +158,19 @@ satisfy the following conditions before calling the function:
  - ``in`` and ``out`` tensor must be quantized on the tensor level. This implies that each tensor 
    contains a single scale factor and a single zero offset.
    
+ - Zero offset of ``in`` and ``out`` tensors must be within [-128, 127] range.
+ 
  - ``weights`` and ``bias`` tensors must be symmetric. Both must be quantized on the same level. 
    Allowed Options:
    
    - Per Tensor level. This implies that each tensor contains a single scale factor and a single 
      zero offset equal to 0.
-	 
+
    - Per N dimension level (number of filters). This implies that each tensor contains separate 
      scale point for each sub-tensor. All tensors contain single zero offset equal to 0.
-	 
-   - Scale factors of bias tensor must be equal to the multiplication of input scale factor broadcasted 
-     on weights array of scale factors. 
+
+ - Scale factors of bias tensor must be equal to the multiplication of input scale factor broadcasted 
+   on weights array of scale factors. 
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.

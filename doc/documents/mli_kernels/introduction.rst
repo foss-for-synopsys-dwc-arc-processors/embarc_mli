@@ -49,9 +49,14 @@ The slicing concept is illustrated in Figure :ref:`f_slicing_concept`.
    Slicing Concept
 ..
 
-If the tensors don’t fit into CCM, and there is no data cache, the data move functions can 
+If the tensors don't fit into CCM, and there is no data cache, the data move functions can 
 be used to copy full tensors or slices of tensors. (see Chapter :ref:`data_mvmt` ). Slicing 
 with some kernels requires updating the kernel parameters when passing each slice.
+
+The number of elements to the next dimension can be stored in the ``mem_stride`` field 
+(as described in :ref:`mli_tnsr_struc`). In case there is no slicing or concatenation, 
+the ``mem_stride`` field can be set to 0, and the kernel uses the shape values to compute 
+the offsets in the data buffers.
 
 .. _func_names_special:
 

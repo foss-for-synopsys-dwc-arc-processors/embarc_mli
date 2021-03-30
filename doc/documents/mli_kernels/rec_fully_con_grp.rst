@@ -17,8 +17,7 @@ Functions in this group typically use the ``mli_rnn_cell_cfg`` structure, define
       mli_rnn_direction direction;
       mli_rnn_results results;
       mli_rnn_out_activation act;
-      mli_data_container scratch_data;   
-      uint32_t scratch_capacity;
+      mli_data_container scratch_data;
     } mli_rnn_cell_cfg;
 ..
 
@@ -57,8 +56,6 @@ Functions in this group typically use the ``mli_rnn_cell_cfg`` structure, define
    |                      |                            |                       | :ref:`mli_tens_data_struct`) to a memory of sufficient size for the   |
    |                      |                            |                       | kernel. The exact amount of memory is defined  in the respective      |
    |                      |                            |                       | kernel descriptions in subsequent sections.                           |
-   +----------------------+----------------------------+-----------------------+-----------------------------------------------------------------------+
-   | ``scratch_capacity`` | ``uint32_t``               | --                    | Size of a memory pointed by scratch_data field (in bytes).            |
    +----------------------+----------------------------+-----------------------+-----------------------------------------------------------------------+
 ..
 

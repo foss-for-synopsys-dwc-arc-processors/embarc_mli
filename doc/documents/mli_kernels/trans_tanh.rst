@@ -24,12 +24,20 @@ starting address and memory strides).
    tensors is acceptable. Partial overlaps result in undefined behavior.
 ..
 
+This kernel uses a look-up table (LUTs) to perform data transformation. 
+See :ref:`lut_prot` section and the pseudo-code sample for more details on LUT structure preparation.
+Use the following functions for the purpose:
+
+ - :code:`mli_krn_tanh_get_lut_size`
+ - :code:`mli_krn_tanh_create_lut`
+
 Kernels which implement TanH functions have the following prototype:
 
 .. code:: c
 
    mli_status mli_krn_tanh_<data_format>(
       const mli_tensor *in,
+      const mli_lut *lut,
       mli_tensor *out);
 	  
 where ``data_format`` is one of the data formats listed in Table :ref:`mli_data_fmts` and the function 
@@ -43,6 +51,9 @@ parameters are shown in the following table:
    | **Parameter**  | **Type**           | **Description**                            |
    +================+====================+============================================+
    | ``in``         | ``mli_tensor *``   | [IN] Pointer to constant input tensor.     |
+   +----------------+--------------------+--------------------------------------------+
+   | ``lut``        | ``mli_lut *``      | [IN] Pointer to a valid LUT table          |
+   |                |                    |  structure prepared for TanH activation.   |
    +----------------+--------------------+--------------------------------------------+
    | ``out``        | ``mli_tensor *``   | [OUT] Pointer to output tensor.            |
    |                |                    | Result is stored here.                     |
@@ -64,19 +75,23 @@ parameters are shown in the following table:
 
 Ensure that you satisfy the following conditions before calling the function:
 
- - ``in`` tensor must be valid.
+ - ``in`` tensor must be valid (see :ref:`mli_tnsr_struc`).
  
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
  - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity 
-   (that is, the total amount of elements in input tensor). Other fields are filled 
-   by kernel (shape, rank and element specific parameters).
+   (that is, the total amount of elements in input tensor) and valid ``mem_stride`` field.
+   Other fields are filled by kernel (shape, rank and element specific parameters).
+
+ - ``lut`` structure must be valid and prepared for sigmoid activation function (see :ref:`lut_prot`).
 
 For **sa8** versions of kernel, in addition to the preceding conditions, ensure that you 
 satisfy the following conditions before calling the function: 
 
  - ``in`` tensor must be quantized on the tensor level. This implies that the tensor 
    contains a single scale factor and a single zero offset.
+
+ - Zero offset of ``in`` tensor must be within [-128, 127] range.
 
 The range of this function is (-1, 1).  Depending on the data type, quantization parameters of the output 
 tensor are configured in the following way:

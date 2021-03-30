@@ -120,8 +120,9 @@ The size of the array is defined by ``MLI_MAX_RANK``.
    | ``perm_dim``        | ``uint8_t[]``  | Array to specify reordering of dimensions. For example, to convert  |
    |                     |                | from CHW layout to HWC layout this array would be {1, 2, 0}.        |
    +---------------------+----------------+---------------------------------------------------------------------+
-   | ``padding_pre``     | ``uint8_t[]``  | Number of padded samples before the data for each dimension.        |
-   |                     |                | Padded samples is set to zero.                                      |
+   | ``padding_pre``     | ``uint8_t[]``  | Number of padded samples before the input data for each dimension.  |
+   |                     |                | Padding is a virtual extension of the input tensor.                 |
+   |                     |                | Padded samples are set to zero.                                     |
    +---------------------+----------------+---------------------------------------------------------------------+
    | ``padding_post``    | ``uint8_t[]``  | Number of padded samples after the data for each dimension.         |
    |                     |                | Padded samples is set to zero.                                      |
@@ -361,7 +362,7 @@ initialization. Table :ref:`t_mli_mov_prep` describes the parameters of this fun
 .. code:: c
 
    mli_status
-   mli_mov_prepare(mli_mov_handle_t* h, mli_tensor* src, mli_mov_cfg_t* cfg, mli_tensor* dst);
+   mli_mov_prepare(mli_mov_handle_t* h, const mli_tensor* src, const mli_mov_cfg_t* cfg, mli_tensor* dst);
 ..
 
 .. _t_mli_mov_prep:
@@ -399,7 +400,7 @@ an assert is triggered.
 .. code:: c
 
    mli_status
-   mli_mov_start(mli_mov_handle_t* h, mli_tensor* src, mli_mov_cfg_t* cfg, mli_tensor* dst);
+   mli_mov_start(mli_mov_handle_t* h, const mli_tensor* src, const mli_mov_cfg_t* cfg, mli_tensor* dst);
 ..
 
 .. _t_mli_mov_start:
@@ -493,8 +494,8 @@ This function takes a pointer to the handle used for ``mli_mov_prepare`` and ret
 after the transaction completes or in case of an error.
 
 
-Restrictions for source and destination tensors
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Restrictions for Source and Destination Tensors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``src`` and ``dst`` tensors for all functions of asynchronous data move set must comply to the following conditions:
 

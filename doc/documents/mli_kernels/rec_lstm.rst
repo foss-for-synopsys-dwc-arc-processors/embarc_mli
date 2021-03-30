@@ -62,6 +62,19 @@ Where:
 In the Figure :ref:`f_lstm_schematic`, N is the total number of 
 elements in the input and M is the total number of elements in the cell output.
 
+This kernel uses two look-up tables (LUTs) to perform data transformation. 
+See :ref:`lut_prot` section and the pseudo-code sample for more details on LUT structure preparation.
+Use the following functions for the purpose:
+
+ - :code:`mli_krn_tanh_get_lut_size`
+ - :code:`mli_krn_tanh_create_lut`
+ - :code:`mli_krn_sigm_get_lut_size`
+ - :code:`mli_krn_sigm_create_lut`
+
+
+This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more information on related quantization aspects. 
+The number of accumulation series is equal to a single input frame size plus single output frame size.
+
 Kernels which implement an LSTM cell have the following prototype:
 
 .. code:: c
@@ -72,6 +85,8 @@ Kernels which implement an LSTM cell have the following prototype:
       const mli_tensor *weights_in,
       const mli_tensor *weights_out,
       const mli_tensor *bias,
+      const mli_lut * tanh_lut,
+      const mli_lut * sigm_lut,
       const mli_rnn_cell_cfg *cfg,
       mli_tensor *cell,
       mli_tensor *out);
@@ -96,6 +111,12 @@ are shown in the following table:
    | ``weights_out``  | ``mli_tensor *``        | [IN] Pointer to constant weights tensor for LSTM output.        |
    +------------------+-------------------------+-----------------------------------------------------------------+
    | ``bias``         | ``mli_tensor *``        | [IN] Pointer to constant bias tensor.                           |
+   +------------------+-------------------------+-----------------------------------------------------------------+
+   | ``tanh_lut``     | ``mli_lut *``           | [IN] Pointer to a valid LUT table structure prepared for the    |
+   |                  |                         |  hyperbolic tangent activation.                                 |
+   +------------------+-------------------------+-----------------------------------------------------------------+
+   | ``sigm_lut``     | ``mli_lut *``           | [IN] Pointer to a valid LUT table structure prepared for        |
+   |                  |                         |  sigmoid  activation.                                           |
    +------------------+-------------------------+-----------------------------------------------------------------+
    | ``cfg``          | ``mli_rnn_cell_cfg *``  | [IN/OUT]   Pointer to RNN cell parameters structure.            |
    +------------------+-------------------------+-----------------------------------------------------------------+
@@ -180,7 +201,7 @@ Here is a list of all available LSTM cell functions:
 
 Ensure that you satisfy the following conditions before calling the function:
 
- - ``in``, ``prev_out``, ``weights_in``, ``weights_out``, ``bias``, and ``cell`` tensors must be valid.
+ - ``in``, ``prev_out``, ``weights_in``, ``weights_out``, ``bias``, and ``cell`` tensors must be valid (see :ref:`mli_tnsr_struc`).
 
  - ``in`` must be a tensor of shape (batch_size, N) where batch_size is a number of input frames for sequential 
    processing by LSTM cell.
@@ -195,26 +216,29 @@ Ensure that you satisfy the following conditions before calling the function:
  
  - ``prev_out`` must be a one-dimensional tensor of shape (M).
  
- - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity and valid el_params union. 
-   Other fields of the structure do not have to contain valid data and are filled by the function.
+- ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity for storing the result (to keep M 
+   elements if LSTM cell is configured with RNN_OUT_LAST or to keep M*batch_size elements if LSTM cell is configured 
+   with RNN_OUT_ALL), and valid ``mem_stride`` field. Other fields of the structure do not have to contain valid data and 
+   are filled by the function.
    
  - ``in`` and ``cfg->scratch_data`` must not point to overlapped memory regions.
  
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
- 
- - ``out`` must contain a valid pointer to a buffer with sufficient capacity for storing the result (to keep M 
-   elements if LSTM cell is configured with RNN_OUT_LAST or to keep M*batch_size elements if LSTM cell is configured 
-   with RNN_OUT_ALL). Other fields of the structure do not have to contain valid data and are filled by the function.
    
  - Before processing, scratch_data field in config structure must contain a valid pointer to a buffer with enough 
-   capacity for the result (4*M elements of input type). The ``scratch_capacity`` field must reflect the available size of 
+   capacity for the result (4*M elements of input type). The ``capacity`` field of the ``scratch_data`` must reflect the available size of 
    this memory in bytes properly (see Table :ref:`t_mli_rnn_cell_cfg_desc`). 
    
+- ``tanh_lut`` and ``sigm_lut`` structures must be valid and prepared for 
+  hyperbolic tangent and sigmoid activation functions accordingly (see :ref:`lut_prot`).
+
 For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions, ensure that you 
 satisfy the following conditions before calling the function: 
 
  - ``in``, ``prev_out`` and ``cell`` tensor must be quantized on the tensor level. This implies that each tensor contains a 
    single scale factor and a single zero offset.
+
+ - Zero offset of ``in``, ``prev_out`` and ``cell`` tensors must be within [-128, 127] range.
    
  - ``weights_in``, ``weights_out`` and ``bias`` tensors must be symmetric and quantized per first dimension (number of 
    sub-tensors equal to 4). This implies that each tensor contains separate scale point for each sub-tensor. All tensors 

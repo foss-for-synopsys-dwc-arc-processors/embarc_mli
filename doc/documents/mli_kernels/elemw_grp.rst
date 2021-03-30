@@ -76,7 +76,8 @@ Ensure that you satisfy the following conditions before calling the listed funct
    They must be of the same shape, or one of them can be a tensor-scalar (see data field description 
    in the Table :ref:`mli_tnsr_struc`) 
 
- - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity and valid ``el_params`` union. 
+ - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity, valid 
+   ``mem_stride`` field,  and valid ``el_params`` union. 
    Other fields of the structure do not have to contain valid data and are filled by the function
 
     - ``shape`` (a new shape is calculated according to input tensor shape, stride, and padding parameters).
@@ -89,7 +90,7 @@ Ensure that you satisfy the following conditions before calling the listed funct
    - ``in1`` and ``in2`` must have the same quantization parameters. It means that ``el_params``
      union of tensors must be the same. For other elementwise functions this restriction is not applicable.
 
-   - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity. 
+   - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity and valid ``mem_stride`` field. 
      Other fields of the structure do not have to contain valid data and are filled by the function 
      (``shape``, ``rank``, ``el_params``, etc). 
  
@@ -104,6 +105,8 @@ Ensure that you satisfy the following conditions before calling the listed funct
 
  - For sa8 input and output tensors must be quantized on the tensor level. This implies 
    that each tensor contains a single scale factor and a single zero offset.
+   
+ - For sa8, zero offset of input and output tensors must be within [-128, 127] range.
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.

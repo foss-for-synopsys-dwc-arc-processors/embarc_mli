@@ -13,22 +13,25 @@ typically used in the majority of RNN architectures:
 
 Where:
 
-    :math:`{xa}_{j}`, :math:`{xb}_{j}`, :math:`{xn}_{j}` *–*
+    :math:`{xa}_{j}`, :math:`{xb}_{j}`, :math:`{xn}_{j}` *-*
     :math:`j_{\text{th}}` *value in one of the input tensors. These input
     tensors might be current input, previous output, cell state or any other 
     tensor depending on RNN Cell architecture*
 	
-    :math:`{Wa}_{i,j}`, :math:`{Wb}_{i,j}`, :math:`{Wc}_{i,j}` *– weight
+    :math:`{Wa}_{i,j}`, :math:`{Wb}_{i,j}`, :math:`{Wc}_{i,j}` *- weight
     of* :math:`j_{th}\ `\ *input element for*
     :math:`i_{th}` *neuron in one of input weights tensors. These
     weights tensors might be input-to-a-gate weights, output-to-a-gate
     weights or any other tensor depending on RNN Cell architecture*
 	
-    :math:`y_{i}` *– output of* :math:`i_{th}` neuron
+    :math:`y_{i}` *- output of* :math:`i_{th}` neuron
     ( :math:`i_{th}` *value in output tensor).*
 	
-    :math:`b_{i}` *– bias for* :math:`i_{th}` *neuron*
-	
+    :math:`b_{i}` *- bias for* :math:`i_{th}` *neuron*
+
+This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more information on related quantization aspects. 
+The number of accumulation series is equal to total number of values in all inputs.
+
 Kernels which implement an RNN Dense functionality have the following prototype:
 
 .. code:: c
@@ -110,7 +113,7 @@ Here is a list of all available RNN Dense functions:
 Ensure that you satisfy the following conditions before calling the listed functions:
 
  - ``bias``, all tensors in ``inputs`` array and all tensors in ``weights`` array 
-   must be valid.
+   must be valid (see :ref:`mli_tnsr_struc`).
 	
  - The number of tensors in inputs and ``weights`` arrays must be the same and 
    must not exceed ``MLI_RNN_MAX_INPUTS`` value. 
@@ -128,7 +131,7 @@ Ensure that you satisfy the following conditions before calling the listed funct
  - ``bias`` must be a one-dimensional tensor. Its length must be equal to M (number 
    of filters and is equal to output length) of any weights tensor.
    
- - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity 
+ - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity, valid ``mem_stride`` field 
    and valid ``el_params`` union. Other fields of the structure do not have to contain 
    valid data and are filled by the function.
    
@@ -143,6 +146,8 @@ satisfy the following conditions before calling the function:
    must be quantized on the tensor level. This implies that each tensor contains a 
    single scale factor and a single zero offset.
    
+ - Zero offset of each tensor in inputs and out tensor must be within [-128, 127] range.
+
  - ``bias`` and all tensors in weights array must be symmetric. This implies that both 
    tensors contain single zero offset equal to 0.
    
@@ -151,6 +156,6 @@ satisfy the following conditions before calling the function:
    (that is, :math:`bias.scale = inputs[0].scale * weights[0].scale`).
 
 
-Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
+Depending on the debug level (see section :ref:`err_codes`), this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 

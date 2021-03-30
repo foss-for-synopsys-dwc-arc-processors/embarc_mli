@@ -27,13 +27,21 @@ in-place computation: output and input can point to exactly the same memory (the
 starting address and memory strides). If the starting address and memory stride of the 
 input and output tensors are set in such a way that memory regions are overlapped, 
 the behavior is undefined.
- 
+
+This kernel uses a look-up table (LUTs) to perform data transformation. 
+See :ref:`lut_prot` section and the pseudo-code sample for more details on LUT structure preparation.
+Use the following functions for the purpose:
+
+ - :code:`mli_krn_softmax_get_lut_size`
+ - :code:`mli_krn_softmax_create_lut`
+
 Kernels which implement SoftMax functions have the following prototype:
 
 .. code:: c
 
    mli_status mli_krn_softmax_<data_format>(
       const mli_tensor *in,
+      const mli_lut *lut,
       const mli_softmax_cfg *cfg,
      mli_tensor *out);
 ..
@@ -49,6 +57,9 @@ parameters are shown in the following table:
    | **Parameter**  | **Type**                | **Description**                               |
    +================+=========================+===============================================+
    | ``in``         | ``mli_tensor *``        | [IN] Pointer to constant input tensor.        |
+   +----------------+-------------------------+-----------------------------------------------+
+   | ``lut``        | ``mli_lut *``           | [IN] Pointer to a valid LUT table             |
+   |                |                         |  structure prepared for softmax activation.   |
    +----------------+-------------------------+-----------------------------------------------+
    | ``cfg``        | ``mli_softmax_cfg *``   | [IN] Pointer to softmax parameters structure. |
    +----------------+-------------------------+-----------------------------------------------+
@@ -81,16 +92,26 @@ See Table :ref:`t_mli_prelu_cfg_desc` for more details.
 
 Ensure that you satisfy the following conditions before calling the function:
 
- - ``in`` tensor must be valid.
+ - ``in`` tensor must be valid (see :ref:`mli_tnsr_struc`).
  
  - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity 
-   (that is, the total amount of elements in input tensor). Other fields are filled 
+   (that is, the total amount of elements in input tensor) and valid ``mem_stride`` field. Other fields are filled 
    by kernel (shape, rank and element specific parameters).
    
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
  - axis parameter might be negative and must be less than in tensor rank.
+
+ - ``lut`` structure must be valid and prepared for softmax activation function (see :ref:`lut_prot`).
  
+For **sa8** versions of the kernel, in addition to the preceding conditions, ensure that you 
+satisfy the following conditions before calling the function: 
+
+ - ``in`` tensors must be quantized on the tensor level. This 
+   implies that the tensor contains a single scale factor and a single zero offset.
+
+ - Zero offset of ``in`` tensor must be within [-128, 127] range.
+
 The range of this function is (0, 1).  Depending on the data type, quantization parameters of the output 
 tensor are configured in the following way:
 

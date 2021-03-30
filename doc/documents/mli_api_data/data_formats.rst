@@ -180,6 +180,8 @@ specific scale ratios:
    Round\left( \left( \frac{x_{fp32}}{(s_{fx}*2^{- n})} \right) + z \right) = \ Round\left( \left( \frac{x_{fp32}}{(1*2^{- n})} \right) + 0 \right) = Round\left( x_{fp32}*2^{n} \right) = x_{{fx}}
 ..
 
+.. _quant_accum_infl:
+
 Quantization: Influence of Accumulator Bit Depth   
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -195,17 +197,19 @@ Number of available bits depends on the operands’ types and the platform.
 
    - ``sa8`` operands with 32-bit accumulator uses 1 sign bit and 31 significant bits. ``sa8`` operands 
      have 1 sign and 7 significant bits. Single multiplication of such operands results in 
-     7 + 7 = 14 significant bits for output. Thus for MAC-based kernels, 17 accumulation bits 
-     (as 31-(7+7)=17) are available which can be used to perform up to 2^17 = 131072 operations 
-     without overflow. For simple accumulation, 31 – 7 = 24 bits are available which are guaranteed 
-     to perform up to 2^24 = 16777216 operations without overflow.
+     7 + 7 + 1 = 15 significant bits for output. Here one extra bit is required to handle multiplication 
+     of max negative values (-32768 * -32768 = 1073741824 – the value of 31 bits depth). 
+     Thus for MAC-based kernels, 16 accumulation bits (as 31-(7+7+1)=16) are available which can be used to
+     perform up to 2^16 = 65536 operations without overflow. For simple accumulation, 31 – 7 = 24 bits are
+     available which are guaranteed to perform up to 2^24 = 16777216 operations without overflow.
 
    - ``fx16`` operands with 40-bit accumulator is uses 1 sign bit and 39 significant bits. ``fx16`` 
      operands have 1 sign and 15 significant bits. A multiplication of such operands results in 
-     15 + 15 = 30 significant bits for output. For MAC-based kernels, 39 – (15+15) = 9 accumulation 
-     bits are available, which can be used to perform up to 2^9 = 512 operations without overflow. 
-     For simple accumulation, 39 – 15 = 24 bits are available which perform up to 2^24 = 16777216 
-     operations without overflow.
+     15 + 15 + 1 = 31 significant bits for output. Here one extra bit is required to handle multiplication 
+     of max negative values (-128 * -128 = 16384 – the value of 15 bits depth). For MAC-based kernels, 
+     39 – (15+15+1) = 8 accumulation bits are available, which can be used to perform up to 2^8 = 256 
+     operations without overflow. For simple accumulation, 39 – 15 = 24 bits are available which 
+     perform up to 2^24 = 16777216 operations without overflow.
 ..
 
 In general, the number of accumulations required for one output value calculation can be  
@@ -220,23 +224,7 @@ estimated in advance.
      between operands.
 ..
 
-The file ``mli_config.h`` exports a set of defines that hold the number of accumulator bits 
-for the different operand combinations. These values can vary depending upon the selected
-hardware platform. :ref:`pf_sp_acc_def` lists the defines. 
-
-.. _pf_sp_acc_def:
-.. table:: Platform Specific Accumulator Bit Defines
-   :align: center
-   :widths: 60, 30 
-   
-   +-------------------------+---------------+
-   | **Define**              | **Operands**  |
-   +=========================+===============+
-   | MLI_ACCU_BITS_SA8_SA8   | sa8 x sa8     |
-   +-------------------------+---------------+
-   | MLI_ACCU_BITS_FX16_FX16 | fx16 x fx16   |
-   +-------------------------+---------------+
-   | MLI_ACCU_BITS_FX16_FX8  | fx16 x fx8    |
-   +-------------------------+---------------+   
-..
+Special functions to determine the number of the available accumulator guard bits for the different operand 
+combination are provided. These values can be different when compiled on a different platform. 
+These functions are defined in :ref:`num_of_accu_bits` section.
 

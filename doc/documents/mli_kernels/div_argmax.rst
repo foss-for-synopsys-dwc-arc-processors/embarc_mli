@@ -66,28 +66,27 @@ parameters are shown in the following table:
    :align: center
    :widths: auto
    
-   +----------------------------+------------------------------------+
-   | **Function Name**          | **Details**                        |
-   +============================+====================================+
-   | ``mli_krn_argmax_sa8``     | All tensors data format: **sa8**   |
-   +----------------------------+------------------------------------+
-   | ``mli_krn_argmax_fx16``    | All tensors data format: **fx16**  |
-   +----------------------------+------------------------------------+
+   +----------------------------+--------------------------------------+
+   | **Function Name**          | **Details**                          |
+   +============================+======================================+
+   | ``mli_krn_argmax_sa8``     | ``in`` tensor data format: **sa8**   |
+   +----------------------------+--------------------------------------+
+   | ``mli_krn_argmax_fx16``    | ``in`` tensors data format: **fx16** |
+   +----------------------------+--------------------------------------+
 ..   
 
 Ensure that you satisfy the following conditions before calling the function:
 
- - ``in`` tensor must be valid.
+ - ``in`` tensor must be valid (see :ref:`mli_tnsr_struc`).
  
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
  - ``out`` tensor must contain only
-
-    - A valid ``el_type`` field. Allowed types are (``fx8``, ``fx16``, ``sa8``, ``sa32``). 
-      Chosen type must be able to keep maximum index of element in flatten input tensor.
    
     - A valid pointer to a buffer with sufficient capacity. That is ``top_k*in.shape[axis]`` values
-      of chosen type. 
+      of ``int32`` type. 
+
+    - A valid ``mem_stride`` field.
       
     - Other fields of the structure do not have to contain valid data and are filled by the function.
 
@@ -105,8 +104,7 @@ The Kernel modifies the output tensor which is transformed into two-dimensional 
 ``mli_argmax_cfg`` structure, and ``top_k`` is the number of indexes per slice specified by the 
 ``topk`` parameter of the same structure. 
 
-The Output tensor type must be defined by the user. Only integer types are allowed (``fx8``, ``fx16``, 
-``sa8``, ``sa32``). ``el_params`` field of out tensor is configured by the kernel to reflect fully integer 
-values (``frac_bits = 0`` for **fx** data format, ``zero_offset = 0``,  ``scale = 1`` and 
-``scale_frac_bits = 0`` for **sa** data format). An Index represents the position of Nth 
+``el_type`` field of ``out`` tensor is set by the kernel to ``MLI_EL_SA_32`` and ``el_params`` field 
+is configured to reflect fully integer values (zero_offset = 0,  scale = 1 and scale_frac_bits = 0). 
+Values in output tensor are 32 bit indexes.  An Index represents the position of Nth 
 (N<``top_k``) maximum value in the flattened slice across the defined dimension in the input tensor.

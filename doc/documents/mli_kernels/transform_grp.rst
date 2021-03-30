@@ -10,6 +10,7 @@ alter data size or shape and only change the values element-wise.
 .. toctree::
    :maxdepth: 2
    
+   trans_lut.rst
    trans_relu.rst
    trans_leaky_relu.rst
    trans_param_relu.rst
