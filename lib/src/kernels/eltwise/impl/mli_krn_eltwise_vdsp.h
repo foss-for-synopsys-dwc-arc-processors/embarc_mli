@@ -22,15 +22,15 @@ const int unroll_factor[2][5] = {
         /* ELTWISE_ADD_NO_CONVERT = */ 1,
         /* ELTWISE_SUB_NO_CONVERT = */ 1,
         /* ELTWISE_MUL_NO_CONVERT = */ 4,
-        /* ELTWISE_MAX_NO_CONVERT = */ 1,
-        /* ELTWISE_MIN_NO_CONVERT = */ 1
+        /* ELTWISE_MAX_NO_CONVERT = */ 4,
+        /* ELTWISE_MIN_NO_CONVERT = */ 4
         } ,
         {
         /* ELTWISE_ADD_CONVERT = */ 1,
         /* ELTWISE_SUB_CONVERT = */ 1,
         /* ELTWISE_MUL_CONVERT = */ 3,
-        /* ELTWISE_MAX_CONVERT = */ 1,
-        /* ELTWISE_MIN_CONVERT = */ 1
+        /* ELTWISE_MAX_CONVERT = */ 3,
+        /* ELTWISE_MIN_CONVERT = */ 3
         }
 };
 
@@ -541,6 +541,117 @@ void eltwise_innerloop(
         auto val1 = (scalar_op1) ? op1_scalar : mli_prv_load_1vec(op1_ptr + idx1);
         auto val2 = (scalar_op2) ? op2_scalar : mli_prv_load_1vec(op2_ptr + idx2);
         auto res = mli::krn::eltwise_perform_operation<decltype(input), decltype(input), func_type, convert>(
+                                                       val1, val2, in_offset1, in_offset2, out_offset, scale1,
+                                                       scale2, pre_op_shift1, pre_op_shift2, post_op_shift);
+        mli_prv_store_n_samples(&out_ptr[idx_out], res);
+        idx1 += num_lanes;
+        idx2 += num_lanes;
+        idx_out += num_lanes;
+    }
+}
+template<>
+MLI_FORCE_INLINE void eltwise_innerloop<int16_t, ELTWISE_MAX, false>(
+        const MLI_PTR(int16_t) __restrict op1_ptr,
+        const MLI_PTR(int16_t) __restrict op2_ptr,
+        MLI_PTR(int16_t) __restrict out_ptr,
+        int idx1,
+        int idx2,
+        int idx_out,
+        const int count,
+		int16_t op1_s,
+		int16_t op2_s,
+        const bool scalar_op1,
+        const bool scalar_op2,
+        const int16_t in_offset1,
+        const int16_t in_offset2,
+        const int16_t out_offset,
+        const int16_t scale1,
+        const int16_t scale2,
+        const int pre_op_shift1,
+        const int pre_op_shift2,
+        const int post_op_shift) {
+    /* Dummy Load to get num_lanes, remaining part */
+    auto input = mli_prv_load_1vec(op1_ptr);
+    int num_lanes = get_number_lanes(input);
+    int remaining_part = count & (num_lanes - 1);
+    decltype(input) op1_scalar = op1_s;
+    decltype(input) op2_scalar = op2_s;
+    const int convert_int = static_cast<int>(false);
+    const int func_int = static_cast<int>(ELTWISE_MAX);
+
+    if (remaining_part) {
+        auto val1 = (scalar_op1) ? op1_scalar : mli_prv_load_1vec(op1_ptr + idx1);
+        auto val2 = (scalar_op2) ? op2_scalar : mli_prv_load_1vec(op2_ptr + idx2);
+        auto res = mli::krn::eltwise_perform_operation<decltype(input), decltype(input), ELTWISE_MAX, false>(
+                                                       val1, val2, in_offset1, in_offset2, out_offset, scale1,
+                                                       scale2, pre_op_shift1, pre_op_shift2, post_op_shift);
+        mli_prv_store_n_samples(&out_ptr[idx_out], res, remaining_part);
+        idx1 += remaining_part;
+        idx2 += remaining_part;
+        idx_out += remaining_part;
+    }
+
+#pragma clang loop unroll_count(unroll_factor[convert_int][func_int])
+    for (int pos = 0; pos < (count - remaining_part); pos+=num_lanes) {
+        auto val1 = (scalar_op1) ? op1_scalar : mli_prv_load_1vec(op1_ptr + idx1);
+        auto val2 = (scalar_op2) ? op2_scalar : mli_prv_load_1vec(op2_ptr + idx2);
+        auto res = mli::krn::eltwise_perform_operation<decltype(input), decltype(input), ELTWISE_MAX, false>(
+                                                       val1, val2, in_offset1, in_offset2, out_offset, scale1,
+                                                       scale2, pre_op_shift1, pre_op_shift2, post_op_shift);
+        mli_prv_store_n_samples(&out_ptr[idx_out], res);
+        idx1 += num_lanes;
+        idx2 += num_lanes;
+        idx_out += num_lanes;
+    }
+}
+
+template<>
+MLI_FORCE_INLINE void eltwise_innerloop<int16_t, ELTWISE_MIN, false>(
+        const MLI_PTR(int16_t) __restrict op1_ptr,
+        const MLI_PTR(int16_t) __restrict op2_ptr,
+        MLI_PTR(int16_t) __restrict out_ptr,
+        int idx1,
+        int idx2,
+        int idx_out,
+        const int count,
+		int16_t op1_s,
+		int16_t op2_s,
+        const bool scalar_op1,
+        const bool scalar_op2,
+        const int16_t in_offset1,
+        const int16_t in_offset2,
+        const int16_t out_offset,
+        const int16_t scale1,
+        const int16_t scale2,
+        const int pre_op_shift1,
+        const int pre_op_shift2,
+        const int post_op_shift) {
+    /* Dummy Load to get num_lanes, remaining part */
+    auto input = mli_prv_load_1vec(op1_ptr);
+    int num_lanes = get_number_lanes(input);
+    int remaining_part = count & (num_lanes - 1);
+    decltype(input) op1_scalar = op1_s;
+    decltype(input) op2_scalar = op2_s;
+    const int convert_int = static_cast<int>(false);
+    const int func_int = static_cast<int>(ELTWISE_MIN);
+
+    if (remaining_part) {
+        auto val1 = (scalar_op1) ? op1_scalar : mli_prv_load_1vec(op1_ptr + idx1);
+        auto val2 = (scalar_op2) ? op2_scalar : mli_prv_load_1vec(op2_ptr + idx2);
+        auto res = mli::krn::eltwise_perform_operation<decltype(input), decltype(input), ELTWISE_MIN, false>(
+                                                       val1, val2, in_offset1, in_offset2, out_offset, scale1,
+                                                       scale2, pre_op_shift1, pre_op_shift2, post_op_shift);
+        mli_prv_store_n_samples(&out_ptr[idx_out], res, remaining_part);
+        idx1 += remaining_part;
+        idx2 += remaining_part;
+        idx_out += remaining_part;
+    }
+
+#pragma clang loop unroll_count(unroll_factor[convert_int][func_int])
+    for (int pos = 0; pos < (count - remaining_part); pos+=num_lanes) {
+        auto val1 = (scalar_op1) ? op1_scalar : mli_prv_load_1vec(op1_ptr + idx1);
+        auto val2 = (scalar_op2) ? op2_scalar : mli_prv_load_1vec(op2_ptr + idx2);
+        auto res = mli::krn::eltwise_perform_operation<decltype(input), decltype(input), ELTWISE_MIN, false>(
                                                        val1, val2, in_offset1, in_offset2, out_offset, scale1,
                                                        scale2, pre_op_shift1, pre_op_shift2, post_op_shift);
         mli_prv_store_n_samples(&out_ptr[idx_out], res);
