@@ -81,7 +81,7 @@ static const float input_1_data[] = {
     -2.667842f, -1.159014f, -0.769282f, -0.543935f
 };
 
-static const float input_1_scale = 0.008329047f;
+static const float input_1_scale = 0.012644791338583f;
 static const float input_1_zero_point = -1.6058885f;
 static const int8_t input_1_scales_frac[] = {21};
 static const int input_1_sa_dim = -1;
@@ -684,9 +684,9 @@ static const float bias_1_data[] = {
     0.064589f, 0.127529f, -0.126423f, -0.054092f, 0.01993f, -0.166474f, 0.048262f, 0.156415f, -0.082046f, 0.098468f
 };
 
-static const float bias_1_i1_w1_scales[] = {0.000014574003f, 0.000014365679f, 0.000013787936f};
+static const float bias_1_i1_w1_scales[] = {0.0000221256080f, 0.0000218093403f, 0.0000209322369f};
 static const float bias_1_i1_w1_zero_points[] = {0.f, 0.f, 0.f};
-static const int8_t bias_1_i1_w1_scales_frac[] = {31, 31, 31};
+static const int8_t bias_1_i1_w1_scales_frac[] = {30, 30, 30};
 static const int bias_1_i1_w1_sa_dim = 0;
 
 static const float bias_1_i2_w2_scales[] = {0.000029262324f, 0.000029037265f, 0.000029138798f};

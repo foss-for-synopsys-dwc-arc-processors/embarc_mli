@@ -126,9 +126,9 @@ static const float input_2_data[] = {
     7.375244f, 7.414307f, 7.453369f, 7.492432f, 7.531494f, 7.570557f, 7.609619f, 7.648682f,
     7.687744f, 7.726807f, 7.765869f, 7.804932f, 7.843994f, 7.883057f, 7.922119f, 7.961182f};
 
-static const float input_2_scale = 0.0194546562f;
-static const float input_2_zero_point = 5.4807128906f;
-static const int8_t input_2_scales_frac[] = {20};
+static const float input_2_scale = 0.039062503937f;
+static const float input_2_zero_point = 3.000244f;
+static const int8_t input_2_scales_frac[] = {19};
 static const int input_2_sa_dim = -1;
 
 static const int input_2_fx8_frac = 4;
