@@ -368,6 +368,50 @@ void eltwise_innerloop(
         const int pre_op_shift1,
         const int pre_op_shift2,
         const int post_op_shift);
+
+template<>
+MLI_FORCE_INLINE void eltwise_innerloop<int16_t, ELTWISE_MAX, false>(
+        const MLI_PTR(int16_t) __restrict op1_ptr,
+        const MLI_PTR(int16_t) __restrict op2_ptr,
+        MLI_PTR(int16_t) __restrict out_ptr,
+        int idx1,
+        int idx2,
+        int idx_out,
+        const int count,
+		int16_t op1_s,
+		int16_t op2_s,
+        const bool scalar_op1,
+        const bool scalar_op2,
+        const int16_t in_offset1,
+        const int16_t in_offset2,
+        const int16_t out_offset,
+        const int16_t scale1,
+        const int16_t scale2,
+        const int pre_op_shift1,
+        const int pre_op_shift2,
+        const int post_op_shift);
+
+template<>
+MLI_FORCE_INLINE void eltwise_innerloop<int16_t, ELTWISE_MIN, false>(
+        const MLI_PTR(int16_t) __restrict op1_ptr,
+        const MLI_PTR(int16_t) __restrict op2_ptr,
+        MLI_PTR(int16_t) __restrict out_ptr,
+        int idx1,
+        int idx2,
+        int idx_out,
+        const int count,
+		int16_t op1_s,
+		int16_t op2_s,
+        const bool scalar_op1,
+        const bool scalar_op2,
+        const int16_t in_offset1,
+        const int16_t in_offset2,
+        const int16_t out_offset,
+        const int16_t scale1,
+        const int16_t scale2,
+        const int pre_op_shift1,
+        const int pre_op_shift2,
+        const int post_op_shift);
 } // namespace vdsp
 } // namespace krn
 } // namespace mli
