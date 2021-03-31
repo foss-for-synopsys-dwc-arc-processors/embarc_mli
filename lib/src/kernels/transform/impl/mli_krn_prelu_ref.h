@@ -19,6 +19,7 @@
 #include "mli_prv_tensor.h"
 #include "mli_prv_quant.h"
 #include "mli_types.h"
+#include "mli_krn_leaky_relu.h"
 
 namespace mli {
 namespace krn {
@@ -102,7 +103,7 @@ static MLI_FORCE_INLINE mli_status prelu_fx_run(const mli_tensor *in,
     MLI_OUT_PTR(io_T) vec_out = nullptr;
 
     const MLI_PTR(io_T) in_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in);
-    const MLI_PTR(io_T) slope_ptr = nullptr;
+    const MLI_PTR(io_T) slope_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(slope_coeff);
     MLI_OUT_PTR(io_T) out_ptr = mli_prv_tensor_data_ptr<MLI_OUT_PTR(io_T)>(out);
 
     /* Copy tensor format */
@@ -112,24 +113,12 @@ static MLI_FORCE_INLINE mli_status prelu_fx_run(const mli_tensor *in,
     auto out_prv = mli_prv_get_generic_tensor<MLI_OUT_PTR(io_T)>(out);
 
     /* Define Slope Axis Params */
-    int axis_shape = 1;
-    int axis_in_mem_stride = 0;
-    int axis_out_mem_stride = 0;
-    bool broadcasting = true;
-    bool is_leaky_relu = (cfg->axis == -1);
-    io_T scale;
-    if (is_leaky_relu) {
-        // Getscalar value
-        scale = mli_prv_tensor_data_val<io_T>(slope_coeff);
-    } else {
-        /* Broadcasting in case axis is not inner most dim */
-        broadcasting = !(cfg->axis == (in_prv.rank - 1));
-        in_prv.shape[cfg->axis] = 1;
-        axis_shape = slope_coeff->shape[cfg->axis];
-        axis_in_mem_stride = in_prv.mem_stride[cfg->axis];
-        axis_out_mem_stride = out_prv.mem_stride[cfg->axis];
-        slope_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(slope_coeff);
-    }
+    in_prv.shape[cfg->axis] = 1;
+    int axis_shape = slope_coeff->shape[cfg->axis];
+    int axis_in_mem_stride = in_prv.mem_stride[cfg->axis];
+    int axis_out_mem_stride = out_prv.mem_stride[cfg->axis];
+    /* Broadcasting in case axis is not inner most dim */
+    bool broadcasting = !(cfg->axis == (in_prv.rank - 1));
 
     /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
     mli_prv_reorder_generic_tensor<MLI_PTR(io_T)>(&in_prv );
@@ -152,7 +141,7 @@ static MLI_FORCE_INLINE mli_status prelu_fx_run(const mli_tensor *in,
         decltype(input) scale_v;
         if (broadcasting) {
             /* Load Scale Elem */
-            scale_v = mli_prv_init_v<io_T, decltype(input)>((is_leaky_relu)? scale: slope_ptr[scale_idx]);
+            scale_v = mli_prv_init_v<io_T, decltype(input)>(slope_ptr[scale_idx]);
             scale_idx++;
         } else {
             /* Load Scale Vector */
@@ -202,76 +191,7 @@ static MLI_FORCE_INLINE s8asym_quant_params prelu_define_requant_params(const ml
         const int8_t alpha_sa8,
         const s8asym_quant_params *identity_params) {
     
-    /* ****************************************************************************************************************
-     *             Mathematical Derivations out_sa8 Requantization Params with alpha scale to use with in_sa8
-     * ----------------------------------------------------------------------------------------------------------------
-     *      First we need to define Quantization Params for In/Out 
-     *          out_sa8 = (in_scale_val/out_scale_val) *(in_sa8 - in_zp) + out_zp
-     *      where we define scale, scale_shift and offset modified values
-     *          check -> define_quant_params(const mli_tensor *in, const mli_tensor *out, s8asym_quant_params *params)
-     *          for Documentation
-     *      then :
-     * 
-     *      out_sa8 = (in_scale_val/out_scale_val) * alpha_scale * (alpha_sa8 - alpha_zp) * (in_sa8 - in_zp) + out_zp
-     *              = scale_val * alpha_val * (alpha_sa8 - alpha_zp) * (in_sa8 - in_zp) + out_zp
-     *              = scale_alpha_val * (in_sa8 - in_zp) + out_zp
-     *              = scale_alpha_val * in_sa8 + out_zp - scale_alpha_val * in_zp
-     *              = scale_alpha_val * in_sa8 + scale_alpha_offset;
-     * 
-     *      For scale_alpha_val = scale_val * alpha_val * (alpha_sa8 - alpha_zp) 
-     *                        = scale * 2 ^(-(scale_shift)) * alpha_scale 
-     *                          * 2^(-alpha_scale_frac_bits) * (alpha_sa8 - alpha_zp)
-     *                        = scale * alpha_scale * (alpha_sa8 - alpha_zp) 
-     *                          * 2^(-(scale_shift + alpha_scale_frac_bits))
-     *                        = scale * alpha_scale * (alpha_sa8 - alpha_zp) * 2^(-(alpha_norm_shift))
-     *                          * 2^(-(scale_shift + alpha_scale_frac_bits - alpha_norm_shift))
-     *                        = scale * alpha
-     *                          * 2^(-(scale_shift + alpha_scale_frac_bits - alpha_norm_shift))
-     *                        = scale * alpha * 2^(-(scale_mul_norm_shift))
-     *                          * 2^(-(scale_shift + alpha_scale_frac_bits - alpha_norm_shift - scale_mul_norm_shift))
-     *                        = scale_alpha * 2^(-(scale_alpha_shift))
-     * 
-     *      where alpha = alpha_scale * (alpha_sa8 - alpha_zp) * 2^(-(alpha_norm_shift))
-     *            alpha_norm_shift is the shift value due to normalizing the result of 
-     *                             alpha_scale * (alpha_sa8 - alpha_zp) and casting it from int32_t to int16_t
-     *            scale_alpha = scale * alpha * 2^(-(scale_mul_norm_shift))
-     *            scale_mul_norm_shift is the shift value due to normalizing the result of 
-     *                             scale * alpha_scale * (alpha_sa8 - alpha_zp) * 2^(-(alpha_norm_shift))
-     *            scale_alpha_shift = scale_shift + alpha_scale_frac_bits - alpha_norm_shift - scale_mul_norm_shift
-     * 
-     *      scale_alpha_offset = out_zp - scale_alpha_val * in_zp
-     *                         = out_zp - (scale_alpha * in_zp) * 2^(-(scale_alpha_shift));
-     * 
-     * ***************************************************************************************************************/
-
-    int32_t alpha_val = mli_prv_convert_sa8_fx16<int8_t, int32_t>(alpha_sa8, 
-                            slope_coeff->el_params.sa.zero_point.mem.i16,
-                            slope_coeff->el_params.sa.scale.mem.i16);
-    /* Normalize alpha and cast to 16bit */
-    int norm_shift;
-    int16_t alpha = mli_math_norm_cast_fx<int32_t,int16_t>(alpha_val, &norm_shift);
-    
-    int scale_alpha_shift  = identity_params->shift;
-        scale_alpha_shift += slope_coeff->el_params.sa.scale_frac_bits.mem.i8;
-        scale_alpha_shift -= norm_shift;
-    
-    int16_t scale_alpha = mli_math_norm_cast_fx<int32_t,int16_t>(
-                          mli_math_mul_fx<int16_t, int32_t>(identity_params->scale, alpha), &norm_shift);
-    scale_alpha_shift -= norm_shift;
-
-    int16_t in_zp  = in->el_params.sa.zero_point.mem.i16;
-    int16_t out_zp = out->el_params.sa.zero_point.mem.i16;
-    
-    int16_t scale_alpha_offset = mli_math_sub_fx<int16_t>(out_zp,
-                                 mli_math_cast_fx<int32_t, int16_t>(
-                                 mli_math_mul_fx<int16_t, int32_t>(scale_alpha, in_zp), scale_alpha_shift));
-    
-    /* Define Quantization params for (In * alpha / out) ratio */
-    s8asym_quant_params alpha_params;
-    alpha_params.scale  = scale_alpha;
-    alpha_params.shift  = scale_alpha_shift;
-    alpha_params.offset = scale_alpha_offset;
-    return alpha_params;
+    return mli::krn::ref::leaky_relu_define_requant_params(in, slope_coeff, out, alpha_sa8, identity_params);
 }
 
 static MLI_FORCE_INLINE mli_status prelu_sa8_run(const mli_tensor *in, 
@@ -285,7 +205,7 @@ static MLI_FORCE_INLINE mli_status prelu_sa8_run(const mli_tensor *in,
     MLI_OUT_PTR(int8_t) vec_out = nullptr;
 
     const MLI_PTR(int8_t) in_ptr = mli_prv_tensor_data_ptr<MLI_PTR(int8_t)>(in);
-    const MLI_PTR(int8_t) slope_ptr = nullptr;
+    const MLI_PTR(int8_t) slope_ptr = mli_prv_tensor_data_ptr<MLI_PTR(int8_t)>(slope_coeff);
     MLI_OUT_PTR(int8_t) out_ptr = mli_prv_tensor_data_ptr<MLI_OUT_PTR(int8_t)>(out);
 
     /* Copy tensor format */
@@ -300,23 +220,12 @@ static MLI_FORCE_INLINE mli_status prelu_sa8_run(const mli_tensor *in,
     auto out_prv = mli_prv_get_generic_tensor<MLI_OUT_PTR(int8_t)>(out);
 
     /* Define Slope Axis Params */
-    int axis_shape = 1;
-    int axis_in_mem_stride = 0;
-    int axis_out_mem_stride = 0;
-    bool broadcasting = true;
-    bool is_leaky_relu = (cfg->axis == -1);
-    int8_t scale;
-    if (is_leaky_relu) {
-        scale = mli_prv_tensor_data_val<int8_t>(slope_coeff);
-    } else {
-        /* Broadcasting in case axis is not inner most dim */
-        broadcasting = !(cfg->axis == (in_prv.rank - 1));
-        in_prv.shape[cfg->axis] = 1;
-        axis_shape = slope_coeff->shape[cfg->axis];
-        axis_in_mem_stride = in_prv.mem_stride[cfg->axis];
-        axis_out_mem_stride = out_prv.mem_stride[cfg->axis];
-        slope_ptr = mli_prv_tensor_data_ptr<MLI_PTR(int8_t)>(slope_coeff);
-    }
+    in_prv.shape[cfg->axis] = 1;
+    int axis_shape = slope_coeff->shape[cfg->axis];
+    int axis_in_mem_stride = in_prv.mem_stride[cfg->axis];
+    int axis_out_mem_stride = out_prv.mem_stride[cfg->axis];
+    /* Broadcasting in case axis is not inner most dim */
+    bool broadcasting = !(cfg->axis == (in_prv.rank - 1));
 
     /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
     mli_prv_reorder_generic_tensor<MLI_PTR(int8_t)>(&in_prv );
@@ -354,7 +263,7 @@ static MLI_FORCE_INLINE mli_status prelu_sa8_run(const mli_tensor *in,
         decltype(input) scale_v;
         if (broadcasting) {
             /* Load Scale Elem */
-            scale_v = mli_prv_init_v<int8_t, decltype(input)>((is_leaky_relu)? scale: slope_ptr[scale_idx]);
+            scale_v = mli_prv_init_v<int8_t, decltype(input)>(slope_ptr[scale_idx]);
             scale_idx++;
         } else {
             /* Load Scale Vector */

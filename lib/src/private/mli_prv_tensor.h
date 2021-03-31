@@ -450,8 +450,8 @@ static MLI_FORCE_INLINE void mli_prv_squash_generic_tensor(
 }
 
 static MLI_FORCE_INLINE int mli_prv_squash_tensor_to_one_dim(
-                   const mli_tensor *in,
-                    mli_tensor *out) {
+        const mli_tensor *in,
+        mli_tensor *out) {
 
     int rank = in->rank;
     int shape = in->shape[rank - 1];
@@ -470,9 +470,9 @@ static MLI_FORCE_INLINE int mli_prv_squash_tensor_to_one_dim(
 }
 
 static MLI_FORCE_INLINE int mli_prv_squash_tensor_to_one_dim(
-                   const mli_tensor *in1,
-                   const mli_tensor *in2,
-                    mli_tensor *out) {
+        const mli_tensor *in1,
+        const mli_tensor *in2,
+        mli_tensor *out) {
 
     int rank = in1->rank;
     int shape = in1->shape[rank - 1];
@@ -1008,10 +1008,10 @@ mli_prv_get_relu_limits (const mli_relu_cfg * cfg, const mli_tensor * out) {
 
 static MLI_FORCE_INLINE bool mli_prv_is_inside_vccm (const void *ptr) {
 #if core_config_vec_mem_size
-	return ((uint32_t)ptr >= core_config_vec_mem_base) &&
-		   ((uint32_t)ptr < core_config_vec_mem_base + core_config_vec_mem_size);
+    return ((uint32_t)ptr >= core_config_vec_mem_base) &&
+           ((uint32_t)ptr < core_config_vec_mem_base + core_config_vec_mem_size);
 #else
-	return false;
+    return false;
 #endif
 }
 #endif //_MLI_PRV_TENSOR_H_

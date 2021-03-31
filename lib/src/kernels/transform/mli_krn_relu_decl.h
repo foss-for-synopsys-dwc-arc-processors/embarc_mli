@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -28,6 +28,14 @@ namespace krn {
 ////////////////////////////////////////////////////////////////////////////////
 namespace ref {
 
+template<typename io_T>
+static MLI_FORCE_INLINE void compute_relu_inner_loop(
+        const MLI_PTR(io_T) __restrict vec_in,
+        MLI_OUT_PTR(io_T) __restrict vec_out,
+        const io_T min_val,
+        const io_T max_val,
+        const int count);
+
 template <typename io_T, bool asym>
 static MLI_FORCE_INLINE mli_status mli_krn_relu_fx_run(const mli_tensor *in, 
         const mli_relu_cfg *cfg, mli_tensor *out); 
@@ -45,6 +53,14 @@ namespace dsp {
 // VDSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
+
+template<typename io_T>
+static MLI_FORCE_INLINE void compute_relu_inner_loop(
+        const MLI_PTR(io_T) __restrict vec_in,
+        MLI_OUT_PTR(io_T) __restrict vec_out,
+        const io_T min_val,
+        const io_T max_val,
+        const int count);
 
 } // namespace vdsp
 
