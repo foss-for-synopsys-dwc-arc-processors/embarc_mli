@@ -1,5 +1,5 @@
 /*
-* Copyright 2020-2021, Synopsys, Inc.
+* Copyright 2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -7,10 +7,10 @@
 *
 */
 
-#ifndef _MLI_KRN_RELU_H_
-#define _MLI_KRN_RELU_H_
+#ifndef _MLI_KRN_LEAKY_RELU_H_
+#define _MLI_KRN_LEAKY_RELU_H_
 
-#include "mli_krn_relu_decl.h"
+#include "mli_krn_leaky_relu_decl.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Setting up namespace
@@ -23,16 +23,25 @@
 namespace mli {
 namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-using mli::krn::vdsp::compute_relu_inner_loop;
-using mli::krn::ref::mli_krn_relu_fx_run;
+using mli::krn::vdsp::compute_leaky_relu;
+using mli::krn::vdsp::compute_leaky_relu_fx_inner_loop;
+using mli::krn::vdsp::compute_leaky_relu_sa8_inner_loop;
+using mli::krn::ref::leaky_relu_fx_run;
+using mli::krn::ref::leaky_relu_sa8_run;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-using mli::krn::ref::compute_relu_inner_loop;
-using mli::krn::ref::mli_krn_relu_fx_run;
+using mli::krn::dsp::compute_leaky_relu;
+using mli::krn::ref::compute_leaky_relu_fx_inner_loop;
+using mli::krn::ref::compute_leaky_relu_sa8_inner_loop;
+using mli::krn::ref::leaky_relu_fx_run;
+using mli::krn::ref::leaky_relu_sa8_run;
 
 #else
-using mli::krn::ref::compute_relu_inner_loop;
-using mli::krn::ref::mli_krn_relu_fx_run;
+using mli::krn::ref::compute_leaky_relu;
+using mli::krn::ref::compute_leaky_relu_fx_inner_loop;
+using mli::krn::ref::compute_leaky_relu_sa8_inner_loop;
+using mli::krn::ref::leaky_relu_fx_run;
+using mli::krn::ref::leaky_relu_sa8_run;
 
 #endif
 } // namespace krn
@@ -45,14 +54,14 @@ using mli::krn::ref::mli_krn_relu_fx_run;
 // included. Other variants are included based on capabilities. Implementations
 // below can depend on each other through declarations in *_decl.h.
 
-#include "impl/mli_krn_relu_ref.h"
+#include "impl/mli_krn_leaky_relu_ref.h"
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-#include "impl/mli_krn_relu_vdsp.h"
+#include "impl/mli_krn_leaky_relu_vdsp.h"
 #endif
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-#include "impl/mli_krn_relu_dsp.h"
+#include "impl/mli_krn_leaky_relu_dsp.h"
 #endif
 
-#endif // _MLI_KRN_RELU_H_
+#endif // _MLI_KRN_LEAKY_RELU_H_

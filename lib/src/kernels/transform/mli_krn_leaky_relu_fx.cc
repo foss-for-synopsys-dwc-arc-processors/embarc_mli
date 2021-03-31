@@ -14,7 +14,7 @@
 #include "mli_prv_dsp.h"
 #include "mli_prv_load_store.h"
 #include "mli_prv_tensor.h"
-#include "mli_krn_prelu.h"
+#include "mli_krn_leaky_relu.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,8 +27,7 @@ mli_status mli_krn_leaky_relu_fx8(const mli_tensor *in, const mli_tensor *slope_
     if (ret != MLI_STATUS_OK) return ret;
     MLI_PRINT_COMPILE_OPTIONS();
 
-    const mli_prelu_cfg cfg = {/*axis*/ -1};
-    return mli::krn::prelu_fx_run<int8_t>(in, slope_coeff, &cfg, out);
+    return mli::krn::leaky_relu_fx_run<int8_t>(in, slope_coeff, out);
 }
 
 mli_status mli_krn_leaky_relu_fx16(const mli_tensor *in, const mli_tensor *slope_coeff, mli_tensor *out) {
@@ -36,8 +35,7 @@ mli_status mli_krn_leaky_relu_fx16(const mli_tensor *in, const mli_tensor *slope
     if (ret != MLI_STATUS_OK) return ret;
     MLI_PRINT_COMPILE_OPTIONS();
 
-    const mli_prelu_cfg cfg = {/*axis*/ -1};
-    return mli::krn::prelu_fx_run<int16_t>(in, slope_coeff, &cfg, out);
+    return mli::krn::leaky_relu_fx_run<int16_t>(in, slope_coeff, out);
 }
 
 mli_status mli_krn_leaky_relu_sa8(const mli_tensor *in, const mli_tensor *slope_coeff, mli_tensor *out) {
@@ -45,8 +43,7 @@ mli_status mli_krn_leaky_relu_sa8(const mli_tensor *in, const mli_tensor *slope_
     if (ret != MLI_STATUS_OK) return ret;
     MLI_PRINT_COMPILE_OPTIONS();
 
-    const mli_prelu_cfg cfg = {/*axis*/ -1};
-    return mli::krn::prelu_sa8_run(in, slope_coeff, &cfg, out);
+    return mli::krn::leaky_relu_sa8_run(in, slope_coeff, out);
 }
 #pragma MLI_CODE_SECTION_END()
 

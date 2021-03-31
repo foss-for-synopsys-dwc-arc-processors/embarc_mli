@@ -72,7 +72,7 @@
 
 #if defined(__clang__)
 #define MLI_FORCE_INLINE inline __attribute__((always_inline))
-#define MLI_NO_INLINE __attribute__((noinline))
+#define MLI_NO_INLINE __attribute__((used)) __attribute__((noinline))
 #define MLI_CODE_SECTION_START(x) code(x) 
 #define MLI_CODE_SECTION_END()    code()
 
