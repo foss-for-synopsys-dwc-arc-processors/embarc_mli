@@ -261,7 +261,7 @@ static const float test_8_out_data[] = {
 static const int test_8_out_fx8_frac = -10;
 
 static const int test_8_out_sa_dim = -1;
-static const float test_8_out_scale = 262.5616455078125f;
+static const float test_8_out_scale = 369.3381520669291f;
 static const float test_8_out_zero_point = 46905.9453125f;
 static const int8_t test_8_out_scales_frac[] = {6};
 
@@ -431,7 +431,7 @@ static const float test_4_out_data[] = {
 static const int test_4_out_fx8_frac = 5;
 
 static const int test_4_out_sa_dim = -1;
-static const float test_4_out_scale = 0.004397408105432987f;
+static const float test_4_out_scale = 0.01259965690102164f;
 static const float test_4_out_zero_point = 1.6001564264297485f;
 static const int8_t test_4_out_scales_frac[] = {21};
 
@@ -468,7 +468,7 @@ static const float test_5_out_data[] = {
 static const int test_5_out_fx8_frac = 5;
 
 static const int test_5_out_sa_dim = -1;
-static const float test_5_out_scale = 0.007898799143731594f;
+static const float test_5_out_scale = 0.01242864695120984f;
 static const float test_5_out_zero_point = 1.57843816280365f;
 static const int8_t test_5_out_scales_frac[] = {20};
 

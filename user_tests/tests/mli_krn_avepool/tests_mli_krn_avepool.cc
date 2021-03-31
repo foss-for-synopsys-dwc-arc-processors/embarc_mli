@@ -52,25 +52,25 @@ struct avepool_test_operands {
 const crc32_calc  test_1_chksum_fx16{ 0x292DDF4E },
                   test_2_chksum_fx16{ 0xA7542BBE },
                   test_3_chksum_fx16{ 0x872AD40B },
-                                                    test_4_chksum_sa8{ 0xFEE5E73E },
+                                                    test_4_chksum_sa8{ 0xEFD3DFB7 },
                   test_5_chksum_fx16{ 0x2F40CE76 },
                   test_6_chksum_fx16{ 0x4871DD9B },
                   test_7_chksum_fx16{ 0x56FC93D9 },
-                  test_8_chksum_fx16{ 0x63A4213E }, test_8_chksum_sa8{ 0x6E1BFA56 };
+                  test_8_chksum_fx16{ 0x63A4213E }, test_8_chksum_sa8{ 0xA6A02AAB };
 
 #if defined(AVEPOOL_16BIT_MUL)
 // Shared CRC Results
 const crc32_calc  test_1_chksum_sa8{ 0x1564B755 },
                   test_2_chksum_sa8{ 0xD825FD74 },
                   test_3_chksum_sa8{ 0x0F472106 },
-                  test_5_chksum_sa8{ 0x999C378F },
+                  test_5_chksum_sa8{ 0x188343E4 },
                   test_6_chksum_sa8{ 0x784CA521 },
                   test_7_chksum_sa8{ 0x67A9C0DA };
 #else
 // Shared CRC Results
 const crc32_calc  test_2_chksum_sa8{ 0x60655C05 },
                   test_3_chksum_sa8{ 0x978CB97E },
-                  test_5_chksum_sa8{ 0x72125356 },
+                  test_5_chksum_sa8{ 0x04313259 },
                   test_7_chksum_sa8{ 0x891BA7D0 };
 // Platform Specific CRC Results
 #if defined(CRC_RM_UP)
@@ -111,7 +111,7 @@ const quality_metrics thresholds_fx16_test_huge_vals {
 
 const quality_metrics thresholds_sa8_test_huge_vals {
     quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
-    /* SNR_DB = */52.f, /*Quant Error Perc = */ 88.f };
+    /* SNR_DB = */51.9f, /*Quant Error Perc = */ 81.f };
 
 
 

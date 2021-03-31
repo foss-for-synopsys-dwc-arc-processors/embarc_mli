@@ -51,8 +51,8 @@ const crc32_calc  test_0_chksum_fx16{ 0x0FAE0670 }, test_0_chksum_sa8{ 0x1173F0A
                   test_1_chksum_fx16{ 0x895392AA }, test_1_chksum_sa8{ 0x3AB22E41 },
                   test_2_chksum_fx16{ 0x8647B40C }, test_2_chksum_sa8{ 0x33AA87EB },
                   test_3_chksum_fx16{ 0x1DB97F6A }, test_3_chksum_sa8{ 0x6411B870 },
-                  test_4_chksum_fx16{ 0x59BBFEC7 }, test_4_chksum_sa8{ 0x5E5C0C88 },
-                  test_5_chksum_fx16{ 0x53B89125 }, test_5_chksum_sa8{ 0x263FFFA7 };
+                  test_4_chksum_fx16{ 0x59BBFEC7 }, test_4_chksum_sa8{ 0xC3C8AD3E },
+                  test_5_chksum_fx16{ 0x53B89125 }, test_5_chksum_sa8{ 0x1A1797E0 };
 
 #else  // Not defined CRC_*
 const crc32_calc  test_0_chksum_fx16, test_0_chksum_sa8,

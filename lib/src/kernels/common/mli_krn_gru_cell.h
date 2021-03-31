@@ -75,6 +75,9 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
         one_el_params.sa.zero_point.mem.i16 = ir_asym_params.sa.zero_point.mem.i16 = 0;
         one_el_params.sa.scale_frac_bits.mem.i8 = 0;
         ir_asym_params.sa.scale_frac_bits.mem.i8 = 6;
+        one_el_params.sa.scale.capacity = ir_asym_params.sa.scale.capacity = 0;
+        one_el_params.sa.zero_point.capacity = ir_asym_params.sa.zero_point.capacity = 0;
+        one_el_params.sa.scale_frac_bits.capacity = ir_asym_params.sa.scale_frac_bits.capacity = 0;
     } else {
         one_el_params.fx.frac_bits = 0;
         // 1sign and 3 integer bits for TANH/SIGM input is enough

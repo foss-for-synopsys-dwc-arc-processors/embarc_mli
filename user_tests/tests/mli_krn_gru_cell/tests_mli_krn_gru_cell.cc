@@ -58,15 +58,15 @@ struct gru_cell_test_operands {
 // When developer finished implementation of kernel and consider it as ok, one needs to populate
 // proper checksums for tests in order to highlight any change which affects results.
 #if defined(CRC_RM_UP)
-const crc32_calc test_1_chksum_fx16{ 0xB4797831 }, test_1_chksum_fx16_fx8_fx8{ 0x85787025 }, test_1_chksum_sa8{ 0xC6301C0E },
-                 test_2_chksum_fx16{ 0xB4797831 }, test_2_chksum_fx16_fx8_fx8{ 0x85787025 }, test_2_chksum_sa8{ 0xC6301C0E },
+const crc32_calc test_1_chksum_fx16{ 0xB4797831 }, test_1_chksum_fx16_fx8_fx8{ 0x85787025 }, test_1_chksum_sa8{ 0x804E6240 },
+                 test_2_chksum_fx16{ 0xB4797831 }, test_2_chksum_fx16_fx8_fx8{ 0x85787025 }, test_2_chksum_sa8{ 0x804E6240 },
                  test_3_chksum_fx16{ 0x5C7BCDF8 }, test_3_chksum_fx16_fx8_fx8{ 0x94A6998D }, test_3_chksum_sa8{ 0x5D944070 },
                  test_4_chksum_fx16{ 0x873F4283 }, test_4_chksum_fx16_fx8_fx8{ 0x8A055C99 }, test_4_chksum_sa8{ 0xCFF7F69C },
                  test_5_chksum_fx16{ 0x7369955E }, test_5_chksum_fx16_fx8_fx8{ 0xDE351B81 }, test_5_chksum_sa8{ 0xA2A9874F },
                  test_6_chksum_fx16{ 0xBDACDE93 }, test_6_chksum_fx16_fx8_fx8{ 0x71B26E98 }, test_6_chksum_sa8{ 0xD424459E };
 #elif defined(CRC_RM_CONVERGENT)
-const crc32_calc test_1_chksum_fx16{ 0xB4797831 }, test_1_chksum_fx16_fx8_fx8{ 0x85787025 }, test_1_chksum_sa8{ 0xC6301C0E },
-                 test_2_chksum_fx16{ 0xB4797831 }, test_2_chksum_fx16_fx8_fx8{ 0x85787025 }, test_2_chksum_sa8{ 0xC6301C0E },
+const crc32_calc test_1_chksum_fx16{ 0xB4797831 }, test_1_chksum_fx16_fx8_fx8{ 0x85787025 }, test_1_chksum_sa8{ 0x804E6240 },
+                 test_2_chksum_fx16{ 0xB4797831 }, test_2_chksum_fx16_fx8_fx8{ 0x85787025 }, test_2_chksum_sa8{ 0x804E6240 },
                  test_3_chksum_fx16{ 0x5C7BCDF8 }, test_3_chksum_fx16_fx8_fx8{ 0xE1B56E1E }, test_3_chksum_sa8{ 0x5D944070 },
                  test_4_chksum_fx16{ 0xF50124D0 }, test_4_chksum_fx16_fx8_fx8{ 0x8A055C99 }, test_4_chksum_sa8{ 0xCFF7F69C },
                  test_5_chksum_fx16{ 0x7369955E }, test_5_chksum_fx16_fx8_fx8{ 0xDE351B81 }, test_5_chksum_sa8{ 0xA2A9874F },

@@ -96,6 +96,8 @@ satisfy the following conditions before calling the function:
    single scale factor and a single zero offset.
 
  - Zero offset of ``in`` and ``out`` tensors must be within [-128, 127] range.
+
+ - Zero offset of ``slope_coeffs`` tensor must be within [-16384, 16383] range.
    
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
