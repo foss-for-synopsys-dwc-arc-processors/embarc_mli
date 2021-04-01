@@ -18,20 +18,20 @@
 #include "arc_vector.h"
 
 const int unroll_factor[2][5] = {
-        {
-        /* ELTWISE_ADD_NO_CONVERT = */ 1,
-        /* ELTWISE_SUB_NO_CONVERT = */ 1,
-        /* ELTWISE_MUL_NO_CONVERT = */ 4,
-        /* ELTWISE_MAX_NO_CONVERT = */ 4,
-        /* ELTWISE_MIN_NO_CONVERT = */ 4
-        } ,
-        {
-        /* ELTWISE_ADD_CONVERT = */ 1,
-        /* ELTWISE_SUB_CONVERT = */ 1,
-        /* ELTWISE_MUL_CONVERT = */ 3,
-        /* ELTWISE_MAX_CONVERT = */ 3,
-        /* ELTWISE_MIN_CONVERT = */ 3
-        }
+{
+/* ELTWISE_ADD_NO_CONVERT = */ 1,
+/* ELTWISE_SUB_NO_CONVERT = */ 1,
+/* ELTWISE_MUL_NO_CONVERT = */ 4,
+/* ELTWISE_MAX_NO_CONVERT = */ 4,
+/* ELTWISE_MIN_NO_CONVERT = */ 4
+} ,
+{
+/* ELTWISE_ADD_CONVERT = */ 1,
+/* ELTWISE_SUB_CONVERT = */ 1,
+/* ELTWISE_MUL_CONVERT = */ 4,
+/* ELTWISE_MAX_CONVERT = */ 3,
+/* ELTWISE_MIN_CONVERT = */ 3
+}
 };
 
 namespace mli {
@@ -296,51 +296,61 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
         const int pre_op_shift1,
         const int pre_op_shift2,
         const int post_op_shift) {
-    MLI_ASSERT(post_op_shift > 3);
     vNx4char_t res;
+    const int headroom = 3;
+    const int hi_comp = 16;
+    const int acc_len = 32;
+    const int out_len = 8;
+    const int target_out_shift = acc_len - out_len - headroom;
+    const int preshift = mli_math_min_fx(mli_math_max_fx(post_op_shift - target_out_shift, 0), headroom);
+    const int shift = post_op_shift - hi_comp - preshift;
+    const int shift_left = mli_math_max_fx(1 - shift, 0);
+    const int shift_right = mli_math_max_fx(shift, 1);
 
 #if defined(__Xvec_guard_bit_option) && __Xvec_guard_bit_option != 0
     /*
      *  res = ((op1 - in_offset1) * (op2 - in_offset2) * scale_factor1 >> post_op_shift) + out_offset
-     *  acc_init = in_offset1 * in_offset2 * scale_factor + out_offset << post_op_shift
-     *  term1  = op1 * op2 * scale_factor1          // 31 bit
-     *  term2 = - op2 * in_offset1 * scale_factor1  // 32 bit
-     *  term3 = - op1 * in_offset2 * scale_factor1  // 32 bit
+     *  acc_init = in_offset1 * in_offset2
+     *  term1  = op1 * op2 * scale_factor1
+     *  term2 = - op2 * in_offset1 * scale_factor1
+     *  term3 = - op1 * in_offset2 * scale_factor1
+     *  acc = (term1 + term2 + term3) * scale_factor >> post_op_shift + out_offset
+     *
      */
+
     int16_t acc_init = in_offset1 * in_offset2;
     vNx4accshort_t acc16 = mli_math_init_accu<int16_t, vNx4accshort_t>(acc_init);
     acc16 = mli_math_mac_fx(acc16, op1, op2);
     acc16 = mli_math_msub_fx(acc16, op2, (vNx4char_t)(int8_t)in_offset1);
     acc16 = mli_math_msub_fx(acc16, op1, (vNx4char_t)(int8_t)in_offset2);
-    vNx4short_t vacc16 = mli_math_acc_cast_fx<vNx4short_t, vNx4accshort_t>(acc16);
-    vNx4int_t acc = mli_math_mul_fx<vNx4short_t, vNx4int_t>(vacc16, scale_factor1);
-    acc = mli_math_asr_rnd_fx(acc, post_op_shift);
-    acc = mli_math_add_fx(acc, (vNx4int_t) out_offset);
-    res = mli_math_cast_fx<vNx4int_t, vNx4char_t>(acc);
-#else
-    /*
-    * Each operand is 9 bit. The first multiplier output is 18 bit. After scaling with positive 15 bit scale_factor,
-    * The second multiplier output is 32 bits. A headroom of 3 is sufficient to add the offset, round and compensate.
-    *
-    * Note: Minimum shift value is 15
-    */
 
-    const int preshift_sf = 3;
-    const int mask = (1 << preshift_sf) - 1;
+    /*
+     * If we preshift we can continue the operations in 16 bits. Only 8 bits are needs from the
+     * mul_hi output. with headroom of 3 bits.
+     */
+
+    vNx4short_t vacc16 = mli_math_acc_cast_fx<vNx4short_t, vNx4accshort_t>(acc16, preshift);
+
+
+#else
+
     vNx4short_t op1_offset = to_vNx4short_t(op1) - in_offset1;
     vNx4short_t op2_offset = to_vNx4short_t(op2) - in_offset2;
-    vNx4int_t temp1 = mli_math_mul_fx<vNx4short_t, vNx4int_t>(op1_offset, op2_offset);
-    vNx4int_t temp2 = (scale_factor1 & mask);
-    vNx4int_t offset = out_offset;
-    vNx4accint_t acc = mli_math_mul_fx_low(temp1, temp2);
-    acc = mli_math_asr_fx(acc, preshift_sf);
-    temp2 = (scale_factor1 >> preshift_sf);
-    acc = mli_math_mac_fx_low(acc, temp1, temp2);
-    acc = mli_math_asr_rnd_fx(acc, post_op_shift - preshift_sf);
-    acc = mli_math_add(acc, offset);
-    res = mli_math_acc_cast_fx<vNx4char_t, vNx4accint_t>(acc);
+    vNx4int_t acc32 = mli_math_mul_fx<vNx4short_t, vNx4int_t>(op1_offset, op2_offset);
+
+    /*
+     * If we preshift we can continue the operations in 16 bits. Only 8 bits are needs from the
+     * mul_hi output. with headroom of 3 bits.
+     */
+
+    vNx4short_t vacc16 = mli_math_cast_fx<vNx4int_t, vNx4short_t>(acc32, preshift);
 #endif
 
+    vacc16 = mli_math_asl_fx(vacc16, shift_left);
+    vNx4short_t accu_scaled = mli_math_mul_fx_high(vacc16, scale_factor1);
+    accu_scaled = mli_math_asr_rnd_fx(accu_scaled, shift_right);
+    accu_scaled = mli_math_add_fx(accu_scaled, (vNx4short_t) out_offset);
+    res = mli_math_cast_fx<vNx4short_t, vNx4char_t>(accu_scaled);
 
     return res;
 }
@@ -549,6 +559,7 @@ void eltwise_innerloop(
         idx_out += num_lanes;
     }
 }
+
 template<>
 MLI_FORCE_INLINE void eltwise_innerloop<int16_t, ELTWISE_MAX, false>(
         const MLI_PTR(int16_t) __restrict op1_ptr,
