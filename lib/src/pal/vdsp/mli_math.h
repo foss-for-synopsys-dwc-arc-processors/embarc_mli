@@ -1352,6 +1352,20 @@ MLI_FORCE_INLINE vNx4char_t mli_math_acc_cast_fx(vNx4accint_t acc, int shift_rig
 }
 
 template<>
+MLI_FORCE_INLINE vNx4short_t mli_math_acc_cast_fx<vNx4short_t, vNx4accshort_t,/*round = */ false>(
+        vNx4accshort_t acc, int shift_right) {
+    MLI_EXTRA_ASSERT(shift_right >= 0);
+
+    int ctrlword = SAT|SIGNED|TARGET_SZ_16|SHIFT(shift_right);
+    vNx4short_t accu_result;
+    accu_result.lo = to_vNx2short_t(vvconvert(__vacc_lo(acc), ctrlword));
+    accu_result.hi = to_vNx2short_t(vvconvert(__vacc_hi(acc), ctrlword));
+
+    return accu_result;
+}
+
+
+template<>
 MLI_FORCE_INLINE vNx4char_t mli_math_acc_cast_fx<vNx4char_t, vNx4accint_t,/*round = */ false>(
         vNx4accint_t acc, int shift_right) {
     int ctrlword = SAT|SIGNED|TARGET_SZ_8|SHIFT(shift_right);

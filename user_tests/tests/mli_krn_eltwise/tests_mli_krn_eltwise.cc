@@ -56,7 +56,7 @@ const crc32_calc                                    test_1_chksum_sa8{ 0xd48163e
                                                     test_4_chksum_sa8{ 0xF22D7321 },
                                                     test_5_chksum_sa8{ 0x9A14384C },
                   test_6_chksum_fx16{ 0xfc026def }, test_6_chksum_sa8{ 0x3a54561 },
-                  test_7_chksum_fx16{ 0x488ed527 }, test_7_chksum_sa8{ 0xDA50B98A },
+                  test_7_chksum_fx16{ 0x488ed527 }, test_7_chksum_sa8{ 0xD4B7515B },
                   test_8_chksum_fx16{ 0x68889D84 }, test_8_chksum_sa8{ 0x168B3B32 },
                   test_9_chksum_fx16{ 0x9417F3D7 }, test_9_chksum_sa8{ 0xA83B910E },
                   test_10_chksum_fx16{ 0xD728E430 }, test_10_chksum_sa8{ 0xE34DA6B0 },

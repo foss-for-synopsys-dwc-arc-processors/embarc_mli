@@ -18,8 +18,9 @@
 #include "mli_prv_dsp.h"
 #include "mli_math.h"
 
-#define INT64_TO_INT16 48
 #define INT32_TO_INT16 16
+#define IN_SCALE_SHIFT 32
+#define MUL_MAX_SHIFT 31
 
 namespace mli {
 namespace krn {
@@ -92,6 +93,42 @@ out_T eltwise_perform_operation(
     } else {
         res = mli_math_cast_fx<accu_T, out_T> (acc, post_op_shift);
     }
+
+    return res;
+}
+
+
+template <>
+MLI_FORCE_INLINE int8_t eltwise_perform_operation<int8_t, int8_t, ELTWISE_MUL, true>(
+        const int8_t op1,
+        const int8_t op2,
+        const int16_t in_offset1,
+        const int16_t in_offset2,
+        const int16_t out_offset,
+        const int16_t scale_factor1,
+        const int16_t scale_factor2,
+        const int pre_op_shift1,
+        const int pre_op_shift2,
+        const int post_op_shift) {
+    int8_t res = 0;
+    int32_t acc;
+    int32_t input1, input2;
+
+    input1 = mli_math_sub_fx<int16_t> (op1, in_offset1);
+    input2 = mli_math_sub_fx<int16_t> (op2, in_offset2);
+
+    acc = mli_math_mul_fx<int32_t, int64_t> (input1, input2);
+    const int headroom = 3;
+    const int acc_len = 32;
+    const int out_len = 8;
+    const int target_out_shift = acc_len - out_len - headroom;
+    const int preshift = mli_math_min_fx(mli_math_max_fx(post_op_shift - target_out_shift, 0), headroom);
+    const int shift = post_op_shift - preshift;
+    int16_t acc_result = mli_math_cast_fx<int32_t, int16_t>(acc, preshift);
+    int32_t acc_scaled = mli_math_mul_fx<int16_t, int32_t> (acc_result, scale_factor1);
+    int16_t tmp16 = mli_math_cast_fx<int32_t, int16_t>(acc_scaled, shift);
+    tmp16 = mli_math_add_fx<int16_t>(tmp16, out_offset);
+    res = mli_math_cast_fx<int16_t, int8_t>(tmp16, 0);
 
     return res;
 }
@@ -240,18 +277,14 @@ void eltwise_prepare_and_run(
             scale16_2 = scale16_1;
             post_op_shift -= shift;
         } else if (func_type == ELTWISE_MUL) {
-            in_scale_fx1 = mli_math_asr_rnd_fx<int32_t>(scale_1,
-                    (int32_t) shift1 - frac_bits_fx16);
-            in_scale_fx2 = mli_math_asr_rnd_fx<int32_t>(scale_2,
-                    (int32_t) shift2 - frac_bits_fx16);
-            out_scale_fx = mli_math_asr_rnd_fx<int32_t>(scale_out,
-                    (int32_t) shift_out - frac_bits_fx16);
-            int64_t scale_factor = mli_math_asr_rnd_fx<int64_t>(in_scale_fx1, -INT32_TO_INT16);
-            scale_factor = (scale_factor / out_scale_fx) * in_scale_fx2;
-            post_op_shift = INT32_TO_INT16 + frac_bits_fx16;
-            int norm = (scale_factor != 0) ? mli_math_norm_fx<int64_t, int>(scale_factor) : 0;
-            int shift = MAX((INT64_TO_INT16 - norm), 0);
-            scale16_1 = mli_math_cast_fx<int64_t, int16_t>(scale_factor, shift);
+            int64_t scale_factor = mli_math_asl_fx<int64_t>(scale_1, IN_SCALE_SHIFT);
+            scale_factor = ((scale_factor * scale_2) / scale_out);
+            post_op_shift = IN_SCALE_SHIFT + shift1 + shift2 - shift_out;
+            int shift;
+            scale16_1 = mli_math_norm_cast_fx<int64_t, int16_t>(scale_factor, &shift);
+            post_op_shift -= shift;
+            shift = MAX(post_op_shift - MUL_MAX_SHIFT, 0) + MIN(MUL_MAX_SHIFT + post_op_shift, 0);
+            scale16_1 = mli_math_asr_rnd_fx<int16_t>(scale16_1, shift);
             post_op_shift -= shift;
         } else {
             in_scale_fx1 = mli_math_asr_rnd_fx<int32_t>(scale_1,

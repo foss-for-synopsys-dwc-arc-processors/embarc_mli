@@ -44,6 +44,11 @@ template <typename T>
 MLI_FORCE_INLINE T mli_math_asr_fx(T x, int nbits);
 
 template <>
+MLI_FORCE_INLINE int64_t mli_math_asl_fx(int64_t x, int nbits) {
+    return fx_asl_q63(x, nbits);
+}
+
+template <>
 MLI_FORCE_INLINE int32_t mli_math_asl_fx(int32_t x, int nbits) {
     return fx_asl_q31(x, nbits);
 }
