@@ -143,7 +143,10 @@ static MLI_FORCE_INLINE vNx4char_t calc_prelu(
     /* Load Input */
     vNx4char_t input = mli_prv_load_1vec(vec_in);
     vNx4short_t input_cast = mli_math_cast_fx<vNx4char_t, vNx4short_t>(input);
-    grp_pvNx2_t select = init_predicate_grp(input_cast >= in_zp);
+    vNx4short_t cond;
+    cond.lo = input_cast.lo >= in_zp;
+    cond.hi = input_cast.hi >= in_zp;
+    grp_pvNx2_t select = init_predicate_grp(cond);
 
     int scale_shift = identity_params->shift;
     int scale_shift_left = mli_math_max_fx(-scale_shift, 0);
