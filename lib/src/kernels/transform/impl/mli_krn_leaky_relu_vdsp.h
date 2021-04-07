@@ -116,21 +116,15 @@ static MLI_FORCE_INLINE vNx4char_t calc_leaky_relu(
     grp_pvNx2_t select = init_predicate_grp(cond);
 
     int identity_shift = identity_params->shift;
-    int identity_shift_left  = mli_math_max_fx(-identity_shift, 0);
-    int identity_shift_right = mli_math_max_fx(identity_shift, 0);
     vNx4int_t input_identity_scale = mli_math_mul_fx<vNx4short_t, vNx4int_t>(input_cast, identity_params->scale);
-              input_identity_scale = mli_math_asl_fx(input_identity_scale, identity_shift_left);
-              input_identity_scale = mli_math_asr_rnd_fx(input_identity_scale, identity_shift_right);
+              input_identity_scale = mli_math_asr_rnd_fx(input_identity_scale, identity_shift);
 
     vNx4short_t output_identity = mli_math_cast_fx<vNx4int_t, vNx4short_t>(input_identity_scale);
                 output_identity = mli_math_add_fx(output_identity, (vNx4short_t)identity_params->offset);
 
     int alpha_shift = alpha_params->shift;
-    int alpha_shift_left = mli_math_max_fx(-alpha_shift, 0);
-    int alpha_shift_right = mli_math_max_fx(alpha_shift, 0);
     vNx4int_t input_alpha_scale = mli_math_mul_fx<vNx4short_t, vNx4int_t>(input_cast, alpha_params->scale);
-              input_alpha_scale = mli_math_asl_fx(input_alpha_scale, alpha_shift_left);
-              input_alpha_scale = mli_math_asr_rnd_fx(input_alpha_scale, alpha_shift_right);
+              input_alpha_scale = mli_math_asr_rnd_fx(input_alpha_scale, alpha_shift);
 
     vNx4short_t output_alpha = mli_math_cast_fx<vNx4int_t, vNx4short_t>(input_alpha_scale);
                 output_alpha = mli_math_add_fx(output_alpha, (vNx4short_t)alpha_params->offset);
