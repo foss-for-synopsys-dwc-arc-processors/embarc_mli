@@ -43,11 +43,11 @@ static MLI_FORCE_INLINE vNx2short_t calc_leaky_relu(
     pvNx2 sel = init_predicate(input > 0);
     vNx2short_t neg;
     if ( shift > mul_hi_shift) {
-    	neg = mli_math_mul_fx_high(input, scale);
-    	neg = mli_math_asr_rnd_fx(neg, shift - mul_hi_shift);
+        neg = mli_math_mul_fx_high(input, scale);
+        neg = mli_math_asr_rnd_fx(neg, shift - mul_hi_shift);
     } else {
-    	vNx2accint_t acc = mli_math_mul_fx<vNx2short_t, vNx2accint_t>(input, scale);
-    	neg = mli_math_acc_cast_fx<vNx2short_t, vNx2accint_t>(acc, shift);
+        vNx2accint_t acc = mli_math_mul_fx<vNx2short_t, vNx2accint_t>(input, scale);
+        neg = mli_math_acc_cast_fx<vNx2short_t, vNx2accint_t>(acc, shift);
     }
 
     return mli_math_select_fx(sel, input, neg);
@@ -110,24 +110,21 @@ static MLI_FORCE_INLINE vNx4char_t calc_leaky_relu(
     /* Load Input */
     vNx4char_t input = mli_prv_load_1vec(vec_in);
     vNx4short_t input_cast = mli_math_cast_fx<vNx4char_t, vNx4short_t>(input);
-    grp_pvNx2_t select = init_predicate_grp(input_cast >= in_zp);
+    vNx4short_t cond;
+    cond.lo = input_cast.lo >= in_zp;
+    cond.hi = input_cast.hi >= in_zp;
+    grp_pvNx2_t select = init_predicate_grp(cond);
 
     int identity_shift = identity_params->shift;
-    int identity_shift_left  = mli_math_max_fx(-identity_shift, 0);
-    int identity_shift_right = mli_math_max_fx(identity_shift, 0);
-    vNx4int_t input_identity_scale = mli_math_mul_fx<vNx4short_t, vNx4int_t>(identity_params->scale, input_cast);
-              input_identity_scale = mli_math_asl_fx(input_identity_scale, identity_shift_left);
-              input_identity_scale = mli_math_asr_rnd_fx(input_identity_scale, identity_shift_right);
+    vNx4int_t input_identity_scale = mli_math_mul_fx<vNx4short_t, vNx4int_t>(input_cast, identity_params->scale);
+              input_identity_scale = mli_math_asr_rnd_fx(input_identity_scale, identity_shift);
 
     vNx4short_t output_identity = mli_math_cast_fx<vNx4int_t, vNx4short_t>(input_identity_scale);
                 output_identity = mli_math_add_fx(output_identity, (vNx4short_t)identity_params->offset);
 
     int alpha_shift = alpha_params->shift;
-    int alpha_shift_left = mli_math_max_fx(-alpha_shift, 0);
-    int alpha_shift_right = mli_math_max_fx(alpha_shift, 0);
     vNx4int_t input_alpha_scale = mli_math_mul_fx<vNx4short_t, vNx4int_t>(input_cast, alpha_params->scale);
-              input_alpha_scale = mli_math_asl_fx(input_alpha_scale, alpha_shift_left);
-              input_alpha_scale = mli_math_asr_rnd_fx(input_alpha_scale, alpha_shift_right);
+              input_alpha_scale = mli_math_asr_rnd_fx(input_alpha_scale, alpha_shift);
 
     vNx4short_t output_alpha = mli_math_cast_fx<vNx4int_t, vNx4short_t>(input_alpha_scale);
                 output_alpha = mli_math_add_fx(output_alpha, (vNx4short_t)alpha_params->offset);
@@ -178,6 +175,7 @@ static MLI_FORCE_INLINE void compute_leaky_relu_sa8_inner_loop(
         vec_out += remaining_part;
     }
 
+#pragma clang loop unroll_count(2)
     for (int pos3 = remaining_part; pos3 < count; pos3 += num_lanes) {
         compute_leaky_relu(vec_in, vec_out, in_zp, identity_params, alpha_params);
         vec_in  += num_lanes;

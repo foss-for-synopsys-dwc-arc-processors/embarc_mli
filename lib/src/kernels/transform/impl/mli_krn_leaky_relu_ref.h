@@ -312,7 +312,13 @@ static MLI_FORCE_INLINE mli_status leaky_relu_sa8_run(const mli_tensor *in,
     s8asym_quant_params identity_params;
     /* Define Requantization Params for In/Out scale ratio */
     define_requant_params(in, out, &identity_params);
+    int shift_left = mli_math_max_fx(-identity_params.shift, 0);
+    identity_params.scale = mli_math_asl_fx(identity_params.scale, shift_left);
+    identity_params.shift = mli_math_max_fx(identity_params.shift, 0);
     s8asym_quant_params alpha_params = leaky_relu_define_requant_params(in, slope_coeff, out, scale, &identity_params);
+    shift_left = mli_math_max_fx(-alpha_params.shift, 0);
+    alpha_params.scale = mli_math_asl_fx(alpha_params.scale, shift_left);
+    alpha_params.shift = mli_math_max_fx(alpha_params.shift, 0);
 
     /* Dummy Load to get num_lanes */
     auto input = mli_prv_load_1vec(in_ptr);
