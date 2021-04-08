@@ -51,15 +51,32 @@ struct rnn_dense_test_operands {
 // Checksums of test tensors for various mli calculations mode. 
 // When developer finished implementation of kernel and consider it as ok, one needs to populate
 // proper checksums for tests in order to highlight any change which affects results.
-#if defined(CRC_RM_CONVERGENT) || defined(CRC_RM_UP)
-// Shared CRC Results
+#if defined(CRC_RM_UP)
+const crc32_calc test_1_chksum_fx16{ 0x7EB9B664 }, test_1_chksum_fx16_fx8_fx8{ 0x940DB572 }, test_1_chksum_sa8{ 0xAE824077 },
+                 test_2_chksum_fx16{ 0x7EB9B664 }, test_2_chksum_fx16_fx8_fx8{ 0x940DB572 }, test_2_chksum_sa8{ 0xAE824077 },
+                 test_3_chksum_fx16{ 0xDC7462F4 }, test_3_chksum_fx16_fx8_fx8{ 0x1A046594 }, test_3_chksum_sa8{ 0x5882E4D9 },
+                 test_4_chksum_fx16{ 0xDC7462F4 }, test_4_chksum_fx16_fx8_fx8{ 0x1A046594 }, test_4_chksum_sa8{ 0x5882E4D9 },
+                 test_5_chksum_fx16{ 0xCFF6ED69 }, test_5_chksum_fx16_fx8_fx8{ 0x640A915E }, test_5_chksum_sa8{ 0x22886B07 },
+                 test_6_chksum_fx16{ 0xCFF6ED69 }, test_6_chksum_fx16_fx8_fx8{ 0x640A915E }, test_6_chksum_sa8{ 0x22886B07 };
 
-const crc32_calc test_1_chksum_fx16{ 0x67A28725 }, test_1_chksum_fx16_fx8_fx8{ 0x39090878 }, test_1_chksum_sa8{ 0x622840E9 },
-                 test_2_chksum_fx16{ 0x67A28725 }, test_2_chksum_fx16_fx8_fx8{ 0x39090878 }, test_2_chksum_sa8{ 0x622840E9 },
-                 test_3_chksum_fx16{ 0x159AD436 }, test_3_chksum_fx16_fx8_fx8{ 0x5918457A }, test_3_chksum_sa8{ 0xC18BB563 },
-                 test_4_chksum_fx16{ 0x159AD436 }, test_4_chksum_fx16_fx8_fx8{ 0x5918457A }, test_4_chksum_sa8{ 0xC18BB563 },
-                 test_5_chksum_fx16{ 0x484FA14F }, test_5_chksum_fx16_fx8_fx8{ 0x9A6277F1 }, test_5_chksum_sa8{ 0x12A21BAD },
-                 test_6_chksum_fx16{ 0x484FA14F }, test_6_chksum_fx16_fx8_fx8{ 0x9A6277F1 }, test_6_chksum_sa8{ 0x12A21BAD };
+#elif defined(CRC_RM_CONVERGENT)
+// TODO: remove after fixing mli_math_acc_ashift_fx() and supporting acc40 shift with round
+#if defined(__FXAPI__)
+const crc32_calc test_1_chksum_fx16{ 0x60120E03 }, test_1_chksum_fx16_fx8_fx8{ 0x940DB572 }, test_1_chksum_sa8{ 0xAE824077 },
+                 test_2_chksum_fx16{ 0x60120E03 }, test_2_chksum_fx16_fx8_fx8{ 0x940DB572 }, test_2_chksum_sa8{ 0xAE824077 },
+                 test_3_chksum_fx16{ 0x050B51AB }, test_3_chksum_fx16_fx8_fx8{ 0x1A046594 }, test_3_chksum_sa8{ 0x5882E4D9 },
+                 test_4_chksum_fx16{ 0x050B51AB }, test_4_chksum_fx16_fx8_fx8{ 0x1A046594 }, test_4_chksum_sa8{ 0x5882E4D9 },
+                 test_5_chksum_fx16{ 0x0601AC74 }, test_5_chksum_fx16_fx8_fx8{ 0x640A915E }, test_5_chksum_sa8{ 0x22886B07 },
+                 test_6_chksum_fx16{ 0x0601AC74 }, test_6_chksum_fx16_fx8_fx8{ 0x640A915E }, test_6_chksum_sa8{ 0x22886B07 };
+#else
+const crc32_calc test_1_chksum_fx16{ 0x7EB9B664 }, test_1_chksum_fx16_fx8_fx8{ 0x940DB572 }, test_1_chksum_sa8{ 0xAE824077 },
+                 test_2_chksum_fx16{ 0x7EB9B664 }, test_2_chksum_fx16_fx8_fx8{ 0x940DB572 }, test_2_chksum_sa8{ 0xAE824077 },
+                 test_3_chksum_fx16{ 0xDC7462F4 }, test_3_chksum_fx16_fx8_fx8{ 0x1A046594 }, test_3_chksum_sa8{ 0x5882E4D9 },
+                 test_4_chksum_fx16{ 0xDC7462F4 }, test_4_chksum_fx16_fx8_fx8{ 0x1A046594 }, test_4_chksum_sa8{ 0x5882E4D9 },
+                 test_5_chksum_fx16{ 0xCFF6ED69 }, test_5_chksum_fx16_fx8_fx8{ 0x640A915E }, test_5_chksum_sa8{ 0x22886B07 },
+                 test_6_chksum_fx16{ 0xCFF6ED69 }, test_6_chksum_fx16_fx8_fx8{ 0x640A915E }, test_6_chksum_sa8{ 0x22886B07 };
+#endif
+
 #else // Not defined CRC_*
 const crc32_calc  test_1_chksum_fx16, test_1_chksum_fx16_fx8_fx8, test_1_chksum_sa8,
                   test_2_chksum_fx16, test_2_chksum_fx16_fx8_fx8, test_2_chksum_sa8,
@@ -193,9 +210,7 @@ int main() {
         if (strstr(cur_test->descr, "Test 1 FX16 2 inputs") != nullptr ||
                 strstr(cur_test->descr, "Test 2 FX16 memstr 2in W_mstr") != nullptr ||
                 strstr(cur_test->descr, "Test 3 FX16 3 inputs") != nullptr ||
-                strstr(cur_test->descr, "Test 3 SA8_SA8_SA32 3 inputs") != nullptr ||
                 strstr(cur_test->descr, "Test 4 FX16 3in W_mstr") != nullptr ||
-                strstr(cur_test->descr, "Test 4 SA8_SA8_SA32 3in W_mstr") != nullptr ||
                 strstr(cur_test->descr, "Test 5 FX16 4 inputs") != nullptr ||
                 strstr(cur_test->descr, "Test 5 SA8_SA8_SA32 4 inputs") != nullptr ||
                 strstr(cur_test->descr, "Test 6 FX16 4in W_mstr") != nullptr ||

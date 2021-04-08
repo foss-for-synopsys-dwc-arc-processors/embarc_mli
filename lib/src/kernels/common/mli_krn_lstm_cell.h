@@ -84,8 +84,7 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
     }
 
     quant_T in_to_out_params[2];
-    const mli_tensor *cur_out = (asym) ? prev_out : &ir_tensor;
-    define_quant_params(in, weights_in, bias, cur_out, &in_to_out_params[0]);
+    define_quant_params(in, weights_in, bias, &ir_tensor, &in_to_out_params[0]);
     define_quant_params(prev_out, weights_out, bias, &ir_tensor, &in_to_out_params[1]);
 
 
@@ -213,7 +212,7 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
 
         if (asym) {
             rnn_out.el_params = out->el_params;
-            define_quant_params(in, weights_in, bias, out, &in_to_out_params[0]);
+            define_quant_params(in, weights_in, bias, &ir_tensor, &in_to_out_params[0]);
             define_quant_params(out, weights_out, bias, &ir_tensor, &in_to_out_params[1]);
         } else {
             define_quant_params(&rnn_out, weights_out, bias, &ir_tensor, &in_to_out_params[1]);
