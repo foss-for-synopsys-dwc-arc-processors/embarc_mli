@@ -517,9 +517,20 @@ MLI_FORCE_INLINE int16_t mli_math_cast_fx(mli_acc40_t in_val, int shift_right) {
 }
 
 template <>
+MLI_FORCE_INLINE int16_t mli_math_cast_fx(mli_acc40_t in_val) {
+    return fx_q15_cast_nf_asl_rnd_a40(in_val, 16);
+}
+
+template <>
 MLI_FORCE_INLINE int16_t mli_math_cast_fx(mli_acc32_t in_val, int shift_right) {
     int32_t temp = (int32_t)fx_asr_rnd_q31(in_val, shift_right);
     temp = fx_asl_q31(temp, 16);
+    return (int16_t)fx_q15_cast_q31(temp);
+}
+
+template <>
+MLI_FORCE_INLINE int16_t mli_math_cast_fx(mli_acc32_t in_val) {
+	int32_t temp = fx_asl_q31(in_val, 16);
     return (int16_t)fx_q15_cast_q31(temp);
 }
 

@@ -57,11 +57,9 @@ MLI_FORCE_INLINE void rnn_dense_prepare_and_run(
     quant_T in_to_out_params[MLI_RNN_MAX_INPUT];
 
     int input_idx = 0;
-    for(; input_idx < inputs_num - 1; input_idx++) {
-        const mli_tensor *cur_out = (asym) ? inputs[input_idx + 1] : out;
-        define_quant_params(inputs[input_idx], weights[input_idx], bias, cur_out, &in_to_out_params[input_idx]);
+    for(; input_idx < inputs_num; input_idx++) {
+        define_quant_params(inputs[input_idx], weights[input_idx], bias, out, &in_to_out_params[input_idx]);
     }
-    define_quant_params(inputs[input_idx], weights[input_idx], bias, out, &in_to_out_params[input_idx]);
 
     int w_ch_out_mem_stride_from_tensors[MLI_RNN_MAX_INPUT];
     int w_ch_out_mem_strides[MLI_RNN_MAX_INPUT];

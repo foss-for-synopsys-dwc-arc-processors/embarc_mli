@@ -136,7 +136,8 @@ static inline void rnn_dense_op(
         int current_chs = MIN(remaining_ch, num_lanes); // number of channels computed in this loop iteration
 
         acc_T accu = mli_prv_init_accu<acc_T>();
-        acc_T prev_step = mli_prv_init_accu<acc_T>();
+        acc_T acc_ir = mli_prv_init_accu<acc_T>();
+        acc_T acc_res_ir = mli_prv_init_accu<acc_T>();
 
         auto output_params = adjust_quant_params_v(&in_to_out_quant_params[0], 0);
         accu = mli::krn::bias_additive(&bias[o_idx], accu, &output_params, /* add_preshift_rnd */ false);
@@ -147,20 +148,17 @@ static inline void rnn_dense_op(
             accu = dotprod_inputzp_1D_v(inputs[idx], &weights[idx][o_idx], accu, in_elements[idx],
                     1, w_ch_out_mem_strides[idx], &in_to_out_quant_params[idx]);
 
-            accu = mli_math_add_accus(accu, prev_step);
+            /* TODO: can be optimized using adjust_quant_params_v, and also optimize ir_rnn_result_requantize function */
+            mli::krn::ref::adjust_quant_params(&in_to_out_quant_params[idx], o_idx);
+            acc_ir = mli::krn::ir_rnn_result_requantize(accu, &in_to_out_quant_params[idx]);
 
-            if(inputs_num - idx != 1) {
-                mli::krn::ref::adjust_quant_params(&in_to_out_quant_params[idx], o_idx);
-                prev_step = mli::krn::ir_rnn_result_requantize(accu, &in_to_out_quant_params[idx],
-                                &in_to_out_quant_params[idx + 1], /* krn_idx= */ 0);
-                accu = mli_prv_init_accu<acc_T>();
-            } else {
-                // Cast result to output type with scaling
-                mli::krn::result_cast_relu_store_v(&out[o_idx], accu, &output_params,
-                        val_min_limit, val_max_limit, current_chs, /* add_preshift_rnd */ true);
-            }
+            acc_res_ir = mli_math_add_accus(acc_res_ir, acc_ir);
+            accu = mli_prv_init_accu<acc_T>();
         }
 
+        // Cast result to output type with scaling
+        mli::krn::ir_result_cast_relu_store_v(&out[o_idx], acc_res_ir, &output_params,
+                                val_min_limit, val_max_limit, current_chs);
     }
 }
 

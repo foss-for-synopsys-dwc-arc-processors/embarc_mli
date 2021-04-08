@@ -318,8 +318,8 @@ MLI_FORCE_INLINE vNx4short_t mli_prv_convert_sa8_fx16(
         const int16_t zero_point,
         const int16_t scale,
 		const int shift) {
-    int shift_right = MAX(shift, 0);
-    int shift_left = MAX(-shift, 0);
+    int shift_right = mli_math_max_fx(shift, 0);
+    int shift_left = mli_math_max_fx(-shift, 0);
     vNx4short_t in_biased_shifted_no_zp = mli_math_sub_fx<vNx4short_t>(in_val, zero_point);
     vNx4int_t in_scaled = mli_math_mul_fx<vNx4short_t, vNx4int_t>(in_biased_shifted_no_zp, scale);
     vNx4short_t res = mli_math_cast_fx<vNx4int_t, vNx4short_t>(in_scaled, shift_right);
@@ -423,8 +423,8 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
 
     accu_scaled = accu_scaled + quant_params->out_offset;
 
-    accu_scaled = MIN(accu_scaled, val_max_limit);
-    accu_scaled = MAX(accu_scaled, val_min_limit);
+    accu_scaled = mli_math_min_fx(accu_scaled, val_max_limit);
+    accu_scaled = mli_math_max_fx(accu_scaled, val_min_limit);
 
     vNx4char_t out = to_vNx4char_t(accu_scaled);
     mli_prv_store_n_samples(o_ptr, out, num);
@@ -442,8 +442,8 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
 
     vNx4char_t out = mli_math_acc_cast_fx<vNx4char_t, vNx4accshort_t>(acc, quant_params->out_shift);
 
-    out = MIN(out, val_max_limit);
-    out = MAX(out, val_min_limit);
+    out = mli_math_min_fx(out, val_max_limit);
+    out = mli_math_max_fx(out, val_min_limit);
 
     mli_prv_store_n_samples(o_ptr, out, num);
 }
@@ -460,8 +460,8 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
 
     vNx2short_t out = mli_math_acc_cast_fx<vNx2short_t, vNx2accint_t>(acc, quant_params->out_shift);
 
-    out = MIN(out, val_max_limit);
-    out = MAX(out, val_min_limit);
+    out = mli_math_min_fx(out, val_max_limit);
+    out = mli_math_max_fx(out, val_min_limit);
 
     mli_prv_store_n_samples(o_ptr, out, num);
 }
@@ -478,18 +478,72 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
 
     vNx4short_t out = mli_math_acc_cast_fx<vNx4short_t, vNx4accint_t>(acc, quant_params->out_shift);
 
-    out = MIN(out, val_max_limit);
-    out = MAX(out, val_min_limit);
+    out = mli_math_min_fx(out, val_max_limit);
+    out = mli_math_max_fx(out, val_min_limit);
+
+    mli_prv_store_n_samples(o_ptr, out, num);
+}
+
+template <>
+MLI_FORCE_INLINE void ir_result_cast_relu_store_v(
+        MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
+        vNx4accshort_t acc,
+        const s8asym_quant_specific_out_params_v* quant_params,
+        const int16_t val_min_limit,
+        const int16_t val_max_limit,
+        int num) {
+
+	vNx4short_t accu_scaled = mli_math_acc_cast_fx<vNx4short_t, vNx4accshort_t>(acc);
+	accu_scaled = mli_math_add_fx<vNx4short_t>(accu_scaled, quant_params->out_offset);
+
+	accu_scaled = mli_math_min_fx(accu_scaled, val_max_limit);
+    accu_scaled = mli_math_max_fx(accu_scaled, val_min_limit);
+
+    vNx4char_t out = to_vNx4char_t(accu_scaled);
+    mli_prv_store_n_samples(o_ptr, out, num);
+}
+
+template <>
+MLI_FORCE_INLINE void ir_result_cast_relu_store_v(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        vNx2accint_t acc,
+        const fx_quant_specific_params* quant_params,
+        const int16_t val_min_limit,
+        const int16_t val_max_limit,
+        int num) {
+
+    vNx2short_t out = mli_math_acc_cast_fx<vNx2short_t, vNx2accint_t>(acc);
+
+    out = mli_math_min_fx(out, val_max_limit);
+    out = mli_math_max_fx(out, val_min_limit);
+
+    mli_prv_store_n_samples(o_ptr, out, num);
+}
+
+template <>
+MLI_FORCE_INLINE void ir_result_cast_relu_store_v(
+        MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
+        vNx4accint_t acc,
+        const fx_quant_specific_params* quant_params,
+        const int16_t val_min_limit,
+        const int16_t val_max_limit,
+        int num) {
+
+    vNx4short_t out = mli_math_acc_cast_fx<vNx4short_t, vNx4accint_t>(acc);
+
+    out = mli_math_min_fx(out, val_max_limit);
+    out = mli_math_max_fx(out, val_min_limit);
 
     mli_prv_store_n_samples(o_ptr, out, num);
 }
 
 template <typename acc_T>
-MLI_FORCE_INLINE acc_T ir_rnn_result_requantize(const acc_T acc, const fx_quant_specific_params* current_params,
-                                                const fx_quant_specific_params* next_params, int krn_idx) {
-    const int shift = current_params->out_shift - next_params->out_shift;
-    int shift_right = MAX(shift, 0);
-    int shift_left = MAX(-shift, 0);
+MLI_FORCE_INLINE acc_T ir_rnn_result_requantize(
+		const acc_T acc,
+		const fx_quant_specific_params* params) {
+    const int in_to_ir_shift = params->out_shift;
+    int shift_right = mli_math_max_fx(in_to_ir_shift, 0);
+    int shift_left = mli_math_max_fx(-in_to_ir_shift, 0);
     acc_T acc_shifted = mli_math_asl_fx(acc, shift_left);
     return mli_math_asr_rnd_fx<acc_T, int>(acc_shifted, shift_right);
 }
@@ -497,13 +551,10 @@ MLI_FORCE_INLINE acc_T ir_rnn_result_requantize(const acc_T acc, const fx_quant_
 template <>
 MLI_FORCE_INLINE vNx4accshort_t ir_rnn_result_requantize(
         const vNx4accshort_t acc,
-        const s8asym_quant_specific_params* current_params,
-        const s8asym_quant_specific_params* next_params, int krn_idx) {
+        const s8asym_quant_specific_params* params) {
 
-    MLI_ASSERT(krn_idx == 0);
-
-    const int32_t mul = current_params->out_mul / next_params->weight_scales[0];
-    const int shift = current_params->out_shift - next_params->weight_shifts[0];
+    const int32_t mul = params->out_mul;
+    const int in_to_ir_shift = params->out_shift;
 
     int mul_norm = mli_math_norm_fx<int32_t, int32_t>(mul);
     int32_t mul_shifted = mul << mul_norm;
@@ -516,7 +567,7 @@ MLI_FORCE_INLINE vNx4accshort_t ir_rnn_result_requantize(
 
     constexpr int mul_high_shift = 32;
     constexpr int max_int_shift = 30;
-    vNx4int_t total_shift = mli_math_add_fx<vNx4int_t>(acc_norm, (mul_norm - mul_high_shift + shift));
+    vNx4int_t total_shift = mli_math_add_fx<vNx4int_t>(acc_norm, (mul_norm - mul_high_shift + in_to_ir_shift));
     vNx4int_t shift_left = mli_math_max_fx(-total_shift, 0);
     vNx4int_t shift_right = mli_math_max_fx(total_shift, 0);
 
