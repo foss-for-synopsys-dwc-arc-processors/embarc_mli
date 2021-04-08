@@ -173,10 +173,13 @@ mli_status mli_chk_lut(const mli_lut * lut, int buff_size) {
 /************************************************************
 *  mli_tensor quantization parameters correctness checking
 *************************************************************/
-constexpr unsigned kZeroPointBitsZero = 0;
-constexpr unsigned kZeroPointBitsByteRange = (sizeof(int8_t) * 8) - 1;
-constexpr unsigned kZeroPointBitsMaxRange = (sizeof(int16_t) * 8) - 1;
-
+#if MLI_DBG_ENABLE_RETURNCODES
+// These constants are used in debug mode only. 
+// To not rise a warning in release mode we exclude it by pre-processor. 
+static constexpr unsigned kZeroPointBitsZero = 0;
+static constexpr unsigned kZeroPointBitsByteRange = (sizeof(int8_t) * 8) - 1;
+#endif
+static constexpr unsigned kZeroPointBitsMaxRange = (sizeof(int16_t) * 8) - 1;
 mli_status mli_chk_tensor_quant_params(const mli_tensor* in, unsigned zp_used_bits = kZeroPointBitsMaxRange) {
     MLI_ASSERT(zp_used_bits <= kZeroPointBitsMaxRange);
     MLI_ASSERT(in != nullptr);
