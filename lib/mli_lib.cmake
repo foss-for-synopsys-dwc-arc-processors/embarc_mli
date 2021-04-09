@@ -73,24 +73,32 @@ set(MLI_LIB_PRIVATE_INCLUDES
     ${MLI_LIB_CMAKE_DIR}/src/pal
 )
 
+set(MLI_LIB_PRIVATE_COMPILE_OPTIONS )
+
 if (ARC)
-    set(MLI_LIB_PRIVATE_COMPILE_OPTIONS
+    list(APPEND MLI_LIB_PRIVATE_COMPILE_OPTIONS
         -Hnocopyr
         -Hpurge
         -Hsdata0
         -Hdense_prologue
+        -tcf_core_config
+)
+endif()
+
+if (ARC)
+    list(APPEND MLI_LIB_PRIVATE_COMPILE_OPTIONS
+        -Werror
         -Wall
         -Wno-nonportable-include-path
-        -tcf_core_config
     )
 elseif (MSVC)
-    set(MLI_LIB_PRIVATE_COMPILE_OPTIONS
-        /W3
+    list(APPEND MLI_LIB_PRIVATE_COMPILE_OPTIONS
+        /W2
+        /WX
     )
 else()
-    set(MLI_LIB_PRIVATE_COMPILE_OPTIONS
+    list(APPEND MLI_LIB_PRIVATE_COMPILE_OPTIONS
         -Werror
-        -Wno-nonportable-include-path
     )
 endif()
 

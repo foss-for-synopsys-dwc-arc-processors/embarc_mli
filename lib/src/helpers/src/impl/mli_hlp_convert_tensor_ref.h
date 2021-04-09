@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -176,7 +176,7 @@ mli_status convert_float_data(const mli_tensor * src, mli_tensor * dst, convert_
                                 int32_t tensor_val = mli_math_float_scale(float_tensor_arr[float_tensor_pos], scale_val);
                                 tensor_arr[tensor_pos] = mli_math_cast_fx<int32_t, t_T>(mli_math_add_fx<int32_t>(tensor_val, zero_offset), 0);
                             } else if (mode == mli::hlp::DEQUANTIZE) {
-                                const float float_tensor_val_unscaled = static_cast<float>(mli_math_sub_fx<int32_t>(tensor_arr[tensor_pos], zero_offset));
+                                const float float_tensor_val_unscaled = static_cast<float>(mli_math_sub_fx<int32_t>((int32_t)(tensor_arr[tensor_pos]), zero_offset));
                                 float_tensor_arr[float_tensor_pos] = float_tensor_val_unscaled * scale_val;
                             }
                         }

@@ -17,85 +17,14 @@
 #include "mli_helpers_api.h"
 #include "mli_math.h"
 #include "mli_math_macros.h"
+#include "mli_mem_info.h"
 #include "mli_prv_activation_lut.h"
 #include "mli_prv_tensor.h"
 #include "mli_types.h"
 
-#if _ARC
-#include <arc/arc_reg.h>
-#endif
 #pragma MLI_CODE_SECTION_START(".mli_lib")
-#define SUPPORT_NON_ALIGNMENT  22
-#define DISABLE_ALIGNMENT_CHECK 19
 
 
-#if core_config_dccm_size
-static MLI_FORCE_INLINE bool mli_chk_inside_dccm (const void *ptr) {
-    return ((uint32_t)ptr >= core_config_dccm_base) &&
-           ((uint32_t)ptr < core_config_dccm_base + core_config_dccm_size);
-}
-#endif
-
-#if core_config_xy_size
-static MLI_FORCE_INLINE bool mli_chk_inside_yccm (const void *ptr) {
-#ifdef core_config_xy_y_base
-    return ((uint32_t)ptr >= core_config_xy_y_base) &&
-           ((uint32_t)ptr < core_config_xy_y_base + core_config_xy_size);
-#else
-    return false;
-#endif
-}
-
-static MLI_FORCE_INLINE bool mli_chk_inside_xccm (const void *ptr) {
-#ifdef core_config_xy_x_base
-    return ((uint32_t)ptr >= core_config_xy_x_base) &&
-           ((uint32_t)ptr < core_config_xy_x_base + core_config_xy_size);
-#else
-    return false;
-#endif
-}
-#endif
-
-#if core_config_xy_size || core_config_dccm_size
-static MLI_FORCE_INLINE bool mli_chk_inside_ccm (const void *ptr) {
-#if core_config_xy_size
-    if (mli_chk_inside_xccm(ptr) || mli_chk_inside_yccm(ptr)) {
-        return true;
-    }
-#endif
-#if core_config_dccm_size
-    if (mli_chk_inside_dccm(ptr)) {
-        return true;
-    }
-#endif
-    return false;
-}
-#endif
-
-static MLI_FORCE_INLINE mli_status mli_chk_ptr(void *p, uint32_t align_mask, bool check_bank, bool vccm_chk_bank) {
-#if MLI_PTR_IS_VCCM
-    bool is_inside_vccm = mli_prv_is_inside_vccm(p);
-    if (vccm_chk_bank && (!is_inside_vccm))
-        return MLI_STATUS_MEM_BANK_MISMATCH;
-    //Check the alignment if the pointer is inside the VCCM memory or the non_alignment isn't supported
-    if (is_inside_vccm ||
-        (((_lr(ISA_CONFIG)&(1<<SUPPORT_NON_ALIGNMENT)) == 0) || ((_lr(STATUS32)&(1<<DISABLE_ALIGNMENT_CHECK)) == 0))) {
-        if (((uint32_t)p & align_mask) != 0)
-            return MLI_STATUS_MISALIGNMENT_ERROR;
-    }
-#endif
-#if MLI_PTR_IS_XY
-    if (check_bank && (!mli_chk_inside_ccm(p)))
-        return MLI_STATUS_MEM_BANK_MISMATCH;
-#endif
-#if (PLATFORM == V2DSP_XY) || ((PLATFORM == V2DSP_VECTOR) && (!MLI_PTR_IS_VCCM))
-    if (((_lr(ISA_CONFIG)&(1<<SUPPORT_NON_ALIGNMENT)) == 0) || ((_lr(STATUS32)&(1<<DISABLE_ALIGNMENT_CHECK)) == 0)) {
-        if (((uint32_t)p & align_mask) != 0)
-            return MLI_STATUS_MISALIGNMENT_ERROR;
-    }
-#endif
-    return MLI_STATUS_OK;
-}
 // vccm_chk_bank will be false for the APIs that does't require the tensor to be in VCCM like data Movement API.
 template <bool vccm_chk_bank = true>
 /*check_bank checks whether the tensor buffer have to be allocated in ccm memory or not and its value will be:
@@ -106,7 +35,7 @@ static MLI_FORCE_INLINE mli_status mli_mem_chk(const mli_tensor *t, bool check_b
 #if (PLATFORM == V2DSP_XY) || (PLATFORM == V2DSP_VECTOR)
     void *p = t->data.mem.void_p;
     uint32_t align_mask = mli_hlp_tensor_element_size(t) - 1;
-    return mli_chk_ptr(p, align_mask, check_bank, vccm_chk_bank);
+    return mli_mem_chk_ptr(p, align_mask, check_bank, vccm_chk_bank);
 #else
     return MLI_STATUS_OK;
 #endif
@@ -163,7 +92,7 @@ mli_status mli_chk_lut(const mli_lut * lut, int buff_size) {
     mli_tensor dummy = { .el_type = lut->type };
     uint32_t align_mask = mli_hlp_tensor_element_size(&dummy) - 1;
 
-    mli_status ret = mli_chk_ptr(p, align_mask, true, true);
+    mli_status ret = mli_mem_chk_ptr(p, align_mask, true, true);
     return ret;
 #else
     return MLI_STATUS_OK;
@@ -414,19 +343,6 @@ static MLI_FORCE_INLINE bool check_quantized_on_tensor(const mli_tensor *t1, con
     }
 
     return !fail;
-}
-
-/* This function returns maximum value can be stored in tensor according to its type */
-static MLI_FORCE_INLINE const uint32_t mli_hlp_tensor_element_positive_limit(const mli_tensor *in) {
-    switch (in->el_type) {
-    case MLI_EL_FX_8:  return (uint32_t)mli_math_limit_fx<int8_t>(1);
-    case MLI_EL_SA_8:  return (uint32_t)mli_math_limit_fx<int8_t>(1);
-    case MLI_EL_FX_16: return (uint32_t)mli_math_limit_fx<int16_t>(1);
-    case MLI_EL_SA_32: return (uint32_t)mli_math_limit_fx<int32_t>(1);
-    default:
-        MLI_ASSERT(0);
-        return 0;
-    }
 }
 
 /******************************************************
