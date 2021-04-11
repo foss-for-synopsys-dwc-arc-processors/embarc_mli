@@ -29,15 +29,13 @@ static MLI_FORCE_INLINE vNx4short_t convert_input(
         int16_t in_zp,
         int remaining_part = 0) {
     
-    vNx4short_t input_cast = mli_math_cast_fx<vNx4char_t, vNx4short_t>(input);
     
     if (remaining_part) {
-        /* use in_zp directly when a known issue is solved. */
-        vNx4short_t zp = mli_math_mul_fx_high(input_cast, 0);
-        zp = mli_math_add_fx<vNx4short_t>(zp, in_zp);
-        grp_pvNx2_t predicate = init_predicate_grp(remaining_part);
-        input_cast = mli_math_select_fx(predicate, input_cast, zp);
+        pvNx4 predicate = init_predicate(remaining_part, input);
+        input = mli_math_select_fx(predicate, input, (vNx4char_t)in_zp);
     }
+
+    vNx4short_t input_cast = mli_math_cast_fx<vNx4char_t, vNx4short_t>(input);
 
     if (convert) {
         input_cast = mli_math_sub_fx<vNx4short_t>(input_cast, in_zp);
@@ -65,9 +63,7 @@ static MLI_FORCE_INLINE vNx2short_t convert_input(
 }
 
 static MLI_FORCE_INLINE vNx4accint_t init_sum_acc(vNx4char_t input) {
-    // Update Accu initialization when a known issue is solved.
-    // return mli_prv_init_accu<vNx4accint_t>();
-    return mli_math_mul_fx<vNx4short_t, vNx4accint_t>(mli_math_cast_fx<vNx4char_t, vNx4short_t>(input), 0);
+    return mli_prv_init_accu<vNx4accint_t>();
 }
 
 static MLI_FORCE_INLINE vNx2accint_t init_sum_acc(vNx2short_t input) {
@@ -135,14 +131,14 @@ static MLI_FORCE_INLINE int16_t compute_normalized_sum_square(
     mli_acc32_t acc_hi  = mli_math_intra_sum(sum_acc_hi);
     mli_acc32_t acc_mid = mli_math_intra_sum(sum_acc_mid);
     mli_acc32_t acc_lo  = mli_math_intra_sum(sum_acc_lo);
-    mli_acc40_t acc = mli_prv_init_accu<mli_acc40_t>();
-    acc = mli_math_add_fx(acc, mli_math_asl_fx((mli_acc40_t)acc_hi,  acc_hi_shift));
-    acc = mli_math_add_fx(acc, mli_math_asl_fx((mli_acc40_t)acc_mid, acc_mid_shift));
-    acc = mli_math_add_fx(acc, (mli_acc40_t)acc_lo);
 
-    int norm_shift_val = mli_math_norm_fx<mli_acc40_t, int>(acc);
-    /* To Cast mli_acc40_t to int16_t */
-    norm_shift_val = (sizeof(mli_acc40_t) - sizeof(int16_t)) * 8 - norm_shift_val;
+    typedef typename std::conditional<convert == false, mli_acc40_t, mli_acc32_t>::type acc_type;
+    acc_type acc = mli_math_add_fx((acc_type)acc_lo, mli_math_asl_fx((acc_type)acc_hi, acc_hi_shift));
+             acc = mli_math_add_fx(acc, mli_math_asl_fx((acc_type)acc_mid, acc_mid_shift));
+
+    int norm_shift_val = mli_math_norm_fx<acc_type, int>(acc);
+    /* To Cast mli_acc32_t to int16_t */
+    norm_shift_val = (sizeof(acc_type) - sizeof(int16_t)) * 8 - norm_shift_val;
     /* Adjust norm_shift to even number because we are going to divide it by 2 */
     if ((norm_shift_val & 0x1) == 0x1) {
         norm_shift_val += 1;
@@ -150,7 +146,7 @@ static MLI_FORCE_INLINE int16_t compute_normalized_sum_square(
 
     *norm_shift = norm_shift_val;
     /* Cast Sum_acc to Q7.8 to bring it to LUT input range */
-    return mli_math_cast_fx<mli_acc40_t, int16_t>(acc, norm_shift_val);
+    return mli_math_cast_fx<acc_type, int16_t>(acc, norm_shift_val);
 }
 
 template<bool convert>
@@ -161,7 +157,7 @@ static MLI_FORCE_INLINE vNx4char_t compute_normalize(
         int shift) {
 
     int shift_right = MAX(shift, 0);
-	int shift_left  = MAX(-shift, 0);
+    int shift_left  = MAX(-shift, 0);
     vNx4short_t input_cast = mli_math_cast_fx<vNx4char_t, vNx4short_t>(input);
     
     if (convert) {
@@ -182,7 +178,7 @@ static MLI_FORCE_INLINE vNx2short_t compute_normalize(
         int shift) {
     
     int shift_right = MAX(shift, 0);
-	int shift_left  = MAX(-shift, 0);
+    int shift_left  = MAX(-shift, 0);
 
     if (convert) {
         input = mli_math_sub_fx<vNx2short_t>(input, in_zp);
