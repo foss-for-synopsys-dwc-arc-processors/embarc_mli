@@ -94,6 +94,10 @@ static inline void rnn_dense_op_stacked(
     dense_out_ptr -= gates_num * out_elements;
 }
 
+MLI_FORCE_INLINE vNx4int_t mli_math_add_accus(vNx4int_t L, vNx4int_t R) {
+    return mli_math_add_fx(L, R);
+}
+
 MLI_FORCE_INLINE vNx2accint_t mli_math_add_accus(vNx2accint_t L, vNx2accint_t R) {
 	return mli_math_add(L, R);
 }
@@ -128,7 +132,7 @@ static inline void rnn_dense_op(
         quant_T * in_to_out_quant_params,
         const io_T val_min_limit,
         const io_T val_max_limit) {
-
+    typedef typename std::conditional<std::is_same<acc_T, vNx4accshort_t>::value, vNx4int_t, acc_T>::type ir_T;
     int num_lanes = get_number_lanes<acc_T>();
 
     for (int o_idx = 0; o_idx < out_elements; o_idx += num_lanes) {
@@ -136,8 +140,8 @@ static inline void rnn_dense_op(
         int current_chs = MIN(remaining_ch, num_lanes); // number of channels computed in this loop iteration
 
         acc_T accu = mli_prv_init_accu<acc_T>();
-        acc_T acc_ir = mli_prv_init_accu<acc_T>();
-        acc_T acc_res_ir = mli_prv_init_accu<acc_T>();
+        ir_T acc_ir = mli_prv_init_accu<ir_T>();
+        ir_T acc_res_ir = mli_prv_init_accu<ir_T>();
 
         auto output_params = adjust_quant_params_v(&in_to_out_quant_params[0], 0);
         accu = mli::krn::bias_additive(&bias[o_idx], accu, &output_params, /* add_preshift_rnd */ false);
@@ -150,7 +154,7 @@ static inline void rnn_dense_op(
 
             /* TODO: can be optimized using adjust_quant_params_v, and also optimize ir_rnn_result_requantize function */
             mli::krn::ref::adjust_quant_params(&in_to_out_quant_params[idx], o_idx);
-            acc_ir = mli::krn::ir_rnn_result_requantize(accu, &in_to_out_quant_params[idx]);
+            acc_ir = mli::krn::ir_rnn_result_requantize<acc_T, ir_T>(accu, &in_to_out_quant_params[idx]);
 
             acc_res_ir = mli_math_add_accus(acc_res_ir, acc_ir);
             accu = mli_prv_init_accu<acc_T>();
