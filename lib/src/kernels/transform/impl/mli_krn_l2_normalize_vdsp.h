@@ -156,18 +156,20 @@ static MLI_FORCE_INLINE vNx4char_t compute_normalize(
         int16_t in_zp,
         int shift) {
 
-    int shift_right = MAX(shift, 0);
-    int shift_left  = MAX(-shift, 0);
+    constexpr int mul_hi_shift = 16;
+    shift -= mul_hi_shift;
+    int shift_right = mli_math_max_fx(shift, 1);
+    int shift_left = mli_math_max_fx(1 - shift, 0);
     vNx4short_t input_cast = mli_math_cast_fx<vNx4char_t, vNx4short_t>(input);
     
     if (convert) {
         input_cast = mli_math_sub_fx<vNx4short_t>(input_cast, in_zp);
     }
 
-    vNx4accint_t res = mli_math_mul_fx<vNx4short_t, vNx4accint_t>(input_cast, scale);
-    res = mli_math_asl_fx(res, shift_left);
+    input_cast = mli_math_asl_fx(input_cast, shift_left);
+    vNx4short_t res = mli_math_mul_fx_high(input_cast, scale);
 
-    return mli_math_acc_cast_fx<vNx4char_t, vNx4accint_t>(res, shift_right);
+    return mli_math_cast_fx<vNx4short_t, vNx4char_t>(res, shift_right);
 }
 
 template<bool convert>
@@ -177,8 +179,8 @@ static MLI_FORCE_INLINE vNx2short_t compute_normalize(
         int16_t in_zp,
         int shift) {
     
-    int shift_right = MAX(shift, 0);
-    int shift_left  = MAX(-shift, 0);
+    int shift_right = mli_math_max_fx(shift, 0);
+    int shift_left  = mli_math_max_fx(-shift, 0);
 
     if (convert) {
         input = mli_math_sub_fx<vNx2short_t>(input, in_zp);
