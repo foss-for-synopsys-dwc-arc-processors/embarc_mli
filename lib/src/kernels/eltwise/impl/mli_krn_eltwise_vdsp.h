@@ -319,6 +319,11 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
      */
 
     int16_t acc_init = in_offset1 * in_offset2;
+#ifdef ROUND_UP
+    acc_init += ((1 << preshift) >> 1); /* rounding half up */
+#else
+    #error Rounding mode not supported
+#endif
     vNx4accshort_t acc16 = mli_math_init_accu<int16_t, vNx4accshort_t>(acc_init);
     acc16 = mli_math_mac_fx(acc16, op1, op2);
     acc16 = mli_math_msub_fx(acc16, op2, (vNx4char_t)(int8_t)in_offset1);
@@ -329,9 +334,7 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
      * mul_hi output. with headroom of 3 bits.
      */
 
-    vNx4short_t vacc16 = mli_math_acc_cast_fx<vNx4short_t, vNx4accshort_t>(acc16, preshift);
-
-
+    vNx4short_t vacc16 = mli_math_acc_cast_fx<vNx4short_t, vNx4accshort_t, false>(acc16, preshift);
 #else
 
     vNx4short_t op1_offset = to_vNx4short_t(op1) - in_offset1;

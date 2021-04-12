@@ -277,11 +277,12 @@ void eltwise_prepare_and_run(
             scale16_2 = scale16_1;
             post_op_shift -= shift;
         } else if (func_type == ELTWISE_MUL) {
-            int64_t scale_factor = mli_math_asl_fx<int64_t>(scale_1, IN_SCALE_SHIFT);
-            scale_factor = ((scale_factor * scale_2) / scale_out);
-            post_op_shift = IN_SCALE_SHIFT + shift1 + shift2 - shift_out;
             int shift;
-            scale16_1 = mli_math_norm_cast_fx<int64_t, int16_t>(scale_factor, &shift);
+            scale_factor1 = scale_1 * scale_2;
+            scale_factor1 = mli_math_norm_cast_fx<int32_t, int32_t>(scale_factor1, &shift);
+            scale_factor1 = (scale_factor1 / scale_out);
+            post_op_shift = shift1 + shift2 - shift_out - shift;
+            scale16_1 = mli_math_norm_cast_fx<int32_t, int16_t>(scale_factor1, &shift);
             post_op_shift -= shift;
             shift = MAX(post_op_shift - MUL_MAX_SHIFT, 0) + MIN(MUL_MAX_SHIFT + post_op_shift, 0);
             scale16_1 = mli_math_asr_rnd_fx<int16_t>(scale16_1, shift);
