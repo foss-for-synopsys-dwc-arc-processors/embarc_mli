@@ -140,7 +140,7 @@ static inline void rnn_dense_op(
                     /* row_step= */ 1, /* ch_step= */ 1);
             accu = mli_math_add_fx(accu, other_additives[idx]);
 
-            acc_ir = mli::krn::ir_rnn_result_requantize(accu, &in_to_out_quant_params[idx]);
+            acc_ir = mli::krn::ir_rnn_result_requantize<acc_T>(accu, &in_to_out_quant_params[idx]);
             acc_res_ir = mli_math_add_fx(acc_res_ir, acc_ir);
             accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
         }

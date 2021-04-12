@@ -505,6 +505,25 @@ MLI_FORCE_INLINE void ir_result_cast_relu_store_v(
 
 template <>
 MLI_FORCE_INLINE void ir_result_cast_relu_store_v(
+        MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
+        vNx4int_t acc,
+        const s8asym_quant_specific_out_params_v* quant_params,
+        const int16_t val_min_limit,
+        const int16_t val_max_limit,
+        int num) {
+
+    vNx4short_t accu_scaled = mli_math_cast_fx<vNx4int_t, vNx4short_t>(acc);
+    accu_scaled = mli_math_add_fx<vNx4short_t>(accu_scaled, quant_params->out_offset);
+
+    accu_scaled = mli_math_min_fx(accu_scaled, val_max_limit);
+    accu_scaled = mli_math_max_fx(accu_scaled, val_min_limit);
+
+    vNx4char_t out = to_vNx4char_t(accu_scaled);
+    mli_prv_store_n_samples(o_ptr, out, num);
+}
+
+template <>
+MLI_FORCE_INLINE void ir_result_cast_relu_store_v(
         MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
         vNx2accint_t acc,
         const fx_quant_specific_params* quant_params,
@@ -537,19 +556,19 @@ MLI_FORCE_INLINE void ir_result_cast_relu_store_v(
     mli_prv_store_n_samples(o_ptr, out, num);
 }
 
-template <typename acc_T>
-MLI_FORCE_INLINE acc_T ir_rnn_result_requantize(
+template <typename acc_T, typename out_T=acc_T>
+MLI_FORCE_INLINE out_T ir_rnn_result_requantize(
 		const acc_T acc,
 		const fx_quant_specific_params* params) {
     const int in_to_ir_shift = params->out_shift;
     int shift_right = mli_math_max_fx(in_to_ir_shift, 0);
     int shift_left = mli_math_max_fx(-in_to_ir_shift, 0);
-    acc_T acc_shifted = mli_math_asl_fx(acc, shift_left);
-    return mli_math_asr_rnd_fx<acc_T, int>(acc_shifted, shift_right);
+    out_T acc_shifted = mli_math_asl_fx(acc, shift_left);
+    return mli_math_asr_rnd_fx<out_T, int>(acc_shifted, shift_right);
 }
 
 template <>
-MLI_FORCE_INLINE vNx4accshort_t ir_rnn_result_requantize(
+MLI_FORCE_INLINE vNx4int_t ir_rnn_result_requantize(
         const vNx4accshort_t acc,
         const s8asym_quant_specific_params* params) {
 
@@ -578,28 +597,7 @@ MLI_FORCE_INLINE vNx4accshort_t ir_rnn_result_requantize(
     acc_shifted = mli_math_asr_rnd_fx(acc_shifted, shift_right);
     acc_shifted = mli_math_asl_fx(acc_shifted, shift_left);
 
-#if (__Xvec_guard_bit_option == 0)
-    vNx4short_t acc_short = mli_math_cast_fx<vNx4int_t, vNx4short_t>(acc_shifted);
-    vNx4accshort_t res = mli_math_init_accu_add<vNx4short_t, vNx4accshort_t>(acc_short, (vNx4short_t)0);
-#else
-    vNx4int_t norm;
-    vNx4short_t acc_short = mli_math_norm_cast_fx</*left_shift*/ false>(acc_shifted , &norm);
-
-    constexpr int guard_bits = 8;
-    vNx4int_t mask = (1 << norm) - 1;
-    vNx4int_t acc_shifted_low = acc_shifted & mask;
-    // If the norm is more than the number of guardbits,
-    // so the masked_acc has to be shifted, since the result is shifted with max shift equals to number of guardbits.
-    vNx4int_t mask_shift = mli_math_max_fx(norm - guard_bits, 0);
-    acc_shifted_low = mli_math_asr_fx(acc_shifted_low, mask_shift);
-
-    norm = mli_math_min_fx(norm, guard_bits);
-    vNx4accshort_t res = mli_math_init_accu_add<vNx4short_t, vNx4accshort_t>(acc_short, (vNx4short_t)0);
-    res = mli_math_asl_fx<vNx4accshort_t, vNx4short_t>(res, to_vNx4short_t(norm));
-    res = mli_math_add(res, to_vNx4short_t(acc_shifted_low));
-#endif
-
-    return res;
+    return acc_shifted;
 }
 
 } // namespace vdsp

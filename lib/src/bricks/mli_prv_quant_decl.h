@@ -420,16 +420,17 @@ MLI_FORCE_INLINE void ir_result_cast_relu_store_v(
         int num);
 #endif
 
-template <typename acc_T, typename quant_T>
-MLI_FORCE_INLINE acc_T ir_rnn_result_requantize(
+template <typename acc_T, typename out_T, typename quant_T>
+MLI_FORCE_INLINE out_T ir_rnn_result_requantize(
         const acc_T acc, const quant_T* params);
-template <typename acc_T>
-MLI_FORCE_INLINE acc_T ir_rnn_result_requantize(
+
+template <typename acc_T, typename out_T>
+MLI_FORCE_INLINE out_T ir_rnn_result_requantize(
         const acc_T acc, const fx_quant_specific_params* params);
 
 #if defined(__Xvec_width)
 template <>
-MLI_FORCE_INLINE vNx4accshort_t ir_rnn_result_requantize(
+MLI_FORCE_INLINE vNx4int_t ir_rnn_result_requantize(
         const vNx4accshort_t acc,
         const s8asym_quant_specific_params* params);
 #endif
