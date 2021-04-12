@@ -17,7 +17,7 @@ Example supports building with [MetaWare Development tools](https://www.synopsys
 
 Here we will consider building for [/hw/em9d.tcf](/hw/em9d.tcf) template. This template is a default template for this example. Other templated can be also used. 
 
-0. embARC MLI Library must be built for required hardware configuration first. See [embARC MLI Library building and quick start](/README.md#building-and-quick-start).
+0. embARC MLI Library must be built for required hardware configuration first. See [embARC MLI Library build](/README.md#building-the-package) section.
 
 1. Open command line and change working directory to './examples/example_cifar10_caffe/'
 
