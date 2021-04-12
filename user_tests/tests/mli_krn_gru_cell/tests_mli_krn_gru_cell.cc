@@ -231,16 +231,6 @@ int main() {
             is_test_passed = false;
         }
 
-/* TODO: Remove when support vdsp version */
-#if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-        if (strstr(cur_test->descr, "Test 1 SA8_SA32 OtO,Forw") != nullptr ||
-            strstr(cur_test->descr, "Test 2 SA8_SA32 OtO,Back") != nullptr) {
-            // VPX fails bitwise comparison with reference .
-            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
-            continue;
-        }
-#endif
-
 #if defined(__Xvec_guard_bit_option) && (__Xvec_guard_bit_option == 0)
         if (strstr(cur_test->descr, "Test 1 FX16 OtO,Forw") != nullptr ||
             strstr(cur_test->descr, "Test 1 SA8_SA32 OtO,Forw") != nullptr ||
