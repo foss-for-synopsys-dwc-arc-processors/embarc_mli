@@ -141,9 +141,9 @@ MLI_FORCE_INLINE o_T mli_math_norm_fx(T x)
 }
 
 template<typename in_T, typename out_T>
-MLI_FORCE_INLINE out_T mli_math_norm_cast_fx(in_T val , int *norm_shift) {
-    int cast_shift = (sizeof(in_T) - sizeof(out_T)) * 8;
-    int norm = mli_math_norm_fx<in_T, int>(val);
+MLI_FORCE_INLINE out_T mli_math_norm_cast_fx(in_T val , int32_t *norm_shift) {
+    int32_t cast_shift = (sizeof(in_T) - sizeof(out_T)) * 8;
+    int32_t norm = mli_math_norm_fx<in_T, int32_t>(val);
     *norm_shift = cast_shift - norm;
     return mli_math_cast_fx<in_T, out_T>(val, *norm_shift);
 }
