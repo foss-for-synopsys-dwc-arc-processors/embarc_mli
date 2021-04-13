@@ -75,6 +75,7 @@ static MLI_FORCE_INLINE mli_status check_tensor_private(
     bool fail = false;
 
     fail |= MLI_CHECK(rank <= MLI_MAX_RANK, "Wrong tensor rank");
+    fail |= MLI_CHECK(capacity <= INT32_MAX, "Capacity too big");
     for (int i = 0; i < (int)rank; i++) {
         fail |= MLI_CHECK(mem_stride[i] != 0, "Memory stride invalid");
         fail |= MLI_CHECK(mem_stride[i] > 0, "Negative memory strides are not supported");
@@ -86,7 +87,7 @@ static MLI_FORCE_INLINE mli_status check_tensor_private(
     uint32_t previous_shape = 1;
     uint32_t previous_mem_stride = 1;
     for (int i = rank - 1; i >= 0; i--) {
-        fail |= MLI_CHECK(mem_stride[i] >= (previous_shape * previous_mem_stride), "Tensor mem stride too small");
+        fail |= MLI_CHECK(mem_stride[i] >= ((int)previous_shape * (int)previous_mem_stride), "Tensor mem stride too small");
         previous_shape = shape[i];
         previous_mem_stride = mem_stride[i];
         size += (previous_shape - 1) * previous_mem_stride;
@@ -100,7 +101,7 @@ static MLI_FORCE_INLINE mli_status check_tensor_private(
 }
 
 mli_status mli_chk_lut(const mli_lut * lut, int buff_size) {
-    if (MLI_CHECK(lut->data.capacity >= buff_size, "Insufficient lut data capacity")) {
+    if (MLI_CHECK((int)lut->data.capacity >= buff_size, "Insufficient lut data capacity")) {
         return MLI_STATUS_NOT_ENGH_MEM;
     }
 #if (PLATFORM == V2DSP_XY) || (PLATFORM == V2DSP_VECTOR)
@@ -125,6 +126,7 @@ static constexpr unsigned kZeroPointBitsZero = 0;
 static constexpr unsigned kZeroPointBitsByteRange = (sizeof(int8_t) * 8) - 1;
 #endif
 static constexpr unsigned kZeroPointBitsMaxRange = (sizeof(int16_t) * 8) - 1;
+
 mli_status mli_chk_tensor_quant_params(const mli_tensor* in, unsigned zp_used_bits = kZeroPointBitsMaxRange) {
     MLI_ASSERT(zp_used_bits <= kZeroPointBitsMaxRange);
     MLI_ASSERT(in != nullptr);
@@ -2804,8 +2806,8 @@ mli_status mli_chk_data_movement(const mli_tensor *in, const mli_mov_cfg_t *cfg,
     }
 
     //check that input and output are not overlapped
-    if (MLI_CHECK((out->data.mem.i32 >= (in->data.mem.i32 + in->data.capacity)) ||
-    		(in->data.mem.i32 >= (out->data.mem.i32 + out->data.capacity)),"in and out buffer are overlapped")) {
+    if (MLI_CHECK((out->data.mem.i32 >= (in->data.mem.i32 + (int)(in->data.capacity))) ||
+    		(in->data.mem.i32 >= (out->data.mem.i32 + (int)(out->data.capacity))),"in and out buffer are overlapped")) {
     	return MLI_STATUS_INCOMPATEBLE_TENSORS;
     }
 

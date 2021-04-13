@@ -81,7 +81,7 @@ out_T eltwise_perform_operation(
         break;
 
     case ELTWISE_MUL:
-        acc = mli_math_mul_fx<int32_t, int64_t> (input1, input2);
+        acc = (accu_T)(mli_math_mul_fx<int32_t, int64_t> (input1, input2));
         break;
 
     case ELTWISE_MAX:
@@ -128,7 +128,7 @@ MLI_FORCE_INLINE int8_t eltwise_perform_operation<int8_t, int8_t, ELTWISE_MUL, t
     input1 = mli_math_sub_fx<int16_t> (op1, in_offset1);
     input2 = mli_math_sub_fx<int16_t> (op2, in_offset2);
 
-    acc = mli_math_mul_fx<int32_t, int64_t> (input1, input2);
+    acc = (int32_t)mli_math_mul_fx<int32_t, int64_t> (input1, input2);
     const int headroom = 3;
     const int acc_len = 32;
     const int out_len = 8;

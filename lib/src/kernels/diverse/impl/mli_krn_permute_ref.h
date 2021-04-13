@@ -37,10 +37,10 @@ static void mli_krn_permute_calc(const mli_tensor *in, uint32_t *out_shape, int 
         out_increments[dim_ctr] -= out_increments[dim_ctr + 1] * out_shape[dim_ctr + 1];
     }
 
-    for (int d0_cnt = 0; d0_cnt < out_shape[0]; d0_cnt++) {
-        for (int d1_cnt = 0; d1_cnt < out_shape[1]; d1_cnt++) {
-            for (int d2_cnt = 0; d2_cnt < out_shape[2]; d2_cnt++) {
-                for (int d3_cnt = 0; d3_cnt < out_shape[3]; d3_cnt++) {
+    for (int d0_cnt = 0; d0_cnt < (int)out_shape[0]; d0_cnt++) {
+        for (int d1_cnt = 0; d1_cnt < (int)out_shape[1]; d1_cnt++) {
+            for (int d2_cnt = 0; d2_cnt < (int)out_shape[2]; d2_cnt++) {
+                for (int d3_cnt = 0; d3_cnt < (int)out_shape[3]; d3_cnt++) {
                     *output = input[d0_cnt * inp_stride_0 + d1_cnt * inp_stride_1 \
                             + d2_cnt * inp_stride_2 + d3_cnt * inp_stride_3];
                     output += out_increments[3];
@@ -108,21 +108,21 @@ static MLI_FORCE_INLINE mli_status mli_krn_permute_run(const mli_tensor *in, con
             if(out->el_params.sa.zero_point.mem.pi16 == nullptr) {
                 out->el_params.sa.zero_point.mem.pi16 = in->el_params.sa.zero_point.mem.pi16;
             } else if (out->el_params.sa.zero_point.mem.pi16 != in->el_params.sa.zero_point.mem.pi16) {
-                for (int dim_cnt = 0; dim_cnt < in->shape[in->el_params.sa.dim]; dim_cnt++) 
+                for (int dim_cnt = 0; dim_cnt < (int)(in->shape[in->el_params.sa.dim]); dim_cnt++) 
                     out->el_params.sa.zero_point.mem.pi16[dim_cnt] = in->el_params.sa.zero_point.mem.pi16[dim_cnt];
             }
 
             if (out->el_params.sa.scale.mem.pi16 == nullptr) {
                 out->el_params.sa.scale.mem.pi16 = in->el_params.sa.scale.mem.pi16;
             } else if (out->el_params.sa.scale.mem.pi16 != in->el_params.sa.scale.mem.pi16) {
-                for (int dim_cnt = 0; dim_cnt < in->shape[in->el_params.sa.dim]; dim_cnt++) 
+                for (int dim_cnt = 0; dim_cnt < (int)(in->shape[in->el_params.sa.dim]); dim_cnt++) 
                     out->el_params.sa.scale.mem.pi16[dim_cnt] = in->el_params.sa.scale.mem.pi16[dim_cnt];
             }
 
             if (out->el_params.sa.scale_frac_bits.mem.pi8 == nullptr) {
                 out->el_params.sa.scale_frac_bits.mem.pi8 = in->el_params.sa.scale_frac_bits.mem.pi8;
             } else if (out->el_params.sa.scale_frac_bits.mem.pi8 != in->el_params.sa.scale_frac_bits.mem.pi8) {
-                for (int dim_cnt = 0; dim_cnt < in->shape[in->el_params.sa.dim]; dim_cnt++) 
+                for (int dim_cnt = 0; dim_cnt < (int)(in->shape[in->el_params.sa.dim]); dim_cnt++) 
                     out->el_params.sa.scale_frac_bits.mem.pi8[dim_cnt] = in->el_params.sa.scale_frac_bits.mem.pi8[dim_cnt];
             }
         }

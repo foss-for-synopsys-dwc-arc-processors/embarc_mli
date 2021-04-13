@@ -47,10 +47,10 @@ static MLI_FORCE_INLINE void mov_inner_loop (mli_mov_handle_t* h, const io_T* __
             dst[inner_dst_pos] = 0;
         }
     } else {
-        for (int inner_idx = 0; inner_idx < inner_dst_size; inner_idx++) {
+        for (int inner_idx = 0; inner_idx < (int)(inner_dst_size); inner_idx++) {
             int inner_src_pos = inner_idx * inner_subsample + inner_src_offset - inner_pre_padding;
             int inner_dst_pos = (inner_idx + inner_dst_offset) * inner_dst_strde;
-            if (inner_src_pos < 0 || inner_src_pos >= inner_src_shape ) {
+            if (inner_src_pos < 0 || inner_src_pos >= (int)inner_src_shape ) {
                 dst[inner_dst_pos] = 0;
             } else {
                 dst[inner_dst_pos] = src[inner_src_pos * inner_src_strde];
@@ -69,7 +69,7 @@ static MLI_FORCE_INLINE void mov_inner_loop (mli_mov_handle_t* h, const io_T* __
         bool src_in_vccm, bool dst_in_vccm,
         bool no_inner_src_stride, bool no_inner_dst_stride, bool small_size) {
         uint32_t inner_src_step = inner_subsample * inner_src_strde;
-        for (int inner_idx = 0; inner_idx < inner_dst_size; inner_idx++) {
+        for (int inner_idx = 0; inner_idx < (int)(inner_dst_size); inner_idx++) {
             int inner_src_pos = inner_idx * inner_src_step;
             int inner_dst_pos = inner_idx * inner_dst_strde;
             dst[inner_dst_pos] = src[inner_src_pos];
@@ -85,9 +85,9 @@ static MLI_FORCE_INLINE void mli_mov_basic_operation (mli_mov_handle_t* h, const
     uint8_t* ordered_post_padding, uint8_t* ordered_pdim, uint32_t* ordered_offset, uint32_t* ordered_dst_offset,
     uint32_t* ordered_subsample, bool no_padding, bool src_in_vccm, bool dst_in_vccm ) {
     if (no_padding) {
-        for (int pos0 = 0; pos0 < ordered_dst_write_size[0]; pos0++) {
-            for (int pos1 = 0; pos1 < ordered_dst_write_size[1]; pos1++) {
-                for (int pos2 = 0; pos2 < ordered_dst_write_size[2]; pos2++) {
+        for (int pos0 = 0; pos0 < (int)(ordered_dst_write_size[0]); pos0++) {
+            for (int pos1 = 0; pos1 < (int)(ordered_dst_write_size[1]); pos1++) {
+                for (int pos2 = 0; pos2 < (int)(ordered_dst_write_size[2]); pos2++) {
 
                     int dst_pos = (pos0 + ordered_dst_offset[0]) * ordered_dst_mem_stride[0]
                                 + (pos1 + ordered_dst_offset[1]) * ordered_dst_mem_stride[1]
@@ -115,9 +115,9 @@ static MLI_FORCE_INLINE void mli_mov_basic_operation (mli_mov_handle_t* h, const
             }
         }
     } else {
-        for (int pos0 = 0; pos0 < ordered_dst_write_size[0]; pos0++) {
-            for (int pos1 = 0; pos1 < ordered_dst_write_size[1]; pos1++) {
-                for (int pos2 = 0; pos2 < ordered_dst_write_size[2]; pos2++) {
+        for (int pos0 = 0; pos0 < (int)(ordered_dst_write_size[0]); pos0++) {
+            for (int pos1 = 0; pos1 < (int)(ordered_dst_write_size[1]); pos1++) {
+                for (int pos2 = 0; pos2 < (int)(ordered_dst_write_size[2]); pos2++) {
                       int dst_pos = (pos0 + ordered_dst_offset[0]) * ordered_dst_mem_stride[0]
                                   + (pos1 + ordered_dst_offset[1]) * ordered_dst_mem_stride[1]
                                   + (pos2 + ordered_dst_offset[2]) * ordered_dst_mem_stride[2];
@@ -127,9 +127,9 @@ static MLI_FORCE_INLINE void mli_mov_basic_operation (mli_mov_handle_t* h, const
                       int src_pos2 = pos2 * ordered_subsample[ordered_pdim[2]] + ordered_offset[ordered_pdim[2]] - ordered_pre_padding[ordered_pdim[2]];
 
 
-                      bool in_padding_area = (((src_pos0 < 0) || (src_pos0  >= ordered_src_shape[ordered_pdim[0]])))
-                                          || (((src_pos1 < 0) || (src_pos1  >= ordered_src_shape[ordered_pdim[1]])))
-                                          || (((src_pos2 < 0) || (src_pos2  >= ordered_src_shape[ordered_pdim[2]])));
+                      bool in_padding_area = (((src_pos0 < 0) || (src_pos0  >= (int)(ordered_src_shape[ordered_pdim[0]]))))
+                                          || (((src_pos1 < 0) || (src_pos1  >= (int)(ordered_src_shape[ordered_pdim[1]]))))
+                                          || (((src_pos2 < 0) || (src_pos2  >= (int)(ordered_src_shape[ordered_pdim[2]]))));
 
                       int src_pos = src_pos0 * ordered_src_mem_stride[ordered_pdim[0]]
                                   + src_pos1 * ordered_src_mem_stride[ordered_pdim[1]]

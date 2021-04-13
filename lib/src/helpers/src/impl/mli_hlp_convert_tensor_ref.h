@@ -88,7 +88,7 @@ mli_status convert_quantized_data(const mli_tensor * src, mli_tensor * dst) {
                         MLI_ASSERT(dst_pos < dst_tensor_size);
                         acc_T dst_acc = mli_math_mul_fx<mul_T, acc_T>(src_tensor_arr[src_pos], scale);
                         out_T dst_val = mli_math_cast_fx<acc_T, out_T>(dst_acc, scale_shift);
-                        dst_tensor_arr[dst_pos] = mli_math_add_fx<out_T>(dst_val, zero_point);
+                        dst_tensor_arr[dst_pos] = mli_math_add_fx<out_T>(dst_val, (out_T)zero_point);
                     }
                 }
             }

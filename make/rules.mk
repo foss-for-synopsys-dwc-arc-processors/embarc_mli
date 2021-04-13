@@ -18,7 +18,7 @@ MLI_BUILD_REFERENCE ?= OFF
 BUILD_SUBDIR        ?=
 BUILD_TARGET        ?= install
 EXT_CFLAGS          ?=
-TOOLCHAIN_OPTIONS   ?=
+CMAKE_OPTIONS       ?=
 # User need to define BUILD_LIB (target specific libs including runtime)
 # if default one doesn't fit.
 BUILDLIB_DIR        ?=
@@ -27,6 +27,7 @@ VERBOSE             ?= OFF
 
 include $(PUBLIC_DIR)/make/settings.mk
 
+TOOLCHAIN_OPTIONS = $(CMAKE_OPTIONS)
 ifdef TCF_FILE
 # For TCF_FILE, we only take the realpath if the file exists (otherwise it is a file inside MWDT)
 TOOLCHAIN_OPTIONS += \
