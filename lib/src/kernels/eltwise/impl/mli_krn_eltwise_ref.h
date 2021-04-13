@@ -21,6 +21,11 @@
 #define INT32_TO_INT16 16
 #define IN_SCALE_SHIFT 32
 #define MUL_MAX_SHIFT 31
+/*
+ * For max/min shifting more than 23 is not needed
+ * as the scaled result ((max - in_offset) * scale) will be limited by 24 bits including the sign bit.
+ */
+#define MAX_MIN_UPPER_LIMIT_SHIFT 23
 
 namespace mli {
 namespace krn {
@@ -264,18 +269,16 @@ void eltwise_prepare_and_run(
         shift2 = in2->el_params.sa.scale_frac_bits.mem.i8;
         shift_out = out->el_params.sa.scale_frac_bits.mem.i8;
         if (func_type == ELTWISE_MAX || func_type == ELTWISE_MIN) {
-            in_scale_fx1 = mli_math_asr_rnd_fx<int32_t>(scale_1,
-                    (int32_t) shift1 - frac_bits_fx16);
-            out_scale_fx = mli_math_asr_rnd_fx<int32_t>(scale_out,
-                    (int32_t) shift_out - frac_bits_fx16);
-            scale_factor1 = mli_math_asr_rnd_fx<int32_t>(in_scale_fx1, -INT32_TO_INT16);
-            scale_factor1 /= out_scale_fx;
-            post_op_shift = INT32_TO_INT16;
-            int norm1 = (scale_factor1 != 0) ? mli_math_norm_fx<int32_t, int>(scale_factor1) : 0;
-            int shift = MAX(INT32_TO_INT16 - norm1, 0);
-            scale16_1 = mli_math_cast_fx<int32_t, int16_t>(scale_factor1, shift);
-            scale16_2 = scale16_1;
+            int32_t scale_factor = mli_math_asl_fx<int32_t>(scale_1, INT32_TO_INT16);
+            scale_factor = scale_factor / scale_out;
+            post_op_shift = INT32_TO_INT16 + shift1 - shift_out;
+            int shift;
+            scale16_1 = mli_math_norm_cast_fx<int32_t, int16_t>(scale_factor, &shift);
             post_op_shift -= shift;
+            shift = MAX(post_op_shift - MAX_MIN_UPPER_LIMIT_SHIFT, 0) + MIN(MUL_MAX_SHIFT + post_op_shift, 0);
+            scale16_1 = mli_math_asr_rnd_fx<int16_t>(scale16_1, shift);
+            post_op_shift -= shift;
+            scale16_2 = scale16_1;
         } else if (func_type == ELTWISE_MUL) {
             int shift;
             scale_factor1 = scale_1 * scale_2;

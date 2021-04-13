@@ -29,8 +29,8 @@ const int unroll_factor[2][5] = {
 /* ELTWISE_ADD_CONVERT = */ 1,
 /* ELTWISE_SUB_CONVERT = */ 1,
 /* ELTWISE_MUL_CONVERT = */ 4,
-/* ELTWISE_MAX_CONVERT = */ 3,
-/* ELTWISE_MIN_CONVERT = */ 3
+/* ELTWISE_MAX_CONVERT = */ 4,
+/* ELTWISE_MIN_CONVERT = */ 4
 }
 };
 
@@ -373,7 +373,7 @@ MLI_FORCE_INLINE vNx2short_t eltwise_perform_operation<vNx2short_t, vNx2short_t,
     vNx2short_t res;
     res = mli_math_max_fx(op1, op2);
     if (post_op_shift > 0) {
-    	res = mli_math_asr_rnd_fx(res, post_op_shift);
+        res = mli_math_asr_rnd_fx(res, post_op_shift);
     } else {
         res = mli_math_asl_fx(res, -post_op_shift);
     }
@@ -417,16 +417,17 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
         const int pre_op_shift2,
         const int post_op_shift) {
     vNx4char_t res;
-    int32_t acc_init = (out_offset << post_op_shift) - scale_factor1 * in_offset1;
-#ifdef ROUND_UP
-    acc_init += ((1 << post_op_shift) >> 1); // rounding half up //
-#else
-    #error Rounding mode not supported
-#endif
-    vNx4accint_t accu = mli_math_init_accu<int32_t, vNx4accint_t>(acc_init);
+    constexpr int mul_hi_shift = 16;
+    int shift = post_op_shift - mul_hi_shift;
+    int shift_left = mli_math_max_fx(1 - shift, 0);
+    int shift_right = mli_math_max_fx(shift, 1);
     vNx4short_t max = to_vNx4short_t(mli_math_max_fx(op1, op2));
-    accu = mli_math_mac_fx(accu, max, scale_factor1);
-    res = mli_math_acc_cast_fx<vNx4char_t, vNx4accint_t, false>(accu, post_op_shift);
+    max = mli_math_sub_fx(max, (vNx4short_t)in_offset1);
+    max = mli_math_asl_fx(max, shift_left);
+    vNx4short_t max_scaled = mli_math_mul_fx_high(max, scale_factor1);
+    max_scaled = mli_math_asr_rnd_fx(max_scaled, shift_right);
+    max_scaled = mli_math_add_fx(max_scaled, (vNx4short_t) out_offset);
+    res = mli_math_cast_fx<vNx4short_t, vNx4char_t>(max_scaled);
     return res;
 }
 
@@ -491,17 +492,17 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
         const int pre_op_shift2,
         const int post_op_shift) {
     vNx4char_t res;
-    int32_t acc_init = (out_offset << post_op_shift) - scale_factor1 * in_offset1;
-
-#ifdef ROUND_UP
-    acc_init += ((1 << post_op_shift) >> 1); // rounding half up //
-#else
-    #error Rounding mode not supported
-#endif
-    vNx4accint_t accu = mli_math_init_accu<int32_t, vNx4accint_t>(acc_init);
+    constexpr int mul_hi_shift = 16;
+    int shift = post_op_shift - mul_hi_shift;
+    int shift_left = mli_math_max_fx(1 - shift, 0);
+    int shift_right = mli_math_max_fx(shift, 1);
     vNx4short_t max = to_vNx4short_t(mli_math_min_fx(op1, op2));
-    accu = mli_math_mac_fx(accu, max, scale_factor1);
-    res = mli_math_acc_cast_fx<vNx4char_t, vNx4accint_t, false>(accu, post_op_shift);
+    max = mli_math_sub_fx(max, (vNx4short_t)in_offset1);
+    max = mli_math_asl_fx(max, shift_left);
+    vNx4short_t max_scaled = mli_math_mul_fx_high(max, scale_factor1);
+    max_scaled = mli_math_asr_rnd_fx(max_scaled, shift_right);
+    max_scaled = mli_math_add_fx(max_scaled, (vNx4short_t) out_offset);
+    res = mli_math_cast_fx<vNx4short_t, vNx4char_t>(max_scaled);
     return res;
 
 }
@@ -572,8 +573,8 @@ MLI_FORCE_INLINE void eltwise_innerloop<int16_t, ELTWISE_MAX, false>(
         int idx2,
         int idx_out,
         const int count,
-		int16_t op1_s,
-		int16_t op2_s,
+        int16_t op1_s,
+        int16_t op2_s,
         const bool scalar_op1,
         const bool scalar_op2,
         const int16_t in_offset1,
@@ -628,8 +629,8 @@ MLI_FORCE_INLINE void eltwise_innerloop<int16_t, ELTWISE_MIN, false>(
         int idx2,
         int idx_out,
         const int count,
-		int16_t op1_s,
-		int16_t op2_s,
+        int16_t op1_s,
+        int16_t op2_s,
         const bool scalar_op1,
         const bool scalar_op2,
         const int16_t in_offset1,
