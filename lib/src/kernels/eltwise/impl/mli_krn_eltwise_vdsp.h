@@ -421,13 +421,19 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
     int shift = post_op_shift - mul_hi_shift;
     int shift_left = mli_math_max_fx(1 - shift, 0);
     int shift_right = mli_math_max_fx(shift, 1);
+    // As shift is limited by 23 the shift_right is limited by 7 so we can pre_shift left the out_offset
+    int16_t offset = out_offset << shift_right;
+#ifdef ROUND_UP
+    offset += ((1 << shift_right) >> 1);
+#else
+    #error Rounding mode not supported
+#endif
     vNx4short_t max = to_vNx4short_t(mli_math_max_fx(op1, op2));
     max = mli_math_sub_fx(max, (vNx4short_t)in_offset1);
     max = mli_math_asl_fx(max, shift_left);
     vNx4short_t max_scaled = mli_math_mul_fx_high(max, scale_factor1);
-    max_scaled = mli_math_asr_rnd_fx(max_scaled, shift_right);
-    max_scaled = mli_math_add_fx(max_scaled, (vNx4short_t) out_offset);
-    res = mli_math_cast_fx<vNx4short_t, vNx4char_t>(max_scaled);
+    max_scaled = mli_math_add_fx(max_scaled, (vNx4short_t) offset);
+    res = mli_math_cast_fx<vNx4short_t, vNx4char_t, false>(max_scaled, shift_right);
     return res;
 }
 
@@ -496,13 +502,19 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
     int shift = post_op_shift - mul_hi_shift;
     int shift_left = mli_math_max_fx(1 - shift, 0);
     int shift_right = mli_math_max_fx(shift, 1);
+    // As shift is limited by 23 the shift_right is limited by 7 so we can pre_shift left the out_offset
+    int16_t offset = out_offset << shift_right;
+#ifdef ROUND_UP
+    offset += ((1 << shift_right) >> 1);
+#else
+    #error Rounding mode not supported
+#endif
     vNx4short_t max = to_vNx4short_t(mli_math_min_fx(op1, op2));
     max = mli_math_sub_fx(max, (vNx4short_t)in_offset1);
     max = mli_math_asl_fx(max, shift_left);
     vNx4short_t max_scaled = mli_math_mul_fx_high(max, scale_factor1);
-    max_scaled = mli_math_asr_rnd_fx(max_scaled, shift_right);
-    max_scaled = mli_math_add_fx(max_scaled, (vNx4short_t) out_offset);
-    res = mli_math_cast_fx<vNx4short_t, vNx4char_t>(max_scaled);
+    max_scaled = mli_math_add_fx(max_scaled, (vNx4short_t) offset);
+    res = mli_math_cast_fx<vNx4short_t, vNx4char_t, false>(max_scaled, shift_right);
     return res;
 
 }
