@@ -238,7 +238,7 @@ MLI_FORCE_INLINE void mli_prv_tensor_inc_data_ptr<int8_t*>
     int element_size = sizeof(int8_t);
     MLI_ASSERT((tensor->el_type == MLI_EL_FX_8) ||
                (tensor->el_type == MLI_EL_SA_8));
-    MLI_ASSERT(element_size * elements <= tensor->data.capacity);
+    MLI_ASSERT(element_size * elements <= (int)(tensor->data.capacity));
     tensor->data.mem.pi8 += elements;
     tensor->data.capacity -= elements * element_size;
 }
@@ -249,7 +249,7 @@ MLI_FORCE_INLINE void mli_prv_tensor_inc_data_ptr<int16_t*>
 {
     int element_size = sizeof(int16_t);
     MLI_ASSERT(tensor->el_type == MLI_EL_FX_16);
-    MLI_ASSERT(element_size * elements <= tensor->data.capacity);
+    MLI_ASSERT(element_size * elements <= (int)(tensor->data.capacity));
     tensor->data.mem.pi16 += elements;
     tensor->data.capacity -= elements * element_size;
 }
@@ -260,7 +260,7 @@ MLI_FORCE_INLINE void mli_prv_tensor_inc_data_ptr<int32_t*>
 {
     int element_size = sizeof(int32_t);
     MLI_ASSERT(tensor->el_type == MLI_EL_SA_32);
-    MLI_ASSERT(element_size * elements <= tensor->data.capacity);
+    MLI_ASSERT(element_size * elements <= (int)(tensor->data.capacity));
     tensor->data.mem.pi32 += elements;
     tensor->data.capacity -= elements * element_size;
 }

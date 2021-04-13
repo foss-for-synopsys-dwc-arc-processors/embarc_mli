@@ -92,10 +92,15 @@ if (ARC)
         -Wno-nonportable-include-path
     )
 elseif (MSVC)
-    list(APPEND MLI_LIB_PRIVATE_COMPILE_OPTIONS
-        /W2
-        /WX
-    )
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        list(APPEND MLI_LIB_PRIVATE_COMPILE_OPTIONS
+            /W3
+            /WX
+        )
+    else()
+        # This path happens when other MSVC-commandline compatible
+        # compilers are used like CLANG in Visual Studio.
+    endif()
 else()
     list(APPEND MLI_LIB_PRIVATE_COMPILE_OPTIONS
         -Werror
