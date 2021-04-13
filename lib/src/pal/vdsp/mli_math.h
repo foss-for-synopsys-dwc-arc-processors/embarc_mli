@@ -1036,6 +1036,15 @@ MLI_FORCE_INLINE vNx4short_t mli_math_cast_fx(vNx4short_t in_val, int shift_righ
 }
 
 template<>
+MLI_FORCE_INLINE vNx4char_t mli_math_cast_fx<vNx4short_t, vNx4char_t, false >(vNx4short_t in_val, int shift_right) {
+    MLI_EXTRA_ASSERT(shift_right >= 0);
+    vNx4short_t acc = in_val;
+    acc = mli_math_asr_fx(acc, shift_right);
+    acc = mli_math_bound_range_fx(acc, INT8_MIN, INT8_MAX);
+    return to_vNx4char_t(acc);
+}
+
+template<>
 MLI_FORCE_INLINE vNx4char_t mli_math_cast_fx(vNx4short_t in_val, int shift_right) {
     MLI_EXTRA_ASSERT(shift_right >= 0);
     vNx4short_t acc;
