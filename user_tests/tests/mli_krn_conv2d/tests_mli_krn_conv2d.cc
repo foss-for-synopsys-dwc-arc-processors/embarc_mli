@@ -276,7 +276,6 @@ int main() {
                 strstr(cur_test->descr, "Test 7 SA8_SA8_SA32 k3x3 Spec") != nullptr ||
                 strstr(cur_test->descr, "Test 8 FX16 k5x5 spec") != nullptr ||
                 strstr(cur_test->descr, "Test 8 SA8_SA8_SA32 k5x5 spec") != nullptr ||
-                strstr(cur_test->descr, "Test 8 SA8_SA8_SA32 Dil+Pad") != nullptr ||
                 strstr(cur_test->descr, "Test 9-1 SA8_SA8_SA32 Dil+Pad") != nullptr ||
                 strstr(cur_test->descr, "Test 9-2 SA8_SA8_SA32 k3x3 Dil") != nullptr ||
                 strstr(cur_test->descr, "Test 10 FX16 k5x5 Dil") != nullptr ||
