@@ -38,8 +38,7 @@ template <typename in_T, typename out_T> MLI_FORCE_INLINE out_T mli_math_cast_fx
 
 #if defined(__Xvec_width) && !defined(MLI_BUILD_REFERENCE)
 #include "vdsp/mli_math.h"
-#elif defined(__FXAPI__) //&& !defined(MLI_BUILD_REFERENCE)
-// not ported kernels running EM/HS; always require dsp/* version of PAL.
+#elif defined(__FXAPI__) && !defined(MLI_BUILD_REFERENCE)
 #include "dsp/mli_math.h"
 #else
 #include "ref/mli_math.h"
