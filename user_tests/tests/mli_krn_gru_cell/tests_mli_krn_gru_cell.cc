@@ -232,9 +232,7 @@ int main() {
         }
 
 #if defined(__Xvec_guard_bit_option) && (__Xvec_guard_bit_option == 0)
-        if (strstr(cur_test->descr, "Test 1 FX16 OtO,Forw") != nullptr ||
-            strstr(cur_test->descr, "Test 1 SA8_SA32 OtO,Forw") != nullptr ||
-            strstr(cur_test->descr, "Test 2 FX16 OtO,Back") != nullptr ||
+        if (strstr(cur_test->descr, "Test 1 SA8_SA32 OtO,Forw") != nullptr ||
             strstr(cur_test->descr, "Test 2 SA8_SA32 OtO,Back") != nullptr ||
             strstr(cur_test->descr, "Test 3 FX16 BtB,ALL,Forw") != nullptr ||
             strstr(cur_test->descr, "Test 3 SA8_SA32 BtB,ALL,Forw") != nullptr ||

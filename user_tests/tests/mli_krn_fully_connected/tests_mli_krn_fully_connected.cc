@@ -182,17 +182,12 @@ int main() {
         const fully_connected_test_operands* cur_test = &tests_list[i];
         quality_metrics test_metrics;
 
-#if PLATFORM == V2DSP_VECTOR
-        if (strstr(cur_test->descr, " FX16 ") != nullptr) {
-            // VPX fails bitwise comparison with reference .
-            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
-            continue;
-        }
-#endif
 #if defined(__Xvec_guard_bit_option) && (__Xvec_guard_bit_option == 0)
         if (strstr(cur_test->descr, "Test 1 SA8_SA8_SA32") != nullptr ||
+                strstr(cur_test->descr, "Test 1 SA8_SA8_SA32 Spec") != nullptr ||
                 strstr(cur_test->descr, "Test 3 SA8_SA8_SA32 Spec") != nullptr ||
                 strstr(cur_test->descr, "Test 3 SA8_SA8_SA32 Relu1 Mstr") != nullptr ||
+                strstr(cur_test->descr, "Test 5 FX16 Huge Vals") != nullptr ||
                 strstr(cur_test->descr, "Test 5 SA8_SA8_SA32 Huge Vals") != nullptr ||
                 strstr(cur_test->descr, "Test 5 SA8_SA8_SA32 Spec") != nullptr) {
             // VPX fails bitwise comparison with reference .

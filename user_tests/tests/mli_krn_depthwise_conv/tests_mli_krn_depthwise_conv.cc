@@ -247,15 +247,7 @@ int main() {
         bool is_test_passed = true;
         const depthwise_conv_test_operands* cur_test = &tests_list[i];
         quality_metrics test_metrics;
-#if PLATFORM == V2DSP_VECTOR
-        if (strstr(cur_test->descr, "Test 7 SA8_SA8_SA32") != nullptr ||
-                strstr(cur_test->descr, "Test 8-1 SA8") != nullptr ||
-                strstr(cur_test->descr, "Test 8-2 SA8") != nullptr) {
-            // VPX fails bitwise comparison with reference .
-            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
-            continue;
-        }
-#endif
+
 #if __Xvec_guard_bit_option == 0 && defined(__Xvec_guard_bit_option)
         if (strstr(cur_test->descr, "Test 1 SA8_SA8_SA32") != nullptr ||
                 strstr(cur_test->descr, "Test 2 SA8_SA8_SA32 ReluGen") != nullptr ||
@@ -263,6 +255,9 @@ int main() {
                 strstr(cur_test->descr, "Test 4 SA8_SA8_SA32 Relu1 Mstr") != nullptr ||
                 strstr(cur_test->descr, "Test 5 SA8_SA8_SA32 Relu6 Mstr") != nullptr ||
                 strstr(cur_test->descr, "Test 6 SA8_SA8_SA32 k3x3 Spec") != nullptr ||
+                strstr(cur_test->descr, "Test 7 SA8_SA8_SA32") != nullptr ||
+                strstr(cur_test->descr, "Test 8-1 SA8") != nullptr ||
+                strstr(cur_test->descr, "Test 8-2 SA8") != nullptr ||
                 strstr(cur_test->descr, "Test 9 SA8_SA8_SA32 k5x5 Dil") != nullptr ||
                 strstr(cur_test->descr, "Test 10 SA8_SA8_SA32 Huge Vals") != nullptr) {
             // VPX fails bitwise comparison with reference .
