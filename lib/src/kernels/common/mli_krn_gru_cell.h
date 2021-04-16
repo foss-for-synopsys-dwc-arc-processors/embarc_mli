@@ -110,8 +110,19 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
 
     const int w_ch_out_mem_stride_from_tensors[] = {(int)weights_in->mem_stride[KRNL_RNN_W_IN_ELEMS_DIM], 
                                                     (int)weights_out->mem_stride[KRNL_RNN_W_IN_ELEMS_DIM]};
-    const int w_ch_out_mem_strides[] = {(w_ch_out_mem_stride_from_tensors[0] != 0) ? w_ch_out_mem_stride_from_tensors[0] : gru_out_elements, 
-                                  (w_ch_out_mem_stride_from_tensors[1] != 0) ? w_ch_out_mem_stride_from_tensors[1] : gru_out_elements};
+
+    const int w_gate_mem_stride_from_tensors[] = {(int)weights_in->mem_stride[0], 
+                                                  (int)weights_out->mem_stride[0]};
+
+    const int w_ch_out_mem_strides[] = {(w_ch_out_mem_stride_from_tensors[0] != 0) 
+                                            ? w_ch_out_mem_stride_from_tensors[0] : gru_out_elements, 
+                                        (w_ch_out_mem_stride_from_tensors[1] != 0) 
+                                            ? w_ch_out_mem_stride_from_tensors[1] : gru_out_elements};
+    
+    const int w_gate_mem_strides[] = {(w_gate_mem_stride_from_tensors[0] != 0) 
+                                        ? w_gate_mem_stride_from_tensors[0] : gru_out_elements * inputs_elements[0], 
+                                      (w_gate_mem_stride_from_tensors[1] != 0) 
+                                        ? w_gate_mem_stride_from_tensors[1]: gru_out_elements * inputs_elements[1]};
 
     // Paricular subtensors of intermediate tensor (mli_tensor.mem_stride[] should be zero and cannot be left uninitialized)
     mli_tensor reset_gate = {{ 0 }}, update_gate = {{ 0 }}, new_gate = {{ 0 }}; // Various gates to control info flow
@@ -123,13 +134,29 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
     mli_hlp_point_to_subtensor(&ir_tensor, &iterator, &update_gate); iterator.start_coord[0]++;
     mli_hlp_point_to_subtensor(&ir_tensor, &iterator, &reset_gate); iterator.start_coord[0]++;
     mli_hlp_point_to_subtensor(&ir_tensor, &iterator, &new_gate); iterator.start_coord[0]++;
-
-    mli_hlp_point_to_subtensor(weights_in, &weight_iterator, &w_in_new_g);
-    mli_hlp_point_to_subtensor(weights_out, &weight_iterator, &w_out_new_g);
     mli_hlp_point_to_subtensor(bias, &weight_iterator, &b_new_g);
 
-    const MLI_PTR (w_T) w_new_g_ptr[] = {mli_prv_tensor_data_ptr<MLI_PTR (w_T)>(&w_in_new_g), 
-                                         mli_prv_tensor_data_ptr<MLI_PTR (w_T)>(&w_out_new_g)};
+    w_in_new_g.data = weights_in->data; 
+    w_in_new_g.rank = 2;
+    w_in_new_g.shape[0] = weights_in->shape[1];
+    w_in_new_g.shape[1] = weights_in->shape[2];
+    w_in_new_g.el_params = weights_in->el_params;
+    w_in_new_g.el_type = weights_in->el_type;
+    mli_prv_tensor_inc_data_ptr<w_T*>(&w_in_new_g, num_gates * w_gate_mem_strides[0]);
+
+    w_out_new_g.data = weights_out->data; 
+    w_out_new_g.rank = 2;
+    w_out_new_g.shape[0] = weights_out->shape[1];
+    w_out_new_g.shape[1] = weights_out->shape[2];
+    w_out_new_g.el_params = weights_out->el_params;
+    w_out_new_g.el_type = weights_out->el_type;
+    mli_prv_tensor_inc_data_ptr<w_T*>(&w_out_new_g, num_gates * w_gate_mem_strides[1]);
+
+    const MLI_PTR (w_T) w_new_g_ptr[] = {
+        mli_prv_tensor_data_ptr<MLI_PTR (w_T)>(weights_in) + num_gates * w_gate_mem_strides[0], 
+        mli_prv_tensor_data_ptr<MLI_PTR (w_T)>(weights_out) + num_gates * w_gate_mem_strides[1]
+    };
+
     const MLI_PTR (b_T) b_new_g_ptr = mli_prv_tensor_data_ptr<MLI_PTR (b_T)>(&b_new_g);
 
     mli_tensor rnn_out = {{ 0 }};
@@ -172,7 +199,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
         //=======================================
         mli::krn::rnn_dense_op_stacked<io_T, w_T, b_T, acc_T, quant_T>(
             inputs_ptr, weights, bias, num_gates, num_inputs, inputs_elements,
-            in_to_out_params, w_ch_out_mem_strides, &ir_tensor);
+            in_to_out_params, w_ch_out_mem_strides, w_gate_mem_strides, &ir_tensor);
 
         // Step 2: Applying non-linearity
         //=======================================
@@ -256,7 +283,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
         mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym>(&new_gate, &update_gate, &temp);
         mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_ADD, /*convert*/ asym>(&temp, &current_out, &rnn_out);
 
-        current_hidden.data.mem.void_p = rnn_out.data.mem.void_p;
+        current_hidden.data = rnn_out.data;
         current_hidden.el_params = rnn_out.el_params;
 
         // Step 6: Update pointers and tensors for next batch

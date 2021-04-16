@@ -32,6 +32,38 @@ static inline void adjust_weights_dim_for_rnn_dense(s8asym_quant_specific_params
 	params->weight_dim = -1;
 }
 
+static inline void adjust_weights_scale_for_rnn_dense(
+    fx_quant_specific_params* params, 
+    fx_quant_specific_params* initial_params) {
+	return;
+}
+
+static inline void adjust_weights_scale_for_rnn_dense(
+    s8asym_quant_specific_params* params, 
+    s8asym_quant_specific_params* initial_params) {
+	if (initial_params->weight_dim != -1) {
+        params->weight_scales++;
+        params->weight_shifts++;
+    }
+}
+
+static inline void adjust_weights_scale_back_for_rnn_dense(
+    fx_quant_specific_params* params, 
+    fx_quant_specific_params* initial_params, 
+    int gates) {
+	return;
+}
+
+static inline void adjust_weights_scale_back_for_rnn_dense(
+    s8asym_quant_specific_params* params, 
+    s8asym_quant_specific_params* initial_params, 
+    int gates) {
+	if(initial_params->weight_dim != -1) {
+        params->weight_scales -= gates;
+        params->weight_shifts -= gates;
+    }
+}
+
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
 static inline void rnn_dense_op_stacked(
         const MLI_PTR (io_T) * inputs_ptr,
@@ -42,6 +74,7 @@ static inline void rnn_dense_op_stacked(
         const int * inputs_elements,
         quant_T * in_to_out_quant_params,
         const int * w_ch_out_mem_strides,
+        const int * w_gate_mem_strides,
         mli_tensor * out) {
 
     constexpr bool asym = std::is_same<quant_T, s8asym_quant_specific_params>::value;
@@ -50,20 +83,15 @@ static inline void rnn_dense_op_stacked(
     mli_minmax_t val_limit = mli_prv_get_relu_limits<io_T, asym>(&relu_none, out);
 
     const MLI_PTR (w_T) weights_ptr[MLI_RNN_MAX_INPUT];
+    quant_T initial_params[MLI_RNN_MAX_INPUT];
     uint32_t weights_shift[MLI_RNN_MAX_INPUT];
-
-    const int16_t * weights_scales[MLI_RNN_MAX_INPUT];
-    const int8_t * weights_scale_frac_bits[MLI_RNN_MAX_INPUT];
 
     int out_elements = mli_prv_count_elem_num_part(bias, 1);
 
     for(int idx = 0; idx < inputs_num; ++idx) {
         weights_ptr[idx] = mli_prv_tensor_data_ptr<MLI_PTR (w_T)>(weights[idx]);
-        weights_shift[idx] = mli_prv_count_elem_num_part(weights[idx], 1);
-
-        weights_scales[idx] = weights[idx]->el_params.sa.scale.mem.pi16;
-        weights_scale_frac_bits[idx] = weights[idx]->el_params.sa.scale_frac_bits.mem.pi8;
-
+        weights_shift[idx] = w_gate_mem_strides[idx];
+        initial_params[idx] = in_to_out_quant_params[idx];
         adjust_weights_dim_for_rnn_dense(&in_to_out_quant_params[idx]);
     }
 
@@ -76,22 +104,19 @@ static inline void rnn_dense_op_stacked(
             out_elements, w_ch_out_mem_strides, in_to_out_quant_params, 
             (io_T)val_limit.min, (io_T)val_limit.max);
 
-        for (int weight_idx = 0; weight_idx < inputs_num; ++weight_idx)
+        for (int weight_idx = 0; weight_idx < inputs_num; ++weight_idx) {
             weights_ptr[weight_idx] += weights_shift[weight_idx];
+            adjust_weights_scale_for_rnn_dense(&in_to_out_quant_params[weight_idx], &initial_params[weight_idx]);
+        }
         
         bias_ptr += out_elements;
         dense_out_ptr += out_elements;
-
-        if (asym) {
-            for (int weight_idx = 0; weight_idx < inputs_num; ++weight_idx) {
-                weights_scales[weight_idx]++;
-                weights_scale_frac_bits[weight_idx]++;
-            }      
-        }
     }
 
-    for (int weight_idx = 0; weight_idx < inputs_num; ++weight_idx)
+    for (int weight_idx = 0; weight_idx < inputs_num; ++weight_idx) {
         weights_ptr[weight_idx] -= gates_num * weights_shift[weight_idx];
+        adjust_weights_scale_back_for_rnn_dense(&in_to_out_quant_params[weight_idx], &initial_params[weight_idx], gates_num);
+    }
 
     bias_ptr -= gates_num * out_elements;
     dense_out_ptr -= gates_num * out_elements;
