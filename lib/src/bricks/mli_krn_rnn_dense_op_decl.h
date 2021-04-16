@@ -53,6 +53,7 @@ static MLI_FORCE_INLINE void rnn_dense_op_stacked(
         const int * inputs_elements,
         quant_T * in_to_out_quant_params,
         const int * w_ch_out_mem_strides,
+        const int * w_gate_mem_strides,
         mli_tensor * out);
 
 } // namespace ref
@@ -107,6 +108,7 @@ static MLI_FORCE_INLINE void rnn_dense_op_stacked(
         const int * inputs_elements,
         quant_T * in_to_out_quant_params,
         const int * w_ch_out_mem_strides,
+        const int * w_gate_mem_strides,
         mli_tensor * out);
 
 } // namespace vdsp

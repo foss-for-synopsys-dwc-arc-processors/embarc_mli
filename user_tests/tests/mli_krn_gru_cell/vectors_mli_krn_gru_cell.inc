@@ -40,6 +40,13 @@ extern mli::tst::tensor_quantizer weights_2_out_fx16;
 extern mli::tst::tensor_quantizer weights_2_out_fx8;
 extern mli::tst::tensor_quantizer weights_2_out_sa8;
 
+extern mli::tst::tensor_quantizer weights_2_in_memstr_fx16;
+extern mli::tst::tensor_quantizer weights_2_in_memstr_fx8;
+extern mli::tst::tensor_quantizer weights_2_in_memstr_sa8;
+extern mli::tst::tensor_quantizer weights_2_out_memstr_fx16;
+extern mli::tst::tensor_quantizer weights_2_out_memstr_fx8;
+extern mli::tst::tensor_quantizer weights_2_out_memstr_sa8;
+
 extern mli::tst::tensor_quantizer bias_1_fx16;
 extern mli::tst::tensor_quantizer bias_1_fx8;
 extern mli::tst::tensor_quantizer bias_1_i1_w1_sa32;
@@ -475,8 +482,21 @@ static const int weights_2_in_fx8_frac = 9;
     /* .shape = */ {3, 4, 20}, \
     /* .rank =  */ 3
 
+#define WEIGHTS_2_IN_MEMSTR_TSR_SHARED_DESCR \
+    /* .data = */ { 0 },\
+    /* .mem_stride = */ {5*21*1, 21*1, 1}, \
+    /* .shape = */ {3, 4, 20}, \
+    /* .rank =  */ 3
+
 static const mli_tensor weights_2_in_tsr_fx16 = {
     WEIGHTS_2_IN_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
+};
+
+static const mli_tensor weights_2_in_memstr_tsr_fx16 = {
+    WEIGHTS_2_IN_MEMSTR_TSR_SHARED_DESCR,
 
     /* .el_type = */ MLI_EL_FX_16,
     /* .el_params = */ { 0 }
@@ -489,8 +509,22 @@ static const mli_tensor weights_2_in_tsr_fx8 = {
     /* .el_params = */ { 0 }
 };
 
+static const mli_tensor weights_2_in_memstr_tsr_fx8 = {
+    WEIGHTS_2_IN_MEMSTR_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_FX_8,
+    /* .el_params = */ { 0 }
+};
+
 static const mli_tensor weights_2_in_tsr_sa8 = {
     WEIGHTS_2_IN_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ { 0 }
+};
+
+static const mli_tensor weights_2_in_memstr_tsr_sa8 = {
+    WEIGHTS_2_IN_MEMSTR_TSR_SHARED_DESCR,
 
     /* .el_type = */ MLI_EL_SA_8,
     /* .el_params = */ { 0 }
@@ -505,7 +539,15 @@ tensor_quantizer weights_2_in_sa8(weights_2_in_tsr_sa8, weights_2_in_sa_dim, wei
     sizeof(weights_2_in_scales) / sizeof(weights_2_in_scales[0]), 
     weights_2_in_zero_points, sizeof(weights_2_in_zero_points) / sizeof(weights_2_in_zero_points[0]), 
     weights_2_in_scales_frac, sizeof(weights_2_in_scales_frac) / sizeof(weights_2_in_scales_frac[0]));
-
+tensor_quantizer weights_2_in_memstr_fx16(weights_2_in_memstr_tsr_fx16, weights_2_in_fx8_frac + 8, weights_2_in_data, 
+    sizeof(weights_2_in_data) / sizeof(weights_2_in_data[0]));
+tensor_quantizer weights_2_in_memstr_fx8(weights_2_in_memstr_tsr_fx8, weights_2_in_fx8_frac, weights_2_in_data, 
+    sizeof(weights_2_in_data) / sizeof(weights_2_in_data[0]));
+tensor_quantizer weights_2_in_memstr_sa8(weights_2_in_memstr_tsr_sa8, weights_2_in_sa_dim, weights_2_in_data, 
+    sizeof(weights_2_in_data) / sizeof(weights_2_in_data[0]), weights_2_in_scales, 
+    sizeof(weights_2_in_scales) / sizeof(weights_2_in_scales[0]), 
+    weights_2_in_zero_points, sizeof(weights_2_in_zero_points) / sizeof(weights_2_in_zero_points[0]), 
+    weights_2_in_scales_frac, sizeof(weights_2_in_scales_frac) / sizeof(weights_2_in_scales_frac[0]));
 
 static const float weights_2_out_data[] = {
     0.068525f, 0.114699f, 0.197586f, -0.104525f, 0.113057f, -0.19294f, 0.060319f, 0.130891f, -0.190745f, 0.2049f, 
@@ -643,8 +685,21 @@ static const int weights_2_out_fx8_frac = 9;
     /* .shape = */ {3, 20, 20}, \
     /* .rank =  */ 3
 
+#define WEIGHTS_2_OUT_MEMSTR_TSR_SHARED_DESCR \
+    /* .data = */ { 0 },\
+    /* .mem_stride = */ {21*21*1, 21*1, 1}, \
+    /* .shape = */ {3, 20, 20}, \
+    /* .rank =  */ 3
+
 static const mli_tensor weights_2_out_tsr_fx16 = {
     WEIGHTS_2_OUT_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
+};
+
+static const mli_tensor weights_2_out_memstr_tsr_fx16 = {
+    WEIGHTS_2_OUT_MEMSTR_TSR_SHARED_DESCR,
 
     /* .el_type = */ MLI_EL_FX_16,
     /* .el_params = */ { 0 }
@@ -657,8 +712,22 @@ static const mli_tensor weights_2_out_tsr_fx8 = {
     /* .el_params = */ { 0 }
 };
 
+static const mli_tensor weights_2_out_memstr_tsr_fx8 = {
+    WEIGHTS_2_OUT_MEMSTR_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_FX_8,
+    /* .el_params = */ { 0 }
+};
+
 static const mli_tensor weights_2_out_tsr_sa8 = {
     WEIGHTS_2_OUT_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ { 0 }
+};
+
+static const mli_tensor weights_2_out_memstr_tsr_sa8 = {
+    WEIGHTS_2_OUT_MEMSTR_TSR_SHARED_DESCR,
 
     /* .el_type = */ MLI_EL_SA_8,
     /* .el_params = */ { 0 }
@@ -673,7 +742,15 @@ tensor_quantizer weights_2_out_sa8(weights_2_out_tsr_sa8, weights_2_out_sa_dim, 
     sizeof(weights_2_out_scales) / sizeof(weights_2_out_scales[0]), 
     weights_2_out_zero_points, sizeof(weights_2_out_zero_points) / sizeof(weights_2_out_zero_points[0]), 
     weights_2_out_scales_frac, sizeof(weights_2_out_scales_frac) / sizeof(weights_2_out_scales_frac[0]));
-
+tensor_quantizer weights_2_out_memstr_fx16(weights_2_out_memstr_tsr_fx16, weights_2_out_fx8_frac + 8, weights_2_out_data, 
+    sizeof(weights_2_out_data) / sizeof(weights_2_out_data[0]));
+tensor_quantizer weights_2_out_memstr_fx8(weights_2_out_memstr_tsr_fx8, weights_2_out_fx8_frac, weights_2_out_data, 
+    sizeof(weights_2_out_data) / sizeof(weights_2_out_data[0]));
+tensor_quantizer weights_2_out_memstr_sa8(weights_2_out_memstr_tsr_sa8, weights_2_out_sa_dim, weights_2_out_data, 
+    sizeof(weights_2_out_data) / sizeof(weights_2_out_data[0]), weights_2_out_scales, 
+    sizeof(weights_2_out_scales) / sizeof(weights_2_out_scales[0]), 
+    weights_2_out_zero_points, sizeof(weights_2_out_zero_points) / sizeof(weights_2_out_zero_points[0]), 
+    weights_2_out_scales_frac, sizeof(weights_2_out_scales_frac) / sizeof(weights_2_out_scales_frac[0]));
 
 static const float bias_1_data[] = {
     -0.034246f, 0.10525f, -0.043018f, -0.10086f, -0.059956f, -0.216812f, -0.006091f, 0.137434f, -0.129426f, -0.160665f, 

@@ -393,16 +393,16 @@ static const mli_tensor weights_1_memstr_tsr_sa8 = {
 
 tensor_quantizer weights_1_fx16(weights_1_tsr_fx16, weights_1_fx8_frac + 8, weights_1_data, 
     sizeof(weights_1_data) / sizeof(weights_1_data[0]));
-tensor_quantizer weights_1_memstr_fx16(weights_1_tsr_fx16, weights_1_fx8_frac + 8, weights_1_data, 
+tensor_quantizer weights_1_memstr_fx16(weights_1_memstr_tsr_fx16, weights_1_fx8_frac + 8, weights_1_data, 
     sizeof(weights_1_data) / sizeof(weights_1_data[0]));
 tensor_quantizer weights_1_fx8(weights_1_tsr_fx8, weights_1_fx8_frac, weights_1_data, 
     sizeof(weights_1_data) / sizeof(weights_1_data[0]));
-tensor_quantizer weights_1_memstr_fx8(weights_1_tsr_fx8, weights_1_fx8_frac, weights_1_data, 
+tensor_quantizer weights_1_memstr_fx8(weights_1_memstr_tsr_fx8, weights_1_fx8_frac, weights_1_data, 
     sizeof(weights_1_data) / sizeof(weights_1_data[0]));
 tensor_quantizer weights_1_sa8(weights_1_tsr_sa8, weights_1_sa_dim, weights_1_data, 
     sizeof(weights_1_data) / sizeof(weights_1_data[0]), &weights_1_scale, 1, &weights_1_zero_point, 1, 
     weights_1_scales_frac, 1);
-tensor_quantizer weights_1_memstr_sa8(weights_1_tsr_sa8, weights_1_sa_dim, weights_1_data, 
+tensor_quantizer weights_1_memstr_sa8(weights_1_memstr_tsr_sa8, weights_1_sa_dim, weights_1_data, 
     sizeof(weights_1_data) / sizeof(weights_1_data[0]), &weights_1_scale, 1, &weights_1_zero_point, 1, 
     weights_1_scales_frac, 1);
 
@@ -480,16 +480,16 @@ static const mli_tensor weights_2_memstr_tsr_sa8 = {
 
 tensor_quantizer weights_2_fx16(weights_2_tsr_fx16, weights_2_fx8_frac + 8, weights_2_data, 
     sizeof(weights_2_data) / sizeof(weights_2_data[0]));
-tensor_quantizer weights_2_memstr_fx16(weights_2_tsr_fx16, weights_2_fx8_frac + 8, weights_2_data, 
+tensor_quantizer weights_2_memstr_fx16(weights_2_memstr_tsr_fx16, weights_2_fx8_frac + 8, weights_2_data, 
     sizeof(weights_2_data) / sizeof(weights_2_data[0]));
 tensor_quantizer weights_2_fx8(weights_2_tsr_fx8, weights_2_fx8_frac, weights_2_data, 
     sizeof(weights_2_data) / sizeof(weights_2_data[0]));
-tensor_quantizer weights_2_memstr_fx8(weights_2_tsr_fx8, weights_2_fx8_frac, weights_2_data, 
+tensor_quantizer weights_2_memstr_fx8(weights_2_memstr_tsr_fx8, weights_2_fx8_frac, weights_2_data, 
     sizeof(weights_2_data) / sizeof(weights_2_data[0]));
 tensor_quantizer weights_2_sa8(weights_2_tsr_sa8, weights_2_sa_dim, weights_2_data, 
     sizeof(weights_2_data) / sizeof(weights_2_data[0]), &weights_2_scale, 1, &weights_2_zero_point, 1, 
     weights_2_scales_frac, 1);
-tensor_quantizer weights_2_memstr_sa8(weights_2_tsr_sa8, weights_2_sa_dim, weights_2_data, 
+tensor_quantizer weights_2_memstr_sa8(weights_2_memstr_tsr_sa8, weights_2_sa_dim, weights_2_data, 
     sizeof(weights_2_data) / sizeof(weights_2_data[0]), &weights_2_scale, 1, &weights_2_zero_point, 1, 
     weights_2_scales_frac, 1);
 
@@ -572,16 +572,16 @@ static const mli_tensor weights_3_memstr_tsr_sa8 = {
 
 tensor_quantizer weights_3_fx16(weights_3_tsr_fx16, weights_3_fx8_frac + 8, weights_3_data, 
     sizeof(weights_3_data) / sizeof(weights_3_data[0]));
-tensor_quantizer weights_3_memstr_fx16(weights_3_tsr_fx16, weights_3_fx8_frac + 8, weights_3_data, 
+tensor_quantizer weights_3_memstr_fx16(weights_3_memstr_tsr_fx16, weights_3_fx8_frac + 8, weights_3_data, 
     sizeof(weights_3_data) / sizeof(weights_3_data[0]));
 tensor_quantizer weights_3_fx8(weights_3_tsr_fx8, weights_3_fx8_frac, weights_3_data, 
     sizeof(weights_3_data) / sizeof(weights_3_data[0]));
-tensor_quantizer weights_3_memstr_fx8(weights_3_tsr_fx8, weights_3_fx8_frac, weights_3_data, 
+tensor_quantizer weights_3_memstr_fx8(weights_3_memstr_tsr_fx8, weights_3_fx8_frac, weights_3_data, 
     sizeof(weights_3_data) / sizeof(weights_3_data[0]));
 tensor_quantizer weights_3_sa8(weights_3_tsr_sa8, weights_3_sa_dim, weights_3_data, 
     sizeof(weights_3_data) / sizeof(weights_3_data[0]), &weights_3_scale, 1, &weights_3_zero_point, 1, 
     weights_3_scales_frac, 1);
-tensor_quantizer weights_3_memstr_sa8(weights_3_tsr_sa8, weights_3_sa_dim, weights_3_data, 
+tensor_quantizer weights_3_memstr_sa8(weights_3_memstr_tsr_sa8, weights_3_sa_dim, weights_3_data, 
     sizeof(weights_3_data) / sizeof(weights_3_data[0]), &weights_3_scale, 1, &weights_3_zero_point, 1, 
     weights_3_scales_frac, 1);
 
@@ -662,16 +662,16 @@ static const mli_tensor weights_4_memstr_tsr_sa8 = {
 
 tensor_quantizer weights_4_fx16(weights_4_tsr_fx16, weights_4_fx8_frac + 8, weights_4_data, 
     sizeof(weights_4_data) / sizeof(weights_4_data[0]));
-tensor_quantizer weights_4_memstr_fx16(weights_4_tsr_fx16, weights_4_fx8_frac + 8, weights_4_data, 
+tensor_quantizer weights_4_memstr_fx16(weights_4_memstr_tsr_fx16, weights_4_fx8_frac + 8, weights_4_data, 
     sizeof(weights_4_data) / sizeof(weights_4_data[0]));
 tensor_quantizer weights_4_fx8(weights_4_tsr_fx8, weights_4_fx8_frac, weights_4_data, 
     sizeof(weights_4_data) / sizeof(weights_4_data[0]));
-tensor_quantizer weights_4_memstr_fx8(weights_4_tsr_fx8, weights_4_fx8_frac, weights_4_data, 
+tensor_quantizer weights_4_memstr_fx8(weights_4_memstr_tsr_fx8, weights_4_fx8_frac, weights_4_data, 
     sizeof(weights_4_data) / sizeof(weights_4_data[0]));
 tensor_quantizer weights_4_sa8(weights_4_tsr_sa8, weights_4_sa_dim, weights_4_data, 
     sizeof(weights_4_data) / sizeof(weights_4_data[0]), &weights_4_scale, 1, &weights_4_zero_point, 1, 
     weights_4_scales_frac, 1);
-tensor_quantizer weights_4_memstr_sa8(weights_4_tsr_sa8, weights_4_sa_dim, weights_4_data, 
+tensor_quantizer weights_4_memstr_sa8(weights_4_memstr_tsr_sa8, weights_4_sa_dim, weights_4_data, 
     sizeof(weights_4_data) / sizeof(weights_4_data[0]), &weights_4_scale, 1, &weights_4_zero_point, 1, 
     weights_4_scales_frac, 1);
 
@@ -753,16 +753,16 @@ static const mli_tensor weights_5_memstr_tsr_sa8 = {
 
 tensor_quantizer weights_5_fx16(weights_5_tsr_fx16, weights_5_fx8_frac + 8, weights_5_data, 
     sizeof(weights_5_data) / sizeof(weights_5_data[0]));
-tensor_quantizer weights_5_memstr_fx16(weights_5_tsr_fx16, weights_5_fx8_frac + 8, weights_5_data, 
+tensor_quantizer weights_5_memstr_fx16(weights_5_memstr_tsr_fx16, weights_5_fx8_frac + 8, weights_5_data, 
     sizeof(weights_5_data) / sizeof(weights_5_data[0]));
 tensor_quantizer weights_5_fx8(weights_5_tsr_fx8, weights_5_fx8_frac, weights_5_data, 
     sizeof(weights_5_data) / sizeof(weights_5_data[0]));
-tensor_quantizer weights_5_memstr_fx8(weights_5_tsr_fx8, weights_5_fx8_frac, weights_5_data, 
+tensor_quantizer weights_5_memstr_fx8(weights_5_memstr_tsr_fx8, weights_5_fx8_frac, weights_5_data, 
     sizeof(weights_5_data) / sizeof(weights_5_data[0]));
 tensor_quantizer weights_5_sa8(weights_5_tsr_sa8, weights_5_sa_dim, weights_5_data, 
     sizeof(weights_5_data) / sizeof(weights_5_data[0]), &weights_5_scale, 1, &weights_5_zero_point, 1, 
     weights_5_scales_frac, 1);
-tensor_quantizer weights_5_memstr_sa8(weights_5_tsr_sa8, weights_5_sa_dim, weights_5_data, 
+tensor_quantizer weights_5_memstr_sa8(weights_5_memstr_tsr_sa8, weights_5_sa_dim, weights_5_data, 
     sizeof(weights_5_data) / sizeof(weights_5_data[0]), &weights_5_scale, 1, &weights_5_zero_point, 1, 
     weights_5_scales_frac, 1);
 
@@ -844,16 +844,16 @@ static const mli_tensor weights_6_memstr_tsr_sa8 = {
 
 tensor_quantizer weights_6_fx16(weights_6_tsr_fx16, weights_6_fx8_frac + 8, weights_6_data, 
     sizeof(weights_6_data) / sizeof(weights_6_data[0]));
-tensor_quantizer weights_6_memstr_fx16(weights_6_tsr_fx16, weights_6_fx8_frac + 8, weights_6_data, 
+tensor_quantizer weights_6_memstr_fx16(weights_6_memstr_tsr_fx16, weights_6_fx8_frac + 8, weights_6_data, 
     sizeof(weights_6_data) / sizeof(weights_6_data[0]));
 tensor_quantizer weights_6_fx8(weights_6_tsr_fx8, weights_6_fx8_frac, weights_6_data, 
     sizeof(weights_6_data) / sizeof(weights_6_data[0]));
-tensor_quantizer weights_6_memstr_fx8(weights_6_tsr_fx8, weights_6_fx8_frac, weights_6_data, 
+tensor_quantizer weights_6_memstr_fx8(weights_6_memstr_tsr_fx8, weights_6_fx8_frac, weights_6_data, 
     sizeof(weights_6_data) / sizeof(weights_6_data[0]));
 tensor_quantizer weights_6_sa8(weights_6_tsr_sa8, weights_6_sa_dim, weights_6_data, 
     sizeof(weights_6_data) / sizeof(weights_6_data[0]), &weights_6_scale, 1, &weights_6_zero_point, 1, 
     weights_6_scales_frac, 1);
-tensor_quantizer weights_6_memstr_sa8(weights_6_tsr_sa8, weights_6_sa_dim, weights_6_data, 
+tensor_quantizer weights_6_memstr_sa8(weights_6_memstr_tsr_sa8, weights_6_sa_dim, weights_6_data, 
     sizeof(weights_6_data) / sizeof(weights_6_data[0]), &weights_6_scale, 1, &weights_6_zero_point, 1, 
     weights_6_scales_frac, 1);
 
@@ -933,16 +933,16 @@ static const mli_tensor weights_7_memstr_tsr_sa8 = {
 
 tensor_quantizer weights_7_fx16(weights_7_tsr_fx16, weights_7_fx8_frac + 8, weights_7_data, 
     sizeof(weights_7_data) / sizeof(weights_7_data[0]));
-tensor_quantizer weights_7_memstr_fx16(weights_7_tsr_fx16, weights_7_fx8_frac + 8, weights_7_data, 
+tensor_quantizer weights_7_memstr_fx16(weights_7_memstr_tsr_fx16, weights_7_fx8_frac + 8, weights_7_data, 
     sizeof(weights_7_data) / sizeof(weights_7_data[0]));
 tensor_quantizer weights_7_fx8(weights_7_tsr_fx8, weights_7_fx8_frac, weights_7_data, 
     sizeof(weights_7_data) / sizeof(weights_7_data[0]));
-tensor_quantizer weights_7_memstr_fx8(weights_7_tsr_fx8, weights_7_fx8_frac, weights_7_data, 
+tensor_quantizer weights_7_memstr_fx8(weights_7_memstr_tsr_fx8, weights_7_fx8_frac, weights_7_data, 
     sizeof(weights_7_data) / sizeof(weights_7_data[0]));
 tensor_quantizer weights_7_sa8(weights_7_tsr_sa8, weights_7_sa_dim, weights_7_data, 
     sizeof(weights_7_data) / sizeof(weights_7_data[0]), &weights_7_scale, 1, &weights_7_zero_point, 1, 
     weights_7_scales_frac, 1);
-tensor_quantizer weights_7_memstr_sa8(weights_7_tsr_sa8, weights_7_sa_dim, weights_7_data, 
+tensor_quantizer weights_7_memstr_sa8(weights_7_memstr_tsr_sa8, weights_7_sa_dim, weights_7_data, 
     sizeof(weights_7_data) / sizeof(weights_7_data[0]), &weights_7_scale, 1, &weights_7_zero_point, 1, 
     weights_7_scales_frac, 1);
 
@@ -1023,16 +1023,16 @@ static const mli_tensor weights_8_memstr_tsr_sa8 = {
 
 tensor_quantizer weights_8_fx16(weights_8_tsr_fx16, weights_8_fx8_frac + 8, weights_8_data, 
     sizeof(weights_8_data) / sizeof(weights_8_data[0]));
-tensor_quantizer weights_8_memstr_fx16(weights_8_tsr_fx16, weights_8_fx8_frac + 8, weights_8_data, 
+tensor_quantizer weights_8_memstr_fx16(weights_8_memstr_tsr_fx16, weights_8_fx8_frac + 8, weights_8_data, 
     sizeof(weights_8_data) / sizeof(weights_8_data[0]));
 tensor_quantizer weights_8_fx8(weights_8_tsr_fx8, weights_8_fx8_frac, weights_8_data, 
     sizeof(weights_8_data) / sizeof(weights_8_data[0]));
-tensor_quantizer weights_8_memstr_fx8(weights_8_tsr_fx8, weights_8_fx8_frac, weights_8_data, 
+tensor_quantizer weights_8_memstr_fx8(weights_8_memstr_tsr_fx8, weights_8_fx8_frac, weights_8_data, 
     sizeof(weights_8_data) / sizeof(weights_8_data[0]));
 tensor_quantizer weights_8_sa8(weights_8_tsr_sa8, weights_8_sa_dim, weights_8_data, 
     sizeof(weights_8_data) / sizeof(weights_8_data[0]), &weights_8_scale, 1, &weights_8_zero_point, 1, 
     weights_8_scales_frac, 1);
-tensor_quantizer weights_8_memstr_sa8(weights_8_tsr_sa8, weights_8_sa_dim, weights_8_data, 
+tensor_quantizer weights_8_memstr_sa8(weights_8_memstr_tsr_sa8, weights_8_sa_dim, weights_8_data, 
     sizeof(weights_8_data) / sizeof(weights_8_data[0]), &weights_8_scale, 1, &weights_8_zero_point, 1, 
     weights_8_scales_frac, 1);
 
@@ -1111,16 +1111,16 @@ static const mli_tensor weights_9_memstr_tsr_sa8 = {
 
 tensor_quantizer weights_9_fx16(weights_9_tsr_fx16, weights_9_fx8_frac + 8, weights_9_data, 
     sizeof(weights_9_data) / sizeof(weights_9_data[0]));
-tensor_quantizer weights_9_memstr_fx16(weights_9_tsr_fx16, weights_9_fx8_frac + 8, weights_9_data, 
+tensor_quantizer weights_9_memstr_fx16(weights_9_memstr_tsr_fx16, weights_9_fx8_frac + 8, weights_9_data, 
     sizeof(weights_9_data) / sizeof(weights_9_data[0]));
 tensor_quantizer weights_9_fx8(weights_9_tsr_fx8, weights_9_fx8_frac, weights_9_data, 
     sizeof(weights_9_data) / sizeof(weights_9_data[0]));
-tensor_quantizer weights_9_memstr_fx8(weights_9_tsr_fx8, weights_9_fx8_frac, weights_9_data, 
+tensor_quantizer weights_9_memstr_fx8(weights_9_memstr_tsr_fx8, weights_9_fx8_frac, weights_9_data, 
     sizeof(weights_9_data) / sizeof(weights_9_data[0]));
 tensor_quantizer weights_9_sa8(weights_9_tsr_sa8, weights_9_sa_dim, weights_9_data, 
     sizeof(weights_9_data) / sizeof(weights_9_data[0]), &weights_9_scale, 1, &weights_9_zero_point, 1, 
     weights_9_scales_frac, 1);
-tensor_quantizer weights_9_memstr_sa8(weights_9_tsr_sa8, weights_9_sa_dim, weights_9_data, 
+tensor_quantizer weights_9_memstr_sa8(weights_9_memstr_tsr_sa8, weights_9_sa_dim, weights_9_data, 
     sizeof(weights_9_data) / sizeof(weights_9_data[0]), &weights_9_scale, 1, &weights_9_zero_point, 1, 
     weights_9_scales_frac, 1);
 

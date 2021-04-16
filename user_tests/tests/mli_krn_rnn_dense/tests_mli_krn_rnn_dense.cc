@@ -53,28 +53,28 @@ struct rnn_dense_test_operands {
 // proper checksums for tests in order to highlight any change which affects results.
 #if defined(CRC_RM_UP)
 const crc32_calc test_1_chksum_fx16{ 0x7EB9B664 }, test_1_chksum_fx16_fx8_fx8{ 0x940DB572 }, test_1_chksum_sa8{ 0xAE824077 },
-                 test_2_chksum_fx16{ 0x7EB9B664 }, test_2_chksum_fx16_fx8_fx8{ 0x940DB572 }, test_2_chksum_sa8{ 0xAE824077 },
+                 test_2_chksum_fx16{ 0xF80F9CD6 }, test_2_chksum_fx16_fx8_fx8{ 0x2A0E686E }, test_2_chksum_sa8{ 0x3AE002E4 },
                  test_3_chksum_fx16{ 0xDC7462F4 }, test_3_chksum_fx16_fx8_fx8{ 0x1A046594 }, test_3_chksum_sa8{ 0x5882E4D9 },
-                 test_4_chksum_fx16{ 0xDC7462F4 }, test_4_chksum_fx16_fx8_fx8{ 0x1A046594 }, test_4_chksum_sa8{ 0x5882E4D9 },
+                 test_4_chksum_fx16{ 0x6122563D }, test_4_chksum_fx16_fx8_fx8{ 0xE400740E }, test_4_chksum_sa8{ 0x87630557 },
                  test_5_chksum_fx16{ 0xCFF6ED69 }, test_5_chksum_fx16_fx8_fx8{ 0x640A915E }, test_5_chksum_sa8{ 0x22886B07 },
-                 test_6_chksum_fx16{ 0xCFF6ED69 }, test_6_chksum_fx16_fx8_fx8{ 0x640A915E }, test_6_chksum_sa8{ 0x22886B07 };
+                 test_6_chksum_fx16{ 0x7D3F5004 }, test_6_chksum_fx16_fx8_fx8{ 0x42CD2F9B }, test_6_chksum_sa8{ 0x739B3754 };
 
 #elif defined(CRC_RM_CONVERGENT)
 // TODO: remove after fixing mli_math_acc_ashift_fx() and supporting acc40 shift with round
 #if defined(__FXAPI__)
 const crc32_calc test_1_chksum_fx16{ 0x60120E03 }, test_1_chksum_fx16_fx8_fx8{ 0x940DB572 }, test_1_chksum_sa8{ 0xAE824077 },
-                 test_2_chksum_fx16{ 0x60120E03 }, test_2_chksum_fx16_fx8_fx8{ 0x940DB572 }, test_2_chksum_sa8{ 0xAE824077 },
+                 test_2_chksum_fx16{ 0xE6A424B1 }, test_2_chksum_fx16_fx8_fx8{ 0x2A0E686E }, test_2_chksum_sa8{ 0x3AE002E4 },
                  test_3_chksum_fx16{ 0x050B51AB }, test_3_chksum_fx16_fx8_fx8{ 0x1A046594 }, test_3_chksum_sa8{ 0x5882E4D9 },
-                 test_4_chksum_fx16{ 0x050B51AB }, test_4_chksum_fx16_fx8_fx8{ 0x1A046594 }, test_4_chksum_sa8{ 0x5882E4D9 },
+                 test_4_chksum_fx16{ 0xB85D6562 }, test_4_chksum_fx16_fx8_fx8{ 0xE400740E }, test_4_chksum_sa8{ 0x87630557 },
                  test_5_chksum_fx16{ 0x0601AC74 }, test_5_chksum_fx16_fx8_fx8{ 0x640A915E }, test_5_chksum_sa8{ 0x22886B07 },
-                 test_6_chksum_fx16{ 0x0601AC74 }, test_6_chksum_fx16_fx8_fx8{ 0x640A915E }, test_6_chksum_sa8{ 0x22886B07 };
+                 test_6_chksum_fx16{ 0xB4C81119 }, test_6_chksum_fx16_fx8_fx8{ 0x42CD2F9B }, test_6_chksum_sa8{ 0x739B3754 };
 #else
 const crc32_calc test_1_chksum_fx16{ 0x7EB9B664 }, test_1_chksum_fx16_fx8_fx8{ 0x940DB572 }, test_1_chksum_sa8{ 0xAE824077 },
-                 test_2_chksum_fx16{ 0x7EB9B664 }, test_2_chksum_fx16_fx8_fx8{ 0x940DB572 }, test_2_chksum_sa8{ 0xAE824077 },
+                 test_2_chksum_fx16{ 0xF80F9CD6 }, test_2_chksum_fx16_fx8_fx8{ 0x2A0E686E }, test_2_chksum_sa8{ 0x3AE002E4 },
                  test_3_chksum_fx16{ 0xDC7462F4 }, test_3_chksum_fx16_fx8_fx8{ 0x1A046594 }, test_3_chksum_sa8{ 0x5882E4D9 },
-                 test_4_chksum_fx16{ 0xDC7462F4 }, test_4_chksum_fx16_fx8_fx8{ 0x1A046594 }, test_4_chksum_sa8{ 0x5882E4D9 },
+                 test_4_chksum_fx16{ 0x6122563D }, test_4_chksum_fx16_fx8_fx8{ 0xE400740E }, test_4_chksum_sa8{ 0x87630557 },
                  test_5_chksum_fx16{ 0xCFF6ED69 }, test_5_chksum_fx16_fx8_fx8{ 0x640A915E }, test_5_chksum_sa8{ 0x22886B07 },
-                 test_6_chksum_fx16{ 0xCFF6ED69 }, test_6_chksum_fx16_fx8_fx8{ 0x640A915E }, test_6_chksum_sa8{ 0x22886B07 };
+                 test_6_chksum_fx16{ 0x7D3F5004 }, test_6_chksum_fx16_fx8_fx8{ 0x42CD2F9B }, test_6_chksum_sa8{ 0x739B3754 };
 #endif
 
 #else // Not defined CRC_*
@@ -112,13 +112,13 @@ static const rnn_dense_test_operands tests_list[] = {
     // 2 inputs, weight memstride
     {"Test 2 FX16 memstr 2in W_mstr",  mli_krn_rnn_dense_fx16,
                                        {input_1_fx16, input_2_fx16}, {weights_1_memstr_fx16, weights_2_memstr_fx16}, bias_1_fx16, 
-                                       test_1_out_fx16, test_1_cfg, thresholds_fx16_general, test_1_chksum_fx16},
+                                       test_1_out_fx16, test_1_cfg, thresholds_fx16_general, test_2_chksum_fx16},
     {"Test 2 FX16_FX8_FX8 2in W_mstr", mli_krn_rnn_dense_fx16_fx8_fx8,
                                        {input_1_fx16, input_2_fx16}, {weights_1_memstr_fx8, weights_2_memstr_fx8}, bias_1_fx8, 
-                                       test_1_out_fx16, test_1_cfg, thresholds_fx16_fx8_fx8_general, test_1_chksum_fx16_fx8_fx8},
+                                       test_1_out_fx16, test_1_cfg, thresholds_fx16_fx8_fx8_general, test_2_chksum_fx16_fx8_fx8},
     {"Test 2 SA8_SA8_SA32 2in W_mstr", mli_krn_rnn_dense_sa8_sa8_sa32,
                                        {input_1_sa8, input_2_sa8}, {weights_1_memstr_sa8, weights_2_memstr_sa8}, bias_1_i1_w1_sa32, 
-                                       test_1_out_sa8, test_1_cfg, thresholds_sa8_general, test_1_chksum_sa8},
+                                       test_1_out_sa8, test_1_cfg, thresholds_sa8_general, test_2_chksum_sa8},
 
     // 3 inputs
     {"Test 3 FX16 3 inputs",         mli_krn_rnn_dense_fx16,
@@ -136,15 +136,15 @@ static const rnn_dense_test_operands tests_list[] = {
     {"Test 4 FX16 3in W_mstr",         mli_krn_rnn_dense_fx16,
                                        {input_3_fx16, input_4_fx16, input_5_fx16}, {weights_3_memstr_fx16, weights_4_memstr_fx16, 
                                        weights_5_memstr_fx16}, bias_2_fx16, test_2_out_fx16, test_2_cfg, thresholds_fx16_general, 
-                                       test_3_chksum_fx16},
+                                       test_4_chksum_fx16},
     {"Test 4 FX16_FX8_FX8 3in W_mstr", mli_krn_rnn_dense_fx16_fx8_fx8,
                                        {input_3_fx16, input_4_fx16, input_5_fx16}, {weights_3_memstr_fx8, weights_4_memstr_fx8, 
                                        weights_5_memstr_fx8}, bias_2_fx8, test_2_out_fx16, test_2_cfg, thresholds_fx16_fx8_fx8_general, 
-                                       test_3_chksum_fx16_fx8_fx8},
+                                       test_4_chksum_fx16_fx8_fx8},
     {"Test 4 SA8_SA8_SA32 3in W_mstr", mli_krn_rnn_dense_sa8_sa8_sa32,
                                        {input_3_sa8, input_4_sa8, input_5_sa8}, {weights_3_memstr_sa8, weights_4_memstr_sa8, 
                                        weights_5_memstr_sa8}, bias_2_i3_w3_sa32, test_2_out_sa8, test_2_cfg, thresholds_sa8_general, 
-                                       test_3_chksum_sa8},
+                                       test_4_chksum_sa8},
 
     // 4 inputs
     {"Test 5 FX16 4 inputs",         mli_krn_rnn_dense_fx16,
@@ -175,7 +175,7 @@ static const rnn_dense_test_operands tests_list[] = {
                                        test_3_out_sa8, test_3_cfg, thresholds_sa8_general, test_6_chksum_sa8},
 };
 
-constexpr int kMemSize = 300;
+constexpr int kMemSize = 320;
 static IO_DATA_ATTR int8_t scratch_mem_in[MLI_RNN_MAX_INPUT][kMemSize] = { 0 };
 static IO_DATA_ATTR int8_t scratch_mem_out[kMemSize] = { 0 };
 static W_DATA_ATTR int8_t scratch_mem_w[MLI_RNN_MAX_INPUT][kMemSize] = { 0 };
