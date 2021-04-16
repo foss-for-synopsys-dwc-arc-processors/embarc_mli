@@ -58,19 +58,30 @@ struct gru_cell_test_operands {
 // When developer finished implementation of kernel and consider it as ok, one needs to populate
 // proper checksums for tests in order to highlight any change which affects results.
 #if defined(CRC_RM_UP)
-const crc32_calc test_1_chksum_fx16{ 0xB4797831 }, test_1_chksum_fx16_fx8_fx8{ 0x85787025 }, test_1_chksum_sa8{ 0xC6301C0E },
-                 test_2_chksum_fx16{ 0xB4797831 }, test_2_chksum_fx16_fx8_fx8{ 0x85787025 }, test_2_chksum_sa8{ 0xC6301C0E },
-                 test_3_chksum_fx16{ 0x5C7BCDF8 }, test_3_chksum_fx16_fx8_fx8{ 0x94A6998D }, test_3_chksum_sa8{ 0x5D944070 },
-                 test_4_chksum_fx16{ 0x873F4283 }, test_4_chksum_fx16_fx8_fx8{ 0x8A055C99 }, test_4_chksum_sa8{ 0xCFF7F69C },
-                 test_5_chksum_fx16{ 0x7369955E }, test_5_chksum_fx16_fx8_fx8{ 0xDE351B81 }, test_5_chksum_sa8{ 0xA2A9874F },
-                 test_6_chksum_fx16{ 0xBDACDE93 }, test_6_chksum_fx16_fx8_fx8{ 0x71B26E98 }, test_6_chksum_sa8{ 0xD424459E };
+const crc32_calc test_1_chksum_fx16{ 0xCA3B3621 }, test_1_chksum_fx16_fx8_fx8{ 0x7C81E8FA }, test_1_chksum_sa8{ 0xBA369AB3 },
+                 test_2_chksum_fx16{ 0xCA3B3621 }, test_2_chksum_fx16_fx8_fx8{ 0x7C81E8FA }, test_2_chksum_sa8{ 0xBA369AB3 },
+                 test_3_chksum_fx16{ 0x0575B7B5 }, test_3_chksum_fx16_fx8_fx8{ 0x3105731C }, test_3_chksum_sa8{ 0xD7D30910 },
+                 test_4_chksum_fx16{ 0xA957E40B }, test_4_chksum_fx16_fx8_fx8{ 0x44D14AA8 }, test_4_chksum_sa8{ 0x551350E9 },
+                 test_5_chksum_fx16{ 0xA9D9FC7B }, test_5_chksum_fx16_fx8_fx8{ 0xB08CE82C }, test_5_chksum_sa8{ 0x482C5F79 },
+                 test_6_chksum_fx16{ 0x82B87A3D }, test_6_chksum_fx16_fx8_fx8{ 0x1D12879D }, test_6_chksum_sa8{ 0xBC364FC3 };
+
 #elif defined(CRC_RM_CONVERGENT)
-const crc32_calc test_1_chksum_fx16{ 0xB4797831 }, test_1_chksum_fx16_fx8_fx8{ 0x85787025 }, test_1_chksum_sa8{ 0xC6301C0E },
-                 test_2_chksum_fx16{ 0xB4797831 }, test_2_chksum_fx16_fx8_fx8{ 0x85787025 }, test_2_chksum_sa8{ 0xC6301C0E },
-                 test_3_chksum_fx16{ 0x5C7BCDF8 }, test_3_chksum_fx16_fx8_fx8{ 0xE1B56E1E }, test_3_chksum_sa8{ 0x5D944070 },
-                 test_4_chksum_fx16{ 0xF50124D0 }, test_4_chksum_fx16_fx8_fx8{ 0x8A055C99 }, test_4_chksum_sa8{ 0xCFF7F69C },
-                 test_5_chksum_fx16{ 0x7369955E }, test_5_chksum_fx16_fx8_fx8{ 0xDE351B81 }, test_5_chksum_sa8{ 0xA2A9874F },
-                 test_6_chksum_fx16{ 0xBDACDE93 }, test_6_chksum_fx16_fx8_fx8{ 0xEA06E7B8 }, test_6_chksum_sa8{ 0xF921F30E };
+// TODO: remove after fixing mli_math_acc_ashift_fx() and supporting acc40 shift with round
+#if defined(__FXAPI__)
+const crc32_calc test_1_chksum_fx16{ 0xE5852A3E }, test_1_chksum_fx16_fx8_fx8{ 0xF979CA35 }, test_1_chksum_sa8{ 0xBA369AB3 },
+                 test_2_chksum_fx16{ 0xE5852A3E }, test_2_chksum_fx16_fx8_fx8{ 0xF979CA35 }, test_2_chksum_sa8{ 0xBA369AB3 },
+                 test_3_chksum_fx16{ 0x6F7E4D9B }, test_3_chksum_fx16_fx8_fx8{ 0xE47B56B4 }, test_3_chksum_sa8{ 0xB0B3B302 },
+                 test_4_chksum_fx16{ 0x3A84CF63 }, test_4_chksum_fx16_fx8_fx8{ 0x202E9565 }, test_4_chksum_sa8{ 0xE0C80764 },
+                 test_5_chksum_fx16{ 0xD81EFB70 }, test_5_chksum_fx16_fx8_fx8{ 0x7C0CE29B }, test_5_chksum_sa8{ 0xB5805E4A },
+                 test_6_chksum_fx16{ 0x31D77812 }, test_6_chksum_fx16_fx8_fx8{ 0x1D12879D }, test_6_chksum_sa8{ 0xBC364FC3 };
+#else
+const crc32_calc test_1_chksum_fx16{ 0xCA3B3621 }, test_1_chksum_fx16_fx8_fx8{ 0xF979CA35 }, test_1_chksum_sa8{ 0xBA369AB3 },
+                 test_2_chksum_fx16{ 0xCA3B3621 }, test_2_chksum_fx16_fx8_fx8{ 0xF979CA35 }, test_2_chksum_sa8{ 0xBA369AB3 },
+                 test_3_chksum_fx16{ 0x0575B7B5 }, test_3_chksum_fx16_fx8_fx8{ 0xE47B56B4 }, test_3_chksum_sa8{ 0xB0B3B302 },
+                 test_4_chksum_fx16{ 0x4DEDC850 }, test_4_chksum_fx16_fx8_fx8{ 0x202E9565 }, test_4_chksum_sa8{ 0xE0C80764 },
+                 test_5_chksum_fx16{ 0xA9D9FC7B }, test_5_chksum_fx16_fx8_fx8{ 0x7C0CE29B }, test_5_chksum_sa8{ 0xB5805E4A },
+                 test_6_chksum_fx16{ 0x82B87A3D }, test_6_chksum_fx16_fx8_fx8{ 0x1D12879D }, test_6_chksum_sa8{ 0xBC364FC3 };
+#endif
 #else // Not defined CRC_*
 const crc32_calc  test_1_chksum_fx16, test_1_chksum_fx16_fx8_fx8, test_1_chksum_sa8,
                   test_2_chksum_fx16, test_2_chksum_fx16_fx8_fx8, test_2_chksum_sa8,
@@ -222,7 +233,9 @@ int main() {
 
 #if defined(__Xvec_guard_bit_option) && (__Xvec_guard_bit_option == 0)
         if (strstr(cur_test->descr, "Test 1 FX16 OtO,Forw") != nullptr ||
+            strstr(cur_test->descr, "Test 1 SA8_SA32 OtO,Forw") != nullptr ||
             strstr(cur_test->descr, "Test 2 FX16 OtO,Back") != nullptr ||
+            strstr(cur_test->descr, "Test 2 SA8_SA32 OtO,Back") != nullptr ||
             strstr(cur_test->descr, "Test 3 FX16 BtB,ALL,Forw") != nullptr ||
             strstr(cur_test->descr, "Test 3 SA8_SA32 BtB,ALL,Forw") != nullptr ||
             strstr(cur_test->descr, "Test 4 FX16 BtB,ALL,Back") != nullptr ||

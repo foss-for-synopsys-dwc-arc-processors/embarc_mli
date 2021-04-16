@@ -80,9 +80,22 @@ void eltwise_op_basic(
         const int out_offset);
 
 template <typename in_T, typename out_T, mli_eltwise_type func_type, bool convert>
-MLI_FORCE_INLINE out_T eltwise_perform_operation(
+out_T eltwise_perform_operation(
         const in_T op1,
         const in_T op2,
+        const int16_t in_offset1,
+        const int16_t in_offset2,
+        const int16_t out_offset,
+        const int16_t scale_factor1,
+        const int16_t scale_factor2,
+        const int pre_op_shift1,
+        const int pre_op_shift2,
+        const int post_op_shift);
+
+template <>
+MLI_FORCE_INLINE int8_t eltwise_perform_operation <int8_t, int8_t, ELTWISE_MUL, true>(
+        const int8_t op1,
+        const int8_t op2,
         const int16_t in_offset1,
         const int16_t in_offset2,
         const int16_t out_offset,

@@ -20,9 +20,15 @@
 extern "C" {
 #endif
 
+#if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
+typedef vNx4accshort_t mli_sa8_sa8_sa32_accu_t;
+typedef vNx2accint_t mli_fx16_accu_t;
+typedef vNx4accint_t mli_fx16_fx8_fx8_accu_t;
+#else
 typedef mli_acc32_t mli_sa8_sa8_sa32_accu_t;
 typedef mli_acc40_t mli_fx16_accu_t;
 typedef mli_acc32_t mli_fx16_fx8_fx8_accu_t;
+#endif
 
 #pragma MLI_CODE_SECTION_START(".mli_lib")
 

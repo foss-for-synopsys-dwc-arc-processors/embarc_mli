@@ -507,7 +507,7 @@ MLI_FORCE_INLINE void convolution2D(
     }
 }
 
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void depthwise_convolution2D_nopad(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
@@ -525,8 +525,6 @@ MLI_FORCE_INLINE void depthwise_convolution2D_nopad(
     const int row_end = perception_area.row_end;
     const int clmn_begin = perception_area.clmn_beg;
     const int clmn_end = perception_area.clmn_end;
-    constexpr int numaccuregs = sizeof(acc_T) / sizeof(vNint_t);
-    constexpr int unroll = numaccuregs > 2 ? 1 : 1;
 
     MLI_ASSERT(quant_params_get_weigths_zeropoint(&quant_params) == 0); /* this optimized implementation assumes no zero offset for weights */
 
@@ -559,61 +557,41 @@ MLI_FORCE_INLINE void depthwise_convolution2D_nopad(
                 + out.col_mem_stride * clmn_begin
                 + out.ch_mem_stride * out_ch_idx;
 
+        int width = clmn_end - clmn_begin;
         int out_col_inc = out.col_mem_stride;
-        int out_row_inc = out.row_mem_stride - out_col_inc * (clmn_end-clmn_begin);
-
-        if (dilation_width == stride_width) {
-            int in_col_inc = in.col_mem_stride * dilation_width;// only valid if stride_width == dilation_width
-            int in_row_inc = in.row_mem_stride * stride_height - (in_col_inc * (clmn_end-clmn_begin));
-            for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
-#pragma clang loop unroll_count(unroll)
-                for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
-
-                    // Convolution core. Here calculations performes in a unfolded expression way:
-                    // out_val = (x-x_zp)*(w) + b) = -sum_i(w*x_zp) + sum(x*w) + b
-                    //============================================
-                    acc_T accu = base_accu;
-                    accu = mli::krn::dotprod2D_vv(in_ptr, w_ptr, accu, clmns, rows,
+        int out_row_inc = out.row_mem_stride - out_col_inc * (width);
+        int in_col_inc = in.col_mem_stride * stride_width;
+        int in_row_inc = in.row_mem_stride * stride_height - (in_col_inc * (width));
+        for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
+#pragma clang loop pipeline(enable)
+#pragma clang loop pipeline_options(0x10)
+            for (int W_idx = 0; W_idx < width; W_idx++) {
+                // Convolution core. Here calculations performes in a unfolded expression way:
+                // out_val = (x-x_zp)*(w) + b) = -sum_i(w*x_zp) + sum(x*w) + b
+                //============================================
+                acc_T accu = base_accu;
+                if (fix_kernel_height > 4) {
+                    // for larger kernelheights we store some of the pointers in a vector to reduce scalar register pressure.
+                    accu = mli::krn::dotprod2D_vv_ptrvector(in_ptr, w_ptr, accu, clmns, rows,
                                         in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height,
                                         weights.col_mem_stride,
                                         weights.row_mem_stride);
-
-                    // Cast result to output type, apply built-in ReLU Applying and write result
-                    mli::krn::result_cast_relu_store_v(out_ptr, accu, &output_params, val_min_limit, val_max_limit, current_ch);
-                    in_ptr += in_col_inc;
-                    out_ptr += out_col_inc;
-                } // for W_idx
-                in_ptr += in_row_inc;
-                out_ptr += out_row_inc;
-            } // for H_idx
-        } else {
-            // dilation_width != stride_width
-            int in_col_inc = in.col_mem_stride * stride_width;
-            int in_row_inc = in.row_mem_stride * stride_height - (in_col_inc * (clmn_end-clmn_begin));
-            for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
-#pragma clang loop unroll_count(unroll)
-                for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
-
-                    // Convolution core. Here calculations performes in a unfolded expression way:
-                    // out_val = (x-x_zp)*(w) + b) = -sum_i(w*x_zp) + sum(x*w) + b
-                    //============================================
-                    acc_T accu = base_accu;
-                    accu = mli::krn::dotprod2D_vv(in_ptr, w_ptr, accu, clmns, rows,
+                } else {
+                    accu = mli::krn::vdsp::dotprod2D_vv(in_ptr, w_ptr, accu, clmns, rows,
                                         in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height,
                                         weights.col_mem_stride,
                                         weights.row_mem_stride);
+                }
 
-                    // Cast result to output type, apply built-in ReLU Applying and write result
-                    mli::krn::result_cast_relu_store_v(out_ptr, accu, &output_params, val_min_limit, val_max_limit, current_ch);
-                    in_ptr += in_col_inc;
-                    out_ptr += out_col_inc;
-                } // for W_idx
-                in_ptr += in_row_inc;
-                out_ptr += out_row_inc;
-            } // for H_idx
-        } // dilation == stride
+                // Cast result to output type, apply built-in ReLU Applying and write result
+                mli::krn::result_cast_relu_store_v(out_ptr, accu, &output_params, val_min_limit, val_max_limit, current_ch);
+                in_ptr += in_col_inc;
+                out_ptr += out_col_inc;
+            } // for W_idx
+            in_ptr += in_row_inc;
+            out_ptr += out_row_inc;
+        } // for H_idx
     } // for in_ch_idx
-
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
@@ -630,9 +608,11 @@ MLI_FORCE_INLINE void depthwise_convolution2D_pad(
         const int dilation_height, const int dilation_width,
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right) {
-    const int row_begin = perception_area.row_beg;
+    MLI_ASSERT(perception_area.row_beg == 0);
+    MLI_ASSERT(perception_area.clmn_beg == 0);
+    const int row_begin = 0;
     const int row_end = perception_area.row_end;
-    const int clmn_begin = perception_area.clmn_beg;
+    const int clmn_begin = 0;
     const int clmn_end = perception_area.clmn_end;
 
     MLI_ASSERT(quant_params_get_weigths_zeropoint(&quant_params) == 0); /* this optimized implementation assumes no zero offset for weights */
@@ -694,7 +674,7 @@ MLI_FORCE_INLINE void depthwise_convolution2D_pad(
     } // for H_idx
 }
 
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void depthwise_convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
@@ -720,7 +700,7 @@ MLI_FORCE_INLINE void depthwise_convolution2D(
 
     if ((perception_area_nopad.row_end - perception_area_nopad.row_beg > 0)
         && (perception_area_nopad.clmn_end - perception_area_nopad.clmn_beg > 0)){
-        depthwise_convolution2D_nopad<io_T, w_T, b_T, acc_T, quant_T>(
+        depthwise_convolution2D_nopad<io_T, w_T, b_T, acc_T, quant_T, fix_kernel_width, fix_kernel_height>(
                 in, weights, biases, out, perception_area_nopad, quant_params,
                 val_min_limit, val_max_limit,
                 stride_height, stride_width,
@@ -733,40 +713,113 @@ MLI_FORCE_INLINE void depthwise_convolution2D(
     // (usually significantly smaller part of computations)
     //=======================================================================
     if (padding_top || padding_left || padding_bot || padding_right) {
-        rect_t perc_areas[4];
-        int areas_num = 0;
-        if (padding_top) {
-            perc_areas[areas_num].row_beg = 0;
-            perc_areas[areas_num].row_end = CEIL_DIV(padding_top, stride_height);
-            perc_areas[areas_num].clmn_beg = 0;
-            perc_areas[areas_num++].clmn_end = out.width;
-        }
-        if (padding_bot) {
-            perc_areas[areas_num].row_beg = out.height - CEIL_DIV(padding_bot, stride_height);
-            perc_areas[areas_num].row_end = out.height;
-            perc_areas[areas_num].clmn_beg = 0;
-            perc_areas[areas_num++].clmn_end = out.width;
-        }
-        if (padding_left) {
-            perc_areas[areas_num].row_beg = CEIL_DIV(padding_top, stride_height);
-            perc_areas[areas_num].row_end = out.height - CEIL_DIV(padding_bot, stride_height);
-            perc_areas[areas_num].clmn_beg = 0;
-            perc_areas[areas_num++].clmn_end = CEIL_DIV(padding_left, stride_width);
-        }
-        if (padding_right) {
-            perc_areas[areas_num].row_beg = CEIL_DIV(padding_top, stride_height);
-            perc_areas[areas_num].row_end = out.height - CEIL_DIV(padding_bot, stride_height);
-            perc_areas[areas_num].clmn_beg = out.width - CEIL_DIV(padding_right, stride_width);
-            perc_areas[areas_num++].clmn_end = out.width;
-        }
-        for(int i = 0; i < areas_num; i ++) {
+        for(int i = 0; i < 4; i ++) {
+            rect_t area;
+            auto in_ = in;
+            auto w_ = weights;
+            auto out_ = out;
+            int p_top = padding_top;
+            int p_left = padding_left;
+            int p_bot = padding_bot;
+            int p_right = padding_right;
+            int stride_w = stride_width;
+            int stride_h = stride_height;
+            int dilation_w = dilation_width;
+            int dilation_h = dilation_height;
+
+            if (i == 0) {
+                if (padding_top) {
+                    area.row_beg = 0;
+                    area.row_end = CEIL_DIV(padding_top, stride_height);
+                    area.clmn_beg = 0;
+                    area.clmn_end = out.width - CEIL_DIV(padding_right, stride_width);
+                    // compensate for cases where kernel size is larger than input size
+                    area.clmn_end = MAX(CEIL_DIV(padding_left, stride_width), area.clmn_end);
+                } else {
+                    continue;
+                }
+            }
+            if (i == 1) {
+                if (padding_right) {
+                    int row_beg = 0;
+                    int row_end = out.height - CEIL_DIV(padding_bot, stride_height);
+                    int clmn_beg = out.width - CEIL_DIV(padding_right, stride_width);
+                    int clmn_end = out.width;
+                    // rotate the right padding area to the top
+                    area.clmn_beg = row_beg;
+                    area.clmn_end = row_end;
+                    area.row_beg = out.width - clmn_end;
+                    area.row_end = out.width - clmn_beg;
+                    in_ = mli_prv_rotate_tensor_private<1>(in);
+                    out_ = mli_prv_rotate_tensor_private<1>(out);
+                    w_ = mli_prv_rotate_weights_tensor_private<1>(weights);
+                    p_top = padding_right;
+                    p_bot = padding_left;
+                    p_left = padding_top;
+                    p_right = padding_bot;
+                    stride_w = stride_height;
+                    stride_h = stride_width;
+                    dilation_w = dilation_height;
+                    dilation_h = dilation_width;
+                } else {
+                    continue;
+                }
+            }
+            if (i == 2) {
+                if (padding_bot) {
+                    int row_beg = out.height - CEIL_DIV(padding_bot, stride_height);
+                    int row_end = out.height;
+                    int clmn_beg = CEIL_DIV(padding_left, stride_width);
+                    int clmn_end = out.width;
+                    // rotate the bottom padding area to the top
+                    area.clmn_beg = out.width - clmn_end;
+                    area.clmn_end = out.width - clmn_beg;
+                    area.row_beg = out.height - row_end;
+                    area.row_end = out.height - row_beg;
+                    in_ = mli_prv_rotate_tensor_private<2>(in);
+                    out_ = mli_prv_rotate_tensor_private<2>(out);
+                    w_ = mli_prv_rotate_weights_tensor_private<2>(weights);
+                    p_top = padding_bot;
+                    p_bot = padding_top;
+                    p_left = padding_right;
+                    p_right = padding_left;
+                } else {
+                    continue;
+                }
+            }
+            if (i == 3) {
+                if (padding_left) {
+                    int row_beg = CEIL_DIV(padding_top, stride_height);
+                    int row_end = out.height;
+                    int clmn_beg = 0;
+                    int clmn_end = CEIL_DIV(padding_left, stride_width);
+                    // rotate the left padding area to the top
+                    area.clmn_beg = out.height - row_end;
+                    area.clmn_end = out.height - row_beg;
+                    area.row_beg = clmn_beg;
+                    area.row_end = clmn_end;
+                    in_ = mli_prv_rotate_tensor_private<3>(in);
+                    out_ = mli_prv_rotate_tensor_private<3>(out);
+                    w_ = mli_prv_rotate_weights_tensor_private<3>(weights);
+                    p_top = padding_left;
+                    p_bot = padding_right;
+                    p_left = padding_bot;
+                    p_right = padding_top;
+                    stride_w = stride_height;
+                    stride_h = stride_width;
+                    dilation_w = dilation_height;
+                    dilation_h = dilation_width;
+                } else {
+                    continue;
+                }
+            }
             depthwise_convolution2D_pad<io_T, w_T, b_T, acc_T, quant_T>(
-                    in, weights, biases, out, perc_areas[i], quant_params,
+                    in_, w_, biases, out_, area, quant_params,
                     val_min_limit, val_max_limit,
-                    stride_height, stride_width,
-                    dilation_height, dilation_width,
-                    padding_top, padding_left,
-                    padding_bot, padding_right);
+                    stride_h, stride_w,
+                    dilation_h, dilation_w,
+                    p_top, p_left,
+                    p_bot, p_right);
         }
     }
 }

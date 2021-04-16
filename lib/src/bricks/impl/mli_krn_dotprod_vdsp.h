@@ -170,6 +170,53 @@ static MLI_FORCE_INLINE acc_T dotprod2D_vv(
 #pragma clang diagnostic pop
 }
 
+template <typename io_T, typename w_T, typename acc_T>
+static MLI_FORCE_INLINE acc_T dotprod2D_vv_ptrvector(
+        const MLI_PTR(io_T) __restrict in,
+        const MLI_PTR(w_T)  __restrict krn,
+        acc_T accu,
+        const int width,
+        const int height,
+        int in_col_step,
+        int in_row_step,
+        int kern_col_step,
+        int kern_row_step) {
+    int in_row_step_orig = in_row_step;
+    in_row_step -= width * in_col_step;
+    kern_row_step -= width * kern_col_step;
+
+    vNint_t addr_vec = 0;
+    int i = 0;
+    int offset = in_row_step_orig * sizeof(io_T);
+#pragma clang loop unroll(full)
+    for (int row = 1; row < height; row++) {
+        addr_vec[i++] = offset;
+        offset += in_row_step_orig * sizeof(io_T);
+    }
+    i = 0;
+    addr_vec += (int)in;
+
+    for (int clmn = 0; clmn < width; clmn++) {
+        accu = mli_prv_mac_load_v_v(accu, krn, in);
+        in += in_col_step;
+        krn += kern_col_step;
+    }
+    krn += kern_row_step;
+
+#pragma clang loop unroll(full)
+    for (int row = 1; row < height; row++) {
+        MLI_PTR(io_T) __restrict in_ptr = (MLI_PTR(io_T))addr_vec[i++];
+#pragma clang loop unroll(full)
+        for (int clmn = 0; clmn < width; clmn++) {
+            accu = mli_prv_mac_load_v_v(accu, krn, in_ptr);
+            in_ptr += in_col_step;
+            krn += kern_col_step;
+        }
+        krn += kern_row_step;
+    }
+    return accu;
+}
+
 template < typename in_T, typename w_T, typename acc_T >
 static MLI_FORCE_INLINE acc_T dotprod3D_v_pad (
         const MLI_PTR (in_T) __restrict in,

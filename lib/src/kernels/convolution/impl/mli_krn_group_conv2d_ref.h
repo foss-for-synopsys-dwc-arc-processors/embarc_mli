@@ -212,7 +212,7 @@ MLI_FORCE_INLINE void group_conv2d_prepare_and_run(
                 padding_top, padding_left,
                 padding_bot, padding_right);
     } else if (weights_prv.in_ch == 1) {
-        depthwise_convolution2D_wrapper<io_T, w_T, b_T, acc_T, quant_T>(
+        depthwise_convolution2D_wrapper<io_T, w_T, b_T, acc_T, quant_T, fix_kernel_width, fix_kernel_height>(
                 in_prv.ptr, weights_prv.ptr, out_prv.ptr,
                 in_prv, weights_prv, bs, out_prv, cent_area, params,
                 (io_T)val_limit.min, (io_T)val_limit.max,

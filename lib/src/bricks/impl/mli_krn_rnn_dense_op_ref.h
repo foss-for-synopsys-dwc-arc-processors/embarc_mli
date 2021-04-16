@@ -122,9 +122,11 @@ static inline void rnn_dense_op(
     }
 
     for (int o_idx = 0; o_idx < out_elements; o_idx++) {
-        io_T out_val = 0; 
+
         acc_T accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
-        acc_T prev_step = mli_math_mul_fx<io_T, acc_T>(0, 0);
+        acc_T acc_ir = mli_math_mul_fx<io_T, acc_T>(0, 0);
+        acc_T acc_res_ir = mli_math_mul_fx<io_T, acc_T>(0, 0);
+
         accu = mli::krn::bias_additive(&bias[o_idx], accu, &in_to_out_quant_params[0]);
 
         for(int idx = 0; idx < inputs_num; idx++) {
@@ -137,20 +139,14 @@ static inline void rnn_dense_op(
                     in_elements[idx], /* height= */ 1, /* ch= */ 1, w_ch_out_mem_strides[idx], 
                     /* row_step= */ 1, /* ch_step= */ 1);
             accu = mli_math_add_fx(accu, other_additives[idx]);
-            accu = mli_math_add_fx(accu, prev_step);
 
-            if(inputs_num - idx != 1) {
-                prev_step = mli::krn::ref::ir_rnn_result_requantize(accu, &in_to_out_quant_params[idx],
-                                &in_to_out_quant_params[idx+1], /* krn_idx= */ 0);
-                accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
-            } else {
-                out_val = mli::krn::ref::result_cast<io_T, acc_T, quant_T>(accu, &in_to_out_quant_params[idx]);
-            }
+            acc_ir = mli::krn::ir_rnn_result_requantize<acc_T>(accu, &in_to_out_quant_params[idx]);
+            acc_res_ir = mli_math_add_fx(acc_res_ir, acc_ir);
+            accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
         }
 
-        out_val = MIN(out_val, val_max_limit);
-        out_val = MAX(out_val, val_min_limit);
-        out[o_idx] = out_val;
+        out[o_idx] = mli::krn::ir_result_cast_relu_store<io_T, acc_T, quant_T>(acc_res_ir,
+        		&in_to_out_quant_params[inputs_num - 1], val_min_limit, val_max_limit);
     }
 }
 

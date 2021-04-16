@@ -399,13 +399,11 @@ static MLI_FORCE_INLINE void result_cast_relu_store(
         const int16_t val_max_limit) {
 
     o_T out = result_cast<o_T, acc_T, quant_T>(acc, quant_params);
-    out = MIN(out, val_max_limit);
-    out = MAX(out, val_min_limit);
+    out = mli_math_min_fx(out, val_max_limit);
+    out = mli_math_max_fx(out, val_min_limit);
 
     *o_ptr = (o_T) out;
 }
-
-
 
 template <typename io_T, typename acc_T, typename b_T, mli_math_type math_type>
 MLI_FORCE_INLINE io_T result_cast(const acc_T acc, const b_T bias, const int32_t out_mul,
@@ -438,21 +436,64 @@ MLI_FORCE_INLINE int8_t result_cast<int8_t, mli_acc32_t, int32_t, S8ASYM_MATH>(
     return out_val;
 }
 
-template <typename acc_T>
-MLI_FORCE_INLINE acc_T ir_rnn_result_requantize(const acc_T acc, const fx_quant_specific_params* current_params,
-                                                        const fx_quant_specific_params* next_params, int krn_idx) {
-    const int shift = current_params->out_shift - next_params->out_shift;
-    return mli_math_acc_ashift_fx<acc_T>(acc, shift);
+template <>
+MLI_FORCE_INLINE int16_t ir_result_cast_relu_store(
+        const mli_acc40_t acc,
+        const fx_quant_specific_params* math_params,
+        const int16_t val_min_limit,
+        const int16_t val_max_limit) {
+    int16_t out_val = mli_math_cast_fx<mli_acc40_t, int16_t>(acc);
+    out_val = mli_math_min_fx(out_val, val_max_limit);
+    out_val = mli_math_max_fx(out_val, val_min_limit);
+    return out_val;
 }
 
 template <>
-MLI_FORCE_INLINE mli_acc32_t ir_rnn_result_requantize(const mli_acc32_t acc, const s8asym_quant_specific_params* current_params,
-                                                        const s8asym_quant_specific_params* next_params, int krn_idx) {
-    const int32_t mul = current_params->out_mul / next_params->weight_scales[krn_idx];
-    const int shift = current_params->out_shift - next_params->weight_shifts[krn_idx];
+MLI_FORCE_INLINE int16_t ir_result_cast_relu_store(
+        const mli_acc32_t acc,
+        const fx_quant_specific_params* math_params,
+        const int16_t val_min_limit,
+        const int16_t val_max_limit) {
+	int16_t out_val = mli_math_cast_fx<mli_acc32_t, int16_t>(acc);
+    out_val = mli_math_min_fx(out_val, val_max_limit);
+    out_val = mli_math_max_fx(out_val, val_min_limit);
+    return out_val;
+}
+
+template <>
+MLI_FORCE_INLINE int8_t ir_result_cast_relu_store(
+        const mli_acc32_t acc,
+        const s8asym_quant_specific_params* quant_params,
+		const int8_t val_min_limit,
+		const int8_t val_max_limit) {
+
+    const int16_t out_no_offset = mli_math_cast_fx<int32_t, int16_t>(acc);
+    int8_t out_val = mli_math_cast_fx<int16_t, int8_t>(mli_math_add_fx(out_no_offset, quant_params->out_offset), 0);
+
+    out_val = mli_math_min_fx(out_val, val_max_limit);
+    out_val = mli_math_max_fx(out_val, val_min_limit);
+
+    return out_val;
+}
+
+template <typename acc_T>
+MLI_FORCE_INLINE acc_T ir_rnn_result_requantize(
+		const acc_T acc,
+		const fx_quant_specific_params* current_params) {
+    const int in_to_ir_shift = current_params->out_shift;
+    return mli_math_acc_ashift_fx<acc_T>(acc, in_to_ir_shift);
+}
+
+template <>
+MLI_FORCE_INLINE mli_acc32_t ir_rnn_result_requantize(
+		const mli_acc32_t acc,
+		const s8asym_quant_specific_params* current_params) {
+
+    const int32_t mul = current_params->out_mul;
+    const int in_to_ir_shift = current_params->out_shift;
 
     auto accu_scaled = mli_math_mul_fx<int32_t, int64_t>(acc, mul);
-    auto out_no_offset = mli_math_cast_fx<int64_t, int32_t>(accu_scaled, shift);
+    auto out_no_offset = mli_math_cast_fx<int64_t, int32_t>(accu_scaled, in_to_ir_shift);
     return out_no_offset;
 }
 

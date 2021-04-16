@@ -44,6 +44,11 @@ template <typename T>
 MLI_FORCE_INLINE T mli_math_asr_fx(T x, int nbits);
 
 template <>
+MLI_FORCE_INLINE int64_t mli_math_asl_fx(int64_t x, int nbits) {
+    return fx_asl_q63(x, nbits);
+}
+
+template <>
 MLI_FORCE_INLINE int32_t mli_math_asl_fx(int32_t x, int nbits) {
     return fx_asl_q31(x, nbits);
 }
@@ -121,9 +126,9 @@ MLI_FORCE_INLINE int mli_math_norm_fx(mli_acc40_t acc) {
 }
 
 template<typename in_T, typename out_T>
-MLI_FORCE_INLINE out_T mli_math_norm_cast_fx(in_T val , int *norm_shift) {
-    int cast_shift = (sizeof(in_T) - sizeof(out_T)) * 8;
-    int norm = mli_math_norm_fx<in_T, in_T>(val);
+MLI_FORCE_INLINE out_T mli_math_norm_cast_fx(in_T val , int32_t *norm_shift) {
+    int32_t cast_shift = (sizeof(in_T) - sizeof(out_T)) * 8;
+    int32_t norm = mli_math_norm_fx<in_T, int32_t>(val);
     *norm_shift = cast_shift - norm;
     return mli_math_cast_fx<in_T, out_T>(val, *norm_shift);
 }
@@ -517,9 +522,20 @@ MLI_FORCE_INLINE int16_t mli_math_cast_fx(mli_acc40_t in_val, int shift_right) {
 }
 
 template <>
+MLI_FORCE_INLINE int16_t mli_math_cast_fx(mli_acc40_t in_val) {
+    return fx_q15_cast_nf_asl_rnd_a40(in_val, 16);
+}
+
+template <>
 MLI_FORCE_INLINE int16_t mli_math_cast_fx(mli_acc32_t in_val, int shift_right) {
     int32_t temp = (int32_t)fx_asr_rnd_q31(in_val, shift_right);
     temp = fx_asl_q31(temp, 16);
+    return (int16_t)fx_q15_cast_q31(temp);
+}
+
+template <>
+MLI_FORCE_INLINE int16_t mli_math_cast_fx(mli_acc32_t in_val) {
+	int32_t temp = fx_asl_q31(in_val, 16);
     return (int16_t)fx_q15_cast_q31(temp);
 }
 

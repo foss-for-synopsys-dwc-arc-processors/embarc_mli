@@ -899,8 +899,7 @@ MLI_FORCE_INLINE int16_t mli_math_cast_fx(mli_acc32_t in_val, int shift_right) {
 
 template <>
 MLI_FORCE_INLINE int16_t mli_math_cast_fx(mli_acc32_t in_val) {
-    int32_t temp = (int32_t)mli_math_asr_rnd_fx<mli_acc32_t, int>(in_val, 16);
-    return (int16_t)mli_math_sat_fx<int32_t>(temp, 16);
+    return (int16_t)mli_math_sat_fx<int32_t>(in_val, 16);
 }
 
 template <>
@@ -924,6 +923,11 @@ template <>
 MLI_FORCE_INLINE int16_t mli_math_cast_fx(int64_t in_val, int shift_right) {
     int64_t temp = mli_math_asr_rnd_fx<int64_t, int>(in_val, shift_right);
     return (int16_t)mli_math_sat_fx<int64_t>(temp, 48);
+}
+
+template <>
+MLI_FORCE_INLINE int16_t mli_math_cast_fx(int64_t in_val) {
+    return (int16_t)mli_math_sat_fx<int64_t>(in_val, 48);
 }
 
 template <>
@@ -1029,6 +1033,15 @@ MLI_FORCE_INLINE vNx4short_t mli_math_cast_fx(vNx4short_t in_val, int shift_righ
 
     acc = mli_math_asr_fx(acc, shift_right);
     return acc;
+}
+
+template<>
+MLI_FORCE_INLINE vNx4char_t mli_math_cast_fx<vNx4short_t, vNx4char_t, false >(vNx4short_t in_val, int shift_right) {
+    MLI_EXTRA_ASSERT(shift_right >= 0);
+    vNx4short_t acc = in_val;
+    acc = mli_math_asr_fx(acc, shift_right);
+    acc = mli_math_bound_range_fx(acc, INT8_MIN, INT8_MAX);
+    return to_vNx4char_t(acc);
 }
 
 template<>
@@ -1348,6 +1361,20 @@ MLI_FORCE_INLINE vNx4char_t mli_math_acc_cast_fx(vNx4accint_t acc, int shift_rig
 }
 
 template<>
+MLI_FORCE_INLINE vNx4short_t mli_math_acc_cast_fx<vNx4short_t, vNx4accshort_t,/*round = */ false>(
+        vNx4accshort_t acc, int shift_right) {
+    MLI_EXTRA_ASSERT(shift_right >= 0);
+
+    int ctrlword = SAT|SIGNED|TARGET_SZ_16|SHIFT(shift_right);
+    vNx4short_t accu_result;
+    accu_result.lo = to_vNx2short_t(vvconvert(__vacc_lo(acc), ctrlword));
+    accu_result.hi = to_vNx2short_t(vvconvert(__vacc_hi(acc), ctrlword));
+
+    return accu_result;
+}
+
+
+template<>
 MLI_FORCE_INLINE vNx4char_t mli_math_acc_cast_fx<vNx4char_t, vNx4accint_t,/*round = */ false>(
         vNx4accint_t acc, int shift_right) {
     int ctrlword = SAT|SIGNED|TARGET_SZ_8|SHIFT(shift_right);
@@ -1490,9 +1517,9 @@ MLI_FORCE_INLINE vNx4int_t mli_math_norm_fx(vNx4accint_t x) {
 }
 
 template<typename in_T, typename out_T>
-MLI_FORCE_INLINE out_T mli_math_norm_cast_fx(in_T val , int *norm_shift) {
-    int cast_shift = (sizeof(in_T) - sizeof(out_T)) * 8;
-    int norm = mli_math_norm_fx<in_T, in_T>(val);
+MLI_FORCE_INLINE out_T mli_math_norm_cast_fx(in_T val , int32_t *norm_shift) {
+    int32_t cast_shift = (sizeof(in_T) - sizeof(out_T)) * 8;
+    int32_t norm = mli_math_norm_fx<in_T, int32_t>(val);
     *norm_shift = cast_shift - norm;
     return mli_math_cast_fx<in_T, out_T>(val, *norm_shift);
 }

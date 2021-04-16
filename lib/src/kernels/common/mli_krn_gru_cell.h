@@ -75,6 +75,9 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
         one_el_params.sa.zero_point.mem.i16 = ir_asym_params.sa.zero_point.mem.i16 = 0;
         one_el_params.sa.scale_frac_bits.mem.i8 = 0;
         ir_asym_params.sa.scale_frac_bits.mem.i8 = 6;
+        one_el_params.sa.scale.capacity = ir_asym_params.sa.scale.capacity = 0;
+        one_el_params.sa.zero_point.capacity = ir_asym_params.sa.zero_point.capacity = 0;
+        one_el_params.sa.scale_frac_bits.capacity = ir_asym_params.sa.scale_frac_bits.capacity = 0;
     } else {
         one_el_params.fx.frac_bits = 0;
         // 1sign and 3 integer bits for TANH/SIGM input is enough
@@ -102,8 +105,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
     ir_tensor.el_params = ir_asym_params;
 
     quant_T in_to_out_params[2];
-    const mli_tensor *cur_out = (asym) ? prev_out : &ir_tensor;
-    define_quant_params(in, weights_in, bias, cur_out, &in_to_out_params[0]);
+    define_quant_params(in, weights_in, bias, &ir_tensor, &in_to_out_params[0]);
     define_quant_params(prev_out, weights_out, bias, &ir_tensor, &in_to_out_params[1]);
 
     const int w_ch_out_mem_stride_from_tensors[] = {(int)weights_in->mem_stride[KRNL_RNN_W_IN_ELEMS_DIM], 
@@ -168,7 +170,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
 
         // Step 1: Applying Dense
         //=======================================
-        mli::krn::ref::rnn_dense_op_stacked<io_T, w_T, b_T, acc_T, quant_T>(
+        mli::krn::rnn_dense_op_stacked<io_T, w_T, b_T, acc_T, quant_T>(
             inputs_ptr, weights, bias, num_gates, num_inputs, inputs_elements,
             in_to_out_params, w_ch_out_mem_strides, &ir_tensor);
 
@@ -212,12 +214,11 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
             inc_scales_for_new_gate(&b_new_g.el_params, num_gates);
         }
 
-        const mli_tensor *cur_out = (asym) ? &prev_out_reset : &new_gate_input;
-        define_quant_params(in, &w_in_new_g, &b_new_g, cur_out, &in_to_out_params[0]);
+        define_quant_params(in, &w_in_new_g, &b_new_g, &new_gate_input, &in_to_out_params[0]);
         define_quant_params(&prev_out_reset, &w_out_new_g, &b_new_g, &new_gate_input, &in_to_out_params[1]);
 
         MLI_PTR (io_T) new_gate_ptr = mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(&new_gate_input);
-        mli::krn::ref::rnn_dense_op<io_T, w_T, b_T, acc_T, quant_T>(
+        mli::krn::rnn_dense_op<io_T, w_T, b_T, acc_T, quant_T>(
             inputs_new_ptr, w_new_g_ptr, b_new_g_ptr, new_gate_ptr, num_inputs, inputs_elements, gru_out_elements,
             w_ch_out_mem_strides, in_to_out_params, (io_T)val_limit.min, (io_T)val_limit.max);
 
@@ -265,7 +266,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
         inputs_ptr[1] = mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(&current_hidden);
 
         if (asym) {
-            define_quant_params(in, weights_in, bias, out, &in_to_out_params[0]);
+            define_quant_params(in, weights_in, bias, &ir_tensor, &in_to_out_params[0]);
             define_quant_params(&current_hidden, weights_out, bias, &ir_tensor, &in_to_out_params[1]);
         } else {
             define_quant_params(&current_hidden, weights_out, bias, &ir_tensor, &in_to_out_params[1]);

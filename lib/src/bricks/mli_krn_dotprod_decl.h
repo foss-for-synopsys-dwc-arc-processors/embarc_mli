@@ -268,6 +268,18 @@ static MLI_FORCE_INLINE acc_T dotprod2D_vv(
         int kern_col_step,
         int kern_row_step);
 
+template <typename io_T, typename w_T, typename acc_T>
+static MLI_FORCE_INLINE acc_T dotprod2D_vv_ptrvector(
+        const MLI_PTR(io_T) __restrict in,
+        const MLI_PTR(w_T)  __restrict krn,
+        acc_T accu,
+        const int width,
+        const int height,
+        int in_col_step,
+        int in_row_step,
+        int kern_col_step,
+        int kern_row_step);
+
 template < typename in_T, typename w_T, typename acc_T, bool fixed_size = false >
 static MLI_FORCE_INLINE acc_T dotprod3D_v (
         const MLI_PTR (in_T) __restrict in,

@@ -1,5 +1,5 @@
 /*
-* Copyright 2020-2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -286,6 +286,11 @@ MLI_FORCE_INLINE vNx4accshort_t mli_prv_init_accu<vNx4accshort_t>() {
     return vvcmpy((vNx4char_t)0, (int8_t)0);
 }
 
+template<>
+MLI_FORCE_INLINE vNx4int_t mli_prv_init_accu<vNx4int_t>() {
+    return ((vNx4int_t) (0));
+}
+
 MLI_FORCE_INLINE vNx4accshort_t mli_prv_init_accu(vNx4char_t l, int8_t r) {
     return vvcmpy(l, r);
 }
@@ -298,7 +303,6 @@ MLI_FORCE_INLINE vNx2accint_t mli_prv_init_accu<vNx2accint_t>() {
 MLI_FORCE_INLINE vNx2accint_t mli_prv_init_accu(vNx2short_t l, int16_t r) {
     return vvcmpy(l, r);
 }
-
 
 template<>
 MLI_FORCE_INLINE vNx4accint_t mli_prv_init_accu<vNx4accint_t>() {
@@ -321,17 +325,17 @@ MLI_FORCE_INLINE vNx2accshort_t mli_prv_init_accu(vNx2short_t inp_val) {
     return vvcadd_init(inp_val, (int16_t)0);
 }
 
-static MLI_FORCE_INLINE int32_t  mli_prv_init_accu(int8_t inp_val) {
+static MLI_FORCE_INLINE int32_t mli_prv_init_accu(int8_t inp_val) {
     int32_t acc = inp_val;
     return acc;
 }
 
-static MLI_FORCE_INLINE int32_t  mli_prv_init_accu(int32_t inp_val) {
+static MLI_FORCE_INLINE int32_t mli_prv_init_accu(int32_t inp_val) {
     int32_t acc = inp_val;
     return acc;
 }
 
-static MLI_FORCE_INLINE int32_t  mli_prv_init_accu_with_bias(
+static MLI_FORCE_INLINE int32_t mli_prv_init_accu_with_bias(
         const MLI_PTR(int8_t) __restrict in,
         const int8_t bias,
         const int bias_shift) {
@@ -339,7 +343,7 @@ static MLI_FORCE_INLINE int32_t  mli_prv_init_accu_with_bias(
     return accu;
 }
 
-static MLI_FORCE_INLINE int32_t  mli_prv_init_accu_with_bias(
+static MLI_FORCE_INLINE int32_t mli_prv_init_accu_with_bias(
         const MLI_PTR(int16_t) __restrict in,
         const int8_t bias,
         const int bias_shift) {
@@ -374,6 +378,15 @@ MLI_FORCE_INLINE vNx2accint_t mli_prv_init_accu_with_bias_v(
 }
 
 template<>
+MLI_FORCE_INLINE mli_acc32_t mli_prv_init_accu_with_bias_v(
+        const int16_t bias,
+        const int bias_shift) {
+
+    mli_acc32_t r = bias;
+    return mli_math_asl_fx(r, bias_shift);
+}
+
+template<>
 MLI_FORCE_INLINE mli_acc40_t mli_prv_init_accu_with_bias_v(
         const int16_t bias,
         const int bias_shift) {
@@ -381,6 +394,7 @@ MLI_FORCE_INLINE mli_acc40_t mli_prv_init_accu_with_bias_v(
     mli_acc40_t r = bias;
     return mli_math_asl_fx(r, bias_shift);
 }
+
 // Multiply and accumulate for vectors of 1, 2, and 4 elements
 //=========================================================================
 // Note:

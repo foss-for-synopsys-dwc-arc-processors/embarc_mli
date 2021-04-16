@@ -191,7 +191,7 @@ int main() {
     const reporter_full reporter;
     bool final_status = true;
 
-    reporter.report_header("MLI|Kernels|Permute Activation Function Tests");
+    reporter.report_header("MLI|Kernels|Permute Tests");
     for (int i = 0; i < kTestsNum; ++i) {
         memory_manager mem_in_keeper((int8_t*)(scratch_mem_in), sizeof(scratch_mem_in));
         memory_manager mem_out_keeper((int8_t*)(scratch_mem_out), sizeof(scratch_mem_out));

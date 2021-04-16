@@ -75,8 +75,8 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
         ir_asym_params.sa.scale.mem.i16 = 1;
         ir_asym_params.sa.zero_point.mem.i16 = 0;
         ir_asym_params.sa.scale_frac_bits.mem.i16 = 4;
-        ir_asym_params.sa.scale.capacity = ir_asym_params.sa.zero_point.capacity = 1;
-        ir_asym_params.sa.scale_frac_bits.capacity = 1;
+        ir_asym_params.sa.scale.capacity = ir_asym_params.sa.zero_point.capacity = 0;
+        ir_asym_params.sa.scale_frac_bits.capacity = 0;
         ir_tensor.el_params = ir_asym_params;
     } else { 
         // 1sign and 3 integer bits for TANH/SIGM input is enough
@@ -84,8 +84,7 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
     }
 
     quant_T in_to_out_params[2];
-    const mli_tensor *cur_out = (asym) ? prev_out : &ir_tensor;
-    define_quant_params(in, weights_in, bias, cur_out, &in_to_out_params[0]);
+    define_quant_params(in, weights_in, bias, &ir_tensor, &in_to_out_params[0]);
     define_quant_params(prev_out, weights_out, bias, &ir_tensor, &in_to_out_params[1]);
 
 
@@ -213,7 +212,7 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
 
         if (asym) {
             rnn_out.el_params = out->el_params;
-            define_quant_params(in, weights_in, bias, out, &in_to_out_params[0]);
+            define_quant_params(in, weights_in, bias, &ir_tensor, &in_to_out_params[0]);
             define_quant_params(out, weights_out, bias, &ir_tensor, &in_to_out_params[1]);
         } else {
             define_quant_params(&rnn_out, weights_out, bias, &ir_tensor, &in_to_out_params[1]);

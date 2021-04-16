@@ -57,50 +57,44 @@ static MLI_FORCE_INLINE vNx4int_t mli_prv_vNx4int_vector_stride_init (int stride
 //
 // this type of load functions is used in code where data from different types is combined and same
 // amount of samples need to be loaded from each buffer.
-static MLI_FORCE_INLINE vNx4char_t mli_prv_load_nx4_samples(const MLI_PTR(int8_t) __restrict in) {
+static MLI_FORCE_INLINE vNx4char_t mli_prv_load_nx4_samples(const MLI_PTR(int8_t)  in) {
     return *(MLI_PTR (vNx4char_t)) in;
 }
 
-static MLI_FORCE_INLINE vNx4short_t mli_prv_load_nx4_samples(const MLI_PTR(int16_t) __restrict in) {
+static MLI_FORCE_INLINE vNx4short_t mli_prv_load_nx4_samples(const MLI_PTR(int16_t)  in) {
     return *(MLI_PTR (vNx4short_t)) in;
 }
 
-static MLI_FORCE_INLINE vNx4int_t mli_prv_load_nx4_samples(const MLI_PTR(int32_t) __restrict in) {
+static MLI_FORCE_INLINE vNx4int_t mli_prv_load_nx4_samples(const MLI_PTR(int32_t)  in) {
     return *(MLI_PTR (vNx4int_t)) in;
 }
 
-static MLI_FORCE_INLINE vNx2short_t mli_prv_load_nx2_samples(const MLI_PTR(int16_t) __restrict in) {
+static MLI_FORCE_INLINE vNx2short_t mli_prv_load_nx2_samples(const MLI_PTR(int16_t)  in) {
     return *(MLI_PTR (vNx2short_t)) in;
 }
 
-static MLI_FORCE_INLINE vNx2int_t mli_prv_load_nx2_samples(const MLI_PTR(int32_t) __restrict in) {
+static MLI_FORCE_INLINE vNx2int_t mli_prv_load_nx2_samples(const MLI_PTR(int32_t)  in) {
     return *(MLI_PTR (vNx2int_t)) in;
 }
 
-static MLI_FORCE_INLINE vNint_t mli_prv_load_nx1_samples(const MLI_PTR(int32_t) __restrict in) {
+static MLI_FORCE_INLINE vNint_t mli_prv_load_nx1_samples(const MLI_PTR(int32_t)  in) {
     return *(MLI_PTR (vNint_t)) in;
 }
 
 /* vector load from dcache */
-static MLI_FORCE_INLINE vNx4char_t mli_prv_load_nx4_samples(const int8_t* __restrict in) {
-    vNx4char_t r;
-    for (int i = 0; i < (1 * _VDSP_NUM_8BIT_LANES); i++) {
-        r[i] = in[i];
-    }
-    return r;
+static MLI_FORCE_INLINE vNx4char_t mli_prv_load_nx4_samples(const int8_t*  in) {
+    return *(vNx4char_t*) in;
 }
 
 
-static MLI_FORCE_INLINE vNx4short_t mli_prv_load_nx4_samples(const int16_t* __restrict in) {
+static MLI_FORCE_INLINE vNx4short_t mli_prv_load_nx4_samples(const int16_t*  in) {
     vNx4short_t r;
-    for (int i = 0; i < _VDSP_NUM_16BIT_LANES; i++) {
-        r.lo[i] = in[i];
-        r.hi[i] = in[i + _VDSP_NUM_16BIT_LANES];
-    }
+    r.lo = *(vNx2short_t*)in;
+    r.hi = *(vNx2short_t*)(in + _VDSP_NUM_16BIT_LANES);
     return r;
 }
 
-static MLI_FORCE_INLINE vNx4int_t mli_prv_load_nx4_samples(const int32_t* __restrict in) {
+static MLI_FORCE_INLINE vNx4int_t mli_prv_load_nx4_samples(const int32_t*  in) {
     vNx4int_t r;
     for (int i = 0; i < (4 * _VDSP_NUM_32BIT_LANES); i++) {
         r[i] = in[i];
@@ -108,15 +102,11 @@ static MLI_FORCE_INLINE vNx4int_t mli_prv_load_nx4_samples(const int32_t* __rest
     return r;
 }
 
-static MLI_FORCE_INLINE vNx2short_t mli_prv_load_nx2_samples(const int16_t* __restrict in) {
-    vNx2short_t r;
-    for (int i = 0; i < (1 * _VDSP_NUM_16BIT_LANES); i++) {
-        r[i] = in[i];
-    }
-    return r;
+static MLI_FORCE_INLINE vNx2short_t mli_prv_load_nx2_samples(const int16_t*  in) {
+    return *(vNx2short_t*)in;
 }
 
-static MLI_FORCE_INLINE vNx2int_t mli_prv_load_nx2_samples(const int32_t* __restrict in) {
+static MLI_FORCE_INLINE vNx2int_t mli_prv_load_nx2_samples(const int32_t*  in) {
     vNx2int_t r;
     for (int i = 0; i < (2 * _VDSP_NUM_32BIT_LANES); i++) {
         r[i] = in[i];
@@ -124,12 +114,8 @@ static MLI_FORCE_INLINE vNx2int_t mli_prv_load_nx2_samples(const int32_t* __rest
     return r;
 }
 
-static MLI_FORCE_INLINE vNint_t mli_prv_load_nx1_samples(const int32_t* __restrict in) {
-    vNint_t r;
-    for (int i = 0; i < (1 * _VDSP_NUM_32BIT_LANES); i++) {
-        r[i] = in[i];
-    }
-    return r;
+static MLI_FORCE_INLINE vNint_t mli_prv_load_nx1_samples(const int32_t*  in) {
+    return *(vNint_t*) in;
 }
 
 // vector gather load
@@ -182,7 +168,7 @@ static MLI_FORCE_INLINE vNint_t mli_prv_stride_load_1vec(const MLI_PTR(int32_t) 
 
 
 //load with stride from dchache
-static MLI_FORCE_INLINE vNx4char_t mli_prv_stride_load_1vec(const int8_t* __restrict in, int stride, int limit) {
+static MLI_FORCE_INLINE vNx4char_t mli_prv_stride_load_1vec(const int8_t*  in, int stride, int limit) {
     vNx4char_t r;
     for (int i = 0; i < (1 * limit); i++) {
         r[i] = in[i * stride];
@@ -190,7 +176,7 @@ static MLI_FORCE_INLINE vNx4char_t mli_prv_stride_load_1vec(const int8_t* __rest
     return r;
 }
 
-static MLI_FORCE_INLINE vNx4char_t mli_prv_stride_load_1vec(const int8_t* __restrict in, int stride) {
+static MLI_FORCE_INLINE vNx4char_t mli_prv_stride_load_1vec(const int8_t*  in, int stride) {
     vNx4char_t r;
     for (int i = 0; i < (1 * _VDSP_NUM_8BIT_LANES); i++) {
         r[i] = in[i * stride];
@@ -200,7 +186,7 @@ static MLI_FORCE_INLINE vNx4char_t mli_prv_stride_load_1vec(const int8_t* __rest
 
 
 
-static MLI_FORCE_INLINE vNx2short_t mli_prv_stride_load_1vec(const int16_t* __restrict in, int stride, int limit) {
+static MLI_FORCE_INLINE vNx2short_t mli_prv_stride_load_1vec(const int16_t*  in, int stride, int limit) {
     vNx2short_t r;
     for (int i = 0; i < (1 * limit); i++) {
         r[i] = in[i * stride];
@@ -208,7 +194,7 @@ static MLI_FORCE_INLINE vNx2short_t mli_prv_stride_load_1vec(const int16_t* __re
     return r;
 }
 
-static MLI_FORCE_INLINE vNx2short_t mli_prv_stride_load_1vec(const int16_t* __restrict in, int stride) {
+static MLI_FORCE_INLINE vNx2short_t mli_prv_stride_load_1vec(const int16_t*  in, int stride) {
     vNx2short_t r;
     for (int i = 0; i < (1 * _VDSP_NUM_16BIT_LANES); i++) {
         r[i] = in[i * stride];
@@ -217,7 +203,7 @@ static MLI_FORCE_INLINE vNx2short_t mli_prv_stride_load_1vec(const int16_t* __re
 }
 
 
-static MLI_FORCE_INLINE vNint_t mli_prv_stride_load_1vec(const int32_t* __restrict in, int stride, int limit) {
+static MLI_FORCE_INLINE vNint_t mli_prv_stride_load_1vec(const int32_t*  in, int stride, int limit) {
     vNint_t r;
     for (int i = 0; i < (1 * limit); i++) {
         r[i] = in[i * stride];
@@ -225,7 +211,7 @@ static MLI_FORCE_INLINE vNint_t mli_prv_stride_load_1vec(const int32_t* __restri
     return r;
 }
 
-static MLI_FORCE_INLINE vNint_t mli_prv_stride_load_1vec(const int32_t* __restrict in, int stride) {
+static MLI_FORCE_INLINE vNint_t mli_prv_stride_load_1vec(const int32_t*  in, int stride) {
     vNint_t r;
     for (int i = 0; i < (1 * _VDSP_NUM_32BIT_LANES); i++) {
         r[i] = in[i * stride];
@@ -234,7 +220,7 @@ static MLI_FORCE_INLINE vNint_t mli_prv_stride_load_1vec(const int32_t* __restri
 }
 
 //load 1vec from dcache
-static MLI_FORCE_INLINE vNint_t mli_prv_load_1vec(const int32_t* __restrict in) {
+static MLI_FORCE_INLINE vNint_t mli_prv_load_1vec(const int32_t*  in) {
     vNint_t r;
     for (int i = 0; i < _VDSP_NUM_32BIT_LANES; i++) {
         r[i] = in[i];
@@ -249,15 +235,15 @@ static MLI_FORCE_INLINE vNint_t mli_prv_load_1vec(const int32_t* __restrict in) 
 // This type of load functions is used in type agnostic code with a single datatype where we want to
 // do operations on vectors.
 
-static MLI_FORCE_INLINE vNx4char_t mli_prv_load_1vec(const MLI_PTR(int8_t) __restrict in) {
+static MLI_FORCE_INLINE vNx4char_t mli_prv_load_1vec(const MLI_PTR(int8_t)  in) {
     return *(MLI_PTR (vNx4char_t)) in;
 }
 
-static MLI_FORCE_INLINE vNx2short_t mli_prv_load_1vec(const MLI_PTR(int16_t) __restrict in) {
+static MLI_FORCE_INLINE vNx2short_t mli_prv_load_1vec(const MLI_PTR(int16_t)  in) {
     return *(MLI_PTR (vNx2short_t)) in;
 }
 
-static MLI_FORCE_INLINE vNint_t mli_prv_load_1vec(const MLI_PTR(int32_t) __restrict in) {
+static MLI_FORCE_INLINE vNint_t mli_prv_load_1vec(const MLI_PTR(int32_t)  in) {
     return *(MLI_PTR (vNint_t)) in;
 }
 
@@ -266,52 +252,52 @@ static MLI_FORCE_INLINE vNint_t mli_prv_load_1vec(const MLI_PTR(int32_t) __restr
 //
 // The store functions determine the number of samples or vectors to be stored based on the type of the data argument
 
-static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int8_t) __restrict out, vNx4char_t data) {
+static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int8_t)  out, vNx4char_t data) {
     *(MLI_OUT_PTR (vNx4char_t)) out = data;
 }
 
-static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int16_t) __restrict out, vNx4short_t data) {
+static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int16_t)  out, vNx4short_t data) {
     *(MLI_OUT_PTR (vNx4short_t)) out = data;
 }
 
-static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int16_t) __restrict out, vNx2short_t data) {
+static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int16_t)  out, vNx2short_t data) {
     *(MLI_OUT_PTR (vNx2short_t)) out = data;
 }
 
-static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int32_t) __restrict out, vNint_t data) {
+static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int32_t)  out, vNint_t data) {
     *(MLI_OUT_PTR (vNint_t)) out = data;
 }
 
 
-static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int8_t) __restrict out,
+static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int8_t)  out,
         vNx4char_t data, pvNx4 predicate) {
     vvst(data, predicate, (int8_t __vccm *)(out));
 }
 
-static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int16_t) __restrict out,
+static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int16_t)  out,
         vNx2short_t data, pvNx2 predicate) {
     vvst(data, predicate, (int16_t __vccm *)(out));
 }
 
-static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int8_t) __restrict out,
+static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int8_t)  out,
         vNx4char_t data, int predicate_limit) {
     pvNx4 predicate = mli_prv_pvNx4_init(predicate_limit);
     vvst(data, predicate, (int8_t __vccm *)(out));
 }
 
-static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int16_t) __restrict out,
+static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int16_t)  out,
         vNx2short_t data, int predicate_limit) {
     pvNx2 predicate = mli_prv_pvNx2_init(predicate_limit);
     vvst(data, predicate, (int16_t __vccm *)(out));
 }
 
-static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int32_t) __restrict out,
+static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int32_t)  out,
         vNint_t data, int predicate_limit) {
     pvN predicate = mli_prv_pvN_init(predicate_limit);
     vvst(data, predicate, (int32_t __vccm *)(out));
 }
 
-static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int16_t) __restrict out,
+static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int16_t)  out,
         vNx4short_t data, int predicate_limit) {
     if (predicate_limit > _VDSP_NUM_16BIT_LANES) {
         mli_prv_store_n_samples(out, data.lo);
@@ -328,77 +314,77 @@ static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int16_t) __res
 
 
 //store with stride
-static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int8_t) __restrict out, vNx4char_t data, int  stride, int predicate_limit) {
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int8_t)  out, vNx4char_t data, int  stride, int predicate_limit) {
     vscatter(data, out, mli_prv_vNx4int_vector_stride_init(stride), mli_prv_pvNx4_init(predicate_limit));
 }
 
-static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int8_t) __restrict out, vNx4char_t data, int  stride) {
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int8_t)  out, vNx4char_t data, int  stride) {
     vscatter(data, out, mli_prv_vNx4int_vector_stride_init(stride));
 }
 
 
 
-static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int16_t) __restrict out, vNx2short_t data, int  stride, int predicate_limit) {
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int16_t)  out, vNx2short_t data, int  stride, int predicate_limit) {
     vscatter(data, out, mli_prv_vNx2int_vector_stride_init(stride), mli_prv_pvNx2_init(predicate_limit));
 }
 
-static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int16_t) __restrict out, vNx2short_t data, int  stride) {
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int16_t)  out, vNx2short_t data, int  stride) {
     vscatter(data, out,mli_prv_vNx2int_vector_stride_init(stride));
 }
 
 
 
-static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int32_t) __restrict out, vNint_t data, int  stride, int predicate_limit) {
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int32_t)  out, vNint_t data, int  stride, int predicate_limit) {
     vscatter(data, out,mli_prv_vNint_vector_stride_init(stride), mli_prv_pvN_init(predicate_limit));
 }
 
-static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int32_t) __restrict out, vNint_t data, int  stride) {
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int32_t)  out, vNint_t data, int  stride) {
     vscatter(data, out,mli_prv_vNint_vector_stride_init(stride));
 }
 
 
 
 /*store with stride in dcache*/
-static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(int8_t* __restrict out, vNx4char_t data, int stride) {
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(int8_t*  out, vNx4char_t data, int stride) {
     for (int i = 0; i < _VDSP_NUM_8BIT_LANES; i++) {
         out[i * stride] = data[i];
     }
 }
 
-static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(int8_t* __restrict out, vNx4char_t data, int stride, int limit) {
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(int8_t*  out, vNx4char_t data, int stride, int limit) {
     for (int i = 0; i < limit; i++) {
         out[i * stride] = data[i];
     }
 }
 
 
-static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(int16_t* __restrict out, vNx2short_t data, int stride) {
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(int16_t*  out, vNx2short_t data, int stride) {
     for (int i = 0; i < _VDSP_NUM_16BIT_LANES; i++) {
         out[i * stride] = data[i];
     }
 }
 
-static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(int16_t* __restrict out, vNx2short_t data, int stride, int limit) {
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(int16_t*  out, vNx2short_t data, int stride, int limit) {
     for (int i = 0; i < limit; i++) {
         out[i * stride] = data[i];
     }
 }
 
 
-static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(int32_t* __restrict out, vNint_t data, int stride) {
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(int32_t*  out, vNint_t data, int stride) {
     for (int i = 0; i < _VDSP_NUM_32BIT_LANES; i++) {
         out[i * stride] = data[i];
     }
 }
 
-static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(int32_t* __restrict out, vNint_t data, int stride, int limit) {
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(int32_t*  out, vNint_t data, int stride, int limit) {
     for (int i = 0; i < limit; i++) {
         out[i * stride] = data[i];
     }
 }
 
 //store 1vec in dcache
-static MLI_FORCE_INLINE void mli_prv_store_n_samples(int32_t* __restrict out, vNint_t data) {
+static MLI_FORCE_INLINE void mli_prv_store_n_samples(int32_t*  out, vNint_t data) {
     for (int i = 0; i < _VDSP_NUM_32BIT_LANES; i++) {
         out[i] = data[i];
     }
@@ -415,8 +401,8 @@ static MLI_FORCE_INLINE void mli_prv_store_n_samples(int32_t* __restrict out, vN
 template <typename acc_T, typename l_T, typename r_T>
 MLI_FORCE_INLINE acc_T mli_prv_mac_load_v_s(
         acc_T accu,
-        const MLI_PTR(l_T) __restrict in1,
-        const MLI_PTR(r_T) __restrict in2) {
+        const MLI_PTR(l_T)  in1,
+        const MLI_PTR(r_T)  in2) {
     return mli_math_mac_fx(accu, *in1, *in2);
 }
 
@@ -424,31 +410,31 @@ MLI_FORCE_INLINE acc_T mli_prv_mac_load_v_s(
 template <>
 MLI_FORCE_INLINE vNx4accshort_t mli_prv_mac_load_v_s(
         vNx4accshort_t accu,
-        const MLI_PTR(int8_t) __restrict in1,
-        const MLI_PTR(int8_t) __restrict in2) {
+        const MLI_PTR(int8_t)  in1,
+        const MLI_PTR(int8_t)  in2) {
     return mli_math_mac_fx(accu, mli_prv_load_nx4_samples(in1), *in2);
 }
 
 template <>
 MLI_FORCE_INLINE vNx2accint_t mli_prv_mac_load_v_s(
         vNx2accint_t accu,
-        const MLI_PTR(int16_t) __restrict in1,
-        const MLI_PTR(int16_t) __restrict in2) {
+        const MLI_PTR(int16_t)  in1,
+        const MLI_PTR(int16_t)  in2) {
     return mli_math_mac_fx(accu, mli_prv_load_nx2_samples(in1), *in2);
 }
 
 template <>
 MLI_FORCE_INLINE vNx4accint_t mli_prv_mac_load_v_s(
         vNx4accint_t accu,
-        const MLI_PTR(int8_t) __restrict in1,
-        const MLI_PTR(int16_t) __restrict in2) {
+        const MLI_PTR(int8_t)  in1,
+        const MLI_PTR(int16_t)  in2) {
     return mli_math_mac_fx(accu, mli_prv_load_nx4_samples(in1), *in2);
 }
 
 template <typename acc_T, typename l_T, typename r_T>
 MLI_FORCE_INLINE acc_T mli_prv_mac_load_v_s(
         acc_T accu,
-        const MLI_PTR(l_T) __restrict in1,
+        const MLI_PTR(l_T)  in1,
         const r_T  in2) {
     return mli_math_mac_fx(accu, *in1, in2);
 }
@@ -457,7 +443,7 @@ MLI_FORCE_INLINE acc_T mli_prv_mac_load_v_s(
 template <>
 MLI_FORCE_INLINE vNx4accshort_t mli_prv_mac_load_v_s(
         vNx4accshort_t accu,
-        const MLI_PTR(int8_t) __restrict in1,
+        const MLI_PTR(int8_t)  in1,
         const int8_t in2) {
     return mli_math_mac_fx(accu, mli_prv_load_nx4_samples(in1), in2);
 }
@@ -465,7 +451,7 @@ MLI_FORCE_INLINE vNx4accshort_t mli_prv_mac_load_v_s(
 template <>
 MLI_FORCE_INLINE vNx2accint_t mli_prv_mac_load_v_s(
         vNx2accint_t accu,
-        const MLI_PTR(int16_t) __restrict in1,
+        const MLI_PTR(int16_t)  in1,
         const int16_t in2) {
     return mli_math_mac_fx(accu, mli_prv_load_nx2_samples(in1), in2);
 }
@@ -473,7 +459,7 @@ MLI_FORCE_INLINE vNx2accint_t mli_prv_mac_load_v_s(
 template <>
 MLI_FORCE_INLINE vNx4accint_t mli_prv_mac_load_v_s(
         vNx4accint_t accu,
-        const MLI_PTR(int8_t) __restrict in1,
+        const MLI_PTR(int8_t)  in1,
         const int16_t in2) {
     return mli_math_mac_fx(accu, mli_prv_load_nx4_samples(in1), in2);
 }
@@ -484,8 +470,8 @@ MLI_FORCE_INLINE vNx4accint_t mli_prv_mac_load_v_s(
 template <typename acc_T, typename l_T, typename r_T>
 MLI_FORCE_INLINE acc_T mli_prv_mac_load_v_v(
         acc_T accu,
-        const MLI_PTR(l_T) __restrict in1,
-        const MLI_PTR(r_T) __restrict in2) {
+        const MLI_PTR(l_T)  in1,
+        const MLI_PTR(r_T)  in2) {
     return mli_math_mac_fx(accu, *in1, *in2);
 }
 
@@ -493,24 +479,24 @@ MLI_FORCE_INLINE acc_T mli_prv_mac_load_v_v(
 template <>
 MLI_FORCE_INLINE vNx4accshort_t mli_prv_mac_load_v_v(
         vNx4accshort_t accu,
-        const MLI_PTR(int8_t) __restrict in1,
-        const MLI_PTR(int8_t) __restrict in2) {
+        const MLI_PTR(int8_t)  in1,
+        const MLI_PTR(int8_t)  in2) {
     return mli_math_mac_fx(accu, mli_prv_load_nx4_samples(in1), mli_prv_load_nx4_samples(in2));
 }
 
 template <>
 MLI_FORCE_INLINE vNx2accint_t mli_prv_mac_load_v_v(
         vNx2accint_t accu,
-        const MLI_PTR(int16_t) __restrict in1,
-        const MLI_PTR(int16_t) __restrict in2) {
+        const MLI_PTR(int16_t)  in1,
+        const MLI_PTR(int16_t)  in2) {
     return mli_math_mac_fx(accu, mli_prv_load_nx2_samples(in1), mli_prv_load_nx2_samples(in2));
 }
 
 template <>
 MLI_FORCE_INLINE vNx4accint_t mli_prv_mac_load_v_v(
         vNx4accint_t accu,
-        const MLI_PTR(int8_t) __restrict in1,
-        const MLI_PTR(int16_t) __restrict in2) {
+        const MLI_PTR(int8_t)  in1,
+        const MLI_PTR(int16_t)  in2) {
     return mli_math_mac_fx(accu, mli_prv_load_nx4_samples(in1), mli_prv_load_nx4_samples(in2));
 }
 
@@ -523,8 +509,8 @@ MLI_FORCE_INLINE vNx4accint_t mli_prv_mac_load_v_v(
 template <typename acc_T, typename l_T, typename r_T>
 MLI_FORCE_INLINE acc_T mli_prv_msub_load_v_s(
         acc_T accu,
-        const MLI_PTR(l_T) __restrict in1,
-        const MLI_PTR(r_T) __restrict in2) {
+        const MLI_PTR(l_T)  in1,
+        const MLI_PTR(r_T)  in2) {
     return mli_math_msub_fx(accu, *in1, *in2);
 }
 
@@ -532,31 +518,31 @@ MLI_FORCE_INLINE acc_T mli_prv_msub_load_v_s(
 template <>
 MLI_FORCE_INLINE vNx4accshort_t mli_prv_msub_load_v_s(
         vNx4accshort_t accu,
-        const MLI_PTR(int8_t) __restrict in1,
-        const MLI_PTR(int8_t) __restrict in2) {
+        const MLI_PTR(int8_t)  in1,
+        const MLI_PTR(int8_t)  in2) {
     return mli_math_msub_fx(accu, mli_prv_load_nx4_samples(in1), *in2);
 }
 
 template <>
 MLI_FORCE_INLINE vNx2accint_t mli_prv_msub_load_v_s(
         vNx2accint_t accu,
-        const MLI_PTR(int16_t) __restrict in1,
-        const MLI_PTR(int16_t) __restrict in2) {
+        const MLI_PTR(int16_t)  in1,
+        const MLI_PTR(int16_t)  in2) {
     return mli_math_msub_fx(accu, mli_prv_load_nx2_samples(in1), *in2);
 }
 
 template <>
 MLI_FORCE_INLINE vNx4accint_t mli_prv_msub_load_v_s(
         vNx4accint_t accu,
-        const MLI_PTR(int8_t) __restrict in1,
-        const MLI_PTR(int16_t) __restrict in2) {
+        const MLI_PTR(int8_t)  in1,
+        const MLI_PTR(int16_t)  in2) {
     return mli_math_msub_fx(accu, mli_prv_load_nx4_samples(in1), *in2);
 }
 
 template <typename acc_T, typename l_T, typename r_T>
 MLI_FORCE_INLINE acc_T mli_prv_msub_load_v_s(
         acc_T accu,
-        const MLI_PTR(l_T) __restrict in1,
+        const MLI_PTR(l_T)  in1,
         const r_T  in2) {
     return mli_math_msub_fx(accu, *in1, in2);
 }
@@ -565,7 +551,7 @@ MLI_FORCE_INLINE acc_T mli_prv_msub_load_v_s(
 template <>
 MLI_FORCE_INLINE vNx4accshort_t mli_prv_msub_load_v_s(
         vNx4accshort_t accu,
-        const MLI_PTR(int8_t) __restrict in1,
+        const MLI_PTR(int8_t)  in1,
         const int8_t in2) {
     return mli_math_msub_fx(accu, mli_prv_load_nx4_samples(in1), in2);
 }
@@ -573,7 +559,7 @@ MLI_FORCE_INLINE vNx4accshort_t mli_prv_msub_load_v_s(
 template <>
 MLI_FORCE_INLINE vNx2accint_t mli_prv_msub_load_v_s(
         vNx2accint_t accu,
-        const MLI_PTR(int16_t) __restrict in1,
+        const MLI_PTR(int16_t)  in1,
         const int16_t in2) {
     return mli_math_msub_fx(accu, mli_prv_load_nx2_samples(in1), in2);
 }
@@ -581,7 +567,7 @@ MLI_FORCE_INLINE vNx2accint_t mli_prv_msub_load_v_s(
 template <>
 MLI_FORCE_INLINE vNx4accint_t mli_prv_msub_load_v_s(
         vNx4accint_t accu,
-        const MLI_PTR(int8_t) __restrict in1,
+        const MLI_PTR(int8_t)  in1,
         const int16_t in2) {
     return mli_math_msub_fx(accu, mli_prv_load_nx4_samples(in1), in2);
 }
@@ -592,8 +578,8 @@ MLI_FORCE_INLINE vNx4accint_t mli_prv_msub_load_v_s(
 template <typename acc_T, typename l_T, typename r_T>
 MLI_FORCE_INLINE acc_T mli_prv_msub_load_v_v(
         acc_T accu,
-        const MLI_PTR(l_T) __restrict in1,
-        const MLI_PTR(r_T) __restrict in2) {
+        const MLI_PTR(l_T)  in1,
+        const MLI_PTR(r_T)  in2) {
     return mli_math_msub_fx(accu, *in1, *in2);
 }
 
@@ -601,24 +587,24 @@ MLI_FORCE_INLINE acc_T mli_prv_msub_load_v_v(
 template <>
 MLI_FORCE_INLINE vNx4accshort_t mli_prv_msub_load_v_v(
         vNx4accshort_t accu,
-        const MLI_PTR(int8_t) __restrict in1,
-        const MLI_PTR(int8_t) __restrict in2) {
+        const MLI_PTR(int8_t)  in1,
+        const MLI_PTR(int8_t)  in2) {
     return mli_math_msub_fx(accu, mli_prv_load_nx4_samples(in1), mli_prv_load_nx4_samples(in2));
 }
 
 template <>
 MLI_FORCE_INLINE vNx2accint_t mli_prv_msub_load_v_v(
         vNx2accint_t accu,
-        const MLI_PTR(int16_t) __restrict in1,
-        const MLI_PTR(int16_t) __restrict in2) {
+        const MLI_PTR(int16_t)  in1,
+        const MLI_PTR(int16_t)  in2) {
     return mli_math_msub_fx(accu, mli_prv_load_nx2_samples(in1), mli_prv_load_nx2_samples(in2));
 }
 
 template <>
 MLI_FORCE_INLINE vNx4accint_t mli_prv_msub_load_v_v(
         vNx4accint_t accu,
-        const MLI_PTR(int8_t) __restrict in1,
-        const MLI_PTR(int16_t) __restrict in2) {
+        const MLI_PTR(int8_t)  in1,
+        const MLI_PTR(int16_t)  in2) {
     return mli_math_msub_fx(accu, mli_prv_load_nx4_samples(in1), mli_prv_load_nx4_samples(in2));
 }
 
