@@ -21,9 +21,10 @@ This repository contains source code of embARC Machine Learning Inference Librar
 
 # Release Notes
 
-1. Early access of version 2.0 ("2.0_EA")
-
-2. **It is highly recommended to use embARC MLI 2.0 for VPX and x86 emulation targets only. You can use [embARC MLI 1.1](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/releases/tag/Release_1.1) for EM/HS targets.**
+1. Version 2.0 EA
+    * This is the first early access release for embARC MLI 2.0 (MLI 2.0 EA)
+    * **It is highly recommended to use embARC MLI 2.0 for VPX and x86 emulation targets only. You can use [embARC MLI 1.1](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/releases/tag/Release_1.1) for EM/HS targets.**
+    * Not all kernels are fully optimized
 
 3. This release supports following functional primitives
     * 2D Convolution
@@ -46,16 +47,20 @@ This repository contains source code of embARC Machine Learning Inference Librar
     * Data layout HWC (Height-Width-Channel)
 
 4. Supported data format:
-    * Fixed point 16bit (fx16)
-    * Mixed fixed point data (fx16 for activations and fx8 for coefficients)
+    * Fixed point 8bit and 16bit (fx8 and fx16)
     * Signed asymmetric 8bit quantization (sa8)
+    * Signed asymmetric datatype supports per-tensor or per channel quantization with 16bit scale factors.
 
 5. Slicing support: creation of sub-tenors and support for non-contiguous tensor data.
 
+6. Supported platforms:
+    * VPX
+    * x86 emulation
+
 6. Toolchains support:
-    * [MetaWare Development Tools](https://www.synopsys.com/dw/ipdir.php?ds=sw_metaware) version 2021.03 and higher.
-    * GCC 9.1.0
-    * MSVC 2019
+    * [MetaWare Development Tools](https://www.synopsys.com/dw/ipdir.php?ds=sw_metaware) version 2021.03 and newer.
+    * GCC 9.1.0 (for x86 emulation)
+    * MSVC 2019 (for x86 emulation)
 
 # Documentation
 
@@ -217,25 +222,30 @@ As a result of configuration and build you will find `bin/arc` folder with the M
 
 
 ### **Build Command Examples For ARC Processors**
-<!-- ALL THIS STUF WILL WON'T WORK SINCE WE DON'T PROVIDE TCF FOR EVALUATION. HAVING NO EVALUATION TCF MAKES FIRST EXPIRIENCE FOR USER EVEN HARDER THAN NOW, EXTENDS DOCS WITH EXTRA VAGUE NOTES, AND POTENTIALLY ADD EXTRA LOAD ON CAE -->
+The following commands assume usage of the recommended VPX configuration. TCF for this configuration you need to generate using _tcfgen_ tool delivered with MetaWare Development tools. The first step is to open a command line and change working directory to the root of the embARC MLI repo. Then use the following command to generate recommended tcf file taking default `vpx5_integar_full` configuration as basis:
 
-The first step is to open a command line and change working directory to the root of the embARC MLI repo. Afterward, you can use one of the following commands.
+```bash
+tcfgen -o ./hw/vpx5_integer_full.tcf -tcf=vpx5_integer_full -iccm_size=0x80000 -dccm_size=0x40000
+```
+
+Afterward, you can use one of the following commands to configure and build the package:
+
 
 1. Build project for recommended ARC VPX evaluation target. [`BUILDLIB_DIR`](#buildlib_dir) is mandatory for this, but default "vpx5_integer_full" pack delivered with MWDT tools can be used. Use multithreaded build process (4 threads):
     ```bash
-    gmake TCF_FILE=../../hw/vpx5_integer_full.tcf BUILDLIB_DIR=vpx5_integer_full JOBS=4 build 
+    gmake TCF_FILE=./hw/vpx5_integer_full.tcf BUILDLIB_DIR=vpx5_integer_full JOBS=4 build 
     ```
 
 2. Build project for recommended ARC VPX evaluation target optimized for code size and with full debug checking of parameters and assertions in runtime. Use multithreaded build process (4 jobs):
     ```bash
-    gmake build TCF_FILE=../../hw/vpx5_integer_full.tcf BUILDLIB_DIR=vpx5_integer_full \
+    gmake build TCF_FILE=./hw/vpx5_integer_full.tcf BUILDLIB_DIR=vpx5_integer_full \
 	OPTMODE=size MLI_DEBUG_MODE=DBG_MODE_FULL JOBS=4
     ```
 
 3. Build project for recommended ARC VPX evaluation target using reference code. It's unoptimized straightforward and expected to be bitwise with optimized one. Use multithreaded build process (4 jobs) and artifacts are stored in `bin/arc_ref` and `obj/arc_ref`:
 
     ```bash
-    gmake build TCF_FILE=../../hw/vpx5_integer_full.tcf BUILDLIB_DIR=vpx5_integer_full \
+    gmake build TCF_FILE=./hw/vpx5_integer_full.tcf BUILDLIB_DIR=vpx5_integer_full \
 	MLI_BUILD_REFERENCE=ON JOBS=4
     ```
 
