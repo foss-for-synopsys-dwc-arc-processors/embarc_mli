@@ -115,22 +115,14 @@ mli_status mli_mov_prepare(mli_mov_handle_t* h, const mli_tensor* src, const mli
         if ((dst->el_params.sa.scale.mem.pi16 != src->el_params.sa.scale.mem.pi16) &&
                 (dst->el_params.sa.scale.mem.pi16 != NULL)) {
             mli::mov::mli_mov_memcpy<int8_t>(h, src->el_params.sa.scale.mem.pi8,
-                        dst->el_params.sa.scale.mem.pi8, src->el_params.sa.scale.capacity, 1, 1, src_in_vccm, dst_in_vccm, true, true, false);
+                        dst->el_params.sa.scale.mem.pi8, src->el_params.sa.scale.capacity, 1, 1, false, false, true, true, false);
+            mli::mov::mli_mov_memcpy<int8_t>(h, src->el_params.sa.zero_point.mem.pi8,
+                        dst->el_params.sa.zero_point.mem.pi8, src->el_params.sa.zero_point.capacity, 1, 1, false, false, true, true, false);
+            mli::mov::mli_mov_memcpy<int8_t>(h, src->el_params.sa.scale_frac_bits.mem.pi8,
+                        dst->el_params.sa.scale_frac_bits.mem.pi8, src->el_params.sa.scale_frac_bits.capacity, 1, 1, false, false, true, true, false);
         } else {
             dst->el_params.sa.scale = src->el_params.sa.scale;
-        }
-        if ((dst->el_params.sa.zero_point.mem.pi16 != src->el_params.sa.scale.mem.pi16) &&
-                (dst->el_params.sa.zero_point.mem.pi16 != NULL)) {
-            mli::mov::mli_mov_memcpy<int8_t>(h, src->el_params.sa.scale.mem.pi8,
-                        dst->el_params.sa.scale.mem.pi8, src->el_params.sa.scale.capacity, 1, 1, src_in_vccm, dst_in_vccm, true, true, false);
-        } else {
             dst->el_params.sa.zero_point = src->el_params.sa.zero_point;
-        }
-        if ((dst->el_params.sa.scale_frac_bits.mem.pi8 != src->el_params.sa.scale_frac_bits.mem.pi8)
-                && (dst->el_params.sa.scale_frac_bits.mem.pi8 != NULL)) {
-            mli::mov::mli_mov_memcpy<int8_t>(h, src->el_params.sa.scale.mem.pi8,
-                        dst->el_params.sa.scale.mem.pi8, src->el_params.sa.scale.capacity, 1, 1, src_in_vccm, dst_in_vccm, true, true, false);
-        } else {
             dst->el_params.sa.scale_frac_bits = src->el_params.sa.scale_frac_bits;
         }
         dst->el_params.sa.dim = src->el_params.sa.dim;
