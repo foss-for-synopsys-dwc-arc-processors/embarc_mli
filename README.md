@@ -1,9 +1,6 @@
 embARC Machine Learning Inference Library
 ==================================================
 
-:warning: **You are using a development branch. Things might be broken. For a proper usage of embARC MLI Library please checkout the [latest release](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/releases).** 
-
-
 This repository contains source code of embARC Machine Learning Inference Library (embARC MLI Library), its documentation and examples. The primary purpose of this library is to enable developers to efficiently implement and/or port data processing algorithms based on machine learning principles for DSP-enhanced ARC Processors.
 
 # Table of Content
@@ -24,19 +21,55 @@ This repository contains source code of embARC Machine Learning Inference Librar
 
 # Release Notes
 
-1. Early access of version 2.0 ("2.0_EA")
-2. Release notes will be populated closer to the release date.
+1. Version 2.0 EA
+    * This is the first early access release for embARC MLI 2.0 (MLI 2.0 EA)
+    * **It is highly recommended to use embARC MLI 2.0 for VPX and x86 emulation targets only. You can use [embARC MLI 1.1](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/releases/tag/Release_1.1) for EM/HS targets.**
+    * Not all kernels are fully optimized
+
+3. This release supports following functional primitives
+    * 2D Convolution
+    * 2D Depthwise Convolution
+    * 2D Transpose Convolution
+    * 2D Group Convolution
+    * Fully Connected layer
+    * Max and average pooling
+    * LSTM and GRU recurrent cells 
+    * RNN Dense layer
+    * Elementwise (add, sub, mul, min, max)
+    * Permute
+    * Argmax
+    * Data manipulation (concatenation, permute, 2D padding)
+    * ReLU, Leaky ReLU, Parametric ReLU, ReLU1, ReLU6
+    * Softmax, Sigmoid, TanH, L2 Normalization
+    * Helper functions to copy (partial) tensors (mli_mov*)
+
+3. Supported data layout:
+    * Data layout HWC (Height-Width-Channel)
+
+4. Supported data format:
+    * Fixed point 8bit and 16bit (fx8 and fx16)
+    * Signed asymmetric 8bit quantization (sa8)
+    * Signed asymmetric datatype supports per-tensor or per channel quantization with 16bit scale factors.
+
+5. Slicing support: creation of sub-tenors and support for non-contiguous tensor data.
+
+6. Supported platforms:
+    * VPX
+    * x86 emulation
+
+6. Toolchains support:
+    * [MetaWare Development Tools](https://www.synopsys.com/dw/ipdir.php?ds=sw_metaware) version 2021.03 and newer.
+    * GCC 9.1.0 (for x86 emulation)
+    * MSVC 2019 (for x86 emulation)
 
 # Documentation
 
 embARC MLI library API documentation for version 2.0 is available in the [/doc](/doc) directory. It can be built from sources as described in the related [readme file](doc/README.md). 
 
-The documentation will be available online closer to the release date. 
-<!--Read the documentation at [github.io](https://foss-for-synopsys-dwc-arc-processors.github.io/embarc_mli/doc/build/html/index.html).-->
+The documentation will be available online closer to the final release date. 
 
 # Package Structure
 
-<!-- Requires update on the examples side-->
 `./bin`                               	- directory for embARC MLI library binary archive created during build  
 `./obj`                               	- directory for all intermediate artifacts created during build  
 `./cmake`                             	- contains CMake settings file  
@@ -148,34 +181,20 @@ As a result of configuration and build you will find `bin/native` folder with th
 
 The first step is to open a command line and change working directory to the root of the embARC MLI repo. Afterward, you can use one of the following commands.
 
-1. Build project to emulate ARC EMxD platform:
-    ```bash
-    gmake build ROUND_MODE=CONVERGENT 
-    ```
-
-2. Build project to emulate ARC VPX platform:
+1. Build project to emulate ARC VPX platform:
     ```bash
     gmake build ROUND_MODE=UP FULL_ACCU=OFF 
     ```
 
-3. Build project to emulate ARC VPX platform with full debug checking of parameters and assertions in runtime. Use multithreaded build process (4 threads):
+2. Build project to emulate ARC VPX platform with full debug checking of parameters and assertions in runtime. Use multithreaded build process (4 threads):
     ```bash
     gmake build ROUND_MODE=UP FULL_ACCU=OFF JOBS=4 MLI_DEBUG_MODE=DBG_MODE_FULL 
-    ```
-
-4. Reconfigure and build existing x86 project to emulate ARC EM platform in 4 threads with debug checking (no asserts):
-    ```bash
-    gmake build ROUND_MODE=CONVERGENT \
-	RECONFIGURE=ON JOBS=4 MLI_DEBUG_MODE=DBG_MODE_RET_CODES 
     ```
 
 
 ## ARC Processors
 
-Main target platforms for embARC MLI Library are ARC processors. The specific processor family is determined by *.tcf file provided for library configuration. Supported ARC Processor families:
-- ARC VPX 
-- ARC EMxD (partially optimized)
-- ARC HSxD (partially optimized)
+Main target platforms for embARC MLI Library are ARC processors. The specific processor family is determined by *.tcf file provided for library configuration. It is highly recommended to use embARC MLI 2.0 for VPX processor only. EM/HS targets are not properly tested and optimized. You can use [embARC MLI 1.1](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/releases/tag/Release_1.1). 
 
 embARC MLI Library build for ARC processors requires [MetaWare Development Tools](https://www.synopsys.com/dw/ipdir.php?ds=sw_metaware) (MWDT) version 2021.03 and higher.
 
@@ -187,7 +206,7 @@ To build embARC MLI library	you need
 gmake build TCF_FILE=<path_to_tcf> [BUILDLIB_DIR=<path_to_target_rt_libs>] <Additional options>
 ```
 
-[`TCF_FILE`](#tcf_file) is a mandatory option for ARC target. Package contains several TCF files in `/hw` directory with recommended target configs for evaluation or for existing ARC based boards (see related [readme file](hw/README.md)). 
+[`TCF_FILE`](#tcf_file) is a mandatory option for ARC target. 
 
 **In case you are going to compile and run tests or examples it is better to provide the path to a runtime library using the [`BUILDLIB_DIR`](#buildlib_dir) option.**
 
@@ -203,35 +222,30 @@ As a result of configuration and build you will find `bin/arc` folder with the M
 
 
 ### **Build Command Examples For ARC Processors**
+The following commands assume usage of the recommended VPX configuration. TCF for this configuration you need to generate using _tcfgen_ tool delivered with MetaWare Development tools. The first step is to open a command line and change working directory to the root of the embARC MLI repo. Then use the following command to generate recommended tcf file taking default `vpx5_integar_full` configuration as basis:
 
-The first step is to open a command line and change working directory to the root of the embARC MLI repo. Afterward, you can use one of the following commands.
+```bash
+tcfgen -o ./hw/vpx5_integer_full.tcf -tcf=vpx5_integer_full -iccm_size=0x80000 -dccm_size=0x40000
+```
+
+Afterward, you can use one of the following commands to configure and build the package:
+
 
 1. Build project for recommended ARC VPX evaluation target. [`BUILDLIB_DIR`](#buildlib_dir) is mandatory for this, but default "vpx5_integer_full" pack delivered with MWDT tools can be used. Use multithreaded build process (4 threads):
     ```bash
-    gmake TCF_FILE=../../hw/vpx5_integer_full.tcf BUILDLIB_DIR=vpx5_integer_full JOBS=4 build 
+    gmake TCF_FILE=./hw/vpx5_integer_full.tcf BUILDLIB_DIR=vpx5_integer_full JOBS=4 build 
     ```
 
-2. Build project for recommended ARC EM9D evaluation target. Default runtime libraries can be used. Use multithreaded build process (4 threads):
+2. Build project for recommended ARC VPX evaluation target optimized for code size and with full debug checking of parameters and assertions in runtime. Use multithreaded build process (4 jobs):
     ```bash
-    gmake TCF_FILE=../../hw/em9d.tcf JOBS=4 build
-    ```
-
-3. Build project for recommended ARC VPX evaluation target optimized for code size and with full debug checking of parameters and assertions in runtime. Use multithreaded build process (4 jobs):
-    ```bash
-    gmake build TCF_FILE=../../hw/vpx5_integer_full.tcf BUILDLIB_DIR=vpx5_integer_full \
+    gmake build TCF_FILE=./hw/vpx5_integer_full.tcf BUILDLIB_DIR=vpx5_integer_full \
 	OPTMODE=size MLI_DEBUG_MODE=DBG_MODE_FULL JOBS=4
     ```
 
-4. Reconfigure and build existing ARC project for recommended ARC EM9D evaluation target in 4 threads with debug checking (no asserts):
-    ```bash
-    gmake build TCF_FILE=../../hw/em9d.tcf BUILDLIB_DIR=em9d_voice_audio \
-	RECONFIGURE=ON MLI_DEBUG_MODE=DBG_MODE_RET_CODES JOBS=4 
-    ```
-
-5. Build project for recommended ARC VPX evaluation target using reference code. It's unoptimized straightforward and expected to be bitwise with optimized one. Use multithreaded build process (4 jobs) and artifacts are stored in `bin/arc_ref` and `obj/arc_ref`:
+3. Build project for recommended ARC VPX evaluation target using reference code. It's unoptimized straightforward and expected to be bitwise with optimized one. Use multithreaded build process (4 jobs) and artifacts are stored in `bin/arc_ref` and `obj/arc_ref`:
 
     ```bash
-    gmake build TCF_FILE=../../hw/vpx5_integer_full.tcf BUILDLIB_DIR=vpx5_integer_full \
+    gmake build TCF_FILE=./hw/vpx5_integer_full.tcf BUILDLIB_DIR=vpx5_integer_full \
 	MLI_BUILD_REFERENCE=ON JOBS=4
     ```
 
@@ -267,8 +281,9 @@ The first step is to open a command line and change working directory to the roo
 ### `TCF_FILE`
 **Description**: Tool configuration file (TCF) file path. 
 
-The TCF file defines ARC target processor hardware configuration.
-[`./hw`](/hw) directory contains several TCF files for evaluation, or you can supply your own TCF that aligns with your hardware configuration. This option is mandatory for ARC platform and must not be set for x86 host emulation.  
+The TCF file defines ARC target processor hardware configuration. 
+You can supply your own TCF that aligns with your hardware configuration. If you don't have a specific tcf file, you can use the _tcfgen_ util delivered with MetaWare Development tools. Basic _vpx5_integer_full_ template delivered with MetaWare Development tools might be a good starting point. The _tcfgen_ tool is documented in Linker and Utils guide which is also delivered with MetaWare Development tools. This option is mandatory for ARC platform and must not be set for x86 host emulation.  
+
 
 **Syntax**: `TCF_FILE=<tcf-file>`  
 **Values**: one of two options:
