@@ -278,7 +278,7 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
 #endif
     vNx4accshort_t acc = mli_math_init_accu<int16_t, vNx4accshort_t>(acc_init);
     acc = mli_math_mac_fx(acc, op1, op2);
-    res = mli_math_acc_cast_fx<vNx4char_t, vNx4accshort_t> (acc, shift_right);
+    res = mli_math_acc_cast_fx<vNx4char_t, vNx4accshort_t, false> (acc, shift_right);
     res = mli_math_asl_fx(res, shift_left);
 
     return res;
