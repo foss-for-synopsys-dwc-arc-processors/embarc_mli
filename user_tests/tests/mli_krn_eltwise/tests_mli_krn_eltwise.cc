@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -50,11 +50,11 @@ struct eltwise_test_operands {
 #if defined(CRC_RM_CONVERGENT) || defined(CRC_RM_UP)
 
 // Shared CRC Results
-const crc32_calc                                    test_1_chksum_sa8{ 0xd48163e7 },
-                                                    test_2_chksum_sa8{ 0x5EDDFBDA },
-                                                    test_3_chksum_sa8{ 0x3b9100e1 },
+const crc32_calc                                    test_1_chksum_sa8{ 0x8BF4D950 },
+                                                    test_2_chksum_sa8{ 0x2A1351FD },
+                                                    test_3_chksum_sa8{ 0x46D90B34 },
                                                     test_4_chksum_sa8{ 0xF22D7321 },
-                                                    test_5_chksum_sa8{ 0x9A14384C },
+                                                    test_5_chksum_sa8{ 0xC69DE0A9 },
                   test_6_chksum_fx16{ 0xfc026def }, test_6_chksum_sa8{ 0x3a54561 },
                   test_7_chksum_fx16{ 0x488ed527 }, test_7_chksum_sa8{ 0xD4B7515B },
                   test_8_chksum_fx16{ 0x68889D84 }, test_8_chksum_sa8{ 0x2D86F301 },
