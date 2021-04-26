@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020, Synopsys, Inc.
+ * Copyright 2019-2021, Synopsys, Inc.
  * All rights reserved.
  *
  * This source code is licensed under the BSD-3-Clause license found in
@@ -55,14 +55,20 @@ out_T eltwise_perform_operation(
     int32_t input1, input2;
 
     if (convert) {
+
         input1 = mli_math_sub_fx<int16_t> (op1, in_offset1);
         input2 = mli_math_sub_fx<int16_t> (op2, in_offset2);
         input1 = mli_math_mul_fx<int16_t, int32_t>((int16_t) input1, scale_factor1);
         input2 = mli_math_mul_fx<int16_t, int32_t>((int16_t) input2, scale_factor2);
+        if (func_type == ELTWISE_ADD || func_type == ELTWISE_SUB) {
+            input1 = mli_math_ashift_right_fx<int32_t>(input1, pre_op_shift1);
+            input2 = mli_math_ashift_right_fx<int32_t>(input2, pre_op_shift2);
+           }
     } else {
         input1 = mli_math_ashift_right_fx<int32_t>(op1, pre_op_shift1);
         input2 = mli_math_ashift_right_fx<int32_t>(op2, pre_op_shift2);
     }
+
 
     switch (func_type) {
 
@@ -249,14 +255,11 @@ void eltwise_prepare_and_run(
 
     MLI_PRINTF_FUNC();
     mli_prv_fx_init_dsp_ctrl();
-
-    int32_t in_scale_fx1 = 0, in_scale_fx2 = 0, out_scale_fx = 0,
-            scale_factor1 = 0, scale_factor2 = 0;
+    int32_t scale_factor1 = 0, scale_factor2 = 0;
     int16_t scale16_1 = 1, scale_1 = 1, scale16_2 = 1, scale_2 = 1, scale_out = 1,
             shift1 = 0, shift2 = 0, shift_out = 0;
     int16_t in_offset1 = 0, in_offset2 = 0, out_offset = 0;
     int pre_op_shift1 = 0, pre_op_shift2 = 0, post_op_shift = 0;
-    const int frac_bits_fx16 = (sizeof(int16_t) * 8) - 1;
 
     if (convert) {
         in_offset1 = in1->el_params.sa.zero_point.mem.i16;
@@ -291,23 +294,23 @@ void eltwise_prepare_and_run(
             scale16_1 = mli_math_asr_rnd_fx<int16_t>(scale16_1, shift);
             post_op_shift -= shift;
         } else {
-            in_scale_fx1 = mli_math_asr_rnd_fx<int32_t>(scale_1,
-                    (int32_t) shift1 - frac_bits_fx16);
-            in_scale_fx2 = mli_math_asr_rnd_fx<int32_t>(scale_2,
-                    (int32_t) shift2 - frac_bits_fx16);
-            out_scale_fx = mli_math_asr_rnd_fx<int32_t>(scale_out,
-                    (int32_t) shift_out - frac_bits_fx16);
-            scale_factor1 = mli_math_asr_rnd_fx<int32_t>(in_scale_fx1, -INT32_TO_INT16);
-            scale_factor2 = mli_math_asr_rnd_fx<int32_t>(in_scale_fx2, -INT32_TO_INT16);
-            scale_factor1 /= out_scale_fx;
-            scale_factor2 /= out_scale_fx;
-            post_op_shift = INT32_TO_INT16;
-            int norm1 = (scale_factor1 != 0) ? mli_math_norm_fx<int32_t, int>(scale_factor1) : 0;
-            int norm2 = (scale_factor2 != 0) ? mli_math_norm_fx<int32_t, int>(scale_factor2) : 0;
-            int shift = MAX(INT32_TO_INT16 - MIN(norm1, norm2), 0);
-            scale16_1 = mli_math_cast_fx<int32_t, int16_t>(scale_factor1, shift);
-            scale16_2 = mli_math_cast_fx<int32_t, int16_t>(scale_factor2, shift);
-            post_op_shift -= shift;
+            int norm_shift1, norm_shift2;
+            scale_factor1 = mli_math_norm_cast_fx<int32_t, int32_t>((int32_t)scale_1, &norm_shift1);
+            scale_factor2 = mli_math_norm_cast_fx<int32_t, int32_t>((int32_t)scale_2, &norm_shift2);
+            scale_factor1 /= scale_out;
+            scale_factor2 /= scale_out;
+            pre_op_shift1 = -norm_shift1 + shift1 - shift_out;
+            pre_op_shift2 = -norm_shift2 + shift2 - shift_out;
+            scale16_1 = mli_math_norm_cast_fx<int32_t, int16_t>(scale_factor1, &norm_shift1);
+            scale16_2 = mli_math_norm_cast_fx<int32_t, int16_t>(scale_factor2, &norm_shift2);
+            pre_op_shift1 -= norm_shift1;
+            pre_op_shift2 -= norm_shift2;
+            shift1 = MAX(pre_op_shift1 - MAX_MIN_UPPER_LIMIT_SHIFT, 0) + MIN(MUL_MAX_SHIFT + pre_op_shift1, 0);
+            shift2 = MAX(pre_op_shift2 - MAX_MIN_UPPER_LIMIT_SHIFT, 0) + MIN(MUL_MAX_SHIFT + pre_op_shift2, 0);
+            scale16_1 = mli_math_asr_rnd_fx<int16_t>(scale16_1, shift1);
+            scale16_2 = mli_math_asr_rnd_fx<int16_t>(scale16_2, shift2);
+            pre_op_shift1 -= shift1;
+            pre_op_shift2 -= shift2;
         }
     } else {
         if (func_type == ELTWISE_MUL) {

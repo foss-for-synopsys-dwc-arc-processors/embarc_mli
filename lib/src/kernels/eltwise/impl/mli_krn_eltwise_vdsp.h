@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -58,12 +58,12 @@ MLI_FORCE_INLINE vNx2short_t eltwise_perform_operation<vNx2short_t, vNx2short_t,
     int shift_right = MAX(post_op_shift, 0);
     int shift_left = MAX(-post_op_shift, 0);
 
-    #ifdef ROUND_UP
-        int32_t accu_init = (1 << shift_right) >> 1;
-        vNx2accint_t accu = mli_math_init_accu<int32_t, vNx2accint_t>(accu_init);
-    #else
-        #error Rounding mode not supported
-    #endif
+#ifdef ROUND_UP
+    int32_t accu_init = (1 << shift_right) >> 1;
+    vNx2accint_t accu = mli_math_init_accu<int32_t, vNx2accint_t>(accu_init);
+#else
+    #error Rounding mode not supported
+#endif
 
     accu = mli_math_mac_su_fx(accu, op1, (uint16_t) (1u << -pre_op_shift1));
     accu = mli_math_mac_su_fx(accu, op2, (uint16_t) (1u << -pre_op_shift2));
@@ -89,12 +89,12 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
     int shift_right = MAX(post_op_shift, 0);
     int shift_left = MAX(-post_op_shift, 0);
 
-    #ifdef ROUND_UP
-        int16_t accu_init = (1 << shift_right) >> 1;
-        vNx4accshort_t accu = mli_math_init_accu<int16_t, vNx4accshort_t>(accu_init);
-    #else
-        #error Rounding mode not supported
-    #endif
+#ifdef ROUND_UP
+    int16_t accu_init = (1 << shift_right) >> 1;
+    vNx4accshort_t accu = mli_math_init_accu<int16_t, vNx4accshort_t>(accu_init);
+#else
+    #error Rounding mode not supported
+#endif
 
     accu = mli_math_mac_su_fx(accu, op1, (uint8_t) (1u << -pre_op_shift1));
     accu = mli_math_mac_su_fx(accu, op2, (uint8_t) (1u << -pre_op_shift2));
@@ -117,22 +117,30 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
         const int pre_op_shift2,
         const int post_op_shift) {
     vNx4char_t res;
-
-    /* initialize the accumulator with the input offsets, the output offset, and the rounding value.*/
-    int32_t acc_init =  -in_offset1 * scale_factor1 - in_offset2 * scale_factor2;
-    acc_init += (out_offset << post_op_shift);
+    constexpr int mul_hi_shift = 16;
+    int shift1 = pre_op_shift1 - mul_hi_shift;
+    int shift_right1 = MAX(shift1, 1);
+    int shift_left1 = MAX(1 - shift1, 0);
+    int shift2 = pre_op_shift2 - mul_hi_shift;
+    int shift_right2 = MAX(shift2, 1);
+    int shift_left2 = MAX(1 - shift2, 0);
+    int out_offset1 = out_offset << shift_right1;
 #ifdef ROUND_UP
-    acc_init += ((1 << post_op_shift) >> 1); /* rounding half up */
+    out_offset1 += ((1 << shift_right1) >> 1);
 #else
     #error Rounding mode not supported
 #endif
-
-    vNx4accint_t acc = mli_math_init_accu<int32_t, vNx4accint_t>(acc_init);
-    acc = mli_math_mac_fx(acc, to_vNx4short_t(op1), scale_factor1);
-    acc = mli_math_mac_fx(acc, to_vNx4short_t(op2), scale_factor2);
-    /* rounding value is already added as part of the acc_init. therefore it shouldn't
-       be added again inside the cast functin.*/
-    res = mli_math_acc_cast_fx<vNx4char_t, vNx4accint_t, /*round = */false> (acc, post_op_shift);
+    vNx4short_t oper1 = mli_math_sub_fx(to_vNx4short_t(op1), (vNx4short_t)in_offset1);
+    vNx4short_t oper2 = mli_math_sub_fx(to_vNx4short_t(op2), (vNx4short_t)in_offset2);
+    oper1 = mli_math_asl_fx(oper1, shift_left1);
+    oper2 = mli_math_asl_fx(oper2, shift_left2);
+    vNx4short_t oper1_scaled = mli_math_mul_fx_high(oper1, scale_factor1);
+    vNx4short_t oper2_scaled = mli_math_mul_fx_high(oper2, scale_factor2);
+    oper1_scaled = mli_math_add_fx(oper1_scaled, (vNx4short_t)out_offset1);
+    oper1_scaled = mli_math_asr_fx(oper1_scaled, shift_right1);
+    oper2_scaled = mli_math_asr_rnd_fx(oper2_scaled, shift_right2);
+    vNx4short_t add_res = mli_math_add_fx(oper1_scaled, oper2_scaled);
+    res = mli_math_cast_fx<vNx4short_t, vNx4char_t>(add_res);
     return res;
 }
 
@@ -152,12 +160,12 @@ MLI_FORCE_INLINE vNx2short_t eltwise_perform_operation<vNx2short_t, vNx2short_t,
     int shift_left = MAX(-post_op_shift, 0);
     int shift_right = MAX(post_op_shift, 0);
 
-    #ifdef ROUND_UP
-        int32_t accu_init = (1 << shift_right) >> 1;
-        vNx2accint_t accu = mli_math_init_accu<int32_t, vNx2accint_t>(accu_init);
-    #else
-        #error Rounding mode not supported
-    #endif
+#ifdef ROUND_UP
+    int32_t accu_init = (1 << shift_right) >> 1;
+    vNx2accint_t accu = mli_math_init_accu<int32_t, vNx2accint_t>(accu_init);
+#else
+    #error Rounding mode not supported
+#endif
 
     accu = mli_math_mac_su_fx(accu, op1, (uint16_t) (1u << -pre_op_shift1));
     accu = mli_math_msub_su_fx(accu, op2, (uint16_t) (1u << -pre_op_shift2));
@@ -183,12 +191,12 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
     int shift_left = MAX(-post_op_shift, 0);
     int shift_right = MAX(post_op_shift, 0);
 
-    #ifdef ROUND_UP
-        int16_t accu_init = (1 << shift_right) >> 1;
-        vNx4accshort_t accu = mli_math_init_accu<int16_t, vNx4accshort_t>(accu_init);
-    #else
-        #error Rounding mode not supported
-    #endif
+#ifdef ROUND_UP
+    int16_t accu_init = (1 << shift_right) >> 1;
+    vNx4accshort_t accu = mli_math_init_accu<int16_t, vNx4accshort_t>(accu_init);
+#else
+    #error Rounding mode not supported
+#endif
 
     accu = mli_math_mac_su_fx(accu, op1, (uint8_t) (1u << -pre_op_shift1));
     accu = mli_math_msub_su_fx(accu, op2, (uint8_t) (1u << -pre_op_shift2));
@@ -211,21 +219,30 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
         const int pre_op_shift2,
         const int post_op_shift) {
     vNx4char_t res;
-    int32_t acc_init = in_offset2 * scale_factor2 - in_offset1 * scale_factor1;
-    acc_init += (out_offset << post_op_shift);
-    #ifdef ROUND_UP
-        acc_init += ((1 << post_op_shift) >> 1); /* rounding half up */
-    #else
-        #error Rounding mode not supported
-    #endif
-    vNx4accint_t acc = mli_math_init_accu<int32_t, vNx4accint_t>(acc_init);
-
-    acc = mli_math_mac_fx(acc, to_vNx4short_t(op1), scale_factor1);
-    acc = mli_math_msub_fx(acc, to_vNx4short_t(op2), scale_factor2);
-    /* rounding value is already added as part of the acc_init. therefore it shouldn't
-       be added again inside the cast functin.*/
-    res = mli_math_acc_cast_fx<vNx4char_t, vNx4accint_t, /*round = */false> (acc, post_op_shift);
-
+    constexpr int mul_hi_shift = 16;
+    int shift1 = pre_op_shift1 - mul_hi_shift;
+    int shift_right1 = MAX(shift1, 1);
+    int shift_left1 = MAX(1 - shift1, 0);
+    int shift2 = pre_op_shift2 - mul_hi_shift;
+    int shift_right2 = MAX(shift2, 1);
+    int shift_left2 = MAX(1 - shift2, 0);
+    int out_offset1 = out_offset << shift_right1;
+#ifdef ROUND_UP
+    out_offset1 += ((1 << shift_right1) >> 1);
+#else
+    #error Rounding mode not supported
+#endif
+    vNx4short_t oper1 = mli_math_sub_fx(to_vNx4short_t(op1), (vNx4short_t)in_offset1);
+    vNx4short_t oper2 = mli_math_sub_fx(to_vNx4short_t(op2), (vNx4short_t)in_offset2);
+    oper1 = mli_math_asl_fx(oper1, shift_left1);
+    oper2 = mli_math_asl_fx(oper2, shift_left2);
+    vNx4short_t oper1_scaled = mli_math_mul_fx_high(oper1, scale_factor1);
+    vNx4short_t oper2_scaled = mli_math_mul_fx_high(oper2, scale_factor2);
+    oper1_scaled = mli_math_add_fx(oper1_scaled, (vNx4short_t)out_offset1);
+    oper1_scaled = mli_math_asr_fx(oper1_scaled, shift_right1);
+    oper2_scaled = mli_math_asr_rnd_fx(oper2_scaled, shift_right2);
+    vNx4short_t sub_res = mli_math_sub_fx(oper1_scaled, oper2_scaled);
+    res = mli_math_cast_fx<vNx4short_t, vNx4char_t>(sub_res);
     return res;
 }
 
@@ -244,11 +261,11 @@ MLI_FORCE_INLINE vNx2short_t eltwise_perform_operation<vNx2short_t, vNx2short_t,
     vNx2short_t res;
     int shift_left = MAX(-post_op_shift, 0);
     int shift_right = MAX(post_op_shift, 0);
-    #ifdef ROUND_UP
-        int32_t acc_init = ((1 << shift_right) >> 1);
-    #else
-        #error Rounding mode not supported
-    #endif
+#ifdef ROUND_UP
+    int32_t acc_init = ((1 << shift_right) >> 1);
+#else
+    #error Rounding mode not supported
+#endif
     vNx2accint_t acc = mli_math_init_accu<int32_t, vNx2accint_t>(acc_init);
     acc = mli_math_mac_fx(acc, op1, op2);
     res = mli_math_acc_cast_fx<vNx2short_t, vNx2accint_t, false>(acc, shift_right);
