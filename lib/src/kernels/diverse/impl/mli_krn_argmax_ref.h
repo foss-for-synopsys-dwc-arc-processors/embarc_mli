@@ -52,6 +52,27 @@ static MLI_FORCE_INLINE void heapify(
     }
 }
 
+template <typename in_T, typename out_T>
+static MLI_FORCE_INLINE void inner_loop(const generic_tensor_private_t<MLI_PTR(in_T)> *src_prv,
+                                        const int dim0_idx,
+                                        const int dim1_idx,
+                                        const int dim2_idx,
+                                        int dim3_idx,
+                                        const int dim3_end,
+                                        const int32_t topk,
+                                        MLI_OUT_PTR(out_T) dst_tensor_arr) {
+    const MLI_PTR(in_T) src_arr = src_prv->ptr;
+    for (; dim3_idx < dim3_end; ++dim3_idx) {
+        int src_pos = POS(src_prv, dim0_idx, dim1_idx, dim2_idx, dim3_idx);
+        if (src_arr[dst_tensor_arr[0]] > src_arr[src_pos])
+            continue;
+        else {
+            dst_tensor_arr[0] = src_pos;
+            heapify(src_arr, topk, 0, dst_tensor_arr);
+        }
+    }
+}
+
 /* Main function to select top k elements using modified heap sort */
 template <typename in_T, typename out_T>
 static MLI_FORCE_INLINE void heap_select_k(
@@ -83,19 +104,12 @@ static MLI_FORCE_INLINE void heap_select_k(
         dim_end[i] = (argmax_dim == i) ? slice_idx + 1 : src_prv->shape[i];
     }
 
-    int dim0_idx, dim1_idx, dim2_idx, dim3_idx;
+    int dim0_idx, dim1_idx, dim2_idx;
     for (dim0_idx = dim_start[0]; dim0_idx < dim_end[0]; ++dim0_idx) {
         for (dim1_idx = dim_start[1]; dim1_idx < dim_end[1]; ++dim1_idx) {
             for (dim2_idx = dim_start[2]; dim2_idx < dim_end[2]; ++dim2_idx) {
-                for (dim3_idx = dim_start[3]; dim3_idx < dim_end[3]; ++dim3_idx) {
-                    int src_pos = POS(src_prv, dim0_idx, dim1_idx, dim2_idx, dim3_idx);
-                    if (src_arr[dst_tensor_arr[0]] > src_arr[src_pos])
-                        continue;
-                    else {
-                        dst_tensor_arr[0] = src_pos;
-                        heapify(src_arr, topk, 0, dst_tensor_arr);
-                    }
-                }
+                mli::krn::inner_loop(src_prv, dim0_idx, dim1_idx, dim2_idx,
+                                     dim_start[3], dim_end[3], topk, dst_tensor_arr);
                 dim_start[3] = dim_continue[3];
             }
             dim_start[2] = dim_continue[2];
