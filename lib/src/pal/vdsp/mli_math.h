@@ -2058,6 +2058,26 @@ MLI_FORCE_INLINE pvNx2 init_predicate(vNx2short_t in) {
     return to_pvNx2(in);
 }
 
+MLI_FORCE_INLINE pvNx4 init_predicate(vNx4short_t in) {
+    return to_pvNx4(to_vNx4char_t(in));
+}
+
+MLI_FORCE_INLINE int32_t get_predicate_count(pvNx4 p) {
+    return vvpnumset(p);
+}
+
+MLI_FORCE_INLINE int32_t move_predicate_lo_to_scalar(pvNx4 p) {
+    return vvpmovps_0(p);
+}
+
+MLI_FORCE_INLINE int32_t move_predicate_hi_to_scalar(pvNx4 p) {
+    return vvpmovps_1(p);
+}
+
+MLI_FORCE_INLINE vNuint_t mli_math_trailing_zeros(vNuint_t in) {
+    return vvnumtz(in);
+}
+
 template<typename vec_T, typename pred_T>
 MLI_FORCE_INLINE vec_T mli_math_select_fx(pred_T predicate, vec_T L, vec_T R) {
     return (vec_T) vvsel(predicate, L, R);
