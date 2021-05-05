@@ -313,13 +313,25 @@ void eltwise_prepare_and_run(
             pre_op_shift2 -= shift2;
         }
     } else {
+        constexpr int byte_size = 8;
+        /*
+         * max_shift will be determined according to the size of the out register to avoid
+         * overflow in the rounding value.
+         */
+        int max_shift = sizeof(io_T) * byte_size;
         if (func_type == ELTWISE_MUL) {
+            max_shift = 2 * max_shift - 1;
             post_op_shift = mli_prv_calc_shift(in1, in2, out);
+        } else if (func_type == ELTWISE_MIN || func_type == ELTWISE_MAX) {
+            max_shift = max_shift - 1;
+            post_op_shift = in1->el_params.fx.frac_bits - out->el_params.fx.frac_bits;
         } else {
+            max_shift = 2 * max_shift - 1;
             pre_op_shift1 = MIN(in1->el_params.fx.frac_bits -  in2->el_params.fx.frac_bits, 0);
             pre_op_shift2 = MIN(in2->el_params.fx.frac_bits -  in1->el_params.fx.frac_bits, 0);
             post_op_shift = MAX(in1->el_params.fx.frac_bits, in2->el_params.fx.frac_bits) - out->el_params.fx.frac_bits;
         }
+        post_op_shift = MIN(post_op_shift, max_shift);
     }
 
     /* Extract general parameters for function */
