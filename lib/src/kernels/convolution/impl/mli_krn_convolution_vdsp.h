@@ -70,12 +70,21 @@ MLI_FORCE_INLINE void convolution2D_nopad(
     const int clmn_begin = perception_area.clmn_beg;
     const int clmn_end = perception_area.clmn_end;
     int width = clmn_end - clmn_begin;
+    int height = row_end - row_begin;
     constexpr int numaccuregs = sizeof(acc_T) / sizeof(vNint_t);
     // for larger kernel sizes in combination with an unroll of 4, the gather load of the input samples
     // don't fit into one vector anymore. in those cases fall back to unroll 2
     constexpr int unroll = ((numaccuregs > 2) || (fix_kernel_width * fix_kernel_height * 4 > _VDSP_NUM_8BIT_LANES)) ? 2 : 4;
-    int remainder_width = width & (unroll - 1);
-    int unroll_width = width - remainder_width;
+    int out_w_inc = out.col_mem_stride;
+    int out_h_inc = out.row_mem_stride - width * out_w_inc;
+    int in_w_inc = in.col_mem_stride * stride_width;
+    int in_h_inc = in.row_mem_stride * stride_height - width * in_w_inc;
+    if ((fix_kernel_width == 1) && (fix_kernel_height == 1)) {
+        if ((out_h_inc == 0) && (in_h_inc == 0)) {
+            width = width * height;
+            height = 1;
+        }
+    }
 
     for (int out_ch_idx = 0; out_ch_idx < out.ch; out_ch_idx+= get_number_lanes<acc_T>()) {
         int remaining_ch = out.ch - out_ch_idx;
@@ -108,14 +117,50 @@ MLI_FORCE_INLINE void convolution2D_nopad(
                 + in.row_mem_stride * h_idx_in
                 + in.col_mem_stride * w_idx_in;
 
-        int out_w_inc = out.col_mem_stride;
-        int out_h_inc = out.row_mem_stride - width * out_w_inc;
-        int in_w_inc = in.col_mem_stride * stride_width;
-        int in_h_inc = in.row_mem_stride * stride_height - width * in_w_inc;
+        for (int H_idx = 0; H_idx < height; H_idx++) {
+            int W_cnt = 0;
 
-        for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
-            int W_idx = clmn_begin;
-            for (int W_cnt = 0; W_cnt < remainder_width; W_cnt++, W_idx++) {
+            for (W_cnt = 0; W_cnt <= width - unroll; W_cnt+=unroll) {
+                auto accu = init_accu_grp(pre_accu);
+
+                if ((fix_kernel_width == 1) && (fix_kernel_height == 1)) {
+                    accu = mli::krn::dotprod1D_v_unroll<unroll>(in_ptr, w_ptr, accu, in.ch, in.ch_mem_stride, in.col_mem_stride, weights.in_ch_mem_stride);
+                } else if ((fix_kernel_width > 0) && (fix_kernel_height > 0) && (dilation_width == stride_width)) {
+                    // unrolled version with fixed kernelsize
+                    accu = mli::krn::dotprod3D_v_unroll<unroll, true>(in_ptr, w_ptr, clmns, rows, in.ch,
+                              in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride, in_w_inc,
+                              weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride,
+                              accu);
+                } else if (weights.row_mem_stride == clmns * weights.col_mem_stride) {
+                    accu = mli::krn::dotprod3D_v_nopad_unroll<unroll>(in_ptr, w_ptr, clmns, rows, in.ch,
+                              in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride,
+                              weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride, in_w_inc,
+                              accu);
+                } else {
+                    accu = mli::krn::dotprod3D_v_unroll<unroll, false>(in_ptr, w_ptr, clmns, rows, in.ch,
+                              in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride, in_w_inc,
+                              weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride,
+                              accu);
+                }
+                // Cast result to output type, apply built-in ReLU Applying and write result
+                mli::krn::result_cast_relu_store_v(out_ptr, accu.accu0, &output_params, val_min_limit, val_max_limit, current_ch);
+                out_ptr += out_w_inc;
+                if (unroll > 1) {
+                    mli::krn::result_cast_relu_store_v(out_ptr, accu.accu1, &output_params, val_min_limit, val_max_limit, current_ch);
+                    out_ptr += out_w_inc;
+                }
+                if (unroll > 2) {
+                    mli::krn::result_cast_relu_store_v(out_ptr, accu.accu2, &output_params, val_min_limit, val_max_limit, current_ch);
+                    out_ptr += out_w_inc;
+                }
+                if (unroll > 3) {
+                    mli::krn::result_cast_relu_store_v(out_ptr, accu.accu3, &output_params, val_min_limit, val_max_limit, current_ch);
+                    out_ptr += out_w_inc;
+                }
+                in_ptr += in_w_inc * unroll;
+            } // for W_cnt
+
+            for (; W_cnt < width; W_cnt++) {
 
                 acc_T accu = pre_accu;
 
@@ -144,41 +189,6 @@ MLI_FORCE_INLINE void convolution2D_nopad(
                 in_ptr += in_w_inc;
             } // for W_idx
 
-            for (int W_cnt = 0; W_cnt < unroll_width; W_cnt+=unroll, W_idx+=unroll) {
-                auto accu = init_accu_grp(pre_accu);
-
-                if ((fix_kernel_width == 1) && (fix_kernel_height == 1)) {
-                    accu = mli::krn::dotprod1D_v_unroll<unroll>(in_ptr, w_ptr, accu, in.ch, in.ch_mem_stride, in.col_mem_stride, weights.in_ch_mem_stride);
-                } else if ((fix_kernel_width > 0) && (fix_kernel_height > 0) && (dilation_width == stride_width)) {
-                    // unrolled version with fixed kernelsize
-                    accu = mli::krn::dotprod3D_v_unroll<unroll, true>(in_ptr, w_ptr, clmns, rows, in.ch,
-                              in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride, in_w_inc,
-                              weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride,
-                              accu);
-                } else if (weights.row_mem_stride == clmns * weights.col_mem_stride) {
-                    accu = mli::krn::dotprod3D_v_nopad_unroll<unroll>(in_ptr, w_ptr, clmns, rows, in.ch,
-                              in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride,
-                              weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride, in_w_inc,
-                              accu);
-                } else {
-                    accu = mli::krn::dotprod3D_v_unroll<unroll, false>(in_ptr, w_ptr, clmns, rows, in.ch,
-                              in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride, in_w_inc,
-                              weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride,
-                              accu);
-                }
-                // Cast result to output type, apply built-in ReLU Applying and write result
-                mli::krn::result_cast_relu_store_v(out_ptr, accu.accu0, &output_params, val_min_limit, val_max_limit, current_ch);
-                out_ptr += out_w_inc;
-                mli::krn::result_cast_relu_store_v(out_ptr, accu.accu1, &output_params, val_min_limit, val_max_limit, current_ch);
-                if (unroll > 2) {
-                    out_ptr += out_w_inc;
-                    mli::krn::result_cast_relu_store_v(out_ptr, accu.accu2, &output_params, val_min_limit, val_max_limit, current_ch);
-                    out_ptr += out_w_inc;
-                    mli::krn::result_cast_relu_store_v(out_ptr, accu.accu3, &output_params, val_min_limit, val_max_limit, current_ch);
-                }
-                out_ptr += out_w_inc;
-                in_ptr += in_w_inc * unroll;
-            } // for W_idx
             out_ptr += out_h_inc;
             in_ptr += in_h_inc;
         } // for H_idx
@@ -577,7 +587,7 @@ MLI_FORCE_INLINE void depthwise_convolution2D_nopad(
                                         weights.col_mem_stride,
                                         weights.row_mem_stride);
                 } else {
-                    accu = mli::krn::vdsp::dotprod2D_vv(in_ptr, w_ptr, accu, clmns, rows,
+                    accu = mli::krn::vdsp::dotprod2D_vv_unrolled(in_ptr, w_ptr, accu, clmns, rows,
                                         in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height,
                                         weights.col_mem_stride,
                                         weights.row_mem_stride);
@@ -614,28 +624,34 @@ MLI_FORCE_INLINE void depthwise_convolution2D_pad(
     const int row_end = perception_area.row_end;
     const int clmn_begin = 0;
     const int clmn_end = perception_area.clmn_end;
+    int width = clmn_end - clmn_begin;
+    constexpr int unroll = 1;
+    int unroll_width = MAX(width - padding_left, 0) & ~(unroll - 1);
+    int remainder_width = width - unroll_width;
 
     MLI_ASSERT(quant_params_get_weigths_zeropoint(&quant_params) == 0); /* this optimized implementation assumes no zero offset for weights */
 
-    for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
-        for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
-            // Define area of input and filter for convolution
-            // comp - compensation values for valid area definition
-            const mli_compensations comp = mli_prv_valid_area_compensations(
-                    H_idx, W_idx, in.height, in.width,
-                    weights.kernel_height, weights.kernel_width,
-                    stride_height, stride_width, padding_left, padding_top,
-                    dilation_height, dilation_width);
+    for (int in_ch_idx = 0; in_ch_idx < in.ch; in_ch_idx += get_number_lanes<acc_T>()) {
+        const int out_ch_idx = in_ch_idx;
+        int remaining_ch = in.ch - in_ch_idx;
+        int current_ch = MIN(remaining_ch, get_number_lanes<acc_T>()); /* nr channels computed in this loop iteration */
+        auto output_params = adjust_quant_params_v(&quant_params, out_ch_idx);
 
-            const int rows = weights.kernel_height - comp.kernel_top - comp.kernel_bottom;
-            const int clmns = weights.kernel_width - comp.kernel_right - comp.kernel_left;
-            const int h_idx_in = (H_idx * stride_height - padding_top + comp.in_top);
-            const int w_idx_in = (W_idx * stride_width - padding_left + comp.in_left);
+        for (int H_idx = row_begin; H_idx < row_end; H_idx++) {
+            for (int W_idx = 0; W_idx < remainder_width; W_idx++) {
+                // Define area of input and filter for convolution
+                // comp - compensation values for valid area definition
+                const mli_compensations comp = mli_prv_valid_area_compensations(
+                        H_idx, W_idx, in.height, in.width,
+                        weights.kernel_height, weights.kernel_width,
+                        stride_height, stride_width, padding_left, padding_top,
+                        dilation_height, dilation_width);
+    
+                const int rows = weights.kernel_height - comp.kernel_top - comp.kernel_bottom;
+                const int clmns = weights.kernel_width - comp.kernel_right - comp.kernel_left;
+                const int h_idx_in = (H_idx * stride_height - padding_top + comp.in_top);
+                const int w_idx_in = (W_idx * stride_width - padding_left + comp.in_left);
 
-            for (int in_ch_idx = 0; in_ch_idx < in.ch; in_ch_idx += get_number_lanes<acc_T>()) {
-                const int out_ch_idx = in_ch_idx;
-                int remaining_ch = in.ch - in_ch_idx;
-                int current_ch = MIN(remaining_ch, get_number_lanes<acc_T>()); /* nr channels computed in this loop iteration */
 
                 const MLI_PTR(io_T) in_ptr = in.ptr
                         + in.row_mem_stride * h_idx_in
@@ -651,7 +667,6 @@ MLI_FORCE_INLINE void depthwise_convolution2D_pad(
                         + weights.col_mem_stride * comp.kernel_left
                         + weights.in_ch_mem_stride * 0
                         + weights.out_ch_mem_stride * out_ch_idx;
-                auto output_params = adjust_quant_params_v(&quant_params, out_ch_idx);
 
                 // Convolution core. Here calculations performes in a unfolded expression way:
                 // out_val = (x-x_zp)*(w) + b) = -sum_i(w*x_zp) + sum(x*w) + b
@@ -669,9 +684,69 @@ MLI_FORCE_INLINE void depthwise_convolution2D_pad(
 
                 // Cast result to output type, apply built-in ReLU Applying and write result
                 mli::krn::result_cast_relu_store_v(out_ptr, accu, &output_params, val_min_limit, val_max_limit, current_ch);
-            } // for in_ch_idx
-        } // for W_idx
-    } // for H_idx
+            } // for W_idx remainder
+
+            // Define area of input and filter for convolution
+            // comp - compensation values for valid area definition
+            mli_compensations comp = mli_prv_valid_area_compensations(
+                    H_idx, remainder_width, in.height, in.width,
+                    weights.kernel_height, weights.kernel_width,
+                    stride_height, stride_width, padding_left, padding_top,
+                    dilation_height, dilation_width);
+
+            // check the compensations to be zero only in case we use the unrolled loop
+            MLI_ASSERT((width == remainder_width) || (comp.kernel_right == 0));
+            MLI_ASSERT((width == remainder_width) || (comp.kernel_left == 0));
+            MLI_ASSERT((width == remainder_width) || (comp.in_left == 0));
+            comp.kernel_right = 0;
+            comp.kernel_left = 0;
+            comp.in_left = 0;
+
+            const int rows = weights.kernel_height - comp.kernel_top - comp.kernel_bottom;
+            const int clmns = weights.kernel_width - comp.kernel_right - comp.kernel_left;
+            const int h_idx_in = (H_idx * stride_height - padding_top + comp.in_top);
+            const int w_idx_in = (remainder_width * stride_width - padding_left + comp.in_left);
+
+
+            const MLI_PTR(io_T) in_ptr = in.ptr
+                    + in.row_mem_stride * h_idx_in
+                    + in.col_mem_stride * w_idx_in
+                    + in.ch_mem_stride * in_ch_idx;
+            MLI_CONV_OUT_PTR(io_T) out_ptr = out.ptr
+                    + out.row_mem_stride * H_idx
+                    + out.col_mem_stride * remainder_width
+                    + out.ch_mem_stride * out_ch_idx;
+
+            const MLI_PTR(w_T) w_ptr = weights.ptr
+                    + weights.row_mem_stride * comp.kernel_top
+                    + weights.col_mem_stride * comp.kernel_left
+                    + weights.in_ch_mem_stride * 0
+                    + weights.out_ch_mem_stride * out_ch_idx;
+
+            // Convolution core. Here calculations performes in a unfolded expression way:
+            // out_val = (x-x_zp)*(w) + b) = -sum_i(w*x_zp) + sum(x*w) + b
+            //============================================
+            acc_T pre_accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
+            pre_accu = mli::krn::bias_additive(&biases[out_ch_idx], pre_accu, &output_params);
+            pre_accu = mli::krn::weights_additive(w_ptr, pre_accu, &quant_params, clmns, rows, 1 /*channel*/,
+                                    weights.col_mem_stride,
+                                    weights.row_mem_stride,
+                                    0 /* channel step */);
+
+            for (int W_idx = remainder_width; W_idx < width; W_idx++) {
+                acc_T accu = pre_accu;
+                accu = mli::krn::dotprod2D_vv(in_ptr, w_ptr, accu, clmns, rows,
+                                    in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height,
+                                    weights.col_mem_stride,
+                                    weights.row_mem_stride);
+
+                // Cast result to output type, apply built-in ReLU Applying and write result
+                mli::krn::result_cast_relu_store_v(out_ptr, accu, &output_params, val_min_limit, val_max_limit, current_ch);
+                out_ptr += out.col_mem_stride;
+                in_ptr += in.col_mem_stride * stride_width * unroll;
+            } // for W_idx
+        } // for H_idx
+    } // for in_ch_idx
 }
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
