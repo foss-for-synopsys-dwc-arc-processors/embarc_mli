@@ -152,6 +152,34 @@ static MLI_FORCE_INLINE acc_T dotprod2D_vv(
         int kern_row_step) {
     in_row_step -= width * in_col_step;
     kern_row_step -= width * kern_col_step;
+
+    for (int row = 0; row < height; row++) {
+#pragma clang loop pipeline(enable)
+#pragma clang loop pipeline_options(0x10)
+        for (int clmn = 0; clmn < width; clmn++) {
+            accu = mli_prv_mac_load_v_v(accu, krn, in);
+            in += in_col_step;
+            krn += kern_col_step;
+        }
+        in += in_row_step;
+        krn += kern_row_step;
+    }
+    return accu;
+}
+
+template <typename io_T, typename w_T, typename acc_T>
+static MLI_FORCE_INLINE acc_T dotprod2D_vv_unrolled(
+        const MLI_PTR(io_T) __restrict in,
+        const MLI_PTR(w_T)  __restrict krn,
+        acc_T accu,
+        const int width,
+        const int height,
+        int in_col_step,
+        int in_row_step,
+        int kern_col_step,
+        int kern_row_step) {
+    in_row_step -= width * in_col_step;
+    kern_row_step -= width * kern_col_step;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wpass-failed"
 
