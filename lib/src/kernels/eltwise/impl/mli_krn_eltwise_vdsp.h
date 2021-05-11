@@ -130,8 +130,8 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
 #else
     #error Rounding mode not supported
 #endif
-    vNx4short_t oper1 = mli_math_sub_fx(to_vNx4short_t(op1), (vNx4short_t)in_offset1);
-    vNx4short_t oper2 = mli_math_sub_fx(to_vNx4short_t(op2), (vNx4short_t)in_offset2);
+    vNx4short_t oper1 = mli_math_sub_fx(mli_math_cast_fx<vNx4char_t, vNx4short_t>(op1), (vNx4short_t)in_offset1);
+    vNx4short_t oper2 = mli_math_sub_fx(mli_math_cast_fx<vNx4char_t, vNx4short_t>(op2), (vNx4short_t)in_offset2);
     oper1 = mli_math_asl_fx(oper1, shift_left1);
     oper2 = mli_math_asl_fx(oper2, shift_left2);
     vNx4short_t oper1_scaled = mli_math_mul_fx_high(oper1, scale_factor1);
@@ -232,8 +232,8 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
 #else
     #error Rounding mode not supported
 #endif
-    vNx4short_t oper1 = mli_math_sub_fx(to_vNx4short_t(op1), (vNx4short_t)in_offset1);
-    vNx4short_t oper2 = mli_math_sub_fx(to_vNx4short_t(op2), (vNx4short_t)in_offset2);
+    vNx4short_t oper1 = mli_math_sub_fx(mli_math_cast_fx<vNx4char_t, vNx4short_t>(op1), (vNx4short_t)in_offset1);
+    vNx4short_t oper2 = mli_math_sub_fx(mli_math_cast_fx<vNx4char_t, vNx4short_t>(op2), (vNx4short_t)in_offset2);
     oper1 = mli_math_asl_fx(oper1, shift_left1);
     oper2 = mli_math_asl_fx(oper2, shift_left2);
     vNx4short_t oper1_scaled = mli_math_mul_fx_high(oper1, scale_factor1);
@@ -354,8 +354,8 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
     vNx4short_t vacc16 = mli_math_acc_cast_fx<vNx4short_t, vNx4accshort_t, false>(acc16, preshift);
 #else
 
-    vNx4short_t op1_offset = to_vNx4short_t(op1) - in_offset1;
-    vNx4short_t op2_offset = to_vNx4short_t(op2) - in_offset2;
+    vNx4short_t op1_offset = mli_math_cast_fx<vNx4char_t, vNx4short_t>(op1) - in_offset1;
+    vNx4short_t op2_offset = mli_math_cast_fx<vNx4char_t, vNx4short_t>(op2) - in_offset2;
     vNx4int_t acc32 = mli_math_mul_fx<vNx4short_t, vNx4int_t>(op1_offset, op2_offset);
 
     /*
@@ -445,7 +445,7 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
 #else
     #error Rounding mode not supported
 #endif
-    vNx4short_t max = to_vNx4short_t(mli_math_max_fx(op1, op2));
+    vNx4short_t max = mli_math_cast_fx<vNx4char_t, vNx4short_t>(mli_math_max_fx(op1, op2));
     max = mli_math_sub_fx(max, (vNx4short_t)in_offset1);
     max = mli_math_asl_fx(max, shift_left);
     vNx4short_t max_scaled = mli_math_mul_fx_high(max, scale_factor1);
@@ -526,7 +526,7 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
 #else
     #error Rounding mode not supported
 #endif
-    vNx4short_t max = to_vNx4short_t(mli_math_min_fx(op1, op2));
+    vNx4short_t max = mli_math_cast_fx<vNx4char_t, vNx4short_t>(mli_math_min_fx(op1, op2));
     max = mli_math_sub_fx(max, (vNx4short_t)in_offset1);
     max = mli_math_asl_fx(max, shift_left);
     vNx4short_t max_scaled = mli_math_mul_fx_high(max, scale_factor1);
