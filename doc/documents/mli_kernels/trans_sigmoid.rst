@@ -54,7 +54,7 @@ parameters are shown in the following table:
    | ``in``         | ``mli_tensor *``     | [IN] Pointer to constant input tensor.       |
    +----------------+----------------------+----------------------------------------------+
    | ``lut``        | ``mli_lut *``        | [IN] Pointer to a valid LUT table            |
-   |                |                      |  structure prepared for sigmoid  activation. |
+   |                |                      | structure prepared for sigmoid  activation.  |
    +----------------+----------------------+----------------------------------------------+
    | ``out``        | ``mli_tensor *``     | [OUT] Pointer to output tensor.              |
    |                |                      | Result is stored here                        |

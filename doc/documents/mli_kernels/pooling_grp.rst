@@ -56,7 +56,7 @@ Functions in this group use the ``mli_pool_cfg`` structure, defined as:
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    
    pool_max.rst
    pool_avg.rst 

@@ -60,7 +60,7 @@ Functions in this group typically use the ``mli_rnn_cell_cfg`` structure, define
 ..
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    
    rec_fully_con.rst
    rec_rnn_dense.rst

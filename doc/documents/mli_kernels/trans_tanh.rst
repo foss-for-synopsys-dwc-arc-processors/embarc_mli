@@ -53,7 +53,7 @@ parameters are shown in the following table:
    | ``in``         | ``mli_tensor *``   | [IN] Pointer to constant input tensor.     |
    +----------------+--------------------+--------------------------------------------+
    | ``lut``        | ``mli_lut *``      | [IN] Pointer to a valid LUT table          |
-   |                |                    |  structure prepared for TanH activation.   |
+   |                |                    | structure prepared for TanH activation.    |
    +----------------+--------------------+--------------------------------------------+
    | ``out``        | ``mli_tensor *``   | [OUT] Pointer to output tensor.            |
    |                |                    | Result is stored here.                     |
@@ -83,7 +83,7 @@ Ensure that you satisfy the following conditions before calling the function:
    (that is, the total amount of elements in input tensor) and valid ``mem_stride`` field.
    Other fields are filled by kernel (shape, rank and element specific parameters).
 
- - ``lut`` structure must be valid and prepared for sigmoid activation function (see :ref:`lut_prot`).
+ - ``lut`` structure must be valid and prepared for TanH activation function (see :ref:`lut_prot`).
 
 For **sa8** versions of kernel, in addition to the preceding conditions, ensure that you 
 satisfy the following conditions before calling the function: 
@@ -98,7 +98,7 @@ tensor are configured in the following way:
 
  - **fx16**
 
-    - ``out.el_params.fx.frac_bits`` is set to 15. Hence, the maximum representable value of sigmoid is
+    - ``out.el_params.fx.frac_bits`` is set to 15. Hence, the maximum representable value of TanH is
       equivalent to 0.999969482421875 (not 1.0).
 
  - **sa8**
