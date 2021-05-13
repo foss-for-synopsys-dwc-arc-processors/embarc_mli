@@ -41,11 +41,11 @@ and memory strides).
    tensors is acceptable. Partial overlaps result in undefined behavior.
 ..
 
-Kernels which implement Leaky ReLU functions have the following prototype:
+Kernels which implement Parametric ReLU functions have the following prototype:
 
 .. code:: c
 
-   mli_status mli_krn_leaky_relu_<data_format>(
+   mli_status mli_krn_prelu_<data_format>(
       const mli_tensor  *in,
       const mli_tensor  *slope_coeffs,
       const mli_prelu_cfg  *cfg,

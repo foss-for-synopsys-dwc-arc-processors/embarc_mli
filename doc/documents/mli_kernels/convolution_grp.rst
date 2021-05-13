@@ -70,7 +70,7 @@ Functions in this group use the ``mli_conv2d_cfg`` structure, defined as:
 ..
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    
    conv_2d.rst
    conv_depthwise.rst 

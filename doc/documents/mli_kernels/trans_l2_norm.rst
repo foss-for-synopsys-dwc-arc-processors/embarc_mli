@@ -65,7 +65,7 @@ parameters are shown in the following table:
    | ``epsilon``    | ``mli_tensor *``             | [IN] Pointer to tensor with epsilon value.             |
    +----------------+------------------------------+--------------------------------------------------------+
    | ``lut``        | ``mli_lut *``                | [IN] Pointer to a valid LUT table                      |
-   |                |                              |  structure prepared for L2 normalization.              |
+   |                |                              | structure prepared for L2 normalization.               |
    +----------------+------------------------------+--------------------------------------------------------+
    | ``cfg``        | ``mli_l2_normalize_cfg *``   | [IN] Pointer to L2 Normalize parameters structure.     |
    +----------------+------------------------------+--------------------------------------------------------+
@@ -126,7 +126,7 @@ tensor are configured in the following way:
 
  - **fx16**
 
-    - ``out.el_params.fx.frac_bits`` is set to 15. Hence, the maximum representable value of sigmoid is
+    - ``out.el_params.fx.frac_bits`` is set to 15. Hence, the maximum representable value of  L2 normalization is
       equivalent to 0.999969482421875 (not 1.0).
 
  - **sa8**

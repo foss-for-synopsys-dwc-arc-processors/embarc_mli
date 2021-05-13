@@ -8,7 +8,7 @@ particular functions (or activations).  In general, transformations do not
 alter data size or shape and only change the values element-wise.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    
    trans_lut.rst
    trans_relu.rst

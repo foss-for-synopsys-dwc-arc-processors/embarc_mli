@@ -59,7 +59,7 @@ parameters are shown in the following table:
    | ``in``         | ``mli_tensor *``        | [IN] Pointer to constant input tensor.        |
    +----------------+-------------------------+-----------------------------------------------+
    | ``lut``        | ``mli_lut *``           | [IN] Pointer to a valid LUT table             |
-   |                |                         |  structure prepared for softmax activation.   |
+   |                |                         | structure prepared for softmax activation.    |
    +----------------+-------------------------+-----------------------------------------------+
    | ``cfg``        | ``mli_softmax_cfg *``   | [IN] Pointer to softmax parameters structure. |
    +----------------+-------------------------+-----------------------------------------------+
@@ -117,7 +117,7 @@ tensor are configured in the following way:
 
  - **fx16**
 
-    - ``out.el_params.fx.frac_bits`` is set to 15. Hence, the maximum representable value of sigmoid is
+    - ``out.el_params.fx.frac_bits`` is set to 15. Hence, the maximum representable value of softmax is
       equivalent to 0.999969482421875 (not 1.0).
 
  - **sa8**

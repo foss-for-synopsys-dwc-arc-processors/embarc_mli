@@ -1,6 +1,8 @@
 embARC Machine Learning Inference Library
 ==================================================
 
+:warning: **You are using a development branch. Things might be broken. For a proper usage of embARC MLI Library please checkout the [latest release](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/releases).** 
+
 This repository contains source code of embARC Machine Learning Inference Library (embARC MLI Library), its documentation and examples. The primary purpose of this library is to enable developers to efficiently implement and/or port data processing algorithms based on machine learning principles for DSP-enhanced ARC Processors.
 
 # Table of Content
