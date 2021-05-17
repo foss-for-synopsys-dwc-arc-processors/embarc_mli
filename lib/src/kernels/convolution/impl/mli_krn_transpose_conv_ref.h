@@ -107,7 +107,7 @@ MLI_FORCE_INLINE void transpose_conv2d_prepare_and_run(
     constexpr int conv_fix_kernel_height = (fix_stride == 2) ? fix_kernel_height / 2 : KRN_SZ_VAR;
 
     // Define output val limits (may affect built in ReLU)
-    mli_minmax_t val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
+    mli_minmax_t val_limit = mli_prv_get_relu_limits<io_T, std::is_same<quant_T, s8asym_quant_specific_params>::value>(&cfg->relu, out);
 
     const MLI_PTR(b_T) bs = mli_prv_tensor_data_ptr<MLI_PTR(b_T)>(bias);
     const auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(io_T)>(in);
