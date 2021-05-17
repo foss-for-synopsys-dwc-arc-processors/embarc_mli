@@ -882,69 +882,6 @@ static MLI_FORCE_INLINE uint32_t mli_prv_count_elem_num(const mli_tensor *in) {
     return mli_prv_count_elem_num_part(in, 0);
 }
 
-static MLI_FORCE_INLINE mli_minmax_t
-mli_prv_get_relu_min_max (const mli_relu_cfg * cfg, const mli_tensor * out) {
-    mli_minmax_t val_limit;
-    int min_val, max_val;
-    int zero, one, neg_one, six;
-    if (out->el_type == MLI_EL_SA_8 || out->el_type == MLI_EL_SA_32) {
-        MLI_ASSERT(out->el_params.sa.dim < 0);
-        zero = out->el_params.sa.zero_point.mem.i16;
-        // In theory it is possible that scale of input is really small value and shift might be bigger than 16 bit to 
-        // represent six and one in such format before int div (may exceed 32 bits). 
-        // One and six are not casted to 16bit directly, only after comparison with min_val and max_val and all of them are int.
-        // Min val and max val always fit to container range, while six and one don't have to.
-        // TODO: think about how to define whether it is required to extract six and one at all or not.
-        six = ((int64_t)6l << mli_hlp_tensor_scale_shift(out, 0)) /  mli_hlp_tensor_scale(out, 0);
-        one = ((int64_t)1l << mli_hlp_tensor_scale_shift(out, 0)) /  mli_hlp_tensor_scale(out, 0);
-        six = six + zero;
-        neg_one = -one + zero;
-        one = one + zero;
-    } else {
-        zero = 0;
-        six = 6 << (int) out->el_params.fx.frac_bits;
-        one = 1 << (int) out->el_params.fx.frac_bits;
-        neg_one = -one;
-    }
-
-    switch (out->el_type) {
-    case MLI_EL_FX_8:
-    case MLI_EL_SA_8:
-        min_val = INT8_MIN;
-        max_val = INT8_MAX;
-        break;
-    case MLI_EL_FX_16:
-        min_val = INT16_MIN;
-        max_val = INT16_MAX;
-        break;
-    default:
-        MLI_ASSERT(0);             /* unsupported element type */
-    }
-
-    switch (cfg->type) {
-    case MLI_RELU_GEN:
-        val_limit.min = (int16_t) MAX(zero, min_val);
-        val_limit.max = (int16_t) max_val;
-        break;
-    case MLI_RELU_6:
-        val_limit.min = (int16_t) MAX(zero, min_val);
-        val_limit.max = (int16_t) MIN (six, max_val);
-        break;
-    case MLI_RELU_1:
-        val_limit.min = (int16_t) MAX(neg_one, min_val);
-        val_limit.max = (int16_t) MIN(one, max_val);
-        break;
-    default:
-        // For leaky and param relu there is no saturation in the function domain.
-        // only container type limitations (8bit or 16 bit)
-        val_limit.min = (int16_t) min_val;
-        val_limit.max = (int16_t) max_val;
-    }
-
-    return val_limit;
-}
-
-
 #ifdef __cplusplus
 }
 #endif
@@ -955,7 +892,7 @@ mli_prv_get_relu_limits (const mli_relu_cfg * cfg, const mli_tensor * out) {
     mli_minmax_t val_limit;
     int min_val, max_val;
     int zero, one, neg_one, six;
-    int16_t scale = 1;
+    int16_t scale;
     int shift;
     if (asym) {
         MLI_ASSERT((out->el_type == MLI_EL_SA_8 || out->el_type == MLI_EL_SA_32));
@@ -973,24 +910,37 @@ mli_prv_get_relu_limits (const mli_relu_cfg * cfg, const mli_tensor * out) {
     min_val = std::numeric_limits<out_T>::min();
     max_val = std::numeric_limits<out_T>::max();
 
+    // In theory it is possible that scale of input is really small value and shift might be bigger than 16 bit to
+    // represent six and one in such format before int div (may exceed 32 bits).
+    // One and six are not casted to 16bit directly, only after comparison with min_val and max_val and all of them are int.
+    // Min val and max val always fit to container range, while six and one don't have to.
+    // when six doesn't fit in the container range, it will be clipped to the container range.
+
     switch (cfg->type) {
     case MLI_RELU_GEN:
         val_limit.min = (int16_t) MAX(zero, min_val);
         val_limit.max = (int16_t) max_val;
         break;
     case MLI_RELU_6:
-        // In theory it is possible that scale of input is really small value and shift might be bigger than 16 bit to
-        // represent six and one in such format before int div (may exceed 32 bits).
-        // One and six are not casted to 16bit directly, only after comparison with min_val and max_val and all of them are int.
-        // Min val and max val always fit to container range, while six and one don't have to.
-        // when six doesn't fit in the container range, it will be clipped to the container range.
-        six = (shift < 30) ? ((int32_t)6 << shift) / scale : max_val;
+        if (shift >= 0) {
+            six = (shift < 30) ? ((int32_t)6 << shift) / scale : max_val;
+        }
+        else {
+            six = ((int32_t)6 >> (-shift)) / scale;
+        }
+
         six = six + zero;
         val_limit.min = (int16_t) MAX(zero, min_val);
         val_limit.max = (int16_t) MIN (six, max_val);
         break;
     case MLI_RELU_1:
-        one = (shift < 30) ? ((int32_t)1 << shift) / scale : max_val;
+        if (shift >= 0) {
+            one = (shift < 30) ? ((int32_t)1 << shift) / scale : max_val;
+        }
+        else {
+            one = 0;
+        }
+
         neg_one = -one + zero;
         one = one + zero;
         val_limit.min = (int16_t) MAX(neg_one, min_val);

@@ -133,7 +133,7 @@ MLI_FORCE_INLINE void group_conv2d_prepare_and_run(
 
     // Define output val limits (may affect built in ReLU)
     out->el_type = in->el_type;
-    mli_minmax_t val_limit = mli_prv_get_relu_min_max(&cfg->relu, out);
+    mli_minmax_t val_limit = mli_prv_get_relu_limits<io_T, std::is_same<quant_T, s8asym_quant_specific_params>::value>(&cfg->relu, out);
 
     const MLI_PTR(b_T) bs = mli_prv_tensor_data_ptr<MLI_PTR(b_T)>(bias);
 
