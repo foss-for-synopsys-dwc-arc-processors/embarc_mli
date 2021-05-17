@@ -75,37 +75,20 @@ static MLI_FORCE_INLINE void compute_avepool_func_k2x2_padding_kernel_unroll(
         const int32_t zp,
         const int shift_value,
         const int channels) {
-
-    switch (height) {
+    MLI_ASSERT(height == 1);
+    switch (width) {
     case 1:
-        switch (width) {
-        case 1:
-            compute_avepool_func(
-              in, out, mul, 1, 1, col_mem_stride, row_mem_stride, zp ,shift_value, channels);
-            break;
-
-        case 2:
-            compute_avepool_func(
-              in, out, mul, 2, 1, col_mem_stride, row_mem_stride, zp ,shift_value, channels);
-            break;
-
-        default:
-            MLI_ASSERT(0);
-            break;
-        }
+        compute_avepool_func(
+          in, out, mul, 1, 1, col_mem_stride, row_mem_stride, zp ,shift_value, channels);
         break;
 
     case 2:
-        switch (width) {
-        case 1:
-            compute_avepool_func(
-              in, out, mul, 1, 2, col_mem_stride, row_mem_stride, zp ,shift_value, channels);
-            break;
+        compute_avepool_func(
+          in, out, mul, 2, 1, col_mem_stride, row_mem_stride, zp ,shift_value, channels);
+        break;
 
-        default:
-            MLI_ASSERT(0);
-            break;
-        }
+    default:
+        MLI_ASSERT(0);
         break;
     }
 }
@@ -170,27 +153,9 @@ static MLI_FORCE_INLINE void compute_avepool_func_k3x3_padding_kernel_unroll(
         }
         break;
 
-    case 3:
-        switch (width) {
-        case 1:
-            compute_avepool_func(
-              in, out, mul, 1, 3, col_mem_stride, row_mem_stride, zp ,shift_value, channels);
-            break;
-
-        case 2:
-            compute_avepool_func(
-              in, out, mul, 2, 3, col_mem_stride, row_mem_stride, zp ,shift_value, channels);
-            break;
-
-        default:
-            MLI_ASSERT(0);
-            break;
-        }
+    default:
+        MLI_ASSERT(0);
         break;
-
-        default:
-            MLI_ASSERT(0);
-            break;
     }
 }
 
