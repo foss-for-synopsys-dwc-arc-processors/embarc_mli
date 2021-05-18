@@ -23,7 +23,7 @@ namespace ref {
 #pragma MLI_CODE_SECTION_START(".mli_lib")
 
 template <typename io_T>
-static void mli_krn_permute_inner(const mli_tensor *in, uint32_t *out_shape, int *out_increments,
+static void mli_krn_permute_calc(const mli_tensor *in, uint32_t *out_shape, int *out_increments,
         int *perm_dim, const MLI_PTR(io_T) input, MLI_PTR(io_T) output) {
 
     auto in_prv =  mli_prv_get_generic_tensor<MLI_PTR(io_T)>(in);
@@ -32,6 +32,10 @@ static void mli_krn_permute_inner(const mli_tensor *in, uint32_t *out_shape, int
     const int inp_stride_2 = in_prv.mem_stride[perm_dim[2]];
     const int inp_stride_1 = in_prv.mem_stride[perm_dim[1]];
     const int inp_stride_0 = in_prv.mem_stride[perm_dim[0]];
+
+    for (int dim_ctr = 0; dim_ctr < MLI_MAX_RANK - 1; dim_ctr++) {
+        out_increments[dim_ctr] -= out_increments[dim_ctr + 1] * out_shape[dim_ctr + 1];
+    }
 
     for (int d0_cnt = 0; d0_cnt < out_shape[0]; d0_cnt++) {
         for (int d1_cnt = 0; d1_cnt < out_shape[1]; d1_cnt++) {
@@ -76,17 +80,13 @@ static MLI_FORCE_INLINE mli_status mli_krn_permute_run(const mli_tensor *in, con
         }
     }
 
-    for (int dim_ctr = 0; dim_ctr < rank - 1; dim_ctr++) {
-        out_increments[dim_ctr] -= out_increments[dim_ctr + 1] * out->shape[dim_ctr + 1];
-    }
-
     for (int i = rank; i < MLI_MAX_RANK; i++) {
         out->shape[i] = 1;
     }
 
     const MLI_PTR(io_T) input = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in);
     MLI_PTR(io_T) output = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(out);
-    mli::krn::mli_krn_permute_inner<io_T>(in, out->shape, out_increments, perm_dim, input, output);
+    mli::krn::mli_krn_permute_calc<io_T>(in, out->shape, out_increments, perm_dim, input, output);
 
     if (asym) {
         if (in->el_params.sa.dim < 0) {

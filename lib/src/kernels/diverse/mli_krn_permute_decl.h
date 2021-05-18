@@ -29,11 +29,11 @@ namespace krn {
 namespace ref {
 
 template <typename io_T, bool asym>
-static MLI_FORCE_INLINE mli_status mli_krn_permute_run(const mli_tensor *in, 
+static MLI_FORCE_INLINE mli_status mli_krn_permute_run(const mli_tensor *in,
         const mli_permute_cfg *cfg, mli_tensor *out);
 
 template <typename io_T>
-static void mli_krn_permute_inner(const mli_tensor *in, uint32_t *out_shape, 
+static void mli_krn_permute_calc(const mli_tensor *in, uint32_t *out_shape,
         int *out_increments, int *perm_dim,
         const MLI_PTR(io_T) input, MLI_PTR(io_T) output);
 
@@ -56,7 +56,7 @@ namespace dsp {
 namespace vdsp {
 
 template <typename io_T>
-static void mli_krn_permute_inner(const mli_tensor *in, uint32_t *out_shape, 
+static void mli_krn_permute_calc(const mli_tensor *in, uint32_t *out_shape,
         int *out_increments, int *perm_dim,
         const MLI_PTR(io_T) input, MLI_PTR(io_T) output);
 
