@@ -41,14 +41,14 @@ static MLI_FORCE_INLINE vNint_t mli_prv_vNint_vector_stride_init (int stride) {
 static MLI_FORCE_INLINE vNx2int_t mli_prv_vNx2int_vector_stride_init (int stride) {
     vNx2int_t v_stride;
     v_stride.lo = vvci_stride_w(stride);
-    v_stride.hi = vvci_stride_w(stride) + v_stride.lo[_VDSP_NUM_32BIT_LANES - 1] + stride;
+    v_stride.hi = vvci_stride_w(stride) + _VDSP_NUM_32BIT_LANES * stride;
     return v_stride;
 }
 
 static MLI_FORCE_INLINE vNx4int_t mli_prv_vNx4int_vector_stride_init (int stride) {
     vNx4int_t v_stride;
     v_stride.lo = mli_prv_vNx2int_vector_stride_init(stride);
-    v_stride.hi = mli_prv_vNx2int_vector_stride_init(stride) + v_stride.lo[_VDSP_NUM_16BIT_LANES - 1] + stride;
+    v_stride.hi = mli_prv_vNx2int_vector_stride_init(stride) + _VDSP_NUM_16BIT_LANES * stride;
     return v_stride;
 }
 
