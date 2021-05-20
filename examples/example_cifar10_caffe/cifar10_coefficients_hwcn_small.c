@@ -14,9 +14,69 @@
 // Tensors coefficients definition
 //
 //======================================================
+#if defined(BIG_MOCK_MODEL)
 
+const w_type  _W  L2_conv_wt_buf[CONV2_W_ELEMENTS] = {31};
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+const int8_t  conv2_w_fraq_arr[CONV2_B_ELEMENTS] = {24};
+const int16_t conv2_w_scale_arr[CONV2_B_ELEMENTS] = {28610};
+const int16_t conv2_w_zp_arr[CONV2_B_ELEMENTS] = {0};
+#endif
+
+const b_type  _W  L2_conv_bias_buf[CONV2_B_ELEMENTS] = {-120};
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+const int8_t  conv2_b_fraq_arr[CONV2_B_ELEMENTS] = {29};
+const int16_t conv2_b_scale_arr[CONV2_B_ELEMENTS] = {28610};
+const int16_t conv2_b_zp_arr[CONV2_B_ELEMENTS] = {0};
+#endif
+
+const w_type  _W2  L3_conv_wt_buf[CONV3_W_ELEMENTS] = {31};
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+const int8_t  conv3_w_fraq_arr[CONV3_B_ELEMENTS] = {24};
+const int16_t conv3_w_scale_arr[CONV3_B_ELEMENTS] = {28610};
+const int16_t conv3_w_zp_arr[CONV3_B_ELEMENTS] = {0};
+#endif
+
+const b_type  _W2  L3_conv_bias_buf[CONV3_B_ELEMENTS] = {-120};
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+const int8_t  conv3_b_fraq_arr[CONV3_B_ELEMENTS] = {24};
+const int16_t conv3_b_scale_arr[CONV3_B_ELEMENTS] = {28610};
+const int16_t conv3_b_zp_arr[CONV3_B_ELEMENTS] = {0};
+#endif
+
+
+const w_type  _W2  L4_fc_wt_buf[FC4_W_ELEMENTS] = {31};
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+const int8_t  conv4_w_fraq_arr[FC4_B_ELEMENTS] = {24};
+const int16_t conv4_w_scale_arr[FC4_B_ELEMENTS] = {28610};
+const int16_t conv4_w_zp_arr[FC4_B_ELEMENTS] = {0};
+#endif
+
+const b_type  _W2  L4_fc_bias_buf[FC4_B_ELEMENTS] = {-120};
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+const int8_t  conv4_b_fraq_arr[FC4_B_ELEMENTS] = {24};
+const int16_t conv4_b_scale_arr[FC4_B_ELEMENTS] = {28610};
+const int16_t conv4_b_zp_arr[FC4_B_ELEMENTS] = {0};
+#endif
+
+const w_type  _W2  L5_fc_wt_buf[FC5_W_ELEMENTS] = {31};
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+const int8_t  conv5_w_fraq_arr[FC5_B_ELEMENTS] = {24};
+const int16_t conv5_w_scale_arr[FC5_B_ELEMENTS] = {28610};
+const int16_t conv5_w_zp_arr[FC5_B_ELEMENTS] = {0};
+#endif
+
+const b_type  _W2  L5_fc_bias_buf[FC5_B_ELEMENTS] = {-120};
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+const int8_t  conv5_b_fraq_arr[FC5_B_ELEMENTS] = {24};
+const int16_t conv5_b_scale_arr[FC5_B_ELEMENTS] = {28610};
+const int16_t conv5_b_zp_arr[FC5_B_ELEMENTS] = {0};
+#endif
+
+#endif
 
 #if (MODEL_BIT_DEPTH == MODEL_SA_8)
+
 
 // CONV1 weights and biases params
 //================================================
@@ -308,6 +368,7 @@ const b_type  _W  L1_conv_bias_buf[CONV1_B_ELEMENTS] = { \
     -16095, -3937, 14763, -15463, -735, -8943, -8553, -711, -5159, -6276, \
     -249, -2837, 
     };
+#if !defined(BIG_MOCK_MODEL)
 
 // CONV2 weights and biases params
 //================================================
@@ -3509,6 +3570,7 @@ const w_type  _W2  L4_fc_wt_buf[FC4_W_ELEMENTS] = { \
 const b_type  _W2  L4_fc_bias_buf[FC4_B_ELEMENTS] = { \
     -837, -661, -258,  562,  701,  135,  267, -255,   98,   70 \
 };
+#endif //BIG_MOCK_MODEL
 
 #else
 
@@ -3769,7 +3831,7 @@ const b_type  _W  L1_conv_bias_buf[CONV1_B_ELEMENTS] = {\
     L1_BQ(-0.007494517),L1_BQ(-0.039595019)\
     };
 
-
+#if !defined(BIG_MOCK_MODEL)
 // CONV2_W coefficients
 //================================================
 
@@ -6890,5 +6952,5 @@ const w_type  _W2  L4_fc_wt_buf[FC4_W_ELEMENTS] = {\
 const w_type  _W2  L4_fc_bias_buf[FC4_B_ELEMENTS] = {\
     L4_BQ(-0.140300319),L4_BQ(-0.161128432),L4_BQ(-0.053908709),L4_BQ( 0.104663901),L4_BQ( 0.197712392),L4_BQ( 0.030881122),L4_BQ( 0.050192304),L4_BQ(-0.056344695),L4_BQ( 0.016701270),L4_BQ( 0.011531169)\
     };
-
+#endif //BIG_MOCK_MODEL
 #endif

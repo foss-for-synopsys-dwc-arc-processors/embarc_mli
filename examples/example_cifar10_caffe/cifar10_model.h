@@ -76,7 +76,7 @@ mli_status cifar10_cf_init();
 #define MODEL_FX_8W16D   (816)
 
 #if !defined(MODEL_BIT_DEPTH)
-#define MODEL_BIT_DEPTH (MODEL_FX_16)
+#define MODEL_BIT_DEPTH (MODEL_SA_8)
 #endif
 
 #if !defined(MODEL_BIT_DEPTH) || \

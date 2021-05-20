@@ -299,6 +299,48 @@ static mli_tensor L4_fc_bias = {
 #endif
 };
 
+#if defined(BIG_MOCK_MODEL)
+static mli_tensor L5_fc_wt = {
+    .data = {
+        .capacity = FC5_W_ELEMENTS * sizeof(w_type),
+        .mem = { .void_p = (void *)L5_fc_wt_buf }
+    },
+    .shape = FC5_W_SHAPE,
+    .rank = FC5_W_RANK,
+    .el_type = W_EL_TYPE,
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+    .el_params.sa = {
+        .zero_point.mem = { .pi16 = CONV5_W_ZP },
+        .scale.mem = { .pi16 = CONV5_W_SCALE },
+        .dim = CONV5_W_DIM,
+        .scale_frac_bits.mem = { .pi8 = CONV5_W_FRAQ }
+    }
+#else
+    .el_params.fx.frac_bits = FC5_W_FRAQ
+#endif
+};
+
+static mli_tensor L5_fc_bias = {
+    .data = {
+        .capacity = FC5_B_ELEMENTS * sizeof(b_type),
+        .mem = { .void_p = (void *)L5_fc_bias_buf }
+    },
+    .shape = FC5_B_SHAPE,
+    .rank = FC5_B_RANK,
+    .el_type = B_EL_TYPE,
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+    .el_params.sa = {
+        .zero_point.mem = { .pi16 = CONV5_B_ZP },
+        .scale.mem = { .pi16 = CONV5_B_SCALE },
+        .dim = CONV5_B_DIM,
+        .scale_frac_bits.mem = { .pi8 = CONV5_B_FRAQ }
+    }
+#else
+    .el_params.fx.frac_bits = FC5_B_FRAQ,
+#endif
+};
+#endif
+
 // Intermediate result tensors
 //===============================================
 static mli_tensor ir_tensor_X = {
@@ -518,11 +560,24 @@ void cifar10_cf_net(const char * debug_ir_root) {
         check_result(debug_ir_root, "ir_ip1.idx", &ir_tensor_X, cycle_cnt, ret);
         layer4_cycles += cycle_cnt;
 
+#if defined(BIG_MOCK_MODEL)
+        // LAYER 5
+        //=======================================
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+        set_mli_tensor_params(&output, -11, 17, QMN(int16_t, 17, 0.149543));
+#else
+        output.el_params.fx.frac_bits = FC4_OUT_FRAQ;
+#endif
+        PROFILE(ret = fully_connected(&ir_tensor_X, &L5_fc_wt, &L5_fc_bias, &output));
+        check_result(debug_ir_root, "ir_ip2.idx", &output, cycle_cnt, ret);
+        layer5_cycles += cycle_cnt;
+#else
         // LAYER 5
         //=======================================
         PROFILE(ret = softmax(&ir_tensor_X, &output));
         check_result(debug_ir_root, "ir_prob.idx", &output, cycle_cnt, ret);
         layer5_cycles += cycle_cnt;
+#endif
 
         const unsigned total = layer1_cycles + layer2_cycles + layer3_cycles + layer4_cycles + layer5_cycles;
         printf("\n\nSummary:\n"
@@ -549,6 +604,7 @@ static void check_result(
         printf("ERROR: MLI Code for %s (%d) is not OK\n", ref_file, ret_code);
         assert(0);
     }
+    // printf("Pred_tsr_rank: {%d},   Pred_tsr_shape: {%d, %d, %d, %d}\n", pred_tsr->rank, pred_tsr->shape[0], pred_tsr->shape[1], pred_tsr->shape[2], pred_tsr->shape[3]);
 
     if (ir_root != NULL) {
         ref_to_pred_output err;

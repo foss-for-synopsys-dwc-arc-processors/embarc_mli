@@ -14,6 +14,9 @@
 
 #include "cifar10_model.h"
 
+#define BIG_MOCK_MODEL
+
+
 // Defining weight data type
 //===================================
 #if (MODEL_BIT_DEPTH == MODEL_SA_8)
@@ -186,6 +189,20 @@ extern const int16_t conv4_b_scale_arr[];
 extern const int16_t conv4_b_zp_arr[];
 #endif
 
+extern const w_type  _W2  L5_fc_wt_buf[];
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+extern const int8_t  conv5_w_fraq_arr[];
+extern const int16_t conv5_w_scale_arr[];
+extern const int16_t conv5_w_zp_arr[];
+#endif
+
+extern const b_type  _W2  L5_fc_bias_buf[];
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+extern const int8_t  conv5_b_fraq_arr[];
+extern const int16_t conv5_b_scale_arr[];
+extern const int16_t conv5_b_zp_arr[];
+#endif
+
 //======================================================
 //
 // Tensor's Integer bits per layer definitions
@@ -208,6 +225,12 @@ extern const int16_t conv4_b_zp_arr[];
 #define FC4_W_INT   (-1)
 #define FC4_B_INT   (-2)
 #define FC4_OUT_INT (5)
+
+#if defined(BIG_MOCK_MODEL)
+#define FC5_W_INT   (-1)
+#define FC5_B_INT   (-2)
+#define FC5_OUT_INT (5)
+#endif
 
 #endif
 
@@ -259,8 +282,13 @@ extern const int16_t conv4_b_zp_arr[];
 
 // CONV2
 //================================================
+#if !defined(BIG_MOCK_MODEL)
 #define CONV2_W_SHAPE {5, 5, 32, 16}
 #define CONV2_W_ELEMENTS (5*5*32*16)
+#else
+#define CONV2_W_SHAPE {5, 5, 32, 32}
+#define CONV2_W_ELEMENTS (5*5*32*32)
+#endif
 #define CONV2_W_RANK (4)
 
 #if (MODEL_BIT_DEPTH == MODEL_SA_8)
@@ -275,8 +303,13 @@ extern const int16_t conv4_b_zp_arr[];
 #define L2_WQ(val)   QMN(w_type, CONV2_W_FRAQ, val)
 #endif
 
+#if !defined(BIG_MOCK_MODEL)
 #define CONV2_B_SHAPE {16}
 #define CONV2_B_ELEMENTS (16)
+#else
+#define CONV2_B_SHAPE {32}
+#define CONV2_B_ELEMENTS (32)
+#endif
 #define CONV2_B_RANK (1)
 
 #if (MODEL_BIT_DEPTH == MODEL_SA_8)
@@ -296,8 +329,13 @@ extern const int16_t conv4_b_zp_arr[];
 
 // CONV3
 //================================================
+#if !defined(BIG_MOCK_MODEL)
 #define CONV3_W_SHAPE {5, 5, 16, 32}
 #define CONV3_W_ELEMENTS (5*5*16*32)
+#else
+#define CONV3_W_SHAPE {5, 5, 32, 64}
+#define CONV3_W_ELEMENTS (5*5*32*64)
+#endif
 #define CONV3_W_RANK (4)
 
 #if (MODEL_BIT_DEPTH == MODEL_SA_8)
@@ -314,8 +352,13 @@ extern const int16_t conv4_b_zp_arr[];
 
 #endif
 
+#if !defined(BIG_MOCK_MODEL)
 #define CONV3_B_SHAPE {32}
 #define CONV3_B_ELEMENTS (32)
+#else
+#define CONV3_B_SHAPE {64}
+#define CONV3_B_ELEMENTS (64)
+#endif
 #define CONV3_B_RANK (1)
 
 #if (MODEL_BIT_DEPTH == MODEL_SA_8)
@@ -335,8 +378,13 @@ extern const int16_t conv4_b_zp_arr[];
 
 // FC4
 //================================================
+#if !defined(BIG_MOCK_MODEL)
 #define FC4_W_SHAPE {(32*16), 10}
 #define FC4_W_ELEMENTS (32*16*10)
+#else
+#define FC4_W_SHAPE {(64*16), 64}
+#define FC4_W_ELEMENTS (64*16*64)
+#endif
 #define FC4_W_RANK (2)
 
 #if (MODEL_BIT_DEPTH == MODEL_SA_8)
@@ -352,9 +400,13 @@ extern const int16_t conv4_b_zp_arr[];
 #define L4_WQ(val)   QMN(w_type, FC4_W_FRAQ, val)
 
 #endif
-
+#if !defined(BIG_MOCK_MODEL)
 #define FC4_B_SHAPE {10}
 #define FC4_B_ELEMENTS (10)
+#else
+#define FC4_B_SHAPE {64}
+#define FC4_B_ELEMENTS (64)
+#endif
 #define FC4_B_RANK (1)
 
 #if (MODEL_BIT_DEPTH == MODEL_SA_8)
@@ -371,5 +423,46 @@ extern const int16_t conv4_b_zp_arr[];
 #define FC4_OUT_FRAQ (FRQ_BITS(FC4_OUT_INT, d_type))
 
 #endif
+
+#if defined(BIG_MOCK_MODEL)
+// FC5
+//================================================
+#define FC5_W_SHAPE {(64*1), 10}
+#define FC5_W_ELEMENTS (64*1*10)
+#define FC5_W_RANK (2)
+
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+
+#define CONV5_W_FRAQ    conv5_w_fraq_arr
+#define CONV5_W_SCALE   conv5_w_scale_arr
+#define CONV5_W_ZP      conv5_w_zp_arr
+#define CONV5_W_DIM     1
+
+#else
+
+#define FC5_W_FRAQ   (FRQ_BITS(FC5_W_INT, w_type))
+#define L5_WQ(val)   QMN(w_type, FC5_W_FRAQ, val)
+
+#endif
+
+#define FC5_B_SHAPE {10}
+#define FC5_B_ELEMENTS (10)
+#define FC5_B_RANK (1)
+
+#if (MODEL_BIT_DEPTH == MODEL_SA_8)
+
+#define CONV5_B_FRAQ    conv5_b_fraq_arr
+#define CONV5_B_SCALE   conv5_b_scale_arr
+#define CONV5_B_ZP      conv5_b_zp_arr
+#define CONV5_B_DIM     0
+
+#else
+
+#define FC5_B_FRAQ   (FRQ_BITS(FC5_B_INT, w_type))
+#define L5_BQ(val)   QMN(w_type, FC5_B_FRAQ, val)
+#define FC5_OUT_FRAQ (FRQ_BITS(FC5_OUT_INT, d_type))
+
+#endif
+#endif // big_mock_model
 
 #endif  //_CIFAR10_CONSTANTS_H_
