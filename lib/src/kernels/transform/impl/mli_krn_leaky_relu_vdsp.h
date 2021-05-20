@@ -110,27 +110,22 @@ static MLI_FORCE_INLINE vNx4char_t calc_leaky_relu(
     /* Load Input */
     vNx4char_t input = mli_prv_load_1vec(vec_in);
     vNx4short_t input_cast = mli_math_cast_fx<vNx4char_t, vNx4short_t>(input);
-    vNx4short_t cond;
-    cond.lo = input_cast.lo >= in_zp;
-    cond.hi = input_cast.hi >= in_zp;
-    grp_pvNx2_t select = init_predicate_grp(cond);
+    pvNx4 select = init_predicate(input >= in_zp);
 
     int identity_shift = identity_params->shift;
     vNx4int_t input_identity_scale = mli_math_mul_fx<vNx4short_t, vNx4int_t>(input_cast, identity_params->scale);
               input_identity_scale = mli_math_asr_rnd_fx(input_identity_scale, identity_shift);
+              input_identity_scale = mli_math_add_fx(input_identity_scale, (vNx4int_t)identity_params->offset);
 
-    vNx4short_t output_identity = mli_math_cast_fx<vNx4int_t, vNx4short_t>(input_identity_scale);
-                output_identity = mli_math_add_fx(output_identity, (vNx4short_t)identity_params->offset);
+    vNx4char_t output_identity = mli_math_cast_fx<vNx4int_t, vNx4char_t>(input_identity_scale);
 
     int alpha_shift = alpha_params->shift;
     vNx4int_t input_alpha_scale = mli_math_mul_fx<vNx4short_t, vNx4int_t>(input_cast, alpha_params->scale);
               input_alpha_scale = mli_math_asr_rnd_fx(input_alpha_scale, alpha_shift);
-
-    vNx4short_t output_alpha = mli_math_cast_fx<vNx4int_t, vNx4short_t>(input_alpha_scale);
-                output_alpha = mli_math_add_fx(output_alpha, (vNx4short_t)alpha_params->offset);
+              input_alpha_scale = mli_math_add_fx(input_alpha_scale, (vNx4int_t)alpha_params->offset);
     
-    vNx4short_t output = mli_math_select_fx(select, output_identity, output_alpha);
-    return mli_math_cast_fx<vNx4short_t, vNx4char_t>(output);
+    vNx4char_t output_alpha = mli_math_cast_fx<vNx4int_t, vNx4char_t>(input_alpha_scale);
+    return mli_math_select_fx(select, output_identity, output_alpha);
 }
 
 static MLI_FORCE_INLINE void compute_leaky_relu(

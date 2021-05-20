@@ -31,13 +31,7 @@ static MLI_FORCE_INLINE void compute_prelu(
         const scale_T scale,
         MLI_OUT_PTR(io_T) vec_out,
         const int shift) {
-    io_T input = vec_in[0];
-    io_T zero = 0;
-    /* out  = max(0, in) + alpha * min(0, in) */
-    io_T pos = mli_math_max_fx(zero, input);
-    io_T neg = mli_math_acc_cast_fx<io_T, mli_acc32_t>(
-               mli_math_mul_fx<io_T, mli_acc32_t>( mli_math_min_fx(zero, input), scale), shift);
-    vec_out[0] = mli_math_add_fx(pos, neg);
+    mli::krn::ref::compute_leaky_relu(vec_in, vec_out, scale, shift);
 }
 
 template <typename io_T, typename scale_T>
@@ -59,24 +53,7 @@ static MLI_FORCE_INLINE void compute_prelu(
         const s8asym_quant_params *identity_params,
         const s8asym_quant_params *alpha_params) {
 
-    /* Load Input */
-    int8_t input = vec_in[0];
-    int16_t output;
-    if (input >= in_zp) {
-        /* out_sa8 = (idendity_scale * in_sa8) * 2^(-(identity_shift)) + identity_offset */
-        output =  mli_math_add_fx<int16_t>(
-                  mli_math_cast_fx<int32_t, int16_t>(
-                  mli_math_mul_fx<int16_t, int32_t>(identity_params->scale, input), 
-                  identity_params->shift), identity_params->offset);
-    } else {
-        /* out_sa8 = (alpha_scale * in_sa8) * 2^(-(alpha_shift)) + alpha_offset */
-        output =  mli_math_add_fx<int16_t>(
-                  mli_math_cast_fx<int32_t, int16_t>(
-                  mli_math_mul_fx<int16_t, int32_t>(alpha_params->scale, input), 
-                  alpha_params->shift), alpha_params->offset);
-    }
-    
-    vec_out[0] = mli_math_cast_fx<int16_t, int8_t>(output, 0);
+    mli::krn::ref::compute_leaky_relu(vec_in, vec_out, in_zp, identity_params, alpha_params);
 }
 
 static MLI_FORCE_INLINE void compute_prelu(

@@ -60,22 +60,22 @@ static MLI_FORCE_INLINE void compute_leaky_relu(
 
     /* Load Input */
     int8_t input = vec_in[0];
-    int16_t output;
+    int32_t output;
     if (input >= in_zp) {
         /* out_sa8 = (idendity_scale * in_sa8) * 2^(-(identity_shift)) + identity_offset */
-        output =  mli_math_add_fx<int16_t>(
-                  mli_math_cast_fx<int32_t, int16_t>(
-                  mli_math_mul_fx<int16_t, int32_t>(identity_params->scale, input), 
+        output =  mli_math_add_fx<int32_t>(
+                  mli_math_asr_rnd_fx(
+                  mli_math_mul_fx<int16_t, int32_t>(identity_params->scale, input),
                   identity_params->shift), identity_params->offset);
     } else {
         /* out_sa8 = (alpha_scale * in_sa8) * 2^(-(alpha_shift)) + alpha_offset */
-        output =  mli_math_add_fx<int16_t>(
-                  mli_math_cast_fx<int32_t, int16_t>(
-                  mli_math_mul_fx<int16_t, int32_t>(alpha_params->scale, input), 
+        output =  mli_math_add_fx<int32_t>(
+                  mli_math_asr_rnd_fx(
+                  mli_math_mul_fx<int16_t, int32_t>(alpha_params->scale, input),
                   alpha_params->shift), alpha_params->offset);
     }
-    
-    vec_out[0] = mli_math_cast_fx<int16_t, int8_t>(output, 0);
+
+    vec_out[0] = mli_math_cast_fx<int32_t, int8_t>(output, 0);
 }
 
 static MLI_FORCE_INLINE void compute_leaky_relu(
