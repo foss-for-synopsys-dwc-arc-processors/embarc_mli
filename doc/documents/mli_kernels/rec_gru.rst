@@ -151,8 +151,8 @@ Weights for the cell consist of two tensors:
    \end{bmatrix}
 ..
 
-This kernel implies sequential processing of the set of inputs vectors which is passed by input tensor 
-of shape (batch_size, N) where N is the length of the single frame :math:`x_{t}` . Both 
+This kernel implies sequential processing of the set of inputs vectors (or timesteps) which is passed by input tensor 
+of shape (sequence_length, N) where N is the length of the single frame :math:`x_{t}` . Both 
 directions of processing (forward and backward) are supported and defined by cfg structure. The Kernel can 
 output the bunch of results for according to each step of processing, or only the last one in the sequence. 
 
@@ -184,8 +184,8 @@ Ensure that you satisfy the following conditions before calling the function:
 
  - ``in``, ``prev_out``, ``weights_in``, ``weights_out`` and ``bias`` tensors must be valid (see :ref:`mli_tnsr_struc`).
  
- - ``in`` must be a tensor of shape (batch_size, N) where batch_size is a number of 
-   input frames for sequential processing by GRU cell.
+ - ``in`` must be a tensor of shape (sequence_length, N) where sequence_length is a number of 
+   input frames (or timesteps) for sequential processing by GRU cell.
    
  - ``weights_in`` must be a three-dimensional tensor of shape (3, N, M).
  
@@ -197,7 +197,7 @@ Ensure that you satisfy the following conditions before calling the function:
  
  - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity for 
    storing the result (to keep M elements if GRU cell is configured with RNN_OUT_LAST 
-   or to keep M*batch_size elements if GRU cell is configured with RNN_OUT_ALL) and valid ``mem_stride`` field. Other 
+   or to keep M*sequence_length elements if GRU cell is configured with RNN_OUT_ALL) and valid ``mem_stride`` field. Other 
    fields of the structure do not have to contain valid data and are filled by the function.
    
  - ``in`` and ``cfg->scratch_data`` must not point to overlapped memory regions.
