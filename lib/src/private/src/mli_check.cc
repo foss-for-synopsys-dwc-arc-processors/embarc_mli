@@ -411,10 +411,12 @@ mli_status mli_chk_conv2d_hwcn (
 
     int kernel_width = weights->shape[KRNL_W_DIM_HWCN];
     int kernel_height = weights->shape[KRNL_H_DIM_HWCN];
-    int dilation_width = (cfg->dilation_width > 0) ? cfg->dilation_width : 1;
-    int dilation_height = (cfg->dilation_height > 0) ? cfg->dilation_height : 1;
+    int dilation_width = cfg->dilation_width;
+    int dilation_height = cfg->dilation_height;
     int effective_kernel_width = (kernel_width - 1) * dilation_width + 1;
     int effective_kernel_height = (kernel_height - 1) * dilation_height + 1;
+    fail |= MLI_CHECK(cfg->dilation_height > 0, "Dilation should be greater than zero");
+    fail |= MLI_CHECK(cfg->dilation_width > 0, "Dilation should be greater than zero");
     fail |= MLI_CHECK(cfg->padding_left < effective_kernel_width, "Padding should be smaller than effective kernel size");
     fail |= MLI_CHECK(cfg->padding_right < effective_kernel_width, "Padding should be smaller than effective kernel size");
     fail |= MLI_CHECK(cfg->padding_top < effective_kernel_height, "Padding should be smaller than effective kernel size");
@@ -554,10 +556,12 @@ mli_status mli_chk_depthwise_conv2d_hwcn(
 
     int kernel_width = weights->shape[KRNL_DW_W_DIM_HW1N];
     int kernel_height = weights->shape[KRNL_DW_H_DIM_HW1N];
-    int dilation_width = (cfg->dilation_width > 0) ? cfg->dilation_width : 1;
-    int dilation_height = (cfg->dilation_height > 0) ? cfg->dilation_height : 1;
+    int dilation_width = cfg->dilation_width;
+    int dilation_height = cfg->dilation_height;
     int effective_kernel_width = (kernel_width - 1) * dilation_width + 1;
     int effective_kernel_height = (kernel_height - 1) * dilation_height + 1;
+    fail |= MLI_CHECK(cfg->dilation_height > 0, "Dilation should be greater than zero");
+    fail |= MLI_CHECK(cfg->dilation_width > 0, "Dilation should be greater than zero");
     fail |= MLI_CHECK(cfg->padding_left < effective_kernel_width, "Padding should be smaller than effective kernel size");
     fail |= MLI_CHECK(cfg->padding_right < effective_kernel_width, "Padding should be smaller than effective kernel size");
     fail |= MLI_CHECK(cfg->padding_top < effective_kernel_height, "Padding should be smaller than effective kernel size");
@@ -695,10 +699,12 @@ mli_status mli_chk_group_conv2d_hwcn(
 
     int kernel_width = weights->shape[KRNL_W_DIM_HWCN];
     int kernel_height = weights->shape[KRNL_H_DIM_HWCN];
-    int dilation_width = (cfg->dilation_width > 0) ? cfg->dilation_width : 1;
-    int dilation_height = (cfg->dilation_height > 0) ? cfg->dilation_height : 1;
+    int dilation_width = cfg->dilation_width;
+    int dilation_height = cfg->dilation_height;
     int effective_kernel_width = (kernel_width - 1) * dilation_width + 1;
     int effective_kernel_height = (kernel_height - 1) * dilation_height + 1;
+    fail |= MLI_CHECK(cfg->dilation_height > 0, "Dilation should be greater than zero");
+    fail |= MLI_CHECK(cfg->dilation_width > 0, "Dilation should be greater than zero");
     fail |= MLI_CHECK(cfg->padding_left < effective_kernel_width, "Padding should be smaller than effective kernel size");
     fail |= MLI_CHECK(cfg->padding_right < effective_kernel_width, "Padding should be smaller than effective kernel size");
     fail |= MLI_CHECK(cfg->padding_top < effective_kernel_height, "Padding should be smaller than effective kernel size");
@@ -838,11 +844,9 @@ mli_status mli_chk_transpose_conv2d_hwcn (
 
     const int kernel_width = weights->shape[KRNL_W_DIM_HWCN];
     const int kernel_height = weights->shape[KRNL_H_DIM_HWCN];
-    const int dilation_width = (cfg->dilation_width > 0) ? cfg->dilation_width : 1;
-    const int dilation_height = (cfg->dilation_height > 0) ? cfg->dilation_height : 1;
 
-    fail |= MLI_CHECK(dilation_width == 1, "Dilation ratio isn't supported by transpose convolution");
-    fail |= MLI_CHECK(dilation_height == 1, "Dilation ratio isn't supported by transpose convolution");
+    fail |= MLI_CHECK(cfg->dilation_width == 1, "Dilation ratio isn't supported by transpose convolution");
+    fail |= MLI_CHECK(cfg->dilation_height == 1, "Dilation ratio isn't supported by transpose convolution");
     fail |= MLI_CHECK(cfg->padding_left < kernel_width, "Padding should be smaller than effective kernel size");
     fail |= MLI_CHECK(cfg->padding_right < kernel_width, "Padding should be smaller than effective kernel size");
     fail |= MLI_CHECK(cfg->padding_top < kernel_height, "Padding should be smaller than effective kernel size");

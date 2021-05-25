@@ -303,8 +303,8 @@ MLI_FORCE_INLINE void conv2d_prepare_and_run(
     }
 
     // fill the rest output tensor parameters
-    int dilation_width = (cfg->dilation_width > 0) ? cfg->dilation_width : 1;
-    int dilation_height = (cfg->dilation_height > 0) ? cfg->dilation_height : 1;
+    int dilation_width = cfg->dilation_width;
+    int dilation_height = cfg->dilation_height;
     int effective_kernel_width = (weights_prv.kernel_width - 1) * dilation_width + 1;
     int effective_kernel_height = (weights_prv.kernel_height - 1) * dilation_height + 1;
     const int out_width  = CEIL_DIV(in_prv.width + padding_left + padding_right - effective_kernel_width + 1,
