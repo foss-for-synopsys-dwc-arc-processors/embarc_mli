@@ -758,9 +758,16 @@ mli_status mli_chk_group_conv2d_hwcn_sa8_sa8_sa32(
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(bias,     kZeroPointBitsZero), __func__);
     if (ret != MLI_STATUS_OK) return ret;
 
-    if (MLI_CHECK(weights->el_params.sa.dim == KRNL_C_DIM_HWCN, "Weights tensor: per output channels quantization is expected") ||
-        MLI_CHECK(bias->el_params.sa.dim == 0, "Bias tensor: per output channels quantization is expected") || 
-        MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor: Per-tensor quantization is expected") ||
+    if (weights->el_params.sa.dim < 0) {
+        if (MLI_CHECK(bias->el_params.sa.dim < 0, "Bias tensor: per tensor quantization is expected (similar to weights)"))
+            return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    } else {
+        if (MLI_CHECK(weights->el_params.sa.dim == KRNL_C_DIM_HWCN, "Weights tensor: per output channels quantization is expected") ||
+            MLI_CHECK(bias->el_params.sa.dim == 0, "Bias tensor: per output channels quantization is expected"))
+            return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    }
+
+    if (MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor: Per-tensor quantization is expected") ||
         MLI_CHECK(out->el_params.sa.dim < 0, "Output tensor: Per-tensor quantization is expected"))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
 

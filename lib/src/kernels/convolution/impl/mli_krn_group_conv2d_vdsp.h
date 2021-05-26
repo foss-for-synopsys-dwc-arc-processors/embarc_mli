@@ -28,8 +28,14 @@ namespace vdsp {
 MLI_FORCE_INLINE s8asym_quant_specific_params quant_params_offset(s8asym_quant_specific_params &params,
 		int offset) {
     s8asym_quant_specific_params params_prv = params;
-    params_prv.weight_scales = params.weight_scales + offset;
-    params_prv.weight_shifts = params.weight_shifts + offset;
+    if (params.weight_dim < 0) {
+    	params_prv.weight_scales = &params.weight_scales[0];
+    	params_prv.weight_shifts = &params.weight_shifts[0];
+    } else {
+    	params_prv.weight_scales = params.weight_scales + offset;
+    	params_prv.weight_shifts = params.weight_shifts + offset;
+    }
+
     return params_prv;
 }
 
