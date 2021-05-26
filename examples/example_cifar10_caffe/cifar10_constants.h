@@ -226,6 +226,7 @@ extern const int16_t conv4_b_zp_arr[];
 // CONV1
 //================================================
 #define CONV1_W_SHAPE {5, 5, 3, 32}
+#define CONV1_W_MEM_STRIDE {5 * 3 * 32, 3 * 32, 32, 1}
 #define CONV1_W_ELEMENTS (5*5*3*32)
 #define CONV1_W_RANK (4)
 
@@ -245,6 +246,7 @@ extern const int16_t conv4_b_zp_arr[];
 
 #define CONV1_B_ELEMENTS (32)
 #define CONV1_B_SHAPE {32}
+#define CONV1_B_MEM_STRIDE {1}
 #define CONV1_B_RANK (1)
 
 #if (MODEL_BIT_DEPTH == MODEL_SA_8)
@@ -262,10 +264,14 @@ extern const int16_t conv4_b_zp_arr[];
 
 #endif
 
+#define CONV1_OUT_H (32)
+#define CONV1_OUT_W (32)
+#define CONV1_OUT_C (32)
 
 // CONV2
 //================================================
 #define CONV2_W_SHAPE {5, 5, 32, 16}
+#define CONV2_W_MEM_STRIDE {5 * 32 * 16, 32 * 16, 16, 1}
 #define CONV2_W_ELEMENTS (5*5*32*16)
 #define CONV2_W_RANK (4)
 
@@ -282,6 +288,7 @@ extern const int16_t conv4_b_zp_arr[];
 #endif
 
 #define CONV2_B_SHAPE {16}
+#define CONV2_B_MEM_STRIDE {1}
 #define CONV2_B_ELEMENTS (16)
 #define CONV2_B_RANK (1)
 
@@ -300,9 +307,14 @@ extern const int16_t conv4_b_zp_arr[];
 
 #endif
 
+#define CONV2_OUT_H (16)
+#define CONV2_OUT_W (16)
+#define CONV2_OUT_C (16)
+
 // CONV3
 //================================================
 #define CONV3_W_SHAPE {5, 5, 16, 32}
+#define CONV3_W_MEM_STRIDE {5 * 16 * 32, 16 * 32, 32, 1}
 #define CONV3_W_ELEMENTS (5*5*16*32)
 #define CONV3_W_RANK (4)
 
@@ -321,6 +333,7 @@ extern const int16_t conv4_b_zp_arr[];
 #endif
 
 #define CONV3_B_SHAPE {32}
+#define CONV3_B_MEM_STRIDE {1}
 #define CONV3_B_ELEMENTS (32)
 #define CONV3_B_RANK (1)
 
@@ -339,9 +352,14 @@ extern const int16_t conv4_b_zp_arr[];
 
 #endif
 
+#define CONV3_OUT_H (8)
+#define CONV3_OUT_W (8)
+#define CONV3_OUT_C (32)
+
 // FC4
 //================================================
 #define FC4_W_SHAPE {(32*16), 10}
+#define FC4_W_MEM_STRIDE {10, 1}
 #define FC4_W_ELEMENTS (32*16*10)
 #define FC4_W_RANK (2)
 
@@ -360,6 +378,7 @@ extern const int16_t conv4_b_zp_arr[];
 #endif
 
 #define FC4_B_SHAPE {10}
+#define FC4_B_MEM_STRIDE {1}
 #define FC4_B_ELEMENTS (10)
 #define FC4_B_RANK (1)
 
@@ -378,4 +397,5 @@ extern const int16_t conv4_b_zp_arr[];
 
 #endif
 
+#define FC4_OUT_SIZE (10)
 #endif  //_CIFAR10_CONSTANTS_H_

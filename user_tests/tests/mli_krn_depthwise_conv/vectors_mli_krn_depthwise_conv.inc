@@ -152,6 +152,12 @@ static const int input_1_fx8_frac = 6;
     /* .shape = */ {7, 7, 3}, \
     /* .rank =  */ 3
 
+#define INPUT_1b_MEMSTR_TSR_SHARED_DESCR \
+    /* .data = */ { 0 },\
+    /* .mem_stride = */ {(13 * 3) * 2, (3 * 2) * 1, 1}, \
+    /* .shape = */ {6, 7, 3}, \
+    /* .rank =  */ 3
+
 static const mli_tensor input_1_tsr_fx16 = {
     INPUT_1_TSR_SHARED_DESCR,
 
@@ -175,6 +181,20 @@ static const mli_tensor input_1_tsr_sa8 = {
 
 static const mli_tensor input_1_memstr_tsr_sa8 = {
     INPUT_1_MEMSTR_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ { 0 }
+};
+
+static const mli_tensor input_1b_memstr_tsr_fx16 = {
+    INPUT_1b_MEMSTR_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
+};
+
+static const mli_tensor input_1b_memstr_tsr_sa8 = {
+    INPUT_1b_MEMSTR_TSR_SHARED_DESCR,
 
     /* .el_type = */ MLI_EL_SA_8,
     /* .el_params = */ { 0 }
@@ -995,11 +1015,18 @@ tensor_quantizer input_1_fx16(input_1_tsr_fx16, input_1_fx8_frac + 8, input_1_da
 tensor_quantizer input_1_memstr_fx16(input_1_memstr_tsr_fx16, input_1_fx8_frac + 8, input_1_data, 
     sizeof(input_1_data) / sizeof(input_1_data[0]));
 
+tensor_quantizer input_1b_memstr_fx16(input_1b_memstr_tsr_fx16, input_1_fx8_frac + 8, input_1_data, 
+    sizeof(input_1_data) / sizeof(input_1_data[0]));
+
 tensor_quantizer input_1_sa8(input_1_tsr_sa8, input_1_sa_dim, input_1_data, 
     sizeof(input_1_data) / sizeof(input_1_data[0]), &input_1_scale, 1, 
     &input_1_zero_point, 1, input_1_scales_frac, 1);
 
 tensor_quantizer input_1_memstr_sa8(input_1_memstr_tsr_sa8, input_1_sa_dim, input_1_data, 
+    sizeof(input_1_data) / sizeof(input_1_data[0]), &input_1_scale, 1, 
+    &input_1_zero_point, 1, input_1_scales_frac, 1);
+
+tensor_quantizer input_1b_memstr_sa8(input_1b_memstr_tsr_sa8, input_1_sa_dim, input_1_data, 
     sizeof(input_1_data) / sizeof(input_1_data[0]), &input_1_scale, 1, 
     &input_1_zero_point, 1, input_1_scales_frac, 1);
 

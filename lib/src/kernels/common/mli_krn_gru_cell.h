@@ -88,7 +88,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
     int16_t one_data[] = {1};
     one.data.capacity = 1;
     one.data.mem.pi16 = one_data;
-    one.mem_stride[0] = 0;
+    one.mem_stride[0] = 1;
     one.shape[0] = 1;
     one.rank = 1;
     one.el_type = in->el_type;
@@ -96,10 +96,10 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
 
     mli_tensor ir_tensor = {{ 0 }};
     ir_tensor.data = cfg->scratch_data;
-    ir_tensor.mem_stride[0] = 0;
-    ir_tensor.mem_stride[1] = 0;
     ir_tensor.shape[0] = bias->shape[0];
     ir_tensor.shape[1] = bias->shape[1];
+    ir_tensor.mem_stride[0] = ir_tensor.shape[1];
+    ir_tensor.mem_stride[1] = 1;
     ir_tensor.rank = bias->rank; 
     ir_tensor.el_type = in->el_type;
     ir_tensor.el_params = ir_asym_params;
@@ -108,38 +108,30 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
     define_quant_params(in, weights_in, bias, &ir_tensor, &in_to_out_params[0]);
     define_quant_params(prev_out, weights_out, bias, &ir_tensor, &in_to_out_params[1]);
 
-    const int w_ch_out_mem_stride_from_tensors[] = {(int)weights_in->mem_stride[KRNL_RNN_W_IN_ELEMS_DIM], 
+    const int w_ch_out_mem_strides[] = {(int)weights_in->mem_stride[KRNL_RNN_W_IN_ELEMS_DIM],
                                                     (int)weights_out->mem_stride[KRNL_RNN_W_IN_ELEMS_DIM]};
 
-    const int w_gate_mem_stride_from_tensors[] = {(int)weights_in->mem_stride[0], 
+    const int w_gate_mem_strides[] = {(int)weights_in->mem_stride[0],
                                                   (int)weights_out->mem_stride[0]};
 
-    const int w_ch_out_mem_strides[] = {(w_ch_out_mem_stride_from_tensors[0] != 0) 
-                                            ? w_ch_out_mem_stride_from_tensors[0] : gru_out_elements, 
-                                        (w_ch_out_mem_stride_from_tensors[1] != 0) 
-                                            ? w_ch_out_mem_stride_from_tensors[1] : gru_out_elements};
-    
-    const int w_gate_mem_strides[] = {(w_gate_mem_stride_from_tensors[0] != 0) 
-                                        ? w_gate_mem_stride_from_tensors[0] : gru_out_elements * inputs_elements[0], 
-                                      (w_gate_mem_stride_from_tensors[1] != 0) 
-                                        ? w_gate_mem_stride_from_tensors[1]: gru_out_elements * inputs_elements[1]};
-
-    // Paricular subtensors of intermediate tensor (mli_tensor.mem_stride[] should be zero and cannot be left uninitialized)
-    mli_tensor reset_gate = {{ 0 }}, update_gate = {{ 0 }}, new_gate = {{ 0 }}; // Various gates to control info flow
-    mli_tensor w_in_new_g = {{ 0 }}, w_out_new_g = {{ 0 }}, b_new_g = {{ 0 }};
+    // Paricular subtensors of intermediate tensor
+    mli_tensor reset_gate, update_gate, new_gate; // Various gates to control info flow
+    mli_tensor w_in_new_g, w_out_new_g, b_new_g;
 
     // Init subtensors
-    mli_point_to_subtsr_cfg iterator = {/*.start_coord =*/ {0}, /*.coord_num=*/ 1, /*.first_out_dim_size=*/ 1};
-    mli_point_to_subtsr_cfg weight_iterator = {/*.start_coord =*/ {2}, /*.coord_num=*/ 1, /*.first_out_dim_size=*/ 1};
-    mli_hlp_point_to_subtensor(&ir_tensor, &iterator, &update_gate); iterator.start_coord[0]++;
-    mli_hlp_point_to_subtensor(&ir_tensor, &iterator, &reset_gate); iterator.start_coord[0]++;
-    mli_hlp_point_to_subtensor(&ir_tensor, &iterator, &new_gate); iterator.start_coord[0]++;
-    mli_hlp_point_to_subtensor(bias, &weight_iterator, &b_new_g);
+    mli_sub_tensor_cfg iterator = {/*.offset =*/ {0}, /*.size = */{1, ir_tensor.shape[1]}, /*.sub_tensor_rank =*/2};
+    mli_sub_tensor_cfg weight_iterator = {/*.offset =*/ {2,0}, /*.size = */{1, bias->shape[1]}, /*.sub_tensor_rank =*/2};
+    mli_hlp_create_subtensor(&ir_tensor, &iterator, &update_gate); iterator.offset[0]++;
+    mli_hlp_create_subtensor(&ir_tensor, &iterator, &reset_gate); iterator.offset[0]++;
+    mli_hlp_create_subtensor(&ir_tensor, &iterator, &new_gate); iterator.offset[0]++;
+    mli_hlp_create_subtensor(bias, &weight_iterator, &b_new_g);
 
     w_in_new_g.data = weights_in->data; 
     w_in_new_g.rank = 2;
     w_in_new_g.shape[0] = weights_in->shape[1];
     w_in_new_g.shape[1] = weights_in->shape[2];
+    w_in_new_g.mem_stride[0] = weights_in->mem_stride[1];
+    w_in_new_g.mem_stride[1] = weights_in->mem_stride[2];
     w_in_new_g.el_params = weights_in->el_params;
     w_in_new_g.el_type = weights_in->el_type;
     mli_prv_tensor_inc_data_ptr<w_T*>(&w_in_new_g, num_gates * w_gate_mem_strides[0]);
@@ -148,6 +140,8 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
     w_out_new_g.rank = 2;
     w_out_new_g.shape[0] = weights_out->shape[1];
     w_out_new_g.shape[1] = weights_out->shape[2];
+    w_out_new_g.mem_stride[0] = weights_out->mem_stride[1];
+    w_out_new_g.mem_stride[1] = weights_out->mem_stride[2];
     w_out_new_g.el_params = weights_out->el_params;
     w_out_new_g.el_type = weights_out->el_type;
     mli_prv_tensor_inc_data_ptr<w_T*>(&w_out_new_g, num_gates * w_gate_mem_strides[1]);
@@ -164,19 +158,20 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
     rnn_out.rank = 2;
     rnn_out.shape[0] = 1;
     rnn_out.shape[1] = static_cast<unsigned>(gru_out_elements);
-    rnn_out.mem_stride[0] = 0;
-    rnn_out.mem_stride[1] = 0;
+    rnn_out.mem_stride[0] = rnn_out.shape[1];
+    rnn_out.mem_stride[1] = 1;
     rnn_out.el_type = in->el_type;
 
     mli_tensor current_hidden = {{ 0 }};
     current_hidden.data = prev_out->data;
-    current_hidden.rank = prev_out->rank;
-    current_hidden.shape[0] = prev_out->shape[0];
-    current_hidden.mem_stride[0] = 0;
-    current_hidden.mem_stride[1] = 0;
+    current_hidden.rank = 2;
+    current_hidden.shape[0] = 1;
+    current_hidden.shape[1] = prev_out->shape[0];
+    current_hidden.mem_stride[0] = current_hidden.shape[1];
+    current_hidden.mem_stride[1] = 1;
+
     current_hidden.el_type = in->el_type;
     current_hidden.el_params = prev_out->el_params;
-
     mli_tensor current_out = current_hidden;
     current_out.data = out->data;
     current_out.el_params = ir_tensor.el_params;
@@ -185,8 +180,9 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
     prev_out_reset.data = reset_gate.data;
     prev_out_reset.rank = reset_gate.rank;
     prev_out_reset.shape[0] = reset_gate.shape[0];
-    prev_out_reset.mem_stride[0] = 0;
-    prev_out_reset.mem_stride[1] = 0;
+    prev_out_reset.shape[1] = reset_gate.shape[1];
+    prev_out_reset.mem_stride[0] = reset_gate.mem_stride[0];
+    prev_out_reset.mem_stride[1] = reset_gate.mem_stride[1];
     prev_out_reset.el_type = in->el_type;
     prev_out_reset.el_params = ir_tensor.el_params;
 
