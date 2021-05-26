@@ -67,7 +67,7 @@ const crc32_calc test_1_chksum_fx16 {0x7CD22049}, /*test_1_chksum_fx16_fx8_fx8, 
 // Platform Specific CRC Results
 #if defined(CRC_RM_UP)
 const crc32_calc test_1_chksum_fx16_fx8_fx8 {0xB8EF2F73},
-                 test_2_chksum_fx16_fx8_fx8 {0x2A904693}, test_2_chksum_sa8 {0x20684A32},
+                 test_2_chksum_fx16_fx8_fx8 {0x2A904693}, test_2_chksum_sa8 {0xBBF2F0DD},
                  test_4_chksum_fx16_fx8_fx8 {0xF0F39D2C}, 
                  test_5_chksum_fx16_fx8_fx8 {0xA3E639A8},
                  test_6_chksum_fx16_fx8_fx8 {0x1BE42216}, test_6_chksum_sa8 {0x179FAFCC},

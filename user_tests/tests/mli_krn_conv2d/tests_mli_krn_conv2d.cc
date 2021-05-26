@@ -68,9 +68,9 @@ const crc32_calc test_1_chksum_fx16{ 0x3669E8DA }, test_1_chksum_fx16_fx8_fx8{ 0
                  test_11_chksum_fx16{ 0xEE754246 }, test_11_chksum_fx16_fx8_fx8{ 0x77A6F1AD }, test_11_chksum_sa8{ 0x10AA2F03 };
 // Platform Specific CRC Results
 #if defined(CRC_RM_UP)
-const crc32_calc test_6_chksum_fx16_fx8_fx8{ 0x8C24C65A }, test_6_chksum_sa8{ 0x694044CD };
+const crc32_calc test_6_chksum_fx16_fx8_fx8{ 0x8C24C65A }, test_6_chksum_sa8{ 0x36699F43 };
 #else 
-const crc32_calc test_6_chksum_fx16_fx8_fx8{ 0x0BA52872 }, test_6_chksum_sa8{ 0x324DBE11 };
+const crc32_calc test_6_chksum_fx16_fx8_fx8{ 0x0BA52872 }, test_6_chksum_sa8{ 0x2BA3EA5D };
 #endif
 #else // Not defined CRC_*
 const crc32_calc  test_1_chksum_fx16, test_1_chksum_fx16_fx8_fx8, test_1_chksum_sa8,

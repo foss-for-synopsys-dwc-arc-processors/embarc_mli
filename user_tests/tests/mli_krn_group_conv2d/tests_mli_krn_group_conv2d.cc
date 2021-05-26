@@ -56,7 +56,7 @@ struct group_conv2d_test_operands {
 #if defined(CRC_RM_CONVERGENT) || defined(CRC_RM_UP)
 
 // Shared CRC Results
-const crc32_calc test_1_chksum_fx16{ 0xB782413A }, test_1_chksum_fx16_fx8_fx8{ 0xEE4193A9 }, test_1_chksum_sa8{ 0xB28452CF },
+const crc32_calc test_1_chksum_fx16{ 0xB782413A }, test_1_chksum_fx16_fx8_fx8{ 0xEE4193A9 }, test_1_chksum_sa8{ 0xB0EBD3DC },
                  test_2_chksum_fx16{ 0x65FD03D2 }, test_2_chksum_fx16_fx8_fx8{ 0xB34C4A01 }, test_2_chksum_sa8{ 0x33341D2B },
                  test_3_chksum_fx16{ 0x71B9E656 }, test_3_chksum_fx16_fx8_fx8{ 0x67578BCF }, test_3_chksum_sa8{ 0xAAD727F2 },
                  test_4_chksum_fx16{ 0x2D7FD678 }, test_4_chksum_fx16_fx8_fx8{ 0x96994E5E }, test_4_chksum_sa8{ 0xCC24BECE },
@@ -64,13 +64,13 @@ const crc32_calc test_1_chksum_fx16{ 0xB782413A }, test_1_chksum_fx16_fx8_fx8{ 0
                  test_6_chksum_fx16{ 0x3013D414 }, test_6_chksum_fx16_fx8_fx8{ 0xCB153206 }, test_6_chksum_sa8{ 0xC61C378D },
                  test_7_chksum_fx16{ 0xC979FA6E }, test_7_chksum_fx16_fx8_fx8{ 0x5D29B6B4 }, test_7_chksum_sa8{ 0x28AFE63F },
                  test_8_chksum_fx16{ 0xAC7AFCAE }, test_8_chksum_sa8{ 0xE97450E4 },
-                 test_9_chksum_fx16{ 0x2DDBDF54 }, test_9_chksum_fx16_fx8_fx8{ 0x575372E7 }, test_9_chksum_sa8{ 0x396D8D7A },
+                 test_9_chksum_fx16{ 0x2DDBDF54 }, test_9_chksum_fx16_fx8_fx8{ 0x575372E7 },
                  test_10_chksum_fx16{ 0x78039E74 }, test_10_chksum_fx16_fx8_fx8{ 0x1783EEEC }, test_10_chksum_sa8{ 0x079DC058 };
 // Platform Specific CRC Results
 #if defined(CRC_RM_UP)
-const crc32_calc test_8_chksum_fx16_fx8_fx8{ 0x629A3BD0 };
+const crc32_calc test_8_chksum_fx16_fx8_fx8{ 0x629A3BD0 }, test_9_chksum_sa8{ 0x38F5EB92 };
 #else 
-const crc32_calc test_8_chksum_fx16_fx8_fx8{ 0x0597C4DB };
+const crc32_calc test_8_chksum_fx16_fx8_fx8{ 0x0597C4DB }, test_9_chksum_sa8{ 0x396D8D7A };
 #endif
 #else // Not defined CRC_*
 const crc32_calc  test_1_chksum_fx16, test_1_chksum_fx16_fx8_fx8, test_1_chksum_sa8,

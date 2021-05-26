@@ -119,7 +119,8 @@ MLI_FORCE_INLINE void define_quant_params(const mli_tensor *in, const mli_tensor
         params->weight_scales = &weights->el_params.sa.scale.mem.i16;
         params->weight_shifts = &weights->el_params.sa.scale_frac_bits.mem.i8;
     }
-    int32_t scale_unfinished = (int32_t)(in->el_params.sa.scale.mem.i16) << kPreDivShiftS16;
+    int norm_shift;
+    int32_t scale_unfinished = mli_math_norm_cast_fx<int32_t, int32_t>((int32_t)in->el_params.sa.scale.mem.i16, &norm_shift);
     scale_unfinished = scale_unfinished / out->el_params.sa.scale.mem.i16;
     params->in_to_out_scales_ratio = scale_unfinished;
 
@@ -127,7 +128,7 @@ MLI_FORCE_INLINE void define_quant_params(const mli_tensor *in, const mli_tensor
     int int32_to_int16_shift = 16;
     params->in_to_out_scales_ratio = mli_math_cast_fx<int32_t, int16_t>(scale_unfinished, int32_to_int16_shift - in_to_out_norm);
     params->in_to_out_shift = in->el_params.sa.scale_frac_bits.mem.i8;
-    params->in_to_out_shift += (kPreDivShiftS16 - out->el_params.sa.scale_frac_bits.mem.i8);
+    params->in_to_out_shift += (-norm_shift - out->el_params.sa.scale_frac_bits.mem.i8);
     params->in_to_out_shift -= int32_to_int16_shift - in_to_out_norm;
 
 }
@@ -383,9 +384,11 @@ MLI_FORCE_INLINE int8_t result_cast(
     accu = mli_math_asr_rnd_fx(accu, preshift);
     accu = mli_math_sat_fx(accu, 16);
 #endif
+    constexpr int max_shift_right = 63;
     const int32_t accu_result = mli_math_cast_fx<mli_acc32_t, int32_t>(accu, 0);
     const int64_t accu_scaled = mli_math_mul_fx<int32_t, int64_t>(accu_result, out_mul);
-    const int16_t out_no_offset = mli_math_cast_fx<int64_t, int16_t>(accu_scaled, out_shift - preshift);
+    int shift = MIN(out_shift - preshift, max_shift_right);
+    const int16_t out_no_offset = mli_math_cast_fx<int64_t, int16_t>(accu_scaled, shift);
     int8_t out_val = mli_math_cast_fx<int16_t, int8_t>(mli_math_add_fx(out_no_offset, quant_params->out_offset), 0);
     return out_val;
 }

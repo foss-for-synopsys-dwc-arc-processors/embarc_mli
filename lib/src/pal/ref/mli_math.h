@@ -67,8 +67,9 @@ MLI_FORCE_INLINE T mli_math_asl_fx(T x, int nbits)
 template <typename T>
 MLI_FORCE_INLINE T mli_math_asr_rnd_fx(T x, int nbits)
 {
+    using unsigned_T = typename std::make_unsigned<T>::type;
     T r = 0;
-    T one = 1u;
+    unsigned_T one = 1u;
 
     if (nbits < 0)
         return mli_math_asl_fx<T>(x, (-nbits));
