@@ -76,7 +76,7 @@ MLI_FORCE_INLINE s8asym_quant_specific_out_params_v adjust_quant_params_v(s8asym
     vNx4int_t outmul32 = to_vNx4int_t(mli_math_mul_fx<vNx4short_t, vNx4accint_t>(wscales, (vNx4short_t)(params->in_to_out_scales_ratio)));
     vNx4int_t mul_norm = mli_math_norm_fx<vNx4int_t, vNx4int_t>(outmul32);
     int int_to_short_shift = 16;
-    out_params.out_mul = to_vNx4short_t(mli_math_asr_rnd_fx(outmul32, int_to_short_shift - mul_norm));
+    out_params.out_mul = mli_math_cast_fx<vNx4int_t, vNx4short_t>(mli_math_asr_rnd_fx(outmul32, int_to_short_shift - mul_norm));
 
     int out_shift = params->in_to_out_shift;
     out_params.out_shift = out_shift - sizeof(int16_t) * 8; // compensate for the mul_hi output multiplier
@@ -406,12 +406,15 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
         acc = mli_math_asr_fx(acc, preshift);
     }
 
+    constexpr int32_t max_shift_right = 15;
     vNx4short_t accu_result = mli_math_acc_cast_fx<vNx4short_t, vNx4accshort_t>(acc);
     vNx4short_t shift = quant_params->out_shift - preshift;
     vNx4short_t shift_left = mli_math_max_fx(1 - shift, 0);
     accu_result = mli_math_asl_fx(accu_result, shift_left);
     vNx4short_t accu_scaled = mli_math_mul_fx_high(accu_result, quant_params->out_mul);
     vNx4short_t shift_right = mli_math_max_fx(shift, 1);
+    // limit the right shift to avoid overflow in rounding value
+    shift_right = mli_math_min_fx(shift_right, max_shift_right);
     accu_scaled = mli_math_asr_rnd_fx(accu_scaled, shift_right);
 
 #else
