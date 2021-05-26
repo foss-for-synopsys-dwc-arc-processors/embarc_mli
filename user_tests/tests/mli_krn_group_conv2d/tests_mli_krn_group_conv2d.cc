@@ -62,7 +62,7 @@ const crc32_calc test_1_chksum_fx16{ 0xB782413A }, test_1_chksum_fx16_fx8_fx8{ 0
                  test_4_chksum_fx16{ 0x2D7FD678 }, test_4_chksum_fx16_fx8_fx8{ 0x96994E5E }, test_4_chksum_sa8{ 0xCC24BECE },
                  test_5_chksum_fx16{ 0xB719F4A0 }, test_5_chksum_fx16_fx8_fx8{ 0x985577E0 }, test_5_chksum_sa8{ 0xBD32CF0A },
                  test_6_chksum_fx16{ 0x3013D414 }, test_6_chksum_fx16_fx8_fx8{ 0xCB153206 }, test_6_chksum_sa8{ 0xC61C378D },
-                 test_7_chksum_fx16{ 0x80FF4E78 }, test_7_chksum_fx16_fx8_fx8{ 0x104610B9 }, test_7_chksum_sa8{ 0x50001245 },
+                 test_7_chksum_fx16{ 0xC979FA6E }, test_7_chksum_fx16_fx8_fx8{ 0x5D29B6B4 }, test_7_chksum_sa8{ 0x28AFE63F },
                  test_8_chksum_fx16{ 0xAC7AFCAE }, test_8_chksum_sa8{ 0xE97450E4 },
                  test_9_chksum_fx16{ 0x2DDBDF54 }, test_9_chksum_fx16_fx8_fx8{ 0x575372E7 }, test_9_chksum_sa8{ 0x396D8D7A },
                  test_10_chksum_fx16{ 0x78039E74 }, test_10_chksum_fx16_fx8_fx8{ 0x1783EEEC }, test_10_chksum_sa8{ 0x079DC058 };
@@ -200,15 +200,15 @@ static const group_conv2d_test_operands tests_list[] = {
     // Weights Memstride test: groups=3, kernel_size=(4, 3), strides=(3, 3), krn_padding, Gen_ReLU
 #ifdef COMPILE_FOR_FX16
     {"Test 7 FX16 W_Memstr",         mli_krn_group_conv2d_hwcn_fx16,
-                                     input_1_fx16, weights_2_memstr_fx16, bias_7_fx16, test_7_out_fx16, test_7_cfg,
+                                     input_1b_fx16, weights_2_memstr_fx16, bias_7_fx16, test_7_out_fx16, test_7_cfg,
                                      thresholds_fx16_general, test_7_chksum_fx16},
 #elif COMPILE_FOR_FX16_FX8_FX8
     {"Test 7 FX16_FX8_FX8 W_Memstr", mli_krn_group_conv2d_hwcn_fx16_fx8_fx8,
-                                     input_1_fx16, weights_2_memstr_fx8, bias_7_fx8, test_7_out_fx16,
+                                     input_1b_fx16, weights_2_memstr_fx8, bias_7_fx8, test_7_out_fx16,
                                      test_7_cfg, thresholds_fx16_fx8_fx8_general, test_7_chksum_fx16_fx8_fx8},
 #elif COMPILE_FOR_SA8_SA8_SA32
     {"Test 7 SA8_SA8_SA32 W_Memstr", mli_krn_group_conv2d_hwcn_sa8_sa8_sa32, 
-                                     input_1_sa8, weights_2_memstr_sa8, bias_7_i1_w2_sa32, test_7_out_sa8, test_7_cfg,
+                                     input_1b_sa8, weights_2_memstr_sa8, bias_7_i1_w2_sa32, test_7_out_sa8, test_7_cfg,
                                      thresholds_sa8_general, test_7_chksum_sa8},
 #else
 #error incorrect make configuration

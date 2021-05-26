@@ -118,6 +118,7 @@ bool mli_hlp_tensor_data_ptr_cmp(const mli_tensor *in1, const mli_tensor *in2) {
     return val;
 }
 
+/* DEPRECATED */
 mli_status mli_hlp_point_to_subtensor(const mli_tensor *in, const mli_point_to_subtsr_cfg *cfg, mli_tensor *out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_point_to_subtensor(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
@@ -192,6 +193,7 @@ mli_status mli_hlp_create_subtensor(const mli_tensor *in, const mli_sub_tensor_c
         buf_offset += cfg->offset[i] * mem_strides[i];
     }
     out->data = in->data;
+    out->el_type = in->el_type;
     switch (in->el_type) {
     case MLI_EL_FX_8:
     case MLI_EL_SA_8:
@@ -233,7 +235,6 @@ mli_status mli_hlp_create_subtensor(const mli_tensor *in, const mli_sub_tensor_c
 
     out->rank = out_rank;
     out->el_params = in->el_params;
-    out->el_type = in->el_type;
 
     if (isAsym){
         if (out->el_params.sa.dim >= 0) {
@@ -370,6 +371,15 @@ uint8_t mli_hlp_accu_guard_bits_fx16_fx8() {
 }
 #endif
 
+
+// set the memstrides based on the rank and shape
+void mli_hlp_set_tensor_mem_strides(mli_tensor* in) {
+    int rank = in->rank;
+    in->mem_stride[rank-1] = 1;
+    for (int i = rank - 2; i >=0; i--) {
+        in->mem_stride[i] = in->mem_stride[i+1] * in->shape[i+1];
+    }
+}
 
 #ifdef __cplusplus
 }

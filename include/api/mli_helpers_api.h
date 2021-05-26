@@ -208,6 +208,16 @@ uint8_t mli_hlp_accu_guard_bits_sa8_sa8();
 uint8_t mli_hlp_accu_guard_bits_fx16_fx16();
 uint8_t mli_hlp_accu_guard_bits_fx16_fx8();
 
+/** 
+ * @brief Set mem strides
+ *
+ * @detail This function updates the mem_stride fields based on the rank and shape of the input tensor
+ *
+ * @param in      [I] Input tensor (with valid shape and rank)
+ *
+ * @return void
+ */
+void mli_hlp_set_tensor_mem_strides(mli_tensor* in);
 
 #ifdef __cplusplus
 }

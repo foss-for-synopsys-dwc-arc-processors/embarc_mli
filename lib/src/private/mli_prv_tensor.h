@@ -280,19 +280,8 @@ static MLI_FORCE_INLINE tensor_private_t<T> mli_prv_get_tensor_chw(
         MLI_CHECK_AND_FIX(ch, fix_ch);
     }
 
-    if (MLI_PRV_TENSOR_CALC_MEM_STRIDES_VAL || row_mem_stride == 0) {
-        // User does not supply memory strides (all must be zero), so we calculate them here.
-        MLI_ASSERT(ch_mem_stride == 0);
-        MLI_ASSERT(row_mem_stride == 0);
-        MLI_ASSERT(col_mem_stride == 0);
-
-        ch_mem_stride  = width * height;
-        row_mem_stride = width;
-        col_mem_stride = 1;
-    } else {
-        // The inner-most memory stride should be 1.
-        MLI_CHECK_AND_FIX(col_mem_stride, 1);
-    }
+    // The inner-most memory stride should be 1.
+    MLI_CHECK_AND_FIX(col_mem_stride, 1);
 
     return tensor_private_t<T> {
             mli_prv_tensor_data_ptr<T>(in), width, height, ch,
@@ -314,19 +303,8 @@ static MLI_FORCE_INLINE tensor_private_t<T> mli_prv_get_tensor_hwc(
         MLI_CHECK_AND_FIX(ch, fix_ch);
     }
 
-    if (MLI_PRV_TENSOR_CALC_MEM_STRIDES_VAL || col_mem_stride == 0) {
-        // User does not supply memory strides (all must be zero), so we calculate them here.
-        MLI_ASSERT(row_mem_stride == 0);
-        MLI_ASSERT(col_mem_stride == 0);
-        MLI_ASSERT(ch_mem_stride == 0);
-
-        row_mem_stride = ch * width;
-        col_mem_stride = ch;
-        ch_mem_stride  = 1;
-    } else {
-        // The inner-most memory stride should be 1.
-        MLI_CHECK_AND_FIX(ch_mem_stride, 1);
-    }
+    // The inner-most memory stride should be 1.
+    MLI_CHECK_AND_FIX(ch_mem_stride, 1);
 
     return tensor_private_t<T> {
             mli_prv_tensor_data_ptr<T>(in), width, height, ch,
@@ -344,12 +322,8 @@ static MLI_FORCE_INLINE generic_tensor_private_t<T> mli_prv_get_generic_tensor(
 
     if (rank) {
         for (int i = 0; i < rank; i++) {
-                tensor.shape[i] = in->shape[i];
-        }
-
-        tensor.mem_stride[rank - 1] = in->mem_stride[rank - 1] != 0 ? in->mem_stride[rank - 1] : 1;
-        for (int i = rank - 2; i >= 0; i--) {
-            tensor.mem_stride[i] = in->mem_stride[i] != 0 ? in->mem_stride[i] : tensor.mem_stride[i+1] * in->shape[i+1];
+            tensor.shape[i] = in->shape[i];
+            tensor.mem_stride[i] = in->mem_stride[i];
         }
 
         for (int i = rank; i < MLI_MAX_RANK; i++) {
@@ -443,8 +417,8 @@ static MLI_FORCE_INLINE void mli_prv_squash_generic_tensor(
         generic_tensor_private_t<T> *out_prv) {
     int shift = 0;
     for (int i = in_prv->rank - 1; i > 0; i--){
-        if (((in_prv->mem_stride[i - 1] == 0) || (in_prv->mem_stride[i - 1] == in_prv->shape[i])) &&
-           ((out_prv->mem_stride[i - 1] == 0) || (out_prv->mem_stride[i - 1] == out_prv->shape[i]))){
+        if ((in_prv->mem_stride[i - 1] == in_prv->shape[i]) &&
+            (out_prv->mem_stride[i - 1] == out_prv->shape[i])){
             in_prv->mem_stride[i - 1] = 1;
             in_prv->mem_stride[i] = 1;
             in_prv->shape[i - 1] *= in_prv->shape[i];
@@ -484,8 +458,8 @@ static MLI_FORCE_INLINE int mli_prv_squash_tensor_to_one_dim(
     MLI_ASSERT(rank > 0);
 
     for (int i = rank - 1; i > 0; i--) {
-         if (((in->mem_stride[i - 1] == 0) || (in->mem_stride[i - 1] == shape)) &&
-             ((out->mem_stride[i - 1] == 0) || (out->mem_stride[i - 1] == shape))){
+         if ((in->mem_stride[i - 1] == shape) &&
+             (out->mem_stride[i - 1] == shape)){
             shape *= in->shape[i - 1];
         } else {
              return 0;
@@ -505,9 +479,9 @@ static MLI_FORCE_INLINE int mli_prv_squash_tensor_to_one_dim(
     MLI_ASSERT(rank > 0);
 
     for (int i = rank - 1; i > 0; i--) {
-         if (((in1->mem_stride[i - 1] == 0) || (in1->mem_stride[i - 1] == shape)) &&
-             ((in2->mem_stride[i - 1] == 0) || (in2->mem_stride[i - 1] == shape)) &&
-             ((out->mem_stride[i - 1] == 0) || (out->mem_stride[i - 1] == shape))){
+         if ((in1->mem_stride[i - 1] == shape) &&
+             (in2->mem_stride[i - 1] == shape) &&
+             (out->mem_stride[i - 1] == shape)){
 
             shape *= in1->shape[i - 1];
         } else {
@@ -525,9 +499,9 @@ static MLI_FORCE_INLINE void mli_prv_squash_generic_tensor(
         generic_tensor_private_t<T> *out_prv) {
     int shift = 0;
     for (int i = in1_prv->rank - 1; i > 0; i--){
-        if (((in1_prv->mem_stride[i - 1] == 0) || (in1_prv->mem_stride[i - 1] == in1_prv->shape[i])) &&
-            ((in2_prv->mem_stride[i - 1] == 0) || (in2_prv->mem_stride[i - 1] == in2_prv->shape[i])) &&
-           ((out_prv->mem_stride[i - 1] == 0) || (out_prv->mem_stride[i - 1] == out_prv->shape[i]))){
+        if ((in1_prv->mem_stride[i - 1] == in1_prv->shape[i]) &&
+            (in2_prv->mem_stride[i - 1] == in2_prv->shape[i]) &&
+            (out_prv->mem_stride[i - 1] == out_prv->shape[i])){
             in1_prv->mem_stride[i - 1] = 1;
             in1_prv->mem_stride[i] = 1;
             in1_prv->shape[i - 1] *= in1_prv->shape[i];
@@ -591,21 +565,8 @@ static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_we
         MLI_CHECK_AND_FIX(in_ch, fix_in_ch);
     }
 
-    if (MLI_PRV_TENSOR_CALC_MEM_STRIDES_VAL || col_mem_stride == 0) {
-        // User does not supply memory strides (all must be zero), so we calculate them here.
-        MLI_ASSERT(out_ch_mem_stride == 0);
-        MLI_ASSERT(row_mem_stride == 0);
-        MLI_ASSERT(col_mem_stride == 0);
-        MLI_ASSERT(in_ch_mem_stride == 0);
-
-        out_ch_mem_stride = in_ch * width * height;
-        row_mem_stride    = in_ch * width;
-        col_mem_stride    = in_ch;
-        in_ch_mem_stride  = 1;
-    } else {
-        // The inner-most memory stride should be 1.
-        MLI_CHECK_AND_FIX(in_ch_mem_stride, 1);
-    }
+    // The inner-most memory stride should be 1.
+    MLI_CHECK_AND_FIX(in_ch_mem_stride, 1);
 
     return conv2d_weights_tensor_private_t<T> {
             mli_prv_tensor_data_ptr<T>(weights), width, height, in_ch, out_ch,
@@ -637,20 +598,8 @@ static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_we
         MLI_CHECK_AND_FIX(in_ch, fix_in_ch);
     }
 
-    if (MLI_PRV_TENSOR_CALC_MEM_STRIDES_VAL || col_mem_stride == 0) {
-        // user does not supply memory strides, hence we calculate them.
-        MLI_ASSERT(out_ch_mem_stride == 0);
-        MLI_ASSERT(row_mem_stride == 0);
-        MLI_ASSERT(col_mem_stride == 0);
-        MLI_ASSERT(out_ch_mem_stride == 0);
-        out_ch_mem_stride = 1;
-        in_ch_mem_stride  = out_ch;
-        col_mem_stride    = out_ch * in_ch;
-        row_mem_stride    = out_ch * in_ch * width;
-    } else {
-        // The inner-most memory stride should be 1.
-        MLI_CHECK_AND_FIX(out_ch_mem_stride, 1);
-    }
+    // The inner-most memory stride should be 1.
+    MLI_CHECK_AND_FIX(out_ch_mem_stride, 1);
 
     return conv2d_weights_tensor_private_t<T> {
         mli_prv_tensor_data_ptr<T>(weights), width, height, in_ch, out_ch,
@@ -680,21 +629,8 @@ static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_we
         MLI_CHECK_AND_FIX(height, fix_height);
     }
 
-    if (MLI_PRV_TENSOR_CALC_MEM_STRIDES_VAL || col_mem_stride == 0) {
-        // User does not supply memory strides (all must be zero), so we calculate them here.
-        MLI_ASSERT(in_ch_mem_stride == 0);
-        MLI_ASSERT(row_mem_stride == 0);
-        MLI_ASSERT(col_mem_stride == 0);
-        MLI_ASSERT(out_ch_mem_stride == 0);
-
-        in_ch_mem_stride  = out_ch * width * height;
-        row_mem_stride    = out_ch * width;
-        col_mem_stride    = out_ch;
-        out_ch_mem_stride = 1;
-    } else {
-        // The inner-most memory stride should be 1.
-        MLI_CHECK_AND_FIX(out_ch_mem_stride, 1);
-    }
+    // The inner-most memory stride should be 1.
+    MLI_CHECK_AND_FIX(out_ch_mem_stride, 1);
 
     return conv2d_weights_tensor_private_t<T> {
             mli_prv_tensor_data_ptr<T>(weights), width, height, in_ch, out_ch,
@@ -712,17 +648,6 @@ static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_get_conv2d_we
     int in_ch_mem_stride  = weights->mem_stride[KRNL_D_DIM_CHW];
     int row_mem_stride    = weights->mem_stride[KRNL_H_DIM_CHW];
     int col_mem_stride    = weights->mem_stride[KRNL_W_DIM_CHW];
-
-    if (row_mem_stride == 0) {
-        // user does not supply memory strides, hence we calculate them.
-        MLI_ASSERT(out_ch_mem_stride == 0);
-        MLI_ASSERT(in_ch_mem_stride == 0);
-        MLI_ASSERT(col_mem_stride == 0);
-        col_mem_stride    = 1;
-        row_mem_stride    = width;
-        in_ch_mem_stride  = width * height;
-        out_ch_mem_stride = in_ch * width * height;
-    }
 
     return conv2d_weights_tensor_private_t<T> {
         mli_prv_tensor_data_ptr<T>(weights), width, height, in_ch, out_ch,
