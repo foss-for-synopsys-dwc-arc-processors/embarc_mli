@@ -105,8 +105,8 @@ static MLI_FORCE_INLINE void mli_krn_pool_hwc_nopad(
 
             for (int H_idx = row_beg; H_idx < row_end; H_idx++) {
                 if (type == AVEPOOL) {
-#pragma clang loop pipeline(enable)
-#pragma clang loop pipeline_options(0x10)
+PRAGMA_CLANG(loop pipeline(enable))
+PRAGMA_CLANG(loop pipeline_options(0x10))
                     for (int W_idx = clmn_beg; W_idx < clmn_end; W_idx++) {
                         mli::krn::compute_avepool<io_T, fixed_kernel_size, /*varying_kernel*/ false>(
                                                     in_ptr, out_ptr, mul, kernel_width, kernel_height,
