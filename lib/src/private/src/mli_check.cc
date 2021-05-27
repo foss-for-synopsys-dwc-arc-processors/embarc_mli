@@ -24,18 +24,15 @@
 
 #pragma MLI_CODE_SECTION_START(".mli_lib")
 
-
-// vccm_chk_bank will be false for the APIs that does't require the tensor to be in VCCM like data Movement API.
-template <bool vccm_chk_bank = true>
 /*check_bank checks whether the tensor buffer have to be allocated in ccm memory or not and its value will be:
  *  -false: if the out_buffer uses MLI_CONV_OUT_PTR which means for the output buffers of all weights based kernels.
  *  -true: Otherwise.
  */
-static MLI_FORCE_INLINE mli_status mli_mem_chk(const mli_tensor *t, bool check_bank) {
+MLI_FORCE_INLINE mli_status mli_mem_chk(const mli_tensor *t, bool check_bank) {
 #if (PLATFORM == V2DSP_XY) || (PLATFORM == V2DSP_VECTOR)
     void *p = t->data.mem.void_p;
     uint32_t align_mask = mli_hlp_tensor_element_size(t) - 1;
-    return mli_mem_chk_ptr(p, align_mask, check_bank, vccm_chk_bank);
+    return mli_mem_chk_ptr(p, align_mask, check_bank);
 #else
     return MLI_STATUS_OK;
 #endif
@@ -92,7 +89,7 @@ mli_status mli_chk_lut(const mli_lut * lut, int buff_size) {
     mli_tensor dummy = { .el_type = lut->type };
     uint32_t align_mask = mli_hlp_tensor_element_size(&dummy) - 1;
 
-    mli_status ret = mli_mem_chk_ptr(p, align_mask, true, true);
+    mli_status ret = mli_mem_chk_ptr(p, align_mask, /*check_bank=*/true);
     return ret;
 #else
     return MLI_STATUS_OK;
@@ -171,12 +168,12 @@ mli_status mli_chk_tensor_quant_params(const mli_tensor* in, unsigned zp_used_bi
 #ifdef __cplusplus
 extern "C" {
 #endif
-mli_status mli_chk_tensor (const mli_tensor * in) {
+mli_status mli_chk_tensor (const mli_tensor * in, bool check_bank) {
 	mli_status stat = MLI_STATUS_OK;
     if (MLI_CHECK(in != NULL, "Bad tensor null pointer")) stat = MLI_STATUS_BAD_TENSOR;
     if (stat == MLI_STATUS_OK) stat = check_tensor_private(in->shape, in->mem_stride, in->rank, in->data.capacity, mli_hlp_tensor_element_size(in));
     if (stat == MLI_STATUS_OK) stat = mli_chk_tensor_quant_params(in);
-    if (stat == MLI_STATUS_OK) stat = MLI_CHECK_STATUS(mli_mem_chk(in, MLI_PTR_IS_XY), "Memory check error");
+    if (stat == MLI_STATUS_OK) stat = MLI_CHECK_STATUS(mli_mem_chk(in, check_bank), "Memory check error");
     return stat;
 }
 #ifdef __cplusplus
@@ -2732,7 +2729,7 @@ mli_status mli_chk_create_subtensor(const mli_tensor *in, const mli_sub_tensor_c
     mli_status stat = MLI_STATUS_OK;
 
     // Check that in tensor is valid and out provides valid pointers
-    stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
+    stat = MLI_CHECK_STATUS(mli_chk_tensor (in, /*check_bank=*/false), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out != NULL , "Bad Output tensor  pointer")) return MLI_STATUS_BAD_TENSOR;
 
@@ -2752,17 +2749,10 @@ mli_status mli_chk_create_subtensor(const mli_tensor *in, const mli_sub_tensor_c
 
 mli_status mli_chk_data_movement(const mli_tensor *in, const mli_mov_cfg_t *cfg, mli_tensor *out) {
     mli_status stat = MLI_STATUS_OK;
-    if (MLI_CHECK(in != NULL, "Bad in tensor pointer")) return MLI_STATUS_BAD_TENSOR;
     // For data movement the tensor data can be allocated in external memory.
-    stat = MLI_CHECK_STATUS(mli_mem_chk<false>(in, false), "Memory check error");
-    if (stat != MLI_STATUS_OK) {
-       	return stat;
-    }
-    stat = MLI_CHECK_STATUS(check_tensor_private(in->shape, in->mem_stride, in->rank, in->data.capacity, mli_hlp_tensor_element_size(in)),
-    		"bad in tensor");
-    if (stat != MLI_STATUS_OK) {
-    	return stat;
-    }
+    // Check that in tensor is valid and out provides valid pointers
+    stat = MLI_CHECK_STATUS(mli_chk_tensor (in, false), "Bad input tensor");
+    if (stat != MLI_STATUS_OK) return stat;
 
     if ((in->el_type == MLI_EL_SA_8 || in->el_type == MLI_EL_SA_32) && (in->el_params.sa.dim != -1)) {
     	bool fail = false;
@@ -2818,16 +2808,9 @@ mli_status mli_chk_data_movement(const mli_tensor *in, const mli_mov_cfg_t *cfg,
 mli_status mli_chk_data_movement_dst_tensor(const mli_tensor *t) {
     mli_status stat = MLI_STATUS_OK;
     // For data movement the tensor data can be allocated in external memory.
-    stat = MLI_CHECK_STATUS(mli_mem_chk<false>(t, false), "Memory check error");
-    if (stat != MLI_STATUS_OK) {
-       	return stat;
-    }
-    stat = MLI_CHECK_STATUS(check_tensor_private(t->shape, t->mem_stride, t->rank, t->data.capacity, mli_hlp_tensor_element_size(t)),
-    		"bad in tensor");
-    if (stat != MLI_STATUS_OK) {
-    	return stat;
-    }
-    return MLI_STATUS_OK;
+    // Check that in tensor is valid and out provides valid pointers
+    stat = MLI_CHECK_STATUS(mli_chk_tensor (t, false), "Bad input tensor");
+    return stat;
 
 }
 
