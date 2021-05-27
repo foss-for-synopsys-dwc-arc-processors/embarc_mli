@@ -63,10 +63,10 @@ static MLI_FORCE_INLINE bool mli_mem_is_inside_ccm(const void *ptr) {
         || mli_mem_is_inside_vccm(ptr);
 }
 
-static MLI_FORCE_INLINE mli_status mli_mem_chk_ptr(void *p, uint32_t align_mask, bool check_bank, bool vccm_chk_bank) {
+static MLI_FORCE_INLINE mli_status mli_mem_chk_ptr(void *p, uint32_t align_mask, bool check_bank) {
 #if MLI_PTR_IS_VCCM
     bool is_inside_vccm = mli_mem_is_inside_vccm(p);
-    if (vccm_chk_bank && (!is_inside_vccm))
+    if (check_bank && (!is_inside_vccm))
         return MLI_STATUS_MEM_BANK_MISMATCH;
     //Check the alignment if the pointer is inside the VCCM memory or the non_alignment isn't supported
     if (is_inside_vccm ||

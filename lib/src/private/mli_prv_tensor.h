@@ -763,7 +763,7 @@ extern "C" {
 static MLI_FORCE_INLINE mli_status mli_prv_copy_tensor_format(
         const mli_tensor * src, 
         mli_tensor * dst) {
-    mli_status check = MLI_CHECK_STATUS(mli_chk_tensor (src), __func__);
+    mli_status check = MLI_CHECK_STATUS(mli_chk_tensor (src, /*check_bank=*/false), __func__);
     if (check != MLI_STATUS_OK)
           return check;
 
@@ -781,7 +781,7 @@ static MLI_FORCE_INLINE mli_status mli_prv_copy_tensor_format(
 static MLI_FORCE_INLINE mli_status mli_prv_copy_tensor_format_except_mem_strides(
         const mli_tensor * src,
         mli_tensor * dst) {
-    mli_status check = MLI_CHECK_STATUS(mli_chk_tensor (src), __func__);
+    mli_status check = MLI_CHECK_STATUS(mli_chk_tensor (src, /*check_bank=*/false), __func__);
     if (check != MLI_STATUS_OK)
           return check;
 
