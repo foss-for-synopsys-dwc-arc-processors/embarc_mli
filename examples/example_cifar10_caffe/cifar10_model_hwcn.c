@@ -54,7 +54,7 @@ static int16_t  _X    lut_mem_buf[LUT_BUF_SIZE];
 static mli_tensor input = {
     .data = {
         .capacity = sizeof(d_type) * IN_POINTS,
-        .mem = { .void_p = (void *)y_mem_buf }
+        .mem = { .D_FIELD = (d_type *)y_mem_buf }
     },
     .mem_stride = { 0 },
     .shape = {32, 32, 3},
@@ -75,7 +75,7 @@ static mli_tensor input = {
 static mli_tensor output = {
     .data = {
         .capacity = sizeof(d_type) * OUT_POINTS,
-        .mem = { .void_p = (void *)x_mem_buf }
+        .mem = { .D_FIELD = (d_type *)x_mem_buf }
     },
     .mem_stride = { 0 },
     .shape = {10},
@@ -134,17 +134,17 @@ static const mli_pool_cfg shared_pool_cfg = {
 static const mli_tensor L1_conv_wt = {
     .data = {
         .capacity = CONV1_W_ELEMENTS * sizeof(w_type),
-        .mem = { .void_p = (void *)L1_conv_wt_buf }
+        .mem = { .W_FIELD = (w_type *)L1_conv_wt_buf }
     },
     .shape = CONV1_W_SHAPE,
     .rank = CONV1_W_RANK,
     .el_type = W_EL_TYPE,
 #if (MODEL_BIT_DEPTH == MODEL_SA_8)
     .el_params.sa = {
-        .zero_point.mem = { .pi16 = CONV1_W_ZP },
-        .scale.mem = { .pi16 = CONV1_W_SCALE },
+        .zero_point.mem = { .pi16 = (int16_t*)CONV1_W_ZP },
+        .scale.mem = { .pi16 = (int16_t*)CONV1_W_SCALE },
         .dim = CONV1_W_DIM,
-        .scale_frac_bits.mem = { .pi8 = CONV1_W_FRAQ }
+        .scale_frac_bits.mem = { .pi8 = (int8_t*)CONV1_W_FRAQ }
     }
 #else
     .el_params.fx.frac_bits = CONV1_W_FRAQ
@@ -154,17 +154,17 @@ static const mli_tensor L1_conv_wt = {
 static const mli_tensor L1_conv_bias = {
     .data = {
         .capacity = CONV1_B_ELEMENTS * sizeof(b_type),
-        .mem = { .void_p = (void *)L1_conv_bias_buf }
+        .mem = { .B_FIELD = (b_type *)L1_conv_bias_buf }
     },
     .shape = CONV1_B_SHAPE,
     .rank = CONV1_B_RANK,
     .el_type = B_EL_TYPE,
 #if (MODEL_BIT_DEPTH == MODEL_SA_8)
     .el_params.sa = {
-        .zero_point.mem = { .pi16 = CONV1_B_ZP },
-        .scale.mem = { .pi16 = CONV1_B_SCALE },
+        .zero_point.mem = { .pi16 = (int16_t*)CONV1_B_ZP },
+        .scale.mem = { .pi16 = (int16_t*)CONV1_B_SCALE },
         .dim = CONV1_B_DIM,
-        .scale_frac_bits.mem = { .pi8 = CONV1_B_FRAQ }
+        .scale_frac_bits.mem = { .pi8 = (int8_t*)CONV1_B_FRAQ }
     }
 #else
     .el_params.fx.frac_bits = CONV1_B_FRAQ
@@ -177,17 +177,17 @@ static const mli_tensor L1_conv_bias = {
 static mli_tensor L2_conv_wt = {
     .data = {
         .capacity = CONV2_W_ELEMENTS * sizeof(w_type),
-        .mem = { .void_p = (void *)L2_conv_wt_buf }
+        .mem = { .W_FIELD = (w_type *)L2_conv_wt_buf }
     },
     .shape = CONV2_W_SHAPE,
     .rank = CONV2_W_RANK,
     .el_type = W_EL_TYPE,
 #if (MODEL_BIT_DEPTH == MODEL_SA_8)
     .el_params.sa = {
-        .zero_point.mem = { .pi16 = CONV2_W_ZP },
-        .scale.mem = { .pi16 = CONV2_W_SCALE },
+        .zero_point.mem = { .pi16 = (int16_t*)CONV2_W_ZP },
+        .scale.mem = { .pi16 = (int16_t*)CONV2_W_SCALE },
         .dim = CONV2_W_DIM,
-        .scale_frac_bits.mem = { .pi8 = CONV2_W_FRAQ }
+        .scale_frac_bits.mem = { .pi8 = (int8_t*)CONV2_W_FRAQ }
     }
 #else
     .el_params.fx.frac_bits = CONV2_W_FRAQ
@@ -197,17 +197,17 @@ static mli_tensor L2_conv_wt = {
 static mli_tensor L2_conv_bias = {
     .data = {
         .capacity = CONV2_B_ELEMENTS * sizeof(b_type),
-        .mem = { .void_p = (void *)L2_conv_bias_buf }
+        .mem = { .B_FIELD = (b_type *)L2_conv_bias_buf }
     },
     .shape = CONV2_B_SHAPE,
     .rank = CONV2_B_RANK,
     .el_type = B_EL_TYPE,
 #if (MODEL_BIT_DEPTH == MODEL_SA_8)
     .el_params.sa = {
-        .zero_point.mem = { .pi16 = CONV2_B_ZP },
-        .scale.mem = { .pi16 = CONV2_B_SCALE },
+        .zero_point.mem = { .pi16 = (int16_t*)CONV2_B_ZP },
+        .scale.mem = { .pi16 = (int16_t*)CONV2_B_SCALE },
         .dim = CONV2_B_DIM,
-        .scale_frac_bits.mem = { .pi8 = CONV2_B_FRAQ }
+        .scale_frac_bits.mem = { .pi8 = (int8_t*)CONV2_B_FRAQ }
     }
 #else
     .el_params.fx.frac_bits = CONV2_B_FRAQ
@@ -220,17 +220,17 @@ static mli_tensor L2_conv_bias = {
 static mli_tensor L3_conv_wt = {
     .data = {
         .capacity = CONV3_W_ELEMENTS * sizeof(w_type),
-        .mem = { .void_p = (void *)L3_conv_wt_buf }
+        .mem = { .W_FIELD = (w_type *)L3_conv_wt_buf }
     },
     .shape = CONV3_W_SHAPE,
     .rank = CONV3_W_RANK,
     .el_type = W_EL_TYPE,
 #if (MODEL_BIT_DEPTH == MODEL_SA_8)
     .el_params.sa = {
-        .zero_point.mem = { .pi16 = CONV3_W_ZP },
-        .scale.mem = { .pi16 = CONV3_W_SCALE },
+        .zero_point.mem = { .pi16 = (int16_t*)CONV3_W_ZP },
+        .scale.mem = { .pi16 = (int16_t*)CONV3_W_SCALE },
         .dim = CONV3_W_DIM,
-        .scale_frac_bits.mem = { .pi8 = CONV3_W_FRAQ }
+        .scale_frac_bits.mem = { .pi8 = (int8_t*)CONV3_W_FRAQ }
     }
 #else
     .el_params.fx.frac_bits = CONV3_W_FRAQ
@@ -239,18 +239,18 @@ static mli_tensor L3_conv_wt = {
 
 static mli_tensor L3_conv_bias = {
     .data = {
-        .capacity = CONV3_B_ELEMENTS * sizeof(w_type),
-        .mem = { .void_p = (void *)L3_conv_bias_buf }
+        .capacity = CONV3_B_ELEMENTS * sizeof(b_type),
+        .mem = { .B_FIELD = (b_type *)L3_conv_bias_buf }
     },
     .shape = CONV3_B_SHAPE,
     .rank = CONV3_B_RANK,
     .el_type = B_EL_TYPE,
 #if (MODEL_BIT_DEPTH == MODEL_SA_8)
     .el_params.sa = {
-        .zero_point.mem = { .pi16 = CONV3_B_ZP },
-        .scale.mem = { .pi16 = CONV3_B_SCALE },
+        .zero_point.mem = { .pi16 = (int16_t*)CONV3_B_ZP },
+        .scale.mem = { .pi16 = (int16_t*)CONV3_B_SCALE },
         .dim = CONV3_B_DIM,
-        .scale_frac_bits.mem = { .pi8 = CONV3_B_FRAQ }
+        .scale_frac_bits.mem = { .pi8 = (int8_t*)CONV3_B_FRAQ }
     }
 #else
     .el_params.fx.frac_bits = CONV3_B_FRAQ
@@ -262,17 +262,17 @@ static mli_tensor L3_conv_bias = {
 static mli_tensor L4_fc_wt = {
     .data = {
         .capacity = FC4_W_ELEMENTS * sizeof(w_type),
-        .mem = { .void_p = (void *)L4_fc_wt_buf }
+        .mem = { .W_FIELD = (w_type *)L4_fc_wt_buf }
     },
     .shape = FC4_W_SHAPE,
     .rank = FC4_W_RANK,
     .el_type = W_EL_TYPE,
 #if (MODEL_BIT_DEPTH == MODEL_SA_8)
     .el_params.sa = {
-        .zero_point.mem = { .pi16 = CONV4_W_ZP },
-        .scale.mem = { .pi16 = CONV4_W_SCALE },
+        .zero_point.mem = { .pi16 = (int16_t*)CONV4_W_ZP },
+        .scale.mem = { .pi16 = (int16_t*)CONV4_W_SCALE },
         .dim = CONV4_W_DIM,
-        .scale_frac_bits.mem = { .pi8 = CONV4_W_FRAQ }
+        .scale_frac_bits.mem = { .pi8 = (int8_t*)CONV4_W_FRAQ }
     }
 #else
     .el_params.fx.frac_bits = FC4_W_FRAQ
@@ -282,17 +282,17 @@ static mli_tensor L4_fc_wt = {
 static mli_tensor L4_fc_bias = {
     .data = {
         .capacity = FC4_B_ELEMENTS * sizeof(b_type),
-        .mem = { .void_p = (void *)L4_fc_bias_buf }
+        .mem = { .B_FIELD = (b_type *)L4_fc_bias_buf }
     },
     .shape = FC4_B_SHAPE,
     .rank = FC4_B_RANK,
     .el_type = B_EL_TYPE,
 #if (MODEL_BIT_DEPTH == MODEL_SA_8)
     .el_params.sa = {
-        .zero_point.mem = { .pi16 = CONV4_B_ZP },
-        .scale.mem = { .pi16 = CONV4_B_SCALE },
+        .zero_point.mem = { .pi16 = (int16_t*)CONV4_B_ZP },
+        .scale.mem = { .pi16 = (int16_t*)CONV4_B_SCALE },
         .dim = CONV4_B_DIM,
-        .scale_frac_bits.mem = { .pi8 = CONV4_B_FRAQ }
+        .scale_frac_bits.mem = { .pi8 = (int8_t*)CONV4_B_FRAQ }
     }
 #else
     .el_params.fx.frac_bits = FC4_B_FRAQ,
@@ -304,7 +304,7 @@ static mli_tensor L4_fc_bias = {
 static mli_tensor ir_tensor_X = {
     .data = {
         .capacity = sizeof(x_mem_buf),
-        .mem = { .void_p = (void *)x_mem_buf }
+        .mem = { .D_FIELD = (d_type *)x_mem_buf }
     },
     .shape = {0, 0, 0, 0},
     .rank = 4,
@@ -324,7 +324,7 @@ static mli_tensor ir_tensor_X = {
 static mli_tensor ir_tensor_Y = {
     .data = {
         .capacity = sizeof(y_mem_buf),
-        .mem = { .void_p = (void *)y_mem_buf }
+        .mem = { .D_FIELD = (d_type *)y_mem_buf }
     },
     .shape = {0, 0, 0, 0},
     .rank = 4,

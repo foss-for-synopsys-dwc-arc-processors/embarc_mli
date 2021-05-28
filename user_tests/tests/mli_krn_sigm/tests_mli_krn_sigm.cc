@@ -127,7 +127,7 @@ int main() {
     mli_lut lut;
     int lut_size = mli_krn_sigm_get_lut_size();
     lut_status = lut_status && (lut_size < sizeof(scratch_lut));
-    lut.data.mem.void_p = (void*) scratch_lut;
+    lut.data.mem.pi16 = (int16_t*) scratch_lut;
     lut.data.capacity = sizeof(scratch_lut);
     lut_status = lut_status && (mli_krn_sigm_create_lut(&lut) == MLI_STATUS_OK);
 
@@ -185,7 +185,7 @@ int main() {
         }
 
         if (is_test_passed && cur_test->in_place_comp &&
-                (input.data.mem.void_p != out.data.mem.void_p)) {
+                !mli_hlp_tensor_data_ptr_cmp(&input, &out)) {
             reporter.report_message(cur_test->descr,
                 "FAILED after kernel run: memory corrupted for In Place Computation");
             is_test_passed = false;

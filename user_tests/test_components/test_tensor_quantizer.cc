@@ -405,6 +405,38 @@ bool  tensor_quantizer::tensor_assign_data_ptr(mli_tensor* tsr, void* ptr) {
     };
 }
 
+
+template <>
+int8_t* tensor_quantizer::tensor_get_data_ptr(
+        const mli_tensor *tensor) {
+    assert((tensor->el_type == MLI_EL_FX_8) || (tensor->el_type == MLI_EL_SA_8));
+    assert(tensor->rank > 0);
+    return tensor->data.mem.pi8;
+}
+
+template <>
+int16_t* tensor_quantizer::tensor_get_data_ptr(
+        const mli_tensor *tensor) {
+    assert(tensor->el_type == MLI_EL_FX_16);
+    assert(tensor->rank > 0);
+    return tensor->data.mem.pi16;
+}
+
+template <>
+int32_t* tensor_quantizer::tensor_get_data_ptr(
+        const mli_tensor *tensor) {
+    assert(tensor->el_type == MLI_EL_SA_32);
+    assert(tensor->rank > 0);
+    return tensor->data.mem.pi32;
+}
+
+template <>
+float* tensor_quantizer::tensor_get_data_ptr(
+        const mli_tensor *tensor) {
+    assert(tensor->el_type == MLI_EL_FP_32);
+    assert(tensor->rank > 0);
+    return tensor->data.mem.pf32;
+}
 // Spread provided memory across tensor's containers: data and quantization params
 //=================================================================================
 bool tensor_quantizer::spread_memory(mli_tensor* tsr, const mli_data_container* data_mem, 
@@ -565,7 +597,7 @@ void tensor_quantizer::quantize_float_data_routine(const float* src, uint32_t sr
         return (strides[0] * dim0_idx) + (strides[1] * dim1_idx) + (strides[2] * dim2_idx) + (strides[3] * dim3_idx);
     };
 
-    o_T* dst_arr = static_cast<o_T*>(dst->data.mem.void_p);
+    o_T* dst_arr = tensor_get_data_ptr<o_T*>(dst);
     int scale_dim = -1;
     int scales_num = 1;
     if ((dst_el_type == MLI_EL_SA_8 || dst_el_type == MLI_EL_SA_32) && dst->el_params.sa.dim >= 0) {
@@ -660,7 +692,7 @@ void tensor_quantizer::dequantize_tensor_data_routine(const mli_tensor* src, flo
         return (strides[0] * dim0_idx) + (strides[1] * dim1_idx) + (strides[2] * dim2_idx) + (strides[3] * dim3_idx);
     };
 
-    i_T* src_arr = static_cast<i_T*>(src->data.mem.void_p);
+    i_T* src_arr = tensor_get_data_ptr<i_T*>(src);
     int scale_dim = -1;
     int scales_num = 1;
     if ((src_el_type == MLI_EL_SA_8 || src_el_type == MLI_EL_SA_32) && src->el_params.sa.dim >= 0) {

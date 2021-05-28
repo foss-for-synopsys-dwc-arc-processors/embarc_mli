@@ -108,8 +108,8 @@ mli_status mli_mov_prepare(mli_mov_handle_t* h, const mli_tensor* src, const mli
     int rank = dst->rank = src->rank;
     dst->el_type = src->el_type;
 
-    const bool src_in_vccm = mli_mem_is_inside_vccm(src->data.mem.void_p);
-    const bool dst_in_vccm = mli_mem_is_inside_vccm(dst->data.mem.void_p);
+    const bool src_in_vccm = mli_mem_is_inside_vccm(mli_prv_tensor_cast_data_ptr(src));
+    const bool dst_in_vccm = mli_mem_is_inside_vccm(mli_prv_tensor_cast_data_ptr(dst));
 
     if ((src->el_type == MLI_EL_SA_8 || src->el_type == MLI_EL_SA_32) && (src->el_params.sa.dim != -1)) {
         if ((dst->el_params.sa.scale.mem.pi16 != src->el_params.sa.scale.mem.pi16) &&

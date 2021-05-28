@@ -46,7 +46,7 @@ test_status model_run_single_in(
     }
 
     mli_tensor pred_tensor = *model_output;
-    pred_tensor.data.mem.void_p = (void *)pred_data;
+    pred_tensor.data.mem.pf32 = pred_data;
     pred_tensor.data.capacity = output_elements * sizeof(float);
     pred_tensor.el_type = MLI_EL_FP_32;
 
@@ -343,7 +343,7 @@ static inline int arg_max(mli_tensor * net_output_) {
 
     int8_t pred_label = 0;
     mli_tensor out_tensor;
-    out_tensor.data.mem.void_p = (void *)&pred_label;
+    out_tensor.data.mem.pi8 = &pred_label;
     out_tensor.el_type = MLI_EL_SA_8;
 
 if (net_output_->el_type == MLI_EL_SA_8)

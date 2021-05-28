@@ -49,6 +49,32 @@ static MLI_FORCE_INLINE int mli_prv_get_tensor_idx_pos(
     return res;
 }
 
+MLI_FORCE_INLINE void* mli_prv_tensor_cast_data_ptr(
+        const mli_tensor *tensor) {
+    void* ptr;
+    MLI_ASSERT(tensor->rank > 0);
+    switch (tensor->el_type) {
+    case MLI_EL_FX_8:
+    case MLI_EL_SA_8:
+        ptr = static_cast<void*>(tensor->data.mem.pi8);
+        break;
+    case MLI_EL_FX_16:
+        ptr = static_cast<void*>(tensor->data.mem.pi16);
+        break;
+    case MLI_EL_SA_32:
+        ptr = static_cast<void*>(tensor->data.mem.pi32);
+        break;
+    case MLI_EL_FP_32:
+        ptr = static_cast<void*>(tensor->data.mem.pf32);
+        break;
+    default:
+        MLI_ASSERT(0);
+        ptr = static_cast<void*>(tensor->data.mem.pi8);
+        break;
+    };
+    return ptr;
+}
+
 template <typename T>
 MLI_FORCE_INLINE T mli_prv_tensor_data_ptr(
         const mli_tensor *tensor);

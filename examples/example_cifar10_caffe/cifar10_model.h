@@ -86,8 +86,10 @@ mli_status cifar10_cf_init();
 
 #if (MODEL_BIT_DEPTH == MODEL_SA_8)
 typedef int8_t d_type;
+#define D_FIELD pi8
 #else
 typedef int16_t d_type;
+#define D_FIELD pi16
 #endif
 
 #endif  //_CIFAR10_MODEL_H_

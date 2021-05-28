@@ -162,7 +162,7 @@ int main() {
         }
 
         if (is_test_passed && cur_test->in_place_comp &&
-                (input.data.mem.void_p != out.data.mem.void_p)) {
+                !mli_hlp_tensor_data_ptr_cmp(&input, &out)) {
             reporter.report_message(cur_test->descr,
                 "FAILED after kernel run: memory corrupted for In Place Computation");
             is_test_passed = false;
