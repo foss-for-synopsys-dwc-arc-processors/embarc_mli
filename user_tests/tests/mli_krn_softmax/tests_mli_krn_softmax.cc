@@ -162,7 +162,7 @@ int main() {
     bool lut_status = true;
     int lut_size = mli_krn_softmax_get_lut_size();
     lut_status = lut_status && (lut_size < sizeof(scratch_mem_lut));
-    lut.data.mem.void_p = (void*) scratch_mem_lut;
+    lut.data.mem.pi16 = (int16_t*) scratch_mem_lut;
     lut.data.capacity = sizeof(scratch_mem_lut);
     lut_status = lut_status && (mli_krn_softmax_create_lut(&lut) == MLI_STATUS_OK);
     for (int i = 0; i < kTestsNum; ++i) {

@@ -21,16 +21,22 @@
 #define B_EL_TYPE (MLI_EL_SA_32)
 typedef int8_t w_type;
 typedef int32_t b_type;
+#define W_FIELD pi8
+#define B_FIELD pi32
 #elif (MODEL_BIT_DEPTH == MODEL_FX_8W16D)
 #define W_EL_TYPE (MLI_EL_FX_8)
 #define B_EL_TYPE (MLI_EL_FX_8)
 typedef int8_t w_type;
 typedef int8_t b_type;
+#define W_FIELD pi8
+#define B_FIELD pi8
 #else // (MODEL_BIT_DEPTH == MODEL_FX_16)
 #define W_EL_TYPE (MLI_EL_FX_16)
 #define B_EL_TYPE (MLI_EL_FX_16)
 typedef int16_t w_type;
 typedef int16_t b_type;
+#define W_FIELD pi16
+#define B_FIELD pi16
 #endif
 
 

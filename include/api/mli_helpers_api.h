@@ -21,6 +21,7 @@ extern "C" {
 #endif
 
 #include "mli_types.h"
+#include <stdbool.h>
 
 /**
  * Set of helper defines to index the shape array.
@@ -87,6 +88,20 @@ uint32_t mli_hlp_count_elem_num(const mli_tensor *in, uint32_t start_dim);
  * @return Size of tensor basic element (bytes)
  */
 uint32_t mli_hlp_tensor_element_size(const mli_tensor *in);
+
+
+/**
+ * @brief compare data pointer of two tensors
+ *
+ * @detail This function compares the data pointers of two tensors and returns true if the pointers are equal.
+ * If one or both of the tensors are scalar tensors, the compare will return false.
+ *
+ * @param in1         [I] Input tensor
+ * @param in2         [I] Input tensor
+ *
+ * @return bool indicating if pointers are equal
+ */
+bool mli_hlp_tensor_data_ptr_cmp(const mli_tensor *in1, const mli_tensor *in2);
 
 /**
  * @brief Convert Tensor

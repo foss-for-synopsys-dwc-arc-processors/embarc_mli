@@ -25,7 +25,7 @@ mli_status mli_hlp_float_to_fx_tensor (const float *src, uint32_t src_size, mli_
         if (dst->data.capacity < src_size * sizeof (int16_t))
             return MLI_STATUS_LENGTH_ERROR;
 
-        int16_t *dst_arr = dst->data.mem.void_p;
+        int16_t *dst_arr = dst->data.mem.pi16;
         for (int idx = 0; idx < src_size; idx++) {
             const float round_val = (src[idx] > 0) ? 0.5f : -0.5f;
             int32_t dst_val = (int32_t) (scale_val * src[idx] + round_val);
@@ -35,7 +35,7 @@ mli_status mli_hlp_float_to_fx_tensor (const float *src, uint32_t src_size, mli_
         if (dst->data.capacity < src_size * sizeof (int8_t))
             return MLI_STATUS_LENGTH_ERROR;
 
-        int8_t *dst_arr = dst->data.mem.void_p;
+        int8_t *dst_arr = dst->data.mem.pi8;
         for (int idx = 0; idx < src_size; idx++) {
             const float round_val = (src[idx] > 0) ? 0.5f : -0.5f;
             const int32_t dst_val = (int32_t) (scale_val * src[idx] + round_val);
@@ -45,7 +45,7 @@ mli_status mli_hlp_float_to_fx_tensor (const float *src, uint32_t src_size, mli_
         if (dst->data.capacity < src_size * sizeof (int8_t))
             return MLI_STATUS_LENGTH_ERROR;
 
-        int8_t *dst_arr = dst->data.mem.void_p;
+        int8_t *dst_arr = dst->data.mem.pi8;
         if (dst->el_params.sa.dim < 0) {
             for (int idx = 0; idx < src_size; idx++) {
                 const float round_val = (src[idx] > 0) ? 0.5f : -0.5f;
@@ -78,7 +78,7 @@ mli_status mli_hlp_float_to_fx_tensor (const float *src, uint32_t src_size, mli_
         if (dst->data.capacity < src_size * sizeof (int32_t))
             return MLI_STATUS_LENGTH_ERROR;
 
-        int32_t *dst_arr = dst->data.mem.void_p;
+        int32_t *dst_arr = dst->data.mem.pi32;
         if (dst->el_params.sa.dim < 0) {
             for (int idx = 0; idx < src_size; idx++) {
                 const float round_val = (src[idx] > 0) ? 0.5f : -0.5f;
@@ -126,15 +126,15 @@ mli_status mli_hlp_fx_tensor_to_float (const mli_tensor * src, float *dst, uint3
     float scale_val = (float)mli_hlp_tensor_scale(src, 0) / (float) ((int64_t)1l << mli_hlp_tensor_scale_shift(src, 0));
     int16_t zero_offset = mli_hlp_tensor_zero_offset(src, 0);
     if (src->el_type == MLI_EL_FX_16) {
-        int16_t *src_arr = src->data.mem.void_p;
+        int16_t *src_arr = src->data.mem.pi16;
         for (int idx = 0; idx < elem_num; idx++)
             dst[idx] = (float) (scale_val * src_arr[idx]);
     } else if (src->el_type == MLI_EL_FX_8){
-        int8_t *src_arr = src->data.mem.void_p;
+        int8_t *src_arr = src->data.mem.pi8;
         for (int idx = 0; idx < elem_num; idx++)
             dst[idx] = (float) (scale_val * (src_arr[idx] - zero_offset));
     } else if (src->el_type == MLI_EL_SA_8){
-        int8_t *src_arr = src->data.mem.void_p;
+        int8_t *src_arr = src->data.mem.pi8;
         if (src->el_params.sa.dim < 0) {
             for (int idx = 0; idx < elem_num; idx++)
                 dst[idx] = (float) (scale_val * (src_arr[idx] - zero_offset));
@@ -156,7 +156,7 @@ mli_status mli_hlp_fx_tensor_to_float (const mli_tensor * src, float *dst, uint3
             }
         }
     } else if (src->el_type == MLI_EL_SA_32) {
-        int32_t *src_arr = src->data.mem.void_p;
+        int32_t *src_arr = src->data.mem.pi32;
         if (src->el_params.sa.dim < 0) {
             for (int idx = 0; idx < elem_num; idx++)
                 dst[idx] = (float) (scale_val * (src_arr[idx] - zero_offset));

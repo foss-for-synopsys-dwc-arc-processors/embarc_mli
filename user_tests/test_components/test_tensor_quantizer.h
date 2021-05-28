@@ -139,7 +139,10 @@ class tensor_quantizer {
      static uint32_t get_required_data_capacity(const mli_tensor& tsr);
      
      static bool  tensor_assign_data_ptr(mli_tensor* tsr, void* ptr);
-     
+
+     template <typename T>
+     static T tensor_get_data_ptr(const mli_tensor *tensor);
+
      static bool spread_memory(mli_tensor* tsr, const mli_data_container* data_mem,
                                const mli_data_container* quant_params_mem = nullptr);
      

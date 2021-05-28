@@ -213,7 +213,7 @@ bool run_test(mli_status(*mli_hlp_convert_tensor_func)(const mli_tensor *, mli_t
 
     mli_tensor out = cur_test->out.get_not_quantized_tensor(mem_out_keeper.allocate_memory(cur_test->out));
     if (cur_test->in_place_comp) {
-        out.data.mem.void_p = input.data.mem.void_p;
+        out.data = input.data;
     }
     if (is_test_passed &&
             tensor_quantizer::validate_tensor(out) != tensor_quantizer::kOk) {

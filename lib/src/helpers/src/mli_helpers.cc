@@ -93,6 +93,31 @@ int16_t mli_hlp_tensor_zero_offset(const mli_tensor *in, const uint32_t zero_idx
     }
 }
 
+bool mli_hlp_tensor_data_ptr_cmp(const mli_tensor *in1, const mli_tensor *in2) {
+    bool val = false;
+    if (in1->el_type != in2->el_type) return false;
+    if ((in1->rank == 0) || (in2->rank == 0)) return false;
+    switch (in1->el_type) {
+        case MLI_EL_FX_8:
+        case MLI_EL_SA_8:
+            val = in1->data.mem.pi8 == in2->data.mem.pi8;
+            break;
+        case MLI_EL_FX_16:
+            val = in1->data.mem.pi16 == in2->data.mem.pi16;
+            break;
+        case MLI_EL_FP_32:
+            val = in1->data.mem.pf32 == in2->data.mem.pf32;
+            break;
+        case MLI_EL_SA_32:
+            val = in1->data.mem.pi32 == in2->data.mem.pi32;
+            break;
+        default:
+            MLI_ASSERT(0);
+            val = false;
+    }
+    return val;
+}
+
 mli_status mli_hlp_point_to_subtensor(const mli_tensor *in, const mli_point_to_subtsr_cfg *cfg, mli_tensor *out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_point_to_subtensor(in, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)

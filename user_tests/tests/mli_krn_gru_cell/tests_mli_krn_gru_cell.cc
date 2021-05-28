@@ -238,14 +238,14 @@ int main() {
     bool lut_status = true;
     int tanh_lut_size = mli_krn_tanh_get_lut_size();
     lut_status = lut_status && (tanh_lut_size < sizeof(scratch_mem_tanh_lut));
-    tanh_lut.data.mem.void_p = (void*) scratch_mem_tanh_lut;
+    tanh_lut.data.mem.pi16 = (int16_t*) scratch_mem_tanh_lut;
     tanh_lut.data.capacity = sizeof(scratch_mem_tanh_lut);
     lut_status = lut_status && (mli_krn_tanh_create_lut(&tanh_lut) == MLI_STATUS_OK);
 
     mli_lut sigm_lut;
     int sigm_lut_size = mli_krn_sigm_get_lut_size();
     lut_status = lut_status && (sigm_lut_size < sizeof(scratch_mem_sigm_lut));
-    sigm_lut.data.mem.void_p = (void*) scratch_mem_sigm_lut;
+    sigm_lut.data.mem.pi16 = (int16_t*) scratch_mem_sigm_lut;
     sigm_lut.data.capacity = sizeof(scratch_mem_sigm_lut);
     lut_status = lut_status && (mli_krn_sigm_create_lut(&sigm_lut) == MLI_STATUS_OK);
 
