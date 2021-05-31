@@ -68,6 +68,33 @@ static MLI_FORCE_INLINE void compute_prelu(
     compute_prelu(vec_in, vec_out, in_zp, identity_params, alpha_params);
 }
 
+template <typename io_T, typename scale_T>
+static MLI_FORCE_INLINE void compute_prelu_no_broadcast(
+        const MLI_PTR(io_T) __restrict vec_in,
+        MLI_OUT_PTR(io_T) __restrict vec_out,
+        const scale_T scale_v,
+        const int shift,
+        const generic_tensor_private_t<MLI_PTR(io_T)> in_prv,
+        const generic_tensor_private_t<MLI_OUT_PTR(io_T)> out_prv,
+        const int remaining_part) {
+    /* Loop Over Sub Tensor */
+    const MLI_PTR(io_T) orig_vec_in = vec_in;
+    MLI_OUT_PTR(io_T) orig_vec_out = vec_out;
+    for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
+        for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
+            for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
+                vec_in  = (MLI_PTR(io_T))orig_vec_in  + POS(&in_prv, pos0, pos1, pos2, 0);
+                vec_out = orig_vec_out + POS(&out_prv, pos0, pos1, pos2, 0);
+                if(remaining_part) {
+                	mli::krn::compute_prelu<io_T, scale_T>(vec_in, scale_v, vec_out, shift, remaining_part);
+                } else {
+                	mli::krn::compute_prelu<io_T, scale_T>(vec_in, scale_v, vec_out, shift);
+                }
+            }
+        }
+    }
+}
+
 template <typename io_T>
 static MLI_FORCE_INLINE mli_status prelu_fx_run(const mli_tensor *in, 
         const mli_tensor *slope_coeff,
@@ -109,53 +136,51 @@ static MLI_FORCE_INLINE mli_status prelu_fx_run(const mli_tensor *in,
 
     int shift = mli_prv_calc_shift(in, slope_coeff, out);
 
-    for (int scale_idx = 0; scale_idx < axis_shape; ) {
-        
-        /* Define Sub Tensor */
-        vec_in  = (MLI_PTR(io_T))in_ptr  + scale_idx * axis_in_mem_stride;
-        vec_out = out_ptr + scale_idx * axis_out_mem_stride;
-
-        decltype(input) scale_v;
-        if (broadcasting) {
+    if (broadcasting) {
+        for (int scale_idx = 0; scale_idx < axis_shape; scale_idx++) {
+            /* Define Sub Tensor */
+            vec_in  = (MLI_PTR(io_T))in_ptr  + scale_idx * axis_in_mem_stride;
+            vec_out = out_ptr + scale_idx * axis_out_mem_stride;
             /* Load Scale Elem */
-            scale_v = mli_prv_init_v<io_T, decltype(input)>(slope_ptr[scale_idx]);
-            scale_idx++;
-        } else {
-            /* Load Scale Vector */
-            scale_v = mli_prv_load_1vec(&slope_ptr[scale_idx]);
-            if (remaining_part) {
-                scale_idx += remaining_part;
-            } else {
-                scale_idx += num_lanes;
-            }
-        }
-
-        /* Loop Over Sub Tensor */
-        const MLI_PTR(io_T) orig_vec_in = vec_in;
-        MLI_OUT_PTR(io_T) orig_vec_out = vec_out;
-        for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
-            for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
-                for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
-                    vec_in  = (MLI_PTR(io_T))orig_vec_in  + POS(&in_prv, pos0, pos1, pos2, 0);
-                    vec_out = orig_vec_out + POS(&out_prv, pos0, pos1, pos2, 0);
-                    if (remaining_part) {
-                        mli::krn::compute_prelu<io_T, decltype(input)>(vec_in, scale_v, vec_out,
-                                                            shift, remaining_part);
-                        vec_in  += remaining_part;
-                        vec_out += remaining_part;
-                    }
-                    for (int pos3 = remaining_part; pos3 < in_prv.shape[3]; pos3 += num_lanes) {
-                        mli::krn::compute_prelu<io_T, decltype(input)>(vec_in, scale_v, vec_out, shift);
-                        vec_in  += num_lanes;
-                        vec_out += num_lanes;
+            auto scale_v = mli_prv_init_v<io_T, decltype(input)>(slope_ptr[scale_idx]);
+            /* Loop Over Sub Tensor */
+            const MLI_PTR(io_T) orig_vec_in = vec_in;
+            MLI_OUT_PTR(io_T) orig_vec_out = vec_out;
+            for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
+                for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
+                    for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
+                        vec_in  = (MLI_PTR(io_T))orig_vec_in  + POS(&in_prv, pos0, pos1, pos2, 0);
+                        vec_out = orig_vec_out + POS(&out_prv, pos0, pos1, pos2, 0);
+                        if (remaining_part) {
+                            mli::krn::compute_prelu<io_T, decltype(input)>(vec_in, scale_v, vec_out,
+                                                                shift, remaining_part);
+                            vec_in  += remaining_part;
+                            vec_out += remaining_part;
+                        }
+                        for (int pos3 = remaining_part; pos3 < in_prv.shape[3]; pos3 += num_lanes) {
+                            mli::krn::compute_prelu<io_T, decltype(input)>(vec_in, scale_v, vec_out, shift);
+                            vec_in  += num_lanes;
+                            vec_out += num_lanes;
+                        }
                     }
                 }
             }
         }
-
-        if(!broadcasting) {
-            /* In case of No Broadcasting, all remaining parts are handled in the first iteration of scale */
-            remaining_part = 0;
+    } else {
+        if (remaining_part) {
+            /* Load Scale Vector */
+            auto scale_v = mli_prv_load_1vec(slope_ptr);
+            mli::krn::compute_prelu_no_broadcast<io_T, decltype(input)>(in_ptr, out_ptr, scale_v,
+                                                                        shift, in_prv, out_prv, remaining_part);
+        }
+        for (int scale_idx = remaining_part; scale_idx < axis_shape; scale_idx += num_lanes) {
+            /* Define Sub Tensor */
+            vec_in  = (MLI_PTR(io_T))in_ptr  + scale_idx * axis_in_mem_stride;
+            vec_out = out_ptr + scale_idx * axis_out_mem_stride;
+            /* Load Scale Vector */
+            auto scale_v = mli_prv_load_1vec(&slope_ptr[scale_idx]);
+            mli::krn::compute_prelu_no_broadcast<io_T, decltype(input)>(vec_in, vec_out, scale_v,
+                                                                        shift, in_prv, out_prv);
         }
     }
     
