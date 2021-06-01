@@ -173,7 +173,6 @@ static inline void rnn_dense_op(
 
         for(int idx = 0; idx < inputs_num; idx++) {
 
-            output_params = adjust_quant_params_v(&in_to_out_quant_params[idx], 0);
             accu = dotprod_inputzp_1D_v(inputs[idx], &weights[idx][o_idx], accu, in_elements[idx],
                     1, w_ch_out_mem_strides[idx], &in_to_out_quant_params[idx]);
 
@@ -186,7 +185,7 @@ static inline void rnn_dense_op(
         }
 
         // Cast result to output type with scaling
-        mli::krn::ir_result_cast_relu_store_v(&out[o_idx], acc_res_ir, &output_params,
+        mli::krn::ir_result_cast_relu_store_v(&out[o_idx], acc_res_ir, &in_to_out_quant_params[0],
                                 val_min_limit, val_max_limit, current_chs);
     }
 }

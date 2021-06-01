@@ -14,6 +14,7 @@
 #include "mli_prv_load_store.h"
 #include "mli_config.h"
 #include "mli_krn_dotprod.h"
+#include "mli_debug.h"
 
 namespace mli {
 namespace krn {
@@ -491,7 +492,7 @@ template <>
 MLI_FORCE_INLINE void ir_result_cast_relu_store_v(
         MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
         vNx4accshort_t acc,
-        const s8asym_quant_specific_out_params_v* quant_params,
+        const s8asym_quant_specific_params* quant_params,
         const int16_t val_min_limit,
         const int16_t val_max_limit,
         int num) {
@@ -510,7 +511,7 @@ template <>
 MLI_FORCE_INLINE void ir_result_cast_relu_store_v(
         MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
         vNx4int_t acc,
-        const s8asym_quant_specific_out_params_v* quant_params,
+        const s8asym_quant_specific_params* quant_params,
         const int16_t val_min_limit,
         const int16_t val_max_limit,
         int num) {
@@ -563,11 +564,15 @@ template <typename acc_T, typename out_T=acc_T>
 MLI_FORCE_INLINE out_T ir_rnn_result_requantize(
 		const acc_T acc,
 		const fx_quant_specific_params* params) {
+    constexpr int max_int_shift = 31;
+    constexpr int max_acc_shift = 39;
     const int in_to_ir_shift = params->out_shift;
-    int shift_right = mli_math_max_fx(in_to_ir_shift, 0);
-    int shift_left = mli_math_max_fx(-in_to_ir_shift, 0);
-    out_T acc_shifted = mli_math_asl_fx(acc, shift_left);
-    return mli_math_asr_rnd_fx<out_T, int>(acc_shifted, shift_right);
+    MLI_EXTRA_ASSERT(in_to_ir_shift >= 0);
+    int shift_right = mli_math_min_fx(in_to_ir_shift, max_acc_shift);
+    int preshift = mli_math_max_fx(shift_right - max_int_shift, 0);
+
+    out_T acc_shifted = mli_math_asr_fx(acc, preshift);
+    return mli_math_asr_rnd_fx<out_T, int>(acc_shifted, shift_right - preshift);
 }
 
 template <>
@@ -588,10 +593,10 @@ MLI_FORCE_INLINE vNx4int_t ir_rnn_result_requantize(
     vNx4int_t acc_scaled = mli_math_mul_fx_high(acc_int, mul_shifted);
 
     constexpr int mul_high_shift = 32;
-    constexpr int max_int_shift = 30;
+    constexpr int max_int_shift = 31;
     vNx4int_t total_shift = mli_math_add_fx<vNx4int_t>(acc_norm, (mul_norm - mul_high_shift + in_to_ir_shift));
     vNx4int_t shift_left = mli_math_max_fx(-total_shift, 0);
-    vNx4int_t shift_right = mli_math_max_fx(total_shift, 0);
+    vNx4int_t shift_right = mli_math_min_fx(mli_math_max_fx(total_shift, 0), max_int_shift);
 
     vNx4int_t preshift = mli_math_max_fx(shift_right - max_int_shift, 0);
     shift_right = shift_right - preshift;
@@ -599,7 +604,6 @@ MLI_FORCE_INLINE vNx4int_t ir_rnn_result_requantize(
     vNx4int_t acc_shifted = mli_math_asr_fx(acc_scaled, preshift);
     acc_shifted = mli_math_asr_rnd_fx(acc_shifted, shift_right);
     acc_shifted = mli_math_asl_fx(acc_shifted, shift_left);
-
     return acc_shifted;
 }
 

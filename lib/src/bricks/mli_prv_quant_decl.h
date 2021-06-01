@@ -414,7 +414,7 @@ template <>
 MLI_FORCE_INLINE void ir_result_cast_relu_store_v(
         MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
         vNx4accshort_t acc,
-        const s8asym_quant_specific_out_params_v* quant_params,
+        const s8asym_quant_specific_params* quant_params,
         const int16_t val_min_limit,
         const int16_t val_max_limit,
         int num);
