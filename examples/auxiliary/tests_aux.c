@@ -37,6 +37,28 @@ const char *test_status_to_str[] = {
         "FAILED"
 };
 
+static void increment_data_ptr(
+        mli_tensor* t,
+        int value) {
+
+    switch (t->el_type) {
+    case MLI_EL_FX_8:
+    case MLI_EL_SA_8:
+        t->data.mem.pi8 += value;
+        break;
+    case MLI_EL_FX_16:
+        t->data.mem.pi16 += value;
+        break;
+    case MLI_EL_SA_32:
+        t->data.mem.pi32 += value;
+        break;
+    case MLI_EL_FP_32:
+        t->data.mem.pf32 += value;
+        break;
+    default:
+        break;
+    };
+}
 //================================================================================
 // Load several tensors from IDX files
 //=================================================================================
@@ -116,7 +138,7 @@ test_status load_tensors_from_idx_files(
         // Step 4: Read data by parts;
         //====================================
         uint32_t elements_accounted = 0;
-        void *addr_backup = tensors[idx]->data.mem.void_p;
+        mli_data_container addr_backup = tensors[idx]->data;
         while (elements_accounted  < total_elements) {
             descr.num_elements =
                     ((total_elements - elements_accounted ) < data_buf_size) ?
@@ -127,15 +149,15 @@ test_status load_tensors_from_idx_files(
                     mli_hlp_float_to_fx_tensor(data, descr.num_elements, tensors[idx]) != MLI_STATUS_OK) {
                 DEBUG_BREAK;
                 ret =  TEST_SUIT_ERROR;
-                tensors[idx]->data.mem.void_p = addr_backup;
+                tensors[idx]->data = addr_backup;
                 goto ret_label;
             }
 
             elements_accounted += descr.num_elements;
-            tensors[idx]->data.mem.void_p  = ((char *)tensors[idx]->data.mem.void_p) + descr.num_elements * elem_size;
+            increment_data_ptr(tensors[idx], descr.num_elements);
         }
 
-        tensors[idx]->data.mem.void_p = addr_backup;
+        tensors[idx]->data = addr_backup;
         tensors[idx]->data.capacity = total_elements * elem_size;
         fclose(descr.opened_file);
         descr.opened_file = NULL;
@@ -263,7 +285,7 @@ test_status measure_ref_to_pred(
                 max_abs_err = fabsf(pred_buf[i] - ref_buf[i]);
         }
         elements_accounted += descr.num_elements;
-        pred.data.mem.void_p = (char *)(pred.data.mem.void_p) + descr.num_elements * pred_elem_size;
+        increment_data_ptr(&pred, descr.num_elements);
     }
 
     const float eps = 0.000000000000000001f;
