@@ -25,7 +25,7 @@ namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
 using mli::krn::vdsp::compute_prelu;
 using mli::krn::vdsp::prelu_define_requant_params;
-using mli::krn::ref::compute_prelu_no_broadcast;
+using mli::krn::vdsp::compute_prelu_no_broadcast;
 using mli::krn::ref::prelu_fx_run;
 using mli::krn::ref::prelu_sa8_run;
 

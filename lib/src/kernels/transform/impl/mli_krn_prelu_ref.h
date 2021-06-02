@@ -86,9 +86,9 @@ static MLI_FORCE_INLINE void compute_prelu_no_broadcast(
                 vec_in  = (MLI_PTR(io_T))orig_vec_in  + POS(&in_prv, pos0, pos1, pos2, 0);
                 vec_out = orig_vec_out + POS(&out_prv, pos0, pos1, pos2, 0);
                 if(remaining_part) {
-                	mli::krn::compute_prelu<io_T, scale_T>(vec_in, scale_v, vec_out, shift, remaining_part);
+                    mli::krn::compute_prelu<io_T, scale_T>(vec_in, scale_v, vec_out, shift, remaining_part);
                 } else {
-                	mli::krn::compute_prelu<io_T, scale_T>(vec_in, scale_v, vec_out, shift);
+                    mli::krn::compute_prelu<io_T, scale_T>(vec_in, scale_v, vec_out, shift);
                 }
             }
         }
@@ -117,26 +117,29 @@ static MLI_FORCE_INLINE mli_status prelu_fx_run(const mli_tensor *in,
     auto out_prv = mli_prv_get_generic_tensor<MLI_OUT_PTR(io_T)>(out);
 
     /* Define Slope Axis Params */
-    in_prv.shape[cfg->axis] = 1;
     int axis_shape = slope_coeff->shape[cfg->axis];
     int axis_in_mem_stride = in_prv.mem_stride[cfg->axis];
     int axis_out_mem_stride = out_prv.mem_stride[cfg->axis];
     /* Broadcasting in case axis is not inner most dim */
     bool broadcasting = !(cfg->axis == (in_prv.rank - 1));
 
-    /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
-    mli_prv_reorder_generic_tensor<MLI_PTR(io_T)>(&in_prv );
-    mli_prv_reorder_generic_tensor<MLI_OUT_PTR(io_T)>(&out_prv);
-
     /* Dummy Load to get num_lanes */
     auto input = mli_prv_load_1vec(in_ptr);
     int num_lanes = get_number_lanes(input);
-    /* use out_prv instead of in_prv shape[3] as it's modified */
-    int remaining_part = out_prv.shape[3] & (num_lanes - 1);
 
     int shift = mli_prv_calc_shift(in, slope_coeff, out);
 
     if (broadcasting) {
+        /* Get Non Axis Tensor */
+        auto in_non_axis_prv  = mli_prv_get_non_axis_tensor<MLI_PTR(io_T)>(&in_prv,  cfg->axis);
+        auto out_non_axis_prv = mli_prv_get_non_axis_tensor<MLI_PTR(io_T)>(&out_prv, cfg->axis);
+
+        /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
+        mli_prv_reorder_generic_tensor<MLI_PTR(io_T)>(&in_non_axis_prv );
+        mli_prv_reorder_generic_tensor<MLI_OUT_PTR(io_T)>(&out_non_axis_prv);
+
+        int remaining_part = in_non_axis_prv.shape[3] & (num_lanes - 1);
+
         for (int scale_idx = 0; scale_idx < axis_shape; scale_idx++) {
             /* Define Sub Tensor */
             vec_in  = (MLI_PTR(io_T))in_ptr  + scale_idx * axis_in_mem_stride;
@@ -146,27 +149,31 @@ static MLI_FORCE_INLINE mli_status prelu_fx_run(const mli_tensor *in,
             /* Loop Over Sub Tensor */
             const MLI_PTR(io_T) orig_vec_in = vec_in;
             MLI_OUT_PTR(io_T) orig_vec_out = vec_out;
-            for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
-                for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
-                    for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
-                        vec_in  = (MLI_PTR(io_T))orig_vec_in  + POS(&in_prv, pos0, pos1, pos2, 0);
-                        vec_out = orig_vec_out + POS(&out_prv, pos0, pos1, pos2, 0);
-                        if (remaining_part) {
-                            mli::krn::compute_prelu<io_T, decltype(input)>(vec_in, scale_v, vec_out,
-                                                                shift, remaining_part);
-                            vec_in  += remaining_part;
-                            vec_out += remaining_part;
-                        }
-                        for (int pos3 = remaining_part; pos3 < in_prv.shape[3]; pos3 += num_lanes) {
-                            mli::krn::compute_prelu<io_T, decltype(input)>(vec_in, scale_v, vec_out, shift);
-                            vec_in  += num_lanes;
-                            vec_out += num_lanes;
-                        }
+            for (int pos1 = 0; pos1 < in_non_axis_prv.shape[1]; pos1++) {
+                for (int pos2 = 0; pos2 < in_non_axis_prv.shape[2]; pos2++) {
+                    vec_in  = (MLI_PTR(io_T))orig_vec_in  + POS(&in_non_axis_prv, 0, pos1, pos2, 0);
+                    vec_out = orig_vec_out + POS(&out_non_axis_prv, 0, pos1, pos2, 0);
+                    if (remaining_part) {
+                        mli::krn::compute_prelu<io_T, decltype(input)>(vec_in, scale_v, vec_out,
+                                                            shift, remaining_part);
+                        vec_in  += remaining_part;
+                        vec_out += remaining_part;
+                    }
+                    for (int pos3 = remaining_part; pos3 < in_non_axis_prv.shape[3]; pos3 += num_lanes) {
+                        mli::krn::compute_prelu<io_T, decltype(input)>(vec_in, scale_v, vec_out, shift);
+                        vec_in  += num_lanes;
+                        vec_out += num_lanes;
                     }
                 }
             }
         }
     } else {
+        /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
+        mli_prv_reorder_generic_tensor<MLI_PTR(io_T)>(&in_prv );
+        mli_prv_reorder_generic_tensor<MLI_OUT_PTR(io_T)>(&out_prv);
+
+        int remaining_part = in_prv.shape[3] & (num_lanes - 1);
+
         if (remaining_part) {
             /* Load Scale Vector */
             auto scale_v = mli_prv_load_1vec(slope_ptr);
