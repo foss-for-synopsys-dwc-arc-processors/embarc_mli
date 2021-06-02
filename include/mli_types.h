@@ -207,10 +207,14 @@ typedef enum {
 /**
  * @brief RELU layer config
  *
- * configuration struct to store the ReLu type
+ * configuration struct to store the ReLu clipping range
+ * The clipping is applied before the value is stored to the output container.
+ * Clipping values shall not exceed what can be stored in the output container.
  */
 typedef struct {
-    mli_relu_type type;
+    mli_relu_type type; /** DEPRECATED */
+    int16_t min; /**< Lower clipping value */
+    int16_t max; /**< upper clipping value */
 } mli_relu_cfg;
 
 
