@@ -11,7 +11,7 @@ $(error "Requires make version 3.82 or later (current is $(MAKE_VERSION))")
 endif
 
 RECONFIGURE         ?= OFF
-DEBUG_BUILD         ?= ON
+DEBUG_BUILD         ?= OFF
 OPTMODE             ?= speed
 GEN_EXAMPLES        ?= 1
 MLI_BUILD_REFERENCE ?= OFF

@@ -51,6 +51,11 @@ if (ARC)
         list(APPEND MLI_PLATFORM_FLAGS
             -g
         )
+    else()
+        # Without -g can produce warnings, disable them here
+        list(APPEND MLI_PLATFORM_FLAGS
+            -Wno-pass-failed
+        )
     endif()
 
     if (NOT DEFINED OPTMODE)
