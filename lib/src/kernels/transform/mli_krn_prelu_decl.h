@@ -206,6 +206,15 @@ static MLI_FORCE_INLINE void compute_prelu(
         const int remaining_part);
 #endif
 
+template <typename io_T, typename scale_T>
+static MLI_FORCE_INLINE void compute_prelu_no_broadcast(
+        const MLI_PTR(io_T) __restrict vec_in,
+        MLI_OUT_PTR(io_T) __restrict vec_out,
+        const scale_T scale_v,
+        const int shift,
+        const generic_tensor_private_t<MLI_PTR(io_T)> in_prv,
+        const generic_tensor_private_t<MLI_OUT_PTR(io_T)> out_prv,
+        const int remaining_part = 0);
 } // namespace vdsp
 
 } // namespace krn

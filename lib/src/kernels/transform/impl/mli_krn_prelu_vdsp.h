@@ -191,6 +191,35 @@ static MLI_FORCE_INLINE void compute_prelu(
     mli_prv_store_n_samples(vec_out, output, remaining_part);
 }
 
+template <typename io_T, typename scale_T>
+static MLI_FORCE_INLINE void compute_prelu_no_broadcast(
+        const MLI_PTR(io_T) __restrict vec_in,
+        MLI_OUT_PTR(io_T) __restrict vec_out,
+        const scale_T scale_v,
+        const int shift,
+        const generic_tensor_private_t<MLI_PTR(io_T)> in_prv,
+        const generic_tensor_private_t<MLI_OUT_PTR(io_T)> out_prv,
+        const int remaining_part) {
+    /* Loop Over Sub Tensor */
+    const MLI_PTR(io_T) orig_vec_in = vec_in;
+    MLI_OUT_PTR(io_T) orig_vec_out = vec_out;
+    for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
+        for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
+#pragma clang loop pipeline(enable)
+#pragma clang loop pipeline_options(0x10)
+            for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
+                vec_in  = (MLI_PTR(io_T))orig_vec_in  + POS(&in_prv, pos0, pos1, pos2, 0);
+                vec_out = orig_vec_out + POS(&out_prv, pos0, pos1, pos2, 0);
+                if(remaining_part) {
+                    mli::krn::compute_prelu<io_T, scale_T>(vec_in, scale_v, vec_out, shift, remaining_part);
+                } else {
+                    mli::krn::compute_prelu<io_T, scale_T>(vec_in, scale_v, vec_out, shift);
+                }
+            }
+        }
+    }
+}
+
 } // namespace vdsp
 } // namespace krn
 } // namespace mli
