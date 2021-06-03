@@ -108,7 +108,6 @@ typedef struct _mli_data_container {
         int16_t  i16;
         int8_t   i8;
         float    f32;
-        void*    void_p;
     } mem;
 } mli_data_container;
 
