@@ -18,6 +18,16 @@ add_executable(${TARGET}
     face_detect_module.cc
     face_detect_module.h
     main.cc
+    model/anchors.cc
+    model/defs.h
+    model/model.cc
+    model/model.h
+    model/postprocess.cc
+    model/postprocess.h
+    model/util.cc
+    model/util.h
+    model/weights.cc
+    model/weights.h
 )
 
 target_link_libraries(${TARGET} PUBLIC mli)
