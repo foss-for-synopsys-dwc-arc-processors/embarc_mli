@@ -16,13 +16,13 @@ include $(PUBLIC_DIR)/make/rules.mk
 
 BUILD_SUBDIR = examples$(PS)example_face_detect
 BUILD_TARGET = example_face_detect
-RUN_ARGS ?= "grace_hopper.bmp"
+RUN_ARGS ?= 
 
 app: build
 
 run: app
 ifndef TCF_FILE
-	$(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)elf_files$(PS)example_face_detect
+	$(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)elf_files$(PS)example_face_detect $(RUN_ARGS)
 else
 	mdb $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)elf_files$(PS)example_face_detect.elf \
 		-cl  -nsim -cmd=run -off=cr_for_more -cmd=exit -tcf=$(TCF_FILE) -- $(RUN_ARGS)

@@ -8,16 +8,19 @@
 
 include(../../cmake/settings.cmake)
 
-add_executable(example_face_detect
+set(TARGET example_face_detect)
+
+add_executable(${TARGET}
     bmp_file_io.c
-    face_trigger_model.c
-    main.c
-    sliding_scan.c
+    bmp_file_io.h
+    face_detect_module.cc
+    face_detect_module.h
+    main.cc
 )
 
-target_link_libraries(example_face_detect PUBLIC mli)
+target_link_libraries(${TARGET} PUBLIC mli)
 
-target_include_directories(example_face_detect PRIVATE
+target_include_directories(${TARGET} PRIVATE
     ../../examples/auxiliary
 )
 
@@ -25,38 +28,43 @@ if (ARC)
 set(EXAMPLE_FLAGS
     -Hnocopyr
     -Hpurge
-    -Hheap=20K
-    -Hstack=4K
-    -Hfxapi
+    -Hheap=50K
+    -Hstack=8K
     -e_start
     -Bgrouplib
     -Hldopt=-q
     -Hsdata0
-    -Xdsp_ctrl=postshift,guard,convergent
     -Hdense_prologue
+    -Hcl
+    -Hcrt_argv
+    -Hcrt_fast_memcpy
+    -Hcrt_fast_memset
+    -Hxcheck
+    -Hcrt_initbss
+
 )
 else()
 set(EXAMPLE_FLAGS)
 endif()
 
-target_compile_options(example_face_detect PRIVATE
+target_compile_options(${TARGET} PRIVATE
     ${MLI_PLATFORM_COMPILE_OPTIONS}
     ${EXAMPLE_FLAGS}
 )
 
-target_link_options(example_face_detect PRIVATE
+target_link_options(${TARGET} PRIVATE
     ${MLI_PLATFORM_LINK_OPTIONS}
     ${EXAMPLE_FLAGS}
 )
 
 if (ARC)
-target_link_options(example_face_detect PRIVATE
+target_link_options(${TARGET} PRIVATE
     -m
-    -Coutput=./elf_files/example_face_detect.map
+    -Coutput=./elf_files/${TARGET}.map
 )
 endif()
 
-set_target_properties(example_face_detect
+set_target_properties(${TARGET}
     PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "./elf_files$<0:>"
 )

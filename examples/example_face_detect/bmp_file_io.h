@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -7,34 +7,35 @@
 *
 */
 
-#ifndef _BMP_READER_H_
-#define _BMP_READER_H_
+#ifndef _BMP_FILE_IO_H_
+#define _BMP_FILE_IO_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdint.h>
 
-// Image resolution
-#define FD_IN_XRES        (80)
-#define FD_IN_YRES        (60)
+/*
+* Reading input image from BMP file with BGR->RGB transformation
+* 
+* Function allocates memory for image and fill it with transformed to the 
+* raw 3 channel RGB data from input <filename> BMP file. Function can work only with 24bit BMP files. 
+* it also ensures that input image of (<height> * <width>) size
+*/
+uint8_t *bmp_rgb_read(const char* filename, int32_t width, int32_t height);
 
 /*
- * Reading input image from BMP file with RGB->gray transformation
- * 
- * Function allocates memory for image and fill it with tranformed to the 
- * gray-scale data from input BMP image.Function can work only with 24bit BMP files. 
- * Image must be of FD_IN_XRES * FD_IN_YRES resolution
- */
-uint8_t *bmp_read(const char* filename);
+* Writing input image to BMP file.
+* 
+* Function creates (rewrites) <filename> output file.
+* <image> must contain 8bit 3 channel (RGB) data of (<width> * <height>) size.
+* 
+*/
+void bmp_rgb_write(const char* filename, const uint8_t* image, int32_t width, int32_t height);
 
+#ifdef __cplusplus
+}
+#endif
 
-/*
- * Writing input image to BMP file with gray->RGB transformation and mask applying.
- * 
- * Function creates (rewrites) output file.
- * Image and mask must be 8bit images of FD_IN_XRES * FD_IN_YRES resolution
- * Mask is an 8bit image of the same size as input with non-zero values for pixels which 
- * should be output as emphesized (red pixels)
- * 
- */
-void bmp_write_gray(const char* filename, const uint8_t *image, const uint8_t *mask);
-
-#endif // _BMP_READER_H_
+#endif // _BMP_FILE_IO_H_
