@@ -10,14 +10,14 @@ TBD
 
 # Building and Running
 
-You need to configure and build the library project for the desired platform. 
-Please read the corresponding section on [building the package](/README.md#building-the-package). 
-There are no extra requirements specific for this application. All the specified platforms are supported by the test application.  
+You need to configure and build the library project for the desired platform.
+Please read the corresponding section on [building the package](/README.md#building-the-package).
+There are no extra requirements specific for this application. All the specified platforms are supported by the test application.
 
-Build artifacts of the application are stored in the `/obj/<project>/examples/example_face_detect` directory where `<project>` is defined according to your target platform.  
+Build artifacts of the application are stored in the `/obj/<project>/examples/example_face_detect` directory where `<project>` is defined according to your target platform.
 
-After you've built and configured the whole library project, you can proceed with the following steps. 
-You need to replace `<options>` placeholder in commands below with the same options list you used for the library configuration and build. 
+After you've built and configured the whole library project, you can proceed with the following steps.
+You need to replace `<options>` placeholder in commands below with the same options list you used for the library configuration and build.
 
 1. Open command line in the root of the embARC MLI repo and change working directory to './examples/example_face_detect/'
 
@@ -27,7 +27,7 @@ You need to replace `<options>` placeholder in commands below with the same opti
 
        gmake <options> clean
 
-3. Build the example. This is an optional step as you may go to the next step which automatically invokes the build process. 
+3. Build the example. This is an optional step as you may go to the next step which automatically invokes the build process.
 
        gmake <options> build
 
@@ -39,17 +39,17 @@ where ``<bmp_image_path>`` is the path to a supported 128x128 RGB file in BMP fo
 
 ##  x86 Build Process Example
 
-Assuming your environment satisfies all build requirements for x86 platform, you can use the following script to build. 
+Assuming your environment satisfies all build requirements for x86 platform, you can use the following script to build.
 The first step is to open a command line and change working directory to the root of the embARC MLI repo.
 
 1. Clean all previous artifacts for all platforms
     ```bash
-    gmake cleanall 
+    gmake cleanall
     ```
 
 2. Build project to emulate ARC VPX platform. Use multithreaded build process (4 threads):
     ```bash
-    gmake ROUND_MODE=UP FULL_ACCU=OFF JOBS=4 build  
+    gmake ROUND_MODE=UP FULL_ACCU=OFF JOBS=4 build
     ```
 
 3. Change working directory  and build the example:
@@ -70,7 +70,7 @@ The first step is to open a command line and change working directory to the roo
 
 1. Clean all previous artifacts for all platforms
     ```bash
-    gmake cleanall 
+    gmake cleanall
     ```
 
 2. Generate recommended  TCF file for VPX
@@ -96,7 +96,7 @@ The first step is to open a command line and change working directory to the roo
 
 ## Expected Output
 
-Application will create `result.bmp` file in the working directory. It's the same input file with framed faces which was found in run. Expected console output for a ``test_img.bmp`` is the following: 
+Application will create `result.bmp` file in the working directory. It's the same input file with framed faces which was found in run. Expected console output for a ``test_img.bmp`` is the following:
 
      Found a face at ([X:57, Y:40]; [X:76, Y:59]) with (0.963000) score
      Found a face at ([X:20, Y:32]; [X:39, Y:51]) with (0.901000) score
@@ -113,8 +113,8 @@ TBD
 
 <!--
 Example shows very basic implementation of the classic object detection via sliding window paradigm.
-Small binary NN classifier for 36x36 grayscale images outputs positive decision for the images of face, and negative decision on other images. To process bigger image pyramid scaling and sliding is organized. 
-Such approach still useful for deeply embedded applications as a compact and efficient way of triggering a bigger job. Activation function and the Layer 2 are quite unspecific kind of layers and was implemented in the research activity. 
+Small binary NN classifier for 36x36 grayscale images outputs positive decision for the images of face, and negative decision on other images. To process bigger image pyramid scaling and sliding is organized.
+Such approach still useful for deeply embedded applications as a compact and efficient way of triggering a bigger job. Activation function and the Layer 2 are quite unspecific kind of layers and was implemented in the research activity.
 MLI provides useful data manipulation and helper operations for implementation of such layers.
 
 
@@ -130,7 +130,7 @@ Example supports building with [MetaWare Development tools](https://www.synopsys
         - MetaWare Development tools version 2018.12 or higher
         - gmake
 
-Here we will consider building for [/hw/em9d.tcf](/hw/em9d.tcf) template. This template is a default template for this example. Other templated can be also used. 
+Here we will consider building for [/hw/em9d.tcf](/hw/em9d.tcf) template. This template is a default template for this example. Other templated can be also used.
 
 0. embARC MLI Library must be built for required hardware configuration first. See [embARC MLI Library building and quick start](/README.md#building-and-quick-start).
 
@@ -140,9 +140,9 @@ Here we will consider building for [/hw/em9d.tcf](/hw/em9d.tcf) template. This t
 
        gmake clean
 
-3. Build example 
+3. Build example
 
-       gmake TCF_FILE=../../hw/em9d.tcf 
+       gmake TCF_FILE=../../hw/em9d.tcf
 
 ### Run example with MetaWare Debuger on nSim simulator.
 
@@ -150,7 +150,7 @@ Example application requires path to a BMP file of 80x60 resolution and 24 bit d
 
        gmake run TCF_FILE=../../hw/em9d.tcf RUN_ARGS=grace_hopper.bmp
 
-Application will create `result.bmp` file in the working directory. It's a 'grayed' version of input file with framed faces which was found in run. Expected console output is next: 
+Application will create `result.bmp` file in the working directory. It's a 'grayed' version of input file with framed faces which was found in run. Expected console output is next:
 
     Detection step #0
      Found a face at ([X:22, Y:17]; [X:58, Y:53])
@@ -186,7 +186,7 @@ Here we will consider building with ARC GNU toolchain. As a platform for the ass
 
         gmake TOOLCHAIN=gnu
 
-   Notes: IoT Devkit hardware configuration is specifed in Makefile. Additionally used memory.x linkscript file for GNU linker. 
+   Notes: IoT Devkit hardware configuration is specifed in Makefile. Additionally used memory.x linkscript file for GNU linker.
 
 ### Run example with MetaWare Debuger on nSim simulator.
 
@@ -196,7 +196,7 @@ Here we will consider building with ARC GNU toolchain. As a platform for the ass
 
 0. Copy the [arcem9d.tcf](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_osp/blob/master/board/iotdk/configs/10/tcf/arcem9d.tcf) file into example folder.
 
-1. Run example 
+1. Run example
 
         gmake run TOOLCHAIN=gnu TCF_FILE=arcem9d.tcf
 
@@ -217,11 +217,11 @@ Structure of example application may be divided logically on three parts:
 * **Sliding window and rescaling code.** Various helper functions to scale input image and slide trigger classifiyer over it.
    * sliding_scan.c
    * sliding_scan.h
-* **Inference Module.** Uses embARC MLI Library to process input according to pre-defined graph. All model related constants are pre-defined and model coefficients is declared in the separate compile unit 
+* **Inference Module.** Uses embARC MLI Library to process input according to pre-defined graph. All model related constants are pre-defined and model coefficients is declared in the separate compile unit
    * face_trigger_constants.h
    * face_trigger_model.c
    * face_trigger_model.h
-   
+
 
 Example structure contains test image of [Grace Hopper](https://en.wikipedia.org/wiki/Grace_Hopper).
 
@@ -234,7 +234,7 @@ Example structure also contains auxiliary files for development tools:
 Data Memory Requirements
 ----------------------------
 
-Example uses statically allocated memory for model weights and intermediate results (activations) and structures. For images on the application level (outside of the model) 
+Example uses statically allocated memory for model weights and intermediate results (activations) and structures. For images on the application level (outside of the model)
 example allocates memory dynamically befor processing.
 
 |                      Data                         |         Size          |

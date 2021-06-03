@@ -26,7 +26,7 @@ constexpr uint32_t kDetectionsMemBudget = 1024;
 
 // Draw a key point mark defined by coordinates on the output RGB image
 //=====================================================================
-static inline void draw_a_keypoint_rgb(point coord, uint8_t* output, 
+static inline void draw_a_keypoint_rgb(point coord, uint8_t* output,
                                        const int32_t x_res, const int32_t y_res) {
     const uint8_t val_r = 0xFF;
     const uint8_t val_g = 0x00;
@@ -42,7 +42,7 @@ static inline void draw_a_keypoint_rgb(point coord, uint8_t* output,
 
 // Draw a frame defined by corner coordinates on the output RGB image
 //=====================================================================
-static inline void draw_a_frame_rgb(point top_left, point bot_right, 
+static inline void draw_a_frame_rgb(point top_left, point bot_right,
                                     uint8_t* output, const int32_t x_res, const int32_t y_res) {
     const uint8_t val_r = 0xFF;
     const uint8_t val_g = 0x00;
@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
     std::unique_ptr<uint8_t[]> input_image_data;  // empty
     const char* input_path = NULL;
 
-    // Checking the command line 
+    // Checking the command line
     if (argc != 2) {
         printf("Missing command line argument: input filename\n");
         return -1;
@@ -96,14 +96,14 @@ int main(int argc, char *argv[]) {
     const int img_height = fd_module::kInSpatialDimSize;
     input_image_data.reset(bmp_rgb_read(input_path, img_width, img_width));
     if (!input_image_data) {
-        printf("Faild to read input image\n");
+        printf("Failed to read input image\n");
         return -1;
     }
 
-    // Invoking detector to write result into statically allocated memory 
+    // Invoking detector to write result into statically allocated memory
     const uint32_t max_detections = kDetectionsMemBudget / fd_module::get_single_detection_mem_size();
     static int8_t detections_mem[kDetectionsMemBudget];
-    static fd_module detector; //Dynamic?    
+    static fd_module detector;  // Dynamic?
     auto detections = detector.invoke(input_image_data.get(), detections_mem, sizeof(detections_mem));
     if (detections.detections_num >= max_detections) {
         printf("WARNING: Static Detections Buffer is full. Consider to increase it.\n");
@@ -111,15 +111,19 @@ int main(int argc, char *argv[]) {
         printf("No detections in input image.\n");
     }
 
+    printf("Pre_process ticks: %lld\n", detector.get_prof_ticks(fd_module::prof_tick_id::kProfPreProcess));
+    printf("Model ticks: %lld\n", detector.get_prof_ticks(fd_module::prof_tick_id::kProfModel));
+    printf("Post_process ticks: %lld\n", detector.get_prof_ticks(fd_module::prof_tick_id::kProfPostProcess));
+    printf("Total ticks: %lld\n", detector.get_prof_ticks(fd_module::prof_tick_id::kProfTotal));
     for (int det_idx = 0; det_idx < detections.detections_num; ++det_idx) {
-        const auto bbox_top_left = 
+        const auto bbox_top_left =
             fd_module::get_coordinate(detections, det_idx, fd_module::coord_id::kCoordBboxTopLeft);
-        const auto bbox_bot_right = 
+        const auto bbox_bot_right =
             fd_module::get_coordinate(detections, det_idx, fd_module::coord_id::kCoordBboxBotRight);
-        
+
         const float bbox_score = fd_module::get_score(detections, det_idx);
         printf(" Found a face at ([X:%d, Y:%d]; [X:%d, Y:%d]) with (%f) score\n",
-            bbox_top_left.clmn, bbox_top_left.row, bbox_bot_right.clmn, bbox_bot_right.row, bbox_score );
+            bbox_top_left.clmn, bbox_top_left.row, bbox_bot_right.clmn, bbox_bot_right.row, bbox_score);
 
         draw_a_frame_rgb(bbox_top_left, bbox_bot_right, input_image_data.get(), img_width, img_height);
         draw_a_keypoint_rgb(fd_module::get_coordinate(detections, det_idx, fd_module::coord_id::kCoordLeftEye),
@@ -132,7 +136,7 @@ int main(int argc, char *argv[]) {
                             input_image_data.get(), img_width, img_height);
     }
 
-    bmp_rgb_write("result.bmp", input_image_data.get(),img_width, img_height);
+    bmp_rgb_write("result.bmp", input_image_data.get(), img_width, img_height);
     printf("Done. See result in \"result.bmp\" file.\n");
     return 0;
 }

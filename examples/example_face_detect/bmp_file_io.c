@@ -29,17 +29,17 @@ typedef struct {
 } bmp_header_t;
 
 typedef struct {
-   uint32_t     size;
-   int32_t      width;
-   int32_t      height;
-   uint16_t     planes;
-   uint16_t     bits;
-   uint32_t     compression;
-   uint32_t     size_bytes;
-   int32_t      x_res;
-   int32_t      y_res;
-   uint32_t     colors;
-   uint32_t     important_colors;
+    uint32_t     size;
+    int32_t      width;
+    int32_t      height;
+    uint16_t     planes;
+    uint16_t     bits;
+    uint32_t     compression;
+    uint32_t     size_bytes;
+    int32_t      x_res;
+    int32_t      y_res;
+    uint32_t     colors;
+    uint32_t     important_colors;
 } bmp_info_header_t;
 
 typedef struct {
@@ -63,9 +63,11 @@ uint8_t *bmp_rgb_read(const char* filename, int32_t width, int32_t height) {
     uint8_t* image = NULL;
 
     /* opening the input file */
-    f = fopen(filename,"rb");
+    f = fopen(filename, "rb");
     if (f == NULL) {
-        printf("Failed to open the input file '%s': %s\n", filename, strerror(errno));
+        printf("Failed to open the input file '%s': %s\n",
+               filename,
+               strerror(errno));
         return NULL;
     }
 
@@ -78,7 +80,8 @@ uint8_t *bmp_rgb_read(const char* filename, int32_t width, int32_t height) {
             bmp_info_header.width   != width ||
             bmp_info_header.height  != height ||
             bmp_info_header.bits    != 8 * pixel_size_bytes) {
-        printf("Invaid input file format: %dx%d 24bit color BMP is expected\n", height, width);
+        printf("Invaid input file format: %dx%d 24bit color BMP is expected\n",
+                height, width);
         fclose(f);
         return NULL;
     }
@@ -87,7 +90,8 @@ uint8_t *bmp_rgb_read(const char* filename, int32_t width, int32_t height) {
     size_t img_size = (size_t)width * height * pixel_size_bytes;
     image = malloc(img_size);
     if (image == NULL) {
-        printf("Failed to allocate %d bytes to read the input file\n", width * height);
+        printf("Failed to allocate %d bytes to read the input file\n",
+               width * height);
         fclose(f);
         return NULL;
     }
@@ -113,11 +117,14 @@ uint8_t *bmp_rgb_read(const char* filename, int32_t width, int32_t height) {
 /*
 * Writing input image to BMP file with required transformations.
 */
-void bmp_rgb_write(const char* filename, const uint8_t* image, int32_t width, int32_t height) {
+void bmp_rgb_write(const char* filename, const uint8_t* image,
+                   int32_t width, int32_t height) {
     const int32_t pixel_size_bytes = 3;
     const bmp_header_t bmp_header = {
         .type =  0x4D42,
-        .size =  width * height * pixel_size_bytes + (sizeof(bmp_header_t) + sizeof(bmp_info_header_t)),
+        .size =  width * height * pixel_size_bytes +
+                 (sizeof(bmp_header_t) +
+                 sizeof(bmp_info_header_t)),
         .offset =  sizeof(bmp_header_t) + sizeof(bmp_info_header_t)
     };
 
@@ -134,7 +141,9 @@ void bmp_rgb_write(const char* filename, const uint8_t* image, int32_t width, in
     /* open the input file */
     FILE* f = fopen(filename, "wb");
     if (f == NULL) {
-        printf("Failed to open the output file '%s': %s\n", filename, strerror(errno));
+        printf("Failed to open the output file '%s': %s\n",
+               filename,
+               strerror(errno));
         return;
     }
 
@@ -142,11 +151,13 @@ void bmp_rgb_write(const char* filename, const uint8_t* image, int32_t width, in
     fwrite((void*)&bmp_header, sizeof(bmp_header), 1, f);
     fwrite((void*)&bmp_info_header, sizeof(bmp_info_header), 1, f);
 
-    /* Write BMP pixel-by-pixel with rgb->bgr transformation in bottom-up rows order*/
+    /* Write BMP pixel-by-pixel with rgb->bgr transformation
+       in bottom-up rows order */
     rgb_pixel_t rgb_pixel = {0};
     for (int y_idx = bmp_info_header.height - 1; y_idx >= 0; y_idx--) {
         for (int x_idx = 0; x_idx < bmp_info_header.width; x_idx++) {
-            const int idx = (y_idx * bmp_info_header.width + x_idx) * pixel_size_bytes;
+            const int idx = (y_idx * bmp_info_header.width + x_idx) *
+                            pixel_size_bytes;
             rgb_pixel.r = image[idx];
             rgb_pixel.g = image[idx + 1];
             rgb_pixel.b = image[idx + 2];

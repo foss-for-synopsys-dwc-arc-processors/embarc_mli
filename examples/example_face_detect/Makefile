@@ -13,7 +13,7 @@ BUILD_SUBDIR = examples$(PS)example_face_detect
 BIN_PATH = $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)bin
 
 BUILD_TARGET = example_face_detect
-RUN_ARGS ?= 
+RUN_ARGS ?=
 
 ifndef TCF_FILE
 RUN_APP_CMD =
