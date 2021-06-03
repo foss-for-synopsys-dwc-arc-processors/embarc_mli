@@ -169,8 +169,8 @@ Weights for the cell consist of three tensors:
    \end{bmatrix} 
 ..
    
-This kernel implies sequential processing of the set of input vectors that is passed by input tensor 
-of shape (batch_size, N) where N is the length of the single frame :math:`x_{t}`. Both directions 
+This kernel implies sequential processing of the set of input vectors (or timesteps) that is passed by input tensor 
+of shape (sequence_length, N) where N is the length of the single frame :math:`x_{t}`. Both directions 
 of processing (forward and backward) are supported and defined by cfg structure. The Kernel can output 
 a pack of results at each step of processing, or it can output the result vector only for the last 
 step in the sequence.
@@ -203,7 +203,7 @@ Ensure that you satisfy the following conditions before calling the function:
 
  - ``in``, ``prev_out``, ``weights_in``, ``weights_out``, ``bias``, and ``cell`` tensors must be valid (see :ref:`mli_tnsr_struc`).
 
- - ``in`` must be a tensor of shape (batch_size, N) where batch_size is a number of input frames for sequential 
+ - ``in`` must be a tensor of shape (sequence_length, N) where sequence_length is a number of input frames (or timesteps) for sequential 
    processing by LSTM cell.
 
  - ``weights_in`` must be a three-dimensional tensor of shape (4, N, M).
@@ -217,7 +217,7 @@ Ensure that you satisfy the following conditions before calling the function:
  - ``prev_out`` must be a one-dimensional tensor of shape (M).
  
 - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity for storing the result (to keep M 
-   elements if LSTM cell is configured with RNN_OUT_LAST or to keep M*batch_size elements if LSTM cell is configured 
+   elements if LSTM cell is configured with RNN_OUT_LAST or to keep M*sequence_length elements if LSTM cell is configured 
    with RNN_OUT_ALL), and valid ``mem_stride`` field. Other fields of the structure do not have to contain valid data and 
    are filled by the function.
    

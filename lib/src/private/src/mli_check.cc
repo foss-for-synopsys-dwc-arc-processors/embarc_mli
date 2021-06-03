@@ -2010,7 +2010,7 @@ mli_status mli_chk_lstm_cell (
 
     uint32_t in_elements = mli_prv_count_elem_num_part(in, 1);
     uint32_t out_elements = mli_prv_count_elem_num (prev_out);
-    uint32_t out_batches = (cfg->results == RNN_OUT_ALL) ? in->shape[0] : 1;
+    uint32_t out_seq_len = (cfg->results == RNN_OUT_ALL) ? in->shape[0] : 1;
 
     // Check weights
     stat = MLI_CHECK_STATUS(mli_chk_tensor (weights_in), "Bad weights_in tensor");
@@ -2048,7 +2048,7 @@ mli_status mli_chk_lstm_cell (
     // Check output
     fail |= MLI_CHECK(out != NULL, "Bad Output tensor  pointer");
     fail |= MLI_CHECK(check_ptr_not_null(out), "Bad data pointer of output");
-    fail |= MLI_CHECK((out_batches * out_elements * mli_hlp_tensor_element_size (in)) <= out->data.capacity,
+    fail |= MLI_CHECK((out_seq_len * out_elements * mli_hlp_tensor_element_size (in)) <= out->data.capacity,
                       "capacity of output tensor is too small");
     if (fail) return MLI_STATUS_BAD_TENSOR;
 
@@ -2218,7 +2218,7 @@ mli_status mli_chk_gru_cell (
 
     uint32_t in_elements = mli_prv_count_elem_num_part(in, 1);
     uint32_t out_elements = mli_prv_count_elem_num (prev_out);
-    uint32_t out_batches = (cfg->results == RNN_OUT_ALL) ? in->shape[0] : 1;
+    uint32_t out_seq_len = (cfg->results == RNN_OUT_ALL) ? in->shape[0] : 1;
 
     // Check weights
     stat = MLI_CHECK_STATUS(mli_chk_tensor (weights_in), "Bad weights_in tensor");
@@ -2248,7 +2248,7 @@ mli_status mli_chk_gru_cell (
     // Check output
     fail |= MLI_CHECK(out != NULL, "Bad Output tensor  pointer");
     fail |= MLI_CHECK(check_ptr_not_null(out), "Bad data pointer of output");
-    fail |= MLI_CHECK((out_batches * out_elements * mli_hlp_tensor_element_size (in)) <= out->data.capacity,
+    fail |= MLI_CHECK((out_seq_len * out_elements * mli_hlp_tensor_element_size (in)) <= out->data.capacity,
                       "capacity of output tensor is too small");
     if (fail) return MLI_STATUS_BAD_TENSOR;
 

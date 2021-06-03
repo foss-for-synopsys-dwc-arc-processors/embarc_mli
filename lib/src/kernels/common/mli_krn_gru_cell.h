@@ -56,7 +56,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
 
     const int8_t num_inputs = 2;
     const int8_t num_gates = 2;
-    const int batch_sz = in->shape[0];
+    const int seq_len = in->shape[0];
     const int inputs_elements[] = {(int)mli_prv_count_elem_num_part(in, 1), (int)mli_prv_count_elem_num(prev_out)};
     const int gru_out_elements = static_cast<int>(mli_prv_count_elem_num(prev_out));
 
@@ -65,7 +65,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
                                          mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(prev_out)};
 
     if (cfg->direction == RNN_DIR_BACKWARD) 
-        inputs_ptr[0] += (batch_sz - 1) * inputs_elements[0];
+        inputs_ptr[0] += (seq_len - 1) * inputs_elements[0];
 
     mli_element_params one_el_params;
     mli_element_params ir_asym_params;
@@ -189,7 +189,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
     const MLI_PTR (io_T) inputs_new_ptr[] = {inputs_ptr[0], 
                                              mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(&prev_out_reset)};
 
-    for (int batch = 0; batch < batch_sz; batch++) {
+    for (int timestep = 0; timestep < seq_len; timestep++) {
 
         // Step 1: Applying Dense
         //=======================================
@@ -282,7 +282,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
         current_hidden.data = rnn_out.data;
         current_hidden.el_params = rnn_out.el_params;
 
-        // Step 6: Update pointers and tensors for next batch
+        // Step 6: Update pointers and tensors for next timestep
         //=======================================
         inputs_ptr[0] += cfg->direction == RNN_DIR_FORWARD ? inputs_elements[0] : -inputs_elements[0];
         inputs_new_ptr[0] += cfg->direction == RNN_DIR_FORWARD ? inputs_elements[0] : -inputs_elements[0];
@@ -310,7 +310,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
         out->shape[1] = gru_out_elements;
     } else {
         out->rank = 2;
-        out->shape[0] = batch_sz;
+        out->shape[0] = seq_len;
         out->shape[1] = gru_out_elements;
     }
 }
