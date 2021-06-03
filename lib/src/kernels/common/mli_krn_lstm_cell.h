@@ -129,8 +129,8 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
     ir_tensor.rank = bias->rank;
     ir_tensor.shape[0] = bias->shape[0];
     ir_tensor.shape[1] = bias->shape[1];
-    ir_tensor.mem_stride[0] = 0;
-    ir_tensor.mem_stride[1] = 0;
+    ir_tensor.mem_stride[0] = ir_tensor.shape[1];
+    ir_tensor.mem_stride[1] = 1;
     ir_tensor.el_type = in->el_type;
 
     if (asym) {
@@ -152,51 +152,40 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
     define_quant_params(prev_out, weights_out, bias, &ir_tensor, &in_to_out_params[1]);
 
 
-    const int w_ch_out_mem_stride_from_tensors[] = {(int)weights_in->mem_stride[KRNL_RNN_W_IN_ELEMS_DIM], 
+    const int w_ch_out_mem_strides[] = {(int)weights_in->mem_stride[KRNL_RNN_W_IN_ELEMS_DIM],
                                                     (int)weights_out->mem_stride[KRNL_RNN_W_IN_ELEMS_DIM]};
 
-    const int w_gate_mem_stride_from_tensors[] = {(int)weights_in->mem_stride[0], 
+    const int w_gate_mem_strides[] = {(int)weights_in->mem_stride[0],
                                                   (int)weights_out->mem_stride[0]};
 
-    const int w_ch_out_mem_strides[] = {(w_ch_out_mem_stride_from_tensors[0] != 0) 
-                                            ? w_ch_out_mem_stride_from_tensors[0] : lstm_out_elements, 
-                                        (w_ch_out_mem_stride_from_tensors[1] != 0) 
-                                            ? w_ch_out_mem_stride_from_tensors[1]: lstm_out_elements};
-
-    const int w_gate_mem_strides[] = {(w_gate_mem_stride_from_tensors[0] != 0) 
-                                        ? w_gate_mem_stride_from_tensors[0] : lstm_out_elements * inputs_elements[0], 
-                                      (w_gate_mem_stride_from_tensors[1] != 0) 
-                                        ? w_gate_mem_stride_from_tensors[1]: lstm_out_elements * inputs_elements[1]};
-
-    // Paricular subtensors of intermediate tensor (mli_tensor.mem_stride[] should be zero and cannot be left uninitialized)
-    mli_tensor in_gate, forget_gate , out_gate ; // Various gates to controll info flow
+    // Paricular subtensors of intermediate tensor
+    mli_tensor in_gate, forget_gate, out_gate; // Various gates to controll info flow
     mli_tensor g_tsr; // Information tensors
-    for (int r=0; r < MLI_MAX_RANK; r++)
-    {
-        in_gate.mem_stride[r]=0;
-        forget_gate.mem_stride[r]=0;
-        out_gate.mem_stride[r]=0;
-        g_tsr.mem_stride[r]=0;
-    }
 
     // Init subtensors
-    mli_point_to_subtsr_cfg iterator = {/*.start_coord =*/ {0}, /*.coord_num=*/ 1, /*.first_out_dim_size=*/ 1};
-    mli_hlp_point_to_subtensor(&ir_tensor, &iterator, &in_gate); iterator.start_coord[0]++;
-    mli_hlp_point_to_subtensor(&ir_tensor, &iterator, &g_tsr); iterator.start_coord[0]++;
-    mli_hlp_point_to_subtensor(&ir_tensor, &iterator, &forget_gate); iterator.start_coord[0]++;
-    mli_hlp_point_to_subtensor(&ir_tensor, &iterator, &out_gate);
+    mli_sub_tensor_cfg iterator = {/*.offset =*/ {0}, /*.size = */{1, ir_tensor.shape[1]}, /*.sub_tensor_rank =*/2};
+    mli_hlp_create_subtensor(&ir_tensor, &iterator, &in_gate); iterator.offset[0]++;
+    mli_hlp_create_subtensor(&ir_tensor, &iterator, &g_tsr); iterator.offset[0]++;
+    mli_hlp_create_subtensor(&ir_tensor, &iterator, &forget_gate); iterator.offset[0]++;
+    mli_hlp_create_subtensor(&ir_tensor, &iterator, &out_gate);
 
     mli_tensor rnn_out;
     rnn_out.data = out->data;
     rnn_out.rank = 2;
     rnn_out.shape[0] = 1;
     rnn_out.shape[1] = static_cast<unsigned>(lstm_out_elements);
-    rnn_out.mem_stride[0] = 0;
-    rnn_out.mem_stride[1] = 0;
+    rnn_out.mem_stride[0] = rnn_out.shape[1];
+    rnn_out.mem_stride[1] = 1;
     rnn_out.el_type = in->el_type;
 
+    cell->rank = 2;
+    cell->shape[0] = forget_gate.shape[0];
+    cell->shape[1] = forget_gate.shape[1];
+    cell->mem_stride[0] = forget_gate.mem_stride[0];
+    cell->mem_stride[1] = forget_gate.mem_stride[1];
+
     for (int timestep = 0; timestep < seq_len; timestep++) {
-        
+
         // Step 1: Applying Dense
         //=======================================
         rnn_dense_op_stacked<io_T, w_T, b_T, acc_T, quant_T>(

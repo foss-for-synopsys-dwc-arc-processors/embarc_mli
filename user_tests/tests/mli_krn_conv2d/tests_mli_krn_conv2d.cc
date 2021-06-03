@@ -58,7 +58,7 @@ struct conv2d_test_operands {
 const crc32_calc test_1_chksum_fx16{ 0x3669E8DA }, test_1_chksum_fx16_fx8_fx8{ 0x627FD168 }, test_1_chksum_sa8{ 0xA3FFD976 },
                  test_2_chksum_fx16{ 0x6075722F }, test_2_chksum_fx16_fx8_fx8{ 0xBFE5DC3D }, test_2_chksum_sa8{ 0x5D288208 },
                  test_3_chksum_fx16{ 0xE2100158 }, test_3_chksum_fx16_fx8_fx8{ 0x550F135E }, test_3_chksum_sa8{ 0x9740102D },
-                 test_4_chksum_fx16{ 0x5F13DD22 }, test_4_chksum_fx16_fx8_fx8{ 0xF92F0A5A }, test_4_chksum_sa8{ 0x45AA03B7 },
+                 test_4_chksum_fx16{ 0x987AC0A8 }, test_4_chksum_fx16_fx8_fx8{ 0x21C772CE }, test_4_chksum_sa8{ 0x056EDB56 },
                  test_5_chksum_fx16{ 0xD8CA1273 }, test_5_chksum_fx16_fx8_fx8{ 0x186AA252 }, test_5_chksum_sa8{ 0x01D390FA },
                  test_6_chksum_fx16{ 0x150A5D20 }, 
                  test_7_chksum_fx16{ 0x05737544 }, test_7_chksum_fx16_fx8_fx8{ 0x7FFA25C2 }, test_7_chksum_sa8{ 0x5E7CF172 },

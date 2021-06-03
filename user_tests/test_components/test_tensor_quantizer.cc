@@ -21,6 +21,7 @@
 #include <memory>
 #include <type_traits>
 
+#include "mli_api.h"
 
 namespace mli {
 namespace tst {
@@ -54,6 +55,12 @@ tensor_quantizer::tensor_quantizer(mli_tensor tsr, const int quant_dim, const fl
         , source_zero_points_(zero_points)
         , source_scales_fraq_(scales_fraq_bits)
         , is_valid_(false) {
+
+    // if mem_stride is not provided, compute it from the shape
+    if (source_tsr_.mem_stride[0] == 0) {
+        mli_hlp_set_tensor_mem_strides(&source_tsr_);
+    }
+
     // if tensor not of a type that constructor intend to work with, keep is_valid_ state false 
     // and skip the rest initialization code
     if (source_tsr_.el_type == MLI_EL_SA_8 || source_tsr_.el_type == MLI_EL_SA_32) {
@@ -65,7 +72,7 @@ tensor_quantizer::tensor_quantizer(mli_tensor tsr, const int quant_dim, const fl
 
         // check that arrays are of expectd size
         if (is_valid_) {
-            is_valid_ = (data_size == mli_hlp_count_elem_num(&source_tsr_, 0));
+            is_valid_ = (data_size >= mli_hlp_count_elem_num(&source_tsr_, 0));
             const uint32_t expected_vals = (source_tsr_.el_params.sa.dim < 0) ? 
                                             1 : source_tsr_.shape[source_tsr_.el_params.sa.dim];
             is_valid_ &= (scales_size == expected_vals);
@@ -86,6 +93,11 @@ tensor_quantizer::tensor_quantizer(mli_tensor tsr, const int frac_bits, const fl
         , source_zero_points_(nullptr)
         , source_scales_fraq_(nullptr)
         , is_valid_(false) {
+    // if mem_stride is not provided, compute it from the shape
+    if (source_tsr_.mem_stride[0] == 0) {
+        mli_hlp_set_tensor_mem_strides(&source_tsr_);
+    }
+
     // Similar as for SA constructor - keep is_valid false if not FX
     if (source_tsr_.el_type == MLI_EL_FX_8 || source_tsr_.el_type == MLI_EL_FX_16) {
         source_tsr_.el_params.fx.frac_bits = frac_bits;
@@ -93,7 +105,7 @@ tensor_quantizer::tensor_quantizer(mli_tensor tsr, const int frac_bits, const fl
         const tensor_state state = validate_tensor(source_tsr_);
         is_valid_ = (state == kIncompleteMem || state == kOk);
         if(is_valid_)
-            is_valid_ = (data_size == mli_hlp_count_elem_num(&source_tsr_, 0));
+            is_valid_ = (data_size >= mli_hlp_count_elem_num(&source_tsr_, 0));
     }
 }
 
@@ -106,13 +118,18 @@ tensor_quantizer::tensor_quantizer(mli_tensor tsr, const float* data, const uint
     , source_zero_points_(nullptr)
     , source_scales_fraq_(nullptr)
     , is_valid_(false) {
+    // if mem_stride is not provided, compute it from the shape
+    if (source_tsr_.mem_stride[0] == 0) {
+        mli_hlp_set_tensor_mem_strides(&source_tsr_);
+    }
+
     // SImilar as for FX constructor - keep is_valid false if not FP32
     if (source_tsr_.el_type == MLI_EL_FP_32) {
         // check that input tensor in general not bad
         const tensor_state state = validate_tensor(source_tsr_);
         is_valid_ = (state == kIncompleteMem || state == kOk);
         if (is_valid_)
-            is_valid_ = (data_size == mli_hlp_count_elem_num(&source_tsr_, 0));
+            is_valid_ = (data_size >= mli_hlp_count_elem_num(&source_tsr_, 0));
     }
 }
 

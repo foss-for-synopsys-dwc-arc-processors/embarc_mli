@@ -76,29 +76,20 @@ static MLI_FORCE_INLINE mli_status check_tensor_private(
 
     fail |= MLI_CHECK(rank <= MLI_MAX_RANK, "Wrong tensor rank");
     for (int i = 0; i < (int)rank; i++) {
-        fail |= MLI_CHECK(mem_stride[i] >= 0, "Negative memory strides are not supported");
+        fail |= MLI_CHECK(mem_stride[i] != 0, "Memory stride invalid");
+        fail |= MLI_CHECK(mem_stride[i] > 0, "Negative memory strides are not supported");
         fail |= MLI_CHECK(shape[i] > 0, "Shape invalid");
     }
     if (fail) return MLI_STATUS_BAD_TENSOR;
 
-    bool strides_set = true;
-    for (int i = 0; i < (int)rank; i++) {
-        strides_set &= (mem_stride[i] != 0);
-    }
     uint32_t size = 1;
-    if (strides_set) {
-        uint32_t previous_shape = 1;
-        uint32_t previous_mem_stride = 1;
-        for (int i = rank - 1; i >= 0; i--) {
-            fail |= MLI_CHECK(mem_stride[i] >= (previous_shape * previous_mem_stride), "Tensor mem stride too small");
-            previous_shape = shape[i];
-            previous_mem_stride = mem_stride[i];
-            size += (previous_shape - 1) * previous_mem_stride;
-        }
-    } else {
-        for (int i = rank - 1; i >= 0; i--) {
-            size *= shape[i];
-        }
+    uint32_t previous_shape = 1;
+    uint32_t previous_mem_stride = 1;
+    for (int i = rank - 1; i >= 0; i--) {
+        fail |= MLI_CHECK(mem_stride[i] >= (previous_shape * previous_mem_stride), "Tensor mem stride too small");
+        previous_shape = shape[i];
+        previous_mem_stride = mem_stride[i];
+        size += (previous_shape - 1) * previous_mem_stride;
     }
     size *= element_size;
 
@@ -304,35 +295,22 @@ mli_status mli_chk_bias_scale_asym(const mli_tensor * in, const mli_tensor * wei
 }
 
 static MLI_FORCE_INLINE bool check_inner_most_dimension_is_one(const mli_tensor *t) {
-    return (t->mem_stride[t->rank - 1] == 1) || (t->mem_stride[t->rank - 1] == 0);
+    return (t->mem_stride[t->rank - 1] == 1);
 }
 
 static MLI_FORCE_INLINE bool check_layout_is_contiguous(const int32_t *mem_stride, uint32_t rank) {
     // When only mem_stride and rank is under considiration, contiguous means 
     // all memory strides are zero OR rank is 1 and memory stride between elements is 1
-    // If all memory strides are zero, the kernel itself will calculate the actual memory
-    // strides such that all data is contiguous.
-    bool strides_set = true;
-    for (int i = 0; i < (int)rank; i++) {
-        strides_set &= (mem_stride[i] != 0);
-    }
-    
-    if (!strides_set || (rank == 1 && mem_stride[0] == 1))
+
+    if (rank == 1 && mem_stride[0] == 1)
         return true;
     else
         return false;
 }
 
 static MLI_FORCE_INLINE bool check_layout_is_contiguous(const uint32_t *shape, const int32_t *mem_stride, uint32_t rank) {
-    // This function either requires that all memory strides are zero,
-    // or that the memory strides are set such that it results in the
-    // same memory layout. If all memory strides are zero, the kernel itself
-    // will calculate the actual memory strides such that all data is contiguous.
-    bool strides_set = true;
-    for (int i = 0; i < (int)rank; i++) {
-        strides_set &= (mem_stride[i] != 0);
-    }
-    if (!strides_set) return true;
+    // This function either requires that the memory strides are set such that it results in the
+    // same memory layout.
 
     bool fail = false;
     uint32_t previous_shape = 1;
@@ -411,27 +389,26 @@ mli_status mli_chk_conv2d_hwcn (
 
     int kernel_width = weights->shape[KRNL_W_DIM_HWCN];
     int kernel_height = weights->shape[KRNL_H_DIM_HWCN];
-    int dilation_width = (cfg->dilation_width > 0) ? cfg->dilation_width : 1;
-    int dilation_height = (cfg->dilation_height > 0) ? cfg->dilation_height : 1;
+    int dilation_width = cfg->dilation_width;
+    int dilation_height = cfg->dilation_height;
     int effective_kernel_width = (kernel_width - 1) * dilation_width + 1;
     int effective_kernel_height = (kernel_height - 1) * dilation_height + 1;
+    int effective_input_width = in->shape[FMAP_W_DIM_HWC] + cfg->padding_left + cfg->padding_right;
+    int effective_input_height = in->shape[FMAP_H_DIM_HWC] + cfg->padding_top + cfg->padding_bottom;
+    int required_width = out->shape[FMAP_W_DIM_HWC] * cfg->stride_width + effective_kernel_width - cfg->stride_width;
+    int required_height = out->shape[FMAP_H_DIM_HWC] * cfg->stride_height + effective_kernel_height - cfg->stride_height;
+    fail |= MLI_CHECK(cfg->dilation_height > 0, "Dilation should be greater than zero");
+    fail |= MLI_CHECK(cfg->dilation_width > 0, "Dilation should be greater than zero");
     fail |= MLI_CHECK(cfg->padding_left < effective_kernel_width, "Padding should be smaller than effective kernel size");
     fail |= MLI_CHECK(cfg->padding_right < effective_kernel_width, "Padding should be smaller than effective kernel size");
     fail |= MLI_CHECK(cfg->padding_top < effective_kernel_height, "Padding should be smaller than effective kernel size");
     fail |= MLI_CHECK(cfg->padding_bottom < effective_kernel_height, "Padding should be smaller than effective kernel size");
     fail |= MLI_CHECK(cfg->stride_height > 0, "Stride should be greater than zero");
     fail |= MLI_CHECK(cfg->stride_width > 0, "Stride should be greater than zero");
+    fail |= MLI_CHECK(required_height <= effective_input_height, "incorrect output height");
+    fail |= MLI_CHECK(required_width <= effective_input_width, "incorrect output width");
     if (fail) return MLI_STATUS_BAD_FUNC_CFG;
-
-    int in_height = in->shape[FMAP_H_DIM_HWC];
-    int in_width = in->shape[FMAP_W_DIM_HWC];
-    uint32_t out_shape[3] = {
-            (uint32_t)CEIL_DIV(in_height + cfg->padding_top + cfg->padding_bottom - effective_kernel_height + 1,
-                    cfg->stride_height), // h
-            (uint32_t)CEIL_DIV(in_width + cfg->padding_left + cfg->padding_right - effective_kernel_width + 1,
-                    cfg->stride_width), // w
-            weights->shape[KRNL_C_DIM_HWCN]}; // c
-    stat = check_tensor_private(out_shape, out->mem_stride, 3, out->data.capacity, mli_hlp_tensor_element_size(out));
+    stat = check_tensor_private(out->shape, out->mem_stride, 3, out->data.capacity, mli_hlp_tensor_element_size(out));
 
     return stat;
 }
@@ -554,27 +531,26 @@ mli_status mli_chk_depthwise_conv2d_hwcn(
 
     int kernel_width = weights->shape[KRNL_DW_W_DIM_HW1N];
     int kernel_height = weights->shape[KRNL_DW_H_DIM_HW1N];
-    int dilation_width = (cfg->dilation_width > 0) ? cfg->dilation_width : 1;
-    int dilation_height = (cfg->dilation_height > 0) ? cfg->dilation_height : 1;
+    int dilation_width = cfg->dilation_width;
+    int dilation_height = cfg->dilation_height;
     int effective_kernel_width = (kernel_width - 1) * dilation_width + 1;
     int effective_kernel_height = (kernel_height - 1) * dilation_height + 1;
+    int effective_input_width = in->shape[FMAP_W_DIM_HWC] + cfg->padding_left + cfg->padding_right;
+    int effective_input_height = in->shape[FMAP_H_DIM_HWC] + cfg->padding_top + cfg->padding_bottom;
+    int required_width = out->shape[FMAP_W_DIM_HWC] * cfg->stride_width + effective_kernel_width - cfg->stride_width;
+    int required_height = out->shape[FMAP_H_DIM_HWC] * cfg->stride_height + effective_kernel_height - cfg->stride_height;
+    fail |= MLI_CHECK(cfg->dilation_height > 0, "Dilation should be greater than zero");
+    fail |= MLI_CHECK(cfg->dilation_width > 0, "Dilation should be greater than zero");
     fail |= MLI_CHECK(cfg->padding_left < effective_kernel_width, "Padding should be smaller than effective kernel size");
     fail |= MLI_CHECK(cfg->padding_right < effective_kernel_width, "Padding should be smaller than effective kernel size");
     fail |= MLI_CHECK(cfg->padding_top < effective_kernel_height, "Padding should be smaller than effective kernel size");
     fail |= MLI_CHECK(cfg->padding_bottom < effective_kernel_height, "Padding should be smaller than effective kernel size");
     fail |= MLI_CHECK(cfg->stride_height > 0, "Stride should be greater than zero");
     fail |= MLI_CHECK(cfg->stride_width > 0, "Stride should be greater than zero");
+    fail |= MLI_CHECK(required_height <= effective_input_height, "incorrect output height");
+    fail |= MLI_CHECK(required_width <= effective_input_width, "incorrect output width");
     if (fail) return MLI_STATUS_BAD_FUNC_CFG;
-
-    int in_height = in->shape[FMAP_H_DIM_HWC];
-    int in_width = in->shape[FMAP_W_DIM_HWC];
-    uint32_t out_shape[3] = {
-            (uint32_t)CEIL_DIV(in_height + cfg->padding_top + cfg->padding_bottom - effective_kernel_height + 1,
-                    cfg->stride_height), // h
-            (uint32_t)CEIL_DIV(in_width + cfg->padding_left + cfg->padding_right - effective_kernel_width + 1,
-                    cfg->stride_width), // w
-            weights->shape[KRNL_DW_N_DIM_HW1N]}; // c
-    stat = check_tensor_private(out_shape, out->mem_stride, 3, out->data.capacity, mli_hlp_tensor_element_size(out));
+    stat = check_tensor_private(out->shape, out->mem_stride, 3, out->data.capacity, mli_hlp_tensor_element_size(out));
 
     return stat;
 }
@@ -695,27 +671,26 @@ mli_status mli_chk_group_conv2d_hwcn(
 
     int kernel_width = weights->shape[KRNL_W_DIM_HWCN];
     int kernel_height = weights->shape[KRNL_H_DIM_HWCN];
-    int dilation_width = (cfg->dilation_width > 0) ? cfg->dilation_width : 1;
-    int dilation_height = (cfg->dilation_height > 0) ? cfg->dilation_height : 1;
+    int dilation_width = cfg->dilation_width;
+    int dilation_height = cfg->dilation_height;
     int effective_kernel_width = (kernel_width - 1) * dilation_width + 1;
     int effective_kernel_height = (kernel_height - 1) * dilation_height + 1;
+    int effective_input_width = in->shape[FMAP_W_DIM_HWC] + cfg->padding_left + cfg->padding_right;
+    int effective_input_height = in->shape[FMAP_H_DIM_HWC] + cfg->padding_top + cfg->padding_bottom;
+    int required_width = out->shape[FMAP_W_DIM_HWC] * cfg->stride_width + effective_kernel_width - cfg->stride_width;
+    int required_height = out->shape[FMAP_H_DIM_HWC] * cfg->stride_height + effective_kernel_height - cfg->stride_height;
+    fail |= MLI_CHECK(cfg->dilation_height > 0, "Dilation should be greater than zero");
+    fail |= MLI_CHECK(cfg->dilation_width > 0, "Dilation should be greater than zero");
     fail |= MLI_CHECK(cfg->padding_left < effective_kernel_width, "Padding should be smaller than effective kernel size");
     fail |= MLI_CHECK(cfg->padding_right < effective_kernel_width, "Padding should be smaller than effective kernel size");
     fail |= MLI_CHECK(cfg->padding_top < effective_kernel_height, "Padding should be smaller than effective kernel size");
     fail |= MLI_CHECK(cfg->padding_bottom < effective_kernel_height, "Padding should be smaller than effective kernel size");
     fail |= MLI_CHECK(cfg->stride_height > 0, "Stride should be greater than zero");
     fail |= MLI_CHECK(cfg->stride_width > 0, "Stride should be greater than zero");
+    fail |= MLI_CHECK(required_height <= effective_input_height, "incorrect output height");
+    fail |= MLI_CHECK(required_width <= effective_input_width, "incorrect output width");
     if (fail) return MLI_STATUS_BAD_FUNC_CFG;
-
-    int in_height = in->shape[FMAP_H_DIM_HWC];
-    int in_width = in->shape[FMAP_W_DIM_HWC];
-    uint32_t out_shape[3] = {
-            (uint32_t)CEIL_DIV(in_height + cfg->padding_top + cfg->padding_bottom - effective_kernel_height + 1,
-                    cfg->stride_height), // h
-            (uint32_t)CEIL_DIV(in_width + cfg->padding_left + cfg->padding_right - effective_kernel_width + 1,
-                    cfg->stride_width), // w
-            weights->shape[KRNL_DW_N_DIM_HW1N]}; // c
-    stat = check_tensor_private(out_shape, out->mem_stride, 3, out->data.capacity, mli_hlp_tensor_element_size(out));
+    stat = check_tensor_private(out->shape, out->mem_stride, 3, out->data.capacity, mli_hlp_tensor_element_size(out));
 
     return stat;
 }
@@ -838,11 +813,9 @@ mli_status mli_chk_transpose_conv2d_hwcn (
 
     const int kernel_width = weights->shape[KRNL_W_DIM_HWCN];
     const int kernel_height = weights->shape[KRNL_H_DIM_HWCN];
-    const int dilation_width = (cfg->dilation_width > 0) ? cfg->dilation_width : 1;
-    const int dilation_height = (cfg->dilation_height > 0) ? cfg->dilation_height : 1;
 
-    fail |= MLI_CHECK(dilation_width == 1, "Dilation ratio isn't supported by transpose convolution");
-    fail |= MLI_CHECK(dilation_height == 1, "Dilation ratio isn't supported by transpose convolution");
+    fail |= MLI_CHECK(cfg->dilation_width == 1, "Dilation ratio isn't supported by transpose convolution");
+    fail |= MLI_CHECK(cfg->dilation_height == 1, "Dilation ratio isn't supported by transpose convolution");
     fail |= MLI_CHECK(cfg->padding_left < kernel_width, "Padding should be smaller than effective kernel size");
     fail |= MLI_CHECK(cfg->padding_right < kernel_width, "Padding should be smaller than effective kernel size");
     fail |= MLI_CHECK(cfg->padding_top < kernel_height, "Padding should be smaller than effective kernel size");
@@ -2089,7 +2062,6 @@ mli_status mli_chk_lstm_cell (
     fail |= MLI_CHECK(check_inner_most_dimension_is_one(bias), "Memory stride for inner most dimension of bias must be 1");
     fail |= MLI_CHECK(check_inner_most_dimension_is_one(out), "Memory stride for inner most dimension of output must be 1");
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
-
 
     return MLI_STATUS_OK;
 }

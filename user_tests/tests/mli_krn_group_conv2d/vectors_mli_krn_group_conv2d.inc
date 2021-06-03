@@ -220,12 +220,17 @@ static const int input_1_fx8_frac = 6;
     /* .shape = */ {7, 7, 9}, \
     /* .rank =  */ 3
 
+#define INPUT_1b_TSR_SHARED_DESCR \
+    /* .data = */ { 0 },\
+    /* .mem_stride = */ {0}, \
+    /* .shape = */ {6, 7, 9}, \
+    /* .rank =  */ 3
+
 #define INPUT_1_MEMSTR_TSR_SHARED_DESCR \
     /* .data = */ { 0 },\
     /* .mem_stride = */ {13*6*1, 6*1, 1}, \
     /* .shape = */ {7, 7, 9}, \
     /* .rank =  */ 3
-
 
 static const mli_tensor input_1_tsr_fx16 = {
     INPUT_1_TSR_SHARED_DESCR,
@@ -255,7 +260,24 @@ static const mli_tensor input_1_memstr_tsr_sa8 = {
     /* .el_params = */ { 0 }
 };
 
+static const mli_tensor input_1b_tsr_fx16 = {
+    INPUT_1b_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_FX_16,
+    /* .el_params = */ { 0 }
+};
+
+static const mli_tensor input_1b_tsr_sa8 = {
+    INPUT_1b_TSR_SHARED_DESCR,
+
+    /* .el_type = */ MLI_EL_SA_8,
+    /* .el_params = */ { 0 }
+};
+
 tensor_quantizer input_1_fx16(input_1_tsr_fx16, input_1_fx8_frac + 8, input_1_data, 
+    sizeof(input_1_data) / sizeof(input_1_data[0]));
+
+tensor_quantizer input_1b_fx16(input_1b_tsr_fx16, input_1_fx8_frac + 8, input_1_data, 
     sizeof(input_1_data) / sizeof(input_1_data[0]));
 
 tensor_quantizer input_1_memstr_fx16(input_1_tsr_fx16, input_1_fx8_frac + 8, input_1_data, 
@@ -264,9 +286,11 @@ tensor_quantizer input_1_memstr_fx16(input_1_tsr_fx16, input_1_fx8_frac + 8, inp
 tensor_quantizer input_1_sa8(input_1_tsr_sa8, input_1_sa_dim, input_1_data, 
     sizeof(input_1_data) / sizeof(input_1_data[0]), &input_1_scale, 1, &input_1_zero_point, 1, input_1_scales_frac, 1);
 
-tensor_quantizer input_1_memstr_sa8(input_1_tsr_sa8, input_1_sa_dim, input_1_data, 
+tensor_quantizer input_1b_sa8(input_1b_tsr_sa8, input_1_sa_dim, input_1_data, 
     sizeof(input_1_data) / sizeof(input_1_data[0]), &input_1_scale, 1, &input_1_zero_point, 1, input_1_scales_frac, 1);
 
+tensor_quantizer input_1_memstr_sa8(input_1_tsr_sa8, input_1_sa_dim, input_1_data, 
+    sizeof(input_1_data) / sizeof(input_1_data[0]), &input_1_scale, 1, &input_1_zero_point, 1, input_1_scales_frac, 1);
 
 static const float input_2_data[] = {
     -0.126698f, 0.928649f, 0.786023f, 0.70801f, 1.112568f, -0.937178f, 3.009114f, 1.432832f, 2.555978f, -0.778635f, 
@@ -1925,9 +1949,9 @@ const mli_conv2d_cfg test_7_cfg = {
     /* .stride_width = */ 3,
     /* .stride_height = */ 3,
     /* .padding_left = */ 1,
-    /* .padding_right = */ 2,
+    /* .padding_right = */ 1,
     /* .padding_top = */ 1,
-    /* .padding_bottom = */ 1,
+    /* .padding_bottom = */ 0,
     /* .dilation_width = */ 1,
     /* .dilation_height = */ 1
 };

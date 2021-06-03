@@ -183,7 +183,7 @@ tensor_quantizer input_1_sa8(input_1_tsr_sa8, input_1_sa_dim, input_1_data,
 #define INPUT_1_MEMSTR_TSR_SHARED_DESCR \
     /*.data = */ { 0 },\
     /* .mem_stride = */ { 13*6*1, 6*1, 1}, \
-    /* .shape = */ { 7, 7, 3 }, \
+    /* .shape = */ { 6, 7, 3 }, \
     /* .rank = */  3
 
 

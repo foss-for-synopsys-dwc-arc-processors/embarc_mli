@@ -56,7 +56,7 @@ struct depthwise_conv_test_operands {
 const crc32_calc test_1_chksum_fx16{ 0x968FB503 }, 
                  test_2_chksum_fx16{ 0xC2732A90 }, test_2_chksum_fx16_fx8_fx8{ 0x2BAB6B9C }, test_2_chksum_sa8{ 0x9EF7413F },
                  test_3_chksum_fx16{ 0x5C02F273 }, test_3_chksum_fx16_fx8_fx8{ 0x41941500 }, test_3_chksum_sa8{ 0xB3A2C34D },
-                 test_4_chksum_fx16{ 0xA2378C61 }, test_4_chksum_fx16_fx8_fx8{ 0x749FB380 }, test_4_chksum_sa8{ 0x911CFE38 },
+                 test_4_chksum_fx16{ 0xFBE49F90 }, test_4_chksum_fx16_fx8_fx8{ 0xA37AA7C1 }, test_4_chksum_sa8{ 0x24235738 },
                  test_5_chksum_fx16{ 0xFAD19A42 }, test_5_chksum_fx16_fx8_fx8{ 0x70C8D5DD }, test_5_chksum_sa8{ 0x8DAAACEC },
                  test_6_chksum_fx16{ 0xF03253BB }, test_6_chksum_fx16_fx8_fx8{ 0x122832FF }, test_6_chksum_sa8{ 0x42F80E2D },
                  test_7_chksum_fx16{ 0xDC4EBBE7 }, test_7_chksum_fx16_fx8_fx8{ 0x10447ABF }, test_7_chksum_sa8{ 0xBC318965 },
@@ -132,13 +132,13 @@ static const depthwise_conv_test_operands tests_list[] = {
 
     // Input/output memstride test: kernel_size=(3, 4), strides=(3, 3), w/o padding, with ReLU_1 
     {"Test 4 FX16 Relu1 Mstr",         mli_krn_depthwise_conv2d_hwcn_fx16,
-                                       input_1_memstr_fx16, weights_1_fx16, bias_1_fx16, test_4_out_fx16, test_4_cfg,
+                                       input_1b_memstr_fx16, weights_1_fx16, bias_1_fx16, test_4_out_fx16, test_4_cfg,
                                        thresholds_fx16_general, test_4_chksum_fx16},
     {"Test 4 FX16_FX8_FX8 Relu1 Mstr", mli_krn_depthwise_conv2d_hwcn_fx16_fx8_fx8,
-                                       input_1_memstr_fx16, weights_1_fx8, bias_1_fx8, test_4_out_fx16, test_4_cfg,
+                                       input_1b_memstr_fx16, weights_1_fx8, bias_1_fx8, test_4_out_fx16, test_4_cfg,
                                        thresholds_fx16_fx8_fx8_general, test_4_chksum_fx16_fx8_fx8},
     {"Test 4 SA8_SA8_SA32 Relu1 Mstr", mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32,
-                                       input_1_memstr_sa8, weights_1_sa8_per_axis, bias_1_sa32_per_axis, test_4_out_sa8, 
+                                       input_1b_memstr_sa8, weights_1_sa8_per_axis, bias_1_sa32_per_axis, test_4_out_sa8, 
                                        test_4_cfg, thresholds_sa8_general, test_4_chksum_sa8},
 
     // Weights memstride test: kernel_size=(8, 6), strides=(1, 1), w/o padding, with ReLU_6
