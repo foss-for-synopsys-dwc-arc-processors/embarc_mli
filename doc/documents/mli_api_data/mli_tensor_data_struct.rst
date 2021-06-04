@@ -179,14 +179,15 @@ channels in the tensor ``(array_size = shape[dim])``.
    |                        |                        | Only MLI_EL_PARAM_SC16_ZP16 is currently supported which reflects the       |
    |                        |                        | following parameters according the description below.                       |
    +------------------------+------------------------+-----------------------------------------------------------------------------+
-   | ``sa.zeropoint``       | ``mli_data_container`` | 16-bit signed zero-point offset.                                            |
+   | ``sa.zeropoint``       | ``mli_data_container`` | 16-bit signed integer zero-point offset.                                    |
    |                        |                        |                                                                             |
    |                        |                        | - ``sa.dim < 0``: Single value for all data in tensor.                      |
    |                        |                        |                                                                             |
    |                        |                        | - ``sa.dim >= 0``: Pointer to an array of zero points relating to           |
    |                        |                        |   configured dimension (``sa.dim``).                                        |
    +------------------------+------------------------+-----------------------------------------------------------------------------+
-   | ``sa.scale``           | ``mli_data_container`` | 16-bit signed scale factors. Only positive scale factors are supported.     |
+   | ``sa.scale``           | ``mli_data_container`` | 16-bit signed integer scale factors. Only positive scale factors are        |
+   |                        |                        |  supported.                                                                 |
    |                        |                        |                                                                             |
    |                        |                        | - If ``sa.dim < 0``: ``sa.scale`` is a single value for all data in tensor  |
    |                        |                        |                                                                             |
@@ -195,11 +196,15 @@ channels in the tensor ``(array_size = shape[dim])``.
    +------------------------+------------------------+-----------------------------------------------------------------------------+
    | ``sa.dim``             | ``int32_t``            | Tensor dimension to which the arrays of quantization parameters apply       |
    +------------------------+------------------------+-----------------------------------------------------------------------------+
-   | ``sa.scale_frac_bits`` | ``int32_t``            | ``sa.scale`` is an array of fixed point scale values. This field contains   |
-   |                        |                        | the (shared) exponent of these values, stored as the number of fractional   |
-   |                        |                        | bits for the elements in the scales array.                                  |
+   | ``sa.scale_frac_bits`` | ``mli_data_container`` | 8-bit signed integer exponent of values in ``sa.scale`` field. The field    |
+   |                        |                        | stores the exponent as the number of fractional bits.                       |
+   |                        |                        |                                                                             |
+   |                        |                        | - If ``sa.dim < 0``: ``sa.scale_frac_bits`` is a single value               |
+   |                        |                        |                                                                             |
+   |                        |                        | - If ``sa.dim >= 0``:  ``sa.scale_frac_bits`` is a pointer to an array of   |
+   |                        |                        |   frac bits per each value in ``sa.scale`` array.                           |
    +------------------------+------------------------+-----------------------------------------------------------------------------+
-..
    
+..
    
    
