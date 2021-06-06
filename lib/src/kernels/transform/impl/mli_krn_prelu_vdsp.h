@@ -220,6 +220,33 @@ static MLI_FORCE_INLINE void compute_prelu_no_broadcast(
     }
 }
 
+static MLI_FORCE_INLINE void compute_prelu_no_broadcast(
+        const MLI_PTR(int8_t) __restrict vec_in,
+        MLI_OUT_PTR(int8_t) __restrict vec_out,
+        const int16_t in_zp,
+        const s8asym_quant_params *identity_params,
+        const s8asym_quant_params_v *alpha_params,
+        const generic_tensor_private_t<MLI_PTR(int8_t)> in_prv,
+        const generic_tensor_private_t<MLI_OUT_PTR(int8_t)> out_prv,
+        const int remaining_part) {
+    /* Loop Over Sub Tensor */
+    const MLI_PTR(int8_t) orig_vec_in = vec_in;
+    MLI_OUT_PTR(int8_t) orig_vec_out = vec_out;
+    for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
+        for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
+            for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
+                vec_in  = (MLI_PTR(int8_t))orig_vec_in  + POS(&in_prv, pos0, pos1, pos2, 0);
+                vec_out = orig_vec_out + POS(&out_prv, pos0, pos1, pos2, 0);
+                if(remaining_part) {
+                    mli::krn::compute_prelu(vec_in, vec_out, in_zp, identity_params, alpha_params, remaining_part);
+                } else {
+                    mli::krn::compute_prelu(vec_in, vec_out, in_zp, identity_params, alpha_params);
+                }
+            }
+        }
+    }
+}
+
 } // namespace vdsp
 } // namespace krn
 } // namespace mli

@@ -69,6 +69,16 @@ static MLI_FORCE_INLINE void compute_prelu_no_broadcast(
         const generic_tensor_private_t<MLI_OUT_PTR(io_T)> out_prv,
         const int remaining_part = 0);
 
+static MLI_FORCE_INLINE void compute_prelu_no_broadcast(
+        const MLI_PTR(int8_t) __restrict vec_in,
+        MLI_OUT_PTR(int8_t) __restrict vec_out,
+        const int16_t in_zp,
+        const s8asym_quant_params *identity_params,
+        const s8asym_quant_params *alpha_params,
+        const generic_tensor_private_t<MLI_PTR(int8_t)> in_prv,
+        const generic_tensor_private_t<MLI_OUT_PTR(int8_t)> out_prv,
+        const int remaining_part = 0);
+
 static MLI_FORCE_INLINE s8asym_quant_params prelu_define_requant_params(const mli_tensor *in, 
         const mli_tensor *slope_coeff,
         mli_tensor *out,
@@ -129,6 +139,26 @@ static MLI_FORCE_INLINE void compute_prelu(
         const s8asym_quant_params *identity_params,
         const s8asym_quant_params_v *alpha_params,
         const int remaining_part);
+
+template <typename io_T, typename scale_T>
+static MLI_FORCE_INLINE void compute_prelu_no_broadcast(
+        const MLI_PTR(io_T) __restrict vec_in,
+        MLI_OUT_PTR(io_T) __restrict vec_out,
+        const scale_T scale_v,
+        const int shift,
+        const generic_tensor_private_t<MLI_PTR(io_T)> in_prv,
+        const generic_tensor_private_t<MLI_OUT_PTR(io_T)> out_prv,
+        const int remaining_part = 0);
+
+static MLI_FORCE_INLINE void compute_prelu_no_broadcast(
+        const MLI_PTR(int8_t) __restrict vec_in,
+        MLI_OUT_PTR(int8_t) __restrict vec_out,
+        const int16_t in_zp,
+        const s8asym_quant_params *identity_params,
+        const s8asym_quant_params_v *alpha_params,
+        const generic_tensor_private_t<MLI_PTR(int8_t)> in_prv,
+        const generic_tensor_private_t<MLI_OUT_PTR(int8_t)> out_prv,
+        const int remaining_part = 0);
 #endif
 
 } // namespace dsp
@@ -204,7 +234,6 @@ static MLI_FORCE_INLINE void compute_prelu(
         const s8asym_quant_params *identity_params,
         const s8asym_quant_params_v *alpha_params,
         const int remaining_part);
-#endif
 
 template <typename io_T, typename scale_T>
 static MLI_FORCE_INLINE void compute_prelu_no_broadcast(
@@ -215,6 +244,18 @@ static MLI_FORCE_INLINE void compute_prelu_no_broadcast(
         const generic_tensor_private_t<MLI_PTR(io_T)> in_prv,
         const generic_tensor_private_t<MLI_OUT_PTR(io_T)> out_prv,
         const int remaining_part = 0);
+
+static MLI_FORCE_INLINE void compute_prelu_no_broadcast(
+        const MLI_PTR(int8_t) __restrict vec_in,
+        MLI_OUT_PTR(int8_t) __restrict vec_out,
+        const int16_t in_zp,
+        const s8asym_quant_params *identity_params,
+        const s8asym_quant_params_v *alpha_params,
+        const generic_tensor_private_t<MLI_PTR(int8_t)> in_prv,
+        const generic_tensor_private_t<MLI_OUT_PTR(int8_t)> out_prv,
+        const int remaining_part = 0);
+#endif
+
 } // namespace vdsp
 
 } // namespace krn
