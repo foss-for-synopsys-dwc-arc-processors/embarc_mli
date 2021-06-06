@@ -300,8 +300,8 @@ static MLI_FORCE_INLINE mli_status prelu_sa8_run(const mli_tensor *in,
             vec_in  = (MLI_PTR(int8_t))in_ptr  + scale_idx * axis_in_mem_stride;
             vec_out = out_ptr + scale_idx * axis_out_mem_stride;
             /* Load Scale Elem */
-            auto scale_v = mli_prv_init_v<int8_t, decltype(input)>(slope_ptr[scale_idx]);
-            auto alpha_params = mli::krn::prelu_define_requant_params(in, slope_coeff, out, scale_v, &identity_params);
+            auto alpha_params = mli::krn::ref::prelu_define_requant_params(in, slope_coeff, out,
+                                                                           slope_ptr[scale_idx], &identity_params);
 
             /* Loop Over Sub Tensor */
             const MLI_PTR(int8_t) orig_vec_in = vec_in;
@@ -311,13 +311,13 @@ static MLI_FORCE_INLINE mli_status prelu_sa8_run(const mli_tensor *in,
                     vec_in  = (MLI_PTR(int8_t))orig_vec_in  + POS(&in_non_axis_prv, 0, pos1, pos2, 0);
                     vec_out = orig_vec_out + POS(&out_non_axis_prv, 0, pos1, pos2, 0);
                     if (remaining_part) {
-                        mli::krn::compute_prelu(vec_in, vec_out, in_zp, &identity_params, &alpha_params,
+                        mli::krn::compute_leaky_relu(vec_in, vec_out, in_zp, &identity_params, &alpha_params,
                                                 remaining_part);
                         vec_in  += remaining_part;
                         vec_out += remaining_part;
                     }
                     for (int pos3 = remaining_part; pos3 < in_non_axis_prv.shape[3]; pos3 += num_lanes) {
-                        mli::krn::compute_prelu(vec_in, vec_out, in_zp, &identity_params, &alpha_params);
+                        mli::krn::compute_leaky_relu(vec_in, vec_out, in_zp, &identity_params, &alpha_params);
                         vec_in  += num_lanes;
                         vec_out += num_lanes;
                     }
