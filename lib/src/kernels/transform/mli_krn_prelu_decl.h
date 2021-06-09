@@ -59,6 +59,17 @@ static MLI_FORCE_INLINE void compute_prelu(
         const s8asym_quant_params *alpha_params,
         const int remaining_part);
 
+template <typename io_T>
+static MLI_FORCE_INLINE void compute_prelu_broadcast(
+        generic_tensor_private_t<MLI_PTR(io_T)> in_prv,
+        generic_tensor_private_t<MLI_OUT_PTR(io_T)> out_prv,
+        const MLI_PTR(io_T) slope_ptr,
+        const int axis,
+        const int axis_shape,
+        const int axis_in_mem_stride,
+        const int axis_out_mem_stride,
+        const int shift);
+
 template <typename io_T, typename scale_T>
 static MLI_FORCE_INLINE void compute_prelu_no_broadcast(
         const MLI_PTR(io_T) __restrict vec_in,
@@ -234,6 +245,17 @@ static MLI_FORCE_INLINE void compute_prelu(
         const s8asym_quant_params *identity_params,
         const s8asym_quant_params_v *alpha_params,
         const int remaining_part);
+
+template <typename io_T>
+static MLI_FORCE_INLINE void compute_prelu_broadcast(
+        generic_tensor_private_t<MLI_PTR(io_T)> in_prv,
+        generic_tensor_private_t<MLI_OUT_PTR(io_T)> out_prv,
+        const MLI_PTR(io_T) slope_ptr,
+        const int axis,
+        const int axis_shape,
+        const int axis_in_mem_stride,
+        const int axis_out_mem_stride,
+        const int shift);
 
 template <typename io_T, typename scale_T>
 static MLI_FORCE_INLINE void compute_prelu_no_broadcast(
