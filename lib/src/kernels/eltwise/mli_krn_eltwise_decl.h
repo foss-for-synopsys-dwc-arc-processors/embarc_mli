@@ -36,7 +36,7 @@ namespace krn {
 ////////////////////////////////////////////////////////////////////////////////
 namespace ref {
 
-template <typename io_T, mli_eltwise_type func_type, bool convert = false>
+template <typename io_T, mli_eltwise_type func_type, bool convert = false , bool no_scalar = false, bool no_out_update = false, bool shape_1d = false>
 void eltwise_prepare_and_run(
         const mli_tensor *__restrict in1,
         const mli_tensor *__restrict in2,
