@@ -84,7 +84,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
         ir_asym_params.fx.frac_bits = (sizeof(io_T) * 8) - 1 - 3;
     }
 
-    mli_tensor one = {{ 0 }};
+    mli_tensor one;
     int16_t one_data[] = {1};
     one.data.capacity = 1;
     one.data.mem.pi16 = one_data;
@@ -94,7 +94,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
     one.el_type = in->el_type;
     one.el_params = one_el_params;
 
-    mli_tensor ir_tensor = {{ 0 }};
+    mli_tensor ir_tensor;
     ir_tensor.data = cfg->scratch_data;
     ir_tensor.shape[0] = bias->shape[0];
     ir_tensor.shape[1] = bias->shape[1];
@@ -153,7 +153,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
 
     const MLI_PTR (b_T) b_new_g_ptr = mli_prv_tensor_data_ptr<MLI_PTR (b_T)>(&b_new_g);
 
-    mli_tensor rnn_out = {{ 0 }};
+    mli_tensor rnn_out;
     rnn_out.data = out->data;
     rnn_out.rank = 2;
     rnn_out.shape[0] = 1;
@@ -162,7 +162,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
     rnn_out.mem_stride[1] = 1;
     rnn_out.el_type = in->el_type;
 
-    mli_tensor current_hidden = {{ 0 }};
+    mli_tensor current_hidden;
     current_hidden.data = prev_out->data;
     current_hidden.rank = 2;
     current_hidden.shape[0] = 1;
@@ -176,7 +176,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
     current_out.data = out->data;
     current_out.el_params = ir_tensor.el_params;
 
-    mli_tensor prev_out_reset = {{ 0 }};
+    mli_tensor prev_out_reset;
     prev_out_reset.data = reset_gate.data;
     prev_out_reset.rank = reset_gate.rank;
     prev_out_reset.shape[0] = reset_gate.shape[0];
@@ -222,9 +222,10 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
 
         // Step 3: Pointwise operations
         //=======================================
-        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym>(&reset_gate, &current_hidden, &prev_out_reset);
-        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym>(&update_gate, &current_hidden, &current_out);
-        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_SUB, /*convert*/ asym>(&one, &update_gate, &update_gate);
+        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&reset_gate, &current_hidden, &prev_out_reset);
+        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&current_hidden, &update_gate, &current_out);
+        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_SUB, /*convert*/ asym, /*no_scalar*/ false, /*no_out_update*/ true, /*shape_1d*/ true>(&one, &update_gate, &update_gate);
+
 
         // Step 4: New gate
         //=======================================
@@ -276,8 +277,8 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
         temp.el_params = current_hidden.el_params;
    
         rnn_out.el_params = out->el_params;
-        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym>(&new_gate, &update_gate, &temp);
-        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_ADD, /*convert*/ asym>(&temp, &current_out, &rnn_out);
+        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&new_gate, &update_gate, &temp);
+        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_ADD, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&temp, &current_out, &rnn_out);
 
         current_hidden.data = rnn_out.data;
         current_hidden.el_params = rnn_out.el_params;

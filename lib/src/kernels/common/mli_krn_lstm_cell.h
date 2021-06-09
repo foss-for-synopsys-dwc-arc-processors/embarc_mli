@@ -26,71 +26,6 @@ namespace krn {
 
 #pragma MLI_CODE_SECTION_START(".mli_lib")
 
-template <typename io_T, mli_eltwise_type func_type, bool convert>
-MLI_FORCE_INLINE void lstm_eltwise(
-        const mli_tensor * in1,
-        const mli_tensor * in2,
-        mli_tensor * out) {
-
-    mli_prv_fx_init_dsp_ctrl();
-    int pre_op_shift1 = 0, pre_op_shift2 = 0, post_op_shift = 0;
-
-    constexpr int byte_size = 8;
-    if(!convert)    
-    {
-        /*
-        * max_shift will be determined according to the size of the out register to avoid
-        * overflow in the rounding value.
-        */
-        int max_shift = sizeof(io_T) * byte_size;
-        if (func_type == ELTWISE_MUL) {
-            max_shift = 2 * max_shift - 1;
-            post_op_shift = mli_prv_calc_shift(in1, in2, out);
-        } else if (func_type == ELTWISE_MIN || func_type == ELTWISE_MAX) {
-            max_shift = max_shift - 1;
-            post_op_shift = in1->el_params.fx.frac_bits - out->el_params.fx.frac_bits;
-        } else {
-            max_shift = 2 * max_shift - 1;
-            pre_op_shift1 = MIN(in1->el_params.fx.frac_bits -  in2->el_params.fx.frac_bits, 0);
-            pre_op_shift2 = MIN(in2->el_params.fx.frac_bits -  in1->el_params.fx.frac_bits, 0);
-            post_op_shift = MAX(in1->el_params.fx.frac_bits, in2->el_params.fx.frac_bits) - out->el_params.fx.frac_bits;
-        }
-        post_op_shift = MIN(post_op_shift, max_shift);
-    }
-
-    /* Extract general parameters for function */
-    //assumption that always 0 
-    bool scalar_op1 = 0;
-    bool scalar_op2 = 0;
-
-    /* Extract in/out as scalar values */
-    io_T in1_scalar = mli_prv_tensor_data_val<io_T>(in1);
-    io_T in2_scalar = mli_prv_tensor_data_val<io_T>(in2);
-            
-     /* Fill output tensor parameters
-    //======================================
-     */
-    //in1_sz = mli_prv_count_elem_num(in1);
-    //in2_sz = mli_prv_count_elem_num(in2);
-    //assumption that in1_sz and in2_sz are always the same 
-    // assuming that always in1 is out no need to update out
-    MLI_ASSERT( in1 == out);
-    
-    MLI_ASSERT( in1->rank == 2 && in1->shape[0] == 1 || in1->rank == 1);
-    //assumption that always in2->mem_stride[]==0 and out->mem_stride[]==0 
-    int flatten_count = in1->shape[in1->rank - 1];
- 
-    auto in1_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in1);
-    auto in2_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in2);
-    auto out_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(out);
-
-    mli::krn::eltwise_innerloop<io_T, func_type, /*convert*/ false>(
-                in1_ptr, in2_ptr , out_ptr, 0, 0, 0, flatten_count,
-                in1_scalar, in2_scalar, scalar_op1, scalar_op2,
-                /*in_offset1*/ 0, /*in_offset2*/ 0, /*out_offset*/ 0, 
-                /*scale16_1*/ 1, /*scale16_2*/ 1, pre_op_shift1, pre_op_shift2, post_op_shift);
-}
-
 //========================================================================================
 // Common routine for pre-calculation of various basic rnn cell parameters and running it.
 //========================================================================================
@@ -226,15 +161,9 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
 
         // Step 3: Pointwise operations
         //=======================================
-        if (asym) {
-            mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym>(cell,&forget_gate, cell);
-            mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym>(&g_tsr, &in_gate, &g_tsr);
-            mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_ADD, /*convert*/ asym>(cell, &g_tsr, cell);
-        } else {
-            lstm_eltwise<io_T, ELTWISE_MUL, /*convert*/ false>(cell, &forget_gate, cell);
-            lstm_eltwise<io_T, ELTWISE_MUL, /*convert*/ false>(&g_tsr, &in_gate, &g_tsr);
-            lstm_eltwise<io_T, ELTWISE_ADD, /*convert*/ false>(cell, &g_tsr, cell);
-        }
+        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(cell, &forget_gate, cell);
+        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&g_tsr, &in_gate, &g_tsr);
+        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_ADD, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(cell, &g_tsr, cell);
 
         // Step 4: Calculate output: Activation + pointwise operation
         //===========================================================
@@ -249,7 +178,7 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
         temp.el_params = out->el_params;
 
         if (cfg->act == RNN_ACT_NONE) {
-            mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym>(cell, &out_gate, &temp);
+            mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(cell, &out_gate, &temp);
         } else {
             if (asym) {
                 if (cfg->act == RNN_ACT_TANH)
@@ -278,7 +207,7 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
                 }
             }
 
-            mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym>(&rnn_out, &out_gate, &temp);
+            mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&rnn_out, &out_gate, &temp);
         }
         rnn_out.el_params = out->el_params;
 
