@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -23,17 +23,23 @@
 namespace mli {
 namespace krn {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
+using mli::krn::vdsp::compute_normalized_sum_square_one_dim;
 using mli::krn::vdsp::compute_normalized_sum_square;
+using mli::krn::vdsp::normalize_tensor_one_dim;
 using mli::krn::vdsp::normalize_tensor;
 using mli::krn::ref::mli_krn_l2_normalize_run;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
+using mli::krn::ref::compute_normalized_sum_square_one_dim;
 using mli::krn::ref::compute_normalized_sum_square;
+using mli::krn::ref::normalize_tensor_one_dim;
 using mli::krn::ref::normalize_tensor;
 using mli::krn::ref::mli_krn_l2_normalize_run;
 
 #else
+using mli::krn::ref::compute_normalized_sum_square_one_dim;
 using mli::krn::ref::compute_normalized_sum_square;
+using mli::krn::ref::normalize_tensor_one_dim;
 using mli::krn::ref::normalize_tensor;
 using mli::krn::ref::mli_krn_l2_normalize_run;
 

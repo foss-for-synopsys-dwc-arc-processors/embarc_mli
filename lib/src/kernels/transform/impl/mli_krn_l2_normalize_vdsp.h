@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -72,59 +72,12 @@ static MLI_FORCE_INLINE vNx2accint_t init_sum_acc(vNx2short_t input) {
     return mli_math_mul_fx<vNx2short_t, vNx2accint_t>(input, (vNx2short_t) 0);
 }
 
-template<typename io_T, bool convert>
-static MLI_FORCE_INLINE int16_t compute_normalized_sum_square(
-        struct generic_tensor_private_t<MLI_PTR(io_T)> *in_prv,
-        const MLI_PTR(io_T) vec_in,
-        int16_t in_zp,
+template<typename acc_t, bool convert>
+static MLI_FORCE_INLINE int16_t normalize_sum(
+        acc_t sum_acc_hi,
+        acc_t sum_acc_mid,
+        acc_t sum_acc_lo,
         int *norm_shift) {
-
-    /* Dummy Load to get num_lanes, remaining part */
-    auto input = mli_prv_load_1vec(vec_in);
-    int num_lanes = get_number_lanes(input);
-    int remaining_part = in_prv->shape[3] & (num_lanes - 1);
-
-    const MLI_PTR(io_T) orig_vec_in = vec_in;
-
-    /* To increase range of the result of sum(x^2), it's calculated as following:
-     *      sum(x^2) = sum((abs(x))^2)
-     *               = sum((xh * 2^8 + xl)^2)
-     *               = sum( (xh^2)*(2^16) + (2*xh*xl) * (2^8) + (xl^2))
-     *               = 2^16 * sum(xh^2) + 2^9 * sum(xh*xl) + sum(xl^2)
-     * */
-
-    /* Accumulation through MAC */
-    auto zero_acc = init_sum_acc(input);
-    auto sum_acc_hi  = zero_acc;
-    auto sum_acc_mid = zero_acc;
-    auto sum_acc_lo  = zero_acc;
-    for (int pos0 = 0; pos0 < in_prv->shape[0]; pos0++) {
-        for (int pos1 = 0; pos1 < in_prv->shape[1]; pos1++) {
-            for (int pos2 = 0; pos2 < in_prv->shape[2]; pos2++) {
-                vec_in  = (MLI_PTR(io_T))orig_vec_in + POS(in_prv,  pos0, pos1, pos2, 0);
-                if (remaining_part) {
-                    input = mli_prv_load_1vec(vec_in);
-                    auto converted_input = convert_input<convert>(input, in_zp, remaining_part);
-                    auto input_lo = converted_input & 0xFF;
-                    auto input_hi = (converted_input >> 8) & 0xFF;
-                    sum_acc_hi  = mli_math_mac_fx(sum_acc_hi, input_hi, input_hi);
-                    sum_acc_lo  = mli_math_mac_fx(sum_acc_lo, input_lo, input_lo);
-                    sum_acc_mid = mli_math_mac_fx(sum_acc_mid, input_hi, input_lo);
-                    vec_in  += remaining_part;
-                }
-                for (int pos3 = remaining_part; pos3 < in_prv->shape[3]; pos3 += num_lanes) {
-                    input = mli_prv_load_1vec(vec_in);
-                    auto converted_input = convert_input<convert>(input, in_zp);
-                    auto input_lo = converted_input & 0xFF;
-                    auto input_hi = (converted_input >> 8) & 0xFF;
-                    sum_acc_hi  = mli_math_mac_fx(sum_acc_hi, input_hi, input_hi);
-                    sum_acc_lo  = mli_math_mac_fx(sum_acc_lo, input_lo, input_lo);
-                    sum_acc_mid = mli_math_mac_fx(sum_acc_mid, input_hi, input_lo);
-                    vec_in  += num_lanes;
-                }
-            }
-        }
-    }
 
     constexpr int acc_hi_shift  = 16;
     constexpr int acc_mid_shift = 9;
@@ -147,6 +100,125 @@ static MLI_FORCE_INLINE int16_t compute_normalized_sum_square(
     *norm_shift = norm_shift_val;
     /* Cast Sum_acc to Q7.8 to bring it to LUT input range */
     return mli_math_cast_fx<acc_type, int16_t>(acc, norm_shift_val);
+}
+
+template<typename acc_T, typename in_T, bool convert, bool is_remaining_part = false>
+static MLI_FORCE_INLINE void accumlate_sum(
+        acc_T &sum_acc_hi,
+        acc_T &sum_acc_mid,
+        acc_T &sum_acc_lo,
+        in_T input,
+        int16_t in_zp,
+        int remaining_part = 0)
+{
+
+    auto converted_input = (is_remaining_part) ? 
+                            convert_input<convert>(input, in_zp, remaining_part) :
+                            convert_input<convert>(input, in_zp);
+    auto input_lo = converted_input & 0xFF;
+    auto input_hi = (converted_input >> 8) & 0xFF;
+    sum_acc_hi  = mli_math_mac_fx(sum_acc_hi, input_hi, input_hi);
+    sum_acc_lo  = mli_math_mac_fx(sum_acc_lo, input_lo, input_lo);
+    sum_acc_mid = mli_math_mac_fx(sum_acc_mid, input_hi, input_lo);
+}
+
+template<typename io_T, bool convert, bool one_dim_with_mem_stride>
+static MLI_FORCE_INLINE int16_t compute_normalized_sum_square_one_dim(
+        const MLI_PTR(io_T) vec_in,
+        int16_t in_zp,
+        int *norm_shift,
+        const int one_dim_shape,
+        const int one_dim_mem_stride) {
+    
+    /* Dummy Load to get num_lanes, remaining part */
+    auto input = mli_prv_load_1vec(vec_in);
+    int num_lanes = get_number_lanes(input);
+    int remaining_part = one_dim_shape & (num_lanes - 1);
+
+    /* To increase range of the result of sum(x^2), it's calculated as following:
+    *      sum(x^2) = sum((abs(x))^2)
+    *               = sum((xh * 2^8 + xl)^2)
+    *               = sum( (xh^2)*(2^16) + (2*xh*xl) * (2^8) + (xl^2))
+    *               = 2^16 * sum(xh^2) + 2^9 * sum(xh*xl) + sum(xl^2)
+    * */
+
+    /* Accumulation through MAC */
+    auto zero_acc = init_sum_acc(input);
+    auto sum_acc_hi  = zero_acc;
+    auto sum_acc_mid = zero_acc;
+    auto sum_acc_lo  = zero_acc;
+
+    if (one_dim_with_mem_stride) {
+        if (remaining_part) {
+            input = mli_prv_stride_load_1vec(vec_in, one_dim_mem_stride);
+            accumlate_sum<decltype(zero_acc), decltype(input), convert, true>
+                                (sum_acc_hi, sum_acc_mid, sum_acc_lo, input, in_zp, remaining_part);
+            vec_in  += remaining_part;
+        }
+        for(int idx = remaining_part; idx < one_dim_shape; idx += num_lanes) {
+            input = mli_prv_stride_load_1vec(vec_in, one_dim_mem_stride);
+            accumlate_sum<decltype(zero_acc), decltype(input), convert>
+                                (sum_acc_hi, sum_acc_mid, sum_acc_lo, input, in_zp);
+            vec_in  += num_lanes;
+        }
+    } else {
+        if (remaining_part) {
+            input = mli_prv_load_1vec(vec_in);
+            accumlate_sum<decltype(zero_acc), decltype(input), convert, true>
+                                (sum_acc_hi, sum_acc_mid, sum_acc_lo, input, in_zp, remaining_part);
+            vec_in  += remaining_part;
+        }
+        for(int idx = remaining_part; idx < one_dim_shape; idx += num_lanes) {
+            input = mli_prv_load_1vec(vec_in);
+            accumlate_sum<decltype(zero_acc), decltype(input), convert>
+                                (sum_acc_hi, sum_acc_mid, sum_acc_lo, input, in_zp);
+            vec_in  += num_lanes;
+        }
+    }
+
+    return normalize_sum<decltype(zero_acc), convert>(sum_acc_hi, sum_acc_mid, sum_acc_lo, norm_shift);
+}
+
+template<typename io_T, bool convert>
+static MLI_FORCE_INLINE int16_t compute_normalized_sum_square(
+        struct generic_tensor_private_t<MLI_PTR(io_T)> *in_prv,
+        const MLI_PTR(io_T) vec_in,
+        int16_t in_zp,
+        int *norm_shift) {
+
+    /* Dummy Load to get num_lanes, remaining part */
+    auto input = mli_prv_load_1vec(vec_in);
+    int num_lanes = get_number_lanes(input);
+    int remaining_part = in_prv->shape[3] & (num_lanes - 1);
+
+    /* Accumulation through MAC */
+    auto zero_acc = init_sum_acc(input);
+    auto sum_acc_hi  = zero_acc;
+    auto sum_acc_mid = zero_acc;
+    auto sum_acc_lo  = zero_acc;
+
+    const MLI_PTR(io_T) orig_vec_in = vec_in;
+    for (int pos0 = 0; pos0 < in_prv->shape[0]; pos0++) {
+        for (int pos1 = 0; pos1 < in_prv->shape[1]; pos1++) {
+            for (int pos2 = 0; pos2 < in_prv->shape[2]; pos2++) {
+                vec_in  = (MLI_PTR(io_T))orig_vec_in + POS(in_prv,  pos0, pos1, pos2, 0);
+                if (remaining_part) {
+                    input = mli_prv_load_1vec(vec_in);
+                    accumlate_sum<decltype(zero_acc), decltype(input), convert, true>
+                                (sum_acc_hi, sum_acc_mid, sum_acc_lo, input, in_zp, remaining_part);
+                    vec_in  += remaining_part;
+                }
+                for (int pos3 = remaining_part; pos3 < in_prv->shape[3]; pos3 += num_lanes) {
+                    input = mli_prv_load_1vec(vec_in);
+                    accumlate_sum<decltype(zero_acc), decltype(input), convert>
+                                (sum_acc_hi, sum_acc_mid, sum_acc_lo, input, in_zp);
+                    vec_in  += num_lanes;
+                }
+            }
+        }
+    }
+
+    return normalize_sum<decltype(zero_acc), convert>(sum_acc_hi, sum_acc_mid, sum_acc_lo, norm_shift);
 }
 
 template<bool convert>
@@ -192,6 +264,58 @@ static MLI_FORCE_INLINE vNx2short_t compute_normalize(
     return mli_math_acc_cast_fx<vNx2short_t, vNx2accint_t>(res, shift_right);
 }
 
+template<typename io_T, bool convert, bool one_dim_with_mem_stride>
+static MLI_FORCE_INLINE void normalize_tensor_one_dim(
+        const MLI_PTR(io_T) vec_in,
+        MLI_PTR(io_T) vec_out,
+        int16_t scale,
+        int16_t in_zp,
+        int shift, 
+        const int one_dim_shape,
+        const int one_dim_in_mem_stride,
+        const int one_dim_out_mem_stride) {
+    
+    /* Dummy Load to get num_lanes, remaining part */
+    auto input = mli_prv_load_1vec(vec_in);
+    int num_lanes = get_number_lanes(input);
+    int remaining_part = one_dim_shape & (num_lanes - 1);
+
+    if (one_dim_with_mem_stride) {
+        if (remaining_part) {
+            input = mli_prv_stride_load_1vec(vec_in, one_dim_in_mem_stride);
+            mli_prv_stride_store_n_samples(vec_out, 
+                                           compute_normalize<convert>(input, scale, in_zp, shift),
+                                           one_dim_out_mem_stride,
+                                           remaining_part);
+            vec_in  += remaining_part;
+            vec_out += remaining_part;
+        }
+        for(int idx = remaining_part; idx < one_dim_shape; idx += num_lanes) {
+            input = mli_prv_stride_load_1vec(vec_in, one_dim_in_mem_stride);
+            mli_prv_stride_store_n_samples(vec_out, 
+                                           compute_normalize<convert>(input, scale, in_zp, shift),
+                                           one_dim_out_mem_stride);
+            vec_in  += num_lanes;
+            vec_out += num_lanes;
+        }
+    } else {
+        if (remaining_part) {
+            input = mli_prv_load_1vec(vec_in);
+            mli_prv_store_n_samples(vec_out,
+                                    compute_normalize<convert>(input, scale, in_zp, shift),
+                                    remaining_part);
+            vec_in  += remaining_part;
+            vec_out += remaining_part;
+        }
+        for(int idx = remaining_part; idx < one_dim_shape; idx += num_lanes) {
+            input = mli_prv_load_1vec(vec_in);
+            mli_prv_store_n_samples(vec_out, compute_normalize<convert>(input, scale, in_zp, shift));
+            vec_in  += num_lanes;
+            vec_out += num_lanes;
+        }
+    }
+}
+
 template<typename io_T, bool convert>
 static MLI_FORCE_INLINE void normalize_tensor(
         struct generic_tensor_private_t<MLI_PTR(io_T)> *in_prv,
@@ -216,7 +340,8 @@ static MLI_FORCE_INLINE void normalize_tensor(
                 vec_out = orig_vec_out + POS(out_prv, pos0, pos1, pos2, 0);
                 for (int pos3 = 0; pos3 < in_prv->shape[3]; pos3 += num_lanes) {
                     int remaining_el = in_prv->shape[3] - pos3;
-                    int current_el = MIN(remaining_el, num_lanes); /* nr remaining elements computed in this loop iteration */
+                    /* current_el remaining elements computed in this loop iteration */
+                    int current_el = MIN(remaining_el, num_lanes);
                     input = mli_prv_load_1vec(vec_in);
                     mli_prv_store_n_samples(vec_out, 
                         compute_normalize<convert>(input, scale, in_zp, shift), current_el);
