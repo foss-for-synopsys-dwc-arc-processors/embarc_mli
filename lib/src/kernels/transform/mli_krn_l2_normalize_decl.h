@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -28,12 +28,31 @@ namespace krn {
 ////////////////////////////////////////////////////////////////////////////////
 namespace ref {
 
+template<typename io_T, bool convert, bool one_dim_with_mem_stride = false>
+static MLI_FORCE_INLINE int16_t compute_normalized_sum_square_one_dim(
+        const MLI_PTR(io_T) vec_in,
+        int16_t in_zp,
+        int *norm_shift,
+        const int one_dim_shape,
+        const int one_dim_mem_stride = 1);
+
 template<typename io_T, bool convert>
 static MLI_FORCE_INLINE int16_t compute_normalized_sum_square(
         struct generic_tensor_private_t<MLI_PTR(io_T)> *in_prv,
         const MLI_PTR(io_T) vec_in,
         int16_t in_zp,
         int *norm_shift);
+
+template<typename io_T, bool convert, bool one_dim_with_mem_stride = false>
+static MLI_FORCE_INLINE void normalize_tensor_one_dim(
+        const MLI_PTR(io_T) vec_in,
+        MLI_PTR(io_T) vec_out,
+        int16_t scale,
+        int16_t in_zp,
+        int shift, 
+        const int one_dim_shape,
+        const int one_dim_in_mem_stride = 1,
+        const int one_dim_out_mem_stride = 1);
 
 template<typename io_T, bool convert>
 static MLI_FORCE_INLINE void normalize_tensor(
@@ -66,12 +85,31 @@ namespace dsp {
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
 
+template<typename io_T, bool convert, bool one_dim_with_mem_stride = false>
+static MLI_FORCE_INLINE int16_t compute_normalized_sum_square_one_dim(
+        const MLI_PTR(io_T) vec_in,
+        int16_t in_zp,
+        int *norm_shift,
+        const int one_dim_shape,
+        const int one_dim_mem_stride = 1);
+
 template<typename io_T, bool convert>
 static MLI_FORCE_INLINE int16_t compute_normalized_sum_square(
         struct generic_tensor_private_t<MLI_PTR(io_T)> *in_prv,
         const MLI_PTR(io_T) vec_in,
         int16_t in_zp,
         int *norm_shift);
+
+template<typename io_T, bool convert, bool one_dim_with_mem_stride = false>
+static MLI_FORCE_INLINE void normalize_tensor_one_dim(
+        const MLI_PTR(io_T) vec_in,
+        MLI_PTR(io_T) vec_out,
+        int16_t scale,
+        int16_t in_zp,
+        int shift, 
+        const int one_dim_shape,
+        const int one_dim_in_mem_stride = 1,
+        const int one_dim_out_mem_stride = 1);
 
 template<typename io_T, bool convert>
 static MLI_FORCE_INLINE void normalize_tensor(
