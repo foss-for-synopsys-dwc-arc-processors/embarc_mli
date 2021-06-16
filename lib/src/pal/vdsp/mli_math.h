@@ -497,25 +497,25 @@ MLI_FORCE_INLINE vNx4accint_t mli_math_asl_fx(vNx4accint_t x, int nbits) {
 
 template <typename T, typename shift_T>
 MLI_FORCE_INLINE T mli_math_asr_rnd_fx(T x, shift_T nbits) {
+    using unsigned_T = typename std::make_unsigned<T>::type;
     T r = 0;
+    unsigned_T one = 1u;
 
     if (nbits < 0)
-        return mli_math_asl_fx<T, shift_T>(x, (-nbits));
+        return mli_math_asl_fx<T>(x, (-nbits));
     if (nbits == 0)
         return x;
 
     if (nbits > (sizeof(T) * 8 - 1))
         return 0;
 
-
     // Rounding up:
     // if the most significant deleted bit is 1, add 1 to the remaining bits.
 #ifdef ROUND_UP
-        T round = (T)((1 << nbits) >> 1);
-        r = mli_math_add_fx<T>(x, round);
-        r = mli_math_asr_fx<T>(r, nbits);
+    T round = (T)((one << nbits) >> 1);
+    r = mli_math_add_fx<T>(x, round);
+    r = mli_math_asr_fx<T>(r, nbits);
 #endif
-
 
     // Convergent: rounding with half-way value rounded to even value.
     // If the most significant deleted bit is 1, and 
@@ -523,7 +523,7 @@ MLI_FORCE_INLINE T mli_math_asr_rnd_fx(T x, shift_T nbits) {
     // or at least one other deleted bit is 1, add 1 to the remaining bits.
 #ifdef ROUND_CONVERGENT
     r = mli_math_asr_fx<T>(x, nbits);
-    T last_deleted_mask = (T)((1 << nbits) >> 1);
+    T last_deleted_mask = (T)((one << nbits) >> 1);
     if (((x & last_deleted_mask) != (T)0) && 
             (((r & (T)1) != (T)0) ||  ((x & (last_deleted_mask-(T)1))!= (T)0))) {
         return mli_math_add_fx<T>(r, 1);
