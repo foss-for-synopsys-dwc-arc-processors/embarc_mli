@@ -257,7 +257,8 @@ MLI_FORCE_INLINE vNx4accshort_t bias_additive(
 #ifdef ROUND_UP
         // adding 1 << (preshift-1)
         // shift twice to prevent negative shift if nbits = 0
-        accu = mli_math_add<vNx4accshort_t, vNx4short_t>(accu, ((1 << preshift) >> 1));
+        uint16_t one = 1u;
+        accu = mli_math_add<vNx4accshort_t, vNx4short_t>(accu, ((one << preshift) >> 1));
 #endif
 #ifdef ROUND_CONVERGENT
 #error "Convergent rounding not supported"
