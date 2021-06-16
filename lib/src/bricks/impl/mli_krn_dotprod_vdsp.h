@@ -198,6 +198,42 @@ static MLI_FORCE_INLINE acc_T dotprod2D_vv_unrolled(
 #pragma clang diagnostic pop
 }
 
+template <int unroll, typename io_T, typename w_T, typename grpacc_T>
+static MLI_FORCE_INLINE grpacc_T dotprod2D_vv_wunroll(
+        const MLI_PTR(io_T) __restrict in,
+        const MLI_PTR(w_T)  __restrict krn,
+        grpacc_T accu,
+        const int width,
+        const int height,
+        int in_col_step,
+        int in_row_step,
+        int in_unroll_step,
+        int kern_col_step,
+        int kern_row_step) {
+    in_row_step -= width * in_col_step;
+    kern_row_step -= width * kern_col_step;
+
+    for (int row = 0; row < height; row++) {
+        for (int clmn = 0; clmn < width; clmn++) {
+            accu.accu0 = mli_prv_mac_load_v_v(accu.accu0, krn, in);
+            if (unroll > 1) {
+                accu.accu1 = mli_prv_mac_load_v_v(accu.accu1, krn, in + in_unroll_step);
+            }
+            if (unroll > 2) {
+                accu.accu2 = mli_prv_mac_load_v_v(accu.accu2, krn, in + 2 * in_unroll_step);
+            }
+            if (unroll > 3) {
+                accu.accu3 = mli_prv_mac_load_v_v(accu.accu3, krn, in + 3 * in_unroll_step);
+            }
+            in += in_col_step;
+            krn += kern_col_step;
+        }
+        in += in_row_step;
+        krn += kern_row_step;
+    }
+    return accu;
+}
+
 template <typename io_T, typename w_T, typename acc_T>
 static MLI_FORCE_INLINE acc_T dotprod2D_vv_ptrvector(
         const MLI_PTR(io_T) __restrict in,
