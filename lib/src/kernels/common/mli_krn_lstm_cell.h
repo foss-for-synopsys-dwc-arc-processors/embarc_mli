@@ -132,28 +132,23 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
         //=======================================
         in_gate.el_params = out_gate.el_params = ir_tensor.el_params;
         g_tsr.el_params = forget_gate.el_params = ir_tensor.el_params;
-        
-        mli_tensor in_gate_input = in_gate;
-        mli_tensor g_tsr_input = g_tsr;
-        mli_tensor forget_gate_input = forget_gate;
-        mli_tensor out_gate_input = out_gate;
 
         if (asym) {
-            mli_krn_sigm_sa8(&in_gate_input, sigm_lut, &in_gate);
-            mli_krn_tanh_sa8(&g_tsr_input, tanh_lut, &g_tsr);
-            mli_krn_sigm_sa8(&forget_gate_input, sigm_lut, &forget_gate);
-            mli_krn_sigm_sa8(&out_gate_input, sigm_lut, &out_gate);
+            mli_krn_sigm_sa8(&in_gate, sigm_lut, &in_gate);
+            mli_krn_tanh_sa8(&g_tsr, tanh_lut, &g_tsr);
+            mli_krn_sigm_sa8(&forget_gate, sigm_lut, &forget_gate);
+            mli_krn_sigm_sa8(&out_gate, sigm_lut, &out_gate);
         } else {
             if (sizeof(io_T)==sizeof(int8_t)) {
-                mli_krn_sigm_fx8(&in_gate_input, sigm_lut, &in_gate);
-                mli_krn_tanh_fx8(&g_tsr_input, tanh_lut, &g_tsr);
-                mli_krn_sigm_fx8(&forget_gate_input, sigm_lut, &forget_gate);
-                mli_krn_sigm_fx8(&out_gate_input, sigm_lut, &out_gate);
+                mli_krn_sigm_fx8(&in_gate, sigm_lut, &in_gate);
+                mli_krn_tanh_fx8(&g_tsr, tanh_lut, &g_tsr);
+                mli_krn_sigm_fx8(&forget_gate, sigm_lut, &forget_gate);
+                mli_krn_sigm_fx8(&out_gate, sigm_lut, &out_gate);
             } else if (sizeof(io_T)==sizeof(int16_t)) {
-                mli_krn_sigm_fx16(&in_gate_input, sigm_lut, &in_gate);
-                mli_krn_tanh_fx16(&g_tsr_input, tanh_lut, &g_tsr);
-                mli_krn_sigm_fx16(&forget_gate_input, sigm_lut, &forget_gate);
-                mli_krn_sigm_fx16(&out_gate_input, sigm_lut, &out_gate);
+                mli_krn_sigm_fx16(&in_gate, sigm_lut, &in_gate);
+                mli_krn_tanh_fx16(&g_tsr, tanh_lut, &g_tsr);
+                mli_krn_sigm_fx16(&forget_gate, sigm_lut, &forget_gate);
+                mli_krn_sigm_fx16(&out_gate, sigm_lut, &out_gate);
             } else {
                 MLI_ASSERT(0);
             }

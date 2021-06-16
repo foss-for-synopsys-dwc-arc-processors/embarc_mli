@@ -34,10 +34,11 @@ mli_status mli_krn_tanh_fx8(const mli_tensor *in, const mli_lut *lut, mli_tensor
     MLI_PRINT_COMPILE_OPTIONS();
     mli_prv_fx_init_dsp_ctrl();
 
-    mli_prv_copy_tensor_format_except_mem_strides(in, out);
-    out->el_params.fx.frac_bits = 7;
-
+    if (in != out) mli_prv_copy_tensor_format_except_mem_strides(in, out);
+ 
     mli_prv_activation_lut_fx8(in, out, lut, in->el_params.fx.frac_bits);
+
+    out->el_params.fx.frac_bits = 7;
 
     return MLI_STATUS_OK;
 }
@@ -48,10 +49,11 @@ mli_status mli_krn_tanh_fx16(const mli_tensor *in, const mli_lut *lut, mli_tenso
     MLI_PRINT_COMPILE_OPTIONS();
     mli_prv_fx_init_dsp_ctrl();
 
-    mli_prv_copy_tensor_format_except_mem_strides(in, out);
-    out->el_params.fx.frac_bits = 15;
-
+    if (in != out) mli_prv_copy_tensor_format_except_mem_strides(in, out);
+    
     mli_prv_activation_lut_fx16(in, out, lut, in->el_params.fx.frac_bits);
+    
+    out->el_params.fx.frac_bits = 15;
 
     return MLI_STATUS_OK;
 }
@@ -72,7 +74,7 @@ mli_status mli_krn_tanh_sa8(const mli_tensor *in, const mli_lut *lut, mli_tensor
     out_params.shift = kTanhOutputShift;
 
     // Update output shape
-    mli_prv_copy_tensor_format_except_mem_strides(in, out);
+    if (in != out) mli_prv_copy_tensor_format_except_mem_strides(in, out);
 
     mli_prv_activation_lut_sa8(in, out, lut, &in_params, &out_params);
     out->el_params.sa.zero_point.mem.i16 = out_params.offset;

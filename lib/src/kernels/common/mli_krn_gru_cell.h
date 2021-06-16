@@ -200,21 +200,17 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
         // Step 2: Applying non-linearity
         //=======================================
         update_gate.el_params = reset_gate.el_params = new_gate.el_params = ir_tensor.el_params;
-        
-        mli_tensor update_gate_input = update_gate;
-        mli_tensor reset_gate_input = reset_gate;
-        mli_tensor new_gate_input = new_gate;
 
         if (asym) {
-            mli_krn_sigm_sa8(&update_gate_input, sigm_lut, &update_gate);
-            mli_krn_sigm_sa8(&reset_gate_input, sigm_lut, &reset_gate);
+            mli_krn_sigm_sa8(&update_gate, sigm_lut, &update_gate);
+            mli_krn_sigm_sa8(&reset_gate, sigm_lut, &reset_gate);
         } else {
             if (sizeof(io_T)==sizeof(int8_t)) {
-                mli_krn_sigm_fx8(&update_gate_input, sigm_lut, &update_gate);
-                mli_krn_sigm_fx8(&reset_gate_input, sigm_lut, &reset_gate);
+                mli_krn_sigm_fx8(&update_gate, sigm_lut, &update_gate);
+                mli_krn_sigm_fx8(&reset_gate, sigm_lut, &reset_gate);
             } else if (sizeof(io_T)==sizeof(int16_t)) {
-                mli_krn_sigm_fx16(&update_gate_input, sigm_lut, &update_gate);
-                mli_krn_sigm_fx16(&reset_gate_input, sigm_lut, &reset_gate);
+                mli_krn_sigm_fx16(&update_gate, sigm_lut, &update_gate);
+                mli_krn_sigm_fx16(&reset_gate, sigm_lut, &reset_gate);
             } else {
                 MLI_ASSERT(0);
             }
@@ -230,7 +226,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
         // Step 4: New gate
         //=======================================
         mli_relu_cfg relu_none = {MLI_RELU_NONE};
-        mli_minmax_t val_limit = mli_prv_get_relu_limits<io_T, asym>(&relu_none, &new_gate_input);
+        mli_minmax_t val_limit = mli_prv_get_relu_limits<io_T, asym>(&relu_none, &new_gate);
 
         if (asym) {
             inc_scales_for_new_gate(&w_in_new_g.el_params, num_gates);
@@ -238,21 +234,21 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
             inc_scales_for_new_gate(&b_new_g.el_params, num_gates);
         }
 
-        define_quant_params(in, &w_in_new_g, &b_new_g, &new_gate_input, &in_to_out_params[0]);
-        define_quant_params(&prev_out_reset, &w_out_new_g, &b_new_g, &new_gate_input, &in_to_out_params[1]);
+        define_quant_params(in, &w_in_new_g, &b_new_g, &new_gate, &in_to_out_params[0]);
+        define_quant_params(&prev_out_reset, &w_out_new_g, &b_new_g, &new_gate, &in_to_out_params[1]);
 
-        MLI_PTR (io_T) new_gate_ptr = mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(&new_gate_input);
+        MLI_PTR (io_T) new_gate_ptr = mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(&new_gate);
         mli::krn::rnn_dense_op<io_T, w_T, b_T, acc_T, quant_T>(
             inputs_new_ptr, w_new_g_ptr, b_new_g_ptr, new_gate_ptr, num_inputs, inputs_elements, gru_out_elements,
             w_ch_out_mem_strides, in_to_out_params, (io_T)val_limit.min, (io_T)val_limit.max);
 
         if (asym) {
-            mli_krn_tanh_sa8(&new_gate_input, tanh_lut, &new_gate);
+            mli_krn_tanh_sa8(&new_gate, tanh_lut, &new_gate);
         } else {
             if (sizeof(io_T)==sizeof(int8_t)) {
-                mli_krn_tanh_fx8(&new_gate_input, tanh_lut, &new_gate);
+                mli_krn_tanh_fx8(&new_gate, tanh_lut, &new_gate);
             } else if (sizeof(io_T)==sizeof(int16_t)) {
-                mli_krn_tanh_fx16(&new_gate_input, tanh_lut, &new_gate);
+                mli_krn_tanh_fx16(&new_gate, tanh_lut, &new_gate);
             } else {
                 MLI_ASSERT(0);
             }
