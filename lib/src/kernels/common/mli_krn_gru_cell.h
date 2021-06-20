@@ -71,10 +71,11 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
     mli_element_params ir_asym_params;
     if (asym) {
         one_el_params.sa.dim = ir_asym_params.sa.dim = -1;
-        one_el_params.sa.scale.mem.i16 = ir_asym_params.sa.scale.mem.i16 = 1;
+        one_el_params.sa.scale.mem.i16 = 1;
         one_el_params.sa.zero_point.mem.i16 = ir_asym_params.sa.zero_point.mem.i16 = 0;
         one_el_params.sa.scale_frac_bits.mem.i8 = 0;
-        ir_asym_params.sa.scale_frac_bits.mem.i8 = 6;
+        ir_asym_params.sa.scale.mem.i16 = 21;
+        ir_asym_params.sa.scale_frac_bits.mem.i8 = 9;
         one_el_params.sa.scale.capacity = ir_asym_params.sa.scale.capacity = 0;
         one_el_params.sa.zero_point.capacity = ir_asym_params.sa.zero_point.capacity = 0;
         one_el_params.sa.scale_frac_bits.capacity = ir_asym_params.sa.scale_frac_bits.capacity = 0;
@@ -174,7 +175,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
     current_hidden.el_params = prev_out->el_params;
     mli_tensor current_out = current_hidden;
     current_out.data = out->data;
-    current_out.el_params = ir_tensor.el_params;
+    current_out.el_params = prev_out->el_params;
 
     mli_tensor prev_out_reset;
     prev_out_reset.data = reset_gate.data;
