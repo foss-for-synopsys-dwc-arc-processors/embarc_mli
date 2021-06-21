@@ -224,14 +224,14 @@ static MLI_FORCE_INLINE vNx4char_t calc_prelu(
     pvNx4 select = init_predicate(input >= in_zp);
 
     int identity_shift = identity_params->shift;
-    int offset = (int)identity_params->offset << identity_shift;
+    int identity_offset = (int)identity_params->offset << identity_shift;
 #ifdef ROUND_UP
-        offset += (int)(((uint32_t)1 << identity_shift) >> 1);
+    identity_offset += (int)(((uint32_t)1 << identity_shift) >> 1);
 #else
     #error Rounding mode not supported
 #endif
     vNx4int_t input_identity_scale = mli_math_mul_fx<vNx4short_t, vNx4int_t>(identity_params->scale, input_cast);
-              input_identity_scale = mli_math_add(input_identity_scale, offset);
+              input_identity_scale = mli_math_add(input_identity_scale, identity_offset);
               input_identity_scale = mli_math_asr_fx(input_identity_scale, identity_shift);
 
     vNx4char_t output_identity = mli_math_cast_fx<vNx4int_t, vNx4char_t>(input_identity_scale);
