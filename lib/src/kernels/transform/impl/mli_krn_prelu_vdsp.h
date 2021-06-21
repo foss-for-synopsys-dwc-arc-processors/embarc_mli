@@ -200,42 +200,46 @@ static MLI_FORCE_INLINE s8asym_quant_params_v prelu_define_requant_params(const 
 
     vNx4short_t scale_alpha_offset = mli_math_sub_fx<vNx4short_t>(out_zp,
                                  mli_math_cast_fx<vNx4int_t, vNx4short_t>(scale_zp, 0));
-    
+
     /* Define Quantization params for (In * alpha / out) ratio */
     s8asym_quant_params_v alpha_params;
     alpha_params.scale  = scale_alpha;
     alpha_params.shift  = mli_math_cast_fx<vNx4int_t, vNx4short_t>(scale_alpha_shift);
     alpha_params.offset = scale_alpha_offset;
+    
+    /* Apply Shifting Left over Scale value */
+    vNx4short_t shift_l = mli_math_max_fx(-alpha_params.shift, 0);
+    alpha_params.scale = mli_math_asl_fx(alpha_params.scale, shift_l);
+    alpha_params.shift = mli_math_max_fx(alpha_params.shift, 0);
     return alpha_params;
 }
 
 static MLI_FORCE_INLINE vNx4char_t calc_prelu(
-        const MLI_PTR(int8_t) vec_in,
+        const vNx4char_t input,
         const int16_t in_zp,
         const s8asym_quant_params *identity_params,
         const s8asym_quant_params_v *alpha_params) {
-    /* Load Input */
-    vNx4char_t input = mli_prv_load_1vec(vec_in);
+
     vNx4short_t input_cast = mli_math_cast_fx<vNx4char_t, vNx4short_t>(input);
     pvNx4 select = init_predicate(input >= in_zp);
 
-    int scale_shift = identity_params->shift;
-    int scale_shift_left = mli_math_max_fx(-scale_shift, 0);
-    int scale_shift_right = mli_math_max_fx(scale_shift, 0);
+    int identity_shift = identity_params->shift;
+    int offset = (int)identity_params->offset << identity_shift;
+#ifdef ROUND_UP
+        offset += (int)(((uint32_t)1 << identity_shift) >> 1);
+#else
+    #error Rounding mode not supported
+#endif
     vNx4int_t input_identity_scale = mli_math_mul_fx<vNx4short_t, vNx4int_t>(identity_params->scale, input_cast);
-              input_identity_scale = mli_math_asl_fx(input_identity_scale, scale_shift_left);
-              input_identity_scale = mli_math_asr_rnd_fx(input_identity_scale, scale_shift_right);
-              input_identity_scale = mli_math_add_fx(input_identity_scale, (vNx4int_t)identity_params->offset);
+              input_identity_scale = mli_math_add(input_identity_scale, offset);
+              input_identity_scale = mli_math_asr_fx(input_identity_scale, identity_shift);
 
     vNx4char_t output_identity = mli_math_cast_fx<vNx4int_t, vNx4char_t>(input_identity_scale);
 
-    vNx4int_t shift = mli_math_cast_fx<vNx4short_t, vNx4int_t>(alpha_params->shift);
-    vNx4int_t shift_left = mli_math_max_fx(-shift, 0);
-    vNx4int_t shift_right = mli_math_max_fx(shift, 0);
+    vNx4int_t alpha_shift = mli_math_cast_fx<vNx4short_t, vNx4int_t>(alpha_params->shift);
     vNx4int_t input_alpha_scale = mli_math_mul_fx<vNx4short_t, vNx4int_t>(alpha_params->scale, input_cast);
-              input_alpha_scale = mli_math_asl_fx(input_alpha_scale, shift_left);
-              input_alpha_scale = mli_math_asr_rnd_fx(input_alpha_scale, shift_right);
-              input_alpha_scale = mli_math_add_fx(input_alpha_scale,
+              input_alpha_scale = mli_math_asr_rnd_fx(input_alpha_scale, alpha_shift);
+              input_alpha_scale = mli_math_add(input_alpha_scale,
                                   mli_math_cast_fx<vNx4short_t, vNx4int_t>(alpha_params->offset));
 
     vNx4char_t output_alpha = mli_math_cast_fx<vNx4int_t, vNx4char_t>(input_alpha_scale);
@@ -249,7 +253,8 @@ static MLI_FORCE_INLINE void compute_prelu(
         const s8asym_quant_params *identity_params,
         const s8asym_quant_params_v *alpha_params) {
 
-    vNx4char_t output = calc_prelu(vec_in, in_zp, identity_params, alpha_params);
+    vNx4char_t input = mli_prv_load_1vec(vec_in);
+    vNx4char_t output = calc_prelu(input, in_zp, identity_params, alpha_params);
     mli_prv_store_n_samples(vec_out, output);
 }
 
@@ -261,8 +266,38 @@ static MLI_FORCE_INLINE void compute_prelu(
         const s8asym_quant_params_v *alpha_params,
         const int remaining_part) {
 
-    vNx4char_t output = calc_prelu(vec_in, in_zp, identity_params, alpha_params);
+    vNx4char_t input = mli_prv_load_1vec(vec_in);
+    vNx4char_t output = calc_prelu(input, in_zp, identity_params, alpha_params);
     mli_prv_store_n_samples(vec_out, output, remaining_part);
+}
+
+static MLI_FORCE_INLINE void compute_prelu(
+        const MLI_PTR(int8_t) vec_in,
+        MLI_OUT_PTR(int8_t) vec_out,
+        const int16_t in_zp,
+        const s8asym_quant_params *identity_params,
+        const s8asym_quant_params_v *alpha_params,
+        const int stride_in,
+        const int stride_out) {
+
+    vNx4char_t input = mli_prv_stride_load_1vec(vec_in, stride_in);
+    vNx4char_t output = calc_prelu(input, in_zp, identity_params, alpha_params);
+    mli_prv_stride_store_n_samples(vec_out, output, stride_out);
+}
+
+static MLI_FORCE_INLINE void compute_prelu(
+        const MLI_PTR(int8_t) vec_in,
+        MLI_OUT_PTR(int8_t) vec_out,
+        const int16_t in_zp,
+        const s8asym_quant_params *identity_params,
+        const s8asym_quant_params_v *alpha_params,
+        const int stride_in,
+        const int stride_out,
+        const int remaining_part) {
+
+    vNx4char_t input = mli_prv_stride_load_1vec(vec_in, stride_in);
+    vNx4char_t output = calc_prelu(input, in_zp, identity_params, alpha_params);
+    mli_prv_stride_store_n_samples(vec_out, output, stride_out, remaining_part);
 }
 
 template <typename io_T>
@@ -367,6 +402,95 @@ static MLI_FORCE_INLINE void compute_prelu_no_broadcast(
                     mli::krn::compute_prelu<io_T, scale_T>(vec_in, scale_v, vec_out, shift, remaining_part);
                 } else {
                     mli::krn::compute_prelu<io_T, scale_T>(vec_in, scale_v, vec_out, shift);
+                }
+            }
+        }
+    }
+}
+
+static MLI_FORCE_INLINE void compute_prelu_broadcast(
+        const mli_tensor *in,
+        const mli_tensor *slope_coeff,
+        mli_tensor *out,
+        generic_tensor_private_t<MLI_PTR(int8_t)> in_prv,
+        generic_tensor_private_t<MLI_OUT_PTR(int8_t)> out_prv,
+        const MLI_PTR(int8_t) slope_ptr,
+        const int axis,
+        const int axis_shape,
+        const int axis_in_mem_stride,
+        const int axis_out_mem_stride,
+        const int16_t in_zp,
+        const s8asym_quant_params *identity_params) {
+    
+    /* Dummy Load to get num_lanes */
+    auto input = mli_prv_load_1vec(in_prv.ptr);
+    int num_lanes = get_number_lanes(input);
+
+    /* Get Non Axis Tensor */
+    auto in_non_axis_prv  = mli_prv_get_non_axis_tensor<MLI_PTR(int8_t)>(&in_prv,  axis);
+    auto out_non_axis_prv = mli_prv_get_non_axis_tensor<MLI_PTR(int8_t)>(&out_prv, axis);
+
+    /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
+    mli_prv_reorder_generic_tensor<MLI_PTR(int8_t)>(&in_non_axis_prv );
+    mli_prv_reorder_generic_tensor<MLI_OUT_PTR(int8_t)>(&out_non_axis_prv);
+
+    if (axis_shape > in_non_axis_prv.shape[3]) {
+        /* Vectorize Over Axis */
+        for (int scale_idx = 0; scale_idx < axis_shape; scale_idx += num_lanes) {
+            int remaining_ch = axis_shape - scale_idx;
+            int remaining_part = MIN(remaining_ch, num_lanes);
+            /* Define Sub Tensor */
+            const MLI_PTR(int8_t) vec_in  = (MLI_PTR(int8_t))in_prv.ptr  + scale_idx * axis_in_mem_stride;
+            MLI_OUT_PTR(int8_t) vec_out = out_prv.ptr + scale_idx * axis_out_mem_stride;
+            /* Load Scale Vector */
+            auto scale_v = mli_prv_load_1vec(slope_ptr);
+            auto alpha_params = mli::krn::prelu_define_requant_params(in, slope_coeff, out, scale_v, identity_params);
+            /* Loop Over Sub Tensor */
+            const MLI_PTR(int8_t) orig_vec_in = vec_in;
+            MLI_OUT_PTR(int8_t) orig_vec_out = vec_out;
+            for (int pos1 = 0; pos1 < in_non_axis_prv.shape[1]; pos1++) {
+                for (int pos2 = 0; pos2 < in_non_axis_prv.shape[2]; pos2++) {
+#pragma clang loop pipeline(enable)
+#pragma clang loop pipeline_options(0x10)
+                    for (int pos3 = 0; pos3 < in_non_axis_prv.shape[3]; pos3++) {
+                        vec_in  = (MLI_PTR(int8_t))orig_vec_in  + POS(&in_non_axis_prv, 0, pos1, pos2, pos3);
+                        vec_out = orig_vec_out + POS(&out_non_axis_prv, 0, pos1, pos2, pos3);
+                        compute_prelu(vec_in, vec_out, in_zp, identity_params, &alpha_params,
+                                      axis_in_mem_stride, axis_out_mem_stride, remaining_part);
+                    }
+                }
+            }
+        }
+    } else {
+        int remaining_part = in_non_axis_prv.shape[3] & (num_lanes - 1);
+        for (int scale_idx = 0; scale_idx < axis_shape; scale_idx++) {
+            /* Define Sub Tensor */
+            const MLI_PTR(int8_t) vec_in  = (MLI_PTR(int8_t))in_prv.ptr  + scale_idx * axis_in_mem_stride;
+            MLI_OUT_PTR(int8_t) vec_out = out_prv.ptr + scale_idx * axis_out_mem_stride;
+            /* Load Scale Elem */
+            auto alpha_params = mli::krn::ref::prelu_define_requant_params(in, slope_coeff, out,
+                                                                           slope_ptr[scale_idx], identity_params);
+
+            /* Loop Over Sub Tensor */
+            const MLI_PTR(int8_t) orig_vec_in = vec_in;
+            MLI_OUT_PTR(int8_t) orig_vec_out = vec_out;
+            for (int pos1 = 0; pos1 < in_non_axis_prv.shape[1]; pos1++) {
+                for (int pos2 = 0; pos2 < in_non_axis_prv.shape[2]; pos2++) {
+                    vec_in  = (MLI_PTR(int8_t))orig_vec_in  + POS(&in_non_axis_prv, 0, pos1, pos2, 0);
+                    vec_out = orig_vec_out + POS(&out_non_axis_prv, 0, pos1, pos2, 0);
+                    if (remaining_part) {
+                        mli::krn::compute_leaky_relu(vec_in, vec_out, in_zp, identity_params, &alpha_params,
+                                                remaining_part);
+                        vec_in  += remaining_part;
+                        vec_out += remaining_part;
+                    }
+#pragma clang loop pipeline(enable)
+#pragma clang loop pipeline_options(0x10)
+                    for (int pos3 = remaining_part; pos3 < in_non_axis_prv.shape[3]; pos3 += num_lanes) {
+                        mli::krn::compute_leaky_relu(vec_in, vec_out, in_zp, identity_params, &alpha_params);
+                        vec_in  += num_lanes;
+                        vec_out += num_lanes;
+                    }
                 }
             }
         }

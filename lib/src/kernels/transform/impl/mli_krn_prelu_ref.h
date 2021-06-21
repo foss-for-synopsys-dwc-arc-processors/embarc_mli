@@ -219,6 +219,65 @@ static MLI_FORCE_INLINE s8asym_quant_params prelu_define_requant_params(const ml
     return mli::krn::ref::leaky_relu_define_requant_params(in, slope_coeff, out, alpha_sa8, identity_params);
 }
 
+static MLI_FORCE_INLINE void compute_prelu_broadcast(
+        const mli_tensor *in,
+        const mli_tensor *slope_coeff,
+        mli_tensor *out,
+        generic_tensor_private_t<MLI_PTR(int8_t)> in_prv,
+        generic_tensor_private_t<MLI_OUT_PTR(int8_t)> out_prv,
+        const MLI_PTR(int8_t) slope_ptr,
+        const int axis,
+        const int axis_shape,
+        const int axis_in_mem_stride,
+        const int axis_out_mem_stride,
+        const int16_t in_zp,
+        const s8asym_quant_params *identity_params) {
+
+    /* Dummy Load to get num_lanes */
+    auto input = mli_prv_load_1vec(in_prv.ptr);
+    int num_lanes = get_number_lanes(input);
+
+    /* Get Non Axis Tensor */
+    auto in_non_axis_prv  = mli_prv_get_non_axis_tensor<MLI_PTR(int8_t)>(&in_prv,  axis);
+    auto out_non_axis_prv = mli_prv_get_non_axis_tensor<MLI_PTR(int8_t)>(&out_prv, axis);
+
+    /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
+    mli_prv_reorder_generic_tensor<MLI_PTR(int8_t)>(&in_non_axis_prv );
+    mli_prv_reorder_generic_tensor<MLI_OUT_PTR(int8_t)>(&out_non_axis_prv);
+
+    int remaining_part = in_non_axis_prv.shape[3] & (num_lanes - 1);
+
+    for (int scale_idx = 0; scale_idx < axis_shape; scale_idx++) {
+        /* Define Sub Tensor */
+        const MLI_PTR(int8_t) vec_in  = (MLI_PTR(int8_t))in_prv.ptr  + scale_idx * axis_in_mem_stride;
+        MLI_OUT_PTR(int8_t) vec_out = out_prv.ptr + scale_idx * axis_out_mem_stride;
+        /* Load Scale Elem */
+        auto alpha_params = mli::krn::ref::prelu_define_requant_params(in, slope_coeff, out,
+                                                                        slope_ptr[scale_idx], identity_params);
+
+        /* Loop Over Sub Tensor */
+        const MLI_PTR(int8_t) orig_vec_in = vec_in;
+        MLI_OUT_PTR(int8_t) orig_vec_out = vec_out;
+        for (int pos1 = 0; pos1 < in_non_axis_prv.shape[1]; pos1++) {
+            for (int pos2 = 0; pos2 < in_non_axis_prv.shape[2]; pos2++) {
+                vec_in  = (MLI_PTR(int8_t))orig_vec_in  + POS(&in_non_axis_prv, 0, pos1, pos2, 0);
+                vec_out = orig_vec_out + POS(&out_non_axis_prv, 0, pos1, pos2, 0);
+                if (remaining_part) {
+                    mli::krn::compute_leaky_relu(vec_in, vec_out, in_zp, identity_params, &alpha_params,
+                                            remaining_part);
+                    vec_in  += remaining_part;
+                    vec_out += remaining_part;
+                }
+                for (int pos3 = remaining_part; pos3 < in_non_axis_prv.shape[3]; pos3 += num_lanes) {
+                    mli::krn::compute_leaky_relu(vec_in, vec_out, in_zp, identity_params, &alpha_params);
+                    vec_in  += num_lanes;
+                    vec_out += num_lanes;
+                }
+            }
+        }
+    }
+}
+
 static MLI_FORCE_INLINE void compute_prelu_no_broadcast(
         const MLI_PTR(int8_t) __restrict vec_in,
         MLI_OUT_PTR(int8_t) __restrict vec_out,
@@ -292,55 +351,22 @@ static MLI_FORCE_INLINE mli_status prelu_sa8_run(const mli_tensor *in,
     s8asym_quant_params identity_params;
     /* Define Requantization Params for In/Out scale ratio */
     define_requant_params(in, out, &identity_params);
-
-    /* Dummy Load to get num_lanes */
-    auto input = mli_prv_load_1vec(in_ptr);
-    int num_lanes = get_number_lanes(input);
+    int shift_left = mli_math_max_fx(-identity_params.shift, 0);
+    identity_params.scale = mli_math_asl_fx(identity_params.scale, shift_left);
+    identity_params.shift = mli_math_max_fx(identity_params.shift, 0);
 
     /* Input Zero Point */
     int16_t in_zp = in->el_params.sa.zero_point.mem.i16;
 
     if (broadcasting) {
-        /* Get Non Axis Tensor */
-        auto in_non_axis_prv  = mli_prv_get_non_axis_tensor<MLI_PTR(int8_t)>(&in_prv,  cfg->axis);
-        auto out_non_axis_prv = mli_prv_get_non_axis_tensor<MLI_PTR(int8_t)>(&out_prv, cfg->axis);
-
-        /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
-        mli_prv_reorder_generic_tensor<MLI_PTR(int8_t)>(&in_non_axis_prv );
-        mli_prv_reorder_generic_tensor<MLI_OUT_PTR(int8_t)>(&out_non_axis_prv);
-
-        int remaining_part = in_non_axis_prv.shape[3] & (num_lanes - 1);
-
-        for (int scale_idx = 0; scale_idx < axis_shape; scale_idx++) {
-            /* Define Sub Tensor */
-            vec_in  = (MLI_PTR(int8_t))in_ptr  + scale_idx * axis_in_mem_stride;
-            vec_out = out_ptr + scale_idx * axis_out_mem_stride;
-            /* Load Scale Elem */
-            auto alpha_params = mli::krn::ref::prelu_define_requant_params(in, slope_coeff, out,
-                                                                           slope_ptr[scale_idx], &identity_params);
-
-            /* Loop Over Sub Tensor */
-            const MLI_PTR(int8_t) orig_vec_in = vec_in;
-            MLI_OUT_PTR(int8_t) orig_vec_out = vec_out;
-            for (int pos1 = 0; pos1 < in_non_axis_prv.shape[1]; pos1++) {
-                for (int pos2 = 0; pos2 < in_non_axis_prv.shape[2]; pos2++) {
-                    vec_in  = (MLI_PTR(int8_t))orig_vec_in  + POS(&in_non_axis_prv, 0, pos1, pos2, 0);
-                    vec_out = orig_vec_out + POS(&out_non_axis_prv, 0, pos1, pos2, 0);
-                    if (remaining_part) {
-                        mli::krn::compute_leaky_relu(vec_in, vec_out, in_zp, &identity_params, &alpha_params,
-                                                remaining_part);
-                        vec_in  += remaining_part;
-                        vec_out += remaining_part;
-                    }
-                    for (int pos3 = remaining_part; pos3 < in_non_axis_prv.shape[3]; pos3 += num_lanes) {
-                        mli::krn::compute_leaky_relu(vec_in, vec_out, in_zp, &identity_params, &alpha_params);
-                        vec_in  += num_lanes;
-                        vec_out += num_lanes;
-                    }
-                }
-            }
-        }
+        mli::krn::compute_prelu_broadcast(in, slope_coeff, out, in_prv, out_prv, slope_ptr,
+                                          cfg->axis, axis_shape, axis_in_mem_stride, axis_out_mem_stride,
+                                          in_zp, &identity_params);
     } else {
+        /* Dummy Load to get num_lanes */
+        auto input = mli_prv_load_1vec(in_ptr);
+        int num_lanes = get_number_lanes(input);
+
         /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
         mli_prv_reorder_generic_tensor<MLI_PTR(int8_t)>(&in_prv );
         mli_prv_reorder_generic_tensor<MLI_OUT_PTR(int8_t)>(&out_prv);

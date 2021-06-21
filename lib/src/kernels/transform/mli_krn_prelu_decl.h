@@ -80,6 +80,20 @@ static MLI_FORCE_INLINE void compute_prelu_no_broadcast(
         const generic_tensor_private_t<MLI_OUT_PTR(io_T)> out_prv,
         const int remaining_part = 0);
 
+static MLI_FORCE_INLINE void compute_prelu_broadcast(
+        const mli_tensor *in,
+        const mli_tensor *slope_coeff,
+        mli_tensor *out,
+        generic_tensor_private_t<MLI_PTR(int8_t)> in_prv,
+        generic_tensor_private_t<MLI_OUT_PTR(int8_t)> out_prv,
+        const MLI_PTR(int8_t) slope_ptr,
+        const int axis,
+        const int axis_shape,
+        const int axis_in_mem_stride,
+        const int axis_out_mem_stride,
+        const int16_t in_zp,
+        const s8asym_quant_params *identity_params);
+
 static MLI_FORCE_INLINE void compute_prelu_no_broadcast(
         const MLI_PTR(int8_t) __restrict vec_in,
         MLI_OUT_PTR(int8_t) __restrict vec_out,
@@ -266,6 +280,20 @@ static MLI_FORCE_INLINE void compute_prelu_no_broadcast(
         const generic_tensor_private_t<MLI_PTR(io_T)> in_prv,
         const generic_tensor_private_t<MLI_OUT_PTR(io_T)> out_prv,
         const int remaining_part = 0);
+
+static MLI_FORCE_INLINE void compute_prelu_broadcast(
+        const mli_tensor *in,
+        const mli_tensor *slope_coeff,
+        mli_tensor *out,
+        generic_tensor_private_t<MLI_PTR(int8_t)> in_prv,
+        generic_tensor_private_t<MLI_OUT_PTR(int8_t)> out_prv,
+        const MLI_PTR(int8_t) slope_ptr,
+        const int axis,
+        const int axis_shape,
+        const int axis_in_mem_stride,
+        const int axis_out_mem_stride,
+        const int16_t in_zp,
+        const s8asym_quant_params *identity_params);
 
 static MLI_FORCE_INLINE void compute_prelu_no_broadcast(
         const MLI_PTR(int8_t) __restrict vec_in,
