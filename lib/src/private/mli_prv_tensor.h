@@ -877,7 +877,7 @@ mli_prv_get_relu_limits (const mli_relu_cfg * cfg, const mli_tensor * out) {
             six = (shift < 28) ? ((int32_t)6 << shift) / scale : max_val;
         }
         else {
-            six = ((int32_t)6 >> (-shift)) / scale;
+            six = (shift > -3) ?((int32_t)6 >> (-shift)) / scale : 0;
         }
 
         six = six + zero;
