@@ -1544,14 +1544,17 @@ MLI_FORCE_INLINE vNx4short_t mli_math_norm_cast_fx(vNx4int_t val , vNx4int_t *no
 template<typename acc_T, typename vec_T, typename out_T>
 MLI_FORCE_INLINE out_T mli_math_intra_sum(acc_T L) {
     int acc_len = get_number_lanes<vec_T>();
+    MLI_ASSERT(acc_len >= 4);
     while (acc_len > 8){
         L = vvc4add(L);
         L = vvc4pack(L);
         acc_len >>= 2;
     }
+
     L = vvc4add(L);
     acc_len >>= 2;
     if (acc_len == 2){
+        L = vvc4pack(L);
         L = vvc2add(L);
     }
     vec_T vec = mli_math_acc_cast_fx<vec_T, acc_T>(L);
