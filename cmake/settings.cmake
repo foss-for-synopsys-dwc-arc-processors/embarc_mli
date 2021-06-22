@@ -49,7 +49,8 @@ if (ARC)
     endif()
     if (DEBUG_BUILD STREQUAL ON)
         list(APPEND MLI_PLATFORM_FLAGS
-            -g
+            -g0
+            -Hanno
         )
     endif()
 
