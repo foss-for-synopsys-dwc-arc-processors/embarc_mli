@@ -119,8 +119,8 @@ mli_status mli_chk_lut(const mli_lut * lut, int buff_size) {
 *  mli_tensor quantization parameters correctness checking
 *************************************************************/
 #if MLI_DBG_ENABLE_RETURNCODES
-// These constants are used in debug mode only. 
-// To not rise a warning in release mode we exclude it by pre-processor. 
+// These constants are used in debug mode only.
+// To not rise a warning in release mode we exclude it by pre-processor.
 static constexpr unsigned kZeroPointBitsZero = 0;
 static constexpr unsigned kZeroPointBitsByteRange = (sizeof(int8_t) * 8) - 1;
 #endif
@@ -156,7 +156,7 @@ mli_status mli_chk_tensor_quant_params(const mli_tensor* in, unsigned zp_used_bi
         fail |= MLI_CHECK(is_per_axis ? zp != nullptr && in->el_params.sa.zero_point.capacity >= num_quant_vals * sizeof(zp[0])
             : in->el_params.sa.zero_point.capacity == 0,
             "SA Tensor zero points data container is invalid");
-        fail |= MLI_CHECK(is_per_axis ? scale_frac_bits != nullptr 
+        fail |= MLI_CHECK(is_per_axis ? scale_frac_bits != nullptr
             && in->el_params.sa.scale_frac_bits.capacity >= num_quant_vals * sizeof(scale_frac_bits[0])
             : in->el_params.sa.scale_frac_bits.capacity == 0,
             "SA Tensor scales frac bits data container is invalid");
@@ -167,7 +167,7 @@ mli_status mli_chk_tensor_quant_params(const mli_tensor* in, unsigned zp_used_bi
             if (fail) return MLI_STATUS_BAD_TENSOR;
 
             // Check flexible requirements for tensor, and return "incompatible" status if it doesnt met.
-            fail |= MLI_CHECK(zp[idx] >= zp_min && zp[idx] <= zp_max, 
+            fail |= MLI_CHECK(zp[idx] >= zp_min && zp[idx] <= zp_max,
                     "Additional requirement: SA Tensor contains zero point out of supported  range");
             if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
         }
@@ -223,7 +223,7 @@ mli_status mli_chk_scalar_tensor (const mli_tensor * in) {
                 stat = MLI_STATUS_SHAPE_MISMATCH;
         }
     }
-    
+
     return stat;
 }
 
@@ -243,20 +243,20 @@ mli_status mli_chk_bias_frac_fx(const mli_tensor * in, const mli_tensor * weight
 
 int scale_fluctuations_headroom(int32_t scale) {
     // This functions finds acceptabla fluctuations of scale representation
-    // assuming that it was transformed from another representation 
+    // assuming that it was transformed from another representation
     // (for instance float number transformed to q31)
 
     // assuming scale > 0, we try to find unused MSB (zero bits in the front)
     // Note: an external norm operation can be used for it
-    MLI_ASSERT(scale > 0);  
+    MLI_ASSERT(scale > 0);
     int unused_bits = 0;
     int32_t norm_value = 1 << 30;
     for (; norm_value > scale; norm_value = norm_value >> 1)
         ++unused_bits;
-    
+
     // Knowing unused bits we can estimate fluctuations
     // For instance: int32 have 31 significant bits, while floats have only 24.
-    // It means that (31 - 24) = 7 bits of Q31 might keep some trash after float->q31 transfromation 
+    // It means that (31 - 24) = 7 bits of Q31 might keep some trash after float->q31 transfromation
     // But if 3 MSB of q31 number are not used, than only (7 - 3) = 4 bits are expected to have noise.
     // We conclude that some fluctuations in range of (+16 : -16) are acceptable (2**4 = 16).
     constexpr int kSignifacntBitsFloatSP = 24;
@@ -267,9 +267,9 @@ int scale_fluctuations_headroom(int32_t scale) {
 };
 
 mli_status mli_chk_bias_scale_asym(const mli_tensor * in, const mli_tensor * weights, const mli_tensor * bias) {
-    // For FX in runtime, before adding bias, we requantize it to intermediate result format. 
+    // For FX in runtime, before adding bias, we requantize it to intermediate result format.
     // For FX it's just the matter of shift. That's why we are ok to not store bias in this format in advance (but it could be done).
-    // For asym it is assumed that bias is stored in intermediate result format to avoid this requantization in runtime, 
+    // For asym it is assumed that bias is stored in intermediate result format to avoid this requantization in runtime,
     // which is not a matter of shifts anymore. Here we check bias format is similar to IR
     MLI_ASSERT(in->el_params.sa.dim < 0);
     MLI_ASSERT(in->el_type == MLI_EL_SA_8);
@@ -285,7 +285,7 @@ mli_status mli_chk_bias_scale_asym(const mli_tensor * in, const mli_tensor * wei
         int out_shift = mli_prv_calc_shift_idx(in, weights, bias, idx);
         bias_scale_expected = (out_shift > 0)
                 ? mli_math_asr_rnd_fx(bias_scale_expected, out_shift)
-                : bias_scale_expected << out_shift;
+                : bias_scale_expected << -out_shift;
         const int32_t scales_diff = bias_scale_expected - b_scales[idx];
         // Check that diff is about the rounding error
         if (MLI_CHECK(scales_diff <= 1 && scales_diff >= -1, "Bias scale must be the multiplication of input and weights scales for correct calculations in current quanization scheme"))
@@ -299,7 +299,7 @@ static MLI_FORCE_INLINE bool check_inner_most_dimension_is_one(const mli_tensor 
 }
 
 static MLI_FORCE_INLINE bool check_layout_is_contiguous(const int32_t *mem_stride, uint32_t rank) {
-    // When only mem_stride and rank is under considiration, contiguous means 
+    // When only mem_stride and rank is under considiration, contiguous means
     // all memory strides are zero OR rank is 1 and memory stride between elements is 1
 
     if (rank == 1 && mem_stride[0] == 1)
@@ -333,7 +333,7 @@ static MLI_FORCE_INLINE bool check_mem_stride_matches(const mli_tensor *t1, cons
     fail |= MLI_CHECK(t1->rank == t2->rank, "Tensors ranks doesn't match");
     if (fail) return !fail;
     for (uint32_t i = 0; i < t1->rank - 1; ++i) {
-        fail |= MLI_CHECK(t1->mem_stride[i] == t2->mem_stride[i], 
+        fail |= MLI_CHECK(t1->mem_stride[i] == t2->mem_stride[i],
                 "Tensors memstrides doesn't match");
     }
     return !fail;
@@ -945,7 +945,7 @@ mli_status mli_chk_transpose_conv2d_hwcn_k2x2_str2(
     fail |= MLI_CHECK(kernel_width == 2, "Kernel width should be 2 for k2x2_str2 specialization");
     fail |= MLI_CHECK(kernel_height == 2, "Kernel height should be 2 for k2x2_str2 specialization");
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
-    
+
     return MLI_STATUS_OK;
 }
 
@@ -1034,7 +1034,7 @@ mli_status mli_chk_maxpool_hwc_sa8 (const mli_tensor * in, const mli_pool_cfg * 
     if (ret != MLI_STATUS_OK)
         return ret;
     if (MLI_CHECK(in->el_type == MLI_EL_SA_8, "Wrong input tensor type"))
-        return MLI_STATUS_TYPE_MISMATCH;    
+        return MLI_STATUS_TYPE_MISMATCH;
     if (MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor: Per-tensor quantization is expected"))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
@@ -1593,7 +1593,7 @@ mli_status mli_chk_softmax_sa8(const mli_tensor * in, const mli_softmax_cfg* cfg
         return MLI_STATUS_TYPE_MISMATCH;
     if (MLI_CHECK(cfg->axis < (int)in->rank, "Wrong axis parameter, axis parameter must be less than in tensor rank"))
         return MLI_STATUS_BAD_FUNC_CFG;
-    
+
     // Check additional requrements for tensor params.
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(in,      kZeroPointBitsByteRange), __func__);
     if (ret != MLI_STATUS_OK) return ret;
@@ -1688,7 +1688,7 @@ mli_status mli_chk_leaky_relu_sa8 (const mli_tensor * in, const mli_tensor * slo
     if (MLI_CHECK(in->el_type == MLI_EL_SA_8, "Wrong input tensor type") ||
         MLI_CHECK(slope_coeff->el_type == MLI_EL_SA_8, "Wrong slope_coeff tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
-    
+
     // Check additional requrements for tensor params.
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(in,      kZeroPointBitsByteRange), __func__);
     if (ret != MLI_STATUS_OK) return ret;
@@ -1705,9 +1705,9 @@ mli_status mli_chk_leaky_relu_sa8 (const mli_tensor * in, const mli_tensor * slo
 }
 
 mli_status mli_chk_prelu (
-        const mli_tensor * in, 
-        const mli_tensor * slope_coeff, 
-        const mli_prelu_cfg *cfg, 
+        const mli_tensor * in,
+        const mli_tensor * slope_coeff,
+        const mli_prelu_cfg *cfg,
         mli_tensor * out) {
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;
@@ -1758,9 +1758,9 @@ mli_status mli_chk_prelu (
 }
 
 mli_status mli_chk_prelu_fx8 (
-        const mli_tensor * in, 
-        const mli_tensor * slope_coeff, 
-        const mli_prelu_cfg *cfg, 
+        const mli_tensor * in,
+        const mli_tensor * slope_coeff,
+        const mli_prelu_cfg *cfg,
         mli_tensor * out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_prelu(in, slope_coeff, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
@@ -1772,9 +1772,9 @@ mli_status mli_chk_prelu_fx8 (
 }
 
 mli_status mli_chk_prelu_fx16 (
-        const mli_tensor * in, 
-        const mli_tensor * slope_coeff, 
-        const mli_prelu_cfg *cfg, 
+        const mli_tensor * in,
+        const mli_tensor * slope_coeff,
+        const mli_prelu_cfg *cfg,
         mli_tensor * out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_prelu(in, slope_coeff, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
@@ -1786,9 +1786,9 @@ mli_status mli_chk_prelu_fx16 (
 }
 
 mli_status mli_chk_prelu_sa8 (
-        const mli_tensor * in, 
-        const mli_tensor * slope_coeff, 
-        const mli_prelu_cfg *cfg, 
+        const mli_tensor * in,
+        const mli_tensor * slope_coeff,
+        const mli_prelu_cfg *cfg,
         mli_tensor * out) {
     mli_status ret = MLI_CHECK_STATUS(mli_chk_prelu(in, slope_coeff, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
@@ -1965,7 +1965,7 @@ mli_status mli_chk_rnn_dense_sa8_sa8_sa32(
 
     ret = MLI_CHECK_STATUS(mli_chk_bias_scale_asym(in[0], weights[0], bias), __func__);
     if (ret != MLI_STATUS_OK) return ret;
-    
+
     return MLI_STATUS_OK;
 }
 
@@ -2077,7 +2077,7 @@ mli_status mli_chk_lstm_cell_fx16 (
         const mli_rnn_cell_cfg * cfg,
         mli_tensor * cell,
         mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_lstm_cell(in, prev_out, weights_in, weights_out, bias, tanh_lut, sigm_lut, 
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_lstm_cell(in, prev_out, weights_in, weights_out, bias, tanh_lut, sigm_lut,
                                                         cfg, cell, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
@@ -2091,7 +2091,7 @@ mli_status mli_chk_lstm_cell_fx16 (
 
     ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights_in, bias), __func__);
     if (ret != MLI_STATUS_OK) return ret;
-    
+
     return MLI_STATUS_OK;
 }
 
@@ -2106,7 +2106,7 @@ mli_status mli_chk_lstm_cell_fx16_fx8_fx8 (
         const mli_rnn_cell_cfg * cfg,
         mli_tensor * cell,
         mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_lstm_cell(in, prev_out, weights_in, weights_out, bias, tanh_lut, sigm_lut, 
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_lstm_cell(in, prev_out, weights_in, weights_out, bias, tanh_lut, sigm_lut,
                                                         cfg, cell, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
@@ -2120,7 +2120,7 @@ mli_status mli_chk_lstm_cell_fx16_fx8_fx8 (
 
     ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights_in, bias), __func__);
     if (ret != MLI_STATUS_OK) return ret;
-    
+
     return MLI_STATUS_OK;
 }
 
@@ -2135,7 +2135,7 @@ mli_status mli_chk_lstm_cell_sa8_sa8_sa32(
         const mli_rnn_cell_cfg * cfg,
         mli_tensor * cell,
         mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_lstm_cell(in, prev_out, weights_in, weights_out, bias, tanh_lut, sigm_lut, 
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_lstm_cell(in, prev_out, weights_in, weights_out, bias, tanh_lut, sigm_lut,
                                                         cfg, cell, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
@@ -2174,7 +2174,7 @@ mli_status mli_chk_lstm_cell_sa8_sa8_sa32(
 
     ret = MLI_CHECK_STATUS(mli_chk_bias_scale_asym(in, weights_in, bias), __func__);
     if (ret != MLI_STATUS_OK) return ret;
-    
+
     return MLI_STATUS_OK;
 }
 
@@ -2275,7 +2275,7 @@ mli_status mli_chk_gru_cell_fx16 (
         const mli_lut * sigm_lut,
         const mli_rnn_cell_cfg * cfg,
         mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_gru_cell(in, prev_out, weights_in, weights_out, bias, tanh_lut, sigm_lut, 
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_gru_cell(in, prev_out, weights_in, weights_out, bias, tanh_lut, sigm_lut,
                                                         cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
@@ -2288,7 +2288,7 @@ mli_status mli_chk_gru_cell_fx16 (
 
     ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights_in, bias), __func__);
     if (ret != MLI_STATUS_OK) return ret;
-    
+
     return MLI_STATUS_OK;
 }
 
@@ -2302,7 +2302,7 @@ mli_status mli_chk_gru_cell_fx16_fx8_fx8 (
         const mli_lut * sigm_lut,
         const mli_rnn_cell_cfg * cfg,
         mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_gru_cell(in, prev_out, weights_in, weights_out, bias, tanh_lut, sigm_lut, 
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_gru_cell(in, prev_out, weights_in, weights_out, bias, tanh_lut, sigm_lut,
                                                         cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
@@ -2315,7 +2315,7 @@ mli_status mli_chk_gru_cell_fx16_fx8_fx8 (
 
     ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights_in, bias), __func__);
     if (ret != MLI_STATUS_OK) return ret;
-    
+
     return MLI_STATUS_OK;
 }
 
@@ -2330,7 +2330,7 @@ mli_status mli_chk_gru_cell_sa8_sa8_sa32(
         const mli_rnn_cell_cfg * cfg,
         mli_tensor * out) {
 
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_gru_cell(in, prev_out, weights_in, weights_out, bias, tanh_lut, sigm_lut, 
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_gru_cell(in, prev_out, weights_in, weights_out, bias, tanh_lut, sigm_lut,
                                                         cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
@@ -2374,7 +2374,7 @@ mli_status mli_chk_gru_cell_sa8_sa8_sa32(
 
     ret = MLI_CHECK_STATUS(mli_chk_bias_scale_asym(in, weights_in, bias), __func__);
     if (ret != MLI_STATUS_OK) return ret;
-    
+
     return MLI_STATUS_OK;
 }
 
@@ -2416,7 +2416,7 @@ mli_status mli_chk_concat (const mli_tensor ** inputs, const mli_concat_cfg * cf
         fail |= MLI_CHECK(inputs[idx]->el_type == anchor_tsr->el_type, "element type mismatch");
         fail |= MLI_CHECK(inputs[idx]->el_params.fx.frac_bits == anchor_tsr->el_params.fx.frac_bits, "FX mismatch");
         fail |= MLI_CHECK(inputs[idx]->rank == anchor_tsr->rank, "rank mismatch");
-        
+
         fail |= MLI_CHECK(check_layout_is_contiguous(inputs[idx]), "Memory Layout of all input tensors must be contiguous");
         if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
@@ -2666,7 +2666,7 @@ mli_status mli_chk_convert_tensor(const mli_tensor *in, mli_tensor *out) {
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(check_ptr_not_null(in), "Bad data pointer of input")) return MLI_STATUS_BAD_TENSOR;
-    
+
     // Rank and shapes are copied from input to output tensor, so they don't need to be checked.
     // But mem_strides of output tensor still must be valid.
     if (MLI_CHECK(out != NULL , "Bad Output tensor pointer")) return MLI_STATUS_BAD_TENSOR;
@@ -2676,12 +2676,12 @@ mli_status mli_chk_convert_tensor(const mli_tensor *in, mli_tensor *out) {
 
     fail |= MLI_CHECK(check_inner_most_dimension_is_one(in), "mem_stride of the innermost dimension for input tensor must be not more than 1.");
     fail |= MLI_CHECK(check_inner_most_dimension_is_one(out), "mem_stride of the innermost dimension for output tensor must be not more than 1.");
-    
+
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
     // Check when output data points to the same memory as input, they have an equal container size.
     if (mli_hlp_tensor_data_ptr_cmp(in, out))
-        fail |= MLI_CHECK(mli_hlp_tensor_element_size(in) == mli_hlp_tensor_element_size(out) && check_mem_stride_matches(in, out), 
+        fail |= MLI_CHECK(mli_hlp_tensor_element_size(in) == mli_hlp_tensor_element_size(out) && check_mem_stride_matches(in, out),
                           "In-place computation is permitted only when tensors have the same container size and mem_stride.");
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
@@ -2725,7 +2725,7 @@ mli_status mli_chk_point_to_subtensor(const mli_tensor *in, const mli_point_to_s
     const uint32_t subtsr_start_axis = cfg->coord_num - 1;
     const uint32_t out_rank = in->rank - subtsr_start_axis;
     fail |= MLI_CHECK(check_layout_is_contiguous(in), "Memory Layout of input tensor must be contiguous");
-    fail |= MLI_CHECK(check_layout_is_contiguous(out->mem_stride, out_rank), 
+    fail |= MLI_CHECK(check_layout_is_contiguous(out->mem_stride, out_rank),
                       "Memory Layout of output tensor must be contiguous");
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
@@ -2846,7 +2846,7 @@ mli_status mli_chk_argmax(const mli_tensor *in, const mli_argmax_cfg *cfg, mli_t
         return MLI_STATUS_NOT_ENGH_MEM;
 
     if (in->el_type == MLI_EL_SA_8 || in->el_type == MLI_EL_SA_32)
-        if (MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor must be quantized on the tensor level.")) 
+        if (MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor must be quantized on the tensor level."))
             return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
     return MLI_STATUS_OK;
