@@ -57,7 +57,7 @@ struct s8asym_quant_specific_out_params_v {
     vNx4short_t out_shift;
 };
 
-#elif defined(__FXAPI__) 
+#elif defined(__FXAPI__)
 struct s8asym_quant_params_v {
     v2i16_t offset;
     v2i16_t shift;
@@ -218,8 +218,10 @@ MLI_FORCE_INLINE int8_t ir_result_cast_relu_store(const mli_acc32_t acc, const s
 
 template <typename acc_T, typename quant_T>
 MLI_FORCE_INLINE acc_T ir_rnn_result_requantize(const acc_T acc, const quant_T* params);
-template <typename acc_T>
-MLI_FORCE_INLINE acc_T ir_rnn_result_requantize(const acc_T acc, const fx_quant_specific_params* params);
+
+template <>
+MLI_FORCE_INLINE mli_acc40_t ir_rnn_result_requantize(const mli_acc40_t acc, const fx_quant_specific_params* params);
+
 template <>
 MLI_FORCE_INLINE mli_acc32_t ir_rnn_result_requantize(
         const mli_acc32_t acc, const s8asym_quant_specific_params* params);

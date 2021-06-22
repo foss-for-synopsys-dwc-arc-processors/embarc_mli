@@ -35,7 +35,7 @@ static const int kPreDivShiftS32 = 30;
 // Operating with quantization params set
 //==========================================================================
 
-MLI_FORCE_INLINE void define_requant_params(const mli_tensor *in, const mli_tensor *out, 
+MLI_FORCE_INLINE void define_requant_params(const mli_tensor *in, const mli_tensor *out,
         s8asym_quant_params *params, const uint32_t index) {
 
     /* ****************************************************************************************************************
@@ -46,26 +46,26 @@ MLI_FORCE_INLINE void define_requant_params(const mli_tensor *in, const mli_tens
      *              = scale_val * in_sa8 + out_zp - scale_val * in_zp
      *              = scale_val * in_sa8 + offset;
      *      where:
-     * 
+     *
      *      scale_val = in_scale_val / out_scale_val;
      *                = in_scale * 2^(-in_scale_frac_bits) / (out_scale * 2^(-out_scale_frac_bits));
-     *                = (in_scale_val * 2^kPreDivShift / out_scale_val) 
+     *                = (in_scale_val * 2^kPreDivShift / out_scale_val)
      *                 * 2^(-(kPreDivShift + in_scale_frac_bits - out_scale_frac_bits));
-     *                = (in_scale_val * 2^kPreDivShift / out_scale_val) * 2^(-norm_shift) 
+     *                = (in_scale_val * 2^kPreDivShift / out_scale_val) * 2^(-norm_shift)
      *                 * 2^(-(kPreDivShift + in_scale_frac_bits - out_scale_frac_bits - norm_shift));
-     *                = (in_scale_val * 2^kPreDivShift / out_scale_val) * 2^(-norm_shift) 
+     *                = (in_scale_val * 2^kPreDivShift / out_scale_val) * 2^(-norm_shift)
      *                 * 2^(-scale_shift)
      *                = scale * 2 ^(-(scale_shift))
-     * 
+     *
      *      where scale = (in_scale_val * 2^kPreDivShift / out_scale_val) * 2^(-norm_shift)
      *            scale_shift = kPreDivShift + in_scale_frac_bits - out_scale_frac_bits - norm_shift
-     *            norm_shift is the shift value due to normalizing the result of 
+     *            norm_shift is the shift value due to normalizing the result of
      *                       (in_scale_val * 2^kPreDivShift / out_scale_val) and casting it from int32_t to int16_t
      *            kPreDivShift is derived from norm_32(in_scale) - norm_16(out_scale)
-     * 
+     *
      *      offset = out_zp - scale_val * in_zp
      *             = out_zp - (scale * in_zp) * 2^(-(scale_shift));
-     * 
+     *
      * ***************************************************************************************************************/
 
     /* kPreDivShift = norm_32(in_scale_val) - norm_16(out_scale_val) */
@@ -76,15 +76,15 @@ MLI_FORCE_INLINE void define_requant_params(const mli_tensor *in, const mli_tens
     params->scale = mli_math_norm_cast_fx<int32_t, int16_t>(
                     ((int32_t)(mli_hlp_tensor_scale(in, index)) << kPreDivShift) /
                                mli_hlp_tensor_scale(out, index), &norm_shift);
-    
+
     params->shift  = kPreDivShift;
     params->shift += mli_hlp_tensor_scale_shift(in, index) - mli_hlp_tensor_scale_shift(out, index);
     params->shift -= norm_shift;
-    
+
     int16_t in_zp = mli_hlp_tensor_zero_offset(in, index);
     int16_t out_zp = mli_hlp_tensor_zero_offset(out, index);
-    
-    params->offset = mli_math_sub_fx<int16_t>(out_zp, 
+
+    params->offset = mli_math_sub_fx<int16_t>(out_zp,
                      mli_math_cast_fx<int32_t, int16_t>(
                      mli_math_mul_fx<int16_t, int32_t>(params->scale, in_zp), params->shift));
 }
@@ -166,7 +166,7 @@ MLI_FORCE_INLINE int16_t quant_params_get_weigths_zeropoint(s8asym_quant_specifi
 }
 
 MLI_FORCE_INLINE int16_t quant_params_get_weigths_zeropoint(fx_quant_specific_params*) {
-    // Function parameters are not used since for MLI_FX quantization zero_point 
+    // Function parameters are not used since for MLI_FX quantization zero_point
     // is always 0 and isn't present in params structure
     return 0;
 }
@@ -177,7 +177,7 @@ MLI_FORCE_INLINE int16_t quant_params_set_in_zeropoint(s8asym_quant_specific_par
 }
 
 MLI_FORCE_INLINE int16_t quant_params_set_in_zeropoint(fx_quant_specific_params*, int16_t) {
-    // Function parameters are not used since for MLI_FX quantization zero_point 
+    // Function parameters are not used since for MLI_FX quantization zero_point
     // is always 0 and isn't present in params structure (can't be changed)
     return 0;
 }
@@ -479,24 +479,36 @@ MLI_FORCE_INLINE int8_t ir_result_cast_relu_store(
     return out_val;
 }
 
-template <typename acc_T>
-MLI_FORCE_INLINE acc_T ir_rnn_result_requantize(
-		const acc_T acc,
-		const fx_quant_specific_params* current_params) {
-    const int in_to_ir_shift = current_params->out_shift;
+template <typename acc_T, typename quant_T>
+MLI_FORCE_INLINE acc_T ir_rnn_result_requantize(const acc_T acc, const quant_T* params) {
+    const int in_to_ir_shift = params->out_shift;
+    MLI_EXTRA_ASSERT(in_to_ir_shift >= 0);
     return mli_math_acc_ashift_fx<acc_T>(acc, in_to_ir_shift);
+}
+
+template <>
+MLI_FORCE_INLINE mli_acc40_t ir_rnn_result_requantize(
+		const mli_acc40_t acc,
+		const fx_quant_specific_params* current_params) {
+    constexpr int max_acc_shift = 39;
+    const int in_to_ir_shift = current_params->out_shift;
+    MLI_EXTRA_ASSERT(in_to_ir_shift >= 0);
+
+    int shift_right = mli_math_min_fx(in_to_ir_shift, max_acc_shift);
+    return mli_math_acc_ashift_fx<mli_acc40_t>(acc, shift_right);
 }
 
 template <>
 MLI_FORCE_INLINE mli_acc32_t ir_rnn_result_requantize(
 		const mli_acc32_t acc,
 		const s8asym_quant_specific_params* current_params) {
-
+    constexpr int max_acc_shift = 63;
     const int32_t mul = current_params->out_mul;
     const int in_to_ir_shift = current_params->out_shift;
+    int shift_clipped = mli_math_min_fx(in_to_ir_shift, max_acc_shift);
 
     auto accu_scaled = mli_math_mul_fx<int32_t, int64_t>(acc, mul);
-    auto out_no_offset = mli_math_cast_fx<int64_t, int32_t>(accu_scaled, in_to_ir_shift);
+    auto out_no_offset = mli_math_cast_fx<int64_t, int32_t>(accu_scaled, shift_clipped);
     return out_no_offset;
 }
 
