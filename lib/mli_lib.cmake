@@ -87,7 +87,6 @@ endif()
 
 if (ARC)
     list(APPEND MLI_LIB_PRIVATE_COMPILE_OPTIONS
-        -Werror
         -Wall
         -Wno-nonportable-include-path
     )
