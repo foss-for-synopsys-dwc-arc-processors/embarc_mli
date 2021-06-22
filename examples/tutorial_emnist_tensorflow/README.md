@@ -41,23 +41,23 @@ Installation process of the following dependencies is described in [Getting Star
 ## Install Python and create a virtual environment
 
 0. It is recommended that you uninstall your previous Python distribution.
-1. Download official [Python 3.7 distribution](https://www.python.org/ftp/python/3.7.4/python-3.7.4-amd64.exe).
+1. Download official [Python 3.9.5 distribution](https://www.python.org/ftp/python/3.9.5/python-3.9.5-amd64.exe).
 2. Install py launcher and pip. Do not add Python to the PATH. After this, the `py` command in command line is your entry point to Python interpreter.
 3. (optional) Install virtualenv with `py -m pip install --upgrade pip virtualenv`
 4. (optional) Create virtual environment with `py -m virtualenv py_env`.
-5. (optional) Activate virtual environment with `./py_env/Scripts/activate`.
-6. Execute ` cd ./embarc_mli/examples/tutorial_emnist_tensorflow`.
+5. (optional) Activate virtual environment with `.\py_env\Scripts\activate`.
+6. Execute ` cd .\embarc_mli\examples\tutorial_emnist_tensorflow`.
 
 ## Install pip requirements
 ```bash
-pip install --upgrade pip setuptools
-pip install -r requirements.txt
+py -m pip install --upgrade pip setuptools
+py -m pip install -r requirements.txt
 python -c "import emnist; emnist.ensure_cached_data();
 ```
 ## Deploy and test the model
 To train and deploy the model, run the Jupyter Notebook:
 ```bash
-jupyter notebook example.ipynb
+py -m jupyter notebook example.ipynb
 ```
 
 After completing the tutorial, you can run the example with DesignWare ARC nSIM simulator. The next line executes the model for a single hard-coded letter prediction providing the information on performance:

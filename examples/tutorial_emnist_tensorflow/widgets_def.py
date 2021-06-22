@@ -84,7 +84,7 @@ test_output_slider = widgets.IntSlider(
 ) 
 
 kernel_type_toggle = widgets.ToggleButtons(
-    options=['fx8', 'fx16', 'fx8w16d'],
+    options=['sa8', 'fx16', 'fx8w16d'],
     description='Kernel type:',
     disabled=False
 )

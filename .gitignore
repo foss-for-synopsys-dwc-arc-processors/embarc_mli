@@ -9,6 +9,8 @@ example_cifar10_caffe/MIDE_EM/EM*D/*
 example_cifar10_caffe/MIDE_EM/.settings/*
 example_har_smartphone/MIDE_EM/EM*D/*
 example_har_smartphone/MIDE_EM/.settings/*
+tutorial_emnist_tensorflow/MIDE_EM/EM*D/*
+tutorial_emnist_tensorflow/MIDE_EM/.settings/*
 *.log
 *mdb_log.txt
 *.stdout

@@ -14,7 +14,7 @@
 PUBLIC_DIR = ../..
 include $(PUBLIC_DIR)/make/rules.mk
 
-BUILD_SUBDIR = examples$(PS)example_cifar10_caffe
+BUILD_SUBDIR = examples$(PS)tutorial_emnist_tensorflow
 
 
 TYPES = \
@@ -30,9 +30,9 @@ run: run_FX16
 
 $(RUN_TARGETS): run_%: app
 ifndef TCF_FILE
-	$(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)elf_files$(PS)example_cifar10_caffe_$* $(RUN_ARGS)
+	$(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)elf_files$(PS)tutorial_emnist_tensorflow_$* $(RUN_ARGS)
 else
-	mdb $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)elf_files$(PS)example_cifar10_caffe_$*.elf \
+	mdb $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)elf_files$(PS)tutorial_emnist_tensorflow_$*.elf \
 		-cl  -nsim -cmd=run -off=cr_for_more -cmd=exit -tcf=$(TCF_FILE) -- $(RUN_ARGS)
 endif
 
