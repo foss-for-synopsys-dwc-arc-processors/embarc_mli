@@ -103,6 +103,10 @@ int main(int argc, char *argv[]) {
         printf("No detections in input image.\n");
     }
 
+    printf("Pre_process ticks: %lld\n", detector.get_prof_ticks(fd_module::prof_tick_id::kProfPreProcess));
+    printf("Model ticks: %lld\n", detector.get_prof_ticks(fd_module::prof_tick_id::kProfModel));
+    printf("Post_process ticks: %lld\n", detector.get_prof_ticks(fd_module::prof_tick_id::kProfPostProcess));
+    printf("Total ticks: %lld\n", detector.get_prof_ticks(fd_module::prof_tick_id::kProfTotal));
     for (int det_idx = 0; det_idx < detections.detections_num; ++det_idx) {
         const auto bbox_top_left = 
             fd_module::get_coordinate(detections, det_idx, fd_module::coord_id::kCoordBboxTopLeft);

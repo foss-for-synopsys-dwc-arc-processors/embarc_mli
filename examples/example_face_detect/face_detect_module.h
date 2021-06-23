@@ -80,6 +80,13 @@ public:
         kCoordLeftEar,
         kCoordRightEar,
     };
+    
+    enum class prof_tick_id {
+        kProfPreProcess = 0,
+        kProfModel,
+        kProfPostProcess,
+        kProfTotal,
+    };
 
     // Default constructor to initialize module
     fd_module();
@@ -116,8 +123,19 @@ public:
     //         Returns -1 in case of invalid input parameters.
     static float get_score(const fd_result &res, int detect_idx);
 
+    // Get a Profiler ticks according to ID.
+    uint64_t get_prof_ticks(prof_tick_id id);
+
+    // Reset profiler.
+    void reset_prof_ticks();
+
 private:
     struct fd_detection;
+
+    mutable uint64_t pre_process_ticks;
+    mutable uint64_t model_ticks;
+    mutable uint64_t post_process_ticks;
+    mutable uint64_t total_ticks;
 };
 
 } // namespace mli_fd
