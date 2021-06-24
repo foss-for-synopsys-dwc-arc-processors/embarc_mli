@@ -34,13 +34,13 @@
 //
 //==============================================================
 
-inline void set_mli_tensor_shape1(mli_tensor* tensor, uint32_t shape0) {
+static inline void set_mli_tensor_shape1(mli_tensor* tensor, uint32_t shape0) {
     tensor->rank = 1;
     tensor->shape[0] = shape0;
     tensor->mem_stride[0] = 1;
 }
 
-inline void set_mli_tensor_shape2(mli_tensor* tensor, uint32_t shape0, uint32_t shape1) {
+static inline void set_mli_tensor_shape2(mli_tensor* tensor, uint32_t shape0, uint32_t shape1) {
     tensor->rank = 2;
     tensor->shape[0] = shape0;
     tensor->shape[1] = shape1;
@@ -48,7 +48,7 @@ inline void set_mli_tensor_shape2(mli_tensor* tensor, uint32_t shape0, uint32_t 
     tensor->mem_stride[1] = 1;
 }
 
-inline void set_mli_tensor_shape3(mli_tensor* tensor, uint32_t shape0, uint32_t shape1, uint32_t shape2) {
+static inline void set_mli_tensor_shape3(mli_tensor* tensor, uint32_t shape0, uint32_t shape1, uint32_t shape2) {
     tensor->rank = 3;
     tensor->shape[0] = shape0;
     tensor->shape[1] = shape1;

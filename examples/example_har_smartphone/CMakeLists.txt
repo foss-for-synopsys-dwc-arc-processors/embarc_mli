@@ -6,6 +6,8 @@
 # the LICENSE file in the root directory of this source tree.
 #
 
+project(har_smartphone)
+
 include(../../cmake/settings.cmake)
 
 file(GLOB temp
@@ -19,12 +21,10 @@ set(EXAMPLE_FLAGS
     -Hpurge
     -Hheap=8K
     -Hstack=1K
-    -Hfxapi
     -e_start
     -Bgrouplib
     -Hldopt=-q
     -Hsdata0
-    -Xdsp_ctrl=postshift,guard,convergent
     -Hdense_prologue
     -Hcl
     -Hcrt_argv
@@ -63,13 +63,13 @@ function(ADD_DATA_TYPE DATA_TYPE DATA_TYPE_SHORT BIT_DEPTH)
     if (ARC)
         target_link_options(${TARGET} PRIVATE
             -m
-            -Coutput=./elf_files/${TARGET}.map
+            -Coutput=./bin/${TARGET}.map
         )
     endif()
 
     set_target_properties(${TARGET}
         PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY "./elf_files$<0:>"
+        RUNTIME_OUTPUT_DIRECTORY "./bin$<0:>"
     )
 endfunction()
 

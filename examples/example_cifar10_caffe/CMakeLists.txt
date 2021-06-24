@@ -6,6 +6,8 @@
 # the LICENSE file in the root directory of this source tree.
 #
 
+project(cifar10_caffe)
+
 include(../../cmake/settings.cmake)
 
 file(GLOB temp
@@ -61,13 +63,13 @@ function(ADD_DATA_TYPE DATA_TYPE BIT_DEPTH)
     if (ARC)
         target_link_options(${TARGET} PRIVATE
             -m
-            -Coutput=./elf_files/${TARGET}.map
+            -Coutput=./bin/${TARGET}.map
         )
     endif()
 
     set_target_properties(${TARGET}
         PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY "./elf_files$<0:>"
+        RUNTIME_OUTPUT_DIRECTORY "./bin$<0:>"
     )
 endfunction()
 

@@ -6,7 +6,7 @@
 * the LICENSE file in the root directory of this source tree.
 *
 */
-
+#if defined(_ARC)
 #if defined (__GNUC__) && !defined (__CCAC__)
 
 #include <stdint.h>
@@ -58,5 +58,5 @@ int start_init(void) {
 
     return status;
 }
-
-#endif
+#endif // if defined (__GNUC__) && !defined (__CCAC__)
+#endif // _ARC

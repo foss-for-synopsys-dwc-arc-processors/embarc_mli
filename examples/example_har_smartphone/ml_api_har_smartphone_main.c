@@ -31,13 +31,17 @@
 #include "tensor_transform.h"
 #include "tests_aux.h"
 
-#if defined (__GNUC__) && !defined (__CCAC__)
+#if defined (_ARC) && defined (__GNUC__) && !defined (__CCAC__)
+#define ARC_GNU
+#endif
+
+#if defined (ARC_GNU)
 extern int start_init(void);
-#endif // if defined (__GNUC__) && !defined (__CCAC__)
+#endif
 
 // Root to referenc IR vectors for comparison
 // pass "./ir_idx_300" for debug
-static const char kHarIrRefRoot[] = "./ir_idx_300";
+static const char kHarIrRefRoot[] = "";
 static const char kOutFilePostfix[] =  "_out";
 static float kSingleInSeq[IN_POINTS] = IN_SEQ_300;
 static float kSingleOutRef[OUT_POINTS] = OUT_SCORES_300;
@@ -55,7 +59,7 @@ char param[EXAMPLE_MAX_MODE][256];// emulation argv for GNU toolchain
 //========================================================================================
 int main(int argc, char ** argv ) {
     
-#if defined (__GNUC__) && !defined (__CCAC__)
+#if defined (ARC_GNU)
 //ARC GNU tools
     if (0 != start_init() ){
         printf("ERROR: init proccesor\n");
@@ -74,12 +78,12 @@ int main(int argc, char ** argv ) {
             memcpy( &param[i][0], argv[i], strlen(argv[i]) );
         }
     }        
-#endif // if defined (__GNUC__) && !defined (__CCAC__)
+#endif // if defined (ARC_GNU)
    
     //checking that variables are set
     if(mode == 0){
         printf("ERROR: mode not set up\n");
-#if defined (__GNUC__) && !defined (__CCAC__)        
+#if defined (ARC_GNU)
 //ARC GNU tools
         printf("Please set up mode \n");
         printf("Please check that you use mdb_com_gnu script with correct setups\n");
@@ -89,7 +93,7 @@ int main(int argc, char ** argv ) {
                 "\t%s \n\t\tProcess single hardcoded vector\n\n"
                 "\t%s <input_test_base.idx> \n\t\tProcess testset from file and \n"
                 "\t\t output model results to <input_test_base.idx_out> file\n\n", argv[0], argv[0]);
-#endif // if defined (__GNUC__) && !defined (__CCAC__)                 
+#endif // if defined (ARC_GNU)
         return 2; //Error: mode not set       
     }  
     
