@@ -46,24 +46,22 @@ extern "C" {
 //==================================================
 
 /** @def Profiling switcher*/
-#ifdef _ARC
 #define PROFILING_ON
-#endif
 
 /** @var Cycles counter variable. Will hold number of cycles spent for code surrounded by PROFILE(F) macro*/
 extern unsigned cycle_cnt;
 
 /** @def Profiling macro for calculating cyclecount (uses arc specific timer and it's sw interface)*/
 #if defined(PROFILING_ON)
-#ifdef _ARC
+#if defined(__CCAC__)
 //MWDT toolchain profiling
 #include <arc/arc_timer.h>
 #define PROFILE(F)  \
     _timer_default_reset();\
     F;\
     cycle_cnt = _timer_default_read();
-#else
-//GNU toolchain profiling
+#elif defined(_ARC)
+// Another ARC toolchain profiling (ARC_GNU)
 static inline void test_aux_start_timer_0() {
     _sr(0 , 0x22);
     _sr(0xffffffff, 0x23);
@@ -98,12 +96,15 @@ static inline void test_aux_stop_timer_1() {
     test_aux_start_timer_0(); \
     F;\
     cycle_cnt = test_aux_read_timer_0();
-#endif
 #else
+// Another platform (host). ctime support is expected
+#include <time.h>
 #define PROFILE(F) \
-    cycle_cnt = 0;\
-    F;
+    cycle_cnt = clock();\
+    F;\
+    cycle_cnt = clock() - cycle_cnt;
 #endif
+#endif //PROFILING_ON
 
 //==================================================
 //

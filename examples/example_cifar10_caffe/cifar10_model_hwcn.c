@@ -35,18 +35,19 @@
 //
 //==============================================================
 
-inline void set_mli_tensor_params(mli_tensor* tensor, int16_t zero_point, int8_t scale_frac_bits, int16_t scale) {
+static inline void set_mli_tensor_params(mli_tensor* tensor, int16_t zero_point, int8_t scale_frac_bits, int16_t scale) {
     tensor->el_params.sa.zero_point.mem.i16 = zero_point;
     tensor->el_params.sa.scale_frac_bits.mem.i8 = scale_frac_bits;
     tensor->el_params.sa.scale.mem.i16 = scale;
 }
 
-inline void set_mli_tensor_shape1(mli_tensor* tensor, uint32_t shape0) {
+static inline void set_mli_tensor_shape1(mli_tensor* tensor, uint32_t shape0) {
     tensor->rank = 1;
     tensor->shape[0] = shape0;
     tensor->mem_stride[0] = 1;
 }
-inline void set_mli_tensor_shape3(mli_tensor* tensor, uint32_t shape0, uint32_t shape1, uint32_t shape2) {
+
+static inline void set_mli_tensor_shape3(mli_tensor* tensor, uint32_t shape0, uint32_t shape1, uint32_t shape2) {
     tensor->rank = 3;
     tensor->shape[0] = shape0;
     tensor->shape[1] = shape1;

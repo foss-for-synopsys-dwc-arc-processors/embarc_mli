@@ -6,16 +6,18 @@
 # the LICENSE file in the root directory of this source tree.
 #
 
-# TCF_FILE: withouts NOT setting this parameter,
-#           the default native compiler is used to compile
-# BUILDLIB_DIR ?= ev71_buildlib can be specified if no MWDT buildlib is available
-# See rules.mk for all flags
-
-PUBLIC_DIR = ../..
+PUBLIC_DIR = $(CURDIR)/../..
 include $(PUBLIC_DIR)/make/rules.mk
 
 BUILD_SUBDIR = examples$(PS)example_cifar10_caffe
+BIN_PATH = $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)bin
 
+ifndef TCF_FILE
+RUN_APP_CMD =
+else
+RUN_APP_CMD = mdb64 -cl  -nsim -cmd=run -off=cr_for_more -cmd=exit -tcf=$(TCF_FILE)
+BIN_EXT = .elf
+endif
 
 TYPES = \
 	FX16 \
@@ -29,11 +31,6 @@ app: build
 run: run_FX16
 
 $(RUN_TARGETS): run_%: app
-ifndef TCF_FILE
-	$(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)elf_files$(PS)example_cifar10_caffe $(RUN_ARGS)
-else
-	mdb $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)elf_files$(PS)example_cifar10_caffe_$*.elf \
-		-cl  -nsim -cmd=run -off=cr_for_more -cmd=exit -tcf=$(TCF_FILE) -- $(RUN_ARGS)
-endif
+	$(RUN_APP_CMD) $(BIN_PATH)$(PS)example_cifar10_caffe_$*$(BIN_EXT) $(RUN_ARGS)
 
 .PHONY:	app $(RUN_TARGETS)
