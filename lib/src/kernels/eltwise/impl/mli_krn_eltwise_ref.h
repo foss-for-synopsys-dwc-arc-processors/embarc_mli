@@ -19,6 +19,7 @@
 #include "mli_math.h"
 #include "mli_mem_info.h"
 
+
 #define INT32_TO_INT16 16
 #define IN_SCALE_SHIFT 32
 #define MUL_MAX_SHIFT 31
@@ -237,7 +238,7 @@ void eltwise_op_basic(
     MLI_PRINTF_FUNC();
     MLI_PTR(io_T) in1_ptr = nullptr;
     MLI_PTR(io_T) in2_ptr = nullptr;
-    if (!scalar_op2)          
+    if (!scalar_op2)
         in2_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in2);
 
     if (!scalar_op1)
@@ -342,12 +343,14 @@ void eltwise_prepare_and_run(
             pre_op_shift1 = MIN(in1->el_params.fx.frac_bits -  in2->el_params.fx.frac_bits, 0);
             pre_op_shift2 = MIN(in2->el_params.fx.frac_bits -  in1->el_params.fx.frac_bits, 0);
             post_op_shift = MAX(in1->el_params.fx.frac_bits, in2->el_params.fx.frac_bits) - out->el_params.fx.frac_bits;
+            MLI_EXTRA_ASSERT(pre_op_shift1 > -max_shift);
+            MLI_EXTRA_ASSERT(pre_op_shift2 > -max_shift);
         }
         post_op_shift = MIN(post_op_shift, max_shift);
     }
 
     if (no_scalar){
-        //assumption that always 0 
+        //assumption that always 0
         scalar_op1 = 0;
         scalar_op2 = 0;
     } else {
@@ -366,7 +369,7 @@ void eltwise_prepare_and_run(
     if (!no_out_update){
         const unsigned *shape_ptr = (in1_sz > in2_sz)? in1->shape: in2->shape;
         int rank = (in1_sz > in2_sz)? (int)in1->rank: (int)in2->rank;
-        
+
         out->rank = rank;
         for (int k = 0; k < rank; k++)
             out->shape[k] = shape_ptr[k];
@@ -379,8 +382,8 @@ void eltwise_prepare_and_run(
     if (shape_1d)
     {
         //assumption that the condition ((in1->mem_stride[0] == in1->shape[1]) &&
-        //                               (in2->mem_stride[0] == in1->shape[1]) && 
-        //                               (out->mem_stride[0] == in1->shape[1])) is always true 
+        //                               (in2->mem_stride[0] == in1->shape[1]) &&
+        //                               (out->mem_stride[0] == in1->shape[1])) is always true
         if (no_scalar){
            flatten_count = in1->shape[in1->rank - 1];
         } else {
@@ -391,15 +394,15 @@ void eltwise_prepare_and_run(
               flatten_count = in1->shape[in1->rank - 1];
             } else {
               flatten_count = 1;
-            }        
+            }
         }
-        
+
         MLI_PTR(io_T) in1_ptr = nullptr;
         MLI_PTR(io_T) in2_ptr = nullptr;
-        if (!scalar_op2)             
+        if (!scalar_op2)
             in2_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in2);
 
-        if (!scalar_op1) 
+        if (!scalar_op1)
             in1_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in1);
 
         auto out_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(out);
@@ -407,7 +410,7 @@ void eltwise_prepare_and_run(
         mli::krn::eltwise_innerloop<io_T, func_type, convert>(
                     in1_ptr, in2_ptr , out_ptr, 0, 0, 0, flatten_count,
                     in1_scalar, in2_scalar, scalar_op1, scalar_op2,
-                    in_offset1, in_offset2, out_offset, 
+                    in_offset1, in_offset2, out_offset,
                     scale16_1, scale16_2, pre_op_shift1, pre_op_shift2, post_op_shift);
 
         return;
@@ -431,7 +434,7 @@ void eltwise_prepare_and_run(
             return;
         }
     }
-         
+
     auto out_prv = mli_prv_get_generic_tensor<MLI_PTR(io_T)>(out);
     generic_tensor_private_t<MLI_PTR(io_T)>  in1_prv;
     generic_tensor_private_t<MLI_PTR(io_T)>  in2_prv;

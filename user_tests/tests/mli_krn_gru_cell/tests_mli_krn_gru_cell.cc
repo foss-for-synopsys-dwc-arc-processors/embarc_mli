@@ -54,39 +54,39 @@ struct gru_cell_test_operands {
     const crc32_calc check_sum;
 };
 
-// Checksums of test tensors for various mli calculations mode. 
+// Checksums of test tensors for various mli calculations mode.
 // When developer finished implementation of kernel and consider it as ok, one needs to populate
 // proper checksums for tests in order to highlight any change which affects results.
 #if defined(CRC_RM_UP)
-const crc32_calc test_1_chksum_fx16{ 0x563DD8AC }, test_1_chksum_fx16_fx8_fx8{ 0xFCA13304 }, test_1_chksum_sa8{ 0x75D21CEA },
-                 test_2_chksum_fx16{ 0x563DD8AC }, test_2_chksum_fx16_fx8_fx8{ 0xFCA13304 }, test_2_chksum_sa8{ 0x75D21CEA },
-                 test_3_chksum_fx16{ 0x6DE472ED }, test_3_chksum_fx16_fx8_fx8{ 0xF0BFF289 }, test_3_chksum_sa8{ 0x6CA68F9A },
-                 test_4_chksum_fx16{ 0x6765BAFB }, test_4_chksum_fx16_fx8_fx8{ 0x474198D0 }, test_4_chksum_sa8{ 0x3925A7BD },
-                 test_5_chksum_fx16{ 0x451A5AE6 }, test_5_chksum_fx16_fx8_fx8{ 0xBDDE175D }, test_5_chksum_sa8{ 0xD18B2826 },
-                 test_6_chksum_fx16{ 0x4F9B92F0 }, test_6_chksum_fx16_fx8_fx8{ 0x0A207D04 }, test_6_chksum_sa8{ 0x84080001 },
-                 test_7_chksum_fx16{ 0xB27FD64E }, test_7_chksum_fx16_fx8_fx8{ 0xCE33A5EE }, test_7_chksum_sa8{ 0x8E809080 },
-                 test_8_chksum_fx16{ 0xBD354CF0 }, test_8_chksum_fx16_fx8_fx8{ 0x63FA453F }, test_8_chksum_sa8{ 0x118AA169 };
+const crc32_calc test_1_chksum_fx16{ 0x30EB7218 }, test_1_chksum_fx16_fx8_fx8{ 0xB03A928B }, test_1_chksum_sa8{ 0x2FBBE277 },
+                 test_2_chksum_fx16{ 0x30EB7218 }, test_2_chksum_fx16_fx8_fx8{ 0xB03A928B }, test_2_chksum_sa8{ 0x2FBBE277 },
+                 test_3_chksum_fx16{ 0xDCDFE0AE }, test_3_chksum_fx16_fx8_fx8{ 0x579DD187 }, test_3_chksum_sa8{ 0x0B290755 },
+                 test_4_chksum_fx16{ 0xD65E28B8 }, test_4_chksum_fx16_fx8_fx8{ 0xE063BBDE }, test_4_chksum_sa8{ 0x5EAA2F72 },
+                 test_5_chksum_fx16{ 0x3E0869E2 }, test_5_chksum_fx16_fx8_fx8{ 0x4F7B853B }, test_5_chksum_sa8{ 0x9A1EA2EF },
+                 test_6_chksum_fx16{ 0x3489A1F4 }, test_6_chksum_fx16_fx8_fx8{ 0xF885EF62 }, test_6_chksum_sa8{ 0xCF9D8AC8 },
+                 test_7_chksum_fx16{ 0x9D283D92 }, test_7_chksum_fx16_fx8_fx8{ 0x9F6DA9EB }, test_7_chksum_sa8{ 0xACBEE96F },
+                 test_8_chksum_fx16{ 0x959CFF2A }, test_8_chksum_fx16_fx8_fx8{ 0x1C2A8025 }, test_8_chksum_sa8{ 0x71E73A61 };
 
 #elif defined(CRC_RM_CONVERGENT)
 // TODO: remove after fixing mli_math_acc_ashift_fx() and supporting acc40 shift with round
 #if defined(__FXAPI__)
-const crc32_calc test_1_chksum_fx16{ 0xB1587B8E }, test_1_chksum_fx16_fx8_fx8{ 0xD3ABD3EB }, test_1_chksum_sa8{ 0x75D21CEA },
-                 test_2_chksum_fx16{ 0xB1587B8E }, test_2_chksum_fx16_fx8_fx8{ 0xD3ABD3EB }, test_2_chksum_sa8{ 0x75D21CEA },
-                 test_3_chksum_fx16{ 0xDBA7496C }, test_3_chksum_fx16_fx8_fx8{ 0x38D3DF65 }, test_3_chksum_sa8{ 0xF2157E57 },
-                 test_4_chksum_fx16{ 0xD126817A }, test_4_chksum_fx16_fx8_fx8{ 0x8F2DB53C }, test_4_chksum_sa8{ 0xA7965670 },
-                 test_5_chksum_fx16{ 0xA9C7D5C4 }, test_5_chksum_fx16_fx8_fx8{ 0x17D7DFD6 }, test_5_chksum_sa8{ 0x5C8A8074 },
-                 test_6_chksum_fx16{ 0xA3461DD2 }, test_6_chksum_fx16_fx8_fx8{ 0xA029B58F }, test_6_chksum_sa8{ 0x0909A853 },
-                 test_7_chksum_fx16{ 0xD81EFB70 }, test_7_chksum_fx16_fx8_fx8{ 0x7C0CE29B }, test_7_chksum_sa8{ 0x8721D53E },
-                 test_8_chksum_fx16{ 0x31D77812 }, test_8_chksum_fx16_fx8_fx8{ 0x63FA453F }, test_8_chksum_sa8{ 0x6946CD0C };
+const crc32_calc test_1_chksum_fx16{ 0xFBDE713E }, test_1_chksum_fx16_fx8_fx8{ 0xB03A928B }, test_1_chksum_sa8{ 0x605D7927 },
+                 test_2_chksum_fx16{ 0xFBDE713E }, test_2_chksum_fx16_fx8_fx8{ 0xB03A928B }, test_2_chksum_sa8{ 0x605D7927 },
+                 test_3_chksum_fx16{ 0x4E9EE546 }, test_3_chksum_fx16_fx8_fx8{ 0xFCAF017B }, test_3_chksum_sa8{ 0x6A03698A },
+                 test_4_chksum_fx16{ 0x441F2D50 }, test_4_chksum_fx16_fx8_fx8{ 0x4B516B22 }, test_4_chksum_sa8{ 0x3F8041AD },
+                 test_5_chksum_fx16{ 0x75021B52 }, test_5_chksum_fx16_fx8_fx8{ 0x2F2C45E4 }, test_5_chksum_sa8{ 0xE36EB137 },
+                 test_6_chksum_fx16{ 0x7F83D344 }, test_6_chksum_fx16_fx8_fx8{ 0x98D22FBD }, test_6_chksum_sa8{ 0xB6ED9910 },
+                 test_7_chksum_fx16{ 0x5CEAEBCA }, test_7_chksum_fx16_fx8_fx8{ 0x9FF65DE4 }, test_7_chksum_sa8{ 0xD54F47E2 },
+                 test_8_chksum_fx16{ 0x823F1D82 }, test_8_chksum_fx16_fx8_fx8{ 0xDDE0D9A2 }, test_8_chksum_sa8{ 0x427B2A3F };
 #else
-const crc32_calc test_1_chksum_fx16{ 0x563DD8AC }, test_1_chksum_fx16_fx8_fx8{ 0xD3ABD3EB }, test_1_chksum_sa8{ 0x75D21CEA },
-                 test_2_chksum_fx16{ 0x563DD8AC }, test_2_chksum_fx16_fx8_fx8{ 0xD3ABD3EB }, test_2_chksum_sa8{ 0x75D21CEA },
-                 test_3_chksum_fx16{ 0x6DE472ED }, test_3_chksum_fx16_fx8_fx8{ 0x38D3DF65 }, test_3_chksum_sa8{ 0xF2157E57 },
-                 test_4_chksum_fx16{ 0x6765BAFB }, test_4_chksum_fx16_fx8_fx8{ 0x8F2DB53C }, test_4_chksum_sa8{ 0xA7965670 },
-                 test_5_chksum_fx16{ 0xFEA8B12E }, test_5_chksum_fx16_fx8_fx8{ 0x17D7DFD6 }, test_5_chksum_sa8{ 0x5C8A8074 },
-                 test_6_chksum_fx16{ 0xF4297938 }, test_6_chksum_fx16_fx8_fx8{ 0xA029B58F }, test_6_chksum_sa8{ 0x0909A853 },
-                 test_7_chksum_fx16{ 0xB27FD64E }, test_7_chksum_fx16_fx8_fx8{ 0x7C0CE29B }, test_7_chksum_sa8{ 0x8721D53E },
-                 test_8_chksum_fx16{ 0xBD354CF0 }, test_8_chksum_fx16_fx8_fx8{ 0x63FA453F }, test_8_chksum_sa8{ 0x6946CD0C };
+const crc32_calc test_1_chksum_fx16{ 0x30EB7218 }, test_1_chksum_fx16_fx8_fx8{ 0xB03A928B }, test_1_chksum_sa8{ 0x605D7927 },
+                 test_2_chksum_fx16{ 0x30EB7218 }, test_2_chksum_fx16_fx8_fx8{ 0xB03A928B }, test_2_chksum_sa8{ 0x605D7927 },
+                 test_3_chksum_fx16{ 0x845F7858 }, test_3_chksum_fx16_fx8_fx8{ 0xFCAF017B }, test_3_chksum_sa8{ 0x6A03698A },
+                 test_4_chksum_fx16{ 0x8EDEB04E }, test_4_chksum_fx16_fx8_fx8{ 0x4B516B22 }, test_4_chksum_sa8{ 0x3F8041AD },
+                 test_5_chksum_fx16{ 0x3D7E7B0A }, test_5_chksum_fx16_fx8_fx8{ 0x2F2C45E4 }, test_5_chksum_sa8{ 0xE36EB137 },
+                 test_6_chksum_fx16{ 0x37FFB31C }, test_6_chksum_fx16_fx8_fx8{ 0x98D22FBD }, test_6_chksum_sa8{ 0xB6ED9910 },
+                 test_7_chksum_fx16{ 0x9F39F82C }, test_7_chksum_fx16_fx8_fx8{ 0x9FF65DE4 }, test_7_chksum_sa8{ 0xD54F47E2 },
+                 test_8_chksum_fx16{ 0xD874FF4D }, test_8_chksum_fx16_fx8_fx8{ 0xDDE0D9A2 }, test_8_chksum_sa8{ 0x427B2A3F };
 #endif
 #else // Not defined CRC_*
 const crc32_calc  test_1_chksum_fx16, test_1_chksum_fx16_fx8_fx8, test_1_chksum_sa8,
@@ -114,99 +114,99 @@ static gru_cell_test_operands tests_list[] = {
 
 #ifdef COMPILE_FOR_FX16
     // One-to-one, RNN_OUT_LAST, Forward processing
-    {"Test 1 FX16 OtO,Forw",          mli_krn_gru_cell_fx16, 
-                                      input_1_fx16, hidden_1_fx16, weights_1_in_fx16, weights_1_out_fx16, bias_1_fx16, 
+    {"Test 1 FX16 OtO,Forw",          mli_krn_gru_cell_fx16,
+                                      input_1_fx16, hidden_1_fx16, weights_1_in_fx16, weights_1_out_fx16, bias_1_fx16,
                                       test_1_out_fx16, test_1_cfg, thresholds_fx16_general, test_1_chksum_fx16},
     // One-to-one, RNN_OUT_LAST, Backward processing
-    {"Test 2 FX16 OtO,Back",          mli_krn_gru_cell_fx16, 
-                                      input_1_fx16, hidden_1_fx16, weights_1_in_fx16, weights_1_out_fx16, bias_1_fx16, 
+    {"Test 2 FX16 OtO,Back",          mli_krn_gru_cell_fx16,
+                                      input_1_fx16, hidden_1_fx16, weights_1_in_fx16, weights_1_out_fx16, bias_1_fx16,
                                       test_1_out_fx16, test_2_cfg, thresholds_fx16_general, test_2_chksum_fx16},
     // Sequence-to-sequence, RNN_OUT_ALL, Forward processing
-    {"Test 3 FX16 StS,ALL,Forw",      mli_krn_gru_cell_fx16, 
-                                      input_2_fx16, hidden_1_fx16, weights_2_in_fx16, weights_2_out_fx16, bias_1_fx16, 
-                                      test_3_out_fx16, test_3_cfg, thresholds_fx16_general, test_3_chksum_fx16},    
+    {"Test 3 FX16 StS,ALL,Forw",      mli_krn_gru_cell_fx16,
+                                      input_2_fx16, hidden_1_fx16, weights_2_in_fx16, weights_2_out_fx16, bias_1_fx16,
+                                      test_3_out_fx16, test_3_cfg, thresholds_fx16_general, test_3_chksum_fx16},
     // Sequence-to-sequence, RNN_OUT_ALL, Forward processing, memstrides
-    {"Test 4 FX16 StS,ALL,F,ms",      mli_krn_gru_cell_fx16, 
-                                      input_2_fx16, hidden_1_fx16, weights_2_in_memstr_fx16, weights_2_out_memstr_fx16, 
-                                      bias_1_fx16, test_3_out_fx16, test_3_cfg, thresholds_fx16_general, 
+    {"Test 4 FX16 StS,ALL,F,ms",      mli_krn_gru_cell_fx16,
+                                      input_2_fx16, hidden_1_fx16, weights_2_in_memstr_fx16, weights_2_out_memstr_fx16,
+                                      bias_1_fx16, test_3_out_fx16, test_3_cfg, thresholds_fx16_general,
                                       test_4_chksum_fx16},
     // Sequence-to-sequence, RNN_OUT_ALL, Backward processing
-    {"Test 5 FX16 StS,ALL,Back",      mli_krn_gru_cell_fx16, 
-                                      input_2_fx16, hidden_1_fx16, weights_2_in_fx16, weights_2_out_fx16, bias_1_fx16, 
-                                      test_4_out_fx16, test_4_cfg, thresholds_fx16_general, test_5_chksum_fx16},    
+    {"Test 5 FX16 StS,ALL,Back",      mli_krn_gru_cell_fx16,
+                                      input_2_fx16, hidden_1_fx16, weights_2_in_fx16, weights_2_out_fx16, bias_1_fx16,
+                                      test_4_out_fx16, test_4_cfg, thresholds_fx16_general, test_5_chksum_fx16},
     // Sequence-to-sequence, RNN_OUT_ALL, Backward processing, memstrides
-    {"Test 6 FX16 StS,ALL,B,ms",      mli_krn_gru_cell_fx16, 
-                                      input_2_fx16, hidden_1_fx16, weights_2_in_memstr_fx16, weights_2_out_memstr_fx16, 
-                                      bias_1_fx16, test_4_out_fx16, test_4_cfg, thresholds_fx16_general, 
+    {"Test 6 FX16 StS,ALL,B,ms",      mli_krn_gru_cell_fx16,
+                                      input_2_fx16, hidden_1_fx16, weights_2_in_memstr_fx16, weights_2_out_memstr_fx16,
+                                      bias_1_fx16, test_4_out_fx16, test_4_cfg, thresholds_fx16_general,
                                       test_6_chksum_fx16},
     // Sequence-to-sequence, RNN_OUT_LAST, Forward processing
-    {"Test 7 FX16 StS,LAST,Forw",     mli_krn_gru_cell_fx16, 
-                                      input_2_fx16, hidden_1_fx16, weights_2_in_fx16, weights_2_out_fx16, bias_1_fx16, 
+    {"Test 7 FX16 StS,LAST,Forw",     mli_krn_gru_cell_fx16,
+                                      input_2_fx16, hidden_1_fx16, weights_2_in_fx16, weights_2_out_fx16, bias_1_fx16,
                                       test_5_out_fx16, test_5_cfg, thresholds_fx16_general, test_7_chksum_fx16},
     // Sequence-to-sequence, RNN_OUT_LAST, Backward processing
-    {"Test 8 FX16 StS,LAST,Back",     mli_krn_gru_cell_fx16, 
-                                      input_2_fx16, hidden_1_fx16, weights_2_in_fx16, weights_2_out_fx16, bias_1_fx16, 
+    {"Test 8 FX16 StS,LAST,Back",     mli_krn_gru_cell_fx16,
+                                      input_2_fx16, hidden_1_fx16, weights_2_in_fx16, weights_2_out_fx16, bias_1_fx16,
                                       test_6_out_fx16, test_6_cfg, thresholds_fx16_general, test_8_chksum_fx16},
-    
+
 #elif COMPILE_FOR_FX16_FX8_FX8
-    {"Test 1 FX16_FX8 OtO,Forw",      mli_krn_gru_cell_fx16_fx8_fx8, 
-                                      input_1_fx16, hidden_1_fx16, weights_1_in_fx8, weights_1_out_fx8, bias_1_fx8, 
-                                      test_1_out_fx16, test_1_cfg, thresholds_fx16_fx8_fx8_general, 
+    {"Test 1 FX16_FX8 OtO,Forw",      mli_krn_gru_cell_fx16_fx8_fx8,
+                                      input_1_fx16, hidden_1_fx16, weights_1_in_fx8, weights_1_out_fx8, bias_1_fx8,
+                                      test_1_out_fx16, test_1_cfg, thresholds_fx16_fx8_fx8_general,
                                       test_1_chksum_fx16_fx8_fx8},
-    {"Test 2 FX16_FX8 OtO,Back",      mli_krn_gru_cell_fx16_fx8_fx8, 
-                                      input_1_fx16, hidden_1_fx16, weights_1_in_fx8, weights_1_out_fx8, bias_1_fx8, 
-                                      test_1_out_fx16, test_2_cfg, thresholds_fx16_fx8_fx8_general, 
+    {"Test 2 FX16_FX8 OtO,Back",      mli_krn_gru_cell_fx16_fx8_fx8,
+                                      input_1_fx16, hidden_1_fx16, weights_1_in_fx8, weights_1_out_fx8, bias_1_fx8,
+                                      test_1_out_fx16, test_2_cfg, thresholds_fx16_fx8_fx8_general,
                                       test_2_chksum_fx16_fx8_fx8},
-    {"Test 3 FX16_FX8 StS,ALL,Forw",  mli_krn_gru_cell_fx16_fx8_fx8, 
-                                      input_2_fx16, hidden_1_fx16, weights_2_in_fx8, weights_2_out_fx8, bias_1_fx8, 
-                                      test_3_out_fx16, test_3_cfg, thresholds_fx16_fx8_fx8_general, 
-                                      test_3_chksum_fx16_fx8_fx8},
-    {"Test 4 FX16_FX8 StS,ALL,F,ms",  mli_krn_gru_cell_fx16_fx8_fx8, 
-                                      input_2_fx16, hidden_1_fx16, weights_2_in_memstr_fx8, weights_2_out_memstr_fx8, 
-                                      bias_1_fx8, test_3_out_fx16, test_3_cfg, thresholds_fx16_fx8_fx8_general, 
-                                      test_4_chksum_fx16_fx8_fx8},
-    {"Test 5 FX16_FX8 StS,ALL,Back",  mli_krn_gru_cell_fx16_fx8_fx8, 
-                                      input_2_fx16, hidden_1_fx16, weights_2_in_fx8, weights_2_out_fx8, bias_1_fx8, 
-                                      test_4_out_fx16, test_4_cfg, thresholds_fx16_fx8_fx8_general, 
-                                      test_5_chksum_fx16_fx8_fx8},
-    {"Test 6 FX16_FX8 StS,ALL,B,ms",  mli_krn_gru_cell_fx16_fx8_fx8, 
-                                      input_2_fx16, hidden_1_fx16, weights_2_in_memstr_fx8, weights_2_out_memstr_fx8, 
-                                      bias_1_fx8, test_4_out_fx16, test_4_cfg, thresholds_fx16_fx8_fx8_general, 
-                                      test_6_chksum_fx16_fx8_fx8},
-    {"Test 7 FX16_FX8 StS,LAST,Forw", mli_krn_gru_cell_fx16_fx8_fx8, 
-                                      input_2_fx16, hidden_1_fx16, weights_2_in_fx8, weights_2_out_fx8, bias_1_fx8, 
-                                      test_5_out_fx16, test_5_cfg, thresholds_fx16_fx8_fx8_general, 
-                                      test_7_chksum_fx16_fx8_fx8},
-    {"Test 8 FX16_FX8 StS,LAST,Back", mli_krn_gru_cell_fx16_fx8_fx8, 
+    {"Test 3 FX16_FX8 StS,ALL,Forw",  mli_krn_gru_cell_fx16_fx8_fx8,
                                       input_2_fx16, hidden_1_fx16, weights_2_in_fx8, weights_2_out_fx8, bias_1_fx8,
-                                      test_6_out_fx16, test_6_cfg, thresholds_fx16_fx8_fx8_general, 
+                                      test_3_out_fx16, test_3_cfg, thresholds_fx16_fx8_fx8_general,
+                                      test_3_chksum_fx16_fx8_fx8},
+    {"Test 4 FX16_FX8 StS,ALL,F,ms",  mli_krn_gru_cell_fx16_fx8_fx8,
+                                      input_2_fx16, hidden_1_fx16, weights_2_in_memstr_fx8, weights_2_out_memstr_fx8,
+                                      bias_1_fx8, test_3_out_fx16, test_3_cfg, thresholds_fx16_fx8_fx8_general,
+                                      test_4_chksum_fx16_fx8_fx8},
+    {"Test 5 FX16_FX8 StS,ALL,Back",  mli_krn_gru_cell_fx16_fx8_fx8,
+                                      input_2_fx16, hidden_1_fx16, weights_2_in_fx8, weights_2_out_fx8, bias_1_fx8,
+                                      test_4_out_fx16, test_4_cfg, thresholds_fx16_fx8_fx8_general,
+                                      test_5_chksum_fx16_fx8_fx8},
+    {"Test 6 FX16_FX8 StS,ALL,B,ms",  mli_krn_gru_cell_fx16_fx8_fx8,
+                                      input_2_fx16, hidden_1_fx16, weights_2_in_memstr_fx8, weights_2_out_memstr_fx8,
+                                      bias_1_fx8, test_4_out_fx16, test_4_cfg, thresholds_fx16_fx8_fx8_general,
+                                      test_6_chksum_fx16_fx8_fx8},
+    {"Test 7 FX16_FX8 StS,LAST,Forw", mli_krn_gru_cell_fx16_fx8_fx8,
+                                      input_2_fx16, hidden_1_fx16, weights_2_in_fx8, weights_2_out_fx8, bias_1_fx8,
+                                      test_5_out_fx16, test_5_cfg, thresholds_fx16_fx8_fx8_general,
+                                      test_7_chksum_fx16_fx8_fx8},
+    {"Test 8 FX16_FX8 StS,LAST,Back", mli_krn_gru_cell_fx16_fx8_fx8,
+                                      input_2_fx16, hidden_1_fx16, weights_2_in_fx8, weights_2_out_fx8, bias_1_fx8,
+                                      test_6_out_fx16, test_6_cfg, thresholds_fx16_fx8_fx8_general,
                                       test_8_chksum_fx16_fx8_fx8},
 #elif COMPILE_FOR_SA8_SA8_SA32
     {"Test 1 SA8_SA32 OtO,Forw",      mli_krn_gru_cell_sa8_sa8_sa32,
-                                      input_1_sa8, hidden_1_sa8, weights_1_in_sa8, weights_1_out_sa8, bias_1_i1_w1_sa32, 
+                                      input_1_sa8, hidden_1_sa8, weights_1_in_sa8, weights_1_out_sa8, bias_1_i1_w1_sa32,
                                       test_1_out_sa8, test_1_cfg, thresholds_sa8_general, test_1_chksum_sa8},
     {"Test 2 SA8_SA32 OtO,Back",      mli_krn_gru_cell_sa8_sa8_sa32,
-                                      input_1_sa8, hidden_1_sa8, weights_1_in_sa8, weights_1_out_sa8, bias_1_i1_w1_sa32, 
+                                      input_1_sa8, hidden_1_sa8, weights_1_in_sa8, weights_1_out_sa8, bias_1_i1_w1_sa32,
                                       test_1_out_sa8, test_2_cfg, thresholds_sa8_general, test_2_chksum_sa8},
     {"Test 3 SA8_SA32 StS,ALL,Forw",  mli_krn_gru_cell_sa8_sa8_sa32,
-                                      input_2_sa8, hidden_1_sa8, weights_2_in_sa8, weights_2_out_sa8, bias_1_i2_w2_sa32, 
+                                      input_2_sa8, hidden_1_sa8, weights_2_in_sa8, weights_2_out_sa8, bias_1_i2_w2_sa32,
                                       test_3_out_sa8, test_3_cfg, thresholds_sa8_general, test_3_chksum_sa8},
     {"Test 4 SA8_SA32 StS,ALL,F,ms",  mli_krn_gru_cell_sa8_sa8_sa32,
-                                      input_2_sa8, hidden_1_sa8, weights_2_in_memstr_sa8, weights_2_out_memstr_sa8, 
-                                      bias_1_i2_w2_sa32, test_3_out_sa8, test_3_cfg, thresholds_sa8_general, 
+                                      input_2_sa8, hidden_1_sa8, weights_2_in_memstr_sa8, weights_2_out_memstr_sa8,
+                                      bias_1_i2_w2_sa32, test_3_out_sa8, test_3_cfg, thresholds_sa8_general,
                                       test_4_chksum_sa8},
     {"Test 5 SA8_SA32 StS,ALL,Back",  mli_krn_gru_cell_sa8_sa8_sa32,
-                                      input_2_sa8, hidden_1_sa8, weights_2_in_sa8, weights_2_out_sa8, bias_1_i2_w2_sa32, 
+                                      input_2_sa8, hidden_1_sa8, weights_2_in_sa8, weights_2_out_sa8, bias_1_i2_w2_sa32,
                                       test_4_out_sa8, test_4_cfg, thresholds_sa8_general, test_5_chksum_sa8},
     {"Test 6 SA8_SA32 StS,ALL,B,ms",  mli_krn_gru_cell_sa8_sa8_sa32,
-                                      input_2_sa8, hidden_1_sa8, weights_2_in_memstr_sa8, weights_2_out_memstr_sa8, 
-                                      bias_1_i2_w2_sa32, test_4_out_sa8, test_4_cfg, thresholds_sa8_general, 
+                                      input_2_sa8, hidden_1_sa8, weights_2_in_memstr_sa8, weights_2_out_memstr_sa8,
+                                      bias_1_i2_w2_sa32, test_4_out_sa8, test_4_cfg, thresholds_sa8_general,
                                       test_6_chksum_sa8},
     {"Test 7 SA8_SA32 StS,LAST,Forw", mli_krn_gru_cell_sa8_sa8_sa32,
-                                      input_2_sa8, hidden_1_sa8, weights_2_in_sa8, weights_2_out_sa8, bias_1_i2_w2_sa32, 
+                                      input_2_sa8, hidden_1_sa8, weights_2_in_sa8, weights_2_out_sa8, bias_1_i2_w2_sa32,
                                       test_5_out_sa8, test_5_cfg, thresholds_sa8_general, test_7_chksum_sa8},
     {"Test 8 SA8_SA32 StS,LAST,Back", mli_krn_gru_cell_sa8_sa8_sa32,
-                                      input_2_sa8, hidden_1_sa8, weights_2_in_sa8, weights_2_out_sa8, bias_1_i2_w2_sa32, 
+                                      input_2_sa8, hidden_1_sa8, weights_2_in_sa8, weights_2_out_sa8, bias_1_i2_w2_sa32,
                                       test_6_out_sa8, test_6_cfg, thresholds_sa8_general, test_8_chksum_sa8},
 #else
 #error incorrect make configuration
@@ -286,7 +286,7 @@ int main() {
         }
 #endif
 
-        if (!(cur_test->in.is_valid() && cur_test->prev_out.is_valid() && cur_test->weights_in.is_valid() && 
+        if (!(cur_test->in.is_valid() && cur_test->prev_out.is_valid() && cur_test->weights_in.is_valid() &&
             cur_test->weights_out.is_valid() && cur_test->bias.is_valid() && cur_test->out.is_valid())) {
             reporter.report_message(cur_test->descr, "FAILED at init: Bad source data for one of tensors");
             is_test_passed = false;
@@ -317,15 +317,15 @@ int main() {
                  tensor_quantizer::validate_tensor(weights_out) != tensor_quantizer::kOk||
                  tensor_quantizer::validate_tensor(bias) != tensor_quantizer::kOk ||
                  tensor_quantizer::validate_tensor(out) != tensor_quantizer::kOk)) {
-            reporter.report_message(cur_test->descr, 
+            reporter.report_message(cur_test->descr,
                                     "FAILED at quantization step: more memory for one of tensors might be required");
             is_test_passed = false;
         }
 
         if (is_test_passed &&
-                (mem_in_keeper.is_memory_corrupted() || mem_prev_out_keeper.is_memory_corrupted() || 
-                mem_out_keeper.is_memory_corrupted() || mem_w_in_keeper.is_memory_corrupted() || 
-                mem_w_out_keeper.is_memory_corrupted() || mem_b_keeper.is_memory_corrupted() || 
+                (mem_in_keeper.is_memory_corrupted() || mem_prev_out_keeper.is_memory_corrupted() ||
+                mem_out_keeper.is_memory_corrupted() || mem_w_in_keeper.is_memory_corrupted() ||
+                mem_w_out_keeper.is_memory_corrupted() || mem_b_keeper.is_memory_corrupted() ||
                 mem_ir_keeper.is_memory_corrupted())) {
             reporter.report_message(cur_test->descr,
                 "FAILED at quantization step: memory beside one of operands is corrupted");
@@ -335,7 +335,7 @@ int main() {
         // Run specific kernel for test
         if (is_test_passed &&
                 cur_test->mli_krn_gru_cell
-                (&input, &prev_out, &weights_in, &weights_out, &bias, &tanh_lut, &sigm_lut, &cur_test_cfg, &out) 
+                (&input, &prev_out, &weights_in, &weights_out, &bias, &tanh_lut, &sigm_lut, &cur_test_cfg, &out)
                 != MLI_STATUS_OK) {
             reporter.report_message(cur_test->descr, "FAILED at kernel run: kernel returned bad status");
             is_test_passed = false;
@@ -381,7 +381,7 @@ int main() {
             data_crc(bias);
             data_crc(out);
 
-            is_test_passed &= reporter.evaluate_and_report_case(cur_test->descr, test_metrics, cur_test->threshold, 
+            is_test_passed &= reporter.evaluate_and_report_case(cur_test->descr, test_metrics, cur_test->threshold,
                                                                 data_crc, cur_test->check_sum);
         }
         final_status &= is_test_passed;
