@@ -77,6 +77,26 @@ MLI_FORCE_INLINE void* mli_prv_tensor_cast_data_ptr(
 }
 
 template <typename T>
+MLI_FORCE_INLINE void mli_prv_tensor_set_data_ptr(
+        mli_tensor *tensor, T *ptr);
+
+template <>
+MLI_FORCE_INLINE void mli_prv_tensor_set_data_ptr(
+    mli_tensor *tensor, int8_t *ptr) {
+    MLI_ASSERT((tensor->el_type == MLI_EL_FX_8) || (tensor->el_type == MLI_EL_SA_8));
+    MLI_ASSERT(tensor->rank > 0);
+    tensor->data.mem.pi8 = ptr;
+}
+
+template <>
+MLI_FORCE_INLINE void mli_prv_tensor_set_data_ptr(
+        mli_tensor *tensor, int16_t *ptr) {
+    MLI_ASSERT(tensor->el_type == MLI_EL_FX_16);
+    MLI_ASSERT(tensor->rank > 0);
+    tensor->data.mem.pi16 = ptr;
+}
+
+template <typename T>
 MLI_FORCE_INLINE T mli_prv_tensor_data_ptr(
         const mli_tensor *tensor);
 
@@ -321,7 +341,7 @@ static MLI_FORCE_INLINE generic_tensor_private_t<T> mli_prv_get_generic_tensor(
     tensor.ptr = mli_prv_tensor_data_ptr<T>(in);
     tensor.rank = rank;
 
-#if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)       
+#if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
     if (rank == 1) {
         tensor.shape[0]      = in->shape[0];
         tensor.mem_stride[0] = in->mem_stride[0];
@@ -331,7 +351,7 @@ static MLI_FORCE_INLINE generic_tensor_private_t<T> mli_prv_get_generic_tensor(
         tensor.mem_stride[2] = 0;
         tensor.shape[3]      = 1;
         tensor.mem_stride[3] = 0;
-    } 
+    }
     if (rank == 2) {
         tensor.shape[0]      = in->shape[0];
         tensor.mem_stride[0] = in->mem_stride[0];
@@ -351,7 +371,7 @@ static MLI_FORCE_INLINE generic_tensor_private_t<T> mli_prv_get_generic_tensor(
         tensor.mem_stride[2] = in->mem_stride[2];
         tensor.shape[3]      = 1;
         tensor.mem_stride[3] = 0;
-    } 
+    }
     if (rank == 4) {
         tensor.shape[0]      = in->shape[0];
         tensor.mem_stride[0] = in->mem_stride[0];
@@ -373,8 +393,8 @@ static MLI_FORCE_INLINE generic_tensor_private_t<T> mli_prv_get_generic_tensor(
             tensor.shape[i] = 1;
             tensor.mem_stride[i] = 0;
         }
-    }    
-#endif        
+    }
+#endif
 
     return tensor;
 }
@@ -415,13 +435,13 @@ static MLI_FORCE_INLINE generic_tensor_private_t<T> mli_prv_get_non_axis_tensor(
         non_axis_prv_tensor.shape[i] = 1;
         non_axis_prv_tensor.rank = 0;
     }
-    
+
     if (axis > -1) {
         /* Convert input tensor to a tensor that has the Non Axis parameters only in case of axis. */
         non_axis_prv_tensor.rank = in->rank - 1;
         for (int all_dim_idx = 0, not_axis_dim_idx = 0; all_dim_idx < MLI_MAX_RANK; all_dim_idx++) {
             if (all_dim_idx != axis) {
-                non_axis_prv_tensor.shape[not_axis_dim_idx] = (all_dim_idx < (int)in->rank) ? 
+                non_axis_prv_tensor.shape[not_axis_dim_idx] = (all_dim_idx < (int)in->rank) ?
                                                                in->shape[all_dim_idx] : 1;
                 non_axis_prv_tensor.mem_stride[not_axis_dim_idx] = in->mem_stride[all_dim_idx];
                 not_axis_dim_idx++;
@@ -438,7 +458,7 @@ static MLI_FORCE_INLINE generic_tensor_private_t<T> mli_prv_get_non_axis_tensor(
 template <typename T>
 static MLI_FORCE_INLINE void mli_prv_reorder_generic_tensor(
         generic_tensor_private_t<T> *in_prv) {
-    
+
     int i = MLI_MAX_RANK - 1;
     for (int j = in_prv->rank - 1 ; j >= 0; i--, j--) {
         in_prv->shape[i]  = in_prv->shape[j];
@@ -756,7 +776,7 @@ extern "C" {
 #endif
 
 static MLI_FORCE_INLINE mli_status mli_prv_copy_tensor_format(
-        const mli_tensor * src, 
+        const mli_tensor * src,
         mli_tensor * dst) {
     mli_status check = MLI_CHECK_STATUS(mli_chk_tensor (src, /*check_bank=*/false), __func__);
     if (check != MLI_STATUS_OK)
