@@ -25,7 +25,7 @@
 namespace mli {
 namespace krn {
 namespace ref {
-    
+
 #pragma MLI_CODE_SECTION_START(".mli_lib")
 
 //========================================================================================
@@ -47,11 +47,11 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
         const mli_tensor * in,
         const mli_tensor * prev_out,
         const mli_tensor * weights_in,
-        const mli_tensor * weights_out, 
+        const mli_tensor * weights_out,
         const mli_tensor * bias,
         const mli_lut * tanh_lut,
-        const mli_lut * sigm_lut, 
-        const mli_rnn_cell_cfg * cfg, 
+        const mli_lut * sigm_lut,
+        const mli_rnn_cell_cfg * cfg,
         mli_tensor *out) {
 
     constexpr bool asym = std::is_same<quant_T, s8asym_quant_specific_params>::value;
@@ -69,39 +69,45 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
 
 
     const mli_tensor * weights[] = {weights_in, weights_out};
-    const MLI_PTR (io_T) inputs_ptr[] = {mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(in), 
+    const MLI_PTR (io_T) inputs_ptr[] = {mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(in),
                                          mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(prev_out)};
 
-    if (cfg->direction == RNN_DIR_BACKWARD) 
+    if (cfg->direction == RNN_DIR_BACKWARD)
         inputs_ptr[0] += (seq_len - 1) * inputs_elements[0];
 
     mli_element_params one_el_params;
     mli_element_params ir_asym_params;
     if (asym) {
+        // match quantization parameters of one in sigm/tanh
         one_el_params.sa.dim = ir_asym_params.sa.dim = -1;
         one_el_params.sa.scale.mem.i16 = 1;
-        one_el_params.sa.zero_point.mem.i16 = ir_asym_params.sa.zero_point.mem.i16 = 0;
-        one_el_params.sa.scale_frac_bits.mem.i8 = 0;
+        one_el_params.sa.zero_point.mem.i16 = -128;
+        one_el_params.sa.scale_frac_bits.mem.i8 = 8;
+        // ir dynamic range (-5, 5) is sufficient for tanh/sigm
         ir_asym_params.sa.scale.mem.i16 = 21;
         ir_asym_params.sa.scale_frac_bits.mem.i8 = 9;
+        ir_asym_params.sa.zero_point.mem.i16 = 0;
         one_el_params.sa.scale.capacity = ir_asym_params.sa.scale.capacity = 0;
         one_el_params.sa.zero_point.capacity = ir_asym_params.sa.zero_point.capacity = 0;
         one_el_params.sa.scale_frac_bits.capacity = ir_asym_params.sa.scale_frac_bits.capacity = 0;
     } else {
-        one_el_params.fx.frac_bits = 0;
-        // 1sign and 3 integer bits for TANH/SIGM input is enough
-        ir_asym_params.fx.frac_bits = (sizeof(io_T) * 8) - 1 - 3;
+        one_el_params.fx.frac_bits = 15;
+        // 1 sign and 4 integer bits with range (-16, 16) is enough for TANH/SIGM input
+        ir_asym_params.fx.frac_bits = (sizeof(io_T) * 8) - 1 - 4;
     }
 
     mli_tensor one;
-    int16_t one_data[] = {1};
+    // to match transform kernels one value
+    io_T one_data[] = {std::numeric_limits<io_T>::max()};
     one.data.capacity = 1;
-    one.data.mem.pi16 = one_data;
     one.mem_stride[0] = 1;
     one.shape[0] = 1;
     one.rank = 1;
     one.el_type = in->el_type;
     one.el_params = one_el_params;
+    mli_prv_tensor_set_data_ptr<io_T>(&one, one_data);
+
+
 
     mli_tensor ir_tensor;
     ir_tensor.data = cfg->scratch_data;
@@ -109,7 +115,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
     ir_tensor.shape[1] = bias->shape[1];
     ir_tensor.mem_stride[0] = ir_tensor.shape[1];
     ir_tensor.mem_stride[1] = 1;
-    ir_tensor.rank = bias->rank; 
+    ir_tensor.rank = bias->rank;
     ir_tensor.el_type = in->el_type;
     ir_tensor.el_params = ir_asym_params;
 
@@ -135,7 +141,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
     mli_hlp_create_subtensor(&ir_tensor, &iterator, &new_gate); iterator.offset[0]++;
     mli_hlp_create_subtensor(bias, &weight_iterator, &b_new_g);
 
-    w_in_new_g.data = weights_in->data; 
+    w_in_new_g.data = weights_in->data;
     w_in_new_g.rank = 2;
     w_in_new_g.shape[0] = weights_in->shape[1];
     w_in_new_g.shape[1] = weights_in->shape[2];
@@ -145,7 +151,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
     w_in_new_g.el_type = weights_in->el_type;
     mli_prv_tensor_inc_data_ptr<w_T*>(&w_in_new_g, num_gates * w_gate_mem_strides[0]);
 
-    w_out_new_g.data = weights_out->data; 
+    w_out_new_g.data = weights_out->data;
     w_out_new_g.rank = 2;
     w_out_new_g.shape[0] = weights_out->shape[1];
     w_out_new_g.shape[1] = weights_out->shape[2];
@@ -156,7 +162,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
     mli_prv_tensor_inc_data_ptr<w_T*>(&w_out_new_g, num_gates * w_gate_mem_strides[1]);
 
     const MLI_PTR (w_T) w_new_g_ptr[] = {
-        mli_prv_tensor_data_ptr<MLI_PTR (w_T)>(weights_in) + num_gates * w_gate_mem_strides[0], 
+        mli_prv_tensor_data_ptr<MLI_PTR (w_T)>(weights_in) + num_gates * w_gate_mem_strides[0],
         mli_prv_tensor_data_ptr<MLI_PTR (w_T)>(weights_out) + num_gates * w_gate_mem_strides[1]
     };
 
@@ -183,7 +189,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
     current_hidden.el_params = prev_out->el_params;
     mli_tensor current_out = current_hidden;
     current_out.data = out->data;
-    current_out.el_params = prev_out->el_params;
+    current_out.el_params = current_hidden.el_params;
 
     mli_tensor prev_out_reset;
     prev_out_reset.data = reset_gate.data;
@@ -193,9 +199,9 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
     prev_out_reset.mem_stride[0] = reset_gate.mem_stride[0];
     prev_out_reset.mem_stride[1] = reset_gate.mem_stride[1];
     prev_out_reset.el_type = in->el_type;
-    prev_out_reset.el_params = ir_tensor.el_params;
+    prev_out_reset.el_params = current_hidden.el_params;
 
-    const MLI_PTR (io_T) inputs_new_ptr[] = {inputs_ptr[0], 
+    const MLI_PTR (io_T) inputs_new_ptr[] = {inputs_ptr[0],
                                              mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(&prev_out_reset)};
 
     for (int timestep = 0; timestep < seq_len; timestep++) {
@@ -279,14 +285,16 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
         temp.mem_stride[0] = new_gate.mem_stride[0];
         temp.mem_stride[1] = new_gate.mem_stride[1];
         temp.el_type = new_gate.el_type;
-        temp.el_params = current_hidden.el_params;
-   
+        temp.el_params = out->el_params;
+
         rnn_out.el_params = out->el_params;
         mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&new_gate, &update_gate, &temp);
         mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_ADD, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&temp, &current_out, &rnn_out);
 
         current_hidden.data = rnn_out.data;
         current_hidden.el_params = rnn_out.el_params;
+        current_out.el_params = current_hidden.el_params;
+        prev_out_reset.el_params = current_hidden.el_params;
 
         // Step 6: Update pointers and tensors for next timestep
         //=======================================
