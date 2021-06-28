@@ -26,7 +26,7 @@ namespace vdsp {
 //========================================================
 // Unified IP (Inner Product) template
 //========================================================
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, bool no_zp>
 MLI_FORCE_INLINE void inner_product(
         const MLI_PTR(io_T) __restrict in,
         const MLI_PTR(w_T)  __restrict weights,
@@ -69,8 +69,11 @@ MLI_FORCE_INLINE void inner_product(
         acc_T accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
         accu = mli::krn::bias_additive(&biases[o_idx], accu, &output_params); // bias has to be first in optimized code.
 
-        accu = dotprod_inputzp_1D_v(in, &weights[o_idx], accu, in_elements, 1, w_ch_out_mem_stride, &quant_params);
-
+        if (no_zp) {
+            accu = mli::krn::dotprod1D_v(in, &weights[o_idx], accu, in_elements, 1, w_ch_out_mem_stride);
+        } else {
+            accu = dotprod_inputzp_1D_v(in, &weights[o_idx], accu, in_elements, 1, w_ch_out_mem_stride, &quant_params);
+        }
         // Cast result to output type with scaling
         mli::krn::result_cast_relu_store_v(&out[o_idx], accu, &output_params, val_min_limit, val_max_limit, current_chs);
     }

@@ -135,7 +135,7 @@ MLI_FORCE_INLINE vNx4accshort_t dotprod_inputzp_1D_v(
     vNx4accshort_t accu2 = mli_math_mul_fx<int8_t, vNx4accshort_t>(0, 0);
 
 // the extra unroll factor enables the compiler to combine the scalar loads into an ldd
-#pragma clang loop unroll_count(2)
+#pragma clang loop unroll_count(4)
     for (idx = 0; idx < vals - (unroll_count - 1); idx+=unroll_count) {
         // load 4 input samples at once to reduce load bottleneck
         int32_t in4x = *(int32_t*)in;
