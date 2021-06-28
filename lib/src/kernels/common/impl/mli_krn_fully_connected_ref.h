@@ -26,7 +26,7 @@ namespace ref {
 //========================================================
 // Unified IP (Inner Product) template
 //========================================================
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, bool no_zp>
 MLI_FORCE_INLINE void inner_product(
         const MLI_PTR(io_T) __restrict in,
         const MLI_PTR(w_T)  __restrict weights,
@@ -127,7 +127,7 @@ MLI_FORCE_INLINE void fully_connected_prepare_and_run(
 
     // Run basic calculation
     //=======================================================================
-    mli::krn::inner_product<io_T, w_T, b_T, acc_T, quant_T>(
+    mli::krn::inner_product<io_T, w_T, b_T, acc_T, quant_T, is_bias_ext>(
             in_ptr, w_ptr, b_ptr, out_ptr, in_sz, ch_out, w_ch_out_mem_stride, /* cent_area, */ params, (io_T)val_limit.min, (io_T)val_limit.max);
 }
 #pragma MLI_CODE_SECTION_END()

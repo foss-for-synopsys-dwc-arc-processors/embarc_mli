@@ -28,7 +28,7 @@ namespace krn {
 // REF
 ////////////////////////////////////////////////////////////////////////////////
 namespace ref {
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, bool no_zp>
 MLI_FORCE_INLINE void inner_product(
         const MLI_PTR(io_T) __restrict in,
         const MLI_PTR(w_T)  __restrict weights,
@@ -61,7 +61,7 @@ namespace dsp {
 // VDSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, bool no_zp>
 MLI_FORCE_INLINE void inner_product(
         const MLI_PTR(io_T) __restrict in,
         const MLI_PTR(w_T)  __restrict weights,
