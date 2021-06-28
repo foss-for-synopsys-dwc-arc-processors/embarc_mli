@@ -1532,7 +1532,7 @@ sizeof(test_11_out_data) / sizeof(test_11_out_data[0]), &test_11_out_scale, 1, &
 // Tests configuration structures
 //========================================
 const mli_conv2d_cfg test_1_cfg = {
-    /* .relu = */  {MLI_RELU_NONE, 0, 0},
+    /* .relu.type = */  MLI_RELU_NONE,
     /* .stride_width = */  2,
     /* .stride_height = */  1,
     /* .padding_left = */  1,
@@ -1544,7 +1544,7 @@ const mli_conv2d_cfg test_1_cfg = {
 };
 
 const mli_conv2d_cfg test_2_cfg = {
-    /* .relu = */  {MLI_RELU_GEN, 0, 0},
+    /* .relu.type = */  MLI_RELU_GEN,
     /* .stride_width = */  1,
     /* .stride_height = */  2,
     /* .padding_left = */  1,
@@ -1556,7 +1556,7 @@ const mli_conv2d_cfg test_2_cfg = {
 };
 
 const mli_conv2d_cfg test_3_cfg = {
-    /* .relu = */  {MLI_RELU_NONE, 0, 0},
+    /* .relu.type = */  MLI_RELU_NONE,
     /* .stride_width = */  1,
     /* .stride_height = */  1,
     /* .padding_left = */  0,
@@ -1568,7 +1568,7 @@ const mli_conv2d_cfg test_3_cfg = {
 };
 
 const mli_conv2d_cfg test_4_cfg = {
-    /* .relu = */  {MLI_RELU_1, 0, 0},
+    /* .relu.type = */  MLI_RELU_1,
     /* .stride_width = */  3,
     /* .stride_height = */  3,
     /* .padding_left = */  0,
@@ -1580,7 +1580,7 @@ const mli_conv2d_cfg test_4_cfg = {
 };
 
 const mli_conv2d_cfg test_5_cfg = {
-    /* .relu = */  {MLI_RELU_6, 0, 0},
+    /* .relu.type = */  MLI_RELU_6,
     /* .stride_width = */  1,
     /* .stride_height = */  1,
     /* .padding_left = */  0,
@@ -1592,7 +1592,7 @@ const mli_conv2d_cfg test_5_cfg = {
 };
 
 const mli_conv2d_cfg test_6_cfg = {
-    /* .relu = */{MLI_RELU_6, 0, 0},
+    /* .relu.type = */MLI_RELU_6,
     /* .stride_width = */1,
     /* .stride_height = */1,
     /* .padding_left = */0,
@@ -1604,7 +1604,7 @@ const mli_conv2d_cfg test_6_cfg = {
 };
 
 const mli_conv2d_cfg test_7_cfg = {
-    /* .relu = */{MLI_RELU_6, 0, 0},
+    /* .relu.type = */MLI_RELU_6,
     /* .stride_width = */2,
     /* .stride_height = */2,
     /* .padding_left = */1,
@@ -1616,7 +1616,7 @@ const mli_conv2d_cfg test_7_cfg = {
 };
 
 const mli_conv2d_cfg test_8_cfg = {
-    /* .relu = */{MLI_RELU_6, 0, 0},
+    /* .relu.type = */MLI_RELU_6,
     /* .stride_width = */2,
     /* .stride_height = */2,
     /* .padding_left = */2,
@@ -1628,7 +1628,7 @@ const mli_conv2d_cfg test_8_cfg = {
 };
 
 const mli_conv2d_cfg test_9_cfg = {
-    /* .relu = */{MLI_RELU_GEN, 0, 0},
+    /* .relu.type = */MLI_RELU_GEN,
     /* .stride_width = */1,
     /* .stride_height = */1,
     /* .padding_left = */2,
@@ -1640,7 +1640,7 @@ const mli_conv2d_cfg test_9_cfg = {
 };
 
 const mli_conv2d_cfg test_10_cfg = {
-    /* .relu = */{MLI_RELU_GEN, 0, 0},
+    /* .relu.type = */MLI_RELU_GEN,
     /* .stride_width = */1,
     /* .stride_height = */1,
     /* .padding_left = */4,
@@ -1652,7 +1652,7 @@ const mli_conv2d_cfg test_10_cfg = {
 };
 
 const mli_conv2d_cfg test_11_cfg = {
-    /* .relu = */{MLI_RELU_NONE, 0, 0},
+    /* .relu.type = */MLI_RELU_NONE,
     /* .stride_width = */1,
     /* .stride_height = */1,
     /* .padding_left = */0,

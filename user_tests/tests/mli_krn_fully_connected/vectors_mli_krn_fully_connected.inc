@@ -1013,8 +1013,8 @@ tensor_quantizer test_5_out_sa8(test_5_out_tsr_sa8, test_5_out_sa_dim, test_5_ou
     &test_5_out_scale, 1, &test_5_out_zero_point, 1, test_5_out_scales_frac, 1);
     
 
-const mli_fully_connected_cfg test_1_cfg = {/* .relu = */ {MLI_RELU_NONE, 0, 0}};
-const mli_fully_connected_cfg test_2_cfg = {/* .relu = */ {MLI_RELU_GEN, 0, 0}};
-const mli_fully_connected_cfg test_3_cfg = {/* .relu = */ {MLI_RELU_1, 0, 0}};
-const mli_fully_connected_cfg test_4_cfg = {/* .relu = */ {MLI_RELU_6, 0, 0}};
-const mli_fully_connected_cfg test_5_cfg = {/* .relu = */ {MLI_RELU_NONE, 0, 0}};
+const mli_fully_connected_cfg test_1_cfg = {/* .relu.type = */ MLI_RELU_NONE};
+const mli_fully_connected_cfg test_2_cfg = {/* .relu.type = */ MLI_RELU_GEN};
+const mli_fully_connected_cfg test_3_cfg = {/* .relu.type = */ MLI_RELU_1};
+const mli_fully_connected_cfg test_4_cfg = {/* .relu.type = */ MLI_RELU_6};
+const mli_fully_connected_cfg test_5_cfg = {/* .relu.type = */ MLI_RELU_NONE};
