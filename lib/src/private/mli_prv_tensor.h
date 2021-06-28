@@ -822,8 +822,16 @@ static MLI_FORCE_INLINE uint32_t mli_prv_count_elem_num_part(
     uint32_t rank = in->rank - startrank;
     uint32_t elem_num = 1;
 
+#if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
+    if (rank == 0) elem_num = 1;
+    if (rank == 1) elem_num = shape[0];
+    if (rank == 2) elem_num = shape[0]*shape[1];
+    if (rank == 3) elem_num = shape[0]*shape[1]*shape[2];
+    if (rank == 4) elem_num = shape[0]*shape[1]*shape[2]*shape[3];
+#else
     for (int idx = 0; idx < (int)rank; idx++)
         elem_num *= shape[idx];
+#endif
 
     return elem_num;
 }
