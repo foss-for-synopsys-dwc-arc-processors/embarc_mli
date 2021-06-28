@@ -93,10 +93,33 @@ static MLI_FORCE_INLINE int16_t compute_normalized_sum_square_one_dim(
         const int one_dim_shape,
         const int one_dim_mem_stride = 1);
 
+template<>
+MLI_FORCE_INLINE int16_t compute_normalized_sum_square_one_dim<int16_t, false, false>(
+        const MLI_PTR(int16_t) vec_in,
+        int16_t in_zp,
+        int *norm_shift,
+        const int one_dim_shape,
+        const int one_dim_mem_stride);
+
+template<>
+MLI_FORCE_INLINE int16_t compute_normalized_sum_square_one_dim<int16_t, false, true>(
+        const MLI_PTR(int16_t) vec_in,
+        int16_t in_zp,
+        int *norm_shift,
+        const int one_dim_shape,
+        const int one_dim_mem_stride);
+
 template<typename io_T, bool convert>
 static MLI_FORCE_INLINE int16_t compute_normalized_sum_square(
         struct generic_tensor_private_t<MLI_PTR(io_T)> *in_prv,
         const MLI_PTR(io_T) vec_in,
+        int16_t in_zp,
+        int *norm_shift);
+
+template<>
+MLI_FORCE_INLINE int16_t compute_normalized_sum_square<int16_t, false>(
+        struct generic_tensor_private_t<MLI_PTR(int16_t)> *in_prv,
+        const MLI_PTR(int16_t) vec_in,
         int16_t in_zp,
         int *norm_shift);
 

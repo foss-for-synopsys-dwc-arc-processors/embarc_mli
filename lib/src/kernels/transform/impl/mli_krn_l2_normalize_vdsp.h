@@ -72,11 +72,10 @@ static MLI_FORCE_INLINE vNx2accint_t init_sum_acc(vNx2short_t input) {
     return mli_math_mul_fx<vNx2short_t, vNx2accint_t>(input, (vNx2short_t) 0);
 }
 
-template<typename acc_t, bool convert>
 static MLI_FORCE_INLINE int16_t normalize_sum(
-        acc_t sum_acc_hi,
-        acc_t sum_acc_mid,
-        acc_t sum_acc_lo,
+        vNx2accint_t sum_acc_hi,
+        vNx2accint_t sum_acc_mid,
+        vNx2accint_t sum_acc_lo,
         int *norm_shift) {
 
     constexpr int acc_hi_shift  = 16;
@@ -85,13 +84,12 @@ static MLI_FORCE_INLINE int16_t normalize_sum(
     mli_acc32_t acc_mid = mli_math_intra_sum(sum_acc_mid);
     mli_acc32_t acc_lo  = mli_math_intra_sum(sum_acc_lo);
 
-    typedef typename std::conditional<convert == false, mli_acc40_t, mli_acc32_t>::type acc_type;
-    acc_type acc = mli_math_add_fx((acc_type)acc_lo, mli_math_asl_fx((acc_type)acc_hi, acc_hi_shift));
-             acc = mli_math_add_fx(acc, mli_math_asl_fx((acc_type)acc_mid, acc_mid_shift));
+    mli_acc40_t acc = mli_math_add_fx((mli_acc40_t)acc_lo, mli_math_asl_fx((mli_acc40_t)acc_hi, acc_hi_shift));
+                acc = mli_math_add_fx(acc, mli_math_asl_fx((mli_acc40_t)acc_mid, acc_mid_shift));
 
-    int norm_shift_val = mli_math_norm_fx<acc_type, int>(acc);
-    /* To Cast mli_acc32_t to int16_t */
-    norm_shift_val = (sizeof(acc_type) - sizeof(int16_t)) * 8 - norm_shift_val;
+    int norm_shift_val = mli_math_norm_fx<mli_acc40_t, int>(acc);
+    /* To Cast mli_acc40_t to int16_t */
+    norm_shift_val = (sizeof(mli_acc40_t) - sizeof(int16_t)) * 8 - norm_shift_val;
     /* Adjust norm_shift to even number because we are going to divide it by 2 */
     if ((norm_shift_val & 0x1) == 0x1) {
         norm_shift_val += 1;
@@ -99,14 +97,51 @@ static MLI_FORCE_INLINE int16_t normalize_sum(
 
     *norm_shift = norm_shift_val;
     /* Cast Sum_acc to Q7.8 to bring it to LUT input range */
-    return mli_math_cast_fx<acc_type, int16_t>(acc, norm_shift_val);
+    return mli_math_cast_fx<mli_acc40_t, int16_t>(acc, norm_shift_val);
+}
+
+template<typename acc_t>
+static MLI_FORCE_INLINE int16_t normalize_sum(
+        acc_t sum_acc,
+        int *norm_shift) {
+
+    mli_acc32_t acc = mli_math_intra_sum(sum_acc);
+
+    int norm_shift_val = mli_math_norm_fx<mli_acc32_t, int>(acc);
+    /* To Cast mli_acc32_t to int16_t */
+    norm_shift_val = (sizeof(mli_acc32_t) - sizeof(int16_t)) * 8 - norm_shift_val;
+    /* Adjust norm_shift to even number because we are going to divide it by 2 */
+    if ((norm_shift_val & 0x1) == 0x1) {
+        norm_shift_val += 1;
+    }
+
+    *norm_shift = norm_shift_val;
+    /* Cast Sum_acc to Q7.8 to bring it to LUT input range */
+    return mli_math_cast_fx<mli_acc32_t, int16_t>(acc, norm_shift_val);
+}
+
+template<bool is_remaining_part = false>
+static MLI_FORCE_INLINE void accumlate_sum(
+        vNx2accint_t &sum_acc_hi,
+        vNx2accint_t &sum_acc_mid,
+        vNx2accint_t &sum_acc_lo,
+        vNx2short_t input,
+        int16_t in_zp,
+        int remaining_part = 0)
+{
+    auto converted_input = (is_remaining_part) ? 
+                            convert_input<false>(input, in_zp, remaining_part) :
+                            convert_input<false>(input, in_zp);
+    auto input_lo = converted_input & 0xFF;
+    auto input_hi = (converted_input >> 8) & 0xFF;
+    sum_acc_hi  = mli_math_mac_fx(sum_acc_hi, input_hi, input_hi);
+    sum_acc_lo  = mli_math_mac_fx(sum_acc_lo, input_lo, input_lo);
+    sum_acc_mid = mli_math_mac_fx(sum_acc_mid, input_hi, input_lo);
 }
 
 template<typename acc_T, typename in_T, bool convert, bool is_remaining_part = false>
 static MLI_FORCE_INLINE void accumlate_sum(
-        acc_T &sum_acc_hi,
-        acc_T &sum_acc_mid,
-        acc_T &sum_acc_lo,
+        acc_T &sum_acc,
         in_T input,
         int16_t in_zp,
         int remaining_part = 0)
@@ -115,16 +150,55 @@ static MLI_FORCE_INLINE void accumlate_sum(
     auto converted_input = (is_remaining_part) ? 
                             convert_input<convert>(input, in_zp, remaining_part) :
                             convert_input<convert>(input, in_zp);
-    auto input_lo = converted_input & 0xFF;
-    auto input_hi = (converted_input >> 8) & 0xFF;
-    sum_acc_hi  = mli_math_mac_fx(sum_acc_hi, input_hi, input_hi);
-    sum_acc_lo  = mli_math_mac_fx(sum_acc_lo, input_lo, input_lo);
-    sum_acc_mid = mli_math_mac_fx(sum_acc_mid, input_hi, input_lo);
+    sum_acc  = mli_math_mac_fx(sum_acc, converted_input, converted_input);
 }
 
 template<typename io_T, bool convert, bool one_dim_with_mem_stride>
 static MLI_FORCE_INLINE int16_t compute_normalized_sum_square_one_dim(
         const MLI_PTR(io_T) vec_in,
+        int16_t in_zp,
+        int *norm_shift,
+        const int one_dim_shape,
+        const int one_dim_mem_stride) {
+    
+    /* Dummy Load to get num_lanes, remaining part */
+    auto input = mli_prv_load_1vec(vec_in);
+    int num_lanes = get_number_lanes(input);
+    int remaining_part = one_dim_shape & (num_lanes - 1);
+
+    /* Accumulation through MAC */
+    auto sum_acc = init_sum_acc(input);
+
+    if (one_dim_with_mem_stride) {
+        if (remaining_part) {
+            input = mli_prv_stride_load_1vec(vec_in, one_dim_mem_stride);
+            accumlate_sum<decltype(sum_acc), decltype(input), convert, true>(sum_acc, input, in_zp, remaining_part);
+            vec_in  += remaining_part;
+        }
+        for(int idx = remaining_part; idx < one_dim_shape; idx += num_lanes) {
+            input = mli_prv_stride_load_1vec(vec_in, one_dim_mem_stride);
+            accumlate_sum<decltype(sum_acc), decltype(input), convert>(sum_acc, input, in_zp);
+            vec_in  += num_lanes;
+        }
+    } else {
+        if (remaining_part) {
+            input = mli_prv_load_1vec(vec_in);
+            accumlate_sum<decltype(sum_acc), decltype(input), convert, true>(sum_acc, input, in_zp, remaining_part);
+            vec_in  += remaining_part;
+        }
+        for(int idx = remaining_part; idx < one_dim_shape; idx += num_lanes) {
+            input = mli_prv_load_1vec(vec_in);
+            accumlate_sum<decltype(sum_acc), decltype(input), convert>(sum_acc, input, in_zp);
+            vec_in  += num_lanes;
+        }
+    }
+
+    return normalize_sum<decltype(sum_acc)>(sum_acc, norm_shift);
+}
+
+template<>
+MLI_FORCE_INLINE int16_t compute_normalized_sum_square_one_dim<int16_t, false, false>(
+        const MLI_PTR(int16_t) vec_in,
         int16_t in_zp,
         int *norm_shift,
         const int one_dim_shape,
@@ -148,35 +222,51 @@ static MLI_FORCE_INLINE int16_t compute_normalized_sum_square_one_dim(
     auto sum_acc_mid = zero_acc;
     auto sum_acc_lo  = zero_acc;
 
-    if (one_dim_with_mem_stride) {
-        if (remaining_part) {
-            input = mli_prv_stride_load_1vec(vec_in, one_dim_mem_stride);
-            accumlate_sum<decltype(zero_acc), decltype(input), convert, true>
-                                (sum_acc_hi, sum_acc_mid, sum_acc_lo, input, in_zp, remaining_part);
-            vec_in  += remaining_part;
-        }
-        for(int idx = remaining_part; idx < one_dim_shape; idx += num_lanes) {
-            input = mli_prv_stride_load_1vec(vec_in, one_dim_mem_stride);
-            accumlate_sum<decltype(zero_acc), decltype(input), convert>
-                                (sum_acc_hi, sum_acc_mid, sum_acc_lo, input, in_zp);
-            vec_in  += num_lanes;
-        }
-    } else {
-        if (remaining_part) {
-            input = mli_prv_load_1vec(vec_in);
-            accumlate_sum<decltype(zero_acc), decltype(input), convert, true>
-                                (sum_acc_hi, sum_acc_mid, sum_acc_lo, input, in_zp, remaining_part);
-            vec_in  += remaining_part;
-        }
-        for(int idx = remaining_part; idx < one_dim_shape; idx += num_lanes) {
-            input = mli_prv_load_1vec(vec_in);
-            accumlate_sum<decltype(zero_acc), decltype(input), convert>
-                                (sum_acc_hi, sum_acc_mid, sum_acc_lo, input, in_zp);
-            vec_in  += num_lanes;
-        }
+    if (remaining_part) {
+        input = mli_prv_load_1vec(vec_in);
+        accumlate_sum<true>(sum_acc_hi, sum_acc_mid, sum_acc_lo, input, in_zp, remaining_part);
+        vec_in  += remaining_part;
+    }
+    for(int idx = remaining_part; idx < one_dim_shape; idx += num_lanes) {
+        input = mli_prv_load_1vec(vec_in);
+        accumlate_sum(sum_acc_hi, sum_acc_mid, sum_acc_lo, input, in_zp);
+        vec_in  += num_lanes;
     }
 
-    return normalize_sum<decltype(zero_acc), convert>(sum_acc_hi, sum_acc_mid, sum_acc_lo, norm_shift);
+    return normalize_sum(sum_acc_hi, sum_acc_mid, sum_acc_lo, norm_shift);
+}
+
+template<>
+MLI_FORCE_INLINE int16_t compute_normalized_sum_square_one_dim<int16_t, false, true>(
+        const MLI_PTR(int16_t) vec_in,
+        int16_t in_zp,
+        int *norm_shift,
+        const int one_dim_shape,
+        const int one_dim_mem_stride) {
+    
+    /* Dummy Load to get num_lanes, remaining part */
+    auto input = mli_prv_load_1vec(vec_in);
+    int num_lanes = get_number_lanes(input);
+    int remaining_part = one_dim_shape & (num_lanes - 1);
+
+    /* Accumulation through MAC */
+    auto zero_acc = init_sum_acc(input);
+    auto sum_acc_hi  = zero_acc;
+    auto sum_acc_mid = zero_acc;
+    auto sum_acc_lo  = zero_acc;
+
+    if (remaining_part) {
+        input = mli_prv_stride_load_1vec(vec_in, one_dim_mem_stride);
+        accumlate_sum<true>(sum_acc_hi, sum_acc_mid, sum_acc_lo, input, in_zp, remaining_part);
+        vec_in  += remaining_part;
+    }
+    for(int idx = remaining_part; idx < one_dim_shape; idx += num_lanes) {
+        input = mli_prv_stride_load_1vec(vec_in, one_dim_mem_stride);
+        accumlate_sum(sum_acc_hi, sum_acc_mid, sum_acc_lo, input, in_zp);
+        vec_in  += num_lanes;
+    }
+
+    return normalize_sum(sum_acc_hi, sum_acc_mid, sum_acc_lo, norm_shift);
 }
 
 template<typename io_T, bool convert>
@@ -192,10 +282,7 @@ static MLI_FORCE_INLINE int16_t compute_normalized_sum_square(
     int remaining_part = in_prv->shape[3] & (num_lanes - 1);
 
     /* Accumulation through MAC */
-    auto zero_acc = init_sum_acc(input);
-    auto sum_acc_hi  = zero_acc;
-    auto sum_acc_mid = zero_acc;
-    auto sum_acc_lo  = zero_acc;
+    auto sum_acc = init_sum_acc(input);
 
     const MLI_PTR(io_T) orig_vec_in = vec_in;
     for (int pos0 = 0; pos0 < in_prv->shape[0]; pos0++) {
@@ -204,21 +291,60 @@ static MLI_FORCE_INLINE int16_t compute_normalized_sum_square(
                 vec_in  = (MLI_PTR(io_T))orig_vec_in + POS(in_prv,  pos0, pos1, pos2, 0);
                 if (remaining_part) {
                     input = mli_prv_load_1vec(vec_in);
-                    accumlate_sum<decltype(zero_acc), decltype(input), convert, true>
-                                (sum_acc_hi, sum_acc_mid, sum_acc_lo, input, in_zp, remaining_part);
+                    accumlate_sum<decltype(sum_acc), decltype(input), convert, true>
+                                                        (sum_acc, input, in_zp, remaining_part);
                     vec_in  += remaining_part;
                 }
                 for (int pos3 = remaining_part; pos3 < in_prv->shape[3]; pos3 += num_lanes) {
                     input = mli_prv_load_1vec(vec_in);
-                    accumlate_sum<decltype(zero_acc), decltype(input), convert>
-                                (sum_acc_hi, sum_acc_mid, sum_acc_lo, input, in_zp);
+                    accumlate_sum<decltype(sum_acc), decltype(input), convert>(sum_acc, input, in_zp);
                     vec_in  += num_lanes;
                 }
             }
         }
     }
 
-    return normalize_sum<decltype(zero_acc), convert>(sum_acc_hi, sum_acc_mid, sum_acc_lo, norm_shift);
+    return normalize_sum<decltype(sum_acc)>(sum_acc, norm_shift);
+}
+
+template<>
+MLI_FORCE_INLINE int16_t compute_normalized_sum_square<int16_t, false>(
+        struct generic_tensor_private_t<MLI_PTR(int16_t)> *in_prv,
+        const MLI_PTR(int16_t) vec_in,
+        int16_t in_zp,
+        int *norm_shift) {
+
+    /* Dummy Load to get num_lanes, remaining part */
+    auto input = mli_prv_load_1vec(vec_in);
+    int num_lanes = get_number_lanes(input);
+    int remaining_part = in_prv->shape[3] & (num_lanes - 1);
+
+    /* Accumulation through MAC */
+    auto zero_acc = init_sum_acc(input);
+    auto sum_acc_hi  = zero_acc;
+    auto sum_acc_mid = zero_acc;
+    auto sum_acc_lo  = zero_acc;
+
+    const MLI_PTR(int16_t) orig_vec_in = vec_in;
+    for (int pos0 = 0; pos0 < in_prv->shape[0]; pos0++) {
+        for (int pos1 = 0; pos1 < in_prv->shape[1]; pos1++) {
+            for (int pos2 = 0; pos2 < in_prv->shape[2]; pos2++) {
+                vec_in  = (MLI_PTR(int16_t))orig_vec_in + POS(in_prv,  pos0, pos1, pos2, 0);
+                if (remaining_part) {
+                    input = mli_prv_load_1vec(vec_in);
+                    accumlate_sum<true>(sum_acc_hi, sum_acc_mid, sum_acc_lo, input, in_zp, remaining_part);
+                    vec_in  += remaining_part;
+                }
+                for (int pos3 = remaining_part; pos3 < in_prv->shape[3]; pos3 += num_lanes) {
+                    input = mli_prv_load_1vec(vec_in);
+                    accumlate_sum(sum_acc_hi, sum_acc_mid, sum_acc_lo, input, in_zp);
+                    vec_in  += num_lanes;
+                }
+            }
+        }
+    }
+
+    return normalize_sum(sum_acc_hi, sum_acc_mid, sum_acc_lo, norm_shift);
 }
 
 template<bool convert>
@@ -228,14 +354,20 @@ static MLI_FORCE_INLINE vNx4char_t compute_normalize(
         int16_t in_zp,
         int shift) {
 
+    /*
+     * shifting more than 24 is not needed
+     * as the scaled result = ((input - in_offset) * scale) will be limited by 24 bits.
+     */
+    constexpr int max_shift = 24;
     constexpr int mul_hi_shift = 16;
+    shift = mli_math_min_fx(shift, max_shift);
     shift -= mul_hi_shift;
     int shift_right = mli_math_max_fx(shift, 1);
     int shift_left = mli_math_max_fx(1 - shift, 0);
     vNx4short_t input_cast = mli_math_cast_fx<vNx4char_t, vNx4short_t>(input);
     
     if (convert) {
-        input_cast = mli_math_sub_fx<vNx4short_t>(input_cast, in_zp);
+        input_cast = mli_math_sub(input_cast, in_zp);
     }
 
     input_cast = mli_math_asl_fx(input_cast, shift_left);
@@ -257,7 +389,7 @@ static MLI_FORCE_INLINE vNx2short_t compute_normalize(
     if (convert) {
         input = mli_math_sub_fx<vNx2short_t>(input, in_zp);
     }
-
+    
     vNx2accint_t res = mli_math_mul_fx<vNx2short_t, vNx2accint_t>(input, scale);
     res = mli_math_asl_fx(res, shift_left);
 
