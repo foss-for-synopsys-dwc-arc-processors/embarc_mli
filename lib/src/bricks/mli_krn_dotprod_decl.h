@@ -309,6 +309,11 @@ static MLI_FORCE_INLINE grpacc_T dotprod3D_v_unroll (
         int kern_col_step,
         int kern_row_step,
         int kern_ch_step,
+        int unroll_step,
+        int unroll_1,
+        int required_loads,
+        int kernel_size,
+        int ext_width,
         grpacc_T accu);
 
 template < typename in_T, typename w_T, typename acc_T >
