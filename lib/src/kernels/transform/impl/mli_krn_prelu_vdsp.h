@@ -167,12 +167,12 @@ MLI_FORCE_INLINE void compute_prelu(
     mli_prv_stride_store_n_samples(vec_out, calc_prelu(input, scale, shift), stride_out, remaining_part);
 }
 
-static MLI_FORCE_INLINE s8asym_quant_params_v prelu_define_requant_params(const mli_tensor *in, 
+static MLI_FORCE_INLINE s8asym_quant_params_v prelu_define_requant_alpha_params(const mli_tensor *in, 
         const mli_tensor *slope_coeff,
         mli_tensor *out,
         const vNx4char_t alpha_sa8,
         const s8asym_quant_params *identity_params) {
-
+    int16_t out_zp = out->el_params.sa.zero_point.mem.i16;
     vNx4int_t alpha_val = mli_prv_convert_sa8_fx32(alpha_sa8, 
                             slope_coeff->el_params.sa.zero_point.mem.i16,
                             slope_coeff->el_params.sa.scale.mem.i16);
@@ -188,29 +188,12 @@ static MLI_FORCE_INLINE s8asym_quant_params_v prelu_define_requant_params(const 
                           mli_math_mul_fx<vNx4short_t, vNx4int_t>(identity_params->scale, alpha), &norm_shift);
     scale_alpha_shift -= norm_shift;
 
-    int16_t in_zp  = in->el_params.sa.zero_point.mem.i16;
-    int16_t out_zp = out->el_params.sa.zero_point.mem.i16;
-    
-    vNx4int_t shift_left = mli_math_max_fx(-scale_alpha_shift, 0);
-    vNx4int_t shift_right = mli_math_max_fx(scale_alpha_shift, 0);
-
-    vNx4int_t scale_zp = mli_math_mul_fx<vNx4short_t, vNx4int_t>(scale_alpha, in_zp);
-              scale_zp = mli_math_asl_fx(scale_zp, shift_left);
-              scale_zp = mli_math_asr_rnd_fx(scale_zp, shift_right);
-
-    vNx4short_t scale_alpha_offset = mli_math_sub_fx<vNx4short_t>(out_zp,
-                                 mli_math_cast_fx<vNx4int_t, vNx4short_t>(scale_zp, 0));
-
     /* Define Quantization params for (In * alpha / out) ratio */
     s8asym_quant_params_v alpha_params;
     alpha_params.scale  = scale_alpha;
     alpha_params.shift  = mli_math_cast_fx<vNx4int_t, vNx4short_t>(scale_alpha_shift);
-    alpha_params.offset = scale_alpha_offset;
+    alpha_params.offset = (vNx4short_t)out_zp;
     
-    /* Apply Shifting Left over Scale value */
-    vNx4short_t shift_l = mli_math_max_fx(-alpha_params.shift, 0);
-    alpha_params.scale = mli_math_asl_fx(alpha_params.scale, shift_l);
-    alpha_params.shift = mli_math_max_fx(alpha_params.shift, 0);
     return alpha_params;
 }
 
@@ -221,28 +204,43 @@ static MLI_FORCE_INLINE vNx4char_t calc_prelu(
         const s8asym_quant_params_v *alpha_params) {
 
     vNx4short_t input_cast = mli_math_cast_fx<vNx4char_t, vNx4short_t>(input);
+    input_cast = mli_math_sub(input_cast, in_zp);
     pvNx4 select = init_predicate(input >= in_zp);
+    /*
+     * shifting more than 24 is not needed
+     * as the scaled result = ((input - in_offset) * scale) will be limited by 24 bits.
+     */
+    constexpr int max_shift = 24;
+    constexpr int mul_hi_shift = 16;
 
     int identity_shift = identity_params->shift;
-    int identity_offset = (int)identity_params->offset << identity_shift;
+    identity_shift = mli_math_min_fx(identity_params->shift, max_shift);
+    identity_shift -= mul_hi_shift;
+    int shift_left = mli_math_max_fx(1 - identity_shift, 0);
+    int shift_right = mli_math_max_fx(identity_shift, 1);
+    int16_t identity_offset = identity_params->offset << shift_right;
 #ifdef ROUND_UP
-    identity_offset += (int)(((uint32_t)1 << identity_shift) >> 1);
+    identity_offset += (int)(((uint16_t)1 << shift_right) >> 1);
 #else
     #error Rounding mode not supported
 #endif
-    vNx4int_t input_identity_scale = mli_math_mul_fx<vNx4short_t, vNx4int_t>(identity_params->scale, input_cast);
-              input_identity_scale = mli_math_add(input_identity_scale, identity_offset);
-              input_identity_scale = mli_math_asr_fx(input_identity_scale, identity_shift);
+    vNx4short_t input_cast1 = mli_math_asl_fx(input_cast, shift_left);
+    vNx4short_t input_identity_scale = mli_math_mul_fx_high(identity_params->scale, input_cast1);
+                  input_identity_scale = mli_math_add_fx(input_identity_scale, (vNx4short_t)identity_offset);
 
-    vNx4char_t output_identity = mli_math_cast_fx<vNx4int_t, vNx4char_t>(input_identity_scale);
+    vNx4char_t output_identity = mli_math_cast_fx<vNx4short_t, vNx4char_t, false>(input_identity_scale, shift_right);
 
-    vNx4int_t alpha_shift = mli_math_cast_fx<vNx4short_t, vNx4int_t>(alpha_params->shift);
-    vNx4int_t input_alpha_scale = mli_math_mul_fx<vNx4short_t, vNx4int_t>(alpha_params->scale, input_cast);
-              input_alpha_scale = mli_math_asr_rnd_fx(input_alpha_scale, alpha_shift);
-              input_alpha_scale = mli_math_add(input_alpha_scale,
-                                  mli_math_cast_fx<vNx4short_t, vNx4int_t>(alpha_params->offset));
+    vNx4short_t alpha_shift = mli_math_min_fx(alpha_params->shift, max_shift);
+    alpha_shift -= mul_hi_shift;
+    vNx4short_t shift_left1 = mli_math_max_fx(1 - alpha_shift, 0);
+    vNx4short_t shift_right1 = mli_math_max_fx(alpha_shift, 1);
 
-    vNx4char_t output_alpha = mli_math_cast_fx<vNx4int_t, vNx4char_t>(input_alpha_scale);
+    vNx4short_t input_cast2 = mli_math_asl_fx(input_cast, shift_left1);
+    vNx4short_t input_alpha_scale = mli_math_mul_fx_high(input_cast2, alpha_params->scale);
+                input_alpha_scale = mli_math_asr_rnd_fx(input_alpha_scale, shift_right1);
+                input_alpha_scale = mli_math_add_fx(input_alpha_scale, alpha_params->offset);
+
+    vNx4char_t output_alpha = mli_math_cast_fx<vNx4short_t, vNx4char_t>(input_alpha_scale);
     return mli_math_select_fx(select, output_identity, output_alpha);
 }
 
@@ -444,7 +442,7 @@ static MLI_FORCE_INLINE void compute_prelu_broadcast(
             MLI_OUT_PTR(int8_t) vec_out = out_prv.ptr + scale_idx * axis_out_mem_stride;
             /* Load Scale Vector */
             auto scale_v = mli_prv_load_1vec(slope_ptr);
-            auto alpha_params = mli::krn::prelu_define_requant_params(in, slope_coeff, out, scale_v, identity_params);
+            auto alpha_params = mli::krn::prelu_define_requant_alpha_params(in, slope_coeff, out, scale_v, identity_params);
             /* Loop Over Sub Tensor */
             const MLI_PTR(int8_t) orig_vec_in = vec_in;
             MLI_OUT_PTR(int8_t) orig_vec_out = vec_out;
@@ -468,7 +466,7 @@ static MLI_FORCE_INLINE void compute_prelu_broadcast(
             const MLI_PTR(int8_t) vec_in  = (MLI_PTR(int8_t))in_prv.ptr  + scale_idx * axis_in_mem_stride;
             MLI_OUT_PTR(int8_t) vec_out = out_prv.ptr + scale_idx * axis_out_mem_stride;
             /* Load Scale Elem */
-            auto alpha_params = mli::krn::ref::prelu_define_requant_params(in, slope_coeff, out,
+            auto alpha_params = mli::krn::ref::prelu_define_requant_alpha_params(in, slope_coeff, out,
                                                                            slope_ptr[scale_idx], identity_params);
 
             /* Loop Over Sub Tensor */

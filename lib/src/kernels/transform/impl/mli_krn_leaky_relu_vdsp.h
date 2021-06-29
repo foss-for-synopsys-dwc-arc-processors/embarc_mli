@@ -43,8 +43,10 @@ static MLI_FORCE_INLINE vNx2short_t calc_leaky_relu(
     pvNx2 sel = init_predicate(input > 0);
     vNx2short_t neg;
     if ( shift > mul_hi_shift) {
+        constexpr int max_shift_right = 15;
+        int shift_right = mli_math_min_fx(shift - mul_hi_shift, max_shift_right);
         neg = mli_math_mul_fx_high(input, scale);
-        neg = mli_math_asr_rnd_fx(neg, shift - mul_hi_shift);
+        neg = mli_math_asr_rnd_fx(neg, shift_right);
     } else {
         vNx2accint_t acc = mli_math_mul_fx<vNx2short_t, vNx2accint_t>(input, scale);
         neg = mli_math_acc_cast_fx<vNx2short_t, vNx2accint_t>(acc, shift);
@@ -110,33 +112,47 @@ static MLI_FORCE_INLINE vNx4char_t calc_leaky_relu(
     /* Load Input */
     vNx4char_t input = mli_prv_load_1vec(vec_in);
     vNx4short_t input_cast = mli_math_cast_fx<vNx4char_t, vNx4short_t>(input);
+    input_cast = mli_math_sub(input_cast, in_zp);
     pvNx4 select = init_predicate(input >= in_zp);
+    /*
+     * shifting more than 24 is not needed
+     * as the scaled result = ((input - in_offset) * scale) will be limited by 24 bits.
+     */
+    constexpr int max_shift = 24;
+    constexpr int mul_hi_shift = 16;
 
-    int identity_shift = identity_params->shift;
-    int identity_offset = (int)identity_params->offset << identity_shift;
+    int identity_shift = mli_math_min_fx(identity_params->shift, max_shift);
+    identity_shift -= mul_hi_shift;
+    int shift_left = mli_math_max_fx(1 - identity_shift, 0);
+    int shift_right = mli_math_max_fx(identity_shift, 1);
+
+    int16_t identity_offset = identity_params->offset << shift_right;
 #ifdef ROUND_UP
-    identity_offset += (int)(((uint32_t)1 << identity_shift) >> 1);
+    identity_offset += (int16_t)(((uint16_t)1 << shift_right) >> 1);
 #else
     #error Rounding mode not supported
 #endif
-    vNx4int_t input_identity_scale = mli_math_mul_fx<vNx4short_t, vNx4int_t>(input_cast, identity_params->scale);
-              input_identity_scale = mli_math_add(input_identity_scale, identity_offset);
-              input_identity_scale = mli_math_asr_fx(input_identity_scale, identity_shift);
+    vNx4short_t input_identity_cast = mli_math_asl_fx(input_cast, shift_left);
+    vNx4short_t input_identity_scale = mli_math_mul_fx_high(input_identity_cast, identity_params->scale);
+                input_identity_scale = mli_math_add_fx(input_identity_scale, (vNx4short_t)identity_offset);
+    vNx4char_t output_identity = mli_math_cast_fx<vNx4short_t, vNx4char_t, false>(input_identity_scale, shift_right);
 
-    vNx4char_t output_identity = mli_math_cast_fx<vNx4int_t, vNx4char_t>(input_identity_scale);
+    int alpha_shift = mli_math_min_fx(alpha_params->shift, max_shift);
+    alpha_shift -= mul_hi_shift;
+    shift_left = mli_math_max_fx(1 - alpha_shift, 0);
+    shift_right = mli_math_max_fx(alpha_shift, 1);
 
-    int alpha_shift = alpha_params->shift;
-    int alpha_offset = (int)alpha_params->offset << alpha_shift;
+    int16_t alpha_offset = alpha_params->offset << shift_right;
 #ifdef ROUND_UP
-    alpha_offset += (int)(((uint32_t)1 << alpha_shift) >> 1);
+    alpha_offset += (int16_t)(((uint16_t)1 << shift_right) >> 1);
 #else
     #error Rounding mode not supported
 #endif
-    vNx4int_t input_alpha_scale = mli_math_mul_fx<vNx4short_t, vNx4int_t>(input_cast, alpha_params->scale);
-              input_alpha_scale = mli_math_add(input_alpha_scale, alpha_offset);
-              input_alpha_scale = mli_math_asr_fx(input_alpha_scale, alpha_shift);
-    
-    vNx4char_t output_alpha = mli_math_cast_fx<vNx4int_t, vNx4char_t>(input_alpha_scale);
+    vNx4short_t input_alpha_cast = mli_math_asl_fx(input_cast, shift_left);
+    vNx4short_t input_alpha_scale = mli_math_mul_fx_high(input_alpha_cast, alpha_params->scale);
+              input_alpha_scale = mli_math_add_fx(input_alpha_scale, (vNx4short_t)alpha_offset);
+
+    vNx4char_t output_alpha = mli_math_cast_fx<vNx4short_t, vNx4char_t, false>(input_alpha_scale, shift_right);
     return mli_math_select_fx(select, output_identity, output_alpha);
 }
 
@@ -182,7 +198,7 @@ static MLI_FORCE_INLINE void compute_leaky_relu_sa8_inner_loop(
         vec_out += remaining_part;
     }
 
-#pragma clang loop unroll_count(2)
+#pragma clang loop unroll_count(4)
     for (int pos3 = remaining_part; pos3 < count; pos3 += num_lanes) {
         compute_leaky_relu(vec_in, vec_out, in_zp, identity_params, alpha_params);
         vec_in  += num_lanes;

@@ -62,17 +62,17 @@ static MLI_FORCE_INLINE void compute_leaky_relu(
     int8_t input = vec_in[0];
     int32_t output;
     if (input >= in_zp) {
-        /* out_sa8 = (idendity_scale * in_sa8) * 2^(-(identity_shift)) + identity_offset */
-        output =  mli_math_add_fx<int32_t>(
-                  mli_math_asr_rnd_fx(
-                  mli_math_mul_fx<int16_t, int32_t>(identity_params->scale, input),
-                  identity_params->shift), identity_params->offset);
+        /* out_sa8 = (idendity_scale * (in_sa8 - in_zp)) * 2^(-(identity_shift)) + identity_offset */
+        int16_t input_sub = mli_math_sub_fx((int16_t)input, in_zp);
+        output = mli_math_asr_rnd_fx(
+                 mli_math_mul_fx<int16_t, int32_t>(identity_params->scale, input_sub), identity_params->shift);
+        output = mli_math_add_fx(output, (int32_t)identity_params->offset);
     } else {
-        /* out_sa8 = (alpha_scale * in_sa8) * 2^(-(alpha_shift)) + alpha_offset */
-        output =  mli_math_add_fx<int32_t>(
-                  mli_math_asr_rnd_fx(
-                  mli_math_mul_fx<int16_t, int32_t>(alpha_params->scale, input),
-                  alpha_params->shift), alpha_params->offset);
+        /* out_sa8 = (alpha_scale * (in_sa8 - in_zp)) * 2^(-(alpha_shift)) + alpha_offset */
+        int16_t input_sub = mli_math_sub_fx((int16_t)input, in_zp);
+        output = mli_math_asr_rnd_fx(
+                 mli_math_mul_fx<int16_t, int32_t>(alpha_params->scale, input_sub), alpha_params->shift);
+        output = mli_math_add_fx(output, (int32_t)alpha_params->offset);
     }
 
     vec_out[0] = mli_math_cast_fx<int32_t, int8_t>(output, 0);
@@ -201,13 +201,64 @@ static MLI_FORCE_INLINE mli_status leaky_relu_fx_run(const mli_tensor *in,
     return MLI_STATUS_OK;
 }
 
-static MLI_FORCE_INLINE s8asym_quant_params leaky_relu_define_requant_params(const mli_tensor *in, 
+static MLI_FORCE_INLINE void leaky_relu_define_identity_params(const mli_tensor *in, const mli_tensor *out,
+        s8asym_quant_params *params) {
+
+    /* ****************************************************************************************************************
+     *             Mathematical Derivations out_sa8 Requantization Params to use with in_sa8
+     * ----------------------------------------------------------------------------------------------------------------
+     *      out_sa8 = (in_scale_val/out_scale_val) *(in_sa8 - in_zp) + out_zp
+     *              = scale_val * (in_sa8 - in_zp) + out_zp
+     *      where:
+     *
+     *      scale_val = in_scale_val / out_scale_val;
+     *                = in_scale * 2^(-in_scale_frac_bits) / (out_scale * 2^(-out_scale_frac_bits));
+     *                = (in_scale_val * 2^kPreDivShift / out_scale_val)
+     *                 * 2^(-(kPreDivShift + in_scale_frac_bits - out_scale_frac_bits));
+     *                = (in_scale_val * 2^kPreDivShift / out_scale_val) * 2^(-norm_shift)
+     *                 * 2^(-(kPreDivShift + in_scale_frac_bits - out_scale_frac_bits - norm_shift));
+     *                = (in_scale_val * 2^kPreDivShift / out_scale_val) * 2^(-norm_shift)
+     *                 * 2^(-scale_shift)
+     *                = scale * 2 ^(-(scale_shift))
+     *
+     *      where scale = (in_scale_val * 2^kPreDivShift / out_scale_val) * 2^(-norm_shift)
+     *            scale_shift = kPreDivShift + in_scale_frac_bits - out_scale_frac_bits - norm_shift
+     *            norm_shift is the shift value due to normalizing the result of
+     *                       (in_scale_val * 2^kPreDivShift / out_scale_val) and casting it from int32_t to int16_t
+     *            kPreDivShift is derived from norm_32(in_scale) - norm_16(out_scale)
+     *
+     *      offset = out_zp
+     *
+     * ***************************************************************************************************************/
+
+    int16_t scale_in = mli_hlp_tensor_scale(in, 0);
+    int16_t scale_out = mli_hlp_tensor_scale(out, 0);
+    int16_t out_zp = out->el_params.sa.zero_point.mem.i16;
+    int kPreDivShift =  mli_math_norm_fx<int32_t, int32_t>(scale_in) -
+                            mli_math_norm_fx<int16_t, int32_t>(scale_out);
+    /* Normalize In/Out Scale ratio and cast to 16bit */
+    int norm_shift;
+    params->scale = mli_math_norm_cast_fx<int32_t, int16_t>(
+                    ((int32_t)(scale_in) << kPreDivShift) /
+                    scale_out, &norm_shift);
+
+    params->shift  = kPreDivShift;
+    params->shift += mli_hlp_tensor_scale_shift(in, 0) - mli_hlp_tensor_scale_shift(out, 0);
+    params->shift -= norm_shift;
+    params->offset = out_zp;
+    int shift_left = mli_math_max_fx(-params->shift, 0);
+    params->scale = mli_math_asl_fx(params->scale, shift_left);
+    params->shift = mli_math_max_fx(params->shift, 0);
+
+
+}
+static MLI_FORCE_INLINE s8asym_quant_params leaky_relu_define_alpha_params(const mli_tensor *in, 
         const mli_tensor *slope_coeff,
         mli_tensor *out,
         const int8_t alpha_sa8,
         const s8asym_quant_params *identity_params) {
     
-    /* ****************************************************************************************************************
+   /* ****************************************************************************************************************
      *             Mathematical Derivations out_sa8 Requantization Params with alpha scale to use with in_sa8
      * ----------------------------------------------------------------------------------------------------------------
      *      First we need to define Quantization Params for In/Out 
@@ -220,8 +271,6 @@ static MLI_FORCE_INLINE s8asym_quant_params leaky_relu_define_requant_params(con
      *      out_sa8 = (in_scale_val/out_scale_val) * alpha_scale * (alpha_sa8 - alpha_zp) * (in_sa8 - in_zp) + out_zp
      *              = scale_val * alpha_val * (alpha_sa8 - alpha_zp) * (in_sa8 - in_zp) + out_zp
      *              = scale_alpha_val * (in_sa8 - in_zp) + out_zp
-     *              = scale_alpha_val * in_sa8 + out_zp - scale_alpha_val * in_zp
-     *              = scale_alpha_val * in_sa8 + scale_alpha_offset;
      * 
      *      For scale_alpha_val = scale_val * alpha_val * (alpha_sa8 - alpha_zp) 
      *                        = scale * 2 ^(-(scale_shift)) * alpha_scale 
@@ -244,10 +293,10 @@ static MLI_FORCE_INLINE s8asym_quant_params leaky_relu_define_requant_params(con
      *                             scale * alpha_scale * (alpha_sa8 - alpha_zp) * 2^(-(alpha_norm_shift))
      *            scale_alpha_shift = scale_shift + alpha_scale_frac_bits - alpha_norm_shift - scale_mul_norm_shift
      * 
-     *      scale_alpha_offset = out_zp - scale_alpha_val * in_zp
-     *                         = out_zp - (scale_alpha * in_zp) * 2^(-(scale_alpha_shift));
+     *      scale_alpha_offset = out_zp
      * 
      * ***************************************************************************************************************/
+    int16_t out_zp = out->el_params.sa.zero_point.mem.i16;
 
     int32_t alpha_val = mli_prv_convert_sa8_fx16<int8_t, int32_t>(alpha_sa8, 
                             slope_coeff->el_params.sa.zero_point.mem.i16,
@@ -263,19 +312,12 @@ static MLI_FORCE_INLINE s8asym_quant_params leaky_relu_define_requant_params(con
     int16_t scale_alpha = mli_math_norm_cast_fx<int32_t,int16_t>(
                           mli_math_mul_fx<int16_t, int32_t>(identity_params->scale, alpha), &norm_shift);
     scale_alpha_shift -= norm_shift;
-
-    int16_t in_zp  = in->el_params.sa.zero_point.mem.i16;
-    int16_t out_zp = out->el_params.sa.zero_point.mem.i16;
-    
-    int16_t scale_alpha_offset = mli_math_sub_fx<int16_t>(out_zp,
-                                 mli_math_cast_fx<int32_t, int16_t>(
-                                 mli_math_mul_fx<int16_t, int32_t>(scale_alpha, in_zp), scale_alpha_shift));
     
     /* Define Quantization params for (In * alpha / out) ratio */
     s8asym_quant_params alpha_params;
     alpha_params.scale  = scale_alpha;
     alpha_params.shift  = scale_alpha_shift;
-    alpha_params.offset = scale_alpha_offset;
+    alpha_params.offset = out_zp;
     return alpha_params;
 }
 
@@ -303,22 +345,16 @@ static MLI_FORCE_INLINE mli_status leaky_relu_sa8_run(const mli_tensor *in,
      *                        Mathematical Derivations for Leaky RELU SA8 
      * ----------------------------------------------------------------------------------------------------------------
      *    If (in_sa8 >= in_zp)
-     *       out_sa8 = (idendity_scale * in_sa8) * 2^(-(identity_shift)) + identity_offset; 
+     *       out_sa8 = (idendity_scale * (in_sa8 - in_zp)) * 2^(-(identity_shift)) + identity_offset; 
      *    else
-     *       out_sa8 = (alpha_scale * in_sa8) * 2^(-(alpha_shift)) + alpha_offset;
+     *       out_sa8 = (alpha_scale * (in_sa8 - in_zp)) * 2^(-(alpha_shift)) + alpha_offset;
      * 
-     *    check leaky_relu_define_requant_params for more Documentation
+     *    check leaky_relu_define_alpha_params for more Documentation
      * ***************************************************************************************************************/
     s8asym_quant_params identity_params;
     /* Define Requantization Params for In/Out scale ratio */
-    define_requant_params(in, out, &identity_params);
-    int shift_left = mli_math_max_fx(-identity_params.shift, 0);
-    identity_params.scale = mli_math_asl_fx(identity_params.scale, shift_left);
-    identity_params.shift = mli_math_max_fx(identity_params.shift, 0);
-    s8asym_quant_params alpha_params = leaky_relu_define_requant_params(in, slope_coeff, out, scale, &identity_params);
-    shift_left = mli_math_max_fx(-alpha_params.shift, 0);
-    alpha_params.scale = mli_math_asl_fx(alpha_params.scale, shift_left);
-    alpha_params.shift = mli_math_max_fx(alpha_params.shift, 0);
+    leaky_relu_define_identity_params(in, out, &identity_params);
+    s8asym_quant_params alpha_params = leaky_relu_define_alpha_params(in, slope_coeff, out, scale, &identity_params);
 
     /* Dummy Load to get num_lanes */
     auto input = mli_prv_load_1vec(in_ptr);

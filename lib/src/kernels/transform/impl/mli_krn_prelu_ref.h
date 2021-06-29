@@ -210,13 +210,13 @@ static MLI_FORCE_INLINE mli_status prelu_fx_run(const mli_tensor *in,
     return MLI_STATUS_OK;
 }
 
-static MLI_FORCE_INLINE s8asym_quant_params prelu_define_requant_params(const mli_tensor *in, 
+static MLI_FORCE_INLINE s8asym_quant_params prelu_define_requant_alpha_params(const mli_tensor *in, 
         const mli_tensor *slope_coeff,
         mli_tensor *out,
         const int8_t alpha_sa8,
         const s8asym_quant_params *identity_params) {
     
-    return mli::krn::ref::leaky_relu_define_requant_params(in, slope_coeff, out, alpha_sa8, identity_params);
+    return mli::krn::ref::leaky_relu_define_alpha_params(in, slope_coeff, out, alpha_sa8, identity_params);
 }
 
 static MLI_FORCE_INLINE void compute_prelu_broadcast(
@@ -252,7 +252,7 @@ static MLI_FORCE_INLINE void compute_prelu_broadcast(
         const MLI_PTR(int8_t) vec_in  = (MLI_PTR(int8_t))in_prv.ptr  + scale_idx * axis_in_mem_stride;
         MLI_OUT_PTR(int8_t) vec_out = out_prv.ptr + scale_idx * axis_out_mem_stride;
         /* Load Scale Elem */
-        auto alpha_params = mli::krn::ref::prelu_define_requant_params(in, slope_coeff, out,
+        auto alpha_params = mli::krn::ref::prelu_define_requant_alpha_params(in, slope_coeff, out,
                                                                         slope_ptr[scale_idx], identity_params);
 
         /* Loop Over Sub Tensor */
@@ -346,14 +346,11 @@ static MLI_FORCE_INLINE mli_status prelu_sa8_run(const mli_tensor *in,
      *    else
      *       out_sa8 = (alpha_scale * in_sa8) * 2^(-(alpha_shift)) + alpha_offset;
      * 
-     *    check prelu_define_requant_params for more Documentation
+     *    check prelu_define_requant_alpha_params for more Documentation
      * ***************************************************************************************************************/
     s8asym_quant_params identity_params;
     /* Define Requantization Params for In/Out scale ratio */
-    define_requant_params(in, out, &identity_params);
-    int shift_left = mli_math_max_fx(-identity_params.shift, 0);
-    identity_params.scale = mli_math_asl_fx(identity_params.scale, shift_left);
-    identity_params.shift = mli_math_max_fx(identity_params.shift, 0);
+    leaky_relu_define_identity_params(in, out, &identity_params);
 
     /* Input Zero Point */
     int16_t in_zp = in->el_params.sa.zero_point.mem.i16;
@@ -376,7 +373,7 @@ static MLI_FORCE_INLINE mli_status prelu_sa8_run(const mli_tensor *in,
         if (remaining_part) {
             /* Load Scale Vector */
             auto scale_v = mli_prv_load_1vec(slope_ptr);
-            auto alpha_params = mli::krn::prelu_define_requant_params(in, slope_coeff, out, scale_v, &identity_params);
+            auto alpha_params = mli::krn::prelu_define_requant_alpha_params(in, slope_coeff, out, scale_v, &identity_params);
 
             mli::krn::compute_prelu_no_broadcast(in_ptr, out_ptr, in_zp, &identity_params, &alpha_params,
                                                  in_prv, out_prv, remaining_part);
@@ -387,7 +384,7 @@ static MLI_FORCE_INLINE mli_status prelu_sa8_run(const mli_tensor *in,
             vec_out = out_ptr + scale_idx * axis_out_mem_stride;
             /* Load Scale Vector */
             auto scale_v = mli_prv_load_1vec(&slope_ptr[scale_idx]);
-            auto alpha_params = mli::krn::prelu_define_requant_params(in, slope_coeff, out, scale_v, &identity_params);
+            auto alpha_params = mli::krn::prelu_define_requant_alpha_params(in, slope_coeff, out, scale_v, &identity_params);
 
             mli::krn::compute_prelu_no_broadcast(vec_in, vec_out, in_zp, &identity_params, &alpha_params,
                                                  in_prv, out_prv);

@@ -60,15 +60,15 @@ static MLI_FORCE_INLINE void compute_prelu(
     mli_prv_store_1_sample(vec_out, calc_prelu(input, scale, shift));
 }
 
-static MLI_FORCE_INLINE s8asym_quant_params_v prelu_define_requant_params(const mli_tensor *in, 
+static MLI_FORCE_INLINE s8asym_quant_params_v prelu_define_requant_alpha_params(const mli_tensor *in, 
         const mli_tensor *slope_coeff,
         mli_tensor *out,
         const v2q15_t alpha_sa8,
         const s8asym_quant_params *identity_params) {
 
-    s8asym_quant_params scale0 = mli::krn::ref::prelu_define_requant_params(in, slope_coeff, out, 
+    s8asym_quant_params scale0 = mli::krn::ref::prelu_define_requant_alpha_params(in, slope_coeff, out, 
                                                                             alpha_sa8[0], identity_params);
-    s8asym_quant_params scale1 = mli::krn::ref::prelu_define_requant_params(in, slope_coeff, out, 
+    s8asym_quant_params scale1 = mli::krn::ref::prelu_define_requant_alpha_params(in, slope_coeff, out, 
                                                                             alpha_sa8[1], identity_params);
     s8asym_quant_params_v alpha_params;
     alpha_params.scale  = mli_prv_init_v(scale0.scale,  scale1.scale );
