@@ -19,9 +19,6 @@
 #include "mli_types.h"
 #include <string.h>
 
-const int kTanhAsymZeroPoint = 0;
-const int kTanhOutputShift = 7;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -68,10 +65,10 @@ mli_status mli_krn_tanh_sa8(const mli_tensor *in, const mli_lut *lut, mli_tensor
 
     in_params.offset = in->el_params.sa.zero_point.mem.i16;
     in_params.scale  = in->el_params.sa.scale.mem.i16;
-    in_params.shift = in->el_params.sa.scale_frac_bits.mem.i8;
-    out_params.offset = kTanhAsymZeroPoint;
+    in_params.shift  = in->el_params.sa.scale_frac_bits.mem.i8;
+    out_params.offset = K_TANH_ASYM_ZERO_POINT;
     out_params.scale  = 1;
-    out_params.shift = kTanhOutputShift;
+    out_params.shift  = K_TANH_OUTPUT_SHIFT;
 
     // Update output shape
     if (in != out) mli_prv_copy_tensor_format_except_mem_strides(in, out);

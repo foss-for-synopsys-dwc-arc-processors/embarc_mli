@@ -125,50 +125,45 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
 
     
     // Paricular subtensors of intermediate tensor
-    mli_tensor reset_gate, update_gate, new_gate; // Various gates to control info flow
+    mli_tensor tmp_res_upd_gate, new_gate; // Various gates to control info flow
     
-    new_gate =  reset_gate = update_gate = ir_tensor; 
+    new_gate =  tmp_res_upd_gate = ir_tensor; 
     // update shape
-    update_gate.shape[0] = 1;
-    reset_gate.shape[0] = 1;
+    tmp_res_upd_gate.shape[0] = 1;
     new_gate.shape[0] = 1;
     // update data ptr
-    mli_prv_tensor_inc_data_ptr<io_T*>(&update_gate,                          0 );
-    mli_prv_tensor_inc_data_ptr<io_T*>(&reset_gate,      ir_tensor.mem_stride[0]);
-    mli_prv_tensor_inc_data_ptr<io_T*>(&new_gate,   (2 * ir_tensor.mem_stride[0]));
+    //mli_prv_tensor_inc_data_ptr<io_T*>(&tmp_res_upd_gate,                     0 );
+    mli_data_container dtcntr_update_gate = tmp_res_upd_gate.data; //store data of update_gate 
+    mli_prv_tensor_inc_data_ptr<io_T*>(&tmp_res_upd_gate,  ir_tensor.mem_stride[0]);
+    mli_data_container dtcntr_reset_gate = tmp_res_upd_gate.data; //store data of reset_gate 
+    mli_prv_tensor_inc_data_ptr<io_T*>(&new_gate,    (2 * ir_tensor.mem_stride[0]));
 
 
     struct s8asym_quant_params out_params_sigm;
     struct s8asym_quant_params out_params_tanh;
 
     if (asym) {
-        out_params_tanh.offset = 0; //kTanhAsymZeroPoint;
+        out_params_tanh.offset = K_TANH_ASYM_ZERO_POINT;
         out_params_tanh.scale  = 1;
-        out_params_tanh.shift = 7; //kTanhOutputShift;
+        out_params_tanh.shift = K_TANH_OUTPUT_SHIFT;
     
-        out_params_sigm.offset = -128; //kSigmAsymZeroPoint;
+        out_params_sigm.offset = K_SIGM_ASYM_ZERO_POINT;
         out_params_sigm.scale  = 1;
-        out_params_sigm.shift = 8; //kSigmOutputShift; 
+        out_params_sigm.shift = K_SIGM_OUTPUT_SHIFT; 
 
-        update_gate.el_params.sa.zero_point.mem.i16 = out_params_sigm.offset;
-        update_gate.el_params.sa.scale.mem.i16 = out_params_sigm.scale;
-        update_gate.el_params.sa.scale_frac_bits.mem.i8 = (int8_t)out_params_sigm.shift;
-
-        reset_gate.el_params.sa.zero_point.mem.i16 = out_params_sigm.offset;
-        reset_gate.el_params.sa.scale.mem.i16 = out_params_sigm.scale;
-        reset_gate.el_params.sa.scale_frac_bits.mem.i8 = (int8_t)out_params_sigm.shift;
+        tmp_res_upd_gate.el_params.sa.zero_point.mem.i16 = out_params_sigm.offset;
+        tmp_res_upd_gate.el_params.sa.scale.mem.i16 = out_params_sigm.scale;
+        tmp_res_upd_gate.el_params.sa.scale_frac_bits.mem.i8 = (int8_t)out_params_sigm.shift;
 
         new_gate.el_params.sa.zero_point.mem.i16 = out_params_tanh.offset;
         new_gate.el_params.sa.scale.mem.i16 = out_params_tanh.scale;
         new_gate.el_params.sa.scale_frac_bits.mem.i8 = (int8_t)out_params_tanh.shift;
     } else {
             if (sizeof(io_T)==sizeof(int8_t)) {
-                update_gate.el_params.fx.frac_bits = 7;
-                reset_gate.el_params.fx.frac_bits = 7;
+                tmp_res_upd_gate.el_params.fx.frac_bits = 7;
                 new_gate.el_params.fx.frac_bits = 7;
             } else if (sizeof(io_T)==sizeof(int16_t)) {
-                update_gate.el_params.fx.frac_bits = 15;
-                reset_gate.el_params.fx.frac_bits = 15;
+                tmp_res_upd_gate.el_params.fx.frac_bits = 15;
                 new_gate.el_params.fx.frac_bits = 15;
             } else {
                 MLI_ASSERT(0);
@@ -232,12 +227,12 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
     current_out.el_params = prev_out->el_params;
 
     mli_tensor prev_out_reset;
-    prev_out_reset.data = reset_gate.data;
-    prev_out_reset.rank = reset_gate.rank;
-    prev_out_reset.shape[0] = reset_gate.shape[0];
-    prev_out_reset.shape[1] = reset_gate.shape[1];
-    prev_out_reset.mem_stride[0] = reset_gate.mem_stride[0];
-    prev_out_reset.mem_stride[1] = reset_gate.mem_stride[1];
+    prev_out_reset.data = tmp_res_upd_gate.data;
+    prev_out_reset.rank = tmp_res_upd_gate.rank;
+    prev_out_reset.shape[0] = tmp_res_upd_gate.shape[0];
+    prev_out_reset.shape[1] = tmp_res_upd_gate.shape[1];
+    prev_out_reset.mem_stride[0] = tmp_res_upd_gate.mem_stride[0];
+    prev_out_reset.mem_stride[1] = tmp_res_upd_gate.mem_stride[1];
     prev_out_reset.el_type = in->el_type;
     prev_out_reset.el_params = ir_tensor.el_params;
 
@@ -246,6 +241,8 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
 
     for (int timestep = 0; timestep < seq_len; timestep++) {
 
+        MLI_ASSERT(bias->rank==2);
+        __builtin_assume(bias->rank==2);
         // Step 1: Applying Dense
         //=======================================
         mli::krn::rnn_dense_op_stacked<io_T, w_T, b_T, acc_T, quant_T>(
@@ -254,33 +251,33 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
 
         // Step 2: Applying non-linearity
         //=======================================
+        tmp_res_upd_gate.data = dtcntr_update_gate; // switch data to update_gate
+        tmp_res_upd_gate.shape[1]  *=2; // increase len to combine calculation of update_gate and reset_gate
         if (asym) {
             struct s8asym_quant_params in_params;
             in_params.offset = ir_tensor.el_params.sa.zero_point.mem.i16;
             in_params.scale  = ir_tensor.el_params.sa.scale.mem.i16;
             in_params.shift = ir_tensor.el_params.sa.scale_frac_bits.mem.i8;
-
-            mli_prv_activation_lut_sa8(&update_gate, &update_gate, sigm_lut, &in_params, &out_params_sigm);
-            mli_prv_activation_lut_sa8(&reset_gate, &reset_gate, sigm_lut, &in_params, &out_params_sigm);
+            mli_prv_activation_lut_sa8(&tmp_res_upd_gate, &tmp_res_upd_gate, sigm_lut, &in_params, &out_params_sigm);
         } else {
             if (sizeof(io_T)==sizeof(int8_t)) {
                 auto frac_bits = ir_tensor.el_params.fx.frac_bits;
-                mli_prv_activation_lut_fx8(&update_gate, &update_gate, sigm_lut, frac_bits);
-                mli_prv_activation_lut_fx8(&reset_gate, &reset_gate, sigm_lut, frac_bits);
+                mli_prv_activation_lut_fx8(&tmp_res_upd_gate, &tmp_res_upd_gate, sigm_lut, frac_bits);
             } else if (sizeof(io_T)==sizeof(int16_t)) {
                 auto frac_bits = ir_tensor.el_params.fx.frac_bits;
-                mli_prv_activation_lut_fx16(&update_gate, &update_gate, sigm_lut, frac_bits);
-                mli_prv_activation_lut_fx16(&reset_gate, &reset_gate, sigm_lut, frac_bits);
+                mli_prv_activation_lut_fx16(&tmp_res_upd_gate, &tmp_res_upd_gate, sigm_lut, frac_bits);
             } else {
                 MLI_ASSERT(0);
             }
         }
-
+        tmp_res_upd_gate.shape[1]  = new_gate.shape[1]; //restore len 
         // Step 3: Pointwise operations
         //=======================================
-        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&reset_gate, &current_hidden, &prev_out_reset);
-        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&current_hidden, &update_gate, &current_out);
-        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_SUB, /*convert*/ asym, /*no_scalar*/ false, /*no_out_update*/ true, /*shape_1d*/ true>(&one, &update_gate, &update_gate);
+        tmp_res_upd_gate.data = dtcntr_reset_gate; // switch data to reset_gate
+        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&tmp_res_upd_gate, &current_hidden, &prev_out_reset);
+        tmp_res_upd_gate.data = dtcntr_update_gate; // switch data ptr to update_gate
+        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&current_hidden, &tmp_res_upd_gate, &current_out);
+        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_SUB, /*convert*/ asym, /*no_scalar*/ false, /*no_out_update*/ true, /*shape_1d*/ true>(&one, &tmp_res_upd_gate, &tmp_res_upd_gate);
 
 
         // Step 4: New gate
@@ -293,7 +290,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
             inc_scales_for_new_gate(&w_out_new_g.el_params, num_gates);
             inc_scales_for_new_gate(&b_new_g.el_params, num_gates);
         }
-
+        //replace new_gate with ir_tensor for redeuce copy el_params
         define_quant_params(in, &w_in_new_g, &b_new_g, &ir_tensor, &in_to_out_params[0]);
         define_quant_params(&prev_out_reset, &w_out_new_g, &b_new_g, &ir_tensor, &in_to_out_params[1]);
 
@@ -340,7 +337,8 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
         temp.el_params = current_hidden.el_params;
    
         rnn_out.el_params = out->el_params;
-        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&new_gate, &update_gate, &temp);
+        //tmp_res_upd_gate.data = dtcntr_update_gate; // switch data to update_gate
+        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&new_gate, &tmp_res_upd_gate, &temp);
         mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_ADD, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&temp, &current_out, &rnn_out);
 
         current_hidden.data = rnn_out.data;
