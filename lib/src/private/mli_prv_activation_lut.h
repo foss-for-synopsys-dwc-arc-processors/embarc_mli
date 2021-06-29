@@ -14,6 +14,11 @@
 #include "mli_prv_quant.h"
 using mli::krn::s8asym_quant_params;
 
+#define K_TANH_ASYM_ZERO_POINT 0
+#define K_TANH_OUTPUT_SHIFT  7
+#define K_SIGM_ASYM_ZERO_POINT -128
+#define K_SIGM_OUTPUT_SHIFT 8;
+
 extern const mli_lut tanh_lut_fx16;
 extern const mli_lut sigmoid_lut_fx16;
 extern const mli_lut expneg_lut_fx16;

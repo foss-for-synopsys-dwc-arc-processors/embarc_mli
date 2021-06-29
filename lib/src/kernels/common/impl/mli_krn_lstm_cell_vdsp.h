@@ -101,20 +101,23 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
                                       (int)weights_out->mem_stride[0]};
 
     // Paricular subtensors of intermediate tensor
-    mli_tensor in_gate, forget_gate, out_gate; // Various gates to controll info flow
-    mli_tensor g_tsr; // Information tensors
-
-    out_gate = forget_gate =  g_tsr = in_gate = ir_tensor; 
+    mli_tensor tmp_gate; // tmp tensor store parameters of various gates (in_gate, forget_gate, out_gate) that control information flow  
+    mli_tensor g_tsr; // Information tensor
+    
+    g_tsr = tmp_gate = ir_tensor; 
     // update shape
-    in_gate.shape[0] = 1;
+    tmp_gate.shape[0] = 1;
     g_tsr.shape[0] = 1;
-    forget_gate.shape[0] = 1;
-    out_gate.shape[0] = 1;
     // update data ptr
-    mli_prv_tensor_inc_data_ptr<io_T*>(&in_gate,                                0 );
-    mli_prv_tensor_inc_data_ptr<io_T*>(&g_tsr,            ir_tensor.mem_stride[0]);
-    mli_prv_tensor_inc_data_ptr<io_T*>(&forget_gate, (2 * ir_tensor.mem_stride[0]));
-    mli_prv_tensor_inc_data_ptr<io_T*>(&out_gate,    (3 * ir_tensor.mem_stride[0]));
+    //mli_prv_tensor_inc_data_ptr<io_T*>(&tmp_gate,                           0 );
+    mli_data_container dtcntr_in_gate = tmp_gate.data; //store data of in_gate 
+    mli_prv_tensor_inc_data_ptr<io_T*>(&g_tsr,         ir_tensor.mem_stride[0]);
+    mli_prv_tensor_inc_data_ptr<io_T*>(&tmp_gate, (2 * ir_tensor.mem_stride[0]));
+    mli_data_container dtcntr_forget_gate = tmp_gate.data; //store data of forget_gate 
+    mli_prv_tensor_inc_data_ptr<io_T*>(&tmp_gate,      ir_tensor.mem_stride[0]);
+    mli_data_container dtcntr_out_gate = tmp_gate.data; //store data of out_gate 
+
+        
 
     mli_tensor rnn_out;
     rnn_out.data = out->data;
@@ -126,49 +129,37 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
     rnn_out.el_type = in->el_type;
 
     cell->rank = 2;
-    cell->shape[0] = forget_gate.shape[0];
-    cell->shape[1] = forget_gate.shape[1];
-    cell->mem_stride[0] = forget_gate.mem_stride[0];
-    cell->mem_stride[1] = forget_gate.mem_stride[1];
+    cell->shape[0] = tmp_gate.shape[0];
+    cell->shape[1] = tmp_gate.shape[1];
+    cell->mem_stride[0] = tmp_gate.mem_stride[0];
+    cell->mem_stride[1] = tmp_gate.mem_stride[1];
 
     struct s8asym_quant_params out_params_sigm;
     struct s8asym_quant_params out_params_tanh;
     
     if (asym) {
-        out_params_tanh.offset = 0; //kTanhAsymZeroPoint;
+        out_params_tanh.offset = K_TANH_ASYM_ZERO_POINT;
         out_params_tanh.scale  = 1;
-        out_params_tanh.shift = 7; //kTanhOutputShift;
+        out_params_tanh.shift = K_TANH_OUTPUT_SHIFT;
     
-        out_params_sigm.offset = -128; //kSigmAsymZeroPoint;
+        out_params_sigm.offset = K_SIGM_ASYM_ZERO_POINT;
         out_params_sigm.scale  = 1;
-        out_params_sigm.shift = 8; //kSigmOutputShift; 
+        out_params_sigm.shift = K_SIGM_OUTPUT_SHIFT; 
 
         g_tsr.el_params.sa.zero_point.mem.i16 = out_params_tanh.offset;
         g_tsr.el_params.sa.scale.mem.i16 = out_params_tanh.scale;
         g_tsr.el_params.sa.scale_frac_bits.mem.i8 = (int8_t)out_params_tanh.shift;
 
-        in_gate.el_params.sa.zero_point.mem.i16 = out_params_sigm.offset;
-        in_gate.el_params.sa.scale.mem.i16 = out_params_sigm.scale;
-        in_gate.el_params.sa.scale_frac_bits.mem.i8 = (int8_t)out_params_sigm.shift;
-
-        forget_gate.el_params.sa.zero_point.mem.i16 = out_params_sigm.offset;
-        forget_gate.el_params.sa.scale.mem.i16 = out_params_sigm.scale;
-        forget_gate.el_params.sa.scale_frac_bits.mem.i8 = (int8_t)out_params_sigm.shift;
-
-        out_gate.el_params.sa.zero_point.mem.i16 = out_params_sigm.offset;
-        out_gate.el_params.sa.scale.mem.i16 = out_params_sigm.scale;
-        out_gate.el_params.sa.scale_frac_bits.mem.i8 = (int8_t)out_params_sigm.shift;
+        tmp_gate.el_params.sa.zero_point.mem.i16 = out_params_sigm.offset;
+        tmp_gate.el_params.sa.scale.mem.i16 = out_params_sigm.scale;
+        tmp_gate.el_params.sa.scale_frac_bits.mem.i8 = (int8_t)out_params_sigm.shift;
     } else {
             if (sizeof(io_T)==sizeof(int8_t)) {
-                in_gate.el_params.fx.frac_bits = 7;
+                tmp_gate.el_params.fx.frac_bits = 7;
                 g_tsr.el_params.fx.frac_bits = 7;
-                forget_gate.el_params.fx.frac_bits = 7;
-                out_gate.el_params.fx.frac_bits = 7;
             } else if (sizeof(io_T)==sizeof(int16_t)) {
-                in_gate.el_params.fx.frac_bits = 15;
+                tmp_gate.el_params.fx.frac_bits = 15;
                 g_tsr.el_params.fx.frac_bits = 15;
-                forget_gate.el_params.fx.frac_bits = 15;
-                out_gate.el_params.fx.frac_bits = 15;
             } else {
                 MLI_ASSERT(0);
             }
@@ -193,24 +184,35 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
             in_params.offset = ir_tensor.el_params.sa.zero_point.mem.i16;
             in_params.scale  = ir_tensor.el_params.sa.scale.mem.i16;
             in_params.shift = ir_tensor.el_params.sa.scale_frac_bits.mem.i8;
-            
-            mli_prv_activation_lut_sa8(&in_gate, &in_gate, sigm_lut, &in_params, &out_params_sigm);
+            tmp_gate.data = dtcntr_in_gate; // switch data to in_gate            
+            mli_prv_activation_lut_sa8(&tmp_gate, &tmp_gate, sigm_lut, &in_params, &out_params_sigm);
             mli_prv_activation_lut_sa8(&g_tsr, &g_tsr, tanh_lut, &in_params, &out_params_tanh);
-            mli_prv_activation_lut_sa8(&forget_gate, &forget_gate, sigm_lut, &in_params, &out_params_sigm);
-            mli_prv_activation_lut_sa8(&out_gate, &out_gate, sigm_lut, &in_params, &out_params_sigm);
+            tmp_gate.data = dtcntr_forget_gate;  // switch data ptr to forget_gate
+            tmp_gate.shape[1]  *=2; // increase len to combine calculation of forget_gate and out_gate
+            mli_prv_activation_lut_sa8(&tmp_gate, &tmp_gate, sigm_lut, &in_params, &out_params_sigm);
+            tmp_gate.shape[1]  = g_tsr.shape[1]; //restore len
+            
         } else {
             if (sizeof(io_T)==sizeof(int8_t)) {
                 auto frac_bits = ir_tensor.el_params.fx.frac_bits;
-                mli_prv_activation_lut_fx8(&in_gate, &in_gate, sigm_lut, frac_bits);
+                tmp_gate.data = dtcntr_in_gate; // switch data to in_gate
+                mli_prv_activation_lut_fx8(&tmp_gate, &tmp_gate, sigm_lut, frac_bits);
                 mli_prv_activation_lut_fx8(&g_tsr, &g_tsr, tanh_lut, frac_bits);
-                mli_prv_activation_lut_fx8(&forget_gate, &forget_gate, sigm_lut, frac_bits);
-                mli_prv_activation_lut_fx8(&out_gate, &out_gate, sigm_lut, frac_bits);
+                tmp_gate.data = dtcntr_forget_gate; // switch data to forget_gate
+                tmp_gate.shape[1]  *=2; // increase len to combine calculation of forget_gate and out_gate
+                mli_prv_activation_lut_fx8(&tmp_gate, &tmp_gate, sigm_lut, frac_bits);
+                tmp_gate.shape[1]  = g_tsr.shape[1]; //restore len
+                
             } else if (sizeof(io_T)==sizeof(int16_t)) {
                 auto frac_bits = ir_tensor.el_params.fx.frac_bits;
-                mli_prv_activation_lut_fx16(&in_gate, &in_gate, sigm_lut, frac_bits);
+                tmp_gate.data = dtcntr_in_gate; // switch data to in_gate
+                mli_prv_activation_lut_fx16(&tmp_gate, &tmp_gate, sigm_lut, frac_bits);
                 mli_prv_activation_lut_fx16(&g_tsr, &g_tsr, tanh_lut, frac_bits);
-                mli_prv_activation_lut_fx16(&forget_gate, &forget_gate, sigm_lut, frac_bits);
-                mli_prv_activation_lut_fx16(&out_gate, &out_gate, sigm_lut, frac_bits);
+                tmp_gate.data = dtcntr_forget_gate; // switch data to forget_gate
+                tmp_gate.shape[1]  *=2; // increase len to combine calculation of forget_gate and out_gate
+                mli_prv_activation_lut_fx16(&tmp_gate, &tmp_gate, sigm_lut, frac_bits);
+                tmp_gate.shape[1]  = g_tsr.shape[1]; //restore len
+                
             } else {
                 MLI_ASSERT(0);
             }
@@ -218,8 +220,10 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
 
         // Step 3: Pointwise operations
         //=======================================
-        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(cell, &forget_gate, cell);
-        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&g_tsr, &in_gate, &g_tsr);
+        //tmp_gate.data = dtcntr_forget_gate; // switch data to forget_gate
+        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(cell, &tmp_gate, cell);
+        tmp_gate.data = dtcntr_in_gate; // switch data to in_gate
+        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&g_tsr, &tmp_gate, &g_tsr);
         mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_ADD, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(cell, &g_tsr, cell);
 
         // Step 4: Calculate output: Activation + pointwise operation
@@ -235,7 +239,8 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
         temp.el_params = out->el_params;
 
         if (cfg->act == RNN_ACT_NONE) {
-            mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(cell, &out_gate, &temp);
+            tmp_gate.data = dtcntr_out_gate; // switch data to out_gate
+            mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(cell, &tmp_gate, &temp);
         } else {
             if (asym) {
                 if (cfg->act == RNN_ACT_TANH)
@@ -264,7 +269,8 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
                 }
             }
 
-            mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&rnn_out, &out_gate, &temp);
+            tmp_gate.data = dtcntr_out_gate; // switch data to out_gate
+            mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&rnn_out, &tmp_gate, &temp);
         }
         rnn_out.el_params = out->el_params;
 

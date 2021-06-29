@@ -18,9 +18,6 @@
 #include "mli_types.h"
 #include <string.h>
 
-const int kSigmAsymZeroPoint = -128;
-const int kSigmOutputShift = 8;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -67,10 +64,10 @@ mli_status mli_krn_sigm_sa8(const mli_tensor *in, const mli_lut *lut, mli_tensor
 
     in_params.offset = in->el_params.sa.zero_point.mem.i16;
     in_params.scale  = in->el_params.sa.scale.mem.i16;
-    in_params.shift = in->el_params.sa.scale_frac_bits.mem.i8;
-    out_params.offset = kSigmAsymZeroPoint;
+    in_params.shift  = in->el_params.sa.scale_frac_bits.mem.i8;
+    out_params.offset = K_SIGM_ASYM_ZERO_POINT;
     out_params.scale  = 1;
-    out_params.shift = kSigmOutputShift;
+    out_params.shift  = K_SIGM_OUTPUT_SHIFT;
 
     // Update output shape
     if (in != out) mli_prv_copy_tensor_format_except_mem_strides(in, out);
