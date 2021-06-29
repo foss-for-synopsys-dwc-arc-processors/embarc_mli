@@ -104,7 +104,7 @@ static MLI_FORCE_INLINE void compute_prelu_no_broadcast(
         const generic_tensor_private_t<MLI_OUT_PTR(int8_t)> out_prv,
         const int remaining_part = 0);
 
-static MLI_FORCE_INLINE s8asym_quant_params prelu_define_requant_params(const mli_tensor *in, 
+static MLI_FORCE_INLINE s8asym_quant_params prelu_define_requant_alpha_params(const mli_tensor *in, 
         const mli_tensor *slope_coeff,
         mli_tensor *out,
         const int8_t alpha_sa8,
@@ -144,7 +144,7 @@ static MLI_FORCE_INLINE void compute_prelu(
         const int remaining_part);
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-static MLI_FORCE_INLINE s8asym_quant_params_v prelu_define_requant_params(const mli_tensor *in, 
+static MLI_FORCE_INLINE s8asym_quant_params_v prelu_define_requant_alpha_params(const mli_tensor *in, 
         const mli_tensor *slope_coeff,
         mli_tensor *out,
         const v2q15_t alpha_sa8,
@@ -239,7 +239,7 @@ MLI_FORCE_INLINE void compute_prelu(
         const int shift,
         const int remaining_part);
 
-static MLI_FORCE_INLINE s8asym_quant_params_v prelu_define_requant_params(const mli_tensor *in, 
+static MLI_FORCE_INLINE s8asym_quant_params_v prelu_define_requant_alpha_params(const mli_tensor *in, 
         const mli_tensor *slope_coeff,
         mli_tensor *out,
         vNx4char_t alpha_sa8,

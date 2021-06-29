@@ -50,13 +50,13 @@ struct prelu_test_operands {
 #if defined(CRC_RM_CONVERGENT) || defined(CRC_RM_UP)
 
 // Shared CRC Results
-const crc32_calc  test_1_chksum_fx16{ 0x92934920 }, test_1_chksum_sa8{ 0x21038039 },
-                  test_2_chksum_fx16{ 0x0C8AFCA5 }, test_2_chksum_sa8{ 0x5ACCCB5A },
-                  test_3_chksum_fx16{ 0xD2F8214F }, test_3_chksum_sa8{ 0x464AE450 },
-                  test_4_chksum_fx16{ 0xBBED4B5D }, test_4_chksum_sa8{ 0xE24BFAED },
-                  test_5_chksum_fx16{ 0x6BAA528A }, test_5_chksum_sa8{ 0x2EFD80F1 },
-                  test_6_chksum_fx16{ 0xC5FBEE22 }, test_6_chksum_sa8{ 0x91229CCF },
-                  test_7_chksum_fx16{ 0x0C3944AD }, test_7_chksum_sa8{ 0x61E36677 };
+const crc32_calc  test_1_chksum_fx16{ 0x92934920 }, test_1_chksum_sa8{ 0x50985847 },
+                  test_2_chksum_fx16{ 0x0C8AFCA5 }, test_2_chksum_sa8{ 0x6571F4D0 },
+                  test_3_chksum_fx16{ 0xD2F8214F }, test_3_chksum_sa8{ 0xDDE5DCC2 },
+                  test_4_chksum_fx16{ 0xBBED4B5D }, test_4_chksum_sa8{ 0x065E94FC },
+                  test_5_chksum_fx16{ 0x6BAA528A }, test_5_chksum_sa8{ 0x152D4871 },
+                  test_6_chksum_fx16{ 0xC5FBEE22 }, test_6_chksum_sa8{ 0xB9BE7962 },
+                  test_7_chksum_fx16{ 0x0C3944AD }, test_7_chksum_sa8{ 0xAAEDDE11 };
 
 
 #else  // Not defined CRC_*
