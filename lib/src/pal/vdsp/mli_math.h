@@ -75,10 +75,12 @@ MLI_FORCE_INLINE T mli_math_limit_fx(T sign) {
 
 template <typename T, typename shift_T>
 MLI_FORCE_INLINE T mli_math_asr_fx(T x, shift_T nbits) {
-    if (nbits > (sizeof(T) * 8 - 1))
+    shift_T nbits_max = sizeof(T) * 8 - 1;
+    shift_T nbits_min = 0;
+    if (nbits > nbits_max)
         return x < (T)0 ? -1 : 0;
-    if (nbits < 0)
-        return mli_math_asl_fx<T, int>(x, (-nbits));
+    if (nbits < nbits_min)
+        return mli_math_asl_fx<T, shift_T>(x, (-nbits));
     return x >> nbits;
 }
 

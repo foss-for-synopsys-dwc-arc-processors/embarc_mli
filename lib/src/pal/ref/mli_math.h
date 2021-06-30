@@ -38,9 +38,11 @@ MLI_FORCE_INLINE T mli_math_asr_pos_nbits_fx(T x, int nbits)
 template <typename T>
 MLI_FORCE_INLINE T mli_math_asr_fx(T x, int nbits)
 {
-    if (nbits > (sizeof(T) * 8 - 1))
+    int nbits_max = sizeof(T) * 8 - 1;
+    int nbits_min = 0;
+    if (nbits > nbits_max)
         return x < (T)0 ? -1 : 0;
-    if (nbits < 0)
+    if (nbits < nbits_min)
         return mli_math_asl_fx<T>(x, (-nbits));
     return x >> nbits;
 }
