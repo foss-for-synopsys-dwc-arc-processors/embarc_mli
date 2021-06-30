@@ -80,16 +80,22 @@ static MLI_FORCE_INLINE int16_t normalize_sum(
 
     constexpr int acc_hi_shift  = 16;
     constexpr int acc_mid_shift = 9;
+    constexpr int acc_shift = acc_hi_shift;
+    constexpr int acc_head_room = 1;
+
     mli_acc32_t acc_hi  = mli_math_intra_sum(sum_acc_hi);
     mli_acc32_t acc_mid = mli_math_intra_sum(sum_acc_mid);
     mli_acc32_t acc_lo  = mli_math_intra_sum(sum_acc_lo);
 
-    mli_acc40_t acc = mli_math_add_fx((mli_acc40_t)acc_lo, mli_math_asl_fx((mli_acc40_t)acc_hi, acc_hi_shift));
-                acc = mli_math_add_fx(acc, mli_math_asl_fx((mli_acc40_t)acc_mid, acc_mid_shift));
+    int acc_hi_norm_shift = mli_math_norm_fx<mli_acc32_t, int>(acc_hi) - acc_head_room;
 
-    int norm_shift_val = mli_math_norm_fx<mli_acc40_t, int>(acc);
-    /* To Cast mli_acc40_t to int16_t */
-    norm_shift_val = (sizeof(mli_acc40_t) - sizeof(int16_t)) * 8 - norm_shift_val;
+    mli_acc32_t acc = mli_math_asl_fx(acc_hi, acc_hi_norm_shift);
+                acc = mli_math_add_fx(acc, mli_math_asr_fx(acc_mid, acc_shift - acc_mid_shift - acc_hi_norm_shift));
+                acc = mli_math_add_fx(acc, mli_math_asr_fx(acc_lo, acc_shift - acc_hi_norm_shift));
+
+    int norm_shift_val = mli_math_norm_fx<mli_acc32_t, int>(acc);
+    /* To Cast mli_acc32_t to int16_t */
+    norm_shift_val = acc_shift - acc_hi_norm_shift + (sizeof(mli_acc32_t) - sizeof(int16_t)) * 8 - norm_shift_val;
     /* Adjust norm_shift to even number because we are going to divide it by 2 */
     if ((norm_shift_val & 0x1) == 0x1) {
         norm_shift_val += 1;
@@ -97,7 +103,7 @@ static MLI_FORCE_INLINE int16_t normalize_sum(
 
     *norm_shift = norm_shift_val;
     /* Cast Sum_acc to Q7.8 to bring it to LUT input range */
-    return mli_math_cast_fx<mli_acc40_t, int16_t>(acc, norm_shift_val);
+    return mli_math_cast_fx<mli_acc32_t, int16_t>(acc, norm_shift_val - (acc_shift - acc_hi_norm_shift));
 }
 
 template<typename acc_t>
