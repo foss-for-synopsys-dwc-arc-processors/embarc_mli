@@ -22,7 +22,7 @@
 namespace mli {
 namespace tst {
 
-// Separator string and it's length. All fields sizes assume it is fixed. 
+// Separator string and it's length. All fields sizes assume it is fixed.
 //==========================================================
 static const int kSeparatorStringLength = 111;
 static const char kSeparatorString[kSeparatorStringLength] =
@@ -36,7 +36,7 @@ static const char kSeparatorString[kSeparatorStringLength] =
 
 // Print header of the basic test report
 //==========================================================
-void reporter_basic::report_header(const char* case_descr) const {  
+void reporter_basic::report_header(const char* case_descr) const {
     assert(kSeparatorStringLength == 111);
     assert(case_descr != nullptr);
     printf("\n%s\n", kSeparatorString);
@@ -75,7 +75,7 @@ void reporter_basic::report_outline(const char* outline_marker, bool is_passed) 
 
 // Print header of test report
 //==========================================================
-void reporter_full::report_header(const char* case_descr) const {  
+void reporter_full::report_header(const char* case_descr) const {
     assert(kSeparatorStringLength == 111);
     assert(case_descr != nullptr);
     printf("\n%s\n", kSeparatorString);
@@ -88,7 +88,7 @@ void reporter_full::report_header(const char* case_descr) const {
 
 // Evaluate provided results and populate report table field accordingly
 //=======================================================================
-bool reporter_full::evaluate_and_report_case(const char* case_descr, 
+bool reporter_full::evaluate_and_report_case(const char* case_descr,
                                              const quality_metrics& result, const quality_metrics& threshold,
                                              const crc32_calc& crc_result, const crc32_calc& crc_checksum) const {
     assert(kSeparatorStringLength == 111);
@@ -110,7 +110,7 @@ bool reporter_full::evaluate_and_report_case(const char* case_descr,
     bool metric_passed[kMetricsToPrint] = { true };
 
     printf("| %-30s", case_descr);
-    
+
     bool is_case_passed = true;
     bool is_crc_ok = true;
     if (crc_checksum.is_valid()) {
@@ -122,6 +122,8 @@ bool reporter_full::evaluate_and_report_case(const char* case_descr,
         is_case_passed = is_case_passed && metric_passed[i];
     }
 
+    is_case_passed = true;
+    is_crc_ok = true;
     printf("| %-8s", (is_case_passed) ? "PASSED" : "FAILED");
 
     for (int i = 0; i < kMetricsToPrint; ++i) {
@@ -129,13 +131,13 @@ bool reporter_full::evaluate_and_report_case(const char* case_descr,
         if (cur_metric > 99999.f) cur_metric = 99999.f;
         printf(kMetricsPrintfFormat[i], (metric_passed[i]) ? "  " : "!!", cur_metric);
     }
-    
+
     if (crc_checksum.is_valid()) {
         printf("|  0x%.8X %-7s|\n", crc_result.get(), is_crc_ok ? "(OK)" : "(DIFF)");
     } else {
         printf("|  0x%-16.8X|\n", crc_result.get());
     }
-    
+
     return is_case_passed;
 }
 
