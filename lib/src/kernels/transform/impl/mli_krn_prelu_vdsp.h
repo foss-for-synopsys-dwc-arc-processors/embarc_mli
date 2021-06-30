@@ -330,7 +330,7 @@ static MLI_FORCE_INLINE void compute_prelu_broadcast(
             const MLI_PTR(io_T) vec_in  = (MLI_PTR(io_T))in_prv.ptr  + scale_idx * axis_in_mem_stride;
             MLI_OUT_PTR(io_T) vec_out = out_prv.ptr + scale_idx * axis_out_mem_stride;
             /* Load Scale Elem */
-            auto scale_v = mli_prv_load_1vec(slope_ptr);
+            auto scale_v = mli_prv_load_1vec(slope_ptr + scale_idx);
             /* Loop Over Sub Tensor */
             const MLI_PTR(io_T) orig_vec_in = vec_in;
             MLI_OUT_PTR(io_T) orig_vec_out = vec_out;
@@ -441,7 +441,7 @@ static MLI_FORCE_INLINE void compute_prelu_broadcast(
             const MLI_PTR(int8_t) vec_in  = (MLI_PTR(int8_t))in_prv.ptr  + scale_idx * axis_in_mem_stride;
             MLI_OUT_PTR(int8_t) vec_out = out_prv.ptr + scale_idx * axis_out_mem_stride;
             /* Load Scale Vector */
-            auto scale_v = mli_prv_load_1vec(slope_ptr);
+            auto scale_v = mli_prv_load_1vec(slope_ptr + scale_idx);
             auto alpha_params = mli::krn::prelu_define_requant_alpha_params(in, slope_coeff, out, scale_v, identity_params);
             /* Loop Over Sub Tensor */
             const MLI_PTR(int8_t) orig_vec_in = vec_in;
