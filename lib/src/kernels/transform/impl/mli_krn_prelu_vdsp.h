@@ -167,23 +167,23 @@ MLI_FORCE_INLINE void compute_prelu(
     mli_prv_stride_store_n_samples(vec_out, calc_prelu(input, scale, shift), stride_out, remaining_part);
 }
 
-static MLI_FORCE_INLINE s8asym_quant_params_v prelu_define_requant_alpha_params(const mli_tensor *in, 
+static MLI_FORCE_INLINE s8asym_quant_params_v prelu_define_requant_alpha_params(const mli_tensor *in,
         const mli_tensor *slope_coeff,
         mli_tensor *out,
         const vNx4char_t alpha_sa8,
         const s8asym_quant_params *identity_params) {
     int16_t out_zp = out->el_params.sa.zero_point.mem.i16;
-    vNx4int_t alpha_val = mli_prv_convert_sa8_fx32(alpha_sa8, 
+    vNx4int_t alpha_val = mli_prv_convert_sa8_fx32(alpha_sa8,
                             slope_coeff->el_params.sa.zero_point.mem.i16,
                             slope_coeff->el_params.sa.scale.mem.i16);
     /* Normalize alpha and cast to 16bit */
     vNx4int_t norm_shift;
     vNx4short_t alpha = mli_math_norm_cast_fx(alpha_val, &norm_shift);
-    
+
     vNx4int_t scale_alpha_shift  = identity_params->shift;
               scale_alpha_shift += slope_coeff->el_params.sa.scale_frac_bits.mem.i8;
               scale_alpha_shift -= norm_shift;
-    
+
     vNx4short_t scale_alpha = mli_math_norm_cast_fx(
                           mli_math_mul_fx<vNx4short_t, vNx4int_t>(identity_params->scale, alpha), &norm_shift);
     scale_alpha_shift -= norm_shift;
@@ -193,7 +193,7 @@ static MLI_FORCE_INLINE s8asym_quant_params_v prelu_define_requant_alpha_params(
     alpha_params.scale  = scale_alpha;
     alpha_params.shift  = mli_math_cast_fx<vNx4int_t, vNx4short_t>(scale_alpha_shift);
     alpha_params.offset = (vNx4short_t)out_zp;
-    
+
     return alpha_params;
 }
 
@@ -219,11 +219,11 @@ static MLI_FORCE_INLINE vNx4char_t calc_prelu(
     int shift_left = mli_math_max_fx(1 - identity_shift, 0);
     int shift_right = mli_math_max_fx(identity_shift, 1);
     int16_t identity_offset = identity_params->offset << shift_right;
-#ifdef ROUND_UP
-    identity_offset += (int)(((uint16_t)1 << shift_right) >> 1);
-#else
-    #error Rounding mode not supported
-#endif
+// #ifdef ROUND_UP
+//     identity_offset += (int)(((uint16_t)1 << shift_right) >> 1);
+// #else
+//     #error Rounding mode not supported
+// #endif
     vNx4short_t input_cast1 = mli_math_asl_fx(input_cast, shift_left);
     vNx4short_t input_identity_scale = mli_math_mul_fx_high(identity_params->scale, input_cast1);
                   input_identity_scale = mli_math_add_fx(input_identity_scale, (vNx4short_t)identity_offset);
@@ -419,7 +419,7 @@ static MLI_FORCE_INLINE void compute_prelu_broadcast(
         const int axis_out_mem_stride,
         const int16_t in_zp,
         const s8asym_quant_params *identity_params) {
-    
+
     /* Dummy Load to get num_lanes */
     auto input = mli_prv_load_1vec(in_prv.ptr);
     int num_lanes = get_number_lanes(input);

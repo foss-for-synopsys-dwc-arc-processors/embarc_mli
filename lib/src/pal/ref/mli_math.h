@@ -67,9 +67,7 @@ MLI_FORCE_INLINE T mli_math_asl_fx(T x, int nbits)
 template <typename T>
 MLI_FORCE_INLINE T mli_math_asr_rnd_fx(T x, int nbits)
 {
-    using unsigned_T = typename std::make_unsigned<T>::type;
     T r = 0;
-    unsigned_T one = 1u;
 
     if (nbits < 0)
         return mli_math_asl_fx<T>(x, (-nbits));
@@ -81,24 +79,24 @@ MLI_FORCE_INLINE T mli_math_asr_rnd_fx(T x, int nbits)
 
     // Rounding up:
     // if the most significant deleted bit is 1, add 1 to the remaining bits.
-#ifdef ROUND_UP
-    T round = (T)((one << nbits) >> 1);
-    r = mli_math_add_fx<T>(x, round);
-    r = mli_math_asr_fx<T>(r, nbits);
-#endif
-
+// #ifdef ROUND_UP
+//     T round = (T)((one << nbits) >> 1);
+//     r = mli_math_add_fx<T>(x, round);
+//     r = mli_math_asr_fx<T>(r, nbits);
+// #endif
+    r = mli_math_asr_fx<T>(x, nbits);
     // Convergent: rounding with half-way value rounded to even value.
-    // If the most significant deleted bit is 1, and 
+    // If the most significant deleted bit is 1, and
     // either the least significant of the remaining bits
     // or at least one other deleted bit is 1, add 1 to the remaining bits.
-#ifdef ROUND_CONVERGENT
-    r = mli_math_asr_fx<T>(x, nbits);
-    T last_deleted_mask = (T)((one << nbits) >> 1);
-    if (((x & last_deleted_mask) != (T)0) && 
-            (((r & (T)1) != (T)0) ||  ((x & (last_deleted_mask-(T)1))!= (T)0))) {
-        return mli_math_add_fx<T>(r, 1);
-    }
-#endif
+// #ifdef ROUND_CONVERGENT
+//     r = mli_math_asr_fx<T>(x, nbits);
+//     T last_deleted_mask = (T)((one << nbits) >> 1);
+//     if (((x & last_deleted_mask) != (T)0) &&
+//             (((r & (T)1) != (T)0) ||  ((x & (last_deleted_mask-(T)1))!= (T)0))) {
+//         return mli_math_add_fx<T>(r, 1);
+//     }
+// #endif
 
     return r;
 }
@@ -122,7 +120,7 @@ MLI_FORCE_INLINE T mli_math_sat_fx(T x, unsigned nbits)
 
 template <typename T>
 MLI_FORCE_INLINE T mli_math_abs_fx(T x)
-{    
+{
     return x >= (T)0 ? x : mli_math_neg_fx(x);
 }
 
@@ -214,13 +212,13 @@ MLI_FORCE_INLINE int64_t mli_math_mul_fx(int32_t L, int32_t R) {
 
 // Cast scalar to/from void pointer
 //========================================================================
-template < typename out_T > 
+template < typename out_T >
 MLI_FORCE_INLINE out_T mli_math_cast_ptr_to_scalar_fx(void *src) {
     // REMARK: Need to check from C/Cpp standard point of view
     return static_cast < out_T > ((intptr_t) (src));
 }
 
-template < typename in_T > 
+template < typename in_T >
 MLI_FORCE_INLINE void *mli_math_cast_scalar_to_ptr_fx(in_T src) {
     // REMARK: Need to check from C/Cpp standard point of view
     intptr_t out_upcast = src;
@@ -229,7 +227,7 @@ MLI_FORCE_INLINE void *mli_math_cast_scalar_to_ptr_fx(in_T src) {
 
 // Comparators
 //========================================================================
-template < typename io_T > 
+template < typename io_T >
 MLI_FORCE_INLINE bool mli_prv_less_than_1(io_T value, uint8_t frac_bits) {
     if (frac_bits >= sizeof(io_T) * 8 - 1)
         return true;
@@ -287,7 +285,7 @@ MLI_FORCE_INLINE int8_t mli_math_acc_cast_fx(mli_acc32_t acc, int shift_right) {
     return (int8_t) (temp >> 24);
 }
 
-template <> 
+template <>
 MLI_FORCE_INLINE int16_t mli_math_acc_cast_fx(mli_acc32_t acc, int shift_right) {
     int32_t temp = (int32_t) mli_math_asr_rnd_fx<mli_acc32_t>(acc, shift_right);
     temp = mli_math_asl_fx<mli_acc32_t>(temp, 16);

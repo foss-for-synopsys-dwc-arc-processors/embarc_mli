@@ -253,16 +253,16 @@ MLI_FORCE_INLINE vNx4accshort_t bias_additive(
     if (add_preshift_rnd) {
         // adding the rounding for the preshift already here at the bias in order to take this add out of the innerloop
 #ifndef FULL_ACCU
-        vNx4short_t preshift = calculate_preshift(quant_params);
-#ifdef ROUND_UP
-        // adding 1 << (preshift-1)
-        // shift twice to prevent negative shift if nbits = 0
-        uint16_t one = 1u;
-        accu = mli_math_add<vNx4accshort_t, vNx4short_t>(accu, ((one << preshift) >> 1));
-#endif
-#ifdef ROUND_CONVERGENT
-#error "Convergent rounding not supported"
-#endif
+        // vNx4short_t preshift = calculate_preshift(quant_params);
+// #ifdef ROUND_UP
+//         // adding 1 << (preshift-1)
+//         // shift twice to prevent negative shift if nbits = 0
+//         uint16_t one = 1u;
+//         accu = mli_math_add<vNx4accshort_t, vNx4short_t>(accu, ((one << preshift) >> 1));
+// #endif
+// #ifdef ROUND_CONVERGENT
+// #error "Convergent rounding not supported"
+// #endif
 #endif
     }
 

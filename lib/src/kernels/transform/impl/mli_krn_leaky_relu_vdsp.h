@@ -127,11 +127,11 @@ static MLI_FORCE_INLINE vNx4char_t calc_leaky_relu(
     int shift_right = mli_math_max_fx(identity_shift, 1);
 
     int16_t identity_offset = identity_params->offset << shift_right;
-#ifdef ROUND_UP
-    identity_offset += (int16_t)(((uint16_t)1 << shift_right) >> 1);
-#else
-    #error Rounding mode not supported
-#endif
+// #ifdef ROUND_UP
+//     identity_offset += (int16_t)(((uint16_t)1 << shift_right) >> 1);
+// #else
+//     #error Rounding mode not supported
+// #endif
     vNx4short_t input_identity_cast = mli_math_asl_fx(input_cast, shift_left);
     vNx4short_t input_identity_scale = mli_math_mul_fx_high(input_identity_cast, identity_params->scale);
                 input_identity_scale = mli_math_add_fx(input_identity_scale, (vNx4short_t)identity_offset);
@@ -143,11 +143,11 @@ static MLI_FORCE_INLINE vNx4char_t calc_leaky_relu(
     shift_right = mli_math_max_fx(alpha_shift, 1);
 
     int16_t alpha_offset = alpha_params->offset << shift_right;
-#ifdef ROUND_UP
-    alpha_offset += (int16_t)(((uint16_t)1 << shift_right) >> 1);
-#else
-    #error Rounding mode not supported
-#endif
+// #ifdef ROUND_UP
+//     alpha_offset += (int16_t)(((uint16_t)1 << shift_right) >> 1);
+// #else
+//     #error Rounding mode not supported
+// #endif
     vNx4short_t input_alpha_cast = mli_math_asl_fx(input_cast, shift_left);
     vNx4short_t input_alpha_scale = mli_math_mul_fx_high(input_alpha_cast, alpha_params->scale);
               input_alpha_scale = mli_math_add_fx(input_alpha_scale, (vNx4short_t)alpha_offset);
