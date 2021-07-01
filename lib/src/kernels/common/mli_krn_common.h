@@ -16,6 +16,7 @@
 #include "mli_krn_eltwise.h"
 #include "mli_prv_dsp.h"
 #include "mli_math.h"
+#include "mli_mem_info.h"
 #include "mli_types.h"
 #include "mli_prv_activation_lut.h"
 

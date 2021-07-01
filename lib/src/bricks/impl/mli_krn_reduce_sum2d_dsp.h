@@ -13,6 +13,7 @@
 #include "mli_prv_load_store.h"
 #include "mli_prv_dsp.h"
 #include "mli_math.h"
+#include "mli_mem_info.h"
 
 #define REDUCE_SUM2D_UNROLL_FACTOR_FOR_WIDTH 7
 #define REDUCE_SUM2D_UNROLL_FACTOR_FOR_HEIGHT 7

@@ -12,7 +12,8 @@
 
 #include <assert.h>
 
-#include "mli_config.h" /* for MLI_PTR */
+#include "mli_config.h"
+#include "mli_mem_info.h"
 #include "mli_private_types.h"
 
 #ifdef _ARC

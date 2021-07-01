@@ -20,6 +20,41 @@
 #define DISABLE_ALIGNMENT_CHECK 19
 #endif
 
+/*
+* Re-define ML pointers for XY specific platform
+*
+* MLI_PTR is used for all the read pointers
+* MLI_CONV_OUT_PTR is used for the output buffers of all weigths based kernels.
+* this means all the kernels that perform a convolution like operation between inputs and weights.
+* MLI_OUT_PTR is used for the output of all other kernels.
+*/
+#if (PLATFORM == V2DSP_XY)
+#define MLI_PTR(p) __xy p *
+#define MLI_PTR_IS_XY true
+#define MLI_OUT_PTR(p) __xy p *
+#define MLI_OUT_PTR_IS_XY true
+#define MLI_CONV_OUT_PTR(p) p *
+#define MLI_CONV_OUT_PTR_IS_XY false
+#define MLI_CCM_ATT
+#elif (PLATFORM == V2DSP_VECTOR) && !defined(MLI_BUILD_REFERENCE)
+#define MLI_PTR(p) __vccm p *
+#define MLI_PTR_IS_VCCM true
+#define MLI_PTR_IS_XY false
+#define MLI_OUT_PTR(p) __vccm p *
+#define MLI_OUT_PTR_IS_XY false
+#define MLI_CONV_OUT_PTR(p) __vccm p *
+#define MLI_CONV_OUT_PTR_IS_XY false
+#define MLI_CCM_ATT __vccm
+#else
+#define MLI_PTR(p) p *
+#define MLI_PTR_IS_XY false
+#define MLI_OUT_PTR(p) p *
+#define MLI_OUT_PTR_IS_XY false
+#define MLI_CONV_OUT_PTR(p) p *
+#define MLI_CONV_OUT_PTR_IS_XY false
+#define MLI_CCM_ATT
+#endif
+
 static MLI_FORCE_INLINE bool mli_mem_is_inside_dccm(const void *ptr) {
 #ifdef core_config_dccm_size
     return ((uint32_t)ptr >= core_config_dccm_base) &&

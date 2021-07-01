@@ -15,6 +15,7 @@
 #include "mli_config.h"
 #include "mli_krn_dotprod.h"
 #include "mli_debug.h"
+#include "mli_mem_info.h"
 
 namespace mli {
 namespace krn {

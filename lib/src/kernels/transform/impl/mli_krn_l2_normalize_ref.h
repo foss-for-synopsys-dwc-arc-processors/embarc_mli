@@ -15,6 +15,7 @@
 #include "mli_debug.h"
 #include "mli_helpers_api.h"
 #include "mli_math.h"
+#include "mli_mem_info.h"
 #include "mli_prv_dsp.h"
 #include "mli_prv_tensor.h"
 #include "mli_types.h"

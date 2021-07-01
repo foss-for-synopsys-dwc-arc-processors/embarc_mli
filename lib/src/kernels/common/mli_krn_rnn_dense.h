@@ -11,6 +11,7 @@
 
 #include "mli_api.h"
 #include "mli_math.h"
+#include "mli_mem_info.h"
 #include "mli_private_types.h"
 #include "mli_prv_quant.h"
 #include "mli_prv_tensor.h"

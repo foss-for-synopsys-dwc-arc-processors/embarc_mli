@@ -17,6 +17,7 @@
 #include "mli_prv_tensor.h"
 #include "mli_prv_dsp.h"
 #include "mli_math.h"
+#include "mli_mem_info.h"
 
 #define INT32_TO_INT16 16
 #define IN_SCALE_SHIFT 32

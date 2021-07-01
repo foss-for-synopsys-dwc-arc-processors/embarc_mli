@@ -30,26 +30,6 @@
 #define MLI_RNN_MAX_INPUT (4)
 
 /**
-* Library Debug mode
-*/
-#define     DBG_MODE_RELEASE   (0) /*< No debug. Messages:OFF; Assertions:OFF; ReturnCodes: Always OK */
-#define     DBG_MODE_RET_CODES (1) /*< Return codes mode. Messages:OFF; Assertions:OFF; ReturnCodes: Valid Return*/
-#define     DBG_MODE_ASSERT    (2) /*< Assert. Messages:OFF; Assertions:ON; Extra Assertions:OFF; ReturnCodes: Valid Return */
-#define     DBG_MODE_DEBUG     (3) /*< Debug. Messages:ON; Assertions:ON; Extra Assertions:OFF; ReturnCodes: Valid Return */
-#define     DBG_MODE_FULL      (4) /*< Full Debug. Messages:ON; Assertions:ON; Extra Assertions:ON; ReturnCodes: Valid Return */
-
-#ifndef MLI_DEBUG_MODE
-#define MLI_DEBUG_MODE (DBG_MODE_RELEASE)
-#endif
-
-/**
-* Allow functions to pretty print their function name
-*/
-#ifndef MLI_DEBUG_ENABLE_STACK_TRACE_MESSAGES
-#define MLI_DEBUG_ENABLE_STACK_TRACE_MESSAGES (0)
-#endif
-
-/**
 * Define platform specific data
 */
 #include <stdint.h>
@@ -142,40 +122,5 @@
 #define     V2DSP_WIDE   (3)
 #define     V2DSP_VECTOR (4)
 #define     X86_PLATFORM (5)
-
-/*
-* Re-define ML pointers for XY specific platform
-*
-* MLI_PTR is used for all the read pointers
-* MLI_CONV_OUT_PTR is used for the output buffers of all weigths based kernels.
-* this means all the kernels that perform a convolution like operation between inputs and weights.
-* MLI_OUT_PTR is used for the output of all other kernels.
-*/
-#if (PLATFORM == V2DSP_XY)
-#define MLI_PTR(p) __xy p *
-#define MLI_PTR_IS_XY true
-#define MLI_OUT_PTR(p) __xy p *
-#define MLI_OUT_PTR_IS_XY true
-#define MLI_CONV_OUT_PTR(p) p *
-#define MLI_CONV_OUT_PTR_IS_XY false
-#define MLI_CCM_ATT 
-#elif (PLATFORM == V2DSP_VECTOR) && !defined(MLI_BUILD_REFERENCE)
-#define MLI_PTR(p) __vccm p *
-#define MLI_PTR_IS_VCCM true
-#define MLI_PTR_IS_XY false
-#define MLI_OUT_PTR(p) __vccm p *
-#define MLI_OUT_PTR_IS_XY false
-#define MLI_CONV_OUT_PTR(p) __vccm p *
-#define MLI_CONV_OUT_PTR_IS_XY false
-#define MLI_CCM_ATT __vccm
-#else
-#define MLI_PTR(p) p *
-#define MLI_PTR_IS_XY false
-#define MLI_OUT_PTR(p) p *
-#define MLI_OUT_PTR_IS_XY false
-#define MLI_CONV_OUT_PTR(p) p *
-#define MLI_CONV_OUT_PTR_IS_XY false
-#define MLI_CCM_ATT
-#endif
 
 #endif // _MLI_CONFIG_H_

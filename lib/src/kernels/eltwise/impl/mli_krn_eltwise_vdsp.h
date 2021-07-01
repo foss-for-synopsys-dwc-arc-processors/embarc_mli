@@ -15,6 +15,7 @@
 #include "mli_config.h"
 #include "mli_debug.h"
 #include "mli_math.h"
+#include "mli_mem_info.h"
 #include "arc_vector.h"
 
 const int unroll_factor[2][5] = {
