@@ -10,7 +10,6 @@
 #ifndef _MLI_PRIVATE_LUT_H_
 #define _MLI_PRIVATE_LUT_H_
 
-#include "mli_config.h" /* for MLI_PTR */
 #include "mli_private_types.h"
 #include "mli_prv_lut_decl.h"
 

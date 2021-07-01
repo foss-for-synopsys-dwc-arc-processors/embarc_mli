@@ -13,6 +13,7 @@
 #include "mli_config.h"
 #include "mli_debug.h"
 #include "mli_math.h"
+#include "mli_mem_info.h"
 #include "arc_vector.h"
 #include "mli_krn_argmax_decl.h"
 #include "mli_prv_load_store.h"

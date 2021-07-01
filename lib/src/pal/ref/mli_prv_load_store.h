@@ -10,6 +10,8 @@
 #ifndef _REF_MLI_PRV_LOAD_STORE_H_
 #define _REF_MLI_PRV_LOAD_STORE_H_
 
+#include "mli_mem_info.h"
+
 static MLI_FORCE_INLINE int16_t mli_prv_load_1vec(const MLI_PTR (int16_t) __restrict in) {
     return *(MLI_PTR (int16_t)) in;
 }

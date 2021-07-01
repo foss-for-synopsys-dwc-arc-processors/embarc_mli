@@ -10,7 +10,6 @@
 #ifndef _MLI_PRIVATE_ACTIVATION_LUT_H_
 #define _MLI_PRIVATE_ACTIVATION_LUT_H_
 
-#include "mli_config.h" /* for MLI_PTR */
 #include "mli_prv_quant.h"
 using mli::krn::s8asym_quant_params;
 

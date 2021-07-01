@@ -12,6 +12,7 @@
 
 #include <stdint.h>
 
+#include "mli_mem_info.h"
 #include "mli_prv_tensor.h"
 #include "mli_types.h"
 

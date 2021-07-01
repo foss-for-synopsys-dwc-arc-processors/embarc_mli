@@ -13,6 +13,7 @@
 #include "mli_prv_load_store.h"
 #include "mli_prv_dsp.h"
 #include "mli_math.h"
+#include "mli_mem_info.h"
 
 namespace mli {
 namespace krn {

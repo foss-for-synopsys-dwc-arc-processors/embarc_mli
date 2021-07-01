@@ -11,6 +11,7 @@
 #define _MLI_KRN_ARGMAX_REF_H_
 
 #include "mli_config.h"
+#include "mli_mem_info.h"
 #include "mli_prv_tensor.h"
 #include "mli_types.h"
 

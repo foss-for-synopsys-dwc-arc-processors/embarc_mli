@@ -11,6 +11,7 @@
 #define _MLI_KRN_REDUCE_SUM2D_DECL_H_
 
 #include "mli_config.h"
+#include "mli_mem_info.h"
 #include "mli_types.h"
 #include "mli_prv_tensor.h"
 

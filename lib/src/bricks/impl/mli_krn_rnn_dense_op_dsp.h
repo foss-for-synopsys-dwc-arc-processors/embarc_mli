@@ -13,6 +13,7 @@
 #include "mli_config.h"
 #include "mli_debug.h"
 #include "mli_math.h"
+#include "mli_mem_info.h"
 #include "mli_types.h"
 #include "mli_prv_dsp.h"
 

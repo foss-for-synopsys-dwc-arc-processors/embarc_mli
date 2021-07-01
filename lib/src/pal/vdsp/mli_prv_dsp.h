@@ -12,6 +12,7 @@
 
 #include "../mli_math.h"
 #include "mli_math_macros.h"
+#include "mli_mem_info.h"
 #include "mli_private_types.h"
 #include "arc_vector_ext.h"
 

@@ -15,6 +15,7 @@
 #include "mli_krn_reduce_max2d.h"
 #include "mli_math.h"
 #include "mli_math_macros.h"
+#include "mli_mem_info.h"
 #include "mli_prv_quant.h"
 #include "mli_prv_dsp.h"
 #include "mli_private_types.h"

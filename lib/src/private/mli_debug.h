@@ -19,6 +19,26 @@ extern "C" {
 #include "mli_config.h"
 #include "mli_types.h"
 
+/**
+* Library Debug mode
+*/
+#define     DBG_MODE_RELEASE   (0) /*< No debug. Messages:OFF; Assertions:OFF; ReturnCodes: Always OK */
+#define     DBG_MODE_RET_CODES (1) /*< Return codes mode. Messages:OFF; Assertions:OFF; ReturnCodes: Valid Return*/
+#define     DBG_MODE_ASSERT    (2) /*< Assert. Messages:OFF; Assertions:ON; Extra Assertions:OFF; ReturnCodes: Valid Return */
+#define     DBG_MODE_DEBUG     (3) /*< Debug. Messages:ON; Assertions:ON; Extra Assertions:OFF; ReturnCodes: Valid Return */
+#define     DBG_MODE_FULL      (4) /*< Full Debug. Messages:ON; Assertions:ON; Extra Assertions:ON; ReturnCodes: Valid Return */
+
+#ifndef MLI_DEBUG_MODE
+#define MLI_DEBUG_MODE (DBG_MODE_RELEASE)
+#endif
+
+/**
+* Allow functions to pretty print their function name
+*/
+#ifndef MLI_DEBUG_ENABLE_STACK_TRACE_MESSAGES
+#define MLI_DEBUG_ENABLE_STACK_TRACE_MESSAGES (0)
+#endif
+
 #define MLI_DBG_ENABLE_MESSAGES      (MLI_DEBUG_MODE == DBG_MODE_FULL || MLI_DEBUG_MODE == DBG_MODE_DEBUG)
 #define MLI_DBG_ENABLE_ASSERTS       (MLI_DEBUG_MODE == DBG_MODE_FULL || MLI_DEBUG_MODE == DBG_MODE_DEBUG || MLI_DEBUG_MODE == DBG_MODE_ASSERT)
 #define MLI_DBG_ENABLE_RETURNCODES   (MLI_DEBUG_MODE != DBG_MODE_RELEASE)

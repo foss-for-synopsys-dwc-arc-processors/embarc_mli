@@ -14,6 +14,7 @@
 #include "arc_vector_ext.h"
 #include "mli_config.h"
 #include "../mli_math.h"
+#include "mli_mem_info.h"
 
 // Depending on memory alignment of input pointers, certain functions below will perform
 // unaligned loads/stores. Since the core supports this, we disable the related compiler warning.
