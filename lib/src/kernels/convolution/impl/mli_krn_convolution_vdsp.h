@@ -124,7 +124,7 @@ MLI_FORCE_INLINE void convolution2D_nopad(
                 auto accu = init_accu_grp(pre_accu);
 
                 if ((fix_kernel_width == 1) && (fix_kernel_height == 1)) {
-                    accu = mli::krn::dotprod1D_v_unroll<unroll>(in_ptr, w_ptr, accu, in.ch, in.ch_mem_stride, in.col_mem_stride, weights.in_ch_mem_stride);
+                    accu = mli::krn::dotprod1D_v_unroll<unroll>(in_ptr, w_ptr, accu, in.ch, in.ch_mem_stride, in_w_inc, weights.in_ch_mem_stride);
                 } else if ((fix_kernel_width > 0) && (fix_kernel_height > 0)) {
                     // unrolled version with fixed kernelsize
                     if (dilation_width == stride_width) {
