@@ -181,6 +181,8 @@ static MLI_FORCE_INLINE int16_t compute_normalized_sum_square_one_dim(
             accumlate_sum<decltype(sum_acc), decltype(input), convert, true>(sum_acc, input, in_zp, remaining_part);
             vec_in  += remaining_part;
         }
+#pragma clang loop pipeline(enable)
+#pragma clang loop pipeline_options(0x10)
         for(int idx = remaining_part; idx < one_dim_shape; idx += num_lanes) {
             input = mli_prv_stride_load_1vec(vec_in, one_dim_mem_stride);
             accumlate_sum<decltype(sum_acc), decltype(input), convert>(sum_acc, input, in_zp);
@@ -192,6 +194,8 @@ static MLI_FORCE_INLINE int16_t compute_normalized_sum_square_one_dim(
             accumlate_sum<decltype(sum_acc), decltype(input), convert, true>(sum_acc, input, in_zp, remaining_part);
             vec_in  += remaining_part;
         }
+#pragma clang loop pipeline(enable)
+#pragma clang loop pipeline_options(0x10)
         for(int idx = remaining_part; idx < one_dim_shape; idx += num_lanes) {
             input = mli_prv_load_1vec(vec_in);
             accumlate_sum<decltype(sum_acc), decltype(input), convert>(sum_acc, input, in_zp);
@@ -233,6 +237,8 @@ MLI_FORCE_INLINE int16_t compute_normalized_sum_square_one_dim<int16_t, false, f
         accumlate_sum<true>(sum_acc_hi, sum_acc_mid, sum_acc_lo, input, in_zp, remaining_part);
         vec_in  += remaining_part;
     }
+#pragma clang loop pipeline(enable)
+#pragma clang loop pipeline_options(0x10)
     for(int idx = remaining_part; idx < one_dim_shape; idx += num_lanes) {
         input = mli_prv_load_1vec(vec_in);
         accumlate_sum(sum_acc_hi, sum_acc_mid, sum_acc_lo, input, in_zp);
@@ -266,6 +272,8 @@ MLI_FORCE_INLINE int16_t compute_normalized_sum_square_one_dim<int16_t, false, t
         accumlate_sum<true>(sum_acc_hi, sum_acc_mid, sum_acc_lo, input, in_zp, remaining_part);
         vec_in  += remaining_part;
     }
+#pragma clang loop pipeline(enable)
+#pragma clang loop pipeline_options(0x10)
     for(int idx = remaining_part; idx < one_dim_shape; idx += num_lanes) {
         input = mli_prv_stride_load_1vec(vec_in, one_dim_mem_stride);
         accumlate_sum(sum_acc_hi, sum_acc_mid, sum_acc_lo, input, in_zp);
@@ -301,6 +309,8 @@ static MLI_FORCE_INLINE int16_t compute_normalized_sum_square(
                                                         (sum_acc, input, in_zp, remaining_part);
                     vec_in  += remaining_part;
                 }
+#pragma clang loop pipeline(enable)
+#pragma clang loop pipeline_options(0x10)
                 for (int pos3 = remaining_part; pos3 < in_prv->shape[3]; pos3 += num_lanes) {
                     input = mli_prv_load_1vec(vec_in);
                     accumlate_sum<decltype(sum_acc), decltype(input), convert>(sum_acc, input, in_zp);
@@ -341,6 +351,8 @@ MLI_FORCE_INLINE int16_t compute_normalized_sum_square<int16_t, false>(
                     accumlate_sum<true>(sum_acc_hi, sum_acc_mid, sum_acc_lo, input, in_zp, remaining_part);
                     vec_in  += remaining_part;
                 }
+#pragma clang loop pipeline(enable)
+#pragma clang loop pipeline_options(0x10)
                 for (int pos3 = remaining_part; pos3 < in_prv->shape[3]; pos3 += num_lanes) {
                     input = mli_prv_load_1vec(vec_in);
                     accumlate_sum(sum_acc_hi, sum_acc_mid, sum_acc_lo, input, in_zp);
@@ -476,6 +488,8 @@ static MLI_FORCE_INLINE void normalize_tensor(
             for (int pos2 = 0; pos2 < in_prv->shape[2]; pos2++) {
                 vec_in  = (MLI_PTR(io_T))orig_vec_in + POS(in_prv,  pos0, pos1, pos2, 0);
                 vec_out = orig_vec_out + POS(out_prv, pos0, pos1, pos2, 0);
+#pragma clang loop pipeline(enable)
+#pragma clang loop pipeline_options(0x10)
                 for (int pos3 = 0; pos3 < in_prv->shape[3]; pos3 += num_lanes) {
                     int remaining_el = in_prv->shape[3] - pos3;
                     /* current_el remaining elements computed in this loop iteration */
