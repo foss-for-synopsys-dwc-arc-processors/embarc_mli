@@ -60,7 +60,7 @@ const crc32_calc                                    test_1_chksum_sa8{ 0x5827AA7
                                                     test_2_chksum_sa8{ 0x6AB2B7E2 },
                                                     test_3_chksum_sa8{ 0xF7C243B9 },
                   test_4_chksum_fx16{ 0xBD6B3431 }, test_4_chksum_sa8{ 0xC8856D4A },
-                  test_5_chksum_fx16{ 0xCB86AA5F }, test_5_chksum_sa8{ 0x73701BB8 },
+                  test_5_chksum_fx16{ 0x00CAF93F }, test_5_chksum_sa8{ 0x73701BB8 },
                                                     test_6_chksum_sa8{ 0xCE87C84D },
                   test_7_chksum_fx16{ 0x5FB149F8 }, test_7_chksum_sa8{ 0x735D468E },
                   test_8_chksum_fx16{ 0x7F2E302F }, test_8_chksum_sa8{ 0x082A5005 };
@@ -70,12 +70,12 @@ const crc32_calc                                    test_1_chksum_sa8{ 0x5827AA7
 const crc32_calc  test_1_chksum_fx16{ 0xA0D2FBE9 },
                   test_2_chksum_fx16{ 0xFC8B4CA8 },
                   test_3_chksum_fx16{ 0x06A11B7C },
-                  test_6_chksum_fx16{ 0xAC710778 };
+                  test_6_chksum_fx16{ 0x3E8786C8 };
 #else
 const crc32_calc  test_1_chksum_fx16{ 0xA0D2FBE9 },
                   test_2_chksum_fx16{ 0xFC8B4CA8 },
                   test_3_chksum_fx16{ 0x629B7DA6 },
-                  test_6_chksum_fx16{ 0x94E25844 };
+                  test_6_chksum_fx16{ 0x0614D9F4 };
 #endif
 
 #else  // Not defined CRC_*
