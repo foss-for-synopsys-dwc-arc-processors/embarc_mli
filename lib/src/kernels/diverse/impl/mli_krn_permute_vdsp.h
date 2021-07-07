@@ -26,9 +26,9 @@ static void mli_krn_permute_inner_loop(uint32_t *out_shape, int *out_increments,
     auto vec = mli_prv_load_1vec(input);
     const int num_of_lanes = get_number_lanes(vec);
     const int remaining = out_shape[3] & (num_of_lanes - 1);
-    for (int d0_cnt = 0; d0_cnt < out_shape[0]; d0_cnt++) {
-        for (int d1_cnt = 0; d1_cnt < out_shape[1]; d1_cnt++) {
-            for (int d2_cnt = 0; d2_cnt < out_shape[2]; d2_cnt++) {
+    for (int d0_cnt = 0; d0_cnt < (int)out_shape[0]; d0_cnt++) {
+        for (int d1_cnt = 0; d1_cnt < (int)out_shape[1]; d1_cnt++) {
+            for (int d2_cnt = 0; d2_cnt < (int)out_shape[2]; d2_cnt++) {
                 int idx_inp = d0_cnt * inp_stride[0] + d1_cnt * inp_stride[1] + \
                             d2_cnt * inp_stride[2];
                 
@@ -52,7 +52,7 @@ static void mli_krn_permute_inner_loop(uint32_t *out_shape, int *out_increments,
                     output += remaining * out_increments[3];
                 }
 
-                for (int d3_cnt = remaining; d3_cnt < out_shape[3]; d3_cnt += num_of_lanes) {
+                for (int d3_cnt = remaining; d3_cnt < (int)out_shape[3]; d3_cnt += num_of_lanes) {
                     if(!gather) {
                         auto input_vec = mli_prv_load_1vec(&input[idx_inp]);
                         if (!scatter) {
@@ -100,7 +100,7 @@ static void mli_krn_permute_calc(const mli_tensor *in, uint32_t *out_shape_, int
         int max = out_shape[last_dim];
         int max_idx = last_dim;
         for(int i = 0; i < last_dim; i++) {
-            if (out_shape[i] > max) {
+            if ((int)out_shape[i] > max) {
                 max = out_shape[i];
                 max_idx = i;
             }

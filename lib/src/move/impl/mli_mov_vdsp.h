@@ -33,7 +33,7 @@ static MLI_FORCE_INLINE void mli_mov_from_cache_to_vccm(const int8_t* __restrict
         size = size / sizeof(int32_t);
         int idx = 0;
 #pragma clang loop pipeline(pipeline_parallel_loop)
-        for ( ;idx < size; idx += _VDSP_NUM_32BIT_LANES * unroll_factor) {
+        for ( ;idx < (int)size; idx += _VDSP_NUM_32BIT_LANES * unroll_factor) {
             auto src_v = mli_prv_load_1vec(&aligned_src_ptr[idx]);
             auto src_v1 = mli_prv_load_1vec(&aligned_src_ptr[idx + _VDSP_NUM_32BIT_LANES]);
             auto src_v2 = mli_prv_load_1vec(&aligned_src_ptr[idx + 2 * _VDSP_NUM_32BIT_LANES]);
@@ -62,7 +62,7 @@ static MLI_FORCE_INLINE void mli_mov_from_cache_to_vccm(const int8_t* __restrict
         size = size / sizeof(int32_t);
         int idx = 0;
 #pragma clang loop pipeline(pipeline_parallel_loop)
-        for ( ;idx < size; idx += _VDSP_NUM_32BIT_LANES * unroll_factor) {
+        for ( ;idx < (int)size; idx += _VDSP_NUM_32BIT_LANES * unroll_factor) {
             auto src_v = mli_prv_load_1vec(&aligned_src_ptr[idx]);
             auto src_v1 = mli_prv_load_1vec(&aligned_src_ptr[idx + _VDSP_NUM_32BIT_LANES]);
             auto src_v2 = mli_prv_load_1vec(&aligned_src_ptr[idx + 2 * _VDSP_NUM_32BIT_LANES]);
@@ -95,7 +95,7 @@ static MLI_FORCE_INLINE void mli_mov_from_vccm_to_cache(const int8_t* __restrict
         size = size / sizeof(int32_t);
         int idx = 0;
 #pragma clang loop pipeline(pipeline_parallel_loop)
-        for ( ;idx < size; idx += _VDSP_NUM_32BIT_LANES * unroll_factor) {
+        for ( ;idx < (int)size; idx += _VDSP_NUM_32BIT_LANES * unroll_factor) {
             auto src_v = mli_prv_load_1vec(&aligned_src_ptr[idx]);
              auto src_v1 = mli_prv_load_1vec(&aligned_src_ptr[idx + _VDSP_NUM_32BIT_LANES]);
              auto src_v2 = mli_prv_load_1vec(&aligned_src_ptr[idx + 2 * _VDSP_NUM_32BIT_LANES]);
@@ -123,7 +123,7 @@ static MLI_FORCE_INLINE void mli_mov_from_vccm_to_cache(const int8_t* __restrict
         size = size / sizeof(int32_t);
         int idx = 0;
 #pragma clang loop pipeline(pipeline_parallel_loop)
-        for ( ;idx < size; idx += _VDSP_NUM_32BIT_LANES * unroll_factor) {
+        for ( ;idx < (int)size; idx += _VDSP_NUM_32BIT_LANES * unroll_factor) {
             auto src_v = mli_prv_load_1vec(&aligned_src_ptr[idx]);
             auto src_v1 = mli_prv_load_1vec(&aligned_src_ptr[idx + _VDSP_NUM_32BIT_LANES]);
             auto src_v2 = mli_prv_load_1vec(&aligned_src_ptr[idx + 2 * _VDSP_NUM_32BIT_LANES]);
@@ -179,7 +179,7 @@ static MLI_FORCE_INLINE void mli_mov_memcpy(mli_mov_handle_t* h, const io_T* __r
             idx_src += remaining * in_stride;
             idx_dst += remaining * out_stride;
         }
-        for (int pos = remaining; pos < size; pos += num_of_lanes) {
+        for (int pos = remaining; pos < (int)size; pos += num_of_lanes) {
             if(no_inner_src_stride) {
                 auto src_v = mli_prv_load_1vec(&src_ptr[idx_src]);
                 if (no_inner_dst_stride) {
@@ -224,7 +224,7 @@ static MLI_FORCE_INLINE void mli_mov_memcpy(mli_mov_handle_t* h, const io_T* __r
                 idx_src += remaining * in_stride;
                 idx_dst += remaining * out_stride;
             }
-            for (int pos = remaining; pos < size; pos += num_of_lanes) {
+            for (int pos = remaining; pos < (int)size; pos += num_of_lanes) {
                 auto src_v = mli_prv_stride_load_1vec(&src_ptr[idx_src], in_stride);
                 if (no_inner_dst_stride) {
                        mli_prv_store_n_samples(&dst_ptr[idx_dst], src_v);
@@ -262,7 +262,7 @@ static MLI_FORCE_INLINE void mli_mov_memcpy(mli_mov_handle_t* h, const io_T* __r
                  idx_src += remaining * in_stride;
                  idx_dst += remaining * out_stride;
              }
-             for (int pos = remaining; pos < size; pos += num_of_lanes) {
+             for (int pos = remaining; pos < (int)size; pos += num_of_lanes) {
                  if(in_stride == 1) {
                      auto src_v = mli_prv_load_1vec(&src_ptr[idx_src]);
                      mli_prv_stride_store_n_samples(&dst_ptr[idx_dst], src_v, out_stride);
@@ -278,7 +278,7 @@ static MLI_FORCE_INLINE void mli_mov_memcpy(mli_mov_handle_t* h, const io_T* __r
         if (no_inner_src_stride && (no_inner_dst_stride)) {
             memcpy((void*)dst, (void*)src, size);
         } else {
-            for (int i = 0; i < size; i++) {
+            for (int i = 0; i < (int)size; i++) {
                 int src_idx = i * in_stride;
                 int dst_idx = i * out_stride;
                 dst[dst_idx] = src[src_idx];
@@ -310,7 +310,7 @@ static MLI_FORCE_INLINE void fill_inner_dimension_by_zeros(io_T* __restrict p, u
             }
             dst_idx += remaining * out_stride;
         }
-        for (int pos = remaining; pos < size; pos += num_of_lanes) {
+        for (int pos = remaining; pos < (int)size; pos += num_of_lanes) {
             if (no_inner_dst_stride) {
                 mli_prv_store_n_samples(&p_v[dst_idx], (decltype(vec))0);
             } else {
@@ -320,7 +320,7 @@ static MLI_FORCE_INLINE void fill_inner_dimension_by_zeros(io_T* __restrict p, u
         }
 
     } else {
-        for (int i = 0; i < size; i++) {
+        for (int i = 0; i < (int)size; i++) {
             int dst_idx = i * out_stride;
             p[dst_idx] = 0;
         }
@@ -360,7 +360,7 @@ static MLI_FORCE_INLINE void mov_inner_loop (mli_mov_handle_t* h, const io_T* __
         inner_dst_pos += size_of_copy * inner_dst_strde;
         inner_src_pos += size_of_copy * inner_src_step;
 
-        if (inner_src_pos >= inner_src_shape) {
+        if (inner_src_pos >= (int)inner_src_shape) {
             uint32_t post_padding_size = inner_dst_size - pre_padding_size - size_of_copy;
             fill_inner_dimension_by_zeros<io_T>(&dst[inner_dst_pos], post_padding_size, inner_dst_strde,
                     dst_in_vccm, no_inner_dst_stride);

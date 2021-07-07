@@ -41,7 +41,7 @@ namespace ref {
 
 template<typename io_T, bool src_in_vccm, bool dst_in_vccm>
 static MLI_NO_INLINE void mli_mov_prepare_run (mli_mov_handle_t* h, const mli_tensor* src, const mli_mov_cfg_t* cfg,
-        mli_tensor* dst, uint32_t * dst_write_size, uint32_t * src_mem_stride, uint32_t * src_cpy_size,
+        mli_tensor* dst, uint32_t * dst_write_size, int32_t * src_mem_stride, uint32_t * src_cpy_size,
         bool no_padding);
 
 template<typename io_T>
