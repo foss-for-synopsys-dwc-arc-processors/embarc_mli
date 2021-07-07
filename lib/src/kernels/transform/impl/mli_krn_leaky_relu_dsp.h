@@ -45,7 +45,7 @@ static MLI_FORCE_INLINE void compute_leaky_relu(
 
     v2q15_t input = mli_prv_load_1vec(vec_in);
     v2q15_t scale_v = mli_prv_init_v<io_T, v2q15_t>(scale);
-    mli_prv_store_n_samples(vec_out, calc_leaky_relu(input, scale_v, shift));
+    mli_prv_sat_and_store_2_samples(vec_out, calc_leaky_relu(input, scale_v, shift));
 }
 
 template <typename io_T>
@@ -59,7 +59,7 @@ static MLI_FORCE_INLINE void compute_leaky_relu(
     MLI_ASSERT(remaining_part == 1);
     v2q15_t input = mli_prv_load_1vec(vec_in);
     v2q15_t scale_v = mli_prv_init_v<io_T, v2q15_t>(scale);
-    mli_prv_store_1_sample(vec_out, calc_leaky_relu(input, scale_v, shift));
+    mli_prv_sat_and_store_1_sample(vec_out, calc_leaky_relu(input, scale_v, shift));
 }
 
 static MLI_FORCE_INLINE void compute_leaky_relu(

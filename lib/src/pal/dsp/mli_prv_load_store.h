@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -90,6 +90,15 @@ static MLI_FORCE_INLINE void mli_prv_store_1_sample (MLI_OUT_PTR (int8_t) __rest
 static MLI_FORCE_INLINE void mli_prv_store_1_sample (MLI_OUT_PTR (int16_t) __restrict out, v2q15_t data) {
     *(MLI_OUT_PTR (q15_t)) out = data[0];
 }
+
+static MLI_FORCE_INLINE void mli_prv_sat_and_store_1_sample (MLI_OUT_PTR (int8_t) __restrict out, v2q15_t data) {
+    *(MLI_OUT_PTR (q7_t)) out = (int8_t)fx_sat_q15(data[0], 8);
+}
+
+static MLI_FORCE_INLINE void mli_prv_sat_and_store_1_sample (MLI_OUT_PTR (int16_t) __restrict out, v2q15_t data) {
+	*(MLI_OUT_PTR (q15_t)) out = data[0];
+}
+
 
 template <typename out_T>
 static MLI_FORCE_INLINE void mli_prv_store_n_samples(out_T __restrict out, v2q15_t data, int predicate) { 

@@ -44,7 +44,7 @@ static MLI_FORCE_INLINE void compute_prelu(
         const int shift) {
 
     v2q15_t input = mli_prv_load_1vec(vec_in);
-    mli_prv_store_n_samples(vec_out, calc_prelu(input, scale, shift));
+    mli_prv_sat_and_store_2_samples(vec_out, calc_prelu(input, scale, shift));
 }
 
 template <typename io_T, typename scale_T>
@@ -57,7 +57,7 @@ static MLI_FORCE_INLINE void compute_prelu(
 
     MLI_ASSERT(remaining_part == 1);
     v2q15_t input = mli_prv_load_1vec(vec_in);
-    mli_prv_store_1_sample(vec_out, calc_prelu(input, scale, shift));
+    mli_prv_sat_and_store_1_sample(vec_out, calc_prelu(input, scale, shift));
 }
 
 static MLI_FORCE_INLINE s8asym_quant_params_v prelu_define_requant_alpha_params(const mli_tensor *in, 
