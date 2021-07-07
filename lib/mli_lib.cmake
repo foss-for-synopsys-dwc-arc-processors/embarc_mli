@@ -89,6 +89,7 @@ if (ARC)
     list(APPEND MLI_LIB_PRIVATE_COMPILE_OPTIONS
         -Werror
         -Wall
+        -Wsign-compare
         -Wno-nonportable-include-path
     )
 elseif (MSVC)

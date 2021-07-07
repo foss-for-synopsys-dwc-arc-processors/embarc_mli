@@ -244,7 +244,7 @@ static MLI_FORCE_INLINE mli_status mli_krn_l2_normalize_run(const mli_tensor *in
         /* Get Axis Params */
         int axis_shape = in_prv.shape[cfg->axis];
 
-        if (cfg->axis == (in->rank - 1)) {
+        if (cfg->axis == ((int)in->rank - 1)) {
             for (int dim0 = 0; dim0 < in_non_axis_prv.shape[0]; dim0++) {
                 for (int dim1 = 0; dim1 < in_non_axis_prv.shape[1]; dim1++) {
                     for (int dim2 = 0; dim2 < in_non_axis_prv.shape[2]; dim2++) {

@@ -98,7 +98,7 @@ mli_status mli_mov_tensor_sync(const mli_tensor* src, const mli_mov_cfg_t* cfg, 
 
 mli_status mli_mov_prepare(mli_mov_handle_t* h, const mli_tensor* src, const mli_mov_cfg_t* cfg, mli_tensor* dst) {
     mli_status retval = MLI_STATUS_OK;
-    uint32_t src_mem_stride[MLI_MAX_RANK] = {0};
+    int32_t src_mem_stride[MLI_MAX_RANK] = {0};
     // check tensor, check if handle is valid
     MLI_ASSERT(h != NULL);
     MLI_ASSERT(h->state == MLI_MOV_STATE_OPEN || h->state == MLI_MOV_STATE_DONE);

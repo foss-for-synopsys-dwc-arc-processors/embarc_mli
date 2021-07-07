@@ -451,7 +451,7 @@ MLI_FORCE_INLINE void convolution2D(
                         area.clmn_beg = 0;
                         area.clmn_end = out.width - CEIL_DIV(padding_right, stride_width);
                         // compensate for cases where kernel size is larger than input size
-                        area.clmn_end = MAX(CEIL_DIV(padding_left, stride_width), area.clmn_end);
+                        area.clmn_end = MAX(CEIL_DIV(padding_left, stride_width), (int)area.clmn_end);
                     } else {
                         continue;
                     }
@@ -957,7 +957,7 @@ MLI_FORCE_INLINE void depthwise_convolution2D(
                     area.clmn_beg = 0;
                     area.clmn_end = out.width - CEIL_DIV(padding_right, stride_width);
                     // compensate for cases where kernel size is larger than input size
-                    area.clmn_end = MAX(CEIL_DIV(padding_left, stride_width), area.clmn_end);
+                    area.clmn_end = MAX(CEIL_DIV(padding_left, stride_width), (int)area.clmn_end);
                 } else {
                     continue;
                 }

@@ -79,15 +79,15 @@ static MLI_FORCE_INLINE mli_status check_tensor_private(
     for (int i = 0; i < (int)rank; i++) {
         fail |= MLI_CHECK(mem_stride[i] != 0, "Memory stride invalid");
         fail |= MLI_CHECK(mem_stride[i] > 0, "Negative memory strides are not supported");
-        fail |= MLI_CHECK(shape[i] > 0, "Shape invalid");
+        fail |= MLI_CHECK(shape[i] > 0 && shape[i] <= (uint32_t)INT32_MAX, "Shape invalid");
     }
     if (fail) return MLI_STATUS_BAD_TENSOR;
 
-    uint32_t size = 1;
-    uint32_t previous_shape = 1;
-    uint32_t previous_mem_stride = 1;
+    int size = 1;
+    int previous_shape = 1;
+    int previous_mem_stride = 1;
     for (int i = rank - 1; i >= 0; i--) {
-        fail |= MLI_CHECK(mem_stride[i] >= ((int)previous_shape * (int)previous_mem_stride), "Tensor mem stride too small");
+        fail |= MLI_CHECK(mem_stride[i] >= (previous_shape * previous_mem_stride), "Tensor mem stride too small");
         previous_shape = shape[i];
         previous_mem_stride = mem_stride[i];
         size += (previous_shape - 1) * previous_mem_stride;
@@ -95,7 +95,7 @@ static MLI_FORCE_INLINE mli_status check_tensor_private(
     size *= element_size;
 
     if (fail) return MLI_STATUS_BAD_TENSOR;
-    fail |= MLI_CHECK(capacity >= size, "Insufficient tensor capacity");
+    fail |= MLI_CHECK((int)capacity >= size, "Insufficient tensor capacity");
     if (fail) return MLI_STATUS_NOT_ENGH_MEM;
     return MLI_STATUS_OK;
 }
@@ -324,12 +324,12 @@ static MLI_FORCE_INLINE bool check_layout_is_contiguous(const uint32_t *shape, c
         return false;
 
     bool fail = false;
-    uint32_t previous_shape = 1;
+    int32_t previous_shape = 1;
     int32_t previous_mem_stride = 1;
     for (int i = rank - 1; i >= 0; i--) {
         fail |= MLI_CHECK(mem_stride[i] == (previous_shape * previous_mem_stride),
                 "Tensor mem stride set incorrectly");
-        previous_shape = shape[i];
+        previous_shape = (int)shape[i];
         previous_mem_stride = mem_stride[i];
     }
     return !fail;
@@ -1842,8 +1842,8 @@ mli_status mli_chk_prelu (
         fail |= MLI_CHECK(check_inner_most_dimension_is_one(slope_coeff),
                       "Memory stride of the innermost dimension should be equal to 1 for the slope_coeff tensor");
         /* slope tensor must be of the same shape of input tensor at axis and others should be 1 */
-        for(uint32_t i = 0; i < in->rank; i++) {
-            if( i == cfg->axis) {
+        for (int i = 0; i < (int)in->rank; i++) {
+            if (i == cfg->axis) {
                 fail |= MLI_CHECK(in->shape[i] == slope_coeff->shape[i], "Bad Slope_Coeff Shape");
             } else {
                 fail |= MLI_CHECK(slope_coeff->shape[i] == 1, "Bad Slope_Coeff Shape");
