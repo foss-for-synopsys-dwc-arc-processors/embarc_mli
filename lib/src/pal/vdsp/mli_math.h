@@ -508,7 +508,7 @@ MLI_FORCE_INLINE T mli_math_asr_rnd_fx(T x, shift_T nbits) {
     if (nbits == 0)
         return x;
 
-    if (nbits > (sizeof(T) * 8 - 1))
+    if (nbits > (int)(sizeof(T) * 8 - 1))
         return 0;
 
     // Rounding up:

@@ -315,12 +315,12 @@ static MLI_FORCE_INLINE bool check_layout_is_contiguous(const uint32_t *shape, c
     // same memory layout.
 
     bool fail = false;
-    uint32_t previous_shape = 1;
+    int32_t previous_shape = 1;
     int32_t previous_mem_stride = 1;
     for (int i = rank - 1; i >= 0; i--) {
         fail |= MLI_CHECK(mem_stride[i] == (previous_shape * previous_mem_stride),
                 "Tensor mem stride set incorrectly");
-        previous_shape = shape[i];
+        previous_shape = (int)shape[i];
         previous_mem_stride = mem_stride[i];
     }
     return !fail;
@@ -1735,8 +1735,8 @@ mli_status mli_chk_prelu (
         fail |= MLI_CHECK(check_inner_most_dimension_is_one(slope_coeff),
                       "Memory stride of the innermost dimension should be equal to 1 for the slope_coeff tensor");
         /* slope tensor must be of the same shape of input tensor at axis and others should be 1 */
-        for(uint32_t i = 0; i < in->rank; i++) {
-            if( i == cfg->axis) {
+        for (int i = 0; i < (int)in->rank; i++) {
+            if (i == cfg->axis) {
                 fail |= MLI_CHECK(in->shape[i] == slope_coeff->shape[i], "Bad Slope_Coeff Shape");
             } else {
                 fail |= MLI_CHECK(slope_coeff->shape[i] == 1, "Bad Slope_Coeff Shape");

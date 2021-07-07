@@ -60,10 +60,10 @@ extern "C" {
 #endif
 
 typedef struct {
-    uint32_t row_beg;
-    uint32_t row_end;
-    uint32_t clmn_beg;
-    uint32_t clmn_end;
+    int32_t row_beg;
+    int32_t row_end;
+    int32_t clmn_beg;
+    int32_t clmn_end;
 } rect_t;
 
 // Value range for applying ReLU 

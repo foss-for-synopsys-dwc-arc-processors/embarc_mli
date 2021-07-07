@@ -330,7 +330,7 @@ static MLI_FORCE_INLINE vNx2short_t make_vindex(
         int unroll = 1,
         int in_unroll_step = 0) {
     vNx2short_t vindex;
-    MLI_ASSERT(width * height * unroll <= (sizeof(vNx2short_t) / sizeof(short)));
+    MLI_ASSERT(width * height * unroll <= (int)(sizeof(vNx2short_t) / sizeof(short)));
     int idx = 0;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wpass-failed"
