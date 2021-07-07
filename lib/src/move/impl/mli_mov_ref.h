@@ -76,7 +76,7 @@ static MLI_FORCE_INLINE void mov_inner_loop (mli_mov_handle_t* h, const io_T* __
 template<bool no_inner_src_stride, bool no_inner_dst_stride, bool small_size = false>
 static MLI_FORCE_INLINE void mli_mov_basic_operation (mli_mov_handle_t* h, const mli_tensor* src, mli_tensor* dst,
     uint32_t* ordered_dst_write_size, uint32_t* ordered_src_shape, uint32_t* ordered_src_cpy_size,
-    uint32_t* ordered_dst_mem_stride, uint32_t* ordered_src_mem_stride, uint8_t* ordered_pre_padding,
+    int32_t* ordered_dst_mem_stride, int32_t* ordered_src_mem_stride, uint8_t* ordered_pre_padding,
     uint8_t* ordered_post_padding, uint8_t* ordered_pdim, uint32_t* ordered_offset, uint32_t* ordered_dst_offset,
     uint32_t* ordered_subsample, bool no_padding, bool src_in_vccm, bool dst_in_vccm, int elem_size ) {
 
@@ -222,14 +222,14 @@ static MLI_FORCE_INLINE void mli_mov_basic_operation (mli_mov_handle_t* h, const
 
 template<bool src_in_vccm, bool dst_in_vccm, bool no_inner_src_stride, bool no_inner_dst_stride>
 static MLI_NO_INLINE void mli_mov_prepare_run (mli_mov_handle_t* h, const mli_tensor* src, const mli_mov_cfg_t* cfg,
-        mli_tensor* dst, uint32_t* dst_write_size, uint32_t* src_mem_stride, uint32_t* src_cpy_size,
+        mli_tensor* dst, uint32_t* dst_write_size, int32_t* src_mem_stride, uint32_t* src_cpy_size,
         bool no_padding, int elem_size) {
     int i = MLI_MAX_RANK - 1;
     uint32_t ordered_dst_write_size[4] = {1, 1, 1, 1};
     uint32_t ordered_src_shape[4] = {1, 1, 1, 1};
     uint32_t ordered_src_cpy_size[4] = {1, 1 ,1, 1};
-    uint32_t ordered_dst_mem_stride[4] = {0};
-    uint32_t ordered_src_mem_stride[4] = {0};
+    int32_t ordered_dst_mem_stride[4] = {0};
+    int32_t ordered_src_mem_stride[4] = {0};
     uint8_t ordered_pre_padding[4] = {0};
     uint8_t ordered_post_padding[4] = {0};
     uint8_t ordered_pdim[4] = {0, 1, 2, 3};
