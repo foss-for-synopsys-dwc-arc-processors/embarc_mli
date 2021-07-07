@@ -178,6 +178,8 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
 
         // Step 2: Applying non-linearity
         //=======================================
+        __builtin_assume(tmp_gate.rank==2);
+        __builtin_assume(g_tsr.rank==2);
         if (asym) {
             struct s8asym_quant_params in_params;
            
