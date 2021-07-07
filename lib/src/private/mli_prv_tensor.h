@@ -320,6 +320,48 @@ static MLI_FORCE_INLINE generic_tensor_private_t<T> mli_prv_get_generic_tensor(
     tensor.ptr = mli_prv_tensor_data_ptr<T>(in);
     tensor.rank = rank;
 
+#if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)       
+    if (rank == 1) {
+        tensor.shape[0]      = in->shape[0];
+        tensor.mem_stride[0] = in->mem_stride[0];
+        tensor.shape[1]      = 1;
+        tensor.mem_stride[1] = 0;
+        tensor.shape[2]      = 1;
+        tensor.mem_stride[2] = 0;
+        tensor.shape[3]      = 1;
+        tensor.mem_stride[3] = 0;
+    } 
+    if (rank == 2) {
+        tensor.shape[0]      = in->shape[0];
+        tensor.mem_stride[0] = in->mem_stride[0];
+        tensor.shape[1]      = in->shape[1];
+        tensor.mem_stride[1] = in->mem_stride[1];
+        tensor.shape[2]      = 1;
+        tensor.mem_stride[2] = 0;
+        tensor.shape[3]      = 1;
+        tensor.mem_stride[3] = 0;
+    }
+    if (rank == 3) {
+        tensor.shape[0]     = in->shape[0];
+        tensor.mem_stride[0] = in->mem_stride[0];
+        tensor.shape[1]      = in->shape[1];
+        tensor.mem_stride[1] = in->mem_stride[1];
+        tensor.shape[2]      = in->shape[2];
+        tensor.mem_stride[2] = in->mem_stride[2];
+        tensor.shape[3]      = 1;
+        tensor.mem_stride[3] = 0;
+    } 
+    if (rank == 4) {
+        tensor.shape[0]      = in->shape[0];
+        tensor.mem_stride[0] = in->mem_stride[0];
+        tensor.shape[1]      = in->shape[1];
+        tensor.mem_stride[1] = in->mem_stride[1];
+        tensor.shape[2]      = in->shape[2];
+        tensor.mem_stride[2] = in->mem_stride[2];
+        tensor.shape[3]      = in->shape[3];
+        tensor.mem_stride[3] = in->mem_stride[3];
+    }
+#else
     if (rank) {
         for (int i = 0; i < rank; i++) {
             tensor.shape[i] = in->shape[i];
@@ -330,7 +372,8 @@ static MLI_FORCE_INLINE generic_tensor_private_t<T> mli_prv_get_generic_tensor(
             tensor.shape[i] = 1;
             tensor.mem_stride[i] = 0;
         }
-    }
+    }    
+#endif        
 
     return tensor;
 }

@@ -251,6 +251,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
 
         // Step 2: Applying non-linearity
         //=======================================
+        __builtin_assume(tmp_res_upd_gate.rank==2);
         tmp_res_upd_gate.data = dtcntr_update_gate; // switch data to update_gate
         tmp_res_upd_gate.shape[1]  *=2; // increase len to combine calculation of update_gate and reset_gate
         if (asym) {
@@ -298,7 +299,8 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
         mli::krn::rnn_dense_op<io_T, w_T, b_T, acc_T, quant_T>(
             inputs_new_ptr, w_new_g_ptr, b_new_g_ptr, new_gate_ptr, num_inputs, inputs_elements, (int)gru_out_elements,
             w_ch_out_mem_strides, in_to_out_params, (io_T)val_limit.min, (io_T)val_limit.max);
-
+        
+        __builtin_assume(new_gate.rank==2);
         if (asym) {
             struct s8asym_quant_params in_params;
 
