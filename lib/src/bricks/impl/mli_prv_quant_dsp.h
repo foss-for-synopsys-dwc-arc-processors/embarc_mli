@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -117,11 +117,29 @@ MLI_FORCE_INLINE void result_cast_relu_store(
         const s8asym_quant_specific_params* quant_params,
         const int16_t val_min_limit,
         const int16_t val_max_limit) {
+#if !defined(FULL_ACCU)
+    int32_t out_mul = quant_params->out_mul;
+    int out_shift = quant_params->out_shift;
+    int preshift = 0;
+    int target_out_shift = 32 - 8 - 3;
+    // reduce out_mul to 16bit
+    int int_to_short_shift = 16;
+    out_mul = mli_math_asr_rnd_fx(out_mul, int_to_short_shift);
+    out_shift -= int_to_short_shift;
 
+    // preshift and clip to 16bit, but keep 32bit container for easy connection to rest of code.
+    preshift = mli_math_min_fx(mli_math_max_fx(out_shift - target_out_shift, 0),8);
+    out_shift = out_shift - preshift;
+    conv_out = mli_math_asr_rnd_fx(conv_out, preshift);
+    int16_t conv_out_sat = (int16_t)fx_sat_q31(conv_out, 16);
+    accum40_t accu_scaled = fx_a40_mpy_q15(conv_out_sat, (int16_t)out_mul);
+    int16_t out_no_offset = fx_q15_cast_nf_asl_rnd_a40(accu_scaled, 32 - sizeof(int16_t) * 8 - out_shift);
+
+#else
     accum72_t accu_scaled = fx_a72_mpy_q31(conv_out, quant_params->out_mul);
     int16_t out_no_offset = fx_q15_cast_nf_asl_rnd_a72(accu_scaled, 64 - sizeof(int16_t) * 8 - quant_params->out_shift);
+#endif
     int16_t out_with_offset = fx_add_q15(out_no_offset, quant_params->out_offset);
-
     // no saturation needed because ReLu clipping is done in 32bit domain.
     // ReLU truncation
     out_with_offset = MIN(out_with_offset, val_max_limit);
@@ -136,12 +154,39 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
         const s8asym_quant_specific_params quant_params[],
         const int16_t val_min_limit,
         const int16_t val_max_limit) {
+#if !defined(FULL_ACCU)
+    int32_t out_mul1 = quant_params[0].out_mul;
+    int32_t out_mul2 = quant_params[1].out_mul;
+    int out_shift1 = quant_params[0].out_shift;
+    int out_shift2 = quant_params[1].out_shift;
+    int target_out_shift = 32 - 8 - 3;
+    // reduce out_mul to 16bit
+    int int_to_short_shift = 16;
+    out_mul1 = mli_math_asr_rnd_fx(out_mul1, int_to_short_shift);
+    out_mul2 = mli_math_asr_rnd_fx(out_mul2, int_to_short_shift);
+    out_shift1 -= int_to_short_shift;
+    out_shift2 -= int_to_short_shift;
+    // preshift and clip to 16bit, but keep 32bit container for easy connection to rest of code.
+    int preshift1 = mli_math_min_fx(mli_math_max_fx(out_shift1 - target_out_shift, 0),8);
+    int preshift2 = mli_math_min_fx(mli_math_max_fx(out_shift2 - target_out_shift, 0),8);
+    out_shift1 = out_shift1 - preshift1;
+    out_shift2 = out_shift2 - preshift2;
+    int conv_out1 = mli_math_asr_rnd_fx((*conv_out_v)[0], preshift1);
+    int conv_out2 = mli_math_asr_rnd_fx((*conv_out_v)[1], preshift2);
+    int16_t conv_out_sat1 = (int16_t)fx_sat_q31(conv_out1, 16);
+    int16_t conv_out_sat2 = (int16_t)fx_sat_q31(conv_out2, 16);
+    accum40_t accu_scaled1 = fx_a40_mpy_q15(conv_out_sat1, (int16_t)out_mul1);
+    int16_t out_no_offset_ch1 = fx_q15_cast_nf_asl_rnd_a40(accu_scaled1, 32 - sizeof(int16_t) * 8 - out_shift1);
+    accum40_t accu_scaled2 = fx_a40_mpy_q15(conv_out_sat2, (int16_t)out_mul2);
+    int16_t out_no_offset_ch2 = fx_q15_cast_nf_asl_rnd_a40(accu_scaled2, 32 - sizeof(int16_t) * 8 - out_shift2);
+
+#else
     accum72_t accu_scaled = fx_a72_mpy_q31((*conv_out_v)[0], quant_params[0].out_mul);
     int16_t out_no_offset_ch1 = fx_q15_cast_nf_asl_rnd_a72(accu_scaled, 64 - sizeof(int16_t) * 8 - quant_params[0].out_shift);
 
     accu_scaled = fx_a72_mpy_q31((*conv_out_v)[1], quant_params[1].out_mul);
     int16_t out_no_offset_ch2 = fx_q15_cast_nf_asl_rnd_a72(accu_scaled, 64 - sizeof(int16_t) * 8 - quant_params[1].out_shift);
-
+#endif
     v2q15_t v2quant_out_offset = {quant_params[0].out_offset, quant_params[1].out_offset};
 
     v2q15_t v2out_no_offset = {out_no_offset_ch1, out_no_offset_ch2};
@@ -166,12 +211,33 @@ MLI_FORCE_INLINE void result_cast_relu_store_inp_width_v(
         const int16_t val_min_limit,
         const int16_t val_max_limit,
         const int next_out_indx) {
+#if !defined(FULL_ACCU)
+    int32_t out_mul = quant_params->out_mul;
+    int out_shift = quant_params->out_shift;
+    int target_out_shift = 32 - 8 - 3;
+    // reduce out_mul to 16bit
+    int int_to_short_shift = 16;
+    out_mul = mli_math_asr_rnd_fx(out_mul, int_to_short_shift);
+    out_shift -= int_to_short_shift;
+    // preshift and clip to 16bit, but keep 32bit container for easy connection to rest of code.
+    int preshift = mli_math_min_fx(mli_math_max_fx(out_shift - target_out_shift, 0),8);
+    out_shift = out_shift - preshift;
+    int conv_out1 = mli_math_asr_rnd_fx((*conv_out_v)[0], preshift);
+    int conv_out2 = mli_math_asr_rnd_fx((*conv_out_v)[1], preshift);
+    int16_t conv_out_sat1 = (int16_t)fx_sat_q31(conv_out1, 16);
+    int16_t conv_out_sat2 = (int16_t)fx_sat_q31(conv_out2, 16);
+    accum40_t accu_scaled1 = fx_a40_mpy_q15(conv_out_sat1, (int16_t)out_mul);
+    int16_t out_no_offset_ch1 = fx_q15_cast_nf_asl_rnd_a40(accu_scaled1, 32 - sizeof(int16_t) * 8 - out_shift);
+    accum40_t accu_scaled2 = fx_a40_mpy_q15(conv_out_sat2, (int16_t)out_mul);
+    int16_t out_no_offset_ch2 = fx_q15_cast_nf_asl_rnd_a40(accu_scaled2, 32 - sizeof(int16_t) * 8 - out_shift);
+
+#else
     accum72_t accu_scaled = fx_a72_mpy_q31((*conv_out_v)[0], quant_params->out_mul);
     int16_t out_no_offset_ch1 = fx_q15_cast_nf_asl_rnd_a72(accu_scaled, 64 - sizeof(int16_t) * 8 - quant_params->out_shift);
 
     accu_scaled = fx_a72_mpy_q31((*conv_out_v)[1], quant_params->out_mul);
     int16_t out_no_offset_ch2 = fx_q15_cast_nf_asl_rnd_a72(accu_scaled, 64 - sizeof(int16_t) * 8 - quant_params->out_shift);
-
+#endif
     v2q15_t v2quant_out_offset = {quant_params->out_offset, quant_params->out_offset};
 
     v2q15_t v2out_no_offset = {out_no_offset_ch1, out_no_offset_ch2};
