@@ -63,7 +63,7 @@ out_T eltwise_perform_operation(
         if (func_type == ELTWISE_ADD || func_type == ELTWISE_SUB) {
             input1 = mli_math_ashift_right_fx<int32_t>(input1, pre_op_shift1);
             input2 = mli_math_ashift_right_fx<int32_t>(input2, pre_op_shift2);
-           }
+        }
     } else {
         input1 = mli_math_ashift_right_fx<int32_t>(op1, pre_op_shift1);
         input2 = mli_math_ashift_right_fx<int32_t>(op2, pre_op_shift2);
@@ -234,8 +234,13 @@ void eltwise_op_basic(
         const int out_offset) {
 
     MLI_PRINTF_FUNC();
-    auto in1_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in1);
-    auto in2_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in2);
+    MLI_PTR(io_T) in1_ptr = nullptr;
+    MLI_PTR(io_T) in2_ptr = nullptr;
+    if (!scalar_op2)          
+        in2_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in2);
+
+    if (!scalar_op1)
+        in1_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in1);
     auto out_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(out);
 
     mli::krn::eltwise_innerloop<io_T, func_type, convert>(
@@ -387,9 +392,15 @@ void eltwise_prepare_and_run(
               flatten_count = 1;
             }        
         }
-            
-        auto in1_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in1);
-        auto in2_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in2);
+        
+        MLI_PTR(io_T) in1_ptr = nullptr;
+        MLI_PTR(io_T) in2_ptr = nullptr;
+        if (!scalar_op2)             
+            in2_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in2);
+
+        if (!scalar_op1) 
+            in1_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in1);
+
         auto out_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(out);
 
         mli::krn::eltwise_innerloop<io_T, func_type, convert>(
@@ -405,7 +416,7 @@ void eltwise_prepare_and_run(
             flatten_count = mli_prv_squash_tensor_to_one_dim(in2, out);
         } else if (!scalar_op1 && scalar_op2) {
             flatten_count = mli_prv_squash_tensor_to_one_dim(in1, out);
-        } else if (!scalar_op1 && !scalar_op2){
+        } else if (!scalar_op1 && !scalar_op2) {
             flatten_count = mli_prv_squash_tensor_to_one_dim(in1, in2, out);
         } else {
             flatten_count = 1;
@@ -419,17 +430,19 @@ void eltwise_prepare_and_run(
             return;
         }
     }
-        
-
-    auto in1_prv = mli_prv_get_generic_tensor<MLI_PTR(io_T)>(in1);
-    auto in2_prv = mli_prv_get_generic_tensor<MLI_PTR(io_T)>(in2);
+         
     auto out_prv = mli_prv_get_generic_tensor<MLI_PTR(io_T)>(out);
-
+    generic_tensor_private_t<MLI_PTR(io_T)>  in1_prv;
+    generic_tensor_private_t<MLI_PTR(io_T)>  in2_prv;
     if (scalar_op1 && !scalar_op2) {
+        in2_prv = mli_prv_get_generic_tensor<MLI_PTR(io_T)>(in2);
         mli_prv_squash_generic_tensor<MLI_PTR(io_T)>(&in2_prv, &out_prv);
     } else if (!scalar_op1 && scalar_op2) {
+        in1_prv = mli_prv_get_generic_tensor<MLI_PTR(io_T)>(in1);
         mli_prv_squash_generic_tensor<MLI_PTR(io_T)>(&in1_prv, &out_prv);
-    } else if (!scalar_op1 && !scalar_op2){
+    } else if (!scalar_op1 && !scalar_op2) {
+        in2_prv = mli_prv_get_generic_tensor<MLI_PTR(io_T)>(in2);
+        in1_prv = mli_prv_get_generic_tensor<MLI_PTR(io_T)>(in1);
         mli_prv_squash_generic_tensor<MLI_PTR(io_T)>(&in1_prv, &in2_prv, &out_prv);
     }
 
