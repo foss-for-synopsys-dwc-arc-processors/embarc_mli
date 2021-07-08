@@ -106,21 +106,21 @@ static MLI_FORCE_INLINE mli_status mli_krn_permute_run(const mli_tensor *in, con
             out->el_params.sa.dim = out_dim;
 
             if(out->el_params.sa.zero_point.mem.pi16 == nullptr) {
-                out->el_params.sa.zero_point.mem.pi16 = in->el_params.sa.zero_point.mem.pi16;
+                out->el_params.sa.zero_point = in->el_params.sa.zero_point;
             } else if (out->el_params.sa.zero_point.mem.pi16 != in->el_params.sa.zero_point.mem.pi16) {
                 for (int dim_cnt = 0; dim_cnt < (int)(in->shape[in->el_params.sa.dim]); dim_cnt++) 
                     out->el_params.sa.zero_point.mem.pi16[dim_cnt] = in->el_params.sa.zero_point.mem.pi16[dim_cnt];
             }
 
             if (out->el_params.sa.scale.mem.pi16 == nullptr) {
-                out->el_params.sa.scale.mem.pi16 = in->el_params.sa.scale.mem.pi16;
+                out->el_params.sa.scale = in->el_params.sa.scale;
             } else if (out->el_params.sa.scale.mem.pi16 != in->el_params.sa.scale.mem.pi16) {
                 for (int dim_cnt = 0; dim_cnt < (int)(in->shape[in->el_params.sa.dim]); dim_cnt++) 
                     out->el_params.sa.scale.mem.pi16[dim_cnt] = in->el_params.sa.scale.mem.pi16[dim_cnt];
             }
 
             if (out->el_params.sa.scale_frac_bits.mem.pi8 == nullptr) {
-                out->el_params.sa.scale_frac_bits.mem.pi8 = in->el_params.sa.scale_frac_bits.mem.pi8;
+                out->el_params.sa.scale_frac_bits = in->el_params.sa.scale_frac_bits;
             } else if (out->el_params.sa.scale_frac_bits.mem.pi8 != in->el_params.sa.scale_frac_bits.mem.pi8) {
                 for (int dim_cnt = 0; dim_cnt < (int)(in->shape[in->el_params.sa.dim]); dim_cnt++) 
                     out->el_params.sa.scale_frac_bits.mem.pi8[dim_cnt] = in->el_params.sa.scale_frac_bits.mem.pi8[dim_cnt];
