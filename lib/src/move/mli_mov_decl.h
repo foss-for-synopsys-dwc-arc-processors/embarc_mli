@@ -39,10 +39,10 @@ namespace mli {
 namespace mov {
 namespace ref {
 
-template<typename io_T, bool src_in_vccm, bool dst_in_vccm>
+template<bool src_in_vccm, bool dst_in_vccm, bool no_inner_src_stride, bool no_inner_dst_stride>
 static MLI_NO_INLINE void mli_mov_prepare_run (mli_mov_handle_t* h, const mli_tensor* src, const mli_mov_cfg_t* cfg,
         mli_tensor* dst, uint32_t * dst_write_size, uint32_t * src_mem_stride, uint32_t * src_cpy_size,
-        bool no_padding);
+        bool no_padding, int elem_size = 1);
 
 template<typename io_T>
 static MLI_FORCE_INLINE void mli_mov_memcpy(mli_mov_handle_t* h, const io_T* __restrict src, io_T* __restrict dst,
