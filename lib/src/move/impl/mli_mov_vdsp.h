@@ -14,6 +14,9 @@
 #include "mli_mem_info.h"
 #include "mli_prv_load_store.h"
 #include "mli_mov_decl.h"
+
+#pragma MLI_CODE_SECTION_START(".mli_lib")
+
 namespace mli {
 namespace mov {
 namespace vdsp {
@@ -241,7 +244,7 @@ static MLI_FORCE_INLINE void mli_mov_memcpy(mli_mov_handle_t* h, const io_T* __r
             if (small_size) {
                 memcpy((void*)dst, (void*)src, size * sizeof(io_T));
             } else {
-            mli_mov_from_vccm_to_cache((int8_t*)src, (int8_t*)dst, size * sizeof(io_T));
+                mli_mov_from_vccm_to_cache((int8_t*)src, (int8_t*)dst, size * sizeof(io_T));
             }
         } else {
              int idx_src = 0;
@@ -277,20 +280,18 @@ static MLI_FORCE_INLINE void mli_mov_memcpy(mli_mov_handle_t* h, const io_T* __r
         }
     } else {
         if (no_inner_src_stride && (no_inner_dst_stride)) {
-            memcpy((void*)dst, (void*)src, size);
+            memcpy((void*)dst, (void*)src, size * sizeof(io_T));
         } else {
             for (int i = 0; i < size; i++) {
-                int src_idx = i * in_stride;
-                int dst_idx = i * out_stride;
-                dst[dst_idx] = src[src_idx];
+                *dst = *src;
+                src += in_stride;
+                dst+=out_stride;
             }
         }
 
     }
 #endif
 }
-
-
 
 
 template<typename io_T>
@@ -322,8 +323,8 @@ static MLI_FORCE_INLINE void fill_inner_dimension_by_zeros(io_T* __restrict p, u
 
     } else {
         for (int i = 0; i < size; i++) {
-            int dst_idx = i * out_stride;
-            p[dst_idx] = 0;
+            *p = 0;
+            p+= out_stride;
         }
     }
 }
@@ -337,6 +338,7 @@ static MLI_FORCE_INLINE void mov_inner_loop (mli_mov_handle_t* h, const io_T* __
         uint32_t inner_subsample, uint32_t inner_src_shape,
         bool zero_inner_loop, bool src_in_vccm, bool dst_in_vccm,
         bool no_inner_src_stride, bool no_inner_dst_stride, bool small_size) {
+
     if (zero_inner_loop) {
         fill_inner_dimension_by_zeros<io_T>(dst, inner_dst_size, inner_dst_strde,
                 dst_in_vccm, no_inner_dst_stride);
@@ -367,6 +369,7 @@ static MLI_FORCE_INLINE void mov_inner_loop (mli_mov_handle_t* h, const io_T* __
                     dst_in_vccm, no_inner_dst_stride);
         }
     }
+
 }
 
 template<typename io_T>
@@ -381,12 +384,11 @@ static MLI_FORCE_INLINE void mov_inner_loop (mli_mov_handle_t* h, const io_T* __
         mli::mov::mli_mov_memcpy<io_T>(h, src, dst, inner_dst_size, inner_dst_strde,
                         inner_src_step, src_in_vccm, dst_in_vccm, no_inner_src_stride, no_inner_dst_stride, small_size);
 
- }
-
-
+}
 
 }
 }
 }
+#pragma MLI_CODE_SECTION_END()
 
 #endif //_MLI_MOV_VDSP_H_
