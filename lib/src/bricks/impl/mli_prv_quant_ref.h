@@ -329,7 +329,15 @@ MLI_FORCE_INLINE mli_acc32_t bias_additive(
         const MLI_PTR(int32_t) bias, mli_acc32_t init_accum, const s8asym_quant_specific_params* quant_params) {
     // For I8ASYM Bias is of the similar format as result accumulator.
     // To prevent saturation during dotproduct we add bias in the end. (saturate final result - not IR)
-    return mli_math_add_fx(init_accum, mli_math_cast_fx<mli_acc32_t, int32_t>(*bias, /*right_shift =*/0));
+    int bias32 = *bias;
+#if !defined(FULL_ACCU)
+    constexpr int int_to_short_shift = 16;
+    int norm = mli_math_norm_fx<int32_t, int32_t>(bias32);
+    int shift = mli_math_max_fx(int_to_short_shift - norm, 0);
+    bias32 = bias32 >> shift;
+    bias32= mli_math_asl_fx(bias32, shift);
+#endif
+    return mli_math_add_fx(init_accum, mli_math_cast_fx<mli_acc32_t, int32_t>(bias32, /*right_shift =*/0));
 }
 
 //==========================================================================
