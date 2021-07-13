@@ -34,21 +34,21 @@ static MLI_FORCE_INLINE void mov_inner_loop (mli_mov_handle_t* h, const io_T* __
         uint32_t inner_dst_size, uint32_t inner_src_size,
         uint32_t inner_src_strde,uint32_t inner_dst_strde,
         uint32_t inner_src_offset, uint32_t inner_dst_offset,
-        uint8_t inner_pre_padding, uint8_t inner_post_padding,
+        uint16_t inner_pre_padding, uint16_t inner_post_padding,
         uint32_t inner_subsample, uint32_t inner_src_shape,
         bool zero_inner_loop, bool src_in_vccm, bool dst_in_vccm,
-        bool no_inner_src_stride, bool no_inner_dst_stride, bool small_size) {
+        bool no_inner_src_stride, bool no_inner_dst_stride, bool small_size, io_T pad_val) {
     if (zero_inner_loop) {
         for (uint32_t inner_idx = 0; inner_idx < inner_dst_size; inner_idx++) {
             uint32_t inner_dst_pos = (inner_idx + inner_dst_offset) * inner_dst_strde;
-            dst[inner_dst_pos] = 0;
+            dst[inner_dst_pos] = pad_val;
         }
     } else {
         for (int inner_idx = 0; inner_idx < (int)(inner_dst_size); inner_idx++) {
             int inner_src_pos = inner_idx * inner_subsample + inner_src_offset - inner_pre_padding;
             int inner_dst_pos = (inner_idx + inner_dst_offset) * inner_dst_strde;
             if (inner_src_pos < 0 || inner_src_pos >= (int)inner_src_shape ) {
-                dst[inner_dst_pos] = 0;
+                dst[inner_dst_pos] = pad_val;
             } else {
                 dst[inner_dst_pos] = src[inner_src_pos * inner_src_strde];
             }
@@ -172,7 +172,7 @@ static MLI_FORCE_INLINE void mli_mov_basic_operation (mli_mov_handle_t* h, const
                                 ordered_pre_padding[ordered_pdim[3]] * elem_size, ordered_post_padding[ordered_pdim[3]] * elem_size,
                                 ordered_subsample[ordered_pdim[3]], ordered_src_shape[ordered_pdim[3]] * elem_size,
                                 in_padding_area, src_in_vccm, dst_in_vccm,
-                                no_inner_src_stride, no_inner_dst_stride, small_size);
+                                no_inner_src_stride, no_inner_dst_stride, small_size, 0);
                     } else {
                         if (elem_size == 1) {
                             int8_t* __restrict psrc = mli_prv_tensor_data_ptr<int8_t *>(src);
@@ -184,7 +184,7 @@ static MLI_FORCE_INLINE void mli_mov_basic_operation (mli_mov_handle_t* h, const
                                     ordered_pre_padding[ordered_pdim[3]], ordered_post_padding[ordered_pdim[3]],
                                     ordered_subsample[ordered_pdim[3]], ordered_src_shape[ordered_pdim[3]],
                                     in_padding_area, src_in_vccm, dst_in_vccm,
-                                    no_inner_src_stride, no_inner_dst_stride, small_size);
+                                    no_inner_src_stride, no_inner_dst_stride, small_size, 0);
 
                         } else if (elem_size == 2) {
                             int16_t* __restrict psrc = mli_prv_tensor_data_ptr<int16_t *>(src);
@@ -196,7 +196,7 @@ static MLI_FORCE_INLINE void mli_mov_basic_operation (mli_mov_handle_t* h, const
                                     ordered_pre_padding[ordered_pdim[3]], ordered_post_padding[ordered_pdim[3]],
                                     ordered_subsample[ordered_pdim[3]], ordered_src_shape[ordered_pdim[3]],
                                     in_padding_area, src_in_vccm, dst_in_vccm,
-                                    no_inner_src_stride, no_inner_dst_stride, small_size);
+                                    no_inner_src_stride, no_inner_dst_stride, small_size, 0);
 
                         } else {
                             int32_t* __restrict psrc = mli_prv_tensor_data_ptr<int32_t *>(src);
@@ -208,7 +208,7 @@ static MLI_FORCE_INLINE void mli_mov_basic_operation (mli_mov_handle_t* h, const
                                     ordered_pre_padding[ordered_pdim[3]], ordered_post_padding[ordered_pdim[3]],
                                     ordered_subsample[ordered_pdim[3]], ordered_src_shape[ordered_pdim[3]],
                                     in_padding_area, src_in_vccm, dst_in_vccm,
-                                    no_inner_src_stride, no_inner_dst_stride, small_size);
+                                    no_inner_src_stride, no_inner_dst_stride, small_size, 0);
                         } // elem_size
                     } // no inner stride
 

@@ -18,7 +18,6 @@
 #include "mli_math.h"
 #include "mli_math_macros.h"
 #include "mli_mem_info.h"
-#include "mli_mem_info.h"
 #include "mli_prv_activation_lut.h"
 #include "mli_prv_tensor.h"
 #include "mli_types.h"
@@ -2763,7 +2762,6 @@ mli_status mli_chk_data_movement(const mli_tensor *in, const mli_mov_cfg_t *cfg,
     // Check that in tensor is valid and out provides valid pointers
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in, false), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
-
     if ((in->el_type == MLI_EL_SA_8 || in->el_type == MLI_EL_SA_32) && (in->el_params.sa.dim != -1)) {
     	bool fail = false;
     	if (out->el_params.sa.zero_point.mem.pi16 == in->el_params.sa.zero_point.mem.pi16)
@@ -2781,12 +2779,31 @@ mli_status mli_chk_data_movement(const mli_tensor *in, const mli_mov_cfg_t *cfg,
     	            && (out->el_params.sa.scale_frac_bits.mem.pi8 == nullptr),
     	            "El_params data for out tensor wasn`t initialized in a consistent way");
 
-    	if (!fail && out->el_params.sa.zero_point.mem.pi16 != in->el_params.sa.zero_point.mem.pi16
-    	          && out->el_params.sa.zero_point.mem.pi16 != nullptr)
-    	    fail |= MLI_CHECK(out->el_params.sa.zero_point.capacity >= in->el_params.sa.zero_point.capacity
-    	            && out->el_params.sa.scale.capacity >= in->el_params.sa.scale.capacity
-    	            && out->el_params.sa.scale_frac_bits.capacity >= in->el_params.sa.scale_frac_bits.capacity,
+        int32_t in_dim = in->el_params.sa.dim;
+        int32_t out_dim = 0;
+        for (int dim = 0; dim < in->rank; dim++) {
+            if (cfg->perm_dim[dim] == in->el_params.sa.dim) {
+                out_dim = dim;
+                break;
+            }
+        }
+
+        if (!fail && out->el_params.sa.zero_point.mem.pi16 == nullptr) {
+                fail |= MLI_CHECK(((cfg->size[in_dim] == 0) || (cfg->size[in_dim] == in->shape[in_dim])) &&
+                                  (cfg->offset[in_dim] == 0) && (cfg->padding_pre[in_dim] == 0) &&
+                                  (cfg->padding_post[in_dim] == 0) &&
+                                  (cfg->sub_sample_step[in_dim]) == 1 && (cfg->dst_offset[out_dim] == 0),
+    	                            "Invalid nullptr assigned to output quantization parameters");
+        } else if (!fail && out->el_params.sa.zero_point.mem.pi16 != in->el_params.sa.zero_point.mem.pi16 ) {
+                int32_t src_size = cfg->size[in_dim] > 0 ? cfg->size[in_dim] : (in->shape[in_dim] - cfg->offset[in_dim]);
+                int32_t dst_size = CEIL_DIV((src_size + cfg->padding_pre[in_dim] + cfg->padding_post[in_dim]),
+                                            cfg->sub_sample_step[in_dim]) + cfg->dst_offset[out_dim];
+
+                fail |= MLI_CHECK(out->el_params.sa.zero_point.capacity >= dst_size * sizeof(int16_t)
+    	            && out->el_params.sa.scale.capacity >= dst_size * sizeof(int16_t)
+    	            && out->el_params.sa.scale_frac_bits.capacity >= dst_size * sizeof(int8_t),
     	            "Not enough memory allocated for quantization parameters");
+        }
 
     	if (fail) return MLI_STATUS_SPEC_PARAM_MISMATCH;
 

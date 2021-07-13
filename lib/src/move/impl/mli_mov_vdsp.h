@@ -295,8 +295,8 @@ static MLI_FORCE_INLINE void mli_mov_memcpy(mli_mov_handle_t* h, const io_T* __r
 
 
 template<typename io_T>
-static MLI_FORCE_INLINE void fill_inner_dimension_by_zeros(io_T* __restrict p, uint32_t size, uint32_t out_stride,
-        const bool dst_in_vccm, bool no_inner_dst_stride) {
+static MLI_FORCE_INLINE void fill_inner_dimension(io_T* __restrict p, uint32_t size, uint32_t out_stride,
+        const bool dst_in_vccm, bool no_inner_dst_stride, io_T val) {
     if (dst_in_vccm) {
         //Dummy load to determine the number of lanes
         MLI_PTR(io_T)p_v = (MLI_PTR(io_T))p;
@@ -306,17 +306,17 @@ static MLI_FORCE_INLINE void fill_inner_dimension_by_zeros(io_T* __restrict p, u
         int dst_idx = 0;
         if (remaining) {
             if (no_inner_dst_stride) {
-                mli_prv_store_n_samples(&p_v[dst_idx], (decltype(vec))0, remaining);
+                mli_prv_store_n_samples(&p_v[dst_idx], (decltype(vec))val, remaining);
             } else {
-                mli_prv_stride_store_n_samples(&p_v[dst_idx], (decltype(vec))0, out_stride, remaining);
+                mli_prv_stride_store_n_samples(&p_v[dst_idx], (decltype(vec))val, out_stride, remaining);
             }
             dst_idx += remaining * out_stride;
         }
         for (int pos = remaining; pos < size; pos += num_of_lanes) {
             if (no_inner_dst_stride) {
-                mli_prv_store_n_samples(&p_v[dst_idx], (decltype(vec))0);
+                mli_prv_store_n_samples(&p_v[dst_idx], (decltype(vec))val);
             } else {
-                mli_prv_stride_store_n_samples(&p_v[dst_idx], (decltype(vec))0, out_stride);
+                mli_prv_stride_store_n_samples(&p_v[dst_idx], (decltype(vec))val, out_stride);
             }
             dst_idx += num_of_lanes * out_stride;
         }
@@ -334,14 +334,14 @@ static MLI_FORCE_INLINE void mov_inner_loop (mli_mov_handle_t* h, const io_T* __
         uint32_t inner_dst_size, uint32_t inner_src_size,
         uint32_t inner_src_strde, uint32_t inner_dst_strde,
         uint32_t inner_src_offset, uint32_t inner_dst_offset,
-        uint8_t inner_pre_padding, uint8_t inner_post_padding,
+        uint16_t inner_pre_padding, uint16_t inner_post_padding,
         uint32_t inner_subsample, uint32_t inner_src_shape,
         bool zero_inner_loop, bool src_in_vccm, bool dst_in_vccm,
-        bool no_inner_src_stride, bool no_inner_dst_stride, bool small_size) {
+        bool no_inner_src_stride, bool no_inner_dst_stride, bool small_size, io_T pad_val) {
 
     if (zero_inner_loop) {
-        fill_inner_dimension_by_zeros<io_T>(dst, inner_dst_size, inner_dst_strde,
-                dst_in_vccm, no_inner_dst_stride);
+        fill_inner_dimension<io_T>(dst, inner_dst_size, inner_dst_strde,
+                dst_in_vccm, no_inner_dst_stride, 0);
     } else {
         int inner_dst_pos =  inner_dst_offset * inner_dst_strde;
         int inner_src_pos = inner_src_offset - inner_pre_padding;
@@ -349,8 +349,8 @@ static MLI_FORCE_INLINE void mov_inner_loop (mli_mov_handle_t* h, const io_T* __
         //check if there will be pre_padding in inner dimension
         if(inner_src_pos < 0) {
             pre_padding_size += CEIL_DIV(-inner_src_pos, inner_subsample);
-            fill_inner_dimension_by_zeros<io_T>(&dst[inner_dst_pos], pre_padding_size, inner_dst_strde,
-                    dst_in_vccm, no_inner_dst_stride);
+            fill_inner_dimension<io_T>(&dst[inner_dst_pos], pre_padding_size, inner_dst_strde,
+                    dst_in_vccm, no_inner_dst_stride, 0);
             inner_src_pos += pre_padding_size * inner_subsample;
             inner_dst_pos += pre_padding_size * inner_dst_strde;
         }
@@ -365,8 +365,8 @@ static MLI_FORCE_INLINE void mov_inner_loop (mli_mov_handle_t* h, const io_T* __
 
         if (inner_src_pos >= inner_src_shape) {
             uint32_t post_padding_size = inner_dst_size - pre_padding_size - size_of_copy;
-            fill_inner_dimension_by_zeros<io_T>(&dst[inner_dst_pos], post_padding_size, inner_dst_strde,
-                    dst_in_vccm, no_inner_dst_stride);
+            fill_inner_dimension<io_T>(&dst[inner_dst_pos], post_padding_size, inner_dst_strde,
+                    dst_in_vccm, no_inner_dst_stride, 0);
         }
     }
 

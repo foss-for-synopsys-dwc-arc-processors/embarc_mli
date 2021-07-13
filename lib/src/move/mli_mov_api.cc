@@ -39,7 +39,7 @@ static mli_mov_cb_t callbacktable[MAX_DMA_CHAN] = {{0}};
 // Synchronous data movement functions
 //---------------------------------------------------------------------
 
-/** 
+/**
  * @brief Synchronous copy from src to dst
  *
  * @detail This function will perform a data copy from the src tensor to the dst tensor
@@ -83,7 +83,7 @@ mli_status mli_mov_tensor_sync(const mli_tensor* src, const mli_mov_cfg_t* cfg, 
 // Asynchronous data movement functions
 //---------------------------------------------------------------------
 
-/** 
+/**
  * @brief Prepare asynchronous copy from src to dst
  *
  * @detail This function will prepare a data copy from the src tensor to the dst tensor
@@ -111,25 +111,6 @@ mli_status mli_mov_prepare(mli_mov_handle_t* h, const mli_tensor* src, const mli
     const bool src_in_vccm = mli_mem_is_inside_vccm(mli_prv_tensor_cast_data_ptr(src));
     const bool dst_in_vccm = mli_mem_is_inside_vccm(mli_prv_tensor_cast_data_ptr(dst));
 
-    if ((src->el_type == MLI_EL_SA_8 || src->el_type == MLI_EL_SA_32) && (src->el_params.sa.dim != -1)) {
-        if ((dst->el_params.sa.scale.mem.pi16 != src->el_params.sa.scale.mem.pi16) &&
-                (dst->el_params.sa.scale.mem.pi16 != NULL)) {
-            mli::mov::mli_mov_memcpy<int8_t>(h, src->el_params.sa.scale.mem.pi8,
-                        dst->el_params.sa.scale.mem.pi8, src->el_params.sa.scale.capacity, 1, 1, false, false, true, true, false);
-            mli::mov::mli_mov_memcpy<int8_t>(h, src->el_params.sa.zero_point.mem.pi8,
-                        dst->el_params.sa.zero_point.mem.pi8, src->el_params.sa.zero_point.capacity, 1, 1, false, false, true, true, false);
-            mli::mov::mli_mov_memcpy<int8_t>(h, src->el_params.sa.scale_frac_bits.mem.pi8,
-                        dst->el_params.sa.scale_frac_bits.mem.pi8, src->el_params.sa.scale_frac_bits.capacity, 1, 1, false, false, true, true, false);
-        } else {
-            dst->el_params.sa.scale = src->el_params.sa.scale;
-            dst->el_params.sa.zero_point = src->el_params.sa.zero_point;
-            dst->el_params.sa.scale_frac_bits = src->el_params.sa.scale_frac_bits;
-        }
-        dst->el_params.sa.dim = src->el_params.sa.dim;
-    } else {
-        dst->el_params = src->el_params;
-    }
-
     src_mem_stride[rank - 1] = src->mem_stride[rank - 1] != 0 ? src->mem_stride[rank - 1] : 1;
     for (int i = rank - 2; i >= 0; i--) {
         src_mem_stride[i] = src->mem_stride[i] != 0 ? src->mem_stride[i] : src_mem_stride[i+1] * src->shape[i+1];
@@ -144,9 +125,63 @@ mli_status mli_mov_prepare(mli_mov_handle_t* h, const mli_tensor* src, const mli
                 cfg->sub_sample_step[pdim[i]]);
         dst->shape[i] = dst_write_size[i] + cfg->dst_offset[i];
     }
+
     for (int i = rank; i < MLI_MAX_RANK; i++) {
         dst->shape[i] = 1;
         dst->mem_stride[i] = 0;
+    }
+
+    if ((src->el_type == MLI_EL_SA_8 || src->el_type == MLI_EL_SA_32) && (src->el_params.sa.dim != -1)) {
+        if ((dst->el_params.sa.scale.mem.pi16 != src->el_params.sa.scale.mem.pi16) &&
+                (dst->el_params.sa.scale.mem.pi16 != nullptr)) {
+            for (int dim = 0; dim < rank; dim++) {
+                if (pdim[dim] == src->el_params.sa.dim) {
+                    dst->el_params.sa.dim = dim;
+                    break;
+                }
+            }
+
+            mli::mov::ref::mov_inner_loop<int16_t>(h, src->el_params.sa.scale.mem.pi16,
+                                                   dst->el_params.sa.scale.mem.pi16,
+                                                   dst_write_size[dst->el_params.sa.dim],
+                                                   src_cpy_size[dst->el_params.sa.dim], 1, 1,
+                                                   cfg->offset[src->el_params.sa.dim],
+                                                   cfg->dst_offset[dst->el_params.sa.dim],
+                                                   cfg->padding_pre[src->el_params.sa.dim],
+                                                   cfg->padding_post[src->el_params.sa.dim],
+                                                   cfg->sub_sample_step[src->el_params.sa.dim],
+                                                   src->shape[src->el_params.sa.dim], false, false,
+                                                   false, false, false, false, 1);
+            mli::mov::ref::mov_inner_loop<int16_t>(h, src->el_params.sa.zero_point.mem.pi16,
+                                                   dst->el_params.sa.zero_point.mem.pi16,
+                                                   dst_write_size[dst->el_params.sa.dim],
+                                                   src_cpy_size[dst->el_params.sa.dim], 1, 1,
+                                                   cfg->offset[src->el_params.sa.dim],
+                                                   cfg->dst_offset[dst->el_params.sa.dim],
+                                                   cfg->padding_pre[src->el_params.sa.dim],
+                                                   cfg->padding_post[src->el_params.sa.dim],
+                                                   cfg->sub_sample_step[src->el_params.sa.dim],
+                                                   src->shape[src->el_params.sa.dim], false,
+                                                   false, false, false, false, false, 0);
+            mli::mov::ref::mov_inner_loop<int8_t>(h, src->el_params.sa.scale_frac_bits.mem.pi8,
+                                                  dst->el_params.sa.scale_frac_bits.mem.pi8,
+                                                  dst_write_size[dst->el_params.sa.dim],
+                                                  src_cpy_size[dst->el_params.sa.dim], 1, 1,
+                                                  cfg->offset[src->el_params.sa.dim],
+                                                  cfg->dst_offset[dst->el_params.sa.dim],
+                                                  cfg->padding_pre[src->el_params.sa.dim],
+                                                  cfg->padding_post[src->el_params.sa.dim],
+                                                  cfg->sub_sample_step[src->el_params.sa.dim],
+                                                  src->shape[src->el_params.sa.dim], false,
+                                                  false, false, false, false, false, 0);
+        } else {
+            dst->el_params.sa.scale = src->el_params.sa.scale;
+            dst->el_params.sa.zero_point = src->el_params.sa.zero_point;
+            dst->el_params.sa.scale_frac_bits = src->el_params.sa.scale_frac_bits;
+            dst->el_params.sa.dim = src->el_params.sa.dim;
+        }
+    } else {
+        dst->el_params = src->el_params;
     }
 
     /* if destination memstride is provided in the configuration, use it.
@@ -185,6 +220,7 @@ mli_status mli_mov_prepare(mli_mov_handle_t* h, const mli_tensor* src, const mli
         no_padding &= !(cfg->padding_pre[i] || cfg->padding_post[i]);
         is_possible_in_single1d_transfer &= no_padding;
         is_possible_in_single1d_transfer &= (cfg->perm_dim[i] == i);
+        is_possible_in_single1d_transfer &= (cfg->sub_sample_step[i] == 1);
         stride *= src->shape[i];
     }
 
@@ -219,7 +255,7 @@ mli_status mli_mov_prepare(mli_mov_handle_t* h, const mli_tensor* src, const mli
     return retval;
 }
 
-/** 
+/**
  * @brief Register a callback for a datatransfer
  *
  * @detail This function will register a callback function that will be called after
@@ -237,7 +273,7 @@ mli_status mli_mov_registercallback(mli_mov_handle_t* h, void (*cb)(int32_t), in
     return MLI_STATUS_OK;
 }
 
-/** 
+/**
  * @brief Start asynchronous copy from src to dst
  *
  * @detail This function will start the data copy from the src tensor to the dst tensor
@@ -265,7 +301,7 @@ mli_status mli_mov_start(mli_mov_handle_t* h, const mli_tensor* src, const mli_m
     return MLI_STATUS_OK;
 }
 
-/** 
+/**
  * @brief Polling function to detect if transfer has completed
  *
  * @detail This function will return true when the transfer is completed, and false in all
@@ -285,7 +321,7 @@ bool mli_mov_isdone(mli_mov_handle_t* h) {
     return done;
 }
 
-/** 
+/**
  * @brief Synchronize to transfer complete
  *
  * @detail This function will do active polling and return after the transfer has completed.
@@ -303,7 +339,7 @@ mli_status mli_mov_wait(mli_mov_handle_t* h) {
 //---------------------------------------------------------------------
 // functions to set available resources (e.g. dma channels)
 //---------------------------------------------------------------------
-/** 
+/**
  * @brief set dma channels that can be used by mli_mov functions
  *
  * @detail This function is used to set a pool of the dma channels
@@ -319,7 +355,7 @@ mli_status mli_mov_set_num_dma_ch(int ch_offset, int num_ch) {
     return MLI_STATUS_OK;
 }
 
-/** 
+/**
  * @brief Acquire dma channel(s)
  *
  * @detail This function finds the first available (block of) channel(s) in the pool.
@@ -348,7 +384,7 @@ mli_status mli_mov_acquire_handle(int num_ch, mli_mov_handle_t* h) {
     return retval;
 }
 
-/** 
+/**
  * @brief Release dma channle(s)
  *
  * @detail This function will release the dma channels from the handle h back to the pool.
@@ -370,7 +406,7 @@ mli_status mli_mov_release_handle(mli_mov_handle_t* h) {
 // Helper functions to fill mli_mov_cfg_t
 //---------------------------------------------------------------------
 
-/** 
+/**
  * @brief Construction of cfg struct for full tensor copy
  *
  * @detail This function will fill the cfg struct with the values needed for a full tensor copy
@@ -386,14 +422,14 @@ mli_status mli_mov_cfg_for_copy(mli_mov_cfg_t* cfg) {
     return MLI_STATUS_OK;
 }
 
-/** 
+/**
  * @brief Construction of cfg struct for slicing
  *
  * @detail This function will fill the cfg struct with the values needed for copying a slice
  * from the source to the destination tensor
  */
 mli_status mli_mov_cfg_for_slice(mli_mov_cfg_t* cfg, int* offsets, int* sizes, int* dst_mem_stride) {
-    mli_status retval = MLI_STATUS_OK; 
+    mli_status retval = MLI_STATUS_OK;
 
     if (retval == MLI_STATUS_OK)
         retval = mli_mov_cfg_for_copy(cfg);
@@ -405,14 +441,14 @@ mli_status mli_mov_cfg_for_slice(mli_mov_cfg_t* cfg, int* offsets, int* sizes, i
     return retval;
 }
 
-/** 
+/**
  * @brief Construction of cfg struct for concatenation
  *
  * @detail This function will fill the cfg struct with the values needed for copying a complete tensor
  * into a larger tensor at a specified position
  */
 mli_status mli_mov_cfg_for_concat(mli_mov_cfg_t* cfg, int* dst_offsets, int* dst_mem_stride) {
-    mli_status retval = MLI_STATUS_OK; 
+    mli_status retval = MLI_STATUS_OK;
 
     if (retval == MLI_STATUS_OK)
         retval = mli_mov_cfg_for_copy(cfg);
@@ -423,7 +459,7 @@ mli_status mli_mov_cfg_for_concat(mli_mov_cfg_t* cfg, int* dst_offsets, int* dst
     return retval;
 }
 
-/** 
+/**
  * @brief Construction of cfg struct for subsampling
  *
  * @detail This function will fill the cfg struct with the values needed for subsampling a tensor
@@ -431,7 +467,7 @@ mli_status mli_mov_cfg_for_concat(mli_mov_cfg_t* cfg, int* dst_offsets, int* dst
  */
 mli_status mli_mov_cfg_for_subsample(mli_mov_cfg_t* cfg, int* sub_sample_step, int* dst_mem_stride) {
 
-    mli_status retval = MLI_STATUS_OK; 
+    mli_status retval = MLI_STATUS_OK;
 
     if (retval == MLI_STATUS_OK)
         retval = mli_mov_cfg_for_copy(cfg);
@@ -442,7 +478,7 @@ mli_status mli_mov_cfg_for_subsample(mli_mov_cfg_t* cfg, int* sub_sample_step, i
     return retval;
 }
 
-/** 
+/**
  * @brief Construction of cfg struct for permutaion or transposing a tensor
  *
  * @detail This function will fill the cfg struct with the values needed for reordering the order of the dimensions in a tensor
@@ -457,13 +493,13 @@ mli_status mli_mov_cfg_for_permute(mli_mov_cfg_t* cfg, uint8_t* perm_dim) {
     return MLI_STATUS_OK;
 }
 
-/** 
+/**
  * @brief Construction of cfg struct for padding
  *
  * @detail This function will fill the cfg struct with the values needed adding zero padding to a tensor in CHW layout
  */
 mli_status mli_mov_cfg_for_padding2d_chw(mli_mov_cfg_t* cfg, uint8_t padleft, uint8_t padright, uint8_t padtop, uint8_t padbot, int* dst_mem_stride) {
-    mli_status retval = MLI_STATUS_OK; 
+    mli_status retval = MLI_STATUS_OK;
 
     if (retval == MLI_STATUS_OK)
         retval = mli_mov_cfg_for_copy(cfg);
@@ -477,13 +513,13 @@ mli_status mli_mov_cfg_for_padding2d_chw(mli_mov_cfg_t* cfg, uint8_t padleft, ui
     return retval;
 }
 
-/** 
+/**
  * @brief Construction of cfg struct for padding
  *
  * @detail This function will fill the cfg struct with the values needed adding zero padding to a tensor in HWC layout
  */
 mli_status mli_mov_cfg_for_padding2d_hwc(mli_mov_cfg_t* cfg, uint8_t padleft, uint8_t padright, uint8_t padtop, uint8_t padbot, int* dst_mem_stride) {
-    mli_status retval = MLI_STATUS_OK; 
+    mli_status retval = MLI_STATUS_OK;
 
     if (retval == MLI_STATUS_OK)
         retval = mli_mov_cfg_for_copy(cfg);
@@ -497,7 +533,7 @@ mli_status mli_mov_cfg_for_padding2d_hwc(mli_mov_cfg_t* cfg, uint8_t padleft, ui
     return retval;
 }
 
-/** 
+/**
  * @brief Construction of cfg struct
  *
  * @detail This function will fill the cfg struct
