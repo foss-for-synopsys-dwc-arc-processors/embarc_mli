@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -28,7 +28,7 @@
 namespace mli {
 namespace hlp {
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-using mli::hlp::ref::convert_quantized_data;
+using mli::hlp::vdsp::convert_quantized_data;
 using mli::hlp::ref::convert_float_data;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
@@ -51,9 +51,9 @@ using mli::hlp::ref::convert_float_data;
 // below can depend on each other through declarations in *_decl.h.
 #include "impl/mli_hlp_convert_tensor_ref.h"
 
-// #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
-// #include "impl/mli_hlp_convert_tensor_vdsp.h"
-// #endif
+#if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
+#include "impl/mli_hlp_convert_tensor_vdsp.h"
+#endif
 
 // #if !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
 // #include "impl/mli_hlp_convert_tensor_dsp.h"

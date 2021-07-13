@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020 - 2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -34,7 +34,7 @@ typedef enum {
 ////////////////////////////////////////////////////////////////////////////////
 namespace ref {
 
-    template <typename in_T, typename out_T, typename acc_T>
+template <typename in_T, typename out_T, typename acc_T>
 mli_status convert_quantized_data(
         const mli_tensor *src,
         mli_tensor *dst);
@@ -46,6 +46,18 @@ mli_status convert_float_data(
         convert_mode direction);
 
 } // namespace ref
+
+////////////////////////////////////////////////////////////////////////////////
+// VDSP
+////////////////////////////////////////////////////////////////////////////////
+namespace vdsp {
+
+template <typename in_T, typename out_T, typename acc_T>
+mli_status convert_quantized_data(
+        const mli_tensor *src,
+        mli_tensor *dst);
+
+} // namespace vdsp
 
 } // namespace hlp
 } // namespace mli
