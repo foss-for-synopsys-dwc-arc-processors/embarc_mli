@@ -1,5 +1,5 @@
 /*
-* Copyright 2020-2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -28,9 +28,10 @@ MLI_FORCE_INLINE T mli_math_limit_fx(T sign) {
 template <typename T>
 MLI_FORCE_INLINE T mli_math_asr_pos_nbits_fx(T x, int nbits)
 {
+    int nbits_max = sizeof(T) * 8 - 1;
     // This function is internal to this file
     // and is required to avoid compiler issues.
-    if (nbits > (sizeof(T) * 8 - 1))
+    if (nbits > nbits_max)
         return x < (T)0 ? -1 : 0;
     return x >> nbits;
 }
@@ -72,13 +73,15 @@ MLI_FORCE_INLINE T mli_math_asr_rnd_fx(T x, int nbits)
     using unsigned_T = typename std::make_unsigned<T>::type;
     T r = 0;
     unsigned_T one = 1u;
+    int nbits_max = sizeof(T) * 8 - 1;
+    int nbits_min = 0;
 
-    if (nbits < 0)
+    if (nbits < nbits_min)
         return mli_math_asl_fx<T>(x, (-nbits));
-    if (nbits == 0)
+    if (nbits == nbits_min)
         return x;
 
-    if (nbits > (sizeof(T) * 8 - 1))
+    if (nbits > nbits_max)
         return 0;
 
     // Rounding up:

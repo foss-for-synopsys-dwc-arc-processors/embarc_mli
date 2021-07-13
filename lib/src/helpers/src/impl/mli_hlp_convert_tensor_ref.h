@@ -24,6 +24,7 @@ namespace ref {
 
 template <typename in_T, typename out_T, typename acc_T>
 mli_status convert_quantized_data(const mli_tensor * src, mli_tensor * dst) {
+    mli_prv_fx_init_dsp_ctrl();
 
     /* If the accumulator is int64_t, so int32_t should be used for multiplying. */
     typedef typename std::conditional<std::is_same<acc_T, int64_t>::value, int32_t, int16_t>::type mul_T;
@@ -69,7 +70,8 @@ mli_status convert_quantized_data(const mli_tensor * src, mli_tensor * dst) {
         mli::krn::define_requant_params(src, dst, &params, scale_idx);
         const int16_t scale_shift = params.shift;
         const int16_t scale = params.scale;
-        const int16_t zero_point = params.offset;
+        int16_t in_zp = mli_hlp_tensor_zero_offset(src, scale_idx);
+        int16_t out_zp = mli_hlp_tensor_zero_offset(dst, scale_idx);
         /* Calculate borders across all dimensions for slice where this scale is applicable */
         int dim_start[MLI_MAX_RANK] = { 0 };
         int dim_end[MLI_MAX_RANK] = { 0 };
@@ -87,9 +89,11 @@ mli_status convert_quantized_data(const mli_tensor * src, mli_tensor * dst) {
                         const int dst_pos = POS(&dst_prv, dim0_idx, dim1_idx, dim2_idx, dim3_idx);
                         MLI_ASSERT(src_pos < src_tensor_size);
                         MLI_ASSERT(dst_pos < dst_tensor_size);
-                        acc_T dst_acc = mli_math_mul_fx<mul_T, acc_T>(src_tensor_arr[src_pos], scale);
-                        out_T dst_val = mli_math_cast_fx<acc_T, out_T>(dst_acc, scale_shift);
-                        dst_tensor_arr[dst_pos] = mli_math_add_fx<out_T>(dst_val, (out_T)zero_point);
+                        mul_T src_in_zp = mli_math_sub_fx<mul_T>(src_tensor_arr[src_pos], in_zp);
+                        acc_T dst_acc = mli_math_mul_fx<mul_T, acc_T>(src_in_zp, scale);
+                        acc_T dst_acc_shf_casted = mli_math_asr_rnd_fx<acc_T>(dst_acc, scale_shift);
+                        acc_T dst_val = mli_math_add_fx<acc_T>(dst_acc_shf_casted, out_zp);
+                        dst_tensor_arr[dst_pos] = mli_math_cast_fx<acc_T, out_T>(dst_val, 0);
                     }
                 }
             }
@@ -100,6 +104,7 @@ mli_status convert_quantized_data(const mli_tensor * src, mli_tensor * dst) {
 
 template <typename t_T>
 mli_status convert_float_data(const mli_tensor * src, mli_tensor * dst, convert_mode mode) {
+    mli_prv_fx_init_dsp_ctrl();
 
     /* Copy shape and rank from source tensor to destination */
     const int rank = dst->rank = src->rank;

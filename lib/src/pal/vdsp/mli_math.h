@@ -502,13 +502,15 @@ MLI_FORCE_INLINE T mli_math_asr_rnd_fx(T x, shift_T nbits) {
     using unsigned_T = typename std::make_unsigned<T>::type;
     T r = 0;
     unsigned_T one = 1u;
+    shift_T nbits_max = sizeof(T) * 8 - 1;
+    shift_T nbits_min = 0;
 
-    if (nbits < 0)
+    if (nbits < nbits_min)
         return mli_math_asl_fx<T>(x, (-nbits));
-    if (nbits == 0)
+    if (nbits == nbits_min)
         return x;
 
-    if (nbits > (sizeof(T) * 8 - 1))
+    if (nbits > nbits_max)
         return 0;
 
     // Rounding up:
