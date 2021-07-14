@@ -29,11 +29,22 @@ static MLI_FORCE_INLINE vNx4int_t calc_convert(
         const int16_t in_zp,
         const int16_t out_zp) {
 
+    int shift_right = mli_math_max_fx(shift, 0);
+    int shift_left = mli_math_max_fx(-shift, 0);
+#ifdef ROUND_UP
+    uint32_t one = 1u;
+    int32_t offset = (one << shift_right) >> 1;
+            offset += (int32_t)out_zp << shift_right;
+#else
+    #error Rounding mode not supported
+#endif
+
     vNx4short_t input_cast =  mli_math_cast_fx<vNx4char_t, vNx4short_t>(input);
     vNx4short_t src_in_zp = mli_math_sub(input_cast, in_zp);
-    vNx4int_t   dst_acc = mli_math_mul_fx<vNx4short_t, vNx4int_t>(src_in_zp, scale);
-    vNx4int_t   dst_acc_shf_casted = mli_math_asr_rnd_fx(dst_acc, (int)shift);
-    vNx4int_t   dst_val = mli_math_add_fx<vNx4int_t>(dst_acc_shf_casted, out_zp);
+    vNx4int_t   dst_val = mli_math_mul_fx<vNx4short_t, vNx4int_t>(src_in_zp, scale);
+                dst_val = mli_math_add_fx<vNx4int_t>(dst_val, offset);
+                dst_val = mli_math_asr_fx(dst_val, shift_right);
+                dst_val = mli_math_asl_fx(dst_val, shift_left);
 
     return dst_val;
 }
@@ -45,10 +56,21 @@ static MLI_FORCE_INLINE vNx4int_t calc_convert(
         const int16_t in_zp,
         const int16_t out_zp) {
 
+    int shift_right = mli_math_max_fx(shift, 0);
+    int shift_left = mli_math_max_fx(-shift, 0);
+#ifdef ROUND_UP
+    uint32_t one = 1u;
+    int32_t offset = (one << shift_right) >> 1;
+            offset += (int32_t)out_zp << shift_right;
+#else
+    #error Rounding mode not supported
+#endif
+
     vNx4short_t src_in_zp = mli_math_sub(input, in_zp);
-    vNx4int_t   dst_acc = mli_math_mul_fx<vNx4short_t, vNx4int_t>(src_in_zp, scale);
-    vNx4int_t   dst_acc_shf_casted = mli_math_asr_rnd_fx(dst_acc, (int)shift);
-    vNx4int_t   dst_val = mli_math_add_fx<vNx4int_t>(dst_acc_shf_casted, out_zp);
+    vNx4int_t   dst_val = mli_math_mul_fx<vNx4short_t, vNx4int_t>(src_in_zp, scale);
+                dst_val = mli_math_add_fx<vNx4int_t>(dst_val, offset);
+                dst_val = mli_math_asr_fx(dst_val, shift_right);
+                dst_val = mli_math_asl_fx(dst_val, shift_left);
 
     return dst_val;
 }
