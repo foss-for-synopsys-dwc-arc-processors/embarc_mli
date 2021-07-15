@@ -80,7 +80,26 @@ typedef int16_t b_type;
 #define _Z __xy __Zdata_attr
 #endif // if defined (__GNUC__) && !defined (__CCAC__)
 
-#else
+
+#elif (PLATFORM == V2DSP_VECTOR)
+
+// Model Weights attribute
+#define _Wdata_attr __attribute__((section(".vecmem_data")))
+#define _W __vccm _Wdata_attr
+
+// Operand X attribute (VCCM)
+#define __Xdata_attr __attribute__((section(".vecmem_data")))
+#define _X __vccm __Xdata_attr
+
+// Operand Y attribute (VCCM)
+#define __Ydata_attr __attribute__((section(".vecmem_data")))
+#define _Y __vccm __Ydata_attr
+
+// Operand Z attribute (VCCM)
+#define __Zdata_attr __attribute__((section(".vecmem_data")))
+#define _Z __vccm __Zdata_attr
+
+#else // PLATFORM != V2DSP_XY && PLATFORM != V2DSP_VECTOR
 #define _X __attribute__((section(".mli_ir_buf")))
 #define _Y __attribute__((section(".mli_ir_buf")))
 #define _Z __attribute__((section(".mli_ir_buf")))

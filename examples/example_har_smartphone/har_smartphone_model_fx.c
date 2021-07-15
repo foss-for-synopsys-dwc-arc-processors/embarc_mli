@@ -62,8 +62,8 @@ static inline void set_mli_tensor_shape3(mli_tensor* tensor, uint32_t shape0, ui
 // Intermediate data buffers (enough size for max intermediate results)
 //==============================
 #define LSTM_CELL_SZ (32)
-#define INOUT_BUF_SZ_MOST (138*LSTM_CELL_SZ)
-#define LSTM_IR_BUF_SZ (20*LSTM_CELL_SZ)
+#define INOUT_BUF_SZ_MOST (128*LSTM_CELL_SZ)
+#define LSTM_IR_BUF_SZ (4*LSTM_CELL_SZ)
 #define LUT_BUF_SZ (512)
 
 // Despite the name of buf we keep all in/out data
@@ -72,7 +72,7 @@ static inline void set_mli_tensor_shape3(mli_tensor* tensor, uint32_t shape0, ui
 // 11d has got only 2 separate banks of memory
 static d_type  _Y    x_mem_buf[INOUT_BUF_SZ_MOST];
 static d_type  _Y    y_mem_buf[INOUT_BUF_SZ_MOST];
-static d_type  _Y    lstm_ir_mem_buf[LSTM_IR_BUF_SZ * LSTM_CELL_SZ];
+static d_type  _Y    lstm_ir_mem_buf[LSTM_IR_BUF_SZ];
 static d_type  _X    lstm_cell_mem_buf[LSTM_CELL_SZ];
 static int16_t  _Y   tanh_lut_mem_buf[LUT_BUF_SZ];
 static int16_t  _X   sigm_lut_mem_buf[LUT_BUF_SZ];
