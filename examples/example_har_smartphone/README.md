@@ -117,7 +117,7 @@ configuration define and listed in table below. Before compiling application for
 |                      Data                         |   MODEL_BIT_DEPTH=8   |  MODEL_BIT_DEPTH=816  |  MODEL_BIT_DEPTH=16  |
 | :-----------------------------------------------: | :-------------------: | :-------------------: | :------------------: |
 | Weights <br/>(*.mli_model* section)              |  18040 bytes          | 17160 bytes           | 34316 bytes          |
-| Activations <br/>(*.Xdata* and *.Ydata* sections) |  29824 bytes           | 26944 bytes           | 26944 bytes          |
+| Activations <br/>(*.Xdata* and *.Ydata* sections) |  29824 bytes           | 18752 bytes           | 18752 bytes          |
 | Structures <br/>(*.mli_data* section)           |  1540 bytes            | 1220 bytes             | 1220 bytes            |
 
 By default, application uses MODEL_BIT_DEPTH=16 mode. Application code size depends on target hardware configuration and compilation flags. MLI Library code is wrapped into mli_lib section.
