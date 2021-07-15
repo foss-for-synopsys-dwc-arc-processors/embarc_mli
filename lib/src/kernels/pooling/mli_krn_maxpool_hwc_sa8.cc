@@ -25,7 +25,7 @@ extern "C" {
 #pragma MLI_CODE_SECTION_START(".mli_lib")
 
 mli_status mli_krn_maxpool_hwc_sa8_k2x2(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_sa8(in, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_sa8(in, cfg, out, POOL_FIXED_KRN_SIZE_2), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     MLI_PRINT_COMPILE_OPTIONS();
 
@@ -34,7 +34,7 @@ mli_status mli_krn_maxpool_hwc_sa8_k2x2(const mli_tensor * in, const mli_pool_cf
 }
 
 mli_status mli_krn_maxpool_hwc_sa8_k3x3(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_sa8(in, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_maxpool_hwc_sa8(in, cfg, out, POOL_FIXED_KRN_SIZE_3), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     MLI_PRINT_COMPILE_OPTIONS();
 

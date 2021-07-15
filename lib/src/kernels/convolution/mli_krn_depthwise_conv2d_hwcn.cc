@@ -91,7 +91,7 @@ mli_status mli_krn_depthwise_conv2d_hwcn_fx16_k3x3(
         const mli_tensor* bias,
         const mli_conv2d_cfg* cfg,
         mli_tensor* out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwcn_fx16(in, weights, bias, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwcn_fx16(in, weights, bias, cfg, out, KRN_SZ_3), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     MLI_PRINT_COMPILE_OPTIONS();
 
@@ -107,7 +107,7 @@ mli_status mli_krn_depthwise_conv2d_hwcn_fx16_fx8_fx8_k3x3(
     const mli_tensor* bias,
     const mli_conv2d_cfg* cfg,
     mli_tensor* out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwcn_fx16_fx8_fx8(in, weights, bias, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwcn_fx16_fx8_fx8(in, weights, bias, cfg, out, KRN_SZ_3), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     MLI_PRINT_COMPILE_OPTIONS();
 
@@ -123,7 +123,7 @@ mli_status mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32_k3x3(
     const mli_tensor* bias,
     const mli_conv2d_cfg* cfg,
     mli_tensor* out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwcn_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwcn_sa8_sa8_sa32(in, weights, bias, cfg, out, KRN_SZ_3), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     MLI_PRINT_COMPILE_OPTIONS();
 
@@ -142,7 +142,7 @@ mli_status mli_krn_depthwise_conv2d_hwcn_fx16_k5x5(
         const mli_tensor* bias,
         const mli_conv2d_cfg* cfg,
         mli_tensor* out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwcn_fx16(in, weights, bias, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwcn_fx16(in, weights, bias, cfg, out, KRN_SZ_5), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     MLI_PRINT_COMPILE_OPTIONS();
 
@@ -158,7 +158,7 @@ mli_status mli_krn_depthwise_conv2d_hwcn_fx16_fx8_fx8_k5x5(
     const mli_tensor* bias,
     const mli_conv2d_cfg* cfg,
     mli_tensor* out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwcn_fx16_fx8_fx8(in, weights, bias, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwcn_fx16_fx8_fx8(in, weights, bias, cfg, out, KRN_SZ_5), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     MLI_PRINT_COMPILE_OPTIONS();
 
@@ -174,7 +174,7 @@ mli_status mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32_k5x5(
     const mli_tensor* bias,
     const mli_conv2d_cfg* cfg,
     mli_tensor* out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwcn_sa8_sa8_sa32(in, weights, bias, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwcn_sa8_sa8_sa32(in, weights, bias, cfg, out, KRN_SZ_5), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     MLI_PRINT_COMPILE_OPTIONS();
 
