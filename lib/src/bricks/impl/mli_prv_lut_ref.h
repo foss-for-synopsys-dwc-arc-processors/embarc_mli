@@ -116,7 +116,8 @@ static MLI_FORCE_INLINE out_T activation_lut_one_elem_interpolate(
     } else {
         input = in;
     }
-
+    constexpr int max_shift = 15;
+    preshift_in = mli_math_min_fx(preshift_in, max_shift);
     int16_t x = input >> preshift_in;
     int lut_idx = mli_math_add_fx((x >> shift_in), lut->input_offset);
     lut_idx = mli_math_bound_range_fx(lut_idx, 0, lut->length - 2);

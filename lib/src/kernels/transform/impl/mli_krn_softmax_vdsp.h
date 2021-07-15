@@ -30,14 +30,6 @@ namespace vdsp {
 const int kSoftmaxAsymZeroPoint = -128;
 const int kSoftmaxOutputShift = 8;
 
-template <typename T>
-static MLI_FORCE_INLINE void calculate_steps(int* steps, generic_tensor_private_t<T> prv_tsr, int vec_size){
-    steps[3] = vec_size * prv_tsr.mem_stride[3];
-    steps[2] = prv_tsr.mem_stride[2] - steps[3] * (prv_tsr.shape[3] / vec_size);
-    steps[1] = prv_tsr.mem_stride[1] - steps[2] * prv_tsr.shape[2];
-    steps[0] = prv_tsr.mem_stride[0] - steps[1] * prv_tsr.shape[1];
-}
-
 template <typename io_T, typename pred_T>
 static MLI_FORCE_INLINE void mli_krn_softmax_subtract_max(const MLI_PTR(io_T) vec_in, MLI_PTR(io_T) vec_out,
         struct generic_tensor_private_t<MLI_PTR(io_T)> *in_prv,
@@ -45,7 +37,7 @@ static MLI_FORCE_INLINE void mli_krn_softmax_subtract_max(const MLI_PTR(io_T) ve
         int *in_frac_p, int* in_step, int* out_step, 
         pred_T predicate) {
     const MLI_PTR(io_T) vec_in_begin = vec_in;
-    
+    MLI_PTR(io_T) vec_out_begin = vec_out;
     auto curr_vec = mli_prv_load_1vec(vec_in);
     typedef decltype(curr_vec) vec_T;
     int num_lanes = get_number_lanes<vec_T>();
@@ -63,11 +55,12 @@ static MLI_FORCE_INLINE void mli_krn_softmax_subtract_max(const MLI_PTR(io_T) ve
     for (int pos0 = 0; pos0 < in_prv->shape[0]; pos0++) {
         for (int pos1 = 0; pos1 < in_prv->shape[1]; pos1++) {
             for (int pos2 = 0; pos2 < in_prv->shape[2]; pos2++) {
+                vec_in  = (MLI_PTR(io_T))vec_in_begin + POS(in_prv,  pos0, pos1, pos2, 0);
                 curr_vec = mli_prv_load_1vec(vec_in);
                 for (int pos3 = 1; pos3 <= (in_prv->shape[3] / num_lanes); pos3++) {
                     max_vec = mli_math_max_fx(max_vec, curr_vec);
                     min_vec = mli_math_min_fx(min_vec, curr_vec);
-                    vec_in += in_step[3];
+                    vec_in += num_lanes;
                     curr_vec = mli_prv_load_1vec(vec_in);
                 }
                 if ((in_prv->shape[3] & (num_lanes - 1)) != 0) {
@@ -78,11 +71,8 @@ static MLI_FORCE_INLINE void mli_krn_softmax_subtract_max(const MLI_PTR(io_T) ve
                             (vec_T) ((sizeof(io_T) == sizeof(int8_t)) ? INT8_MAX : INT16_MAX));
                     min_vec = mli_math_min_fx(min_vec, curr_vec);
                 }
-                vec_in += in_step[2];
             }
-            vec_in += in_step[1];
         }
-        vec_in += in_step[0];
     }
     vec_in = vec_in_begin;
 
@@ -99,14 +89,16 @@ static MLI_FORCE_INLINE void mli_krn_softmax_subtract_max(const MLI_PTR(io_T) ve
         for (int pos0 = 0; pos0 < in_prv->shape[0]; pos0++) {
             for (int pos1 = 0; pos1 < in_prv->shape[1]; pos1++) {
                 for (int pos2 = 0; pos2 < in_prv->shape[2]; pos2++) {
+                    vec_in  = (MLI_PTR(io_T))vec_in_begin + POS(in_prv,  pos0, pos1, pos2, 0);
+                    vec_out = vec_out_begin + POS(out_prv, pos0, pos1, pos2, 0);
                     curr_vec = mli_prv_load_1vec(vec_in);
                     for (int pos3 = 1; pos3 <= (in_prv->shape[3] / num_lanes); pos3++) {
-                        vec_in += in_step[3];
+                        vec_in += num_lanes;
                         curr_vec >>= 1;
                         curr_vec = mli_math_sub_fx(curr_vec, (vec_T) max_val);
                         mli_prv_store_n_samples(vec_out, curr_vec);
                         curr_vec = mli_prv_load_1vec(vec_in);
-                        vec_out +=out_step[3];
+                        vec_out += num_lanes;
                     }
                     if ((in_prv->shape[3] & (num_lanes - 1)) != 0) {
                         int remaining_part = in_prv->shape[3] & (num_lanes - 1);
@@ -115,28 +107,23 @@ static MLI_FORCE_INLINE void mli_krn_softmax_subtract_max(const MLI_PTR(io_T) ve
                         curr_vec = mli_math_sub_fx(curr_vec, (vec_T) max_val);
                         mli_prv_store_n_samples(vec_out, curr_vec, remaining_part);
                     }
-                    vec_in += in_step[2];
-                    vec_out += out_step[2];
                 }
-                vec_in += in_step[1];
-                vec_out += out_step[1];
             }
-            vec_in += in_step[0];
-            vec_out += out_step[0];
         }
         *in_frac_p -= 1;
     } else {
         for (int pos0 = 0; pos0 < in_prv->shape[0]; pos0++) {
             for (int pos1 = 0; pos1 < in_prv->shape[1]; pos1++) {
                 for (int pos2 = 0; pos2 < in_prv->shape[2]; pos2++) {
+                    vec_in  = (MLI_PTR(io_T))vec_in_begin + POS(in_prv,  pos0, pos1, pos2, 0);
+                    vec_out = vec_out_begin + POS(out_prv, pos0, pos1, pos2, 0);
                     curr_vec = mli_prv_load_1vec(vec_in);
-
                     for (int pos3 = 1; pos3 <= (in_prv->shape[3] / num_lanes); pos3++) {
-                        vec_in += in_step[3];
+                        vec_in += num_lanes;
                         curr_vec = mli_math_sub_fx(curr_vec, (vec_T) max_val);
                         mli_prv_store_n_samples(vec_out, curr_vec);
                         curr_vec = mli_prv_load_1vec(vec_in);
-                        vec_out += out_step[3];
+                        vec_out += num_lanes;
                     }
                     if ((in_prv->shape[3] & (num_lanes - 1)) != 0) {
                         int remaining_part = in_prv->shape[3] & (num_lanes - 1);
@@ -144,14 +131,8 @@ static MLI_FORCE_INLINE void mli_krn_softmax_subtract_max(const MLI_PTR(io_T) ve
                         curr_vec = mli_math_sub_fx(curr_vec, (vec_T) max_val);
                         mli_prv_store_n_samples(vec_out, curr_vec, remaining_part);
                     }
-                    vec_in += in_step[2];
-                    vec_out += out_step[2];
                 }
-                vec_in += in_step[1];
-                vec_out += out_step[1];
             }
-            vec_in += in_step[0];
-            vec_out += out_step[0];
         }
     }
 }
@@ -183,23 +164,20 @@ static MLI_FORCE_INLINE void mli_krn_softmax_fx_run(const MLI_PTR(io_T) vec_in, 
     for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
         for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
             for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
+                vec_out = vec_out_begin + POS(&out_prv, pos0, pos1, pos2, 0);
                 curr_vec = mli_prv_load_1vec(vec_out);
                 for (int pos3 = 1; pos3 <= (in_prv.shape[3] / num_lanes); pos3++) {
                     sum_vec = mli_math_mac_fx(sum_vec, curr_vec, (vec_T) 1);
-                    vec_out += out_step[3];
+                    vec_out += num_lanes;
                     curr_vec = mli_prv_load_1vec(vec_out);
                 }
                 if ((in_prv.shape[3] & (num_lanes - 1)) != 0) {
                     curr_vec = mli_math_select_fx<vec_T, pred_T>(predicate, curr_vec, (vec_T) 0);
                     sum_vec = mli_math_mac_fx(sum_vec, curr_vec, (vec_T) 1);
                 }
-                vec_out += out_step[2];
             }
-            vec_out += out_step[1];
         }
-        vec_out += out_step[0];
     }
-    vec_out = vec_out_begin;
 
     mli_acc32_t  sum_acc = mli_math_intra_sum(sum_vec);
 
@@ -218,24 +196,28 @@ static MLI_FORCE_INLINE void mli_krn_softmax_fx_run(const MLI_PTR(io_T) vec_in, 
     for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
         for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
             for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
+                vec_out = vec_out_begin + POS(&out_prv, pos0, pos1, pos2, 0);
                 curr_vec = mli_prv_load_1vec(vec_out);
                 for (int pos3 = 1; pos3 <= (in_prv.shape[3] / num_lanes); pos3++) {
                     acc_T tmp_acc = mli_math_mul_fx<vec_T, acc_T>(sum_recip, curr_vec);
-                    curr_vec = mli_math_acc_cast_fx<vec_T, acc_T>(tmp_acc, lut_frac_bits + sum_exp_overhead - frac_bits);
+                    constexpr int byte_size = 8;
+                    constexpr int max_shift = 2 * sizeof(io_T) * byte_size - 1;
+                    int shift = mli_math_min_fx(lut_frac_bits + sum_exp_overhead - frac_bits, max_shift);
+                    curr_vec = mli_math_acc_cast_fx<vec_T, acc_T>(tmp_acc, shift);
                     mli_prv_store_n_samples(vec_out, curr_vec);
-                    vec_out += out_step[3];
+                    vec_out += num_lanes;
                     curr_vec = mli_prv_load_1vec(vec_out);
                 }
                 if ((in_prv.shape[3] & (num_lanes - 1)) != 0) {
                     acc_T tmp_acc = mli_math_mul_fx<vec_T, acc_T>(sum_recip, curr_vec);
-                    curr_vec = mli_math_acc_cast_fx<vec_T, decltype(tmp_acc)>(tmp_acc, lut_frac_bits + sum_exp_overhead - frac_bits);
+                    constexpr int byte_size = 8;
+                    constexpr int max_shift = 2 * sizeof(io_T) * byte_size - 1;
+                    int shift = mli_math_min_fx(lut_frac_bits + sum_exp_overhead - frac_bits, max_shift);
+                    curr_vec = mli_math_acc_cast_fx<vec_T, decltype(tmp_acc)>(tmp_acc, shift);
                     mli_prv_store_n_samples(vec_out, curr_vec, remaining_part);
                 }
-                vec_out += out_step[2];
             }
-            vec_out += out_step[1];
         }
-        vec_out += out_step[0];
     }
     return ;
 }
@@ -245,6 +227,7 @@ static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in,
         generic_tensor_private_t<MLI_PTR(io_T)> in_prv, generic_tensor_private_t<MLI_PTR(io_T)> out_prv,
         int* in_step, int* out_step, s8asym_quant_params in_params, s8asym_quant_params out_params, const mli_lut *lut) {
     const MLI_PTR(io_T) vec_in_begin = vec_in;
+    MLI_PTR(io_T) vec_out_begin = vec_out;
 
     auto curr_vec = mli_prv_load_nx4_samples(vec_in);
     typedef decltype(curr_vec) vNx4char_t;
@@ -254,9 +237,10 @@ static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in,
     for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
         for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
             for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
+                vec_in  = (MLI_PTR(io_T))vec_in_begin + POS(&in_prv,  pos0, pos1, pos2, 0);
                 curr_vec = mli_prv_load_nx4_samples(vec_in);
                 for (int pos3 = 1; pos3 <= (in_prv.shape[3] / num_lanes); pos3++) {
-                    vec_in += in_step[3];
+                    vec_in += num_lanes;
                     max_vec = mli_math_max_fx(max_vec, curr_vec);
                     curr_vec = mli_prv_load_nx4_samples(vec_in);
                 }
@@ -266,13 +250,9 @@ static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in,
                     curr_vec = mli_math_select_fx<vNx4char_t, pvNx4>(predicate, curr_vec, (vNx4char_t) INT8_MIN);
                     max_vec = mli_math_max_fx(max_vec, curr_vec);
                 }
-                vec_in += in_step[2];
             }
-            vec_in += in_step[1];
         }
-        vec_in += in_step[0];
     }
-    vec_in = vec_in_begin;
 
     int8_t max_val = mli_math_intra_max(max_vec);
 
@@ -301,6 +281,7 @@ static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in,
     for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
         for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
             for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
+                vec_in  = (MLI_PTR(io_T))vec_in_begin + POS(&in_prv,  pos0, pos1, pos2, 0);
                 curr_vec = mli_prv_load_nx4_samples(vec_in);
                 for (int pos3 = 1; pos3 <= (in_prv.shape[3] / num_lanes); pos3++) {
                     /* activation_lut */
@@ -309,7 +290,7 @@ static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in,
 
                     /* Accumulation through MAC and reciprocal calculation */
                     sum_vec = mli_math_mac_fx(sum_vec, exp_res, (vNx4short_t) 1);
-                    vec_in += in_step[3];
+                    vec_in += num_lanes;
                     curr_vec = mli_prv_load_nx4_samples(vec_in);
                 }
                 if ((in_prv.shape[3] & (num_lanes - 1)) != 0) {
@@ -320,13 +301,9 @@ static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in,
                     exp_res = mli_math_select_fx<vNx4short_t, grp_pvNx2_t>(predicate_grp, exp_res, (vNx4short_t) 0);
                     sum_vec = mli_math_mac_fx(sum_vec, exp_res, (vNx4short_t) 1);
                 }
-                vec_in += in_step[2];
             }
-            vec_in += in_step[1];
         }
-        vec_in += in_step[0];
     }
-    vec_in =vec_in_begin;
     
     sum_acc = mli_math_intra_sum(sum_vec);
     int sum_exp = mli_math_norm_fx<mli_acc32_t, int>(sum_acc);
@@ -339,6 +316,8 @@ static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in,
     for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
         for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
             for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
+                vec_in  = (MLI_PTR(io_T))vec_in_begin + POS(&in_prv,  pos0, pos1, pos2, 0);
+                vec_out = vec_out_begin + POS(&out_prv, pos0, pos1, pos2, 0);
                 curr_vec = mli_prv_load_nx4_samples(vec_in);
                 for (int pos3 = 1; pos3 <= (in_prv.shape[3] / num_lanes); pos3++) {
                     /* activation_lut */
@@ -353,11 +332,12 @@ static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in,
                     // 15 - sum_exp: sum_of_exps overhead
                     int sum_exp_overhead = kMaxFracBitsFx16 - sum_exp;
                     // Converting to float and back to asym8
-                    
+                    constexpr int max_shift = 31;
+                    int shift = mli_math_min_fx(lut_frac_bits + sum_exp_overhead - out_params.shift, max_shift);
                     mli_prv_store_n_samples(vec_out, mli_prv_convert_fx16_sa8<vNx4int_t, vNx4char_t>(fx_output32_non_accum, 
-                            out_params.offset, lut_frac_bits + sum_exp_overhead - out_params.shift));
-                    vec_out += out_step[3];
-                    vec_in += in_step[3];
+                            out_params.offset, shift));
+                    vec_out += num_lanes;
+                    vec_in += num_lanes;
                     curr_vec = mli_prv_load_nx4_samples(vec_in);
                 }
                 if ((in_prv.shape[3] & (num_lanes - 1)) != 0) {
@@ -374,18 +354,13 @@ static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in,
                     // 15 - sum_exp: sum_of_exps overhead
                     int sum_exp_overhead = kMaxFracBitsFx16 - sum_exp;
                     // Converting to float and back to asym8
-                    
+                    constexpr int max_shift = 31;
+                    int shift = mli_math_min_fx(lut_frac_bits + sum_exp_overhead - out_params.shift, max_shift);
                     mli_prv_store_n_samples(vec_out, mli_prv_convert_fx16_sa8<vNx4int_t, vNx4char_t>(fx_output32_non_accum, 
-                            out_params.offset, lut_frac_bits + sum_exp_overhead - out_params.shift), remaining_part);
+                            out_params.offset, shift), remaining_part);
                 }
-                vec_in += in_step[2];
-                vec_out += out_step[2];
             }
-            vec_in += in_step[1];
-            vec_out += out_step[1];
         }
-        vec_in += in_step[0];
-        vec_out += out_step[0];
     }
     return ;
 }
@@ -441,13 +416,6 @@ static MLI_FORCE_INLINE mli_status mli_krn_softmax_run(const mli_tensor *in, con
 
     int in_step[MLI_MAX_RANK];    
     int out_step[MLI_MAX_RANK];
-
-    auto curr_vec = mli_prv_load_1vec(in_ptr);
-    typedef decltype(curr_vec) vec_T;
-    int num_lanes = get_number_lanes<vec_T>();
-
-    calculate_steps(in_step, in_prv, num_lanes);
-    calculate_steps(out_step, out_prv, num_lanes);
 
     for (int dim0 = 0; dim0 < in_non_axis_prv.shape[0]; dim0++) {
         for (int dim1 = 0; dim1 < in_non_axis_prv.shape[1]; dim1++) {

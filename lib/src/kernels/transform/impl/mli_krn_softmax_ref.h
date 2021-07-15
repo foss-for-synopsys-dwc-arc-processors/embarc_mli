@@ -123,9 +123,11 @@ static MLI_FORCE_INLINE void mli_krn_softmax_fx_run(const MLI_PTR(io_T) vec_in, 
                 for (int pos3 = 0; pos3 < in_prv.shape[3]; pos3++) {
                     mli_acc32_t tmp_acc = mli_math_mul_fx<io_T, mli_acc32_t>(sum_recip,
                             vec_out[POS(&out_prv, pos0, pos1, pos2, pos3)]);
+                    constexpr int byte_size = 8;
+                    constexpr int max_shift = 2 * sizeof(io_T) * byte_size - 1;
+                    int shift = mli_math_min_fx(lut_frac_bits + sum_exp_overhead - frac_bits, max_shift);
                     vec_out[POS(&out_prv, pos0, pos1, pos2, pos3)] =
-                            mli_math_acc_cast_fx<io_T, mli_acc32_t>(tmp_acc,
-                                lut_frac_bits + sum_exp_overhead - frac_bits);
+                            mli_math_acc_cast_fx<io_T, mli_acc32_t>(tmp_acc, shift);
                 }
             }
         }
@@ -212,9 +214,10 @@ static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in,
                     // 15 - sum_exp: sum_of_exps overhead
                     int sum_exp_overhead = kMaxFracBitsFx16 - sum_exp;
                     // Converting to float and back to asym8
+                    constexpr int max_shift = 31;
+                    int shift = mli_math_min_fx(lut_frac_bits + sum_exp_overhead - out_params.shift, max_shift);
                     vec_out[POS(&out_prv, pos0, pos1, pos2, pos3)] =
-                            mli_prv_convert_fx16_sa8<mli_acc32_t, int8_t>(fx_output32, out_params.offset,
-                                    lut_frac_bits + sum_exp_overhead - out_params.shift);
+                            mli_prv_convert_fx16_sa8<mli_acc32_t, int8_t>(fx_output32, out_params.offset, shift);
                 }
             }
         }
