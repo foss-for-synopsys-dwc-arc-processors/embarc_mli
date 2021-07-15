@@ -143,9 +143,10 @@ static MLI_FORCE_INLINE vNx4short_t activation_lut_vec_elem_interpolate(
         int shift = ((int32_t) in_params->shift - in_frac_bits) + preshift_in;
         x = mli_prv_convert_sa8_fx16<vNx4short_t, vNx4short_t>(x, in_params->offset, in_params->scale, shift);
     } else {
+        constexpr int max_shift = 15;
+        preshift_in = mli_math_min_fx(preshift_in, max_shift);
         x = mli_math_asr_fx(x, preshift_in);
     }
-
     vNx4short_t lut_idx = mli_math_add_fx<vNx4short_t>(mli_math_asr_fx(x, shift_in), lut->input_offset);
     /* Calculate lut_idx */
     lut_idx = mli_math_bound_range_fx(lut_idx , 0, lut->length - 2);
@@ -211,15 +212,15 @@ static MLI_FORCE_INLINE vNx4short_t activation_lut_vec_elem_no_interpolate(
 
 template <typename io_T, bool convert>
 static MLI_FORCE_INLINE void load_input_and_get_lut_idx(
-		MLI_PTR(io_T) __restrict in_ptr,
+        MLI_PTR(io_T) __restrict in_ptr,
         vNx4short_t &vec,
-		vNx4short_t &lut_idx,
+        vNx4short_t &lut_idx,
         vNx4int_t &lut_idx_int,
-		int16_t in_frac_bits,
-		int preshift_in,
-		int shift_in,
-		const mli_lut *lut,
-		const struct s8asym_quant_params *in_params) {
+        int16_t in_frac_bits,
+        int preshift_in,
+        int shift_in,
+        const mli_lut *lut,
+        const struct s8asym_quant_params *in_params) {
 
     vec = activation_lut_load_input<io_T, vNx4short_t>(in_ptr);
 
@@ -227,6 +228,8 @@ static MLI_FORCE_INLINE void load_input_and_get_lut_idx(
         int shift = ((int32_t) in_params->shift - in_frac_bits) + preshift_in;
         vec = mli_prv_convert_sa8_fx16<vNx4short_t, vNx4short_t>(vec, in_params->offset, in_params->scale, shift);
     } else {
+        constexpr int max_shift = 15;
+        preshift_in = mli_math_min_fx(preshift_in, max_shift);
         vec = mli_math_asr_fx(vec, preshift_in);
     }
 
@@ -272,7 +275,6 @@ static MLI_FORCE_INLINE void compute_activation_lut_func(
     shift_in = mli_math_min_fx(shift_in, (int)kMaxFracBitsFx16);
 
     int remaining_part = in->shape[3] & (_VDSP_NUM_8BIT_LANES - 1);
-
     if (shift_in > 0) {
         // input data is more precise than LUT
         int16_t mask = (1 << shift_in) - 1;
@@ -297,7 +299,7 @@ static MLI_FORCE_INLINE void compute_activation_lut_func(
                     vNx4short_t _lut_values, _lut_values_next, _frac;
 
                     load_input_and_get_lut_idx<io_T, convert>(input_ptr, x, lut_idx, lut_idx_int,
-                    		in_frac_bits, preshift_in, shift_in, lut, in_params);
+                            in_frac_bits, preshift_in, shift_in, lut, in_params);
                     vNx4short_t frac = x & mask;
                     input_ptr  += _VDSP_NUM_8BIT_LANES;
 
@@ -359,7 +361,7 @@ static MLI_FORCE_INLINE void compute_activation_lut_func(
                             vNx4short_t lut_values_next = mli_prv_gather_load_nx4_samples(lut_data, lut_idx_int + 1);
 
                             load_input_and_get_lut_idx<io_T, convert>(input_ptr, x, lut_idx, lut_idx_int,
-                            		in_frac_bits, preshift_in, shift_in, lut, in_params);
+                                    in_frac_bits, preshift_in, shift_in, lut, in_params);
 
                             /* perform linear interpolation */
                             vNx4short_t diffs = mli_math_sub_fx<vNx4short_t>(lut_values, lut_values_next);
