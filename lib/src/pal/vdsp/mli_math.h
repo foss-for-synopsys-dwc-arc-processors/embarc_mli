@@ -974,6 +974,12 @@ MLI_FORCE_INLINE vNx4short_t mli_math_cast_fx(vNx4int_t in_val) {
 }
 
 template <>
+MLI_FORCE_INLINE vNx4ushort_t mli_math_cast_fx(vNx4int_t in_val) {
+    in_val = mli_math_bound_range_fx(in_val, 0, UINT16_MAX);
+    return to_vNx4ushort_t(in_val);
+}
+
+template <>
 MLI_FORCE_INLINE vNx2short_t mli_math_cast_fx(vNx2int_t in_val) {
     in_val = mli_math_bound_range_fx(in_val, INT16_MIN, INT16_MAX);
     return to_vNx2short_t(in_val);
@@ -1825,6 +1831,21 @@ MLI_FORCE_INLINE vNx4int_t mli_math_mul_fx(vNx4short_t L, vNx4short_t R) {
     return to_vNx4int_t(vvcmpy(L, R));
 }
 
+template <typename l_T, typename r_T, typename acc_T>
+MLI_FORCE_INLINE acc_T mli_math_mul_su_fx(l_T L, r_T R);
+
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_math_mul_su_fx(vNx2short_t L, vNx2ushort_t R) {
+    return vvcmpy_su(L, R);
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accint_t mli_math_mul_su_fx(vNx4short_t L, vNx4ushort_t R) {
+    vNx4accint_t acc;
+    acc.lo = vvcmpy_su(L.lo, R.lo);
+    acc.hi = vvcmpy_su(L.hi, R.hi);
+    return acc;
+}
 
 // Multiply-and-accumulate operands
 //========================================================================
