@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -135,6 +135,15 @@ MLI_FORCE_INLINE out_T mli_math_norm_cast_fx(in_T val , int32_t *norm_shift) {
 
 // Addition of two fx operands with saturation
 //========================================================================
+template <typename T>
+MLI_FORCE_INLINE T mli_math_add_fx(T L, T R) {
+    if ((R > 0) && (L > std::numeric_limits<T>::max() - R)) // `L + R` would overflow
+        return std::numeric_limits<T>::max();
+    if ((R < 0) && (L < std::numeric_limits<T>::lowest() - R)) // `L + R` would underflow
+        return std::numeric_limits<T>::lowest();
+    return L + R;
+}
+
 template <> MLI_FORCE_INLINE int8_t mli_math_add_fx(int8_t L, int8_t R) {
     return (int8_t)fx_sat_q15(L + R, 8);
 }

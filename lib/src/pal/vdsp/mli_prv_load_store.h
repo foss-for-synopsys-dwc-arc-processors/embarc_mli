@@ -269,6 +269,9 @@ static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int32_t)  out,
     *(MLI_OUT_PTR (vNint_t)) out = data;
 }
 
+static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int32_t)  out, vNx4int_t data) {
+    *(MLI_OUT_PTR (vNx4int_t)) out = data;
+}
 
 static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int8_t)  out,
         vNx4char_t data, pvNx4 predicate) {
@@ -311,7 +314,32 @@ static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int16_t)  out,
     }
 }
 
+static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int32_t)  out,
+        vNx4int_t data, int predicate_limit) {
 
+    if (predicate_limit < _VDSP_NUM_32BIT_LANES) {
+        mli_prv_store_n_samples(out, data.lo.lo, predicate_limit);
+    } else if (predicate_limit < 2 * _VDSP_NUM_32BIT_LANES) {
+        mli_prv_store_n_samples(out, data.lo.lo);
+        out += _VDSP_NUM_32BIT_LANES;
+        mli_prv_store_n_samples(out, data.lo.hi, predicate_limit - _VDSP_NUM_32BIT_LANES);
+    } else if (predicate_limit < 3 * _VDSP_NUM_32BIT_LANES) {
+        mli_prv_store_n_samples(out, data.lo.lo);
+        out += _VDSP_NUM_32BIT_LANES;
+        mli_prv_store_n_samples(out, data.lo.hi);
+        out += _VDSP_NUM_32BIT_LANES;
+        mli_prv_store_n_samples(out, data.hi.lo, predicate_limit - 2 * _VDSP_NUM_32BIT_LANES);
+    } else {
+        mli_prv_store_n_samples(out, data.lo.lo);
+        out += _VDSP_NUM_32BIT_LANES;
+        mli_prv_store_n_samples(out, data.lo.hi);
+        out += _VDSP_NUM_32BIT_LANES;
+        mli_prv_store_n_samples(out, data.hi.lo);
+        out += _VDSP_NUM_32BIT_LANES;
+        mli_prv_store_n_samples(out, data.hi.hi, predicate_limit - 3 * _VDSP_NUM_32BIT_LANES);
+    }
+
+}
 
 
 //store with stride

@@ -47,23 +47,23 @@ struct hlp_convert_test_operands {
 // Shared CRC Results
 
 const crc32_calc    test_1_chksum_fp32_sa8 { 0x1EF88E8B }, test_1_chksum_fp32_sa32{ 0xC095E743 }, test_1_chksum_fp32_fx16{ 0x3DCC1612 },
-                    test_1_chksum_fp32_fx8 { 0xB928E46F }, test_1_chksum_sa8_sa32 { 0xAD84904D }, test_1_chksum_sa8_fx16 { 0xCA7BC6A1 }, 
-                    test_1_chksum_sa8_fx8  { 0xFAB36D59 }, test_1_chksum_sa8_fp32 { 0x37A02758 }, test_1_chksum_sa32_sa8 { 0x9F9222B7 },  
-                    test_1_chksum_sa32_fx16{ 0x1F94737B }, test_1_chksum_sa32_fx8 { 0x5ACA54A9 }, test_1_chksum_sa32_fp32{ 0x994E7C0C },
-                    test_1_chksum_fx8_sa8  { 0xA4089244 }, test_1_chksum_fx8_sa32 { 0xEDF0C491 }, test_1_chksum_fx8_fx16 { 0x6DDB257A }, 
+                    test_1_chksum_fp32_fx8 { 0xB928E46F }, test_1_chksum_sa8_sa32 { 0x86B2B857 }, test_1_chksum_sa8_fx16 { 0x5234C13E },
+                    test_1_chksum_sa8_fx8  { 0x519B93BF }, test_1_chksum_sa8_fp32 { 0x37A02758 }, test_1_chksum_sa32_sa8 { 0x0AD25E1B },
+                    test_1_chksum_sa32_fx16{ 0xD3AFF7F9 }, test_1_chksum_sa32_fx8 { 0xAD0234FF }, test_1_chksum_sa32_fp32{ 0x994E7C0C },
+                    test_1_chksum_fx8_sa8  { 0xA4089244 }, test_1_chksum_fx8_sa32 { 0xEDF0C491 }, test_1_chksum_fx8_fx16 { 0x6DDB257A },
                     test_1_chksum_fx8_fp32 { 0xDF635A22 }, test_1_chksum_fx16_sa8 { 0x31D9ADF7 }, test_1_chksum_fx16_sa32{ 0x2E4D251E },
-                    test_1_chksum_fx16_fx8 { 0x9609C713 }, test_1_chksum_fx16_fp32{ 0x6ACBEA49 }, test_1_chksum_sa8_sa8  { 0x01A56298 },
-                    test_1_chksum_sa32_sa32{ 0x89768420 }, test_1_chksum_fx16_fx16{ 0x68094F10 };
+                    test_1_chksum_fx16_fx8 { 0x9609C713 }, test_1_chksum_fx16_fp32{ 0x6ACBEA49 }, test_1_chksum_sa8_sa8  { 0x7C218D17 },
+                    test_1_chksum_sa32_sa32{ 0x73E8456E }, test_1_chksum_fx16_fx16{ 0x68094F10 };
 #elif defined(CRC_RM_CONVERGENT)
 
 const crc32_calc    test_1_chksum_fp32_sa8 { 0x1EF88E8B }, test_1_chksum_fp32_sa32{ 0xC095E743 }, test_1_chksum_fp32_fx16{ 0x3DCC1612 },
-                    test_1_chksum_fp32_fx8 { 0xB928E46F }, test_1_chksum_sa8_sa32 { 0xAD84904D }, test_1_chksum_sa8_fx16 { 0xCA7BC6A1 }, 
-                    test_1_chksum_sa8_fx8  { 0xFAB36D59 }, test_1_chksum_sa8_fp32 { 0x37A02758 }, test_1_chksum_sa32_sa8 { 0x9F9222B7 },  
-                    test_1_chksum_sa32_fx16{ 0x1F94737B }, test_1_chksum_sa32_fx8 { 0x5ACA54A9 }, test_1_chksum_sa32_fp32{ 0x994E7C0C },
+                    test_1_chksum_fp32_fx8 { 0xB928E46F }, test_1_chksum_sa8_sa32 { 0xC2663A71 }, test_1_chksum_sa8_fx16 { 0x0578D991 },
+                    test_1_chksum_sa8_fx8  { 0x519B93BF }, test_1_chksum_sa8_fp32 { 0x37A02758 }, test_1_chksum_sa32_sa8 { 0x0AD25E1B },
+                    test_1_chksum_sa32_fx16{ 0xD3AFF7F9 }, test_1_chksum_sa32_fx8 { 0xAD0234FF }, test_1_chksum_sa32_fp32{ 0x994E7C0C },
                     test_1_chksum_fx8_sa8  { 0xA4089244 }, test_1_chksum_fx8_sa32 { 0x2FBCC4B3 }, test_1_chksum_fx8_fx16 { 0x6DDB257A },
                     test_1_chksum_fx8_fp32 { 0xDF635A22 }, test_1_chksum_fx16_sa8 { 0x31D9ADF7 }, test_1_chksum_fx16_sa32{ 0x2E4D251E },
-                    test_1_chksum_fx16_fx8 { 0x9609C713 }, test_1_chksum_fx16_fp32{ 0x6ACBEA49 }, test_1_chksum_sa8_sa8  { 0x01A56298 },
-                    test_1_chksum_sa32_sa32{ 0xF73AF881 }, test_1_chksum_fx16_fx16{ 0xF1AEA71D };
+                    test_1_chksum_fx16_fx8 { 0x9609C713 }, test_1_chksum_fx16_fp32{ 0x6ACBEA49 }, test_1_chksum_sa8_sa8  { 0x7C218D17 },
+                    test_1_chksum_sa32_sa32{ 0x64000117 }, test_1_chksum_fx16_fx16{ 0xF1AEA71D };
 #else // Not defined CRC_*
 
 const crc32_calc    test_1_chksum_fp32_sa8,  test_1_chksum_fp32_sa32, test_1_chksum_fp32_fx16,
@@ -275,21 +275,6 @@ int main() {
         bool is_test_passed = true;
         const hlp_convert_test_operands* cur_test = &tests_list[i];
 
-#if PLATFORM == V2DSP_XY
-        if (strstr(cur_test->descr, "Test SA32 --> SA32") != nullptr) {
-            // EMxD vectorized code doesn't work properly with
-            // SA32 --> SA32 conversion in CONVERGENT rounding mode.
-            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
-            continue;
-        }
-
-        if (strstr(cur_test->descr, "Test FX16 --> FX16") != nullptr) {
-            // EMxD vectorized code doesn't work properly with
-            // FX16 --> FX16 conversion in CONVERGENT rounding mode.
-            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
-            continue;
-        }
-#endif
         is_test_passed = run_test(mli_hlp_convert_tensor, reporter, cur_test);
 
         if (is_test_passed &&
