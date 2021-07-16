@@ -37,7 +37,9 @@ if (ARC)
 else()
     set(EXAMPLE_FLAGS)
 endif()
+
 link_directories(./third_party/)
+
 set(TARGET tutorial_emnist_tflm)
 add_executable(${TARGET}
     ./src/main.cc
@@ -45,7 +47,7 @@ add_executable(${TARGET}
     ./src/test_samples.cc
 )
 
-target_link_libraries(${TARGET} PUBLIC mli)
+target_link_libraries(${TARGET} PUBLIC $ENV{TENSORFLOW_DIR}/tensorflow/lite/micro/tools/make/downloads/arc_mli_$ENV{TCF_FILE_NAME}_mli20/bin/arc/libmli.a)
 target_link_libraries(${TARGET} PRIVATE tensorflow-microlite)
 
 target_include_directories(${TARGET} PRIVATE
