@@ -125,9 +125,37 @@ The size of the array is defined by ``MLI_MAX_RANK``.
    |                     |                | Padded samples are set to zero.                                     |
    +---------------------+----------------+---------------------------------------------------------------------+
    | ``padding_post``    | ``uint8_t[]``  | Number of padded samples after the data for each dimension.         |
-   |                     |                | Padded samples is set to zero.                                      |
+   |                     |                | Padding is a virtual extension of the input tensor.                 |
+   |                     |                | Padded samples are set to zero.                                     |
    +---------------------+----------------+---------------------------------------------------------------------+ 
 ..
+
+It is possible to combine multiple 'operations' in one move. In that the internal order of how the parameters are
+applied is relevant:
+ - padding_pre/padding_post (using cfg->padding_pre and cfg->padding_post as described in figure :ref:`f_mli_mov_cfg_params_pad`)
+ - crop  (using cfg->offset and cfg->size as described in figure :ref:`f_mli_mov_cfg_params_crop`)
+ - subsampling (using cfg->sub_sample_step as described in figure :ref:`f_mli_mov_cfg_params_sub`)
+ - permute (using cfg->perm_dim)
+ - write at offset (using cfg->dst_offset and cfg->dst_mem_stride)
+
+.. _f_mli_mov_cfg_params_pad:  
+.. figure::  ../images/mli_mov_cfg_params_pad.png
+   :align: center
+
+   mli_mov_cfg Structure Parameters for padding
+   
+.. _f_mli_mov_cfg_params_crop:  
+.. figure::  ../images/mli_mov_cfg_params_crop.png
+   :align: center
+
+   mli_mov_cfg Structure Parameters for cropping
+   
+.. _f_mli_mov_cfg_params_sub:  
+.. figure::  ../images/mli_mov_cfg_params_sub.png
+   :align: center
+
+   mli_mov_cfg Structure Parameters for subsampling
+   
 
 Ensure that you satisfy the following conditions before calling the function:
 
@@ -161,19 +189,22 @@ following options to initialize all the fields in a consistent way:
     - If you initialize the pointers and capacity fields with pre-allocated memory and its capacity,
       then a copy of quantization parameters itself is performed. Capacity of allocated memory must 
       be big enough to keep related data from input tensor.
- 
+
+Some operations (like padding, concat, slice, subsample) when applied on the quantization axis will affect the
+quantization parameters (e.g. If subsampling on the quantization axis is applied, also the quantization parameters
+will be subsampled). For these cases the output tensor should contain valid pre-allocated memory buffers to get
+correct quantization parameters, if this is not done, and the pointers are initialized with ``nullptr`` or with the
+same pointers as the src tensor, the result is undefined.
+
+    - In case of per-axis quantization of the src tensor, the axis needs to match the (permuted) quantization axis in the
+      dst tensor.
+    - A combination of per-axis and per-tensor quantization is not allowed.
+    - In case of padding on the quantization axis, the quantization parameters for the padded area will be set to
+      scale=1, scale_frac_bits=0, zero_point=0
+
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
-Figure :ref:`f_mli_mov_cfg_params` shows the relationship between some of the parameters of the ``mli_mov_cfg``
-structure. 
-
-.. _f_mli_mov_cfg_params:  
-.. figure::  ../images/mli_mov_cfg_params.png
-   :align: center
-
-   Relationship of mli_mov_cfg Structure Parameters
-   
 Helper Functions for Data Move Config Struct
 --------------------------------------------
 
