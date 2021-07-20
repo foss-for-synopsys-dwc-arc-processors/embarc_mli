@@ -72,50 +72,50 @@ const quality_metrics thresholds_sa8_general { quality_metrics::kPassValueMaxAbs
 
 static const relu_test_operands tests_list[] = {
     // Relu None input range [-3:3], 2D Shape, MemStr, Identity, Using Same Input
-    {"Test 1 FX16 Relu NONE 2D",  mli_krn_relu_fx16, {MLI_RELU_NONE, 0, 0},
+    {"Test 1 FX16 Relu NONE 2D",  mli_krn_relu_fx16, MLI_RELU_NONE,
                                     input_1_fx16, input_1_fx16,
                                     thresholds_fx16_general, test_0_chksum_fx16, false},
-    {"Test 1 SA8  Relu NONE 2D",  mli_krn_relu_sa8, {MLI_RELU_NONE, 0, 0},
+    {"Test 1 SA8  Relu NONE 2D",  mli_krn_relu_sa8, MLI_RELU_NONE,
                                     input_1_sa8, input_1_sa8,
                                     thresholds_sa8_general, test_0_chksum_sa8, false},
 
     // Relu Gen input range [-3:3], 2D Shape, MemStr
-    {"Test 1 FX16 Relu Gen 2D",  mli_krn_relu_fx16, {MLI_RELU_GEN, 0, 0},
+    {"Test 1 FX16 Relu Gen 2D",  mli_krn_relu_fx16, MLI_RELU_GEN,
                                     input_1_fx16, test_1_out_fx16,
                                     thresholds_fx16_general, test_1_chksum_fx16, false},
-    {"Test 1 SA8  Relu Gen 2D",  mli_krn_relu_sa8, {MLI_RELU_GEN, 0, 0},
+    {"Test 1 SA8  Relu Gen 2D",  mli_krn_relu_sa8, MLI_RELU_GEN,
                                     input_1_sa8, test_1_out_sa8,
                                     thresholds_sa8_general, test_1_chksum_sa8, false},
 
     // Relu1 input range [-3:3], 2D Shape, MemStr
-    {"Test 2 FX16 Relu1 2D",  mli_krn_relu_fx16, {MLI_RELU_1, 0, 0},
+    {"Test 2 FX16 Relu1 2D",  mli_krn_relu_fx16, MLI_RELU_1,
                                     input_1_fx16, test_2_out_fx16,
                                     thresholds_fx16_general, test_2_chksum_fx16, false},
-    {"Test 2 SA8  Relu1 2D",  mli_krn_relu_sa8, {MLI_RELU_1, 0, 0},
+    {"Test 2 SA8  Relu1 2D",  mli_krn_relu_sa8, MLI_RELU_1,
                                     input_1_sa8, test_2_out_sa8,
                                     thresholds_sa8_general, test_2_chksum_sa8, false},
 
     // Relu6 input range [-3:3], 2D Shape, MemStr
-    {"Test 3 FX16 Relu6 2D",  mli_krn_relu_fx16, {MLI_RELU_6, 0, 0},
+    {"Test 3 FX16 Relu6 2D",  mli_krn_relu_fx16, MLI_RELU_6,
                                     input_1_fx16, test_3_out_fx16,
                                     thresholds_fx16_general, test_3_chksum_fx16, false},
-    {"Test 3 SA8  Relu6 2D",  mli_krn_relu_sa8, {MLI_RELU_6, 0, 0},
+    {"Test 3 SA8  Relu6 2D",  mli_krn_relu_sa8, MLI_RELU_6,
                                     input_1_sa8, test_3_out_sa8,
                                     thresholds_sa8_general, test_3_chksum_sa8, false},
 
     // Relu6 input range [3:8], 4D Shape, MemStr
-    {"Test 4 FX16 Relu6 4D",  mli_krn_relu_fx16, {MLI_RELU_6, 0, 0},
+    {"Test 4 FX16 Relu6 4D",  mli_krn_relu_fx16, MLI_RELU_6,
                                     input_2_fx16, test_4_out_fx16,
                                     thresholds_fx16_general, test_4_chksum_fx16, false},
-    {"Test 4 SA8  Relu6 4D",  mli_krn_relu_sa8, {MLI_RELU_6, 0, 0},
+    {"Test 4 SA8  Relu6 4D",  mli_krn_relu_sa8, MLI_RELU_6,
                                     input_2_sa8, test_4_out_sa8,
                                     thresholds_sa8_general, test_4_chksum_sa8, false},
 
     // Relu6 input range [3:8], 4D Shape, MemStr, In Place Computation 
-    {"Test 5 FX16 Relu6 4D, IPC",  mli_krn_relu_fx16, {MLI_RELU_6, 0, 0},
+    {"Test 5 FX16 Relu6 4D, IPC",  mli_krn_relu_fx16, MLI_RELU_6,
                                     input_2_fx16, test_4_out_fx16,
                                     thresholds_fx16_general, test_5_chksum_fx16, true},
-    {"Test 5 SA8  Relu6 4D, IPC",  mli_krn_relu_sa8, {MLI_RELU_6, 0, 0},
+    {"Test 5 SA8  Relu6 4D, IPC",  mli_krn_relu_sa8, MLI_RELU_6,
                                     input_2_sa8, test_4_out_sa8,
                                     thresholds_sa8_general, test_5_chksum_sa8, true},
 };
