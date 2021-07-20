@@ -3,7 +3,7 @@ matplotlib
 keras-tqdm
 jupyterlab==1.1.0
 ipywidgets>=7.5.1
-tensorflow==2.0.3
+tensorflow==2.4.0
 keras>=2.2.4
 idx2numpy
 emnist
