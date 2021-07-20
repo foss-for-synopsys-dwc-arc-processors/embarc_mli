@@ -31,13 +31,13 @@ static inline void adjust_weights_dim_for_rnn_dense(s8asym_quant_specific_params
 }
 
 static inline void adjust_weights_scale_for_rnn_dense(
-    fx_quant_specific_params* params, 
+    fx_quant_specific_params* params,
     fx_quant_specific_params* initial_params) {
 	return;
 }
 
 static inline void adjust_weights_scale_for_rnn_dense(
-    s8asym_quant_specific_params* params, 
+    s8asym_quant_specific_params* params,
     s8asym_quant_specific_params* initial_params) {
 	if (initial_params->weight_dim != -1) {
         params->weight_scales++;
@@ -46,15 +46,15 @@ static inline void adjust_weights_scale_for_rnn_dense(
 }
 
 static inline void adjust_weights_scale_back_for_rnn_dense(
-    fx_quant_specific_params* params, 
-    fx_quant_specific_params* initial_params, 
+    fx_quant_specific_params* params,
+    fx_quant_specific_params* initial_params,
     int gates) {
 	return;
 }
 
 static inline void adjust_weights_scale_back_for_rnn_dense(
-    s8asym_quant_specific_params* params, 
-    s8asym_quant_specific_params* initial_params, 
+    s8asym_quant_specific_params* params,
+    s8asym_quant_specific_params* initial_params,
     int gates) {
 	if(initial_params->weight_dim != -1) {
         params->weight_scales -= gates;
@@ -99,14 +99,14 @@ static inline void rnn_dense_op_stacked(
     for (int gate = 0; gate < gates_num; ++gate) {
         rnn_dense_op<io_T, w_T, b_T, acc_T, quant_T>(
             inputs_ptr, weights_ptr, bias_ptr, dense_out_ptr, inputs_num, inputs_elements,
-            out_elements, w_ch_out_mem_strides, in_to_out_quant_params, 
+            out_elements, w_ch_out_mem_strides, in_to_out_quant_params,
             (io_T)val_limit.min, (io_T)val_limit.max);
 
         for (int weight_idx = 0; weight_idx < inputs_num; ++weight_idx) {
             weights_ptr[weight_idx] += weights_shift[weight_idx];
             adjust_weights_scale_for_rnn_dense(&in_to_out_quant_params[weight_idx], &initial_params[weight_idx]);
         }
-        
+
         bias_ptr += out_elements;
         dense_out_ptr += out_elements;
     }
@@ -178,7 +178,7 @@ static inline void rnn_dense_op(
                     1, w_ch_out_mem_strides[idx], &in_to_out_quant_params[idx]);
 
             /* TODO: can be optimized using adjust_quant_params_v, and also optimize ir_rnn_result_requantize function */
-            mli::krn::ref::adjust_quant_params(&in_to_out_quant_params[idx], o_idx);
+            mli::krn::ref::adjust_quant_params(&in_to_out_quant_params[idx], /* krn_idx= */ 0);
             acc_ir = mli::krn::ir_rnn_result_requantize<acc_T, ir_T>(accu, &in_to_out_quant_params[idx]);
 
             acc_res_ir = mli_math_add_accus(acc_res_ir, acc_ir);
