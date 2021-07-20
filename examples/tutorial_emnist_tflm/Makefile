@@ -6,13 +6,8 @@
 # the LICENSE file in the root directory of this source tree.
 #
 
-# TCF_FILE: withouts NOT setting this parameter,
-#           the default native compiler is used to compile
-# BUILDLIB_DIR ?= ev71_buildlib can be specified if no MWDT buildlib is available
-# See rules.mk for all flags
-
 PUBLIC_DIR = $(CURDIR)/../..
-
+include $(PUBLIC_DIR)/make/rules.mk
 
 ifeq ($(TENSORFLOW_DIR),)
     $(error cannot find tensorflow -- TENSORFLOW_DIR variable must be set)
@@ -20,9 +15,6 @@ endif
 
 BUILD_SUBDIR = examples$(PS)tutorial_emnist_tflm
 BIN_PATH = $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)bin
-
-
-include $(PUBLIC_DIR)/make/rules.mk
 
 ifndef TCF_FILE
 	RUN_APP_CMD =
