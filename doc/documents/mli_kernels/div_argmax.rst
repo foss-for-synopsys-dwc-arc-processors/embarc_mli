@@ -3,7 +3,7 @@
 Argmax Prototype and Function List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This kernel returns the indexes of maximum values across the whole tensor, or for each slice 
+This kernel returns the positions of maximum values across the whole tensor, or for each slice 
 across a dimension. 
 
 Argmax functions have the following prototype:
@@ -86,8 +86,9 @@ Ensure that you satisfy the following conditions before calling the function:
     - A valid pointer to a buffer with sufficient capacity. That is ``top_k*in.shape[axis]`` values
       of ``int32`` type. 
 
-    - A valid ``mem_stride`` field.
-      
+    - Output tensor must be contiguous: ``mem_stride`` must be valid and 
+      calculated from the actual output shape (see :ref:`mli_tnsr_struc`).
+
     - Other fields of the structure do not have to contain valid data and are filled by the function.
 
 For **sa8** versions of kernel, in addition to the preceding conditions, ensure that you 
@@ -99,12 +100,21 @@ satisfy the following condition before calling the function:
 Depending on the debug level (see section :ref:`err_codes`), this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
-The Kernel modifies the output tensor which is transformed into two-dimensional tensor of shape 
+The Kernel modifies the output tensor which is transformed into two-dimensional contiguous tensor of shape 
 ``(dim_size, top_k]`` where ``dim_size`` is the size of dimension specified by the axis parameter in 
 ``mli_argmax_cfg`` structure, and ``top_k`` is the number of indexes per slice specified by the 
 ``topk`` parameter of the same structure. 
 
 ``el_type`` field of ``out`` tensor is set by the kernel to ``MLI_EL_SA_32`` and ``el_params`` field 
 is configured to reflect fully integer values (zero_offset = 0,  scale = 1 and scale_frac_bits = 0). 
-Values in output tensor are 32 bit indexes.  An Index represents the position of Nth 
-(N<``top_k``) maximum value in the flattened slice across the defined dimension in the input tensor.
+Values in output tensor are 32 bit indexes. An index represents the target value position in the linear
+memory pointed by input tensor data field. Hence, the value itself can be extracted from the array without 
+using the shape or memory stride fields of the input tensor.
+
+.. admonition:: Example 
+   :class: "admonition tip"
+   
+   If ``in`` tensor has ``sa8`` type, value can be extracted just as ``in.data.mem.pi8[id]`` where ``id`` 
+   is taken from ``out`` tensor using ``out.data.mem.pi32[]`` array. Memory strides and shape of ``in`` 
+   tensor are already considered.
+..
