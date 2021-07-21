@@ -5,17 +5,23 @@ Group Convolution Prototype and Function List
 
 This kernel implements a grouped 2D convolution which applies general 2D 
 convolution operation on a separate subset (groups) of inputs. In grouped 
-convolutions with M number of groups, the input and kernel are split by 
-their channels to form M distinct groups. Each group performs convolutions 
-independent of the other groups to give M different outputs. These individual 
+convolutions with :math:`M` number of groups, the input and kernel are split by 
+their channels to form :math:`M` distinct groups. Each group performs convolutions 
+independent of the other groups to give :math:`M` different outputs. These individual 
 outputs are then concatenated together to give the final output.  
 
-For example, depthwise convolution (see :ref:`conv_depthwise`) is an extreme case of group 
-convolution with number of groups equal to number of input channels, and 
+For example, in a HWCN data layout, if the ``in`` feature map is :math:`(Hi, Wi, Ci)` and 
+the ``weights`` is :math:`(Hk, Wk, Cw, Co)`, the ``output`` feature map is :math:`(Ho, Wo, Co)`
+tensor where :math:`Ci` is equalt to :math:`Cw * M` and :math:`Co` is multiple of :math:`M`.
+Also spatial dimensions :math:`H*, W*` comply with the system of equations :eq:`eq_conv2d_shapes`. 
+
+Depthwise convolution (see :ref:`conv_depthwise`) is an extreme case of group 
+convolution with number of groups :math:`M` equal to number of input channels :math:`Ci`, and 
 with the single filter per each group. TensorFlow-like “channel multiplier” 
 functionality of depthwise convolution can be expressed by group convolution 
-with number of groups equal to input channels and N equal to channel multiplier 
-number of filters per each group. 
+with number of groups equal to input channels :math:`Ci` and output channels :math:`Co` equal to 
+channel multiplier number of filters per each group. 
+
 
 .. note::
 
@@ -29,7 +35,7 @@ the convolution during the function's execution. For more information on support
 types and calculations, see :ref:`relu_prot`.
 
 This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more information on related quantization aspects. 
-The Number of accumulation series is equal to (kernel_height * kernel_width * (in_channels/number_of_groups)).
+The Number of accumulation series is equal to :math:`(Hk * Wk * Cw)`.
 
 Kernels which implement a group convolution have the following prototype:
 
@@ -139,26 +145,38 @@ Here is a list of all available Group Convolution functions:
                                                       
 Ensure that you satisfy the following conditions before calling the function:
 
- - ``in``, ``weights`` and ``bias`` tensors must be valid (see :ref:`mli_tnsr_struc`).
+
+- ``in``, ``out``, ``weights`` and ``bias`` tensors must be valid (see :ref:`mli_tnsr_struc`)
+   and satisfy data requirements of the used version of the kernel.
+
+-  Shapes of ``in``, ``out``, ``weights`` and ``bias`` tensors must be compatible,
+   which implies the following requirements:
+
+    - ``in`` and ``out`` are 3-dimensional tensors (rank==3). Dimensions meaning, 
+      and order (layout) is aligned with the used version of kernel.
  
- - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity, valid 
-   ``mem_stride`` field  
-   and valid ``el_params`` union. Other fields of the structure do not have to contain 
-   valid data and are filled by the function.
+    - ``weights`` is a 4-dimensional tensor (rank==4). Dimensions meaning, 
+      and order (layout) is aligned with the used kernel.
+ 
+    - ``bias`` must be a one-dimensional tensor (rank==1). Its length must be equal to 
+      :math:`Co` (output channels OR number of filters).
+ 
+    - Channel :math:`Ci` dimension of ``in`` tensor must be multiple :math:`Cw` channel dimension 
+      of ``weights`` tensors (:math:`Ci = M * Cw`).
+ 
+    - :math:`Co` of ``weights`` tensor (output channels OR number of filters) must be multiple of number of 
+      groups e.g. :math:`Co = M * X` where :math:`X` is the number of filters per group.
+ 
+    - Shapes of ``in``, ``out`` and ``weights`` tensors together with ``cfg`` structure 
+      must satisfy the equations :eq:`eq_conv2d_shapes`
+ 
+    - Effective width and height of the ``weights`` tensor after applying dilation factor 
+      (see :eq:`eq_conv2d_shapes`) must not exceed appropriate dimensions of the ``in`` tensor. 
 
  - ``in`` and ``out`` tensors must not point to overlapped memory regions.
  
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
- - Channel (Ci) dimension of ``in`` tensor must be multiple (Cw) channel dimension of 
-   ``weights`` tensor (Ci = n_groups * Cw).
-   
- - N dimension of ``weights`` tensor (number of filters) must be multiple of number of 
-   groups (N = n_groups * X where X is number of filters per group).
-   
- - ``bias`` must be a one-dimensional tensor. Its length must be equal to N dimension 
-   (number of filters) of weights tensor.
-   
  - ``padding_top`` and ``padding_bottom`` parameters must be in range of [0, weights (H)eight).
  
  - ``padding_left`` and ``padding_right`` parameters must be in range of [0, weights (W)idth).
@@ -167,17 +185,7 @@ Ensure that you satisfy the following conditions before calling the function:
 
  - ``dilation_width`` and ``dilation_height`` parameters must not be equal to 0.
  
- - Width (W) and Height (H) dimensions of ``weights`` tensor must be less than or equal to 
-   the appropriate dimensions of the ``in`` tensor.
-   
- - Effective width and height of ``weights`` after applying dilation factor must not exceed 
-   appropriate dimensions of the ``in`` tensor. 
-   
-.. admonition:: Example 
-   :class: "admonition tip" 
-
-   :math:`(weights\_W * dilation\_W + 1) <= in\_W`
-..
+ 
 
 For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions, ensure that you 
 satisfy the following conditions before calling the function:
@@ -193,11 +201,12 @@ satisfy the following conditions before calling the function:
    - Per Tensor level. This implies that each tensor contains a single scale factor and a single 
      zero offset equal to 0.
 	 
-   - Per N dimension level (number of filters). This implies that each tensor contains separate 
+   - Per :math:`Co` dimension level (number of filters). This implies that each tensor contains separate 
      scale point for each sub-tensor. All tensors contain single zero offset equal to 0.
 	 
  - Scale factors of bias tensor must be equal to the multiplication of input scale factor 
-   broadcasted on weights array of scale factors. 
+   broadcasted on weights array of scale factors.  See the example for the similar condition 
+   in the :ref:`conv_2d`.
    
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.

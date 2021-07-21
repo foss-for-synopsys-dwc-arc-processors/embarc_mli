@@ -125,12 +125,11 @@ The table :ref:`mli_tnsr_struc` describes the fields in the mli_tensor structure
    |                   |                        | A(rows,columns), ``mem_stride[1]`` contains the distance to the next        |
    |                   |                        | element (=1 in this example), and ``mem_stride[0]`` contains the distance   |
    |                   |                        | from one row to the next (=columns in this example). The size of the array  |
-   |                   |                        | is defined by ``MLI_MAX_RANK*``.If the mem_stride is set to 0, it is        |
-   |                   |                        | computed from the shape.                                                    |
+   |                   |                        | is defined by ``MLI_MAX_RANK*``.                                            |
    |                   |                        |                                                                             |
-   |                   |                        | Manually-set values of ``mem_stride`` array must decrease gradually and     |
+   |                   |                        | Values of ``mem_stride`` array must decrease gradually and                  |
    |                   |                        | must not be less than if they would be computed from the shape. For         |
-   |                   |                        | example, for a tensor of shape :math:`[Height, Width, Channels)`:           |
+   |                   |                        | example, for a tensor of shape :math:`(Height, Width, Channels)`:           |
    |                   |                        |                                                                             |
    |                   |                        |  - ``mem_stride[0] >= 1 x Channels x Width``                                |
    |                   |                        |    AND ``mem_stride[0] >= mem_stride[1]``                                   |
@@ -139,10 +138,8 @@ The table :ref:`mli_tnsr_struc` describes the fields in the mli_tensor structure
    |                   |                        |                                                                             |
    |                   |                        |  - ``mem_stride[2] >= 1``                                                   |
    |                   |                        |                                                                             |
-   |                   |                        | In case the mem_stride is computed from the shape, the kernel does not      |
-   |                   |                        | update this field in the tensor struct. The only exception is the           |
-   |                   |                        | ``mli_move`` function, which can write the ``mem_stride`` field of the      |
-   |                   |                        | ``dst`` tensor.                                                             |
+   |                   |                        | ``mli_move`` is the only function which can write the ``mem_stride`` field  |
+   |                   |                        | of the ``dst`` tensor. Other kernels don't update this Field                |
    +-------------------+------------------------+-----------------------------------------------------------------------------+
    | ``rank``          | ``uint32_t``           | Number of dimensions of this tensor (Must be less or equal to               |
    |                   |                        | ``MLI_MAX_RANK*``)                                                          |
@@ -187,7 +184,7 @@ channels in the tensor ``(array_size = shape[dim])``.
    |                        |                        |   configured dimension (``sa.dim``).                                        |
    +------------------------+------------------------+-----------------------------------------------------------------------------+
    | ``sa.scale``           | ``mli_data_container`` | 16-bit signed integer scale factors. Only positive scale factors are        |
-   |                        |                        |  supported.                                                                 |
+   |                        |                        | supported.                                                                  |
    |                        |                        |                                                                             |
    |                        |                        | - If ``sa.dim < 0``: ``sa.scale`` is a single value for all data in tensor  |
    |                        |                        |                                                                             |
