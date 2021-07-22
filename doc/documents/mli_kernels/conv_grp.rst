@@ -70,8 +70,8 @@ is derived from input and weights tensors shape. For example, in a HWCN data
 layout, if the ``in`` feature map is :math:`(Hi, Wi, Ci)` and the ``weights`` 
 tensor is :math:`(Hk, Wk, Cw, Co)`, number of groups is :math:`M = Ci / Cw`, and 
 number of filters per each group is :math:`Co / M`. 
-Therefore, number of input channels :math:`Ci` must be a multiple of :math:`Cig`, and number of 
-output channels must be multiple of number of groups. 
+Therefore, number of input channels :math:`Ci` must be a multiple of :math:`Cw`, and number of 
+output channels :math:`Co` must be a multiple of number of groups :math:`M`. 
 
 Here is a list of all available Group Convolution functions:
 
@@ -164,6 +164,8 @@ Ensure that you satisfy the following conditions before calling the function:
  - ``padding_left`` and ``padding_right`` parameters must be in range of [0, weights (W)idth).
  
  - ``stride_width`` and ``stride_height`` parameters must not be equal to 0.
+
+ - ``dilation_width`` and ``dilation_height`` parameters must not be equal to 0.
  
  - Width (W) and Height (H) dimensions of ``weights`` tensor must be less than or equal to 
    the appropriate dimensions of the ``in`` tensor.

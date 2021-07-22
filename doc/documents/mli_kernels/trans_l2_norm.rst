@@ -43,7 +43,7 @@ Kernels which implement L2 normalization functions have the following prototype:
 
 .. code:: c
 
-   mli_status mli_krn_L2_normalize_<data_format>(
+   mli_status mli_krn_l2_normalize_<data_format>(
       const mli_tensor *in,
       const mli_tensor *epsilon,
       const mli_lut *lut,
@@ -86,13 +86,13 @@ See Table :ref:`t_mli_prelu_cfg_desc` for more details.
    :align: center
    :widths: auto
    
-   +--------------------------+-----------------------------------+
-   | **Function Name**        | **Details**                       |
-   +==========================+===================================+
-   | ``mli_krn_L2_norm_sa8``  | All tensors data format: **sa8**  |
-   +--------------------------+-----------------------------------+
-   | ``mli_krn_L2_norm_fx16`` | All tensors data format: **fx16** |
-   +--------------------------+-----------------------------------+
+   +-------------------------------+-----------------------------------+
+   | **Function Name**             | **Details**                       |
+   +===============================+===================================+
+   | ``mli_krn_l2_normalize_sa8``  | All tensors data format: **sa8**  |
+   +-------------------------------+-----------------------------------+
+   | ``mli_krn_l2_normalize_fx16`` | All tensors data format: **fx16** |
+   +-------------------------------+-----------------------------------+
 ..
 
 Ensure that you satisfy the following conditions before calling the function:
