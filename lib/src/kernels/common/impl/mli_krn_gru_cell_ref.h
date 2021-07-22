@@ -94,6 +94,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
         one_el_params.fx.frac_bits = 15;
         // 1 sign and 4 integer bits with range (-16, 16) is enough for TANH/SIGM input
         ir_asym_params.fx.frac_bits = (sizeof(io_T) * 8) - 1 - 4;
+        ir_asym_params.fx.frac_bits = MIN(ir_asym_params.fx.frac_bits, in->el_params.fx.frac_bits + weights_in->el_params.fx.frac_bits);
     }
 
     mli_tensor one;
