@@ -41,13 +41,13 @@ Functions in this group use the ``mli_conv2d_cfg`` structure, defined as:
    +-----------------------+---------------------+---------------------------------------------------+
    | ``dilation_width``    | ``uint8_t``         | If set to k>1, there are k-1 implicitly added     |
    |                       |                     | zero points between each filter point across      |
-   |                       |                     | width dimension. If set to 0 or 1, no dilation    |
-   |                       |                     | logic is used.                                    |
+   |                       |                     | width dimension. If set to 1, no dilation         |
+   |                       |                     | logic is used. Zero dilation is forbidden.        |
    +-----------------------+---------------------+---------------------------------------------------+
    | ``dilation_height``   | ``uint8_t``         | If set to k>1, there are k-1 implicitly added     |
    |                       |                     | zero points between each filter point across      |
-   |                       |                     | height dimension. If set to 0 or 1, no dilation   |
-   |                       |                     | logic is used.                                    |
+   |                       |                     | height dimension. If set to 1, no dilation        |
+   |                       |                     | logic is used. Zero dilation is forbidden.        |
    +-----------------------+---------------------+---------------------------------------------------+   
    | ``padding_left``      | ``uint8_t``         | Number of zero points implicitly added to the     |
    |                       |                     | left of input (width dimension)                   |

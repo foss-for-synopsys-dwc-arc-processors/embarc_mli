@@ -167,6 +167,8 @@ Ensure that you satisfy the following conditions before calling the function:
  - ``padding_left`` and ``padding_right`` parameters must be in range of [0, weights (W)idth).
  
  - ``stride_width`` and ``stride_height`` parameters must not be equal to 0.
+
+ - ``dilation_width`` and ``dilation_height`` parameters must not be equal to 0.
  
  - Width (W) and Height (H) dimensions of the ``weights`` tensor must be less than or equal to 
    the appropriate dimensions of the ``in`` tensor.
