@@ -120,9 +120,11 @@ mli_status mli_mov_prepare(mli_mov_handle_t* h, const mli_tensor* src, const mli
     uint32_t dst_write_size[4] = {1, 1, 1, 1};
     uint32_t src_cpy_size[4] = {1, 1, 1, 1};
     for (int i = 0; i < rank; i++) {
-        src_cpy_size[i] = cfg->size[pdim[i]] > 0 ? cfg->size[pdim[i]] : (src->shape[pdim[i]] - cfg->offset[pdim[i]]);
-        dst_write_size[i] = CEIL_DIV((src_cpy_size[i] + cfg->padding_pre[pdim[i]] + cfg->padding_post[pdim[i]]),
-                cfg->sub_sample_step[pdim[i]]);
+        src_cpy_size[i] = cfg->size[pdim[i]] > 0 ? cfg->size[pdim[i]] : (src->shape[pdim[i]]
+                                                                         - cfg->offset[pdim[i]]
+                                                                         + cfg->padding_pre[pdim[i]]
+                                                                         + cfg->padding_post[pdim[i]]);
+        dst_write_size[i] = CEIL_DIV(src_cpy_size[i], cfg->sub_sample_step[pdim[i]]);
         dst->shape[i] = dst_write_size[i] + cfg->dst_offset[i];
     }
 
