@@ -180,14 +180,14 @@ static MLI_FORCE_INLINE int16_t compute_normalized_sum_square_one_dim(
         if (remaining_part) {
             input = mli_prv_stride_load_1vec(vec_in, one_dim_mem_stride);
             accumlate_sum<decltype(sum_acc), decltype(input), convert, true>(sum_acc, input, in_zp, remaining_part);
-            vec_in  += remaining_part;
+            vec_in  += remaining_part * one_dim_mem_stride;
         }
 #pragma clang loop pipeline(enable)
 #pragma clang loop pipeline_options(0x10)
         for(int idx = remaining_part; idx < one_dim_shape; idx += num_lanes) {
             input = mli_prv_stride_load_1vec(vec_in, one_dim_mem_stride);
             accumlate_sum<decltype(sum_acc), decltype(input), convert>(sum_acc, input, in_zp);
-            vec_in  += num_lanes;
+            vec_in  += num_lanes * one_dim_mem_stride;
         }
     } else {
         if (remaining_part) {
@@ -271,16 +271,15 @@ MLI_FORCE_INLINE int16_t compute_normalized_sum_square_one_dim<int16_t, false, t
     if (remaining_part) {
         input = mli_prv_stride_load_1vec(vec_in, one_dim_mem_stride);
         accumlate_sum<true>(sum_acc_hi, sum_acc_mid, sum_acc_lo, input, in_zp, remaining_part);
-        vec_in  += remaining_part;
+        vec_in  += remaining_part * one_dim_mem_stride;
     }
 #pragma clang loop pipeline(enable)
 #pragma clang loop pipeline_options(0x10)
     for(int idx = remaining_part; idx < one_dim_shape; idx += num_lanes) {
         input = mli_prv_stride_load_1vec(vec_in, one_dim_mem_stride);
         accumlate_sum(sum_acc_hi, sum_acc_mid, sum_acc_lo, input, in_zp);
-        vec_in  += num_lanes;
+        vec_in  += num_lanes * one_dim_mem_stride;
     }
-
     return normalize_sum(sum_acc_hi, sum_acc_mid, sum_acc_lo, norm_shift);
 }
 
@@ -438,16 +437,16 @@ static MLI_FORCE_INLINE void normalize_tensor_one_dim(
                                            compute_normalize<convert>(input, scale, in_zp, shift),
                                            one_dim_out_mem_stride,
                                            remaining_part);
-            vec_in  += remaining_part;
-            vec_out += remaining_part;
+            vec_in  += remaining_part * one_dim_in_mem_stride;
+            vec_out += remaining_part * one_dim_out_mem_stride;
         }
         for(int idx = remaining_part; idx < one_dim_shape; idx += num_lanes) {
             input = mli_prv_stride_load_1vec(vec_in, one_dim_in_mem_stride);
             mli_prv_stride_store_n_samples(vec_out, 
                                            compute_normalize<convert>(input, scale, in_zp, shift),
                                            one_dim_out_mem_stride);
-            vec_in  += num_lanes;
-            vec_out += num_lanes;
+            vec_in  += num_lanes * one_dim_in_mem_stride;
+            vec_out += num_lanes * one_dim_out_mem_stride;
         }
     } else {
         if (remaining_part) {
