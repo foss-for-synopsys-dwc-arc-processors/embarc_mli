@@ -2903,9 +2903,11 @@ mli_status mli_chk_data_movement(const mli_tensor *in, const mli_mov_cfg_t *cfg,
                                   (cfg->sub_sample_step[in_dim]) == 1 && (cfg->dst_offset[out_dim] == 0),
     	                            "Invalid nullptr assigned to output quantization parameters");
         } else if (!fail) {
-                int32_t src_size = cfg->size[in_dim] > 0 ? cfg->size[in_dim] : (in->shape[in_dim] - cfg->offset[in_dim]);
-                int32_t dst_size = CEIL_DIV((src_size + cfg->padding_pre[in_dim] + cfg->padding_post[in_dim]),
-                                            cfg->sub_sample_step[in_dim]) + cfg->dst_offset[out_dim];
+                int32_t cpy_size = cfg->size[in_dim] > 0 ? cfg->size[in_dim] : (in->shape[in_dim] -
+                                                                                cfg->offset[in_dim] +
+                                                                                cfg->padding_pre[in_dim] +
+                                                                                cfg->padding_post[in_dim]);
+                int32_t dst_size = CEIL_DIV(cpy_size, cfg->sub_sample_step[in_dim]) + cfg->dst_offset[out_dim];
 
                 fail |= MLI_CHECK(out->el_params.sa.zero_point.capacity >= dst_size * sizeof(int16_t)
     	            && out->el_params.sa.scale.capacity >= dst_size * sizeof(int16_t)
@@ -2921,14 +2923,12 @@ mli_status mli_chk_data_movement(const mli_tensor *in, const mli_mov_cfg_t *cfg,
     //check that the configurations are valid
     if (MLI_CHECK(cfg != NULL , "Bad cfg pointer")) return MLI_STATUS_BAD_FUNC_CFG;
     for (uint32_t i=0; i < in->rank; i++) {
-    	if (MLI_CHECK((cfg->size[i] + cfg->offset[i]) <= in->shape[i],"Bad configurations"))
-		    return MLI_STATUS_BAD_FUNC_CFG;
-        if (MLI_CHECK(cfg->dst_offset[i] <= out->shape[i],"Bad configurations"))
-        	return MLI_STATUS_BAD_FUNC_CFG;
-        //check that in case cfg->size is provided the post padding should be 0 in case we will slice from the tensor
-        if (MLI_CHECK(((cfg->size[i] == 0) || ((cfg->size[i] + cfg->offset[i]) == in->shape[i]) || (cfg->padding_post[i] == 0)),
-        		"Bad Configurations"))
-        	return MLI_STATUS_BAD_FUNC_CFG;
+        if (MLI_CHECK((cfg->size[i] + cfg->offset[i]) <= in->shape[i] + cfg->padding_pre[i] + cfg->padding_post[i],"Size is larger than padded input"))
+            return MLI_STATUS_BAD_FUNC_CFG;
+        if (MLI_CHECK(cfg->sub_sample_step[i] > 0,"sub_sample_step should be greater than 0"))
+            return MLI_STATUS_BAD_FUNC_CFG;
+        if (MLI_CHECK(cfg->perm_dim[i] < in->rank,"permute out of range"))
+            return MLI_STATUS_BAD_FUNC_CFG;
     }
 
     //check that input and output are not overlapped

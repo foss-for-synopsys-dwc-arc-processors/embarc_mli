@@ -340,33 +340,56 @@ static MLI_FORCE_INLINE void mov_inner_loop (mli_mov_handle_t* h, const io_T* __
         bool no_inner_src_stride, bool no_inner_dst_stride, bool small_size, io_T pad_val) {
 
     if (zero_inner_loop) {
-        fill_inner_dimension<io_T>(dst, inner_dst_size, inner_dst_strde,
-                dst_in_vccm, no_inner_dst_stride, 0);
+        fill_inner_dimension<io_T>(&dst[inner_dst_offset * inner_dst_strde],
+                                   inner_dst_size,
+                                   inner_dst_strde,
+                                   dst_in_vccm, no_inner_dst_stride, 0);
     } else {
-        int inner_dst_pos =  inner_dst_offset * inner_dst_strde;
+        int inner_dst_pos = inner_dst_offset * inner_dst_strde;
         int inner_src_pos = inner_src_offset - inner_pre_padding;
-        uint32_t pre_padding_size = 0;
+        int pre_padding_size = 0;
+
         //check if there will be pre_padding in inner dimension
-        if(inner_src_pos < 0) {
-            pre_padding_size += CEIL_DIV(-inner_src_pos, inner_subsample);
-            fill_inner_dimension<io_T>(&dst[inner_dst_pos], pre_padding_size, inner_dst_strde,
-                    dst_in_vccm, no_inner_dst_stride, 0);
+        if (inner_src_pos < 0) {
+            pre_padding_size = CEIL_DIV(-inner_src_pos, (int)inner_subsample);
+
+            // Clipping of pre_padding_size can happen if cfg->pre_padding is more than
+            // cfg->size.
+            pre_padding_size = MIN(pre_padding_size, (int)inner_dst_size);
+
+            fill_inner_dimension<io_T>(&dst[inner_dst_pos],
+                                      pre_padding_size,
+                                      inner_dst_strde,
+                                      dst_in_vccm, no_inner_dst_stride, 0);
             inner_src_pos += pre_padding_size * inner_subsample;
             inner_dst_pos += pre_padding_size * inner_dst_strde;
         }
 
-        uint32_t size_of_copy = CEIL_DIV((inner_src_size + inner_src_offset - inner_src_pos), inner_subsample);
+        int size_of_copy = CEIL_DIV((int)inner_src_size
+                                    + (int)inner_src_offset
+                                    - inner_src_pos
+                                    - inner_pre_padding
+                                    - inner_post_padding, inner_subsample);
+
+        size_of_copy = MAX(size_of_copy, 0);
         inner_src_pos *= inner_src_strde;
-        uint32_t inner_src_step = inner_src_strde * inner_subsample;
-        mli::mov::mli_mov_memcpy<io_T>(h, &src[inner_src_pos], &dst[inner_dst_pos], size_of_copy, inner_dst_strde,
-                        inner_src_step, src_in_vccm, dst_in_vccm, no_inner_src_stride , no_inner_dst_stride, small_size);
+        int inner_src_step = inner_src_strde * inner_subsample;
+
+        mli::mov::mli_mov_memcpy<io_T>(h, &src[inner_src_pos],
+                                       &dst[inner_dst_pos], size_of_copy, inner_dst_strde,
+                                       inner_src_step, src_in_vccm, dst_in_vccm, no_inner_src_stride,
+                                       no_inner_dst_stride, small_size);
+
         inner_dst_pos += size_of_copy * inner_dst_strde;
         inner_src_pos += size_of_copy * inner_src_step;
 
         if (inner_src_pos >= (int)inner_src_shape) {
-            uint32_t post_padding_size = inner_dst_size - pre_padding_size - size_of_copy;
-            fill_inner_dimension<io_T>(&dst[inner_dst_pos], post_padding_size, inner_dst_strde,
-                    dst_in_vccm, no_inner_dst_stride, 0);
+            int post_padding_size = inner_dst_size - pre_padding_size - size_of_copy;
+
+            fill_inner_dimension<io_T>(&dst[inner_dst_pos],
+                                       post_padding_size,
+                                       inner_dst_strde,
+                                       dst_in_vccm, no_inner_dst_stride, 0);
         }
     }
 
