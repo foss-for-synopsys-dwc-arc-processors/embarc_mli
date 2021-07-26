@@ -3,6 +3,9 @@
 Convolution 2D Prototype and Function List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Description
+^^^^^^^^^^^
+
 This kernel implements a general 2D convolution operation. It applies each filter 
 of weights tensor to each framed area of the size of input tensor. 
 
@@ -33,6 +36,9 @@ and calculations, see :ref:`relu_prot`.
 This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more information on 
 related quantization aspects. The Number of accumulation series in terms of above-defined variables is 
 equal to :math:`(Hk * Wk * Ci)`.
+
+Functions
+^^^^^^^^^
 
 The functions which implement 2D Convolutions have the following prototype:
 
@@ -66,7 +72,7 @@ and the function parameters are shown in the following table:
    +---------------+-----------------------+--------------------------------------------------+
    | ``out``       | ``mli_tensor *``      | [IN | OUT] Pointer to output feature map tensor. |
    |               |                       | Result is stored here                            |
-   +---------------+-----------------------+--------------------------------------------------+   
+   +---------------+-----------------------+--------------------------------------------------+
 ..
 
 
@@ -154,7 +160,10 @@ Here is a list of all available 2D Convolution functions:
    |                                           || Height of weights tensor: **5**       |
    +-------------------------------------------+----------------------------------------+
 ..
- 
+
+Conditions
+^^^^^^^^^^
+
 Ensure that you satisfy the following conditions before calling the function:
 
  - ``in``, ``out``, ``weights`` and ``bias`` tensors must be valid (see :ref:`mli_tnsr_struc`)
@@ -190,10 +199,8 @@ Ensure that you satisfy the following conditions before calling the function:
  
  - ``stride_width`` and ``stride_height`` parameters must not be equal to 0.
 
-
-
  - ``dilation_width`` and ``dilation_height`` parameters must not be equal to 0.
-                                                                          
+
 For **sa8_sa8_sa32** versions of kernel, in addition to preceding conditions, ensure that you satisfy 
 the following conditions before calling the function:
 
@@ -237,5 +244,12 @@ the following conditions before calling the function:
    ..
 ..
 
-Depending on the debug level (see section :ref:`err_codes`) this function might perform a parameter 
+Result
+^^^^^^
+
+These functions only modify the memory pointed by ``out.data.mem`` field. 
+It is assumed that all the rest fields of ``out`` tensor are properly populated 
+to be used in calculations and are not modified by the kernel.
+
+Depending on the debug level (see section :ref:`err_codes`) these functions might perform a parameter 
 check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.   

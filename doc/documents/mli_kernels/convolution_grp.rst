@@ -111,11 +111,3 @@ Where:
    conv_depthwise.rst 
    conv_transp.rst
    conv_grp.rst
-   
-   
-
-
-
-   
-   
-

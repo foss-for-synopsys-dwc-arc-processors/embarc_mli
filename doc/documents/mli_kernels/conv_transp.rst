@@ -1,6 +1,9 @@
 Transpose Convolution Prototype and Function List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Description
+^^^^^^^^^^^
+
 This kernel implements a general 2D transposed convolution operation 
 which works by swapping the forward and backward passes of a convolution. 
 For more details on calculations, see chapter 4 of `A guide to convolution 
@@ -51,6 +54,9 @@ Where:
 This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more information on related quantization aspects. 
 The Number of accumulation series is up to (:math:`Wk*Hk*Ci`).
 
+Functions
+^^^^^^^^^
+
 Kernels which implement Transpose Convolutions have the following prototype:
 
 .. code:: c
@@ -70,19 +76,20 @@ and the function parameters are shown in the following table:
    :align: center
    :widths: auto 
    
-   +---------------+-----------------------+------------------------------------------------------------------------+
-   | **Parameter** | **Type**              | **Description**                                                        |
-   +===============+=======================+========================================================================+
-   | ``in``        | ``mli_tensor *``      | [IN] Pointer to constant input tensor.                                 |
-   +---------------+-----------------------+------------------------------------------------------------------------+
-   | ``weights``   | ``mli_tensor *``      | [IN] Pointer to constant weights tensor.                               |
-   +---------------+-----------------------+------------------------------------------------------------------------+
-   | ``bias``      | ``mli_tensor *``      | [IN] Pointer to constant bias tensor.                                  |
-   +---------------+-----------------------+------------------------------------------------------------------------+
-   | ``cfg``       | ``mli_conv2d_cfg *``  | [IN] Pointer to convolution parameters structure.                      |
-   +---------------+-----------------------+------------------------------------------------------------------------+
-   | ``out``       | ``mli_tensor *``      | [OUT] Pointer to output feature map tensor. Result is stored here.     |
-   +---------------+-----------------------+------------------------------------------------------------------------+
+   +---------------+-----------------------+---------------------------------------------------+
+   | **Parameter** | **Type**              | **Description**                                   |
+   +===============+=======================+===================================================+
+   | ``in``        | ``mli_tensor *``      | [IN] Pointer to constant input tensor.            |
+   +---------------+-----------------------+---------------------------------------------------+
+   | ``weights``   | ``mli_tensor *``      | [IN] Pointer to constant weights tensor.          |
+   +---------------+-----------------------+---------------------------------------------------+
+   | ``bias``      | ``mli_tensor *``      | [IN] Pointer to constant bias tensor.             |
+   +---------------+-----------------------+---------------------------------------------------+
+   | ``cfg``       | ``mli_conv2d_cfg *``  | [IN] Pointer to convolution parameters structure. |
+   +---------------+-----------------------+---------------------------------------------------+
+   | ``out``       | ``mli_tensor *``      | [IN | OUT] Pointer to output feature map tensor.  |
+   |               |                       | Result is stored here                             |
+   +---------------+-----------------------+---------------------------------------------------+
 ..
 
 The following table lists all the available Transpose Convolution functions:
@@ -162,6 +169,9 @@ The following table lists all the available Transpose Convolution functions:
    +-----------------------------------------------------------+-----------------------------------------+
 ..
 
+Conditions
+^^^^^^^^^^
+
 Ensure that you satisfy the following conditions before calling the function: 
 
  - ``in``, ``out``, ``weights`` and ``bias`` tensors must be valid (see :ref:`mli_tnsr_struc`)
@@ -221,6 +231,13 @@ satisfy the following conditions before calling the function:
 
  - Scale factors of bias tensor must be equal to the multiplication of input scale factor broadcasted 
    on weights array of scale factors. See the example for the similar condition in the :ref:`conv_2d`.
+
+Result
+^^^^^^
+
+These functions only modify the memory pointed by ``out.data.mem`` field. 
+It is assumed that all the rest fields of ``out`` tensor are properly populated 
+to be used in calculations and are not modified by the kernel.
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.

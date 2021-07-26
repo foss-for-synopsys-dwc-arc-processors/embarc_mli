@@ -3,6 +3,9 @@
 Group Convolution Prototype and Function List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Description
+^^^^^^^^^^^
+
 This kernel implements a grouped 2D convolution which applies general 2D 
 convolution operation on a separate subset (groups) of inputs. In grouped 
 convolutions with :math:`M` number of groups, the input and kernel are split by 
@@ -37,6 +40,9 @@ types and calculations, see :ref:`relu_prot`.
 This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more information on related quantization aspects. 
 The Number of accumulation series is equal to :math:`(Hk * Wk * Cw)`.
 
+Functions
+^^^^^^^^^
+
 Kernels which implement a group convolution have the following prototype:
 
 .. code:: c
@@ -56,19 +62,20 @@ parameters are shown in the following table:
    :align: center
    :widths: auto 
    
-   +---------------+------------------------+-----------------------------------------------------------------------+
-   | **Parameter** | **Type**               | **Description**                                                       |
-   +===============+========================+=======================================================================+
-   | ``in``        | ``mli_tensor *``       | [IN] Pointer to constant input tensor.                                |
-   +---------------+------------------------+-----------------------------------------------------------------------+
-   | ``weights``   | ``mli_tensor *``       | [IN] Pointer to constant weights tensor.                              |
-   +---------------+------------------------+-----------------------------------------------------------------------+
-   | ``bias``      | ``mli_tensor *``       | [IN] Pointer to constant bias tensor.                                 |
-   +---------------+------------------------+-----------------------------------------------------------------------+
-   | ``cfg``       | ``mli_conv2d_cfg *``   | [IN] Pointer to convolution parameters structure.                     |
-   +---------------+------------------------+-----------------------------------------------------------------------+
-   | ``out``       | ``mli_tensor *``       | [OUT] Pointer to output feature map tensor. Result is stored here.    |
-   +---------------+------------------------+-----------------------------------------------------------------------+
+   +---------------+------------------------+---------------------------------------------------+
+   | **Parameter** | **Type**               | **Description**                                   |
+   +===============+========================+===================================================+
+   | ``in``        | ``mli_tensor *``       | [IN] Pointer to constant input tensor.            |
+   +---------------+------------------------+---------------------------------------------------+
+   | ``weights``   | ``mli_tensor *``       | [IN] Pointer to constant weights tensor.          |
+   +---------------+------------------------+---------------------------------------------------+
+   | ``bias``      | ``mli_tensor *``       | [IN] Pointer to constant bias tensor.             |
+   +---------------+------------------------+---------------------------------------------------+
+   | ``cfg``       | ``mli_conv2d_cfg *``   | [IN] Pointer to convolution parameters structure. |
+   +---------------+------------------------+---------------------------------------------------+
+   | ``out``       | ``mli_tensor *``       | [IN | OUT] Pointer to output feature map tensor.  |
+   |               |                        | Result is stored here                             |
+   +---------------+------------------------+---------------------------------------------------+
 ..
 
 Number of groups to split is not provided to the kernel explicitly. Instead, it 
@@ -142,12 +149,15 @@ Here is a list of all available Group Convolution functions:
    |                                                  || Width of weights tensor: **5**      |
    |                                                  || Height of weights tensor: **5**     |
    +--------------------------------------------------+--------------------------------------+
-                                                      
+..
+
+Conditions
+^^^^^^^^^^
 Ensure that you satisfy the following conditions before calling the function:
 
 
 - ``in``, ``out``, ``weights`` and ``bias`` tensors must be valid (see :ref:`mli_tnsr_struc`)
-   and satisfy data requirements of the used version of the kernel.
+  and satisfy data requirements of the used version of the kernel.
 
 -  Shapes of ``in``, ``out``, ``weights`` and ``bias`` tensors must be compatible,
    which implies the following requirements:
@@ -184,8 +194,6 @@ Ensure that you satisfy the following conditions before calling the function:
  - ``stride_width`` and ``stride_height`` parameters must not be equal to 0.
 
  - ``dilation_width`` and ``dilation_height`` parameters must not be equal to 0.
- 
- 
 
 For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions, ensure that you 
 satisfy the following conditions before calling the function:
@@ -207,7 +215,14 @@ satisfy the following conditions before calling the function:
  - Scale factors of bias tensor must be equal to the multiplication of input scale factor 
    broadcasted on weights array of scale factors.  See the example for the similar condition 
    in the :ref:`conv_2d`.
-   
+
+Result
+^^^^^^
+
+These functions only modify the memory pointed by ``out.data.mem`` field. 
+It is assumed that all the rest fields of ``out`` tensor are properly populated 
+to be used in calculations and are not modified by the kernel.
+
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
