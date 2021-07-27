@@ -2888,7 +2888,7 @@ mli_status mli_chk_data_movement(const mli_tensor *in, const mli_mov_cfg_t *cfg,
 
         int32_t in_dim = in->el_params.sa.dim;
         int32_t out_dim = 0;
-        for (int dim = 0; dim < in->rank; dim++) {
+        for (int dim = 0; dim < (int)in->rank; dim++) {
             if (cfg->perm_dim[dim] == in->el_params.sa.dim) {
                 out_dim = dim;
                 break;
