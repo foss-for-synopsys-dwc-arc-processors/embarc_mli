@@ -60,35 +60,35 @@ struct lstm_cell_test_operands {
 // When developer finished implementation of kernel and consider it as ok, one needs to populate
 // proper checksums for tests in order to highlight any change which affects results.
 #if defined(CRC_RM_UP)
-const crc32_calc test_1_chksum_fx16{ 0x727F0B6E }, test_1_chksum_fx16_fx8_fx8{ 0xAFEBE943 }, test_1_chksum_sa8{ 0xDADA8CEA },
-                 test_2_chksum_fx16{ 0x727F0B6E }, test_2_chksum_fx16_fx8_fx8{ 0xAFEBE943 }, test_2_chksum_sa8{ 0xDADA8CEA },
-                 test_3_chksum_fx16{ 0x1BA8D258 }, test_3_chksum_fx16_fx8_fx8{ 0xBECE1810 }, test_3_chksum_sa8{ 0xC461353D },
-                 test_4_chksum_fx16{ 0x50879639 }, test_4_chksum_fx16_fx8_fx8{ 0xB21898D5 }, test_4_chksum_sa8{ 0x7518616C },
-                 test_5_chksum_fx16{ 0xFFFE1361 }, test_5_chksum_fx16_fx8_fx8{ 0xB0FE085C }, test_5_chksum_sa8{ 0xE6E75ACC },
-                 test_6_chksum_fx16{ 0xB4D15700 }, test_6_chksum_fx16_fx8_fx8{ 0xBC288899 }, test_6_chksum_sa8{ 0x579E0E9D },
-                 test_7_chksum_fx16{ 0x1CC3B931 }, test_7_chksum_fx16_fx8_fx8{ 0x3861AB6F }, test_7_chksum_sa8{ 0xA88FB248 },
-                 test_8_chksum_fx16{ 0x50E1BD02 }, test_8_chksum_fx16_fx8_fx8{ 0x0E81E3BD }, test_8_chksum_sa8{ 0x5EB20AF7 };
+const crc32_calc test_1_chksum_fx16{ 0x2F0AE280 }, test_1_chksum_fx16_fx8_fx8{ 0xC1283A80 }, test_1_chksum_sa8{ 0xDADA8CEA },
+                 test_2_chksum_fx16{ 0x2F0AE280 }, test_2_chksum_fx16_fx8_fx8{ 0xC1283A80 }, test_2_chksum_sa8{ 0xDADA8CEA },
+                 test_3_chksum_fx16{ 0x4F10501E }, test_3_chksum_fx16_fx8_fx8{ 0x036AAAA7 }, test_3_chksum_sa8{ 0xC461353D },
+                 test_4_chksum_fx16{ 0x043F147F }, test_4_chksum_fx16_fx8_fx8{ 0x0FBC2A62 }, test_4_chksum_sa8{ 0x7518616C },
+                 test_5_chksum_fx16{ 0xDA9D839E }, test_5_chksum_fx16_fx8_fx8{ 0xA481EF4B }, test_5_chksum_sa8{ 0xE6E75ACC },
+                 test_6_chksum_fx16{ 0x91B2C7FF }, test_6_chksum_fx16_fx8_fx8{ 0xA8576F8E }, test_6_chksum_sa8{ 0x579E0E9D },
+                 test_7_chksum_fx16{ 0xFEE5DDCF }, test_7_chksum_fx16_fx8_fx8{ 0x26D324E7 }, test_7_chksum_sa8{ 0xA88FB248 },
+                 test_8_chksum_fx16{ 0x4B54B328 }, test_8_chksum_fx16_fx8_fx8{ 0x1AEE2A0A }, test_8_chksum_sa8{ 0x5EB20AF7 };
 #elif defined(CRC_RM_CONVERGENT)
 
 // TODO: remove after fixing mli_math_acc_ashift_fx() and supporting acc40 shift with round
 #if defined(__FXAPI__)
-const crc32_calc test_1_chksum_fx16{ 0x58A14685 }, test_1_chksum_fx16_fx8_fx8{ 0xCA8CD205 }, test_1_chksum_sa8{ 0xE469ECF6 },
-                 test_2_chksum_fx16{ 0x58A14685 }, test_2_chksum_fx16_fx8_fx8{ 0xCA8CD205 }, test_2_chksum_sa8{ 0xE469ECF6 },
-                 test_3_chksum_fx16{ 0x87979C0D }, test_3_chksum_fx16_fx8_fx8{ 0x6B250DB5 }, test_3_chksum_sa8{ 0x7859C2EE },
-                 test_4_chksum_fx16{ 0xCCB8D86C }, test_4_chksum_fx16_fx8_fx8{ 0x67F38D70 }, test_4_chksum_sa8{ 0xC92096BF },
-                 test_5_chksum_fx16{ 0xA58D556B }, test_5_chksum_fx16_fx8_fx8{ 0x54BABBEE }, test_5_chksum_sa8{ 0x806E3E25 },
-                 test_6_chksum_fx16{ 0xEEA2110A }, test_6_chksum_fx16_fx8_fx8{ 0x586C3B2B }, test_6_chksum_sa8{ 0x31176A74 },
-                 test_7_chksum_fx16{ 0x7AB58D77 }, test_7_chksum_fx16_fx8_fx8{ 0x9552BA41 }, test_7_chksum_sa8{ 0x76415616 },
-                 test_8_chksum_fx16{ 0x288FC2AF }, test_8_chksum_fx16_fx8_fx8{ 0xDC558281 }, test_8_chksum_sa8{ 0x11EFFAF6 };
+const crc32_calc test_1_chksum_fx16{ 0xE1074483 }, test_1_chksum_fx16_fx8_fx8{ 0xE00208E3 }, test_1_chksum_sa8{ 0xE469ECF6 },
+                 test_2_chksum_fx16{ 0xE1074483 }, test_2_chksum_fx16_fx8_fx8{ 0xE00208E3 }, test_2_chksum_sa8{ 0xE469ECF6 },
+                 test_3_chksum_fx16{ 0x0E028CBE }, test_3_chksum_fx16_fx8_fx8{ 0xBD7A5AE5 }, test_3_chksum_sa8{ 0x7859C2EE },
+                 test_4_chksum_fx16{ 0x452DC8DF }, test_4_chksum_fx16_fx8_fx8{ 0xB1ACDA20 }, test_4_chksum_sa8{ 0xC92096BF },
+                 test_5_chksum_fx16{ 0x26C91EF4 }, test_5_chksum_fx16_fx8_fx8{ 0xA63C193D }, test_5_chksum_sa8{ 0x806E3E25 },
+                 test_6_chksum_fx16{ 0x6DE65A95 }, test_6_chksum_fx16_fx8_fx8{ 0xAAEA99F8 }, test_6_chksum_sa8{ 0x31176A74 },
+                 test_7_chksum_fx16{ 0xFE6EA2D3 }, test_7_chksum_fx16_fx8_fx8{ 0xD724D294 }, test_7_chksum_sa8{ 0x76415616 },
+                 test_8_chksum_fx16{ 0xCE490DA2 }, test_8_chksum_fx16_fx8_fx8{ 0xBBE4BA5E }, test_8_chksum_sa8{ 0x11EFFAF6 };
 #else
-const crc32_calc test_1_chksum_fx16{ 0xD05EE688 }, test_1_chksum_fx16_fx8_fx8{ 0xCA8CD205 }, test_1_chksum_sa8{ 0xE469ECF6 },
-                 test_2_chksum_fx16{ 0xD05EE688 }, test_2_chksum_fx16_fx8_fx8{ 0xCA8CD205 }, test_2_chksum_sa8{ 0xE469ECF6 },
-                 test_3_chksum_fx16{ 0x83FE4F61 }, test_3_chksum_fx16_fx8_fx8{ 0x6B250DB5 }, test_3_chksum_sa8{ 0x7859C2EE },
-                 test_4_chksum_fx16{ 0xC8D10B00 }, test_4_chksum_fx16_fx8_fx8{ 0x67F38D70 }, test_4_chksum_sa8{ 0xC92096BF },
-                 test_5_chksum_fx16{ 0x16F93ACD }, test_5_chksum_fx16_fx8_fx8{ 0x54BABBEE }, test_5_chksum_sa8{ 0x806E3E25 },
-                 test_6_chksum_fx16{ 0x5DD67EAC }, test_6_chksum_fx16_fx8_fx8{ 0x586C3B2B }, test_6_chksum_sa8{ 0x31176A74 },
-                 test_7_chksum_fx16{ 0xB4752CB0 }, test_7_chksum_fx16_fx8_fx8{ 0x9552BA41 }, test_7_chksum_sa8{ 0x76415616 },
-                 test_8_chksum_fx16{ 0xFDA9732E }, test_8_chksum_fx16_fx8_fx8{ 0xDC558281 }, test_8_chksum_sa8{ 0x11EFFAF6 };
+const crc32_calc test_1_chksum_fx16{ 0x7E67FACE }, test_1_chksum_fx16_fx8_fx8{ 0xE00208E3 }, test_1_chksum_sa8{ 0xE469ECF6 },
+                 test_2_chksum_fx16{ 0x7E67FACE }, test_2_chksum_fx16_fx8_fx8{ 0xE00208E3 }, test_2_chksum_sa8{ 0xE469ECF6 },
+                 test_3_chksum_fx16{ 0x17A7E3D3 }, test_3_chksum_fx16_fx8_fx8{ 0xBD7A5AE5 }, test_3_chksum_sa8{ 0x7859C2EE },
+                 test_4_chksum_fx16{ 0x5C88A7B2 }, test_4_chksum_fx16_fx8_fx8{ 0xB1ACDA20 }, test_4_chksum_sa8{ 0xC92096BF },
+                 test_5_chksum_fx16{ 0x89AA3725 }, test_5_chksum_fx16_fx8_fx8{ 0xA63C193D }, test_5_chksum_sa8{ 0x806E3E25 },
+                 test_6_chksum_fx16{ 0xC2857344 }, test_6_chksum_fx16_fx8_fx8{ 0xAAEA99F8 }, test_6_chksum_sa8{ 0x31176A74 },
+                 test_7_chksum_fx16{ 0x19529CE7 }, test_7_chksum_fx16_fx8_fx8{ 0xD724D294 }, test_7_chksum_sa8{ 0x76415616 },
+                 test_8_chksum_fx16{ 0xC248A078 }, test_8_chksum_fx16_fx8_fx8{ 0xBBE4BA5E }, test_8_chksum_sa8{ 0x11EFFAF6 };
 #endif
 
 #else // Not defined CRC_*
@@ -266,6 +266,7 @@ static lstm_cell_test_operands tests_list[] = {
 
 constexpr int kMemInputSize = 90;
 constexpr int kMemOutSize = 410;
+constexpr int kMemLutSize = 700;
 constexpr int kMemWeightSize = 3530;
 constexpr int kMemIrSize = 160;
 static IO_DATA_ATTR int8_t scratch_mem_in[kMemInputSize] = { 0 };
@@ -275,8 +276,8 @@ static IO_DATA_ATTR int8_t scratch_mem_out[kMemOutSize] = { 0 };
 static W_DATA_ATTR int8_t scratch_mem_w_in[kMemWeightSize] = { 0 };
 static W_DATA_ATTR int8_t scratch_mem_w_out[kMemWeightSize] = { 0 };
 static W_DATA_ATTR int8_t scratch_mem_b[kMemOutSize] = { 0 };
-static IO_DATA_ATTR int8_t scratch_mem_tanh_lut[kMemOutSize] = { 0 };
-static IO_DATA_ATTR int8_t scratch_mem_sigm_lut[kMemOutSize] = { 0 };
+static IO_DATA_ATTR int8_t scratch_mem_tanh_lut[kMemLutSize] = { 0 };
+static IO_DATA_ATTR int8_t scratch_mem_sigm_lut[kMemLutSize] = { 0 };
 static IO_DATA_ATTR int32_t scratch_mem_ir_tensor[kMemIrSize] = { 0 };
 
 constexpr int kTestsNum = sizeof(tests_list) / sizeof(tests_list[0]);

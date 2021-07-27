@@ -51,16 +51,16 @@ static constexpr int kOutSa8ZeroPoint = 0;
 static constexpr int kOutSa8ScaleFracBits = 7;
 
 #if defined(CRC_RM_UP)
-static const crc32_calc test_1_chksum_fx16{ 0x2A705B8D }, test_1_chksum_sa8{ 0x13FF84FA },
-                        test_2_chksum_fx16{ 0x64F8E918 }, test_2_chksum_sa8{ 0x06F6413A },
-                        test_3_chksum_fx16{ 0x5385A814 }, test_3_chksum_sa8{ 0xEB900209 },
-                        test_4_chksum_fx16{ 0x5131F06A }, test_4_chksum_sa8{ 0xF77795E6 };
+static const crc32_calc test_1_chksum_fx16{ 0xB22DCC49 }, test_1_chksum_sa8{ 0xA5BBDA3B },
+                        test_2_chksum_fx16{ 0x11ED0793 }, test_2_chksum_sa8{ 0x4CA93899 },
+                        test_3_chksum_fx16{ 0xE39B66DF }, test_3_chksum_sa8{ 0xEB900209 },
+                        test_4_chksum_fx16{ 0x95FB9053 }, test_4_chksum_sa8{ 0x0DCCDDE1 };
 
 #elif defined(CRC_RM_CONVERGENT)
-static const crc32_calc test_1_chksum_fx16{ 0x2A705B8D }, test_1_chksum_sa8{ 0x7E3E4789 },
-                        test_2_chksum_fx16{ 0x64F8E918 }, test_2_chksum_sa8{ 0xFD31C67A },
-                        test_3_chksum_fx16{ 0x5385A814 }, test_3_chksum_sa8{ 0xEB900209 },
-                        test_4_chksum_fx16{ 0x5131F06A }, test_4_chksum_sa8{ 0x1913F4D4 };
+static const crc32_calc test_1_chksum_fx16{ 0xB22DCC49 }, test_1_chksum_sa8{ 0x70B8C5FD },
+                        test_2_chksum_fx16{ 0x11ED0793 }, test_2_chksum_sa8{ 0x5DF3BDA3 },
+                        test_3_chksum_fx16{ 0xE39B66DF }, test_3_chksum_sa8{ 0xEB900209 },
+                        test_4_chksum_fx16{ 0x95FB9053 }, test_4_chksum_sa8{ 0x504E4DD7 };
 
 #else  // Not defined CRC_*
 static const crc32_calc test_1_chksum_fx16, test_1_chksum_sa8,
