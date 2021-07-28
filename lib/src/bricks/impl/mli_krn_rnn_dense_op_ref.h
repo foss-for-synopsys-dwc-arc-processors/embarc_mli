@@ -34,13 +34,13 @@ static inline void adjust_weights_dim_for_rnn_dense(s8asym_quant_specific_params
 }
 
 static inline void adjust_weights_scale_for_rnn_dense(
-    fx_quant_specific_params* params, 
+    fx_quant_specific_params* params,
     fx_quant_specific_params* initial_params) {
 	return;
 }
 
 static inline void adjust_weights_scale_for_rnn_dense(
-    s8asym_quant_specific_params* params, 
+    s8asym_quant_specific_params* params,
     s8asym_quant_specific_params* initial_params) {
 	if (initial_params->weight_dim != -1) {
         params->weight_scales++;
@@ -49,15 +49,15 @@ static inline void adjust_weights_scale_for_rnn_dense(
 }
 
 static inline void adjust_weights_scale_back_for_rnn_dense(
-    fx_quant_specific_params* params, 
-    fx_quant_specific_params* initial_params, 
+    fx_quant_specific_params* params,
+    fx_quant_specific_params* initial_params,
     int gates) {
 	return;
 }
 
 static inline void adjust_weights_scale_back_for_rnn_dense(
-    s8asym_quant_specific_params* params, 
-    s8asym_quant_specific_params* initial_params, 
+    s8asym_quant_specific_params* params,
+    s8asym_quant_specific_params* initial_params,
     int gates) {
 	if(initial_params->weight_dim != -1) {
         params->weight_scales -= gates;
@@ -102,26 +102,24 @@ static inline void rnn_dense_op_stacked(
     for (int gate = 0; gate < gates_num; ++gate) {
         mli::krn::ref::rnn_dense_op<io_T, w_T, b_T, acc_T, quant_T>(
             inputs_ptr, weights_ptr, bias_ptr, dense_out_ptr, inputs_num, inputs_elements,
-            out_elements, w_ch_out_mem_strides, in_to_out_quant_params, 
+            out_elements, w_ch_out_mem_strides, in_to_out_quant_params,
             (io_T)val_limit.min, (io_T)val_limit.max);
 
         for (int weight_idx = 0; weight_idx < inputs_num; ++weight_idx) {
             weights_ptr[weight_idx] += weights_shift[weight_idx];
             adjust_weights_scale_for_rnn_dense(&in_to_out_quant_params[weight_idx], &initial_params[weight_idx]);
         }
-        
-        bias_ptr += out_elements;
-        dense_out_ptr += out_elements;
+
+        bias_ptr += bias->mem_stride[0];
+        dense_out_ptr += out->mem_stride[0];
     }
 
     for (int weight_idx = 0; weight_idx < inputs_num; ++weight_idx) {
         weights_ptr[weight_idx] -= gates_num * weights_shift[weight_idx];
         adjust_weights_scale_back_for_rnn_dense(&in_to_out_quant_params[weight_idx], &initial_params[weight_idx], gates_num);
     }
-
-    bias_ptr -= gates_num * out_elements;
-    dense_out_ptr -= gates_num * out_elements;
 }
+
 
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
 static inline void rnn_dense_op(
@@ -141,9 +139,9 @@ static inline void rnn_dense_op(
 
     for (int idx = 0; idx < inputs_num; idx++) {
         other_additives[idx] = mli_math_mul_fx<io_T, acc_T>(0, 0);
-        other_additives[idx] = mli::krn::in_additive(inputs[idx], other_additives[idx], &in_to_out_quant_params[idx], 
+        other_additives[idx] = mli::krn::in_additive(inputs[idx], other_additives[idx], &in_to_out_quant_params[idx],
                                 in_elements[idx], /* col_step= */ 1, /* row_step= */ 1, /* ch_step= */ 1);
-        other_additives[idx] = mli::krn::zp_additive(&in_to_out_quant_params[idx], other_additives[idx], 
+        other_additives[idx] = mli::krn::zp_additive(&in_to_out_quant_params[idx], other_additives[idx],
                                 in_elements[idx]);
     }
 
@@ -158,11 +156,11 @@ static inline void rnn_dense_op(
         for(int idx = 0; idx < inputs_num; idx++) {
             mli::krn::ref::adjust_quant_params(&in_to_out_quant_params[idx], /* krn_idx= */ 0);
 
-            accu = dotprod1D(inputs[idx], &weights[idx][o_idx], accu, in_elements[idx], 
+            accu = dotprod1D(inputs[idx], &weights[idx][o_idx], accu, in_elements[idx],
                          1, w_ch_out_mem_strides[idx]);
 
             accu = mli::krn::ref::weights_additive(&weights[idx][o_idx], accu, &in_to_out_quant_params[idx],
-                    in_elements[idx], /* height= */ 1, /* ch= */ 1, w_ch_out_mem_strides[idx], 
+                    in_elements[idx], /* height= */ 1, /* ch= */ 1, w_ch_out_mem_strides[idx],
                     /* row_step= */ 1, /* ch_step= */ 1);
             accu = mli_math_add_fx(accu, other_additives[idx]);
 

@@ -36,11 +36,11 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
         const mli_tensor * in,
         const mli_tensor * prev_out,
         const mli_tensor * weights_in,
-        const mli_tensor * weights_out, 
+        const mli_tensor * weights_out,
         const mli_tensor * bias,
         const mli_lut * tanh_lut,
-        const mli_lut * sigm_lut, 
-        const mli_rnn_cell_cfg * cfg, 
+        const mli_lut * sigm_lut,
+        const mli_rnn_cell_cfg * cfg,
         mli_tensor * cell,
         mli_tensor *out) {
 
@@ -58,11 +58,11 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
     const int8_t num_inputs = 2;
 
     const mli_tensor * weights[2] = {weights_in, weights_out};
-    const MLI_PTR (io_T) inputs_ptr[] = {mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(in), 
+    const MLI_PTR (io_T) inputs_ptr[] = {mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(in),
                                          mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(prev_out)};
 
-    if (cfg->direction == RNN_DIR_BACKWARD) 
-        inputs_ptr[0] += (seq_len - 1) * inputs_elements[0];
+    if (cfg->direction == RNN_DIR_BACKWARD)
+        inputs_ptr[0] += (seq_len - 1) * in->mem_stride[0];
 
     // Fill intermediate tensor of dense output
     mli_tensor ir_tensor;
@@ -83,7 +83,7 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
         ir_asym_params.sa.scale.capacity = ir_asym_params.sa.zero_point.capacity = 0;
         ir_asym_params.sa.scale_frac_bits.capacity = 0;
         ir_tensor.el_params = ir_asym_params;
-    } else { 
+    } else {
         // 1sign and 3 integer bits for TANH/SIGM input is enough
         ir_tensor.el_params.fx.frac_bits = (sizeof(io_T) * 8) - 1 - 3;
         ir_tensor.el_params.fx.frac_bits = MIN(ir_tensor.el_params.fx.frac_bits, in->el_params.fx.frac_bits + weights_in->el_params.fx.frac_bits);
@@ -215,7 +215,7 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
 
         // Step 5: Update pointers and tensors for next timestep
         //=======================================
-        inputs_ptr[0] += cfg->direction == RNN_DIR_FORWARD ? inputs_elements[0] : -inputs_elements[0];
+        inputs_ptr[0] += cfg->direction == RNN_DIR_FORWARD ? in->mem_stride[0] : -in->mem_stride[0];
         inputs_ptr[1] = mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(&rnn_out);
 
         if (asym) {
@@ -227,7 +227,8 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
         }
 
         if (cfg->results == RNN_OUT_ALL) {
-            mli_prv_tensor_inc_data_ptr<io_T*>(&rnn_out, (int)lstm_out_elements);
+            mli_prv_tensor_set_data_ptr<io_T>(&rnn_out,
+                                              mli_prv_tensor_data_ptr<io_T *>(&rnn_out) + out->mem_stride[0]);
         }
     }
 

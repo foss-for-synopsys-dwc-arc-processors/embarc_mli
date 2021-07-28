@@ -25,7 +25,7 @@
 
 namespace mli {
 namespace krn {
-namespace vdsp {    
+namespace vdsp {
 
 #pragma MLI_CODE_SECTION_START(".mli_lib")
 
@@ -38,11 +38,11 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
         const mli_tensor * in,
         const mli_tensor * prev_out,
         const mli_tensor * weights_in,
-        const mli_tensor * weights_out, 
+        const mli_tensor * weights_out,
         const mli_tensor * bias,
         const mli_lut * tanh_lut,
-        const mli_lut * sigm_lut, 
-        const mli_rnn_cell_cfg * cfg, 
+        const mli_lut * sigm_lut,
+        const mli_rnn_cell_cfg * cfg,
         mli_tensor * cell,
         mli_tensor *out) {
 
@@ -60,11 +60,11 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
     const int8_t num_inputs = 2;
 
     const mli_tensor * weights[2] = {weights_in, weights_out};
-    const MLI_PTR (io_T) inputs_ptr[] = {mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(in), 
+    const MLI_PTR (io_T) inputs_ptr[] = {mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(in),
                                          mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(prev_out)};
 
-    if (cfg->direction == RNN_DIR_BACKWARD) 
-        inputs_ptr[0] += (seq_len - 1) * inputs_elements[0];
+    if (cfg->direction == RNN_DIR_BACKWARD)
+        inputs_ptr[0] += (seq_len - 1) * in->mem_stride[0];
 
     // Fill intermediate tensor of dense output
     mli_tensor ir_tensor;
@@ -85,7 +85,7 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
         ir_asym_params.sa.scale.capacity = ir_asym_params.sa.zero_point.capacity = 0;
         ir_asym_params.sa.scale_frac_bits.capacity = 0;
         ir_tensor.el_params = ir_asym_params;
-    } else { 
+    } else {
         // 1sign and 3 integer bits for TANH/SIGM input is enough
         ir_tensor.el_params.fx.frac_bits = (sizeof(io_T) * 8) - 1 - 3;
         ir_tensor.el_params.fx.frac_bits = MIN(ir_tensor.el_params.fx.frac_bits, in->el_params.fx.frac_bits + weights_in->el_params.fx.frac_bits);
@@ -103,23 +103,23 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
                                       (int)weights_out->mem_stride[0]};
 
     // Paricular subtensors of intermediate tensor
-    mli_tensor tmp_gate; // tmp tensor store parameters of various gates (in_gate, forget_gate, out_gate) that control information flow  
+    mli_tensor tmp_gate; // tmp tensor store parameters of various gates (in_gate, forget_gate, out_gate) that control information flow
     mli_tensor g_tsr; // Information tensor
-    
-    g_tsr = tmp_gate = ir_tensor; 
+
+    g_tsr = tmp_gate = ir_tensor;
     // update shape
     tmp_gate.shape[0] = 1;
     g_tsr.shape[0] = 1;
     // update data ptr
     //mli_prv_tensor_inc_data_ptr<io_T*>(&tmp_gate,                           0 );
-    mli_data_container dtcntr_in_gate = tmp_gate.data; //store data of in_gate 
+    mli_data_container dtcntr_in_gate = tmp_gate.data; //store data of in_gate
     mli_prv_tensor_inc_data_ptr<io_T*>(&g_tsr,         ir_tensor.mem_stride[0]);
     mli_prv_tensor_inc_data_ptr<io_T*>(&tmp_gate, (2 * ir_tensor.mem_stride[0]));
-    mli_data_container dtcntr_forget_gate = tmp_gate.data; //store data of forget_gate 
+    mli_data_container dtcntr_forget_gate = tmp_gate.data; //store data of forget_gate
     mli_prv_tensor_inc_data_ptr<io_T*>(&tmp_gate,      ir_tensor.mem_stride[0]);
-    mli_data_container dtcntr_out_gate = tmp_gate.data; //store data of out_gate 
+    mli_data_container dtcntr_out_gate = tmp_gate.data; //store data of out_gate
 
-        
+
 
     mli_tensor rnn_out;
     rnn_out.data = out->data;
@@ -138,15 +138,15 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
 
     struct s8asym_quant_params out_params_sigm;
     struct s8asym_quant_params out_params_tanh;
-    
+
     if (asym) {
         out_params_tanh.offset = K_TANH_ASYM_ZERO_POINT;
         out_params_tanh.scale  = 1;
         out_params_tanh.shift = K_TANH_OUTPUT_SHIFT;
-    
+
         out_params_sigm.offset = K_SIGM_ASYM_ZERO_POINT;
         out_params_sigm.scale  = 1;
-        out_params_sigm.shift = K_SIGM_OUTPUT_SHIFT; 
+        out_params_sigm.shift = K_SIGM_OUTPUT_SHIFT;
 
         g_tsr.el_params.sa.zero_point.mem.i16 = out_params_tanh.offset;
         g_tsr.el_params.sa.scale.mem.i16 = out_params_tanh.scale;
@@ -184,18 +184,18 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
         __builtin_assume(g_tsr.rank==2);
         if (asym) {
             struct s8asym_quant_params in_params;
-           
+
             in_params.offset = ir_tensor.el_params.sa.zero_point.mem.i16;
             in_params.scale  = ir_tensor.el_params.sa.scale.mem.i16;
             in_params.shift = ir_tensor.el_params.sa.scale_frac_bits.mem.i8;
-            tmp_gate.data = dtcntr_in_gate; // switch data to in_gate            
+            tmp_gate.data = dtcntr_in_gate; // switch data to in_gate
             mli_prv_activation_lut_sa8(&tmp_gate, &tmp_gate, sigm_lut, &in_params, &out_params_sigm);
             mli_prv_activation_lut_sa8(&g_tsr, &g_tsr, tanh_lut, &in_params, &out_params_tanh);
             tmp_gate.data = dtcntr_forget_gate;  // switch data ptr to forget_gate
             tmp_gate.shape[1]  *=2; // increase len to combine calculation of forget_gate and out_gate
             mli_prv_activation_lut_sa8(&tmp_gate, &tmp_gate, sigm_lut, &in_params, &out_params_sigm);
             tmp_gate.shape[1]  = g_tsr.shape[1]; //restore len
-            
+
         } else {
             if (sizeof(io_T)==sizeof(int8_t)) {
                 auto frac_bits = ir_tensor.el_params.fx.frac_bits;
@@ -206,7 +206,7 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
                 tmp_gate.shape[1]  *=2; // increase len to combine calculation of forget_gate and out_gate
                 mli_prv_activation_lut_fx8(&tmp_gate, &tmp_gate, sigm_lut, frac_bits);
                 tmp_gate.shape[1]  = g_tsr.shape[1]; //restore len
-                
+
             } else if (sizeof(io_T)==sizeof(int16_t)) {
                 auto frac_bits = ir_tensor.el_params.fx.frac_bits;
                 tmp_gate.data = dtcntr_in_gate; // switch data to in_gate
@@ -216,7 +216,7 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
                 tmp_gate.shape[1]  *=2; // increase len to combine calculation of forget_gate and out_gate
                 mli_prv_activation_lut_fx16(&tmp_gate, &tmp_gate, sigm_lut, frac_bits);
                 tmp_gate.shape[1]  = g_tsr.shape[1]; //restore len
-                
+
             } else {
                 MLI_ASSERT(0);
             }
@@ -280,7 +280,7 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
 
         // Step 5: Update pointers and tensors for next timestep
         //=======================================
-        inputs_ptr[0] += cfg->direction == RNN_DIR_FORWARD ? inputs_elements[0] : -inputs_elements[0];
+        inputs_ptr[0] += cfg->direction == RNN_DIR_FORWARD ? in->mem_stride[0] : -in->mem_stride[0];
         inputs_ptr[1] = mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(&rnn_out);
 
         if (asym) {
@@ -292,7 +292,8 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
         }
 
         if (cfg->results == RNN_OUT_ALL) {
-            mli_prv_tensor_inc_data_ptr<io_T*>(&rnn_out, (int)lstm_out_elements);
+            mli_prv_tensor_set_data_ptr<io_T>(&rnn_out,
+                                              mli_prv_tensor_data_ptr<io_T *>(&rnn_out) + out->mem_stride[0]);
         }
     }
 

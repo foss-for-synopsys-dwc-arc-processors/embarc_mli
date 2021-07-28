@@ -107,17 +107,14 @@ static inline void rnn_dense_op_stacked(
             adjust_weights_scale_for_rnn_dense(&in_to_out_quant_params[weight_idx], &initial_params[weight_idx]);
         }
 
-        bias_ptr += out_elements;
-        dense_out_ptr += out_elements;
+        bias_ptr += bias->mem_stride[0];
+        dense_out_ptr += out->mem_stride[0];
     }
 
     for (int weight_idx = 0; weight_idx < inputs_num; ++weight_idx) {
         weights_ptr[weight_idx] -= gates_num * weights_shift[weight_idx];
         adjust_weights_scale_back_for_rnn_dense(&in_to_out_quant_params[weight_idx], &initial_params[weight_idx], gates_num);
     }
-
-    bias_ptr -= gates_num * out_elements;
-    dense_out_ptr -= gates_num * out_elements;
 }
 
 MLI_FORCE_INLINE vNx4int_t mli_math_add_accus(vNx4int_t L, vNx4int_t R) {
