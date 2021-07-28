@@ -74,7 +74,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
                                          mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(prev_out)};
 
     if (cfg->direction == RNN_DIR_BACKWARD)
-        inputs_ptr[0] += (seq_len - 1) * inputs_elements[0];
+        inputs_ptr[0] += (seq_len - 1) * in->mem_stride[0];
 
     mli_element_params one_el_params;
     mli_element_params ir_asym_params;
@@ -356,8 +356,8 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
 
         // Step 6: Update pointers and tensors for next timestep
         //=======================================
-        inputs_ptr[0] += cfg->direction == RNN_DIR_FORWARD ? inputs_elements[0] : -inputs_elements[0];
-        inputs_new_ptr[0] += cfg->direction == RNN_DIR_FORWARD ? inputs_elements[0] : -inputs_elements[0];
+        inputs_ptr[0] += cfg->direction == RNN_DIR_FORWARD ? in->mem_stride[0] : -in->mem_stride[0];
+        inputs_new_ptr[0] += cfg->direction == RNN_DIR_FORWARD ? in->mem_stride[0] : -in->mem_stride[0];
         inputs_ptr[1] = mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(&current_hidden);
 
         if (asym) {
@@ -368,7 +368,8 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
         }
 
         if (cfg->results == RNN_OUT_ALL) {
-            mli_prv_tensor_inc_data_ptr<io_T*>(&rnn_out, (int)gru_out_elements);
+            mli_prv_tensor_set_data_ptr<io_T>(&rnn_out,
+                                              mli_prv_tensor_data_ptr<io_T *>(&rnn_out) + out->mem_stride[0]);
         }
 
         current_out = rnn_out;
