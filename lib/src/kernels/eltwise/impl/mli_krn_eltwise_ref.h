@@ -20,8 +20,6 @@
 #include "mli_mem_info.h"
 
 
-#define INT32_TO_INT16 16
-#define IN_SCALE_SHIFT 32
 #define MUL_MAX_SHIFT 31
 /*
  * For max/min shifting more than 23 is not needed
@@ -285,10 +283,10 @@ void eltwise_prepare_and_run(
         shift2 = in2->el_params.sa.scale_frac_bits.mem.i8;
         shift_out = out->el_params.sa.scale_frac_bits.mem.i8;
         if (func_type == ELTWISE_MAX || func_type == ELTWISE_MIN) {
-            int32_t scale_factor = mli_math_asl_fx<int32_t>(scale_1, INT32_TO_INT16);
-            scale_factor = scale_factor / scale_out;
-            post_op_shift = INT32_TO_INT16 + shift1 - shift_out;
             int shift;
+            int32_t scale_factor = mli_math_norm_cast_fx<int32_t, int32_t>((int32_t)scale_1, &shift);
+            scale_factor = scale_factor / scale_out;
+            post_op_shift = shift1 - shift_out - shift;
             scale16_1 = mli_math_norm_cast_fx<int32_t, int16_t>(scale_factor, &shift);
             post_op_shift -= shift;
             shift = MAX(post_op_shift - MAX_MIN_UPPER_LIMIT_SHIFT, 0) + MIN(MUL_MAX_SHIFT + post_op_shift, 0);
