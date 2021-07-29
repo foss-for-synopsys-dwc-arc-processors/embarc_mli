@@ -1,5 +1,5 @@
 #
-# Copyright 2020, Synopsys, Inc.
+# Copyright 2020-2021, Synopsys, Inc.
 # All rights reserved.
 #
 # This source code is licensed under the BSD-3-Clause license found in
@@ -16,4 +16,8 @@ add_subdirectory(example_har_smartphone)
 
 if (ARC AND (${MLI_PLATFORM} STREQUAL EM_HS))
     add_subdirectory(example_face_detect)
+endif()
+
+if (ARC AND NOT (${MLI_PLATFORM} STREQUAL EM_HS))
+    add_subdirectory(tutorial_emnist_tflm)
 endif()
