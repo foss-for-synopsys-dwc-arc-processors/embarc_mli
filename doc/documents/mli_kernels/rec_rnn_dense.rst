@@ -1,6 +1,9 @@
 RNN Dense Prototype and Function List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Description
+^^^^^^^^^^^
+
 This kernel implements a single basic fully connected (or dense) calculation 
 typically used in the majority of RNN architectures:
 
@@ -32,6 +35,9 @@ Where:
 This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more information on related quantization aspects. 
 The number of accumulation series is equal to total number of values in all inputs.
 
+Functions
+^^^^^^^^^
+
 Kernels which implement an RNN Dense functionality have the following prototype:
 
 .. code:: c
@@ -62,7 +68,7 @@ function parameters are shown in the following table:
    +------------------+---------------------------+-------------------------------------------------------------------+
    | ``cfg``          | ``mli_rnn_dense_cfg *``   | [IN] Pointer to RNN dense parameters structure                    |
    +------------------+---------------------------+-------------------------------------------------------------------+
-   | ``out``          | ``mli_tensor *``          | [OUT] Pointer to output tensor. Result is stored here.            |
+   | ``out``          | ``mli_tensor *``          | [IN | OUT] Pointer to output tensor. Result is stored here.       |
    +------------------+---------------------------+-------------------------------------------------------------------+
 ..
 
@@ -110,39 +116,57 @@ Here is a list of all available RNN Dense functions:
    +------------------------------------+--------------------------------------+
 ..
 
-Ensure that you satisfy the following conditions before calling the listed functions:
+Conditions
+^^^^^^^^^^
 
- - ``bias``, all tensors in ``inputs`` array and all tensors in ``weights`` array 
+Ensure that you satisfy the following general conditions before calling the listed functions:
+
+ - ``bias``, ``out``, all tensors in ``inputs`` array and all tensors in ``weights`` array 
    must be valid (see :ref:`mli_tnsr_struc`).
 	
- - The number of tensors in inputs and ``weights`` arrays must be the same and 
+ - The number of tensors in ``inputs`` and ``weights`` arrays must be the same and 
    must not exceed ``MLI_RNN_MAX_INPUTS`` value. 
+
+ - Shapes of ``bias``, ``out``, all tensors in ``inputs`` array and all tensors in ``weights``
+   array must be compatible, which implies the following requirements:
+
+   - Each tensor in ``inputs`` array might be of any shape and rank. Only total 
+     number of elements is considered. 
+
+   - The :math:`i_{th}` tensor in ``weights`` array corresponds to the :math:`i_{th}` tensor in 
+     ``inputs`` array, which means that ``weights[i]`` must be a two-dimensional tensor (rank==2) of shape 
+     :math:`(N_i, M)`, where :math:`N_i` is the total number of elements in the ``inputs[i]`` tensor
+     and :math:`M` is the total number of neurons and is equal to output length. 
+
+   - ``bias`` must be a one-dimensional tensor (rank==1). Its length must be equal to :math:`M` (number 
+     of filters and is equal to output length) of any weights tensor.
    
- - Each tensor in ``inputs`` array might be of any shape and rank. Only total 
-   number of elements is considered. 
+   - ``out`` must be a one-dimensional tensor (rank==1). Its length must be equal to :math:`M` (number 
+     of filters and is equal to output length) of any weights tensor.
+
+ - Any tensor from ``inputs`` array and ``out`` tensor must not point to overlapped memory regions.
+
+ - ``mem_stride`` must satisfy the following statements:
+
+    - For ``out`` tensor and all tensors in ``inputs`` array memstride must reflect the shape, 
+      e.g memory of these tensors must be contiguous.
    
- - The i_th tensor in weights array corresponds to the i_th tensor in inputs 
-   array, which means:
-   
-   - ``weights[i]`` must be a two-dimensional tensor of shape (N, M), where N is 
-     the total number of elements in the inputs[i] tensor and M is the total 
-     number of neurons and is equal to output length.   
-     
- - ``bias`` must be a one-dimensional tensor. Its length must be equal to M (number 
-   of filters and is equal to output length) of any weights tensor.
-   
- - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity, valid ``mem_stride`` field 
-   and valid ``el_params`` union. Other fields of the structure do not have to contain 
-   valid data and are filled by the function.
-   
- - ``in`` and ``out`` tensors must not point to overlapped memory regions.
+    - For all tensors in ``weights`` and ``bias`` arrays - memstride of the innermost dimension must 
+      be equal to 1.
+
+For **fx16** and **fx16_fx8_fx8** versions of kernel, in addition to the general conditions, ensure that you 
+satisfy the following quantization conditions before calling the function:
+
+ - The number of ``frac_bits`` in the ``bias`` tensor must not exceed the sum of ``frac_bits`` 
+   in the ``inputs[0]`` and ``weights[0]`` tensors.
+
+ - The number of ``frac_bits`` in the ``out`` tensor must not exceed the sum of ``frac_bits`` 
+   in the any pair of related tensors in ``inputs`` and ``weights`` arrays.
+
+For **sa8_sa8_sa32** versions of kernel, in addition to the general conditions, ensure that you 
+satisfy the following quantization conditions before calling the function:
  
- - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
- 
-For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions, ensure that you 
-satisfy the following conditions before calling the function:
- 
- - ``bias``, ``out``, all the tensors in inputs array, and all tensors in weights array 
+ - ``bias``, ``out``, all the tensors in ``inputs`` array, and all tensors in ``weights`` array 
    must be quantized on the tensor level. This implies that each tensor contains a 
    single scale factor and a single zero offset.
    
@@ -150,11 +174,19 @@ satisfy the following conditions before calling the function:
 
  - ``bias`` and all tensors in weights array must be symmetric. This implies that both 
    tensors contain single zero offset equal to 0.
-   
+
  - The scale factor of ``bias`` tensor must be equal to the multiplication of the scale factor of 
    the **first** input and the **first** weights tensors in corresponding arrays 
-   (that is, :math:`bias.scale = inputs[0].scale * weights[0].scale`).
+   (that is, :math:`bias.scale = inputs[0].scale * weights[0].scale`). See the example for the 
+   similar condition in the :ref:`conv_2d`.
 
+
+Result
+^^^^^^
+
+These functions only modify the memory pointed by ``out.data.mem`` field. 
+It is assumed that all the other fields of ``out`` tensor are properly populated 
+to be used in calculations and are not modified by the kernel.
 
 Depending on the debug level (see section :ref:`err_codes`), this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.

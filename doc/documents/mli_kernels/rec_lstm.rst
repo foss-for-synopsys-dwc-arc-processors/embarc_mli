@@ -1,6 +1,9 @@
 Basic Long Short Term Memory (LSTM) Cell Prototype and Function List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Description
+^^^^^^^^^^^
+
 This kernel implements the basic non-peephole Long Short-Term Memory (LSTM) cell 
 (see `Long Short-term Memory <https://en.wikipedia.org/wiki/Long_short-term_memory>`_ 
 for more details), as shown in Figure :ref:`f_lstm_schematic`. 
@@ -12,15 +15,10 @@ for more details), as shown in Figure :ref:`f_lstm_schematic`.
    Long Short Term Memory Schematic Representation
 ..
 
-.. _x_lstm:
-
-The LSTM Operation
-^^^^^^^^^^^^^^^^^^
-
 The LSTM operation is described by the following formulas:
 
-
 .. math::
+   :label: eq_lstm_op
 
    {i_{t}} &= {sigm(x_{t}W_{\text{xi}} + h_{t - 1}W_{\text{hi}} + b_{i})}
    
@@ -75,6 +73,9 @@ Use the following functions for the purpose:
 This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more information on related quantization aspects. 
 The number of accumulation series is equal to a single input frame size plus single output frame size.
 
+Functions
+^^^^^^^^^
+
 Kernels which implement an LSTM cell have the following prototype:
 
 .. code:: c
@@ -113,16 +114,16 @@ are shown in the following table:
    | ``bias``         | ``mli_tensor *``        | [IN] Pointer to constant bias tensor.                           |
    +------------------+-------------------------+-----------------------------------------------------------------+
    | ``tanh_lut``     | ``mli_lut *``           | [IN] Pointer to a valid LUT table structure prepared for the    |
-   |                  |                         |  hyperbolic tangent activation.                                 |
+   |                  |                         | hyperbolic tangent activation.                                  |
    +------------------+-------------------------+-----------------------------------------------------------------+
    | ``sigm_lut``     | ``mli_lut *``           | [IN] Pointer to a valid LUT table structure prepared for        |
-   |                  |                         |  sigmoid  activation.                                           |
+   |                  |                         | sigmoid  activation.                                            |
    +------------------+-------------------------+-----------------------------------------------------------------+
-   | ``cfg``          | ``mli_rnn_cell_cfg *``  | [IN/OUT]   Pointer to RNN cell parameters structure.            |
+   | ``cfg``          | ``mli_rnn_cell_cfg *``  | [IN | OUT] Pointer to RNN cell parameters structure.            |
    +------------------+-------------------------+-----------------------------------------------------------------+
-   | ``cell``         | ``mli_tensor *``        | [IN/OUT] Pointer to cell tensor. Is modified during execution.  |
+   | ``cell``         | ``mli_tensor *``        | [IN | OUT] Pointer to cell tensor. Is modified during execution.|
    +------------------+-------------------------+-----------------------------------------------------------------+
-   | ``out``          | ``mli_tensor *``        | [OUT] Pointer to output tensor. Result is stored here.          |
+   | ``out``          | ``mli_tensor *``        | [IN | OUT] Pointer to output tensor. Result is stored here.     |
    +------------------+-------------------------+-----------------------------------------------------------------+
 ..
 
@@ -132,8 +133,8 @@ Weights for the cell consist of three tensors:
 
  - ``weights_in``: a three-dimensional tensor of shape (4, N, M) where N is a number of elements 
    in input tensor, and M is a number of cell elements (equal to number of elements in cell state 
-   and output tensor). It represents stacking of weights from :ref:`x_lstm` in the order 
-   (I, g, f,o):
+   and output tensor). It represents stacking of weights from the LSTM operation :eq:`eq_lstm_op` 
+   in the order (I, g, f,o):
 
 .. math::
 
@@ -146,8 +147,8 @@ Weights for the cell consist of three tensors:
 
  - ``weights_out``: a three-dimensional tensor of shape (4, M, M) where M is a number of cell 
    elements (weights which involved into a single dot    product series are stored column-wise, 
-   that is, with M stride in memory). It represents stacking of weights from :ref:`x_lstm` in
-   order (I, g, f, o):
+   that is, with M stride in memory). It represents stacking of weights from the LSTM operation 
+   :eq:`eq_lstm_op` in order (I, g, f, o):
 
 .. math::
 
@@ -199,56 +200,98 @@ Here is a list of all available LSTM cell functions:
    +-------------------------------------+-------------------------------------------+
 ..
 
-Ensure that you satisfy the following conditions before calling the function:
+Conditions
+^^^^^^^^^^
 
- - ``in``, ``prev_out``, ``weights_in``, ``weights_out``, ``bias``, and ``cell`` tensors must be valid (see :ref:`mli_tnsr_struc`).
+Ensure that you satisfy the following general conditions before calling the function:
 
- - ``in`` must be a tensor of shape (sequence_length, N) where sequence_length is a number of input frames (or timesteps) for sequential 
-   processing by LSTM cell.
+ - ``in``, ``out``, ``prev_out``, ``weights_in``, ``weights_out``, ``bias``, and ``cell`` 
+   tensors must be valid (see :ref:`mli_tnsr_struc`) and satisfy data requirements of the 
+   used version of the kernel.
 
- - ``weights_in`` must be a three-dimensional tensor of shape (4, N, M).
+ - ``tanh_lut`` and ``sigm_lut`` structures must be valid and prepared for 
+   hyperbolic tangent and sigmoid activation functions accordingly (see :ref:`lut_prot`).
+
+ - Shapes of ``in``, ``out``, ``prev_out``, ``weights_in``, ``weights_out``, ``bias``, and ``cell``
+   tensors must be compatible, which implies the following requirements:
+
+   - ``in`` must be a 2-dimensional tensor (rank==2) of shape (sequence_length, :math:`N`) 
+     where sequence_length is a number of input frames (or timesteps) for sequential processing by LSTM cell.
+
+   - ``weights_in`` must be a 3-dimensional tensor (rank==3) of shape (4, :math:`N`, :math:`M`).
+
+   - ``weights_out`` must be a 3-dimensional tensor (rank==3) of shape (4, :math:`M`, :math:`M`).
+
+   - ``bias`` must be a 2-dimensional tensor (rank==2) of shape (4, :math:`M`).
+
+   - ``cell`` must be a one-dimensional tensor (rank==1) of shape (:math:`M`).
+
+   - ``prev_out`` must be a one-dimensional tensor (rank==1) of shape (:math:`M`).
  
- - ``weights_out`` must be a three-dimensional tensor of shape (4, M, M).
- 
- - ``bias`` must be a two-dimensional tensor of shape (4, M).
- 
- - ``cell`` must be a one-dimensional tensor of shape (M).
- 
- - ``prev_out`` must be a one-dimensional tensor of shape (M).
- 
-- ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity for storing the result (to keep M 
-   elements if LSTM cell is configured with RNN_OUT_LAST or to keep M*sequence_length elements if LSTM cell is configured 
-   with RNN_OUT_ALL), and valid ``mem_stride`` field. Other fields of the structure do not have to contain valid data and 
-   are filled by the function.
+   - ``out`` tensor might be of any shape and rank. Kernel changes it's shape to (sequence_length, :math:`M`)
+
+ - ``out.data`` container must point to a buffer with sufficient capacity for storing the result (to keep :math:`M` 
+   elements if LSTM cell is configured with ``RNN_OUT_LAST`` or to keep :math:`M*sequence\_length` elements if
+   LSTM cell is configured with ``RNN_OUT_ALL``).
+
+ - ``scratch_data`` field in config structure must contain a valid pointer to a buffer with sufficient 
+   capacity for the intermediate result (:math:`4*M` elements of input type). The ``capacity`` field of 
+   the ``scratch_data`` must reflect the available size of this memory in bytes properly 
+   (see Table :ref:`t_mli_rnn_cell_cfg_desc`). 
    
- - ``in`` and ``cfg->scratch_data`` must not point to overlapped memory regions.
+ - ``in.data`` and ``cfg->scratch_data`` containers must not point to overlapped memory regions.
  
- - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
-   
- - Before processing, scratch_data field in config structure must contain a valid pointer to a buffer with enough 
-   capacity for the result (4*M elements of input type). The ``capacity`` field of the ``scratch_data`` must reflect the available size of 
-   this memory in bytes properly (see Table :ref:`t_mli_rnn_cell_cfg_desc`). 
-   
-- ``tanh_lut`` and ``sigm_lut`` structures must be valid and prepared for 
-  hyperbolic tangent and sigmoid activation functions accordingly (see :ref:`lut_prot`).
+ - ``mem_stride`` must satisfy the following statements:
 
-For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions, ensure that you 
-satisfy the following conditions before calling the function: 
+   - For ``in``, ``prev_out``, ``out``  and ``cell`` tensors - memstride must reflect the shape,
+     e.g memory of these tensors must be contiguous
+
+   - For ``weights_in``, ``weights_out`` and ``bias`` tensor - memstride of the innermost dimension must 
+     be equal to 1.
+
+For **fx16** and **fx16_fx8_fx8** versions of kernel, in addition to the general conditions, ensure that you 
+satisfy the following quantization conditions before calling the function:
+
+ - The number of ``frac_bits`` in the ``bias`` tensor must not exceed the sum of ``frac_bits`` 
+   in the ``in`` and ``weights_in`` tensors.
+
+For **sa8_sa8_sa32** versions of kernel, in addition to the general conditions, ensure that you 
+satisfy the following quantization conditions before calling the function: 
 
  - ``in``, ``prev_out`` and ``cell`` tensor must be quantized on the tensor level. This implies that each tensor contains a 
    single scale factor and a single zero offset.
 
  - Zero offset of ``in``, ``prev_out`` and ``cell`` tensors must be within [-128, 127] range.
    
- - ``weights_in``, ``weights_out`` and ``bias`` tensors must be symmetric and quantized per first dimension (number of 
-   sub-tensors equal to 4). This implies that each tensor contains separate scale point for each sub-tensor. All tensors 
-   contain single zero offset equal to 0.
+ - ``weights_in``, ``weights_out`` and ``bias`` tensors must be symmetric. All these tensors must be 
+   quantized on the same level. Allowed Options:
    
- - Scale factors of bias tensor must be equal to the multiplication of input scale factor broadcasted on ``weights_in`` 
-   array of scale factors.
+   - Per Tensor level. This implies that each tensor contains a single scale factor and a single 
+     zero offset equal to 0.
+
+   - Per First Dimension level (number of sub-tensors equal to 4). This implies that each tensor 
+     contains separate scale point for each sub-tensor. All tensors contain single zero offset 
+     equal to 0.
+   
+ - Scale factors of bias tensor must be equal to the multiplication of input scale factor
+   broadcasted on ``weights_in`` array of scale factors. See the example for the similar condition 
+   in the :ref:`conv_2d`.
+
+Result
+^^^^^^
+
+These functions modify:
+
+ - ``shape``, ``rank`` and ``mem_stride`` of ``out`` tensor. 
+ - memory pointed by ``out.data.mem`` field.  
+ - memory pointed by ``cell.data.mem`` field.  
+ - memory pointed by ``cfg.scratch_data.mem`` fields.  
+
+It is assumed that all the other fields and structures are properly populated 
+to be used in calculations and are not modified by the kernel.
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
-These kernels modify ``out`` tensor, ``cell`` tensors, and memory pointed by ``scratch_data`` field of cfg structure.
+
 

@@ -3,6 +3,9 @@
 Depthwise Convolution Prototype and Function List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Description
+^^^^^^^^^^^
+
 This kernel implements a 2D depthwise convolution operation applying each filter 
 channel to each input channel separately. It applies each filter of weights tensor 
 to each framed area of the size of the input tensor. The main difference with general 
@@ -20,13 +23,12 @@ one output channel. A depthwise convolution operation is shown in Figure
 ..
 
 For example, in a HWCN data layout, if in feature map is :math:`(Hi, Wi, Ci)` and weights 
-is :math:`(Hk, Wk, 1, Co)`, the output feature map is :math:`(Ho, Wo, Co)` tensor where the output 
-dimensions :math:`Ho` and :math:`Wo` are calculated dynamically depending on convolution parameters 
-(such as padding or stride), inputs and weights shape. 
+is :math:`(Hk, Wk, 1, Co)`, the output feature map is :math:`(Ho, Wo, Co)` tensor where the spatial 
+dimensions comply with the system of equations :eq:`eq_conv2d_shapes`. 
 
 .. note::
 
-   For more details on    calculations, see chapter 2 of `A guide to convolution 
+   For more details on calculations, see chapter 2 of `A guide to convolution 
    arithmetic for deep learning <https://arxiv.org/abs/1603.07285>`_.
 ..
 
@@ -41,6 +43,9 @@ and calculations, see :ref:`relu_prot`.
 This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more information 
 on related quantization aspects. The Number of accumulation series in terms of above-defined variables 
 is equal to :math:`(Hk * Wk)`.
+
+Functions
+^^^^^^^^^
 
 Kernels which implement depthwise convolution have the following prototype:
 
@@ -61,19 +66,20 @@ parameters are shown in the following table:
    :align: center
    :widths: auto 
 
-   +---------------+----------------------+------------------------------------------------------------------------+
-   | **Parameter** | **Type**             | **Description**                                                        |
-   +===============+======================+========================================================================+
-   | ``in``        | ``mli_tensor *``     | [IN] Pointer to constant input tensor                                  |
-   +---------------+----------------------+------------------------------------------------------------------------+
-   | ``weights``   | ``mli_tensor *``     | [IN] Pointer to constant weights tensor                                |
-   +---------------+----------------------+------------------------------------------------------------------------+
-   | ``bias``      | ``mli_tensor *``     | [IN] Pointer to constant bias tensor                                   |
-   +---------------+----------------------+------------------------------------------------------------------------+
-   | ``cfg``       | ``mli_conv2d_cfg *`` | [IN] Pointer to convolution parameters structure                       |
-   +---------------+----------------------+------------------------------------------------------------------------+
-   | ``out``       | ``mli_tensor *``     | [OUT] Pointer to output feature map tensor. Result is stored here      |
-   +---------------+----------------------+------------------------------------------------------------------------+
+   +---------------+----------------------+--------------------------------------------------+
+   | **Parameter** | **Type**             | **Description**                                  |
+   +===============+======================+==================================================+
+   | ``in``        | ``mli_tensor *``     | [IN] Pointer to constant input tensor            |
+   +---------------+----------------------+--------------------------------------------------+
+   | ``weights``   | ``mli_tensor *``     | [IN] Pointer to constant weights tensor          |
+   +---------------+----------------------+--------------------------------------------------+
+   | ``bias``      | ``mli_tensor *``     | [IN] Pointer to constant bias tensor             |
+   +---------------+----------------------+--------------------------------------------------+
+   | ``cfg``       | ``mli_conv2d_cfg *`` | [IN] Pointer to convolution parameters structure |
+   +---------------+----------------------+--------------------------------------------------+
+   | ``out``       | ``mli_tensor *``     | [IN | OUT] Pointer to output feature map tensor. |
+   |               |                      | Result is stored here                            |
+   +---------------+----------------------+--------------------------------------------------+
 ..   
 
 Here is a list of all available Depth-Wise Convolution functions:
@@ -141,49 +147,59 @@ Here is a list of all available Depth-Wise Convolution functions:
    +-----------------------------------------------------+--------------------------------------+
 ..
 
-Ensure that you satisfy the following conditions before calling the function:
+Conditions
+^^^^^^^^^^
 
- - ``in``, ``weights`` and ``bias`` tensors must be valid (see :ref:`mli_tnsr_struc`).
- 
- - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity, valid 
-   ``mem_stride`` field,  and 
-   valid ``el_params`` union. Other fields of the structure do not have to contain valid 
-   data and are filled by the function.
-	
+Ensure that you satisfy the following general conditions before calling the function:
+
+ - ``in``, ``out``, ``weights`` and ``bias`` tensors must be valid (see :ref:`mli_tnsr_struc`)
+   and satisfy data requirements of the used version of the kernel.
+
+ - Shapes of ``in``, ``out``, ``weights`` and ``bias`` tensors must be compatible,
+   which implies the following requirements:
+
+   - ``in`` and ``out`` are 3-dimensional tensors (rank==3). Dimensions meaning, 
+     and order (layout) is aligned with the used version of kernel.
+
+   - ``weights`` is a 4-dimensional tensor (rank==4). Dimensions meaning, 
+     and order (layout) is aligned with the used kernel.
+
+   - ``bias`` must be a one-dimensional tensor (rank==1). Its length must be equal to 
+     :math:`Co` (output channels OR number of filters).
+
+   - Channel :math:`Ci` dimension of ``weights`` tensors must be 1.
+
+   - Channel :math:`Ci` dimension of ``in`` and :math:`Co` (output channels OR number of filters) dimension of 
+     ``weights`` and ``out`` tensors must be equal.
+
+   - Shapes of ``in``, ``out`` and ``weights`` tensors together with ``cfg`` structure 
+     must satisfy the equations :eq:`eq_conv2d_shapes`
+
+   - Effective width and height of the ``weights`` tensor after applying dilation factor 
+     (see :eq:`eq_conv2d_shapes`) must not exceed appropriate dimensions of the ``in`` tensor. 
+
  - ``in`` and ``out`` tensors must not point to overlapped memory regions.
  
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
- 
- - Channel (C) dimension of ``weights`` tensors must be 1.
- 
- - Channel (C) dimension of ``in`` and Number of Filters (N) dimension of ``weights`` 
-   tensors must be equal.
    
- - ``bias`` must be a one-dimensional tensor. Its length must be equal to N dimension 
-   (number of filters) of ``weights`` tensor.
-   
- - ``padding_top`` and ``padding_bottom`` parameters must be in range of [0, weights (H)eight).
+ - ``padding_top`` and ``padding_bottom`` parameters must be in the range of [0, :math:`\hat{Hk}`)
+   where :math:`\hat{Hk}` is the effective kernel height (See :eq:`eq_conv2d_shapes`)
  
- - ``padding_left`` and ``padding_right`` parameters must be in range of [0, weights (W)idth).
+ - ``padding_left`` and ``padding_right`` parameters must be in the range of [0, :math:`\hat{Wk}`)
+   where :math:`\hat{Wk}` is the effective kernel width (See :eq:`eq_conv2d_shapes`)
  
  - ``stride_width`` and ``stride_height`` parameters must not be equal to 0.
 
  - ``dilation_width`` and ``dilation_height`` parameters must not be equal to 0.
- 
- - Width (W) and Height (H) dimensions of the ``weights`` tensor must be less than or equal to 
-   the appropriate dimensions of the ``in`` tensor.
-   
- - Effective width and effective height of the ``weights`` tensor after applying dilation factor 
-   must not exceed appropriate dimensions of the ``in`` tensor. 
 
-.. admonition:: Example 
-   :class: "admonition tip" 
-   
-   :math:`(weights\_W*dilation\_W+1)<=in\_W`
-..
+For **fx16** and **fx16_fx8_fx8** versions of kernel, in addition to the general conditions, ensure that you 
+satisfy the following quantization conditions before calling the function:
 
-For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions, ensure that you 
-satisfy the following conditions before calling the function:
+ - The number of ``frac_bits`` in the ``bias`` and ``out`` tensors must not exceed the sum of ``frac_bits`` 
+   in the ``in`` and ``weights`` tensors.
+
+For **sa8_sa8_sa32** versions of kernel, in addition to the general conditions, ensure that you 
+satisfy the following quantization conditions before calling the function:
 
  - ``in`` and ``out`` tensor must be quantized on the tensor level. This implies that each 
    tensor contains a single scale factor and a single zero offset.
@@ -196,11 +212,19 @@ satisfy the following conditions before calling the function:
    - Per Tensor level. This implies that each tensor contains a single scale factor and a single 
      zero offset equal to 0.
 	 
-   - Per N dimension level (number of filters). This implies that each tensor contains separate 
+   - Per :math:`Co` dimension level (number of filters). This implies that each tensor contains separate 
      scale point for each sub-tensor. All tensors contain single zero offset equal to 0.
 	 
  - Scale factors of bias tensor must be equal to the multiplication of input scale factor 
-   broadcasted on weights array of scale factors. 
+   broadcasted on weights array of scale factors. See the example for the similar condition 
+   in the :ref:`conv_2d`.
+
+Result
+^^^^^^
+
+These functions only modify the memory pointed by ``out.data.mem`` field. 
+It is assumed that all the other fields of ``out`` tensor are properly populated 
+to be used in calculations and are not modified by the kernel.
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.

@@ -1,5 +1,10 @@
+.. _conv_2d:
+
 Convolution 2D Prototype and Function List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Description
+^^^^^^^^^^^
 
 This kernel implements a general 2D convolution operation. It applies each filter 
 of weights tensor to each framed area of the size of input tensor. 
@@ -14,9 +19,9 @@ The convolution operation is shown in Figure :ref:`f_conv_2d`.
 ..
  
 For example, in a HWCN data layout, if the ``in`` feature map is :math:`(Hi, Wi, Ci)` and 
-the ``weights`` feature map is :math:`(Hk, Wk, Ci, Co)`, the output feature map is :math:`(Ho, Wo, Co)` 
-tensor where the output dimensions :math:`Ho` and :math:`Wo` are calculated dynamically depending on 
-convolution parameters (such as padding or stride), inputs and weights shape. 
+the ``weights`` is :math:`(Hk, Wk, Ci, Co)`, the ``output`` feature map is :math:`(Ho, Wo, Co)`
+tensor where the spatial dimensions comply with the system of equations :eq:`eq_conv2d_shapes`. 
+
 
 .. note::
 
@@ -31,6 +36,9 @@ and calculations, see :ref:`relu_prot`.
 This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more information on 
 related quantization aspects. The Number of accumulation series in terms of above-defined variables is 
 equal to :math:`(Hk * Wk * Ci)`.
+
+Functions
+^^^^^^^^^
 
 The functions which implement 2D Convolutions have the following prototype:
 
@@ -62,9 +70,9 @@ and the function parameters are shown in the following table:
    +---------------+-----------------------+--------------------------------------------------+
    | ``cfg``       | ``mli_conv2d_cfg *``  | [IN] Pointer to convolution parameters structure |
    +---------------+-----------------------+--------------------------------------------------+
-   | ``out``       | ``mli_tensor *``      | [OUT] Pointer to output feature map tensor.      |
+   | ``out``       | ``mli_tensor *``      | [IN | OUT] Pointer to output feature map tensor. |
    |               |                       | Result is stored here                            |
-   +---------------+-----------------------+--------------------------------------------------+   
+   +---------------+-----------------------+--------------------------------------------------+
 ..
 
 
@@ -152,46 +160,58 @@ Here is a list of all available 2D Convolution functions:
    |                                           || Height of weights tensor: **5**       |
    +-------------------------------------------+----------------------------------------+
 ..
- 
-Ensure that you satisfy the following conditions before calling the function:
 
- - ``in``, ``weights`` and ``bias`` tensors must be valid (see :ref:`mli_tnsr_struc`).
- 
- - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity, valid 
-   ``mem_stride`` field,  and valid ``el_params`` union. Other fields of the structure do not
-   have to contain valid data and are filled by the function.
-   
+Conditions
+^^^^^^^^^^
+
+Ensure that you satisfy the following general conditions before calling the function:
+
+ - ``in``, ``out``, ``weights`` and ``bias`` tensors must be valid (see :ref:`mli_tnsr_struc`)
+   and satisfy data requirements of the used version of the kernel.
+
+ - Shapes of ``in``, ``out``, ``weights`` and ``bias`` tensors must be compatible,
+   which implies the following requirements:
+
+    - ``in`` and ``out`` are 3-dimensional tensors (rank==3). Dimensions meaning, 
+      and order (layout) is aligned with the used version of kernel.
+
+    - ``weights`` is a 4-dimensional tensor (rank==4). Dimensions meaning, 
+      and order (layout) is aligned with the used kernel.
+
+    - ``bias`` must be a one-dimensional tensor (rank==1). Its length must be equal to 
+      :math:`Co` (output channels OR number of filters).
+
+    - Channel :math:`Ci` dimension of ``in`` and ``weights`` tensors must be equal.
+
+    - Shapes of ``in``, ``out`` and ``weights`` tensors together with ``cfg`` structure 
+      must satisfy the equations :eq:`eq_conv2d_shapes`
+
+    - Effective width and height of the ``weights`` tensor after applying dilation factor 
+      (see :eq:`eq_conv2d_shapes`) must not exceed appropriate dimensions of the ``in`` tensor. 
+
  - ``in`` and ``out`` tensors must not point to overlapped memory regions.
- 
- - Channel (C) dimension of ``in`` and ``weights`` tensors must be equal.
  
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
- - ``bias`` must be a one-dimensional tensor. Its length must be equal to N dimension 
-   (number of filters) of ``weights`` tensor.
-   
- - ``padding_top`` and ``padding_bottom`` parameters must be in the range of [0, weights (H)eight).
+ - ``padding_top`` and ``padding_bottom`` parameters must be in the range of [0, :math:`\hat{Hk}`)
+   where :math:`\hat{Hk}` is the effective kernel height (See :eq:`eq_conv2d_shapes`)
  
- - ``padding_left`` and ``padding_right`` parameters must be in the range of [0, weights (W)idth).
+ - ``padding_left`` and ``padding_right`` parameters must be in the range of [0, :math:`\hat{Wk}`)
+   where :math:`\hat{Wk}` is the effective kernel width (See :eq:`eq_conv2d_shapes`)
  
  - ``stride_width`` and ``stride_height`` parameters must not be equal to 0.
 
  - ``dilation_width`` and ``dilation_height`` parameters must not be equal to 0.
- 
- - Width (W) and Height (H) dimensions of the ``weights`` tensor must be less than or equal to 
-   the appropriate dimensions of the ``in`` tensor. 
-   
- - Effective width and height of the ``weights`` tensor after applying dilation factor must not 
-   exceed appropriate dimensions of the ``in`` tensor. 
 
-.. admonition:: Example 
-   :class: "admonition tip"
-   
-   :math:`(weights\_W*dilation\_W+1)<=in\_W`.
-..
-                                                                          
-For **sa8_sa8_sa32** versions of kernel, in addition to preceding conditions, ensure that you satisfy 
-the following conditions before calling the function:
+
+For **fx16** and **fx16_fx8_fx8** versions of kernel, in addition to the general conditions, ensure that you 
+satisfy the following quantization conditions before calling the function:
+
+ - The number of ``frac_bits`` in the ``bias`` and ``out`` tensors must not exceed the sum of ``frac_bits`` 
+   in the ``in`` and ``weights`` tensors.
+
+For **sa8_sa8_sa32** versions of kernel, in addition to general conditions, ensure that you satisfy 
+the following quantization conditions before calling the function:
 
  - ``in`` and ``out`` tensors must be quantized on the tensor level. This implies that each tensor 
    contains a single scale factor and a single zero offset.
@@ -204,11 +224,42 @@ the following conditions before calling the function:
    - Per tensor level. This implies that each tensor contains a single scale factor and a 
      single zero offset equal to 0.
 	 
-   - Per N dimension level (number of filters). This implies that each tensor contains 
+   - Per :math:`Co` dimension level (number of filters). This implies that each tensor contains 
      separate scale point for each sub-tensor. All tensors contain single zero offset equal to 0.
-	 
+ 
  - Scale factors of ``bias`` tensor must be equal to the multiplication of input scale factor 
    broadcasted on weights array of scale factors. 
-   
-Depending on the debug level (see section :ref:`err_codes`) this function might perform a parameter 
+
+.. admonition:: Example 
+   :class: "admonition tip"
+
+   Having source float scales for input and weights operands, bias sclale in C code can be calculated 
+   in the following way with help of standart frexpf function:  
+
+   .. code:: c
+
+       // Bias scale must be equal to the multiplication of input
+       // and weights scales
+       const float in_scale = 0.00392157f;
+       const float w_scale_1 = 0.00542382f;
+       float bias_scale = in_w_scale * w_scale_1;
+       
+       // Derive quantized bias scale and frac bits for it to use it in tensor struct.
+       int exp;
+       frexpf(bias_scale, &exp);
+       int bias_scale_frac_bits = 15 - exp;
+       int16_t bias_scale_val = (int16_t)((1ll << frac_bits) * bias_scale + 0.5f);
+
+   ..
+..
+
+
+Result
+^^^^^^
+
+These functions only modify the memory pointed by ``out.data.mem`` field. 
+It is assumed that all the other fields of ``out`` tensor are properly populated 
+to be used in calculations and are not modified by the kernel.
+
+Depending on the debug level (see section :ref:`err_codes`) these functions might perform a parameter 
 check and return the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.   

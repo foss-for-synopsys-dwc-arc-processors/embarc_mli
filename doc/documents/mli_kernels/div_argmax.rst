@@ -3,8 +3,14 @@
 Argmax Prototype and Function List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Description
+^^^^^^^^^^^
+
 This kernel returns the positions of maximum values across the whole tensor, or for each slice 
 across a dimension. 
+
+Functions
+^^^^^^^^^
 
 Argmax functions have the following prototype:
 
@@ -75,38 +81,60 @@ parameters are shown in the following table:
    +----------------------------+--------------------------------------+
 ..   
 
-Ensure that you satisfy the following conditions before calling the function:
+Conditions
+^^^^^^^^^^
 
- - ``in`` tensor must be valid (see :ref:`mli_tnsr_struc`).
- 
- - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
- 
- - ``out`` tensor must contain only
+Ensure that you satisfy the following general conditions before calling the function:
+
+ - ``in`` tensor must be valid (see :ref:`mli_tnsr_struc`) 
+   and satisfy data requirements of the used version of the kernel.
+
+ - ``out`` tensor must be valid (see :ref:`mli_tnsr_struc`) 
+   and satisfy the following requiremens:
+
+   - ``el_type`` is equal to ``MLI_EL_SA_32``
+
+   - 2-dimensional tensor (``rank`` == 2) of shape (``dim_size``, ``top_k``)  where ``top_k`` is equal to ``cfg.topk``
+     and ``dim_size`` is equal to ``in.shape[cfg.axis]`` if ``cfg.axis`` >= 0. 
+     If ``cfg.axis`` < 0 then ``dim_size`` is equal to 1
+
+ - ``mem_stride`` must satisfy the following statements:
    
-    - A valid pointer to a buffer with sufficient capacity. That is ``top_k*in.shape[axis]`` values
-      of ``int32`` type. 
+    - For ``out`` tensor - memstride must reflect the shape, 
+      e.g memory of these tensors must be contiguous.
+      
+    - For ``in`` tensor - memstride of the innermost dimension must be equal to 1.
 
-    - Output tensor must be contiguous: ``mem_stride`` must be valid and 
-      calculated from the actual output shape (see :ref:`mli_tnsr_struc`).
+ - ``axis`` parameter of ``cfg`` structure might be negative and must be less than ``in`` tensor rank.
 
-    - Other fields of the structure do not have to contain valid data and are filled by the function.
+ - ``top_k`` parameter of ``cfg`` structure must satisfy the following requirements depending
+   on the ``axis`` parameter of ``cfg`` structure:
+ 
+    - ``axis < 0`` : ``top_k`` must be less or equal to the total number of elements in ``in`` tensor.
 
-For **sa8** versions of kernel, in addition to the preceding conditions, ensure that you 
+    - ``axis >= 0`` : ``top_k`` must be less or equal to the  ``axis`` dimension 
+      of ``in`` tensor (e.g. ``in.shape[cfg.axis]``).
+
+For **sa8** versions of kernel, in addition to general conditions, ensure that you 
 satisfy the following condition before calling the function:
  
  - ``in`` tensor must be quantized on the tensor level. This implies that the tensor 
    contains a single scale factor and a single zero offset.
-   
-Depending on the debug level (see section :ref:`err_codes`), this function performs a parameter 
-check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
-The Kernel modifies the output tensor which is transformed into two-dimensional contiguous tensor of shape 
-``(dim_size, top_k]`` where ``dim_size`` is the size of dimension specified by the axis parameter in 
-``mli_argmax_cfg`` structure, and ``top_k`` is the number of indexes per slice specified by the 
-``topk`` parameter of the same structure. 
+Result
+^^^^^^
 
-``el_type`` field of ``out`` tensor is set by the kernel to ``MLI_EL_SA_32`` and ``el_params`` field 
-is configured to reflect fully integer values (zero_offset = 0,  scale = 1 and scale_frac_bits = 0). 
+These functions modify:
+
+ - Memory pointed by ``out.data.mem`` field.  
+ - ``el_params`` field of ``out`` tensor. 
+
+It is assumed that all the other fields and structures are properly populated 
+to be used in calculations and are not modified by the kernel.
+
+``el_params`` field is configured to reflect fully integer values 
+(zero_offset = 0,  scale = 1 and scale_frac_bits = 0). 
+
 Values in output tensor are 32 bit indexes. An index represents the target value position in the linear
 memory pointed by input tensor data field. Hence, the value itself can be extracted from the array without 
 using the shape or memory stride fields of the input tensor.
@@ -118,3 +146,6 @@ using the shape or memory stride fields of the input tensor.
    is taken from ``out`` tensor using ``out.data.mem.pi32[]`` array. Memory strides and shape of ``in`` 
    tensor are already considered.
 ..
+
+Depending on the debug level (see section :ref:`err_codes`), this function performs a parameter 
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.

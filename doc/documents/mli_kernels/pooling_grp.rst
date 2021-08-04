@@ -54,9 +54,35 @@ Functions in this group use the ``mli_pool_cfg`` structure, defined as:
    +----------------------+-------------+-------------------------------------------------------------------+
 ..
 
+For all kernels in this group, spatial dimensions of
+``in`` and ``out`` tensors (Width and Height) must comply with the following 
+system of equations:
+
+.. math::
+   :label: eq_pool_shapes
+
+   \begin{cases}
+
+   \hat{Wi} = {Wi}+padding\_left+padding\_right
+
+   \hat{Hi} = {Hi}+padding\_top+padding\_bottom
+
+   {Wo}*{stride\_width} = \hat{Wi}-{kernel\_width}+1
+
+   {Ho}*{stride\_height} = \hat{Hi}-{kernel\_height}+1
+
+   \end{cases}
+..
+
+Where:
+
+   - :math:`\hat{Wi}`, :math:`\hat{Hi}` *- effective* ``in`` *feature map width and height
+     after applying* :math:`padding\_*` *to the original width* (:math:`Wi`) *and height* (:math:`Hi`).
+
+   - :math:`Wo`, :math:`Ho` *-* ``out`` *feature map width and height.*
 
 .. toctree::
    :maxdepth: 1
    
    pool_max.rst
-   pool_avg.rst 
+   pool_avg.rst

@@ -3,11 +3,15 @@
 Fully Connected Prototype and Function List 
 -------------------------------------------
 
+Description
+^^^^^^^^^^^
+
 .. _f_fully_conn_layer:
 .. figure:: ../images/fully_conn_layer.png
    :align: center
    
 ..
+
 
 This kernel implements a fully connected layer, also usually referred to as the inner 
 product or dense layer.  
@@ -37,6 +41,9 @@ during the function's execution. For more information on supported ReLU types, s
 This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_infl` for more information on related quantization aspects. 
 The Number of accumulation series is equal to input size.
 
+Functions
+^^^^^^^^^
+
 Functions that implement fully connected kernels have the following prototype:
 
 .. code:: c
@@ -56,19 +63,19 @@ and the function parameters are shown in the following table:
    :align: center
    :widths: auto 
    
-   +------------------+---------------------------------+--------------------------------------------------------+
-   | **Parameter**    | **Type**                        | **Description**                                        |
-   +==================+=================================+========================================================+
-   | ``in``           | ``mli_tensor *``                | [IN] Pointer to constant input tensor.                 |
-   +------------------+---------------------------------+--------------------------------------------------------+
-   | ``weights``      | ``mli_tensor *``                | [IN] Pointer to constant weights tensor.               |
-   +------------------+---------------------------------+--------------------------------------------------------+
-   | ``bias``         | ``mli_tensor *``                | [IN] Pointer to constant bias tensor.                  |
-   +------------------+---------------------------------+--------------------------------------------------------+
-   | ``cfg``          | ``mli_fully_connected_cfg *``   | [IN] Pointer to fully connected parameters structure.  |
-   +------------------+---------------------------------+--------------------------------------------------------+
-   | ``out``          | ``mli_tensor *``                | [OUT] Pointer to output tensor. Result is stored here. |
-   +------------------+---------------------------------+--------------------------------------------------------+
+   +------------------+---------------------------------+-------------------------------------------------------------+
+   | **Parameter**    | **Type**                        | **Description**                                             |
+   +==================+=================================+=============================================================+
+   | ``in``           | ``mli_tensor *``                | [IN] Pointer to constant input tensor.                      |
+   +------------------+---------------------------------+-------------------------------------------------------------+
+   | ``weights``      | ``mli_tensor *``                | [IN] Pointer to constant weights tensor.                    |
+   +------------------+---------------------------------+-------------------------------------------------------------+
+   | ``bias``         | ``mli_tensor *``                | [IN] Pointer to constant bias tensor.                       |
+   +------------------+---------------------------------+-------------------------------------------------------------+
+   | ``cfg``          | ``mli_fully_connected_cfg *``   | [IN] Pointer to fully connected parameters structure.       |
+   +------------------+---------------------------------+-------------------------------------------------------------+
+   | ``out``          | ``mli_tensor *``                | [IN | OUT] Pointer to output tensor. Result is stored here. |
+   +------------------+---------------------------------+-------------------------------------------------------------+
 ..
 
    ``mli_fully_connected_cfg`` is defined as:
@@ -137,46 +144,53 @@ Where:
  
     :math:`\hat{b}_{i}` *– adjusted sa32 bias for* :math:`i_{\text{th}}` *neuron*
 
+Conditions
+^^^^^^^^^^
 
-Ensure that you satisfy the following conditions before calling the function:
+Ensure that you satisfy the following general conditions before calling the function:
 
- - ``in``, ``weights`` and ``bias`` tensors must be valid (see :ref:`mli_tnsr_struc`).
- 
- - ``in`` tensor might be of any shape and rank. Only total number of elements is 
-   considered.
-   
- - ``weights`` must be a two-dimensional tensor of shape (N, M), where N is the 
-   total number of elements in the input tensor and M is the total number of 
-   neurons and is equal to output length
-   
- - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity, valid ``mem_stride`` field 
-   and valid ``el_params`` union. Other fields of the structure do not have to contain 
-   valid data and are filled by the function.
-   
- - ``bias`` must be a one-dimensional tensor. Its length must be equal to M dimension 
-   (number of filters and is equal to output length) of weights tensor.
-   
+ - ``in``, ``out``, ``weights`` and ``bias`` tensors must be valid (see :ref:`mli_tnsr_struc`)
+   and satisfy data requirements of the used version of the kernel.
+
+ - Shapes of ``in``, ``out``, ``weights`` and ``bias`` tensors must be compatible,
+   which implies the following requirements:
+
+    - ``in`` tensor might be of any shape and rank. Only total number of elements is 
+      considered.
+
+    - ``weights`` is a 2-dimensional tensor (rank==2) of shape :math:`(N, M)`, where 
+      :math:`N` is the total number of elements in the input tensor and :math:`M`
+      is the total number of neurons and is equal to output length.
+
+    - ``bias`` must be a one-dimensional tensor (rank==1). Its length must be equal to 
+      :math:`M` dimension (number of filters and is equal to output length) of weights tensor.
+
+    - ``out`` must be a one-dimensional tensor (rank==1). Its length must be equal to 
+      :math:`M` dimension (number of filters) of weights tensor.
+
  - ``in`` and ``out`` tensors must not point to overlapped memory regions.
    
- - ``mem_stride`` must satisfy the following statements
+ - ``mem_stride`` must satisfy the following statements:
    
-    - For ``in`` and ``out`` tensors - memstride must reflect the shape or be set to 0, 
-      e.g memory of these tensors must be contiguous
+    - For ``in`` and ``out`` tensors - memstride must reflect the shape, 
+      e.g memory of these tensors must be contiguous.
       
     - For ``weights`` and ``bias`` tensor - memstride of the innermost dimension must 
       be equal to 1.
 
+For **fx16** and **fx16_fx8_fx8** versions of kernel, in addition to the general conditions, ensure that you 
+satisfy the following quantization conditions before calling the function:
+
+ - The number of ``frac_bits`` in the ``bias`` and ``out`` tensors must not exceed the sum of ``frac_bits`` 
+   in the ``in`` and ``weights`` tensors.
  
-For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions, ensure that you 
-satisfy the following conditions before calling the function: 
+For **sa8_sa8_sa32** versions of kernel, in addition to the general conditions, ensure that you 
+satisfy the following quantization conditions before calling the function: 
 
  - ``in`` and  ``out`` tensors must be quantized on the tensor level. 
    It implies that each tensor contains a single scale factor and a single zero offset.
    
- - ``weights`` and ``bias`` tensors must be quantized on the tensor level. 
-   It implies that each tensor contains a single scale factor and a single zero offset.
-   
- - Zero offset of in and out tensors must be within [-128, 127] range.
+ - Zero offset of ``in`` and ``out`` tensors must be within [-128, 127] range.
 
  - ``weights`` and ``bias`` tensors must be symmetric. Both must be quantized at the same level.
    Allowed options are
@@ -184,11 +198,20 @@ satisfy the following conditions before calling the function:
     - Per Tensor level. This implies that each tensor contains a single scale factor and a single zero
       offset equal to 0.
       
-    - Per M dimension level (number of neurons). This implies that each tensor contains separate scale point
+    - Per :math:`M` dimension level (number of neurons). This implies that each tensor contains separate scale point
       for each sub-tensor. All tensors contain single zero offset equal to 0.
    
- - Scale factor of bias tensor must be equal to the multiplication of input scale factor 
-   and weights scale factor.
+ - Scale factors of bias tensor must be equal to the multiplication of input scale factor 
+   broadcasted on weights array of scale factors. See the example for the similar condition 
+   in the :ref:`conv_2d`.
+
+
+Result
+^^^^^^
+
+These functions only modify the memory pointed by ``out.data.mem`` field. 
+It is assumed that all the other fields of ``out`` tensor are properly populated 
+to be used in calculations and are not modified by the kernel.
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.

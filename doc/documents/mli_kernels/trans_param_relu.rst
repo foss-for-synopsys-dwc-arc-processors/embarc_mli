@@ -3,6 +3,9 @@
 Parametric ReLU (PReLU) Prototype and Function List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Description
+^^^^^^^^^^^
+
 This kernel performs Parametric Rectified Linear Unit (PReLU) with a negative slope activation 
 function. It transforms each element of input tensor according to the following formula:
 
@@ -28,18 +31,11 @@ specified axis an individual :math:`\alpha` slope coefficient is used.
 
 The “shared axis” feature found in some frameworks is not supported in MLI. This functionality can 
 instead be achieved in several iterations using the PReLU kernel and the mem_strides feature. 
-One iteration implies creating subtensors from input and alpha tensors using memstrides and applying 
+One iteration implies creating subtensors from ``in`` and ``slope_coeff`` tensors using memstrides and applying 
 the PReLU kernel on them.
 
-This kernel outputs a tensor of the same shape and type as input. This kernel can perform in-place 
-computation: output and input can point to exactly the same memory (the same starting address
-and memory strides). 
-
-.. note::
-
-   Only an exact overlap of starting address and memory stride of the input and output 
-   tensors is acceptable. Partial overlaps result in undefined behavior.
-..
+Functions
+^^^^^^^^^
 
 Kernels which implement Parametric ReLU functions have the following prototype:
 
@@ -47,7 +43,7 @@ Kernels which implement Parametric ReLU functions have the following prototype:
 
    mli_status mli_krn_prelu_<data_format>(
       const mli_tensor  *in,
-      const mli_tensor  *slope_coeffs,
+      const mli_tensor  *slope_coeff,
       const mli_prelu_cfg  *cfg,
       mli_tensor  *out);
 
@@ -67,7 +63,8 @@ are shown in the following table:
    +------------------+-----------------------+-----------------------------------------------------------+
    | ``cfg``          | ``mli_prelu_cfg *``   | [IN] Pointer to PReLU parameters structure.               |
    +------------------+-----------------------+-----------------------------------------------------------+
-   | ``out``          | ``mli_tensor *``      | [OUT] Pointer to output tensor. Result is stored here.    |
+   | ``out``          | ``mli_tensor *``      | [IN | OUT] Pointer to output tensor.                      |
+   |                  |                       | Result is stored here                                     |
    +------------------+-----------------------+-----------------------------------------------------------+
 ..
 
@@ -110,18 +107,30 @@ are shown in the following table:
    +-------------------------+------------------------------------+
 ..
 
-Ensure that you satisfy the following conditions before calling the function:
+Conditions
+^^^^^^^^^^
 
- - ``in`` and ``slope_coeff`` tensors must be valid (see :ref:`mli_tnsr_struc`).
+Ensure that you satisfy the following general conditions before calling the function:
+
+ - ``in``, ``out`` and ``slope_coeff`` tensors must be valid (see :ref:`mli_tnsr_struc`).
+
+ - ``in`` and ``out`` tensors must be of the same shapes.
+
+ - ``slope_coeff`` tensor must satisfy the following shape requirements depending
+   on the ``axis`` parameter of ``cfg`` structure:
+   
+    - ``axis < 0`` : ``slope_coeff`` tensor must be a valid tensor-scalar (see data field 
+      description in the Table :ref:`mli_tnsr_struc`).
+
+    - ``axis >= 0`` : ``slope_coeff`` is a one-dimensional tensor (rank==1). 
+      It's length must be equal to ``axis`` dimension of ``in`` tensor (e.g. ``in.shape[cfg.axis]``).
+
+ - ``axis`` parameter of ``cfg`` structure might be negative and must be less than ``in`` tensor rank.
  
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
- 
- - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity 
-   (that is, the total amount of elements in input tensor), valid ``mem_stride`` field) and valid el_params union. 
-   Other fields are filled by kernel (shape, rank and element specific parameters).
    
-For **sa8** versions of kernel, in addition to the preceding conditions, ensure that you 
-satisfy the following conditions before calling the function: 
+For **sa8** versions of kernel, in addition to general conditions, ensure that you satisfy 
+the following quantization conditions before calling the function:
 
  - ``in``, ``out`` and ``slope_coeff`` tensors must be quantized on the tensor level. This implies 
    that the tensor contains a single scale factor and a single zero offset.
@@ -129,6 +138,23 @@ satisfy the following conditions before calling the function:
  - Zero offset of ``in`` and ``out`` tensors must be within [-128, 127] range.
 
  - Zero offset of ``slope_coeffs`` tensor must be within [-16384, 16383] range.
-   
+
+Result
+^^^^^^
+
+These functions only modify the memory pointed by ``out.data.mem`` field. 
+It is assumed that all the other fields of ``out`` tensor are properly populated 
+to be used in calculations and are not modified by the kernel.
+
+The kernel supports in-place computation. It means that ``out`` and ``in`` tensor structures 
+can point to the same memory with the same memory strides but without shift.
+It can affect performance for some platforms.
+
+.. warning::
+
+  Only an exact overlap of starting address and memory stride of the ``in`` and ``out`` 
+  tensors is acceptable. Partial overlaps result in undefined behavior.
+..
+
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
