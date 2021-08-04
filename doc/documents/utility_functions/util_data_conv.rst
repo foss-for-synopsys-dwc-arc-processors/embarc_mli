@@ -1,6 +1,9 @@
 Data Conversion Group
 ---------------------
 
+Description
+^^^^^^^^^^^
+
 This group contains functions which copy elements from the input tensor to the 
 output with data conversion according to the output tensor type parameters. The 
 functions convert the data from the source type to the destination type, 
@@ -52,14 +55,8 @@ Where:
 
    :math:`Round` = rounding according to destination container size
 
-Tensor shape and rank are not changed by this function. They are copied from the source 
-to the destination tensor. For conversions with equal container size, in-place computation 
-is permitted. Note that this could impact performance on some platforms.
-``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
-
-If ``mem_stride`` of the output tensor is not equal to 0, the function will use these ``mem_strides``
-to store the results in the output buffer. If the ``mem_stride`` is equal to 0, 
-it will be computed from the input shape.
+Functions
+^^^^^^^^^
 
 Function prototype:
 
@@ -86,6 +83,44 @@ fixed point data formats.
        const mli_tensor* src,
        mli_tensor* dst);
 ..
-   
+  
+Conditions
+^^^^^^^^^^
+
+Ensure that you satisfy the following general conditions before calling the function:
+
+ - ``in`` and ``out`` tensors must be valid (see :ref:`mli_tnsr_struc`)
+   and satisfy data requirements of the used version of the kernel.
+
+ - ``in`` and ``out`` tensors must be of the same shapes
+
+ - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
+
+For **sa8** versions of kernel, in addition to general conditions, ensure that you satisfy 
+the following quantization conditions before calling the function:
+
+ - if ``in`` and ``out`` tensors are both quantized on per-axis level, 
+   then they must share the same quantization axis (``in.el_params.sa.dim`` = ``out.el_params.sa.dim``).
+
+Result
+^^^^^^
+
+These functions only modify the memory pointed by ``out.data.mem`` field. 
+It is assumed that all the other fields of ``out`` tensor are properly populated 
+to be used in calculations and are not modified by the kernel.
+
+The kernel supports in-place computation for conversions with equal container size 
+(``fx8`` to/from ``sa8``, ``sa8`` to ``sa8``, ``fx16`` to ``fx16`` and etc).
+It means that ``out`` and ``in`` tensor structures 
+can point to the same memory with the same memory strides but without shift.
+It can affect performance for some platforms.
+
+.. warning::
+
+  Only an exact overlap of starting address and memory stride of the ``in`` and ``out`` 
+  tensors is acceptable. Partial overlaps or in-place changing of container size 
+  (``fx8`` to ``fx16`` for example) result in undefined behavior.
+..
+
 Depending on the debug level (see section :ref:`err_codes`), this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
