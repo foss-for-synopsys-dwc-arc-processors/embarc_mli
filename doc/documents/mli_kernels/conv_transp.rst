@@ -172,7 +172,7 @@ The following table lists all the available Transpose Convolution functions:
 Conditions
 ^^^^^^^^^^
 
-Ensure that you satisfy the following conditions before calling the function: 
+Ensure that you satisfy the following general conditions before calling the function: 
 
  - ``in``, ``out``, ``weights`` and ``bias`` tensors must be valid (see :ref:`mli_tnsr_struc`)
    and satisfy data requirements of the used version of the kernel.
@@ -201,19 +201,24 @@ Ensure that you satisfy the following conditions before calling the function:
  
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
- - ``padding_top`` and ``padding_bottom`` parameters must be in range of [0, weights (H)eight).
+ - ``padding_top`` and ``padding_bottom`` parameters must be in the range of [0, :math:`Hk`).
  
- - ``padding_left`` and ``padding_right`` parameters must be in range of [0, weights (W)idth).
+ - ``padding_left`` and ``padding_right`` parameters must be in the range of [0, :math:`Wk`).
  
- - ``stride_width`` parameter must be in range of [1, weights (W)idth).
+ - ``stride_width`` parameter must be in range of [1, :math:`Wk`).
 
- - ``stride_height`` parameter must be in range of [1, weights (H)eight).
+ - ``stride_height`` parameter must be in range of [1, :math:`Hk`).
 
  - ``dilation_height`` and ``dilation_width`` must be equal to 1. 
 
- 
-For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions, ensure that you 
-satisfy the following conditions before calling the function:
+For **fx16** and **fx16_fx8_fx8** versions of kernel, in addition to the general conditions, ensure that you 
+satisfy the following quantization conditions before calling the function:
+
+ - The number of ``frac_bits`` in the ``bias`` and ``out`` tensors must not exceed the sum of ``frac_bits`` 
+   in the ``in`` and ``weights`` tensors.
+
+For **sa8_sa8_sa32** versions of kernel, in addition to the general conditions, ensure that you 
+satisfy the following quantization conditions before calling the function:
 
  - ``in`` and ``out`` tensor must be quantized on the tensor level. This implies that each tensor 
    contains a single scale factor and a single zero offset.
@@ -236,7 +241,7 @@ Result
 ^^^^^^
 
 These functions only modify the memory pointed by ``out.data.mem`` field. 
-It is assumed that all the rest fields of ``out`` tensor are properly populated 
+It is assumed that all the other fields of ``out`` tensor are properly populated 
 to be used in calculations and are not modified by the kernel.
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 

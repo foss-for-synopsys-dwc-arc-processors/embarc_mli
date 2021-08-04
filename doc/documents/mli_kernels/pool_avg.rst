@@ -90,7 +90,7 @@ Kernels which implement average pooling functions have the following prototype:
 Conditions
 ^^^^^^^^^^
 
-Ensure that you satisfy the following conditions before calling the function:
+Ensure that you satisfy the following general conditions before calling the function:
 
  - ``in`` and ``out`` tensors must be valid (see :ref:`mli_tnsr_struc`)
    and satisfy data requirements of the used version of the kernel.
@@ -116,16 +116,19 @@ Ensure that you satisfy the following conditions before calling the function:
 
  - ``stride_width`` and ``stride_height`` parameters must not be equal to 0.
 
- - For sa8, ``in`` and ``out`` tensors must be quantized on the tensor level. This implies that 
+For **sa8** versions of kernel, in addition to the general conditions, ensure that you 
+satisfy the following quantization conditions before calling the function: 
+
+ - ``in`` and ``out`` tensors must be quantized on the tensor level. This implies that 
    each tensor contains a single scale factor and a single zero offset.
 
- - For sa8, zero offset of in and out tensors must be within [-128, 127] range.
+ - zero offset of ``in`` and ``out`` tensors must be within [-128, 127] range.
 
 Result
 ^^^^^^
 
 These functions only modify the memory pointed by ``out.data.mem`` field. 
-It is assumed that all the rest fields of ``out`` tensor are properly populated 
+It is assumed that all the other fields of ``out`` tensor are properly populated 
 to be used in calculations and are not modified by the kernel.
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 

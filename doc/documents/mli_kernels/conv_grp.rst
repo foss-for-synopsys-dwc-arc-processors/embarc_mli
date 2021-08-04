@@ -153,7 +153,7 @@ Here is a list of all available Group Convolution functions:
 
 Conditions
 ^^^^^^^^^^
-Ensure that you satisfy the following conditions before calling the function:
+Ensure that you satisfy the following general conditions before calling the function:
 
 
 - ``in``, ``out``, ``weights`` and ``bias`` tensors must be valid (see :ref:`mli_tnsr_struc`)
@@ -187,16 +187,24 @@ Ensure that you satisfy the following conditions before calling the function:
  
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
  
- - ``padding_top`` and ``padding_bottom`` parameters must be in range of [0, weights (H)eight).
+ - ``padding_top`` and ``padding_bottom`` parameters must be in the range of [0, :math:`\hat{Hk}`)
+   where :math:`\hat{Hk}` is the effective kernel height (See :eq:`eq_conv2d_shapes`)
  
- - ``padding_left`` and ``padding_right`` parameters must be in range of [0, weights (W)idth).
+ - ``padding_left`` and ``padding_right`` parameters must be in the range of [0, :math:`\hat{Wk}`)
+   where :math:`\hat{Wk}` is the effective kernel width (See :eq:`eq_conv2d_shapes`)
  
  - ``stride_width`` and ``stride_height`` parameters must not be equal to 0.
 
  - ``dilation_width`` and ``dilation_height`` parameters must not be equal to 0.
 
-For **sa8_sa8_sa32** versions of kernel, in addition to the preceding conditions, ensure that you 
-satisfy the following conditions before calling the function:
+For **fx16** and **fx16_fx8_fx8** versions of kernel, in addition to the general conditions, ensure that you 
+satisfy the following quantization conditions before calling the function:
+
+ - The number of ``frac_bits`` in the ``bias`` and ``out`` tensors must not exceed the sum of ``frac_bits`` 
+   in the ``in`` and ``weights`` tensors.
+
+For **sa8_sa8_sa32** versions of kernel, in addition to the general conditions, ensure that you 
+satisfy the following quantization conditions before calling the function:
 
  - ``in`` and ``out`` tensor must be quantized on the tensor level. This implies that each tensor 
    contains a single scale factor and a single zero offset.
@@ -220,7 +228,7 @@ Result
 ^^^^^^
 
 These functions only modify the memory pointed by ``out.data.mem`` field. 
-It is assumed that all the rest fields of ``out`` tensor are properly populated 
+It is assumed that all the other fields of ``out`` tensor are properly populated 
 to be used in calculations and are not modified by the kernel.
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
