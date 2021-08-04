@@ -3,6 +3,9 @@
 L2 Normalization Prototype and Function List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Description
+^^^^^^^^^^^
+
 This kernel normalizes data across the specified dimension using L2 norm according to the following 
 formula:
 
@@ -18,19 +21,15 @@ Where:
 
    :math:`epsilon` *-* lower bound to prevent division on zero
 
+.. note::
+
+  ``epsilon`` tensor currently isn't used in integer based versions of the kernel (``fx16``, ``sa8``)
+  and preserved only for possible future use.
+..
+
 L2 normalization function might be applied to the whole tensor, or along a specific axis. In the 
 first case all input values are involved in the calculation of each output value. If the axis is 
 specified, then the function is applied to each slice along the specific axis independently. 
-
-This kernel outputs a tensor of the same shape and type as the input. This kernel supports in-place 
-computation: output and input can point to exactly the same memory (the same starting address
-and memory strides). 
-
-.. note::
-
-   Only an exact overlap of starting address and memory stride of the input and output 
-   tensors is acceptable. Partial overlaps result in undefined behavior.
-..
 
 This kernel uses a look-up table (LUTs) to perform data transformation. 
 See :ref:`lut_prot` section and the pseudo-code sample for more details on LUT structure preparation.
@@ -38,6 +37,9 @@ Use the following functions for the purpose:
 
  - :code:`mli_krn_l2_normalize_get_lut_size`
  - :code:`mli_krn_l2_normalize_create_lut`
+
+Functions
+^^^^^^^^^
 
 Kernels which implement L2 normalization functions have the following prototype:
 
@@ -62,22 +64,24 @@ parameters are shown in the following table:
    +================+==============================+========================================================+
    | ``in``         | ``mli_tensor *``             | [IN] Pointer to constant input tensor.                 |
    +----------------+------------------------------+--------------------------------------------------------+
-   | ``epsilon``    | ``mli_tensor *``             | [IN] Pointer to tensor with epsilon value.             |
+   | ``epsilon``    | ``mli_tensor *``             | [IN] For future use.                                   |
+   |                |                              | Pointer to tensor with epsilon value.                  |
    +----------------+------------------------------+--------------------------------------------------------+
    | ``lut``        | ``mli_lut *``                | [IN] Pointer to a valid LUT table                      |
    |                |                              | structure prepared for L2 normalization.               |
    +----------------+------------------------------+--------------------------------------------------------+
    | ``cfg``        | ``mli_l2_normalize_cfg *``   | [IN] Pointer to L2 Normalize parameters structure.     |
    +----------------+------------------------------+--------------------------------------------------------+
-   | ``out``        | ``mli_tensor *``             | [OUT] Pointer to output tensor. Result is stored here. |
+   | ``out``        | ``mli_tensor *``             | [IN | OUT] Pointer to output tensor.                   |
+   |                |                              | Result is stored here                                  |
    +----------------+------------------------------+--------------------------------------------------------+
 ..
 
-``mli_L2_normalize_cfg`` is defined as:
+``mli_l2_normalize_cfg`` is defined as:
 
 .. code:: c
 
-   typedef mli_prelu_cfg mli_L2_normalize_cfg;
+   typedef mli_prelu_cfg mli_l2_normalize_cfg;
 ..
 
 See Table :ref:`t_mli_prelu_cfg_desc` for more details.
@@ -95,31 +99,42 @@ See Table :ref:`t_mli_prelu_cfg_desc` for more details.
    +-------------------------------+-----------------------------------+
 ..
 
-Ensure that you satisfy the following conditions before calling the function:
+Conditions
+^^^^^^^^^^
 
- - ``in`` and ``epsilon`` tensors must be valid (see :ref:`mli_tnsr_struc`).
- 
- - ``epsilon`` tensor must be a valid tensor-scalar (see data field 
-   description in the Table :ref:`mli_tnsr_struc`).
-   
- - ``out`` tensor must contain a valid pointer to a buffer with sufficient 
-   capacity (that is, the total amount of elements in input tensor) and valid ``mem_stride`` field. Other 
-   fields are filled by kernel (shape, rank and element specific parameters).
+Ensure that you satisfy the following general conditions before calling the function:
 
- - ``mem_stride`` of the innermost dimension must be equal to 1 for all the 
-   tensors.
+ - ``in`` and ``out`` tensors must be valid (see :ref:`mli_tnsr_struc`)
+   and satisfy data requirements of the used version of the kernel.
 
- - ``axis`` parameter might be negative and must be less than ``in`` tensor rank.
+ - ``epsilon`` tensor isn't used and can be passed as a ``NULL`` pointer or might be not valid.
 
-- ``lut`` structure must be valid and prepared for L2 Normalization function (see :ref:`lut_prot`).
+ - ``in`` and ``out`` tensors must be of the same shapes
 
-For **sa8** versions of the kernel, in addition to the preceding conditions, ensure that you 
-satisfy the following conditions before calling the function: 
+ - ``lut`` structure must be valid and prepared for the L2 Normalization activation function (see :ref:`lut_prot`).
 
- - ``in`` and ``epsilon`` tensors must be quantized on the tensor level. This 
+ - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
+
+ - ``axis`` parameter of ``cfg`` structure might be negative and must be less than ``in`` tensor rank.
+
+For **sa8** versions of kernel, in addition to general conditions, ensure that you satisfy 
+the following quantization conditions before calling the function:
+
+ - ``in`` tensor must be quantized on the tensor level. This 
    implies that the tensor contains a single scale factor and a single zero offset.
 
  - Zero offset of ``in`` tensor must be within [-128, 127] range.
+
+Result
+^^^^^^
+
+These functions modify:
+
+ - Memory pointed by ``out.data.mem`` field.  
+ - ``el_params`` field of ``out`` tensor. 
+
+It is assumed that all the other fields and structures are properly populated 
+to be used in calculations and are not modified by the kernel.
 
 The range of this function is (-1, 1).  Depending on the data type, quantization parameters of the output 
 tensor are configured in the following way:
@@ -136,6 +151,16 @@ tensor are configured in the following way:
     - ``out.el_params.sa.scale.mem.i16`` is set to 1
 
     - ``out.el_params.sa.scale_frac_bits.mem.i8`` is set to 7
+
+The kernel supports in-place computation. It means that ``out`` and ``in`` tensor structures 
+can point to the same memory with the same memory strides but without shift.
+It can affect performance for some platforms.
+
+.. warning::
+
+  Only an exact overlap of starting address and memory stride of the ``in`` and ``out`` 
+  tensors is acceptable. Partial overlaps result in undefined behavior.
+..
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.	

@@ -3,6 +3,9 @@
 Softmax Prototype and Function List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Description
+^^^^^^^^^^^
+
 This kernel performs Softmax activation function that is a generalization of the 
 logistic function that transforms the input vector according to the following formula:
 
@@ -22,12 +25,6 @@ In the first case, all the input values are involved in the calculation of each 
 If an axis is specified, then the softmax function is applied to each slice along the 
 specific axis independently. 
 
-This kernel outputs a tensor of the same shape and type as input. This kernel supports
-in-place computation: output and input can point to exactly the same memory (the same 
-starting address and memory strides). If the starting address and memory stride of the 
-input and output tensors are set in such a way that memory regions are overlapped, 
-the behavior is undefined.
-
 This kernel uses a look-up table (LUTs) to perform data transformation. 
 See :ref:`lut_prot` section and the pseudo-code sample for more details on LUT structure preparation.
 Use the following functions for the purpose:
@@ -35,7 +32,10 @@ Use the following functions for the purpose:
  - :code:`mli_krn_softmax_get_lut_size`
  - :code:`mli_krn_softmax_create_lut`
 
-Kernels which implement SoftMax functions have the following prototype:
+Functions
+^^^^^^^^^
+
+Kernels which implement softmax functions have the following prototype:
 
 .. code:: c
 
@@ -45,7 +45,7 @@ Kernels which implement SoftMax functions have the following prototype:
       const mli_softmax_cfg *cfg,
      mli_tensor *out);
 ..
-	 
+
 where ``data_format`` is one of the data formats listed in Table :ref:`mli_data_fmts` and the function 
 parameters are shown in the following table:
 
@@ -63,7 +63,7 @@ parameters are shown in the following table:
    +----------------+-------------------------+-----------------------------------------------+
    | ``cfg``        | ``mli_softmax_cfg *``   | [IN] Pointer to softmax parameters structure. |
    +----------------+-------------------------+-----------------------------------------------+
-   | ``out``        | ``mli_tensor *``        | [OUT] Pointer to output tensor.               |
+   | ``out``        | ``mli_tensor *``        | [IN | OUT] Pointer to output tensor.          |
    |                |                         | Result is stored here                         |
    +----------------+-------------------------+-----------------------------------------------+
 ..
@@ -90,27 +90,37 @@ See Table :ref:`t_mli_prelu_cfg_desc` for more details.
    +---------------------------+------------------------------------+
 ..
 
-Ensure that you satisfy the following conditions before calling the function:
+Conditions
+^^^^^^^^^^
 
- - ``in`` tensor must be valid (see :ref:`mli_tnsr_struc`).
- 
- - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity 
-   (that is, the total amount of elements in input tensor) and valid ``mem_stride`` field. Other fields are filled 
-   by kernel (shape, rank and element specific parameters).
-   
+Ensure that you satisfy the following general conditions before calling the function:
+
+ - ``in`` and ``out`` tensors must be valid (see :ref:`mli_tnsr_struc`)
+   and satisfy data requirements of the used version of the kernel.
+
+ - ``in`` and ``out`` tensors must be of the same shapes
+
+ - ``lut`` structure must be valid and prepared for the softmax activation function (see :ref:`lut_prot`).
+
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
- 
- - axis parameter might be negative and must be less than in tensor rank.
 
- - ``lut`` structure must be valid and prepared for softmax activation function (see :ref:`lut_prot`).
- 
-For **sa8** versions of the kernel, in addition to the preceding conditions, ensure that you 
-satisfy the following conditions before calling the function: 
+ - ``axis`` parameter of ``cfg`` structure might be negative and must be less than ``in`` tensor rank.
+
+For **sa8** versions of kernel, in addition to general conditions, ensure that you satisfy 
+the following quantization conditions before calling the function:
 
  - ``in`` tensors must be quantized on the tensor level. This 
    implies that the tensor contains a single scale factor and a single zero offset.
 
  - Zero offset of ``in`` tensor must be within [-128, 127] range.
+
+Result
+^^^^^^
+
+These functions modify:
+
+ - Memory pointed by ``out.data.mem`` field.  
+ - ``el_params`` field of ``out`` tensor. 
 
 The range of this function is (0, 1).  Depending on the data type, quantization parameters of the output 
 tensor are configured in the following way:
@@ -127,6 +137,16 @@ tensor are configured in the following way:
     - ``out.el_params.sa.scale.mem.i16`` is set to 1
 
     - ``out.el_params.sa.scale_frac_bits.mem.i8`` is set to 8
+
+The kernel supports in-place computation. It means that ``out`` and ``in`` tensor structures 
+can point to the same memory with the same memory strides but without shift.
+It can affect performance for some platforms.
+
+.. warning::
+
+  Only an exact overlap of starting address and memory stride of the ``in`` and ``out`` 
+  tensors is acceptable. Partial overlaps result in undefined behavior.
+..
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.

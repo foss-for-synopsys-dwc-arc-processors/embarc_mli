@@ -1,7 +1,10 @@
 .. _chap_element_wise:
 
 Element-wise Group
-------------------
+~~~~~~~~~~~~~~~~~~
+
+Description
+^^^^^^^^^^^
 
 The Element-wise Group describes operations that are applied element-by-element 
 on two tensors of the same shape and return a tensor of the same shape. These kernels 
@@ -12,6 +15,9 @@ element of the other tensor.
 :math:`\text{out}_{i} = operation(\text{in}_{i}^{1},\ \text{in}_{i}^{2}`)
 
 :math:`\text{out}_{i} = operation(\text{in}_{\text{scalar}}^{1},\ \text{in}_{i}^{2}`)
+
+Functions
+^^^^^^^^^
 
 Kernels which implement Element-wise functions have the following prototype:
 
@@ -35,9 +41,8 @@ Kernels which implement Element-wise functions have the following prototype:
    +---------------+-------------------+----------------------------------------------------------+
    | ``in2``       | ``mli_tensor *``  | [IN] Pointer to constant input tensor.                   |
    +---------------+-------------------+----------------------------------------------------------+
-   | ``out``       | ``mli_tensor *``  | [OUT] Pointer to output tensor. Result is stored here,   |
-   |               |                   | capacity of this tensor should be large enough to store  |
-   |               |                   | the results.                                             |
+   | ``out``       | ``mli_tensor *``  | [IN | OUT] Pointer to output tensor. Result is stored    |
+   |               |                   | here.                                                    |
    +---------------+-------------------+----------------------------------------------------------+   
 ..
 
@@ -70,43 +75,59 @@ Kernels which implement Element-wise functions have the following prototype:
    +--------------------------------+---------------+---------------------------------+   
 ..
 
-Ensure that you satisfy the following conditions before calling the listed functions:
+Conditions
+^^^^^^^^^^
 
- - ``in1`` and ``in2`` tensors must be valid and must share the same ``el_type`` field value. 
-   They must be of the same shape, or one of them can be a tensor-scalar (see data field description 
-   in the Table :ref:`mli_tnsr_struc`) 
+Ensure that you satisfy the following general conditions before calling the function:
 
- - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity, valid 
-   ``mem_stride`` field,  and valid ``el_params`` union. 
-   Other fields of the structure do not have to contain valid data and are filled by the function
+ - ``in1``, ``in2`` and ``out`` tensors must be valid (see :ref:`mli_tnsr_struc`)
+   and satisfy data requirements of the used version of the kernel.
 
-    - ``shape`` (a new shape is calculated according to input tensor shape, stride, and padding parameters).
+ - Shapes of ``in1``, ``in2`` and ``out`` tensors must be compatible,
+   which implies the following requirements:
 
-    - ``rank``, ``el_type`` (these are copied from the input tensor).
+   - ``in1`` and ``in2`` tensors must be of the same shape, or one of them can be a tensor-scalar
+     (see data field description in the Table :ref:`mli_tnsr_struc`)
 
- - For ``mli_krn_eltwise_min_*`` and ``mli_krn_eltwise_max_*`` functions, 
-   the following additional restrictions apply
+   - ``out`` tensors must be of the same shape as a non-scalar input tensor.
 
-   - ``in1`` and ``in2`` must have the same quantization parameters. It means that ``el_params``
-     union of tensors must be the same. For other elementwise functions this restriction is not applicable.
-
-   - ``out`` tensor must contain a valid pointer to a buffer with sufficient capacity and valid ``mem_stride`` field. 
-     Other fields of the structure do not have to contain valid data and are filled by the function 
-     (``shape``, ``rank``, ``el_params``, etc). 
- 
- - If the result of an operation is out of container’s range, it is saturated to the 
-   container’s limit.
-   
- - The kernel supports in-place computation. It means that output and input tensor structures 
-   can point to the same memory with the same memory strides but without shift.
-   It can affect performance for some platforms.
-   
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
 
- - For sa8 input and output tensors must be quantized on the tensor level. This implies 
+ - For ``mli_krn_eltwise_min_*`` and ``mli_krn_eltwise_max_*`` functions, 
+   the following additional restriction apply
+
+    - ``in1``, ``in2`` and ``out`` tensors must have the same quantization parameters. 
+      It means that ``el_params`` union of tensors must be the same.
+      For other elementwise functions this restriction is not applicable.
+
+For **sa8** versions of kernel, in addition to general conditions, ensure that you satisfy 
+the following quantization conditions before calling the function:
+
+ - ``in1``, ``in2`` and ``out`` tensors must be quantized on the tensor level. This implies 
    that each tensor contains a single scale factor and a single zero offset.
-   
- - For sa8, zero offset of input and output tensors must be within [-128, 127] range.
+
+ - Zero offset of ``in1``, ``in2`` and ``out`` tensors must be within [-128, 127] range.
+
+
+Result
+^^^^^^
+
+These functions only modify the memory pointed by ``out.data.mem`` field. 
+It is assumed that all the other fields of ``out`` tensor are properly populated 
+to be used in calculations and are not modified by the kernel.
+
+If the result of an operation is out of container's range, it is saturated to the 
+container's limit.
+
+The kernel supports in-place computation. It means that output and input tensor structures 
+can point to the same memory with the same memory strides but without shift.
+It can affect performance for some platforms.
+
+.. warning::
+
+  Only an exact overlap of starting address and memory stride of the input and output 
+  tensors is acceptable. Partial overlaps result in undefined behavior.
+..
 
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
