@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -107,10 +107,6 @@ MLI_FORCE_INLINE void fully_connected_prepare_and_run(
     constexpr bool asym = std::is_same<quant_T, s8asym_quant_specific_params>::value;
     mli_minmax_t val_limit = mli_prv_get_relu_limits<io_T, asym>(&cfg->relu, out);
 
-    // fill output tensor parameters
-    out->shape[0] = ch_out;
-    out->rank = 1;
-
     // Define quantization specific params
     quant_T params;
     define_quant_params(in, weights, bias, out, &params);
@@ -121,10 +117,8 @@ MLI_FORCE_INLINE void fully_connected_prepare_and_run(
     if (is_bias_ext)
         quant_params_set_in_zeropoint(&params, 0);
    
-   // Define memory stride
-    const int w_ch_out_mem_stride_from_tensor = weights->mem_stride[0];
-    const int w_ch_out_mem_stride = (w_ch_out_mem_stride_from_tensor != 0) ?
-            w_ch_out_mem_stride_from_tensor : ch_out;
+    // Define memory stride
+    const int w_ch_out_mem_stride = weights->mem_stride[0];
 
     // Run basic calculation
     //=======================================================================

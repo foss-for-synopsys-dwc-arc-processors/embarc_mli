@@ -7,8 +7,8 @@
 *
 */
 
-#ifndef _MLI_PRV_AUX_CALC_H_
-#define _MLI_PRV_AUX_CALC_H_
+#ifndef _MLI_PRV_LAYOUT_H_
+#define _MLI_PRV_LAYOUT_H_
 
 #include "mli_check.h"
 #include "mli_debug.h"
@@ -91,4 +91,4 @@ MLI_FORCE_INLINE mli_compensations mli_prv_valid_area_compensations(int out_h_id
     return comp;
 }
 
-#endif //_MLI_PRV_AUX_CALC_H_
+#endif //_MLI_PRV_LAYOUT_H_

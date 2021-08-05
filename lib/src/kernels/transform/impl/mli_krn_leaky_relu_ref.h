@@ -151,9 +151,6 @@ static MLI_FORCE_INLINE mli_status leaky_relu_fx_run(const mli_tensor *in,
     const MLI_PTR(io_T) __restrict in_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in);
     MLI_OUT_PTR(io_T) __restrict out_ptr  = mli_prv_tensor_data_ptr<MLI_OUT_PTR(io_T)>(out);
 
-    /* Copy tensor format */
-    mli_prv_copy_tensor_format_except_mem_strides(in, out);
-
     /* Dummy Load to get num_lanes */
     auto input = mli_prv_load_1vec(in_ptr);
     int num_lanes = get_number_lanes(input);
@@ -330,13 +327,6 @@ static MLI_FORCE_INLINE mli_status leaky_relu_sa8_run(const mli_tensor *in,
 
     const MLI_PTR(int8_t) in_ptr = mli_prv_tensor_data_ptr<MLI_PTR(int8_t)>(in);
     MLI_OUT_PTR(int8_t) out_ptr = mli_prv_tensor_data_ptr<MLI_OUT_PTR(int8_t)>(out);
-
-    /* Copy tensor format */
-    for (int idx = 0; idx < (int)in->rank; idx++) {
-        out->shape[idx] = in->shape[idx];
-    }
-    out->rank = in->rank;
-    out->el_type = in->el_type;
 
     /* Input Zero Point */
     int16_t in_zp = in->el_params.sa.zero_point.mem.i16;

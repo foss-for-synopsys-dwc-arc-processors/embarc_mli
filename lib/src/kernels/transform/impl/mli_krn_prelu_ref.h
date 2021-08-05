@@ -162,8 +162,6 @@ static MLI_FORCE_INLINE mli_status prelu_fx_run(const mli_tensor *in,
     const MLI_PTR(io_T) slope_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(slope_coeff);
     MLI_OUT_PTR(io_T) out_ptr = mli_prv_tensor_data_ptr<MLI_OUT_PTR(io_T)>(out);
 
-    /* Copy tensor format */
-    mli_prv_copy_tensor_format_except_mem_strides(in, out);
     /* Get Generic Private Tensor */
     auto in_prv =  mli_prv_get_generic_tensor<MLI_PTR(io_T)>(in);    
     auto out_prv = mli_prv_get_generic_tensor<MLI_OUT_PTR(io_T)>(out);
@@ -320,13 +318,6 @@ static MLI_FORCE_INLINE mli_status prelu_sa8_run(const mli_tensor *in,
     const MLI_PTR(int8_t) in_ptr = mli_prv_tensor_data_ptr<MLI_PTR(int8_t)>(in);
     const MLI_PTR(int8_t) slope_ptr = mli_prv_tensor_data_ptr<MLI_PTR(int8_t)>(slope_coeff);
     MLI_OUT_PTR(int8_t) out_ptr = mli_prv_tensor_data_ptr<MLI_OUT_PTR(int8_t)>(out);
-
-    /* Copy tensor format */
-    for (int idx = 0; idx < (int)in->rank; idx++) {
-        out->shape[idx] = in->shape[idx];
-    }
-    out->rank = in->rank;
-    out->el_type = in->el_type;
 
     /* Get Generic Private Tensor */
     auto in_prv =  mli_prv_get_generic_tensor<MLI_PTR(int8_t)>(in);

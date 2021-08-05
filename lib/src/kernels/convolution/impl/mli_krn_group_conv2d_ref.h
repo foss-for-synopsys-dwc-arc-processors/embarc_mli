@@ -158,21 +158,20 @@ MLI_FORCE_INLINE void group_conv2d_prepare_and_run(
         weights_prv= mli_prv_get_conv2d_weights_tensor_nchw<MLI_PTR(w_T)>(weights);
         out_ch = weights_prv.out_ch;
     }
+    auto out_prv = (data_layout == LAYOUT_HWC || data_layout == LAYOUT_HWCN || data_layout == LAYOUT_HW1N) ?
+            mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(io_T)>(out)
+            : mli_prv_get_tensor_chw<MLI_CONV_OUT_PTR(io_T)>(out);
 
     // fill the rest output tensor parameters
     int dilation_width = cfg->dilation_width;
     int dilation_height = cfg->dilation_height;
     int effective_kernel_width = (weights_prv.kernel_width - 1) * dilation_width + 1;
     int effective_kernel_height = (weights_prv.kernel_height - 1) * dilation_height + 1;
-    const int out_width  = CEIL_DIV(in_prv.width + padding_left + padding_right - effective_kernel_width + 1,
-                                    stride_width);
-    const int out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - effective_kernel_height + 1,
-                                    stride_height);
     // Adjust the padding at the bottom and at the right in case too much padding was provided
     // (this can happen when stride > 1)
     // in case not all input samples can be used, adjust the width and height.
-    padding_right = (out_width * stride_width + effective_kernel_width - stride_width) - in_prv.width - padding_left;
-    padding_bot = (out_height * stride_height + effective_kernel_height - stride_height) - in_prv.height - padding_top;
+    padding_right = (out_prv.width * stride_width + effective_kernel_width - stride_width) - in_prv.width - padding_left;
+    padding_bot = (out_prv.height * stride_height + effective_kernel_height - stride_height) - in_prv.height - padding_top;
     if (padding_right < 0) {
         in_prv.width += padding_right;
         padding_right = 0;
@@ -182,27 +181,13 @@ MLI_FORCE_INLINE void group_conv2d_prepare_and_run(
         padding_bot = 0;
     }
 
-    out->rank = in->rank;
-    if (data_layout == LAYOUT_HWC || data_layout == LAYOUT_HWCN || data_layout == LAYOUT_HW1N) {
-        out->shape[FMAP_H_DIM_HWC] = out_height;
-        out->shape[FMAP_W_DIM_HWC] = out_width;
-        out->shape[FMAP_C_DIM_HWC] = out_ch;
-    } else {
-        out->shape[FMAP_H_DIM_CHW] = out_height;
-        out->shape[FMAP_W_DIM_CHW] = out_width;
-        out->shape[FMAP_C_DIM_CHW] = out_ch;
-    }
-    auto out_prv = (data_layout == LAYOUT_HWC || data_layout == LAYOUT_HWCN || data_layout == LAYOUT_HW1N) ?
-            mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(io_T)>(out)
-            : mli_prv_get_tensor_chw<MLI_CONV_OUT_PTR(io_T)>(out);
-
     // Define quantization specific params
     quant_T params;
     define_quant_params(in, weights, bias, out, &params);
 
     rect_t cent_area;
-    cent_area.row_beg = 0; cent_area.row_end = out_height;
-    cent_area.clmn_beg = 0; cent_area.clmn_end = out_width;
+    cent_area.row_beg = 0; cent_area.row_end = out_prv.height;
+    cent_area.clmn_beg = 0; cent_area.clmn_end = out_prv.width;
 
     mli::krn::group_convolution2D<io_T, w_T, b_T, acc_T, quant_T, fix_kernel_width, fix_kernel_height>(
             in_prv, weights_prv, bs, out_prv, cent_area, params,

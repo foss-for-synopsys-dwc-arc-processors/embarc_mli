@@ -344,12 +344,17 @@ static inline int arg_max(mli_tensor * net_output_) {
     int pred_label = 0;
     mli_tensor out_tensor;
     out_tensor.data.mem.pi32 = &pred_label;
-    out_tensor.el_type = MLI_EL_SA_8;
+    out_tensor.el_type = MLI_EL_SA_32;
+    out_tensor.rank = 2;
+    out_tensor.shape[0] = 1;
+    out_tensor.shape[1] = 1;
+    out_tensor.mem_stride[0] = 1;
+    out_tensor.mem_stride[1] = 1;
 
-if (net_output_->el_type == MLI_EL_SA_8)
-    mli_krn_argmax_sa8(net_output_, &argmax_cfg, &out_tensor);
-else
-    mli_krn_argmax_fx16(net_output_, &argmax_cfg, &out_tensor);
+    if (net_output_->el_type == MLI_EL_SA_8)
+        mli_krn_argmax_sa8(net_output_, &argmax_cfg, &out_tensor);
+    else
+        mli_krn_argmax_fx16(net_output_, &argmax_cfg, &out_tensor);
 
     return pred_label;
 }

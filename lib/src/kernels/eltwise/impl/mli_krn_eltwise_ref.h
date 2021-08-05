@@ -359,20 +359,6 @@ void eltwise_prepare_and_run(
         scalar_op2 = (in2_sz == 1);
     }
 
-    /* Fill output tensor parameters
-    //======================================
-    */
-    //no_out_update==true  assuming that always in1 is out no need to update out
-    //                     or the user intentionally does not update the out
-    if (!no_out_update){
-        const unsigned *shape_ptr = (in1_sz > in2_sz)? in1->shape: in2->shape;
-        int rank = (in1_sz > in2_sz)? (int)in1->rank: (int)in2->rank;
-
-        out->rank = rank;
-        for (int k = 0; k < rank; k++)
-            out->shape[k] = shape_ptr[k];
-    }
-
     /* Extract in/out as scalar values */
     io_T in1_scalar = mli_prv_tensor_data_val<io_T>(in1);
     io_T in2_scalar = mli_prv_tensor_data_val<io_T>(in2);

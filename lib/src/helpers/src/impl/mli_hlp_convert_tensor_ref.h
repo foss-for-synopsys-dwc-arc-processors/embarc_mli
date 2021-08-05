@@ -29,11 +29,6 @@ mli_status compute_convert_quantized_data(const mli_tensor * src, mli_tensor * d
     /* If the accumulator is int64_t, so int32_t should be used for multiplying. */
     typedef typename std::conditional<std::is_same<acc_T, int64_t>::value, int32_t, int16_t>::type mul_T;
 
-    /* Copy shape and rank from source tensor to destination */
-    const int rank = dst->rank = src->rank;
-    for (int i = 0; i < rank; ++i)
-        dst->shape[i] = src->shape[i];
-
     /* Get Generic Private Tensors */
     auto src_prv = mli_prv_get_generic_tensor<MLI_PTR(in_T)>(src);
     auto dst_prv = mli_prv_get_generic_tensor<MLI_OUT_PTR(out_T)>(dst);
@@ -55,11 +50,11 @@ mli_status compute_convert_quantized_data(const mli_tensor * src, mli_tensor * d
     *  To cover both cases, two if statements below are used.
     */
     if ((src->el_type == MLI_EL_SA_8 || src->el_type == MLI_EL_SA_32) && src->el_params.sa.dim >= 0) {
-        scale_dim = src->el_params.sa.dim + (MLI_MAX_RANK - rank);
+        scale_dim = src->el_params.sa.dim + (MLI_MAX_RANK - src->rank);
         scales_num = src_prv.shape[scale_dim];
     }
     if ((dst->el_type == MLI_EL_SA_8 || dst->el_type == MLI_EL_SA_32) && dst->el_params.sa.dim >= 0) {
-        scale_dim = dst->el_params.sa.dim + (MLI_MAX_RANK - rank);
+        scale_dim = dst->el_params.sa.dim + (MLI_MAX_RANK - src->rank);
         scales_num = dst_prv.shape[scale_dim];
     }
 
@@ -139,11 +134,6 @@ mli_status convert_quantized_data(const mli_tensor * src, mli_tensor * dst) {
 template <typename t_T>
 mli_status convert_float_data(const mli_tensor * src, mli_tensor * dst, convert_mode mode) {
     mli_prv_fx_init_dsp_ctrl();
-
-    /* Copy shape and rank from source tensor to destination */
-    const int rank = dst->rank = src->rank;
-    for (int i = 0; i < rank; ++i)
-        dst->shape[i] = src->shape[i];
 
     const mli_tensor* tensor = nullptr;
     const mli_tensor* float_tensor = nullptr;
