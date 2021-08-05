@@ -37,7 +37,7 @@ mli_status mli_krn_avepool_hwc_fx16_k3x3(const mli_tensor * in, const mli_pool_c
     MLI_PRINT_COMPILE_OPTIONS();
 
     mli::krn::mli_krn_pool_hwc<mli::krn::AVEPOOL, int16_t, POOL_FIXED_KRN_SIZE_3>(in, cfg, out);
-    return MLI_STATUS_OK;    
+    return MLI_STATUS_OK;
 }
 
 mli_status mli_krn_avepool_hwc_fx16(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
@@ -45,31 +45,8 @@ mli_status mli_krn_avepool_hwc_fx16(const mli_tensor * in, const mli_pool_cfg * 
     if (ret != MLI_STATUS_OK) return ret;
     MLI_PRINT_COMPILE_OPTIONS();
 
-    int kernel_w = cfg->kernel_width;
-    int kernel_h = cfg->kernel_height;
-
-    if ((kernel_w == 3) && (kernel_h == 3)) {
-        return mli_krn_avepool_hwc_fx16_k3x3(in, cfg, out);
-    } else if ((kernel_w == 2) && (kernel_h == 2)) {
-        return mli_krn_avepool_hwc_fx16_k2x2(in, cfg, out);
-    } else {
-        mli::krn::mli_krn_pool_hwc<mli::krn::AVEPOOL, int16_t, POOL_NO_FIXED_KRN_SIZE>(in, cfg, out);
-    }
-
+    mli::krn::mli_krn_pool_hwc<mli::krn::AVEPOOL, int16_t, POOL_NO_FIXED_KRN_SIZE>(in, cfg, out);
     return MLI_STATUS_OK;
-}
-
-char * mli_debug_krn_avepool_hwc_fx16(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
-    int kernel_w = cfg->kernel_width;
-    int kernel_h = cfg->kernel_height;
-
-    if ((kernel_w == 3) && (kernel_h == 3)) {
-        return (char*)"mli_krn_avepool_hwc_fx16_k3x3";
-    } else if ((kernel_w == 2) && (kernel_h == 2)) {
-        return (char*)"mli_krn_avepool_hwc_fx16_k2x2";
-    } else {
-        return (char*)"mli_krn_avepool_hwc_fx16";
-    }
 }
 
 #pragma MLI_CODE_SECTION_END()

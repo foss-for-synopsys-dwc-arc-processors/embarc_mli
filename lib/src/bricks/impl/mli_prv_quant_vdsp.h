@@ -21,26 +21,6 @@ namespace mli {
 namespace krn {
 namespace vdsp {
 
-//funtion is temporary here until reduce_sum brick is available
-MLI_FORCE_INLINE vNx4accshort_t reduce_sum2D(
-        const MLI_PTR(int8_t) __restrict in,
-        const int8_t mul,
-        vNx4accshort_t accu,
-        const int width,
-        const int height,
-        int in_col_step,
-        int in_row_step) {
-    in_row_step -= width * in_col_step;
-    for (int row = 0; row < height; row++) {
-        for (int clmn = 0; clmn < width; clmn++) {
-            accu = mli_math_mac_fx(accu, mli_prv_load_nx4_samples(in), mul);
-            in += in_col_step;
-        }
-        in += in_row_step;
-    }
-    return accu;
-}
-
 MLI_FORCE_INLINE vNx4accshort_t reduce_sub_sum2D(
         const MLI_PTR(int8_t) __restrict in,
         const int8_t mul,

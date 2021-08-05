@@ -184,23 +184,6 @@ mli_status mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32_k5x5(
     return ret;
 }
 
-char * mli_debug_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32(
-        const mli_tensor * in, 
-        const mli_tensor * weights, 
-        const mli_tensor * bias, 
-        const mli_conv2d_cfg * cfg, 
-        mli_tensor * out) {
-    int kernel_w = weights->shape[KRNL_DW_W_DIM_HW1N];
-    int kernel_h = weights->shape[KRNL_DW_H_DIM_HW1N];
-
-    if ((kernel_w == 5) && (kernel_h == 5)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32_k5x5";
-    } else if ((kernel_w == 3) && (kernel_h == 3)) {
-        return (char*)"mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32_k3x3";
-    } else {
-        return (char*)"mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32";
-    }
-}
 #pragma MLI_CODE_SECTION_END()
 
 #ifdef __cplusplus
