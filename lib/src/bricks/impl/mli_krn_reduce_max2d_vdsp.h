@@ -1,5 +1,5 @@
 /*
-* Copyright 2020-2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -70,16 +70,19 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc_k2x2_padding_kernel_unroll(
         const int32_t row_mem_stride,
         const int channels)
 {
+    MLI_ASSERT(rows == 1);
+    MLI_ASSERT((clmns == 1) || (clmns == 2));
+
     switch (rows) {
     case 1:
         switch (clmns) {
         case 1:
-            reduce_max2D_hwc_v<io_T, /*fixed_kernel_size*/ 2>(in_ptr, out_ptr, 1, 1,
+            reduce_max2D_hwc_v<io_T, /*fixed_kernel_size*/ 2>(in_ptr, out_ptr, /* width = */1, /*height = */1,
                         col_mem_stride, row_mem_stride, channels);
             break;
 
         case 2:
-            reduce_max2D_hwc_v<io_T, /*fixed_kernel_size*/ 2>(in_ptr, out_ptr, 2, 1,
+            reduce_max2D_hwc_v<io_T, /*fixed_kernel_size*/ 2>(in_ptr, out_ptr, /* width = */2, /*height = */1,
                         col_mem_stride, row_mem_stride, channels);
             break;
 
@@ -89,23 +92,11 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc_k2x2_padding_kernel_unroll(
         }
         break;
 
-    case 2:
-        switch (clmns) {
-        case 1:
-            reduce_max2D_hwc_v<io_T, /*fixed_kernel_size*/ 2>(in_ptr, out_ptr, 1, 2,
-                        col_mem_stride, row_mem_stride, channels);
-            break;
-
-        default:
-            MLI_ASSERT(0);
-            break;
-        }
+    default:
+        MLI_ASSERT(0);
         break;
-
-        default:
-            MLI_ASSERT(0);
-            break;
     }
+
 }
 
 template <typename io_T>
@@ -118,6 +109,9 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc_k3x3_padding_kernel_unroll(
         const int32_t row_mem_stride,
         const int channels)
 {
+    MLI_ASSERT((rows == 1) || (rows == 2));
+    MLI_ASSERT((clmns == 1) || (clmns == 2) || (clmns == 3));
+
     switch (rows) {
     case 1:
         switch (clmns) {
@@ -165,27 +159,9 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc_k3x3_padding_kernel_unroll(
         }
         break;
 
-    case 3:
-        switch (clmns) {
-        case 1:
-            reduce_max2D_hwc_v<io_T, /*fixed_kernel_size*/ 3>(in_ptr, out_ptr, 1, 3,
-                        col_mem_stride, row_mem_stride, channels);
-            break;
-
-        case 2:
-            reduce_max2D_hwc_v<io_T, /*fixed_kernel_size*/ 3>(in_ptr, out_ptr, 2, 3,
-                        col_mem_stride, row_mem_stride, channels);
-            break;
-
-        default:
-            MLI_ASSERT(0);
-            break;
-        }
+    default:
+        MLI_ASSERT(0);
         break;
-
-        default:
-            MLI_ASSERT(0);
-            break;
     }
 }
 

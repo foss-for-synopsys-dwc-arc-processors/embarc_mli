@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -56,34 +56,6 @@ struct mli_compensations {
 };
 
 //====================================================================================================
-// Step in linear array to get next column (array is considered as n-dimensional with particular layout)
-//====================================================================================================
-template <mli_layout_type layout>
-MLI_FORCE_INLINE int mli_prv_column_step(int height = 1, int width = 1, int channels = 1, int filters = 1) {
-    int column_step = 1;
-    if (layout == LAYOUT_HWC) {
-        column_step = channels;
-    } else if (layout == LAYOUT_HWCN) {
-        column_step = channels * filters;
-    }
-    return column_step;
-}
-
-//====================================================================================================
-// Step in linear array to get next row (array is considered as n-dimensional with particular layout)
-//====================================================================================================
-template <mli_layout_type layout>
-MLI_FORCE_INLINE int mli_prv_row_step(int height = 1, int width = 1, int channels = 1, int filters = 1) {
-    int row_step = 1;
-    if (layout == LAYOUT_HWC) {
-        row_step = width * channels;
-    } else if (layout == LAYOUT_HWCN) {
-        row_step = width * channels * filters;
-    }
-    return row_step;
-}
-
-//====================================================================================================
 // Compensation values definition: 
 // How much rows/columns need to be skipped from each side to left only valid area of filter or input
 //====================================================================================================
@@ -118,27 +90,5 @@ MLI_FORCE_INLINE mli_compensations mli_prv_valid_area_compensations(int out_h_id
     }
     return comp;
 }
-
-//====================================================================================================
-// Element index definition in linear array which is considered as n-dimensional with particular layout
-//====================================================================================================
-template <mli_layout_type layout>
-MLI_FORCE_INLINE int mli_prv_calc_index(int height = 1, int width = 1, int channels = 1, int filters = 1,
-                                      int h_idx = 0, int w_idx = 0, int c_idx = 0, int f_idx = 0) {
-    int result_idx = 0; // starting point
-    if (layout == LAYOUT_HWC) {
-        result_idx += f_idx * height * width * channels + // move to filter
-                      h_idx * width * channels +          // move to row
-                      w_idx * channels +                  // move to column
-                      c_idx;                              // move to channel
-    } else if (layout == LAYOUT_HWCN) {
-        result_idx += h_idx * width * channels * filters + // move to row
-                      w_idx * channels * filters +         // move to column
-                      c_idx * filters +                    // move to channel
-                      f_idx;                               // move to filter
-    }
-    return result_idx;
-}
-
 
 #endif //_MLI_PRV_AUX_CALC_H_

@@ -1,5 +1,5 @@
 /*
-* Copyright 2020-2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -113,33 +113,6 @@ vvcmpy(vNx4short_t a, vNx4short_t b) {
     acc.lo = vvcmpy(a.lo, b.lo);
     acc.hi = vvcmpy(a.hi, b.hi);
     return acc;
-}
-
-//////////////////////////////////////////////////
-// relu
-//////////////////////////////////////////////////
-template <typename T>
-T vvrelu(T a, int16_t min, int16_t max);
-
-static MLI_FORCE_INLINE vNint_t vvrelu(vNint_t a, int16_t min, int16_t max) {
-    vNint_t r;
-    r = min > a ? min : a;
-    r = max < r ? max : r;
-    return r;
-}
-
-static MLI_FORCE_INLINE vNx2int_t vvrelu(vNx2int_t a, int16_t min, int16_t max) {
-    vNx2int_t r;
-    r.lo = vvrelu(a.lo, min, max);
-    r.hi = vvrelu(a.hi, min, max);
-    return r;
-}
-
-static MLI_FORCE_INLINE vNx4int_t vvrelu(vNx4int_t a, int16_t min, int16_t max) {
-    vNx4int_t r;
-    r.lo = vvrelu(a.lo, min, max);
-    r.hi = vvrelu(a.hi, min, max);
-    return r;
 }
 
 //////////////////////////////////////////////////

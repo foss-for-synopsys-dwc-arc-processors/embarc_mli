@@ -33,13 +33,6 @@ typedef mli_acc32_t mli_fx16_fx8_fx8_accu_t;
 
 #pragma MLI_CODE_SECTION_START(".mli_lib")
 
-//========================================================
-//
-//        MLI 2.0
-//
-//========================================================
- 
-/* DEPRECATED */
 mli_status mli_krn_fully_connected_fx8(
         const mli_tensor* in,
         const mli_tensor* weights,
@@ -70,24 +63,6 @@ mli_status mli_krn_fully_connected_fx16(
 
     mli::krn::fully_connected_prepare_and_run
         <int16_t, int16_t, int16_t, mli_fx16_accu_t, mli::krn::fx_quant_specific_params, /*is_bias_ext = */ false>
-        (in, weights, bias, cfg, out);
-
-    return ret;
-}
-
-/* DEPRECATED */
-mli_status mli_krn_fully_connected_fx8w16d(
-        const mli_tensor* in,
-        const mli_tensor* weights,
-        const mli_tensor* bias,
-        const mli_fully_connected_cfg* cfg,
-        mli_tensor* out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_fully_connected_fx8w16d(in, weights, bias, cfg, out), __func__);
-    if (ret != MLI_STATUS_OK) return ret;
-    MLI_PRINT_COMPILE_OPTIONS();
-
-    mli::krn::fully_connected_prepare_and_run
-        <int16_t, int8_t, int8_t, mli_acc32_t, mli::krn::fx_quant_specific_params, /*is_bias_ext = */ false>
         (in, weights, bias, cfg, out);
 
     return ret;
