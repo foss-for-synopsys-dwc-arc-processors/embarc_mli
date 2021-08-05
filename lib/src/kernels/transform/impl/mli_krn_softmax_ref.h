@@ -1,5 +1,5 @@
 /*
-* Copyright 2020-2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -244,8 +244,6 @@ static MLI_FORCE_INLINE mli_status mli_krn_softmax_run(const mli_tensor *in, con
     const MLI_PTR(io_T) in_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in);
     MLI_PTR(io_T) out_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(out);
 
-    /* Copy tensor format */
-    mli_prv_copy_tensor_format_except_mem_strides(in, out);
     /* Get Generic Private Tensor */
     auto in_prv =  mli_prv_get_generic_tensor<MLI_PTR(io_T)>(in);
     auto out_prv = mli_prv_get_generic_tensor<MLI_PTR(io_T)>(out);
@@ -298,6 +296,8 @@ static MLI_FORCE_INLINE mli_status mli_krn_softmax_run(const mli_tensor *in, con
         out->el_params.sa.zero_point.mem.i16 = out_params.offset;
         out->el_params.sa.scale.mem.i16 = out_params.scale;
         out->el_params.sa.scale_frac_bits.mem.i8 = (int8_t)out_params.shift;
+        out->el_params.sa.type = MLI_EL_PARAM_SC16_ZP16;
+        out->el_params.sa.dim = -1;
     }
 
     return MLI_STATUS_OK;

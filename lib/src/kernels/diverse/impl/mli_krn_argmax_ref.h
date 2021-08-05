@@ -215,14 +215,8 @@ MLI_FORCE_INLINE void argmax_prepare_and_run(const mli_tensor *in, const mli_arg
     out->el_params.sa.scale.mem.i16 = 1;
     out->el_params.sa.zero_point.mem.i16 = 0;
     out->el_params.sa.scale_frac_bits.mem.i8 = 0;
-    out->el_type = MLI_EL_SA_32;
-
-    uint32_t dim_size = 1;
-    if (cfg->axis >= 0)
-        dim_size = in->shape[cfg->axis];
-    out->shape[0] = dim_size;
-    out->shape[1] = cfg->topk;
-    out->rank = 2;
+    out->el_params.sa.type = MLI_EL_PARAM_SC16_ZP16;
+    out->el_params.sa.dim = -1;
 
     /* Running main argmax funtion */
     argmax<in_T, int32_t>(in, cfg->axis, cfg->topk, out);

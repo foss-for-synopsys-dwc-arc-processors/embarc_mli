@@ -113,30 +113,14 @@ MLI_FORCE_INLINE void transpose_conv2d_prepare_and_run(
     const MLI_PTR(b_T) bs = mli_prv_tensor_data_ptr<MLI_PTR(b_T)>(bias);
     const auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(io_T)>(in);
     const auto weights_prv = mli_prv_get_conv2d_weights_tensor_hwcn<MLI_PTR(w_T)>(weights);
+    const auto out_prv = mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(io_T)>(out);
 
     // To calculate transpose convolution using general convolution we
     // need to derive effective generic convolution parameters from transpose ones
     const int stride_width = cfg->stride_width;
     const int stride_height = cfg->stride_height;
     const int effective_padding_top = weights_prv.kernel_height - cfg->padding_top - 1;
-    const int effective_padding_bot = weights_prv.kernel_height - cfg->padding_bottom - 1;
     const int effective_padding_left = weights_prv.kernel_width - cfg->padding_left - 1;
-    const int effective_padding_right = weights_prv.kernel_width - cfg->padding_right - 1;
-    const int effective_in_width = (in_prv.width - 1) * stride_width + 1;
-    const int effective_in_height = (in_prv.height - 1) * stride_height + 1;
-
-    const int out_width  = effective_in_width + effective_padding_left + effective_padding_right
-                           - weights_prv.kernel_width + 1;
-    const int out_height = effective_in_height + effective_padding_top + effective_padding_bot 
-                           - weights_prv.kernel_height + 1;
-    const int out_ch = weights_prv.out_ch;
-
-    out->el_type = in->el_type;
-    out->shape[FMAP_H_DIM_HWC] = out_height;
-    out->shape[FMAP_W_DIM_HWC] = out_width;
-    out->shape[FMAP_C_DIM_HWC] = out_ch;
-
-    const auto out_prv = mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(io_T)>(out);
 
     quant_T quant_params;
     define_quant_params(in, weights, bias, out, &quant_params);
@@ -163,8 +147,8 @@ MLI_FORCE_INLINE void transpose_conv2d_prepare_and_run(
             auto cur_out = out_prv;
             const int out_w_offset = (stride_width - krn_w_offset + effective_padding_left) % stride_width;
             const int out_h_offset = (stride_height - krn_h_offset + effective_padding_top) % stride_height;
-            const int cur_out_height = CEIL_DIV(out_height - out_h_offset, stride_height);
-            const int cur_out_width = CEIL_DIV(out_width - out_w_offset, stride_width);
+            const int cur_out_height = CEIL_DIV(out_prv.height - out_h_offset, stride_height);
+            const int cur_out_width = CEIL_DIV(out_prv.width - out_w_offset, stride_width);
             int out_mem_offset = out_prv.row_mem_stride * out_h_offset;
             out_mem_offset += out_prv.col_mem_stride * out_w_offset;
             cur_out.height = cur_out_height;

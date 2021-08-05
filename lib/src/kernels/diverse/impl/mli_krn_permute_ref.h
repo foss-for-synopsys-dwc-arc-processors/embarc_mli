@@ -59,26 +59,13 @@ static MLI_FORCE_INLINE mli_status mli_krn_permute_run(const mli_tensor *in, con
 
     int rank = in->rank;
 
-    // Fill output tensor description
-    out->rank = in->rank;
-    out->el_type = in->el_type;
-
     int perm_dim[] = {0, 1, 2, 3};   // default order of output matrix dimension 4
     int out_increments[] = {0, 0, 0, 0};
 
     // Prepare required data - strides on input, shapes
     for (int k = 0; k < rank; k++) {
         perm_dim[k] = cfg->perm_dim[k];
-        out->shape[k] = in->shape[perm_dim[k]];
         out_increments[k]= out->mem_stride[k];
-    }
-
-    //if out memstride not initialized, calculate it from out_shape
-    if (out_increments[0] < 1) {
-        out_increments[rank - 1] = 1;
-        for (int dim_ctr = rank -2; dim_ctr >=0; dim_ctr--) {
-            out_increments[dim_ctr] = out_increments[dim_ctr + 1] * out->shape[dim_ctr + 1];
-        }
     }
 
     for (int i = rank; i < MLI_MAX_RANK; i++) {

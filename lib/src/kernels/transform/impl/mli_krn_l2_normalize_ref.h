@@ -176,12 +176,11 @@ static MLI_FORCE_INLINE mli_status mli_krn_l2_normalize_run(const mli_tensor *in
     const MLI_PTR(io_T) in_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in);
     MLI_PTR(io_T) out_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(out);
 
-    /* Copy tensor format */
-    mli_prv_copy_tensor_format_except_mem_strides(in, out);
-
     int16_t in_zp = 0;
     int out_shift = 0;
     if (convert) {
+        out->el_params.sa.type = MLI_EL_PARAM_SC16_ZP16;
+        out->el_params.sa.dim = -1;
         in_zp = in->el_params.sa.zero_point.mem.i16;
         out->el_params.sa.zero_point.mem.i16 = kL2NormAsymZeroPoint;
         out->el_params.sa.scale.mem.i16 = 1;

@@ -226,11 +226,13 @@ int main() {
             is_test_passed = false;
         }
 
-        //Fill all fields in out tensor as -1 except data field and capacity field
-        out.rank = -1;
-        for(int i = 0; i < MLI_MAX_RANK; i++) {
-            out.shape[i] = 0;
-            out.mem_stride[i] = 0;
+        //Fill all fields in out tensor
+        out.rank = in.rank;
+        int stride = 1;
+        for(int i = out.rank - 1; i >= 0; i--) {
+            out.shape[i] = in.shape[cur_test->cfg.perm_dim[i]];
+            out.mem_stride[i] = stride;
+            stride *= out.shape[i];
         }
 
         if (is_test_passed &&

@@ -775,41 +775,6 @@ static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T> mli_prv_rotate_weight
 extern "C" {
 #endif
 
-static MLI_FORCE_INLINE mli_status mli_prv_copy_tensor_format(
-        const mli_tensor * src,
-        mli_tensor * dst) {
-    mli_status check = MLI_CHECK_STATUS(mli_chk_tensor (src, /*check_bank=*/false), __func__);
-    if (check != MLI_STATUS_OK)
-          return check;
-
-    for (int idx = 0; idx < (int)src->rank; idx++) {
-        dst->shape[idx] = src->shape[idx];
-        dst->mem_stride[idx] = src->mem_stride[idx];
-    }
-
-    dst->rank = src->rank;
-    dst->el_type = src->el_type;
-    dst->el_params = src->el_params;
-    return MLI_STATUS_OK;
-}
-
-static MLI_FORCE_INLINE mli_status mli_prv_copy_tensor_format_except_mem_strides(
-        const mli_tensor * src,
-        mli_tensor * dst) {
-    mli_status check = MLI_CHECK_STATUS(mli_chk_tensor (src, /*check_bank=*/false), __func__);
-    if (check != MLI_STATUS_OK)
-          return check;
-
-    for (int idx = 0; idx < (int)src->rank; idx++) {
-        dst->shape[idx] = src->shape[idx];
-    }
-
-    dst->rank = src->rank;
-    dst->el_type = src->el_type;
-    dst->el_params = src->el_params;
-    return MLI_STATUS_OK;
-}
-
 static MLI_FORCE_INLINE int mli_prv_calc_shift(
         const mli_tensor *in,
         const mli_tensor *w,

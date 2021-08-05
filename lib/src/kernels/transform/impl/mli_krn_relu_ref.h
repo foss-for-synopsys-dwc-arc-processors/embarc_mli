@@ -61,15 +61,14 @@ static MLI_FORCE_INLINE mli_status mli_krn_relu_fx_run(const mli_tensor *in,
     const MLI_PTR(io_T) __restrict vec_in = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in);
     MLI_OUT_PTR(io_T) __restrict vec_out = mli_prv_tensor_data_ptr<MLI_OUT_PTR(io_T)>(out);
 
-    /* Copy tensor format */
-    mli_prv_copy_tensor_format_except_mem_strides(in, out);
-
     /* Get Relu Limits */
     const mli_minmax_t limits = mli_prv_get_relu_limits<io_T, asym>(cfg, in);
     const io_T min_val = static_cast<io_T>(limits.min);
     const io_T max_val = static_cast<io_T>(limits.max);
 
     int shape = mli_prv_squash_tensor_to_one_dim(in, out);
+
+    out->el_params = in->el_params;
 
     if(shape) {
         mli::krn::compute_relu_inner_loop<io_T>(vec_in, vec_out, min_val, max_val, shape);

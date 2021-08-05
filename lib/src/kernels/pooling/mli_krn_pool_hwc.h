@@ -457,22 +457,19 @@ static void mli_krn_pool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg, ml
     int32_t kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(io_T)>(in,
-            0); // channels
+    auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(io_T)>(in);
+    const auto out_prv = mli_prv_get_tensor_hwc<MLI_OUT_PTR(io_T)>(out);
 
     if (fixed_kernel_size) {
         MLI_CHECK_AND_FIX(kernel_width, fixed_kernel_size);
         MLI_CHECK_AND_FIX(kernel_height, fixed_kernel_size);
     }
 
-    // Define data dimensions
-    const int32_t out_width = CEIL_DIV(in_prv.width + padding_left + padding_right - kernel_width + 1, stride_width);
-    const int32_t out_height = CEIL_DIV(in_prv.height + padding_top + padding_bot - kernel_height + 1, stride_height);
     // Adjust the padding at the bottom and at the right in case too much padding was provided
     // (this can happen when stride > 1)
     // in case not all input samples can be used, adjust the width and height.
-    padding_right = (out_width * stride_width + kernel_width - stride_width) - in_prv.width - padding_left;
-    padding_bot = (out_height * stride_height + kernel_height - stride_height) - in_prv.height - padding_top;
+    padding_right = (out_prv.width * stride_width + kernel_width - stride_width) - in_prv.width - padding_left;
+    padding_bot = (out_prv.height * stride_height + kernel_height - stride_height) - in_prv.height - padding_top;
     if (padding_right < 0) {
         in_prv.width += padding_right;
         padding_right = 0;
@@ -481,12 +478,6 @@ static void mli_krn_pool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg, ml
         in_prv.height += padding_bot;
         padding_bot = 0;
     }
-    // Fill output tensor parameters
-    out->el_type = in->el_type;
-    out->rank = in->rank;
-    out->shape[FMAP_H_DIM_HWC] = out_height;
-    out->shape[FMAP_W_DIM_HWC] = out_width;
-    out->shape[FMAP_C_DIM_HWC] = in_prv.ch;
     
     s8asym_quant_params params;
     if (type == AVEPOOL) {
@@ -503,11 +494,10 @@ static void mli_krn_pool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg, ml
         out->el_params = in->el_params;
     }
 
-    const auto out_prv = mli_prv_get_tensor_hwc<MLI_OUT_PTR(io_T)>(out);
     const int32_t row_beg = 0;
-    const int32_t row_end = out_height;
+    const int32_t row_end = out_prv.height;
     const int32_t clmn_beg = 0;
-    const int32_t clmn_end = out_width;
+    const int32_t clmn_end = out_prv.width;
 
     mli_prv_fx_init_dsp_ctrl();
 
