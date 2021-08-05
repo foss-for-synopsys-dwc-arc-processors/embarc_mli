@@ -15,6 +15,37 @@
 #include "mli_prv_quant.h"
 #include "mli_prv_tensor.h"
 #include "mli_types.h"
+#include <math.h>
+
+template <typename in_T, typename out_T, typename acc_T>
+MLI_FORCE_INLINE void calc_convert(const MLI_PTR(in_T) src_tensor_arr,
+                                   MLI_OUT_PTR(out_T) dst_tensor_arr,
+                                   const int16_t in_zp, const int16_t scale,
+                                   const int16_t scale_shift, const int16_t out_zp) {
+    if (std::is_same<acc_T, int64_t>::value) {
+        const int mul_hi_shift = 32;
+        int32_t src_in_zp = mli_math_sub_fx<int32_t>(*src_tensor_arr, in_zp);
+        int32_t src_norm = mli_math_norm_fx<int32_t, int32_t>(src_in_zp);
+        src_in_zp = mli_math_asl_fx<int32_t>(src_in_zp, src_norm);
+
+        int32_t scale_norm = mli_math_norm_fx<int32_t, int32_t>((int32_t) scale);
+        int32_t scale32 = mli_math_asl_fx<int32_t>((int32_t) scale, scale_norm);
+
+        int64_t dst_acc = mli_math_mul_fx<int32_t, int64_t>(src_in_zp, scale32);
+        int32_t acc_hi = dst_acc >> mul_hi_shift;
+
+        int32_t dst_acc_shf_casted = mli_math_asr_rnd_fx<int32_t>(acc_hi, scale_shift + scale_norm + src_norm - mul_hi_shift);
+        int32_t dst_val = mli_math_add_fx<int32_t>(dst_acc_shf_casted, out_zp);
+        *dst_tensor_arr = mli_math_cast_fx<int32_t, out_T>(dst_val, 0);
+    } else {
+        int16_t src_in_zp = mli_math_sub_fx<int16_t>(*src_tensor_arr, in_zp);
+        acc_T dst_acc = mli_math_mul_fx<int16_t, acc_T>(src_in_zp, scale);
+        acc_T dst_acc_shf_casted = mli_math_asr_rnd_fx<acc_T>(dst_acc, scale_shift);
+        acc_T dst_val = mli_math_add_fx<acc_T>(dst_acc_shf_casted, out_zp);
+        *dst_tensor_arr = mli_math_cast_fx<acc_T, out_T>(dst_val, 0);
+    }
+}
+
 
 namespace mli {
 namespace hlp {
@@ -25,9 +56,6 @@ namespace ref {
 template <typename in_T, typename out_T, typename acc_T>
 mli_status compute_convert_quantized_data(const mli_tensor * src, mli_tensor * dst) {
     mli_prv_fx_init_dsp_ctrl();
-
-    /* If the accumulator is int64_t, so int32_t should be used for multiplying. */
-    typedef typename std::conditional<std::is_same<acc_T, int64_t>::value, int32_t, int16_t>::type mul_T;
 
     /* Get Generic Private Tensors */
     auto src_prv = mli_prv_get_generic_tensor<MLI_PTR(in_T)>(src);
@@ -63,10 +91,10 @@ mli_status compute_convert_quantized_data(const mli_tensor * src, mli_tensor * d
         /* Calculate scale and scaled zero point. */
         mli::krn::s8asym_quant_params params;
         mli::krn::define_requant_params(src, dst, &params, scale_idx);
-        const int16_t scale_shift = params.shift;
+        const int16_t scale_shift = mli_math_min_fx(params.shift, (int16_t) ((sizeof(acc_T) * 8) - 1));
         const int16_t scale = params.scale;
-        int16_t in_zp = mli_hlp_tensor_zero_offset(src, scale_idx);
-        int16_t out_zp = mli_hlp_tensor_zero_offset(dst, scale_idx);
+        const int16_t in_zp = mli_hlp_tensor_zero_offset(src, scale_idx);
+        const int16_t out_zp = mli_hlp_tensor_zero_offset(dst, scale_idx);
         /* Calculate borders across all dimensions for slice where this scale is applicable */
         int dim_start[MLI_MAX_RANK] = { 0 };
         int dim_end[MLI_MAX_RANK] = { 0 };
@@ -84,11 +112,8 @@ mli_status compute_convert_quantized_data(const mli_tensor * src, mli_tensor * d
                         const int dst_pos = POS(&dst_prv, dim0_idx, dim1_idx, dim2_idx, dim3_idx);
                         MLI_ASSERT(src_pos < src_tensor_size);
                         MLI_ASSERT(dst_pos < dst_tensor_size);
-                        mul_T src_in_zp = mli_math_sub_fx<mul_T>(src_tensor_arr[src_pos], in_zp);
-                        acc_T dst_acc = mli_math_mul_fx<mul_T, acc_T>(src_in_zp, scale);
-                        acc_T dst_acc_shf_casted = mli_math_asr_rnd_fx<acc_T>(dst_acc, scale_shift);
-                        acc_T dst_val = mli_math_add_fx<acc_T>(dst_acc_shf_casted, out_zp);
-                        dst_tensor_arr[dst_pos] = mli_math_cast_fx<acc_T, out_T>(dst_val, 0);
+                        calc_convert<in_T, out_T, acc_T>(&src_tensor_arr[src_pos], &dst_tensor_arr[dst_pos],
+                                                         in_zp, scale, scale_shift, out_zp);
                     }
                 }
             }
@@ -137,7 +162,7 @@ mli_status convert_float_data(const mli_tensor * src, mli_tensor * dst, convert_
 
     const mli_tensor* tensor = nullptr;
     const mli_tensor* float_tensor = nullptr;
-    
+
     /* Defining float_tensor and tensor depending on current conversion direction */
     if (mode == mli::hlp::QUANTIZE) {
         float_tensor = src;
@@ -171,14 +196,16 @@ mli_status convert_float_data(const mli_tensor * src, mli_tensor * dst, convert_
     /* Transformation will be applied on slices across scales dimension (or all tensor) */
     for (int scale_idx = 0; scale_idx < scales_num; ++scale_idx) {
         /* Calculate current scale and zero offset */
-        float scale_val;
+        float scale_val = 1.0;
+        int8_t frac_bits = mli_hlp_tensor_scale_shift(tensor, scale_idx);
+        float scale = (float) mli_hlp_tensor_scale(tensor, scale_idx);
         if (mode == mli::hlp::QUANTIZE) {
-            scale_val = (float)((int64_t)1l << mli_hlp_tensor_scale_shift(tensor, scale_idx));
-            scale_val = scale_val / (float)mli_hlp_tensor_scale(tensor, scale_idx);
-        } else if (mode == mli::hlp::DEQUANTIZE) {
-            scale_val = (float)mli_hlp_tensor_scale(tensor, scale_idx);
-            scale_val = scale_val / (float)((int64_t)1l << mli_hlp_tensor_scale_shift(tensor, scale_idx));
+            scale = 1.0 / scale;
+            scale_val = ldexp(scale, ((int32_t) frac_bits));
+        } else {
+            scale_val = ldexp(scale, -((int32_t) frac_bits));
         }
+
         int16_t zero_offset = mli_hlp_tensor_zero_offset(tensor, scale_idx);
 
         /* Calculate borders across all dimensions for slice where this scale is applicable */

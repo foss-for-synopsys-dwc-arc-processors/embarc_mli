@@ -580,11 +580,7 @@ MLI_FORCE_INLINE vNx4int_t ir_rnn_result_requantize(
     vNx4int_t shift_left = mli_math_max_fx(-total_shift, 0);
     vNx4int_t shift_right = mli_math_min_fx(mli_math_max_fx(total_shift, 0), max_int_shift);
 
-    vNx4int_t preshift = mli_math_max_fx(shift_right - max_int_shift, 0);
-    shift_right = shift_right - preshift;
-
-    vNx4int_t acc_shifted = mli_math_asr_fx(acc_scaled, preshift);
-    acc_shifted = mli_math_asr_rnd_fx(acc_shifted, shift_right);
+    vNx4int_t acc_shifted = mli_math_asr_rnd_fx(acc_scaled, shift_right);
     acc_shifted = mli_math_asl_fx(acc_shifted, shift_left);
     return acc_shifted;
 }
