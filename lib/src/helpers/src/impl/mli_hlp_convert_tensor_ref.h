@@ -23,7 +23,7 @@ namespace ref {
 #pragma MLI_CODE_SECTION_START(".mli_lib")
 
 template <typename in_T, typename out_T, typename acc_T>
-mli_status convert_quantized_data(const mli_tensor * src, mli_tensor * dst) {
+mli_status compute_convert_quantized_data(const mli_tensor * src, mli_tensor * dst) {
     mli_prv_fx_init_dsp_ctrl();
 
     /* If the accumulator is int64_t, so int32_t should be used for multiplying. */
@@ -100,6 +100,40 @@ mli_status convert_quantized_data(const mli_tensor * src, mli_tensor * dst) {
         }
     }
     return MLI_STATUS_OK;
+}
+
+mli_status convert_quantized_data(const mli_tensor * src, mli_tensor * dst) {
+
+    mli_status ret;
+
+    if ((src->el_type == MLI_EL_FX_8 || src->el_type == MLI_EL_SA_8) &&
+            (dst->el_type == MLI_EL_FX_8 || dst->el_type == MLI_EL_SA_8)) {
+        ret = compute_convert_quantized_data<int8_t, int8_t, int32_t>(src, dst);
+    } else if ((src->el_type == MLI_EL_FX_8 || src->el_type == MLI_EL_SA_8) &&
+            dst->el_type == MLI_EL_FX_16) {
+        ret = compute_convert_quantized_data<int8_t, int16_t, int32_t>(src, dst);
+    } else if ((src->el_type == MLI_EL_FX_8 || src->el_type == MLI_EL_SA_8) &&
+            dst->el_type == MLI_EL_SA_32) {
+        ret = compute_convert_quantized_data<int8_t, int32_t, int64_t>(src, dst);
+    } else if (src->el_type == MLI_EL_FX_16 &&
+            (dst->el_type == MLI_EL_FX_8 || dst->el_type == MLI_EL_SA_8)) {
+        ret = compute_convert_quantized_data<int16_t, int8_t, int32_t>(src, dst);
+    } else if (src->el_type == MLI_EL_FX_16 && dst->el_type == MLI_EL_FX_16) {
+        ret = compute_convert_quantized_data<int16_t, int16_t, int32_t>(src, dst);
+    } else if (src->el_type == MLI_EL_FX_16 && dst->el_type == MLI_EL_SA_32) {
+        ret = compute_convert_quantized_data<int16_t, int32_t, int64_t>(src, dst);
+    } else if (src->el_type == MLI_EL_SA_32 &&
+            (dst->el_type == MLI_EL_FX_8 || dst->el_type == MLI_EL_SA_8)) {
+        ret = compute_convert_quantized_data<int32_t, int8_t, int64_t>(src, dst);
+    } else if (src->el_type == MLI_EL_SA_32 && dst->el_type == MLI_EL_FX_16) {
+        ret = compute_convert_quantized_data<int32_t, int16_t, int64_t>(src, dst);
+    } else if (src->el_type == MLI_EL_SA_32 && dst->el_type == MLI_EL_SA_32) {
+        ret = compute_convert_quantized_data<int32_t, int32_t, int64_t>(src, dst);
+    } else {
+        ret = MLI_STATUS_TYPE_MISMATCH;
+    }
+
+    return ret;
 }
 
 template <typename t_T>

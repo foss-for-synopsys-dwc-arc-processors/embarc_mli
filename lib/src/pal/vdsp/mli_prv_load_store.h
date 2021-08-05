@@ -156,8 +156,6 @@ static MLI_FORCE_INLINE vNx2short_t mli_prv_stride_load_1vec(const MLI_PTR(int16
     return vgather(in, mli_prv_vNx2int_vector_stride_init(stride));
 }
 
-
-
 static MLI_FORCE_INLINE vNint_t mli_prv_stride_load_1vec(const MLI_PTR(int32_t) in, int stride, int num) {
     return vgather(in, mli_prv_vNint_vector_stride_init(stride), mli_prv_pvN_init(num));
 }
@@ -166,7 +164,60 @@ static MLI_FORCE_INLINE vNint_t mli_prv_stride_load_1vec(const MLI_PTR(int32_t) 
     return vgather(in, mli_prv_vNint_vector_stride_init(stride));
 }
 
+static MLI_FORCE_INLINE vNx4char_t mli_prv_stride_load_nx4_samples(const MLI_PTR(int8_t) in, int stride, int num) {
+    return mli_prv_stride_load_1vec(in, stride, num);
+}
 
+static MLI_FORCE_INLINE vNx4char_t mli_prv_stride_load_nx4_samples(const MLI_PTR(int8_t) in, int stride) {
+    return mli_prv_stride_load_1vec(in, stride);
+}
+
+static MLI_FORCE_INLINE vNx4short_t mli_prv_stride_load_nx4_samples(const MLI_PTR(int16_t) in, int stride, int num) {
+    vNx4short_t data;
+    if ( num > _VDSP_NUM_16BIT_LANES) {
+        data.lo = mli_prv_stride_load_1vec(in, stride);
+        data.hi = mli_prv_stride_load_1vec(in + _VDSP_NUM_16BIT_LANES * stride, stride, num - _VDSP_NUM_16BIT_LANES);
+    } else {
+        data.lo = mli_prv_stride_load_1vec(in, stride, num);
+    }
+    return data;
+}
+
+static MLI_FORCE_INLINE vNx4short_t mli_prv_stride_load_nx4_samples(const MLI_PTR(int16_t) in, int stride) {
+    vNx4short_t data;
+    data.lo = mli_prv_stride_load_1vec(in, stride);
+    data.hi = mli_prv_stride_load_1vec(in + _VDSP_NUM_16BIT_LANES * stride, stride);
+    return data;
+}
+
+static MLI_FORCE_INLINE vNx4int_t mli_prv_stride_load_nx4_samples(const MLI_PTR(int32_t) in, int stride, int num) {
+    vNx4int_t data;
+    if ( num > 3 * _VDSP_NUM_32BIT_LANES) {
+        data.lo.lo = mli_prv_stride_load_1vec(in, stride);
+        data.lo.hi = mli_prv_stride_load_1vec(in + _VDSP_NUM_32BIT_LANES * stride, stride);
+        data.hi.lo = mli_prv_stride_load_1vec(in + 2 * _VDSP_NUM_32BIT_LANES * stride, stride);
+        data.hi.hi = mli_prv_stride_load_1vec(in + 3 * _VDSP_NUM_32BIT_LANES * stride, stride, num - 3 * _VDSP_NUM_32BIT_LANES);
+    } else if ( num > 2 * _VDSP_NUM_32BIT_LANES) {
+        data.lo.lo = mli_prv_stride_load_1vec(in, stride);
+        data.lo.hi = mli_prv_stride_load_1vec(in + _VDSP_NUM_32BIT_LANES * stride, stride);
+        data.hi.lo = mli_prv_stride_load_1vec(in + 2 * _VDSP_NUM_32BIT_LANES * stride, stride, num - 2 * _VDSP_NUM_32BIT_LANES);
+    } else if ( num > _VDSP_NUM_32BIT_LANES) {
+        data.lo.lo = mli_prv_stride_load_1vec(in, stride);
+        data.lo.hi = mli_prv_stride_load_1vec(in + _VDSP_NUM_32BIT_LANES * stride, stride, num - _VDSP_NUM_32BIT_LANES);
+    } else {
+        data.lo.lo = mli_prv_stride_load_1vec(in, stride, num);
+    }
+    return data;
+}
+
+static MLI_FORCE_INLINE vNx4int_t mli_prv_stride_load_nx4_samples(const MLI_PTR(int32_t) in, int stride) {
+    vNx4int_t data;
+    data.lo.lo = mli_prv_stride_load_1vec(in, stride);
+    data.lo.hi = mli_prv_stride_load_1vec(in + _VDSP_NUM_32BIT_LANES * stride, stride);
+    data.hi.lo = mli_prv_stride_load_1vec(in + 2 * _VDSP_NUM_32BIT_LANES * stride, stride);
+    data.hi.hi = mli_prv_stride_load_1vec(in + 3 * _VDSP_NUM_32BIT_LANES * stride, stride);
+    return data;
+}
 
 //load with stride from dchache
 static MLI_FORCE_INLINE vNx4char_t mli_prv_stride_load_1vec(const int8_t*  in, int stride, int limit) {
@@ -351,8 +402,6 @@ static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int8_t)  out
     vscatter(data, out, mli_prv_vNx4int_vector_stride_init(stride));
 }
 
-
-
 static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int16_t)  out, vNx2short_t data, int  stride, int predicate_limit) {
     vscatter(data, out, mli_prv_vNx2int_vector_stride_init(stride), mli_prv_pvNx2_init(predicate_limit));
 }
@@ -360,8 +409,6 @@ static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int16_t)  ou
 static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int16_t)  out, vNx2short_t data, int  stride) {
     vscatter(data, out,mli_prv_vNx2int_vector_stride_init(stride));
 }
-
-
 
 static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int32_t)  out, vNint_t data, int  stride, int predicate_limit) {
     vscatter(data, out,mli_prv_vNint_vector_stride_init(stride), mli_prv_pvN_init(predicate_limit));
@@ -371,7 +418,56 @@ static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int32_t)  ou
     vscatter(data, out,mli_prv_vNint_vector_stride_init(stride));
 }
 
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int16_t)  out, vNx4short_t data, int  stride, int predicate_limit) {
+    
+    if ( predicate_limit > _VDSP_NUM_16BIT_LANES ) {
+        mli_prv_stride_store_n_samples(out, data.lo, stride);
+        out += _VDSP_NUM_16BIT_LANES * stride;
+        mli_prv_stride_store_n_samples(out, data.hi, stride, predicate_limit - _VDSP_NUM_16BIT_LANES);
+    } else {
+        mli_prv_stride_store_n_samples(out, data.lo, stride, predicate_limit);
+    }
+}
 
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int16_t)  out, vNx4short_t data, int  stride) {
+    mli_prv_stride_store_n_samples(out, data.lo, stride);
+    out += _VDSP_NUM_16BIT_LANES * stride;
+    mli_prv_stride_store_n_samples(out, data.hi, stride);
+}
+
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int32_t)  out, vNx4int_t data, int  stride, int predicate_limit) {
+    if ( predicate_limit > 3 * _VDSP_NUM_32BIT_LANES ) {
+        mli_prv_stride_store_n_samples(out, data.lo.lo, stride);
+        out += _VDSP_NUM_32BIT_LANES * stride;
+        mli_prv_stride_store_n_samples(out, data.lo.hi, stride);
+        out += _VDSP_NUM_32BIT_LANES * stride;
+        mli_prv_stride_store_n_samples(out, data.hi.lo, stride);
+        out += _VDSP_NUM_32BIT_LANES * stride;
+        mli_prv_stride_store_n_samples(out, data.hi.hi, stride, predicate_limit - 3 * _VDSP_NUM_32BIT_LANES);
+    } else if ( predicate_limit > 2 * _VDSP_NUM_32BIT_LANES ) {
+        mli_prv_stride_store_n_samples(out, data.lo.lo, stride);
+        out += _VDSP_NUM_32BIT_LANES * stride;
+        mli_prv_stride_store_n_samples(out, data.lo.hi, stride);
+        out += _VDSP_NUM_32BIT_LANES * stride;
+        mli_prv_stride_store_n_samples(out, data.hi.lo, stride, predicate_limit - 2 * _VDSP_NUM_32BIT_LANES);
+    } else if ( predicate_limit > _VDSP_NUM_32BIT_LANES ) {
+        mli_prv_stride_store_n_samples(out, data.lo.lo, stride);
+        out += _VDSP_NUM_32BIT_LANES * stride;
+        mli_prv_stride_store_n_samples(out, data.lo.hi, stride, predicate_limit - _VDSP_NUM_32BIT_LANES);
+    } else {
+        mli_prv_stride_store_n_samples(out, data.lo.lo, stride, predicate_limit);
+    }
+}
+
+static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int32_t)  out, vNx4int_t data, int  stride) {
+    mli_prv_stride_store_n_samples(out, data.lo.lo, stride);
+    out += _VDSP_NUM_32BIT_LANES * stride;
+    mli_prv_stride_store_n_samples(out, data.lo.hi, stride);
+    out += _VDSP_NUM_32BIT_LANES * stride;
+    mli_prv_stride_store_n_samples(out, data.hi.lo, stride);
+    out += _VDSP_NUM_32BIT_LANES * stride;
+    mli_prv_stride_store_n_samples(out, data.hi.hi, stride);
+}
 
 /*store with stride in dcache*/
 static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(int8_t*  out, vNx4char_t data, int stride) {

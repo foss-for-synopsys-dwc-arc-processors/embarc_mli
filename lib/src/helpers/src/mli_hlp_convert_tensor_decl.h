@@ -34,7 +34,6 @@ typedef enum {
 ////////////////////////////////////////////////////////////////////////////////
 namespace ref {
 
-template <typename in_T, typename out_T, typename acc_T>
 mli_status convert_quantized_data(
         const mli_tensor *src,
         mli_tensor *dst);
@@ -52,8 +51,7 @@ mli_status convert_float_data(
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
 
-template <typename in_T, typename out_T, typename acc_T>
-mli_status convert_quantized_data(
+MLI_FORCE_INLINE mli_status convert_quantized_data(
         const mli_tensor *src,
         mli_tensor *dst);
 
