@@ -16,6 +16,7 @@
 #include "mli_prv_tensor.h"
 #include "mli_types.h"
 
+
 namespace mli {
 namespace hlp {
 namespace vdsp {
@@ -28,13 +29,12 @@ static MLI_FORCE_INLINE vNx4int_t calc_convert(
         const int16_t shift,
         const int16_t in_zp,
         const int16_t out_zp) {
-
-    int shift_right = mli_math_max_fx(shift, 0);
+    constexpr int max_shift = 31;
+    int shift_right = mli_math_min_fx(mli_math_max_fx(shift, 0), max_shift);
     int shift_left = mli_math_max_fx(-shift, 0);
 #ifdef ROUND_UP
     uint32_t one = 1u;
     int32_t offset = (one << shift_right) >> 1;
-            offset += (int32_t)out_zp << shift_right;
 #else
     #error Rounding mode not supported
 #endif
@@ -45,6 +45,7 @@ static MLI_FORCE_INLINE vNx4int_t calc_convert(
                 dst_val = mli_math_add_fx<vNx4int_t>(dst_val, offset);
                 dst_val = mli_math_asr_fx(dst_val, shift_right);
                 dst_val = mli_math_asl_fx(dst_val, shift_left);
+                dst_val = mli_math_add_fx<vNx4int_t>(dst_val, (int32_t) out_zp);
 
     return dst_val;
 }
@@ -55,13 +56,12 @@ static MLI_FORCE_INLINE vNx4int_t calc_convert(
         const int16_t shift,
         const int16_t in_zp,
         const int16_t out_zp) {
-
-    int shift_right = mli_math_max_fx(shift, 0);
+    constexpr int max_shift = 31;
+    int shift_right = mli_math_min_fx(mli_math_max_fx(shift, 0), max_shift);
     int shift_left = mli_math_max_fx(-shift, 0);
 #ifdef ROUND_UP
     uint32_t one = 1u;
     int32_t offset = (one << shift_right) >> 1;
-            offset += (int32_t)out_zp << shift_right;
 #else
     #error Rounding mode not supported
 #endif
@@ -70,6 +70,7 @@ static MLI_FORCE_INLINE vNx4int_t calc_convert(
                 dst_val = mli_math_add_fx<vNx4int_t>(dst_val, offset);
                 dst_val = mli_math_asr_fx(dst_val, shift_right);
                 dst_val = mli_math_asl_fx(dst_val, shift_left);
+                dst_val = mli_math_add_fx<vNx4int_t>(dst_val, (int32_t) out_zp);
 
     return dst_val;
 }
@@ -80,52 +81,23 @@ static MLI_FORCE_INLINE vNx4int_t calc_convert(
         const int16_t shift,
         const int16_t in_zp,
         const int16_t out_zp) {
+    constexpr int mul_hi_shift = 32;
+    constexpr int max_int_shift = 31;
 
-    constexpr int mul_pre_shift = 16;
+    vNx4int_t src_in_zp = mli_math_sub(input, (int32_t)in_zp);
+    vNx4int_t src_norm = mli_math_norm_fx<vNx4int_t, vNx4int_t>(src_in_zp);
+    src_in_zp = mli_math_asl_fx<vNx4int_t, vNx4int_t>(src_in_zp, src_norm);
 
-    if( shift > mul_pre_shift ) {
-        constexpr int mul_hi_shift = 32;
-        int total_shift = shift - (mul_hi_shift - mul_pre_shift);
-        int shift_right = mli_math_max_fx(total_shift, 1);
-        int shift_left = mli_math_max_fx(1 - total_shift, 0);
-
-        vNx4int_t src_in_zp = mli_math_sub(input, (int32_t)in_zp);
-                  src_in_zp = mli_math_asl_fx(src_in_zp, shift_left);
-        auto res = mli_math_mul_fx_high(src_in_zp, ((int32_t)scale << mul_pre_shift));
-             res = mli_math_asr_rnd_fx(res, shift_right);
-             res = mli_math_add_fx<vNx4int_t>(res, out_zp);
-
-        return res;
-    } else {
-        /* input = 2^16 * (input_hi) + input_lo
-         * input * scale = (2^16 * (input_hi) + input_lo) * scale
-         *               = 2^16 * (input_hi * scale) + (input_lo * scale)
-         * input * scale * 2^(-shift) = (2^16 * (input_hi * scale) + (input_lo * scale)) * (2^(-shift))
-         *                            = (input_hi * scale) * 2^(-(shift - 16)) + (input_lo * scale)) * (2^(-shift)
-         *                            = res_hi + res_lo
-         * where res_hi = (input_hi * scale) * 2^(-(shift - 16))
-         * and   res_lo = (input_lo * scale)) * (2^(-shift)
-         */
-        int shift_hi = shift - mul_pre_shift;
-        int shift_hi_right = mli_math_max_fx( shift_hi, 0);
-        int shift_hi_left  = mli_math_max_fx(-shift_hi, 0);
-        int shift_lo_right = mli_math_max_fx( shift, 0);
-        int shift_lo_left  = mli_math_max_fx(-shift, 0);
-        vNx4int_t src_in_zp = mli_math_sub(input, (int32_t)in_zp);
-        auto input_lo  = to_vNx4ushort_t(src_in_zp & 0xFFFF);
-        auto input_hi  = to_vNx4short_t(src_in_zp >> mul_pre_shift);
-        auto res_lo = mli_math_mul_su_fx<vNx4short_t, vNx4ushort_t, vNx4accint_t>(scale, input_lo);
-             res_lo = mli_math_asl_fx(res_lo, shift_lo_left);
-             res_lo = mli_math_asr_rnd_fx(res_lo, shift_lo_right);
-        auto res_hi = mli_math_mul_fx<vNx4short_t, vNx4accint_t>(input_hi, scale);
-             res_hi = mli_math_asl_fx(res_hi, shift_hi_left);
-             res_hi = mli_math_asr_fx(res_hi, shift_hi_right);
-
-        auto res = mli_math_add(res_lo, res_hi);
-             res = mli_math_add(res, (vNx4int_t)out_zp);
-
-        return mli_math_acc_cast_fx<vNx4int_t, vNx4accint_t>(res);
-    }
+    int32_t scale_norm = mli_math_norm_fx<int32_t, int32_t>((int32_t) scale);
+    int32_t scale_shifted = ((int32_t) scale) << scale_norm;
+    vNx4int_t res = mli_math_mul_fx_high(src_in_zp, scale_shifted);
+    vNx4int_t total_shift = mli_math_add_fx<vNx4int_t>(src_norm, (scale_norm - mul_hi_shift + shift));
+    vNx4int_t shift_left = mli_math_max_fx(-total_shift, 0);
+    vNx4int_t shift_right = mli_math_min_fx(mli_math_max_fx(total_shift, 0), max_int_shift);
+    vNx4int_t res_shifted = mli_math_asr_rnd_fx(res, shift_right);
+    res_shifted = mli_math_asl_fx(res_shifted, shift_left);
+    res_shifted = mli_math_add_fx<vNx4int_t>(res_shifted, (int32_t) out_zp);
+    return res_shifted;
 }
 
 template <typename out_T>
@@ -133,7 +105,7 @@ static MLI_FORCE_INLINE void store_convert(
         MLI_OUT_PTR(out_T) out_ptr,
         vNx4int_t output,
         int remaining_part = 0) {
-    
+
     typedef decltype(mli_prv_load_nx4_samples(out_ptr)) cast_type;
 
     if (remaining_part) {
@@ -165,7 +137,7 @@ static MLI_FORCE_INLINE void store_convert(
         const int out_stride,
         vNx4int_t output,
         int remaining_part = 0) {
-    
+
     typedef decltype(mli_prv_load_nx4_samples(out_ptr)) cast_type;
 
     if (remaining_part) {
