@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -50,8 +50,8 @@ struct permute_test_operands {
 
 // Shared CRC Results
 const crc32_calc  test_1_chksum_fx16{ 0x7DDA59C8 }, test_1_chksum_fx8{ 0xBFE26CDD }, test_1_chksum_sa8{ 0xB555AC5A },
-                  test_2_chksum_fx16{ 0x48A78608 }, test_2_chksum_fx8{ 0x13275726 }, test_2_chksum_sa8{ 0x1C3CD42E },
-                  test_3_chksum_fx16{ 0x8670B52E }, test_3_chksum_fx8{ 0xEDBB5DD4 }, test_3_chksum_sa8{ 0xC7AB060F },
+                  test_2_chksum_fx16{ 0xDA5A558D }, test_2_chksum_fx8{ 0xB2F6A81D }, test_2_chksum_sa8{ 0x157694C9 },
+                  test_3_chksum_fx16{ 0xA75B8B96 }, test_3_chksum_fx8{ 0xC82149A2 }, test_3_chksum_sa8{ 0xA831F59E },
                   test_4_chksum_fx16{ 0x9C1AA0B9 }, test_4_chksum_fx8{ 0xD6A1C316 }, test_4_chksum_sa8{ 0x043C46FB },
                   test_5_chksum_fx16{ 0x638D962C }, test_5_chksum_fx8{ 0x0FDF29A8 }, test_5_chksum_sa8{ 0x3441D826 },
                   test_6_chksum_fx16{ 0x14ECC2F0 }, test_6_chksum_fx8{ 0x5A43F7EB }, test_6_chksum_sa8{ 0x75D4A41F },
@@ -224,15 +224,6 @@ int main() {
             reporter.report_message(cur_test->descr, 
                                     "FAILED at quantization step: more memory for one of tensors might be required");
             is_test_passed = false;
-        }
-
-        //Fill all fields in out tensor
-        out.rank = in.rank;
-        int stride = 1;
-        for(int i = out.rank - 1; i >= 0; i--) {
-            out.shape[i] = in.shape[cur_test->cfg.perm_dim[i]];
-            out.mem_stride[i] = stride;
-            stride *= out.shape[i];
         }
 
         if (is_test_passed &&
