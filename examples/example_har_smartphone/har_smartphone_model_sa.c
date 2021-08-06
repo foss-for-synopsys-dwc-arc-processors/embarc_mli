@@ -61,15 +61,16 @@ static inline void set_mli_tensor_shape3(mli_tensor* tensor, uint32_t shape0, ui
 // Intermediate data buffers (enough size for max intermediate results)
 //==============================
 #define LSTM_CELL_SZ (32)
-#define INOUT_BUF_SZ_MOST (138*LSTM_CELL_SZ)
-#define LSTM_IR_BUF_SZ (20*LSTM_CELL_SZ)
+#define INOUT_BUF_SZ_MOST (128*9*sizeof(float))
+#define INOUT_BUF_SZ_SEC_MOST (128*LSTM_CELL_SZ)
+#define LSTM_IR_BUF_SZ (4*LSTM_CELL_SZ)
 #define LUT_BUF_SZ (512)
 
 // Despite the name of buf we keep all in/out data
 // in the same bank (typically first in operand)
 // Weights and lstm memory in the another (typically second input operand)
 // 11d has got only 2 separate banks of memory
-static d_type  _Y    x_mem_buf[INOUT_BUF_SZ_MOST];
+static d_type  _Y    x_mem_buf[INOUT_BUF_SZ_SEC_MOST];
 static d_type  _Y    y_mem_buf[INOUT_BUF_SZ_MOST];
 static d_type  _Y    lstm_ir_mem_buf[LSTM_IR_BUF_SZ * LSTM_CELL_SZ];
 static d_type  _X    lstm_cell_mem_buf[LSTM_CELL_SZ];
@@ -80,7 +81,7 @@ static int16_t  _X   sigm_lut_mem_buf[LUT_BUF_SZ];
 //============================================================
 static mli_tensor input_float = {
     .data = {
-    .capacity = sizeof(float) * IN_POINTS,
+    .capacity = 0,
     .mem = { .pf32 = NULL }
 },
     .mem_stride = {9, 1},
@@ -91,7 +92,7 @@ static mli_tensor input_float = {
 
 static mli_tensor input = {
     .data = {
-    .capacity = sizeof(float) * IN_POINTS,
+    .capacity = sizeof(y_mem_buf),
     .mem = { .pf32 = (float *)y_mem_buf }
 },
     .mem_stride = {9, 1},
@@ -102,8 +103,8 @@ static mli_tensor input = {
 
 static mli_tensor output = {
     .data = {
-        .capacity = sizeof(d_type) * OUT_POINTS,
-        .mem = { .D_FIELD = (d_type *)y_mem_buf }
+        .capacity = sizeof(x_mem_buf),
+        .mem = { .D_FIELD = (d_type *)x_mem_buf }
     },
     .mem_stride = {1},
     .shape = {6},
@@ -119,7 +120,7 @@ static mli_tensor output = {
 
 static mli_lut tanh_lut = {
     .data = {
-        .capacity = sizeof(int16_t) * LUT_BUF_SZ,
+        .capacity = sizeof(tanh_lut_mem_buf),
         .mem = { .pi16 = (int16_t *)tanh_lut_mem_buf}
     },
 
@@ -127,7 +128,7 @@ static mli_lut tanh_lut = {
 
 static mli_lut sigm_lut = {
     .data = {
-        .capacity = sizeof(int16_t) * LUT_BUF_SZ,
+        .capacity = sizeof(sigm_lut_mem_buf),
         .mem = { .pi16 = (int16_t *)sigm_lut_mem_buf}
     },
 
@@ -337,8 +338,8 @@ static mli_tensor L2_lstm_prev = {
 
 static mli_tensor L2_lstm_out = {
     .data = {
-        .capacity = sizeof(y_mem_buf),
-        .mem = { .D_FIELD = (d_type *)y_mem_buf }
+        .capacity = sizeof(x_mem_buf),
+        .mem = { .D_FIELD = (d_type *)x_mem_buf }
     },
     .mem_stride = {32, 1},
     .shape = {4, 32},
@@ -449,8 +450,8 @@ static mli_tensor L3_lstm_prev = {
 
 static mli_tensor L3_lstm_out = {
     .data = {
-        .capacity = sizeof(x_mem_buf),
-        .mem = { .D_FIELD = (d_type *)x_mem_buf }
+        .capacity = sizeof(y_mem_buf),
+        .mem = { .D_FIELD = (d_type *)y_mem_buf }
     },
     .mem_stride = {32, 1},
     .shape = {1, 32},
@@ -690,25 +691,28 @@ void har_smartphone_net(const char * debug_ir_root) {
 }
 
 //==============================================================
-//  Fully connected on batch: User Implementatioon
+//  Fully connected on batch: User Implementation
 //==============================================================
 static mli_status user_fc_on_multiple_samples(const mli_tensor *layer_input, mli_tensor *layer_output, 
     const mli_relu_cfg *relu_cfg) {
     mli_status ret_val = MLI_STATUS_OK;
-    mli_tensor fc1_in = {.rank=1, .shape={0}};
+    mli_tensor fc1_in = *layer_input;
     mli_tensor fc1_out = {
         .data = {
             .capacity = layer_output->data.capacity,
             .mem = { .D_FIELD = layer_output->data.mem.D_FIELD}
         },
-        .rank = 2,
+        .rank = 1,
+        .shape = {32},
+        .mem_stride = {1},
         .el_type = layer_input->el_type,
         .el_params = layer_output->el_params
     };
 
+
     const mli_fully_connected_cfg cfg = {.relu = *relu_cfg};
-    mli_point_to_subtsr_cfg iterator = {.start_coord = {0}, .coord_num = 1, .first_out_dim_size = 1};
-    ret_val = mli_hlp_point_to_subtensor(layer_input, &iterator, &fc1_in);
+    mli_sub_tensor_cfg iterator = {/*.offset =*/ {0, 0}, /*.size = */{1, layer_input->shape[1]}, /*.sub_tensor_rank =*/1 };
+    mli_hlp_create_subtensor(layer_input, &iterator, &fc1_in);
     if (ret_val != MLI_STATUS_OK)
                 return ret_val;
 
@@ -725,9 +729,7 @@ static mli_status user_fc_on_multiple_samples(const mli_tensor *layer_input, mli
         fc1_out.data.capacity -= next_out_add;
     }
 
-    layer_output->rank = 2;
-    layer_output->shape[0] = layer_input->shape[0];
-    layer_output->shape[1] = fc1_out.shape[0];
+    set_mli_tensor_shape2(layer_output, layer_input->shape[0], fc1_out.shape[0]);
     layer_output->el_type = fc1_out.el_type;
     layer_output->el_params = fc1_out.el_params;
 

@@ -646,9 +646,7 @@ static mli_status user_fc_on_multiple_samples(const mli_tensor *layer_input, mli
         fc1_out.data.capacity -= next_out_add;
     }
 
-    layer_output->rank = 2;
-    layer_output->shape[0] = layer_input->shape[0];
-    layer_output->shape[1] = fc1_out.shape[0];
+    set_mli_tensor_shape2(layer_output, layer_input->shape[0], fc1_out.shape[0]);
     layer_output->el_type = fc1_out.el_type;
     layer_output->el_params = fc1_out.el_params;
 
