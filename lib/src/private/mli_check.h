@@ -28,7 +28,7 @@ extern "C" {
  *
  *
  */
-    mli_status mli_chk_tensor(const mli_tensor * in, bool check_bank = true);
+    mli_status mli_chk_tensor(const mli_tensor * in, bool check_bank = true, bool check_quant = true);
 
     mli_status mli_chk_lut(const mli_lut * lut, int buff_size);
 
@@ -346,15 +346,6 @@ mli_status mli_chk_gru_cell_sa8_sa8_sa32(
         const mli_rnn_cell_cfg * cfg,
         mli_tensor * out);
 
-mli_status mli_chk_concat(const mli_tensor ** inputs, const mli_concat_cfg * cfg, mli_tensor * out);
-mli_status mli_chk_concat_fx8(const mli_tensor ** inputs, const mli_concat_cfg * cfg, mli_tensor * out);
-mli_status mli_chk_concat_fx16(const mli_tensor ** inputs, const mli_concat_cfg * cfg, mli_tensor * out);
-mli_status mli_chk_padding2d_chw(const mli_tensor * in, const mli_padding2d_cfg * cfg, mli_tensor * out);
-mli_status mli_chk_padding2d_chw_fx8(const mli_tensor * in, const mli_padding2d_cfg * cfg, mli_tensor * out);
-mli_status mli_chk_padding2d_chw_fx16(const mli_tensor * in, const mli_padding2d_cfg * cfg, mli_tensor * out);
-mli_status mli_chk_padding2d_hwc(const mli_tensor * in, const mli_padding2d_cfg * cfg, mli_tensor * out);
-mli_status mli_chk_padding2d_hwc_fx8(const mli_tensor * in, const mli_padding2d_cfg * cfg, mli_tensor * out);
-mli_status mli_chk_padding2d_hwc_fx16(const mli_tensor * in, const mli_padding2d_cfg * cfg, mli_tensor * out);
 mli_status mli_chk_permute(const mli_tensor * in, const mli_permute_cfg * cfg, mli_tensor * out);
 mli_status mli_chk_permute_sa8(const mli_tensor * in, const mli_permute_cfg * cfg, mli_tensor * out);
 mli_status mli_chk_permute_fx8(const mli_tensor * in, const mli_permute_cfg * cfg, mli_tensor * out);

@@ -59,22 +59,24 @@ static MLI_FORCE_INLINE mli_status mli_krn_permute_run(const mli_tensor *in, con
 
     int rank = in->rank;
 
-    int perm_dim[] = {0, 1, 2, 3};   // default order of output matrix dimension 4
-    int out_increments[] = {0, 0, 0, 0};
+    int perm_dim[MLI_MAX_RANK] = {0, 1, 2, 3};   // default order of output matrix dimension 4
+    int out_increments[MLI_MAX_RANK] = {0, 0, 0, 0};
+    uint32_t out_shape[MLI_MAX_RANK] = {0, 0, 0, 0};
 
     // Prepare required data - strides on input, shapes
     for (int k = 0; k < rank; k++) {
         perm_dim[k] = cfg->perm_dim[k];
         out_increments[k]= out->mem_stride[k];
+        out_shape[k] = out->shape[k];
     }
 
     for (int i = rank; i < MLI_MAX_RANK; i++) {
-        out->shape[i] = 1;
+        out_shape[i] = 1;
     }
 
     const MLI_PTR(io_T) input = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in);
     MLI_PTR(io_T) output = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(out);
-    mli::krn::mli_krn_permute_calc<io_T>(in, out->shape, out_increments, perm_dim, input, output);
+    mli::krn::mli_krn_permute_calc<io_T>(in, out_shape, out_increments, perm_dim, input, output);
 
     if (asym) {
         if (in->el_params.sa.dim < 0) {
@@ -84,7 +86,7 @@ static MLI_FORCE_INLINE mli_status mli_krn_permute_run(const mli_tensor *in, con
             out->el_params.sa.scale_frac_bits.mem.i8 = in->el_params.sa.scale_frac_bits.mem.i8;
         } else {
             int out_dim = -1;
-            for (int k = 0; k < MLI_MAX_RANK; k++) {
+            for (int k = 0; k < rank; k++) {
                 if (perm_dim[k] == in->el_params.sa.dim) {
                     out_dim = k;
                     break;
