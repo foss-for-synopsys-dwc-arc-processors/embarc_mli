@@ -319,81 +319,40 @@ MLI_FORCE_INLINE mli_status compute_convert_quantized_data(const mli_tensor * sr
             }
         }
     } else {
-        /* Broadcasting in case axis is not inner most dim */
-        bool broadcasting = !(scale_dim == (src_prv.rank - 1));
-        if (broadcasting) {
-            int axis_src_mem_stride = src_prv.mem_stride[scale_dim];
-            int axis_dst_mem_stride = dst_prv.mem_stride[scale_dim];
-            /* Get Non Axis Tensor */
-            auto src_non_axis_prv  = mli_prv_get_non_axis_tensor<MLI_PTR(in_T)>(&src_prv,  scale_dim);
-            auto dst_non_axis_prv = mli_prv_get_non_axis_tensor<MLI_PTR(out_T)>(&dst_prv, scale_dim);
+        int axis_src_mem_stride = src_prv.mem_stride[scale_dim];
+        int axis_dst_mem_stride = dst_prv.mem_stride[scale_dim];
+        /* Get Non Axis Tensor */
+        auto src_non_axis_prv  = mli_prv_get_non_axis_tensor<MLI_PTR(in_T)>(&src_prv,  scale_dim);
+        auto dst_non_axis_prv = mli_prv_get_non_axis_tensor<MLI_PTR(out_T)>(&dst_prv, scale_dim);
 
-            /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
-            mli_prv_reorder_generic_tensor<MLI_PTR(in_T)>(&src_non_axis_prv );
-            mli_prv_reorder_generic_tensor<MLI_OUT_PTR(out_T)>(&dst_non_axis_prv);
+        /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
+        mli_prv_reorder_generic_tensor<MLI_PTR(in_T)>(&src_non_axis_prv );
+        mli_prv_reorder_generic_tensor<MLI_OUT_PTR(out_T)>(&dst_non_axis_prv);
 
-            for (int scale_idx = 0; scale_idx < scales_num; scale_idx++) {
-                /* Calculate scale and scaled zero point. */
-                mli::krn::s8asym_quant_params params;
-                mli::krn::define_requant_params(src, dst, &params, scale_idx);
-                const int16_t scale_shift = params.shift;
-                const int16_t scale = params.scale;
-                int16_t in_zp = mli_hlp_tensor_zero_offset(src, scale_idx);
-                int16_t out_zp = mli_hlp_tensor_zero_offset(dst, scale_idx);
-                
-                /* Define Sub Tensor */
-                MLI_PTR(in_T) vec_in  = (MLI_PTR(in_T))src_prv.ptr  + scale_idx * axis_src_mem_stride;
-                MLI_OUT_PTR(out_T) vec_out = dst_prv.ptr + scale_idx * axis_dst_mem_stride;
+        for (int scale_idx = 0; scale_idx < scales_num; scale_idx++) {
+            /* Calculate scale and scaled zero point. */
+            mli::krn::s8asym_quant_params params;
+            mli::krn::define_requant_params(src, dst, &params, scale_idx);
+            const int16_t scale_shift = params.shift;
+            const int16_t scale = params.scale;
+            int16_t in_zp = mli_hlp_tensor_zero_offset(src, scale_idx);
+            int16_t out_zp = mli_hlp_tensor_zero_offset(dst, scale_idx);
 
-                /* Loop Over Sub Tensor */
-                MLI_PTR(in_T) orig_vec_in = vec_in;
-                MLI_OUT_PTR(out_T) orig_vec_out = vec_out;
-                for (int pos1 = 0; pos1 < src_non_axis_prv.shape[1]; pos1++) {
-                    for (int pos2 = 0; pos2 < src_non_axis_prv.shape[2]; pos2++) {
-                        vec_in  = (MLI_PTR(in_T))orig_vec_in  + POS(&src_non_axis_prv, 0, pos1, pos2, 0);
-                        vec_out = orig_vec_out + POS(&dst_non_axis_prv, 0, pos1, pos2, 0);
-                        compute_convert_one_dim<in_T, out_T>(vec_in, vec_out,
-                                                             scale, scale_shift, in_zp, out_zp, src_non_axis_prv.shape[3]);
-                    }
-                }
-            }
+            /* Define Sub Tensor */
+            MLI_PTR(in_T) vec_in  = (MLI_PTR(in_T))src_prv.ptr  + scale_idx * axis_src_mem_stride;
+            MLI_OUT_PTR(out_T) vec_out = dst_prv.ptr + scale_idx * axis_dst_mem_stride;
 
-        } else {
-            int axis_src_mem_stride = src_prv.mem_stride[scale_dim];
-            int axis_dst_mem_stride = dst_prv.mem_stride[scale_dim];
-            /* Get Non Axis Tensor */
-            auto src_non_axis_prv  = mli_prv_get_non_axis_tensor<MLI_PTR(in_T)>(&src_prv,  scale_dim);
-            auto dst_non_axis_prv = mli_prv_get_non_axis_tensor<MLI_PTR(out_T)>(&dst_prv, scale_dim);
-
-            /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
-            mli_prv_reorder_generic_tensor<MLI_PTR(in_T)>(&src_non_axis_prv );
-            mli_prv_reorder_generic_tensor<MLI_OUT_PTR(out_T)>(&dst_non_axis_prv);
-
-            for (int scale_idx = 0; scale_idx < scales_num; scale_idx++) {
-                /* Calculate scale and scaled zero point. */
-                mli::krn::s8asym_quant_params params;
-                mli::krn::define_requant_params(src, dst, &params, scale_idx);
-                const int16_t scale_shift = params.shift;
-                const int16_t scale = params.scale;
-                int16_t in_zp = mli_hlp_tensor_zero_offset(src, scale_idx);
-                int16_t out_zp = mli_hlp_tensor_zero_offset(dst, scale_idx);
-                
-                /* Define Sub Tensor */
-                MLI_PTR(in_T) vec_in  = (MLI_PTR(in_T))src_prv.ptr  + scale_idx * axis_src_mem_stride;
-                MLI_OUT_PTR(out_T) vec_out = dst_prv.ptr + scale_idx * axis_dst_mem_stride;
-
-                /* Loop Over Sub Tensor */
-                MLI_PTR(in_T) orig_vec_in = vec_in;
-                MLI_OUT_PTR(out_T) orig_vec_out = vec_out;
-                for (int pos1 = 0; pos1 < src_non_axis_prv.shape[1]; pos1++) {
-                    for (int pos2 = 0; pos2 < src_non_axis_prv.shape[2]; pos2++) {
-                        vec_in  = (MLI_PTR(in_T))orig_vec_in  + POS(&src_non_axis_prv, 0, pos1, pos2, 0);
-                        vec_out = orig_vec_out + POS(&dst_non_axis_prv, 0, pos1, pos2, 0);
-                        compute_convert_one_dim_with_stride<in_T, out_T>(vec_in, vec_out,
-                                                             scale, scale_shift, in_zp, out_zp, src_non_axis_prv.shape[3],
-                                                             src_non_axis_prv.mem_stride[3],
-                                                             dst_non_axis_prv.mem_stride[3]);
-                    }
+            /* Loop Over Sub Tensor */
+            MLI_PTR(in_T) orig_vec_in = vec_in;
+            MLI_OUT_PTR(out_T) orig_vec_out = vec_out;
+            for (int pos1 = 0; pos1 < src_non_axis_prv.shape[1]; pos1++) {
+                for (int pos2 = 0; pos2 < src_non_axis_prv.shape[2]; pos2++) {
+                    vec_in  = (MLI_PTR(in_T))orig_vec_in  + POS(&src_non_axis_prv, 0, pos1, pos2, 0);
+                    vec_out = orig_vec_out + POS(&dst_non_axis_prv, 0, pos1, pos2, 0);
+                    compute_convert_one_dim_with_stride<in_T, out_T>(vec_in, vec_out,
+                                                        scale, scale_shift, in_zp, out_zp, src_non_axis_prv.shape[3],
+                                                        src_non_axis_prv.mem_stride[3],
+                                                        dst_non_axis_prv.mem_stride[3]);
                 }
             }
         }
