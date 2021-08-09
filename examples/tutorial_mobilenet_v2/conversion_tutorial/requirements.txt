@@ -1,0 +1,7 @@
+numpy==1.19.2
+matplotlib
+jupyterlab==1.1.0
+tensorflow==2.5.0
+keras>=2.2.4
+emnist
+
