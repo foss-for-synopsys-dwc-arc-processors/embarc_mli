@@ -28,10 +28,13 @@ static MLI_FORCE_INLINE vNx4char_t calc_prelu(
         const vNx4char_t input,
         const vNx4char_t scale,
         const int shift ) {
+    // since the result of input * scale will not exceed 16 bits then we can limit the shift to 15
+    const int max_shift = 15;
+    int shift_right = mli_math_min_fx(shift, max_shift);
     /* out  = max(0, in) + alpha * min(0, in) */
     vNx4char_t pos = mli_math_max_fx(input, 0);
     vNx4accshort_t acc = mli_math_mul_fx<vNx4char_t, vNx4accshort_t>(mli_math_min_fx(input, 0), scale);
-    vNx4char_t neg = mli_math_acc_cast_fx<vNx4char_t, vNx4accshort_t>(acc, shift);
+    vNx4char_t neg = mli_math_acc_cast_fx<vNx4char_t, vNx4accshort_t>(acc, shift_right);
 
     return mli_math_add(pos, neg);
 }
@@ -40,10 +43,13 @@ static MLI_FORCE_INLINE vNx2short_t calc_prelu(
         const vNx2short_t input,
         const vNx2short_t scale,
         const int shift ) {
+    // since the result of input * scale will not exceed 32 bits then we can limit the shift to 31
+    const int max_shift = 31;
+    int shift_right = mli_math_min_fx(shift, max_shift);
     /* out  = max(0, in) + alpha * min(0, in) */
     vNx2short_t pos = mli_math_max_fx(input, 0);
     vNx2accint_t acc = mli_math_mul_fx<vNx2short_t, vNx2accint_t>(mli_math_min_fx(input, 0), scale);
-    vNx2short_t neg = mli_math_acc_cast_fx<vNx2short_t, vNx2accint_t>(acc, shift);
+    vNx2short_t neg = mli_math_acc_cast_fx<vNx2short_t, vNx2accint_t>(acc, shift_right);
 
     return mli_math_add(pos, neg);
 }

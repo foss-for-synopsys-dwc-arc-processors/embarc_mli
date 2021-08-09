@@ -33,10 +33,13 @@ static MLI_FORCE_INLINE void compute_leaky_relu(
         const int shift) {
     io_T input = vec_in[0];
     io_T zero = 0;
+    // since the result of input * scale will not exceed 32 bits then we can limit the shift to 31
+    const int max_shift = 31;
+    int shift_right = mli_math_min_fx(shift, max_shift);
     /* out  = max(0, in) + alpha * min(0, in) */
     io_T pos = mli_math_max_fx(zero, input);
     io_T neg = mli_math_acc_cast_fx<io_T, mli_acc32_t>(
-               mli_math_mul_fx<io_T, mli_acc32_t>( mli_math_min_fx(zero, input), scale), shift);
+               mli_math_mul_fx<io_T, mli_acc32_t>( mli_math_min_fx(zero, input), scale), shift_right);
     vec_out[0] = mli_math_add_fx(pos, neg);
 }
 
