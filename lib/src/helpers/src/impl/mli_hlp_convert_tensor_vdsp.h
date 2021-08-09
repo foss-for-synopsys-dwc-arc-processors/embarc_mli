@@ -66,8 +66,7 @@ static MLI_FORCE_INLINE vNx4int_t calc_convert(
     #error Rounding mode not supported
 #endif
 
-    vNx4short_t src_in_zp = mli_math_sub(input, in_zp);
-    vNx4int_t   dst_val = mli_math_mul_fx<vNx4short_t, vNx4int_t>(src_in_zp, scale);
+    vNx4int_t   dst_val = mli_math_mul_fx<vNx4short_t, vNx4int_t>(input, scale);
                 dst_val = mli_math_add_fx<vNx4int_t>(dst_val, offset);
                 dst_val = mli_math_asr_fx(dst_val, shift_right);
                 dst_val = mli_math_asl_fx(dst_val, shift_left);
@@ -129,7 +128,7 @@ static MLI_FORCE_INLINE vNx4int_t calc_convert(
     }
 }
 
-template<typename out_T>
+template <typename out_T>
 static MLI_FORCE_INLINE void store_convert(
         MLI_OUT_PTR(out_T) out_ptr,
         vNx4int_t output,
@@ -147,7 +146,7 @@ static MLI_FORCE_INLINE void store_convert(
     }
 }
 
-template<>
+template <>
 MLI_FORCE_INLINE void store_convert<int32_t>(
         MLI_OUT_PTR(int32_t) out_ptr,
         vNx4int_t output,
@@ -160,7 +159,42 @@ MLI_FORCE_INLINE void store_convert<int32_t>(
     }
 }
 
-template <typename in_T, typename out_T, typename acc_T>
+template <typename out_T>
+static MLI_FORCE_INLINE void store_convert(
+        MLI_OUT_PTR(out_T) out_ptr,
+        const int out_stride,
+        vNx4int_t output,
+        int remaining_part = 0) {
+    
+    typedef decltype(mli_prv_load_nx4_samples(out_ptr)) cast_type;
+
+    if (remaining_part) {
+        mli_prv_stride_store_n_samples(out_ptr,
+                                mli_math_cast_fx<vNx4int_t, cast_type>(output, 0),
+                                out_stride,
+                                remaining_part);
+    } else {
+        mli_prv_stride_store_n_samples(out_ptr,
+                                mli_math_cast_fx<vNx4int_t, cast_type>(output, 0),
+                                out_stride);
+    }
+}
+
+template <>
+MLI_FORCE_INLINE void store_convert<int32_t>(
+        MLI_OUT_PTR(int32_t) out_ptr,
+        const int out_stride,
+        vNx4int_t output,
+        int remaining_part) {
+
+    if (remaining_part) {
+        mli_prv_stride_store_n_samples(out_ptr, output, out_stride, remaining_part);
+    } else {
+        mli_prv_stride_store_n_samples(out_ptr, output, out_stride);
+    }
+}
+
+template <typename in_T, typename out_T>
 static MLI_FORCE_INLINE void compute_convert_one_dim(
         MLI_PTR(in_T) in_ptr,
         MLI_OUT_PTR(out_T) out_ptr,
@@ -192,13 +226,42 @@ static MLI_FORCE_INLINE void compute_convert_one_dim(
     }
 }
 
-template <typename in_T, typename out_T, typename acc_T>
-mli_status convert_quantized_data(const mli_tensor * src, mli_tensor * dst) {
+template <typename in_T, typename out_T>
+static MLI_FORCE_INLINE void compute_convert_one_dim_with_stride(
+        MLI_PTR(in_T) in_ptr,
+        MLI_OUT_PTR(out_T) out_ptr,
+        const int16_t scale,
+        const int16_t shift,
+        const int16_t in_zp,
+        const int16_t out_zp,
+        const int shape,
+        const int in_mem_stride,
+        const int out_mem_stride) {
 
-    /* Copy shape and rank from source tensor to destination */
-    const int rank = dst->rank = src->rank;
-    for (int i = 0; i < rank; ++i)
-        dst->shape[i] = src->shape[i];
+    /* Dummy Load to get num_lanes */
+    auto input = mli_prv_load_nx4_samples(in_ptr);
+    int num_lanes = get_number_lanes(input);
+    int remaining_part = shape & (num_lanes - 1);
+
+    if (remaining_part) {
+        auto convert_input = mli_prv_stride_load_nx4_samples(in_ptr, in_mem_stride);
+        auto convert_output = calc_convert(convert_input, scale, shift, in_zp, out_zp);
+        store_convert<out_T>(out_ptr, out_mem_stride, convert_output, remaining_part);
+        in_ptr  += remaining_part * in_mem_stride;
+        out_ptr += remaining_part * out_mem_stride;
+    }
+
+    for (int pos = remaining_part; pos < shape; pos+= num_lanes) {
+        auto convert_input = mli_prv_stride_load_nx4_samples(in_ptr, in_mem_stride);
+        vNx4int_t convert_output = calc_convert(convert_input, scale, shift, in_zp, out_zp);
+        store_convert<out_T>(out_ptr, out_mem_stride, convert_output);
+        in_ptr  += num_lanes * in_mem_stride;
+        out_ptr += num_lanes * out_mem_stride;
+    }
+}
+
+template <typename in_T, typename out_T, typename acc_T>
+MLI_FORCE_INLINE mli_status compute_convert_quantized_data(const mli_tensor * src, mli_tensor * dst) {
 
     /* Get Generic Private Tensors */
     auto src_prv = mli_prv_get_generic_tensor<MLI_PTR(in_T)>(src);
@@ -234,8 +297,8 @@ mli_status convert_quantized_data(const mli_tensor * src, mli_tensor * dst) {
         /* Trying to squash tensor to one dim */
         int shape = mli_prv_squash_tensor_to_one_dim(src, dst);
         if (shape) {
-            compute_convert_one_dim<in_T, out_T, acc_T>(src_tensor_arr, dst_tensor_arr,
-                                                        scale, scale_shift, in_zp, out_zp, shape);
+            compute_convert_one_dim<in_T, out_T>(src_tensor_arr, dst_tensor_arr,
+                                                 scale, scale_shift, in_zp, out_zp, shape);
         } else {
             /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
             mli_prv_reorder_generic_tensor<MLI_PTR(in_T)>(&src_prv);
@@ -249,58 +312,91 @@ mli_status convert_quantized_data(const mli_tensor * src, mli_tensor * dst) {
                     for (int pos2 = 0; pos2 < src_prv.shape[2]; pos2++) {
                         src_tensor_arr  = (MLI_PTR(in_T))orig_vec_in  + POS(&src_prv, pos0, pos1, pos2, 0);
                         dst_tensor_arr = orig_vec_out + POS(&dst_prv, pos0, pos1, pos2, 0);
-                        compute_convert_one_dim<in_T, out_T, acc_T>(src_tensor_arr, dst_tensor_arr,
-                                                                    scale, scale_shift, in_zp, out_zp, src_prv.shape[3]);
+                        compute_convert_one_dim<in_T, out_T>(src_tensor_arr, dst_tensor_arr,
+                                                             scale, scale_shift, in_zp, out_zp, src_prv.shape[3]);
                     }
                 }
             }
         }
     } else {
-        /* Broadcasting in case axis is not inner most dim */
-        bool broadcasting = !(scale_dim == (src_prv.rank - 1));
-        if (broadcasting) {
-            int axis_src_mem_stride = src_prv.mem_stride[scale_dim];
-            int axis_dst_mem_stride = dst_prv.mem_stride[scale_dim];
-            /* Get Non Axis Tensor */
-            auto src_non_axis_prv  = mli_prv_get_non_axis_tensor<MLI_PTR(in_T)>(&src_prv,  scale_dim);
-            auto dst_non_axis_prv = mli_prv_get_non_axis_tensor<MLI_PTR(out_T)>(&dst_prv, scale_dim);
+        int axis_src_mem_stride = src_prv.mem_stride[scale_dim];
+        int axis_dst_mem_stride = dst_prv.mem_stride[scale_dim];
+        /* Get Non Axis Tensor */
+        auto src_non_axis_prv  = mli_prv_get_non_axis_tensor<MLI_PTR(in_T)>(&src_prv,  scale_dim);
+        auto dst_non_axis_prv = mli_prv_get_non_axis_tensor<MLI_PTR(out_T)>(&dst_prv, scale_dim);
 
-            /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
-            mli_prv_reorder_generic_tensor<MLI_PTR(in_T)>(&src_non_axis_prv );
-            mli_prv_reorder_generic_tensor<MLI_OUT_PTR(out_T)>(&dst_non_axis_prv);
+        /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
+        mli_prv_reorder_generic_tensor<MLI_PTR(in_T)>(&src_non_axis_prv );
+        mli_prv_reorder_generic_tensor<MLI_OUT_PTR(out_T)>(&dst_non_axis_prv);
 
-            for (int scale_idx = 0; scale_idx < scales_num; scale_idx++) {
-                /* Calculate scale and scaled zero point. */
-                mli::krn::s8asym_quant_params params;
-                mli::krn::define_requant_params(src, dst, &params, scale_idx);
-                const int16_t scale_shift = params.shift;
-                const int16_t scale = params.scale;
-                int16_t in_zp = mli_hlp_tensor_zero_offset(src, scale_idx);
-                int16_t out_zp = mli_hlp_tensor_zero_offset(dst, scale_idx);
-                
-                /* Define Sub Tensor */
-                MLI_PTR(in_T) vec_in  = (MLI_PTR(in_T))src_prv.ptr  + scale_idx * axis_src_mem_stride;
-                MLI_OUT_PTR(out_T) vec_out = dst_prv.ptr + scale_idx * axis_dst_mem_stride;
+        for (int scale_idx = 0; scale_idx < scales_num; scale_idx++) {
+            /* Calculate scale and scaled zero point. */
+            mli::krn::s8asym_quant_params params;
+            mli::krn::define_requant_params(src, dst, &params, scale_idx);
+            const int16_t scale_shift = params.shift;
+            const int16_t scale = params.scale;
+            int16_t in_zp = mli_hlp_tensor_zero_offset(src, scale_idx);
+            int16_t out_zp = mli_hlp_tensor_zero_offset(dst, scale_idx);
 
-                /* Loop Over Sub Tensor */
-                MLI_PTR(in_T) orig_vec_in = vec_in;
-                MLI_OUT_PTR(out_T) orig_vec_out = vec_out;
-                for (int pos1 = 0; pos1 < src_non_axis_prv.shape[1]; pos1++) {
-                    for (int pos2 = 0; pos2 < src_non_axis_prv.shape[2]; pos2++) {
-                        vec_in  = (MLI_PTR(in_T))orig_vec_in  + POS(&src_non_axis_prv, 0, pos1, pos2, 0);
-                        vec_out = orig_vec_out + POS(&dst_non_axis_prv, 0, pos1, pos2, 0);
-                        compute_convert_one_dim<in_T, out_T, acc_T>(vec_in, vec_out,
-                                                                    scale, scale_shift, in_zp, out_zp, src_non_axis_prv.shape[3]);
-                    }
+            /* Define Sub Tensor */
+            MLI_PTR(in_T) vec_in  = (MLI_PTR(in_T))src_prv.ptr  + scale_idx * axis_src_mem_stride;
+            MLI_OUT_PTR(out_T) vec_out = dst_prv.ptr + scale_idx * axis_dst_mem_stride;
+
+            /* Loop Over Sub Tensor */
+            MLI_PTR(in_T) orig_vec_in = vec_in;
+            MLI_OUT_PTR(out_T) orig_vec_out = vec_out;
+            for (int pos1 = 0; pos1 < src_non_axis_prv.shape[1]; pos1++) {
+                for (int pos2 = 0; pos2 < src_non_axis_prv.shape[2]; pos2++) {
+                    vec_in  = (MLI_PTR(in_T))orig_vec_in  + POS(&src_non_axis_prv, 0, pos1, pos2, 0);
+                    vec_out = orig_vec_out + POS(&dst_non_axis_prv, 0, pos1, pos2, 0);
+                    compute_convert_one_dim_with_stride<in_T, out_T>(vec_in, vec_out,
+                                                        scale, scale_shift, in_zp, out_zp, src_non_axis_prv.shape[3],
+                                                        src_non_axis_prv.mem_stride[3],
+                                                        dst_non_axis_prv.mem_stride[3]);
                 }
             }
-
-        } else {
-            /* Fall back to ref in case Axis is inner most dim */
-            return mli::hlp::ref::convert_quantized_data<in_T, out_T, acc_T>(src, dst);
         }
     }
     return MLI_STATUS_OK;
+}
+
+MLI_FORCE_INLINE mli_status convert_quantized_data(const mli_tensor *src, mli_tensor *dst) {
+
+    mli_status ret;
+
+    /* Copy shape and rank from source tensor to destination */
+    const int rank = dst->rank = src->rank;
+    for (int i = 0; i < rank; ++i)
+        dst->shape[i] = src->shape[i];
+
+    if ((src->el_type == MLI_EL_FX_8 || src->el_type == MLI_EL_SA_8) &&
+            (dst->el_type == MLI_EL_FX_8 || dst->el_type == MLI_EL_SA_8)) {
+        ret = compute_convert_quantized_data<int8_t, int8_t, int32_t>(src, dst);
+    } else if ((src->el_type == MLI_EL_FX_8 || src->el_type == MLI_EL_SA_8) &&
+            dst->el_type == MLI_EL_FX_16) {
+        ret = compute_convert_quantized_data<int8_t, int16_t, int32_t>(src, dst);
+    } else if ((src->el_type == MLI_EL_FX_8 || src->el_type == MLI_EL_SA_8) &&
+            dst->el_type == MLI_EL_SA_32) {
+        ret = compute_convert_quantized_data<int8_t, int32_t, int64_t>(src, dst);
+    } else if (src->el_type == MLI_EL_FX_16 &&
+            (dst->el_type == MLI_EL_FX_8 || dst->el_type == MLI_EL_SA_8)) {
+        ret = compute_convert_quantized_data<int16_t, int8_t, int32_t>(src, dst);
+    } else if (src->el_type == MLI_EL_FX_16 && dst->el_type == MLI_EL_FX_16) {
+        ret = compute_convert_quantized_data<int16_t, int16_t, int32_t>(src, dst);
+    } else if (src->el_type == MLI_EL_FX_16 && dst->el_type == MLI_EL_SA_32) {
+        ret = compute_convert_quantized_data<int16_t, int32_t, int64_t>(src, dst);
+    } else if (src->el_type == MLI_EL_SA_32 &&
+            (dst->el_type == MLI_EL_FX_8 || dst->el_type == MLI_EL_SA_8)) {
+        ret = compute_convert_quantized_data<int32_t, int8_t, int64_t>(src, dst);
+    } else if (src->el_type == MLI_EL_SA_32 && dst->el_type == MLI_EL_FX_16) {
+        ret = compute_convert_quantized_data<int32_t, int16_t, int64_t>(src, dst);
+    } else if (src->el_type == MLI_EL_SA_32 && dst->el_type == MLI_EL_SA_32) {
+        ret = compute_convert_quantized_data<int32_t, int32_t, int64_t>(src, dst);
+    } else {
+        ret = MLI_STATUS_TYPE_MISMATCH;
+    }
+
+    return ret;
 }
 
 #pragma MLI_CODE_SECTION_END()
