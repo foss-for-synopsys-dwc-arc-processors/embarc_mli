@@ -76,6 +76,7 @@ static MLI_FORCE_INLINE mli_status check_tensor_private(
 
     fail |= MLI_CHECK(rank <= MLI_MAX_RANK, "Wrong tensor rank");
     fail |= MLI_CHECK(capacity <= INT32_MAX, "Capacity too big");
+    if (fail) return MLI_STATUS_BAD_TENSOR;
     for (int i = 0; i < (int)rank; i++) {
         fail |= MLI_CHECK(mem_stride[i] != 0, "Memory stride invalid");
         fail |= MLI_CHECK(mem_stride[i] > 0, "Negative memory strides are not supported");
@@ -191,7 +192,7 @@ extern "C" {
 #endif
 mli_status mli_chk_tensor (const mli_tensor * in, bool check_bank, bool check_quant) {
     mli_status stat = MLI_STATUS_OK;
-    if (MLI_CHECK(in != NULL, "Bad tensor null pointer")) stat = MLI_STATUS_BAD_TENSOR;
+    if (MLI_CHECK(in != NULL, "Bad tensor null pointer")) return MLI_STATUS_BAD_TENSOR;
     if (MLI_CHECK(check_ptr_not_null(in), "Bad data pointer of tensor")) stat = MLI_STATUS_BAD_TENSOR;
     if (stat == MLI_STATUS_OK) stat = check_tensor_private(in->shape, in->mem_stride, in->rank, in->data.capacity, mli_hlp_tensor_element_size(in));
     if (check_quant) {
@@ -1423,7 +1424,7 @@ mli_status mli_chk_relu_sa8(const mli_tensor * in, const mli_relu_cfg * cfg, mli
     if (MLI_CHECK(in->el_type == MLI_EL_SA_8, "Wrong input tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
 
-    // Check additional requrements for tensor params.
+    // Check additional requirements for tensor params.
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(in,      kZeroPointBitsByteRange), __func__);
     if (ret != MLI_STATUS_OK) return ret;
 
@@ -1778,6 +1779,9 @@ mli_status mli_chk_leaky_relu_fx8 (const mli_tensor * in, const mli_tensor * slo
     if (MLI_CHECK(in->el_type == MLI_EL_FX_8, "Wrong input tensor type") ||
         MLI_CHECK(slope_coeff->el_type == MLI_EL_FX_8, "Wrong slope_coeff tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
+    if (MLI_CHECK(out->el_params.fx.frac_bits == in->el_params.fx.frac_bits,
+                  "In and out tensors should have the same number of frac_bits"))
+        return MLI_STATUS_SPEC_PARAM_MISMATCH;
     return MLI_STATUS_OK;
 }
 
@@ -1788,6 +1792,9 @@ mli_status mli_chk_leaky_relu_fx16 (const mli_tensor * in, const mli_tensor * sl
     if (MLI_CHECK(in->el_type == MLI_EL_FX_16, "Wrong input tensor type") ||
         MLI_CHECK(slope_coeff->el_type == MLI_EL_FX_16, "Wrong slope_coeff tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
+    if (MLI_CHECK(out->el_params.fx.frac_bits == in->el_params.fx.frac_bits,
+                  "In and out tensors should have the same number of frac_bits"))
+        return MLI_STATUS_SPEC_PARAM_MISMATCH;
     return MLI_STATUS_OK;
 }
 
@@ -1810,6 +1817,8 @@ mli_status mli_chk_leaky_relu_sa8 (const mli_tensor * in, const mli_tensor * slo
     if (MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor: Per-tensor quantization is expected"))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
     if (MLI_CHECK(out->el_params.sa.dim < 0, "Output tensor: Per-tensor quantization is expected"))
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    if (MLI_CHECK(slope_coeff->el_params.sa.dim < 0, "Slope tensor: Per-tensor quantization is expected"))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
     return MLI_STATUS_OK;
 }
@@ -1840,6 +1849,7 @@ mli_status mli_chk_prelu (
     if (MLI_CHECK(check_same_shape(in, out), "Input and output shape must match"))
         return MLI_STATUS_SHAPE_MISMATCH;
 
+    if (MLI_CHECK(cfg->axis < (int)in->rank, "Wrong Axis Configuration")) return MLI_STATUS_BAD_FUNC_CFG;
     fail |= MLI_CHECK(check_inner_most_dimension_is_one(in),
                       "Memory stride of the innermost dimension should be equal to 1 for the input tensor");
     if (cfg->axis != -1) {
@@ -1876,6 +1886,9 @@ mli_status mli_chk_prelu_fx8 (
     if (MLI_CHECK(in->el_type == MLI_EL_FX_8, "Wrong input tensor type") ||
         MLI_CHECK(slope_coeff->el_type == MLI_EL_FX_8, "Wrong slope_coeff tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
+    if (MLI_CHECK(out->el_params.fx.frac_bits == in->el_params.fx.frac_bits,
+                  "In and out tensors should have the same number of frac_bits"))
+        return MLI_STATUS_SPEC_PARAM_MISMATCH;
     return MLI_STATUS_OK;
 }
 
@@ -1890,6 +1903,9 @@ mli_status mli_chk_prelu_fx16 (
     if (MLI_CHECK(in->el_type == MLI_EL_FX_16, "Wrong input tensor type") ||
         MLI_CHECK(slope_coeff->el_type == MLI_EL_FX_16, "Wrong slope_coeff tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
+    if (MLI_CHECK(out->el_params.fx.frac_bits == in->el_params.fx.frac_bits,
+                  "In and out tensors should have the same number of frac_bits"))
+        return MLI_STATUS_SPEC_PARAM_MISMATCH;
     return MLI_STATUS_OK;
 }
 
@@ -1916,6 +1932,8 @@ mli_status mli_chk_prelu_sa8 (
     if (MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor: Per-tensor quantization is expected"))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
     if (MLI_CHECK(out->el_params.sa.dim < 0, "Output tensor: Per-tensor quantization is expected"))
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    if (MLI_CHECK(slope_coeff->el_params.sa.dim < 0, "Slope tensor: Per-tensor quantization is expected"))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
     return MLI_STATUS_OK;
 }
