@@ -28,9 +28,12 @@ static MLI_FORCE_INLINE vNx4char_t calc_leaky_relu(
         const vNx4char_t input,
         const int8_t scale,
         const int shift ) {
+    // since the result of input * scale will not exceed 16 bits then we can limit the shift to 15
+    const int max_shift = 15;
+    int shift_right = mli_math_min_fx(shift, max_shift);
     pvNx4 sel = init_predicate(input > 0);
     vNx4accshort_t acc = mli_math_mul_fx<vNx4char_t, vNx4accshort_t>(input, scale);
-    vNx4char_t neg = mli_math_acc_cast_fx<vNx4char_t, vNx4accshort_t>(acc, shift);
+    vNx4char_t neg = mli_math_acc_cast_fx<vNx4char_t, vNx4accshort_t>(acc, shift_right);
 
     return mli_math_select_fx(sel, input, neg);
 }
