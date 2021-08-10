@@ -74,7 +74,7 @@ mli_status mli_krn_fully_connected_fx16_fx8_fx8(
         const mli_tensor* bias,
         const mli_fully_connected_cfg* cfg,
         mli_tensor* out) {
-    mli_status ret = MLI_CHECK_STATUS(mli_chk_fully_connected_fx8w16d(in, weights, bias, cfg, out), __func__);
+    mli_status ret = MLI_CHECK_STATUS(mli_chk_fully_connected_fx16_fx8_fx8(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     MLI_PRINT_COMPILE_OPTIONS();
 

@@ -187,7 +187,7 @@ mli_status mli_chk_avepool_hwc_sa8(
         const mli_tensor *out,
         const uint32_t kernel_size = 0);
         
-mli_status mli_chk_fully_connected_fx8w16d(
+mli_status mli_chk_fully_connected_fx16_fx8_fx8(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,

@@ -442,7 +442,6 @@ mli_status mli_chk_conv2d_hwcn (
     fail |= MLI_CHECK(required_height <= effective_input_height, "incorrect output height");
     fail |= MLI_CHECK(required_width <= effective_input_width, "incorrect output width");
     if (fail) return MLI_STATUS_BAD_FUNC_CFG;
-    stat = check_tensor_private(out->shape, out->mem_stride, 3, out->data.capacity, mli_hlp_tensor_element_size(out));
 
     return stat;
 }
@@ -597,7 +596,6 @@ mli_status mli_chk_depthwise_conv2d_hwcn(
     fail |= MLI_CHECK(required_height <= effective_input_height, "incorrect output height");
     fail |= MLI_CHECK(required_width <= effective_input_width, "incorrect output width");
     if (fail) return MLI_STATUS_BAD_FUNC_CFG;
-    stat = check_tensor_private(out->shape, out->mem_stride, 3, out->data.capacity, mli_hlp_tensor_element_size(out));
 
     return stat;
 }
@@ -752,7 +750,6 @@ mli_status mli_chk_group_conv2d_hwcn(
     fail |= MLI_CHECK(required_height <= effective_input_height, "incorrect output height");
     fail |= MLI_CHECK(required_width <= effective_input_width, "incorrect output width");
     if (fail) return MLI_STATUS_BAD_FUNC_CFG;
-    stat = check_tensor_private(out->shape, out->mem_stride, 3, out->data.capacity, mli_hlp_tensor_element_size(out));
 
     return stat;
 }
@@ -909,12 +906,13 @@ mli_status mli_chk_transpose_conv2d_hwcn (
     const int effective_padding_right = kernel_width - cfg->padding_right - 1;
     const int effective_in_width = (in_width - 1) * stride_width + 1;
     const int effective_in_height = (in_height - 1) * stride_height + 1;
+    const unsigned int expected_out_width = effective_in_width + effective_padding_left + effective_padding_right - kernel_width + 1;
+    const unsigned int expected_out_height = effective_in_height + effective_padding_top + effective_padding_bot - kernel_height + 1;
 
-    uint32_t out_shape[3] = {
-        (uint32_t)(effective_in_height + effective_padding_top + effective_padding_bot - kernel_height + 1), // h
-        (uint32_t)(effective_in_width + effective_padding_left + effective_padding_right - kernel_width + 1), // w
-        weights->shape[KRNL_C_DIM_HWCN]}; // c
-    stat = check_tensor_private(out_shape, out->mem_stride, 3, out->data.capacity, mli_hlp_tensor_element_size(out));
+    fail |= MLI_CHECK(out->shape[FMAP_W_DIM_HWC] == expected_out_width, "Output width mismatch");
+    fail |= MLI_CHECK(out->shape[FMAP_H_DIM_HWC] == expected_out_height, "Output height mismatch");
+    fail |= MLI_CHECK(out->shape[FMAP_C_DIM_HWC] == weights->shape[KRNL_C_DIM_HWCN], "Output channels mismatch");
+    if (fail) return MLI_STATUS_BAD_FUNC_CFG;
 
     return stat;
 }
@@ -1087,15 +1085,14 @@ mli_status mli_chk_maxpool_hwc (
     fail |= MLI_CHECK(cfg->stride_width > 0, "Stride should be greater than zero");
     if (fail) return MLI_STATUS_BAD_FUNC_CFG;
 
-    int in_height = in->shape[FMAP_H_DIM_HWC];
-    int in_width = in->shape[FMAP_W_DIM_HWC];
-    uint32_t out_shape[3] = {
-            (uint32_t)CEIL_DIV(in_height + cfg->padding_top + cfg->padding_bottom - cfg->kernel_height + 1,
-                    cfg->stride_height), // h
-            (uint32_t)CEIL_DIV(in_width + cfg->padding_left + cfg->padding_right - cfg->kernel_width + 1,
-                    cfg->stride_width), // w
-            in->shape[FMAP_C_DIM_HWC]}; // c
-    stat = check_tensor_private(out_shape, out->mem_stride, 3, out->data.capacity, mli_hlp_tensor_element_size(out));
+    int effective_input_width = in->shape[FMAP_W_DIM_HWC] + cfg->padding_left + cfg->padding_right;
+    int effective_input_height = in->shape[FMAP_H_DIM_HWC] + cfg->padding_top + cfg->padding_bottom;
+    int required_width = out->shape[FMAP_W_DIM_HWC] * cfg->stride_width + cfg->kernel_width - cfg->stride_width;
+    int required_height = out->shape[FMAP_H_DIM_HWC] * cfg->stride_height + cfg->kernel_height - cfg->stride_height;
+    fail |= MLI_CHECK(required_height <= effective_input_height, "incorrect output height");
+    fail |= MLI_CHECK(required_width <= effective_input_width, "incorrect output width");
+    fail |= MLI_CHECK(out->shape[FMAP_C_DIM_HWC] == in->shape[FMAP_C_DIM_HWC], "Output channels should match input channels");
+    if (fail) return MLI_STATUS_BAD_FUNC_CFG;
 
     return stat;
 }
@@ -1179,15 +1176,14 @@ mli_status mli_chk_avepool_hwc (
     fail |= MLI_CHECK(cfg->stride_width > 0, "Stride should be greater than zero");
     if (fail) return MLI_STATUS_BAD_FUNC_CFG;
 
-    int in_height = in->shape[FMAP_H_DIM_HWC];
-    int in_width = in->shape[FMAP_W_DIM_HWC];
-    uint32_t out_shape[3] = {
-            (uint32_t)CEIL_DIV(in_height + cfg->padding_top + cfg->padding_bottom - cfg->kernel_height + 1,
-                    cfg->stride_height), // h
-            (uint32_t)CEIL_DIV(in_width + cfg->padding_left + cfg->padding_right - cfg->kernel_width + 1,
-                    cfg->stride_width), // w
-            in->shape[FMAP_C_DIM_HWC]}; // c
-    stat = check_tensor_private(out_shape, out->mem_stride, 3, out->data.capacity, mli_hlp_tensor_element_size(out));
+    int effective_input_width = in->shape[FMAP_W_DIM_HWC] + cfg->padding_left + cfg->padding_right;
+    int effective_input_height = in->shape[FMAP_H_DIM_HWC] + cfg->padding_top + cfg->padding_bottom;
+    int required_width = out->shape[FMAP_W_DIM_HWC] * cfg->stride_width + cfg->kernel_width - cfg->stride_width;
+    int required_height = out->shape[FMAP_H_DIM_HWC] * cfg->stride_height + cfg->kernel_height - cfg->stride_height;
+    fail |= MLI_CHECK(required_height <= effective_input_height, "incorrect output height");
+    fail |= MLI_CHECK(required_width <= effective_input_width, "incorrect output width");
+    fail |= MLI_CHECK(out->shape[FMAP_C_DIM_HWC] == in->shape[FMAP_C_DIM_HWC], "Output channels should match input channels");
+    if (fail) return MLI_STATUS_BAD_FUNC_CFG;
 
     return MLI_STATUS_OK;
 }
@@ -1263,8 +1259,10 @@ mli_status mli_chk_fully_connected (
 
     fail |= MLI_CHECK(weights->rank == 2, "Wrong weights rank");
     fail |= MLI_CHECK(bias->rank == 1, "Wrong bias rank");
+    fail |= MLI_CHECK(out->rank == 1, "Wrong out rank");
     fail |= MLI_CHECK(mli_prv_count_elem_num (in) == weights->shape[0], "weights shape doesn't match number of input elements");
     fail |= MLI_CHECK(bias->shape[0] == weights->shape[1], "Shape mismatch bias and weights");
+    fail |= MLI_CHECK(out->shape[0] == weights->shape[1], "Shape mismatch out and weights");
     if (fail) return MLI_STATUS_SHAPE_MISMATCH;
 
     fail |= MLI_CHECK(check_layout_is_contiguous(in), "Memory Layout of input tensor must be contiguous");
@@ -1273,13 +1271,10 @@ mli_status mli_chk_fully_connected (
     fail |= MLI_CHECK(check_layout_is_contiguous(out->mem_stride, 1), "Memory Layout of output tensor must be contiguous");
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
-    fail |= MLI_CHECK((weights->shape[1] * mli_hlp_tensor_element_size (in)) <= out->data.capacity, "capacity of output tensor is too small");
-    if (fail) return MLI_STATUS_NOT_ENGH_MEM;
-
     return MLI_STATUS_OK;
 }
 
-mli_status mli_chk_fully_connected_fx8w16d(
+mli_status mli_chk_fully_connected_fx16_fx8_fx8(
         const mli_tensor * in,
         const mli_tensor * weights,
         const mli_tensor * bias,
@@ -1971,14 +1966,14 @@ mli_status mli_chk_rnn_dense (
     if (fail) return MLI_STATUS_SHAPE_MISMATCH;
 
     // Check output
-    uint32_t out_elements = mli_prv_count_elem_num (bias);
     stat = MLI_CHECK_STATUS(mli_chk_tensor (out, MLI_CONV_OUT_PTR_INSIDE_CCM), "Bad output tensor");
     if (stat != MLI_STATUS_OK) return stat;
+    fail |= MLI_CHECK(out->rank == 1, "out should have rank 1 in RNN general case");
+    fail |= MLI_CHECK(out->shape[0] == bias->shape[0], "shape mismatch out and bias");
+    if (fail) return MLI_STATUS_SHAPE_MISMATCH;
+
     if (MLI_CHECK(out->el_type == in[0]->el_type, "Wrong output type"))
         return MLI_STATUS_TYPE_MISMATCH;
-    fail |= MLI_CHECK((out_elements * mli_hlp_tensor_element_size (in[0])) <= out->data.capacity,
-                      "capacity of output tensor is too small");
-    if (fail) return MLI_STATUS_BAD_TENSOR;
 
     fail |= MLI_CHECK(check_inner_most_dimension_is_one(bias), "Memory stride for inner most dimension of bias must be 1");
     fail |= MLI_CHECK(check_inner_most_dimension_is_one(out), "Memory stride for inner most dimension of output must be 1");
@@ -2160,7 +2155,7 @@ mli_status mli_chk_lstm_cell (
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out->el_type == in->el_type, "Wrong output type"))
         return MLI_STATUS_TYPE_MISMATCH;
-    fail |= MLI_CHECK((out_seq_len * out_elements * mli_hlp_tensor_element_size (in)) <= out->data.capacity,
+    fail |= MLI_CHECK((out_seq_len * out_elements * mli_hlp_tensor_element_size (out)) <= out->data.capacity,
                       "capacity of output tensor is too small");
     if (fail) return MLI_STATUS_BAD_TENSOR;
 
