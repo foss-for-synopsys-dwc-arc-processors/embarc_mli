@@ -86,8 +86,8 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
         ir_asym_params.sa.scale_frac_bits.capacity = 0;
         ir_tensor.el_params = ir_asym_params;
     } else {
-        // 1sign and 3 integer bits for TANH/SIGM input is enough
-        ir_tensor.el_params.fx.frac_bits = (sizeof(io_T) * 8) - 1 - 3;
+        // [-32, 32] is enough for TANH/SIGM input
+        ir_tensor.el_params.fx.frac_bits = 10;
         ir_tensor.el_params.fx.frac_bits = MIN(ir_tensor.el_params.fx.frac_bits, in->el_params.fx.frac_bits + weights_in->el_params.fx.frac_bits);
     }
 

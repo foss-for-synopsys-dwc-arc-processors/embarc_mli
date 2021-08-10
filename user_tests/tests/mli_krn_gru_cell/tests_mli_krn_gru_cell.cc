@@ -68,17 +68,6 @@ const crc32_calc test_1_chksum_fx16{ 0x93713917 }, test_1_chksum_fx16_fx8_fx8{ 0
                  test_8_chksum_fx16{ 0xDBDD80AD }, test_8_chksum_fx16_fx8_fx8{ 0x5D935ADE }, test_8_chksum_sa8{ 0x71E73A61 };
 
 #elif defined(CRC_RM_CONVERGENT)
-// TODO: remove after fixing mli_math_acc_ashift_fx() and supporting acc40 shift with round
-#if defined(__FXAPI__)
-const crc32_calc test_1_chksum_fx16{ 0x898EF9AC }, test_1_chksum_fx16_fx8_fx8{ 0xF3E45489 }, test_1_chksum_sa8{ 0x605D7927 },
-                 test_2_chksum_fx16{ 0x898EF9AC }, test_2_chksum_fx16_fx8_fx8{ 0xF3E45489 }, test_2_chksum_sa8{ 0x605D7927 },
-                 test_3_chksum_fx16{ 0xE14A4F30 }, test_3_chksum_fx16_fx8_fx8{ 0x0D9F97BB }, test_3_chksum_sa8{ 0x6A03698A },
-                 test_4_chksum_fx16{ 0xEBCB8726 }, test_4_chksum_fx16_fx8_fx8{ 0xBA61FDE2 }, test_4_chksum_sa8{ 0x3F8041AD },
-                 test_5_chksum_fx16{ 0x4E35CC3A }, test_5_chksum_fx16_fx8_fx8{ 0x63209ADF }, test_5_chksum_sa8{ 0xE36EB137 },
-                 test_6_chksum_fx16{ 0x44B4042C }, test_6_chksum_fx16_fx8_fx8{ 0xD4DEF086 }, test_6_chksum_sa8{ 0xB6ED9910 },
-                 test_7_chksum_fx16{ 0x697A5BA9 }, test_7_chksum_fx16_fx8_fx8{ 0x60AEE5D5 }, test_7_chksum_sa8{ 0xD54F47E2 },
-                 test_8_chksum_fx16{ 0xBDDA2972 }, test_8_chksum_fx16_fx8_fx8{ 0x1B477499 }, test_8_chksum_sa8{ 0x427B2A3F };
-#else
 const crc32_calc test_1_chksum_fx16{ 0x93713917 }, test_1_chksum_fx16_fx8_fx8{ 0xF3E45489 }, test_1_chksum_sa8{ 0x605D7927 },
                  test_2_chksum_fx16{ 0x93713917 }, test_2_chksum_fx16_fx8_fx8{ 0xF3E45489 }, test_2_chksum_sa8{ 0x605D7927 },
                  test_3_chksum_fx16{ 0xEA93E0FF }, test_3_chksum_fx16_fx8_fx8{ 0x0D9F97BB }, test_3_chksum_sa8{ 0x6A03698A },
@@ -87,7 +76,6 @@ const crc32_calc test_1_chksum_fx16{ 0x93713917 }, test_1_chksum_fx16_fx8_fx8{ 0
                  test_6_chksum_fx16{ 0x5F51D618 }, test_6_chksum_fx16_fx8_fx8{ 0xD4DEF086 }, test_6_chksum_sa8{ 0xB6ED9910 },
                  test_7_chksum_fx16{ 0xF35521BE }, test_7_chksum_fx16_fx8_fx8{ 0x60AEE5D5 }, test_7_chksum_sa8{ 0xD54F47E2 },
                  test_8_chksum_fx16{ 0xDBDD80AD }, test_8_chksum_fx16_fx8_fx8{ 0x1B477499 }, test_8_chksum_sa8{ 0x427B2A3F };
-#endif
 #else // Not defined CRC_*
 const crc32_calc  test_1_chksum_fx16, test_1_chksum_fx16_fx8_fx8, test_1_chksum_sa8,
                   test_2_chksum_fx16, test_2_chksum_fx16_fx8_fx8, test_2_chksum_sa8,

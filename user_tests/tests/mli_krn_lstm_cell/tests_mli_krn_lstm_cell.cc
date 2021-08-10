@@ -56,41 +56,27 @@ struct lstm_cell_test_operands {
     const crc32_calc check_sum;
 };
 
-// Checksums of test tensors for various mli calculations mode. 
+// Checksums of test tensors for various mli calculations mode.
 // When developer finished implementation of kernel and consider it as ok, one needs to populate
 // proper checksums for tests in order to highlight any change which affects results.
 #if defined(CRC_RM_UP)
-const crc32_calc test_1_chksum_fx16{ 0x2F0AE280 }, test_1_chksum_fx16_fx8_fx8{ 0xC1283A80 }, test_1_chksum_sa8{ 0xDADA8CEA },
-                 test_2_chksum_fx16{ 0x2F0AE280 }, test_2_chksum_fx16_fx8_fx8{ 0xC1283A80 }, test_2_chksum_sa8{ 0xDADA8CEA },
-                 test_3_chksum_fx16{ 0x4F10501E }, test_3_chksum_fx16_fx8_fx8{ 0x036AAAA7 }, test_3_chksum_sa8{ 0xC461353D },
-                 test_4_chksum_fx16{ 0x043F147F }, test_4_chksum_fx16_fx8_fx8{ 0x0FBC2A62 }, test_4_chksum_sa8{ 0x7518616C },
-                 test_5_chksum_fx16{ 0xDA9D839E }, test_5_chksum_fx16_fx8_fx8{ 0xA481EF4B }, test_5_chksum_sa8{ 0xE6E75ACC },
-                 test_6_chksum_fx16{ 0x91B2C7FF }, test_6_chksum_fx16_fx8_fx8{ 0xA8576F8E }, test_6_chksum_sa8{ 0x579E0E9D },
-                 test_7_chksum_fx16{ 0xFEE5DDCF }, test_7_chksum_fx16_fx8_fx8{ 0x26D324E7 }, test_7_chksum_sa8{ 0xA88FB248 },
-                 test_8_chksum_fx16{ 0x4B54B328 }, test_8_chksum_fx16_fx8_fx8{ 0x1AEE2A0A }, test_8_chksum_sa8{ 0x5EB20AF7 };
+const crc32_calc test_1_chksum_fx16{ 0xA862AF30 }, test_1_chksum_fx16_fx8_fx8{ 0xBC871CFC }, test_1_chksum_sa8{ 0xDADA8CEA },
+                 test_2_chksum_fx16{ 0xA862AF30 }, test_2_chksum_fx16_fx8_fx8{ 0xBC871CFC }, test_2_chksum_sa8{ 0xDADA8CEA },
+                 test_3_chksum_fx16{ 0xD38D7680 }, test_3_chksum_fx16_fx8_fx8{ 0x4C047814 }, test_3_chksum_sa8{ 0xC461353D },
+                 test_4_chksum_fx16{ 0x98A232E1 }, test_4_chksum_fx16_fx8_fx8{ 0x40D2F8D1 }, test_4_chksum_sa8{ 0x7518616C },
+                 test_5_chksum_fx16{ 0x73D5BE6B }, test_5_chksum_fx16_fx8_fx8{ 0x992F00C8 }, test_5_chksum_sa8{ 0xE6E75ACC },
+                 test_6_chksum_fx16{ 0x38FAFA0A }, test_6_chksum_fx16_fx8_fx8{ 0x95F9800D }, test_6_chksum_sa8{ 0x579E0E9D },
+                 test_7_chksum_fx16{ 0x01104C3E }, test_7_chksum_fx16_fx8_fx8{ 0x270F20B9 }, test_7_chksum_sa8{ 0xA88FB248 },
+                 test_8_chksum_fx16{ 0x63F71B49 }, test_8_chksum_fx16_fx8_fx8{ 0xE336CFE2 }, test_8_chksum_sa8{ 0x5EB20AF7 };
 #elif defined(CRC_RM_CONVERGENT)
-
-// TODO: remove after fixing mli_math_acc_ashift_fx() and supporting acc40 shift with round
-#if defined(__FXAPI__)
-const crc32_calc test_1_chksum_fx16{ 0xE1074483 }, test_1_chksum_fx16_fx8_fx8{ 0xE00208E3 }, test_1_chksum_sa8{ 0xE469ECF6 },
-                 test_2_chksum_fx16{ 0xE1074483 }, test_2_chksum_fx16_fx8_fx8{ 0xE00208E3 }, test_2_chksum_sa8{ 0xE469ECF6 },
-                 test_3_chksum_fx16{ 0x0E028CBE }, test_3_chksum_fx16_fx8_fx8{ 0xBD7A5AE5 }, test_3_chksum_sa8{ 0x7859C2EE },
-                 test_4_chksum_fx16{ 0x452DC8DF }, test_4_chksum_fx16_fx8_fx8{ 0xB1ACDA20 }, test_4_chksum_sa8{ 0xC92096BF },
-                 test_5_chksum_fx16{ 0x26C91EF4 }, test_5_chksum_fx16_fx8_fx8{ 0xA63C193D }, test_5_chksum_sa8{ 0x806E3E25 },
-                 test_6_chksum_fx16{ 0x6DE65A95 }, test_6_chksum_fx16_fx8_fx8{ 0xAAEA99F8 }, test_6_chksum_sa8{ 0x31176A74 },
-                 test_7_chksum_fx16{ 0xFE6EA2D3 }, test_7_chksum_fx16_fx8_fx8{ 0xD724D294 }, test_7_chksum_sa8{ 0x76415616 },
-                 test_8_chksum_fx16{ 0xCE490DA2 }, test_8_chksum_fx16_fx8_fx8{ 0xBBE4BA5E }, test_8_chksum_sa8{ 0x11EFFAF6 };
-#else
-const crc32_calc test_1_chksum_fx16{ 0x7E67FACE }, test_1_chksum_fx16_fx8_fx8{ 0xE00208E3 }, test_1_chksum_sa8{ 0xE469ECF6 },
-                 test_2_chksum_fx16{ 0x7E67FACE }, test_2_chksum_fx16_fx8_fx8{ 0xE00208E3 }, test_2_chksum_sa8{ 0xE469ECF6 },
-                 test_3_chksum_fx16{ 0x17A7E3D3 }, test_3_chksum_fx16_fx8_fx8{ 0xBD7A5AE5 }, test_3_chksum_sa8{ 0x7859C2EE },
-                 test_4_chksum_fx16{ 0x5C88A7B2 }, test_4_chksum_fx16_fx8_fx8{ 0xB1ACDA20 }, test_4_chksum_sa8{ 0xC92096BF },
-                 test_5_chksum_fx16{ 0x89AA3725 }, test_5_chksum_fx16_fx8_fx8{ 0xA63C193D }, test_5_chksum_sa8{ 0x806E3E25 },
-                 test_6_chksum_fx16{ 0xC2857344 }, test_6_chksum_fx16_fx8_fx8{ 0xAAEA99F8 }, test_6_chksum_sa8{ 0x31176A74 },
-                 test_7_chksum_fx16{ 0x19529CE7 }, test_7_chksum_fx16_fx8_fx8{ 0xD724D294 }, test_7_chksum_sa8{ 0x76415616 },
-                 test_8_chksum_fx16{ 0xC248A078 }, test_8_chksum_fx16_fx8_fx8{ 0xBBE4BA5E }, test_8_chksum_sa8{ 0x11EFFAF6 };
-#endif
-
+const crc32_calc test_1_chksum_fx16{ 0x8A5C87C6 }, test_1_chksum_fx16_fx8_fx8{ 0x6F9DDA39 }, test_1_chksum_sa8{ 0xE469ECF6 },
+                 test_2_chksum_fx16{ 0x8A5C87C6 }, test_2_chksum_fx16_fx8_fx8{ 0x6F9DDA39 }, test_2_chksum_sa8{ 0xE469ECF6 },
+                 test_3_chksum_fx16{ 0xE5C80B91 }, test_3_chksum_fx16_fx8_fx8{ 0xD1C3B86E }, test_3_chksum_sa8{ 0x7859C2EE },
+                 test_4_chksum_fx16{ 0xAEE74FF0 }, test_4_chksum_fx16_fx8_fx8{ 0xDD1538AB }, test_4_chksum_sa8{ 0xC92096BF },
+                 test_5_chksum_fx16{ 0xA0D12FEA }, test_5_chksum_fx16_fx8_fx8{ 0x9E53DF28 }, test_5_chksum_sa8{ 0x806E3E25 },
+                 test_6_chksum_fx16{ 0xEBFE6B8B }, test_6_chksum_fx16_fx8_fx8{ 0x92855FED }, test_6_chksum_sa8{ 0x31176A74 },
+                 test_7_chksum_fx16{ 0x8FF0AADC }, test_7_chksum_fx16_fx8_fx8{ 0xD94EB153 }, test_7_chksum_sa8{ 0x76415616 },
+                 test_8_chksum_fx16{ 0x6B87CEE4 }, test_8_chksum_fx16_fx8_fx8{ 0x5685B900 }, test_8_chksum_sa8{ 0x11EFFAF6 };
 #else // Not defined CRC_*
 const crc32_calc  test_1_chksum_fx16, test_1_chksum_fx16_fx8_fx8, test_1_chksum_sa8,
                   test_2_chksum_fx16, test_2_chksum_fx16_fx8_fx8, test_2_chksum_sa8,
@@ -117,17 +103,17 @@ static lstm_cell_test_operands tests_list[] = {
 
     // One-to-one, RNN_OUT_LAST, Forward processing
 #ifdef COMPILE_FOR_FX16
-    {"Test 1 FX16 OtO,Forw",     mli_krn_lstm_cell_fx16, 
-                                 input_1_fx16, hidden_1_fx16, weights_1_in_fx16, weights_1_out_fx16, bias_1_fx16, 
+    {"Test 1 FX16 OtO,Forw",     mli_krn_lstm_cell_fx16,
+                                 input_1_fx16, hidden_1_fx16, weights_1_in_fx16, weights_1_out_fx16, bias_1_fx16,
                                  cell_1_fx16, test_1_out_fx16, test_1_cfg, thresholds_fx16_general, test_1_chksum_fx16},
 #elif COMPILE_FOR_FX16_FX8_FX8
-    {"Test 1 FX16_FX8 OtO,Forw", mli_krn_lstm_cell_fx16_fx8_fx8, 
-                                 input_1_fx16, hidden_1_fx16, weights_1_in_fx8, weights_1_out_fx8, bias_1_fx8, 
-                                 cell_1_fx16, test_1_out_fx16, test_1_cfg, thresholds_fx16_fx8_fx8_general, 
+    {"Test 1 FX16_FX8 OtO,Forw", mli_krn_lstm_cell_fx16_fx8_fx8,
+                                 input_1_fx16, hidden_1_fx16, weights_1_in_fx8, weights_1_out_fx8, bias_1_fx8,
+                                 cell_1_fx16, test_1_out_fx16, test_1_cfg, thresholds_fx16_fx8_fx8_general,
                                  test_1_chksum_fx16_fx8_fx8},
 #elif COMPILE_FOR_SA8_SA8_SA32
     {"Test 1 SA8_SA32 OtO,Forw", mli_krn_lstm_cell_sa8_sa8_sa32,
-                                 input_1_sa8, hidden_1_sa8, weights_1_in_sa8, weights_1_out_sa8, bias_1_i1_w1_sa32, 
+                                 input_1_sa8, hidden_1_sa8, weights_1_in_sa8, weights_1_out_sa8, bias_1_i1_w1_sa32,
                                  cell_1_sa8, test_1_out_sa8, test_1_cfg, thresholds_sa8_general, test_1_chksum_sa8},
 #else
 #error incorrect make configuration
@@ -135,17 +121,17 @@ static lstm_cell_test_operands tests_list[] = {
 
     // One-to-one, RNN_OUT_LAST, Backward processing
 #ifdef COMPILE_FOR_FX16
-    {"Test 2 FX16 OtO,Back",     mli_krn_lstm_cell_fx16, 
-                                 input_1_fx16, hidden_1_fx16, weights_1_in_fx16, weights_1_out_fx16, bias_1_fx16, 
+    {"Test 2 FX16 OtO,Back",     mli_krn_lstm_cell_fx16,
+                                 input_1_fx16, hidden_1_fx16, weights_1_in_fx16, weights_1_out_fx16, bias_1_fx16,
                                  cell_1_fx16, test_1_out_fx16, test_2_cfg, thresholds_fx16_general, test_2_chksum_fx16},
 #elif COMPILE_FOR_FX16_FX8_FX8
-    {"Test 2 FX16_FX8 OtO,Back", mli_krn_lstm_cell_fx16_fx8_fx8, 
-                                 input_1_fx16, hidden_1_fx16, weights_1_in_fx8, weights_1_out_fx8, bias_1_fx8, 
-                                 cell_1_fx16, test_1_out_fx16, test_2_cfg, thresholds_fx16_fx8_fx8_general, 
+    {"Test 2 FX16_FX8 OtO,Back", mli_krn_lstm_cell_fx16_fx8_fx8,
+                                 input_1_fx16, hidden_1_fx16, weights_1_in_fx8, weights_1_out_fx8, bias_1_fx8,
+                                 cell_1_fx16, test_1_out_fx16, test_2_cfg, thresholds_fx16_fx8_fx8_general,
                                  test_2_chksum_fx16_fx8_fx8},
 #elif COMPILE_FOR_SA8_SA8_SA32
     {"Test 2 SA8_SA32 OtO,Back", mli_krn_lstm_cell_sa8_sa8_sa32,
-                                 input_1_sa8, hidden_1_sa8, weights_1_in_sa8, weights_1_out_sa8, bias_1_i1_w1_sa32, 
+                                 input_1_sa8, hidden_1_sa8, weights_1_in_sa8, weights_1_out_sa8, bias_1_i1_w1_sa32,
                                  cell_1_sa8, test_1_out_sa8, test_2_cfg, thresholds_sa8_general, test_2_chksum_sa8},
 #else
 #error incorrect make configuration
@@ -153,17 +139,17 @@ static lstm_cell_test_operands tests_list[] = {
 
     // Sequence-to-sequence, RNN_OUT_ALL, Forward processing
 #ifdef COMPILE_FOR_FX16
-    {"Test 3 FX16 StS,ALL,Forw",     mli_krn_lstm_cell_fx16, 
-                                     input_2_fx16, hidden_1_fx16, weights_2_in_fx16, weights_2_out_fx16, bias_1_fx16, 
+    {"Test 3 FX16 StS,ALL,Forw",     mli_krn_lstm_cell_fx16,
+                                     input_2_fx16, hidden_1_fx16, weights_2_in_fx16, weights_2_out_fx16, bias_1_fx16,
                                      cell_1_fx16, test_3_out_fx16, test_3_cfg, thresholds_fx16_general, test_3_chksum_fx16},
 #elif COMPILE_FOR_FX16_FX8_FX8
-    {"Test 3 FX16_FX8 StS,ALL,Forw", mli_krn_lstm_cell_fx16_fx8_fx8, 
-                                     input_2_fx16, hidden_1_fx16, weights_2_in_fx8, weights_2_out_fx8, bias_1_fx8, 
-                                     cell_1_fx16, test_3_out_fx16, test_3_cfg, thresholds_fx16_fx8_fx8_general, 
+    {"Test 3 FX16_FX8 StS,ALL,Forw", mli_krn_lstm_cell_fx16_fx8_fx8,
+                                     input_2_fx16, hidden_1_fx16, weights_2_in_fx8, weights_2_out_fx8, bias_1_fx8,
+                                     cell_1_fx16, test_3_out_fx16, test_3_cfg, thresholds_fx16_fx8_fx8_general,
                                      test_3_chksum_fx16_fx8_fx8},
 #elif COMPILE_FOR_SA8_SA8_SA32
     {"Test 3 SA8_SA32 StS,ALL,Forw", mli_krn_lstm_cell_sa8_sa8_sa32,
-                                     input_2_sa8, hidden_1_sa8, weights_2_in_sa8, weights_2_out_sa8, bias_1_i2_w2_sa32, 
+                                     input_2_sa8, hidden_1_sa8, weights_2_in_sa8, weights_2_out_sa8, bias_1_i2_w2_sa32,
                                      cell_1_sa8, test_3_out_sa8, test_3_cfg, thresholds_sa8_general, test_3_chksum_sa8},
 #else
 #error incorrect make configuration
@@ -171,19 +157,19 @@ static lstm_cell_test_operands tests_list[] = {
 
     // Sequence-to-sequence, RNN_OUT_ALL, Forward processing, memstrides
 #ifdef COMPILE_FOR_FX16
-    {"Test 4 FX16 StS,ALL,F,ms",     mli_krn_lstm_cell_fx16, 
-                                     input_2_fx16, hidden_1_fx16, weights_2_in_memstr_fx16, weights_2_out_memstr_fx16, 
-                                     bias_1_fx16, cell_1_fx16, test_3_out_fx16, test_3_cfg, thresholds_fx16_general, 
+    {"Test 4 FX16 StS,ALL,F,ms",     mli_krn_lstm_cell_fx16,
+                                     input_2_fx16, hidden_1_fx16, weights_2_in_memstr_fx16, weights_2_out_memstr_fx16,
+                                     bias_1_fx16, cell_1_fx16, test_3_out_fx16, test_3_cfg, thresholds_fx16_general,
                                      test_4_chksum_fx16},
 #elif COMPILE_FOR_FX16_FX8_FX8
-    {"Test 4 FX16_FX8 StS,ALL,F,ms", mli_krn_lstm_cell_fx16_fx8_fx8, 
-                                     input_2_fx16, hidden_1_fx16, weights_2_in_memstr_fx8, weights_2_out_memstr_fx8, 
-                                     bias_1_fx8, cell_1_fx16, test_3_out_fx16, test_3_cfg, thresholds_fx16_fx8_fx8_general, 
+    {"Test 4 FX16_FX8 StS,ALL,F,ms", mli_krn_lstm_cell_fx16_fx8_fx8,
+                                     input_2_fx16, hidden_1_fx16, weights_2_in_memstr_fx8, weights_2_out_memstr_fx8,
+                                     bias_1_fx8, cell_1_fx16, test_3_out_fx16, test_3_cfg, thresholds_fx16_fx8_fx8_general,
                                      test_4_chksum_fx16_fx8_fx8},
 #elif COMPILE_FOR_SA8_SA8_SA32
     {"Test 4 SA8_SA32 StS,ALL,F,ms", mli_krn_lstm_cell_sa8_sa8_sa32,
-                                     input_2_sa8, hidden_1_sa8, weights_2_in_memstr_sa8, weights_2_out_memstr_sa8, 
-                                     bias_1_i2_w2_sa32, cell_1_sa8, test_3_out_sa8, test_3_cfg, thresholds_sa8_general, 
+                                     input_2_sa8, hidden_1_sa8, weights_2_in_memstr_sa8, weights_2_out_memstr_sa8,
+                                     bias_1_i2_w2_sa32, cell_1_sa8, test_3_out_sa8, test_3_cfg, thresholds_sa8_general,
                                      test_4_chksum_sa8},
 #else
 #error incorrect make configuration
@@ -191,17 +177,17 @@ static lstm_cell_test_operands tests_list[] = {
 
     // Sequence-to-sequence, RNN_OUT_ALL, Backward processing
 #ifdef COMPILE_FOR_FX16
-    {"Test 5 FX16 StS,ALL,Back",     mli_krn_lstm_cell_fx16, 
-                                     input_2_fx16, hidden_1_fx16, weights_2_in_fx16, weights_2_out_fx16, bias_1_fx16, 
+    {"Test 5 FX16 StS,ALL,Back",     mli_krn_lstm_cell_fx16,
+                                     input_2_fx16, hidden_1_fx16, weights_2_in_fx16, weights_2_out_fx16, bias_1_fx16,
                                      cell_1_fx16, test_4_out_fx16, test_4_cfg, thresholds_fx16_general, test_5_chksum_fx16},
 #elif COMPILE_FOR_FX16_FX8_FX8
-    {"Test 5 FX16_FX8 StS,ALL,Back", mli_krn_lstm_cell_fx16_fx8_fx8, 
-                                     input_2_fx16, hidden_1_fx16, weights_2_in_fx8, weights_2_out_fx8, bias_1_fx8, 
-                                     cell_1_fx16, test_4_out_fx16, test_4_cfg, thresholds_fx16_fx8_fx8_general, 
+    {"Test 5 FX16_FX8 StS,ALL,Back", mli_krn_lstm_cell_fx16_fx8_fx8,
+                                     input_2_fx16, hidden_1_fx16, weights_2_in_fx8, weights_2_out_fx8, bias_1_fx8,
+                                     cell_1_fx16, test_4_out_fx16, test_4_cfg, thresholds_fx16_fx8_fx8_general,
                                      test_5_chksum_fx16_fx8_fx8},
 #elif COMPILE_FOR_SA8_SA8_SA32
     {"Test 5 SA8_SA32 StS,ALL,Back", mli_krn_lstm_cell_sa8_sa8_sa32,
-                                     input_2_sa8, hidden_1_sa8, weights_2_in_sa8, weights_2_out_sa8, bias_1_i2_w2_sa32, 
+                                     input_2_sa8, hidden_1_sa8, weights_2_in_sa8, weights_2_out_sa8, bias_1_i2_w2_sa32,
                                      cell_1_sa8, test_4_out_sa8, test_4_cfg, thresholds_sa8_general, test_5_chksum_sa8},
 #else
 #error incorrect make configuration
@@ -209,19 +195,19 @@ static lstm_cell_test_operands tests_list[] = {
 
     // Sequence-to-sequence, RNN_OUT_ALL, Backward processing, memstrides
 #ifdef COMPILE_FOR_FX16
-    {"Test 6 FX16 StS,ALL,B,ms",     mli_krn_lstm_cell_fx16, 
-                                     input_2_fx16, hidden_1_fx16, weights_2_in_memstr_fx16, weights_2_out_memstr_fx16, 
-                                     bias_1_fx16, cell_1_fx16, test_4_out_fx16, test_4_cfg, thresholds_fx16_general, 
+    {"Test 6 FX16 StS,ALL,B,ms",     mli_krn_lstm_cell_fx16,
+                                     input_2_fx16, hidden_1_fx16, weights_2_in_memstr_fx16, weights_2_out_memstr_fx16,
+                                     bias_1_fx16, cell_1_fx16, test_4_out_fx16, test_4_cfg, thresholds_fx16_general,
                                      test_6_chksum_fx16},
 #elif COMPILE_FOR_FX16_FX8_FX8
-    {"Test 6 FX16_FX8 StS,ALL,B,ms", mli_krn_lstm_cell_fx16_fx8_fx8, 
-                                     input_2_fx16, hidden_1_fx16, weights_2_in_memstr_fx8, weights_2_out_memstr_fx8, 
-                                     bias_1_fx8, cell_1_fx16, test_4_out_fx16, test_4_cfg, thresholds_fx16_fx8_fx8_general, 
+    {"Test 6 FX16_FX8 StS,ALL,B,ms", mli_krn_lstm_cell_fx16_fx8_fx8,
+                                     input_2_fx16, hidden_1_fx16, weights_2_in_memstr_fx8, weights_2_out_memstr_fx8,
+                                     bias_1_fx8, cell_1_fx16, test_4_out_fx16, test_4_cfg, thresholds_fx16_fx8_fx8_general,
                                      test_6_chksum_fx16_fx8_fx8},
 #elif COMPILE_FOR_SA8_SA8_SA32
     {"Test 6 SA8_SA32 StS,ALL,B,ms", mli_krn_lstm_cell_sa8_sa8_sa32,
-                                     input_2_sa8, hidden_1_sa8, weights_2_in_memstr_sa8, weights_2_out_memstr_sa8, 
-                                     bias_1_i2_w2_sa32, cell_1_sa8, test_4_out_sa8, test_4_cfg, thresholds_sa8_general, 
+                                     input_2_sa8, hidden_1_sa8, weights_2_in_memstr_sa8, weights_2_out_memstr_sa8,
+                                     bias_1_i2_w2_sa32, cell_1_sa8, test_4_out_sa8, test_4_cfg, thresholds_sa8_general,
                                      test_6_chksum_sa8},
 #else
 #error incorrect make configuration
@@ -229,17 +215,17 @@ static lstm_cell_test_operands tests_list[] = {
 
     // Sequence-to-sequence, RNN_OUT_LAST, Forward processing
 #ifdef COMPILE_FOR_FX16
-    {"Test 7 FX16 StS,LAST,Forw",     mli_krn_lstm_cell_fx16, 
-                                      input_2_fx16, hidden_1_fx16, weights_2_in_fx16, weights_2_out_fx16, bias_1_fx16, 
+    {"Test 7 FX16 StS,LAST,Forw",     mli_krn_lstm_cell_fx16,
+                                      input_2_fx16, hidden_1_fx16, weights_2_in_fx16, weights_2_out_fx16, bias_1_fx16,
                                       cell_1_fx16, test_5_out_fx16, test_5_cfg, thresholds_fx16_general, test_7_chksum_fx16},
 #elif COMPILE_FOR_FX16_FX8_FX8
-    {"Test 7 FX16_FX8 StS,LAST,Forw", mli_krn_lstm_cell_fx16_fx8_fx8, 
-                                      input_2_fx16, hidden_1_fx16, weights_2_in_fx8, weights_2_out_fx8, bias_1_fx8, 
-                                      cell_1_fx16, test_5_out_fx16, test_5_cfg, thresholds_fx16_fx8_fx8_general, 
+    {"Test 7 FX16_FX8 StS,LAST,Forw", mli_krn_lstm_cell_fx16_fx8_fx8,
+                                      input_2_fx16, hidden_1_fx16, weights_2_in_fx8, weights_2_out_fx8, bias_1_fx8,
+                                      cell_1_fx16, test_5_out_fx16, test_5_cfg, thresholds_fx16_fx8_fx8_general,
                                       test_7_chksum_fx16_fx8_fx8},
 #elif COMPILE_FOR_SA8_SA8_SA32
     {"Test 7 SA8_SA32 StS,LAST,Forw", mli_krn_lstm_cell_sa8_sa8_sa32,
-                                      input_2_sa8, hidden_1_sa8, weights_2_in_sa8, weights_2_out_sa8, bias_1_i2_w2_sa32, 
+                                      input_2_sa8, hidden_1_sa8, weights_2_in_sa8, weights_2_out_sa8, bias_1_i2_w2_sa32,
                                       cell_1_sa8, test_5_out_sa8, test_5_cfg, thresholds_sa8_general, test_7_chksum_sa8},
 #else
 #error incorrect make configuration
@@ -247,17 +233,17 @@ static lstm_cell_test_operands tests_list[] = {
 
     // Sequence-to-sequence, RNN_OUT_LAST, Backward processing
 #ifdef COMPILE_FOR_FX16
-    {"Test 8 FX16 StS,LAST,Back",     mli_krn_lstm_cell_fx16, 
-                                      input_2_fx16, hidden_1_fx16, weights_2_in_fx16, weights_2_out_fx16, bias_1_fx16, 
+    {"Test 8 FX16 StS,LAST,Back",     mli_krn_lstm_cell_fx16,
+                                      input_2_fx16, hidden_1_fx16, weights_2_in_fx16, weights_2_out_fx16, bias_1_fx16,
                                       cell_1_fx16, test_6_out_fx16, test_6_cfg, thresholds_fx16_general, test_8_chksum_fx16},
 #elif COMPILE_FOR_FX16_FX8_FX8
-    {"Test 8 FX16_FX8 StS,LAST,Back", mli_krn_lstm_cell_fx16_fx8_fx8, 
+    {"Test 8 FX16_FX8 StS,LAST,Back", mli_krn_lstm_cell_fx16_fx8_fx8,
                                       input_2_fx16, hidden_1_fx16, weights_2_in_fx8, weights_2_out_fx8, bias_1_fx8,
-                                      cell_1_fx16, test_6_out_fx16, test_6_cfg, thresholds_fx16_fx8_fx8_general, 
+                                      cell_1_fx16, test_6_out_fx16, test_6_cfg, thresholds_fx16_fx8_fx8_general,
                                       test_8_chksum_fx16_fx8_fx8},
 #elif COMPILE_FOR_SA8_SA8_SA32
     {"Test 8 SA8_SA32 StS,LAST,Back", mli_krn_lstm_cell_sa8_sa8_sa32,
-                                      input_2_sa8, hidden_1_sa8, weights_2_in_sa8, weights_2_out_sa8, bias_1_i2_w2_sa32, 
+                                      input_2_sa8, hidden_1_sa8, weights_2_in_sa8, weights_2_out_sa8, bias_1_i2_w2_sa32,
                                       cell_1_sa8, test_6_out_sa8, test_6_cfg, thresholds_sa8_general, test_8_chksum_sa8},
 #else
 #error incorrect make configuration
@@ -342,8 +328,8 @@ int main() {
         }
 #endif
 
-        if (!(cur_test->in.is_valid() && cur_test->prev_out.is_valid() && cur_test->weights_in.is_valid() && 
-            cur_test->weights_out.is_valid() && cur_test->bias.is_valid() && cur_test->cell.is_valid() && 
+        if (!(cur_test->in.is_valid() && cur_test->prev_out.is_valid() && cur_test->weights_in.is_valid() &&
+            cur_test->weights_out.is_valid() && cur_test->bias.is_valid() && cur_test->cell.is_valid() &&
             cur_test->out.is_valid())) {
             reporter.report_message(cur_test->descr, "FAILED at init: Bad source data for one of tensors");
             is_test_passed = false;
@@ -376,15 +362,15 @@ int main() {
                  tensor_quantizer::validate_tensor(cell) != tensor_quantizer::kOk||
                  tensor_quantizer::validate_tensor(bias) != tensor_quantizer::kOk ||
                  tensor_quantizer::validate_tensor(out) != tensor_quantizer::kOk)) {
-            reporter.report_message(cur_test->descr, 
+            reporter.report_message(cur_test->descr,
                                     "FAILED at quantization step: more memory for one of tensors might be required");
             is_test_passed = false;
         }
 
         if (is_test_passed &&
-                (mem_in_keeper.is_memory_corrupted() || mem_prev_out_keeper.is_memory_corrupted() || 
+                (mem_in_keeper.is_memory_corrupted() || mem_prev_out_keeper.is_memory_corrupted() ||
                 mem_cell_keeper.is_memory_corrupted() ||  mem_out_keeper.is_memory_corrupted() ||
-                mem_w_in_keeper.is_memory_corrupted() || mem_w_out_keeper.is_memory_corrupted() || 
+                mem_w_in_keeper.is_memory_corrupted() || mem_w_out_keeper.is_memory_corrupted() ||
                 mem_b_keeper.is_memory_corrupted() || mem_ir_keeper.is_memory_corrupted())) {
             reporter.report_message(cur_test->descr,
                 "FAILED at quantization step: memory beside one of operands is corrupted");
@@ -394,7 +380,7 @@ int main() {
         // Run specific kernel for test
         if (is_test_passed &&
                 cur_test->mli_krn_lstm_cell
-                (&input, &prev_out, &weights_in, &weights_out, &bias, &tanh_lut, &sigm_lut, &cur_test_cfg, &cell, &out) 
+                (&input, &prev_out, &weights_in, &weights_out, &bias, &tanh_lut, &sigm_lut, &cur_test_cfg, &cell, &out)
                 != MLI_STATUS_OK) {
             reporter.report_message(cur_test->descr, "FAILED at kernel run: kernel returned bad status");
             is_test_passed = false;
@@ -441,7 +427,7 @@ int main() {
             data_crc(cell);
             data_crc(out);
 
-            is_test_passed &= reporter.evaluate_and_report_case(cur_test->descr, test_metrics, cur_test->threshold, 
+            is_test_passed &= reporter.evaluate_and_report_case(cur_test->descr, test_metrics, cur_test->threshold,
                                                                 data_crc, cur_test->check_sum);
         }
         final_status &= is_test_passed;
