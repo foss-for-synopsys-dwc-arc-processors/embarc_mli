@@ -128,7 +128,12 @@ Ensure that you satisfy the following general conditions before calling the func
  - ``axis`` parameter of ``cfg`` structure might be negative and must be less than ``in`` tensor rank.
  
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
-   
+
+For **fx16** versions of kernel, in addition to general conditions, ensure that you satisfy 
+the following quantization conditions before calling the function:
+
+ - The number of ``frac_bits`` in the ``in`` and ``out`` tensors must be equal. 
+
 For **sa8** versions of kernel, in addition to general conditions, ensure that you satisfy 
 the following quantization conditions before calling the function:
 
