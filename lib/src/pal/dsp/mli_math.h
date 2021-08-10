@@ -186,7 +186,7 @@ template <> MLI_FORCE_INLINE v2q15_t mli_math_sub_fx(v2q15_t L, v2q15_t R) {
 
 // Maximum of two fx operands
 //========================================================================
-template < typename io_T > 
+template < typename io_T >
 MLI_FORCE_INLINE io_T mli_math_max_fx(io_T L, io_T R) {
     return MAX(L, R);
 }
@@ -196,19 +196,19 @@ MLI_FORCE_INLINE l_T mli_math_max_fx(l_T L, r_T R) {
     return MAX(L, R);
 }
 
-template <> 
+template <>
 MLI_FORCE_INLINE v2q15_t mli_math_max_fx(v2q15_t L, v2q15_t R) {
     return fx_max_v2q15(L, R);
 }
 
-template <typename l_T, typename r_T> 
+template <typename l_T, typename r_T>
 MLI_FORCE_INLINE v2q15_t mli_math_max_fx(v2q15_t L, r_T R) {
     return fx_max_v2q15(L, fx_replic_v2q15(R));
 }
 
 // Minimum of two fx operands
 //========================================================================
-template < typename io_T > 
+template < typename io_T >
 MLI_FORCE_INLINE io_T mli_math_min_fx(io_T L, io_T R) {
     return MIN(L, R);
 }
@@ -218,12 +218,12 @@ MLI_FORCE_INLINE l_T mli_math_min_fx(l_T L, r_T R) {
     return (L < R) ? L : R;
 }
 
-template <> 
+template <>
 MLI_FORCE_INLINE v2q15_t mli_math_min_fx(v2q15_t L, v2q15_t R) {
     return fx_min_v2q15(L, R);
 }
 
-template <typename l_T, typename r_T> 
+template <typename l_T, typename r_T>
 MLI_FORCE_INLINE v2q15_t mli_math_min_fx(v2q15_t L, r_T R) {
     return fx_min_v2q15(L, fx_replic_v2q15(R));
 }
@@ -327,6 +327,11 @@ template <> MLI_FORCE_INLINE mli_acc32_t mli_math_acc_ashift_fx(mli_acc32_t acc,
 }
 
 template <> MLI_FORCE_INLINE mli_acc40_t mli_math_acc_ashift_fx(mli_acc40_t acc, int shift_right) {
+    if (shift_right > 0) {
+        mli_acc40_t rnd = {((1ll << shift_right) >> 1)};
+        acc = fx_add_a40(acc, rnd);
+    }
+
     return fx_asr_a40(acc, shift_right);
 }
 
@@ -386,7 +391,7 @@ template < typename in_T > MLI_FORCE_INLINE void *mli_math_cast_scalar_to_ptr_fx
 
 // Comparators
 //========================================================================
-template < typename io_T > 
+template < typename io_T >
 static MLI_FORCE_INLINE bool mli_prv_less_than_1(io_T value, uint8_t frac_bits) {
     if (frac_bits >= sizeof(io_T) * 8 - 1)
         return true;
