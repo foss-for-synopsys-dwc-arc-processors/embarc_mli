@@ -310,6 +310,21 @@ MLI_FORCE_INLINE vNx4short_t mli_prv_convert_sa8_fx16(
     return res;
 }
 
+template<>
+MLI_FORCE_INLINE vNx4int_t mli_prv_convert_sa8_fx16(
+        const vNx4short_t in_val,
+        const int16_t zero_point,
+        const int16_t scale,
+		const int shift) {
+    int shift_right = mli_math_max_fx(shift, 0);
+    int shift_left = mli_math_max_fx(-shift, 0);
+    vNx4short_t in_biased_shifted_no_zp = mli_math_sub_fx<vNx4short_t>(in_val, zero_point);
+    vNx4int_t in_scaled = mli_math_mul_fx<vNx4short_t, vNx4int_t>(in_biased_shifted_no_zp, scale);
+    vNx4int_t res = mli_math_asr_rnd_fx(in_scaled, shift_right);
+    res = mli_math_asl_fx(res, shift_left);
+    return res;
+}
+
 MLI_FORCE_INLINE vNx4int_t mli_prv_convert_sa8_fx32(
         const vNx4char_t in_val,
         const int16_t zero_point,

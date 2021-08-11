@@ -47,7 +47,9 @@ static MLI_FORCE_INLINE v2q15_t activation_lut_two_elem_interpolate(
     int shift_in = in_frac_bits - lut->in_frac_bits;
     // if shift amount is too high, preshift argument itself and
     // limit shift amount to prevent overflows
+    constexpr int max_shift = 15;
     int preshift_in = mli_math_max_fx(shift_in - (int)kMaxFracBitsFx16, 0);
+        preshift_in = mli_math_min_fx(preshift_in, max_shift);
     shift_in = mli_math_min_fx(shift_in, (int)kMaxFracBitsFx16);
 
     v2q15_t offset = mli_prv_init_v<int16_t, v2q15_t>(lut->input_offset);
@@ -58,17 +60,25 @@ static MLI_FORCE_INLINE v2q15_t activation_lut_two_elem_interpolate(
 
     /* Convert Input SA8 to FX */
     v2q15_t x = in;
+    v2q15_t lut_idx;
+    v2q15_t frac;
     if (convert_input) {
-        int shift = ((int32_t) in_params->shift - in_frac_bits) + preshift_in;
-        x = mli_prv_convert_sa8_fx16<v2q15_t, v2q15_t>(x, in_params->offset, in_params->scale, shift);
+        int shift = (int32_t) in_params->shift - in_frac_bits;
+        v2q31_t x_int = mli_prv_convert_sa8_fx16<v2q15_t, v2q31_t>(x, in_params->offset, in_params->scale, shift);
+        x_int = mli_math_asr_fx(x_int, preshift_in);
+        frac[0] = x_int[0] & mask[0];
+        frac[1] = x_int[1] & mask[1];
+        x_int = mli_math_asr_fx(x_int, shift_in);
+        lut_idx[0] = mli_math_bound_range_fx(mli_math_add_fx(x_int[0], (int32_t)offset[0]), lower[0], upper[0]);
+        lut_idx[1] = mli_math_bound_range_fx(mli_math_add_fx(x_int[1], (int32_t)offset[1]), lower[1], upper[1]);
     } else {
         x = mli_math_acc_ashift_fx(x, preshift_in);
+        frac = x & mask;
+        lut_idx = mli_math_add_fx(mli_math_acc_ashift_fx(x, shift_in), offset);
+        lut_idx = mli_math_bound_range_fx(lut_idx, lower, upper);
     }
 
-    v2q15_t lut_idx = mli_math_add_fx(mli_math_acc_ashift_fx(x, shift_in), offset);
-    lut_idx = mli_math_bound_range_fx(lut_idx, lower, upper);
     // perform linear interpolation
-    v2q15_t frac = x & mask;
     v2q15_t res = mli_prv_init_v(lut_data[lut_idx[0]], lut_data[lut_idx[1]]);
     v2q15_t next = mli_prv_init_v(lut_data[lut_idx[0] + 1], lut_data[lut_idx[1] + 1]);
     v2q15_t diff = mli_math_sub_fx(res, next);
@@ -151,7 +161,6 @@ static MLI_FORCE_INLINE void compute_activation_lut(
         const struct s8asym_quant_params *in_params,
         struct s8asym_quant_params *out_params) {
 
-    MLI_ASSERT(in_frac_bits >= -1);  // -1 may be required by softmax
     MLI_ASSERT(lut->in_frac_bits >= 0);
     MLI_ASSERT(lut->length >= 0);
     MLI_ASSERT(MLI_MAX_RANK == 4);

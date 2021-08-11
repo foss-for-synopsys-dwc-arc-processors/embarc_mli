@@ -68,6 +68,13 @@ MLI_FORCE_INLINE int16_t mli_math_asr_fx(int16_t acc, int shift_right) {
     return fx_asr_q15(acc, shift_right);
 }
 
+template <>
+MLI_FORCE_INLINE v2q31_t mli_math_asr_fx(v2q31_t acc, int shift_right) {
+    acc[0] = fx_asr_q31(acc[0], shift_right);
+    acc[1] = fx_asr_q31(acc[1], shift_right);
+    return acc;
+}
+
 template <typename T>
 MLI_FORCE_INLINE T mli_math_limit_fx(T sign) {
     return sign < (T)0 ? std::numeric_limits<T>::lowest() : std::numeric_limits<T>::max();
