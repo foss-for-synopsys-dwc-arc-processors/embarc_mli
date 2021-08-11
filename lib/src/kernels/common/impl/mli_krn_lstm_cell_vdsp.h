@@ -298,7 +298,6 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
     }
 
     // Fill output tensor params
-    out->el_type = rnn_out.el_type;
     if (cfg->results == RNN_OUT_LAST) {
         out->rank = 2;
         out->shape[0] = 1;
