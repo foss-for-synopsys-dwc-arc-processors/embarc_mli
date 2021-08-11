@@ -51,18 +51,18 @@ struct softmax_test_operands {
 #if defined(CRC_RM_CONVERGENT) || defined(CRC_RM_UP)
 
 // Shared CRC Results
-const crc32_calc  test_1_chksum_fx16{ 0xFE566434 }, test_1_chksum_sa8{ 0xC31B70C6 },
-                  test_2_chksum_fx16{ 0x57D65150 }, test_2_chksum_sa8{ 0x426712EC },
-                                                    test_3_chksum_sa8{ 0xA5047932 },
+const crc32_calc  test_1_chksum_fx16{ 0x19920D80 }, test_1_chksum_sa8{ 0xC31B70C6 },
+                  test_2_chksum_fx16{ 0x4ECD6011 }, test_2_chksum_sa8{ 0xDB6E4356 },
+                                                    test_3_chksum_sa8{ 0xA4C61305 },
                                                     test_4_chksum_sa8{ 0x283A9958 },
-                  test_5_chksum_fx16{ 0xCD358702 }, test_5_chksum_sa8{ 0x2866E46F },
-                  test_6_chksum_fx16{ 0x2E4C5413 }, test_6_chksum_sa8{ 0x43DB50AA };
+                  test_5_chksum_fx16{ 0xF7716D58 }, test_5_chksum_sa8{ 0x895F6081 },
+                  test_6_chksum_fx16{ 0x5DB75D33 }, test_6_chksum_sa8{ 0xACAEA936 };
 
 // Platform Specific CRC Results
 #if defined(CRC_RM_UP)
-const crc32_calc test_3_chksum_fx16{ 0x875BA219 }, test_4_chksum_fx16{ 0xCD5A958F };
+const crc32_calc test_3_chksum_fx16{ 0x24367848 }, test_4_chksum_fx16{ 0x822E277E };
 #else 
-const crc32_calc test_3_chksum_fx16{ 0xBF9EAF0C }, test_4_chksum_fx16{ 0xC98520CF };
+const crc32_calc test_3_chksum_fx16{ 0xF6519801 }, test_4_chksum_fx16{ 0x589C4BD0 };
 #endif
 
 #else  // Not defined CRC_*

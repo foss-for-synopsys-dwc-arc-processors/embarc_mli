@@ -287,6 +287,18 @@ MLI_FORCE_INLINE v2q15_t mli_prv_convert_sa8_fx16(
 }
 
 template<>
+MLI_FORCE_INLINE v2q31_t mli_prv_convert_sa8_fx16(
+    const v2q15_t in,
+    const int16_t zero_point,
+    const int16_t scale,
+    const int shift) {
+    v2q31_t out;
+    out[0] = mli::krn::ref::mli_prv_convert_sa8_fx16<int8_t, int32_t>(in[0], zero_point, scale, shift);
+    out[1] = mli::krn::ref::mli_prv_convert_sa8_fx16<int8_t, int32_t>(in[1], zero_point, scale, shift);
+    return out;
+}
+
+template<>
 MLI_FORCE_INLINE v2q15_t mli_prv_convert_fx16_sa8(
     const v2q15_t in,
     const int16_t zero_point,

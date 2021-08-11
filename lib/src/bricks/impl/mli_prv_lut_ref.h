@@ -29,7 +29,6 @@ static MLI_FORCE_INLINE void compute_activation_lut(
         const struct s8asym_quant_params *in_params,
         struct s8asym_quant_params *out_params) {
 
-    MLI_ASSERT(in_frac_bits >= -1);  // -1 may be required by softmax
     MLI_ASSERT(lut->in_frac_bits >= 0);
     MLI_ASSERT(lut->length >= 0);
     MLI_ASSERT(MLI_MAX_RANK == 4);
@@ -103,23 +102,23 @@ static MLI_FORCE_INLINE out_T activation_lut_one_elem_interpolate(
     int shift_in = in_frac_bits - lut->in_frac_bits;
     // if shift amount is too high, preshift argument itself and
     // limit shift amount to prevent overflows
+    constexpr int max_shift = 15;
     int preshift_in = mli_math_max_fx(shift_in - (int)kMaxFracBitsFx16, 0);
+        preshift_in = mli_math_min_fx(preshift_in, max_shift);
     shift_in = mli_math_min_fx(shift_in, (int)kMaxFracBitsFx16);
 
     int16_t mask = (1 << shift_in) - 1;
 
     /* Convert Input SA8 to FX */
-    int16_t input;
+    int32_t input;
     if (convert_input) {
         int shift = ((int32_t) in_params->shift - in_frac_bits);
-        input = mli_prv_convert_sa8_fx16<in_T, int16_t>(in, in_params->offset, in_params->scale, shift);
+        input = mli_prv_convert_sa8_fx16<in_T, int32_t>(in, in_params->offset, in_params->scale, shift);
     } else {
         input = in;
     }
-    constexpr int max_shift = 15;
-    preshift_in = mli_math_min_fx(preshift_in, max_shift);
-    int16_t x = input >> preshift_in;
-    int lut_idx = mli_math_add_fx((x >> shift_in), lut->input_offset);
+    int32_t x = mli_math_asr_fx(input, preshift_in);
+    int lut_idx = mli_math_add_fx(mli_math_asr_fx(x, shift_in), lut->input_offset);
     lut_idx = mli_math_bound_range_fx(lut_idx, 0, lut->length - 2);
     // perform linear interpolation
     int16_t frac = x & mask;
@@ -174,7 +173,7 @@ static MLI_FORCE_INLINE out_T activation_lut_one_elem_no_interpolate(
         input = in;
     }
     int x = (int)input;
-    int lut_idx = mli_math_add_fx((x << -shift_in), lut->input_offset);
+    int lut_idx = mli_math_add_fx(mli_math_asl_fx(x, -shift_in), lut->input_offset);
     lut_idx = mli_math_bound_range_fx(lut_idx, 0, lut->length - 1);
     // no interpolation
     int16_t res = lut_data[lut_idx];
