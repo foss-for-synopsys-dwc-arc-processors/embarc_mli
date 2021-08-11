@@ -78,10 +78,6 @@ MLI_FORCE_INLINE void rnn_dense_prepare_and_run(
         out_elements, w_ch_out_mem_strides, in_to_out_params, 
         (io_T)val_limit.min, (io_T)val_limit.max);
 
-    out->rank = bias->rank;
-    for (uint32_t k = 0; k < bias->rank; k++)
-        out->shape[k] = bias->shape[k];
-
 }
 
 #pragma MLI_CODE_SECTION_END()

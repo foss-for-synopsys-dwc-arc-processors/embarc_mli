@@ -102,8 +102,6 @@ MLI_FORCE_INLINE void fully_connected_prepare_and_run(
     const int ch_out = weights->shape[1];
     const int in_sz = mli_prv_count_elem_num(in);
 
-    out->el_type = in->el_type;
-
     constexpr bool asym = std::is_same<quant_T, s8asym_quant_specific_params>::value;
     mli_minmax_t val_limit = mli_prv_get_relu_limits<io_T, asym>(&cfg->relu, out);
 
