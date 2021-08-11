@@ -28,7 +28,7 @@ extern "C" {
  *
  *
  */
-    mli_status mli_chk_tensor(const mli_tensor * in, bool check_bank = true, bool check_quant = true);
+    mli_status mli_chk_tensor(const mli_tensor * in, bool check_bank = true, bool check_quant = false);
 
     mli_status mli_chk_lut(const mli_lut * lut, int buff_size);
 
