@@ -144,6 +144,8 @@ mli_status mli_chk_tensor_quant_params(const mli_tensor* tensor, unsigned zp_use
     case MLI_EL_SA_32:
     {
         const bool is_per_axis = tensor->el_params.sa.dim >= 0;
+        if (MLI_CHECK(!is_per_axis || tensor->el_params.sa.dim < (int)tensor->rank,
+                      "tensor quantization dimension should be less than tensor rank")) return MLI_STATUS_BAD_TENSOR;
         const int num_quant_vals = static_cast<int>((is_per_axis)? tensor->shape[tensor->el_params.sa.dim]: 1);
         const int16_t* scales = (is_per_axis)? tensor->el_params.sa.scale.mem.pi16: &tensor->el_params.sa.scale.mem.i16;
         const int16_t* zp = (is_per_axis)? tensor->el_params.sa.zero_point.mem.pi16: &tensor->el_params.sa.zero_point.mem.i16;
@@ -364,15 +366,6 @@ static MLI_FORCE_INLINE bool check_same_shape(const mli_tensor* t1, const mli_te
 }
 
 
-static MLI_FORCE_INLINE bool check_quantized_on_tensor(const mli_tensor *t1, const mli_tensor *t2) {
-    bool fail = false;
-    if (t1->el_type == MLI_EL_SA_8 || t1->el_type == MLI_EL_SA_32) {
-        fail |= ((t1->el_params.sa.dim >= 0) || (t2->el_params.sa.dim >= 0));
-    }
-
-    return !fail;
-}
-
 /******************************************************
  *  mli_krn_conv2d_hwc parameters checking function
  ******************************************************/
@@ -462,7 +455,7 @@ mli_status mli_chk_conv2d_hwcn_sa8_sa8_sa32(
             MLI_CHECK(bias->el_type    == MLI_EL_SA_32, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
 
-    // Check additional requrements for tensor params.
+    // Check additional requirements for tensor params.
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(in,      kZeroPointBitsByteRange), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(out,     kZeroPointBitsByteRange), __func__);
@@ -655,7 +648,7 @@ mli_status mli_chk_depthwise_conv2d_hwcn_sa8_sa8_sa32(
             MLI_CHECK(bias->el_type    == MLI_EL_SA_32, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
 
-    // Check additional requrements for tensor params.
+    // Check additional requirements for tensor params.
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(in,       kZeroPointBitsByteRange), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(out,      kZeroPointBitsByteRange), __func__);
@@ -811,7 +804,7 @@ mli_status mli_chk_group_conv2d_hwcn_sa8_sa8_sa32(
             MLI_CHECK(bias->el_type    == MLI_EL_SA_32, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
 
-    // Check additional requrements for tensor params.
+    // Check additional requirements for tensor params.
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(in,       kZeroPointBitsByteRange), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(out,      kZeroPointBitsByteRange), __func__);
@@ -974,7 +967,7 @@ mli_status mli_chk_transpose_conv2d_hwcn_sa8_sa8_sa32(
             MLI_CHECK(bias->el_type    == MLI_EL_SA_32, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
 
-    // Check additional requrements for tensor params.
+    // Check additional requirements for tensor params.
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(in,       kZeroPointBitsByteRange), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(out,      kZeroPointBitsByteRange), __func__);
@@ -1230,7 +1223,7 @@ mli_status mli_chk_avepool_hwc_sa8 (
             MLI_CHECK(out->el_params.sa.dim < 0, "Output tensor: Per-tensor quantization is expected"))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
-    // Check additional requrements for tensor params.
+    // Check additional requirements for tensor params.
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(in,      kZeroPointBitsByteRange), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(out,     kZeroPointBitsByteRange), __func__);
@@ -1347,7 +1340,7 @@ mli_status mli_chk_fully_connected_sa8_sa8_sa32(
             MLI_CHECK(bias->el_type    == MLI_EL_SA_32, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
 
-    // Check additional requrements for tensor params.
+    // Check additional requirements for tensor params.
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(in,      kZeroPointBitsByteRange), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(out,     kZeroPointBitsByteRange), __func__);
@@ -1472,6 +1465,9 @@ mli_status mli_chk_eltwise (
         fail |= MLI_CHECK(check_inner_most_dimension_is_one(in2),
                           "Memory stride for inner most dimension of input must be 1");
     }
+    fail |= MLI_CHECK(check_inner_most_dimension_is_one(out),
+                      "Memory stride for inner most dimension of output must be 1");
+
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
     // Output tensor holds the same element type as the input tensors
@@ -1489,9 +1485,6 @@ mli_status mli_chk_eltwise (
         fail |= MLI_CHECK(check_same_shape(in2, out), "Output shape must match non-scalar input tensor");
     }
     if (fail) return MLI_STATUS_SHAPE_MISMATCH;
-
-    fail |= MLI_CHECK(check_quantized_on_tensor(in1, in2), "Tensors should be quantized on tensor level");
-    if (fail) return MLI_STATUS_NOT_SUPPORTED;
 
     return MLI_STATUS_OK;
 }
@@ -1555,7 +1548,7 @@ mli_status mli_chk_eltwise_maxmin_sa8 (const mli_tensor * in1, const mli_tensor 
         MLI_CHECK(in2->el_type == MLI_EL_SA_8, "Wrong input1 tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
 
-    // Check additional requrements for tensor params.
+    // Check additional requirements for tensor params.
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(in1,      kZeroPointBitsByteRange), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(in2,      kZeroPointBitsByteRange), __func__);
@@ -1598,7 +1591,7 @@ mli_status mli_chk_eltwise_sa8 (const mli_tensor * in1, const mli_tensor * in2, 
         MLI_CHECK(in2->el_type == MLI_EL_SA_8, "Wrong input tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
 
-    // Check additional requrements for tensor params.
+    // Check additional requirements for tensor params.
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(in1,      kZeroPointBitsByteRange), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(in2,      kZeroPointBitsByteRange), __func__);
@@ -1621,7 +1614,7 @@ mli_status mli_chk_basic_activation(const mli_tensor * in, mli_tensor * out) {
     // Check that tensors are valid
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
-    stat = MLI_CHECK_STATUS(mli_chk_tensor (out, MLI_OUT_PTR_INSIDE_CCM, false /* check quant */), "Bad output tensor");
+    stat = MLI_CHECK_STATUS(mli_chk_tensor (out, MLI_OUT_PTR_INSIDE_CCM), "Bad output tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out->el_type == in->el_type, "Wrong output type"))
         return MLI_STATUS_TYPE_MISMATCH;
@@ -1662,7 +1655,7 @@ mli_status mli_chk_basic_activation_sa8(const mli_tensor * in, mli_tensor * out)
     if (MLI_CHECK(in->el_type == MLI_EL_SA_8, "Wrong input tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
 
-    // Check additional requrements for tensor params.
+    // Check additional requirements for tensor params.
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(in,      kZeroPointBitsByteRange), __func__);
     if (ret != MLI_STATUS_OK) return ret;
 
@@ -1705,10 +1698,11 @@ mli_status mli_chk_softmax_sa8(const mli_tensor * in, const mli_softmax_cfg* cfg
     if (MLI_CHECK(cfg->axis < (int)in->rank, "Wrong axis parameter, axis parameter must be less than in tensor rank"))
         return MLI_STATUS_BAD_FUNC_CFG;
 
-    // Check additional requrements for tensor params.
+    // Check additional requirements for tensor params.
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(in,      kZeroPointBitsByteRange), __func__);
     if (ret != MLI_STATUS_OK) return ret;
-
+    if (MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor: Per-tensor quantization is expected"))
+         return MLI_STATUS_INCOMPATEBLE_TENSORS;
     return MLI_STATUS_OK;
 }
 
@@ -1734,10 +1728,11 @@ mli_status mli_chk_l2_normalize_sa8(const mli_tensor * in, const mli_l2_normaliz
     if (MLI_CHECK(cfg->axis < (int)in->rank, "Wrong axis parameter, axis parameter must be less than in tensor rank"))
         return MLI_STATUS_BAD_FUNC_CFG;
 
-    // Check additional requrements for tensor params.
+    // Check additional requirements for tensor params.
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(in,      kZeroPointBitsByteRange), __func__);
     if (ret != MLI_STATUS_OK) return ret;
-
+    if (MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor: Per-tensor quantization is expected"))
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
     return MLI_STATUS_OK;
 }
 
@@ -1806,7 +1801,7 @@ mli_status mli_chk_leaky_relu_sa8 (const mli_tensor * in, const mli_tensor * slo
         MLI_CHECK(slope_coeff->el_type == MLI_EL_SA_8, "Wrong slope_coeff tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
 
-    // Check additional requrements for tensor params.
+    // Check additional requirements for tensor params.
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(in,          kZeroPointBitsByteRange), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(out,         kZeroPointBitsByteRange), __func__);
@@ -1834,6 +1829,7 @@ mli_status mli_chk_prelu (
     // Check that tensors are valid
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
+    if (MLI_CHECK(cfg != NULL , "Bad cfg pointer")) return MLI_STATUS_BAD_FUNC_CFG;
     if (cfg->axis == -1) {
         // Check that slope tensors is valid scalar
         stat = MLI_CHECK_STATUS(mli_chk_scalar_tensor (slope_coeff), "Slope should be scalar tensor");
@@ -1921,7 +1917,7 @@ mli_status mli_chk_prelu_sa8 (
         MLI_CHECK(slope_coeff->el_type == MLI_EL_SA_8, "Wrong slope_coeff tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
 
-    // Check additional requrements for tensor params.
+    // Check additional requirements for tensor params.
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(in,          kZeroPointBitsByteRange), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(out,         kZeroPointBitsByteRange), __func__);
@@ -2068,7 +2064,7 @@ mli_status mli_chk_rnn_dense_sa8_sa8_sa32(
     fail |= MLI_CHECK(bias->el_type == MLI_EL_SA_32, "Wrong bias tensor type");
     if (fail) return MLI_STATUS_TYPE_MISMATCH;
 
-    // Check additional requrements for tensor params.
+    // Check additional requirements for tensor params.
     for (int idx = 0; idx < inputs_num; idx++) {
         ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(in[idx],       kZeroPointBitsByteRange), __func__);
         if (ret != MLI_STATUS_OK) return ret;
@@ -2507,7 +2503,7 @@ mli_status mli_chk_permute (const mli_tensor * in, const mli_permute_cfg * cfg, 
     // Check that in tensor is valid and out provides valid pointers
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
-    stat = MLI_CHECK_STATUS(mli_chk_tensor (out, MLI_OUT_PTR_INSIDE_CCM, false), "Bad output tensor");
+    stat = MLI_CHECK_STATUS(mli_chk_tensor (out, MLI_OUT_PTR_INSIDE_CCM), "Bad output tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out->el_type == in->el_type, "Wrong output type"))
         return MLI_STATUS_TYPE_MISMATCH;
@@ -2688,7 +2684,7 @@ mli_status mli_chk_data_movement(const mli_tensor *in, const mli_mov_cfg_t *cfg,
     // Check that in tensor is valid and out provides valid pointers
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in, false), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
-    stat = MLI_CHECK_STATUS(mli_chk_tensor (out, false /* check bank */, false /* check quant */), "Bad output tensor");
+    stat = MLI_CHECK_STATUS(mli_chk_tensor (out, false /* check bank */), "Bad output tensor");
     if (MLI_CHECK(out->el_type == in->el_type, "Wrong output type"))
         return MLI_STATUS_TYPE_MISMATCH;
 
@@ -2778,7 +2774,7 @@ mli_status mli_chk_argmax(const mli_tensor *in, const mli_argmax_cfg *cfg, mli_t
     // Check that in tensor is valid and out provides valid pointers
     stat = MLI_CHECK_STATUS(mli_chk_tensor(in), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
-    stat = MLI_CHECK_STATUS(mli_chk_tensor(out, MLI_OUT_PTR_INSIDE_CCM, false /* check quant */), "Bad output tensor");
+    stat = MLI_CHECK_STATUS(mli_chk_tensor(out, MLI_OUT_PTR_INSIDE_CCM), "Bad output tensor");
     if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(out->el_type == MLI_EL_SA_32, "Output type must be MLI_EL_SA_32"))
         return MLI_STATUS_TYPE_MISMATCH;
