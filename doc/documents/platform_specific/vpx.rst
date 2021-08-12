@@ -100,4 +100,126 @@ d how much accumulations it allows to do without overflow.
 
 Operands Limitations and Shifting Ranges
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+This section describes VPX specific limitations to kernels.
+In this section, :math:`n_\text{tensor}` denotes the fractional bits of a tensor
+and :math:`s_\text{fx,tensor}` is its scale in case of an asymmetric data type (see :ref:`data_fmts`).
+
+Weighted Kernels
+^^^^^^^^^^^^^^^^
+For the following kernels:
+
+* conv2d
+* depthwise_conv2d
+* transpose_conv2d
+* group_conv2d
+* fully_connected
+* rnn_dense
+* gru_cell
+* lstm_cell
+
+Firstly, to avoid negative shifts below lower-bound and
+to avoid internal large shifts above upper-bound, the the following shift restrictions must be adhered to:
+
+.. math::
+    0 \leq n_\text{in} + n_\text{weight} - n_\text{out} \leq 15 & \quad \text{if FX8}
+
+    0 \leq n_\text{in} + n_\text{weight} - n_\text{out} \leq 31 & \quad \text{if FX16 and FX16_FX8_FX8}
+
+    \text{no limitation} & \quad \text{if SA8_SA8_SA32}
+..
+
+Secondly, the following restrictions relate to shifting left the bias inside an accumulator:
+
+.. math::
+    0 \leq n_\text{in} +  n_\text{weight} -  n_\text{bias} \leq 8 & \quad \text{if FX8}
+
+    0 \leq n_\text{in} +  n_\text{weight} -  n_\text{bias} \leq 16  & \quad \text{if FX16}
+
+    0 \leq n_\text{in} +  n_\text{weight} -  n_\text{bias} \leq 24 & \quad \text{if FX16_FX8_FX8}
+
+    \text{no limitation} & \quad \text{if SA8_SA8_SA32}
+..
+
+
+Avepool
+^^^^^^^
+**FX16**
+
+To avoid negative shifts below lower-bound and to avoid internal large shifts
+above upper-bound, the in and out fraction bits must be adhered to:
+
+.. math::
+ -14 - \text{ceil}(\text{log}_2 (\text{Wk} \cdot \text{Hk})) <
+ n_\text{in} - n_\text{out}
+ < 16 - \text{ceil}(\text{log}_2 (\text{Wk} \cdot \text{Hk}))
+..
+
+with :math:`\text{Wk}` and  :math:`\text{Hk}` the width and height of the kernel respectively.
+
+**SA8**
+
+To avoid internal large shifts below lower-bound and to avoid negative shifts
+above upper-bound, the in and out scale factors must be adhered to:
+
+.. math:: 127 \cdot 2^{−15} \cdot  \text{Wk} \cdot \text{Hk} <
+              \frac{s_\text{fx,in}  \cdot 2^{-n_\text{in}}}
+                   {s_\text{fx,out} \cdot 2^{-n_\text{out}}}
+              < 64 \cdot \text{Wk}  \cdot \text{Hk}
+..
+
+with :math:`\text{Wk}` and  :math:`\text{Hk}` the width and height of the kernel respectively.
+
+
+RNN Dense
+^^^^^^^^^
+**FX16 and FX16_FX8_FX8**
+
+.. math::
+    0 \leq n_\text{in} + n_\text{weights} - n_\text{out}
+..
+
+**SA8_SA8_SA32**
+
+.. math::
+    \text{acc_scale} = \frac{ s_\text{fx,in} \cdot s_\text{fx,weights}}{s_\text{fx,out}} \cdot 2^{n_\text{in} + n_\text{weights} − n_\text{out}} \\
+    0 < \text{acc_scale} \leq 2^{32 - \text{acc_size} - \text{ceil}(\text{log}_2(\text{input_count}))}
+..
+
+where :math:`\text{acc_size}` is the accumulator size including the guard bits.
+Restriction is to avoid saturation between multiple inputs accumulators after
+the scale since accumulators are scaled and added in 32 bits vectors.
+
+
+Leaky and Parametric ReLU
+^^^^^^^^^^^^^^^^^^^^^^^^^
+To avoid an extra shift-left instruction in the inner loop,
+a negative 'slope_coeff'/'alpha' tensor fractional bits is not permitted:
+
+.. math::
+    0 \leq n_\text{slope_coeff} & \quad \text{if FX16 and FX8 Leaky ReLU}
+
+    0 \leq n_\text{alpha} & \quad \text{if FX16 and FX8 Parametric ReLU}
+..
+
+Element-wise Add and Element-wise Sub
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**FX16**
+
+Below restriction relates to shifting both inputs such that their fractional bits align.
+
+.. math:: 
+    \text{abs}(n_\text{in1} - n_\text{in2}) \leq 15
+..
+
+
+.. math::
+    \text{max}(n_\text{in1}, n_\text{in2}) - 31 \leq n_\text{out} \leq  \text{max}(n_\text{in1}, n_\text{in2}) + 31 
+..
+
+**SA8**
+
+No VPX specific limitations (see :ref:`chap_element_wise` for general limitations/requirements).
+
+
 
