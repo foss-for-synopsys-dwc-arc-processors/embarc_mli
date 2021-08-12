@@ -18,6 +18,6 @@ if (ARC AND (${MLI_PLATFORM} STREQUAL EM_HS))
     add_subdirectory(example_face_detect)
 endif()
 
-if (ARC AND NOT (${MLI_PLATFORM} STREQUAL EM_HS))
+if (ARC AND NOT (${MLI_PLATFORM} STREQUAL EM_HS) AND (NOT "$ENV{TENSORFLOW_DIR}" STREQUAL ""))
     add_subdirectory(tutorial_emnist_tflm)
 endif()
