@@ -15,7 +15,7 @@ outputs are then concatenated together to give the final output.
 
 For example, in a HWCN data layout, if the ``in`` feature map is :math:`(Hi, Wi, Ci)` and 
 the ``weights`` is :math:`(Hk, Wk, Cw, Co)`, the ``output`` feature map is :math:`(Ho, Wo, Co)`
-tensor where :math:`Ci` is equalt to :math:`Cw * M` and :math:`Co` is multiple of :math:`M`.
+tensor where :math:`Ci` is equal to :math:`Cw * M` and :math:`Co` is multiple of :math:`M`.
 Also spatial dimensions :math:`H*, W*` comply with the system of equations :eq:`eq_conv2d_shapes`. 
 
 Depthwise convolution (see :ref:`conv_depthwise`) is an extreme case of group 
@@ -157,16 +157,16 @@ Ensure that you satisfy the following general conditions before calling the func
 
 
 - ``in``, ``out``, ``weights`` and ``bias`` tensors must be valid (see :ref:`mli_tnsr_struc`)
-  and satisfy data requirements of the used version of the kernel.
+  and satisfy data requirements of the selected version of the kernel.
 
 -  Shapes of ``in``, ``out``, ``weights`` and ``bias`` tensors must be compatible,
    which implies the following requirements:
 
     - ``in`` and ``out`` are 3-dimensional tensors (rank==3). Dimensions meaning, 
-      and order (layout) is aligned with the used version of kernel.
+      and order (layout) is aligned with the specifc version of kernel.
  
     - ``weights`` is a 4-dimensional tensor (rank==4). Dimensions meaning, 
-      and order (layout) is aligned with the used kernel.
+      and order (layout) is aligned with the specific kernel.
  
     - ``bias`` must be a one-dimensional tensor (rank==1). Its length must be equal to 
       :math:`Co` (output channels OR number of filters).

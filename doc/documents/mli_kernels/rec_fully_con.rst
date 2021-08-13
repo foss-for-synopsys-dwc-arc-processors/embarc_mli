@@ -150,7 +150,7 @@ Conditions
 Ensure that you satisfy the following general conditions before calling the function:
 
  - ``in``, ``out``, ``weights`` and ``bias`` tensors must be valid (see :ref:`mli_tnsr_struc`)
-   and satisfy data requirements of the used version of the kernel.
+   and satisfy data requirements of the selected version of the kernel.
 
  - Shapes of ``in``, ``out``, ``weights`` and ``bias`` tensors must be compatible,
    which implies the following requirements:

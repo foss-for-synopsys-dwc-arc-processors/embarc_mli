@@ -153,16 +153,16 @@ Conditions
 Ensure that you satisfy the following general conditions before calling the function:
 
  - ``in``, ``out``, ``weights`` and ``bias`` tensors must be valid (see :ref:`mli_tnsr_struc`)
-   and satisfy data requirements of the used version of the kernel.
+   and satisfy data requirements of the selected version of the kernel.
 
  - Shapes of ``in``, ``out``, ``weights`` and ``bias`` tensors must be compatible,
    which implies the following requirements:
 
    - ``in`` and ``out`` are 3-dimensional tensors (rank==3). Dimensions meaning, 
-     and order (layout) is aligned with the used version of kernel.
+     and order (layout) is aligned with the specific version of kernel.
 
    - ``weights`` is a 4-dimensional tensor (rank==4). Dimensions meaning, 
-     and order (layout) is aligned with the used kernel.
+     and order (layout) is aligned with the specifc kernel.
 
    - ``bias`` must be a one-dimensional tensor (rank==1). Its length must be equal to 
      :math:`Co` (output channels OR number of filters).

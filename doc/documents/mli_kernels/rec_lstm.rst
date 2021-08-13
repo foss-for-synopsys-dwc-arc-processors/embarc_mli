@@ -207,7 +207,7 @@ Ensure that you satisfy the following general conditions before calling the func
 
  - ``in``, ``out``, ``prev_out``, ``weights_in``, ``weights_out``, ``bias``, and ``cell`` 
    tensors must be valid (see :ref:`mli_tnsr_struc`) and satisfy data requirements of the 
-   used version of the kernel.
+   selected version of the kernel.
 
  - ``tanh_lut`` and ``sigm_lut`` structures must be valid and prepared for 
    hyperbolic tangent and sigmoid activation functions accordingly (see :ref:`lut_prot`).
@@ -228,7 +228,7 @@ Ensure that you satisfy the following general conditions before calling the func
 
    - ``prev_out`` must be a one-dimensional tensor (rank==1) of shape (:math:`M`).
  
-   - ``out`` tensor might be of any shape and rank. Kernel changes it's shape to (sequence_length, :math:`M`)
+   - ``out`` tensor might be of any shape and rank. Kernel changes its shape to (sequence_length, :math:`M`)
 
  - ``out.data`` container must point to a buffer with sufficient capacity for storing the result (to keep :math:`M` 
    elements if LSTM cell is configured with ``RNN_OUT_LAST`` or to keep :math:`M*sequence\_length` elements if
@@ -264,7 +264,7 @@ satisfy the following quantization conditions before calling the function:
  - Zero offset of ``in``, ``prev_out`` and ``cell`` tensors must be within [-128, 127] range.
    
  - ``weights_in``, ``weights_out`` and ``bias`` tensors must be symmetric. All these tensors must be 
-   quantized on the same level. Allowed Options:
+   quantized on the same level. Allowed options:
    
    - Per Tensor level. This implies that each tensor contains a single scale factor and a single 
      zero offset equal to 0.
