@@ -23,8 +23,8 @@ Where:
 
 .. note::
 
-  ``epsilon`` tensor currently isn't used in integer based versions of the kernel (``fx16``, ``sa8``)
-  and preserved only for possible future use.
+  ``epsilon`` tensor currently isn't used in integer-based versions of the kernel (``fx16``, ``sa8``)
+  and is preserved only for possible future use.
 ..
 
 L2 normalization function might be applied to the whole tensor, or along a specific axis. In the 
@@ -105,11 +105,11 @@ Conditions
 Ensure that you satisfy the following general conditions before calling the function:
 
  - ``in`` and ``out`` tensors must be valid (see :ref:`mli_tnsr_struc`)
-   and satisfy data requirements of the used version of the kernel.
+   and satisfy data requirements of the selected version of the kernel.
 
- - ``epsilon`` tensor isn't used and can be passed as a ``NULL`` pointer or might be not valid.
+ - ``epsilon`` tensor isn't used and can be passed as a ``NULL`` pointer or other value.
 
- - ``in`` and ``out`` tensors must be of the same shapes
+ - ``in`` and ``out`` tensors must be of the same shapes.
 
  - ``lut`` structure must be valid and prepared for the L2 Normalization activation function (see :ref:`lut_prot`).
 

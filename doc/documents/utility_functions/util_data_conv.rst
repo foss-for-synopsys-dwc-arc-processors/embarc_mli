@@ -90,13 +90,13 @@ Conditions
 Ensure that you satisfy the following general conditions before calling the function:
 
  - ``in`` and ``out`` tensors must be valid (see :ref:`mli_tnsr_struc`)
-   and satisfy data requirements of the used version of the kernel.
+   and satisfy data requirements of the selected version of the kernel.
 
  - ``in`` and ``out`` tensors must be of the same shapes
 
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
 
-For **sa8** versions of kernel, in addition to general conditions, ensure that you satisfy 
+For **sa8** versions of the kernel, in addition to general conditions, ensure that you satisfy 
 the following quantization conditions before calling the function:
 
  - if ``in`` and ``out`` tensors are both quantized on per-axis level, 

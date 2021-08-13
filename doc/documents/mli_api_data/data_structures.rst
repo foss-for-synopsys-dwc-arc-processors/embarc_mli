@@ -84,7 +84,7 @@ The table :ref:`mli_tnsr_struc` describes the fields in the ``mli_tensor`` struc
    |                   |                        |  - ``mem_stride[2] >= 1``                                                   |
    |                   |                        |                                                                             |
    |                   |                        | ``mli_move`` is the only function which can write the ``mem_stride`` field  |
-   |                   |                        | of the ``dst`` tensor. Other kernels don't update this Field                |
+   |                   |                        | of the ``dst`` tensor. Other kernels don't update this field                |
    +-------------------+------------------------+-----------------------------------------------------------------------------+
    | ``rank``          | ``uint32_t``           | Number of dimensions of this tensor (Must be less or equal to               |
    |                   |                        | ``MLI_MAX_RANK*``)                                                          |
@@ -106,11 +106,11 @@ The table :ref:`mli_tnsr_struc` describes the fields in the ``mli_tensor`` struc
 ..
 
 .. important::
-   ``mli_tensor`` is valid if all it's fields are populated in a non-contradictory way which implies: 
+   ``mli_tensor`` is valid if all its fields are populated in a non-contradictory way which implies: 
 
       - ``rank`` and ``shape`` fields are aligned with ``mem_strides`` field
       - ``data`` container points to a memory region of ``el_type`` elements or contains a single 
-        element itself (see :ref:`c_mli_data_container`). It’s capacity is enough to preserve data described 
+        element itself (see :ref:`c_mli_data_container`). Its capacity is enough to preserve data described 
         by ``rank``, ``shape`` and ``mem_stride`` fields.
       - ``el_params`` structure is filled properly according to ``el_type`` field and
         related quantization scheme (see :ref:`data_fmts`)
@@ -186,7 +186,7 @@ It stores pointer to data or a single value that intend to be directly used in a
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``mli_element_type`` enumeration defines the basic element type stored in tensor structure.
-Based on this information library functions may define sizes, algorithms for processing,
+Based on this information, library functions may define sizes, algorithms for processing,
 and other  implementation specific things. ``mli_element_type`` is defined as follows:   
 
 .. code:: c

@@ -114,7 +114,7 @@ Ensure that you satisfy the following general conditions before calling the func
 
  - ``in``, ``out`` and ``slope_coeff`` tensors must be valid (see :ref:`mli_tnsr_struc`).
 
- - ``in`` and ``out`` tensors must be of the same shapes.
+ - ``in`` and ``out`` tensors must be of the same shape.
 
  - ``slope_coeff`` tensor must satisfy the following shape requirements depending
    on the ``axis`` parameter of ``cfg`` structure:
@@ -123,9 +123,9 @@ Ensure that you satisfy the following general conditions before calling the func
       description in the Table :ref:`mli_tnsr_struc`).
 
     - ``axis >= 0`` : ``slope_coeff`` is a one-dimensional tensor (rank==1). 
-      It's length must be equal to ``axis`` dimension of ``in`` tensor (e.g. ``in.shape[cfg.axis]``).
+      Its length must be equal to ``axis`` dimension of ``in`` tensor (e.g. ``in.shape[cfg.axis]``).
 
- - ``axis`` parameter of ``cfg`` structure might be negative and must be less than ``in`` tensor rank.
+ - ``axis`` parameter of ``cfg`` structure can be negative and must be less than ``in`` tensor rank.
  
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
 

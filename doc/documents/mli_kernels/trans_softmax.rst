@@ -98,13 +98,13 @@ Ensure that you satisfy the following general conditions before calling the func
  - ``in`` and ``out`` tensors must be valid (see :ref:`mli_tnsr_struc`)
    and satisfy data requirements of the used version of the kernel.
 
- - ``in`` and ``out`` tensors must be of the same shapes
+ - ``in`` and ``out`` tensors must be of the same shape
 
  - ``lut`` structure must be valid and prepared for the softmax activation function (see :ref:`lut_prot`).
 
  - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
 
- - ``axis`` parameter of ``cfg`` structure might be negative and must be less than ``in`` tensor rank.
+ - ``axis`` parameter of ``cfg`` structure can be negative and must be less than ``in`` tensor rank.
 
 For **sa8** versions of kernel, in addition to general conditions, ensure that you satisfy 
 the following quantization conditions before calling the function:

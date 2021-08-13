@@ -81,7 +81,7 @@ Conditions
 Ensure that you satisfy the following general conditions before calling the function:
 
  - ``in1``, ``in2`` and ``out`` tensors must be valid (see :ref:`mli_tnsr_struc`)
-   and satisfy data requirements of the used version of the kernel.
+   and satisfy data requirements of the specific version of the kernel.
 
  - Shapes of ``in1``, ``in2`` and ``out`` tensors must be compatible,
    which implies the following requirements:

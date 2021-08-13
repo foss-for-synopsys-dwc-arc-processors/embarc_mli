@@ -132,6 +132,7 @@ The size of the array is defined by ``MLI_MAX_RANK``.
 
 It is possible to combine multiple 'operations' in one move. In that the internal order of how the parameters are
 applied is relevant:
+
  - padding_pre/padding_post (using cfg->padding_pre and cfg->padding_post as described in figure :ref:`f_mli_mov_cfg_params_pad`)
  - crop  (using cfg->offset and cfg->size as described in figure :ref:`f_mli_mov_cfg_params_crop`)
  - subsampling (using cfg->sub_sample_step as described in figure :ref:`f_mli_mov_cfg_params_sub`)
@@ -193,7 +194,7 @@ following options to initialize all the fields in a consistent way:
 Some operations (like padding, concat, slice, subsample) when applied on the quantization axis will affect the
 quantization parameters (e.g. If subsampling on the quantization axis is applied, also the quantization parameters
 will be subsampled). For these cases the output tensor should contain valid pre-allocated memory buffers to get
-correct quantization parameters, if this is not done, and the pointers are initialized with ``nullptr`` or with the
+correct quantization parameters. If this is not done, and the pointers are initialized with ``nullptr`` or with the
 same pointers as the src tensor, the result is undefined.
 
     - In case of per-axis quantization of the src tensor, the axis needs to match the (permuted) quantization axis in the

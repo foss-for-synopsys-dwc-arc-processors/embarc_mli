@@ -111,10 +111,10 @@ Ensure that you satisfy the following conditions before calling the ``mli_krn_<l
 Result
 ^^^^^^
 
-``mli_krn_<lut_name>_get_lut_size`` functions always returns positive non-zero value.
+``mli_krn_<lut_name>_get_lut_size`` functions always return positive non-zero values.
 
 ``mli_krn_<lut_name>_create_lut`` may modify all fields of ``lut`` structure and the memory pointed by ``lut.data.mem`` field.
-Exceptions is ``lut.data`` field itself. 
+Exception is the ``lut.data`` field itself. 
 
 Depending on the debug level (see section :ref:`err_codes`) ``mli_krn_<lut_name>_create_lut``
 function performs a parameter check and returns the result as an ``mli_status`` code as 
