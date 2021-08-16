@@ -45,17 +45,12 @@ test_status model_run_single_in(
         return TEST_NOT_ENOUGH_MEM;
     }
 
-    mli_tensor pred_tensor = *model_output;
-    pred_tensor.data.mem.pf32 = pred_data;
-    pred_tensor.data.capacity = output_elements * sizeof(float);
-    pred_tensor.el_type = MLI_EL_FP_32;
-
     // Data preprocessing and model inference
     preprocess(data_in, model_input);
     inference(inf_param);
 
     // Check result
-    if (MLI_STATUS_OK == mli_hlp_convert_tensor(model_output, &pred_tensor)) {
+    if (MLI_STATUS_OK == mli_hlp_fx_tensor_to_float(model_output, pred_data, output_elements)) {
         ref_to_pred_output err;
         measure_err_vfloat(ref_out, pred_data, output_elements, &err);
         printf("Result Quality: S/N=%-10.1f (%-4.1f db)\n", err.ref_vec_length / err.noise_vec_length, err.ref_to_noise_snr);
