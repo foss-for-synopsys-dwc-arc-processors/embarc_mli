@@ -181,7 +181,6 @@ int main(int argc, char ** argv ) {
 // Data pre-processing for HAR Smartphone net
 //========================================================================================
 static void har_smartphone_preprocessing(const void * raw_input_, mli_tensor * net_input_) {
-    if (net_input_->data.capacity >= IN_POINTS * sizeof(float)) {
-        net_input_->data.mem.pf32 = (float *) raw_input_;
-    }
+    net_input_->data.mem.pf32 = (float*)raw_input_;
+    net_input_->data.capacity = IN_POINTS * sizeof(float);
 }

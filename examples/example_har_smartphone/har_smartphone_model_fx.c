@@ -7,25 +7,19 @@
 *
 */
 
-/**
- * Smartphone HAR LSTM
- *
- * Description:
- *
- */
 #include "har_smartphone_model.h"
 
+#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 
 #include "mli_api.h"
-
-#include "mli_types.h"
 #include "mli_config.h"
+
 #include "har_smartphone_constants.h"
 #include "tests_aux.h"
+
 
 //==============================================================
 //
@@ -35,29 +29,6 @@
 //
 //==============================================================
 
-static inline void set_mli_tensor_shape1(mli_tensor* tensor, uint32_t shape0) {
-    tensor->rank = 1;
-    tensor->shape[0] = shape0;
-    tensor->mem_stride[0] = 1;
-}
-
-static inline void set_mli_tensor_shape2(mli_tensor* tensor, uint32_t shape0, uint32_t shape1) {
-    tensor->rank = 2;
-    tensor->shape[0] = shape0;
-    tensor->shape[1] = shape1;
-    tensor->mem_stride[0] = 1 * shape1;
-    tensor->mem_stride[1] = 1;
-}
-
-static inline void set_mli_tensor_shape3(mli_tensor* tensor, uint32_t shape0, uint32_t shape1, uint32_t shape2) {
-    tensor->rank = 3;
-    tensor->shape[0] = shape0;
-    tensor->shape[1] = shape1;
-    tensor->shape[2] = shape2;
-    tensor->mem_stride[0] = 1 * shape2 * shape1;
-    tensor->mem_stride[1] = 1 * shape2;
-    tensor->mem_stride[2] = 1;
-}
 
 // Intermediate data buffers (enough size for max intermediate results)
 //==============================
@@ -77,40 +48,137 @@ static d_type  _X    lstm_cell_mem_buf[LSTM_CELL_SZ];
 static int16_t  _Y   tanh_lut_mem_buf[LUT_BUF_SZ];
 static int16_t  _X   sigm_lut_mem_buf[LUT_BUF_SZ];
 
-// Module Input/Output tensors and their's external interface
-//============================================================
+// Module intermediate tensors 
+//=============================
 static mli_tensor input_float = {
     .data = {
-    .capacity = sizeof(float) * IN_POINTS,
-    .mem = { .pf32 = NULL }
-},
+        .capacity = 0,
+        .mem = { .pf32 = NULL }
+    },
     .mem_stride = {9, 1},
     .shape = {128, 9},
     .rank = 2,
     .el_type = MLI_EL_FP_32,
 };
 
-static mli_tensor input = {
+static mli_tensor L0_move_out = {
     .data = {
-    .capacity = sizeof(float) * IN_POINTS,
-    .mem = { .pf32 = (float *)x_mem_buf }
-},
+        .capacity = sizeof(y_mem_buf),
+        .mem = {.pf32 = (float*)y_mem_buf }
+    },
     .mem_stride = {9, 1},
     .shape = {128, 9},
     .rank = 2,
     .el_type = MLI_EL_FP_32,
 };
+
+static mli_tensor L0_convert_out = {
+    .data = {
+        .capacity = sizeof(x_mem_buf),
+        .mem = {.D_FIELD = (d_type*)x_mem_buf }
+    },
+    .mem_stride = {9, 1},
+    .shape = {128, 9},
+    .rank = 2,
+    .el_type = MLI_EL_FX_16,
+    .el_params.fx.frac_bits = sizeof(d_type) * 8 - 1 - 2,
+};
+
+static mli_tensor L1_fc_out = {
+    .data = {
+        .capacity = sizeof(y_mem_buf),
+        .mem = {.D_FIELD = (d_type*)y_mem_buf }
+    },
+    .mem_stride = {32, 1},
+    .shape = {128, 32},
+    .rank = 2,
+    .el_type = MLI_EL_FX_16,
+    .el_params.fx.frac_bits = FC1_OUT_FRAQ,
+};
+
+static mli_tensor L2_lstm_cell = {
+    .data = {
+        .capacity = sizeof(lstm_cell_mem_buf),
+        .mem = {.D_FIELD = (d_type*)lstm_cell_mem_buf }
+    },
+    .mem_stride = {1},
+    .shape = {LSTM_CELL_SZ},
+    .rank = 1,
+    .el_type = MLI_EL_FX_16,
+    .el_params.fx.frac_bits = LSTM2_CELL_FRAQ
+};
+
+static mli_tensor L2_lstm_prev = {
+    .data = {
+        .capacity = sizeof(x_mem_buf),
+        .mem = {.D_FIELD = (d_type*)x_mem_buf }
+    },
+    .mem_stride = {1},
+    .shape = {LSTM_CELL_SZ},
+    .rank = 1,
+    .el_type = MLI_EL_FX_16,
+    .el_params.fx.frac_bits = LSTM2_OUT_FRAQ
+};
+
+static mli_tensor L2_lstm_out = {
+    .data = {
+        .capacity = sizeof(x_mem_buf),
+        .mem = {.D_FIELD = (d_type*)x_mem_buf }
+    },
+    .mem_stride = {32, 1},
+    .shape = {128, 32},
+    .rank = 2,
+    .el_type = MLI_EL_FX_16,
+    .el_params.fx.frac_bits = LSTM2_OUT_FRAQ
+};
+
+static mli_tensor L3_lstm_cell = {
+    .data = {
+        .capacity = sizeof(lstm_cell_mem_buf),
+        .mem = {.D_FIELD = (d_type*)lstm_cell_mem_buf }
+    },
+    .mem_stride = {1},
+    .shape = {LSTM_CELL_SZ},
+    .rank = 1,
+    .el_type = MLI_EL_FX_16,
+    .el_params.fx.frac_bits = LSTM3_CELL_FRAQ
+};
+
+static mli_tensor L3_lstm_prev = {
+    .data = {
+        .capacity = sizeof(y_mem_buf),
+        .mem = {.D_FIELD = (d_type*)y_mem_buf }
+    },
+    .mem_stride = {1},
+    .shape = {LSTM_CELL_SZ},
+    .rank = 1,
+    .el_type = MLI_EL_FX_16,
+    .el_params.fx.frac_bits = LSTM3_OUT_FRAQ
+};
+
+static mli_tensor L3_lstm_out = {
+    .data = {
+        .capacity = sizeof(y_mem_buf),
+        .mem = {.D_FIELD = (d_type*)y_mem_buf }
+    },
+    .mem_stride = {32, 1},
+    .shape = {1, 32},
+    .rank = 2,
+    .el_type = MLI_EL_FX_16,
+    .el_params.fx.frac_bits = LSTM3_OUT_FRAQ
+};
+
 
 static mli_tensor output = {
     .data = {
-        .capacity = sizeof(d_type) * OUT_POINTS,
-        .mem = { .D_FIELD = (d_type *)y_mem_buf }
+        .capacity = sizeof(x_mem_buf),
+        .mem = { .D_FIELD = (d_type *)x_mem_buf }
     },
     .mem_stride = {1},
     .shape = {6},
     .rank = 1,
     .el_type = MLI_EL_FX_16,
-    .el_params.fx.frac_bits = 0,
+    .el_params.fx.frac_bits = FC4_OUT_FRAQ,
 };
 
 static mli_lut tanh_lut = {
@@ -129,11 +197,6 @@ static mli_lut sigm_lut = {
 
 };
 
-static const mli_fully_connected_cfg default_fc_config = {
-    .relu = {
-        .type = MLI_RELU_NONE
-    }    
-};
 
 // Interface variables: Available to user via main model header
 //===========================================================
@@ -143,64 +206,15 @@ mli_tensor * const har_smartphone_net_output = &output;
 //==============================================================
 //  Model description and configuration
 //==============================================================
-#pragma Data(".mli_data")
-
-// Intermediate and helper tensors
-//===============================================
-static mli_tensor ir_tensor_X = {
+static const mli_tensor zero_tsr_fx16 = {
     .data = {
-        .capacity = sizeof(x_mem_buf),
-        .mem = { .D_FIELD = (d_type *)x_mem_buf }
+        .capacity = 0,
+        .mem = {.i16 = 0 }
     },
-    .shape = {0, 0, 0, 0},
-    .rank = 4,
     .el_type = MLI_EL_FX_16,
-    .el_params.fx.frac_bits = FRQ_BITS(0, d_type),
-};
-
-static mli_tensor ir_tensor_Y = {
-    .data = {
-        .capacity = sizeof(y_mem_buf),
-        .mem = { .D_FIELD = (d_type *)y_mem_buf }
-    },
-    .shape = {0, 0, 0, 0},
-    .rank = 4,
-    .el_type = MLI_EL_FX_16,
-    .el_params.fx.frac_bits = FRQ_BITS(0, d_type),
-};
-
-static mli_tensor lstm_ir_tensor = {
-    .data = {
-        .capacity = sizeof(lstm_ir_mem_buf),
-        .mem = { .D_FIELD = (d_type *)lstm_ir_mem_buf }
-    },
-    .shape = {0, 0, 0, 0},
-    .rank = 4,
-    .el_type = MLI_EL_FX_16,
-    .el_params.fx.frac_bits = FRQ_BITS(0, d_type),
-};
-
-static mli_tensor lstm_cell_tensor = {
-    .data = {
-        .capacity = sizeof(lstm_cell_mem_buf),
-        .mem = { .D_FIELD = (d_type *)lstm_cell_mem_buf }
-    },
+    .rank = 0,
+    .shape = {0},
     .mem_stride = {1},
-    .shape = {LSTM_CELL_SZ},
-    .rank = 1,
-    .el_type = MLI_EL_FX_16,
-    .el_params.fx.frac_bits = 0,
-};
-
-static mli_tensor lstm_prev_tensor = {
-    .data = {
-        .capacity = sizeof(lstm_cell_mem_buf),
-        .mem = { .D_FIELD = NULL }
-    },
-    .mem_stride = {1},
-    .shape = {LSTM_CELL_SZ},
-    .rank = 1,
-    .el_type = MLI_EL_FX_16,
     .el_params.fx.frac_bits = 0,
 };
 
@@ -230,7 +244,11 @@ static const mli_tensor L1_fc_bias = {
     .el_params.fx.frac_bits = FC1_B_FRAQ,
 };
 
-static const mli_relu_cfg L1_relu_cfg = {.type = MLI_RELU_GEN};
+static const mli_fully_connected_cfg fc1_config = {
+    .relu = {
+        .type = MLI_RELU_GEN
+    }
+};
 
 // LSTM Layer 2 related data
 //===================================
@@ -354,8 +372,12 @@ static const mli_tensor L4_fc_bias = {
     .el_type = B_EL_TYPE,
     .el_params.fx.frac_bits = FC4_B_FRAQ,
 };
-#pragma Data()
 
+static const mli_fully_connected_cfg fc4_config = {
+    .relu = {
+        .type = MLI_RELU_NONE
+    }
+};
 
 //==============================================================
 //  Wrappers on MLI Lib calls declaration
@@ -370,6 +392,7 @@ static inline mli_status nn_fully_connected(
         const mli_fully_connected_cfg *cfg,
         mli_tensor   *out);
 
+
 static inline mli_status nn_lstm_cell(
         const mli_tensor *in,
         const mli_tensor *prev_out,
@@ -383,6 +406,13 @@ static inline mli_status nn_lstm_cell(
         mli_tensor *out);
 
 #if defined(CUSTOM_USER_LSTM_LAYER3)
+static inline mli_status rnn_dense(
+        const mli_tensor** in,
+        const mli_tensor** weights,
+        const mli_tensor* bias,
+        const mli_rnn_dense_cfg* cfg,
+        mli_tensor* out);
+
 static inline mli_status nn_sigm(const mli_tensor *in, const mli_lut *lut, mli_tensor *out);
 
 static inline mli_status nn_tanh(const mli_tensor *in, const mli_lut *lut, mli_tensor *out);
@@ -390,36 +420,30 @@ static inline mli_status nn_tanh(const mli_tensor *in, const mli_lut *lut, mli_t
 static inline mli_status nn_eltwise_mul(const mli_tensor *in1, const mli_tensor *in2, mli_tensor *out);
 
 static inline mli_status nn_eltwise_add(const mli_tensor *in1, const mli_tensor *in2, mli_tensor *out);
-
-static inline mli_status nn_rnn_cell(
-        const mli_tensor ** in,
-        const mli_tensor ** weights,
-        const mli_tensor * bias,
-        const mli_rnn_dense_cfg *cfg,
-        mli_tensor *out,
-        int gate);
 #endif
 
 //==============================================================
 //  Declaration of helper functions and user specific kernels
 //==============================================================
+mli_tensor mli_tsr_make_fx16(int16_t* data, uint32_t len, uint32_t rank,
+                             const uint32_t* shape, int8_t frac_bits);
+
 static mli_status user_fc_on_multiple_samples(
-        const mli_tensor *input, 
-        mli_tensor *output,
-        const mli_relu_cfg *relu_cfg);
+        const mli_tensor* input,
+        mli_tensor* output,
+        const mli_fully_connected_cfg* cfg);
 
 static mli_status user_lstm(
-        const mli_tensor *in,
-        mli_tensor *prev_out,
-        const mli_tensor  *weights_in,
-        const mli_tensor  *weights_out,
-        const mli_tensor  *bias,
-        const mli_lut * tanh_lut,
-        const mli_lut * sigm_lut,
-        const mli_rnn_cell_cfg *lstm_cfg,
-        mli_tensor *lstm_ir_tensor,
-        mli_tensor *cell,
-        mli_tensor *out);
+        const mli_tensor* in,
+        const mli_tensor* prev_out,
+        const mli_tensor* weights_in,
+        const mli_tensor* weights_out,
+        const mli_tensor* bias,
+        const mli_lut* tanh_lut,
+        const mli_lut* sigm_lut,
+        const mli_rnn_cell_cfg* lstm_cfg,
+        mli_tensor* cell,
+        mli_tensor* out);
 
 static void check_result(
         const char * ir_root,
@@ -458,61 +482,37 @@ void har_smartphone_net(const char * debug_ir_root) {
         //=======================================
         mli_mov_cfg_t mov_cfg;
         mli_mov_cfg_for_copy(&mov_cfg);
-        mli_mov_tensor_sync(&input_float, &mov_cfg, &input);
+        mli_mov_tensor_sync(&input_float, &mov_cfg, &L0_move_out);
 
         // Convert Input Data
         //=======================================
-        ir_tensor_Y.el_params.fx.frac_bits = sizeof(d_type)*8 - 1 - 2;
-        set_mli_tensor_shape2(&ir_tensor_Y, input.shape[0], input.shape[1]);
-        mli_hlp_convert_tensor(&input, &ir_tensor_Y);
+        mli_hlp_convert_tensor(&L0_move_out, &L0_convert_out);
 
         // LAYER 1
         //=======================================
-        ir_tensor_X.el_params.fx.frac_bits = FC1_OUT_FRAQ;
-        set_mli_tensor_shape1(&ir_tensor_X, FC1_B_ELEMENTS);
-        user_fc_on_multiple_samples(&ir_tensor_Y, &ir_tensor_X, &L1_relu_cfg);
+        user_fc_on_multiple_samples(&L0_convert_out, &L1_fc_out, &fc1_config);
 
         // LAYER 2
         //=======================================
-        d_type *cell_ptr = (d_type *)lstm_cell_tensor.data.mem.D_FIELD;
-        d_type *prev_out_ptr = (d_type *)ir_tensor_Y.data.mem.D_FIELD;
-        for (int idx = 0; idx < LSTM_CELL_SZ; idx++)
-            cell_ptr[idx] = prev_out_ptr[idx] = 0;
-
-        // Completion of state tensors description
-        lstm_prev_tensor.data.mem.D_FIELD = prev_out_ptr;
-        ir_tensor_Y.el_params.fx.frac_bits = LSTM2_OUT_FRAQ;
-        lstm_prev_tensor.el_params.fx.frac_bits = LSTM2_OUT_FRAQ;
-        lstm_cell_tensor.el_params.fx.frac_bits = LSTM2_CELL_FRAQ;
-        set_mli_tensor_shape2(&ir_tensor_Y, 4, LSTM_CELL_SZ);
-        nn_lstm_cell(&ir_tensor_X, &lstm_prev_tensor, &L2_lstm_wt_in, &L2_lstm_wt_out, &L2_lstm_bias,
-                        &tanh_lut, &sigm_lut, &L2_lstm_cfg, &lstm_cell_tensor, &ir_tensor_Y);
+        // Clearing the state (eltwise_mul by zero) and run LSTM
+        mli_krn_eltwise_mul_fx16(&L2_lstm_cell, &zero_tsr_fx16, &L2_lstm_cell);
+        mli_krn_eltwise_mul_fx16(&L2_lstm_prev, &zero_tsr_fx16, &L2_lstm_prev);
+        nn_lstm_cell(&L1_fc_out, &L2_lstm_prev, &L2_lstm_wt_in, &L2_lstm_wt_out, &L2_lstm_bias,
+                     &tanh_lut, &sigm_lut, &L2_lstm_cfg, &L2_lstm_cell, &L2_lstm_out);
 
         // LAYER 3
         //=======================================
-        cell_ptr = (d_type *)lstm_cell_tensor.data.mem.D_FIELD;
-        prev_out_ptr = (d_type *)ir_tensor_X.data.mem.D_FIELD;
-        for (int idx = 0; idx < LSTM_CELL_SZ; idx++)
-            cell_ptr[idx] = prev_out_ptr[idx] = 0;
-
-        // Completion state tensors description
-        lstm_prev_tensor.data.mem.D_FIELD = prev_out_ptr;
-
-        ir_tensor_X.el_params.fx.frac_bits = LSTM3_OUT_FRAQ;
-        lstm_prev_tensor.el_params.fx.frac_bits = LSTM3_OUT_FRAQ;
-        lstm_cell_tensor.el_params.fx.frac_bits = LSTM3_CELL_FRAQ;
-        set_mli_tensor_shape2(&ir_tensor_X, 1, LSTM_CELL_SZ);
-        set_mli_tensor_shape1(&lstm_cell_tensor, LSTM_CELL_SZ);
-        user_lstm(&ir_tensor_Y, &lstm_prev_tensor, &L3_lstm_wt_in, &L3_lstm_wt_out, &L3_lstm_bias,
-                        &tanh_lut, &sigm_lut, &L3_lstm_cfg, &lstm_ir_tensor, &lstm_cell_tensor, &ir_tensor_X);
+        // Clearing the state (eltwise_mul by zero) and run LSTM
+        mli_krn_eltwise_mul_fx16(&L3_lstm_cell, &zero_tsr_fx16, &L3_lstm_cell);
+        mli_krn_eltwise_mul_fx16(&L3_lstm_prev, &zero_tsr_fx16, &L3_lstm_prev);
+        user_lstm(&L2_lstm_out, &L3_lstm_prev, &L3_lstm_wt_in, &L3_lstm_wt_out, &L3_lstm_bias,
+                  &tanh_lut, &sigm_lut, &L3_lstm_cfg, &L3_lstm_cell, &L3_lstm_out);
 
         // LAYER 4
         //=======================================
-        output.el_params.fx.frac_bits = FC4_OUT_FRAQ;
-        set_mli_tensor_shape1(&output, FC4_B_ELEMENTS);
-        nn_fully_connected(&ir_tensor_X, &L4_fc_wt, &L4_fc_bias, &default_fc_config, &output);
+        nn_fully_connected(&L3_lstm_out, &L4_fc_wt, &L4_fc_bias, &fc4_config, &output);
     } else {
-        // Version A: Wrapped by service code for profiling and IR results checking purpose
+        // Version B: Wrapped by service code for profiling and IR results checking purpose
         //========================================================================================
 
         mli_status ret = MLI_STATUS_OK;
@@ -527,70 +527,48 @@ void har_smartphone_net(const char * debug_ir_root) {
         //=======================================
         mli_mov_cfg_t mov_cfg;
         mli_mov_cfg_for_copy(&mov_cfg);
-        PROFILE(ret = mli_mov_tensor_sync(&input_float, &mov_cfg, &input));
-        check_result(debug_ir_root, "ir_mov.idx", &input, cycle_cnt, ret);
+        PROFILE(ret = mli_mov_tensor_sync(&input_float, &mov_cfg, &L0_move_out));
+        check_result(debug_ir_root, "ir_mov.idx", &L0_move_out, cycle_cnt, ret);
         mov_cycles += cycle_cnt;
 
-        ir_tensor_Y.el_params.fx.frac_bits = sizeof(d_type)*8 - 1 - 2;
-        set_mli_tensor_shape2(&ir_tensor_Y, input.shape[0], input.shape[1]);
-        PROFILE(ret = mli_hlp_convert_tensor(&input, &ir_tensor_Y));
-        check_result(debug_ir_root, "ir_in.idx", &ir_tensor_Y, cycle_cnt, ret);
+        PROFILE(ret = mli_hlp_convert_tensor(&L0_move_out, &L0_convert_out));
+        check_result(debug_ir_root, "ir_in.idx", &L0_convert_out, cycle_cnt, ret);
         convert_cycles += cycle_cnt;
 
         // LAYER 1
         //=======================================
-        ir_tensor_X.el_params.fx.frac_bits = FC1_OUT_FRAQ;
-        set_mli_tensor_shape1(&ir_tensor_X, FC1_B_ELEMENTS);
-        PROFILE(ret = user_fc_on_multiple_samples(&ir_tensor_Y, &ir_tensor_X, &L1_relu_cfg));
-        check_result(debug_ir_root, "ir_relu1.idx", &ir_tensor_X, cycle_cnt, ret);
+        PROFILE(ret = user_fc_on_multiple_samples(&L0_convert_out, &L1_fc_out, &fc1_config));
+        check_result(debug_ir_root, "ir_relu1.idx", &L1_fc_out, cycle_cnt, ret);
         layer1_cycles += cycle_cnt;
 
         // LAYER 2
         //=======================================
-        // Clear state buffers
-        d_type *cell_ptr = (d_type *)lstm_cell_tensor.data.mem.D_FIELD;
-        d_type *prev_out_ptr = (d_type *)ir_tensor_Y.data.mem.D_FIELD;
-        for (int idx = 0; idx < LSTM_CELL_SZ; idx++)
-            cell_ptr[idx] = prev_out_ptr[idx] = 0;
-
-        // Completion state tensors description
-        lstm_prev_tensor.data.mem.D_FIELD = prev_out_ptr;
-        ir_tensor_Y.el_params.fx.frac_bits = LSTM2_OUT_FRAQ;
-        lstm_prev_tensor.el_params.fx.frac_bits = LSTM2_OUT_FRAQ;
-        lstm_cell_tensor.el_params.fx.frac_bits = LSTM2_CELL_FRAQ;        
-        set_mli_tensor_shape2(&ir_tensor_Y, 4, LSTM_CELL_SZ);
-
-        PROFILE(ret = nn_lstm_cell(&ir_tensor_X, &lstm_prev_tensor, &L2_lstm_wt_in, &L2_lstm_wt_out, &L2_lstm_bias,
-            &tanh_lut, &sigm_lut, &L2_lstm_cfg, &lstm_cell_tensor, &ir_tensor_Y));
-        check_result(debug_ir_root, "ir_lstm2.idx", &ir_tensor_Y, cycle_cnt, ret);
+        // Clearing the state (eltwise_mul by zero) and run LSTM
+        PROFILE(mli_krn_eltwise_mul_fx16(&L2_lstm_cell, &zero_tsr_fx16, &L2_lstm_cell)); 
         layer2_cycles += cycle_cnt;
+        PROFILE(mli_krn_eltwise_mul_fx16(&L2_lstm_prev, &zero_tsr_fx16, &L2_lstm_prev));
+        layer2_cycles += cycle_cnt;
+        PROFILE(ret = nn_lstm_cell(&L1_fc_out, &L2_lstm_prev, &L2_lstm_wt_in, &L2_lstm_wt_out, &L2_lstm_bias,
+                                   &tanh_lut, &sigm_lut, &L2_lstm_cfg, &L2_lstm_cell, &L2_lstm_out));
+        layer2_cycles += cycle_cnt;
+        check_result(debug_ir_root, "ir_lstm2.idx", &L2_lstm_out, layer2_cycles, ret);
+
 
         // LAYER 3
         //=======================================
-        cell_ptr = (d_type *)lstm_cell_tensor.data.mem.D_FIELD;
-        prev_out_ptr = (d_type *)ir_tensor_X.data.mem.D_FIELD;
-        for (int idx = 0; idx < LSTM_CELL_SZ; idx++)
-            cell_ptr[idx] = prev_out_ptr[idx] = 0;
-
-        // Completion state tensors description
-        lstm_prev_tensor.data.mem.D_FIELD = prev_out_ptr;
-        ir_tensor_X.el_params.fx.frac_bits = LSTM3_OUT_FRAQ;
-        lstm_prev_tensor.el_params.fx.frac_bits = LSTM3_OUT_FRAQ;
-        lstm_cell_tensor.el_params.fx.frac_bits = LSTM3_CELL_FRAQ;
-        set_mli_tensor_shape2(&ir_tensor_X, 1, LSTM_CELL_SZ);
-        set_mli_tensor_shape1(&lstm_cell_tensor, LSTM_CELL_SZ);
-
-        PROFILE(ret = user_lstm(&ir_tensor_Y, &lstm_prev_tensor,
-                &L3_lstm_wt_in, &L3_lstm_wt_out, &L3_lstm_bias, &tanh_lut, &sigm_lut, 
-                &L3_lstm_cfg, &lstm_ir_tensor, &lstm_cell_tensor, &ir_tensor_X));
-        check_result(debug_ir_root, "ir_lstm3.idx", &ir_tensor_X, cycle_cnt, ret);
+        // Clearing the state (eltwise_mul by zero) and run LSTM
+        PROFILE(mli_krn_eltwise_mul_fx16(&L3_lstm_cell, &zero_tsr_fx16, &L3_lstm_cell)); 
         layer3_cycles += cycle_cnt;
+        PROFILE(mli_krn_eltwise_mul_fx16(&L3_lstm_prev, &zero_tsr_fx16, &L3_lstm_prev));
+        layer3_cycles += cycle_cnt;
+        PROFILE(user_lstm(&L2_lstm_out, &L3_lstm_prev, &L3_lstm_wt_in, &L3_lstm_wt_out, &L3_lstm_bias,
+                          &tanh_lut, &sigm_lut, &L3_lstm_cfg, &L3_lstm_cell, &L3_lstm_out));
+        layer3_cycles += cycle_cnt;
+        check_result(debug_ir_root, "ir_lstm3.idx", &L3_lstm_out, cycle_cnt, ret);
 
         // LAYER 4
         //=======================================
-        output.el_params.fx.frac_bits = FC4_OUT_FRAQ;
-        set_mli_tensor_shape1(&output, FC4_B_ELEMENTS);
-        PROFILE(ret = nn_fully_connected(&ir_tensor_X, &L4_fc_wt, &L4_fc_bias, &default_fc_config, &output));
+        PROFILE(ret = nn_fully_connected(&L3_lstm_out, &L4_fc_wt, &L4_fc_bias, &fc4_config, &output));
         check_result(debug_ir_root, "ir_fc4.idx", &output, cycle_cnt, ret);
         layer4_cycles += cycle_cnt;
 
@@ -611,47 +589,66 @@ void har_smartphone_net(const char * debug_ir_root) {
     }
 }
 
+
+mli_tensor mli_tsr_make_fx16(int16_t* data, uint32_t len, uint32_t rank,
+                             const uint32_t* shape, int8_t frac_bits) {
+    mli_tensor ret_val = { 0 };
+    if (data == NULL || rank > MLI_MAX_RANK)
+        return ret_val;
+
+    uint32_t len_by_shape = 1;
+    for (int i = 0; i < rank; ++i)
+        len_by_shape *= shape[i];
+    if (len < len_by_shape)
+        return ret_val;
+
+    ret_val.data.mem.pi16 = data;
+    ret_val.data.capacity = len * sizeof(data[0]);
+    ret_val.rank = rank;
+    uint32_t cur_mem_stride = 1;
+    for (int i = 0; i < rank; ++i) {
+        ret_val.mem_stride[rank - i - 1] = cur_mem_stride;
+        ret_val.shape[i] = shape[i];
+        cur_mem_stride *= shape[i];
+    }
+    ret_val.el_type = MLI_EL_FX_16;
+    ret_val.el_params.fx.frac_bits = frac_bits;
+
+    return ret_val;
+}
+
+
 //==============================================================
 //  Fully connected on batch: User Implementatioon
 //==============================================================
-static mli_status user_fc_on_multiple_samples(const mli_tensor *layer_input, mli_tensor *layer_output, 
-    const mli_relu_cfg *relu_cfg) {
+static mli_status user_fc_on_multiple_samples(const mli_tensor* layer_input, mli_tensor* layer_output,
+                                              const mli_fully_connected_cfg* cfg) {
     mli_status ret_val = MLI_STATUS_OK;
-    mli_tensor fc1_in = {.rank=1, .shape={0}};
-    mli_tensor fc1_out = {
-        .data = {
-            .capacity = layer_output->data.capacity,
-            .mem = { .D_FIELD = layer_output->data.mem.D_FIELD}
-        },
-        .rank = 2,
-        .el_type = layer_input->el_type,
-        .el_params = layer_output->el_params
-    };
+    mli_tensor fc_in = *layer_input;
+    mli_tensor fc_out = *layer_output;
+    const mli_sub_tensor_cfg in_iterator = {/*.offset =*/ {0, 0}, /*.size = */{1, layer_input->shape[1]},
+                                            /*.sub_tensor_rank =*/1 };
+    const mli_sub_tensor_cfg out_iterator = {/*.offset =*/ {0, 0}, /*.size = */{1, layer_output->shape[1]},
+                                             /*.sub_tensor_rank =*/1 };
 
-    const mli_fully_connected_cfg cfg = {.relu = *relu_cfg};
-    mli_point_to_subtsr_cfg iterator = {.start_coord = {0}, .coord_num=1, .first_out_dim_size=1};
-    ret_val = mli_hlp_point_to_subtensor(layer_input, &iterator, &fc1_in);
-    if (ret_val != MLI_STATUS_OK)
-                return ret_val;
+    // Create initial in/out tensors pointing to the first sample from batch
+    ret_val = mli_hlp_create_subtensor(layer_input, &in_iterator, &fc_in);
+    if (ret_val == MLI_STATUS_OK)
+        ret_val = mli_hlp_create_subtensor(layer_output, &out_iterator, &fc_out);
 
-    unsigned next_out_add = mli_hlp_count_elem_num(&L1_fc_bias, 0);
-    unsigned next_in_add = fc1_in.shape[1];
-    for (int batch_idx = 0; batch_idx < layer_input->shape[0]; batch_idx++) {
-        ret_val = nn_fully_connected(&fc1_in, &L1_fc_wt, &L1_fc_bias, &cfg, &fc1_out);
+    for (uint32_t batch_idx = 0; batch_idx < layer_input->shape[0]; batch_idx++) {
         if (ret_val != MLI_STATUS_OK)
-            return ret_val;
+            break;
 
-        fc1_in.data.mem.D_FIELD = (d_type *) fc1_in.data.mem.D_FIELD + next_in_add;
-        fc1_out.data.mem.D_FIELD = (d_type *) fc1_out.data.mem.D_FIELD + next_out_add;
-        fc1_out.data.capacity -= next_out_add;
+        ret_val = nn_fully_connected(&fc_in, &L1_fc_wt, &L1_fc_bias, cfg, &fc_out);
+
+        // Manually update data containers of in/out tensors 
+        // to get the next sample from batch
+        fc_in.data.mem.D_FIELD += layer_input->mem_stride[0];
+        fc_in.data.capacity -= layer_input->mem_stride[0] * sizeof(d_type);
+        fc_out.data.mem.D_FIELD += layer_output->mem_stride[0];
+        fc_out.data.capacity -= layer_output->mem_stride[0] * sizeof(d_type);
     }
-
-    layer_output->rank = 2;
-    layer_output->shape[0] = layer_input->shape[0];
-    layer_output->shape[1] = fc1_out.shape[0];
-    layer_output->el_type = fc1_out.el_type;
-    layer_output->el_params = fc1_out.el_params;
-
     return ret_val;
 }
 
@@ -660,182 +657,147 @@ static mli_status user_fc_on_multiple_samples(const mli_tensor *layer_input, mli
 //==============================================================
 
 static mli_status user_lstm(
-        const mli_tensor *in,
-        mli_tensor *prev_out,
-        const mli_tensor *weights_in,
-        const mli_tensor *weights_out,
-        const mli_tensor *bias,
-        const mli_lut * tanh_lut,
-        const mli_lut * sigm_lut,
-        const mli_rnn_cell_cfg *lstm_cfg,
-        mli_tensor *lstm_ir_tensor,
-        mli_tensor *cell,
-        mli_tensor *out) {
-#if !defined(CUSTOM_USER_LSTM_LAYER3)
-    // Might be replaced with MLI function
-    return nn_lstm_cell(in, prev_out, weights_in, weights_out, bias, tanh_lut, sigm_lut, lstm_cfg, cell, out);
-#else
+        const mli_tensor* in,
+        const mli_tensor* prev_out,
+        const mli_tensor* weights_in,
+        const mli_tensor* weights_out,
+        const mli_tensor* bias,
+        const mli_lut* tanh_lut,
+        const mli_lut* sigm_lut,
+        const mli_rnn_cell_cfg* lstm_cfg,
+        mli_tensor* cell,
+        mli_tensor* out) {
+#if defined(CUSTOM_USER_LSTM_LAYER3)
     mli_status ret_val = MLI_STATUS_OK;
-    int gates = 4;
-    mli_rnn_dense_cfg rnn_cfg = {.inputs_num = 2};
-    mli_tensor *rnn_prev = prev_out;
-    mli_tensor *ir_tensor = lstm_ir_tensor;
-    ir_tensor->rank = bias->rank;
-    ir_tensor->shape[0] = bias->shape[0];
-    ir_tensor->shape[1] = bias->shape[1];
-    ir_tensor->mem_stride[0] = bias->shape[1];
-    ir_tensor->mem_stride[1] = 1;
-    ir_tensor->el_type = in->el_type;
 
-    // 1sign and 3 integer bits for TANH/SIGM input is enough
-    ir_tensor->el_params.fx.frac_bits = (sizeof(d_type) * 8) - 1 - 3;
+    const int kGates = 4;
+    const int kInGateIdx = 0;
+    const int kGGateIdx = 1;
+    const int kFgtGateIdx = 2;
+    const int kOutGateIdx = 3;
 
-    // Various gates to controll info flow.
-    mli_tensor in_gate = {{ 0 }}, g_tsr = {{ 0 }}, forget_gate = {{ 0 }}, out_gate = {{ 0 }};
+    // Parse weights and biases per-gate
+    mli_tensor w_in_tensors[4];
+    mli_tensor w_out_tensors[4];
+    mli_tensor bias_tensors[4];
+    {
+        mli_sub_tensor_cfg w_in_iterator = {
+            /*.offset =*/ {0, 0, 0},
+            /*.size = */{1, weights_in->shape[1], weights_in->shape[2]},
+            /*.sub_tensor_rank =*/ 2 };
+        mli_sub_tensor_cfg w_out_iterator = {
+            /*.offset =*/ {0, 0, 0},
+            /*.size = */{1, weights_out->shape[1], weights_out->shape[2]},
+            /*.sub_tensor_rank =*/ 2 };
+        mli_sub_tensor_cfg b_iterator = {
+            /*.offset =*/ {0, 0},
+            /*.size = */{1, bias->shape[1]},
+            /*.sub_tensor_rank =*/ 1 };
+        for (int i = 0; i < kGates; ++i) {
+            ret_val = mli_hlp_create_subtensor(weights_in, &w_in_iterator, &w_in_tensors[i]);
+            if (ret_val == MLI_STATUS_OK)
+                ret_val = mli_hlp_create_subtensor(weights_out, &w_out_iterator, &w_out_tensors[i]);
+            if (ret_val == MLI_STATUS_OK)
+                ret_val = mli_hlp_create_subtensor(bias, &b_iterator, &bias_tensors[i]);
 
-    mli_tensor rnn_out = {{ 0 }};
-    rnn_out.data = out->data;
-    rnn_out.rank = 2;
-    rnn_out.shape[0] = 1;
-    rnn_out.shape[1] = LSTM_CELL_SZ;
-    rnn_out.mem_stride[0] = LSTM_CELL_SZ;
-    rnn_out.mem_stride[1] = 1;
-    rnn_out.el_type = in->el_type;
-
-    //Iteration 0: Started outside of main cycle for initialization purpose
-    //===============================================================
-    //Step 1: Fully connected
-    mli_tensor rnn_in = {{ 0 }};
-    mli_point_to_subtsr_cfg iterator = {.start_coord = {0}, .coord_num=1, .first_out_dim_size=1};
-    ret_val = mli_hlp_point_to_subtensor(in, &iterator, &rnn_in);
-    if (ret_val != MLI_STATUS_OK)
-        return ret_val;
-
-    mli_tensor* inputs[2] = {&rnn_in, rnn_prev};
-    const mli_tensor* weights[2] = {weights_in, weights_out};
-
-    // Init subtensors (current iterators state is suitable for it)
-    mli_hlp_point_to_subtensor(ir_tensor, &iterator, &in_gate);
-    iterator.start_coord[0]++;
-    mli_hlp_point_to_subtensor(ir_tensor, &iterator, &g_tsr);
-    iterator.start_coord[0]++;
-    mli_hlp_point_to_subtensor(ir_tensor, &iterator, &forget_gate);
-    iterator.start_coord[0]++;
-    mli_hlp_point_to_subtensor(ir_tensor, &iterator, &out_gate);
-
-    for (int gate = 0; gate < gates; ++gate) {
-        ret_val = nn_rnn_cell((const mli_tensor **)inputs, weights, bias, &rnn_cfg, ir_tensor, gate);
-        if (ret_val != MLI_STATUS_OK)
-            return ret_val;
+            if (ret_val != MLI_STATUS_OK)
+                return ret_val;
+            ++w_in_iterator.offset[0];
+            ++w_out_iterator.offset[0];
+            ++b_iterator.offset[0];
+        }
     }
+    const mli_tensor* rnn_w_in_gate[2] = { &w_in_tensors[kInGateIdx], &w_out_tensors[kInGateIdx] };
+    const mli_tensor* rnn_w_g_gate[2] = { &w_in_tensors[kGGateIdx], &w_out_tensors[kGGateIdx] };
+    const mli_tensor* rnn_w_f_gate[2] = { &w_in_tensors[kFgtGateIdx], &w_out_tensors[kFgtGateIdx] };
+    const mli_tensor* rnn_w_out_gate[2] = { &w_in_tensors[kOutGateIdx], &w_out_tensors[kOutGateIdx] };
 
-    rnn_prev = out;
-    d_type *out_start = rnn_prev->data.mem.D_FIELD;
-    unsigned next_in_add =  mli_hlp_count_elem_num(bias, 1);
+    const uint32_t gate_rank = 1;
+    const int16_t gate_len = bias->shape[1];
+    const uint32_t* gate_shape = &bias->shape[1];
+    const int8_t gate_frac_bits = (sizeof(d_type) * 8) - 1 - 3;
+    const uint32_t seq_len = in->shape[0];
 
+    mli_tensor step_prev_out = *prev_out;
+    mli_tensor step_in = { 0 };  // To be fiiled in the loop
+    mli_tensor step_out = { 0 }; // To be fiiled later depending on mode
+    const mli_tensor* rnn_in[2] = { &step_in, &step_prev_out };
+    const mli_rnn_dense_cfg rnn_cfg = { sizeof(rnn_in) / sizeof(rnn_in[0]) }; // Assume 2 inputs
+    mli_sub_tensor_cfg in_iterator = {/*.offset =*/ {0, 0}, /*.size = */{1, in->shape[1]},
+                                      /*.sub_tensor_rank =*/1 };
+    mli_sub_tensor_cfg out_iterator = {/*.offset =*/ {0, 0}, /*.size = */{1, out->shape[1]},
+                                       /*.sub_tensor_rank =*/1 };
 
-    // Manual reshape
-    in_gate.shape[0] = g_tsr.shape[0] = forget_gate.shape[0] = out_gate.shape[0] =
-            mli_hlp_count_elem_num(&in_gate, 0);
-    in_gate.rank = g_tsr.rank = forget_gate.rank = out_gate.rank = 1;
-    in_gate.mem_stride[0] = g_tsr.mem_stride[0] = forget_gate.mem_stride[0] = out_gate.mem_stride[0] = 1;
+    if (lstm_cfg->results == RNN_OUT_LAST) 
+        ret_val = mli_hlp_create_subtensor(out, &out_iterator, &step_out);
 
-    mli_tensor in_gate_input = in_gate;
-    mli_tensor g_tsr_input = g_tsr;
-    mli_tensor forget_gate_input = forget_gate;
-    mli_tensor out_gate_input = out_gate;
-    //Iteration 0.3-127: outside of main cycle for initialization purpose
-    //===============================================================
-    for (int batch_idx = 0; batch_idx < in->shape[0]; batch_idx++) {
-        //Step 2: Applying non-linearity
-        ret_val = nn_sigm(&in_gate_input, sigm_lut, &in_gate);
-        if (ret_val == MLI_STATUS_OK)
-            ret_val = nn_tanh(&g_tsr_input, tanh_lut, &g_tsr);
-        if (ret_val == MLI_STATUS_OK)
-            ret_val = nn_sigm(&forget_gate_input, sigm_lut, &forget_gate);
-        if (ret_val == MLI_STATUS_OK)
-            ret_val = nn_sigm(&out_gate_input, sigm_lut, &out_gate);
+    for (uint32_t  sample_idx = 0; sample_idx < seq_len; sample_idx++) {
         if (ret_val != MLI_STATUS_OK)
-            return ret_val;
+            break;
+
+        // Prepare step: Constructing current in\out and all gates tensors 
+        if (lstm_cfg->direction == RNN_DIR_FORWARD)
+            in_iterator.offset[0] =  sample_idx;
+        else
+            in_iterator.offset[0] = seq_len - sample_idx - 1;
+        ret_val = mli_hlp_create_subtensor(in, &in_iterator, &step_in);
+        if (ret_val == MLI_STATUS_OK && lstm_cfg->results == RNN_OUT_ALL) {
+            out_iterator.offset[0] = sample_idx;
+            ret_val = mli_hlp_create_subtensor(out, &out_iterator, &step_out);
+        }
+
+        int16_t* gate_data = lstm_cfg->scratch_data.mem.pi16;
+        mli_tensor i_gate = mli_tsr_make_fx16(gate_data, gate_len, gate_rank, gate_shape, gate_frac_bits);
+        gate_data += gate_len;
+        mli_tensor g_gate = mli_tsr_make_fx16(gate_data, gate_len, gate_rank, gate_shape, gate_frac_bits);
+        gate_data += gate_len;
+        mli_tensor f_gate = mli_tsr_make_fx16(gate_data, gate_len, gate_rank, gate_shape, gate_frac_bits);
+        gate_data += gate_len;
+        mli_tensor o_gate = mli_tsr_make_fx16(gate_data, gate_len, gate_rank, gate_shape, gate_frac_bits);
+
+        //Step 1: Fully connected
+        if (MLI_STATUS_OK == ret_val)
+            ret_val = rnn_dense(rnn_in, rnn_w_in_gate, &bias_tensors[kInGateIdx], &rnn_cfg, &i_gate);
+        if (MLI_STATUS_OK == ret_val)
+            ret_val = rnn_dense(rnn_in, rnn_w_g_gate, &bias_tensors[kGGateIdx], &rnn_cfg, &g_gate);
+        if (MLI_STATUS_OK == ret_val)
+            ret_val = rnn_dense(rnn_in, rnn_w_f_gate, &bias_tensors[kFgtGateIdx], &rnn_cfg, &f_gate);
+        if (MLI_STATUS_OK == ret_val)
+            ret_val = rnn_dense(rnn_in, rnn_w_out_gate, &bias_tensors[kOutGateIdx], &rnn_cfg, &o_gate);
+
+        //Step 1: Applying non-linearity
+        if (MLI_STATUS_OK == ret_val)
+            ret_val = nn_sigm(&i_gate, sigm_lut, &i_gate);
+        if (MLI_STATUS_OK == ret_val)
+            ret_val = nn_tanh(&g_gate, tanh_lut, &g_gate);
+        if (MLI_STATUS_OK == ret_val)
+            ret_val = nn_sigm(&f_gate, sigm_lut, &f_gate);
+        if (MLI_STATUS_OK == ret_val)
+            ret_val = nn_sigm(&o_gate, sigm_lut, &o_gate);
 
         // Step 3: Pointwise operations
-        ret_val = nn_eltwise_mul(&forget_gate, cell, cell);
+        if (MLI_STATUS_OK == ret_val)
+            ret_val = nn_eltwise_mul(&f_gate, cell, cell);
+        if (MLI_STATUS_OK == ret_val)
+            ret_val = nn_eltwise_mul(&i_gate, &g_gate, &g_gate);
+        if (MLI_STATUS_OK == ret_val)
+            ret_val = nn_eltwise_add(cell, &g_gate, cell);
 
-        if (ret_val == MLI_STATUS_OK)
-            ret_val = nn_eltwise_mul(&in_gate, &g_tsr, &g_tsr);
-        if (ret_val == MLI_STATUS_OK)
-            ret_val = nn_eltwise_add(cell, &g_tsr, cell);
-        if (ret_val != MLI_STATUS_OK)
-            return ret_val;
-
-        // Step 4: Calculate next output
-        mli_tensor temp = {{ 0 }};
-        temp.data = rnn_out.data;
-        temp.rank = rnn_out.rank;
-        temp.shape[0] = rnn_out.shape[0];
-        temp.mem_stride[0] = 1;
-        temp.el_type = rnn_out.el_type;
-        temp.el_params = out->el_params;
-
-        if(lstm_cfg->results == RNN_OUT_LAST) {
-            rnn_out.rank = 1;
-            rnn_out.shape[0] = bias->shape[1];
-            rnn_out.mem_stride[0] = 1;
-        }
-
-        ret_val = nn_tanh(cell, tanh_lut, &rnn_out);
-
-        if (ret_val == MLI_STATUS_OK)
-            ret_val = nn_eltwise_mul(&rnn_out, &out_gate, &temp);
-        if (ret_val != MLI_STATUS_OK)
-            return ret_val;
-
-        rnn_out.el_params = out->el_params;
-
-        //Next sample: Step 1: Fully connected
-        if (batch_idx < in->shape[0]-1) {
-            inputs[0]->data.mem.D_FIELD = inputs[0]->data.mem.D_FIELD + next_in_add;
-            inputs[1]->data.mem.D_FIELD = out->data.mem.D_FIELD;
-            inputs[1]->el_params = out->el_params;
-            
-            if(lstm_cfg->results == RNN_OUT_ALL) {
-                out->data.mem.D_FIELD = out->data.mem.D_FIELD + next_in_add;
-                rnn_out.data = out->data;
-            }
-
-            for (int gate = 0; gate < gates; ++gate) {
-                ret_val = nn_rnn_cell((const mli_tensor **)inputs, weights, bias, &rnn_cfg, ir_tensor, gate);
-                if (ret_val != MLI_STATUS_OK)
-                    return ret_val;
-            }
-
-            // Gate tensors point to RNN cell result, but structures have changed due to non-linearity.
-            // Restore element params.
-            in_gate.el_params = forget_gate.el_params =
-                    g_tsr.el_params = out_gate.el_params =
-                    ir_tensor->el_params;
-        }
-    }
-
-    if(lstm_cfg->results == RNN_OUT_ALL) {
-        out->rank = 2;
-        out->shape[0] = in->shape[0];
-        out->shape[1] = out->shape[1];
-        out->mem_stride[0] = out->shape[1];
-        out->mem_stride[1] = 1;
-        out->data.mem.D_FIELD = out_start;
-    } else {
-        out->rank = 2;
-        out->shape[0] = 1;
-        out->shape[1] = out->shape[1];
-        out->mem_stride[0] = out->shape[1];
-        out->mem_stride[1] = 1;
-        out->data.mem.D_FIELD = out_start;
+        // Step 4: Calculate output for current step 
+        if (MLI_STATUS_OK == ret_val)
+            ret_val = nn_tanh(cell, tanh_lut, &g_gate);
+        if (MLI_STATUS_OK == ret_val)
+            ret_val = nn_eltwise_mul(&g_gate, &o_gate, &step_out);
+        step_prev_out = step_out;
     }
 
     return ret_val;
+#else
+    // The whole function might be replaced with MLI function
+    return nn_lstm_cell(in, prev_out, weights_in, weights_out, bias, tanh_lut, sigm_lut, lstm_cfg, cell, out);
 #endif
 }
+
 
 //==============================================================
 //  Checking kernel result. Debug function
@@ -869,208 +831,70 @@ static void check_result(const char * ir_root, const char * ref_file, mli_tensor
 //========================================================================================
 //  MLI Functions wrappers: Kernels w/o weights
 //========================================================================================
-#if (MODEL_BIT_DEPTH == MODEL_FX_16)
-
-#if defined(CUSTOM_USER_LSTM_LAYER3)
-static inline mli_status nn_sigm(const mli_tensor *in, const mli_lut *lut, mli_tensor *out) {
-    return mli_krn_sigm_fx16(in, lut, out);
-}
-
-static inline mli_status nn_tanh(const mli_tensor *in, const mli_lut *lut, mli_tensor *out) {
-    return mli_krn_tanh_fx16(in, lut, out);
-}
-
-static inline mli_status nn_eltwise_mul(const mli_tensor *in1, const mli_tensor *in2, mli_tensor *out) {
-    return mli_krn_eltwise_mul_fx16(in1, in2, out);
-}
-
-static inline mli_status nn_eltwise_add(const mli_tensor *in1, const mli_tensor *in2, mli_tensor *out) {
-    return mli_krn_eltwise_add_fx16(in1, in2, out);
-}
-#endif
-
-#else //MODEL_BIT_DEPTH == MODEL_FX_8W16D
-
-#if defined(CUSTOM_USER_LSTM_LAYER3)
-static inline mli_status nn_sigm(const mli_tensor *in, const mli_lut *lut, mli_tensor *out) {
-    return mli_krn_sigm_fx16(in, lut, out);
-}
-
-static inline mli_status nn_tanh(const mli_tensor *in, const mli_lut *lut, mli_tensor *out) {
-    return mli_krn_tanh_fx16(in, lut, out);
-}
-
-static inline mli_status nn_eltwise_mul(const mli_tensor *in1, const mli_tensor *in2, mli_tensor *out) {
-    return mli_krn_eltwise_mul_fx16(in1, in2, out);
-}
-
-static inline mli_status nn_eltwise_add(const mli_tensor *in1, const mli_tensor *in2, mli_tensor *out) {
-    return mli_krn_eltwise_add_fx16(in1, in2, out);
-}
-#endif
-
-#endif //MODEL_BIT_DEPTH
-
-//========================================================================================
-//  MLI Functions wrappers: Kernels with weights
-//========================================================================================
-#if (MODEL_BIT_DEPTH == MODEL_FX_16)
 static inline mli_status nn_fully_connected(
-        const mli_tensor *in,
-        const mli_tensor *weights,
-        const mli_tensor *bias,
-        const mli_fully_connected_cfg *cfg,
-        mli_tensor *out) {
+        const mli_tensor* in,
+        const mli_tensor* weights,
+        const mli_tensor* bias,
+        const mli_fully_connected_cfg* cfg,
+        mli_tensor* out) {
+#if (MODEL_BIT_DEPTH == MODEL_FX_16)
     return mli_krn_fully_connected_fx16(in, weights, bias, cfg, out);
-}
-
-static inline mli_status nn_lstm_cell(
-        const mli_tensor *in,
-        const mli_tensor *prev_out,
-        const mli_tensor *weights_in,
-        const mli_tensor *weights_out,
-        const mli_tensor *bias,
-        const mli_lut * tanh_lut,
-        const mli_lut * sigm_lut,
-        const mli_rnn_cell_cfg *cfg,
-        mli_tensor *cell,
-        mli_tensor *out) {
-    return mli_krn_lstm_cell_fx16(in, prev_out, weights_in, weights_out, bias, tanh_lut, sigm_lut, cfg, cell, out);
-}
-
-#if defined(CUSTOM_USER_LSTM_LAYER3)
-static inline mli_status nn_rnn_cell(
-        const mli_tensor ** in,
-        const mli_tensor ** weights,
-        const mli_tensor * bias,
-        const mli_rnn_dense_cfg *cfg,
-        mli_tensor *out,
-        int gate) {
-
-    out->rank = 1;
-    out->shape[0] = bias->shape[1];
-    out->mem_stride[0] = 1; 
-
-    const mli_tensor w_in_part = {
-        .data = {
-            .capacity = weights[0]->data.capacity,
-            .mem = { .W_FIELD = (w_type *)weights[0]->data.mem.W_FIELD + gate * mli_hlp_count_elem_num(weights[0], 1)}
-        },
-        .shape = {weights[0]->shape[1], weights[0]->shape[2]},
-        .mem_stride = {weights[0]->mem_stride[1], weights[0]->mem_stride[2]},
-        .rank = 2,
-        .el_type = weights[0]->el_type,
-        .el_params = weights[0]->el_params
-    };
-
-    const mli_tensor w_out_part = {
-        .data = {
-            .capacity = weights[1]->data.capacity,
-            .mem = { .W_FIELD = (w_type *)weights[1]->data.mem.W_FIELD + gate * mli_hlp_count_elem_num(weights[1], 1)}
-        },
-        .shape = {weights[1]->shape[1], weights[1]->shape[2]},
-        .mem_stride = {weights[1]->mem_stride[1], weights[1]->mem_stride[2]},
-        .rank = 2,
-        .el_type = weights[1]->el_type,
-        .el_params = weights[1]->el_params
-    };
-
-    const mli_tensor bias_part = {
-        .data = {
-            .capacity = bias->data.capacity,
-            .mem = { .B_FIELD = (b_type *)bias->data.mem.B_FIELD + gate * mli_hlp_count_elem_num(bias, 1)}
-        },
-        .shape = {bias->shape[1]},
-        .mem_stride = {bias->mem_stride[1]},
-        .rank = 1,
-        .el_type = bias->el_type,
-        .el_params = bias->el_params
-    };
-
-    const mli_tensor* weights_part[2] = {&w_in_part, &w_out_part};
-    out->data.mem.D_FIELD = (d_type *)out->data.mem.D_FIELD + gate * mli_hlp_count_elem_num(bias, 1);
-    mli_krn_rnn_dense_fx16(in, weights_part, &bias_part, cfg, out);
-    out->data.mem.D_FIELD = (d_type *)out->data.mem.D_FIELD - gate * mli_hlp_count_elem_num(bias, 1);
-
-    return MLI_STATUS_OK;   
-}
-#endif
-
-#else // MODEL_BIT_DEPTH == MODEL_FX_8W16D
-static inline mli_status nn_fully_connected(
-        const mli_tensor *in,
-        const mli_tensor *weights,
-        const mli_tensor *bias,
-        const mli_fully_connected_cfg *cfg,
-        mli_tensor *out) {
+#else //MODEL_BIT_DEPTH == MODEL_FX_8W16D
     return mli_krn_fully_connected_fx16_fx8_fx8(in, weights, bias, cfg, out);
+#endif
 }
 
 static inline mli_status nn_lstm_cell(
-        const mli_tensor *in,
-        const mli_tensor *prev_out,
-        const mli_tensor *weights_in,
-        const mli_tensor *weights_out,
-        const mli_tensor *bias,
-        const mli_lut * tanh_lut,
-        const mli_lut * sigm_lut,
-        const mli_rnn_cell_cfg *cfg,
-        mli_tensor *cell,
-        mli_tensor *out) {
-    return mli_krn_lstm_cell_fx16_fx8_fx8(in, prev_out, weights_in, weights_out, bias, tanh_lut, sigm_lut, cfg, cell, out);
-}
-
-#if defined(CUSTOM_USER_LSTM_LAYER3)
-static inline mli_status nn_rnn_cell(
-        const mli_tensor ** in,
-        const mli_tensor ** weights,
-        const mli_tensor * bias,
-        const mli_rnn_dense_cfg *cfg,
-        mli_tensor *out,
-        int gate) {
-    
-    const mli_tensor w_in_part = {
-        .data = {
-            .capacity = weights[0]->data.capacity,
-            .mem = { .W_FIELD = (w_type *)weights[0]->data.mem.W_FIELD + gate * mli_hlp_count_elem_num(weights[0], 1)}
-        },
-        .shape = {weights[0]->shape[1], weights[0]->shape[2]},
-        .mem_stride = {weights[0]->mem_stride[1], weights[0]->mem_stride[2]},
-        .rank = 2,
-        .el_type = weights[0]->el_type,
-        .el_params = weights[0]->el_params
-    };
-
-    const mli_tensor w_out_part = {
-        .data = {
-            .capacity = weights[1]->data.capacity,
-            .mem = { .W_FIELD = (w_type *)weights[1]->data.mem.W_FIELD + gate * mli_hlp_count_elem_num(weights[1], 1)}
-        },
-        .shape = {weights[1]->shape[1], weights[1]->shape[2]},
-        .mem_stride = {weights[1]->mem_stride[1], weights[1]->mem_stride[2]},
-        .rank = 2,
-        .el_type = weights[1]->el_type,
-        .el_params = weights[1]->el_params
-    };
-
-    const mli_tensor bias_part = {
-        .data = {
-            .capacity = bias->data.capacity,
-            .mem = { .B_FIELD = (b_type *)bias->data.mem.B_FIELD + gate * mli_hlp_count_elem_num(bias, 1)}
-        },
-        .shape = {bias->shape[1]},
-        .mem_stride = {bias->mem_stride[1]},
-        .rank = 1,
-        .el_type = bias->el_type,
-        .el_params = bias->el_params
-    };
-
-    const mli_tensor* weights_part[2] = {&w_in_part, &w_out_part};
-    out->data.mem.D_FIELD = (d_type *)out->data.mem.D_FIELD + gate * mli_hlp_count_elem_num(bias, 1);
-    mli_krn_rnn_dense_fx16_fx8_fx8(in, weights_part, &bias_part, cfg, out);
-    out->data.mem.D_FIELD = (d_type *)out->data.mem.D_FIELD - gate * mli_hlp_count_elem_num(bias, 1);
-
-    return MLI_STATUS_OK;  
-}
+        const mli_tensor* in,
+        const mli_tensor* prev_out,
+        const mli_tensor* weights_in,
+        const mli_tensor* weights_out,
+        const mli_tensor* bias,
+        const mli_lut* tanh_lut,
+        const mli_lut* sigm_lut,
+        const mli_rnn_cell_cfg* cfg,
+        mli_tensor* cell,
+        mli_tensor* out) {
+#if (MODEL_BIT_DEPTH == MODEL_FX_16)
+    return mli_krn_lstm_cell_fx16(in, prev_out, weights_in, weights_out, bias, 
+                                  tanh_lut, sigm_lut, cfg, cell, out);
+#else //MODEL_BIT_DEPTH == MODEL_FX_8W16D
+    return mli_krn_lstm_cell_fx16_fx8_fx8(in, prev_out, weights_in, weights_out, bias, 
+                                          tanh_lut, sigm_lut, cfg, cell, out);
 #endif
-#endif //if (MODEL_BIT_DEPTH == *)
+}
+
+
+// The following layers are used only in custom user LSTM.
+//========================================================================================
+#if defined(CUSTOM_USER_LSTM_LAYER3)
+static inline mli_status rnn_dense(
+        const mli_tensor** in,
+        const mli_tensor** weights,
+        const mli_tensor* bias,
+        const mli_rnn_dense_cfg* cfg,
+        mli_tensor* out) {
+#if (MODEL_BIT_DEPTH == MODEL_FX_16)
+    return mli_krn_rnn_dense_fx16(in, weights, bias, cfg, out);
+#else //MODEL_BIT_DEPTH == MODEL_FX_8W16D
+    return mli_krn_rnn_dense_fx16_fx8_fx8(in, weights, bias, cfg, out);
+#endif
+}
+
+static inline mli_status nn_sigm(const mli_tensor* in, const mli_lut* lut, mli_tensor* out) {
+    return mli_krn_sigm_fx16(in, lut, out);
+}
+
+static inline mli_status nn_tanh(const mli_tensor* in, const mli_lut* lut, mli_tensor* out) {
+    return mli_krn_tanh_fx16(in, lut, out);
+}
+
+static inline mli_status nn_eltwise_mul(const mli_tensor* in1, const mli_tensor* in2, mli_tensor* out) {
+    return mli_krn_eltwise_mul_fx16(in1, in2, out);
+}
+
+static inline mli_status nn_eltwise_add(const mli_tensor* in1, const mli_tensor* in2, mli_tensor* out) {
+    return mli_krn_eltwise_add_fx16(in1, in2, out);
+}
+#endif //CUSTOM_USER_LSTM_LAYER3
+

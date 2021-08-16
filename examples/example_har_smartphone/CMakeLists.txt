@@ -20,7 +20,7 @@ set(EXAMPLE_FLAGS
     -Hnocopyr
     -Hpurge
     -Hheap=8K
-    -Hstack=1K
+    -Hstack=3K
     -e_start
     -Bgrouplib
     -Hldopt=-q
