@@ -9,11 +9,18 @@
 PUBLIC_DIR = $(CURDIR)/../..
 include $(PUBLIC_DIR)/make/rules.mk
 
-BUILD_SUBDIR = examples$(PS)example_face_detect
-BIN_PATH = $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)bin
-
-BUILD_TARGET = example_face_detect
+BIN_PATH = $(BUILD_DIR)$(PS)examples$(PS)example_face_detect$(PS)bin
 RUN_ARGS ?=
+
+ifndef TCF_FILE
+# MSVC is build without Ninja, use MSVC/Makefile compatible settings
+BUILD_SUBDIR = examples$(PS)example_face_detect
+BUILD_TARGET = example_face_detect
+else
+# Ninja specific
+BUILD_SUBDIR = ./
+BUILD_TARGET = examples/example_face_detect/all
+endif
 
 ifndef TCF_FILE
 RUN_APP_CMD =

@@ -63,7 +63,7 @@ function(ADD_DATA_TYPE DATA_TYPE BIT_DEPTH)
     if (ARC)
         target_link_options(${TARGET} PRIVATE
             -m
-            -Coutput=./bin/${TARGET}.map
+            -Coutput=${CMAKE_CURRENT_BINARY_DIR}/bin/${TARGET}.map
         )
     endif()
 

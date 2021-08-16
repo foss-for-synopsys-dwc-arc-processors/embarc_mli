@@ -24,16 +24,22 @@ CMAKE_OPTIONS       ?=
 BUILDLIB_DIR        ?=
 PERFORM_BUILD       ?= ON
 VERBOSE             ?= OFF
+MLI_DEBUG_MODE      ?= DBG_MODE_RELEASE
 
 include $(PUBLIC_DIR)/make/settings.mk
 
 TOOLCHAIN_OPTIONS = $(CMAKE_OPTIONS)
 ifdef TCF_FILE
+# If CCAC CMake tool chain is available in ../internal/cmake we take that one. Otherwise
+# we take the CCAC Cmake tool chain that is included in the MWDT release.
+INTERNAL_CCAC_CMAKE_TOOLCHAIN_FILE = $(realpath $(PUBLIC_DIR)$(PS)..$(PS)internal$(PS)cmake$(PS)arc-mwdt.toolchain.cmake)
+MWDT_CCAC_CMAKE_TOOLCHAIN_FILE = $(realpath $(subst \,$(PS),$(METAWARE_ROOT))$(PS)arc$(PS)cmake$(PS)arc-mwdt.toolchain.cmake)
+
 # For TCF_FILE, we only take the realpath if the file exists (otherwise it is a file inside MWDT)
 TOOLCHAIN_OPTIONS += \
 	-DARC_CFG_TCF_PATH=$(if $(realpath $(TCF_FILE)),$(realpath $(TCF_FILE)),$(TCF_FILE)) \
-	-DCMAKE_TOOLCHAIN_FILE=$(abspath $(METAWARE_ROOT)$(PS)arc$(PS)cmake$(PS)arc-mwdt.toolchain.cmake) \
-	-G "Unix Makefiles"
+	-DCMAKE_TOOLCHAIN_FILE=$(if $(INTERNAL_CCAC_CMAKE_TOOLCHAIN_FILE),$(INTERNAL_CCAC_CMAKE_TOOLCHAIN_FILE),$(MWDT_CCAC_CMAKE_TOOLCHAIN_FILE)) \
+	-G "Ninja"
 ifdef BUILDLIB_DIR
 # For BUILDLIB_DIR, we only take the realpath if the dir exists (otherwise it is a dir inside MWDT)
 TOOLCHAIN_OPTIONS += -DBUILDLIB_DIR=$(if $(realpath $(BUILDLIB_DIR)),$(realpath $(BUILDLIB_DIR)),$(BUILDLIB_DIR))

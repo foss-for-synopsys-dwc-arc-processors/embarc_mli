@@ -9,8 +9,17 @@
 PUBLIC_DIR = $(CURDIR)/../..
 include $(PUBLIC_DIR)/make/rules.mk
 
+BIN_PATH = $(BUILD_DIR)$(PS)examples$(PS)example_cifar10_caffe$(PS)bin
+
+ifndef TCF_FILE
+# MSVC is build without Ninja, use MSVC/Makefile compatible settings
 BUILD_SUBDIR = examples$(PS)example_cifar10_caffe
-BIN_PATH = $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)bin
+BUILD_TARGET = example_cifar10_caffe
+else
+# Ninja specific
+BUILD_SUBDIR = ./
+BUILD_TARGET = examples/example_cifar10_caffe/all
+endif
 
 ifndef TCF_FILE
 RUN_APP_CMD =

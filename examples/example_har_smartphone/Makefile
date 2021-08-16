@@ -9,8 +9,17 @@
 PUBLIC_DIR = $(CURDIR)/../..
 include $(PUBLIC_DIR)/make/rules.mk
 
-BUILD_SUBDIR = examples$(PS)example_har_smartphone
-BIN_PATH = $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)bin
+BIN_PATH = $(BUILD_DIR)$(PS)examples$(PS)example_har_smartphone$(PS)bin
+
+ifndef TCF_FILE
+# MSVC is build without Ninja, use MSVC/Makefile compatible settings
+BUILD_SUBDIR = examples$(PS)helexample_har_smartphonelo_world
+BUILD_TARGET = example_har_smartphone
+else
+# Ninja specific
+BUILD_SUBDIR = ./
+BUILD_TARGET = examples/example_har_smartphone/all
+endif
 
 ifndef TCF_FILE
 RUN_APP_CMD =

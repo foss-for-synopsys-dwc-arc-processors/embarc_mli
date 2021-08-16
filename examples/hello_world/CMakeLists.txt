@@ -25,7 +25,7 @@ target_link_options(hello_world PRIVATE
 if (ARC)
 target_link_options(hello_world PRIVATE
     -m
-    -Coutput=./bin/hello_world.map
+    -Coutput=${CMAKE_CURRENT_BINARY_DIR}/bin/hello_world.map
     -Hheap=4K
     -Hstack=4K
 )

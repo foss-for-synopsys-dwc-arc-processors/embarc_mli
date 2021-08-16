@@ -11,8 +11,18 @@ include $(PUBLIC_DIR)/make/rules.mk
 
 # Configuring variables (see rules.mk for more variables like BUILDLIB_DIR)
 #==========================================================================
+
+ifndef TCF_FILE
+# MSVC is build without Ninja, use MSVC/Makefile compatible settings
 BUILD_SUBDIR = user_tests
-BIN_PATH = $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)bin
+else
+# Ninja specific
+BUILD_SUBDIR = ./
+BUILD_TARGET = user_tests/all
+endif
+
+
+BIN_PATH = $(BUILD_DIR)$(PS)user_tests$(PS)bin
 
 ifndef TCF_FILE
 RUN_TEST_CMD =
