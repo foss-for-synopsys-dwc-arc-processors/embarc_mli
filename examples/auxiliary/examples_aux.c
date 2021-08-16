@@ -342,8 +342,9 @@ static inline int arg_max(mli_tensor * net_output_) {
     };
 
     int pred_label = 0;
-    mli_tensor out_tensor;
+    mli_tensor out_tensor = { 0 };
     out_tensor.data.mem.pi32 = &pred_label;
+    out_tensor.data.capacity = sizeof(pred_label);
     out_tensor.el_type = MLI_EL_SA_32;
     out_tensor.rank = 2;
     out_tensor.shape[0] = 1;

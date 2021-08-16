@@ -75,7 +75,7 @@ mli_status har_smartphone_init();
 
 // Use user-implemented LSTM as layer 3
 // If not defined - uses default mli lib lstm kernel
-//#define CUSTOM_USER_LSTM_LAYER3
+#define CUSTOM_USER_LSTM_LAYER3
 
 #define MODEL_SA_8       (8)
 #define MODEL_FX_16      (16)
