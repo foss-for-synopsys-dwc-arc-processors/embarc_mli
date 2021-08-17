@@ -102,6 +102,9 @@ Ensure that you satisfy the following general conditions before calling the func
  - Only first N (equal to ``rank`` of ``in`` tensor) values in permutation order array are considered 
    by kernel. All of them must be unique, non-negative and less than the ``rank`` of the ``in`` tensor.
 
+Ensure that you satisfy the platform-specific conditions in addition to to those listed above 
+(see the :ref:`platform_spec_chptr` chapter).
+
 Result
 ^^^^^^
 

@@ -180,6 +180,8 @@ satisfy the following quantization conditions before calling the function:
    (that is, :math:`bias.scale = inputs[0].scale * weights[0].scale`). See the example for the 
    similar condition in the :ref:`conv_2d`.
 
+Ensure that you satisfy the platform-specific conditions in addition to to those listed above 
+(see the :ref:`platform_spec_chptr` chapter).
 
 Result
 ^^^^^^

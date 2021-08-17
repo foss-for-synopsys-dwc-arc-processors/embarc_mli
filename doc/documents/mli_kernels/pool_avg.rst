@@ -124,6 +124,9 @@ satisfy the following quantization conditions before calling the function:
 
  - zero offset of ``in`` and ``out`` tensors must be within [-128, 127] range.
 
+Ensure that you satisfy the platform-specific conditions in addition to to those listed above 
+(see the :ref:`platform_spec_chptr` chapter).
+
 Result
 ^^^^^^
 

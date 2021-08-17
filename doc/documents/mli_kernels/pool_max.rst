@@ -121,10 +121,17 @@ satisfy the following quantization conditions before calling the function:
  - ``in`` and ``out`` tensors must be quantized on the tensor level. This implies that 
    each tensor contains a single scale factor and a single zero offset.
 
+Ensure that you satisfy the platform-specific conditions in addition to to those listed above 
+(see the :ref:`platform_spec_chptr` chapter).
+
 Result
 ^^^^^^
 
-These functions only modify the memory pointed by ``out.data.mem`` field. 
+These functions modify:
+
+ - Memory pointed by ``out.data.mem`` field.  
+ - ``el_params`` field of ``out`` tensor which is copied from ``in`` tensor.
+
 It is assumed that all the other fields of ``out`` tensor are properly populated 
 to be used in calculations and are not modified by the kernel.
 
