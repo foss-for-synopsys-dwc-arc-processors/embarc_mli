@@ -96,7 +96,7 @@ Ensure that you satisfy the following general conditions before calling the func
  - For ``mli_krn_eltwise_min_*`` and ``mli_krn_eltwise_max_*`` functions, 
    the following additional restriction apply
 
-    - ``in1``, ``in2`` and ``out`` tensors must have the same quantization parameters. 
+    - ``in1``, ``in2`` tensors must have the same quantization parameters. 
       It means that ``el_params`` union of tensors must be the same.
       For other elementwise functions this restriction is not applicable.
 
@@ -108,6 +108,8 @@ the following quantization conditions before calling the function:
 
  - Zero offset of ``in1``, ``in2`` and ``out`` tensors must be within [-128, 127] range.
 
+Ensure that you satisfy the platform-specific conditions in addition to to those listed above 
+(see the :ref:`platform_spec_chptr` chapter).
 
 Result
 ^^^^^^

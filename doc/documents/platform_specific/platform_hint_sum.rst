@@ -1,3 +1,5 @@
+.. _platform_spec_chptr:
+
 Platform Specific Details
 =========================
 

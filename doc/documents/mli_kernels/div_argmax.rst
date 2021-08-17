@@ -121,6 +121,9 @@ satisfy the following condition before calling the function:
  - ``in`` tensor must be quantized on the tensor level. This implies that the tensor 
    contains a single scale factor and a single zero offset.
 
+Ensure that you satisfy the platform specific conditions in addition to the listed above 
+(see the :ref:`platform_spec_chptr` chapter).
+
 Result
 ^^^^^^
 

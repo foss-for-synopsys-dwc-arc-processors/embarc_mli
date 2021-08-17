@@ -103,6 +103,9 @@ the following quantization conditions before calling the function:
 
  - Zero offset of ``slope_coeffs`` tensor must be within [-16384, 16383] range.
 
+Ensure that you satisfy the platform-specific conditions in addition to to those listed above 
+(see the :ref:`platform_spec_chptr` chapter).
+
 Result
 ^^^^^^
 
