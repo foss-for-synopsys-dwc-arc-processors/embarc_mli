@@ -1,3 +1,5 @@
+.. _mli_helpers:
+
 Helper Functions Group
 ----------------------
 

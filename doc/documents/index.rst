@@ -16,6 +16,7 @@ Welcome to embARC Machine Learning Inference 2.0 Library Documentation!
    mli_kernels/mli_kernels.rst
    data_movement/data_movement.rst
    utility_functions/utility_functions.rst
+   platform_specific/platform_hint_sum.rst
 
 Indices and tables
 ==================
