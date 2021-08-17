@@ -200,10 +200,10 @@ mli_status convert_float_data(const mli_tensor * src, mli_tensor * dst, convert_
         int8_t frac_bits = mli_hlp_tensor_scale_shift(tensor, scale_idx);
         float scale = (float) mli_hlp_tensor_scale(tensor, scale_idx);
         if (mode == mli::hlp::QUANTIZE) {
-            scale = 1.0 / scale;
-            scale_val = ldexp(scale, ((int32_t) frac_bits));
+            scale = 1.0f / scale;
+            scale_val = (float)ldexp(scale, ((int32_t) frac_bits));
         } else {
-            scale_val = ldexp(scale, -((int32_t) frac_bits));
+            scale_val = (float)ldexp(scale, -((int32_t) frac_bits));
         }
 
         int16_t zero_offset = mli_hlp_tensor_zero_offset(tensor, scale_idx);
