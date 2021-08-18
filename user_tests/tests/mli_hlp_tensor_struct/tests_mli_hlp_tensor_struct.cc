@@ -110,7 +110,7 @@ bool run_test_count_and_size() {
         if (is_test_passed && (tensor_quantizer::validate_tensor(input) != tensor_quantizer::kOk)) {
             is_test_passed = false;
             reporter.report_case(cur_test->descr, 
-                "At quantization step: more memory for in tensor is be required", is_test_passed);
+                "At quantization step: more memory for in tensor is required", is_test_passed);
         }
 
         if (is_test_passed && (mem_in_keeper.is_memory_corrupted())) {
@@ -138,7 +138,7 @@ bool run_test_count_and_size() {
                 mem_in_keeper.is_memory_corrupted())) {
             is_test_passed = false;
             reporter.report_case(cur_test->descr,
-                "At function run: memory is corrupted after functions invokation", is_test_passed);
+                "At function run: memory is corrupted after functions invocation", is_test_passed);
         }
 
         if (is_test_passed && cur_test->elem_size != cur_elem_size ) {
@@ -239,7 +239,7 @@ bool run_test_quant_params_getters() {
                 mem_in_keeper.is_memory_corrupted())) {
                 is_test_passed = false;
                 reporter.report_case(cur_test->descr,
-                    "FAILED at func run: memory is corrupted after functions invokation", is_test_passed);
+                    "FAILED at func run: memory is corrupted after functions invocation", is_test_passed);
             }
 
             if (is_test_passed) {
@@ -366,28 +366,37 @@ const crc32_calc    test_1_chksum_fx16  { 0x418F5ED6 }, test_1_chksum_fx8       
                     test_2_chksum_sa8   { 0x4CB81C56 }, test_2_chksum_sa8_pa    { 0x2F0B06B8 },
                     test_2_chksum_sa32  { 0x0B379B11 }, test_2_chksum_sa32_pa   { 0x87591FC2 };
 
-const quality_metrics thresholds_test_1_general{ quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
-                                                /* SNR_DB = */35.9f, quality_metrics::kPassValueQuantErrPerc };
-
-const quality_metrics thresholds_test_2_general{ quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
-                                                  /* SNR_DB = */41.3f, quality_metrics::kPassValueQuantErrPerc };
+const quality_metrics thresholds_test_general { quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
+                                                quality_metrics::kPassValueSnrDb, /*QuantErrPerc = */100.0f};
 
 bool run_test_create_subtensor() {
     bool test_status = true;
     const reporter_full reporter;
     static const create_subtensor_test_operands create_subtensor_tests_list[] = {
-        {"FX16 tensor ",                    input_1_fx16, test_1_out_fx16, test_1_cfg, thresholds_test_1_general, test_1_chksum_fx16},
-        {"FX8 tensor ",                     input_1_fx8, test_1_out_fx8, test_1_cfg, thresholds_test_1_general, test_1_chksum_fx8},
-        {"SA8 tensor ",                     input_1_sa8, test_1_out_sa8, test_1_cfg, thresholds_test_1_general, test_1_chksum_sa8},
-        {"SA8 tensor per axis",             input_1_sa8_per_axis, test_1_out_sa8_per_axis, test_1_cfg, thresholds_test_1_general, test_1_chksum_sa8_pa},
-        {"SA32 tensor ",                    input_1_sa32, test_1_out_sa32, test_1_cfg, thresholds_test_1_general, test_1_chksum_sa32},
-        {"SA32 tensor per axis",            input_1_sa32_per_axis, test_1_out_sa32_per_axis, test_1_cfg, thresholds_test_1_general, test_1_chksum_sa32_pa},
-        {"FX16 tensor (rank & offset) ",    input_1_fx16, test_2_out_fx16, test_2_cfg, thresholds_test_2_general, test_2_chksum_fx16},
-        {"FX8 tensor (rank & offset)",      input_1_fx8, test_2_out_fx8, test_2_cfg, thresholds_test_2_general, test_2_chksum_fx8},
-        {"SA8 tensor (rank & offset)",      input_1_sa8, test_2_out_sa8, test_2_cfg, thresholds_test_2_general, test_2_chksum_sa8},
-        {"SA8 per axis (rank & offset)",    input_1_sa8_per_axis, test_2_out_sa8_per_axis, test_2_cfg, thresholds_test_2_general, test_2_chksum_sa8_pa},
-        {"SA32 tensor (rank & offset)",     input_1_sa32, test_2_out_sa32, test_2_cfg, thresholds_test_2_general, test_2_chksum_sa32},
-        {"SA32 per axis (rank & offset)",   input_1_sa32_per_axis, test_2_out_sa32_per_axis, test_2_cfg, thresholds_test_2_general, test_2_chksum_sa32_pa}
+        {"FX16 tensor ",                    input_1_fx16, test_1_out_fx16, test_1_cfg, 
+                                            thresholds_test_general, test_1_chksum_fx16},
+        {"FX8 tensor ",                     input_1_fx8, test_1_out_fx8, test_1_cfg, 
+                                            thresholds_test_general, test_1_chksum_fx8},
+        {"SA8 tensor ",                     input_1_sa8, test_1_out_sa8, test_1_cfg, 
+                                            thresholds_test_general, test_1_chksum_sa8},
+        {"SA8 tensor per axis",             input_1_sa8_per_axis, test_1_out_sa8_per_axis, test_1_cfg, 
+                                            thresholds_test_general, test_1_chksum_sa8_pa},
+        {"SA32 tensor ",                    input_1_sa32, test_1_out_sa32, test_1_cfg, 
+                                            thresholds_test_general, test_1_chksum_sa32},
+        {"SA32 tensor per axis",            input_1_sa32_per_axis, test_1_out_sa32_per_axis, test_1_cfg, 
+                                            thresholds_test_general, test_1_chksum_sa32_pa},
+        {"FX16 tensor (rank & offset) ",    input_1_fx16, test_2_out_fx16, test_2_cfg, 
+                                            thresholds_test_general, test_2_chksum_fx16},
+        {"FX8 tensor (rank & offset)",      input_1_fx8, test_2_out_fx8, test_2_cfg, 
+                                            thresholds_test_general, test_2_chksum_fx8},
+        {"SA8 tensor (rank & offset)",      input_1_sa8, test_2_out_sa8, test_2_cfg, 
+                                            thresholds_test_general, test_2_chksum_sa8},
+        {"SA8 per axis (rank & offset)",    input_1_sa8_per_axis, test_2_out_sa8_per_axis, test_2_cfg,
+                                            thresholds_test_general, test_2_chksum_sa8_pa},
+        {"SA32 tensor (rank & offset)",     input_1_sa32, test_2_out_sa32, test_2_cfg, 
+                                            thresholds_test_general, test_2_chksum_sa32},
+        {"SA32 per axis (rank & offset)",   input_1_sa32_per_axis, test_2_out_sa32_per_axis, test_2_cfg, 
+                                            thresholds_test_general, test_2_chksum_sa32_pa}
     };
     constexpr int kTestsNum = sizeof(create_subtensor_tests_list) / sizeof(create_subtensor_tests_list[0]);
 
@@ -405,43 +414,42 @@ bool run_test_create_subtensor() {
         }
 
         const mli_tensor input = cur_test->in.get_quantized_tensor(mem_in_keeper.allocate_memory(cur_test->in));
-        mli_tensor out = cur_test->out.get_not_quantized_tensor(mem_out_keeper.allocate_memory(cur_test->out));
+        mli_tensor out = { 0 };
         if (is_test_passed &&
-                (tensor_quantizer::validate_tensor(input) != tensor_quantizer::kOk ||
-                 tensor_quantizer::validate_tensor(out) != tensor_quantizer::kOk)) {
+                tensor_quantizer::validate_tensor(input) != tensor_quantizer::kOk) {
             is_test_passed = false;
             reporter.report_message(cur_test->descr,
-                "At quantization step: more memory for in or out tensor is be required");
+                "At quantization step: more memory for in tensor is required");
         }
 
         if (is_test_passed &&
-                (mem_in_keeper.is_memory_corrupted() || mem_out_keeper.is_memory_corrupted())) {
+                mem_in_keeper.is_memory_corrupted()) {
             is_test_passed = false;
             reporter.report_message(cur_test->descr,
                 "At quantization step: memory beside one of operands is corrupted");
         }
 
         // Run specific kernel for test
-
         crc32_calc data_crc_before, data_crc_after;
-        if (is_test_passed &&
-            mli_hlp_create_subtensor(&input, &cur_test->cfg, &out) != MLI_STATUS_OK) {
+        if (is_test_passed) {
             data_crc_before(input);
-            reporter.report_message(cur_test->descr, "FAILED at kernel run: kernel returned bad status");
-            is_test_passed = false;
+            if (mli_hlp_create_subtensor(&input, &cur_test->cfg, &out) != MLI_STATUS_OK) {
+                is_test_passed = false;
+                reporter.report_message(cur_test->descr, "FAILED at kernel run: kernel returned bad status");
+            }         
             data_crc_after(input);
         }
 
         if (is_test_passed &&
-            (data_crc_before.get() != data_crc_after.get() ||
+                (data_crc_before.get() != data_crc_after.get() ||
                 mem_in_keeper.is_memory_corrupted())) {
             is_test_passed = false;
             reporter.report_message(cur_test->descr,
-                "At function run: memory is corrupted after functions invokation");
+                "At function run: memory is corrupted after functions invocation");
         }
 
         if (is_test_passed &&
-            test_metrics.calculate_metrics(out, cur_test->out) == false) {
+                test_metrics.calculate_metrics(out, cur_test->out) == false) {
             reporter.report_message(cur_test->descr, "FAILED at comparison output with reference");
             is_test_passed = false;
         }
@@ -451,7 +459,7 @@ bool run_test_create_subtensor() {
             data_crc(input);
             data_crc(out);
             is_test_passed &= reporter.evaluate_and_report_case(cur_test->descr, test_metrics, cur_test->threshold,
-                data_crc, cur_test->check_sum);
+                                                                data_crc, cur_test->check_sum);
         }
         test_status &= is_test_passed;
     }

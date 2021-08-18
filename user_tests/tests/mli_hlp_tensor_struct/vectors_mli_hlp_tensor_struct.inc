@@ -40,6 +40,14 @@ extern mli::tst::tensor_quantizer test_1_out_sa32;
 extern mli::tst::tensor_quantizer test_1_out_sa32_per_axis;
 extern mli::tst::tensor_quantizer test_1_out_fp32;
 
+extern mli::tst::tensor_quantizer test_2_out_fx16;
+extern mli::tst::tensor_quantizer test_2_out_fx8;
+extern mli::tst::tensor_quantizer test_2_out_sa8;
+extern mli::tst::tensor_quantizer test_2_out_sa8_per_axis;
+extern mli::tst::tensor_quantizer test_2_out_sa32;
+extern mli::tst::tensor_quantizer test_2_out_sa32_per_axis;
+extern mli::tst::tensor_quantizer test_2_out_fp32;
+
 // Tests configuration structures Declaration
 //========================================
 extern const mli_sub_tensor_cfg test_1_cfg;
@@ -367,9 +375,9 @@ tensor_quantizer test_2_out_sa32(test_2_out_tsr_sa32, input_1_sa_dim, test_2_out
 
 tensor_quantizer test_2_out_sa32_per_axis(test_2_out_tsr_sa32, test_2_out_sa_dim_per_axis, test_2_out_data, 
     sizeof(test_2_out_data) / sizeof(test_2_out_data[0]), test_2_out_scales, 
-    sizeof(test_2_out_scales) / sizeof(test_2_out_scales[0]), test_1_out_zero_points, 
-    sizeof(test_1_out_zero_points) / sizeof(test_1_out_zero_points[0]), test_1_out_scales_frac, 
-    sizeof(test_1_out_scales_frac) / sizeof(test_1_out_scales_frac[0]));
+    sizeof(test_2_out_scales) / sizeof(test_2_out_scales[0]), test_2_out_zero_points, 
+    sizeof(test_2_out_zero_points) / sizeof(test_2_out_zero_points[0]), test_2_out_scales_frac, 
+    sizeof(test_2_out_scales_frac) / sizeof(test_2_out_scales_frac[0]));
 
 
 
