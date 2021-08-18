@@ -123,18 +123,10 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
 
     mli_tensor rnn_out;
     rnn_out.data = out->data;
-    rnn_out.rank = 2;
-    rnn_out.shape[0] = 1;
-    rnn_out.shape[1] = lstm_out_elements;
-    rnn_out.mem_stride[0] = rnn_out.shape[1];
-    rnn_out.mem_stride[1] = 1;
+    rnn_out.rank = 1;
+    rnn_out.shape[0] = lstm_out_elements;
+    rnn_out.mem_stride[0] = 1;
     rnn_out.el_type = in->el_type;
-
-    cell->rank = 2;
-    cell->shape[0] = tmp_gate.shape[0];
-    cell->shape[1] = tmp_gate.shape[1];
-    cell->mem_stride[0] = tmp_gate.mem_stride[0];
-    cell->mem_stride[1] = tmp_gate.mem_stride[1];
 
     struct s8asym_quant_params out_params_sigm;
     struct s8asym_quant_params out_params_tanh;
@@ -236,9 +228,7 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
         temp.data = rnn_out.data;
         temp.rank = rnn_out.rank;
         temp.shape[0] = rnn_out.shape[0];
-        temp.shape[1] = rnn_out.shape[1];
         temp.mem_stride[0] = rnn_out.mem_stride[0];
-        temp.mem_stride[1] = rnn_out.mem_stride[1];
         temp.el_type = rnn_out.el_type;
         temp.el_params = out->el_params;
 
