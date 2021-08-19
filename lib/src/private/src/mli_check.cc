@@ -242,9 +242,28 @@ bool mli_tensor_is_scalar (const mli_tensor * in) {
     return false;
 }
 
+bool mli_chk_containers_not_overlapped(const mli_data_container & data1, const mli_data_container & data2) {
+    if ((data1.mem.i32 >= (data2.mem.i32 + (int)(data2.capacity))) ||
+        (data2.mem.i32 >= (data1.mem.i32 + (int)(data1.capacity)))) {
+        return true;
+    }
+    return false;
+}
+
+bool mli_chk_tensors_not_overlapped(const mli_tensor * t1, const mli_tensor * t2) {
+	return mli_chk_containers_not_overlapped(t1->data, t2->data);
+}
+
 mli_status mli_chk_bias_frac_fx(const mli_tensor * in, const mli_tensor * weights, const mli_tensor * bias) {
     if (MLI_CHECK(bias->el_params.fx.frac_bits <= in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits,
                       "The number of fractional bits of the accumulator will be the sum of the frac bits of in and weights. If bias has more frac bits, precision will be lost."))
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    return MLI_STATUS_OK;
+}
+
+mli_status mli_chk_out_frac_fx(const mli_tensor * in, const mli_tensor * weights, const mli_tensor * out) {
+    if (MLI_CHECK(out->el_params.fx.frac_bits <= in->el_params.fx.frac_bits + weights->el_params.fx.frac_bits,
+                      "out frac_bits shouldn't be more than the sum of in and weight frac_bits to avoid extra shift left"))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
     return MLI_STATUS_OK;
 }
@@ -415,6 +434,7 @@ mli_status mli_chk_conv2d_hwcn (
     fail |= MLI_CHECK(check_inner_most_dimension_is_one(out), "Memory stride for inner most dimension of output must be 1");
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
+    if (MLI_CHECK(cfg != NULL , "Bad cfg pointer")) return MLI_STATUS_BAD_FUNC_CFG;
     int kernel_width = weights->shape[KRNL_W_DIM_HWCN];
     int kernel_height = weights->shape[KRNL_H_DIM_HWCN];
     int dilation_width = cfg->dilation_width;
@@ -436,6 +456,11 @@ mli_status mli_chk_conv2d_hwcn (
     fail |= MLI_CHECK(required_height <= effective_input_height, "incorrect output height");
     fail |= MLI_CHECK(required_width <= effective_input_width, "incorrect output width");
     if (fail) return MLI_STATUS_BAD_FUNC_CFG;
+
+    //check that input and output are not overlapped
+    if (MLI_CHECK(mli_chk_tensors_not_overlapped(in, out),"in and out buffer must not be overlapped")) {
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    }
 
     return stat;
 }
@@ -499,6 +524,9 @@ mli_status mli_chk_conv2d_hwcn_fx16(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_out_frac_fx(in, weights, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
     ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwcn(in, weights, bias, cfg, out, kernel_size), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
@@ -517,6 +545,9 @@ mli_status mli_chk_conv2d_hwcn_fx16_fx8_fx8(
         MLI_CHECK(bias->el_type    == MLI_EL_FX_8, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
     mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_out_frac_fx(in, weights, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     ret = MLI_CHECK_STATUS(mli_chk_conv2d_hwcn(in, weights, bias, cfg, out, kernel_size), __func__);
@@ -569,6 +600,7 @@ mli_status mli_chk_depthwise_conv2d_hwcn(
     fail |= MLI_CHECK(check_inner_most_dimension_is_one(out), "Memory stride for inner most dimension of output must be 1");
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
+    if (MLI_CHECK(cfg != NULL , "Bad cfg pointer")) return MLI_STATUS_BAD_FUNC_CFG;
     int kernel_width = weights->shape[KRNL_DW_W_DIM_HW1N];
     int kernel_height = weights->shape[KRNL_DW_H_DIM_HW1N];
     int dilation_width = cfg->dilation_width;
@@ -591,6 +623,11 @@ mli_status mli_chk_depthwise_conv2d_hwcn(
     fail |= MLI_CHECK(required_width <= effective_input_width, "incorrect output width");
     if (fail) return MLI_STATUS_BAD_FUNC_CFG;
 
+    //check that input and output are not overlapped
+    if (MLI_CHECK(mli_chk_tensors_not_overlapped(in, out),"in and out buffer must not be overlapped")) {
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    }
+
     return stat;
 }
 mli_status mli_chk_depthwise_conv2d_hwcn_fx16(
@@ -605,6 +642,9 @@ mli_status mli_chk_depthwise_conv2d_hwcn_fx16(
         MLI_CHECK(bias->el_type    == MLI_EL_FX_16, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
     mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_out_frac_fx(in, weights, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwcn(in, weights, bias, cfg, out, kernel_size), __func__);
@@ -625,6 +665,9 @@ mli_status mli_chk_depthwise_conv2d_hwcn_fx16_fx8_fx8(
         MLI_CHECK(bias->el_type    == MLI_EL_FX_8, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
     mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_out_frac_fx(in, weights, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     ret = MLI_CHECK_STATUS(mli_chk_depthwise_conv2d_hwcn(in, weights, bias, cfg, out, kernel_size), __func__);
@@ -723,6 +766,7 @@ mli_status mli_chk_group_conv2d_hwcn(
     fail |= MLI_CHECK(check_inner_most_dimension_is_one(out), "Memory stride for inner most dimension of output must be 1");
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
+    if (MLI_CHECK(cfg != NULL , "Bad cfg pointer")) return MLI_STATUS_BAD_FUNC_CFG;
     int kernel_width = weights->shape[KRNL_W_DIM_HWCN];
     int kernel_height = weights->shape[KRNL_H_DIM_HWCN];
     int dilation_width = cfg->dilation_width;
@@ -745,6 +789,11 @@ mli_status mli_chk_group_conv2d_hwcn(
     fail |= MLI_CHECK(required_width <= effective_input_width, "incorrect output width");
     if (fail) return MLI_STATUS_BAD_FUNC_CFG;
 
+    //check that input and output are not overlapped
+    if (MLI_CHECK(mli_chk_tensors_not_overlapped(in, out),"in and out buffer must not be overlapped")) {
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    }
+
     return stat;
 }
 
@@ -760,6 +809,9 @@ mli_status mli_chk_group_conv2d_hwcn_fx16(
         MLI_CHECK(bias->el_type    == MLI_EL_FX_16, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
     mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_out_frac_fx(in, weights, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     ret = MLI_CHECK_STATUS(mli_chk_group_conv2d_hwcn(in, weights, bias, cfg, out, kernel_size), __func__);
@@ -780,6 +832,9 @@ mli_status mli_chk_group_conv2d_hwcn_fx16_fx8_fx8(
         MLI_CHECK(bias->el_type    == MLI_EL_FX_8, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
     mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_out_frac_fx(in, weights, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     ret = MLI_CHECK_STATUS(mli_chk_group_conv2d_hwcn(in, weights, bias, cfg, out, kernel_size), __func__);
@@ -880,6 +935,7 @@ mli_status mli_chk_transpose_conv2d_hwcn (
     const int kernel_width = weights->shape[KRNL_W_DIM_HWCN];
     const int kernel_height = weights->shape[KRNL_H_DIM_HWCN];
 
+    if (MLI_CHECK(cfg != NULL , "Bad cfg pointer")) return MLI_STATUS_BAD_FUNC_CFG;
     fail |= MLI_CHECK(cfg->dilation_width == 1, "Dilation ratio isn't supported by transpose convolution");
     fail |= MLI_CHECK(cfg->dilation_height == 1, "Dilation ratio isn't supported by transpose convolution");
     fail |= MLI_CHECK(cfg->padding_left < kernel_width, "Padding should be smaller than effective kernel size");
@@ -908,6 +964,11 @@ mli_status mli_chk_transpose_conv2d_hwcn (
     fail |= MLI_CHECK(out->shape[FMAP_C_DIM_HWC] == weights->shape[KRNL_C_DIM_HWCN], "Output channels mismatch");
     if (fail) return MLI_STATUS_BAD_FUNC_CFG;
 
+    //check that input and output are not overlapped
+    if (MLI_CHECK(mli_chk_tensors_not_overlapped(in, out),"in and out buffer must not be overlapped")) {
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    }
+
     return stat;
 }
 
@@ -923,6 +984,9 @@ mli_status mli_chk_transpose_conv2d_hwcn_fx16(
         MLI_CHECK(bias->el_type    == MLI_EL_FX_16, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
     mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_out_frac_fx(in, weights, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     ret = MLI_CHECK_STATUS(mli_chk_transpose_conv2d_hwcn(in, weights, bias, cfg, out, kernel_size), __func__);
@@ -943,6 +1007,9 @@ mli_status mli_chk_transpose_conv2d_hwcn_fx16_fx8_fx8(
         MLI_CHECK(bias->el_type    == MLI_EL_FX_8, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
     mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_out_frac_fx(in, weights, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     ret = MLI_CHECK_STATUS(mli_chk_transpose_conv2d_hwcn(in, weights, bias, cfg, out, kernel_size), __func__);
@@ -1050,6 +1117,7 @@ mli_status mli_chk_maxpool_hwc (
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;
 
+    if (MLI_CHECK(cfg != NULL , "Bad cfg pointer")) return MLI_STATUS_BAD_FUNC_CFG;
     // Checking size of the kernel for functions' specializations.
     if (kernel_size != 0) {
       fail |= MLI_CHECK(cfg->kernel_height == kernel_size, "Wrong kernel height for specialization");
@@ -1065,6 +1133,7 @@ mli_status mli_chk_maxpool_hwc (
         return MLI_STATUS_TYPE_MISMATCH;
 
     fail |= MLI_CHECK(in->rank == 3, "Wrong input rank");
+    fail |= MLI_CHECK(out->rank == 3, "Wrong output rank");
     if (fail) return MLI_STATUS_SHAPE_MISMATCH;
 
     fail |= MLI_CHECK(check_inner_most_dimension_is_one(in), "Memory stride for inner most dimension of input must be 1");
@@ -1087,6 +1156,11 @@ mli_status mli_chk_maxpool_hwc (
     fail |= MLI_CHECK(required_width <= effective_input_width, "incorrect output width");
     fail |= MLI_CHECK(out->shape[FMAP_C_DIM_HWC] == in->shape[FMAP_C_DIM_HWC], "Output channels should match input channels");
     if (fail) return MLI_STATUS_BAD_FUNC_CFG;
+
+    //check that input and output are not overlapped
+    if (MLI_CHECK(mli_chk_tensors_not_overlapped(in, out),"in and out buffer must not be overlapped")) {
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    }
 
     return stat;
 }
@@ -1127,7 +1201,9 @@ mli_status mli_chk_maxpool_hwc_sa8 (
         return ret;
     if (MLI_CHECK(in->el_type == MLI_EL_SA_8, "Wrong input tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
-    if (MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor: Per-tensor quantization is expected"))
+
+    if (MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor: Per-tensor quantization is expected") ||
+            MLI_CHECK(out->el_params.sa.dim < 0, "Output tensor: Per-tensor quantization is expected"))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
     return MLI_STATUS_OK;
@@ -1141,6 +1217,7 @@ mli_status mli_chk_avepool_hwc (
     mli_status stat = MLI_STATUS_OK;
     bool fail = false;
 
+    if (MLI_CHECK(cfg != NULL , "Bad cfg pointer")) return MLI_STATUS_BAD_FUNC_CFG;
     // Checking size of the kernel for functions' specializations.
     if (kernel_size != 0) {
       fail |= MLI_CHECK(cfg->kernel_height == kernel_size, "Wrong kernel height for specialization");
@@ -1156,6 +1233,7 @@ mli_status mli_chk_avepool_hwc (
         return MLI_STATUS_TYPE_MISMATCH;
 
     fail |= MLI_CHECK(in->rank == 3, "Wrong input rank");
+    fail |= MLI_CHECK(out->rank == 3, "Wrong output rank");
     if (fail) return MLI_STATUS_SHAPE_MISMATCH;
 
     fail |= MLI_CHECK(check_inner_most_dimension_is_one(in), "Memory stride for inner most dimension of input must be 1");
@@ -1178,6 +1256,11 @@ mli_status mli_chk_avepool_hwc (
     fail |= MLI_CHECK(required_width <= effective_input_width, "incorrect output width");
     fail |= MLI_CHECK(out->shape[FMAP_C_DIM_HWC] == in->shape[FMAP_C_DIM_HWC], "Output channels should match input channels");
     if (fail) return MLI_STATUS_BAD_FUNC_CFG;
+
+    //check that input and output are not overlapped
+    if (MLI_CHECK(mli_chk_tensors_not_overlapped(in, out),"in and out buffer must not be overlapped")) {
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    }
 
     return MLI_STATUS_OK;
 }
@@ -1251,6 +1334,8 @@ mli_status mli_chk_fully_connected (
     if (MLI_CHECK(out->el_type == in->el_type, "Wrong output type"))
         return MLI_STATUS_TYPE_MISMATCH;
 
+    if (MLI_CHECK(cfg != NULL , "Bad cfg pointer")) return MLI_STATUS_BAD_FUNC_CFG;
+
     fail |= MLI_CHECK(weights->rank == 2, "Wrong weights rank");
     fail |= MLI_CHECK(bias->rank == 1, "Wrong bias rank");
     fail |= MLI_CHECK(out->rank == 1, "Wrong out rank");
@@ -1264,6 +1349,11 @@ mli_status mli_chk_fully_connected (
     fail |= MLI_CHECK(check_layout_is_contiguous(bias), "Memory Layout of bias tensor must be contiguous");
     fail |= MLI_CHECK(check_layout_is_contiguous(out->mem_stride, 1), "Memory Layout of output tensor must be contiguous");
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
+
+    //check that input and output are not overlapped
+    if (MLI_CHECK(mli_chk_tensors_not_overlapped(in, out),"in and out buffer must not be overlapped")) {
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    }
 
     return MLI_STATUS_OK;
 }
@@ -1279,6 +1369,9 @@ mli_status mli_chk_fully_connected_fx16_fx8_fx8(
         MLI_CHECK(bias->el_type    == MLI_EL_FX_8, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
     mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_out_frac_fx(in, weights, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     ret = MLI_CHECK_STATUS(mli_chk_fully_connected(in, weights, bias, cfg, out), __func__);
@@ -1300,6 +1393,9 @@ mli_status mli_chk_fully_connected_fx8(
     mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_out_frac_fx(in, weights, out), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
     ret = MLI_CHECK_STATUS(mli_chk_fully_connected(in, weights, bias, cfg, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
@@ -1317,6 +1413,9 @@ mli_status mli_chk_fully_connected_fx16(
         MLI_CHECK(bias->el_type    == MLI_EL_FX_16, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
     mli_status ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in, weights, bias), __func__);
+    if (ret != MLI_STATUS_OK)
+        return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_out_frac_fx(in, weights, out), __func__);
     if (ret != MLI_STATUS_OK)
         return ret;
     ret = MLI_CHECK_STATUS(mli_chk_fully_connected(in, weights, bias, cfg, out), __func__);
@@ -1969,6 +2068,12 @@ mli_status mli_chk_rnn_dense (
         fail |= MLI_CHECK(check_inner_most_dimension_is_one(in[idx]), "Memory stride for inner most dimension of input must be 1");
         fail |= MLI_CHECK(check_inner_most_dimension_is_one(weights[idx]), "Memory stride for inner most dimension of weights must be 1");
         if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
+
+        //check that input and output are not overlapped
+        if (MLI_CHECK(mli_chk_tensors_not_overlapped(in[idx], out),"in and out buffer must not be overlapped")) {
+            return MLI_STATUS_INCOMPATEBLE_TENSORS;
+        }
+
     }
 
     // Check bias
@@ -2184,6 +2289,11 @@ mli_status mli_chk_lstm_cell (
     fail |= MLI_CHECK(check_inner_most_dimension_is_one(out), "Memory stride for inner most dimension of output must be 1");
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
+    //check that input data and scratch data are not overlapped
+    if (MLI_CHECK(mli_chk_containers_not_overlapped(in->data, cfg->scratch_data),"in and scratch_data buffers must not be overlapped")) {
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    }
+
     return MLI_STATUS_OK;
 }
 
@@ -2381,6 +2491,11 @@ mli_status mli_chk_gru_cell (
     fail |= MLI_CHECK(check_inner_most_dimension_is_one(out), "Memory stride for inner most dimension of output must be 1");
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
+    //check that input data and scratch data are not overlapped
+    if (MLI_CHECK(mli_chk_containers_not_overlapped(in->data, cfg->scratch_data),"in and scratch_data buffers must not be overlapped")) {
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    }
+
     return MLI_STATUS_OK;
 }
 
@@ -2523,6 +2638,11 @@ mli_status mli_chk_permute (const mli_tensor * in, const mli_permute_cfg * cfg, 
         // Output shape must match a permuted input shape
         if (MLI_CHECK(out->shape[idx] == in->shape[cfg->perm_dim[idx]], "Wrong output shape"))
             return MLI_STATUS_SHAPE_MISMATCH;
+    }
+
+    //check that input and output are not overlapped
+    if (MLI_CHECK(mli_chk_tensors_not_overlapped(in, out),"in and out buffer must not be overlapped")) {
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
     }
 
     return MLI_STATUS_OK;
@@ -2751,8 +2871,7 @@ mli_status mli_chk_data_movement(const mli_tensor *in, const mli_mov_cfg_t *cfg,
     }
 
     //check that input and output are not overlapped
-    if (MLI_CHECK((out->data.mem.i32 >= (in->data.mem.i32 + (int)(in->data.capacity))) ||
-            (in->data.mem.i32 >= (out->data.mem.i32 + (int)(out->data.capacity))),"in and out buffer are overlapped")) {
+    if (MLI_CHECK(mli_chk_tensors_not_overlapped(in, out),"in and out buffer must not be overlapped")) {
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
     }
 
@@ -2779,6 +2898,9 @@ mli_status mli_chk_argmax(const mli_tensor *in, const mli_argmax_cfg *cfg, mli_t
     if (MLI_CHECK(out->el_type == MLI_EL_SA_32, "Output type must be MLI_EL_SA_32"))
         return MLI_STATUS_TYPE_MISMATCH;
 
+    if (MLI_CHECK(check_layout_is_contiguous(out), "Memory Layout of out tensor must be contiguous"))
+    	return MLI_STATUS_INCOMPATEBLE_TENSORS;
+
     // Check if cfg is valid
     if (MLI_CHECK(cfg != NULL, "Bad cfg pointer")) return MLI_STATUS_BAD_FUNC_CFG;
     if (MLI_CHECK(cfg->axis <= (int32_t)in->rank, "Incorrect axis")) return MLI_STATUS_BAD_FUNC_CFG;
@@ -2786,15 +2908,22 @@ mli_status mli_chk_argmax(const mli_tensor *in, const mli_argmax_cfg *cfg, mli_t
     if (MLI_CHECK(check_inner_most_dimension_is_one(in), "mem_stride of the innermost dimension for input tensor must be not more than 1."))
         return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
+    if (MLI_CHECK(cfg->axis < (int)in->rank, "Wrong Axis Configuration")) return MLI_STATUS_BAD_FUNC_CFG;
     uint32_t dim_size = 1;
-    if (cfg->axis >= 0)
-        dim_size = in->shape[cfg->axis];
-    if (MLI_CHECK(out->data.capacity == cfg->topk * dim_size * sizeof(int32_t), "Insufficient output buffer."))
-        return MLI_STATUS_NOT_ENGH_MEM;
+    bool fail = false;
+    if (cfg->axis >= 0) {
+    	dim_size = in->shape[cfg->axis];
+    	fail |= MLI_CHECK(cfg->topk <= (int)dim_size, "For axis >= 0 topk  must be less or equal to the axis dimension of in");
+    } else {
+    	uint32_t in_size = mli_prv_count_elem_num(in);
+    	fail |= MLI_CHECK(cfg->topk <= (int)in_size, "For axis < 0 topk   must be less or equal to the total number of elements in in");
+    }
+    if (fail) return MLI_STATUS_BAD_FUNC_CFG;
 
-    if (in->el_type == MLI_EL_SA_8 || in->el_type == MLI_EL_SA_32)
-        if (MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor must be quantized on the tensor level."))
-            return MLI_STATUS_INCOMPATEBLE_TENSORS;
+    // Check out shape
+    fail |= MLI_CHECK(out->shape[0] == dim_size, "Out shape[0] should equal dim size");
+    fail |= MLI_CHECK((int)out->shape[1] == cfg->topk, "Out shape[1] should equal topk");
+    if (fail) return MLI_STATUS_SHAPE_MISMATCH;
 
     return MLI_STATUS_OK;
 }
