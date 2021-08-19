@@ -37,14 +37,17 @@ using mli::tst::tensor_quantizer;
 using mli::tst::quality_metrics;
 using mli::tst::crc32_calc;
 using mli::tst::reporter_basic;
+using mli::tst::reporter_full;
 using mli::tst::memory_manager;
 
 constexpr int kMemSize = 1000;
 static IO_DATA_ATTR int8_t scratch_mem_in[kMemSize] = { 0 };
+static IO_DATA_ATTR int8_t scratch_mem_out[kMemSize] = { 0 };
 
 bool run_test_count_and_size();
 bool run_test_quant_params_getters();
 bool run_test_accu_bits_getters();
+bool run_test_create_subtensor();
 
 // Main entry point. Running test procedues for various helpers
 //=============================================================
@@ -57,6 +60,9 @@ int main() {
 
     if (final_status == kSuccess)
         final_status = run_test_accu_bits_getters();
+
+    if (final_status == kSuccess)
+        final_status = run_test_create_subtensor();
 
     return (final_status == kSuccess) ? 0 : 1;
 }
@@ -104,7 +110,7 @@ bool run_test_count_and_size() {
         if (is_test_passed && (tensor_quantizer::validate_tensor(input) != tensor_quantizer::kOk)) {
             is_test_passed = false;
             reporter.report_case(cur_test->descr, 
-                "At quantization step: more memory for in tensor is be required", is_test_passed);
+                "At quantization step: more memory for in tensor is required", is_test_passed);
         }
 
         if (is_test_passed && (mem_in_keeper.is_memory_corrupted())) {
@@ -132,7 +138,7 @@ bool run_test_count_and_size() {
                 mem_in_keeper.is_memory_corrupted())) {
             is_test_passed = false;
             reporter.report_case(cur_test->descr,
-                "At function run: memory is corrupted after functions invokation", is_test_passed);
+                "At function run: memory is corrupted after functions invocation", is_test_passed);
         }
 
         if (is_test_passed && cur_test->elem_size != cur_elem_size ) {
@@ -233,7 +239,7 @@ bool run_test_quant_params_getters() {
                 mem_in_keeper.is_memory_corrupted())) {
                 is_test_passed = false;
                 reporter.report_case(cur_test->descr,
-                    "FAILED at func run: memory is corrupted after functions invokation", is_test_passed);
+                    "FAILED at func run: memory is corrupted after functions invocation", is_test_passed);
             }
 
             if (is_test_passed) {
@@ -338,3 +344,125 @@ bool run_test_accu_bits_getters() {
     return test_status;
 }
 
+// Tests procedure for mli_hlp_create_subtensor function.
+//=======================================================================
+struct create_subtensor_test_operands {
+    const char* descr;
+    tensor_quantizer in;
+    tensor_quantizer out;
+    mli_sub_tensor_cfg cfg;
+    const quality_metrics threshold;
+    const crc32_calc check_sum;
+};
+
+// Checksums of test tensors for various mli calculations mode. 
+// When developer finished implementation of kernel and consider it as ok, one needs to populate
+// proper checksums for tests in order to highlight any change which affects results.
+
+const crc32_calc    test_1_chksum_fx16  { 0x418F5ED6 }, test_1_chksum_fx8       { 0x0820E5D9 },
+                    test_1_chksum_sa8   { 0xBB54537D }, test_1_chksum_sa8_pa    { 0x63BAA2A1 },
+                    test_1_chksum_sa32  { 0xDC93E12C }, test_1_chksum_sa32_pa   { 0x98D5A2D6 },
+                    test_2_chksum_fx16  { 0xD7B05DED }, test_2_chksum_fx8       { 0x7582D890 },
+                    test_2_chksum_sa8   { 0x4CB81C56 }, test_2_chksum_sa8_pa    { 0x2F0B06B8 },
+                    test_2_chksum_sa32  { 0x0B379B11 }, test_2_chksum_sa32_pa   { 0x87591FC2 };
+
+const quality_metrics thresholds_test_general { quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
+                                                quality_metrics::kPassValueSnrDb, /*QuantErrPerc = */100.0f};
+
+bool run_test_create_subtensor() {
+    bool test_status = true;
+    const reporter_full reporter;
+    static const create_subtensor_test_operands create_subtensor_tests_list[] = {
+        {"FX16 tensor ",                    input_1_fx16, test_1_out_fx16, test_1_cfg, 
+                                            thresholds_test_general, test_1_chksum_fx16},
+        {"FX8 tensor ",                     input_1_fx8, test_1_out_fx8, test_1_cfg, 
+                                            thresholds_test_general, test_1_chksum_fx8},
+        {"SA8 tensor ",                     input_1_sa8, test_1_out_sa8, test_1_cfg, 
+                                            thresholds_test_general, test_1_chksum_sa8},
+        {"SA8 tensor per axis",             input_1_sa8_per_axis, test_1_out_sa8_per_axis, test_1_cfg, 
+                                            thresholds_test_general, test_1_chksum_sa8_pa},
+        {"SA32 tensor ",                    input_1_sa32, test_1_out_sa32, test_1_cfg, 
+                                            thresholds_test_general, test_1_chksum_sa32},
+        {"SA32 tensor per axis",            input_1_sa32_per_axis, test_1_out_sa32_per_axis, test_1_cfg, 
+                                            thresholds_test_general, test_1_chksum_sa32_pa},
+        {"FX16 tensor (rank & offset) ",    input_1_fx16, test_2_out_fx16, test_2_cfg, 
+                                            thresholds_test_general, test_2_chksum_fx16},
+        {"FX8 tensor (rank & offset)",      input_1_fx8, test_2_out_fx8, test_2_cfg, 
+                                            thresholds_test_general, test_2_chksum_fx8},
+        {"SA8 tensor (rank & offset)",      input_1_sa8, test_2_out_sa8, test_2_cfg, 
+                                            thresholds_test_general, test_2_chksum_sa8},
+        {"SA8 per axis (rank & offset)",    input_1_sa8_per_axis, test_2_out_sa8_per_axis, test_2_cfg,
+                                            thresholds_test_general, test_2_chksum_sa8_pa},
+        {"SA32 tensor (rank & offset)",     input_1_sa32, test_2_out_sa32, test_2_cfg, 
+                                            thresholds_test_general, test_2_chksum_sa32},
+        {"SA32 per axis (rank & offset)",   input_1_sa32_per_axis, test_2_out_sa32_per_axis, test_2_cfg, 
+                                            thresholds_test_general, test_2_chksum_sa32_pa}
+    };
+    constexpr int kTestsNum = sizeof(create_subtensor_tests_list) / sizeof(create_subtensor_tests_list[0]);
+
+    reporter.report_header("MLI|Helpers|Create Subtensor Tests");
+    for (int i = 0; i < kTestsNum; ++i) {
+        memory_manager mem_in_keeper((int8_t*)(scratch_mem_in), sizeof(scratch_mem_in));
+        memory_manager mem_out_keeper((int8_t*)(scratch_mem_out), sizeof(scratch_mem_out));
+        bool is_test_passed = true;
+        const create_subtensor_test_operands* cur_test = &create_subtensor_tests_list[i];
+        quality_metrics test_metrics;
+
+        if (!(cur_test->in.is_valid())) {
+            is_test_passed = false;
+            reporter.report_message(cur_test->descr, "At init: Bad source data for input tensor");
+        }
+
+        const mli_tensor input = cur_test->in.get_quantized_tensor(mem_in_keeper.allocate_memory(cur_test->in));
+        mli_tensor out = { 0 };
+        if (is_test_passed &&
+                tensor_quantizer::validate_tensor(input) != tensor_quantizer::kOk) {
+            is_test_passed = false;
+            reporter.report_message(cur_test->descr,
+                "At quantization step: more memory for in tensor is required");
+        }
+
+        if (is_test_passed &&
+                mem_in_keeper.is_memory_corrupted()) {
+            is_test_passed = false;
+            reporter.report_message(cur_test->descr,
+                "At quantization step: memory beside one of operands is corrupted");
+        }
+
+        // Run specific kernel for test
+        crc32_calc data_crc_before, data_crc_after;
+        if (is_test_passed) {
+            data_crc_before(input);
+            if (mli_hlp_create_subtensor(&input, &cur_test->cfg, &out) != MLI_STATUS_OK) {
+                is_test_passed = false;
+                reporter.report_message(cur_test->descr, "FAILED at kernel run: kernel returned bad status");
+            }         
+            data_crc_after(input);
+        }
+
+        if (is_test_passed &&
+                (data_crc_before.get() != data_crc_after.get() ||
+                mem_in_keeper.is_memory_corrupted())) {
+            is_test_passed = false;
+            reporter.report_message(cur_test->descr,
+                "At function run: memory is corrupted after functions invocation");
+        }
+
+        if (is_test_passed &&
+                test_metrics.calculate_metrics(out, cur_test->out) == false) {
+            reporter.report_message(cur_test->descr, "FAILED at comparison output with reference");
+            is_test_passed = false;
+        }
+
+        if (is_test_passed) {
+            crc32_calc data_crc;
+            data_crc(input);
+            data_crc(out);
+            is_test_passed &= reporter.evaluate_and_report_case(cur_test->descr, test_metrics, cur_test->threshold,
+                                                                data_crc, cur_test->check_sum);
+        }
+        test_status &= is_test_passed;
+    }
+    reporter.report_outline("[AUTO] Group: mli_hlp_create_subtensor", test_status);
+    return test_status;
+}
