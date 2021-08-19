@@ -1,5 +1,7 @@
 Face Detect Example
 ==============================================
+:building_construction: **The example is under re-construction.** :building_construction:
+<!--
 Example shows very basic implementation of the classic object detection via sliding window paradigm.
 Small binary NN classifier for 36x36 grayscale images outputs positive decision for the images of face, and negative decision on other images. To process bigger image pyramid scaling and sliding is organized. 
 Such approach still useful for deeply embedded applications as a compact and efficient way of triggering a bigger job. Activation function and the Layer 2 are quite unspecific kind of layers and was implemented in the research activity. 
@@ -138,3 +140,5 @@ References
 > P. Viola and M. Jones. Rapid object detection using a boosted cascade of simple features. In CVPR, 2001
 
 > R. Vaillant, C. Monrocq, and Y. LeCun. Original approach for the localisation of objects in images. IEE Proc. on Vision, Image, and Signal Processing, 1994.
+
+-->
