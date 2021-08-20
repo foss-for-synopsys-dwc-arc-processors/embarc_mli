@@ -1,11 +1,122 @@
 Face Detect Example
 ==============================================
-:building_construction: **The example is under re-construction.** :building_construction:
+:building_construction: **The example is under re-construction, but still might be built and run.** :building_construction:
+
+TBD: *General description*
+
+# Directory Structure
+
+TBD
+
+# Building and Running
+
+You need to configure and build the library project for the desired platform. 
+Please read the corresponding section on [building the package](/README.md#building-the-package). 
+There are no extra requirements specific for this application. All the specified platforms are supported by the test application.  
+
+Build artifacts of the application are stored in the `/obj/<project>/examples/example_face_detect` directory where `<project>` is defined according to your target platform.  
+
+After you've built and configured the whole library project, you can proceed with the following steps. 
+You need to replace `<options>` placeholder in commands below with the same options list you used for the library configuration and build. 
+
+1. Open command line in the root of the embARC MLI repo and change working directory to './examples/example_face_detect/'
+
+       cd ./examples/example_face_detect/
+
+2. Clean previous build artifacts (optional).
+
+       gmake <options> clean
+
+3. Build the example. This is an optional step as you may go to the next step which automatically invokes the build process. 
+
+       gmake <options> build
+
+4. Run the example
+
+       gmake <options> run RUN_ARGS=<bmp_image_path>
+
+where ``<bmp_image_path>`` is the path to a supported 128x128 RGB file in BMP format. You can start with the provided ``test_img.bmp`` file.
+
+##  x86 Build Process Example
+
+Assuming your environment satisfies all build requirements for x86 platform, you can use the following script to build. 
+The first step is to open a command line and change working directory to the root of the embARC MLI repo.
+
+1. Clean all previous artifacts for all platforms
+    ```bash
+    gmake cleanall 
+    ```
+
+2. Build project to emulate ARC VPX platform. Use multithreaded build process (4 threads):
+    ```bash
+    gmake ROUND_MODE=UP FULL_ACCU=OFF JOBS=4 build  
+    ```
+
+3. Change working directory  and build the example:
+    ```bash
+    cd ./examples/example_face_detect
+    gmake ROUND_MODE=UP FULL_ACCU=OFF JOBS=4 build
+    ```
+
+4. Run example using ``test_img.bmp`` as input:
+    ```bash
+    gmake ROUND_MODE=UP FULL_ACCU=OFF run RUN_ARGS=test_img.bmp
+    ```
+
+##  ARC VPX Build Process Example
+
+Assuming your environment satisfies all build requirements for ARC VPX platform, you can use the following script to build and run application using the nSIM simulator.
+The first step is to open a command line and change working directory to the root of the embARC MLI repo.
+
+1. Clean all previous artifacts for all platforms
+    ```bash
+    gmake cleanall 
+    ```
+
+2. Generate recommended  TCF file for VPX
+    ```bash
+    tcfgen -o ./hw/vpx5_integer_full.tcf -tcf=vpx5_integer_full -iccm_size=0x80000 -dccm_size=0x40000
+    ```
+
+3. Build project using generated TCF and appropriate built-in runtime library for it. Use multithreaded build process (4 threads):
+    ```bash
+    gmake TCF_FILE=./hw/vpx5_integer_full.tcf BUILDLIB_DIR=vpx5_integer_full JOBS=4 build
+    ```
+
+4. Change working directory  and build the example:
+    ```bash
+    cd ./examples/example_face_detect
+    gmake TCF_FILE=../../hw/vpx5_integer_full.tcf BUILDLIB_DIR=vpx5_integer_full build
+    ```
+
+5. Run example using ``test_img.bmp`` as input:
+    ```bash
+    gmake TCF_FILE=../../hw/vpx5_integer_full.tcf BUILDLIB_DIR=vpx5_integer_full RUN_ARGS=test_img.bmp run
+    ```
+
+## Expected Output
+
+Application will create `result.bmp` file in the working directory. It's the same input file with framed faces which was found in run. Expected console output for a ``test_img.bmp`` is the following: 
+
+     Found a face at ([X:57, Y:40]; [X:76, Y:59]) with (0.963000) score
+     Found a face at ([X:20, Y:32]; [X:39, Y:51]) with (0.901000) score
+     Found a face at ([X:94, Y:30]; [X:113, Y:50]) with (0.832000) score
+     Done. See result in "result.bmp" file.
+
+# Data Memory Requirements
+
+TBD
+
+# References
+
+TBD
+
 <!--
 Example shows very basic implementation of the classic object detection via sliding window paradigm.
 Small binary NN classifier for 36x36 grayscale images outputs positive decision for the images of face, and negative decision on other images. To process bigger image pyramid scaling and sliding is organized. 
 Such approach still useful for deeply embedded applications as a compact and efficient way of triggering a bigger job. Activation function and the Layer 2 are quite unspecific kind of layers and was implemented in the research activity. 
 MLI provides useful data manipulation and helper operations for implementation of such layers.
+
 
 
 Quick Start
