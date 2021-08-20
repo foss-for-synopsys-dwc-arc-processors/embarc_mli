@@ -1,8 +1,6 @@
 embARC Machine Learning Inference Library
 ==================================================
 
-:warning: **You are using a development branch. Things might be broken. For a proper usage of embARC MLI Library please checkout the [latest release](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/releases).** 
-
 This repository contains source code of embARC Machine Learning Inference Library (embARC MLI Library), its documentation and examples. The primary purpose of this library is to enable developers to efficiently implement and/or port data processing algorithms based on machine learning principles for DSP-enhanced ARC Processors.
 
 # Table of Content
@@ -23,10 +21,7 @@ This repository contains source code of embARC Machine Learning Inference Librar
 
 # Release Notes
 
-1. Version 2.0 EA
-    * This is the first early access release for embARC MLI 2.0 (MLI 2.0 EA)
-    * **It is highly recommended to use embARC MLI 2.0 for VPX and x86 emulation targets only. You can use [embARC MLI 1.1](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/releases/tag/Release_1.1) for EM/HS targets.**
-    * Not all kernels are fully optimized
+1. Version 2.0
 
 3. This release supports following functional primitives
     * 2D Convolution
@@ -66,9 +61,11 @@ This repository contains source code of embARC Machine Learning Inference Librar
 
 # Documentation
 
-embARC MLI library API documentation for version 2.0 is available in the [/doc](/doc) directory. It can be built from sources as described in the related [readme file](doc/README.md). 
+embARC MLI library API documentation for version 2.0 is [available online](https://foss-for-synopsys-dwc-arc-processors.github.io/embarc_mli/doc/build/html/index.html) starting from the release date. 
 
-The documentation will be available online closer to the final release date. 
+It's sources are available in the [/doc](/doc) directory and can be built as described in the related [readme file](doc/README.md). 
+
+
 
 # Package Structure
 
@@ -104,7 +101,7 @@ Afterward you can continue with familiarizing yourself with [the documentation](
 
 **Note that it is highly recommended to use DBG_MODE_DEBUG configuration option (see [`MLI_DEBUG_MODE`](#mli_debug_mode)) for early development of applications based on embARC MLI Library because it provides additional diagnostic output which can help you quickly track down misuse of the API**.
 
-# Building The Package
+# Building the Package
 
 The embARC MLI Library uses [CMake](https://cmake.org/) as a backend for the platform independent project generation and [GNU Make](https://www.gnu.org/software/make/) as a front end to invoke CMake and to run tests. Alternatively, after CMake configures the project for the desired platform, you can work with its output stored in `obj` folder as you may be used to. 
 
@@ -179,7 +176,7 @@ As a result of configuration and build you will find `bin/native` folder with th
 `<Additional options>` which have no effect or do not make sense in this mode are [`BUILDLIB_DIR`](#buildlib_dir), [`MLI_BUILD_REFERENCE`](#mli_build_reference), [`OPTMODE`](#optmode), [`DEBUG_BUILD`](#debug_build).
 
 
-### **Build Command Examples For x86**
+### **Build Command Examples for x86**
 
 The first step is to open a command line and change working directory to the root of the embARC MLI repo. Afterward, you can use one of the following commands.
 
@@ -196,7 +193,7 @@ The first step is to open a command line and change working directory to the roo
 
 ## ARC Processors
 
-Main target platforms for embARC MLI Library are ARC processors. The specific processor family is determined by *.tcf file provided for library configuration. It is highly recommended to use embARC MLI 2.0 for VPX processor only. EM/HS targets are not properly tested and optimized. You can use [embARC MLI 1.1](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/releases/tag/Release_1.1). 
+Main target platforms for embARC MLI Library are ARC processors. The specific processor family is determined by *.tcf file provided for library configuration. It is highly recommended to use embARC MLI 2.0 for VPX processor only. EM/HS targets are not properly tested and optimized. You can use [embARC MLI 1.1](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/releases/tag/Release_1.1) instead. 
 
 embARC MLI Library build for ARC processors requires [MetaWare Development Tools](https://www.synopsys.com/dw/ipdir.php?ds=sw_metaware) (MWDT) version 2021.03 and higher.
 
@@ -223,8 +220,8 @@ As a result of configuration and build you will find `bin/arc` folder with the M
 `<Additional options>` which have no or limited effect in this mode are [`FULL_ACCU`](#full_accu), [`ROUND_MODE`](#round_mode). [`ROUND_MODE`](#round_mode) option is applicable only for ARC EMxD family.
 
 
-### **Build Command Examples For ARC Processors**
-The following commands assume usage of the recommended VPX configuration. TCF for this configuration you need to generate using _tcfgen_ tool delivered with MetaWare Development tools. The first step is to open a command line and change working directory to the root of the embARC MLI repo. Then use the following command to generate recommended tcf file taking default `vpx5_integar_full` configuration as basis:
+### **Build Command Examples for ARC Processors**
+The following commands assume usage of the recommended VPX configuration. TCF for this configuration you need to generate using _tcfgen_ tool delivered with MetaWare Development tools, in order to ensure sufficient target memory to run all of the examples. The first step is to open a command line and change working directory to the root of the embARC MLI repo. Then use the following command to generate recommended tcf file taking default `vpx5_integar_full` configuration as basis:
 
 ```bash
 tcfgen -o ./hw/vpx5_integer_full.tcf -tcf=vpx5_integer_full -iccm_size=0x80000 -dccm_size=0x40000
@@ -413,8 +410,22 @@ There are test and several examples supplied with embARC MLI Library. For inform
 ### [**User Tests**](/user_tests)
 These are basic API level test applications to check that all the functions available at the API level work fine.
 
+### [**Hello World**](/examples/hello_world)
+This example is a first step API functions and data usage.
+
 ### [**CIFAR-10**](/examples/example_cifar10_caffe)
 This example is a simple image classifier built on convolution, pooling and dense layers. It is based on standard Caffe tutorial for CIFAR-10 dataset.
+
+### [**Human Activity Recognition**](/examples/example_har_smartphone)
+LSTM Based Human Activity Recognition example. The model is intended to differentiate human activity between 6 classes based on inputs from embedded inertial sensors from waist-mounted smartphone.
+
+### [**Face Detection**](/examples/example_face_detect)
+More advanced but still compact face detection example. It shows how the slicing and data movement can be organised to
+efficiently use limited fast CCM memory.
+
+### [**EMNIST TFLM Tutorial**](/examples/tutorial_emnist_tflm)
+This example shows how to convert EMNIST Tensorflow model into Tensorflow Lite Micro format and use it in application.
+
 
 <!-- 
 ## [Human Activity Recognition](/examples/example_har_smartphone)
@@ -429,9 +440,7 @@ An example of speech recognition implementation for key word spotting.
 
 # Known Issues
 
-1. The embARC MLI 2.0 is in active development phase. Things might be broken, not optimal or contain bugs. For a proper usage of embARC MLI Library please checkout the [latest release](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/releases).
-
-2. embARC MLI 2.0 is partially optimized for ARC EMxD and ARC HSxD targets. Currently we recommend only building for VPX and x86 emulation targets. You can use MLI 1.1 for EM/HS targets.
+1. embARC MLI 2.0 is partially optimized for ARC EMxD and ARC HSxD targets. Currently we recommend only building for VPX and x86 emulation targets. You can use MLI 1.1 for EM/HS targets.
 
 
 # Frequently Asked Questions

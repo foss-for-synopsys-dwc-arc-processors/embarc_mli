@@ -55,7 +55,7 @@ To use it you need to extend your initial [library build command](/README.md#gen
 This flag unblocks application specific assertions which may help in advanced debugging.
 
 
-## Expected output
+## Expected Output
 
 Test procedure includes running one or multiple (depending on used make target) test groups with generation of report tables. 
 Each report table corresponds to a specific test group which is typically run by a separate executable file. 
