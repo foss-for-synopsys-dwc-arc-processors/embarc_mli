@@ -332,13 +332,17 @@ static MLI_FORCE_INLINE tensor_private_t<T> mli_prv_get_tensor_hwc(
             col_mem_stride, row_mem_stride, ch_mem_stride };
 }
 
-template <typename T>
+template <typename T, bool assign_ptr = true>
 static MLI_FORCE_INLINE generic_tensor_private_t<T> mli_prv_get_generic_tensor(
         const mli_tensor *in) {
     generic_tensor_private_t<T> tensor;
     int rank = in->rank;
 
-    tensor.ptr = mli_prv_tensor_data_ptr<T>(in);
+    if (assign_ptr) {
+        tensor.ptr = mli_prv_tensor_data_ptr<T>(in);
+    } else {
+        tensor.ptr = nullptr;
+    }
     tensor.rank = rank;
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)
