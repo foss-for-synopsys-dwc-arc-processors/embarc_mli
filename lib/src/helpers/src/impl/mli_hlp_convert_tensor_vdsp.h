@@ -16,7 +16,6 @@
 #include "mli_prv_tensor.h"
 #include "mli_types.h"
 
-
 namespace mli {
 namespace hlp {
 namespace vdsp {
@@ -232,15 +231,141 @@ static MLI_FORCE_INLINE void compute_convert_one_dim_with_stride(
     }
 }
 
-template <typename in_T, typename out_T, typename acc_T>
-MLI_FORCE_INLINE mli_status compute_convert_quantized_data(const mli_tensor * src, mli_tensor * dst) {
+MLI_FORCE_INLINE void convert_quantized_data_one_dim(
+        const mli_tensor * src,
+        mli_tensor * dst,
+        MLI_PTR(int8_t) vec_in,
+        MLI_OUT_PTR(int8_t) vec_out,
+        const int16_t scale,
+        const int16_t shift,
+        const int16_t in_zp,
+        const int16_t out_zp,
+        const int shape)
+{
+    MLI_PTR(int16_t) vec_in_pi16 = reinterpret_cast<MLI_PTR(int16_t)>(vec_in);
+    MLI_PTR(int32_t) vec_in_pi32 = reinterpret_cast<MLI_PTR(int32_t)>(vec_in);
+    MLI_OUT_PTR(int16_t) vec_out_pi16 = reinterpret_cast<MLI_OUT_PTR(int16_t)>(vec_out);
+    MLI_OUT_PTR(int32_t) vec_out_pi32 = reinterpret_cast<MLI_OUT_PTR(int32_t)>(vec_out);
+
+    if ((src->el_type == MLI_EL_FX_8 || src->el_type == MLI_EL_SA_8) &&
+            (dst->el_type == MLI_EL_FX_8 || dst->el_type == MLI_EL_SA_8)) {
+        compute_convert_one_dim<int8_t, int8_t>(vec_in, vec_out,
+                                            scale, shift, in_zp, out_zp, shape);
+    } else if ((src->el_type == MLI_EL_FX_8 || src->el_type == MLI_EL_SA_8) &&
+            dst->el_type == MLI_EL_FX_16) {
+        compute_convert_one_dim<int8_t, int16_t>(vec_in, vec_out_pi16,
+                                            scale, shift, in_zp, out_zp, shape);
+    } else if ((src->el_type == MLI_EL_FX_8 || src->el_type == MLI_EL_SA_8) &&
+            dst->el_type == MLI_EL_SA_32) {
+        compute_convert_one_dim<int8_t, int32_t>(vec_in, vec_out_pi32,
+                                            scale, shift, in_zp, out_zp, shape);
+    } else if (src->el_type == MLI_EL_FX_16 &&
+            (dst->el_type == MLI_EL_FX_8 || dst->el_type == MLI_EL_SA_8)) {
+        compute_convert_one_dim<int16_t, int8_t>(vec_in_pi16, vec_out,
+                                            scale, shift, in_zp, out_zp, shape);
+    } else if (src->el_type == MLI_EL_FX_16 && dst->el_type == MLI_EL_FX_16) {
+        compute_convert_one_dim<int16_t, int16_t>(vec_in_pi16, vec_out_pi16,
+                                            scale, shift, in_zp, out_zp, shape);
+    } else if (src->el_type == MLI_EL_FX_16 && dst->el_type == MLI_EL_SA_32) {
+        compute_convert_one_dim<int16_t, int32_t>(vec_in_pi16, vec_out_pi32,
+                                            scale, shift, in_zp, out_zp, shape);
+    } else if (src->el_type == MLI_EL_SA_32 &&
+            (dst->el_type == MLI_EL_FX_8 || dst->el_type == MLI_EL_SA_8)) {
+        compute_convert_one_dim<int32_t, int8_t>(vec_in_pi32, vec_out,
+                                            scale, shift, in_zp, out_zp, shape);
+    } else if (src->el_type == MLI_EL_SA_32 && dst->el_type == MLI_EL_FX_16) {
+        compute_convert_one_dim<int32_t, int16_t>(vec_in_pi32, vec_out_pi16,
+                                            scale, shift, in_zp, out_zp, shape);
+    } else if (src->el_type == MLI_EL_SA_32 && dst->el_type == MLI_EL_SA_32) {
+        compute_convert_one_dim<int32_t, int32_t>(vec_in_pi32, vec_out_pi32,
+                                            scale, shift, in_zp, out_zp, shape);
+    }
+}
+
+MLI_FORCE_INLINE void convert_quantized_data_one_dim_with_stride(
+        const mli_tensor * src,
+        mli_tensor * dst,
+        MLI_PTR(int8_t) vec_in,
+        MLI_OUT_PTR(int8_t) vec_out,
+        const int16_t scale,
+        const int16_t shift,
+        const int16_t in_zp,
+        const int16_t out_zp,
+        const int shape,
+        const int in_mem_stride,
+        const int out_mem_stride)
+{
+
+    MLI_PTR(int16_t) vec_in_pi16 = reinterpret_cast<MLI_PTR(int16_t)>(vec_in);
+    MLI_PTR(int32_t) vec_in_pi32 = reinterpret_cast<MLI_PTR(int32_t)>(vec_in);
+    MLI_OUT_PTR(int16_t) vec_out_pi16 = reinterpret_cast<MLI_OUT_PTR(int16_t)>(vec_out);
+    MLI_OUT_PTR(int32_t) vec_out_pi32 = reinterpret_cast<MLI_OUT_PTR(int32_t)>(vec_out);
+
+    if ((src->el_type == MLI_EL_FX_8 || src->el_type == MLI_EL_SA_8) &&
+            (dst->el_type == MLI_EL_FX_8 || dst->el_type == MLI_EL_SA_8)) {
+        compute_convert_one_dim_with_stride<int8_t, int8_t>(vec_in, vec_out,
+                                            scale, shift, in_zp, out_zp, shape, in_mem_stride, out_mem_stride);
+    } else if ((src->el_type == MLI_EL_FX_8 || src->el_type == MLI_EL_SA_8) &&
+            dst->el_type == MLI_EL_FX_16) {
+        compute_convert_one_dim_with_stride<int8_t, int16_t>(vec_in, vec_out_pi16,
+                                            scale, shift, in_zp, out_zp, shape, in_mem_stride, out_mem_stride);
+    } else if ((src->el_type == MLI_EL_FX_8 || src->el_type == MLI_EL_SA_8) &&
+            dst->el_type == MLI_EL_SA_32) {
+        compute_convert_one_dim_with_stride<int8_t, int32_t>(vec_in, vec_out_pi32,
+                                            scale, shift, in_zp, out_zp, shape, in_mem_stride, out_mem_stride);
+    } else if (src->el_type == MLI_EL_FX_16 &&
+            (dst->el_type == MLI_EL_FX_8 || dst->el_type == MLI_EL_SA_8)) {
+        compute_convert_one_dim_with_stride<int16_t, int8_t>(vec_in_pi16, vec_out,
+                                            scale, shift, in_zp, out_zp, shape, in_mem_stride, out_mem_stride);
+    } else if (src->el_type == MLI_EL_FX_16 && dst->el_type == MLI_EL_FX_16) {
+        compute_convert_one_dim_with_stride<int16_t, int16_t>(vec_in_pi16, vec_out_pi16,
+                                            scale, shift, in_zp, out_zp, shape, in_mem_stride, out_mem_stride);
+    } else if (src->el_type == MLI_EL_FX_16 && dst->el_type == MLI_EL_SA_32) {
+        compute_convert_one_dim_with_stride<int16_t, int32_t>(vec_in_pi16, vec_out_pi32,
+                                            scale, shift, in_zp, out_zp, shape, in_mem_stride, out_mem_stride);
+    } else if (src->el_type == MLI_EL_SA_32 &&
+            (dst->el_type == MLI_EL_FX_8 || dst->el_type == MLI_EL_SA_8)) {
+        compute_convert_one_dim_with_stride<int32_t, int8_t>(vec_in_pi32, vec_out,
+                                            scale, shift, in_zp, out_zp, shape, in_mem_stride, out_mem_stride);
+    } else if (src->el_type == MLI_EL_SA_32 && dst->el_type == MLI_EL_FX_16) {
+        compute_convert_one_dim_with_stride<int32_t, int16_t>(vec_in_pi32, vec_out_pi16,
+                                            scale, shift, in_zp, out_zp, shape, in_mem_stride, out_mem_stride);
+    } else if (src->el_type == MLI_EL_SA_32 && dst->el_type == MLI_EL_SA_32) {
+        compute_convert_one_dim_with_stride<int32_t, int32_t>(vec_in_pi32, vec_out_pi32,
+                                            scale, shift, in_zp, out_zp, shape, in_mem_stride, out_mem_stride);
+    }
+}
+
+MLI_FORCE_INLINE mli_status convert_quantized_data(const mli_tensor *src, mli_tensor *dst) {
 
     /* Get Generic Private Tensors */
-    auto src_prv = mli_prv_get_generic_tensor<MLI_PTR(in_T)>(src);
-    auto dst_prv = mli_prv_get_generic_tensor<MLI_OUT_PTR(out_T)>(dst);
+    auto src_prv = mli_prv_get_generic_tensor<MLI_PTR(int8_t), /* assign_ptr */ false>(src);
+    auto dst_prv = mli_prv_get_generic_tensor<MLI_OUT_PTR(int8_t), /* assign_ptr */ false>(dst);
 
-    MLI_PTR(in_T)      __restrict src_tensor_arr = src_prv.ptr;
-    MLI_OUT_PTR(out_T) __restrict dst_tensor_arr = dst_prv.ptr;
+    MLI_PTR(int8_t)      __restrict src_tensor_arr;
+    MLI_OUT_PTR(int8_t) __restrict dst_tensor_arr;
+    if (src->el_type == MLI_EL_SA_8 || src->el_type == MLI_EL_FX_8) {
+        src_tensor_arr = mli_prv_tensor_data_ptr<MLI_PTR(int8_t)>(src);
+    } else if (src->el_type == MLI_EL_FX_16) {
+        src_tensor_arr = reinterpret_cast<MLI_PTR(int8_t)>(mli_prv_tensor_data_ptr<MLI_PTR(int16_t)>(src));
+    } else if (src->el_type == MLI_EL_SA_32){
+        src_tensor_arr = reinterpret_cast<MLI_PTR(int8_t)>(mli_prv_tensor_data_ptr<MLI_PTR(int32_t)>(src));
+    } else {
+        return MLI_STATUS_TYPE_MISMATCH;
+    }
+
+    if (dst->el_type == MLI_EL_SA_8 || dst->el_type == MLI_EL_FX_8) {
+        dst_tensor_arr = mli_prv_tensor_data_ptr<MLI_OUT_PTR(int8_t)>(dst);
+    } else if (dst->el_type == MLI_EL_FX_16) {
+        dst_tensor_arr = reinterpret_cast<MLI_OUT_PTR(int8_t)>(mli_prv_tensor_data_ptr<MLI_OUT_PTR(int16_t)>(dst));
+    } else if (dst->el_type == MLI_EL_SA_32){
+        dst_tensor_arr = reinterpret_cast<MLI_OUT_PTR(int8_t)>(mli_prv_tensor_data_ptr<MLI_OUT_PTR(int32_t)>(dst));
+    } else {
+        return MLI_STATUS_TYPE_MISMATCH;
+    }
+
+    uint32_t src_elem_size = mli_hlp_tensor_element_size(src);
+    uint32_t dst_elem_size = mli_hlp_tensor_element_size(dst);
 
     int scale_dim = -1;
     int scales_num = 1;
@@ -269,23 +394,24 @@ MLI_FORCE_INLINE mli_status compute_convert_quantized_data(const mli_tensor * sr
         /* Trying to squash tensor to one dim */
         int shape = mli_prv_squash_tensor_to_one_dim(src, dst);
         if (shape) {
-            compute_convert_one_dim<in_T, out_T>(src_tensor_arr, dst_tensor_arr,
-                                                 scale, scale_shift, in_zp, out_zp, shape);
+            convert_quantized_data_one_dim(src, dst, src_tensor_arr, dst_tensor_arr,
+                                           scale, scale_shift, in_zp, out_zp, shape);
         } else {
             /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
-            mli_prv_reorder_generic_tensor<MLI_PTR(in_T)>(&src_prv);
-            mli_prv_reorder_generic_tensor<MLI_OUT_PTR(out_T)>(&dst_prv);
+            mli_prv_reorder_generic_tensor<MLI_PTR(int8_t)>(&src_prv);
+            mli_prv_reorder_generic_tensor<MLI_OUT_PTR(int8_t)>(&dst_prv);
 
             /* Loop Over Sub Tensor */
-            const MLI_PTR(in_T) __restrict orig_vec_in = src_tensor_arr;
-            MLI_OUT_PTR(out_T) __restrict orig_vec_out = dst_tensor_arr;
+            const MLI_PTR(int8_t) __restrict orig_vec_in = src_tensor_arr;
+            MLI_OUT_PTR(int8_t) __restrict orig_vec_out = dst_tensor_arr;
             for (int pos0 = 0; pos0 < src_prv.shape[0]; pos0++) {
                 for (int pos1 = 0; pos1 < src_prv.shape[1]; pos1++) {
                     for (int pos2 = 0; pos2 < src_prv.shape[2]; pos2++) {
-                        src_tensor_arr  = (MLI_PTR(in_T))orig_vec_in  + POS(&src_prv, pos0, pos1, pos2, 0);
-                        dst_tensor_arr = orig_vec_out + POS(&dst_prv, pos0, pos1, pos2, 0);
-                        compute_convert_one_dim<in_T, out_T>(src_tensor_arr, dst_tensor_arr,
-                                                             scale, scale_shift, in_zp, out_zp, src_prv.shape[3]);
+                        src_tensor_arr  = (MLI_PTR(int8_t))orig_vec_in + 
+                                           POS(&src_prv, pos0, pos1, pos2, 0) * src_elem_size;
+                        dst_tensor_arr = orig_vec_out + POS(&dst_prv, pos0, pos1, pos2, 0) * dst_elem_size;
+                        convert_quantized_data_one_dim(src, dst, src_tensor_arr, dst_tensor_arr,
+                                                       scale, scale_shift, in_zp, out_zp, src_prv.shape[3]);
                     }
                 }
             }
@@ -294,12 +420,12 @@ MLI_FORCE_INLINE mli_status compute_convert_quantized_data(const mli_tensor * sr
         int axis_src_mem_stride = src_prv.mem_stride[scale_dim];
         int axis_dst_mem_stride = dst_prv.mem_stride[scale_dim];
         /* Get Non Axis Tensor */
-        auto src_non_axis_prv  = mli_prv_get_non_axis_tensor<MLI_PTR(in_T)>(&src_prv,  scale_dim);
-        auto dst_non_axis_prv = mli_prv_get_non_axis_tensor<MLI_PTR(out_T)>(&dst_prv, scale_dim);
+        auto src_non_axis_prv  = mli_prv_get_non_axis_tensor<MLI_PTR(int8_t)>(&src_prv,  scale_dim);
+        auto dst_non_axis_prv = mli_prv_get_non_axis_tensor<MLI_PTR(int8_t)>(&dst_prv, scale_dim);
 
         /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
-        mli_prv_reorder_generic_tensor<MLI_PTR(in_T)>(&src_non_axis_prv );
-        mli_prv_reorder_generic_tensor<MLI_OUT_PTR(out_T)>(&dst_non_axis_prv);
+        mli_prv_reorder_generic_tensor<MLI_PTR(int8_t)>(&src_non_axis_prv );
+        mli_prv_reorder_generic_tensor<MLI_OUT_PTR(int8_t)>(&dst_non_axis_prv);
 
         for (int scale_idx = 0; scale_idx < scales_num; scale_idx++) {
             /* Calculate scale and scaled zero point. */
@@ -311,64 +437,26 @@ MLI_FORCE_INLINE mli_status compute_convert_quantized_data(const mli_tensor * sr
             int16_t out_zp = mli_hlp_tensor_zero_offset(dst, scale_idx);
 
             /* Define Sub Tensor */
-            MLI_PTR(in_T) vec_in  = (MLI_PTR(in_T))src_prv.ptr  + scale_idx * axis_src_mem_stride;
-            MLI_OUT_PTR(out_T) vec_out = dst_prv.ptr + scale_idx * axis_dst_mem_stride;
+            MLI_PTR(int8_t) vec_in = (MLI_PTR(int8_t))src_tensor_arr + scale_idx * axis_src_mem_stride * src_elem_size;
+            MLI_OUT_PTR(int8_t) vec_out = dst_tensor_arr + scale_idx * axis_dst_mem_stride * dst_elem_size;
 
             /* Loop Over Sub Tensor */
-            MLI_PTR(in_T) orig_vec_in = vec_in;
-            MLI_OUT_PTR(out_T) orig_vec_out = vec_out;
+            MLI_PTR(int8_t) orig_vec_in = vec_in;
+            MLI_OUT_PTR(int8_t) orig_vec_out = vec_out;
             for (int pos1 = 0; pos1 < src_non_axis_prv.shape[1]; pos1++) {
                 for (int pos2 = 0; pos2 < src_non_axis_prv.shape[2]; pos2++) {
-                    vec_in  = (MLI_PTR(in_T))orig_vec_in  + POS(&src_non_axis_prv, 0, pos1, pos2, 0);
-                    vec_out = orig_vec_out + POS(&dst_non_axis_prv, 0, pos1, pos2, 0);
-                    compute_convert_one_dim_with_stride<in_T, out_T>(vec_in, vec_out,
-                                                        scale, scale_shift, in_zp, out_zp, src_non_axis_prv.shape[3],
-                                                        src_non_axis_prv.mem_stride[3],
-                                                        dst_non_axis_prv.mem_stride[3]);
+                    vec_in  = (MLI_PTR(int8_t))orig_vec_in + POS(&src_non_axis_prv, 0, pos1, pos2, 0) * src_elem_size;
+                    vec_out = orig_vec_out + POS(&dst_non_axis_prv, 0, pos1, pos2, 0) * dst_elem_size;
+                    convert_quantized_data_one_dim_with_stride(src, dst, vec_in, vec_out,
+                                                    scale, scale_shift, in_zp, out_zp, src_non_axis_prv.shape[3],
+                                                    src_non_axis_prv.mem_stride[3],
+                                                    dst_non_axis_prv.mem_stride[3]);
                 }
             }
         }
     }
+
     return MLI_STATUS_OK;
-}
-
-MLI_FORCE_INLINE mli_status convert_quantized_data(const mli_tensor *src, mli_tensor *dst) {
-
-    mli_status ret;
-
-    /* Copy shape and rank from source tensor to destination */
-    const int rank = dst->rank = src->rank;
-    for (int i = 0; i < rank; ++i)
-        dst->shape[i] = src->shape[i];
-
-    if ((src->el_type == MLI_EL_FX_8 || src->el_type == MLI_EL_SA_8) &&
-            (dst->el_type == MLI_EL_FX_8 || dst->el_type == MLI_EL_SA_8)) {
-        ret = compute_convert_quantized_data<int8_t, int8_t, int32_t>(src, dst);
-    } else if ((src->el_type == MLI_EL_FX_8 || src->el_type == MLI_EL_SA_8) &&
-            dst->el_type == MLI_EL_FX_16) {
-        ret = compute_convert_quantized_data<int8_t, int16_t, int32_t>(src, dst);
-    } else if ((src->el_type == MLI_EL_FX_8 || src->el_type == MLI_EL_SA_8) &&
-            dst->el_type == MLI_EL_SA_32) {
-        ret = compute_convert_quantized_data<int8_t, int32_t, int64_t>(src, dst);
-    } else if (src->el_type == MLI_EL_FX_16 &&
-            (dst->el_type == MLI_EL_FX_8 || dst->el_type == MLI_EL_SA_8)) {
-        ret = compute_convert_quantized_data<int16_t, int8_t, int32_t>(src, dst);
-    } else if (src->el_type == MLI_EL_FX_16 && dst->el_type == MLI_EL_FX_16) {
-        ret = compute_convert_quantized_data<int16_t, int16_t, int32_t>(src, dst);
-    } else if (src->el_type == MLI_EL_FX_16 && dst->el_type == MLI_EL_SA_32) {
-        ret = compute_convert_quantized_data<int16_t, int32_t, int64_t>(src, dst);
-    } else if (src->el_type == MLI_EL_SA_32 &&
-            (dst->el_type == MLI_EL_FX_8 || dst->el_type == MLI_EL_SA_8)) {
-        ret = compute_convert_quantized_data<int32_t, int8_t, int64_t>(src, dst);
-    } else if (src->el_type == MLI_EL_SA_32 && dst->el_type == MLI_EL_FX_16) {
-        ret = compute_convert_quantized_data<int32_t, int16_t, int64_t>(src, dst);
-    } else if (src->el_type == MLI_EL_SA_32 && dst->el_type == MLI_EL_SA_32) {
-        ret = compute_convert_quantized_data<int32_t, int32_t, int64_t>(src, dst);
-    } else {
-        ret = MLI_STATUS_TYPE_MISMATCH;
-    }
-
-    return ret;
 }
 
 #pragma MLI_CODE_SECTION_END()
