@@ -112,8 +112,9 @@ Ensure that you satisfy the following general conditions before calling the func
  
     - ``axis < 0`` : ``top_k`` must be less or equal to the total number of elements in ``in`` tensor.
 
-    - ``axis >= 0`` : ``top_k`` must be less or equal to the  ``axis`` dimension 
-      of ``in`` tensor (e.g. ``in.shape[cfg.axis]``).
+    - ``axis >= 0`` : ``top_k`` must be less or equal to the total number of 
+      elements in a single slice across the specified axis (that is the product of all 
+      dimensions other than ``cfg.axis``)
 
 For **sa8** versions of kernel, in addition to general conditions, ensure that you 
 satisfy the following condition before calling the function:
