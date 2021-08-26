@@ -2911,11 +2911,12 @@ mli_status mli_chk_argmax(const mli_tensor *in, const mli_argmax_cfg *cfg, mli_t
     if (MLI_CHECK(cfg->axis < (int)in->rank, "Wrong Axis Configuration")) return MLI_STATUS_BAD_FUNC_CFG;
     uint32_t dim_size = 1;
     bool fail = false;
+    uint32_t in_size = mli_prv_count_elem_num(in);
     if (cfg->axis >= 0) {
-    	dim_size = in->shape[cfg->axis];
-    	fail |= MLI_CHECK(cfg->topk <= (int)dim_size, "For axis >= 0 topk  must be less or equal to the axis dimension of in");
+        dim_size = in->shape[cfg->axis];
+        uint32_t slice_size = in_size / dim_size;
+    	fail |= MLI_CHECK(cfg->topk <= (int)slice_size, "For axis >= 0 topk  must be less or equal to the total number of elements in s single slice across the specified axis");
     } else {
-    	uint32_t in_size = mli_prv_count_elem_num(in);
     	fail |= MLI_CHECK(cfg->topk <= (int)in_size, "For axis < 0 topk   must be less or equal to the total number of elements in in");
     }
     if (fail) return MLI_STATUS_BAD_FUNC_CFG;
