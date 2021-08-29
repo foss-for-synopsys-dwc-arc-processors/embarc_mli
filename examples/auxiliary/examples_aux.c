@@ -24,6 +24,7 @@ static inline int arg_max(mli_tensor * net_output_);
 // It returns -1 if type is unknown.
 static inline int get_label(void * label_container_, tIdxDataType type_);
 
+static FAST_TYPE(int32_t) pred_label = 0;
 
 //========================================================================================
 // Single vector processing for debug
@@ -336,9 +337,8 @@ static inline int arg_max(mli_tensor * net_output_) {
         /* topk = */ 1
     };
 
-    int pred_label = 0;
     mli_tensor out_tensor = { 0 };
-    out_tensor.data.mem.pi32 = &pred_label;
+    out_tensor.data.mem.pi32 = (int32_t *)&pred_label;
     out_tensor.data.capacity = sizeof(pred_label);
     out_tensor.el_type = MLI_EL_SA_32;
     out_tensor.rank = 2;

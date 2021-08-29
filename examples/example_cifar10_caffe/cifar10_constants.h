@@ -236,6 +236,7 @@ extern const int16_t conv4_b_zp_arr[];
 #define CONV1_W_SCALE   conv1_w_scale_arr
 #define CONV1_W_ZP      conv1_w_zp_arr
 #define CONV1_W_DIM     3
+#define CONV1_W_SA_ELEMENTS (32)
 
 #else
 
@@ -255,6 +256,7 @@ extern const int16_t conv4_b_zp_arr[];
 #define CONV1_B_SCALE   conv1_b_scale_arr
 #define CONV1_B_ZP      conv1_b_zp_arr
 #define CONV1_B_DIM     0
+#define CONV1_B_SA_ELEMENTS (32)
 
 #else
 
@@ -281,6 +283,7 @@ extern const int16_t conv4_b_zp_arr[];
 #define CONV2_W_SCALE   conv2_w_scale_arr
 #define CONV2_W_ZP      conv2_w_zp_arr
 #define CONV2_W_DIM     3
+#define CONV2_W_SA_ELEMENTS (16)
 
 #else
 #define CONV2_W_FRAQ   (FRQ_BITS(CONV2_W_INT, w_type))
@@ -298,6 +301,7 @@ extern const int16_t conv4_b_zp_arr[];
 #define CONV2_B_SCALE   conv2_b_scale_arr
 #define CONV2_B_ZP      conv2_b_zp_arr
 #define CONV2_B_DIM     0
+#define CONV2_B_SA_ELEMENTS (16)
 
 #else
 
@@ -324,6 +328,7 @@ extern const int16_t conv4_b_zp_arr[];
 #define CONV3_W_SCALE   conv3_w_scale_arr
 #define CONV3_W_ZP      conv3_w_zp_arr
 #define CONV3_W_DIM     3
+#define CONV3_W_SA_ELEMENTS (32)
 
 #else
 
@@ -343,6 +348,7 @@ extern const int16_t conv4_b_zp_arr[];
 #define CONV3_B_SCALE   conv3_b_scale_arr
 #define CONV3_B_ZP      conv3_b_zp_arr
 #define CONV3_B_DIM     0
+#define CONV3_B_SA_ELEMENTS (32)
 
 #else
 
@@ -369,6 +375,7 @@ extern const int16_t conv4_b_zp_arr[];
 #define CONV4_W_SCALE   conv4_w_scale_arr
 #define CONV4_W_ZP      conv4_w_zp_arr
 #define CONV4_W_DIM     1
+#define CONV4_W_SA_ELEMENTS (10)
 
 #else
 
@@ -388,6 +395,7 @@ extern const int16_t conv4_b_zp_arr[];
 #define CONV4_B_SCALE   conv4_b_scale_arr
 #define CONV4_B_ZP      conv4_b_zp_arr
 #define CONV4_B_DIM     0
+#define CONV4_B_SA_ELEMENTS (10)
 
 #else
 

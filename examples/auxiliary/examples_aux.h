@@ -20,6 +20,7 @@
 
 #include "mli_api.h"
 #include "tests_aux.h"
+#include "mli_config.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -124,6 +125,13 @@ test_status model_run_idx_base_to_idx_out(
         model_inference_t inference,
         const char * inf_param);
 
+#if (PLATFORM == V2DSP_XY)
+#define FAST_TYPE(t) __xy t
+#elif (PLATFORM == V2DSP_VECTOR) && !defined(MLI_BUILD_REFERENCE)
+#define FAST_TYPE(t) __vccm t
+#else
+#define FAST_TYPE(t) t
+#endif
 
 #ifdef __cplusplus
 } /* end extern "C" */
