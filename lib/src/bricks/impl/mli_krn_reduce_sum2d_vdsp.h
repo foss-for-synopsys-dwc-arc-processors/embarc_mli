@@ -135,9 +135,13 @@ static MLI_FORCE_INLINE vNx4char_t reduce_sum2D_v(
 #pragma clang diagnostic pop
 
     shift_value -= (mul_hi_shift - mul_pre_shift - accu_preshift);
+    constexpr int max_right_shift = 15;
+    int shift_right = mli_math_min_fx(mli_math_max_fx(shift_value, 1), max_right_shift);
+    int shift_left = mli_math_max_fx(1 - shift_value, 0);
     vNx4short_t acc_casted = mli_math_acc_cast(acc_short);
+    acc_casted = mli_math_asl_fx(acc_casted, shift_left);
     acc_casted = mli_math_mul_fx_high(acc_casted, (mul << mul_pre_shift));
-    acc_casted = mli_math_asr_rnd_fx(acc_casted, shift_value);
+    acc_casted = mli_math_asr_rnd_fx(acc_casted, shift_right);
     acc_casted = mli_math_add_fx<vNx4short_t>(acc_casted, accu_init);
     return mli_math_cast_fx<vNx4short_t, vNx4char_t>(acc_casted);
 }
