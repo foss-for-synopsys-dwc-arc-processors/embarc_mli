@@ -35,7 +35,7 @@ const int16_t conv1_w_scale_arr[] = { \
     22671, 21220, 16589, 32411, 25384, 28761, 32364, 29975  \
     };
 
-const int16_t conv1_w_zp_arr[] = { 0 };
+const int16_t conv1_w_zp_arr[CONV1_W_SA_ELEMENTS] = { 0 };
 
 const int8_t conv1_b_fraq_arr[] = { \
     30, 46, 32, 31, 33, 30, 32, 31, \
@@ -51,7 +51,7 @@ const int16_t conv1_b_scale_arr[] = { \
     22671, 21220, 16589, 32411, 25384, 28761, 32364, 29975  \
     };
 
-const int16_t conv1_b_zp_arr[] = { 0 };
+const int16_t conv1_b_zp_arr[CONV1_B_SA_ELEMENTS] = { 0 };
 
 // CONV1_W coefficients
 //================================================
@@ -322,7 +322,7 @@ const int16_t conv2_w_scale_arr[] = { \
     27900, 25225, 19494, 19868, 17547, 19824, 17676, 22204  \
     };
 
-const int16_t conv2_w_zp_arr[] = { 0 };
+const int16_t conv2_w_zp_arr[CONV2_W_SA_ELEMENTS] = { 0 };
 
 const int8_t conv2_b_fraq_arr[] = { \
     29, 29, 29, 29, 29, 30, 28, 29, \
@@ -334,7 +334,7 @@ const int16_t conv2_b_scale_arr[] = { \
     24605, 22246, 17191, 17522, 30949, 17482, 31177, 19581  \
     };
 
-const int16_t conv2_b_zp_arr[] = { 0 };
+const int16_t conv2_b_zp_arr[CONV2_B_SA_ELEMENTS] = { 0 };
 
 // CONV2_W coefficients
 //================================================
@@ -1647,7 +1647,7 @@ const int16_t conv3_w_scale_arr[] = { \
     24724, 22851, 27885, 31547, 22617, 24270, 17537, 18768  \
 };
 
-const int16_t conv3_w_zp_arr[] = { 0 };
+const int16_t conv3_w_zp_arr[CONV3_W_SA_ELEMENTS] = { 0 };
 
 const int8_t conv3_b_fraq_arr[] = { \
     28, 28, 28, 28, 28, 28, 28, 28, \
@@ -1663,7 +1663,7 @@ const int16_t conv3_b_scale_arr[] = { \
     26991, 24946, 30441, 17220, 24691, 26495, 19145, 20489  \
     };
 
-const int16_t conv3_b_zp_arr[] = { 0 };
+const int16_t conv3_b_zp_arr[CONV3_B_SA_ELEMENTS] = { 0 };
 
 // CONV3_W coefficients
 //================================================
@@ -2972,7 +2972,7 @@ const int16_t conv4_w_scale_arr[] = { \
     32405, 23545, 20171, 17981, 27267, 22166, 18159, 21389, 16405, 31701 \
     };
 
-const int16_t conv4_w_zp_arr[] = { 0 };
+const int16_t conv4_w_zp_arr[CONV4_W_SA_ELEMENTS] = { 0 };
 
 const int8_t conv4_b_fraq_arr[] = { \
     27, 27, 27, 27, 26, 27, 27, 27, 27, 27 \
@@ -2982,7 +2982,7 @@ const int16_t conv4_b_scale_arr[] = { \
     22506, 32705, 28019, 24977, 18937, 30790, 25223, 29711, 22787, 22017 \
 };
 
-const int16_t conv4_b_zp_arr[] = { 0 };
+const int16_t conv4_b_zp_arr[CONV4_B_SA_ELEMENTS] = { 0 };
 
 // FC4_W coefficients
 //================================================
