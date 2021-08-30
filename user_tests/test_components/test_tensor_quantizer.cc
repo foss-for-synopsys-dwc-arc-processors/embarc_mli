@@ -172,29 +172,6 @@ mli_tensor tensor_quantizer::get_quantized_tensor(mli_data_container memory) con
         tensor_state fp_to_fx_stat;
         fp_to_fx_stat = quantize_float_data(source_data_, mli_hlp_count_elem_num(&ret_tsr, 0), &ret_tsr);
         assert(fp_to_fx_stat == kOk);
-        if (ret_tsr.rank == 0) {
-            switch (ret_tsr.el_type) {
-                case MLI_EL_FX_4:
-                case MLI_EL_FX_8:
-                case MLI_EL_SA_8:
-                    ret_tsr.data.mem.i8 = ret_tsr.data.mem.pi8[0];
-                    break;
-                case MLI_EL_FX_16:
-                case MLI_EL_FP_16:
-                    ret_tsr.data.mem.i16 = ret_tsr.data.mem.pi16[0];
-                    break;
-                case MLI_EL_SA_32:
-                    ret_tsr.data.mem.i32 = ret_tsr.data.mem.pi32[0];
-                    break;
-                case MLI_EL_FP_32:
-                    ret_tsr.data.mem.f32 = ret_tsr.data.mem.pf32[0];
-                    break;
-                default:
-                    assert(ret_tsr.el_type == MLI_EL_FP_32); // at least last case must match
-                    ret_tsr.data.mem.pi8 = nullptr;
-                    break;
-            }
-        }
     }
     return ret_tsr;
 }
@@ -422,37 +399,52 @@ bool  tensor_quantizer::tensor_assign_data_ptr(mli_tensor* tsr, void* ptr) {
     };
 }
 
-
 template <>
 int8_t* tensor_quantizer::tensor_get_data_ptr(
         const mli_tensor *tensor) {
     assert((tensor->el_type == MLI_EL_FX_8) || (tensor->el_type == MLI_EL_SA_8));
-    assert(tensor->rank > 0);
-    return tensor->data.mem.pi8;
+    assert(tensor->rank >= 0);
+    if (tensor->rank > 0) {
+        return tensor->data.mem.pi8;
+    } else {
+        return (int8_t*) &(tensor->data.mem.i8);
+    }
 }
 
 template <>
 int16_t* tensor_quantizer::tensor_get_data_ptr(
         const mli_tensor *tensor) {
     assert(tensor->el_type == MLI_EL_FX_16);
-    assert(tensor->rank > 0);
-    return tensor->data.mem.pi16;
+    assert(tensor->rank >= 0);
+    if (tensor->rank > 0) {
+        return tensor->data.mem.pi16;
+    } else {
+        return (int16_t*) &(tensor->data.mem.i16);
+    }
 }
 
 template <>
 int32_t* tensor_quantizer::tensor_get_data_ptr(
         const mli_tensor *tensor) {
     assert(tensor->el_type == MLI_EL_SA_32);
-    assert(tensor->rank > 0);
-    return tensor->data.mem.pi32;
+    assert(tensor->rank >= 0);
+    if (tensor->rank > 0) {
+        return tensor->data.mem.pi32;
+    } else {
+        return (int32_t*) &(tensor->data.mem.i32);
+    }
 }
 
 template <>
 float* tensor_quantizer::tensor_get_data_ptr(
         const mli_tensor *tensor) {
     assert(tensor->el_type == MLI_EL_FP_32);
-    assert(tensor->rank > 0);
-    return tensor->data.mem.pf32;
+    assert(tensor->rank >= 0);
+    if (tensor->rank > 0) {
+        return tensor->data.mem.pf32;
+    } else {
+        return (float*) &(tensor->data.mem.f32);
+    }
 }
 // Spread provided memory across tensor's containers: data and quantization params
 //=================================================================================
