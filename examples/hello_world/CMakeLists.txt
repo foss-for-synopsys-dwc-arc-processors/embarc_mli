@@ -1,5 +1,5 @@
 #
-# Copyright 2020, Synopsys, Inc.
+# Copyright 2020-2021, Synopsys, Inc.
 # All rights reserved.
 #
 # This source code is licensed under the BSD-3-Clause license found in
@@ -25,15 +25,15 @@ target_link_options(hello_world PRIVATE
 if (ARC)
 target_link_options(hello_world PRIVATE
     -m
-    -Coutput=./elf_files/hello_world.map
-    -Hheap=1024K
-    -Hstack=8K
+    -Coutput=./bin/hello_world.map
+    -Hheap=4K
+    -Hstack=4K
 )
 endif()
 
 set_target_properties(hello_world
     PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "./elf_files$<0:>"
+    RUNTIME_OUTPUT_DIRECTORY "./bin$<0:>"
 )
 
 SET(CMAKE_DEFAULT_STARTUP_PROJECT hello_world)

@@ -101,7 +101,7 @@ Afterward you can continue with familiarizing yourself with [the documentation](
 
 **Note that it is highly recommended to use DBG_MODE_DEBUG configuration option (see [`MLI_DEBUG_MODE`](#mli_debug_mode)) for early development of applications based on embARC MLI Library because it provides additional diagnostic output which can help you quickly track down misuse of the API**.
 
-# Building the Package
+# Building The Package
 
 The embARC MLI Library uses [CMake](https://cmake.org/) as a backend for the platform independent project generation and [GNU Make](https://www.gnu.org/software/make/) as a front end to invoke CMake and to run tests. Alternatively, after CMake configures the project for the desired platform, you can work with its output stored in `obj` folder as you may be used to. 
 
@@ -426,18 +426,6 @@ efficiently use limited fast CCM memory.
 ### [**EMNIST TFLM Tutorial**](/examples/tutorial_emnist_tflm)
 This example shows how to convert EMNIST Tensorflow model into Tensorflow Lite Micro format and use it in application.
 
-
-<!-- 
-## [Human Activity Recognition](/examples/example_har_smartphone)
-LSTM Based Human Activity Recognition example. The model is intended to differentiate human activity between 6 classes based on inputs from embedded inertial sensors from waist-mounted smartphone. 
-
-## [Face Detection](/examples/example_face_detect)
-Example shows basic implementation of the classic object detection (face detection in our case) via sliding window paradigm. 
-
-## [Key Word Spotting](/examples/example_kws_speech)
-An example of speech recognition implementation for key word spotting.
--->
-
 # Known Issues
 
 1. embARC MLI 2.0 is partially optimized for ARC EMxD and ARC HSxD targets. Currently we recommend only building for VPX and x86 emulation targets. You can use MLI 1.1 for EM/HS targets.
@@ -445,13 +433,14 @@ An example of speech recognition implementation for key word spotting.
 
 # Frequently Asked Questions
 
+***Q: I can not build and run example application for my Synopsys board (EMSK, IoTDK, etc), what I shall do?***  
+A: It isn't supported at the moment. Currently we recommend only building for VPX and x86 emulation targets. You can use MLI 1.1 for EM/HS targets.
+
 ***Q: Can I use ARC GNU tools to build embARC MLI library?***  
-A: No you cannot.<!-- embARC MLI Library must be built by MetaWare Development Tools only. Read the documentation at [github.io](https://foss-for-synopsys-dwc-arc-processors.github.io/embarc_mli/doc/build/html/getting_started/getting_started.html) for details-->
+A: embARC MLI Library must be built by MetaWare Development Tools only.
 
 ***Q: Can I use MetaWare Development Tools Lite to pre-build embARC MLI library and ARC GNU to build example application?***  
-A: No you cannot. <!--embARC MLI Library must be built by full version of MetaWare Development Tools. Binaries built with MWDT Lite are not compatible with ARC GNU Tools and full MetaWare Development Tools. Read the MWDT Lite documentation for details.-->
+A: embARC MLI Library must be built by full version of MetaWare Development Tools. Binaries built with MWDT Lite are not compatible with ARC GNU Tools and full MetaWare Development Tools. Read the MWDT Lite documentation for details.
 
-***Q: I can not build and run example application for my Synopsys board (EMSK, IoTDK, etc), what I shall do?***  
-A: It isn't supported at the moment. Currently we recommend only building for VPX and x86 emulation targets. You can use MLI 1.1 for EM/HS targets. <!--If you build for Synopsys boards refer to [platform documentation](https://foss-for-synopsys-dwc-arc-processors.github.io/platforms.html) as a good starting point. -->
-<!--You should also note that example applications support different configurations for pre trained models and thus memory requirements, not all configurations can be built and run on Synopsys boards due to memory limitations and HW capabilities, read example application readme for details. embARC MLI Library must be also pre built specifically for your board by MetaWare Development Tools. Please note that makefiles provided with examples are configured for IoTDK only if GNU tools are used. -->
+
 

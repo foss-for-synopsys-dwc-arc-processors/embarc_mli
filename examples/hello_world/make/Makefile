@@ -1,29 +1,29 @@
 #
-# Copyright 2020, Synopsys, Inc.
+# Copyright 2020-2021, Synopsys, Inc.
 # All rights reserved.
 #
 # This source code is licensed under the BSD-3-Clause license found in
 # the LICENSE file in the root directory of this source tree.
 #
 
-# TCF_FILE: withouts NOT setting this parameter,
-#           the default native compiler is used to compile
-# BUILDLIB_DIR ?= ev71_buildlib can be specified if no MWDT buildlib is available
-
 PUBLIC_DIR = ../../..
 include $(PUBLIC_DIR)/make/rules.mk
 
 BUILD_SUBDIR = examples$(PS)hello_world
+BIN_PATH = $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)bin
+
 BUILD_TARGET = hello_world
+
+ifndef TCF_FILE
+RUN_APP_CMD =
+else
+RUN_APP_CMD = mdb64 -cl  -nsim -cmd=run -off=cr_for_more -cmd=exit -tcf=$(TCF_FILE)
+BIN_EXT = .elf
+endif
 
 app: build
 
 run: app
-ifndef TCF_FILE
-	$(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)elf_files$(PS)hello_world
-else
-	mdb $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)elf_files$(PS)hello_world.elf \
-		-cl  -nsim -cmd=run -off=cr_for_more -cmd=exit -tcf=$(TCF_FILE)
-endif
+	$(RUN_APP_CMD) $(BIN_PATH)$(PS)$(BUILD_TARGET)$(BIN_EXT)
 
 .PHONY:	app run

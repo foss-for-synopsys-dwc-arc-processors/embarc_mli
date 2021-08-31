@@ -25,6 +25,6 @@ endif
 app: build
 
 run: app
-	$(RUN_APP_CMD) $(BIN_PATH)$(PS)example_face_detect$(BIN_EXT) $(RUN_ARGS)
+	$(RUN_APP_CMD) $(BIN_PATH)$(PS)$(BUILD_TARGET)$(BIN_EXT) $(RUN_ARGS)
 
 .PHONY:	app run
