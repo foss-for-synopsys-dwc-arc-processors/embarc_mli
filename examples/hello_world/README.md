@@ -1,10 +1,6 @@
 Hello World Example
 ==============================================
-TBD: *General description*
-
-# Directory Structure
-
-TBD
+This is an introductory example showing basic usage of MLI data structures and kernels.
 
 # Building and Running
 
@@ -87,7 +83,7 @@ The first step is to open a command line and change working directory to the roo
 
 5. Run example:
     ```bash
-    gmake TCF_FILE=../../hw/vpx5_integer_full.tcf BUILDLIB_DIR=vpx5_integer_full run
+    gmake TCF_FILE=../../../hw/vpx5_integer_full.tcf BUILDLIB_DIR=vpx5_integer_full run
     ```
 
 ## Expected Output
@@ -103,11 +99,14 @@ The same console output is expected for any build configuration:
     mli_krn_eltwise_sub_fx16 output:
     -9 -18 -27 -36 -45 -54 -63 -72
 
+# Example Structure
+
+All the application code is concentrated inside the only ``main.cpp`` file. There are no other application level dependencies outside this directory beside MLI Library itself.
+
+
 # Data Memory Requirements
 
-TBD
+Application is configured to use 8 KBytes of heap and stack in total. 
+Application data which must be held in fast memory (kernel operands) is less than 100 bytes. Code size depends on the platform the application is built for.
 
-# References
-
-TBD
 
