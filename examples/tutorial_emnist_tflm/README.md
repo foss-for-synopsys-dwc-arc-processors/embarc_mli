@@ -12,11 +12,12 @@ This example shows how to convert EMNIST Tensorflow model into Tensorflow Lite M
     * [Order the ARC MetaWare Development Toolkit](https://www.synopsys.com/dw/ipdir.php?ds=sw_metaware)
     * [Evaluation license](https://eval.synopsys.com/)
 * gmake (pre-installed as a part of MetaWare tools)
+* Text Editor
 * embARC MLI Library
     * `git clone https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli`
-* Tensorflow Lite for Microcontrollers (part of Tensorflow)
-    * `git clone https://github.com/tensorflow/tflite-micro.git`
-* Text Editor
+* Tensorflow Lite for Microcontrollers
+    * see the [Generate Tensorflow Lite Micro Library section](#generate-tensorflow-lite-micro-library).
+
 
 Installation process of the following dependencies is described in [Getting Started](#getting-started) section:
 * Python 3.7
@@ -48,8 +49,22 @@ pip install --upgrade pip setuptools
 pip install -r ./conversion_tutorial/requirements.txt
 python -c "import emnist; emnist.ensure_cached_data();"
 ```
-## Generate Tensorflow Lite Micro library
-Open root directory of tensorflow in terminal (use Cygwin or MinGW terminal if you're on Windows). Run:
+## Generate Tensorflow Lite Micro Library
+Tensorflow Lite for Microcontrollers is a separate project with specific set of requirements. 
+Please first familiarize yourself with [TFLM ARC specific details](https://github.com/foss-for-synopsys-dwc-arc-processors/tflite-micro/blob/main/tensorflow/lite/micro/tools/make/targets/arc/README.md) and make sure that your environment is set up appropriately. 
+
+Important information is listed inside [make tool section](https://github.com/foss-for-synopsys-dwc-arc-processors/tflite-micro/tree/main/tensorflow/lite/micro/tools/make/targets/arc#make-tool) of the referred document. 
+The main message is that native *nix environment is required to build the TFLM library. 
+For Windows users there are no officially supported flow. 
+You still may consider projects like [WSL](https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux) at your own risk.
+
+We recommend to use [embARC fork](https://github.com/foss-for-synopsys-dwc-arc-processors/tflite-micro) of Tensorflow Lite for Microcontrollers repository.
+The fork has been updating periodically from the [upstream repo](https://github.com/tensorflow/tflite-micro) using states that are stable in relation to ARC target: 
+
+    git clone https://github.com/foss-for-synopsys-dwc-arc-processors/tflite-micro.git
+
+
+In your compatible environment open root directory of tflite-micro repo in terminal. Run:
 ```bash
 make -f tensorflow/lite/micro/tools/make/Makefile\ 
 OPTIMIZED_KERNEL_DIR=arc_mli TARGET=arc_custom\ 
