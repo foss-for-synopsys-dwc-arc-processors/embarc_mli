@@ -104,6 +104,9 @@ the following quantization conditions before calling the function:
  - if ``in`` and ``out`` tensors are both quantized on per-axis level, 
    then they must share the same quantization axis (``in.el_params.sa.dim`` = ``out.el_params.sa.dim``).
 
+Ensure that you satisfy the platform-specific conditions in addition to those listed above 
+(see the :ref:`platform_spec_chptr` chapter).
+
 Result
 ^^^^^^
 

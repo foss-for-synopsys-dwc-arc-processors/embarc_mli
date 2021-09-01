@@ -121,7 +121,7 @@ satisfy the following quantization conditions before calling the function:
  - ``in`` and ``out`` tensors must be quantized on the tensor level. This implies that 
    each tensor contains a single scale factor and a single zero offset.
 
-Ensure that you satisfy the platform-specific conditions in addition to to those listed above 
+Ensure that you satisfy the platform-specific conditions in addition to those listed above 
 (see the :ref:`platform_spec_chptr` chapter).
 
 Result

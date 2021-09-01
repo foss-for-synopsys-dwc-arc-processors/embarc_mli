@@ -9,6 +9,8 @@ Example shows how to work with recurrent primitives (LSTM and basic RNN) impleme
  * 4: STANDING
  * 5: LAYING
 
+**Important note:** Example doesn’t work for VPX configurations without guard bits as it produces incorrect results due to accumulator overflow during calculations.
+
 # Building and Running
 
 You need to configure and build the library project for the desired platform. 

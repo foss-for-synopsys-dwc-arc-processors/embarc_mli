@@ -97,12 +97,10 @@ Ensure that you satisfy the following general conditions before calling the func
 
  - ``in`` and ``out`` tensors must not point to overlapped memory regions.
 
- - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
-
  - Only first N (equal to ``rank`` of ``in`` tensor) values in permutation order array are considered 
    by kernel. All of them must be unique, non-negative and less than the ``rank`` of the ``in`` tensor.
 
-Ensure that you satisfy the platform-specific conditions in addition to to those listed above 
+Ensure that you satisfy the platform-specific conditions in addition to those listed above 
 (see the :ref:`platform_spec_chptr` chapter).
 
 Result

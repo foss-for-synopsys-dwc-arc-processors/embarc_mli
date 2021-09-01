@@ -411,7 +411,7 @@ There are test and several examples supplied with embARC MLI Library. For inform
 These are basic API level test applications to check that all the functions available at the API level work fine.
 
 ### [**Hello World**](/examples/hello_world)
-This example is a first step API functions and data usage.
+This example is a first step into API functions and data usage.
 
 ### [**CIFAR-10**](/examples/example_cifar10_caffe)
 This example is a simple image classifier built on convolution, pooling and dense layers. It is based on standard Caffe tutorial for CIFAR-10 dataset.

@@ -7,6 +7,8 @@ It shows how advanced but still compact models might be implemented utilizing li
 Slicing logic helps to split calculation of large intermediate feature maps into parts 
 propagating it through the network architecture towards layers with more compact output. 
 
+**Important note:** Example doesn’t work for VPX configurations without guard bits as it produces incorrect results due to accumulator overflow during calculations.
+
 # Building and Running
 
 You need to configure and build the library project for the desired platform. 

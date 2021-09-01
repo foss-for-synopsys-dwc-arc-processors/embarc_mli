@@ -2,7 +2,9 @@ EMNIST Conversion Example
 ========================================================================
 This example shows how to convert EMNIST Tensorflow model into Tensorflow Lite Micro format and use it in embARC MLI application.
 
-**Important note:** this example won't work with EM/HS platform. For EM/HS, please use [MLI 1.1 release version](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/tree/Release_1.1/examples/tutorial_emnist_tflm).
+ **Important notes:**
+ * Example doesn’t work for VPX configurations without guard bits as it produces incorrect results due to accumulator overflow during calculations.
+ * Example won't work with EM/HS platform. For EM/HS, please use [MLI 1.1 release version](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/tree/Release_1.1/examples/tutorial_emnist_tflm).
 
 ## Requirements
 ---------------
