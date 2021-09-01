@@ -253,7 +253,7 @@ the following quantization conditions before calling the function:
    ..
 ..
 
-Ensure that you satisfy the platform-specific conditions in addition to to those listed above 
+Ensure that you satisfy the platform-specific conditions in addition to those listed above 
 (see the :ref:`platform_spec_chptr` chapter).
 
 Result

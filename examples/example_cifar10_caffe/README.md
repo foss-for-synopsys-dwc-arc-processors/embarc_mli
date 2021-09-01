@@ -2,6 +2,8 @@ CIFAR-10 Convolution Neural Network Example
 ==============================================
 Example is based on standard [Caffe tutorial](http://caffe.berkeleyvision.org/gathered/examples/cifar10.html) for [CIFAR-10](http://www.cs.toronto.edu/~kriz/cifar.html) dataset. It's a simple classifier built on convolution, pooling and dense layers for tiny images.
 
+**Important note:** Example doesn't work for VPX configurations without guard bits as it produces incorrect results due to accumulator overflow during calculations.
+
 # Building and Running
 
 You need to configure and build the library project for the desired platform. 
