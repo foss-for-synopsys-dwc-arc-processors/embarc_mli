@@ -134,18 +134,18 @@ mli_status mli_mov_prepare(mli_mov_handle_t* h, const mli_tensor* src, const mli
     }
 
     if ((src->el_type == MLI_EL_SA_8 || src->el_type == MLI_EL_SA_32) && (src->el_params.sa.dim != -1)) {
+        for (int dim = 0; dim < rank; dim++) {
+            if (pdim[dim] == src->el_params.sa.dim) {
+                dst->el_params.sa.dim = dim;
+                break;
+            }
+        }
+
         if ((dst->el_params.sa.scale.mem.pi16 != src->el_params.sa.scale.mem.pi16) &&
                 (dst->el_params.sa.scale.mem.pi16 != nullptr)) {
             /*
              * Padding, subsampling and other operations must be applied to the quantization axis.
              */
-
-            for (int dim = 0; dim < rank; dim++) {
-                if (pdim[dim] == src->el_params.sa.dim) {
-                    dst->el_params.sa.dim = dim;
-                    break;
-                }
-            }
 
             int32_t inner_dst_size = dst_write_size[dst->el_params.sa.dim];
             uint32_t inner_src_size = src_cpy_size[dst->el_params.sa.dim];
@@ -198,7 +198,6 @@ mli_status mli_mov_prepare(mli_mov_handle_t* h, const mli_tensor* src, const mli
             dst->el_params.sa.scale = src->el_params.sa.scale;
             dst->el_params.sa.zero_point = src->el_params.sa.zero_point;
             dst->el_params.sa.scale_frac_bits = src->el_params.sa.scale_frac_bits;
-            dst->el_params.sa.dim = src->el_params.sa.dim;
         }
     } else {
         dst->el_params = src->el_params;
