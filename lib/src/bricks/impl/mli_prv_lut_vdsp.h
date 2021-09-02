@@ -1,5 +1,5 @@
 /*
-* Copyright 2020-2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -110,7 +110,7 @@ MLI_FORCE_INLINE void activation_lut_store_output(
 
 #pragma clang diagnostic pop
 
-template <bool convert>
+template <bool convert, bool fx_with_in_offset>
 static MLI_FORCE_INLINE vNx4short_t activation_lut_vec_elem_interpolate(
         vNx4short_t in,
         const mli_lut *lut,
@@ -121,7 +121,6 @@ static MLI_FORCE_INLINE vNx4short_t activation_lut_vec_elem_interpolate(
     MLI_ASSERT(lut->length >= 0);
 
     if (convert) {
-        MLI_ASSERT(in_params != nullptr);
         /* Calculating Scaling Factor to transform SA8 to Qmn (FX16) */
         int lut_int_bits_fx8 = kMaxFracBitsFx8 - lut->in_frac_bits;
         int frac_bits_fx16 = kMaxFracBitsFx16 - lut_int_bits_fx8;
@@ -143,23 +142,30 @@ static MLI_FORCE_INLINE vNx4short_t activation_lut_vec_elem_interpolate(
     vNx4int_t lut_idx_int;
     vNx4short_t frac;
     if (convert) {
+        MLI_ASSERT(in_params != nullptr);
         int shift = (int32_t) in_params->shift - in_frac_bits;
         vNx4int_t x_int = mli_prv_convert_sa8_fx16<vNx4short_t, vNx4int_t>(x, in_params->offset, in_params->scale, shift);
         x_int = mli_math_asr_fx(x_int, preshift_in);
         frac = mli_math_cast_fx<vNx4int_t, vNx4short_t>(x_int & mask);
-
-        /* Calculate lut_idx */
-        vNx4int_t lut_idx = mli_math_add_fx<vNx4int_t>(mli_math_asr_fx(x_int, shift_in), lut->input_offset);
-        lut_idx_int = mli_math_bound_range_fx(lut_idx , 0, lut->length - 2);
+        lut_idx_int = mli_math_add_fx<vNx4int_t>(mli_math_asr_fx(x_int, shift_in), lut->input_offset);
+        lut_idx_int = mli_math_bound_range_fx(lut_idx_int , 0, lut->length - 2);
 
     } else {
-        x = mli_math_asr_fx(x, preshift_in);
-        frac = x & mask;
-
-        /* Calculate lut_idx */
-        vNx4short_t lut_idx = mli_math_add_fx<vNx4short_t>(mli_math_asr_fx(x, shift_in), lut->input_offset);
-        lut_idx = mli_math_bound_range_fx(lut_idx , 0, lut->length - 2);
-        lut_idx_int = mli_math_mul_fx<vNx4short_t, vNx4int_t>(lut_idx, 1);
+        if (fx_with_in_offset) {
+            MLI_ASSERT(in_params != nullptr);
+            vNx4int_t x_int = mli_math_mul_fx<vNx4short_t, vNx4int_t>(x, 1);
+                      x_int = mli_math_sub(x_int, in_params->offset);
+            x_int = mli_math_asr_fx(x_int, preshift_in);
+            frac = mli_math_cast_fx<vNx4int_t, vNx4short_t>(x_int & mask);
+            lut_idx_int = mli_math_add_fx<vNx4int_t>(mli_math_asr_fx(x_int, shift_in), lut->input_offset);
+            lut_idx_int = mli_math_bound_range_fx(lut_idx_int , 0, lut->length - 2);
+        } else {
+            x = mli_math_asr_fx(x, preshift_in);
+            frac = x & mask;
+            vNx4short_t lut_idx = mli_math_add_fx<vNx4short_t>(mli_math_asr_fx(x, shift_in), lut->input_offset);
+                        lut_idx = mli_math_bound_range_fx(lut_idx , 0, lut->length - 2);
+            lut_idx_int = mli_math_mul_fx<vNx4short_t, vNx4int_t>(lut_idx, 1);
+        }
     }
 
     /* Load from LUT */
@@ -174,7 +180,7 @@ static MLI_FORCE_INLINE vNx4short_t activation_lut_vec_elem_interpolate(
     return mli_math_sub_fx<vNx4short_t>(lut_values, diffs_mul_frac_cast);
 }
 
-template <bool convert>
+template <bool convert, bool fx_with_in_offset>
 static MLI_FORCE_INLINE vNx4short_t activation_lut_vec_elem_no_interpolate(
         vNx4short_t in,
         const mli_lut *lut,
@@ -201,22 +207,30 @@ static MLI_FORCE_INLINE vNx4short_t activation_lut_vec_elem_no_interpolate(
     shift_in = mli_math_min_fx(shift_in, (int)kMaxFracBitsFx16);
 
     // input data isn't more precise than LUT
+    vNx4int_t lut_idx_int;
     vNx4short_t x = in;
-    if (convert) {
-        x = mli_prv_convert_sa8_fx16<vNx4short_t, vNx4short_t>(x, in_params->offset, scale_fx);
+    if (fx_with_in_offset) {
+            MLI_ASSERT(in_params != nullptr);
+            vNx4int_t x_int = mli_math_mul_fx<vNx4short_t, vNx4int_t>(x, 1);
+                      x_int = mli_math_sub(x_int, in_params->offset);
+            lut_idx_int = mli_math_add_fx<vNx4int_t>(mli_math_asl_fx(x_int, -shift_in), lut->input_offset);
+            lut_idx_int = mli_math_bound_range_fx(lut_idx_int , 0, lut->length - 1);
+    } else {
+        if (convert) {
+            x = mli_prv_convert_sa8_fx16<vNx4short_t, vNx4short_t>(x, in_params->offset, scale_fx);
+        }
+        vNx4short_t lut_idx = mli_math_add_fx<vNx4short_t>(mli_math_asl_fx(x, -shift_in), lut->input_offset);
+                    lut_idx = mli_math_bound_range_fx(lut_idx , 0, lut->length - 1);
+        lut_idx_int = mli_math_mul_fx<vNx4short_t, vNx4int_t>(lut_idx, 1);
     }
-    vNx4short_t lut_idx = mli_math_add_fx<vNx4short_t>(mli_math_asl_fx(x, -shift_in), lut->input_offset);
-    /* Calculate lut_idx_acc */
-    lut_idx = mli_math_bound_range_fx(lut_idx , 0, lut->length - 1);
 
     /* Load from LUT */
-    vNx4short_t lut_values = mli_prv_gather_load_nx4_samples(lut_data,
-                                mli_math_mul_fx<vNx4short_t, vNx4int_t>(lut_idx, 1));
+    vNx4short_t lut_values = mli_prv_gather_load_nx4_samples(lut_data, lut_idx_int);
     
     return lut_values;
 }
 
-template <typename io_T, bool convert>
+template <typename io_T, bool convert, bool fx_with_in_offset>
 static MLI_FORCE_INLINE void load_input_and_get_lut_idx(
         MLI_PTR(io_T) __restrict in_ptr,
         vNx4short_t &x,
@@ -230,25 +244,31 @@ static MLI_FORCE_INLINE void load_input_and_get_lut_idx(
 
     x = activation_lut_load_input<io_T, vNx4short_t>(in_ptr);
     if (convert) {
+        MLI_ASSERT(in_params != nullptr);
         int shift = (int32_t) in_params->shift - in_frac_bits;
         x_int = mli_prv_convert_sa8_fx16<vNx4short_t, vNx4int_t>(x, in_params->offset, in_params->scale, shift);
         x_int = mli_math_asr_fx(x_int, preshift_in);
-
-        /* Calculate lut_idx */
-        vNx4int_t lut_idx = mli_math_add_fx<vNx4int_t>(mli_math_asr_fx(x_int, shift_in), lut->input_offset);
-        lut_idx_int = mli_math_bound_range_fx(lut_idx , 0, lut->length - 2);
+        lut_idx_int = mli_math_add_fx<vNx4int_t>(mli_math_asr_fx(x_int, shift_in), lut->input_offset);
+        lut_idx_int = mli_math_bound_range_fx(lut_idx_int , 0, lut->length - 2);
 
     } else {
-        x = mli_math_asr_fx(x, preshift_in);
-
-        /* Calculate lut_idx */
-        vNx4short_t lut_idx = mli_math_add_fx<vNx4short_t>(mli_math_asr_fx(x, shift_in), lut->input_offset);
-        lut_idx = mli_math_bound_range_fx(lut_idx , 0, lut->length - 2);
-        lut_idx_int = mli_math_mul_fx<vNx4short_t, vNx4int_t>(lut_idx, 1);
+        if (fx_with_in_offset) {
+            MLI_ASSERT(in_params != nullptr);
+            x_int = mli_math_mul_fx<vNx4short_t, vNx4int_t>(x, 1);
+            x_int = mli_math_sub(x_int, in_params->offset);
+            x_int = mli_math_asr_fx(x_int, preshift_in);
+            lut_idx_int = mli_math_add_fx<vNx4int_t>(mli_math_asr_fx(x_int, shift_in), lut->input_offset);
+            lut_idx_int = mli_math_bound_range_fx(lut_idx_int , 0, lut->length - 2);
+        } else {
+            x = mli_math_asr_fx(x, preshift_in);
+            vNx4short_t lut_idx = mli_math_add_fx<vNx4short_t>(mli_math_asr_fx(x, shift_in), lut->input_offset);
+                        lut_idx = mli_math_bound_range_fx(lut_idx , 0, lut->length - 2);
+            lut_idx_int = mli_math_mul_fx<vNx4short_t, vNx4int_t>(lut_idx, 1);
+        }
     }
 }
 
-template <typename io_T, bool convert>
+template <typename io_T, bool convert, bool fx_with_in_offset>
 static MLI_FORCE_INLINE void compute_activation_lut_func(
         MLI_PTR(io_T) __restrict in_ptr,
         MLI_OUT_PTR(io_T) __restrict out_ptr,
@@ -267,8 +287,6 @@ static MLI_FORCE_INLINE void compute_activation_lut_func(
     MLI_OUT_PTR(io_T) __restrict output_ptr = out_ptr;
 
     if (convert) {
-        MLI_ASSERT(in_params != nullptr);
-        MLI_ASSERT(out_params != nullptr);
         /* Calculating Scaling Factor to transform SA8 to Qmn (FX16) */
         int lut_int_bits_fx8 = kMaxFracBitsFx8 - lut->in_frac_bits;
         int frac_bits_fx16 = kMaxFracBitsFx16 - lut_int_bits_fx8;
@@ -295,7 +313,7 @@ static MLI_FORCE_INLINE void compute_activation_lut_func(
                     output_ptr = out_ptr + POS(out, pos0, pos1, pos2, 0);
                     if (remaining_part) {
                         vNx4short_t x = activation_lut_load_input<io_T, vNx4short_t>(input_ptr);
-                        vNx4short_t res = mli::krn::activation_lut_vec_elem_interpolate<convert>
+                        vNx4short_t res = mli::krn::activation_lut_vec_elem_interpolate<convert, fx_with_in_offset>
                                             (x, lut, in_frac_bits, in_params);
                         /* Store O/P */
                         activation_lut_store_output<io_T, convert>(output_ptr, res, remaining_part, lut, out_params);
@@ -308,9 +326,9 @@ static MLI_FORCE_INLINE void compute_activation_lut_func(
                     vNx4int_t x_int, lut_idx_int;
                     vNx4short_t _lut_values, _lut_values_next, _frac;
 
-                    load_input_and_get_lut_idx<io_T, convert>(input_ptr, x, x_int, lut_idx_int,
+                    load_input_and_get_lut_idx<io_T, convert, fx_with_in_offset>(input_ptr, x, x_int, lut_idx_int,
                             in_frac_bits, preshift_in, shift_in, lut, in_params);
-                    if (convert) {
+                    if (convert || fx_with_in_offset) {
                         frac = mli_math_cast_fx<vNx4int_t, vNx4short_t>(x_int & mask);
                     } else {
                         frac = x & mask;
@@ -322,11 +340,11 @@ static MLI_FORCE_INLINE void compute_activation_lut_func(
                         _lut_values = mli_prv_gather_load_nx4_samples(lut_data, lut_idx_int);
                         _lut_values_next = mli_prv_gather_load_nx4_samples(lut_data, lut_idx_int + 1);
 
-                        load_input_and_get_lut_idx<io_T, convert>(input_ptr, x, x_int, lut_idx_int,
+                        load_input_and_get_lut_idx<io_T, convert, fx_with_in_offset>(input_ptr, x, x_int, lut_idx_int,
                                 in_frac_bits, preshift_in, shift_in, lut, in_params);
 
                         _frac = frac;
-                        if (convert) {
+                        if (convert || fx_with_in_offset) {
                             frac = mli_math_cast_fx<vNx4int_t, vNx4short_t>(x_int & mask);
                         } else {
                             frac = x & mask;
@@ -338,7 +356,7 @@ static MLI_FORCE_INLINE void compute_activation_lut_func(
                             vNx4short_t lut_values = mli_prv_gather_load_nx4_samples(lut_data, lut_idx_int);
                             vNx4short_t lut_values_next = mli_prv_gather_load_nx4_samples(lut_data, lut_idx_int + 1);
 
-                            load_input_and_get_lut_idx<io_T, convert>(input_ptr, x, x_int, lut_idx_int,
+                            load_input_and_get_lut_idx<io_T, convert, fx_with_in_offset>(input_ptr, x, x_int, lut_idx_int,
                                     in_frac_bits, preshift_in, shift_in, lut, in_params);
 
                             /* perform linear interpolation */
@@ -354,7 +372,7 @@ static MLI_FORCE_INLINE void compute_activation_lut_func(
                             output_ptr += _VDSP_NUM_8BIT_LANES;
 
                             _frac = frac;
-                            if (convert) {
+                            if (convert || fx_with_in_offset) {
                                 frac = mli_math_cast_fx<vNx4int_t, vNx4short_t>(x_int & mask);
                             } else {
                                 frac = x & mask;
@@ -382,7 +400,7 @@ static MLI_FORCE_INLINE void compute_activation_lut_func(
                             vNx4short_t lut_values = mli_prv_gather_load_nx4_samples(lut_data, lut_idx_int);
                             vNx4short_t lut_values_next = mli_prv_gather_load_nx4_samples(lut_data, lut_idx_int + 1);
 
-                            load_input_and_get_lut_idx<io_T, convert>(input_ptr, x, x_int, lut_idx_int,
+                            load_input_and_get_lut_idx<io_T, convert, fx_with_in_offset>(input_ptr, x, x_int, lut_idx_int,
                                     in_frac_bits, preshift_in, shift_in, lut, in_params);
 
                             /* perform linear interpolation */
@@ -390,7 +408,7 @@ static MLI_FORCE_INLINE void compute_activation_lut_func(
                             vNx4short_t diffs_mul_frac_cast =  mli_math_acc_cast_fx<vNx4short_t, vNx4accint_t>(
                                                                 mli_math_mul_fx<vNx4short_t, vNx4accint_t>(diffs, frac), shift_in);
 
-                            if (convert) {
+                            if (convert || fx_with_in_offset) {
                                 frac = mli_math_cast_fx<vNx4int_t, vNx4short_t>(x_int & mask);
                             } else {
                                 frac = x & mask;
@@ -418,7 +436,7 @@ static MLI_FORCE_INLINE void compute_activation_lut_func(
                     output_ptr = out_ptr + POS(out, pos0, pos1, pos2, 0);
                     if (remaining_part) {
                         vNx4short_t x = activation_lut_load_input<io_T, vNx4short_t>(input_ptr);
-                        vNx4short_t res = mli::krn::activation_lut_vec_elem_no_interpolate<convert>
+                        vNx4short_t res = mli::krn::activation_lut_vec_elem_no_interpolate<convert, fx_with_in_offset>
                                             (x, lut, in_frac_bits, in_params);
                         /* Store O/P */
                         activation_lut_store_output<io_T, convert>(output_ptr, res, remaining_part, lut, out_params);
@@ -427,7 +445,7 @@ static MLI_FORCE_INLINE void compute_activation_lut_func(
                     }
                     for (int pos3 = remaining_part; pos3 < in->shape[3]; pos3 += _VDSP_NUM_8BIT_LANES) {
                         vNx4short_t x = activation_lut_load_input<io_T, vNx4short_t>(input_ptr);
-                        vNx4short_t res = mli::krn::activation_lut_vec_elem_no_interpolate<convert>
+                        vNx4short_t res = mli::krn::activation_lut_vec_elem_no_interpolate<convert, fx_with_in_offset>
                                             (x, lut, in_frac_bits, in_params);
                         /* Store O/P */
                         activation_lut_store_output<io_T, convert>(output_ptr, res, lut, out_params);
@@ -440,7 +458,7 @@ static MLI_FORCE_INLINE void compute_activation_lut_func(
     }
 }
 
-template <typename io_T, bool convert>
+template <typename io_T, bool convert, bool fx_with_in_offset>
 static MLI_FORCE_INLINE void compute_activation_lut(
         const struct generic_tensor_private_t<MLI_PTR(io_T)> *in,
         struct generic_tensor_private_t<MLI_OUT_PTR(io_T)> *out,
@@ -448,7 +466,7 @@ static MLI_FORCE_INLINE void compute_activation_lut(
         int8_t in_frac_bits,
         const struct s8asym_quant_params *in_params,
         struct s8asym_quant_params *out_params) {
-    compute_activation_lut_func<io_T, convert>(in->ptr, out->ptr, in, out, lut, in_frac_bits, in_params, out_params);
+    compute_activation_lut_func<io_T, convert, fx_with_in_offset>(in->ptr, out->ptr, in, out, lut, in_frac_bits, in_params, out_params);
 }
 
 } // namespace vdsp

@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -24,7 +24,7 @@ namespace krn {
 namespace dsp {
 
 
-template <typename out_T, bool convert_input, bool convert_output>
+template <typename out_T, bool convert_input, bool convert_output, bool fx_with_in_offset>
 static MLI_FORCE_INLINE v2q15_t activation_lut_two_elem_interpolate(
         const v2q15_t in,
         const mli_lut *lut,
@@ -35,8 +35,6 @@ static MLI_FORCE_INLINE v2q15_t activation_lut_two_elem_interpolate(
     MLI_ASSERT(lut->length >= 0);
 
     if (convert_input) {
-        MLI_ASSERT(in_params != nullptr);
-        MLI_ASSERT(out_params != nullptr);
         /* Calculating Scaling Factor to transform SA8 to Qmn (FX16) */
         int lut_int_bits_fx8 = kMaxFracBitsFx8 - lut->in_frac_bits;
         int frac_bits_fx16 = kMaxFracBitsFx16 - lut_int_bits_fx8;
@@ -63,6 +61,7 @@ static MLI_FORCE_INLINE v2q15_t activation_lut_two_elem_interpolate(
     v2q15_t lut_idx;
     v2q15_t frac;
     if (convert_input) {
+        MLI_ASSERT(in_params != nullptr);
         int shift = (int32_t) in_params->shift - in_frac_bits;
         v2q31_t x_int = mli_prv_convert_sa8_fx16<v2q15_t, v2q31_t>(x, in_params->offset, in_params->scale, shift);
         x_int = mli_math_asr_fx(x_int, preshift_in);
@@ -72,10 +71,23 @@ static MLI_FORCE_INLINE v2q15_t activation_lut_two_elem_interpolate(
         lut_idx[0] = mli_math_bound_range_fx(mli_math_add_fx(x_int[0], (int32_t)offset[0]), lower[0], upper[0]);
         lut_idx[1] = mli_math_bound_range_fx(mli_math_add_fx(x_int[1], (int32_t)offset[1]), lower[1], upper[1]);
     } else {
-        x = mli_math_acc_ashift_fx(x, preshift_in);
-        frac = x & mask;
-        lut_idx = mli_math_add_fx(mli_math_acc_ashift_fx(x, shift_in), offset);
-        lut_idx = mli_math_bound_range_fx(lut_idx, lower, upper);
+        if (fx_with_in_offset) {
+            MLI_ASSERT(in_params != nullptr);
+            v2q31_t x_int;
+            x_int[0] = mli_math_sub_fx<int32_t>(x[0], in_params->offset);
+            x_int[1] = mli_math_sub_fx<int32_t>(x[1], in_params->offset);
+            x_int = mli_math_asr_fx(x_int, preshift_in);
+            frac[0] = x_int[0] & mask[0];
+            frac[1] = x_int[1] & mask[1];
+            x_int = mli_math_asr_fx(x_int, shift_in);
+            lut_idx[0] = mli_math_bound_range_fx(mli_math_add_fx(x_int[0], (int32_t)offset[0]), lower[0], upper[0]);
+            lut_idx[1] = mli_math_bound_range_fx(mli_math_add_fx(x_int[1], (int32_t)offset[1]), lower[1], upper[1]);
+        } else {
+            x = mli_math_acc_ashift_fx(x, preshift_in);
+            frac = x & mask;
+            lut_idx = mli_math_add_fx(mli_math_acc_ashift_fx(x, shift_in), offset);
+            lut_idx = mli_math_bound_range_fx(lut_idx, lower, upper);
+        }
     }
 
     // perform linear interpolation
@@ -85,6 +97,7 @@ static MLI_FORCE_INLINE v2q15_t activation_lut_two_elem_interpolate(
     res = mli_math_sub_fx(res, mli_math_acc_cast_fx<v2q15_t, v2accum40_t>(
                             mli_math_mul_fx<v2q15_t, v2accum40_t>(diff, frac), shift_in));
     if (convert_output) {
+        MLI_ASSERT(out_params != nullptr);
         MLI_ASSERT(out_params->scale == 1);
         res = mli_prv_convert_fx16_sa8<v2q15_t, v2q15_t>(
                         res, out_params->offset, lut->out_frac_bits - out_params->shift);
@@ -97,7 +110,7 @@ static MLI_FORCE_INLINE v2q15_t activation_lut_two_elem_interpolate(
     return res;
 }
 
-template <typename out_T, bool convert_input, bool convert_output>
+template <typename out_T, bool convert_input, bool convert_output, bool fx_with_in_offset>
 static MLI_FORCE_INLINE v2q15_t activation_lut_two_elem_no_interpolate(
         const v2q15_t in,
         const mli_lut *lut,
@@ -111,7 +124,6 @@ static MLI_FORCE_INLINE v2q15_t activation_lut_two_elem_no_interpolate(
 
     if (convert_input) {
         MLI_ASSERT(in_params != nullptr);
-        MLI_ASSERT(out_params != nullptr);
         /* Calculating Scaling Factor to transform SA8 to Qmn (FX16) */
         int lut_int_bits_fx8 = kMaxFracBitsFx8 - lut->in_frac_bits;
         int frac_bits_fx16 = kMaxFracBitsFx16 - lut_int_bits_fx8;
@@ -129,17 +141,29 @@ static MLI_FORCE_INLINE v2q15_t activation_lut_two_elem_no_interpolate(
     v2q15_t upper = mli_prv_init_v<int16_t, v2q15_t>(lut->length - 1);
 
     // input data isn't more precise than LUT
+    v2q15_t lut_idx;
     v2q15_t x = in;
-    /* Convert Input SA8 to FX */
-    if (convert_input) {
-        x = mli_prv_convert_sa8_fx16<v2q15_t, v2q15_t>(x, in_params->offset, scale_fx);
-    }
+    if (fx_with_in_offset) {
+        MLI_ASSERT(in_params != nullptr);
+        v2q31_t x_int;
+        x_int[0] = mli_math_sub_fx<int32_t>(x[0], in_params->offset);
+        x_int[1] = mli_math_sub_fx<int32_t>(x[1], in_params->offset);
+        x_int = mli_math_asr_fx(x_int, shift_in);
+        lut_idx[0] = mli_math_bound_range_fx(mli_math_add_fx(x_int[0], (int32_t)offset[0]), lower[0], upper[0]);
+        lut_idx[1] = mli_math_bound_range_fx(mli_math_add_fx(x_int[1], (int32_t)offset[1]), lower[1], upper[1]);
+    } else {
+        /* Convert Input SA8 to FX */
+        if (convert_input) {
+            x = mli_prv_convert_sa8_fx16<v2q15_t, v2q15_t>(x, in_params->offset, scale_fx);
+        }
 
-    v2q15_t lut_idx = mli_math_add_fx(mli_math_acc_ashift_fx(x, shift_in), offset);
-    lut_idx = mli_math_bound_range_fx(lut_idx, lower, upper);
+        lut_idx = mli_math_add_fx(mli_math_acc_ashift_fx(x, shift_in), offset);
+        lut_idx = mli_math_bound_range_fx(lut_idx, lower, upper);
+    }
     // no interpolation
     v2q15_t res = mli_prv_init_v(lut_data[lut_idx[0]], lut_data[lut_idx[1]]);
     if (convert_output) {
+        MLI_ASSERT(out_params != nullptr);
         MLI_ASSERT(out_params->scale == 1);
         res = mli_prv_convert_fx16_sa8<v2q15_t, v2q15_t>(
                         res, out_params->offset, lut->out_frac_bits - out_params->shift);
@@ -152,7 +176,7 @@ static MLI_FORCE_INLINE v2q15_t activation_lut_two_elem_no_interpolate(
     return res;
 }
 
-template <typename io_T, bool convert>
+template <typename io_T, bool convert, bool fx_with_in_offset>
 static MLI_FORCE_INLINE void compute_activation_lut(
         const struct generic_tensor_private_t<MLI_PTR(io_T)> *in,
         struct generic_tensor_private_t<MLI_PTR(io_T)> *out,
@@ -169,8 +193,6 @@ static MLI_FORCE_INLINE void compute_activation_lut(
     MLI_PTR(io_T) vec_out = out->ptr;
 
     if (convert) {
-        MLI_ASSERT(in_params != nullptr);
-        MLI_ASSERT(out_params != nullptr);
         /* Calculating Scaling Factor to transform SA8 to Qmn (FX16) */
         int lut_int_bits_fx8 = kMaxFracBitsFx8 - lut->in_frac_bits;
         int frac_bits_fx16 = kMaxFracBitsFx16 - lut_int_bits_fx8;
@@ -192,7 +214,7 @@ static MLI_FORCE_INLINE void compute_activation_lut(
                     vec_out = out->ptr + POS(out, pos0, pos1, pos2, 0);
                     if (in->shape[3] & 1) {
                         v2q15_t input = mli_prv_load_1_sample(vec_in);
-                        v2q15_t res = activation_lut_two_elem_interpolate<io_T, convert, convert>
+                        v2q15_t res = activation_lut_two_elem_interpolate<io_T, convert, convert, fx_with_in_offset>
                                 (input, lut, in_frac_bits, in_params, out_params);
                         mli_prv_store_1_sample(vec_out, res);
                         vec_in  += 1;
@@ -200,7 +222,7 @@ static MLI_FORCE_INLINE void compute_activation_lut(
                     }
                     for (int pos3 = 0; pos3 < in->shape[3] >> 1; pos3++) {
                         v2q15_t input = mli_prv_load_2_samples(vec_in);
-                        v2q15_t res = activation_lut_two_elem_interpolate<io_T, convert, convert>
+                        v2q15_t res = activation_lut_two_elem_interpolate<io_T, convert, convert, fx_with_in_offset>
                                 (input, lut, in_frac_bits, in_params, out_params);
                         mli_prv_store_2_samples(vec_out, res);
                         vec_in  += 2;
@@ -218,7 +240,7 @@ static MLI_FORCE_INLINE void compute_activation_lut(
                     vec_out = out->ptr + POS(out, pos0, pos1, pos2, 0);
                     if (in->shape[3] & 1) {
                         v2q15_t input = mli_prv_load_1_sample(vec_in);
-                        v2q15_t res = activation_lut_two_elem_no_interpolate<io_T, convert, convert>
+                        v2q15_t res = activation_lut_two_elem_no_interpolate<io_T, convert, convert, fx_with_in_offset>
                                 (input, lut, in_frac_bits, in_params, out_params);
                         mli_prv_store_1_sample(vec_out, res);
                         vec_in  += 1;
@@ -226,7 +248,7 @@ static MLI_FORCE_INLINE void compute_activation_lut(
                     }
                     for (int pos3 = 0; pos3 < in->shape[3] >> 1; pos3++) {
                         v2q15_t input = mli_prv_load_2_samples(vec_in);
-                        v2q15_t res = activation_lut_two_elem_no_interpolate<io_T, convert, convert>
+                        v2q15_t res = activation_lut_two_elem_no_interpolate<io_T, convert, convert, fx_with_in_offset>
                                 (input, lut, in_frac_bits, in_params, out_params);
                         mli_prv_store_2_samples(vec_out, res);
                         vec_in  += 2;
