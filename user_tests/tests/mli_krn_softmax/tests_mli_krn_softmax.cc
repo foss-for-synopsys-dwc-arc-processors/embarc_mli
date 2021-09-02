@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -51,8 +51,8 @@ struct softmax_test_operands {
 #if defined(CRC_RM_CONVERGENT) || defined(CRC_RM_UP)
 
 // Shared CRC Results
-const crc32_calc  test_1_chksum_fx16{ 0x19920D80 }, test_1_chksum_sa8{ 0xC31B70C6 },
-                  test_2_chksum_fx16{ 0x4ECD6011 }, test_2_chksum_sa8{ 0xDB6E4356 },
+const crc32_calc  test_1_chksum_fx16{ 0x162D4F98 }, test_1_chksum_sa8{ 0xC31B70C6 },
+                  test_2_chksum_fx16{ 0x0DB62D4C }, test_2_chksum_sa8{ 0xDB6E4356 },
                                                     test_3_chksum_sa8{ 0xA4C61305 },
                                                     test_4_chksum_sa8{ 0x283A9958 },
                   test_5_chksum_fx16{ 0xF7716D58 }, test_5_chksum_sa8{ 0x895F6081 },

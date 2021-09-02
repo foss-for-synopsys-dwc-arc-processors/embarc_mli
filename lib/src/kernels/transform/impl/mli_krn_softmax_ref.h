@@ -30,66 +30,42 @@ const int kSoftmaxAsymZeroPoint = -128;
 const int kSoftmaxOutputShift = 8;
 
 template <typename io_T>
-static MLI_FORCE_INLINE void mli_krn_softmax_subtract_max(const MLI_PTR(io_T) vec_in, MLI_PTR(io_T) vec_out,
-        struct generic_tensor_private_t<MLI_PTR(io_T)> *in_prv,
-        struct generic_tensor_private_t<MLI_PTR(io_T)> *out_prv,
-        int *in_frac_p) {
+static MLI_FORCE_INLINE io_T mli_krn_softmax_get_max(
+        generic_tensor_private_t<MLI_PTR(io_T)> *in_prv,
+        const MLI_PTR(io_T) vec_in) {
     // Looking for maximum value
     io_T max_val = vec_in[0];
-    io_T min_val = vec_in[0];
     for (int pos0 = 0; pos0 < in_prv->shape[0]; pos0++) {
         for (int pos1 = 0; pos1 < in_prv->shape[1]; pos1++) {
             for (int pos2 = 0; pos2 < in_prv->shape[2]; pos2++) {
                 for (int pos3 = 0; pos3 < in_prv->shape[3]; pos3++) {
                     max_val = mli_math_max_fx(max_val, vec_in[POS(in_prv, pos0, pos1, pos2, pos3)]);
-                    min_val = mli_math_min_fx(min_val, vec_in[POS(in_prv, pos0, pos1, pos2, pos3)]);
                 }
             }
         }
     }
 
-    // Subtract maximum from each element
-    // free one more bit if saturation is expected.
-    const int biased_min = static_cast<int>(min_val) - max_val;
-    const int min_limit = -(1 << ((sizeof(io_T) * 8) - 1));
-    if (biased_min < min_limit) {
-        max_val = max_val >> 1;
-        for (int pos0 = 0; pos0 < in_prv->shape[0]; pos0++) {
-            for (int pos1 = 0; pos1 < in_prv->shape[1]; pos1++) {
-                for (int pos2 = 0; pos2 < in_prv->shape[2]; pos2++) {
-                    for (int pos3 = 0; pos3 < in_prv->shape[3]; pos3++) {
-                        vec_out[POS(out_prv, pos0, pos1, pos2, pos3)] =
-                                (vec_in[POS(in_prv, pos0, pos1, pos2, pos3)] >> 1) - max_val;
-                    }
-                }
-            }
-        }
-        *in_frac_p -= 1;
-    } else {
-        for (int pos0 = 0; pos0 < in_prv->shape[0]; pos0++) {
-            for (int pos1 = 0; pos1 < in_prv->shape[1]; pos1++) {
-                for (int pos2 = 0; pos2 < in_prv->shape[2]; pos2++) {
-                    for (int pos3 = 0; pos3 < in_prv->shape[3]; pos3++) {
-                        vec_out[POS(out_prv, pos0, pos1, pos2, pos3)] =
-                                vec_in[POS(in_prv, pos0, pos1, pos2, pos3)] - max_val;
-                    }
-                }
-            }
-        }
-    }
+    return max_val;
 }
 
 template <typename io_T>
-static MLI_FORCE_INLINE void mli_krn_softmax_fx_run(const MLI_PTR(io_T) vec_in, MLI_PTR(io_T) vec_out, 
-        generic_tensor_private_t<MLI_PTR(io_T)> in_prv, generic_tensor_private_t<MLI_PTR(io_T)> out_prv,
-        int in_frac, int frac_bits, const mli_lut *lut) {
-    /* Subtract maximum from each element */
-    mli_krn_softmax_subtract_max(vec_in, vec_out, &in_prv, &out_prv, &in_frac);
+static MLI_FORCE_INLINE void mli_krn_softmax_fx_run(
+        generic_tensor_private_t<MLI_PTR(io_T)> in_prv,
+        generic_tensor_private_t<MLI_PTR(io_T)> out_prv,
+        int in_frac_bits, 
+        int out_frac_bits, 
+        const mli_lut *lut) {
+
+    const MLI_PTR(io_T) vec_in = in_prv.ptr;
+    MLI_PTR(io_T) vec_out = out_prv.ptr;
+    
+    /* Use it to pass max_val as an offset */
+    s8asym_quant_params in_params;
+    in_params.offset = mli_krn_softmax_get_max(&in_prv, vec_in);
 
     /* Activation lookup table */
-    struct generic_tensor_private_t<MLI_PTR(io_T)> out_vec_tensor = out_prv;
-    out_vec_tensor.ptr = vec_out;
-    mli::krn::activation_lut<io_T, false>(&out_vec_tensor, &out_vec_tensor, lut, in_frac);
+    mli::krn::activation_lut<io_T, /* convert */ false, /* fx_with_in_offset */ true>(
+        &in_prv, &out_prv, lut, in_frac_bits, &in_params);
 
     // Accumulation through MAC and reciprocal calculation
     mli_acc32_t sum_acc = mli_math_mul_fx<io_T, mli_acc32_t>(0, 0);
@@ -112,9 +88,13 @@ static MLI_FORCE_INLINE void mli_krn_softmax_fx_run(const MLI_PTR(io_T) vec_in, 
     io_T sum_recip = (io_T)MIN((1L << 29) / sum_mnt, 32767L);
 
     // sum_recip * vec_out[idx] = Q15 * Q15 (default LUT output)
-    int lut_frac_bits = expneg_lut_fx16.out_frac_bits * 2;
+    int lut_frac_bits = lut->out_frac_bits * 2;
     // 15 - sum_exp: sum_of_exps overhead
     int sum_exp_overhead = kMaxFracBitsFx16 - sum_exp;
+
+    constexpr int byte_size = 8;
+    constexpr int max_shift = 2 * sizeof(io_T) * byte_size - 1;
+    int shift = mli_math_min_fx(lut_frac_bits + sum_exp_overhead - out_frac_bits, max_shift);
 
     // final result: normalizing
     for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
@@ -122,34 +102,25 @@ static MLI_FORCE_INLINE void mli_krn_softmax_fx_run(const MLI_PTR(io_T) vec_in, 
             for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
                 for (int pos3 = 0; pos3 < in_prv.shape[3]; pos3++) {
                     mli_acc32_t tmp_acc = mli_math_mul_fx<io_T, mli_acc32_t>(sum_recip,
-                            vec_out[POS(&out_prv, pos0, pos1, pos2, pos3)]);
-                    constexpr int byte_size = 8;
-                    constexpr int max_shift = 2 * sizeof(io_T) * byte_size - 1;
-                    int shift = mli_math_min_fx(lut_frac_bits + sum_exp_overhead - frac_bits, max_shift);
+                                          vec_out[POS(&out_prv, pos0, pos1, pos2, pos3)]);
                     vec_out[POS(&out_prv, pos0, pos1, pos2, pos3)] =
                             mli_math_acc_cast_fx<io_T, mli_acc32_t>(tmp_acc, shift);
                 }
             }
         }
     }
-    return ;
 }
 
 template<typename io_T>
-static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in, MLI_PTR(io_T) vec_out, 
-        generic_tensor_private_t<MLI_PTR(io_T)> in_prv, generic_tensor_private_t<MLI_PTR(io_T)> out_prv,
-        s8asym_quant_params in_params, s8asym_quant_params out_params, const mli_lut *lut) {
-    /* Look for the maximum */
-    int8_t max_val = vec_in[0];
-    for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
-        for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
-            for (int pos2 = 0; pos2 < in_prv.shape[2]; pos2++) {
-                for (int pos3 = 0; pos3 < in_prv.shape[3]; pos3++) {
-                    max_val = mli_math_max_fx(max_val, vec_in[POS(&in_prv, pos0, pos1, pos2, pos3)]);
-                }
-            }
-        }
-    }
+static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(
+        generic_tensor_private_t<MLI_PTR(io_T)> in_prv, 
+        generic_tensor_private_t<MLI_PTR(io_T)> out_prv,
+        s8asym_quant_params in_params, 
+        s8asym_quant_params out_params, 
+        const mli_lut *lut) {
+
+    const MLI_PTR(io_T) vec_in = in_prv.ptr;
+    MLI_PTR(io_T) vec_out = out_prv.ptr;
 
     /* Subtract maximum from each input tensor element.
         * This subtraction is done by overwriting offset with max_value.
@@ -158,7 +129,7 @@ static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in,
         * 2. Subtraction operation is done in activation_lut_one_elem_interpolate() in
         *    mli_prv_convert_sa8_fx16() function.
         */
-    in_params.offset = max_val;
+    in_params.offset = mli_krn_softmax_get_max(&in_prv, vec_in);
 
     mli_acc32_t sum_acc = mli_math_mul_fx<int16_t, mli_acc32_t>(0, 0);
 
@@ -178,7 +149,7 @@ static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in,
                     int16_t exp_res = mli::krn::activation_lut_one_elem_interpolate<int8_t, int16_t,
                             /* convert_input */ true,  /* convert_output */ false>(
                                     vec_in[POS(&in_prv, pos0, pos1, pos2, pos3)],
-                                    &expneg_lut_fx16, /*in_frac_bits*/ 0, &in_params, &out_params);
+                                    lut, /*in_frac_bits*/ 0, &in_params, &out_params);
 
                     /* Accumulation through MAC and reciprocal calculation */
                     sum_acc = mli_math_mac_fx(sum_acc, exp_res, static_cast<int16_t>(1));
@@ -194,6 +165,12 @@ static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in,
     // saturation prevents it from reaching 1
     int16_t sum_recip = (int16_t)MIN((1L << 29) / sum_mnt, 32767L);
 
+    // sum_recip * vec_out[idx] = Q15 * Q15 (default LUT output)
+    int lut_frac_bits = lut->out_frac_bits * 2;
+    // 15 - sum_exp: sum_of_exps overhead
+    int sum_exp_overhead = kMaxFracBitsFx16 - sum_exp;
+    constexpr int max_shift = 31;
+    int shift = mli_math_min_fx(lut_frac_bits + sum_exp_overhead - out_params.shift, max_shift);
 
     for (int pos0 = 0; pos0 < in_prv.shape[0]; pos0++) {
         for (int pos1 = 0; pos1 < in_prv.shape[1]; pos1++) {
@@ -209,39 +186,35 @@ static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in,
                     /* multiply input by sum_recip */
                     mli_acc32_t fx_output32 = mli_math_mul_fx<int16_t, mli_acc32_t>(sum_recip, exp_res);
 
-                    // sum_recip * vec_out[idx] = Q15 * Q15 (default LUT output)
-                    int lut_frac_bits = expneg_lut_fx16.out_frac_bits * 2;
-                    // 15 - sum_exp: sum_of_exps overhead
-                    int sum_exp_overhead = kMaxFracBitsFx16 - sum_exp;
                     // Converting to float and back to asym8
-                    constexpr int max_shift = 31;
-                    int shift = mli_math_min_fx(lut_frac_bits + sum_exp_overhead - out_params.shift, max_shift);
                     vec_out[POS(&out_prv, pos0, pos1, pos2, pos3)] =
                             mli_prv_convert_fx16_sa8<mli_acc32_t, int8_t>(fx_output32, out_params.offset, shift);
                 }
             }
         }
     }
-    return ;
 }
 
 template<>
-MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(int16_t) vec_in, MLI_PTR(int16_t) vec_out, 
-        generic_tensor_private_t<MLI_PTR(int16_t)> in_prv, generic_tensor_private_t<MLI_PTR(int16_t)> out_prv,
-        s8asym_quant_params in_params, s8asym_quant_params out_params, const mli_lut *lut) {
+MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(
+        generic_tensor_private_t<MLI_PTR(int16_t)> in_prv, 
+        generic_tensor_private_t<MLI_PTR(int16_t)> out_prv,
+        s8asym_quant_params in_params, 
+        s8asym_quant_params out_params, 
+        const mli_lut *lut) {
     return;
 }
 
 template <typename io_T, bool is_asym>
-static MLI_FORCE_INLINE mli_status mli_krn_softmax_run(const mli_tensor *in, const mli_softmax_cfg* cfg,
-        mli_tensor *out, const mli_lut *lut) {
+static MLI_FORCE_INLINE mli_status mli_krn_softmax_run(
+        const mli_tensor *in, 
+        const mli_lut *lut, 
+        const mli_softmax_cfg* cfg,
+        mli_tensor *out) {
 
     MLI_ASSERT(MLI_MAX_RANK == 4);
 
-    const MLI_PTR(io_T) vec_in = nullptr;
-    MLI_PTR(io_T) vec_out = nullptr;
-
-    const MLI_PTR(io_T) in_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in);
+    MLI_PTR(io_T) in_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in);
     MLI_PTR(io_T) out_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(out);
 
     /* Get Generic Private Tensor */
@@ -254,22 +227,20 @@ static MLI_FORCE_INLINE mli_status mli_krn_softmax_run(const mli_tensor *in, con
     in_prv  = mli_prv_get_axis_tensor<MLI_PTR(io_T)>(&in_prv,  cfg->axis);
     out_prv = mli_prv_get_axis_tensor<MLI_PTR(io_T)>(&out_prv, cfg->axis);
     /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
-    mli_prv_reorder_generic_tensor<MLI_PTR(io_T)>(&in_prv );
-    mli_prv_reorder_generic_tensor<MLI_PTR(io_T)>(&out_prv);
+    mli_prv_squash_generic_tensor<MLI_PTR(io_T)>(&in_prv, &out_prv);
 
     struct s8asym_quant_params in_params;
     struct s8asym_quant_params out_params;
-    int in_frac;
+    int in_frac_bits;
 
-    if(is_asym) {
+    if (is_asym) {
         in_params.scale  = in->el_params.sa.scale.mem.i16;
         in_params.shift = in->el_params.sa.scale_frac_bits.mem.i8;
         out_params.offset = kSoftmaxAsymZeroPoint;
         out_params.scale  = 1;
         out_params.shift = kSoftmaxOutputShift;
-    }
-    else {
-        in_frac = static_cast<int>(in->el_params.fx.frac_bits);
+    } else {
+        in_frac_bits = static_cast<int>(in->el_params.fx.frac_bits);
         out->el_params.fx.frac_bits = (sizeof(io_T) * 8) - kTransfFuncIntBits - 1;
     }
 
@@ -277,17 +248,17 @@ static MLI_FORCE_INLINE mli_status mli_krn_softmax_run(const mli_tensor *in, con
         for (int dim1 = 0; dim1 < in_non_axis_prv.shape[1]; dim1++) {
             for (int dim2 = 0; dim2 < in_non_axis_prv.shape[2]; dim2++) {
 
-                vec_in = &in_ptr[dim0 * in_non_axis_prv.mem_stride[0] + 
-                                 dim1 * in_non_axis_prv.mem_stride[1] + 
-                                 dim2 * in_non_axis_prv.mem_stride[2]];
-                vec_out = &out_ptr[dim0 * out_non_axis_prv.mem_stride[0] + 
-                                   dim1 * out_non_axis_prv.mem_stride[1] + 
-                                   dim2 * out_non_axis_prv.mem_stride[2]];
+                in_prv.ptr = &in_ptr[dim0 * in_non_axis_prv.mem_stride[0] + 
+                                     dim1 * in_non_axis_prv.mem_stride[1] + 
+                                     dim2 * in_non_axis_prv.mem_stride[2]];
+                out_prv.ptr = &out_ptr[dim0 * out_non_axis_prv.mem_stride[0] + 
+                                       dim1 * out_non_axis_prv.mem_stride[1] + 
+                                       dim2 * out_non_axis_prv.mem_stride[2]];
+
                 if (is_asym) {
-                    mli::krn::mli_krn_softmax_sa8_run<io_T>(vec_in, vec_out, in_prv, out_prv, in_params, out_params, lut);
-                }
-                else {
-                    mli::krn::mli_krn_softmax_fx_run<io_T>(vec_in, vec_out, in_prv, out_prv, in_frac, out->el_params.fx.frac_bits, lut);
+                    mli::krn::mli_krn_softmax_sa8_run<io_T>(in_prv, out_prv, in_params, out_params, lut);
+                } else {
+                    mli::krn::mli_krn_softmax_fx_run<io_T>(in_prv, out_prv, in_frac_bits, out->el_params.fx.frac_bits, lut);
                 }
             }
         }

@@ -1,5 +1,5 @@
 /*
-* Copyright 2020, Synopsys, Inc.
+* Copyright 2020-2021, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -30,20 +30,14 @@ const int kSoftmaxAsymZeroPoint = -128;
 const int kSoftmaxOutputShift = 8;
 
 template <typename io_T>
-static MLI_FORCE_INLINE void mli_krn_softmax_subtract_max(
-        const MLI_PTR(io_T) orig_vec_in, 
-        MLI_PTR(io_T) orig_vec_out,
+static MLI_FORCE_INLINE io_T mli_krn_softmax_get_max(
         struct generic_tensor_private_t<MLI_PTR(io_T)> *in_prv,
-        struct generic_tensor_private_t<MLI_PTR(io_T)> *out_prv,
-        int *in_frac_p) {
+        const MLI_PTR(io_T) orig_vec_in) {
 
     MLI_PTR(io_T) vec_in  = (MLI_PTR(io_T))orig_vec_in;
-    MLI_PTR(io_T) vec_out = orig_vec_out;
-    
-    // look for max & min values
+    // look for max value
     v2q15_t one_val = mli_prv_load_1_sample(vec_in);
     v2q15_t max_val = mli_prv_init_v<int16_t, v2q15_t>(one_val[0]);
-    v2q15_t min_val = mli_prv_init_v<int16_t, v2q15_t>(one_val[0]);
 
     for (int pos0 = 0; pos0 < in_prv->shape[0]; pos0++) {
         for (int pos1 = 0; pos1 < in_prv->shape[1]; pos1++) {
@@ -52,73 +46,18 @@ static MLI_FORCE_INLINE void mli_krn_softmax_subtract_max(
                 if (in_prv->shape[3] & 1) {
                     v2q15_t one_val = mli_prv_init_v<int16_t, v2q15_t>(mli_prv_load_1_sample(vec_in)[0]);
                     max_val = mli_math_max_fx(max_val, one_val);
-                    min_val = mli_math_min_fx(min_val, one_val);
                     vec_in += 1;
                 }
                 for (int pos3 = 0; pos3 < in_prv->shape[3] >> 1; pos3++) {
                     v2q15_t val = mli_prv_load_2_samples(vec_in);
                     max_val = mli_math_max_fx(max_val, val);
-                    min_val = mli_math_min_fx(min_val, val);
                     vec_in += 2;
                 }
             }
         }
     }
 
-    max_val = mli_prv_init_v<int16_t, v2q15_t>(mli_math_max_fx(max_val[0], max_val[1]));
-    min_val = mli_prv_init_v<int16_t, v2q15_t>(mli_math_min_fx(min_val[0], min_val[1]));
-    // reset input data pointer
-    vec_in = (MLI_PTR(io_T))orig_vec_in;
-
-    // Subtract maximum from each element
-    // free one more bit if saturation is expected.
-    const int biased_min = static_cast<int>(min_val[0]) - static_cast<int>(max_val[0]);
-    const int min_limit = -(1 << ((sizeof(io_T) * 8) - 1));
-    if (biased_min < min_limit) {
-        max_val = mli_math_acc_ashift_fx(max_val, 1);
-        for (int pos0 = 0; pos0 < in_prv->shape[0]; pos0++) {
-            for (int pos1 = 0; pos1 < in_prv->shape[1]; pos1++) {
-                for (int pos2 = 0; pos2 < in_prv->shape[2]; pos2++) {
-                    vec_in  = (MLI_PTR(io_T))orig_vec_in + POS(in_prv,  pos0, pos1, pos2, 0);
-                    vec_out = orig_vec_out + POS(out_prv, pos0, pos1, pos2, 0);
-                    if (in_prv->shape[3] & 1) {
-                        mli_prv_store_1_sample(vec_out, mli_math_sub_fx(
-                            mli_math_acc_ashift_fx(mli_prv_load_1_sample(vec_in), 1), max_val));
-                        vec_in  += 1;
-                        vec_out += 1;
-                    }
-                    for (int pos3 = 0; pos3 < in_prv->shape[3] >> 1; pos3++) {
-                        mli_prv_store_2_samples(vec_out, mli_math_sub_fx(
-                            mli_math_acc_ashift_fx(mli_prv_load_2_samples(vec_in), 1), max_val));
-                        vec_in  += 2;
-                        vec_out += 2;
-                    }
-                }
-            }
-        }
-        *in_frac_p -= 1;
-    } else {
-        for (int pos0 = 0; pos0 < in_prv->shape[0]; pos0++) {
-            for (int pos1 = 0; pos1 < in_prv->shape[1]; pos1++) {
-                for (int pos2 = 0; pos2 < in_prv->shape[2]; pos2++) {
-                    vec_in  = (MLI_PTR(io_T))orig_vec_in + POS(in_prv,  pos0, pos1, pos2, 0);
-                    vec_out = orig_vec_out + POS(out_prv, pos0, pos1, pos2, 0);
-                    if (in_prv->shape[3] & 1) {
-                        mli_prv_store_1_sample(vec_out, mli_math_sub_fx(
-                            mli_prv_load_1_sample(vec_in), max_val));
-                        vec_in  += 1;
-                        vec_out += 1;
-                    }
-                    for (int pos3 = 0; pos3 < in_prv->shape[3] >> 1; pos3++) {
-                        mli_prv_store_2_samples(vec_out, mli_math_sub_fx(
-                            mli_prv_load_2_samples(vec_in), max_val));
-                        vec_in  += 2;
-                        vec_out += 2;
-                    }
-                }
-            }
-        }
-    }
+    return mli_math_max_fx(max_val[0], max_val[1]);
 }
 
 template <typename io_T, bool convert = false>
@@ -212,49 +151,23 @@ static MLI_FORCE_INLINE void normalizeTensor(MLI_PTR(io_T) orig_vec_out,
 }
 
 template <typename io_T>
-static MLI_FORCE_INLINE int8_t mli_krn_softmax_get_max(
-        struct generic_tensor_private_t<MLI_PTR(io_T)> *in_prv,
-        const MLI_PTR(io_T) orig_vec_in)
+static MLI_FORCE_INLINE void mli_krn_softmax_fx_run(
+        generic_tensor_private_t<MLI_PTR(io_T)> in_prv, 
+        generic_tensor_private_t<MLI_PTR(io_T)> out_prv,
+        int in_frac_bits, 
+        int out_frac_bits, 
+        const mli_lut *lut) {
 
-{
-    MLI_PTR(io_T) vec_in  = (MLI_PTR(io_T))orig_vec_in;
-    // look for max value
-    v2q15_t one_val = mli_prv_load_1_sample(vec_in);
-    v2q15_t max_val = mli_prv_init_v<int16_t, v2q15_t>(one_val[0]);
+    const MLI_PTR(io_T) vec_in = in_prv.ptr;
+    MLI_PTR(io_T) vec_out = out_prv.ptr;
 
-    for (int pos0 = 0; pos0 < in_prv->shape[0]; pos0++) {
-        for (int pos1 = 0; pos1 < in_prv->shape[1]; pos1++) {
-            for (int pos2 = 0; pos2 < in_prv->shape[2]; pos2++) {
-                vec_in  = (MLI_PTR(io_T))orig_vec_in + POS(in_prv,  pos0, pos1, pos2, 0);
-                if (in_prv->shape[3] & 1) {
-                    v2q15_t one_val = mli_prv_init_v<int16_t, v2q15_t>(mli_prv_load_1_sample(vec_in)[0]);
-                    max_val = mli_math_max_fx(max_val, one_val);
-                    vec_in += 1;
-                }
-                for (int pos3 = 0; pos3 < in_prv->shape[3] >> 1; pos3++) {
-                    v2q15_t val = mli_prv_load_2_samples(vec_in);
-                    max_val = mli_math_max_fx(max_val, val);
-                    vec_in += 2;
-                }
-            }
-        }
-    }
-
-    return mli_math_max_fx(max_val[0], max_val[1]);
-}
-
-template <typename io_T>
-static MLI_FORCE_INLINE void mli_krn_softmax_fx_run(const MLI_PTR(io_T) vec_in, MLI_PTR(io_T) vec_out, 
-        generic_tensor_private_t<MLI_PTR(io_T)> in_prv, generic_tensor_private_t<MLI_PTR(io_T)> out_prv,
-        int in_frac, int frac_bits, const mli_lut *lut) {
-
-    /* Subtract maximum from each element */
-    mli_krn_softmax_subtract_max(vec_in, vec_out, &in_prv, &out_prv, &in_frac);
+    /* Use it to pass max_val as an offset */
+    s8asym_quant_params in_params;
+    in_params.offset = mli_krn_softmax_get_max(&in_prv, vec_in);
 
     /* Activation lookup table */
-    struct generic_tensor_private_t<MLI_PTR(io_T)> out_vec_tensor = out_prv;
-    out_vec_tensor.ptr = vec_out;
-    mli::krn::activation_lut<io_T, false>(&out_vec_tensor, &out_vec_tensor, lut, in_frac);
+    mli::krn::activation_lut<io_T, /* convert */ false, /* fx_with_in_offset */ true>(
+        &in_prv, &out_prv, lut, in_frac_bits, &in_params);
 
     /* Accumulation through MAC and reciprocal calculation */
     mli_acc40_t sum_acc = sumTensor<io_T>(vec_out, &out_prv, lut);
@@ -274,14 +187,19 @@ static MLI_FORCE_INLINE void mli_krn_softmax_fx_run(const MLI_PTR(io_T) vec_in, 
     int sum_exp_overhead = kMaxFracBitsFx16 - sum_exp;
     /* Normalize Output */
     normalizeTensor<io_T>(vec_out, &out_prv, sum_recip, 
-                            lut_frac_bits + sum_exp_overhead - frac_bits);
-    return ;
+                            lut_frac_bits + sum_exp_overhead - out_frac_bits);
 }
 
 template<typename io_T>
-static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in, MLI_PTR(io_T) vec_out, 
-        generic_tensor_private_t<MLI_PTR(io_T)> in_prv, generic_tensor_private_t<MLI_PTR(io_T)> out_prv,
-        s8asym_quant_params in_params, s8asym_quant_params out_params, const mli_lut *lut) {
+static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(
+        generic_tensor_private_t<MLI_PTR(io_T)> in_prv, 
+        generic_tensor_private_t<MLI_PTR(io_T)> out_prv,
+        s8asym_quant_params in_params, 
+        s8asym_quant_params out_params, 
+        const mli_lut *lut) {
+
+    const MLI_PTR(io_T) vec_in = in_prv.ptr;
+    MLI_PTR(io_T) vec_out = out_prv.ptr;
     /* Subtract maximum from each input tensor element.
         * This subtraction is done by overwriting offset with max_value.
         * 1. Offset value is not needed here due to subtraction operation:
@@ -344,13 +262,15 @@ static MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(io_T) vec_in,
             }
         }
     }
-    return ;
 }
 
 template<>
-MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(const MLI_PTR(int16_t) vec_in, MLI_PTR(int16_t) vec_out, 
-        generic_tensor_private_t<MLI_PTR(int16_t)> in_prv, generic_tensor_private_t<MLI_PTR(int16_t)> out_prv,
-        s8asym_quant_params in_params, s8asym_quant_params out_params, const mli_lut *lut){
+MLI_FORCE_INLINE void mli_krn_softmax_sa8_run(
+        generic_tensor_private_t<MLI_PTR(int16_t)> in_prv, 
+        generic_tensor_private_t<MLI_PTR(int16_t)> out_prv,
+        s8asym_quant_params in_params, 
+        s8asym_quant_params out_params, 
+        const mli_lut *lut){
     return ;
 }
 
