@@ -49,8 +49,9 @@ static mli_tensor x_tensor;
 static mli_tensor y_tensor;
 static mli_tensor z_tensor;
 static mli_tensor w_tensor;
-static mli_tensor q_tensor;
-static mli_tensor v_tensor;
+static mli_tensor tensor_d;
+static mli_tensor tensor_e;
+
 //============================================================
 static const mli_conv2d_cfg first_conv_cfg = {
 	{MLI_RELU_GEN},
@@ -192,6 +193,7 @@ void set_conv2d_hwcn_output_shape(const mli_tensor *in,
 	const int effective_kernel_height = (w->shape[0] - 1) * cfg->dilation_height + 1;
 	const int effective_kernel_width = (w->shape[1] - 1) * cfg->dilation_width + 1;
 
+	out->rank = 3;
 	out->shape[0] = CEIL_DIV(in->shape[0]+ cfg->padding_top + cfg->padding_bottom - effective_kernel_height + 1,
 							 cfg->stride_height);
 	out->shape[1] = CEIL_DIV(in->shape[1] + cfg->padding_left + cfg->padding_right - effective_kernel_width + 1,
@@ -206,6 +208,7 @@ void set_conv2d_hwcn_output_shape(const mli_tensor *in,
 void set_max_pool_output_shape(const mli_tensor *in,
 							   const mli_pool_cfg *cfg,
 							   mli_tensor *out) {
+	out->rank = 3;
 	out->shape[0] = CEIL_DIV(in->shape[0] + cfg->padding_top + cfg->padding_bottom - cfg->kernel_height + 1,
 							 cfg->stride_height);
 	out->shape[1] = CEIL_DIV(in->shape[1] + cfg->padding_left + cfg->padding_right - cfg->kernel_width + 1,
@@ -261,12 +264,12 @@ static void init_conv_b_tensor(
 
 static void init_tensors() {
 
-	init_intermediate_tensor(&x_tensor, 2 * VIRTUAL_BUFFER_SIZE);
-	init_intermediate_tensor(&y_tensor, 2 * VIRTUAL_BUFFER_SIZE);
-	init_intermediate_tensor(&z_tensor, 2 * VIRTUAL_BUFFER_SIZE);
+	init_intermediate_tensor(&x_tensor, MAX_IR_SIZE_TILING);
+	init_intermediate_tensor(&y_tensor, MAX_IR_SIZE_TILING);
+	init_intermediate_tensor(&z_tensor, MAX_IR_SIZE_TILING);
 	init_intermediate_tensor(&w_tensor, 2 * VIRTUAL_BUFFER_SIZE);
-	init_intermediate_tensor(&q_tensor, VIRTUAL_BUFFER_SIZE);
-	init_intermediate_tensor(&v_tensor, VIRTUAL_BUFFER_SIZE);
+	init_intermediate_tensor(&tensor_d, VIRTUAL_BUFFER_SIZE);
+	init_intermediate_tensor(&tensor_e, VIRTUAL_BUFFER_SIZE);
 
 	// 1st conv
 	init_conv_w_tensor<w_type>(
@@ -962,6 +965,7 @@ void blazenet(int8_t * input, int8_t * output, DeQuantizeInfo * dequantize_info)
 		x_tensor.shape[0] = TILING_INPUT_HEIGHT;
 		x_tensor.shape[1] = TILING_INPUT_WIDTH;
 		x_tensor.shape[2] = NUM_CHANNELS;
+		x_tensor.rank = 3;
 		x_tensor.mem_stride[2] = 1;
 		x_tensor.mem_stride[1] = x_tensor.mem_stride[2] * x_tensor.shape[2];
 		x_tensor.mem_stride[0] = x_tensor.mem_stride[1] * x_tensor.shape[1];
@@ -979,11 +983,11 @@ void blazenet(int8_t * input, int8_t * output, DeQuantizeInfo * dequantize_info)
 		status = mli_krn_conv2d_hwcn_sa8_sa8_sa32(
 			&x_tensor, &conv_weights_tensor, &conv_bias_tensor, &first_conv_cfg, &y_tensor
 		);
-
 		assert(status == MLI_STATUS_OK);
 		z_tensor.mem_stride[0] = 0;
 		z_tensor.mem_stride[1] = 0;
 		z_tensor.mem_stride[2] = 0;
+
 		tensors_tiling[0] = &x_tensor;
 		tensors_tiling[1] = &y_tensor;
 		tensors_tiling[2] = &z_tensor;
@@ -999,6 +1003,7 @@ void blazenet(int8_t * input, int8_t * output, DeQuantizeInfo * dequantize_info)
 			false, false, 0, 4,
 			false, false
 		);
+
 		// blazeblock 2
 		result_index = blazeblock(
 			tensors_tiling, result_index,
@@ -1010,6 +1015,7 @@ void blazenet(int8_t * input, int8_t * output, DeQuantizeInfo * dequantize_info)
 			false, true, 4, 4,
 			false, false
 		);
+
 		// blazeblock 3
 		result_index = blazeblock(
 			tensors_tiling, result_index,
@@ -1055,10 +1061,12 @@ void blazenet(int8_t * input, int8_t * output, DeQuantizeInfo * dequantize_info)
 	w_tensor.el_params.sa.zero_point.mem.i16 = tensors_tiling[result_index]->el_params.sa.zero_point.mem.i16;
 	w_tensor.el_params.sa.scale_frac_bits.mem.i8 = tensors_tiling[result_index]->el_params.sa.scale_frac_bits.mem.i8;
 	mli_prv_tensor_set_data_ptr<d_type>(&x_tensor, (d_type*) (tensors_buffer + BUFFER_SIZE - 4 * VIRTUAL_BUFFER_SIZE));
+	init_intermediate_tensor(&x_tensor, 2 * VIRTUAL_BUFFER_SIZE);
 	x_tensor.mem_stride[0] = 0;
 	x_tensor.mem_stride[1] = 0;
 	x_tensor.mem_stride[2] = 0;
 	mli_prv_tensor_set_data_ptr<d_type>(&y_tensor, (d_type*) (tensors_buffer + BUFFER_SIZE - 6 * VIRTUAL_BUFFER_SIZE));
+	init_intermediate_tensor(&y_tensor, 2 * VIRTUAL_BUFFER_SIZE);
 	y_tensor.mem_stride[0] = 0;
 	y_tensor.mem_stride[1] = 0;
 	y_tensor.mem_stride[2] = 0;
@@ -1161,22 +1169,22 @@ void blazenet(int8_t * input, int8_t * output, DeQuantizeInfo * dequantize_info)
 	);
 
 	// save buffer to use later
-	mli_prv_tensor_set_data_ptr<d_type>(&q_tensor, (d_type*) (tensors_buffer + BUFFER_SIZE - VIRTUAL_BUFFER_SIZE));
-	q_tensor.el_params.sa.dim = -1;
-	q_tensor.el_params.sa.scale.mem.i16 = tensors[result_index]->el_params.sa.scale.mem.i16;
-	q_tensor.el_params.sa.scale_frac_bits.mem.i8 = tensors[result_index]->el_params.sa.scale_frac_bits.mem.i8;
-	q_tensor.el_params.sa.zero_point.mem.i16 = tensors[result_index]->el_params.sa.zero_point.mem.i16;
+	mli_prv_tensor_set_data_ptr<d_type>(&tensor_e, (d_type*) (tensors_buffer + BUFFER_SIZE - VIRTUAL_BUFFER_SIZE));
+	tensor_e.el_params.sa.dim = -1;
+	tensor_e.el_params.sa.scale.mem.i16 = tensors[result_index]->el_params.sa.scale.mem.i16;
+	tensor_e.el_params.sa.scale_frac_bits.mem.i8 = tensors[result_index]->el_params.sa.scale_frac_bits.mem.i8;
+	tensor_e.el_params.sa.zero_point.mem.i16 = tensors[result_index]->el_params.sa.zero_point.mem.i16;
 
 	mli_mov_cfg_t copy_cfg;
 	status = mli_mov_cfg_for_copy(&copy_cfg);
 	assert(status == MLI_STATUS_OK);
-	q_tensor.mem_stride[0] = tensors[result_index]->mem_stride[0];
-	q_tensor.mem_stride[1] = tensors[result_index]->mem_stride[1];
-	q_tensor.mem_stride[2] = tensors[result_index]->mem_stride[2];
-	q_tensor.shape[0] = tensors[result_index]->shape[0];
-	q_tensor.shape[1] = tensors[result_index]->shape[1];
-	q_tensor.shape[2] = tensors[result_index]->shape[2];
-	status = mli_mov_tensor_sync(tensors[result_index], &copy_cfg, &q_tensor);
+	tensor_e.mem_stride[0] = tensors[result_index]->mem_stride[0];
+	tensor_e.mem_stride[1] = tensors[result_index]->mem_stride[1];
+	tensor_e.mem_stride[2] = tensors[result_index]->mem_stride[2];
+	tensor_e.shape[0] = tensors[result_index]->shape[0];
+	tensor_e.shape[1] = tensors[result_index]->shape[1];
+	tensor_e.shape[2] = tensors[result_index]->shape[2];
+	status = mli_mov_tensor_sync(tensors[result_index], &copy_cfg, &tensor_e);
 	assert(status == MLI_STATUS_OK);
 
 	// tiling for weights
@@ -1285,9 +1293,7 @@ void blazenet(int8_t * input, int8_t * output, DeQuantizeInfo * dequantize_info)
 
 	}
 
-	mli_prv_tensor_set_data_ptr<d_type>(&v_tensor, (d_type*) (tensors_buffer + BUFFER_SIZE - 3 * VIRTUAL_BUFFER_SIZE));
-	mli_tensor * tensor_d = &v_tensor;
-	mli_tensor * tensor_e = &q_tensor;
+	mli_prv_tensor_set_data_ptr<d_type>(&tensor_d, (d_type*) (tensors_buffer + BUFFER_SIZE - VIRTUAL_BUFFER_SIZE));
 
 	// 2nd output conv
 	tensor_b->el_params.sa.dim = -1;
@@ -1305,9 +1311,9 @@ void blazenet(int8_t * input, int8_t * output, DeQuantizeInfo * dequantize_info)
 	tensor_c->el_params.sa.scale.mem.i16 = 29098;
 	tensor_c->el_params.sa.scale_frac_bits.mem.i8 = 18;
 	tensor_c->el_params.sa.zero_point.mem.i16 = 47;
-	set_conv2d_hwcn_output_shape(tensor_e, &conv_18_weights_tensor, &conv_cfg, tensor_c);
+	set_conv2d_hwcn_output_shape(&tensor_e, &conv_18_weights_tensor, &conv_cfg, tensor_c);
 	status = mli_krn_conv2d_hwcn_sa8_sa8_sa32(
-		tensor_e, &conv_18_weights_tensor, &conv_18_bias_tensor, &conv_cfg, tensor_c
+		&tensor_e, &conv_18_weights_tensor, &conv_18_bias_tensor, &conv_cfg, tensor_c
 	);
 	assert(status == MLI_STATUS_OK);
 
@@ -1317,13 +1323,13 @@ void blazenet(int8_t * input, int8_t * output, DeQuantizeInfo * dequantize_info)
 	}
 
 	// 4th output conv
-	tensor_d->el_params.sa.dim = -1;
-	tensor_d->el_params.sa.scale.mem.i16 = 24796;
-	tensor_d->el_params.sa.scale_frac_bits.mem.i8 = 15;
-	tensor_d->el_params.sa.zero_point.mem.i16 = -46;
-	set_conv2d_hwcn_output_shape(tensor_a, &conv_19_weights_tensor, &conv_cfg, tensor_d);
+	tensor_d.el_params.sa.dim = -1;
+	tensor_d.el_params.sa.scale.mem.i16 = 24796;
+	tensor_d.el_params.sa.scale_frac_bits.mem.i8 = 15;
+	tensor_d.el_params.sa.zero_point.mem.i16 = -46;
+	set_conv2d_hwcn_output_shape(tensor_a, &conv_19_weights_tensor, &conv_cfg, &tensor_d);
 	status = mli_krn_conv2d_hwcn_sa8_sa8_sa32(
-		tensor_a, &conv_19_weights_tensor, &conv_19_bias_tensor, &conv_cfg, tensor_d
+		tensor_a, &conv_19_weights_tensor, &conv_19_bias_tensor, &conv_cfg, &tensor_d
 	);
 	assert(status == MLI_STATUS_OK);
 
@@ -1337,9 +1343,9 @@ void blazenet(int8_t * input, int8_t * output, DeQuantizeInfo * dequantize_info)
 	tensor_a->el_params.sa.scale.mem.i16 = 21595;
 	tensor_a->el_params.sa.scale_frac_bits.mem.i8 = 16;
 	tensor_a->el_params.sa.zero_point.mem.i16 = -46;
-	set_conv2d_hwcn_output_shape(tensor_e, &conv_20_weights_tensor, &conv_cfg, tensor_a);
+	set_conv2d_hwcn_output_shape(&tensor_e, &conv_20_weights_tensor, &conv_cfg, tensor_a);
 	status = mli_krn_conv2d_hwcn_sa8_sa8_sa32(
-		tensor_e, &conv_20_weights_tensor, &conv_20_bias_tensor, &conv_cfg, tensor_a
+		&tensor_e, &conv_20_weights_tensor, &conv_20_bias_tensor, &conv_cfg, tensor_a
 	);
 	assert(status == MLI_STATUS_OK);
 
@@ -1347,14 +1353,14 @@ void blazenet(int8_t * input, int8_t * output, DeQuantizeInfo * dequantize_info)
 	dequantize_info[0] = DeQuantizeInfo(tensor_c);
 	dequantize_info[1] = DeQuantizeInfo(tensor_b);
 	dequantize_info[2] = DeQuantizeInfo(tensor_a);
-	dequantize_info[3] = DeQuantizeInfo(tensor_d);
+	dequantize_info[3] = DeQuantizeInfo(&tensor_d);
 	memcpy(output, tensor_c->data.mem.pi8, dequantize_info[0].size);
 	int offset = dequantize_info[0].size;
 	memcpy(output + offset, tensor_b->data.mem.pi8, dequantize_info[1].size);
 	offset += dequantize_info[1].size;
 	memcpy(output + offset, tensor_a->data.mem.pi8, dequantize_info[2].size);
 	offset += dequantize_info[2].size;
-	memcpy(output + offset, tensor_d->data.mem.pi8, dequantize_info[3].size);
+	memcpy(output + offset, tensor_d.data.mem.pi8, dequantize_info[3].size);
 }
 
 void dequantize(int8_t * quantized, const DeQuantizeInfo * dequantize_info,  float * dequantized){
