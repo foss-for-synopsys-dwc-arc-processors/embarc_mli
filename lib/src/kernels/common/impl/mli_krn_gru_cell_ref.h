@@ -312,7 +312,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
 
         if (cfg->results == RNN_OUT_ALL) {
             mli_prv_tensor_set_data_ptr<io_T>(&rnn_out,
-                                              mli_prv_tensor_data_ptr<io_T *>(&rnn_out) + out->mem_stride[0]);
+                                              mli_prv_tensor_data_ptr<io_T *>(&rnn_out) + gru_out_elements);
         }
 
         current_out = rnn_out;
@@ -328,6 +328,8 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
         out->shape[0] = seq_len;
         out->shape[1] = gru_out_elements;
     }
+    out->mem_stride[0] = gru_out_elements;
+    out->mem_stride[1] = 1;
 }
 
 #pragma MLI_CODE_SECTION_END()
