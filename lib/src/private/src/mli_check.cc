@@ -944,6 +944,8 @@ mli_status mli_chk_transpose_conv2d_hwcn (
     fail |= MLI_CHECK(cfg->padding_bottom < kernel_height, "Padding should be smaller than effective kernel size");
     fail |= MLI_CHECK(cfg->stride_height > 0, "Stride should be greater than zero");
     fail |= MLI_CHECK(cfg->stride_width > 0, "Stride should be greater than zero");
+    fail |= MLI_CHECK(cfg->stride_width <= kernel_width, "Stride should be smaller than or equal effective kernel size");
+    fail |= MLI_CHECK(cfg->stride_height <= kernel_height, "Stride should be smaller than or equal effective kernel size");
     if (fail) return MLI_STATUS_BAD_FUNC_CFG;
 
     const int in_height = in->shape[FMAP_H_DIM_HWC];
@@ -2065,7 +2067,7 @@ mli_status mli_chk_rnn_dense (
         fail |= MLI_CHECK(weights[idx]->shape[1] == weights[0]->shape[1], "number of outputs should be the same for all weights tensors");
         if (fail) return MLI_STATUS_SHAPE_MISMATCH;
 
-        fail |= MLI_CHECK(check_inner_most_dimension_is_one(in[idx]), "Memory stride for inner most dimension of input must be 1");
+        fail |= MLI_CHECK(check_layout_is_contiguous(in[idx]), "Memory Layout of input tensor must be contiguous");
         fail |= MLI_CHECK(check_inner_most_dimension_is_one(weights[idx]), "Memory stride for inner most dimension of weights must be 1");
         if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
@@ -2095,7 +2097,7 @@ mli_status mli_chk_rnn_dense (
         return MLI_STATUS_TYPE_MISMATCH;
 
     fail |= MLI_CHECK(check_inner_most_dimension_is_one(bias), "Memory stride for inner most dimension of bias must be 1");
-    fail |= MLI_CHECK(check_inner_most_dimension_is_one(out), "Memory stride for inner most dimension of output must be 1");
+    fail |= MLI_CHECK(check_layout_is_contiguous(out), "Memory Layout of out tensor must be contiguous");
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
     return MLI_STATUS_OK;
@@ -2119,6 +2121,11 @@ mli_status mli_chk_rnn_dense_fx16 (
 
     fail |= MLI_CHECK(bias->el_type == MLI_EL_FX_16, "Wrong bias tensor type");
     if (fail) return MLI_STATUS_TYPE_MISMATCH;
+
+    for (int idx = 0; idx < inputs_num; idx++) {
+      	ret = MLI_CHECK_STATUS(mli_chk_out_frac_fx(in[idx], weights[idx], out), __func__);
+      	if (ret != MLI_STATUS_OK) return ret;
+    }
 
     ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in[0], weights[0], bias), __func__);
     if (ret != MLI_STATUS_OK) return ret;
@@ -2144,6 +2151,11 @@ mli_status mli_chk_rnn_dense_fx16_fx8_fx8 (
 
     fail |= MLI_CHECK(bias->el_type == MLI_EL_FX_8, "Wrong bias tensor type");
     if (fail) return MLI_STATUS_TYPE_MISMATCH;
+
+    for (int idx = 0; idx < inputs_num; idx++) {
+      	ret = MLI_CHECK_STATUS(mli_chk_out_frac_fx(in[idx], weights[idx], out), __func__);
+      	if (ret != MLI_STATUS_OK) return ret;
+    }
 
     ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in[0], weights[0], bias), __func__);
     if (ret != MLI_STATUS_OK) return ret;
@@ -2228,7 +2240,7 @@ mli_status mli_chk_lstm_cell (
     fail |= MLI_CHECK(prev_out->rank == 1, "Wrong prev_out rank");
     if (fail) return MLI_STATUS_SHAPE_MISMATCH;
 
-    fail |= MLI_CHECK(check_inner_most_dimension_is_one(in), "Memory stride for inner most dimension of input must be 1");
+    fail |= MLI_CHECK(check_layout_is_contiguous(in), "Memory Layout of input tensor must be contiguous");
     fail |= MLI_CHECK(check_inner_most_dimension_is_one(prev_out), "Memory stride for inner most dimension of input must be 1");
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
@@ -2286,7 +2298,7 @@ mli_status mli_chk_lstm_cell (
 
     fail |= MLI_CHECK(check_inner_most_dimension_is_one(cell), "Memory stride for inner most dimension of cell must be 1");
     fail |= MLI_CHECK(check_inner_most_dimension_is_one(bias), "Memory stride for inner most dimension of bias must be 1");
-    fail |= MLI_CHECK(check_inner_most_dimension_is_one(out), "Memory stride for inner most dimension of output must be 1");
+    fail |= MLI_CHECK(check_layout_is_contiguous(out), "Memory Layout of out tensor must be contiguous");
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
     //check that input data and scratch data are not overlapped
@@ -2385,9 +2397,15 @@ mli_status mli_chk_lstm_cell_sa8_sa8_sa32(
     fail |= MLI_CHECK(prev_out->el_params.sa.dim < 0, "Prev out tensor: Per-tensor quantization is expected");
     fail |= MLI_CHECK(cell->el_params.sa.dim < 0, "Cell tensor: Per-tensor quantization is expected");
 
-    fail |= MLI_CHECK(weights_in->el_params.sa.dim == 0, "Weights_in tensor: Per-axis quantization is expected");
-    fail |= MLI_CHECK(weights_out->el_params.sa.dim == 0, "Weights_out tensor: Per-axis quantization is expected");
-    fail |= MLI_CHECK(bias->el_params.sa.dim == 0, "Bias tensor: Per-axis quantization is expected");
+    if (weights_in->el_params.sa.dim < 0) {
+        fail |= MLI_CHECK(weights_out->el_params.sa.dim < 0, "Weights_out tensor: Per-tensor quantization is expected (same as weights_in)");
+        fail |= MLI_CHECK(bias->el_params.sa.dim < 0, "Bias tensor: Per-tensor quantization is expected (same as weights_in)");
+    } else {
+        fail |= MLI_CHECK(weights_in->el_params.sa.dim == 0, "Weights_in tensor: Per first dimension quantization is expected");
+        fail |= MLI_CHECK(weights_out->el_params.sa.dim == 0, "Weights_out tensor: Per first dimension quantization is expected");
+        fail |= MLI_CHECK(bias->el_params.sa.dim == 0, "Bias tensor: Per first dimension quantization is expected");
+    }
+
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(in,        kZeroPointBitsByteRange), __func__);
     if (ret != MLI_STATUS_OK) return ret;
@@ -2439,7 +2457,7 @@ mli_status mli_chk_gru_cell (
     fail |= MLI_CHECK(prev_out->rank == 1, "Wrong prev_out rank");
     if (fail) return MLI_STATUS_SHAPE_MISMATCH;
 
-    fail |= MLI_CHECK(check_inner_most_dimension_is_one(in), "Memory stride for inner most dimension of input must be 1");
+    fail |= MLI_CHECK(check_layout_is_contiguous(in), "Memory Layout of input tensor must be contiguous");
     fail |= MLI_CHECK(check_inner_most_dimension_is_one(prev_out), "Memory stride for inner most dimension of input must be 1");
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
@@ -2488,7 +2506,7 @@ mli_status mli_chk_gru_cell (
     if (fail) return MLI_STATUS_BAD_FUNC_CFG;
 
     fail |= MLI_CHECK(check_inner_most_dimension_is_one(bias), "Memory stride for inner most dimension of bias must be 1");
-    fail |= MLI_CHECK(check_inner_most_dimension_is_one(out), "Memory stride for inner most dimension of output must be 1");
+    fail |= MLI_CHECK(check_layout_is_contiguous(out), "Memory Layout of out tensor must be contiguous");
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
     //check that input data and scratch data are not overlapped
@@ -2581,20 +2599,16 @@ mli_status mli_chk_gru_cell_sa8_sa8_sa32(
     fail |= MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor: Per-tensor quantization is expected");
     fail |= MLI_CHECK(prev_out->el_params.sa.dim < 0, "Prev out tensor: Per-tensor quantization is expected");
 
-    if (weights_in->el_params.sa.dim == 0) {
-        if (MLI_CHECK(weights_out->el_params.sa.dim == 0, "Weights_out tensor: per first dimension quantization is expected")) {
-            if (MLI_CHECK(bias->el_params.sa.dim == 0, "Bias tensor: per first dimension quantization is expected (similar to weights)"))
-                return MLI_STATUS_INCOMPATEBLE_TENSORS;
-        }
+    if (weights_in->el_params.sa.dim < 0) {
+        fail |= MLI_CHECK(weights_out->el_params.sa.dim < 0, "Weights_out tensor: Per-tensor quantization is expected (same as weights_in)");
+        fail |= MLI_CHECK(bias->el_params.sa.dim < 0, "Bias tensor: Per-tensor quantization is expected (same as weights_in)");
     } else {
-        if (MLI_CHECK(weights_in->el_params.sa.dim == -1, "Weights_in tensor: per tensor quantization is expected")) {
-            if (MLI_CHECK(weights_out->el_params.sa.dim == -1, "Weights_out tensor: per tensor quantization is expected")) {
-                if (MLI_CHECK(bias->el_params.sa.dim == -1, "Bias tensor: per tensor quantization is expected (similar to weights)"))
-                    return MLI_STATUS_INCOMPATEBLE_TENSORS;
-            }
-        }
+        fail |= MLI_CHECK(weights_in->el_params.sa.dim == 0, "Weights_in tensor: Per first dimension quantization is expected");
+        fail |= MLI_CHECK(weights_out->el_params.sa.dim == 0, "Weights_out tensor: Per first dimension quantization is expected");
+        fail |= MLI_CHECK(bias->el_params.sa.dim == 0, "Bias tensor: Per first dimension quantization is expected");
     }
 
+    if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(in,        kZeroPointBitsByteRange), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(prev_out,  kZeroPointBitsByteRange), __func__);
