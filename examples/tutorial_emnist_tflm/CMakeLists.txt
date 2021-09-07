@@ -12,9 +12,8 @@ include(../../cmake/settings.cmake)
 
 if (ARC)
     set(EXAMPLE_FLAGS
-        -Hon=Long_enums 
-        -Hheap=2K 
-        -Hstack=5K        
+        -Hheap=2K
+        -Hstack=5K
         -Hnocopyr
         -Hpurge
         -e_start

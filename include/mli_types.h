@@ -323,7 +323,8 @@ typedef enum {
  */
 typedef enum {
     RNN_DIR_FORWARD = 0,   /**< Process input in forward direction.*/
-    RNN_DIR_BACKWARD       /**< Process output in backward direction.*/
+    RNN_DIR_BACKWARD,      /**< Process output in backward direction.*/
+    RNN_DIR_LARGE_ENUM = 0x02000000  /**< Utility field. Prevent size optimization of public enums */
 } mli_rnn_direction;
 
 
@@ -335,7 +336,8 @@ typedef enum {
  */
 typedef enum {
     RNN_OUT_LAST = 0,   /**< Preserve only the last result.*/
-    RNN_OUT_ALL         /**< Preserve result of each iteration.*/
+    RNN_OUT_ALL,        /**< Preserve result of each iteration.*/
+    RNN_OUT_LARGE_ENUM = 0x02000000  /**< Utility field. Prevent size optimization of public enums */
 } mli_rnn_results;
 
 

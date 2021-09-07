@@ -30,7 +30,8 @@ typedef enum _mli_mov_state {
     MLI_MOV_STATE_PREPARED,
     MLI_MOV_STATE_DMA_CONFIGURED,
     MLI_MOV_STATE_DMA_RUNNING,
-    MLI_MOV_STATE_DONE
+    MLI_MOV_STATE_DONE,
+    MLI_MOV_LARGE_ENUM = 0x02000000  /**< Utility field. Prevent size optimization of public enums */
 } mli_mov_state;
 
 typedef struct _mli_mov_handle_t {
