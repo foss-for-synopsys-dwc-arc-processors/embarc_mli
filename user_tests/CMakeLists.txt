@@ -40,7 +40,7 @@ endif()
 
 # Note: AVEPOOL_16BIT_MUL should be same as the one in mli_lib.cmake
 if (NOT DEFINED AVEPOOL_16BIT_MUL)
-    set(AVEPOOL_16BIT_MUL OFF)
+    set(AVEPOOL_16BIT_MUL ON)
 endif()
 
 if(AVEPOOL_16BIT_MUL STREQUAL ON)
