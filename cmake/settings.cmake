@@ -1,5 +1,5 @@
 #
-# Copyright 2020, Synopsys, Inc.
+# Copyright 2020-2021, Synopsys, Inc.
 # All rights reserved.
 #
 # This source code is licensed under the BSD-3-Clause license found in
@@ -71,7 +71,7 @@ if (ARC)
     endif()
 
     list(APPEND MLI_PLATFORM_FLAGS
-        -Hon=Long_enums -Wcg,-arc-vdsp-AA=1 
+        -Wcg,-arc-vdsp-AA=1
         "SHELL: -mllvm -gen-lpcc=false -mllvm -arc-sort-out-copy=true -mllvm -arc-vdsp-copy=3"
     )
     if (DEFINED BUILDLIB_DIR)
