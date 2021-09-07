@@ -1878,6 +1878,12 @@ template <>
 MLI_FORCE_INLINE vNx4accshort_t mli_math_mac_fx(vNx4accshort_t acc, vNx4char_t L, int8_t R) {
     return vvcmac(acc, L, R);
 }
+
+template <>
+MLI_FORCE_INLINE vNx4accshort_t mli_math_mac_fx(vNx4accshort_t acc, vNx4char_t L, uint8_t R) {
+    return vvcmac_su(acc, L, R);
+}
+
 template <>
 MLI_FORCE_INLINE vNx4accshort_t mli_math_mac_fx(vNx4accshort_t acc, vNx4char_t L, vNx4char_t R) {
     return vvcmac(acc, L, R);

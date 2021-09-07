@@ -115,6 +115,16 @@ static MLI_FORCE_INLINE vNx4char_t reduce_sum2D_v(
         const int col_mem_stride,
         const int row_mem_stride,
         int shift_value);
+
+static MLI_FORCE_INLINE vNx4char_t reduce_sum2D_v2(
+        const MLI_PTR(int8_t) in,
+        const int16_t mul,
+        const int16_t accu_init,
+        const int width,
+        const int height,
+        const int col_mem_stride,
+        const int row_mem_stride,
+        int shift_value);
 #endif
 
 #if (__Xvec_guard_bit_option == 0) && !defined(MLI_BUILD_REFERENCE) && defined(__Xvec_width)

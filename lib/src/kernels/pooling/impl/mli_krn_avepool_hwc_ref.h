@@ -134,7 +134,7 @@ static MLI_FORCE_INLINE void compute_avepool_func(
     
     MLI_ASSERT(channels == 1);
     mli_acc32_t accu = mli_prv_init_accu_with_bias_v<mli_acc32_t>(zp, shift_value);
-    accu = reduce_sum2D_v(in, mul, accu, width, height, col_mem_stride, row_mem_stride);
+    accu = reduce_sum2D_v(in, (mul & 0xFFF0), accu, width, height, col_mem_stride, row_mem_stride);
     mli_prv_clip_and_store_output_v(out, accu, shift_value);
 }
 

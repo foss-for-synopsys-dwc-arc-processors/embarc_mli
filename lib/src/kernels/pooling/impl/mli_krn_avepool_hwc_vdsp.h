@@ -32,7 +32,7 @@ static MLI_FORCE_INLINE void compute_avepool_func(
         const int shift_value,
         const int channels)
 {
-    vNx4char_t res = mli::krn::reduce_sum2D_v(in, mul, zp, width, height,
+    vNx4char_t res = mli::krn::reduce_sum2D_v2(in, mul, zp, width, height,
                                               col_mem_stride, row_mem_stride, shift_value);
 
     mli_prv_store_n_samples(out, res, channels);
