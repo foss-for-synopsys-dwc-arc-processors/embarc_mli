@@ -1,56 +1,30 @@
-EMNIST Conversion Example
+EMNIST Example: Tensorflow Lite Micro Usage
 ========================================================================
-This example shows how to convert EMNIST Tensorflow model into Tensorflow Lite Micro format and use it in embARC MLI application.
+This example shows how to use Tensorflow Lite Micro together with embARC MLI application. It consists of two parts:
+
+1) Example application. It demonstrates how to use the tflite-micro API and guides you through the building aspects of the application and libraries.
+
+2) Conversion Tutorial. An independent part showing how the NN model for the application was converted into tflite format and adapted to be MLI compatible.
+
+The first part is disclosed in this readme. The details of the conversion tutorial are covered in the separate [readme](/examples/tutorial_emnist_tflm/conversion_tutorial/README.md) in the [*conversion_tutorial*](/examples/tutorial_emnist_tflm/conversion_tutorial) directory. Passing the second part is not necessary to run the example application.
+
 
  **Important notes:**
- * Example doesn’t work for VPX configurations without guard bits as it produces incorrect results due to accumulator overflow during calculations.
- * Example won't work with EM/HS platform. For EM/HS, please use [MLI 1.1 release version](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/tree/Release_1.1/examples/tutorial_emnist_tflm).
-
-## Requirements
----------------
-* MetaWare Development Tools
-    * [Order the ARC MetaWare Development Toolkit](https://www.synopsys.com/dw/ipdir.php?ds=sw_metaware)
-    * [Evaluation license](https://eval.synopsys.com/)
-* gmake (pre-installed as a part of MetaWare tools)
-* Text Editor
-* embARC MLI Library
-    * `git clone https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli`
-* Tensorflow Lite for Microcontrollers
-    * see the [Generate Tensorflow Lite Micro Library section](#generate-tensorflow-lite-micro-library).
+ * Example is supported only for VPX configurations with guard bits. For EM/HS, please use [MLI 1.1 release version](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/tree/Release_1.1/examples/tutorial_emnist_tflm).
 
 
-Installation process of the following dependencies is described in [Getting Started](#getting-started) section:
-* Python 3.7
-* virtualenv (optional)
-* Dependencies from requirements.txt
-    * NumPy 1.19.2
-    * Matplotlib
-    * Jupyter Lab / Notebook
-    * TensorFlow 2.5.0
-    * Keras
-    * emnist 
-    
-## Getting started
----------------
+# Building and Running
 
-## Install Python and create a virtual environment
-
-0. It is recommended that you uninstall your previous Python distribution.
-1. Download official [Python 3.7 distribution](https://www.python.org/ftp/python/3.7.4/python-3.7.4-amd64.exe).
-2. Install py launcher and pip. Do not add Python to the PATH. After this, the `py` command in command line is your entry point to Python interpreter.
-3. (optional) Install virtualenv with `py -m pip install --upgrade pip virtualenv`
-4. (optional) Create virtual environment with `py -m virtualenv py_env`.
-5. (optional) Activate virtual environment with `./py_env/Scripts/activate`.
-6. Execute ` cd ./embarc_mli/examples/tutorial_emnist_tflm`.
-
-## Install pip requirements
-```bash
-pip install --upgrade pip setuptools
-pip install -r ./conversion_tutorial/requirements.txt
-python -c "import emnist; emnist.ensure_cached_data();"
-```
 ## Generate Tensorflow Lite Micro Library
-Tensorflow Lite for Microcontrollers is a separate project with specific set of requirements. 
+
+To build and run the example application at first you need to generate **tflite-micro** static library.
+
+Tensorflow Lite for Microcontrollers is a separate project with specific set of requirements. We recommend to use [embARC fork](https://github.com/foss-for-synopsys-dwc-arc-processors/tflite-micro) of Tensorflow Lite for Microcontrollers repository:
+
+    git clone https://github.com/foss-for-synopsys-dwc-arc-processors/tflite-micro.git
+
+The fork has been updating periodically from the [upstream repo](https://github.com/tensorflow/tflite-micro) using states that are stable in relation to ARC target: 
+
 Please first familiarize yourself with [TFLM ARC specific details](https://github.com/foss-for-synopsys-dwc-arc-processors/tflite-micro/blob/main/tensorflow/lite/micro/tools/make/targets/arc/README.md) and make sure that your environment is set up appropriately. 
 
 Important information is listed inside [make tool section](https://github.com/foss-for-synopsys-dwc-arc-processors/tflite-micro/tree/main/tensorflow/lite/micro/tools/make/targets/arc#make-tool) of the referred document. 
@@ -58,37 +32,79 @@ The main message is that native *nix environment is required to build the TFLM l
 For Windows users there are no officially supported flow. 
 You still may consider projects like [WSL](https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux) at your own risk.
 
-We recommend to use [embARC fork](https://github.com/foss-for-synopsys-dwc-arc-processors/tflite-micro) of Tensorflow Lite for Microcontrollers repository.
-The fork has been updating periodically from the [upstream repo](https://github.com/tensorflow/tflite-micro) using states that are stable in relation to ARC target: 
-
-    git clone https://github.com/foss-for-synopsys-dwc-arc-processors/tflite-micro.git
+To build **tflite-micro** library please find the corresponding section in documentation specified for a [custom ARC platform](https://github.com/foss-for-synopsys-dwc-arc-processors/tflite-micro/tree/main/tensorflow/lite/micro/tools/make/targets/arc#Custom-ARC-EMHSVPX-Platform).  You need to copy the generated library to the *third_party* directory of this example and rename it to *libtensorflow-microlite.a* (see the same documentation on where the generated library can be found). 
 
 
-In your compatible environment open root directory of tflite-micro repo in terminal. Run:
+## Building and running example
+
+Before building the application you should set ``TENSORFLOW_DIR`` environment variable to point to your Tensorflow top folder:
+
 ```bash
-make -f tensorflow/lite/micro/tools/make/Makefile\ 
-OPTIMIZED_KERNEL_DIR=arc_mli TARGET=arc_custom\ 
-TCF_FILE=<path_to_vpx_tcf_file>\ 
-ARC_TAGS=mli20_experimental microlite
-```
-Generated library *libtensorflow-microlite.a* can be found in *\{tensorflow-dir\}/tensorflow/lite/micro/tools/make/gen/\{target\}/lib*. Copy it to third_party directory of this example.
-
-## Convert the model
-To convert the model, run the Jupyter Notebook:
-```bash
-jupyter notebook conversion_tutorial/model_conversion.ipynb
-```
-After completing the tutorial you should have model and test samples generated. 
-
-Please make sure you don't forget to use [Model Adaptation Tool](https://github.com/foss-for-synopsys-dwc-arc-processors/tflite-micro/tree/arc_mli_20_temp/tensorflow/lite/micro/tools/make/targets/arc#model-adaptation-tool-experimental-feature) to convert `emnist_model_int8.tflite` you got before saving it as C array.
-
-Copy *conversion_tutorial/generated/model.h* and *conversion_tutorial/generated/test_samples.cc* to *src* folder.
-
-Before building you should set TENSORFLOW_DIR variable to point to your Tensorflow top folder. E.g. on Windows:
-```bash
+# For Windows
 set TENSORFLOW_DIR=\{your-path-to-tflite-micro\}
+
+# For Linux
+export TENSORFLOW_DIR=\{your-path-to-tflite-micro\}
 ```
 
+After that you need to configure and build the library project for the desired VPX 
+configuration. 
+Please read the corresponding section on [building the package](/README.md#building-the-package). 
+
+ **Known Issue:** To successfully build this example you need to invoke build process from the */examples/tutorial_emnist_tflm* folder.
+
+Build artifacts of the application are stored in the `/obj/<project>/examples/tutorial_emnist_tflm` directory where `<project>` is defined according to your target platform.  
+
+After you've built and configured the whole library project, you can proceed with the following steps. 
+You need to replace `<options>` placeholder in commands below with the same options list you used for the library configuration and build. 
+
+1. Open command line in the root of the embARC MLI repo and change working directory to './examples/tutorial_emnist_tflm/'
+
+       cd ./examples/tutorial_emnist_tflm/
+
+2. Clean previous build artifacts (optional).
+
+       gmake <options> clean
+
+3. Build the example. This is an optional step as you may go to the next step which automatically invokes the build process. 
+
+       gmake <options> build
+
+4. Run the example
+
+       gmake <options> run
+
+##  ARC VPX Build Process Example
+
+Assuming your environment satisfies all build requirements for ARC VPX platform, you can use the following script to build and run application using the nSIM simulator.
+The first step is to open a command line and change working directory to the root of the embARC MLI repo.
+
+1. Clean all previous artifacts for all platforms
+    ```bash
+    gmake cleanall 
+    ```
+
+2. Generate recommended  TCF file for VPX
+    ```bash
+    tcfgen -o ./hw/vpx5_integer_full.tcf -tcf=vpx5_integer_full -iccm_size=0x80000 -dccm_size=0x40000
+    ```
+
+3. Change working directory and build project using generated TCF and appropriate built-in runtime library for it. Use multithreaded build process (4 threads):
+    ```bash
+    cd ./examples/tutorial_emnist_tflm
+    gmake TCF_FILE=../../hw/vpx5_integer_full.tcf BUILDLIB_DIR=vpx5_integer_full JOBS=4 build
+    ```
+
+4. Build the example:
+    ```bash
+    gmake TCF_FILE=../../hw/vpx5_integer_full.tcf BUILDLIB_DIR=vpx5_integer_full build
+    ```
+
+5. Run the example w/o input arguments for all supported data types:
+    ```bash
+    gmake TCF_FILE=../../hw/vpx5_integer_full.tcf BUILDLIB_DIR=vpx5_integer_full run 
+    ```
+<!--
 Now you can build the example using MetaWare Development Tools:
 ```bash
 gmake app TCF_FILE=<path_to_vpx_tcf_file>
@@ -97,4 +113,4 @@ And run the example with DesignWare ARC nSIM simulator:
 ```bash
 gmake run TCF_FILE=<path_to_vpx_tcf_file>
 ```
-
+-->
