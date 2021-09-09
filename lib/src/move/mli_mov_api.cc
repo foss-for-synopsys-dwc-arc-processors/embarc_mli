@@ -450,8 +450,9 @@ mli_status mli_mov_cfg_for_copy(mli_mov_cfg_t* cfg) {
 mli_status mli_mov_cfg_for_slice(mli_mov_cfg_t* cfg, int* offsets, int* sizes, int* dst_mem_stride) {
     mli_status retval = MLI_STATUS_OK;
 
-    if (retval == MLI_STATUS_OK)
-        retval = mli_mov_cfg_for_copy(cfg);
+    retval = mli_mov_cfg_for_copy(cfg);
+    if (retval != MLI_STATUS_OK) return retval;
+
     for (int dim = 0; dim < MLI_MAX_RANK; dim++) {
         cfg->offset[dim] = offsets[dim];
         cfg->size[dim] = sizes[dim];
@@ -469,8 +470,9 @@ mli_status mli_mov_cfg_for_slice(mli_mov_cfg_t* cfg, int* offsets, int* sizes, i
 mli_status mli_mov_cfg_for_concat(mli_mov_cfg_t* cfg, int* dst_offsets, int* dst_mem_stride) {
     mli_status retval = MLI_STATUS_OK;
 
-    if (retval == MLI_STATUS_OK)
-        retval = mli_mov_cfg_for_copy(cfg);
+    retval = mli_mov_cfg_for_copy(cfg);
+    if (retval != MLI_STATUS_OK) return retval;
+
     for (int dim = 0; dim < MLI_MAX_RANK; dim++) {
         cfg->dst_offset[dim] = dst_offsets[dim];
         cfg->dst_mem_stride[dim] = dst_mem_stride[dim];
@@ -488,8 +490,9 @@ mli_status mli_mov_cfg_for_subsample(mli_mov_cfg_t* cfg, int* sub_sample_step, i
 
     mli_status retval = MLI_STATUS_OK;
 
-    if (retval == MLI_STATUS_OK)
-        retval = mli_mov_cfg_for_copy(cfg);
+    retval = mli_mov_cfg_for_copy(cfg);
+    if (retval != MLI_STATUS_OK) return retval;
+
     for (int dim = 0; dim < MLI_MAX_RANK; dim++) {
         cfg->sub_sample_step[dim] = sub_sample_step[dim];
         cfg->dst_mem_stride[dim] = dst_mem_stride[dim];
@@ -520,8 +523,9 @@ mli_status mli_mov_cfg_for_permute(mli_mov_cfg_t* cfg, uint8_t* perm_dim) {
 mli_status mli_mov_cfg_for_padding2d_chw(mli_mov_cfg_t* cfg, uint8_t padleft, uint8_t padright, uint8_t padtop, uint8_t padbot, int* dst_mem_stride) {
     mli_status retval = MLI_STATUS_OK;
 
-    if (retval == MLI_STATUS_OK)
-        retval = mli_mov_cfg_for_copy(cfg);
+    retval = mli_mov_cfg_for_copy(cfg);
+    if (retval != MLI_STATUS_OK) return retval;
+
     for (int dim = 0; dim < MLI_MAX_RANK; dim++) {
         cfg->dst_mem_stride[dim] = dst_mem_stride[dim];
     }
@@ -540,8 +544,9 @@ mli_status mli_mov_cfg_for_padding2d_chw(mli_mov_cfg_t* cfg, uint8_t padleft, ui
 mli_status mli_mov_cfg_for_padding2d_hwc(mli_mov_cfg_t* cfg, uint8_t padleft, uint8_t padright, uint8_t padtop, uint8_t padbot, int* dst_mem_stride) {
     mli_status retval = MLI_STATUS_OK;
 
-    if (retval == MLI_STATUS_OK)
-        retval = mli_mov_cfg_for_copy(cfg);
+    retval = mli_mov_cfg_for_copy(cfg);
+    if (retval != MLI_STATUS_OK) return retval;
+
     for (int dim = 0; dim < MLI_MAX_RANK; dim++) {
         cfg->dst_mem_stride[dim] = dst_mem_stride[dim];
     }
