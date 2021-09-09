@@ -63,7 +63,7 @@ these data formats in detail.
 ..
                                 
 Fixed Point Category
-~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^
 
 The Fixed-Point category includes ``fx16`` and ``fx8`` data formats. They are the 
 default MLI Fixed-point data format and reflects general signed values interpreted 
@@ -130,7 +130,7 @@ than x. From notation point of view, these extra bits are added to the integer p
 The same logic applies for sequential Multiply-Accumulation (MAC) operations.
 
 Asymmetric Integral category
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The Asymmetric Integral category includes ``sa32`` and ``sa8`` data formats. These data formats are used 
 for more precise quantized representation of asymmetrically distributed data. To correctly 
@@ -148,17 +148,17 @@ performed by:
 
 Where: 
 
-    :math:`x_{fp32}` *–* Source single precision floating point value
+    :math:`x_{fp32}` *-* Source single precision floating point value
     
-    :math:`x_{sa}` *–* signed asymmetric value
+    :math:`x_{sa}` *-* signed asymmetric value
     
-    :math:`z` *–* zero offset
+    :math:`z` *-* zero offset
     
-    :math:`Round(\ldots)` *–* rounding to integer value. 
+    :math:`Round(\ldots)` *-* rounding to integer value. 
     
-    :math:`s_{\text{fx}}` *–* scale ratio in fixed point format
+    :math:`s_{\text{fx}}` *-* scale ratio in fixed point format
     
-    :math:`n` *–* number of fractional bits of scale ratio. 
+    :math:`n` *-* number of fractional bits of scale ratio. 
     
 Per-axis and per-tensor quantization granularities are supported for this data format. In case of 
 per-tensor quantization, all values in tensor share the same quantization parameters (number scale 
@@ -183,14 +183,14 @@ specific scale ratios:
 .. _quant_accum_infl:
 
 Quantization: Influence of Accumulator Bit Depth   
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The MLI Library applies neither saturation nor post multiplication shift with rounding in 
 accumulation. Saturation is performed only for the final result of accumulation while its 
 value is reduced to the output format. To avoid result overflow, you are responsible for 
 providing inputs of correct ranges to MLI library primitives.
 
-Number of available bits depends on the operands’ types and the platform. 
+Number of available bits depends on the operands' types and the platform. 
 
 .. admonition:: Example 
    :class: "admonition tip"
@@ -198,17 +198,17 @@ Number of available bits depends on the operands’ types and the platform.
    - ``sa8`` operands with 32-bit accumulator uses 1 sign bit and 31 significant bits. ``sa8`` operands 
      have 1 sign and 7 significant bits. Single multiplication of such operands results in 
      7 + 7 + 1 = 15 significant bits for output. Here one extra bit is required to handle multiplication 
-     of max negative values (-32768 * -32768 = 1073741824 – the value of 31 bits depth). 
+     of max negative values (-32768 * -32768 = 1073741824 - the value of 31 bits depth). 
      Thus for MAC-based kernels, 16 accumulation bits (as 31-(7+7+1)=16) are available which can be used to
-     perform up to 2^16 = 65536 operations without overflow. For simple accumulation, 31 – 7 = 24 bits are
+     perform up to 2^16 = 65536 operations without overflow. For simple accumulation, 31 - 7 = 24 bits are
      available which are guaranteed to perform up to 2^24 = 16777216 operations without overflow.
 
    - ``fx16`` operands with 40-bit accumulator is uses 1 sign bit and 39 significant bits. ``fx16`` 
      operands have 1 sign and 15 significant bits. A multiplication of such operands results in 
      15 + 15 + 1 = 31 significant bits for output. Here one extra bit is required to handle multiplication 
-     of max negative values (-128 * -128 = 16384 – the value of 15 bits depth). For MAC-based kernels, 
-     39 – (15+15+1) = 8 accumulation bits are available, which can be used to perform up to 2^8 = 256 
-     operations without overflow. For simple accumulation, 39 – 15 = 24 bits are available which 
+     of max negative values (-128 * -128 = 16384 - the value of 15 bits depth). For MAC-based kernels, 
+     39 - (15+15+1) = 8 accumulation bits are available, which can be used to perform up to 2^8 = 256 
+     operations without overflow. For simple accumulation, 39 - 15 = 24 bits are available which 
      perform up to 2^24 = 16777216 operations without overflow.
 ..
 

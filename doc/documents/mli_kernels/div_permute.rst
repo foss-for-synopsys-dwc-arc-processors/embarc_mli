@@ -1,16 +1,16 @@
 .. _permute_prot:
 
 Permute Prototype and Function List
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Description
-^^^^^^^^^^^
+"""""""""""
 
 The kernel permutes dimensions of input tensor according to provided order. In other words,
 it transposes input tensors.
 
 Functions
-^^^^^^^^^
+"""""""""
 
 The functions which implement Permute have the following prototype:
 
@@ -86,7 +86,7 @@ Here is a list of all available permute functions:
 ..
 
 Conditions
-^^^^^^^^^^
+""""""""""
 
 Ensure that you satisfy the following general conditions before calling the function:
 
@@ -104,7 +104,7 @@ Ensure that you satisfy the platform-specific conditions in addition to those li
 (see the :ref:`platform_spec_chptr` chapter).
 
 Result
-^^^^^^
+""""""
 
 These functions modify:
 

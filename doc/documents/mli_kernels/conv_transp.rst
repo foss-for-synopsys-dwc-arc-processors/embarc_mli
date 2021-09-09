@@ -1,8 +1,8 @@
 Transpose Convolution Prototype and Function List
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Description
-^^^^^^^^^^^
+"""""""""""
 
 This kernel implements a general 2D transposed convolution operation 
 which works by swapping the forward and backward passes of a convolution. 
@@ -55,7 +55,7 @@ This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_inf
 The Number of accumulation series is up to (:math:`Wk*Hk*Ci`).
 
 Functions
-^^^^^^^^^
+"""""""""
 
 Kernels which implement Transpose Convolutions have the following prototype:
 
@@ -170,7 +170,7 @@ The following table lists all the available Transpose Convolution functions:
 ..
 
 Conditions
-^^^^^^^^^^
+""""""""""
 
 Ensure that you satisfy the following general conditions before calling the function: 
 
@@ -241,7 +241,7 @@ Ensure that you satisfy the platform-specific conditions in addition to those li
 (see the :ref:`platform_spec_chptr` chapter).
 
 Result
-^^^^^^
+""""""
 
 These functions only modify the memory pointed by ``out.data.mem`` field. 
 It is assumed that all the other fields of ``out`` tensor are properly populated 

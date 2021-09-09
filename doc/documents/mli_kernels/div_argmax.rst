@@ -1,16 +1,16 @@
 .. _argmax_prot:
 
 Argmax Prototype and Function List
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Description
-^^^^^^^^^^^
+"""""""""""
 
 This kernel returns the positions of maximum values across the whole tensor, or for each slice 
 across a dimension. 
 
 Functions
-^^^^^^^^^
+"""""""""
 
 Argmax functions have the following prototype:
 
@@ -82,7 +82,7 @@ parameters are shown in the following table:
 ..   
 
 Conditions
-^^^^^^^^^^
+""""""""""
 
 Ensure that you satisfy the following general conditions before calling the function:
 
@@ -126,7 +126,7 @@ Ensure that you satisfy the platform-specific conditions in addition to those li
 (see the :ref:`platform_spec_chptr` chapter).
 
 Result
-^^^^^^
+""""""
 
 These functions modify:
 

@@ -1,10 +1,10 @@
 .. _relu_prot:
 
 ReLU Prototype and Function List
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Description
-^^^^^^^^^^^
+"""""""""""
 
 This kernel represents Rectified Linear Unit (ReLU). It performs various types 
 of the rectifier activation on input. The following types of ReLU are supported by 
@@ -25,7 +25,7 @@ this type of kernel:
    :math:`y_{i}` *–* :math:`i_{\text{th}}` *value in output tensor*
 
 Functions
-^^^^^^^^^
+"""""""""
 
 Kernels which implement ReLU functions have the following prototype:
 
@@ -99,7 +99,7 @@ parameters are shown in the following table:
 ..
 
 Conditions
-^^^^^^^^^^
+""""""""""
 
 Ensure that you satisfy the following general conditions before calling the function:
 
@@ -122,7 +122,7 @@ Ensure that you satisfy the platform-specific conditions in addition to those li
 (see the :ref:`platform_spec_chptr` chapter).
 
 Result
-^^^^^^
+""""""
 
 These functions modify:
 

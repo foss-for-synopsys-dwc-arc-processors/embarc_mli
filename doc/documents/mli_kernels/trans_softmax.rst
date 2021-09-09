@@ -1,10 +1,10 @@
 .. _softmax_prot:
 
 Softmax Prototype and Function List
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Description
-^^^^^^^^^^^
+"""""""""""
 
 This kernel performs Softmax activation function that is a generalization of the 
 logistic function that transforms the input vector according to the following formula:
@@ -33,7 +33,7 @@ Use the following functions for the purpose:
  - :code:`mli_krn_softmax_create_lut`
 
 Functions
-^^^^^^^^^
+"""""""""
 
 Kernels which implement softmax functions have the following prototype:
 
@@ -91,7 +91,7 @@ See Table :ref:`t_mli_prelu_cfg_desc` for more details.
 ..
 
 Conditions
-^^^^^^^^^^
+""""""""""
 
 Ensure that you satisfy the following general conditions before calling the function:
 
@@ -118,7 +118,7 @@ Ensure that you satisfy the platform-specific conditions in addition to those li
 (see the :ref:`platform_spec_chptr` chapter).
 
 Result
-^^^^^^
+""""""
 
 These functions modify:
 

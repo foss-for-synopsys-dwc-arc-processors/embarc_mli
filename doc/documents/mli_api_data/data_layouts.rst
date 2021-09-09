@@ -36,7 +36,7 @@ Other kernels are layout-agnostic, or imply non-vision meaning of dimensions. Th
 ..
 
 MLI Data layout (HWCN)
-~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^
 
 Layout-dependent MLI kernels use the HWC layout for tensors and HWCN layout for weights. 
 The Height/Width/Channel layout is also referred as “Interleaved” or “Channel last”. 
@@ -73,7 +73,7 @@ transpose function can also be used to convert one layout into another layout.
   
 
 Description
-^^^^^^^^^^^
+"""""""""""
 
 .. _t_hwcn_spec:
 .. table:: The HWCN Layout
@@ -110,7 +110,7 @@ Benefits of the HWCN layout:
     types of jumping. 
 
 Changing the Data Layout of Three-Dimensional Tensors
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Inputs and outputs of vision layers, such as convolution or pooling, are typically three-dimensional tensors 
 (also referred to as feature maps) that reflect the value of various features (channels) across 

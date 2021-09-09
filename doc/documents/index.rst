@@ -3,8 +3,9 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to embARC Machine Learning Inference 2.0 Library Documentation!
-=======================================================================
+*****************************************
+embARC Machine Learning Inference Library
+*****************************************
 
 .. toctree::
    :maxdepth: 2
@@ -18,8 +19,9 @@ Welcome to embARC Machine Learning Inference 2.0 Library Documentation!
    utility_functions/utility_functions.rst
    platform_specific/platform_hint_sum.rst
 
+******************
 Indices and tables
-==================
+******************
 
  * :ref:`genindex`
  * :ref:`search`

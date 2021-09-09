@@ -24,7 +24,7 @@ getting information from data structures and performing various operations on th
 .. _get_elem_size:
 
 Get Element Size
-~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^
 
 This function returns the size of the tensor basic element in bytes. It returns 0 if the in pointer 
 does NOT point to a tensor with a supported element type (see description of mli_element_type 
@@ -58,7 +58,7 @@ Conditions:
 .. _count_elements:
 
 Count Number of Elements
-~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 This function counts the number of elements in a tensor starting from the provided dimension 
 number (dimension numbering starts from 0): 
@@ -104,10 +104,10 @@ Conditions:
 .. _get_scale_val:
  
 Get Scale Value
-~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^
 
 This function returns the scale value from the quantization parameters. For data 
-formats that don’t have a scale value, the value 1 is returned. 
+formats that don't have a scale value, the value 1 is returned. 
 For tensors with multiple scale value per-axis scale_idx parameter defines the 
 particular scale value to be fetched. In case of an invalid tensor, the value 0 is returned.
 
@@ -145,7 +145,7 @@ Conditions:
 .. _get_shift_val:
  
 Get Scale Shift Value
-~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^
 
 This function returns the shift value from the quantization parameters. 
 For data formats that don't have a shift value, the value 0 is returned.
@@ -186,7 +186,7 @@ Conditions:
 .. _get_zero_offset_val:
  
 Get Zero Offset Value
-~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^
 
 This function returns the zero offset value from the quantization parameters.
 For data formats that do not have a zero offset value, the value 0 is returned.
@@ -228,7 +228,7 @@ Conditions:
 .. _create_sub_tensor:
 
 Create Subtensor
-~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^
 
 This function points to sub tensors in the input tensor. This function can 
 be considered as indexing in a multidimensional array without copying or 
@@ -313,7 +313,7 @@ check and returns the result as an ``mli_status`` code as described in section :
 .. _num_of_accu_bits:
  
 Get Number of Accumulator Guard Bits
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 These functions return the number of accumulator guard bits for a specific MAC (multiply-and-accumulate)
 variant. An addition might result in an overflow if all bits of operands are used and both operands
