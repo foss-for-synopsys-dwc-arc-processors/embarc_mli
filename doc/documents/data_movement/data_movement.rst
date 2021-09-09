@@ -15,17 +15,17 @@ allowing copy and manipulation to happen at the same time, rather than in two se
 The supported transformations are described here and shown pictorially in Figure  
 :ref:`f_data_mv_grp_t`
 
- - Copy – a simple copy operation only
+ - Copy - a simple copy operation only
  
- - Slicing – select a subset of a larger tensor and copy it to the destination tensor
+ - Slicing - select a subset of a larger tensor and copy it to the destination tensor
  
- - Concatenation – copy the content of a smaller tensor into a larger one
+ - Concatenation - copy the content of a smaller tensor into a larger one
  
- - Subsample – Reduce the size of the output by taking only every nth element from the source
+ - Subsample - Reduce the size of the output by taking only every nth element from the source
  
- - Permute – Reorder dimensions of a tensor
+ - Permute - Reorder dimensions of a tensor
  
- - Padding – Add zeros around the specified dimensions
+ - Padding - Add zeros around the specified dimensions
 
  More than one transform can be combined into a single operation.
 
@@ -85,7 +85,7 @@ The fields of this structure are described in Table :ref:`t_mli_mov_cfg_desc`. A
 size ``MLI_MAX_RANK``. Fields are stored in order starting from the one with the largest stride between the data 
 portions. For example, for a matrix A(rows, columns), shape[0] = rows, shape[1] = columns. The data move function 
 does not change the number of dimensions. The rank of the source tensor determines the amount of values that are 
-read from the array. The other values are don’t care.
+read from the array. The other values are "don't care".
 
 The size of the array is defined by ``MLI_MAX_RANK``.
 
@@ -134,10 +134,15 @@ It is possible to combine multiple 'operations' in one move. In that the interna
 applied is relevant:
 
  - padding_pre/padding_post (using cfg->padding_pre and cfg->padding_post as described in figure :ref:`f_mli_mov_cfg_params_pad`)
+  
  - crop  (using cfg->offset and cfg->size as described in figure :ref:`f_mli_mov_cfg_params_crop`)
+ 
  - subsampling (using cfg->sub_sample_step as described in figure :ref:`f_mli_mov_cfg_params_sub`)
+ 
  - permute (using cfg->perm_dim)
+ 
  - write at offset (using cfg->dst_offset and cfg->dst_mem_stride)
+
 
 .. _f_mli_mov_cfg_params_pad:  
 .. figure::  ../images/mli_mov_cfg_params_pad.png
@@ -168,8 +173,8 @@ Ensure that you satisfy the following conditions before calling the function:
 
  - Buffers of ``src`` and ``dst`` tensors must point to different, non-overlapped memory regions.
 
-For **sa8_sa8_sa32** versions of kernel, and in case of per-axis quantization, the ``el_params`` 
-field of ``dst`` tensor is filled by the kernel using ``src`` quantization parameters. 
+For ``src`` tensor of **sa8** or **sa32** types, and in case of per-axis quantization, the ``el_params`` 
+field of ``dst`` tensor is filled by the function using ``src`` quantization parameters. 
 The following fields are affected:
 
     - ``dst.el_params.sa.zero_point.mem.pi16`` and related capacity field
@@ -199,7 +204,9 @@ same pointers as the src tensor, the result is undefined.
 
     - In case of per-axis quantization of the src tensor, the axis needs to match the (permuted) quantization axis in the
       dst tensor.
+    
     - A combination of per-axis and per-tensor quantization is not allowed.
+    
     - In case of padding on the quantization axis, the quantization parameters for the padded area will be set to
       scale=1, scale_frac_bits=0, zero_point=0
 
@@ -385,7 +392,7 @@ the public header file. This way the caller can allocate it on the stack.
 
 
 Preparation
-~~~~~~~~~~~
+^^^^^^^^^^^
 
 The ``mli_mov_prepare`` function is called first to set up the transfer. The functionality 
 of this function varies depending on the implementation, but it often performs DMA 
@@ -421,7 +428,7 @@ Depending on the debug level (see section :ref:`err_codes`), this function perfo
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
 Start Processing
-~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^
 
 The ``mli_mov_start`` function is called to begin the previously-setup transfer. Table 
 :ref:`t_mli_mov_start` describes the parameters of this function.  If this function 
@@ -458,8 +465,8 @@ an assert is triggered.
 Depending on the debug level (see section :ref:`err_codes`), this function performs a parameter 
 check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.
 
-Done Notification – Callback
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Done Notification - Callback
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You can register a callback function which is called after the data move is finished. A callback 
 is registered with the following function.  The parameters are described in Table :ref:`t_mli_mov_regcb`.
@@ -497,8 +504,8 @@ is registered with the following function.  The parameters are described in Tabl
 If a callback function has been registered, this callback is called after the DMA 
 transaction completes, and the value of cookie is passed in as an argument.
 
-Done Notification – Polling
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Done Notification - Polling
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You can also simply poll for the completion of the DMA transaction using this function:
 
@@ -510,9 +517,9 @@ You can also simply poll for the completion of the DMA transaction using this fu
    
 This function takes a pointer to the handle used for ``mli_mov_prepare`` and returns:
 
- - True – if the transaction is complete
+ - True - if the transaction is complete
  
- - False – if the transaction is still in progress
+ - False - if the transaction is still in progress
 
 You can also wait for the DMA to compete using the following function: 
 
@@ -527,7 +534,7 @@ after the transaction completes or in case of an error.
 
 
 Restrictions for Source and Destination Tensors
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ``src`` and ``dst`` tensors for all functions of asynchronous data move set must comply to the following conditions:
 
@@ -539,8 +546,8 @@ Restrictions for Source and Destination Tensors
 
   - Buffers of ``src`` and ``dst`` tensors must point to different, non-overlapped memory regions.
  
-For **sa8_sa8_sa32** versions of kernel, and in case of per-axis quantization, the ``el_params`` 
-field of ``dst`` tensor is filled by the kernel using ``src`` quantization parameters. 
+For ``src`` tensor of **sa8** or **sa32** types, and in case of per-axis quantization, the ``el_params`` 
+field of ``dst`` tensor is filled by the function using ``src`` quantization parameters. 
 The following fields are affected:
 
     - ``dst.el_params.sa.zero_point.mem.pi16`` and related capacity field
@@ -552,10 +559,10 @@ The following fields are affected:
 Depending on the state of the preceding pointer fields, ensure that you choose only one of the 
 following options to initialize all the fields in a consistent way:
 
-    - If you initialize the pointers with ``nullptr``, then corresponding fields from ``in`` tensor 
+    - If you initialize the pointers with ``nullptr``, then corresponding fields from the ``in`` tensor 
       are copied to ``dst`` tensor. No copy of quantization parameters itself is performed.
 
-    - If you initialize the pointers and capacity fields with corresponding fields from ``in`` tensor, 
+    - If you initialize the pointers and capacity fields with the corresponding fields from the ``in`` tensor, 
       then no action is applied.
 
     - If you initialize the pointers and capacity fields with pre-allocated memory and its capacity,
@@ -582,9 +589,9 @@ channels to MLI for its exclusive use.
    mli_mov_set_num_dma_ch(int ch_offset, int num_ch);
 ..
    
- - ``ch_offset`` – first channel number that MLI should use
+ - ``ch_offset`` - first channel number that MLI should use
  
- - ``num_ch`` – max number of channels that MLI can use
+ - ``num_ch`` - max number of channels that MLI can use
  
 The asynchronous move functions require a handle to a DMA resource. This handle can be 
 obtained from the pool using ``mli_mov_acquire_handle``:
@@ -595,11 +602,11 @@ obtained from the pool using ``mli_mov_acquire_handle``:
    mli_mov_acquire_handle(int num_ch, mli_mov_handle_t* h);
 ..
    
- - ``num_ch`` – Number of DMA channels required for this move. Certain complex transactions 
+ - ``num_ch`` - Number of DMA channels required for this move. Certain complex transactions 
    might be more efficient when multiple channels can be used. By default, a value of 1 
    should be used.
 	
- - ``mli_mov_handle_t* h`` – Pointer to a handle type which is initialized by this function
+ - ``mli_mov_handle_t* h`` - Pointer to a handle type which is initialized by this function
  
 After the move has completed, the resources must be released back to the pool to avoid 
 exhaustion:
@@ -610,7 +617,7 @@ exhaustion:
    mli_mov_release_handle(mli_mov_handle_t* h);
 ..
    
- - ``mli_mov_handle_t* h`` – Pointer to a handle type which is used by the now-completed 
+ - ``mli_mov_handle_t* h`` - Pointer to a handle type which is used by the now-completed 
    transaction
 	
 Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 

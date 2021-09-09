@@ -1,8 +1,8 @@
 Basic Long Short Term Memory (LSTM) Cell Prototype and Function List
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Description
-^^^^^^^^^^^
+"""""""""""
 
 This kernel implements the basic non-peephole Long Short-Term Memory (LSTM) cell 
 (see `Long Short-term Memory <https://en.wikipedia.org/wiki/Long_short-term_memory>`_ 
@@ -74,7 +74,7 @@ This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_inf
 The number of accumulation series is equal to a single input frame size plus single output frame size.
 
 Functions
-^^^^^^^^^
+"""""""""
 
 Kernels which implement an LSTM cell have the following prototype:
 
@@ -201,7 +201,7 @@ Here is a list of all available LSTM cell functions:
 ..
 
 Conditions
-^^^^^^^^^^
+""""""""""
 
 Ensure that you satisfy the following general conditions before calling the function:
 
@@ -258,10 +258,10 @@ satisfy the following quantization conditions before calling the function:
 For **sa8_sa8_sa32** versions of kernel, in addition to the general conditions, ensure that you 
 satisfy the following quantization conditions before calling the function: 
 
- - ``in``, ``prev_out`` and ``cell`` tensor must be quantized on the tensor level. This implies that each tensor contains a 
+ - ``in``, ``out``, ``prev_out``,  and ``cell`` tensor must be quantized on the tensor level. This implies that each tensor contains a 
    single scale factor and a single zero offset.
 
- - Zero offset of ``in``, ``prev_out`` and ``cell`` tensors must be within [-128, 127] range.
+ - Zero offset of ``in``, ``out``, ``prev_out`` and ``cell`` tensors must be within [-128, 127] range.
    
  - ``weights_in``, ``weights_out`` and ``bias`` tensors must be symmetric. All these tensors must be 
    quantized on the same level. Allowed options:
@@ -281,7 +281,7 @@ Ensure that you satisfy the platform-specific conditions in addition to those li
 (see the :ref:`platform_spec_chptr` chapter).
 
 Result
-^^^^^^
+""""""
 
 These functions modify:
 

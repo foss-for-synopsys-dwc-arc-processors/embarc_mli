@@ -1,10 +1,10 @@
 .. _chap_element_wise:
 
 Element-wise Group
-~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^
 
 Description
-^^^^^^^^^^^
+"""""""""""
 
 The Element-wise Group describes operations that are applied element-by-element 
 on two tensors of the same shape and return a tensor of the same shape. These kernels 
@@ -17,7 +17,7 @@ element of the other tensor.
 :math:`\text{out}_{i} = operation(\text{in}_{\text{scalar}}^{1},\ \text{in}_{i}^{2}`)
 
 Functions
-^^^^^^^^^
+"""""""""
 
 Kernels which implement Element-wise functions have the following prototype:
 
@@ -76,7 +76,7 @@ Kernels which implement Element-wise functions have the following prototype:
 ..
 
 Conditions
-^^^^^^^^^^
+""""""""""
 
 Ensure that you satisfy the following general conditions before calling the function:
 
@@ -112,7 +112,7 @@ Ensure that you satisfy the platform-specific conditions in addition to those li
 (see the :ref:`platform_spec_chptr` chapter).
 
 Result
-^^^^^^
+""""""
 
 These functions only modify the memory pointed by ``out.data.mem`` field. 
 It is assumed that all the other fields of ``out`` tensor are properly populated 

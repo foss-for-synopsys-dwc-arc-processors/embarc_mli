@@ -1,10 +1,10 @@
 .. _param_relu_prot:
 
 Parametric ReLU (PReLU) Prototype and Function List
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Description
-^^^^^^^^^^^
+"""""""""""
 
 This kernel performs Parametric Rectified Linear Unit (PReLU) with a negative slope activation 
 function. It transforms each element of input tensor according to the following formula:
@@ -18,9 +18,9 @@ function. It transforms each element of input tensor according to the following 
 
 Where:
 
-    :math:`x_{i}` *–* :math:`i_{\text{th}}` *value in input data subset*
+    :math:`x_{i}` *-* :math:`i_{\text{th}}` *value in input data subset*
 
-    :math:`y_{i}` *–* :math:`i_{\text{th}}` *value in output data subset*
+    :math:`y_{i}` *-* :math:`i_{\text{th}}` *value in output data subset*
 
     :math:`\alpha` - coefficient of the negative slope for the specific
     data subset
@@ -29,13 +29,13 @@ While for Leaky ReLU, the whole tensor shares only the :math:`\alpha` coefficien
 array of slope coefficients is shared across an axis.  Hence, for each slice along the 
 specified axis an individual :math:`\alpha` slope coefficient is used. 
 
-The “shared axis” feature found in some frameworks is not supported in MLI. This functionality can 
+The "shared axis" feature found in some frameworks is not supported in MLI. This functionality can 
 instead be achieved in several iterations using the PReLU kernel and the mem_strides feature. 
 One iteration implies creating subtensors from ``in`` and ``slope_coeff`` tensors using memstrides and applying 
 the PReLU kernel on them.
 
 Functions
-^^^^^^^^^
+"""""""""
 
 Kernels which implement Parametric ReLU functions have the following prototype:
 
@@ -87,7 +87,7 @@ are shown in the following table:
    | **Field Name**  | **Type**       | **Description**                                              |
    +=================+================+==============================================================+
    |                 |                | An axis along which the function is computed. Axis           |
-   |                 |                | corresponds to index of tensor’s dimension starting from 0.  |
+   |                 |                | corresponds to index of tensor's dimension starting from 0.  |
    | ``axis``        | ``int32_t``    | For instance, having feature map in HWC layout, axis == 0    |
    |                 |                | corresponds to H dimension. If axis < 0, the function is     |
    |                 |                | applied to the whole tensor.                                 |
@@ -108,7 +108,7 @@ are shown in the following table:
 ..
 
 Conditions
-^^^^^^^^^^
+""""""""""
 
 Ensure that you satisfy the following general conditions before calling the function:
 
@@ -148,7 +148,7 @@ Ensure that you satisfy the platform-specific conditions in addition to those li
 (see the :ref:`platform_spec_chptr` chapter).
 
 Result
-^^^^^^
+""""""
 
 These functions only modify the memory pointed by ``out.data.mem`` field. 
 It is assumed that all the other fields of ``out`` tensor are properly populated 

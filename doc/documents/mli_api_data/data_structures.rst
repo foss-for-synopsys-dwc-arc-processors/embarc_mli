@@ -15,7 +15,7 @@ This section describes the set of available data structures present in the MLI i
 .. _mli_tens_data_struct:
 
 ``mli_tensor`` Structure
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 All functions use the ``mli_tensor`` structure as the main container for input and output data. 
 It represents a multi-dimensional array of elements. The ``mli_tensor`` structure describes the 
@@ -119,7 +119,7 @@ The table :ref:`mli_tnsr_struc` describes the fields in the ``mli_tensor`` struc
 .. _c_mli_data_container:
 
 ``mli_data_container`` Structure
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ``mli_data_container`` is a container to represent polymorphic data. 
 It stores pointer to data or a single value that intend to be directly used in arithmetical operations.
@@ -183,7 +183,7 @@ It stores pointer to data or a single value that intend to be directly used in a
 .. _c_mli_element_type:
 
 ``mli_element_type`` Enumeration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ``mli_element_type`` enumeration defines the basic element type stored in tensor structure.
 Based on this information, library functions may define sizes, algorithms for processing,
@@ -233,7 +233,7 @@ and other  implementation specific things. ``mli_element_type`` is defined as fo
 .. _c_mli_element_params:
 
 ``mli_element_params`` Union
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ``mli_element_params`` stores data quantization parameters required for arithmetical 
 operations with tensor elements. Details on supported quantization schemes are discussed in :ref:`data_fmts`.
@@ -334,7 +334,7 @@ channels in the tensor ``(array_size = shape[dim])``.
        tsr_fx16.el_params.fx.frac_bits = 12;
 
        // Filling other fields of tsr_fx16
-       ...
+
    ..
 
    SA8 tensor quantized on per-tensor level might be populated in the following way:
@@ -358,7 +358,6 @@ channels in the tensor ``(array_size = shape[dim])``.
       tsr_sa8.el_params.sa.scale.mem.i16 = 5; // (5 \ 2^3) = 0.625
 
       // Filling other fields of tsr_sa8
-      ...
 
    ..
 
@@ -386,7 +385,7 @@ channels in the tensor ``(array_size = shape[dim])``.
       tsr_sa8_per_axis.el_params.sa.scale.capacity = sizeof(scales);
 
       // Filling other fields of tsr_sa8_per_axis
-      ...
+
    ..
 ..
 
@@ -394,7 +393,7 @@ channels in the tensor ``(array_size = shape[dim])``.
 .. _mli_lut_data_struct:
 
 ``mli_lut`` Structure
-~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^
 
 Several functions use a look-up table (LUT) to perform data transformation.  The LUT represents a function in a 
 table form that can be used to transform input values (function argument) to output values (function result). 
@@ -454,7 +453,7 @@ The following table describes the fields in the ``mli_lut`` structure.
 .. _kernl_sp_conf:
 
 Kernel Specific Configuration Structures
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A significant number of MLI kernels must be configured by specific parameters, which 
 influence calculations and results, but are not directly related to input data. For 

@@ -1,8 +1,8 @@
 Gated Recurrent Unit (GRU) Cell Prototype and Function List
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Description
-^^^^^^^^^^^
+"""""""""""
 
 This kernel implements the Gated Recurrent Unit (GRU) cell in version where a reset 
 gate is applied on the hidden state before matrix multiplication (see `Depth-Gated Recurrent 
@@ -40,7 +40,7 @@ Where:
    :math:`\ {\widetilde{h}}_{t}\ ` *- updated hidden state for frame*
    :math:`t` *in input sequence.*
 
-   :math:`z_{t}\ ,\ r_{t}` *– Update and reset gates subtensors for
+   :math:`z_{t}\ ,\ r_{t}` *- Update and reset gates subtensors for
    frame* :math:`t` *in input sequence.*
 
    :math:`W_{**}\ ` *- weights for appropriate input subtensor.*
@@ -67,7 +67,7 @@ This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_inf
 The number of accumulation series is equal to single input frame size plus single output frame size.
 
 Functions
-^^^^^^^^^
+"""""""""
 
 Kernels which implement an GRU cell have the following prototype:
 
@@ -182,7 +182,7 @@ The following table lists all the available GRU cell functions:
 ..
 
 Conditions
-^^^^^^^^^^
+""""""""""
 
 Ensure that you satisfy the following general conditions before calling the function:
 
@@ -199,21 +199,19 @@ Ensure that you satisfy the following general conditions before calling the func
    - ``in`` must be a 2-dimensional tensor (rank==2) of shape (sequence_length, :math:`N`) 
      where sequence_length is a number of input frames (or timesteps) for sequential processing by GRU cell.
 
-   - ``weights_in`` must be a 3-dimensional tensor (rank==3) of shape (4, :math:`N`, :math:`M`).
+   - ``weights_in`` must be a 3-dimensional tensor (rank==3) of shape (3, :math:`N`, :math:`M`).
 
-   - ``weights_out`` must be a 3-dimensional tensor (rank==3) of shape (4, :math:`M`, :math:`M`).
+   - ``weights_out`` must be a 3-dimensional tensor (rank==3) of shape (3, :math:`M`, :math:`M`).
 
-   - ``bias`` must be a 2-dimensional tensor (rank==2) of shape (4, :math:`M`).
-
-   - ``cell`` must be a one-dimensional tensor (rank==1) of shape (:math:`M`).
+   - ``bias`` must be a 2-dimensional tensor (rank==2) of shape (3, :math:`M`).
 
    - ``prev_out`` must be a one-dimensional tensor (rank==1) of shape (:math:`M`).
  
    - ``out`` tensor might be of any shape and rank. Kernel changes its shape to (sequence_length, :math:`M`)
 
  - ``out.data`` container must point to a buffer with sufficient capacity for storing the result (to keep :math:`M` 
-   elements if LSTM cell is configured with ``RNN_OUT_LAST`` or to keep :math:`M*sequence\_length` elements if
-   LSTM cell is configured with ``RNN_OUT_ALL``).
+   elements if GRU cell is configured with ``RNN_OUT_LAST`` or to keep :math:`M*sequence\_length` elements if
+   GRU cell is configured with ``RNN_OUT_ALL``).
 
  - ``scratch_data`` field in config structure must contain a valid pointer to a buffer with sufficient 
    capacity for the intermediate result (:math:`3*M` elements of input type). The ``capacity`` field of 
@@ -239,10 +237,10 @@ satisfy the following quantization conditions before calling the function:
 For **sa8_sa8_sa32** versions of kernel, in addition to the general conditions, ensure that you 
 satisfy the following quantization conditions before calling the function:
  
- - ``in`` and ``prev_out`` tensor must be quantized on the tensor level. This implies that each tensor 
+ - ``in``, ``out`` and ``prev_out`` tensor must be quantized on the tensor level. This implies that each tensor 
    contains a single scale factor and a single zero offset.
 
- - Zero offset of ``in`` and ``prev_out`` tensors must be within [-128, 127] range.
+ - Zero offset of ``in``, ``out`` and ``prev_out`` tensors must be within [-128, 127] range.
   
  - ``weights_in``, ``weights_out`` and ``bias`` tensors must be symmetric. All these tensors must be 
    quantized on the same level. Allowed Options:
@@ -262,7 +260,7 @@ Ensure that you satisfy the platform-specific conditions in addition to those li
 (see the :ref:`platform_spec_chptr` chapter).
 
 Result
-^^^^^^
+""""""
 
 These functions modify:
 

@@ -1,8 +1,8 @@
 Average Pooling Prototype and Function List
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Description
-^^^^^^^^^^^
+"""""""""""
 
 Average pooling computes each value of the output tensor as the average of all values 
 in the related perception area of a single channel of the input tensor. The perception 
@@ -21,7 +21,7 @@ the ``out`` feature map is :math:`(Ho, Wo, Ci)` tensor where the spatial dimensi
 comply with the system of equations :eq:`eq_pool_shapes`. 
 
 Functions
-^^^^^^^^^
+"""""""""
 
 Kernels which implement average pooling functions have the following prototype:
 
@@ -88,7 +88,7 @@ Kernels which implement average pooling functions have the following prototype:
 ..
 
 Conditions
-^^^^^^^^^^
+""""""""""
 
 Ensure that you satisfy the following general conditions before calling the function:
 
@@ -128,7 +128,7 @@ Ensure that you satisfy the platform-specific conditions in addition to those li
 (see the :ref:`platform_spec_chptr` chapter).
 
 Result
-^^^^^^
+""""""
 
 These functions only modify the memory pointed by ``out.data.mem`` field. 
 It is assumed that all the other fields of ``out`` tensor are properly populated 

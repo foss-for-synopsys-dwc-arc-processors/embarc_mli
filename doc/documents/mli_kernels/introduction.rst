@@ -23,7 +23,7 @@ function calls, which can either be constructed manually by the user or via some
 automated front-end tool.
 
 A note on Slicing
-~~~~~~~~~~~~~~~~~~~
+"""""""""""""""""
 
 The kernels described in the following sections of this document have no notion of 
 slicing (also referred to as tiling).  Instead, the responsibility of slicing is left to 
@@ -33,7 +33,7 @@ that all the input tensors are in CCM. The output tensor can be either in system
 or in CCM.
  
 Slicing is required in case there is not enough space in CCM to fit the complete input 
-tensors. In this case, the caller can copy a ‘slice’ of the input tensor into CCM, and 
+tensors. In this case, the caller can copy a 'slice' of the input tensor into CCM, and 
 the kernel produces a slice of the output tensor. These output slices can be combined
 into a full tensor. Because the tensor data does not have to be contiguous in memory, 
 it is possible to create a (slice) tensor that points to a subset of the data of a larger 
@@ -61,7 +61,7 @@ the offsets in the data buffers for each dimension.
 .. _func_names_special:
 
 Function Names and Specializations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+""""""""""""""""""""""""""""""""""
 
 All function names of the kernels are constructed in a similar way. To make it easier to 
 navigate through the list of API functions, all function names are built using the 

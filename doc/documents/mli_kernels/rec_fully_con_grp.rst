@@ -51,7 +51,7 @@ Functions in this group typically use the ``mli_rnn_cell_cfg`` structure, define
    |                      |                            | ``RNN_ACT_NONE``      | No activation                                                         |   
    |                      |                            |                       |                                                                       |
    +----------------------+----------------------------+-----------------------+-----------------------------------------------------------------------+
-   |                      |                            |                       | Container with a scratch memory to keep cell’s intermediate results.  |
+   |                      |                            |                       | Container with a scratch memory to keep cell's intermediate results.  |
    | ``scratch_data``     | ``mli_data_container``     | --                    | Must contain a valid pointer in ``pi32`` field (see                   |
    |                      |                            |                       | :ref:`mli_tens_data_struct`) to a memory of sufficient size for the   |
    |                      |                            |                       | kernel. The exact amount of memory is defined  in the respective      |
