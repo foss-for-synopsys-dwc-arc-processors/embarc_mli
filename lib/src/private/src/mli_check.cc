@@ -2818,11 +2818,7 @@ mli_status mli_chk_data_movement(const mli_tensor *in, const mli_mov_cfg_t *cfg,
     // Check that in tensor is valid and out provides valid pointers
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in, false), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
-    stat = MLI_CHECK_STATUS(mli_chk_tensor (out, false /* check bank */), "Bad output tensor");
-    if (MLI_CHECK(out->el_type == in->el_type, "Wrong output type"))
-        return MLI_STATUS_TYPE_MISMATCH;
 
-    if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(cfg != NULL , "Bad cfg pointer")) return MLI_STATUS_BAD_FUNC_CFG;
     if ((in->el_type == MLI_EL_SA_8 || in->el_type == MLI_EL_SA_32) && (in->el_params.sa.dim != -1)) {
         bool fail = false;
@@ -2831,9 +2827,9 @@ mli_status mli_chk_data_movement(const mli_tensor *in, const mli_mov_cfg_t *cfg,
                     && (out->el_params.sa.scale_frac_bits.mem.pi8 == in->el_params.sa.scale_frac_bits.mem.pi8),
                     "El_params data for out tensor wasn`t initialized in a consistent way");
 
-        if (out->el_params.sa.zero_point.mem.pi16 != in->el_params.sa.zero_point.mem.pi16)
-            fail |= MLI_CHECK((out->el_params.sa.scale.mem.pi16 != in->el_params.sa.scale.mem.pi16)
-                    && (out->el_params.sa.scale_frac_bits.mem.pi8 != in->el_params.sa.scale_frac_bits.mem.pi8),
+        if (out->el_params.sa.zero_point.mem.pi16 != nullptr && out->el_params.sa.zero_point.mem.pi16 != in->el_params.sa.zero_point.mem.pi16)
+            fail |= MLI_CHECK((out->el_params.sa.scale.mem.pi16 != nullptr && out->el_params.sa.scale.mem.pi16 != in->el_params.sa.scale.mem.pi16)
+                    && (out->el_params.sa.scale_frac_bits.mem.pi8 != nullptr && out->el_params.sa.scale_frac_bits.mem.pi8 != in->el_params.sa.scale_frac_bits.mem.pi8),
                     "El_params data for out tensor wasn`t initialized in a consistent way");
 
         if (out->el_params.sa.zero_point.mem.pi16 == nullptr)
