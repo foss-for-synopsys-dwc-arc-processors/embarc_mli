@@ -1,7 +1,7 @@
 .. _chap_conv:
 
-Convolution Group
------------------
+Convolution Kernels Group
+=========================
 
 The Convolution Group describes operations related to convolution layers, where 
 input features are convolved with a set of trained filters. For a comprehensive guide 

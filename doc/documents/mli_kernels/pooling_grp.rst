@@ -1,7 +1,7 @@
 .. _chap_pool:
 
-Pooling group
--------------
+Pooling Kernels Group
+=====================
 
 The Pooling Group describes operations which divide input features into sub-frames 
 and applies a function with scalar output on each of them. Generally, this results 

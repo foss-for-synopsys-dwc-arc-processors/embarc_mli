@@ -1,7 +1,7 @@
 .. _chap_transform:
 
-Transform (Activation) Group
------------------------------
+Transform (Activation) Kernels Group
+====================================
 
 The Transform Group describes operations for transforming data according to 
 particular functions (or activations).  In general, transformations do not 

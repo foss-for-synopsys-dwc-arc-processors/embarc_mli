@@ -1,10 +1,10 @@
 .. _conv_depthwise:
 
 Depthwise Convolution Prototype and Function List
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------------------
 
 Description
-"""""""""""
+^^^^^^^^^^^
 
 This kernel implements a 2D depthwise convolution operation applying each filter 
 channel to each input channel separately. It applies each filter of weights tensor 
@@ -45,7 +45,7 @@ on related quantization aspects. The Number of accumulation series in terms of a
 is equal to :math:`(Hk * Wk)`.
 
 Functions
-"""""""""
+^^^^^^^^^
 
 Kernels which implement depthwise convolution have the following prototype:
 
@@ -148,7 +148,7 @@ Here is a list of all available Depth-Wise Convolution functions:
 ..
 
 Conditions
-""""""""""
+^^^^^^^^^^
 
 Ensure that you satisfy the following general conditions before calling the function:
 
@@ -223,7 +223,7 @@ Ensure that you satisfy the platform-specific conditions in addition to those li
 (see the :ref:`platform_spec_chptr` chapter).
 
 Result
-""""""
+^^^^^^
 
 These functions only modify the memory pointed by ``out.data.mem`` field. 
 It is assumed that all the other fields of ``out`` tensor are properly populated 
