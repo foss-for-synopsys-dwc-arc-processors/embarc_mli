@@ -1,10 +1,10 @@
 .. _grp_conv:
 
 Group Convolution Prototype and Function List
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------------------
 
 Description
-"""""""""""
+^^^^^^^^^^^
 
 This kernel implements a grouped 2D convolution which applies general 2D 
 convolution operation on a separate subset (groups) of inputs. In grouped 
@@ -41,7 +41,7 @@ This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_inf
 The Number of accumulation series is equal to :math:`(Hk * Wk * Cw)`.
 
 Functions
-"""""""""
+^^^^^^^^^
 
 Kernels which implement a group convolution have the following prototype:
 
@@ -152,7 +152,7 @@ Here is a list of all available Group Convolution functions:
 ..
 
 Conditions
-""""""""""
+^^^^^^^^^^
 Ensure that you satisfy the following general conditions before calling the function:
 
 
@@ -228,7 +228,7 @@ Ensure that you satisfy the platform-specific conditions in addition to those li
 (see the :ref:`platform_spec_chptr` chapter).
 
 Result
-""""""
+^^^^^^
 
 These functions only modify the memory pointed by ``out.data.mem`` field. 
 It is assumed that all the other fields of ``out`` tensor are properly populated 

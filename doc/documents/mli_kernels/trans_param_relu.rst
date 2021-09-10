@@ -1,10 +1,10 @@
 .. _param_relu_prot:
 
 Parametric ReLU (PReLU) Prototype and Function List
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------------------------
 
 Description
-"""""""""""
+^^^^^^^^^^^
 
 This kernel performs Parametric Rectified Linear Unit (PReLU) with a negative slope activation 
 function. It transforms each element of input tensor according to the following formula:
@@ -35,7 +35,7 @@ One iteration implies creating subtensors from ``in`` and ``slope_coeff`` tensor
 the PReLU kernel on them.
 
 Functions
-"""""""""
+^^^^^^^^^
 
 Kernels which implement Parametric ReLU functions have the following prototype:
 
@@ -108,7 +108,7 @@ are shown in the following table:
 ..
 
 Conditions
-""""""""""
+^^^^^^^^^^
 
 Ensure that you satisfy the following general conditions before calling the function:
 
@@ -148,7 +148,7 @@ Ensure that you satisfy the platform-specific conditions in addition to those li
 (see the :ref:`platform_spec_chptr` chapter).
 
 Result
-""""""
+^^^^^^
 
 These functions only modify the memory pointed by ``out.data.mem`` field. 
 It is assumed that all the other fields of ``out`` tensor are properly populated 

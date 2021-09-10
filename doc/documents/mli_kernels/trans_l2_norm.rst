@@ -1,10 +1,10 @@
 .. _l2_norm_prot:
 
 L2 Normalization Prototype and Function List
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------------
 
 Description
-"""""""""""
+^^^^^^^^^^^
 
 This kernel normalizes data across the specified dimension using L2 norm according to the following 
 formula:
@@ -39,7 +39,7 @@ Use the following functions for the purpose:
  - :code:`mli_krn_l2_normalize_create_lut`
 
 Functions
-"""""""""
+^^^^^^^^^
 
 Kernels which implement L2 normalization functions have the following prototype:
 
@@ -100,7 +100,7 @@ See Table :ref:`t_mli_prelu_cfg_desc` for more details.
 ..
 
 Conditions
-""""""""""
+^^^^^^^^^^
 
 Ensure that you satisfy the following general conditions before calling the function:
 
@@ -129,7 +129,7 @@ Ensure that you satisfy the platform-specific conditions in addition to those li
 (see the :ref:`platform_spec_chptr` chapter).
 
 Result
-""""""
+^^^^^^
 
 These functions modify:
 

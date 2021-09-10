@@ -1,10 +1,10 @@
 .. _conv_2d:
 
 Convolution 2D Prototype and Function List
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------------
 
 Description
-"""""""""""
+^^^^^^^^^^^
 
 This kernel implements a general 2D convolution operation. It applies each filter 
 of weights tensor to each framed area of the size of input tensor. 
@@ -38,7 +38,7 @@ related quantization aspects. The Number of accumulation series in terms of abov
 equal to :math:`(Hk * Wk * Ci)`.
 
 Functions
-"""""""""
+^^^^^^^^^
 
 The functions which implement 2D Convolutions have the following prototype:
 
@@ -162,7 +162,7 @@ Here is a list of all available 2D Convolution functions:
 ..
 
 Conditions
-""""""""""
+^^^^^^^^^^
 
 Ensure that you satisfy the following general conditions before calling the function:
 
@@ -257,7 +257,7 @@ Ensure that you satisfy the platform-specific conditions in addition to those li
 (see the :ref:`platform_spec_chptr` chapter).
 
 Result
-""""""
+^^^^^^
 
 These functions only modify the memory pointed by ``out.data.mem`` field. 
 It is assumed that all the other fields of ``out`` tensor are properly populated 

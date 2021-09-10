@@ -1,8 +1,8 @@
 RNN Dense Prototype and Function List
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------
 
 Description
-"""""""""""
+^^^^^^^^^^^
 
 This kernel implements a single basic fully connected (or dense) calculation 
 typically used in the majority of RNN architectures:
@@ -36,7 +36,7 @@ This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_inf
 The number of accumulation series is equal to total number of values in all inputs.
 
 Functions
-"""""""""
+^^^^^^^^^
 
 Kernels which implement an RNN Dense functionality have the following prototype:
 
@@ -117,7 +117,7 @@ Here is a list of all available RNN Dense functions:
 ..
 
 Conditions
-""""""""""
+^^^^^^^^^^
 
 Ensure that you satisfy the following general conditions before calling the listed functions:
 
@@ -184,7 +184,7 @@ Ensure that you satisfy the platform-specific conditions in addition to those li
 (see the :ref:`platform_spec_chptr` chapter).
 
 Result
-""""""
+^^^^^^
 
 These functions only modify the memory pointed by ``out.data.mem`` field. 
 It is assumed that all the other fields of ``out`` tensor are properly populated 

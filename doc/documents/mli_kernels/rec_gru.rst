@@ -1,8 +1,8 @@
 Gated Recurrent Unit (GRU) Cell Prototype and Function List
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------------------------------
 
 Description
-"""""""""""
+^^^^^^^^^^^
 
 This kernel implements the Gated Recurrent Unit (GRU) cell in version where a reset 
 gate is applied on the hidden state before matrix multiplication (see `Depth-Gated Recurrent 
@@ -67,7 +67,7 @@ This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_inf
 The number of accumulation series is equal to single input frame size plus single output frame size.
 
 Functions
-"""""""""
+^^^^^^^^^
 
 Kernels which implement an GRU cell have the following prototype:
 
@@ -182,7 +182,7 @@ The following table lists all the available GRU cell functions:
 ..
 
 Conditions
-""""""""""
+^^^^^^^^^^
 
 Ensure that you satisfy the following general conditions before calling the function:
 
@@ -260,7 +260,7 @@ Ensure that you satisfy the platform-specific conditions in addition to those li
 (see the :ref:`platform_spec_chptr` chapter).
 
 Result
-""""""
+^^^^^^
 
 These functions modify:
 

@@ -1,10 +1,10 @@
 .. _sigmoid_prot:
 
 Sigmoid Prototype and Function List
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------
 
 Description
-"""""""""""
+^^^^^^^^^^^
 
 This kernel performs sigmoid (also called as logistic) activation function on input tensor 
 element-wise and stores the result to the output tensor.
@@ -26,7 +26,7 @@ Use the following functions for the purpose:
  - :code:`mli_krn_sigm_create_lut`
 
 Functions
-"""""""""
+^^^^^^^^^
 
 Kernels which implement Sigmoid functions have the following prototype:
 
@@ -72,7 +72,7 @@ parameters are shown in the following table:
 ..
 
 Conditions
-""""""""""
+^^^^^^^^^^
 
 Ensure that you satisfy the following general conditions before calling the function:
 
@@ -98,7 +98,7 @@ Ensure that you satisfy the platform-specific conditions in addition to those li
 (see the :ref:`platform_spec_chptr` chapter).
 
 Result
-""""""
+^^^^^^
 
 These functions modify:
 
