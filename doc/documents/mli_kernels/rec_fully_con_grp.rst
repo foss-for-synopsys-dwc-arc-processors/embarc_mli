@@ -1,7 +1,7 @@
 .. _chap_rec_full:
 
-Recurrent and Fully Connected Group
------------------------------------
+Recurrent and Fully Connected Kernels Group
+===========================================
 
 This group describes operations related to the RNN calculations and includes 
 general fully connected kernel description. There are a lot of variations of 

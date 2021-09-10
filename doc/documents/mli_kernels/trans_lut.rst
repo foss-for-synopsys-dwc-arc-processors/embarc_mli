@@ -1,10 +1,10 @@
 .. _lut_prot:
 
 Look-Up Tables (LUT) Manipulation Prototypes and Function List
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------------------------------
 
 Description
-"""""""""""
+^^^^^^^^^^^
 
 Several MLI kernels use a look-up table (LUT) to perform data transformation. 
 You must prepare the LUT before the kernel call and provide the LUT as a 
@@ -68,7 +68,7 @@ where ``lut_name`` is one of supported LUT tables within MLI and the function pa
 ``mli_lut`` is defined in the :ref:`mli_lut_data_struct` section. 
 
 Functions
-"""""""""
+^^^^^^^^^
 
 Here is a list of all available LUT manipulation functions:
 
@@ -98,7 +98,7 @@ Here is a list of all available LUT manipulation functions:
 ..
 
 Conditions
-""""""""""
+^^^^^^^^^^
 
 There are no specific requirements for ``mli_krn_<lut_name>_get_lut_size`` functions. These can be called at any time.
 
@@ -109,7 +109,7 @@ Ensure that you satisfy the following conditions before calling the ``mli_krn_<l
    The Buffer must be 4 byte aligned.
 
 Result
-""""""
+^^^^^^
 
 ``mli_krn_<lut_name>_get_lut_size`` functions always return positive non-zero values.
 
@@ -121,7 +121,7 @@ function performs a parameter check and returns the result as an ``mli_status`` 
 described in section :ref:`kernl_sp_conf`.
 
 Example
-"""""""
+^^^^^^^
 
 The following is a pseudo-code sample of LUT manipulation functions usage together with LUT-consumer kernel call. 
 

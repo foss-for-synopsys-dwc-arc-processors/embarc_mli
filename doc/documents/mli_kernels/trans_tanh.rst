@@ -1,10 +1,10 @@
 .. _tanh_prot:
 
 TanH Prototype and Function List
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------
 
 Description
-"""""""""""
+^^^^^^^^^^^
 
 This kernel performs hyperbolic tangent activation function on input tensor elementwise 
 and stores the result to the output tensor.
@@ -27,7 +27,7 @@ Use the following functions for the purpose:
  - :code:`mli_krn_tanh_create_lut`
 
 Functions
-"""""""""
+^^^^^^^^^
 
 Kernels which implement TanH functions have the following prototype:
 
@@ -72,7 +72,7 @@ parameters are shown in the following table:
 ..
 
 Conditions
-""""""""""
+^^^^^^^^^^
 
 Ensure that you satisfy the following general conditions before calling the function:
 
@@ -97,7 +97,7 @@ Ensure that you satisfy the platform-specific conditions in addition to those li
 (see the :ref:`platform_spec_chptr` chapter).
 
 Result
-""""""
+^^^^^^
 
 These functions modify:
 

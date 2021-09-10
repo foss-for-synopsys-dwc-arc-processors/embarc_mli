@@ -1,10 +1,10 @@
 .. _fully_con_grp:
 
-Fully Connected Prototype and Function List 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Fully Connected Prototype and Function List
+-------------------------------------------
 
 Description
-"""""""""""
+^^^^^^^^^^^
 
 .. _f_fully_conn_layer:
 .. figure:: ../images/fully_conn_layer.png
@@ -42,7 +42,7 @@ This is a MAC-based kernel which implies accumulation. See :ref:`quant_accum_inf
 The Number of accumulation series is equal to input size.
 
 Functions
-"""""""""
+^^^^^^^^^
 
 Functions that implement fully connected kernels have the following prototype:
 
@@ -145,7 +145,7 @@ Where:
     :math:`\hat{b}_{i}` *- adjusted sa32 bias for* :math:`i_{\text{th}}` *neuron*
 
 Conditions
-""""""""""
+^^^^^^^^^^
 
 Ensure that you satisfy the following general conditions before calling the function:
 
@@ -209,7 +209,7 @@ Ensure that you satisfy the platform-specific conditions in addition to those li
 (see the :ref:`platform_spec_chptr` chapter).
 
 Result
-""""""
+^^^^^^
 
 These functions only modify the memory pointed by ``out.data.mem`` field. 
 It is assumed that all the other fields of ``out`` tensor are properly populated 
