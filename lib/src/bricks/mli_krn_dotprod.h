@@ -43,13 +43,23 @@ using mli::krn::vdsp::init_accu_grp;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
 using mli::krn::ref::dotprod1D;
+using mli::krn::dsp::dotprod1D_v;//
+using mli::krn::dsp::dotprod1D_v_unroll;//
 using mli::krn::dsp::dotprod2D;
 using mli::krn::dsp::dotprod2D_hwc_v;
 using mli::krn::dsp::dotprod2D_inp_width_v;
 using mli::krn::dsp::dotprod2D_hwc_v_point;
+
+using mli::krn::dsp::dotprod2D_vv;//
+using mli::krn::dsp::dotprod2D_vv_ptrvector;//
 using mli::krn::dsp::dotprod3D_v_simple;
 using mli::krn::dsp::dotprod2D_inp_width_v;
 using mli::krn::ref::dotprod3D;
+using mli::krn::dsp::dotprod3D_v;//
+using mli::krn::dsp::dotprod3D_v_unroll;//
+using mli::krn::dsp::dotprod3D_v_nopad;//
+using mli::krn::dsp::dotprod3D_v_nopad_unroll;//
+using mli::krn::dsp::init_accu_grp;//
 
 #else
 using mli::krn::ref::dotprod1D;

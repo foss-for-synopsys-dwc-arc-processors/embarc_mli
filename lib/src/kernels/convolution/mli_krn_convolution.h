@@ -33,7 +33,7 @@ using mli::krn::vdsp::depthwise_convolution2D;
 using mli::krn::ref::conv2d_prepare_and_run;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-using mli::krn::ref::convolution2D;
+using mli::krn::vdsp::convolution2D;
 using mli::krn::dsp::depthwise_convolution2D;
 using mli::krn::ref::conv2d_prepare_and_run;
 
@@ -59,6 +59,7 @@ using mli::krn::ref::conv2d_prepare_and_run;
 #endif
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
+#include "impl/mli_krn_convolution_vdsp.h"
 #include "impl/mli_krn_convolution_dsp.h"
 #endif
 

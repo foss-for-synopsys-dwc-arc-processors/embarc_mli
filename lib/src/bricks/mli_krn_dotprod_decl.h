@@ -102,6 +102,24 @@ static MLI_FORCE_INLINE acc_T dotprod3D (
 // DSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace dsp {
+#if !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
+typedef struct {
+    __v2i32_t accu0;
+    __v2i32_t accu1;
+    __v2i32_t accu2;
+    __v2i32_t accu3;
+} grp___v2i32_t;
+
+typedef struct {
+    mli_acc40_t accu0;
+    mli_acc40_t accu1;
+    mli_acc40_t accu2;
+    mli_acc40_t accu3;
+} grp_mli_acc40_t;
+
+MLI_FORCE_INLINE grp___v2i32_t init_accu_grp(__v2i32_t accu);
+MLI_FORCE_INLINE grp_mli_acc40_t init_accu_grp(mli_acc40_t accu);
+#endif
 
 template <typename io_T, typename w_T, typename acc_T>
 static MLI_FORCE_INLINE acc_T dotprod2D(
