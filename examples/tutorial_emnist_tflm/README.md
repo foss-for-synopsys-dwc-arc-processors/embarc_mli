@@ -49,7 +49,7 @@ configuration. Please read the corresponding section on [building the package](/
 Build artifacts of the application are stored in the `/obj/<project>/examples/tutorial_emnist_tflm` directory where `<project>` is defined according to your target platform.  
 
 After you've built and configured the whole library project, you can proceed with the following steps.
-You need to replace `<options>` placeholder in commands below with the same [build configuration options](README.md#build-configuration-options) list you used for the library configuration and build.
+You need to replace `<options>` placeholder in commands below with the same [build configuration options](/README.md#build-configuration-options) list you used for the library configuration and build.
 
 1. Open command line in the root of the embARC MLI repo and change working directory to './examples/tutorial_emnist_tflm/'
 
