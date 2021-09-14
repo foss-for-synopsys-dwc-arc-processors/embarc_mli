@@ -11,8 +11,8 @@
 #include "model_settings.h"
 
 struct TestSample {
-  uint8_t image[kImageSize];
   int label;
+  uint8_t image[kImageSize];
 };
 
 extern const int kNumSamples;
