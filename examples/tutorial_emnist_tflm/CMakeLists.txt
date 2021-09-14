@@ -28,6 +28,7 @@ if (ARC)
         -Hxcheck
         -Hcrt_initbss
     )
+    get_filename_component(TCF_FILE_NAME ${ARC_CFG_TCF_PATH} NAME_WE)
 else()
     set(EXAMPLE_FLAGS)
 endif()
@@ -41,7 +42,7 @@ add_executable(${TARGET}
     ./src/test_samples.cc
 )
 
-target_link_libraries(${TARGET} PUBLIC $ENV{TENSORFLOW_DIR}/tensorflow/lite/micro/tools/make/downloads/arc_mli_$ENV{TCF_FILE_NAME}_mli20/bin/arc/libmli.a)
+target_link_libraries(${TARGET} PUBLIC $ENV{TENSORFLOW_DIR}/tensorflow/lite/micro/tools/make/downloads/arc_mli_${TCF_FILE_NAME}_mli20/bin/arc/libmli.a)
 target_link_libraries(${TARGET} PRIVATE tensorflow-microlite)
 
 target_include_directories(${TARGET} PRIVATE
