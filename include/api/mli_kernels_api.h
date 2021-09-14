@@ -243,7 +243,7 @@ mli_status mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32_k5x5(
  * on a separate subset (groups) of inputs. Each group performs convolutions independent of the other groups 
  * to give M different outputs. These individual outputs are then concatenated together to give the final output. 
  *
- * TensorFlow-like “channel multiplier” functionality of depthwise convolution can be expressed by group 
+ * TensorFlow-like "channel multiplier" functionality of depthwise convolution can be expressed by group 
  * convolution with number of groups equal to input channels and N equal to channel multiplier number of 
  * filters per each group. 
  *
