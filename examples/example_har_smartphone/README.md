@@ -156,8 +156,8 @@ where:
 * `Result Quality: S/N=5346.3     (74.6 db)` reflects the signal-to-noise ration of the model output in comparison with reference float. The ratio itself (`S/N` and `x db`) may vary depending on the target platform and `run_*` command. In particular :
 
   * `run_FX16`: Result may slightly fluctuates around `S/N=5346.3     (74.6 db)` 
-  * `run_FX16_FX8_FX8`: Result may slightly fluctuates around `S/N=56.0       (35.0 db)` 
   * `run_SA8`: Result may slightly fluctuates around `S/N=4.6        (13.3 db)` 
+  * `run_FX16_FX8_FX8`: Result may slightly fluctuates around `S/N=56.0       (35.0 db)` 
 
 ### 2. **Accuracy measurement for testset.**
 

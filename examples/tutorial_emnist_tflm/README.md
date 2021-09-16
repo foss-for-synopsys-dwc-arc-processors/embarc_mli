@@ -10,7 +10,7 @@ The first part is disclosed in this readme. The details of the conversion tutori
 
  **Important notes:**
 
-* Example is supported only for VPX configurations with guard bits. For EM/HS, please use [MLI 1.1 release version](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/tree/Release_1.1/examples/tutorial_emnist_tflm).
+* This example can't be built for x86 platform. The example is supported only for VPX configurations with guard bits. For EM/HS, please use [MLI 1.1 release version](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/tree/Release_1.1/examples/tutorial_emnist_tflm).
 
 ## Generate Tensorflow Lite Micro Library
 
@@ -82,7 +82,7 @@ The first step is to open a command line and change working directory to the roo
 
 1. Build project using generated TCF and appropriate built-in runtime library for it. Use multithreaded build process (4 threads):
 
-       gmake TCF_FILE=../../hw/vpx5_integer_full.tcf BUILDLIB_DIR=vpx5_integer_full JOBS=4 build
+       gmake TCF_FILE=./hw/vpx5_integer_full.tcf BUILDLIB_DIR=vpx5_integer_full JOBS=4 build
 
 1. Change working directory and build the example:
 
