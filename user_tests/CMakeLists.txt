@@ -38,6 +38,10 @@ else()
     message(FATAL_ERROR "Rounding mode ${ROUND_MODE} is not supported")
 endif()
 
+if (FULL_ACCU STREQUAL ON)
+    list(APPEND TEST_COMPILE_DEFINITIONS FULL_ACCU_ON)
+endif()
+
 # Note: AVEPOOL_16BIT_MUL should be same as the one in mli_lib.cmake
 if (NOT DEFINED AVEPOOL_16BIT_MUL)
     set(AVEPOOL_16BIT_MUL OFF)

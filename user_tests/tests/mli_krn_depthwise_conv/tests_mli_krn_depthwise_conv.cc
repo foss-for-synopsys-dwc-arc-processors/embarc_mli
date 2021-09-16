@@ -61,13 +61,21 @@ const crc32_calc test_1_chksum_fx16{ 0x968FB503 },
                  test_6_chksum_fx16{ 0xF03253BB }, test_6_chksum_fx16_fx8_fx8{ 0x122832FF }, test_6_chksum_sa8{ 0x42F80E2D },
                  test_7_chksum_fx16{ 0xDC4EBBE7 }, test_7_chksum_fx16_fx8_fx8{ 0x10447ABF }, test_7_chksum_sa8{ 0xBC318965 },
                  test_8_chksum_fx16{ 0x4D6EFB91 },                                           test_8_chksum_sa8{ 0xF888FAB3 },
-                 test_9_chksum_fx16{ 0xBF6D526A }, test_9_chksum_fx16_fx8_fx8{ 0xFB8CEA65 }, test_9_chksum_sa8{ 0xEA5733C6 },
+                 test_9_chksum_fx16{ 0xBF6D526A }, test_9_chksum_fx16_fx8_fx8{ 0xFB8CEA65 }, 
                  test_10_chksum_fx16{ 0xC02567E8 }, test_10_chksum_fx16_fx8_fx8{ 0x882F41DB }, test_10_chksum_sa8{ 0x390F7E80 };
 // Platform Specific CRC Results
-#if defined(CRC_RM_UP)
+#if defined(FULL_ACCU_ON)
+const crc32_calc test_9_chksum_sa8{ 0xEA5733C6 };
+#else
+const crc32_calc test_9_chksum_sa8{ 0xE0165E99 };
+#endif
+
+#if defined(CRC_RM_UP) && defined(FULL_ACCU_ON)
+const crc32_calc test_1_chksum_fx16_fx8_fx8{ 0x46A964A7 }, test_1_chksum_sa8{ 0x46D36646 },
+                 test_8_chksum_fx16_fx8_fx8{ 0xB73234B8 };
+#elif defined(CRC_RM_UP) && !defined(FULL_ACCU_ON)
 const crc32_calc test_1_chksum_fx16_fx8_fx8{ 0x46A964A7 }, test_1_chksum_sa8{ 0x366725E9 },
                  test_8_chksum_fx16_fx8_fx8{ 0xB73234B8 };
-
 #else 
 const crc32_calc test_1_chksum_fx16_fx8_fx8{ 0xA6CC6260 }, test_1_chksum_sa8{ 0x46D36646 },
                  test_8_chksum_fx16_fx8_fx8{ 0x55734EF0 };
@@ -273,7 +281,7 @@ int main() {
         }
 #endif
 
-#if V2DSP_XY == V2DSP_XY && defined(CRC_RM_CONVERGENT)
+#if PLATFORM == V2DSP_XY && defined(CRC_RM_CONVERGENT)
         if (strstr(cur_test->descr, "Test 9 SA8_SA8_SA32 k5x5 Dil") != nullptr) {
             // Em9d fails bitwise comparison with reference .
             reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
