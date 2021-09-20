@@ -56,8 +56,6 @@ on a vector-element boundary.
 
 ..
 
-
-
 .. _vpx_accum:
 
 Accumulator 
@@ -68,38 +66,34 @@ HW configuration parameter. See :ref:`quant_accum_infl` section for more info on
 it influence the usage of the library. The following table summaries available options an
 d how much accumulations it allows to do without overflow.
 
+.. tabularcolumns:: |\Y{0.19}|\Y{0.15}|\Y{0.22}|\Y{0.22}|\Y{0.22}|
+
 .. table:: VPX HW Accumulator width
    :align: center
 
-   +-------------------+---------------+---------------------------+---------------------------+---------------------------+
-   | **Kernel Type**   |               | **guard bit option = 2**  | **guard bit option = 1**  | **guard bit option = 0**  |
-   +===================+===============+===========================+===========================+===========================+
-   | ``sa8``           | Accum width   |     24 (8 guard bits)     |    20 (4 guard bits)      |     16 (0 guard bits)     |
-   |                   +---------------+---------------------------+---------------------------+---------------------------+
-   |                   | MACs w/o      |                           |                           |                           |
-   |                   | overflow      |           256             |            16             |           1               |
-   |                   | guaranty      |                           |                           |                           |
-   +-------------------+---------------+---------------------------+---------------------------+---------------------------+
-   | ``fx16``          | Accum width   |     40 (8 guard bits)     |    36 (4 guard bits)      |     32 (0 guard bits)     |
-   |                   +---------------+---------------------------+---------------------------+---------------------------+
-   |                   | MACs guaranty |                           |                           |                           |
-   |                   |               |           256             |            16             |           1               |
-   |                   |               |                           |                           |                           |
-   +-------------------+---------------+---------------------------+---------------------------+---------------------------+
-   | ``fx16_fx8_fx8``  | Accum width   |     40 (16 guard bits)    |    36 (12 guard bits)     |     32 (8 guard bits)     |
-   |                   +---------------+---------------------------+---------------------------+---------------------------+
-   |                   | MACs guaranty |                           |                           |                           |
-   |                   |               |           65536           |            4096           |           256             |
-   |                   |               |                           |                           |                           |
-   +-------------------+---------------+---------------------------+---------------------------+---------------------------+
-
-     
+   +-------------------+-----------------+---------------------------+---------------------------+---------------------------+
+   | **Kernel Type**   | **Description** | **guard bit option = 2**  | **guard bit option = 1**  | **guard bit option = 0**  |
+   +===================+=================+===========================+===========================+===========================+
+   | ``sa8``           | Accum width     |     24 (8 guard bits)     |    20 (4 guard bits)      |     16 (0 guard bits)     |
+   |                   +-----------------+---------------------------+---------------------------+---------------------------+
+   |                   | MACs w/o        |                           |                           |                           |
+   |                   | overflow        |           256             |            16             |           1               |
+   |                   | guaranty        |                           |                           |                           |
+   +-------------------+-----------------+---------------------------+---------------------------+---------------------------+
+   | ``fx16``          | Accum width     |     40 (8 guard bits)     |    36 (4 guard bits)      |     32 (0 guard bits)     |
+   |                   +-----------------+---------------------------+---------------------------+---------------------------+
+   |                   | MACs guaranty   |         256               |            16             |           1               |
+   +-------------------+-----------------+---------------------------+---------------------------+---------------------------+
+   | ``fx16_fx8_fx8``  | Accum width     |     40 (16 guard bits)    |    36 (12 guard bits)     |     32 (8 guard bits)     |
+   |                   +-----------------+---------------------------+---------------------------+---------------------------+
+   |                   | MACs guaranty   |          65536            |           4096            |            256            |
+   +-------------------+-----------------+---------------------------+---------------------------+---------------------------+
 ..
 
 .. _vpx_op_limits_shift:
 
 Operands Limitations and Shifting Ranges
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 This section describes VPX specific limitations to kernels.
 In this section, :math:`n_\text{tensor}` denotes the fractional bits of a tensor
 and :math:`s_\text{fx,tensor}` is its scale in case of an asymmetric data type (see :ref:`data_fmts`).
@@ -120,6 +114,8 @@ For the following kernels:
 Firstly, to avoid negative shifts below lower-bound and
 to avoid internal large shifts above upper-bound, the the following shift restrictions must be adhered to:
 
+.. tabularcolumns:: |\Y{0.3}|\Y{0.3}|
+
 .. table:: 
    :align: center
 
@@ -135,6 +131,8 @@ to avoid internal large shifts above upper-bound, the the following shift restri
 ..
 
 Secondly, the following restrictions relate to shifting left the bias inside an accumulator:
+
+.. tabularcolumns:: |\Y{0.3}|\Y{0.3}|
 
 .. table:: 
    :align: center

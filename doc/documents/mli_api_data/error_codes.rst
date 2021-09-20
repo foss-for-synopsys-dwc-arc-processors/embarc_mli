@@ -6,10 +6,12 @@ Error Codes
 Most functions return a value of type mli_status. This is an enumeration type with fields 
 as described in table :ref:`t_mli_status_enum`.
 
+.. tabularcolumns:: |\Y{0.4}|\Y{0.15}|\Y{0.45}|
+   
 .. _t_mli_status_enum:
 .. table:: mli_status Enum Fields
    :align: center
-   :widths: 50, 50, 130 
+   :class: longtable
    
    +-------------------------------------+----------------+--------------------------------------------------------------------------+
    | **Field name**                      | **value**      | **Description**                                                          |

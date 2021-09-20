@@ -21,10 +21,12 @@ Functions in this group typically use the ``mli_rnn_cell_cfg`` structure, define
     } mli_rnn_cell_cfg;
 ..
 
+.. tabularcolumns:: |\Y{0.17}|\Y{0.30}|\Y{0.23}|\Y{0.30}|
+
 .. _t_mli_rnn_cell_cfg_desc:
 .. table:: mli_rnn_cell_cfg Structure Field Description
    :align: center
-   :widths: auto 
+   :class: longtable 
 
    +----------------------+----------------------------+-----------------------+-----------------------------------------------------------------------+
    | **Field Name**       | **Type**                   | **Enumeration Value** | **Description**                                                       |

@@ -49,41 +49,59 @@ Kernels which implement max pooling functions have the following prototype:
    +---------------+-----------------------+--------------------------------------------------+
 ..
 
+.. tabularcolumns:: |\Y{0.45}|\Y{0.4}|
+
 .. table:: List of Available Max Pooling Functions
    :align: center
-   :widths: auto
+   :class: longtable
    
-   +----------------------------------------+-------------------------------+
-   | **Function Name**                      | **Details**                   |
-   +========================================+===============================+
-   | ``mli_krn_maxpool_hwc_sa8``            || In/out layout: **HWC**       |
-   |                                        || In/out data format: **sa8**  |
-   |                                        || Supports any kernel size     |
-   +----------------------------------------+-------------------------------+
-   | ``mli_krn_maxpool_hwc_fx16``           || In/out layout: **HWC**       |
-   |                                        || In/out data format: **fx16** |
-   |                                        || Supports any kernel size     |
-   +----------------------------------------+-------------------------------+
-   | ``mli_krn_maxpool_hwc_sa8_k2x2``       || In/out layout: **HWC**       |
-   |                                        || In/out data format: **sa8**  |
-   |                                        || Kernel width: **2**          |
-   |                                        || Kernel height: **2**         |
-   +----------------------------------------+-------------------------------+
-   | ``mli_krn_maxpool_hwc_fx16_k2x2``      || In/out layout: **HWC**       |
-   |                                        || In/out data format: **sa8**  |
-   |                                        || Kernel width: **2**          |
-   |                                        || Kernel height: **2**         |
-   +----------------------------------------+-------------------------------+
-   | ``mli_krn_maxpool_hwc_sa8_k3x3``       || In/out layout: **HWC**       |
-   |                                        || In/out data format: **sa8**  |
-   |                                        || Kernel width: **3**          |
-   |                                        || Kernel height: **3**         |
-   +----------------------------------------+-------------------------------+
-   | ``mli_krn_maxpool_hwc_fx16_k3x3``      || In/out layout: **HWC**       |
-   |                                        || In/out data format: **sa8**  |
-   |                                        || Kernel width: **3**          |
-   |                                        || Kernel height: **3**         |
-   +----------------------------------------+-------------------------------+
+   +----------------------------------------+------------------------------+
+   | **Function Name**                      | **Details**                  |
+   +========================================+==============================+
+   | ``mli_krn_maxpool_hwc_sa8``            | In/out layout: **HWC**       |
+   |                                        |                              |
+   |                                        | In/out data format: **sa8**  |
+   |                                        |                              |
+   |                                        | Supports any kernel size     |
+   +----------------------------------------+------------------------------+
+   | ``mli_krn_maxpool_hwc_fx16``           | In/out layout: **HWC**       |
+   |                                        |                              |
+   |                                        | In/out data format: **fx16** |
+   |                                        |                              |
+   |                                        | Supports any kernel size     |
+   +----------------------------------------+------------------------------+
+   | ``mli_krn_maxpool_hwc_sa8_k2x2``       | In/out layout: **HWC**       |
+   |                                        |                              |
+   |                                        | In/out data format: **sa8**  |
+   |                                        |                              |
+   |                                        | Kernel width: **2**          |
+   |                                        |                              |
+   |                                        | Kernel height: **2**         |
+   +----------------------------------------+------------------------------+
+   | ``mli_krn_maxpool_hwc_fx16_k2x2``      | In/out layout: **HWC**       |
+   |                                        |                              |
+   |                                        | In/out data format: **sa8**  |
+   |                                        |                              |
+   |                                        | Kernel width: **2**          |
+   |                                        |                              |
+   |                                        | Kernel height: **2**         |
+   +----------------------------------------+------------------------------+
+   | ``mli_krn_maxpool_hwc_sa8_k3x3``       | In/out layout: **HWC**       |
+   |                                        |                              |
+   |                                        | In/out data format: **sa8**  |
+   |                                        |                              |
+   |                                        | Kernel width: **3**          |
+   |                                        |                              |
+   |                                        | Kernel height: **3**         |
+   +----------------------------------------+------------------------------+
+   | ``mli_krn_maxpool_hwc_fx16_k3x3``      | In/out layout: **HWC**       |
+   |                                        |                              |
+   |                                        | In/out data format: **sa8**  |
+   |                                        |                              |
+   |                                        | Kernel width: **3**          |
+   |                                        |                              |
+   |                                        | Kernel height: **3**         |
+   +----------------------------------------+------------------------------+
 ..
 
 Conditions

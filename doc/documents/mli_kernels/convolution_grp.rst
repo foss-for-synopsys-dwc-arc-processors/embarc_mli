@@ -24,10 +24,12 @@ Functions in this group use the ``mli_conv2d_cfg`` structure, defined as:
   } mli_conv2d_cfg;
 ..
 
+.. tabularcolumns:: |\Y{0.4}|\Y{0.15}|\Y{0.45}|
+
 .. _t_mli_conv2d_cfg_desc:
 .. table:: mli_conv2d_cfg Structure Field Description
    :align: center
-   :widths: 30, 50, 130 
+   :class: longtable
    
    +-----------------------+---------------------+---------------------------------------------------+
    | **Field Name**        | **Type**            | **Description**                                   |

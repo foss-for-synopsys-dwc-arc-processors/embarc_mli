@@ -58,7 +58,7 @@ and the function parameters are shown in the following table:
 .. table:: 2D Convolution Function Parameters
    :align: center
    :widths: 30, 50, 130 
-   
+    
    +---------------+-----------------------+--------------------------------------------------+
    | **Parameter** | **Type**              | **Description**                                  |
    +===============+=======================+==================================================+
@@ -78,87 +78,140 @@ and the function parameters are shown in the following table:
 
 Here is a list of all available 2D Convolution functions:
 
+.. tabularcolumns:: |\Y{0.65}|\Y{0.3}|
+
 .. table:: List of Available 2D Convolution Functions
    :align: center
-   :widths: auto 
+   :class: longtable 
    
-   +-------------------------------------------+----------------------------------------+
-   | **Function Name**                         | Details                                |
-   +===========================================+========================================+
-   | ``mli_krn_conv2d_hwcn_sa8_sa8_sa32``      || In/out layout: **HWC**                |
-   |                                           || Weights layout: **HWCN**              |
-   |                                           || In/out/weights data format: **sa8**   |
-   |                                           || Bias data format: **sa32**            |
-   +-------------------------------------------+----------------------------------------+
-   | ``mli_krn_conv2d_hwcn_fx16``              || In/out layout: **HWC**                |
-   |                                           || Weights layout: **HWCN**              |
-   |                                           || All tensors data format: **fx16**     |
-   +-------------------------------------------+----------------------------------------+
-   | ``mli_krn_conv2d_hwcn_fx16_fx8_fx8``      || In/out layout: **HWC**                |
-   |                                           || Weights layout: **HWCN**              |
-   |                                           || In/out data format: **fx16**          |
-   |                                           || Weights/Bias data format: **fx8**     |
-   +-------------------------------------------+----------------------------------------+
-   | ``mli_krn_conv2d_hwcn_sa8_sa8_sa32_k1x1`` || In/out layout: **HWC**                |
-   |                                           || Weights layout: **HWCN**              |
-   |                                           || In/out/weights data format: **sa8**   |
-   |                                           || Bias data format: **sa32**            |
-   |                                           || Width of weights tensor: **1**        |
-   |                                           || Height of weights tensor: **1**       |
-   +-------------------------------------------+----------------------------------------+
-   | ``mli_krn_conv2d_hwcn_fx16_k1x1``         || In/out layout: **HWC**                |
-   |                                           || Weights layout: **HWCN**              |
-   |                                           || All tensors data format: **fx16**     |
-   |                                           || Width of weights tensor: **1**        |
-   |                                           || Height of weights tensor: **1**       |
-   +-------------------------------------------+----------------------------------------+
-   | ``mli_krn_conv2d_hwcn_fx16_fx8_fx8_k1x1`` || In/out layout: **HWC**                |
-   |                                           || Weights layout: **HWCN**              |
-   |                                           || In/out data format: **fx16**          |
-   |                                           || Weights/Bias data format: **fx8**     |
-   |                                           || Width of weights tensor: **1**        |
-   |                                           || Height of weights tensor: **1**       |
-   +-------------------------------------------+----------------------------------------+
-   | ``mli_krn_conv2d_hwcn_sa8_sa8_sa32_k3x3`` || In/out layout: **HWC**                |
-   |                                           || Weights layout: **HWCN**              |
-   |                                           || In/out/weights data format: **sa8**   |
-   |                                           || Bias data format: **sa32**            |
-   |                                           || Width of weights tensor: **3**        |
-   |                                           || Height of weights tensor: **3**       |
-   +-------------------------------------------+----------------------------------------+
-   | ``mli_krn_conv2d_hwcn_fx16_k3x3``         || In/out layout: **HWC**                |
-   |                                           || Weights layout: **HWCN**              |
-   |                                           || All tensors data format: **fx16**     |
-   |                                           || Width of weights tensor: **3**        |
-   |                                           || Height of weights tensor: **3**       |
-   +-------------------------------------------+----------------------------------------+
-   | ``mli_krn_conv2d_hwcn_fx16_fx8_fx8_k3x3`` || In/out layout: **HWC**                |
-   |                                           || Weights layout: **HWCN**              |
-   |                                           || In/out data format: **fx16**          |
-   |                                           || Weights/Bias data format: **fx8**     |
-   |                                           || Width of weights tensor: **3**        |
-   |                                           || Height of weights tensor: **3**       |
-   +-------------------------------------------+----------------------------------------+
-   | ``mli_krn_conv2d_hwcn_sa8_sa8_sa32_k5x5`` || In/out layout: **HWC**                |
-   |                                           || Weights layout: **HWCN**              |
-   |                                           || In/out/weights data format: **sa8**   |
-   |                                           || Bias data format: **sa32**            |
-   |                                           || Width of weights tensor: **5**        |
-   |                                           || Height of weights tensor: **5**       |
-   +-------------------------------------------+----------------------------------------+
-   | ``mli_krn_conv2d_hwcn_fx16_k5x5``         || In/out layout: **HWC**                |
-   |                                           || Weights layout: **HWCN**              |
-   |                                           || All tensors data format: **fx16**     |
-   |                                           || Width of weights tensor: **5**        |
-   |                                           || Height of weights tensor: **5**       |
-   +-------------------------------------------+----------------------------------------+
-   | ``mli_krn_conv2d_hwcn_fx16_fx8_fx8_k5x5`` || In/out layout: **HWC**                |
-   |                                           || Weights layout: **HWCN**              |
-   |                                           || In/out data format: **fx16**          |
-   |                                           || Weights/Bias data format: **fx8**     |
-   |                                           || Width of weights tensor: **5**        |
-   |                                           || Height of weights tensor: **5**       |
-   +-------------------------------------------+----------------------------------------+
+   +-------------------------------------------+---------------------------------------+
+   | **Function Name**                         | Details                               |
+   +===========================================+=======================================+
+   | ``mli_krn_conv2d_hwcn_sa8_sa8_sa32``      | In/out layout: **HWC**                |
+   |                                           |                                       |
+   |                                           | Weights layout: **HWCN**              |
+   |                                           |                                       |
+   |                                           | In/out/weights data format: **sa8**   |
+   |                                           |                                       |
+   |                                           | Bias data format: **sa32**            |
+   |                                           |                                       |
+   +-------------------------------------------+---------------------------------------+
+   | ``mli_krn_conv2d_hwcn_fx16``              | In/out layout: **HWC**                |
+   |                                           |                                       |
+   |                                           | Weights layout: **HWCN**              |
+   |                                           |                                       |
+   |                                           | All tensors data format: **fx16**     |
+   +-------------------------------------------+---------------------------------------+
+   | ``mli_krn_conv2d_hwcn_fx16_fx8_fx8``      | In/out layout: **HWC**                |
+   |                                           |                                       |
+   |                                           | Weights layout: **HWCN**              |
+   |                                           |                                       |
+   |                                           | In/out data format: **fx16**          |
+   |                                           |                                       |
+   |                                           | Weights/Bias data format: **fx8**     |
+   +-------------------------------------------+---------------------------------------+
+   | ``mli_krn_conv2d_hwcn_sa8_sa8_sa32_k1x1`` | In/out layout: **HWC**                |
+   |                                           |                                       |
+   |                                           | Weights layout: **HWCN**              |
+   |                                           |                                       |
+   |                                           | In/out/weights data format: **sa8**   |
+   |                                           |                                       |
+   |                                           | Bias data format: **sa32**            |
+   |                                           |                                       |
+   |                                           | Width of weights tensor: **1**        |
+   |                                           |                                       |
+   |                                           | Height of weights tensor: **1**       |
+   +-------------------------------------------+---------------------------------------+
+   | ``mli_krn_conv2d_hwcn_fx16_k1x1``         | In/out layout: **HWC**                |
+   |                                           |                                       |
+   |                                           | Weights layout: **HWCN**              |
+   |                                           |                                       |
+   |                                           | All tensors data format: **fx16**     |
+   |                                           |                                       |
+   |                                           | Width of weights tensor: **1**        |
+   |                                           |                                       |
+   |                                           | Height of weights tensor: **1**       |
+   +-------------------------------------------+---------------------------------------+
+   | ``mli_krn_conv2d_hwcn_fx16_fx8_fx8_k1x1`` | In/out layout: **HWC**                |
+   |                                           |                                       |
+   |                                           | Weights layout: **HWCN**              |
+   |                                           |                                       |
+   |                                           | In/out data format: **fx16**          |
+   |                                           |                                       |
+   |                                           | Weights/Bias data format: **fx8**     |
+   |                                           |                                       |
+   |                                           | Width of weights tensor: **1**        |
+   |                                           |                                       |
+   |                                           | Height of weights tensor: **1**       |
+   +-------------------------------------------+---------------------------------------+
+   | ``mli_krn_conv2d_hwcn_sa8_sa8_sa32_k3x3`` | In/out layout: **HWC**                |
+   |                                           |                                       |
+   |                                           | Weights layout: **HWCN**              |
+   |                                           |                                       |
+   |                                           | In/out/weights data format: **sa8**   |
+   |                                           |                                       |
+   |                                           | Bias data format: **sa32**            |
+   |                                           |                                       |
+   |                                           | Width of weights tensor: **3**        |
+   |                                           |                                       |
+   |                                           | Height of weights tensor: **3**       |
+   +-------------------------------------------+---------------------------------------+
+   | ``mli_krn_conv2d_hwcn_fx16_k3x3``         | In/out layout: **HWC**                |
+   |                                           |                                       |
+   |                                           | Weights layout: **HWCN**              |
+   |                                           |                                       |
+   |                                           | All tensors data format: **fx16**     |
+   |                                           |                                       |
+   |                                           | Width of weights tensor: **3**        |
+   |                                           |                                       |
+   |                                           | Height of weights tensor: **3**       |
+   +-------------------------------------------+---------------------------------------+
+   | ``mli_krn_conv2d_hwcn_fx16_fx8_fx8_k3x3`` | In/out layout: **HWC**                |
+   |                                           |                                       |
+   |                                           | Weights layout: **HWCN**              |
+   |                                           |                                       |
+   |                                           | In/out data format: **fx16**          |
+   |                                           |                                       |
+   |                                           | Weights/Bias data format: **fx8**     |
+   |                                           |                                       |
+   |                                           | Width of weights tensor: **3**        |
+   |                                           |                                       |
+   |                                           | Height of weights tensor: **3**       |
+   +-------------------------------------------+---------------------------------------+
+   | ``mli_krn_conv2d_hwcn_sa8_sa8_sa32_k5x5`` | In/out layout: **HWC**                |
+   |                                           |                                       |
+   |                                           | Weights layout: **HWCN**              |
+   |                                           |                                       |
+   |                                           | In/out/weights data format: **sa8**   |
+   |                                           |                                       |
+   |                                           | Bias data format: **sa32**            |
+   |                                           |                                       |
+   |                                           | Width of weights tensor: **5**        |
+   |                                           |                                       |
+   |                                           | Height of weights tensor: **5**       |
+   +-------------------------------------------+---------------------------------------+
+   | ``mli_krn_conv2d_hwcn_fx16_k5x5``         | In/out layout: **HWC**                |
+   |                                           |                                       |
+   |                                           | Weights layout: **HWCN**              |
+   |                                           |                                       |
+   |                                           | All tensors data format: **fx16**     |
+   |                                           |                                       |
+   |                                           | Width of weights tensor: **5**        |
+   |                                           |                                       |
+   |                                           | Height of weights tensor: **5**       |
+   +-------------------------------------------+---------------------------------------+
+   | ``mli_krn_conv2d_hwcn_fx16_fx8_fx8_k5x5`` | In/out layout: **HWC**                |
+   |                                           |                                       |
+   |                                           | Weights layout: **HWCN**              |
+   |                                           |                                       |
+   |                                           | In/out data format: **fx16**          |
+   |                                           |                                       |
+   |                                           | Weights/Bias data format: **fx8**     |
+   |                                           |                                       |
+   |                                           | Width of weights tensor: **5**        |
+   |                                           |                                       |
+   |                                           | Height of weights tensor: **5**       |
+   +-------------------------------------------+---------------------------------------+
 ..
 
 Conditions

@@ -22,10 +22,12 @@ Functions in this group use the ``mli_pool_cfg`` structure, defined as:
       uint8_t padding_bottom;
    } mli_pool_cfg;
 
+.. tabularcolumns:: |\Y{0.3}|\Y{0.15}|\Y{0.45}|
+
 .. _t_mli_pool_cfg_desc:
 .. table:: mli_pool_cfg structure field description
    :align: center
-   :widths: auto
+   :class: longtable
    
    +----------------------+-------------+-------------------------------------------------------------------+
    | **Field name**       | **Type**    | **Description**                                                   |

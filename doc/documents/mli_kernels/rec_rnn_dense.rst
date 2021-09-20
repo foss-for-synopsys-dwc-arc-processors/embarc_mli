@@ -81,10 +81,11 @@ function parameters are shown in the following table:
     } mli_rnn_dense_cfg;
 ..
 
+.. tabularcolumns:: |\Y{0.2}|\Y{0.2}|\Y{0.4}|
+
 .. _t_mli_rnn_dense_cfg_desc:
 .. table:: mli_rnn_dense_cfg Structure Field Description
    :align: center
-   :widths: auto 
    
    +-----------------+--------------+------------------------------------------------------------+
    | **Field Name**  | **Type**     | **Description**                                            |
@@ -99,21 +100,25 @@ function parameters are shown in the following table:
 
 Here is a list of all available RNN Dense functions:
 
+.. tabularcolumns:: |\Y{0.4}|\Y{0.4}|
+
 .. table:: List of Available RNN Dense Functions
    :align: center
    :widths: auto 
    
-   +------------------------------------+--------------------------------------+
-   | **Function Name**                  | **Details**                          |
-   +====================================+======================================+
-   | ``mli_krn_rnn_dense_sa8_sa8_sa32`` || In/out/weights data format: **sa8** |
-   |                                    || Bias data format: **sa32**          |
-   +------------------------------------+--------------------------------------+
-   | ``mli_krn_rnn_dense_fx16``         || All tensors data format: **fx16**   |
-   +------------------------------------+--------------------------------------+
-   | ``mli_krn_rnn_dense_fx16_fx8_fx8`` || In/out data format: **fx16**        |
-   |                                    || Weights/Bias data format: **fx8**   |
-   +------------------------------------+--------------------------------------+
+   +------------------------------------+-------------------------------------+
+   | **Function Name**                  | **Details**                         |
+   +====================================+=====================================+
+   | ``mli_krn_rnn_dense_sa8_sa8_sa32`` | In/out/weights data format: **sa8** |
+   |                                    |                                     |
+   |                                    | Bias data format: **sa32**          |
+   +------------------------------------+-------------------------------------+
+   | ``mli_krn_rnn_dense_fx16``         | All tensors data format: **fx16**   |
+   +------------------------------------+-------------------------------------+
+   | ``mli_krn_rnn_dense_fx16_fx8_fx8`` | In/out data format: **fx16**        |
+   |                                    |                                     |
+   |                                    | Weights/Bias data format: **fx8**   |
+   +------------------------------------+-------------------------------------+
 ..
 
 Conditions

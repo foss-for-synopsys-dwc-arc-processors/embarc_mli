@@ -50,6 +50,7 @@ parameters are shown in the following table:
         int32_t topk;
    } mli_argmax_cfg;
 ..
+.. tabularcolumns:: |\Y{0.2}|\Y{0.15}|\Y{0.65}|
 
 .. _t_mli_argmax_cfg_desc:
 .. table:: mli_argmax_cfg Structure Field Description
