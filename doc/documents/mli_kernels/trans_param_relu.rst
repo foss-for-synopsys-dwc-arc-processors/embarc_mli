@@ -74,8 +74,10 @@ are shown in the following table:
 
    typedef struct {
        int32_t axis;
-   } mli_prelu_cfg;
+   } mli_prelu_cfg; 
 ..
+
+.. tabularcolumns:: |\Y{0.15}|\Y{0.15}|\Y{0.6}|
 
 .. _t_mli_prelu_cfg_desc:
 .. table:: mli_prelu_cfg Structure Field Description
@@ -83,7 +85,6 @@ are shown in the following table:
    :widths: auto
    
    +-----------------+----------------+--------------------------------------------------------------+
-   |                 |                |                                                              |
    | **Field Name**  | **Type**       | **Description**                                              |
    +=================+================+==============================================================+
    |                 |                | An axis along which the function is computed. Axis           |

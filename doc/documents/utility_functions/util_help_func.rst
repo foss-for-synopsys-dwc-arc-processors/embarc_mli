@@ -46,7 +46,7 @@ The parameters are described in :ref:`t_mli_hlp_count_elem_num_params`.
    :widths: auto
    
    +--------------------+-----------------+-------------------------------------+
-   | **Field Name**     | Type            | Description                         |
+   | **Field Name**     | **Type**        | **Description**                     |
    +====================+=================+=====================================+
    | ``in``             | ``mli_tensor*`` | [IN] Pointer to input tensor        |
    +--------------------+-----------------+-------------------------------------+
@@ -87,7 +87,7 @@ The parameters are described in :ref:`t_mli_hlp_count_elem_num_params`.
    :widths: auto
    
    +--------------------+-----------------+-------------------------------------+
-   | **Field Name**     | Type            | Description                         |
+   | **Field Name**     | **Type**        | **Description**                     |
    +====================+=================+=====================================+
    | ``in``             | ``mli_tensor*`` | [IN] Pointer to input tensor        |
    +--------------------+-----------------+-------------------------------------+
@@ -259,13 +259,14 @@ Table :ref:`t_mli_sub_tensor_cfg_desc`.
    } mli_sub_tensor_cfg;
 ..
 
+.. tabularcolumns:: |\Y{0.25}|\Y{0.15}|\Y{0.4}|
+
 .. _t_mli_sub_tensor_cfg_desc:
 .. table:: mli_sub_tensor_cfg Structure Field Description
    :align: center
-   :widths: auto
    
    +---------------------+----------------+---------------------------------------------------------+
-   | **Field Name**      | **Type**       | Description                                             |
+   | **Field Name**      | **Type**       | **Description**                                         |
    +=====================+================+=========================================================+
    |                     |                | Start coordinate in the input tensor. Values must       |
    | ``offset``          | ``uint32_t[]`` | be smaller than the shape of the input tensor. Size     |
@@ -334,20 +335,21 @@ Where ``operands`` is a combination of input operands involved into MAC operatio
 
 Here is a list of all available guard bits functions:
 
+.. tabularcolumns:: |\Y{0.45}|\Y{0.55}|
+
 .. table:: List of Available Accum Guard Bits Functions
    :align: center
-   :widths: auto 
    
-   +---------------------------------------------+-----------------------------------------+
-   | Function Name                               | Details                                 |
-   +=============================================+=========================================+
-   | ``mli_hlp_accu_guard_bits_sa8_sa8``         || Data format of both operands: **sa8**  |
-   +---------------------------------------------+-----------------------------------------+
-   | ``mli_hlp_accu_guard_bits_fx16_fx16``       || Data format of both operands: **fx16** |
-   +---------------------------------------------+-----------------------------------------+
-   | ``mli_hlp_accu_guard_bits_fx16_fx8``        || Data format of operands: **fx16** for  |
-   |                                             || one and **fx8** another                |
-   +---------------------------------------------+-----------------------------------------+
+   +---------------------------------------------+----------------------------------------+
+   | **Function Name**                           | **Details**                            |
+   +=============================================+========================================+
+   | ``mli_hlp_accu_guard_bits_sa8_sa8``         | Data format of both operands: **sa8**  |
+   +---------------------------------------------+----------------------------------------+
+   | ``mli_hlp_accu_guard_bits_fx16_fx16``       | Data format of both operands: **fx16** |
+   +---------------------------------------------+----------------------------------------+
+   | ``mli_hlp_accu_guard_bits_fx16_fx8``        | Data format of operands: **fx16** for  |
+   |                                             | one and **fx8** another                |
+   +---------------------------------------------+----------------------------------------+
 
 There are no specific requirements for ``mli_hlp_accu_guard_bits<operands>`` functions. 
 These can be called at any time.

@@ -88,6 +88,8 @@ Kernels which implement an GRU cell have the following prototype:
 where data_format is one of the data formats listed in Table :ref:`mli_data_fmts` and the function parameters 
 are shown in the following table:
 
+.. tabularcolumns:: |\Y{0.16}|\Y{0.3}|\Y{0.4}|
+
 .. table:: GRU Cell Function Parameters 
    :align: center
    :widths: auto 
@@ -164,21 +166,25 @@ structure without overlaps. Otherwise the behavior is undefined.
 
 The following table lists all the available GRU cell functions:
 
+.. tabularcolumns:: |\Y{0.4}|\Y{0.4}|
+
 .. table:: List of Available GRU Cell Functions
    :align: center
    :widths: auto
    
-   +------------------------------------+--------------------------------------+
-   | **Function Name**                  | **Details**                          |
-   +====================================+======================================+
-   | ``mli_krn_gru_cell_sa8_sa8_sa32``  || In/out/weights data format: **sa8** |
-   |                                    || Bias data format: **sa32**          |
-   +------------------------------------+--------------------------------------+
-   | ``mli_krn_gru_cell_fx16``          || All tensors data format: **fx16**   |
-   +------------------------------------+--------------------------------------+
-   | ``mli_krn_gru_cell_fx16_fx8_fx8``  || In/out data format: **fx16**        |
-   |                                    || weights/Bias data format: **fx8**   |
-   +------------------------------------+--------------------------------------+
+   +------------------------------------+-------------------------------------+
+   | **Function Name**                  | **Details**                         |
+   +====================================+=====================================+
+   | ``mli_krn_gru_cell_sa8_sa8_sa32``  | In/out/weights data format: **sa8** |
+   |                                    |                                     |
+   |                                    | Bias data format: **sa32**          |
+   +------------------------------------+-------------------------------------+
+   | ``mli_krn_gru_cell_fx16``          | All tensors data format: **fx16**   |
+   +------------------------------------+-------------------------------------+
+   | ``mli_krn_gru_cell_fx16_fx8_fx8``  | In/out data format: **fx16**        |
+   |                                    |                                     |
+   |                                    | weights/Bias data format: **fx8**   |
+   +------------------------------------+-------------------------------------+
 ..
 
 Conditions

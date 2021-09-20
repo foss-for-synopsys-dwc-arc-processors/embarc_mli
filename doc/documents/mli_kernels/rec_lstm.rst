@@ -96,9 +96,11 @@ Kernels which implement an LSTM cell have the following prototype:
 where ``data_format`` is one of the data formats listed in Table :ref:`mli_data_fmts` and the function parameters 
 are shown in the following table:
 
+.. tabularcolumns:: |\Y{0.16}|\Y{0.3}|\Y{0.4}|
+
 .. table:: LSTM Function parameters
    :align: center
-   :widths: auto 
+   :class: longtable 
    
    +------------------+-------------------------+-----------------------------------------------------------------+
    | **Parameter**    | **Type**                | **Description**                                                 |
@@ -183,21 +185,25 @@ without overlaps. Otherwise the behavior is undefined.
 
 Here is a list of all available LSTM cell functions:
 
+.. tabularcolumns:: |\Y{0.4}|\Y{0.4}|
+  
 .. table:: List of Available LTSM Cell Functions
    :align: center
    :widths: auto 
    
-   +-------------------------------------+-------------------------------------------+
-   | **Function Name**                   | **Details**                               |
-   +=====================================+===========================================+
-   | ``mli_krn_lstm_cell_sa8_sa8_sa32``  || In/out/cell/weights data format: **sa8** |
-   |                                     || Bias data format: **sa32**               |
-   +-------------------------------------+-------------------------------------------+
-   | ``mli_krn_lstm_cell_fx16``          || All tensors data format: **fx16**        |
-   +-------------------------------------+-------------------------------------------+
-   | ``mli_krn_lstm_cell_fx16_fx8_fx8``  || In/out/cell data format: **fx16**        |
-   |                                     || weights/Bias data format: **fx8**        |
-   +-------------------------------------+-------------------------------------------+
+   +-------------------------------------+------------------------------------------+
+   | **Function Name**                   | **Details**                              |
+   +=====================================+==========================================+
+   | ``mli_krn_lstm_cell_sa8_sa8_sa32``  | In/out/cell/weights data format: **sa8** |
+   |                                     |                                          |
+   |                                     | Bias data format: **sa32**               |
+   +-------------------------------------+------------------------------------------+
+   | ``mli_krn_lstm_cell_fx16``          | All tensors data format: **fx16**        |
+   +-------------------------------------+------------------------------------------+
+   | ``mli_krn_lstm_cell_fx16_fx8_fx8``  | In/out/cell data format: **fx16**        |
+   |                                     |                                          |
+   |                                     | weights/Bias data format: **fx8**        |
+   +-------------------------------------+------------------------------------------+
 ..
 
 Conditions

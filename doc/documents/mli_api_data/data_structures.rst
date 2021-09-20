@@ -35,10 +35,12 @@ shape of this array, its data format, and the way it is organized in memory.
 
 The table :ref:`mli_tnsr_struc` describes the fields in the ``mli_tensor`` structure.
 
+.. tabularcolumns:: |\Y{0.2}|\Y{0.3}|\Y{0.5}|
+
 .. _mli_tnsr_struc:  
 .. table:: mli_tensor Structure Field Descriptions
    :align: center
-   :widths: 50, 50, 130 
+   :class: longtable
    
    +-------------------+------------------------+-----------------------------------------------------------------------------+
    | **Field name**    | **type**               | **Comment**                                                                 |
@@ -145,10 +147,12 @@ It stores pointer to data or a single value that intend to be directly used in a
 
 :ref:`t_mli_d_cont_strct` describes the fields in the ``mli_data_container`` struture. 
 
+.. tabularcolumns:: |\Y{0.2}|\Y{0.2}|\Y{0.6}|
+
 .. _t_mli_d_cont_strct:
 .. table:: mli_data_container Structure Field Description
    :align: center
-   :widths: 50, 50, 130 
+   :class: longtable
    
    +--------------------+------------------+----------------------------------------------------------------------+
    | **Field Name**     | **Type**         | **Comment**                                                          |
@@ -204,10 +208,11 @@ and other  implementation specific things. ``mli_element_type`` is defined as fo
 
 :ref:`t_mli_el_type` describes the entities in the ``mli_element_type`` union. 
 
+.. tabularcolumns:: |\Y{0.25}|\Y{0.5}|
+
 .. _t_mli_el_type:
 .. table:: mli_element_type Enumeration Values Description
    :align: center
-   :widths: 50, 50, 130 
 
    +-----------------------+----------------------------------------------------------------------------+
    | **Enumeration Value** | **Description**                                                            |
@@ -272,10 +277,12 @@ quantization parameters can vary. For instance in a CHW layout, ``dim`` = 0 mean
 a different zero point and a different scale factor. The size of these arrays is the same as the number of 
 channels in the tensor ``(array_size = shape[dim])``.
 
+.. tabularcolumns:: |\Y{0.3}|\Y{0.3}|\Y{0.4}|
+
 .. _t_mli_el_p_union:
 .. table:: mli_element_params Union Field Description
    :align: center
-   :widths: 50, 50, 130 
+   :class: longtable 
    
    +------------------------+------------------------+-----------------------------------------------------------------------------+
    | **Field Name**         | **Type**               | **Comment**                                                                 |
@@ -336,6 +343,10 @@ channels in the tensor ``(array_size = shape[dim])``.
        // Filling other fields of tsr_fx16
 
    ..
+..
+
+.. admonition:: Example 
+   :class: "admonition tip"
 
    SA8 tensor quantized on per-tensor level might be populated in the following way:
 
@@ -360,6 +371,10 @@ channels in the tensor ``(array_size = shape[dim])``.
       // Filling other fields of tsr_sa8
 
    ..
+..
+
+.. admonition:: Example 
+   :class: "admonition tip"
 
    SA8 tensor quantized on per-axis level might be populated in the following way:
 
@@ -415,12 +430,14 @@ The ``mli_lut`` struct describes the data in the LUT, including the format of it
 ..
 
 The following table describes the fields in the ``mli_lut`` structure.
+
+.. tabularcolumns:: |\Y{0.2}|\Y{0.3}|\Y{0.5}|
    
 .. _mli_lut_struct_table:  
 .. table:: mli_lut Structure Field Descriptions
    :align: center
-   :widths: 50, 50, 130 
-   
+   :class: longtable
+
    +-------------------+------------------------+-----------------------------------------------------------------------------+
    | **Field name**    | **type**               | **Comment**                                                                 |
    +===================+========================+=============================================================================+

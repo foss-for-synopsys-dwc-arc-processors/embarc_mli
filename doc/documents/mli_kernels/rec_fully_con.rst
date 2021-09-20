@@ -87,10 +87,11 @@ and the function parameters are shown in the following table:
    } mli_fully_connected cfg; 
 ..
 
+.. tabularcolumns:: |\Y{0.2}|\Y{0.2}|\Y{0.6}|
+
 .. _t_mli_fc_cfg_desc:
 .. table:: mli_fully_connected_cfg Structure field description
    :align: center
-   :widths: auto 
    
    +-----------------+--------------------+-------------------------------------------------------+
    | **Field Name**  | **Type**           | **Description**                                       |
@@ -102,26 +103,32 @@ and the function parameters are shown in the following table:
 
 Here is a list of all available Fully Connected functions:
 
+.. tabularcolumns:: |\Y{0.6}|\Y{0.3}|
+
 .. table:: List of Available Fully Connected Functions
    :align: center
-   :widths: auto 
    
-   +---------------------------------------------------+----------------------------------------+
-   | **Function Name**                                 | **Details**                            |
-   +===================================================+========================================+
-   | ``mli_krn_fully_connected_sa8_sa8_sa32``          || In/out/weights data format: **sa8**   |
-   |                                                   || Bias data format: **sa32**            |
-   +---------------------------------------------------+----------------------------------------+
-   | ``mli_krn_fully_connected_fx16``                  || All tensors data format: **fx16**     |
-   +---------------------------------------------------+----------------------------------------+
-   | ``mli_krn_fully_connected_fx16_fx8_fx8``          || In/out data format: **fx16**          |
-   |                                                   || Weights/Bias data format: **fx8**     |
-   +---------------------------------------------------+----------------------------------------+
-   | ``mli_krn_fully_connected_sa8_sa8_sa32_ext_bias`` || In/out/weights data format: **sa8**   |
-   |                                                   || Bias data format: **sa32**            |
-   |                                                   || Bias data adjusted to include         |
-   |                                                   || zero point additives                  |
-   +---------------------------------------------------+----------------------------------------+
+   +---------------------------------------------------+---------------------------------------+
+   | **Function Name**                                 | **Details**                           |
+   +===================================================+=======================================+
+   | ``mli_krn_fully_connected_sa8_sa8_sa32``          | In/out/weights data format: **sa8**   |
+   |                                                   |                                       |
+   |                                                   | Bias data format: **sa32**            |
+   +---------------------------------------------------+---------------------------------------+
+   | ``mli_krn_fully_connected_fx16``                  | All tensors data format: **fx16**     |
+   +---------------------------------------------------+---------------------------------------+
+   | ``mli_krn_fully_connected_fx16_fx8_fx8``          | In/out data format: **fx16**          |
+   |                                                   |                                       |
+   |                                                   | Weights/Bias data format: **fx8**     |
+   +---------------------------------------------------+---------------------------------------+
+   | ``mli_krn_fully_connected_sa8_sa8_sa32_ext_bias`` | In/out/weights data format: **sa8**   |
+   |                                                   |                                       |  
+   |                                                   | Bias data format: **sa32**            |
+   |                                                   |                                       |
+   |                                                   | Bias data adjusted to include         |
+   |                                                   |                                       |
+   |                                                   | zero point additives                  |
+   +---------------------------------------------------+---------------------------------------+
 ..
 
 ``mli_krn_fully_connected_sa8_sa8_sa32_ext_bias`` is a specialized version of 

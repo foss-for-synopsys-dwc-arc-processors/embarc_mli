@@ -55,6 +55,8 @@ Kernels which implement L2 normalization functions have the following prototype:
 where ``data_format`` is one of the data formats listed in Table :ref:`mli_data_fmts` and the function 
 parameters are shown in the following table:
 
+.. tabularcolumns:: |\Y{0.2}|\Y{0.3}|\Y{0.4}|
+
 .. table:: L2 Normalization Function Parameters
    :align: center
    :widths: auto

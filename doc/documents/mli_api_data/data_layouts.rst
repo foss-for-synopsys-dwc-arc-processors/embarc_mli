@@ -9,6 +9,8 @@ dimensions and its meaning) is important as it dictates the way calculations are
 Other kernels are layout-agnostic, or imply non-vision meaning of dimensions. The table 
 :ref:`t_layout_letter_desc` describes the letters used for the layout description.
 
+.. tabularcolumns:: |\Y{0.2}|\Y{0.4}|
+
 .. _t_layout_letter_desc:
 .. table:: Layout Letter Description
    :align: center
@@ -39,7 +41,7 @@ MLI Data layout (HWCN)
 ^^^^^^^^^^^^^^^^^^^^^^
 
 Layout-dependent MLI kernels use the HWC layout for tensors and HWCN layout for weights. 
-The Height/Width/Channel layout is also referred as “Interleaved” or “Channel last”. 
+The Height/Width/Channel layout is also referred as "Interleaved" or "Channel last". 
 The smallest stride between dimension elements in memory is for C (channel or depth) 
 followed by the width and then the height. The height is the least frequently changing 
 index. 
@@ -75,11 +77,12 @@ transpose function can also be used to convert one layout into another layout.
 Description
 """""""""""
 
+.. tabularcolumns:: |\Y{0.2}|\Y{0.4}|
+
 .. _t_hwcn_spec:
 .. table:: The HWCN Layout
    :align: center
-   :widths: 60, 130 
-   
+     
    +--------------------+---------------------------------------------+
    | **Aspect**         | **Comment**                                 |
    +====================+=============================================+

@@ -46,30 +46,41 @@ The function arguments start with zero or more input tensors, followed by a kern
 configuration struct, followed by the output tensors. All the function parameters are 
 grouped inside the config structure.
 
+.. tabularcolumns:: |\Y{0.3}|\Y{0.3}|\Y{0.4}|
+
 .. _t_func_name_conv_fields:
 .. table:: Function Naming Convention Fields
    :align: center
-   :widths: 50, 30, 130 
-   
+   :class: longtable
+
    +------------------+-----------------+--------------------------------------+
    | **Field Name**   | **Examples**    | **Description**                      |
    +==================+=================+======================================+
-   | Group            || krn            || krn for compute kernels             |
-   |                  || hlp            || hlp for helper functions            |
-   |                  || mov            || mov for data move kernels           |
-   |                  || usr            || usr for user-defined kernels.       |
+   | Group            | krn             | krn for compute kernels              |
+   |                  |                 |                                      |
+   |                  | hlp             | hlp for helper functions             |
+   |                  |                 |                                      |     
+   |                  | mov             | mov for data move kernels            |
+   |                  |                 |                                      |     
+   |                  | usr             | usr for user-defined kernels.        |
+   |                  |                 |                                      |     
    +------------------+-----------------+--------------------------------------+
-   | Functions        || conv2d         | Describes the basic functionality.   | 
+   | Functions        | conv2d          | Describes the basic functionality.   | 
+   |                  |                 |                                      |     
    |                  | fully_connected | Full list of supported function      |
    |                  | ...             | names is described later             |
    +------------------+-----------------+--------------------------------------+
-   | layout           || chw            | Optional description of the layout   |
-   |                  || hwcn           | of the input, only relevant for some |
-   |                  || nhwc           | functions                            |
+   | layout           | chw             | Optional description of the layout   |
+   |                  |                 |                                      |     
+   |                  | hwcn            | of the input, only relevant for some |
+   |                  |                 |                                      |     
+   |                  | nhwc            | functions                            |
    +------------------+-----------------+--------------------------------------+   
-   | dataformats      || fx16           | Specifies the tensor data formats.   |
-   |                  || sa8_sa8_sa32   | In case of multiple input tensors    | 
-   |                  || sa8            | with different data formats, the     |
+   | dataformats      | fx16            | Specifies the tensor data formats.   |
+   |                  |                 |                                      |     
+   |                  | sa8_sa8_sa32    | In case of multiple input tensors    |
+   |                  |                 |                                      |      
+   |                  | sa8             | with different data formats, the     |
    |                  |                 | format of each tensor is specified   |
    |                  |                 | in the same order as the function    |
    |                  |                 | arguments. (for details see          |
@@ -84,23 +95,24 @@ The naming convention for the data formats is as follows and in :ref:`t_data_fmt
   <typename><containersize>
 ..
 
+.. tabularcolumns:: |\Y{0.2}|\Y{0.2}|\Y{0.5}|
+
 .. _t_data_fmt_fields:
 .. table:: Data Format Naming Convention Fields
    :align: center
-   :widths: auto
    
    +------------------+------------------+----------------------------------------------+
    | **Field Name**   | **Examples**     | **Description**                              |
    +==================+==================+==============================================+
-   | typename         |  **fx**          | Specifies which quantization schema is used: |
-   |                  |  **sa**          |                                              |
-   |                  |  **fp**          | - fx for Fixed point                         |
+   | typename         | **fx**           | Specifies which quantization schema is used: |
    |                  |                  |                                              |
-   |                  |                  | - sa for Signed Asymmetric                   |
+   |                  | **sa**           | - fx for Fixed point                         |
+   |                  |                  |                                              |
+   |                  | **fp**           | - sa for Signed Asymmetric                   |
    |                  |                  |                                              |   
    |                  |                  | - fp for Floating Point                      |
    +------------------+------------------+----------------------------------------------+
-   | containersize    || 1, 4, 8, 16, 32 | Container size in bits of each individual    | 
+   | containersize    | 1, 4, 8, 16, 32  | Container size in bits of each individual    | 
    |                  |                  | element.                                     |
    +------------------+------------------+----------------------------------------------+
 ..

@@ -4,7 +4,7 @@ Data Movement
 =============
 
 Most processors and accelerators achieve optimal performance by keeping the kernel 
-input data in “close” local memories on those processors (for example, CCMs). Meanwhile, 
+input data in "close" local memories on those processors (for example, CCMs). Meanwhile, 
 the total amount of data that needs to be operated on is usually bigger than the 
 sizes of those CCMs, so you must copy data into CCMs for processing.  
 
@@ -89,10 +89,12 @@ read from the array. The other values are "don't care".
 
 The size of the array is defined by ``MLI_MAX_RANK``.
 
+.. tabularcolumns:: |\Y{0.25}|\Y{0.15}|\Y{0.4}|
+
 .. _t_mli_mov_cfg_desc: 
 .. table:: mli_mov_cfg Structure Field Description
    :align: center
-   :widths: auto 
+   :class: longtable 
    
    +---------------------+----------------+---------------------------------------------------------------------+
    | **Field Name**      | **Type**       | **Description**                                                     |
@@ -100,10 +102,13 @@ The size of the array is defined by ``MLI_MAX_RANK``.
    | ``offset``          | ``uint32_t[]`` | Start coordinate in the source tensor. Values must be smaller       |
    |                     |                | than the shape of the source tensor.                                |
    +---------------------+----------------+---------------------------------------------------------------------+
-   |                     |                || Size of the copy in elements per dimension.                        |
-   | ``size``            | ``uint32_t[]`` || Restrictions:                                                      |
-   |                     |                || :math:`Size[d] + offset[d] <= src->shape[d]`                       |
-   |                     |                || If :math:`size=0` is provided, the size is computed from the input |
+   |                     |                | Size of the copy in elements per dimension.                         |
+   |                     |                |                                                                     |   
+   | ``size``            | ``uint32_t[]`` | Restrictions:                                                       |
+   |                     |                |                                                                     |      
+   |                     |                | :math:`Size[d] + offset[d] <= src->shape[d]`                        |
+   |                     |                |                                                                     |      
+   |                     |                | If :math:`size=0` is provided, the size is computed from the input  |
    |                     |                | size and the cfg parameters.                                        |
    +---------------------+----------------+---------------------------------------------------------------------+
    |                     |                | Subsample factor for each dimension. Default value is 1, which      |
@@ -222,10 +227,12 @@ into the cfg struct while the remaining parameters are set to their default valu
 transformations, there is a generic helper function available or the user can manually fill the cfg struct 
 parameters.  Note that the mli_mov_cfg structure is described in detail in :ref:`t_mli_mov_cfg_desc`.
 
+.. tabularcolumns:: |\Y{0.4}|\Y{0.6}|
+
 .. _t_desc_helper_func:
 .. table:: Description of Helper Functions for Data Move Config Struct
    :align: center
-   :widths: auto 
+   :class: longtable 
    
    +------------------------------------+---------------------------------------------------------------------+ 
    | **Function Name**                  | **Description**                                                     |
@@ -404,10 +411,11 @@ initialization. Table :ref:`t_mli_mov_prep` describes the parameters of this fun
    mli_mov_prepare(mli_mov_handle_t* h, const mli_tensor* src, const mli_mov_cfg_t* cfg, mli_tensor* dst);
 ..
 
+.. tabularcolumns:: |\Y{0.35}|\Y{0.65}|
+
 .. _t_mli_mov_prep:
 .. table:: mli_mov_prepare Parameters
    :align: center
-   :widths: auto
    
    +--------------------------+-------------------------------------------------------------+
    | **Parameter Name**       | **Description**                                             |

@@ -20,9 +20,9 @@ this type of kernel:
 
    Where:
 
-   :math:`x_{i}` *–* :math:`i_{\text{th}}` *value in input tensor*
+   :math:`x_{i}` *-* :math:`i_{\text{th}}` *value in input tensor*
 
-   :math:`y_{i}` *–* :math:`i_{\text{th}}` *value in output tensor*
+   :math:`y_{i}` *-* :math:`i_{\text{th}}` *value in output tensor*
 
 Functions
 ^^^^^^^^^
@@ -65,10 +65,11 @@ parameters are shown in the following table:
     } mli_relu_cfg;
 ..
 
+.. tabularcolumns:: |\Y{0.15}|\Y{0.20}|\Y{0.25}|\Y{0.3}|
+
 .. _t_mli_relu_cfg_desc:
 .. table:: mli_relu_cfg Structure Field Description
    :align: center
-   :widths: auto 
    
    +-----------------+--------------------+------------------------+-------------------------------------------------------+
    | **Field Name**  | **Type**           | **Enumeration Value**  | **Description**                                       |

@@ -25,12 +25,14 @@ New Features in MLI 2.0
 Data Formats
 ------------
 
-.. table:: MLI Data Formats Differences between MLI 1.0 and MLI 2.0
+.. tabularcolumns:: |\Y{0.15}|\Y{0.15}|\Y{0.2}|\Y{0.3}|\Y{0.2}|
+
+.. table:: MLI Data Formats Differences Between MLI 1.0 and MLI 2.0
    :align: center
    :widths: auto
    
    +-----------------+--------------------------+------------------------------+-------------------------------------------+--------------------------------------+
-   | **Data Format** | **Format Name**          | How Used in MLI 1.0          | How Used in MLI 2.0                       | Comments                             |
+   | **Data Format** | **Format Name**          | **How Used in MLI 1.0**      | **How Used in MLI 2.0**                   | **Comments**                         |
    +=================+==========================+==============================+===========================================+======================================+
    | fx16            | 16-bit fixed point       | Used as main data format     | Used as main data format                  |                                      |
    +-----------------+--------------------------+------------------------------+-------------------------------------------+--------------------------------------+
