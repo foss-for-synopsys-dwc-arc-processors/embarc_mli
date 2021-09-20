@@ -2689,26 +2689,23 @@ mli_status mli_chk_permute_sa8 (const mli_tensor * in, const mli_permute_cfg * c
     if (in->el_params.sa.dim >= 0) {
         bool fail = false;
         if (out->el_params.sa.zero_point.mem.pi16 == in->el_params.sa.zero_point.mem.pi16)
-            fail |= MLI_CHECK((out->el_params.sa.zero_point.mem.pi16 == in->el_params.sa.zero_point.mem.pi16) \
-                    && (out->el_params.sa.scale.mem.pi16 == in->el_params.sa.scale.mem.pi16) \
+            fail |= MLI_CHECK((out->el_params.sa.scale.mem.pi16 == in->el_params.sa.scale.mem.pi16) \
                     && (out->el_params.sa.scale_frac_bits.mem.pi8 == in->el_params.sa.scale_frac_bits.mem.pi8),
                     "El_params data for out tensor wasn`t initialized in a consistent way");
-        if (out->el_params.sa.zero_point.mem.pi16 != in->el_params.sa.zero_point.mem.pi16)
-            fail |= MLI_CHECK((out->el_params.sa.zero_point.mem.pi16 != in->el_params.sa.zero_point.mem.pi16) \
-                    && (out->el_params.sa.scale.mem.pi16 != in->el_params.sa.scale.mem.pi16) \
-                    && (out->el_params.sa.scale_frac_bits.mem.pi8 != in->el_params.sa.scale_frac_bits.mem.pi8),
+        if (out->el_params.sa.zero_point.mem.pi16 != nullptr && out->el_params.sa.zero_point.mem.pi16 != in->el_params.sa.zero_point.mem.pi16)
+            fail |= MLI_CHECK((out->el_params.sa.scale.mem.pi16 != nullptr && out->el_params.sa.scale.mem.pi16 != in->el_params.sa.scale.mem.pi16) \
+                    && (out->el_params.sa.scale_frac_bits.mem.pi8 != nullptr && out->el_params.sa.scale_frac_bits.mem.pi8 != in->el_params.sa.scale_frac_bits.mem.pi8),
                     "El_params data for out tensor wasn`t initialized in a consistent way");
         if (out->el_params.sa.zero_point.mem.pi16 == nullptr)
-            fail |= MLI_CHECK((out->el_params.sa.zero_point.mem.pi16 == nullptr) \
-                    && (out->el_params.sa.scale.mem.pi16 == nullptr) \
+            fail |= MLI_CHECK((out->el_params.sa.scale.mem.pi16 == nullptr) \
                     && (out->el_params.sa.scale_frac_bits.mem.pi8 == nullptr),
                     "El_params data for out tensor wasn`t initialized in a consistent way");
 
         if (!fail && out->el_params.sa.zero_point.mem.pi16 != in->el_params.sa.zero_point.mem.pi16 \
                 && out->el_params.sa.zero_point.mem.pi16 != nullptr)
-            fail |= MLI_CHECK(out->el_params.sa.zero_point.capacity >= in->el_params.sa.zero_point.capacity \
-                    && out->el_params.sa.scale.capacity >= in->el_params.sa.scale.capacity \
-                    && out->el_params.sa.scale_frac_bits.capacity >= in->el_params.sa.scale_frac_bits.capacity,
+            fail |= MLI_CHECK(out->el_params.sa.zero_point.capacity >= (in->shape[in->el_params.sa.dim] * sizeof(int16_t)) \
+                    && out->el_params.sa.scale.capacity >= (in->shape[in->el_params.sa.dim] * sizeof(int16_t)) \
+                    && out->el_params.sa.scale_frac_bits.capacity >= (in->shape[in->el_params.sa.dim] * sizeof(int8_t)),
                     "Not enough memory allocated for quantization parameters");
         if (fail) return MLI_STATUS_SPEC_PARAM_MISMATCH;
     }
@@ -2818,11 +2815,7 @@ mli_status mli_chk_data_movement(const mli_tensor *in, const mli_mov_cfg_t *cfg,
     // Check that in tensor is valid and out provides valid pointers
     stat = MLI_CHECK_STATUS(mli_chk_tensor (in, false), "Bad input tensor");
     if (stat != MLI_STATUS_OK) return stat;
-    stat = MLI_CHECK_STATUS(mli_chk_tensor (out, false /* check bank */), "Bad output tensor");
-    if (MLI_CHECK(out->el_type == in->el_type, "Wrong output type"))
-        return MLI_STATUS_TYPE_MISMATCH;
 
-    if (stat != MLI_STATUS_OK) return stat;
     if (MLI_CHECK(cfg != NULL , "Bad cfg pointer")) return MLI_STATUS_BAD_FUNC_CFG;
     if ((in->el_type == MLI_EL_SA_8 || in->el_type == MLI_EL_SA_32) && (in->el_params.sa.dim != -1)) {
         bool fail = false;
@@ -2831,15 +2824,25 @@ mli_status mli_chk_data_movement(const mli_tensor *in, const mli_mov_cfg_t *cfg,
                     && (out->el_params.sa.scale_frac_bits.mem.pi8 == in->el_params.sa.scale_frac_bits.mem.pi8),
                     "El_params data for out tensor wasn`t initialized in a consistent way");
 
-        if (out->el_params.sa.zero_point.mem.pi16 != in->el_params.sa.zero_point.mem.pi16)
-            fail |= MLI_CHECK((out->el_params.sa.scale.mem.pi16 != in->el_params.sa.scale.mem.pi16)
-                    && (out->el_params.sa.scale_frac_bits.mem.pi8 != in->el_params.sa.scale_frac_bits.mem.pi8),
+        if (out->el_params.sa.zero_point.mem.pi16 != nullptr && out->el_params.sa.zero_point.mem.pi16 != in->el_params.sa.zero_point.mem.pi16)
+            fail |= MLI_CHECK((out->el_params.sa.scale.mem.pi16 != nullptr && out->el_params.sa.scale.mem.pi16 != in->el_params.sa.scale.mem.pi16)
+                    && (out->el_params.sa.scale_frac_bits.mem.pi8 != nullptr && out->el_params.sa.scale_frac_bits.mem.pi8 != in->el_params.sa.scale_frac_bits.mem.pi8),
                     "El_params data for out tensor wasn`t initialized in a consistent way");
 
         if (out->el_params.sa.zero_point.mem.pi16 == nullptr)
             fail |= MLI_CHECK((out->el_params.sa.scale.mem.pi16 == nullptr)
                     && (out->el_params.sa.scale_frac_bits.mem.pi8 == nullptr),
                     "El_params data for out tensor wasn`t initialized in a consistent way");
+
+        //check that the configurations are valid
+        for (uint32_t i=0; i < in->rank; i++) {
+            if (MLI_CHECK((cfg->size[i] + cfg->offset[i]) <= in->shape[i] + cfg->padding_pre[i] + cfg->padding_post[i],"Size is larger than padded input"))
+                return MLI_STATUS_BAD_FUNC_CFG;
+            if (MLI_CHECK(cfg->sub_sample_step[i] > 0,"sub_sample_step should be greater than 0"))
+                return MLI_STATUS_BAD_FUNC_CFG;
+            if (MLI_CHECK(cfg->perm_dim[i] < in->rank,"permute out of range"))
+                return MLI_STATUS_BAD_FUNC_CFG;
+        }
 
         int32_t in_dim = in->el_params.sa.dim;
         int32_t out_dim = 0;
@@ -2872,16 +2875,6 @@ mli_status mli_chk_data_movement(const mli_tensor *in, const mli_mov_cfg_t *cfg,
 
         if (fail) return MLI_STATUS_SPEC_PARAM_MISMATCH;
 
-    }
-
-    //check that the configurations are valid
-    for (uint32_t i=0; i < in->rank; i++) {
-        if (MLI_CHECK((cfg->size[i] + cfg->offset[i]) <= in->shape[i] + cfg->padding_pre[i] + cfg->padding_post[i],"Size is larger than padded input"))
-            return MLI_STATUS_BAD_FUNC_CFG;
-        if (MLI_CHECK(cfg->sub_sample_step[i] > 0,"sub_sample_step should be greater than 0"))
-            return MLI_STATUS_BAD_FUNC_CFG;
-        if (MLI_CHECK(cfg->perm_dim[i] < in->rank,"permute out of range"))
-            return MLI_STATUS_BAD_FUNC_CFG;
     }
 
     //check that input and output are not overlapped

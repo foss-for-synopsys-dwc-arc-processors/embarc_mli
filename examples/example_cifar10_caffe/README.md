@@ -187,25 +187,25 @@ Console output using provided small test set may look like:
        ACCURACY CALCULATION on Input IDX testset according to IDX labels set
        IDX test file shape: [20,32,32,3,]
        Model input shape: [32,32,3,]
-
-              2 of 20 test vectors are processed (2 are correct: 100.000 %)
-              4 of 20 test vectors are processed (4 are correct: 100.000 %)
-              6 of 20 test vectors are processed (6 are correct: 100.000 %)
-              8 of 20 test vectors are processed (8 are correct: 100.000 %)
-              10 of 20 test vectors are processed (10 are correct: 100.000 %)
-              12 of 20 test vectors are processed (12 are correct: 100.000 %)
-              14 of 20 test vectors are processed (14 are correct: 100.000 %)
-              16 of 20 test vectors are processed (16 are correct: 100.000 %)
-              18 of 20 test vectors are processed (18 are correct: 100.000 %)
-              20 of 20 test vectors are processed (20 are correct: 100.000 %)
-       Final Accuracy: 100.000 % (20 are correct of 20)
+       
+                2 of 20 test vectors are processed (2 are correct: 100.000 %)
+                4 of 20 test vectors are processed (4 are correct: 100.000 %)
+                6 of 20 test vectors are processed (5 are correct: 83.333 %)
+                8 of 20 test vectors are processed (7 are correct: 87.500 %)
+               10 of 20 test vectors are processed (9 are correct: 90.000 %)
+               12 of 20 test vectors are processed (11 are correct: 91.667 %)
+               14 of 20 test vectors are processed (11 are correct: 78.571 %)
+               16 of 20 test vectors are processed (13 are correct: 81.250 %)
+               18 of 20 test vectors are processed (14 are correct: 77.778 %)
+               20 of 20 test vectors are processed (16 are correct: 80.000 %)
+       Final Accuracy: 80.000 % (16 are correct of 20)
        FINISHED
 
 where:
-* `Final Accuracy: 100.000 % (20 are correct of 20)` reflects how many samples from the testset were accurately predicted in comparison with reference label. The accuracy itself may vary depending on the target platform and `run_*` command. In particular :
+* `Final Accuracy: 80.000 % (16 are correct of 20)` reflects how many samples from the testset were accurately predicted in comparison with reference label. The accuracy itself may vary depending on the target platform and `run_*` command. In particular :
 
-  * `run_FX16` and `run_FX16_FX8_FX8`: Accuracy should be  `100.000 %` for provided small test dataset. 
-  * `run_SA8`:  Accuracy should be  `90.000 %` for provided small test dataset.
+  * `run_FX16` and `run_FX16_FX8_FX8`: Accuracy should be  `80.000 %` for provided small test dataset. 
+  * `run_SA8`:  Accuracy should be  `75.000 %` for provided small test dataset.
 
 ### 3 **External test-set processing.**
 Console output using provided small test set should looks mostly the same as for accuracy measurement mode, but without accuracy values.

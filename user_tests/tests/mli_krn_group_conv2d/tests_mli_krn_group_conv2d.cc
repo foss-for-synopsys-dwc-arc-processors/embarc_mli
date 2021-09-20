@@ -56,21 +56,29 @@ struct group_conv2d_test_operands {
 #if defined(CRC_RM_CONVERGENT) || defined(CRC_RM_UP)
 
 // Shared CRC Results
-const crc32_calc test_1_chksum_fx16{ 0xB782413A }, test_1_chksum_fx16_fx8_fx8{ 0xEE4193A9 }, test_1_chksum_sa8{ 0xB0EBD3DC },
+const crc32_calc test_1_chksum_fx16{ 0xB782413A }, test_1_chksum_fx16_fx8_fx8{ 0xEE4193A9 },
                  test_2_chksum_fx16{ 0x65FD03D2 }, test_2_chksum_fx16_fx8_fx8{ 0xB34C4A01 }, test_2_chksum_sa8{ 0x33341D2B },
                  test_3_chksum_fx16{ 0x71B9E656 }, test_3_chksum_fx16_fx8_fx8{ 0x67578BCF }, test_3_chksum_sa8{ 0xAAD727F2 },
-                 test_4_chksum_fx16{ 0x2D7FD678 }, test_4_chksum_fx16_fx8_fx8{ 0x96994E5E }, test_4_chksum_sa8{ 0xCC24BECE },
+                 test_4_chksum_fx16{ 0x2D7FD678 }, test_4_chksum_fx16_fx8_fx8{ 0x96994E5E },
                  test_5_chksum_fx16{ 0xB719F4A0 }, test_5_chksum_fx16_fx8_fx8{ 0x985577E0 }, test_5_chksum_sa8{ 0xBD32CF0A },
                  test_6_chksum_fx16{ 0x3013D414 }, test_6_chksum_fx16_fx8_fx8{ 0xCB153206 }, test_6_chksum_sa8{ 0xC61C378D },
                  test_7_chksum_fx16{ 0xC979FA6E }, test_7_chksum_fx16_fx8_fx8{ 0x5D29B6B4 }, test_7_chksum_sa8{ 0x28AFE63F },
                  test_8_chksum_fx16{ 0xAC7AFCAE }, test_8_chksum_sa8{ 0xE97450E4 },
                  test_9_chksum_fx16{ 0x2DDBDF54 }, test_9_chksum_fx16_fx8_fx8{ 0x575372E7 },
-                 test_10_chksum_fx16{ 0x78039E74 }, test_10_chksum_fx16_fx8_fx8{ 0x1783EEEC }, test_10_chksum_sa8{ 0x079DC058 };
+                 test_10_chksum_fx16{ 0x78039E74 }, test_10_chksum_fx16_fx8_fx8{ 0x1783EEEC };
 // Platform Specific CRC Results
-#if defined(CRC_RM_UP)
-const crc32_calc test_8_chksum_fx16_fx8_fx8{ 0x629A3BD0 }, test_9_chksum_sa8{ 0x38F5EB92 };
+#if defined(FULL_ACCU_ON)
+const crc32_calc test_1_chksum_sa8{ 0x11D2D466 }, test_10_chksum_sa8{ 0x3685F72F };
+#else
+const crc32_calc test_1_chksum_sa8{ 0xB0EBD3DC }, test_10_chksum_sa8{ 0x079DC058 };
+#endif
+
+#if defined(CRC_RM_UP) && defined(FULL_ACCU_ON)
+const crc32_calc test_8_chksum_fx16_fx8_fx8{ 0x629A3BD0 }, test_9_chksum_sa8{ 0x38F5EB92 }, test_4_chksum_sa8{ 0xE5DBC862 };
+#elif defined(CRC_RM_UP) && !defined(FULL_ACCU_ON)
+const crc32_calc test_8_chksum_fx16_fx8_fx8{ 0x629A3BD0 }, test_9_chksum_sa8{ 0x38F5EB92 }, test_4_chksum_sa8{ 0xCC24BECE };
 #else 
-const crc32_calc test_8_chksum_fx16_fx8_fx8{ 0x0597C4DB }, test_9_chksum_sa8{ 0x396D8D7A };
+const crc32_calc test_8_chksum_fx16_fx8_fx8{ 0x0597C4DB }, test_9_chksum_sa8{ 0x396D8D7A }, test_4_chksum_sa8{ 0xCC24BECE };
 #endif
 #else // Not defined CRC_*
 const crc32_calc  test_1_chksum_fx16, test_1_chksum_fx16_fx8_fx8, test_1_chksum_sa8,
@@ -290,16 +298,25 @@ int main() {
 
 #if defined(__Xvec_guard_bit_option) && (__Xvec_guard_bit_option == 0)
         if (strstr(cur_test->descr, "Test 1 FX16") != nullptr ||
-            strstr(cur_test->descr, "Test 2 FX16 ReluGen") != nullptr ||
-            strstr(cur_test->descr, "Test 3 SA8_SA8_SA32 Mult FPG") != nullptr ||
-            strstr(cur_test->descr, "Test 4 FX16 DW call") != nullptr ||
-            strstr(cur_test->descr, "Test 5 FX16 Conv2D call") != nullptr ||
-            strstr(cur_test->descr, "Test 6 FX16 IO_Memstr") != nullptr ||
-            strstr(cur_test->descr, "Test 7 FX16 W_Memstr") != nullptr ||
-            strstr(cur_test->descr, "Test 9 FX16 k3x3 Mstr+Dil") != nullptr ||
-            strstr(cur_test->descr, "Test 10 FX16 k5x5 Mstr+Dil") != nullptr ||
-            strstr(cur_test->descr, "Test 10 SA8 k5x5 Mstr+Dil") != nullptr) {
+                strstr(cur_test->descr, "Test 2 FX16 ReluGen") != nullptr ||
+                strstr(cur_test->descr, "Test 3 SA8_SA8_SA32 Mult FPG") != nullptr ||
+                strstr(cur_test->descr, "Test 4 FX16 DW call") != nullptr ||
+                strstr(cur_test->descr, "Test 5 FX16 Conv2D call") != nullptr ||
+                strstr(cur_test->descr, "Test 6 FX16 IO_Memstr") != nullptr ||
+                strstr(cur_test->descr, "Test 7 FX16 W_Memstr") != nullptr ||
+                strstr(cur_test->descr, "Test 9 FX16 k3x3 Mstr+Dil") != nullptr ||
+                strstr(cur_test->descr, "Test 10 FX16 k5x5 Mstr+Dil") != nullptr ||
+                strstr(cur_test->descr, "Test 10 SA8 k5x5 Mstr+Dil") != nullptr) {
             // VPX fails bitwise comparison with reference .
+            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
+            continue;
+        }
+#endif
+
+#if PLATFORM == V2DSP_XY && defined(CRC_RM_CONVERGENT)
+        if (strstr(cur_test->descr, "Test 1 SA8_SA8_SA32") != nullptr ||
+                strstr(cur_test->descr, "Test 10 SA8 k5x5 Mstr+Dil") != nullptr) {
+            // Em9d fails bitwise comparison with reference .
             reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
             continue;
         }

@@ -56,23 +56,43 @@ struct transpose_conv2d_test_operands {
 #if defined(CRC_RM_CONVERGENT) || defined(CRC_RM_UP)
 
 // Shared CRC Results
-const crc32_calc test_1_chksum_fx16 {0x7CD22049}, /*test_1_chksum_fx16_fx8_fx8,             */ test_1_chksum_sa8 {0x59A71A0B},
+const crc32_calc test_1_chksum_fx16 {0x7CD22049}, /*test_1_chksum_fx16_fx8_fx8,             */
                  test_2_chksum_fx16 {0x0B88C56E}, /*test_2_chksum_fx16_fx8_fx8,                test_2_chksum_sa8,*/
                  test_3_chksum_fx16 {0x85E46A29},   test_3_chksum_fx16_fx8_fx8 {0xF9B0F692},   test_3_chksum_sa8 {0xCE83CE66},
                  test_4_chksum_fx16 {0xC724EBF9}, /*test_4_chksum_fx16_fx8_fx8,             */ test_4_chksum_sa8 {0xDEE32B04},
                  test_5_chksum_fx16 {0xE82A4691}, /*test_5_chksum_fx16_fx8_fx8,             */ test_5_chksum_sa8 {0x591EA9A4},
                  test_6_chksum_fx16 {0x6D691353}, /*test_6_chksum_fx16_fx8_fx8,                test_6_chksum_sa8,*/
                  test_7_chksum_fx16 {0x314BD269}, /*test_7_chksum_fx16_fx8_fx8,             */ test_7_chksum_sa8 {0xA422B61F},
-                 test_8_chksum_fx16 {0x4CDA936B}, test_8_chksum_fx16_fx8_fx8 {0x8436810F},     test_8_chksum_sa8 {0x8BC78C83};
+                 test_8_chksum_fx16 {0x4CDA936B}, test_8_chksum_fx16_fx8_fx8 {0x8436810F};
 // Platform Specific CRC Results
-#if defined(CRC_RM_UP)
+#if defined(FULL_ACCU_ON)
+const crc32_calc test_1_chksum_sa8 {0xD1E36355}, test_8_chksum_sa8 {0x7AAD7CC6};
+#else
+const crc32_calc test_1_chksum_sa8 {0x59A71A0B}, test_8_chksum_sa8 {0x8BC78C83};
+#endif
+
+#if defined(CRC_RM_UP) && defined(FULL_ACCU_ON)
+const crc32_calc test_1_chksum_fx16_fx8_fx8 {0xB8EF2F73},
+                 test_2_chksum_fx16_fx8_fx8 {0x2A904693}, test_2_chksum_sa8 {0x6BA90ACE},
+                 test_4_chksum_fx16_fx8_fx8 {0xF0F39D2C}, 
+                 test_5_chksum_fx16_fx8_fx8 {0xA3E639A8},
+                 test_6_chksum_fx16_fx8_fx8 {0x1BE42216}, test_6_chksum_sa8 {0x179FAFCC},
+                 test_7_chksum_fx16_fx8_fx8 {0x91D2A974};
+#elif defined(CRC_RM_UP) && !defined(FULL_ACCU_ON)
 const crc32_calc test_1_chksum_fx16_fx8_fx8 {0xB8EF2F73},
                  test_2_chksum_fx16_fx8_fx8 {0x2A904693}, test_2_chksum_sa8 {0xBBF2F0DD},
                  test_4_chksum_fx16_fx8_fx8 {0xF0F39D2C}, 
                  test_5_chksum_fx16_fx8_fx8 {0xA3E639A8},
                  test_6_chksum_fx16_fx8_fx8 {0x1BE42216}, test_6_chksum_sa8 {0x179FAFCC},
                  test_7_chksum_fx16_fx8_fx8 {0x91D2A974};
-#else 
+#elif defined(CRC_RM_CONVERGENT) && defined(FULL_ACCU_ON)
+const crc32_calc test_1_chksum_fx16_fx8_fx8 {0x9E58234E},
+                 test_2_chksum_fx16_fx8_fx8 {0xB808A08B}, test_2_chksum_sa8 {0x99FF7BEA},
+                 test_4_chksum_fx16_fx8_fx8 {0xB617F5E9},
+                 test_5_chksum_fx16_fx8_fx8 {0xD261DE7C},
+                 test_6_chksum_fx16_fx8_fx8 {0x069E2E0E}, test_6_chksum_sa8 {0x179FAFCC},
+                 test_7_chksum_fx16_fx8_fx8 {0x118C5E59};
+#elif defined(CRC_RM_CONVERGENT) && !defined(FULL_ACCU_ON)
 const crc32_calc test_1_chksum_fx16_fx8_fx8 {0x9E58234E},
                  test_2_chksum_fx16_fx8_fx8 {0xB808A08B}, test_2_chksum_sa8 {0xB6D4CCF3},
                  test_4_chksum_fx16_fx8_fx8 {0xB617F5E9},
@@ -237,17 +257,29 @@ int main() {
 
 #if defined(__Xvec_guard_bit_option) && (__Xvec_guard_bit_option == 0)
         if (strstr(cur_test->descr, "Test 1 SA8_SA8_SA32") != nullptr ||
-            strstr(cur_test->descr, "Test 2-1 SA8_SA8_SA32 ReluGen") != nullptr ||
-            strstr(cur_test->descr, "Test 2-2 SA8_SA8_SA32 Mem") != nullptr ||
-            strstr(cur_test->descr, "Test 3 FX16 Str_1x1") != nullptr ||
-            strstr(cur_test->descr, "Test 3 SA8_SA8_SA32 Str_1x1") != nullptr ||
-            strstr(cur_test->descr, "Test 4 SA8_SA8_SA32 IO_Memstr") != nullptr ||
-            strstr(cur_test->descr, "Test 5 SA8_SA8_SA32 IOW_Memstr") != nullptr ||
-            strstr(cur_test->descr, "Test 6 SA8_SA8_SA32 k2x2 st2") != nullptr ||
-            strstr(cur_test->descr, "Test 7 SA8_SA8_SA32 k4x4 st2") != nullptr ||
-            strstr(cur_test->descr, "Test 8 FX16 k3x3 str2") != nullptr ||
-            strstr(cur_test->descr, "Test 8 SA8_SA8_SA32 k3x3 st2") != nullptr) {
+                strstr(cur_test->descr, "Test 2-1 SA8_SA8_SA32 ReluGen") != nullptr ||
+                strstr(cur_test->descr, "Test 2-2 SA8_SA8_SA32 Mem") != nullptr ||
+                strstr(cur_test->descr, "Test 3 FX16 Str_1x1") != nullptr ||
+                strstr(cur_test->descr, "Test 3 SA8_SA8_SA32 Str_1x1") != nullptr ||
+                strstr(cur_test->descr, "Test 4 SA8_SA8_SA32 IO_Memstr") != nullptr ||
+                strstr(cur_test->descr, "Test 5 SA8_SA8_SA32 IOW_Memstr") != nullptr ||
+                strstr(cur_test->descr, "Test 6 SA8_SA8_SA32 k2x2 st2") != nullptr ||
+                strstr(cur_test->descr, "Test 7 SA8_SA8_SA32 k4x4 st2") != nullptr ||
+                strstr(cur_test->descr, "Test 8 FX16 k3x3 str2") != nullptr ||
+                strstr(cur_test->descr, "Test 8 SA8_SA8_SA32 k3x3 st2") != nullptr) {
             // VPX fails bitwise comparison with reference .
+            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
+            continue;
+        }
+#endif
+
+#if PLATFORM == V2DSP_XY && defined(CRC_RM_CONVERGENT)
+        if (strstr(cur_test->descr, "Test 1 SA8_SA8_SA32") != nullptr ||
+                strstr(cur_test->descr, "Test 2-1 SA8_SA8_SA32 ReluGen") != nullptr ||
+                strstr(cur_test->descr, "Test 2-2 SA8_SA8_SA32 Mem") != nullptr ||
+                strstr(cur_test->descr, "Test 6 SA8_SA8_SA32 k2x2 st2") != nullptr ||
+                strstr(cur_test->descr, "SA8_SA8_SA32 k3x3 st2") != nullptr) {
+            // Em9d fails bitwise comparison with reference .
             reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
             continue;
         }

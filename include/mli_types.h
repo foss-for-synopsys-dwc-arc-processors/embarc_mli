@@ -143,8 +143,8 @@ typedef union _mli_element_params {
  *
  * Tensor is the main container type for all input and output data which must be processed by ML algo-rithm.
  * In general data for neural networks and other machine learning tasks is a multi-dimensional arrays of some
- * particular shape. So tensor structure includes not only data, but it’s shape, it’s type, and other data specific
- * parameters. To be more precise, saying “data” we mean input features, out-put features, layer weights and biases
+ * particular shape. So tensor structure includes not only data, but it's shape, it's type, and other data specific
+ * parameters. To be more precise, saying "data" we mean input features, out-put features, layer weights and biases
  * but not layer parameters like padding or stride for convolution-al layers.
  */
 typedef struct _mli_tensor {
@@ -411,7 +411,7 @@ typedef struct {
  * Data structure to provide the configuration for Concatenation primitives.
  */
 typedef struct {
-    uint8_t tensors_num;   /**< Number of tensors to concatenate (number of pointers in “inputs” array) */
+    uint8_t tensors_num;   /**< Number of tensors to concatenate (number of pointers in "inputs" array) */
     uint8_t axis;          /**< Axis for concatenation (dimension number starting from 0)*/
 } mli_concat_cfg;
 
@@ -464,7 +464,7 @@ typedef struct _mli_mov_cfg {
  * number of indexes per slice to be returned.
  */
 typedef struct {
-    int32_t axis;   /**< An axis along which the function will be computed. Axis corresponds to index of tensor’s
+    int32_t axis;   /**< An axis along which the function will be computed. Axis corresponds to index of tensor's
                          dimension starting from 0. For instance, having future map in HWC layout, axis == 0
                          corresponds to H dimension. If axis < 0 the function will be applied to the whole tensor. */
     int32_t topk;   /**< Number of indexes per slice to be returned.*/

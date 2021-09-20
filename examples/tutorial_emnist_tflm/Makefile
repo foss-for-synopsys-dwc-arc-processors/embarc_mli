@@ -13,20 +13,20 @@ ifeq ($(TENSORFLOW_DIR),)
     $(error cannot find tensorflow -- TENSORFLOW_DIR variable must be set)
 endif
 
+BUILD_TARGET = tutorial_emnist_tflm
 BUILD_SUBDIR = examples$(PS)tutorial_emnist_tflm
 BIN_PATH = $(BUILD_DIR)$(PS)$(BUILD_SUBDIR)$(PS)bin
 
 ifndef TCF_FILE
 	RUN_APP_CMD =
 else
-	RUN_APP_CMD = mdb -cl -nsim -cmd=run -off=cr_for_more -cmd=exit -tcf=$(TCF_FILE)
+	RUN_APP_CMD = mdb64 -cl -nsim -cmd=run -off=cr_for_more -cmd=exit -tcf=$(TCF_FILE)
 	BIN_EXT = .elf
 endif
 
-export TCF_FILE_NAME = $(basename $(notdir $(TCF_FILE)))
 app: build
 
 run:
-	$(RUN_APP_CMD) $(BIN_PATH)$(PS)tutorial_emnist_tflm$(BIN_EXT) $(RUN_ARGS)
+	$(RUN_APP_CMD) $(BIN_PATH)$(PS)$(BUILD_TARGET)$(BIN_EXT) $(RUN_ARGS)
 
 .PHONY: app
