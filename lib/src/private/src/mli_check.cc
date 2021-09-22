@@ -251,7 +251,7 @@ bool mli_chk_containers_not_overlapped(const mli_data_container & data1, const m
 }
 
 bool mli_chk_tensors_not_overlapped(const mli_tensor * t1, const mli_tensor * t2) {
-	return mli_chk_containers_not_overlapped(t1->data, t2->data);
+    return mli_chk_containers_not_overlapped(t1->data, t2->data);
 }
 
 mli_status mli_chk_bias_frac_fx(const mli_tensor * in, const mli_tensor * weights, const mli_tensor * bias) {
@@ -2123,8 +2123,8 @@ mli_status mli_chk_rnn_dense_fx16 (
     if (fail) return MLI_STATUS_TYPE_MISMATCH;
 
     for (int idx = 0; idx < inputs_num; idx++) {
-      	ret = MLI_CHECK_STATUS(mli_chk_out_frac_fx(in[idx], weights[idx], out), __func__);
-      	if (ret != MLI_STATUS_OK) return ret;
+        ret = MLI_CHECK_STATUS(mli_chk_out_frac_fx(in[idx], weights[idx], out), __func__);
+        if (ret != MLI_STATUS_OK) return ret;
     }
 
     ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in[0], weights[0], bias), __func__);
@@ -2153,8 +2153,8 @@ mli_status mli_chk_rnn_dense_fx16_fx8_fx8 (
     if (fail) return MLI_STATUS_TYPE_MISMATCH;
 
     for (int idx = 0; idx < inputs_num; idx++) {
-      	ret = MLI_CHECK_STATUS(mli_chk_out_frac_fx(in[idx], weights[idx], out), __func__);
-      	if (ret != MLI_STATUS_OK) return ret;
+        ret = MLI_CHECK_STATUS(mli_chk_out_frac_fx(in[idx], weights[idx], out), __func__);
+        if (ret != MLI_STATUS_OK) return ret;
     }
 
     ret = MLI_CHECK_STATUS(mli_chk_bias_frac_fx(in[0], weights[0], bias), __func__);
@@ -2325,6 +2325,7 @@ mli_status mli_chk_lstm_cell_fx16 (
     if (ret != MLI_STATUS_OK)
         return ret;
     if (MLI_CHECK(in->el_type       == MLI_EL_FX_16, "Wrong input tensor type") ||
+        MLI_CHECK(out->el_type       == MLI_EL_FX_16, "Wrong output tensor type") ||
         MLI_CHECK(prev_out->el_type == MLI_EL_FX_16, "Wrong prev_out tensor type") ||
         MLI_CHECK(weights_in->el_type  == MLI_EL_FX_16, "Wrong weights_in tensor type") ||
         MLI_CHECK(weights_out->el_type  == MLI_EL_FX_16, "Wrong weights_out tensor type") ||
@@ -2354,6 +2355,7 @@ mli_status mli_chk_lstm_cell_fx16_fx8_fx8 (
     if (ret != MLI_STATUS_OK)
         return ret;
     if (MLI_CHECK(in->el_type       == MLI_EL_FX_16, "Wrong input tensor type") ||
+        MLI_CHECK(out->el_type       == MLI_EL_FX_16, "Wrong output tensor type") ||
         MLI_CHECK(prev_out->el_type == MLI_EL_FX_16, "Wrong prev_out tensor type") ||
         MLI_CHECK(weights_in->el_type  == MLI_EL_FX_8, "Wrong weights tensor type") ||
         MLI_CHECK(weights_out->el_type  == MLI_EL_FX_8, "Wrong weights tensor type") ||
@@ -2386,14 +2388,16 @@ mli_status mli_chk_lstm_cell_sa8_sa8_sa32(
     bool fail = false;
 
     if (MLI_CHECK(in->el_type       == MLI_EL_SA_8, "Wrong input tensor type") ||
-            MLI_CHECK(prev_out->el_type == MLI_EL_SA_8, "Wrong prev_out tensor type") ||
-            MLI_CHECK(weights_in->el_type  == MLI_EL_SA_8, "Wrong weights tensor type") ||
-            MLI_CHECK(weights_out->el_type  == MLI_EL_SA_8, "Wrong weights tensor type") ||
-            MLI_CHECK(cell->el_type == MLI_EL_SA_8, "Wrong cell tensor type") ||
-            MLI_CHECK(bias->el_type     == MLI_EL_SA_32, "Wrong bias tensor type"))
+        MLI_CHECK(out->el_type      == MLI_EL_SA_8, "Wrong output tensor type") ||
+        MLI_CHECK(prev_out->el_type == MLI_EL_SA_8, "Wrong prev_out tensor type") ||
+        MLI_CHECK(weights_in->el_type  == MLI_EL_SA_8, "Wrong weights tensor type") ||
+        MLI_CHECK(weights_out->el_type  == MLI_EL_SA_8, "Wrong weights tensor type") ||
+        MLI_CHECK(cell->el_type == MLI_EL_SA_8, "Wrong cell tensor type") ||
+        MLI_CHECK(bias->el_type     == MLI_EL_SA_32, "Wrong bias tensor type"))
         return MLI_STATUS_TYPE_MISMATCH;
 
     fail |= MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor: Per-tensor quantization is expected");
+    fail |= MLI_CHECK(out->el_params.sa.dim < 0, "Output tensor: Per-tensor quantization is expected");
     fail |= MLI_CHECK(prev_out->el_params.sa.dim < 0, "Prev out tensor: Per-tensor quantization is expected");
     fail |= MLI_CHECK(cell->el_params.sa.dim < 0, "Cell tensor: Per-tensor quantization is expected");
 
@@ -2408,6 +2412,8 @@ mli_status mli_chk_lstm_cell_sa8_sa8_sa32(
 
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(in,        kZeroPointBitsByteRange), __func__);
+    if (ret != MLI_STATUS_OK) return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(out,       kZeroPointBitsByteRange), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(prev_out,  kZeroPointBitsByteRange), __func__);
     if (ret != MLI_STATUS_OK) return ret;
@@ -2532,6 +2538,7 @@ mli_status mli_chk_gru_cell_fx16 (
     if (ret != MLI_STATUS_OK)
         return ret;
     if (MLI_CHECK(in->el_type       == MLI_EL_FX_16, "Wrong input tensor type") ||
+        MLI_CHECK(out->el_type       == MLI_EL_FX_16, "Wrong output tensor type") ||
         MLI_CHECK(prev_out->el_type == MLI_EL_FX_16, "Wrong prev_out tensor type") ||
         MLI_CHECK(weights_in->el_type  == MLI_EL_FX_16, "Wrong weights_in tensor type") ||
         MLI_CHECK(weights_out->el_type  == MLI_EL_FX_16, "Wrong weights_out tensor type") ||
@@ -2559,6 +2566,7 @@ mli_status mli_chk_gru_cell_fx16_fx8_fx8 (
     if (ret != MLI_STATUS_OK)
         return ret;
     if (MLI_CHECK(in->el_type       == MLI_EL_FX_16, "Wrong input tensor type") ||
+        MLI_CHECK(out->el_type       == MLI_EL_FX_16, "Wrong output tensor type") ||
         MLI_CHECK(prev_out->el_type == MLI_EL_FX_16, "Wrong prev_out tensor type") ||
         MLI_CHECK(weights_in->el_type  == MLI_EL_FX_8, "Wrong weights tensor type") ||
         MLI_CHECK(weights_out->el_type  == MLI_EL_FX_8, "Wrong weights tensor type") ||
@@ -2590,6 +2598,7 @@ mli_status mli_chk_gru_cell_sa8_sa8_sa32(
     bool fail = false;
 
     if (MLI_CHECK(in->el_type       == MLI_EL_SA_8, "Wrong input tensor type") ||
+        MLI_CHECK(out->el_type      == MLI_EL_SA_8, "Wrong output tensor type") ||
         MLI_CHECK(prev_out->el_type == MLI_EL_SA_8, "Wrong prev_out tensor type") ||
         MLI_CHECK(weights_in->el_type  == MLI_EL_SA_8, "Wrong weights tensor type") ||
         MLI_CHECK(weights_out->el_type  == MLI_EL_SA_8, "Wrong weights tensor type") ||
@@ -2597,6 +2606,7 @@ mli_status mli_chk_gru_cell_sa8_sa8_sa32(
         return MLI_STATUS_TYPE_MISMATCH;
 
     fail |= MLI_CHECK(in->el_params.sa.dim < 0, "Input tensor: Per-tensor quantization is expected");
+    fail |= MLI_CHECK(out->el_params.sa.dim < 0, "Output tensor: Per-tensor quantization is expected");
     fail |= MLI_CHECK(prev_out->el_params.sa.dim < 0, "Prev out tensor: Per-tensor quantization is expected");
 
     if (weights_in->el_params.sa.dim < 0) {
@@ -2610,6 +2620,8 @@ mli_status mli_chk_gru_cell_sa8_sa8_sa32(
 
     if (fail) return MLI_STATUS_INCOMPATEBLE_TENSORS;
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(in,        kZeroPointBitsByteRange), __func__);
+    if (ret != MLI_STATUS_OK) return ret;
+    ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(out,       kZeroPointBitsByteRange), __func__);
     if (ret != MLI_STATUS_OK) return ret;
     ret = MLI_CHECK_STATUS(mli_chk_tensor_quant_params(prev_out,  kZeroPointBitsByteRange), __func__);
     if (ret != MLI_STATUS_OK) return ret;
@@ -2906,7 +2918,7 @@ mli_status mli_chk_argmax(const mli_tensor *in, const mli_argmax_cfg *cfg, mli_t
         return MLI_STATUS_TYPE_MISMATCH;
 
     if (MLI_CHECK(check_layout_is_contiguous(out), "Memory Layout of out tensor must be contiguous"))
-    	return MLI_STATUS_INCOMPATEBLE_TENSORS;
+        return MLI_STATUS_INCOMPATEBLE_TENSORS;
 
     // Check if cfg is valid
     if (MLI_CHECK(cfg != NULL, "Bad cfg pointer")) return MLI_STATUS_BAD_FUNC_CFG;
@@ -2922,9 +2934,9 @@ mli_status mli_chk_argmax(const mli_tensor *in, const mli_argmax_cfg *cfg, mli_t
     if (cfg->axis >= 0) {
         dim_size = in->shape[cfg->axis];
         uint32_t slice_size = in_size / dim_size;
-    	fail |= MLI_CHECK(cfg->topk <= (int)slice_size, "For axis >= 0 topk  must be less or equal to the total number of elements in s single slice across the specified axis");
+        fail |= MLI_CHECK(cfg->topk <= (int)slice_size, "For axis >= 0 topk  must be less or equal to the total number of elements in s single slice across the specified axis");
     } else {
-    	fail |= MLI_CHECK(cfg->topk <= (int)in_size, "For axis < 0 topk   must be less or equal to the total number of elements in in");
+        fail |= MLI_CHECK(cfg->topk <= (int)in_size, "For axis < 0 topk   must be less or equal to the total number of elements in in");
     }
     if (fail) return MLI_STATUS_BAD_FUNC_CFG;
 
