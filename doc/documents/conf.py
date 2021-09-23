@@ -66,6 +66,9 @@ copyright = u'2021, Synopsys, Inc'
 author = u'Synopsys, Inc'
 today_fmt = '%Y'
 
+#Conditional tags
+tags.add('mli_only')
+
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
