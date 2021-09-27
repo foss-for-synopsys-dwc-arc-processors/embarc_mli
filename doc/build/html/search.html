@@ -1,41 +1,41 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Search &mdash; embARC Machine Learning Inference Library 1.00 documentation</title>
+  <title>Search &mdash; embARC Machine Learning Library 2.0 2.00 documentation</title>
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        <script type="text/javascript" src="_static/searchtools.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
 
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="_static/style_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+    
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <script type="text/javascript" src="_static/searchtools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="#" /> 
 </head>
@@ -51,7 +51,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home"> embARC Machine Learning Inference Library
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> embARC Machine Learning Library 2.0
           
 
           
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                1.00
+                2.00
               </div>
             
           
@@ -78,6 +78,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -87,18 +88,25 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="whats_new/whats_new.html">What’s New in MLI 2.0 ?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="overview/overview.html">Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="getting_started/getting_started.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="library_model/library_model.html">Library Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="MLI_FP_data_format/MLI_FP_data_format.html">MLI Fixed-Point Data Format</a></li>
-<li class="toctree-l1"><a class="reference internal" href="MLI_kernels/MLI_kernels.html">MLI Kernels</a></li>
-<li class="toctree-l1"><a class="reference internal" href="MLI_helpers/MLI_helpers.html">MLI Helpers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Examples_Tutorials/Examples_Tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_api_data/mli_api_data.html">MLI API Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_kernels/mli_kernels.html">MLI Kernels (Operators)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_kernels/convolution_grp.html">Convolution Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_kernels/rec_fully_con_grp.html">Recurrent and Fully Connected Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_kernels/pooling_grp.html">Pooling Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_kernels/diverse_kernels_grp.html">Diverse Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_kernels/transform_grp.html">Transform (Activation) Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_kernels/elemw_grp.html">Element-wise Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_movement/data_movement.html">Data Movement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utility_functions/utility_functions.html">Utility Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="platform_specific/platform_hint_sum.html">Platform Specific Details</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -108,7 +116,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">embARC Machine Learning Inference Library</a>
+          <a href="index.html">embARC Machine Learning Library 2.0</a>
         
       </nav>
 
@@ -137,7 +145,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
       <li>Search</li>
     
@@ -159,8 +167,7 @@
   <noscript>
   <div id="fallback" class="admonition warning">
     <p class="last">
-      Please activate JavaScript to enable the search
-      functionality.
+      Please activate JavaScript to enable the search functionality.
     </p>
   </div>
   </noscript>
@@ -180,11 +187,19 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Synopsys, Inc
+        
+        &copy; Copyright 2021, Synopsys, Inc
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -195,7 +210,6 @@
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

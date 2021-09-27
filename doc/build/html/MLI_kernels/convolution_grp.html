@@ -1,44 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Convolution Group &mdash; embARC Machine Learning Inference Library 1.00 documentation</title>
+  <title>Convolution Kernels Group &mdash; embARC Machine Learning Library 2.0 2.00 documentation</title>
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
 
   
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../_static/style_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Convolution 2D" href="convolution_2d.html" />
-    <link rel="prev" title="MLI Kernels" href="MLI_kernels.html" /> 
+    <link rel="next" title="Convolution 2D Prototype and Function List" href="conv_2d.html" />
+    <link rel="prev" title="MLI Kernels (Operators)" href="mli_kernels.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -52,7 +52,7 @@
           
 
           
-            <a href="../index.html" class="icon icon-home"> embARC Machine Learning Inference Library
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> embARC Machine Learning Library 2.0
           
 
           
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                1.00
+                2.00
               </div>
             
           
@@ -79,6 +79,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -88,30 +89,31 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../whats_new/whats_new.html">What’s New in MLI 2.0 ?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../overview/overview.html">Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../getting_started/getting_started.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../library_model/library_model.html">Library Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../MLI_FP_data_format/MLI_FP_data_format.html">MLI Fixed-Point Data Format</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="MLI_kernels.html">MLI Kernels</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Convolution Group</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="convolution_2d.html">Convolution 2D</a></li>
-<li class="toctree-l3"><a class="reference internal" href="convolution_depthwise.html">Depth-wise Convolution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_api_data/mli_api_data.html">MLI API Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_kernels.html">MLI Kernels (Operators)</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Convolution Kernels Group</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="conv_2d.html">Convolution 2D Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conv_depthwise.html">Depthwise Convolution Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conv_transp.html">Transpose Convolution Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conv_grp.html">Group Convolution Prototype and Function List</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="pooling_grp.html">Pooling Group</a></li>
-<li class="toctree-l2"><a class="reference internal" href="common_grp.html">Common Group</a></li>
-<li class="toctree-l2"><a class="reference internal" href="transform_grp.html">Transform Group</a></li>
-<li class="toctree-l2"><a class="reference internal" href="elementwise_grp.html">Element-wise Group</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data_manipulation_grp.html">Data Manipulation Group</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI Helpers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Examples_Tutorials/Examples_Tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rec_fully_con_grp.html">Recurrent and Fully Connected Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pooling_grp.html">Pooling Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diverse_kernels_grp.html">Diverse Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transform_grp.html">Transform (Activation) Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="elemw_grp.html">Element-wise Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data_movement/data_movement.html">Data Movement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utility_functions/utility_functions.html">Utility Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../platform_specific/platform_hint_sum.html">Platform Specific Details</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -121,7 +123,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">embARC Machine Learning Inference Library</a>
+          <a href="../index.html">embARC Machine Learning Library 2.0</a>
         
       </nav>
 
@@ -150,17 +152,15 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-          <li><a href="MLI_kernels.html">MLI Kernels</a> &raquo;</li>
-        
-      <li>Convolution Group</li>
+      <li>Convolution Kernels Group</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/MLI_kernels/convolution_grp.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/mli_kernels/convolution_grp.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -173,26 +173,116 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="convolution-group">
-<span id="cnvl-grp"></span><h1>Convolution Group<a class="headerlink" href="#convolution-group" title="Permalink to this headline">¶</a></h1>
-<p>Convolution group of functions convolve input features with a set of
-trained filters. Typically these are multi-dimensional tensors.</p>
+  <div class="section" id="convolution-kernels-group">
+<span id="chap-conv"></span><h1>Convolution Kernels Group<a class="headerlink" href="#convolution-kernels-group" title="Permalink to this headline">¶</a></h1>
+<p>The Convolution Group describes operations related to convolution layers, where
+input features are convolved with a set of trained filters. For a comprehensive guide
+on convolution arithmetic details for various cases, see <a class="reference external" href="https://arxiv.org/abs/1603.07285">A guide to convolution arithmetic for deep learning</a>.</p>
+<p>Functions in this group use the <code class="docutils literal notranslate"><span class="pre">mli_conv2d_cfg</span></code> structure, defined as:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+   <span class="n">mli_relu_cfg</span> <span class="n">relu</span><span class="p">;</span>
+   <span class="kt">uint8_t</span> <span class="n">stride_width</span><span class="p">;</span>
+   <span class="kt">uint8_t</span> <span class="n">stride_height</span><span class="p">;</span>
+   <span class="kt">uint8_t</span> <span class="n">dilation_width</span><span class="p">;</span>
+   <span class="kt">uint8_t</span> <span class="n">dilation_height</span><span class="p">;</span>
+   <span class="kt">uint8_t</span> <span class="n">padding_left</span><span class="p">;</span>
+   <span class="kt">uint8_t</span> <span class="n">padding_right</span><span class="p">;</span>
+   <span class="kt">uint8_t</span> <span class="n">padding_top</span><span class="p">;</span>
+   <span class="kt">uint8_t</span> <span class="n">padding_bottom</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">mli_conv2d_cfg</span><span class="p">;</span>
+</pre></div>
+</div>
+<span id="t-mli-conv2d-cfg-desc"></span><table class="longtable docutils align-center" id="id2">
+<caption><span class="caption-text">mli_conv2d_cfg Structure Field Description</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 24%" />
+<col style="width: 22%" />
+<col style="width: 54%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Field Name</strong></p></th>
+<th class="head"><p><strong>Type</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">relu</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mli_relu_cfg</span></code></p></td>
+<td><p>Type of ReLU activation applied to output values.
+See <a class="reference internal" href="trans_relu.html#relu-prot"><span class="std std-ref">ReLU Prototype and Function List</span></a> for more details.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">stride_width</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint8_t</span></code></p></td>
+<td><p>Stride of filter across width dimension of input</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stride_</span> <span class="pre">height</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint8_t</span></code></p></td>
+<td><p>Stride of filter across height dimension of input</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dilation_width</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint8_t</span></code></p></td>
+<td><p>If set to k&gt;1, there are k-1 implicitly added
+zero points between each filter point across
+width dimension. If set to 1, no dilation
+logic is used. Zero dilation is forbidden.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dilation_height</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint8_t</span></code></p></td>
+<td><p>If set to k&gt;1, there are k-1 implicitly added
+zero points between each filter point across
+height dimension. If set to 1, no dilation
+logic is used. Zero dilation is forbidden.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">padding_left</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint8_t</span></code></p></td>
+<td><p>Number of zero points implicitly added to the
+left of input (width dimension)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">padding_right</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint8_t</span></code></p></td>
+<td><p>Number of zero points implicitly added to the
+right of input (width dimension)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">padding_top</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint8_t</span></code></p></td>
+<td><p>Number of zero points implicitly added to the
+top of input (height dimension)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">padding_bottom</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint8_t</span></code></p></td>
+<td><p>Number of zero points implicitly added to the
+bottom of input (height dimension)</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For more information on dilation rate, see chapter 5.1 of <a class="reference external" href="https://arxiv.org/abs/1603.07285">A guide to convolution arithmetic for
+deep learning</a>.</p>
+</div>
+<p>For all kernels in this group except the transpose convolution, spatial dimensions of
+<code class="docutils literal notranslate"><span class="pre">in</span></code>, <code class="docutils literal notranslate"><span class="pre">weights</span></code> and <code class="docutils literal notranslate"><span class="pre">out</span></code> tensors (Width and Height) must comply with the following
+system of equations:</p>
+<div class="math notranslate nohighlight" id="equation-eq-conv2d-shapes">
+<span class="eqno">(1)<a class="headerlink" href="#equation-eq-conv2d-shapes" title="Permalink to this equation">¶</a></span>\[ \begin{align}\begin{aligned}\begin{cases}
+\hat{Wk} = ({Wk}-1)*dilation\_width+1\\\hat{Hk} = ({Hk}-1)*dilation\_height+1\\\hat{Wi} = {Wi}+padding\_left+padding\_right\\\hat{Hi} = {Hi}+padding\_top+padding\_bottom\\{Wo}*{stride\_width} = \hat{Wi}-\hat{Wk}+1\\{Ho}*{stride\_height} = \hat{Hi}-\hat{Hk}+1\\\end{cases}\end{aligned}\end{align} \]</div>
+<p>Where:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\hat{Wk}\)</span>, <span class="math notranslate nohighlight">\(\hat{Hk}\)</span> <em>- effective</em> <code class="docutils literal notranslate"><span class="pre">weights</span></code> <em>kernel width and height
+after applying</em> <span class="math notranslate nohighlight">\(dilation\_width\)</span> and <span class="math notranslate nohighlight">\(dilation\_height\)</span> <em>factors on the
+original kernel width</em> (<span class="math notranslate nohighlight">\(Wk\)</span>) <em>and height</em> (<span class="math notranslate nohighlight">\(Hk\)</span>).</p></li>
+<li><p><span class="math notranslate nohighlight">\(\hat{Wi}\)</span>, <span class="math notranslate nohighlight">\(\hat{Hi}\)</span> <em>- effective</em> <code class="docutils literal notranslate"><span class="pre">in</span></code> <em>feature map width and height
+after applying</em> <span class="math notranslate nohighlight">\(padding\_*\)</span> <em>to the original width</em> (<span class="math notranslate nohighlight">\(Wi\)</span>) <em>and height</em> (<span class="math notranslate nohighlight">\(Hi\)</span>).</p></li>
+<li><p><span class="math notranslate nohighlight">\(Wo\)</span>, <span class="math notranslate nohighlight">\(Ho\)</span> <em>-</em> <code class="docutils literal notranslate"><span class="pre">out</span></code> <em>feature map width and height.</em></p></li>
+</ul>
+</div></blockquote>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="convolution_2d.html">Convolution 2D</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="convolution_2d.html#function-configuration-structure">Function Configuration Structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="convolution_2d.html#kernel-interface">Kernel Interface</a></li>
-<li class="toctree-l2"><a class="reference internal" href="convolution_2d.html#function-specializations">Function Specializations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="convolution_2d.html#conditions-for-applying-the-function">Conditions for Applying the Function</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="convolution_depthwise.html">Depth-wise Convolution</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="convolution_depthwise.html#function-configuration-structure">Function Configuration Structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="convolution_depthwise.html#kernel-interface">Kernel Interface</a></li>
-<li class="toctree-l2"><a class="reference internal" href="convolution_depthwise.html#function-specializations">Function Specializations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="convolution_depthwise.html#conditions-for-applying-the-function">Conditions for Applying the Function</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="conv_2d.html">Convolution 2D Prototype and Function List</a></li>
+<li class="toctree-l1"><a class="reference internal" href="conv_depthwise.html">Depthwise Convolution Prototype and Function List</a></li>
+<li class="toctree-l1"><a class="reference internal" href="conv_transp.html">Transpose Convolution Prototype and Function List</a></li>
+<li class="toctree-l1"><a class="reference internal" href="conv_grp.html">Group Convolution Prototype and Function List</a></li>
 </ul>
 </div>
 </div>
@@ -205,10 +295,10 @@ trained filters. Typically these are multi-dimensional tensors.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="convolution_2d.html" class="btn btn-neutral float-right" title="Convolution 2D" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="conv_2d.html" class="btn btn-neutral float-right" title="Convolution 2D Prototype and Function List" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="MLI_kernels.html" class="btn btn-neutral float-left" title="MLI Kernels" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="mli_kernels.html" class="btn btn-neutral float-left" title="MLI Kernels (Operators)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -217,11 +307,19 @@ trained filters. Typically these are multi-dimensional tensors.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Synopsys, Inc
+        
+        &copy; Copyright 2021, Synopsys, Inc
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -232,7 +330,6 @@ trained filters. Typically these are multi-dimensional tensors.</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

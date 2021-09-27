@@ -1,0 +1,578 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Helper Functions Group &mdash; embARC Machine Learning Library 2.0 2.00 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/style_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Platform Specific Details" href="../platform_specific/platform_hint_sum.html" />
+    <link rel="prev" title="Data Conversion Group" href="util_data_conv.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> embARC Machine Learning Library 2.0
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.00
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../whats_new/whats_new.html">What’s New in MLI 2.0 ?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview/overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_api_data/mli_api_data.html">MLI API Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/mli_kernels.html">MLI Kernels (Operators)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/convolution_grp.html">Convolution Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/rec_fully_con_grp.html">Recurrent and Fully Connected Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/pooling_grp.html">Pooling Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/diverse_kernels_grp.html">Diverse Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/transform_grp.html">Transform (Activation) Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/elemw_grp.html">Element-wise Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data_movement/data_movement.html">Data Movement</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="utility_functions.html">Utility Functions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="util_data_conv.html">Data Conversion Group</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Helper Functions Group</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#get-element-size">Get Element Size</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#count-number-of-elements">Count Number of Elements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-scale-value">Get Scale Value</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-scale-shift-value">Get Scale Shift Value</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-zero-offset-value">Get Zero Offset Value</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#create-subtensor">Create Subtensor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-number-of-accumulator-guard-bits">Get Number of Accumulator Guard Bits</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../platform_specific/platform_hint_sum.html">Platform Specific Details</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">embARC Machine Learning Library 2.0</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="utility_functions.html">Utility Functions</a> &raquo;</li>
+        
+      <li>Helper Functions Group</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/utility_functions/util_help_func.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="helper-functions-group">
+<span id="mli-helpers"></span><h1>Helper Functions Group<a class="headerlink" href="#helper-functions-group" title="Permalink to this headline">¶</a></h1>
+<p>The following Helper functions are used for
+getting information from data structures and performing various operations on them.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#get-elem-size"><span class="std std-ref">Get Element Size</span></a></p></li>
+<li><p><a class="reference internal" href="#count-elements"><span class="std std-ref">Count Number of Elements</span></a></p></li>
+<li><p><a class="reference internal" href="#get-scale-val"><span class="std std-ref">Get Scale Value</span></a></p></li>
+<li><p><a class="reference internal" href="#get-shift-val"><span class="std std-ref">Get Scale Shift Value</span></a></p></li>
+<li><p><a class="reference internal" href="#get-zero-offset-val"><span class="std std-ref">Get Zero Offset Value</span></a></p></li>
+<li><p><a class="reference internal" href="#create-sub-tensor"><span class="std std-ref">Create Subtensor</span></a></p></li>
+<li><p><a class="reference internal" href="#num-of-accu-bits"><span class="std std-ref">Get Number of Accumulator Guard Bits</span></a></p></li>
+</ul>
+</div></blockquote>
+<div class="section" id="get-element-size">
+<span id="get-elem-size"></span><h2>Get Element Size<a class="headerlink" href="#get-element-size" title="Permalink to this headline">¶</a></h2>
+<p>This function returns the size of the tensor basic element in bytes. It returns 0 if the in pointer
+does NOT point to a tensor with a supported element type (see description of mli_element_type
+in section <a class="reference internal" href="../mli_api_data/data_structures.html#kernl-sp-conf"><span class="std std-ref">Kernel Specific Configuration Structures</span></a>).</p>
+<p>Function prototype:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">uint32_t</span> <span class="nf">mli_hlp_tensor_element_size</span><span class="p">(</span>
+    <span class="k">const</span> <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">in</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The parameters are described in <a class="reference internal" href="#t-mli-hlp-count-elem-num-params"><span class="std std-ref">mli_hlp_count_elem_num Parameters</span></a>.</p>
+<span id="t-mli-hlp-get-elem-size"></span><table class="colwidths-auto docutils align-center" id="id1">
+<caption><span class="caption-text">mli_hlp_tensor_element_size Parameters</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Field Name</strong></p></th>
+<th class="head"><p><strong>Type</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">in</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mli_tensor*</span></code></p></td>
+<td><p>[IN] Pointer to input tensor</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="simple">
+<dt>Conditions:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">in</span></code> must point to a tensor structure</p></li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="count-number-of-elements">
+<span id="count-elements"></span><h2>Count Number of Elements<a class="headerlink" href="#count-number-of-elements" title="Permalink to this headline">¶</a></h2>
+<p>This function counts the number of elements in a tensor starting from the provided dimension
+number (dimension numbering starts from 0):</p>
+<div class="math notranslate nohighlight">
+\[elementCount=shape_{startdim} * shape_{(startdim+1)}*… *shape_{(rank-1)}\]</div>
+<p>When used with <span class="math notranslate nohighlight">\(startdim = 0\)</span>, the total element count of the tensor is computed.</p>
+<p>Function prototype:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">uint32_t</span> <span class="nf">mli_hlp_count_elem_num</span><span class="p">(</span>
+    <span class="k">const</span> <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">in</span><span class="p">,</span>
+    <span class="kt">uint32_t</span> <span class="n">start_dim</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The parameters are described in <a class="reference internal" href="#t-mli-hlp-count-elem-num-params"><span class="std std-ref">mli_hlp_count_elem_num Parameters</span></a>.</p>
+<span id="t-mli-hlp-count-elem-num-params"></span><table class="colwidths-auto docutils align-center" id="id2">
+<caption><span class="caption-text">mli_hlp_count_elem_num Parameters</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Field Name</strong></p></th>
+<th class="head"><p><strong>Type</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">in</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mli_tensor*</span></code></p></td>
+<td><p>[IN] Pointer to input tensor</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">start_dim</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint32_t</span></code></p></td>
+<td><p>[IN] Start dimension for counting</p></td>
+</tr>
+</tbody>
+</table>
+<p>Conditions:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">in</span></code> must contain a valid rank (less than or equal to <code class="docutils literal notranslate"><span class="pre">MLI_MAX_RANK</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">start_dim</span></code> must be less than the input rank</p></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="get-scale-value">
+<span id="get-scale-val"></span><h2>Get Scale Value<a class="headerlink" href="#get-scale-value" title="Permalink to this headline">¶</a></h2>
+<p>This function returns the scale value from the quantization parameters. For data
+formats that don’t have a scale value, the value 1 is returned.
+For tensors with multiple scale value per-axis scale_idx parameter defines the
+particular scale value to be fetched. In case of an invalid tensor, the value 0 is returned.</p>
+<p>Function prototype:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int32_t</span> <span class="nf">mli_hlp_tensor_scale</span><span class="p">(</span>
+   <span class="k">const</span> <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">in</span>
+   <span class="k">const</span> <span class="kt">uint32_t</span> <span class="n">scale_idx</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p>The parameters are described in Table <a class="reference internal" href="#t-mli-hlp-tensor-scale-params"><span class="std std-ref">mli_hlp_tensor_scale Parameters</span></a>.</p>
+<span id="t-mli-hlp-tensor-scale-params"></span><table class="colwidths-auto docutils align-center" id="id3">
+<caption><span class="caption-text">mli_hlp_tensor_scale Parameters</span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Field name</strong></p></th>
+<th class="head"><p><strong>Type</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">in</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mli_tensor*</span></code></p></td>
+<td><p>[IN] Pointer to input tensor</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">scale_idx</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint32_t</span></code></p></td>
+<td><p>[IN] Index of a specific scale value from the tensor</p></td>
+</tr>
+</tbody>
+</table>
+<p>Conditions:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">in</span></code> must contain a valid data format</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scale_idx</span></code> must be less or equal to number of scale values in the tensor</p></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="get-scale-shift-value">
+<span id="get-shift-val"></span><h2>Get Scale Shift Value<a class="headerlink" href="#get-scale-shift-value" title="Permalink to this headline">¶</a></h2>
+<p>This function returns the shift value from the quantization parameters.
+For data formats that don’t have a shift value, the value 0 is returned.
+For tensors with multiple scale values per-axis, the parameter <code class="docutils literal notranslate"><span class="pre">scale_idx</span></code>
+defines the particular scale shift value to be fetched.</p>
+<p>Function prototype</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int32_t</span> <span class="nf">mli_hlp_tensor_scale_shift</span><span class="p">(</span>
+    <span class="k">const</span> <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">in</span>
+    <span class="k">const</span> <span class="kt">uint32_t</span> <span class="n">scale_idx</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p>The parameters are described in Table <a class="reference internal" href="#t-mli-hlp-tensor-scale-shift-params"><span class="std std-ref">mli_hlp_tensor_scale_shift Parameters</span></a></p>
+<span id="t-mli-hlp-tensor-scale-shift-params"></span><table class="colwidths-auto docutils align-center" id="id4">
+<caption><span class="caption-text">mli_hlp_tensor_scale_shift Parameters</span><a class="headerlink" href="#id4" title="Permalink to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Field name</strong></p></th>
+<th class="head"><p><strong>Type</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">in</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mli_tensor*</span></code></p></td>
+<td><p>[IN] Pointer to input tensor</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">scale_idx</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint32_t</span></code></p></td>
+<td><p>[IN] Index of a specific scale shift value from the tensor</p></td>
+</tr>
+</tbody>
+</table>
+<p>Conditions:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">in</span></code> must contain a valid data format</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scale_idx</span></code> must be less or equal to number of scale values in the tensor</p></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="get-zero-offset-value">
+<span id="get-zero-offset-val"></span><h2>Get Zero Offset Value<a class="headerlink" href="#get-zero-offset-value" title="Permalink to this headline">¶</a></h2>
+<p>This function returns the zero offset value from the quantization parameters.
+For data formats that do not have a zero offset value, the value 0 is returned.
+For tensors with multiple zero offset values per-axis, the parameter <code class="docutils literal notranslate"><span class="pre">scale_idx</span></code>
+defines the particular zero offset value to be fetched.</p>
+<p>Function prototype:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int16_t</span> <span class="nf">mli_hlp_tensor_zero_offset</span><span class="p">(</span>
+    <span class="k">const</span> <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">in</span>
+    <span class="k">const</span> <span class="kt">uint32_t</span> <span class="n">zero_idx</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p>The parameters are described in Table <a class="reference internal" href="#t-mli-hlp-tensor-zero-offset-params"><span class="std std-ref">mli_hlp_tensor_zero_offset Parameters</span></a>.</p>
+<span id="t-mli-hlp-tensor-zero-offset-params"></span><table class="colwidths-auto docutils align-center" id="id5">
+<caption><span class="caption-text">mli_hlp_tensor_zero_offset Parameters</span><a class="headerlink" href="#id5" title="Permalink to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Field name</strong></p></th>
+<th class="head"><p><strong>Type</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">in</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mli_tensor*</span></code></p></td>
+<td><p>[IN] Pointer to input tensor</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zero_idx</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint32_t</span></code></p></td>
+<td><p>[IN] Index of a specific zero offset value from the tensor</p></td>
+</tr>
+</tbody>
+</table>
+<p>Conditions:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">in</span></code> must contain a valid data format</p></li>
+<li><p>zero_idx must be less or equal to number of zero offset values in the tensor</p></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="create-subtensor">
+<span id="create-sub-tensor"></span><h2>Create Subtensor<a class="headerlink" href="#create-subtensor" title="Permalink to this headline">¶</a></h2>
+<p>This function points to sub tensors in the input tensor. This function can
+be considered as indexing in a multidimensional array without copying or
+used to create a slice/fragment of the input tensor without copying the data.</p>
+<p>For example, given a HWC tensor, this function could be used to create a HWC
+tensor for the top half of the HW image for all channels.</p>
+<p>The function prototype:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">mli_status</span> <span class="nf">mli_hlp_create_subtensor</span><span class="p">(</span>
+   <span class="k">const</span> <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">in</span><span class="p">,</span>
+   <span class="k">const</span> <span class="n">mli_subtensor_cfg</span> <span class="o">*</span><span class="n">cfg</span><span class="p">,</span>
+   <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">out</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The configuration struct is defined as follows and the fields are explained in
+Table <a class="reference internal" href="#t-mli-sub-tensor-cfg-desc"><span class="std std-ref">mli_sub_tensor_cfg Structure Field Description</span></a>.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+   <span class="kt">uint32_t</span> <span class="n">offset</span><span class="p">[</span><span class="n">MLI_MAX_RANK</span><span class="p">];</span>
+   <span class="kt">uint32_t</span> <span class="n">size</span><span class="p">[</span><span class="n">MLI_MAX_RANK</span><span class="p">];</span>
+   <span class="kt">uint32_t</span> <span class="n">sub_tensor_rank</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">mli_sub_tensor_cfg</span><span class="p">;</span>
+</pre></div>
+</div>
+<span id="t-mli-sub-tensor-cfg-desc"></span><table class="docutils align-center" id="id6">
+<caption><span class="caption-text">mli_sub_tensor_cfg Structure Field Description</span><a class="headerlink" href="#id6" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 17%" />
+<col style="width: 61%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Field Name</strong></p></th>
+<th class="head"><p><strong>Type</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">offset</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint32_t[]</span></code></p></td>
+<td><p>Start coordinate in the input tensor. Values must
+be smaller than the shape of the input tensor. Size
+of the array must be equal to the rank of the input
+tensor.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">size</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint32_t[]</span></code></p></td>
+<td><p>Size of the sub tensor in elements per dimension:</p>
+<p>Restrictions:  size[d] +   offset[d] &lt;= input-&gt;shape[d]</p>
+</td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sub_tensor_rank</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint32_t</span></code></p></td>
+<td><p>Rank of the sub tensor that is produced. Must be
+smaller or equal to the rank of the input tensor. If
+the <code class="docutils literal notranslate"><span class="pre">sub_tensor_rank</span></code> is smaller than the input rank,
+the dimensions with a size of 1 is removed in the
+output shape starting from the first dimension until
+the requested <code class="docutils literal notranslate"><span class="pre">sub_tensor_rank</span></code> value is reached.</p></td>
+</tr>
+</tbody>
+</table>
+<p>This function computes the new data pointer based on the offset vector and it sets
+the shape of the output tensor according to the size vector. The <code class="docutils literal notranslate"><span class="pre">mem_stride</span></code> fields
+are copied from the input to the output, so after this operation, the output tensor might
+not be a contiguous block of data.</p>
+<p>The function also reduces the rank of the output tensor if requested by the
+configuration. Only the dimensions with a size of 1 can be removed. Data format and
+quantization parameters are copied from the input to the output tensor.</p>
+<p>The capacity field of the output is the input capacity decremented with the same
+value as that used to increment the data pointer.</p>
+<p>Conditions:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">in</span></code> tensor must be valid</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cfg</span></code> structure fields must be aligned with <code class="docutils literal notranslate"><span class="pre">in</span></code> tensor shape (see <a class="reference internal" href="#t-mli-sub-tensor-cfg-desc"><span class="std std-ref">mli_sub_tensor_cfg Structure Field Description</span></a>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">out</span></code> must point to a tensor structure. It will be completely filled by the function.</p></li>
+</ul>
+</div></blockquote>
+<p>Depending on the debug level (see section <a class="reference internal" href="../mli_api_data/error_codes.html#err-codes"><span class="std std-ref">Error Codes</span></a>), this function performs a parameter
+check and returns the result as an <code class="docutils literal notranslate"><span class="pre">mli_status</span></code> code as described in section <a class="reference internal" href="../mli_api_data/data_structures.html#kernl-sp-conf"><span class="std std-ref">Kernel Specific Configuration Structures</span></a>.</p>
+</div>
+<div class="section" id="get-number-of-accumulator-guard-bits">
+<span id="num-of-accu-bits"></span><h2>Get Number of Accumulator Guard Bits<a class="headerlink" href="#get-number-of-accumulator-guard-bits" title="Permalink to this headline">¶</a></h2>
+<p>These functions return the number of accumulator guard bits for a specific MAC (multiply-and-accumulate)
+variant. An addition might result in an overflow if all bits of operands are used and both operands
+hold the maximum (or minimum) values. It means that an extra bit is required for this operation.
+But, if a sum of several operands is needed (accumulation), more than one extra bit is required to
+ensure that the result does not overflow. This function returns the number of such extra bits needed
+in the accumulation for MAC-based kernels. See <a class="reference internal" href="../mli_api_data/data_formats.html#quant-accum-infl"><span class="std std-ref">Quantization: Influence of Accumulator Bit Depth</span></a> section for more information.
+Separate functions exist for each combination of input operands.</p>
+<p>The function prototype:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">uint8_t</span> <span class="n">mli_hlp_accu_guard_bits_</span><span class="o">&lt;</span><span class="n">operands</span><span class="o">&gt;</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>Where <code class="docutils literal notranslate"><span class="pre">operands</span></code> is a combination of input operands involved into MAC operation.</p>
+<p>Here is a list of all available guard bits functions:</p>
+<table class="docutils align-center" id="id7">
+<caption><span class="caption-text">List of Available Accum Guard Bits Functions</span><a class="headerlink" href="#id7" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 53%" />
+<col style="width: 47%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Function Name</strong></p></th>
+<th class="head"><p><strong>Details</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mli_hlp_accu_guard_bits_sa8_sa8</span></code></p></td>
+<td><p>Data format of both operands: <strong>sa8</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mli_hlp_accu_guard_bits_fx16_fx16</span></code></p></td>
+<td><p>Data format of both operands: <strong>fx16</strong></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mli_hlp_accu_guard_bits_fx16_fx8</span></code></p></td>
+<td><p>Data format of operands: <strong>fx16</strong> for
+one and <strong>fx8</strong> another</p></td>
+</tr>
+</tbody>
+</table>
+<p>There are no specific requirements for <code class="docutils literal notranslate"><span class="pre">mli_hlp_accu_guard_bits&lt;operands&gt;</span></code> functions.
+These can be called at any time.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../platform_specific/platform_hint_sum.html" class="btn btn-neutral float-right" title="Platform Specific Details" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="util_data_conv.html" class="btn btn-neutral float-left" title="Data Conversion Group" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2021, Synopsys, Inc
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

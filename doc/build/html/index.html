@@ -1,43 +1,42 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Welcome to embARC Machine Learning Inference Library documentation! &mdash; embARC Machine Learning Inference Library 1.00 documentation</title>
+  <title>embARC Machine Learning Inference Library &mdash; embARC Machine Learning Library 2.0 2.00 documentation</title>
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
 
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="_static/style_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Overview" href="overview/overview.html" /> 
+    <link rel="next" title="What’s New in MLI 2.0 ?" href="whats_new/whats_new.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -51,7 +50,7 @@
           
 
           
-            <a href="#" class="icon icon-home"> embARC Machine Learning Inference Library
+            <a href="#" class="icon icon-home" alt="Documentation Home"> embARC Machine Learning Library 2.0
           
 
           
@@ -61,7 +60,7 @@
             
             
               <div class="version">
-                1.00
+                2.00
               </div>
             
           
@@ -78,6 +77,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -87,18 +87,25 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="whats_new/whats_new.html">What’s New in MLI 2.0 ?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="overview/overview.html">Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="getting_started/getting_started.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="library_model/library_model.html">Library Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="MLI_FP_data_format/MLI_FP_data_format.html">MLI Fixed-Point Data Format</a></li>
-<li class="toctree-l1"><a class="reference internal" href="MLI_kernels/MLI_kernels.html">MLI Kernels</a></li>
-<li class="toctree-l1"><a class="reference internal" href="MLI_helpers/MLI_helpers.html">MLI Helpers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Examples_Tutorials/Examples_Tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_api_data/mli_api_data.html">MLI API Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_kernels/mli_kernels.html">MLI Kernels (Operators)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_kernels/convolution_grp.html">Convolution Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_kernels/rec_fully_con_grp.html">Recurrent and Fully Connected Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_kernels/pooling_grp.html">Pooling Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_kernels/diverse_kernels_grp.html">Diverse Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_kernels/transform_grp.html">Transform (Activation) Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_kernels/elemw_grp.html">Element-wise Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_movement/data_movement.html">Data Movement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utility_functions/utility_functions.html">Utility Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="platform_specific/platform_hint_sum.html">Platform Specific Details</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -108,7 +115,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="#">embARC Machine Learning Inference Library</a>
+          <a href="#">embARC Machine Learning Library 2.0</a>
         
       </nav>
 
@@ -137,9 +144,9 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="#">Docs</a> &raquo;</li>
+      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Welcome to embARC Machine Learning Inference Library documentation!</li>
+      <li>embARC Machine Learning Inference Library</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -158,54 +165,94 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="welcome-to-embarc-machine-learning-inference-library-documentation">
-<h1>Welcome to embARC Machine Learning Inference Library documentation!<a class="headerlink" href="#welcome-to-embarc-machine-learning-inference-library-documentation" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="embarc-machine-learning-inference-library">
+<h1>embARC Machine Learning Inference Library<a class="headerlink" href="#embarc-machine-learning-inference-library" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="whats_new/whats_new.html">What’s New in MLI 2.0 ?</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="whats_new/whats_new.html#new-features-in-mli-2-0">New Features in MLI 2.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="whats_new/whats_new.html#data-formats">Data Formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="whats_new/whats_new.html#data-layout">Data Layout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="whats_new/whats_new.html#kernels">Kernels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="whats_new/whats_new.html#platforms">Platforms</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="overview/overview.html">Overview</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="overview/overview.html#introduction">Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="overview/overview.html#terms-and-definitions">Terms and Definitions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="overview/overview.html#copyright-notice">Copyright Notice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview/overview.html#purpose-of-this-document">Purpose of This Document</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview/overview.html#memory-hierarchy">Memory Hierarchy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview/overview.html#header-files">Header Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview/overview.html#terms-and-definitions">Terms and definitions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview/overview.html#copyright">Copyright</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="getting_started/getting_started.html">Getting Started</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="getting_started/getting_started.html#build-library">Build Library</a></li>
-<li class="toctree-l2"><a class="reference internal" href="getting_started/getting_started.html#build-and-run-examples">Build and Run Examples</a></li>
-<li class="toctree-l2"><a class="reference internal" href="getting_started/getting_started.html#project-structure">Project Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_api_data/mli_api_data.html">MLI API Data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mli_api_data/data_formats.html">Data Formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mli_api_data/data_layouts.html">Data Layouts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mli_api_data/data_structures.html">Data Structures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mli_api_data/error_codes.html">Error Codes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mli_api_data/debug_modes.html">Debug Modes</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="library_model/library_model.html">Library Model</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="library_model/data.html">Data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="library_model/error_handling.html">Error Codes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="library_model/functions.html">Functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="library_model/hw_dependencies_config.html">Hardware Dependencies and Configurability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_kernels/mli_kernels.html">MLI Kernels (Operators)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mli_kernels/mli_kernels.html#function-names-and-specializations">Function Names and Specializations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mli_kernels/mli_kernels.html#a-note-on-slicing">A Note on Slicing</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="MLI_FP_data_format/MLI_FP_data_format.html">MLI Fixed-Point Data Format</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="MLI_FP_data_format/MLI_FP_data_format.html#data-storage">Data storage</a></li>
-<li class="toctree-l2"><a class="reference internal" href="MLI_FP_data_format/MLI_FP_data_format.html#operations-on-fx-values">Operations on FX values</a></li>
-<li class="toctree-l2"><a class="reference internal" href="MLI_FP_data_format/MLI_FP_data_format.html#arcv2dsp-implementation-specifics">ARCv2DSP Implementation Specifics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_kernels/convolution_grp.html">Convolution Kernels Group</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mli_kernels/conv_2d.html">Convolution 2D Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mli_kernels/conv_depthwise.html">Depthwise Convolution Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mli_kernels/conv_transp.html">Transpose Convolution Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mli_kernels/conv_grp.html">Group Convolution Prototype and Function List</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="MLI_kernels/MLI_kernels.html">MLI Kernels</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="MLI_kernels/convolution_grp.html">Convolution Group</a></li>
-<li class="toctree-l2"><a class="reference internal" href="MLI_kernels/pooling_grp.html">Pooling Group</a></li>
-<li class="toctree-l2"><a class="reference internal" href="MLI_kernels/common_grp.html">Common Group</a></li>
-<li class="toctree-l2"><a class="reference internal" href="MLI_kernels/transform_grp.html">Transform Group</a></li>
-<li class="toctree-l2"><a class="reference internal" href="MLI_kernels/elementwise_grp.html">Element-wise Group</a></li>
-<li class="toctree-l2"><a class="reference internal" href="MLI_kernels/data_manipulation_grp.html">Data Manipulation Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_kernels/rec_fully_con_grp.html">Recurrent and Fully Connected Kernels Group</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mli_kernels/rec_fully_con.html">Fully Connected Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mli_kernels/rec_rnn_dense.html">RNN Dense Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mli_kernels/rec_lstm.html">Basic Long Short Term Memory (LSTM) Cell Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mli_kernels/rec_gru.html">Gated Recurrent Unit (GRU) Cell Prototype and Function List</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="MLI_helpers/MLI_helpers.html">MLI Helpers</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="MLI_helpers/get_basic_elem_size.html">Get Basic Element Size</a></li>
-<li class="toctree-l2"><a class="reference internal" href="MLI_helpers/count_no_elements.html">Count Number of Elements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="MLI_helpers/point_to_sub_tensor.html">Point to Sub-Tensor</a></li>
-<li class="toctree-l2"><a class="reference internal" href="MLI_helpers/convert_tensor.html">Convert Tensor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_kernels/pooling_grp.html">Pooling Kernels Group</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mli_kernels/pool_max.html">Max Pooling Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mli_kernels/pool_avg.html">Average Pooling Prototype and Function List</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="Examples_Tutorials/Examples_Tutorials.html">Examples and Tutorials</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Examples_Tutorials/Examples_Tutorials.html#model-deployment-tutorial-for-caffe-and-cifar-10">Model Deployment Tutorial for Caffe and CIFAR-10</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_kernels/diverse_kernels_grp.html">Diverse Kernels Group</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mli_kernels/div_argmax.html">Argmax Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mli_kernels/div_permute.html">Permute Prototype and Function List</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mli_kernels/transform_grp.html">Transform (Activation) Kernels Group</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mli_kernels/trans_lut.html">Look-Up Tables (LUT) Manipulation Prototypes and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mli_kernels/trans_relu.html">ReLU Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mli_kernels/trans_leaky_relu.html">Leaky ReLU Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mli_kernels/trans_param_relu.html">Parametric ReLU (PReLU) Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mli_kernels/trans_sigmoid.html">Sigmoid Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mli_kernels/trans_tanh.html">TanH Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mli_kernels/trans_softmax.html">Softmax Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mli_kernels/trans_l2_norm.html">L2 Normalization Prototype and Function List</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mli_kernels/elemw_grp.html">Element-wise Kernels Group</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mli_kernels/elemw_grp.html#element-wise-operations-prototype-and-function-list">Element-wise Operations Prototype and Function List</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data_movement/data_movement.html">Data Movement</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data_movement/data_movement.html#synchronous-copy-from-source-tensor-to-destination-tensor">Synchronous Copy from Source Tensor to Destination Tensor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_movement/data_movement.html#helper-functions-for-data-move-config-struct">Helper Functions for Data Move Config Struct</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_movement/data_movement.html#asynchronous-data-move-functions">Asynchronous Data Move Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_movement/data_movement.html#dma-resource-management">DMA Resource Management</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="utility_functions/utility_functions.html">Utility Functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="utility_functions/util_data_conv.html">Data Conversion Group</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utility_functions/util_help_func.html">Helper Functions Group</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="platform_specific/platform_hint_sum.html">Platform Specific Details</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="platform_specific/vpx.html">ARC VPX Specific Details</a></li>
 </ul>
 </li>
 </ul>
@@ -213,10 +260,12 @@
 </div>
 <div class="section" id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
-<ul class="simple">
-<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
-<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
 </ul>
+</div></blockquote>
 </div>
 
 
@@ -227,7 +276,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="overview/overview.html" class="btn btn-neutral float-right" title="Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="whats_new/whats_new.html" class="btn btn-neutral float-right" title="What’s New in MLI 2.0 ?" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
     </div>
@@ -237,11 +286,19 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Synopsys, Inc
+        
+        &copy; Copyright 2021, Synopsys, Inc
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -252,7 +309,6 @@
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

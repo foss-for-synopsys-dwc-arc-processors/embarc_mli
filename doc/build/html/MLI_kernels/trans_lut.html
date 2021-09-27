@@ -1,0 +1,390 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Look-Up Tables (LUT) Manipulation Prototypes and Function List &mdash; embARC Machine Learning Library 2.0 2.00 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/style_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="ReLU Prototype and Function List" href="trans_relu.html" />
+    <link rel="prev" title="Transform (Activation) Kernels Group" href="transform_grp.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> embARC Machine Learning Library 2.0
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.00
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../whats_new/whats_new.html">What’s New in MLI 2.0 ?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview/overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_api_data/mli_api_data.html">MLI API Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_kernels.html">MLI Kernels (Operators)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="convolution_grp.html">Convolution Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rec_fully_con_grp.html">Recurrent and Fully Connected Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pooling_grp.html">Pooling Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diverse_kernels_grp.html">Diverse Kernels Group</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="transform_grp.html">Transform (Activation) Kernels Group</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Look-Up Tables (LUT) Manipulation Prototypes and Function List</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#computing-the-memory-size-required-for-the-lut">Computing the Memory Size Required for the LUT</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#allocating-the-required-memory-for-the-lut">Allocating the Required Memory for the LUT</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#creating-the-lut-structure">Creating the LUT Structure</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#functions">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#conditions">Conditions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#result">Result</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example">Example</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="trans_relu.html">ReLU Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trans_leaky_relu.html">Leaky ReLU Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trans_param_relu.html">Parametric ReLU (PReLU) Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trans_sigmoid.html">Sigmoid Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trans_tanh.html">TanH Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trans_softmax.html">Softmax Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trans_l2_norm.html">L2 Normalization Prototype and Function List</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="elemw_grp.html">Element-wise Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data_movement/data_movement.html">Data Movement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utility_functions/utility_functions.html">Utility Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../platform_specific/platform_hint_sum.html">Platform Specific Details</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">embARC Machine Learning Library 2.0</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="transform_grp.html">Transform (Activation) Kernels Group</a> &raquo;</li>
+        
+      <li>Look-Up Tables (LUT) Manipulation Prototypes and Function List</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/mli_kernels/trans_lut.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="look-up-tables-lut-manipulation-prototypes-and-function-list">
+<span id="lut-prot"></span><h1>Look-Up Tables (LUT) Manipulation Prototypes and Function List<a class="headerlink" href="#look-up-tables-lut-manipulation-prototypes-and-function-list" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Several MLI kernels use a look-up table (LUT) to perform data transformation.
+You must prepare the LUT before the kernel call and provide the LUT as a
+kernel parameter. The LUT preparation has the following steps:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p><a class="reference internal" href="#lut-compute"><span class="std std-ref">Computing the Memory Size Required for the LUT</span></a></p></li>
+<li><p><a class="reference internal" href="#lut-alloc"><span class="std std-ref">Allocating the Required Memory for the LUT</span></a></p></li>
+<li><p><a class="reference internal" href="#lut-create"><span class="std std-ref">Creating the LUT Structure</span></a></p></li>
+</ol>
+</div></blockquote>
+<div class="section" id="computing-the-memory-size-required-for-the-lut">
+<span id="lut-compute"></span><h3>Computing the Memory Size Required for the LUT<a class="headerlink" href="#computing-the-memory-size-required-for-the-lut" title="Permalink to this headline">¶</a></h3>
+<p>Functions which returns the size of the memory for the LUT table (step 1) have the following prototype:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int32_t</span> <span class="n">mli_krn_</span><span class="o">&lt;</span><span class="n">lut_name</span><span class="o">&gt;</span><span class="n">_get_lut_size</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">lut_name</span></code> is one of supported LUT tables.</p>
+</div>
+<div class="section" id="allocating-the-required-memory-for-the-lut">
+<span id="lut-alloc"></span><h3>Allocating the Required Memory for the LUT<a class="headerlink" href="#allocating-the-required-memory-for-the-lut" title="Permalink to this headline">¶</a></h3>
+<p>Ensure that you allocate the required amount of memory for the LUT table and assign it to the LUT structure
+before calling the creation function (step 2).</p>
+</div>
+<div class="section" id="creating-the-lut-structure">
+<span id="lut-create"></span><h3>Creating the LUT Structure<a class="headerlink" href="#creating-the-lut-structure" title="Permalink to this headline">¶</a></h3>
+<p>Functions which create a specific LUT table (step 3) have the following prototype:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">mli_status</span> <span class="n">mli_krn_</span><span class="o">&lt;</span><span class="n">lut_name</span><span class="o">&gt;</span><span class="n">_create_lut</span><span class="p">(</span><span class="n">mli_lut</span> <span class="o">*</span><span class="n">lut</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">lut_name</span></code> is one of supported LUT tables within MLI and the function parameters are shown below:</p>
+<table class="colwidths-auto docutils align-center" id="id1">
+<caption><span class="caption-text">LUT Creation Function Parameters</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Parameter</strong></p></th>
+<th class="head"><p><strong>Type</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">lut</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mli_lut</span> <span class="pre">*</span></code></p></td>
+<td><p>[IN | OUT] Pointer to the LUT table structure with assigned memory.</p></td>
+</tr>
+</tbody>
+</table>
+<p><code class="docutils literal notranslate"><span class="pre">mli_lut</span></code> is defined in the <a class="reference internal" href="../mli_api_data/data_structures.html#mli-lut-data-struct"><span class="std std-ref">mli_lut Structure</span></a> section.</p>
+</div>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<p>Here is a list of all available LUT manipulation functions:</p>
+<table class="colwidths-auto docutils align-center" id="id2">
+<caption><span class="caption-text">List of LUT Manipulation  Functions</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Function Name</strong></p></th>
+<th class="head"><p><strong>Details</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mli_krn_sigm_get_lut_size</span></code></p></td>
+<td><p>Get the size of the sigmoid activation LUT</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mli_krn_tanh_get_lut_size</span></code></p></td>
+<td><p>Get the size of the hyperbolic tangent activation LUT</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mli_krn_softmax_get_lut_size</span></code></p></td>
+<td><p>Get the size of the softmax activation LUT</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mli_krn_l2_normalize_get_lut_size</span></code></p></td>
+<td><p>Get the size of the L2 Normalization LUT</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mli_krn_sigm_create_lut</span></code></p></td>
+<td><p>Create the sigmoid activation LUT</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mli_krn_tanh_create_lut</span></code></p></td>
+<td><p>Create the hyperbolic tangent activation LUT</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mli_krn_softmax_create_lut</span></code></p></td>
+<td><p>Create the softmax activation LUT</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mli_krn_l2_normalize_create_lut</span></code></p></td>
+<td><p>Create the L2 Normalization LUT</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="conditions">
+<h2>Conditions<a class="headerlink" href="#conditions" title="Permalink to this headline">¶</a></h2>
+<p>There are no specific requirements for <code class="docutils literal notranslate"><span class="pre">mli_krn_&lt;lut_name&gt;_get_lut_size</span></code> functions. These can be called at any time.</p>
+<p>Ensure that you satisfy the following conditions before calling the <code class="docutils literal notranslate"><span class="pre">mli_krn_&lt;lut_name&gt;_create_lut</span></code> function:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">data</span></code> field of the <code class="docutils literal notranslate"><span class="pre">lut</span></code> structure must contain a valid pointer to a buffer with
+sufficient capacity which was defined by the corresponding <code class="docutils literal notranslate"><span class="pre">*_</span> <span class="pre">get_lut_size</span></code> function.
+The Buffer must be 4 byte aligned.</p></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="result">
+<h2>Result<a class="headerlink" href="#result" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">mli_krn_&lt;lut_name&gt;_get_lut_size</span></code> functions always return positive non-zero values.</p>
+<p><code class="docutils literal notranslate"><span class="pre">mli_krn_&lt;lut_name&gt;_create_lut</span></code> may modify all fields of <code class="docutils literal notranslate"><span class="pre">lut</span></code> structure and the memory pointed by <code class="docutils literal notranslate"><span class="pre">lut.data.mem</span></code> field.
+Exception is the <code class="docutils literal notranslate"><span class="pre">lut.data</span></code> field itself.</p>
+<p>Depending on the debug level (see section <a class="reference internal" href="../mli_api_data/error_codes.html#err-codes"><span class="std std-ref">Error Codes</span></a>) <code class="docutils literal notranslate"><span class="pre">mli_krn_&lt;lut_name&gt;_create_lut</span></code>
+function performs a parameter check and returns the result as an <code class="docutils literal notranslate"><span class="pre">mli_status</span></code> code as
+described in section <a class="reference internal" href="../mli_api_data/data_structures.html#kernl-sp-conf"><span class="std std-ref">Kernel Specific Configuration Structures</span></a>.</p>
+</div>
+<div class="section" id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<p>The following is a pseudo-code sample of LUT manipulation functions usage together with LUT-consumer kernel call.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// Allocate empty LUT structure.</span>
+<span class="c1">// Any memory class is allowed (automatic, dynamic, static).</span>
+<span class="n">mli_lut</span> <span class="n">lut</span><span class="p">;</span>
+
+<span class="c1">// Step 1: Get required LUT size and check it against pre-allocated buffer which</span>
+<span class="c1">//         must be 4-byte aligned.</span>
+<span class="kt">int</span> <span class="n">lut_size</span> <span class="o">=</span> <span class="n">mli_krn_</span><span class="o">&lt;</span><span class="n">lut_name</span><span class="o">&gt;</span><span class="n">_get_lut_size</span><span class="p">();</span>
+<span class="n">assert</span><span class="p">(</span><span class="n">lut_size</span> <span class="o">&lt;=</span> <span class="n">user_pre_allocated_buffer_size</span><span class="p">);</span>
+<span class="n">assert</span><span class="p">(</span><span class="n">user_pre_allocated_buffer</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">);</span>
+<span class="n">assert</span><span class="p">((</span><span class="kt">unsigned</span> <span class="kt">long</span><span class="p">)</span><span class="n">user_pre_allocated_buffer</span> <span class="o">&amp;</span> <span class="mh">0x03</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">);</span>
+
+<span class="c1">// Step 2: Assign a memory region to the data of LUT structure.</span>
+<span class="c1">// Implementation can put extra requirements for LUT data memory.</span>
+<span class="n">lut</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">mem</span><span class="p">.</span><span class="n">pi16</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int16_t</span><span class="o">*</span><span class="p">)</span><span class="n">user_pre_allocated_buffer</span><span class="p">;</span>
+<span class="n">lut</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="n">lut_size</span><span class="p">;</span>
+
+<span class="c1">// Step 3: create and validate LUT structure.</span>
+<span class="n">mli_status</span> <span class="n">ret_code</span> <span class="o">=</span> <span class="n">mli_krn_</span><span class="o">&lt;</span><span class="n">lut_name</span><span class="o">&gt;</span><span class="n">_create_lut</span><span class="p">(</span><span class="o">&amp;</span><span class="n">lut</span><span class="p">);</span>
+<span class="n">assert</span><span class="p">(</span><span class="n">ret_code</span> <span class="o">==</span> <span class="n">MLI_STATUS_OK</span><span class="p">);</span>
+
+<span class="c1">// A valid LUT structure can be used by the consumer kernel</span>
+<span class="n">mli_krn_</span><span class="o">&lt;</span><span class="n">lut_consumer</span><span class="o">&gt;</span><span class="p">(...,</span> <span class="o">&amp;</span><span class="n">lut</span><span class="p">,</span> <span class="p">...);</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="trans_relu.html" class="btn btn-neutral float-right" title="ReLU Prototype and Function List" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="transform_grp.html" class="btn btn-neutral float-left" title="Transform (Activation) Kernels Group" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2021, Synopsys, Inc
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

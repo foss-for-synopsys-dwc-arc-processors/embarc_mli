@@ -1,0 +1,313 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Debug Modes &mdash; embARC Machine Learning Library 2.0 2.00 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/style_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="MLI Kernels (Operators)" href="../mli_kernels/mli_kernels.html" />
+    <link rel="prev" title="Error Codes" href="error_codes.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> embARC Machine Learning Library 2.0
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.00
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../whats_new/whats_new.html">What’s New in MLI 2.0 ?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview/overview.html">Overview</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="mli_api_data.html">MLI API Data</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="data_formats.html">Data Formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_layouts.html">Data Layouts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_structures.html">Data Structures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="error_codes.html">Error Codes</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Debug Modes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/mli_kernels.html">MLI Kernels (Operators)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/convolution_grp.html">Convolution Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/rec_fully_con_grp.html">Recurrent and Fully Connected Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/pooling_grp.html">Pooling Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/diverse_kernels_grp.html">Diverse Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/transform_grp.html">Transform (Activation) Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/elemw_grp.html">Element-wise Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data_movement/data_movement.html">Data Movement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utility_functions/utility_functions.html">Utility Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../platform_specific/platform_hint_sum.html">Platform Specific Details</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">embARC Machine Learning Library 2.0</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="mli_api_data.html">MLI API Data</a> &raquo;</li>
+        
+      <li>Debug Modes</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/mli_api_data/debug_modes.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="debug-modes">
+<span id="dbg-modes"></span><h1>Debug Modes<a class="headerlink" href="#debug-modes" title="Permalink to this headline">¶</a></h1>
+<p>The MLI library supports multiple debug levels. At the beginning of each function, the
+input parameters can be checked and the result is passed as a return code. This
+helps to detect user errors. Inside, the library preconditions and invariants are
+checked with asserts. Also, extra messages can be printed to make debugging easier.
+Because all this debug code also affects the performance, it can be enabled at the
+compile time in 5 possible levels by setting the <code class="docutils literal notranslate"><span class="pre">MLI_DEBUG_MODE</span></code> preprocessor define
+as follows:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">DBG_MODE_RELEASE</span></code> (<code class="docutils literal notranslate"><span class="pre">MLI_DEBUG_MODE</span> <span class="pre">=</span> <span class="pre">0</span></code>) - No debug. Functions do not examine parameters.
+Data is processed with assumption that function input is valid. This might lead to
+undefined behavior if the assumption is not true. Functions always return <code class="docutils literal notranslate"><span class="pre">MLI_STATUS_OK</span></code>.
+No messages are printed, and no assertions are used.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DBG_MODE_RET_CODES</span></code> (<code class="docutils literal notranslate"><span class="pre">MLI_DEBUG_MODE</span> <span class="pre">=</span> <span class="pre">1</span></code>) - Functions examine parameters and return valid
+error status if any violation of data is found. Otherwise, functions process data and return
+status <code class="docutils literal notranslate"><span class="pre">MLI_STATUS_OK</span></code>. No messages are printed and no assertions are used.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DBG_MODE_ASSERT</span></code> (<code class="docutils literal notranslate"><span class="pre">MLI_DEBUG_MODE</span> <span class="pre">=</span> <span class="pre">2</span></code>) - Functions examine parameters. Any violations of
+data lead to a break on assert().</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DBG_MODE_DEBUG</span></code> (<code class="docutils literal notranslate"><span class="pre">MLI_DEBUG_MODE</span> <span class="pre">=</span> <span class="pre">3</span></code>) - The same as <code class="docutils literal notranslate"><span class="pre">DBG_MODE_ASSERT</span></code>, but before
+breaking on <code class="docutils literal notranslate"><span class="pre">assert()</span></code> function prints descriptive message using standard <code class="docutils literal notranslate"><span class="pre">printf()</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DBG_MODE_FULL</span></code> (<code class="docutils literal notranslate"><span class="pre">MLI_DEBUG_MODE</span> <span class="pre">=</span> <span class="pre">4</span></code>) - The same as <code class="docutils literal notranslate"><span class="pre">DBG_MODE_DEBUG</span></code>, but additionally
+extra assertions inside loops are used for this mode.</p></li>
+</ul>
+</div></blockquote>
+<p>By default, <code class="docutils literal notranslate"><span class="pre">MLI_DEBUG_MODE</span></code> is set to <code class="docutils literal notranslate"><span class="pre">DBG_MODE_RELEASE</span></code>. The following table summarizes modes behavior.</p>
+<table class="colwidths-given docutils align-center" id="id1">
+<caption><span class="caption-text">MLI_DEBUG_MODE Modes Behavior</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Behaviour</strong></p></th>
+<th class="head"><p><strong>RELEASE</strong></p></th>
+<th class="head"><p><strong>RET_CODES</strong></p></th>
+<th class="head"><p><strong>ASSERT</strong></p></th>
+<th class="head"><p><strong>DEBUG</strong></p></th>
+<th class="head"><p><strong>FULL</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Return Codes</p></td>
+<td><p>NO</p></td>
+<td><p>YES</p></td>
+<td><p>YES</p></td>
+<td><p>YES</p></td>
+<td><p>YES</p></td>
+</tr>
+<tr class="row-odd"><td><p>Assertions</p></td>
+<td><p>NO</p></td>
+<td><p>NO</p></td>
+<td><p>YES</p></td>
+<td><p>YES</p></td>
+<td><p>YES</p></td>
+</tr>
+<tr class="row-even"><td><p>Messages</p></td>
+<td><p>NO</p></td>
+<td><p>NO</p></td>
+<td><p>NO</p></td>
+<td><p>YES</p></td>
+<td><p>YES</p></td>
+</tr>
+<tr class="row-odd"><td><p>Extra Assertions</p></td>
+<td><p>NO</p></td>
+<td><p>NO</p></td>
+<td><p>NO</p></td>
+<td><p>NO</p></td>
+<td><p>YES</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../mli_kernels/mli_kernels.html" class="btn btn-neutral float-right" title="MLI Kernels (Operators)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="error_codes.html" class="btn btn-neutral float-left" title="Error Codes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2021, Synopsys, Inc
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

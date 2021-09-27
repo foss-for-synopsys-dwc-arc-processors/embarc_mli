@@ -1,0 +1,766 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Data Structures &mdash; embARC Machine Learning Library 2.0 2.00 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/style_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Error Codes" href="error_codes.html" />
+    <link rel="prev" title="Data Layouts" href="data_layouts.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> embARC Machine Learning Library 2.0
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.00
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../whats_new/whats_new.html">What’s New in MLI 2.0 ?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview/overview.html">Overview</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="mli_api_data.html">MLI API Data</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="data_formats.html">Data Formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_layouts.html">Data Layouts</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Data Structures</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mli-tensor-structure"><code class="docutils literal notranslate"><span class="pre">mli_tensor</span></code> Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mli-data-container-structure"><code class="docutils literal notranslate"><span class="pre">mli_data_container</span></code> Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mli-element-type-enumeration"><code class="docutils literal notranslate"><span class="pre">mli_element_type</span></code> Enumeration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mli-element-params-union"><code class="docutils literal notranslate"><span class="pre">mli_element_params</span></code> Union</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mli-lut-structure"><code class="docutils literal notranslate"><span class="pre">mli_lut</span></code> Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#kernel-specific-configuration-structures">Kernel Specific Configuration Structures</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="error_codes.html">Error Codes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="debug_modes.html">Debug Modes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/mli_kernels.html">MLI Kernels (Operators)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/convolution_grp.html">Convolution Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/rec_fully_con_grp.html">Recurrent and Fully Connected Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/pooling_grp.html">Pooling Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/diverse_kernels_grp.html">Diverse Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/transform_grp.html">Transform (Activation) Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/elemw_grp.html">Element-wise Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data_movement/data_movement.html">Data Movement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utility_functions/utility_functions.html">Utility Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../platform_specific/platform_hint_sum.html">Platform Specific Details</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">embARC Machine Learning Library 2.0</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="mli_api_data.html">MLI API Data</a> &raquo;</li>
+        
+      <li>Data Structures</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/mli_api_data/data_structures.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="data-structures">
+<h1>Data Structures<a class="headerlink" href="#data-structures" title="Permalink to this headline">¶</a></h1>
+<p>This section describes the set of available data structures present in the MLI interface:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#mli-tens-data-struct"><span class="std std-ref">mli_tensor Structure</span></a> - The main container to be passed for input and output data used
+by functions in MLI Interface</p></li>
+<li><p><a class="reference internal" href="#c-mli-data-container"><span class="std std-ref">mli_data_container Structure</span></a> - The container to handle raw data arrays or values.</p></li>
+<li><p><a class="reference internal" href="#c-mli-element-type"><span class="std std-ref">mli_element_type Enumeration</span></a> - The type of the element stored in the <code class="docutils literal notranslate"><span class="pre">mli_tensor</span></code>.</p></li>
+<li><p><a class="reference internal" href="#c-mli-element-params"><span class="std std-ref">mli_element_params Union</span></a> - Quantization parameters of the elements stored in the <code class="docutils literal notranslate"><span class="pre">mli_tensor</span></code>.</p></li>
+<li><p><a class="reference internal" href="#mli-lut-data-struct"><span class="std std-ref">mli_lut Structure</span></a> - Look-Up table handler used in transformation kernels.</p></li>
+<li><p><a class="reference internal" href="#kernl-sp-conf"><span class="std std-ref">Kernel Specific Configuration Structures</span></a></p></li>
+</ul>
+</div></blockquote>
+<div class="section" id="mli-tensor-structure">
+<span id="mli-tens-data-struct"></span><h2><code class="docutils literal notranslate"><span class="pre">mli_tensor</span></code> Structure<a class="headerlink" href="#mli-tensor-structure" title="Permalink to this headline">¶</a></h2>
+<p>All functions use the <code class="docutils literal notranslate"><span class="pre">mli_tensor</span></code> structure as the main container for input and output data.
+It represents a multi-dimensional array of elements. The <code class="docutils literal notranslate"><span class="pre">mli_tensor</span></code> structure describes the
+shape of this array, its data format, and the way it is organized in memory.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="nc">mli_tensor</span> <span class="p">{</span>
+   <span class="n">mli_data_container</span> <span class="n">data</span><span class="p">;</span>
+   <span class="kt">uint32_t</span> <span class="n">shape</span><span class="p">[</span><span class="n">MLI_MAX_RANK</span><span class="p">];</span>
+   <span class="kt">int32_t</span> <span class="n">mem_stride</span><span class="p">[</span><span class="n">MLI_MAX_RANK</span><span class="p">];</span>
+   <span class="kt">uint32_t</span> <span class="n">rank</span><span class="p">;</span>
+   <span class="n">mli_element_type</span> <span class="n">el_type</span><span class="p">;</span>
+   <span class="n">mli_element_params</span> <span class="n">el_params</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">mli_tensor</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>The table <a class="reference internal" href="#mli-tnsr-struc"><span class="std std-ref">mli_tensor Structure Field Descriptions</span></a> describes the fields in the <code class="docutils literal notranslate"><span class="pre">mli_tensor</span></code> structure.</p>
+<span id="mli-tnsr-struc"></span><table class="longtable docutils align-center" id="id1">
+<caption><span class="caption-text">mli_tensor Structure Field Descriptions</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 20%" />
+<col style="width: 64%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Field name</strong></p></th>
+<th class="head"><p><strong>type</strong></p></th>
+<th class="head"><p><strong>Comment</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">data</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mli_data_container</span></code></p></td>
+<td><p>The meaning of this field varies based on the setting of the <code class="docutils literal notranslate"><span class="pre">rank</span></code>
+field:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">rank</span>&#160; <span class="pre">&gt;</span> <span class="pre">0</span></code>: General Tensor. The <code class="docutils literal notranslate"><span class="pre">data</span></code> contains a pointer to the
+data.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rank</span> <span class="pre">==</span> <span class="pre">0</span></code>: Scalar tensor. The <code class="docutils literal notranslate"><span class="pre">data</span></code> holds only a single value and
+this value is directly stored into this field.</p></li>
+</ul>
+<p>Type of the data preserved in this container must be in sync
+with <code class="docutils literal notranslate"><span class="pre">el_type</span></code> field.</p>
+<p>See <a class="reference internal" href="#c-mli-data-container"><span class="std std-ref">mli_data_container Structure</span></a> for more info.</p>
+</td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">shape</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint32_t[]</span></code></p></td>
+<td><p>Array with tensor dimensions. Dimensions are stored in order starting from
+the one with the largest stride between the data portions.
+For example, for tensor T of shape (channels, height width) stored in HWC
+layout, shape[0] = height, shape[1] = width, shape[2] = channels. Shape[3]
+is unused. The size of the array is defined by <code class="docutils literal notranslate"><span class="pre">MLI_MAX_RANK*</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mem_stride</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int32_t[]</span></code></p></td>
+<td><p>Array with the distance (in elements) to the next element in the same
+dimension. Positive values are supported only.
+To compute the size in bytes, the number of elements needs to be
+multiplied by the bytes per element. For example, for a matrix
+A(rows,columns), <code class="docutils literal notranslate"><span class="pre">mem_stride[1]</span></code> contains the distance to the next
+element (=1 in this example), and <code class="docutils literal notranslate"><span class="pre">mem_stride[0]</span></code> contains the distance
+from one row to the next (=columns in this example). The size of the array
+is defined by <code class="docutils literal notranslate"><span class="pre">MLI_MAX_RANK*</span></code>.</p>
+<p>Values of <code class="docutils literal notranslate"><span class="pre">mem_stride</span></code> array must decrease gradually and
+must not be less than if they would be computed from the shape. For
+example, for a tensor of shape <span class="math notranslate nohighlight">\((Height, Width, Channels)\)</span>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">mem_stride[0]</span> <span class="pre">&gt;=</span> <span class="pre">1</span> <span class="pre">x</span> <span class="pre">Channels</span> <span class="pre">x</span> <span class="pre">Width</span></code>
+AND <code class="docutils literal notranslate"><span class="pre">mem_stride[0]</span> <span class="pre">&gt;=</span> <span class="pre">mem_stride[1]</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mem_stride[1]</span> <span class="pre">&gt;=</span> <span class="pre">1*Channels</span></code> AND <code class="docutils literal notranslate"><span class="pre">mem_stride[1]</span> <span class="pre">&gt;=</span> <span class="pre">mem_stride[2]</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mem_stride[2]</span> <span class="pre">&gt;=</span> <span class="pre">1</span></code></p></li>
+</ul>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">mli_move</span></code> is the only function which can write the <code class="docutils literal notranslate"><span class="pre">mem_stride</span></code> field
+of the <code class="docutils literal notranslate"><span class="pre">dst</span></code> tensor. Other kernels don’t update this field</p>
+</td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rank</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint32_t</span></code></p></td>
+<td><p>Number of dimensions of this tensor (Must be less or equal to
+<code class="docutils literal notranslate"><span class="pre">MLI_MAX_RANK*</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">el_type</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mli_element_type</span></code></p></td>
+<td><p>Enum depicting the type of the element stored in the tensor.
+See <a class="reference internal" href="#c-mli-element-type"><span class="std std-ref">mli_element_type Enumeration</span></a> for more info.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">el_params</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mli_element_params</span></code></p></td>
+<td><p>Union of structs containing the quantization parameters of the elements
+stored in the tensor.  Details on supported quantization schemes are
+discussed in <a class="reference internal" href="data_formats.html#data-fmts"><span class="std std-ref">Data Formats</span></a></p>
+<p>See <a class="reference internal" href="#c-mli-element-params"><span class="std std-ref">mli_element_params Union</span></a> for more info.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">MLI_MAX_RANK</span></code> is set to 4.</p>
+</div>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p><code class="docutils literal notranslate"><span class="pre">mli_tensor</span></code> is valid if all its fields are populated in a non-contradictory way which implies:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">rank</span></code> and <code class="docutils literal notranslate"><span class="pre">shape</span></code> fields are aligned with <code class="docutils literal notranslate"><span class="pre">mem_strides</span></code> field</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data</span></code> container points to a memory region of <code class="docutils literal notranslate"><span class="pre">el_type</span></code> elements or contains a single
+element itself (see <a class="reference internal" href="#c-mli-data-container"><span class="std std-ref">mli_data_container Structure</span></a>). Its capacity is enough to preserve data described
+by <code class="docutils literal notranslate"><span class="pre">rank</span></code>, <code class="docutils literal notranslate"><span class="pre">shape</span></code> and <code class="docutils literal notranslate"><span class="pre">mem_stride</span></code> fields.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">el_params</span></code> structure is filled properly according to <code class="docutils literal notranslate"><span class="pre">el_type</span></code> field and
+related quantization scheme (see <a class="reference internal" href="data_formats.html#data-fmts"><span class="std std-ref">Data Formats</span></a>)</p></li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="mli-data-container-structure">
+<span id="c-mli-data-container"></span><h2><code class="docutils literal notranslate"><span class="pre">mli_data_container</span></code> Structure<a class="headerlink" href="#mli-data-container-structure" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">mli_data_container</span></code> is a container to represent polymorphic data.
+It stores pointer to data or a single value that intend to be directly used in arithmetical operations.</p>
+<p><code class="docutils literal notranslate"><span class="pre">mli_data_container</span></code> is defined as follows:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="nc">_mli_data_container</span> <span class="p">{</span>
+  <span class="kt">uint32_t</span>  <span class="n">capacity</span><span class="p">;</span>
+  <span class="k">union</span> <span class="p">{</span>
+    <span class="kt">int32_t</span><span class="o">*</span>  <span class="n">pi32</span><span class="p">;</span>
+    <span class="kt">int16_t</span><span class="o">*</span>  <span class="n">pi16</span><span class="p">;</span>
+    <span class="kt">int8_t</span><span class="o">*</span>   <span class="n">pi8</span><span class="p">;</span>
+    <span class="kt">float</span><span class="o">*</span>    <span class="n">pf32</span><span class="p">;</span>
+    <span class="kt">int32_t</span>   <span class="n">i32</span><span class="p">;</span>
+    <span class="kt">int16_t</span>   <span class="n">i16</span><span class="p">;</span>
+    <span class="kt">int8_t</span>    <span class="n">i8</span><span class="p">;</span>
+    <span class="kt">float</span>     <span class="n">f32</span><span class="p">;</span>
+  <span class="p">}</span> <span class="n">mem</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">mli_data_container</span><span class="p">;</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#t-mli-d-cont-strct"><span class="std std-ref">mli_data_container Structure Field Description</span></a> describes the fields in the <code class="docutils literal notranslate"><span class="pre">mli_data_container</span></code> struture.</p>
+<span id="t-mli-d-cont-strct"></span><table class="longtable docutils align-center" id="id2">
+<caption><span class="caption-text">mli_data_container Structure Field Description</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 19%" />
+<col style="width: 17%" />
+<col style="width: 65%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Field Name</strong></p></th>
+<th class="head"><p><strong>Type</strong></p></th>
+<th class="head"><p><strong>Comment</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">capacity</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint32_t</span></code></p></td>
+<td><p>Size in bytes of the memory that the <code class="docutils literal notranslate"><span class="pre">mem</span></code> field points to.
+In case there is no buffer attached, the capacity must be set to 0.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mem</span></code></p></td>
+<td><p>Union</p></td>
+<td><p>This field is the union of different possible data container types.
+In case capacity is set to 0, this field is not a pointer,
+but it contains the data itself.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mem.pi32</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int32_t</span> <span class="pre">*</span></code></p></td>
+<td><p>Pointer to array of 32 bit signed integer values.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mem.pi16</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int16_t</span> <span class="pre">*</span></code></p></td>
+<td><p>Pointer to array of 16 bit signed integer values</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mem.pi8</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int8_t</span> <span class="pre">*</span></code></p></td>
+<td><p>Pointer to array of 8 bit signed integer values</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mem.pf32</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">float</span> <span class="pre">*</span></code></p></td>
+<td><p>Pointer to array of 32bit single precision floating point value</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mem.i32</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int32_t</span></code></p></td>
+<td><p>32 bit signed integer value.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mem.i16</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int16_t</span></code></p></td>
+<td><p>16 bit signed integer value.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mem.i8</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int8_t</span></code></p></td>
+<td><p>8 bit signed integer value.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mem.f32</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">float</span></code></p></td>
+<td><p>32bit single precision floating point value.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="mli-element-type-enumeration">
+<span id="c-mli-element-type"></span><h2><code class="docutils literal notranslate"><span class="pre">mli_element_type</span></code> Enumeration<a class="headerlink" href="#mli-element-type-enumeration" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">mli_element_type</span></code> enumeration defines the basic element type stored in tensor structure.
+Based on this information, library functions may define sizes, algorithms for processing,
+and other  implementation specific things. <code class="docutils literal notranslate"><span class="pre">mli_element_type</span></code> is defined as follows:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span> <span class="k">enum</span> <span class="p">{</span>
+   <span class="n">MLI_EL_FX_4</span>  <span class="o">=</span> <span class="mh">0x004</span><span class="p">,</span>
+   <span class="n">MLI_EL_FX_8</span>  <span class="o">=</span> <span class="mh">0x008</span><span class="p">,</span>
+   <span class="n">MLI_EL_FX_16</span> <span class="o">=</span> <span class="mh">0x010</span><span class="p">,</span>
+   <span class="n">MLI_EL_SA_8</span>  <span class="o">=</span> <span class="mh">0x108</span><span class="p">,</span>
+   <span class="n">MLI_EL_SA_32</span> <span class="o">=</span> <span class="mh">0x120</span><span class="p">,</span>
+   <span class="n">MLI_EL_FP_16</span> <span class="o">=</span> <span class="mh">0x210</span><span class="p">,</span>
+   <span class="n">MLI_EL_FP_32</span> <span class="o">=</span> <span class="mh">0x220</span>
+<span class="p">}</span> <span class="n">mli_element_type</span><span class="p">;</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#t-mli-el-type"><span class="std std-ref">mli_element_type Enumeration Values Description</span></a> describes the entities in the <code class="docutils literal notranslate"><span class="pre">mli_element_type</span></code> union.</p>
+<span id="t-mli-el-type"></span><table class="docutils align-center" id="id3">
+<caption><span class="caption-text">mli_element_type Enumeration Values Description</span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 77%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Enumeration Value</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MLI_EL_FX_4</span></code></p></td>
+<td><p>4 bit depth fixed point data. For future use.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">MLI_EL_FX_8</span></code></p></td>
+<td><p>8 bit depth fixed point data. See <code class="docutils literal notranslate"><span class="pre">fx8</span></code> in <a class="reference internal" href="data_formats.html#mli-data-fmts"><span class="std std-ref">MLI Data Formats</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MLI_EL_FX_16</span></code></p></td>
+<td><p>16 bit depth fixed point data. See <code class="docutils literal notranslate"><span class="pre">fx16</span></code> in <a class="reference internal" href="data_formats.html#mli-data-fmts"><span class="std std-ref">MLI Data Formats</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">MLI_EL_SA_8</span></code></p></td>
+<td><p>8 bit asymetrical signed data. See <code class="docutils literal notranslate"><span class="pre">sa8</span></code> in <a class="reference internal" href="data_formats.html#mli-data-fmts"><span class="std std-ref">MLI Data Formats</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MLI_EL_SA_32</span></code></p></td>
+<td><p>32 bit asymetrical signed data. See <code class="docutils literal notranslate"><span class="pre">sa32</span></code> in <a class="reference internal" href="data_formats.html#mli-data-fmts"><span class="std std-ref">MLI Data Formats</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">MLI_EL_FP_16</span></code></p></td>
+<td><p>Half precision floating point data. For future use.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MLI_EL_FP_32</span></code></p></td>
+<td><p>Single precision floating point data. See <code class="docutils literal notranslate"><span class="pre">fp32</span></code> in <a class="reference internal" href="data_formats.html#mli-data-fmts"><span class="std std-ref">MLI Data Formats</span></a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="mli-element-params-union">
+<span id="c-mli-element-params"></span><h2><code class="docutils literal notranslate"><span class="pre">mli_element_params</span></code> Union<a class="headerlink" href="#mli-element-params-union" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">mli_element_params</span></code> stores data quantization parameters required for arithmetical
+operations with tensor elements. Details on supported quantization schemes are discussed in <a class="reference internal" href="data_formats.html#data-fmts"><span class="std std-ref">Data Formats</span></a>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">mli_element_params</span></code> is defined as follows:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span> <span class="k">union</span> <span class="nc">_mli_element_params</span> <span class="p">{</span>
+   <span class="k">struct</span><span class="p">{</span>
+      <span class="kt">uint32_t</span> <span class="n">frac_bits</span><span class="p">;</span>
+   <span class="p">}</span> <span class="n">fx</span><span class="p">;</span> <span class="cm">/* FiXed point \*/</span>
+
+   <span class="k">struct</span> <span class="p">{</span>
+      <span class="n">mli_el_param_type</span> <span class="n">type</span><span class="p">;</span>
+      <span class="n">mli_data_container</span> <span class="n">zero_point</span><span class="p">;</span>
+      <span class="n">mli_data_container</span> <span class="n">scale</span><span class="p">;</span>
+      <span class="n">mli_data_container</span> <span class="n">scale_frac_bits</span><span class="p">;</span>
+      <span class="kt">int32_t</span> <span class="n">dim</span><span class="p">;</span>
+   <span class="p">}</span> <span class="n">sa</span><span class="p">;</span> <span class="cm">/* Signed Asymmetric \*/</span>
+<span class="p">}</span> <span class="n">mli_element_params</span><span class="p">;</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">mli_el_param_type</span></code> is defined as follows:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span> <span class="k">enum</span> <span class="p">{</span>
+   <span class="n">MLI_EL_PARAM_SC16_ZP16</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="p">}</span> <span class="n">mli_el_param_type</span><span class="p">;</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#t-mli-el-p-union"><span class="std std-ref">mli_element_params Union Field Description</span></a> describes the fields in the <code class="docutils literal notranslate"><span class="pre">mli_element_params</span></code> union.  Several members of this union
+are used to support per-axis quantization. <code class="docutils literal notranslate"><span class="pre">sa.dim</span></code> indicates over which axis (dimension) of the tensor the
+quantization parameters can vary. For instance in a CHW layout, <code class="docutils literal notranslate"><span class="pre">dim</span></code> = 0 means that for each channel there is
+a different zero point and a different scale factor. The size of these arrays is the same as the number of
+channels in the tensor <code class="docutils literal notranslate"><span class="pre">(array_size</span> <span class="pre">=</span> <span class="pre">shape[dim])</span></code>.</p>
+<span id="t-mli-el-p-union"></span><table class="longtable docutils align-center" id="id4">
+<caption><span class="caption-text">mli_element_params Union Field Description</span><a class="headerlink" href="#id4" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 19%" />
+<col style="width: 19%" />
+<col style="width: 62%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Field Name</strong></p></th>
+<th class="head"><p><strong>Type</strong></p></th>
+<th class="head"><p><strong>Comment</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fx.frac_bits</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint8_t</span></code></p></td>
+<td><p>Number of fractional bits.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sa.type</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mli_el_param_type</span></code></p></td>
+<td><p>Enum depicting the types of the quantization parameters in the tensor.
+Only <code class="docutils literal notranslate"><span class="pre">MLI_EL_PARAM_SC16_ZP16</span></code> is currently supported which reflects the
+following parameters according the description below.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sa.dim</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int32_t</span></code></p></td>
+<td><p>Tensor dimension to which the arrays of quantization parameters apply</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sa.zeropoint</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mli_data_container</span></code></p></td>
+<td><p>16-bit signed integer zero-point offset.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">sa.dim</span> <span class="pre">&lt;</span> <span class="pre">0</span></code>: Single value for all data in tensor.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sa.dim</span> <span class="pre">&gt;=</span> <span class="pre">0</span></code>: Pointer to an array of zero points relating to
+configured dimension (<code class="docutils literal notranslate"><span class="pre">sa.dim</span></code>).</p></li>
+</ul>
+<p>See <a class="reference internal" href="#c-mli-data-container"><span class="std std-ref">mli_data_container Structure</span></a> for more info.</p>
+</td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sa.scale</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mli_data_container</span></code></p></td>
+<td><p>16-bit signed integer scale factors. Only positive scale factors are
+supported.</p>
+<ul class="simple">
+<li><p>If <code class="docutils literal notranslate"><span class="pre">sa.dim</span> <span class="pre">&lt;</span> <span class="pre">0</span></code>: <code class="docutils literal notranslate"><span class="pre">sa.scale</span></code> is a single value for all data in tensor</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">sa.dim</span> <span class="pre">&gt;=</span> <span class="pre">0</span></code>:  <code class="docutils literal notranslate"><span class="pre">sa.scale</span></code> is a pointer to an array of
+scale factors related to configured dimension (<code class="docutils literal notranslate"><span class="pre">sa.dim</span></code>).</p></li>
+</ul>
+<p>See <a class="reference internal" href="#c-mli-data-container"><span class="std std-ref">mli_data_container Structure</span></a> for more info.</p>
+</td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sa.scale_frac_bits</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mli_data_container</span></code></p></td>
+<td><p>8-bit signed integer exponent of values in <code class="docutils literal notranslate"><span class="pre">sa.scale</span></code> field. The field
+stores the exponent as the number of fractional bits.</p>
+<ul class="simple">
+<li><p>If <code class="docutils literal notranslate"><span class="pre">sa.dim</span> <span class="pre">&lt;</span> <span class="pre">0</span></code>: <code class="docutils literal notranslate"><span class="pre">sa.scale_frac_bits</span></code> is a single value</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">sa.dim</span> <span class="pre">&gt;=</span> <span class="pre">0</span></code>:  <code class="docutils literal notranslate"><span class="pre">sa.scale_frac_bits</span></code> is a pointer to an array of
+frac bits per each value in <code class="docutils literal notranslate"><span class="pre">sa.scale</span></code> array.</p></li>
+</ul>
+<p>See <a class="reference internal" href="#c-mli-data-container"><span class="std std-ref">mli_data_container Structure</span></a> for more info.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Example</p>
+<p>FX16 tensor might be populated in the following way:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">mli_tensor</span> <span class="n">tsr_fx16</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+
+<span class="c1">// Filling quantization params</span>
+<span class="n">tsr_fx16</span><span class="p">.</span><span class="n">el_type</span> <span class="o">=</span> <span class="n">MLI_EL_FX_16</span><span class="p">;</span>
+<span class="n">tsr_fx16</span><span class="p">.</span><span class="n">el_params</span><span class="p">.</span><span class="n">fx</span><span class="p">.</span><span class="n">frac_bits</span> <span class="o">=</span> <span class="mi">12</span><span class="p">;</span>
+
+<span class="c1">// Filling other fields of tsr_fx16</span>
+</pre></div>
+</div>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Example</p>
+<p>SA8 tensor quantized on per-tensor level might be populated in the following way:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">mli_tensor</span> <span class="n">tsr_sa8</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+
+<span class="c1">// Filling quantization params</span>
+<span class="n">tsr_sa8</span><span class="p">.</span><span class="n">el_type</span> <span class="o">=</span> <span class="n">MLI_EL_SA8</span><span class="p">;</span>
+<span class="n">tsr_sa8</span><span class="p">.</span><span class="n">el_params</span><span class="p">.</span><span class="n">sa</span><span class="p">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">MLI_EL_PARAM_SC16_ZP16</span><span class="p">;</span>
+<span class="n">tsr_sa8</span><span class="p">.</span><span class="n">el_params</span><span class="p">.</span><span class="n">sa</span><span class="p">.</span><span class="n">dim</span> <span class="o">=</span> <span class="mi">-1</span><span class="p">;</span> <span class="c1">// e.g Per-Tensor (all values shares the same quant params)</span>
+
+<span class="c1">// Set all capacities to 0 as values are directly stored inside the container</span>
+<span class="n">tsr_sa8</span><span class="p">.</span><span class="n">el_params</span><span class="p">.</span><span class="n">sa</span><span class="p">.</span><span class="n">zero_point</span><span class="p">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="n">tsr_sa8</span><span class="p">.</span><span class="n">el_params</span><span class="p">.</span><span class="n">sa</span><span class="p">.</span><span class="n">scale_frac_bits</span><span class="p">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="n">tsr_sa8</span><span class="p">.</span><span class="n">el_params</span><span class="p">.</span><span class="n">sa</span><span class="p">.</span><span class="n">scale</span><span class="p">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+<span class="n">tsr_sa8</span><span class="p">.</span><span class="n">el_params</span><span class="p">.</span><span class="n">sa</span><span class="p">.</span><span class="n">zero_point</span><span class="p">.</span><span class="n">mem</span><span class="p">.</span><span class="n">i16</span> <span class="o">=</span> <span class="mi">-128</span><span class="p">;</span>
+<span class="n">tsr_sa8</span><span class="p">.</span><span class="n">el_params</span><span class="p">.</span><span class="n">sa</span><span class="p">.</span><span class="n">scale_frac_bits</span><span class="p">.</span><span class="n">mem</span><span class="p">.</span><span class="n">i8</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+<span class="n">tsr_sa8</span><span class="p">.</span><span class="n">el_params</span><span class="p">.</span><span class="n">sa</span><span class="p">.</span><span class="n">scale</span><span class="p">.</span><span class="n">mem</span><span class="p">.</span><span class="n">i16</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// (5 \ 2^3) = 0.625</span>
+
+<span class="c1">// Filling other fields of tsr_sa8</span>
+</pre></div>
+</div>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Example</p>
+<p>SA8 tensor quantized on per-axis level might be populated in the following way:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">mli_tensor</span> <span class="n">tsr_sa8_per_axis</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="kt">int16_t</span> <span class="n">scales</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{...};</span>
+<span class="kt">int8_t</span> <span class="n">scales_frac</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{...};</span>
+<span class="kt">int16_t</span> <span class="n">zero_points</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{...};</span>
+
+<span class="c1">// Filling quantization params</span>
+<span class="n">tsr_sa8_per_axis</span><span class="p">.</span><span class="n">el_type</span> <span class="o">=</span> <span class="n">MLI_EL_SA8</span><span class="p">;</span>
+<span class="n">tsr_sa8_per_axis</span><span class="p">.</span><span class="n">el_params</span><span class="p">.</span><span class="n">sa</span><span class="p">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">MLI_EL_PARAM_SC16_ZP16</span><span class="p">;</span>
+<span class="n">tsr_sa8_per_axis</span><span class="p">.</span><span class="n">el_params</span><span class="p">.</span><span class="n">sa</span><span class="p">.</span><span class="n">dim</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// e.g Per 0th dimension</span>
+
+<span class="n">tsr_sa8_per_axis</span><span class="p">.</span><span class="n">el_params</span><span class="p">.</span><span class="n">sa</span><span class="p">.</span><span class="n">zero_point</span><span class="p">.</span><span class="n">mem</span><span class="p">.</span><span class="n">pi16</span> <span class="o">=</span> <span class="n">zero_points</span><span class="p">;</span>
+<span class="n">tsr_sa8_per_axis</span><span class="p">.</span><span class="n">el_params</span><span class="p">.</span><span class="n">sa</span><span class="p">.</span><span class="n">zero_point</span><span class="p">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">zero_points</span><span class="p">);</span>
+
+<span class="n">tsr_sa8_per_axis</span><span class="p">.</span><span class="n">el_params</span><span class="p">.</span><span class="n">sa</span><span class="p">.</span><span class="n">scale_frac_bits</span><span class="p">.</span><span class="n">mem</span><span class="p">.</span><span class="n">pi8</span> <span class="o">=</span> <span class="n">scales_frac</span><span class="p">;</span>
+<span class="n">tsr_sa8_per_axis</span><span class="p">.</span><span class="n">el_params</span><span class="p">.</span><span class="n">sa</span><span class="p">.</span><span class="n">scale_frac_bits</span><span class="p">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">scales_frac</span><span class="p">);</span>
+
+<span class="n">tsr_sa8_per_axis</span><span class="p">.</span><span class="n">el_params</span><span class="p">.</span><span class="n">sa</span><span class="p">.</span><span class="n">scale</span><span class="p">.</span><span class="n">mem</span><span class="p">.</span><span class="n">pi16</span> <span class="o">=</span> <span class="n">scales</span><span class="p">;</span>
+<span class="n">tsr_sa8_per_axis</span><span class="p">.</span><span class="n">el_params</span><span class="p">.</span><span class="n">sa</span><span class="p">.</span><span class="n">scale</span><span class="p">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">scales</span><span class="p">);</span>
+
+<span class="c1">// Filling other fields of tsr_sa8_per_axis</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="mli-lut-structure">
+<span id="mli-lut-data-struct"></span><h2><code class="docutils literal notranslate"><span class="pre">mli_lut</span></code> Structure<a class="headerlink" href="#mli-lut-structure" title="Permalink to this headline">¶</a></h2>
+<p>Several functions use a look-up table (LUT) to perform data transformation.  The LUT represents a function in a
+table form that can be used to transform input values (function argument) to output values (function result).
+The <code class="docutils literal notranslate"><span class="pre">mli_lut</span></code> structure is a representation of such a table.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">mli_lut</span></code> struct describes the data in the LUT, including the format of its input and output.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="nc">_mli_lut</span><span class="p">{</span>
+   <span class="n">mli_data_container</span> <span class="n">data</span><span class="p">;</span>
+   <span class="n">mli_element_type</span> <span class="n">type</span><span class="p">;</span>
+   <span class="kt">int32_t</span> <span class="n">length</span><span class="p">;</span>
+   <span class="kt">int32_t</span> <span class="n">in_frac_bits</span><span class="p">;</span>
+   <span class="kt">int32_t</span> <span class="n">out_frac_bits</span><span class="p">;</span>
+   <span class="kt">int32_t</span> <span class="n">input_offset</span><span class="p">;</span>
+   <span class="kt">int32_t</span> <span class="n">output_offset</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">mli_lut</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>The following table describes the fields in the <code class="docutils literal notranslate"><span class="pre">mli_lut</span></code> structure.</p>
+<span id="mli-lut-struct-table"></span><table class="longtable docutils align-center" id="id5">
+<caption><span class="caption-text">mli_lut Structure Field Descriptions</span><a class="headerlink" href="#id5" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 20%" />
+<col style="width: 64%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Field name</strong></p></th>
+<th class="head"><p><strong>type</strong></p></th>
+<th class="head"><p><strong>Comment</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">data</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mli_data_container</span></code></p></td>
+<td><p>This field has a union of different possible data container types.
+Pointer of specified type (see the type field in this table) should point
+to an array with the LUT table data.</p>
+<p>See <a class="reference internal" href="#c-mli-data-container"><span class="std std-ref">mli_data_container Structure</span></a> for more info.</p>
+</td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">data.capacity</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint32_t</span></code></p></td>
+<td><p>Size in bytes of the allocated memory that the data field points to.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mli_element_type</span></code></p></td>
+<td><p>Enum depicting the type of the element stored in the data field.
+Values in this enum are listed in section <a class="reference internal" href="#c-mli-element-type"><span class="std std-ref">mli_element_type Enumeration</span></a>.
+Only <code class="docutils literal notranslate"><span class="pre">MLI_EL_FX_16</span></code> entity is currently supported.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">length</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int32_t</span></code></p></td>
+<td><p>Number of values stored in the LUT table</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">in_frac_bits</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int32_t</span></code></p></td>
+<td><p>Number of fractional bits for the LUT input (argument)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">out_frac_bits</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int32_t</span></code></p></td>
+<td><p>Number of fractional bits for the LUT output (result)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">input_offset</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int32_t</span></code></p></td>
+<td><p>Offset of input argument which is added before applying the LUT function.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">output_offset</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int32_t</span></code></p></td>
+<td><p>Offset of output which is subtracted from LUT function result.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="kernel-specific-configuration-structures">
+<span id="kernl-sp-conf"></span><h2>Kernel Specific Configuration Structures<a class="headerlink" href="#kernel-specific-configuration-structures" title="Permalink to this headline">¶</a></h2>
+<p>A significant number of MLI kernels must be configured by specific parameters, which
+influence calculations and results, but are not directly related to input data. For
+example, padding and stride values are parameters of the convolution layer and the type
+of ReLU is a parameter for ReLU transform layer. All specific parameters for
+particular primitive type are grouped into structures. This document describes these
+structures along with the kernel description they relate to. The following tables
+describe fields of existing MLI configuration structures:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Table <a class="reference internal" href="../mli_kernels/convolution_grp.html#t-mli-conv2d-cfg-desc"><span class="std std-ref">mli_conv2d_cfg Structure Field Description</span></a></p></li>
+<li><p>Table <a class="reference internal" href="../mli_kernels/rec_fully_con.html#t-mli-fc-cfg-desc"><span class="std std-ref">mli_fully_connected_cfg Structure field description</span></a></p></li>
+<li><p>Table <a class="reference internal" href="../mli_kernels/rec_fully_con_grp.html#t-mli-rnn-cell-cfg-desc"><span class="std std-ref">mli_rnn_cell_cfg Structure Field Description</span></a></p></li>
+<li><p>Table <a class="reference internal" href="../mli_kernels/rec_rnn_dense.html#t-mli-rnn-dense-cfg-desc"><span class="std std-ref">mli_rnn_dense_cfg Structure Field Description</span></a></p></li>
+<li><p>Table <a class="reference internal" href="../mli_kernels/pooling_grp.html#t-mli-pool-cfg-desc"><span class="std std-ref">mli_pool_cfg structure field description</span></a></p></li>
+<li><p>Table <a class="reference internal" href="../mli_kernels/div_argmax.html#t-mli-argmax-cfg-desc"><span class="std std-ref">mli_argmax_cfg Structure Field Description</span></a></p></li>
+<li><p>Table <a class="reference internal" href="../mli_kernels/div_permute.html#t-mli-permute-cfg-desc"><span class="std std-ref">mli_permute_cfg Structure Field Description</span></a></p></li>
+<li><p>Table <a class="reference internal" href="../mli_kernels/trans_relu.html#t-mli-relu-cfg-desc"><span class="std std-ref">mli_relu_cfg Structure Field Description</span></a></p></li>
+<li><p>Table <a class="reference internal" href="../mli_kernels/trans_param_relu.html#t-mli-prelu-cfg-desc"><span class="std std-ref">mli_prelu_cfg Structure Field Description</span></a></p></li>
+<li><p>Table <a class="reference internal" href="../data_movement/data_movement.html#t-mli-mov-cfg-desc"><span class="std std-ref">mli_mov_cfg Structure Field Description</span></a></p></li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="error_codes.html" class="btn btn-neutral float-right" title="Error Codes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="data_layouts.html" class="btn btn-neutral float-left" title="Data Layouts" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2021, Synopsys, Inc
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,463 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>What’s New in MLI 2.0 ? &mdash; embARC Machine Learning Library 2.0 2.00 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/style_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Overview" href="../overview/overview.html" />
+    <link rel="prev" title="embARC Machine Learning Inference Library" href="../index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> embARC Machine Learning Library 2.0
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.00
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">What’s New in MLI 2.0 ?</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#new-features-in-mli-2-0">New Features in MLI 2.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-formats">Data Formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-layout">Data Layout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#kernels">Kernels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#platforms">Platforms</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../overview/overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_api_data/mli_api_data.html">MLI API Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/mli_kernels.html">MLI Kernels (Operators)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/convolution_grp.html">Convolution Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/rec_fully_con_grp.html">Recurrent and Fully Connected Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/pooling_grp.html">Pooling Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/diverse_kernels_grp.html">Diverse Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/transform_grp.html">Transform (Activation) Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/elemw_grp.html">Element-wise Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data_movement/data_movement.html">Data Movement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utility_functions/utility_functions.html">Utility Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../platform_specific/platform_hint_sum.html">Platform Specific Details</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">embARC Machine Learning Library 2.0</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>What’s New in MLI 2.0 ?</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/whats_new/whats_new.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="what-s-new-in-mli-2-0">
+<h1>What’s New in MLI 2.0 ?<a class="headerlink" href="#what-s-new-in-mli-2-0" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="new-features-in-mli-2-0">
+<h2>New Features in MLI 2.0<a class="headerlink" href="#new-features-in-mli-2-0" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Added support for Synopsys ARC VPX5 processor</p></li>
+<li><p>Continues to include support for ARC EM and HS processor families</p></li>
+<li><p>Added new kernels (see <a class="reference internal" href="#t-mli1-mli2-krn-diff"><span class="std std-ref">Supported kernels: Differences between MLI 1.0 and MLI 2.0</span></a>)</p></li>
+<li><p>Integration with TensorFlow Lite for Microcontrollers (TFLM)</p></li>
+<li><p>Data formats have been adapted</p></li>
+<li><p>Supported Data layouts have been streamlined</p></li>
+<li><p>Some kernel functionality and interfaces have changed</p></li>
+<li><p>Data move functionality has been added</p></li>
+<li><p>Support for additional platforms</p></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="data-formats">
+<h2>Data Formats<a class="headerlink" href="#data-formats" title="Permalink to this headline">¶</a></h2>
+<table class="colwidths-auto docutils align-center" id="id1">
+<caption><span class="caption-text">MLI Data Formats Differences Between MLI 1.0 and MLI 2.0</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Data Format</strong></p></th>
+<th class="head"><p><strong>Format Name</strong></p></th>
+<th class="head"><p><strong>How Used in MLI 1.0</strong></p></th>
+<th class="head"><p><strong>How Used in MLI 2.0</strong></p></th>
+<th class="head"><p><strong>Comments</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>fx16</p></td>
+<td><p>16-bit fixed point</p></td>
+<td><p>Used as main data format</p></td>
+<td><p>Used as main data format</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>fx8</p></td>
+<td><p>8-bit fixed point</p></td>
+<td><p>Used as main data format</p></td>
+<td><p>Only in conversion function</p></td>
+<td><p>In MLI2.0 this is replaced by sa8</p></td>
+</tr>
+<tr class="row-even"><td><p>sa32</p></td>
+<td><p>32-bit signed asymmetric</p></td>
+<td><p>Not available</p></td>
+<td><p>Used only for bias inputs to kernels</p></td>
+<td><p>Required to support TensorFlow Lite
+Micro</p></td>
+</tr>
+<tr class="row-odd"><td><p>sa8</p></td>
+<td><p>8-bit signed asymmetric</p></td>
+<td><p>Not available</p></td>
+<td><p>Used as main 8-bit data format for
+kernel inputs and outputs</p></td>
+<td><p>Required to support TensorFlow Lite
+Micro</p></td>
+</tr>
+<tr class="row-even"><td><p>fp32</p></td>
+<td><p>32-bit floating point</p></td>
+<td><p>Only in external conversion
+function, not part of API</p></td>
+<td><p>Only in conversion function as interface
+between MLI and user code.</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>fx8 has been replaced by sa8 because sa8 gives better accuracy (in most tensors, a large part of the
+negative range is not used).</p>
+<p>For 16-bit design, the accuracy benefit is relatively lesser (almost one extra bit has a lesser
+impact on 16-bit design than that on an 8-bit design).</p>
+<p>The sa8 type can also support per axis quantization. This means that for instance each channel can have
+a different zero point and scale factor. It depends on the kernel which of the input tensors can have per
+axis quantization.</p>
+</div>
+<div class="section" id="data-layout">
+<h2>Data Layout<a class="headerlink" href="#data-layout" title="Permalink to this headline">¶</a></h2>
+<p>MLI 2.0 supports the HWCN data layout.</p>
+<table class="colwidths-auto docutils align-center" id="id2">
+<caption><span class="caption-text">Supported Data Layouts: Differences between MLI 1.0 and MLI 2.0</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>MLI Version</strong></p></th>
+<th class="head"><p><strong>Supported Data Layouts</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1.0</p></td>
+<td><p>CHW (fully optimized)
+(N)HWC (only reference code)</p></td>
+</tr>
+<tr class="row-odd"><td><p>1.1</p></td>
+<td><p>CHW (fully optimized)
+(N)HWC (optimized in case of sa8   data format)</p></td>
+</tr>
+<tr class="row-even"><td><p>2.0</p></td>
+<td><p>HWC(N)</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>That the layout is only relevant for a subset of functions. Most functions are layout-agnostic.</p>
+</div>
+</div>
+<div class="section" id="kernels">
+<h2>Kernels<a class="headerlink" href="#kernels" title="Permalink to this headline">¶</a></h2>
+<span id="t-mli1-mli2-krn-diff"></span><table class="colwidths-auto docutils align-center" id="id3">
+<caption><span class="caption-text">Supported kernels: Differences between MLI 1.0 and MLI 2.0</span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Kernel</strong></p></th>
+<th class="head"><p><strong>MLI1.x</strong></p></th>
+<th class="head"><p><strong>MLI2.0</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Conv2d</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-odd"><td><p>Depthwise_conv2d</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-even"><td><p>Transpose conv2d</p></td>
+<td></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-odd"><td><p>Group_conv2d</p></td>
+<td></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-even"><td><p>Avepool</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-odd"><td><p>Maxpool</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-even"><td><p>Fully_connected</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-odd"><td><p>LSTM</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-even"><td><p>RNN</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-odd"><td><p>GRU_cell (gated recurrent unit)</p></td>
+<td></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-even"><td><p>ReLu</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-odd"><td><p>Leaky Relu</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-even"><td><p>Parametric ReLu</p></td>
+<td></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-odd"><td><p>Sigm</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-even"><td><p>Tanh</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-odd"><td><p>Softmax</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-even"><td><p>Elementwise_add</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-odd"><td><p>Elementwise_sub</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-even"><td><p>Elementwise_mul</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-odd"><td><p>Elementwise_min</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-even"><td><p>Elementwise_max</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-odd"><td><p>Permute</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-even"><td><p>Concat</p></td>
+<td><p>X</p></td>
+<td><p>Supported by
+data move APIs</p></td>
+</tr>
+<tr class="row-odd"><td><p>Padding2d</p></td>
+<td><p>X</p></td>
+<td><p>Supported by
+data move APIs</p></td>
+</tr>
+<tr class="row-even"><td><p>Argmax</p></td>
+<td></td>
+<td><p>X</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="platforms">
+<h2>Platforms<a class="headerlink" href="#platforms" title="Permalink to this headline">¶</a></h2>
+<p>MLI 2.0 supports EM, HS, and VPX platforms.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>MLI 1.0 Online Documentation is available <a class="reference external" href="https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/tree/e6641aaf1a93d266e9eb06dd3abe77ba44e47b66/doc/build/html">here</a>.</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../overview/overview.html" class="btn btn-neutral float-right" title="Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../index.html" class="btn btn-neutral float-left" title="embARC Machine Learning Inference Library" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2021, Synopsys, Inc
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

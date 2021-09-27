@@ -1,0 +1,494 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Group Convolution Prototype and Function List &mdash; embARC Machine Learning Library 2.0 2.00 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/style_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Recurrent and Fully Connected Kernels Group" href="rec_fully_con_grp.html" />
+    <link rel="prev" title="Transpose Convolution Prototype and Function List" href="conv_transp.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> embARC Machine Learning Library 2.0
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.00
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../whats_new/whats_new.html">What’s New in MLI 2.0 ?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview/overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_api_data/mli_api_data.html">MLI API Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_kernels.html">MLI Kernels (Operators)</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="convolution_grp.html">Convolution Kernels Group</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="conv_2d.html">Convolution 2D Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conv_depthwise.html">Depthwise Convolution Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conv_transp.html">Transpose Convolution Prototype and Function List</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Group Convolution Prototype and Function List</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#functions">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#conditions">Conditions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#result">Result</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rec_fully_con_grp.html">Recurrent and Fully Connected Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pooling_grp.html">Pooling Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diverse_kernels_grp.html">Diverse Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transform_grp.html">Transform (Activation) Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="elemw_grp.html">Element-wise Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data_movement/data_movement.html">Data Movement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utility_functions/utility_functions.html">Utility Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../platform_specific/platform_hint_sum.html">Platform Specific Details</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">embARC Machine Learning Library 2.0</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="convolution_grp.html">Convolution Kernels Group</a> &raquo;</li>
+        
+      <li>Group Convolution Prototype and Function List</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/mli_kernels/conv_grp.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="group-convolution-prototype-and-function-list">
+<span id="grp-conv"></span><h1>Group Convolution Prototype and Function List<a class="headerlink" href="#group-convolution-prototype-and-function-list" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>This kernel implements a grouped 2D convolution which applies general 2D
+convolution operation on a separate subset (groups) of inputs. In grouped
+convolutions with <span class="math notranslate nohighlight">\(M\)</span> number of groups, the input and kernel are split by
+their channels to form <span class="math notranslate nohighlight">\(M\)</span> distinct groups. Each group performs convolutions
+independent of the other groups to give <span class="math notranslate nohighlight">\(M\)</span> different outputs. These individual
+outputs are then concatenated together to give the final output.</p>
+<p>For example, in a HWCN data layout, if the <code class="docutils literal notranslate"><span class="pre">in</span></code> feature map is <span class="math notranslate nohighlight">\((Hi, Wi, Ci)\)</span> and
+the <code class="docutils literal notranslate"><span class="pre">weights</span></code> is <span class="math notranslate nohighlight">\((Hk, Wk, Cw, Co)\)</span>, the <code class="docutils literal notranslate"><span class="pre">output</span></code> feature map is <span class="math notranslate nohighlight">\((Ho, Wo, Co)\)</span>
+tensor where <span class="math notranslate nohighlight">\(Ci\)</span> is equal to <span class="math notranslate nohighlight">\(Cw * M\)</span> and <span class="math notranslate nohighlight">\(Co\)</span> is multiple of <span class="math notranslate nohighlight">\(M\)</span>.
+Also spatial dimensions <span class="math notranslate nohighlight">\(H*, W*\)</span> comply with the system of equations <a class="reference internal" href="convolution_grp.html#equation-eq-conv2d-shapes">(1)</a>.</p>
+<p>Depthwise convolution (see <a class="reference internal" href="conv_depthwise.html#conv-depthwise"><span class="std std-ref">Depthwise Convolution Prototype and Function List</span></a>) is an extreme case of group
+convolution with number of groups <span class="math notranslate nohighlight">\(M\)</span> equal to number of input channels <span class="math notranslate nohighlight">\(Ci\)</span>, and
+with the single filter per each group. TensorFlow-like “channel multiplier”
+functionality of depthwise convolution can be expressed by group convolution
+with number of groups equal to input channels <span class="math notranslate nohighlight">\(Ci\)</span> and output channels <span class="math notranslate nohighlight">\(Co\)</span> equal to
+channel multiplier number of filters per each group.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For more details on group convolutions, see <a class="reference external" href="https://dl.acm.org/doi/10.1145/3065386">ImageNet classification with deep
+convolutional neural networks</a> and
+<a class="reference external" href="https://arxiv.org/abs/1611.05431">Aggregated Residual Transformations for Deep Neural Networks</a>.</p>
+</div>
+<p>Optionally, saturating ReLU activation function can be applied to the result of
+the convolution during the function’s execution. For more information on supported ReLU
+types and calculations, see <a class="reference internal" href="trans_relu.html#relu-prot"><span class="std std-ref">ReLU Prototype and Function List</span></a>.</p>
+<p>This is a MAC-based kernel which implies accumulation. See <a class="reference internal" href="../mli_api_data/data_formats.html#quant-accum-infl"><span class="std std-ref">Quantization: Influence of Accumulator Bit Depth</span></a> for more information on related quantization aspects.
+The Number of accumulation series is equal to <span class="math notranslate nohighlight">\((Hk * Wk * Cw)\)</span>.</p>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<p>Kernels which implement a group convolution have the following prototype:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">mli_status</span> <span class="n">mli_krn_group_conv2d_hwcn_</span><span class="o">&lt;</span><span class="n">data_format</span><span class="o">&gt;</span><span class="p">(</span>
+   <span class="k">const</span> <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">in</span><span class="p">,</span>
+   <span class="k">const</span> <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">weights</span><span class="p">,</span>
+   <span class="k">const</span> <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">bias</span><span class="p">,</span>
+   <span class="k">const</span> <span class="n">mli_conv2d_cfg</span> <span class="o">*</span><span class="n">cfg</span><span class="p">,</span>
+   <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">out</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">data_type</span></code> is one of the data types listed in Table <a class="reference internal" href="../mli_api_data/data_formats.html#mli-data-fmts"><span class="std std-ref">MLI Data Formats</span></a> and the function
+parameters are shown in the following table:</p>
+<table class="colwidths-auto docutils align-center" id="id1">
+<caption><span class="caption-text">Group Convolution Function Parameters</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Parameter</strong></p></th>
+<th class="head"><p><strong>Type</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">in</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mli_tensor</span> <span class="pre">*</span></code></p></td>
+<td><p>[IN] Pointer to constant input tensor.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">weights</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mli_tensor</span> <span class="pre">*</span></code></p></td>
+<td><p>[IN] Pointer to constant weights tensor.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bias</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mli_tensor</span> <span class="pre">*</span></code></p></td>
+<td><p>[IN] Pointer to constant bias tensor.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">cfg</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mli_conv2d_cfg</span> <span class="pre">*</span></code></p></td>
+<td><p>[IN] Pointer to convolution parameters structure.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">out</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mli_tensor</span> <span class="pre">*</span></code></p></td>
+<td><p>[IN | OUT] Pointer to output feature map tensor.
+Result is stored here</p></td>
+</tr>
+</tbody>
+</table>
+<p>Number of groups to split is not provided to the kernel explicitly. Instead, it
+is derived from input and weights tensors shape. For example, in a HWCN data
+layout, if the <code class="docutils literal notranslate"><span class="pre">in</span></code> feature map is <span class="math notranslate nohighlight">\((Hi, Wi, Ci)\)</span> and the <code class="docutils literal notranslate"><span class="pre">weights</span></code>
+tensor is <span class="math notranslate nohighlight">\((Hk, Wk, Cw, Co)\)</span>, number of groups is <span class="math notranslate nohighlight">\(M = Ci / Cw\)</span>, and
+number of filters per each group is <span class="math notranslate nohighlight">\(Co / M\)</span>.
+Therefore, number of input channels <span class="math notranslate nohighlight">\(Ci\)</span> must be a multiple of <span class="math notranslate nohighlight">\(Cw\)</span>, and number of
+output channels <span class="math notranslate nohighlight">\(Co\)</span> must be a multiple of number of groups <span class="math notranslate nohighlight">\(M\)</span>.</p>
+<p>Here is a list of all available Group Convolution functions:</p>
+<table class="longtable docutils align-center" id="id2">
+<caption><span class="caption-text">List of Available Group Convolution Functions</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 57%" />
+<col style="width: 43%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Function Name</p></th>
+<th class="head"><p>Details</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mli_krn_group_conv2d_hwcn_sa8_sa8_sa32</span></code></p></td>
+<td><p>In/out layout: <strong>HWC</strong></p>
+<p>Weights layout: <strong>HWCN</strong></p>
+<p>In/out/weights data type: <strong>sa8</strong></p>
+<p>Bias data type: <strong>sa32</strong></p>
+</td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mli_krn_group_conv2d_hwcn_fx16</span></code></p></td>
+<td><p>In/out layout: <strong>HWC</strong></p>
+<p>Weights layout: <strong>HWCN</strong></p>
+<p>All tensors data type: <strong>fx16</strong></p>
+</td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mli_krn_group_conv2d_hwcn_fx16_fx8_fx8</span></code></p></td>
+<td><p>In/out layout: <strong>HWC</strong></p>
+<p>Weights layout: <strong>HWCN</strong></p>
+<p>In/out data format: <strong>fx16</strong></p>
+<p>Weights/Bias data format: <strong>fx8</strong></p>
+</td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mli_krn_group_conv2d_hwcn_fx16_k3x3</span></code></p></td>
+<td><p>In/out layout: <strong>HWC</strong></p>
+<p>Weights layout: <strong>HWCN</strong></p>
+<p>All tensors data format: <strong>fx16</strong></p>
+<p>Width of weights tensor: <strong>3</strong></p>
+<p>Height of weights tensor: <strong>3</strong></p>
+</td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mli_krn_group_conv2d_hwcn_sa8_sa8_sa32_k3x3</span></code></p></td>
+<td><p>In/out layout: <strong>HWC</strong></p>
+<p>Weights layout: <strong>HWCN</strong></p>
+<p>In/out/weights data format: <strong>sa8</strong></p>
+<p>Bias data format: <strong>sa32</strong></p>
+<p>Width of weights tensor: <strong>3</strong></p>
+<p>Height of weights tensor: <strong>3</strong></p>
+</td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mli_krn_group_conv2d_hwcn_fx16_fx8_fx8_k3x3</span></code></p></td>
+<td><p>In/out layout: <strong>HWC</strong></p>
+<p>Weights layout: <strong>HWCN</strong></p>
+<p>In/out data format: <strong>fx16</strong></p>
+<p>Weights/Bias data format: <strong>fx8</strong></p>
+<p>Width of weights tensor: <strong>3</strong></p>
+<p>Height of weights tensor: <strong>3</strong></p>
+</td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mli_krn_group_conv2d_hwcn_sa8_sa8_sa32_k5x5</span></code></p></td>
+<td><p>In/out layout: <strong>HWC</strong></p>
+<p>Weights layout: <strong>HWCN</strong></p>
+<p>In/out/weights data format: <strong>sa8</strong></p>
+<p>Bias data format: <strong>sa32</strong></p>
+<p>Width of weights tensor: <strong>5</strong></p>
+<p>Height of weights tensor: <strong>5</strong></p>
+</td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mli_krn_group_conv2d_hwcn_fx16_k5x5</span></code></p></td>
+<td><p>In/out layout: <strong>HWC</strong></p>
+<p>Weights layout: <strong>HWCN</strong></p>
+<p>All tensors data format: <strong>fx16</strong></p>
+<p>Width of weights tensor: <strong>5</strong></p>
+<p>Height of weights tensor: <strong>5</strong></p>
+</td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mli_krn_group_conv2d_hwcn_fx16_fx8_fx8_k5x5</span></code></p></td>
+<td><p>In/out layout: <strong>HWC</strong></p>
+<p>Weights layout: <strong>HWCN</strong></p>
+<p>In/out data format: <strong>fx16</strong></p>
+<p>Weights/Bias data format: <strong>fx8</strong></p>
+<p>Width of weights tensor: <strong>5</strong></p>
+<p>Height of weights tensor: <strong>5</strong></p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="conditions">
+<h2>Conditions<a class="headerlink" href="#conditions" title="Permalink to this headline">¶</a></h2>
+<p>Ensure that you satisfy the following general conditions before calling the function:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">in</span></code>, <code class="docutils literal notranslate"><span class="pre">out</span></code>, <code class="docutils literal notranslate"><span class="pre">weights</span></code> and <code class="docutils literal notranslate"><span class="pre">bias</span></code> tensors must be valid (see <a class="reference internal" href="../mli_api_data/data_structures.html#mli-tnsr-struc"><span class="std std-ref">mli_tensor Structure Field Descriptions</span></a>)
+and satisfy data requirements of the selected version of the kernel.</p></li>
+<li><p>Shapes of <code class="docutils literal notranslate"><span class="pre">in</span></code>, <code class="docutils literal notranslate"><span class="pre">out</span></code>, <code class="docutils literal notranslate"><span class="pre">weights</span></code> and <code class="docutils literal notranslate"><span class="pre">bias</span></code> tensors must be compatible,
+which implies the following requirements:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">in</span></code> and <code class="docutils literal notranslate"><span class="pre">out</span></code> are 3-dimensional tensors (rank==3). Dimensions meaning,
+and order (layout) is aligned with the specifc version of kernel.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">weights</span></code> is a 4-dimensional tensor (rank==4). Dimensions meaning,
+and order (layout) is aligned with the specific kernel.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bias</span></code> must be a one-dimensional tensor (rank==1). Its length must be equal to
+<span class="math notranslate nohighlight">\(Co\)</span> (output channels OR number of filters).</p></li>
+<li><p>Channel <span class="math notranslate nohighlight">\(Ci\)</span> dimension of <code class="docutils literal notranslate"><span class="pre">in</span></code> tensor must be multiple <span class="math notranslate nohighlight">\(Cw\)</span> channel dimension
+of <code class="docutils literal notranslate"><span class="pre">weights</span></code> tensors (<span class="math notranslate nohighlight">\(Ci = M * Cw\)</span>).</p></li>
+<li><p><span class="math notranslate nohighlight">\(Co\)</span> of <code class="docutils literal notranslate"><span class="pre">weights</span></code> tensor (output channels OR number of filters) must be multiple of number of
+groups e.g. <span class="math notranslate nohighlight">\(Co = M * X\)</span> where <span class="math notranslate nohighlight">\(X\)</span> is the number of filters per group.</p></li>
+<li><p>Shapes of <code class="docutils literal notranslate"><span class="pre">in</span></code>, <code class="docutils literal notranslate"><span class="pre">out</span></code> and <code class="docutils literal notranslate"><span class="pre">weights</span></code> tensors together with <code class="docutils literal notranslate"><span class="pre">cfg</span></code> structure
+must satisfy the equations <a class="reference internal" href="convolution_grp.html#equation-eq-conv2d-shapes">(1)</a></p></li>
+<li><p>Effective width and height of the <code class="docutils literal notranslate"><span class="pre">weights</span></code> tensor after applying dilation factor
+(see <a class="reference internal" href="convolution_grp.html#equation-eq-conv2d-shapes">(1)</a>) must not exceed appropriate dimensions of the <code class="docutils literal notranslate"><span class="pre">in</span></code> tensor.</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">in</span></code> and <code class="docutils literal notranslate"><span class="pre">out</span></code> tensors must not point to overlapped memory regions.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mem_stride</span></code> of the innermost dimension must be equal to 1 for all the tensors.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">padding_top</span></code> and <code class="docutils literal notranslate"><span class="pre">padding_bottom</span></code> parameters must be in the range of [0, <span class="math notranslate nohighlight">\(\hat{Hk}\)</span>)
+where <span class="math notranslate nohighlight">\(\hat{Hk}\)</span> is the effective kernel height (See <a class="reference internal" href="convolution_grp.html#equation-eq-conv2d-shapes">(1)</a>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">padding_left</span></code> and <code class="docutils literal notranslate"><span class="pre">padding_right</span></code> parameters must be in the range of [0, <span class="math notranslate nohighlight">\(\hat{Wk}\)</span>)
+where <span class="math notranslate nohighlight">\(\hat{Wk}\)</span> is the effective kernel width (See <a class="reference internal" href="convolution_grp.html#equation-eq-conv2d-shapes">(1)</a>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stride_width</span></code> and <code class="docutils literal notranslate"><span class="pre">stride_height</span></code> parameters must not be equal to 0.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dilation_width</span></code> and <code class="docutils literal notranslate"><span class="pre">dilation_height</span></code> parameters must not be equal to 0.</p></li>
+</ul>
+</div></blockquote>
+<p>For <strong>fx16</strong> and <strong>fx16_fx8_fx8</strong> versions of kernel, in addition to the general conditions, ensure that you
+satisfy the following quantization conditions before calling the function:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>The number of <code class="docutils literal notranslate"><span class="pre">frac_bits</span></code> in the <code class="docutils literal notranslate"><span class="pre">bias</span></code> and <code class="docutils literal notranslate"><span class="pre">out</span></code> tensors must not exceed the sum of <code class="docutils literal notranslate"><span class="pre">frac_bits</span></code>
+in the <code class="docutils literal notranslate"><span class="pre">in</span></code> and <code class="docutils literal notranslate"><span class="pre">weights</span></code> tensors.</p></li>
+</ul>
+</div></blockquote>
+<p>For <strong>sa8_sa8_sa32</strong> versions of kernel, in addition to the general conditions, ensure that you
+satisfy the following quantization conditions before calling the function:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">in</span></code> and <code class="docutils literal notranslate"><span class="pre">out</span></code> tensor must be quantized on the tensor level. This implies that each tensor
+contains a single scale factor and a single zero offset.</p></li>
+<li><p>Zero offset of <code class="docutils literal notranslate"><span class="pre">in</span></code> and <code class="docutils literal notranslate"><span class="pre">out</span></code> tensors must be within [-128, 127] range.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">weights</span></code> and <code class="docutils literal notranslate"><span class="pre">bias</span></code> tensors must be symmetric. Both must be quantized on the same level.
+Allowed Options:</p>
+<ul>
+<li><p>Per Tensor level. This implies that each tensor contains a single scale factor and a single
+zero offset equal to 0.</p></li>
+<li><p>Per <span class="math notranslate nohighlight">\(Co\)</span> dimension level (number of filters). This implies that each tensor contains separate
+scale point for each sub-tensor. All tensors contain single zero offset equal to 0.</p></li>
+</ul>
+</li>
+<li><p>Scale factors of bias tensor must be equal to the multiplication of input scale factor
+broadcasted on weights array of scale factors.  See the example for the similar condition
+in the <a class="reference internal" href="conv_2d.html#conv-2d"><span class="std std-ref">Convolution 2D Prototype and Function List</span></a>.</p></li>
+</ul>
+</div></blockquote>
+<p>Ensure that you satisfy the platform-specific conditions in addition to those listed above
+(see the <a class="reference internal" href="../platform_specific/platform_hint_sum.html#platform-spec-chptr"><span class="std std-ref">Platform Specific Details</span></a> chapter).</p>
+</div>
+<div class="section" id="result">
+<h2>Result<a class="headerlink" href="#result" title="Permalink to this headline">¶</a></h2>
+<p>These functions only modify the memory pointed by <code class="docutils literal notranslate"><span class="pre">out.data.mem</span></code> field.
+It is assumed that all the other fields of <code class="docutils literal notranslate"><span class="pre">out</span></code> tensor are properly populated
+to be used in calculations and are not modified by the kernel.</p>
+<p>Depending on the debug level (see section <a class="reference internal" href="../mli_api_data/error_codes.html#err-codes"><span class="std std-ref">Error Codes</span></a>) this function performs a parameter
+check and returns the result as an <code class="docutils literal notranslate"><span class="pre">mli_status</span></code> code as described in section <a class="reference internal" href="../mli_api_data/data_structures.html#kernl-sp-conf"><span class="std std-ref">Kernel Specific Configuration Structures</span></a>.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="rec_fully_con_grp.html" class="btn btn-neutral float-right" title="Recurrent and Fully Connected Kernels Group" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="conv_transp.html" class="btn btn-neutral float-left" title="Transpose Convolution Prototype and Function List" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2021, Synopsys, Inc
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

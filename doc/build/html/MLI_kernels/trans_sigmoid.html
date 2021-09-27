@@ -1,44 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Sigmoid &mdash; embARC Machine Learning Inference Library 1.00 documentation</title>
+  <title>Sigmoid Prototype and Function List &mdash; embARC Machine Learning Library 2.0 2.00 documentation</title>
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
 
   
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../_static/style_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="TanH" href="trans_tanh.html" />
-    <link rel="prev" title="Leaky ReLU" href="trans_leaky_relu.html" /> 
+    <link rel="next" title="TanH Prototype and Function List" href="trans_tanh.html" />
+    <link rel="prev" title="Parametric ReLU (PReLU) Prototype and Function List" href="trans_param_relu.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -52,7 +52,7 @@
           
 
           
-            <a href="../index.html" class="icon icon-home"> embARC Machine Learning Inference Library
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> embARC Machine Learning Library 2.0
           
 
           
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                1.00
+                2.00
               </div>
             
           
@@ -79,6 +79,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -88,39 +89,41 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../whats_new/whats_new.html">What’s New in MLI 2.0 ?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../overview/overview.html">Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../getting_started/getting_started.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../library_model/library_model.html">Library Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../MLI_FP_data_format/MLI_FP_data_format.html">MLI Fixed-Point Data Format</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="MLI_kernels.html">MLI Kernels</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="convolution_grp.html">Convolution Group</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pooling_grp.html">Pooling Group</a></li>
-<li class="toctree-l2"><a class="reference internal" href="common_grp.html">Common Group</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="transform_grp.html">Transform Group</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="trans_relu.html">ReLU</a></li>
-<li class="toctree-l3"><a class="reference internal" href="trans_leaky_relu.html">Leaky ReLU</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Sigmoid</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#function-configuration-structure">Function Configuration Structure</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#kernel-interface">Kernel Interface</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#kernel-specializations">Kernel Specializations</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#conditions-for-applying-the-kernel">Conditions for Applying the Kernel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_api_data/mli_api_data.html">MLI API Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_kernels.html">MLI Kernels (Operators)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="convolution_grp.html">Convolution Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rec_fully_con_grp.html">Recurrent and Fully Connected Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pooling_grp.html">Pooling Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diverse_kernels_grp.html">Diverse Kernels Group</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="transform_grp.html">Transform (Activation) Kernels Group</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="trans_lut.html">Look-Up Tables (LUT) Manipulation Prototypes and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trans_relu.html">ReLU Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trans_leaky_relu.html">Leaky ReLU Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trans_param_relu.html">Parametric ReLU (PReLU) Prototype and Function List</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Sigmoid Prototype and Function List</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#functions">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#conditions">Conditions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#result">Result</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="trans_tanh.html">TanH</a></li>
-<li class="toctree-l3"><a class="reference internal" href="trans_softmax.html">SoftMax</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trans_tanh.html">TanH Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trans_softmax.html">Softmax Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trans_l2_norm.html">L2 Normalization Prototype and Function List</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="elementwise_grp.html">Element-wise Group</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data_manipulation_grp.html">Data Manipulation Group</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI Helpers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Examples_Tutorials/Examples_Tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="elemw_grp.html">Element-wise Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data_movement/data_movement.html">Data Movement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utility_functions/utility_functions.html">Utility Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../platform_specific/platform_hint_sum.html">Platform Specific Details</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -130,7 +133,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">embARC Machine Learning Inference Library</a>
+          <a href="../index.html">embARC Machine Learning Library 2.0</a>
         
       </nav>
 
@@ -159,19 +162,17 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-          <li><a href="MLI_kernels.html">MLI Kernels</a> &raquo;</li>
+          <li><a href="transform_grp.html">Transform (Activation) Kernels Group</a> &raquo;</li>
         
-          <li><a href="transform_grp.html">Transform Group</a> &raquo;</li>
-        
-      <li>Sigmoid</li>
+      <li>Sigmoid Prototype and Function List</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/MLI_kernels/trans_sigmoid.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/mli_kernels/trans_sigmoid.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -184,99 +185,150 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="sigmoid">
-<span id="id1"></span><h1>Sigmoid<a class="headerlink" href="#sigmoid" title="Permalink to this headline">¶</a></h1>
-<img alt="Logistic (Sigmoid) function" class="align-center" src="../_images/image152.png" />
-<p>This kernel performs sigmoid (also mentioned as logistic) activation
-function on input tensor element-wise and stores the result to the
-output tensor:</p>
+  <div class="section" id="sigmoid-prototype-and-function-list">
+<span id="sigmoid-prot"></span><h1>Sigmoid Prototype and Function List<a class="headerlink" href="#sigmoid-prototype-and-function-list" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>This kernel performs sigmoid (also called as logistic) activation function on input tensor
+element-wise and stores the result to the output tensor.</p>
 <div class="math notranslate nohighlight">
-\[f(x) = \frac{1}{1 + e^{- x}}\]</div>
-<p>where <span class="math notranslate nohighlight">\(\ x\ \)</span> - input value.</p>
-<p>The range of this function is (0, 1), and this kernel outputs completely
-fractional tensor of the same shape and type as input. For <code class="docutils literal notranslate"><span class="pre">fx8</span></code> type,
-the output holds 7 fractional bits, and 15 fractional bits for <code class="docutils literal notranslate"><span class="pre">fx16</span></code>
-type. Hence, the maximum representable value of SoftMax is
-equivalent to 0.9921875 for <code class="docutils literal notranslate"><span class="pre">fx8</span></code> output tensor, and to
-0.999969482421875 for <code class="docutils literal notranslate"><span class="pre">fx16</span></code> (not 1.0).</p>
-<p>This kernel can perform in-place computation: output and input can point
-to exactly the same memory (the same starting address).</p>
-<div class="section" id="function-configuration-structure">
-<span id="function-configuration-structure-9"></span><h2>Function Configuration Structure<a class="headerlink" href="#function-configuration-structure" title="Permalink to this headline">¶</a></h2>
-<p>No configuration structure for sigmoid kernel is required. All
-necessary information is provided by tensors.</p>
+\[y_{i} = \frac{1}{1 + e^{{- x}_{i}}}\]</div>
+<p>Where:</p>
+<blockquote>
+<div><p><span class="math notranslate nohighlight">\(x_{i}\)</span> <em>–</em> <span class="math notranslate nohighlight">\(i_{\text{th}}\)</span> <em>value in input tensor</em></p>
+<p><span class="math notranslate nohighlight">\(y_{i}\)</span> <em>–</em> <span class="math notranslate nohighlight">\(i_{\text{th}}\)</span> <em>value in output tensor</em></p>
+</div></blockquote>
+<p>This kernel uses a look-up table (LUTs) to perform data transformation.
+See <a class="reference internal" href="trans_lut.html#lut-prot"><span class="std std-ref">Look-Up Tables (LUT) Manipulation Prototypes and Function List</span></a> section and the pseudo-code sample for more details on LUT structure preparation.
+Use the following functions for the purpose:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="code docutils literal notranslate"><span class="pre">mli_krn_sigm_get_lut_size</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">mli_krn_sigm_create_lut</span></code></p></li>
+</ul>
+</div></blockquote>
 </div>
-<div class="section" id="kernel-interface">
-<span id="api-5"></span><h2>Kernel Interface<a class="headerlink" href="#kernel-interface" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="prototype">
-<h3>Prototype<a class="headerlink" href="#prototype" title="Permalink to this headline">¶</a></h3>
-<div class="code c highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mli_status</span> <span class="n">mli_krn_sigm_</span><span class="o">&lt;</span><span class="n">data_type</span><span class="o">&gt;</span><span class="p">(</span>
-   <span class="n">const</span> <span class="n">mli_tensor</span> <span class="o">*</span><span class="ow">in</span><span class="p">,</span>
-   <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">out</span><span class="p">);</span>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<p>Kernels which implement Sigmoid functions have the following prototype:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">mli_status</span> <span class="n">mli_krn_sigm_</span><span class="o">&lt;</span><span class="n">data_format</span><span class="o">&gt;</span><span class="p">(</span>
+   <span class="k">const</span> <span class="n">mli_tensor</span>  <span class="o">*</span><span class="n">in</span><span class="p">,</span>
+   <span class="k">const</span> <span class="n">mli_lut</span> <span class="o">*</span><span class="n">lut</span><span class="p">,</span>
+   <span class="n">mli_tensor</span>  <span class="o">*</span><span class="n">out</span><span class="p">);</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="parameters">
-<h3>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h3>
-<table border="1" class="colwidths-given docutils" id="id2">
-<caption><span class="caption-text">Kernel Interface Parameters</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
-<colgroup>
-<col width="13%" />
-<col width="87%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head"><strong>Parameters</strong></th>
-<th class="head"><strong>Description</strong></th>
+<p>where <code class="docutils literal notranslate"><span class="pre">data_format</span></code> is one of the data formats listed in Table <a class="reference internal" href="../mli_api_data/data_formats.html#mli-data-fmts"><span class="std std-ref">MLI Data Formats</span></a> and the function
+parameters are shown in the following table:</p>
+<table class="colwidths-auto docutils align-center" id="id1">
+<caption><span class="caption-text">Sigmoid Function Parameters</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Parameter</strong></p></th>
+<th class="head"><p><strong>Type</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">in</span></code></td>
-<td>[IN] Pointer to input
-tensor</td>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">in</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mli_tensor</span> <span class="pre">*</span></code></p></td>
+<td><p>[IN] Pointer to constant input tensor.</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">out</span></code></td>
-<td>[OUT] Pointer to
-output tensor for
-storing the result</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">lut</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mli_lut</span> <span class="pre">*</span></code></p></td>
+<td><p>[IN] Pointer to a valid LUT table
+structure prepared for sigmoid  activation.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">out</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mli_tensor</span> <span class="pre">*</span></code></p></td>
+<td><p>[IN | OUT] Pointer to output tensor.
+Result is stored here</p></td>
+</tr>
+</tbody>
+</table>
+<table class="colwidths-auto docutils align-center" id="id2">
+<caption><span class="caption-text">List of Available Sigmoid Functions</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Function Name</strong></p></th>
+<th class="head"><p><strong>Details</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mli_krn_sigm_sa8</span></code></p></td>
+<td><p>All tensors data format: <strong>sa8</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mli_krn_sigm_fx16</span></code></p></td>
+<td><p>All tensors data format: <strong>fx16</strong></p></td>
 </tr>
 </tbody>
 </table>
 </div>
-</div>
-<div class="section" id="kernel-specializations">
-<span id="kernel-specializations-5"></span><h2>Kernel Specializations<a class="headerlink" href="#kernel-specializations" title="Permalink to this headline">¶</a></h2>
-<table border="1" class="colwidths-given docutils" id="id3">
-<caption><span class="caption-text">Non-Specialized Functions</span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
-<colgroup>
-<col width="13%" />
-<col width="87%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head"><strong>Function</strong></th>
-<th class="head"><strong>Description</strong></th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">mli_krn_sigm_fx8</span></code></td>
-<td>General function; 8bit FX elements;</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">mli_krn_sigm_fx16</span></code></td>
-<td>General function; 16bit FX elements;</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section" id="conditions-for-applying-the-kernel">
-<span id="conditions-for-applying-the-kernel-5"></span><h2>Conditions for Applying the Kernel<a class="headerlink" href="#conditions-for-applying-the-kernel" title="Permalink to this headline">¶</a></h2>
-<p>Ensure that you satisfy the following conditions before applying the
-function:</p>
-<ul class="simple">
-<li>Input tensors must be valid (see <a class="reference internal" href="../library_model/data.html#mli-tns-struct"><span class="std std-ref">mli_tensor Structure</span></a>).</li>
-<li>Before processing, the output tensor must contain a valid pointer to
-a buffer with sufficient capacity for storing the result.
-Other fields are filled by kernel (shape, rank and element
-specific parameters).</li>
+<div class="section" id="conditions">
+<h2>Conditions<a class="headerlink" href="#conditions" title="Permalink to this headline">¶</a></h2>
+<p>Ensure that you satisfy the following general conditions before calling the function:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">in</span></code> and <code class="docutils literal notranslate"><span class="pre">out</span></code> tensors must be valid (see <a class="reference internal" href="../mli_api_data/data_structures.html#mli-tnsr-struc"><span class="std std-ref">mli_tensor Structure Field Descriptions</span></a>)
+and satisfy data requirements of the selected version of the kernel.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">in</span></code> and <code class="docutils literal notranslate"><span class="pre">out</span></code> tensors must be of the same shape</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lut</span></code> structure must be valid and prepared for the sigmoid activation function (see <a class="reference internal" href="trans_lut.html#lut-prot"><span class="std std-ref">Look-Up Tables (LUT) Manipulation Prototypes and Function List</span></a>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mem_stride</span></code> of the innermost dimension must be equal to 1 for all the tensors.</p></li>
 </ul>
+</div></blockquote>
+<p>For <strong>sa8</strong> versions of kernel, in addition to general conditions, ensure that you satisfy
+the following quantization conditions before calling the function:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">in</span></code> tensor must be quantized on the tensor level. This implies that the tensor contains
+a single scale factor and a single zero offset.</p></li>
+<li><p>Zero offset of <code class="docutils literal notranslate"><span class="pre">in</span></code> tensor must be within [-128, 127] range.</p></li>
+</ul>
+</div></blockquote>
+<p>Ensure that you satisfy the platform-specific conditions in addition to those listed above
+(see the <a class="reference internal" href="../platform_specific/platform_hint_sum.html#platform-spec-chptr"><span class="std std-ref">Platform Specific Details</span></a> chapter).</p>
+</div>
+<div class="section" id="result">
+<h2>Result<a class="headerlink" href="#result" title="Permalink to this headline">¶</a></h2>
+<p>These functions modify:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Memory pointed by <code class="docutils literal notranslate"><span class="pre">out.data.mem</span></code> field.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">el_params</span></code> field of <code class="docutils literal notranslate"><span class="pre">out</span></code> tensor.</p></li>
+</ul>
+</div></blockquote>
+<p>It is assumed that all the other fields and structures are properly populated
+to be used in calculations and are not modified by the kernel.</p>
+<p>The range of this function is (0, 1).  Depending on the data type, quantization parameters of the output
+tensor are configured in the following way:</p>
+<blockquote>
+<div><ul>
+<li><p><strong>fx16</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">out.el_params.fx.frac_bits</span></code> is set to 15. Hence, the maximum representable value of sigmoid is
+equivalent to 0.999969482421875 (not 1.0).</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><strong>sa8</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">out.el_params.sa.zero_point.mem.i16</span></code> is set to -128</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">out.el_params.sa.scale.mem.i16</span></code> is set to 1</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">out.el_params.sa.scale_frac_bits.mem.i8</span></code> is set to 8</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+<p>The kernel supports in-place computation. It means that <code class="docutils literal notranslate"><span class="pre">out</span></code> and <code class="docutils literal notranslate"><span class="pre">in</span></code> tensor structures
+can point to the same memory with the same memory strides but without shift.
+It can affect performance for some platforms.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Only an exact overlap of starting address and memory stride of the <code class="docutils literal notranslate"><span class="pre">in</span></code> and <code class="docutils literal notranslate"><span class="pre">out</span></code>
+tensors is acceptable. Partial overlaps result in undefined behavior.</p>
+</div>
+<p>Depending on the debug level (see section <a class="reference internal" href="../mli_api_data/error_codes.html#err-codes"><span class="std std-ref">Error Codes</span></a>) this function performs a parameter
+check and returns the result as an <code class="docutils literal notranslate"><span class="pre">mli_status</span></code> code as described in section <a class="reference internal" href="../mli_api_data/data_structures.html#kernl-sp-conf"><span class="std std-ref">Kernel Specific Configuration Structures</span></a>.</p>
 </div>
 </div>
 
@@ -288,10 +340,10 @@ specific parameters).</li>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="trans_tanh.html" class="btn btn-neutral float-right" title="TanH" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="trans_tanh.html" class="btn btn-neutral float-right" title="TanH Prototype and Function List" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="trans_leaky_relu.html" class="btn btn-neutral float-left" title="Leaky ReLU" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="trans_param_relu.html" class="btn btn-neutral float-left" title="Parametric ReLU (PReLU) Prototype and Function List" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -300,11 +352,19 @@ specific parameters).</li>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Synopsys, Inc
+        
+        &copy; Copyright 2021, Synopsys, Inc
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -315,7 +375,6 @@ specific parameters).</li>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

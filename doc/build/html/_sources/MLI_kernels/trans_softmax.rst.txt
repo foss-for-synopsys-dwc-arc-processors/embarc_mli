@@ -1,114 +1,155 @@
-.. _softmax:
+.. _softmax_prot:
 
-SoftMax
-~~~~~~~
+Softmax Prototype and Function List
+-----------------------------------
 
-.. image:: ../images/image156.png 
+Description
+^^^^^^^^^^^
+
+This kernel performs Softmax activation function that is a generalization of the 
+logistic function that transforms the input vector according to the following formula:
+
+.. math:: y_{i} = \frac{e^{x_{i}}}{\sum_{j}^{}e^{x_{j}}}
+
+Where:
+
+   :math:`x_{i}` *–* :math:`i_{\text{th}}` *value in input data subset*
+
+   :math:`x_{j}` *–* :math:`j_{\text{th}}` *value in the same input data
+   subset*
+
+   :math:`y_{i}` *–* :math:`i_{\text{th}}` *value in output data subset*
+	
+The softmax function might be applied to the whole tensor, or along a specific axis. 
+In the first case, all the input values are involved in the calculation of each output value. 
+If an axis is specified, then the softmax function is applied to each slice along the 
+specific axis independently. 
+
+This kernel uses a look-up table (LUTs) to perform data transformation. 
+See :ref:`lut_prot` section and the pseudo-code sample for more details on LUT structure preparation.
+Use the following functions for the purpose:
+
+ - :code:`mli_krn_softmax_get_lut_size`
+ - :code:`mli_krn_softmax_create_lut`
+
+Functions
+^^^^^^^^^
+
+Kernels which implement softmax functions have the following prototype:
+
+.. code:: c
+
+   mli_status mli_krn_softmax_<data_format>(
+      const mli_tensor *in,
+      const mli_lut *lut,
+      const mli_softmax_cfg *cfg,
+     mli_tensor *out);
+..
+
+where ``data_format`` is one of the data formats listed in Table :ref:`mli_data_fmts` and the function 
+parameters are shown in the following table:
+
+.. table:: Softmax Function Parameters
    :align: center
-   :alt: Softmax Function
-
+   :widths: auto
+   
+   +----------------+-------------------------+-----------------------------------------------+
+   | **Parameter**  | **Type**                | **Description**                               |
+   +================+=========================+===============================================+
+   | ``in``         | ``mli_tensor *``        | [IN] Pointer to constant input tensor.        |
+   +----------------+-------------------------+-----------------------------------------------+
+   | ``lut``        | ``mli_lut *``           | [IN] Pointer to a valid LUT table             |
+   |                |                         | structure prepared for softmax activation.    |
+   +----------------+-------------------------+-----------------------------------------------+
+   | ``cfg``        | ``mli_softmax_cfg *``   | [IN] Pointer to softmax parameters structure. |
+   +----------------+-------------------------+-----------------------------------------------+
+   | ``out``        | ``mli_tensor *``        | [IN | OUT] Pointer to output tensor.          |
+   |                |                         | Result is stored here                         |
+   +----------------+-------------------------+-----------------------------------------------+
 ..
 
-This kernel performs activation function that is a generalization of
-the logistic function that transforms input vector according to the following
-formula:
+``mli_softmax_cfg`` is defined as:
 
-.. math::
+.. code:: c
 
-   y_{i} = \frac{e^{x_{i}}}{\sum_{j}^{}e^{x_{j}}}
+   typedef mli_prelu_cfg mli_softmax_cfg;
+..
+  
+See Table :ref:`t_mli_prelu_cfg_desc` for more details.
+
+.. table:: List of Available Softmax Functions
+   :align: center
+   :widths: auto
    
+   +---------------------------+------------------------------------+
+   | **Function Name**         | **Details**                        |
+   +===========================+====================================+
+   | ``mli_krn_softmax_sa8``   | All tensors data format: **sa8**   |
+   +---------------------------+------------------------------------+
+   | ``mli_krn_softmax_fx16``  | All tensors data format: **fx16**  |
+   +---------------------------+------------------------------------+
 ..
 
-where
-  -  :math:`x_{i}\ ` - :math:`i_{\text{th}}` value in input tensor.
-  -  :math:`y_{i}\ ` - :math:`i_{\text{th}}` value in output tensor.
+Conditions
+^^^^^^^^^^
 
-   
-The SoftMax function is often used as the final layer of a neural
-network-based classifier and its output can be considered as a
-probability distribution over N different possible outcomes. The sum
-of all the entries across the last dimension tends to 1.
+Ensure that you satisfy the following general conditions before calling the function:
 
-For FX data type, the range of output values is [0, 1), and all
-non-sign bits are fractional. Output holds 7 fractional bits for fx8
-type, and 15 fractional bits for fx16 type. Hence, the
-maximum representable value of SoftMax is equivalent to 0.9921875 in
-case of fx8 output tensor, and to 0.999969482421875 in case of fx16
-(not 1.0).
+ - ``in`` and ``out`` tensors must be valid (see :ref:`mli_tnsr_struc`)
+   and satisfy data requirements of the used version of the kernel.
 
-This kernel outputs tensor of the same shape and type as input.
+ - ``in`` and ``out`` tensors must be of the same shape
 
-This kernel can perform in-place computation: output and input can
-point to exactly the same memory (the same starting address).
+ - ``lut`` structure must be valid and prepared for the softmax activation function (see :ref:`lut_prot`).
 
-.. _function-configuration-structure-11:
+ - ``mem_stride`` of the innermost dimension must be equal to 1 for all the tensors.
 
-Function Configuration Structure
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ - ``axis`` parameter of ``cfg`` structure can be negative and must be less than ``in`` tensor rank.
 
-No configuration structure for softmax kernel is required. All
-necessary information is provided by tensors.
+For **sa8** versions of kernel, in addition to general conditions, ensure that you satisfy 
+the following quantization conditions before calling the function:
 
-.. _api-7:
+ - ``in`` tensors must be quantized on the tensor level. This 
+   implies that the tensor contains a single scale factor and a single zero offset.
 
-Kernel Interface
-^^^^^^^^^^^^^^^^
+ - Zero offset of ``in`` tensor must be within [-128, 127] range.
 
-Prototype
-'''''''''
+Ensure that you satisfy the platform-specific conditions in addition to those listed above 
+(see the :ref:`platform_spec_chptr` chapter).
 
-.. code:: c                             
-                                        
- mli_status mli_krn_softmax_<data_type>(
-    const mli_tensor *in,               
-    mli_tensor *out);                   
+Result
+^^^^^^
 
-Parameters
-''''''''''
+These functions modify:
 
-.. table:: Kernel Interface Parameters
-   :widths: 20,130
-   
-   +-----------------------+-----------------------+
-   | **Parameters**        | **Description**       |
-   +=======================+=======================+
-   |                       |                       |
-   | ``in``                | [IN] Pointer to input |
-   |                       | tensor                |
-   +-----------------------+-----------------------+
-   |                       |                       |
-   | ``out``               | [OUT] Pointer to      |
-   |                       | output tensor. Result |
-   |                       | is stored here        |
-   +-----------------------+-----------------------+
+ - Memory pointed by ``out.data.mem`` field.  
+ - ``el_params`` field of ``out`` tensor. 
 
-.. _kernel-specializations-7:
+The range of this function is (0, 1).  Depending on the data type, quantization parameters of the output 
+tensor are configured in the following way:
 
-Kernel Specializations
-^^^^^^^^^^^^^^^^^^^^^^
+ - **fx16**
 
-.. table:: Non-Specialized Functions
-   :widths: 20,130
+    - ``out.el_params.fx.frac_bits`` is set to 15. Hence, the maximum representable value of softmax is
+      equivalent to 0.999969482421875 (not 1.0).
 
-   +--------------------------+--------------------------------------+
-   | **Function**             | **Description**                      |
-   +==========================+======================================+
-   | ``mli_krn_softmax_fx8``  | General function; 8bit FX elements;  |
-   +--------------------------+--------------------------------------+
-   | ``mli_krn_softmax_fx16`` | General function; 16bit FX elements; |
-   +--------------------------+--------------------------------------+
+ - **sa8**
 
-.. _conditions-for-applying-the-kernel-7:
+    - ``out.el_params.sa.zero_point.mem.i16`` is set to -128
 
-Conditions for Applying the Kernel
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    - ``out.el_params.sa.scale.mem.i16`` is set to 1
 
-Ensure that you satisfy the following conditions before applying the
-function:
+    - ``out.el_params.sa.scale_frac_bits.mem.i8`` is set to 8
 
--  Input tensors must be valid (see :ref:`mli_tns_struct`).
+The kernel supports in-place computation. It means that ``out`` and ``in`` tensor structures 
+can point to the same memory with the same memory strides but without shift.
+It can affect performance for some platforms.
 
--  Before processing, the output tensor must contain a valid pointer to
-   a buffer with sufficient capacity for storing the result.
-   Other fields are filled by kernel (shape, rank and element
-   specific parameters).
+.. warning::
+
+  Only an exact overlap of starting address and memory stride of the ``in`` and ``out`` 
+  tensors is acceptable. Partial overlaps result in undefined behavior.
+..
+
+Depending on the debug level (see section :ref:`err_codes`) this function performs a parameter 
+check and returns the result as an ``mli_status`` code as described in section :ref:`kernl_sp_conf`.

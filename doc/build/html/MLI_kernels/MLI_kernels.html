@@ -1,44 +1,43 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>MLI Kernels &mdash; embARC Machine Learning Inference Library 1.00 documentation</title>
+  <title>MLI Kernels (Operators) &mdash; embARC Machine Learning Library 2.0 2.00 documentation</title>
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
 
   
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../_static/style_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Convolution Group" href="convolution_grp.html" />
-    <link rel="prev" title="MLI Fixed-Point Data Format" href="../MLI_FP_data_format/MLI_FP_data_format.html" /> 
+    <link rel="next" title="Convolution Kernels Group" href="convolution_grp.html" />
+    <link rel="prev" title="Debug Modes" href="../mli_api_data/debug_modes.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -52,7 +51,7 @@
           
 
           
-            <a href="../index.html" class="icon icon-home"> embARC Machine Learning Inference Library
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> embARC Machine Learning Library 2.0
           
 
           
@@ -62,7 +61,7 @@
             
             
               <div class="version">
-                1.00
+                2.00
               </div>
             
           
@@ -79,6 +78,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -88,26 +88,29 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../whats_new/whats_new.html">What’s New in MLI 2.0 ?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../overview/overview.html">Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../getting_started/getting_started.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../library_model/library_model.html">Library Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../MLI_FP_data_format/MLI_FP_data_format.html">MLI Fixed-Point Data Format</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">MLI Kernels</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="convolution_grp.html">Convolution Group</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pooling_grp.html">Pooling Group</a></li>
-<li class="toctree-l2"><a class="reference internal" href="common_grp.html">Common Group</a></li>
-<li class="toctree-l2"><a class="reference internal" href="transform_grp.html">Transform Group</a></li>
-<li class="toctree-l2"><a class="reference internal" href="elementwise_grp.html">Element-wise Group</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data_manipulation_grp.html">Data Manipulation Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_api_data/mli_api_data.html">MLI API Data</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">MLI Kernels (Operators)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#function-names-and-specializations">Function Names and Specializations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#a-note-on-slicing">A Note on Slicing</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI Helpers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Examples_Tutorials/Examples_Tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="convolution_grp.html">Convolution Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rec_fully_con_grp.html">Recurrent and Fully Connected Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pooling_grp.html">Pooling Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diverse_kernels_grp.html">Diverse Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transform_grp.html">Transform (Activation) Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="elemw_grp.html">Element-wise Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data_movement/data_movement.html">Data Movement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utility_functions/utility_functions.html">Utility Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../platform_specific/platform_hint_sum.html">Platform Specific Details</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -117,7 +120,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">embARC Machine Learning Inference Library</a>
+          <a href="../index.html">embARC Machine Learning Library 2.0</a>
         
       </nav>
 
@@ -146,15 +149,15 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>MLI Kernels</li>
+      <li>MLI Kernels (Operators)</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/MLI_kernels/MLI_kernels.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/mli_kernels/mli_kernels.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -167,48 +170,177 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="mli-kernels">
-<h1>MLI Kernels<a class="headerlink" href="#mli-kernels" title="Permalink to this headline">¶</a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="convolution_grp.html">Convolution Group</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="convolution_2d.html">Convolution 2D</a></li>
-<li class="toctree-l2"><a class="reference internal" href="convolution_depthwise.html">Depth-wise Convolution</a></li>
+  <div class="section" id="mli-kernels-operators">
+<span id="mli-kernels"></span><h1>MLI Kernels (Operators)<a class="headerlink" href="#mli-kernels-operators" title="Permalink to this headline">¶</a></h1>
+<p>This chapter introduces into a general concept of ML algorithms (kernels) included in MLI 2.0.</p>
+<p>Each kernel is implemented as a separate function, and inputs and outputs are
+represented by the tensor structure defined in section <a class="reference internal" href="../mli_api_data/data_structures.html#mli-tens-data-struct"><span class="std std-ref">mli_tensor Structure</span></a>.
+A kernel can have multiple specializations, each implemented as a separate function.
+As a result, the neural network graph implementation is represented as series of
+function calls, which can either be constructed manually by the user or via some
+automated front-end tool.</p>
+<p>The following groups of NN kernels are defined:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="convolution_grp.html#chap-conv"><span class="std std-ref">Convolution Kernels Group</span></a></p></li>
+<li><p><a class="reference internal" href="rec_fully_con_grp.html#chap-rec-full"><span class="std std-ref">Recurrent and Fully Connected Kernels Group</span></a></p></li>
+<li><p><a class="reference internal" href="pooling_grp.html#chap-pool"><span class="std std-ref">Pooling Kernels Group</span></a></p></li>
+<li><p><a class="reference internal" href="diverse_kernels_grp.html#chap-diverse-kern"><span class="std std-ref">Diverse Kernels Group</span></a></p></li>
+<li><p><a class="reference internal" href="transform_grp.html#chap-transform"><span class="std std-ref">Transform (Activation) Kernels Group</span></a></p></li>
+<li><p><a class="reference internal" href="elemw_grp.html#chap-element-wise"><span class="std std-ref">Element-wise Kernels Group</span></a></p></li>
 </ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="pooling_grp.html">Pooling Group</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="pooling_max.html">MAX-Pooling</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pooling_avg.html">Average-Pooling</a></li>
+</div></blockquote>
+<div class="section" id="function-names-and-specializations">
+<span id="func-names-special"></span><h2>Function Names and Specializations<a class="headerlink" href="#function-names-and-specializations" title="Permalink to this headline">¶</a></h2>
+<p>All function names of the kernels are constructed in a similar way. To make it easier to
+navigate through the list of API functions, all function names are built using the
+following syntax:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">mli_</span><span class="o">&lt;</span><span class="n">group</span><span class="o">&gt;</span><span class="n">_</span><span class="o">&lt;</span><span class="n">function</span><span class="o">&gt;</span><span class="n">_</span><span class="p">[</span><span class="n">layout_</span><span class="p">]</span><span class="o">&lt;</span><span class="n">dataformats</span><span class="o">&gt;</span><span class="p">[</span><span class="n">_specializations</span><span class="p">]([</span><span class="n">input_tensors</span><span class="p">],[</span><span class="n">cfg</span><span class="p">],[</span><span class="n">output_tensors</span><span class="p">]);</span>
+</pre></div>
+</div>
+<p>An explanation of each of the preceding elements which make up a name is provided in Table <a class="reference internal" href="#t-func-name-conv-fields"><span class="std std-ref">Function Naming Convention Fields</span></a>.
+The function arguments start with zero or more input tensors, followed by a kernel specific
+configuration struct, followed by the output tensors. All the function parameters are
+grouped inside the config structure.</p>
+<span id="t-func-name-conv-fields"></span><table class="longtable docutils align-center" id="id1">
+<caption><span class="caption-text">Function Naming Convention Fields</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 23%" />
+<col style="width: 52%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Field Name</strong></p></th>
+<th class="head"><p><strong>Examples</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Group</p></td>
+<td><p>krn</p>
+<p>hlp</p>
+<p>mov</p>
+<p>usr</p>
+</td>
+<td><p>krn for compute kernels</p>
+<p>hlp for helper functions</p>
+<p>mov for data move kernels</p>
+<p>usr for user-defined kernels.</p>
+</td>
+</tr>
+<tr class="row-odd"><td><p>Functions</p></td>
+<td><p>conv2d</p>
+<p>fully_connected
+…</p>
+</td>
+<td><p>Describes the basic functionality.</p>
+<p>Full list of supported function
+names is described later</p>
+</td>
+</tr>
+<tr class="row-even"><td><p>layout</p></td>
+<td><p>chw</p>
+<p>hwcn</p>
+<p>nhwc</p>
+</td>
+<td><p>Optional description of the layout</p>
+<p>of the input, only relevant for some</p>
+<p>functions</p>
+</td>
+</tr>
+<tr class="row-odd"><td><p>dataformats</p></td>
+<td><p>fx16</p>
+<p>sa8_sa8_sa32</p>
+<p>sa8</p>
+</td>
+<td><p>Specifies the tensor data formats.</p>
+<p>In case of multiple input tensors</p>
+<p>with different data formats, the
+format of each tensor is specified
+in the same order as the function
+arguments. (for details see
+<a class="reference internal" href="../mli_api_data/data_structures.html#t-mli-el-p-union"><span class="std std-ref">mli_element_params Union Field Description</span></a>).</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The naming convention for the data formats is as follows and in <a class="reference internal" href="#t-data-fmt-fields"><span class="std std-ref">Data Format Naming Convention Fields</span></a>:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">typename</span><span class="o">&gt;&lt;</span><span class="n">containersize</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<span id="t-data-fmt-fields"></span><table class="docutils align-center" id="id2">
+<caption><span class="caption-text">Data Format Naming Convention Fields</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 22%" />
+<col style="width: 56%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Field Name</strong></p></th>
+<th class="head"><p><strong>Examples</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>typename</p></td>
+<td><p><strong>fx</strong></p>
+<p><strong>sa</strong></p>
+<p><strong>fp</strong></p>
+</td>
+<td><p>Specifies which quantization schema is used:</p>
+<ul class="simple">
+<li><p>fx for Fixed point</p></li>
+<li><p>sa for Signed Asymmetric</p></li>
+<li><p>fp for Floating Point</p></li>
 </ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="common_grp.html">Common Group</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="comm_fully_connected.html">Fully Connected</a></li>
-<li class="toctree-l2"><a class="reference internal" href="comm_basic_rnn.html">Basic RNN Cell</a></li>
-<li class="toctree-l2"><a class="reference internal" href="comm_lstm.html">Long Short Term Memory (LSTM) Cell</a></li>
+</td>
+</tr>
+<tr class="row-odd"><td><p>containersize</p></td>
+<td><p>1, 4, 8, 16, 32</p></td>
+<td><p>Container size in bits of each individual
+element.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The following convention is applied to the layout field:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>If MLI kernel implies using only three-dimensional variable tensors as input/output,
+function name should reflect layout of input and output tensors. Layout of input
+and output must be the same.</p></li>
+<li><p>If MLI kernel implies using four-dimensional weights tensor in addition to three-dimensional
+input/output tensors, function name should reflect layout of weights tensor.</p></li>
 </ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="transform_grp.html">Transform Group</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="trans_relu.html">ReLU</a></li>
-<li class="toctree-l2"><a class="reference internal" href="trans_leaky_relu.html">Leaky ReLU</a></li>
-<li class="toctree-l2"><a class="reference internal" href="trans_sigmoid.html">Sigmoid</a></li>
-<li class="toctree-l2"><a class="reference internal" href="trans_tanh.html">TanH</a></li>
-<li class="toctree-l2"><a class="reference internal" href="trans_softmax.html">SoftMax</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="elementwise_grp.html">Element-wise Group</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="elem_add.html">Element-wise Add</a></li>
-<li class="toctree-l2"><a class="reference internal" href="elem_sub.html">Element-wise Subtraction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="elem_maxmin.html">Element-wise MAX/MIN</a></li>
-<li class="toctree-l2"><a class="reference internal" href="elem_mult.html">Element-wise Multiplication</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="data_manipulation_grp.html">Data Manipulation Group</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="data_manip_concat.html">Concatenation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data_manip_permute.html">Permute</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data_manip_pad2d.html">Padding 2D</a></li>
-</ul>
-</li>
-</ul>
+</div></blockquote>
+</div>
+<div class="section" id="a-note-on-slicing">
+<h2>A Note on Slicing<a class="headerlink" href="#a-note-on-slicing" title="Permalink to this headline">¶</a></h2>
+<p>The kernels described in the following sections of this document have no notion of
+slicing (also referred to as tiling).  Instead, the responsibility of slicing is left to
+the caller, which can be either application code, some higher-level API or graph-compiler
+generated. For cores with any sort of closely-coupled memory (CCMs), the kernels assume
+that all the input tensors are in CCM. The output tensor can be either in system memory
+or in CCM.</p>
+<p>Slicing is required in case there is not enough space in CCM to fit the complete input
+tensors. In this case, the caller can copy a ‘slice’ of the input tensor into CCM, and
+the kernel produces a slice of the output tensor. These output slices can be combined
+into a full tensor. Because the tensor data does not have to be contiguous in memory,
+it is possible to create a (slice) tensor that points to a subset of the data of a larger
+tensor. For instance, if the output tensor is in system memory, each invocation of the
+kernel that computes a slice can write its output directly into the correct (slice)
+of the output tensor. This eliminates the need for an extra concatenation copy pass.
+The slicing concept is illustrated in Figure <a class="reference internal" href="#f-slicing-concept"><span class="std std-ref">Slicing Concept</span></a>.</p>
+<div class="figure align-center" id="id3">
+<span id="f-slicing-concept"></span><img alt="../_images/slicing_concept.png" src="../_images/slicing_concept.png" />
+<p class="caption"><span class="caption-text">Slicing Concept</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+</div>
+<p>If the tensors don’t fit into CCM, and there is no data cache, the data move functions can
+be used to copy full tensors or slices of tensors. (see Chapter <a class="reference internal" href="../data_movement/data_movement.html#data-mvmt"><span class="std std-ref">Data Movement</span></a> ). Slicing
+with some kernels requires updating the kernel parameters when passing each slice.</p>
+<p>The number of elements to the next dimension is stored in the <code class="docutils literal notranslate"><span class="pre">mem_stride</span></code> field
+(as described in <a class="reference internal" href="../mli_api_data/data_structures.html#mli-tnsr-struc"><span class="std std-ref">mli_tensor Structure Field Descriptions</span></a>). In case there is no slicing or concatenation,
+the <code class="docutils literal notranslate"><span class="pre">mem_stride</span></code> field is populated in alignement with the shape values to reflect
+the offsets in the data buffers for each dimension.</p>
 </div>
 </div>
 
@@ -220,10 +352,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="convolution_grp.html" class="btn btn-neutral float-right" title="Convolution Group" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="convolution_grp.html" class="btn btn-neutral float-right" title="Convolution Kernels Group" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="../MLI_FP_data_format/MLI_FP_data_format.html" class="btn btn-neutral float-left" title="MLI Fixed-Point Data Format" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="../mli_api_data/debug_modes.html" class="btn btn-neutral float-left" title="Debug Modes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -232,11 +364,19 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Synopsys, Inc
+        
+        &copy; Copyright 2021, Synopsys, Inc
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -247,7 +387,6 @@
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

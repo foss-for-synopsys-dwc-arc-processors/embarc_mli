@@ -16,4 +16,6 @@ example_har_smartphone/MIDE_EM/.settings/*
 *.db
 .project
 .vscode
-obj/*.d
+obj/*
+bin/*
+package.zip

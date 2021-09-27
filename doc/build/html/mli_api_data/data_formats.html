@@ -1,0 +1,469 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Data Formats &mdash; embARC Machine Learning Library 2.0 2.00 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/style_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Data Layouts" href="data_layouts.html" />
+    <link rel="prev" title="MLI API Data" href="mli_api_data.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> embARC Machine Learning Library 2.0
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.00
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../whats_new/whats_new.html">What’s New in MLI 2.0 ?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview/overview.html">Overview</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="mli_api_data.html">MLI API Data</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Data Formats</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#fixed-point-category">Fixed Point Category</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#asymmetric-integral-category">Asymmetric Integral category</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#quantization-influence-of-accumulator-bit-depth">Quantization: Influence of Accumulator Bit Depth</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="data_layouts.html">Data Layouts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_structures.html">Data Structures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="error_codes.html">Error Codes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="debug_modes.html">Debug Modes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/mli_kernels.html">MLI Kernels (Operators)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/convolution_grp.html">Convolution Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/rec_fully_con_grp.html">Recurrent and Fully Connected Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/pooling_grp.html">Pooling Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/diverse_kernels_grp.html">Diverse Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/transform_grp.html">Transform (Activation) Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/elemw_grp.html">Element-wise Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data_movement/data_movement.html">Data Movement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utility_functions/utility_functions.html">Utility Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../platform_specific/platform_hint_sum.html">Platform Specific Details</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">embARC Machine Learning Library 2.0</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="mli_api_data.html">MLI API Data</a> &raquo;</li>
+        
+      <li>Data Formats</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/mli_api_data/data_formats.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="data-formats">
+<span id="data-fmts"></span><h1>Data Formats<a class="headerlink" href="#data-formats" title="Permalink to this headline">¶</a></h1>
+<p>This section describes the set of possible data formats present in the MLI interface.
+Hereinafter, ‘data format’ means the way of representing individual values which are
+grouped into the tensor structure (see section <a class="reference internal" href="data_structures.html#mli-tens-data-struct"><span class="std std-ref">mli_tensor Structure</span></a> ). The table
+<a class="reference internal" href="#mli-data-fmts"><span class="std std-ref">MLI Data Formats</span></a> summarizes the data formats and the following sections describe
+these data formats in detail.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The data formats in this table do NOT imply unique implementations of MLI kernels
+for each data format.  The last column in the table describes each the purpose of
+each data format. The available set of kernels is described in <a class="reference internal" href="../mli_kernels/mli_kernels.html#mli-kernels"><span class="std std-ref">MLI Kernels (Operators)</span></a>.</p>
+</div>
+<span id="mli-data-fmts"></span><table class="colwidths-auto docutils align-center" id="id1">
+<caption><span class="caption-text">MLI Data Formats</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Format</strong>
+<strong>Category</strong></p></th>
+<th class="head"><p><strong>Data</strong>
+<strong>Format</strong></p></th>
+<th class="head"><p><strong>C Type</strong>
+<strong>Container</strong></p></th>
+<th class="head"><p><strong>Format</strong>
+<strong>Name</strong></p></th>
+<th class="head"><p><strong>Quantization</strong>
+<strong>Granularity</strong></p></th>
+<th class="head"><p><strong>Usage in MLI 2.0</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td rowspan="2"><p>Fixed Point</p></td>
+<td><p>fx16</p></td>
+<td><p>int16_t</p></td>
+<td><p>16-bit
+fixed point</p></td>
+<td><p>Per-tensor</p></td>
+<td><p>Used as main 16-bit
+data format for kernel
+inputs and outputs</p></td>
+</tr>
+<tr class="row-odd"><td><p>fx8</p></td>
+<td><p>int8_t</p></td>
+<td><p>8-bit
+fixed point</p></td>
+<td><p>Per-tensor</p></td>
+<td><p>Only in conversion
+function and in
+combination with fx16</p></td>
+</tr>
+<tr class="row-even"><td rowspan="2"><p>Asymmetric
+Integral</p></td>
+<td><p>sa32</p></td>
+<td><p>int32_t</p></td>
+<td><p>32-bit
+signed
+symmetric</p></td>
+<td><p>Per-tensor
+Per-axis</p></td>
+<td><p>Used only for bias
+inputs to kernels</p></td>
+</tr>
+<tr class="row-odd"><td><p>sa8</p></td>
+<td><p>int8_t</p></td>
+<td><p>8-bit
+signed
+symmetric</p></td>
+<td><p>Per-tensor
+Per-axis</p></td>
+<td><p>Used as main 8-bit
+data format for kernel
+inputs and outputs</p></td>
+</tr>
+<tr class="row-even"><td><p>Floating
+Point</p></td>
+<td><p>fp32</p></td>
+<td><p>float</p></td>
+<td><p>32-bit
+floating
+point</p></td>
+<td><p>Per-value</p></td>
+<td><p>Only in conversion
+function as interface
+between MLI and user
+code</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Quantization Granularity – The way in which quantization parameters (exponent,
+fractional bits, and so on) are shared between values.</p>
+<p>Possible entities:</p>
+<ul class="simple">
+<li><p>Per-tensor: All values in tensor shares the same quantization parameters</p></li>
+<li><p>Per-axis: All values in tensor across one of axis shares the same quantization
+parameters (most typical example – per channel quantization)</p></li>
+<li><p>Per-value: Each individual value is configured with its own set of quantization
+parameters</p></li>
+</ul>
+</div>
+<div class="section" id="fixed-point-category">
+<h2>Fixed Point Category<a class="headerlink" href="#fixed-point-category" title="Permalink to this headline">¶</a></h2>
+<p>The Fixed-Point category includes <code class="docutils literal notranslate"><span class="pre">fx16</span></code> and <code class="docutils literal notranslate"><span class="pre">fx8</span></code> data formats. They are the
+default MLI Fixed-point data format and reflects general signed values interpreted
+by the typical <a class="reference external" href="https://en.wikipedia.org/wiki/Q_(number_format)">Q notation</a>.
+The following designation is typically used:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Value of Qm.n format have m bits for integer part (excluding sign bit), and
+n bits for fractional part.</p></li>
+<li><p>Value of Q.n format have n bits for fractional part. The rest m non-sign bits
+are assumed to hold an integer part.</p></li>
+</ul>
+</div></blockquote>
+<p>The container of the value is always a signed two’s complemented integer number.
+Approximation of single precision floating point value and backward transformation
+are performed by the following formula:</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}x_{fx} &amp;= Round(x_{fp32} * 2^n)\\x_{fp32} &amp;= \frac{x_{{fx}}}{2^{n}}\end{aligned}\end{align} \]</div>
+<blockquote>
+<div><p>where <span class="math notranslate nohighlight">\(x_{fp32}\)</span> <em>-</em> single precision floating point value</p>
+<blockquote>
+<div><p><span class="math notranslate nohighlight">\(x_{fx}\)</span> <em>-</em> fixed point value</p>
+<p><span class="math notranslate nohighlight">\(n\)</span> <em>-</em> the number of fractional bits</p>
+<p><span class="math notranslate nohighlight">\(Round(\ldots)\)</span> <em>-</em> rounding to integer value</p>
+</div></blockquote>
+</div></blockquote>
+<p><span class="math notranslate nohighlight">\(2^{n}\)</span> represents 1.0 in FX format and also might be obtained by shifting <span class="math notranslate nohighlight">\(1 &lt;&lt;  n\)</span>.
+Rounding mode (nearest, up, convergence, truncated, and so on) affects only FX representation precision
+and can be platform specific. If the calculated <span class="math notranslate nohighlight">\(x_{fx}\)</span> fixed point value exceeds container type
+range, it must be saturated. In case of immediate forward/backward conversion, <span class="math notranslate nohighlight">\(x_{fp32}\)</span> might be
+not equal to the original one due to rounding and saturation operations. Only per-tensor
+quantization granularity is supported for these data formats, which means that all values in the
+tensor share the same quantization parameters (number of fractional bits).</p>
+<p>An addition of two <span class="math notranslate nohighlight">\({fx}\)</span> values might result in overflow if all bits of operands are used and both
+operands hold the maximum (or minimum) values. It means that an extra bit is required for this
+operation. But if the sum of several operands is needed (accumulation), more than one extra bit is
+required to ensure that the result does not overflow. Assuming that all operands of the same
+format, the number of extra bits is defined based on the number of additions to be done:</p>
+<div class="math notranslate nohighlight">
+\[extra\_ bits = Ceil({\log}_{2}(number\_ of\_ operands))\]</div>
+<p>Where <span class="math notranslate nohighlight">\(Ceil(x)\)</span> – function rounds up x to the smallest integer value that is not less
+than x. From notation point of view, these extra bits are added to the integer part.</p>
+<div class="admonition tip">
+<p class="admonition-title">Example</p>
+<p>For 34 values in Q3.4 format to be accumulated, the number of extra bits is computed as:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\text{Ceil}(log_2 34) = ceil(5.09) = 6\)</span></p></li>
+<li><p>Result format is: Q9.4 (since 3+6=9)</p></li>
+</ul>
+</div>
+<p>The same logic applies for sequential Multiply-Accumulation (MAC) operations.</p>
+</div>
+<div class="section" id="asymmetric-integral-category">
+<h2>Asymmetric Integral category<a class="headerlink" href="#asymmetric-integral-category" title="Permalink to this headline">¶</a></h2>
+<p>The Asymmetric Integral category includes <code class="docutils literal notranslate"><span class="pre">sa32</span></code> and <code class="docutils literal notranslate"><span class="pre">sa8</span></code> data formats. These data formats are used
+for more precise quantized representation of asymmetrically distributed data. To correctly
+interpret values of this data format, quantization scale ration (s) and zero offset (z) must be
+provided. Approximation of single precision floating point value and backward transformation are
+performed by:</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}x_{\text{sa}} = Round\left( \left( \frac{x_{fp32}}{{(s}_{\text{fx}}*2^{- n})} \right) + z \right)\\x_{fp32} = \left( x_{\text{sa}} - z \right)*{(s}_{\text{fx}}*2^{- n})\end{aligned}\end{align} \]</div>
+<p>Where:</p>
+<blockquote>
+<div><p><span class="math notranslate nohighlight">\(x_{fp32}\)</span> <em>-</em> Source single precision floating point value</p>
+<p><span class="math notranslate nohighlight">\(x_{sa}\)</span> <em>-</em> signed asymmetric value</p>
+<p><span class="math notranslate nohighlight">\(z\)</span> <em>-</em> zero offset</p>
+<p><span class="math notranslate nohighlight">\(Round(\ldots)\)</span> <em>-</em> rounding to integer value.</p>
+<p><span class="math notranslate nohighlight">\(s_{\text{fx}}\)</span> <em>-</em> scale ratio in fixed point format</p>
+<p><span class="math notranslate nohighlight">\(n\)</span> <em>-</em> number of fractional bits of scale ratio.</p>
+</div></blockquote>
+<p>Per-axis and per-tensor quantization granularities are supported for this data format. In case of
+per-tensor quantization, all values in tensor share the same quantization parameters (number scale
+ratio and zero offset). In case of per-axis quantization, each slice of the tensor across a defined axis
+is configured with individual quantization parameters (scale ratio and zero offset).</p>
+<p>Asymmetric integral data format is a more generic and flexible representation in comparison with
+the fixed point data format. But this flexibility also implies additional complexity in calculations,
+and extra assumptions to simplify it at inference time. These assumptions are listed along with
+the description of each kernel in <a class="reference internal" href="../mli_kernels/mli_kernels.html#mli-kernels"><span class="std std-ref">MLI Kernels (Operators)</span></a>.</p>
+<p>Fixed point data format can be considered as special case of asymmetric integer data with
+assumption that  <span class="math notranslate nohighlight">\(z=0\)</span> and <span class="math notranslate nohighlight">\(s_{fx}=1\)</span>, which allows you to use only
+shift operations to change (requantize) data format not involving zero points and
+specific scale ratios:</p>
+<div class="math notranslate nohighlight">
+\[Round\left( \left( \frac{x_{fp32}}{(s_{fx}*2^{- n})} \right) + z \right) = \ Round\left( \left( \frac{x_{fp32}}{(1*2^{- n})} \right) + 0 \right) = Round\left( x_{fp32}*2^{n} \right) = x_{{fx}}\]</div>
+</div>
+<div class="section" id="quantization-influence-of-accumulator-bit-depth">
+<span id="quant-accum-infl"></span><h2>Quantization: Influence of Accumulator Bit Depth<a class="headerlink" href="#quantization-influence-of-accumulator-bit-depth" title="Permalink to this headline">¶</a></h2>
+<p>The MLI Library applies neither saturation nor post multiplication shift with rounding in
+accumulation. Saturation is performed only for the final result of accumulation while its
+value is reduced to the output format. To avoid result overflow, you are responsible for
+providing inputs of correct ranges to MLI library primitives.</p>
+<p>Number of available bits depends on the operands’ types and the platform.</p>
+<div class="admonition tip">
+<p class="admonition-title">Example</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">sa8</span></code> operands with 32-bit accumulator uses 1 sign bit and 31 significant bits. <code class="docutils literal notranslate"><span class="pre">sa8</span></code> operands
+have 1 sign and 7 significant bits. Single multiplication of such operands results in
+7 + 7 + 1 = 15 significant bits for output. Here one extra bit is required to handle multiplication
+of max negative values (-32768 * -32768 = 1073741824 - the value of 31 bits depth).
+Thus for MAC-based kernels, 16 accumulation bits (as 31-(7+7+1)=16) are available which can be used to
+perform up to 2^16 = 65536 operations without overflow. For simple accumulation, 31 - 7 = 24 bits are
+available which are guaranteed to perform up to 2^24 = 16777216 operations without overflow.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fx16</span></code> operands with 40-bit accumulator is uses 1 sign bit and 39 significant bits. <code class="docutils literal notranslate"><span class="pre">fx16</span></code>
+operands have 1 sign and 15 significant bits. A multiplication of such operands results in
+15 + 15 + 1 = 31 significant bits for output. Here one extra bit is required to handle multiplication
+of max negative values (-128 * -128 = 16384 - the value of 15 bits depth). For MAC-based kernels,
+39 - (15+15+1) = 8 accumulation bits are available, which can be used to perform up to 2^8 = 256
+operations without overflow. For simple accumulation, 39 - 15 = 24 bits are available which
+perform up to 2^24 = 16777216 operations without overflow.</p></li>
+</ul>
+</div>
+<p>In general, the number of accumulations required for one output value calculation can be
+estimated in advance.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul class="simple">
+<li><p>If the available bits are not enough, ensure that you quantize inputs (including weights for
+both the operands of the MAC) while keeping some bits unused.</p></li>
+<li><p>To reduce the influence of quantization on the result, ensure that you evenly distribute these bits
+between operands.</p></li>
+</ul>
+</div>
+<p>Special functions to determine the number of the available accumulator guard bits for the different operand
+combination are provided. These values can be different when compiled on a different platform.
+These functions are defined in <a class="reference internal" href="../utility_functions/util_help_func.html#num-of-accu-bits"><span class="std std-ref">Get Number of Accumulator Guard Bits</span></a> section.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="data_layouts.html" class="btn btn-neutral float-right" title="Data Layouts" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="mli_api_data.html" class="btn btn-neutral float-left" title="MLI API Data" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2021, Synopsys, Inc
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

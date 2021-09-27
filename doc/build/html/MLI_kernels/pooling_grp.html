@@ -1,44 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Pooling Group &mdash; embARC Machine Learning Inference Library 1.00 documentation</title>
+  <title>Pooling Kernels Group &mdash; embARC Machine Learning Library 2.0 2.00 documentation</title>
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
 
   
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../_static/style_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="MAX-Pooling" href="pooling_max.html" />
-    <link rel="prev" title="Depth-wise Convolution" href="convolution_depthwise.html" /> 
+    <link rel="next" title="Max Pooling Prototype and Function List" href="pool_max.html" />
+    <link rel="prev" title="Gated Recurrent Unit (GRU) Cell Prototype and Function List" href="rec_gru.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -52,7 +52,7 @@
           
 
           
-            <a href="../index.html" class="icon icon-home"> embARC Machine Learning Inference Library
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> embARC Machine Learning Library 2.0
           
 
           
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                1.00
+                2.00
               </div>
             
           
@@ -79,6 +79,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -88,30 +89,29 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../whats_new/whats_new.html">What’s New in MLI 2.0 ?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../overview/overview.html">Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../getting_started/getting_started.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../library_model/library_model.html">Library Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../MLI_FP_data_format/MLI_FP_data_format.html">MLI Fixed-Point Data Format</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="MLI_kernels.html">MLI Kernels</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="convolution_grp.html">Convolution Group</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Pooling Group</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="pooling_max.html">MAX-Pooling</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pooling_avg.html">Average-Pooling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_api_data/mli_api_data.html">MLI API Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mli_kernels.html">MLI Kernels (Operators)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="convolution_grp.html">Convolution Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rec_fully_con_grp.html">Recurrent and Fully Connected Kernels Group</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Pooling Kernels Group</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pool_max.html">Max Pooling Prototype and Function List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pool_avg.html">Average Pooling Prototype and Function List</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="common_grp.html">Common Group</a></li>
-<li class="toctree-l2"><a class="reference internal" href="transform_grp.html">Transform Group</a></li>
-<li class="toctree-l2"><a class="reference internal" href="elementwise_grp.html">Element-wise Group</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data_manipulation_grp.html">Data Manipulation Group</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI Helpers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Examples_Tutorials/Examples_Tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diverse_kernels_grp.html">Diverse Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transform_grp.html">Transform (Activation) Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="elemw_grp.html">Element-wise Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data_movement/data_movement.html">Data Movement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utility_functions/utility_functions.html">Utility Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../platform_specific/platform_hint_sum.html">Platform Specific Details</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -121,7 +121,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">embARC Machine Learning Inference Library</a>
+          <a href="../index.html">embARC Machine Learning Library 2.0</a>
         
       </nav>
 
@@ -150,17 +150,15 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-          <li><a href="MLI_kernels.html">MLI Kernels</a> &raquo;</li>
-        
-      <li>Pooling Group</li>
+      <li>Pooling Kernels Group</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/MLI_kernels/pooling_grp.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/mli_kernels/pooling_grp.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -173,28 +171,95 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="pooling-group">
-<h1>Pooling Group<a class="headerlink" href="#pooling-group" title="Permalink to this headline">¶</a></h1>
-<p>Pooling group of functions provides operations which divides input
-features on sub frames and applies a function with scalar output on
-each of them. Generally, this results in a feature map with reduced,
-withheld or emphasized key features.</p>
+  <div class="section" id="pooling-kernels-group">
+<span id="chap-pool"></span><h1>Pooling Kernels Group<a class="headerlink" href="#pooling-kernels-group" title="Permalink to this headline">¶</a></h1>
+<p>The Pooling Group describes operations which divide input features into sub-frames
+and applies a function with scalar output on each of them. Generally, this results
+in a feature map with reduced, withheld, or emphasized key features.</p>
+<p>Functions in this group use the <code class="docutils literal notranslate"><span class="pre">mli_pool_cfg</span></code> structure, defined as:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+   <span class="kt">uint8_t</span> <span class="n">kernel_width</span><span class="p">;</span>
+   <span class="kt">uint8_t</span> <span class="n">kernel_height</span><span class="p">;</span>
+   <span class="kt">uint8_t</span> <span class="n">stride_width</span><span class="p">;</span>
+   <span class="kt">uint8_t</span> <span class="n">stride_height</span><span class="p">;</span>
+   <span class="kt">uint8_t</span> <span class="n">padding_left</span><span class="p">;</span>
+   <span class="kt">uint8_t</span> <span class="n">padding_right</span><span class="p">;</span>
+   <span class="kt">uint8_t</span> <span class="n">padding_top</span><span class="p">;</span>
+   <span class="kt">uint8_t</span> <span class="n">padding_bottom</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">mli_pool_cfg</span><span class="p">;</span>
+</pre></div>
+</div>
+<span id="t-mli-pool-cfg-desc"></span><table class="longtable docutils align-center" id="id1">
+<caption><span class="caption-text">mli_pool_cfg structure field description</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 13%" />
+<col style="width: 66%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Field name</strong></p></th>
+<th class="head"><p><strong>Type</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">kernel_width</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint8_t</span></code></p></td>
+<td><p>Width of the pooling kernel.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">kernel_height</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint8_t</span></code></p></td>
+<td><p>Height of the pooling kernel.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stride_width</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint8_t</span></code></p></td>
+<td><p>Stride of filter across width dimension of input; is the step in
+the input tensor in the width dimension to the next filter.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">stride_height</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint8_t</span></code></p></td>
+<td><p>Stride of filter across height dimension of input; is the step
+in the input tensor in the height dimension to the next filter.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">padding_left</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint8_t</span></code></p></td>
+<td><p>Number of zero points implicitly added to the left of input
+(width dimension)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">padding_right</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint8_t</span></code></p></td>
+<td><p>Number of zero points implicitly added to the right of input
+(width dimension)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">padding_top</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint8_t</span></code></p></td>
+<td><p>Number of zero points implicitly added to the top of input
+(height dimension)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">padding_bottom</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint8_t</span></code></p></td>
+<td><p>Number of zero points implicitly added to the bottom of input
+(height dimension)</p></td>
+</tr>
+</tbody>
+</table>
+<p>For all kernels in this group, spatial dimensions of
+<code class="docutils literal notranslate"><span class="pre">in</span></code> and <code class="docutils literal notranslate"><span class="pre">out</span></code> tensors (Width and Height) must comply with the following
+system of equations:</p>
+<div class="math notranslate nohighlight" id="equation-eq-pool-shapes">
+<span class="eqno">(1)<a class="headerlink" href="#equation-eq-pool-shapes" title="Permalink to this equation">¶</a></span>\[ \begin{align}\begin{aligned}\begin{cases}\\\hat{Wi} = {Wi}+padding\_left+padding\_right\\\hat{Hi} = {Hi}+padding\_top+padding\_bottom\\{Wo}*{stride\_width} = \hat{Wi}-{kernel\_width}+1\\{Ho}*{stride\_height} = \hat{Hi}-{kernel\_height}+1\\\end{cases}\end{aligned}\end{align} \]</div>
+<p>Where:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\hat{Wi}\)</span>, <span class="math notranslate nohighlight">\(\hat{Hi}\)</span> <em>- effective</em> <code class="docutils literal notranslate"><span class="pre">in</span></code> <em>feature map width and height
+after applying</em> <span class="math notranslate nohighlight">\(padding\_*\)</span> <em>to the original width</em> (<span class="math notranslate nohighlight">\(Wi\)</span>) <em>and height</em> (<span class="math notranslate nohighlight">\(Hi\)</span>).</p></li>
+<li><p><span class="math notranslate nohighlight">\(Wo\)</span>, <span class="math notranslate nohighlight">\(Ho\)</span> <em>-</em> <code class="docutils literal notranslate"><span class="pre">out</span></code> <em>feature map width and height.</em></p></li>
+</ul>
+</div></blockquote>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="pooling_max.html">MAX-Pooling</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="pooling_max.html#function-configuration-structure">Function Configuration Structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pooling_max.html#kernel-interface">Kernel Interface</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pooling_max.html#function-specializations">Function Specializations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pooling_max.html#conditions-for-applying-the-function">Conditions for Applying the Function</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="pooling_avg.html">Average-Pooling</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="pooling_avg.html#function-configuration-structure">Function Configuration Structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pooling_avg.html#kernel-interface">Kernel Interface</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pooling_avg.html#function-specializations">Function Specializations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pooling_avg.html#conditions-for-applying-the-function">Conditions for Applying the Function</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="pool_max.html">Max Pooling Prototype and Function List</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pool_avg.html">Average Pooling Prototype and Function List</a></li>
 </ul>
 </div>
 </div>
@@ -207,10 +272,10 @@ withheld or emphasized key features.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="pooling_max.html" class="btn btn-neutral float-right" title="MAX-Pooling" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="pool_max.html" class="btn btn-neutral float-right" title="Max Pooling Prototype and Function List" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="convolution_depthwise.html" class="btn btn-neutral float-left" title="Depth-wise Convolution" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="rec_gru.html" class="btn btn-neutral float-left" title="Gated Recurrent Unit (GRU) Cell Prototype and Function List" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -219,11 +284,19 @@ withheld or emphasized key features.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Synopsys, Inc
+        
+        &copy; Copyright 2021, Synopsys, Inc
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -234,7 +307,6 @@ withheld or emphasized key features.</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

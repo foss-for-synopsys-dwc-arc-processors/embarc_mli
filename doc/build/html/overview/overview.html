@@ -1,44 +1,43 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Overview &mdash; embARC Machine Learning Inference Library 1.00 documentation</title>
+  <title>Overview &mdash; embARC Machine Learning Library 2.0 2.00 documentation</title>
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
 
   
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../_static/style_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Getting Started" href="../getting_started/getting_started.html" />
-    <link rel="prev" title="Welcome to embARC Machine Learning Inference Library documentation!" href="../index.html" /> 
+    <link rel="next" title="MLI API Data" href="../mli_api_data/mli_api_data.html" />
+    <link rel="prev" title="What’s New in MLI 2.0 ?" href="../whats_new/whats_new.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -52,7 +51,7 @@
           
 
           
-            <a href="../index.html" class="icon icon-home"> embARC Machine Learning Inference Library
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> embARC Machine Learning Library 2.0
           
 
           
@@ -62,7 +61,7 @@
             
             
               <div class="version">
-                1.00
+                2.00
               </div>
             
           
@@ -79,6 +78,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -88,23 +88,33 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../whats_new/whats_new.html">What’s New in MLI 2.0 ?</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Overview</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#terms-and-definitions">Terms and Definitions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#copyright-notice">Copyright Notice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#purpose-of-this-document">Purpose of This Document</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#memory-hierarchy">Memory Hierarchy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#header-files">Header Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#terms-and-definitions">Terms and definitions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#copyright">Copyright</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../getting_started/getting_started.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../library_model/library_model.html">Library Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../MLI_FP_data_format/MLI_FP_data_format.html">MLI Fixed-Point Data Format</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../MLI_kernels/MLI_kernels.html">MLI Kernels</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../MLI_helpers/MLI_helpers.html">MLI Helpers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Examples_Tutorials/Examples_Tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_api_data/mli_api_data.html">MLI API Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/mli_kernels.html">MLI Kernels (Operators)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/convolution_grp.html">Convolution Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/rec_fully_con_grp.html">Recurrent and Fully Connected Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/pooling_grp.html">Pooling Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/diverse_kernels_grp.html">Diverse Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/transform_grp.html">Transform (Activation) Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/elemw_grp.html">Element-wise Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data_movement/data_movement.html">Data Movement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utility_functions/utility_functions.html">Utility Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../platform_specific/platform_hint_sum.html">Platform Specific Details</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -114,7 +124,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">embARC Machine Learning Inference Library</a>
+          <a href="../index.html">embARC Machine Learning Library 2.0</a>
         
       </nav>
 
@@ -143,7 +153,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
       <li>Overview</li>
     
@@ -165,77 +175,150 @@
            <div itemprop="articleBody">
             
   <div class="section" id="overview">
-<h1>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h1>
+<span id="id1"></span><h1>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="id1"></span><h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>The embARC Machine Learning Inference Library (MLI Library) is the basis for machine learning inference for lower power families of ARCv2 DSP cores (ARC EMxD and ARC HS4xD). Its purpose is to enable porting of machine learning models mostly based on NN to ARC processors.</p>
-<p>The library is a collection of ML algorithms (primitives) that roughly can be separated into the following groups:</p>
-<ul class="simple">
-<li><strong>Convolution</strong> - convolve input features with a set of trained weights</li>
-<li><strong>Pooling</strong> – pool input features with a function</li>
-<li><strong>Common</strong> - Common ML, mathematical, and statistical operations</li>
-<li><strong>Transform</strong> - Transform each element of input set according to a particular function</li>
-<li><strong>Element-wise</strong> - Apply multi-operand function element-wise to several inputs</li>
-<li><strong>Data manipulation</strong> - Move input data by a specified pattern</li>
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>The Machine Learning Inference Library is the basis for machine learning inference for
+ARC VPX, ARC EMxD, and ARC HS4xD families of ARC DSP cores. Its purpose is to
+enable porting of machine learning models mostly based on NN to ARC processors.</p>
+<p>The MLI library is a collection of ML algorithms (primitives) which roughly can be
+separated into the following groups:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="../mli_kernels/convolution_grp.html#chap-conv"><span class="std std-ref">Convolution Kernels Group</span></a></p></li>
+<li><p><a class="reference internal" href="../mli_kernels/rec_fully_con_grp.html#chap-rec-full"><span class="std std-ref">Recurrent and Fully Connected Kernels Group</span></a></p></li>
+<li><p><a class="reference internal" href="../mli_kernels/pooling_grp.html#chap-pool"><span class="std std-ref">Pooling Kernels Group</span></a></p></li>
+<li><p><a class="reference internal" href="../mli_kernels/diverse_kernels_grp.html#chap-diverse-kern"><span class="std std-ref">Diverse Kernels Group</span></a></p></li>
+<li><p><a class="reference internal" href="../mli_kernels/transform_grp.html#chap-transform"><span class="std std-ref">Transform (Activation) Kernels Group</span></a></p></li>
+<li><p><a class="reference internal" href="../mli_kernels/elemw_grp.html#chap-element-wise"><span class="std std-ref">Element-wise Kernels Group</span></a></p></li>
+<li><p><a class="reference internal" href="../utility_functions/utility_functions.html#chap-utlity-func"><span class="std std-ref">Utility Functions</span></a></p></li>
 </ul>
-<p>MLI supported primitives are intended for:</p>
-<ul class="simple">
-<li>ease of use</li>
-<li>inferring efficient solutions for small/middle models using very limited resources.</li>
+</div></blockquote>
+<p>MLI supported primitives are intended for</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>ease of use</p></li>
+<li><p>inferring efficient solutions for small/mid-sized models using very limited resources</p></li>
 </ul>
+</div></blockquote>
+</div>
+<div class="section" id="purpose-of-this-document">
+<h2>Purpose of This Document<a class="headerlink" href="#purpose-of-this-document" title="Permalink to this headline">¶</a></h2>
+<p>The document describes</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>the usage of MLI primitives and</p></li>
+<li><p>the technical details of MLI primitives such as</p>
+<ul>
+<li><p>data formats</p></li>
+<li><p>data layouts</p></li>
+<li><p>quantization schemes</p></li>
+<li><p>kernel naming convention</p></li>
+<li><p>supported kernels</p></li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="memory-hierarchy">
+<h2>Memory Hierarchy<a class="headerlink" href="#memory-hierarchy" title="Permalink to this headline">¶</a></h2>
+<p>The functions in the MLI API operate on the lowest level in the memory hierarchy: the local
+memories (for example: DCCM, VCCM, and so on). All the memory movement needs to happen at a level above the MLI API.
+The data move functions can be used for the purpose. Inside the MLI kernels, there is no data movement.
+The strategy on data movement can be different for each platform or each application. For some
+platforms and some applications, all the data could fit in CCM, in which case no data movement
+is needed. Some platforms have a data cache; in those cases the data movement is done by the
+hardware in a transparent way. The caller/user of MLI APIs is responsible for ensuring that all
+data buffers passed to the MLI functions are in the CPU’s local memory prior to making the call.</p>
+<p>The MLI library does not allocate any memory dynamically. The caller is responsible for providing
+the correct parameters and allocated memory. The MLI library might use internal statically allocated
+data.</p>
+</div>
+<div class="section" id="header-files">
+<h2>Header Files<a class="headerlink" href="#header-files" title="Permalink to this headline">¶</a></h2>
+<p>To ensure consistency for users, the following public header files are provided with
+MLI Implementation.  These are intended to be included by the application code:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">mli_types.h</span></code>: This file contains definitions of the various data structures defined elsewhere
+in this document.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mli_config.h</span></code>: This file describes configuration-related parameters as well as platform-specific
+data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mli_api.h</span></code>: This file (or sub-include files) declares the MLI API functions</p></li>
+</ul>
+</div></blockquote>
 </div>
 <div class="section" id="terms-and-definitions">
-<span id="terms-defs"></span><h2>Terms and Definitions<a class="headerlink" href="#terms-and-definitions" title="Permalink to this headline">¶</a></h2>
-<dl class="glossary docutils">
-<dt id="term-agu">AGU</dt>
-<dd>Address Generation Unit</dd>
-<dt id="term-arc-emxd">ARC EMxD</dt>
-<dd>Family of 32-bit ARC processor cores. Single core, 3-step pipeline, ARCv2DSP</dd>
-<dt id="term-arc-hs4xd">ARC HS4xD</dt>
-<dd>Family of 32-bit ARC processor cores. Multi core, dual issue, 10-step pipeline, ARCv2DSP</dd>
-<dt id="term-arcv2dsp">ARCv2DSP</dt>
-<dd>Synopsys DesignWare® ARC® Processors family of 32-bit CPUs</dd>
-<dt id="term-chw">CHW</dt>
-<dd>Channel-Height-Width data layout</dd>
-<dt id="term-dma">DMA</dt>
-<dd>Direct memory Access</dd>
-<dt id="term-dsp">DSP</dt>
-<dd>Digital Signal Processor</dd>
-<dt id="term-hwc">HWC</dt>
-<dd>Height-Width-Channel data layout</dd>
-<dt id="term-iot">IoT</dt>
-<dd>Internet Of Things</dd>
-<dt id="term-mac">MAC</dt>
-<dd>Multiple Accumulate</dd>
-<dt id="term-ml">ML</dt>
-<dd>Machine Learning</dd>
-<dt id="term-mli-kernel">MLI kernel</dt>
-<dd>Basic operation on tensors in ML model, provided by MLI Library as C-style API function. Typically does not imply any intermediate copying.</dd>
-<dt id="term-mli-library">MLI Library</dt>
-<dd>Machine Learning Inference Library</dd>
-<dt id="term-mwdt">MWDT</dt>
-<dd>MetaWare Development Tool set</dd>
-<dt id="term-nn">NN</dt>
-<dd>Neural Network</dd>
-<dt id="term-primitive">Primitive</dt>
-<dd>Basic ML functionality implemented as MLI Kernel or MLI Layer (Convolution 2D, Fully connected, and so on)</dd>
-<dt id="term-relu">ReLU</dt>
-<dd>Rectified Linear Unit</dd>
-<dt id="term-tcf">TCF</dt>
-<dd>Tool Configuration File. Holds information about ARC processor build configuration and extensions.</dd>
-<dt id="term-tensor">Tensor</dt>
-<dd>Object that contains binary data and its complete description, such as dimensions, element data type, and so on.</dd>
+<span id="terms-and-defs"></span><h2>Terms and definitions<a class="headerlink" href="#terms-and-definitions" title="Permalink to this headline">¶</a></h2>
+<dl class="glossary simple">
+<dt id="term-AGU">AGU<a class="headerlink" href="#term-AGU" title="Permalink to this term">¶</a></dt><dd><p>Address Generation Unit</p>
+</dd>
+<dt id="term-API">API<a class="headerlink" href="#term-API" title="Permalink to this term">¶</a></dt><dd><p>Application Programming Interface</p>
+</dd>
+<dt id="term-ARC-EMxD">ARC EMxD<a class="headerlink" href="#term-ARC-EMxD" title="Permalink to this term">¶</a></dt><dd><p>Family of 32-bit ARC Processor Cores. Single-core, 3-Step Pipeline, ARCv2DSP</p>
+</dd>
+<dt id="term-ARC-HS4xD">ARC HS4xD<a class="headerlink" href="#term-ARC-HS4xD" title="Permalink to this term">¶</a></dt><dd><p>Family of 32-bit ARC Processor Cores. Multi-core, Dual-Issue, 10-Step Pipeline, ARCv2DSP</p>
+</dd>
+<dt id="term-ARCv2DSP">ARCv2DSP<a class="headerlink" href="#term-ARCv2DSP" title="Permalink to this term">¶</a></dt><dd><p>Synopsys DesignWare® ARC® Processors Family of 32-bit CPUs</p>
+</dd>
+<dt id="term-CCAC">CCAC<a class="headerlink" href="#term-CCAC" title="Permalink to this term">¶</a></dt><dd><p>MetaWare Compiler</p>
+</dd>
+<dt id="term-CCM">CCM<a class="headerlink" href="#term-CCM" title="Permalink to this term">¶</a></dt><dd><p>Closely Coupled Memory</p>
+</dd>
+<dt id="term-DCCM">DCCM<a class="headerlink" href="#term-DCCM" title="Permalink to this term">¶</a></dt><dd><p>Data Closely Coupled Memory</p>
+</dd>
+<dt id="term-DMA">DMA<a class="headerlink" href="#term-DMA" title="Permalink to this term">¶</a></dt><dd><p>Direct Memory Access</p>
+</dd>
+<dt id="term-DSP">DSP<a class="headerlink" href="#term-DSP" title="Permalink to this term">¶</a></dt><dd><p>Digital Signal Processor</p>
+</dd>
+<dt id="term-FXAPI">FXAPI<a class="headerlink" href="#term-FXAPI" title="Permalink to this term">¶</a></dt><dd><p>Fixed-point API</p>
+</dd>
+<dt id="term-LTO">LTO<a class="headerlink" href="#term-LTO" title="Permalink to this term">¶</a></dt><dd><p>Link-Time Optimization</p>
+</dd>
+<dt id="term-MAC">MAC<a class="headerlink" href="#term-MAC" title="Permalink to this term">¶</a></dt><dd><p>Multiple Accumulate</p>
+</dd>
+<dt id="term-MDB">MDB<a class="headerlink" href="#term-MDB" title="Permalink to this term">¶</a></dt><dd><p>MetaWare Debugger</p>
+</dd>
+<dt id="term-MPY">MPY<a class="headerlink" href="#term-MPY" title="Permalink to this term">¶</a></dt><dd><p>Multiply Command</p>
+</dd>
+<dt id="term-MWDT">MWDT<a class="headerlink" href="#term-MWDT" title="Permalink to this term">¶</a></dt><dd><p>MetaWare Development Toolset</p>
+</dd>
+<dt id="term-nSIM">nSIM<a class="headerlink" href="#term-nSIM" title="Permalink to this term">¶</a></dt><dd><p>Instruction Set Simulator</p>
+</dd>
+<dt id="term-OOB">OOB<a class="headerlink" href="#term-OOB" title="Permalink to this term">¶</a></dt><dd><p>Out-Of-the Box</p>
+</dd>
+<dt id="term-PCM">PCM<a class="headerlink" href="#term-PCM" title="Permalink to this term">¶</a></dt><dd><p>Pulse Code Modulation</p>
+</dd>
+<dt id="term-TCF">TCF<a class="headerlink" href="#term-TCF" title="Permalink to this term">¶</a></dt><dd><p>Tool Configuration File. Holds information about ARC processor build configuration and extensions.</p>
+</dd>
+<dt id="term-VCCM">VCCM<a class="headerlink" href="#term-VCCM" title="Permalink to this term">¶</a></dt><dd><p>Vector Closely Coupled Memory</p>
+</dd>
+<dt id="term-xCAM">xCAM<a class="headerlink" href="#term-xCAM" title="Permalink to this term">¶</a></dt><dd><p>Cycle Accurate Model</p>
+</dd>
 </dl>
 </div>
-<div class="section" id="copyright-notice">
-<span id="copyright"></span><h2>Copyright Notice<a class="headerlink" href="#copyright-notice" title="Permalink to this headline">¶</a></h2>
-<p>Copyright (c) 2019, Synopsys, Inc. All rights reserved.</p>
-<p>Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:</p>
-<p>Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-Neither the name of the Synopsys, Inc., nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.</p>
-<p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. NY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
+<div class="section" id="copyright">
+<span id="id2"></span><h2>Copyright<a class="headerlink" href="#copyright" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><p>Copyright (c) 2021, Synopsys, Inc. All rights reserved.</p>
+<p>Redistribution and use in source and binary forms, with or without modification, are permitted provided
+that the following conditions are met:</p>
+<p>Redistributions of source code must retain the above copyright notice, this list of conditions and the
+following disclaimer. Redistributions in binary form must reproduce the above copyright notice, this
+list of conditions and the following disclaimer in the documentation and/or other materials provided
+with the distribution. Neither the name of the Synopsys, Inc., nor the names of its contributors may
+be used to endorse or promote products derived from this software without specific prior written permission.</p>
+<p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+TO, PROCUREMENT OFSUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+OF SUCH DAMAGE. NY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
 <p>For complete embARC license information, please refer to the embARC FOSS Notice.</p>
+</div></blockquote>
 </div>
 </div>
 
@@ -247,10 +330,10 @@ Neither the name of the Synopsys, Inc., nor the names of its contributors may be
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../getting_started/getting_started.html" class="btn btn-neutral float-right" title="Getting Started" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../mli_api_data/mli_api_data.html" class="btn btn-neutral float-right" title="MLI API Data" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="../index.html" class="btn btn-neutral float-left" title="Welcome to embARC Machine Learning Inference Library documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="../whats_new/whats_new.html" class="btn btn-neutral float-left" title="What’s New in MLI 2.0 ?" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -259,11 +342,19 @@ Neither the name of the Synopsys, Inc., nor the names of its contributors may be
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Synopsys, Inc
+        
+        &copy; Copyright 2021, Synopsys, Inc
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -274,7 +365,6 @@ Neither the name of the Synopsys, Inc., nor the names of its contributors may be
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

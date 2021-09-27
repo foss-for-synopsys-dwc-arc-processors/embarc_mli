@@ -1,0 +1,501 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ARC VPX Specific Details &mdash; embARC Machine Learning Library 2.0 2.00 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/style_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Platform Specific Details" href="platform_hint_sum.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> embARC Machine Learning Library 2.0
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.00
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../whats_new/whats_new.html">What’s New in MLI 2.0 ?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview/overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_api_data/mli_api_data.html">MLI API Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/mli_kernels.html">MLI Kernels (Operators)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/convolution_grp.html">Convolution Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/rec_fully_con_grp.html">Recurrent and Fully Connected Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/pooling_grp.html">Pooling Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/diverse_kernels_grp.html">Diverse Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/transform_grp.html">Transform (Activation) Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/elemw_grp.html">Element-wise Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data_movement/data_movement.html">Data Movement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utility_functions/utility_functions.html">Utility Functions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="platform_hint_sum.html">Platform Specific Details</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">ARC VPX Specific Details</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#vpx-memory-allocation">VPX Memory Allocation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#vpx-memory-allignement">VPX Memory Allignement</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#accumulator">Accumulator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#operands-limitations-and-shifting-ranges">Operands Limitations and Shifting Ranges</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#weighted-kernels">Weighted Kernels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#avepool">Avepool</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#rnn-dense">RNN Dense</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leaky-and-parametric-relu">Leaky and Parametric ReLU</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#element-wise-add-and-element-wise-sub">Element-wise Add and Element-wise Sub</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">embARC Machine Learning Library 2.0</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="platform_hint_sum.html">Platform Specific Details</a> &raquo;</li>
+        
+      <li>ARC VPX Specific Details</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/platform_specific/vpx.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="arc-vpx-specific-details">
+<h1>ARC VPX Specific Details<a class="headerlink" href="#arc-vpx-specific-details" title="Permalink to this headline">¶</a></h1>
+<p>The ARC VPX family of processors combines the ARCv2 baseline ISA with ARCv2 Vector DSP ISA extension.
+The latter one is actively used in MLI Library implementation for this family of processors,
+allowing us to achieve high efficiency.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#vpx-mem-alloc"><span class="std std-ref">VPX Memory Allocation</span></a></p></li>
+<li><p><a class="reference internal" href="#vpx-mem-allign"><span class="std std-ref">VPX Memory Allignement</span></a></p></li>
+<li><p><a class="reference internal" href="#vpx-accum"><span class="std std-ref">Accumulator</span></a></p></li>
+<li><p><a class="reference internal" href="#vpx-op-limits-shift"><span class="std std-ref">Operands Limitations and Shifting Ranges</span></a></p></li>
+</ul>
+</div></blockquote>
+<div class="section" id="vpx-memory-allocation">
+<span id="vpx-mem-alloc"></span><h2>VPX Memory Allocation<a class="headerlink" href="#vpx-memory-allocation" title="Permalink to this headline">¶</a></h2>
+<p>Implementation of almost all kernels uses vector instructions and assumes presence of operands
+in the vector memory (VCCM). Which means that:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>A memory location reference by a data container of all input and output tensors must be allocated
+within VCCM memory region.</p></li>
+<li><p>Memory pointed to by data container of the <code class="docutils literal notranslate"><span class="pre">mli_lut</span></code> structure must be allocated within
+VCCM memory region.</p></li>
+<li><p>Tensors structures, LUT structures, configuration structures and memory pointed to
+by containers inside <code class="docutils literal notranslate"><span class="pre">el_params</span></code> field of a tensor may be allocated within any memory region.</p></li>
+</ul>
+</div></blockquote>
+<dl class="simple">
+<dt>This applies to:</dt><dd><ul class="simple">
+<li><p>All functions from kernels group (see <a class="reference internal" href="../mli_kernels/mli_kernels.html#mli-kernels"><span class="std std-ref">MLI Kernels (Operators)</span></a>)</p></li>
+<li><p>All functions related to conversion group (see <a class="reference internal" href="../utility_functions/util_data_conv.html#mli-convert"><span class="std std-ref">Data Conversion Group</span></a>)</p></li>
+</ul>
+</dd>
+<dt>This doesn’t apply to:</dt><dd><ul class="simple">
+<li><p>All functions from helpers group (see <a class="reference internal" href="../utility_functions/util_help_func.html#mli-helpers"><span class="std std-ref">Helper Functions Group</span></a>)</p></li>
+<li><p>All functions from move group (see <a class="reference internal" href="../data_movement/data_movement.html#data-mvmt"><span class="std std-ref">Data Movement</span></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="vpx-memory-allignement">
+<span id="vpx-mem-allign"></span><h2>VPX Memory Allignement<a class="headerlink" href="#vpx-memory-allignement" title="Permalink to this headline">¶</a></h2>
+<p>Addresses of all elements including data, quantization parameters and structure fields
+must be aligned on an element boundary. This is also applicable for data allocated in the
+vector memory (VCCM). Addresses of vectors and vector elements must be properly aligned
+on a vector-element boundary.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>There is one type of memory access that has 8-bit alignment: a unit-stride vector load or store
+with 8-bit elements (<code class="docutils literal notranslate"><span class="pre">fx8</span></code> and <code class="docutils literal notranslate"><span class="pre">sa8</span></code> data). For the best performance vector load
+and store access for such data must use even byte addresses (aligned on 16-bit boundary).
+This can be achieved by using even shapes or memstrides for <code class="docutils literal notranslate"><span class="pre">sa8</span></code> and <code class="docutils literal notranslate"><span class="pre">fx8</span></code> tensors.
+Odd byte addresses are allowed but less efficient.</p>
+</div>
+</div>
+<div class="section" id="accumulator">
+<span id="vpx-accum"></span><h2>Accumulator<a class="headerlink" href="#accumulator" title="Permalink to this headline">¶</a></h2>
+<p>The accumulator width used in calculations depends on the <code class="docutils literal notranslate"><span class="pre">Xvec_guard_bit_option</span></code>
+HW configuration parameter. See <a class="reference internal" href="../mli_api_data/data_formats.html#quant-accum-infl"><span class="std std-ref">Quantization: Influence of Accumulator Bit Depth</span></a> section for more info on how
+it influence the usage of the library. The following table summaries available options an
+d how much accumulations it allows to do without overflow.</p>
+<table class="docutils align-center" id="id1">
+<caption><span class="caption-text">VPX HW Accumulator width</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 15%" />
+<col style="width: 23%" />
+<col style="width: 23%" />
+<col style="width: 23%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Kernel Type</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+<th class="head"><p><strong>guard bit option = 2</strong></p></th>
+<th class="head"><p><strong>guard bit option = 1</strong></p></th>
+<th class="head"><p><strong>guard bit option = 0</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td rowspan="2"><p><code class="docutils literal notranslate"><span class="pre">sa8</span></code></p></td>
+<td><p>Accum width</p></td>
+<td><p>24 (8 guard bits)</p></td>
+<td><p>20 (4 guard bits)</p></td>
+<td><p>16 (0 guard bits)</p></td>
+</tr>
+<tr class="row-odd"><td><p>MACs w/o
+overflow
+guaranty</p></td>
+<td><p>256</p></td>
+<td><p>16</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td rowspan="2"><p><code class="docutils literal notranslate"><span class="pre">fx16</span></code></p></td>
+<td><p>Accum width</p></td>
+<td><p>40 (8 guard bits)</p></td>
+<td><p>36 (4 guard bits)</p></td>
+<td><p>32 (0 guard bits)</p></td>
+</tr>
+<tr class="row-odd"><td><p>MACs guaranty</p></td>
+<td><p>256</p></td>
+<td><p>16</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td rowspan="2"><p><code class="docutils literal notranslate"><span class="pre">fx16_fx8_fx8</span></code></p></td>
+<td><p>Accum width</p></td>
+<td><p>40 (16 guard bits)</p></td>
+<td><p>36 (12 guard bits)</p></td>
+<td><p>32 (8 guard bits)</p></td>
+</tr>
+<tr class="row-odd"><td><p>MACs guaranty</p></td>
+<td><p>65536</p></td>
+<td><p>4096</p></td>
+<td><p>256</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="operands-limitations-and-shifting-ranges">
+<span id="vpx-op-limits-shift"></span><h2>Operands Limitations and Shifting Ranges<a class="headerlink" href="#operands-limitations-and-shifting-ranges" title="Permalink to this headline">¶</a></h2>
+<p>This section describes VPX specific limitations to kernels.
+In this section, <span class="math notranslate nohighlight">\(n_\text{tensor}\)</span> denotes the fractional bits of a tensor
+and <span class="math notranslate nohighlight">\(s_\text{fx,tensor}\)</span> is its scale in case of an asymmetric data type (see <a class="reference internal" href="../mli_api_data/data_formats.html#data-fmts"><span class="std std-ref">Data Formats</span></a>).</p>
+<div class="section" id="weighted-kernels">
+<h3>Weighted Kernels<a class="headerlink" href="#weighted-kernels" title="Permalink to this headline">¶</a></h3>
+<p>For the following kernels:</p>
+<ul class="simple">
+<li><p>conv2d</p></li>
+<li><p>depthwise_conv2d</p></li>
+<li><p>transpose_conv2d</p></li>
+<li><p>group_conv2d</p></li>
+<li><p>fully_connected</p></li>
+<li><p>rnn_dense</p></li>
+<li><p>gru_cell</p></li>
+<li><p>lstm_cell</p></li>
+</ul>
+<p>Firstly, to avoid negative shifts below lower-bound and
+to avoid internal large shifts above upper-bound, the the following shift restrictions must be adhered to:</p>
+<table class="docutils align-center">
+<colgroup>
+<col style="width: 35%" />
+<col style="width: 65%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Kernel Type</strong></p></th>
+<th class="head"><p><strong>Restriction</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fx8</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(0 \leq n_{in} + n_{weight} - n_{out} \leq 15\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fx16</span></code> and <code class="docutils literal notranslate"><span class="pre">fx16_fx8_fx8</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(0 \leq n_{in} + n_{weight} - n_{out} \leq 31\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sa8_sa8_sa32</span></code></p></td>
+<td><p>No Limitations</p></td>
+</tr>
+</tbody>
+</table>
+<p>Secondly, the following restrictions relate to shifting left the bias inside an accumulator:</p>
+<table class="docutils align-center">
+<colgroup>
+<col style="width: 34%" />
+<col style="width: 66%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Kernel Type</strong></p></th>
+<th class="head"><p><strong>Restriction</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fx8</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(0 \leq n_{in} +  n_{weight} -  n_{bias} \leq 8\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fx16</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(0 \leq n_{in} +  n_{weight} -  n_{bias} \leq 16\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fx16_fx8_fx8</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(0 \leq n_{in} +  n_{weight} -  n_{bias} \leq 24\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sa8_sa8_sa32</span></code></p></td>
+<td><p>No Limitations</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="avepool">
+<h3>Avepool<a class="headerlink" href="#avepool" title="Permalink to this headline">¶</a></h3>
+<p><strong>FX16</strong></p>
+<p>To avoid negative shifts below lower-bound and to avoid internal large shifts
+above upper-bound, the in and out fraction bits must be adhered to:</p>
+<div class="math notranslate nohighlight">
+\[-14 - \text{ceil}(\text{log}_2 (\text{Wk} \cdot \text{Hk})) &lt;
+n_\text{in} - n_\text{out}
+&lt; 16 - \text{ceil}(\text{log}_2 (\text{Wk} \cdot \text{Hk}))\]</div>
+<p>with <span class="math notranslate nohighlight">\(\text{Wk}\)</span> and  <span class="math notranslate nohighlight">\(\text{Hk}\)</span> the width and height of the kernel respectively.</p>
+<p><strong>SA8</strong></p>
+<p>To avoid internal large shifts below lower-bound and to avoid negative shifts
+above upper-bound, the in and out scale factors must be adhered to:</p>
+<div class="math notranslate nohighlight">
+\[127 \cdot 2^{-15} \cdot  \text{Wk} \cdot \text{Hk} &lt;
+\frac{s_\text{fx,in} \cdot 2^{-n_\text{in}}}
+{s_\text{fx,out} \cdot 2^{-n_\text{out}}}
+&lt; 64 \cdot \text{Wk}  \cdot \text{Hk}\]</div>
+<p>with <span class="math notranslate nohighlight">\(\text{Wk}\)</span> and  <span class="math notranslate nohighlight">\(\text{Hk}\)</span> the width and height of the kernel respectively.</p>
+</div>
+<div class="section" id="rnn-dense">
+<h3>RNN Dense<a class="headerlink" href="#rnn-dense" title="Permalink to this headline">¶</a></h3>
+<p><strong>FX16 and FX16_FX8_FX8</strong></p>
+<div class="math notranslate nohighlight">
+\[0 \leq n_\text{in} + n_\text{weights} - n_\text{out}\]</div>
+<p><strong>SA8_SA8_SA32</strong></p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}\begin{split}acc\_ scale = \frac{ s_{fx,in} s_{fx,weights}}{s_{fx,out}} 2^{n_{in} + n_{weights} - n_{out}} \\\end{split}\\0 &lt; acc\_ scale \leq 2^{32 - acc\_ size - {ceil}({log}_2 {input\_ count})}\end{aligned}\end{align} \]</div>
+<p>where <span class="math notranslate nohighlight">\(acc\_ size\)</span> is the accumulator size including the guard bits.
+Restriction is to avoid saturation between multiple inputs accumulators after
+the scale since accumulators are scaled and added in 32 bits vectors.</p>
+</div>
+<div class="section" id="leaky-and-parametric-relu">
+<h3>Leaky and Parametric ReLU<a class="headerlink" href="#leaky-and-parametric-relu" title="Permalink to this headline">¶</a></h3>
+<p>To avoid an extra shift-left instruction in the inner loop,
+a negative ‘slope_coeff’/’alpha’ tensor fractional bits is not permitted:</p>
+<table class="docutils align-center">
+<colgroup>
+<col style="width: 24%" />
+<col style="width: 31%" />
+<col style="width: 45%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Kernel</strong></p></th>
+<th class="head"><p><strong>Kernel Type</strong></p></th>
+<th class="head"><p><strong>Restriction</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Leaky ReLU</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fx8</span></code> and <code class="docutils literal notranslate"><span class="pre">fx16</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(0 \leq n_{slope\_coeff}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>Parametric ReLU</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fx8</span></code> and <code class="docutils literal notranslate"><span class="pre">fx16</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(0 \leq n_{alpha}\)</span></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="element-wise-add-and-element-wise-sub">
+<h3>Element-wise Add and Element-wise Sub<a class="headerlink" href="#element-wise-add-and-element-wise-sub" title="Permalink to this headline">¶</a></h3>
+<p><strong>FX16</strong></p>
+<p>Below restriction relates to shifting both inputs such that their fractional bits align.</p>
+<div class="math notranslate nohighlight">
+\[\text{abs}(n_\text{in1} - n_\text{in2}) \leq 15\]</div>
+<div class="math notranslate nohighlight">
+\[\text{max}(n_\text{in1}, n_\text{in2}) - 31 \leq n_\text{out} \leq  \text{max}(n_\text{in1}, n_\text{in2}) + 31\]</div>
+<p><strong>SA8</strong></p>
+<p>No VPX specific limitations (see <a class="reference internal" href="../mli_kernels/elemw_grp.html#chap-element-wise"><span class="std std-ref">Element-wise Kernels Group</span></a> for general limitations/requirements).</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="platform_hint_sum.html" class="btn btn-neutral float-left" title="Platform Specific Details" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2021, Synopsys, Inc
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

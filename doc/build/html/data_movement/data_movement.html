@@ -1,0 +1,886 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Data Movement &mdash; embARC Machine Learning Library 2.0 2.00 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/style_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Utility Functions" href="../utility_functions/utility_functions.html" />
+    <link rel="prev" title="Element-wise Kernels Group" href="../mli_kernels/elemw_grp.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> embARC Machine Learning Library 2.0
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.00
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../whats_new/whats_new.html">What’s New in MLI 2.0 ?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview/overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_api_data/mli_api_data.html">MLI API Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/mli_kernels.html">MLI Kernels (Operators)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/convolution_grp.html">Convolution Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/rec_fully_con_grp.html">Recurrent and Fully Connected Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/pooling_grp.html">Pooling Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/diverse_kernels_grp.html">Diverse Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/transform_grp.html">Transform (Activation) Kernels Group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mli_kernels/elemw_grp.html">Element-wise Kernels Group</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Data Movement</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#synchronous-copy-from-source-tensor-to-destination-tensor">Synchronous Copy from Source Tensor to Destination Tensor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#helper-functions-for-data-move-config-struct">Helper Functions for Data Move Config Struct</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#asynchronous-data-move-functions">Asynchronous Data Move Functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#preparation">Preparation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#start-processing">Start Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#done-notification-callback">Done Notification - Callback</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#done-notification-polling">Done Notification - Polling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions-for-source-and-destination-tensors">Restrictions for Source and Destination Tensors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#dma-resource-management">DMA Resource Management</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../utility_functions/utility_functions.html">Utility Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../platform_specific/platform_hint_sum.html">Platform Specific Details</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">embARC Machine Learning Library 2.0</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Data Movement</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/data_movement/data_movement.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="data-movement">
+<span id="data-mvmt"></span><h1>Data Movement<a class="headerlink" href="#data-movement" title="Permalink to this headline">¶</a></h1>
+<p>Most processors and accelerators achieve optimal performance by keeping the kernel
+input data in “close” local memories on those processors (for example, CCMs). Meanwhile,
+the total amount of data that needs to be operated on is usually bigger than the
+sizes of those CCMs, so you must copy data into CCMs for processing.</p>
+<p>The functions in the Data Movement Group assist with this moving (copying) of data.
+For further efficiency, the APIs allow data to be manipulated in several ways, thus
+allowing copy and manipulation to happen at the same time, rather than in two separate steps.</p>
+<p>The supported transformations are described here and shown pictorially in Figure
+<a class="reference internal" href="#f-data-mv-grp-t"><span class="std std-ref">Data Movement Group Transformations</span></a></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Copy - a simple copy operation only</p></li>
+<li><p>Slicing - select a subset of a larger tensor and copy it to the destination tensor</p></li>
+<li><p>Concatenation - copy the content of a smaller tensor into a larger one</p></li>
+<li><p>Subsample - Reduce the size of the output by taking only every nth element from the source</p></li>
+<li><p>Permute - Reorder dimensions of a tensor</p></li>
+<li><p>Padding - Add zeros around the specified dimensions</p></li>
+</ul>
+<p>More than one transform can be combined into a single operation.</p>
+</div></blockquote>
+<div class="figure align-center" id="id1">
+<span id="f-data-mv-grp-t"></span><img alt="Data Movement Group Transformations" src="../_images/data_mv_grp_transfm.png" />
+<p class="caption"><span class="caption-text">Data Movement Group Transformations</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+</div>
+<p>The data movement APIs support both synchronous (blocking) and asynchronous (non-blocking) APIs.
+The caller can choose which is most suitable for their use-case.  The functions are described
+in the following sections.</p>
+<div class="section" id="synchronous-copy-from-source-tensor-to-destination-tensor">
+<h2>Synchronous Copy from Source Tensor to Destination Tensor<a class="headerlink" href="#synchronous-copy-from-source-tensor-to-destination-tensor" title="Permalink to this headline">¶</a></h2>
+<p>This function performs a blocking data copy from the source tensor to the destination tensor
+according to the settings in the configuration structure, <code class="docutils literal notranslate"><span class="pre">mli_mov_cfg</span></code>. Any combination of the
+previously-mentioned transformations can be specified. The destination tensor needs to contain a valid
+pointer to a large enough buffer. The size of this buffer needs to be specified in the capacity
+field of the destination tensor. The other fields of the destination tensor are filled by the
+move function. The function returns after the complete data transfer completes.</p>
+<p>For platforms with a DMA, the synchronous move function internally acquires one or more DMA
+channels from a pool of resources. The application needs to use the function <code class="docutils literal notranslate"><span class="pre">mli_mov_set_num_dma_ch</span></code>
+to assign a set of channels to MLI for its exclusive use. See section <a class="reference internal" href="#dma-res-mgmt"><span class="std std-ref">DMA Resource Management</span></a> for a detailed
+explanation.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">mli_status</span> <span class="nf">mli_mov_tensor_sync</span> <span class="p">(</span>
+   <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">src</span><span class="p">,</span>
+   <span class="n">mli_mov_cfg</span> <span class="o">*</span><span class="n">cfg</span><span class="p">,</span>
+   <span class="n">mli_tensor</span> <span class="o">*</span><span class="n">dst</span><span class="p">);</span>
+</pre></div>
+</div>
+<blockquote>
+<div><p>where <code class="docutils literal notranslate"><span class="pre">mli_mov_cfg</span></code> is defined as:</p>
+</div></blockquote>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+   <span class="kt">uint32_t</span> <span class="n">offset</span><span class="p">[</span><span class="n">MLI_MAX_RANK</span><span class="p">];</span>
+   <span class="kt">uint32_t</span> <span class="n">size</span><span class="p">[</span><span class="n">MLI_MAX_RANK</span><span class="p">];</span>
+   <span class="kt">uint32_t</span> <span class="n">sub_sample_step</span><span class="p">[</span><span class="n">MLI_MAX_RANK</span><span class="p">];</span>
+   <span class="kt">uint32_t</span> <span class="n">dst_offset</span><span class="p">[</span><span class="n">MLI_MAX_RANK</span><span class="p">];</span>
+   <span class="kt">int32_t</span> <span class="n">dst_mem_stride</span><span class="p">[</span><span class="n">MLI_MAX_RANK</span><span class="p">];</span>
+   <span class="kt">uint8_t</span> <span class="n">perm_dim</span><span class="p">[</span><span class="n">MLI_MAX_RANK</span><span class="p">];</span>
+   <span class="kt">uint8_t</span> <span class="n">padding_pre</span><span class="p">[</span><span class="n">MLI_MAX_RANK</span><span class="p">];</span>
+   <span class="kt">uint8_t</span> <span class="n">padding_post</span><span class="p">[</span><span class="n">MLI_MAX_RANK</span><span class="p">];</span>
+<span class="p">}</span> <span class="n">mli_mov_cfg_t</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>The fields of this structure are described in Table <a class="reference internal" href="#t-mli-mov-cfg-desc"><span class="std std-ref">mli_mov_cfg Structure Field Description</span></a>. All the fields are arrays with
+size <code class="docutils literal notranslate"><span class="pre">MLI_MAX_RANK</span></code>. Fields are stored in order starting from the one with the largest stride between the data
+portions. For example, for a matrix A(rows, columns), shape[0] = rows, shape[1] = columns. The data move function
+does not change the number of dimensions. The rank of the source tensor determines the amount of values that are
+read from the array. The other values are “don’t care”.</p>
+<p>The size of the array is defined by <code class="docutils literal notranslate"><span class="pre">MLI_MAX_RANK</span></code>.</p>
+<span id="t-mli-mov-cfg-desc"></span><table class="longtable docutils align-center" id="id2">
+<caption><span class="caption-text">mli_mov_cfg Structure Field Description</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 15%" />
+<col style="width: 65%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Field Name</strong></p></th>
+<th class="head"><p><strong>Type</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">offset</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint32_t[]</span></code></p></td>
+<td><p>Start coordinate in the source tensor. Values must be smaller
+than the shape of the source tensor.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">size</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint32_t[]</span></code></p></td>
+<td><p>Size of the copy in elements per dimension.</p>
+<p>Restrictions:</p>
+<p><span class="math notranslate nohighlight">\(Size[d] + offset[d] &lt;= src-&gt;shape[d]\)</span></p>
+<p>If <span class="math notranslate nohighlight">\(size=0\)</span> is provided, the size is computed from the input
+size and the cfg parameters.</p>
+</td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sub_sample_step</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint32_t[]</span></code></p></td>
+<td><p>Subsample factor for each dimension. Default value is 1, which
+means no subsampling. For example, a subsample step of 3 means that
+every third sample is copied to the output.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dst_offset</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint32_t[]</span></code></p></td>
+<td><p>Start coordinate in the destination tensor. Values must be
+smaller than the memstride of the destination tensor.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dst_mem_stride</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int32_t[]</span></code></p></td>
+<td><p>Distance in elements to the next dimension in the destination
+tensor. If zero, it is computed from input tensor and cfg
+parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">perm_dim</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint8_t[]</span></code></p></td>
+<td><p>Array to specify reordering of dimensions. For example, to convert
+from CHW layout to HWC layout this array would be {1, 2, 0}.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">padding_pre</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint8_t[]</span></code></p></td>
+<td><p>Number of padded samples before the input data for each dimension.
+Padding is a virtual extension of the input tensor.
+Padded samples are set to zero.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">padding_post</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uint8_t[]</span></code></p></td>
+<td><p>Number of padded samples after the data for each dimension.
+Padding is a virtual extension of the input tensor.
+Padded samples are set to zero.</p></td>
+</tr>
+</tbody>
+</table>
+<p>It is possible to combine multiple ‘operations’ in one move. In that the internal order of how the parameters are
+applied is relevant:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>padding_pre/padding_post (using cfg-&gt;padding_pre and cfg-&gt;padding_post as described in figure <a class="reference internal" href="#f-mli-mov-cfg-params-pad"><span class="std std-ref">mli_mov_cfg Structure Parameters for padding</span></a>)</p></li>
+<li><p>crop  (using cfg-&gt;offset and cfg-&gt;size as described in figure <a class="reference internal" href="#f-mli-mov-cfg-params-crop"><span class="std std-ref">mli_mov_cfg Structure Parameters for cropping</span></a>)</p></li>
+<li><p>subsampling (using cfg-&gt;sub_sample_step as described in figure <a class="reference internal" href="#f-mli-mov-cfg-params-sub"><span class="std std-ref">mli_mov_cfg Structure Parameters for subsampling</span></a>)</p></li>
+<li><p>permute (using cfg-&gt;perm_dim)</p></li>
+<li><p>write at offset (using cfg-&gt;dst_offset and cfg-&gt;dst_mem_stride)</p></li>
+</ul>
+</div></blockquote>
+<div class="figure align-center" id="id3">
+<span id="f-mli-mov-cfg-params-pad"></span><img alt="../_images/mli_mov_cfg_params_pad.png" src="../_images/mli_mov_cfg_params_pad.png" />
+<p class="caption"><span class="caption-text">mli_mov_cfg Structure Parameters for padding</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+</div>
+<div class="figure align-center" id="id4">
+<span id="f-mli-mov-cfg-params-crop"></span><img alt="../_images/mli_mov_cfg_params_crop.png" src="../_images/mli_mov_cfg_params_crop.png" />
+<p class="caption"><span class="caption-text">mli_mov_cfg Structure Parameters for cropping</span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
+</div>
+<div class="figure align-center" id="id5">
+<span id="f-mli-mov-cfg-params-sub"></span><img alt="../_images/mli_mov_cfg_params_sub.png" src="../_images/mli_mov_cfg_params_sub.png" />
+<p class="caption"><span class="caption-text">mli_mov_cfg Structure Parameters for subsampling</span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
+</div>
+<p>Ensure that you satisfy the following conditions before calling the function:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">src</span></code> tensor must be valid.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dst</span></code> tensor must contain a valid pointer to a buffer with sufficient capacity (that is, the
+total amount of elements in input tensor). Other fields are filled by the kernel (shape, rank and
+element-specific parameters).</p></li>
+<li><p>Buffers of <code class="docutils literal notranslate"><span class="pre">src</span></code> and <code class="docutils literal notranslate"><span class="pre">dst</span></code> tensors must point to different, non-overlapped memory regions.</p></li>
+</ul>
+</div></blockquote>
+<p>For <code class="docutils literal notranslate"><span class="pre">src</span></code> tensor of <strong>sa8</strong> or <strong>sa32</strong> types, and in case of per-axis quantization, the <code class="docutils literal notranslate"><span class="pre">el_params</span></code>
+field of <code class="docutils literal notranslate"><span class="pre">dst</span></code> tensor is filled by the function using <code class="docutils literal notranslate"><span class="pre">src</span></code> quantization parameters.
+The following fields are affected:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">dst.el_params.sa.zero_point.mem.pi16</span></code> and related capacity field</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dst.el_params.sa.scale.mem.pi16</span></code> and related capacity field</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dst.el_params.sa.scale_frac_bits.mem.pi8</span></code> and related capacity field</p></li>
+</ul>
+</div></blockquote>
+<p>Depending on the state of the preceding pointer fields, ensure that you choose only one of the
+following options to initialize all the fields in a consistent way:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>If you initialize the pointers with <code class="docutils literal notranslate"><span class="pre">nullptr</span></code>, then corresponding fields from the <code class="docutils literal notranslate"><span class="pre">in</span></code> tensor
+are copied to <code class="docutils literal notranslate"><span class="pre">dst</span></code> tensor. No copy of quantization parameters itself is performed.</p></li>
+<li><p>If you initialize the pointers and capacity fields with the corresponding fields from the <code class="docutils literal notranslate"><span class="pre">in</span></code> tensor,
+then no action is applied.</p></li>
+<li><p>If you initialize the pointers and capacity fields with pre-allocated memory and its capacity,
+then a copy of quantization parameters itself is performed. Capacity of allocated memory must
+be big enough to keep related data from input tensor.</p></li>
+</ul>
+</div></blockquote>
+<p>Some operations (like padding, concat, slice, subsample) when applied on the quantization axis will affect the
+quantization parameters (e.g. If subsampling on the quantization axis is applied, also the quantization parameters
+will be subsampled). For these cases the output tensor should contain valid pre-allocated memory buffers to get
+correct quantization parameters. If this is not done, and the pointers are initialized with <code class="docutils literal notranslate"><span class="pre">nullptr</span></code> or with the
+same pointers as the src tensor, the result is undefined.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>In case of per-axis quantization of the src tensor, the axis needs to match the (permuted) quantization axis in the
+dst tensor.</p></li>
+<li><p>A combination of per-axis and per-tensor quantization is not allowed.</p></li>
+<li><p>In case of padding on the quantization axis, the quantization parameters for the padded area will be set to
+scale=1, scale_frac_bits=0, zero_point=0</p></li>
+</ul>
+</div></blockquote>
+<p>Depending on the debug level (see section <a class="reference internal" href="../mli_api_data/error_codes.html#err-codes"><span class="std std-ref">Error Codes</span></a>) this function performs a parameter
+check and returns the result as an <code class="docutils literal notranslate"><span class="pre">mli_status</span></code> code as described in section <a class="reference internal" href="../mli_api_data/data_structures.html#kernl-sp-conf"><span class="std std-ref">Kernel Specific Configuration Structures</span></a>.</p>
+</div>
+<div class="section" id="helper-functions-for-data-move-config-struct">
+<h2>Helper Functions for Data Move Config Struct<a class="headerlink" href="#helper-functions-for-data-move-config-struct" title="Permalink to this headline">¶</a></h2>
+<p>When only one of the transformations is needed during the copy, several helper functions can be used to fill
+the config struct. These are described in <a class="reference internal" href="#t-desc-helper-func"><span class="std std-ref">Description of Helper Functions for Data Move Config Struct</span></a>. The arguments to the function are copied
+into the cfg struct while the remaining parameters are set to their default values.  In the case of multiple
+transformations, there is a generic helper function available or the user can manually fill the cfg struct
+parameters.  Note that the mli_mov_cfg structure is described in detail in <a class="reference internal" href="#t-mli-mov-cfg-desc"><span class="std std-ref">mli_mov_cfg Structure Field Description</span></a>.</p>
+<span id="t-desc-helper-func"></span><table class="longtable docutils align-center" id="id6">
+<caption><span class="caption-text">Description of Helper Functions for Data Move Config Struct</span><a class="headerlink" href="#id6" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 34%" />
+<col style="width: 66%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Function Name</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">mli_mov_cfg_for_copy</span><span class="p">(</span>
+  <span class="n">mli_mov_cfg_t</span> <span class="o">*</span><span class="n">cfg</span><span class="p">)</span>
+</pre></div>
+</div>
+</td>
+<td><p>Fills the cfg struct with the values needed for a full tensor
+copy and sets all the other fields to a neutral value.</p>
+<ul class="simple">
+<li><p><strong>cfg</strong>: pointer to the config structure that is filled</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">mli_mov_cfg_for_slice</span> <span class="p">(</span>
+  <span class="n">mli_mov_cfg_t</span>  <span class="o">*</span><span class="n">cfg</span><span class="p">,</span>
+  <span class="kt">int</span><span class="o">*</span> <span class="n">offsets</span>
+  <span class="kt">int</span><span class="o">*</span> <span class="n">sizes</span><span class="p">,</span>
+  <span class="kt">int</span><span class="o">*</span> <span class="n">dst_mem_stride</span><span class="p">);</span>
+</pre></div>
+</div>
+</td>
+<td><p>Fill the cfg struct with the values needed for copying a
+slice from the source to the destination tensor.</p>
+<ul class="simple">
+<li><p><strong>cfg</strong>: pointer to the config structure that is filled</p></li>
+<li><p><strong>offsets</strong>: Start coordinate in the source tensor. Values must
+be smaller than the shape of the source tensor.</p></li>
+<li><p><strong>sizes</strong>: Size of the copy in elements per dimension.</p></li>
+<li><p><strong>dst_mem_stride</strong>: Distance in elements to the next dimension in
+the destination tensor.</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">mli_mov_cfg_for_concat</span><span class="p">(</span>
+  <span class="n">mli_mov_cfg_t</span> <span class="o">*</span><span class="n">cfg</span><span class="p">,</span>
+  <span class="kt">int</span><span class="o">*</span> <span class="n">dst_offsets</span><span class="p">,</span>
+  <span class="kt">int</span><span class="o">*</span> <span class="n">dst_mem_stride</span><span class="p">);</span>
+</pre></div>
+</div>
+</td>
+<td><p>Fill the cfg struct with the values needed for copying a complete
+tensor into a larger tensor at a specified position.</p>
+<ul class="simple">
+<li><p><strong>cfg</strong>: pointer to the config structure that is filled</p></li>
+<li><p><strong>dst_offsets</strong>: Start coordinate in the destination tensor.
+Values must be smaller than the memstride of the destination
+tensor.</p></li>
+<li><p><strong>dst_mem_strides</strong>: Distance in elements to the next dimension
+in the destination tensor.</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">mli_mov_cfg_for_subsample</span><span class="p">(</span>
+  <span class="n">mli_mov_cfg_t</span> <span class="o">*</span><span class="n">cfg</span><span class="p">,</span>
+  <span class="kt">int</span><span class="o">*</span> <span class="n">sub_sample_step</span><span class="p">,</span>
+  <span class="kt">int</span><span class="o">*</span> <span class="n">dst_mem_stride</span><span class="p">);</span>
+</pre></div>
+</div>
+</td>
+<td><p>Fill the cfg struct with the values needed for subsampling a
+tensor.</p>
+<ul class="simple">
+<li><p><strong>cfg</strong>: pointer to the config structure that is filled</p></li>
+<li><p><strong>subsample_step</strong>: Subsample factor for each dimension. Default
+value is 1, which means no subsampling</p></li>
+<li><p><strong>dst_mem_strides</strong>: Distance in elements to the next dimension
+in the destination tensor</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">mli_mov_cfg_for_permute</span><span class="p">(</span>
+  <span class="n">mli_mov_cfg_t</span> <span class="o">*</span><span class="n">cfg</span><span class="p">,</span>
+  <span class="kt">uint8_t</span><span class="o">*</span> <span class="n">perm_dim</span><span class="p">);</span>
+</pre></div>
+</div>
+</td>
+<td><p>Fill the cfg struct with the values needed for reordering the order
+of the dimensions in a tensor.</p>
+<ul class="simple">
+<li><p><strong>cfg</strong>: pointer to the config structure that is filled</p></li>
+<li><p><strong>perm_dim</strong>: Array to specify reordering of dimensions, see
+<a class="reference internal" href="#t-mli-mov-cfg-desc"><span class="std std-ref">mli_mov_cfg Structure Field Description</span></a> for details</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">mli_mov_cfg_for_padding2d_chw</span><span class="p">(</span>
+  <span class="n">mli_mov_cfg_t</span> <span class="o">*</span><span class="n">cfg</span><span class="p">,</span>
+  <span class="kt">uint8_t</span> <span class="n">padleft</span><span class="p">,</span>
+  <span class="kt">uint8_t</span> <span class="n">padright</span><span class="p">,</span>
+  <span class="kt">uint8_t</span> <span class="n">padtop</span><span class="p">,</span>
+  <span class="kt">uint8_t</span> <span class="n">padbot</span><span class="p">,</span>
+  <span class="kt">int</span><span class="o">*</span> <span class="n">dst_mem_stride</span><span class="p">);</span>
+</pre></div>
+</div>
+</td>
+<td><p>Fill the cfg struct with the values needed to add zero padding to a
+tensor in CHW layout.</p>
+<ul class="simple">
+<li><p><strong>cfg</strong>: pointer to the config structure that is filled</p></li>
+<li><p><strong>padleft</strong>: number of zero samples to be added to the left of
+the W dimension</p></li>
+<li><p><strong>padright</strong>: number of zero samples to be added to the right of
+the W dimension</p></li>
+<li><p><strong>padtop</strong>: number of zero samples to be added at the top of the
+H dimension</p></li>
+<li><p><strong>padbot</strong>: number of zero samples to be added at the bottom of
+the H dimension</p></li>
+<li><p><strong>dst_mem_strides</strong>: Distance in elements to the next dimension
+in the destination tensor</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">mli_mov_cfg_for_padding2d_hwc</span><span class="p">(</span>
+  <span class="n">mli_mov_cfg_t</span> <span class="o">*</span><span class="n">cfg</span><span class="p">,</span>
+  <span class="kt">uint8_t</span> <span class="n">padleft</span><span class="p">,</span>
+  <span class="kt">uint8_t</span> <span class="n">padright</span><span class="p">,</span>
+  <span class="kt">uint8_t</span> <span class="n">padtop</span><span class="p">,</span>
+  <span class="kt">uint8_t</span> <span class="n">padbot</span><span class="p">,</span>
+  <span class="kt">int</span><span class="o">*</span> <span class="n">dst_mem_stride</span><span class="p">);</span>
+</pre></div>
+</div>
+</td>
+<td><p>Fill the cfg struct with the values needed to add zero padding to a
+tensor in HWC layout.</p>
+<ul class="simple">
+<li><p><strong>cfg</strong>: pointer to the config structure that is filled</p></li>
+<li><p><strong>padleft</strong>: number of zero samples to be added to the left of
+the W dimension</p></li>
+<li><p><strong>padright</strong>: number of zero samples to be added to the right of
+the W dimension</p></li>
+<li><p><strong>padtop</strong>: number of zero samples to be added at the top of the
+H dimension</p></li>
+<li><p><strong>padbot</strong>: number of zero samples to be added at the bottom of
+the H dimension</p></li>
+<li><p><strong>dst_mem_strides</strong>: Distance in elements to the next dimension
+in the destination tensor</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">mli_mov_cfg_all</span><span class="p">(</span>
+  <span class="n">mli_mov_cfg_t</span> <span class="o">*</span><span class="n">cfg</span><span class="p">,</span>
+  <span class="kt">int</span><span class="o">*</span> <span class="n">offsets</span><span class="p">,</span>
+  <span class="kt">int</span><span class="o">*</span> <span class="n">sizes</span><span class="p">,</span>
+  <span class="kt">int</span><span class="o">*</span> <span class="n">subsample_step</span><span class="p">,</span>
+  <span class="kt">int</span><span class="o">*</span> <span class="n">dst_offsets</span><span class="p">,</span>
+  <span class="kt">int</span><span class="o">*</span> <span class="n">dst_mem_strides</span><span class="p">,</span>
+  <span class="kt">uint8_t</span><span class="o">*</span> <span class="n">perm_dim</span><span class="p">,</span>
+  <span class="kt">uint8_t</span><span class="o">*</span> <span class="n">pad_pre</span><span class="p">,</span>
+  <span class="kt">uint8_t</span><span class="o">*</span> <span class="n">pad_post</span><span class="p">);</span>
+</pre></div>
+</div>
+</td>
+<td><p>This function fills the cfg struct with the values provided as
+function arguments. It is recommended that applications use this
+function instead of direct structure access, so that application
+code does not have to change if the structure format ever changes.</p>
+<ul class="simple">
+<li><p><strong>cfg</strong>: pointer to the config structure that is filled</p></li>
+<li><p><strong>offsets</strong>: Start coordinate in the source tensor. Values must
+be smaller than the shape of the source tensor.</p></li>
+<li><p><strong>sizes</strong>: Size of the copy in elements per dimension.</p></li>
+<li><p><strong>subsample_step</strong>: Subsample factor for each dimension. Default
+value is 1, which means no subsampling</p></li>
+<li><p><strong>dst_offsets</strong>: Start coordinate in the destination tensor.
+Values must be smaller than the memstride of the destination
+tensor.</p></li>
+<li><p><strong>dst_mem_strides</strong>: Distance in elements to the next dimension
+in the destination tensor</p></li>
+<li><p><strong>perm_dim</strong>: Array to specify reordering of dimensions.</p></li>
+<li><p><strong>pad_pre</strong>: Number of padded samples before the data for each
+dimension. Padded samples are set to zero.</p></li>
+<li><p><strong>pad_post</strong>: Number of padded samples after the data for each
+dimension. Padded samples are set to zero</p></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="asynchronous-data-move-functions">
+<h2>Asynchronous Data Move Functions<a class="headerlink" href="#asynchronous-data-move-functions" title="Permalink to this headline">¶</a></h2>
+<p>Certain implementations might choose to perform other processing while the move
+operations are in progress.  This is especially helpful for systems that use a
+DMA to move the data. The asynchronous API can be used in that case.</p>
+<p>The operation is divided into three separate steps, each with corresponding APIs:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Preparation (DMA programming)</p></li>
+<li><p>Start processing (trigger DMA)</p></li>
+<li><p>Done notification (DMA finished, data is ready) – via either callback or polling</p></li>
+</ol>
+</div></blockquote>
+<p>Between steps 2 &amp; 3, the application can do other processing.
+These APIs use the <code class="docutils literal notranslate"><span class="pre">mli_mov_handle_t</span></code> type. The definition of this type is private to
+the implementation, but to avoid dynamic memory allocation the definition is put in
+the public header file. This way the caller can allocate it on the stack.</p>
+<div class="section" id="preparation">
+<h3>Preparation<a class="headerlink" href="#preparation" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">mli_mov_prepare</span></code> function is called first to set up the transfer. The functionality
+of this function varies depending on the implementation, but it often performs DMA
+initialization. Table <a class="reference internal" href="#t-mli-mov-prep"><span class="std std-ref">mli_mov_prepare Parameters</span></a> describes the parameters of this function.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">mli_status</span>
+<span class="nf">mli_mov_prepare</span><span class="p">(</span><span class="n">mli_mov_handle_t</span><span class="o">*</span> <span class="n">h</span><span class="p">,</span> <span class="k">const</span> <span class="n">mli_tensor</span><span class="o">*</span> <span class="n">src</span><span class="p">,</span> <span class="k">const</span> <span class="n">mli_mov_cfg_t</span><span class="o">*</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">mli_tensor</span><span class="o">*</span> <span class="n">dst</span><span class="p">);</span>
+</pre></div>
+</div>
+<span id="t-mli-mov-prep"></span><table class="docutils align-center" id="id7">
+<caption><span class="caption-text">mli_mov_prepare Parameters</span><a class="headerlink" href="#id7" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 70%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Parameter Name</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mli_mov_handle_t*</span> <span class="pre">h</span></code></p></td>
+<td><p>Pointer to a handle obtained by <code class="docutils literal notranslate"><span class="pre">mli_mov_acquire_handle</span></code>.
+See <a class="reference internal" href="#dma-res-mgmt"><span class="std std-ref">DMA Resource Management</span></a> for details</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mli_tensor*</span> <span class="pre">src</span></code></p></td>
+<td><p>Pointer to Source tensor</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mli_mov_cfg_t*</span> <span class="pre">cfg</span></code></p></td>
+<td><p>Pointer to a cfg structure (see
+<a class="reference internal" href="#t-mli-mov-cfg-desc"><span class="std std-ref">mli_mov_cfg Structure Field Description</span></a> for details)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mli_tensor*</span> <span class="pre">dst</span></code></p></td>
+<td><p>Pointer to Destination tensor</p></td>
+</tr>
+</tbody>
+</table>
+<p>Depending on the debug level (see section <a class="reference internal" href="../mli_api_data/error_codes.html#err-codes"><span class="std std-ref">Error Codes</span></a>), this function performs a parameter
+check and returns the result as an <code class="docutils literal notranslate"><span class="pre">mli_status</span></code> code as described in section <a class="reference internal" href="../mli_api_data/data_structures.html#kernl-sp-conf"><span class="std std-ref">Kernel Specific Configuration Structures</span></a>.</p>
+</div>
+<div class="section" id="start-processing">
+<h3>Start Processing<a class="headerlink" href="#start-processing" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">mli_mov_start</span></code> function is called to begin the previously-setup transfer. Table
+<a class="reference internal" href="#t-mli-mov-start"><span class="std std-ref">mli_mov_start Parameters</span></a> describes the parameters of this function.  If this function
+is called without first calling <code class="docutils literal notranslate"><span class="pre">mli_mov_prepare</span></code> for a given handle, the DMA might
+be triggered with an old configuration leading to undefined behavior. In a debug build,
+an assert is triggered.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">mli_status</span>
+<span class="nf">mli_mov_start</span><span class="p">(</span><span class="n">mli_mov_handle_t</span><span class="o">*</span> <span class="n">h</span><span class="p">,</span> <span class="k">const</span> <span class="n">mli_tensor</span><span class="o">*</span> <span class="n">src</span><span class="p">,</span> <span class="k">const</span> <span class="n">mli_mov_cfg_t</span><span class="o">*</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">mli_tensor</span><span class="o">*</span> <span class="n">dst</span><span class="p">);</span>
+</pre></div>
+</div>
+<span id="t-mli-mov-start"></span><table class="colwidths-auto docutils align-center" id="id8">
+<caption><span class="caption-text">mli_mov_start Parameters</span><a class="headerlink" href="#id8" title="Permalink to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Parameter Name</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mli_mov_handle_t*</span> <span class="pre">h</span></code></p></td>
+<td><p>Pointer to handle used when calling
+associated <code class="docutils literal notranslate"><span class="pre">mli_move_prepare</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mli_tensor*</span> <span class="pre">src</span></code></p></td>
+<td><p>Pointer to Source tensor</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mli_mov_cfg_t*</span> <span class="pre">cfg</span></code></p></td>
+<td><p>Pointer to a cfg structure (see
+<a class="reference internal" href="#t-mli-mov-cfg-desc"><span class="std std-ref">mli_mov_cfg Structure Field Description</span></a> for description)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mli_tensor*</span> <span class="pre">dst</span></code></p></td>
+<td><p>Pointer to Destination tensor</p></td>
+</tr>
+</tbody>
+</table>
+<p>Depending on the debug level (see section <a class="reference internal" href="../mli_api_data/error_codes.html#err-codes"><span class="std std-ref">Error Codes</span></a>), this function performs a parameter
+check and returns the result as an <code class="docutils literal notranslate"><span class="pre">mli_status</span></code> code as described in section <a class="reference internal" href="../mli_api_data/data_structures.html#kernl-sp-conf"><span class="std std-ref">Kernel Specific Configuration Structures</span></a>.</p>
+</div>
+<div class="section" id="done-notification-callback">
+<h3>Done Notification - Callback<a class="headerlink" href="#done-notification-callback" title="Permalink to this headline">¶</a></h3>
+<p>You can register a callback function which is called after the data move is finished. A callback
+is registered with the following function.  The parameters are described in Table <a class="reference internal" href="#t-mli-mov-regcb"><span class="std std-ref">mli_mov_registercallback Parameters</span></a>.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">mli_status</span>
+<span class="nf">mli_mov_registercallback</span><span class="p">(</span><span class="n">mli_mov_handle_t</span><span class="o">*</span> <span class="n">h</span><span class="p">,</span> <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">cb</span><span class="p">)(</span><span class="kt">int32_t</span><span class="p">),</span> <span class="kt">int32_t</span> <span class="n">cookie</span><span class="p">);</span>
+</pre></div>
+</div>
+<span id="t-mli-mov-regcb"></span><table class="colwidths-auto docutils align-center" id="id9">
+<caption><span class="caption-text">mli_mov_registercallback Parameters</span><a class="headerlink" href="#id9" title="Permalink to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Parameter Name</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mli_mov_handle_t*</span> <span class="pre">h</span></code></p></td>
+<td><p>Pointer to handle used when calling associated
+<code class="docutils literal notranslate"><span class="pre">mli_move_prepare</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">(*cb)(int32_t)</span></code></p></td>
+<td><p>Pointer to user-supplied callback function</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">int32_t</span> <span class="pre">cookie</span></code></p></td>
+<td><p>Parameter passed to callback function</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If a callback is used, <code class="docutils literal notranslate"><span class="pre">mli_mov_registercallback</span></code> must be called before <code class="docutils literal notranslate"><span class="pre">mli_mov_start</span></code>
+to avoid race conditions. A race condition would arise if the DMA transaction is faster
+than the registration of the callback and would cause the callback to not be called.</p>
+</div>
+<p>If a callback function has been registered, this callback is called after the DMA
+transaction completes, and the value of cookie is passed in as an argument.</p>
+</div>
+<div class="section" id="done-notification-polling">
+<h3>Done Notification - Polling<a class="headerlink" href="#done-notification-polling" title="Permalink to this headline">¶</a></h3>
+<p>You can also simply poll for the completion of the DMA transaction using this function:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">bool</span>
+<span class="nf">mli_mov_isdone</span><span class="p">(</span><span class="n">mli_mov_handle_t</span><span class="o">*</span> <span class="n">h</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>This function takes a pointer to the handle used for <code class="docutils literal notranslate"><span class="pre">mli_mov_prepare</span></code> and returns:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>True - if the transaction is complete</p></li>
+<li><p>False - if the transaction is still in progress</p></li>
+</ul>
+</div></blockquote>
+<p>You can also wait for the DMA to compete using the following function:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">mli_status</span>
+<span class="nf">mli_mov_wait</span><span class="p">(</span><span class="n">mli_mov_handle_t</span><span class="o">*</span> <span class="n">h</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>This function takes a pointer to the handle used for <code class="docutils literal notranslate"><span class="pre">mli_mov_prepare</span></code> and returns
+after the transaction completes or in case of an error.</p>
+</div>
+<div class="section" id="restrictions-for-source-and-destination-tensors">
+<h3>Restrictions for Source and Destination Tensors<a class="headerlink" href="#restrictions-for-source-and-destination-tensors" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">src</span></code> and <code class="docutils literal notranslate"><span class="pre">dst</span></code> tensors for all functions of asynchronous data move set must comply to the following conditions:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">src</span></code> tensor must be valid.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dst</span></code> tensor must contain a valid pointer to a buffer with sufficient capacity. (that is,
+the total amount of elements in input tensor). Other fields are filled by the kernel (shape,
+rank and element-specific parameters).</p></li>
+<li><p>Buffers of <code class="docutils literal notranslate"><span class="pre">src</span></code> and <code class="docutils literal notranslate"><span class="pre">dst</span></code> tensors must point to different, non-overlapped memory regions.</p></li>
+</ul>
+</div></blockquote>
+<p>For <code class="docutils literal notranslate"><span class="pre">src</span></code> tensor of <strong>sa8</strong> or <strong>sa32</strong> types, and in case of per-axis quantization, the <code class="docutils literal notranslate"><span class="pre">el_params</span></code>
+field of <code class="docutils literal notranslate"><span class="pre">dst</span></code> tensor is filled by the function using <code class="docutils literal notranslate"><span class="pre">src</span></code> quantization parameters.
+The following fields are affected:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">dst.el_params.sa.zero_point.mem.pi16</span></code> and related capacity field</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dst.el_params.sa.scale.mem.pi16</span></code> and related capacity field</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dst.el_params.sa.scale_frac_bits.mem.pi8</span></code> and related capacity field</p></li>
+</ul>
+</div></blockquote>
+<p>Depending on the state of the preceding pointer fields, ensure that you choose only one of the
+following options to initialize all the fields in a consistent way:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>If you initialize the pointers with <code class="docutils literal notranslate"><span class="pre">nullptr</span></code>, then corresponding fields from the <code class="docutils literal notranslate"><span class="pre">in</span></code> tensor
+are copied to <code class="docutils literal notranslate"><span class="pre">dst</span></code> tensor. No copy of quantization parameters itself is performed.</p></li>
+<li><p>If you initialize the pointers and capacity fields with the corresponding fields from the <code class="docutils literal notranslate"><span class="pre">in</span></code> tensor,
+then no action is applied.</p></li>
+<li><p>If you initialize the pointers and capacity fields with pre-allocated memory and its capacity,
+then a copy of quantization parameters itself is performed. Capacity of allocated memory must
+be big enough to keep related data from input tensor.</p></li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="dma-resource-management">
+<span id="dma-res-mgmt"></span><h2>DMA Resource Management<a class="headerlink" href="#dma-resource-management" title="Permalink to this headline">¶</a></h2>
+<p>The MLI API permits multiple mov transactions occurring in parallel, if the particular
+target hardware has a DMA engine which supports multiple channels. MLI also assumes
+that other parts of the system might want to access the DMA Engine at the same time and
+relies on the application/caller to provide it with a pool of available DMA channels
+that can be used exclusively by MLI. The following functions are used for this purpose:</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">mli_mov_set_num_dma_ch</span></code> is called once at initialization time to assign a set of
+channels to MLI for its exclusive use.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">mli_status</span>
+<span class="nf">mli_mov_set_num_dma_ch</span><span class="p">(</span><span class="kt">int</span> <span class="n">ch_offset</span><span class="p">,</span> <span class="kt">int</span> <span class="n">num_ch</span><span class="p">);</span>
+</pre></div>
+</div>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ch_offset</span></code> - first channel number that MLI should use</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">num_ch</span></code> - max number of channels that MLI can use</p></li>
+</ul>
+</div></blockquote>
+<p>The asynchronous move functions require a handle to a DMA resource. This handle can be
+obtained from the pool using <code class="docutils literal notranslate"><span class="pre">mli_mov_acquire_handle</span></code>:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">mli_status</span>
+<span class="nf">mli_mov_acquire_handle</span><span class="p">(</span><span class="kt">int</span> <span class="n">num_ch</span><span class="p">,</span> <span class="n">mli_mov_handle_t</span><span class="o">*</span> <span class="n">h</span><span class="p">);</span>
+</pre></div>
+</div>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">num_ch</span></code> - Number of DMA channels required for this move. Certain complex transactions
+might be more efficient when multiple channels can be used. By default, a value of 1
+should be used.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mli_mov_handle_t*</span> <span class="pre">h</span></code> - Pointer to a handle type which is initialized by this function</p></li>
+</ul>
+</div></blockquote>
+<p>After the move has completed, the resources must be released back to the pool to avoid
+exhaustion:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">mli_status</span>
+<span class="nf">mli_mov_release_handle</span><span class="p">(</span><span class="n">mli_mov_handle_t</span><span class="o">*</span> <span class="n">h</span><span class="p">);</span>
+</pre></div>
+</div>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">mli_mov_handle_t*</span> <span class="pre">h</span></code> - Pointer to a handle type which is used by the now-completed
+transaction</p></li>
+</ul>
+</div></blockquote>
+<p>Depending on the debug level (see section <a class="reference internal" href="../mli_api_data/error_codes.html#err-codes"><span class="std std-ref">Error Codes</span></a>) this function performs a parameter
+check and returns the result as an <code class="docutils literal notranslate"><span class="pre">mli_status</span></code> code as described in section <a class="reference internal" href="../mli_api_data/data_structures.html#kernl-sp-conf"><span class="std std-ref">Kernel Specific Configuration Structures</span></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The synchronous move function <code class="docutils literal notranslate"><span class="pre">mli_mov_tensor_sync</span></code> manages these DMA operations internally.</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../utility_functions/utility_functions.html" class="btn btn-neutral float-right" title="Utility Functions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../mli_kernels/elemw_grp.html" class="btn btn-neutral float-left" title="Element-wise Kernels Group" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2021, Synopsys, Inc
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
