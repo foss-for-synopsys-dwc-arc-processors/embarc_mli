@@ -3,5 +3,8 @@ matplotlib
 jupyterlab==1.1.0
 tensorflow==2.5.0
 keras>=2.2.4
-emnist
-
+tensorflow_datasets
+ipywidgets
+opencv-python
+-i https://google-coral.github.io/py-repo/
+tflite_runtime
