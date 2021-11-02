@@ -18,23 +18,6 @@
 #include "mli_mem_info.h"
 #include "arc_vector.h"
 
-const int unroll_factor[2][5] = {
-{
-/* ELTWISE_ADD_NO_CONVERT = */ 4,
-/* ELTWISE_SUB_NO_CONVERT = */ 4,
-/* ELTWISE_MUL_NO_CONVERT = */ 4,
-/* ELTWISE_MAX_NO_CONVERT = */ 4,
-/* ELTWISE_MIN_NO_CONVERT = */ 4
-} ,
-{
-/* ELTWISE_ADD_CONVERT = */ 4,
-/* ELTWISE_SUB_CONVERT = */ 4,
-/* ELTWISE_MUL_CONVERT = */ 4,
-/* ELTWISE_MAX_CONVERT = */ 4,
-/* ELTWISE_MIN_CONVERT = */ 4
-}
-};
-
 namespace mli {
 namespace krn {
 namespace vdsp {
@@ -576,8 +559,6 @@ MLI_FORCE_INLINE void eltwise_innerloop(
     int remaining_part = count & (num_lanes - 1);
     decltype(input) op1_scalar = op1_s;
     decltype(input) op2_scalar = op2_s;
-    const int convert_int = static_cast<int>(convert);
-    const int func_int = static_cast<int>(func_type);
 
     if (remaining_part) {
         auto val1 = (scalar_op1) ? op1_scalar : mli_prv_load_1vec(op1_ptr + idx1);
@@ -591,7 +572,7 @@ MLI_FORCE_INLINE void eltwise_innerloop(
         idx_out += remaining_part;
     }
 
-#pragma clang loop unroll_count(unroll_factor[convert_int][func_int])
+#pragma clang loop unroll_count(4)
     for (int pos = 0; pos < (count - remaining_part); pos+=num_lanes) {
         auto val1 = (scalar_op1) ? op1_scalar : mli_prv_load_1vec(op1_ptr + idx1);
         auto val2 = (scalar_op2) ? op2_scalar : mli_prv_load_1vec(op2_ptr + idx2);
