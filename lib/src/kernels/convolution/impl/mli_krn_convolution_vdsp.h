@@ -25,6 +25,516 @@ namespace vdsp {
 
 #pragma MLI_CODE_SECTION_START(".mli_lib")
 
+
+static MLI_FORCE_INLINE vNx2short_t mli_prv_gather_load_nx2_samples_new(const MLI_PTR(int16_t) in, vNx2int_t offsets, int num) {
+    return vgather(in, offsets, (vNx2short_t)0, mli_prv_pvNx2_init(num));
+}
+
+static MLI_FORCE_INLINE vNx4char_t mli_prv_gather_load_nx2_samples_new(const MLI_PTR(int8_t) in, vNx2int_t offsets, int num) {
+    return vgather_lo(in, offsets, (vNx4char_t)0, mli_prv_pvNx4_init(num));
+}
+
+template < typename in_T, typename w_T, typename acc_T >
+static MLI_FORCE_INLINE acc_T dotprod3D_v_pad_new (
+        const MLI_PTR (in_T) __restrict in,
+        const MLI_PTR (w_T) __restrict krn,
+        const int width,
+        const int height,
+        const int channels,
+        int in_col_step,
+        int in_row_step,
+        int in_ch_step,
+        int kern_col_step,
+        int kern_row_step,
+        int kern_ch_step,
+        acc_T accu,
+        int16_t zp,
+        int pad_top,
+        int pad_left,
+	    int dilation_height,
+    int dilation_width) {
+    in_ch_step -= height * in_row_step;
+    kern_ch_step -= height * kern_row_step;
+    in_row_step -= width * in_col_step;
+    kern_row_step -= width * kern_col_step;
+
+    __builtin_assume (height > 0);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
+    for (int ch = 0; ch < channels; ch++) {
+#pragma clang loop unroll(full)
+        for (int row = 0; row < height; row++) {
+#pragma clang loop unroll(full)
+            for (int clmn = 0; clmn < width; clmn++) {
+                in_T input = (row*dilation_height < pad_top || clmn*dilation_width < pad_left) ? (in_T)zp : (in_T) *((in_T*)in);
+                accu = mli_prv_mac_load_v_s(accu, krn, (const MLI_PTR(in_T)) &input);
+                in += in_col_step;
+                krn += kern_col_step;
+            }
+            in += in_row_step;
+            krn += kern_row_step;
+        }
+        in += in_ch_step;
+        krn += kern_ch_step;
+    }
+#pragma clang diagnostic pop
+    return accu;
+}
+
+template < typename in_T, typename w_T, typename acc_T >
+static MLI_FORCE_INLINE acc_T dotprod3D_v_pad_gather2_new (
+        const MLI_PTR (in_T) __restrict in,
+        const MLI_PTR (w_T) __restrict krn,
+        const int width,
+        const int height,
+        const int channels,
+        int in_col_step,
+        int in_row_step,
+        int in_ch_step,
+        int kern_col_step,
+        int kern_row_step,
+        int kern_ch_step,
+        acc_T accu,
+        int16_t zp,
+        int pad_top,
+        int pad_left,
+    int dilation_height,
+    int dilation_width) {
+    // construct gather vector with pointers
+    const vNx4int_t vindex = to_vNx4int_t(make_vindex2(width, height, in_col_step, in_row_step));
+    int vec_length = (sizeof(vNx2short_t) / sizeof(short));
+
+    kern_ch_step -= height * kern_row_step;
+    kern_row_step -= width * kern_col_step;
+
+    __builtin_assume (height > 0);
+    for (int ch = 0; ch < channels; ch++) {
+        // gather load w x h samples from input
+        auto in_gather_lo = mli_prv_gather_load_nx2_samples_new(in, vindex.lo, width * height);
+        auto in_gather_hi = mli_prv_gather_load_nx2_samples_new(in, vindex.hi, width * height);
+// This function is intended to be used only with fixed kernel sizes because of the complex indexing
+// that is why the warnings about unroll not possible are not switched off here.
+#pragma clang loop unroll(full)
+        for (int row = 0; row < height; row++) {
+#pragma clang loop unroll(full)
+            for (int clmn = 0; clmn < width; clmn++) {
+                // get input sample from gather vector.
+                int idx = row * width + clmn;
+                in_T input = (row*dilation_height < pad_top || clmn*dilation_width < pad_left) ? (in_T)zp : (idx >= vec_length ? in_gather_hi[idx - vec_length] : in_gather_lo[idx]);
+                accu = mli_prv_mac_load_v_s(accu, krn, input);
+                krn += kern_col_step;
+            }
+            krn += kern_row_step;
+        }
+        in += in_ch_step;
+        krn += kern_ch_step;
+    }
+    return accu;
+}
+
+template < typename in_T, typename w_T, typename acc_T >
+static MLI_FORCE_INLINE acc_T dotprod3D_v_pad_gather1_new (
+        const MLI_PTR (in_T) __restrict in,
+        const MLI_PTR (w_T) __restrict krn,
+        const int width,
+        const int height,
+        const int channels,
+        int in_col_step,
+        int in_row_step,
+        int in_ch_step,
+        int kern_col_step,
+        int kern_row_step,
+        int kern_ch_step,
+        acc_T accu,
+        int16_t zp,
+        int pad_top,
+        int pad_left,
+	int dilation_height,
+	int dilation_width) {
+    // construct gather vector with pointers
+    const vNx2int_t vindex = to_vNx2int_t(make_vindex(width, height, in_col_step, in_row_step));
+
+    kern_ch_step -= height * kern_row_step;
+    kern_row_step -= width * kern_col_step;
+
+    __builtin_assume (height > 0);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
+    for (int ch = 0; ch < channels; ch++) {
+        // gather load w x h samples from input
+        auto in_gather = mli_prv_gather_load_nx2_samples_new(in, vindex, width * height);
+#pragma clang loop unroll(full)
+        for (int row = 0; row < height; row++) {
+#pragma clang loop unroll(full)
+            for (int clmn = 0; clmn < width; clmn++) {
+                // get input sample from gather vector.
+                in_T input = (row*dilation_height < pad_top || clmn*dilation_width < pad_left) ? (in_T)zp : in_gather[row * width + clmn];
+                accu = mli_prv_mac_load_v_s(accu, krn, input);
+                krn += kern_col_step;
+            }
+            krn += kern_row_step;
+        }
+        in += in_ch_step;
+        krn += kern_ch_step;
+    }
+#pragma clang diagnostic pop
+    return accu;
+}
+
+template < typename in_T, typename w_T, typename acc_T, bool fixed_size >
+static MLI_FORCE_INLINE acc_T dotprod3D_v_new (
+        const MLI_PTR (in_T) __restrict in,
+        const MLI_PTR (w_T) __restrict krn,
+        const int width,
+        const int height,
+        const int channels,
+        int in_col_step,
+        int in_row_step,
+        int in_ch_step,
+        int kern_col_step,
+        int kern_row_step,
+        int kern_ch_step,
+        acc_T accu,
+    int16_t zp,
+    int pad_top,
+    int pad_left,
+    int dilation_height,
+    int dilation_width) {
+/* Optimized version will use a gather load to combine the scalar loads.
+   the number of loads required depends on the kernel width, height and unroll factor.
+   The number of loads available in the gather load depends on the vector length.
+   For both 8bit and 16bit loads, the number of elemens that can be loaded in a single
+   gather instruction is the same.
+   */
+    int num_loads_single_gather = _VDSP_NUM_16BIT_LANES;
+    int required_loads = width * height;
+
+    if (required_loads <= num_loads_single_gather) {
+        return dotprod3D_v_pad_gather1_new(in, krn, width, height, channels, in_col_step, in_row_step, in_ch_step, kern_col_step, kern_row_step, kern_ch_step, accu,
+                       zp, pad_top, pad_left, dilation_height, dilation_width);
+    } else if (fixed_size && (required_loads <= 2 * num_loads_single_gather)) {
+        return dotprod3D_v_pad_gather2_new(in, krn, width, height, channels, in_col_step, in_row_step, in_ch_step, kern_col_step, kern_row_step, kern_ch_step, accu,
+                zp, pad_top, pad_left, dilation_height, dilation_width);
+    } else {
+        return dotprod3D_v_pad_new(in, krn, width, height, channels, in_col_step, in_row_step, in_ch_step, kern_col_step, kern_row_step, kern_ch_step, accu,
+                zp, pad_top, pad_left, dilation_height, dilation_width);
+    }
+}
+
+
+
+
+
+template < typename in_T, typename w_T, typename grpacc_T, int unroll >
+static MLI_FORCE_INLINE grpacc_T dotprod3D_v_pad_gather1_unroll_new (
+        const MLI_PTR (in_T) __restrict in,
+        const MLI_PTR (w_T) __restrict krn,
+        const int width,
+        const int height,
+        const int channels,
+        int in_col_step,
+        int in_row_step,
+        int in_ch_step,
+        int kern_col_step,
+        int kern_row_step,
+        int kern_ch_step,
+        int unroll_step,
+        int unroll_1,
+        int required_loads,
+        int kernel_size,
+        int ext_width,
+        grpacc_T accu,
+    int pad_top,
+    int16_t zp) {
+    // construct gather vector with pointers
+    const vNx2int_t vindex = to_vNx2int_t(make_vindex(ext_width, height, in_col_step, in_row_step, unroll_1, unroll_step));
+
+    kern_ch_step -= height * kern_row_step;
+    kern_row_step -= width * kern_col_step;
+
+    __builtin_assume (height > 0);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
+    for (int ch = 0; ch < channels; ch++) {
+        // gather load w x h samples from input
+        auto in_gather = mli_prv_gather_load_nx2_samples_new(in, vindex, required_loads);
+#pragma clang loop unroll(full)
+        for (int row = 0; row < height; row++) {
+#pragma clang loop unroll(full)
+            for (int clmn = 0; clmn < width; clmn++) {
+                // get input sample from gather vector.
+                in_T input = (row * in_row_step < pad_top) ? (in_T)zp : in_gather[row * ext_width + clmn];
+                accu.accu0 = mli_prv_mac_load_v_s(accu.accu0, krn, input);
+                if (unroll > 1) {
+                    in_T input = (row * in_row_step < pad_top) ? (in_T)zp : in_gather[row * ext_width + clmn + 1 * kernel_size];
+                    accu.accu1 = mli_prv_mac_load_v_s(accu.accu1, krn, input);
+                }
+                if (unroll > 2) {
+                    in_T input = (row * in_row_step < pad_top) ? (in_T)zp : in_gather[row * ext_width + clmn + 2 * kernel_size];
+                    accu.accu2 = mli_prv_mac_load_v_s(accu.accu2, krn, input);
+                }
+                if (unroll > 3) {
+                    in_T input = (row * in_row_step < pad_top) ? (in_T)zp : in_gather[row * ext_width + clmn + 3 * kernel_size];
+                    accu.accu3 = mli_prv_mac_load_v_s(accu.accu3, krn, input);
+                }
+                krn += kern_col_step;
+            }
+            krn += kern_row_step;
+        }
+        in += in_ch_step;
+        krn += kern_ch_step;
+    }
+#pragma clang diagnostic pop
+    return accu;
+}
+
+template <int unroll, bool fixed_size, typename in_T, typename w_T, typename grpacc_T >
+static MLI_FORCE_INLINE grpacc_T dotprod3D_v_unroll_new (
+        const MLI_PTR (in_T) __restrict in,
+        const MLI_PTR (w_T) __restrict krn,
+        const int width,
+        const int height,
+        const int channels,
+        int in_col_step,
+        int in_row_step,
+        int in_ch_step,
+        int in_unroll_step,
+        int kern_col_step,
+        int kern_row_step,
+        int kern_ch_step,
+        int unroll_step,
+        int unroll_1,
+        int required_loads,
+        int kernel_size,
+        int ext_width,
+        grpacc_T accu,
+    int pad_top,
+    int16_t zp) {
+/* Optimized version will use a gather load to combine the scalar loads.
+   the number of loads required depends on the kernel width, height and unroll factor.
+   The number of loads available in the gather load depends on the vector length.
+   For both 8bit and 16bit loads, the number of elemens that can be loaded in a single
+   gather instruction is the same.
+   */
+    int num_loads_single_gather = _VDSP_NUM_16BIT_LANES;
+
+
+    if (required_loads <= num_loads_single_gather) {
+        return dotprod3D_v_pad_gather1_unroll_new<in_T, w_T, grpacc_T, unroll>(in, krn, width, height, channels, in_col_step, in_row_step, in_ch_step,
+                kern_col_step, kern_row_step, kern_ch_step, unroll_step, unroll_1, required_loads, kernel_size, ext_width, accu, pad_top, zp);
+    } else if (fixed_size && (required_loads <= 2 * num_loads_single_gather)) {
+        return dotprod3D_v_pad_gather2_unroll<in_T, w_T, grpacc_T, unroll>(in, krn, width, height, channels, in_col_step, in_row_step, in_ch_step,
+                kern_col_step, kern_row_step, kern_ch_step, unroll_step, unroll_1, required_loads, kernel_size, ext_width, accu);
+    } else {
+        grpacc_T r;
+        r.accu0 = dotprod3D_v_pad(in, krn, width, height, channels, in_col_step, in_row_step, in_ch_step, kern_col_step, kern_row_step, kern_ch_step, accu.accu0);
+        if (unroll > 1) {
+            in += in_unroll_step;
+            r.accu1 = dotprod3D_v_pad(in, krn, width, height, channels, in_col_step, in_row_step, in_ch_step, kern_col_step, kern_row_step, kern_ch_step, accu.accu1);
+        }
+        if (unroll > 2) {
+            in += in_unroll_step;
+            r.accu2 = dotprod3D_v_pad(in, krn, width, height, channels, in_col_step, in_row_step, in_ch_step, kern_col_step, kern_row_step, kern_ch_step, accu.accu2);
+        }
+        if (unroll > 3) {
+            in += in_unroll_step;
+            r.accu3 = dotprod3D_v_pad(in, krn, width, height, channels, in_col_step, in_row_step, in_ch_step, kern_col_step, kern_row_step, kern_ch_step, accu.accu3);
+        }
+
+        return r;
+    }
+
+}
+
+MLI_FORCE_INLINE int16_t get_zp(fx_quant_specific_params *quant_params) {
+  return 0;
+}
+
+MLI_FORCE_INLINE int16_t get_zp(s8asym_quant_specific_params *quant_params) {
+  return quant_params->in_offset;
+}
+
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
+MLI_FORCE_INLINE void convolution2D_pad_new(
+        const tensor_private_t<MLI_PTR(io_T)> &in,
+        const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
+        const MLI_PTR(b_T)  __restrict biases,
+        const tensor_private_t<MLI_CONV_OUT_PTR(io_T)> &out,
+        const rect_t &perception_area,
+        quant_T quant_params,
+        const io_T val_min_limit,
+        const io_T val_max_limit,
+        const int stride_height, const int stride_width,
+        const int dilation_height, const int dilation_width,
+        const int padding_top, const int padding_left,
+        const int padding_bot, const int padding_right) {
+    // Unified Generic convolution for all layouts (CHW/HWC/HWCN) and quantization scheme:
+    // MLI_FX (symmetric data, scales are power of two) and s8asym (assymetric data, scales of any value)
+    // For each output point Calculation implies dotproduct and bias add:
+    //            out_val = sum_i(x_r * w_r) + b_r
+    //
+    // Considering assymetric types(x_r = (x - x_zp) and w_r = (w - w_zp)
+    //                    out_val = sum_i((x-x_zp)*(w-w_zp)) + b_r
+    //
+    // after opening brackets:
+    //      out_val = sum(x*w) - sum_i(w*x_zp) - sum_i(x*w_zp) + sum_i(w_zp*x_zp) + b_r
+    // where:
+    //      sum(x*w)       - generic dotproduct which can't be avoided for any type
+    //      -sum_i(w*x_zp) - weights_additive.
+    //                       Allways Zero for FX and can be reused in output channel calculations for s8asym
+    //      -sum_i(x*w_zp) - in_additive
+    //                       Allways Zero for both FX and TF_s8asym assuming symmetric weights (w_zp == 0)
+    //     sum_i(w_zp*x_zp)- zp_additive
+    //                       Allways Zero for both FX and TF_s8asym assuming symmetric weights (w_zp == 0)
+    //      b_r             - bias_additive
+    //                        (must be of the same type as accumulator, that may require bias re-quantization)
+    //
+    // IMPORTANT NOTE: For border areas with padding, weights/input/zp can be reused only in case of explicitly padded values.
+    //                 In other case, these additives must be calculatid for valid area of dotproduct only.
+    //================================================================================================
+    const int row_begin = perception_area.row_beg;
+    const int row_end = perception_area.row_end;
+    const int clmn_begin = perception_area.clmn_beg;
+    const int clmn_end = perception_area.clmn_end;
+    int width = clmn_end - clmn_begin;
+    int height = row_end - row_begin;
+
+//    constexpr int numaccuregs = sizeof(acc_T) / sizeof(vNint_t);
+    // for larger kernel sizes in combination with an unroll of 4, the gather load of the input samples
+    // don't fit into one vector anymore. in those cases fall back to unroll 2
+//    constexpr int unroll = ((numaccuregs > 2) || (fix_kernel_width * fix_kernel_height * 4 > _VDSP_NUM_8BIT_LANES)) ? 2 : 4;
+    int out_w_inc = out.col_mem_stride;
+    int out_h_inc = out.row_mem_stride - width * out_w_inc;
+    int in_w_inc = in.col_mem_stride * stride_width;
+    int in_h_inc = in.row_mem_stride * stride_height - width * in_w_inc;
+
+    for (int out_ch_idx = 0; out_ch_idx < out.ch; out_ch_idx+= get_number_lanes<acc_T>()) {
+        int remaining_ch = out.ch - out_ch_idx;
+        int current_ch = MIN(remaining_ch, get_number_lanes<acc_T>()); /* nr channels computed in this loop iteration */
+        const MLI_PTR(w_T) w_ptr = weights.ptr
+                + weights.out_ch_mem_stride * out_ch_idx;
+        const int rows = (fix_kernel_height > 0) ? fix_kernel_height : weights.kernel_height;
+        const int clmns = (fix_kernel_width > 0) ? fix_kernel_width : weights.kernel_width;
+        __builtin_assume (rows > 0);
+        __builtin_assume (clmns > 0);
+        __builtin_assume (in.ch > 0);
+
+        auto output_params = adjust_quant_params_v(&quant_params, out_ch_idx);
+
+        acc_T pre_accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
+        pre_accu = mli::krn::bias_additive(&biases[out_ch_idx], pre_accu, &output_params);
+
+        const int h_idx_in = row_begin * stride_height - padding_top;
+        const int w_idx_in = clmn_begin * stride_width - padding_left;
+        MLI_CONV_OUT_PTR(io_T) out_ptr = out.ptr
+                + out.row_mem_stride * row_begin
+                + out.col_mem_stride * clmn_begin
+                + out.ch_mem_stride * out_ch_idx;
+        const MLI_PTR(io_T) in_ptr = in.ptr
+                + in.row_mem_stride * h_idx_in
+                + in.col_mem_stride * w_idx_in;
+
+        for (int H_idx = 0; H_idx < height; H_idx++) {
+            int W_cnt = 0;
+
+//            for (W_cnt = 0; W_cnt <= width - unroll; W_cnt+=unroll) {
+//                auto accu = init_accu_grp(pre_accu);
+//
+//                if ((fix_kernel_width > 0) && (fix_kernel_height > 0)) {
+//                    // unrolled version with fixed kernelsize
+//                    if (dilation_width == stride_width) {
+//                        int ext_width = clmns + unroll - 1;
+//                        int required_loads = ext_width * rows;
+//                        int unroll_step = 0;
+//                        int unroll_1 = 1;
+//                        int kernel_size = 1;
+//                        accu = dotprod3D_v_unroll_new<unroll, true>(in_ptr, w_ptr, clmns, rows, in.ch,
+//                                  in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride, in_w_inc,
+//                                  weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride,
+//                                  unroll_step, unroll_1, required_loads, kernel_size, ext_width,
+//                                  accu, padding_top, get_zp(&quant_params));
+//                    } else {
+//                        int ext_width = clmns;
+//                        int required_loads = clmns * rows * unroll;
+//                        int unroll_step = in_w_inc;
+//                        int unroll_1 = unroll;
+//                        int kernel_size = clmns * rows;
+//                        accu = mli::krn::dotprod3D_v_unroll<unroll, true>(in_ptr, w_ptr, clmns, rows, in.ch,
+//                                  in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride, in_w_inc,
+//                                  weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride,
+//                                  unroll_step, unroll_1, required_loads, kernel_size, ext_width,
+//                                  accu);
+//                    }
+//                } else if (weights.row_mem_stride == clmns * weights.col_mem_stride) {
+//                    accu = mli::krn::dotprod3D_v_nopad_unroll<unroll>(in_ptr, w_ptr, clmns, rows, in.ch,
+//                              in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride,
+//                              weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride, in_w_inc,
+//                              accu);
+//                } else {
+//                    int ext_width = clmns;
+//                    int required_loads = clmns * rows * unroll;
+//                    int unroll_step = in_w_inc;
+//                    int unroll_1 = unroll;
+//                    int kernel_size = clmns * rows;
+//                    accu = mli::krn::dotprod3D_v_unroll<unroll, false>(in_ptr, w_ptr, clmns, rows, in.ch,
+//                              in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride, in_w_inc,
+//                              weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride,
+//                              unroll_step, unroll_1, required_loads, kernel_size, ext_width,
+//                              accu);
+//                }
+//                // Cast result to output type, apply built-in ReLU Applying and write result
+//                mli::krn::result_cast_relu_store_v(out_ptr, accu.accu0, &output_params, val_min_limit, val_max_limit, current_ch);
+//                out_ptr += out_w_inc;
+//                if (unroll > 1) {
+//                    mli::krn::result_cast_relu_store_v(out_ptr, accu.accu1, &output_params, val_min_limit, val_max_limit, current_ch);
+//                    out_ptr += out_w_inc;
+//                }
+//                if (unroll > 2) {
+//                    mli::krn::result_cast_relu_store_v(out_ptr, accu.accu2, &output_params, val_min_limit, val_max_limit, current_ch);
+//                    out_ptr += out_w_inc;
+//                }
+//                if (unroll > 3) {
+//                    mli::krn::result_cast_relu_store_v(out_ptr, accu.accu3, &output_params, val_min_limit, val_max_limit, current_ch);
+//                    out_ptr += out_w_inc;
+//                }
+//                in_ptr += in_w_inc * unroll;
+//            } // for W_cnt
+
+            for (; W_cnt < width; W_cnt++) {
+
+                acc_T accu = pre_accu;
+		int pad_top = padding_top - H_idx * stride_height;
+		int pad_left = padding_left - W_cnt * stride_width;
+                if ((fix_kernel_width > 0) && (fix_kernel_height > 0)) {
+
+                    accu = dotprod3D_v_new<io_T, w_T, acc_T, /*fixedsize*/true>(in_ptr, w_ptr, clmns, rows, in.ch,
+                              in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride,
+                              weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride,
+                              accu, get_zp(&quant_params), pad_top, pad_left, dilation_height, dilation_width);
+                } /*else if (weights.row_mem_stride == clmns * weights.col_mem_stride) {
+                    accu = mli::krn::dotprod3D_v_nopad(in_ptr, w_ptr, clmns, rows, in.ch,
+                              in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride,
+                              weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride,
+                              accu);
+                } */else {
+                    accu = dotprod3D_v_new<io_T, w_T, acc_T, /*fixedsize*/false>(in_ptr, w_ptr, clmns, rows, in.ch,
+                              in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride,
+                              weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride,
+                              accu, get_zp(&quant_params), pad_top, pad_left, dilation_height, dilation_width);
+                }
+                // Cast result to output type, apply built-in ReLU Applying and write result
+                mli::krn::result_cast_relu_store_v(out_ptr, accu, &output_params, val_min_limit, val_max_limit, current_ch);
+
+                out_ptr += out_w_inc;
+                in_ptr += in_w_inc;
+            } // for W_idx
+
+            out_ptr += out_h_inc;
+            in_ptr += in_h_inc;
+        } // for H_idx
+    } // for out_ch_idx
+}
+
 //========================================================
 // Convolution 2D without padding
 //========================================================
@@ -102,11 +612,6 @@ MLI_FORCE_INLINE void convolution2D_nopad(
 
         acc_T pre_accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
         pre_accu = mli::krn::bias_additive(&biases[out_ch_idx], pre_accu, &output_params);
-
-        pre_accu = mli::krn::weights_additive(w_ptr, pre_accu, &quant_params, clmns, rows, in.ch,
-                                    weights.col_mem_stride,
-                                    weights.row_mem_stride,
-                                    weights.in_ch_mem_stride);
 
         const int h_idx_in = row_begin * stride_height - padding_top;
         const int w_idx_in = clmn_begin * stride_width - padding_left;
@@ -531,7 +1036,7 @@ MLI_FORCE_INLINE void convolution2D(
                     }
                 }
 
-                convolution2D_pad<io_T, w_T, b_T, acc_T, quant_T>(
+                convolution2D_pad_new<io_T, w_T, b_T, acc_T, quant_T, fix_kernel_width, fix_kernel_height>(
                         in_, w_, biases, out_, area, quant_params,
                         val_min_limit, val_max_limit,
                         stride_h, stride_w,

@@ -233,6 +233,31 @@ MLI_FORCE_INLINE mli_acc32_t weights_additive(
     }
 }
 
+template <typename w_T, typename acc_T, typename quant_T>
+MLI_FORCE_INLINE acc_T weights_sub(const MLI_PTR(w_T) __restrict, acc_T init_accum,
+        const quant_T*,
+        const int, const int, const int, int, int, int) {
+    // By default and for FX quantization scheme, weights additive isn't required
+    return init_accum;
+}
+
+template <>
+MLI_FORCE_INLINE mli_acc32_t weights_sub(
+        const MLI_PTR(int8_t) __restrict weights, mli_acc32_t init_accum,
+        const s8asym_quant_specific_params* quant_params,
+        const int width,  const int height, const int ch, int col_step, int row_step, int ch_step) {
+    // returns -(in_zero_point * cumsum(weights)) For S8ASYM
+    if (quant_params->in_offset != 0) {
+        for (int c = 0; c < ch; c++) {
+            init_accum = reduce_sum2D(weights, quant_params->in_offset, init_accum, width, height, /*channels = */0, col_step, row_step);
+            weights += ch_step;
+        }
+        return init_accum;
+    } else {
+        return init_accum;
+    }
+}
+
 //==========================================================================
 // Calculation of input additive (in_add) in
 // dot_prod_asym = dot_prod_gen + w_add + in_add + zp_add + bias_add
