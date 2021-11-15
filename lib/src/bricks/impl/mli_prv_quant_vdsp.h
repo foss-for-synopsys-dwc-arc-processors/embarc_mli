@@ -40,6 +40,25 @@ MLI_FORCE_INLINE vNx4accshort_t reduce_sub_sum2D(
     return accu;
 }
 
+MLI_FORCE_INLINE vNx4accshort_t reduce_sum2D(
+        const MLI_PTR(int8_t) __restrict in,
+        const int8_t mul,
+        vNx4accshort_t accu,
+        const int width,
+        const int height,
+        int in_col_step,
+        int in_row_step) {
+    in_row_step -= width * in_col_step;
+    for (int row = 0; row < height; row++) {
+        for (int clmn = 0; clmn < width; clmn++) {
+            accu = mli_math_mac_fx(accu, mli_prv_load_nx4_samples(in), mul);
+            in += in_col_step;
+        }
+        in += in_row_step;
+    }
+    return accu;
+}
+
 MLI_FORCE_INLINE s8asym_quant_specific_out_params_v adjust_quant_params_v(s8asym_quant_specific_params* params, int krn_idx) {
     // out multiplyer can be different across one of axis (per axis quantization for s8asym)
     // but will be the same in case of per tensor quantization.
@@ -182,6 +201,33 @@ MLI_FORCE_INLINE vNx4accshort_t weights_additive(
     if (quant_params->in_offset != 0) {
         for (int c = 0; c < ch; c++) {
             init_accum = reduce_sub_sum2D(weights, (int8_t)quant_params->in_offset, init_accum, width, height, col_step, row_step);
+            weights += ch_step;
+        }
+        return init_accum;
+    } else {
+        return init_accum;
+    }
+}
+
+template <typename w_T, typename acc_T, typename quant_T>
+MLI_FORCE_INLINE acc_T weights_sub(
+        const MLI_PTR(w_T) __restrict weights, acc_T init_accum,
+        const quant_T* quant_params,
+        const int width, const int height, const int ch, int col_step, int row_step, int ch_step) {
+    return mli::krn::ref::weights_sub(weights, init_accum,
+        quant_params,
+        width, height, ch, col_step, row_step, ch_step);
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accshort_t weights_sub(
+        const MLI_PTR(int8_t) __restrict weights, vNx4accshort_t init_accum,
+        const s8asym_quant_specific_params* quant_params,
+        const int width,  const int height, const int ch, int col_step, int row_step, int ch_step) {
+    // returns -(in_zero_point * cumsum(weights)) For S8ASYM
+    if (quant_params->in_offset != 0) {
+        for (int c = 0; c < ch; c++) {
+            init_accum = reduce_sum2D(weights, (int8_t)quant_params->in_offset, init_accum, width, height, col_step, row_step);
             weights += ch_step;
         }
         return init_accum;

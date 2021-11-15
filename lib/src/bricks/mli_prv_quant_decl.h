@@ -131,6 +131,11 @@ MLI_FORCE_INLINE mli_acc32_t weights_additive(
         const s8asym_quant_specific_params* quant_params,
         const int width,  const int height, const int ch, int col_step, int row_step, int ch_step);
 
+template <typename w_T, typename acc_T, typename quant_T>
+MLI_FORCE_INLINE acc_T weights_sub(const MLI_PTR(w_T) __restrict, acc_T init_accum,
+        const quant_T*,
+        const int, const int, const int, int, int, int);
+
 template <typename in_T, typename acc_T, typename quant_T>
 MLI_FORCE_INLINE acc_T in_additive(const MLI_PTR(in_T) __restrict,
         acc_T init_accum, const quant_T* quant_params,
@@ -356,9 +361,21 @@ MLI_FORCE_INLINE acc_T weights_additive(
         const quant_T* quant_params,
         const int width, const int height, const int ch, int col_step, int row_step, int ch_step);
 
+template <typename w_T, typename acc_T, typename quant_T>
+MLI_FORCE_INLINE acc_T weights_sub(
+        const MLI_PTR(w_T) __restrict weights, acc_T init_accum,
+        const quant_T* quant_params,
+        const int width, const int height, const int ch, int col_step, int row_step, int ch_step);
+
 #if defined(__Xvec_width)
 template <>
 MLI_FORCE_INLINE vNx4accshort_t weights_additive(
+        const MLI_PTR(int8_t) __restrict weights, vNx4accshort_t init_accum,
+        const s8asym_quant_specific_params* quant_params,
+        const int width,  const int height, const int ch, int col_step, int row_step, int ch_step);
+
+template <>
+MLI_FORCE_INLINE vNx4accshort_t weights_sub(
         const MLI_PTR(int8_t) __restrict weights, vNx4accshort_t init_accum,
         const s8asym_quant_specific_params* quant_params,
         const int width,  const int height, const int ch, int col_step, int row_step, int ch_step);

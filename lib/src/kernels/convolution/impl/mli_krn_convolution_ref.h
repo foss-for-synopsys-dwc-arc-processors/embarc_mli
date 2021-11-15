@@ -108,6 +108,12 @@ MLI_FORCE_INLINE void convolution2D(
                           weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride,
                           &accu);
 
+		const MLI_PTR(w_T) w_ptr_comp = weights.ptr + weights.out_ch_mem_stride * out_ch_idx;
+		accu = mli::krn::weights_sub(w_ptr_comp, accu, &quant_params, weights.kernel_width, weights.kernel_height, in.ch,
+			    weights.col_mem_stride,
+			    weights.row_mem_stride,
+			    weights.in_ch_mem_stride);
+
                 accu = mli::krn::weights_additive(w_ptr, accu, &quant_params, clmns, rows, in.ch,
                                             weights.col_mem_stride,
                                             weights.row_mem_stride,
