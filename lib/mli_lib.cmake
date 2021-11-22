@@ -208,7 +208,7 @@ endif()
 
 if (${MLI_PLATFORM} STREQUAL VPX)
     list(APPEND MLI_LIB_PRIVATE_COMPILE_OPTIONS
-            "SHELL: -mllvm -slot_swapping=true -mllvm -arc-vdsp-AA=1 -mllvm -no-stack-coloring")
+            "SHELL: -mllvm -slot_swapping=true -mllvm -arc-vdsp-AA=1 -mllvm -no-stack-coloring -Wcg,-arc-vdsp-zdloop-unit-stride-vvld-fix=true")
     if(NOT ROUND_MODE STREQUAL UP)
         message(FATAL_ERROR "rounding mode ${ROUND_MODE} is not supported")
     endif()
