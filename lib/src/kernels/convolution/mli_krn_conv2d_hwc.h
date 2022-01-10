@@ -346,8 +346,8 @@ static __attribute__ ((always_inline)) void depthwise_convolution2D_hwcn_krnpad(
     perception_area_nopad.clmn_beg = CEIL_DIV(padding_left, stride_width);
     perception_area_nopad.clmn_end = out.width - CEIL_DIV(padding_right, stride_width);
     
-    if ((perception_area_nopad.row_end - perception_area_nopad.row_beg > 0)
-        && (perception_area_nopad.clmn_end - perception_area_nopad.clmn_beg > 0)){
+    if ((perception_area_nopad.row_end > perception_area_nopad.row_beg)
+        && (perception_area_nopad.clmn_end > perception_area_nopad.clmn_beg)){
     depthwise_convolution2D_hwcn_nopad<int8_t, int8_t, int32_t, mli_acc32_t>(
                 in, w, biases, out, &perception_area_nopad, quant_params,
                 val_min_limit, val_max_limit,
@@ -622,8 +622,8 @@ static __attribute__ ((always_inline)) void convolution2D_nhwc_krnpad(
     perception_area_nopad.clmn_beg = CEIL_DIV(padding_left, stride_width);
     perception_area_nopad.clmn_end = out.width - CEIL_DIV(padding_right, stride_width);
 
-    if ((perception_area_nopad.row_end - perception_area_nopad.row_beg > 0)
-        && (perception_area_nopad.clmn_end - perception_area_nopad.clmn_beg > 0)){
+    if ((perception_area_nopad.row_end > perception_area_nopad.row_beg)
+        && (perception_area_nopad.clmn_end > perception_area_nopad.clmn_beg)){
         convolution2D_nhwc_nopad<int8_t, int8_t, int32_t, mli_acc32_t>(
                 in, w, biases, out, &perception_area_nopad, quant_params,
                 val_min_limit, val_max_limit,
