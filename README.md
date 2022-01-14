@@ -2,7 +2,7 @@ embARC Machine Learning Inference Library
 ==================================================
 
 This repository contains source code of embARC Machine Learning Inference Library (embARC MLI Library), 
-documentation and examples. Read the documentation at [embarc.org](https://embarc.org/embarc_mli).
+documentation and examples.
 
 ## Release notes
 ----------------
@@ -31,9 +31,16 @@ documentation and examples. Read the documentation at [embarc.org](https://embar
 		* Average Pooling (HWC Layout)
 5. Slicing support: creation of sub-tenors and support for non-contiguous tensor data.
 
+## Documentation
+----------------
+The pre-built documentation can be found on the [release page](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/releases) 
+in the assets list of the required embARC MLI library version. To use it download
+*embARC_MLI_\<version\>_API_Doc.zip* file, unzip the archive and
+open `<unzipped_archive_root>/html/index.html` file in a browser.
+
 ## Package structure
 --------------------
-./bin                             		- directory holder for embARC MLI library and samples binaries created during build
+./bin                             		- directory holder for embARC MLI library and samples binaries created during build  
 ./build                           		- contains common build rules  
 ./doc                             		- contains the API documentation of the embARC MLI library  
 ./include                         		- include files with API prototypes and types  
@@ -90,11 +97,11 @@ Please be aware that the list of specializations is not guaranteed to be backwar
 ---------------
 
 ***Q: Can I use ARC GNU tools to build embARC MLI library?***  
-A: No you cannot. embARC MLI Library must be built by MetaWare Development Tools only. Read the documentation at [embarc.org]( https://embarc.org/embarc_mli/doc/build/html/getting_started/getting_started.html#build-library) for details
+A: No you cannot. embARC MLI Library must be built by MetaWare Development Tools only.
 
 ***Q: Can I use MetaWare Development Tools Lite to pre-build embARC MLI library and ARC GNU to build example application?***  
 A: No you cannot. embARC MLI Library must be built by full version of MetaWare Development Tools. Binaries built with MWDT Lite are not compatible with ARC GNU Tools and full MetaWare Development Tools. Read the MWDT Lite documentation for details.
 
 ***Q: I can not build and run example application for my Synopsys board (EMSK, IoTDK, etc), what I shall do?***  
-A: If you build for Synopsys boards refer to documentation [embarc.org](https://embarc.org/platforms.html) as a good starting point. 
+A: If you build for Synopsys boards refer to documentation [embarc.org](https://embarc.org/projects/development-systems/) as a good starting point. 
 You should also note that example applications support different configurations for pre trained models and thus memory requirements, not all configurations can be built and run on Synopsys boards due to memory limitations and HW capabilities, read example application readme for details. embARC MLI Library must be also pre built specifically for your board by MetaWare Development Tools. Please note that makefiles provided with examples are configured for IoTDK only if GNU tools are used.
