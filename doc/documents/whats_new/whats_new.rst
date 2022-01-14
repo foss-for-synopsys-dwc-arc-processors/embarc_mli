@@ -158,7 +158,9 @@ MLI 2.0 supports EM, HS, and VPX platforms.
 
 
 .. note::
-
-   MLI 1.0 Online Documentation is available `here <https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/tree/e6641aaf1a93d266e9eb06dd3abe77ba44e47b66/doc/build/html>`_.
+   The pre-built documentation of other embARC MLI library versions can be found 
+   on the `release page <https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/releases>`_ 
+   in the corisponidng assets list. To use it download *embARC_MLI_\<version\>_API_Doc.zip* file,
+   unzip the archive and open `<unzipped_archive_root>/html/index.html` file in a browser.
 ..
    
