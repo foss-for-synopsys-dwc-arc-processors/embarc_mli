@@ -1,7 +1,7 @@
 embARC Machine Learning Inference Library
 ==================================================
 
-This repository contains source code of embARC Machine Learning Inference Library (embARC MLI Library), 
+This repository contains source code of embARC Machine Learning Inference Library (embARC MLI Library),
 documentation and examples.
 
 ## Release notes
@@ -33,7 +33,7 @@ documentation and examples.
 
 ## Documentation
 ----------------
-The pre-built documentation can be found on the [release page](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/releases) 
+The pre-built documentation can be found on the [release page](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/releases/tag/Release_1.1.1) 
 in the assets list of the required embARC MLI library version. To use it download
 *embARC_MLI_\<version\>_API_Doc.zip* file, unzip the archive and
 open `<unzipped_archive_root>/html/index.html` file in a browser.
@@ -61,7 +61,7 @@ defined in [MetaWare Development Tools](https://www.synopsys.com/dw/ipdir.php?ds
 EM or HS configuration.
 
 Build requirements:
-1. The library has been tested with MetaWare Development tools 2019.12
+1. The library has been tested with MetaWare Development tools 2021.12
 
 Building of embARC MLI library
 1. Open command line and change working directory to './lib/make/'

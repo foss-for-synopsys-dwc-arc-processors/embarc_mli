@@ -1,6 +1,6 @@
 Key Word Spotting Example
 ==============================================
-Example shows implementation of small speech recognition use case for Key Word Spotting (KWS). [TensorFlow speech commands tutorial](https://www.tensorflow.org/tutorials/sequences/audio_recognition) was used as basis for neural network model training with the following most notable changes:
+Example shows implementation of small speech recognition use case for Key Word Spotting (KWS). [TensorFlow speech commands tutorial](https://www.tensorflow.org/tutorials/audio/simple_audio) was used as basis for neural network model training with the following most notable changes:
 1)	Input features: FBANK features instead of MFCC
 2)	Model architecture: Depthwise separable convolutions + LSTM Cell.
 KWS Modules are designed to process audio stream. The rest example code wraps modules to process single WAV file and output performance measurements.  
@@ -129,7 +129,7 @@ Version that corresponds to the last column is implemented in the module. To kee
 References
 ----------------------------
 Simple Audio Recognition Tutorial:
-> TensorFlow - Simple Audio Recognition. https://www.tensorflow.org/tutorials/sequences/audio_recognition
+> TensorFlow - Simple Audio Recognition. https://www.tensorflow.org/tutorials/audio/simple_audio
 
 Speech commands dataset:
 > Pete Warden. Speech commands: A dataset for limited-vocabulary speech recognition. arXiv preprint arXiv:1804.03209, 2018

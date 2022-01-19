@@ -54,7 +54,7 @@ Application will create `result.bmp` file in the working directory. It's a 'gray
 
 ### Build with ARC GNU toolchain
 
-Here we will consider building with ARC GNU toolchain. As a platform for the assembly, we use the [IoT Devkit](https://embarc.org/embarc_osp/doc/build/html/board/iotdk.html) from [the embARC Open Software Platform (OSP)](https://embarc.org/embarc_osp/doc/build/html/introduction/introduction.html#)
+Here we will consider building with ARC GNU toolchain. As a platform for the assembly, we use the [IoT Devkit](https://embarc.org/project/arc-iot-development-kit/) from [the embARC Open Software Platform (OSP)](https://embarc.org/project/embarc-open-software-platform-osp/)
 
     Build requirements:
         - ARC GNU toolchain version 2018.09 or higher
@@ -91,7 +91,7 @@ Here we will consider building with ARC GNU toolchain. As a platform for the ass
 
 ### Run example without MetaWare Development tools
 
-See documentation on [IoT Devkit](https://embarc.org/embarc_osp/doc/build/html/board/iotdk.html) on how to run executable built with [ARC GNU](https://embarc.org/toolchain/index.html) and [ARC open source development tools](https://embarc.org/embarc_osp/doc/build/html/index.html) on IoT Devkit.
+See documentation on [IoT Devkit](https://embarc.org/project/arc-iot-development-kit/) on how to run executable built with [ARC GNU](https://github.com/foss-for-synopsys-dwc-arc-processors/toolchain) and [ARC open source development tools](https://embarc.org/project/embarc-open-software-platform-osp/) on IoT Devkit.
 
 Example Structure
 --------------------
