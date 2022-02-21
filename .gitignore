@@ -1,7 +1,6 @@
 *.o
 *.u
 *.s
-*.a
 *.elf
 *.map
 *.pyc
