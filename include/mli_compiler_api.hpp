@@ -116,6 +116,7 @@ public:
     virtual unsigned GetOutputBufferSize() = 0;
     virtual unsigned GetWeightsBufferSize() = 0;
     virtual unsigned GetPaddingBufferSize() = 0;
+    virtual unsigned GetDataBufferSize() = 0;
 
     /**
      * @brief Methods to set buffer offsets
@@ -191,6 +192,7 @@ public:
     virtual unsigned GetInputBufferSize() = 0;
     virtual unsigned GetOutputBufferSize() = 0;
     virtual unsigned GetParamsBufferSize() = 0;
+    virtual unsigned GetDataBufferSize() = 0;
 
     /**
      * @brief Methods to set buffer offsets
