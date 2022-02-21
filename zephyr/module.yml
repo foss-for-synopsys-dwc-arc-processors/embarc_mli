@@ -1,0 +1,4 @@
+name: embarc_mli
+build:
+  cmake-ext: True
+  kconfig-ext: True
