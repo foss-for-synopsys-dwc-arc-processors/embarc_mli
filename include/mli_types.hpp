@@ -318,6 +318,10 @@ public:
     return buf_;
   }
 
+  void set_buf(const buf_T& b) {
+    buf_ = b;
+  }
+
   unsigned get_elem_size(){
     return buf_.get_elem_size();
   }
