@@ -1,5 +1,5 @@
 #
-# Copyright 2020-2021, Synopsys, Inc.
+# Copyright 2020-2022, Synopsys, Inc.
 # All rights reserved.
 #
 # This source code is licensed under the BSD-3-Clause license found in
@@ -26,12 +26,24 @@ file(GLOB temp
     ${MLI_LIB_CMAKE_DIR}/src/kernels/eltwise/*.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/pooling/*hwc*.cc
     ${MLI_LIB_CMAKE_DIR}/src/bricks/*.cc
-    ${MLI_LIB_CMAKE_DIR}/src/private/src/*.cc
+    ${MLI_LIB_CMAKE_DIR}/src/private/src/mli_check.cc
+    ${MLI_LIB_CMAKE_DIR}/src/private/src/mli_prv_activation_lut.cc
     ${MLI_LIB_CMAKE_DIR}/src/move/*.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/diverse/*.cc
 )
+if (NOT DEFINED MLI_INCLUDE_RUNTIME)
+set(MLI_INCLUDE_RUNTIME "ON")
+endif()
+
+if ( ${MLI_INCLUDE_RUNTIME} STREQUAL "ON")
+file(GLOB temp_runtime
+    ${MLI_LIB_CMAKE_DIR}/src/private/src/mli_runtime.cc
+)
+endif()
+
 set(MLI_LIB_SOURCE_FILES
     ${temp}
+    ${temp_runtime}
     ${MLI_LIB_CMAKE_DIR}/src/kernels/transform/mli_krn_relu_fx.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/transform/mli_krn_leaky_relu_fx.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/transform/mli_krn_prelu.cc
