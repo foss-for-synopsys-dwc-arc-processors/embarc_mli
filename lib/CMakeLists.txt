@@ -20,6 +20,8 @@ target_include_directories(mli PRIVATE ${MLI_LIB_PRIVATE_INCLUDES})
 target_compile_options(mli PRIVATE ${MLI_PLATFORM_COMPILE_OPTIONS})
 target_compile_options(mli PRIVATE ${MLI_LIB_PRIVATE_COMPILE_OPTIONS})
 
+target_compile_options(mli PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>)
+
 set_target_properties(mli
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "../bin"

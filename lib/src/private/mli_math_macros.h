@@ -14,6 +14,7 @@
 #define MIN(A,B) (((A) > (B))? (B): (A))
 
 #define CEIL_DIV(num,den) (((num) + (den) - 1)/(den))
+#define CEIL_RND(num,den) ((den) * CEIL_DIV((num), (den)))
 
 #define MLI_MAT_MUL_Q31_SHIFT 31
 
