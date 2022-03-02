@@ -280,16 +280,16 @@ public:
   /* copy constructor for tensors with different rank */
   template<unsigned N>
   Tensor(Tensor<buf_T, N> in){
-    buf_ = in.buf_;
+    buf_ = in.get_buf();
     for (unsigned i = 0; i < N; i++){
-      shape_[i] = in.shape_[i];
-      mem_stride_[i] = in.mem_stride_[i];
+      shape_[i] = in.get_dim(i);
+      mem_stride_[i] = in.get_mem_stride(i);
     }
     for (unsigned i = N; i < maxRank; i++){
       shape_[i] = 0;
       mem_stride_[i] = 0;
     }
-    rank_ = in.rank;
+    rank_ = in.get_rank();
   }
 
   /* 'copy' constructors for tensors with different buffer types */
