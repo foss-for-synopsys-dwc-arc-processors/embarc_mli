@@ -61,6 +61,7 @@ set(MLI_LIB_SOURCE_FILES
     ${MLI_LIB_CMAKE_DIR}/src/kernels/diverse/mli_krn_permute_fx.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/common/mli_krn_lstm_cell.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/common/mli_krn_gru_cell.cc
+    ${MLI_LIB_CMAKE_DIR}/src/kernels/convolution_3/mli_krn_depthwise_conv2d_hwcn.cc
 )
 
 set(MLI_LIB_PUBLIC_INCLUDES
@@ -76,6 +77,7 @@ set(MLI_LIB_PRIVATE_INCLUDES
     ${MLI_LIB_CMAKE_DIR}/src/helpers
     ${MLI_LIB_CMAKE_DIR}/src/kernels
     ${MLI_LIB_CMAKE_DIR}/src/kernels/convolution
+    ${MLI_LIB_CMAKE_DIR}/src/kernels/convolution_3
     ${MLI_LIB_CMAKE_DIR}/src/kernels/eltwise
     ${MLI_LIB_CMAKE_DIR}/src/kernels/pooling
     ${MLI_LIB_CMAKE_DIR}/src/kernels/pooling_chw

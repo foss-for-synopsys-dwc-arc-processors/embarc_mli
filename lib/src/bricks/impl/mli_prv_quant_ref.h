@@ -234,6 +234,62 @@ MLI_FORCE_INLINE mli_acc32_t weights_additive(
 }
 
 //==========================================================================
+// Calculation of weights additive (w_add) in
+// dot_prod_asym = dot_prod_gen + w_add + in_add + zp_add + bias_add
+// NOTE: This version allows to choose the sign of an additiv. Replacing 
+//       simplier version with this one is subject for consideration
+//==========================================================================
+template <typename w_T, typename acc_T, typename quant_T>
+MLI_FORCE_INLINE acc_T weights_additive_sign(const MLI_PTR(w_T) __restrict, acc_T init_accum,
+                              const quant_T*,
+                              const int, const int, int, int, bool) {
+    // By default and for FX quantization scheme, weights additive isn't required
+    return init_accum;
+}
+
+template <>
+MLI_FORCE_INLINE mli_acc32_t weights_additive_sign(
+        const MLI_PTR(int8_t) __restrict weights, mli_acc32_t init_accum,
+        const s8asym_quant_specific_params* quant_params,
+        const int width,  const int height, int col_step, int row_step, bool is_neg) {
+    // for S8ASYM: Depending on is_neg parameter adds OR subtracts (in_zero_point * cumsum(weights)) 
+    // to init_accum and returns result
+    if (quant_params->in_offset != 0) {
+        auto in_offset_sign = (is_neg)? -quant_params->in_offset : quant_params->in_offset;
+        return reduce_sum2D(weights, in_offset_sign, init_accum, width, height, /*channels = */0, col_step, row_step);
+    } else {
+        return init_accum;
+    }
+}
+
+template <typename w_T, typename acc_T, typename quant_T>
+MLI_FORCE_INLINE acc_T weights_additive_sign(const MLI_PTR(w_T) __restrict, acc_T init_accum,
+        const quant_T*,
+        const int, const int, const int, int, int, int, bool) {
+    // By default and for FX quantization scheme, weights additive isn't required
+    return init_accum;
+}
+
+template <>
+MLI_FORCE_INLINE mli_acc32_t weights_additive_sign(
+        const MLI_PTR(int8_t) __restrict weights, mli_acc32_t init_accum,
+        const s8asym_quant_specific_params* quant_params,
+        const int width,  const int height, const int ch, int col_step, int row_step, int ch_step, bool is_neg) {
+    // for S8ASYM: Depending on is_neg parameter adds OR subtracts (in_zero_point * cumsum(weights)) 
+    // to init_accum and returns result
+    if (quant_params->in_offset != 0) {
+        auto in_offset_sign = (is_neg)? -quant_params->in_offset : quant_params->in_offset;
+        for (int c = 0; c < ch; c++) {
+            init_accum = reduce_sum2D(weights, in_offset_sign, init_accum, width, height, /*channels = */0, col_step, row_step);
+            weights += ch_step;
+        }
+        return init_accum;
+    } else {
+        return init_accum;
+    }
+}
+
+//==========================================================================
 // Calculation of input additive (in_add) in
 // dot_prod_asym = dot_prod_gen + w_add + in_add + zp_add + bias_add
 //==========================================================================
@@ -301,6 +357,33 @@ MLI_FORCE_INLINE mli_acc32_t zp_additive(const s8asym_quant_specific_params* qua
         // Calculating (w_zp * in_zp * mac_serias_len) via reduce sum because of complexity with accum casts.
         // Subject for optimization
         return reduce_sum(&quant_params->weights_offset, quant_params->in_offset, init_accum, mac_serias_len, /*step = */0);
+    } else {
+        return init_accum;
+    }
+}
+
+//==========================================================================
+// Calculation of zero points additive (zp_add) in
+// dot_prod_asym = dot_prod_gen + w_add + in_add + zp_add + bias_add
+// NOTE: This version allows to choose the sign of an additiv. Replacing 
+//       simplier version with this one is subject for consideration
+//==========================================================================
+template <typename acc_T, typename quant_T>
+MLI_FORCE_INLINE acc_T zp_additive_sign(const quant_T*, acc_T init_accum,
+                        const int, bool) {
+    // By default (for FX quantization scheme) weights additive isn't required
+    return init_accum;
+}
+
+
+template <>
+MLI_FORCE_INLINE mli_acc32_t zp_additive_sign(const s8asym_quant_specific_params* quant_params, mli_acc32_t init_accum,
+                               const int mac_serias_len, bool is_neg) {
+    if (quant_params->weights_offset != 0 || quant_params->in_offset != 0) {
+        // Calculating (w_zp * in_zp * mac_serias_len) via reduce sum because of complexity with accum casts.
+        // Subject for optimization
+        auto in_offset_sign = (is_neg)? -quant_params->in_offset : quant_params->in_offset;
+        return reduce_sum(&quant_params->weights_offset, in_offset_sign, init_accum, mac_serias_len, /*step = */0);
     } else {
         return init_accum;
     }

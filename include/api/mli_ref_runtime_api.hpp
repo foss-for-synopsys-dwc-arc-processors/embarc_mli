@@ -57,6 +57,8 @@ class DepthwiseConv2d : public ExecutionInterface {
 
     mli_status Init(PrivateData* kernel_private_data_buffer, int private_data_size, uint64_t membases[], int num_mems) override;
 
+    mli_status UpdateInputShape(const tensor::shape<4> input_shape); // input fmap width, height, channels, batch size. Need for dynamic input size processing
+
     mli_status Issue() override;
 
     mli_status Prefetch() override;

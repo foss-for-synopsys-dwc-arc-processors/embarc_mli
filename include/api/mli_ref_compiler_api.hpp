@@ -53,6 +53,7 @@ public:
     unsigned GetKernelPrivateDataSize() override;
     unsigned GetRuntimeObjectSize() override;
 
+
 };
 
 } // namespace ref

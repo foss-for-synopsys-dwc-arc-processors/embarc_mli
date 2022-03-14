@@ -131,6 +131,26 @@ MLI_FORCE_INLINE mli_acc32_t weights_additive(
         const s8asym_quant_specific_params* quant_params,
         const int width,  const int height, const int ch, int col_step, int row_step, int ch_step);
 
+template <typename w_T, typename acc_T, typename quant_T>
+MLI_FORCE_INLINE acc_T weights_additive_sign(const MLI_PTR(w_T) __restrict weights,
+        acc_T init_accum, const quant_T* quant_params,
+        const int width, const int height = 1, int col_step = 1, int row_step = 1, bool is_neg = true);
+template <>
+MLI_FORCE_INLINE mli_acc32_t weights_additive_sign(const MLI_PTR(int8_t) __restrict weights,
+        mli_acc32_t init_accum, const s8asym_quant_specific_params* quant_params,
+        const int width,  const int height, int col_step, int row_step, bool is_neg);
+
+template <typename w_T, typename acc_T, typename quant_T>
+MLI_FORCE_INLINE acc_T weights_additive_sign(const MLI_PTR(w_T) __restrict weights, acc_T init_accum,
+        const quant_T* quant_params,
+        const int width, const int height, const int ch, int col_step, int row_step, int ch_step, bool is_neg = true);
+
+template <>
+MLI_FORCE_INLINE mli_acc32_t weights_additive_sign(
+        const MLI_PTR(int8_t) __restrict weights, mli_acc32_t init_accum,
+        const s8asym_quant_specific_params* quant_params,
+        const int width,  const int height, const int ch, int col_step, int row_step, int ch_step, bool is_neg);
+
 template <typename in_T, typename acc_T, typename quant_T>
 MLI_FORCE_INLINE acc_T in_additive(const MLI_PTR(in_T) __restrict,
         acc_T init_accum, const quant_T* quant_params,
@@ -155,6 +175,13 @@ MLI_FORCE_INLINE acc_T zp_additive(const quant_T*,
 template <>
 MLI_FORCE_INLINE mli_acc32_t zp_additive(const s8asym_quant_specific_params* quant_params,
         mli_acc32_t init_accum, const int mac_serias_len);
+
+template <typename acc_T, typename quant_T>
+MLI_FORCE_INLINE acc_T zp_additive_sign(const quant_T*,
+        acc_T init_accum, const int mac_serias_len, bool is_neg = false);
+template <>
+MLI_FORCE_INLINE mli_acc32_t zp_additive_sign(const s8asym_quant_specific_params* quant_params,
+        mli_acc32_t init_accum, const int mac_serias_len, bool is_neg);
 
 template <typename b_T, typename acc_T, typename quant_T>
 MLI_FORCE_INLINE acc_T bias_additive(const b_T bias, acc_T init_accum,
