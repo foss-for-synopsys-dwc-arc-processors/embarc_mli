@@ -10,12 +10,16 @@
 #define _MLI_RUNTIME_KERNELS_HPP_
 
 #include "mli_api.h"
-#include "mli_compiler_api.hpp"
-#include "mli_runtime_api.hpp"
-#include "mli_iterator.hpp"
+
+//TODO: Check if this file really usable. Candidate to be removed.
 
 namespace snps_arc::metaware::mli {
   // TODO: Add Run Time Kernels for REF/EM/VPX
+namespace ref {
+  class MaxPool2D;
+  //class Move;
+}
+
 } // namespace mli
 
 #endif // _MLI_RUNTIME_KERNELS_HPP_

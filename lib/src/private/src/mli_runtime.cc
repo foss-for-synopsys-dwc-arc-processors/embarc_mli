@@ -7,12 +7,14 @@
 *
 */
 
-#include "mli_debug.h"
-#include "mli_runtime_api.hpp"
-#include "mli_runtime_kernels.hpp"
+#include <new>
 
+#include "mli_ref_runtime_api.hpp"
+
+#include "mli_debug.h"
 
 namespace snps_arc::metaware::mli {
+using ref::MaxPool2D;
 
 ExecutionInterface* ExecutionInterface::Create(
         void* allocation_memory_buffer,
@@ -26,25 +28,34 @@ ExecutionInterface* ExecutionInterface::Create(
     [[maybe_unused]] kernel_id_t kernel_id = kernel_private_data_buffer->kernel_id;
     ExecutionInterface *obj = nullptr;
     //  TODO: Update it with MLI REF/EM/VPX Classes and remove [[maybe_unused]] attr of the kernel_id
-    /*
     switch (kernel_id) {
         //  TODO: Update it with MLI REF/EM/VPX Classes
-        case kConv2dId:
-            MLI_ASSERT(sizeof(Conv2d) == alloc_buf_size);
-            obj = new(allocation_memory_buffer) Conv2d(kernel_private_data_buffer, private_data_size, membases, num_mems);
-            break;
-        case kMoveId:
-            MLI_ASSERT(sizeof(Move) == alloc_buf_size);
-            obj = new(allocation_memory_buffer) Move(kernel_private_data_buffer, private_data_size, membases, num_mems);
-            break;
-        case kPreluId:
-            MLI_ASSERT(sizeof(Prelu) == alloc_buf_size);
-            obj = new(allocation_memory_buffer) Prelu(kernel_private_data_buffer, private_data_size, membases, num_mems);
-            break;
-        default:
-            assert(0);
+      case kInvalidId:
+        MLI_ASSERT(0);
+        break;
+      case kConv2dId:
+        MLI_ASSERT(0);
+        break;
+      case kPreluId:
+        MLI_ASSERT(0);
+        break;
+      case kMoveId:
+        MLI_ASSERT(0);
+        break;
+      case kDWConv2dId:
+        MLI_ASSERT(0);
+        break;
+      case kMaxPool2DId:
+        MLI_ASSERT(sizeof(MaxPool2D) == alloc_buf_size);
+        obj = new (allocation_memory_buffer) MaxPool2D(kernel_private_data_buffer, private_data_size, membases, num_mems);
+        break;
+      case kSomeOtherKernelId:
+        MLI_ASSERT(0);
+        break;
+      default:
+        MLI_ASSERT(0);
+        break;
     }
-    */
 
     return obj;
 }

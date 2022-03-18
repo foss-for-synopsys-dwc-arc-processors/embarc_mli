@@ -13,6 +13,7 @@
 #include "mli_iterator.hpp"
 #include "mli_types.h"
 #include "mli_types.hpp"
+#include "mli_service_functions.hpp"
 
 namespace snps_arc::metaware::mli {
 
@@ -31,7 +32,7 @@ class CompilerGenericInterface {
      *
      * This function returns the size of the buffer that is needed for the private configuration data for this kernel
      */
-    virtual unsigned GetKernelPrivateDataSize() = 0;
+    virtual unsigned GetKernelPrivateDataSize() const = 0;
 
     /**
      * @brief Method to fill the allocated memory with the private configuration data
@@ -49,7 +50,7 @@ class CompilerGenericInterface {
      * The compiler needs this to create a memory map for the various run-time mli objects
      *
      */
-    virtual unsigned GetRuntimeObjectSize() = 0;
+    virtual unsigned GetRuntimeObjectSize() const = 0;
 
 // TODO add virtual destructor
 };
@@ -337,9 +338,10 @@ public:
      * TODO: add description using conv2d_cs as a starting point
      */
 
-    virtual unsigned GetInputBufferSize() = 0;
-    virtual unsigned GetOutputBufferSize() = 0;
-    virtual unsigned GetDataBufferSize() = 0;
+    virtual unsigned GetInputBufferSize() const = 0;
+    virtual unsigned GetOutputBufferSize() const = 0;
+    virtual unsigned GetDataBufferSize() const = 0;
+
 
     /**
      * @brief Methods to set buffer offsets
@@ -636,6 +638,7 @@ public:
                                            const OffsetBuffer &output,
                                            const OffsetBuffer &data) = 0;
 };
+
 
 } // namespace mli
 

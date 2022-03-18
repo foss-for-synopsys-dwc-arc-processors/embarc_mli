@@ -481,15 +481,9 @@ mli_status mli_krn_avepool_hwc_fx16_k3x3(const mli_tensor * in, const mli_pool_c
  *
  * @return MLI status code
  */
-mli_status mli_krn_maxpool_hwc_sa8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_maxpool_hwc_sa8_k2x2(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_maxpool_hwc_sa8_k3x3(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_maxpool_hwc_fx8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_maxpool_hwc_fx8_k2x2(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_maxpool_hwc_fx8_k3x3(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_maxpool_hwc_fx16(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_maxpool_hwc_fx16_k2x2(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
-mli_status mli_krn_maxpool_hwc_fx16_k3x3(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
+
+mli_status mli3_krn_maxpool_hwc_io8(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
+mli_status mli3_krn_maxpool_hwc_io16(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out);
 
 //================================================
 //
