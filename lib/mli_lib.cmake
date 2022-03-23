@@ -82,6 +82,7 @@ if (ARC)
         -Hsdata0
         -Hdense_prologue
         -tcf_core_config
+        -Wcg,-arc-vdsp-unit-stride-vvld-in-zdloop-fix=true
 )
 endif()
 
