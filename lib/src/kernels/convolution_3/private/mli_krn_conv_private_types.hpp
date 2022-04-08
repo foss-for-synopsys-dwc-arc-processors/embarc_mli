@@ -6,10 +6,10 @@
 * the LICENSE file in the root directory of this source tree.
 *
 */
-#ifndef _MLI_KRN_CONV_PRIVATE_TYPES_H_
-#define _MLI_KRN_CONV_PRIVATE_TYPES_H_
+#ifndef _MLI_KRN_CONV_PRIVATE_TYPES_HPP_
+#define _MLI_KRN_CONV_PRIVATE_TYPES_HPP_
 
-#include "mli_types.h"
+#include "mli_types.hpp"
 
 namespace snps_arc::metaware::mli{
 
@@ -19,6 +19,6 @@ class Conv2dPrivateData : public PrivateData {
 
 };
 
-} // namespace mli
+}
 
-#endif // _MLI_KRN_CONV_PRIVATE_TYPES_H_
+#endif // _MLI_KRN_CONV_PRIVATE_TYPES_HPP_

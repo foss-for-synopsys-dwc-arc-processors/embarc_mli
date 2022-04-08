@@ -50,6 +50,23 @@ static MLI_FORCE_INLINE int mli_prv_get_tensor_idx_pos(
     return res;
 }
 
+template <typename io_T>
+static MLI_FORCE_INLINE io_T mli_prv_tensor_read(
+        const generic_tensor_private_t<MLI_PTR(io_T)> &tsr,
+        int pos0, int pos1, int pos2, int pos3) {
+    MLI_ASSERT(tsr.ptr != nullptr);
+    return tsr.ptr[POS(&tsr, pos0, pos1, pos2, pos3)];
+}
+
+template <typename io_T>
+static MLI_FORCE_INLINE void mli_prv_tensor_write(
+        io_T val, generic_tensor_private_t<MLI_PTR(io_T)> &tsr,
+        int pos0, int pos1, int pos2, int pos3) {
+    MLI_ASSERT(tsr.ptr != nullptr);
+    tsr.ptr[POS(&tsr, pos0, pos1, pos2, pos3)] = val;
+    return;
+}
+
 MLI_FORCE_INLINE void* mli_prv_tensor_cast_data_ptr(
         const mli_tensor *tensor) {
     void* ptr;

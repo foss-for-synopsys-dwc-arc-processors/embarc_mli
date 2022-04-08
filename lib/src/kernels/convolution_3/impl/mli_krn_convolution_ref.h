@@ -156,7 +156,7 @@ MLI_FORCE_INLINE void depthwise_convolution2D(
         for (int W_idx = clmn_begin; W_idx < clmn_end; W_idx++) {
             // Define area of input and filter for convolution
             // comp - compensation values for valid area definition
-            const mli_compensations full_krnl = {0, 0, 0, 0, 0, 0, 0, 0};
+            // const mli_compensations full_krnl = {0, 0, 0, 0, 0, 0, 0, 0};
             const mli_compensations comp = mli_prv_valid_area_compensations(
                     H_idx, W_idx, in.height, in.width,
                     weights.kernel_height, weights.kernel_width,
@@ -214,7 +214,7 @@ MLI_FORCE_INLINE void depthwise_convolution2D(
                 if(rows * clmns != weights.kernel_height * weights.kernel_width) {
                     // This part emulate dotproduct out of valid area. it adds sum(x_zp*w) for the whole kernel,
                     // and afterward subtracts sum(x_zp*w) part for valid area which we don't need due to 
-                    // conductoed core dotproduct; 
+                    // conducted core dotproduct; 
                     accu = mli::krn::ref::weights_additive_sign(w_ptr_full, accu, &quant_params, 
                                             weights.kernel_width, weights.kernel_height, 
                                             weights.col_mem_stride, weights.row_mem_stride, /*is_neg =*/ false);
@@ -231,7 +231,7 @@ MLI_FORCE_INLINE void depthwise_convolution2D(
 
                 // Cast result to output type, no shift/runding/relu/saturation. 
                 // o_T is expected equal or wider than acc_t
-                static_assert(sizeof(o_T) >= sizeof(acc_T));
+                static_assert(sizeof(o_T) <= sizeof(acc_T));
                 o_T out_val = mli_math_cast_fx(accu, /*shift_right = */0);
 
                 MLI_CONV_OUT_PTR(o_T) out_ptr = out.ptr
