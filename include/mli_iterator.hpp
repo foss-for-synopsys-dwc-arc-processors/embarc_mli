@@ -30,7 +30,7 @@ class IteratorCfg {
      *
      */
     IteratorCfg() {
-        for (int i = 0; i < maxRank; i++){
+        for (uint32_t i = 0; i < maxRank; i++){
           first_increment_[i] = 1;
           increment_[i] = 1;
           first_size_[i] = 1;
@@ -92,13 +92,13 @@ class IteratorCfg {
      */
     template <unsigned N>
     void set_config(IteratorCfg<N> in) {
-        for (int i = 0; i < N; i++){
+        for (uint32_t i = 0; i < N; i++){
           first_increment_[i] = in.get_first_increment(i);
           increment_[i] = in.get_increment(i);
           first_size_[i] = in.get_first_size(i);
           size_[i] = in.get_size(i);
         }
-        for (int i = N; i < maxRank; i++){
+        for (uint32_t i = N; i < maxRank; i++){
           first_increment_[i] = 0;
           increment_[i] = 0;
           first_size_[i] = 0;
@@ -109,7 +109,7 @@ class IteratorCfg {
 
     template <typename buf_T>
     void set_config_single_tile(Tensor<buf_T, maxRank> tensor){
-        for (int i = 0; i < maxRank; i++){
+        for (uint32_t i = 0; i < maxRank; i++){
           first_increment_[i] = tensor.get_dim(i);
           increment_[i] = tensor.get_dim(i);
           first_size_[i] = tensor.get_dim(i);
@@ -182,7 +182,7 @@ class TensorIterator {
      * This method will reset the internal position to zero
      */
     mli_status Reset() {
-      for (int i = 0; i < maxRank; i++ ){
+      for (uint32_t i = 0; i < maxRank; i++ ){
         pos_[i] = 0;
       }
       offset_ = 0;
