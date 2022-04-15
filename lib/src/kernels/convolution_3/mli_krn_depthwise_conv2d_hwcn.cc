@@ -34,7 +34,7 @@ typedef mli_acc32_t mli_8x16_accu_t;
 //
 //========================================================
 
-mli_status mli3_krn_depthwise_conv2d_hwcn_w8_io8(
+mli_status mli3_krn_depthwise_conv2d_hwcn_w8_i8_o32(
         const mli_tensor* in,
         const mli_tensor* weights,
         const mli_conv2d_cfg* cfg,

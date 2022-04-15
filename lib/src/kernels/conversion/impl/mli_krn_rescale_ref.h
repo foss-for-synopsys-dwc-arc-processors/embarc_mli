@@ -74,7 +74,7 @@ static MLI_FORCE_INLINE void compute_rescale_vec_ibias_vec_scale(
     for (pos[0] = 0; pos[0] < in_data.shape[0]; pos[0]++) {
         for (pos[1] = 0; pos[1] < in_data.shape[1]; pos[1]++) {
             for (pos[2] = 0; pos[2] < in_data.shape[2]; pos[2]++) {
-                for (pos[3] = 0; pos[3] < in_data.shape[2]; pos[3]++) {
+                for (pos[3] = 0; pos[3] < in_data.shape[3]; pos[3]++) {
                     const int param_idx = pos[kPerAxisDimension];
                     i_T in_val =  mli_prv_tensor_read(in_data, pos[0], pos[1],
                                                       pos[2], pos[3]);
@@ -109,7 +109,7 @@ static MLI_FORCE_INLINE void compute_rescale_vec_ibias_single_scale(
     for (pos[0] = 0; pos[0] < in_data.shape[0]; pos[0]++) {
         for (pos[1] = 0; pos[1] < in_data.shape[1]; pos[1]++) {
             for (pos[2] = 0; pos[2] < in_data.shape[2]; pos[2]++) {
-                for (pos[3] = 0; pos[3] < in_data.shape[2]; pos[3]++) {
+                for (pos[3] = 0; pos[3] < in_data.shape[3]; pos[3]++) {
                     i_T in_val =  mli_prv_tensor_read(in_data, pos[0], pos[1],
                                                       pos[2], pos[3]);
                     o_T out_val = rescale_value(in_val, in_bias,
