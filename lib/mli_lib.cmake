@@ -61,7 +61,7 @@ set(MLI_LIB_SOURCE_FILES
     ${MLI_LIB_CMAKE_DIR}/src/kernels/diverse/mli_krn_permute_fx.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/common/mli_krn_lstm_cell.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/common/mli_krn_gru_cell.cc
-    ${MLI_LIB_CMAKE_DIR}/src/kernels/convolution_3/mli_krn_depthwise_conv2d_hwcn.cc
+    ${MLI_LIB_CMAKE_DIR}/src/kernels/convolution_3/mli3_krn_depthwise_conv2d_hwcn.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/conversion/mli_krn_rescale.cc
 )
 

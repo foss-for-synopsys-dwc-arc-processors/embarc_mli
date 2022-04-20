@@ -202,7 +202,8 @@ mli_tensor tensor_quantizer::get_not_quantized_tensor(mli_data_container memory)
             const float mult = ldexp(1.f, scale_fraq_bits);
             const float round_val = 0.5f;
             const int32_t dst_val = static_cast<int32_t>(mult * source_scales_[i] + round_val);
-            const int32_t zero_val = static_cast<int32_t>(-source_zero_points_[i] / source_scales_[i] + round_val);
+            //const int32_t zero_val = static_cast<int32_t>(-source_zero_points_[i] / source_scales_[i] + round_val);
+            const int32_t zero_val = static_cast<int32_t>(-source_zero_points_[i] / source_scales_[i] + ((-source_zero_points_[i] >= 0)? 0.5 : -0.5));
 
             auto sat_short = [](int32_t val) -> int16_t{
                 constexpr int32_t lim_min = std::numeric_limits<int16_t>::min();

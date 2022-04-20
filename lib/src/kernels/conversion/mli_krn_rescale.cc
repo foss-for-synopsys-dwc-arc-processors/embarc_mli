@@ -9,7 +9,7 @@
 
 #include "mli_check.h"
 #include "mli_debug.h"
-#include "mli_krn_rescale.h"
+#include "mli_krn_rescale.hpp"
 #include "mli_api.h"
 
 #ifdef __cplusplus

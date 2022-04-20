@@ -275,6 +275,11 @@ MLI_FORCE_INLINE int32_t mli_math_ashift_right_fx(int32_t in_val, int shift_righ
     return mli_math_asr_rnd_fx<int32_t>(in_val, shift_right);
 }
 
+template <>
+MLI_FORCE_INLINE int64_t mli_math_ashift_right_fx(int64_t in_val, int shift_right) {
+    return mli_math_asr_rnd_fx<int64_t>(in_val, shift_right);
+}
+
 // Multiply and cast float to accum
 //========================================================================
 

@@ -106,12 +106,14 @@ const quality_metrics thresholds_sa8_general{ quality_metrics::kPassValueMaxAbsE
 
 static const depthwise_conv_test_operands tests_list[] = {
     // Basic functionality test: kernel_size=(3, 4), strides=(1, 1), with krn_padding, w/o ReLU
+/*
     {"Test 1 FX16 ",         mli_krn_depthwise_conv2d_hwcn_fx16, 
                             input_1_fx16, weights_1_fx16, bias_1_fx16, test_1_out_fx16, test_1_cfg,
                             thresholds_fx16_general, test_1_chksum_fx16},
     {"Test 1 FX16_FX8_FX8", mli_krn_depthwise_conv2d_hwcn_fx16_fx8_fx8, 
                             input_1_fx16, weights_1_fx8, bias_1_fx8, test_1_out_fx16, test_1_cfg, 
                             thresholds_fx16_fx8_fx8_general, test_1_chksum_fx16_fx8_fx8},
+
     {"Test 1 SA8_SA8_SA32", mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32,
                             input_1_sa8, weights_1_sa8_per_axis, bias_1_sa32_per_axis, test_1_out_sa8, test_1_cfg, 
                             thresholds_sa8_general, test_1_chksum_sa8},
@@ -123,6 +125,7 @@ static const depthwise_conv_test_operands tests_list[] = {
     {"Test 2 FX16_FX8_FX8 ReluGen", mli_krn_depthwise_conv2d_hwcn_fx16_fx8_fx8,
                                     input_1_fx16, weights_2_fx8, bias_2_fx8, test_2_out_fx16, test_2_cfg,
                                     thresholds_fx16_fx8_fx8_general, test_2_chksum_fx16_fx8_fx8},
+
     {"Test 2 SA8_SA8_SA32 ReluGen", mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32, 
                                     input_1_sa8, weights_2_sa8, bias_2_i1_w2_sa32, test_2_out_sa8, 
                                     test_2_cfg, thresholds_sa8_general, test_2_chksum_sa8},
@@ -134,10 +137,11 @@ static const depthwise_conv_test_operands tests_list[] = {
     {"Test 3 FX16_FX8_FX8 Dil", mli_krn_depthwise_conv2d_hwcn_fx16_fx8_fx8,
                                 input_1_fx16, weights_1_fx8, bias_1_fx8, test_3_out_fx16, test_3_cfg,
                                 thresholds_fx16_fx8_fx8_general, test_3_chksum_fx16_fx8_fx8},
+*/
     {"Test 3 SA8_SA8_SA32 Dil", mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32,
                                 input_1_sa8, weights_1_sa8_per_axis, bias_1_sa32_per_axis, test_3_out_sa8, test_3_cfg,
                                 thresholds_sa8_general, test_3_chksum_sa8},
-
+/*
     // Input/output memstride test: kernel_size=(3, 4), strides=(3, 3), w/o padding, with ReLU_1 
     {"Test 4 FX16 Relu1 Mstr",         mli_krn_depthwise_conv2d_hwcn_fx16,
                                        input_1b_memstr_fx16, weights_1_fx16, bias_1_fx16, test_4_out_fx16, test_4_cfg,
@@ -231,7 +235,7 @@ static const depthwise_conv_test_operands tests_list[] = {
     {"Test 10 SA8_SA8_SA32 Huge Vals", mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32,
                                        input_2_sa8, weights_5_sa8, bias_3_i2_w5_sa32, test_10_out_sa8, 
                                        test_10_cfg, thresholds_sa8_general, test_10_chksum_sa8},
-
+*/
 };
 
 constexpr int kMemSize = 2047;
@@ -242,6 +246,9 @@ static W_DATA_ATTR int8_t scratch_mem_b[kMemSize] = { 0 };
 
 constexpr int kTestsNum = sizeof(tests_list) / sizeof(tests_list[0]);
 
+//==================================================================================
+// \\Functions to calculate  staff for MLI3 Semantics
+//==================================================================================
 int main() {
     const reporter_full reporter;
     bool final_status = true;

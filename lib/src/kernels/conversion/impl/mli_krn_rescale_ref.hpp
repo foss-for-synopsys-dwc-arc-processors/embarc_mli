@@ -7,8 +7,8 @@
 *
 */
 
-#ifndef _MLI_KRN_RESCALE_REF_H_
-#define _MLI_KRN_RESCALE_REF_H_
+#ifndef _MLI_KRN_RESCALE_REF_HPP_
+#define _MLI_KRN_RESCALE_REF_HPP_
 
 //CONSIDER which of these we can preserve
 #include "mli_check.h"
@@ -61,21 +61,22 @@ static MLI_FORCE_INLINE void compute_rescale_vec_ibias_vec_scale(
         const int8_t *shift,
         generic_tensor_private_t<MLI_OUT_PTR(o_T)> &out_data) {
     constexpr int kMaxSupportedRank = 4;
-    constexpr int kPerAxisDimension = 3;
-    MLI_ASSERT(kPerAxisDimension < kMaxSupportedRank);
+    const int rescale_dim = in_data.rank - 1;
+    MLI_ASSERT(rescale_dim < kMaxSupportedRank);
     MLI_ASSERT(kMaxSupportedRank <= 
                     sizeof(in_data.shape) / sizeof(in_data.shape[0]));
     MLI_ASSERT(kMaxSupportedRank 
                     <= sizeof(out_data.shape) / sizeof(out_data.shape[0]));
 
     // Note: pos introduced in array form for future support of variable
-    // scale/bias dimension. Currently it's hardcoded to kPerAxisDimension
+    // scale/bias dimension(rescale_dim). 
+    // Currently rescale_dim is hardcoded to the inner-most dim.
     int pos[kMaxSupportedRank] = {0};
     for (pos[0] = 0; pos[0] < in_data.shape[0]; pos[0]++) {
         for (pos[1] = 0; pos[1] < in_data.shape[1]; pos[1]++) {
             for (pos[2] = 0; pos[2] < in_data.shape[2]; pos[2]++) {
                 for (pos[3] = 0; pos[3] < in_data.shape[3]; pos[3]++) {
-                    const int param_idx = pos[kPerAxisDimension];
+                    const int param_idx = pos[rescale_dim];
                     i_T in_val =  mli_prv_tensor_read(in_data, pos[0], pos[1],
                                                       pos[2], pos[3]);
                     o_T out_val = rescale_value(in_val, in_bias[param_idx],
@@ -163,4 +164,4 @@ mli_status MLI_FORCE_INLINE rescale_prepare_and_run(const mli_tensor *in,
 } // namespace krn
 } // namespace mli
 
-#endif // _MLI_KRN_RESCALE_REF_H_
+#endif // _MLI_KRN_RESCALE_REF_HPP_

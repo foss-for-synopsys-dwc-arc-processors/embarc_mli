@@ -6,8 +6,8 @@
 * the LICENSE file in the root directory of this source tree.
 *
 */
-#ifndef _MLI_KRN_CONVOLUTION_REF_H_
-#define _MLI_KRN_CONVOLUTION_REF_H_
+#ifndef _MLI3_KRN_CONVOLUTION_REF_HPP_
+#define _MLI3_KRN_CONVOLUTION_REF_HPP_
 
 #include "mli_api.h"
 #include "mli_prv_tensor.h"
@@ -169,7 +169,7 @@ MLI_FORCE_INLINE void depthwise_convolution2D(
             const int w_idx_in = (W_idx * stride_width - padding_left + comp.in_left);
 
             for (int in_ch_idx = 0; in_ch_idx < in.ch; in_ch_idx++) {
-                const MLI_PTR(io_T) in_ptr = in.ptr
+                const MLI_PTR(i_T) in_ptr = in.ptr
                         + in.row_mem_stride * h_idx_in
                         + in.col_mem_stride * w_idx_in
                         + in.ch_mem_stride * in_ch_idx;
@@ -197,13 +197,13 @@ MLI_FORCE_INLINE void depthwise_convolution2D(
                 // Convolution core. Here calculations performes in a unfolded expression way:
                 // out_val = (x)*(w - w_zp) = sum(x*w) - sum_i(x*w_zp)
                 //============================================
-                acc_T accu = mli_math_mul_fx<io_T, acc_T>(0, 0); 
-                accu = mli::krn::dotprod2D(in_ptr, w_ptr, accu, clmns, rows,
+                acc_T accu = mli_math_mul_fx<i_T, acc_T>(0, 0); 
+                accu = ::mli::krn::dotprod2D(in_ptr, w_ptr, accu, clmns, rows,
                                     in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height,
                                     weights.col_mem_stride,
                                     weights.row_mem_stride);
 
-                accu  = mli::krn::in_additive(in_ptr, accu, &quant_params,
+                accu  = ::mli::krn::in_additive(in_ptr, accu, &quant_params,
                                               clmns, rows,
                                               in.col_mem_stride * dilation_width,
                                               in.row_mem_stride * dilation_height);
@@ -215,16 +215,16 @@ MLI_FORCE_INLINE void depthwise_convolution2D(
                     // This part emulate dotproduct out of valid area. it adds sum(x_zp*w) for the whole kernel,
                     // and afterward subtracts sum(x_zp*w) part for valid area which we don't need due to 
                     // conducted core dotproduct; 
-                    accu = mli::krn::ref::weights_additive_sign(w_ptr_full, accu, &quant_params, 
+                    accu = ::mli::krn::ref::weights_additive_sign(w_ptr_full, accu, &quant_params, 
                                             weights.kernel_width, weights.kernel_height, 
                                             weights.col_mem_stride, weights.row_mem_stride, /*is_neg =*/ false);
-                    accu = mli::krn::ref::weights_additive_sign(w_ptr, accu, &quant_params, 
+                    accu = ::mli::krn::ref::weights_additive_sign(w_ptr, accu, &quant_params, 
                                             clmns, rows,
                                             weights.col_mem_stride, weights.row_mem_stride, /*is_neg =*/ true);
                     
                     // This part emulate in_additive out of valid area. it adds sum(x_zp*w_zp) 
                     // for all points out of valid area (e.g kernel_size - valid_area_size)
-                    accu = mli::krn::zp_additive_sign(&quant_params, accu,
+                    accu = ::mli::krn::ref::zp_additive_sign(&quant_params, accu,
                                                       (weights.kernel_height * weights.kernel_width) - (clmns * rows),
                                                       /*is_neg =*/ true);
                 }
@@ -232,7 +232,7 @@ MLI_FORCE_INLINE void depthwise_convolution2D(
                 // Cast result to output type, no shift/runding/relu/saturation. 
                 // o_T is expected equal or wider than acc_t
                 static_assert(sizeof(o_T) <= sizeof(acc_T));
-                o_T out_val = mli_math_cast_fx(accu, /*shift_right = */0);
+                o_T out_val = mli_math_cast_fx<acc_T, o_T>(accu, /*shift_right = */0);
 
                 MLI_CONV_OUT_PTR(o_T) out_ptr = out.ptr
                         + out.row_mem_stride * H_idx
@@ -281,8 +281,6 @@ template <typename i_T, typename w_T, typename o_T, typename acc_T, typename qua
 MLI_FORCE_INLINE void conv2d_prepare_and_run(
         const mli_tensor *in,
         const mli_tensor *weights,
-        const mli_tensor *inpzeropts,
-        const mli_tensor *wzeropts,
         const mli_conv2d_cfg *cfg,
         mli_tensor *out) {
     mli_prv_fx_init_dsp_ctrl();
@@ -343,7 +341,7 @@ MLI_FORCE_INLINE void conv2d_prepare_and_run(
 
     // Define quantization specific params
     quant_T params;
-    define_quant_params(in, weights, bias, out, &params);
+    define_quant_params(in, weights, /* bias = */nullptr, out, &params);
 
     rect_t cent_area;
     cent_area.row_beg = 0; cent_area.row_end = out_prv.height;
@@ -372,4 +370,4 @@ MLI_FORCE_INLINE void conv2d_prepare_and_run(
 } // namespace krn
 } // namespace mli
 
-#endif // _MLI_KRN_CONVOLUTION_REF_H_
+#endif // _MLI3_KRN_CONVOLUTION_REF_HPP_

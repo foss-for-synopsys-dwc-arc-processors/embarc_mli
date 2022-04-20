@@ -10,7 +10,7 @@
 // #include "mli_check.h"
 #include "mli_config.h"
 #include "mli_debug.h"
-#include "mli_krn_convolution.h"
+#include "mli3_krn_convolution.hpp"
 
 #ifdef __cplusplus
 extern "C" {

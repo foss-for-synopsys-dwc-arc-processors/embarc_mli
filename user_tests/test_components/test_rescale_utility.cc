@@ -41,28 +41,41 @@ static constexpr mli_tensor flat_tensor_common(size_t tsr_size) {
     ret_tsr.rank = 1;
     ret_tsr.shape[0] = tsr_size;
     ret_tsr.mem_stride[0] = 1;
-    ret_tsr.data.capacity = 1;
     return ret_tsr;
 }
 
 static constexpr mli_tensor flat_tensor(int16_t* data, size_t tsr_size) {
+    assert(data != nullptr);
     mli_tensor ret_tsr = flat_tensor_common(tsr_size);
     ret_tsr.data.mem.pi16 = data;
+    ret_tsr.data.capacity = tsr_size * sizeof(data[0]);
     ret_tsr.el_type = MLI_EL_FX_16;
     return ret_tsr;
 }
 
 static constexpr mli_tensor flat_tensor(int8_t* data, size_t tsr_size) {
+    assert(data != nullptr);
     mli_tensor ret_tsr = flat_tensor_common(tsr_size);
+    ret_tsr.data.capacity = tsr_size * sizeof(data[0]);
     ret_tsr.data.mem.pi8 = data;
     ret_tsr.el_type = MLI_EL_FX_8;
     return ret_tsr;
 }
 
 static constexpr mli_tensor flat_tensor(int32_t* data, size_t tsr_size) {
+    assert(data != nullptr);
     mli_tensor ret_tsr = flat_tensor_common(tsr_size);
+    ret_tsr.data.capacity = tsr_size * sizeof(data[0]);
     ret_tsr.data.mem.pi32 = data;
     ret_tsr.el_type = MLI_EL_SA_32;
+    ret_tsr.el_params.sa.dim = -1;
+    ret_tsr.el_params.sa.scale.capacity = 0;
+    ret_tsr.el_params.sa.scale.mem.i16 = 1;
+    ret_tsr.el_params.sa.type = MLI_EL_PARAM_SC16_ZP16;
+    ret_tsr.el_params.sa.scale_frac_bits.capacity = 0;
+    ret_tsr.el_params.sa.scale_frac_bits.mem.i8 = 0;
+    ret_tsr.el_params.sa.zero_point.capacity = 0;
+    ret_tsr.el_params.sa.zero_point.mem.i16 = 0;
     return ret_tsr;
 }
 
@@ -89,8 +102,8 @@ scales_calc::scales_calc(float in_scale, float out_scale,
         , scales_shift_tsr(flat_tensor(scales_shift_vec.data(), w_scales_num)) {
     // Vector on the dynamic memory might looks like a  bad choice since in the past 
     // we used such operands in calculations and asumed they are in the fast memory.
-    // But nowadays we first may use them on the CS side, wich dont care about fast memory and any
-    // other optimization - we just prepare data in a opaque form for the following inference  
+    // But nowadays we first may use them on the CS side, which dont care about fast memory and any
+    // other optimization - we just prepare data to the opaque form for the following inference  
     assert(w_scales_num > 0);
     assert(w_scales != nullptr);
     assert(out_scale != 0.0f);
@@ -100,24 +113,6 @@ scales_calc::scales_calc(float in_scale, float out_scale,
 }
 
 
-
-// class bias_calc {
-// public:
-//     // Parametrised constructor for just in-to-out
-       // I need bias from the tensor, and bias from the scale values
-//     bias_calc(const mli_tensor& bias_tsr bool is_tensor_data = false);
-
-//     void fold_additives_into_bias(const mli_tensor& in_tsr,
-//                                   const mli_tensor& w_tsr, int dim);
-
-//     // TODO: Figure out what to do for double accum
-//     const std::vector<int32_t>& get_bias_vec() const;
-//     const mli_tensor& get_bias_tsr() const;
-
-// private:
-//     std::vector<int32_t> bias_vec;
-//     mli_tensor bias_tsr;
-// };
 
 bias_folder::bias_folder(const mli_tensor& b_tsr, const mli_tensor& in_tsr,
                          const mli_tensor& w_tsr) 
@@ -154,11 +149,11 @@ bias_folder::bias_folder(const mli_tensor& b_tsr, const mli_tensor& in_tsr,
     // currently we asume only 8bit weights. 
     const auto in_zp = in_tsr.el_params.sa.zero_point.mem.i8;
 
-    // Init bias values
+    // Init bias values. Negative as rescale op implies subtraction of bias_in
     for (size_t i = 0; i < bias_vec.size(); ++i)
-        bias_vec[i] = b_tsr.data.mem.pi32[i];
+        bias_vec[i] = -b_tsr.data.mem.pi32[i];
 
-    // We don't care about performance here. Just need 
+    // We don't care about performance right now. 
     assert(MLI_MAX_RANK == 4);
     int pos[MLI_MAX_RANK] = {0};
     for (pos[0] = 0; pos[0] < w_extended_shape[0]; ++pos[0]) {
@@ -168,9 +163,11 @@ bias_folder::bias_folder(const mli_tensor& b_tsr, const mli_tensor& in_tsr,
                     
                     const int w_pos = val_pos(w_strides, pos);
                     const int b_pos = pos[3]; // Asum filters is an innermost channel 
-                    bias_vec[b_pos] -= in_zp * w_tsr.data.mem.pi8[w_pos];
-                    // TODO: we assume weights zero point is zero. 
-                    // bias_vec[b_pos] += in_zp * w_tsr.el_params.sa.zero_point.mem.pi8[b_pos]
+                    bias_vec[b_pos] += in_zp * w_tsr.data.mem.pi8[w_pos];
+                    
+                    // TODO: weights zero point is expected to be equal to zero. 
+                    // Consider to support in future (by uncommenting with array check). 
+                    // bias_vec[b_pos] -= in_zp * w_tsr.el_params.sa.zero_point.mem.pi8[b_pos]
                 }
             }
         }

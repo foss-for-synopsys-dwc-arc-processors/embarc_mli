@@ -7,8 +7,8 @@
 *
 */
 
-#ifndef _MLI_KRN_CONVOLUTION_DECL_REF_H_
-#define _MLI_KRN_CONVOLUTION_DECL_REF_H_
+#ifndef _MLI_KRN_CONVOLUTION_DECL_REF_HPP_
+#define _MLI_KRN_CONVOLUTION_DECL_REF_HPP_
 
 #include "mli_config.h"
 #include "mli_mem_info.h"
@@ -93,4 +93,4 @@ namespace vdsp {
 } // namespace krn
 } // namespace mli
 
-#endif // _MLI_KRN_CONVOLUTION_DECL_REF_H_
+#endif // _MLI_KRN_CONVOLUTION_DECL_REF_HPP_

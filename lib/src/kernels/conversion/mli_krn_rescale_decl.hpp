@@ -7,8 +7,8 @@
 *
 */
 
-#ifndef _MLI_KRN_RESCALE_DECL_H_
-#define _MLI_KRN_RESCALE_DECL_H_
+#ifndef _MLI_KRN_RESCALE_DECL_HPP_
+#define _MLI_KRN_RESCALE_DECL_HPP_
 
 #include "mli_config.h"
 #include "mli_mem_info.h"
@@ -42,4 +42,4 @@ mli_status MLI_FORCE_INLINE rescale_prepare_and_run(const mli_tensor *in,
 } // namespace krn
 } // namespace snps_arc::metaware::mli
 
-#endif // _MLI_KRN_RESCALE_DECL_H_
+#endif // _MLI_KRN_RESCALE_DECL_HPP_

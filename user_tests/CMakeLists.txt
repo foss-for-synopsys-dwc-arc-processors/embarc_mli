@@ -99,6 +99,7 @@ add_library(test_components_obj OBJECT
     test_components/test_quality_metrics.cc
     test_components/test_tensor_quantizer.cc
     test_components/test_report.cc
+    test_components/test_rescale_utility.cc
     ../examples/auxiliary/tensor_transform.c
     ../examples/auxiliary/tests_aux.c
     ../examples/auxiliary/idx_file.c
@@ -180,60 +181,64 @@ endfunction()
 #======================================================
 # Helpers functions Group
 #======================================================
-add_user_test(hlp convert_tensor)
-add_user_test(hlp tensor_struct)
+# add_user_test(hlp convert_tensor)
+# add_user_test(hlp tensor_struct)
 
 #======================================================
 # Data Movement Group
 #======================================================
-add_user_test(krn data_movement)
+# add_user_test(krn data_movement)
 
 #======================================================
 # Convolution Group
 #======================================================
-add_user_test(krn conv2d)
+# add_user_test(krn conv2d)
 add_user_test(krn depthwise_conv)
-add_user_test(krn transpose_conv2d)
-add_user_test(krn group_conv2d FX16)
-add_user_test(krn group_conv2d FX16_FX8_FX8)
-add_user_test(krn group_conv2d SA8_SA8_SA32)
+# add_user_test(krn transpose_conv2d)
+# add_user_test(krn group_conv2d FX16)
+# add_user_test(krn group_conv2d FX16_FX8_FX8)
+# add_user_test(krn group_conv2d SA8_SA8_SA32)
 
 #======================================================
 # Pooling Group
 #======================================================
-add_user_test(krn avepool)
-add_user_test(krn maxpool)
+# add_user_test(krn avepool)
+# add_user_test(krn maxpool)
 
 #======================================================
 # Diverse Kernels Group
 #======================================================
-add_user_test(krn argmax)
-add_user_test(krn permute)
+# add_user_test(krn argmax)
+# add_user_test(krn permute)
 
 #======================================================
 # Fully Connected And Recurrent Group
 #======================================================
-add_user_test(krn fully_connected)
-add_user_test(krn rnn_dense)
-add_user_test(krn lstm_cell FX16)
-add_user_test(krn lstm_cell FX16_FX8_FX8)
-add_user_test(krn lstm_cell SA8_SA8_SA32)
-add_user_test(krn gru_cell FX16)
-add_user_test(krn gru_cell FX16_FX8_FX8)
-add_user_test(krn gru_cell SA8_SA8_SA32)
+# add_user_test(krn fully_connected)
+# add_user_test(krn rnn_dense)
+# add_user_test(krn lstm_cell FX16)
+# add_user_test(krn lstm_cell FX16_FX8_FX8)
+# add_user_test(krn lstm_cell SA8_SA8_SA32)
+# add_user_test(krn gru_cell FX16)
+# add_user_test(krn gru_cell FX16_FX8_FX8)
+# add_user_test(krn gru_cell SA8_SA8_SA32)
 #======================================================
 # Transform (Activation) Group
 #======================================================
-add_user_test(krn softmax)
-add_user_test(krn relu)
-add_user_test(krn leaky_relu)
-add_user_test(krn prelu)
-add_user_test(krn tanh)
-add_user_test(krn sigm)
-add_user_test(krn l2_normalize)
+# add_user_test(krn softmax)
+# add_user_test(krn relu)
+# add_user_test(krn leaky_relu)
+# add_user_test(krn prelu)
+# add_user_test(krn tanh)
+# add_user_test(krn sigm)
+# add_user_test(krn l2_normalize)
 
 #======================================================
 # Eltwise Group
 #======================================================
-add_user_test(krn eltwise)
+# add_user_test(krn eltwise)
 
+#======================================================
+# MLI3 Kernels
+#======================================================
+add_user_test(krn3 depthwise_conv)

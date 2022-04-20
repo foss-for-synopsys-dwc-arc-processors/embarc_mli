@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2022, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -7,15 +7,10 @@
 *
 */
 
-#ifndef _MLI_KRN_CONVOLUTION_H_
-#define _MLI_KRN_CONVOLUTION_H_
+#ifndef _MLI_KRN_RESCALE_HPP_
+#define _MLI_KRN_RESCALE_HPP_
 
-#include "mli_krn_convolution_decl.h"
-
-// This header file must be included by users inside MLI library that depend
-// on mli_krn_convolution. Depending on platform capabilities, the right
-// implementation with 'using' is chosen. This header file is responsible for
-// including *_dsp (FXAPI) and *_vdsp (vector DSP) variants of mli_krn_convolution.
+#include "mli_krn_rescale_decl.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Setting up namespace
@@ -27,11 +22,12 @@
 
 namespace snps_arc::metaware::mli {
 namespace krn {
-
-// using mli::krn::ref::convolution2D;
-using snps_arc::metaware::mli::krn::ref::depthwise_convolution2D;
-using snps_arc::metaware::mli::krn::ref::conv2d_prepare_and_run;
-
+// using mli::krn::ref::compute_prelu;
+// using mli::krn::ref::prelu_define_requant_alpha_params;
+// using mli::krn::ref::compute_prelu_no_broadcast;
+// using mli::krn::ref::compute_prelu_broadcast;
+// using mli::krn::ref::prelu_fx_run;
+using snps_arc::metaware::mli::krn::ref::rescale_prepare_and_run;
 } // namespace krn
 } // namespace snps_arc::metaware::mli
 
@@ -41,6 +37,6 @@ using snps_arc::metaware::mli::krn::ref::conv2d_prepare_and_run;
 // The reference (*_ref.h) implementation can run on all platforms and is always
 // included. Other variants are included based on capabilities. Implementations
 // below can depend on each other through declarations in *_decl.h.
-#include "impl/mli_krn_convolution_ref.h"
+#include "impl/mli_krn_rescale_ref.hpp"
 
-#endif // _MLI_KRN_CONVOLUTION_H_
+#endif // _MLI_KRN_RESCALE_HPP_
