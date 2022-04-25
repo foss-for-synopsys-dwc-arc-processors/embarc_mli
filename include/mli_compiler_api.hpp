@@ -279,8 +279,8 @@ public:
     virtual mli_status AttachBufferOffsets(OffsetBuffer &input,
                                            OffsetBuffer &output,
                                            OffsetBuffer &weights,
-                                           OffsetBuffer &padding,
-                                           OffsetBuffer &descr) = 0;
+                                           OffsetBuffer &inpzeropts,
+                                           OffsetBuffer &metadata) = 0;
 };
 
 /**

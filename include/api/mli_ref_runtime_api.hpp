@@ -9,7 +9,7 @@
 #ifndef _MLI_REF_RUNTIME_API_HPP_
 #define _MLI_REF_RUNTIME_API_HPP_
 
-#include "mli_api.h"
+// #include "mli_api.h"
 #include "mli_runtime_api.hpp"
 #include "mli_iterator.hpp"
 #include "mli_ref_private_types.hpp"
@@ -20,14 +20,13 @@ namespace snps_arc::metaware::mli::ref {
 
 using lib_mli::ExecutionInterface;
 using lib_mli::PrivateData;
+
 /**
  * @brief This class implements the DepthwiseConv2d kernel xop interpreter interface
  *
  *
  */
-struct DepthwiseConv2d_data {
-    // To Be Defined During Implementation
-};
+struct DepthwiseConv2dMetadata;
 
 class DepthwiseConv2d : public ExecutionInterface {
 
@@ -57,8 +56,6 @@ class DepthwiseConv2d : public ExecutionInterface {
 
     mli_status Init(PrivateData* kernel_private_data_buffer, int private_data_size, uint64_t membases[], int num_mems) override;
 
-    mli_status UpdateInputShape(const tensor::shape<4> input_shape); // input fmap width, height, channels, batch size. Need for dynamic input size processing
-
     mli_status Issue() override;
 
     mli_status Prefetch() override;
@@ -66,7 +63,7 @@ class DepthwiseConv2d : public ExecutionInterface {
     mli_status Update() override;
 
 private:
-    DepthwiseConv2d_data *data;
+    DepthwiseConv2dMetadata *m_metadata;
 };
 
 } // namespace snps_arc::metaware::mli::ref
