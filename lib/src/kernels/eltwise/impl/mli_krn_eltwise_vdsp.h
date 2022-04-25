@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2021, Synopsys, Inc.
+* Copyright 2019-2022, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -42,7 +42,7 @@ MLI_FORCE_INLINE vNx2short_t eltwise_perform_operation<vNx2short_t, vNx2short_t,
     int shift_right = MAX(post_op_shift, 0);
     int shift_left = MAX(-post_op_shift, 0);
 
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     uint32_t one = 1u;
     int32_t accu_init = (one << shift_right) >> 1;
     vNx2accint_t accu = mli_math_init_accu<int32_t, vNx2accint_t>(accu_init);
@@ -74,7 +74,7 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
     int shift_right = MAX(post_op_shift, 0);
     int shift_left = MAX(-post_op_shift, 0);
 
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     uint16_t one = 1u;
     int16_t accu_init = (one << shift_right) >> 1;
     vNx4accshort_t accu = mli_math_init_accu<int16_t, vNx4accshort_t>(accu_init);
@@ -111,7 +111,7 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
     int shift_right2 = MAX(shift2, 1);
     int shift_left2 = MAX(1 - shift2, 0);
     int out_offset1 = out_offset << shift_right1;
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     uint32_t one = 1u;
     out_offset1 += ((one << shift_right1) >> 1);
 #else
@@ -147,7 +147,7 @@ MLI_FORCE_INLINE vNx2short_t eltwise_perform_operation<vNx2short_t, vNx2short_t,
     int shift_left = MAX(-post_op_shift, 0);
     int shift_right = MAX(post_op_shift, 0);
 
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     uint32_t one = 1u;
     int32_t accu_init = (one << shift_right) >> 1;
     vNx2accint_t accu = mli_math_init_accu<int32_t, vNx2accint_t>(accu_init);
@@ -179,7 +179,7 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
     int shift_left = MAX(-post_op_shift, 0);
     int shift_right = MAX(post_op_shift, 0);
 
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     uint16_t one = 1u;
     int16_t accu_init = (one << shift_right) >> 1;
     vNx4accshort_t accu = mli_math_init_accu<int16_t, vNx4accshort_t>(accu_init);
@@ -216,7 +216,7 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
     int shift_right2 = MAX(shift2, 1);
     int shift_left2 = MAX(1 - shift2, 0);
     int out_offset1 = out_offset << shift_right1;
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     uint32_t one = 1u;
     out_offset1 += ((one << shift_right1) >> 1);
 #else
@@ -251,7 +251,7 @@ MLI_FORCE_INLINE vNx2short_t eltwise_perform_operation<vNx2short_t, vNx2short_t,
     vNx2short_t res;
     int shift_left = MAX(-post_op_shift, 0);
     int shift_right = MAX(post_op_shift, 0);
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     uint32_t one = 1u;
     int32_t acc_init = ((one << shift_right) >> 1);
 #else
@@ -279,7 +279,7 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
     vNx4char_t res;
     int shift_left = MAX(-post_op_shift, 0);
     int shift_right = MAX(post_op_shift, 0);
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     uint16_t one = 1u;
     int16_t acc_init = ((one << shift_right) >> 1);
 #else
@@ -328,7 +328,7 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
      */
 
     int16_t acc_init = in_offset1 * in_offset2;
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     uint16_t one = 1u;
     acc_init += ((one << preshift) >> 1); /* rounding half up */
 #else
@@ -433,7 +433,7 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
     int shift_right = mli_math_max_fx(shift, 1);
     // As shift is limited by 23 the shift_right is limited by 7 so we can pre_shift left the out_offset
     int16_t offset = out_offset << shift_right;
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     uint16_t one = 1u;
     offset += ((one << shift_right) >> 1);
 #else
@@ -515,7 +515,7 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
     int shift_right = mli_math_max_fx(shift, 1);
     // As shift is limited by 23 the shift_right is limited by 7 so we can pre_shift left the out_offset
     int16_t offset = out_offset << shift_right;
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     uint16_t one = 1u;
     offset += ((one << shift_right) >> 1);
 #else

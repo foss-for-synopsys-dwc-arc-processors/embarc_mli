@@ -1,5 +1,5 @@
 /*
-* Copyright 2021, Synopsys, Inc.
+* Copyright 2021-2022, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -131,7 +131,7 @@ static MLI_FORCE_INLINE vNx4char_t calc_leaky_relu(
     int shift_right = mli_math_max_fx(identity_shift, 1);
 
     int16_t identity_offset = identity_params->offset << shift_right;
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     identity_offset += (int16_t)(((uint16_t)1 << shift_right) >> 1);
 #else
     #error Rounding mode not supported
@@ -147,7 +147,7 @@ static MLI_FORCE_INLINE vNx4char_t calc_leaky_relu(
     shift_right = mli_math_max_fx(alpha_shift, 1);
 
     int16_t alpha_offset = alpha_params->offset << shift_right;
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     alpha_offset += (int16_t)(((uint16_t)1 << shift_right) >> 1);
 #else
     #error Rounding mode not supported

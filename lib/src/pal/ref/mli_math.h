@@ -1,5 +1,5 @@
 /*
-* Copyright 2020-2021, Synopsys, Inc.
+* Copyright 2020-2022, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -86,7 +86,7 @@ MLI_FORCE_INLINE T mli_math_asr_rnd_fx(T x, int nbits)
 
     // Rounding up:
     // if the most significant deleted bit is 1, add 1 to the remaining bits.
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     T round = (T)((one << nbits) >> 1);
     r = mli_math_add_fx<T>(x, round);
     r = mli_math_asr_fx<T>(r, nbits);
@@ -96,7 +96,7 @@ MLI_FORCE_INLINE T mli_math_asr_rnd_fx(T x, int nbits)
     // If the most significant deleted bit is 1, and 
     // either the least significant of the remaining bits
     // or at least one other deleted bit is 1, add 1 to the remaining bits.
-#ifdef ROUND_CONVERGENT
+#ifdef ROUND_MODE_CONVERGENT
     r = mli_math_asr_fx<T>(x, nbits);
     T last_deleted_mask = (T)((one << nbits) >> 1);
     if (((x & last_deleted_mask) != (T)0) && 

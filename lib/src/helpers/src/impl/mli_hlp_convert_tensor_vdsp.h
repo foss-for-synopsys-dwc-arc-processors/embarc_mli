@@ -1,5 +1,5 @@
 /*
-* Copyright 2021, Synopsys, Inc.
+* Copyright 2021-2022, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -31,7 +31,7 @@ static MLI_FORCE_INLINE vNx4int_t calc_convert(
     constexpr int max_shift = 31;
     int shift_right = mli_math_min_fx(mli_math_max_fx(shift, 0), max_shift);
     int shift_left = mli_math_max_fx(-shift, 0);
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     uint32_t one = 1u;
     int32_t offset = (one << shift_right) >> 1;
 #else
@@ -58,7 +58,7 @@ static MLI_FORCE_INLINE vNx4int_t calc_convert(
     constexpr int max_shift = 31;
     int shift_right = mli_math_min_fx(mli_math_max_fx(shift, 0), max_shift);
     int shift_left = mli_math_max_fx(-shift, 0);
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     uint32_t one = 1u;
     int32_t offset = (one << shift_right) >> 1;
 #else

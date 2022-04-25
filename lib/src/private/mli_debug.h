@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2021, Synopsys, Inc.
+* Copyright 2019-2022, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -118,10 +118,10 @@ static MLI_FORCE_INLINE bool mli_check(
 #    define REF_STR "OFF"
 #endif
 
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
 #    define ROUND_STR "UP"
 #endif
-#ifdef ROUND_CONVERGENT
+#ifdef ROUND_MODE_CONVERGENT
 #    define ROUND_STR "CONVERGENT"
 #endif
 

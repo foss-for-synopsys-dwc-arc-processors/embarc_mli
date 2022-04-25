@@ -1,5 +1,5 @@
 /*
-* Copyright 2020-2021, Synopsys, Inc.
+* Copyright 2020-2022, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -226,7 +226,7 @@ static MLI_FORCE_INLINE vNx4char_t calc_prelu(
     int shift_left = mli_math_max_fx(1 - identity_shift, 0);
     int shift_right = mli_math_max_fx(identity_shift, 1);
     int16_t identity_offset = identity_params->offset << shift_right;
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     identity_offset += (int)(((uint16_t)1 << shift_right) >> 1);
 #else
     #error Rounding mode not supported

@@ -1,5 +1,5 @@
 /*
-* Copyright 2020-2021, Synopsys, Inc.
+* Copyright 2020-2022, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -515,7 +515,7 @@ MLI_FORCE_INLINE T mli_math_asr_rnd_fx(T x, shift_T nbits) {
 
     // Rounding up:
     // if the most significant deleted bit is 1, add 1 to the remaining bits.
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     T round = (T)((one << nbits) >> 1);
     r = mli_math_add_fx<T>(x, round);
     r = mli_math_asr_fx<T>(r, nbits);
@@ -525,7 +525,7 @@ MLI_FORCE_INLINE T mli_math_asr_rnd_fx(T x, shift_T nbits) {
     // If the most significant deleted bit is 1, and 
     // either the least significant of the remaining bits
     // or at least one other deleted bit is 1, add 1 to the remaining bits.
-#ifdef ROUND_CONVERGENT
+#ifdef ROUND_MODE_CONVERGENT
     r = mli_math_asr_fx<T>(x, nbits);
     T last_deleted_mask = (T)((one << nbits) >> 1);
     if (((x & last_deleted_mask) != (T)0) && 
@@ -540,12 +540,12 @@ MLI_FORCE_INLINE T mli_math_asr_rnd_fx(T x, shift_T nbits) {
 template <>
 MLI_FORCE_INLINE vNx4accshort_t mli_math_asr_rnd_fx(vNx4accshort_t x, vNx4short_t nbits) {
     vNx4accshort_t r;
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     // adding 1 << (nbits-1)
     // shift twice to prevent negative shift if nbits = 0
     r = mli_math_add<vNx4accshort_t, vNx4short_t>(x, (vNx4short_t)(((vNx4ushort_t)1 << nbits) >> 1));
 #endif
-#ifdef ROUND_CONVERGENT
+#ifdef ROUND_MODE_CONVERGENT
 #error "Convergent rounding not supported"
 #endif
     r = mli_math_asr_fx(r, nbits);
@@ -555,12 +555,12 @@ MLI_FORCE_INLINE vNx4accshort_t mli_math_asr_rnd_fx(vNx4accshort_t x, vNx4short_
 template <>
 MLI_FORCE_INLINE vNx2accint_t mli_math_asr_rnd_fx(vNx2accint_t x, vNx2int_t nbits) {
     vNx2accint_t r;
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     // adding 1 << (nbits-1)
     // shift twice to prevent negative shift if nbits = 0
     r = mli_math_add<vNx2accint_t, vNx2int_t>(x, (vNx2int_t)(((vNx2uint_t)1 << nbits) >> 1));
 #endif
-#ifdef ROUND_CONVERGENT
+#ifdef ROUND_MODE_CONVERGENT
 #error "Convergent rounding not supported"
 #endif
     r = mli_math_asr_fx(r, nbits);
@@ -570,12 +570,12 @@ MLI_FORCE_INLINE vNx2accint_t mli_math_asr_rnd_fx(vNx2accint_t x, vNx2int_t nbit
 template <>
 MLI_FORCE_INLINE vNx4accint_t mli_math_asr_rnd_fx(vNx4accint_t x, vNx4int_t nbits) {
     vNx4accint_t r;
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     // adding 1 << (nbits-1)
     // shift twice to prevent negative shift if nbits = 0
     r = mli_math_add<vNx4accint_t, vNx4int_t>(x, (vNx4int_t)(((vNx4uint_t)1 << nbits) >> 1));
 #endif
-#ifdef ROUND_CONVERGENT
+#ifdef ROUND_MODE_CONVERGENT
 #error "Convergent rounding not supported"
 #endif
     r = mli_math_asr_fx(r, nbits);
@@ -585,12 +585,12 @@ MLI_FORCE_INLINE vNx4accint_t mli_math_asr_rnd_fx(vNx4accint_t x, vNx4int_t nbit
 template <>
 MLI_FORCE_INLINE vNx4accshort_t mli_math_asr_rnd_fx(vNx4accshort_t x, int nbits) {
     vNx4accshort_t r;
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     // adding 1 << (nbits-1)
     // shift twice to prevent negative shift if nbits = 0
     r = mli_math_add<vNx4accshort_t, vNx4short_t>(x, (vNx4short_t)(((vNx4ushort_t)1 << nbits) >> 1));
 #endif
-#ifdef ROUND_CONVERGENT
+#ifdef ROUND_MODE_CONVERGENT
 #error "Convergent rounding not supported"
 #endif
     r = mli_math_asr_fx(r, nbits);
@@ -600,12 +600,12 @@ MLI_FORCE_INLINE vNx4accshort_t mli_math_asr_rnd_fx(vNx4accshort_t x, int nbits)
 template <>
 MLI_FORCE_INLINE vNx2accint_t mli_math_asr_rnd_fx(vNx2accint_t x, int nbits) {
     vNx2accint_t r;
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     // adding 1 << (nbits-1)
     // shift twice to prevent negative shift if nbits = 0
     r = mli_math_add<vNx2accint_t, vNx2int_t>(x, (vNx2int_t)(((vNx2uint_t)1 << nbits) >> 1));
 #endif
-#ifdef ROUND_CONVERGENT
+#ifdef ROUND_MODE_CONVERGENT
 #error "Convergent rounding not supported"
 #endif
     r = mli_math_asr_fx(r, nbits);
@@ -615,12 +615,12 @@ MLI_FORCE_INLINE vNx2accint_t mli_math_asr_rnd_fx(vNx2accint_t x, int nbits) {
 template <>
 MLI_FORCE_INLINE vNx4accint_t mli_math_asr_rnd_fx(vNx4accint_t x, int nbits) {
     vNx4accint_t r;
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     // adding 1 << (nbits-1)
     // shift twice to prevent negative shift if nbits = 0
     r = mli_math_add<vNx4accint_t, vNx4int_t>(x, (vNx4int_t)(((vNx4uint_t)1 << nbits) >> 1));
 #endif
-#ifdef ROUND_CONVERGENT
+#ifdef ROUND_MODE_CONVERGENT
 #error "Convergent rounding not supported"
 #endif
     r = mli_math_asr_fx(r, nbits);
@@ -632,11 +632,11 @@ MLI_FORCE_INLINE vNx4char_t mli_math_asr_rnd_fx(vNx4char_t x, int nbits) {
     MLI_EXTRA_ASSERT(nbits >= 0);
     vNx4char_t r;
 
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     vNx4char_t round = (vNx4char_t)(((vNx4uchar_t)1 << nbits) >> 1);
     r = mli_math_add_fx(x, round);
 #endif
-#ifdef ROUND_CONVERGENT
+#ifdef ROUND_MODE_CONVERGENT
 #error "Convergent rounding not supported"
 #endif
     r = mli_math_asr_fx(r, nbits);
@@ -648,11 +648,11 @@ MLI_FORCE_INLINE vNx2short_t mli_math_asr_rnd_fx(vNx2short_t x, int nbits) {
     MLI_EXTRA_ASSERT(nbits >= 0);
     vNx2short_t r;
 
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     vNx2short_t round = (vNx2short_t)(((vNx2ushort_t)1 << nbits) >> 1);
     r = mli_math_add_fx(x, round);
  #endif
- #ifdef ROUND_CONVERGENT
+ #ifdef ROUND_MODE_CONVERGENT
  #error "Convergent rounding not supported"
  #endif
     r = mli_math_asr_fx(r, nbits);
@@ -664,11 +664,11 @@ template <>
 MLI_FORCE_INLINE vNx4short_t mli_math_asr_rnd_fx(vNx4short_t x, vNx4short_t nbits) {
     vNx4short_t r;
 
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     // shift twice to prevent negative shift if nbits = 0
     r = mli_math_add_fx(x, (vNx4short_t)(((vNx4ushort_t)1 << nbits) >> 1));
 #endif
-#ifdef ROUND_CONVERGENT
+#ifdef ROUND_MODE_CONVERGENT
 #error "Convergent rounding not supported"
 #endif
     r = mli_math_asr_fx(r, nbits);
@@ -680,11 +680,11 @@ MLI_FORCE_INLINE vNx4short_t mli_math_asr_rnd_fx(vNx4short_t x, int nbits) {
     MLI_EXTRA_ASSERT(nbits >= 0);
     vNx4short_t r;
 
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     // shift twice to prevent negative shift if nbits = 0
     r = mli_math_add_fx(x, (vNx4short_t) (((vNx4ushort_t)1 << nbits) >> 1));
 #endif
-#ifdef ROUND_CONVERGENT
+#ifdef ROUND_MODE_CONVERGENT
 #error "Convergent rounding not supported"
 #endif
 
@@ -697,10 +697,10 @@ MLI_FORCE_INLINE vNx4int_t mli_math_asr_rnd_fx(vNx4int_t x, int nbits) {
     MLI_EXTRA_ASSERT(nbits >= 0);
     vNx4int_t r;
 
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     r = mli_math_add_fx(x, (vNx4int_t) (((vNx4uint_t)1 << nbits) >> 1));
 #endif
-#ifdef ROUND_CONVERGENT
+#ifdef ROUND_MODE_CONVERGENT
 #error "Convergent rounding not supported"
 #endif
     r = mli_math_asr_fx(r, nbits);
@@ -711,11 +711,11 @@ template <>
 MLI_FORCE_INLINE vNx4int_t mli_math_asr_rnd_fx(vNx4int_t x, vNx4int_t nbits) {
     vNx4int_t r;
 
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     // shift twice to prevent negative shift if nbits = 0
     r = mli_math_add_fx(x, (vNx4int_t)(((vNx4uint_t)1 << nbits) >> 1));
 #endif
-#ifdef ROUND_CONVERGENT
+#ifdef ROUND_MODE_CONVERGENT
 #error "Convergent rounding not supported"
 #endif
 
@@ -728,11 +728,11 @@ MLI_FORCE_INLINE vNx2int_t mli_math_asr_rnd_fx(vNx2int_t x, int nbits) {
     MLI_EXTRA_ASSERT(nbits >= 0);
     vNx2int_t r;
 
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     // shift twice to prevent negative shift if nbits = 0
     r = mli_math_add_fx(x, (vNx2int_t)(((vNx2uint_t)1 << nbits) >> 1));
 #endif
-#ifdef ROUND_CONVERGENT
+#ifdef ROUND_MODE_CONVERGENT
 #error "Convergent rounding not supported"
 #endif
 
@@ -993,7 +993,7 @@ MLI_FORCE_INLINE vNx4char_t mli_math_cast_fx(vNx4int_t in_val) {
 template <>
 MLI_FORCE_INLINE vNx4char_t mli_math_cast_fx(vNx4int_t in_val, int shift_right) {
     vNx4int_t r;
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     vNx4int_t round = (vNx4int_t)(((vNx4uint_t)1 << shift_right) >> 1);
     r = mli_math_add_fx(in_val, round);
 #else
@@ -1007,7 +1007,7 @@ MLI_FORCE_INLINE vNx4char_t mli_math_cast_fx(vNx4int_t in_val, int shift_right) 
 template <>
 MLI_FORCE_INLINE vNx2short_t mli_math_cast_fx(vNx2int_t in_val, int shift_right) {
     vNx2int_t r;
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     vNx2int_t round = (vNx2int_t)(((vNx2uint_t)1 << shift_right) >> 1);
     r = mli_math_add_fx(in_val, round);
 #else
@@ -1033,7 +1033,7 @@ MLI_FORCE_INLINE vNx4short_t mli_math_cast_fx(vNx4short_t in_val, int shift_righ
     MLI_EXTRA_ASSERT(shift_right >= 0);
     vNx4short_t acc;
 
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     // Rounding up:
     vNx4short_t round = (vNx4short_t)(((vNx4ushort_t)1 << shift_right) >> 1);
     acc = mli_math_add_fx(in_val, round);
@@ -1059,7 +1059,7 @@ MLI_FORCE_INLINE vNx4char_t mli_math_cast_fx(vNx4short_t in_val, int shift_right
     MLI_EXTRA_ASSERT(shift_right >= 0);
     vNx4short_t acc;
 
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     // Rounding up
     vNx4short_t round = (vNx4short_t)(((vNx4ushort_t)1 << shift_right) >> 1);
     acc = mli_math_add_fx(in_val, round);
@@ -1216,7 +1216,7 @@ template<>
 MLI_FORCE_INLINE vNx4short_t mli_math_acc_cast_fx(vNx4accint_t acc, int shift_right) {
     MLI_EXTRA_ASSERT(shift_right >= 0);
 
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     vNx4int_t round = (vNx4int_t)(((vNx4uint_t)1 << shift_right) >> 1);
     acc = mli_math_add<vNx4accint_t, vNx4int_t>(acc, round);
 #else
@@ -1237,7 +1237,7 @@ template<>
 MLI_FORCE_INLINE vNx4char_t mli_math_acc_cast_fx(vNx4accchar_t acc, int shift_right) {
     MLI_EXTRA_ASSERT(shift_right >= 0);
 
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     vNx4char_t round = (vNx4char_t)(((vNx4uchar_t)1 << shift_right) >> 1);
     acc = mli_math_add<vNx4accchar_t, vNx4char_t>(acc, round);
 #else
@@ -1255,7 +1255,7 @@ template<>
 MLI_FORCE_INLINE vNx2short_t mli_math_acc_cast_fx(vNx2accshort_t acc, int shift_right) {
     MLI_EXTRA_ASSERT(shift_right >= 0);
 
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     vNx2short_t round = (vNx2short_t)(((vNx2ushort_t)1 << shift_right) >> 1);
     acc = mli_math_add<vNx2accshort_t, vNx2short_t>(acc, round);
 #else
@@ -1273,7 +1273,7 @@ template<>
 MLI_FORCE_INLINE vNx4short_t mli_math_acc_cast_fx(vNx4accshort_t acc, int shift_right) {
     MLI_EXTRA_ASSERT(shift_right >= 0);
 
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     vNx4short_t round = (vNx4short_t)(((vNx4ushort_t)1 << shift_right) >> 1);
     acc = mli_math_add<vNx4accshort_t, vNx4short_t>(acc, round);
 #else
@@ -1292,7 +1292,7 @@ template<>
 MLI_FORCE_INLINE vNx2int_t mli_math_acc_cast_fx(vNx2accint_t acc, int shift_right) {
     MLI_EXTRA_ASSERT(shift_right >= 0);
 
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     vNx2int_t round = (vNx2int_t)(((vNx2uint_t)1 << shift_right) >> 1);
     acc = mli_math_add<vNx2accint_t, vNx2int_t>(acc, round);
 #else
@@ -1311,7 +1311,7 @@ template<>
 MLI_FORCE_INLINE vNx2short_t mli_math_acc_cast_fx(vNx2accint_t acc, int shift_right) {
     MLI_EXTRA_ASSERT(shift_right >= 0);
 
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     vNx2int_t round = (vNx2int_t)(((vNx2uint_t)1 << shift_right) >> 1);
     acc = mli_math_add<vNx2accint_t, vNx2int_t>(acc, round);
 #else
@@ -1331,7 +1331,7 @@ template<>
 MLI_FORCE_INLINE vNx4int_t mli_math_acc_cast_fx(vNx4accint_t acc, int shift_right) {
     MLI_EXTRA_ASSERT(shift_right >= 0);
 
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     vNx4int_t round = (vNx4int_t)(((vNx4uint_t)1 << shift_right) >> 1);
     acc = mli_math_add<vNx4accint_t, vNx4int_t>(acc, round);
 #else
@@ -1352,7 +1352,7 @@ template<>
 MLI_FORCE_INLINE vNx4char_t mli_math_acc_cast_fx(vNx4accint_t acc, int shift_right) {
     MLI_EXTRA_ASSERT(shift_right >= 0);
 
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     vNx4int_t round = (vNx4int_t)(((vNx4uint_t)1 << shift_right) >> 1);
     acc = mli_math_add<vNx4accint_t, vNx4int_t>(acc, round);
 #else
@@ -1443,7 +1443,7 @@ template<>
 MLI_FORCE_INLINE vNx4char_t mli_math_acc_cast_fx(vNx4accshort_t acc, int shift_right) {
     MLI_EXTRA_ASSERT(shift_right >= 0);
 
-#ifdef ROUND_UP
+#ifdef ROUND_MODE_UP
     vNx4short_t round = (vNx4short_t)(((vNx4ushort_t)1 << shift_right) >> 1);
     acc = mli_math_add<vNx4accshort_t, vNx4short_t>(acc, round);
 #else
