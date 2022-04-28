@@ -20,7 +20,12 @@ target_include_directories(mli PRIVATE ${MLI_LIB_PRIVATE_INCLUDES})
 target_compile_options(mli PRIVATE ${MLI_PLATFORM_COMPILE_OPTIONS})
 target_compile_options(mli PRIVATE ${MLI_LIB_PRIVATE_COMPILE_OPTIONS})
 
-target_compile_options(mli PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>)
+if(ARC)
+    # Subject to remove as the option in such form leads to warning on MSVC build.
+    # set(CMAKE_CXX_STANDARD 17) is more toolchain agnostic and already present in 
+    # the settings.cmake. But MWDT toolchain currently understands only the below format. 
+    target_compile_options(mli PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>)
+endif()
 
 set_target_properties(mli
     PROPERTIES

@@ -216,6 +216,427 @@ public:
     // unsigned GetRuntimeObjectSize() override ;
 };
 
+/* **********************************************************
+ *
+ * Add New Kernels Below
+ * 
+ * *********************************************************/
+
+
+/**
+ * @brief This class implements the Depthwise Convolution 2D Compiler Support kernel interface
+ *
+ */
+class DepthwiseConv2d_CS : public CompilerGenericInterface {
+public:
+    virtual ~DepthwiseConv2d_CS() = default;
+
+    /**
+     * @brief Method to encode the weights (coefficients).
+     * TODO: add description using conv2d_cs as a starting point
+     * TODO: Ggl StyleGuide on default argumenst: 
+     *       "Default arguments are banned on virtual functions, 
+     *         where they don't work properly,"
+     */
+    virtual mli_status EncodeWeights(Tensor<Buffer, 3> &weights,
+                                     Buffer &encoded_weights, 
+                                     compression_mode_t mode) = 0;
+
+    /**
+     * @brief Method to query the size of the encoded weights buffer
+     *
+     */
+    virtual unsigned GetEncodedWeightsSize() = 0;
+
+    /**
+     * @brief Method to encode input zero-points (padding values)
+     *
+     */
+    virtual mli_status EncodeInpZeroPts(Tensor<Buffer, 1> &inpzeropts, 
+                                        Buffer &encoded_inpzeropts) = 0;
+
+    /**
+     * @brief Method to query the size of the encoded input zero-points buffer
+     *
+     */
+    virtual unsigned GetEncodedInpZeroPtsSize() = 0;
+
+    /**
+     * @brief Methods to get buffer sizes
+     * TODO: add description using conv2d_cs as a starting point
+     */
+
+    virtual unsigned GetInputBufferSize() = 0;
+    virtual unsigned GetOutputBufferSize() = 0;
+    virtual unsigned GetWeightsBufferSize() = 0;
+    virtual unsigned GetInputZeroPtsBufferSize() = 0;
+    virtual unsigned GetDataBufferSize() = 0;
+
+    /**
+     * @brief Methods to set buffer offsets
+     *
+     */
+    virtual mli_status AttachBufferOffsets(OffsetBuffer &input,
+                                           OffsetBuffer &output,
+                                           OffsetBuffer &weights,
+                                           OffsetBuffer &padding,
+                                           OffsetBuffer &descr) = 0;
+};
+
+/**
+ * @brief This class implements the Fully Connected Compiler Support kernel interface
+ *
+ */
+class FullyConnected_CS : public CompilerGenericInterface {
+public:
+    virtual ~FullyConnected_CS() = default;
+
+    /**
+     * @brief Method to encode the weights (coefficients).
+     * TODO: add description using conv2d_cs as a starting point
+     */
+    virtual mli_status EncodeWeights(const Tensor<Buffer, 2> &weights, 
+                                     Buffer &encoded_weights) = 0;
+
+    /**
+     * @brief Method to query the size of the encoded weights buffer
+     *
+     */
+    virtual unsigned GetEncodedWeightsSize() = 0;
+
+    /**
+     * @brief Methods to get buffer sizes
+     * TODO: add description using conv2d_cs as a starting point
+     */
+
+    virtual unsigned GetInputBufferSize() = 0;
+    virtual unsigned GetOutputBufferSize() = 0;
+    virtual unsigned GetWeightsBufferSize() = 0;
+    virtual unsigned GetDataBufferSize() = 0;
+
+    /**
+     * @brief Methods to set buffer offsets
+     *
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                           const OffsetBuffer &output,
+                                           const OffsetBuffer &weights,
+                                           const OffsetBuffer &data) = 0;
+};
+
+/**
+ * @brief This class implements the Max Pooling 2D Compiler Support kernel interface
+ *
+ */
+class MaxPool2D_CS : public CompilerGenericInterface {
+public:
+    virtual ~MaxPool2D_CS() = default;
+
+    /**
+     * @brief Methods to get buffer sizes
+     * TODO: add description using conv2d_cs as a starting point
+     */
+
+    virtual unsigned GetInputBufferSize() = 0;
+    virtual unsigned GetOutputBufferSize() = 0;
+    virtual unsigned GetDataBufferSize() = 0;
+
+    /**
+     * @brief Methods to set buffer offsets
+     *
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                           const OffsetBuffer &output,
+                                           const OffsetBuffer &data) = 0;
+};
+
+/**
+ * @brief This class implements the Summation Pooling 2D Compiler Support kernel interface
+ * Summation pooling is a first phase of average pooling which accumulates all values 
+ * across perception areas of the kernel size. The following multiplication of result with reciprocal
+ * value is required to get average pooling behavior.
+ */
+class SumPool2D_CS : public CompilerGenericInterface {
+public:
+    virtual ~SumPool2D_CS() = default;
+
+    /**
+     * @brief Methods to get buffer sizes
+     */
+
+    virtual unsigned GetInputBufferSize() = 0;
+    virtual unsigned GetOutputBufferSize() = 0;
+    virtual unsigned GetDataBufferSize() = 0;
+
+    /**
+     * @brief Methods to set buffer offsets
+     *
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                           const OffsetBuffer &output,
+                                           const OffsetBuffer &data) = 0;
+};
+
+
+ /**
+ * @brief This class implements the Rescale Compiler Support kernel interface
+ *
+ */
+class Rescale_CS : public CompilerGenericInterface {
+public:
+    virtual ~Rescale_CS() = default;
+
+    /**
+     * @brief Method to encode parameters (scales)
+     *
+     */
+    virtual mli_status EncodeParams(const Tensor<Buffer, 1> &in_bias,
+                                    const Tensor<Buffer, 1> &out_bias,
+                                    const Tensor<Buffer, 1> &scale,
+                                    const Tensor<Buffer, 1> &shift,
+                                    Buffer &encoded_params) = 0;
+
+    /**
+     * @brief Method to query the size of the encoded weights buffer
+     *
+     */
+    virtual unsigned GetEncodedParamsSize() = 0;
+
+    /**
+     * @brief Methods to get buffer sizes
+     *
+     */
+
+    virtual unsigned GetInputBufferSize() = 0;
+    virtual unsigned GetOutputBufferSize() = 0;
+    virtual unsigned GetParamsBufferSize() = 0;
+    virtual unsigned GetDataBufferSize() = 0;
+
+    /**
+     * @brief Methods to set buffer offsets
+     *
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                           const OffsetBuffer &output,
+                                           const OffsetBuffer &params,
+                                           const OffsetBuffer &data) = 0;
+};
+
+/**
+ * @brief This class implements the Clip Compiler Support kernel interface
+ *
+ */
+class Clip_CS : public CompilerGenericInterface {
+public:
+    virtual ~Clip_CS() = default;
+
+    /**
+     * @brief Method to encode parameters (coefficients)
+     *
+     */
+    virtual mli_status EncodeParams(Tensor<Buffer, 1> &min_val,
+                                    Tensor<Buffer, 1> &max_val,
+                                    Buffer &encoded_params) = 0;
+
+    /**
+     * @brief Method to query the size of the encoded weights buffer
+     *
+     */
+    virtual unsigned GetEncodedParamsSize() = 0;
+
+    /**
+     * @brief Methods to get buffer sizes
+     *
+     */
+
+    virtual unsigned GetInputBufferSize() = 0;
+    virtual unsigned GetOutputBufferSize() = 0;
+    virtual unsigned GetParamsBufferSize() = 0;
+    virtual unsigned GetDataBufferSize() = 0;
+
+    /**
+     * @brief Methods to set buffer offsets
+     *
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                           const OffsetBuffer &output,
+                                           const OffsetBuffer &params,
+                                           const OffsetBuffer &data) = 0;
+};
+
+/**
+ * @brief This class implements the Eltwise Addition Compiler Support kernel interface
+ *
+ */
+class Add_CS : public CompilerGenericInterface {
+public:
+    virtual ~Add_CS() = default;
+
+    /**
+     * @brief Methods to get buffer sizes
+     */
+
+    virtual unsigned GetInputLeftBufferSize() = 0;
+    virtual unsigned GetInputRightBufferSize() = 0;
+    virtual unsigned GetOutputBufferSize() = 0;
+    virtual unsigned GetDataBufferSize() = 0;
+
+    /**
+     * @brief Methods to set buffer offsets
+     *
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                           const OffsetBuffer &output,
+                                           const OffsetBuffer &data) = 0;
+};
+
+/**
+ * @brief This class implements the Eltwise Subtraction Compiler Support kernel interface
+ *
+ */
+class Sub_CS : public CompilerGenericInterface {
+public:
+    virtual ~Sub_CS() = default;
+
+    /**
+     * @brief Methods to get buffer sizes
+     */
+
+    virtual unsigned GetInputLeftBufferSize() = 0;
+    virtual unsigned GetInputRightBufferSize() = 0;
+    virtual unsigned GetOutputBufferSize() = 0;
+    virtual unsigned GetDataBufferSize() = 0;
+
+    /**
+     * @brief Methods to set buffer offsets
+     *
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                           const OffsetBuffer &output,
+                                           const OffsetBuffer &data) = 0;
+};
+
+
+/**
+ * @brief This class implements the Eltwise Multiply Compiler Support kernel interface
+ *
+ */
+class Mul_CS : public CompilerGenericInterface {
+public:
+    virtual ~Mul_CS() = default;
+
+    /**
+     * @brief Methods to get buffer sizes
+     */
+
+    virtual unsigned GetInputLeftBufferSize() = 0;
+    virtual unsigned GetInputRightBufferSize() = 0;
+    virtual unsigned GetOutputBufferSize() = 0;
+    virtual unsigned GetDataBufferSize() = 0;
+
+    /**
+     * @brief Methods to set buffer offsets
+     *
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                           const OffsetBuffer &output,
+                                           const OffsetBuffer &data) = 0;
+};
+
+
+/**
+ * @brief This class implements the Table BuiltIn Compiler Support kernel interface
+ *
+ */
+class TableBuiltin_CS : public CompilerGenericInterface {
+public:
+    virtual ~TableBuiltin_CS() = default;
+
+    /**
+     * @brief Method to encode parameters (coefficients)
+     *
+     */
+    virtual mli_status EncodeParams(const Tensor<Buffer, 1> &in_bias,
+                                    Buffer &encoded_params) = 0;
+
+    /**
+     * @brief Method to query the size of the encoded weights buffer
+     *
+     */
+    virtual unsigned GetEncodedParamsSize() = 0;
+
+    /**
+     * @brief Methods to get buffer sizes
+     *
+     */
+
+    virtual unsigned GetInputBufferSize() = 0;
+    virtual unsigned GetOutputBufferSize() = 0;
+    virtual unsigned GetParamsBufferSize() = 0;
+    virtual unsigned GetDataBufferSize() = 0;
+
+    /**
+     * @brief Methods to set buffer offsets
+     *
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                           const OffsetBuffer &output,
+                                           const OffsetBuffer &params,
+                                           const OffsetBuffer &data) = 0;
+};
+
+
+/**
+ * @brief This class implements the ReduceMax Compiler Support kernel interface
+ *
+ */
+class ReduceMax_CS : public CompilerGenericInterface {
+public:
+    virtual ~ReduceMax_CS() = default;
+
+    /**
+     * @brief Methods to get buffer sizes
+     */
+
+    virtual unsigned GetInputBufferSize() = 0;
+    virtual unsigned GetOutputBufferSize() = 0;
+    virtual unsigned GetDataBufferSize() = 0;
+
+    /**
+     * @brief Methods to set buffer offsets
+     *
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                           const OffsetBuffer &output,
+                                           const OffsetBuffer &data) = 0;
+};
+
+
+/**
+ * @brief This class implements the ReduceSum Compiler Support kernel interface
+ *
+ */
+class ReduceSum_CS : public CompilerGenericInterface {
+public:
+    virtual ~ReduceSum_CS() = default;
+
+    /**
+     * @brief Methods to get buffer sizes
+     */
+
+    virtual unsigned GetInputBufferSize() = 0;
+    virtual unsigned GetOutputBufferSize() = 0;
+    virtual unsigned GetDataBufferSize() = 0;
+
+    /**
+     * @brief Methods to set buffer offsets
+     *
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                           const OffsetBuffer &output,
+                                           const OffsetBuffer &data) = 0;
+};
+
 } // namespace mli
 
 #endif // _MLI_COMPILER_API_HPP_

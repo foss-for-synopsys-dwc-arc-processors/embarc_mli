@@ -20,6 +20,7 @@ typedef enum {
   kConv2dId,
   kPreluId,
   kMoveId,
+  kDWConv2dId,
   kSomeOtherKernelId
 } kernel_id_t;
 
@@ -354,6 +355,124 @@ private:
   uint32_t rank_;
 };
 
-} // namespace mli
+
+//================================================================
+//
+//              Kernels Configurations Definition
+//
+//=================================================================
+
+struct Conv2DConfig {
+    Conv2DConfig() = default;
+    Conv2DConfig(uint32_t stride_ih, uint32_t stride_iw, 
+                 uint32_t pad_beg_ih, uint32_t pad_beg_iw,
+                 uint32_t pad_end_ih, uint32_t pad_end_iw,
+                 uint32_t dilation_ih, uint32_t dilation_iw,
+                 uint32_t groups) 
+      : stride{stride_ih, stride_iw}
+      , padding_begin{pad_beg_ih, pad_beg_iw}
+      , padding_end{pad_end_ih, pad_end_iw}
+      , dilation{dilation_ih, dilation_iw}
+      , groups{groups}
+    {}
+
+    uint32_t stride[2];        /**< Stride along each axis [stride_IH, stride_IW]*/
+    uint32_t padding_begin[2]; /**< Padding size at the begining of spatial demensions of input [pad_IH_beg, pad_IW_end]*/
+    uint32_t padding_end[2];   /**< Padding size at the end of spatial demensions of input [pad_IH_end, pad_IW_end]*/
+    uint32_t dilation[2];      /**< Dilation Factor [dilation_IH, dilation_IW].
+                                   If set to dilation_I*>1, there will be k-1 implicitly added zero points between each
+                                   filter point across appropriate dimension. If set to 1, no dilation logic is used */
+    uint32_t groups;           /**< Number of groups input channels and output channels are divided into. */
+};
+
+struct DwConv2DConfig  {
+    DwConv2DConfig() = default;
+    DwConv2DConfig(uint32_t stride_ih, uint32_t stride_iw, 
+                   uint32_t pad_beg_ih, uint32_t pad_beg_iw,
+                   uint32_t pad_end_ih, uint32_t pad_end_iw,
+                   uint32_t dilation_ih, uint32_t dilation_iw) 
+      : stride{stride_ih, stride_iw}
+      , padding_begin{pad_beg_ih, pad_beg_iw}
+      , padding_end{pad_end_ih, pad_end_iw}
+      , dilation{dilation_ih, dilation_iw}
+    {}
+
+    uint32_t stride[2];        /**< Stride along each axis [stride_IH, stride_IW]*/
+    uint32_t padding_begin[2]; /**< Padding size at the begining of spatial demensions of input [pad_IH_beg, pad_IW_end]*/
+    uint32_t padding_end[2];   /**< Padding size at the end of spatial demensions of input [pad_IH_end, pad_IW_end]*/
+    uint32_t dilation[2];      /**< Dilation Factor [dilation_IH, dilation_IW].
+                                    If set to dilation_I*>1, there will be k-1 implicitly added zero points between each
+                                    filter point across appropriate dimension. If set to 1, no dilation logic is used */
+};
+
+struct PoolOpConfig {
+    PoolOpConfig() = default;
+    PoolOpConfig(uint32_t kernel_size_ih, uint32_t kernel_size_iw,
+                 uint32_t stride_ih, uint32_t stride_iw, 
+                 uint32_t pad_beg_ih, uint32_t pad_beg_iw,
+                 uint32_t pad_end_ih, uint32_t pad_end_iw) 
+      : kernel_size{kernel_size_ih, kernel_size_iw}
+      , stride{stride_ih, stride_iw}
+      , padding_begin{pad_beg_ih, pad_beg_iw}
+      , padding_end{pad_end_ih, pad_end_iw}
+    {}
+
+    uint32_t kernel_size[2];   /**< Kernel size of pooling function [kernel_H, kernel_W] */
+    uint32_t stride[2];        /**< Stride along each axis [stride_IH, stride_IW]*/
+    uint32_t padding_begin[2]; /**< Padding size at the begining of spatial demensions of input [pad_IH_beg, pad_IW_end]*/
+    uint32_t padding_end[2];   /**< Padding size at the end of spatial demensions of input [pad_IH_end, pad_IW_end]*/
+};
+
+
+enum struct LutType: int32_t {
+  kSigmoid = 0,
+  kTanH,
+  kNegExp,
+  kMish,
+  kSwish,
+  kGelu,
+  kReciprocSqrt,
+  kReciproc
+};
+
+
+struct TableBuiltinConfig {
+  TableBuiltinConfig() = default;
+  TableBuiltinConfig(LutType lut_type, bool innermost_dim_bias)
+    : type{lut_type}
+    , innermost_dim_bias{innermost_dim_bias}
+  {}
+
+  LutType type;             /**< Type of the table which should be used by the kernel */
+  bool innermost_dim_bias;  /**<  Is bias provided per innermost dimension. if false implies per-tensor bias.
+                                  Otherwise implies separate bias value per slice across innermost dimension */
+};
+
+struct RescaleConfig {
+  RescaleConfig() = default;
+  RescaleConfig(bool innermost_dim_rescale)
+    : innermost_dim_rescale{innermost_dim_rescale}
+  {}
+
+  bool innermost_dim_rescale; /**<  Is rescaling params (scale, shift in bias,, out bias) provided per innermost dimension.
+                                    if false implies per-tensor rescaling.
+                                    Otherwise implies separate bias value per slice across innermost dimension */
+};
+
+
+
+
+struct ReduceOpConfig {
+  ReduceOpConfig() = default;
+  ReduceOpConfig(int32_t axis) : axis{axis} {};
+
+  int32_t axis;   /**< Axis to reduce, in range from 0 to rank(shape1) - 1
+                       Axis corresponds to index of tensor`s dimension starting from 0 to (rank - 1).
+                       For instance, having feature map in HWC layout, axis == 0 corresponds to H dimension.
+                       If axis < 0 the function will be applied to the whole tensor */
+};
+
+
+} // namespace snps_arc::metaware::mli
 
 #endif /* _MLI_TYPES_HPP_ */

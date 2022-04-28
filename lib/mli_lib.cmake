@@ -66,6 +66,7 @@ set(MLI_LIB_SOURCE_FILES
 set(MLI_LIB_PUBLIC_INCLUDES
     ${MLI_LIB_CMAKE_DIR}/../include
     ${MLI_LIB_CMAKE_DIR}/../include/api
+    ${MLI_LIB_CMAKE_DIR}/../include/internal
     ${MLI_LIB_CMAKE_DIR}/../lib/src/private
 )
 
