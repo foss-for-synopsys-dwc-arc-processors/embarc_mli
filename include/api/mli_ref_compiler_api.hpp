@@ -27,16 +27,17 @@ public:
      */
     DepthwiseConv2d_CS(const Tensor<OffsetBuffer, 4> &in,
                        const Tensor<OffsetBuffer, 3> &weights,
-                       const mli_conv2d_cfg &cfg,
+                       const DwConv2DConfig &cfg,
                        const Tensor<OffsetBuffer, 4> &output_tile_shape);
 
     mli_status EncodeWeights(Tensor<Buffer, 3> &weights,
                             Buffer &encoded_weights, 
                             compression_mode_t mode = compression_mode_t::Uncompressed) override;
 
-    unsigned GetEncodedWeightsSize() override;
     mli_status EncodeInpZeroPts(Tensor<Buffer, 1> &inpzeropts, 
                                 Buffer &encoded_inpzeropts) override;
+
+    unsigned GetEncodedWeightsSize() override;
     unsigned GetEncodedInpZeroPtsSize() override;
     unsigned GetInputBufferSize() override;
     unsigned GetOutputBufferSize() override;
@@ -53,7 +54,13 @@ public:
     unsigned GetKernelPrivateDataSize() override;
     unsigned GetRuntimeObjectSize() override;
 
-
+private:
+    Tensor<OffsetBuffer, 4> m_in;
+    Tensor<OffsetBuffer, 3> m_weights;
+    Tensor<OffsetBuffer, 4> m_output;
+    DwConv2DConfig m_config;
+    OffsetBuffer m_input_zp;
+    OffsetBuffer m_metadata;
 };
 
 } // namespace ref

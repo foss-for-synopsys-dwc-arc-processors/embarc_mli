@@ -350,7 +350,6 @@ MLI_FORCE_INLINE void conv2d_prepare_and_run(
     // Applying main convolution core (depends on layout)
     //=======================================================================
     if (conv_type == CONV_GENERAL) {
-        (void *)0;
         // mli::krn::convolution2D<i_T, w_T, acc_T, o_T, quant_T, fix_kernel_width, fix_kernel_height>(
         //         in_prv, weights_prv, out_prv, cent_area, params,
         //         stride_height, stride_width, dilation_height, dilation_width,

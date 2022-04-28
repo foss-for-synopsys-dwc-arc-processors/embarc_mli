@@ -35,7 +35,7 @@ inline int16_t val_to_fx(float val, int8_t &val_shift) {
     return fx_val;
 }
 
-static constexpr mli_tensor flat_tensor_common(size_t tsr_size) {
+static mli_tensor flat_tensor_common(size_t tsr_size) {
     mli_tensor ret_tsr{0};
     ret_tsr.el_params.fx.frac_bits = 0;
     ret_tsr.rank = 1;
@@ -44,7 +44,7 @@ static constexpr mli_tensor flat_tensor_common(size_t tsr_size) {
     return ret_tsr;
 }
 
-static constexpr mli_tensor flat_tensor(int16_t* data, size_t tsr_size) {
+static mli_tensor flat_tensor(int16_t* data, size_t tsr_size) {
     assert(data != nullptr);
     mli_tensor ret_tsr = flat_tensor_common(tsr_size);
     ret_tsr.data.mem.pi16 = data;
@@ -53,7 +53,7 @@ static constexpr mli_tensor flat_tensor(int16_t* data, size_t tsr_size) {
     return ret_tsr;
 }
 
-static constexpr mli_tensor flat_tensor(int8_t* data, size_t tsr_size) {
+static mli_tensor flat_tensor(int8_t* data, size_t tsr_size) {
     assert(data != nullptr);
     mli_tensor ret_tsr = flat_tensor_common(tsr_size);
     ret_tsr.data.capacity = tsr_size * sizeof(data[0]);
@@ -62,7 +62,7 @@ static constexpr mli_tensor flat_tensor(int8_t* data, size_t tsr_size) {
     return ret_tsr;
 }
 
-static constexpr mli_tensor flat_tensor(int32_t* data, size_t tsr_size) {
+static mli_tensor flat_tensor(int32_t* data, size_t tsr_size) {
     assert(data != nullptr);
     mli_tensor ret_tsr = flat_tensor_common(tsr_size);
     ret_tsr.data.capacity = tsr_size * sizeof(data[0]);
