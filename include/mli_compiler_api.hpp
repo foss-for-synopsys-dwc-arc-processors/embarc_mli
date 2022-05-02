@@ -655,6 +655,15 @@ public:
                                            const OffsetBuffer &data) = 0;
 };
 
+/**
+ * @brief This class implements the Move Compiler Support kernel interface
+ *
+ */
+class Move_CS : public CompilerGenericInterface {
+public:
+  static constexpr unsigned kMaxRank = 4;
+};
+
 } // namespace mli
 
 #endif // _MLI_COMPILER_API_HPP_
