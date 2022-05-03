@@ -50,9 +50,62 @@ public:
                                    OffsetBuffer &descr) override;
 
     mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
-    unsigned GetKernelPrivateDataSize() override;
-    unsigned GetRuntimeObjectSize() override;
+    unsigned GetKernelPrivateDataSize() const override;
+    unsigned GetRuntimeObjectSize() const override;
 
+};
+
+class MaxPool2D_CS : public lib_mli::MaxPool2D_CS {
+public:
+
+    MaxPool2D_CS(const Tensor<OffsetBuffer, 4> in, // input fmap width, height, channels, batch size
+                 const PoolOpConfig &cfg,
+                 const Tensor<OffsetBuffer, 4> output_tile_shape); // output tile width, height, ch, groups
+
+    // From CompilerGenericInterface
+    unsigned GetKernelPrivateDataSize() const override;
+    unsigned GetRuntimeObjectSize() const override;
+    mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
+    mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                   const OffsetBuffer &output,
+                                   const OffsetBuffer &data) override;
+
+    // From MaxPool2D_CS
+    unsigned GetInputBufferSize() const override;
+    unsigned GetOutputBufferSize() const override;
+    unsigned GetDataBufferSize() const override;
+
+    
+    //TODO: add destructor if need
+
+private:
+    uint32_t m_io_elem_size;
+
+    uint32_t m_input_buffer_size;
+    uint32_t m_output_buffer_size;
+
+    uint32_t m_input_offset;
+    uint32_t m_output_offset;
+    uint32_t m_descr_offset;
+    
+    uint32_t m_input_mem_id;
+    uint32_t m_output_mem_id;
+    uint32_t m_descr_mem_id;
+
+    uint32_t m_input_shape[4];
+    uint32_t m_output_shape[4];
+    
+    int32_t m_input_stride[4];
+    int32_t m_output_stride[4];
+
+    uint8_t m_kernel_width;
+    uint8_t m_kernel_height;
+    uint8_t m_stride_width;
+    uint8_t m_stride_height;
+    uint8_t m_padding_left;
+    uint8_t m_padding_right;
+    uint8_t m_padding_top;
+    uint8_t m_padding_bottom;
 };
 
 } // namespace ref

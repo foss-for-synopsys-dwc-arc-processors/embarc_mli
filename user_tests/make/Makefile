@@ -51,14 +51,15 @@ KERNELS = \
 	eltwise \
 	tanh \
 	sigm \
-	l2_normalize\
-	data_movement
+	l2_normalize \
+	data_movement \
+	maxpool_30
 
 
 BIN_FILES=$(patsubst %,$(BIN_PATH)$(PS)test_mli_hlp_%$(BIN_EXT),$(HELPERS))
 BIN_FILES+=$(patsubst %,$(BIN_PATH)$(PS)test_mli_krn_%$(BIN_EXT),$(KERNELS))
-TEST_KRN_TARGETS = $(patsubst %,test_%,$(KERNELS)) 
-TEST_HLP_TARGETS = $(patsubst %,test_%,$(HELPERS)) 
+TEST_KRN_TARGETS = $(patsubst %,test_%,$(KERNELS))
+TEST_HLP_TARGETS = $(patsubst %,test_%,$(HELPERS))
 
 # Rules (see rules.mk for more rules)
 #===========================================

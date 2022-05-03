@@ -20,6 +20,7 @@ namespace snps_arc::metaware::mli::ref {
 
 using lib_mli::ExecutionInterface;
 using lib_mli::PrivateData;
+
 /**
  * @brief This class implements the DepthwiseConv2d kernel xop interpreter interface
  *
@@ -30,7 +31,6 @@ struct DepthwiseConv2d_data {
 };
 
 class DepthwiseConv2d : public ExecutionInterface {
-
   public:
     /**
      * @brief constructor for the DepthwiseConv2d
@@ -64,9 +64,39 @@ class DepthwiseConv2d : public ExecutionInterface {
     mli_status Update() override;
 
 private:
-    DepthwiseConv2d_data *data;
+    DepthwiseConv2d_data* data;
+};
+
+/**
+ * @brief This class implements the MaxPool2D kernel xop interpreter interface
+ *
+ *
+ */
+class MaxPool2D : public ExecutionInterface {
+  public:
+    MaxPool2D(PrivateData* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
+
+    mli_status Init(PrivateData* kernel_private_data_buffer, int private_data_size, uint64_t membases[], int num_mems) override {
+        return MLI_STATUS_OK;
+    };
+
+    mli_status Issue() override;
+
+    mli_status Prefetch() override;
+
+    mli_status Update() override;
+    
+  private:
+    //TODO: May be move them to the membasis as an example.
+    mli_pool_cfg * m_cfg;
+    mli_tensor * m_input;
+    mli_tensor * m_output;
+    int32_t m_input_batch_offset;
+    int32_t m_output_batch_offset;
+    uint32_t m_batch_number;
+    uint32_t m_io_elem_size;
 };
 
 } // namespace snps_arc::metaware::mli::ref
 
-#endif // _MLI_NPU_RUNTIME_KERNELS_HPP_
+#endif // _MLI_REF_RUNTIME_API_HPP_

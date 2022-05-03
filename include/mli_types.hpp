@@ -21,6 +21,7 @@ typedef enum {
   kPreluId,
   kMoveId,
   kDWConv2dId,
+  kMaxPool2DId,
   kSomeOtherKernelId
 } kernel_id_t;
 
@@ -128,16 +129,16 @@ public:
     elem_size_ = elem_size;
   }
 
-  uint32_t get_size(){
+  uint32_t get_size() const {
     return size_;
   }
-  uint32_t get_elem_size(){
+  uint32_t get_elem_size() const {
     return elem_size_;
   }
-  uint32_t get_mem_idx(){
+  uint32_t get_mem_idx() const {
     return mem_idx_;
   }
-  uint32_t get_offset(){
+  uint32_t get_offset() const {
     return offset_;
   }
 // read and write not possible from this buffer.
@@ -307,11 +308,11 @@ public:
   uint32_t get_dim(unsigned idx) const {
     return shape_[idx];
   }
-  int32_t get_mem_stride(unsigned idx){
+  int32_t get_mem_stride(unsigned idx) const {
     return mem_stride_[idx];
   }
 
-  unsigned get_rank(){
+  unsigned get_rank() const {
     return rank_;
   }
 
@@ -354,7 +355,6 @@ private:
   int32_t mem_stride_[maxRank];
   uint32_t rank_;
 };
-
 
 //================================================================
 //

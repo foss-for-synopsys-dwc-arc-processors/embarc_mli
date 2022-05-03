@@ -203,6 +203,7 @@ add_user_test(krn group_conv2d SA8_SA8_SA32)
 #======================================================
 add_user_test(krn avepool)
 add_user_test(krn maxpool)
+add_user_test(krn maxpool_30)
 
 #======================================================
 # Diverse Kernels Group
