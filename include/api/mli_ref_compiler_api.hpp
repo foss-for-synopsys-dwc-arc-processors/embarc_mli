@@ -10,6 +10,7 @@
 #define _MLI_REF_COMPILER_API_HPP_
 
 #include "mli_compiler_api.hpp"
+#include "mli_platform_desc.hpp"
 
 namespace lib_mli = ::snps_arc::metaware::mli;
 
@@ -58,7 +59,8 @@ public:
 class MaxPool2D_CS : public lib_mli::MaxPool2D_CS {
 public:
 
-    MaxPool2D_CS(const Tensor<OffsetBuffer, 4> in, // input fmap width, height, channels, batch size
+    MaxPool2D_CS(const lib_mli::PlatformDescription pd,
+                 const Tensor<OffsetBuffer, 4> in, // input fmap width, height, channels, batch size
                  const PoolOpConfig &cfg,
                  const Tensor<OffsetBuffer, 4> output_tile_shape); // output tile width, height, ch, groups
 
@@ -106,6 +108,8 @@ private:
     uint8_t m_padding_right;
     uint8_t m_padding_top;
     uint8_t m_padding_bottom;
+
+    lib_mli::PlatformDescription m_pd;
 };
 
 } // namespace ref

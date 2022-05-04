@@ -7,7 +7,8 @@
  *
  */
 
-#include "mli_ref_compiler_api.hpp"
+#include "mli_kernels_factory_ref.hpp"
+#include "mli_compiler_api.hpp"
 #include "mli_runtime_api.hpp"
 #include "mli_types.h"
 #include "mli_types.hpp"
@@ -132,7 +133,11 @@ void prepare_phase(const maxpool_test_operands* cur_test,
   const lib_mli::Tensor<lib_mli::OffsetBuffer, 4> out_tensor(
       temp_buf, output_shape, output_stride);
 
-  lib_ref::MaxPool2D_CS maxpool2d_op{in_tensor, cur_test->cfg, out_tensor};
+  lib_mli::PlatformDescription pd;
+  lib_ref::KernelsFactory kernel_factory(pd);
+  uint32_t maxpool2d_cs_size = kernel_factory.MaxPool2D_CS_GetSize();
+  void* maxpool2d_cs_buffer = malloc(maxpool2d_cs_size);
+  auto maxpool2d_op = kernel_factory.MaxPool2D_CS(maxpool2d_cs_buffer, in_tensor, cur_test->cfg, out_tensor);
 
   // STEP 2: Memory management (Up to user on how to deal with it)
   //==================================================================
@@ -145,31 +150,31 @@ void prepare_phase(const maxpool_test_operands* cur_test,
   // Define buffers for in\out tensors
   // Leave space for runtime object
   uint32_t* offset = &offsets[0];
-  uint32_t runtime_obj_size = maxpool2d_op.GetRuntimeObjectSize();
+  uint32_t runtime_obj_size = maxpool2d_op->GetRuntimeObjectSize();
   *offset += runtime_obj_size;
 
   // Leave space for private data buffer
   offset = &offsets[0];
-  uint32_t private_buffer_size = maxpool2d_op.GetKernelPrivateDataSize();
+  uint32_t private_buffer_size = maxpool2d_op->GetKernelPrivateDataSize();
   *offset += private_buffer_size;
 
   // MaxPool2D Input
   offset = &offsets[0];
-  uint32_t in_size = maxpool2d_op.GetInputBufferSize() * elem_size;
+  uint32_t in_size = maxpool2d_op->GetInputBufferSize() * elem_size;
   lib_mli::OffsetBuffer maxpool2d_in_buf{*offset, 0, in_size, elem_size};
   in_mem_offset = *offset;
   *offset += in_size;
 
   // MaxPool2D Output
   offset = &offsets[0];
-  uint32_t out_size = maxpool2d_op.GetOutputBufferSize() * elem_size;
+  uint32_t out_size = maxpool2d_op->GetOutputBufferSize() * elem_size;
   lib_mli::OffsetBuffer maxpool2d_out_buf{*offset, 0, out_size, elem_size};
   out_mem_offset = *offset;
   *offset += out_size;
 
   // MLI tensor structures and MaxPool2D configuration
   offset = &offsets[0];
-  uint32_t data_buffer_size = maxpool2d_op.GetDataBufferSize();
+  uint32_t data_buffer_size = maxpool2d_op->GetDataBufferSize();
   lib_mli::OffsetBuffer maxpool2d_descr_buf{*offset, 0, data_buffer_size,
                                             sizeof(char)};
   *offset += data_buffer_size;
@@ -177,7 +182,7 @@ void prepare_phase(const maxpool_test_operands* cur_test,
   // Attaching buffer (descriptors) to the operation
   mli_status status = MLI_STATUS_OK;
 
-  status = maxpool2d_op.AttachBufferOffsets(maxpool2d_in_buf, maxpool2d_out_buf,
+  status = maxpool2d_op->AttachBufferOffsets(maxpool2d_in_buf, maxpool2d_out_buf,
                                             maxpool2d_descr_buf);
   assert(status == MLI_STATUS_OK);
 
@@ -188,14 +193,14 @@ void prepare_phase(const maxpool_test_operands* cur_test,
   }
 
   maxpool2d_instance = g_mem_pool;
-  maxpool2d_instance_size = maxpool2d_op.GetRuntimeObjectSize();
+  maxpool2d_instance_size = maxpool2d_op->GetRuntimeObjectSize();
 
   status =
-      maxpool2d_op.GetKernelPrivateData(g_mem_pool + maxpool2d_instance_size);
+      maxpool2d_op->GetKernelPrivateData(g_mem_pool + maxpool2d_instance_size);
   assert(status == MLI_STATUS_OK);
   maxpool2d_conf_private = reinterpret_cast<lib_mli::PrivateData*>(
       g_mem_pool + maxpool2d_instance_size);
-  maxpool2d_conf_private_size = maxpool2d_op.GetKernelPrivateDataSize();
+  maxpool2d_conf_private_size = maxpool2d_op->GetKernelPrivateDataSize();
 }
 
 void execution_phase(void* maxpool2d_instance, uint32_t maxpool2d_instance_size,

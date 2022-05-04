@@ -27,8 +27,8 @@ public:
     , m_vector_length_8bit(1)
     , m_vector_length_16bit(1)
     , m_mac_issue_slots (1)
-    , m_processor_id (0)
     , m_rounding_mode(kRoundingModeConvergent)
+    , m_processor_id (0)
     , m_agu_config(kAguConfigNoAgu)
     {}
 	

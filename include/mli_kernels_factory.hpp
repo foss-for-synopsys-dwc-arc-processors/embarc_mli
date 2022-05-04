@@ -26,6 +26,8 @@ public:
 
     virtual uint32_t Move_CS_GetSize() const = 0;
 
+    virtual uint32_t MaxPool2D_CS_GetSize() const { return 0;};
+
     virtual lib_mli::Conv2d_CS* Conv2d_CS(void *kernel_buffer,
                                           const Tensor<OffsetBuffer, 4> input_shape,
                                           const Tensor<OffsetBuffer, 5> weights,
@@ -46,6 +48,12 @@ public:
                                       const IteratorCfg<lib_mli::Move_CS::kMaxRank> src_cfg,
                                       const Tensor<OffsetBuffer, lib_mli::Move_CS::kMaxRank> dst,
                                       const IteratorCfg<lib_mli::Move_CS::kMaxRank> dst_cfg) = 0;                 
+
+    virtual lib_mli::MaxPool2D_CS* MaxPool2D_CS(void *kernel_buffer,
+                                        const Tensor<OffsetBuffer, 4> in, // input fmap width, height, channels, batch size
+                                        const PoolOpConfig &cfg,
+                                        const Tensor<OffsetBuffer, 4> output_tile_shape) {return nullptr;};// output tile width, height, ch, groups
+
 };
 }
 #endif

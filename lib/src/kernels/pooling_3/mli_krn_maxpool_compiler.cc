@@ -15,7 +15,8 @@
 
 namespace snps_arc::metaware::mli::ref {
 
-MaxPool2D_CS::MaxPool2D_CS(const Tensor<OffsetBuffer, 4> in,
+MaxPool2D_CS::MaxPool2D_CS(const lib_mli::PlatformDescription pd,
+                           const Tensor<OffsetBuffer, 4> in,
                            const PoolOpConfig &cfg,
                            const Tensor<OffsetBuffer, 4> output_tile_shape)
     : m_kernel_width(cfg.kernel_size[1]),
@@ -25,7 +26,8 @@ MaxPool2D_CS::MaxPool2D_CS(const Tensor<OffsetBuffer, 4> in,
       m_padding_left(cfg.padding_begin[1]),
       m_padding_right(cfg.padding_end[1]),
       m_padding_top(cfg.padding_begin[0]),
-      m_padding_bottom(cfg.padding_end[0]) {
+      m_padding_bottom(cfg.padding_end[0]),
+      m_pd(pd) {
   for (int dim = 0; dim < 4; dim++) {
     m_input_shape[dim] = in.get_dim(dim);
     m_input_stride[dim] = in.get_mem_stride(dim);
