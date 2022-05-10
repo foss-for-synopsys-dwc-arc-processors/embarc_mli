@@ -1,5 +1,5 @@
 #
-# Copyright 2020, Synopsys, Inc.
+# Copyright 2020-2022, Synopsys, Inc.
 # All rights reserved.
 #
 # This source code is licensed under the BSD-3-Clause license found in
@@ -27,10 +27,11 @@ else
 POSTFIX =
 endif
 
-BUILD_DIR_BASE     ?= $(PUBLIC_DIR)$(PS)obj
-LIBRARY_DIR_BASE   ?= $(PUBLIC_DIR)$(PS)bin
-# we do not use CURDIR, since slashes in there cause problems on Windows
-PUBLIC_DIR         ?= ..$(PS)..$(PS)
+ifndef EMBARC_MLI_DIR
+EMBARC_MLI_DIR := $(dir $(lastword $(MAKEFILE_LIST)))..
+endif
+BUILD_DIR_BASE     ?= $(EMBARC_MLI_DIR)$(PS)obj
+LIBRARY_DIR_BASE   ?= $(EMBARC_MLI_DIR)$(PS)bin
 
 ifndef TCF_FILE
 BUILD_DIR          ?= $(BUILD_DIR_BASE)$(PS)native$(POSTFIX)

@@ -46,8 +46,8 @@ target_link_libraries(${TARGET} PUBLIC $ENV{TENSORFLOW_DIR}/tensorflow/lite/micr
 target_link_libraries(${TARGET} PRIVATE tensorflow-microlite)
 
 target_include_directories(${TARGET} PRIVATE
-    $ENV{PUBLIC_DIR}/include
-    $ENV{PUBLIC_DIR}/include/api
+    $ENV{EMBARC_MLI_DIR}/include
+    $ENV{EMBARC_MLI_DIR}/include/api
     $ENV{TENSORFLOW_DIR}
     $ENV{TENSORFLOW_DIR}/tensorflow/lite/micro/tools/make/downloads/gemmlowp
     $ENV{TENSORFLOW_DIR}/tensorflow/lite/micro/tools/make/downloads/flatbuffers/include

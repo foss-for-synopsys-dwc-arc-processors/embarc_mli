@@ -25,7 +25,10 @@ BUILDLIB_DIR        ?=
 PERFORM_BUILD       ?= ON
 VERBOSE             ?= OFF
 
-include $(PUBLIC_DIR)/make/settings.mk
+ifndef EMBARC_MLI_DIR
+EMBARC_MLI_DIR := $(dir $(lastword $(MAKEFILE_LIST)))..
+endif
+include $(EMBARC_MLI_DIR)/make/settings.mk
 
 TOOLCHAIN_OPTIONS = $(CMAKE_OPTIONS)
 ifdef TCF_FILE
@@ -92,7 +95,7 @@ $(CONFIG_TARGET):
 		-DCMAKE_INSTALL_PREFIX=$(abspath $(LIBRARY_DIR)) \
 		$(TOOLCHAIN_OPTIONS) \
 		-B$(abspath $(BUILD_DIR)) \
-		-S$(abspath $(PUBLIC_DIR))
+		-S$(abspath $(EMBARC_MLI_DIR))
 
 cleanall:
 # quotes are required if path contains slashes on Windows
