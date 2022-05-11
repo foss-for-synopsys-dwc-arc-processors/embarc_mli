@@ -58,6 +58,7 @@ class ExecutionInterface {
                                      uint32_t private_data_size,
                                      uint64_t* membases, int num_mems);
 
+    kernel_id_t GetKernelId();                                 
     /**
      * @brief Method to (re-)initialize a ML-ISA operation
      *
@@ -112,8 +113,9 @@ class ExecutionInterface {
      * (like the descriptor in case of HW acceleration) to the next operation
      */
     virtual mli_status Update() = 0;
+private:
+    kernel_id_t m_kernel_id;
 };
-
 
 } // namespace mli
 
