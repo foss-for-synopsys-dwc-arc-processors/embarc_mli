@@ -109,7 +109,6 @@ void prepare_phase(const maxpool_test_operands* cur_test,
 
   // STEP 1: Construct MaxPool2D as a specific ExecutionInterface successor
   //==================================================================
-  lib_mli::OffsetBuffer temp_buf;
 
   // CWHB layot
   uint32_t input_shape[4];
@@ -128,10 +127,10 @@ void prepare_phase(const maxpool_test_operands* cur_test,
   input_shape[3] = output_shape[3] = 1;
   input_stride[3] = output_stride[3] = 0;
 
-  const lib_mli::Tensor<lib_mli::OffsetBuffer, 4> in_tensor(
-      temp_buf, input_shape, input_stride);
-  const lib_mli::Tensor<lib_mli::OffsetBuffer, 4> out_tensor(
-      temp_buf, output_shape, output_stride);
+  const lib_mli::Tensor<lib_mli::NoBuffer, 4> in_tensor(
+      input_shape, input_stride);
+  const lib_mli::Tensor<lib_mli::NoBuffer, 4> out_tensor(
+      output_shape, output_stride);
 
   lib_mli::PlatformDescription pd;
   lib_ref::KernelsFactory kernel_factory(pd);
@@ -162,6 +161,7 @@ void prepare_phase(const maxpool_test_operands* cur_test,
   offset = &offsets[0];
   uint32_t in_size = maxpool2d_op->GetInputBufferSize() * elem_size;
   lib_mli::OffsetBuffer maxpool2d_in_buf{*offset, 0, in_size, elem_size};
+  lib_mli::Tensor<lib_mli::OffsetBuffer, 4> maxpool2d_in_tensor(maxpool2d_in_buf, input_shape);
   in_mem_offset = *offset;
   *offset += in_size;
 
@@ -169,6 +169,7 @@ void prepare_phase(const maxpool_test_operands* cur_test,
   offset = &offsets[0];
   uint32_t out_size = maxpool2d_op->GetOutputBufferSize() * elem_size;
   lib_mli::OffsetBuffer maxpool2d_out_buf{*offset, 0, out_size, elem_size};
+  lib_mli::Tensor<lib_mli::OffsetBuffer, 4> maxpool2d_out_tensor(maxpool2d_out_buf, input_shape);
   out_mem_offset = *offset;
   *offset += out_size;
 
@@ -182,7 +183,7 @@ void prepare_phase(const maxpool_test_operands* cur_test,
   // Attaching buffer (descriptors) to the operation
   mli_status status = MLI_STATUS_OK;
 
-  status = maxpool2d_op->AttachBufferOffsets(maxpool2d_in_buf, maxpool2d_out_buf,
+  status = maxpool2d_op->AttachBufferOffsets(maxpool2d_in_tensor, maxpool2d_out_tensor,
                                             maxpool2d_descr_buf);
   assert(status == MLI_STATUS_OK);
 

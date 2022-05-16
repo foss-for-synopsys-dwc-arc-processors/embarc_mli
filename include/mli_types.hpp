@@ -42,6 +42,14 @@ class PrivateData {
 };
 
 /**
+ * @brief Dummy Class to be used to indicate no Buffer is used in tensor.
+ *
+ */
+class NoBuffer {
+
+};
+
+/**
  * @brief Buffer type for absolute buffers
  *
  * In case of simulation this buffer 'lives' inside the x86 memory domain.
@@ -242,6 +250,7 @@ public:
     }
     rank_ = 0;
   }
+
   Tensor(buf_T buf, uint32_t shape[]){
     buf_ = buf;
     int32_t stride = 1;
@@ -252,7 +261,20 @@ public:
     }
     rank_ = maxRank;
   }
+
+  Tensor(uint32_t shape[]){
+    buf_ = NoBuffer();
+    int32_t stride = 1;
+    for (unsigned i = 0; i < maxRank; i++){
+      shape_[i] = shape[i];
+      mem_stride_[i] = stride;
+      stride *= shape[i];
+    }
+    rank_ = maxRank;
+  }
+
   Tensor(buf_T buf, uint32_t shape[], unsigned rank){
+    assert(rank <= maxRank);
     buf_ = buf;
     int32_t stride = 1;
     for (unsigned i = 0; i < rank; i++){
@@ -262,6 +284,19 @@ public:
     }
     rank_ = rank;
   }
+
+  Tensor(uint32_t shape[], unsigned rank){
+    assert(rank <= maxRank);
+    buf_ = NoBuffer();
+    int32_t stride = 1;
+    for (unsigned i = 0; i < rank; i++){
+      shape_[i] = shape[i];
+      mem_stride_[i] = stride;
+      stride *= shape[i];
+    }
+    rank_ = rank;
+  }
+
   Tensor(buf_T buf, uint32_t shape[], int32_t mem_stride[]){
     buf_ = buf;
     for (unsigned i = 0; i < maxRank; i++){
@@ -270,8 +305,29 @@ public:
     }
     rank_ = maxRank;
   }
+
+  Tensor(uint32_t shape[], int32_t mem_stride[]){
+    buf_ = NoBuffer();
+    for (unsigned i = 0; i < maxRank; i++){
+      shape_[i] = shape[i];
+      mem_stride_[i] = mem_stride[i];
+    }
+    rank_ = maxRank;
+  }
+
   Tensor(buf_T buf, uint32_t shape[], int32_t mem_stride[], unsigned rank){
+    assert(rank <= maxRank);
     buf_ = buf;
+    for (unsigned i = 0; i < rank; i++){
+      shape_[i] = shape[i];
+      mem_stride_[i] = mem_stride[i];
+    }
+    rank_ = rank;
+  }
+
+  Tensor(uint32_t shape[], int32_t mem_stride[], unsigned rank){
+    assert(rank <= maxRank);
+    buf_ = NoBuffer();
     for (unsigned i = 0; i < rank; i++){
       shape_[i] = shape[i];
       mem_stride_[i] = mem_stride[i];
@@ -282,7 +338,24 @@ public:
   /* copy constructor for tensors with different rank */
   template<unsigned N>
   Tensor(Tensor<buf_T, N> in){
+    static_assert( N <= maxRank, "Invalid (Input Rank > maxRank)");
     buf_ = in.get_buf();
+    for (unsigned i = 0; i < N; i++){
+      shape_[i] = in.get_dim(i);
+      mem_stride_[i] = in.get_mem_stride(i);
+    }
+    for (unsigned i = N; i < maxRank; i++){
+      shape_[i] = 0;
+      mem_stride_[i] = 0;
+    }
+    rank_ = in.get_rank();
+  }
+
+  /* copy constructor for tensors with different rank/Buffer Type */
+  template<unsigned N>
+  Tensor(buf_T buf, Tensor<NoBuffer, N> in){
+    static_assert( N <= maxRank, "Invalid (Input Rank > maxRank)");
+    buf_ = buf;
     for (unsigned i = 0; i < N; i++){
       shape_[i] = in.get_dim(i);
       mem_stride_[i] = in.get_mem_stride(i);
@@ -316,7 +389,7 @@ public:
     return rank_;
   }
 
-  buf_T get_buf(){
+  buf_T get_buf() const {
     return buf_;
   }
 
@@ -324,7 +397,7 @@ public:
     buf_ = b;
   }
 
-  unsigned get_elem_size(){
+  unsigned get_elem_size() const {
     return buf_.get_elem_size();
   }
 

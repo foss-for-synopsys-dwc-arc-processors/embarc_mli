@@ -16,9 +16,9 @@
 namespace snps_arc::metaware::mli::ref {
 
 MaxPool2D_CS::MaxPool2D_CS(const lib_mli::PlatformDescription pd,
-                           const Tensor<OffsetBuffer, 4> in,
+                           const Tensor<NoBuffer, 4> in,
                            const PoolOpConfig &cfg,
-                           const Tensor<OffsetBuffer, 4> output_tile_shape)
+                           const Tensor<NoBuffer, 4> output_tile_shape)
     : m_kernel_width(cfg.kernel_size[1]),
       m_kernel_height(cfg.kernel_size[0]),
       m_stride_width(cfg.stride[1]),
@@ -90,21 +90,23 @@ mli_status MaxPool2D_CS::GetKernelPrivateData(
   return MLI_STATUS_OK;
 }
 
-mli_status MaxPool2D_CS::AttachBufferOffsets(const OffsetBuffer &input,
-                                             const OffsetBuffer &output,
+mli_status MaxPool2D_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
+                                             const Tensor<OffsetBuffer, 4> &output,
                                              const OffsetBuffer &data) {
-  assert(input.get_size() == m_input_buffer_size * input.get_elem_size());
-  assert(output.get_size() == m_output_buffer_size * output.get_elem_size());
+  OffsetBuffer in_buf = input.get_buf();
+  OffsetBuffer out_buf = output.get_buf();
+  assert(in_buf.get_size() == m_input_buffer_size * in_buf.get_elem_size());
+  assert(out_buf.get_size() == m_output_buffer_size * out_buf.get_elem_size());
 
-  assert(input.get_elem_size() == output.get_elem_size());
-  m_io_elem_size = input.get_elem_size();
+  assert(in_buf.get_elem_size() == out_buf.get_elem_size());
+  m_io_elem_size = in_buf.get_elem_size();
 
-  m_input_offset = input.get_offset();
-  m_output_offset = output.get_offset();
+  m_input_offset = in_buf.get_offset();
+  m_output_offset = out_buf.get_offset();
   m_descr_offset = data.get_offset();
 
-  m_input_mem_id = input.get_mem_idx();
-  m_output_mem_id = output.get_mem_idx();
+  m_input_mem_id = in_buf.get_mem_idx();
+  m_output_mem_id = out_buf.get_mem_idx();
   m_descr_mem_id = data.get_mem_idx();
 
   return MLI_STATUS_OK;

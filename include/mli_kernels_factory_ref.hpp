@@ -20,8 +20,7 @@ namespace lib_ref = ::snps_arc::metaware::mli::ref;
 namespace snps_arc::metaware::mli::ref{
 
 using lib_mli::Tensor;
-using lib_mli::OffsetBuffer;
-
+using lib_mli::NoBuffer;
 
 class KernelsFactory:public lib_mli::KernelsFactory{
 public:
@@ -31,10 +30,10 @@ public:
     uint32_t Conv2d_CS_GetSize() const override { return 0; /*sizeof(lib_ref::Conv2d_CS);*/ }
 
     lib_mli::Conv2d_CS* Conv2d_CS(void *kernel_buffer,
-                                  const Tensor<OffsetBuffer, 4> input_shape,
-                                  const Tensor<OffsetBuffer, 5> weights,
+                                  const Tensor<NoBuffer, 4> input_shape,
+                                  const Tensor<NoBuffer, 5> weights,
                                   const mli_conv2d_cfg *cfg,
-                                  const Tensor<OffsetBuffer, 4> output_tile_shape) override {
+                                  const Tensor<NoBuffer, 4> output_tile_shape) override {
         //return new(kernel_buffer) lib_ref::Conv2d_CS(m_pd, input_shape, weights, cfg, output_tile_shape);
         return nullptr;
     }
@@ -42,8 +41,8 @@ public:
     uint32_t Prelu_CS_GetSize() const override { return 0 /*sizeof(lib_ref::Prelu_CS)*/; }
 
     lib_mli::Prelu_CS* Prelu_CS(void *kernel_buffer,
-                                const Tensor<OffsetBuffer, 4> input_shape,
-                                const Tensor<OffsetBuffer, 4> output_tile_shape,
+                                const Tensor<NoBuffer, 4> input_shape,
+                                const Tensor<NoBuffer, 4> output_tile_shape,
                                 int groups) override {
         //return new(kernel_buffer) lib_ref::Prelu_CS(m_pd, input_shape, output_tile_shape, groups);
         return nullptr;
@@ -53,17 +52,17 @@ public:
 
 
     lib_mli::Move_CS* Move_CS(void *kernel_buffer,
-                              const Tensor<OffsetBuffer, lib_mli::Move_CS::kMaxRank> src,
-                              const Tensor<OffsetBuffer, lib_mli::Move_CS::kMaxRank> dst) override {
+                              const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> src,
+                              const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> dst) override {
         //return new(kernel_buffer) lib_ref::Move_CS(m_pd, src, dst);
         return nullptr;
 
     }
 
     lib_mli::Move_CS* Move_CS(void *kernel_buffer,
-                              const Tensor<OffsetBuffer, lib_mli::Move_CS::kMaxRank> src,
+                              const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> src,
                               const IteratorCfg<lib_mli::Move_CS::kMaxRank> src_cfg,
-                              const Tensor<OffsetBuffer, lib_mli::Move_CS::kMaxRank> dst,
+                              const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> dst,
                               const IteratorCfg<lib_mli::Move_CS::kMaxRank> dst_cfg) {
         //return new(kernel_buffer) lib_ref::Move_CS(m_pd, src, src_cfg, dst, dst_cfg);
         return nullptr;
@@ -72,9 +71,9 @@ public:
     uint32_t MaxPool2D_CS_GetSize() const override { return sizeof(lib_ref::MaxPool2D_CS); }
 
     lib_mli::MaxPool2D_CS* MaxPool2D_CS(void *kernel_buffer,
-                                        const Tensor<OffsetBuffer, 4> in, // input fmap width, height, channels, batch size
+                                        const Tensor<NoBuffer, 4> in, // input fmap width, height, channels, batch size
                                         const PoolOpConfig &cfg,
-                                        const Tensor<OffsetBuffer, 4> output_tile_shape) // output tile width, height, ch, groups
+                                        const Tensor<NoBuffer, 4> output_tile_shape) // output tile width, height, ch, groups
                                         override {
         return new(kernel_buffer) lib_ref::MaxPool2D_CS(m_pd, in, cfg, output_tile_shape);
     }

@@ -16,7 +16,7 @@ namespace lib_mli = ::snps_arc::metaware::mli;
 namespace snps_arc::metaware::mli{
 
 using lib_mli::Tensor;
-using lib_mli::OffsetBuffer;
+using lib_mli::NoBuffer;
 
 class KernelsFactory{
 public:
@@ -29,30 +29,30 @@ public:
     virtual uint32_t MaxPool2D_CS_GetSize() const { return 0;};
 
     virtual lib_mli::Conv2d_CS* Conv2d_CS(void *kernel_buffer,
-                                          const Tensor<OffsetBuffer, 4> input_shape,
-                                          const Tensor<OffsetBuffer, 5> weights,
+                                          const Tensor<NoBuffer, 4> input_shape,
+                                          const Tensor<NoBuffer, 5> weights,
                                           const mli_conv2d_cfg *cfg,
-                                          const Tensor<OffsetBuffer, 4> output_tile_shape) = 0;
+                                          const Tensor<NoBuffer, 4> output_tile_shape) = 0;
     
     virtual lib_mli::Prelu_CS* Prelu_CS(void *kernel_buffer,
-                                        const Tensor<OffsetBuffer, 4> input_shape,
-                                        const Tensor<OffsetBuffer, 4> output_tile_shape,
+                                        const Tensor<NoBuffer, 4> input_shape,
+                                        const Tensor<NoBuffer, 4> output_tile_shape,
                                         int groups) = 0;
 
     virtual lib_mli::Move_CS* Move_CS(void *kernel_buffer,
-                                      const Tensor<OffsetBuffer, lib_mli::Move_CS::kMaxRank> src,
-                                      const Tensor<OffsetBuffer, lib_mli::Move_CS::kMaxRank> dst) = 0;
+                                      const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> src,
+                                      const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> dst) = 0;
 
     virtual lib_mli::Move_CS* Move_CS(void *kernel_buffer,
-                                      const Tensor<OffsetBuffer, lib_mli::Move_CS::kMaxRank> src,
+                                      const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> src,
                                       const IteratorCfg<lib_mli::Move_CS::kMaxRank> src_cfg,
-                                      const Tensor<OffsetBuffer, lib_mli::Move_CS::kMaxRank> dst,
+                                      const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> dst,
                                       const IteratorCfg<lib_mli::Move_CS::kMaxRank> dst_cfg) = 0;                 
 
     virtual lib_mli::MaxPool2D_CS* MaxPool2D_CS(void *kernel_buffer,
-                                        const Tensor<OffsetBuffer, 4> in, // input fmap width, height, channels, batch size
+                                        const Tensor<NoBuffer, 4> in, // input fmap width, height, channels, batch size
                                         const PoolOpConfig &cfg,
-                                        const Tensor<OffsetBuffer, 4> output_tile_shape) {return nullptr;};// output tile width, height, ch, groups
+                                        const Tensor<NoBuffer, 4> output_tile_shape) {return nullptr;};// output tile width, height, ch, groups
 
 };
 }

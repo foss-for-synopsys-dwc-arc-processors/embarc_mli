@@ -134,7 +134,7 @@ public:
     virtual unsigned GetInputBufferSize() = 0;
     virtual unsigned GetOutputBufferSize() = 0;
     virtual unsigned GetWeightsBufferSize() = 0;
-    virtual unsigned GetPaddingBufferSize() = 0;
+    virtual unsigned GetZeroPointBufferSize() = 0;
     virtual unsigned GetDataBufferSize() = 0;
 
     /**
@@ -149,11 +149,11 @@ public:
      * the weights buffer passed to the encode_weigths function is in compiler memoryspace because the
      * encode function will write the encoded weights data there.
      */
-    virtual mli_status AttachBufferOffsets(OffsetBuffer input,
-                                   OffsetBuffer output,
-                                   OffsetBuffer weights,
-                                   OffsetBuffer padding,
-                                   OffsetBuffer descr) = 0;
+    virtual mli_status AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
+                                           Tensor<OffsetBuffer, 4> &output,
+                                           OffsetBuffer &weights,
+                                           OffsetBuffer &padding,
+                                           OffsetBuffer &descr) = 0;
 
     // mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override ;
     // unsigned GetKernelPrivateDataSize() override ;
@@ -225,10 +225,10 @@ public:
      * the weights buffer passed to the encode_weigths function is in compiler memoryspace because the
      * encode function will write the encoded weights data there.
      */
-    virtual mli_status AttachBufferOffsets(OffsetBuffer input,
-                                   OffsetBuffer output,
-                                   OffsetBuffer params,
-                                   OffsetBuffer descr) = 0;
+    virtual mli_status AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
+                                           Tensor<OffsetBuffer, 4> &output,
+                                           OffsetBuffer &params,
+                                           OffsetBuffer &descr) = 0;
 
     // mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override ;
     // unsigned GetKernelPrivateDataSize() override ;
@@ -295,8 +295,8 @@ public:
      * @brief Methods to set buffer offsets
      *
      */
-    virtual mli_status AttachBufferOffsets(OffsetBuffer &input,
-                                           OffsetBuffer &output,
+    virtual mli_status AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
+                                           Tensor<OffsetBuffer, 4> &output,
                                            OffsetBuffer &weights,
                                            OffsetBuffer &padding,
                                            OffsetBuffer &descr) = 0;
@@ -365,8 +365,8 @@ public:
      * @brief Methods to set buffer offsets
      *
      */
-    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
-                                           const OffsetBuffer &output,
+    virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
+                                           const Tensor<OffsetBuffer, 4> &output,
                                            const OffsetBuffer &data) = 0;
 };
 

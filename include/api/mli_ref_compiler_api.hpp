@@ -19,6 +19,7 @@ namespace snps_arc::metaware::mli::ref {
 using lib_mli::Tensor;
 using lib_mli::Buffer;
 using lib_mli::OffsetBuffer;
+using lib_mli::NoBuffer;
 
 class DepthwiseConv2d_CS : public lib_mli::DepthwiseConv2d_CS {
 public:
@@ -26,10 +27,10 @@ public:
      * @brief Constructor of the DepthwiseConv2d_CS object
      *
      */
-    DepthwiseConv2d_CS(const Tensor<OffsetBuffer, 4> &in,
-                       const Tensor<OffsetBuffer, 3> &weights,
+    DepthwiseConv2d_CS(const Tensor<NoBuffer, 4> &in,
+                       const Tensor<NoBuffer, 3> &weights,
                        const mli_conv2d_cfg &cfg,
-                       const Tensor<OffsetBuffer, 4> &output_tile_shape);
+                       const Tensor<NoBuffer, 4> &output_tile_shape);
 
     mli_status EncodeWeights(Tensor<Buffer, 3> &weights,
                             Buffer &encoded_weights, 
@@ -44,8 +45,8 @@ public:
     unsigned GetWeightsBufferSize() override;
     unsigned GetDataBufferSize() override;
 
-    mli_status AttachBufferOffsets(OffsetBuffer &input,
-                                   OffsetBuffer &output,
+    mli_status AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
+                                   Tensor<OffsetBuffer, 4> &output,
                                    OffsetBuffer &weights,
                                    OffsetBuffer &padding,
                                    OffsetBuffer &descr) override;
@@ -60,16 +61,16 @@ class MaxPool2D_CS : public lib_mli::MaxPool2D_CS {
 public:
 
     MaxPool2D_CS(const lib_mli::PlatformDescription pd,
-                 const Tensor<OffsetBuffer, 4> in, // input fmap width, height, channels, batch size
+                 const Tensor<NoBuffer, 4> in, // input fmap width, height, channels, batch size
                  const PoolOpConfig &cfg,
-                 const Tensor<OffsetBuffer, 4> output_tile_shape); // output tile width, height, ch, groups
+                 const Tensor<NoBuffer, 4> output_tile_shape); // output tile width, height, ch, groups
 
     // From CompilerGenericInterface
     unsigned GetKernelPrivateDataSize() const override;
     unsigned GetRuntimeObjectSize() const override;
     mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
-    mli_status AttachBufferOffsets(const OffsetBuffer &input,
-                                   const OffsetBuffer &output,
+    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
+                                   const Tensor<OffsetBuffer, 4> &output,
                                    const OffsetBuffer &data) override;
 
     // From MaxPool2D_CS
