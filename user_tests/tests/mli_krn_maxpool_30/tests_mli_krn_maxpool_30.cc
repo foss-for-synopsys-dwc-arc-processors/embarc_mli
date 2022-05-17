@@ -49,7 +49,7 @@ const quality_metrics thresholds_sa8_general{
     quality_metrics::kPassValueMaxAbsErr, quality_metrics::kPassValueSnr,
     /* SNR_DB = */ 40.f, /*Quant Error Perc = */ 99.9f};
 
-static const maxpool_test_operands tests_list[] = {
+ static const maxpool_test_operands tests_list[] = {
     // Basic functionality test kernel_size=(4, 3), strides=(1, 1), w/o padding
     {"Test 1 SA8", input_1_sa8, test_1_out_sa8, sizeof(int8_t), test_1_cfg,
      thresholds_sa8_general, test_1_chksum_sa8},
@@ -118,14 +118,16 @@ void prepare_phase(const maxpool_test_operands* cur_test,
 
   // TODO: Do not recalculated quantized tensor everytime - need to calculate it
   // once to use in all cases.
-  for (int i = 0; i < 3; i++) {
-    input_shape[2 - i] = temp_input_tensor.shape[i];
-    output_shape[2 - i] = temp_output_tensor.shape[i];
-    input_stride[2 - i] = temp_input_tensor.mem_stride[i];
-    output_stride[2 - i] = temp_output_tensor.mem_stride[i];
+
+for (int i = 1; i < 4; i++) {
+    input_shape[i] = temp_input_tensor.shape[i-1];
+    output_shape[i] = temp_output_tensor.shape[i-1];
+    input_stride[i] = temp_input_tensor.mem_stride[i-1];
+    output_stride[i] = temp_output_tensor.mem_stride[i-1];
   }
-  input_shape[3] = output_shape[3] = 1;
-  input_stride[3] = output_stride[3] = 0;
+  input_shape[0] = output_shape[0] = 1;
+  input_stride[0] = output_stride[0] = 0;
+
 
   const lib_mli::Tensor<lib_mli::NoBuffer, 4> in_tensor(
       input_shape, input_stride);
