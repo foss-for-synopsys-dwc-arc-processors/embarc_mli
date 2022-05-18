@@ -43,7 +43,8 @@ ExecutionInterface* ExecutionInterface::Create(
         MLI_ASSERT(0);
         break;
       case kDWConv2dId:
-        MLI_ASSERT(0);
+        MLI_ASSERT(sizeof(ref::DepthwiseConv2d) == alloc_buf_size);
+        obj = new (allocation_memory_buffer) ref::DepthwiseConv2d(kernel_private_data_buffer, private_data_size, membases, num_mems);
         break;
       case kMaxPool2DId:
         MLI_ASSERT(sizeof(MaxPool2D) == alloc_buf_size);

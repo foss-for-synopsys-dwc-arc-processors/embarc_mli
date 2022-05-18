@@ -27,16 +27,16 @@ namespace dsp {
 //========================================================
 // Depthwise convolution 2D template
 //========================================================
-template <typename io_T, typename w_T, typename b_T, typename acc_T, int fix_kernel_width, int fix_kernel_height>
+template <typename i_T, typename w_T, typename o_T, typename b_T, typename acc_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void depthwise_convolution2D_hwcn_nopad(
-        const tensor_private_t<MLI_PTR(io_T)> &in,
+        const tensor_private_t<MLI_PTR(i_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
-        const tensor_private_t<MLI_CONV_OUT_PTR(io_T)> &out,
+        const tensor_private_t<MLI_CONV_OUT_PTR(o_T)> &out,
         const rect_t &perception_area,
         s8asym_quant_specific_params quant_params,
-        const io_T val_min_limit,
-        const io_T val_max_limit,
+        const o_T val_min_limit,
+        const o_T val_max_limit,
         const int stride_height, const int stride_width,
         const int dilation_height, const int dilation_width,
         const int padding_top, const int padding_left,
@@ -64,11 +64,11 @@ MLI_FORCE_INLINE void depthwise_convolution2D_hwcn_nopad(
     const MLI_PTR(w_T) __restrict w_ptr = w.ptr;
     int out_ch_idx = 0;
 
-    const MLI_PTR(io_T) __restrict in_ptr = in.ptr
+    const MLI_PTR(i_T) __restrict in_ptr = in.ptr
             + in.col_mem_stride * (clmn_begin * stride_width - padding_left) // move to column
             + in.row_mem_stride * (row_begin * stride_height - padding_top); // move to row
 
-    MLI_CONV_OUT_PTR(io_T) __restrict out_ptr = out.ptr
+    MLI_CONV_OUT_PTR(o_T) __restrict out_ptr = out.ptr
             + out.col_mem_stride * clmn_begin // move to column
             + out.row_mem_stride * row_begin; // move to row
 
@@ -127,7 +127,7 @@ MLI_FORCE_INLINE void depthwise_convolution2D_hwcn_nopad(
 
             for (int H_idx = 0; H_idx < amount_rows; H_idx++) {
                 for (int W_idx = 0; W_idx < amount_columns - 1; W_idx += 2) {
-                    // Convolution core. Here calculations performes in a unfolded expression way: 
+                    // Convolution core. Here calculations performes in a unfolded expression way:
                     // out_val = (x-x_zp)*(w) + b) = -sum_i(w*x_zp) + sum(x*w) + b
                     //============================================
                     __v2i32_t accu = v2global_other_additives;
@@ -143,7 +143,7 @@ MLI_FORCE_INLINE void depthwise_convolution2D_hwcn_nopad(
                     out_ptr += 2 * out.col_mem_stride;
                 } // for W_idx
                 if (amount_columns & 0x1) {
-                    // Convolution core. Here calculations performes in a unfolded expression way: 
+                    // Convolution core. Here calculations performes in a unfolded expression way:
                     // out_val = (x-x_zp)*(w) + b) = -sum_i(w*x_zp) + sum(x*w) + b
                     //============================================
                     acc_T accu = 0;
@@ -172,16 +172,16 @@ MLI_FORCE_INLINE void depthwise_convolution2D_hwcn_nopad(
     } // for ch_mult_idx
 }
 
-template <typename io_T, typename w_T, typename b_T, typename acc_T, int fix_kernel_width, int fix_kernel_height>
+template <typename i_T, typename w_T, typename o_T, typename b_T, typename acc_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
-        const tensor_private_t<MLI_PTR(io_T)> &in,
+        const tensor_private_t<MLI_PTR(i_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
-        const tensor_private_t<MLI_CONV_OUT_PTR(io_T)> &out,
+        const tensor_private_t<MLI_CONV_OUT_PTR(o_T)> &out,
         const rect_t &perception_area,
         s8asym_quant_specific_params quant_params,
-        const io_T val_min_limit,
-        const io_T val_max_limit,
+        const o_T val_min_limit,
+        const o_T val_max_limit,
         const int stride_height, const int stride_width,
         const int dilation_height, const int dilation_width,
         const int padding_top, const int padding_left,
@@ -203,7 +203,7 @@ MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
     const int out_increment_in_ch_loop_v = channels_per_loop_v - out_compensation_row_loop;
     int out_ch_idx = 0;
 
-    MLI_CONV_OUT_PTR(io_T) __restrict out_ptr = out.ptr
+    MLI_CONV_OUT_PTR(o_T) __restrict out_ptr = out.ptr
             + out.col_mem_stride * clmn_begin // move to columm
             + out.row_mem_stride * row_begin; // move to row
 
@@ -226,13 +226,13 @@ MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
                         w.kernel_height, w.kernel_width,
                         stride_height, stride_width, padding_left, padding_top,
                         dilation_height, dilation_width);
-                    
+
                     const int rows = w.kernel_height - comp.kernel_top - comp.kernel_bottom;
                     const int clmns = w.kernel_width - comp.kernel_right - comp.kernel_left;
                     const int h_idx_in = (H_idx * stride_height - padding_top + comp.in_top);
                     const int w_idx_in = (W_idx * stride_width - padding_left + comp.in_left);
 
-                    const MLI_PTR(io_T) __restrict in_ptr = in.ptr
+                    const MLI_PTR(i_T) __restrict in_ptr = in.ptr
                         + in.row_mem_stride * h_idx_in
                         + in.col_mem_stride * w_idx_in
                         + in.ch_mem_stride * in_ch_idx;
@@ -243,7 +243,7 @@ MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
                         + w.in_ch_mem_stride * 0
                         + w.out_ch_mem_stride * out_ch_idx;
 
-                    // Convolution core. Here calculations performes in a unfolded expression way: 
+                    // Convolution core. Here calculations performes in a unfolded expression way:
                     // out_val = (x-x_zp)*(w) + b) = -sum_i(w*x_zp) + sum(x*w) + b
                     //============================================
                     __v2i32_t v2accu_dotprod = {0, 0};
@@ -285,12 +285,12 @@ MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
                         w.kernel_height, w.kernel_width,
                         stride_height, stride_width, padding_left, padding_top,
                         dilation_height, dilation_width);
-                    
+
                     const int rows = w.kernel_height - comp.kernel_top - comp.kernel_bottom;
                     const int clmns = w.kernel_width - comp.kernel_right - comp.kernel_left;
                     const int h_idx_in = (H_idx * stride_height - padding_top + comp.in_top);
                     const int w_idx_in = (W_idx * stride_width - padding_left + comp.in_left);
-                    const MLI_PTR(io_T) __restrict in_ptr = in.ptr
+                    const MLI_PTR(i_T) __restrict in_ptr = in.ptr
                         + in.row_mem_stride * h_idx_in
                         + in.col_mem_stride * w_idx_in
                         + in.ch_mem_stride * (in.ch - 1);
@@ -301,10 +301,10 @@ MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
                         + w.in_ch_mem_stride * 0
                         + w.out_ch_mem_stride * out_ch_idx;
 
-                    // Convolution core. Here calculations performes in a unfolded expression way: 
+                    // Convolution core. Here calculations performes in a unfolded expression way:
                     // out_val = (x-x_zp)*(w) + b) = -sum_i(w*x_zp) + sum(x*w) + b
                     //============================================
-                    acc_T accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
+                    acc_T accu = mli_math_mul_fx<i_T, acc_T>(0, 0);
                     accu = dotprod2D(in_ptr, w_ptr, accu, clmns, rows,
                             in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height,
                             w.col_mem_stride, w.row_mem_stride);
@@ -316,7 +316,7 @@ MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
                     accu += bias_add;
 
                     // Cast result to output type
-                    io_T out_val = mli::krn::result_cast<io_T, acc_T, s8asym_quant_specific_params>(accu, &quant_params);
+                    o_T out_val = mli::krn::result_cast<o_T, acc_T, s8asym_quant_specific_params>(accu, &quant_params);
                     out_val = MIN(out_val, val_max_limit);
                     out_val = MAX(out_val, val_min_limit);
                     *out_ptr = out_val;
@@ -331,21 +331,21 @@ MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
     }
 }
 
-template <typename io_T, typename w_T, typename b_T, typename acc_T, int fix_kernel_width, int fix_kernel_height>
+template <typename i_T, typename w_T, typename o_T, typename b_T, typename acc_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void depthwise_convolution2D_hwcn_nopad(
-        const tensor_private_t<MLI_PTR(io_T)> &in,
+        const tensor_private_t<MLI_PTR(i_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
-        const tensor_private_t<MLI_CONV_OUT_PTR(io_T)> &out,
+        const tensor_private_t<MLI_CONV_OUT_PTR(o_T)> &out,
         const rect_t &perception_area,
         fx_quant_specific_params quant_params,
-        const io_T val_min_limit,
-        const io_T val_max_limit,
+        const o_T val_min_limit,
+        const o_T val_max_limit,
         const int stride_height, const int stride_width,
         const int dilation_height, const int dilation_width,
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right) {
-    mli::krn::ref::depthwise_convolution2D<io_T, w_T, b_T, acc_T, fx_quant_specific_params, fix_kernel_width, fix_kernel_height>(
+    mli::krn::ref::depthwise_convolution2D<i_T, w_T, o_T, b_T, acc_T, fx_quant_specific_params, fix_kernel_width, fix_kernel_height>(
                 in, w, biases, out, perception_area, quant_params,
                 val_min_limit, val_max_limit,
                 stride_height, stride_width,
@@ -354,21 +354,21 @@ MLI_FORCE_INLINE void depthwise_convolution2D_hwcn_nopad(
                 padding_bot, padding_right);
 }
 
-template <typename io_T, typename w_T, typename b_T, typename acc_T, int fix_kernel_width, int fix_kernel_height>
+template <typename i_T, typename w_T, typename o_T, typename b_T, typename acc_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
-        const tensor_private_t<MLI_PTR(io_T)> &in,
+        const tensor_private_t<MLI_PTR(i_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
-        const tensor_private_t<MLI_CONV_OUT_PTR(io_T)> &out,
+        const tensor_private_t<MLI_CONV_OUT_PTR(o_T)> &out,
         const rect_t &perception_area,
         fx_quant_specific_params quant_params,
-        const io_T val_min_limit,
-        const io_T val_max_limit,
+        const o_T val_min_limit,
+        const o_T val_max_limit,
         const int stride_height, const int stride_width,
         const int dilation_height, const int dilation_width,
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right) {
-    mli::krn::ref::depthwise_convolution2D<io_T, w_T, b_T, acc_T, fx_quant_specific_params, fix_kernel_width, fix_kernel_height>(
+    mli::krn::ref::depthwise_convolution2D<i_T, w_T, o_T, b_T, acc_T, fx_quant_specific_params, fix_kernel_width, fix_kernel_height>(
                 in, w, biases, out, perception_area, quant_params,
                 val_min_limit, val_max_limit,
                 stride_height, stride_width,
@@ -378,16 +378,63 @@ MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
 
 }
 
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
-MLI_FORCE_INLINE void depthwise_convolution2D(
-        const tensor_private_t<MLI_PTR(io_T)> &in,
+template <typename i_T, typename w_T, typename o_T, typename b_T, typename acc_T, int fix_kernel_width, int fix_kernel_height>
+MLI_FORCE_INLINE void depthwise_convolution2D_hwcn_nopad(
+        const tensor_private_t<MLI_PTR(i_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
-        const tensor_private_t<MLI_CONV_OUT_PTR(io_T)> &out,
+        const tensor_private_t<MLI_CONV_OUT_PTR(o_T)> &out,
+        const rect_t &perception_area,
+        int_quant_specific_params quant_params,
+        const o_T val_min_limit,
+        const o_T val_max_limit,
+        const int stride_height, const int stride_width,
+        const int dilation_height, const int dilation_width,
+        const int padding_top, const int padding_left,
+        const int padding_bot, const int padding_right) {
+    mli::krn::ref::depthwise_convolution2D<i_T, w_T, o_T, b_T, acc_T, int_quant_specific_params, fix_kernel_width, fix_kernel_height>(
+                in, w, biases, out, perception_area, quant_params,
+                val_min_limit, val_max_limit,
+                stride_height, stride_width,
+                dilation_height, dilation_width,
+                padding_top, padding_left,
+                padding_bot, padding_right);
+}
+
+template <typename i_T, typename w_T, typename o_T, typename b_T, typename acc_T, int fix_kernel_width, int fix_kernel_height>
+MLI_FORCE_INLINE void depthwise_convolution2D_hwcn(
+        const tensor_private_t<MLI_PTR(i_T)> &in,
+        const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
+        const MLI_PTR(b_T)  __restrict biases,
+        const tensor_private_t<MLI_CONV_OUT_PTR(o_T)> &out,
+        const rect_t &perception_area,
+        int_quant_specific_params quant_params,
+        const o_T val_min_limit,
+        const o_T val_max_limit,
+        const int stride_height, const int stride_width,
+        const int dilation_height, const int dilation_width,
+        const int padding_top, const int padding_left,
+        const int padding_bot, const int padding_right) {
+    mli::krn::ref::depthwise_convolution2D<i_T, w_T, o_T, b_T, acc_T, int_quant_specific_params, fix_kernel_width, fix_kernel_height>(
+                in, w, biases, out, perception_area, quant_params,
+                val_min_limit, val_max_limit,
+                stride_height, stride_width,
+                dilation_height, dilation_width,
+                padding_top, padding_left,
+                padding_bot, padding_right);
+
+}
+
+template <typename i_T, typename w_T, typename o_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
+MLI_FORCE_INLINE void depthwise_convolution2D(
+        const tensor_private_t<MLI_PTR(i_T)> &in,
+        const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
+        const MLI_PTR(b_T)  __restrict biases,
+        const tensor_private_t<MLI_CONV_OUT_PTR(o_T)> &out,
         const rect_t &perception_area,
         quant_T quant_params,
-        const io_T val_min_limit,
-        const io_T val_max_limit,
+        const o_T val_min_limit,
+        const o_T val_max_limit,
         const int stride_height, const int stride_width,
         const int dilation_height, const int dilation_width,
         const int padding_top, const int padding_left,
@@ -400,10 +447,10 @@ MLI_FORCE_INLINE void depthwise_convolution2D(
     perception_area_nopad.row_end = out.height - CEIL_DIV(padding_bot, stride_height);
     perception_area_nopad.clmn_beg = CEIL_DIV(padding_left, stride_width);
     perception_area_nopad.clmn_end = out.width - CEIL_DIV(padding_right, stride_width);
-    
+
     if ((perception_area_nopad.row_end > perception_area_nopad.row_beg)
         && (perception_area_nopad.clmn_end > perception_area_nopad.clmn_beg)){
-    depthwise_convolution2D_hwcn_nopad<io_T, w_T, b_T, acc_T, fix_kernel_width, fix_kernel_height>(
+    depthwise_convolution2D_hwcn_nopad<i_T, w_T, o_T, b_T, acc_T, fix_kernel_width, fix_kernel_height>(
                 in, w, biases, out, perception_area_nopad, quant_params,
                 val_min_limit, val_max_limit,
                 stride_height, stride_width,
@@ -442,7 +489,7 @@ MLI_FORCE_INLINE void depthwise_convolution2D(
             perc_areas[areas_num++].clmn_end = out.width;
         }
         for(int i = 0; i < areas_num; i ++) {
-            depthwise_convolution2D_hwcn<io_T, w_T, b_T, acc_T, fix_kernel_width, fix_kernel_height>(
+            depthwise_convolution2D_hwcn<i_T, w_T, o_T, b_T, acc_T, fix_kernel_width, fix_kernel_height>(
                     in, w, biases, out, perc_areas[i], quant_params,
                     val_min_limit, val_max_limit,
                     stride_height, stride_width,

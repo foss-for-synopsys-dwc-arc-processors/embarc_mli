@@ -191,6 +191,10 @@ template <> MLI_FORCE_INLINE v2q15_t mli_math_sub_fx(v2q15_t L, v2q15_t R) {
     return fx_sub_v2q15(L, R);
 }
 
+template <> MLI_FORCE_INLINE mli_acc40_t mli_math_sub_fx(mli_acc40_t L, mli_acc40_t R) {
+    return fx_sub_a40(L, R);
+}
+
 // Maximum of two fx operands
 //========================================================================
 template < typename io_T >
@@ -442,6 +446,11 @@ MLI_FORCE_INLINE int16_t mli_math_ashift_right_fx(int16_t in_val, int shift_righ
 template <>
 MLI_FORCE_INLINE int32_t mli_math_ashift_right_fx(int32_t in_val, int shift_right) {
     return mli_math_asr_rnd_fx<int32_t>(in_val, shift_right);
+}
+
+template <>
+MLI_FORCE_INLINE int64_t mli_math_ashift_right_fx(int64_t in_val, int shift_right) {
+    return mli_math_asr_rnd_fx<int64_t>(in_val, shift_right);
 }
 
 template <typename in_T, typename acc_T>

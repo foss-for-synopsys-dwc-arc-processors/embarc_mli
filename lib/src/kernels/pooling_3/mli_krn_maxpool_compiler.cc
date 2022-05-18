@@ -53,6 +53,7 @@ mli_status MaxPool2D_CS::GetKernelPrivateData(
     void *kernel_private_data_buffer) {
   MaxPool2DPrivateData obj;
 
+  obj.size = sizeof(MaxPool2DPrivateData);
   obj.io_elem_size = m_io_elem_size;
   obj.input_c = m_input_shape[kTensorChannelDim];
   obj.input_w = m_input_shape[kTensorWidthDim];

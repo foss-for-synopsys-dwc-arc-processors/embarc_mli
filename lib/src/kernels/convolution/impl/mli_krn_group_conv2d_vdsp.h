@@ -49,16 +49,16 @@ MLI_FORCE_INLINE fx_quant_specific_params quant_params_offset(fx_quant_specific_
 //========================================================
 // Group Convolution 2D without padding
 //========================================================
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
+template <typename i_T, typename w_T, typename o_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void group_convolution2D_nopad(
-        const tensor_private_t<MLI_PTR(io_T)> &in,
+        const tensor_private_t<MLI_PTR(i_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,
-        const tensor_private_t<MLI_CONV_OUT_PTR(io_T)> &out,
+        const tensor_private_t<MLI_CONV_OUT_PTR(o_T)> &out,
         const rect_t &perception_area,
         quant_T quant_params,
-        const io_T val_min_limit,
-        const io_T val_max_limit,
+        const o_T val_min_limit,
+        const o_T val_max_limit,
         const int stride_height, const int stride_width,
         const int dilation_height, const int dilation_width,
         const int padding_top, const int padding_left,
@@ -67,8 +67,8 @@ MLI_FORCE_INLINE void group_convolution2D_nopad(
     const int group_count = in.ch / weights.in_ch;
     const int filters_per_group = weights.out_ch / group_count;
 
-    tensor_private_t<MLI_CONV_OUT_PTR(io_T)> out_prv = out;
-    tensor_private_t<MLI_CONV_OUT_PTR(io_T)> in_prv = in;
+    tensor_private_t<MLI_CONV_OUT_PTR(o_T)> out_prv = out;
+    tensor_private_t<MLI_CONV_OUT_PTR(i_T)> in_prv = in;
     conv2d_weights_tensor_private_t<MLI_PTR(w_T)> weights_prv = weights;
     const MLI_PTR(b_T)  __restrict biases_prv = biases;
     out_prv.ch = filters_per_group;
@@ -83,7 +83,7 @@ MLI_FORCE_INLINE void group_convolution2D_nopad(
         biases_prv = biases + group_offset;
         quant_T quant_params_prv = quant_params_offset(quant_params, group_offset);
 
-        mli::krn::vdsp::convolution2D_nopad<io_T, w_T, b_T, acc_T, quant_T, fix_kernel_width, fix_kernel_height>(
+        mli::krn::vdsp::convolution2D_nopad<i_T, w_T, o_T, b_T, acc_T, quant_T, fix_kernel_width, fix_kernel_height>(
                 in_prv, weights_prv, biases_prv, out_prv, perception_area, quant_params_prv,
                 val_min_limit, val_max_limit,
                 stride_height, stride_width,
@@ -97,16 +97,16 @@ MLI_FORCE_INLINE void group_convolution2D_nopad(
 //========================================================
 // Group Convolution 2D with padding
 //========================================================
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T>
+template <typename i_T, typename w_T, typename o_T, typename b_T, typename acc_T, typename quant_T>
 MLI_FORCE_INLINE void group_convolution2D_pad(
-        const tensor_private_t<MLI_PTR(io_T)> &in,
+        const tensor_private_t<MLI_PTR(i_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,
-        const tensor_private_t<MLI_CONV_OUT_PTR(io_T)> &out,
+        const tensor_private_t<MLI_CONV_OUT_PTR(o_T)> &out,
         const rect_t &perception_area,
         quant_T quant_params,
-        const io_T val_min_limit,
-        const io_T val_max_limit,
+        const o_T val_min_limit,
+        const o_T val_max_limit,
         const int stride_height, const int stride_width,
         const int dilation_height, const int dilation_width,
         const int padding_top, const int padding_left,
@@ -115,8 +115,8 @@ MLI_FORCE_INLINE void group_convolution2D_pad(
     const int group_count = in.ch / weights.in_ch;
     const int filters_per_group = weights.out_ch / group_count;
 
-    tensor_private_t<MLI_CONV_OUT_PTR(io_T)> out_prv = out;
-    tensor_private_t<MLI_CONV_OUT_PTR(io_T)> in_prv = in;
+    tensor_private_t<MLI_CONV_OUT_PTR(o_T)> out_prv = out;
+    tensor_private_t<MLI_CONV_OUT_PTR(i_T)> in_prv = in;
     conv2d_weights_tensor_private_t<MLI_PTR(w_T)> weights_prv = weights;
     const MLI_PTR(b_T)  __restrict biases_prv = biases;
     out_prv.ch = filters_per_group;
@@ -131,7 +131,7 @@ MLI_FORCE_INLINE void group_convolution2D_pad(
         biases_prv = biases + group_offset;
         quant_T quant_params_prv = quant_params_offset(quant_params, group_offset);
 
-        mli::krn::vdsp::convolution2D_pad<io_T, w_T, b_T, acc_T, quant_T>(
+        mli::krn::vdsp::convolution2D_pad<i_T, w_T, o_T, b_T, acc_T, quant_T>(
                 in_prv, weights_prv, biases_prv, out_prv, perception_area, quant_params_prv,
                 val_min_limit, val_max_limit,
                 stride_height, stride_width,
@@ -144,16 +144,16 @@ MLI_FORCE_INLINE void group_convolution2D_pad(
 //========================================================
 // Group Convolution 2D
 //========================================================
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
+template <typename i_T, typename w_T, typename o_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void group_convolution2D(
-        const tensor_private_t<MLI_PTR(io_T)> &in,
+        const tensor_private_t<MLI_PTR(i_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,
-        const tensor_private_t<MLI_CONV_OUT_PTR(io_T)> &out,
+        const tensor_private_t<MLI_CONV_OUT_PTR(o_T)> &out,
         const rect_t &perception_area,
         quant_T quant_params,
-        const io_T val_min_limit,
-        const io_T val_max_limit,
+        const o_T val_min_limit,
+        const o_T val_max_limit,
         const int stride_height, const int stride_width,
         const int dilation_height, const int dilation_width,
         const int padding_top, const int padding_left,
@@ -171,7 +171,7 @@ MLI_FORCE_INLINE void group_convolution2D(
 
     if ((perception_area_nopad.row_end - perception_area_nopad.row_beg > 0)
         && (perception_area_nopad.clmn_end - perception_area_nopad.clmn_beg > 0)){
-        group_convolution2D_nopad<io_T, w_T, b_T, acc_T, quant_T, fix_kernel_width, fix_kernel_height>(
+        group_convolution2D_nopad<i_T, w_T, o_T, b_T, acc_T, quant_T, fix_kernel_width, fix_kernel_height>(
                 in, weights, biases, out, perception_area_nopad, quant_params,
                 val_min_limit, val_max_limit,
                 stride_height, stride_width,
@@ -284,7 +284,7 @@ MLI_FORCE_INLINE void group_convolution2D(
                     continue;
                 }
             }
-            group_convolution2D_pad<io_T, w_T, b_T, acc_T, quant_T>(
+            group_convolution2D_pad<i_T, w_T, o_T, b_T, acc_T, quant_T>(
                     in_, w_, biases, out_, area, quant_params,
                     val_min_limit, val_max_limit,
                     stride_h, stride_w,

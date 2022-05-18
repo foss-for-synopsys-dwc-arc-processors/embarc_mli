@@ -33,6 +33,9 @@ namespace snps_arc::metaware::mli {
     constexpr short int kKernelChannelInDim = 3;
     constexpr short int kKernelChannelOutDim = 4;
 
+    constexpr short int kKernelDWHeightDim = 0;
+    constexpr short int kKernelDWWidthDim = 1;
+    constexpr short int kKernelDWChannelInDim = 2;
 
 
 /**
@@ -253,12 +256,9 @@ public:
     /**
      * @brief Method to encode the weights (coefficients).
      * TODO: add description using conv2d_cs as a starting point
-     * TODO: Ggl StyleGuide on default argumenst: 
-     *       "Default arguments are banned on virtual functions, 
-     *         where they don't work properly,"
      */
     virtual mli_status EncodeWeights(Tensor<Buffer, 3> &weights,
-                                     Buffer &encoded_weights, 
+                                     Buffer &encoded_weights,
                                      compression_mode_t mode) = 0;
 
     /**
@@ -271,7 +271,7 @@ public:
      * @brief Method to encode input zero-points (padding values)
      *
      */
-    virtual mli_status EncodeInpZeroPts(Tensor<Buffer, 1> &inpzeropts, 
+    virtual mli_status EncodeInpZeroPts(Tensor<Buffer, 1> &inpzeropts,
                                         Buffer &encoded_inpzeropts) = 0;
 
     /**
@@ -281,6 +281,19 @@ public:
     virtual unsigned GetEncodedInpZeroPtsSize() = 0;
 
     /**
+     * @brief Method to encode weights zero-points
+     *
+     */
+    virtual mli_status EncodeWtsZeroPts(Tensor<Buffer, 1> &wtszeropts,
+                                        Buffer &encoded_wtszeropts) = 0;
+
+    /**
+     * @brief Method to query the size of the encoded weights zero-points buffer
+     *
+     */
+    virtual unsigned GetEncodedWtsZeroPtsSize() = 0;
+
+    /**
      * @brief Methods to get buffer sizes
      * TODO: add description using conv2d_cs as a starting point
      */
@@ -288,7 +301,6 @@ public:
     virtual unsigned GetInputBufferSize() = 0;
     virtual unsigned GetOutputBufferSize() = 0;
     virtual unsigned GetWeightsBufferSize() = 0;
-    virtual unsigned GetInputZeroPtsBufferSize() = 0;
     virtual unsigned GetDataBufferSize() = 0;
 
     /**
@@ -298,8 +310,9 @@ public:
     virtual mli_status AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
                                            Tensor<OffsetBuffer, 4> &output,
                                            OffsetBuffer &weights,
-                                           OffsetBuffer &padding,
-                                           OffsetBuffer &descr) = 0;
+                                           OffsetBuffer &inpzeropts,
+                                           OffsetBuffer &wtszeropts,
+                                           OffsetBuffer &metadata) = 0;
 };
 
 /**

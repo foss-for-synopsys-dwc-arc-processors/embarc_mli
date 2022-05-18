@@ -29,16 +29,16 @@ namespace ref {
 //========================================================
 // Unified Group convolution 2D template
 //========================================================
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
+template <typename i_T, typename w_T, typename o_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void group_convolution2D(
-        const tensor_private_t<MLI_PTR(io_T)> &in,
+        const tensor_private_t<MLI_PTR(i_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,
-        const tensor_private_t<MLI_CONV_OUT_PTR(io_T)> &out,
+        const tensor_private_t<MLI_CONV_OUT_PTR(o_T)> &out,
         const rect_t &perception_area,
         quant_T quant_params,
-        const io_T val_min_limit,
-        const io_T val_max_limit,
+        const o_T val_min_limit,
+        const o_T val_max_limit,
         const int stride_height, const int stride_width,
         const int dilation_height, const int dilation_width,
         const int padding_top, const int padding_left,
@@ -67,15 +67,15 @@ MLI_FORCE_INLINE void group_convolution2D(
             const int h_idx_in = (H_idx * stride_height - padding_top + comp.in_top);
             const int w_idx_in = (W_idx * stride_width - padding_left + comp.in_left);
             for (int out_ch_idx = 0; out_ch_idx < out.ch; out_ch_idx++) {
-                MLI_CONV_OUT_PTR(io_T) out_ptr = out.ptr
+                MLI_CONV_OUT_PTR(o_T) out_ptr = out.ptr
                         + out.row_mem_stride * H_idx
                         + out.col_mem_stride * W_idx
                         + out.ch_mem_stride * out_ch_idx;
-                        
-                const MLI_PTR(io_T) in_ptr = in.ptr
+
+                const MLI_PTR(i_T) in_ptr = in.ptr
                         + in.row_mem_stride * h_idx_in
                         + in.col_mem_stride * w_idx_in
-                        + in.ch_mem_stride * weights.in_ch 
+                        + in.ch_mem_stride * weights.in_ch
                         * (out_ch_idx / filters_per_group);
 
                 const MLI_PTR(w_T) w_ptr = weights.ptr
@@ -85,7 +85,7 @@ MLI_FORCE_INLINE void group_convolution2D(
 
                 mli::krn::adjust_quant_params(&quant_params, out_ch_idx);
 
-                acc_T accu = mli_math_mul_fx<io_T, acc_T>(0, 0);
+                acc_T accu = mli_math_mul_fx<i_T, acc_T>(0, 0);
                 mli::krn::dotprod3D(in_ptr, w_ptr, clmns, rows, weights.in_ch,
                           in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride,
                           weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride,
@@ -103,7 +103,7 @@ MLI_FORCE_INLINE void group_convolution2D(
                 accu = mli::krn::bias_additive(&biases[out_ch_idx], accu, &quant_params);
 
                 // Cast result to output type, apply built-in ReLU Applying and write result
-                io_T out_val = mli::krn::result_cast<io_T, acc_T, quant_T>(accu, &quant_params);
+                o_T out_val = mli::krn::result_cast<o_T, acc_T, quant_T>(accu, &quant_params);
                 out_val = MIN(out_val, val_max_limit);
                 out_val = MAX(out_val, val_min_limit);
                 *out_ptr = out_val;
@@ -115,7 +115,7 @@ MLI_FORCE_INLINE void group_convolution2D(
 //====================================================================================
 // Common routin for pre-calculation of various convolution parameters and running it.
 //====================================================================================
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T,
+template <typename i_T, typename w_T, typename o_T, typename b_T, typename acc_T, typename quant_T,
           mli_layout_type data_layout, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void group_conv2d_prepare_and_run(
         const mli_tensor *in,
@@ -134,13 +134,13 @@ MLI_FORCE_INLINE void group_conv2d_prepare_and_run(
 
     // Define output val limits (may affect built in ReLU)
     out->el_type = in->el_type;
-    mli_minmax_t val_limit = mli_prv_get_relu_limits<io_T, std::is_same<quant_T, s8asym_quant_specific_params>::value>(&cfg->relu, out);
+    mli_minmax_t val_limit = mli_prv_get_relu_limits<o_T, std::is_same<quant_T, s8asym_quant_specific_params>::value>(&cfg->relu, out);
 
     const MLI_PTR(b_T) bs = mli_prv_tensor_data_ptr<MLI_PTR(b_T)>(bias);
 
     auto in_prv = (data_layout == LAYOUT_HWC || data_layout == LAYOUT_HWCN || data_layout == LAYOUT_HW1N) ?
-            mli_prv_get_tensor_hwc<MLI_PTR(io_T)>(in)
-            : mli_prv_get_tensor_chw<MLI_PTR(io_T)>(in);
+            mli_prv_get_tensor_hwc<MLI_PTR(i_T)>(in)
+            : mli_prv_get_tensor_chw<MLI_PTR(i_T)>(in);
 
     conv2d_weights_tensor_private_t<MLI_PTR(w_T)> weights_prv;
     int out_ch;
@@ -159,8 +159,8 @@ MLI_FORCE_INLINE void group_conv2d_prepare_and_run(
         out_ch = weights_prv.out_ch;
     }
     auto out_prv = (data_layout == LAYOUT_HWC || data_layout == LAYOUT_HWCN || data_layout == LAYOUT_HW1N) ?
-            mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(io_T)>(out)
-            : mli_prv_get_tensor_chw<MLI_CONV_OUT_PTR(io_T)>(out);
+            mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(o_T)>(out)
+            : mli_prv_get_tensor_chw<MLI_CONV_OUT_PTR(o_T)>(out);
 
     // fill the rest output tensor parameters
     int dilation_width = cfg->dilation_width;
@@ -189,9 +189,9 @@ MLI_FORCE_INLINE void group_conv2d_prepare_and_run(
     cent_area.row_beg = 0; cent_area.row_end = out_prv.height;
     cent_area.clmn_beg = 0; cent_area.clmn_end = out_prv.width;
 
-    mli::krn::group_convolution2D<io_T, w_T, b_T, acc_T, quant_T, fix_kernel_width, fix_kernel_height>(
+    mli::krn::group_convolution2D<i_T, w_T, o_T, b_T, acc_T, quant_T, fix_kernel_width, fix_kernel_height>(
             in_prv, weights_prv, bs, out_prv, cent_area, params,
-            (io_T)val_limit.min, (io_T)val_limit.max,
+            (o_T)val_limit.min, (o_T)val_limit.max,
             stride_height, stride_width, dilation_height, dilation_width,
             padding_top, padding_left,
             padding_bot, padding_right);

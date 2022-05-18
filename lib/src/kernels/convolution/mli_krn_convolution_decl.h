@@ -35,7 +35,7 @@ namespace krn {
 ////////////////////////////////////////////////////////////////////////////////
 // Functions (in *_ref/*_dsp/*vdsp) that can be called from outside their own
 // file must be declared here. This includes all overloads. For example, if we
-// have: io_T f(io_T a) and int8_t f(int8_t a), then both must be declared.
+// have: i_T f(i_T a) and int8_t f(int8_t a), then both must be declared.
 // Not doing so, can cause the compiler to use the wrong overload.
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -43,37 +43,37 @@ namespace krn {
 // REF
 ////////////////////////////////////////////////////////////////////////////////
 namespace ref {
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
+template <typename i_T, typename w_T, typename o_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void convolution2D(
-        const tensor_private_t<MLI_PTR(io_T)> &in,
+        const tensor_private_t<MLI_PTR(i_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,
-        const tensor_private_t<MLI_CONV_OUT_PTR(io_T)> &out,
+        const tensor_private_t<MLI_CONV_OUT_PTR(o_T)> &out,
         const rect_t &perception_area,
         quant_T quant_params,
-        const io_T val_min_limit,
-        const io_T val_max_limit,
+        const o_T val_min_limit,
+        const o_T val_max_limit,
         const int stride_height, const int stride_width,
         const int dilation_height, const int dilation_width,
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right);
 
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
+template <typename i_T, typename w_T, typename o_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void depthwise_convolution2D(
-        const tensor_private_t<MLI_PTR(io_T)> &in,
+        const tensor_private_t<MLI_PTR(i_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,
-        const tensor_private_t<MLI_CONV_OUT_PTR(io_T)> &out,
+        const tensor_private_t<MLI_CONV_OUT_PTR(o_T)> &out,
         const rect_t &perception_area,
         quant_T quant_params,
-        const io_T val_min_limit,
-        const io_T val_max_limit,
+        const o_T val_min_limit,
+        const o_T val_max_limit,
         const int stride_height, const int stride_width,
         const int dilation_height, const int dilation_width,
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right);
 
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T,
+template <typename i_T, typename w_T, typename o_T, typename b_T, typename acc_T, typename quant_T,
           mli_layout_type data_layout, mli_conv_type conv_type, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void conv2d_prepare_and_run(
         const mli_tensor *in,
@@ -87,16 +87,16 @@ MLI_FORCE_INLINE void conv2d_prepare_and_run(
 // DSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace dsp {
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
+template <typename i_T, typename w_T, typename o_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void depthwise_convolution2D(
-        const tensor_private_t<MLI_PTR(io_T)> &in,
+        const tensor_private_t<MLI_PTR(i_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &w,
         const MLI_PTR(b_T)  __restrict biases,
-        const tensor_private_t<MLI_CONV_OUT_PTR(io_T)> &out,
+        const tensor_private_t<MLI_CONV_OUT_PTR(o_T)> &out,
         const rect_t &perception_area,
         quant_T quant_params,
-        const io_T val_min_limit,
-        const io_T val_max_limit,
+        const o_T val_min_limit,
+        const o_T val_max_limit,
         const int stride_height, const int stride_width,
         const int dilation_height, const int dilation_width,
         const int padding_top, const int padding_left,
@@ -107,31 +107,31 @@ MLI_FORCE_INLINE void depthwise_convolution2D(
 // VDSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
+template <typename i_T, typename w_T, typename o_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void convolution2D(
-        const tensor_private_t<MLI_PTR(io_T)> &in,
+        const tensor_private_t<MLI_PTR(i_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,
-        const tensor_private_t<MLI_CONV_OUT_PTR(io_T)> &out,
+        const tensor_private_t<MLI_CONV_OUT_PTR(o_T)> &out,
         const rect_t &perception_area,
         quant_T quant_params,
-        const io_T val_min_limit,
-        const io_T val_max_limit,
+        const o_T val_min_limit,
+        const o_T val_max_limit,
         const int stride_height, const int stride_width,
         const int dilation_height, const int dilation_width,
         const int padding_top, const int padding_left,
         const int padding_bot, const int padding_right);
 
-template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
+template <typename i_T, typename w_T, typename o_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void depthwise_convolution2D(
-        const tensor_private_t<MLI_PTR(io_T)> &in,
+        const tensor_private_t<MLI_PTR(i_T)> &in,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,
-        const tensor_private_t<MLI_CONV_OUT_PTR(io_T)> &out,
+        const tensor_private_t<MLI_CONV_OUT_PTR(o_T)> &out,
         const rect_t &perception_area,
         quant_T quant_params,
-        const io_T val_min_limit,
-        const io_T val_max_limit,
+        const o_T val_min_limit,
+        const o_T val_max_limit,
         const int stride_height, const int stride_width,
         const int dilation_height, const int dilation_width,
         const int padding_top, const int padding_left,

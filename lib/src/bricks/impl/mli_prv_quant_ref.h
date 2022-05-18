@@ -135,6 +135,32 @@ MLI_FORCE_INLINE void define_quant_params(const mli_tensor *in, const mli_tensor
 }
 
 template <>
+MLI_FORCE_INLINE void define_quant_params(const mli_tensor *in, const mli_tensor  *weights, const mli_tensor  *bias,
+                                const mli_tensor *out, int_quant_specific_params* params) {
+    if (in->el_params.sa.dim >= 0) {
+        // per axis quantization
+        params->in_offset = in->el_params.sa.zero_point.mem.pi16[0];
+    } else {
+        // per tensor quantization
+        params->in_offset = in->el_params.sa.zero_point.mem.i16;
+    }
+
+    if (weights->el_params.sa.dim >= 0) {
+        // per axis quantization
+        params->weights_offset = weights->el_params.sa.zero_point.mem.pi16[0];
+    } else {
+        // per tensor quantization
+        params->weights_offset = weights->el_params.sa.zero_point.mem.i16;
+    }
+}
+
+template <typename quant_T>
+MLI_FORCE_INLINE void adjust_quant_params(quant_T* params, int krn_idx) {
+    // No need to adjust something during calculations by default
+    return;
+}
+
+template <>
 MLI_FORCE_INLINE void adjust_quant_params(s8asym_quant_specific_params* params, int krn_idx) {
     // out multiplyer can be different across one of axis (per axis quantization for s8asym)
     if (params->weight_dim < 0) {
@@ -163,6 +189,10 @@ MLI_FORCE_INLINE void adjust_quant_params(fx_quant_specific_params* in, int krn_
 }
 
 MLI_FORCE_INLINE int16_t quant_params_get_weigths_zeropoint(s8asym_quant_specific_params* params) {
+    return params->weights_offset;
+}
+
+MLI_FORCE_INLINE int16_t quant_params_get_weigths_zeropoint(int_quant_specific_params* params) {
     return params->weights_offset;
 }
 
@@ -199,6 +229,19 @@ template <>
 MLI_FORCE_INLINE mli_acc32_t weights_additive(
         const MLI_PTR(int8_t) __restrict weights, mli_acc32_t init_accum,
         const s8asym_quant_specific_params* quant_params,
+        const int width,  const int height, int col_step, int row_step) {
+    // returns -(in_zero_point * cumsum(weights)) For S8ASYM
+    if (quant_params->in_offset != 0) {
+        return reduce_sum2D(weights, -quant_params->in_offset, init_accum, width, height, /*channels = */0, col_step, row_step);
+    } else {
+        return init_accum;
+    }
+}
+
+template <>
+MLI_FORCE_INLINE mli_acc32_t weights_additive(
+        const MLI_PTR(int8_t) __restrict weights, mli_acc32_t init_accum,
+        const int_quant_specific_params* quant_params,
         const int width,  const int height, int col_step, int row_step) {
     // returns -(in_zero_point * cumsum(weights)) For S8ASYM
     if (quant_params->in_offset != 0) {
@@ -258,6 +301,20 @@ MLI_FORCE_INLINE mli_acc32_t in_additive(
     }
 }
 
+template <>
+MLI_FORCE_INLINE mli_acc32_t in_additive(
+        const MLI_PTR(int8_t) __restrict in, mli_acc32_t init_accum,
+        const int_quant_specific_params* quant_params,
+        const int width, const int height, int col_step, int row_step) {
+    // returns -(wights_zero_point * cumsum(input))
+    if (quant_params->weights_offset != 0) {
+        init_accum = reduce_sum2D(in, -quant_params->weights_offset, init_accum, width, height, /*channels = */0, col_step, row_step);
+        return init_accum;
+    } else {
+        return init_accum;
+    }
+}
+
 template <typename in_T, typename acc_T, typename quant_T>
 MLI_FORCE_INLINE acc_T in_additive(const MLI_PTR(in_T) __restrict, acc_T init_accum, const quant_T* quant_params,
                               const int, const int, const int, int, int, int) {
@@ -306,10 +363,29 @@ MLI_FORCE_INLINE mli_acc32_t zp_additive(const s8asym_quant_specific_params* qua
     }
 }
 
+template <>
+MLI_FORCE_INLINE mli_acc32_t zp_additive(const int_quant_specific_params* quant_params, mli_acc32_t init_accum,
+                               const int mac_serias_len) {
+    if (quant_params->weights_offset != 0 || quant_params->in_offset != 0) {
+        // Calculating (w_zp * in_zp * mac_serias_len) via reduce sum because of complexity with accum casts.
+        // Subject for optimization
+        return reduce_sum(&quant_params->weights_offset, quant_params->in_offset, init_accum, mac_serias_len, /*step = */0);
+    } else {
+        return init_accum;
+    }
+}
+
 //==========================================================================
 // Calculation of bias additive (bias_add) in
 // dot_prod_asym= dot_prod_gen + w_add + in_add + zp_add + bias_add
 //==========================================================================
+template <typename b_T, typename acc_T, typename quant_T>
+MLI_FORCE_INLINE acc_T bias_additive(const b_T bias, acc_T init_accum,
+        const quant_T* quant_params) {
+    // By default bias additive isn't required
+    return init_accum;
+}
+
 template <>
 MLI_FORCE_INLINE mli_acc32_t bias_additive(
         const MLI_PTR(int8_t) bias, mli_acc32_t init_accum, const fx_quant_specific_params* quant_params) {
@@ -358,7 +434,6 @@ MLI_FORCE_INLINE int8_t result_cast(const mli_acc32_t acc, const fx_quant_specif
     return mli_math_cast_fx<mli_acc32_t, int8_t>(acc, math_params->out_shift);
 }
 
-
 template <>
 MLI_FORCE_INLINE int8_t result_cast(
         const mli_acc32_t acc,
@@ -401,6 +476,12 @@ MLI_FORCE_INLINE int8_t result_cast(
     int8_t out_val = mli_math_cast_fx<int16_t, int8_t>(mli_math_add_fx(out_no_offset, quant_params->out_offset), 0);
     return out_val;
 }
+
+template <>
+MLI_FORCE_INLINE int32_t result_cast(const mli_acc32_t acc, const int_quant_specific_params* quant_params) {
+    return mli_math_cast_fx<mli_acc32_t, int32_t>(acc, /* shift_right = */0);
+}
+
 
 template <typename o_T, typename acc_T, typename quant_T>
 static MLI_FORCE_INLINE void result_cast_relu_store(

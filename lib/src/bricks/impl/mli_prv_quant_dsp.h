@@ -60,6 +60,12 @@ MLI_FORCE_INLINE void adjust_quant_params(fx_quant_specific_params* in, int krn_
     return;
 }
 
+template <>
+MLI_FORCE_INLINE void adjust_quant_params(int_quant_specific_params* in, int krn_idx) {
+    // No need to adjust something during calculations for int specific quantization
+    return;
+}
+
 //The function uses pointers to pointers for weights.
 //The caller of the function should compensate for the increment
 //done inside this function.

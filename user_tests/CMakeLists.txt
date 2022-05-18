@@ -99,6 +99,7 @@ add_library(test_components_obj OBJECT
     test_components/test_quality_metrics.cc
     test_components/test_tensor_quantizer.cc
     test_components/test_report.cc
+    test_components/test_rescale_utility.cc
     ../examples/auxiliary/tensor_transform.c
     ../examples/auxiliary/tests_aux.c
     ../examples/auxiliary/idx_file.c
@@ -193,6 +194,7 @@ add_user_test(krn data_movement)
 #======================================================
 add_user_test(krn conv2d)
 add_user_test(krn depthwise_conv)
+add_user_test(krn depthwise_conv_30)
 add_user_test(krn transpose_conv2d)
 add_user_test(krn group_conv2d FX16)
 add_user_test(krn group_conv2d FX16_FX8_FX8)
@@ -237,4 +239,3 @@ add_user_test(krn l2_normalize)
 # Eltwise Group
 #======================================================
 add_user_test(krn eltwise)
-

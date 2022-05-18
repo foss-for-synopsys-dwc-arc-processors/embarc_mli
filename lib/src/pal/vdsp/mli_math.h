@@ -2159,4 +2159,11 @@ MLI_FORCE_INLINE vNx2accint_t mli_math_init_accu_add(vNx2int_t L, vNx2int_t R) {
     return acc;
 }
 
+// Arithmetic shift (right is default, left on the negative val)
+//========================================================================
+template <>
+MLI_FORCE_INLINE int64_t mli_math_ashift_right_fx(int64_t in_val, int shift_right) {
+    return mli_math_asr_rnd_fx<int64_t>(in_val, shift_right);
+}
+
 #endif // _VDSP_MLI_MATH_H_

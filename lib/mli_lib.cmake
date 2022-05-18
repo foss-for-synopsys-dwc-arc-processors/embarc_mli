@@ -58,12 +58,15 @@ set(MLI_LIB_SOURCE_FILES
     ${MLI_LIB_CMAKE_DIR}/src/kernels/convolution/mli_krn_transpose_conv2d_hwcn.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/convolution/mli_krn_depthwise_conv2d_hwcn.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/convolution/mli_krn_group_conv2d_hwcn.cc
+    ${MLI_LIB_CMAKE_DIR}/src/kernels/convolution/mli_krn_depthwise_conv2d_compiler.cc
+    ${MLI_LIB_CMAKE_DIR}/src/kernels/convolution/mli_krn_depthwise_conv2d_runtime.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/common/mli_krn_fully_connected.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/common/mli_krn_rnn_dense.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/diverse/mli_krn_argmax.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/diverse/mli_krn_permute_fx.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/common/mli_krn_lstm_cell.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/common/mli_krn_gru_cell.cc
+    ${MLI_LIB_CMAKE_DIR}/src/kernels/conversion/mli_krn_rescale.cc
 )
 
 set(MLI_LIB_PUBLIC_INCLUDES
@@ -82,7 +85,6 @@ set(MLI_LIB_PRIVATE_INCLUDES
     ${MLI_LIB_CMAKE_DIR}/src/kernels/eltwise
     ${MLI_LIB_CMAKE_DIR}/src/kernels/pooling
     ${MLI_LIB_CMAKE_DIR}/src/kernels/pooling_3
-    ${MLI_LIB_CMAKE_DIR}/src/kernels/pooling_chw
     ${MLI_LIB_CMAKE_DIR}/src/kernels/diverse
     ${MLI_LIB_CMAKE_DIR}/src/kernels/transform
     ${MLI_LIB_CMAKE_DIR}/src/kernels/diverse

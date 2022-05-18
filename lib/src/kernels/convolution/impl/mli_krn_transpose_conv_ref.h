@@ -84,7 +84,7 @@ MLI_FORCE_INLINE void transpose_convolution2D(
     rect_t cent_area;
     cent_area.row_beg = 0;  cent_area.row_end = out.height;
     cent_area.clmn_beg = 0; cent_area.clmn_end = out.width;
-    mli::krn::convolution2D<io_T, w_T, b_T, acc_T, quant_T, conv_fix_kernel_width, conv_fix_kernel_height>(
+    mli::krn::convolution2D<io_T, w_T, io_T, b_T, acc_T, quant_T, conv_fix_kernel_width, conv_fix_kernel_height>(
         in, weights, biases, out, cent_area, quant_params,
         val_min_limit, val_max_limit,
         /*stride_height = */1, /*stride_width = */1,

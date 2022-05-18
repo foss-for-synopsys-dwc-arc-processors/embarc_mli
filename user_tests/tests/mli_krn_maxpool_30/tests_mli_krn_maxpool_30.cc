@@ -6,16 +6,19 @@
  * the LICENSE file in the root directory of this source tree.
  *
  */
+#include <cstdlib>
 
 #include "mli_kernels_factory_ref.hpp"
 #include "mli_compiler_api.hpp"
 #include "mli_runtime_api.hpp"
 #include "mli_types.h"
 #include "mli_types.hpp"
+
 #include "test_crc32_calc.h"
 #include "test_quality_metrics.h"
 #include "test_report.h"
 #include "test_tensor_quantizer.h"
+
 #include "vectors_mli_krn_maxpool.inc"
 
 using mli::tst::crc32_calc;

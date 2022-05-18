@@ -53,7 +53,8 @@ KERNELS = \
 	sigm \
 	l2_normalize \
 	data_movement \
-	maxpool_30
+	maxpool_30 \
+	depthwise_conv_30
 
 
 BIN_FILES=$(patsubst %,$(BIN_PATH)$(PS)test_mli_hlp_%$(BIN_EXT),$(HELPERS))
@@ -69,7 +70,7 @@ test_all: $(TEST_HLP_TARGETS) $(TEST_KRN_TARGETS)
 
 $(TEST_KRN_TARGETS): test_%: $(BIN_PATH)$(PS)test_mli_krn_%$(BIN_EXT)
 	$(RUN_TEST_CMD) $<
-    
+
 $(TEST_HLP_TARGETS): test_%: $(BIN_PATH)$(PS)test_mli_hlp_%$(BIN_EXT)
 	$(RUN_TEST_CMD) $<
 

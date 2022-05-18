@@ -9,7 +9,6 @@
 #ifndef _MLI_REF_RUNTIME_API_HPP_
 #define _MLI_REF_RUNTIME_API_HPP_
 
-#include "mli_api.h"
 #include "mli_runtime_api.hpp"
 #include "mli_iterator.hpp"
 #include "mli_ref_private_types.hpp"
@@ -26,9 +25,7 @@ using lib_mli::PrivateData;
  *
  *
  */
-struct DepthwiseConv2d_data {
-    // To Be Defined During Implementation
-};
+struct DepthwiseConv2dMetadata;
 
 class DepthwiseConv2d : public ExecutionInterface {
   public:
@@ -64,7 +61,13 @@ class DepthwiseConv2d : public ExecutionInterface {
     mli_status Update() override;
 
 private:
-    DepthwiseConv2d_data* data;
+    DepthwiseConv2dMetadata *m_metadata;
+    // element size of input feature map
+    uint32_t m_i_elem_size;
+    // element size of weights
+    uint32_t m_w_elem_size;
+    // element size of output
+    uint32_t m_o_elem_size;
 };
 
 /**
@@ -85,7 +88,7 @@ class MaxPool2D : public ExecutionInterface {
     mli_status Prefetch() override;
 
     mli_status Update() override;
-    
+
   private:
     //TODO: May be move them to the membasis as an example.
     mli_pool_cfg * m_cfg;

@@ -9,20 +9,21 @@
 #ifndef _MLI_KERNELS_FACTORY_REF_HPP_
 #define _MLI_KERNELS_FACTORY_REF_HPP_
 
+#include <new>
+
 #include "mli_kernels_factory.hpp"
 #include "mli_platform_desc.hpp"
 #include "mli_ref_compiler_api.hpp"
-#include <iostream>
 
 namespace lib_mli = ::snps_arc::metaware::mli;
 namespace lib_ref = ::snps_arc::metaware::mli::ref;
 
-namespace snps_arc::metaware::mli::ref{
+namespace snps_arc::metaware::mli::ref {
 
 using lib_mli::Tensor;
 using lib_mli::NoBuffer;
 
-class KernelsFactory:public lib_mli::KernelsFactory{
+class KernelsFactory : public lib_mli::KernelsFactory{
 public:
 
     KernelsFactory(const lib_mli::PlatformDescription pd): m_pd(pd) {}
@@ -78,9 +79,21 @@ public:
         return new(kernel_buffer) lib_ref::MaxPool2D_CS(m_pd, in, cfg, output_tile_shape);
     }
 
+    uint32_t DepthwiseConv2d_CS_GetSize() const override { return sizeof(lib_ref::DepthwiseConv2d_CS); }
+
+    lib_mli::DepthwiseConv2d_CS* DepthwiseConv2d_CS(void *kernel_buffer,
+                                                    const Tensor<NoBuffer, 4> in,
+                                                    const Tensor<NoBuffer, 3> weights,
+                                                    const DwConv2DConfig &cfg,
+                                                    const Tensor<NoBuffer, 4> output_tile_shape) override {
+        return new(kernel_buffer) lib_ref::DepthwiseConv2d_CS(m_pd, in, weights, cfg, output_tile_shape);
+    }
+
 private:
     lib_mli::PlatformDescription m_pd;
 
 };
-}
+
+} // namespace snps_arc::metaware::mli::ref
+
 #endif

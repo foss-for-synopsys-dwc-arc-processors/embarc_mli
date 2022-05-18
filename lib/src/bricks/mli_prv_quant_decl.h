@@ -73,9 +73,16 @@ struct fx_quant_specific_params {
     int out_shift;
 };
 
+/**
+ * @brief Quantization specific parameter to perform correct calculations in MLI3.0 only.
+ */
+struct int_quant_specific_params {
+    int16_t in_offset;
+    int16_t weights_offset;
+};
+
 typedef union _conv_math_params {
     struct fx_quant_specific_params fx;
-
     struct s8asym_quant_specific_params i8asym;
 } conv_math_params;
 
@@ -96,6 +103,9 @@ MLI_FORCE_INLINE void define_quant_params(const mli_tensor* in, const mli_tensor
 template <>
 MLI_FORCE_INLINE void define_quant_params(const mli_tensor* in, const mli_tensor* weights,
         const mli_tensor* bias, const mli_tensor* out, s8asym_quant_specific_params* params);
+template <>
+MLI_FORCE_INLINE void define_quant_params(const mli_tensor* in, const mli_tensor* weights,
+        const mli_tensor* bias, const mli_tensor* out, int_quant_specific_params* params);
 
 template <typename quant_T>
 MLI_FORCE_INLINE void adjust_quant_params(quant_T* params, int krn_idx = 0);
@@ -108,6 +118,8 @@ MLI_FORCE_INLINE int16_t quant_params_get_weigths_zeropoint(s8asym_quant_specifi
 
 MLI_FORCE_INLINE int16_t quant_params_get_weigths_zeropoint(fx_quant_specific_params* params);
 
+MLI_FORCE_INLINE int16_t quant_params_get_weigths_zeropoint(int_quant_specific_params* params);
+
 MLI_FORCE_INLINE int16_t quant_params_set_in_zeropoint(s8asym_quant_specific_params* params, int16_t new_zp);
 MLI_FORCE_INLINE int16_t quant_params_set_in_zeropoint(fx_quant_specific_params* params, int16_t new_zp);
 
@@ -118,6 +130,11 @@ MLI_FORCE_INLINE acc_T weights_additive(const MLI_PTR(w_T) __restrict weights,
 template <>
 MLI_FORCE_INLINE mli_acc32_t weights_additive(const MLI_PTR(int8_t) __restrict weights,
         mli_acc32_t init_accum, const s8asym_quant_specific_params* quant_params,
+        const int width,  const int height, int col_step, int row_step);
+
+template <>
+MLI_FORCE_INLINE mli_acc32_t weights_additive(const MLI_PTR(int8_t) __restrict weights,
+        mli_acc32_t init_accum, const int_quant_specific_params* quant_params,
         const int width,  const int height, int col_step, int row_step);
 
 template <typename w_T, typename acc_T, typename quant_T>
@@ -140,6 +157,11 @@ MLI_FORCE_INLINE mli_acc32_t in_additive(const MLI_PTR(int8_t) __restrict in,
         mli_acc32_t init_accum, const s8asym_quant_specific_params* quant_params,
         const int width, const int height, int col_step, int row_step);
 
+template <>
+MLI_FORCE_INLINE mli_acc32_t in_additive(const MLI_PTR(int8_t) __restrict in,
+        mli_acc32_t init_accum, const int_quant_specific_params* quant_params,
+        const int width, const int height, int col_step, int row_step);
+
 template <typename in_T, typename acc_T, typename quant_T>
 MLI_FORCE_INLINE acc_T in_additive(const MLI_PTR(in_T) __restrict,
         acc_T init_accum, const quant_T* quant_params,
@@ -154,6 +176,9 @@ MLI_FORCE_INLINE acc_T zp_additive(const quant_T*,
         acc_T init_accum, const int);
 template <>
 MLI_FORCE_INLINE mli_acc32_t zp_additive(const s8asym_quant_specific_params* quant_params,
+        mli_acc32_t init_accum, const int mac_serias_len);
+template <>
+MLI_FORCE_INLINE mli_acc32_t zp_additive(const int_quant_specific_params* quant_params,
         mli_acc32_t init_accum, const int mac_serias_len);
 
 template <typename b_T, typename acc_T, typename quant_T>
@@ -179,6 +204,8 @@ template <>
 MLI_FORCE_INLINE int8_t result_cast(const mli_acc32_t acc, const fx_quant_specific_params* math_params);
 template <>
 MLI_FORCE_INLINE int8_t result_cast(const mli_acc32_t acc, const s8asym_quant_specific_params* quant_params);
+template <>
+MLI_FORCE_INLINE int32_t result_cast(const mli_acc32_t acc, const int_quant_specific_params* quant_params);
 
 template <typename io_T, typename acc_T, typename b_T, mli_math_type math_type>
 MLI_FORCE_INLINE io_T result_cast(const acc_T acc, const b_T bias, const int32_t out_mul, const conv_math_params* math_params);
@@ -325,6 +352,8 @@ MLI_FORCE_INLINE s8asym_quant_specific_out_params_v adjust_quant_params_v(s8asym
 #endif
 
 MLI_FORCE_INLINE fx_quant_specific_params adjust_quant_params_v(fx_quant_specific_params* in, int krn_idx);
+
+MLI_FORCE_INLINE int_quant_specific_params adjust_quant_params_v(int_quant_specific_params* in, int krn_idx);
 
 template <typename io_T, typename w_T, typename acc_T>
 static MLI_FORCE_INLINE acc_T dotprod_inputzp_1D_v(

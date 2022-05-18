@@ -64,10 +64,10 @@ public:
     elem_size_ = elem_size;
   }
 
-  uint32_t get_size(){
+  uint32_t get_size() const {
     return size_;
   }
-  uint32_t get_elem_size(){
+  uint32_t get_elem_size() const {
     return elem_size_;
   }
 

@@ -27,19 +27,28 @@ public:
      * @brief Constructor of the DepthwiseConv2d_CS object
      *
      */
-    DepthwiseConv2d_CS(const Tensor<NoBuffer, 4> &in,
+    DepthwiseConv2d_CS(const lib_mli::PlatformDescription pd,
+                       const Tensor<NoBuffer, 4> &in,
                        const Tensor<NoBuffer, 3> &weights,
-                       const mli_conv2d_cfg &cfg,
+                       const DwConv2DConfig &cfg,
                        const Tensor<NoBuffer, 4> &output_tile_shape);
 
     mli_status EncodeWeights(Tensor<Buffer, 3> &weights,
-                            Buffer &encoded_weights, 
-                            compression_mode_t mode = compression_mode_t::Uncompressed) override;
+                             Buffer &encoded_weights,
+                             compression_mode_t mode = compression_mode_t::Uncompressed) override;
 
     unsigned GetEncodedWeightsSize() override;
-    mli_status EncodeInpZeroPts(Tensor<Buffer, 1> &inpzeropts, 
+
+    mli_status EncodeInpZeroPts(Tensor<Buffer, 1> &inpzeropts,
                                 Buffer &encoded_inpzeropts) override;
+
     unsigned GetEncodedInpZeroPtsSize() override;
+
+    mli_status EncodeWtsZeroPts(Tensor<Buffer, 1> &wtszeropts,
+                                Buffer &encoded_wtszeropts) override;
+
+    unsigned GetEncodedWtsZeroPtsSize() override;
+
     unsigned GetInputBufferSize() override;
     unsigned GetOutputBufferSize() override;
     unsigned GetWeightsBufferSize() override;
@@ -48,13 +57,30 @@ public:
     mli_status AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
                                    Tensor<OffsetBuffer, 4> &output,
                                    OffsetBuffer &weights,
-                                   OffsetBuffer &padding,
+                                   OffsetBuffer &inpzeropts,
+                                   OffsetBuffer &wtszeropts,
                                    OffsetBuffer &descr) override;
 
     mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
     unsigned GetKernelPrivateDataSize() const override;
     unsigned GetRuntimeObjectSize() const override;
 
+private:
+    Tensor<OffsetBuffer, 4> m_in;
+    Tensor<OffsetBuffer, 3> m_weights;
+    Tensor<OffsetBuffer, 4> m_output;
+
+    DwConv2DConfig m_config;
+
+    OffsetBuffer m_input_zp;
+    OffsetBuffer m_weights_zp;
+    OffsetBuffer m_metadata;
+
+    uint32_t m_input_buffer_size;
+    uint32_t m_weights_buffer_size;
+    uint32_t m_output_buffer_size;
+
+    lib_mli::PlatformDescription m_pd;
 };
 
 class MaxPool2D_CS : public lib_mli::MaxPool2D_CS {
@@ -78,8 +104,7 @@ public:
     unsigned GetOutputBufferSize() const override;
     unsigned GetDataBufferSize() const override;
 
-    
-    //TODO: add destructor if need
+    // TODO: add destructor if need
 
 private:
     uint32_t m_io_elem_size;
@@ -90,14 +115,14 @@ private:
     uint32_t m_input_offset;
     uint32_t m_output_offset;
     uint32_t m_descr_offset;
-    
+
     uint32_t m_input_mem_id;
     uint32_t m_output_mem_id;
     uint32_t m_descr_mem_id;
 
     uint32_t m_input_shape[4];
     uint32_t m_output_shape[4];
-    
+
     int32_t m_input_stride[4];
     int32_t m_output_stride[4];
 

@@ -75,6 +75,11 @@ MLI_FORCE_INLINE fx_quant_specific_params adjust_quant_params_v(fx_quant_specifi
     return *in;
 }
 
+MLI_FORCE_INLINE int_quant_specific_params adjust_quant_params_v(int_quant_specific_params* in, int krn_idx) {
+    // No need to adjust something during calculations for int specific quantization
+    return *in;
+}
+
 //==========================================================================
 // Calculation of a dotprod with an offset on the input values.
 // offset on the weights is assumed zero
@@ -481,6 +486,22 @@ MLI_FORCE_INLINE void result_cast_relu_store_v(
 
     out = mli_math_min_fx(out, val_max_limit);
     out = mli_math_max_fx(out, val_min_limit);
+
+    mli_prv_store_n_samples(o_ptr, out, num);
+}
+
+template <>
+MLI_FORCE_INLINE void result_cast_relu_store_v(
+        MLI_CONV_OUT_PTR(int32_t) __restrict o_ptr,
+        vNx4accshort_t acc,
+        const int_quant_specific_params* quant_params,
+        const int16_t val_min_limit,
+        const int16_t val_max_limit,
+        int num,
+        bool add_preshift_rnd) {
+
+    // No need to add offset (does not have out offset) for int specific quantization
+    vNx4int_t out = to_vNx4int_t(acc);
 
     mli_prv_store_n_samples(o_ptr, out, num);
 }

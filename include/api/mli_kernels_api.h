@@ -22,6 +22,19 @@ extern "C" {
 
 #include "mli_types.h"
 
+
+//================================================
+//
+// MLI_3_0 semantic functions
+//
+//================================================
+mli_status mli_krn_rescale_i32_o8(const mli_tensor *in,
+                                  const mli_tensor *bias_in,
+                                  const mli_tensor *scale,
+                                  const mli_tensor *shift,
+                                  const mli_tensor *bias_out,
+                                  mli_tensor *out);
+
 //================================================
 //
 // Convolution group of kernels
