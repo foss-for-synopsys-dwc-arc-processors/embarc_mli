@@ -22,6 +22,7 @@ typedef enum {
   kMoveId,
   kDWConv2dId,
   kMaxPool2DId,
+  kAddId,
   kSomeOtherKernelId
 } kernel_id_t;
 

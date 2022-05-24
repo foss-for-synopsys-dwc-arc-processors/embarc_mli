@@ -285,13 +285,12 @@ public:
      *
      */
     virtual mli_status EncodeWtsZeroPts(Tensor<Buffer, 1> &wtszeropts,
-                                        Buffer &encoded_wtszeropts) = 0;
-
+                                        Buffer &encoded_wtszeropts) {return MLI_STATUS_OK;}
     /**
      * @brief Method to query the size of the encoded weights zero-points buffer
      *
      */
-    virtual unsigned GetEncodedWtsZeroPtsSize() = 0;
+    virtual unsigned GetEncodedWtsZeroPtsSize() { return 0;}
 
     /**
      * @brief Methods to get buffer sizes
@@ -302,7 +301,7 @@ public:
     virtual unsigned GetOutputBufferSize() = 0;
     virtual unsigned GetWeightsBufferSize() = 0;
     virtual unsigned GetDataBufferSize() = 0;
-
+    virtual unsigned GetInputZeroPtsBufferSize() {return 0;}
     /**
      * @brief Methods to set buffer offsets
      *
@@ -518,9 +517,10 @@ public:
      * @brief Methods to set buffer offsets
      *
      */
-    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
-                                           const OffsetBuffer &output,
-                                           const OffsetBuffer &data) = 0;
+    virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_l,
+                                           const Tensor<OffsetBuffer, 4> &input_r,
+                                           const Tensor<OffsetBuffer, 4> &output,
+                                           const OffsetBuffer &descr) = 0;
 };
 
 /**
@@ -544,9 +544,10 @@ public:
      * @brief Methods to set buffer offsets
      *
      */
-    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
-                                           const OffsetBuffer &output,
-                                           const OffsetBuffer &data) = 0;
+    virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left,
+                                           const Tensor<OffsetBuffer, 4> &input_right,
+                                           const Tensor<OffsetBuffer, 4> &output,
+                                           const OffsetBuffer &descr) = 0;
 };
 
 
@@ -571,9 +572,10 @@ public:
      * @brief Methods to set buffer offsets
      *
      */
-    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
-                                           const OffsetBuffer &output,
-                                           const OffsetBuffer &data) = 0;
+    virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left,
+                                           const Tensor<OffsetBuffer, 4> &input_right,
+                                           const Tensor<OffsetBuffer, 4> &output,
+                                           const OffsetBuffer &descr) = 0;
 };
 
 

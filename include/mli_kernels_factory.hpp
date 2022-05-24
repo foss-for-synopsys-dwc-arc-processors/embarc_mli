@@ -30,10 +30,22 @@ public:
 
     virtual uint32_t DepthwiseConv2d_CS_GetSize() const { return 0; }
 
+    virtual uint32_t FullyConnected_CS_GetSize() const { return 0; }
+
+    virtual uint32_t Rescale_CS_GetSize() const { return 0; }
+
+    virtual uint32_t Clip_CS_GetSize() const { return 0; }
+
+    virtual uint32_t Add_CS_GetSize() const { return 0; }
+
+    virtual uint32_t Sub_CS_GetSize() const { return 0; }
+
+    virtual uint32_t Mul_CS_GetSize() const { return 0; }
+
     virtual lib_mli::Conv2d_CS* Conv2d_CS(void *kernel_buffer,
                                           const Tensor<NoBuffer, 4> input_shape,
                                           const Tensor<NoBuffer, 5> weights,
-                                          const mli_conv2d_cfg *cfg,
+                                          const Conv2DConfig &cfg,
                                           const Tensor<NoBuffer, 4> output_tile_shape) = 0;
 
     virtual lib_mli::Prelu_CS* Prelu_CS(void *kernel_buffer,
@@ -62,6 +74,33 @@ public:
                                                             const DwConv2DConfig &cfg,
                                                             const Tensor<NoBuffer, 4> output_tile_shape) { return nullptr; }
 
+    virtual lib_mli::FullyConnected_CS* FullyConnected_CS(void *kernel_buffer,
+                                                          const Tensor<NoBuffer, 2> in,
+                                                          const Tensor<NoBuffer, 2> weights,
+                                                          const Tensor<NoBuffer, 2> output_tile_shape) { return nullptr; }
+
+    virtual lib_mli::Rescale_CS* Rescale_CS(void *kernel_buffer,
+                                            const Tensor<NoBuffer, 4> input,
+                                            const Tensor<NoBuffer, 4> output) { return nullptr; }                                                                                                                    
+
+    virtual lib_mli::Clip_CS* Clip_CS(void *kernel_buffer,
+                                      const Tensor<NoBuffer, 4> input,
+                                      const Tensor<NoBuffer, 4> output) { return nullptr; }
+
+    virtual lib_mli::Add_CS* Add_CS(void *kernel_buffer,
+                                    const Tensor<NoBuffer, 4> input_left,
+                                    const Tensor<NoBuffer, 4> input_right,
+                                    const Tensor<NoBuffer, 4> output_tile_shape) { return nullptr; }    
+
+    virtual lib_mli::Sub_CS* Sub_CS(void *kernel_buffer,
+                                    const Tensor<NoBuffer, 4> input_left,
+                                    const Tensor<NoBuffer, 4> input_right,
+                                    const Tensor<NoBuffer, 4> output) { return nullptr; }
+
+    virtual lib_mli::Mul_CS* Mul_CS(void *kernel_buffer,
+                                    const Tensor<NoBuffer, 4> input_left,
+                                    const Tensor<NoBuffer, 4> input_right,
+                                    const Tensor<NoBuffer, 4> output) { return nullptr; }                                                                                                           
 };
 
 } // namespace snps_arc::metaware::mli

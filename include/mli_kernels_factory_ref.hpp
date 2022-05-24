@@ -33,7 +33,7 @@ public:
     lib_mli::Conv2d_CS* Conv2d_CS(void *kernel_buffer,
                                   const Tensor<NoBuffer, 4> input_shape,
                                   const Tensor<NoBuffer, 5> weights,
-                                  const mli_conv2d_cfg *cfg,
+                                  const Conv2DConfig &cfg,
                                   const Tensor<NoBuffer, 4> output_tile_shape) override {
         //return new(kernel_buffer) lib_ref::Conv2d_CS(m_pd, input_shape, weights, cfg, output_tile_shape);
         return nullptr;
