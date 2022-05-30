@@ -120,7 +120,7 @@ unsigned MaxPool2D_CS::GetOutputBufferSize() const {
   return m_output_buffer_size;
 }
 unsigned MaxPool2D_CS::GetDataBufferSize() const {
-  return (sizeof(mli_pool_cfg) + sizeof(mli_tensor) * 2);
+  return 0;
 }
 
 }  // namespace snps_arc::metaware::mli::ref

@@ -178,7 +178,7 @@ for (int i = 1; i < 4; i++) {
   out_mem_offset = *offset;
   *offset += out_size;
 
-  // MLI tensor structures and MaxPool2D configuration
+  // DataBuffer size is 0 for reference kernel
   offset = &offsets[0];
   uint32_t data_buffer_size = maxpool2d_op->GetDataBufferSize();
   lib_mli::OffsetBuffer maxpool2d_descr_buf{*offset, 0, data_buffer_size,

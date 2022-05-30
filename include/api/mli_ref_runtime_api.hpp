@@ -91,9 +91,9 @@ class MaxPool2D : public ExecutionInterface {
 
   private:
     //TODO: May be move them to the membasis as an example.
-    mli_pool_cfg * m_cfg;
-    mli_tensor * m_input;
-    mli_tensor * m_output;
+    mli_pool_cfg m_cfg;
+    mli_tensor m_input;
+    mli_tensor m_output;
     int32_t m_input_batch_offset;
     int32_t m_output_batch_offset;
     uint32_t m_batch_number;
