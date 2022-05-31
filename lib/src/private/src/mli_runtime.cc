@@ -16,6 +16,7 @@
 namespace snps_arc::metaware::mli {
 using ref::MaxPool2D;
 using ref::Move;
+using ref::DepthwiseConv2d;
 
 ExecutionInterface* ExecutionInterface::Create(
         void* allocation_memory_buffer,
@@ -31,33 +32,42 @@ ExecutionInterface* ExecutionInterface::Create(
     //  TODO: Update it with MLI REF/EM/VPX Classes and remove [[maybe_unused]] attr of the kernel_id
     switch (kernel_id) {
         //  TODO: Update it with MLI REF/EM/VPX Classes
-      case kInvalidId:
-        MLI_ASSERT(0);
-        break;
-      case kConv2dId:
-        MLI_ASSERT(0);
-        break;
-      case kPreluId:
-        MLI_ASSERT(0);
-        break;
-      case kMoveId:
-        MLI_ASSERT(sizeof(Move) == alloc_buf_size);
-        obj = new (allocation_memory_buffer) Move(kernel_private_data_buffer, private_data_size, membases, num_mems);
-        break;
-      case kDWConv2dId:
-        MLI_ASSERT(sizeof(ref::DepthwiseConv2d) == alloc_buf_size);
-        obj = new (allocation_memory_buffer) ref::DepthwiseConv2d(kernel_private_data_buffer, private_data_size, membases, num_mems);
-        break;
-      case kMaxPool2DId:
-        MLI_ASSERT(sizeof(MaxPool2D) == alloc_buf_size);
-        obj = new (allocation_memory_buffer) MaxPool2D(kernel_private_data_buffer, private_data_size, membases, num_mems);
-        break;
-      case kSomeOtherKernelId:
-        MLI_ASSERT(0);
-        break;
-      default:
-        MLI_ASSERT(0);
-        break;
+        case kInvalidId:
+            MLI_ASSERT(0);
+            break;
+        case kConv2dId:
+            MLI_ASSERT(0);
+            break;
+        case kPreluId:
+            MLI_ASSERT(0);
+            break;
+        case kMoveId:
+            if(alloc_buf_size >= sizeof(Move)) {
+                obj = new (allocation_memory_buffer) Move(kernel_private_data_buffer, private_data_size, membases, num_mems);
+            } else {
+                MLI_PRINTF("\nASSERT: Insufficient space for [Move] runtime object\n");
+            }
+            break;
+        case kDWConv2dId:
+            if(alloc_buf_size >= sizeof(DepthwiseConv2d)) {
+                obj = new (allocation_memory_buffer) DepthwiseConv2d(kernel_private_data_buffer, private_data_size, membases, num_mems);
+            } else {
+                MLI_PRINTF("\nASSERT: Insufficient space for [DepthwiseConv2d] runtime object\n");
+            }
+            break;
+        case kMaxPool2DId:
+            if(alloc_buf_size >= sizeof(MaxPool2D)) {
+                obj = new (allocation_memory_buffer) MaxPool2D(kernel_private_data_buffer, private_data_size, membases, num_mems);
+            } else {
+                MLI_PRINTF("\nASSERT: Insufficient space for [MaxPool2D] runtime object\n");
+            }
+            break;
+        case kSomeOtherKernelId:
+            MLI_ASSERT(0);
+            break;
+        default:
+            MLI_ASSERT(0);
+            break;
     }
 
     return obj;
