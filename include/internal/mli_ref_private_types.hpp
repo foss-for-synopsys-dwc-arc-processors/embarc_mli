@@ -12,9 +12,23 @@
 #include "mli_types.h"
 #include "mli_types.hpp"
 
+#include "mli_ref_compiler_api.hpp"
+
 namespace lib_mli = ::snps_arc::metaware::mli;
 
 namespace snps_arc::metaware::mli::ref {
+
+class MovePrivateData : public PrivateData {
+
+public:
+    MovePrivateData() : PrivateData(kMoveId) {}
+
+    Tensor<OffsetBuffer, Move_CS::kMaxRank> src;
+    Tensor<OffsetBuffer, Move_CS::kMaxRank> dst;
+    
+    IteratorCfg<Move_CS::kMaxRank> src_cfg;
+    IteratorCfg<Move_CS::kMaxRank> dst_cfg;
+};
 
 class MaxPool2DPrivateData : public PrivateData {
 

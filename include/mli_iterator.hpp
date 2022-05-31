@@ -45,20 +45,20 @@ class IteratorCfg {
      * @param first_increment [I] increment per dimension in elements for the first increment on each dimension
      * @param increment       [I] increment per dimension in elements 
      * @param first_size      [I] size in each dimension for the first tile in that dimension
-     * @param size            [I] size in each dimension for the remaining tile in that dimension
+     * @param size            [I] size in each dimension for the remaining tiles in that dimension
      *                            Note that the last tile could be smaller as it is clipped to the shape of the full tensor.
      * @param rank            [I] Optional rank in case the rank is smaller than the maxRank template parameter.
      */
     IteratorCfg(int32_t first_increment[],
                 int32_t increment[],
-                int32_t first_size[],
-                int32_t size[],
+                uint32_t first_size[],
+                uint32_t size[],
                 unsigned rank = maxRank
                 ) {
         for (unsigned i = 0; i < rank; i++){
-          first_increment_[i] = increment[i];
+          first_increment_[i] = first_increment[i];
           increment_[i] = increment[i];
-          first_size_[i] = size[i];
+          first_size_[i] = first_size[i];
           size_[i] = size[i];
         }
         rank_ = rank;
@@ -73,7 +73,7 @@ class IteratorCfg {
      * @param rank            [I] Optional rank in case the rank is smaller than the maxRank template parameter.
      */
     IteratorCfg(int32_t increment[],
-                int32_t size[],
+                uint32_t size[],
                 unsigned rank = maxRank
                 ) {
         for (unsigned i = 0; i < rank; i++){
@@ -91,7 +91,7 @@ class IteratorCfg {
      * @param in       [I] IteratorCfg with a smaller rank that is stored inside this cfg
      */
     template <unsigned N>
-    void set_config(IteratorCfg<N> in) {
+    void set_config(const IteratorCfg<N> in) {
         for (uint32_t i = 0; i < N; i++){
           first_increment_[i] = in.get_first_increment(i);
           increment_[i] = in.get_increment(i);
@@ -108,7 +108,7 @@ class IteratorCfg {
     }
 
     template <typename buf_T>
-    void set_config_single_tile(Tensor<buf_T, maxRank> tensor){
+    void set_config_single_tile(const Tensor<buf_T, maxRank> tensor){
         for (uint32_t i = 0; i < maxRank; i++){
           first_increment_[i] = tensor.get_dim(i);
           increment_[i] = tensor.get_dim(i);
@@ -118,27 +118,29 @@ class IteratorCfg {
         rank_ = maxRank;
     }
 
-    unsigned get_first_increment(unsigned dim) {
+    unsigned get_first_increment(unsigned dim) const {
       return first_increment_[dim];
     }
-    unsigned get_increment(unsigned dim) {
+    unsigned get_increment(unsigned dim) const {
       return increment_[dim];
     }
-    unsigned get_first_size(unsigned dim) {
+    unsigned get_first_size(unsigned dim) const {
       return first_size_[dim];
     }
-    unsigned get_size(unsigned dim) {
+    unsigned get_size(unsigned dim) const {
       return size_[dim];
     }
-    unsigned get_rank() {
+    unsigned get_rank() const {
       return rank_;
     }
 
   private:
+  //TODO: change to unsigned where need
     int32_t first_increment_[maxRank];
     int32_t increment_[maxRank];
-    int32_t first_size_[maxRank];
-    int32_t size_[maxRank];
+    uint32_t first_size_[maxRank];
+    uint32_t size_[maxRank];
+  //TODO: add max[] parameter
     unsigned rank_;
 };
 /**
@@ -215,8 +217,8 @@ class TensorIterator {
 
     Tensor<InternalBuffer, maxRank> GetSubTensor() {
       uint32_t copysize[maxRank];
-      int r = 0;
-      for (r = 0; r < (int)config_.get_rank(); r++) {
+      unsigned r = 0;
+      for (r = 0; r < config_.get_rank(); r++) {
         copysize[r] = (pos_[r] == 0)? config_.get_first_size(r) : config_.get_size(r);
         copysize[r] = MIN(copysize[r], full_tensor_.get_dim(r) - pos_[r]);
       }
@@ -237,7 +239,7 @@ class TensorIterator {
   }
 
 private:
-  int32_t pos_[maxRank];
+  uint32_t pos_[maxRank];
   int32_t offset_;
   Tensor<InternalBuffer, maxRank> full_tensor_;
   IteratorCfg<maxRank> config_;

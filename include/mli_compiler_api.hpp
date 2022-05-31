@@ -678,7 +678,25 @@ public:
  */
 class Move_CS : public CompilerGenericInterface {
 public:
-  static constexpr unsigned kMaxRank = 4;
+    static constexpr unsigned kMaxRank = 4;
+    /**
+     * @brief Methods to get buffer sizes
+     * TODO: add description using conv2d_cs as a starting point
+     */
+    
+    // Temporary non-pure virtual functions, need to be implemented for other platforms.
+    virtual unsigned GetInputBufferSize() const { return 0; };
+    virtual unsigned GetOutputBufferSize() const { return 0; };
+    virtual unsigned GetDataBufferSize() const { return 0; };
+
+    /**
+     * @brief Methods to set buffer offsets
+     *
+     */
+    virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kMaxRank> &src,
+                                           const Tensor<OffsetBuffer, kMaxRank> &dst) {
+      return MLI_STATUS_NOT_SUPPORTED;
+    };
 };
 
 } // namespace mli

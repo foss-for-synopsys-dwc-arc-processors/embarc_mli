@@ -150,6 +150,10 @@ public:
   uint32_t get_offset() const {
     return offset_;
   }
+
+  void inc(unsigned offset) {
+    offset_ += elem_size_ * offset;
+  }
 // read and write not possible from this buffer.
 
 private:
@@ -191,59 +195,59 @@ public:
     elem_size_ = buf.get_elem_size();
   }
 
-  uint32_t get_size(){
+  uint32_t get_size() {
     return size_;
   }
-  uint32_t get_elem_size(){
+  uint32_t get_elem_size() const {
     return elem_size_;
   }
-  
-  template<typename T>
-  void set_ptr(T* ptr){
+
+  template <typename T>
+  void set_ptr(T* ptr) {
     ptr_ = static_cast<uint64_t>(ptr);
     elem_size_ = sizeof(T);
   }
 
-  template<typename T>
-  void set_buffer(T* ptr, uint32_t size){
+  template <typename T>
+  void set_buffer(T* ptr, uint32_t size) {
     ptr_ = static_cast<uint64_t>(ptr);
     elem_size_ = sizeof(T);
     size_ = size;
   }
 
-  template<typename T>
-  T* get_ptr(){
+  template <typename T>
+  T* get_ptr() {
     assert(sizeof(T) == elem_size_);
     return reinterpret_cast<T*>(ptr_);
   }
 
-  // TODO: For Read/Write If we need platform specific handling, update the implementation 
-  template<typename T>
-  T read(uint32_t offset){
+  // TODO: For Read/Write If we need platform specific handling, update the implementation
+  template <typename T>
+  T read(uint32_t offset) const {
     assert(sizeof(T) == elem_size_);
     return *(reinterpret_cast<T*>(ptr_) + offset);
   }
 
-  template<typename T>
-  void write(uint32_t offset, T data){
+  template <typename T>
+  void write(uint32_t offset, T data) {
     assert(sizeof(T) == elem_size_);
     *(reinterpret_cast<T*>(ptr_) + offset) = data;
   }
 
-  void inc(unsigned offset){
+  void inc(unsigned offset) {
     ptr_ += elem_size_ * offset;
   }
+
 private:
   uint64_t ptr_;
   uint32_t size_;
   uint32_t elem_size_;
 };
 
-template<typename buf_T, unsigned maxRank>
+template <typename buf_T, unsigned maxRank>
 class Tensor {
-
-public:
-  Tensor(){
+ public:
+  Tensor() {
     buf_ = buf_T();
     for (unsigned i = 0; i < maxRank; i++){
       shape_[i] = 0;
@@ -252,7 +256,7 @@ public:
     rank_ = 0;
   }
 
-  Tensor(buf_T buf, uint32_t shape[]){
+  Tensor(buf_T buf, uint32_t shape[]) {
     buf_ = buf;
     int32_t stride = 1;
     for (unsigned i = 0; i < maxRank; i++){
@@ -263,7 +267,7 @@ public:
     rank_ = maxRank;
   }
 
-  Tensor(uint32_t shape[]){
+  Tensor(uint32_t shape[]) {
     buf_ = NoBuffer();
     int32_t stride = 1;
     for (unsigned i = 0; i < maxRank; i++){
@@ -274,7 +278,7 @@ public:
     rank_ = maxRank;
   }
 
-  Tensor(buf_T buf, uint32_t shape[], unsigned rank){
+  Tensor(buf_T buf, uint32_t shape[], unsigned rank) {
     assert(rank <= maxRank);
     buf_ = buf;
     int32_t stride = 1;
@@ -286,7 +290,7 @@ public:
     rank_ = rank;
   }
 
-  Tensor(uint32_t shape[], unsigned rank){
+  Tensor(uint32_t shape[], unsigned rank) {
     assert(rank <= maxRank);
     buf_ = NoBuffer();
     int32_t stride = 1;
@@ -298,7 +302,7 @@ public:
     rank_ = rank;
   }
 
-  Tensor(buf_T buf, uint32_t shape[], int32_t mem_stride[]){
+  Tensor(buf_T buf, uint32_t shape[], int32_t mem_stride[]) {
     buf_ = buf;
     for (unsigned i = 0; i < maxRank; i++){
       shape_[i] = shape[i];
@@ -307,7 +311,7 @@ public:
     rank_ = maxRank;
   }
 
-  Tensor(uint32_t shape[], int32_t mem_stride[]){
+  Tensor(uint32_t shape[], int32_t mem_stride[]) {
     buf_ = NoBuffer();
     for (unsigned i = 0; i < maxRank; i++){
       shape_[i] = shape[i];
@@ -316,7 +320,7 @@ public:
     rank_ = maxRank;
   }
 
-  Tensor(buf_T buf, uint32_t shape[], int32_t mem_stride[], unsigned rank){
+  Tensor(buf_T buf, uint32_t shape[], int32_t mem_stride[], unsigned rank) {
     assert(rank <= maxRank);
     buf_ = buf;
     for (unsigned i = 0; i < rank; i++){
@@ -326,7 +330,7 @@ public:
     rank_ = rank;
   }
 
-  Tensor(uint32_t shape[], int32_t mem_stride[], unsigned rank){
+  Tensor(uint32_t shape[], int32_t mem_stride[], unsigned rank) {
     assert(rank <= maxRank);
     buf_ = NoBuffer();
     for (unsigned i = 0; i < rank; i++){
@@ -337,8 +341,8 @@ public:
   }
 
   /* copy constructor for tensors with different rank */
-  template<unsigned N>
-  Tensor(Tensor<buf_T, N> in){
+  template <unsigned N>
+  Tensor(Tensor<buf_T, N> in) {
     static_assert( N <= maxRank, "Invalid (Input Rank > maxRank)");
     buf_ = in.get_buf();
     for (unsigned i = 0; i < N; i++){
@@ -353,8 +357,8 @@ public:
   }
 
   /* copy constructor for tensors with different rank/Buffer Type */
-  template<unsigned N>
-  Tensor(buf_T buf, Tensor<NoBuffer, N> in){
+  template <unsigned N>
+  Tensor(buf_T buf, Tensor<NoBuffer, N> in) {
     static_assert( N <= maxRank, "Invalid (Input Rank > maxRank)");
     buf_ = buf;
     for (unsigned i = 0; i < N; i++){
@@ -369,7 +373,7 @@ public:
   }
 
   /* 'copy' constructors for tensors with different buffer types */
-  Tensor(Tensor<OffsetBuffer, maxRank> in, uint64_t bases[], unsigned num_mems){
+  Tensor(Tensor<OffsetBuffer, maxRank> in, uint64_t bases[], unsigned num_mems) {
     // this one can only be used to create an InternalBuffer from an OffsetBuffer
     buf_ = InternalBuffer(in.get_buf(), bases, num_mems);
     for (unsigned i = 0; i < maxRank; i++){
@@ -402,10 +406,10 @@ public:
     return buf_.get_elem_size();
   }
 
-  Tensor<buf_T, maxRank> slice(int32_t pos[], uint32_t size[]){
+  Tensor<buf_T, maxRank> slice(uint32_t pos[], uint32_t size[]){
     buf_T buf = buf_;
     unsigned offset = 0;
-    for (unsigned i = 0; i < maxRank; i++){
+    for (unsigned i = 0; i < rank_; i++){
       offset += pos[i] * mem_stride_[i];
     }
     buf.inc(offset);
@@ -413,13 +417,13 @@ public:
     return slice_tens;
   }
 
-  template<typename T>
-  T read(uint32_t offset){
+  template <typename T>
+  T read(uint32_t offset) {
     return buf_.template read<T>(offset);
   }
 
-  template<typename T>
-  void write(uint32_t offset, T data){
+  template <typename T>
+  void write(uint32_t offset, T data) {
     buf_.write(offset, data);
   }
 
@@ -545,7 +549,6 @@ struct ReduceOpConfig {
                        For instance, having feature map in HWC layout, axis == 0 corresponds to H dimension.
                        If axis < 0 the function will be applied to the whole tensor */
 };
-
 
 } // namespace snps_arc::metaware::mli
 

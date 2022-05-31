@@ -53,20 +53,26 @@ public:
                                         const Tensor<NoBuffer, 4> output_tile_shape,
                                         int groups) = 0;
 
-    virtual lib_mli::Move_CS* Move_CS(void *kernel_buffer,
+    virtual lib_mli::Move_CS *Move_CS(void *kernel_buffer,
                                       const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> src,
-                                      const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> dst) = 0;
+                                      const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> dst) {
+      return nullptr;
+    };
 
-    virtual lib_mli::Move_CS* Move_CS(void *kernel_buffer,
+    virtual lib_mli::Move_CS *Move_CS(void *kernel_buffer,
                                       const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> src,
                                       const IteratorCfg<lib_mli::Move_CS::kMaxRank> src_cfg,
                                       const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> dst,
-                                      const IteratorCfg<lib_mli::Move_CS::kMaxRank> dst_cfg) = 0;
+                                      const IteratorCfg<lib_mli::Move_CS::kMaxRank> dst_cfg) {
+      return nullptr;
+    };
 
     virtual lib_mli::MaxPool2D_CS* MaxPool2D_CS(void *kernel_buffer,
-                                                const Tensor<NoBuffer, 4> in, // input fmap width, height, channels, batch size
-                                                const PoolOpConfig &cfg,
-                                                const Tensor<NoBuffer, 4> output_tile_shape) {return nullptr;};// output tile width, height, ch, groups
+                                        const Tensor<NoBuffer, 4> in, // input fmap width, height, channels, batch size
+                                        const PoolOpConfig &cfg,
+                                        const Tensor<NoBuffer, 4> output_tile_shape) {
+      return nullptr;
+    };// output tile width, height, ch, groups
 
     virtual lib_mli::DepthwiseConv2d_CS* DepthwiseConv2d_CS(void *kernel_buffer,
                                                             const Tensor<NoBuffer, 4> in,

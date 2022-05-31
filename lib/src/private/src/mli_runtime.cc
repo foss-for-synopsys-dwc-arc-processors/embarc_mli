@@ -15,6 +15,7 @@
 
 namespace snps_arc::metaware::mli {
 using ref::MaxPool2D;
+using ref::Move;
 
 ExecutionInterface* ExecutionInterface::Create(
         void* allocation_memory_buffer,
@@ -40,7 +41,8 @@ ExecutionInterface* ExecutionInterface::Create(
         MLI_ASSERT(0);
         break;
       case kMoveId:
-        MLI_ASSERT(0);
+        MLI_ASSERT(sizeof(Move) == alloc_buf_size);
+        obj = new (allocation_memory_buffer) Move(kernel_private_data_buffer, private_data_size, membases, num_mems);
         break;
       case kDWConv2dId:
         MLI_ASSERT(sizeof(ref::DepthwiseConv2d) == alloc_buf_size);

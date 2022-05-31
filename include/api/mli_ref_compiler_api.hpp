@@ -138,6 +138,68 @@ private:
     lib_mli::PlatformDescription m_pd;
 };
 
+class Move_CS : public lib_mli::Move_CS {
+ public:
+  /**
+   * @brief constructor to create an iterating move object
+   *
+   * This constructor can be used to create a move object that can transfer the
+   * data from one tensor to the other, in a tiled manner The shapes of both src
+   * and dst tensors need to match. the offsets (aka mem_strides) can be
+   * different.
+   *
+   * The function accepts tensors with a templated rank up to kMaxRank
+   *
+   * Separate iterator configs are needed for src and dst because the increments
+   * can be different.
+   * The cfg.size needs to be the same for src and dst. (as wel as the
+   * cfg.start_size)
+   *
+   * TODO: decide if we want to put the IteratorCfg on the interface, or the
+   * individual fields
+   *
+   * @param src [I] source tensor
+   * @param dst [I] destination tensor
+   * @param src_cfg [I] source iterator configuration
+   * @param dst_cfg [I] destination iterator configuration
+   */
+
+  Move_CS(const lib_mli::PlatformDescription pd,
+          const Tensor<NoBuffer, kMaxRank> src,
+          const Tensor<NoBuffer, kMaxRank> dst,
+          const IteratorCfg<kMaxRank> src_it_cfg = IteratorCfg<kMaxRank>(),
+          const IteratorCfg<kMaxRank> dst_it_cfg = IteratorCfg<kMaxRank>());
+
+  unsigned GetKernelPrivateDataSize() const override;
+  unsigned GetRuntimeObjectSize() const override;
+  mli_status GetKernelPrivateData(void *kernel_private_data_buffer) override;
+  mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kMaxRank> &src,
+                                 const Tensor<OffsetBuffer, kMaxRank> &dst) override;
+
+  unsigned GetInputBufferSize() const override;
+  unsigned GetOutputBufferSize() const override;
+  unsigned GetDataBufferSize() const override;
+
+private:
+  IteratorCfg<kMaxRank> m_src_cfg;
+  IteratorCfg<kMaxRank> m_dst_cfg;
+  
+  lib_mli::PlatformDescription m_pd;
+  
+  Tensor<OffsetBuffer, kMaxRank> m_src;
+  Tensor<OffsetBuffer, kMaxRank> m_dst;
+
+  uint32_t m_src_rank;
+  uint32_t m_dst_rank;
+
+  uint32_t m_src_shape[kMaxRank];
+  uint32_t m_dst_shape[kMaxRank];
+
+  int32_t m_src_stride[kMaxRank];
+  int32_t m_dst_stride[kMaxRank];
+
+};
+
 } // namespace ref
 
 #endif // _MLI_REF_COMPILER_API_HPP_
