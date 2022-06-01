@@ -97,7 +97,9 @@ public:
      *
      * TODO: how to handle sliding in the output channel dimension? is this weights encoding for the complete 'thing' or just for this slide?
      */
-    virtual mli_status EncodeWeights(Tensor<Buffer, 5> weights, Buffer encoded_weights, compression_mode_t mode = compression_mode_t::Uncompressed) = 0;
+    virtual mli_status EncodeWeights(Tensor<Buffer, 5>& weights,
+                                     Buffer& encoded_weights,
+                                     compression_mode_t mode = compression_mode_t::Uncompressed) = 0;
 
     /**
      * @brief Method to query the size of the encoded weights buffer
@@ -112,10 +114,10 @@ public:
      * This method will read the input zero-points buffer in a platform independend layout
      * and translate it into a buffer that can be easily read by the platform specific
      * kernel implementation.
-     * The content of the encode_inpzerpts buffer is opaque for the compiler.
+     * The content of the encode_inpzeropts buffer is opaque for the compiler.
      *
      */
-    virtual mli_status EncodeInpZeroPts(Tensor<Buffer, 1> inpzeropts, Buffer encoded_inpzeropts) = 0;
+    virtual mli_status EncodeInpZeroPts(Tensor<Buffer, 1>& inpzeropts, Buffer& encoded_inpzeropts) = 0;
 
     /**
      * @brief Method to query the size of the encoded input zero-points buffer
@@ -123,6 +125,24 @@ public:
      * This function returns the size of the buffer that is needed by the EncodeInpZeroPts method
      */
     virtual unsigned GetEncodedInpZeroPtsSize() = 0;
+
+    /**
+     * @brief Method to encode weights zero-points (padding values)
+     *
+     * This method will read the weights zero-points buffer in a platform independend layout
+     * and translate it into a buffer that can be easily read by the platform specific
+     * kernel implementation.
+     * The content of the encode_wtszeropts buffer is opaque for the compiler.
+     *
+     */
+    virtual mli_status EncodeWtsZeroPts(Tensor<Buffer, 1>& inpzeropts, Buffer& encoded_wtszeropts) = 0;
+
+    /**
+     * @brief Method to query the size of the encoded input zero-points buffer
+     *
+     * This function returns the size of the buffer that is needed by the EncodeWtsZeroPts method
+     */
+    virtual unsigned GetEncodedWtsZeroPtsSize() = 0;
 
     /**
      * @brief Methods to get buffer sizes
@@ -155,7 +175,8 @@ public:
     virtual mli_status AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
                                            Tensor<OffsetBuffer, 4> &output,
                                            OffsetBuffer &weights,
-                                           OffsetBuffer &padding,
+                                           OffsetBuffer &inpzeropts,
+                                           OffsetBuffer &wtszeropts,
                                            OffsetBuffer &descr) = 0;
 
     // mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override ;
@@ -285,12 +306,12 @@ public:
      *
      */
     virtual mli_status EncodeWtsZeroPts(Tensor<Buffer, 1> &wtszeropts,
-                                        Buffer &encoded_wtszeropts) {return MLI_STATUS_OK;}
+                                        Buffer &encoded_wtszeropts) { return MLI_STATUS_OK; }
     /**
      * @brief Method to query the size of the encoded weights zero-points buffer
      *
      */
-    virtual unsigned GetEncodedWtsZeroPtsSize() { return 0;}
+    virtual unsigned GetEncodedWtsZeroPtsSize() { return 0; }
 
     /**
      * @brief Methods to get buffer sizes

@@ -16,6 +16,7 @@
 namespace snps_arc::metaware::mli {
 using ref::MaxPool2D;
 using ref::Move;
+using ref::Conv2d;
 using ref::DepthwiseConv2d;
 
 ExecutionInterface* ExecutionInterface::Create(
@@ -36,7 +37,11 @@ ExecutionInterface* ExecutionInterface::Create(
             MLI_ASSERT(0);
             break;
         case kConv2dId:
-            MLI_ASSERT(0);
+            if(alloc_buf_size >= sizeof(Conv2d)) {
+                obj = new (allocation_memory_buffer) Conv2d(kernel_private_data_buffer, private_data_size, membases, num_mems);
+            } else {
+                MLI_PRINTF("\nASSERT: Insufficient space for [Conv2d] runtime object\n");
+            }
             break;
         case kPreluId:
             MLI_ASSERT(0);

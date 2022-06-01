@@ -21,6 +21,69 @@ using lib_mli::Buffer;
 using lib_mli::OffsetBuffer;
 using lib_mli::NoBuffer;
 
+class Conv2d_CS : public lib_mli::Conv2d_CS {
+public:
+    /**
+     * @brief Constructor of the Conv2d_CS object
+     *
+     */
+    Conv2d_CS(const lib_mli::PlatformDescription pd,
+              const Tensor<NoBuffer, 4> &in,
+              const Tensor<NoBuffer, 5> &weights,
+              const Conv2DConfig &cfg,
+              const Tensor<NoBuffer, 4> &output_tile_shape);
+
+    mli_status EncodeWeights(Tensor<Buffer, 5> &weights,
+                             Buffer &encoded_weights,
+                             compression_mode_t mode = compression_mode_t::Uncompressed) override;
+
+    unsigned GetEncodedWeightsSize() override;
+
+    mli_status EncodeInpZeroPts(Tensor<Buffer, 1> &inpzeropts,
+                                Buffer &encoded_inpzeropts) override;
+
+    unsigned GetEncodedInpZeroPtsSize() override;
+
+    mli_status EncodeWtsZeroPts(Tensor<Buffer, 1> &wtszeropts,
+                                Buffer &encoded_wtszeropts) override;
+
+    unsigned GetEncodedWtsZeroPtsSize() override;
+
+    unsigned GetInputBufferSize() override;
+    unsigned GetOutputBufferSize() override;
+    unsigned GetWeightsBufferSize() override;
+    unsigned GetZeroPointBufferSize() override;
+    unsigned GetDataBufferSize() override;
+
+    mli_status AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
+                                   Tensor<OffsetBuffer, 4> &output,
+                                   OffsetBuffer &weights,
+                                   OffsetBuffer &inpzeropts,
+                                   OffsetBuffer &wtszeropts,
+                                   OffsetBuffer &descr) override;
+
+    mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
+    unsigned GetKernelPrivateDataSize() const override;
+    unsigned GetRuntimeObjectSize() const override;
+
+private:
+    Tensor<OffsetBuffer, 4> m_in;
+    Tensor<OffsetBuffer, 5> m_weights;
+    Tensor<OffsetBuffer, 4> m_output;
+
+    Conv2DConfig m_config;
+
+    OffsetBuffer m_input_zp;
+    OffsetBuffer m_weights_zp;
+    OffsetBuffer m_metadata;
+
+    uint32_t m_input_buffer_size;
+    uint32_t m_weights_buffer_size;
+    uint32_t m_output_buffer_size;
+
+    lib_mli::PlatformDescription m_pd;
+};
+
 class DepthwiseConv2d_CS : public lib_mli::DepthwiseConv2d_CS {
 public:
     /**

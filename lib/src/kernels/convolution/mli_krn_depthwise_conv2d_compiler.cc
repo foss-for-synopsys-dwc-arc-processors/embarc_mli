@@ -11,7 +11,6 @@
 #include "mli_ref_compiler_api.hpp"
 #include "mli_ref_runtime_api.hpp"
 #include "mli_ref_private_types.hpp"
-#include "private/mli_krn_conv_private_types.hpp"
 
 
 namespace snps_arc::metaware::mli::ref {
@@ -30,7 +29,7 @@ DepthwiseConv2d_CS::DepthwiseConv2d_CS(const lib_mli::PlatformDescription pd,
   uint32_t output_shape[4];
   int32_t input_stride[4];
   int32_t output_stride[4];
-  for (size_t i = 0; i < 4; ++i) {
+  for (uint32_t i = 0; i < 4; ++i) {
     input_shape[i] = in.get_dim(i);
     input_stride[i] = in.get_mem_stride(i);
     output_shape[i] = output_tile_shape.get_dim(i);
@@ -39,7 +38,7 @@ DepthwiseConv2d_CS::DepthwiseConv2d_CS(const lib_mli::PlatformDescription pd,
 
   uint32_t weights_shape[3];
   int32_t weights_stride[3];
-  for (size_t i = 0; i < 3; ++i) {
+  for (uint32_t i = 0; i < 3; ++i) {
     weights_shape[i] = weights.get_dim(i);
     weights_stride[i] = weights.get_mem_stride(i);
   }
@@ -143,7 +142,7 @@ mli_status DepthwiseConv2d_CS::EncodeWeights(Tensor<Buffer, 3> &weights,
   // TODO: support other data types
   assert(weights.get_elem_size() == 1);
 
-  for (size_t i = 0; i < weights.get_dim(0); ++i) {
+  for (uint32_t i = 0; i < weights.get_dim(0); ++i) {
     encoded_weights.write(i, weights.read<int8_t>(i));
   }
 
@@ -164,7 +163,7 @@ mli_status DepthwiseConv2d_CS::EncodeInpZeroPts(Tensor<Buffer, 1> &inpzeropts,
   // only supports 2 bytes value
   assert(inpzeropts.get_elem_size() == 2);
 
-  for (size_t i = 0; i < inpzeropts.get_dim(0); ++i) {
+  for (uint32_t i = 0; i < inpzeropts.get_dim(0); ++i) {
     encoded_inpzeropts.write(i, inpzeropts.read<int16_t>(i));
   }
 
@@ -187,7 +186,7 @@ mli_status DepthwiseConv2d_CS::EncodeWtsZeroPts(Tensor<Buffer, 1> &wtszeropts,
   // only supports 2 bytes value
   assert(wtszeropts.get_elem_size() == 2);
 
-  for (size_t i = 0; i < wtszeropts.get_dim(0); ++i) {
+  for (uint32_t i = 0; i < wtszeropts.get_dim(0); ++i) {
     encoded_wtszeropts.write(i, wtszeropts.read<int16_t>(i));
   }
 
@@ -212,7 +211,7 @@ unsigned DepthwiseConv2d_CS::GetOutputBufferSize() {
 }
 
 unsigned DepthwiseConv2d_CS::GetDataBufferSize() {
-  return sizeof(DepthwiseConv2dMetadata);
+  return 0;
 }
 
 }  // namespace snps_arc::metaware::mli::ref

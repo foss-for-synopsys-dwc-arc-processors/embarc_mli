@@ -6,7 +6,6 @@
 * the LICENSE file in the root directory of this source tree.
 *
 */
-
 #include <new>
 
 #include "mli_debug.h"
@@ -21,14 +20,14 @@ typedef mli_acc32_t mli_8x8_accu_t;
 
 namespace snps_arc::metaware::mli::ref {
 
-DepthwiseConv2d::DepthwiseConv2d(PrivateData* kernel_private_data_buffer,
-                                 size_t size,
-                                 uint64_t membases[], int num_mems) {
+Conv2d::Conv2d(PrivateData* kernel_private_data_buffer,
+               size_t size,
+               uint64_t membases[], int num_mems) {
   MLI_ASSERT(kernel_private_data_buffer->kernel_id == kDWConv2dId);
-  MLI_ASSERT(size == sizeof(DepthwiseConv2DPrivateData));
-  MLI_ASSERT(kernel_private_data_buffer->size == sizeof(DepthwiseConv2DPrivateData));
+  MLI_ASSERT(size == sizeof(Conv2DPrivateData));
+  MLI_ASSERT(kernel_private_data_buffer->size == sizeof(Conv2DPrivateData));
 
-  auto private_data = static_cast<DepthwiseConv2DPrivateData*>(kernel_private_data_buffer);
+  auto private_data = static_cast<Conv2DPrivateData*>(kernel_private_data_buffer);
 
   // element size for input, output and weights in bytes
   m_i_elem_size = private_data->m_input_buffer.get_elem_size();
@@ -36,9 +35,7 @@ DepthwiseConv2d::DepthwiseConv2d(PrivateData* kernel_private_data_buffer,
   m_w_elem_size = private_data->m_weights_buffer.get_elem_size();
 
   assert(num_mems > 0);
-  MLI_ASSERT(private_data->m_metadata_buffer.get_mem_idx() < uint32_t(num_mems));
-  m_metadata = DepthwiseConv2dMetadata();
-  uint64_t address;
+  m_metadata = Conv2dMetadata();
 
   // Reconstruct configuration
   auto krn_cfg = &m_metadata.cfg;
@@ -52,6 +49,7 @@ DepthwiseConv2d::DepthwiseConv2d(PrivateData* kernel_private_data_buffer,
   krn_cfg->stride_width = private_data->stride_width;
   krn_cfg->relu.type = MLI_RELU_NONE;
 
+  // TODO: Move partly or all into a helper function and use for each tensor
   {
     // Reconstruct Input Tensor
     auto& tsr = m_metadata.input;
@@ -66,21 +64,21 @@ DepthwiseConv2d::DepthwiseConv2d(PrivateData* kernel_private_data_buffer,
     tsr.rank = 3;
     tsr.shape[0] = private_data->input_h;
     tsr.shape[1] = private_data->input_w;
-    tsr.shape[2] = private_data->input_output_c;
+    tsr.shape[2] = private_data->input_c;
     tsr.mem_stride[0] = private_data->input_h_stride;
     tsr.mem_stride[1] = private_data->input_w_stride;
     tsr.mem_stride[2] = 1;
 
-    // weight zero points
+    // input zero points
     uint32_t inpzp_elem_size = private_data->m_inpzp_buffer.get_elem_size();
+    assert(inpzp_elem_size == sizeof(int16_t));
     if (private_data->m_inpzp_buffer.get_size() / inpzp_elem_size == 1) {
       // per-tensor quantization
       MLI_ASSERT(inpzp_elem_size == sizeof(int16_t));
       tsr.el_params.sa.dim = -1;
       tsr.el_params.sa.zero_point.capacity = 0;
-      address = membases[private_data->m_inpzp_buffer.get_mem_idx()] +
-          private_data->m_inpzp_buffer.get_offset();
-      tsr.el_params.sa.zero_point.mem.i16 = *reinterpret_cast<int16_t*>(address);
+      InternalBuffer inpzp_internal(private_data->m_inpzp_buffer, membases, num_mems);
+      tsr.el_params.sa.zero_point.mem.i16 = inpzp_internal.read<int16_t>(0);
     } else {
       // not support yet
       assert(false);
@@ -97,11 +95,11 @@ DepthwiseConv2d::DepthwiseConv2d(PrivateData* kernel_private_data_buffer,
     } else {
       assert(false);
     }
-    // HWCo (Cin=Co)
+    // HWCo
     tsr.rank = 3;
     tsr.shape[0] = private_data->output_h;
     tsr.shape[1] = private_data->output_w;
-    tsr.shape[2] = private_data->input_output_c;
+    tsr.shape[2] = private_data->output_c;
     tsr.mem_stride[0] = private_data->output_h_stride;
     tsr.mem_stride[1] = private_data->output_w_stride;
     tsr.mem_stride[2] = 1;
@@ -117,29 +115,29 @@ DepthwiseConv2d::DepthwiseConv2d(PrivateData* kernel_private_data_buffer,
     } else {
       assert(false);
     }
-    // HW1Cin
+    // HWCinCo
     tsr.rank = 4;
     tsr.shape[0] = private_data->weights_h;
     tsr.shape[1] = private_data->weights_w;
-    tsr.shape[2] = 1;
-    tsr.shape[3] = private_data->input_output_c;
+    tsr.shape[2] = private_data->input_c;
+    tsr.shape[3] = private_data->output_c;
     tsr.mem_stride[0] = private_data->weights_h_stride;
     tsr.mem_stride[1] = private_data->weights_w_stride;
-    tsr.mem_stride[2] = private_data->input_output_c; // derived from the fact that memstride of innermost is 1
+    tsr.mem_stride[2] = private_data->weights_c_stride;
     tsr.mem_stride[3] = 1;
 
-    // input zero point
+    // weights zero point should have the same size as the tensor they belong to.
     uint32_t wtszp_elem_size = private_data->m_wtszp_buffer.get_elem_size();
+    assert(wtszp_elem_size == sizeof(int16_t));
     uint32_t wtszp_size = private_data->m_wtszp_buffer.get_size();
     if (wtszp_size / wtszp_elem_size > 1) {
       // per-channel quantization
-      MLI_ASSERT(private_data->input_output_c == wtszp_size / wtszp_elem_size);
+      MLI_ASSERT(private_data->output_c == wtszp_size / wtszp_elem_size);
       MLI_ASSERT(wtszp_elem_size == sizeof(int16_t));
       tsr.el_params.sa.dim = 3; // channel dim
       tsr.el_params.sa.zero_point.capacity = wtszp_size;
-      address = membases[private_data->m_wtszp_buffer.get_mem_idx()] +
-          private_data->m_wtszp_buffer.get_offset();
-      tsr.el_params.sa.zero_point.mem.pi16 = reinterpret_cast<int16_t*>(address);
+      InternalBuffer wtszp_internal(private_data->m_wtszp_buffer, membases, num_mems);
+      tsr.el_params.sa.zero_point.mem.pi16 = wtszp_internal.get_ptr<int16_t>();
     } else {
       // not support yet
       assert(false);
@@ -147,18 +145,18 @@ DepthwiseConv2d::DepthwiseConv2d(PrivateData* kernel_private_data_buffer,
   }
 }
 
-mli_status DepthwiseConv2d::Issue() {
+mli_status Conv2d::Issue() {
   if (m_i_elem_size == sizeof(int8_t) &&
       m_w_elem_size == sizeof(int8_t) &&
       m_o_elem_size == sizeof(int32_t)) {
     ::mli::krn::conv2d_prepare_and_run
         <int8_t, int8_t, int32_t, int32_t, mli_8x8_accu_t,
-         ::mli::krn::int_quant_specific_params, LAYOUT_HW1N,
-         ::mli::CONV_DEPTHWISE, KRN_SZ_VAR, KRN_SZ_VAR>(&m_metadata.input,
-                                                        &m_metadata.weights,
-                                                        /* bias */ nullptr,
-                                                        &m_metadata.cfg,
-                                                        &m_metadata.output);
+         ::mli::krn::int_quant_specific_params, LAYOUT_HWCN,
+         ::mli::CONV_GENERAL, KRN_SZ_VAR, KRN_SZ_VAR>(&m_metadata.input,
+                                                      &m_metadata.weights,
+                                                      /* bias */ nullptr,
+                                                      &m_metadata.cfg,
+                                                      &m_metadata.output);
   } else {
     // datatype is not supported yet
     return MLI_STATUS_NOT_SUPPORTED;
@@ -170,12 +168,12 @@ mli_status DepthwiseConv2d::Issue() {
 // Same functionality as constructor, but constructor shall not call virtual functions.
 // Hence construction functionality should be moved to the third non-virtual methods
 // and used together in constructor and this init function.
-mli_status DepthwiseConv2d::Init(PrivateData* kernel_private_data_buffer,
-                                 int private_data_size, uint64_t membases[],
-                                 int num_mems) { return MLI_STATUS_OK; }
+mli_status Conv2d::Init(PrivateData* kernel_private_data_buffer,
+                        int private_data_size, uint64_t membases[],
+                        int num_mems) { return MLI_STATUS_OK; }
 
-mli_status DepthwiseConv2d::Prefetch() { return MLI_STATUS_OK; }
+mli_status Conv2d::Prefetch() { return MLI_STATUS_OK; }
 
-mli_status DepthwiseConv2d::Update() { return MLI_STATUS_OK; }
+mli_status Conv2d::Update() { return MLI_STATUS_OK; }
 
 }  // namespace snps_arc::metaware::mli::ref

@@ -501,7 +501,7 @@ MLI_FORCE_INLINE void depthwise_convolution2D(
 }
 
 #pragma MLI_CODE_SECTION_END()
-} // namespace ref
+} // namespace dsp
 } // namespace krn
 } // namespace mli
 

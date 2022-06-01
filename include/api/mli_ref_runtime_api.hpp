@@ -21,13 +21,33 @@ namespace snps_arc::metaware::mli::ref {
 using lib_mli::ExecutionInterface;
 using lib_mli::PrivateData;
 
+class Conv2d : public ExecutionInterface {
+  public:
+    Conv2d(PrivateData* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
+
+    mli_status Init(PrivateData* kernel_private_data_buffer, int private_data_size, uint64_t membases[], int num_mems) override;
+
+    mli_status Issue() override;
+
+    mli_status Prefetch() override;
+
+    mli_status Update() override;
+
+private:
+    Conv2dMetadata m_metadata;
+    // element size of input feature map
+    uint32_t m_i_elem_size;
+    // element size of weights
+    uint32_t m_w_elem_size;
+    // element size of output
+    uint32_t m_o_elem_size;
+};
+
 /**
  * @brief This class implements the DepthwiseConv2d kernel xop interpreter interface
  *
  *
  */
-struct DepthwiseConv2dMetadata;
-
 class DepthwiseConv2d : public ExecutionInterface {
   public:
     /**
@@ -62,7 +82,7 @@ class DepthwiseConv2d : public ExecutionInterface {
     mli_status Update() override;
 
 private:
-    DepthwiseConv2dMetadata *m_metadata;
+    DepthwiseConv2dMetadata m_metadata;
     // element size of input feature map
     uint32_t m_i_elem_size;
     // element size of weights

@@ -194,6 +194,7 @@ add_user_test(krn data_movement_30)
 # Convolution Group
 #======================================================
 add_user_test(krn conv2d)
+add_user_test(krn conv2d_30)
 add_user_test(krn depthwise_conv)
 add_user_test(krn depthwise_conv_30)
 add_user_test(krn transpose_conv2d)

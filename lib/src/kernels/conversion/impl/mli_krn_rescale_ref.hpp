@@ -83,12 +83,14 @@ static MLI_FORCE_INLINE void compute_rescale_vec_ibias_vec_scale(
 template <typename i_T, typename o_T>
 static MLI_FORCE_INLINE void compute_rescale_vec_ibias_single_scale(
         const generic_tensor_private_t<MLI_PTR(i_T)> &in_data,
-        const i_T in_bias,
+        const i_T *in_bias,
         const o_T out_bias,
         const int16_t scale,
         const int8_t shift,
         generic_tensor_private_t<MLI_OUT_PTR(o_T)> &out_data) {
     constexpr int kMaxSupportedRank = 4;
+    const int rescale_dim = in_data.rank - 1;
+    MLI_ASSERT(rescale_dim < kMaxSupportedRank);
     MLI_ASSERT(kMaxSupportedRank <=
                     sizeof(in_data.shape) / sizeof(in_data.shape[0]));
     MLI_ASSERT(kMaxSupportedRank
@@ -101,9 +103,10 @@ static MLI_FORCE_INLINE void compute_rescale_vec_ibias_single_scale(
         for (pos[1] = 0; pos[1] < in_data.shape[1]; pos[1]++) {
             for (pos[2] = 0; pos[2] < in_data.shape[2]; pos[2]++) {
                 for (pos[3] = 0; pos[3] < in_data.shape[3]; pos[3]++) {
+                    const int param_idx = pos[rescale_dim];
                     i_T in_val =  mli_prv_tensor_read(in_data, pos[0], pos[1],
                                                       pos[2], pos[3]);
-                    o_T out_val = rescale_value(in_val, in_bias,
+                    o_T out_val = rescale_value(in_val, in_bias[param_idx],
                                                 out_bias, scale, shift);
                     mli_prv_tensor_write(out_val, out_data, pos[0],
                                          pos[1], pos[2], pos[3]);
@@ -127,12 +130,12 @@ mli_status MLI_FORCE_INLINE rescale_prepare_and_run(const mli_tensor *in,
     auto out_prv = mli_prv_get_generic_tensor<MLI_OUT_PTR(o_T)>(out);
     if (mli_hlp_count_elem_num(scale, 0) == 1) {
         // Asserts are in checkers
-        const i_T in_bias_val = mli_prv_tensor_data_val<i_T>(bias_in);
+        const i_T *in_bias_ptr = mli_prv_tensor_data_ptr<i_T*>(bias_in);
         const o_T out_bias_val = mli_prv_tensor_data_val<o_T>(bias_out);
 
         const int8_t shift_val = mli_prv_tensor_data_val<int8_t>(shift);
         const int16_t scale_val = mli_prv_tensor_data_val<int16_t>(scale);
-        compute_rescale_vec_ibias_single_scale(in_prv, in_bias_val, out_bias_val,
+        compute_rescale_vec_ibias_single_scale(in_prv, in_bias_ptr, out_bias_val,
                                                scale_val, shift_val, out_prv);
 
     } else {

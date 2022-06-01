@@ -262,7 +262,7 @@ bool preprocess_phase(const reporter_full& reporter,
 
 void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
                    uint32_t& out_mem_offset, DepthwiseConvOp& op) {
-  // STEP 1: Construct Depthwise Conv2d as a specific ExecutionInterface successor
+  // STEP 1.1: Construct Depthwise Conv2d as a specific ExecutionInterface successor
   //==================================================================
 
   // NHWCin vs. HWCin
@@ -308,7 +308,7 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
   auto dw_conv2d_op = kernel_factory.DepthwiseConv2d_CS(
     dw_conv2d_cs_buffer, in_tensor, wt_tensor, cfg, out_tensor);
 
-  // STEP 2: Memory management (Up to user on how to deal with it)
+  // STEP 1.2: Memory management (Up to user on how to deal with it)
   //==================================================================
   uint32_t in_mem_offset = 0;
   uint32_t w_mem_offset = 0;
@@ -380,7 +380,8 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
                                              dw_wtszp_buf,
                                              dw_conv2d_descr_buf);
   assert(status == MLI_STATUS_OK);
-  // STEP 3: Copy dataset from scratch buffer to the global shared memory pool
+
+  // STEP 1.3: Copy dataset from scratch buffer to the global shared memory pool
   //==================================================================
   // Copy input data from scratch buffer to the shared memory pool
   for (uint32_t i = 0; i < op.input.data.capacity; ++i) {
@@ -451,7 +452,7 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
     wtszp_mem[i] = dst_wtszp_buf.read<int16_t>(i);
   }
 
-  // Compile depthwise conv2d into the binary data
+  // STEP 1.4: Compile depthwise conv2d into the binary data
   //==================================================================
   op.depthwise_conv2d_instance = g_mem_pool;
   op.depthwise_conv2d_instance_size = dw_conv2d_op->GetRuntimeObjectSize();
@@ -499,6 +500,15 @@ bool postprocess_phase(const reporter_full& reporter,
 
   auto& out = rs_op.out;
   mli_tensor source_out_tensor = rs_op.original_out;
+
+  if (is_test_passed &&
+      (dwc_op.mem_in_keeper.is_memory_corrupted() || rs_op.mem_out_keeper.is_memory_corrupted() ||
+       dwc_op.mem_out_acc_keeper.is_memory_corrupted() || rs_op.mem_bias_out_keeper.is_memory_corrupted() ||
+       dwc_op.mem_w_keeper.is_memory_corrupted() || rs_op.mem_b_keeper.is_memory_corrupted())) {
+    reporter.report_message(cur_test->descr,
+      "FAILED after kernel run: memory beside one of operands is corrupted");
+    is_test_passed = false;
+  }
 
   if (is_test_passed &&
       test_metrics.calculate_metrics(out, cur_test->out) == false) {
@@ -554,6 +564,12 @@ int main() {
   for (int i = 0; i < kTestsNum; ++i) {
     // get the current test case
     const depthwise_conv2d_test_operands* cur_test = &tests_list[i];
+
+#if defined(__Xvec_guard_bit_option)
+    // VPX code needs to be debugged
+    reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
+    continue;
+#endif
 
     // STEP 0: Preprocessing phase
     //==================================================================

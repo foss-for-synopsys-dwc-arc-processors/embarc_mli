@@ -20,11 +20,11 @@ using lib_mli::NoBuffer;
 
 class KernelsFactory {
 public:
-    virtual uint32_t Conv2d_CS_GetSize() const = 0;
+    virtual uint32_t Conv2d_CS_GetSize() const { return 0; }
 
-    virtual uint32_t Prelu_CS_GetSize() const = 0;
+    virtual uint32_t Prelu_CS_GetSize() const { return 0; }
 
-    virtual uint32_t Move_CS_GetSize() const = 0;
+    virtual uint32_t Move_CS_GetSize() const { return 0; }
 
     virtual uint32_t MaxPool2D_CS_GetSize() const { return 0; }
 
@@ -46,18 +46,18 @@ public:
                                           const Tensor<NoBuffer, 4> input_shape,
                                           const Tensor<NoBuffer, 5> weights,
                                           const Conv2DConfig &cfg,
-                                          const Tensor<NoBuffer, 4> output_tile_shape) = 0;
+                                          const Tensor<NoBuffer, 4> output_tile_shape) { return nullptr; }
 
     virtual lib_mli::Prelu_CS* Prelu_CS(void *kernel_buffer,
                                         const Tensor<NoBuffer, 4> input_shape,
                                         const Tensor<NoBuffer, 4> output_tile_shape,
-                                        int groups) = 0;
+                                        int groups) { return nullptr; }
 
     virtual lib_mli::Move_CS *Move_CS(void *kernel_buffer,
                                       const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> src,
                                       const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> dst) {
       return nullptr;
-    };
+    }
 
     virtual lib_mli::Move_CS *Move_CS(void *kernel_buffer,
                                       const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> src,
@@ -65,14 +65,14 @@ public:
                                       const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> dst,
                                       const IteratorCfg<lib_mli::Move_CS::kMaxRank> dst_cfg) {
       return nullptr;
-    };
+    }
 
     virtual lib_mli::MaxPool2D_CS* MaxPool2D_CS(void *kernel_buffer,
                                         const Tensor<NoBuffer, 4> in, // input fmap width, height, channels, batch size
                                         const PoolOpConfig &cfg,
                                         const Tensor<NoBuffer, 4> output_tile_shape) {
       return nullptr;
-    };// output tile width, height, ch, groups
+    } // output tile width, height, ch, groups
 
     virtual lib_mli::DepthwiseConv2d_CS* DepthwiseConv2d_CS(void *kernel_buffer,
                                                             const Tensor<NoBuffer, 4> in,
@@ -87,7 +87,7 @@ public:
 
     virtual lib_mli::Rescale_CS* Rescale_CS(void *kernel_buffer,
                                             const Tensor<NoBuffer, 4> input,
-                                            const Tensor<NoBuffer, 4> output) { return nullptr; }                                                                                                                    
+                                            const Tensor<NoBuffer, 4> output) { return nullptr; }
 
     virtual lib_mli::Clip_CS* Clip_CS(void *kernel_buffer,
                                       const Tensor<NoBuffer, 4> input,
@@ -96,7 +96,7 @@ public:
     virtual lib_mli::Add_CS* Add_CS(void *kernel_buffer,
                                     const Tensor<NoBuffer, 4> input_left,
                                     const Tensor<NoBuffer, 4> input_right,
-                                    const Tensor<NoBuffer, 4> output_tile_shape) { return nullptr; }    
+                                    const Tensor<NoBuffer, 4> output_tile_shape) { return nullptr; }
 
     virtual lib_mli::Sub_CS* Sub_CS(void *kernel_buffer,
                                     const Tensor<NoBuffer, 4> input_left,
@@ -106,7 +106,7 @@ public:
     virtual lib_mli::Mul_CS* Mul_CS(void *kernel_buffer,
                                     const Tensor<NoBuffer, 4> input_left,
                                     const Tensor<NoBuffer, 4> input_right,
-                                    const Tensor<NoBuffer, 4> output) { return nullptr; }                                                                                                           
+                                    const Tensor<NoBuffer, 4> output) { return nullptr; }
 };
 
 } // namespace snps_arc::metaware::mli

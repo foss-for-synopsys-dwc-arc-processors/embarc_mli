@@ -23,20 +23,19 @@ namespace snps_arc::metaware::mli::ref {
 using lib_mli::Tensor;
 using lib_mli::NoBuffer;
 
-class KernelsFactory : public lib_mli::KernelsFactory{
+class KernelsFactory : public lib_mli::KernelsFactory {
 public:
 
     KernelsFactory(const lib_mli::PlatformDescription pd): m_pd(pd) {}
 
-    uint32_t Conv2d_CS_GetSize() const override { return 0; /*sizeof(lib_ref::Conv2d_CS);*/ }
+    uint32_t Conv2d_CS_GetSize() const override { return sizeof(lib_ref::Conv2d_CS); }
 
     lib_mli::Conv2d_CS* Conv2d_CS(void *kernel_buffer,
                                   const Tensor<NoBuffer, 4> input_shape,
                                   const Tensor<NoBuffer, 5> weights,
                                   const Conv2DConfig &cfg,
                                   const Tensor<NoBuffer, 4> output_tile_shape) override {
-        //return new(kernel_buffer) lib_ref::Conv2d_CS(m_pd, input_shape, weights, cfg, output_tile_shape);
-        return nullptr;
+        return new(kernel_buffer) lib_ref::Conv2d_CS(m_pd, input_shape, weights, cfg, output_tile_shape);
     }
 
     uint32_t Prelu_CS_GetSize() const override { return 0 /*sizeof(lib_ref::Prelu_CS)*/; }

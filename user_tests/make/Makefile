@@ -54,6 +54,7 @@ KERNELS = \
 	l2_normalize \
 	data_movement \
 	maxpool_30 \
+	conv2d_30 \
 	depthwise_conv_30
 
 
