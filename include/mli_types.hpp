@@ -34,6 +34,10 @@ typedef enum class compression_mode_t {
 
 class PrivateData {
   public:
+    PrivateData() {
+      kernel_id = kInvalidId;
+      size = 0;
+    }
     PrivateData(kernel_id_t id) {
       kernel_id = id;
       size = 0;
@@ -143,6 +147,10 @@ public:
   }
   uint32_t get_elem_size() const {
     return elem_size_;
+  }
+  void set_elem_size(uint32_t elem_size) {
+    assert(elem_size <= size_);
+    elem_size_ = elem_size;
   }
   uint32_t get_mem_idx() const {
     return mem_idx_;

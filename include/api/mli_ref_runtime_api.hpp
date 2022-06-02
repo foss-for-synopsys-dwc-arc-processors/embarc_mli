@@ -23,9 +23,7 @@ using lib_mli::PrivateData;
 
 class Conv2d : public ExecutionInterface {
   public:
-    Conv2d(PrivateData* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
-
-    mli_status Init(PrivateData* kernel_private_data_buffer, int private_data_size, uint64_t membases[], int num_mems) override;
+    Conv2d(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
 
     mli_status Issue() override;
 
@@ -71,9 +69,7 @@ class DepthwiseConv2d : public ExecutionInterface {
      *                        memory id's when attaching the buffers as are used by the
      *                        xop-interpreter to set the membases.
      */
-    DepthwiseConv2d(PrivateData* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
-
-    mli_status Init(PrivateData* kernel_private_data_buffer, int private_data_size, uint64_t membases[], int num_mems) override;
+    DepthwiseConv2d(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
 
     mli_status Issue() override;
 
@@ -122,12 +118,8 @@ class Move : public ExecutionInterface {
      *                        memory id's when attaching the buffers as are used by the
      *                        xop-interpreter to set the membases.
      */
-    Move(PrivateData* kernel_private_data_buffer, size_t size,
+    Move(void* kernel_private_data_buffer, size_t size,
          uint64_t membases[], int num_mems);
- 
-    mli_status Init(PrivateData* kernel_private_data_buffer,
-                    int private_data_size, uint64_t membases[],
-                    int num_mems) override;
  
     mli_status Issue() override;
  
@@ -145,11 +137,11 @@ class Move : public ExecutionInterface {
     void CopySrcToDst(Tensor<buf_T, N> src, Tensor<buf_T, N> dst);
  
     TensorIterator<Move_CS::kMaxRank> GetSrcTensorTileItr(
-        PrivateData* kernel_private_data_buffer, uint64_t membases[],
+        void* kernel_private_data_buffer, uint64_t membases[],
         int num_mems);
  
     TensorIterator<Move_CS::kMaxRank> GetDstTensorTileItr(
-        PrivateData* kernel_private_data_buffer, uint64_t membases[],
+        void* kernel_private_data_buffer, uint64_t membases[],
         int num_mems);
 };
 
@@ -160,14 +152,7 @@ class Move : public ExecutionInterface {
  */
 class MaxPool2D : public ExecutionInterface {
   public:
-    MaxPool2D(PrivateData* kernel_private_data_buffer, size_t size,
-              uint64_t membases[], int num_mems);
-
-    mli_status Init(PrivateData* kernel_private_data_buffer,
-                    int private_data_size, uint64_t membases[],
-                    int num_mems) override {
-        return MLI_STATUS_OK;
-    };
+    MaxPool2D(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
 
     mli_status Issue() override;
 

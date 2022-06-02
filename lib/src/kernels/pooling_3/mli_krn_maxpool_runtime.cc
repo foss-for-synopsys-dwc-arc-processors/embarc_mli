@@ -19,40 +19,39 @@ namespace snps_arc::metaware::mli::ref {
 
 namespace mli_krn = ::mli::krn;
 
-MaxPool2D::MaxPool2D(PrivateData* kernel_private_data_buffer, size_t size,
+MaxPool2D::MaxPool2D(void* kernel_private_data_buffer, size_t size,
                      uint64_t membases[], int num_mems) {
   MLI_ASSERT(size == sizeof(MaxPool2DPrivateData));
-  MLI_ASSERT(kernel_private_data_buffer->size == sizeof(MaxPool2DPrivateData));
+  MaxPool2DPrivateData maxpool2d_private_buffer;
+  memcpy(&maxpool2d_private_buffer, kernel_private_data_buffer, sizeof(MaxPool2DPrivateData));
+  MLI_ASSERT(maxpool2d_private_buffer.size == sizeof(MaxPool2DPrivateData));
 
-  MaxPool2DPrivateData* maxpool2d_private_buffer =
-      static_cast<MaxPool2DPrivateData*>(kernel_private_data_buffer);
-
-  m_io_elem_size = maxpool2d_private_buffer->io_elem_size;
+  m_io_elem_size = maxpool2d_private_buffer.io_elem_size;
 
   // MaxPool2D configuration construction
-  m_cfg.kernel_width = maxpool2d_private_buffer->kernel_width;
-  m_cfg.kernel_height = maxpool2d_private_buffer->kernel_height;
-  m_cfg.stride_width = maxpool2d_private_buffer->stride_width;
-  m_cfg.stride_height = maxpool2d_private_buffer->stride_height;
-  m_cfg.padding_left = maxpool2d_private_buffer->padding_left;
-  m_cfg.padding_right = maxpool2d_private_buffer->padding_right;
-  m_cfg.padding_top = maxpool2d_private_buffer->padding_top;
-  m_cfg.padding_bottom = maxpool2d_private_buffer->padding_bottom;
+  m_cfg.kernel_width = maxpool2d_private_buffer.kernel_width;
+  m_cfg.kernel_height = maxpool2d_private_buffer.kernel_height;
+  m_cfg.stride_width = maxpool2d_private_buffer.stride_width;
+  m_cfg.stride_height = maxpool2d_private_buffer.stride_height;
+  m_cfg.padding_left = maxpool2d_private_buffer.padding_left;
+  m_cfg.padding_right = maxpool2d_private_buffer.padding_right;
+  m_cfg.padding_top = maxpool2d_private_buffer.padding_top;
+  m_cfg.padding_bottom = maxpool2d_private_buffer.padding_bottom;
 
-  assert(maxpool2d_private_buffer->input_b > 0);
-  m_batch_number = maxpool2d_private_buffer->input_b;
-  m_input_batch_offset = maxpool2d_private_buffer->input_b_stride;
-  m_output_batch_offset = maxpool2d_private_buffer->output_b_stride;
+  assert(maxpool2d_private_buffer.input_b > 0);
+  m_batch_number = maxpool2d_private_buffer.input_b;
+  m_input_batch_offset = maxpool2d_private_buffer.input_b_stride;
+  m_output_batch_offset = maxpool2d_private_buffer.output_b_stride;
 
-  assert(maxpool2d_private_buffer->input_mem_id < num_mems);
-  int input_mem_id = maxpool2d_private_buffer->input_mem_id;
+  assert(maxpool2d_private_buffer.input_mem_id < num_mems);
+  int input_mem_id = maxpool2d_private_buffer.input_mem_id;
 
-  uint32_t input_offset = maxpool2d_private_buffer->input_offset;
-  if (maxpool2d_private_buffer->io_elem_size == sizeof(int16_t)) {
+  uint32_t input_offset = maxpool2d_private_buffer.input_offset;
+  if (maxpool2d_private_buffer.io_elem_size == sizeof(int16_t)) {
     m_input.el_type = MLI_EL_FX_16;
     m_input.data.mem.pi16 =
         reinterpret_cast<int16_t*>(membases[input_mem_id] + input_offset);
-  } else if (maxpool2d_private_buffer->io_elem_size == sizeof(int8_t)) {
+  } else if (maxpool2d_private_buffer.io_elem_size == sizeof(int8_t)) {
     m_input.el_type = MLI_EL_FX_8;
     m_input.data.mem.pi8 =
         reinterpret_cast<int8_t*>(membases[input_mem_id] + input_offset);
@@ -61,24 +60,24 @@ MaxPool2D::MaxPool2D(PrivateData* kernel_private_data_buffer, size_t size,
   }
 
   m_input.rank = 3;  // TODO: Maybe need to get from compiler.
-  m_input.mem_stride[0] = maxpool2d_private_buffer->input_h_stride;
-  m_input.mem_stride[1] = maxpool2d_private_buffer->input_w_stride;
-  m_input.mem_stride[2] = maxpool2d_private_buffer->input_c_stride;
+  m_input.mem_stride[0] = maxpool2d_private_buffer.input_h_stride;
+  m_input.mem_stride[1] = maxpool2d_private_buffer.input_w_stride;
+  m_input.mem_stride[2] = maxpool2d_private_buffer.input_c_stride;
   m_input.mem_stride[3] = 0;
-  m_input.shape[0] = maxpool2d_private_buffer->input_h;
-  m_input.shape[1] = maxpool2d_private_buffer->input_w;
-  m_input.shape[2] = maxpool2d_private_buffer->input_c;
+  m_input.shape[0] = maxpool2d_private_buffer.input_h;
+  m_input.shape[1] = maxpool2d_private_buffer.input_w;
+  m_input.shape[2] = maxpool2d_private_buffer.input_c;
   m_input.shape[3] = 0;
 
-  assert(maxpool2d_private_buffer->output_mem_id < num_mems);
-  int output_mem_id = maxpool2d_private_buffer->output_mem_id;
+  assert(maxpool2d_private_buffer.output_mem_id < num_mems);
+  int output_mem_id = maxpool2d_private_buffer.output_mem_id;
 
-  uint32_t output_offset = maxpool2d_private_buffer->output_offset;
-  if (maxpool2d_private_buffer->io_elem_size == sizeof(int16_t)) {
+  uint32_t output_offset = maxpool2d_private_buffer.output_offset;
+  if (maxpool2d_private_buffer.io_elem_size == sizeof(int16_t)) {
     m_output.el_type = MLI_EL_FX_16;
     m_output.data.mem.pi16 =
         reinterpret_cast<int16_t*>(membases[output_mem_id] + output_offset);
-  } else if (maxpool2d_private_buffer->io_elem_size == sizeof(int8_t)) {
+  } else if (maxpool2d_private_buffer.io_elem_size == sizeof(int8_t)) {
     m_output.el_type = MLI_EL_FX_8;
     m_output.data.mem.pi8 =
         reinterpret_cast<int8_t*>(membases[output_mem_id] + output_offset);
@@ -87,13 +86,13 @@ MaxPool2D::MaxPool2D(PrivateData* kernel_private_data_buffer, size_t size,
   }
 
   m_output.rank = 3;  // TODO: Maybe need to get from compiler.
-  m_output.mem_stride[0] = maxpool2d_private_buffer->output_h_stride;
-  m_output.mem_stride[1] = maxpool2d_private_buffer->output_w_stride;
-  m_output.mem_stride[2] = maxpool2d_private_buffer->output_c_stride;
+  m_output.mem_stride[0] = maxpool2d_private_buffer.output_h_stride;
+  m_output.mem_stride[1] = maxpool2d_private_buffer.output_w_stride;
+  m_output.mem_stride[2] = maxpool2d_private_buffer.output_c_stride;
   m_output.mem_stride[3] = 0;
-  m_output.shape[0] = maxpool2d_private_buffer->output_h;
-  m_output.shape[1] = maxpool2d_private_buffer->output_w;
-  m_output.shape[2] = maxpool2d_private_buffer->output_c;
+  m_output.shape[0] = maxpool2d_private_buffer.output_h;
+  m_output.shape[1] = maxpool2d_private_buffer.output_w;
+  m_output.shape[2] = maxpool2d_private_buffer.output_c;
   m_output.shape[3] = 0;
 }
 

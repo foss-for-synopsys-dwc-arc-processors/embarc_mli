@@ -7,6 +7,7 @@
 *
 */
 
+#include <cstring>
 #include <new>
 
 #include "mli_ref_runtime_api.hpp"
@@ -22,13 +23,16 @@ using ref::DepthwiseConv2d;
 ExecutionInterface* ExecutionInterface::Create(
         void* allocation_memory_buffer,
         uint32_t alloc_buf_size,
-        PrivateData* kernel_private_data_buffer,
+        void* kernel_private_data_buffer,
         uint32_t private_data_size,
         uint64_t* membases,
         int num_mems) {
 
     MLI_ASSERT(private_data_size >= sizeof(PrivateData));
-    [[maybe_unused]] kernel_id_t kernel_id = kernel_private_data_buffer->kernel_id;
+    PrivateData private_data;
+    memcpy(&private_data, kernel_private_data_buffer, sizeof(PrivateData)); // only copy the base class in order to inspect the kernel_id
+    MLI_ASSERT(private_data.size == private_data_size);
+    kernel_id_t kernel_id = private_data.kernel_id;
     ExecutionInterface *obj = nullptr;
     //  TODO: Update it with MLI REF/EM/VPX Classes and remove [[maybe_unused]] attr of the kernel_id
     switch (kernel_id) {

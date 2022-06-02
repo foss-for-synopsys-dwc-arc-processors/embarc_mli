@@ -179,6 +179,17 @@ class TensorIterator {
     }
 
     /**
+     * @brief constructor
+     *
+     * empty constructor
+     */
+    TensorIterator()
+    : config_(),
+      full_tensor_(){
+      Reset();
+    }
+
+    /**
      * @brief Reset the iterator to zero position
      *
      * This method will reset the internal position to zero

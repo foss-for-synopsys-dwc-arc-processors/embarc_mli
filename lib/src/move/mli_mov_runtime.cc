@@ -7,6 +7,7 @@
  *
  */
 
+#include <cstring>
 #include <new>
 
 #include "mli_debug.h"
@@ -16,27 +17,23 @@
 
 namespace snps_arc::metaware::mli::ref {
 
-Move::Move(PrivateData* kernel_private_data_buffer, size_t size,
+Move::Move(void* kernel_private_data_buffer, size_t size,
            uint64_t membases[], int num_mems)
     : m_src_it(
           GetSrcTensorTileItr(kernel_private_data_buffer, membases, num_mems)),
       m_dst_it(
           GetDstTensorTileItr(kernel_private_data_buffer, membases, num_mems)) {
-  MLI_ASSERT(size == sizeof(MovePrivateData));
-  MLI_ASSERT(kernel_private_data_buffer->size == sizeof(MovePrivateData));
 
-  MovePrivateData* move_private_buffer =
-      static_cast<MovePrivateData*>(kernel_private_data_buffer);
-  m_src_it_cfg = move_private_buffer->src_cfg;
-  m_dst_it_cfg = move_private_buffer->dst_cfg;
+  MLI_ASSERT(size == sizeof(MovePrivateData));
+  MovePrivateData private_data;
+  memcpy(&private_data, kernel_private_data_buffer, sizeof(MovePrivateData));
+  MLI_ASSERT(private_data.kernel_id == kMoveId);
+  MLI_ASSERT(private_data.size == sizeof(MovePrivateData));
+
+  m_src_it_cfg = private_data.src_cfg;
+  m_dst_it_cfg = private_data.dst_cfg;
   m_src_it.Reset();
   m_dst_it.Reset();
-}
-
-mli_status Move::Init(PrivateData* kernel_private_data_buffer,
-                      int private_data_size, uint64_t membases[],
-                      int num_mems) {
-  return MLI_STATUS_OK;
 }
 
 template <typename buf_T, unsigned N>
@@ -85,25 +82,31 @@ mli_status Move::Update() {
 }
 
 TensorIterator<Move_CS::kMaxRank> Move::GetSrcTensorTileItr(
-    PrivateData* kernel_private_data_buffer, uint64_t membases[],
+    void* kernel_private_data_buffer, uint64_t membases[],
     int num_mems) {
-  MovePrivateData* private_data =
-      static_cast<MovePrivateData*>(kernel_private_data_buffer);
+  MovePrivateData private_data;
+  memcpy(&private_data, kernel_private_data_buffer, sizeof(MovePrivateData));
+  MLI_ASSERT(private_data.kernel_id == kMoveId);
+  MLI_ASSERT(private_data.size == sizeof(MovePrivateData));
+
   return TensorIterator<Move_CS::kMaxRank>(
-      Tensor<InternalBuffer, Move_CS::kMaxRank>(private_data->src, membases,
+      Tensor<InternalBuffer, Move_CS::kMaxRank>(private_data.src, membases,
                                                 num_mems),
-      private_data->src_cfg);
+      private_data.src_cfg);
 }
 
 TensorIterator<Move_CS::kMaxRank> Move::GetDstTensorTileItr(
-    PrivateData* kernel_private_data_buffer, uint64_t membases[],
+    void* kernel_private_data_buffer, uint64_t membases[],
     int num_mems) {
-  MovePrivateData* private_data =
-      static_cast<MovePrivateData*>(kernel_private_data_buffer);
+  MovePrivateData private_data;
+  memcpy(&private_data, kernel_private_data_buffer, sizeof(MovePrivateData));
+  MLI_ASSERT(private_data.kernel_id == kMoveId);
+  MLI_ASSERT(private_data.size == sizeof(MovePrivateData));
+
   return TensorIterator<Move_CS::kMaxRank>(
-      Tensor<InternalBuffer, Move_CS::kMaxRank>(private_data->dst, membases,
+      Tensor<InternalBuffer, Move_CS::kMaxRank>(private_data.dst, membases,
                                                 num_mems),
-      private_data->dst_cfg);
+      private_data.dst_cfg);
 }
 
 }  // namespace snps_arc::metaware::mli::ref
