@@ -28,6 +28,8 @@ public:
 
     virtual uint32_t MaxPool2D_CS_GetSize() const { return 0; }
 
+    virtual uint32_t SumPool2D_CS_GetSize() const { return 0; }
+
     virtual uint32_t DepthwiseConv2d_CS_GetSize() const { return 0; }
 
     virtual uint32_t FullyConnected_CS_GetSize() const { return 0; }
@@ -73,6 +75,11 @@ public:
                                         const Tensor<NoBuffer, 4> output_tile_shape) {
       return nullptr;
     } // output tile width, height, ch, groups
+
+    virtual lib_mli::SumPool2D_CS* SumPool2D_CS(void *kernel_buffer,
+                                                const Tensor<NoBuffer, 4> in,
+                                                const PoolOpConfig &cfg,
+                                                const Tensor<NoBuffer, 4> output_tile_shape) { return nullptr; }
 
     virtual lib_mli::DepthwiseConv2d_CS* DepthwiseConv2d_CS(void *kernel_buffer,
                                                             const Tensor<NoBuffer, 4> in,

@@ -27,7 +27,7 @@ namespace krn {
 ////////////////////////////////////////////////////////////////////////////////
 // Functions (in *_ref/*_dsp/*vdsp) that can be called from outside their own
 // file must be declared here. This includes all overloads. For example, if we
-// have: i_T f(i_T a) and int8_t f(int8_t a), then both must be declared.
+// have: o_T f(i_T a) and int8_t f(int8_t a), then both must be declared.
 // Not doing so, can cause the compiler to use the wrong overload.
 ////////////////////////////////////////////////////////////////////////////////
 

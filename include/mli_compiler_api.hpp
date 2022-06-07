@@ -417,16 +417,16 @@ public:
      * @brief Methods to get buffer sizes
      */
 
-    virtual unsigned GetInputBufferSize() = 0;
-    virtual unsigned GetOutputBufferSize() = 0;
-    virtual unsigned GetDataBufferSize() = 0;
+    virtual unsigned GetInputBufferSize() const = 0;
+    virtual unsigned GetOutputBufferSize() const = 0;
+    virtual unsigned GetDataBufferSize() const = 0;
 
     /**
      * @brief Methods to set buffer offsets
      *
      */
-    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
-                                           const OffsetBuffer &output,
+    virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
+                                           const Tensor<OffsetBuffer, 4> &output,
                                            const OffsetBuffer &data) = 0;
 };
 

@@ -29,7 +29,7 @@ mli_status mli_krn_maxpool_hwc_fx16_k2x2(const mli_tensor * in, const mli_pool_c
     if (ret != MLI_STATUS_OK) return ret;
     MLI_PRINT_COMPILE_OPTIONS();
 
-    mli::krn::mli_krn_pool_hwc<mli::krn::MAXPOOL, int16_t, POOL_FIXED_KRN_SIZE_2>(in, cfg, out);
+    mli::krn::mli_krn_pool_hwc<mli::krn::MAXPOOL, int16_t, int16_t, POOL_FIXED_KRN_SIZE_2>(in, cfg, out);
     return MLI_STATUS_OK;
 }
 
@@ -38,7 +38,7 @@ mli_status mli_krn_maxpool_hwc_fx16_k3x3(const mli_tensor * in, const mli_pool_c
     if (ret != MLI_STATUS_OK) return ret;
     MLI_PRINT_COMPILE_OPTIONS();
 
-    mli::krn::mli_krn_pool_hwc<mli::krn::MAXPOOL, int16_t, POOL_FIXED_KRN_SIZE_3>(in, cfg, out);
+    mli::krn::mli_krn_pool_hwc<mli::krn::MAXPOOL, int16_t, int16_t, POOL_FIXED_KRN_SIZE_3>(in, cfg, out);
     return MLI_STATUS_OK;
 }
 
@@ -47,7 +47,7 @@ mli_status mli_krn_maxpool_hwc_fx16(const mli_tensor * in, const mli_pool_cfg * 
     if (ret != MLI_STATUS_OK) return ret;
     MLI_PRINT_COMPILE_OPTIONS();
 
-    mli::krn::mli_krn_pool_hwc<mli::krn::MAXPOOL, int16_t, POOL_NO_FIXED_KRN_SIZE>(in, cfg, out);
+    mli::krn::mli_krn_pool_hwc<mli::krn::MAXPOOL, int16_t, int16_t, POOL_NO_FIXED_KRN_SIZE>(in, cfg, out);
     return MLI_STATUS_OK;
 }
 

@@ -30,10 +30,11 @@ namespace krn {
 
 typedef enum {
     AVEPOOL,
-    MAXPOOL
+    MAXPOOL,
+    SUMPOOL
 } pool_type;
 
-template <pool_type type, typename io_T, int fixed_kernel_size, bool convert = false>
+template <pool_type type, typename i_T, typename o_T, int fixed_kernel_size, bool convert = false>
 static MLI_FORCE_INLINE void mli_krn_pool_hwc_nopad(
         const int row_beg,
         const int row_end,
@@ -45,8 +46,8 @@ static MLI_FORCE_INLINE void mli_krn_pool_hwc_nopad(
         const int padding_bot,
         const int padding_left,
         const int padding_right,
-        const tensor_private_t<MLI_PTR(io_T)> &in,
-        const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
+        const tensor_private_t<MLI_PTR(i_T)> &in,
+        const tensor_private_t<MLI_OUT_PTR(o_T)> &out,
         const int kernel_height,
         const int kernel_width,
         const s8asym_quant_params *params = nullptr) {
@@ -94,12 +95,12 @@ static MLI_FORCE_INLINE void mli_krn_pool_hwc_nopad(
             int remaining_ch = in.ch - ch_idx;
             int current_ch = MIN(remaining_ch, num_lanes); /* nr channels computed in this loop iteration */
             // Define area of input and filter for pooling
-            const MLI_PTR(io_T) __restrict in_ptr = in.ptr
+            const MLI_PTR(i_T) __restrict in_ptr = in.ptr
                                                     + in.row_mem_stride * h_idx_in
                                                     + in.col_mem_stride * w_idx_in
                                                     + ch_idx;
 
-            MLI_OUT_PTR(io_T) __restrict out_ptr = out.ptr
+            MLI_OUT_PTR(o_T) __restrict out_ptr = out.ptr
                                                     + out.row_mem_stride * row_beg
                                                     + out.col_mem_stride * clmn_beg
                                                     + ch_idx;
@@ -109,7 +110,7 @@ static MLI_FORCE_INLINE void mli_krn_pool_hwc_nopad(
 PRAGMA_CLANG(loop pipeline(enable))
 PRAGMA_CLANG(loop pipeline_options(0x10))
                     for (int W_idx = clmn_beg; W_idx < clmn_end; W_idx++) {
-                        mli::krn::compute_avepool<io_T, fixed_kernel_size, /*varying_kernel*/ false>(
+                        mli::krn::compute_avepool<i_T, o_T, fixed_kernel_size, /*varying_kernel*/ false>(
                                                     in_ptr, out_ptr, mul, kernel_width, kernel_height,
                                                     in.col_mem_stride, in.row_mem_stride, zp, shift_value,
                                                     current_ch);
@@ -118,9 +119,20 @@ PRAGMA_CLANG(loop pipeline_options(0x10))
                     }
                 } else if (type == MAXPOOL) {
                     for (int W_idx = clmn_beg; W_idx < clmn_end; W_idx++) {
-                        mli::krn::reduce_max2D_hwc<io_T, fixed_kernel_size, /*varying_kernel*/ false>(
+                        mli::krn::reduce_max2D_hwc<i_T, o_T, fixed_kernel_size, /*varying_kernel*/ false>(
                                                     in_ptr, out_ptr, kernel_width, kernel_height,
                                                     in.col_mem_stride, in.row_mem_stride, current_ch);
+                        in_ptr += in_col_inc;
+                        out_ptr += out_col_inc;
+                    }
+                } else if (type == SUMPOOL) {
+PRAGMA_CLANG(loop pipeline(enable))
+PRAGMA_CLANG(loop pipeline_options(0x10))
+                    for (int W_idx = clmn_beg; W_idx < clmn_end; W_idx++) {
+                        mli::krn::compute_avepool<i_T, o_T, fixed_kernel_size, /*varying_kernel*/ false>(
+                                                    in_ptr, out_ptr, /*mul*/ 1, kernel_width, kernel_height,
+                                                    in.col_mem_stride, in.row_mem_stride, /*zp*/ 0, /*shift_value*/ 0,
+                                                    current_ch);
                         in_ptr += in_col_inc;
                         out_ptr += out_col_inc;
                     }
@@ -133,7 +145,7 @@ PRAGMA_CLANG(loop pipeline_options(0x10))
     }
 }
 
-template <pool_type type, typename io_T, int fixed_kernel_size, bool convert = false>
+template <pool_type type, typename i_T, typename o_T, int fixed_kernel_size, bool convert = false>
 static MLI_FORCE_INLINE void mli_krn_pool_hwc_compute_pad(
         const int stride_width,
         const int stride_height,
@@ -142,8 +154,8 @@ static MLI_FORCE_INLINE void mli_krn_pool_hwc_compute_pad(
         const int padding_left,
         const int padding_right,
         const rect_t &perception_area,
-        const tensor_private_t<MLI_PTR(io_T)> &in,
-        const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
+        const tensor_private_t<MLI_PTR(i_T)> &in,
+        const tensor_private_t<MLI_OUT_PTR(o_T)> &out,
         const int kernel_height,
         const int kernel_width,
         const s8asym_quant_params *params = nullptr) {
@@ -179,7 +191,7 @@ static MLI_FORCE_INLINE void mli_krn_pool_hwc_compute_pad(
             __builtin_assume (rows > 0);
             __builtin_assume (clmns > 0);
 
-            if (type == AVEPOOL) { 
+            if (type == AVEPOOL) {
                 MLI_ASSERT(params != nullptr);
                 shift_value = params->shift;
                 mli::krn::get_mul_shift_value(rows * clmns, &mul, &shift_value);
@@ -203,27 +215,32 @@ static MLI_FORCE_INLINE void mli_krn_pool_hwc_compute_pad(
             for (int ch_idx = 0; ch_idx < in.ch; ch_idx += num_lanes) {
                 int remaining_ch = in.ch - ch_idx;
                 int current_ch = MIN(remaining_ch, num_lanes); /* nr channels computed in this loop iteration */
-                
+
                 // Define area of input and filter for pooling
-                const MLI_PTR(io_T) in_ptr = in.ptr
+                const MLI_PTR(i_T) in_ptr = in.ptr
                                            + in.row_mem_stride * h_idx_in // move to row
                                            + in.col_mem_stride * w_idx_in // move to column
                                            + ch_idx;                      // move to channel
 
-                MLI_OUT_PTR(io_T) out_ptr = out.ptr
+                MLI_OUT_PTR(o_T) out_ptr = out.ptr
                                           + out.row_mem_stride * H_idx
                                           + out.col_mem_stride * W_idx
                                           + ch_idx;
 
                 if (type == AVEPOOL) {
-                    mli::krn::compute_avepool<io_T, fixed_kernel_size, /*varying_kernel*/ true>(
+                    mli::krn::compute_avepool<i_T, o_T, fixed_kernel_size, /*varying_kernel*/ true>(
                                                 in_ptr, out_ptr, mul, clmns, rows,
                                                 in.col_mem_stride, in.row_mem_stride, zp, shift_value,
                                                 current_ch);
                 } else if (type == MAXPOOL) {
-                    mli::krn::reduce_max2D_hwc<io_T, fixed_kernel_size, /*varying_kernel*/ true>(
+                    mli::krn::reduce_max2D_hwc<i_T, o_T, fixed_kernel_size, /*varying_kernel*/ true>(
                                                 in_ptr, out_ptr, clmns, rows,
                                                 in.col_mem_stride, in.row_mem_stride, current_ch);
+                } else if (type == SUMPOOL) {
+                    mli::krn::compute_avepool<i_T, o_T, fixed_kernel_size, /*varying_kernel*/ true>(
+                                                in_ptr, out_ptr, /*mul*/ 1, clmns, rows,
+                                                in.col_mem_stride, in.row_mem_stride, /*zp*/ 0, /*shift_value*/ 0,
+                                                current_ch);
                 }
             }
         }
@@ -241,32 +258,37 @@ static MLI_FORCE_INLINE void mli_krn_pool_hwc_compute_pad(
                 int current_ch = MIN(remaining_ch, num_lanes); /* nr channels computed in this loop iteration */
 
                 // Define area of input and filter for pooling
-                const MLI_PTR(io_T) in_ptr = in.ptr
+                const MLI_PTR(i_T) in_ptr = in.ptr
                                            + in.row_mem_stride * h_idx_in // move to row
                                            + in.col_mem_stride * w_idx_in // move to column
                                            + ch_idx;                      // move to channel
 
-                MLI_OUT_PTR(io_T) out_ptr = out.ptr
+                MLI_OUT_PTR(o_T) out_ptr = out.ptr
                                           + out.row_mem_stride * H_idx
                                           + out.col_mem_stride * W_idx
                                           + ch_idx;
 
                 if (type == AVEPOOL) {
-                    mli::krn::compute_avepool<io_T, fixed_kernel_size, /*varying_kernel*/ true>(
+                    mli::krn::compute_avepool<i_T, o_T, fixed_kernel_size, /*varying_kernel*/ true>(
                                                 in_ptr, out_ptr, mul, clmns, rows,
                                                 in.col_mem_stride, in.row_mem_stride, zp, shift_value,
                                                 current_ch);
                 } else if (type == MAXPOOL) {
-                    mli::krn::reduce_max2D_hwc<io_T, fixed_kernel_size, /*varying_kernel*/ true>(
-                                                in_ptr, out_ptr, clmns, rows, 
+                    mli::krn::reduce_max2D_hwc<i_T, o_T, fixed_kernel_size, /*varying_kernel*/ true>(
+                                                in_ptr, out_ptr, clmns, rows,
                                                 in.col_mem_stride, in.row_mem_stride, current_ch);
+                } else if (type == SUMPOOL) {
+                    mli::krn::compute_avepool<i_T, o_T, fixed_kernel_size, /*varying_kernel*/ true>(
+                                                in_ptr, out_ptr, /*mul*/ 1, clmns, rows,
+                                                in.col_mem_stride, in.row_mem_stride, /*zp*/ 0, /*shift_value*/ 0,
+                                                current_ch);
                 }
             }
         }
     }
 }
 
-template <pool_type type, typename io_T, int fixed_kernel_size, bool convert = false>
+template <pool_type type, typename i_T, typename o_T, int fixed_kernel_size, bool convert = false>
 static MLI_FORCE_INLINE void mli_krn_pool_hwc_pad(
         const int stride_width,
         const int stride_height,
@@ -274,8 +296,8 @@ static MLI_FORCE_INLINE void mli_krn_pool_hwc_pad(
         const int padding_bot,
         const int padding_left,
         const int padding_right,
-        const tensor_private_t<MLI_PTR(io_T)> &in,
-        const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
+        const tensor_private_t<MLI_PTR(i_T)> &in,
+        const tensor_private_t<MLI_OUT_PTR(o_T)> &out,
         const int kernel_height,
         const int kernel_width,
         const s8asym_quant_params *params = nullptr) {
@@ -288,7 +310,7 @@ static MLI_FORCE_INLINE void mli_krn_pool_hwc_pad(
     const int nopad_clmn_end = CEIL_DIV(in.width + padding_left - kernel_width + 1, stride_width);
 
     if ((nopad_row_end - nopad_row_beg > 0) && (nopad_clmn_end - nopad_clmn_beg > 0)) {
-        mli_krn_pool_hwc_nopad<type, io_T, fixed_kernel_size, convert>(
+        mli_krn_pool_hwc_nopad<type, i_T, o_T, fixed_kernel_size, convert>(
                 nopad_row_beg, nopad_row_end, nopad_clmn_beg, nopad_clmn_end,
                 stride_width, stride_height, padding_top,
                 padding_bot, padding_left, padding_right,
@@ -395,7 +417,7 @@ static MLI_FORCE_INLINE void mli_krn_pool_hwc_pad(
                     continue;
                 }
             }
-            mli_krn_pool_hwc_compute_pad<type, io_T, fixed_kernel_size, convert>(stride_w, stride_h,
+            mli_krn_pool_hwc_compute_pad<type, i_T, o_T, fixed_kernel_size, convert>(stride_w, stride_h,
                                             p_top, p_bot, p_left, p_right,
                                             area,
                                             in_, out_,
@@ -404,10 +426,10 @@ static MLI_FORCE_INLINE void mli_krn_pool_hwc_pad(
     }
 }
 
-template <pool_type type, typename io_T, int fixed_kernel_size, bool convert = false>
+template <pool_type type, typename i_T, typename o_T, int fixed_kernel_size, bool convert = false>
 static MLI_FORCE_INLINE void mli_krn_pool_hwc_wrapper(
-        MLI_PTR(io_T) __restrict in_ptr,
-        MLI_OUT_PTR(io_T) __restrict out_ptr,
+        MLI_PTR(i_T) __restrict in_ptr,
+        MLI_OUT_PTR(o_T) __restrict out_ptr,
         const int row_beg,
         const int row_end,
         const int clmn_beg,
@@ -418,24 +440,24 @@ static MLI_FORCE_INLINE void mli_krn_pool_hwc_wrapper(
         const int padding_bot,
         const int padding_left,
         const int padding_right,
-        const tensor_private_t<MLI_PTR(io_T)> &in,
-        const tensor_private_t<MLI_OUT_PTR(io_T)> &out,
+        const tensor_private_t<MLI_PTR(i_T)> &in,
+        const tensor_private_t<MLI_OUT_PTR(o_T)> &out,
         const int kernel_height,
         const int kernel_width,
         const s8asym_quant_params *params = nullptr) {
 
-    tensor_private_t<MLI_PTR(io_T)> in_ = in;
-    tensor_private_t<MLI_OUT_PTR(io_T)> out_ = out;
+    tensor_private_t<MLI_PTR(i_T)> in_ = in;
+    tensor_private_t<MLI_OUT_PTR(o_T)> out_ = out;
     in_.ptr = in_ptr;
     out_.ptr = out_ptr;
 
     if (padding_top || padding_left || padding_bot || padding_right) {
-        mli_krn_pool_hwc_pad<type, io_T, fixed_kernel_size, convert>(stride_width, stride_height,
+        mli_krn_pool_hwc_pad<type, i_T, o_T, fixed_kernel_size, convert>(stride_width, stride_height,
                                 padding_top, padding_bot, padding_left, padding_right,
                                 in_, out_,
                                 kernel_height, kernel_width, params);
     } else {
-        mli_krn_pool_hwc_nopad<type, io_T, fixed_kernel_size, convert>(
+        mli_krn_pool_hwc_nopad<type, i_T, o_T, fixed_kernel_size, convert>(
                                 /*row_beg*/ 0, row_end, /*clmn_beg*/ 0, clmn_end,
                                 stride_width, stride_height,
                                 /*padding_top*/ 0, /*padding_bot*/ 0, /*padding_left*/ 0, /*padding_right*/ 0,
@@ -444,7 +466,7 @@ static MLI_FORCE_INLINE void mli_krn_pool_hwc_wrapper(
     }
 }
 
-template <pool_type type, typename io_T, int fixed_kernel_size, bool convert = false>
+template <pool_type type, typename i_T, typename o_T, int fixed_kernel_size, bool convert = false>
 static void mli_krn_pool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg, mli_tensor * out) {
     // Extract general avepool parameters
     int32_t stride_width = cfg->stride_width;
@@ -457,8 +479,8 @@ static void mli_krn_pool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg, ml
     int32_t kernel_width = cfg->kernel_width;
 
     // Define Data dimensions
-    auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(io_T)>(in);
-    const auto out_prv = mli_prv_get_tensor_hwc<MLI_OUT_PTR(io_T)>(out);
+    auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(i_T)>(in);
+    const auto out_prv = mli_prv_get_tensor_hwc<MLI_OUT_PTR(o_T)>(out);
 
     if (fixed_kernel_size) {
         MLI_CHECK_AND_FIX(kernel_width, fixed_kernel_size);
@@ -478,7 +500,7 @@ static void mli_krn_pool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg, ml
         in_prv.height += padding_bot;
         padding_bot = 0;
     }
-    
+
     s8asym_quant_params params;
     if (type == AVEPOOL) {
         if (convert) {
@@ -492,6 +514,11 @@ static void mli_krn_pool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg, ml
         }
     } else if (type == MAXPOOL) {
         out->el_params = in->el_params;
+    } else if (type == SUMPOOL) {
+        MLI_ASSERT(in->el_type == MLI_EL_SA_8);
+        params.shift  = 0;
+        params.offset = 0;
+        params.scale  = 1;
     }
 
     const int32_t row_beg = 0;
@@ -501,8 +528,7 @@ static void mli_krn_pool_hwc(const mli_tensor * in, const mli_pool_cfg * cfg, ml
 
     mli_prv_fx_init_dsp_ctrl();
 
-
-    mli_krn_pool_hwc_wrapper<type, io_T, fixed_kernel_size, convert>(in_prv.ptr, out_prv.ptr,
+    mli_krn_pool_hwc_wrapper<type, i_T, o_T, fixed_kernel_size, convert>(in_prv.ptr, out_prv.ptr,
                             row_beg, row_end, clmn_beg, clmn_end,
                             stride_width, stride_height,
                             padding_top, padding_bot, padding_left, padding_right,

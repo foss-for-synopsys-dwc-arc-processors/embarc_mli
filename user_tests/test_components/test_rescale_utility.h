@@ -25,7 +25,7 @@ class scales_calc {
 public:
     scales_calc() {}
     // Parametrised constructor for just in-to-out
-    scales_calc(float in_scale, float out_scale);
+    scales_calc(float in_scale, float out_scale, float multiplier = 1);
     scales_calc(float in_scale, float out_scale,
                 const float* w_scales, size_t w_scales_num);
 
@@ -47,8 +47,7 @@ class bias_folder {
 public:
     bias_folder() {}
     // Parametrised constructor for just in-to-out
-    bias_folder(const mli_tensor& b_tsr, const mli_tensor& in_tsr,
-                const mli_tensor& w_tsr);
+    bias_folder(const mli_tensor& b_tsr, const mli_tensor& in_tsr, const mli_tensor& w_tsr);
 
     // TODO: Support double-wide accum
     const std::vector<int32_t>& get_bias_vec() const {return bias_vec;};

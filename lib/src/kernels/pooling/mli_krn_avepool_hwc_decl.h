@@ -22,7 +22,7 @@ namespace krn {
 ////////////////////////////////////////////////////////////////////////////////
 // Functions (in *_ref/*_dsp/*vdsp) that can be called from outside their own
 // file must be declared here. This includes all overloads. For example, if we
-// have: io_T f(io_T a) and int8_t f(int8_t a), then both must be declared.
+// have: o_T f(i_T a) and int8_t f(int8_t a), then both must be declared.
 // Not doing so, can cause the compiler to use the wrong overload.
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -35,10 +35,10 @@ static MLI_FORCE_INLINE void get_mul_shift_value(
         unsigned div,
         int16_t* mul, int* shift);
 
-template<typename io_T, int fixed_kernel_size, bool varying_kernel>
+template<typename i_T, typename o_T, int fixed_kernel_size, bool varying_kernel>
 static MLI_FORCE_INLINE void compute_avepool(
-        const MLI_PTR(io_T) __restrict in,
-        MLI_OUT_PTR(io_T) __restrict out,
+        const MLI_PTR(i_T) __restrict in,
+        MLI_OUT_PTR(o_T) __restrict out,
         const int16_t mul,
         const int width,
         const int height,
@@ -54,10 +54,10 @@ static MLI_FORCE_INLINE void compute_avepool(
 // DSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace dsp {
-template<typename io_T, int fixed_kernel_size, bool varying_kernel>
+template<typename i_T, typename o_T, int fixed_kernel_size, bool varying_kernel>
 static MLI_FORCE_INLINE void compute_avepool(
-        const MLI_PTR(io_T) __restrict in,
-        MLI_OUT_PTR(io_T) __restrict out,
+        const MLI_PTR(i_T) __restrict in,
+        MLI_OUT_PTR(o_T) __restrict out,
         const int16_t mul,
         const int width,
         const int height,
@@ -74,10 +74,10 @@ static MLI_FORCE_INLINE void compute_avepool(
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
 
-template<typename io_T, int fixed_kernel_size, bool varying_kernel>
+template<typename i_T, typename o_T, int fixed_kernel_size, bool varying_kernel>
 static MLI_FORCE_INLINE void compute_avepool(
-        const MLI_PTR(io_T) __restrict in,
-        MLI_OUT_PTR(io_T) __restrict out,
+        const MLI_PTR(i_T) __restrict in,
+        MLI_OUT_PTR(o_T) __restrict out,
         const int16_t mul,
         const int width,
         const int height,

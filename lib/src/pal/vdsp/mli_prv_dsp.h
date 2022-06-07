@@ -99,12 +99,29 @@ static MLI_FORCE_INLINE void  mli_prv_clip_and_store_output(
     *o_ptr = (int16_t) mli_math_sat_fx<int32_t>(temp, 16);
 }
 
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int32_t) __restrict o_ptr,
+        int32_t ip_in,
+        const int out_shift) {
+    MLI_ASSERT(out_shift == 0);
+    *o_ptr = ip_in;
+}
+
 static MLI_FORCE_INLINE void  mli_prv_clip_and_store_output(
         MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
         int64_t * ip_in,
         const int out_shift) {
     int64_t temp = mli_math_asr_rnd_fx<int64_t>(*ip_in, out_shift);
     *o_ptr = (int64_t) mli_math_sat_fx<int64_t>(temp, 48);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int32_t) __restrict o_ptr,
+        vNx4accint_t ip_in,
+        const int out_shift,
+        int num) {
+    vNx4int_t out = mli_math_acc_cast_fx<vNx4int_t, vNx4accint_t>(ip_in, out_shift);
+    mli_prv_store_n_samples(o_ptr, out, num);
 }
 
 static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
@@ -118,7 +135,7 @@ static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
 static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
         MLI_CONV_OUT_PTR(int16_t) __restrict o_ptr,
         vNx4accint_t ip_in,
-        const int out_shift, 
+        const int out_shift,
         int num) {
     vNx4short_t out = mli_math_acc_cast_fx<vNx4short_t, vNx4accint_t>(ip_in, out_shift);
     mli_prv_store_n_samples(o_ptr, out, num);
@@ -365,6 +382,15 @@ MLI_FORCE_INLINE vNx4accint_t mli_prv_init_accu_with_bias_v(
     vNx4accint_t r;
     r.lo = vvcmpy((vNx2short_t)1, (int16_t)bias);
     r.hi = vvcmpy((vNx2short_t)1, (int16_t)bias);
+    return mli_math_asl_fx(r, bias_shift);
+}
+
+template<>
+MLI_FORCE_INLINE vNx4accshort_t mli_prv_init_accu_with_bias_v(
+        const int16_t bias,
+        const int bias_shift) {
+
+    vNx4accshort_t r = vvcmpy((vNx4char_t)1, (int16_t)bias);
     return mli_math_asl_fx(r, bias_shift);
 }
 

@@ -100,7 +100,7 @@ static MLI_FORCE_INLINE void calc_mul(unsigned div, int16_t* mul, int* shift_val
     unsigned int val = one / div; // u1.31
     int shift_norm_val = 0;
 
-    if (div > 1) { 
+    if (div > 1) {
         shift_norm_val = mli_math_norm_fx<int, int>(val) + 1;
         val <<= shift_norm_val;
     }
@@ -131,7 +131,7 @@ static MLI_FORCE_INLINE void compute_avepool_func(
         const int32_t zp,
         const int shift_value,
         const int channels) {
-    
+
     MLI_ASSERT(channels == 1);
     mli_acc32_t accu = mli_prv_init_accu_with_bias_v<mli_acc32_t>(zp, shift_value);
     accu = reduce_sum2D_v(in, mul, accu, width, height, col_mem_stride, row_mem_stride);
@@ -149,17 +149,16 @@ static MLI_FORCE_INLINE void compute_avepool_func(
         const int32_t zp,
         const int shift_value,
         const int channels) {
-    
+
     MLI_ASSERT(channels == 1);
     mli_acc40_t accu = mli_prv_init_accu_with_bias_v<mli_acc40_t>(zp, shift_value);
     accu = reduce_sum2D_v(in, mul, accu, width, height, col_mem_stride, row_mem_stride);
     mli_prv_clip_and_store_output_v(out, accu, shift_value);
 }
 
-template<typename io_T, int fixed_kernel_size, bool varying_kernel>
-static MLI_FORCE_INLINE void compute_avepool(
-        const MLI_PTR(io_T) __restrict in,
-        MLI_OUT_PTR(io_T) __restrict out,
+static MLI_FORCE_INLINE void compute_avepool_func(
+        const MLI_PTR(int8_t) __restrict in,
+        MLI_OUT_PTR(int32_t) __restrict out,
         const int16_t mul,
         const int width,
         const int height,
@@ -169,7 +168,26 @@ static MLI_FORCE_INLINE void compute_avepool(
         const int shift_value,
         const int channels) {
 
-    compute_avepool_func(in, out, mul, width, height, col_mem_stride, row_mem_stride, zp ,shift_value, channels);
+    MLI_ASSERT(channels == 1);
+    mli_acc32_t accu = mli_prv_init_accu_with_bias_v<mli_acc32_t>(zp, shift_value);
+    accu = reduce_sum2D_v(in, mul, accu, width, height, col_mem_stride, row_mem_stride);
+    mli_prv_clip_and_store_output_v(out, accu, shift_value);
+}
+
+template<typename i_T, typename o_T, int fixed_kernel_size, bool varying_kernel>
+static MLI_FORCE_INLINE void compute_avepool(
+        const MLI_PTR(i_T) __restrict in,
+        MLI_OUT_PTR(o_T) __restrict out,
+        const int16_t mul,
+        const int width,
+        const int height,
+        const int col_mem_stride,
+        const int row_mem_stride,
+        const int32_t zp,
+        const int shift_value,
+        const int channels) {
+
+        compute_avepool_func(in, out, mul, width, height, col_mem_stride, row_mem_stride, zp, shift_value, channels);
 }
 
 } // namespace ref

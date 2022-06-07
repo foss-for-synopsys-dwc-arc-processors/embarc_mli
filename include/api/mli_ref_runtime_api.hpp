@@ -171,6 +171,33 @@ class MaxPool2D : public ExecutionInterface {
     uint32_t m_io_elem_size;
 };
 
+/**
+ * @brief This class implements the SumPool2D kernel xop interpreter interface
+ *
+ *
+ */
+class SumPool2D : public ExecutionInterface {
+  public:
+    SumPool2D(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
+
+    mli_status Issue() override;
+
+    mli_status Prefetch() override;
+
+    mli_status Update() override;
+
+  private:
+    //TODO: May be move them to the membasis as an example.
+    mli_pool_cfg m_cfg;
+    mli_tensor m_input;
+    mli_tensor m_output;
+    int32_t m_input_batch_offset;
+    int32_t m_output_batch_offset;
+    uint32_t m_batch_number;
+    uint32_t m_i_elem_size;
+    uint32_t m_o_elem_size;
+};
+
 } // namespace snps_arc::metaware::mli::ref
 
 #endif // _MLI_REF_RUNTIME_API_HPP_

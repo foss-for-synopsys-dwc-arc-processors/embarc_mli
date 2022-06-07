@@ -230,6 +230,14 @@ static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
 }
 
 static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int32_t) __restrict o_ptr,
+        int32_t ip_in,
+        const int out_shift) {
+    MLI_ASSERT(out_shift == 0);
+    *o_ptr = ip_in;
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
         MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
         int32_t ip_in,
         const int out_shift,
@@ -296,6 +304,20 @@ static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
 }
 
 static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int32_t) __restrict o_ptr,
+        __v2i32_t * acc_v,
+        const int out_shift,
+        int num) {
+    MLI_ASSERT(num <= 2);
+
+    if (num == 1) {
+        *((q31_t *) o_ptr) = (q31_t) (*acc_v)[0];
+    } else if (num == 2) {
+        *((__v2i32_t *) o_ptr) = *acc_v;
+    }
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
         MLI_CONV_OUT_PTR(int8_t) __restrict o_ptr,
         __v2i32_t acc_v,
         const int out_shift,
@@ -308,6 +330,14 @@ static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
         __v2i32_t acc_v,
         const int out_shift) {
     mli_prv_clip_and_store_output_v(o_ptr, &acc_v, out_shift);
+}
+
+static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(
+        MLI_CONV_OUT_PTR(int32_t) __restrict o_ptr,
+        __v2i32_t acc_v,
+        const int out_shift,
+        int num) {
+    mli_prv_clip_and_store_output_v(o_ptr, &acc_v, out_shift, num);
 }
 
 static MLI_FORCE_INLINE void mli_prv_clip_and_store_output_v(

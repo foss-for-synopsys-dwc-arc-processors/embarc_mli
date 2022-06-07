@@ -178,6 +178,45 @@ public:
     uint8_t padding_bottom;
 };
 
+class SumPool2DPrivateData : public PrivateData {
+
+public:
+    SumPool2DPrivateData() : PrivateData(kSumPool2DId) {}
+
+    OffsetBuffer input_buffer;
+    OffsetBuffer output_buffer;
+    OffsetBuffer metadata_buffer;
+
+    uint32_t input_b;
+    uint32_t input_h;
+    uint32_t input_w;
+    uint32_t input_c;
+
+    int32_t input_b_stride;
+    int32_t input_h_stride;
+    int32_t input_w_stride;
+    int32_t input_c_stride;
+
+    uint32_t output_b;
+    uint32_t output_h;
+    uint32_t output_w;
+    uint32_t output_c;
+
+    int32_t output_b_stride;
+    int32_t output_h_stride;
+    int32_t output_w_stride;
+    int32_t output_c_stride;
+
+    uint8_t kernel_height;
+    uint8_t kernel_width;
+    uint8_t stride_height;
+    uint8_t stride_width;
+    uint8_t padding_top;
+    uint8_t padding_bottom;
+    uint8_t padding_left;
+    uint8_t padding_right;
+};
+
 } // namespace snps_arc::metaware::mli::ref
 
 #endif // _MLI_REF_PRIVATE_TYPES_HPP_

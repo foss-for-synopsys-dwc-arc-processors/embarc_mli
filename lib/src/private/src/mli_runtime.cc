@@ -16,6 +16,7 @@
 
 namespace snps_arc::metaware::mli {
 using ref::MaxPool2D;
+using ref::SumPool2D;
 using ref::Move;
 using ref::Conv2d;
 using ref::DepthwiseConv2d;
@@ -69,6 +70,13 @@ ExecutionInterface* ExecutionInterface::Create(
                 obj = new (allocation_memory_buffer) MaxPool2D(kernel_private_data_buffer, private_data_size, membases, num_mems);
             } else {
                 MLI_PRINTF("\nASSERT: Insufficient space for [MaxPool2D] runtime object\n");
+            }
+            break;
+        case kSumPool2DId:
+            if(alloc_buf_size >= sizeof(SumPool2D)) {
+                obj = new (allocation_memory_buffer) SumPool2D(kernel_private_data_buffer, private_data_size, membases, num_mems);
+            } else {
+                MLI_PRINTF("\nASSERT: Insufficient space for [SumPool2D] runtime object\n");
             }
             break;
         case kSomeOtherKernelId:

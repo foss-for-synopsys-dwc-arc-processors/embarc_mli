@@ -101,7 +101,7 @@ mli_status MaxPool2D::Issue() {
     int16_t* in_ptr = m_input.data.mem.pi16;
     int16_t* out_ptr = m_output.data.mem.pi16;
     for (uint32_t i = 0; i < m_batch_number; i++) {
-      mli_krn::mli_krn_pool_hwc<mli_krn::MAXPOOL, int16_t, POOL_NO_FIXED_KRN_SIZE>(&m_input, &m_cfg, &m_output);
+      mli_krn::mli_krn_pool_hwc<mli_krn::MAXPOOL, int16_t, int16_t, POOL_NO_FIXED_KRN_SIZE>(&m_input, &m_cfg, &m_output);
       m_input.data.mem.pi16 += m_input_batch_offset;
       m_output.data.mem.pi16 += m_output_batch_offset;
     }
@@ -111,7 +111,7 @@ mli_status MaxPool2D::Issue() {
     int8_t* in_ptr = m_input.data.mem.pi8;
     int8_t* out_ptr = m_output.data.mem.pi8;
     for (uint32_t i = 0; i < m_batch_number; i++) {
-      mli_krn::mli_krn_pool_hwc<mli_krn::MAXPOOL, int8_t, POOL_NO_FIXED_KRN_SIZE>(&m_input, &m_cfg, &m_output);
+      mli_krn::mli_krn_pool_hwc<mli_krn::MAXPOOL, int8_t, int8_t, POOL_NO_FIXED_KRN_SIZE>(&m_input, &m_cfg, &m_output);
       m_input.data.mem.pi8 += m_input_batch_offset;
       m_output.data.mem.pi8 += m_output_batch_offset;
     }

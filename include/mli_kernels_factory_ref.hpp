@@ -77,6 +77,16 @@ public:
         return new(kernel_buffer) lib_ref::MaxPool2D_CS(m_pd, in, cfg, output_tile_shape);
     }
 
+    uint32_t SumPool2D_CS_GetSize() const override { return sizeof(lib_ref::SumPool2D_CS); }
+
+    lib_mli::SumPool2D_CS* SumPool2D_CS(void *kernel_buffer,
+                                        const Tensor<NoBuffer, 4> in,
+                                        const PoolOpConfig &cfg,
+                                        const Tensor<NoBuffer, 4> output_tile_shape)
+                                        override {
+        return new(kernel_buffer) lib_ref::SumPool2D_CS(m_pd, in, cfg, output_tile_shape);
+    }
+
     uint32_t DepthwiseConv2d_CS_GetSize() const override { return sizeof(lib_ref::DepthwiseConv2d_CS); }
 
     lib_mli::DepthwiseConv2d_CS* DepthwiseConv2d_CS(void *kernel_buffer,

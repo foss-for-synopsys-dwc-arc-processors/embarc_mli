@@ -19,10 +19,10 @@ namespace mli {
 namespace krn {
 namespace ref {
 
-template <typename io_T, int fixed_kernel_size, bool varying_kernel>
+template <typename i_T, typename o_T, int fixed_kernel_size, bool varying_kernel>
 static MLI_FORCE_INLINE void reduce_max2D_hwc(
-		const MLI_PTR(io_T) in,
-		MLI_PTR(io_T) out,
+		const MLI_PTR(i_T) in,
+		MLI_PTR(o_T) out,
 		const int width,
         const int height,
 		const int col_mem_stride,

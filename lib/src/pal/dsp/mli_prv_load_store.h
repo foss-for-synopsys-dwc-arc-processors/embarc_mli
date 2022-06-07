@@ -65,6 +65,9 @@ static MLI_FORCE_INLINE void mli_prv_store_2_samples (MLI_OUT_PTR (int16_t) __re
     *(MLI_OUT_PTR (v2q15_t)) out = data;
 }
 
+static MLI_FORCE_INLINE void mli_prv_store_2_samples (MLI_OUT_PTR (int32_t) __restrict out, v2q15_t data) {
+    *(MLI_OUT_PTR (__v2i32_t)) out = __builtin_convertvector (data, __v2i32_t);
+}
 
 static MLI_FORCE_INLINE void mli_prv_sat_and_store_2_samples (MLI_PTR (int8_t) __restrict out, v2q15_t data) {
     const v2u16_t sat_v2= {8, 8};
@@ -92,6 +95,10 @@ static MLI_FORCE_INLINE void mli_prv_store_1_sample (MLI_OUT_PTR (int16_t) __res
     *(MLI_OUT_PTR (q15_t)) out = data[0];
 }
 
+static MLI_FORCE_INLINE void mli_prv_store_1_sample (MLI_OUT_PTR (int32_t) __restrict out, v2q15_t data) {
+    *(MLI_OUT_PTR (q31_t)) out = (q31_t) data[0];
+}
+
 static MLI_FORCE_INLINE void mli_prv_sat_and_store_1_sample (MLI_OUT_PTR (int8_t) __restrict out, v2q15_t data) {
     *(MLI_OUT_PTR (q7_t)) out = (int8_t)fx_sat_q15(data[0], 8);
 }
@@ -102,7 +109,7 @@ static MLI_FORCE_INLINE void mli_prv_sat_and_store_1_sample (MLI_OUT_PTR (int16_
 
 
 template <typename out_T>
-static MLI_FORCE_INLINE void mli_prv_store_n_samples(out_T __restrict out, v2q15_t data, int predicate) { 
+static MLI_FORCE_INLINE void mli_prv_store_n_samples(out_T __restrict out, v2q15_t data, int predicate) {
     MLI_ASSERT(predicate <= 2);
     if (predicate == 1) {
         mli_prv_store_1_sample(out, data);

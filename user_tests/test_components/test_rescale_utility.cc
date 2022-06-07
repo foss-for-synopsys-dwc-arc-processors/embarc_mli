@@ -85,13 +85,13 @@ static mli_tensor flat_tensor(int32_t* data, size_t tsr_size) {
 //
 //======================================================================================================
 
-scales_calc::scales_calc(float in_scale, float out_scale)
+scales_calc::scales_calc(float in_scale, float out_scale, float multiplier)
         : scales_val_vec(1)
         , scales_shift_vec(1)
         , scales_val_tsr(flat_tensor(scales_val_vec.data(), 1))
         , scales_shift_tsr(flat_tensor(scales_shift_vec.data(), 1)) {
     assert(out_scale != 0.0f);
-    scales_val_vec[0] = val_to_fx(in_scale/out_scale, scales_shift_vec[0]);
+    scales_val_vec[0] = val_to_fx(in_scale * multiplier / out_scale, scales_shift_vec[0]);
 }
 
 scales_calc::scales_calc(float in_scale, float out_scale,
@@ -109,15 +109,14 @@ scales_calc::scales_calc(float in_scale, float out_scale,
     assert(out_scale != 0.0f);
     const float in_to_out_scale = in_scale / out_scale;
     for (size_t i = 0; i < w_scales_num; ++i)
-        scales_val_vec[i] = val_to_fx(in_to_out_scale* w_scales[i], scales_shift_vec[i]);
+        scales_val_vec[i] = val_to_fx(in_to_out_scale * w_scales[i], scales_shift_vec[i]);
 }
-
 
 
 bias_folder::bias_folder(const mli_tensor& b_tsr, const mli_tensor& in_tsr,
                          const mli_tensor& w_tsr)
         : bias_vec(b_tsr.shape[0])
-        , bias_tsr(flat_tensor(bias_vec.data(), bias_vec.size())){
+        , bias_tsr(flat_tensor(bias_vec.data(), bias_vec.size())) {
     assert(b_tsr.rank == 1);
     assert(b_tsr.el_type == MLI_EL_SA_32);
     assert(in_tsr.el_type == MLI_EL_SA_8);

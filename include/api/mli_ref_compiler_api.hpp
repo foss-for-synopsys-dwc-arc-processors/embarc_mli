@@ -201,6 +201,40 @@ private:
     lib_mli::PlatformDescription m_pd;
 };
 
+class SumPool2D_CS : public lib_mli::SumPool2D_CS {
+public:
+
+    SumPool2D_CS(const lib_mli::PlatformDescription pd,
+                 const Tensor<NoBuffer, 4> in,
+                 const PoolOpConfig &cfg,
+                 const Tensor<NoBuffer, 4> output_tile_shape);
+
+    // From CompilerGenericInterface
+    unsigned GetKernelPrivateDataSize() const override;
+    unsigned GetRuntimeObjectSize() const override;
+    mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
+    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
+                                   const Tensor<OffsetBuffer, 4> &output,
+                                   const OffsetBuffer &data) override;
+
+    // From SumPool2D_CS
+    unsigned GetInputBufferSize() const override;
+    unsigned GetOutputBufferSize() const override;
+    unsigned GetDataBufferSize() const override;
+
+private:
+    Tensor<OffsetBuffer, 4> m_in;
+    Tensor<OffsetBuffer, 4> m_output;
+    OffsetBuffer m_metadata;
+
+    PoolOpConfig m_config;
+
+    uint32_t m_input_buffer_size;
+    uint32_t m_output_buffer_size;
+
+    lib_mli::PlatformDescription m_pd;
+};
+
 class Move_CS : public lib_mli::Move_CS {
  public:
   /**

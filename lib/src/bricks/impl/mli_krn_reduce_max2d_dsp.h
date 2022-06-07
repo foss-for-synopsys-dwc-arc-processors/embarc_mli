@@ -22,10 +22,10 @@ namespace mli {
 namespace krn {
 namespace dsp {
 
-template <typename io_T, bool varying_kernel>
+template <typename i_T, typename o_T, bool varying_kernel>
 static MLI_FORCE_INLINE void reduce_max2D_hwc_v(
-		const MLI_PTR(io_T) in,
-		MLI_PTR(io_T) out,
+		const MLI_PTR(i_T) in,
+		MLI_PTR(o_T) out,
 		const int width,
         const int height,
 		const int col_mem_stride,
@@ -68,17 +68,17 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc_v(
     mli_prv_store_n_samples(out, cur_max, channels);
 }
 
-template <typename io_T, int fixed_kernel_size, bool varying_kernel>
+template <typename i_T, typename o_T, int fixed_kernel_size, bool varying_kernel>
 static MLI_FORCE_INLINE void reduce_max2D_hwc(
-        const MLI_PTR(io_T) in,
-        MLI_PTR(io_T) out,
+        const MLI_PTR(i_T) in,
+        MLI_PTR(o_T) out,
         const int width,
         const int height,
         const int col_mem_stride,
         const int row_mem_stride,
         const int channels) {
 
-    reduce_max2D_hwc_v<io_T, varying_kernel>(in, out, width, height, col_mem_stride, row_mem_stride, channels);
+    reduce_max2D_hwc_v<i_T, o_T, varying_kernel>(in, out, width, height, col_mem_stride, row_mem_stride, channels);
 }
 
 } // namespace dsp

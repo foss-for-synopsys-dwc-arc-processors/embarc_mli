@@ -376,6 +376,17 @@ static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int32_t)  out,
     mli_prv_store_n_samples(out, data.hi.hi, predicate_limit);
 }
 
+static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int32_t)  out,
+        vNx4char_t data, int predicate_limit) {
+    vNx4int_t prom_data = mli_math_cast_fx<vNx4char_t, vNx4int_t>(data);
+    mli_prv_store_n_samples(out, prom_data, predicate_limit);
+}
+
+static MLI_FORCE_INLINE void mli_prv_store_n_samples(MLI_OUT_PTR (int32_t)  out,
+        vNx4short_t data, int predicate_limit) {
+    vNx4int_t prom_data = mli_math_cast_fx<vNx4short_t, vNx4int_t>(data);
+    mli_prv_store_n_samples(out, prom_data, predicate_limit);
+}
 
 //store with stride
 static MLI_FORCE_INLINE void mli_prv_stride_store_n_samples(MLI_PTR(int8_t)  out, vNx4char_t data, int  stride, int predicate_limit) {

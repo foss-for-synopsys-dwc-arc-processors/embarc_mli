@@ -25,9 +25,8 @@ file(GLOB temp
     ${MLI_LIB_CMAKE_DIR}/src/helpers/src/*.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/eltwise/*.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/pooling/*hwc*.cc
-    ${MLI_LIB_CMAKE_DIR}/src/kernels/pooling_3/mli_krn_maxpool.cc
-    ${MLI_LIB_CMAKE_DIR}/src/kernels/pooling_3/mli_krn_maxpool_compiler.cc
-    ${MLI_LIB_CMAKE_DIR}/src/kernels/pooling_3/mli_krn_maxpool_runtime.cc
+    ${MLI_LIB_CMAKE_DIR}/src/kernels/pooling/*compiler.cc
+    ${MLI_LIB_CMAKE_DIR}/src/kernels/pooling/*runtime.cc
     ${MLI_LIB_CMAKE_DIR}/src/bricks/*.cc
     ${MLI_LIB_CMAKE_DIR}/src/private/src/mli_check.cc
     ${MLI_LIB_CMAKE_DIR}/src/private/src/mli_prv_activation_lut.cc
@@ -86,7 +85,6 @@ set(MLI_LIB_PRIVATE_INCLUDES
     ${MLI_LIB_CMAKE_DIR}/src/kernels/convolution
     ${MLI_LIB_CMAKE_DIR}/src/kernels/eltwise
     ${MLI_LIB_CMAKE_DIR}/src/kernels/pooling
-    ${MLI_LIB_CMAKE_DIR}/src/kernels/pooling_3
     ${MLI_LIB_CMAKE_DIR}/src/kernels/diverse
     ${MLI_LIB_CMAKE_DIR}/src/kernels/transform
     ${MLI_LIB_CMAKE_DIR}/src/kernels/diverse

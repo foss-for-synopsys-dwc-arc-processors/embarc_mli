@@ -20,7 +20,7 @@ namespace krn {
 ////////////////////////////////////////////////////////////////////////////////
 // Functions (in *_ref/*_dsp/*vdsp) that can be called from outside their own
 // file must be declared here. This includes all overloads. For example, if we
-// have: io_T f(io_T a) and int8_t f(int8_t a), then both must be declared.
+// have: o_T f(i_T a) and int8_t f(int8_t a), then both must be declared.
 // Not doing so, can cause the compiler to use the wrong overload.
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -29,15 +29,15 @@ namespace krn {
 ////////////////////////////////////////////////////////////////////////////////
 namespace ref {
 
-template <typename io_T, int fixed_kernel_size, bool varying_kernel>
+template <typename i_T, typename o_T, int fixed_kernel_size, bool varying_kernel>
 static MLI_FORCE_INLINE void reduce_max2D_hwc(
-		const MLI_PTR(io_T) in,
-		MLI_PTR(io_T) out,
-		const int width,
+        const MLI_PTR(i_T) in,
+        MLI_PTR(o_T) out,
+        const int width,
         const int height,
-		const int col_mem_stride,
-		const int row_mem_stride,
-		const int channels = 1 /*unused*/);
+        const int col_mem_stride,
+        const int row_mem_stride,
+        const int channels = 1 /*unused*/);
 
 } // namespace ref
 
@@ -46,10 +46,10 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc(
 ////////////////////////////////////////////////////////////////////////////////
 namespace dsp {
 
-template <typename io_T, int fixed_kernel_size, bool varying_kernel>
+template <typename i_T, typename o_T, int fixed_kernel_size, bool varying_kernel>
 static MLI_FORCE_INLINE void reduce_max2D_hwc(
-        const MLI_PTR(io_T) in,
-        MLI_PTR(io_T) out,
+        const MLI_PTR(i_T) in,
+        MLI_PTR(o_T) out,
         const int width,
         const int height,
         const int col_mem_stride,
@@ -63,14 +63,14 @@ static MLI_FORCE_INLINE void reduce_max2D_hwc(
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
 
-template <typename io_T, int fixed_kernel_size, bool varying_kernel>
+template <typename i_T, typename o_T, int fixed_kernel_size, bool varying_kernel>
 static MLI_FORCE_INLINE void reduce_max2D_hwc(
-		const MLI_PTR(io_T) __restrict in,
-		MLI_PTR(io_T) __restrict out,
-		const int width,
+        const MLI_PTR(i_T) __restrict in,
+        MLI_PTR(o_T) __restrict out,
+        const int width,
         const int height,
-		const int col_mem_stride,
-		const int row_mem_stride,
+        const int col_mem_stride,
+        const int row_mem_stride,
         const int channels = 0 /*unused in full vector case*/);
 
 } // namespace vdsp
