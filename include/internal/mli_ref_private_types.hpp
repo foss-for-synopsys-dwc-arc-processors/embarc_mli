@@ -17,7 +17,6 @@
 namespace lib_mli = ::snps_arc::metaware::mli;
 
 namespace snps_arc::metaware::mli::ref {
-
 class Conv2DPrivateData : public PrivateData {
   public:
     Conv2DPrivateData() : PrivateData(kConv2dId){}
@@ -121,6 +120,45 @@ struct DepthwiseConv2dMetadata {
     mli_tensor output;
 };
 
+class FullyConnectedPrivateData : public PrivateData {
+
+public:
+    FullyConnectedPrivateData() : PrivateData(kFullyConnectedId) {}
+
+    // currently we support the only i8_w8_o32 case
+    OffsetBuffer input_buffer;
+    OffsetBuffer weights_buffer;
+    OffsetBuffer output_buffer;
+    OffsetBuffer inpzp_buffer;
+    OffsetBuffer wtszp_buffer;
+
+    uint32_t input_n;
+    uint32_t input_ic;
+
+    uint32_t output_n;
+    uint32_t output_oc;
+
+    uint32_t weights_ic;
+    uint32_t weights_oc;
+
+    int32_t input_n_stride;
+    int32_t input_ic_stride;
+
+    int32_t output_n_stride;
+    int32_t output_oc_stride;
+
+    uint32_t weights_ic_stride;
+    uint32_t weights_oc_stride;
+
+    uint8_t stride_n;
+    uint8_t stride_ic;
+};
+
+struct FullyConnectedMetadata {
+    mli_tensor input;
+    mli_tensor weights;
+    mli_tensor output;
+};
 class MovePrivateData : public PrivateData {
 
 public:

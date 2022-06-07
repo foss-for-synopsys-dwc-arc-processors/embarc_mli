@@ -158,6 +158,7 @@ public:
     unsigned GetKernelPrivateDataSize() const override;
     unsigned GetRuntimeObjectSize() const override;
     mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
+
     mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
                                    const Tensor<OffsetBuffer, 4> &output,
                                    const OffsetBuffer &data) override;
@@ -235,6 +236,64 @@ private:
     lib_mli::PlatformDescription m_pd;
 };
 
+class FullyConnected_CS : public lib_mli::FullyConnected_CS {
+public:
+    /**
+     * @brief Constructor of the  FullyConnected_CS object
+     *
+     */
+     FullyConnected_CS(const lib_mli::PlatformDescription pd,
+                       const Tensor<NoBuffer, 2> &in,
+                       const Tensor<NoBuffer, 2> &weights,
+                       const Tensor<NoBuffer, 2> &output_tile_shape);
+
+    mli_status EncodeWeights(const Tensor<Buffer, 2> &weights,
+                             Buffer &encoded_weights) override;
+
+    unsigned GetEncodedWeightsSize() const override;
+
+    mli_status EncodeInpZeroPts(const Tensor<Buffer, 1> &inpzeropts,
+                                Buffer &encoded_inpzeropts) override;
+
+    unsigned GetEncodedInpZeroPtsSize() const override;
+
+    mli_status EncodeWtsZeroPts(const Tensor<Buffer, 1> &wtszeropts,
+                                Buffer &encoded_wtszeropts) override;
+
+    unsigned GetEncodedWtsZeroPtsSize() const override;
+
+    unsigned GetInputBufferSize() const override;
+    unsigned GetOutputBufferSize() const override;
+    unsigned GetWeightsBufferSize() const override;
+    unsigned GetZeroPointBufferSize() const override;
+    unsigned GetDataBufferSize() const override;
+
+    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 2> &input,
+                                   const Tensor<OffsetBuffer, 2> &output,
+                                   const OffsetBuffer &weights,
+                                   const OffsetBuffer &inpzeropts,
+                                   const OffsetBuffer &wtszeropts,
+                                   const OffsetBuffer &descr) override;
+
+    mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
+    unsigned GetKernelPrivateDataSize() const override;
+    unsigned GetRuntimeObjectSize() const override;
+
+private:
+    Tensor<OffsetBuffer, 2> m_in;
+    Tensor<OffsetBuffer, 2> m_weights;
+    Tensor<OffsetBuffer, 2> m_output;
+
+    OffsetBuffer m_input_zp;
+    OffsetBuffer m_weights_zp;
+
+    uint32_t m_input_buffer_size;
+    uint32_t m_weights_buffer_size;
+    uint32_t m_output_buffer_size;
+
+    lib_mli::PlatformDescription m_pd;
+};
+
 class Move_CS : public lib_mli::Move_CS {
  public:
   /**
@@ -280,9 +339,9 @@ class Move_CS : public lib_mli::Move_CS {
 private:
   IteratorCfg<kMaxRank> m_src_cfg;
   IteratorCfg<kMaxRank> m_dst_cfg;
-  
+
   lib_mli::PlatformDescription m_pd;
-  
+
   Tensor<OffsetBuffer, kMaxRank> m_src;
   Tensor<OffsetBuffer, kMaxRank> m_dst;
 

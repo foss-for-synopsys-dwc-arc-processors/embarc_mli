@@ -87,7 +87,6 @@ private:
     uint32_t m_o_elem_size;
 };
 
-
 /**
  * @brief This class implements the Move kernel xop interpreter interface
  *
@@ -120,26 +119,26 @@ class Move : public ExecutionInterface {
      */
     Move(void* kernel_private_data_buffer, size_t size,
          uint64_t membases[], int num_mems);
- 
+
     mli_status Issue() override;
- 
+
     mli_status Prefetch() override;
- 
+
     mli_status Update() override;
- 
+
   private:
     TensorIterator<Move_CS::kMaxRank> m_src_it;
     TensorIterator<Move_CS::kMaxRank> m_dst_it;
     IteratorCfg<Move_CS::kMaxRank> m_src_it_cfg;
     IteratorCfg<Move_CS::kMaxRank> m_dst_it_cfg;
- 
+
     template <typename buf_T, unsigned N>
     void CopySrcToDst(Tensor<buf_T, N> src, Tensor<buf_T, N> dst);
- 
+
     TensorIterator<Move_CS::kMaxRank> GetSrcTensorTileItr(
         void* kernel_private_data_buffer, uint64_t membases[],
         int num_mems);
- 
+
     TensorIterator<Move_CS::kMaxRank> GetDstTensorTileItr(
         void* kernel_private_data_buffer, uint64_t membases[],
         int num_mems);
@@ -169,6 +168,50 @@ class MaxPool2D : public ExecutionInterface {
     int32_t m_output_batch_offset;
     uint32_t m_batch_number;
     uint32_t m_io_elem_size;
+
+};
+
+
+class FullyConnected : public ExecutionInterface {
+  public:
+    /**
+     * @brief constructor for the FullyConnected
+     *
+     * This Method will create and initialize the object using the information
+     * stored in the kernel_private_data_buffer that has been computed at compile time
+     * by the get_kernel_private_data() method.
+     *
+     * @param kernel_private_data_buffer [I] pointer to the compiletime computed initialization data
+     * @param size        [I] Size of the data is used to check for coding errors
+     * @param membases[]  [I] The kernel private data may contain offsets inside a (vector) memory.
+     *                        At run-time specific locations in memory are allocated for
+     *                        the graph, the membase array contains the is the start of
+     *                        each memory region.
+     *                        The init method will add this base to all the memory offsets
+     *                        inside the descriptor according to the memory number associated
+     *                        with that offset.
+     *                        Each platform can have different (number of) memories. For mli
+     *                        this is completely transparant. Compiler needs to use the same
+     *                        memory id's when attaching the buffers as are used by the
+     *                        xop-interpreter to set the membases.
+     * @param num_mems    [I] Number of elements in the membases array.
+     */
+    FullyConnected(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
+
+    mli_status Issue() override;
+
+    mli_status Prefetch() override;
+
+    mli_status Update() override;
+
+private:
+    FullyConnectedMetadata m_metadata;
+    // element size of input feature map
+    uint32_t m_i_elem_size;
+    // element size of weights
+    uint32_t m_w_elem_size;
+    // element size of output
+    uint32_t m_o_elem_size;
 };
 
 /**

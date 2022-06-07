@@ -220,6 +220,7 @@ add_user_test(krn permute)
 # Fully Connected And Recurrent Group
 #======================================================
 add_user_test(krn fully_connected)
+add_user_test(krn fully_connected_30)
 add_user_test(krn rnn_dense)
 add_user_test(krn lstm_cell FX16)
 add_user_test(krn lstm_cell FX16_FX8_FX8)

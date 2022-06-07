@@ -37,6 +37,8 @@ namespace snps_arc::metaware::mli {
     constexpr short int kKernelDWWidthDim = 1;
     constexpr short int kKernelDWChannelInDim = 2;
 
+    constexpr short int kKernelFCChannelInDim = 0;
+    constexpr short int kKernelFCChannelOutDim = 1;
 
 /**
  * @brief This is the base class for compiler side of MLI kernels
@@ -262,7 +264,7 @@ public:
 /* **********************************************************
  *
  * Add New Kernels Below
- * 
+ *
  * *********************************************************/
 
 
@@ -347,33 +349,61 @@ public:
      * @brief Method to encode the weights (coefficients).
      * TODO: add description using conv2d_cs as a starting point
      */
-    virtual mli_status EncodeWeights(const Tensor<Buffer, 2> &weights, 
+    virtual mli_status EncodeWeights(const Tensor<Buffer, 2> &weights,
                                      Buffer &encoded_weights) = 0;
 
     /**
      * @brief Method to query the size of the encoded weights buffer
      *
      */
-    virtual unsigned GetEncodedWeightsSize() = 0;
+    virtual unsigned GetEncodedWeightsSize() const = 0;
+
+    /**
+     * @brief Method to encode input zero-points (padding values)
+     *
+     */
+    virtual mli_status EncodeInpZeroPts(const Tensor<Buffer, 1> &inpzeropts,
+                                        Buffer &encoded_inpzeropts) = 0;
+
+    /**
+     * @brief Method to query the size of the encoded input zero-points buffer
+     *
+     */
+    virtual unsigned GetEncodedInpZeroPtsSize() const = 0;
+
+    /**
+     * @brief Method to encode weights zero-points
+     *
+     */
+    virtual mli_status EncodeWtsZeroPts(const Tensor<Buffer, 1> &wtszeropts,
+                                        Buffer &encoded_wtszeropts) {return MLI_STATUS_OK;}
+    /**
+     * @brief Method to query the size of the encoded weights zero-points buffer
+     *
+     */
+    virtual unsigned GetEncodedWtsZeroPtsSize() const { return 0;}
 
     /**
      * @brief Methods to get buffer sizes
      * TODO: add description using conv2d_cs as a starting point
      */
 
-    virtual unsigned GetInputBufferSize() = 0;
-    virtual unsigned GetOutputBufferSize() = 0;
-    virtual unsigned GetWeightsBufferSize() = 0;
-    virtual unsigned GetDataBufferSize() = 0;
+    virtual unsigned GetInputBufferSize() const = 0;
+    virtual unsigned GetOutputBufferSize() const = 0;
+    virtual unsigned GetWeightsBufferSize() const = 0;
+    virtual unsigned GetZeroPointBufferSize() const = 0;
+    virtual unsigned GetDataBufferSize() const = 0;
 
     /**
      * @brief Methods to set buffer offsets
      *
      */
-    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
-                                           const OffsetBuffer &output,
+    virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 2> &input,
+                                           const Tensor<OffsetBuffer, 2> &output,
                                            const OffsetBuffer &weights,
-                                           const OffsetBuffer &data) = 0;
+                                           const OffsetBuffer &inpzeropts,
+                                           const OffsetBuffer &wtszeropts,
+                                           const OffsetBuffer &metadata) = 0;
 };
 
 /**
@@ -405,7 +435,7 @@ public:
 
 /**
  * @brief This class implements the Summation Pooling 2D Compiler Support kernel interface
- * Summation pooling is a first phase of average pooling which accumulates all values 
+ * Summation pooling is a first phase of average pooling which accumulates all values
  * across perception areas of the kernel size. The following multiplication of result with reciprocal
  * value is required to get average pooling behavior.
  */
@@ -704,7 +734,7 @@ public:
      * @brief Methods to get buffer sizes
      * TODO: add description using conv2d_cs as a starting point
      */
-    
+
     // Temporary non-pure virtual functions, need to be implemented for other platforms.
     virtual unsigned GetInputBufferSize() const { return 0; };
     virtual unsigned GetOutputBufferSize() const { return 0; };

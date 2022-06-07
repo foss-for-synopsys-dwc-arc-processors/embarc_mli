@@ -54,9 +54,11 @@ KERNELS = \
 	l2_normalize \
 	data_movement \
 	maxpool_30 \
+	fully_connected_30 \
 	sumpool_30 \
 	conv2d_30 \
 	depthwise_conv_30
+
 
 
 BIN_FILES=$(patsubst %,$(BIN_PATH)$(PS)test_mli_hlp_%$(BIN_EXT),$(HELPERS))

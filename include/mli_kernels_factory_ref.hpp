@@ -50,10 +50,9 @@ public:
 
     uint32_t Move_CS_GetSize() const override { return sizeof(lib_ref::Move_CS); }
 
-
     lib_mli::Move_CS* Move_CS(void *kernel_buffer,
                               const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> src,
-                              const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> dst) 
+                              const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> dst)
                               override {
         return new(kernel_buffer) lib_ref::Move_CS(m_pd, src, dst);
     }
@@ -62,7 +61,7 @@ public:
                               const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> src,
                               const IteratorCfg<lib_mli::Move_CS::kMaxRank> src_cfg,
                               const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> dst,
-                              const IteratorCfg<lib_mli::Move_CS::kMaxRank> dst_cfg) 
+                              const IteratorCfg<lib_mli::Move_CS::kMaxRank> dst_cfg)
                               override {
       return new (kernel_buffer) lib_ref::Move_CS(m_pd, src, dst, src_cfg, dst_cfg);
     }
@@ -95,6 +94,15 @@ public:
                                                     const DwConv2DConfig &cfg,
                                                     const Tensor<NoBuffer, 4> output_tile_shape) override {
         return new(kernel_buffer) lib_ref::DepthwiseConv2d_CS(m_pd, in, weights, cfg, output_tile_shape);
+    }
+
+     uint32_t FullyConnected_CS_GetSize() const override { return sizeof(lib_ref:: FullyConnected_CS); }
+
+    lib_mli:: FullyConnected_CS* FullyConnected_CS(void *kernel_buffer,
+                                                    const Tensor<NoBuffer, 2> in,
+                                                    const Tensor<NoBuffer, 2> weights,
+                                                    const Tensor<NoBuffer, 2> output_tile_shape) override {
+        return new(kernel_buffer) lib_ref::FullyConnected_CS(m_pd, in, weights, output_tile_shape);
     }
 
 private:

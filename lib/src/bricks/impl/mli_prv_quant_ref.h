@@ -212,6 +212,12 @@ MLI_FORCE_INLINE int16_t quant_params_set_in_zeropoint(fx_quant_specific_params*
     return 0;
 }
 
+MLI_FORCE_INLINE int16_t quant_params_set_in_zeropoint(int_quant_specific_params*, int16_t) {
+    // Function parameters are not used since for MLI_Int quantization zero_point
+    // is always 0 and isn't present in params structure (can't be changed)
+    return 0;
+}
+
 //==========================================================================
 // Calculation of weights additive (w_add) in
 // dot_prod_asym = dot_prod_gen + w_add + in_add + zp_add + bias_add

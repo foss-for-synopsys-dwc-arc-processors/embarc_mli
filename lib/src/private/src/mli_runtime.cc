@@ -16,6 +16,7 @@
 
 namespace snps_arc::metaware::mli {
 using ref::MaxPool2D;
+using ref::FullyConnected;
 using ref::SumPool2D;
 using ref::Move;
 using ref::Conv2d;
@@ -45,7 +46,14 @@ ExecutionInterface* ExecutionInterface::Create(
             if(alloc_buf_size >= sizeof(Conv2d)) {
                 obj = new (allocation_memory_buffer) Conv2d(kernel_private_data_buffer, private_data_size, membases, num_mems);
             } else {
-                MLI_PRINTF("\nASSERT: Insufficient space for [Conv2d] runtime object\n");
+                MLI_PRINTF("\nMLI_ERROR: Insufficient space for [Conv2d] runtime object\n");
+            }
+            break;
+        case kFullyConnectedId:
+            if(alloc_buf_size >= sizeof(FullyConnected)) {
+                obj = new (allocation_memory_buffer) FullyConnected(kernel_private_data_buffer, private_data_size, membases, num_mems);
+            } else {
+                MLI_PRINTF("\nMLI_ERROR: Insufficient space for [FullyConnected] runtime object\n");
             }
             break;
         case kPreluId:
@@ -55,21 +63,21 @@ ExecutionInterface* ExecutionInterface::Create(
             if(alloc_buf_size >= sizeof(Move)) {
                 obj = new (allocation_memory_buffer) Move(kernel_private_data_buffer, private_data_size, membases, num_mems);
             } else {
-                MLI_PRINTF("\nASSERT: Insufficient space for [Move] runtime object\n");
+                MLI_PRINTF("\nMLI_ERROR: Insufficient space for [Move] runtime object\n");
             }
             break;
         case kDWConv2dId:
             if(alloc_buf_size >= sizeof(DepthwiseConv2d)) {
                 obj = new (allocation_memory_buffer) DepthwiseConv2d(kernel_private_data_buffer, private_data_size, membases, num_mems);
             } else {
-                MLI_PRINTF("\nASSERT: Insufficient space for [DepthwiseConv2d] runtime object\n");
+                MLI_PRINTF("\nMLI_ERROR: Insufficient space for [DepthwiseConv2d] runtime object\n");
             }
             break;
         case kMaxPool2DId:
             if(alloc_buf_size >= sizeof(MaxPool2D)) {
                 obj = new (allocation_memory_buffer) MaxPool2D(kernel_private_data_buffer, private_data_size, membases, num_mems);
             } else {
-                MLI_PRINTF("\nASSERT: Insufficient space for [MaxPool2D] runtime object\n");
+                MLI_PRINTF("\nMLI_ERROR: Insufficient space for [MaxPool2D] runtime object\n");
             }
             break;
         case kSumPool2DId:

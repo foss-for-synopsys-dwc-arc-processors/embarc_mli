@@ -22,6 +22,7 @@ typedef enum {
   kMoveId,
   kDWConv2dId,
   kMaxPool2DId,
+  kFullyConnectedId,
   kSumPool2DId,
   kAddId,
   kSomeOtherKernelId
@@ -97,7 +98,7 @@ public:
   }
 
   template<typename T>
-  T read(uint32_t offset){
+  T read(uint32_t offset) const{
     assert(sizeof(T) == elem_size_);
     return *(reinterpret_cast<T*>(ptr_) + offset);
   }
@@ -427,7 +428,7 @@ class Tensor {
   }
 
   template <typename T>
-  T read(uint32_t offset) {
+  T read(uint32_t offset) const {
     return buf_.template read<T>(offset);
   }
 
@@ -472,12 +473,12 @@ struct Conv2DConfig {
     uint32_t groups;           /**< Number of groups input channels and output channels are divided into. */
 };
 
-struct DwConv2DConfig  {
+struct DwConv2DConfig {
     DwConv2DConfig() = default;
-    DwConv2DConfig(uint32_t stride_ih, uint32_t stride_iw, 
+    DwConv2DConfig(uint32_t stride_ih, uint32_t stride_iw,
                    uint32_t pad_beg_ih, uint32_t pad_beg_iw,
                    uint32_t pad_end_ih, uint32_t pad_end_iw,
-                   uint32_t dilation_ih, uint32_t dilation_iw) 
+                   uint32_t dilation_ih, uint32_t dilation_iw)
       : stride{stride_ih, stride_iw}
       , padding_begin{pad_beg_ih, pad_beg_iw}
       , padding_end{pad_end_ih, pad_end_iw}

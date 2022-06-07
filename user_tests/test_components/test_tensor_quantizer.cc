@@ -16,7 +16,6 @@
 
 #include <assert.h>
 #include <math.h>
-
 #include <algorithm>
 #include <memory>
 #include <type_traits>
@@ -61,7 +60,7 @@ tensor_quantizer::tensor_quantizer(mli_tensor tsr, const int quant_dim, const fl
         mli_hlp_set_tensor_mem_strides(&source_tsr_);
     }
 
-    // if tensor not of a type that constructor intend to work with, keep is_valid_ state false 
+    // if tensor not of a type that constructor intend to work with, keep is_valid_ state false
     // and skip the rest initialization code
     if (source_tsr_.el_type == MLI_EL_SA_8 || source_tsr_.el_type == MLI_EL_SA_32) {
         source_tsr_.el_params.sa.dim = quant_dim;
@@ -73,7 +72,7 @@ tensor_quantizer::tensor_quantizer(mli_tensor tsr, const int quant_dim, const fl
         // check that arrays are of expectd size
         if (is_valid_) {
             is_valid_ = (data_size >= mli_hlp_count_elem_num(&source_tsr_, 0));
-            const uint32_t expected_vals = (source_tsr_.el_params.sa.dim < 0) ? 
+            const uint32_t expected_vals = (source_tsr_.el_params.sa.dim < 0) ?
                                             1 : source_tsr_.shape[source_tsr_.el_params.sa.dim];
             is_valid_ &= (scales_size == expected_vals);
             is_valid_ &= (zero_points_size == expected_vals);
@@ -152,7 +151,7 @@ const mli_tensor tensor_quantizer::get_source_float_tensor() const {
     }
     ret_tsr.el_type = MLI_EL_FP_32;
 
-    // As we return const tensor just after this assignment, 
+    // As we return const tensor just after this assignment,
     // removing cv qualfiers here is considered as and acceptable.
     ret_tsr.data.mem.pf32 = const_cast<float*>(source_data_);
     return ret_tsr;
@@ -182,7 +181,7 @@ mli_tensor tensor_quantizer::get_quantized_tensor(mli_data_container memory) con
 mli_tensor tensor_quantizer::get_not_quantized_tensor(mli_data_container memory) const {
     if (!is_valid_)
         return mli_tensor{ 0 };
-    
+
     assert(validate_tensor(source_tsr_) != kBad);
     mli_tensor ret_tsr = source_tsr_;
     const bool is_mem_spread_ok = spread_memory(&ret_tsr, &memory);
@@ -221,7 +220,7 @@ mli_tensor tensor_quantizer::get_not_quantized_tensor(mli_data_container memory)
 // Validate tensor in terms of three state: Bad, Incomplete, Ok
 //=======================================================
 tensor_quantizer::tensor_state tensor_quantizer::validate_tensor(const mli_tensor& tsr) {
-    // First check general tensor parameters like shape, rank, memstride, 
+    // First check general tensor parameters like shape, rank, memstride,
     // quantization dimension of sa type if applicable.
     // If they are broken - tensor is considered as bad and can't be used at all
     if (mli_hlp_tensor_element_size(&tsr) == 0 || tsr.rank < 0 || tsr.rank > MLI_MAX_RANK ||
@@ -242,7 +241,7 @@ tensor_quantizer::tensor_state tensor_quantizer::validate_tensor(const mli_tenso
         return kBad;
     }
 
-    // Next need to define whether memory is properly assigned to data 
+    // Next need to define whether memory is properly assigned to data
     // and additional fields like scales/zero_points.
     // If they are broken - tensor is considered as incomplete and requires proper memory assignment
     if (tsr.data.mem.pi16 == nullptr || get_required_data_capacity(tsr) > tsr.data.capacity)
@@ -300,7 +299,7 @@ tensor_quantizer::tensor_state tensor_quantizer::quantize_float_data(const float
 }
 
 
-// De-Quantize tensor data to float values 
+// De-Quantize tensor data to float values
 // Instantiation of de-quantization routines depending on type
 // Note: This function should be replaced by MLI API transform kernel when it will be done
 //====================================================================
@@ -366,7 +365,7 @@ uint32_t tensor_quantizer::get_required_data_capacity(const mli_tensor& tsr) {
         ret_val *= mli_hlp_tensor_element_size(&tsr);
 
         // Rough method which implies allocation for tail
-        //ret_val = tsr.mem_stride[0] * tsr.shape[0]; 
+        //ret_val = tsr.mem_stride[0] * tsr.shape[0];
     }
     return ret_val;
 }
@@ -448,19 +447,19 @@ float* tensor_quantizer::tensor_get_data_ptr(
 }
 // Spread provided memory across tensor's containers: data and quantization params
 //=================================================================================
-bool tensor_quantizer::spread_memory(mli_tensor* tsr, const mli_data_container* data_mem, 
+bool tensor_quantizer::spread_memory(mli_tensor* tsr, const mli_data_container* data_mem,
                                      const mli_data_container* quant_params_mem) {
     // This functions assigns provided memory to tensor data according to tensor type and alignment needs.
     // It takes tensor to be populated with data pointers and data containers as memory donors.
-    // tsr structure must contains properly filled shape, rank and elemet type data. 
-    // data_mem container must keep pointer and capacity to a valid memory which is sufficint for tsr needs 
-    // quant_params memory container is optional even for SA type of tensor. 
+    // tsr structure must contains properly filled shape, rank and elemet type data.
+    // data_mem container must keep pointer and capacity to a valid memory which is sufficint for tsr needs
+    // quant_params memory container is optional even for SA type of tensor.
     // For SA tensors if no quant_params_mem is provided, data_mem is used as the only donor for all
-    // 
+    //
     // Function retrns bool value which reflects whether assignment was completed successfully or not.
     // if function fails due to nullptrs of tsr or data container, operands wasn't changed.
     // If spreading wasn't successful because of lack of memory, .capacity fields of all data containers in tsr structure
-    // will keep minimal requirements for containers. 
+    // will keep minimal requirements for containers.
 
     // Data container and target tensors must be provided. Others are opional
     assert(tsr != nullptr && validate_tensor(*tsr) != kBad);
@@ -479,7 +478,7 @@ bool tensor_quantizer::spread_memory(mli_tensor* tsr, const mli_data_container* 
 
     // If no data container is provided, just return memory requirements
     bool success = !(data_mem == nullptr || data_mem->mem.pi8 == nullptr);
-    
+
     // Assign aligned memory for scales if it is needed
     //=================================================
     // If there are no specific containers for qantization params we will use data memory for it
@@ -519,7 +518,7 @@ bool tensor_quantizer::spread_memory(mli_tensor* tsr, const mli_data_container* 
             }
         }
     }
-    
+
     // Align memory for data and assign it to tensor
     //=================================================
     void* data_ptr = static_cast<void*>((use_data_mem_spare) ? mem_for_spare : data_mem->mem.pi8);
@@ -568,10 +567,10 @@ void tensor_quantizer::quantize_float_data_routine(const float* src, uint32_t sr
     assert(src_size <= mli_hlp_count_elem_num(dst, 0));
     assert(MLI_MAX_RANK == 4);
 
-    // Put type traits magic to derive output type (derived_T) 
+    // Put type traits magic to derive output type (derived_T)
     typedef typename std::conditional<dst_el_type == MLI_EL_FX_16, int16_t,
         typename std::conditional<dst_el_type == MLI_EL_FX_8 || dst_el_type == MLI_EL_SA_8, int8_t,
-        typename std::conditional<dst_el_type == MLI_EL_SA_32, int32_t, 
+        typename std::conditional<dst_el_type == MLI_EL_SA_32, int32_t,
         typename std::conditional<dst_el_type == MLI_EL_FP_32, float, void>::type >::type >::type >::type
         derived_T;
 
@@ -579,7 +578,7 @@ void tensor_quantizer::quantize_float_data_routine(const float* src, uint32_t sr
     typedef typename std::enable_if<!std::is_same<derived_T, void>::value, derived_T>::type    o_T;
 
     // Extend shape to the MLI_MAX_RANK complimenting it with 1s in a front.
-    // Calculate strides on input float array and output tensor 
+    // Calculate strides on input float array and output tensor
     // for easier definition of element position in total arrays
     int dst_strides[MLI_MAX_RANK] = { 0 };
     int src_strides[MLI_MAX_RANK] = { 0 };
@@ -653,7 +652,7 @@ void tensor_quantizer::quantize_float_data_routine(const float* src, uint32_t sr
 }
 
 //============================================================================================
-// De-Quantize tensor data to float values 
+// De-Quantize tensor data to float values
 // Main template of de-quantization routine
 //====================================================================
 template <mli_element_type src_el_type>
@@ -664,10 +663,10 @@ void tensor_quantizer::dequantize_tensor_data_routine(const mli_tensor* src, flo
     assert(dst_size >= mli_hlp_count_elem_num(src, 0));
     assert(MLI_MAX_RANK == 4);
 
-    // Put type traits magic to derive input type (derived_T) 
+    // Put type traits magic to derive input type (derived_T)
     typedef typename std::conditional<src_el_type == MLI_EL_FX_16, int16_t,
         typename std::conditional<src_el_type == MLI_EL_FX_8 || src_el_type == MLI_EL_SA_8, int8_t,
-        typename std::conditional<src_el_type == MLI_EL_SA_32, int32_t, 
+        typename std::conditional<src_el_type == MLI_EL_SA_32, int32_t,
         typename std::conditional<src_el_type == MLI_EL_FP_32, float, void>::type >::type >::type >::type
         derived_T;
 
@@ -675,7 +674,7 @@ void tensor_quantizer::dequantize_tensor_data_routine(const mli_tensor* src, flo
     typedef typename std::enable_if<!std::is_same<derived_T, void>::value, derived_T>::type    i_T;
 
     // Extend shape to the MLI_MAX_RANK complimenting it with 1s in a front.
-    // Calculate strides on input float array and output tensor 
+    // Calculate strides on input float array and output tensor
     // for easier definition of element position in total arrays
     int dst_strides[MLI_MAX_RANK] = { 0 };
     int src_strides[MLI_MAX_RANK] = { 0 };

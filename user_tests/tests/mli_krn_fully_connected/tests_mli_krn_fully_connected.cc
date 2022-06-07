@@ -48,7 +48,7 @@ struct fully_connected_test_operands {
     const crc32_calc check_sum;
 };
 
-// Checksums of test tensors for various mli calculations mode. 
+// Checksums of test tensors for various mli calculations mode.
 // When developer finished implementation of kernel and consider it as ok, one needs to populate
 // proper checksums for tests in order to highlight any change which affects results.
 #if defined(CRC_RM_CONVERGENT) || defined(CRC_RM_UP)
@@ -60,7 +60,7 @@ const crc32_calc test_1_chksum_fx16{ 0x933AC67B }, test_1_chksum_fx16_fx8_fx8{ 0
                  test_4_chksum_fx16{ 0x4BCFDBF2 }, test_4_chksum_fx16_fx8_fx8{ 0x923FDE15 }, test_4_chksum_sa8{ 0x33950BC3 },
                  test_5_chksum_fx16{ 0x0231B226 }, test_5_chksum_fx16_fx8_fx8{ 0x0EC859C8 }, test_5_chksum_sa8{ 0xCBDD6577 };
 
-const crc32_calc test_1_chksum_sa8_spec{ 0xD33291C2 }, test_2_chksum_sa8_spec{ 0xF39F7D6F }, 
+const crc32_calc test_1_chksum_sa8_spec{ 0xD33291C2 }, test_2_chksum_sa8_spec{ 0xF39F7D6F },
                  test_3_chksum_sa8_spec{ 0x5E436805 }, test_4_chksum_sa8_spec{ 0x686E0B8E },
                  test_5_chksum_sa8_spec{ 0x7CDD8ED7 };
 
@@ -71,7 +71,7 @@ const crc32_calc  test_1_chksum_fx16, test_1_chksum_fx16_fx8_fx8, test_1_chksum_
                   test_4_chksum_fx16, test_4_chksum_fx16_fx8_fx8, test_4_chksum_sa8,
                   test_5_chksum_fx16, test_5_chksum_fx16_fx8_fx8, test_5_chksum_sa8;
 
-const crc32_calc test_1_chksum_sa8_spec, test_2_chksum_sa8_spec, 
+const crc32_calc test_1_chksum_sa8_spec, test_2_chksum_sa8_spec,
                  test_3_chksum_sa8_spec, test_4_chksum_sa8_spec,
                  test_5_chksum_sa8_spec{ 0x5E436805 };
 #endif
@@ -89,31 +89,31 @@ const quality_metrics thresholds_sa8_general{ quality_metrics::kPassValueMaxAbsE
 
 static const fully_connected_test_operands tests_list[] = {
 
-    // Basic functionality test: with ReLU 
-    {"Test 1 FX16 ",             mli_krn_fully_connected_fx16, 
+    // Basic functionality test: with ReLU
+    {"Test 1 FX16 ",             mli_krn_fully_connected_fx16,
                                  input_1_fx16, weights_1_fx16, bias_1_fx16, test_1_out_fx16, test_1_cfg,
                                  thresholds_fx16_general, test_1_chksum_fx16},
-    {"Test 1 FX16_FX8_FX8",      mli_krn_fully_connected_fx16_fx8_fx8, 
-                                 input_1_fx16, weights_1_fx8, bias_1_fx8, test_1_out_fx16, test_1_cfg, 
+    {"Test 1 FX16_FX8_FX8",      mli_krn_fully_connected_fx16_fx8_fx8,
+                                 input_1_fx16, weights_1_fx8, bias_1_fx8, test_1_out_fx16, test_1_cfg,
                                  thresholds_fx16_fx8_fx8_general, test_1_chksum_fx16_fx8_fx8},
     {"Test 1 SA8_SA8_SA32",      mli_krn_fully_connected_sa8_sa8_sa32,
-                                 input_1_sa8, weights_1_sa8_per_axis, bias_1_sa32_per_axis, test_1_out_sa8, test_1_cfg, 
+                                 input_1_sa8, weights_1_sa8_per_axis, bias_1_sa32_per_axis, test_1_out_sa8, test_1_cfg,
                                  thresholds_sa8_general, test_1_chksum_sa8},
     {"Test 1 SA8_SA8_SA32 Spec", mli_krn_fully_connected_sa8_sa8_sa32_ext_bias,
-                                 input_1_sa8, weights_1_sa8_per_axis, bias_1_sa32_per_axis_spec, test_1_out_sa8, test_1_cfg, 
+                                 input_1_sa8, weights_1_sa8_per_axis, bias_1_sa32_per_axis_spec, test_1_out_sa8, test_1_cfg,
                                  thresholds_sa8_general, test_1_chksum_sa8_spec},
 
-    // Basic functionality test: with Gen_ReLU 
-    {"Test 2 FX16 ReluGen",         mli_krn_fully_connected_fx16, 
-                                    input_1_fx16, weights_1_fx16, bias_1_fx16, test_2_out_fx16, test_2_cfg, 
+    // Basic functionality test: with Gen_ReLU
+    {"Test 2 FX16 ReluGen",         mli_krn_fully_connected_fx16,
+                                    input_1_fx16, weights_1_fx16, bias_1_fx16, test_2_out_fx16, test_2_cfg,
                                     thresholds_fx16_general, test_2_chksum_fx16},
     {"Test 2 FX16_FX8_FX8 ReluGen", mli_krn_fully_connected_fx16_fx8_fx8,
                                     input_1_fx16, weights_1_fx8, bias_1_fx8, test_2_out_fx16, test_2_cfg,
                                     thresholds_fx16_fx8_fx8_general, test_2_chksum_fx16_fx8_fx8},
-    {"Test 2 SA8_SA8_SA32 ReluGen", mli_krn_fully_connected_sa8_sa8_sa32, 
+    {"Test 2 SA8_SA8_SA32 ReluGen", mli_krn_fully_connected_sa8_sa8_sa32,
                                     input_1_sa8, weights_1_sa8, bias_1_sa32, test_2_out_sa8, test_2_cfg,
                                     thresholds_sa8_general, test_2_chksum_sa8},
-    {"Test 2 SA8_SA8_SA32 Spec",    mli_krn_fully_connected_sa8_sa8_sa32_ext_bias, 
+    {"Test 2 SA8_SA8_SA32 Spec",    mli_krn_fully_connected_sa8_sa8_sa32_ext_bias,
                                     input_1_sa8, weights_1_sa8, bias_1_sa32_spec, test_2_out_sa8, test_2_cfg,
                                     thresholds_sa8_general, test_2_chksum_sa8_spec},
 
@@ -145,7 +145,7 @@ static const fully_connected_test_operands tests_list[] = {
                                   input_2_sa8, weights_3_sa8_per_axis, bias_3_i2_w3_sa32_per_axis_spec, test_4_out_sa8, test_4_cfg,
                                   thresholds_sa8_general, test_4_chksum_sa8_spec},
 
-    // Test with huge values in operands to check negative fractional and big scales 
+    // Test with huge values in operands to check negative fractional and big scales
     {"Test 5 FX16 Huge Vals",         mli_krn_fully_connected_fx16,
                                       input_3_fx16, weights_4_fx16, bias_4_fx16, test_5_out_fx16, test_5_cfg,
                                       thresholds_fx16_general, test_5_chksum_fx16},
@@ -211,7 +211,7 @@ int main() {
                  tensor_quantizer::validate_tensor(weights) != tensor_quantizer::kOk||
                  tensor_quantizer::validate_tensor(bias) != tensor_quantizer::kOk ||
                  tensor_quantizer::validate_tensor(out) != tensor_quantizer::kOk)) {
-            reporter.report_message(cur_test->descr, 
+            reporter.report_message(cur_test->descr,
                                     "FAILED at quantization step: more memory for one of tensors might be required");
             is_test_passed = false;
         }
@@ -269,7 +269,7 @@ int main() {
             data_crc(bias);
             data_crc(out);
 
-            is_test_passed &= reporter.evaluate_and_report_case(cur_test->descr, test_metrics, cur_test->threshold, 
+            is_test_passed &= reporter.evaluate_and_report_case(cur_test->descr, test_metrics, cur_test->threshold,
                                                                 data_crc, cur_test->check_sum);
         }
         final_status &= is_test_passed;

@@ -112,6 +112,15 @@ scales_calc::scales_calc(float in_scale, float out_scale,
         scales_val_vec[i] = val_to_fx(in_to_out_scale * w_scales[i], scales_shift_vec[i]);
 }
 
+bias_folder::bias_folder(const mli_tensor& b_tsr)
+        : bias_vec(b_tsr.shape[0])
+        , bias_tsr(flat_tensor(bias_vec.data(), bias_vec.size())) {
+    assert(b_tsr.rank == 1);
+    assert(b_tsr.el_type == MLI_EL_SA_32);
+    // Init bias values. Negative as rescale op implies subtraction of bias_in
+    for (size_t i = 0; i < bias_vec.size(); ++i)
+        bias_vec[i] = -b_tsr.data.mem.pi32[i];
+}
 
 bias_folder::bias_folder(const mli_tensor& b_tsr, const mli_tensor& in_tsr,
                          const mli_tensor& w_tsr)
@@ -159,7 +168,6 @@ bias_folder::bias_folder(const mli_tensor& b_tsr, const mli_tensor& in_tsr,
         for (pos[1] = 0; pos[1] < w_extended_shape[1]; ++pos[1]) {
             for (pos[2] = 0; pos[2] < w_extended_shape[2]; ++pos[2]) {
                 for (pos[3] = 0; pos[3] < w_extended_shape[3]; ++pos[3]) {
-
                     const int w_pos = val_pos(w_strides, pos);
                     const int b_pos = pos[3]; // Asum filters is an innermost channel
                     bias_vec[b_pos] += in_zp * w_tsr.data.mem.pi8[w_pos];

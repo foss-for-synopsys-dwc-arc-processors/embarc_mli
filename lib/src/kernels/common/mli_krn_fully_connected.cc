@@ -45,7 +45,7 @@ mli_status mli_krn_fully_connected_fx8(
     MLI_PRINT_COMPILE_OPTIONS();
 
     mli::krn::fully_connected_prepare_and_run
-        <int8_t, int8_t, int8_t, mli_fx8_accu_t, mli::krn::fx_quant_specific_params, /*is_bias_ext = */ false>
+        <int8_t, int8_t, int8_t, int8_t, mli_fx8_accu_t, mli::krn::fx_quant_specific_params, /*is_bias_ext = */ false>
         (in, weights, bias, cfg, out);
 
     return MLI_STATUS_OK;
@@ -62,7 +62,7 @@ mli_status mli_krn_fully_connected_fx16(
     MLI_PRINT_COMPILE_OPTIONS();
 
     mli::krn::fully_connected_prepare_and_run
-        <int16_t, int16_t, int16_t, mli_fx16_accu_t, mli::krn::fx_quant_specific_params, /*is_bias_ext = */ false>
+        <int16_t, int16_t,int16_t, int16_t, mli_fx16_accu_t, mli::krn::fx_quant_specific_params, /*is_bias_ext = */ false>
         (in, weights, bias, cfg, out);
 
     return ret;
@@ -79,7 +79,7 @@ mli_status mli_krn_fully_connected_fx16_fx8_fx8(
     MLI_PRINT_COMPILE_OPTIONS();
 
     mli::krn::fully_connected_prepare_and_run
-        <int16_t, int8_t, int8_t, mli_fx16_fx8_fx8_accu_t, mli::krn::fx_quant_specific_params, /*is_bias_ext = */ false>
+        <int16_t, int8_t,int16_t, int8_t, mli_fx16_fx8_fx8_accu_t, mli::krn::fx_quant_specific_params, /*is_bias_ext = */ false>
         (in, weights, bias, cfg, out);
 
     return ret;
@@ -96,7 +96,7 @@ mli_status mli_krn_fully_connected_sa8_sa8_sa32(
     MLI_PRINT_COMPILE_OPTIONS();
 
     mli::krn::fully_connected_prepare_and_run
-        <int8_t, int8_t, int32_t, mli_sa8_sa8_sa32_accu_t, mli::krn::s8asym_quant_specific_params, /*is_bias_ext = */ false>
+        <int8_t, int8_t,int8_t, int32_t, mli_sa8_sa8_sa32_accu_t, mli::krn::s8asym_quant_specific_params, /*is_bias_ext = */ false>
         (in, weights, bias, cfg, out);
     
     return ret;
@@ -113,7 +113,7 @@ mli_status mli_krn_fully_connected_sa8_sa8_sa32_ext_bias(
     MLI_PRINT_COMPILE_OPTIONS();
 
     mli::krn::fully_connected_prepare_and_run
-        <int8_t, int8_t, int32_t, mli_sa8_sa8_sa32_accu_t, mli::krn::s8asym_quant_specific_params, /*is_bias_ext = */ true>
+        <int8_t, int8_t,int8_t, int32_t, mli_sa8_sa8_sa32_accu_t, mli::krn::s8asym_quant_specific_params, /*is_bias_ext = */ true>
         (in, weights, bias, cfg, out);
 
     return ret;

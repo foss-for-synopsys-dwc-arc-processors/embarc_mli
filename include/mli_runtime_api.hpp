@@ -58,7 +58,7 @@ class ExecutionInterface {
                                      uint32_t private_data_size,
                                      uint64_t* membases, int num_mems);
 
-    kernel_id_t GetKernelId();                                 
+    kernel_id_t GetKernelId();
 
     /**
      * @brief Method to issue a ML-ISA operation
@@ -67,7 +67,7 @@ class ExecutionInterface {
      * and directly return.
      * In case of SW implementation of this kernel, this method will perform the compute
      * and return after the job is completed.
-     * 
+     *
      * If predication is needed, it should be handled at the caller
      */
     virtual mli_status Issue() = 0;
