@@ -216,6 +216,23 @@ MLI_FORCE_INLINE vNx4accshort_t weights_additive(
     }
 }
 
+template <>
+MLI_FORCE_INLINE vNx4accshort_t weights_additive(
+        const MLI_PTR(int8_t) __restrict weights, vNx4accshort_t init_accum,
+        const int_quant_specific_params* quant_params,
+        const int width,  const int height, const int ch, int col_step, int row_step, int ch_step) {
+    // returns -(in_zero_point * cumsum(weights)) For Int
+    if (quant_params->in_offset != 0) {
+        for (int c = 0; c < ch; c++) {
+            init_accum = reduce_sub_sum2D(weights, (int8_t)quant_params->in_offset, init_accum, width, height, col_step, row_step);
+            weights += ch_step;
+        }
+        return init_accum;
+    } else {
+        return init_accum;
+    }
+}
+
 #ifndef FULL_ACCU
     // The accumulator has 8 guard bits. If we pre-shift the accumulator to make it fit into
     // 16bit, we can do the rest of the post processing in 16bit.

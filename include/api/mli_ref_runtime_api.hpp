@@ -160,7 +160,6 @@ class MaxPool2D : public ExecutionInterface {
     mli_status Update() override;
 
   private:
-    //TODO: May be move them to the membasis as an example.
     mli_pool_cfg m_cfg;
     mli_tensor m_input;
     mli_tensor m_output;

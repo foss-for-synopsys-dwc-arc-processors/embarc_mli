@@ -303,7 +303,7 @@ int main() {
   const reporter_full reporter;
   bool final_status = true;
 
-  reporter.report_header("MLI|Kernels|Data Movement Functions Tests");
+  reporter.report_header("MLI3.0|Kernels|Data Movement Functions Tests");
   for (int i = 0; i < kTestsNum; ++i) {
     memory_manager mem_in_keeper((int8_t*)g_scratch_mem_in, sizeof(g_scratch_mem_in));
     memory_manager mem_out_keeper((int8_t*)g_scratch_mem_out, sizeof(g_scratch_mem_out));
@@ -332,12 +332,12 @@ int main() {
                   move_conf_private_size);
     execution_phase(i, move_instance, move_instance_size, move_conf_private,
                     move_conf_private_size);
-    
+
     is_test_passed &= postprocess_phase(i, mem_in_keeper, mem_out_keeper, &reporter, cur_test, dst_mem_offset);
 
     final_status &= is_test_passed;
   }
-  
-  reporter.report_outline("[AUTO] Group: mli_krn_move_30", final_status);
+
+  reporter.report_outline("[AUTO] Group: mli_krn_data_movement_30", final_status);
   return 0;
 }

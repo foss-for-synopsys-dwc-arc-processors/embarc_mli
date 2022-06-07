@@ -15,6 +15,7 @@
 #include "mli_types.hpp"
 
 #include "test_crc32_calc.h"
+#include "test_memory_manager.h"
 #include "test_quality_metrics.h"
 #include "test_report.h"
 #include "test_tensor_quantizer.h"
@@ -85,7 +86,7 @@ const quality_metrics thresholds_sa8_general{
 constexpr uint32_t kMemSize = 2048;
 static int8_t g_scratch_mem_in[kMemSize] = {0};
 static int8_t g_scratch_mem_out[kMemSize] = {0};
-static int8_t g_mem_pool[kMemSize] = {0};
+static IO_DATA_ATTR int8_t g_mem_pool[kMemSize] = {0};
 
 constexpr int kTestsNum = sizeof(tests_list) / sizeof(tests_list[0]);
 
@@ -198,14 +199,14 @@ for (int i = 1; i < 4; i++) {
     g_mem_pool[idx] = input[i];
   }
 
-  maxpool2d_instance = g_mem_pool;
+  maxpool2d_instance = (int8_t*)g_mem_pool;
   maxpool2d_instance_size = maxpool2d_op->GetRuntimeObjectSize();
 
   status =
-      maxpool2d_op->GetKernelPrivateData(g_mem_pool + maxpool2d_instance_size);
+      maxpool2d_op->GetKernelPrivateData((int8_t*)g_mem_pool + maxpool2d_instance_size);
   assert(status == MLI_STATUS_OK);
   maxpool2d_conf_private = reinterpret_cast<lib_mli::PrivateData*>(
-      g_mem_pool + maxpool2d_instance_size);
+      (int8_t*)g_mem_pool + maxpool2d_instance_size);
   maxpool2d_conf_private_size = maxpool2d_op->GetKernelPrivateDataSize();
 }
 
@@ -281,7 +282,7 @@ int main() {
   const reporter_full reporter;
   bool final_status = true;
 
-  reporter.report_header("MLI|Kernels|Max Pooling Function Tests");
+  reporter.report_header("MLI3.0|Kernels|Max Pooling Function Tests");
   for (int i = 0; i < kTestsNum; ++i) {
     bool is_test_passed = true;
     const maxpool_test_operands* cur_test = &tests_list[i];
@@ -292,11 +293,6 @@ int main() {
           "FAILED at init: Bad source data for one of tensors");
       is_test_passed = false;
     }
-#if defined(__Xvec_guard_bit_option)
-    // VPX code needs to be debugged
-    reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
-    continue;
-#endif
     /**************************************************************************************************************/
     uint32_t out_mem_offset = 0;
 

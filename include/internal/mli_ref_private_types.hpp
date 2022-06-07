@@ -22,12 +22,11 @@ class Conv2DPrivateData : public PrivateData {
     Conv2DPrivateData() : PrivateData(kConv2dId){}
 
     // currently we support the only i8_w8_o32 case
-    OffsetBuffer m_input_buffer;
-    OffsetBuffer m_weights_buffer;
-    OffsetBuffer m_output_buffer;
-    OffsetBuffer m_inpzp_buffer;
-    OffsetBuffer m_wtszp_buffer;
-    OffsetBuffer m_metadata_buffer;
+    OffsetBuffer input_buffer;
+    OffsetBuffer weights_buffer;
+    OffsetBuffer output_buffer;
+    OffsetBuffer inpzp_buffer;
+    OffsetBuffer wtszp_buffer;
 
     uint32_t input_h;
     uint32_t input_w;
@@ -76,12 +75,11 @@ public:
     DepthwiseConv2DPrivateData() : PrivateData(kDWConv2dId) {}
 
     // currently we support the only i8_w8_o32 case
-    OffsetBuffer m_input_buffer;
-    OffsetBuffer m_weights_buffer;
-    OffsetBuffer m_output_buffer;
-    OffsetBuffer m_inpzp_buffer;
-    OffsetBuffer m_wtszp_buffer;
-    OffsetBuffer m_metadata_buffer;
+    OffsetBuffer input_buffer;
+    OffsetBuffer weights_buffer;
+    OffsetBuffer output_buffer;
+    OffsetBuffer inpzp_buffer;
+    OffsetBuffer wtszp_buffer;
 
     uint32_t input_h;
     uint32_t input_w;

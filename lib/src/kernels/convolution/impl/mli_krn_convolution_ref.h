@@ -283,15 +283,15 @@ MLI_FORCE_INLINE void depthwise_convolution2D(
                     // It isn't straightforward from the first glance.
                     // But implies less code modifications for core calculations.
 
-                    // full weight area including padded values w.r.t. input
-                    const MLI_PTR(w_T) w_ptr_full = weights.ptr
-                            + weights.in_ch_mem_stride * 0
-                            + weights.out_ch_mem_stride * out_ch_idx;
-
                     // Additional calculations for padding areas only:
                     // out_val += (sum_i(w*x_zp) - sum_i(w_zp*x_zp)),
                     //============================================
                     if(rows * clmns != weights.kernel_height * weights.kernel_width) {
+                        // full weight area including padded values w.r.t. input
+                        const MLI_PTR(w_T) w_ptr_full = weights.ptr
+                                + weights.in_ch_mem_stride * 0
+                                + weights.out_ch_mem_stride * out_ch_idx;
+
                         // This part emulate dotproduct out of valid area. it adds sum_i(w_full*x_zp) for the whole kernel,
                         // and afterward subtracts sum_i(w_valid*x_zp) part for valid area which we don't need due to
                         // conducted core dotproduct;

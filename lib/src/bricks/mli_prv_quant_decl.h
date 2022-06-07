@@ -391,6 +391,12 @@ MLI_FORCE_INLINE vNx4accshort_t weights_additive(
         const MLI_PTR(int8_t) __restrict weights, vNx4accshort_t init_accum,
         const s8asym_quant_specific_params* quant_params,
         const int width,  const int height, const int ch, int col_step, int row_step, int ch_step);
+
+template <>
+MLI_FORCE_INLINE vNx4accshort_t weights_additive(
+        const MLI_PTR(int8_t) __restrict weights, vNx4accshort_t init_accum,
+        const int_quant_specific_params* quant_params,
+        const int width,  const int height, const int ch, int col_step, int row_step, int ch_step);
 #endif
 
 //==========================================================================

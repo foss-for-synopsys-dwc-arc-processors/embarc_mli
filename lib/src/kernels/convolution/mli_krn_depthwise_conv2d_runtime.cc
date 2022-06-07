@@ -32,12 +32,11 @@ DepthwiseConv2d::DepthwiseConv2d(void* kernel_private_data_buffer,
   MLI_ASSERT(private_data.size == sizeof(DepthwiseConv2DPrivateData));
 
   // element size for input, output and weights in bytes
-  m_i_elem_size = private_data.m_input_buffer.get_elem_size();
-  m_o_elem_size = private_data.m_output_buffer.get_elem_size();
-  m_w_elem_size = private_data.m_weights_buffer.get_elem_size();
+  m_i_elem_size = private_data.input_buffer.get_elem_size();
+  m_o_elem_size = private_data.output_buffer.get_elem_size();
+  m_w_elem_size = private_data.weights_buffer.get_elem_size();
 
   m_metadata = DepthwiseConv2dMetadata();
-  uint64_t address;
 
   // Reconstruct configuration
   auto krn_cfg = &m_metadata.cfg;
@@ -55,7 +54,7 @@ DepthwiseConv2d::DepthwiseConv2d(void* kernel_private_data_buffer,
     // Reconstruct Input Tensor
     auto& tsr = m_metadata.input;
     if (m_i_elem_size == sizeof(int8_t)) {
-      InternalBuffer input_internal(private_data.m_input_buffer, membases, num_mems);
+      InternalBuffer input_internal(private_data.input_buffer, membases, num_mems);
       tsr.el_type = MLI_EL_SA_8;
       tsr.data.mem.pi8 = input_internal.get_ptr<int8_t>();
     } else {
@@ -71,15 +70,14 @@ DepthwiseConv2d::DepthwiseConv2d(void* kernel_private_data_buffer,
     tsr.mem_stride[2] = 1;
 
     // weight zero points
-    uint32_t inpzp_elem_size = private_data.m_inpzp_buffer.get_elem_size();
-    if (private_data.m_inpzp_buffer.get_size() / inpzp_elem_size == 1) {
+    uint32_t inpzp_elem_size = private_data.inpzp_buffer.get_elem_size();
+    if (private_data.inpzp_buffer.get_size() / inpzp_elem_size == 1) {
       // per-tensor quantization
       MLI_ASSERT(inpzp_elem_size == sizeof(int16_t));
       tsr.el_params.sa.dim = -1;
       tsr.el_params.sa.zero_point.capacity = 0;
-      address = membases[private_data.m_inpzp_buffer.get_mem_idx()] +
-          private_data.m_inpzp_buffer.get_offset();
-      tsr.el_params.sa.zero_point.mem.i16 = *reinterpret_cast<int16_t*>(address);
+      InternalBuffer inpzp_internal(private_data.inpzp_buffer, membases, num_mems);
+      tsr.el_params.sa.zero_point.mem.i16 = inpzp_internal.read<int16_t>(0);
     } else {
       // not support yet
       assert(false);
@@ -90,7 +88,7 @@ DepthwiseConv2d::DepthwiseConv2d(void* kernel_private_data_buffer,
     // Reconstruct Output Tensor
     auto& tsr = m_metadata.output;
     if (m_o_elem_size == sizeof(int32_t)) {
-      InternalBuffer output_internal(private_data.m_output_buffer, membases, num_mems);
+      InternalBuffer output_internal(private_data.output_buffer, membases, num_mems);
       tsr.el_type = MLI_EL_SA_32;
       tsr.data.mem.pi32 = output_internal.get_ptr<int32_t>();
     } else {
@@ -110,7 +108,7 @@ DepthwiseConv2d::DepthwiseConv2d(void* kernel_private_data_buffer,
     // Reconstruct Weights Tensor
     auto& tsr = m_metadata.weights;
     if (m_w_elem_size == sizeof(int8_t)) {
-      InternalBuffer weights_internal(private_data.m_weights_buffer, membases, num_mems);
+      InternalBuffer weights_internal(private_data.weights_buffer, membases, num_mems);
       tsr.el_type = MLI_EL_SA_8;
       tsr.data.mem.pi8 = weights_internal.get_ptr<int8_t>();
     } else {
@@ -128,17 +126,16 @@ DepthwiseConv2d::DepthwiseConv2d(void* kernel_private_data_buffer,
     tsr.mem_stride[3] = 1;
 
     // input zero point
-    uint32_t wtszp_elem_size = private_data.m_wtszp_buffer.get_elem_size();
-    uint32_t wtszp_size = private_data.m_wtszp_buffer.get_size();
+    uint32_t wtszp_elem_size = private_data.wtszp_buffer.get_elem_size();
+    uint32_t wtszp_size = private_data.wtszp_buffer.get_size();
     if (wtszp_size / wtszp_elem_size > 1) {
       // per-channel quantization
       MLI_ASSERT(private_data.input_output_c == wtszp_size / wtszp_elem_size);
       MLI_ASSERT(wtszp_elem_size == sizeof(int16_t));
       tsr.el_params.sa.dim = 3; // channel dim
       tsr.el_params.sa.zero_point.capacity = wtszp_size;
-      address = membases[private_data.m_wtszp_buffer.get_mem_idx()] +
-          private_data.m_wtszp_buffer.get_offset();
-      tsr.el_params.sa.zero_point.mem.pi16 = reinterpret_cast<int16_t*>(address);
+      InternalBuffer wtszp_internal(private_data.wtszp_buffer, membases, num_mems);
+      tsr.el_params.sa.zero_point.mem.pi16 = wtszp_internal.get_ptr<int16_t>();
     } else {
       // not support yet
       assert(false);

@@ -87,6 +87,9 @@ MLI_FORCE_INLINE void convolution2D_nopad(
         }
     }
 
+    // There is no bias in MLI3.0
+    const bool has_bias = biases != nullptr;
+
     for (int out_ch_idx = 0; out_ch_idx < out.ch; out_ch_idx+= get_number_lanes<acc_T>()) {
         int remaining_ch = out.ch - out_ch_idx;
         int current_ch = MIN(remaining_ch, get_number_lanes<acc_T>()); /* nr channels computed in this loop iteration */
@@ -101,12 +104,32 @@ MLI_FORCE_INLINE void convolution2D_nopad(
         auto output_params = adjust_quant_params_v(&quant_params, out_ch_idx);
 
         acc_T pre_accu = mli_math_mul_fx<i_T, acc_T>(0, 0);
-        pre_accu = mli::krn::bias_additive(&biases[out_ch_idx], pre_accu, &output_params);
 
-        pre_accu = mli::krn::weights_additive(w_ptr, pre_accu, &quant_params, clmns, rows, in.ch,
-                                    weights.col_mem_stride,
-                                    weights.row_mem_stride,
-                                    weights.in_ch_mem_stride);
+        if (has_bias) {
+            pre_accu = mli::krn::bias_additive(&biases[out_ch_idx], pre_accu, &output_params);
+            pre_accu = mli::krn::weights_additive(w_ptr, pre_accu, &quant_params, clmns, rows, in.ch,
+                                        weights.col_mem_stride,
+                                        weights.row_mem_stride,
+                                        weights.in_ch_mem_stride);
+        } else {
+            if(rows * clmns != weights.kernel_height * weights.kernel_width) {
+                const MLI_PTR(w_T) w_ptr_full = weights.ptr
+                        + weights.in_ch_mem_stride * 0
+                        + weights.out_ch_mem_stride * out_ch_idx;
+
+                acc_T zero = mli_math_mul_fx<i_T, acc_T>(0, 0);
+
+                // out_val = 0 - (-out_val - sum_i(w_full*x_zp))
+                pre_accu = mli::krn::weights_additive(w_ptr_full, mli_math_sub<acc_T>(zero, pre_accu), &quant_params,
+                    weights.kernel_width, weights.kernel_height, in.ch,
+                    weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride);
+                pre_accu = mli_math_sub<acc_T>(zero, pre_accu);
+
+                // out_val = out_val - sum_i(w_valid*x_zp))
+                pre_accu = mli::krn::weights_additive(w_ptr, pre_accu, &quant_params, clmns, rows, in.ch,
+                    weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride);
+            }
+        }
 
         const int h_idx_in = row_begin * stride_height - padding_top;
         const int w_idx_in = clmn_begin * stride_width - padding_left;
@@ -274,6 +297,9 @@ MLI_FORCE_INLINE void convolution2D_pad(
     int unroll_width = MAX(width - padding_left, 0) & ~(unroll - 1);
     int remainder_width = width - unroll_width;
 
+    // There is no bias in MLI3.0
+    const bool has_bias = biases != nullptr;
+
     for (int out_ch_idx = 0; out_ch_idx < out.ch; out_ch_idx+= get_number_lanes<acc_T>()) {
         int remaining_ch = out.ch - out_ch_idx;
         int current_ch = MIN(remaining_ch, get_number_lanes<acc_T>()); /* nr channels computed in this loop iteration */
@@ -307,17 +333,37 @@ MLI_FORCE_INLINE void convolution2D_pad(
                         + weights.out_ch_mem_stride * out_ch_idx;
 
                 acc_T accu = mli_math_mul_fx<i_T, acc_T>(0, 0);
-                accu = mli::krn::bias_additive(&biases[out_ch_idx], accu, &output_params);
+
+                if (has_bias) {
+                    accu = mli::krn::bias_additive(&biases[out_ch_idx], accu, &output_params);
+                    accu = mli::krn::weights_additive(w_ptr, accu, &quant_params, clmns, rows, in.ch,
+                                                weights.col_mem_stride,
+                                                weights.row_mem_stride,
+                                                weights.in_ch_mem_stride);
+                } else {
+                    if(rows * clmns != weights.kernel_height * weights.kernel_width) {
+                        const MLI_PTR(w_T) w_ptr_full = weights.ptr
+                                + weights.in_ch_mem_stride * 0
+                                + weights.out_ch_mem_stride * out_ch_idx;
+
+                        acc_T zero = mli_math_mul_fx<i_T, acc_T>(0, 0);
+
+                        // out_val = 0 - (-out_val - sum_i(w_full*x_zp))
+                        accu = mli::krn::weights_additive(w_ptr_full, mli_math_sub<acc_T>(zero, accu), &quant_params,
+                            weights.kernel_width, weights.kernel_height, in.ch,
+                            weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride);
+                        accu = mli_math_sub<acc_T>(zero, accu);
+
+                        // out_val = out_val - sum_i(w_valid*x_zp))
+                        accu = mli::krn::weights_additive(w_ptr, accu, &quant_params, clmns, rows, in.ch,
+                            weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride);
+                    }
+                }
 
                 accu = mli::krn::vdsp::dotprod3D_v_variable_krn_sz(in_ptr, w_ptr, clmns, rows, in.ch,
                           in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height, in.ch_mem_stride,
                           weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride,
                           accu);
-
-                accu = mli::krn::weights_additive(w_ptr, accu, &quant_params, clmns, rows, in.ch,
-                                            weights.col_mem_stride,
-                                            weights.row_mem_stride,
-                                            weights.in_ch_mem_stride);
 
                 // Cast result to output type, apply built-in ReLU Applying and write result
                 mli::krn::result_cast_relu_store_v(out_ptr, accu, &output_params, val_min_limit, val_max_limit, current_ch);
@@ -355,11 +401,32 @@ MLI_FORCE_INLINE void convolution2D_pad(
                     + weights.out_ch_mem_stride * out_ch_idx;
 
             acc_T pre_accu = mli_math_mul_fx<i_T, acc_T>(0, 0);
-            pre_accu = mli::krn::bias_additive(&biases[out_ch_idx], pre_accu, &output_params);
-            pre_accu = mli::krn::weights_additive(w_ptr, pre_accu, &quant_params, clmns, rows, in.ch,
-                                        weights.col_mem_stride,
-                                        weights.row_mem_stride,
-                                        weights.in_ch_mem_stride);
+
+            if (has_bias) {
+                pre_accu = mli::krn::bias_additive(&biases[out_ch_idx], pre_accu, &output_params);
+                pre_accu = mli::krn::weights_additive(w_ptr, pre_accu, &quant_params, clmns, rows, in.ch,
+                                            weights.col_mem_stride,
+                                            weights.row_mem_stride,
+                                            weights.in_ch_mem_stride);
+            } else {
+                if(rows * clmns != weights.kernel_height * weights.kernel_width) {
+                    const MLI_PTR(w_T) w_ptr_full = weights.ptr
+                            + weights.in_ch_mem_stride * 0
+                            + weights.out_ch_mem_stride * out_ch_idx;
+
+                    acc_T zero = mli_math_mul_fx<i_T, acc_T>(0, 0);
+
+                    // out_val = 0 - (-out_val - sum_i(w_full*x_zp))
+                    pre_accu = mli::krn::weights_additive(w_ptr_full, mli_math_sub<acc_T>(zero, pre_accu), &quant_params,
+                        weights.kernel_width, weights.kernel_height, in.ch,
+                        weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride);
+                    pre_accu = mli_math_sub<acc_T>(zero, pre_accu);
+
+                    // out_val = out_val - sum_i(w_valid*x_zp))
+                    pre_accu = mli::krn::weights_additive(w_ptr, pre_accu, &quant_params, clmns, rows, in.ch,
+                        weights.col_mem_stride, weights.row_mem_stride, weights.in_ch_mem_stride);
+                }
+            }
 
             for (int W_idx = remainder_width; W_idx < width; W_idx+=unroll) {
                 auto accu = init_accu_grp(pre_accu);
@@ -564,6 +631,9 @@ MLI_FORCE_INLINE void depthwise_convolution2D_nopad(
 
     MLI_ASSERT(quant_params_get_weigths_zeropoint(&quant_params) == 0); /* this optimized implementation assumes no zero offset for weights */
 
+    // There is no bias in MLI3.0
+    const bool has_bias = biases != nullptr;
+
     for (int in_ch_idx = 0; in_ch_idx < in.ch; in_ch_idx += get_number_lanes<acc_T>()) {
         const int out_ch_idx = in_ch_idx;
         int remaining_ch = in.ch - in_ch_idx;
@@ -575,11 +645,13 @@ MLI_FORCE_INLINE void depthwise_convolution2D_nopad(
         auto output_params = adjust_quant_params_v(&quant_params, out_ch_idx);
 
         acc_T base_accu = mli_math_mul_fx<i_T, acc_T>(0, 0);
-        base_accu = mli::krn::bias_additive(&biases[out_ch_idx], base_accu, &output_params);
-        base_accu = mli::krn::weights_additive(w_ptr, base_accu, &quant_params, clmns, rows, 1 /*channel*/,
-                                weights.col_mem_stride,
-                                weights.row_mem_stride,
-                                0 /* channel step */);
+        if (has_bias) {
+            base_accu = mli::krn::bias_additive(&biases[out_ch_idx], base_accu, &output_params);
+            base_accu = mli::krn::weights_additive(w_ptr, base_accu, &quant_params, clmns, rows, 1 /*channel*/,
+                                    weights.col_mem_stride,
+                                    weights.row_mem_stride,
+                                    0 /* channel step */);
+        }
 
         const int h_idx_in = (row_begin * stride_height - padding_top);
         const int w_idx_in = (clmn_begin * stride_width - padding_left);
@@ -654,6 +726,9 @@ MLI_FORCE_INLINE void depthwise_convolution2D_nopad_wunroll(
     constexpr int numaccuregs = sizeof(acc_T) / sizeof(vNint_t);
     constexpr int unroll = (numaccuregs > 2) ? 2 : 4;
 
+    // There is no bias in MLI3.0
+    const bool has_bias = biases != nullptr;
+
     for (int in_ch_idx = 0; in_ch_idx < in.ch; in_ch_idx += get_number_lanes<acc_T>()) {
         const int out_ch_idx = in_ch_idx;
         int remaining_ch = in.ch - in_ch_idx;
@@ -665,11 +740,13 @@ MLI_FORCE_INLINE void depthwise_convolution2D_nopad_wunroll(
         auto output_params = adjust_quant_params_v(&quant_params, out_ch_idx);
 
         acc_T base_accu = mli_math_mul_fx<i_T, acc_T>(0, 0);
-        base_accu = mli::krn::bias_additive(&biases[out_ch_idx], base_accu, &output_params);
-        base_accu = mli::krn::weights_additive(w_ptr, base_accu, &quant_params, clmns, rows, 1 /*channel*/,
-                                weights.col_mem_stride,
-                                weights.row_mem_stride,
-                                0 /* channel step */);
+        if (has_bias) {
+            base_accu = mli::krn::bias_additive(&biases[out_ch_idx], base_accu, &output_params);
+            base_accu = mli::krn::weights_additive(w_ptr, base_accu, &quant_params, clmns, rows, 1 /*channel*/,
+                                    weights.col_mem_stride,
+                                    weights.row_mem_stride,
+                                    0 /* channel step */);
+        }
 
         const int h_idx_in = (row_begin * stride_height - padding_top);
         const int w_idx_in = (clmn_begin * stride_width - padding_left);
@@ -769,6 +846,9 @@ MLI_FORCE_INLINE void depthwise_convolution2D_pad(
 
     MLI_ASSERT(quant_params_get_weigths_zeropoint(&quant_params) == 0); /* this optimized implementation assumes no zero offset for weights */
 
+    // There is no bias in MLI3.0
+    const bool has_bias = biases != nullptr;
+
     for (int in_ch_idx = 0; in_ch_idx < in.ch; in_ch_idx += get_number_lanes<acc_T>()) {
         const int out_ch_idx = in_ch_idx;
         int remaining_ch = in.ch - in_ch_idx;
@@ -810,15 +890,39 @@ MLI_FORCE_INLINE void depthwise_convolution2D_pad(
                 // out_val = (x-x_zp)*(w) + b) = -sum_i(w*x_zp) + sum(x*w) + b
                 //============================================
                 acc_T accu = mli_math_mul_fx<i_T, acc_T>(0, 0);
-                accu = mli::krn::bias_additive(&biases[out_ch_idx], accu, &output_params);
+                if (has_bias) {
+                    accu = mli::krn::bias_additive(&biases[out_ch_idx], accu, &output_params);
+                    accu = mli::krn::weights_additive(w_ptr, accu, &quant_params, clmns, rows, 1 /*channel*/,
+                                            weights.col_mem_stride,
+                                            weights.row_mem_stride,
+                                            0 /* channel step */);
+                } else {
+                    if(rows * clmns != weights.kernel_height * weights.kernel_width) {
+                        const MLI_PTR(w_T) w_ptr_full = weights.ptr
+                                + weights.in_ch_mem_stride * 0
+                                + weights.out_ch_mem_stride * out_ch_idx;
+
+                        // This part emulate dotproduct out of valid area. it adds sum_i(w_full*x_zp) for the whole kernel,
+                        // and afterward subtracts sum_i(w_valid*x_zp) part for valid area which we don't need due to
+                        // conducted core dotproduct;
+                        acc_T zero = mli_math_mul_fx<i_T, acc_T>(0, 0);
+
+                        // out_val = 0 - (-out_val - sum_i(w_full*x_zp))
+                        accu = mli::krn::weights_additive(w_ptr_full, mli_math_sub<acc_T>(zero, accu), &quant_params,
+                            weights.kernel_width, weights.kernel_height, 1 /* channel */,
+                            weights.col_mem_stride, weights.row_mem_stride, 0 /* channel step */);
+                        accu = mli_math_sub<acc_T>(zero, accu);
+
+                        // out_val = out_val - sum_i(w_valid*x_zp))
+                        accu = mli::krn::weights_additive(w_ptr, accu, &quant_params,
+                            clmns, rows, 1 /* channel */, weights.col_mem_stride, weights.row_mem_stride, 0 /* channel step */);
+                    }
+                }
+
                 accu = mli::krn::dotprod2D_vv(in_ptr, w_ptr, accu, clmns, rows,
                                     in.col_mem_stride * dilation_width, in.row_mem_stride * dilation_height,
                                     weights.col_mem_stride,
                                     weights.row_mem_stride);
-                accu = mli::krn::weights_additive(w_ptr, accu, &quant_params, clmns, rows, 1 /*channel*/,
-                                        weights.col_mem_stride,
-                                        weights.row_mem_stride,
-                                        0 /* channel step */);
 
                 // Cast result to output type, apply built-in ReLU Applying and write result
                 mli::krn::result_cast_relu_store_v(out_ptr, accu, &output_params, val_min_limit, val_max_limit, current_ch);
@@ -865,11 +969,34 @@ MLI_FORCE_INLINE void depthwise_convolution2D_pad(
             // out_val = (x-x_zp)*(w) + b) = -sum_i(w*x_zp) + sum(x*w) + b
             //============================================
             acc_T pre_accu = mli_math_mul_fx<i_T, acc_T>(0, 0);
-            pre_accu = mli::krn::bias_additive(&biases[out_ch_idx], pre_accu, &output_params);
-            pre_accu = mli::krn::weights_additive(w_ptr, pre_accu, &quant_params, clmns, rows, 1 /*channel*/,
-                                    weights.col_mem_stride,
-                                    weights.row_mem_stride,
-                                    0 /* channel step */);
+            if (has_bias) {
+                pre_accu = mli::krn::bias_additive(&biases[out_ch_idx], pre_accu, &output_params);
+                pre_accu = mli::krn::weights_additive(w_ptr, pre_accu, &quant_params, clmns, rows, 1 /*channel*/,
+                                        weights.col_mem_stride,
+                                        weights.row_mem_stride,
+                                        0 /* channel step */);
+            } else {
+                if(rows * clmns != weights.kernel_height * weights.kernel_width) {
+                    const MLI_PTR(w_T) w_ptr_full = weights.ptr
+                            + weights.in_ch_mem_stride * 0
+                            + weights.out_ch_mem_stride * out_ch_idx;
+
+                    // This part emulate dotproduct out of valid area. it adds sum_i(w_full*x_zp) for the whole kernel,
+                    // and afterward subtracts sum_i(w_valid*x_zp) part for valid area which we don't need due to
+                    // conducted core dotproduct;
+                    acc_T zero = mli_math_mul_fx<i_T, acc_T>(0, 0);
+
+                    // out_val = 0 - (-out_val - sum_i(w_full*x_zp))
+                    pre_accu = mli::krn::weights_additive(w_ptr_full, mli_math_sub<acc_T>(zero, pre_accu), &quant_params,
+                        weights.kernel_width, weights.kernel_height, 1 /* channel */,
+                        weights.col_mem_stride, weights.row_mem_stride, 0 /* channel step */);
+                    pre_accu = mli_math_sub<acc_T>(zero, pre_accu);
+
+                    // out_val = out_val - sum_i(w_valid*x_zp))
+                    pre_accu = mli::krn::weights_additive(w_ptr, pre_accu, &quant_params,
+                        clmns, rows, 1 /* channel */, weights.col_mem_stride, weights.row_mem_stride, 0 /* channel step */);
+                }
+            }
 
             for (int W_idx = remainder_width; W_idx < width; W_idx++) {
                 acc_T accu = pre_accu;

@@ -137,7 +137,7 @@ public:
      * The content of the encode_wtszeropts buffer is opaque for the compiler.
      *
      */
-    virtual mli_status EncodeWtsZeroPts(Tensor<Buffer, 1>& inpzeropts, Buffer& encoded_wtszeropts) = 0;
+    virtual mli_status EncodeWtsZeroPts(Tensor<Buffer, 1>& wtszeropts, Buffer& encoded_wtszeropts) = 0;
 
     /**
      * @brief Method to query the size of the encoded input zero-points buffer
@@ -324,7 +324,7 @@ public:
     virtual unsigned GetOutputBufferSize() = 0;
     virtual unsigned GetWeightsBufferSize() = 0;
     virtual unsigned GetDataBufferSize() = 0;
-    virtual unsigned GetInputZeroPtsBufferSize() {return 0;}
+    virtual unsigned GetInputZeroPtsBufferSize() { return 0; }
     /**
      * @brief Methods to set buffer offsets
      *

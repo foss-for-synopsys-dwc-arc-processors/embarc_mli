@@ -207,6 +207,29 @@ MLI_FORCE_INLINE vNx4accint_t mli_math_add(vNx4accint_t L, vNx4accint_t R) {
     return r;
 }
 
+template <>
+MLI_FORCE_INLINE vNx2accshort_t mli_math_sub(vNx2accshort_t L, vNx2accshort_t R) {
+    return vvcsubacc(L, R);
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accshort_t mli_math_sub(vNx4accshort_t L, vNx4accshort_t R) {
+    return __vacc_concat(vvcsubacc(__vacc_lo(L), __vacc_lo(R)), vvcsubacc(__vacc_hi(L), __vacc_hi(R)));
+}
+
+template <>
+MLI_FORCE_INLINE vNx2accint_t mli_math_sub(vNx2accint_t L, vNx2accint_t R) {
+    return __vacc_concat(vvcsubacc(__vacc_lo(L), __vacc_lo(R)), vvcsubacc(__vacc_hi(L), __vacc_hi(R)));
+}
+
+template <>
+MLI_FORCE_INLINE vNx4accint_t mli_math_sub(vNx4accint_t L, vNx4accint_t R) {
+    vNx4accint_t r;
+    r.lo = mli_math_sub(L.lo, R.lo);
+    r.hi = mli_math_sub(L.hi, R.hi);
+    return r;
+}
+
 // Subtraction of two fx operands with saturation
 //========================================================================
 template <typename T>

@@ -221,13 +221,14 @@ constexpr int kTestsNum = sizeof(tests_list) / sizeof(tests_list[0]);
 //==================================================================
 constexpr uint32_t kMemSize = 2247;
 constexpr int kMemAccSize = kMemSize*sizeof(int32_t); // TODO: for double wide accu, more space might be required
-static IO_DATA_ATTR int8_t g_scratch_mem_in[kMemSize] = { 0 };
-static IO_DATA_ATTR int8_t g_scratch_mem_acc_out[kMemAccSize] = { 0 };
-static IO_DATA_ATTR int8_t g_scratch_mem_out[kMemSize] = { 0 };
-static IO_DATA_ATTR int8_t g_scratch_mem_bias_out[kMemSize] = { 0 };
-static W_DATA_ATTR int8_t g_scratch_mem_w[kMemSize] = { 0 };
-static W_DATA_ATTR int8_t g_scratch_mem_b[kMemSize] = { 0 };
-static int8_t g_mem_pool[kMemSize] = {0};
+static int8_t g_scratch_mem_in[kMemSize] = { 0 };
+static int8_t g_scratch_mem_acc_out[kMemAccSize] = { 0 };
+static int8_t g_scratch_mem_out[kMemSize] = { 0 };
+static int8_t g_scratch_mem_bias_out[kMemSize] = { 0 };
+static int8_t g_scratch_mem_w[kMemSize] = { 0 };
+static int8_t g_scratch_mem_b[kMemSize] = { 0 };
+constexpr uint32_t kMemPoolSize = 4096;
+static IO_DATA_ATTR int8_t g_mem_pool[kMemPoolSize] = {0};
 
 
 struct Conv2dOp {
@@ -510,6 +511,8 @@ void prepare_phase(const conv2d_test_operands* cur_test,
 
   // conv2d output
   offset = &offsets[0];
+  // NOTE: The output should be 4 bytes aligned for int32_t, otherwise, it will cause `vvst` crash.
+  *offset = (*offset + 4 - 1) / 4 * 4;
   uint32_t out_size = conv2d_op->GetOutputBufferSize() * sizeof(int32_t);
   lib_mli::OffsetBuffer conv2d_out_buf{*offset, 0, out_size, sizeof(int32_t)};
   lib_mli::Tensor<lib_mli::OffsetBuffer, 4> conv2d_out_tensor(conv2d_out_buf, output_shape);
@@ -535,6 +538,9 @@ void prepare_phase(const conv2d_test_operands* cur_test,
   uint32_t data_buffer_size = conv2d_op->GetDataBufferSize();
   lib_mli::OffsetBuffer conv2d_descr_buf{*offset, 0, data_buffer_size, sizeof(char)};
   *offset += data_buffer_size;
+
+  assert(data_buffer_size == 0);
+  assert(*offset <= kMemPoolSize);
 
   // Attaching buffer (descriptors) to the operation
   mli_status status = MLI_STATUS_OK;
@@ -595,7 +601,7 @@ void prepare_phase(const conv2d_test_operands* cur_test,
   status = conv2d_op->EncodeInpZeroPts(inpzp_tensor, dst_inpzp_buf);
   assert(status == MLI_STATUS_OK);
   // encoded host buffer -> global mem pool
-  auto inpzp_mem = reinterpret_cast<int16_t*>(g_mem_pool + inpzp_mem_offset);
+  auto inpzp_mem = reinterpret_cast<int16_t*>((int8_t*)g_mem_pool + inpzp_mem_offset);
   for (size_t i = 0; i < inpzp_size / sizeof(int16_t); ++i) {
     inpzp_mem[i] = dst_inpzp_buf.read<int16_t>(i);
   }
@@ -613,7 +619,7 @@ void prepare_phase(const conv2d_test_operands* cur_test,
   // host tensor -> encoded host buffer
   status = conv2d_op->EncodeWtsZeroPts(wtszp_tensor, dst_wtszp_buf);
   assert(status == MLI_STATUS_OK);
-  auto wtszp_mem = reinterpret_cast<int16_t*>(g_mem_pool + wtszp_mem_offset);
+  auto wtszp_mem = reinterpret_cast<int16_t*>((int8_t*)g_mem_pool + wtszp_mem_offset);
   // encoded host buffer -> global mem pool
   for (size_t i = 0; i < wtszp_size / sizeof(int16_t); ++i) {
     wtszp_mem[i] = dst_wtszp_buf.read<int16_t>(i);
@@ -621,14 +627,14 @@ void prepare_phase(const conv2d_test_operands* cur_test,
 
   // STEP 1.4: Compile conv2d into the binary data
   //==================================================================
-  op.conv2d_instance = g_mem_pool;
+  op.conv2d_instance = (int8_t*)g_mem_pool;
   op.conv2d_instance_size = conv2d_op->GetRuntimeObjectSize();
 
   status =
-      conv2d_op->GetKernelPrivateData(g_mem_pool + op.conv2d_instance_size);
+      conv2d_op->GetKernelPrivateData((int8_t*)g_mem_pool + op.conv2d_instance_size);
   assert(status == MLI_STATUS_OK);
   op.conv2d_conf_private = reinterpret_cast<lib_mli::PrivateData*>(
-      g_mem_pool + op.conv2d_instance_size);
+      (int8_t*)g_mem_pool + op.conv2d_instance_size);
   op.conv2d_conf_private_size = conv2d_op->GetKernelPrivateDataSize();
 }
 
@@ -726,15 +732,42 @@ int main() {
   const reporter_full reporter;
   bool final_status = true;
 
-  reporter.report_header("MLI|Kernels|Convolution 2D  Tests");
+  reporter.report_header("MLI3.0|Kernels|Convolution 2D  Tests");
   for (int i = 0; i < kTestsNum; ++i) {
     // get the current test case
     const conv2d_test_operands* cur_test = &tests_list[i];
 
-#if defined(__Xvec_guard_bit_option)
-    // VPX code needs to be debugged
-    reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
-    continue;
+// NOTE: Copied from `test_mli_krn_conv2d.cc`, since using the same tect vectors.
+#if defined(__Xvec_guard_bit_option) && (__Xvec_guard_bit_option == 0)
+        if (strstr(cur_test->descr, "Test 1 SA8_SA8_SA32") != nullptr ||
+                strstr(cur_test->descr, "Test 2 SA8_SA8_SA32 ReluGen") != nullptr ||
+                strstr(cur_test->descr, "Test 3 SA8_SA8_SA32 Dilation") != nullptr ||
+                strstr(cur_test->descr, "Test 4 SA8_SA8_SA32 IO_Memstr") != nullptr ||
+                strstr(cur_test->descr, "Test 5 SA8_SA8_SA32 W_Memstr") != nullptr ||
+                strstr(cur_test->descr, "Test 6 SA8_SA8_SA32  k1x1 Spec") != nullptr ||
+                strstr(cur_test->descr, "Test 7 SA8_SA8_SA32 k3x3 Spec") != nullptr ||
+                strstr(cur_test->descr, "Test 8 FX16 k5x5 spec") != nullptr ||
+                strstr(cur_test->descr, "Test 8 SA8_SA8_SA32 k5x5 spec") != nullptr ||
+                strstr(cur_test->descr, "Test 9-1 SA8_SA8_SA32 Dil+Pad") != nullptr ||
+                strstr(cur_test->descr, "Test 9-2 SA8_SA8_SA32 k3x3 Dil") != nullptr ||
+                strstr(cur_test->descr, "Test 10 FX16 k5x5 Dil") != nullptr ||
+                strstr(cur_test->descr, "Test 10 SA8_SA8_SA32 k5x5 Dil") != nullptr ||
+                strstr(cur_test->descr, "Test 11 FX16 Huge Vals") != nullptr ||
+                strstr(cur_test->descr, "Test 11 SA8_SA8_SA32 Huge Vals") != nullptr) {
+            // VPX fails bitwise comparison with reference .
+            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
+            continue;
+        }
+#endif
+
+#if PLATFORM == V2DSP_XY && defined(CRC_RM_CONVERGENT)
+        if (strstr(cur_test->descr, "Test 1 SA8_SA8_SA32") != nullptr ||
+                strstr(cur_test->descr, "Test 9-1 SA8_SA8_SA32 Dil+Pad") != nullptr ||
+                strstr(cur_test->descr, "Test 9-2 SA8_SA8_SA32 k3x3 Dil") != nullptr) {
+            // Em9d fails bitwise comparison with reference .
+            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
+            continue;
+        }
 #endif
 
     // STEP 0: Preprocessing phase
@@ -789,7 +822,7 @@ int main() {
 
     final_status &= is_test_passed;
   }
-  reporter.report_outline("[AUTO] Group: mli_krn_conv2d", final_status);
+  reporter.report_outline("[AUTO] Group: mli_krn_conv2d_30", final_status);
 
   return (final_status) ? 0 : 1;
 }

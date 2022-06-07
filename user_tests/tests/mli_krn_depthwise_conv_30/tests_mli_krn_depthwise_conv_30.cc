@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <cstdlib>
-#include <iostream>
 
 #include "mli_api.h"
 #include "mli_config.h"
@@ -92,48 +91,48 @@ const quality_metrics thresholds_sa8_general{quality_metrics::kPassValueMaxAbsEr
 static const depthwise_conv2d_test_operands tests_list[] = {
   // Basic functionality test: kernel_size=(3, 4), strides=(1, 1), with krn_padding, w/o ReLU
   // input layout: HWCN, kernel layout: HWCo, output layout: HWCoN
-  {"Test 1 8x8 SA ", mli_krn_rescale_i32_o8, input_1_sa8, weights_1_sa8_per_axis, bias_1_sa32_per_axis,
-                     test_1_bias_out_sa8, test_1_out_acc_sa32, test_1_out_sa8, input_1_scale, test_1_out_scale,
-                     weights_1_scales, sizeof(weights_1_scales) / sizeof(weights_1_scales[0]),
-                     test_1_cfg, thresholds_sa8_general, test_1_chksum_w8_i8},
+  {"Test 1 SA8_SA8_SA32 ", mli_krn_rescale_i32_o8, input_1_sa8, weights_1_sa8_per_axis, bias_1_sa32_per_axis,
+                           test_1_bias_out_sa8, test_1_out_acc_sa32, test_1_out_sa8, input_1_scale, test_1_out_scale,
+                           weights_1_scales, sizeof(weights_1_scales) / sizeof(weights_1_scales[0]),
+                           test_1_cfg, thresholds_sa8_general, test_1_chksum_w8_i8},
 
   // Basic functionality test: kernel_size=(4, 3), strides=(2, 2), with krn_padding, with Gen_ReLU
-  {"Test 2 8x8 SA ReluGen", mli_krn_rescale_i32_o8, input_1_sa8, weights_2_sa8_per_axis, bias_2_i1_w2_sa32_per_axis,
-                            test_2_bias_out_sa8, test_2_out_acc_sa32, test_2_out_sa8, input_1_scale, test_2_out_scale,
-                            weights_2_scales, sizeof(weights_2_scales) / sizeof(weights_2_scales[0]),
-                            test_2_cfg, thresholds_sa8_general, test_2_chksum_w8_i8},
+  {"Test 2 SA8_SA8_SA32 ReluGen", mli_krn_rescale_i32_o8, input_1_sa8, weights_2_sa8_per_axis, bias_2_i1_w2_sa32_per_axis,
+                                 test_2_bias_out_sa8, test_2_out_acc_sa32, test_2_out_sa8, input_1_scale, test_2_out_scale,
+                                 weights_2_scales, sizeof(weights_2_scales) / sizeof(weights_2_scales[0]),
+                                 test_2_cfg, thresholds_sa8_general, test_2_chksum_w8_i8},
 
   // Dilation test: kernel_size=(3, 4), strides=(1, 1), w/o padding, w/o ReLU
-  {"Test 3 8x8 SA Dil", mli_krn_rescale_i32_o8, input_1_sa8, weights_1_sa8_per_axis, bias_1_sa32_per_axis,
-                        test_3_bias_out_sa8, test_3_out_acc_sa32, test_3_out_sa8, input_1_scale, test_3_out_scale,
-                        weights_1_scales, sizeof(weights_1_scales) / sizeof(weights_1_scales[0]),
-                        test_3_cfg, thresholds_sa8_general, test_3_chksum_w8_i8},
+  {"Test 3 SA8_SA8_SA32 Dil", mli_krn_rescale_i32_o8, input_1_sa8, weights_1_sa8_per_axis, bias_1_sa32_per_axis,
+                              test_3_bias_out_sa8, test_3_out_acc_sa32, test_3_out_sa8, input_1_scale, test_3_out_scale,
+                              weights_1_scales, sizeof(weights_1_scales) / sizeof(weights_1_scales[0]),
+                              test_3_cfg, thresholds_sa8_general, test_3_chksum_w8_i8},
 
   // Input/output memstride test: kernel_size=(3, 4), strides=(3, 3), w/o padding, with ReLU_1
-  {"Test 4 8x8 SA Relu1 Mstr", mli_krn_rescale_i32_o8, input_1b_memstr_sa8, weights_1_sa8_per_axis, bias_1_sa32_per_axis,
-                               test_4_bias_out_sa8, test_4_out_acc_sa32, test_4_out_sa8, input_1_scale, test_4_out_scale,
-                               weights_1_scales, sizeof(weights_1_scales) / sizeof(weights_1_scales[0]),
-                               test_4_cfg, thresholds_sa8_general, test_4_chksum_w8_i8},
+  {"Test 4 SA8_SA8_SA32 Relu1 Mstr", mli_krn_rescale_i32_o8, input_1b_memstr_sa8, weights_1_sa8_per_axis, bias_1_sa32_per_axis,
+                                     test_4_bias_out_sa8, test_4_out_acc_sa32, test_4_out_sa8, input_1_scale, test_4_out_scale,
+                                     weights_1_scales, sizeof(weights_1_scales) / sizeof(weights_1_scales[0]),
+                                     test_4_cfg, thresholds_sa8_general, test_4_chksum_w8_i8},
 
   // Weights memstride test: kernel_size=(8, 6), strides=(1, 1), w/o padding, with ReLU_6
-  {"Test 5 8x8 SA Relu6 Mstr", mli_krn_rescale_i32_o8, input_1_sa8, weights_3_sa8_per_axis, bias_2_i1_w3_sa32_per_axis,
-                               test_5_bias_out_sa8, test_5_out_acc_sa32, test_5_out_sa8, input_1_scale, test_5_out_scale,
-                               weights_3_scales, sizeof(weights_3_scales) / sizeof(weights_3_scales[0]),
-                               test_5_cfg, thresholds_sa8_general, test_5_chksum_w8_i8},
+  {"Test 5 SA8_SA8_SA32 Relu6 Mstr", mli_krn_rescale_i32_o8, input_1_sa8, weights_3_sa8_per_axis, bias_2_i1_w3_sa32_per_axis,
+                                     test_5_bias_out_sa8, test_5_out_acc_sa32, test_5_out_sa8, input_1_scale, test_5_out_scale,
+                                     weights_3_scales, sizeof(weights_3_scales) / sizeof(weights_3_scales[0]),
+                                     test_5_cfg, thresholds_sa8_general, test_5_chksum_w8_i8},
 
   // Dilation test with padding for generic function, kernel_size=(3, 3), strides=(1, 1),
   // krn_padding , dilation = (2,2) and ReLU_Gen.
   // No Dilation ratio. Memstrides are applied on input, output and weights tensors
-  {"Test 8 8x8 SA Dil+Pad", mli_krn_rescale_i32_o8, input_1_memstr_sa8, weights_3_sa8_per_axis, bias_2_i1_w3_sa32_per_axis,
-                            test_8_bias_out_sa8, test_8_out_acc_sa32, test_8_out_sa8, input_1_scale, test_8_out_scale,
-                            weights_3_scales, sizeof(weights_3_scales) / sizeof(weights_3_scales[0]),
-                            test_8_cfg, thresholds_sa8_general, test_8_chksum_w8_i8},
+  {"Test 8-1 SA8_SA8_SA32 Dil+Pad", mli_krn_rescale_i32_o8, input_1_memstr_sa8, weights_3_sa8_per_axis, bias_2_i1_w3_sa32_per_axis,
+                                    test_8_bias_out_sa8, test_8_out_acc_sa32, test_8_out_sa8, input_1_scale, test_8_out_scale,
+                                    weights_3_scales, sizeof(weights_3_scales) / sizeof(weights_3_scales[0]),
+                                    test_8_cfg, thresholds_sa8_general, test_8_chksum_w8_i8},
 
   // Test with huge values in operands to check negative fractional and big scales
-  {"Test 10 8x8 SA Huge Vals", mli_krn_rescale_i32_o8, input_2_sa8, weights_5_sa8, bias_3_i2_w5_sa32,
-                               test_10_bias_out_sa8, test_10_out_acc_sa32, test_10_out_sa8, input_2_scale, test_10_out_scale,
-                               weights_5_scales, sizeof(weights_5_scales) / sizeof(weights_5_scales[0]),
-                               test_10_cfg, thresholds_sa8_general, test_10_chksum_w8_i8},
+  {"Test 10 SA8_SA8_SA32 Huge Vals", mli_krn_rescale_i32_o8, input_2_sa8, weights_5_sa8, bias_3_i2_w5_sa32,
+                                     test_10_bias_out_sa8, test_10_out_acc_sa32, test_10_out_sa8, input_2_scale, test_10_out_scale,
+                                     weights_5_scales, sizeof(weights_5_scales) / sizeof(weights_5_scales[0]),
+                                     test_10_cfg, thresholds_sa8_general, test_10_chksum_w8_i8},
 };
 constexpr int kTestsNum = sizeof(tests_list) / sizeof(tests_list[0]);
 
@@ -141,13 +140,14 @@ constexpr int kTestsNum = sizeof(tests_list) / sizeof(tests_list[0]);
 //==================================================================
 constexpr uint32_t kMemSize = 2047;
 constexpr int kMemAccSize = kMemSize*sizeof(int32_t); // TODO: for double wide accu, more space might be required
-static IO_DATA_ATTR int8_t g_scratch_mem_in[kMemSize] = { 0 };
-static IO_DATA_ATTR int8_t g_scratch_mem_acc_out[kMemAccSize] = { 0 };
-static IO_DATA_ATTR int8_t g_scratch_mem_out[kMemSize] = { 0 };
-static IO_DATA_ATTR int8_t g_scratch_mem_bias_out[kMemSize] = { 0 };
-static W_DATA_ATTR int8_t g_scratch_mem_w[kMemSize] = { 0 };
-static W_DATA_ATTR int8_t g_scratch_mem_b[kMemSize] = { 0 };
-static int8_t g_mem_pool[kMemSize] = {0};
+static int8_t g_scratch_mem_in[kMemSize] = { 0 };
+static int8_t g_scratch_mem_acc_out[kMemAccSize] = { 0 };
+static int8_t g_scratch_mem_out[kMemSize] = { 0 };
+static int8_t g_scratch_mem_bias_out[kMemSize] = { 0 };
+static int8_t g_scratch_mem_w[kMemSize] = { 0 };
+static int8_t g_scratch_mem_b[kMemSize] = { 0 };
+constexpr uint32_t kMemPoolSize = 2047;
+static IO_DATA_ATTR int8_t g_mem_pool[kMemPoolSize] = {0};
 
 struct DepthwiseConvOp {
   // Depthwise Conv2d Kernel
@@ -344,6 +344,8 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
 
   // depthwise conv2d output
   offset = &offsets[0];
+  // NOTE: The output should be 4 bytes aligned for int32_t, otherwise, it will cause `vvst` crash.
+  *offset = (*offset + 4 - 1) / 4 * 4;
   uint32_t out_size = dw_conv2d_op->GetOutputBufferSize() * sizeof(int32_t);
   lib_mli::OffsetBuffer dw_conv2d_out_buf{*offset, 0, out_size, sizeof(int32_t)};
   lib_mli::Tensor<lib_mli::OffsetBuffer, 4> dw_conv2d_out_tensor(dw_conv2d_out_buf, output_shape);
@@ -369,6 +371,9 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
   uint32_t data_buffer_size = dw_conv2d_op->GetDataBufferSize();
   lib_mli::OffsetBuffer dw_conv2d_descr_buf{*offset, 0, data_buffer_size, sizeof(char)};
   *offset += data_buffer_size;
+
+  assert(data_buffer_size == 0);
+  assert(*offset <= kMemPoolSize);
 
   // Attaching buffer (descriptors) to the operation
   mli_status status = MLI_STATUS_OK;
@@ -428,7 +433,7 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
   status = dw_conv2d_op->EncodeInpZeroPts(inpzp_tensor, dst_inpzp_buf);
   assert(status == MLI_STATUS_OK);
   // encoded host buffer -> global mem pool
-  auto inpzp_mem = reinterpret_cast<int16_t*>(g_mem_pool + inpzp_mem_offset);
+  auto inpzp_mem = reinterpret_cast<int16_t*>((int8_t*)g_mem_pool + inpzp_mem_offset);
   for (size_t i = 0; i < inpzp_size; ++i) {
     inpzp_mem[i] = dst_inpzp_buf.read<int16_t>(i);
   }
@@ -446,7 +451,7 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
   // host tensor -> encoded host buffer
   status = dw_conv2d_op->EncodeWtsZeroPts(wtszp_tensor, dst_wtszp_buf);
   assert(status == MLI_STATUS_OK);
-  auto wtszp_mem = reinterpret_cast<int16_t*>(g_mem_pool + wtszp_mem_offset);
+  auto wtszp_mem = reinterpret_cast<int16_t*>((int8_t*)g_mem_pool + wtszp_mem_offset);
   // encoded host buffer -> global mem pool
   for (size_t i = 0; i < wtszp_size; ++i) {
     wtszp_mem[i] = dst_wtszp_buf.read<int16_t>(i);
@@ -454,14 +459,14 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
 
   // STEP 1.4: Compile depthwise conv2d into the binary data
   //==================================================================
-  op.depthwise_conv2d_instance = g_mem_pool;
+  op.depthwise_conv2d_instance = (int8_t*)g_mem_pool;
   op.depthwise_conv2d_instance_size = dw_conv2d_op->GetRuntimeObjectSize();
 
   status =
-      dw_conv2d_op->GetKernelPrivateData(g_mem_pool + op.depthwise_conv2d_instance_size);
+      dw_conv2d_op->GetKernelPrivateData((int8_t*)g_mem_pool + op.depthwise_conv2d_instance_size);
   assert(status == MLI_STATUS_OK);
   op.depthwise_conv2d_conf_private = reinterpret_cast<lib_mli::PrivateData*>(
-      g_mem_pool + op.depthwise_conv2d_instance_size);
+      (int8_t*)g_mem_pool + op.depthwise_conv2d_instance_size);
   op.depthwise_conv2d_conf_private_size = dw_conv2d_op->GetKernelPrivateDataSize();
 }
 
@@ -557,7 +562,7 @@ bool postprocess_phase(const reporter_full& reporter,
 
 int main() {
   const reporter_full reporter;
-  reporter.report_header("MLI_3|Kernels|Depthwise Conv Tests");
+  reporter.report_header("MLI3.0|Kernels|Depthwise Conv Tests");
 
   bool final_status = true;
 
@@ -565,10 +570,38 @@ int main() {
     // get the current test case
     const depthwise_conv2d_test_operands* cur_test = &tests_list[i];
 
-#if defined(__Xvec_guard_bit_option)
-    // VPX code needs to be debugged
-    reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
-    continue;
+// NOTE: Copied from `test_mli_krn_depthwise.cc`, since using the same tect vectors.
+#if __Xvec_guard_bit_option == 0 && defined(__Xvec_guard_bit_option)
+        if (strstr(cur_test->descr, "Test 1 SA8_SA8_SA32") != nullptr ||
+                strstr(cur_test->descr, "Test 2 SA8_SA8_SA32 ReluGen") != nullptr ||
+                strstr(cur_test->descr, "Test 3 SA8_SA8_SA32 Dil") != nullptr ||
+                strstr(cur_test->descr, "Test 4 SA8_SA8_SA32 Relu1 Mstr") != nullptr ||
+                strstr(cur_test->descr, "Test 5 SA8_SA8_SA32 Relu6 Mstr") != nullptr ||
+                strstr(cur_test->descr, "Test 6 SA8_SA8_SA32 k3x3 Spec") != nullptr ||
+                strstr(cur_test->descr, "Test 7 SA8_SA8_SA32") != nullptr ||
+                strstr(cur_test->descr, "Test 8-1 SA8") != nullptr ||
+                strstr(cur_test->descr, "Test 8-2 SA8") != nullptr ||
+                strstr(cur_test->descr, "Test 9 SA8_SA8_SA32 k5x5 Dil") != nullptr ||
+                strstr(cur_test->descr, "Test 10 SA8_SA8_SA32 Huge Vals") != nullptr) {
+            // VPX fails bitwise comparison with reference .
+            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
+            continue;
+        }
+#endif
+#if PLATFORM == V2DSP_XY && defined(CRC_RM_UP)
+        if (strstr(cur_test->descr, "Test 1 SA8_SA8_SA32") != nullptr) {
+            // Em9d fails comparison with reference in up rounding mode.
+            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
+            continue;
+        }
+#endif
+
+#if PLATFORM == V2DSP_XY && defined(CRC_RM_CONVERGENT)
+        if (strstr(cur_test->descr, "Test 9 SA8_SA8_SA32 k5x5 Dil") != nullptr) {
+            // Em9d fails bitwise comparison with reference .
+            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
+            continue;
+        }
 #endif
 
     // STEP 0: Preprocessing phase
@@ -590,7 +623,7 @@ int main() {
 
     // Get the output of Depthwise Conv2d and copy it to dwc_op.out_acc
     for (uint32_t i = 0; i < dwc_op.out_acc.data.capacity; ++i) {
-      dwc_op.out_acc.data.mem.pi8[i] = *(g_mem_pool + out_mem_offset + i);
+      dwc_op.out_acc.data.mem.pi8[i] = *((int8_t*)g_mem_pool + out_mem_offset + i);
     }
 
     // Run rescale kernel
@@ -611,7 +644,7 @@ int main() {
     final_status &= is_test_passed;
   }
 
-  reporter.report_outline("[AUTO] Group: mli_krn_depthwise_conv", final_status);
+  reporter.report_outline("[AUTO] Group: mli_krn_depthwise_conv_30", final_status);
 
   return (final_status) ? 0 : 1;
 }

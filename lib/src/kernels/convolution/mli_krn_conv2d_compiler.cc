@@ -69,12 +69,11 @@ mli_status Conv2d_CS::GetKernelPrivateData(void* kernel_private_data_buffer) {
 
   conv_opaque_obj.size = sizeof(Conv2DPrivateData);
 
-  conv_opaque_obj.m_input_buffer = m_in.get_buf();
-  conv_opaque_obj.m_weights_buffer = m_weights.get_buf();
-  conv_opaque_obj.m_output_buffer = m_output.get_buf();
-  conv_opaque_obj.m_inpzp_buffer = m_input_zp;
-  conv_opaque_obj.m_wtszp_buffer = m_weights_zp;
-  conv_opaque_obj.m_metadata_buffer = m_metadata;
+  conv_opaque_obj.input_buffer = m_in.get_buf();
+  conv_opaque_obj.weights_buffer = m_weights.get_buf();
+  conv_opaque_obj.output_buffer = m_output.get_buf();
+  conv_opaque_obj.inpzp_buffer = m_input_zp;
+  conv_opaque_obj.wtszp_buffer = m_weights_zp;
 
   assert(m_in.get_dim(mli::kTensorChannelDim) == m_weights.get_dim(mli::kKernelChannelInDim));
   assert(m_weights.get_dim(mli::kKernelChannelOutDim) == m_output.get_dim(mli::kTileChannelDim));
@@ -136,12 +135,12 @@ mli_status Conv2d_CS::AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
   // the encoded zero points should be 16 bits
   assert(inpzeropts.get_elem_size() == 2 && wtszeropts.get_elem_size() == 2);
 
+  // The metadata or descriptor is not required for ref kernel
   m_in.set_buf(input.get_buf());
   m_output.set_buf(output.get_buf());
   m_weights.set_buf(weights);
   m_input_zp = inpzeropts;
   m_weights_zp = wtszeropts;
-  m_metadata = metadata;
 
   return MLI_STATUS_OK;
 }
