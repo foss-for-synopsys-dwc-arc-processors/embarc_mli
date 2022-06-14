@@ -149,7 +149,7 @@ MLI_FORCE_INLINE vNx2short_t mli_math_sub_fx(vNx2short_t L, vNx2short_t R) {
 
 template <>
 MLI_FORCE_INLINE vNx4accchar_t mli_math_add(vNx4accchar_t L, vNx4char_t R) {
-    return vvcadd(L, R,(int8_t)0);
+    return vvcadd(L, R, (int8_t)0);
 }
 
 template <>
@@ -159,13 +159,14 @@ MLI_FORCE_INLINE vNx4accchar_t mli_math_add(vNx4accchar_t L, vNx4accchar_t R) {
 
 template <>
 MLI_FORCE_INLINE vNx2accshort_t mli_math_add(vNx2accshort_t L, vNx2short_t R) {
-    return vvcadd(L, R,(int16_t)0);
+    return vvcadd(L, R, (int16_t)0);
 }
 
 template <>
 MLI_FORCE_INLINE vNx2accshort_t mli_math_add(vNx2accshort_t L, vNx2accshort_t R) {
     return vvcaddacc(L, R);
 }
+
 template <>
 MLI_FORCE_INLINE vNx4accshort_t mli_math_add(vNx4accshort_t L, vNx4short_t R) {
     return __vacc_concat(vvcadd(__vacc_lo(L), R.lo,(int16_t)0), vvcadd(__vacc_hi(L), R.hi,(int16_t)0));
@@ -174,6 +175,11 @@ MLI_FORCE_INLINE vNx4accshort_t mli_math_add(vNx4accshort_t L, vNx4short_t R) {
 template <>
 MLI_FORCE_INLINE vNx4accshort_t mli_math_add(vNx4accshort_t L, vNx4accshort_t R) {
     return __vacc_concat(vvcaddacc(__vacc_lo(L), __vacc_lo(R)), vvcaddacc(__vacc_hi(L), __vacc_hi(R)));
+}
+
+template <>
+MLI_FORCE_INLINE vNaccint_t mli_math_add(vNaccint_t L, vNint_t R) {
+    return vvcadd(L, R, (int32_t)0);
 }
 
 template <>
@@ -873,6 +879,11 @@ MLI_FORCE_INLINE vNx2accint_t mli_math_init_accu(int32_t val) {
     vNx2accint_t acc;
     acc = __vacc_concat(vvcadd_init((vNint_t)val,(int32_t)0), vvcadd_init((vNint_t)val,(int32_t)0));
     return acc;
+}
+
+template <>
+MLI_FORCE_INLINE vNaccint_t mli_math_init_accu(int32_t val) {
+    return vvcadd_init((vNint_t)val, (int32_t)0);
 }
 
 template <>
@@ -2184,6 +2195,11 @@ MLI_FORCE_INLINE vNx2accint_t mli_math_init_accu_add(vNx2int_t L, vNx2int_t R) {
 
 // Arithmetic shift (right is default, left on the negative val)
 //========================================================================
+template <>
+MLI_FORCE_INLINE int32_t mli_math_ashift_right_fx(int32_t in_val, int shift_right) {
+    return mli_math_asr_rnd_fx<int32_t>(in_val, shift_right);
+}
+
 template <>
 MLI_FORCE_INLINE int64_t mli_math_ashift_right_fx(int64_t in_val, int shift_right) {
     return mli_math_asr_rnd_fx<int64_t>(in_val, shift_right);

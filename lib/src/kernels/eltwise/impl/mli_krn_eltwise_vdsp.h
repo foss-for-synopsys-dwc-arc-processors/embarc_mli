@@ -132,6 +132,42 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
 }
 
 template <>
+MLI_FORCE_INLINE vNint_t eltwise_perform_operation<vNint_t, vNint_t, ELTWISE_ADD, false>(
+        const vNint_t op1,
+        const vNint_t op2,
+        const int16_t in_offset1,
+        const int16_t in_offset2,
+        const int16_t out_offset,
+        const int16_t scale_factor1,
+        const int16_t scale_factor2,
+        const int pre_op_shift1,
+        const int pre_op_shift2,
+        const int post_op_shift) {
+    vNint_t res;
+    int shift_right = MAX(post_op_shift, 0);
+    int shift_left = MAX(-post_op_shift, 0);
+
+#ifdef ROUND_MODE_UP
+    uint32_t one = 1u;
+    int32_t accu_init = (one << shift_right) >> 1;
+    vNaccint_t accu = mli_math_init_accu<int32_t, vNaccint_t>(accu_init);
+#else
+    #error Rounding mode not supported
+#endif
+
+    MLI_ASSERT(pre_op_shift1 == 0);
+    MLI_ASSERT(pre_op_shift2 == 0);
+    MLI_ASSERT(shift_left  == 0);
+    MLI_ASSERT(shift_right == 0);
+
+    accu = mli_math_add(accu, op1);
+    accu = mli_math_add(accu, op2);
+    res = to_vNint_t(accu);
+
+    return res;
+}
+
+template <>
 MLI_FORCE_INLINE vNx2short_t eltwise_perform_operation<vNx2short_t, vNx2short_t, ELTWISE_SUB, false>(
         const vNx2short_t op1,
         const vNx2short_t op2,
@@ -233,6 +269,42 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
     oper2_scaled = mli_math_asr_rnd_fx(oper2_scaled, shift_right2);
     vNx4short_t sub_res = mli_math_sub_fx(oper1_scaled, oper2_scaled);
     res = mli_math_cast_fx<vNx4short_t, vNx4char_t>(sub_res);
+    return res;
+}
+
+template <>
+MLI_FORCE_INLINE vNint_t eltwise_perform_operation<vNint_t, vNint_t, ELTWISE_SUB, false>(
+        const vNint_t op1,
+        const vNint_t op2,
+        const int16_t in_offset1,
+        const int16_t in_offset2,
+        const int16_t out_offset,
+        const int16_t scale_factor1,
+        const int16_t scale_factor2,
+        const int pre_op_shift1,
+        const int pre_op_shift2,
+        const int post_op_shift) {
+    vNint_t res;
+    int shift_right = MAX(post_op_shift, 0);
+    int shift_left = MAX(-post_op_shift, 0);
+
+#ifdef ROUND_MODE_UP
+    uint32_t one = 1u;
+    int32_t accu_init = (one << shift_right) >> 1;
+    vNaccint_t accu = mli_math_init_accu<int32_t, vNaccint_t>(accu_init);
+#else
+    #error Rounding mode not supported
+#endif
+
+    MLI_ASSERT(pre_op_shift1 == 0);
+    MLI_ASSERT(pre_op_shift2 == 0);
+    MLI_ASSERT(shift_left  == 0);
+    MLI_ASSERT(shift_right == 0);
+
+    vNaccint_t accu_sub = mli_math_init_accu_sub<vNint_t, vNaccint_t>(op1, op2);
+    accu = mli_math_add(accu, accu_sub);
+    res = to_vNint_t(accu);
+
     return res;
 }
 
@@ -369,6 +441,41 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
 }
 
 template <>
+MLI_FORCE_INLINE vNint_t eltwise_perform_operation<vNint_t, vNint_t, ELTWISE_MUL, false>(
+        const vNint_t op1,
+        const vNint_t op2,
+        const int16_t in_offset1,
+        const int16_t in_offset2,
+        const int16_t out_offset,
+        const int16_t scale_factor1,
+        const int16_t scale_factor2,
+        const int pre_op_shift1,
+        const int pre_op_shift2,
+        const int post_op_shift) {
+    vNint_t res;
+    int shift_right = MAX(post_op_shift, 0);
+    int shift_left = MAX(-post_op_shift, 0);
+
+#ifdef ROUND_MODE_UP
+    uint32_t one = 1u;
+    int32_t accu_init = (one << shift_right) >> 1;
+    vNaccint_t accu = mli_math_init_accu<int32_t, vNaccint_t>(accu_init);
+#else
+    #error Rounding mode not supported
+#endif
+
+    MLI_ASSERT(pre_op_shift1 == 0);
+    MLI_ASSERT(pre_op_shift2 == 0);
+    MLI_ASSERT(shift_left  == 0);
+    MLI_ASSERT(shift_right == 0);
+
+    accu = mli_math_mac_fx_low(accu, op1, op2);
+    res = to_vNint_t(accu);
+
+    return res;
+}
+
+template <>
 MLI_FORCE_INLINE vNx2short_t eltwise_perform_operation<vNx2short_t, vNx2short_t, ELTWISE_MAX, false>(
         const vNx2short_t op1,
         const vNx2short_t op2,
@@ -445,6 +552,28 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
     vNx4short_t max_scaled = mli_math_mul_fx_high(max, scale_factor1);
     max_scaled = mli_math_add_fx(max_scaled, (vNx4short_t) offset);
     res = mli_math_cast_fx<vNx4short_t, vNx4char_t, false>(max_scaled, shift_right);
+    return res;
+}
+
+template <>
+MLI_FORCE_INLINE vNint_t eltwise_perform_operation<vNint_t, vNint_t, ELTWISE_MAX, false>(
+        const vNint_t op1,
+        const vNint_t op2,
+        const int16_t in_offset1,
+        const int16_t in_offset2,
+        const int16_t out_offset,
+        const int16_t scale_factor1,
+        const int16_t scale_factor2,
+        const int pre_op_shift1,
+        const int pre_op_shift2,
+        const int post_op_shift) {
+    MLI_ASSERT(pre_op_shift1 == 0);
+    MLI_ASSERT(pre_op_shift2 == 0);
+    MLI_ASSERT(post_op_shift  == 0);
+
+    vNint_t res;
+    res = mli_math_max_fx(op1, op2);
+
     return res;
 }
 
@@ -529,6 +658,28 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
     res = mli_math_cast_fx<vNx4short_t, vNx4char_t, false>(max_scaled, shift_right);
     return res;
 
+}
+
+template <>
+MLI_FORCE_INLINE vNint_t eltwise_perform_operation<vNint_t, vNint_t, ELTWISE_MIN, false>(
+        const vNint_t op1,
+        const vNint_t op2,
+        const int16_t in_offset1,
+        const int16_t in_offset2,
+        const int16_t out_offset,
+        const int16_t scale_factor1,
+        const int16_t scale_factor2,
+        const int pre_op_shift1,
+        const int pre_op_shift2,
+        const int post_op_shift) {
+    MLI_ASSERT(pre_op_shift1 == 0);
+    MLI_ASSERT(pre_op_shift2 == 0);
+    MLI_ASSERT(post_op_shift  == 0);
+
+    vNint_t res;
+    res = mli_math_min_fx(op1, op2);
+
+    return res;
 }
 
 

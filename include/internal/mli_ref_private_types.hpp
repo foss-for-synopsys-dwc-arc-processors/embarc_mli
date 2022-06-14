@@ -253,6 +253,25 @@ public:
     uint8_t padding_right;
 };
 
+class EltwisePrivateData : public PrivateData {
+  public:
+    EltwisePrivateData(kernel_id_t kernel_id) : PrivateData(kernel_id) {}
+    OffsetBuffer m_in_left_buffer;
+    OffsetBuffer m_in_right_buffer;
+    OffsetBuffer m_output_buffer;
+    OffsetBuffer m_metadata;
+
+    uint32_t m_in_left_rank;
+    uint32_t m_in_left_shape[4];
+    int32_t m_in_left_stride[4];
+    uint32_t m_in_right_rank;
+    uint32_t m_in_right_shape[4];
+    int32_t m_in_right_stride[4];
+    uint32_t m_output_rank;
+    uint32_t m_output_shape[4];
+    int32_t m_output_stride[4];
+};
+
 } // namespace snps_arc::metaware::mli::ref
 
 #endif // _MLI_REF_PRIVATE_TYPES_HPP_

@@ -44,6 +44,10 @@ public:
 
     virtual uint32_t Mul_CS_GetSize() const { return 0; }
 
+    virtual uint32_t Max_CS_GetSize() const { return 0; }
+
+    virtual uint32_t Min_CS_GetSize() const { return 0; }
+
     virtual lib_mli::Conv2d_CS* Conv2d_CS(void *kernel_buffer,
                                           const Tensor<NoBuffer, 4> input_shape,
                                           const Tensor<NoBuffer, 5> weights,
@@ -111,6 +115,16 @@ public:
                                     const Tensor<NoBuffer, 4> output) { return nullptr; }
 
     virtual lib_mli::Mul_CS* Mul_CS(void *kernel_buffer,
+                                    const Tensor<NoBuffer, 4> input_left,
+                                    const Tensor<NoBuffer, 4> input_right,
+                                    const Tensor<NoBuffer, 4> output) { return nullptr; }
+
+    virtual lib_mli::Max_CS* Max_CS(void *kernel_buffer,
+                                    const Tensor<NoBuffer, 4> input_left,
+                                    const Tensor<NoBuffer, 4> input_right,
+                                    const Tensor<NoBuffer, 4> output) { return nullptr; }
+
+    virtual lib_mli::Min_CS* Min_CS(void *kernel_buffer,
                                     const Tensor<NoBuffer, 4> input_left,
                                     const Tensor<NoBuffer, 4> input_right,
                                     const Tensor<NoBuffer, 4> output) { return nullptr; }

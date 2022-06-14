@@ -356,6 +356,211 @@ private:
 
 };
 
+class Add_CS : public lib_mli::Add_CS {
+public:
+
+    Add_CS();
+
+    Add_CS(const lib_mli::PlatformDescription pd,
+           const Tensor<NoBuffer, 4> in_left,
+           const Tensor<NoBuffer, 4> in_right,
+           const Tensor<NoBuffer, 4> output_tile_shape);
+
+    // From CompilerGenericInterface
+    unsigned GetKernelPrivateDataSize() const override;
+    unsigned GetRuntimeObjectSize() const override;
+    mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
+    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left,
+                                   const Tensor<OffsetBuffer, 4> &input_right,
+                                   const Tensor<OffsetBuffer, 4> &output,
+                                   const OffsetBuffer &data) override;
+
+    // From Add_CS
+    unsigned GetInputLeftBufferSize() override;
+    unsigned GetInputRightBufferSize() override;
+    unsigned GetOutputBufferSize() override;
+    unsigned GetDataBufferSize() override;
+
+private:
+    Tensor<OffsetBuffer, 4> m_in_left;
+    Tensor<OffsetBuffer, 4> m_in_right;
+    Tensor<OffsetBuffer, 4> m_output;
+    OffsetBuffer m_metadata;
+
+    uint32_t m_in_left_buffer_size;
+    uint32_t m_in_right_buffer_size;
+    uint32_t m_output_buffer_size;
+
+    bool m_is_left_scalar{true};
+    bool m_is_right_scalar{true};
+
+    lib_mli::PlatformDescription m_pd;
+};
+
+class Sub_CS : public lib_mli::Sub_CS {
+public:
+
+    Sub_CS();
+
+    Sub_CS(const lib_mli::PlatformDescription pd,
+           const Tensor<NoBuffer, 4> in_left,
+           const Tensor<NoBuffer, 4> in_right,
+           const Tensor<NoBuffer, 4> output_tile_shape);
+
+    // From CompilerGenericInterface
+    unsigned GetKernelPrivateDataSize() const override;
+    unsigned GetRuntimeObjectSize() const override;
+    mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
+    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left,
+                                   const Tensor<OffsetBuffer, 4> &input_right,
+                                   const Tensor<OffsetBuffer, 4> &output,
+                                   const OffsetBuffer &data) override;
+
+    // From Sub_CS
+    unsigned GetInputLeftBufferSize() override;
+    unsigned GetInputRightBufferSize() override;
+    unsigned GetOutputBufferSize() override;
+    unsigned GetDataBufferSize() override;
+
+private:
+    Tensor<OffsetBuffer, 4> m_in_left;
+    Tensor<OffsetBuffer, 4> m_in_right;
+    Tensor<OffsetBuffer, 4> m_output;
+    OffsetBuffer m_metadata;
+
+    uint32_t m_in_left_buffer_size;
+    uint32_t m_in_right_buffer_size;
+    uint32_t m_output_buffer_size;
+
+    bool m_is_left_scalar{true};
+    bool m_is_right_scalar{true};
+
+    lib_mli::PlatformDescription m_pd;
+};
+
+class Mul_CS : public lib_mli::Mul_CS {
+public:
+
+    Mul_CS();
+
+    Mul_CS(const lib_mli::PlatformDescription pd,
+           const Tensor<NoBuffer, 4> in_left,
+           const Tensor<NoBuffer, 4> in_right,
+           const Tensor<NoBuffer, 4> output_tile_shape);
+
+    // From CompilerGenericInterface
+    unsigned GetKernelPrivateDataSize() const override;
+    unsigned GetRuntimeObjectSize() const override;
+    mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
+    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left,
+                                   const Tensor<OffsetBuffer, 4> &input_right,
+                                   const Tensor<OffsetBuffer, 4> &output,
+                                   const OffsetBuffer &data) override;
+
+    // From Mul_CS
+    unsigned GetInputLeftBufferSize() override;
+    unsigned GetInputRightBufferSize() override;
+    unsigned GetOutputBufferSize() override;
+    unsigned GetDataBufferSize() override;
+
+private:
+    Tensor<OffsetBuffer, 4> m_in_left;
+    Tensor<OffsetBuffer, 4> m_in_right;
+    Tensor<OffsetBuffer, 4> m_output;
+    OffsetBuffer m_metadata;
+
+    uint32_t m_in_left_buffer_size;
+    uint32_t m_in_right_buffer_size;
+    uint32_t m_output_buffer_size;
+
+    bool m_is_left_scalar{true};
+    bool m_is_right_scalar{true};
+
+    lib_mli::PlatformDescription m_pd;
+};
+
+class Max_CS : public lib_mli::Max_CS {
+public:
+
+    Max_CS();
+
+    Max_CS(const lib_mli::PlatformDescription pd,
+           const Tensor<NoBuffer, 4> in_left,
+           const Tensor<NoBuffer, 4> in_right,
+           const Tensor<NoBuffer, 4> output_tile_shape);
+
+    // From CompilerGenericInterface
+    unsigned GetKernelPrivateDataSize() const override;
+    unsigned GetRuntimeObjectSize() const override;
+    mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
+    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left,
+                                   const Tensor<OffsetBuffer, 4> &input_right,
+                                   const Tensor<OffsetBuffer, 4> &output,
+                                   const OffsetBuffer &data) override;
+
+    // From Max_CS
+    unsigned GetInputLeftBufferSize() override;
+    unsigned GetInputRightBufferSize() override;
+    unsigned GetOutputBufferSize() override;
+    unsigned GetDataBufferSize() override;
+
+private:
+    Tensor<OffsetBuffer, 4> m_in_left;
+    Tensor<OffsetBuffer, 4> m_in_right;
+    Tensor<OffsetBuffer, 4> m_output;
+    OffsetBuffer m_metadata;
+
+    uint32_t m_in_left_buffer_size;
+    uint32_t m_in_right_buffer_size;
+    uint32_t m_output_buffer_size;
+
+    bool m_is_left_scalar{true};
+    bool m_is_right_scalar{true};
+
+    lib_mli::PlatformDescription m_pd;
+};
+
+class Min_CS : public lib_mli::Min_CS {
+public:
+
+    Min_CS();
+
+    Min_CS(const lib_mli::PlatformDescription pd,
+           const Tensor<NoBuffer, 4> in_left,
+           const Tensor<NoBuffer, 4> in_right,
+           const Tensor<NoBuffer, 4> output_tile_shape);
+
+    // From CompilerGenericInterface
+    unsigned GetKernelPrivateDataSize() const override;
+    unsigned GetRuntimeObjectSize() const override;
+    mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
+    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left,
+                                   const Tensor<OffsetBuffer, 4> &input_right,
+                                   const Tensor<OffsetBuffer, 4> &output,
+                                   const OffsetBuffer &data) override;
+
+    // From Min_CS
+    unsigned GetInputLeftBufferSize() override;
+    unsigned GetInputRightBufferSize() override;
+    unsigned GetOutputBufferSize() override;
+    unsigned GetDataBufferSize() override;
+
+private:
+    Tensor<OffsetBuffer, 4> m_in_left;
+    Tensor<OffsetBuffer, 4> m_in_right;
+    Tensor<OffsetBuffer, 4> m_output;
+    OffsetBuffer m_metadata;
+
+    uint32_t m_in_left_buffer_size;
+    uint32_t m_in_right_buffer_size;
+    uint32_t m_output_buffer_size;
+
+    bool m_is_left_scalar{true};
+    bool m_is_right_scalar{true};
+
+    lib_mli::PlatformDescription m_pd;
+};
+
 } // namespace ref
 
 #endif // _MLI_REF_COMPILER_API_HPP_

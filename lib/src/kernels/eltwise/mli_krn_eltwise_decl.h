@@ -179,6 +179,19 @@ out_T eltwise_perform_operation(
             const int post_op_shift);
 
     template <>
+    MLI_FORCE_INLINE vNx4int_t eltwise_perform_operation<vNx4int_t, vNx4int_t, ELTWISE_ADD, false>(
+            const vNx4int_t op1,
+            const vNx4int_t op2,
+            const int16_t in_offset1,
+            const int16_t in_offset2,
+            const int16_t out_offset,
+            const int16_t scale_factor1,
+            const int16_t scale_factor2,
+            const int pre_op_shift1,
+            const int pre_op_shift2,
+            const int post_op_shift);
+
+    template <>
     MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, ELTWISE_ADD, false>(
             const vNx4char_t op1,
             const vNx4char_t op2,
@@ -195,6 +208,19 @@ out_T eltwise_perform_operation(
     MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, ELTWISE_ADD, true>(
             const vNx4char_t op1,
             const vNx4char_t op2,
+            const int16_t in_offset1,
+            const int16_t in_offset2,
+            const int16_t out_offset,
+            const int16_t scale_factor1,
+            const int16_t scale_factor2,
+            const int pre_op_shift1,
+            const int pre_op_shift2,
+            const int post_op_shift);
+
+    template <>
+    MLI_FORCE_INLINE vNint_t eltwise_perform_operation<vNint_t, vNint_t, ELTWISE_ADD, true>(
+            const vNint_t op1,
+            const vNint_t op2,
             const int16_t in_offset1,
             const int16_t in_offset2,
             const int16_t out_offset,
@@ -244,6 +270,19 @@ out_T eltwise_perform_operation(
             const int post_op_shift);
 
     template <>
+    MLI_FORCE_INLINE vNint_t eltwise_perform_operation<vNint_t, vNint_t, ELTWISE_MUL, true>(
+            const vNint_t op1,
+            const vNint_t op2,
+            const int16_t in_offset1,
+            const int16_t in_offset2,
+            const int16_t out_offset,
+            const int16_t scale_factor1,
+            const int16_t scale_factor2,
+            const int pre_op_shift1,
+            const int pre_op_shift2,
+            const int post_op_shift);
+
+    template <>
     MLI_FORCE_INLINE vNx2short_t eltwise_perform_operation<vNx2short_t, vNx2short_t, ELTWISE_SUB, false>(
             const vNx2short_t op1,
             const vNx2short_t op2,
@@ -273,6 +312,19 @@ out_T eltwise_perform_operation(
     MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, ELTWISE_SUB, true>(
             const vNx4char_t op1,
             const vNx4char_t op2,
+            const int16_t in_offset1,
+            const int16_t in_offset2,
+            const int16_t out_offset,
+            const int16_t scale_factor1,
+            const int16_t scale_factor2,
+            const int pre_op_shift1,
+            const int pre_op_shift2,
+            const int post_op_shift);
+
+    template <>
+    MLI_FORCE_INLINE vNint_t eltwise_perform_operation<vNint_t, vNint_t, ELTWISE_SUB, true>(
+            const vNint_t op1,
+            const vNint_t op2,
             const int16_t in_offset1,
             const int16_t in_offset2,
             const int16_t out_offset,
@@ -322,6 +374,19 @@ out_T eltwise_perform_operation(
             const int post_op_shift);
 
     template <>
+    MLI_FORCE_INLINE vNint_t eltwise_perform_operation<vNint_t, vNint_t, ELTWISE_MAX, true>(
+            const vNint_t op1,
+            const vNint_t op2,
+            const int16_t in_offset1,
+            const int16_t in_offset2,
+            const int16_t out_offset,
+            const int16_t scale_factor1,
+            const int16_t scale_factor2,
+            const int pre_op_shift1,
+            const int pre_op_shift2,
+            const int post_op_shift);
+
+    template <>
     MLI_FORCE_INLINE vNx2short_t eltwise_perform_operation<vNx2short_t, vNx2short_t, ELTWISE_MIN, false>(
             const vNx2short_t op1,
             const vNx2short_t op2,
@@ -351,6 +416,19 @@ out_T eltwise_perform_operation(
     MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, ELTWISE_MIN, true>(
             const vNx4char_t op1,
             const vNx4char_t op2,
+            const int16_t in_offset1,
+            const int16_t in_offset2,
+            const int16_t out_offset,
+            const int16_t scale_factor1,
+            const int16_t scale_factor2,
+            const int pre_op_shift1,
+            const int pre_op_shift2,
+            const int post_op_shift);
+
+    template <>
+    MLI_FORCE_INLINE vNint_t eltwise_perform_operation<vNint_t, vNint_t, ELTWISE_MAX, true>(
+            const vNint_t op1,
+            const vNint_t op2,
             const int16_t in_offset1,
             const int16_t in_offset2,
             const int16_t out_offset,

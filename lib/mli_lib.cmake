@@ -76,7 +76,7 @@ set(MLI_LIB_PUBLIC_INCLUDES
     $<BUILD_INTERFACE:${MLI_LIB_CMAKE_DIR}/../include>
     $<BUILD_INTERFACE:${MLI_LIB_CMAKE_DIR}/../include/internal>
     $<BUILD_INTERFACE:${MLI_LIB_CMAKE_DIR}/../include/api>
-    $<BUILD_INTERFACE:${MLI_LIB_CMAKE_DIR}/../lib/src/private>
+    $<BUILD_INTERFACE:${MLI_LIB_CMAKE_DIR}/src/private>
 )
 
 set(MLI_LIB_PRIVATE_INCLUDES

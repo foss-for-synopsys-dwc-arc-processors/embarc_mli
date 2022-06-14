@@ -10,14 +10,18 @@
 #include <cstring>
 #include <new>
 
-#include "mli_ref_runtime_api.hpp"
-
 #include "mli_debug.h"
+#include "mli_ref_runtime_api.hpp"
 
 namespace snps_arc::metaware::mli {
 using ref::MaxPool2D;
 using ref::FullyConnected;
 using ref::SumPool2D;
+using ref::Add;
+using ref::Sub;
+using ref::Mul;
+using ref::Max;
+using ref::Min;
 using ref::Move;
 using ref::Conv2d;
 using ref::DepthwiseConv2d;
@@ -58,6 +62,41 @@ ExecutionInterface* ExecutionInterface::Create(
             break;
         case kPreluId:
             MLI_ASSERT(0);
+            break;
+        case kAddId:
+            if(alloc_buf_size >= sizeof(Add)) {
+                obj = new (allocation_memory_buffer) Add(kernel_private_data_buffer, private_data_size, membases, num_mems);
+            } else {
+                MLI_PRINTF("\nASSERT: Insufficient space for [Add] runtime object\n");
+            }
+            break;
+        case kSubId:
+            if(alloc_buf_size >= sizeof(Sub)) {
+                obj = new (allocation_memory_buffer) Sub(kernel_private_data_buffer, private_data_size, membases, num_mems);
+            } else {
+                MLI_PRINTF("\nASSERT: Insufficient space for [Sub] runtime object\n");
+            }
+            break;
+        case kMulId:
+            if(alloc_buf_size >= sizeof(Mul)) {
+                obj = new (allocation_memory_buffer) Mul(kernel_private_data_buffer, private_data_size, membases, num_mems);
+            } else {
+                MLI_PRINTF("\nASSERT: Insufficient space for [Mul] runtime object\n");
+            }
+            break;
+        case kMaxId:
+            if(alloc_buf_size >= sizeof(Max)) {
+                obj = new (allocation_memory_buffer) Max(kernel_private_data_buffer, private_data_size, membases, num_mems);
+            } else {
+                MLI_PRINTF("\nASSERT: Insufficient space for [Max] runtime object\n");
+            }
+            break;
+        case kMinId:
+            if(alloc_buf_size >= sizeof(Min)) {
+                obj = new (allocation_memory_buffer) Min(kernel_private_data_buffer, private_data_size, membases, num_mems);
+            } else {
+                MLI_PRINTF("\nASSERT: Insufficient space for [Min] runtime object\n");
+            }
             break;
         case kMoveId:
             if(alloc_buf_size >= sizeof(Move)) {

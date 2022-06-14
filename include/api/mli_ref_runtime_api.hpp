@@ -229,13 +229,132 @@ class SumPool2D : public ExecutionInterface {
     mli_status Update() override;
 
   private:
-    //TODO: May be move them to the membasis as an example.
     mli_pool_cfg m_cfg;
     mli_tensor m_input;
     mli_tensor m_output;
     int32_t m_input_batch_offset;
     int32_t m_output_batch_offset;
     uint32_t m_batch_number;
+    uint32_t m_i_elem_size;
+    uint32_t m_o_elem_size;
+};
+
+/**
+ * @brief This class implements the Add kernel xop interpreter interface
+ *
+ *
+ */
+class Add : public ExecutionInterface {
+
+  public:
+    Add(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
+
+    mli_status Issue() override;
+
+    mli_status Prefetch() override;
+
+    mli_status Update() override;
+
+  private:
+    mli_tensor m_input_left;
+    mli_tensor m_input_right;
+    mli_tensor m_output;
+    uint32_t m_i_elem_size;
+    uint32_t m_o_elem_size;
+};
+
+/**
+ * @brief This class implements the Sub kernel xop interpreter interface
+ *
+ *
+ */
+class Sub : public ExecutionInterface {
+
+  public:
+    Sub(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
+
+    mli_status Issue() override;
+
+    mli_status Prefetch() override;
+
+    mli_status Update() override;
+
+  private:
+    mli_tensor m_input_left;
+    mli_tensor m_input_right;
+    mli_tensor m_output;
+    uint32_t m_i_elem_size;
+    uint32_t m_o_elem_size;
+};
+
+/**
+ * @brief This class implements the Mul kernel xop interpreter interface
+ *
+ *
+ */
+class Mul : public ExecutionInterface {
+
+  public:
+    Mul(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
+
+    mli_status Issue() override;
+
+    mli_status Prefetch() override;
+
+    mli_status Update() override;
+
+  private:
+    mli_tensor m_input_left;
+    mli_tensor m_input_right;
+    mli_tensor m_output;
+    uint32_t m_i_elem_size;
+    uint32_t m_o_elem_size;
+};
+
+/**
+ * @brief This class implements the Max kernel xop interpreter interface
+ *
+ *
+ */
+class Max : public ExecutionInterface {
+
+  public:
+    Max(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
+
+    mli_status Issue() override;
+
+    mli_status Prefetch() override;
+
+    mli_status Update() override;
+
+  private:
+    mli_tensor m_input_left;
+    mli_tensor m_input_right;
+    mli_tensor m_output;
+    uint32_t m_i_elem_size;
+    uint32_t m_o_elem_size;
+};
+
+/**
+ * @brief This class implements the Min kernel xop interpreter interface
+ *
+ *
+ */
+class Min : public ExecutionInterface {
+
+  public:
+    Min(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
+
+    mli_status Issue() override;
+
+    mli_status Prefetch() override;
+
+    mli_status Update() override;
+
+  private:
+    mli_tensor m_input_left;
+    mli_tensor m_input_right;
+    mli_tensor m_output;
     uint32_t m_i_elem_size;
     uint32_t m_o_elem_size;
 };

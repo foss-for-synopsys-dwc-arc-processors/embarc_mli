@@ -629,6 +629,59 @@ public:
                                            const OffsetBuffer &descr) = 0;
 };
 
+/**
+ * @brief This class implements the Eltwise Max Compiler Support kernel interface
+ *
+ */
+class Max_CS : public CompilerGenericInterface {
+public:
+    virtual ~Max_CS() = default;
+
+    /**
+     * @brief Methods to get buffer sizes
+     */
+
+    virtual unsigned GetInputLeftBufferSize() = 0;
+    virtual unsigned GetInputRightBufferSize() = 0;
+    virtual unsigned GetOutputBufferSize() = 0;
+    virtual unsigned GetDataBufferSize() = 0;
+
+    /**
+     * @brief Methods to set buffer offsets
+     *
+     */
+    virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left,
+                                           const Tensor<OffsetBuffer, 4> &input_right,
+                                           const Tensor<OffsetBuffer, 4> &output,
+                                           const OffsetBuffer &descr) = 0;
+};
+
+/**
+ * @brief This class implements the Eltwise Min Compiler Support kernel interface
+ *
+ */
+class Min_CS : public CompilerGenericInterface {
+public:
+    virtual ~Min_CS() = default;
+
+    /**
+     * @brief Methods to get buffer sizes
+     */
+
+    virtual unsigned GetInputLeftBufferSize() = 0;
+    virtual unsigned GetInputRightBufferSize() = 0;
+    virtual unsigned GetOutputBufferSize() = 0;
+    virtual unsigned GetDataBufferSize() = 0;
+
+    /**
+     * @brief Methods to set buffer offsets
+     *
+     */
+    virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left,
+                                           const Tensor<OffsetBuffer, 4> &input_right,
+                                           const Tensor<OffsetBuffer, 4> &output,
+                                           const OffsetBuffer &descr) = 0;
+};
 
 /**
  * @brief This class implements the Table BuiltIn Compiler Support kernel interface

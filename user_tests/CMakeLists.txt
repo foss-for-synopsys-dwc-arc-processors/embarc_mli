@@ -15,7 +15,7 @@ include(../cmake/settings.cmake)
 #======================================================
 #   TEST_COMPILE_OPTIONS - test specific compilation options
 #
-# TODO: Extra options regarding assertions inside tests 
+# TODO: Extra options regarding assertions inside tests
 # need to be taken into account during reconfiguration
 
 # Note: The ROUND_MODE and DSP_CONTROL_OPTION should be shared on upper level (settings.cmake)
@@ -243,3 +243,4 @@ add_user_test(krn l2_normalize)
 # Eltwise Group
 #======================================================
 add_user_test(krn eltwise)
+add_user_test(krn eltwise_30)

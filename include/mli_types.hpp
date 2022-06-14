@@ -25,6 +25,10 @@ typedef enum {
   kFullyConnectedId,
   kSumPool2DId,
   kAddId,
+  kSubId,
+  kMulId,
+  kMaxId,
+  kMinId,
   kSomeOtherKernelId
 } kernel_id_t;
 
@@ -523,7 +527,6 @@ enum struct LutType: int32_t {
   kReciproc
 };
 
-
 struct TableBuiltinConfig {
   TableBuiltinConfig() = default;
   TableBuiltinConfig(LutType lut_type, bool innermost_dim_bias)
@@ -546,9 +549,6 @@ struct RescaleConfig {
                                     if false implies per-tensor rescaling.
                                     Otherwise implies separate bias value per slice across innermost dimension */
 };
-
-
-
 
 struct ReduceOpConfig {
   ReduceOpConfig() = default;

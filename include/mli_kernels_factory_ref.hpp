@@ -66,6 +66,51 @@ public:
       return new (kernel_buffer) lib_ref::Move_CS(m_pd, src, dst, src_cfg, dst_cfg);
     }
 
+    uint32_t Add_CS_GetSize() const override { return sizeof(lib_ref::Add_CS); }
+
+    lib_mli::Add_CS* Add_CS(void *kernel_buffer,
+                            const Tensor<NoBuffer, 4> in_left,
+                            const Tensor<NoBuffer, 4> in_right,
+                            const Tensor<NoBuffer, 4> output_tile_shape) override {
+        return new(kernel_buffer) lib_ref::Add_CS(m_pd, in_left, in_right, output_tile_shape);
+    }
+
+    uint32_t Sub_CS_GetSize() const override { return sizeof(lib_ref::Sub_CS); }
+
+    lib_mli::Sub_CS* Sub_CS(void *kernel_buffer,
+                            const Tensor<NoBuffer, 4> in_left,
+                            const Tensor<NoBuffer, 4> in_right,
+                            const Tensor<NoBuffer, 4> output_tile_shape) override {
+        return new(kernel_buffer) lib_ref::Sub_CS(m_pd, in_left, in_right, output_tile_shape);
+    }
+
+    uint32_t Mul_CS_GetSize() const override { return sizeof(lib_ref::Mul_CS); }
+
+    lib_mli::Mul_CS* Mul_CS(void *kernel_buffer,
+                            const Tensor<NoBuffer, 4> in_left,
+                            const Tensor<NoBuffer, 4> in_right,
+                            const Tensor<NoBuffer, 4> output_tile_shape) override {
+        return new(kernel_buffer) lib_ref::Mul_CS(m_pd, in_left, in_right, output_tile_shape);
+    }
+
+    uint32_t Max_CS_GetSize() const override { return sizeof(lib_ref::Max_CS); }
+
+    lib_mli::Max_CS* Max_CS(void *kernel_buffer,
+                            const Tensor<NoBuffer, 4> in_left,
+                            const Tensor<NoBuffer, 4> in_right,
+                            const Tensor<NoBuffer, 4> output_tile_shape) override {
+        return new(kernel_buffer) lib_ref::Max_CS(m_pd, in_left, in_right, output_tile_shape);
+    }
+
+    uint32_t Min_CS_GetSize() const override { return sizeof(lib_ref::Min_CS); }
+
+    lib_mli::Min_CS* Min_CS(void *kernel_buffer,
+                            const Tensor<NoBuffer, 4> in_left,
+                            const Tensor<NoBuffer, 4> in_right,
+                            const Tensor<NoBuffer, 4> output_tile_shape) override {
+        return new(kernel_buffer) lib_ref::Min_CS(m_pd, in_left, in_right, output_tile_shape);
+    }
+
     uint32_t MaxPool2D_CS_GetSize() const override { return sizeof(lib_ref::MaxPool2D_CS); }
 
     lib_mli::MaxPool2D_CS* MaxPool2D_CS(void *kernel_buffer,

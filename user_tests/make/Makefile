@@ -57,6 +57,7 @@ KERNELS = \
 	maxpool_30 \
 	fully_connected_30 \
 	sumpool_30 \
+	eltwise_30 \
 	conv2d_30 \
 	depthwise_conv_30
 
