@@ -52,7 +52,8 @@ public:
 
     lib_mli::Move_CS* Move_CS(void *kernel_buffer,
                               const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> src,
-                              const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> dst)
+                              const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> dst,
+                              const lib_mli::Move_CS::DataDirection data_dir)
                               override {
         return new(kernel_buffer) lib_ref::Move_CS(m_pd, src, dst);
     }
@@ -61,7 +62,8 @@ public:
                               const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> src,
                               const IteratorCfg<lib_mli::Move_CS::kMaxRank> src_cfg,
                               const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> dst,
-                              const IteratorCfg<lib_mli::Move_CS::kMaxRank> dst_cfg)
+                              const IteratorCfg<lib_mli::Move_CS::kMaxRank> dst_cfg,
+                              const lib_mli::Move_CS::DataDirection data_dir)
                               override {
       return new (kernel_buffer) lib_ref::Move_CS(m_pd, src, dst, src_cfg, dst_cfg);
     }

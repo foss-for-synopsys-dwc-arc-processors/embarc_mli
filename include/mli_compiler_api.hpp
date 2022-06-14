@@ -75,7 +75,19 @@ class CompilerGenericInterface {
      */
     virtual unsigned GetRuntimeObjectSize() const = 0;
 
+
+    virtual int32_t GetEventPrefetchMask() const { return 0; }
+
+    virtual int32_t GetEventIssueMask() const { return 0; }
+
+    virtual mli_status SetEventPrefetch(bool enable) { return MLI_STATUS_OK; }
+
+    virtual mli_status SetEventIssue(bool enable) { return MLI_STATUS_OK; }
+
 // TODO add virtual destructor
+protected:
+    bool m_issue_enable{false};
+    bool m_prefetch_enable{false};
 };
 
 /**
@@ -783,6 +795,13 @@ public:
 class Move_CS : public CompilerGenericInterface {
 public:
     static constexpr unsigned kMaxRank = 4;
+
+    enum DataDirection
+    {
+        kDataDirectionInput,
+	kDataDirectionOutput
+    };
+
     /**
      * @brief Methods to get buffer sizes
      * TODO: add description using conv2d_cs as a starting point

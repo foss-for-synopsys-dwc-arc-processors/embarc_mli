@@ -50,6 +50,8 @@ class PrivateData {
     }
     kernel_id_t kernel_id;
     uint32_t size;
+    bool issue_enable{false};
+    bool prefetch_enable{false};
 };
 
 /**

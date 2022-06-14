@@ -147,6 +147,7 @@ void prepare_phase(int i, memory_manager& mem_in_keeper,
 
     const lib_mli::Tensor<lib_mli::NoBuffer, kMaxRank> src_shape(input_shape, input_stride);
     const lib_mli::Tensor<lib_mli::NoBuffer, kMaxRank> dst_shape(output_shape, output_stride);
+    lib_mli::Move_CS::DataDirection data_dir = lib_mli::Move_CS::DataDirection::kDataDirectionInput;
 
     lib_mli::IteratorCfg<4> src_it_cfg(temp_move_conf.sub_sample_step, input_shape);
     int32_t increments[4] = { 1, 1, 1, 1};
@@ -156,7 +157,7 @@ void prepare_phase(int i, memory_manager& mem_in_keeper,
     lib_ref::KernelsFactory kernel_factory(pd);
     uint32_t move_cs_size = kernel_factory.Move_CS_GetSize();
     void* move_cs_buffer = malloc(move_cs_size);
-    auto move_op = kernel_factory.Move_CS(move_cs_buffer, src_shape, src_it_cfg, dst_shape, dst_it_cfg);
+    auto move_op = kernel_factory.Move_CS(move_cs_buffer, src_shape, src_it_cfg, dst_shape, dst_it_cfg, data_dir);
 
     // STEP 2: Memory management (Up to user on how to deal with it)
     //==================================================================
