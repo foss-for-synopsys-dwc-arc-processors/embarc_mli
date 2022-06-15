@@ -147,7 +147,7 @@ void prepare_phase(int i, memory_manager& mem_in_keeper,
 
     const lib_mli::Tensor<lib_mli::NoBuffer, kMaxRank> src_shape(input_shape, input_stride);
     const lib_mli::Tensor<lib_mli::NoBuffer, kMaxRank> dst_shape(output_shape, output_stride);
-    lib_mli::Move_CS::DataDirection data_dir = lib_mli::Move_CS::DataDirection::kDataDirectionInput;
+    lib_mli::MoveDataDirection data_dir = lib_mli::MoveDataDirection::kMoveDataDirectionInput;
 
     lib_mli::IteratorCfg<4> src_it_cfg(temp_move_conf.sub_sample_step, input_shape);
     int32_t increments[4] = { 1, 1, 1, 1};

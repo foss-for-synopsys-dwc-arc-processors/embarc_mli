@@ -54,6 +54,11 @@ class PrivateData {
     bool prefetch_enable{false};
 };
 
+enum MoveDataDirection {
+  kMoveDataDirectionInput,
+  kMoveDataDirectionOutput
+};
+
 /**
  * @brief Dummy Class to be used to indicate no Buffer is used in tensor.
  *

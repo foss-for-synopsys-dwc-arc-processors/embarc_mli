@@ -796,12 +796,6 @@ class Move_CS : public CompilerGenericInterface {
 public:
     static constexpr unsigned kMaxRank = 4;
 
-    enum DataDirection
-    {
-        kDataDirectionInput,
-	kDataDirectionOutput
-    };
-
     /**
      * @brief Methods to get buffer sizes
      * TODO: add description using conv2d_cs as a starting point
