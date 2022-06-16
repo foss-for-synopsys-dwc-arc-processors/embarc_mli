@@ -23,7 +23,7 @@
 namespace snps_arc::metaware::mli {
 namespace krn {
 
-using snps_arc::metaware::mli::krn::ref::rescale_prepare_and_run;
+using snps_arc::metaware::mli::krn::ref::mli_krn_rescale;
 
 } // namespace krn
 } // namespace snps_arc::metaware::mli

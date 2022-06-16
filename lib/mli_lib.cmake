@@ -32,6 +32,7 @@ file(GLOB temp
     ${MLI_LIB_CMAKE_DIR}/src/private/src/mli_prv_activation_lut.cc
     ${MLI_LIB_CMAKE_DIR}/src/move/*.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/diverse/*.cc
+    ${MLI_LIB_CMAKE_DIR}/src/kernels/pooling/*hwc*.cc
 )
 if (NOT DEFINED MLI_INCLUDE_RUNTIME)
     set(MLI_INCLUDE_RUNTIME ON)
@@ -69,7 +70,8 @@ set(MLI_LIB_SOURCE_FILES
     ${MLI_LIB_CMAKE_DIR}/src/kernels/diverse/mli_krn_permute_fx.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/common/mli_krn_lstm_cell.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/common/mli_krn_gru_cell.cc
-    ${MLI_LIB_CMAKE_DIR}/src/kernels/conversion/mli_krn_rescale.cc
+    ${MLI_LIB_CMAKE_DIR}/src/kernels/conversion/mli_krn_rescale_compiler.cc
+    ${MLI_LIB_CMAKE_DIR}/src/kernels/conversion/mli_krn_rescale_runtime.cc
 )
 
 set(MLI_LIB_PUBLIC_INCLUDES
@@ -87,6 +89,7 @@ set(MLI_LIB_PRIVATE_INCLUDES
     ${MLI_LIB_CMAKE_DIR}/src/kernels/convolution
     ${MLI_LIB_CMAKE_DIR}/src/kernels/eltwise
     ${MLI_LIB_CMAKE_DIR}/src/kernels/pooling
+    ${MLI_LIB_CMAKE_DIR}/src/kernels/conversion
     ${MLI_LIB_CMAKE_DIR}/src/kernels/diverse
     ${MLI_LIB_CMAKE_DIR}/src/kernels/transform
     ${MLI_LIB_CMAKE_DIR}/src/kernels/diverse

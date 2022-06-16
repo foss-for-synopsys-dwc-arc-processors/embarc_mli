@@ -29,6 +29,7 @@ typedef enum {
   kMulId,
   kMaxId,
   kMinId,
+  kRescaleId,
   kSomeOtherKernelId
 } kernel_id_t;
 
@@ -219,8 +220,13 @@ public:
   uint32_t get_size() {
     return size_;
   }
+
   uint32_t get_elem_size() const {
     return elem_size_;
+  }
+
+  void set_elem_size(uint32_t elem_size) {
+    elem_size_ = elem_size;
   }
 
   template <typename T>
@@ -445,7 +451,7 @@ class Tensor {
 
   template <typename T>
   void write(uint32_t offset, T data) {
-    buf_.write(offset, data);
+    buf_.template write<T>(offset, data);
   }
 
 private:
@@ -548,22 +554,21 @@ struct TableBuiltinConfig {
 
 struct RescaleConfig {
   RescaleConfig() = default;
-  RescaleConfig(bool innermost_dim_rescale)
-    : innermost_dim_rescale{innermost_dim_rescale}
-  {}
+  RescaleConfig(int32_t axis) : axis{axis} {};
 
-  bool innermost_dim_rescale; /**<  Is rescaling params (scale, shift in bias,, out bias) provided per innermost dimension.
-                                    if false implies per-tensor rescaling.
-                                    Otherwise implies separate bias value per slice across innermost dimension */
+  int32_t axis; /**< An axis along which the function will be computed.
+                     Axis corresponds to index of tensor`s dimension starting from 0.
+                     For instance, having future map in HWC layout, axis == 0 corresponds to H dimension.
+                     If axis < 0 the function will be applied to the whole tensor */
 };
 
 struct ReduceOpConfig {
   ReduceOpConfig() = default;
   ReduceOpConfig(int32_t axis) : axis{axis} {};
 
-  int32_t axis;   /**< Axis to reduce, in range from 0 to rank(shape1) - 1
-                       Axis corresponds to index of tensor`s dimension starting from 0 to (rank - 1).
-                       For instance, having feature map in HWC layout, axis == 0 corresponds to H dimension.
+  int32_t axis;   /**< An axis along which the function will be computed.
+                       Axis corresponds to index of tensor`s dimension starting from 0.
+                       For instance, having future map in HWC layout, axis == 0 corresponds to H dimension.
                        If axis < 0 the function will be applied to the whole tensor */
 };
 

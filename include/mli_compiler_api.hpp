@@ -321,6 +321,7 @@ public:
      */
     virtual mli_status EncodeWtsZeroPts(Tensor<Buffer, 1> &wtszeropts,
                                         Buffer &encoded_wtszeropts) { return MLI_STATUS_OK; }
+
     /**
      * @brief Method to query the size of the encoded weights zero-points buffer
      *
@@ -495,26 +496,26 @@ public:
      * @brief Method to query the size of the encoded weights buffer
      *
      */
-    virtual unsigned GetEncodedParamsSize() = 0;
+    virtual unsigned GetEncodedParamsSize() const = 0;
 
     /**
      * @brief Methods to get buffer sizes
      *
      */
 
-    virtual unsigned GetInputBufferSize() = 0;
-    virtual unsigned GetOutputBufferSize() = 0;
-    virtual unsigned GetParamsBufferSize() = 0;
-    virtual unsigned GetDataBufferSize() = 0;
+    virtual unsigned GetInputBufferSize() const = 0;
+    virtual unsigned GetOutputBufferSize() const = 0;
+    virtual unsigned GetParamsBufferSize() const = 0;
+    virtual unsigned GetDataBufferSize() const = 0;
 
     /**
      * @brief Methods to set buffer offsets
      *
      */
-    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
-                                           const OffsetBuffer &output,
-                                           const OffsetBuffer &params,
-                                           const OffsetBuffer &data) = 0;
+    virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
+                                           const Tensor<OffsetBuffer, 4> &output,
+                                           const OffsetBuffer &encoded_params,
+                                           const OffsetBuffer &metadata) = 0;
 };
 
 /**

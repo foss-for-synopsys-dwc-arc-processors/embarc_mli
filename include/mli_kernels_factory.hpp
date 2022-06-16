@@ -98,10 +98,6 @@ public:
                                                           const Tensor<NoBuffer, 2> weights,
                                                           const Tensor<NoBuffer, 2> output_tile_shape) { return nullptr; }
 
-    virtual lib_mli::Rescale_CS* Rescale_CS(void *kernel_buffer,
-                                            const Tensor<NoBuffer, 4> input,
-                                            const Tensor<NoBuffer, 4> output) { return nullptr; }
-
     virtual lib_mli::Clip_CS* Clip_CS(void *kernel_buffer,
                                       const Tensor<NoBuffer, 4> input,
                                       const Tensor<NoBuffer, 4> output) { return nullptr; }
@@ -130,6 +126,11 @@ public:
                                     const Tensor<NoBuffer, 4> input_left,
                                     const Tensor<NoBuffer, 4> input_right,
                                     const Tensor<NoBuffer, 4> output) { return nullptr; }
+
+    virtual lib_mli::Rescale_CS* Rescale_CS(void *kernel_buffer,
+                                            const Tensor<NoBuffer, 4> input_shape,
+                                            const RescaleConfig &cfg,
+                                            const Tensor<NoBuffer, 4> output_tile_shape) { return nullptr; }
 };
 
 } // namespace snps_arc::metaware::mli

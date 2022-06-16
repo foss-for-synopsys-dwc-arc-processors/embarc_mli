@@ -152,6 +152,15 @@ public:
         return new(kernel_buffer) lib_ref::FullyConnected_CS(m_pd, in, weights, output_tile_shape);
     }
 
+    uint32_t Rescale_CS_GetSize() const override { return sizeof(lib_ref::Rescale_CS); }
+
+    lib_mli::Rescale_CS* Rescale_CS(void *kernel_buffer,
+                                    const Tensor<NoBuffer, 4> input_shape,
+                                    const RescaleConfig &cfg,
+                                    const Tensor<NoBuffer, 4> output_tile_shape) override {
+        return new(kernel_buffer) lib_ref::Rescale_CS(m_pd, input_shape, cfg, output_tile_shape);
+    }
+
 private:
     lib_mli::PlatformDescription m_pd;
 

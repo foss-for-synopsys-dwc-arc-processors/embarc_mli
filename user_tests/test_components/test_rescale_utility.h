@@ -60,6 +60,10 @@ private:
     mli_tensor bias_tsr;
 };
 
+void vectorize_single_elem_tensor(mli_tensor& dst_tsr,
+                                  const mli_tensor& src_tsr,
+                                  void* data);
+
 } // namespace tst
 } // namespace mli
 

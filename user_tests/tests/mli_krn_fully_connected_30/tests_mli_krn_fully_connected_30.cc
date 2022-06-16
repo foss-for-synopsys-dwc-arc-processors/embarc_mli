@@ -38,30 +38,13 @@ using mli::tst::reporter_full;
 using mli::tst::memory_manager;
 using mli::tst::scales_calc;
 using mli::tst::bias_folder;
+using mli::tst::vectorize_single_elem_tensor;
 
 namespace lib_mli = ::snps_arc::metaware::mli;
 namespace lib_ref = ::snps_arc::metaware::mli::ref;
 
-typedef mli_status(*fully_connected_func_ptr)(
-    const mli_tensor* /*input*/,
-    const mli_tensor* /*weights*/,
-    const mli_tensor* /*bias*/,
-    const mli_fully_connected_cfg* /*cfg*/,
-    mli_tensor* /*output*/);
-
-
-typedef mli_status(*rescale_func_ptr)(
-  const mli_tensor* /*input*/,
-  const mli_tensor* /*bias_in*/,
-  const mli_tensor* /*scale*/,
-  const mli_tensor* /*shift*/,
-  const mli_tensor* /*bias_out*/,
-  mli_tensor* /*output*/);
-
 struct fully_connected_test_operands {
   const char* descr;
-  const fully_connected_func_ptr mli_krn_fully_connected;
-  const rescale_func_ptr mli_krn_rescale;
   tensor_quantizer in;
   tensor_quantizer weights;
   tensor_quantizer bias_in;
@@ -119,36 +102,31 @@ const quality_metrics thresholds_sa8_general{ quality_metrics::kPassValueMaxAbsE
 static const fully_connected_test_operands tests_list[] = {
 
     // Basic functionality test: with ReLU
-    {"Test 1 SA8_SA8_SA32",   mli_krn_fully_connected_sa8_sa8_sa32, mli_krn_rescale_i32_o8,
-                              input_1_sa8, weights_1_sa8_per_axis, bias_1_sa32_per_axis,
+    {"Test 1 SA8_SA8_SA32",   input_1_sa8, weights_1_sa8_per_axis, bias_1_sa32_per_axis,
                               test_1_bias_out_sa8, test_1_out_acc_sa32, test_1_out_sa8,
                               input_1_scale, test_1_out_scale, weights_1_scales_1,
                               sizeof(weights_1_scales_1) / sizeof(weights_1_scales_1[0]),
                               test_1_cfg, thresholds_sa8_general, test_1_chksum_sa8},
     // Basic functionality test: with Gen_ReLU
-    {"Test 2 SA8_SA8_SA32 ReluGen", mli_krn_fully_connected_sa8_sa8_sa32, mli_krn_rescale_i32_o8,
-                                    input_1_sa8, weights_1_sa8, bias_1_sa32,
+    {"Test 2 SA8_SA8_SA32 ReluGen", input_1_sa8, weights_1_sa8, bias_1_sa32,
                                     test_2_bias_out_sa8, test_2_out_acc_sa32,
                                     test_2_out_sa8,
                                     input_1_scale, test_2_out_scale, &weights_1_scale, 1,
                                     test_2_cfg, thresholds_sa8_general, test_2_chksum_sa8},
-    {"Test 2 SA8_SA8_SA32 Spec",    mli_krn_fully_connected_sa8_sa8_sa32_ext_bias, mli_krn_rescale_i32_o8,
-                                    input_1_sa8, weights_1_sa8, bias_1_sa32_spec,
+    {"Test 2 SA8_SA8_SA32 Spec",    input_1_sa8, weights_1_sa8, bias_1_sa32_spec,
                                     test_2_bias_out_sa8, test_2_out_acc_sa32,
                                     test_2_out_sa8,
                                     input_1_scale, test_2_out_scale, &weights_1_scale, 1,
                                     test_2_cfg, thresholds_sa8_general, test_2_chksum_sa8_spec, true},
 
     // Weights memstride test: with ReLU_1
-    {"Test 3 SA8_SA8_SA32 Relu1 Mstr", mli_krn_fully_connected_sa8_sa8_sa32, mli_krn_rescale_i32_o8,
-                                       input_1_sa8, weights_2_memstr_sa8_per_axis, bias_2_i1_w2_sa32_per_axis,
+    {"Test 3 SA8_SA8_SA32 Relu1 Mstr", input_1_sa8, weights_2_memstr_sa8_per_axis, bias_2_i1_w2_sa32_per_axis,
                                        test_3_bias_out_sa8, test_3_out_acc_sa32,
                                        test_3_out_sa8,
                                        input_1_scale, test_3_out_scale,
                                        weights_2_scales_2, sizeof(weights_2_scales_2) / sizeof(weights_2_scales_2[0]),
                                        test_3_cfg, thresholds_sa8_general, test_3_chksum_sa8},
-    {"Test 3 SA8_SA8_SA32 Spec",       mli_krn_fully_connected_sa8_sa8_sa32_ext_bias, mli_krn_rescale_i32_o8,
-                                       input_1_sa8, weights_2_memstr_sa8_per_axis, bias_2_i1_w2_sa32_per_axis_spec,
+    {"Test 3 SA8_SA8_SA32 Spec",       input_1_sa8, weights_2_memstr_sa8_per_axis, bias_2_i1_w2_sa32_per_axis_spec,
                                        test_3_bias_out_sa8, test_3_out_acc_sa32,
                                        test_3_out_sa8,
                                        input_1_scale, test_3_out_scale,
@@ -156,15 +134,13 @@ static const fully_connected_test_operands tests_list[] = {
                                        test_3_cfg, thresholds_sa8_general, test_3_chksum_sa8_spec, true},
 
     // Multidimensional input test: with ReLU_6
-    {"Test 4 SA8_SA8_SA32 Relu6", mli_krn_fully_connected_sa8_sa8_sa32, mli_krn_rescale_i32_o8,
-                                  input_2_sa8, weights_3_sa8_per_axis, bias_3_i2_w3_sa32_per_axis,
+    {"Test 4 SA8_SA8_SA32 Relu6", input_2_sa8, weights_3_sa8_per_axis, bias_3_i2_w3_sa32_per_axis,
                                   test_4_bias_out_sa8, test_4_out_acc_sa32,
                                   test_4_out_sa8,
                                   input_2_scale, test_4_out_scale,
                                   weights_3_scales, sizeof(weights_3_scales) / sizeof(weights_3_scales[0]),
                                   test_4_cfg, thresholds_sa8_general, test_4_chksum_sa8},
-    {"Test 4 SA8_SA8_SA32 Spec",  mli_krn_fully_connected_sa8_sa8_sa32_ext_bias, mli_krn_rescale_i32_o8,
-                                  input_2_sa8, weights_3_sa8_per_axis, bias_3_i2_w3_sa32_per_axis_spec,
+    {"Test 4 SA8_SA8_SA32 Spec",  input_2_sa8, weights_3_sa8_per_axis, bias_3_i2_w3_sa32_per_axis_spec,
                                   test_4_bias_out_sa8, test_4_out_acc_sa32,
                                   test_4_out_sa8,
                                   input_2_scale, test_4_out_scale,
@@ -172,15 +148,13 @@ static const fully_connected_test_operands tests_list[] = {
                                   test_4_cfg, thresholds_sa8_general, test_4_chksum_sa8_spec, true},
 
     // Test with huge values in operands to check negative fractional and big scales
-    {"Test 5 SA8_SA8_SA32 Huge Vals", mli_krn_fully_connected_sa8_sa8_sa32, mli_krn_rescale_i32_o8,
-                                      input_3_sa8, weights_4_sa8, bias_4_i3_w4_sa32,
+    {"Test 5 SA8_SA8_SA32 Huge Vals", input_3_sa8, weights_4_sa8, bias_4_i3_w4_sa32,
                                       test_5_bias_out_sa8, test_5_out_acc_sa32,
                                       test_5_out_sa8,
                                       input_3_scale, test_5_out_scale,
                                       weights_4_scales, sizeof(weights_4_scales) / sizeof(weights_4_scales[0]),
                                       test_5_cfg, thresholds_sa8_general, test_5_chksum_sa8},
-    {"Test 5 SA8_SA8_SA32 Spec", mli_krn_fully_connected_sa8_sa8_sa32_ext_bias, mli_krn_rescale_i32_o8,
-                                 input_3_sa8, weights_4_sa8, bias_4_i3_w4_sa32_spec,
+    {"Test 5 SA8_SA8_SA32 Spec", input_3_sa8, weights_4_sa8, bias_4_i3_w4_sa32_spec,
                                  test_5_bias_out_sa8, test_5_out_acc_sa32,
                                  test_5_out_sa8,
                                  input_3_scale, test_5_out_scale,
@@ -199,7 +173,8 @@ static int8_t g_scratch_mem_out[kMemSize] = { 0 };
 static int8_t g_scratch_mem_bias_out[kMemSize] = { 0 };
 static int8_t g_scratch_mem_w[kMemSize] = { 0 };
 static int8_t g_scratch_mem_b[kMemSize] = { 0 };
-static IO_DATA_ATTR int8_t g_mem_pool[kMemSize] = {0};
+constexpr uint32_t kMemPoolSize = 4096;
+static IO_DATA_ATTR int8_t g_mem_pool[kMemPoolSize] = {0};
 
 struct FullyConnectedOp {
   // Fully Connected Kernel
@@ -231,7 +206,7 @@ struct FullyConnectedOp {
   uint32_t fully_connected_instance_size{0};
 
   // fully conncted private data
-  lib_mli::PrivateData* fully_connected_conf_private{nullptr};
+  void* fully_connected_conf_private{nullptr};
   uint32_t fully_connected_conf_private_size{0};
 };
 
@@ -285,6 +260,12 @@ struct RescaleOp {
   // additional params for MLI3 Symantic
   bias_folder mli3_bias;
   scales_calc mli3_scales_keeper;
+
+  // additional params for MLI3 runtime
+  void* rescale_instance;
+  uint32_t rescale_instance_size;
+  void* rescale_conf_private;
+  uint32_t rescale_conf_private_size;
 };
 
 void relu(mli_tensor *out, const mli_relu_cfg *cfg) {
@@ -397,30 +378,31 @@ bool preprocess_phase(const reporter_full& reporter,
 }
 
 void prepare_phase(const fully_connected_test_operands* cur_test,
-                   uint32_t& out_mem_offset, FullyConnectedOp& op) {
+                   FullyConnectedOp& fc_op, RescaleOp &rs_op,
+                   uint32_t& fc_out_mem_offset, uint32_t& rs_out_mem_offset) {
   // STEP 1.1: Construct Fully Connected as a specific ExecutionInterface successor
   //==================================================================
 
   // NCin vs. Cin'
   uint32_t in_shape = 1;
-  for (size_t i = 0; i < op.input.rank; ++i) {
-    in_shape *= op.input.shape[i];
+  for (size_t i = 0; i < fc_op.input.rank; ++i) {
+    in_shape *= fc_op.input.shape[i];
   }
   uint32_t input_shape[2] = {1, in_shape};
-  int32_t input_stride[2] = {int32_t(op.input.shape[0]) * op.input.mem_stride[0],
-                             op.input.mem_stride[0]};
+  int32_t input_stride[2] = {int32_t(fc_op.input.shape[0]) * fc_op.input.mem_stride[0],
+                             fc_op.input.mem_stride[0]};
 
   // CinCo vs. CinCo
-  assert(op.weights.rank == 2);
-  uint32_t weight_shape[2] = {op.weights.shape[0], op.weights.shape[1]};
-  int32_t weight_stride[2] = {op.weights.mem_stride[0], op.weights.mem_stride[1]};
+  assert(fc_op.weights.rank == 2);
+  uint32_t weight_shape[2] = {fc_op.weights.shape[0], fc_op.weights.shape[1]};
+  int32_t weight_stride[2] = {fc_op.weights.mem_stride[0], fc_op.weights.mem_stride[1]};
 
   // NCo vs. Co
-  assert(op.out_acc.rank == 1);
-  uint32_t output_shape[2] = {1, op.out_acc.shape[0]};
+  assert(fc_op.out_acc.rank == 1);
+  uint32_t output_shape[2] = {1, fc_op.out_acc.shape[0]};
 
-  int32_t output_stride[2] = {int32_t(op.out_acc.shape[0]) * op.out_acc.mem_stride[0],
-                              op.out_acc.mem_stride[0]};
+  int32_t output_stride[2] = {int32_t(fc_op.out_acc.shape[0]) * fc_op.out_acc.mem_stride[0],
+                              fc_op.out_acc.mem_stride[0]};
 
   assert(input_shape[0] == output_shape[0]);
   assert(input_shape[1] == weight_shape[0]);
@@ -435,10 +417,46 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
   uint32_t fully_connected_cs_size = kernel_factory.FullyConnected_CS_GetSize();
   void* fully_connected_cs_buffer = malloc(fully_connected_cs_size);
 
-  auto fc_op = kernel_factory.FullyConnected_CS(
+  auto FullyConn = kernel_factory.FullyConnected_CS(
     fully_connected_cs_buffer, in_tensor, wt_tensor, out_tensor);
 
-  // STEP 1.2: Memory management (Up to user on how to deal with it)
+  // STEP 1.1: Construct [Rescale] as a specific ExecutionInterface successor
+  //==================================================================
+
+  mli_tensor &rs_input_tsr = fc_op.out_acc;
+  const mli_tensor &rs_inbias_tsr = rs_op.mli3_bias.get_bias_tsr();
+  const mli_tensor &rs_scale_tsr = rs_op.mli3_scales_keeper.get_scales_tsr();
+  const mli_tensor &rs_shift_tsr = rs_op.mli3_scales_keeper.get_shift_tsr();
+  mli_tensor &rs_outbias_tsr = rs_op.bias_out;
+  mli_tensor &rs_output_tsr = rs_op.out;
+
+  void* &rescale_instance = rs_op.rescale_instance;
+  uint32_t &rescale_instance_size = rs_op.rescale_instance_size;
+  void* &rescale_conf_private = rs_op.rescale_conf_private;
+  uint32_t &rescale_conf_private_size = rs_op.rescale_conf_private_size;
+
+  uint32_t io_rank = rs_input_tsr.rank;
+  uint32_t innermost_axis = io_rank - 1;
+
+  const lib_mli::Tensor<lib_mli::NoBuffer, 4> input_tensor(rs_input_tsr.shape,
+          rs_input_tsr.mem_stride, io_rank);
+  const lib_mli::Tensor<lib_mli::NoBuffer, 4> output_tensor(
+                      rs_output_tsr.shape, rs_output_tsr.mem_stride, io_rank);
+
+  uint32_t rescale_cs_size = kernel_factory.Rescale_CS_GetSize();
+  void* rescale_cs_buffer = malloc(rescale_cs_size);
+
+  lib_mli::RescaleConfig rs_cfg;
+  if (mli_hlp_count_elem_num(&rs_scale_tsr, 0) == 1) {
+      rs_cfg.axis = -1;
+  } else {
+      rs_cfg.axis = innermost_axis;
+  }
+
+  auto rescale_op = kernel_factory.Rescale_CS(rescale_cs_buffer, input_tensor,
+                                                           rs_cfg, output_tensor);
+
+  // STEP 1.2: [FullyConn] Memory management (Up to user on how to deal with it)
   //==================================================================
   uint32_t in_mem_offset = 0;
   uint32_t w_mem_offset = 0;
@@ -448,97 +466,287 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
 
   // Define buffers for in\out tensors
   // Leave space for runtime object
-  uint32_t* offset = &offsets[0];
-  uint32_t runtime_obj_size = fc_op->GetRuntimeObjectSize();
-  *offset += runtime_obj_size;
+  uint32_t* fc_offset = &offsets[0];
+  uint32_t runtime_obj_size = FullyConn->GetRuntimeObjectSize();
+  *fc_offset += runtime_obj_size;
 
   // Leave space for private data buffer
-  offset = &offsets[0];
-  uint32_t private_buffer_size = fc_op->GetKernelPrivateDataSize();
-  *offset += private_buffer_size;
+  fc_offset = &offsets[0];
+  uint32_t private_buffer_size = FullyConn->GetKernelPrivateDataSize();
+  *fc_offset += private_buffer_size;
 
   // fully connected input
-  offset = &offsets[0];
-  uint32_t in_size = fc_op->GetInputBufferSize() * sizeof(int8_t);
-  lib_mli::OffsetBuffer fully_connected_in_buf{*offset, 0, in_size, sizeof(int8_t)};
+  fc_offset = &offsets[0];
+  uint32_t in_size = FullyConn->GetInputBufferSize() * sizeof(int8_t);
+  lib_mli::OffsetBuffer fully_connected_in_buf{*fc_offset, 0, in_size, sizeof(int8_t)};
   lib_mli::Tensor<lib_mli::OffsetBuffer, 2> fully_connected_in_tensor(fully_connected_in_buf, input_shape);
-  in_mem_offset = *offset;
-  *offset += in_size;
+  in_mem_offset = *fc_offset;
+  *fc_offset += in_size;
 
   // fully connected weight
-  offset = &offsets[0];
-  uint32_t w_size = fc_op->GetWeightsBufferSize() * sizeof(int8_t);
-  lib_mli::OffsetBuffer fully_connected_w_buf{*offset, 0, w_size, sizeof(int8_t)};
-  w_mem_offset = *offset;
-  *offset += w_size;
+  fc_offset = &offsets[0];
+  uint32_t w_size = FullyConn->GetWeightsBufferSize() * sizeof(int8_t);
+  lib_mli::OffsetBuffer fully_connected_w_buf{*fc_offset, 0, w_size, sizeof(int8_t)};
+  w_mem_offset = *fc_offset;
+  *fc_offset += w_size;
 
   // fully connected output
-  offset = &offsets[0];
+  fc_offset = &offsets[0];
   // The output should be 4 bytes aligned for int32_t, otherwise, it will cause `vvst` crash.
-  *offset = (*offsets + 4 - 1) / 4 * 4;
-  uint32_t out_size = fc_op->GetOutputBufferSize() * sizeof(int32_t);
-  lib_mli::OffsetBuffer fully_connected_out_buf{*offset, 0, out_size, sizeof(int32_t)};
+  *fc_offset = (*offsets + 4 - 1) / 4 * 4;
+  uint32_t out_size = FullyConn->GetOutputBufferSize() * sizeof(int32_t);
+  lib_mli::OffsetBuffer fully_connected_out_buf{*fc_offset, 0, out_size, sizeof(int32_t)};
   lib_mli::Tensor<lib_mli::OffsetBuffer, 2> fully_connected_out_tensor(fully_connected_out_buf, output_shape);
-  out_mem_offset = *offset;
-  *offset += out_size;
+  fc_out_mem_offset = *fc_offset;
+  *fc_offset += out_size;
 
   // fully connected input zero point
-  offset = &offsets[0];
-  uint32_t inpzp_size = fc_op->GetEncodedInpZeroPtsSize() * sizeof(int16_t);
-  lib_mli::OffsetBuffer fc_inpzp_buf{*offset, 0, inpzp_size, sizeof(int16_t)};
-  inpzp_mem_offset = *offset;
-  *offset += inpzp_size;
+  fc_offset = &offsets[0];
+  uint32_t inpzp_size = FullyConn->GetEncodedInpZeroPtsSize() * sizeof(int16_t);
+  lib_mli::OffsetBuffer fc_inpzp_buf{*fc_offset, 0, inpzp_size, sizeof(int16_t)};
+  inpzp_mem_offset = *fc_offset;
+  *fc_offset += inpzp_size;
 
   // fully connected weights zero point
-  offset = &offsets[0];
-  uint32_t wtszp_size = fc_op->GetEncodedWtsZeroPtsSize() * sizeof(int16_t);
-  lib_mli::OffsetBuffer fc_wtszp_buf{*offset, 0, wtszp_size, sizeof(int16_t)};
-  wtszp_mem_offset = *offset;
-  *offset += wtszp_size;
+  fc_offset = &offsets[0];
+  uint32_t wtszp_size = FullyConn->GetEncodedWtsZeroPtsSize() * sizeof(int16_t);
+  lib_mli::OffsetBuffer fc_wtszp_buf{*fc_offset, 0, wtszp_size, sizeof(int16_t)};
+  wtszp_mem_offset = *fc_offset;
+  *fc_offset += wtszp_size;
 
   // MLI tensor structures and fully connected configuration
-  offset = &offsets[0];
-  uint32_t data_buffer_size = fc_op->GetDataBufferSize();
-  lib_mli::OffsetBuffer fully_connected_descr_buf{*offset, 0, data_buffer_size, sizeof(char)};
-  *offset += data_buffer_size;
+  fc_offset = &offsets[0];
+  uint32_t data_buffer_size = FullyConn->GetDataBufferSize();
+  lib_mli::OffsetBuffer fully_connected_descr_buf{*fc_offset, 0, data_buffer_size, sizeof(char)};
+  *fc_offset += data_buffer_size;
 
   // Attaching buffer (descriptors) to the operation
   mli_status status = MLI_STATUS_OK;
 
-  status = fc_op->AttachBufferOffsets(fully_connected_in_tensor,
+  status = FullyConn->AttachBufferOffsets(fully_connected_in_tensor,
                                              fully_connected_out_tensor,
                                              fully_connected_w_buf,
                                              fc_inpzp_buf,
                                              fc_wtszp_buf,
                                              fully_connected_descr_buf);
   assert(status == MLI_STATUS_OK);
-  // STEP 1.3: Copy dataset from scratch buffer to the global shared memory pool
+
+  // STEP 1.2: [Rescale] Memory management (Up to user on how to deal with it)
+  //==================================================================
+  uint32_t encoded_params_mem_offset = 0;
+
+  // Define buffers for in\out tensors
+  // Leave space for runtime object
+  uint32_t* rs_offset = &offsets[0];
+  int8_t* rs_runtime_obj_addr = (int8_t*)g_mem_pool + offsets[0];
+  uint32_t rs_runtime_obj_size = rescale_op->GetRuntimeObjectSize();
+  *rs_offset += rs_runtime_obj_size;
+
+  // Leave space for private data buffer
+  rs_offset = &offsets[0];
+  uint32_t rs_private_buffer_size = rescale_op->GetKernelPrivateDataSize();
+  *rs_offset += rs_private_buffer_size;
+
+  // rescale input
+  uint32_t input_elem_size = mli_hlp_tensor_element_size(&rs_input_tsr);
+  uint32_t rs_in_size = rescale_op->GetInputBufferSize() * input_elem_size;
+  lib_mli::OffsetBuffer rescale_in_buf { fc_out_mem_offset, 0, rs_in_size,
+                                          input_elem_size };
+  lib_mli::Tensor<lib_mli::OffsetBuffer, 4>
+                      rescale_in_tensor(rescale_in_buf, rs_input_tsr.shape);
+
+  // rescale output
+  rs_offset = &offsets[0];
+  uint32_t output_elem_size = mli_hlp_tensor_element_size(&rs_output_tsr);
+  uint32_t rs_out_size = rescale_op->GetOutputBufferSize() * output_elem_size;
+  lib_mli::OffsetBuffer rescale_out_buf { *rs_offset, 0, rs_out_size,
+                                           output_elem_size };
+  lib_mli::Tensor<lib_mli::OffsetBuffer, 4>
+                     rescale_out_tensor(rescale_out_buf, rs_output_tsr.shape);
+  rs_out_mem_offset = *rs_offset;
+  *rs_offset += rs_out_size;
+
+  // rescale params
+  rs_offset = &offsets[0];
+  uint32_t encoded_params_size = rescale_op->GetEncodedParamsSize();
+  lib_mli::OffsetBuffer encoded_params_buf { *rs_offset, 0, encoded_params_size,
+                                              sizeof(int8_t) };
+  encoded_params_mem_offset = *rs_offset;
+  *rs_offset += encoded_params_size;
+
+  // DataBuffer size is 0 for reference kernel
+  rs_offset = &offsets[0];
+  uint32_t rs_data_buffer_size = rescale_op->GetDataBufferSize();
+  lib_mli::OffsetBuffer rescale_descr_buf { *rs_offset, 0,
+                                          rs_data_buffer_size, sizeof(char) };
+  *rs_offset += rs_data_buffer_size;
+
+  // Attaching buffer (descriptors) to the operation
+  status = rescale_op->AttachBufferOffsets(rescale_in_tensor,
+                                           rescale_out_tensor,
+                                           encoded_params_buf,
+                                           rescale_descr_buf);
+  assert(status == MLI_STATUS_OK);
+
+  // STEP 1.3: [FullyConn] Copy dataset from scratch buffer to the global shared memory pool
   //==================================================================
   // Copy input data from scratch buffer to the shared memory pool
-  for (uint32_t i = 0; i < op.input.data.capacity; ++i) {
+  for (uint32_t i = 0; i < fc_op.input.data.capacity; ++i) {
     const uint32_t idx = in_mem_offset + i;
-    g_mem_pool[idx] = op.input.data.mem.pi8[i];
+    g_mem_pool[idx] = fc_op.input.data.mem.pi8[i];
   }
   // Copy weights from scratch buffer to the shaped memory pool (EncodeWeights is not supported)
-  for (uint32_t i = 0; i < op.weights.data.capacity; ++i) {
+  for (uint32_t i = 0; i < fc_op.weights.data.capacity; ++i) {
     const uint32_t idx = w_mem_offset + i;
-    g_mem_pool[idx] = op.weights.data.mem.pi8[i];
+    g_mem_pool[idx] = fc_op.weights.data.mem.pi8[i];
+  }
+
+  // Copy input zero points and weights zero points to the temp host buffers
+  //==================================================================
+  size_t shared_buf_size = std::max(inpzp_size, wtszp_size);
+  char host_buf_a[shared_buf_size];
+  char host_buf_b[shared_buf_size];
+  lib_mli::Buffer src_inpzp_buf(host_buf_a, inpzp_size, sizeof(int8_t));
+  lib_mli::Buffer dst_inpzp_buf(host_buf_b, inpzp_size, sizeof(int16_t));
+  lib_mli::Buffer src_wtszp_buf(host_buf_a, wtszp_size, sizeof(int8_t));
+  lib_mli::Buffer dst_wtszp_buf(host_buf_b, wtszp_size, sizeof(int16_t));
+  assert(src_inpzp_buf.get_size() == fc_inpzp_buf.get_size());
+  assert(src_inpzp_buf.get_elem_size() * 2 == fc_inpzp_buf.get_elem_size());
+  assert(src_wtszp_buf.get_size() == fc_wtszp_buf.get_size());
+  assert(src_wtszp_buf.get_elem_size() * 2 == fc_wtszp_buf.get_elem_size());
+
+  uint32_t fc_inpzp_shape[1] = {1};
+  lib_mli::Tensor<lib_mli::Buffer, 1> inpzp_tensor(src_inpzp_buf, fc_inpzp_shape);
+
+  uint32_t fc_wtszp_shape[1] = {weight_shape[1]};
+  lib_mli::Tensor<lib_mli::Buffer, 1> wtszp_tensor(src_wtszp_buf, fc_wtszp_shape);
+
+  // NOTE: Zero Points should have the same size as the tensor they belong to.
+  // input zero points: mli_tensor -> host tensor
+  if (fc_op.input.el_params.sa.dim == -1) {
+    assert(fc_op.input.el_params.sa.zero_point.capacity == 0);
+    inpzp_tensor.write(0, static_cast<int8_t>(fc_op.input.el_params.sa.zero_point.mem.i16));
+  } else {
+    assert(fc_op.input.el_params.sa.zero_point.capacity == src_inpzp_buf.get_size());
+    for (size_t i = 0; i < inpzp_size / sizeof(int16_t); ++i) {
+      inpzp_tensor.write(int(i), static_cast<int8_t>(fc_op.input.el_params.sa.zero_point.mem.pi16[i]));
+    }
+  }
+  // host tensor 8bit -> encoded host buffer 16bit
+  status = FullyConn->EncodeInpZeroPts(inpzp_tensor, dst_inpzp_buf);
+  assert(status == MLI_STATUS_OK);
+  // encoded host buffer -> global mem pool
+  auto inpzp_mem = reinterpret_cast<int16_t*>((int8_t*)g_mem_pool + inpzp_mem_offset);
+  for (size_t i = 0; i < inpzp_size / sizeof(int16_t); ++i) {
+    inpzp_mem[i] = dst_inpzp_buf.read<int16_t>(i);
+  }
+
+  // weights zero points: mli_tensor -> host buffer
+  if (fc_op.weights.el_params.sa.dim == -1) {
+    assert(fc_op.weights.el_params.sa.zero_point.capacity == 0);
+    wtszp_tensor.write(0, static_cast<int8_t>(fc_op.weights.el_params.sa.zero_point.mem.i16));
+  } else {
+    assert(fc_op.weights.el_params.sa.zero_point.capacity == src_wtszp_buf.get_size());
+    for (size_t i = 0; i < wtszp_size / sizeof(int16_t); ++i) {
+      wtszp_tensor.write(int(i), static_cast<int8_t>(fc_op.weights.el_params.sa.zero_point.mem.pi16[i]));
+    }
+  }
+  // host tensor -> encoded host buffer
+  status = FullyConn->EncodeWtsZeroPts(wtszp_tensor, dst_wtszp_buf);
+  assert(status == MLI_STATUS_OK);
+  auto wtszp_mem = reinterpret_cast<int16_t*>((int8_t*)g_mem_pool + wtszp_mem_offset);
+  // encoded host buffer -> global mem pool
+  for (size_t i = 0; i < wtszp_size / sizeof(int16_t); ++i) {
+    wtszp_mem[i] = dst_wtszp_buf.read<int16_t>(i);
   }
 
   // Compile fully connected into the binary data
   //==================================================================
-  op.fully_connected_instance = (int8_t*)g_mem_pool;
-  op.fully_connected_instance_size = fc_op->GetRuntimeObjectSize();
+  fc_op.fully_connected_instance = (int8_t*)g_mem_pool;
+  fc_op.fully_connected_instance_size = FullyConn->GetRuntimeObjectSize();
 
   status =
-      fc_op->GetKernelPrivateData((int8_t*)g_mem_pool + op.fully_connected_instance_size);
+      FullyConn->GetKernelPrivateData((int8_t*)g_mem_pool + fc_op.fully_connected_instance_size);
   assert(status == MLI_STATUS_OK);
-  op.fully_connected_conf_private = reinterpret_cast<lib_mli::PrivateData*>(
-      (int8_t*)g_mem_pool + op.fully_connected_instance_size);
-  op.fully_connected_conf_private_size = fc_op->GetKernelPrivateDataSize();
+  fc_op.fully_connected_conf_private = (int8_t*)g_mem_pool + fc_op.fully_connected_instance_size;
+  fc_op.fully_connected_conf_private_size = FullyConn->GetKernelPrivateDataSize();
+
+  // STEP 1.3: [Rescale] Copy dataset from tensors to the global shared memory pool
+  //==================================================================
+  int8_t host_src_buf[encoded_params_size];
+  int8_t host_dst_buf[encoded_params_size];
+  uint32_t params_shape[1] = {rs_inbias_tsr.shape[0]};
+
+  uint32_t inbias_elem_size = mli_hlp_tensor_element_size(&rs_inbias_tsr);
+  uint32_t scale_elem_size = mli_hlp_tensor_element_size(&rs_scale_tsr);
+  uint32_t shift_elem_size = mli_hlp_tensor_element_size(&rs_shift_tsr);
+  uint32_t outbias_elem_size = mli_hlp_tensor_element_size(&rs_outbias_tsr);
+  uint32_t inbias_size = inbias_elem_size * mli_hlp_count_elem_num(&rs_inbias_tsr, 0);
+  uint32_t scale_size = scale_elem_size * mli_hlp_count_elem_num(&rs_scale_tsr, 0);
+  uint32_t shift_size = shift_elem_size * mli_hlp_count_elem_num(&rs_shift_tsr, 0);
+  uint32_t outbias_size = outbias_elem_size * mli_hlp_count_elem_num(&rs_outbias_tsr, 0);
+
+  lib_mli::Buffer src_inbias_buf(host_src_buf,
+          inbias_size, inbias_elem_size);
+  lib_mli::Buffer src_scale_buf(host_src_buf + inbias_size,
+          scale_size, scale_elem_size);
+  lib_mli::Buffer src_shift_buf(host_src_buf + inbias_size + scale_size,
+          shift_size, shift_elem_size);
+  lib_mli::Buffer src_outbias_buf(host_src_buf + inbias_size + scale_size + shift_size,
+          outbias_size, outbias_elem_size);
+
+  lib_mli::Buffer encoded_params_buffer(host_dst_buf, encoded_params_size, sizeof(int8_t));
+
+  lib_mli::Tensor<lib_mli::Buffer,1> inbias_tensor(src_inbias_buf, params_shape);
+  lib_mli::Tensor<lib_mli::Buffer,1> scale_tensor(src_scale_buf, params_shape);
+  lib_mli::Tensor<lib_mli::Buffer,1> shift_tensor(src_shift_buf, params_shape);
+  lib_mli::Tensor<lib_mli::Buffer,1> outbias_tensor(src_outbias_buf, params_shape);
+
+  for(uint32_t i = 0; i< (inbias_size/inbias_elem_size); i++) {
+      inbias_tensor.write<int32_t>(i, rs_inbias_tsr.data.mem.pi32[i]);
+  }
+  for(uint32_t i = 0; i< (scale_size/scale_elem_size); i++) {
+      scale_tensor.write<int16_t>(i, rs_scale_tsr.data.mem.pi16[i]);
+  }
+  for(uint32_t i = 0; i< (shift_size/shift_elem_size); i++) {
+      shift_tensor.write<int8_t>(i, rs_shift_tsr.data.mem.pi8[i]);
+  }
+  for(uint32_t i = 0; i< (outbias_size/outbias_elem_size); i++) {
+      outbias_tensor.write<int8_t>(i, rs_outbias_tsr.data.mem.pi8[i]);
+  }
+
+  // host tensors -> encoded host buffer
+  status = rescale_op->EncodeParams(inbias_tensor,
+                                    scale_tensor,
+                                    shift_tensor,
+                                    outbias_tensor,
+                                    encoded_params_buffer);
+  assert(status == MLI_STATUS_OK);
+
+  // encoded host buffer -> global mem pool
+  for (uint32_t i = 0; i < encoded_params_size; ++i) {
+      const uint32_t idx = encoded_params_mem_offset + i;
+      g_mem_pool[idx] = encoded_params_buffer.read<int8_t>(i);
+  }
+
+  // Copy output data(including holes due to CRC calculation) to the shared memory pool
+  for (uint32_t i = 0; i < rs_out_size; ++i) {
+      const uint32_t idx = rs_out_mem_offset + i;
+      g_mem_pool[idx] = rs_output_tsr.data.mem.pi8[i];
+  }
+
+  // Compile Rescale into the binary data
+  //==================================================================
+  rescale_instance = rs_runtime_obj_addr;
+  rescale_instance_size = rescale_op->GetRuntimeObjectSize();
+  rescale_conf_private = rs_runtime_obj_addr + rescale_instance_size;
+  rescale_conf_private_size = rescale_op->GetKernelPrivateDataSize();
+
+  status = rescale_op->GetKernelPrivateData(rescale_conf_private);
+  assert(status == MLI_STATUS_OK);
 }
 
-void execution_phase(FullyConnectedOp& op) {
+void execution_phase(FullyConnectedOp& fc_op, RescaleOp &rs_op) {
   // STEP 3: Execution phase
   //==================================================================
   uint32_t tiles_num = 1;
@@ -546,21 +754,36 @@ void execution_phase(FullyConnectedOp& op) {
   uint64_t membasis[] = {reinterpret_cast<uint64_t>(g_mem_pool)};
 
   auto mli_fully_connected = lib_mli::ExecutionInterface::Create(
-    op.fully_connected_instance, op.fully_connected_instance_size,
-    op.fully_connected_conf_private, op.fully_connected_conf_private_size,
-    membasis, sizeof(membasis) / sizeof(membasis[0]));
+                                fc_op.fully_connected_instance,
+                                fc_op.fully_connected_instance_size,
+                                fc_op.fully_connected_conf_private,
+                                fc_op.fully_connected_conf_private_size,
+                                membasis, sizeof(membasis) / sizeof(membasis[0]));
+
+  auto mli_rescale = lib_mli::ExecutionInterface::Create(
+                      rs_op.rescale_instance,
+                      rs_op.rescale_instance_size,
+                      rs_op.rescale_conf_private,
+                      rs_op.rescale_conf_private_size,
+                      membasis, sizeof(membasis) / sizeof(membasis[0]));
 
   assert(mli_fully_connected != nullptr);
+  assert(mli_rescale != nullptr);
 
   mli_status status = MLI_STATUS_OK;
   for (int i = 0; i < tiles_num; ++i) {
     status = mli_fully_connected->Prefetch();
     assert(status == MLI_STATUS_OK);
-
     status = mli_fully_connected->Issue();
     assert(status == MLI_STATUS_OK);
-
     status = mli_fully_connected->Update();
+    assert(status == MLI_STATUS_OK);
+
+    status = mli_rescale->Prefetch();
+    assert(status == MLI_STATUS_OK);
+    status = mli_rescale->Issue();
+    assert(status == MLI_STATUS_OK);
+    status = mli_rescale->Update();
     assert(status == MLI_STATUS_OK);
   }
 }
@@ -648,50 +871,67 @@ int main() {
 
     bool is_test_passed = preprocess_phase(reporter, cur_test, fc_op, rs_op);
 
+    //
+    // Solution to vectorize Rescale params tensors in case of per-axis
+    // computation.
+    //
+    // All params tensors that have one element, should have rank of 1
+    // (including out_bias).
+    //
+    const mli_tensor& inbias_tsr = rs_op.mli3_bias.get_bias_tsr();
+    auto& outbias_tsr = rs_op.bias_out;
+    auto& shift_tsr  = (mli_tensor&)rs_op.mli3_scales_keeper.get_shift_tsr();
+    auto& scale_tsr  = (mli_tensor&)rs_op.mli3_scales_keeper.get_scales_tsr();
+    uint32_t elem_num = mli_hlp_count_elem_num(&inbias_tsr, 0);
+    int8_t outbias_data[elem_num];
+    int8_t shift_data[elem_num];
+    int16_t scale_data[elem_num];
+    {
+        int32_t rescale_axis;
+        if (mli_hlp_count_elem_num(&scale_tsr, 0) == 1) {
+            rescale_axis = -1;
+        } else {
+            rescale_axis = fc_op.out_acc.rank - 1;
+        }
+
+        // If per-axis computation && out_bias is one element,
+        // so construct out_bias tensor as vector the same as other params.
+        if((rescale_axis != -1) && (mli_hlp_count_elem_num(&outbias_tsr, 0) == 1)) {
+            vectorize_single_elem_tensor(outbias_tsr, inbias_tsr, outbias_data);
+        }
+
+        // If per-tensor computation && in_bias is vector,
+        // so construct out_bias, shift and scale tensors as vectors the same as in_bias.
+        if((rescale_axis == -1) && (mli_hlp_count_elem_num(&inbias_tsr, 0) != 1)) {
+            vectorize_single_elem_tensor(outbias_tsr, inbias_tsr, outbias_data);
+            vectorize_single_elem_tensor(shift_tsr, inbias_tsr, shift_data);
+            vectorize_single_elem_tensor(scale_tsr, inbias_tsr, scale_data);
+        }
+    }
+
     // STEP 1: Preparing phase
     //==================================================================
-    uint32_t out_mem_offset = 0;
-    prepare_phase(cur_test, out_mem_offset, fc_op);
+    uint32_t fc_out_mem_offset = 0;
+    uint32_t rs_out_mem_offset = 0;
+
+    prepare_phase(cur_test, fc_op, rs_op, fc_out_mem_offset,
+            rs_out_mem_offset);
 
     // STEP 2: Executing phase
     //==================================================================
-    // Run fully connected MLI3.0 kernel
-    execution_phase(fc_op);
+    // Run fully connected & rescale MLI3.0 kernel
+    execution_phase(fc_op, rs_op);
 
-    // Get the output of Fully Connected and copy it to fc_op.out_acc
-    for (uint32_t i = 0; i < fc_op.out_acc.data.capacity; ++i) {
-      fc_op.out_acc.data.mem.pi8[i] = *((int8_t*)g_mem_pool + out_mem_offset + i);
+    // Get the output of Rescale and copy it to rs_op.out
+    for (uint32_t j = 0; j < rs_op.out.data.capacity; ++j) {
+        rs_op.out.data.mem.pi8[j] = *((int8_t*)g_mem_pool + rs_out_mem_offset + j);
     }
 
-    // Run rescale kernel
-    if (is_test_passed &&
-        cur_test->mli_krn_rescale(&fc_op.out_acc,
-                                  &rs_op.mli3_bias.get_bias_tsr(),
-                                  &rs_op.mli3_scales_keeper.get_scales_tsr(),
-                                  &rs_op.mli3_scales_keeper.get_shift_tsr(),
-                                  &rs_op.bias_out, &rs_op.out) != MLI_STATUS_OK) {
-      reporter.report_message(cur_test->descr, "FAILED at kernel run: kernel returned bad status");
-      is_test_passed = false;
-    }
     if (is_test_passed) {
       // TODO: refactor, reuse relu code
       relu(&rs_op.out, &cur_test->cfg.relu);
     }
 
-#if 0
-    // Run Fully Connected MLI2.0 kernel, for debug purpose
-    if (is_test_passed && cur_test->mli_krn_fully_connected(
-                              &fc_op.input, &fc_op.weights, &rs_op.bias_in,
-                              &cur_test->cfg, &rs_op.out) != MLI_STATUS_OK) {
-        reporter.report_message(
-            cur_test->descr,
-            "FAILED at kernel run: kernel returned bad status");
-        is_test_passed = false;
-    }
-    for (size_t i = 0; i < rs_op.out.data.capacity; ++i) {
-        std::cout << static_cast<int16_t>(rs_op.out.data.mem.pi8[i]) << ",";
-    }
-#endif
     // STEP 3: Postprocessing phase
     //==================================================================
     is_test_passed &= postprocess_phase(reporter, cur_test, fc_op, rs_op);

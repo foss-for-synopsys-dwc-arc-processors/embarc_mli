@@ -1,11 +1,11 @@
 /*
-* Copyright 2022, Synopsys, Inc.
-* All rights reserved.
-*
-* This source code is licensed under the BSD-3-Clause license found in
-* the LICENSE file in the root directory of this source tree.
-*
-*/
+ * Copyright 2022, Synopsys, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-3-Clause license found in
+ * the LICENSE file in the root directory of this source tree.
+ *
+ */
 
 #include <cstring>
 #include <new>
@@ -25,6 +25,7 @@ using ref::Min;
 using ref::Move;
 using ref::Conv2d;
 using ref::DepthwiseConv2d;
+using ref::Rescale;
 
 ExecutionInterface* ExecutionInterface::Create(
         void* allocation_memory_buffer,
@@ -123,7 +124,14 @@ ExecutionInterface* ExecutionInterface::Create(
             if(alloc_buf_size >= sizeof(SumPool2D)) {
                 obj = new (allocation_memory_buffer) SumPool2D(kernel_private_data_buffer, private_data_size, membases, num_mems);
             } else {
-                MLI_PRINTF("\nASSERT: Insufficient space for [SumPool2D] runtime object\n");
+                MLI_PRINTF("\nMLI_ERROR: Insufficient space for [SumPool2D] runtime object\n");
+            }
+            break;
+        case kRescaleId:
+            if(alloc_buf_size >= sizeof(Rescale)) {
+                obj = new (allocation_memory_buffer) Rescale(kernel_private_data_buffer, private_data_size, membases, num_mems);
+            } else {
+                MLI_PRINTF("\nMLI_ERROR: Insufficient space for [Rescale] runtime object\n");
             }
             break;
         case kSomeOtherKernelId:

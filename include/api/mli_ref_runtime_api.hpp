@@ -22,7 +22,8 @@ using lib_mli::ExecutionInterface;
 using lib_mli::PrivateData;
 
 class Conv2d : public ExecutionInterface {
-  public:
+
+public:
     Conv2d(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
 
     mli_status Issue() override;
@@ -47,7 +48,8 @@ private:
  *
  */
 class DepthwiseConv2d : public ExecutionInterface {
-  public:
+
+public:
     /**
      * @brief constructor for the DepthwiseConv2d
      *
@@ -95,7 +97,7 @@ private:
 
 class Move : public ExecutionInterface {
 
-  public:
+public:
     /**
      * @brief constructor to create a move run-time object from a private data buffer from the Move_CS class
      *
@@ -126,7 +128,7 @@ class Move : public ExecutionInterface {
 
     mli_status Update() override;
 
-  private:
+private:
     TensorIterator<Move_CS::kMaxRank> m_src_it;
     TensorIterator<Move_CS::kMaxRank> m_dst_it;
     IteratorCfg<Move_CS::kMaxRank> m_src_it_cfg;
@@ -150,7 +152,8 @@ class Move : public ExecutionInterface {
  *
  */
 class MaxPool2D : public ExecutionInterface {
-  public:
+
+public:
     MaxPool2D(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
 
     mli_status Issue() override;
@@ -159,7 +162,7 @@ class MaxPool2D : public ExecutionInterface {
 
     mli_status Update() override;
 
-  private:
+private:
     mli_pool_cfg m_cfg;
     mli_tensor m_input;
     mli_tensor m_output;
@@ -167,12 +170,12 @@ class MaxPool2D : public ExecutionInterface {
     int32_t m_output_batch_offset;
     uint32_t m_batch_number;
     uint32_t m_io_elem_size;
-
 };
 
 
 class FullyConnected : public ExecutionInterface {
-  public:
+
+public:
     /**
      * @brief constructor for the FullyConnected
      *
@@ -219,7 +222,8 @@ private:
  *
  */
 class SumPool2D : public ExecutionInterface {
-  public:
+
+public:
     SumPool2D(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
 
     mli_status Issue() override;
@@ -228,7 +232,7 @@ class SumPool2D : public ExecutionInterface {
 
     mli_status Update() override;
 
-  private:
+private:
     mli_pool_cfg m_cfg;
     mli_tensor m_input;
     mli_tensor m_output;
@@ -246,7 +250,7 @@ class SumPool2D : public ExecutionInterface {
  */
 class Add : public ExecutionInterface {
 
-  public:
+public:
     Add(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
 
     mli_status Issue() override;
@@ -255,7 +259,7 @@ class Add : public ExecutionInterface {
 
     mli_status Update() override;
 
-  private:
+private:
     mli_tensor m_input_left;
     mli_tensor m_input_right;
     mli_tensor m_output;
@@ -270,7 +274,7 @@ class Add : public ExecutionInterface {
  */
 class Sub : public ExecutionInterface {
 
-  public:
+public:
     Sub(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
 
     mli_status Issue() override;
@@ -279,7 +283,7 @@ class Sub : public ExecutionInterface {
 
     mli_status Update() override;
 
-  private:
+private:
     mli_tensor m_input_left;
     mli_tensor m_input_right;
     mli_tensor m_output;
@@ -294,7 +298,7 @@ class Sub : public ExecutionInterface {
  */
 class Mul : public ExecutionInterface {
 
-  public:
+public:
     Mul(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
 
     mli_status Issue() override;
@@ -303,7 +307,7 @@ class Mul : public ExecutionInterface {
 
     mli_status Update() override;
 
-  private:
+private:
     mli_tensor m_input_left;
     mli_tensor m_input_right;
     mli_tensor m_output;
@@ -318,7 +322,7 @@ class Mul : public ExecutionInterface {
  */
 class Max : public ExecutionInterface {
 
-  public:
+public:
     Max(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
 
     mli_status Issue() override;
@@ -327,7 +331,7 @@ class Max : public ExecutionInterface {
 
     mli_status Update() override;
 
-  private:
+private:
     mli_tensor m_input_left;
     mli_tensor m_input_right;
     mli_tensor m_output;
@@ -342,7 +346,7 @@ class Max : public ExecutionInterface {
  */
 class Min : public ExecutionInterface {
 
-  public:
+public:
     Min(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
 
     mli_status Issue() override;
@@ -351,12 +355,35 @@ class Min : public ExecutionInterface {
 
     mli_status Update() override;
 
-  private:
+private:
     mli_tensor m_input_left;
     mli_tensor m_input_right;
     mli_tensor m_output;
     uint32_t m_i_elem_size;
     uint32_t m_o_elem_size;
+};
+
+/**
+ * @brief This class implements the Rescale kernel xop interpreter interface
+ *
+ *
+ */
+class Rescale : public ExecutionInterface {
+
+public:
+    Rescale(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
+
+    mli_status Issue() override;
+
+    mli_status Prefetch() override;
+
+    mli_status Update() override;
+
+private:
+    RescaleMetadata m_metadata;
+
+    uint32_t m_in_elem_size;
+    uint32_t m_out_elem_size;
 };
 
 } // namespace snps_arc::metaware::mli::ref

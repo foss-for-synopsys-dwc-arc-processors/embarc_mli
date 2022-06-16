@@ -36,28 +36,13 @@ using mli::tst::reporter_full;
 using mli::tst::memory_manager;
 using mli::tst::scales_calc;
 using mli::tst::bias_folder;
+using mli::tst::vectorize_single_elem_tensor;
 
 namespace lib_mli = ::snps_arc::metaware::mli;
 namespace lib_ref = ::snps_arc::metaware::mli::ref;
 
-typedef mli_status(*conv2d_func_ptr)(
-    const mli_tensor* /*input*/,
-    const mli_tensor* /*weights*/,
-    const mli_tensor* /*bias*/,
-    const mli_conv2d_cfg* /*cfg*/,
-    mli_tensor* /*output*/);
-
-typedef mli_status(*rescale_func_ptr)(
-  const mli_tensor* /*input*/,
-  const mli_tensor* /*bias_in*/,
-  const mli_tensor* /*scale*/,
-  const mli_tensor* /*shift*/,
-  const mli_tensor* /*bias_out*/,
-  mli_tensor* /*output*/);
-
 struct conv2d_test_operands {
     const char* descr;
-    const conv2d_func_ptr mli_krn_conv2d;
     tensor_quantizer in;
     tensor_quantizer weights;
     tensor_quantizer bias_in;
@@ -109,33 +94,29 @@ const quality_metrics thresholds_sa8_general{ quality_metrics::kPassValueMaxAbsE
 
 static const conv2d_test_operands tests_list[] = {
     // Basic functionality test kernel_size=(3, 4), strides=(1, 1), with krn_padding and w/o ReLU
-    {"Test 1 SA8_SA8_SA32", mli_krn_conv2d_hwcn_sa8_sa8_sa32,
-                            input_1_sa8, weights_1_sa8, bias_1_sa32, test_1_out_sa8,
+    {"Test 1 SA8_SA8_SA32", input_1_sa8, weights_1_sa8, bias_1_sa32, test_1_out_sa8,
                             test_1_out_acc_sa32, test_1_bias_out_sa8,
                             input_1_scale, test_1_out_scale,
                             weights_1_scales, sizeof(weights_1_scales) / sizeof(weights_1_scales[0]),
                             test_1_cfg, thresholds_sa8_general, test_1_chksum_sa8},
 
     // Basic functionality test with 7 kernels of (4, 3) size, strides = (2, 2), with krn_padding and with Gen_ReLU
-    {"Test 2 SA8_SA8_SA32 ReluGen", mli_krn_conv2d_hwcn_sa8_sa8_sa32,
-                                    input_1_sa8, weights_2_sa8, bias_1_w2_per_tensor_sa32, test_2_out_sa8,
+    {"Test 2 SA8_SA8_SA32 ReluGen", input_1_sa8, weights_2_sa8, bias_1_w2_per_tensor_sa32, test_2_out_sa8,
                                     test_2_out_acc_sa32, test_2_bias_out_sa8,
                                     input_1_scale, test_2_out_scale,
                                     weights_2_per_tensor_scales, sizeof(weights_2_per_tensor_scales) / sizeof(weights_2_per_tensor_scales[0]),
                                     test_2_cfg, thresholds_sa8_general, test_2_chksum_sa8},
 
     // Dilation Rate Test: kernel_size=(3, 4), strides=(1, 1), w/o padding and w/o ReLU
-    {"Test 3 SA8_SA8_SA32 Dilation", mli_krn_conv2d_hwcn_sa8_sa8_sa32,
-                                    input_1_sa8, weights_1_sa8, bias_1_sa32, test_3_out_sa8,
-                                    test_3_out_acc_sa32, test_3_bias_out_sa8,
-                                    input_1_scale, test_3_out_scale,
-                                    weights_1_scales, sizeof(weights_1_scales) / sizeof(weights_1_scales[0]),
-                                    test_3_cfg, thresholds_sa8_general, test_3_chksum_sa8},
+    {"Test 3 SA8_SA8_SA32 Dilation", input_1_sa8, weights_1_sa8, bias_1_sa32, test_3_out_sa8,
+                                     test_3_out_acc_sa32, test_3_bias_out_sa8,
+                                     input_1_scale, test_3_out_scale,
+                                     weights_1_scales, sizeof(weights_1_scales) / sizeof(weights_1_scales[0]),
+                                     test_3_cfg, thresholds_sa8_general, test_3_chksum_sa8},
 
     // Input/output Memstride test : kernel_size = (4, 3), strides = (3, 3), w / o padding and with ReLU_1
     // padded with 3 extra values on c Dim and extra 1 line. Output is also expected to have a memstride
-    {"Test 4 SA8_SA8_SA32 IO_Memstr", mli_krn_conv2d_hwcn_sa8_sa8_sa32,
-                                      input_1_memstr_sa8, weights_1_sa8, bias_1_sa32, test_4_out_sa8,
+    {"Test 4 SA8_SA8_SA32 IO_Memstr", input_1_memstr_sa8, weights_1_sa8, bias_1_sa32, test_4_out_sa8,
                                       test_4_out_acc_sa32, test_4_bias_out_sa8,
                                       input_1_scale, test_4_out_scale,
                                       weights_1_scales, sizeof(weights_1_scales) / sizeof(weights_1_scales[0]),
@@ -143,8 +124,7 @@ static const conv2d_test_operands tests_list[] = {
 
     // Weights Memstride test with 7 kernels of (4, 3) size, strides = (1, 1), w / o padding and with ReLU_6
     // padded with extra channel on N dimension
-    {"Test 5 SA8_SA8_SA32 W_Memstr", mli_krn_conv2d_hwcn_sa8_sa8_sa32,
-                                     input_1_sa8, weights_2_memstr_sa8, bias_1_w2_sa32, test_5_out_sa8,
+    {"Test 5 SA8_SA8_SA32 W_Memstr", input_1_sa8, weights_2_memstr_sa8, bias_1_w2_sa32, test_5_out_sa8,
                                      test_5_out_acc_sa32, test_5_bias_out_sa8,
                                      input_1_scale, test_5_out_scale,
                                      weights_2_scales, sizeof(weights_2_scales) / sizeof(weights_2_scales[0]),
@@ -152,8 +132,7 @@ static const conv2d_test_operands tests_list[] = {
 
     // k1x1 specialization test with memstride, kernel_size=(1, 1), strides=(2, 2), krn_padding and ReLU 6
     // No Dilation ratio. Memstrides are applied on input, output and weights tensors
-    {"Test 6 SA8_SA8_SA32  k1x1 Spec", mli_krn_conv2d_hwcn_sa8_sa8_sa32_k1x1,
-                                       input_1_sa8, weights_3_memstr_sa8, bias_1_w3_sa32, test_6_out_sa8,
+    {"Test 6 SA8_SA8_SA32  k1x1 Spec", input_1_sa8, weights_3_memstr_sa8, bias_1_w3_sa32, test_6_out_sa8,
                                        test_6_out_acc_sa32, test_6_bias_out_sa8,
                                        input_1_scale, test_6_out_scale,
                                        weights_3_scales, sizeof(weights_3_scales) / sizeof(weights_3_scales[0]),
@@ -161,8 +140,7 @@ static const conv2d_test_operands tests_list[] = {
 
     // k3x3 specialization test with memstride, kernel_size=(3, 3), strides=(2, 2), krn_padding and ReLU 6
     // No Dilation ratio. Memstrides are applied on input, output and weights tensors
-    {"Test 7 SA8_SA8_SA32 k3x3 Spec", mli_krn_conv2d_hwcn_sa8_sa8_sa32_k3x3,
-                                      input_1_sa8, weights_4_memstr_sa8, bias_1_w4_sa32, test_7_out_sa8,
+    {"Test 7 SA8_SA8_SA32 k3x3 Spec", input_1_sa8, weights_4_memstr_sa8, bias_1_w4_sa32, test_7_out_sa8,
                                       test_7_out_acc_sa32, test_7_bias_out_sa8,
                                       input_1_scale, test_7_out_scale,
                                       weights_4_scales, sizeof(weights_4_scales) / sizeof(weights_4_scales[0]),
@@ -170,8 +148,7 @@ static const conv2d_test_operands tests_list[] = {
 
     // k5x5 specialization test with memstride, kernel_size=(5, 5), strides=(2, 2), krn_padding and ReLU 6
     // No Dilation ratio. Memstrides are applied on input, output and weights tensors
-    {"Test 8 SA8_SA8_SA32 k5x5 spec", mli_krn_conv2d_hwcn_sa8_sa8_sa32_k5x5,
-                                      input_1_sa8, weights_5_memstr_sa8, bias_1_w5_sa32, test_8_out_sa8,
+    {"Test 8 SA8_SA8_SA32 k5x5 spec", input_1_sa8, weights_5_memstr_sa8, bias_1_w5_sa32, test_8_out_sa8,
                                       test_8_out_acc_sa32, test_8_bias_out_sa8,
                                       input_1_scale, test_8_out_scale,
                                       weights_5_scales, sizeof(weights_5_scales) / sizeof(weights_5_scales[0]),
@@ -180,8 +157,7 @@ static const conv2d_test_operands tests_list[] = {
     // Dilation test with padding for generic function, kernel_size=(3, 3), strides=(1, 1),
     // krn_padding , dilation = (2,2) and ReLU_Gen.
     // No Dilation ratio. Memstrides are applied on input, output and weights tensors
-    {"Test 9-1 SA8_SA8_SA32 Dil+Pad", mli_krn_conv2d_hwcn_sa8_sa8_sa32,
-                                      input_1_sa8, weights_4_memstr_sa8, bias_1_w4_sa32, test_9_out_sa8,
+    {"Test 9-1 SA8_SA8_SA32 Dil+Pad", input_1_sa8, weights_4_memstr_sa8, bias_1_w4_sa32, test_9_out_sa8,
                                       test_9_out_acc_sa32, test_9_bias_out_sa8,
                                       input_1_scale, test_9_out_scale,
                                       weights_4_scales, sizeof(weights_4_scales) / sizeof(weights_4_scales[0]),
@@ -190,8 +166,7 @@ static const conv2d_test_operands tests_list[] = {
     // Dilation test for k3x3 specialization test, kernel_size=(3, 3), strides=(1, 1),
     // krn_padding , dilation = (2,2) and ReLU_Gen.
     // Memstrides are applied on input, output and weights tensors
-    {"Test 9-2 SA8_SA8_SA32 k3x3 Dil", mli_krn_conv2d_hwcn_sa8_sa8_sa32_k3x3,
-                                       input_1_sa8, weights_4_memstr_sa8, bias_1_w4_sa32, test_9_out_sa8,
+    {"Test 9-2 SA8_SA8_SA32 k3x3 Dil", input_1_sa8, weights_4_memstr_sa8, bias_1_w4_sa32, test_9_out_sa8,
                                        test_9_out_acc_sa32, test_9_bias_out_sa8,
                                        input_1_scale, test_9_out_scale,
                                        weights_4_scales, sizeof(weights_4_scales) / sizeof(weights_4_scales[0]),
@@ -200,16 +175,14 @@ static const conv2d_test_operands tests_list[] = {
     // Dilation test for k5x5 specialization test, kernel_size=(5, 5), strides=(1, 1),
     // krn_padding , dilation = (2,2) and ReLU_Gen.
     // Memstrides are applied on input, output and weights tensors
-    {"Test 10 SA8_SA8_SA32 k5x5 Dil", mli_krn_conv2d_hwcn_sa8_sa8_sa32_k5x5,
-                                      input_1_sa8, weights_5_memstr_sa8, bias_1_w5_sa32, test_10_out_sa8,
+    {"Test 10 SA8_SA8_SA32 k5x5 Dil", input_1_sa8, weights_5_memstr_sa8, bias_1_w5_sa32, test_10_out_sa8,
                                       test_10_out_acc_sa32, test_10_bias_out_sa8,
                                       input_1_scale, test_10_out_scale,
                                       weights_5_scales, sizeof(weights_5_scales) / sizeof(weights_5_scales[0]),
                                       test_10_cfg, thresholds_sa8_general, test_10_chksum_sa8},
 
     // Test with huge values in operands to check negative fractional and big scales
-    {"Test 11 SA8_SA8_SA32 Huge Vals", mli_krn_conv2d_hwcn_sa8_sa8_sa32,
-                                       input_2_sa8, weights_6_sa8, bias_2_i2_w6_sa32, test_11_out_sa8,
+    {"Test 11 SA8_SA8_SA32 Huge Vals", input_2_sa8, weights_6_sa8, bias_2_i2_w6_sa32, test_11_out_sa8,
                                        test_11_out_acc_sa32, test_11_bias_out_sa8,
                                        input_2_scale, test_11_out_scale,
                                        weights_6_scales, sizeof(weights_6_scales) / sizeof(weights_6_scales[0]),
@@ -261,7 +234,7 @@ struct Conv2dOp {
   uint32_t conv2d_instance_size{0};
 
   // conv private data
-  lib_mli::PrivateData* conv2d_conf_private{nullptr};
+  void* conv2d_conf_private{nullptr};
   uint32_t conv2d_conf_private_size{0};
 };
 
@@ -311,6 +284,12 @@ struct RescaleOp {
   // additional params for MLI3 Symantic
   bias_folder mli3_bias;
   scales_calc mli3_scales_keeper;
+
+  // additional params for MLI3 runtime
+  void* rescale_instance;
+  uint32_t rescale_instance_size;
+  void* rescale_conf_private;
+  uint32_t rescale_conf_private_size;
 };
 
 void relu(mli_tensor *out, const mli_relu_cfg *cfg) {
@@ -423,30 +402,31 @@ bool preprocess_phase(const reporter_full& reporter,
 }
 
 void prepare_phase(const conv2d_test_operands* cur_test,
-                   uint32_t& out_mem_offset, Conv2dOp& op) {
-  // STEP 1.1: Construct Conv2d as a specific ExecutionInterface successor
+                    Conv2dOp& cnv_op, RescaleOp &rs_op,
+                    uint32_t& cnv_out_mem_offset, uint32_t& rs_out_mem_offset) {
+  // STEP 1.1: Construct [Conv2d] as a specific ExecutionInterface successor
   //==================================================================
 
   // NHWCin vs. HWCin
-  uint32_t input_shape[4] = {1, op.input.shape[0], op.input.shape[1], op.input.shape[2]};
-  int32_t input_stride[4] = {int32_t(op.input.shape[0]) * op.input.mem_stride[0],
-                             op.input.mem_stride[0],
-                             op.input.mem_stride[1],
-                             op.input.mem_stride[2]};
+  uint32_t input_shape[4] = {1, cnv_op.input.shape[0], cnv_op.input.shape[1], cnv_op.input.shape[2]};
+  int32_t input_stride[4] = {int32_t(cnv_op.input.shape[0]) * cnv_op.input.mem_stride[0],
+                             cnv_op.input.mem_stride[0],
+                             cnv_op.input.mem_stride[1],
+                             cnv_op.input.mem_stride[2]};
 
   // GHWCinCo vs. HWCinCo
-  uint32_t weight_shape[5] = {1, op.weights.shape[0], op.weights.shape[1], op.weights.shape[2], op.weights.shape[3]};
-  int32_t weight_stride[5] = {int32_t(op.weights.shape[0] * op.weights.mem_stride[0]),
-                              op.weights.mem_stride[0], op.weights.mem_stride[1],
-                              op.weights.mem_stride[2], op.weights.mem_stride[3]};
+  uint32_t weight_shape[5] = {1, cnv_op.weights.shape[0], cnv_op.weights.shape[1], cnv_op.weights.shape[2], cnv_op.weights.shape[3]};
+  int32_t weight_stride[5] = {int32_t(cnv_op.weights.shape[0] * cnv_op.weights.mem_stride[0]),
+                              cnv_op.weights.mem_stride[0], cnv_op.weights.mem_stride[1],
+                              cnv_op.weights.mem_stride[2], cnv_op.weights.mem_stride[3]};
 
   // GHWCo vs. HWCo
-  uint32_t output_shape[4] = {1, op.out_acc.shape[0], op.out_acc.shape[1], op.out_acc.shape[2]};
+  uint32_t output_shape[4] = {1, cnv_op.out_acc.shape[0], cnv_op.out_acc.shape[1], cnv_op.out_acc.shape[2]};
 
-  int32_t output_stride[4] = {int32_t(op.out_acc.shape[0]) * op.out_acc.mem_stride[0],
-                              op.out_acc.mem_stride[0],
-                              op.out_acc.mem_stride[1],
-                              op.out_acc.mem_stride[2]};
+  int32_t output_stride[4] = {int32_t(cnv_op.out_acc.shape[0]) * cnv_op.out_acc.mem_stride[0],
+                              cnv_op.out_acc.mem_stride[0],
+                              cnv_op.out_acc.mem_stride[1],
+                              cnv_op.out_acc.mem_stride[2]};
 
   // G == 1
   assert(input_shape[0] == 1 && output_shape[0] == 1);
@@ -475,7 +455,43 @@ void prepare_phase(const conv2d_test_operands* cur_test,
   auto conv2d_op = kernel_factory.Conv2d_CS(
     conv2d_cs_buffer, in_tensor, wt_tensor, cfg, out_tensor);
 
-  // STEP 1.2: Memory management (Up to user on how to deal with it)
+  // STEP 1.1: Construct [Rescale] as a specific ExecutionInterface successor
+  //==================================================================
+
+  mli_tensor &rs_input_tsr = cnv_op.out_acc;
+  const mli_tensor &rs_inbias_tsr = rs_op.mli3_bias.get_bias_tsr();
+  const mli_tensor &rs_scale_tsr = rs_op.mli3_scales_keeper.get_scales_tsr();
+  const mli_tensor &rs_shift_tsr = rs_op.mli3_scales_keeper.get_shift_tsr();
+  mli_tensor &rs_outbias_tsr = rs_op.bias_out;
+  mli_tensor &rs_output_tsr = rs_op.out;
+
+  void* &rescale_instance = rs_op.rescale_instance;
+  uint32_t &rescale_instance_size = rs_op.rescale_instance_size;
+  void* &rescale_conf_private = rs_op.rescale_conf_private;
+  uint32_t &rescale_conf_private_size = rs_op.rescale_conf_private_size;
+
+  uint32_t io_rank = rs_input_tsr.rank;
+  uint32_t innermost_axis = io_rank - 1;
+
+  const lib_mli::Tensor<lib_mli::NoBuffer, 4> input_tensor(rs_input_tsr.shape,
+          rs_input_tsr.mem_stride, io_rank);
+  const lib_mli::Tensor<lib_mli::NoBuffer, 4> output_tensor(
+                      rs_output_tsr.shape, rs_output_tsr.mem_stride, io_rank);
+
+  uint32_t rescale_cs_size = kernel_factory.Rescale_CS_GetSize();
+  void* rescale_cs_buffer = malloc(rescale_cs_size);
+
+  lib_mli::RescaleConfig rs_cfg;
+  if (mli_hlp_count_elem_num(&rs_scale_tsr, 0) == 1) {
+      rs_cfg.axis = -1;
+  } else {
+      rs_cfg.axis = innermost_axis;
+  }
+
+  auto rescale_op = kernel_factory.Rescale_CS(rescale_cs_buffer, input_tensor,
+                                                           rs_cfg, output_tensor);
+
+  // STEP 1.2: [Conv2D] Memory management (Up to user on how to deal with it)
   //==================================================================
   uint32_t in_mem_offset = 0;
   uint32_t w_mem_offset = 0;
@@ -485,64 +501,64 @@ void prepare_phase(const conv2d_test_operands* cur_test,
 
   // Define buffers for in\out tensors
   // Leave space for runtime object
-  uint32_t* offset = &offsets[0];
+  uint32_t* cnv_offset = &offsets[0];
   uint32_t runtime_obj_size = conv2d_op->GetRuntimeObjectSize();
-  *offset += runtime_obj_size;
+  *cnv_offset += runtime_obj_size;
 
   // Leave space for private data buffer
-  offset = &offsets[0];
+  cnv_offset = &offsets[0];
   uint32_t private_buffer_size = conv2d_op->GetKernelPrivateDataSize();
-  *offset += private_buffer_size;
+  *cnv_offset += private_buffer_size;
 
   // conv2d input
-  offset = &offsets[0];
+  cnv_offset = &offsets[0];
   uint32_t in_size = conv2d_op->GetInputBufferSize() * sizeof(int8_t);
-  lib_mli::OffsetBuffer conv2d_in_buf{*offset, 0, in_size, sizeof(int8_t)};
+  lib_mli::OffsetBuffer conv2d_in_buf{*cnv_offset, 0, in_size, sizeof(int8_t)};
   lib_mli::Tensor<lib_mli::OffsetBuffer, 4> conv2d_in_tensor(conv2d_in_buf, input_shape);
-  in_mem_offset = *offset;
-  *offset += in_size;
+  in_mem_offset = *cnv_offset;
+  *cnv_offset += in_size;
 
   // conv2d weight
-  offset = &offsets[0];
+  cnv_offset = &offsets[0];
   uint32_t w_size = conv2d_op->GetWeightsBufferSize() * sizeof(int8_t);
-  lib_mli::OffsetBuffer conv2d_w_buf{*offset, 0, w_size, sizeof(int8_t)};
-  w_mem_offset = *offset;
-  *offset += w_size;
+  lib_mli::OffsetBuffer conv2d_w_buf{*cnv_offset, 0, w_size, sizeof(int8_t)};
+  w_mem_offset = *cnv_offset;
+  *cnv_offset += w_size;
 
   // conv2d output
-  offset = &offsets[0];
+  cnv_offset = &offsets[0];
   // NOTE: The output should be 4 bytes aligned for int32_t, otherwise, it will cause `vvst` crash.
-  *offset = (*offset + 4 - 1) / 4 * 4;
+  *cnv_offset = (*cnv_offset + 4 - 1) / 4 * 4;
   uint32_t out_size = conv2d_op->GetOutputBufferSize() * sizeof(int32_t);
-  lib_mli::OffsetBuffer conv2d_out_buf{*offset, 0, out_size, sizeof(int32_t)};
+  lib_mli::OffsetBuffer conv2d_out_buf{*cnv_offset, 0, out_size, sizeof(int32_t)};
   lib_mli::Tensor<lib_mli::OffsetBuffer, 4> conv2d_out_tensor(conv2d_out_buf, output_shape);
-  out_mem_offset = *offset;
-  *offset += out_size;
+  cnv_out_mem_offset = *cnv_offset;
+  *cnv_offset += out_size;
 
   // conv2d input zero point
-  offset = &offsets[0];
+  cnv_offset = &offsets[0];
   uint32_t inpzp_size = conv2d_op->GetEncodedInpZeroPtsSize() * sizeof(int16_t);
-  lib_mli::OffsetBuffer inpzp_buf{*offset, 0, inpzp_size, sizeof(int16_t)};
-  inpzp_mem_offset = *offset;
-  *offset += inpzp_size;
+  lib_mli::OffsetBuffer inpzp_buf{*cnv_offset, 0, inpzp_size, sizeof(int16_t)};
+  inpzp_mem_offset = *cnv_offset;
+  *cnv_offset += inpzp_size;
 
   // conv2d weights zero point
-  offset = &offsets[0];
+  cnv_offset = &offsets[0];
   uint32_t wtszp_size = conv2d_op->GetEncodedWtsZeroPtsSize() * sizeof(int16_t);
-  lib_mli::OffsetBuffer wtszp_buf{*offset, 0, wtszp_size, sizeof(int16_t)};
-  wtszp_mem_offset = *offset;
-  *offset += wtszp_size;
+  lib_mli::OffsetBuffer wtszp_buf{*cnv_offset, 0, wtszp_size, sizeof(int16_t)};
+  wtszp_mem_offset = *cnv_offset;
+  *cnv_offset += wtszp_size;
 
   // MLI tensor structures and conv2d configuration
-  offset = &offsets[0];
+  cnv_offset = &offsets[0];
   uint32_t data_buffer_size = conv2d_op->GetDataBufferSize();
-  lib_mli::OffsetBuffer conv2d_descr_buf{*offset, 0, data_buffer_size, sizeof(char)};
-  *offset += data_buffer_size;
+  lib_mli::OffsetBuffer conv2d_descr_buf{*cnv_offset, 0, data_buffer_size, sizeof(char)};
+  *cnv_offset += data_buffer_size;
 
   assert(data_buffer_size == 0);
-  assert(*offset <= kMemPoolSize);
+  assert(*cnv_offset <= kMemPoolSize);
 
-  // Attaching buffer (descriptors) to the operation
+  // DataBuffer size is 0 for reference kernel
   mli_status status = MLI_STATUS_OK;
 
   status = conv2d_op->AttachBufferOffsets(conv2d_in_tensor,
@@ -553,17 +569,74 @@ void prepare_phase(const conv2d_test_operands* cur_test,
                                           conv2d_descr_buf);
   assert(status == MLI_STATUS_OK);
 
-  // STEP 1.3: Copy dataset from scratch buffer to the global shared memory pool
+  // STEP 1.2: [Rescale] Memory management (Up to user on how to deal with it)
+  //==================================================================
+  uint32_t encoded_params_mem_offset = 0;
+
+  // Define buffers for in\out tensors
+  // Leave space for runtime object
+  uint32_t* rs_offset = &offsets[0];
+  int8_t* rs_runtime_obj_addr = (int8_t*)g_mem_pool + offsets[0];
+  uint32_t rs_runtime_obj_size = rescale_op->GetRuntimeObjectSize();
+  *rs_offset += rs_runtime_obj_size;
+
+  // Leave space for private data buffer
+  rs_offset = &offsets[0];
+  uint32_t rs_private_buffer_size = rescale_op->GetKernelPrivateDataSize();
+  *rs_offset += rs_private_buffer_size;
+
+  // rescale input
+  uint32_t input_elem_size = mli_hlp_tensor_element_size(&rs_input_tsr);
+  uint32_t rs_in_size = rescale_op->GetInputBufferSize() * input_elem_size;
+  lib_mli::OffsetBuffer rescale_in_buf { cnv_out_mem_offset, 0, rs_in_size,
+                                          input_elem_size };
+  lib_mli::Tensor<lib_mli::OffsetBuffer, 4>
+                      rescale_in_tensor(rescale_in_buf, rs_input_tsr.shape);
+
+  // rescale output
+  rs_offset = &offsets[0];
+  uint32_t output_elem_size = mli_hlp_tensor_element_size(&rs_output_tsr);
+  uint32_t rs_out_size = rescale_op->GetOutputBufferSize() * output_elem_size;
+  lib_mli::OffsetBuffer rescale_out_buf { *rs_offset, 0, rs_out_size,
+                                           output_elem_size };
+  lib_mli::Tensor<lib_mli::OffsetBuffer, 4>
+                     rescale_out_tensor(rescale_out_buf, rs_output_tsr.shape);
+  rs_out_mem_offset = *rs_offset;
+  *rs_offset += rs_out_size;
+
+  // rescale params
+  rs_offset = &offsets[0];
+  uint32_t encoded_params_size = rescale_op->GetEncodedParamsSize();
+  lib_mli::OffsetBuffer encoded_params_buf { *rs_offset, 0, encoded_params_size,
+                                              sizeof(int8_t) };
+  encoded_params_mem_offset = *rs_offset;
+  *rs_offset += encoded_params_size;
+
+  // DataBuffer size is 0 for reference kernel
+  rs_offset = &offsets[0];
+  uint32_t rs_data_buffer_size = rescale_op->GetDataBufferSize();
+  lib_mli::OffsetBuffer rescale_descr_buf { *rs_offset, 0,
+                                          rs_data_buffer_size, sizeof(char) };
+  *rs_offset += rs_data_buffer_size;
+
+  // Attaching buffer (descriptors) to the operation
+  status = rescale_op->AttachBufferOffsets(rescale_in_tensor,
+                                           rescale_out_tensor,
+                                           encoded_params_buf,
+                                           rescale_descr_buf);
+  assert(status == MLI_STATUS_OK);
+
+  // STEP 1.3: [Conv2D] Copy dataset from scratch buffer to the global shared memory pool
   //==================================================================
   // Copy input data from scratch buffer to the shared memory pool
-  for (uint32_t i = 0; i < op.input.data.capacity; ++i) {
+  for (uint32_t i = 0; i < cnv_op.input.data.capacity; ++i) {
     const uint32_t idx = in_mem_offset + i;
-    g_mem_pool[idx] = op.input.data.mem.pi8[i];
+    g_mem_pool[idx] = cnv_op.input.data.mem.pi8[i];
   }
   // Copy weights from scratch buffer to the shaped memory pool (EncodeWeights is not supported)
-  for (uint32_t i = 0; i < op.weights.data.capacity; ++i) {
+  for (uint32_t i = 0; i < cnv_op.weights.data.capacity; ++i) {
     const uint32_t idx = w_mem_offset + i;
-    g_mem_pool[idx] = op.weights.data.mem.pi8[i];
+    g_mem_pool[idx] = cnv_op.weights.data.mem.pi8[i];
   }
 
   // Copy input zero points and weights zero points to the temp host buffers
@@ -588,13 +661,13 @@ void prepare_phase(const conv2d_test_operands* cur_test,
 
   // NOTE: Zero Points should have the same size as the tensor they belong to.
   // input zero points: mli_tensor -> host tensor
-  if (op.input.el_params.sa.dim == -1) {
-    assert(op.input.el_params.sa.zero_point.capacity == 0);
-    inpzp_tensor.write(0, static_cast<int8_t>(op.input.el_params.sa.zero_point.mem.i16));
+  if (cnv_op.input.el_params.sa.dim == -1) {
+    assert(cnv_op.input.el_params.sa.zero_point.capacity == 0);
+    inpzp_tensor.write(0, static_cast<int8_t>(cnv_op.input.el_params.sa.zero_point.mem.i16));
   } else {
-    assert(op.input.el_params.sa.zero_point.capacity == src_inpzp_buf.get_size());
+    assert(cnv_op.input.el_params.sa.zero_point.capacity == src_inpzp_buf.get_size());
     for (size_t i = 0; i < inpzp_size / sizeof(int16_t); ++i) {
-      inpzp_tensor.write(int(i), static_cast<int8_t>(op.input.el_params.sa.zero_point.mem.pi16[i]));
+      inpzp_tensor.write(int(i), static_cast<int8_t>(cnv_op.input.el_params.sa.zero_point.mem.pi16[i]));
     }
   }
   // host tensor 8bit -> encoded host buffer 16bit
@@ -607,13 +680,13 @@ void prepare_phase(const conv2d_test_operands* cur_test,
   }
 
   // weights zero points: mli_tensor -> host buffer
-  if (op.weights.el_params.sa.dim == -1) {
-    assert(op.weights.el_params.sa.zero_point.capacity == 0);
-    wtszp_tensor.write(0, static_cast<int8_t>(op.weights.el_params.sa.zero_point.mem.i16));
+  if (cnv_op.weights.el_params.sa.dim == -1) {
+    assert(cnv_op.weights.el_params.sa.zero_point.capacity == 0);
+    wtszp_tensor.write(0, static_cast<int8_t>(cnv_op.weights.el_params.sa.zero_point.mem.i16));
   } else {
-    assert(op.weights.el_params.sa.zero_point.capacity == src_wtszp_buf.get_size());
+    assert(cnv_op.weights.el_params.sa.zero_point.capacity == src_wtszp_buf.get_size());
     for (size_t i = 0; i < wtszp_size / sizeof(int16_t); ++i) {
-      wtszp_tensor.write(int(i), static_cast<int8_t>(op.weights.el_params.sa.zero_point.mem.pi16[i]));
+      wtszp_tensor.write(int(i), static_cast<int8_t>(cnv_op.weights.el_params.sa.zero_point.mem.pi16[i]));
     }
   }
   // host tensor -> encoded host buffer
@@ -625,20 +698,93 @@ void prepare_phase(const conv2d_test_operands* cur_test,
     wtszp_mem[i] = dst_wtszp_buf.read<int16_t>(i);
   }
 
-  // STEP 1.4: Compile conv2d into the binary data
+  // Compile conv2d into the binary data
   //==================================================================
-  op.conv2d_instance = (int8_t*)g_mem_pool;
-  op.conv2d_instance_size = conv2d_op->GetRuntimeObjectSize();
+  cnv_op.conv2d_instance = (int8_t*)g_mem_pool;
+  cnv_op.conv2d_instance_size = conv2d_op->GetRuntimeObjectSize();
 
   status =
-      conv2d_op->GetKernelPrivateData((int8_t*)g_mem_pool + op.conv2d_instance_size);
+      conv2d_op->GetKernelPrivateData((int8_t*)g_mem_pool + cnv_op.conv2d_instance_size);
   assert(status == MLI_STATUS_OK);
-  op.conv2d_conf_private = reinterpret_cast<lib_mli::PrivateData*>(
-      (int8_t*)g_mem_pool + op.conv2d_instance_size);
-  op.conv2d_conf_private_size = conv2d_op->GetKernelPrivateDataSize();
+  cnv_op.conv2d_conf_private = (int8_t*)g_mem_pool + cnv_op.conv2d_instance_size;
+  cnv_op.conv2d_conf_private_size = conv2d_op->GetKernelPrivateDataSize();
+
+  // STEP 1.3: [Rescale] Copy dataset from tensors to the global shared memory pool
+  //==================================================================
+  int8_t host_src_buf[encoded_params_size];
+  int8_t host_dst_buf[encoded_params_size];
+  uint32_t params_shape[1] = {rs_inbias_tsr.shape[0]};
+
+  uint32_t inbias_elem_size = mli_hlp_tensor_element_size(&rs_inbias_tsr);
+  uint32_t scale_elem_size = mli_hlp_tensor_element_size(&rs_scale_tsr);
+  uint32_t shift_elem_size = mli_hlp_tensor_element_size(&rs_shift_tsr);
+  uint32_t outbias_elem_size = mli_hlp_tensor_element_size(&rs_outbias_tsr);
+  uint32_t inbias_size = inbias_elem_size * mli_hlp_count_elem_num(&rs_inbias_tsr, 0);
+  uint32_t scale_size = scale_elem_size * mli_hlp_count_elem_num(&rs_scale_tsr, 0);
+  uint32_t shift_size = shift_elem_size * mli_hlp_count_elem_num(&rs_shift_tsr, 0);
+  uint32_t outbias_size = outbias_elem_size * mli_hlp_count_elem_num(&rs_outbias_tsr, 0);
+
+  lib_mli::Buffer src_inbias_buf(host_src_buf,
+          inbias_size, inbias_elem_size);
+  lib_mli::Buffer src_scale_buf(host_src_buf + inbias_size,
+          scale_size, scale_elem_size);
+  lib_mli::Buffer src_shift_buf(host_src_buf + inbias_size + scale_size,
+          shift_size, shift_elem_size);
+  lib_mli::Buffer src_outbias_buf(host_src_buf + inbias_size + scale_size + shift_size,
+          outbias_size, outbias_elem_size);
+
+  lib_mli::Buffer encoded_params_buffer(host_dst_buf, encoded_params_size, sizeof(int8_t));
+
+  lib_mli::Tensor<lib_mli::Buffer,1> inbias_tensor(src_inbias_buf, params_shape);
+  lib_mli::Tensor<lib_mli::Buffer,1> scale_tensor(src_scale_buf, params_shape);
+  lib_mli::Tensor<lib_mli::Buffer,1> shift_tensor(src_shift_buf, params_shape);
+  lib_mli::Tensor<lib_mli::Buffer,1> outbias_tensor(src_outbias_buf, params_shape);
+
+  for(uint32_t i = 0; i< (inbias_size/inbias_elem_size); i++) {
+      inbias_tensor.write<int32_t>(i, rs_inbias_tsr.data.mem.pi32[i]);
+  }
+  for(uint32_t i = 0; i< (scale_size/scale_elem_size); i++) {
+      scale_tensor.write<int16_t>(i, rs_scale_tsr.data.mem.pi16[i]);
+  }
+  for(uint32_t i = 0; i< (shift_size/shift_elem_size); i++) {
+      shift_tensor.write<int8_t>(i, rs_shift_tsr.data.mem.pi8[i]);
+  }
+  for(uint32_t i = 0; i< (outbias_size/outbias_elem_size); i++) {
+      outbias_tensor.write<int8_t>(i, rs_outbias_tsr.data.mem.pi8[i]);
+  }
+
+  // host tensors -> encoded host buffer
+  status = rescale_op->EncodeParams(inbias_tensor,
+                                    scale_tensor,
+                                    shift_tensor,
+                                    outbias_tensor,
+                                    encoded_params_buffer);
+  assert(status == MLI_STATUS_OK);
+
+  // encoded host buffer -> global mem pool
+  for (uint32_t i = 0; i < encoded_params_size; ++i) {
+      const uint32_t idx = encoded_params_mem_offset + i;
+      g_mem_pool[idx] = encoded_params_buffer.read<int8_t>(i);
+  }
+
+  // Copy output data(including holes due to CRC calculation) to the shared memory pool
+  for (uint32_t i = 0; i < rs_out_size; ++i) {
+      const uint32_t idx = rs_out_mem_offset + i;
+      g_mem_pool[idx] = rs_output_tsr.data.mem.pi8[i];
+  }
+
+  // Compile Rescale into the binary data
+  //==================================================================
+  rescale_instance = rs_runtime_obj_addr;
+  rescale_instance_size = rescale_op->GetRuntimeObjectSize();
+  rescale_conf_private = rs_runtime_obj_addr + rescale_instance_size;
+  rescale_conf_private_size = rescale_op->GetKernelPrivateDataSize();
+
+  status = rescale_op->GetKernelPrivateData(rescale_conf_private);
+  assert(status == MLI_STATUS_OK);
 }
 
-void execution_phase(Conv2dOp& op) {
+void execution_phase(Conv2dOp& cnv_op, RescaleOp &rs_op) {
   // STEP 3: Execution phase
   //==================================================================
   uint32_t tiles_num = 1;
@@ -646,21 +792,36 @@ void execution_phase(Conv2dOp& op) {
   uint64_t membasis[] = {reinterpret_cast<uint64_t>(g_mem_pool)};
 
   auto mli_conv = lib_mli::ExecutionInterface::Create(
-    op.conv2d_instance, op.conv2d_instance_size,
-    op.conv2d_conf_private, op.conv2d_conf_private_size,
-    membasis, sizeof(membasis) / sizeof(membasis[0]));
+                    cnv_op.conv2d_instance,
+                    cnv_op.conv2d_instance_size,
+                    cnv_op.conv2d_conf_private,
+                    cnv_op.conv2d_conf_private_size,
+                    membasis, sizeof(membasis) / sizeof(membasis[0]));
+
+  auto mli_rescale = lib_mli::ExecutionInterface::Create(
+                        rs_op.rescale_instance,
+                        rs_op.rescale_instance_size,
+                        rs_op.rescale_conf_private,
+                        rs_op.rescale_conf_private_size,
+                        membasis, sizeof(membasis) / sizeof(membasis[0]));
 
   assert(mli_conv != nullptr);
+  assert(mli_rescale != nullptr);
 
   mli_status status = MLI_STATUS_OK;
   for (int i = 0; i < tiles_num; ++i) {
     status = mli_conv->Prefetch();
     assert(status == MLI_STATUS_OK);
-
     status = mli_conv->Issue();
     assert(status == MLI_STATUS_OK);
-
     status = mli_conv->Update();
+    assert(status == MLI_STATUS_OK);
+
+    status = mli_rescale->Prefetch();
+    assert(status == MLI_STATUS_OK);
+    status = mli_rescale->Issue();
+    assert(status == MLI_STATUS_OK);
+    status = mli_rescale->Update();
     assert(status == MLI_STATUS_OK);
   }
 }
@@ -777,44 +938,66 @@ int main() {
 
     bool is_test_passed = preprocess_phase(reporter, cur_test, conv2d_op, rs_op);
 
+    //
+    // Solution to vectorize Rescale params tensors in case of per-axis
+    // computation.
+    //
+    // All params tensors that have one element, should have rank of 1
+    // (including out_bias).
+    //
+    const mli_tensor& inbias_tsr = rs_op.mli3_bias.get_bias_tsr();
+    auto& outbias_tsr = rs_op.bias_out;
+    auto& shift_tsr  = (mli_tensor&)rs_op.mli3_scales_keeper.get_shift_tsr();
+    auto& scale_tsr  = (mli_tensor&)rs_op.mli3_scales_keeper.get_scales_tsr();
+    uint32_t elem_num = mli_hlp_count_elem_num(&inbias_tsr, 0);
+    int8_t outbias_data[elem_num];
+    int8_t shift_data[elem_num];
+    int16_t scale_data[elem_num];
+    {
+        int32_t rescale_axis;
+        if (mli_hlp_count_elem_num(&scale_tsr, 0) == 1) {
+            rescale_axis = -1;
+        } else {
+            rescale_axis = conv2d_op.out_acc.rank - 1;
+        }
+
+        // If per-axis computation && out_bias is one element,
+        // so construct out_bias tensor as vector the same as other params.
+        if((rescale_axis != -1) && (mli_hlp_count_elem_num(&outbias_tsr, 0) == 1)) {
+            vectorize_single_elem_tensor(outbias_tsr, inbias_tsr, outbias_data);
+        }
+
+        // If per-tensor computation && in_bias is vector,
+        // so construct out_bias, shift and scale tensors as vectors the same as in_bias.
+        if((rescale_axis == -1) && (mli_hlp_count_elem_num(&inbias_tsr, 0) != 1)) {
+            vectorize_single_elem_tensor(outbias_tsr, inbias_tsr, outbias_data);
+            vectorize_single_elem_tensor(shift_tsr, inbias_tsr, shift_data);
+            vectorize_single_elem_tensor(scale_tsr, inbias_tsr, scale_data);
+        }
+    }
+
     // STEP 1: Preparing phase
     //==================================================================
-    uint32_t out_mem_offset = 0;
-    prepare_phase(cur_test, out_mem_offset, conv2d_op);
+    uint32_t conv2d_out_mem_offset = 0;
+    uint32_t rs_out_mem_offset = 0;
+
+    prepare_phase(cur_test, conv2d_op, rs_op, conv2d_out_mem_offset,
+            rs_out_mem_offset);
 
     // STEP 2: Executing phase
     //==================================================================
-    // Run conv2d MLI3.0 kernel
-    execution_phase(conv2d_op);
+    // Run conv2d & rescale MLI3.0 kernel
+    execution_phase(conv2d_op, rs_op);
 
-    // Get the output of Conv2d and copy it to conv2d_op.out_acc
-    for (uint32_t i = 0; i < conv2d_op.out_acc.data.capacity; ++i) {
-      conv2d_op.out_acc.data.mem.pi8[i] = *(g_mem_pool + out_mem_offset + i);
+    // Get the output of Rescale and copy it to rs_op.out
+    for (uint32_t j = 0; j < rs_op.out.data.capacity; ++j) {
+        rs_op.out.data.mem.pi8[j] = *((int8_t*)g_mem_pool + rs_out_mem_offset + j);
     }
 
-    // Run rescale kernel
-    if (is_test_passed &&
-        // i32->i8
-        mli_krn_rescale_i32_o8(&conv2d_op.out_acc,
-                               &rs_op.mli3_bias.get_bias_tsr(),
-                               &rs_op.mli3_scales_keeper.get_scales_tsr(),
-                               &rs_op.mli3_scales_keeper.get_shift_tsr(),
-                               &rs_op.bias_out, &rs_op.out) != MLI_STATUS_OK) {
-      reporter.report_message(cur_test->descr, "FAILED at kernel run: kernel returned bad status");
-      is_test_passed = false;
-    }
     if (is_test_passed) {
       // TODO: refactor, reuse relu code
       relu(&rs_op.out, &cur_test->cfg.relu);
     }
-
-    // Run conv2d MLI2.0 kernel, for debug purpose
-    // if (is_test_passed &&
-    //     cur_test->mli_krn_conv2d(&conv2d_op.input, &conv2d_op.weights, &rs_op.bias_in,
-    //                              &cur_test->cfg, &rs_op.out) != MLI_STATUS_OK) {
-    //   reporter.report_message(cur_test->descr, "FAILED at kernel run: kernel returned bad status");
-    //   is_test_passed = false;
-    // }
 
     // STEP 3: Postprocessing phase
     //==================================================================

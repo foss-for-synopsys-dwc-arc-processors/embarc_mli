@@ -11,14 +11,13 @@
 
 #include "mli_types.h"
 #include "mli_types.hpp"
-
 #include "mli_ref_compiler_api.hpp"
 
 namespace lib_mli = ::snps_arc::metaware::mli;
 
 namespace snps_arc::metaware::mli::ref {
 class Conv2DPrivateData : public PrivateData {
-  public:
+public:
     Conv2DPrivateData() : PrivateData(kConv2dId){}
 
     // currently we support the only i8_w8_o32 case
@@ -157,6 +156,7 @@ struct FullyConnectedMetadata {
     mli_tensor weights;
     mli_tensor output;
 };
+
 class MovePrivateData : public PrivateData {
 
 public:
@@ -254,7 +254,8 @@ public:
 };
 
 class EltwisePrivateData : public PrivateData {
-  public:
+
+public:
     EltwisePrivateData(kernel_id_t kernel_id) : PrivateData(kernel_id) {}
     OffsetBuffer m_in_left_buffer;
     OffsetBuffer m_in_right_buffer;
@@ -272,6 +273,53 @@ class EltwisePrivateData : public PrivateData {
     int32_t m_output_stride[4];
 };
 
+class RescalePrivateData : public PrivateData {
+
+public:
+    RescalePrivateData() : PrivateData(kRescaleId) {}
+
+    int32_t rescale_axis;
+
+    uint32_t io_rank;
+
+    OffsetBuffer input_buffer;
+    OffsetBuffer output_buffer;
+    OffsetBuffer encoded_params_buffer;
+
+    uint32_t params_elem_num;
+    
+    uint32_t input_b;
+    uint32_t input_h;
+    uint32_t input_w;
+    uint32_t input_c;
+
+    uint32_t output_b;
+    uint32_t output_h;
+    uint32_t output_w;
+    uint32_t output_c;
+
+    int32_t input_b_stride;
+    int32_t input_h_stride;
+    int32_t input_w_stride;
+    int32_t input_c_stride;
+
+    int32_t output_b_stride;
+    int32_t output_h_stride;
+    int32_t output_w_stride;
+    int32_t output_c_stride;
+};
+
+struct RescaleMetadata {
+    mli_tensor input;
+    mli_tensor in_bias;
+    mli_tensor scale;
+    mli_tensor shift;
+    mli_tensor out_bias;
+    int32_t rescale_axis;
+    mli_tensor output;
+};
+
 } // namespace snps_arc::metaware::mli::ref
 
 #endif // _MLI_REF_PRIVATE_TYPES_HPP_
+

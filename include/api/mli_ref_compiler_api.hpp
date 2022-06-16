@@ -137,7 +137,6 @@ private:
 
     OffsetBuffer m_input_zp;
     OffsetBuffer m_weights_zp;
-    OffsetBuffer m_metadata;
 
     uint32_t m_input_buffer_size;
     uint32_t m_weights_buffer_size;
@@ -294,6 +293,50 @@ private:
     lib_mli::PlatformDescription m_pd;
 };
 
+class Rescale_CS : public lib_mli::Rescale_CS {
+public:
+    Rescale_CS(const lib_mli::PlatformDescription pd,
+               const Tensor<NoBuffer, 4> input_shape,
+               const RescaleConfig &cfg,
+               const Tensor<NoBuffer, 4> output_tile_shape);
+    // From Rescale_CS
+    unsigned GetInputBufferSize() const override;
+    unsigned GetOutputBufferSize() const override;
+    unsigned GetParamsBufferSize() const override;
+    unsigned GetDataBufferSize() const override;
+    unsigned GetEncodedParamsSize() const override;
+    mli_status EncodeParams(const Tensor<Buffer, 1> &in_bias,
+                            const Tensor<Buffer, 1> &out_bias,
+                            const Tensor<Buffer, 1> &scale,
+                            const Tensor<Buffer, 1> &shift,
+                            Buffer &encoded_params) override;
+    mli_status GetKernelPrivateData( void *kernel_private_data_buffer ) override;
+    unsigned GetKernelPrivateDataSize() const override;
+    unsigned GetRuntimeObjectSize() const override;
+
+    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
+                                   const Tensor<OffsetBuffer, 4> &output,
+                                   const OffsetBuffer &encoded_params,
+                                   const OffsetBuffer &metadata) override;
+
+private:
+    RescaleConfig m_config;
+
+    Tensor<OffsetBuffer, 4> m_input;
+    Tensor<OffsetBuffer, 4> m_output;
+
+    OffsetBuffer m_encoded_params;
+
+    uint32_t m_input_buffer_size;
+    uint32_t m_output_buffer_size;
+    uint32_t m_params_elem_num;
+
+    // sizes in bytes
+    uint32_t m_encoded_params_buffer_size;
+
+    lib_mli::PlatformDescription m_pd;
+};
+
 class Move_CS : public lib_mli::Move_CS {
  public:
   /**
@@ -353,7 +396,6 @@ private:
 
   int32_t m_src_stride[kMaxRank];
   int32_t m_dst_stride[kMaxRank];
-
 };
 
 class Add_CS : public lib_mli::Add_CS {

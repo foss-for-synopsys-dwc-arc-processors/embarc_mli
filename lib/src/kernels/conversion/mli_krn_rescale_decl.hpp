@@ -31,12 +31,13 @@ namespace krn {
 namespace ref {
 
 template <typename i_T, typename o_T>
-mli_status MLI_FORCE_INLINE rescale_prepare_and_run(const mli_tensor *in,
-                                                    const mli_tensor *bias_in,
-                                                    const mli_tensor *scale,
-                                                    const mli_tensor *shift,
-                                                    const mli_tensor *bias_out,
-                                                    mli_tensor *out);
+mli_status MLI_FORCE_INLINE mli_krn_rescale(const mli_tensor *in,
+                                            const mli_tensor *bias_in,
+                                            const mli_tensor *scale,
+                                            const mli_tensor *shift,
+                                            const mli_tensor *bias_out,
+                                            const int32_t rescale_axis,
+                                            mli_tensor *out);
 
 } // namespace ref
 } // namespace krn

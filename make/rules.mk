@@ -31,6 +31,9 @@ endif
 include $(EMBARC_MLI_DIR)/make/settings.mk
 
 TOOLCHAIN_OPTIONS = $(CMAKE_OPTIONS)
+ifeq ($(DEBUG_BUILD),ON)
+TOOLCHAIN_OPTIONS += -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS_DEBUG="-g -O0 -fstack-protector-all " -DCMAKE_CXX_FLAGS_DEBUG="-g -O0 -fstack-protector-all "
+endif
 ifdef TCF_FILE
 # For TCF_FILE, we only take the realpath if the file exists (otherwise it is a file inside MWDT)
 TOOLCHAIN_OPTIONS += \

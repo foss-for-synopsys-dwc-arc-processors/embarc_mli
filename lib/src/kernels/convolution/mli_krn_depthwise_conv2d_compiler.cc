@@ -22,7 +22,6 @@ DepthwiseConv2d_CS::DepthwiseConv2d_CS(const lib_mli::PlatformDescription pd,
                                        const Tensor<NoBuffer, 4> &output_tile_shape)
     : m_config{cfg}
     , m_input_zp{}
-    , m_metadata{}
     , m_pd{pd}
 {
   uint32_t input_shape[4];
