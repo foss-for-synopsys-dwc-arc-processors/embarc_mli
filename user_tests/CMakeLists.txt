@@ -100,6 +100,7 @@ add_library(test_components_obj OBJECT
     test_components/test_tensor_quantizer.cc
     test_components/test_report.cc
     test_components/test_rescale_utility.cc
+    test_components/test_tiling.cc
     ../examples/auxiliary/tensor_transform.c
     ../examples/auxiliary/tests_aux.c
     ../examples/auxiliary/idx_file.c

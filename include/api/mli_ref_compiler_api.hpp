@@ -167,27 +167,20 @@ public:
     unsigned GetOutputBufferSize() const override;
     unsigned GetDataBufferSize() const override;
 
-    // TODO: add destructor if need
+    mli_status SetIterators(uint32_t total_output_size[4], uint32_t iteration_order[4],
+                            uint32_t first_tile_size[4], uint32_t tile_size[4],
+                            uint32_t input_first_inc[4], uint32_t input_inc[4],
+                            uint32_t output_first_inc[4], uint32_t output_inc[4]) override;
+    
+    //TODO: add destructor if need
+
 
 private:
-    uint32_t m_io_elem_size;
+    Tensor<OffsetBuffer, 4> m_in;
+    Tensor<OffsetBuffer, 4> m_output;
 
     uint32_t m_input_buffer_size;
     uint32_t m_output_buffer_size;
-
-    uint32_t m_input_offset;
-    uint32_t m_output_offset;
-    uint32_t m_descr_offset;
-
-    uint32_t m_input_mem_id;
-    uint32_t m_output_mem_id;
-    uint32_t m_descr_mem_id;
-
-    uint32_t m_input_shape[4];
-    uint32_t m_output_shape[4];
-
-    int32_t m_input_stride[4];
-    int32_t m_output_stride[4];
 
     uint8_t m_kernel_width;
     uint8_t m_kernel_height;
@@ -199,6 +192,16 @@ private:
     uint8_t m_padding_bottom;
 
     lib_mli::PlatformDescription m_pd;
+
+    // Tile Parameters BHWC
+    uint32_t m_tile_total_output_size[4];
+    uint32_t m_tile_iteration_order[4];
+    uint32_t m_tile_first_size[4];
+    uint32_t m_tile_size[4];
+    uint32_t m_tile_input_first_inc[4];
+    uint32_t m_tile_input_inc[4];
+    uint32_t m_tile_output_first_inc[4];
+    uint32_t m_tile_output_inc[4];
 };
 
 class SumPool2D_CS : public lib_mli::SumPool2D_CS {

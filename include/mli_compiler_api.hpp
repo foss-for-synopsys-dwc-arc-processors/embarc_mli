@@ -444,6 +444,11 @@ public:
     virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
                                            const Tensor<OffsetBuffer, 4> &output,
                                            const OffsetBuffer &data) = 0;
+
+    virtual mli_status SetIterators(uint32_t total_output_size[4], uint32_t iteration_order[4],
+                                    uint32_t first_tile_size[4], uint32_t tile_size[4],
+                                    uint32_t input_first_inc[4], uint32_t input_inc[4],
+                                    uint32_t output_first_inc[4], uint32_t output_inc[4]) = 0;
 };
 
 /**

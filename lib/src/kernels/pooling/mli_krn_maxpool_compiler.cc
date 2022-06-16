@@ -28,17 +28,37 @@ MaxPool2D_CS::MaxPool2D_CS(const lib_mli::PlatformDescription pd,
       m_padding_top(cfg.padding_begin[0]),
       m_padding_bottom(cfg.padding_end[0]),
       m_pd(pd) {
+  
+  uint32_t input_shape[4];
+  int32_t input_stride[4];
+  uint32_t output_shape[4];
+  int32_t output_stride[4];
   for (int dim = 0; dim < 4; dim++) {
-    m_input_shape[dim] = in.get_dim(dim);
-    m_input_stride[dim] = in.get_mem_stride(dim);
-    m_output_shape[dim] = output_tile_shape.get_dim(dim);
-    m_output_stride[dim] = output_tile_shape.get_mem_stride(dim);
+    input_shape[dim] = in.get_dim(dim);
+    input_stride[dim] = in.get_mem_stride(dim);
+    output_shape[dim] = output_tile_shape.get_dim(dim);
+    output_stride[dim] = output_tile_shape.get_mem_stride(dim);
   }
 
+  m_in = Tensor<OffsetBuffer, 4>(OffsetBuffer(), input_shape, input_stride);
+  m_output = Tensor<OffsetBuffer, 4>(OffsetBuffer(), output_shape, output_stride);
+
   m_input_buffer_size =
-      service::GetBufferSize(4, m_input_shape, m_input_stride);
+      service::GetBufferSize(4, input_shape, input_stride);
   m_output_buffer_size =
-      service::GetBufferSize(4, m_output_shape, m_output_stride);
+      service::GetBufferSize(4, output_shape, output_stride);
+
+  for (int i = 0; i < 4; i++) {
+    m_tile_first_size[i] = 0;
+    m_tile_size[i] = 0;
+    m_tile_total_output_size[i] = 0;
+    m_tile_iteration_order[i] = 0;
+    m_tile_input_first_inc[i] = 0;
+    m_tile_input_inc[i] = 0;
+    m_tile_output_first_inc[i] = 0;
+    m_tile_output_inc[i] = 0;
+  };
+
 };
 
 unsigned MaxPool2D_CS::GetKernelPrivateDataSize() const {
@@ -54,23 +74,30 @@ mli_status MaxPool2D_CS::GetKernelPrivateData(
   MaxPool2DPrivateData obj;
 
   obj.size = sizeof(MaxPool2DPrivateData);
-  obj.io_elem_size = m_io_elem_size;
-  obj.input_c = m_input_shape[kTensorChannelDim];
-  obj.input_w = m_input_shape[kTensorWidthDim];
-  obj.input_h = m_input_shape[kTensorHeightDim];
-  obj.input_b = m_input_shape[kTensorBatchDim];
-  obj.input_c_stride = m_input_stride[kTensorChannelDim];
-  obj.input_w_stride = m_input_stride[kTensorWidthDim];
-  obj.input_h_stride = m_input_stride[kTensorHeightDim];
-  obj.input_b_stride = m_input_stride[kTensorBatchDim];
-  obj.output_c = m_output_shape[kTensorChannelDim];
-  obj.output_w = m_output_shape[kTensorWidthDim];
-  obj.output_h = m_output_shape[kTensorHeightDim];
-  obj.output_b = m_output_shape[kTensorBatchDim];
-  obj.output_c_stride = m_output_stride[kTensorChannelDim];
-  obj.output_w_stride = m_output_stride[kTensorWidthDim];
-  obj.output_h_stride = m_output_stride[kTensorHeightDim];
-  obj.output_b_stride = m_output_stride[kTensorBatchDim];
+  
+  obj.input_buffer = m_in.get_buf();
+  obj.output_buffer = m_output.get_buf();
+
+  obj.input_c = m_in.get_dim(kTensorChannelDim);
+  obj.input_w = m_in.get_dim(kTensorWidthDim);
+  obj.input_h = m_in.get_dim(kTensorHeightDim);
+  obj.input_b = m_in.get_dim(kTensorBatchDim);
+
+  obj.input_c_stride = m_in.get_mem_stride(kTensorChannelDim);
+  obj.input_w_stride = m_in.get_mem_stride(kTensorWidthDim);
+  obj.input_h_stride = m_in.get_mem_stride(kTensorHeightDim);
+  obj.input_b_stride = m_in.get_mem_stride(kTensorBatchDim);
+
+  obj.output_c = m_output.get_dim(kTensorChannelDim);
+  obj.output_w = m_output.get_dim(kTensorWidthDim);
+  obj.output_h = m_output.get_dim(kTensorHeightDim);
+  obj.output_b = m_output.get_dim(kTensorBatchDim);
+
+  obj.output_c_stride = m_output.get_mem_stride(kTensorChannelDim);
+  obj.output_w_stride = m_output.get_mem_stride(kTensorWidthDim);
+  obj.output_h_stride = m_output.get_mem_stride(kTensorHeightDim);
+  obj.output_b_stride = m_output.get_mem_stride(kTensorBatchDim);
+
   obj.kernel_width = m_kernel_width;
   obj.kernel_height = m_kernel_height;
   obj.stride_width = m_stride_width;
@@ -79,12 +106,18 @@ mli_status MaxPool2D_CS::GetKernelPrivateData(
   obj.padding_right = m_padding_right;
   obj.padding_top = m_padding_top;
   obj.padding_bottom = m_padding_bottom;
-  obj.input_offset = m_input_offset;
-  obj.output_offset = m_output_offset;
-  obj.tensor_data_offset = m_descr_offset;
-  obj.input_mem_id = m_input_mem_id;
-  obj.output_mem_id = m_output_mem_id;
-  obj.descr_mem_id = m_descr_mem_id;
+
+  for (int i = 0; i < 4; i++) {
+    obj.m_tile_total_output_size[i] = m_tile_total_output_size[i];
+    obj.m_tile_iteration_order[i] = m_tile_iteration_order[i];
+    obj.m_tile_input_first_inc[i] = m_tile_input_first_inc[i];
+    obj.m_tile_first_size[i] = m_tile_first_size[i];
+    obj.m_tile_size[i] = m_tile_size[i];
+    obj.m_tile_input_inc[i] = m_tile_input_inc[i];
+    obj.m_tile_output_first_inc[i] = m_tile_output_first_inc[i];
+    obj.m_tile_output_inc[i] = m_tile_output_inc[i];
+  }
+
 
   std::memcpy(kernel_private_data_buffer, (void *)&obj, sizeof(obj));
 
@@ -94,21 +127,12 @@ mli_status MaxPool2D_CS::GetKernelPrivateData(
 mli_status MaxPool2D_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
                                              const Tensor<OffsetBuffer, 4> &output,
                                              const OffsetBuffer &data) {
-  OffsetBuffer in_buf = input.get_buf();
-  OffsetBuffer out_buf = output.get_buf();
-  assert(in_buf.get_size() == m_input_buffer_size * in_buf.get_elem_size());
-  assert(out_buf.get_size() == m_output_buffer_size * out_buf.get_elem_size());
 
-  assert(in_buf.get_elem_size() == out_buf.get_elem_size());
-  m_io_elem_size = in_buf.get_elem_size();
+  assert(input.get_buf().get_size() == m_input_buffer_size * input.get_elem_size());
+  assert(output.get_buf().get_size() == m_output_buffer_size * output.get_elem_size());
 
-  m_input_offset = in_buf.get_offset();
-  m_output_offset = out_buf.get_offset();
-  m_descr_offset = data.get_offset();
-
-  m_input_mem_id = in_buf.get_mem_idx();
-  m_output_mem_id = out_buf.get_mem_idx();
-  m_descr_mem_id = data.get_mem_idx();
+  m_in.set_buf(input.get_buf());
+  m_output.set_buf(output.get_buf());
 
   return MLI_STATUS_OK;
 }
@@ -121,6 +145,24 @@ unsigned MaxPool2D_CS::GetOutputBufferSize() const {
 }
 unsigned MaxPool2D_CS::GetDataBufferSize() const {
   return 0;
+}
+
+mli_status MaxPool2D_CS::SetIterators(uint32_t total_output_size[4], uint32_t iteration_order[4],
+                                      uint32_t first_tile_size[4], uint32_t tile_size[4],
+                                      uint32_t input_first_inc[4], uint32_t input_inc[4],
+                                      uint32_t output_first_inc[4], uint32_t output_inc[4]) {
+  for (int i = 0; i < 4; i++) {
+    m_tile_first_size[i] = first_tile_size[i];
+    m_tile_size[i] = tile_size[i];
+    m_tile_total_output_size[i] = total_output_size[i];
+    m_tile_iteration_order[i] = iteration_order[i];
+    m_tile_input_first_inc[i] = input_first_inc[i];
+    m_tile_input_inc[i] = input_inc[i];
+    m_tile_output_first_inc[i] = output_first_inc[i];
+    m_tile_output_inc[i] = output_inc[i];
+  }
+
+  return MLI_STATUS_OK;
 }
 
 }  // namespace snps_arc::metaware::mli::ref

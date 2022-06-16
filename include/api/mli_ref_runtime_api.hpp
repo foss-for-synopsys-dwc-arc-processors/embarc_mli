@@ -162,7 +162,14 @@ public:
 
     mli_status Update() override;
 
+
+    void get_io_sizes_and_offsets(uint32_t input_size[4], uint32_t output_size[4],
+                                  uint32_t input_offsets[4], uint32_t output_offsets[4]) const;
+
 private:
+    void UpdateTilePaddings();
+
+
     mli_pool_cfg m_cfg;
     mli_tensor m_input;
     mli_tensor m_output;
@@ -170,6 +177,24 @@ private:
     int32_t m_output_batch_offset;
     uint32_t m_batch_number;
     uint32_t m_io_elem_size;
+
+    // Tile Parameters BHWC
+    bool m_use_tiling;
+    uint32_t m_tile_total_input_size[4];
+    uint32_t m_tile_total_output_size[4];
+    uint32_t m_tile_iteration_order[4];
+    uint32_t m_tile_first_size[4];
+    uint32_t m_tile_size[4];
+    uint32_t m_tile_input_first_inc[4];
+    uint32_t m_tile_input_inc[4];
+    uint32_t m_tile_output_first_inc[4];
+    uint32_t m_tile_output_inc[4];    
+
+    // Tile state
+    uint32_t m_tile_input_offsets[4];
+    uint32_t m_tile_output_offsets[4];
+    mli_pool_cfg m_tile_cfg;
+
 };
 
 

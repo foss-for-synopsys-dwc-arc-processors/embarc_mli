@@ -174,11 +174,9 @@ class MaxPool2DPrivateData : public PrivateData {
 public:
     MaxPool2DPrivateData() : PrivateData(kMaxPool2DId) {}
 
-    uint32_t io_elem_size;
-
-    uint32_t input_offset;
-    uint32_t output_offset;
-    uint32_t tensor_data_offset;
+    OffsetBuffer input_buffer;
+    OffsetBuffer output_buffer;
+    OffsetBuffer tensor_data_offset;
 
     uint32_t input_w;
     uint32_t input_h;
@@ -189,10 +187,6 @@ public:
     uint32_t output_h;
     uint32_t output_c;
     uint32_t output_b;
-
-    int32_t descr_mem_id;
-    int32_t input_mem_id;
-    int32_t output_mem_id;
 
     int32_t input_w_stride;
     int32_t input_h_stride;
@@ -212,6 +206,16 @@ public:
     uint8_t padding_right;
     uint8_t padding_top;
     uint8_t padding_bottom;
+
+    // Tile Parameters BHWC
+    uint32_t m_tile_total_output_size[4];
+    uint32_t m_tile_iteration_order[4];
+    uint32_t m_tile_first_size[4];
+    uint32_t m_tile_size[4];
+    uint32_t m_tile_input_first_inc[4];
+    uint32_t m_tile_input_inc[4];
+    uint32_t m_tile_output_first_inc[4];
+    uint32_t m_tile_output_inc[4];
 };
 
 class SumPool2DPrivateData : public PrivateData {
