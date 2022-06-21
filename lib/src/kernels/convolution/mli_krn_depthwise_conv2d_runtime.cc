@@ -58,7 +58,7 @@ DepthwiseConv2d::DepthwiseConv2d(void* kernel_private_data_buffer,
       tsr.el_type = MLI_EL_SA_8;
       tsr.data.mem.pi8 = input_internal.get_ptr<int8_t>();
     } else {
-      assert(false);
+      MLI_ASSERT(false);
     }
     // HWCi
     tsr.rank = 3;
@@ -80,7 +80,7 @@ DepthwiseConv2d::DepthwiseConv2d(void* kernel_private_data_buffer,
       tsr.el_params.sa.zero_point.mem.i16 = inpzp_internal.read<int16_t>(0);
     } else {
       // not support yet
-      assert(false);
+      MLI_ASSERT(false);
     }
   }
 
@@ -92,7 +92,7 @@ DepthwiseConv2d::DepthwiseConv2d(void* kernel_private_data_buffer,
       tsr.el_type = MLI_EL_SA_32;
       tsr.data.mem.pi32 = output_internal.get_ptr<int32_t>();
     } else {
-      assert(false);
+      MLI_ASSERT(false);
     }
     // HWCo (Cin=Co)
     tsr.rank = 3;
@@ -112,7 +112,7 @@ DepthwiseConv2d::DepthwiseConv2d(void* kernel_private_data_buffer,
       tsr.el_type = MLI_EL_SA_8;
       tsr.data.mem.pi8 = weights_internal.get_ptr<int8_t>();
     } else {
-      assert(false);
+      MLI_ASSERT(false);
     }
     // HW1Cin
     tsr.rank = 4;
@@ -138,7 +138,7 @@ DepthwiseConv2d::DepthwiseConv2d(void* kernel_private_data_buffer,
       tsr.el_params.sa.zero_point.mem.pi16 = wtszp_internal.get_ptr<int16_t>();
     } else {
       // not support yet
-      assert(false);
+      MLI_ASSERT(false);
     }
   }
 }

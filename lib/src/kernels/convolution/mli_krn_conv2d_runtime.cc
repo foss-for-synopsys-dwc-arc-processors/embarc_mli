@@ -58,7 +58,7 @@ Conv2d::Conv2d(void* kernel_private_data_buffer,
       tsr.el_type = MLI_EL_SA_8;
       tsr.data.mem.pi8 = input_internal.get_ptr<int8_t>();
     } else {
-      assert(false);
+      MLI_ASSERT(false);
     }
     // HWCi
     tsr.rank = 3;
@@ -71,7 +71,7 @@ Conv2d::Conv2d(void* kernel_private_data_buffer,
 
     // input zero points
     uint32_t inpzp_elem_size = private_data.inpzp_buffer.get_elem_size();
-    assert(inpzp_elem_size == sizeof(int16_t));
+    MLI_ASSERT(inpzp_elem_size == sizeof(int16_t));
     if (private_data.inpzp_buffer.get_size() / inpzp_elem_size == 1) {
       // per-tensor quantization
       MLI_ASSERT(inpzp_elem_size == sizeof(int16_t));
@@ -81,7 +81,7 @@ Conv2d::Conv2d(void* kernel_private_data_buffer,
       tsr.el_params.sa.zero_point.mem.i16 = inpzp_internal.read<int16_t>(0);
     } else {
       // not support yet
-      assert(false);
+      MLI_ASSERT(false);
     }
   }
 
@@ -93,7 +93,7 @@ Conv2d::Conv2d(void* kernel_private_data_buffer,
       tsr.el_type = MLI_EL_SA_32;
       tsr.data.mem.pi32 = output_internal.get_ptr<int32_t>();
     } else {
-      assert(false);
+      MLI_ASSERT(false);
     }
     // HWCo
     tsr.rank = 3;
@@ -113,7 +113,7 @@ Conv2d::Conv2d(void* kernel_private_data_buffer,
       tsr.el_type = MLI_EL_SA_8;
       tsr.data.mem.pi8 = weights_internal.get_ptr<int8_t>();
     } else {
-      assert(false);
+      MLI_ASSERT(false);
     }
     // HWCinCo
     tsr.rank = 4;
@@ -128,7 +128,7 @@ Conv2d::Conv2d(void* kernel_private_data_buffer,
 
     // weights zero point should have the same size as the tensor they belong to.
     uint32_t wtszp_elem_size = private_data.wtszp_buffer.get_elem_size();
-    assert(wtszp_elem_size == sizeof(int16_t));
+    MLI_ASSERT(wtszp_elem_size == sizeof(int16_t));
     uint32_t wtszp_size = private_data.wtszp_buffer.get_size();
     if (wtszp_size / wtszp_elem_size > 1) {
       // per-channel quantization
@@ -140,7 +140,7 @@ Conv2d::Conv2d(void* kernel_private_data_buffer,
       tsr.el_params.sa.zero_point.mem.pi16 = wtszp_internal.get_ptr<int16_t>();
     } else {
       // not support yet
-      assert(false);
+      MLI_ASSERT(false);
     }
   }
 }

@@ -142,14 +142,14 @@ constexpr int kTestsNum = sizeof(tests_list) / sizeof(tests_list[0]);
 //==================================================================
 constexpr uint32_t kMemSize = 2047;
 constexpr int kMemAccSize = kMemSize * sizeof(int32_t); // TODO: for double wide accu, more space might be required
-static IO_DATA_ATTR int8_t g_scratch_mem_in[kMemSize] = { 0 };
-static IO_DATA_ATTR int8_t g_scratch_mem_acc_out[kMemAccSize] = { 0 };
-static IO_DATA_ATTR int8_t g_scratch_mem_out[kMemSize] = { 0 };
-static IO_DATA_ATTR int8_t g_scratch_mem_bias_out[kMemSize] = { 0 };
-static W_DATA_ATTR int8_t g_scratch_mem_w[kMemSize] = { 0 };
-static W_DATA_ATTR int8_t g_scratch_mem_b[kMemSize] = { 0 };
+static int8_t g_scratch_mem_in[kMemSize] = { 0 };
+static int8_t g_scratch_mem_acc_out[kMemAccSize] = { 0 };
+static int8_t g_scratch_mem_out[kMemSize] = { 0 };
+static int8_t g_scratch_mem_bias_out[kMemSize] = { 0 };
+static int8_t g_scratch_mem_w[kMemSize] = { 0 };
+static int8_t g_scratch_mem_b[kMemSize] = { 0 };
 constexpr uint32_t kMemPoolSize = 4096;
-static int8_t g_mem_pool[kMemPoolSize] = { 0 };
+static IO_DATA_ATTR int8_t g_mem_pool[kMemPoolSize] = { 0 };
 
 struct DepthwiseConvOp {
     // Depthwise Conv2d Kernel
@@ -234,7 +234,7 @@ struct RescaleOp {
     mli_tensor original_out;
     mli_tensor original_bias_out;
 
-    // additional params for MLI3 Symantic
+    // additional params for MLI3 semantic
     bias_folder mli3_bias;
     scales_calc mli3_scales_keeper;
 
@@ -396,6 +396,11 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
     uint32_t wtszp_mem_offset = 0;
     uint32_t offsets[1] = { 0 };
 
+    // NOTE: Currently, only supoort these data types.
+    assert(dwc_op.input.el_type == MLI_EL_SA_8);
+    assert(dwc_op.weights.el_type == MLI_EL_SA_8);
+    assert(dwc_op.out_acc.el_type == MLI_EL_SA_32);
+
     // Define buffers for in\out tensors
     // Leave space for runtime object
     uint32_t* dwc_offset = &offsets[0];
@@ -409,9 +414,10 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
 
     // depthwise conv2d input
     dwc_offset = &offsets[0];
-    uint32_t dwc_in_size = dw_conv2d_op->GetInputBufferSize() * sizeof(int8_t);
+    uint32_t dwc_i_elem_size = mli_hlp_tensor_element_size(&dwc_op.input);
+    uint32_t dwc_in_size = dw_conv2d_op->GetInputBufferSize() * dwc_i_elem_size;
     lib_mli::OffsetBuffer dw_conv2d_in_buf { *dwc_offset, 0, dwc_in_size,
-                                                sizeof(int8_t) };
+                                                dwc_i_elem_size };
     lib_mli::Tensor<lib_mli::OffsetBuffer, 4>
                                 dw_conv2d_in_tensor(dw_conv2d_in_buf, input_shape);
     in_mem_offset = *dwc_offset;
@@ -419,18 +425,23 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
 
     // depthwise conv2d weight
     dwc_offset = &offsets[0];
-    uint32_t w_size = dw_conv2d_op->GetWeightsBufferSize() * sizeof(int8_t);
+    uint32_t dwc_w_elem_size = mli_hlp_tensor_element_size(&dwc_op.weights);
+    uint32_t w_size = dw_conv2d_op->GetWeightsBufferSize() * dwc_w_elem_size;
     lib_mli::OffsetBuffer dw_conv2d_w_buf { *dwc_offset, 0, w_size,
-                                                sizeof(int8_t) };
+                                                dwc_w_elem_size };
     w_mem_offset = *dwc_offset;
     *dwc_offset += w_size;
 
     // depthwise conv2d output
     dwc_offset = &offsets[0];
+    // NOTE: The output should be aligned, otherwise, it will cause `vvst` crash.
+    //       For example, offset is 4 byts aligned if output is int32_t.
+    uint32_t dwc_o_elem_size = mli_hlp_tensor_element_size(&dwc_op.out_acc);
+    *dwc_offset = CEIL_RND(*dwc_offset, dwc_o_elem_size);
     uint32_t dwc_out_size = dw_conv2d_op->GetOutputBufferSize()
-            * sizeof(int32_t);
+            * dwc_o_elem_size;
     lib_mli::OffsetBuffer dw_conv2d_out_buf { *dwc_offset, 0, dwc_out_size,
-                                                    sizeof(int32_t) };
+                                                    dwc_o_elem_size };
     lib_mli::Tensor<lib_mli::OffsetBuffer, 4>
                       dw_conv2d_out_tensor(dw_conv2d_out_buf, output_shape);
     dwc_out_mem_offset = *dwc_offset;
@@ -438,19 +449,20 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
 
     // depthwise conv2d input zero point
     dwc_offset = &offsets[0];
+    uint32_t zp_elem_size = sizeof(int16_t);
     uint32_t inpzp_size =
-            dw_conv2d_op->GetEncodedInpZeroPtsSize() * sizeof(int16_t);
+            dw_conv2d_op->GetEncodedInpZeroPtsSize() * zp_elem_size;
     lib_mli::OffsetBuffer dw_inpzp_buf { *dwc_offset, 0, inpzp_size,
-                                            sizeof(int16_t) };
+                                            zp_elem_size };
     inpzp_mem_offset = *dwc_offset;
     *dwc_offset += inpzp_size;
 
     // depthwise conv2d weights zero point
     dwc_offset = &offsets[0];
     uint32_t wtszp_size = dw_conv2d_op->GetEncodedWtsZeroPtsSize()
-            * sizeof(int16_t);
+            * zp_elem_size;
     lib_mli::OffsetBuffer dw_wtszp_buf { *dwc_offset, 0, wtszp_size,
-                                            sizeof(int16_t) };
+                                            zp_elem_size };
     wtszp_mem_offset = *dwc_offset;
     *dwc_offset += wtszp_size;
 
@@ -544,59 +556,55 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
 
     // Copy input zero points and weights zero points to the temp host buffers
     //==================================================================
-    size_t shared_buf_size = std::max(inpzp_size, wtszp_size) * sizeof(int16_t);
+    size_t shared_buf_size = std::max(inpzp_size, wtszp_size);
     char host_buf_a[shared_buf_size];
     char host_buf_b[shared_buf_size];
-    lib_mli::Buffer src_inpzp_buf(host_buf_a, inpzp_size, sizeof(int16_t));
-    lib_mli::Buffer dst_inpzp_buf(host_buf_b, inpzp_size, sizeof(int16_t));
-    lib_mli::Buffer src_wtszp_buf(host_buf_a, wtszp_size, sizeof(int16_t));
-    lib_mli::Buffer dst_wtszp_buf(host_buf_b, wtszp_size, sizeof(int16_t));
+    lib_mli::Buffer src_inpzp_buf(host_buf_a, inpzp_size, dwc_i_elem_size);
+    lib_mli::Buffer dst_inpzp_buf(host_buf_b, inpzp_size, zp_elem_size);
+    lib_mli::Buffer src_wtszp_buf(host_buf_a, wtszp_size, dwc_w_elem_size);
+    lib_mli::Buffer dst_wtszp_buf(host_buf_b, wtszp_size, zp_elem_size);
+    // NOTE: Current the input and weights are int8_t, and zp is int16_t.
+    //       Later, we will support other types.
     assert(src_inpzp_buf.get_size() == dw_inpzp_buf.get_size());
-    assert(src_inpzp_buf.get_elem_size() == dw_inpzp_buf.get_elem_size());
+    assert(src_inpzp_buf.get_elem_size() * 2 == dw_inpzp_buf.get_elem_size());
     assert(src_wtszp_buf.get_size() == dw_wtszp_buf.get_size());
-    assert(src_wtszp_buf.get_elem_size() == dw_wtszp_buf.get_elem_size());
+    assert(src_wtszp_buf.get_elem_size() * 2 == dw_wtszp_buf.get_elem_size());
 
-    uint32_t inpzp_shape[1] = { 1 };
-    lib_mli::Tensor < lib_mli::Buffer, 1
-            > inpzp_tensor(src_inpzp_buf, inpzp_shape);
+    uint32_t inpzp_shape[1] = {1};
+    lib_mli::Tensor<lib_mli::Buffer, 1> inpzp_tensor(src_inpzp_buf, inpzp_shape);
 
-    uint32_t wtszp_shape[1] = { weight_shape[2] };
-    lib_mli::Tensor < lib_mli::Buffer, 1
-            > wtszp_tensor(dst_wtszp_buf, wtszp_shape);
+    uint32_t wtszp_shape[1] = {weight_shape[2]};
+    lib_mli::Tensor<lib_mli::Buffer, 1> wtszp_tensor(src_wtszp_buf, wtszp_shape);
 
     // input zero points: mli_tensor -> host tensor
+    // NOTE: Zero Points should have the same size as the tensor they belong to.
+    //       Since ZP is 16b in `mli_tensor`, so we should cast it to the same type as input.
     if (dwc_op.input.el_params.sa.dim == -1) {
         assert(dwc_op.input.el_params.sa.zero_point.capacity == 0);
-        inpzp_tensor.write(0, dwc_op.input.el_params.sa.zero_point.mem.i16);
+        inpzp_tensor.write(0, static_cast<int8_t>(dwc_op.input.el_params.sa.zero_point.mem.i16));
     } else {
-        assert(
-                dwc_op.input.el_params.sa.zero_point.capacity
-                        == src_inpzp_buf.get_size());
-        for (size_t i = 0; i < inpzp_size; ++i) {
-            inpzp_tensor.write(int(i),
-                    dwc_op.input.el_params.sa.zero_point.mem.pi16[i]);
+        assert(dwc_op.input.el_params.sa.zero_point.capacity == src_inpzp_buf.get_size());
+        for (size_t i = 0; i < inpzp_size / zp_elem_size; ++i) {
+          inpzp_tensor.write(int(i), static_cast<int8_t>(dwc_op.input.el_params.sa.zero_point.mem.pi16[i]));
         }
     }
-    // host tensor -> encoded host buffer
+    // host tensor 8bit -> encoded host buffer 16bit
     status = dw_conv2d_op->EncodeInpZeroPts(inpzp_tensor, dst_inpzp_buf);
     assert(status == MLI_STATUS_OK);
     // encoded host buffer -> global mem pool
     auto inpzp_mem = reinterpret_cast<int16_t*>((int8_t*)g_mem_pool + inpzp_mem_offset);
-    for (size_t i = 0; i < inpzp_size; ++i) {
-        inpzp_mem[i] = dst_inpzp_buf.read < int16_t > (i);
+    for (size_t i = 0; i < inpzp_size / zp_elem_size; ++i) {
+        inpzp_mem[i] = dst_inpzp_buf.read<int16_t>(i);
     }
 
     // weights zero points: mli_tensor -> host buffer
     if (dwc_op.weights.el_params.sa.dim == -1) {
         assert(dwc_op.weights.el_params.sa.zero_point.capacity == 0);
-        wtszp_tensor.write(0, dwc_op.weights.el_params.sa.zero_point.mem.i16);
+        wtszp_tensor.write(0, static_cast<int8_t>(dwc_op.weights.el_params.sa.zero_point.mem.i16));
     } else {
-        assert(
-                dwc_op.weights.el_params.sa.zero_point.capacity
-                        == src_wtszp_buf.get_size());
-        for (size_t i = 0; i < wtszp_size; ++i) {
-            wtszp_tensor.write(int(i),
-                    dwc_op.weights.el_params.sa.zero_point.mem.pi16[i]);
+        assert(dwc_op.weights.el_params.sa.zero_point.capacity == src_wtszp_buf.get_size());
+        for (size_t i = 0; i < wtszp_size / zp_elem_size; ++i) {
+            wtszp_tensor.write(int(i), static_cast<int8_t>(dwc_op.weights.el_params.sa.zero_point.mem.pi16[i]));
         }
     }
     // host tensor -> encoded host buffer
@@ -604,8 +612,8 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
     assert(status == MLI_STATUS_OK);
     auto wtszp_mem = reinterpret_cast<int16_t*>((int8_t*)g_mem_pool + wtszp_mem_offset);
     // encoded host buffer -> global mem pool
-    for (size_t i = 0; i < wtszp_size; ++i) {
-        wtszp_mem[i] = dst_wtszp_buf.read < int16_t > (i);
+    for (size_t i = 0; i < wtszp_size / zp_elem_size; ++i) {
+        wtszp_mem[i] = dst_wtszp_buf.read<int16_t>(i);
     }
 
     // Compile depthwise conv2d into the binary data
@@ -805,7 +813,7 @@ bool postprocess_phase(const reporter_full& reporter,
 
 int main() {
     const reporter_full reporter;
-    reporter.report_header("MLI_3|Kernels|Depthwise Conv Tests");
+    reporter.report_header("MLI3.0|Kernels|Depthwise Conv Tests");
 
     bool final_status = true;
 
@@ -884,7 +892,7 @@ int main() {
         final_status &= is_test_passed;
     }
 
-    reporter.report_outline("[AUTO] Group: mli_krn_depthwise_conv",
+    reporter.report_outline("[AUTO] Group: mli_krn_depthwise_conv_30",
             final_status);
 
     return (final_status) ? 0 : 1;

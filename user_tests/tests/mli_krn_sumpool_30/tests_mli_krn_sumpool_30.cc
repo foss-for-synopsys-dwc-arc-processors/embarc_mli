@@ -237,8 +237,7 @@ struct RescaleOp {
     //   = scale * (sum_pool_out_acc - bias_in) + bias_out
     pool_size = cur_test->cfg.kernel_width * cur_test->cfg.kernel_height;
 
-    // TODO: additional params for MLI3 Symantic
-    mli3_bias = bias_folder(); // bias_folder(bias_in, input, pool_size);
+    mli3_bias = bias_folder();
     mli3_scales_keeper = scales_calc(cur_test->in_scale, cur_test->out_scale, 1.0f / pool_size);
   }
 
@@ -265,7 +264,7 @@ struct RescaleOp {
   mli_tensor original_out;
   mli_tensor original_bias_out;
 
-  // additional params for MLI3 Symantic
+  // additional params for MLI3 semantic
   bias_folder mli3_bias;
   scales_calc mli3_scales_keeper;
 
@@ -357,6 +356,11 @@ void prepare_phase(const sumpool2d_test_operands* cur_test,
   // uint32_t inpzp_mem_offset = 0;
   uint32_t offsets[1] = {0};
 
+  uint32_t i_elem_size = mli_hlp_tensor_element_size(&op.input);
+  assert(op.input.el_type == MLI_EL_SA_8);
+  uint32_t o_elem_size = mli_hlp_tensor_element_size(&op.out_acc);
+  assert(op.out_acc.el_type == MLI_EL_SA_32);
+
   // Define buffers for in\out tensors
   // Leave space for runtime object
   uint32_t* offset = &offsets[0];
@@ -370,8 +374,8 @@ void prepare_phase(const sumpool2d_test_operands* cur_test,
 
   // sumpool2d input
   offset = &offsets[0];
-  uint32_t in_size = sumpool2d_op->GetInputBufferSize() * sizeof(int8_t);
-  lib_mli::OffsetBuffer sumpool2d_in_buf{*offset, 0, in_size, sizeof(int8_t)};
+  uint32_t in_size = sumpool2d_op->GetInputBufferSize() * i_elem_size;
+  lib_mli::OffsetBuffer sumpool2d_in_buf{*offset, 0, in_size, i_elem_size};
   lib_mli::Tensor<lib_mli::OffsetBuffer, 4> sumpool2d_in_tensor(sumpool2d_in_buf, input_shape);
   in_mem_offset = *offset;
   *offset += in_size;
@@ -380,8 +384,8 @@ void prepare_phase(const sumpool2d_test_operands* cur_test,
   offset = &offsets[0];
   // NOTE: The output should be 4 bytes aligned for int32_t, otherwise, it will cause `vvst` crash.
   *offset = (*offset + 4 - 1) / 4 * 4;
-  uint32_t out_size = sumpool2d_op->GetOutputBufferSize() * sizeof(int32_t);
-  lib_mli::OffsetBuffer sumpool2d_out_buf{*offset, 0, out_size, sizeof(int32_t)};
+  uint32_t out_size = sumpool2d_op->GetOutputBufferSize() * o_elem_size;
+  lib_mli::OffsetBuffer sumpool2d_out_buf{*offset, 0, out_size, o_elem_size};
   lib_mli::Tensor<lib_mli::OffsetBuffer, 4> sumpool2d_out_tensor(sumpool2d_out_buf, output_shape);
   out_mem_offset = *offset;
   *offset += out_size;
@@ -591,7 +595,7 @@ int main() {
   const reporter_full reporter;
   bool final_status = true;
 
-  reporter.report_header("MLI|Kernels|SumPool2D  Tests");
+  reporter.report_header("MLI3.0|Kernels|SumPool2D  Tests");
   for (int i = 0; i < kTestsNum; ++i) {
     // get the current test case
     const sumpool2d_test_operands* cur_test = &tests_list[i];
@@ -640,7 +644,7 @@ int main() {
 
     final_status &= is_test_passed;
   }
-  reporter.report_outline("[AUTO] Group: mli_krn_sumpool2d", final_status);
+  reporter.report_outline("[AUTO] Group: mli_krn_sumpool2d_30", final_status);
 
   return (final_status) ? 0 : 1;
 }

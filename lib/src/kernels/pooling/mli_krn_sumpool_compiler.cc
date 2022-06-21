@@ -43,7 +43,7 @@ SumPool2D_CS::SumPool2D_CS(const lib_mli::PlatformDescription pd,
 };
 
 unsigned SumPool2D_CS::GetKernelPrivateDataSize() const {
-  return sizeof(SumPool2DPrivateData);
+  return sizeof(Pool2DPrivateData);
 }
 
 unsigned SumPool2D_CS::GetRuntimeObjectSize() const {
@@ -52,13 +52,12 @@ unsigned SumPool2D_CS::GetRuntimeObjectSize() const {
 
 mli_status SumPool2D_CS::GetKernelPrivateData(
     void *kernel_private_data_buffer) {
-  SumPool2DPrivateData obj;
+  Pool2DPrivateData obj(kSumPool2DId);
 
-  obj.size = sizeof(SumPool2DPrivateData);
+  obj.size = GetKernelPrivateDataSize();
 
   obj.input_buffer = m_in.get_buf();
   obj.output_buffer = m_output.get_buf();
-  obj.metadata_buffer = m_metadata;
 
   obj.input_b = m_in.get_dim(kTensorBatchDim);
   obj.input_h = m_in.get_dim(kTensorHeightDim);
@@ -97,12 +96,11 @@ mli_status SumPool2D_CS::GetKernelPrivateData(
 mli_status SumPool2D_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
                                              const Tensor<OffsetBuffer, 4> &output,
                                              const OffsetBuffer &data) {
-  assert(input.get_buf().get_size() == m_input_buffer_size * input.get_elem_size());
-  assert(output.get_buf().get_size() == m_output_buffer_size * output.get_elem_size());
+  MLI_ASSERT(input.get_buf().get_size() >= m_input_buffer_size * input.get_elem_size());
+  MLI_ASSERT(output.get_buf().get_size() >= m_output_buffer_size * output.get_elem_size());
 
   m_in.set_buf(input.get_buf());
   m_output.set_buf(output.get_buf());
-  m_metadata = data;
 
   return MLI_STATUS_OK;
 }

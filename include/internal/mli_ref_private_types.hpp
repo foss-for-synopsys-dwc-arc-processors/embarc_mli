@@ -44,9 +44,9 @@ public:
     int32_t output_h_stride;
     int32_t output_w_stride;
 
-    uint32_t weights_h_stride;
-    uint32_t weights_w_stride;
-    uint32_t weights_c_stride;
+    int32_t weights_h_stride;
+    int32_t weights_w_stride;
+    int32_t weights_c_stride;
 
     uint8_t stride_height;
     uint8_t stride_width;
@@ -96,8 +96,8 @@ public:
     int32_t output_h_stride;
     int32_t output_w_stride;
 
-    uint32_t weights_h_stride;
-    uint32_t weights_w_stride;
+    int32_t weights_h_stride;
+    int32_t weights_w_stride;
 
     uint8_t stride_height;
     uint8_t stride_width;
@@ -144,8 +144,8 @@ public:
     int32_t output_n_stride;
     int32_t output_oc_stride;
 
-    uint32_t weights_ic_stride;
-    uint32_t weights_oc_stride;
+    int32_t weights_ic_stride;
+    int32_t weights_oc_stride;
 
     uint8_t stride_n;
     uint8_t stride_ic;
@@ -169,43 +169,42 @@ public:
     IteratorCfg<Move_CS::kMaxRank> dst_cfg;
 };
 
-class MaxPool2DPrivateData : public PrivateData {
+class Pool2DPrivateData : public PrivateData {
 
 public:
-    MaxPool2DPrivateData() : PrivateData(kMaxPool2DId) {}
+    Pool2DPrivateData(kernel_id_t id) : PrivateData(id) {}
 
     OffsetBuffer input_buffer;
     OffsetBuffer output_buffer;
-    OffsetBuffer tensor_data_offset;
 
-    uint32_t input_w;
-    uint32_t input_h;
-    uint32_t input_c;
     uint32_t input_b;
+    uint32_t input_h;
+    uint32_t input_w;
+    uint32_t input_c;
 
-    uint32_t output_w;
-    uint32_t output_h;
-    uint32_t output_c;
-    uint32_t output_b;
-
-    int32_t input_w_stride;
-    int32_t input_h_stride;
-    int32_t input_c_stride;
     int32_t input_b_stride;
+    int32_t input_h_stride;
+    int32_t input_w_stride;
+    int32_t input_c_stride;
 
-    int32_t output_w_stride;
-    int32_t output_h_stride;
-    int32_t output_c_stride;
+    uint32_t output_b;
+    uint32_t output_h;
+    uint32_t output_w;
+    uint32_t output_c;
+
     int32_t output_b_stride;
+    int32_t output_h_stride;
+    int32_t output_w_stride;
+    int32_t output_c_stride;
 
-    uint8_t kernel_width;
     uint8_t kernel_height;
-    uint8_t stride_width;
+    uint8_t kernel_width;
     uint8_t stride_height;
-    uint8_t padding_left;
-    uint8_t padding_right;
+    uint8_t stride_width;
     uint8_t padding_top;
     uint8_t padding_bottom;
+    uint8_t padding_left;
+    uint8_t padding_right;
 
     // Tile Parameters BHWC
     uint32_t m_tile_total_output_size[4];
@@ -218,53 +217,13 @@ public:
     uint32_t m_tile_output_inc[4];
 };
 
-class SumPool2DPrivateData : public PrivateData {
-
-public:
-    SumPool2DPrivateData() : PrivateData(kSumPool2DId) {}
-
-    OffsetBuffer input_buffer;
-    OffsetBuffer output_buffer;
-    OffsetBuffer metadata_buffer;
-
-    uint32_t input_b;
-    uint32_t input_h;
-    uint32_t input_w;
-    uint32_t input_c;
-
-    int32_t input_b_stride;
-    int32_t input_h_stride;
-    int32_t input_w_stride;
-    int32_t input_c_stride;
-
-    uint32_t output_b;
-    uint32_t output_h;
-    uint32_t output_w;
-    uint32_t output_c;
-
-    int32_t output_b_stride;
-    int32_t output_h_stride;
-    int32_t output_w_stride;
-    int32_t output_c_stride;
-
-    uint8_t kernel_height;
-    uint8_t kernel_width;
-    uint8_t stride_height;
-    uint8_t stride_width;
-    uint8_t padding_top;
-    uint8_t padding_bottom;
-    uint8_t padding_left;
-    uint8_t padding_right;
-};
-
 class EltwisePrivateData : public PrivateData {
 
 public:
-    EltwisePrivateData(kernel_id_t kernel_id) : PrivateData(kernel_id) {}
+    EltwisePrivateData(kernel_id_t id) : PrivateData(id) {}
     OffsetBuffer m_in_left_buffer;
     OffsetBuffer m_in_right_buffer;
     OffsetBuffer m_output_buffer;
-    OffsetBuffer m_metadata;
 
     uint32_t m_in_left_rank;
     uint32_t m_in_left_shape[4];

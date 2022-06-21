@@ -257,7 +257,7 @@ struct RescaleOp {
   mli_tensor original_out;
   mli_tensor original_bias_out;
 
-  // additional params for MLI3 Symantic
+  // additional params for MLI3 semantic
   bias_folder mli3_bias;
   scales_calc mli3_scales_keeper;
 
@@ -464,6 +464,11 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
   uint32_t wtszp_mem_offset = 0;
   uint32_t offsets[1] = {0};
 
+  // NOTE: Currently, only supoort these data types.
+  assert(fc_op.input.el_type == MLI_EL_SA_8);
+  assert(fc_op.weights.el_type == MLI_EL_SA_8);
+  assert(fc_op.out_acc.el_type == MLI_EL_SA_32);
+
   // Define buffers for in\out tensors
   // Leave space for runtime object
   uint32_t* fc_offset = &offsets[0];
@@ -477,40 +482,46 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
 
   // fully connected input
   fc_offset = &offsets[0];
-  uint32_t in_size = FullyConn->GetInputBufferSize() * sizeof(int8_t);
-  lib_mli::OffsetBuffer fully_connected_in_buf{*fc_offset, 0, in_size, sizeof(int8_t)};
+  uint32_t fc_i_elem_size = mli_hlp_tensor_element_size(&fc_op.input);
+  uint32_t in_size = FullyConn->GetInputBufferSize() * fc_i_elem_size;
+  lib_mli::OffsetBuffer fully_connected_in_buf{*fc_offset, 0, in_size, fc_i_elem_size};
   lib_mli::Tensor<lib_mli::OffsetBuffer, 2> fully_connected_in_tensor(fully_connected_in_buf, input_shape);
   in_mem_offset = *fc_offset;
   *fc_offset += in_size;
 
   // fully connected weight
   fc_offset = &offsets[0];
-  uint32_t w_size = FullyConn->GetWeightsBufferSize() * sizeof(int8_t);
-  lib_mli::OffsetBuffer fully_connected_w_buf{*fc_offset, 0, w_size, sizeof(int8_t)};
+  uint32_t fc_w_elem_size = mli_hlp_tensor_element_size(&fc_op.weights);
+  uint32_t w_size = FullyConn->GetWeightsBufferSize() * fc_w_elem_size;
+  lib_mli::OffsetBuffer fully_connected_w_buf{*fc_offset, 0, w_size, fc_w_elem_size};
   w_mem_offset = *fc_offset;
   *fc_offset += w_size;
 
   // fully connected output
   fc_offset = &offsets[0];
-  // The output should be 4 bytes aligned for int32_t, otherwise, it will cause `vvst` crash.
-  *fc_offset = (*offsets + 4 - 1) / 4 * 4;
-  uint32_t out_size = FullyConn->GetOutputBufferSize() * sizeof(int32_t);
-  lib_mli::OffsetBuffer fully_connected_out_buf{*fc_offset, 0, out_size, sizeof(int32_t)};
+  // NOTE: The output should be aligned, otherwise, it will cause `vvst` crash.
+  //       For example, offset is 4 byts aligned if output is int32_t.
+  uint32_t fc_o_elem_size = mli_hlp_tensor_element_size(&fc_op.out_acc);
+  *fc_offset = CEIL_RND(*fc_offset, fc_o_elem_size);
+  uint32_t out_size = FullyConn->GetOutputBufferSize() * fc_o_elem_size;
+  lib_mli::OffsetBuffer fully_connected_out_buf{*fc_offset, 0, out_size, fc_o_elem_size};
   lib_mli::Tensor<lib_mli::OffsetBuffer, 2> fully_connected_out_tensor(fully_connected_out_buf, output_shape);
   fc_out_mem_offset = *fc_offset;
   *fc_offset += out_size;
 
   // fully connected input zero point
   fc_offset = &offsets[0];
-  uint32_t inpzp_size = FullyConn->GetEncodedInpZeroPtsSize() * sizeof(int16_t);
-  lib_mli::OffsetBuffer fc_inpzp_buf{*fc_offset, 0, inpzp_size, sizeof(int16_t)};
+  // NOTE: ZP has fixed 16 bit in MLI internal
+  uint32_t zp_elem_size = sizeof(int16_t);
+  uint32_t inpzp_size = FullyConn->GetEncodedInpZeroPtsSize() * zp_elem_size;
+  lib_mli::OffsetBuffer fc_inpzp_buf{*fc_offset, 0, inpzp_size, zp_elem_size};
   inpzp_mem_offset = *fc_offset;
   *fc_offset += inpzp_size;
 
   // fully connected weights zero point
   fc_offset = &offsets[0];
-  uint32_t wtszp_size = FullyConn->GetEncodedWtsZeroPtsSize() * sizeof(int16_t);
-  lib_mli::OffsetBuffer fc_wtszp_buf{*fc_offset, 0, wtszp_size, sizeof(int16_t)};
+  uint32_t wtszp_size = FullyConn->GetEncodedWtsZeroPtsSize() * zp_elem_size;
+  lib_mli::OffsetBuffer fc_wtszp_buf{*fc_offset, 0, wtszp_size, zp_elem_size};
   wtszp_mem_offset = *fc_offset;
   *fc_offset += wtszp_size;
 
@@ -844,7 +855,7 @@ bool postprocess_phase(const reporter_full& reporter,
 
 int main() {
   const reporter_full reporter;
-  reporter.report_header("MLI_3|Kernels|Fully Connected Tests");
+  reporter.report_header("MLI3.0|Kernels|Fully Connected Tests");
 
   bool final_status = true;
 
@@ -939,7 +950,7 @@ int main() {
     final_status &= is_test_passed;
   }
 
-  reporter.report_outline("[AUTO] Group: mli_krn_fully_connected", final_status);
+  reporter.report_outline("[AUTO] Group: mli_krn_fully_connected_30", final_status);
 
   return (final_status) ? 0 : 1;
 }

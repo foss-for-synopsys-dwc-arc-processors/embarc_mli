@@ -254,7 +254,7 @@ void execution_phase(Tiling& tiling,
   assert(mli_maxpool2d != nullptr);
 
   mli_status status = MLI_STATUS_OK;
-  lib_ref::MaxPool2DPrivateData* maxpool2d_private = (lib_ref::MaxPool2DPrivateData*)(maxpool2d_conf_private);
+  lib_ref::Pool2DPrivateData* maxpool2d_private = (lib_ref::Pool2DPrivateData*)(maxpool2d_conf_private);
   uint32_t tile_input_strides[4]{ (uint32_t)maxpool2d_private->input_b_stride, (uint32_t)maxpool2d_private->input_h_stride,
                                 (uint32_t)maxpool2d_private->input_w_stride, (uint32_t)maxpool2d_private->input_c_stride };
   uint32_t tile_output_strides[4]{ (uint32_t)maxpool2d_private->output_b_stride, (uint32_t)maxpool2d_private->output_h_stride,

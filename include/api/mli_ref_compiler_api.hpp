@@ -75,7 +75,6 @@ private:
 
     OffsetBuffer m_input_zp;
     OffsetBuffer m_weights_zp;
-    OffsetBuffer m_metadata;
 
     uint32_t m_input_buffer_size;
     uint32_t m_weights_buffer_size;
@@ -171,25 +170,14 @@ public:
                             uint32_t first_tile_size[4], uint32_t tile_size[4],
                             uint32_t input_first_inc[4], uint32_t input_inc[4],
                             uint32_t output_first_inc[4], uint32_t output_inc[4]) override;
-    
-    //TODO: add destructor if need
-
-
 private:
     Tensor<OffsetBuffer, 4> m_in;
     Tensor<OffsetBuffer, 4> m_output;
 
+    PoolOpConfig m_config;
+
     uint32_t m_input_buffer_size;
     uint32_t m_output_buffer_size;
-
-    uint8_t m_kernel_width;
-    uint8_t m_kernel_height;
-    uint8_t m_stride_width;
-    uint8_t m_stride_height;
-    uint8_t m_padding_left;
-    uint8_t m_padding_right;
-    uint8_t m_padding_top;
-    uint8_t m_padding_bottom;
 
     lib_mli::PlatformDescription m_pd;
 
@@ -228,7 +216,6 @@ public:
 private:
     Tensor<OffsetBuffer, 4> m_in;
     Tensor<OffsetBuffer, 4> m_output;
-    OffsetBuffer m_metadata;
 
     PoolOpConfig m_config;
 
@@ -430,7 +417,6 @@ private:
     Tensor<OffsetBuffer, 4> m_in_left;
     Tensor<OffsetBuffer, 4> m_in_right;
     Tensor<OffsetBuffer, 4> m_output;
-    OffsetBuffer m_metadata;
 
     uint32_t m_in_left_buffer_size;
     uint32_t m_in_right_buffer_size;
@@ -471,7 +457,6 @@ private:
     Tensor<OffsetBuffer, 4> m_in_left;
     Tensor<OffsetBuffer, 4> m_in_right;
     Tensor<OffsetBuffer, 4> m_output;
-    OffsetBuffer m_metadata;
 
     uint32_t m_in_left_buffer_size;
     uint32_t m_in_right_buffer_size;
@@ -512,7 +497,6 @@ private:
     Tensor<OffsetBuffer, 4> m_in_left;
     Tensor<OffsetBuffer, 4> m_in_right;
     Tensor<OffsetBuffer, 4> m_output;
-    OffsetBuffer m_metadata;
 
     uint32_t m_in_left_buffer_size;
     uint32_t m_in_right_buffer_size;
@@ -553,7 +537,6 @@ private:
     Tensor<OffsetBuffer, 4> m_in_left;
     Tensor<OffsetBuffer, 4> m_in_right;
     Tensor<OffsetBuffer, 4> m_output;
-    OffsetBuffer m_metadata;
 
     uint32_t m_in_left_buffer_size;
     uint32_t m_in_right_buffer_size;
@@ -594,7 +577,6 @@ private:
     Tensor<OffsetBuffer, 4> m_in_left;
     Tensor<OffsetBuffer, 4> m_in_right;
     Tensor<OffsetBuffer, 4> m_output;
-    OffsetBuffer m_metadata;
 
     uint32_t m_in_left_buffer_size;
     uint32_t m_in_right_buffer_size;

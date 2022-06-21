@@ -42,7 +42,7 @@ Rescale::Rescale(void* kernel_private_data_buffer, size_t size,
             tsr.data.mem.pi32 = input_internal.get_ptr<int32_t>();
             tsr.el_type = MLI_EL_SA_32;
         } else {
-            assert(0);
+            MLI_ASSERT(0);
         }
 
         tsr.rank = private_buffer.io_rank;
@@ -65,7 +65,7 @@ Rescale::Rescale(void* kernel_private_data_buffer, size_t size,
             tsr.data.mem.pi8 = output_internal.get_ptr<int8_t>();
             tsr.el_type = MLI_EL_FX_8;
         } else {
-            assert(0);
+            MLI_ASSERT(0);
         }
 
         tsr.rank = private_buffer.io_rank;
@@ -92,7 +92,7 @@ Rescale::Rescale(void* kernel_private_data_buffer, size_t size,
             tsr.el_type = MLI_EL_SA_32;
         }
         else {
-            assert(0);
+            MLI_ASSERT(0);
         }
         tsr.rank = 1;
     }
@@ -125,11 +125,11 @@ Rescale::Rescale(void* kernel_private_data_buffer, size_t size,
         if (m_out_elem_size == sizeof(int8_t)) {
             encoded_params_internal.set_elem_size(sizeof(int8_t));
             tsr.data.mem.pi8 = encoded_params_internal.get_ptr<int8_t>();
-            
+
             tsr.el_type = MLI_EL_FX_8;
         }
         else {
-            assert(0);
+            MLI_ASSERT(0);
         }
         tsr.rank = 1;
     }
@@ -150,30 +150,30 @@ mli_status Rescale::Issue() {
                                                           &m_metadata.output);
             }
             else if (m_out_elem_size == sizeof(int16_t)) {
-                assert(0);
+                MLI_ASSERT(0);
             }
             break;
         case (sizeof(int16_t)):
             if (m_out_elem_size == sizeof(int8_t)) {
-                assert(0);
+                MLI_ASSERT(0);
             }
             else if (m_out_elem_size == sizeof(int32_t)) {
-                assert(0);
+                MLI_ASSERT(0);
             }
             break;
         case (sizeof(int8_t)):
             if (m_out_elem_size == sizeof(int8_t)) {
-                assert(0);
+                MLI_ASSERT(0);
             }
             else if (m_out_elem_size == sizeof(int16_t)) {
-                assert(0);
+                MLI_ASSERT(0);
             }
             else if (m_out_elem_size == sizeof(int32_t)) {
-                assert(0);
+                MLI_ASSERT(0);
             }
             break;
         default:
-            assert(0);
+            MLI_ASSERT(0);
             break;
     }
 

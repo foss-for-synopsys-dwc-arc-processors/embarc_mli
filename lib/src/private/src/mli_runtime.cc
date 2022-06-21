@@ -68,35 +68,35 @@ ExecutionInterface* ExecutionInterface::Create(
             if(alloc_buf_size >= sizeof(Add)) {
                 obj = new (allocation_memory_buffer) Add(kernel_private_data_buffer, private_data_size, membases, num_mems);
             } else {
-                MLI_PRINTF("\nASSERT: Insufficient space for [Add] runtime object\n");
+                MLI_PRINTF("\nMLI_ERROR: Insufficient space for [Add] runtime object\n");
             }
             break;
         case kSubId:
             if(alloc_buf_size >= sizeof(Sub)) {
                 obj = new (allocation_memory_buffer) Sub(kernel_private_data_buffer, private_data_size, membases, num_mems);
             } else {
-                MLI_PRINTF("\nASSERT: Insufficient space for [Sub] runtime object\n");
+                MLI_PRINTF("\nMLI_ERROR: Insufficient space for [Sub] runtime object\n");
             }
             break;
         case kMulId:
             if(alloc_buf_size >= sizeof(Mul)) {
                 obj = new (allocation_memory_buffer) Mul(kernel_private_data_buffer, private_data_size, membases, num_mems);
             } else {
-                MLI_PRINTF("\nASSERT: Insufficient space for [Mul] runtime object\n");
+                MLI_PRINTF("\nMLI_ERROR: Insufficient space for [Mul] runtime object\n");
             }
             break;
         case kMaxId:
             if(alloc_buf_size >= sizeof(Max)) {
                 obj = new (allocation_memory_buffer) Max(kernel_private_data_buffer, private_data_size, membases, num_mems);
             } else {
-                MLI_PRINTF("\nASSERT: Insufficient space for [Max] runtime object\n");
+                MLI_PRINTF("\nMLI_ERROR: Insufficient space for [Max] runtime object\n");
             }
             break;
         case kMinId:
             if(alloc_buf_size >= sizeof(Min)) {
                 obj = new (allocation_memory_buffer) Min(kernel_private_data_buffer, private_data_size, membases, num_mems);
             } else {
-                MLI_PRINTF("\nASSERT: Insufficient space for [Min] runtime object\n");
+                MLI_PRINTF("\nMLI_ERROR: Insufficient space for [Min] runtime object\n");
             }
             break;
         case kMoveId:

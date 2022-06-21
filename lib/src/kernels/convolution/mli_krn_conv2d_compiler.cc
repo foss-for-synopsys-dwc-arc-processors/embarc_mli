@@ -23,7 +23,7 @@ Conv2d_CS::Conv2d_CS(const lib_mli::PlatformDescription pd,
                      )
     : m_config{cfg}
     , m_input_zp{}
-    , m_metadata{}
+    , m_weights_zp{}
     , m_pd{pd}
 {
   uint32_t input_shape[4];
@@ -67,7 +67,7 @@ unsigned Conv2d_CS::GetRuntimeObjectSize() const {
 mli_status Conv2d_CS::GetKernelPrivateData(void* kernel_private_data_buffer) {
   Conv2DPrivateData conv_opaque_obj;
 
-  conv_opaque_obj.size = sizeof(Conv2DPrivateData);
+  conv_opaque_obj.size = GetKernelPrivateDataSize();
 
   conv_opaque_obj.input_buffer = m_in.get_buf();
   conv_opaque_obj.weights_buffer = m_weights.get_buf();
@@ -75,27 +75,27 @@ mli_status Conv2d_CS::GetKernelPrivateData(void* kernel_private_data_buffer) {
   conv_opaque_obj.inpzp_buffer = m_input_zp;
   conv_opaque_obj.wtszp_buffer = m_weights_zp;
 
-  assert(m_in.get_dim(mli::kTensorChannelDim) == m_weights.get_dim(mli::kKernelChannelInDim));
-  assert(m_weights.get_dim(mli::kKernelChannelOutDim) == m_output.get_dim(mli::kTileChannelDim));
+  MLI_ASSERT(m_in.get_dim(mli::kTensorChannelDim) == m_weights.get_dim(mli::kKernelChannelInDim));
+  MLI_ASSERT(m_weights.get_dim(mli::kKernelChannelOutDim) == m_output.get_dim(mli::kTileChannelDim));
 
   // TODO: support batch processing. Here we ignor batch dim for now.
-  assert(m_in.get_dim(mli::kTensorBatchDim) == 1);
+  MLI_ASSERT(m_in.get_dim(mli::kTensorBatchDim) == 1);
   conv_opaque_obj.input_h = m_in.get_dim(mli::kTensorHeightDim);
   conv_opaque_obj.input_w = m_in.get_dim(mli::kTensorWidthDim);
   conv_opaque_obj.input_c = m_in.get_dim(mli::kTensorChannelDim);
 
-  assert(m_output.get_dim(mli::kTileGroupDim) == 1);
+  MLI_ASSERT(m_output.get_dim(mli::kTileGroupDim) == 1);
   conv_opaque_obj.output_h = m_output.get_dim(mli::kTileHeightDim);
   conv_opaque_obj.output_w = m_output.get_dim(mli::kTileWidthDim);
   conv_opaque_obj.output_c = m_output.get_dim(mli::kTileChannelDim);
 
   // TODO: support group conv2d
-  assert(m_weights.get_dim(mli::kKernelGroupDim) == m_output.get_dim(mli::kTileGroupDim));
-  assert(m_weights.get_dim(mli::kKernelGroupDim) == 1);
+  MLI_ASSERT(m_weights.get_dim(mli::kKernelGroupDim) == m_output.get_dim(mli::kTileGroupDim));
+  MLI_ASSERT(m_weights.get_dim(mli::kKernelGroupDim) == 1);
   conv_opaque_obj.weights_h = m_weights.get_dim(mli::kKernelHeightDim);
   conv_opaque_obj.weights_w = m_weights.get_dim(mli::kKernelWidthDim);
-  assert(m_weights.get_dim(mli::kKernelChannelInDim) == conv_opaque_obj.input_c);
-  assert(m_weights.get_dim(mli::kKernelChannelOutDim) == conv_opaque_obj.output_c);
+  MLI_ASSERT(m_weights.get_dim(mli::kKernelChannelInDim) == conv_opaque_obj.input_c);
+  MLI_ASSERT(m_weights.get_dim(mli::kKernelChannelOutDim) == conv_opaque_obj.output_c);
 
   conv_opaque_obj.input_h_stride = m_in.get_mem_stride(mli::kTensorHeightDim);
   conv_opaque_obj.input_w_stride = m_in.get_mem_stride(mli::kTensorWidthDim);
@@ -129,16 +129,15 @@ mli_status Conv2d_CS::AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
                                           OffsetBuffer &inpzeropts,
                                           OffsetBuffer &wtszeropts,
                                           OffsetBuffer &metadata) {
-  assert(input.get_buf().get_size() == m_input_buffer_size * input.get_elem_size());
-  assert(output.get_buf().get_size() == m_output_buffer_size * output.get_elem_size());
-  assert(weights.get_size() == m_weights_buffer_size * weights.get_elem_size());
-  // the encoded zero points should be 16 bits
-  assert(inpzeropts.get_elem_size() == 2 && wtszeropts.get_elem_size() == 2);
+  MLI_ASSERT(input.get_buf().get_size() >= m_input_buffer_size * input.get_elem_size());
+  MLI_ASSERT(output.get_buf().get_size() >= m_output_buffer_size * output.get_elem_size());
+  MLI_ASSERT(weights.get_size() >= m_weights_buffer_size * weights.get_elem_size());
 
   // The metadata or descriptor is not required for ref kernel
   m_in.set_buf(input.get_buf());
   m_output.set_buf(output.get_buf());
   m_weights.set_buf(weights);
+  // Zero Points maybe empty
   m_input_zp = inpzeropts;
   m_weights_zp = wtszeropts;
 
@@ -149,12 +148,16 @@ mli_status Conv2d_CS::EncodeWeights(Tensor<Buffer, 5> &weights,
                                     Buffer &encoded_weights,
                                     compression_mode_t mode){
   // the element size of source should eqaul to the encoded one's
-  assert(weights.get_buf().get_size() == encoded_weights.get_size());
+  MLI_ASSERT(weights.get_buf().get_size() == encoded_weights.get_size());
   // TODO: support other data types
-  assert(weights.get_elem_size() == 1);
+  MLI_ASSERT(weights.get_elem_size() == sizeof(int8_t));
 
-  for (uint32_t i = 0; i < weights.get_dim(0); ++i) {
-    encoded_weights.write(i, weights.read<int8_t>(i));
+  if (weights.get_elem_size() == sizeof(int8_t)) {
+    for (uint32_t i = 0; i < weights.get_buf().get_size(); ++i) {
+      encoded_weights.write(i, weights.read<int8_t>(i));
+    }
+  } else {
+    return MLI_STATUS_NOT_SUPPORTED;
   }
 
   return MLI_STATUS_OK;
@@ -167,10 +170,10 @@ unsigned Conv2d_CS::GetEncodedWeightsSize() {
 mli_status Conv2d_CS::EncodeInpZeroPts(Tensor<Buffer, 1> &inpzeropts,
                                        Buffer &encoded_inpzeropts) {
   // only supports per-tensor quantization
-  assert(encoded_inpzeropts.get_size() / encoded_inpzeropts.get_elem_size() == 1);
-  assert(inpzeropts.get_buf().get_size() == encoded_inpzeropts.get_size());
+  MLI_ASSERT(encoded_inpzeropts.get_size() / encoded_inpzeropts.get_elem_size() == 1);
+  MLI_ASSERT(inpzeropts.get_buf().get_size() == encoded_inpzeropts.get_size());
   // the element size of source should less than or equal to the encoded one's
-  assert(inpzeropts.get_elem_size() <= encoded_inpzeropts.get_elem_size());
+  MLI_ASSERT(inpzeropts.get_elem_size() <= encoded_inpzeropts.get_elem_size());
 
   if (inpzeropts.get_elem_size() == sizeof(int8_t)) {
     for (uint32_t i = 0; i < inpzeropts.get_dim(0); ++i) {
@@ -191,11 +194,11 @@ unsigned Conv2d_CS::GetEncodedInpZeroPtsSize() {
 mli_status Conv2d_CS::EncodeWtsZeroPts(Tensor<Buffer, 1> &wtszeropts,
                                        Buffer &encoded_wtszeropts) {
   // only supports per-channel quantization
-  assert(encoded_wtszeropts.get_size() / encoded_wtszeropts.get_elem_size() ==
+  MLI_ASSERT(encoded_wtszeropts.get_size() / encoded_wtszeropts.get_elem_size() ==
       m_weights.get_dim(mli::kKernelChannelOutDim));
-  assert(wtszeropts.get_buf().get_size() == encoded_wtszeropts.get_size());
-  // the element size of source less greater than or equal to the encoded one's
-  assert(wtszeropts.get_elem_size() <= encoded_wtszeropts.get_elem_size());
+  MLI_ASSERT(wtszeropts.get_buf().get_size() == encoded_wtszeropts.get_size());
+  // the element size of source less than or equal to the encoded one's
+  MLI_ASSERT(wtszeropts.get_elem_size() <= encoded_wtszeropts.get_elem_size());
 
   if (wtszeropts.get_elem_size() == sizeof(int8_t)) {
     for (uint32_t i = 0; i < wtszeropts.get_dim(0); ++i) {

@@ -20,16 +20,16 @@ namespace mli_krn = ::mli::krn;
 
 SumPool2D::SumPool2D(void* kernel_private_data_buffer, size_t size,
                      uint64_t membases[], int num_mems) {
-  MLI_ASSERT(size == sizeof(SumPool2DPrivateData));
-  SumPool2DPrivateData private_data;
-  memcpy(&private_data, kernel_private_data_buffer, sizeof(SumPool2DPrivateData));
+  MLI_ASSERT(size == sizeof(Pool2DPrivateData));
+  Pool2DPrivateData private_data(kSumPool2DId);
+  memcpy(&private_data, kernel_private_data_buffer, sizeof(Pool2DPrivateData));
   MLI_ASSERT(private_data.kernel_id == kSumPool2DId);
-  MLI_ASSERT(private_data.size == sizeof(SumPool2DPrivateData));
+  MLI_ASSERT(private_data.size == sizeof(Pool2DPrivateData));
 
   m_i_elem_size = private_data.input_buffer.get_elem_size();
   m_o_elem_size = private_data.output_buffer.get_elem_size();
 
-  assert(private_data.input_b > 0);
+  MLI_ASSERT(private_data.input_b > 0);
   m_batch_number = private_data.input_b;
   m_input_batch_offset = private_data.input_b_stride;
   m_output_batch_offset = private_data.output_b_stride;
@@ -50,7 +50,7 @@ SumPool2D::SumPool2D(void* kernel_private_data_buffer, size_t size,
       m_input.el_type = MLI_EL_SA_8;
       m_input.data.mem.pi8 = input_internal.get_ptr<int8_t>();
     } else {
-      assert(false);
+      MLI_ASSERT(false);
     }
     m_input.rank = 3;
     m_input.mem_stride[0] = private_data.input_h_stride;
@@ -69,7 +69,7 @@ SumPool2D::SumPool2D(void* kernel_private_data_buffer, size_t size,
       m_output.el_type = MLI_EL_SA_32;
       m_output.data.mem.pi32 = output_internal.get_ptr<int32_t>();
     } else {
-      assert(false);
+      MLI_ASSERT(false);
     }
     m_output.rank = 3;
     m_output.mem_stride[0] = private_data.output_h_stride;

@@ -35,7 +35,6 @@ FullyConnected::FullyConnected(void* kernel_private_data_buffer,
   m_o_elem_size = private_data.output_buffer.get_elem_size();
   m_w_elem_size = private_data.weights_buffer.get_elem_size();
 
-  assert(num_mems > 0);
   m_metadata = FullyConnectedMetadata();
 
   // TODO: Move partly or all into a helper function and use for each tensor
@@ -48,7 +47,7 @@ FullyConnected::FullyConnected(void* kernel_private_data_buffer,
       tsr.el_type = MLI_EL_SA_8;
       tsr.data.mem.pi8 = input_internal.get_ptr<int8_t>();
     } else {
-      assert(false);
+      MLI_ASSERT(false);
     }
     // [N,IC]
     tsr.rank = 2;
@@ -60,7 +59,7 @@ FullyConnected::FullyConnected(void* kernel_private_data_buffer,
 
     // input zero points per tensor
     uint32_t inpzp_elem_size = private_data.inpzp_buffer.get_elem_size();
-    assert(inpzp_elem_size == sizeof(int16_t));
+    MLI_ASSERT(inpzp_elem_size == sizeof(int16_t));
     if (private_data.inpzp_buffer.get_size() / inpzp_elem_size == 1) {
       // per-tensor quantization
       MLI_ASSERT(inpzp_elem_size == sizeof(int16_t));
@@ -71,7 +70,7 @@ FullyConnected::FullyConnected(void* kernel_private_data_buffer,
       tsr.el_params.sa.zero_point.mem.i16 = inpzp_internal.read<int16_t>(0);
     } else {
       // not support yet
-      assert(false);
+      MLI_ASSERT(false);
     }
   }
 
@@ -83,7 +82,7 @@ FullyConnected::FullyConnected(void* kernel_private_data_buffer,
       tsr.el_type = MLI_EL_SA_32;
       tsr.data.mem.pi32 = output_internal.get_ptr<int32_t>();
     } else {
-      assert(false);
+      MLI_ASSERT(false);
     }
     //[N, OC] = [N,IC] * [IC, OC]
     tsr.rank = 2;
@@ -101,7 +100,7 @@ FullyConnected::FullyConnected(void* kernel_private_data_buffer,
       tsr.el_type = MLI_EL_SA_8;
       tsr.data.mem.pi8 = weights_internal.get_ptr<int8_t>();
       } else {
-      assert(false);
+      MLI_ASSERT(false);
     }
     // weights [IC,OC]
     tsr.rank = 2;
@@ -112,7 +111,7 @@ FullyConnected::FullyConnected(void* kernel_private_data_buffer,
 
     // weights zero point should have the same size as the tensor they belong to.
     uint32_t wtszp_elem_size = private_data.wtszp_buffer.get_elem_size();
-    assert(wtszp_elem_size == sizeof(int16_t));
+    MLI_ASSERT(wtszp_elem_size == sizeof(int16_t));
     uint32_t wtszp_size = private_data.wtszp_buffer.get_size();
 
     // per-channel quantization
@@ -126,7 +125,7 @@ FullyConnected::FullyConnected(void* kernel_private_data_buffer,
       tsr.el_params.sa.zero_point.mem.pi16 = wtszp_internal.get_ptr<int16_t>();
     } else {
       // not support yet
-      assert(false);
+      MLI_ASSERT(false);
     }
   }
 }

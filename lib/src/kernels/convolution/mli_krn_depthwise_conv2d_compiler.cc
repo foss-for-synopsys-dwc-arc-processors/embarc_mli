@@ -22,6 +22,7 @@ DepthwiseConv2d_CS::DepthwiseConv2d_CS(const lib_mli::PlatformDescription pd,
                                        const Tensor<NoBuffer, 4> &output_tile_shape)
     : m_config{cfg}
     , m_input_zp{}
+    , m_weights_zp{}
     , m_pd{pd}
 {
   uint32_t input_shape[4];
@@ -65,7 +66,7 @@ unsigned DepthwiseConv2d_CS::GetRuntimeObjectSize() const {
 mli_status DepthwiseConv2d_CS::GetKernelPrivateData(void* kernel_private_data_buffer) {
   DepthwiseConv2DPrivateData dw_opaque_obj;
 
-  dw_opaque_obj.size = sizeof(DepthwiseConv2DPrivateData);
+  dw_opaque_obj.size = GetKernelPrivateDataSize();
 
   dw_opaque_obj.input_buffer = m_in.get_buf();
   dw_opaque_obj.weights_buffer = m_weights.get_buf();
@@ -73,8 +74,8 @@ mli_status DepthwiseConv2d_CS::GetKernelPrivateData(void* kernel_private_data_bu
   dw_opaque_obj.inpzp_buffer = m_input_zp;
   dw_opaque_obj.wtszp_buffer = m_weights_zp;
 
-  assert(m_in.get_dim(mli::kTensorChannelDim) == m_output.get_dim(mli::kTileChannelDim));
-  assert(m_weights.get_dim(mli::kKernelDWChannelInDim) == m_output.get_dim(mli::kTileChannelDim));
+  MLI_ASSERT(m_in.get_dim(mli::kTensorChannelDim) == m_output.get_dim(mli::kTileChannelDim));
+  MLI_ASSERT(m_weights.get_dim(mli::kKernelDWChannelInDim) == m_output.get_dim(mli::kTileChannelDim));
 
   // TODO: support batch processing. Here we ignor batch dim  for now.
   MLI_ASSERT(m_in.get_dim(mli::kTensorBatchDim) == 1);
@@ -118,14 +119,15 @@ mli_status DepthwiseConv2d_CS::AttachBufferOffsets(Tensor<OffsetBuffer, 4> &inpu
                                                    OffsetBuffer &inpzeropts,
                                                    OffsetBuffer &wtszeropts,
                                                    OffsetBuffer &metadata) {
-  assert(input.get_buf().get_size() == m_input_buffer_size * input.get_elem_size());
-  assert(output.get_buf().get_size() == m_output_buffer_size * output.get_elem_size());
-  assert(weights.get_size() == m_weights_buffer_size * weights.get_elem_size());
+  MLI_ASSERT(input.get_buf().get_size() >= m_input_buffer_size * input.get_elem_size());
+  MLI_ASSERT(output.get_buf().get_size() >= m_output_buffer_size * output.get_elem_size());
+  MLI_ASSERT(weights.get_size() >= m_weights_buffer_size * weights.get_elem_size());
 
   // The metadata or descriptor is not required for ref kernel
   m_in.set_buf(input.get_buf());
   m_output.set_buf(output.get_buf());
   m_weights.set_buf(weights);
+  // Zero Points maybe empty
   m_input_zp = inpzeropts;
   m_weights_zp = wtszeropts;
 
@@ -136,12 +138,16 @@ mli_status DepthwiseConv2d_CS::EncodeWeights(Tensor<Buffer, 3> &weights,
                                              Buffer &encoded_weights,
                                              compression_mode_t mode){
   // the element size of source should eqaul to the encoded one's
-  assert(weights.get_buf().get_size() == encoded_weights.get_size());
+  MLI_ASSERT(weights.get_buf().get_size() == encoded_weights.get_size());
   // TODO: support other data types
-  assert(weights.get_elem_size() == 1);
+  MLI_ASSERT(weights.get_elem_size() == sizeof(int8_t));
 
-  for (uint32_t i = 0; i < weights.get_dim(0); ++i) {
-    encoded_weights.write(i, weights.read<int8_t>(i));
+  if (weights.get_elem_size() == sizeof(int8_t)) {
+    for (uint32_t i = 0; i < weights.get_buf().get_size(); ++i) {
+      encoded_weights.write(i, weights.read<int8_t>(i));
+    }
+  } else {
+    return MLI_STATUS_NOT_SUPPORTED;
   }
 
   return MLI_STATUS_OK;
@@ -154,15 +160,17 @@ unsigned DepthwiseConv2d_CS::GetEncodedWeightsSize() {
 mli_status DepthwiseConv2d_CS::EncodeInpZeroPts(Tensor<Buffer, 1> &inpzeropts,
                                                 Buffer &encoded_inpzeropts) {
   // only supports per-tensor quantization
-  assert(inpzeropts.get_buf().get_size() / inpzeropts.get_elem_size() == 1);
-  assert(inpzeropts.get_buf().get_size() == encoded_inpzeropts.get_size());
-  // the element size of source should eqaul to the encoded one's
-  assert(inpzeropts.get_elem_size() == encoded_inpzeropts.get_elem_size());
-  // only supports 2 bytes value
-  assert(inpzeropts.get_elem_size() == 2);
+  MLI_ASSERT(encoded_inpzeropts.get_size() / encoded_inpzeropts.get_elem_size() == 1);
+  MLI_ASSERT(inpzeropts.get_buf().get_size() == encoded_inpzeropts.get_size());
+  // the element size of source should less than or equal to the encoded one's
+  MLI_ASSERT(inpzeropts.get_elem_size() <= encoded_inpzeropts.get_elem_size());
 
-  for (uint32_t i = 0; i < inpzeropts.get_dim(0); ++i) {
-    encoded_inpzeropts.write(i, inpzeropts.read<int16_t>(i));
+  if (inpzeropts.get_elem_size() == sizeof(int8_t)) {
+    for (uint32_t i = 0; i < inpzeropts.get_dim(0); ++i) {
+      encoded_inpzeropts.write(i, static_cast<int16_t>(inpzeropts.read<int8_t>(i)));
+    }
+  } else {
+    return MLI_STATUS_NOT_SUPPORTED;
   }
 
   return MLI_STATUS_OK;
@@ -176,16 +184,18 @@ unsigned DepthwiseConv2d_CS::GetEncodedInpZeroPtsSize() {
 mli_status DepthwiseConv2d_CS::EncodeWtsZeroPts(Tensor<Buffer, 1> &wtszeropts,
                                                 Buffer &encoded_wtszeropts) {
   // only supports per-channel quantization
-  assert(wtszeropts.get_buf().get_size() / wtszeropts.get_elem_size() ==
-      m_in.get_dim(mli::kTensorChannelDim));
-  assert(wtszeropts.get_buf().get_size() == encoded_wtszeropts.get_size());
-  // the element size of source should eqaul to the encoded one's
-  assert(wtszeropts.get_elem_size() == encoded_wtszeropts.get_elem_size());
-  // only supports 2 bytes value
-  assert(wtszeropts.get_elem_size() == 2);
+  MLI_ASSERT(encoded_wtszeropts.get_size() / encoded_wtszeropts.get_elem_size() ==
+      m_weights.get_dim(mli::kKernelDWChannelInDim));
+  MLI_ASSERT(wtszeropts.get_buf().get_size() == encoded_wtszeropts.get_size());
+  // the element size of source less than or equal to the encoded one's
+  MLI_ASSERT(wtszeropts.get_elem_size() <= encoded_wtszeropts.get_elem_size());
 
-  for (uint32_t i = 0; i < wtszeropts.get_dim(0); ++i) {
-    encoded_wtszeropts.write(i, wtszeropts.read<int16_t>(i));
+  if (wtszeropts.get_elem_size() == sizeof(int8_t)) {
+    for (uint32_t i = 0; i < wtszeropts.get_dim(0); ++i) {
+      encoded_wtszeropts.write(i, static_cast<int16_t>(wtszeropts.read<int8_t>(i)));
+    }
+  } else {
+    return MLI_STATUS_NOT_SUPPORTED;
   }
 
   return MLI_STATUS_OK;

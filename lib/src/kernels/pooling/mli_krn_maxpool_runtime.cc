@@ -25,10 +25,10 @@ namespace mli_krn = ::mli::krn;
 
 MaxPool2D::MaxPool2D(void* kernel_private_data_buffer, size_t size,
                      uint64_t membases[], int num_mems) {
-  MLI_ASSERT(size == sizeof(MaxPool2DPrivateData));
-  MaxPool2DPrivateData maxpool2d_private_buffer;
-  memcpy(&maxpool2d_private_buffer, kernel_private_data_buffer, sizeof(MaxPool2DPrivateData));
-  MLI_ASSERT(maxpool2d_private_buffer.size == sizeof(MaxPool2DPrivateData));
+  MLI_ASSERT(size == sizeof(Pool2DPrivateData));
+  Pool2DPrivateData maxpool2d_private_buffer(kMaxPool2DId);
+  memcpy(&maxpool2d_private_buffer, kernel_private_data_buffer, sizeof(Pool2DPrivateData));
+  MLI_ASSERT(maxpool2d_private_buffer.size == sizeof(Pool2DPrivateData));
 
   m_io_elem_size = maxpool2d_private_buffer.input_buffer.get_elem_size();
 
@@ -42,7 +42,7 @@ MaxPool2D::MaxPool2D(void* kernel_private_data_buffer, size_t size,
   m_cfg.padding_top = maxpool2d_private_buffer.padding_top;
   m_cfg.padding_bottom = maxpool2d_private_buffer.padding_bottom;
 
-  assert(maxpool2d_private_buffer.input_b > 0);
+  MLI_ASSERT(maxpool2d_private_buffer.input_b > 0);
   m_batch_number = maxpool2d_private_buffer.input_b;
   m_input_batch_offset = maxpool2d_private_buffer.input_b_stride;
   m_output_batch_offset = maxpool2d_private_buffer.output_b_stride;
@@ -56,14 +56,14 @@ MaxPool2D::MaxPool2D(void* kernel_private_data_buffer, size_t size,
     m_input.el_type = MLI_EL_FX_8;
     mli_prv_tensor_set_data_ptr(&m_input, input_internal.get_ptr<int8_t>());
   } else {
-    assert(0);
+    MLI_ASSERT(0);
   }
 
   m_input.mem_stride[0] = maxpool2d_private_buffer.input_h_stride;
   m_input.mem_stride[1] = maxpool2d_private_buffer.input_w_stride;
   m_input.mem_stride[2] = maxpool2d_private_buffer.input_c_stride;
   m_input.mem_stride[3] = 0;
-  
+
   m_use_tiling = maxpool2d_private_buffer.m_tile_first_size[kTensorBatchDim] > 0;
   if (m_use_tiling) {
     m_input.shape[0] = maxpool2d_private_buffer.m_tile_first_size[kTensorHeightDim];
@@ -86,7 +86,7 @@ MaxPool2D::MaxPool2D(void* kernel_private_data_buffer, size_t size,
     m_output.el_type = MLI_EL_FX_8;
     mli_prv_tensor_set_data_ptr(&m_output, output_internal.get_ptr<int8_t>());
   } else {
-    assert(0);
+    MLI_ASSERT(0);
   }
 
   m_output.mem_stride[0] = maxpool2d_private_buffer.output_h_stride;

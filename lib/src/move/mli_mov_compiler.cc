@@ -50,6 +50,7 @@ unsigned Move_CS::GetRuntimeObjectSize() const {
 mli_status Move_CS::GetKernelPrivateData(void *kernel_private_data_buffer) {
   MovePrivateData obj;
 
+  obj.size = GetKernelPrivateDataSize();
   obj.src = m_src;
   obj.dst = m_dst;
   obj.src_cfg = m_src_cfg;

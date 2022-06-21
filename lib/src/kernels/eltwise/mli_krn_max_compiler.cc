@@ -35,14 +35,16 @@ Max_CS::Max_CS(const lib_mli::PlatformDescription pd,
     output_shape[i] = output_tile_shape.get_dim(i);
     output_stride[i] = output_tile_shape.get_mem_stride(i);
 
-    m_is_left_scalar &= (in_left_shape[i] == 1);
-    m_is_right_scalar &= (in_right_shape[i] == 1);
+    bool is_left_bcast = (in_left_shape[i] == 1);
+    m_is_left_scalar &= is_left_bcast;
+    bool is_right_bcast = (in_right_shape[i] == 1);
+    m_is_right_scalar &= is_right_bcast;
 
     // verify broadcasting
-    MLI_ASSERT(m_is_left_scalar ?
-      output_shape[i] == in_right_shape[i] : in_left_shape[i] == in_right_shape[i]);
-    MLI_ASSERT(m_is_right_scalar ?
-      output_shape[i] == in_left_shape[i] : in_left_shape[i] == in_right_shape[i]);
+    MLI_ASSERT(is_left_bcast ?
+      output_shape[i] == in_right_shape[i] : output_shape[i] == in_left_shape[i]);
+    MLI_ASSERT(is_right_bcast ?
+      output_shape[i] == in_left_shape[i] : output_shape[i] == in_right_shape[i]);
   }
 
   m_in_left = Tensor<OffsetBuffer, 4>(OffsetBuffer(), in_left_shape, in_left_stride);
@@ -68,12 +70,11 @@ unsigned Max_CS::GetRuntimeObjectSize() const {
 mli_status Max_CS::GetKernelPrivateData(void* kernel_private_data_buffer) {
   EltwisePrivateData obj(kMaxId);
 
-  obj.size = sizeof(EltwisePrivateData);
+  obj.size = GetKernelPrivateDataSize();
 
   obj.m_in_left_buffer = m_in_left.get_buf();
   obj.m_in_right_buffer = m_in_right.get_buf();
   obj.m_output_buffer = m_output.get_buf();
-  obj.m_metadata = m_metadata;
 
   MLI_ASSERT(m_in_left.get_rank() == 4);
   if (m_is_left_scalar) {
@@ -120,7 +121,6 @@ mli_status Max_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left
   m_in_left.set_buf(input_left.get_buf());
   m_in_right.set_buf(input_right.get_buf());
   m_output.set_buf(output.get_buf());
-  m_metadata = data;
 
   return MLI_STATUS_OK;
 }

@@ -52,8 +52,8 @@ mli_status Rescale_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
                                            const OffsetBuffer &encoded_params,
                                            const OffsetBuffer &metadata) {
 
-    assert(input.get_buf().get_size() == m_input_buffer_size * input.get_elem_size());
-    assert(output.get_buf().get_size() == m_output_buffer_size * output.get_elem_size());
+    MLI_ASSERT(input.get_buf().get_size() == m_input_buffer_size * input.get_elem_size());
+    MLI_ASSERT(output.get_buf().get_size() == m_output_buffer_size * output.get_elem_size());
 
     m_input.set_buf(input.get_buf());
     m_output.set_buf(output.get_buf());
@@ -66,9 +66,9 @@ mli_status Rescale_CS::GetKernelPrivateData( void *kernel_private_data_buffer ) 
 
     RescalePrivateData opaque_obj;
 
-    opaque_obj.size = sizeof(RescalePrivateData);
+    opaque_obj.size = GetKernelPrivateDataSize();
 
-    assert(m_input.get_rank() == m_output.get_rank());
+    MLI_ASSERT(m_input.get_rank() == m_output.get_rank());
     opaque_obj.io_rank = m_input.get_rank();
 
     opaque_obj.input_buffer = m_input.get_buf();
@@ -78,7 +78,7 @@ mli_status Rescale_CS::GetKernelPrivateData( void *kernel_private_data_buffer ) 
     opaque_obj.params_elem_num = m_params_elem_num;
 
     for(uint32_t i = 0; i < opaque_obj.io_rank; i++) {
-        assert(m_input.get_dim(i) == m_output.get_dim(i));
+        MLI_ASSERT(m_input.get_dim(i) == m_output.get_dim(i));
     }
 
     opaque_obj.input_b = m_input.get_dim(mli::kTensorBatchDim);
