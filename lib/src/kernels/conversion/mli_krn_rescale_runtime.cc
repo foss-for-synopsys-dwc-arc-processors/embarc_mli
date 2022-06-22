@@ -86,7 +86,13 @@ Rescale::Rescale(void* kernel_private_data_buffer, size_t size,
         auto& tsr = m_metadata.in_bias;
         if (m_in_elem_size == sizeof(int32_t)) {
             encoded_params_internal.set_elem_size(sizeof(int32_t));
-            tsr.data.mem.pi32 = encoded_params_internal.get_ptr<int32_t>();
+            if(m_metadata.rescale_axis < 0) { // per-tensor
+                tsr.rank = 0;
+                tsr.data.mem.i32 = encoded_params_internal.read<int32_t>(0);
+            } else { // per-axis
+                tsr.rank = 1;
+                tsr.data.mem.pi32 = encoded_params_internal.get_ptr<int32_t>();
+            }
             encoded_params_internal.inc(private_buffer.params_elem_num);
 
             tsr.el_type = MLI_EL_SA_32;
@@ -94,29 +100,38 @@ Rescale::Rescale(void* kernel_private_data_buffer, size_t size,
         else {
             MLI_ASSERT(0);
         }
-        tsr.rank = 1;
     }
 
     {
         // Reconstruct scale Tensor
         auto& tsr = m_metadata.scale;
         encoded_params_internal.set_elem_size(sizeof(int16_t));
-        tsr.data.mem.pi16 = encoded_params_internal.get_ptr<int16_t>();
+        if(m_metadata.rescale_axis < 0) {
+            tsr.rank = 0;
+            tsr.data.mem.i16 = encoded_params_internal.read<int16_t>(0);
+        } else {
+            tsr.rank = 1;
+            tsr.data.mem.pi16 = encoded_params_internal.get_ptr<int16_t>();
+        }
         encoded_params_internal.inc(private_buffer.params_elem_num);
 
         tsr.el_type = MLI_EL_FX_16;
-        tsr.rank = 1;
     }
 
     {
         // Reconstruct shift Tensor
         auto& tsr = m_metadata.shift;
         encoded_params_internal.set_elem_size(sizeof(int8_t));
-        tsr.data.mem.pi8 = encoded_params_internal.get_ptr<int8_t>();
+        if(m_metadata.rescale_axis < 0) {
+            tsr.rank = 0;
+            tsr.data.mem.i8 = encoded_params_internal.read<int8_t>(0);
+        } else {
+            tsr.rank = 1;
+            tsr.data.mem.pi8 = encoded_params_internal.get_ptr<int8_t>();
+        }
         encoded_params_internal.inc(private_buffer.params_elem_num);
 
         tsr.el_type = MLI_EL_FX_8;
-        tsr.rank = 1;
     }
 
     {
@@ -124,14 +139,19 @@ Rescale::Rescale(void* kernel_private_data_buffer, size_t size,
         auto& tsr = m_metadata.out_bias;
         if (m_out_elem_size == sizeof(int8_t)) {
             encoded_params_internal.set_elem_size(sizeof(int8_t));
-            tsr.data.mem.pi8 = encoded_params_internal.get_ptr<int8_t>();
-
+            if(m_metadata.rescale_axis < 0) {
+                tsr.rank = 0;
+                tsr.data.mem.i8 = encoded_params_internal.read<int8_t>(0);
+            } else {
+                tsr.rank = 1;
+                tsr.data.mem.pi8 = encoded_params_internal.get_ptr<int8_t>();
+            }
+            
             tsr.el_type = MLI_EL_FX_8;
         }
         else {
             MLI_ASSERT(0);
         }
-        tsr.rank = 1;
     }
 }
 

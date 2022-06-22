@@ -662,17 +662,28 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
     lib_mli::Tensor<lib_mli::Buffer,1> shift_tensor(src_shift_buf, params_shape);
     lib_mli::Tensor<lib_mli::Buffer,1> outbias_tensor(src_outbias_buf, params_shape);
 
-    for(uint32_t i = 0; i< (inbias_size/inbias_elem_size); i++) {
-        inbias_tensor.write<int32_t>(i, rs_inbias_tsr.data.mem.pi32[i]);
-    }
-    for(uint32_t i = 0; i< (scale_size/scale_elem_size); i++) {
-        scale_tensor.write<int16_t>(i, rs_scale_tsr.data.mem.pi16[i]);
-    }
-    for(uint32_t i = 0; i< (shift_size/shift_elem_size); i++) {
-        shift_tensor.write<int8_t>(i, rs_shift_tsr.data.mem.pi8[i]);
-    }
-    for(uint32_t i = 0; i< (outbias_size/outbias_elem_size); i++) {
-        outbias_tensor.write<int8_t>(i, rs_outbias_tsr.data.mem.pi8[i]);
+    if(rs_cfg.axis < 0) { // per-tensor
+        assert(rs_inbias_tsr.rank == 0);
+        assert(rs_scale_tsr.rank == 0);
+        assert(rs_shift_tsr.rank == 0);
+        assert(rs_outbias_tsr.rank == 0);
+        inbias_tensor.write<int32_t>(0, rs_inbias_tsr.data.mem.i32);
+        scale_tensor.write<int16_t>(0, rs_scale_tsr.data.mem.i16);
+        shift_tensor.write<int8_t>(0, rs_shift_tsr.data.mem.i8);
+        outbias_tensor.write<int8_t>(0, rs_outbias_tsr.data.mem.i8);
+    } else { // per-axis
+        for(uint32_t i = 0; i< (inbias_size/inbias_elem_size); i++) {
+            inbias_tensor.write<int32_t>(i, rs_inbias_tsr.data.mem.pi32[i]);
+        }
+        for(uint32_t i = 0; i< (scale_size/scale_elem_size); i++) {
+            scale_tensor.write<int16_t>(i, rs_scale_tsr.data.mem.pi16[i]);
+        }
+        for(uint32_t i = 0; i< (shift_size/shift_elem_size); i++) {
+            shift_tensor.write<int8_t>(i, rs_shift_tsr.data.mem.pi8[i]);
+        }
+        for(uint32_t i = 0; i< (outbias_size/outbias_elem_size); i++) {
+            outbias_tensor.write<int8_t>(i, rs_outbias_tsr.data.mem.pi8[i]);
+        }
     }
 
     // host tensors -> encoded host buffer
@@ -704,6 +715,9 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
 
     status = rescale_op->GetKernelPrivateData(rescale_conf_private);
     assert(status == MLI_STATUS_OK);
+
+    free(dw_conv2d_cs_buffer);
+    free(rescale_cs_buffer);
 }
 
 void execution_phase(DepthwiseConvOp &dwc_op, RescaleOp &rs_op) {
@@ -833,17 +847,14 @@ int main() {
         // Solution to vectorize Rescale params tensors in case of per-axis
         // computation.
         //
-        // All params tensors that have one element, should have rank of 1
+        // All params tensors that have one element, should have rank of 0
         // (including out_bias).
         //
         const mli_tensor& inbias_tsr = rs_op.mli3_bias.get_bias_tsr();
         auto& outbias_tsr = rs_op.bias_out;
         auto& shift_tsr  = (mli_tensor&)rs_op.mli3_scales_keeper.get_shift_tsr();
         auto& scale_tsr  = (mli_tensor&)rs_op.mli3_scales_keeper.get_scales_tsr();
-        uint32_t elem_num = mli_hlp_count_elem_num(&inbias_tsr, 0);
-        int8_t outbias_data[elem_num];
-        int8_t shift_data[elem_num];
-        int16_t scale_data[elem_num];
+        void *outbias_data = NULL, *shift_data = NULL, *scale_data = NULL;
         {
             int32_t rescale_axis;
             if (mli_hlp_count_elem_num(&scale_tsr, 0) == 1) {
@@ -855,15 +866,15 @@ int main() {
             // If per-axis computation && out_bias is one element,
             // so construct out_bias tensor as vector the same as other params.
             if((rescale_axis != -1) && (mli_hlp_count_elem_num(&outbias_tsr, 0) == 1)) {
-                vectorize_single_elem_tensor(outbias_tsr, inbias_tsr, outbias_data);
+                outbias_data = vectorize_single_elem_tensor(outbias_tsr, inbias_tsr);
             }
 
             // If per-tensor computation && in_bias is vector,
             // so construct out_bias, shift and scale tensors as vectors the same as in_bias.
             if((rescale_axis == -1) && (mli_hlp_count_elem_num(&inbias_tsr, 0) != 1)) {
-                vectorize_single_elem_tensor(outbias_tsr, inbias_tsr, outbias_data);
-                vectorize_single_elem_tensor(shift_tsr, inbias_tsr, shift_data);
-                vectorize_single_elem_tensor(scale_tsr, inbias_tsr, scale_data);
+                outbias_data = vectorize_single_elem_tensor(outbias_tsr, inbias_tsr);
+                shift_data = vectorize_single_elem_tensor(shift_tsr, inbias_tsr);
+                scale_data = vectorize_single_elem_tensor(scale_tsr, inbias_tsr);
             }
         }
 
@@ -890,6 +901,11 @@ int main() {
         is_test_passed &= postprocess_phase(reporter, cur_test, dwc_op, rs_op);
 
         final_status &= is_test_passed;
+
+        // Free buffers for Rescale params
+        free(outbias_data);
+        free(shift_data);
+        free(scale_data);
     }
 
     reporter.report_outline("[AUTO] Group: mli_krn_depthwise_conv_30",

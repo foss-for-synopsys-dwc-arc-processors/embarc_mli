@@ -167,10 +167,6 @@ unsigned Rescale_CS::GetDataBufferSize() const {
     return 0;
 }
 
-unsigned Rescale_CS::GetParamsBufferSize() const {
-    return m_encoded_params_buffer_size; // in bytes
-}
-
 unsigned Rescale_CS::GetEncodedParamsSize() const {
     return m_encoded_params_buffer_size; // in bytes
 }

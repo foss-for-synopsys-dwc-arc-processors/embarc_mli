@@ -292,7 +292,6 @@ public:
     // From Rescale_CS
     unsigned GetInputBufferSize() const override;
     unsigned GetOutputBufferSize() const override;
-    unsigned GetParamsBufferSize() const override;
     unsigned GetDataBufferSize() const override;
     unsigned GetEncodedParamsSize() const override;
     mli_status EncodeParams(const Tensor<Buffer, 1> &in_bias,

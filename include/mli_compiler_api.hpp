@@ -510,7 +510,6 @@ public:
 
     virtual unsigned GetInputBufferSize() const = 0;
     virtual unsigned GetOutputBufferSize() const = 0;
-    virtual unsigned GetParamsBufferSize() const = 0;
     virtual unsigned GetDataBufferSize() const = 0;
 
     /**

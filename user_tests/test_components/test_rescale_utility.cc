@@ -181,12 +181,13 @@ bias_folder::bias_folder(const mli_tensor& b_tsr, const mli_tensor& in_tsr,
     }
 }
 
-void vectorize_single_elem_tensor(mli_tensor& dst_tsr,
-                                  const mli_tensor& src_tsr,
-                                  void* data) {
+void* vectorize_single_elem_tensor(mli_tensor& dst_tsr,
+                                   const mli_tensor& src_tsr) {
 
     int32_t duplicate_val;
     uint32_t elem_num = mli_hlp_count_elem_num(&src_tsr, 0);
+    uint32_t capacity = elem_num * mli_hlp_tensor_element_size(&dst_tsr);
+    void* pdata = malloc(capacity);
 
     if(dst_tsr.rank == 0) {
         if((dst_tsr.el_type == MLI_EL_FX_8) || (dst_tsr.el_type == MLI_EL_SA_8)) {
@@ -209,7 +210,7 @@ void vectorize_single_elem_tensor(mli_tensor& dst_tsr,
     }
 
     dst_tsr.rank = src_tsr.rank;
-    dst_tsr.data.capacity = elem_num * mli_hlp_tensor_element_size(&dst_tsr);
+    dst_tsr.data.capacity = capacity;
     for(uint32_t i = 0; i < 4; i++) {
         dst_tsr.shape[i] = src_tsr.shape[i];
         dst_tsr.mem_stride[i] = src_tsr.mem_stride[i];
@@ -217,14 +218,16 @@ void vectorize_single_elem_tensor(mli_tensor& dst_tsr,
 
     for(uint32_t i = 0; i < elem_num; i++) {
         if((dst_tsr.el_type == MLI_EL_FX_8) || (dst_tsr.el_type == MLI_EL_SA_8)) {
-            static_cast<int8_t*>(data)[i] = duplicate_val;
-        } else if(dst_tsr.el_type == MLI_EL_FX_16) {
-            static_cast<int16_t*>(data)[i] = duplicate_val;
-        } else if(dst_tsr.el_type == MLI_EL_SA_32) {
-            static_cast<int32_t*>(data)[i] = duplicate_val;
+            static_cast<int8_t*>(pdata)[i] = duplicate_val;
+        } else if((dst_tsr.el_type == MLI_EL_FX_16)) {
+            static_cast<int16_t*>(pdata)[i] = duplicate_val;
+        } else if((dst_tsr.el_type == MLI_EL_SA_32)) {
+            static_cast<int32_t*>(pdata)[i] = duplicate_val;
         }
     }
-    dst_tsr.data.mem.pi8 = static_cast<int8_t*>(data);
+    dst_tsr.data.mem.pi8 = static_cast<int8_t*>(pdata); // union of pointers
+
+    return pdata;
 }
 
 } // namespace tst
