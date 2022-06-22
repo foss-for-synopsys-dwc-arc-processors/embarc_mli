@@ -271,101 +271,69 @@ private:
   uint32_t elem_size_;
 };
 
+/**
+ * @brief Tensor type - main data descriptor for all MLI_CS  kernel operandsalgorithms
+ * 
+ * @tparam buf_T type of the buffer handeled by tensor
+ * @tparam maxRank maximum rank of the tensor instance might be represent
+ */
 template <typename buf_T, unsigned maxRank>
 class Tensor {
  public:
-  Tensor() {
-    buf_ = buf_T();
-    for (unsigned i = 0; i < maxRank; i++){
-      shape_[i] = 0;
-      mem_stride_[i] = 0;
-    }
-    rank_ = 0;
-  }
 
-  Tensor(buf_T buf, uint32_t shape[]) {
-    buf_ = buf;
-    int32_t stride = 1;
-    for (unsigned i = 0; i < maxRank; i++){
-      shape_[i] = shape[i];
-      mem_stride_[i] = stride;
-      stride *= shape[i];
-    }
-    rank_ = maxRank;
-  }
+  /**
+  * A default constructor for a tensor
+  */
+  Tensor() : buf_{buf_T()}, shape_{0}, mem_stride_{0}, rank_{0} {}
 
-  Tensor(uint32_t shape[]) {
-    buf_ = NoBuffer();
-    int32_t stride = 1;
-    for (unsigned i = 0; i < maxRank; i++){
-      shape_[i] = shape[i];
-      mem_stride_[i] = stride;
-      stride *= shape[i];
-    }
-    rank_ = maxRank;
-  }
-
-  Tensor(buf_T buf, uint32_t shape[], unsigned rank) {
-    assert(rank <= maxRank);
-    buf_ = buf;
-    int32_t stride = 1;
-    for (unsigned i = 0; i < rank; i++){
-      shape_[i] = shape[i];
-      mem_stride_[i] = stride;
-      stride *= shape[i];
-    }
-    rank_ = rank;
-  }
-
-  Tensor(uint32_t shape[], unsigned rank) {
-    assert(rank <= maxRank);
-    buf_ = NoBuffer();
-    int32_t stride = 1;
-    for (unsigned i = 0; i < rank; i++){
-      shape_[i] = shape[i];
-      mem_stride_[i] = stride;
-      stride *= shape[i];
-    }
-    rank_ = rank;
-  }
-
-  Tensor(buf_T buf, uint32_t shape[], int32_t mem_stride[]) {
-    buf_ = buf;
-    for (unsigned i = 0; i < maxRank; i++){
+  /**
+  * The completely specialized Tensor constructor
+  */
+  Tensor(buf_T buf, uint32_t shape[], int32_t mem_stride[], uint32_t rank)
+      : buf_{buf}, shape_{0}, mem_stride_{0}, rank_{rank} {
+    assert(rank_ <= maxRank);
+    for (uint32_t i = 0; i < rank; ++i) {
       shape_[i] = shape[i];
       mem_stride_[i] = mem_stride[i];
     }
-    rank_ = maxRank;
   }
 
-  Tensor(uint32_t shape[], int32_t mem_stride[]) {
-    buf_ = NoBuffer();
-    for (unsigned i = 0; i < maxRank; i++){
-      shape_[i] = shape[i];
-      mem_stride_[i] = mem_stride[i];
+  /**
+  * The Specialised constructor for tensors with contiguous data
+  */
+  Tensor(buf_T buf, uint32_t shape[], uint32_t rank) 
+      : buf_{buf}, shape_{0}, mem_stride_{0}, rank_{rank} {
+    assert(rank_ <= maxRank);
+    int32_t stride = 1;
+    for (uint32_t cur_dim = rank_; cur_dim > 0; --cur_dim) {
+      const uint32_t idx = cur_dim - 1;
+      shape_[idx] = shape[idx];
+      mem_stride_[idx] = stride;
+      if (shape[idx] > 0)
+        stride *= shape[idx];
     }
-    rank_ = maxRank;
   }
 
-  Tensor(buf_T buf, uint32_t shape[], int32_t mem_stride[], unsigned rank) {
-    assert(rank <= maxRank);
-    buf_ = buf;
-    for (unsigned i = 0; i < rank; i++){
-      shape_[i] = shape[i];
-      mem_stride_[i] = mem_stride[i];
-    }
-    rank_ = rank;
-  }
+  /**
+  * Various partly specialized constructors
+  */
+  Tensor(uint32_t shape[]) 
+      : Tensor(NoBuffer(), shape, static_cast<uint32_t>(maxRank))  {}
 
-  Tensor(uint32_t shape[], int32_t mem_stride[], unsigned rank) {
-    assert(rank <= maxRank);
-    buf_ = NoBuffer();
-    for (unsigned i = 0; i < rank; i++){
-      shape_[i] = shape[i];
-      mem_stride_[i] = mem_stride[i];
-    }
-    rank_ = rank;
-  }
+  Tensor(buf_T buf, uint32_t shape[]) 
+      : Tensor(buf, shape, static_cast<uint32_t>(maxRank)) {}
+
+  Tensor(uint32_t shape[], uint32_t rank) 
+      : Tensor(NoBuffer(), shape, rank) {}
+
+  Tensor(buf_T buf, uint32_t shape[], int32_t mem_stride[]) 
+      :  Tensor(buf, shape, mem_stride, static_cast<uint32_t>(maxRank)) {}
+
+  Tensor(uint32_t shape[], int32_t mem_stride[]) 
+      :  Tensor(NoBuffer(), shape, mem_stride, static_cast<uint32_t>(maxRank)) {}
+
+  Tensor(uint32_t shape[], int32_t mem_stride[], uint32_t rank) 
+      :  Tensor(NoBuffer(), shape, mem_stride, rank) {}
 
   /* copy constructor for tensors with different rank */
   template <unsigned N>
