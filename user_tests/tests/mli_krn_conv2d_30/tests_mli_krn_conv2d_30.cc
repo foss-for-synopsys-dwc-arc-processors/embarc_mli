@@ -652,9 +652,9 @@ void prepare_phase(const conv2d_test_operands* cur_test,
 
   // Copy input zero points and weights zero points to the temp host buffers
   //==================================================================
-  size_t shared_buf_size = std::max(inpzp_size, wtszp_size);
-  char host_buf_a[shared_buf_size];
-  char host_buf_b[shared_buf_size];
+  size_t shared_buf_size = MAX(inpzp_size, wtszp_size);
+  char * host_buf_a = (char*) malloc(shared_buf_size);
+  char * host_buf_b = (char*) malloc(shared_buf_size);
   lib_mli::Buffer src_inpzp_buf(host_buf_a, inpzp_size, cnv_i_elem_size);
   lib_mli::Buffer dst_inpzp_buf(host_buf_b, inpzp_size, zp_elem_size);
   lib_mli::Buffer src_wtszp_buf(host_buf_a, wtszp_size, cnv_w_elem_size);
@@ -725,8 +725,8 @@ void prepare_phase(const conv2d_test_operands* cur_test,
 
   // STEP 1.3: [Rescale] Copy dataset from tensors to the global shared memory pool
   //==================================================================
-  int8_t host_src_buf[encoded_params_size];
-  int8_t host_dst_buf[encoded_params_size];
+  int8_t * host_src_buf = (int8_t *) malloc(encoded_params_size);
+  int8_t * host_dst_buf = (int8_t *) malloc(encoded_params_size);
   uint32_t params_shape[1] = {rs_inbias_tsr.shape[0]};
 
   uint32_t inbias_elem_size = mli_hlp_tensor_element_size(&rs_inbias_tsr);
@@ -810,6 +810,10 @@ void prepare_phase(const conv2d_test_operands* cur_test,
 
   free(conv2d_cs_buffer);
   free(rescale_cs_buffer);
+  free(host_buf_a);
+  free(host_buf_b);
+  free(host_src_buf);
+  free(host_dst_buf);
 }
 
 void execution_phase(Conv2dOp& cnv_op, RescaleOp &rs_op) {

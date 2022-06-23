@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <vector>
 #include <variant>
+#include <algorithm>
 
 #include "mli_types.h"
 #include "mli_ref_compiler_api.hpp"
