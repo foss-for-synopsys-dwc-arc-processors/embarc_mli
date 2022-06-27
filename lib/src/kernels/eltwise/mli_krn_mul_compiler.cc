@@ -25,7 +25,7 @@ Mul_CS::Mul_CS(const lib_mli::PlatformDescription pd,
   int32_t in_right_stride[4];
   int32_t output_stride[4];
 
-  for (size_t i = 0; i < 4; ++i) {
+  for (uint32_t i = 0; i < 4; ++i) {
     in_left_shape[i] = in_left.get_dim(i);
     in_left_stride[i] = in_left.get_mem_stride(i);
 
