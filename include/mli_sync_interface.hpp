@@ -15,7 +15,6 @@ class SynchronizationInterface {
 
   public:
     virtual mli_status WaitEvent(int32_t mask) = 0;
-    
 };
 
 

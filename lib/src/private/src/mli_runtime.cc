@@ -26,6 +26,7 @@ using ref::Move;
 using ref::Conv2d;
 using ref::DepthwiseConv2d;
 using ref::Rescale;
+using ref::Clip;
 
 ExecutionInterface* ExecutionInterface::Create(
         void* allocation_memory_buffer,
@@ -132,6 +133,13 @@ ExecutionInterface* ExecutionInterface::Create(
                 obj = new (allocation_memory_buffer) Rescale(kernel_private_data_buffer, private_data_size, membases, num_mems);
             } else {
                 MLI_PRINTF("\nMLI_ERROR: Insufficient space for [Rescale] runtime object\n");
+            }
+            break;
+        case kClipId:
+            if(alloc_buf_size >= sizeof(Clip)) {
+                obj = new (allocation_memory_buffer) Clip(kernel_private_data_buffer, private_data_size, membases, num_mems);
+            } else {
+                MLI_PRINTF("\nMLI_ERROR: Insufficient space for [Clip] runtime object\n");
             }
             break;
         case kSomeOtherKernelId:

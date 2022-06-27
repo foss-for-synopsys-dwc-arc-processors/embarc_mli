@@ -55,8 +55,8 @@ KERNELS = \
 	data_movement \
 	data_movement_30 \
 	maxpool_30 \
-	fully_connected_30 \
 	sumpool_30 \
+	fully_connected_30 \
 	eltwise_30 \
 	conv2d_30 \
 	depthwise_conv_30

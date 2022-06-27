@@ -156,7 +156,6 @@ static const eltwise_test_operands tests_list[] = {
   {"Test 5 SA8 Sub vec - scalar",  mli_krn_eltwise_sub_sa8,
                                    input_3_sa8, input_2_sa8, test_5_out_sa8,
                                    thresholds_sa8_general, test_5_chksum_sa8, EltwiseTy::SUB},
-
   // Eltwise Mul of two vectors
   {"Test 6 FX16 Mul two vectors",  mli_krn_eltwise_mul_fx16,
                                    input_1_fx16, input_2_fx16, test_6_out_fx16,

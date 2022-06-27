@@ -587,6 +587,57 @@ private:
     lib_mli::PlatformDescription m_pd;
 };
 
+class Clip_CS : public lib_mli::Clip_CS {
+
+ public:
+    Clip_CS(const lib_mli::PlatformDescription pd,
+            const Tensor<NoBuffer, kMaxRank> &input,
+            const Tensor<NoBuffer, kMaxRank> &output);
+
+    unsigned GetRuntimeObjectSize() const override;
+
+    mli_status GetKernelPrivateData(void *kernel_private_data_buffer) override;
+    unsigned GetKernelPrivateDataSize() const override;
+
+    mli_status EncodeParams(Tensor<Buffer, 1> &min_val,
+                            Tensor<Buffer, 1> &max_val,
+                            Buffer &encoded_params) override;
+
+    unsigned GetEncodedParamsSize() const override;
+
+    unsigned GetInputBufferSize() const override;
+    unsigned GetOutputBufferSize() const override;
+    unsigned GetParamsBufferSize() const override;
+    unsigned GetDataBufferSize() const override;
+
+    /**
+     * @brief Methods to set buffer offsets
+     *
+     */
+    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kMaxRank> &input,
+                                   const Tensor<OffsetBuffer, kMaxRank> &output,
+                                   const OffsetBuffer &encoded_params,
+                                   const OffsetBuffer &metadata)  override;
+
+private:
+    Tensor<OffsetBuffer, kMaxRank> m_input;
+    Tensor<OffsetBuffer, kMaxRank> m_output;
+
+    OffsetBuffer m_encoded_params;
+
+    OffsetBuffer m_min;
+    OffsetBuffer m_max;
+
+    uint32_t m_input_buffer_size;
+    uint32_t m_output_buffer_size;
+    uint32_t m_encoded_params_buffer_size;
+
+    uint32_t m_params_elem_num;
+
+    lib_mli::PlatformDescription m_pd;
+
+};
+
 } // namespace ref
 
 #endif // _MLI_REF_COMPILER_API_HPP_

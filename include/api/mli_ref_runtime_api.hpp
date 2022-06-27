@@ -411,6 +411,34 @@ private:
     uint32_t m_out_elem_size;
 };
 
+/**
+ * @brief This class implements the Clip kernel xop interpreter interface
+ *
+ *
+ */
+class Clip : public ExecutionInterface {
+  public:
+
+    Clip(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
+
+    mli_status Issue() override;
+
+    mli_status Prefetch() override;
+
+    mli_status Update() override;
+
+private:
+    mli_tensor m_input;
+    mli_tensor m_output;
+
+    mli_tensor m_min;
+    mli_tensor m_max;
+
+    uint32_t m_in_elem_size;
+    uint32_t m_out_elem_size;
+};
+
+
 } // namespace snps_arc::metaware::mli::ref
 
 #endif // _MLI_REF_RUNTIME_API_HPP_

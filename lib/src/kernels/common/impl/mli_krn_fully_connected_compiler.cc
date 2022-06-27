@@ -108,6 +108,7 @@ mli_status FullyConnected_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, 2> 
   MLI_ASSERT(input.get_buf().get_size() >= m_input_buffer_size * input.get_elem_size());
   MLI_ASSERT(output.get_buf().get_size() >= m_output_buffer_size * output.get_elem_size());
   MLI_ASSERT(weights.get_size() >= m_weights_buffer_size * weights.get_elem_size());
+  MLI_ASSERT(inpzeropts.get_elem_size() == 2 && wtszeropts.get_elem_size() == 2);
 
   m_in.set_buf(input.get_buf());
   m_output.set_buf(output.get_buf());

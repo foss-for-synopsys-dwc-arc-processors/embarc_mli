@@ -161,6 +161,14 @@ public:
         return new(kernel_buffer) lib_ref::Rescale_CS(m_pd, input_shape, cfg, output_tile_shape);
     }
 
+    uint32_t Clip_CS_GetSize() const override { return sizeof(lib_ref::Clip_CS); }
+
+    lib_mli::Clip_CS* Clip_CS(void *kernel_buffer,
+                                    const Tensor<NoBuffer, 4> input_shape,
+                                    const Tensor<NoBuffer, 4> output_tile_shape) override {
+        return new(kernel_buffer) lib_ref::Clip_CS(m_pd, input_shape, output_tile_shape);
+    }
+
 private:
     lib_mli::PlatformDescription m_pd;
 

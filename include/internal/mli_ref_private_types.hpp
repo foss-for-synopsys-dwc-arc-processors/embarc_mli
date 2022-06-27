@@ -282,6 +282,42 @@ struct RescaleMetadata {
     mli_tensor output;
 };
 
+class ClipPrivateData : public PrivateData {
+
+public:
+    ClipPrivateData() : PrivateData(kClipId) {}
+
+    uint32_t io_rank;
+
+    // currently we support the only i8_w8_o32 case
+    OffsetBuffer input_buffer;
+    OffsetBuffer output_buffer;
+    OffsetBuffer encoded_params_buffer;
+
+    uint32_t params_elem_num;
+
+    uint32_t input_b;
+    uint32_t input_h;
+    uint32_t input_w;
+    uint32_t input_c;
+
+    uint32_t output_b;
+    uint32_t output_h;
+    uint32_t output_w;
+    uint32_t output_c;
+
+    int32_t input_b_stride;
+    int32_t input_h_stride;
+    int32_t input_w_stride;
+    int32_t input_c_stride;
+
+    int32_t output_b_stride;
+    int32_t output_h_stride;
+    int32_t output_w_stride;
+    int32_t output_c_stride;
+};
+
+
 } // namespace snps_arc::metaware::mli::ref
 
 #endif // _MLI_REF_PRIVATE_TYPES_HPP_

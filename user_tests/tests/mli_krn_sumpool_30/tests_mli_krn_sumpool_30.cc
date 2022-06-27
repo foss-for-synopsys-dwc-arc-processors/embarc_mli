@@ -242,7 +242,6 @@ struct RescaleOp {
   }
 
   bias_folder GetBiasFolder(const mli_tensor& input, int32_t pool_size) const {
-    // return bias_folder(bias_in, input, pool_size);
     return bias_folder();
   }
 

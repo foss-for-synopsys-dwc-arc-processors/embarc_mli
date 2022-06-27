@@ -135,7 +135,7 @@ void prepare_phase(int i, memory_manager& mem_in_keeper,
     uint32_t output_shape[kMaxRank] = { 0 };
     int32_t input_stride[kMaxRank]= { 0 };
     int32_t output_stride[kMaxRank]= { 0 };
-    
+
     for (int i = 0; i < temp_input_tensor.rank; i++) {
       input_shape[i] = temp_input_tensor.shape[i];
       input_stride[i] = temp_input_tensor.mem_stride[i];

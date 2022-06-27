@@ -529,6 +529,7 @@ public:
 class Clip_CS : public CompilerGenericInterface {
 public:
     virtual ~Clip_CS() = default;
+    static constexpr unsigned kMaxRank = 4;
 
     /**
      * @brief Method to encode parameters (coefficients)
@@ -542,26 +543,26 @@ public:
      * @brief Method to query the size of the encoded weights buffer
      *
      */
-    virtual unsigned GetEncodedParamsSize() = 0;
+    virtual unsigned GetEncodedParamsSize() const = 0;
 
     /**
      * @brief Methods to get buffer sizes
      *
      */
 
-    virtual unsigned GetInputBufferSize() = 0;
-    virtual unsigned GetOutputBufferSize() = 0;
-    virtual unsigned GetParamsBufferSize() = 0;
-    virtual unsigned GetDataBufferSize() = 0;
+    virtual unsigned GetInputBufferSize() const = 0;
+    virtual unsigned GetOutputBufferSize() const = 0;
+    virtual unsigned GetParamsBufferSize() const = 0;
+    virtual unsigned GetDataBufferSize() const = 0;
 
     /**
      * @brief Methods to set buffer offsets
      *
      */
-    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
-                                           const OffsetBuffer &output,
-                                           const OffsetBuffer &params,
-                                           const OffsetBuffer &data) = 0;
+    virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
+                                           const Tensor<OffsetBuffer, 4> &output,
+                                           const OffsetBuffer &encoded_params,
+                                           const OffsetBuffer &descr) = 0;
 };
 
 /**

@@ -72,6 +72,8 @@ set(MLI_LIB_SOURCE_FILES
     ${MLI_LIB_CMAKE_DIR}/src/kernels/common/mli_krn_gru_cell.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/conversion/mli_krn_rescale_compiler.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/conversion/mli_krn_rescale_runtime.cc
+    ${MLI_LIB_CMAKE_DIR}/src/kernels/clip/mli_krn_clip_compiler.cc
+    ${MLI_LIB_CMAKE_DIR}/src/kernels/clip/mli_krn_clip_runtime.cc
 )
 
 set(MLI_LIB_PUBLIC_INCLUDES
