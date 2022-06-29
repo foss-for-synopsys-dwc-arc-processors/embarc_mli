@@ -149,6 +149,9 @@ public:
 
     uint8_t stride_n;
     uint8_t stride_ic;
+
+    int32_t ipz_axis;
+    int32_t wtz_axis;
 };
 
 struct FullyConnectedMetadata {

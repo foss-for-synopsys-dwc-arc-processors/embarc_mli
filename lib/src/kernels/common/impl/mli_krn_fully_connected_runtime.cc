@@ -118,14 +118,20 @@ FullyConnected::FullyConnected(void* kernel_private_data_buffer,
     if (wtszp_size / wtszp_elem_size > 1) {
       MLI_ASSERT(private_data.weights_oc == wtszp_size / wtszp_elem_size);
       MLI_ASSERT(wtszp_elem_size == sizeof(int16_t));
-      tsr.el_params.sa.dim = 1; // channel dim
+      tsr.el_params.sa.dim = private_data.wtz_axis;
 
       tsr.el_params.sa.zero_point.capacity = wtszp_size;
       InternalBuffer wtszp_internal(private_data.wtszp_buffer, membases, num_mems);
       tsr.el_params.sa.zero_point.mem.pi16 = wtszp_internal.get_ptr<int16_t>();
     } else {
-      // not support yet
-      MLI_ASSERT(false);
+      // per-tensor quantization
+      MLI_ASSERT(1 == wtszp_size / wtszp_elem_size);
+      MLI_ASSERT(wtszp_elem_size == sizeof(int16_t));
+      tsr.el_params.sa.dim = private_data.wtz_axis;
+      tsr.el_params.sa.zero_point.capacity = 0;
+
+      InternalBuffer wtszp_internal(private_data.wtszp_buffer, membases, num_mems);
+      tsr.el_params.sa.zero_point.mem.i16 = wtszp_internal.read<int16_t>(0);
     }
   }
 }

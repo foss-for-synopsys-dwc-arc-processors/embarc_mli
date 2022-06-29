@@ -18,9 +18,12 @@ namespace snps_arc::metaware::mli::ref {
 FullyConnected_CS::FullyConnected_CS(const lib_mli::PlatformDescription pd,
                                      const Tensor<NoBuffer, 2> &in,
                                      const Tensor<NoBuffer, 2> &weights,
+                                     const FCConfig &cfg,
                                      const Tensor<NoBuffer, 2> &output_tile_shape
                                      )
     : m_pd{pd}
+    , m_config {cfg}
+
 {
   uint32_t input_shape[2];
   uint32_t output_shape[2];
@@ -69,6 +72,9 @@ mli_status FullyConnected_CS::GetKernelPrivateData(void* kernel_private_data_buf
   fc_opaque_obj.output_buffer = m_output.get_buf();
   fc_opaque_obj.inpzp_buffer = m_input_zp;
   fc_opaque_obj.wtszp_buffer = m_weights_zp;
+
+  fc_opaque_obj.ipz_axis = m_config.ipz_axis;
+  fc_opaque_obj.wtz_axis = m_config.wtz_axis;
 
   MLI_ASSERT(m_in.get_dim(mli::kTensorBatchDim) == m_output.get_dim(mli::kTensorBatchDim));
   MLI_ASSERT(m_in.get_dim(1) == m_weights.get_dim(mli::kKernelFCChannelInDim));
@@ -143,14 +149,23 @@ unsigned FullyConnected_CS::GetEncodedWeightsSize() const {
 
 mli_status FullyConnected_CS::EncodeInpZeroPts(const Tensor<Buffer, 1> &inpzeropts,
                                                Buffer &encoded_inpzeropts) {
-  MLI_ASSERT(encoded_inpzeropts.get_size() / encoded_inpzeropts.get_elem_size() == 1);
   MLI_ASSERT(inpzeropts.get_buf().get_size() == encoded_inpzeropts.get_size());
   // the element size of source should less than or equal to the encoded one's
   MLI_ASSERT(inpzeropts.get_elem_size() <= encoded_inpzeropts.get_elem_size());
 
   if (inpzeropts.get_elem_size() == sizeof(int8_t)) {
-    for (uint32_t i = 0; i < inpzeropts.get_dim(mli::kTensorBatchDim); ++i) {
-      encoded_inpzeropts.write(i, static_cast<int16_t>(inpzeropts.read<int8_t>(i)));
+    // per-tensor quantization
+    if(-1 == m_config.ipz_axis) {
+      MLI_ASSERT(1 == encoded_inpzeropts.get_size() /
+                          encoded_inpzeropts.get_elem_size());
+      encoded_inpzeropts.write(
+          0, static_cast<int16_t>(inpzeropts.read<int8_t>(0)));
+    } else {
+      MLI_ASSERT(encoded_inpzeropts.get_size() / encoded_inpzeropts.get_elem_size() ==
+      m_in.get_dim(m_config.ipz_axis));
+      for (uint32_t i = 0; i < inpzeropts.get_dim(mli::kTensorBatchDim); ++i) {
+        encoded_inpzeropts.write(i, static_cast<int16_t>(inpzeropts.read<int8_t>(i)));
+      }
     }
   } else {
     return MLI_STATUS_NOT_SUPPORTED;
@@ -160,23 +175,29 @@ mli_status FullyConnected_CS::EncodeInpZeroPts(const Tensor<Buffer, 1> &inpzerop
 }
 
 unsigned FullyConnected_CS::GetEncodedInpZeroPtsSize() const {
-  // per-tensor quantization
-  return 1;
+  // per-tensor quantization or specific axis quantization
+  return m_config.ipz_axis < 0 ? 1 : m_in.get_dim(m_config.ipz_axis);
 }
 
 mli_status FullyConnected_CS::EncodeWtsZeroPts(const Tensor<Buffer, 1> &wtszeropts,
                                                Buffer &encoded_wtszeropts) {
-  MLI_ASSERT(encoded_wtszeropts.get_size() / encoded_wtszeropts.get_elem_size() ==
-      m_weights.get_dim(mli::kKernelFCChannelOutDim));
   MLI_ASSERT(wtszeropts.get_buf().get_size() == encoded_wtszeropts.get_size());
   // the element size of source less than or equal to the encoded one's
   MLI_ASSERT(wtszeropts.get_elem_size() <= encoded_wtszeropts.get_elem_size());
 
   if (wtszeropts.get_elem_size() == sizeof(int8_t)) {
-  // the element size of source should eqaul to the encoded one's
-    for (uint32_t i = 0; i < wtszeropts.get_dim(mli::kKernelFCChannelInDim); ++i) {
-      encoded_wtszeropts.write(i, static_cast<int16_t>(wtszeropts.read<int8_t>(i)));
+    // per-tensor quantization
+    if(-1 == m_config.wtz_axis) {
+       encoded_wtszeropts.write(0, static_cast<int16_t>(wtszeropts.read<int8_t>(0)));
     }
+    else {
+      MLI_ASSERT(encoded_wtszeropts.get_size() / encoded_wtszeropts.get_elem_size() ==
+      m_weights.get_dim(m_config.wtz_axis));
+      for (uint32_t i = 0; i < wtszeropts.get_dim(m_config.wtz_axis); ++i) {
+        encoded_wtszeropts.write(i, static_cast<int16_t>(wtszeropts.read<int8_t>(i)));
+      }
+    }
+
   } else {
     return MLI_STATUS_NOT_SUPPORTED;
   }
@@ -185,8 +206,8 @@ mli_status FullyConnected_CS::EncodeWtsZeroPts(const Tensor<Buffer, 1> &wtszerop
 }
 
 unsigned FullyConnected_CS::GetEncodedWtsZeroPtsSize() const {
-  // per-channel quantization
-  return m_weights.get_dim(mli::kKernelFCChannelOutDim);
+  // per-tensor quantization or specific axis quantization
+  return  m_config.wtz_axis < 0 ? 1 : m_weights.get_dim(m_config.wtz_axis);
 }
 
 unsigned FullyConnected_CS::GetInputBufferSize() const {

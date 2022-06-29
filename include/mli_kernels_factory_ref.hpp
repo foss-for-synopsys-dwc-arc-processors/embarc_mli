@@ -148,8 +148,9 @@ public:
     lib_mli:: FullyConnected_CS* FullyConnected_CS(void *kernel_buffer,
                                                     const Tensor<NoBuffer, 2> in,
                                                     const Tensor<NoBuffer, 2> weights,
+                                                    const FCConfig &cfg,
                                                     const Tensor<NoBuffer, 2> output_tile_shape) override {
-        return new(kernel_buffer) lib_ref::FullyConnected_CS(m_pd, in, weights, output_tile_shape);
+        return new(kernel_buffer) lib_ref::FullyConnected_CS(m_pd, in, weights, cfg, output_tile_shape);
     }
 
     uint32_t Rescale_CS_GetSize() const override { return sizeof(lib_ref::Rescale_CS); }

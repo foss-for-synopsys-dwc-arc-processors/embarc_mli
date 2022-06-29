@@ -234,6 +234,7 @@ public:
      FullyConnected_CS(const lib_mli::PlatformDescription pd,
                        const Tensor<NoBuffer, 2> &in,
                        const Tensor<NoBuffer, 2> &weights,
+                       const FCConfig &cfg,
                        const Tensor<NoBuffer, 2> &output_tile_shape);
 
     mli_status EncodeWeights(const Tensor<Buffer, 2> &weights,
@@ -269,6 +270,7 @@ public:
     unsigned GetRuntimeObjectSize() const override;
 
 private:
+    FCConfig m_config;
     Tensor<OffsetBuffer, 2> m_in;
     Tensor<OffsetBuffer, 2> m_weights;
     Tensor<OffsetBuffer, 2> m_output;

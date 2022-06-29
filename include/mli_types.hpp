@@ -521,6 +521,17 @@ struct TableBuiltinConfig {
                                   Otherwise implies separate bias value per slice across innermost dimension */
 };
 
+struct FCConfig {
+  FCConfig() = default;
+  FCConfig(int32_t ipz_axis, int32_t wtz_axis) : ipz_axis{ipz_axis}, wtz_axis{wtz_axis} {};
+
+  int32_t ipz_axis;
+  int32_t wtz_axis; /**< An axis along which the function will be computed.
+                     Axis corresponds to index of tensor`s dimension starting from 0.
+                     For instance, having future map in HWC layout, axis == 0 corresponds to H dimension.
+                     If axis < 0 the function will be applied to the whole tensor */
+};
+
 struct RescaleConfig {
   RescaleConfig() = default;
   RescaleConfig(int32_t axis) : axis{axis} {};

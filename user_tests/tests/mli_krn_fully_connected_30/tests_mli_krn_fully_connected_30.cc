@@ -429,8 +429,12 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
   uint32_t fully_connected_cs_size = kernel_factory.FullyConnected_CS_GetSize();
   void* fully_connected_cs_buffer = malloc(fully_connected_cs_size);
 
+  lib_mli::FCConfig fc_cfg;
+  fc_cfg.ipz_axis = fc_op.input.el_params.sa.dim;
+  fc_cfg.wtz_axis = fc_op.weights.el_params.sa.dim;
+
   auto FullyConn = kernel_factory.FullyConnected_CS(
-    fully_connected_cs_buffer, in_tensor, wt_tensor, out_tensor);
+    fully_connected_cs_buffer, in_tensor, wt_tensor, fc_cfg, out_tensor);
 
   // STEP 1.1.2: Construct [Rescale] as a specific ExecutionInterface successor
   //==================================================================
@@ -719,7 +723,8 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
   uint32_t fc_inpzp_shape[1] = {1};
   lib_mli::Tensor<lib_mli::Buffer, 1> inpzp_tensor(src_inpzp_buf, fc_inpzp_shape);
 
-  uint32_t fc_wtszp_shape[1] = {weight_shape[1]};
+
+  uint32_t fc_wtszp_shape[1] = {wtszp_size};
   lib_mli::Tensor<lib_mli::Buffer, 1> wtszp_tensor(src_wtszp_buf, fc_wtszp_shape);
 
   // NOTE: Zero Points should have the same size as the tensor they belong to.
@@ -1066,7 +1071,7 @@ int main() {
     RescaleOp rs_op(cur_test, fc_op.input, fc_op.weights);
     ClipOp clp_op(cur_test,rs_op.out);
 
-    bool is_test_passed = preprocess_phase(reporter, cur_test, fc_op, rs_op,clp_op);
+    bool is_test_passed = preprocess_phase(reporter, cur_test, fc_op, rs_op, clp_op);
 
     //
     // Solution to vectorize Rescale params tensors in case of per-axis
