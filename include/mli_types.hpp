@@ -413,6 +413,24 @@ class Tensor {
     return slice_tens;
   }
 
+  Tensor<buf_T, maxRank> transpose(uint32_t new_order[]) const {
+    // create a transposed Tensor, reordering the dimensions
+    Tensor<buf_T, maxRank> tns;
+    // change order of axes
+    uint32_t c = 0;
+    for (uint32_t axis = 0; axis < maxRank; axis++) {
+      assert(new_order[axis] >= 0 && new_order[axis] < maxRank);
+      // axis can only be selected once
+      assert((c & (1 << new_order[axis])) == 0);
+      c |= (1 << new_order[axis]);
+      tns.shape_[axis] = shape_[new_order[axis]];
+      tns.mem_stride_[axis] = mem_stride_[new_order[axis]];
+    }
+    tns.buf_ = buf_;
+    tns.rank_ = rank_;
+    return tns;
+  }
+
   template <typename T>
   T read(uint32_t offset) const {
     return buf_.template read<T>(offset);

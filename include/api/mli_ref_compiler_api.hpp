@@ -66,6 +66,13 @@ public:
     unsigned GetKernelPrivateDataSize() const override;
     unsigned GetRuntimeObjectSize() const override;
 
+    mli_status SetIterators(uint32_t output_total_size[4],
+                            uint32_t iteration_order[4],
+                            uint32_t input_first_inc[4],
+                            uint32_t input_inc[4],
+                            uint32_t output_first_inc[4],
+                            uint32_t output_inc[4],
+                            uint32_t weights_inc[4]) override;
 private:
     Tensor<OffsetBuffer, 4> m_in;
     Tensor<OffsetBuffer, 5> m_weights;
