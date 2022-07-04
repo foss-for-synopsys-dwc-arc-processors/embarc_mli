@@ -176,6 +176,7 @@ mli_status FullyConnected_CS::EncodeInpZeroPts(const Tensor<Buffer, 1> &inpzerop
 
 unsigned FullyConnected_CS::GetEncodedInpZeroPtsSize() const {
   // per-tensor quantization or specific axis quantization
+  MLI_ASSERT(m_config.ipz_axis == -1 || m_config.ipz_axis < MLI_MAX_RANK);
   return m_config.ipz_axis < 0 ? 1 : m_in.get_dim(m_config.ipz_axis);
 }
 
@@ -207,6 +208,7 @@ mli_status FullyConnected_CS::EncodeWtsZeroPts(const Tensor<Buffer, 1> &wtszerop
 
 unsigned FullyConnected_CS::GetEncodedWtsZeroPtsSize() const {
   // per-tensor quantization or specific axis quantization
+  MLI_ASSERT(m_config.wtz_axis == -1 || m_config.wtz_axis < MLI_MAX_RANK);
   return  m_config.wtz_axis < 0 ? 1 : m_weights.get_dim(m_config.wtz_axis);
 }
 

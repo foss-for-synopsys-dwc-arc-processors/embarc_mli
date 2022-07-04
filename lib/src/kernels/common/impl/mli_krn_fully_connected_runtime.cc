@@ -116,6 +116,7 @@ FullyConnected::FullyConnected(void* kernel_private_data_buffer,
 
     // per-channel quantization
     if (wtszp_size / wtszp_elem_size > 1) {
+      MLI_ASSERT(private_data.wtz_axis < MLI_MAX_RANK);
       MLI_ASSERT(private_data.weights_oc == wtszp_size / wtszp_elem_size);
       MLI_ASSERT(wtszp_elem_size == sizeof(int16_t));
       tsr.el_params.sa.dim = private_data.wtz_axis;

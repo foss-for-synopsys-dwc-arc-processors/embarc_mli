@@ -883,10 +883,10 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
                                                  clp_params_shape);
 
   for (uint32_t i = 0; i < limit_min_size; ++i) {
-      min_tensor.write<int8_t>(i, (uint8_t)val_limit.min);
+      min_tensor.write<int8_t>(i, (int8_t)val_limit.min);
   }
   for (uint32_t i = 0; i < limit_max_size; ++i) {
-      max_tensor.write<int8_t>(i, (uint8_t)val_limit.max);
+      max_tensor.write<int8_t>(i, (int8_t)val_limit.max);
   }
   // host tensors -> encoded host buffer
   status = clip_op->EncodeParams(min_tensor,
