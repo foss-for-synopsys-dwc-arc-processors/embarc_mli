@@ -510,9 +510,9 @@ struct PoolOpConfig {
     {}
 
     uint32_t kernel_size[2];   /**< Kernel size of pooling function [kernel_H, kernel_W] */
-    uint32_t stride[2];        /**< Stride along each axis [stride_IH, stride_IW]*/
-    uint32_t padding_begin[2]; /**< Padding size at the begining of spatial demensions of input [pad_IH_beg, pad_IW_end]*/
-    uint32_t padding_end[2];   /**< Padding size at the end of spatial demensions of input [pad_IH_end, pad_IW_end]*/
+    uint32_t stride[2];        /**< Stride along each axis [stride_IH, stride_IW] */
+    uint32_t padding_begin[2]; /**< Padding size at the begining of spatial demensions of input [pad_IH_beg, pad_IW_end] */
+    uint32_t padding_end[2];   /**< Padding size at the end of spatial demensions of input [pad_IH_end, pad_IW_end] */
 };
 
 

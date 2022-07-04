@@ -477,23 +477,59 @@ public:
     virtual ~MaxPool2D_CS() = default;
 
     /**
-     * @brief Methods to get buffer sizes
-     * TODO: add description using conv2d_cs as a starting point
+     * @brief Method to get the input buffer size
+     *
+     * @return Size of the input buffer in bytes
      */
-
     virtual unsigned GetInputBufferSize() const = 0;
-    virtual unsigned GetOutputBufferSize() const = 0;
-    virtual unsigned GetDataBufferSize() const = 0;
-
 
     /**
-     * @brief Methods to set buffer offsets
+     * @brief Method to get the output buffer size
      *
+     * @return Size of the output buffer in bytes
+     */
+    virtual unsigned GetOutputBufferSize() const = 0;
+
+    /**
+     * @brief Method to get the platform-specific descriptor data buffer size
+     *
+     * DataBuffer requires allocation in closely coupled data memory (CCM)
+     *
+     * @return Size of platform-specific descriptor data buffer in bytes
+     */
+    virtual unsigned GetDataBufferSize() const = 0;
+
+    /**
+     * @brief Method to set buffer memory offsets and memory IDs for the kernel
+     * 
+     * The memory ID's are used to index the membases array that will be passed
+     * to the constructor of the runtime class. The offsets will added to the base
+     * addresses provided in the membase array during runtime.
+     *
+     * @param input [IN] Tensor descriptor containing input OffsetBuffer and tensor shape and memory strides
+     * @param output [IN] Tensor descriptor containing output OffsetBuffer and tensor shape and memory strides
+     * @param data [IN] Tensor descriptor containing descriptor data OffsetBuffer
+     * 
+     * @return MLI status code
      */
     virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
                                            const Tensor<OffsetBuffer, 4> &output,
                                            const OffsetBuffer &data) = 0;
 
+    /**
+     * @brief Set the Iterators object
+     *
+     * @param total_output_size [IN] Size of full output tensor
+     * @param iteration_order [IN] Array which defines the order of dimensions to iterate over
+     * @param first_tile_size [IN] Size of the first tile
+     * @param tile_size [IN] Size of all tiles except first one
+     * @param input_first_inc [IN] Increment in elements per dimension for the first tile in the input tensor
+     * @param input_inc [IN] Increment in elements per dimension for all tiles except first one in the input tensor
+     * @param output_first_inc [IN] Increment in elements per dimension for the first tile in the output tensor
+     * @param output_inc [IN] Increment in elements per dimension for all tiles except first one in the output tensor
+     *
+     * @return MLI status code
+     */
     virtual mli_status SetIterators(uint32_t total_output_size[4], uint32_t iteration_order[4],
                                     uint32_t first_tile_size[4], uint32_t tile_size[4],
                                     uint32_t input_first_inc[4], uint32_t input_inc[4],

@@ -153,30 +153,41 @@ private:
 
 class MaxPool2D_CS : public lib_mli::MaxPool2D_CS {
 public:
-
+    /**
+     * @brief Constructor to create an MaxPool2D compiler support object.
+     *
+     * This constructor can be used to create a Max Pooling 2D compiler support
+     * object. This kernel computes each value of the output tensor as the maximum 
+     * of all values in the related perception area of a single channel of the input tensor.
+     *
+     * @param pd [IN] Platform description
+     * @param in [IN] Input tensor shape and memory strides
+     * @param cfg [IN] PoolOpConfig structure
+     * @param output_tile_shape [OUT] Output tensor shape and memory strides
+     */
     MaxPool2D_CS(const lib_mli::PlatformDescription pd,
-                 const Tensor<NoBuffer, 4> in, // input fmap width, height, channels, batch size
+                 const Tensor<NoBuffer, 4> in, /**< layout: batch size, height, weight, channels */
                  const PoolOpConfig &cfg,
-                 const Tensor<NoBuffer, 4> output_tile_shape); // output tile width, height, ch, groups
+                 const Tensor<NoBuffer, 4> output_tile_shape); /**< layout: batch size, height, weight, channels */
 
-    // From CompilerGenericInterface
     unsigned GetKernelPrivateDataSize() const override;
     unsigned GetRuntimeObjectSize() const override;
-    mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
+    unsigned GetInputBufferSize() const override;
+    unsigned GetOutputBufferSize() const override;
+    /**
+     * @return Always returns zero for reference kernel.
+     */
+    unsigned GetDataBufferSize() const override;
 
+    mli_status GetKernelPrivateData(void *kernel_private_data_buffer) override;
     mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
                                    const Tensor<OffsetBuffer, 4> &output,
                                    const OffsetBuffer &data) override;
-
-    // From MaxPool2D_CS
-    unsigned GetInputBufferSize() const override;
-    unsigned GetOutputBufferSize() const override;
-    unsigned GetDataBufferSize() const override;
-
     mli_status SetIterators(uint32_t total_output_size[4], uint32_t iteration_order[4],
                             uint32_t first_tile_size[4], uint32_t tile_size[4],
                             uint32_t input_first_inc[4], uint32_t input_inc[4],
                             uint32_t output_first_inc[4], uint32_t output_inc[4]) override;
+
 private:
     Tensor<OffsetBuffer, 4> m_in;
     Tensor<OffsetBuffer, 4> m_output;
@@ -188,7 +199,6 @@ private:
 
     lib_mli::PlatformDescription m_pd;
 
-    // Tile Parameters BHWC
     uint32_t m_tile_total_output_size[4];
     uint32_t m_tile_iteration_order[4];
     uint32_t m_tile_first_size[4];

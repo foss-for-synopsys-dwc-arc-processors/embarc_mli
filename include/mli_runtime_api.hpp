@@ -25,9 +25,9 @@ class ExecutionInterface {
 
   public:
     /**
-     * @brief Method to create a ML-ISA operation
+     * @brief Method to create a MLI 3.0 operation
      *
-     * This method can be used to create a ML-ISA run-time operation object, it will be initialized
+     * This method can be used to create a MLI 3.0 run-time operation object, it will be initialized
      * using the information stored in the kernel_private_data_buffer  that has been computed at compile time
      * by the get_kernel_private_data() method.
      * The object is created in the memory pointed to by the 'allocation_memory_buffer' argument
@@ -39,18 +39,17 @@ class ExecutionInterface {
      * @param private_data_size [I] Size of the data is used to check for coding errors
      * @param membases[]  [I] The kernel private data may contain offsets inside a (vector) memory.
      *                        At run-time specific locations in memory are allocated for
-     *                        the graph, the membase array contains the is the start of
+     *                        the graph, the membase array contains the start of
      *                        each memory region.
-     *                        The init method will add this base to all the memory offsets
-     *                        inside the descriptor according to the memory number associated
-     *                        with that offset.
+     *                        This base will be added to all memory offsets in the constructor
+     *                        according to the memory ID associated with that offset.
      *                        Each platform can have different (number of) memories. For mli
-     *                        this is completely transparant. Compiler needs to use the same
+     *                        this is completely transparent. Compiler needs to use the same
      *                        memory id's when attaching the buffers as are used by the
      *                        xop-interpreter to set the membases.
      * @param num_mems    [I] Number of elements in the membases array.
      *
-     * @return This function return a pointer to a ML-ISA run-time object
+     * @return This function return a pointer to a MLI 3.0 run-time object
      */
     static ExecutionInterface* Create(void* allocation_memory_buffer,
                                      uint32_t alloc_buf_size,
@@ -61,7 +60,7 @@ class ExecutionInterface {
     kernel_id_t GetKernelId();
 
     /**
-     * @brief Method to issue a ML-ISA operation
+     * @brief Method to issue a MLI 3.0 operation
      *
      * In case of a HW accelerator this method will trigger the HW to start its compute
      * and directly return.
@@ -73,7 +72,7 @@ class ExecutionInterface {
     virtual mli_status Issue() = 0;
 
     /**
-     * @brief Method to prefetch the next ML-ISA operation
+     * @brief Method to prefetch the next MLI 3.0 operation
      *
      * In case of a HW accelerator this method can be used to load the descriptor into
      * the HW in order to make it available for the SW to update it for the next operation
@@ -82,7 +81,7 @@ class ExecutionInterface {
     virtual mli_status Prefetch() = 0;
 
     /**
-     * @brief Method to update the internal data structures for the next ML-ISA operation
+     * @brief Method to update the internal data structures for the next MLI 3.0 operation
      *
      * This method will increment the iterator(s) and update the internal data structures
      * (like the descriptor in case of HW acceleration) to the next operation
