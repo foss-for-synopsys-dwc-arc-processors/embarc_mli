@@ -181,7 +181,7 @@ static MLI_FORCE_INLINE mli_status leaky_relu_fx_run(const mli_tensor *in,
         auto in_prv =  mli_prv_get_generic_tensor<MLI_PTR(io_T)>(in);
         auto out_prv = mli_prv_get_generic_tensor<MLI_OUT_PTR(io_T)>(out);
         /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
-        mli_prv_squash_generic_tensor<MLI_PTR(io_T)>(&in_prv, &out_prv);
+        mli_prv_squash_generic_tensor<MLI_PTR(io_T), MLI_PTR(io_T)>(&in_prv, &out_prv);
 
         remaining_part = in_prv.shape[3] & (num_lanes - 1);
         /* Loop Over Sub Tensor */
@@ -366,7 +366,7 @@ static MLI_FORCE_INLINE mli_status leaky_relu_sa8_run(const mli_tensor *in,
         auto in_prv =  mli_prv_get_generic_tensor<MLI_PTR(int8_t)>(in);
         auto out_prv = mli_prv_get_generic_tensor<MLI_OUT_PTR(int8_t)>(out);
         /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
-        mli_prv_squash_generic_tensor<MLI_PTR(int8_t)>(&in_prv, &out_prv);
+        mli_prv_squash_generic_tensor<MLI_PTR(int8_t), MLI_PTR(int8_t)>(&in_prv, &out_prv);
 
         remaining_part = in_prv.shape[3] & (num_lanes - 1);
         /* Loop Over Sub Tensor */

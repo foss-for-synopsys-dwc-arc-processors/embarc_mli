@@ -113,6 +113,14 @@ MLI_FORCE_INLINE void mli_prv_tensor_set_data_ptr(
     tensor->data.mem.pi16 = ptr;
 }
 
+template <>
+MLI_FORCE_INLINE void mli_prv_tensor_set_data_ptr(
+        mli_tensor *tensor, int32_t *ptr) {
+    MLI_ASSERT(tensor->el_type == MLI_EL_SA_32);
+    MLI_ASSERT(tensor->rank > 0);
+    tensor->data.mem.pi32 = ptr;
+}
+
 template <typename T>
 MLI_FORCE_INLINE T mli_prv_tensor_data_ptr(
         const mli_tensor *tensor);
@@ -496,10 +504,10 @@ static MLI_FORCE_INLINE void mli_prv_reorder_generic_tensor(
 //it's needed for better vectorizing of some kernels
 //we also need to squash input and output tensors together because data in one of them can be not adjacent in memory
 
-template <typename T>
+template <typename i_T, typename o_T>
 static MLI_FORCE_INLINE void mli_prv_squash_generic_tensor(
-        generic_tensor_private_t<T> *in_prv,
-        generic_tensor_private_t<T> *out_prv) {
+        generic_tensor_private_t<i_T> *in_prv,
+        generic_tensor_private_t<o_T> *out_prv) {
     int shift = 0;
     for (int i = in_prv->rank - 1; i > 0; i--){
         if ((in_prv->mem_stride[i - 1] == in_prv->shape[i]) &&
@@ -577,11 +585,11 @@ static MLI_FORCE_INLINE int mli_prv_squash_tensor_to_one_dim(
     return shape;
 }
 
-template <typename T>
+template <typename i_T, typename o_T>
 static MLI_FORCE_INLINE void mli_prv_squash_generic_tensor(
-        generic_tensor_private_t<T> *in1_prv,
-        generic_tensor_private_t<T> *in2_prv,
-        generic_tensor_private_t<T> *out_prv) {
+        generic_tensor_private_t<i_T> *in1_prv,
+        generic_tensor_private_t<i_T> *in2_prv,
+        generic_tensor_private_t<o_T> *out_prv) {
     int shift = 0;
     for (int i = in1_prv->rank - 1; i > 0; i--){
         if ((in1_prv->mem_stride[i - 1] == in1_prv->shape[i]) &&

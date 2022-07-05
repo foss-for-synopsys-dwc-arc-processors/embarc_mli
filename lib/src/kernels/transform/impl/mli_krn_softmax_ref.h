@@ -227,7 +227,7 @@ static MLI_FORCE_INLINE mli_status mli_krn_softmax_run(
     in_prv  = mli_prv_get_axis_tensor<MLI_PTR(io_T)>(&in_prv,  cfg->axis);
     out_prv = mli_prv_get_axis_tensor<MLI_PTR(io_T)>(&out_prv, cfg->axis);
     /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
-    mli_prv_squash_generic_tensor<MLI_PTR(io_T)>(&in_prv, &out_prv);
+    mli_prv_squash_generic_tensor<MLI_PTR(io_T), MLI_PTR(io_T)>(&in_prv, &out_prv);
 
     struct s8asym_quant_params in_params;
     struct s8asym_quant_params out_params;

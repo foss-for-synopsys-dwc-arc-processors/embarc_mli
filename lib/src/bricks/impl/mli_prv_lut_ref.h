@@ -218,7 +218,7 @@ static MLI_FORCE_INLINE void activation_lut(
     auto out_prv =  mli_prv_get_generic_tensor<MLI_OUT_PTR(io_T)>(out);
 
     /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
-    mli_prv_squash_generic_tensor<MLI_PTR(io_T)>(&in_prv, &out_prv);
+    mli_prv_squash_generic_tensor<MLI_PTR(io_T), MLI_PTR(io_T)>(&in_prv, &out_prv);
 
     mli::krn::compute_activation_lut<io_T, convert, fx_with_in_offset>(&in_prv, &out_prv, lut, in_frac_bits, in_params, out_params);
 }

@@ -281,10 +281,10 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
         // Step 3: Pointwise operations
         //=======================================
         tmp_res_upd_gate.data = dtcntr_reset_gate; // switch data to reset_gate
-        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&tmp_res_upd_gate, &current_hidden, &prev_out_reset);
+        mli::krn::eltwise_prepare_and_run<io_T, io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&tmp_res_upd_gate, &current_hidden, &prev_out_reset);
         tmp_res_upd_gate.data = dtcntr_update_gate; // switch data ptr to update_gate
-        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&current_hidden, &tmp_res_upd_gate, &current_out);
-        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_SUB, /*convert*/ asym, /*no_scalar*/ false, /*no_out_update*/ true, /*shape_1d*/ true>(&one, &tmp_res_upd_gate, &tmp_res_upd_gate);
+        mli::krn::eltwise_prepare_and_run<io_T, io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&current_hidden, &tmp_res_upd_gate, &current_out);
+        mli::krn::eltwise_prepare_and_run<io_T, io_T, ELTWISE_SUB, /*convert*/ asym, /*no_scalar*/ false, /*no_out_update*/ true, /*shape_1d*/ true>(&one, &tmp_res_upd_gate, &tmp_res_upd_gate);
 
 
         // Step 4: New gate
@@ -346,8 +346,8 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
 
         rnn_out.el_params = out->el_params;
         //tmp_res_upd_gate.data = dtcntr_update_gate; // switch data to update_gate
-        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&new_gate, &tmp_res_upd_gate, &temp);
-        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_ADD, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&temp, &current_out, &rnn_out);
+        mli::krn::eltwise_prepare_and_run<io_T, io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&new_gate, &tmp_res_upd_gate, &temp);
+        mli::krn::eltwise_prepare_and_run<io_T, io_T, ELTWISE_ADD, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&temp, &current_out, &rnn_out);
 
         current_hidden.data = rnn_out.data;
         current_hidden.el_params = rnn_out.el_params;

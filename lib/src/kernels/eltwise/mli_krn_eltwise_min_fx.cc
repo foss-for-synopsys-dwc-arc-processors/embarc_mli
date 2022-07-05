@@ -30,7 +30,7 @@ mli_status mli_krn_eltwise_min_fx8(const mli_tensor* in1, const mli_tensor* in2,
     if (ret != MLI_STATUS_OK) return ret;
     MLI_PRINT_COMPILE_OPTIONS();
 
-    mli::krn::eltwise_prepare_and_run<int8_t, mli::ELTWISE_MIN>(in1, in2, out);
+    mli::krn::eltwise_prepare_and_run<int8_t, int8_t, mli::ELTWISE_MIN>(in1, in2, out);
 
     return MLI_STATUS_OK;
 }
@@ -40,7 +40,7 @@ mli_status mli_krn_eltwise_min_fx16(const mli_tensor* in1, const mli_tensor* in2
     if (ret != MLI_STATUS_OK) return ret;
     MLI_PRINT_COMPILE_OPTIONS();
 
-    mli::krn::eltwise_prepare_and_run<int16_t, mli::ELTWISE_MIN>(in1, in2, out);
+    mli::krn::eltwise_prepare_and_run<int16_t, int16_t, mli::ELTWISE_MIN>(in1, in2, out);
 
     return MLI_STATUS_OK;
 }
@@ -50,7 +50,7 @@ mli_status mli_krn_eltwise_min_sa8(const mli_tensor* in1, const mli_tensor* in2,
     if (ret != MLI_STATUS_OK) return ret;
     MLI_PRINT_COMPILE_OPTIONS();
 
-    mli::krn::eltwise_prepare_and_run<int8_t, mli::ELTWISE_MIN, true>(in1, in2, out);
+    mli::krn::eltwise_prepare_and_run<int8_t, int8_t, mli::ELTWISE_MIN, true>(in1, in2, out);
 
     return MLI_STATUS_OK;
 }
