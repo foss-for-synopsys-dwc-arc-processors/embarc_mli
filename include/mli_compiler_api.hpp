@@ -80,9 +80,15 @@ class CompilerGenericInterface {
 
     virtual int32_t GetEventIssueMask() const { return 0; }
 
-    virtual mli_status SetEventPrefetch(bool enable) { return MLI_STATUS_OK; }
+    mli_status SetEventPrefetch(bool enable) { 
+        m_prefetch_enable = enable;
+        return MLI_STATUS_OK;
+    }
 
-    virtual mli_status SetEventIssue(bool enable) { return MLI_STATUS_OK; }
+    mli_status SetEventIssue(bool enable) { 
+        m_issue_enable = enable;
+        return MLI_STATUS_OK;
+    }
 
     /**
      * @brief this function will return the vectorization in the input channel

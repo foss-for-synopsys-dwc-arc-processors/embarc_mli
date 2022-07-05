@@ -35,7 +35,8 @@ class PerfEstimator {
      * The object is created in the memory pointed to by the 'allocation_memory_buffer' argument
      *
      * @param allocation_memory_buffer [I] memory buffer where the object should be created.
-     * @param desc [I] platform description class object.
+     * @param alloc_buf_size [I] Size of the above memory buffer.
+     * @param pd [I] platform description class object.
      *
      * @param rt_kernel [I] run time kernel object.
      * @param num_tiles [I] Number of tiles.
@@ -43,7 +44,8 @@ class PerfEstimator {
      * @return This function return a pointer to a kernel perfEstimator object.
      */
     static PerfEstimator* Create(void* allocation_memory_buffer,
-        lib_mli::PlatformDescription& desc, 
+        uint32_t alloc_buf_size,
+        lib_mli::PlatformDescription& pd, 
         lib_mli::ExecutionInterface& rt_kernel, 
         int num_tiles);
 
@@ -142,6 +144,11 @@ class PerfEstimator {
     virtual int GetTileMacs(int tile_idx){
       return 0;
     }
+    PerfEstimator(lib_mli::PlatformDescription& pd,  
+                  int num_tiles) : m_pd(pd), m_num_tiles(num_tiles){}
+protected:
+    lib_mli::PlatformDescription m_pd;
+    int m_num_tiles;  
 };
 }
 #endif
