@@ -25,6 +25,7 @@ if(DEFINED BUILD_DEVICE_ARC)
     set(ARC ON)
 endif()
 if(DEFINED ARC)
+    set(BUILD_DEVICE ON)
     set(BUILD_DEVICE_ARC ON)
 endif()
 
@@ -48,10 +49,16 @@ function(get_mli_platform MLI_PLATFORM)
             OUTPUT_VARIABLE outVar
         )
         string(FIND ${outVar} "+vdsp" found_vdsp)
+        string(FIND ${outVar} "Xdsp" found_dsp)
         if (${found_vdsp} GREATER -1)
+            # implies vector dsp support
             set(${MLI_PLATFORM} VPX PARENT_SCOPE)
-        else()
+        elseif (${found_dsp} GREATER -1)
+            # implies dsp support
             set(${MLI_PLATFORM} EM_HS PARENT_SCOPE)
+        else()
+            # generic ARC processor without dsp and vector dsp support
+            set(${MLI_PLATFORM} ARC_NODSP_NOVDSP PARENT_SCOPE)
         endif()
     else()
         set(${MLI_PLATFORM} NATIVE PARENT_SCOPE)

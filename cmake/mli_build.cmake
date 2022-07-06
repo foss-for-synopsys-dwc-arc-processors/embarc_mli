@@ -75,3 +75,7 @@ macro(export_library)
   export_library_with_config(
     ${CMAKE_CURRENT_LIST_DIR}/cmake/${project_name}Config.cmake ${ARGN})
 endmacro()
+
+function(run)
+  # not supported
+endfunction()

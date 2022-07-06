@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2021, Synopsys, Inc.
+* Copyright 2019-2022, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -107,6 +107,10 @@
 #define PLATFORM (1)
 #define PLATFORM_STR  "ARCv2DSP"
 
+#elif (defined(__CCAC__) || defined(_ARCVER))
+#define PLATFORM (6)
+#define PLATFORM_STR  "ARCv2"
+
 #elif (defined(__GNUC__) && !defined(__clang__)) || defined(_MSC_VER)
 #undef X86_PLATFORM
 #define PLATFORM (5)
@@ -122,5 +126,6 @@
 #define     V2DSP_WIDE   (3)
 #define     V2DSP_VECTOR (4)
 #define     X86_PLATFORM (5)
+#define     GENERIC_ARC  (6)
 
 #endif // _MLI_CONFIG_H_

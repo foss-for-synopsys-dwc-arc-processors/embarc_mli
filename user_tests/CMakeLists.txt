@@ -1,5 +1,5 @@
 #
-# Copyright 2020-2021, Synopsys, Inc.
+# Copyright 2020-2022, Synopsys, Inc.
 # All rights reserved.
 #
 # This source code is licensed under the BSD-3-Clause license found in
@@ -25,8 +25,12 @@ set(DSP_CONTROL_OPTION)
 if (NOT DEFINED ROUND_MODE)
     if(${MLI_PLATFORM} STREQUAL VPX)
         set(ROUND_MODE UP)
-    else()
+    elseif (${MLI_PLATFORM} STREQUAL EM_HS)
         set(ROUND_MODE CONVERGENT)
+    elseif (${MLI_PLATFORM} STREQUAL ARC_NODSP_NOVDSP)
+        set(ROUND_MODE UP)
+    else()
+        message(FATAL_ERROR "Please specify a rounding mode: UP or CONVERGENT")
     endif()
 endif()
 
