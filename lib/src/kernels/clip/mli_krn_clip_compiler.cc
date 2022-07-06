@@ -25,7 +25,7 @@ Clip_CS::Clip_CS(const lib_mli::PlatformDescription pd,
   int32_t in_stride[4];
   int32_t out_stride[4];
 
-  for (size_t i = 0; i < 4; ++i) {
+  for (uint32_t i = 0; i < 4; ++i) {
       in_shape[i] = input_shape.get_dim(i);
       in_stride[i] = input_shape.get_mem_stride(i);
       out_shape[i] = output_tile_shape.get_dim(i);

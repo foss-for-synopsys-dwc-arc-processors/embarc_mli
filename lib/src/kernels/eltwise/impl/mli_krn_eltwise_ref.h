@@ -358,10 +358,17 @@ void eltwise_prepare_and_run(
 
     // initial values for conversion
     convert_params params = {
-        .scalar_op1 = 0, .scalar_op2 = 0,
-        .pre_op_shift1 = 0, .pre_op_shift2 = 0, .post_op_shift = 0,
-        .scale16_1 = 1, .scale16_2 = 1,
-        .in_offset1 = 0, .in_offset2 = 0, .out_offset = 0};
+        0, // scalar_op1
+        0, // scalar_op2
+        0, // pre_op_shift1
+        0, // pre_op_shift2
+        0, // post_op_shift
+        1, // scale16_1
+        1, // scale16_2
+        0, // in_offset1
+        0, // in_offset2
+        0  // out_offset
+    };
 
     if constexpr(std::is_same<i_T, o_T>::value) {
         calc_convert_params<i_T, func_type, convert>(in1, in2, out, params);

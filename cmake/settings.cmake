@@ -73,6 +73,8 @@ if (ARC)
     if (DEBUG_BUILD STREQUAL ON)
         list(APPEND MLI_PLATFORM_FLAGS
             -g
+            -O0
+            -fstack-protector-all
         )
     endif()
 
@@ -114,8 +116,38 @@ if (ARC)
     endif()
 
     set(CMAKE_EXECUTABLE_SUFFIX .elf)
+elseif (MSVC)
+    if (NOT DEFINED DEBUG_BUILD)
+        set(DEBUG_BUILD ON)
+    endif()
+    if (DEBUG_BUILD STREQUAL ON)
+        list(APPEND MLI_PLATFORM_FLAGS
+            /Zi
+            /Od
+            /GS
+        )
+
+    if (NOT DEFINED MLI_DEBUG_MODE)
+        list(APPEND MLI_PLATFORM_FLAGS /DMLI_DEBUG_MODE=DBG_MODE_RELEASE)
+    else()
+        list(APPEND MLI_PLATFORM_FLAGS /DMLI_DEBUG_MODE=${MLI_DEBUG_MODE})
+    endif()
+else()
+    if (NOT DEFINED DEBUG_BUILD)
+        set(DEBUG_BUILD ON)
+    endif()
+    if (DEBUG_BUILD STREQUAL ON)
+        list(APPEND MLI_PLATFORM_FLAGS
+            -g
+            -O0
+            -fstack-protector-all
+        )
+    endif()
+endif()
 endif()
 
 list(APPEND MLI_PLATFORM_COMPILE_OPTIONS ${MLI_PLATFORM_FLAGS})
-list(APPEND MLI_PLATFORM_LINK_OPTIONS    ${MLI_PLATFORM_FLAGS})
-
+if (MSVC)
+else()
+    list(APPEND MLI_PLATFORM_LINK_OPTIONS ${MLI_PLATFORM_FLAGS})
+endif()
