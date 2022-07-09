@@ -96,7 +96,12 @@ public:
     virtual lib_mli::FullyConnected_CS* FullyConnected_CS(void *kernel_buffer,
                                                           const Tensor<NoBuffer, 2> in,
                                                           const Tensor<NoBuffer, 2> weights,
-                                                          const FCConfig &cfg,
+                                                          const Tensor<NoBuffer, 2> output_tile_shape) { return nullptr; }
+
+    virtual lib_mli::FullyConnected_CS* FullyConnected_CS(void *kernel_buffer,
+                                                          const Tensor<NoBuffer, 2> in,
+                                                          const Tensor<NoBuffer, 2> weights,
+                                                          const Tensor<NoBuffer, 1> wtszp,
                                                           const Tensor<NoBuffer, 2> output_tile_shape) { return nullptr; }
 
     virtual lib_mli::Clip_CS* Clip_CS(void *kernel_buffer,

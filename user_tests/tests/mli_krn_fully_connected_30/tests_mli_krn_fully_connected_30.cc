@@ -424,17 +424,22 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
   const lib_mli::Tensor<lib_mli::NoBuffer, 2> out_tensor(output_shape, output_stride);
   const lib_mli::Tensor<lib_mli::NoBuffer, 2> wt_tensor(weight_shape, weight_stride);
 
+  // wts_qt_axis idicates per-tensor or per-channel quantization
+  int wts_qt_axis = fc_op.weights.el_params.sa.dim;
+  // Size of quanzied weights zero point is 1 on per-tensor quantization
+  uint32_t qt_wt_shape = (wts_qt_axis == -1) ? 1 : fc_op.weights.shape[wts_qt_axis];
+  uint32_t wtszp_shape[1] = {qt_wt_shape};
+  // Stride of 1D tensor is constant 1
+  int32_t wtszp_stride[1] = {1};
+  const lib_mli::Tensor<lib_mli::NoBuffer, 1> wtzp_tensor(wtszp_shape, wtszp_stride);
+
   lib_mli::PlatformDescription pd;
   lib_ref::KernelsFactory kernel_factory(pd);
   uint32_t fully_connected_cs_size = kernel_factory.FullyConnected_CS_GetSize();
   void* fully_connected_cs_buffer = malloc(fully_connected_cs_size);
 
-  lib_mli::FCConfig fc_cfg;
-  fc_cfg.ipz_axis = fc_op.input.el_params.sa.dim;
-  fc_cfg.wtz_axis = fc_op.weights.el_params.sa.dim;
-
   auto FullyConn = kernel_factory.FullyConnected_CS(
-    fully_connected_cs_buffer, in_tensor, wt_tensor, fc_cfg, out_tensor);
+    fully_connected_cs_buffer, in_tensor, wt_tensor, wtzp_tensor, out_tensor);
 
   // STEP 1.1.2: Construct [Rescale] as a specific ExecutionInterface successor
   //==================================================================

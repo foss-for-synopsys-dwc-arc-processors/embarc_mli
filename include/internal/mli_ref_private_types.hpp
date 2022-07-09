@@ -150,8 +150,7 @@ public:
     uint8_t stride_n;
     uint8_t stride_ic;
 
-    int32_t ipz_axis;
-    int32_t wtz_axis;
+    int32_t qt_wtszp_axis;
 };
 
 struct FullyConnectedMetadata {
@@ -253,7 +252,7 @@ public:
     OffsetBuffer encoded_params_buffer;
 
     uint32_t params_elem_num;
-    
+
     uint32_t input_b;
     uint32_t input_h;
     uint32_t input_w;

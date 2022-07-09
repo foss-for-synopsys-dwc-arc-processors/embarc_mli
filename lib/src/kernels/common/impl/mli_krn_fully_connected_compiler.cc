@@ -18,12 +18,9 @@ namespace snps_arc::metaware::mli::ref {
 FullyConnected_CS::FullyConnected_CS(const lib_mli::PlatformDescription pd,
                                      const Tensor<NoBuffer, 2> &in,
                                      const Tensor<NoBuffer, 2> &weights,
-                                     const FCConfig &cfg,
                                      const Tensor<NoBuffer, 2> &output_tile_shape
                                      )
     : m_pd{pd}
-    , m_config {cfg}
-
 {
   uint32_t input_shape[2];
   uint32_t output_shape[2];
@@ -50,6 +47,60 @@ FullyConnected_CS::FullyConnected_CS(const lib_mli::PlatformDescription pd,
       service::GetBufferSize(in.get_rank(), input_shape, input_stride);
   m_weights_buffer_size
       = service::GetBufferSize(weights.get_rank(), weights_shape, weights_stride);
+
+  // default per-tensor quantization
+  m_wtszp_buffer_size = 1;
+
+  m_output_buffer_size = service::GetBufferSize(output_tile_shape.get_rank(),
+                                                output_shape, output_stride);
+}
+
+FullyConnected_CS::FullyConnected_CS(const lib_mli::PlatformDescription pd,
+                                     const Tensor<NoBuffer, 2> &in,
+                                     const Tensor<NoBuffer, 2> &weights,
+                                     const Tensor<NoBuffer, 1> &wtszp,
+                                     const Tensor<NoBuffer, 2> &output_tile_shape
+                                     )
+    : m_pd{pd}
+{
+  uint32_t input_shape[2];
+  int32_t input_stride[2];
+  uint32_t output_shape[2];
+  int32_t output_stride[2];
+  for (uint32_t i = 0; i < 2; ++i) {
+    input_shape[i] = in.get_dim(i);
+    input_stride[i] = in.get_mem_stride(i);
+    output_shape[i] = output_tile_shape.get_dim(i);
+    output_stride[i] = output_tile_shape.get_mem_stride(i);
+  }
+  uint32_t weights_shape[2];
+  int32_t weights_stride[2];
+
+  for (uint32_t i = 0; i < 2; ++i) {
+    weights_shape[i] = weights.get_dim(i);
+    weights_stride[i] = weights.get_mem_stride(i);
+  }
+
+  uint32_t wtzp_shape[1];
+  int32_t wtzp_stride[1];
+
+  wtzp_shape[0] = wtszp.get_dim(0);
+  wtzp_stride[0] = wtszp.get_mem_stride(0);
+
+  m_in = Tensor<OffsetBuffer, 2>(OffsetBuffer(), input_shape, input_stride);
+  m_weights = Tensor<OffsetBuffer, 2>(OffsetBuffer(), weights_shape, weights_stride);
+  m_wtszp = Tensor<OffsetBuffer, 1>(OffsetBuffer(), wtzp_shape, wtzp_stride);
+  m_output = Tensor<OffsetBuffer, 2>(OffsetBuffer(), output_shape, output_stride);
+
+  m_input_buffer_size =
+      service::GetBufferSize(in.get_rank(), input_shape, input_stride);
+
+  m_weights_buffer_size
+      = service::GetBufferSize(weights.get_rank(), weights_shape, weights_stride);
+
+  m_wtszp_buffer_size
+      = service::GetBufferSize(wtszp.get_rank(), wtzp_shape, wtzp_stride);
+
   m_output_buffer_size
       = service::GetBufferSize(output_tile_shape.get_rank(), output_shape, output_stride);
 }
@@ -72,10 +123,10 @@ mli_status FullyConnected_CS::GetKernelPrivateData(void* kernel_private_data_buf
   fc_opaque_obj.output_buffer = m_output.get_buf();
   fc_opaque_obj.inpzp_buffer = m_input_zp;
   fc_opaque_obj.wtszp_buffer = m_weights_zp;
-
-  fc_opaque_obj.ipz_axis = m_config.ipz_axis;
-  fc_opaque_obj.wtz_axis = m_config.wtz_axis;
-
+  // Weights zero point supports per-tensor or per-channel quantization,
+  // -1 indicates per-tensor, 1 indicates per-channel.
+  // Potential bug if m_weights.shape[1] equals 1
+  fc_opaque_obj.qt_wtszp_axis = (m_wtszp_buffer_size == 1) ? -1 : 1;
   MLI_ASSERT(m_in.get_dim(mli::kTensorBatchDim) == m_output.get_dim(mli::kTensorBatchDim));
   MLI_ASSERT(m_in.get_dim(1) == m_weights.get_dim(mli::kKernelFCChannelInDim));
   MLI_ASSERT(m_weights.get_dim(mli::kKernelFCChannelOutDim) == m_output.get_dim(mli::kKernelFCChannelOutDim));
@@ -154,30 +205,19 @@ mli_status FullyConnected_CS::EncodeInpZeroPts(const Tensor<Buffer, 1> &inpzerop
   MLI_ASSERT(inpzeropts.get_elem_size() <= encoded_inpzeropts.get_elem_size());
 
   if (inpzeropts.get_elem_size() == sizeof(int8_t)) {
-    // per-tensor quantization
-    if(-1 == m_config.ipz_axis) {
-      MLI_ASSERT(1 == encoded_inpzeropts.get_size() /
-                          encoded_inpzeropts.get_elem_size());
-      encoded_inpzeropts.write(
-          0, static_cast<int16_t>(inpzeropts.read<int8_t>(0)));
-    } else {
-      MLI_ASSERT(encoded_inpzeropts.get_size() / encoded_inpzeropts.get_elem_size() ==
-      m_in.get_dim(m_config.ipz_axis));
-      for (uint32_t i = 0; i < inpzeropts.get_dim(mli::kTensorBatchDim); ++i) {
-        encoded_inpzeropts.write(i, static_cast<int16_t>(inpzeropts.read<int8_t>(i)));
-      }
+    for (uint32_t i = 0; i < inpzeropts.get_dim(mli::kTensorBatchDim); ++i) {
+      encoded_inpzeropts.write(i, static_cast<int16_t>(inpzeropts.read<int8_t>(i)));
     }
   } else {
     return MLI_STATUS_NOT_SUPPORTED;
   }
-
   return MLI_STATUS_OK;
 }
 
 unsigned FullyConnected_CS::GetEncodedInpZeroPtsSize() const {
-  // per-tensor quantization or specific axis quantization
-  MLI_ASSERT(m_config.ipz_axis == -1 || m_config.ipz_axis < MLI_MAX_RANK);
-  return m_config.ipz_axis < 0 ? 1 : m_in.get_dim(m_config.ipz_axis);
+  // only per-tensor quantization, no other per-axis quantization
+  return 1;
+
 }
 
 mli_status FullyConnected_CS::EncodeWtsZeroPts(const Tensor<Buffer, 1> &wtszeropts,
@@ -188,13 +228,13 @@ mli_status FullyConnected_CS::EncodeWtsZeroPts(const Tensor<Buffer, 1> &wtszerop
 
   if (wtszeropts.get_elem_size() == sizeof(int8_t)) {
     // per-tensor quantization
-    if(-1 == m_config.wtz_axis) {
+    if(1 == m_wtszp.get_dim(0)) {
        encoded_wtszeropts.write(0, static_cast<int16_t>(wtszeropts.read<int8_t>(0)));
     }
     else {
       MLI_ASSERT(encoded_wtszeropts.get_size() / encoded_wtszeropts.get_elem_size() ==
-      m_weights.get_dim(m_config.wtz_axis));
-      for (uint32_t i = 0; i < wtszeropts.get_dim(m_config.wtz_axis); ++i) {
+      m_weights.get_dim(1));
+      for (uint32_t i = 0; i < wtszeropts.get_dim(1); ++i) {
         encoded_wtszeropts.write(i, static_cast<int16_t>(wtszeropts.read<int8_t>(i)));
       }
     }
@@ -207,9 +247,7 @@ mli_status FullyConnected_CS::EncodeWtsZeroPts(const Tensor<Buffer, 1> &wtszerop
 }
 
 unsigned FullyConnected_CS::GetEncodedWtsZeroPtsSize() const {
-  // per-tensor quantization or specific axis quantization
-  MLI_ASSERT(m_config.wtz_axis == -1 || m_config.wtz_axis < MLI_MAX_RANK);
-  return  m_config.wtz_axis < 0 ? 1 : m_weights.get_dim(m_config.wtz_axis);
+  return m_wtszp_buffer_size;
 }
 
 unsigned FullyConnected_CS::GetInputBufferSize() const {

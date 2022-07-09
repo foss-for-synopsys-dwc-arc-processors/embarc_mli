@@ -231,11 +231,16 @@ public:
      * @brief Constructor of the  FullyConnected_CS object
      *
      */
-     FullyConnected_CS(const lib_mli::PlatformDescription pd,
-                       const Tensor<NoBuffer, 2> &in,
-                       const Tensor<NoBuffer, 2> &weights,
-                       const FCConfig &cfg,
-                       const Tensor<NoBuffer, 2> &output_tile_shape);
+    FullyConnected_CS(const lib_mli::PlatformDescription pd,
+                      const Tensor<NoBuffer, 2> &in,
+                      const Tensor<NoBuffer, 2> &weights,
+                      const Tensor<NoBuffer, 2> &output_tile_shape);
+
+    FullyConnected_CS(const lib_mli::PlatformDescription pd,
+                      const Tensor<NoBuffer, 2> &in,
+                      const Tensor<NoBuffer, 2> &weights,
+                      const Tensor<NoBuffer, 1> &wtszp,
+                      const Tensor<NoBuffer, 2> &output_tile_shape);
 
     mli_status EncodeWeights(const Tensor<Buffer, 2> &weights,
                              Buffer &encoded_weights) override;
@@ -270,9 +275,9 @@ public:
     unsigned GetRuntimeObjectSize() const override;
 
 private:
-    FCConfig m_config;
     Tensor<OffsetBuffer, 2> m_in;
     Tensor<OffsetBuffer, 2> m_weights;
+    Tensor<OffsetBuffer, 1> m_wtszp;
     Tensor<OffsetBuffer, 2> m_output;
 
     OffsetBuffer m_input_zp;
@@ -280,6 +285,7 @@ private:
 
     uint32_t m_input_buffer_size;
     uint32_t m_weights_buffer_size;
+    uint32_t m_wtszp_buffer_size;
     uint32_t m_output_buffer_size;
 
     lib_mli::PlatformDescription m_pd;
