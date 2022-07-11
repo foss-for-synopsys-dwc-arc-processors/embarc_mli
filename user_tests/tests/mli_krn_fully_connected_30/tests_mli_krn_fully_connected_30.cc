@@ -424,7 +424,7 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
   const lib_mli::Tensor<lib_mli::NoBuffer, 2> out_tensor(output_shape, output_stride);
   const lib_mli::Tensor<lib_mli::NoBuffer, 2> wt_tensor(weight_shape, weight_stride);
 
-  // wts_qt_axis idicates per-tensor or per-channel quantization
+  // wts_qt_axis idicates weights per-tensor or per-channel quantization
   int wts_qt_axis = fc_op.weights.el_params.sa.dim;
   // Size of quanzied weights zero point is 1 on per-tensor quantization
   uint32_t qt_wt_shape = (wts_qt_axis == -1) ? 1 : fc_op.weights.shape[wts_qt_axis];

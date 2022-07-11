@@ -61,48 +61,17 @@ FullyConnected_CS::FullyConnected_CS(const lib_mli::PlatformDescription pd,
                                      const Tensor<NoBuffer, 1> &wtszp,
                                      const Tensor<NoBuffer, 2> &output_tile_shape
                                      )
-    : m_pd{pd}
+    : FullyConnected_CS(pd, in, weights, output_tile_shape)
 {
-  uint32_t input_shape[2];
-  int32_t input_stride[2];
-  uint32_t output_shape[2];
-  int32_t output_stride[2];
-  for (uint32_t i = 0; i < 2; ++i) {
-    input_shape[i] = in.get_dim(i);
-    input_stride[i] = in.get_mem_stride(i);
-    output_shape[i] = output_tile_shape.get_dim(i);
-    output_stride[i] = output_tile_shape.get_mem_stride(i);
-  }
-  uint32_t weights_shape[2];
-  int32_t weights_stride[2];
-
-  for (uint32_t i = 0; i < 2; ++i) {
-    weights_shape[i] = weights.get_dim(i);
-    weights_stride[i] = weights.get_mem_stride(i);
-  }
-
   uint32_t wtzp_shape[1];
   int32_t wtzp_stride[1];
 
   wtzp_shape[0] = wtszp.get_dim(0);
   wtzp_stride[0] = wtszp.get_mem_stride(0);
 
-  m_in = Tensor<OffsetBuffer, 2>(OffsetBuffer(), input_shape, input_stride);
-  m_weights = Tensor<OffsetBuffer, 2>(OffsetBuffer(), weights_shape, weights_stride);
   m_wtszp = Tensor<OffsetBuffer, 1>(OffsetBuffer(), wtzp_shape, wtzp_stride);
-  m_output = Tensor<OffsetBuffer, 2>(OffsetBuffer(), output_shape, output_stride);
-
-  m_input_buffer_size =
-      service::GetBufferSize(in.get_rank(), input_shape, input_stride);
-
-  m_weights_buffer_size
-      = service::GetBufferSize(weights.get_rank(), weights_shape, weights_stride);
-
   m_wtszp_buffer_size
       = service::GetBufferSize(wtszp.get_rank(), wtzp_shape, wtzp_stride);
-
-  m_output_buffer_size
-      = service::GetBufferSize(output_tile_shape.get_rank(), output_shape, output_stride);
 }
 
 unsigned FullyConnected_CS::GetKernelPrivateDataSize() const {
@@ -123,7 +92,7 @@ mli_status FullyConnected_CS::GetKernelPrivateData(void* kernel_private_data_buf
   fc_opaque_obj.output_buffer = m_output.get_buf();
   fc_opaque_obj.inpzp_buffer = m_input_zp;
   fc_opaque_obj.wtszp_buffer = m_weights_zp;
-  // Weights zero point supports per-tensor or per-channel quantization,
+  // Only two types of weights zero point quantization are supported, per-tensor or per-channel.
   // -1 indicates per-tensor, 1 indicates per-channel.
   // Potential bug if m_weights.shape[1] equals 1
   fc_opaque_obj.qt_wtszp_axis = (m_wtszp_buffer_size == 1) ? -1 : 1;
@@ -233,8 +202,8 @@ mli_status FullyConnected_CS::EncodeWtsZeroPts(const Tensor<Buffer, 1> &wtszerop
     }
     else {
       MLI_ASSERT(encoded_wtszeropts.get_size() / encoded_wtszeropts.get_elem_size() ==
-      m_weights.get_dim(1));
-      for (uint32_t i = 0; i < wtszeropts.get_dim(1); ++i) {
+      m_weights.get_dim(kKernelFCChannelOutDim));
+      for (uint32_t i = 0; i < wtszeropts.get_dim(kKernelFCChannelOutDim); ++i) {
         encoded_wtszeropts.write(i, static_cast<int16_t>(wtszeropts.read<int8_t>(i)));
       }
     }
