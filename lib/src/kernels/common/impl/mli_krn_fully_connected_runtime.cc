@@ -56,22 +56,9 @@ FullyConnected::FullyConnected(void* kernel_private_data_buffer,
 
     tsr.mem_stride[0] = private_data.input_n_stride;
     tsr.mem_stride[1] = private_data.input_ic_stride;
-
-    // input zero points per tensor
-    uint32_t inpzp_elem_size = private_data.inpzp_buffer.get_elem_size();
-    MLI_ASSERT(inpzp_elem_size == sizeof(int16_t));
-    if (private_data.inpzp_buffer.get_size() / inpzp_elem_size == 1) {
-      // per-tensor quantization
-      MLI_ASSERT(inpzp_elem_size == sizeof(int16_t));
-      tsr.el_params.sa.dim = -1;
-      tsr.el_params.sa.zero_point.capacity = 0;
-
-      InternalBuffer inpzp_internal(private_data.inpzp_buffer, membases, num_mems);
-      tsr.el_params.sa.zero_point.mem.i16 = inpzp_internal.read<int16_t>(0);
-    } else {
-      // not support yet
-      MLI_ASSERT(false);
-    }
+    tsr.el_params.sa.dim = -1;
+    tsr.el_params.sa.zero_point.capacity = 0;
+    // tsr.el_params.sa.zero_point.mem.i16 = inpzp_internal.read<int16_t>(0);
   }
 
   {

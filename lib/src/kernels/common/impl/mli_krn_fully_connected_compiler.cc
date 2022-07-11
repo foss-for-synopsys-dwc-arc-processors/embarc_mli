@@ -128,18 +128,15 @@ mli_status FullyConnected_CS::GetKernelPrivateData(void* kernel_private_data_buf
 mli_status FullyConnected_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, 2> &input,
                                                   const Tensor<OffsetBuffer, 2> &output,
                                                   const OffsetBuffer &weights,
-                                                  const OffsetBuffer &inpzeropts,
                                                   const OffsetBuffer &wtszeropts,
                                                   const OffsetBuffer &metadata) {
   MLI_ASSERT(input.get_buf().get_size() >= m_input_buffer_size * input.get_elem_size());
   MLI_ASSERT(output.get_buf().get_size() >= m_output_buffer_size * output.get_elem_size());
   MLI_ASSERT(weights.get_size() >= m_weights_buffer_size * weights.get_elem_size());
-  MLI_ASSERT(inpzeropts.get_elem_size() == 2 && wtszeropts.get_elem_size() == 2);
-
+  MLI_ASSERT(wtszeropts.get_elem_size() == 2);
   m_in.set_buf(input.get_buf());
   m_output.set_buf(output.get_buf());
   m_weights.set_buf(weights);
-  m_input_zp = inpzeropts;
   m_weights_zp = wtszeropts;
 
   return MLI_STATUS_OK;
@@ -165,28 +162,6 @@ mli_status FullyConnected_CS::EncodeWeights(const Tensor<Buffer, 2> &weights,
 
 unsigned FullyConnected_CS::GetEncodedWeightsSize() const {
   return m_weights_buffer_size;
-}
-
-mli_status FullyConnected_CS::EncodeInpZeroPts(const Tensor<Buffer, 1> &inpzeropts,
-                                               Buffer &encoded_inpzeropts) {
-  MLI_ASSERT(inpzeropts.get_buf().get_size() == encoded_inpzeropts.get_size());
-  // the element size of source should less than or equal to the encoded one's
-  MLI_ASSERT(inpzeropts.get_elem_size() <= encoded_inpzeropts.get_elem_size());
-
-  if (inpzeropts.get_elem_size() == sizeof(int8_t)) {
-    for (uint32_t i = 0; i < inpzeropts.get_dim(mli::kTensorBatchDim); ++i) {
-      encoded_inpzeropts.write(i, static_cast<int16_t>(inpzeropts.read<int8_t>(i)));
-    }
-  } else {
-    return MLI_STATUS_NOT_SUPPORTED;
-  }
-  return MLI_STATUS_OK;
-}
-
-unsigned FullyConnected_CS::GetEncodedInpZeroPtsSize() const {
-  // only per-tensor quantization, no other per-axis quantization
-  return 1;
-
 }
 
 mli_status FullyConnected_CS::EncodeWtsZeroPts(const Tensor<Buffer, 1> &wtszeropts,

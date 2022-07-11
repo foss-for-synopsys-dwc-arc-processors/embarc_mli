@@ -247,11 +247,6 @@ public:
 
     unsigned GetEncodedWeightsSize() const override;
 
-    mli_status EncodeInpZeroPts(const Tensor<Buffer, 1> &inpzeropts,
-                                Buffer &encoded_inpzeropts) override;
-
-    unsigned GetEncodedInpZeroPtsSize() const override;
-
     mli_status EncodeWtsZeroPts(const Tensor<Buffer, 1> &wtszeropts,
                                 Buffer &encoded_wtszeropts) override;
 
@@ -266,7 +261,6 @@ public:
     mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 2> &input,
                                    const Tensor<OffsetBuffer, 2> &output,
                                    const OffsetBuffer &weights,
-                                   const OffsetBuffer &inpzeropts,
                                    const OffsetBuffer &wtszeropts,
                                    const OffsetBuffer &descr) override;
 

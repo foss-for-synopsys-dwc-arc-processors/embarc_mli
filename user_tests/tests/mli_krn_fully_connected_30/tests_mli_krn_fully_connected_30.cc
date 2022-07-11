@@ -553,16 +553,8 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
   fc_out_mem_offset = *fc_offset;
   *fc_offset += out_size;
 
-  // fully connected input zero point
-  fc_offset = &offsets[0];
-  // NOTE: ZP has fixed 16 bit in MLI internal
-  uint32_t zp_elem_size = sizeof(int16_t);
-  uint32_t inpzp_size = FullyConn->GetEncodedInpZeroPtsSize() * zp_elem_size;
-  lib_mli::OffsetBuffer fc_inpzp_buf{*fc_offset, 0, inpzp_size, zp_elem_size};
-  inpzp_mem_offset = *fc_offset;
-  *fc_offset += inpzp_size;
-
   // fully connected weights zero point
+  uint32_t zp_elem_size = sizeof(int16_t);
   fc_offset = &offsets[0];
   uint32_t wtszp_size = FullyConn->GetEncodedWtsZeroPtsSize() * zp_elem_size;
   lib_mli::OffsetBuffer fc_wtszp_buf{*fc_offset, 0, wtszp_size, zp_elem_size};
@@ -581,7 +573,6 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
   status = FullyConn->AttachBufferOffsets(fully_connected_in_tensor,
                                              fully_connected_out_tensor,
                                              fully_connected_w_buf,
-                                             fc_inpzp_buf,
                                              fc_wtszp_buf,
                                              fully_connected_descr_buf);
   assert(status == MLI_STATUS_OK);
@@ -711,46 +702,18 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
     g_mem_pool[idx] = fc_op.weights.data.mem.pi8[i];
   }
 
-  // Copy input zero points and weights zero points to the temp host buffers
+  // Copy weights zero points to the temp host buffers
   //==================================================================
-  size_t shared_buf_size = MAX(inpzp_size, wtszp_size);
-  char * host_buf_a = (char *) malloc(shared_buf_size);
-  char * host_buf_b = (char *) malloc(shared_buf_size);
-  lib_mli::Buffer src_inpzp_buf(host_buf_a, inpzp_size, sizeof(int8_t));
-  lib_mli::Buffer dst_inpzp_buf(host_buf_b, inpzp_size, sizeof(int16_t));
+  size_t shared_buf_size = wtszp_size;
+  char * host_buf_a = (char *) malloc(wtszp_size);
+  char * host_buf_b = (char *) malloc(wtszp_size);
   lib_mli::Buffer src_wtszp_buf(host_buf_a, wtszp_size, sizeof(int8_t));
   lib_mli::Buffer dst_wtszp_buf(host_buf_b, wtszp_size, sizeof(int16_t));
-  assert(src_inpzp_buf.get_size() == fc_inpzp_buf.get_size());
-  assert(src_inpzp_buf.get_elem_size() * 2 == fc_inpzp_buf.get_elem_size());
   assert(src_wtszp_buf.get_size() == fc_wtszp_buf.get_size());
   assert(src_wtszp_buf.get_elem_size() * 2 == fc_wtszp_buf.get_elem_size());
 
-  uint32_t fc_inpzp_shape[1] = {1};
-  lib_mli::Tensor<lib_mli::Buffer, 1> inpzp_tensor(src_inpzp_buf, fc_inpzp_shape);
-
-
   uint32_t fc_wtszp_shape[1] = {wtszp_size};
   lib_mli::Tensor<lib_mli::Buffer, 1> wtszp_tensor(src_wtszp_buf, fc_wtszp_shape);
-
-  // NOTE: Zero Points should have the same size as the tensor they belong to.
-  // input zero points: mli_tensor -> host tensor
-  if (fc_op.input.el_params.sa.dim == -1) {
-    assert(fc_op.input.el_params.sa.zero_point.capacity == 0);
-    inpzp_tensor.write(0, static_cast<int8_t>(fc_op.input.el_params.sa.zero_point.mem.i16));
-  } else {
-    assert(fc_op.input.el_params.sa.zero_point.capacity == src_inpzp_buf.get_size());
-    for (size_t i = 0; i < inpzp_size / sizeof(int16_t); ++i) {
-      inpzp_tensor.write(int(i), static_cast<int8_t>(fc_op.input.el_params.sa.zero_point.mem.pi16[i]));
-    }
-  }
-  // host tensor 8bit -> encoded host buffer 16bit
-  status = FullyConn->EncodeInpZeroPts(inpzp_tensor, dst_inpzp_buf);
-  assert(status == MLI_STATUS_OK);
-  // encoded host buffer -> global mem pool
-  auto inpzp_mem = reinterpret_cast<int16_t*>((int8_t*)g_mem_pool + inpzp_mem_offset);
-  for (size_t i = 0; i < inpzp_size / sizeof(int16_t); ++i) {
-    inpzp_mem[i] = dst_inpzp_buf.read<int16_t>(i);
-  }
 
   // weights zero points: mli_tensor -> host buffer
   if (fc_op.weights.el_params.sa.dim == -1) {

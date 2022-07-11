@@ -372,19 +372,6 @@ public:
     virtual unsigned GetEncodedWeightsSize() const = 0;
 
     /**
-     * @brief Method to encode input zero-points (padding values)
-     *
-     */
-    virtual mli_status EncodeInpZeroPts(const Tensor<Buffer, 1> &inpzeropts,
-                                        Buffer &encoded_inpzeropts) = 0;
-
-    /**
-     * @brief Method to query the size of the encoded input zero-points buffer
-     *
-     */
-    virtual unsigned GetEncodedInpZeroPtsSize() const = 0;
-
-    /**
      * @brief Method to encode weights zero-points
      *
      */
@@ -414,7 +401,6 @@ public:
     virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 2> &input,
                                            const Tensor<OffsetBuffer, 2> &output,
                                            const OffsetBuffer &weights,
-                                           const OffsetBuffer &inpzeropts,
                                            const OffsetBuffer &wtszeropts,
                                            const OffsetBuffer &metadata) = 0;
 };
