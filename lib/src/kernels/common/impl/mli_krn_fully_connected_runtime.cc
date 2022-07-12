@@ -58,7 +58,6 @@ FullyConnected::FullyConnected(void* kernel_private_data_buffer,
     tsr.mem_stride[1] = private_data.input_ic_stride;
     tsr.el_params.sa.dim = -1;
     tsr.el_params.sa.zero_point.capacity = 0;
-    // tsr.el_params.sa.zero_point.mem.i16 = inpzp_internal.read<int16_t>(0);
   }
 
   {

@@ -18,17 +18,19 @@ namespace snps_arc::metaware::mli::ref {
 FullyConnected_CS::FullyConnected_CS(const lib_mli::PlatformDescription pd,
                                      const Tensor<NoBuffer, 2> &in,
                                      const Tensor<NoBuffer, 2> &weights,
-                                     const Tensor<NoBuffer, 2> &output_tile_shape
-                                     )
-    :m_in{Tensor<OffsetBuffer, 2>(OffsetBuffer(), in)},
-    m_weights{Tensor<OffsetBuffer, 2>(OffsetBuffer(), weights)},
-    m_output{Tensor<OffsetBuffer, 2>(OffsetBuffer(), output_tile_shape)},
-    m_pd{pd}
-{
+                                     const Tensor<NoBuffer, 1> &wtszp,
+                                     const Tensor<NoBuffer, 2> &output_tile_shape)
+    : m_pd{pd},
+      m_in{Tensor<OffsetBuffer, 2>(OffsetBuffer(), in)},
+      m_weights{Tensor<OffsetBuffer, 2>(OffsetBuffer(), weights)},
+      m_wtszp{Tensor<OffsetBuffer, 1>(OffsetBuffer(), wtszp)},
+      m_output{Tensor<OffsetBuffer, 2>(OffsetBuffer(), output_tile_shape)} {
   uint32_t input_shape[2];
   uint32_t output_shape[2];
   int32_t input_stride[2];
   int32_t output_stride[2];
+  uint32_t wtzp_shape[1];
+  int32_t wtzp_stride[1];
   for (uint32_t i = 0; i < 2; ++i) {
     input_shape[i] = in.get_dim(i);
     input_stride[i] = in.get_mem_stride(i);
@@ -41,15 +43,15 @@ FullyConnected_CS::FullyConnected_CS(const lib_mli::PlatformDescription pd,
     weights_shape[i] = weights.get_dim(i);
     weights_stride[i] = weights.get_mem_stride(i);
   }
+  wtzp_shape[0] = wtszp.get_dim(0);
+  wtzp_stride[0] = wtszp.get_mem_stride(0);
 
   m_input_buffer_size =
       service::GetBufferSize(in.get_rank(), input_shape, input_stride);
   m_weights_buffer_size
       = service::GetBufferSize(weights.get_rank(), weights_shape, weights_stride);
-
-  // weights zero points tensor initialization
-  m_wtszp = Tensor<OffsetBuffer, 1>();
-
+  m_wtszp_buffer_size =
+      service::GetBufferSize(wtszp.get_rank(), wtzp_shape, wtzp_stride);
   m_output_buffer_size = service::GetBufferSize(output_tile_shape.get_rank(),
                                                 output_shape, output_stride);
 }
@@ -57,17 +59,8 @@ FullyConnected_CS::FullyConnected_CS(const lib_mli::PlatformDescription pd,
 FullyConnected_CS::FullyConnected_CS(const lib_mli::PlatformDescription pd,
                                      const Tensor<NoBuffer, 2> &in,
                                      const Tensor<NoBuffer, 2> &weights,
-                                     const Tensor<NoBuffer, 1> &wtszp,
-                                     const Tensor<NoBuffer, 2> &output_tile_shape
-                                     )
-    : FullyConnected_CS(pd, in, weights, output_tile_shape)
-{
-    uint32_t wtzp_shape[1] = {wtszp.get_dim(0)};
-    int32_t wtzp_stride[1] = {wtszp.get_mem_stride(0)};
-
-    m_wtszp = Tensor<OffsetBuffer, 1>(OffsetBuffer(), wtszp);
-    m_wtszp_buffer_size =
-        service::GetBufferSize(wtszp.get_rank(), wtzp_shape, wtzp_stride);
+                                     const Tensor<NoBuffer, 2> &output_tile_shape)
+    : FullyConnected_CS(pd, in, weights, Tensor<NoBuffer, 1>(), output_tile_shape) {
 }
 
 unsigned FullyConnected_CS::GetKernelPrivateDataSize() const {
@@ -86,7 +79,6 @@ mli_status FullyConnected_CS::GetKernelPrivateData(void* kernel_private_data_buf
   fc_opaque_obj.input_buffer = m_in.get_buf();
   fc_opaque_obj.weights_buffer = m_weights.get_buf();
   fc_opaque_obj.output_buffer = m_output.get_buf();
-  fc_opaque_obj.inpzp_buffer = m_input_zp;
   fc_opaque_obj.wtszp_buffer = m_weights_zp;
   // Only two types of weights zero point quantization are supported, per-tensor or per-channel.
   // -1 indicates per-tensor, 1 indicates per-channel.

@@ -269,12 +269,12 @@ public:
     unsigned GetRuntimeObjectSize() const override;
 
 private:
+    lib_mli::PlatformDescription m_pd;
     Tensor<OffsetBuffer, 2> m_in;
     Tensor<OffsetBuffer, 2> m_weights;
     Tensor<OffsetBuffer, 1> m_wtszp;
     Tensor<OffsetBuffer, 2> m_output;
 
-    OffsetBuffer m_input_zp;
     OffsetBuffer m_weights_zp;
 
     uint32_t m_input_buffer_size;
@@ -282,7 +282,6 @@ private:
     uint32_t m_wtszp_buffer_size;
     uint32_t m_output_buffer_size;
 
-    lib_mli::PlatformDescription m_pd;
 };
 
 class Rescale_CS : public lib_mli::Rescale_CS {

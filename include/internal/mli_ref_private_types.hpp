@@ -126,7 +126,6 @@ public:
     OffsetBuffer input_buffer;
     OffsetBuffer weights_buffer;
     OffsetBuffer output_buffer;
-    OffsetBuffer inpzp_buffer;
     OffsetBuffer wtszp_buffer;
 
     uint32_t input_n;
