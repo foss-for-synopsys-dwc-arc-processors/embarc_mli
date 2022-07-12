@@ -146,9 +146,9 @@ public:
      uint32_t FullyConnected_CS_GetSize() const override { return sizeof(lib_ref:: FullyConnected_CS); }
 
     lib_mli:: FullyConnected_CS* FullyConnected_CS(void *kernel_buffer,
-                                                    const Tensor<NoBuffer, 2> in,
-                                                    const Tensor<NoBuffer, 2> weights,
-                                                    const Tensor<NoBuffer, 2> output_tile_shape) override {
+                                                   const Tensor<NoBuffer, 2> in,
+                                                   const Tensor<NoBuffer, 2> weights,
+                                                   const Tensor<NoBuffer, 2> output_tile_shape) override {
         return new(kernel_buffer) lib_ref::FullyConnected_CS(m_pd, in, weights, output_tile_shape);
     }
     lib_mli:: FullyConnected_CS* FullyConnected_CS(void *kernel_buffer,

@@ -20,7 +20,10 @@ FullyConnected_CS::FullyConnected_CS(const lib_mli::PlatformDescription pd,
                                      const Tensor<NoBuffer, 2> &weights,
                                      const Tensor<NoBuffer, 2> &output_tile_shape
                                      )
-    : m_pd{pd}
+    :m_in{Tensor<OffsetBuffer, 2>(OffsetBuffer(), in)},
+    m_weights{Tensor<OffsetBuffer, 2>(OffsetBuffer(), weights)},
+    m_output{Tensor<OffsetBuffer, 2>(OffsetBuffer(), output_tile_shape)},
+    m_pd{pd}
 {
   uint32_t input_shape[2];
   uint32_t output_shape[2];
@@ -39,17 +42,13 @@ FullyConnected_CS::FullyConnected_CS(const lib_mli::PlatformDescription pd,
     weights_stride[i] = weights.get_mem_stride(i);
   }
 
-  m_in = Tensor<OffsetBuffer, 2>(OffsetBuffer(), input_shape, input_stride);
-  m_weights = Tensor<OffsetBuffer, 2>(OffsetBuffer(), weights_shape, weights_stride);
-  m_output = Tensor<OffsetBuffer, 2>(OffsetBuffer(), output_shape, output_stride);
-
   m_input_buffer_size =
       service::GetBufferSize(in.get_rank(), input_shape, input_stride);
   m_weights_buffer_size
       = service::GetBufferSize(weights.get_rank(), weights_shape, weights_stride);
 
-  // default per-tensor quantization
-  m_wtszp_buffer_size = 1;
+  // weights zero points tensor initialization
+  m_wtszp = Tensor<OffsetBuffer, 1>();
 
   m_output_buffer_size = service::GetBufferSize(output_tile_shape.get_rank(),
                                                 output_shape, output_stride);
@@ -63,15 +62,12 @@ FullyConnected_CS::FullyConnected_CS(const lib_mli::PlatformDescription pd,
                                      )
     : FullyConnected_CS(pd, in, weights, output_tile_shape)
 {
-  uint32_t wtzp_shape[1];
-  int32_t wtzp_stride[1];
+    uint32_t wtzp_shape[1] = {wtszp.get_dim(0)};
+    int32_t wtzp_stride[1] = {wtszp.get_mem_stride(0)};
 
-  wtzp_shape[0] = wtszp.get_dim(0);
-  wtzp_stride[0] = wtszp.get_mem_stride(0);
-
-  m_wtszp = Tensor<OffsetBuffer, 1>(OffsetBuffer(), wtzp_shape, wtzp_stride);
-  m_wtszp_buffer_size
-      = service::GetBufferSize(wtszp.get_rank(), wtzp_shape, wtzp_stride);
+    m_wtszp = Tensor<OffsetBuffer, 1>(OffsetBuffer(), wtszp);
+    m_wtszp_buffer_size =
+        service::GetBufferSize(wtszp.get_rank(), wtzp_shape, wtzp_stride);
 }
 
 unsigned FullyConnected_CS::GetKernelPrivateDataSize() const {
@@ -95,7 +91,7 @@ mli_status FullyConnected_CS::GetKernelPrivateData(void* kernel_private_data_buf
   // Only two types of weights zero point quantization are supported, per-tensor or per-channel.
   // -1 indicates per-tensor, 1 indicates per-channel.
   // Potential bug if m_weights.shape[1] equals 1
-  fc_opaque_obj.qt_wtszp_axis = (m_wtszp_buffer_size == 1) ? -1 : 1;
+  fc_opaque_obj.qt_wtszp_axis = (m_wtszp_buffer_size == 1) ? -1 : kKernelFCChannelOutDim;
   MLI_ASSERT(m_in.get_dim(mli::kTensorBatchDim) == m_output.get_dim(mli::kTensorBatchDim));
   MLI_ASSERT(m_in.get_dim(1) == m_weights.get_dim(mli::kKernelFCChannelInDim));
   MLI_ASSERT(m_weights.get_dim(mli::kKernelFCChannelOutDim) == m_output.get_dim(mli::kKernelFCChannelOutDim));
