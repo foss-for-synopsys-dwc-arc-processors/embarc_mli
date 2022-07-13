@@ -220,7 +220,7 @@ static MLI_FORCE_INLINE mli_status mli_krn_l2_normalize_run(const mli_tensor *in
             auto in_prv =  mli_prv_get_generic_tensor<MLI_PTR(io_T)>(in);
             auto out_prv = mli_prv_get_generic_tensor<MLI_PTR(io_T)>(out);
             /* Reordering shapes/mem_stirde to place the inner most dim at last shape */
-            mli_prv_squash_generic_tensor<MLI_PTR(io_T)>(&in_prv, &out_prv);
+            mli_prv_squash_generic_tensor<MLI_PTR(io_T), MLI_PTR(io_T)>(&in_prv, &out_prv);
 
             int norm_shift;
             const int16_t sum_acc_cast = mli::krn::compute_normalized_sum_square<io_T, convert>(&in_prv, in_ptr, in_zp, &norm_shift);

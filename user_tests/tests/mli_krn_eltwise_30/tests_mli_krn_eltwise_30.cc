@@ -315,8 +315,15 @@ struct EltwiseOp {
 
   // restore the final results
   bool convert{false};
-  uint32_t elem_size;
-  uint32_t elem_size_ratio;
+  // NOTE: In general, input and ouput should have the same dtype execpt mul kernel
+  // input element size
+  uint32_t in_elem_size;
+  // output element size
+  uint32_t out_elem_size;
+  // inputs element size ratio
+  uint32_t in_elem_size_ratio;
+  // output element size ratio
+  uint32_t out_elem_size_ratio;
   convert_param param;
 
   // the size and offset of output buffer
@@ -534,14 +541,23 @@ void convert_parameters(EltwiseTy ty,
 void convert_and_copy_input(EltwiseOp& op,
                            uint32_t in1_size, uint32_t in1_mem_offset,
                            uint32_t in2_size, uint32_t in2_mem_offset) {
-  assert(in1_size == op.in1.data.capacity * op.elem_size_ratio);
-  assert(in2_size == op.in2.data.capacity * op.elem_size_ratio);
+  assert(in1_size == op.in1.data.capacity * op.in_elem_size_ratio);
+  assert(in2_size == op.in2.data.capacity * op.in_elem_size_ratio);
 
-  if (op.elem_size_ratio == 1) {
-    // no convert from int32_t to int32_t
-    op.ByteCopy(op.in1.data.mem.pi8, 0, (int8_t*)g_mem_pool, in1_mem_offset, in1_size);
-    op.ByteCopy(op.in2.data.mem.pi8, 0, (int8_t*)g_mem_pool, in2_mem_offset, in2_size);
-  } else if (op.elem_size_ratio == 2) {
+  if (op.in_elem_size_ratio == 1) {
+    // no conversion and copy directly
+    int8_t* in1_src = op.in1.data.mem.pi8;
+    if (op.param.scalar_op1) {
+      in1_src = reinterpret_cast<int8_t*>(&op.param.scalar1);
+    }
+    op.ByteCopy(in1_src, 0, (int8_t*)g_mem_pool, in1_mem_offset, in1_size);
+
+    int8_t* in2_src = op.in2.data.mem.pi8;
+    if (op.param.scalar_op2) {
+      in2_src = reinterpret_cast<int8_t*>(&op.param.scalar2);
+    }
+    op.ByteCopy(in2_src, 0, (int8_t*)g_mem_pool, in2_mem_offset, in2_size);
+  } else if (op.in_elem_size_ratio == 2) {
     // convert int16_t to int32_t (with shifting)
     auto converter = [&op] (int16_t* src, uint32_t length, uint32_t offset, uint32_t byte_size, int pre_op_shift) {
       std::vector<int32_t> in_temp;
@@ -570,7 +586,7 @@ void convert_and_copy_input(EltwiseOp& op,
       op.ByteCopy(reinterpret_cast<int8_t*>(&op.param.scalar2), 0, (int8_t*)g_mem_pool, in2_mem_offset, in2_size);
     }
 
-  } else if (op.elem_size_ratio == 4) {
+  } else if (op.in_elem_size_ratio == 4) {
     // convert int8_t to int32_t
     auto converter = [&op] (int8_t* src, uint32_t length, uint32_t offset, uint32_t byte_size,
                             int in_offset, int scale16, int pre_op_shift) {
@@ -608,19 +624,54 @@ void convert_and_copy_input(EltwiseOp& op,
   }
 }
 
+template <typename T>
+T get_input_val (const mli_tensor& in, const mli_tensor& out, uint32_t nth_of_output) {
+  assert(in.el_type == MLI_EL_SA_8 || in.el_type == MLI_EL_FX_16);
+
+  if (in.rank == 0) {
+    if (sizeof(T) == sizeof(int8_t)) {
+      return in.data.mem.i8;
+    } else if (sizeof(T) == sizeof(int16_t)) {
+      return in.data.mem.i16;
+    }
+  }
+
+  assert(in.rank == out.rank);
+  uint32_t idx = out.rank - 1;
+  uint32_t in_offset = 1;
+  uint32_t out_offset = 1;
+  for (uint32_t elem_num = 1; idx >= 0; idx--) {
+    elem_num *= out.shape[idx];
+    if (nth_of_output < elem_num) {
+      break;
+    }
+    in_offset *= in.shape[idx];
+    out_offset *= out.shape[idx];
+  }
+
+  in_offset = nth_of_output / out_offset * in_offset + (in.shape[idx] != 1 ? nth_of_output % out_offset : 0);
+
+  if (sizeof(T) == sizeof(int8_t)) {
+    return *(in.data.mem.pi8 + in_offset);
+  } else if (sizeof(T) == sizeof(int16_t)) {
+    return *(in.data.mem.pi16 + in_offset);
+  }
+  return 0;
+}
+
 void convert_and_copy_output(EltwiseOp& op) {
   // Copy back the results for quality metrics
-  assert(op.out_size == op.out.data.capacity * op.elem_size_ratio);
+  assert(op.out_size == op.out.data.capacity * op.out_elem_size_ratio);
   uint32_t out_elem_size = mli_hlp_tensor_element_size(&op.out);
   uint32_t num_elem = op.out.data.capacity / out_elem_size;
   assert(op.out_size / num_elem == sizeof(int32_t));
   int32_t* out_ptr = reinterpret_cast<int32_t*>((int8_t*)g_mem_pool + op.out_mem_offset);
 
   // TODO: refactor to use Rescale kernel
-  if (op.elem_size_ratio == 1) {
-    // no need conert from int32 to in32
+  if (op.out_elem_size_ratio == 1) {
+    // no conversion and copy directly
     op.ByteCopy((int8_t*)g_mem_pool, op.out_mem_offset, op.out.data.mem.pi8, 0, op.out_size);
-  } else if (op.elem_size_ratio == 2) {
+  } else if (op.out_elem_size_ratio == 2) {
     // convert int32 to int16
     std::vector<int16_t> out_temp;
     for (uint32_t i = 0; i < num_elem; ++i) {
@@ -629,11 +680,31 @@ void convert_and_copy_output(EltwiseOp& op) {
       out_temp.push_back(tmp16);
     }
     op.ByteCopy(reinterpret_cast<int8_t*>(out_temp.data()), 0, op.out.data.mem.pi8, 0, op.out_size);
-  } else if (op.elem_size_ratio == 4) {
+  } else if (op.out_elem_size_ratio == 4) {
     // convert int32 to int8
     std::vector<int8_t> out_temp;
     for (uint32_t i = 0; i < num_elem; ++i) {
-      int16_t tmp16 = rshift(out_ptr[i], op.param.post_op_shift);
+      int64_t acc = out_ptr[i];
+      if (op.ty == EltwiseTy::MUL) {
+        // The output of acc is Xa * Xb and we will calc other parts
+        //   out_val = Sa*Sb * (Xa-Oa) * (Xb-Ob)
+        //   out_val = Sa * Sb * (Xa * Xb - Xa * Ob - Xb * Oa + Oa * Ob)
+        //   out_val = Sa * Sb * (acc - Xa * Ob - Xb * Oa + Oa * Ob)
+
+        // acc - Xa * Ob - Xb * Oa
+        if (op.in_elem_size == sizeof(int8_t)) {
+          acc = acc - op.param.in_offset2 * get_input_val<int8_t>(op.in1, op.out, i);
+          acc = acc - op.param.in_offset1 * get_input_val<int8_t>(op.in2, op.out, i);
+        } else if (op.in_elem_size == sizeof(int16_t)) {
+          acc = acc - op.param.in_offset2 * get_input_val<int16_t>(op.in1, op.out, i);
+          acc = acc - op.param.in_offset1 * get_input_val<int16_t>(op.in2, op.out, i);
+        }
+        // Oa * Ob
+        acc = acc + op.param.in_offset1 * op.param.in_offset2;
+        // Sa * Sb
+        acc = acc * op.param.scale16_1 * op.param.scale16_2;
+      }
+      int16_t tmp16 = rshift(acc, op.param.post_op_shift);
       tmp16 = tmp16 + op.param.out_offset;
       tmp16 = sat_fx<int32_t, int8_t>(rshift(tmp16, 0));
       out_temp.push_back(tmp16);
@@ -699,21 +770,24 @@ void plan_memory(EltwiseOp& op,
   *offset += private_buffer_size;
 
   // Define buffers for in\out tensors
-  uint32_t in1_size = eltwise_op->GetInputLeftBufferSize() * op.elem_size;
-  lib_mli::OffsetBuffer add_in1_buf{*offset, 0, in1_size, op.elem_size};
+  uint32_t in1_size = eltwise_op->GetInputLeftBufferSize() * op.in_elem_size;
+  lib_mli::OffsetBuffer add_in1_buf{*offset, 0, in1_size, op.in_elem_size};
   lib_mli::Tensor<lib_mli::OffsetBuffer, 4> add_in1_tensor(add_in1_buf, input1_shape);
   in1_mem_offset = *offset;
   *offset += in1_size;
 
-  uint32_t in2_size = eltwise_op->GetInputRightBufferSize() * op.elem_size;
-  lib_mli::OffsetBuffer add_in2_buf{*offset, 0, in2_size, op.elem_size};
+  uint32_t in2_size = eltwise_op->GetInputRightBufferSize() * op.in_elem_size;
+  lib_mli::OffsetBuffer add_in2_buf{*offset, 0, in2_size, op.in_elem_size};
   lib_mli::Tensor<lib_mli::OffsetBuffer, 4> add_in2_tensor(add_in2_buf, input2_shape);
   in2_mem_offset = *offset;
   *offset += in2_size;
 
   offset = &offsets[0];
-  uint32_t out_size = eltwise_op->GetOutputBufferSize() * op.elem_size;
-  lib_mli::OffsetBuffer add_out_buf{*offset, 0, out_size, op.elem_size};
+  // NOTE: The output should be aligned, otherwise, it will cause `vvst` crash.
+  //       For example, offset is 4 bytes aligned if output is int32_t.
+  *offset = CEIL_RND(*offset, op.out_elem_size);
+  uint32_t out_size = eltwise_op->GetOutputBufferSize() * op.out_elem_size;
+  lib_mli::OffsetBuffer add_out_buf{*offset, 0, out_size, op.out_elem_size};
   lib_mli::Tensor<lib_mli::OffsetBuffer, 4> add_out_tensor(add_out_buf, output_shape);
   op.out_mem_offset = *offset;
   op.out_size = out_size;
@@ -779,28 +853,47 @@ void prepare_phase(const eltwise_test_operands* cur_test, EltwiseOp& op) {
   const lib_mli::Tensor<lib_mli::NoBuffer, 4> in2_tensor(input2_shape, input2_stride);
   const lib_mli::Tensor<lib_mli::NoBuffer, 4> out_tensor(output_shape, output_stride);
 
+  // the size of accumulator in bytes
+  uint32_t acc_size = sizeof(int32_t);
+
   // Currently, eltwise kernel only support 32bits. So, convert input to 32bits
   uint32_t elem_size = mli_hlp_tensor_element_size(&op.in1);
-  assert(elem_size <= sizeof(int32_t));
+  assert(elem_size <= acc_size);
   assert(elem_size == mli_hlp_tensor_element_size(&op.in2));
   assert(elem_size == mli_hlp_tensor_element_size(&op.out));
   if ((op.in1.el_type != MLI_EL_FX_16) &&
-      (op.in1.el_type != MLI_EL_SA_8) &&
-      (op.in1.el_type != MLI_EL_SA_32)) {
+      (op.in1.el_type != MLI_EL_SA_8)) {
     // not tested yet
     assert(false);
   }
 
   if (op.in1.el_type == MLI_EL_SA_8) { op.convert = true; }
-  convert_parameters<int16_t>(op.ty, &op.in1, &op.in2, &op.out, op.convert, &op.param);
+  convert_parameters<int32_t>(op.ty, &op.in1, &op.in2, &op.out, op.convert, &op.param);
 
   uint32_t elem_size_ratio = 1;
-  if (elem_size != sizeof(int32_t)) {
-    elem_size_ratio = sizeof(int32_t) / elem_size;
-    elem_size = sizeof(int32_t);
+  if (elem_size != acc_size) {
+    elem_size_ratio = acc_size / elem_size;
   }
-  op.elem_size = elem_size;
-  op.elem_size_ratio = elem_size_ratio;
+
+  // i8 + i8 -> (i32) -> i8 or i16 + i16 -> (i32) -> i16
+  if (op.ty == EltwiseTy::MUL) {
+    // For mul, we pass i8 or i16 inputs directly and get i32 output. Then change it back.
+    op.in_elem_size = elem_size;
+    op.in_elem_size_ratio = 1;
+    // NOTE: The complete equation of mul is Sa*Sb * (Xa-Oa) * (Xb-Ob)
+    //         Sa is the scale of first input, Xa is the value and Oa is offset.
+    //         Sb is the scale of second input, Xb is the value and Ob is offset.
+    // In the current implementation, we only do Xa*Xb in mul kernel and leave other
+    // parts in testing (convert and copy functions). We have to extend mul to support
+    // encode zp methods in order to compute other parts in mli internal.
+  } else {
+    // Except mul operation, we first change inputs to i32 and feed into eltwise kernel
+    // to get the i32 output. Then we will change it back to the origial data type i8 or i16.
+    op.in_elem_size_ratio = elem_size_ratio;
+    op.in_elem_size = acc_size;
+  }
+  op.out_elem_size = acc_size;
+  op.out_elem_size_ratio = elem_size_ratio;
 
   op.CreateKernel(in1_tensor, in2_tensor, out_tensor);
 
@@ -915,7 +1008,7 @@ int main() {
   const reporter_full reporter;
   bool final_status = true;
 
-  reporter.report_header("MLI3.0|Kernels|Add Functions Tests");
+  reporter.report_header("MLI3.0|Kernels|Basic Eltwise Functions Tests");
 
   for (int i = 0; i < kTestsNum; ++i) {
     bool is_test_passed = true;

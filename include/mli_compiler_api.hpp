@@ -80,9 +80,27 @@ class CompilerGenericInterface {
 
     virtual int32_t GetEventIssueMask() const { return 0; }
 
-    virtual mli_status SetEventPrefetch(bool enable) { return MLI_STATUS_OK; }
+    mli_status SetEventPrefetch(bool enable) { 
+        m_prefetch_enable = enable;
+        return MLI_STATUS_OK;
+    }
 
-    virtual mli_status SetEventIssue(bool enable) { return MLI_STATUS_OK; }
+    mli_status SetEventIssue(bool enable) { 
+        m_issue_enable = enable;
+        return MLI_STATUS_OK;
+    }
+
+    /**
+     * @brief this function will return the vectorization in the input channel
+     *        dimension that is used by the platform.
+     */
+    virtual unsigned GetInputChannelMultiple() { return 1; };
+
+    /**
+     * @brief this function will return the vectorization in the output channel
+     *        dimension that is used by the platform.
+     */
+    virtual unsigned GetOutputChannelMultiple() { return 1; };
 
 // TODO add virtual destructor
 protected:
@@ -197,6 +215,29 @@ public:
     // unsigned GetKernelPrivateDataSize() override ;
     // unsigned GetRuntimeObjectSize() override ;
 
+    /**
+     * @brief Method to set iteration information used in the .Update()
+     *
+     * NOTE: the use of this method is optional. if there is a single tile, and the .Update() is not used,
+     *       this data doesn't need to be set.     
+     * All the increments are following the output tile iterator.
+     * @param output_total_size[4] [I] total size in each dimension
+     * @param iteration_order[4] [I] which dimension of the output to iterate first.
+     * @param input_first_inc[4] [I] increment of the input buffer pointer for the first iteration in each dimension
+     * @param input_inc[4] [I] increment of the input buffer pointer for the other iterations in each dimension
+     * @param output_first_inc[4] [I] increment of the output buffer pointer for the first iteration in each dimension
+     * @param output_inc[4] [I] increment of the output buffer pointer for the other iterations in each dimension
+     * @param weights_inc[4] [I] increment of the weights buffer pointer for the other iterations in each dimension of the output iterator
+     */
+    virtual mli_status SetIterators(uint32_t output_total_size[4],
+                                    uint32_t iteration_order[4],
+                                    uint32_t input_first_inc[4],
+                                    uint32_t input_inc[4],
+                                    uint32_t output_first_inc[4],
+                                    uint32_t output_inc[4],
+                                    uint32_t weights_inc[4]) = 0;
+
+
 };
 
 /**
@@ -271,13 +312,27 @@ public:
     // mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override ;
     // unsigned GetKernelPrivateDataSize() override ;
     // unsigned GetRuntimeObjectSize() override ;
-};
 
-/* **********************************************************
- *
- * Add New Kernels Below
- *
- * *********************************************************/
+    /**
+     * @brief Method to set iteration information used in the .Update()
+     *
+     * NOTE: the use of this method is optional. if there is a single tile, and the .Update() is not used,
+     *       this data doesn't need to be set.     
+     * All the increments are following the output tile iterator.
+     * @param output_total_size[4] [I] total size in each dimension
+     * @param iteration_order[4] [I] which dimension of the output to iterate first.
+     * @param input_first_inc[4] [I] increment of the input buffer pointer for the first iteration in each dimension
+     * @param input_inc[4] [I] increment of the input buffer pointer for the other iterations in each dimension
+     * @param output_first_inc[4] [I] increment of the output buffer pointer for the first iteration in each dimension
+     * @param output_inc[4] [I] increment of the output buffer pointer for the other iterations in each dimension
+     */
+    virtual mli_status SetIterators(uint32_t output_total_size[4],
+                                    uint32_t iteration_order[4],
+                                    uint32_t input_first_inc[4],
+                                    uint32_t input_inc[4],
+                                    uint32_t output_first_inc[4],
+                                    uint32_t output_inc[4]) = 0;
+};
 
 
 /**
@@ -414,23 +469,59 @@ public:
     virtual ~MaxPool2D_CS() = default;
 
     /**
-     * @brief Methods to get buffer sizes
-     * TODO: add description using conv2d_cs as a starting point
+     * @brief Method to get the input buffer size
+     *
+     * @return Size of the input buffer in bytes
      */
-
     virtual unsigned GetInputBufferSize() const = 0;
-    virtual unsigned GetOutputBufferSize() const = 0;
-    virtual unsigned GetDataBufferSize() const = 0;
-
 
     /**
-     * @brief Methods to set buffer offsets
+     * @brief Method to get the output buffer size
      *
+     * @return Size of the output buffer in bytes
+     */
+    virtual unsigned GetOutputBufferSize() const = 0;
+
+    /**
+     * @brief Method to get the platform-specific descriptor data buffer size
+     *
+     * DataBuffer requires allocation in closely coupled data memory (CCM)
+     *
+     * @return Size of platform-specific descriptor data buffer in bytes
+     */
+    virtual unsigned GetDataBufferSize() const = 0;
+
+    /**
+     * @brief Method to set buffer memory offsets and memory IDs for the kernel
+     * 
+     * The memory ID's are used to index the membases array that will be passed
+     * to the constructor of the runtime class. The offsets will added to the base
+     * addresses provided in the membase array during runtime.
+     *
+     * @param input [IN] Tensor descriptor containing input OffsetBuffer and tensor shape and memory strides
+     * @param output [IN] Tensor descriptor containing output OffsetBuffer and tensor shape and memory strides
+     * @param data [IN] Tensor descriptor containing descriptor data OffsetBuffer
+     * 
+     * @return MLI status code
      */
     virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
                                            const Tensor<OffsetBuffer, 4> &output,
                                            const OffsetBuffer &data) = 0;
 
+    /**
+     * @brief Set the Iterators object
+     *
+     * @param total_output_size [IN] Size of full output tensor
+     * @param iteration_order [IN] Array which defines the order of dimensions to iterate over
+     * @param first_tile_size [IN] Size of the first tile
+     * @param tile_size [IN] Size of all tiles except first one
+     * @param input_first_inc [IN] Increment in elements per dimension for the first tile in the input tensor
+     * @param input_inc [IN] Increment in elements per dimension for all tiles except first one in the input tensor
+     * @param output_first_inc [IN] Increment in elements per dimension for the first tile in the output tensor
+     * @param output_inc [IN] Increment in elements per dimension for all tiles except first one in the output tensor
+     *
+     * @return MLI status code
+     */
     virtual mli_status SetIterators(uint32_t total_output_size[4], uint32_t iteration_order[4],
                                     uint32_t first_tile_size[4], uint32_t tile_size[4],
                                     uint32_t input_first_inc[4], uint32_t input_inc[4],

@@ -28,7 +28,7 @@ namespace krn {
 ////////////////////////////////////////////////////////////////////////////////
 // Functions (in *_ref/*_dsp/*vdsp) that can be called from outside their own
 // file must be declared here. This includes all overloads. For example, if we
-// have: io_T f(io_T a) and int8_t f(int8_t a), then both must be declared.
+// have: o_T f(i_T a) and int8_t f(int8_t a), then both must be declared.
 // Not doing so, can cause the compiler to use the wrong overload.
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -37,19 +37,19 @@ namespace krn {
 ////////////////////////////////////////////////////////////////////////////////
 namespace ref {
 
-template <typename io_T, mli_eltwise_type func_type, bool convert = false , bool no_scalar = false, bool no_out_update = false, bool shape_1d = false>
+template <typename i_T, typename o_T, mli_eltwise_type func_type, bool convert = false , bool no_scalar = false, bool no_out_update = false, bool shape_1d = false>
 void eltwise_prepare_and_run(
         const mli_tensor *__restrict in1,
         const mli_tensor *__restrict in2,
         mli_tensor *__restrict out);
 
-template <typename io_T, mli_eltwise_type func_type, bool convert = false>
+template <typename i_T, typename o_T, mli_eltwise_type func_type, bool convert = false>
 void eltwise_op_basic(
-        const generic_tensor_private_t<MLI_PTR(io_T)> * __restrict in1,
-        const generic_tensor_private_t<MLI_PTR(io_T)> * __restrict in2,
-        generic_tensor_private_t<MLI_OUT_PTR(io_T)> * __restrict out,
-        const io_T op1_s,
-        const io_T op2_s,
+        const generic_tensor_private_t<MLI_PTR(i_T)> * __restrict in1,
+        const generic_tensor_private_t<MLI_PTR(i_T)> * __restrict in2,
+        generic_tensor_private_t<MLI_OUT_PTR(o_T)> * __restrict out,
+        const i_T op1_s,
+        const i_T op2_s,
         const bool scalar_op1,
         const bool scalar_op2,
         const int pre_op_shift1,
@@ -61,14 +61,14 @@ void eltwise_op_basic(
         const int in_offset2,
         const int out_offset);
 
-template <typename io_T, mli_eltwise_type func_type, bool convert = false>
+template <typename i_T, typename o_T, mli_eltwise_type func_type, bool convert = false>
 void eltwise_op_basic(
         const mli_tensor * __restrict in1,
         const mli_tensor * __restrict in2,
         mli_tensor * __restrict out,
         const int *shape,
-        const io_T op1_s,
-        const io_T op2_s,
+        const i_T op1_s,
+        const i_T op2_s,
         const bool scalar_op1,
         const bool scalar_op2,
         const int pre_op_shift1,
@@ -106,17 +106,17 @@ MLI_FORCE_INLINE int8_t eltwise_perform_operation <int8_t, int8_t, ELTWISE_MUL, 
         const int pre_op_shift2,
         const int post_op_shift);
 
-template <typename io_T, mli_eltwise_type func_type, bool convert>
+template <typename i_T, typename o_T, mli_eltwise_type func_type, bool convert>
 void eltwise_innerloop(
-        const MLI_PTR(io_T) __restrict op1_ptr,
-        const MLI_PTR(io_T) __restrict op2_ptr,
-        MLI_PTR(io_T) __restrict out_ptr,
+        const MLI_PTR(i_T) __restrict op1_ptr,
+        const MLI_PTR(i_T) __restrict op2_ptr,
+        MLI_PTR(o_T) __restrict out_ptr,
         int idx1,
         int idx2,
         int idx_out,
         const int count,
-        const io_T op1_s,
-        const io_T op2_s,
+        const i_T op1_s,
+        const i_T op2_s,
         const bool scalar_op1,
         const bool scalar_op2,
         const int16_t in_offset1,
@@ -133,7 +133,7 @@ void eltwise_innerloop(
 // DSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace dsp {
-template <typename io_T, mli_eltwise_type func_type, bool convert = false>
+template <typename i_T, typename o_T, mli_eltwise_type func_type, bool convert = false>
 static MLI_FORCE_INLINE void eltwise_prepare_and_run(
         const mli_tensor * in1,
         const mli_tensor * in2,
@@ -145,7 +145,7 @@ static MLI_FORCE_INLINE void eltwise_prepare_and_run(
 // VDSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace vdsp {
-template <typename io_T, mli_eltwise_type func_type, bool convert = false>
+template <typename i_T, typename o_T, mli_eltwise_type func_type, bool convert = false>
 void eltwise_prepare_and_run(
         const mli_tensor * in1,
         const mli_tensor * in2,
@@ -270,9 +270,22 @@ out_T eltwise_perform_operation(
             const int post_op_shift);
 
     template <>
-    MLI_FORCE_INLINE vNint_t eltwise_perform_operation<vNint_t, vNint_t, ELTWISE_MUL, true>(
-            const vNint_t op1,
-            const vNint_t op2,
+    MLI_FORCE_INLINE vNx4int_t eltwise_perform_operation<vNx4char_t, vNx4int_t, ELTWISE_MUL, false>(
+            const vNx4char_t op1,
+            const vNx4char_t op2,
+            const int16_t in_offset1,
+            const int16_t in_offset2,
+            const int16_t out_offset,
+            const int16_t scale_factor1,
+            const int16_t scale_factor2,
+            const int pre_op_shift1,
+            const int pre_op_shift2,
+            const int post_op_shift);
+
+    template <>
+    MLI_FORCE_INLINE vNx2int_t eltwise_perform_operation<vNx2short_t, vNx2int_t, ELTWISE_MUL, false>(
+            const vNx2short_t op1,
+            const vNx2short_t op2,
             const int16_t in_offset1,
             const int16_t in_offset2,
             const int16_t out_offset,
@@ -439,17 +452,17 @@ out_T eltwise_perform_operation(
             const int post_op_shift);
 #endif
 
-template <typename io_T, mli_eltwise_type func_type, bool convert>
+template <typename i_T, typename o_T, mli_eltwise_type func_type, bool convert>
 MLI_FORCE_INLINE void eltwise_innerloop(
-        const MLI_PTR(io_T) __restrict op1_ptr,
-        const MLI_PTR(io_T) __restrict op2_ptr,
-        MLI_PTR(io_T) __restrict out_ptr,
+        const MLI_PTR(i_T) __restrict op1_ptr,
+        const MLI_PTR(i_T) __restrict op2_ptr,
+        MLI_PTR(o_T) __restrict out_ptr,
         int idx1,
         int idx2,
         int idx_out,
         const int count,
-        const io_T op1_s,
-        const io_T op2_s,
+        const i_T op1_s,
+        const i_T op2_s,
         const bool scalar_op1,
         const bool scalar_op2,
         const int16_t in_offset1,

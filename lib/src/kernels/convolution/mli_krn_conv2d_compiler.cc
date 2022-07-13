@@ -236,4 +236,15 @@ unsigned Conv2d_CS::GetDataBufferSize() {
   return 0;
 }
 
+mli_status Conv2d_CS::SetIterators(uint32_t output_total_size[4],
+                                   uint32_t iteration_order[4],
+                                   uint32_t input_first_inc[4],
+                                   uint32_t input_inc[4],
+                                   uint32_t output_first_inc[4],
+                                   uint32_t output_inc[4],
+                                   uint32_t weights_inc[4]) {
+    // TODO: Store iterator params
+    return MLI_STATUS_OK;
+}
+
 }  // namespace snps_arc::metaware::mli::ref

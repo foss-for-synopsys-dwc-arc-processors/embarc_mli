@@ -118,6 +118,24 @@ class IteratorCfg {
         rank_ = maxRank;
     }
 
+    IteratorCfg<maxRank> transpose(uint32_t new_order[]) const {
+        // create a transposed Iterator, reordering the dimensions
+        IteratorCfg<maxRank> iter;
+        // change order of axes
+        uint32_t c = 0;
+        for (uint32_t axis = 0; axis < maxRank; axis++) {
+          assert(new_order[axis] >= 0 && new_order[axis] < maxRank);
+          // axis can only be selected once
+          assert((c & (1 << new_order[axis])) == 0);
+          c |= (1 << new_order[axis]);
+          iter.first_increment_[axis] = first_increment_[new_order[axis]];
+          iter.increment_[axis] = increment_[new_order[axis]];
+          iter.first_size_[axis] = first_size_[new_order[axis]];
+          iter.size_[axis] = size_[new_order[axis]];
+        }
+        return iter;
+    }
+
     unsigned get_first_increment(unsigned dim) const {
       return first_increment_[dim];
     }
@@ -237,6 +255,10 @@ class TensorIterator {
         copysize[r] = 1;
       }
       return full_tensor_.slice(pos_, copysize);
+    }
+
+    TensorIterator<maxRank> transpose(uint32_t new_order[]) const {
+      return TensorIterator(full_tensor_.transpose(new_order), config_.transpose(new_order));
     }
 
   template<typename T>

@@ -991,6 +991,11 @@ MLI_FORCE_INLINE vNx4int_t mli_math_cast_fx(vNx4char_t in_val) {
 }
 
 template <>
+MLI_FORCE_INLINE vNx2int_t mli_math_cast_fx(vNx2short_t in_val) {
+    return to_vNx2int_t(in_val);
+}
+
+template <>
 MLI_FORCE_INLINE vNx4int_t mli_math_cast_fx(vNx4short_t in_val) {
     return to_vNx4int_t(in_val);
 }
@@ -1431,6 +1436,19 @@ MLI_FORCE_INLINE vNx4char_t mli_math_acc_cast_fx<vNx4char_t, vNx4accint_t,/*roun
     accu_result.hi.hi = to_vNint_t(vvconvert(__vacc_hi(acc.hi), ctrlword));
 
     return to_vNx4char_t(accu_result);
+}
+
+template<>
+MLI_FORCE_INLINE vNx2int_t mli_math_acc_cast_fx<vNx2int_t, vNx2accint_t, /*round = */ false>(
+        vNx2accint_t acc, int shift_right) {
+    MLI_EXTRA_ASSERT(shift_right >= 0);
+
+    int ctrlword = SAT|SIGNED|TARGET_SZ_32|SHIFT(shift_right);
+    vNx2int_t accu_result;
+    accu_result.lo = to_vNint_t(vvconvert(__vacc_lo(acc), ctrlword));
+    accu_result.hi = to_vNint_t(vvconvert(__vacc_hi(acc), ctrlword));
+
+    return accu_result;
 }
 
 template<>

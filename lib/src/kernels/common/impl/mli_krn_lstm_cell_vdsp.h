@@ -217,10 +217,10 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
         // Step 3: Pointwise operations
         //=======================================
         //tmp_gate.data = dtcntr_forget_gate; // switch data to forget_gate
-        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(cell, &tmp_gate, cell);
+        mli::krn::eltwise_prepare_and_run<io_T, io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(cell, &tmp_gate, cell);
         tmp_gate.data = dtcntr_in_gate; // switch data to in_gate
-        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&g_tsr, &tmp_gate, &g_tsr);
-        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_ADD, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(cell, &g_tsr, cell);
+        mli::krn::eltwise_prepare_and_run<io_T, io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&g_tsr, &tmp_gate, &g_tsr);
+        mli::krn::eltwise_prepare_and_run<io_T, io_T, ELTWISE_ADD, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(cell, &g_tsr, cell);
 
         // Step 4: Calculate output: Activation + pointwise operation
         //===========================================================
@@ -234,7 +234,7 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
 
         if (cfg->act == RNN_ACT_NONE) {
             tmp_gate.data = dtcntr_out_gate; // switch data to out_gate
-            mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(cell, &tmp_gate, &temp);
+            mli::krn::eltwise_prepare_and_run<io_T, io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(cell, &tmp_gate, &temp);
         } else {
             if (asym) {
                 if (cfg->act == RNN_ACT_TANH)
@@ -264,7 +264,7 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
             }
 
             tmp_gate.data = dtcntr_out_gate; // switch data to out_gate
-            mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&rnn_out, &tmp_gate, &temp);
+            mli::krn::eltwise_prepare_and_run<io_T, io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&rnn_out, &tmp_gate, &temp);
         }
         rnn_out.el_params = out->el_params;
 

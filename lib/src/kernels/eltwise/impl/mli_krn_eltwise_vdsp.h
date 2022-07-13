@@ -441,9 +441,9 @@ MLI_FORCE_INLINE vNx4char_t eltwise_perform_operation<vNx4char_t, vNx4char_t, EL
 }
 
 template <>
-MLI_FORCE_INLINE vNint_t eltwise_perform_operation<vNint_t, vNint_t, ELTWISE_MUL, false>(
-        const vNint_t op1,
-        const vNint_t op2,
+MLI_FORCE_INLINE vNx4int_t eltwise_perform_operation<vNx4char_t, vNx4int_t, ELTWISE_MUL, false>(
+        const vNx4char_t op1,
+        const vNx4char_t op2,
         const int16_t in_offset1,
         const int16_t in_offset2,
         const int16_t out_offset,
@@ -452,25 +452,50 @@ MLI_FORCE_INLINE vNint_t eltwise_perform_operation<vNint_t, vNint_t, ELTWISE_MUL
         const int pre_op_shift1,
         const int pre_op_shift2,
         const int post_op_shift) {
-    vNint_t res;
-    int shift_right = MAX(post_op_shift, 0);
+    vNx4int_t res;
     int shift_left = MAX(-post_op_shift, 0);
-
+    int shift_right = MAX(post_op_shift, 0);
 #ifdef ROUND_MODE_UP
-    uint32_t one = 1u;
-    int32_t accu_init = (one << shift_right) >> 1;
-    vNaccint_t accu = mli_math_init_accu<int32_t, vNaccint_t>(accu_init);
+    uint16_t one = 1u;
+    int16_t acc_init = ((one << shift_right) >> 1);
 #else
     #error Rounding mode not supported
 #endif
+    vNx4accint_t acc32 = mli_math_init_accu<int32_t, vNx4accint_t>((int32_t)acc_init);
+    vNx4short_t op1_prom = mli_math_cast_fx<vNx4char_t, vNx4short_t>(op1);
+    vNx4short_t op2_prom = mli_math_cast_fx<vNx4char_t, vNx4short_t>(op2);
+    acc32 = mli_math_mac_fx(acc32, op1_prom, op2_prom);
+    res = mli_math_acc_cast_fx<vNx4int_t, vNx4accint_t, false> (acc32, shift_right);
+    res = mli_math_asl_fx(res, shift_left);
 
-    MLI_ASSERT(pre_op_shift1 == 0);
-    MLI_ASSERT(pre_op_shift2 == 0);
-    MLI_ASSERT(shift_left  == 0);
-    MLI_ASSERT(shift_right == 0);
+    return res;
+}
 
-    accu = mli_math_mac_fx_low(accu, op1, op2);
-    res = to_vNint_t(accu);
+template <>
+MLI_FORCE_INLINE vNx2int_t eltwise_perform_operation<vNx2short_t, vNx2int_t, ELTWISE_MUL, false>(
+        const vNx2short_t op1,
+        const vNx2short_t op2,
+        const int16_t in_offset1,
+        const int16_t in_offset2,
+        const int16_t out_offset,
+        const int16_t scale_factor1,
+        const int16_t scale_factor2,
+        const int pre_op_shift1,
+        const int pre_op_shift2,
+        const int post_op_shift) {
+    vNx2int_t res;
+    int shift_left = MAX(-post_op_shift, 0);
+    int shift_right = MAX(post_op_shift, 0);
+#ifdef ROUND_MODE_UP
+    uint16_t one = 1u;
+    int16_t acc_init = ((one << shift_right) >> 1);
+#else
+    #error Rounding mode not supported
+#endif
+    vNx2accint_t acc32 = mli_math_init_accu<int32_t, vNx2accint_t>((int32_t)acc_init);
+    acc32 = mli_math_mac_fx(acc32, op1, op2);
+    res = mli_math_acc_cast_fx<vNx2int_t, vNx2accint_t, false> (acc32, shift_right);
+    res = mli_math_asl_fx(res, shift_left);
 
     return res;
 }
@@ -683,17 +708,17 @@ MLI_FORCE_INLINE vNint_t eltwise_perform_operation<vNint_t, vNint_t, ELTWISE_MIN
 }
 
 
-template <typename io_T, mli_eltwise_type func_type, bool convert = false>
+template <typename i_T, typename o_T, mli_eltwise_type func_type, bool convert = false>
 MLI_FORCE_INLINE void eltwise_innerloop(
-        const MLI_PTR(io_T) __restrict op1_ptr,
-        const MLI_PTR(io_T) __restrict op2_ptr,
-        MLI_PTR(io_T) __restrict out_ptr,
+        const MLI_PTR(i_T) __restrict op1_ptr,
+        const MLI_PTR(i_T) __restrict op2_ptr,
+        MLI_PTR(o_T) __restrict out_ptr,
         int idx1,
         int idx2,
         int idx_out,
         const int count,
-        io_T op1_s,
-        io_T op2_s,
+        i_T op1_s,
+        i_T op2_s,
         const bool scalar_op1,
         const bool scalar_op2,
         const int16_t in_offset1,
@@ -708,13 +733,30 @@ MLI_FORCE_INLINE void eltwise_innerloop(
     auto input = mli_prv_load_1vec(op1_ptr);
     int num_lanes = get_number_lanes(input);
     int remaining_part = count & (num_lanes - 1);
-    decltype(input) op1_scalar = op1_s;
-    decltype(input) op2_scalar = op2_s;
+
+    // The input dtype is deduced by `load_1vec` function
+    using IDtype = decltype(input);
+    // Then, get the output dtype by type triats. Pseudocode:
+    //   if (IDtype == vNx4char_t && o_T == int32_t) {
+    //       ODtype = vNx4int_t;
+    //   } else if (IDType == vNx2short_t && o_T == int32_t) {
+    //       ODtype = vNx2int_t;
+    //   } else {
+    //       ODtype = IDtype;
+    //   }
+    using ODtype = typename std::conditional<
+        std::is_same<IDtype, vNx4char_t>::value & std::is_same<o_T, int32_t>::value,
+            vNx4int_t, typename std::conditional<
+                std::is_same<IDtype, vNx2short_t>::value & std::is_same<o_T, int32_t>::value,
+                vNx2int_t, IDtype> ::type > ::type;
+
+    IDtype op1_scalar = op1_s;
+    IDtype op2_scalar = op2_s;
 
     if (remaining_part) {
         auto val1 = (scalar_op1) ? op1_scalar : mli_prv_load_1vec(op1_ptr + idx1);
         auto val2 = (scalar_op2) ? op2_scalar : mli_prv_load_1vec(op2_ptr + idx2);
-        auto res = mli::krn::eltwise_perform_operation<decltype(input), decltype(input), func_type, convert>(
+        auto res = mli::krn::eltwise_perform_operation<IDtype, ODtype, func_type, convert>(
                                                        val1, val2, in_offset1, in_offset2, out_offset, scale1,
                                                        scale2, pre_op_shift1, pre_op_shift2, post_op_shift);
         mli_prv_store_n_samples(&out_ptr[idx_out], res, remaining_part);
@@ -727,7 +769,7 @@ MLI_FORCE_INLINE void eltwise_innerloop(
     for (int pos = 0; pos < (count - remaining_part); pos+=num_lanes) {
         auto val1 = (scalar_op1) ? op1_scalar : mli_prv_load_1vec(op1_ptr + idx1);
         auto val2 = (scalar_op2) ? op2_scalar : mli_prv_load_1vec(op2_ptr + idx2);
-        auto res = mli::krn::eltwise_perform_operation<decltype(input), decltype(input), func_type, convert>(
+        auto res = mli::krn::eltwise_perform_operation<IDtype, ODtype, func_type, convert>(
                                                        val1, val2, in_offset1, in_offset2, out_offset, scale1,
                                                        scale2, pre_op_shift1, pre_op_shift2, post_op_shift);
         mli_prv_store_n_samples(&out_ptr[idx_out], res);

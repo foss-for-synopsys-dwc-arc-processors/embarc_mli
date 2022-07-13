@@ -85,7 +85,7 @@ Sub::Sub(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int
 mli_status Sub::Issue() {
   if (m_i_elem_size == sizeof(int32_t) && m_o_elem_size == sizeof(int32_t)) {
     ::mli::krn::eltwise_prepare_and_run
-      <int32_t, ::mli::ELTWISE_SUB, false>(&m_input_left, &m_input_right, &m_output);
+      <int32_t, int32_t, ::mli::ELTWISE_SUB, false>(&m_input_left, &m_input_right, &m_output);
   } else {
     return MLI_STATUS_NOT_SUPPORTED;
   }

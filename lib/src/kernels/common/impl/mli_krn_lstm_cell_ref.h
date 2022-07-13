@@ -155,9 +155,9 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
 
         // Step 3: Pointwise operations
         //=======================================
-        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(cell, &forget_gate, cell);
-        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&g_tsr, &in_gate, &g_tsr);
-        mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_ADD, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(cell, &g_tsr, cell);
+        mli::krn::eltwise_prepare_and_run<io_T, io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(cell, &forget_gate, cell);
+        mli::krn::eltwise_prepare_and_run<io_T, io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&g_tsr, &in_gate, &g_tsr);
+        mli::krn::eltwise_prepare_and_run<io_T, io_T, ELTWISE_ADD, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(cell, &g_tsr, cell);
 
         // Step 4: Calculate output: Activation + pointwise operation
         //===========================================================
@@ -170,7 +170,7 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
         temp.el_params = out->el_params;
 
         if (cfg->act == RNN_ACT_NONE) {
-            mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(cell, &out_gate, &temp);
+            mli::krn::eltwise_prepare_and_run<io_T, io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(cell, &out_gate, &temp);
         } else {
             if (asym) {
                 if (cfg->act == RNN_ACT_TANH)
@@ -199,7 +199,7 @@ MLI_FORCE_INLINE void lstm_cell_prepare_and_run(
                 }
             }
 
-            mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&rnn_out, &out_gate, &temp);
+            mli::krn::eltwise_prepare_and_run<io_T, io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&rnn_out, &out_gate, &temp);
         }
         rnn_out.el_params = out->el_params;
 

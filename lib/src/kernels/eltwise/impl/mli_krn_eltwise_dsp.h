@@ -28,7 +28,7 @@ namespace dsp {
 //
 //======================================================
 #ifdef __Xxy
-template <typename io_T>
+template <typename i_T, typename o_T>
 static MLI_FORCE_INLINE void eltwise_op_sub_fx (
         const MLI_PTR(int8_t) op1,
         const MLI_PTR(int8_t) op2,
@@ -38,11 +38,11 @@ static MLI_FORCE_INLINE void eltwise_op_sub_fx (
     // Simple broadcast (vector on scalar)
     //==============================================
     if (op2_size == 1) {
-        const io_T broadcast_val = *(const io_T *)op2;
+        const i_T broadcast_val = *(const i_T *)op2;
         // Vector minus scalar
         for (int idx = 0; idx < op1_size; idx++) out[idx] = mli_math_sub_fx(op1[idx], broadcast_val);
     } else if (op1_size == 1) {
-        const io_T broadcast_val = *(const io_T *)op1;
+        const i_T broadcast_val = *(const i_T *)op1;
         // Scalar minus Vector
         for (int idx = 0; idx < op2_size; idx++) out[idx] = mli_math_sub_fx(broadcast_val, op2[idx]);
     } else {
@@ -56,7 +56,7 @@ static MLI_FORCE_INLINE void eltwise_op_sub_fx (
     }
 }
 
-template <typename io_T>
+template <typename i_T, typename o_T>
 static MLI_FORCE_INLINE void eltwise_op_add_fx (
         const MLI_PTR(int8_t) op1,
         const MLI_PTR(int8_t) op2,
@@ -69,7 +69,7 @@ static MLI_FORCE_INLINE void eltwise_op_add_fx (
     // Simple broadcast (vector on scalar)
     //==============================================
     if (op1_size == 1 || op2_size == 1) {
-        const int8_t broadcast_val = (op1_size > op2_size) ? (*(const io_T *)op2) : (*(const io_T *)op1);
+        const int8_t broadcast_val = (op1_size > op2_size) ? (*(const i_T *)op2) : (*(const i_T *)op1);
         const MLI_PTR(int8_t) vec = (op1_size > op2_size) ? (MLI_PTR(int8_t))op1 : (MLI_PTR(int8_t))op2;
         const int out_size = MAX(op1_size, op2_size);
 
@@ -88,7 +88,7 @@ static MLI_FORCE_INLINE void eltwise_op_add_fx (
     }
 }
 
-template <typename io_T>
+template <typename i_T, typename o_T>
 static MLI_FORCE_INLINE void eltwise_op_max_fx (
         const MLI_PTR(int8_t) op1,
         const MLI_PTR(int8_t) op2,
@@ -98,7 +98,7 @@ static MLI_FORCE_INLINE void eltwise_op_max_fx (
     // Simple broadcast (vector on scalar)
     //==============================================
     if (op1_size == 1 || op2_size == 1) {
-        const int8_t broadcast_val = (op1_size > op2_size) ? (*(const io_T *)op2) : (*(const io_T *)op1);
+        const int8_t broadcast_val = (op1_size > op2_size) ? (*(const i_T *)op2) : (*(const i_T *)op1);
         const MLI_PTR(int8_t) vec = (op1_size > op2_size) ? (MLI_PTR(int8_t))op1 : (MLI_PTR(int8_t))op2;
         const int out_size = MAX(op1_size, op2_size);
 
@@ -117,7 +117,7 @@ static MLI_FORCE_INLINE void eltwise_op_max_fx (
     }
 }
 
-template <typename io_T>
+template <typename i_T, typename o_T>
 static MLI_FORCE_INLINE void eltwise_op_min_fx (
         const MLI_PTR(int8_t) op1,
         const MLI_PTR(int8_t) op2,
@@ -127,7 +127,7 @@ static MLI_FORCE_INLINE void eltwise_op_min_fx (
     // Simple broadcast (vector on scalar)
     //==============================================
     if (op1_size == 1 || op2_size == 1) {
-        const int8_t broadcast_val = (op1_size > op2_size) ? (*(const io_T *)op2) : (*(const io_T *)op1);
+        const int8_t broadcast_val = (op1_size > op2_size) ? (*(const i_T *)op2) : (*(const i_T *)op1);
         const MLI_PTR(int8_t) vec = (op1_size > op2_size) ? (MLI_PTR(int8_t))op1 : (MLI_PTR(int8_t))op2;
         const int out_size = MAX(op1_size, op2_size);
 
@@ -147,11 +147,11 @@ static MLI_FORCE_INLINE void eltwise_op_min_fx (
 }
 #endif
 
-template <typename io_T>
+template <typename i_T, typename o_T>
 static MLI_FORCE_INLINE void eltwise_op_add_fx (
-        const MLI_PTR(io_T) op1,
-        const MLI_PTR(io_T) op2,
-        MLI_OUT_PTR(io_T) out,
+        const MLI_PTR(i_T) op1,
+        const MLI_PTR(i_T) op2,
+        MLI_OUT_PTR(o_T) out,
         const int op1_size,
         const int op2_size) {
 
@@ -160,8 +160,8 @@ static MLI_FORCE_INLINE void eltwise_op_add_fx (
     // Simple broadcast (vector on scalar)
     //==============================================
     if (op1_size == 1 || op2_size == 1) {
-        const io_T broadcast_val = (op1_size > op2_size) ? (*(const io_T *)op2) : (*(const io_T *)op1);
-        const MLI_PTR(io_T) vec = (op1_size > op2_size) ? (MLI_PTR(io_T))op1 : (MLI_PTR(io_T))op2;
+        const i_T broadcast_val = (op1_size > op2_size) ? (*(const i_T *)op2) : (*(const i_T *)op1);
+        const MLI_PTR(i_T) vec = (op1_size > op2_size) ? (MLI_PTR(i_T))op1 : (MLI_PTR(i_T))op2;
         const int out_size = MAX(op1_size, op2_size);
 
         const v2q15_t broadcast_val_v2 = fx_create_v2q15(broadcast_val, broadcast_val);
@@ -191,17 +191,17 @@ static MLI_FORCE_INLINE void eltwise_op_add_fx (
     }
 }
 
-template <typename io_T>
+template <typename i_T, typename o_T>
 static MLI_FORCE_INLINE void eltwise_op_sub_fx (
-        const MLI_PTR(io_T) op1,
-        const MLI_PTR(io_T) op2,
-        MLI_OUT_PTR(io_T) out,
+        const MLI_PTR(i_T) op1,
+        const MLI_PTR(i_T) op2,
+        MLI_OUT_PTR(o_T) out,
         const int op1_size,
         const int op2_size) {
     // Simple broadcast (vector on scalar)
     //==============================================
     if (op2_size == 1) {
-        const io_T broadcast_val = *(const io_T *)op2;
+        const i_T broadcast_val = *(const i_T *)op2;
         const v2q15_t broadcast_val_v2 = fx_create_v2q15(broadcast_val, broadcast_val);
         // Vector minus scalar
         for (int idx = 0; idx < op1_size / 2; idx++) {
@@ -213,7 +213,7 @@ static MLI_FORCE_INLINE void eltwise_op_sub_fx (
             *out++ = mli_math_sub_fx(*op1++, broadcast_val);
         }
     } else if (op1_size == 1) {
-        const io_T broadcast_val = *(const io_T *)op1;
+        const i_T broadcast_val = *(const i_T *)op1;
         const v2q15_t broadcast_val_v2 = fx_create_v2q15(broadcast_val, broadcast_val);
         // Scalar minus Vector
         for (int idx = 0; idx < op2_size / 2; idx++) {
@@ -241,18 +241,18 @@ static MLI_FORCE_INLINE void eltwise_op_sub_fx (
     }
 }
 
-template <typename io_T>
+template <typename i_T, typename o_T>
 static MLI_FORCE_INLINE void eltwise_op_max_fx (
-        const MLI_PTR(io_T) op1,
-        const MLI_PTR(io_T) op2,
-        MLI_OUT_PTR(io_T) out,
+        const MLI_PTR(i_T) op1,
+        const MLI_PTR(i_T) op2,
+        MLI_OUT_PTR(o_T) out,
         const int op1_size,
         const int op2_size) {
     // Simple broadcast (vector on scalar)
     //==============================================
     if (op1_size == 1 || op2_size == 1) {
-        const io_T broadcast_val = (op1_size > op2_size) ? (*(const io_T *)op2) : (*(const io_T *)op1);
-        const MLI_PTR(io_T) vec = (op1_size > op2_size) ? (MLI_PTR(io_T))op1 : (MLI_PTR(io_T))op2;
+        const i_T broadcast_val = (op1_size > op2_size) ? (*(const i_T *)op2) : (*(const i_T *)op1);
+        const MLI_PTR(i_T) vec = (op1_size > op2_size) ? (MLI_PTR(i_T))op1 : (MLI_PTR(i_T))op2;
         const int out_size = MAX(op1_size, op2_size);
 
         const v2q15_t broadcast_val_v2 = fx_create_v2q15(broadcast_val, broadcast_val);
@@ -281,18 +281,18 @@ static MLI_FORCE_INLINE void eltwise_op_max_fx (
     }
 }
 
-template <typename io_T>
+template <typename i_T, typename o_T>
 static MLI_FORCE_INLINE void eltwise_op_min_fx (
-        const MLI_PTR(io_T) op1,
-        const MLI_PTR(io_T) op2,
-        MLI_OUT_PTR(io_T) out,
+        const MLI_PTR(i_T) op1,
+        const MLI_PTR(i_T) op2,
+        MLI_OUT_PTR(o_T) out,
         const int op1_size,
         const int op2_size) {
     // Simple broadcast (vector on scalar)
     //==============================================
     if (op1_size == 1 || op2_size == 1) {
-        const io_T broadcast_val = (op1_size > op2_size) ? (*(const io_T *)op2) : (*(const io_T *)op1);
-        const MLI_PTR(io_T) vec = (op1_size > op2_size) ? (MLI_PTR(io_T))op1 : (MLI_PTR(io_T))op2;
+        const i_T broadcast_val = (op1_size > op2_size) ? (*(const i_T *)op2) : (*(const i_T *)op1);
+        const MLI_PTR(i_T) vec = (op1_size > op2_size) ? (MLI_PTR(i_T))op1 : (MLI_PTR(i_T))op2;
         const int out_size = MAX(op1_size, op2_size);
 
         const v2q15_t broadcast_val_v2 = fx_create_v2q15(broadcast_val, broadcast_val);
@@ -321,30 +321,30 @@ static MLI_FORCE_INLINE void eltwise_op_min_fx (
     }
 }
 
-template <typename io_T>
+template <typename i_T, typename o_T>
 static MLI_FORCE_INLINE void eltwise_op_mul_fx (
-        const MLI_PTR(io_T) op1,
-        const MLI_PTR(io_T) op2,
-        MLI_OUT_PTR(io_T) out,
+        const MLI_PTR(i_T) op1,
+        const MLI_PTR(i_T) op2,
+        MLI_OUT_PTR(o_T) out,
         const int op1_size,
         const int op2_size,
         const int mul_out_shift) {
     // Simple broadcast (vector on scalar)
     //==============================================
     if (op1_size == 1 || op2_size == 1) {
-        const io_T broadcast_val = (op1_size > op2_size) ? (*(const io_T *)op2) : (*(const io_T *)op1);
-        const MLI_PTR(io_T) vec = (op1_size > op2_size) ? op1 : op2;
+        const i_T broadcast_val = (op1_size > op2_size) ? (*(const i_T *)op2) : (*(const i_T *)op1);
+        const MLI_PTR(i_T) vec = (op1_size > op2_size) ? op1 : op2;
         const int out_size = MAX(op1_size, op2_size);
         v2q15_t broadcast_val_v2 = {broadcast_val, broadcast_val};
 
         if ((out_size & 0x3) || (out_size < 0x7)) {
             for (int j = 0; j < (out_size & 0x3); j++) {
-                auto acc = mli_prv_init_accu((io_T)0);
+                auto acc = mli_prv_init_accu((i_T)0);
                 mli_prv_load_mac(&acc, vec++, broadcast_val);
                 mli_prv_clip_and_store_output(out++, &acc, mul_out_shift);
             }
             for (int j = 0; j < (out_size & ~0x3) / 2; j++) {
-                auto acc_v = mli_prv_init_accu_v((io_T)0);
+                auto acc_v = mli_prv_init_accu_v((i_T)0);
                 mli_math_mac_fx_vec2(&acc_v, mli_prv_load_2_samples(vec), broadcast_val_v2);
                 mli_prv_clip_and_store_output_v(out, &acc_v, mul_out_shift);
                 vec += 2;
@@ -353,7 +353,7 @@ static MLI_FORCE_INLINE void eltwise_op_mul_fx (
         } else {
 #pragma clang loop unroll_count(2)
             for (int idx = 0; idx < out_size / 2; idx++) {
-                auto acc_v = mli_prv_init_accu_v((io_T)0);
+                auto acc_v = mli_prv_init_accu_v((i_T)0);
                 mli_math_mac_fx_vec2(&acc_v, mli_prv_load_2_samples(vec), broadcast_val_v2);
                 mli_prv_clip_and_store_output_v(out, &acc_v, mul_out_shift);
                 vec += 2;
@@ -367,14 +367,14 @@ static MLI_FORCE_INLINE void eltwise_op_mul_fx (
 
         if (op1_size & 0x3) {
             for (int j = 0; j < (op1_size & 0x3); j++) {
-                auto acc = mli_prv_init_accu((io_T)0);
+                auto acc = mli_prv_init_accu((i_T)0);
                 mli_prv_load_mac(&acc, op1++, op2++);
                 mli_prv_clip_and_store_output(out++, &acc, mul_out_shift);
             }
 
 #pragma clang loop unroll_count(2)
             for (int j = 0; j < (op1_size & ~0x3) / 2; j++) {
-                auto acc_v = mli_prv_init_accu_v((io_T)0);
+                auto acc_v = mli_prv_init_accu_v((i_T)0);
                 mli_math_mac_fx_vec2(&acc_v, mli_prv_load_2_samples(op1), mli_prv_load_2_samples(op2));
                 mli_prv_clip_and_store_output_v(out, &acc_v, mul_out_shift);
                 op1 += 2;
@@ -384,7 +384,7 @@ static MLI_FORCE_INLINE void eltwise_op_mul_fx (
         } else {
 #pragma clang loop unroll_count(2)
             for (int idx = 0; idx < op1_size / 2; idx++) {
-                auto acc_v = mli_prv_init_accu_v((io_T)0);
+                auto acc_v = mli_prv_init_accu_v((i_T)0);
                 mli_math_mac_fx_vec2(&acc_v, mli_prv_load_2_samples(op1), mli_prv_load_2_samples(op2));
                 mli_prv_clip_and_store_output_v(out, &acc_v, mul_out_shift);
                 op1 += 2;
@@ -395,30 +395,30 @@ static MLI_FORCE_INLINE void eltwise_op_mul_fx (
     }
 }
 
-template <typename io_T>
+template <typename i_T, typename o_T>
 static MLI_FORCE_INLINE void eltwise_op_mul_with_restricts_fx (
-        const MLI_PTR(io_T) __restrict op1,
-        const MLI_PTR(io_T) __restrict op2,
-        MLI_OUT_PTR(io_T) __restrict out,
+        const MLI_PTR(i_T) __restrict op1,
+        const MLI_PTR(i_T) __restrict op2,
+        MLI_OUT_PTR(o_T) __restrict out,
         const int op1_size,
         const int op2_size,
         const int mul_out_shift) {
     // Simple broadcast (vector on scalar)
     //==============================================
     if (op1_size == 1 || op2_size == 1) {
-        const io_T broadcast_val = (op1_size > op2_size) ? (*(const io_T *)op2) : (*(const io_T *)op1);
-        const MLI_PTR(io_T) vec = (op1_size > op2_size) ? op1 : op2;
+        const i_T broadcast_val = (op1_size > op2_size) ? (*(const i_T *)op2) : (*(const i_T *)op1);
+        const MLI_PTR(i_T) vec = (op1_size > op2_size) ? op1 : op2;
         const int out_size = MAX(op1_size, op2_size);
         v2q15_t broadcast_val_v2 = {broadcast_val, broadcast_val};
 
         if ((out_size & 0x3) || (out_size < 0x7)) {
             for (int j = 0; j < (out_size & 0x3); j++) {
-                auto acc = mli_prv_init_accu((io_T)0);
+                auto acc = mli_prv_init_accu((i_T)0);
                 mli_prv_load_mac(&acc, vec++, broadcast_val);
                 mli_prv_clip_and_store_output(out++, &acc, mul_out_shift);
             }
             for (int j = 0; j < (out_size & ~0x3) / 2; j++) {
-                auto acc_v = mli_prv_init_accu_v((io_T)0);
+                auto acc_v = mli_prv_init_accu_v((i_T)0);
                 mli_math_mac_fx_vec2(&acc_v, mli_prv_load_2_samples(vec), broadcast_val_v2);
                 mli_prv_clip_and_store_output_v(out, &acc_v, mul_out_shift);
                 vec += 2;
@@ -427,7 +427,7 @@ static MLI_FORCE_INLINE void eltwise_op_mul_with_restricts_fx (
         } else {
 #pragma clang loop unroll_count(2)
             for (int idx = 0; idx < out_size / 2; idx++) {
-                auto acc_v = mli_prv_init_accu_v((io_T)0);
+                auto acc_v = mli_prv_init_accu_v((i_T)0);
                 mli_math_mac_fx_vec2(&acc_v, mli_prv_load_2_samples(vec), broadcast_val_v2);
                 mli_prv_clip_and_store_output_v(out, &acc_v, mul_out_shift);
                 vec += 2;
@@ -441,14 +441,14 @@ static MLI_FORCE_INLINE void eltwise_op_mul_with_restricts_fx (
 
         if (op1_size & 0x3) {
             for (int j = 0; j < (op1_size & 0x3); j++) {
-                auto acc = mli_prv_init_accu((io_T)0);
+                auto acc = mli_prv_init_accu((i_T)0);
                 mli_prv_load_mac(&acc, op1++, op2++);
                 mli_prv_clip_and_store_output(out++, &acc, mul_out_shift);
             }
 
 #pragma clang loop unroll_count(2)
             for (int j = 0; j < (op1_size & ~0x3) / 2; j++) {
-                auto acc_v = mli_prv_init_accu_v((io_T)0);
+                auto acc_v = mli_prv_init_accu_v((i_T)0);
                 mli_math_mac_fx_vec2(&acc_v, mli_prv_load_2_samples(op1), mli_prv_load_2_samples(op2));
                 mli_prv_clip_and_store_output_v(out, &acc_v, mul_out_shift);
                 op1 += 2;
@@ -458,7 +458,7 @@ static MLI_FORCE_INLINE void eltwise_op_mul_with_restricts_fx (
         } else {
 #pragma clang loop unroll_count(2)
             for (int idx = 0; idx < op1_size / 2; idx++) {
-                auto acc_v = mli_prv_init_accu_v((io_T)0);
+                auto acc_v = mli_prv_init_accu_v((i_T)0);
                 mli_math_mac_fx_vec2(&acc_v, mli_prv_load_2_samples(op1), mli_prv_load_2_samples(op2));
                 mli_prv_clip_and_store_output_v(out, &acc_v, mul_out_shift);
                 op1 += 2;
@@ -472,7 +472,7 @@ static MLI_FORCE_INLINE void eltwise_op_mul_with_restricts_fx (
 //======================================================
 //
 //======================================================
-template <typename io_T, mli_eltwise_type func_type>
+template <typename i_T, typename o_T, mli_eltwise_type func_type>
 static MLI_FORCE_INLINE void eltwise_prepare_and_run(const mli_tensor *in1, const mli_tensor *in2, mli_tensor *out) {
     MLI_PRINTF_FUNC();
 
@@ -482,32 +482,32 @@ static MLI_FORCE_INLINE void eltwise_prepare_and_run(const mli_tensor *in1, cons
     uint32_t in2_sz = mli_prv_count_elem_num(in2);
 
     // Extract in/out pointers to mem
-    const MLI_PTR(io_T) inp1_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in1);
-    const MLI_PTR(io_T) inp2_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in2);
-    MLI_OUT_PTR(io_T) out_ptr = mli_prv_tensor_data_ptr<MLI_OUT_PTR(io_T)>(out);
+    const MLI_PTR(i_T) inp1_ptr = mli_prv_tensor_data_ptr<MLI_PTR(i_T)>(in1);
+    const MLI_PTR(i_T) inp2_ptr = mli_prv_tensor_data_ptr<MLI_PTR(i_T)>(in2);
+    MLI_OUT_PTR(o_T) out_ptr = mli_prv_tensor_data_ptr<MLI_OUT_PTR(o_T)>(out);
 
     // Extract in/out as scalar values
-    const io_T in1_scalar = mli_prv_tensor_data_val<io_T>(in1);
-    const io_T in2_scalar = mli_prv_tensor_data_val<io_T>(in2);
+    const i_T in1_scalar = mli_prv_tensor_data_val<i_T>(in1);
+    const i_T in2_scalar = mli_prv_tensor_data_val<i_T>(in2);
 
-    inp1_ptr = (in1->rank != 0) ? inp1_ptr : (const MLI_PTR(io_T)) & in1_scalar;
-    inp2_ptr = (in2->rank != 0) ? inp2_ptr : (const MLI_PTR(io_T)) & in2_scalar;
+    inp1_ptr = (in1->rank != 0) ? inp1_ptr : (const MLI_PTR(i_T)) & in1_scalar;
+    inp2_ptr = (in2->rank != 0) ? inp2_ptr : (const MLI_PTR(i_T)) & in2_scalar;
 
     // Calc outshift for MUL operation
     const int mul_out_shift = mli_prv_calc_shift(in1, in2, out);
     if (func_type == ELTWISE_ADD) {
-        eltwise_op_add_fx<io_T>(inp1_ptr, inp2_ptr, out_ptr, in1_sz, in2_sz);
+        eltwise_op_add_fx<i_T, o_T>(inp1_ptr, inp2_ptr, out_ptr, in1_sz, in2_sz);
     } else if (func_type == ELTWISE_SUB) {
-        eltwise_op_sub_fx<io_T>(inp1_ptr, inp2_ptr, out_ptr, in1_sz, in2_sz);
+        eltwise_op_sub_fx<i_T, o_T>(inp1_ptr, inp2_ptr, out_ptr, in1_sz, in2_sz);
     } else if (func_type == ELTWISE_MAX) {
-        eltwise_op_max_fx<io_T>(inp1_ptr, inp2_ptr, out_ptr, in1_sz, in2_sz);
+        eltwise_op_max_fx<i_T, o_T>(inp1_ptr, inp2_ptr, out_ptr, in1_sz, in2_sz);
     } else if (func_type == ELTWISE_MIN) {
-        eltwise_op_min_fx<io_T>(inp1_ptr, inp2_ptr, out_ptr, in1_sz, in2_sz);
+        eltwise_op_min_fx<i_T, o_T>(inp1_ptr, inp2_ptr, out_ptr, in1_sz, in2_sz);
     } else if (func_type == ELTWISE_MUL) {
         if ((inp1_ptr == inp2_ptr) || (inp1_ptr == out_ptr) || (inp2_ptr == out_ptr))
-            eltwise_op_mul_fx<io_T>(inp1_ptr, inp2_ptr, out_ptr, in1_sz, in2_sz, mul_out_shift);
+            eltwise_op_mul_fx<i_T, o_T>(inp1_ptr, inp2_ptr, out_ptr, in1_sz, in2_sz, mul_out_shift);
         else
-            eltwise_op_mul_with_restricts_fx<io_T>(inp1_ptr, inp2_ptr, out_ptr, in1_sz, in2_sz, mul_out_shift);
+            eltwise_op_mul_with_restricts_fx<i_T, o_T>(inp1_ptr, inp2_ptr, out_ptr, in1_sz, in2_sz, mul_out_shift);
     }
     // Fill output tensor parameters
     //======================================

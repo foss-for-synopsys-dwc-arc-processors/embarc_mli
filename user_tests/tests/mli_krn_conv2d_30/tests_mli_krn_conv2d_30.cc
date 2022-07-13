@@ -903,8 +903,8 @@ void prepare_phase(const conv2d_test_operands* cur_test,
   mli_minmax_t val_limit;
   val_limit = get_val_limit(&rs_op.out, &cur_test->cfg.relu);
 
-  int8_t clp_host_src_buf[clip_encoded_params_size];
-  int8_t clp_host_dst_buf[clip_encoded_params_size];
+  int8_t * clp_host_src_buf = (int8_t*) malloc(clip_encoded_params_size);
+  int8_t * clp_host_dst_buf = (int8_t*) malloc(clip_encoded_params_size);
   uint32_t clp_params_shape[1] = {1};
   uint32_t limit_min_size = 1;
   uint32_t limit_max_size = 1;
@@ -960,6 +960,8 @@ void prepare_phase(const conv2d_test_operands* cur_test,
   free(host_buf_b);
   free(host_src_buf);
   free(host_dst_buf);
+  free(clp_host_src_buf);
+  free(clp_host_dst_buf);
 }
 
 

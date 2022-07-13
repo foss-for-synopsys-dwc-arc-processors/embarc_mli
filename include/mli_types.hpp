@@ -413,6 +413,24 @@ class Tensor {
     return slice_tens;
   }
 
+  Tensor<buf_T, maxRank> transpose(uint32_t new_order[]) const {
+    // create a transposed Tensor, reordering the dimensions
+    Tensor<buf_T, maxRank> tns;
+    // change order of axes
+    uint32_t c = 0;
+    for (uint32_t axis = 0; axis < maxRank; axis++) {
+      assert(new_order[axis] >= 0 && new_order[axis] < maxRank);
+      // axis can only be selected once
+      assert((c & (1 << new_order[axis])) == 0);
+      c |= (1 << new_order[axis]);
+      tns.shape_[axis] = shape_[new_order[axis]];
+      tns.mem_stride_[axis] = mem_stride_[new_order[axis]];
+    }
+    tns.buf_ = buf_;
+    tns.rank_ = rank_;
+    return tns;
+  }
+
   template <typename T>
   T read(uint32_t offset) const {
     return buf_.template read<T>(offset);
@@ -492,9 +510,9 @@ struct PoolOpConfig {
     {}
 
     uint32_t kernel_size[2];   /**< Kernel size of pooling function [kernel_H, kernel_W] */
-    uint32_t stride[2];        /**< Stride along each axis [stride_IH, stride_IW]*/
-    uint32_t padding_begin[2]; /**< Padding size at the begining of spatial demensions of input [pad_IH_beg, pad_IW_end]*/
-    uint32_t padding_end[2];   /**< Padding size at the end of spatial demensions of input [pad_IH_end, pad_IW_end]*/
+    uint32_t stride[2];        /**< Stride along each axis [stride_IH, stride_IW] */
+    uint32_t padding_begin[2]; /**< Padding size at the begining of spatial demensions of input [pad_IH_beg, pad_IW_end] */
+    uint32_t padding_end[2];   /**< Padding size at the end of spatial demensions of input [pad_IH_end, pad_IW_end] */
 };
 
 

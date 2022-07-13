@@ -61,13 +61,12 @@ public:
      * @param size        [I] Size of the data is used to check for coding errors
      * @param membases[]  [I] The kernel private data may contain offsets inside a (vector) memory.
      *                        At run-time specific locations in memory are allocated for
-     *                        the graph, the membase array contains the is the start of
+     *                        the graph, the membase array contains the start of
      *                        each memory region.
-     *                        The init method will add this base to all the memory offsets
-     *                        inside the descriptor according to the memory number associated
-     *                        with that offset.
+     *                        This base will be added to all memory offsets in the constructor
+     *                        according to the memory ID associated with that offset.
      *                        Each platform can have different (number of) memories. For mli
-     *                        this is completely transparant. Compiler needs to use the same
+     *                        this is completely transparent. Compiler needs to use the same
      *                        memory id's when attaching the buffers as are used by the
      *                        xop-interpreter to set the membases.
      */
@@ -109,13 +108,12 @@ public:
      * @param size        [I] Size of the data is used to check for coding errors
      * @param membases[]  [I] The kernel private data may contain offsets inside a (vector) memory.
      *                        At run-time specific locations in memory are allocated for
-     *                        the graph, the membase array contains the is the start of
+     *                        the graph, the membase array contains the start of
      *                        each memory region.
-     *                        The init method will add this base to all the memory offsets
-     *                        inside the descriptor according to the memory number associated
-     *                        with that offset.
+     *                        This base will be added to all memory offsets in the constructor
+     *                        according to the memory ID associated with that offset.
      *                        Each platform can have different (number of) memories. For mli
-     *                        this is completely transparant. Compiler needs to use the same
+     *                        this is completely transparent. Compiler needs to use the same
      *                        memory id's when attaching the buffers as are used by the
      *                        xop-interpreter to set the membases.
      */
@@ -154,7 +152,31 @@ private:
 class MaxPool2D : public ExecutionInterface {
 
 public:
-    MaxPool2D(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
+    /**
+     * @brief Construct a new Max Pooling 2D object
+     *
+     * This method will create and initialize the Max Pooling 2D object using the information
+     * stored in the kernel_private_data_buffer that has been computed at compile time
+     * by the GetKernelPrivateData() method.
+     * 
+     * This kernel computes each value of the output tensor as the maximum 
+     * of all values in the related perception area of a single channel of the input tensor.
+     *
+     * @param kernel_private_data_buffer [I] Pointer to the compilation time computed initialization data.
+     * @param size        [I] Size of the data is used to check for coding errors.
+     * @param membases[]  [I] The kernel private data may contain offsets inside a (vector) memory.
+     *                        At run-time specific locations in memory are allocated for
+     *                        the graph, the membase array contains the start of
+     *                        each memory region.
+     *                        This base will be added to all memory offsets in the constructor
+     *                        according to the memory ID associated with that offset.
+     *                        Each platform can have different (number of) memories. For mli
+     *                        this is completely transparent. Compiler needs to use the same
+     *                        memory id's when attaching the buffers as are used by the
+     *                        xop-interpreter to set the membases.
+     * @param num_mems    [I] Number of memory regions passed with membases array.
+     */
+    MaxPool2D(void *kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
 
     mli_status Issue() override;
 
@@ -212,13 +234,12 @@ public:
      * @param size        [I] Size of the data is used to check for coding errors
      * @param membases[]  [I] The kernel private data may contain offsets inside a (vector) memory.
      *                        At run-time specific locations in memory are allocated for
-     *                        the graph, the membase array contains the is the start of
+     *                        the graph, the membase array contains the start of
      *                        each memory region.
-     *                        The init method will add this base to all the memory offsets
-     *                        inside the descriptor according to the memory number associated
-     *                        with that offset.
+     *                        This base will be added to all memory offsets in the constructor
+     *                        according to the memory ID associated with that offset.
      *                        Each platform can have different (number of) memories. For mli
-     *                        this is completely transparant. Compiler needs to use the same
+     *                        this is completely transparent. Compiler needs to use the same
      *                        memory id's when attaching the buffers as are used by the
      *                        xop-interpreter to set the membases.
      * @param num_mems    [I] Number of elements in the membases array.
