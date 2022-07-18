@@ -67,8 +67,6 @@ unsigned Conv2d_CS::GetRuntimeObjectSize() const {
 mli_status Conv2d_CS::GetKernelPrivateData(void* kernel_private_data_buffer) {
   Conv2DPrivateData conv_opaque_obj;
 
-  conv_opaque_obj.size = GetKernelPrivateDataSize();
-
   conv_opaque_obj.input_buffer = m_in.get_buf();
   conv_opaque_obj.weights_buffer = m_weights.get_buf();
   conv_opaque_obj.output_buffer = m_output.get_buf();

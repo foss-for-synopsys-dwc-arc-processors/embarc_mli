@@ -70,8 +70,6 @@ unsigned Mul_CS::GetRuntimeObjectSize() const {
 mli_status Mul_CS::GetKernelPrivateData(void* kernel_private_data_buffer) {
   EltwisePrivateData obj(kMulId);
 
-  obj.size = GetKernelPrivateDataSize();
-
   obj.m_in_left_buffer = m_in_left.get_buf();
   obj.m_in_right_buffer = m_in_right.get_buf();
   obj.m_output_buffer = m_output.get_buf();

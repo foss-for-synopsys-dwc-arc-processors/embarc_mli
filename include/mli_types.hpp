@@ -42,14 +42,8 @@ typedef enum class compression_mode_t {
 
 class PrivateData {
   public:
-    PrivateData() {
-      kernel_id = kInvalidId;
-      size = 0;
-    }
-    PrivateData(kernel_id_t id) {
-      kernel_id = id;
-      size = 0;
-    }
+    PrivateData() : kernel_id(kInvalidId), size(0) {}
+    PrivateData(kernel_id_t id, uint32_t s = 0) : kernel_id(id), size(s) {}
     kernel_id_t kernel_id;
     uint32_t size;
     bool issue_enable{false};

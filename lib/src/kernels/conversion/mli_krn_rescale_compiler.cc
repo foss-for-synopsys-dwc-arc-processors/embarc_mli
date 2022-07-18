@@ -66,8 +66,6 @@ mli_status Rescale_CS::GetKernelPrivateData( void *kernel_private_data_buffer ) 
 
     RescalePrivateData opaque_obj;
 
-    opaque_obj.size = GetKernelPrivateDataSize();
-
     MLI_ASSERT(m_input.get_rank() == m_output.get_rank());
     opaque_obj.io_rank = m_input.get_rank();
 

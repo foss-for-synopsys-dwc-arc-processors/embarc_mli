@@ -66,8 +66,6 @@ unsigned DepthwiseConv2d_CS::GetRuntimeObjectSize() const {
 mli_status DepthwiseConv2d_CS::GetKernelPrivateData(void* kernel_private_data_buffer) {
   DepthwiseConv2DPrivateData dw_opaque_obj;
 
-  dw_opaque_obj.size = GetKernelPrivateDataSize();
-
   dw_opaque_obj.input_buffer = m_in.get_buf();
   dw_opaque_obj.weights_buffer = m_weights.get_buf();
   dw_opaque_obj.output_buffer = m_output.get_buf();

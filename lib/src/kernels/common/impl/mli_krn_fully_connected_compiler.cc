@@ -74,8 +74,6 @@ unsigned FullyConnected_CS::GetRuntimeObjectSize() const {
 mli_status FullyConnected_CS::GetKernelPrivateData(void* kernel_private_data_buffer) {
   FullyConnectedPrivateData fc_opaque_obj;
 
-  fc_opaque_obj.size = GetKernelPrivateDataSize();
-
   fc_opaque_obj.input_buffer = m_in.get_buf();
   fc_opaque_obj.weights_buffer = m_weights.get_buf();
   fc_opaque_obj.output_buffer = m_output.get_buf();

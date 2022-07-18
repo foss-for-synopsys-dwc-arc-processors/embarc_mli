@@ -18,7 +18,7 @@ namespace lib_mli = ::snps_arc::metaware::mli;
 namespace snps_arc::metaware::mli::ref {
 class Conv2DPrivateData : public PrivateData {
 public:
-    Conv2DPrivateData() : PrivateData(kConv2dId){}
+    Conv2DPrivateData() : PrivateData(kConv2dId, sizeof(Conv2DPrivateData)) {}
 
     // currently we support the only i8_w8_o32 case
     OffsetBuffer input_buffer;
@@ -58,7 +58,6 @@ public:
     uint8_t padding_right;
     uint8_t padding_top;
     uint8_t padding_bottom;
-
 };
 
 struct Conv2dMetadata {
@@ -71,7 +70,8 @@ struct Conv2dMetadata {
 class DepthwiseConv2DPrivateData : public PrivateData {
 
 public:
-    DepthwiseConv2DPrivateData() : PrivateData(kDWConv2dId) {}
+    DepthwiseConv2DPrivateData()
+        : PrivateData(kDWConv2dId, sizeof(DepthwiseConv2DPrivateData)) {}
 
     // currently we support the only i8_w8_o32 case
     OffsetBuffer input_buffer;
@@ -120,7 +120,8 @@ struct DepthwiseConv2dMetadata {
 class FullyConnectedPrivateData : public PrivateData {
 
 public:
-    FullyConnectedPrivateData() : PrivateData(kFullyConnectedId) {}
+    FullyConnectedPrivateData()
+        : PrivateData(kFullyConnectedId, sizeof(FullyConnectedPrivateData)) {}
 
     // currently we support the only i8_w8_o32 case
     OffsetBuffer input_buffer;
@@ -161,7 +162,7 @@ struct FullyConnectedMetadata {
 class MovePrivateData : public PrivateData {
 
 public:
-    MovePrivateData() : PrivateData(kMoveId) {}
+    MovePrivateData() : PrivateData(kMoveId, sizeof(MovePrivateData)) {}
 
     Tensor<OffsetBuffer, Move_CS::kMaxRank> src;
     Tensor<OffsetBuffer, Move_CS::kMaxRank> dst;
@@ -173,7 +174,8 @@ public:
 class Pool2DPrivateData : public PrivateData {
 
 public:
-    Pool2DPrivateData(kernel_id_t id) : PrivateData(id) {}
+    Pool2DPrivateData(kernel_id_t id)
+        : PrivateData(id, sizeof(Pool2DPrivateData)) {}
 
     OffsetBuffer input_buffer;
     OffsetBuffer output_buffer;
@@ -221,7 +223,8 @@ public:
 class EltwisePrivateData : public PrivateData {
 
 public:
-    EltwisePrivateData(kernel_id_t id) : PrivateData(id) {}
+    EltwisePrivateData(kernel_id_t id)
+        : PrivateData(id, sizeof(EltwisePrivateData)) {}
     OffsetBuffer m_in_left_buffer;
     OffsetBuffer m_in_right_buffer;
     OffsetBuffer m_output_buffer;
@@ -240,7 +243,8 @@ public:
 class RescalePrivateData : public PrivateData {
 
 public:
-    RescalePrivateData() : PrivateData(kRescaleId) {}
+    RescalePrivateData()
+        : PrivateData(kRescaleId, sizeof(RescalePrivateData)) {}
 
     int32_t rescale_axis;
 
@@ -286,7 +290,7 @@ struct RescaleMetadata {
 class ClipPrivateData : public PrivateData {
 
 public:
-    ClipPrivateData() : PrivateData(kClipId) {}
+    ClipPrivateData() : PrivateData(kClipId, sizeof(ClipPrivateData)) {}
 
     uint32_t io_rank;
 

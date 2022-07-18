@@ -219,9 +219,9 @@ void* vectorize_single_elem_tensor(mli_tensor& dst_tsr,
     for(uint32_t i = 0; i < elem_num; i++) {
         if((dst_tsr.el_type == MLI_EL_FX_8) || (dst_tsr.el_type == MLI_EL_SA_8)) {
             static_cast<int8_t*>(pdata)[i] = duplicate_val;
-        } else if((dst_tsr.el_type == MLI_EL_FX_16)) {
+        } else if(dst_tsr.el_type == MLI_EL_FX_16) {
             static_cast<int16_t*>(pdata)[i] = duplicate_val;
-        } else if((dst_tsr.el_type == MLI_EL_SA_32)) {
+        } else if(dst_tsr.el_type == MLI_EL_SA_32) {
             static_cast<int32_t*>(pdata)[i] = duplicate_val;
         }
     }

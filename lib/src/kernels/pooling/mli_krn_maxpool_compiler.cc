@@ -65,8 +65,6 @@ mli_status MaxPool2D_CS::GetKernelPrivateData(
     void *kernel_private_data_buffer) {
   Pool2DPrivateData obj(kMaxPool2DId);
 
-  obj.size = GetKernelPrivateDataSize();
-
   obj.input_buffer = m_in.get_buf();
   obj.output_buffer = m_output.get_buf();
 
