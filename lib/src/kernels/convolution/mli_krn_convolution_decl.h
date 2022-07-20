@@ -142,4 +142,18 @@ MLI_FORCE_INLINE void depthwise_convolution2D(
 } // namespace krn
 } // namespace mli
 
+
+namespace snps_arc::metaware::mli::ref {
+
+template <typename i_T, typename w_T, typename o_T, typename acc_T,
+          mli_layout_type data_layout, ::mli::mli_conv_type conv_type, unsigned io_rank, unsigned w_rank>
+MLI_FORCE_INLINE void conv2d_prepare_and_run(
+        const QTensor<InternalBuffer, io_rank> &in,
+        const QTensor<InternalBuffer, w_rank> &weights,
+        Tensor<InternalBuffer, io_rank> &out,
+        const Conv2DConfig &cfg);
+
+} // namespace snps_arc::metaware::mli::ref
+
+
 #endif // _MLI_KRN_CONVOLUTION_DECL_REF_H_

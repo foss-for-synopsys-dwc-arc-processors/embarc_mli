@@ -11,60 +11,50 @@
 
 #include "mli_types.h"
 #include "mli_types.hpp"
-#include "mli_ref_compiler_api.hpp"
+#include "mli_prv_layout.h"
+#include "mli_compiler_api.hpp"
 
 namespace lib_mli = ::snps_arc::metaware::mli;
 
+using Layout = mli_layout_type;
+
 namespace snps_arc::metaware::mli::ref {
+
 class Conv2DPrivateData : public PrivateData {
 public:
     Conv2DPrivateData() : PrivateData(kConv2dId, sizeof(Conv2DPrivateData)) {}
 
-    // currently we support the only i8_w8_o32 case
-    OffsetBuffer input_buffer;
-    OffsetBuffer weights_buffer;
-    OffsetBuffer output_buffer;
+    // In/Out Tensor attached with offset buffer
+    Tensor<OffsetBuffer, 4> input;
+    Tensor<OffsetBuffer, 5> weights;
+    Tensor<OffsetBuffer, 4> output;
+
+    // The layout of input
+    Layout layout;
+
+    // Encoded input and weights zero pointers
     OffsetBuffer inpzp_buffer;
     OffsetBuffer wtszp_buffer;
 
-    uint32_t input_h;
-    uint32_t input_w;
-    uint32_t input_c;
+    // the index of quantization axis
+    int inp_quant_axis;
+    int wts_quant_axis;
 
-    uint32_t output_h;
-    uint32_t output_w;
-    uint32_t output_c;
-
-    uint32_t weights_h;
-    uint32_t weights_w;
-
-    int32_t input_h_stride;
-    int32_t input_w_stride;
-
-    int32_t output_h_stride;
-    int32_t output_w_stride;
-
-    int32_t weights_h_stride;
-    int32_t weights_w_stride;
-    int32_t weights_c_stride;
-
-    uint8_t stride_height;
-    uint8_t stride_width;
-    uint8_t dilation_height;
-    uint8_t dilation_width;
-    uint8_t groups;
-
-    uint8_t padding_left;
-    uint8_t padding_right;
-    uint8_t padding_top;
-    uint8_t padding_bottom;
+    // Convolution config
+    Conv2DConfig config;
 };
 
 struct Conv2dMetadata {
-    mli_conv2d_cfg cfg;
-    mli_tensor input;
-    mli_tensor weights;
-    mli_tensor output;
+    Tensor<InternalBuffer, 4> input;
+    Tensor<InternalBuffer, 5> weights;
+    Tensor<InternalBuffer, 4> output;
+
+    InternalBuffer inpzp_buffer;
+    InternalBuffer wtszp_buffer;
+    int inp_quant_axis;
+    int wts_quant_axis;
+
+    Conv2DConfig cfg;
 };
 
 class DepthwiseConv2DPrivateData : public PrivateData {

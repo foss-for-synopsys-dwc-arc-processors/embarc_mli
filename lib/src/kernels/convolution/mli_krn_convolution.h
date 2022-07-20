@@ -31,16 +31,19 @@ namespace krn {
 using mli::krn::vdsp::convolution2D;
 using mli::krn::vdsp::depthwise_convolution2D;
 using mli::krn::ref::conv2d_prepare_and_run;
+using snps_arc::metaware::mli::ref::conv2d_prepare_and_run;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
 using mli::krn::ref::convolution2D;
 using mli::krn::dsp::depthwise_convolution2D;
 using mli::krn::ref::conv2d_prepare_and_run;
+using snps_arc::metaware::mli::ref::conv2d_prepare_and_run;
 
 #else
 using mli::krn::ref::convolution2D;
 using mli::krn::ref::depthwise_convolution2D;
 using mli::krn::ref::conv2d_prepare_and_run;
+using snps_arc::metaware::mli::ref::conv2d_prepare_and_run;
 
 #endif
 } // namespace krn

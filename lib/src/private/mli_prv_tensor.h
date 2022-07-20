@@ -12,6 +12,7 @@
 
 #include <assert.h>
 #include <limits>
+#include <type_traits>
 
 #include "mli_check.h"
 #include "mli_debug.h"
@@ -19,6 +20,7 @@
 #include "mli_math_macros.h"
 #include "mli_mem_info.h"
 #include "mli_types.h"
+#include "mli_types.hpp"
 #include "mli_private_types.h"
 
 // with a shift of 31, we cannot represent the value one. So we shift only 30
@@ -972,5 +974,55 @@ mli_prv_get_relu_limits (const mli_relu_cfg * cfg, const mli_tensor * out) {
 
     return val_limit;
 }
+
+namespace snps_arc::metaware::mli {
+
+template <typename T>
+static MLI_FORCE_INLINE tensor_private_t<T> mli_prv_get_tensor_hwc(
+    const Tensor<InternalBuffer, 4> &in) {
+    // 4-D tensor [batch, in_height, in_width, input_channel]
+    // The batch is ingored when running convolution
+    MLI_ASSERT(in.get_rank() == 4);
+    const int height   = (int)in.get_dim(kTensorHeightDim);
+    const int width    = (int)in.get_dim(kTensorWidthDim);
+    int ch             = (int)in.get_dim(kTensorChannelDim);
+    int row_mem_stride = in.get_mem_stride(kTensorHeightDim);
+    int col_mem_stride = in.get_mem_stride(kTensorWidthDim);
+    int ch_mem_stride  = in.get_mem_stride(kTensorChannelDim);
+
+    // The inner-most memory stride should be 1.
+    MLI_CHECK_AND_FIX(ch_mem_stride, 1);
+
+    return tensor_private_t<T> {
+            in.get_buf().get_ptr<std::remove_pointer_t<T>>(),
+            width, height, ch, col_mem_stride, row_mem_stride, ch_mem_stride };
+}
+
+template <typename T>
+static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T>
+mli_prv_get_conv2d_weights_tensor_hwcn(
+    const Tensor<
+        InternalBuffer, 5> &weights) {
+    // 5-D tensor [group, out_height, out_width, input_channel, output_channel]
+    // The group is ingored when running convolution
+    MLI_ASSERT(weights.get_rank() == 5);
+    int height       = (int)weights.get_dim(kKernelHeightDim);
+    int width        = (int)weights.get_dim(kKernelWidthDim);
+    int in_ch        = (int)weights.get_dim(kKernelChannelInDim);
+    const int out_ch = (int)weights.get_dim(kKernelChannelOutDim);
+    int row_mem_stride    = weights.get_mem_stride(kKernelHeightDim);
+    int col_mem_stride    = weights.get_mem_stride(kKernelWidthDim);
+    int in_ch_mem_stride  = weights.get_mem_stride(kKernelChannelInDim);
+    int out_ch_mem_stride = weights.get_mem_stride(kKernelChannelOutDim);
+
+    // The inner-most memory stride should be 1.
+    MLI_CHECK_AND_FIX(out_ch_mem_stride, 1);
+
+    return conv2d_weights_tensor_private_t<T> {
+            weights.get_buf().get_ptr<std::remove_pointer_t<T>>(),
+            width, height, in_ch, out_ch, col_mem_stride, row_mem_stride, in_ch_mem_stride, out_ch_mem_stride };
+}
+
+} // namespace snps_arc::metaware::mli
 
 #endif //_MLI_PRV_TENSOR_H_

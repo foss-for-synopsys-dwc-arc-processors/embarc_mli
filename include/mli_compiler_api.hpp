@@ -17,36 +17,12 @@
 
 namespace snps_arc::metaware::mli {
 
-    constexpr short int kTensorBatchDim = 0;
-    constexpr short int kTensorHeightDim = 1;
-    constexpr short int kTensorWidthDim = 2;
-    constexpr short int kTensorChannelDim = 3;
-
-    constexpr short int kTileGroupDim = 0;
-    constexpr short int kTileHeightDim = 1;
-    constexpr short int kTileWidthDim = 2;
-    constexpr short int kTileChannelDim = 3;
-
-    constexpr short int kKernelGroupDim = 0;
-    constexpr short int kKernelHeightDim = 1;
-    constexpr short int kKernelWidthDim = 2;
-    constexpr short int kKernelChannelInDim = 3;
-    constexpr short int kKernelChannelOutDim = 4;
-
-    constexpr short int kKernelDWHeightDim = 0;
-    constexpr short int kKernelDWWidthDim = 1;
-    constexpr short int kKernelDWChannelInDim = 2;
-
-    constexpr short int kKernelFCChannelInDim = 0;
-    constexpr short int kKernelFCChannelOutDim = 1;
-
 /**
  * @brief This is the base class for compiler side of MLI kernels
  *
  * This base class contains the virtual functions that are required for all the mli kernels
  * This allows the compiler to traverse over all kernels in the graph, and call these methods
  */
-
 class CompilerGenericInterface {
 
   public:

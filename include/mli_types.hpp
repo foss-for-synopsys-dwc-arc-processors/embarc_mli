@@ -15,6 +15,29 @@
 
 namespace snps_arc::metaware::mli {
 
+constexpr short int kTensorBatchDim = 0;
+constexpr short int kTensorHeightDim = 1;
+constexpr short int kTensorWidthDim = 2;
+constexpr short int kTensorChannelDim = 3;
+
+constexpr short int kTileGroupDim = 0;
+constexpr short int kTileHeightDim = 1;
+constexpr short int kTileWidthDim = 2;
+constexpr short int kTileChannelDim = 3;
+
+constexpr short int kKernelGroupDim = 0;
+constexpr short int kKernelHeightDim = 1;
+constexpr short int kKernelWidthDim = 2;
+constexpr short int kKernelChannelInDim = 3;
+constexpr short int kKernelChannelOutDim = 4;
+
+constexpr short int kKernelDWHeightDim = 0;
+constexpr short int kKernelDWWidthDim = 1;
+constexpr short int kKernelDWChannelInDim = 2;
+
+constexpr short int kKernelFCChannelInDim = 0;
+constexpr short int kKernelFCChannelOutDim = 1;
+
 typedef enum {
   kInvalidId = 0,
   kConv2dId,
@@ -212,7 +235,7 @@ public:
     elem_size_ = buf.get_elem_size();
   }
 
-  uint32_t get_size() {
+  uint32_t get_size() const {
     return size_;
   }
 
@@ -241,6 +264,12 @@ public:
   T* get_ptr() {
     assert(sizeof(T) == elem_size_);
     return reinterpret_cast<T*>(ptr_);
+  }
+
+  template <typename T>
+  const T* get_ptr() const {
+    assert(sizeof(T) == elem_size_);
+    return reinterpret_cast<const T*>(ptr_);
   }
 
   // TODO: For Read/Write If we need platform specific handling, update the implementation
@@ -440,6 +469,14 @@ private:
   uint32_t shape_[maxRank];
   int32_t mem_stride_[maxRank];
   uint32_t rank_;
+};
+
+// Quantized Tensor
+template <typename buf_T, unsigned rank>
+struct QTensor {
+  Tensor<buf_T, rank> t;
+  buf_T zp;
+  int quant_axis;
 };
 
 //================================================================

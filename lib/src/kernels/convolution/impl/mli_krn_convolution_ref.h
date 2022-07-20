@@ -366,14 +366,16 @@ MLI_FORCE_INLINE void depthwise_convolution2D_wrapper(
 // Common routin for pre-calculation of various convolution parameters and running it.
 //====================================================================================
 template <typename i_T, typename w_T, typename o_T, typename b_T, typename acc_T, typename quant_T,
-          mli_layout_type data_layout, mli_conv_type conv_type, int fix_kernel_width, int fix_kernel_height>
-MLI_FORCE_INLINE void conv2d_prepare_and_run(
-        const mli_tensor *in,
-        const mli_tensor *weights,
-        const mli_tensor *bias,
+          mli_conv_type conv_type, int fix_kernel_width, int fix_kernel_height>
+MLI_FORCE_INLINE void conv2d_run(
+        tensor_private_t<MLI_PTR(i_T)> &in_prv,
+        conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights_prv,
+        const MLI_PTR(b_T) &bs,
+        tensor_private_t<MLI_CONV_OUT_PTR(o_T)> &out_prv,
+        mli_minmax_t val_limit,
         const mli_conv2d_cfg *cfg,
-        mli_tensor *out) {
-    mli_prv_fx_init_dsp_ctrl();
+        const quant_T& params) {
+
     const uint8_t stride_width = cfg->stride_width;
     const uint8_t stride_height = cfg->stride_height;
     const bool    no_pad = (fix_kernel_height == 1) && (fix_kernel_width == 1);
@@ -383,6 +385,55 @@ MLI_FORCE_INLINE void conv2d_prepare_and_run(
     int padding_right = no_pad ? 0 : cfg->padding_right;
     int dilation_width = cfg->dilation_width;
     int dilation_height = cfg->dilation_height;
+
+    // Adjust the padding at the bottom and at the right in case too much padding was provided
+    // (this can happen when stride > 1)
+    // in case not all input samples can be used, adjust the width and height.
+    int effective_kernel_width = (weights_prv.kernel_width - 1) * dilation_width + 1;
+    int effective_kernel_height = (weights_prv.kernel_height - 1) * dilation_height + 1;
+    padding_right = (out_prv.width * stride_width + effective_kernel_width - stride_width) - in_prv.width - padding_left;
+    padding_bot = (out_prv.height * stride_height + effective_kernel_height - stride_height) - in_prv.height - padding_top;
+    if (padding_right < 0) {
+        in_prv.width += padding_right;
+        padding_right = 0;
+    }
+    if (padding_bot < 0) {
+        in_prv.height += padding_bot;
+        padding_bot = 0;
+    }
+    rect_t cent_area;
+    cent_area.row_beg = 0; cent_area.row_end = out_prv.height;
+    cent_area.clmn_beg = 0; cent_area.clmn_end = out_prv.width;
+
+    // Applying main convolution core (depends on layout)
+    //=======================================================================
+    if (conv_type == CONV_GENERAL) {
+        mli::krn::convolution2D<i_T, w_T, o_T, b_T, acc_T, quant_T, fix_kernel_width, fix_kernel_height>(
+                in_prv, weights_prv, bs, out_prv, cent_area, params,
+                (o_T)val_limit.min, (o_T)val_limit.max,
+                stride_height, stride_width, dilation_height, dilation_width,
+                padding_top, padding_left,
+                padding_bot, padding_right);
+    } else {
+        depthwise_convolution2D_wrapper<i_T, w_T, o_T, b_T, acc_T, quant_T, fix_kernel_width, fix_kernel_height>(
+                in_prv.ptr, weights_prv.ptr, out_prv.ptr,
+                in_prv, weights_prv, bs, out_prv, cent_area, params,
+                (o_T)val_limit.min, (o_T)val_limit.max,
+                stride_height, stride_width, dilation_height, dilation_width,
+                padding_top, padding_left,
+                padding_bot, padding_right);
+    }
+}
+
+template <typename i_T, typename w_T, typename o_T, typename b_T, typename acc_T, typename quant_T,
+          mli_layout_type data_layout, mli_conv_type conv_type, int fix_kernel_width, int fix_kernel_height>
+MLI_FORCE_INLINE void conv2d_prepare_and_run(
+        const mli_tensor *in,
+        const mli_tensor *weights,
+        const mli_tensor *bias,
+        const mli_conv2d_cfg *cfg,
+        mli_tensor *out) {
+    mli_prv_fx_init_dsp_ctrl();
 
     constexpr bool asym = std::is_same<quant_T, s8asym_quant_specific_params>::value;
     mli_minmax_t val_limit = mli_prv_get_relu_limits<o_T, asym>(&cfg->relu, out);
@@ -414,52 +465,70 @@ MLI_FORCE_INLINE void conv2d_prepare_and_run(
             mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(o_T)>(out)
             : mli_prv_get_tensor_chw<MLI_CONV_OUT_PTR(o_T)>(out);
 
-    // Adjust the padding at the bottom and at the right in case too much padding was provided
-    // (this can happen when stride > 1)
-    // in case not all input samples can be used, adjust the width and height.
-    int effective_kernel_width = (weights_prv.kernel_width - 1) * dilation_width + 1;
-    int effective_kernel_height = (weights_prv.kernel_height - 1) * dilation_height + 1;
-    padding_right = (out_prv.width * stride_width + effective_kernel_width - stride_width) - in_prv.width - padding_left;
-    padding_bot = (out_prv.height * stride_height + effective_kernel_height - stride_height) - in_prv.height - padding_top;
-    if (padding_right < 0) {
-        in_prv.width += padding_right;
-        padding_right = 0;
-    }
-    if (padding_bot < 0) {
-        in_prv.height += padding_bot;
-        padding_bot = 0;
-    }
-
-    // Define quantization specific params
     quant_T params;
     define_quant_params(in, weights, bias, out, &params);
 
-    rect_t cent_area;
-    cent_area.row_beg = 0; cent_area.row_end = out_prv.height;
-    cent_area.clmn_beg = 0; cent_area.clmn_end = out_prv.width;
-
-    // Applying main convolution core (depends on layout)
-    //=======================================================================
-    if (conv_type == CONV_GENERAL) {
-        mli::krn::convolution2D<i_T, w_T, o_T, b_T, acc_T, quant_T, fix_kernel_width, fix_kernel_height>(
-                in_prv, weights_prv, bs, out_prv, cent_area, params,
-                (o_T)val_limit.min, (o_T)val_limit.max,
-                stride_height, stride_width, dilation_height, dilation_width,
-                padding_top, padding_left,
-                padding_bot, padding_right);
-    } else {
-        depthwise_convolution2D_wrapper<i_T, w_T, o_T, b_T, acc_T, quant_T, fix_kernel_width, fix_kernel_height>(
-                in_prv.ptr, weights_prv.ptr, out_prv.ptr,
-                in_prv, weights_prv, bs, out_prv, cent_area, params,
-                (o_T)val_limit.min, (o_T)val_limit.max,
-                stride_height, stride_width, dilation_height, dilation_width,
-                padding_top, padding_left,
-                padding_bot, padding_right);
-    }
+    conv2d_run<i_T, w_T, o_T, b_T, acc_T, quant_T, conv_type, fix_kernel_width, fix_kernel_height>(
+            in_prv, weights_prv, bs, out_prv, val_limit, cfg, params);
 }
 #pragma MLI_CODE_SECTION_END()
 } // namespace ref
 } // namespace krn
 } // namespace mli
+
+namespace snps_arc::metaware::mli::ref {
+#pragma MLI_CODE_SECTION_START(".mli_lib")
+
+template <typename i_T, typename w_T, typename o_T, typename acc_T,
+          mli_layout_type data_layout, ::mli::mli_conv_type conv_type,
+          unsigned io_rank, unsigned w_rank>
+MLI_FORCE_INLINE void conv2d_prepare_and_run(
+    const QTensor<InternalBuffer, io_rank> &in,
+    const QTensor<InternalBuffer, w_rank> &weights,
+    Tensor<InternalBuffer, io_rank> &out, const Conv2DConfig &cfg) {
+
+    using b_T = o_T;
+    using quant_T = ::mli::krn::int_quant_specific_params;
+
+    // Define quantization specific params
+    quant_T params;
+    define_quant_params(in, weights, &params);
+
+    MLI_ASSERT(data_layout == LAYOUT_HWC);
+
+    // I/O Tensor -> tensor_private_t
+    MLI_ASSERT(in.t.get_dim(kTensorBatchDim) == 1);
+    auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(i_T)>(in.t);
+
+    MLI_ASSERT(weights.t.get_dim(kKernelGroupDim) == 1);
+    auto weights_prv =
+        mli_prv_get_conv2d_weights_tensor_hwcn<MLI_PTR(w_T)>(weights.t);
+
+    MLI_ASSERT(out.get_dim(kTileGroupDim) == 1);
+    auto out_prv = mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(o_T)>(out);
+
+    // no bias and relu in MLI3.0
+    const MLI_PTR(b_T) bs = nullptr;
+    mli_minmax_t val_limit = {std::numeric_limits<o_T>::min(), std::numeric_limits<o_T>::max()};
+
+    mli_conv2d_cfg krn_cfg;
+    krn_cfg.stride_height = cfg.stride[0];
+    krn_cfg.stride_width = cfg.stride[1];
+    krn_cfg.padding_top = cfg.padding_begin[0];
+    krn_cfg.padding_left = cfg.padding_begin[1];
+    krn_cfg.padding_bottom = cfg.padding_end[0];
+    krn_cfg.padding_right = cfg.padding_end[1];
+    krn_cfg.dilation_height = cfg.dilation[0];
+    krn_cfg.dilation_width = cfg.dilation[1];
+    krn_cfg.relu = {MLI_RELU_NONE};
+
+    // Update config and run convolution
+    //=======================================================================
+    ::mli::krn::ref::conv2d_run<i_T, w_T, o_T, b_T, acc_T, quant_T, conv_type, KRN_SZ_VAR, KRN_SZ_VAR>(
+            in_prv, weights_prv, bs, out_prv, val_limit, &krn_cfg, params);
+}
+
+#pragma MLI_CODE_SECTION_END()
+} // namespace snps_arc::metaware::mli::ref
 
 #endif // _MLI_KRN_CONVOLUTION_REF_H_

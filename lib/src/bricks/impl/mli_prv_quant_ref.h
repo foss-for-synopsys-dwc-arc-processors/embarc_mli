@@ -9,6 +9,7 @@
 
 #ifndef _MLI_PRV_QUANT_REF_H_
 #define _MLI_PRV_QUANT_REF_H_
+
 #include "mli_prv_quant_decl.h"
 
 #include "mli_config.h"
@@ -21,8 +22,6 @@
 #include "mli_prv_tensor.h"
 #include "mli_types.h"
 #include "mli_krn_reduce_sum2d.h"
-
-#include <assert.h>
 
 namespace mli {
 namespace krn {
@@ -661,5 +660,54 @@ MLI_FORCE_INLINE out_T mli_prv_convert_fx16_sa8(
 } // namespace ref
 } // namespace krn
 } // namespace mli
+
+namespace snps_arc::metaware::mli::ref {
+
+template <unsigned i_rank, unsigned w_rank>
+MLI_FORCE_INLINE void define_quant_params(
+    const QTensor<InternalBuffer, i_rank>& in,
+    const QTensor<InternalBuffer, w_rank>& weights,
+    ::mli::krn::int_quant_specific_params* params) {
+
+    // per-tensor quantization
+    auto get_zp_per_tensor = [] (const InternalBuffer& buffer,
+                                 uint32_t length = 1) {
+        uint32_t elem_size = buffer.get_elem_size();
+        MLI_ASSERT(buffer.get_size() / elem_size == length);
+        MLI_ASSERT(elem_size == sizeof(int16_t));
+        return buffer.read<int16_t>(0);
+    };
+
+    // per-channel quantization
+    auto get_zp_per_channel = [] (const InternalBuffer& buffer,
+                                  uint32_t length = 1) {
+        uint32_t elem_size = buffer.get_elem_size();
+        MLI_ASSERT(buffer.get_size() / elem_size == length);
+        MLI_ASSERT(elem_size == sizeof(int16_t));
+        return buffer.get_ptr<int16_t>();
+    };
+
+    MLI_ASSERT(in.quant_axis >= -1 &&
+               in.quant_axis < static_cast<int>(in.t.get_rank()));
+    if (in.quant_axis == -1) {
+        params->in_offset = get_zp_per_tensor(in.zp);
+    } else {
+        // not supported yet
+        MLI_ASSERT(false);
+    }
+
+    MLI_ASSERT(weights.quant_axis >= -1 &&
+               weights.quant_axis < static_cast<int>(weights.t.get_rank()));
+    if (weights.quant_axis == -1) {
+        // not supported yet
+        MLI_ASSERT(false);
+    } else {
+        // If only weights zero points are all zero
+        params->weights_offset = get_zp_per_channel(
+            weights.zp, weights.t.get_dim(weights.quant_axis))[0];
+    }
+}
+
+} // namespace snps_arc::metaware::mli::ref
 
 #endif /* _MLI_PRV_QUANT_REF_H_ */

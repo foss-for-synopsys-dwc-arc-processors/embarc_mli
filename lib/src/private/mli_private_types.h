@@ -68,8 +68,8 @@ typedef struct {
 
 // Value range for applying ReLU 
 typedef struct {
-    int16_t min;
-    int16_t max;
+    int32_t min;
+    int32_t max;
 } mli_minmax_t;
 
 #if (PLATFORM == V2DSP) || \

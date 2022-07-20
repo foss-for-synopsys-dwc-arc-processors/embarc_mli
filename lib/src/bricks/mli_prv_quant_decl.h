@@ -13,6 +13,7 @@
 #include "mli_config.h"
 #include "mli_mem_info.h"
 #include "mli_types.h"
+#include "mli_types.hpp"
 
 namespace mli {
 namespace krn {
@@ -509,5 +510,16 @@ MLI_FORCE_INLINE vNx4short_t mli_prv_convert_fx16_sa8(
 } // namespace vdsp
 } // namespace krn
 } // namespace mli
+
+
+namespace snps_arc::metaware::mli::ref {
+
+template <unsigned i_rank, unsigned w_rank>
+MLI_FORCE_INLINE void define_quant_params(
+    const QTensor<InternalBuffer, i_rank>& in,
+    const QTensor<InternalBuffer, w_rank>& weights,
+    ::mli::krn::int_quant_specific_params* params);
+
+} // namespace snps_arc::metaware::mli::ref
 
 #endif // _MLI_PRV_QUANT_DECL_H_
