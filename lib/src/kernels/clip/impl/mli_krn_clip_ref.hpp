@@ -22,8 +22,8 @@ template <typename o_T>
 static MLI_FORCE_INLINE o_T clip_value(const int8_t in_val,
                                        const int8_t min_value,
                                        const int8_t max_value) {
-    o_T result = mli_math_min_fx(in_val, max_value);
-    result = mli_math_max_fx(result, min_value);
+    o_T result = mli_math_max_fx(in_val, min_value);
+    result = mli_math_min_fx(result, max_value);
     return result;
 }
 
