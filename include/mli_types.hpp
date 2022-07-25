@@ -53,8 +53,8 @@ typedef enum {
   kMaxId,
   kMinId,
   kRescaleId,
-  kSomeOtherKernelId,
   kClipId,
+  kReduceMaxId,
 } kernel_id_t;
 
 typedef enum class compression_mode_t {

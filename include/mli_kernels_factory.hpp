@@ -48,6 +48,8 @@ public:
 
     virtual uint32_t Min_CS_GetSize() const { return 0; }
 
+    virtual uint32_t ReduceMax_CS_GetSize() const { return 0; }
+
     virtual lib_mli::Conv2d_CS* Conv2d_CS(void *kernel_buffer,
                                           const Tensor<NoBuffer, 4> input_shape,
                                           const Tensor<NoBuffer, 5> weights,
@@ -137,6 +139,11 @@ public:
                                             const Tensor<NoBuffer, 4> input_shape,
                                             const RescaleConfig &cfg,
                                             const Tensor<NoBuffer, 4> output_tile_shape) { return nullptr; }
+
+    virtual lib_mli::ReduceMax_CS* ReduceMax_CS(void *kernel_buffer,
+                                                const Tensor<NoBuffer, 4> input,
+                                                const ReduceOpConfig &cfg,
+                                                const Tensor<NoBuffer, 4> output) {return nullptr; }
 };
 
 } // namespace snps_arc::metaware::mli

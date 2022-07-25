@@ -169,6 +169,15 @@ public:
         return new(kernel_buffer) lib_ref::Rescale_CS(m_pd, input_shape, cfg, output_tile_shape);
     }
 
+    uint32_t ReduceMax_CS_GetSize() const override { return sizeof(lib_ref::ReduceMax_CS); }
+
+    lib_mli::ReduceMax_CS* ReduceMax_CS(void *kernel_buffer,
+                                        const Tensor<NoBuffer, 4> input,
+                                        const ReduceOpConfig &cfg,
+                                        const Tensor<NoBuffer, 4> output) override {
+        return 0; //new(kernel_buffer) lib_ref::ReduceMax_CS(m_pd, input, cfg, output); // to be called after develop implementation
+    }
+
     uint32_t Clip_CS_GetSize() const override { return sizeof(lib_ref::Clip_CS); }
 
     lib_mli::Clip_CS* Clip_CS(void *kernel_buffer,

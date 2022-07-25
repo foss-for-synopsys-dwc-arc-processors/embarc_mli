@@ -142,9 +142,6 @@ ExecutionInterface* ExecutionInterface::Create(
                 MLI_PRINTF("\nMLI_ERROR: Insufficient space for [Clip] runtime object\n");
             }
             break;
-        case kSomeOtherKernelId:
-            MLI_ASSERT(0);
-            break;
         default:
             MLI_ASSERT(0);
             break;

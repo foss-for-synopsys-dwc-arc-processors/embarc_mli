@@ -312,6 +312,18 @@ public:
     int32_t output_c_stride;
 };
 
+class ReduceMaxPrivateData : public PrivateData {
+
+public:
+    ReduceMaxPrivateData() : PrivateData(kReduceMaxId) {}
+
+    int32_t reduce_axis;
+
+    uint32_t io_rank;
+
+    Tensor<OffsetBuffer, 4> input;
+    Tensor<OffsetBuffer, 4> output;
+};
 
 } // namespace snps_arc::metaware::mli::ref
 

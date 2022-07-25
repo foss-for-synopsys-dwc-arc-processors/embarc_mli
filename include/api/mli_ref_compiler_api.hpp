@@ -310,6 +310,37 @@ private:
 
 };
 
+class ReduceMax_CS: public lib_mli::ReduceMax_CS {
+public:
+    ReduceMax_CS(const lib_mli::PlatformDescription pd,
+                 const Tensor<NoBuffer, 4> input_shape,
+                 const ReduceOpConfig &cfg,
+                 const Tensor<NoBuffer, 4> output_tile_shape);
+
+    // From ReduceMax_CS
+    unsigned GetInputBufferSize() const override;
+    unsigned GetOutputBufferSize() const override;
+    unsigned GetDataBufferSize() const override;
+
+    mli_status GetKernelPrivateData( void *kernel_private_data_buffer ) override;
+    unsigned GetKernelPrivateDataSize() const override;
+    unsigned GetRuntimeObjectSize() const override;
+
+    mli_status AttachBufferOffsets( const Tensor<OffsetBuffer, 4> &input,
+                                    const Tensor<OffsetBuffer, 4> &output,
+                                    const OffsetBuffer &metadata) override;
+
+private:
+    ReduceOpConfig m_cfg;
+    Tensor<OffsetBuffer, 4> m_in;
+    Tensor<OffsetBuffer, 4> m_out;
+
+    uint32_t m_input_buffer_size;
+    uint32_t m_output_buffer_size;
+
+    lib_mli::PlatformDescription m_pd;
+};
+
 class Rescale_CS : public lib_mli::Rescale_CS {
 public:
     Rescale_CS(const lib_mli::PlatformDescription pd,
