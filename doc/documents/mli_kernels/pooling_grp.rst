@@ -69,9 +69,9 @@ system of equations:
 
    \hat{Hi} = {Hi}+padding\_top+padding\_bottom
 
-   {Wo}*{stride\_width} = \hat{Wi}-{kernel\_width}+1
+   {Wo}*{stride\_width} = \hat{Wi}-{kernel\_width}+{stride\_width}
 
-   {Ho}*{stride\_height} = \hat{Hi}-{kernel\_height}+1
+   {Ho}*{stride\_height} = \hat{Hi}-{kernel\_height}+{stride\_height}
 
    \end{cases}
 ..
