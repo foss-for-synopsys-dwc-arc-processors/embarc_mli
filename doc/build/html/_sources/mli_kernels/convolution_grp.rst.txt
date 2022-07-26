@@ -87,9 +87,9 @@ system of equations:
 
    \hat{Hi} = {Hi}+padding\_top+padding\_bottom
 
-   {Wo}*{stride\_width} = \hat{Wi}-\hat{Wk}+1
+   {Wo}*{stride\_width} = \hat{Wi}-\hat{Wk}+{stride\_width}
 
-   {Ho}*{stride\_height} = \hat{Hi}-\hat{Hk}+1
+   {Ho}*{stride\_height} = \hat{Hi}-\hat{Hk}+{stride\_height}
 
    \end{cases}
 ..

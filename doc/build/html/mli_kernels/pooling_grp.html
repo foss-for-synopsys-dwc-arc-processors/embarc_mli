@@ -247,7 +247,7 @@ in the input tensor in the height dimension to the next filter.</p></td>
 <code class="docutils literal notranslate"><span class="pre">in</span></code> and <code class="docutils literal notranslate"><span class="pre">out</span></code> tensors (Width and Height) must comply with the following
 system of equations:</p>
 <div class="math notranslate nohighlight" id="equation-eq-pool-shapes">
-<span class="eqno">(1)<a class="headerlink" href="#equation-eq-pool-shapes" title="Permalink to this equation">¶</a></span>\[ \begin{align}\begin{aligned}\begin{cases}\\\hat{Wi} = {Wi}+padding\_left+padding\_right\\\hat{Hi} = {Hi}+padding\_top+padding\_bottom\\{Wo}*{stride\_width} = \hat{Wi}-{kernel\_width}+1\\{Ho}*{stride\_height} = \hat{Hi}-{kernel\_height}+1\\\end{cases}\end{aligned}\end{align} \]</div>
+<span class="eqno">(1)<a class="headerlink" href="#equation-eq-pool-shapes" title="Permalink to this equation">¶</a></span>\[ \begin{align}\begin{aligned}\begin{cases}\\\hat{Wi} = {Wi}+padding\_left+padding\_right\\\hat{Hi} = {Hi}+padding\_top+padding\_bottom\\{Wo}*{stride\_width} = \hat{Wi}-{kernel\_width}+{stride\_width}\\{Ho}*{stride\_height} = \hat{Hi}-{kernel\_height}+{stride\_height}\\\end{cases}\end{aligned}\end{align} \]</div>
 <p>Where:</p>
 <blockquote>
 <div><ul class="simple">

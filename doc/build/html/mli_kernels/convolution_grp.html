@@ -265,7 +265,7 @@ deep learning</a>.</p>
 system of equations:</p>
 <div class="math notranslate nohighlight" id="equation-eq-conv2d-shapes">
 <span class="eqno">(1)<a class="headerlink" href="#equation-eq-conv2d-shapes" title="Permalink to this equation">¶</a></span>\[ \begin{align}\begin{aligned}\begin{cases}
-\hat{Wk} = ({Wk}-1)*dilation\_width+1\\\hat{Hk} = ({Hk}-1)*dilation\_height+1\\\hat{Wi} = {Wi}+padding\_left+padding\_right\\\hat{Hi} = {Hi}+padding\_top+padding\_bottom\\{Wo}*{stride\_width} = \hat{Wi}-\hat{Wk}+1\\{Ho}*{stride\_height} = \hat{Hi}-\hat{Hk}+1\\\end{cases}\end{aligned}\end{align} \]</div>
+\hat{Wk} = ({Wk}-1)*dilation\_width+1\\\hat{Hk} = ({Hk}-1)*dilation\_height+1\\\hat{Wi} = {Wi}+padding\_left+padding\_right\\\hat{Hi} = {Hi}+padding\_top+padding\_bottom\\{Wo}*{stride\_width} = \hat{Wi}-\hat{Wk}+{stride\_width}\\{Ho}*{stride\_height} = \hat{Hi}-\hat{Hk}+{stride\_height}\\\end{cases}\end{aligned}\end{align} \]</div>
 <p>Where:</p>
 <blockquote>
 <div><ul class="simple">
