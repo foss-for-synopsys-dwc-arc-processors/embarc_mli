@@ -71,6 +71,22 @@ macro(export_library_with_config config)
           DESTINATION lib/cmake/${project_name})
 endmacro()
 
+# This is required to ensure find_package is only redefined once, which is at
+# "top" level CMakeLists.txt (directory from which cmake is called)
+#
+# Otherwise you get into a recursive endless loop, causing cmake to segfault
+#
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+
+  # Redefine find_package so that it will only really try to find a package if
+  # it is not already in the list ${as_subproject}
+  macro(find_package pkgname)
+    if(NOT "${pkgname}" IN_LIST as_subproject)
+      _find_package(${pkgname} ${ARGN})
+    endif()
+  endmacro()
+endif()
+
 macro(export_library)
   export_library_with_config(
     ${CMAKE_CURRENT_LIST_DIR}/cmake/${project_name}Config.cmake ${ARGN})
