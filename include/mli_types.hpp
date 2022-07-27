@@ -20,6 +20,12 @@ constexpr short int kTensorHeightDim = 1;
 constexpr short int kTensorWidthDim = 2;
 constexpr short int kTensorChannelDim = 3;
 
+constexpr short int kGroupTensorBatchDim = 0;
+constexpr short int kGroupTensorHeightDim = 1;
+constexpr short int kGroupTensorWidthDim = 2;
+constexpr short int kGroupTensorGroupDim = 3;
+constexpr short int kGroupTensorChannelDim = 4;
+
 constexpr short int kTileGroupDim = 0;
 constexpr short int kTileHeightDim = 1;
 constexpr short int kTileWidthDim = 2;
@@ -405,12 +411,26 @@ class Tensor {
   uint32_t get_dim(unsigned idx) const {
     return shape_[idx];
   }
+
+  void set_dim(unsigned idx, uint32_t shape) {
+    shape_[idx] = shape;
+  }
+
   int32_t get_mem_stride(unsigned idx) const {
     return mem_stride_[idx];
   }
 
+  void set_mem_stride(unsigned idx, int32_t mem_stride) {
+    mem_stride_[idx] = mem_stride;
+  }
+
   unsigned get_rank() const {
     return rank_;
+  }
+
+  void set_rank(unsigned rank) {
+    assert(rank <= maxRank);
+    rank_ = rank;
   }
 
   buf_T get_buf() const {
@@ -423,6 +443,14 @@ class Tensor {
 
   unsigned get_elem_size() const {
     return buf_.get_elem_size();
+  }
+
+  unsigned get_offset(uint32_t pos[]){
+    unsigned offset = 0;
+    for (unsigned i = 0; i < rank_; ++i){
+      offset += pos[i] * mem_stride_[i];
+    }
+    return offset;
   }
 
   Tensor<buf_T, maxRank> slice(uint32_t pos[], uint32_t size[]){
@@ -451,6 +479,62 @@ class Tensor {
     }
     tns.buf_ = buf_;
     tns.rank_ = rank_;
+    return tns;
+  }
+
+  // split 'axis' dimension into 'chunks' chunks. place chunks dimension to the left or to the right of the splittd one
+  Tensor<buf_T, maxRank+1> split(uint32_t axis, uint32_t chunks, bool left = false) const {
+    assert(axis < maxRank);
+    Tensor<buf_T, maxRank+1> tns;
+    int s = 0;
+    for (int r = 0; r < maxRank; ++r) {
+      if (r < axis || r > axis) {
+        tns.set_dim(s, shape_[r]);
+        tns.set_mem_stride(s, mem_stride_[r]);
+      } else {
+        // split axis in 2
+        assert(shape_[r]%chunks == 0);
+        if (left) {
+          tns.set_dim(s, chunks);
+          tns.set_mem_stride(s, (shape_[r]/chunks)*mem_stride_[r]);
+          ++s;
+          tns.set_dim(s, shape_[r]/chunks);
+          tns.set_mem_stride(s, mem_stride_[r]);
+        } else {
+          tns.set_dim(s, shape_[r]/chunks);
+          tns.set_mem_stride(s, mem_stride_[r]);
+          ++s;
+          tns.set_dim(s, chunks);
+          tns.set_mem_stride(s, (shape_[r]/chunks)*mem_stride_[r]);
+        }
+      }
+      ++s;
+    }
+    tns.set_buf(buf_);
+    tns.set_rank(rank_ + 1);
+    return tns;
+  }
+
+  // combine 'axis' and 'axis'+1 dimensions into one dimension if possible
+  Tensor<buf_T, maxRank-1> combine(uint32_t axis) const {
+    assert(axis < maxRank - 1);
+    Tensor<buf_T, maxRank-1> tns;
+    int s = 0;
+    for (int r = 0; r < maxRank; ++r) {
+      if (r < axis || r > axis) {
+        tns.set_dim(s, shape_[r]);
+        tns.set_mem_stride(s, mem_stride_[r]);
+      } else {
+        // combine 2 adjacent axis into 1
+        assert(mem_stride_[r+1] == shape_[r]*mem_stride_[r]);
+        tns.set_dim(s, shape_[r]*shape_[r+1]);
+        tns.set_mem_stride(s, mem_stride_[r]);
+        ++r;
+      }
+      ++s;
+    }
+    tns.set_buf(buf_);
+    tns.set_rank(rank_ - 1);
     return tns;
   }
 

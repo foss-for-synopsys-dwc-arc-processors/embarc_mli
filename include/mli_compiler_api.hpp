@@ -213,7 +213,6 @@ public:
                                     uint32_t output_inc[4],
                                     uint32_t weights_inc[4]) = 0;
 
-
 };
 
 /**
@@ -853,7 +852,7 @@ public:
  */
 class Move_CS : public CompilerGenericInterface {
 public:
-    static constexpr unsigned kMaxRank = 4;
+    static constexpr unsigned kMaxRank = 5;
 
     /**
      * @brief Methods to get buffer sizes

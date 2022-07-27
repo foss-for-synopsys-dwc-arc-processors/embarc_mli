@@ -21,164 +21,234 @@ namespace snps_arc::metaware::mli {
  *
  *
  */
-template <unsigned maxRank>
+template <unsigned iterRank>
 class IteratorCfg {
 
   public:
-    /**
-     * @brief constructor
-     *
-     */
+
+    // Empty constructor
     IteratorCfg() {
-        for (uint32_t i = 0; i < maxRank; i++){
-          first_increment_[i] = 1;
-          increment_[i] = 1;
-          first_size_[i] = 1;
-          size_[i] = 1;
-        }
-        rank_ = maxRank;
-    }
-    /**
-     * @brief constructor
-     *
-     *
-     * @param first_increment [I] increment per dimension in elements for the first increment on each dimension
-     * @param increment       [I] increment per dimension in elements 
-     * @param first_size      [I] size in each dimension for the first tile in that dimension
-     * @param size            [I] size in each dimension for the remaining tiles in that dimension
-     *                            Note that the last tile could be smaller as it is clipped to the shape of the full tensor.
-     * @param rank            [I] Optional rank in case the rank is smaller than the maxRank template parameter.
-     */
-    IteratorCfg(int32_t first_increment[],
-                int32_t increment[],
-                uint32_t first_size[],
-                uint32_t size[],
-                unsigned rank = maxRank
-                ) {
-        for (unsigned i = 0; i < rank; i++){
-          first_increment_[i] = first_increment[i];
-          increment_[i] = increment[i];
-          first_size_[i] = first_size[i];
-          size_[i] = size[i];
-        }
-        rank_ = rank;
-    }
-    /**
-     * @brief constructor
-     *
-     *
-     * @param increment       [I] increment per dimension in elements 
-     * @param size            [I] size in each dimension for the remaining tile in that dimension
-     *                            Note that the last tile could be smaller as it is clipped to the shape of the full tensor.
-     * @param rank            [I] Optional rank in case the rank is smaller than the maxRank template parameter.
-     */
-    IteratorCfg(int32_t increment[],
-                uint32_t size[],
-                unsigned rank = maxRank
-                ) {
-        for (unsigned i = 0; i < rank; i++){
-          first_increment_[i] = increment[i];
-          increment_[i] = increment[i];
-          first_size_[i] = size[i];
-          size_[i] = size[i];
-        }
-        rank_ = rank;
+      for (uint32_t i = 0; i < iterRank; ++i) {
+        order_[i] = i;
+        count_[i] = 1;
+        size_[i] = first_size_[i] = last_size_[i] = 1;
+        pos_inc_[i] = first_pos_inc_[i] = last_pos_inc_[i] = 0;
+      }
     }
 
-    /**
-     * @brief set config from smaller rank configuration
-     *
-     * @param in       [I] IteratorCfg with a smaller rank that is stored inside this cfg
-     */
-    template <unsigned N>
-    void set_config(const IteratorCfg<N> in) {
-        for (uint32_t i = 0; i < N; i++){
-          first_increment_[i] = in.get_first_increment(i);
-          increment_[i] = in.get_increment(i);
-          first_size_[i] = in.get_first_size(i);
-          size_[i] = in.get_size(i);
-        }
-        for (uint32_t i = N; i < maxRank; i++){
-          first_increment_[i] = 0;
-          increment_[i] = 0;
-          first_size_[i] = 0;
-          size_[i] = 0;
-        }
-        rank_ = in.get_rank();
-    }
-
+    // Constructor that will create config for a single tile for whole given Tensor
     template <typename buf_T>
-    void set_config_single_tile(const Tensor<buf_T, maxRank> tensor){
-        for (uint32_t i = 0; i < maxRank; i++){
-          first_increment_[i] = tensor.get_dim(i);
-          increment_[i] = tensor.get_dim(i);
-          first_size_[i] = tensor.get_dim(i);
-          size_[i] = tensor.get_dim(i);
-        }
-        rank_ = maxRank;
+    IteratorCfg(Tensor<buf_T, iterRank> tensor) {
+      for (uint32_t i = 0; i < iterRank; ++i) {
+        order_[i] = i;
+        count_[i] = 1;
+        size_[i] = first_size_[i] = last_size_[i] = tensor.get_dim(i);
+        pos_inc_[i] = first_pos_inc_[i] = last_pos_inc_[i] = 0;
+      }
     }
 
-    IteratorCfg<maxRank> transpose(uint32_t new_order[]) const {
+    // Old-style constructor for compatibilit, to be removed
+    IteratorCfg(int32_t increment[],
+                uint32_t size[]
+                ) {
+      for (unsigned i = 0; i < iterRank; ++i) {
+        order_[i] = i;
+        count_[i] = size[i]*increment[i] != 0 ? CEIL_DIV(size[i], increment[i]) : 1;
+        size_[i] = first_size_[i] = last_size_[i] = size[i];
+        pos_inc_[i] = first_pos_inc_[i] = increment[i];
+        last_pos_inc_[i] = increment[i] * (1 - count_[i]);
+      }
+    }
+
+    // Constructor with explicit parameters
+    IteratorCfg(int32_t order[],           // iteration order
+                int32_t count[],           // iterations count
+                int32_t first_increment[], // first increment values
+                int32_t increment[],       // middle increment values
+                int32_t last_increment[],  // last increment values
+                int32_t first_size[],      // first size values
+                int32_t size[],            // middle size values
+                int32_t last_size[]        // last size values
+                ) {
+      for (uint32_t i = 0; i < iterRank; ++i) {
+        order_[i] = order[i];
+        count_[i] = count[i];
+        first_pos_inc_[i] = first_increment[i];
+        pos_inc_[i] = increment[i];
+        last_pos_inc_[i] = last_increment[i];
+        first_size_[i] = first_size[i];
+        size_[i] = size[i];
+        last_size_[i] = last_size[i];
+      }
+    }
+
+    // Constructor that will compute the number of tiles in each dimension, it will also compute the increment values and sizes.
+    template <typename buf_T>
+    IteratorCfg(const Tensor<buf_T, iterRank>& tensor, // full tensor to be iterated
+                uint32_t tilesize[],                   // size of the tile
+                int32_t order[]) {                     // iteration order
+      for (uint32_t i = 0; i < iterRank; ++i) {
+        int32_t dim = order[i];
+        order_[i] = dim;
+        count_[i] = CEIL_DIV(tensor.get_dim(dim), tilesize[dim]);
+        first_size_[i] = size_[i] = tilesize[dim];
+        last_size_[i] = (tensor.get_dim(dim) - 1) % tilesize[dim] + 1;
+        first_pos_inc_[i] = pos_inc_[i] = tilesize[dim];
+        last_pos_inc_[i] = tilesize[dim] * (1 - count_[i]);
+      }
+    }
+
+    // Constructor that updates previously constructed iterator taking into account a kernel apperture and paddings
+    template <typename buf_T>
+    IteratorCfg(const IteratorCfg& icfg,          // origin config
+                Tensor<buf_T, iterRank> tensor,   // full tensor
+                uint32_t effective_kernel_size[], // used to calculate the overlaps between the tiles
+                uint32_t stride[],                // used to calculate the overlaps between the tiles
+                uint32_t pre_padding[]            // number of virtual pixels added before each dimension
+               ) {
+      for (uint32_t i = 0; i < iterRank; ++i) {
+        int32_t dim = icfg.order_[i];
+        order_[i] = dim;
+        count_[i] = icfg.count_[i];
+        pos_inc_[i] = icfg.pos_inc_[i] * stride[dim];
+        first_pos_inc_[i] = pos_inc_[i] - pre_padding[dim];
+        last_pos_inc_[i] = count_[i] > 1 ? pos_inc_[i] * (1 - count_[i]) + pre_padding[dim] : 0;
+        size_[i] = (icfg.size_[i] - 1) * stride[dim] + effective_kernel_size[dim];
+        first_size_[i] = size_[i] - pre_padding[dim];
+        last_size_[i] = tensor.get_dim(dim) + last_pos_inc_[i];
+      }
+    }
+
+    // Constructor that updates previously constructed iterator for work on buffer for only one or several tiles
+    IteratorCfg(const IteratorCfg& icfg, // origin config
+                int32_t shrinksz         // 1 or more
+               ) {
+      assert(shrinksz > 0);
+      for (uint32_t i = 0; i < iterRank; ++i) {
+        order_[i] = icfg.order_[i];
+        count_[i] = icfg.count_[i];
+        if (shrinksz > 1) { // cyclic buffer for double- (or more) buffering
+          if (i == 0) {
+            pos_inc_[0] = icfg.pos_inc_[0];
+            first_pos_inc_[0] = icfg.first_pos_inc_[0];
+            last_pos_inc_[0] = icfg.last_size_[0];
+          } else {
+            pos_inc_[i] = first_pos_inc_[i] = last_pos_inc_[i] = 0;
+          }
+        } else { // buffer for single tile
+          pos_inc_[i] = first_pos_inc_[i] = last_pos_inc_[i] = 0;
+        }
+        size_[i] = icfg.size_[i];
+        first_size_[i] = icfg.first_size_[i];
+        last_size_[i] = icfg.last_size_[i];
+      }
+    }
+
+    // This method will remove the overlap between adjacent tiles in the first iteration dimension to avoid duplicate data transfers
+    // It will update the (first)size and (first)inc parameters
+    void RemoveOverlapAdjacentTiles() {
+      if (count_[0] > 1) {
+        int32_t overlap = size_[0] - pos_inc_[0];
+        first_pos_inc_[0] = first_size_[0];
+        size_[0] = pos_inc_[0];
+        last_size_[0] -= overlap;
+        last_pos_inc_[0] -= overlap;
+      }
+    }
+
+    template <unsigned N>
+    void set_config(const IteratorCfg<N>& in) {
+        assert(N <= iterRank);
+        uint32_t i = 0;
+        for (; i < N; ++i) {
+          order_[i] = in.order_[i];
+          count_[i] = in.count_[i];
+          size_[i] = in.size_[i];
+          first_size_[i] = in.first_size_[i];
+          last_size_[i] = in.last_size_[i];
+          pos_inc_[i] = in.pos_inc_[i];
+          first_pos_inc_[i] = in.first_pos_inc_[i];
+          last_pos_inc_[i] = in.last_pos_inc_[i];
+        }
+        for (; i < iterRank; ++i) {
+          order_[i] = -1;
+          count_[i] = 0;
+          size_[i] = first_size_[i] = last_size_[i] = 0;
+          pos_inc_[i] = first_pos_inc_[i] = last_pos_inc_[i] = 0;
+        }
+    }
+
+    IteratorCfg<iterRank> transposeorder(uint32_t new_order[]) const {
         // create a transposed Iterator, reordering the dimensions
-        IteratorCfg<maxRank> iter;
+        IteratorCfg<iterRank> iter;
         // change order of axes
         uint32_t c = 0;
-        for (uint32_t axis = 0; axis < maxRank; axis++) {
-          assert(new_order[axis] >= 0 && new_order[axis] < maxRank);
+        for (uint32_t axis = 0; axis < iterRank; axis++) {
+          assert(new_order[axis] >= 0 && new_order[axis] < iterRank);
           // axis can only be selected once
           assert((c & (1 << new_order[axis])) == 0);
           c |= (1 << new_order[axis]);
-          iter.first_increment_[axis] = first_increment_[new_order[axis]];
-          iter.increment_[axis] = increment_[new_order[axis]];
-          iter.first_size_[axis] = first_size_[new_order[axis]];
-          iter.size_[axis] = size_[new_order[axis]];
+          iter.order_[axis] = order_[axis] < 0 ? -1 : new_order[order_[axis]];
+          iter.count_[axis] = count_[axis];
+          iter.size_[axis] = size_[axis];
+          iter.first_size_[axis] = first_size_[axis];
+          iter.last_size_[axis] = last_size_[axis];
+          iter.pos_inc_[axis] = pos_inc_[axis];
+          iter.first_pos_inc_[axis] = first_pos_inc_[axis];
+          iter.last_pos_inc_[axis] = last_pos_inc_[axis];
         }
         return iter;
     }
 
-    unsigned get_first_increment(unsigned dim) const {
-      return first_increment_[dim];
+    int32_t get_order(unsigned dim) const {
+      return order_[dim];
     }
-    unsigned get_increment(unsigned dim) const {
-      return increment_[dim];
+    int32_t get_count(unsigned dim) const {
+      return count_[dim];
     }
-    unsigned get_first_size(unsigned dim) const {
+    int32_t get_first_inc(unsigned dim) const {
+      return first_pos_inc_[dim];
+    }
+    int32_t get_inc(unsigned dim) const {
+      return pos_inc_[dim];
+    }
+    int32_t get_last_inc(unsigned dim) const {
+      return last_pos_inc_[dim];
+    }
+    uint32_t get_first_size(unsigned dim) const {
       return first_size_[dim];
     }
-    unsigned get_size(unsigned dim) const {
+    uint32_t get_size(unsigned dim) const {
       return size_[dim];
     }
-    unsigned get_rank() const {
-      return rank_;
+    uint32_t get_last_size(unsigned dim) const {
+      return last_size_[dim];
     }
 
   private:
-  //TODO: change to unsigned where need
-    int32_t first_increment_[maxRank];
-    int32_t increment_[maxRank];
-    uint32_t first_size_[maxRank];
-    uint32_t size_[maxRank];
-  //TODO: add max[] parameter
-    unsigned rank_;
+    int32_t order_[iterRank];
+    int32_t count_[iterRank];
+    int32_t pos_inc_[iterRank];
+    int32_t first_pos_inc_[iterRank];
+    int32_t last_pos_inc_[iterRank];
+    uint32_t size_[iterRank];
+    uint32_t first_size_[iterRank];
+    uint32_t last_size_[iterRank];
 };
-/**
- * @brief 
- *
- *
- */
 
-template <unsigned maxRank>
+template <typename buf_T, unsigned tensorRank, unsigned iterRank>
 class TensorIterator {
 
   public:
-    /**
-     * @brief constructor
-     *
-     *
-     * @param tensor [I] full tensor which is tiled by this iterator
-     * @param config [I] iterator configuration
-     */
-    TensorIterator(Tensor<InternalBuffer, maxRank> tensor, IteratorCfg<maxRank> config){
+
+    // Constructor that will configure the iterator for a single tile
+    TensorIterator(Tensor<buf_T, tensorRank> tensor) : config_(tensor) {
+      full_tensor_ = tensor;
+      Reset();
+    }
+
+    // Constructor that will configure the iterator for a predefined config
+    TensorIterator(Tensor<buf_T, tensorRank> tensor, IteratorCfg<iterRank> config) {
       full_tensor_ = tensor;
       config_ = config;
       Reset();
@@ -187,95 +257,125 @@ class TensorIterator {
     /**
      * @brief constructor
      *
-     * simple iterator with default iterator config will iterate in steps of 1
-     * @param tensor [I] full tensor which is tiled by this iterator
-     */
-    TensorIterator(Tensor<InternalBuffer, maxRank> tensor)
-    : config_(){
-      full_tensor_ = tensor;
-      Reset();
-    }
-
-    /**
-     * @brief constructor
-     *
      * empty constructor
      */
-    TensorIterator()
-    : config_(),
-      full_tensor_(){
+    TensorIterator() : config_(), full_tensor_() {
       Reset();
     }
 
-    /**
-     * @brief Reset the iterator to zero position
-     *
-     * This method will reset the internal position to zero
-     */
     mli_status Reset() {
-      for (uint32_t i = 0; i < maxRank; i++ ){
-        pos_[i] = 0;
+      for (uint32_t i = 0; i < iterRank; ++i ) {
+        pos_[i] = tile_idx_[i] = 0;
       }
       offset_ = 0;
       return MLI_STATUS_OK;
     }
 
+    // This method will compute the minimal buffersize required to fit worst case num_tiles
+    // It will return the number size in bytes needed for that buffer
+    // it will also update the mem_strides and increment values
+    uint32_t ShrinkBuffer(uint32_t num_tiles);
+
+    // prints the current position, size and ptr
+    void Print();
+
+    // increments to the next tile
     bool Next() {
       bool done = false;
-      int rank = config_.get_rank();
-      for (int r = 0; r < rank; r++) {
-        if (pos_[r] == 0) {
-            pos_[r] = config_.get_first_increment(r);
-            offset_ += config_.get_first_increment(r) * full_tensor_.get_mem_stride(r);
+      for (unsigned r = 0; r < iterRank; ++r) {
+        if (tile_idx_[r] == config_.get_count(r) - 1) { // Last iteration
+          pos_[r] += config_.get_last_inc(r);
+          offset_ += config_.get_last_inc(r)*full_tensor_.get_mem_stride(config_.get_order(r));
+          tile_idx_[r] = 0;
+          if (r == iterRank - 1) done = true;
         } else {
-            pos_[r] += config_.get_increment(r);
-            offset_ += config_.get_increment(r) * full_tensor_.get_mem_stride(r);
-        }
-        if (pos_[r] >= full_tensor_.get_dim(r)) {
-          // end of axis, reset axis iterator to 0 and continue with next axis
-          offset_ -= pos_[r] * full_tensor_.get_mem_stride(r);
-          pos_[r] = 0;
-          done = (r == rank - 1) ? true : false;
-        } else {
+          if (tile_idx_[r] == 0) { // First iteration
+            pos_[r] += config_.get_first_inc(r);
+            offset_ += config_.get_first_inc(r)*full_tensor_.get_mem_stride(config_.get_order(r));
+          } else { // Middle iteration
+            pos_[r] += config_.get_inc(r);
+            offset_ += config_.get_inc(r)*full_tensor_.get_mem_stride(config_.get_order(r));
+          }
           // not at end of axis, break
+          ++tile_idx_[r];
           break;
         }
       }
       return done;
     }
 
-    Tensor<InternalBuffer, maxRank> GetSubTensor() {
-      uint32_t copysize[maxRank];
+    // Return increments to the next tile (to increment outside the iterator)
+    bool Next(int32_t* pos_inc) {
+      bool done = false;
+      for (unsigned r = 0; r < iterRank; ++r) {
+        int32_t dim = config_.get_order(r);
+        if (dim >= 0) {
+          if (tile_idx_[r] == config_.get_count(r) - 1) { // Last iteration
+            pos_inc[dim] = config_.get_last_inc(r);
+            tile_idx_[r] = 0;
+            if (r == iterRank - 1) done = true;
+          } else {
+            if (tile_idx_[r] == 0) { // First iteration
+              pos_inc[dim] = config_.get_first_inc(r);
+            } else { // Middle iteration
+              pos_inc[dim] = config_.get_inc(r);
+            }
+            // not at end of axis, break
+            ++tile_idx_[r];
+            break;
+          }
+        }
+      }
+      return done;
+    }
+
+    // returns a tensor of the current tile
+    Tensor<buf_T, tensorRank> GetSubTensor() {
+      uint32_t pos[tensorRank];
+      uint32_t copysize[tensorRank];
       unsigned r = 0;
-      for (r = 0; r < config_.get_rank(); r++) {
-        copysize[r] = (pos_[r] == 0)? config_.get_first_size(r) : config_.get_size(r);
-        copysize[r] = MIN(copysize[r], full_tensor_.get_dim(r) - pos_[r]);
+      for (r = 0; r < iterRank; ++r) {
+        int32_t dim = config_.get_order(r);
+        if (dim >= 0) {
+            pos[dim] = (uint32_t)pos_[r];
+            if (tile_idx_[r] == config_.get_count(r) - 1) { // Last iteration
+              copysize[dim] = config_.get_last_size(r);
+            } else if (tile_idx_[r] == 0) { // First iteration
+              copysize[dim] = config_.get_first_size(r);
+            } else { // Middle iteration
+              copysize[dim] = config_.get_size(r);
+            }
+        }
       }
-      for ( ; r < maxRank; r++){
-        copysize[r] = 1;
-      }
-      return full_tensor_.slice(pos_, copysize);
+      return full_tensor_.slice(pos, copysize);
     }
 
-    TensorIterator<maxRank> transpose(uint32_t new_order[]) const {
-      return TensorIterator(full_tensor_.transpose(new_order), config_.transpose(new_order));
+    template<typename T>
+    T read(){
+//      uint32_t pos[tensorRank];
+//      for (unsigned r = 0; r < iterRank; ++r) {
+//        pos[config_.get_order(r)] = (uint32_t)pos_[r];
+//      }
+//      return full_tensor_.template read<T>(full_tensor_.get_offset(pos));
+      return full_tensor_.template read<T>(offset_);
     }
 
-  template<typename T>
-  T read(){
-    return full_tensor_.template read<T>(offset_);
-  }
+    template<typename T>
+    void write(T data){
+//      uint32_t pos[tensorRank];
+//      for (unsigned r = 0; r < iterRank; ++r) {
+//        pos[config_.get_order(r)] = (uint32_t)pos_[r];
+//      }
+//      full_tensor_.write(full_tensor_.get_offset(pos), data);
+      full_tensor_.write(offset_, data);
+    }
 
-  template<typename T>
-  void write(T data){
-    full_tensor_.write(offset_, data);
-  }
-
-private:
-  uint32_t pos_[maxRank];
-  int32_t offset_;
-  Tensor<InternalBuffer, maxRank> full_tensor_;
-  IteratorCfg<maxRank> config_;
+  private:
+    Tensor<buf_T, tensorRank> full_tensor_;
+    IteratorCfg<iterRank> config_;
+    int32_t offset_;
+    int32_t pos_[iterRank];
+    int32_t tile_idx_[iterRank];
 };
 
 } // namespace mli

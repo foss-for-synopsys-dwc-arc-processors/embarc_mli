@@ -38,8 +38,8 @@ Move::Move(void* kernel_private_data_buffer, size_t size,
 
 template <typename buf_T, unsigned N>
 void Move::CopySrcToDst(Tensor<buf_T, N> src, Tensor<buf_T, N> dst) {
-  TensorIterator<N> src_it(src, m_src_it_cfg);
-  TensorIterator<N> dst_it(dst, m_dst_it_cfg);
+  TensorIterator<buf_T, N, N> src_it(src, m_src_it_cfg);
+  TensorIterator<buf_T, N, N> dst_it(dst, m_dst_it_cfg);
   bool done = false;
   while (!done) {
     switch (src.get_elem_size()) {
@@ -81,7 +81,7 @@ mli_status Move::Update() {
   return MLI_STATUS_OK;
 }
 
-TensorIterator<Move_CS::kMaxRank> Move::GetSrcTensorTileItr(
+TensorIterator<InternalBuffer, Move_CS::kMaxRank, Move_CS::kMaxRank> Move::GetSrcTensorTileItr(
     void* kernel_private_data_buffer, uint64_t membases[],
     int num_mems) {
   MovePrivateData private_data;
@@ -89,13 +89,13 @@ TensorIterator<Move_CS::kMaxRank> Move::GetSrcTensorTileItr(
   MLI_ASSERT(private_data.kernel_id == kMoveId);
   MLI_ASSERT(private_data.size == sizeof(MovePrivateData));
 
-  return TensorIterator<Move_CS::kMaxRank>(
+  return TensorIterator<InternalBuffer, Move_CS::kMaxRank, Move_CS::kMaxRank>(
       Tensor<InternalBuffer, Move_CS::kMaxRank>(private_data.src, membases,
                                                 num_mems),
       private_data.src_cfg);
 }
 
-TensorIterator<Move_CS::kMaxRank> Move::GetDstTensorTileItr(
+TensorIterator<InternalBuffer, Move_CS::kMaxRank, Move_CS::kMaxRank> Move::GetDstTensorTileItr(
     void* kernel_private_data_buffer, uint64_t membases[],
     int num_mems) {
   MovePrivateData private_data;
@@ -103,7 +103,7 @@ TensorIterator<Move_CS::kMaxRank> Move::GetDstTensorTileItr(
   MLI_ASSERT(private_data.kernel_id == kMoveId);
   MLI_ASSERT(private_data.size == sizeof(MovePrivateData));
 
-  return TensorIterator<Move_CS::kMaxRank>(
+  return TensorIterator<InternalBuffer, Move_CS::kMaxRank, Move_CS::kMaxRank>(
       Tensor<InternalBuffer, Move_CS::kMaxRank>(private_data.dst, membases,
                                                 num_mems),
       private_data.dst_cfg);
