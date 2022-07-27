@@ -143,20 +143,15 @@ MLI_FORCE_INLINE void group_conv2d_prepare_and_run(
             : mli_prv_get_tensor_chw<MLI_PTR(i_T)>(in);
 
     conv2d_weights_tensor_private_t<MLI_PTR(w_T)> weights_prv;
-    int out_ch;
     if (data_layout == LAYOUT_HWC) {
         weights_prv = mli_prv_get_conv2d_weights_tensor_nhwc<MLI_PTR(w_T)>(weights);
-        out_ch = weights_prv.out_ch;
     } else if (data_layout == LAYOUT_HWCN) {
         weights_prv = mli_prv_get_conv2d_weights_tensor_hwcn<MLI_PTR(w_T)>(weights, 0, fix_kernel_width, fix_kernel_height);
-        out_ch = weights_prv.out_ch;
     } else if ( data_layout == LAYOUT_HW1N) {
         weights_prv = mli_prv_get_conv2d_weights_tensor_hw1n<MLI_PTR(w_T)>(weights, fix_kernel_width, fix_kernel_height);
-        out_ch = weights_prv.out_ch;
     } else {
         // LAYOUT_CHW
         weights_prv= mli_prv_get_conv2d_weights_tensor_nchw<MLI_PTR(w_T)>(weights);
-        out_ch = weights_prv.out_ch;
     }
     auto out_prv = (data_layout == LAYOUT_HWC || data_layout == LAYOUT_HWCN || data_layout == LAYOUT_HW1N) ?
             mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(o_T)>(out)
