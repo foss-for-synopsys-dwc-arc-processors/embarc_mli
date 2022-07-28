@@ -871,6 +871,18 @@ int main() {
         }
 #endif
 
+#if PLATFORM == V2DSP_VECTOR
+        if (strstr(cur_test->descr, "Test 1 8x8 SA") != nullptr ||
+            strstr(cur_test->descr, "Test 2 8x8 SA ReluGen") != nullptr ||
+            strstr(cur_test->descr, "Test 5 8x8 SA Relu6 Mstr") != nullptr ||
+            strstr(cur_test->descr, "Test 8 8x8 SA Dil+Pad") != nullptr ||
+            strstr(cur_test->descr, "Test 10 8x8 SA Huge Vals") != nullptr) {
+        
+            reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
+            continue;
+        }
+#endif
+
         // STEP 0: Preprocessing phase
         //==================================================================
         DepthwiseConvOp dwc_op(cur_test);
