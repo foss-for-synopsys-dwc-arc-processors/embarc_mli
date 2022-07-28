@@ -49,8 +49,26 @@ Conv2d_CS::Conv2d_CS(const lib_mli::PlatformDescription pd,
   m_weights = Tensor<OffsetBuffer, 5>(OffsetBuffer(), weights);
   m_output = Tensor<OffsetBuffer, 4>(OffsetBuffer(), output_tile_shape);
 
+  m_inp_quant_axis = kPerTensorQuantDim;
+  m_wts_quant_axis = kKernelChannelOutDim;
+
   // Init convolution config
   m_config = cfg;
+
+  m_use_tiling = false;
+  for (int i = 0; i < 4; i++) {
+    m_tile_total_input_size[i] = 0;
+    m_tile_total_output_size[i] = 0;
+    m_tile_total_weights_size[i] = 0;
+    m_tile_iteration_order[i] = 0;
+    m_tile_input_first_inc[i] = 0;
+    m_tile_input_inc[i] = 0;
+    m_tile_output_first_inc[i] = 0;
+    m_tile_output_inc[i] = 0;
+    m_tile_weights_inc[i] = 0;
+  };
+
+
 }
 
 unsigned Conv2d_CS::GetKernelPrivateDataSize() const {
@@ -59,6 +77,63 @@ unsigned Conv2d_CS::GetKernelPrivateDataSize() const {
 
 unsigned Conv2d_CS::GetRuntimeObjectSize() const {
   return sizeof(Conv2d);
+}
+
+static uint32_t get_conv_input_size(uint32_t output_size, uint32_t padding, uint32_t kernel_size, uint32_t dilation, uint32_t stride) {
+  return output_size * stride - padding + (kernel_size - 1) * dilation;
+}
+
+void Conv2d_CS::FillTilingParams(Conv2DPrivateData& pdata) {
+
+  pdata.m_use_tiling = m_use_tiling;
+
+  // B
+  pdata.m_tile_first_size[kTensorBatchDim] = m_tile_input_first_inc[kTensorBatchDim];
+  pdata.m_tile_size[kTensorBatchDim] = m_tile_input_inc[kTensorBatchDim];
+
+  // H
+  uint32_t padding_y = m_config.padding_begin[0];
+  bool single_tile_y = m_tile_output_first_inc[kTensorHeightDim] == m_tile_total_output_size[kTensorHeightDim];
+  if (single_tile_y) padding_y += m_config.padding_end[0];
+  pdata.m_tile_first_size[kTensorHeightDim] = get_conv_input_size(m_tile_output_first_inc[kTensorHeightDim], padding_y,
+                                                                  m_weights.get_dim(kTensorHeightDim), m_config.dilation[0], m_config.stride[0]);
+  pdata.m_tile_first_size[kTensorHeightDim] = MIN(pdata.m_tile_first_size[kTensorHeightDim], m_input.get_dim(kTensorHeightDim));
+  if (single_tile_y) pdata.m_tile_size[kTensorHeightDim] = pdata.m_tile_first_size[kTensorHeightDim];
+  else {
+    pdata.m_tile_size[kTensorHeightDim] = get_conv_input_size(m_tile_output_inc[kTensorHeightDim], 0,
+                                                              m_weights.get_dim(kTensorHeightDim), m_config.dilation[0], m_config.stride[0]);
+    pdata.m_tile_size[kTensorHeightDim] = MIN(pdata.m_tile_size[kTensorHeightDim], m_input.get_dim(kTensorHeightDim));
+  }
+
+  // W
+  uint32_t padding_x = m_config.padding_begin[1];
+  bool single_tile_x = m_tile_output_first_inc[kTensorWidthDim] == m_tile_total_output_size[kTensorWidthDim];
+  if (single_tile_x) padding_x += m_config.padding_end[1];
+  pdata.m_tile_first_size[kTensorWidthDim] = get_conv_input_size(m_tile_output_first_inc[kTensorWidthDim], padding_x,
+                                                                 m_weights.get_dim(kTensorWidthDim), m_config.dilation[1], m_config.stride[1]);
+  pdata.m_tile_first_size[kTensorWidthDim] = MIN(pdata.m_tile_first_size[kTensorWidthDim], m_input.get_dim(kTensorWidthDim));
+  if (single_tile_x) pdata.m_tile_size[kTensorWidthDim] = pdata.m_tile_first_size[kTensorWidthDim];
+  else {
+    pdata.m_tile_size[kTensorWidthDim] = get_conv_input_size(m_tile_output_inc[kTensorWidthDim], 0,
+                                                             m_weights.get_dim(kTensorWidthDim), m_config.dilation[1], m_config.stride[1]);
+    pdata.m_tile_size[kTensorWidthDim] = MIN(pdata.m_tile_size[kTensorWidthDim], m_input.get_dim(kTensorWidthDim));
+  }
+
+  // C
+  pdata.m_tile_first_size[kTensorChannelDim] = m_tile_input_first_inc[kTensorChannelDim];
+  pdata.m_tile_size[kTensorChannelDim] = m_tile_input_inc[kTensorChannelDim];
+
+  for (int i = 0; i < 4; i++) {
+    pdata.m_tile_total_output_size[i] = m_tile_total_output_size[i];
+    pdata.m_tile_iteration_order[i] = m_tile_iteration_order[i];
+    pdata.m_tile_input_first_inc[i] = m_tile_input_first_inc[i];
+    pdata.m_tile_input_inc[i] = m_tile_input_inc[i];
+    pdata.m_tile_output_first_inc[i] = m_tile_output_first_inc[i];
+    pdata.m_tile_output_inc[i] = m_tile_output_inc[i];
+    pdata.m_tile_weights_inc[i] = m_tile_weights_inc[i];
+    pdata.m_tile_total_weights_size[i] = m_weights.get_dim(i + 1);
+    pdata.m_tile_total_input_size[i] = m_input.get_dim(i);
+  }
 }
 
 mli_status Conv2d_CS::GetKernelPrivateData(void* kernel_private_data_buffer) {
@@ -70,12 +145,15 @@ mli_status Conv2d_CS::GetKernelPrivateData(void* kernel_private_data_buffer) {
 
   // Channel checking
   MLI_ASSERT(m_weights.get_dim(mli::kKernelChannelOutDim) ==
-      m_output.get_dim(mli::kTileChannelDim));
+      m_tile_total_output_size[mli::kTileChannelDim]);
   MLI_ASSERT(m_weights.get_dim(mli::kKernelChannelInDim) ==
       m_input.get_dim(mli::kTensorChannelDim));
 
+  MLI_ASSERT(m_input.get_dim(mli::kTensorChannelDim) == m_weights.get_dim(mli::kKernelChannelInDim));
+
   // Group checking
   MLI_ASSERT(m_weights.get_dim(mli::kKernelGroupDim) == 1);
+
   MLI_ASSERT(m_weights.get_dim(mli::kKernelGroupDim) ==
       m_output.get_dim(mli::kTileGroupDim));
 
@@ -89,6 +167,8 @@ mli_status Conv2d_CS::GetKernelPrivateData(void* kernel_private_data_buffer) {
   prv_data.wts_quant_axis = m_wts_quant_axis;
   prv_data.config = m_config;
   prv_data.layout = LAYOUT_HWC;
+
+  FillTilingParams(prv_data);
 
   std::memcpy(kernel_private_data_buffer, (void *)&prv_data, prv_data.size);
 
@@ -228,8 +308,17 @@ mli_status Conv2d_CS::SetIterators(uint32_t output_total_size[4],
                                    uint32_t output_first_inc[4],
                                    uint32_t output_inc[4],
                                    uint32_t weights_inc[4]) {
-    // TODO: Store iterator params
-    return MLI_STATUS_OK;
+  m_use_tiling = true;
+  for (int i = 0; i < 4; i++) {
+    m_tile_total_output_size[i] = output_total_size[i];
+    m_tile_iteration_order[i] = iteration_order[i];
+    m_tile_input_first_inc[i] = input_first_inc[i];
+    m_tile_input_inc[i] = input_inc[i];
+    m_tile_output_first_inc[i] = output_first_inc[i];
+    m_tile_output_inc[i] = output_inc[i];
+    m_tile_weights_inc[i] = weights_inc[i];
+  }
+  return MLI_STATUS_OK;
 }
 
 }  // namespace snps_arc::metaware::mli::ref

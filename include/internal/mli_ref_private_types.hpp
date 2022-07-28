@@ -42,6 +42,21 @@ public:
 
     // Convolution config
     Conv2DConfig config;
+
+    // Tile Parameters BHWC
+    bool m_use_tiling;
+    uint32_t m_tile_total_input_size[4];
+    uint32_t m_tile_total_output_size[4];
+    uint32_t m_tile_total_weights_size[4];  // KyKxCiCo
+    uint32_t m_tile_iteration_order[4];
+    uint32_t m_tile_first_size[4];
+    uint32_t m_tile_size[4];
+    uint32_t m_tile_input_first_inc[4];
+    uint32_t m_tile_input_inc[4];
+    uint32_t m_tile_output_first_inc[4];
+    uint32_t m_tile_output_inc[4];
+    uint32_t m_tile_weights_inc[4];
+
 };
 
 struct Conv2dMetadata {
@@ -200,6 +215,8 @@ public:
     uint8_t padding_right;
 
     // Tile Parameters BHWC
+    bool m_use_tiling;
+    uint32_t m_tile_total_input_size[4];
     uint32_t m_tile_total_output_size[4];
     uint32_t m_tile_iteration_order[4];
     uint32_t m_tile_first_size[4];

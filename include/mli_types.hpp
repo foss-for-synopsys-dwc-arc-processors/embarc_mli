@@ -44,6 +44,8 @@ constexpr short int kKernelDWChannelInDim = 2;
 constexpr short int kKernelFCChannelInDim = 0;
 constexpr short int kKernelFCChannelOutDim = 1;
 
+constexpr short int kPerTensorQuantDim = -1;
+
 typedef enum {
   kInvalidId = 0,
   kConv2dId,
@@ -255,13 +257,13 @@ public:
 
   template <typename T>
   void set_ptr(T* ptr) {
-    ptr_ = static_cast<uint64_t>(ptr);
+    ptr_ = reinterpret_cast<uint64_t>(ptr);
     elem_size_ = sizeof(T);
   }
 
   template <typename T>
   void set_buffer(T* ptr, uint32_t size) {
-    ptr_ = static_cast<uint64_t>(ptr);
+    ptr_ = reinterpret_cast<uint64_t>(ptr);
     elem_size_ = sizeof(T);
     size_ = size;
   }
@@ -381,6 +383,22 @@ class Tensor {
     rank_ = in.get_rank();
   }
 
+  /* copy constructor for almost same tensors, but different shape */
+  template <unsigned N>
+  Tensor(Tensor<buf_T, N> in, uint32_t shape[]) {
+    static_assert(N <= maxRank, "Invalid (Input Rank > maxRank)");
+    buf_ = in.get_buf();
+    for (unsigned i = 0; i < N; i++) {
+      shape_[i] = shape[i];
+      mem_stride_[i] = in.get_mem_stride(i);
+    }
+    for (unsigned i = N; i < maxRank; i++) {
+      shape_[i] = 0;
+      mem_stride_[i] = 0;
+    }
+    rank_ = in.get_rank();
+  }
+
   /* copy constructor for tensors with different rank/Buffer Type */
   template <unsigned N>
   Tensor(buf_T buf, Tensor<NoBuffer, N> in) {
@@ -416,12 +434,24 @@ class Tensor {
     shape_[idx] = shape;
   }
 
+  void get_dims(uint32_t shape[]) const {
+    for (int i = 0; i < maxRank; i++) {
+      shape[i] = shape_[i];
+    }
+  }
+
   int32_t get_mem_stride(unsigned idx) const {
     return mem_stride_[idx];
   }
 
   void set_mem_stride(unsigned idx, int32_t mem_stride) {
     mem_stride_[idx] = mem_stride;
+  }
+
+  void get_mem_strides(int32_t mem_strides[]) {
+    for (int i = 0; i < maxRank; i++) {
+      mem_strides[i] = mem_stride_[i];
+    }
   }
 
   unsigned get_rank() const {

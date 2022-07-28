@@ -22,7 +22,6 @@ namespace snps_arc::metaware::mli::ref {
 
 namespace mli_krn = ::mli::krn;
 
-
 MaxPool2D::MaxPool2D(void* kernel_private_data_buffer, size_t size,
                      uint64_t membases[], int num_mems) {
   MLI_ASSERT(size == sizeof(Pool2DPrivateData));
@@ -64,7 +63,7 @@ MaxPool2D::MaxPool2D(void* kernel_private_data_buffer, size_t size,
   m_input.mem_stride[2] = maxpool2d_private_buffer.input_c_stride;
   m_input.mem_stride[3] = 0;
 
-  m_use_tiling = maxpool2d_private_buffer.m_tile_first_size[kTensorBatchDim] > 0;
+  m_use_tiling = maxpool2d_private_buffer.m_use_tiling;
   if (m_use_tiling) {
     m_input.shape[0] = maxpool2d_private_buffer.m_tile_first_size[kTensorHeightDim];
     m_input.shape[1] = maxpool2d_private_buffer.m_tile_first_size[kTensorWidthDim];
@@ -99,11 +98,8 @@ MaxPool2D::MaxPool2D(void* kernel_private_data_buffer, size_t size,
   m_output.shape[3] = 0;
 
   if (m_use_tiling) {
-    m_tile_total_input_size[kTensorBatchDim] = maxpool2d_private_buffer.input_b;
-    m_tile_total_input_size[kTensorHeightDim] = maxpool2d_private_buffer.input_h;
-    m_tile_total_input_size[kTensorWidthDim] = maxpool2d_private_buffer.input_w;
-    m_tile_total_input_size[kTensorChannelDim] = maxpool2d_private_buffer.input_c;
     for (int i = 0; i < 4; i++) {
+      m_tile_total_input_size[i] = maxpool2d_private_buffer.m_tile_total_input_size[i];
       m_tile_total_output_size[i] = maxpool2d_private_buffer.m_tile_total_output_size[i];
       m_tile_iteration_order[i] = maxpool2d_private_buffer.m_tile_iteration_order[i];
       m_tile_first_size[i] = maxpool2d_private_buffer.m_tile_first_size[i];
@@ -116,6 +112,7 @@ MaxPool2D::MaxPool2D(void* kernel_private_data_buffer, size_t size,
       m_tile_output_offsets[i] = 0;
     }
   }
+
   UpdateTilePaddings();
 }
 
@@ -202,7 +199,7 @@ void MaxPool2D::UpdateTilePaddings() {
   }
 }
 
-void MaxPool2D::get_io_sizes_and_offsets(uint32_t input_size[4], uint32_t output_size[4],
+void MaxPool2D::GetIOSizesAndOffsets(uint32_t input_size[4], uint32_t output_size[4],
                                          uint32_t input_offsets[4], uint32_t output_offsets[4]) const {
     input_size[0] = 1;
     output_size[0] = 1;

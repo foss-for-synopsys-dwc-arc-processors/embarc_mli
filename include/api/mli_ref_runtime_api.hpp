@@ -21,9 +21,38 @@ namespace snps_arc::metaware::mli::ref {
 using lib_mli::ExecutionInterface;
 using lib_mli::PrivateData;
 
+
+/**
+ * @brief This class implements the Conv2d kernel xop interpreter interface
+ * 
+ */
 class Conv2d : public ExecutionInterface {
 
 public:
+    /**
+     * @brief constructor for the Conv2d
+     *
+     * This Method will create and initialize the object using the information
+     * stored in the kernel_private_data_buffer that has been computed at compile time
+     * by the GetKernelPrivateData() method of Conv2d_CS class
+     *
+     * This kernel computes each value of the output tensor as the result of convolution operation 
+     * of all values in the related perception area of all channels of the input tensor.
+     *
+     * @param kernel_private_data_buffer [I] pointer to the compiletime computed initialization data
+     * @param size        [I] Size of the data is used to check for coding errors
+     * @param membases[]  [I] The kernel private data may contain offsets inside a (vector) memory.
+     *                        At run-time specific locations in memory are allocated for
+     *                        the graph, the membase array contains the start of
+     *                        each memory region.
+     *                        This base will be added to all memory offsets in the constructor
+     *                        according to the memory ID associated with that offset.
+     *                        Each platform can have different (number of) memories. For mli
+     *                        this is completely transparent. Compiler needs to use the same
+     *                        memory id's when attaching the buffers as are used by the
+     *                        xop-interpreter to set the membases.
+     * @param num_mems    [I] Number of elements in the membases array.
+     */
     Conv2d(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
 
     mli_status Issue() override;
@@ -32,8 +61,33 @@ public:
 
     mli_status Update() override;
 
+    // TODO: remove this method and replace with usage of Move kernel (not possible now)
+    void GetIOSizesAndOffsets(uint32_t input_size[4], uint32_t output_size[4], uint32_t weights_size[4],
+                              uint32_t input_offsets[4], uint32_t output_offsets[4], uint32_t weights_offsets[4]) const;
+
 private:
+    void UpdateTilePaddings();
+
     Conv2dMetadata m_metadata;
+
+    // Tile Parameters BHWC
+    bool m_use_tiling;
+    uint32_t m_tile_total_input_size[4];
+    uint32_t m_tile_total_output_size[4];
+    uint32_t m_tile_total_weights_size[4];  // KyKxCiCo
+    uint32_t m_tile_iteration_order[4];
+    uint32_t m_tile_first_size[4];
+    uint32_t m_tile_size[4];
+    uint32_t m_tile_input_first_inc[4];
+    uint32_t m_tile_input_inc[4];
+    uint32_t m_tile_output_first_inc[4];
+    uint32_t m_tile_output_inc[4];
+    uint32_t m_tile_weights_inc[4];
+
+    // Tile state
+    uint32_t m_tile_input_offsets[4];
+    uint32_t m_tile_output_offsets[4];
+    Conv2dMetadata m_tile_metadata;
 };
 
 /**
@@ -151,7 +205,7 @@ public:
      *
      * This method will create and initialize the Max Pooling 2D object using the information
      * stored in the kernel_private_data_buffer that has been computed at compile time
-     * by the GetKernelPrivateData() method.
+     * by the GetKernelPrivateData() method of MaxPool2D_CS class
      * 
      * This kernel computes each value of the output tensor as the maximum 
      * of all values in the related perception area of a single channel of the input tensor.
@@ -178,13 +232,12 @@ public:
 
     mli_status Update() override;
 
-
-    void get_io_sizes_and_offsets(uint32_t input_size[4], uint32_t output_size[4],
-                                  uint32_t input_offsets[4], uint32_t output_offsets[4]) const;
+    // TODO: remove this method and replace with usage of Move kernel (not possible now)
+    void GetIOSizesAndOffsets(uint32_t input_size[4], uint32_t output_size[4],
+                              uint32_t input_offsets[4], uint32_t output_offsets[4]) const;
 
 private:
     void UpdateTilePaddings();
-
 
     mli_pool_cfg m_cfg;
     mli_tensor m_input;

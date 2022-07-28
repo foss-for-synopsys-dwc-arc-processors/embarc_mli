@@ -20,18 +20,29 @@ using lib_mli::Tensor;
 using lib_mli::Buffer;
 using lib_mli::OffsetBuffer;
 using lib_mli::NoBuffer;
+class Conv2DPrivateData;
+class Pool2DPrivateData;
 
 class Conv2d_CS : public lib_mli::Conv2d_CS {
 public:
     /**
-     * @brief Constructor of the Conv2d_CS object
+     * @brief Constructor to create an Conv2d_CS compiler support object.
      *
+     * This constructor can be used to create a Convolution 2D compiler support
+     * object. This kernel computes each value of the output tensor as the result of convolution operation 
+     * of all values in the related perception area of all channels of the input tensor.
+     *
+     * @param pd [IN] Platform description
+     * @param in [IN] input tensor (full shape)
+     * @param weights [IN] weights tensor (full shape)
+     * @param cfg [IN] Conv2DConfig structure
+     * @param output_tile_shape [OUT] output tensor (tile shape)
      */
     Conv2d_CS(const lib_mli::PlatformDescription pd,
-              const Tensor<NoBuffer, 4> &in,
-              const Tensor<NoBuffer, 5> &weights,
+              const Tensor<NoBuffer, 4> &in, /**< layout: BHWC */
+              const Tensor<NoBuffer, 5> &weights, /**< layout: GKyKxCiCo */
               const Conv2DConfig &cfg,
-              const Tensor<NoBuffer, 4> &output_tile_shape);
+              const Tensor<NoBuffer, 4> &output_tile_shape /**< layout: BHWC */);
 
     mli_status EncodeWeights(Tensor<Buffer, 5> &weights,
                              Buffer &encoded_weights,
@@ -49,10 +60,19 @@ public:
 
     unsigned GetEncodedWtsZeroPtsSize() override;
 
+    /**
+     * Tensor buffer sizes could depend on the platform and/or parameters.
+     * These functions can be used to query how much memory needs to be allocated for
+     * the input, weights and output tensors.
+     * Note, that these sizes are for full tensors, not tiles. 
+     */
     unsigned GetInputBufferSize() override;
     unsigned GetOutputBufferSize() override;
     unsigned GetWeightsBufferSize() override;
     unsigned GetZeroPointBufferSize() override;
+    /**
+     * @return Always returns zero for reference kernel.
+     */
     unsigned GetDataBufferSize() override;
 
     mli_status AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
@@ -60,7 +80,7 @@ public:
                                    OffsetBuffer &weights,
                                    OffsetBuffer &inpzeropts,
                                    OffsetBuffer &wtszeropts,
-                                   OffsetBuffer &descr) override;
+                                   OffsetBuffer &metadata) override;
 
     mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
     unsigned GetKernelPrivateDataSize() const override;
@@ -74,8 +94,11 @@ public:
                             uint32_t output_inc[4],
                             uint32_t weights_inc[4]) override;
 private:
+    void FillTilingParams(Conv2DPrivateData& pdata);
+
     // Input, weights, output tensors with offset buffer attached
     Tensor<OffsetBuffer, 4> m_input;
+
     Tensor<OffsetBuffer, 5> m_weights;
     Tensor<OffsetBuffer, 4> m_output;
 
@@ -97,6 +120,18 @@ private:
 
     // Platform descriptor
     lib_mli::PlatformDescription m_pd;
+
+    // Tile Parameters BHWC
+    bool m_use_tiling;
+    uint32_t m_tile_total_input_size[4];
+    uint32_t m_tile_total_output_size[4];
+    uint32_t m_tile_total_weights_size[4];  // KyKxCiCo
+    uint32_t m_tile_iteration_order[4];
+    uint32_t m_tile_input_first_inc[4];
+    uint32_t m_tile_input_inc[4];
+    uint32_t m_tile_output_first_inc[4];
+    uint32_t m_tile_output_inc[4];
+    uint32_t m_tile_weights_inc[4];
 };
 
 class DepthwiseConv2d_CS : public lib_mli::DepthwiseConv2d_CS {
@@ -170,17 +205,24 @@ public:
      * of all values in the related perception area of a single channel of the input tensor.
      *
      * @param pd [IN] Platform description
-     * @param in [IN] Input tensor shape and memory strides
+     * @param in [IN] Input tensor (full shape)
      * @param cfg [IN] PoolOpConfig structure
-     * @param output_tile_shape [OUT] Output tensor shape and memory strides
+     * @param output_tile_shape [OUT] Output tensor (tile shape)
      */
     MaxPool2D_CS(const lib_mli::PlatformDescription pd,
-                 const Tensor<NoBuffer, 4> in, /**< layout: batch size, height, weight, channels */
+                 const Tensor<NoBuffer, 4> in, /**< layout: BHWC */
                  const PoolOpConfig &cfg,
-                 const Tensor<NoBuffer, 4> output_tile_shape); /**< layout: batch size, height, weight, channels */
+                 const Tensor<NoBuffer, 4> output_tile_shape); /**< layout: BHWC */
 
     unsigned GetKernelPrivateDataSize() const override;
     unsigned GetRuntimeObjectSize() const override;
+    
+    /**
+     * Tensor buffer sizes could depend on the platform and/or parameters.
+     * These functions can be used to query how much memory needs to be allocated for
+     * the input, weights and output tensors.
+     * Note, that these sizes are for full tensors, not tiles. 
+     */
     unsigned GetInputBufferSize() const override;
     unsigned GetOutputBufferSize() const override;
     /**
@@ -189,15 +231,21 @@ public:
     unsigned GetDataBufferSize() const override;
 
     mli_status GetKernelPrivateData(void *kernel_private_data_buffer) override;
+
     mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
                                    const Tensor<OffsetBuffer, 4> &output,
                                    const OffsetBuffer &data) override;
-    mli_status SetIterators(uint32_t total_output_size[4], uint32_t iteration_order[4],
-                            uint32_t first_tile_size[4], uint32_t tile_size[4],
-                            uint32_t input_first_inc[4], uint32_t input_inc[4],
-                            uint32_t output_first_inc[4], uint32_t output_inc[4]) override;
+
+    mli_status SetIterators(uint32_t output_total_size[4],
+                            uint32_t iteration_order[4],
+                            uint32_t input_first_inc[4],
+                            uint32_t input_inc[4],
+                            uint32_t output_first_inc[4],
+                            uint32_t output_inc[4]) override;
 
 private:
+    void FillTilingParams(Pool2DPrivateData& private_data);
+
     Tensor<OffsetBuffer, 4> m_in;
     Tensor<OffsetBuffer, 4> m_output;
 
@@ -208,10 +256,10 @@ private:
 
     lib_mli::PlatformDescription m_pd;
 
+    // Tile Parameters BHWC
+    bool m_use_tiling;
     uint32_t m_tile_total_output_size[4];
     uint32_t m_tile_iteration_order[4];
-    uint32_t m_tile_first_size[4];
-    uint32_t m_tile_size[4];
     uint32_t m_tile_input_first_inc[4];
     uint32_t m_tile_input_inc[4];
     uint32_t m_tile_output_first_inc[4];

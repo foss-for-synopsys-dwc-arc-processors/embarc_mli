@@ -121,14 +121,11 @@ void prepare_phase(const maxpool_test_operands* cur_test,
   // BHWC layout
   uint32_t total_input_size[4];
   uint32_t total_output_size[4];
-  uint32_t first_tile_size[4];
-  uint32_t tile_size[4];
   uint32_t input_tile_first_inc[4];
   uint32_t output_tile_first_inc[4];
   uint32_t input_tile_inc[4];
   uint32_t output_tile_inc[4];
   tiling.get_io_tiles_parameters(total_input_size, total_output_size,
-                                 first_tile_size, tile_size,
                                  input_tile_first_inc, output_tile_first_inc,
                                  input_tile_inc, output_tile_inc);
 
@@ -206,7 +203,6 @@ void prepare_phase(const maxpool_test_operands* cur_test,
   assert(status == MLI_STATUS_OK);
 
   maxpool2d_op->SetIterators(total_output_size, iteration_order,
-                             first_tile_size, tile_size,
                              input_tile_first_inc, input_tile_inc,
                              output_tile_first_inc, output_tile_inc);
 
@@ -219,22 +215,6 @@ void prepare_phase(const maxpool_test_operands* cur_test,
   maxpool2d_conf_private = reinterpret_cast<lib_mli::PrivateData*>(
       (int8_t*)g_mem_pool + maxpool2d_instance_size);
   maxpool2d_conf_private_size = maxpool2d_op->GetKernelPrivateDataSize();
-}
-
-template <typename T>
-static void strided_copy_with_offsets(const T * src, const uint32_t src_offsets[4], const uint32_t dst_offsets[4], const uint32_t strides[4], const uint32_t size[4], T * dst) {
-    uint32_t src_ind = 0, dst_ind = 0;
-    for (uint32_t b = 0; b < size[0]; b++) {
-        for (uint32_t h = 0; h < size[1]; h++) {
-            for (uint32_t w = 0; w < size[2]; w++) {
-                for (uint32_t c = 0; c < size[3]; c++) {
-                    src_ind = (c + src_offsets[3]) * strides[3] + (w + src_offsets[2]) * strides[2] + (h + src_offsets[1])  * strides[1] + (b + src_offsets[0])  * strides[0];
-                    dst_ind = (c + dst_offsets[3]) * strides[3] + (w + dst_offsets[2]) * strides[2] + (h + dst_offsets[1])  * strides[1] + (b + dst_offsets[0])  * strides[0];
-                    dst[dst_ind] = src[src_ind];
-                }
-            }
-        }
-    }
 }
 
 
@@ -255,10 +235,10 @@ void execution_phase(Tiling& tiling,
 
   mli_status status = MLI_STATUS_OK;
   lib_ref::Pool2DPrivateData* maxpool2d_private = (lib_ref::Pool2DPrivateData*)(maxpool2d_conf_private);
-  uint32_t tile_input_strides[4]{ (uint32_t)maxpool2d_private->input_b_stride, (uint32_t)maxpool2d_private->input_h_stride,
-                                (uint32_t)maxpool2d_private->input_w_stride, (uint32_t)maxpool2d_private->input_c_stride };
-  uint32_t tile_output_strides[4]{ (uint32_t)maxpool2d_private->output_b_stride, (uint32_t)maxpool2d_private->output_h_stride,
-                                   (uint32_t)maxpool2d_private->output_w_stride, (uint32_t)maxpool2d_private->output_c_stride };
+  int32_t tile_input_strides[4]{ maxpool2d_private->input_b_stride, maxpool2d_private->input_h_stride,
+                                 maxpool2d_private->input_w_stride, maxpool2d_private->input_c_stride };
+  int32_t tile_output_strides[4]{ maxpool2d_private->output_b_stride, maxpool2d_private->output_h_stride,
+                                  maxpool2d_private->output_w_stride, maxpool2d_private->output_c_stride };
 
   lib_ref::MaxPool2D* mli_maxpool2d_pimpl = dynamic_cast<lib_ref::MaxPool2D*>(mli_maxpool2d);
   uint32_t input_tile_size[4];
@@ -270,18 +250,13 @@ void execution_phase(Tiling& tiling,
     status = mli_maxpool2d->Prefetch();
     assert(status == MLI_STATUS_OK);
 
-    mli_maxpool2d_pimpl->get_io_sizes_and_offsets(input_tile_size, output_tile_size, input_tile_offsets, output_tile_offsets);
+    mli_maxpool2d_pimpl->GetIOSizesAndOffsets(input_tile_size, output_tile_size, input_tile_offsets, output_tile_offsets);
 
     // copy input from global buffer to local tile buffer
-    if (maxpool2d_private->input_buffer.get_elem_size() == 1) {
-        strided_copy_with_offsets<int8_t>(g_scratch_mem_in, input_tile_offsets, zero_offsets, tile_input_strides,
-                                          input_tile_size, (int8_t*) (g_mem_pool + maxpool2d_private->input_buffer.get_offset()) );
-    }
-    else {
-        assert(maxpool2d_private->input_buffer.get_elem_size() == 2);
-        strided_copy_with_offsets<int16_t>((int16_t*)g_scratch_mem_in, input_tile_offsets, zero_offsets, tile_input_strides,
-                                           input_tile_size, (int16_t*)(g_mem_pool + maxpool2d_private->input_buffer.get_offset()));
-    }
+    strided_copy_with_offsets(4, maxpool2d_private->input_buffer.get_elem_size(),
+                              g_scratch_mem_in, input_tile_offsets, zero_offsets, tile_input_strides,
+                              input_tile_size, (int8_t*) (g_mem_pool + maxpool2d_private->input_buffer.get_offset()) );
+
 
     status = mli_maxpool2d->Issue();
     assert(status == MLI_STATUS_OK);
@@ -290,15 +265,10 @@ void execution_phase(Tiling& tiling,
     assert(status == MLI_STATUS_OK);
 
     // copy output from local tile buffer to global buffer
-    if (maxpool2d_private->input_buffer.get_elem_size() == 1) {
-        strided_copy_with_offsets<int8_t>((int8_t*) (g_mem_pool + maxpool2d_private->output_buffer.get_offset()), zero_offsets, output_tile_offsets, tile_output_strides,
-                                          output_tile_size, g_scratch_mem_out);
-    }
-    else {
-        assert(maxpool2d_private->input_buffer.get_elem_size() == 2);
-        strided_copy_with_offsets<int16_t>((int16_t*)(g_mem_pool + maxpool2d_private->output_buffer.get_offset()), zero_offsets, output_tile_offsets, tile_output_strides,
-                                                      output_tile_size, (int16_t*)g_scratch_mem_out);
-    }
+    strided_copy_with_offsets(4, maxpool2d_private->input_buffer.get_elem_size(),
+                              (int8_t*)(g_mem_pool + maxpool2d_private->output_buffer.get_offset()), 
+                              zero_offsets, output_tile_offsets, tile_output_strides,
+                              output_tile_size, (int8_t*) g_scratch_mem_out);
   }
 }
 
@@ -371,8 +341,9 @@ int main() {
     mli_tensor temp_input_tensor = cur_test->in.get_not_quantized_tensor(temp_container);
     uint32_t input_shape[4]{};
     hwc_to_bhwc(temp_input_tensor.shape, input_shape);
-    uint32_t tile_input_size[4]{ 1, 4, 4, input_shape[3] };
-    Tiling tiling(input_shape, tile_input_size, kernel_info);
+    uint32_t tile_oc = 2;
+    uint32_t tile_input_size[4]{ 1, 4, 4, tile_oc };
+    Tiling tiling(input_shape, tile_input_size, kernel_info, tile_oc, input_shape[3]);
     /**************************************************************************************************************/
 
     void* maxpool2d_instance = nullptr;

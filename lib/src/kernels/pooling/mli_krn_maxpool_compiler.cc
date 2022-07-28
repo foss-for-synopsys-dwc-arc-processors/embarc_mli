@@ -41,9 +41,8 @@ MaxPool2D_CS::MaxPool2D_CS(const lib_mli::PlatformDescription pd,
   m_output_buffer_size =
       service::GetBufferSize(4, output_shape, output_stride);
 
+  m_use_tiling = false;
   for (int i = 0; i < 4; i++) {
-    m_tile_first_size[i] = 0;
-    m_tile_size[i] = 0;
     m_tile_total_output_size[i] = 0;
     m_tile_iteration_order[i] = 0;
     m_tile_input_first_inc[i] = 0;
@@ -97,16 +96,7 @@ mli_status MaxPool2D_CS::GetKernelPrivateData(
   obj.padding_left = m_config.padding_begin[1];
   obj.padding_right = m_config.padding_end[1];
 
-  for (int i = 0; i < 4; i++) {
-    obj.m_tile_total_output_size[i] = m_tile_total_output_size[i];
-    obj.m_tile_iteration_order[i] = m_tile_iteration_order[i];
-    obj.m_tile_input_first_inc[i] = m_tile_input_first_inc[i];
-    obj.m_tile_first_size[i] = m_tile_first_size[i];
-    obj.m_tile_size[i] = m_tile_size[i];
-    obj.m_tile_input_inc[i] = m_tile_input_inc[i];
-    obj.m_tile_output_first_inc[i] = m_tile_output_first_inc[i];
-    obj.m_tile_output_inc[i] = m_tile_output_inc[i];
-  }
+  FillTilingParams(obj);
 
   std::memcpy(kernel_private_data_buffer, (void *)&obj, sizeof(obj));
 
@@ -136,14 +126,15 @@ unsigned MaxPool2D_CS::GetDataBufferSize() const {
   return 0;
 }
 
-mli_status MaxPool2D_CS::SetIterators(uint32_t total_output_size[4], uint32_t iteration_order[4],
-                                      uint32_t first_tile_size[4], uint32_t tile_size[4],
-                                      uint32_t input_first_inc[4], uint32_t input_inc[4],
-                                      uint32_t output_first_inc[4], uint32_t output_inc[4]) {
+mli_status MaxPool2D_CS::SetIterators(uint32_t output_total_size[4],
+                                      uint32_t iteration_order[4],
+                                      uint32_t input_first_inc[4],
+                                      uint32_t input_inc[4],
+                                      uint32_t output_first_inc[4],
+                                      uint32_t output_inc[4]) {
+  m_use_tiling = true;
   for (int i = 0; i < 4; i++) {
-    m_tile_first_size[i] = first_tile_size[i];
-    m_tile_size[i] = tile_size[i];
-    m_tile_total_output_size[i] = total_output_size[i];
+    m_tile_total_output_size[i] = output_total_size[i];
     m_tile_iteration_order[i] = iteration_order[i];
     m_tile_input_first_inc[i] = input_first_inc[i];
     m_tile_input_inc[i] = input_inc[i];
@@ -153,5 +144,61 @@ mli_status MaxPool2D_CS::SetIterators(uint32_t total_output_size[4], uint32_t it
 
   return MLI_STATUS_OK;
 }
+
+static uint32_t get_conv_input_size(uint32_t output_size, uint32_t padding, uint32_t kernel_size, uint32_t dilation, uint32_t stride) {
+  return output_size * stride - padding + (kernel_size - 1) * dilation;
+}
+
+void MaxPool2D_CS::FillTilingParams(Pool2DPrivateData& pdata) {
+
+  pdata.m_use_tiling = m_use_tiling;
+
+  // B
+  pdata.m_tile_first_size[kTensorBatchDim] = m_tile_input_first_inc[kTensorBatchDim];
+  pdata.m_tile_size[kTensorBatchDim] = m_tile_input_inc[kTensorBatchDim];
+
+  // H
+  uint32_t padding_y = m_config.padding_begin[0];
+  bool single_tile_y = m_tile_output_first_inc[kTensorHeightDim] == m_tile_total_output_size[kTensorHeightDim];
+  if (single_tile_y) padding_y += m_config.padding_end[0];
+  pdata.m_tile_first_size[kTensorHeightDim] = get_conv_input_size(m_tile_output_first_inc[kTensorHeightDim], padding_y,
+                                                                  m_config.kernel_size[0], 1, m_config.stride[0]);
+  pdata.m_tile_first_size[kTensorHeightDim] = MIN(pdata.m_tile_first_size[kTensorHeightDim], m_in.get_dim(kTensorHeightDim));
+  if (single_tile_y) pdata.m_tile_size[kTensorHeightDim] = pdata.m_tile_first_size[kTensorHeightDim];
+  else {
+    pdata.m_tile_size[kTensorHeightDim] = get_conv_input_size(m_tile_output_inc[kTensorHeightDim], 0,
+                                                              m_config.kernel_size[0], 1, m_config.stride[0]);
+    pdata.m_tile_size[kTensorHeightDim] = MIN(pdata.m_tile_size[kTensorHeightDim], m_in.get_dim(kTensorHeightDim));
+  }
+
+  // W
+  uint32_t padding_x = m_config.padding_begin[1];
+  bool single_tile_x = m_tile_output_first_inc[kTensorWidthDim] == m_tile_total_output_size[kTensorWidthDim];
+  if (single_tile_x) padding_x += m_config.padding_end[1];;
+  pdata.m_tile_first_size[kTensorWidthDim] = get_conv_input_size(m_tile_output_first_inc[kTensorWidthDim], padding_x,
+                                                                 m_config.kernel_size[1], 1, m_config.stride[1]);
+  pdata.m_tile_first_size[kTensorWidthDim] = MIN(pdata.m_tile_first_size[kTensorWidthDim], m_in.get_dim(kTensorWidthDim));
+  if (single_tile_x) pdata.m_tile_size[kTensorWidthDim] = pdata.m_tile_first_size[kTensorWidthDim];
+  else {
+    pdata.m_tile_size[kTensorWidthDim] = get_conv_input_size(m_tile_output_inc[kTensorWidthDim], 0,
+                                                             m_config.kernel_size[1], 1, m_config.stride[1]);
+    pdata.m_tile_size[kTensorWidthDim] = MIN(pdata.m_tile_size[kTensorWidthDim], m_in.get_dim(kTensorWidthDim));
+  }
+
+  // C
+  pdata.m_tile_first_size[kTensorChannelDim] = m_tile_input_first_inc[kTensorChannelDim];
+  pdata.m_tile_size[kTensorChannelDim] = m_tile_input_inc[kTensorChannelDim];
+
+  for (int i = 0; i < 4; i++) {
+    pdata.m_tile_total_output_size[i] = m_tile_total_output_size[i];
+    pdata.m_tile_iteration_order[i] = m_tile_iteration_order[i];
+    pdata.m_tile_input_first_inc[i] = m_tile_input_first_inc[i];
+    pdata.m_tile_input_inc[i] = m_tile_input_inc[i];
+    pdata.m_tile_output_first_inc[i] = m_tile_output_first_inc[i];
+    pdata.m_tile_output_inc[i] = m_tile_output_inc[i];
+    pdata.m_tile_total_input_size[i] = m_in.get_dim(i);
+  }
+}
+
 
 }  // namespace snps_arc::metaware::mli::ref
