@@ -481,6 +481,9 @@ public:
  */
 class MaxPool2D_CS : public CompilerGenericInterface {
 public:
+    static constexpr unsigned KMaxpoolRank = 4;
+    static constexpr unsigned KMaxpoolIterRank = 4;
+
     virtual ~MaxPool2D_CS() = default;
 
     /**
@@ -513,23 +516,45 @@ public:
      * Compiler computes a memory map and buffer offsets are set using this method.
      * Compiler also needs to indicate in which memory the buffers reside.
      * These ID's need to match the array of memory bases that the xop-interpreter passes to
-     * the init function.
+     * the Create function.
      *
      * In this method you specify offsets for tensors passed to the constructor.
      * 
+     * @deprected
      * @param input [I] Tensor descriptor containing input OffsetBuffer and tensor shape and memory strides
      * @param output [I] Tensor descriptor containing output OffsetBuffer and tensor shape and memory strides
      * @param data [I] Tensor descriptor containing descriptor data OffsetBuffer
      * 
      * @return MLI status code
      */
-    virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
-                                           const Tensor<OffsetBuffer, 4> &output,
+    virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, KMaxpoolRank> &input,
+                                           const Tensor<OffsetBuffer, KMaxpoolRank> &output,
                                            const OffsetBuffer &data) = 0;
 
     /**
+     * @brief Method to set buffer memory offsets and memory IDs for the kernel
+     *
+     * Compiler computes a memory map and buffer offsets are set using this method.
+     * Compiler also needs to indicate in which memory the buffers reside.
+     * These ID's need to match the array of memory bases that the xop-interpreter passes to
+     * the Create function.
+     *
+     * In this method you specify offsets for tensors passed to the constructor.
+     *
+     * @param input [I] input OffsetBuffer 
+     * @param output [I] output OffsetBuffer
+     * @param data [I] descriptor data OffsetBuffer
+     *
+     * @return MLI status code
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer& input,
+                                           const OffsetBuffer& output,
+                                           const OffsetBuffer& data)  = 0;
+    
+    /**
      * @brief Set the Iterators object
      *
+     * @deprected
      * @param output_total_size [I] Size of full output tensor
      * @param iteration_order [I] Array which defines the order of dimensions to iterate over
      * @param input_first_inc [I] Increment in elements per dimension for the first tile in the input tensor
@@ -539,12 +564,12 @@ public:
      *
      * @return MLI status code
      */
-    virtual mli_status SetIterators(uint32_t output_total_size[4],
-                                    uint32_t iteration_order[4],
-                                    uint32_t input_first_inc[4],
-                                    uint32_t input_inc[4],
-                                    uint32_t output_first_inc[4],
-                                    uint32_t output_inc[4]) = 0;
+    virtual mli_status SetIterators(uint32_t output_total_size[KMaxpoolIterRank],
+                                    uint32_t iteration_order[KMaxpoolIterRank],
+                                    uint32_t input_first_inc[KMaxpoolIterRank],
+                                    uint32_t input_inc[KMaxpoolIterRank],
+                                    uint32_t output_first_inc[KMaxpoolIterRank],
+                                    uint32_t output_inc[KMaxpoolIterRank]) = 0;
 };
 
 /**

@@ -436,7 +436,7 @@ class Tensor {
   }
 
   void get_dims(uint32_t shape[]) const {
-    for (int i = 0; i < maxRank; i++) {
+    for (uint32_t i = 0; i < maxRank; i++) {
       shape[i] = shape_[i];
     }
   }
@@ -449,8 +449,8 @@ class Tensor {
     mem_stride_[idx] = mem_stride;
   }
 
-  void get_mem_strides(int32_t mem_strides[]) {
-    for (int i = 0; i < maxRank; i++) {
+  void get_mem_strides(int32_t mem_strides[]) const {
+    for (uint32_t i = 0; i < maxRank; i++) {
       mem_strides[i] = mem_stride_[i];
     }
   }
@@ -518,7 +518,7 @@ class Tensor {
     assert(axis < maxRank);
     Tensor<buf_T, maxRank+1> tns;
     int s = 0;
-    for (int r = 0; r < maxRank; ++r) {
+    for (uint32_t r = 0; r < maxRank; ++r) {
       if (r < axis || r > axis) {
         tns.set_dim(s, shape_[r]);
         tns.set_mem_stride(s, mem_stride_[r]);
@@ -615,7 +615,7 @@ struct Conv2DConfig {
     {}
 
     uint32_t stride[2];        /**< Stride along each axis [stride_IH, stride_IW]*/
-    uint32_t padding_begin[2]; /**< Padding size at the beginning of spatial dimensions of input [pad_IH_beg, pad_IW_end]*/
+    uint32_t padding_begin[2]; /**< Padding size at the beginning of spatial dimensions of input [pad_IH_beg, pad_IW_beg]*/
     uint32_t padding_end[2];   /**< Padding size at the end of spatial dimensions of input [pad_IH_end, pad_IW_end]*/
     uint32_t dilation[2];      /**< Dilation Factor [dilation_IH, dilation_IW].
                                    If set to dilation_I*>1, there will be k-1 implicitly added zero points between each
@@ -636,7 +636,7 @@ struct DwConv2DConfig {
     {}
 
     uint32_t stride[2];        /**< Stride along each axis [stride_IH, stride_IW]*/
-    uint32_t padding_begin[2]; /**< Padding size at the beginning of spatial dimensions of input [pad_IH_beg, pad_IW_end]*/
+    uint32_t padding_begin[2]; /**< Padding size at the beginning of spatial dimensions of input [pad_IH_beg, pad_IW_beg]*/
     uint32_t padding_end[2];   /**< Padding size at the end of spatial dimensions of input [pad_IH_end, pad_IW_end]*/
     uint32_t dilation[2];      /**< Dilation Factor [dilation_IH, dilation_IW].
                                     If set to dilation_I*>1, there will be k-1 implicitly added zero points between each
@@ -654,7 +654,7 @@ struct TransposeConv2DConfig {
           padding_end{pad_end_ih, pad_end_iw} {}
 
     uint32_t stride[2]; /**< Stride along each axis [stride_IH, stride_IW]*/
-    uint32_t padding_begin[2]; /**< Padding size at the beginning of spatial dimensions of input [pad_IH_beg, pad_IW_end]*/
+    uint32_t padding_begin[2]; /**< Padding size at the beginning of spatial dimensions of input [pad_IH_beg, pad_IW_beg]*/
     uint32_t padding_end[2]; /**< Padding size at the end of spatial dimensions of input [pad_IH_end, pad_IW_end]*/
 };
 
@@ -672,7 +672,7 @@ struct PoolOpConfig {
 
     uint32_t kernel_size[2];   /**< Kernel size of pooling function [kernel_H, kernel_W] */
     uint32_t stride[2];        /**< Stride along each axis [stride_IH, stride_IW] */
-    uint32_t padding_begin[2]; /**< Padding size at the beginning of spatial dimensions of input [pad_IH_beg, pad_IW_end] */
+    uint32_t padding_begin[2]; /**< Padding size at the beginning of spatial dimensions of input [pad_IH_beg, pad_IW_beg] */
     uint32_t padding_end[2];   /**< Padding size at the end of spatial dimensions of input [pad_IH_end, pad_IW_end] */
 };
 

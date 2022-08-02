@@ -254,12 +254,21 @@ class TensorIterator {
       Reset();
     }
 
+    TensorIterator(const TensorIterator<NoBuffer, tensorRank, iterRank>& tensor_iterator) {
+      Tensor<NoBuffer, tensorRank> tensor = tensor_iterator.get_tensor();
+      full_tensor_ = Tensor<buf_T, tensorRank>(buf_T(), tensor);
+      config_ = tensor_iterator.get_config();
+      offset_ = tensor_iterator.get_offset();
+      tensor_iterator.get_pos(pos_);
+      tensor_iterator.get_tile_idx(tile_idx_);
+    }
+
     /**
      * @brief constructor
      *
      * empty constructor
      */
-    TensorIterator() : config_(), full_tensor_() {
+    TensorIterator() : full_tensor_(), config_() {
       Reset();
     }
 
@@ -368,6 +377,58 @@ class TensorIterator {
 //      }
 //      full_tensor_.write(full_tensor_.get_offset(pos), data);
       full_tensor_.write(offset_, data);
+    }
+
+    uint32_t get_dim(uint32_t dim_idx) const {
+      return full_tensor_.get_dim(dim_idx);
+    }
+
+    void get_full_shape(uint32_t shape[]) const {
+      full_tensor_.get_dims(shape);
+    }
+
+    void get_mem_strides(int32_t mem_stride[]) const {
+      full_tensor_.get_mem_strides(mem_stride);
+    }
+
+    uint32_t get_mem_stride(uint32_t dim_idx) const {
+      return full_tensor_.get_mem_stride(dim_idx);
+    }
+
+    void set_buf(const buf_T& buf) {
+      full_tensor_.set_buf(buf);
+    }
+
+    buf_T get_buf() {
+      return full_tensor_.get_buf();
+    }
+
+    void set_config(const IteratorCfg<iterRank>& config) {
+      config_ = config;
+    }
+
+    const IteratorCfg<iterRank>& get_config() const {
+      return config_;
+    }
+
+    int32_t get_offset() const {
+      return offset_;
+    }
+
+    void get_pos(int32_t pos[iterRank]) const {
+      for (unsigned i = 0; i < iterRank; i++) {
+        pos[i] = pos_[i];
+      }
+    }
+
+    void get_tile_idx(int32_t tile_idx[iterRank]) const {
+      for (unsigned i = 0; i < iterRank; i++) {
+        tile_idx[i] = tile_idx_[i];
+      }
+    }
+
+    Tensor<buf_T, tensorRank> get_tensor() const {
+      return full_tensor_;
     }
 
   private:

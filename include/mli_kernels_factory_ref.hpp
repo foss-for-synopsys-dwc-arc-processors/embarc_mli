@@ -123,6 +123,14 @@ public:
         return new(kernel_buffer) lib_ref::MaxPool2D_CS(m_pd, in, cfg, output_tile_shape);
     }
 
+    lib_mli::MaxPool2D_CS* MaxPool2D_CS(void* kernel_buffer,
+                                        const TensorIterator<NoBuffer, 4, 4> in,  // BHWC
+                                        const PoolOpConfig& cfg,
+                                        const TensorIterator<NoBuffer, 4, 4> out) // BHWC
+                                        override {
+        return new(kernel_buffer) lib_ref::MaxPool2D_CS(m_pd, in, cfg, out);
+    }
+
     uint32_t SumPool2D_CS_GetSize() const override { return sizeof(lib_ref::SumPool2D_CS); }
 
     lib_mli::SumPool2D_CS* SumPool2D_CS(void *kernel_buffer,

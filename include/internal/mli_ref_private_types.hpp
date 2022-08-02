@@ -170,6 +170,21 @@ public:
     IteratorCfg<Move_CS::kMaxRank> dst_cfg;
 };
 
+/**
+ *  TODO: to remove this after Pool2DPrivateData will be updated
+ *  to do this SumPool2D_CS needs to be updated same was as MaxPool2D_CS
+ */ 
+class MaxPool2DPrivateData : public PrivateData {
+
+public:
+  MaxPool2DPrivateData(kernel_id_t id)
+    : PrivateData(id, sizeof(MaxPool2DPrivateData)) {}
+
+  TensorIterator<OffsetBuffer, 4, 4> input;
+  TensorIterator<OffsetBuffer, 4, 4> output;
+  PoolOpConfig config;
+};
+
 class Pool2DPrivateData : public PrivateData {
 
 public:

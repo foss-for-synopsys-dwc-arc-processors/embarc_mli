@@ -80,11 +80,18 @@ public:
     }
 
     virtual lib_mli::MaxPool2D_CS* MaxPool2D_CS(void *kernel_buffer,
-                                        const Tensor<NoBuffer, 4> in, // input fmap width, height, channels, batch size
-                                        const PoolOpConfig &cfg,
-                                        const Tensor<NoBuffer, 4> output_tile_shape) {
+                                                const Tensor<NoBuffer, 4> in,                  // BHWC
+                                                const PoolOpConfig &cfg,
+                                                const Tensor<NoBuffer, 4> output_tile_shape) { // BHWC
       return nullptr;
-    } // output tile width, height, ch, groups
+    } 
+
+    virtual lib_mli::MaxPool2D_CS* MaxPool2D_CS(void* kernel_buffer,
+                                                const TensorIterator<NoBuffer, 4, 4> in,      // BHWC
+                                                const PoolOpConfig& cfg,
+                                                const TensorIterator<NoBuffer, 4, 4> out) {   // BHWC
+      return nullptr;
+    } 
 
     virtual lib_mli::SumPool2D_CS* SumPool2D_CS(void *kernel_buffer,
                                                 const Tensor<NoBuffer, 4> in,

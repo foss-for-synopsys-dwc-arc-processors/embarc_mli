@@ -268,21 +268,39 @@ private:
 class MaxPool2D_CS : public lib_mli::MaxPool2D_CS {
 public:
     /**
-     * @brief Constructor to create an MaxPool2D compiler support object.
+     * @brief Constructor to create a MaxPool2D compiler support object.
      *
      * This constructor can be used to create a Max Pooling 2D compiler support
      * object. This kernel computes each value of the output tensor as the maximum 
      * of all values in the related perception area of a single channel of the input tensor.
      *
+     * @deprecated
      * @param pd [I] Platform description
      * @param in [I] Input tensor (full shape)
      * @param cfg [I] PoolOpConfig structure
      * @param output_tile_shape [O] Output tensor (tile shape)
      */
     MaxPool2D_CS(const lib_mli::PlatformDescription pd,
-                 const Tensor<NoBuffer, 4> in, /**< layout: BHWC */
+                 const Tensor<NoBuffer, KMaxpoolRank> in,                 /**< layout: BHWC */
                  const PoolOpConfig &cfg,
-                 const Tensor<NoBuffer, 4> output_tile_shape); /**< layout: BHWC */
+                 const Tensor<NoBuffer, KMaxpoolRank> output_tile_shape); /**< layout: BHWC */
+
+     /**
+     * @brief Constructor to create a MaxPool2D compiler support object.
+     *
+     * This constructor can be used to create a Max Pooling 2D compiler support
+     * object. This kernel computes each value of the output tensor as the maximum
+     * of all values in the related perception area of a single channel of the input tensor.
+     *
+     * @param pd [I] Platform description
+     * @param in [I] Input tensor iterator
+     * @param cfg [I] PoolOpConfig structure
+     * @param out [O] Output tensor iterator
+     */
+    MaxPool2D_CS(const lib_mli::PlatformDescription pd,
+                 const TensorIterator<NoBuffer, KMaxpoolRank, KMaxpoolIterRank> in,   /**< layout: BHWC */
+                 const PoolOpConfig& cfg,
+                 const TensorIterator<NoBuffer, KMaxpoolRank, KMaxpoolIterRank> out); /**< layout: BHWC */
 
     unsigned GetKernelPrivateDataSize() const override;
     unsigned GetRuntimeObjectSize() const override;
@@ -302,22 +320,30 @@ public:
 
     mli_status GetKernelPrivateData(void *kernel_private_data_buffer) override;
 
-    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
-                                   const Tensor<OffsetBuffer, 4> &output,
+    /**
+     * @deprecated
+     */
+    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, KMaxpoolRank> &input,
+                                   const Tensor<OffsetBuffer, KMaxpoolRank> &output,
                                    const OffsetBuffer &data) override;
 
-    mli_status SetIterators(uint32_t output_total_size[4],
-                            uint32_t iteration_order[4],
-                            uint32_t input_first_inc[4],
-                            uint32_t input_inc[4],
-                            uint32_t output_first_inc[4],
-                            uint32_t output_inc[4]) override;
+    mli_status AttachBufferOffsets(const OffsetBuffer& input,
+                                   const OffsetBuffer& output,
+                                   const OffsetBuffer& data) override;
+
+    /**
+      * @deprecated
+      */
+    mli_status SetIterators(uint32_t output_total_size[KMaxpoolIterRank],
+                            uint32_t iteration_order[KMaxpoolIterRank],
+                            uint32_t input_first_inc[KMaxpoolIterRank],
+                            uint32_t input_inc[KMaxpoolIterRank],
+                            uint32_t output_first_inc[KMaxpoolIterRank],
+                            uint32_t output_inc[KMaxpoolIterRank]) override;
 
 private:
-    void FillTilingParams(Pool2DPrivateData& private_data);
-
-    Tensor<OffsetBuffer, 4> m_in;
-    Tensor<OffsetBuffer, 4> m_output;
+    TensorIterator<OffsetBuffer, KMaxpoolRank, KMaxpoolIterRank> m_input;
+    TensorIterator<OffsetBuffer, KMaxpoolRank, KMaxpoolIterRank> m_output;
 
     PoolOpConfig m_config;
 
@@ -325,15 +351,6 @@ private:
     uint32_t m_output_buffer_size;
 
     lib_mli::PlatformDescription m_pd;
-
-    // Tile Parameters BHWC
-    bool m_use_tiling;
-    uint32_t m_tile_total_output_size[4];
-    uint32_t m_tile_iteration_order[4];
-    uint32_t m_tile_input_first_inc[4];
-    uint32_t m_tile_input_inc[4];
-    uint32_t m_tile_output_first_inc[4];
-    uint32_t m_tile_output_inc[4];
 };
 
 class SumPool2D_CS : public lib_mli::SumPool2D_CS {

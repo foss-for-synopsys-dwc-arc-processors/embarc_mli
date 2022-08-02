@@ -270,36 +270,24 @@ public:
 
     // TODO: remove this method and replace with usage of Move kernel (not possible now)
     void GetIOSizesAndOffsets(uint32_t input_size[4], uint32_t output_size[4],
-                              uint32_t input_offsets[4], uint32_t output_offsets[4]) const;
+                              int32_t input_offsets[4], int32_t output_offsets[4]);
 
 private:
     void UpdateTilePaddings();
 
+    TensorIterator<OffsetBuffer, 4, 4> m_input;
+    TensorIterator<OffsetBuffer, 4, 4> m_output;
+
     mli_pool_cfg m_cfg;
-    mli_tensor m_input;
-    mli_tensor m_output;
     int32_t m_input_batch_offset;
     int32_t m_output_batch_offset;
-    uint32_t m_batch_number;
     uint32_t m_io_elem_size;
 
-    // Tile Parameters BHWC
-    bool m_use_tiling;
-    uint32_t m_tile_total_input_size[4];
-    uint32_t m_tile_total_output_size[4];
-    uint32_t m_tile_iteration_order[4];
-    uint32_t m_tile_first_size[4];
-    uint32_t m_tile_size[4];
-    uint32_t m_tile_input_first_inc[4];
-    uint32_t m_tile_input_inc[4];
-    uint32_t m_tile_output_first_inc[4];
-    uint32_t m_tile_output_inc[4];    
-
     // Tile state
-    uint32_t m_tile_input_offsets[4];
-    uint32_t m_tile_output_offsets[4];
+    uint32_t m_tile_batch_size;
+    mli_tensor m_tile_input;
+    mli_tensor m_tile_output;
     mli_pool_cfg m_tile_cfg;
-
 };
 
 

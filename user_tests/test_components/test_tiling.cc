@@ -10,8 +10,10 @@
 #include "mli_debug.h"
 #include "test_tiling.hpp"
 #include "mli_compiler_api.hpp"
+#include "mli_service_functions.hpp"
 
 
+using namespace snps_arc::metaware::mli::service;
 using ::snps_arc::metaware::mli::kTensorBatchDim;
 using ::snps_arc::metaware::mli::kTensorHeightDim;
 using ::snps_arc::metaware::mli::kTensorWidthDim;
@@ -282,20 +284,97 @@ void Tiling::get_io_tiles_parameters(uint32_t total_input_size[4], uint32_t tota
     }
 }
 
-void strided_copy_with_offsets(uint32_t rank, uint32_t elem_size, const int8_t* src, const uint32_t* src_offsets,
-                               const uint32_t* dst_offsets, const int32_t* strides, const uint32_t* size, int8_t* dst) {
+void Tiling::get_io_parameters_for_tensor_iterator(int32_t count[],
+                                                   int32_t input_first_increment[], int32_t input_increment[], int32_t input_last_increment[],
+                                                   int32_t input_first_size[], int32_t input_size[], int32_t input_last_size[],
+                                                   int32_t output_first_increment[], int32_t output_increment[], int32_t output_last_increment[],
+                                                   int32_t output_first_size[], int32_t output_size[], int32_t output_last_size[]) const {
+  // set common for input and output IteratorCfg parameters
+  for (int i = 0; i < 4; i++) {
+    if (m_total_output_size[i] == m_output_tile_first_increment[i]) count[i] = 1;
+    else count[i] = 1 + (int32_t)CEIL_DIV(m_total_output_size[i] - m_output_tile_first_increment[i], m_output_tile_increment[i]);
+  }
+
+  // set part of input IteratorCfg parameters
+  for (int i = 0; i < 4; i++) {
+    input_first_increment[i] = (int32_t)m_input_tile_first_increment[i];
+    input_increment[i] = (int32_t)m_input_tile_increment[i];
+    if (count[i] == 1) input_last_increment[i] = 0;
+    else {
+      input_last_increment[i] = -(input_increment[i] * (count[i] - 2) + input_first_increment[i]);
+    }
+  }
+
+  // calculate rest part of input IteratorCfg parameters
+  // B
+  input_first_size[kTensorBatchDim] = (int32_t)m_input_tile_first_increment[kTensorBatchDim];
+  input_size[kTensorBatchDim] = (int32_t)m_input_tile_increment[kTensorBatchDim];
+
+  // H
+  uint32_t padding_y = m_kernel_info.pt;
+  bool single_tile_y = m_output_tile_first_increment[kTensorHeightDim] == m_total_output_size[kTensorHeightDim];
+  if (single_tile_y) padding_y += m_kernel_info.pb;
+  input_first_size[kTensorHeightDim] = (int32_t)get_conv_input_size(m_output_tile_first_increment[kTensorHeightDim], padding_y,
+                                                                    m_kernel_info.ky, 1, m_kernel_info.sy);
+  input_first_size[kTensorHeightDim] = MIN(input_first_size[kTensorHeightDim], (int32_t)m_total_input_size[kTensorHeightDim]);
+  if (single_tile_y) input_size[kTensorHeightDim] = input_first_size[kTensorHeightDim];
+  else {
+    input_size[kTensorHeightDim] = (int32_t)get_conv_input_size(m_output_tile_increment[kTensorHeightDim], 0,
+                                                                m_kernel_info.ky, 1, m_kernel_info.sy);
+    input_size[kTensorHeightDim] = MIN(input_size[kTensorHeightDim], (int32_t)m_total_input_size[kTensorHeightDim]);
+  }
+
+  // W
+  uint32_t padding_x = m_kernel_info.pl;
+  bool single_tile_x = m_output_tile_first_increment[kTensorWidthDim] == m_total_output_size[kTensorWidthDim];
+  if (single_tile_x) padding_x += m_kernel_info.pr;
+  input_first_size[kTensorWidthDim] = (int32_t)get_conv_input_size(m_output_tile_first_increment[kTensorWidthDim], padding_x,
+                                                                   m_kernel_info.kx, 1, m_kernel_info.sx);
+  input_first_size[kTensorWidthDim] = MIN(input_first_size[kTensorWidthDim], (int32_t)m_total_input_size[kTensorWidthDim]);
+  if (single_tile_x) input_size[kTensorWidthDim] = input_first_size[kTensorWidthDim];
+  else {
+    input_size[kTensorWidthDim] = (int32_t)get_conv_input_size(m_output_tile_increment[kTensorWidthDim], 0,
+                                                               m_kernel_info.kx, 1, m_kernel_info.sx);
+    input_size[kTensorWidthDim] = MIN(input_size[kTensorWidthDim], (int32_t)m_total_input_size[kTensorWidthDim]);
+  }
+
+  // C
+  input_first_size[kTensorChannelDim] = (int32_t)m_input_tile_first_increment[kTensorChannelDim];
+  input_size[kTensorChannelDim] = (int32_t)m_input_tile_increment[kTensorChannelDim];
+
+  for (int i = 0; i < 4; i++) {
+    input_last_size[i] = (int32_t)m_total_input_size[i] + input_last_increment[i];
+  }
+
+  // set part of output IteratorCfg parameters
+  for (int i = 0; i < 4; i++) {
+    output_first_increment[i] = (int32_t)m_output_tile_first_increment[i];
+    output_increment[i] = (int32_t)m_output_tile_increment[i];
+    if (count[i] == 1) output_last_increment[i] = 0;
+    else {
+      output_last_increment[i] = -(output_increment[i] * (count[i] - 2) + output_first_increment[i]);
+    }
+    output_first_size[i] = (int32_t)m_output_tile_first_increment[i];
+    output_size[i] = (int32_t)m_output_tile_increment[i];
+    output_last_size[i] = (int32_t)m_total_output_size[i] + output_last_increment[i];
+  }
+}
+
+template <typename T>
+void strided_copy_with_offsets(uint32_t rank, uint32_t elem_size, const int8_t* src, const T* src_offsets,
+                               const T* dst_offsets, const int32_t* strides, const uint32_t* size, int8_t* dst) {
   assert(rank > 0 && rank <= 5);
-  uint32_t offsets[5]{};
+  int32_t offsets[5]{};
   uint32_t total = 1;
   for (int i = 0; i < rank; i++) {
     total *= size[i];
   }
   uint32_t cnt = 0;
   do {
-    uint32_t src_ind = 0, dst_ind = 0;
+    int32_t src_ind = 0, dst_ind = 0;
     for (int i = 0; i < rank; i++) {
-      src_ind += (offsets[i] + src_offsets[i]) * (uint32_t)strides[i] * elem_size;
-      dst_ind += (offsets[i] + dst_offsets[i]) * (uint32_t)strides[i] * elem_size;
+      src_ind += (offsets[i] + src_offsets[i]) * strides[i] * elem_size;
+      dst_ind += (offsets[i] + dst_offsets[i]) * strides[i] * elem_size;
     }
     for (int i = 0; i < elem_size; i++) {
       dst[dst_ind + i] = src[src_ind + i];
@@ -305,8 +384,14 @@ void strided_copy_with_offsets(uint32_t rank, uint32_t elem_size, const int8_t* 
     for (int i = rank - 1; i >= 0; i--) {
       offsets[i]++;
 
-      if (offsets[i] >= size[i]) offsets[i] = 0;
+      if (offsets[i] >= (int32_t) size[i]) offsets[i] = 0;
       else break;
     }
   } while (cnt < total);
 }
+
+template void strided_copy_with_offsets<int32_t>(uint32_t rank, uint32_t elem_size, const int8_t* src, const int32_t* src_offsets,
+                                                 const int32_t* dst_offsets, const int32_t* strides, const uint32_t* size, int8_t* dst);
+
+template void strided_copy_with_offsets<uint32_t>(uint32_t rank, uint32_t elem_size, const int8_t* src, const uint32_t* src_offsets,
+                                                  const uint32_t* dst_offsets, const int32_t* strides, const uint32_t* size, int8_t* dst);
