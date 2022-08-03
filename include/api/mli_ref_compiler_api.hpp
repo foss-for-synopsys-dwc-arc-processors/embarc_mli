@@ -179,19 +179,28 @@ public:
     unsigned GetRuntimeObjectSize() const override;
 
 private:
-    Tensor<OffsetBuffer, 4> m_in;
+    // Input, weights, output tensors with offset buffer attached
+    Tensor<OffsetBuffer, 4> m_input;
     Tensor<OffsetBuffer, 3> m_weights;
     Tensor<OffsetBuffer, 4> m_output;
 
+    // encoded zp buffers for input and weights (optional for FX type)
+    OffsetBuffer m_inpzp_buffer;
+    OffsetBuffer m_wtszp_buffer;
+
+    // the axis to represent the quantization granularity (optional for FX type)
+    int m_inp_quant_axis;
+    int m_wts_quant_axis;
+
+    // Configuration for Conv2d
     DwConv2DConfig m_config;
 
-    OffsetBuffer m_input_zp;
-    OffsetBuffer m_weights_zp;
-
+    // The size of input, weights and output buffers used in `GetXX` methods
     uint32_t m_input_buffer_size;
     uint32_t m_weights_buffer_size;
     uint32_t m_output_buffer_size;
 
+    // Platform descriptor
     lib_mli::PlatformDescription m_pd;
 };
 

@@ -127,13 +127,8 @@ public:
     mli_status Update() override;
 
 private:
+    // Data used in the runtime kernel
     DepthwiseConv2dMetadata m_metadata;
-    // element size of input feature map
-    uint32_t m_i_elem_size;
-    // element size of weights
-    uint32_t m_w_elem_size;
-    // element size of output
-    uint32_t m_o_elem_size;
 };
 
 /**

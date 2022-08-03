@@ -1001,8 +1001,7 @@ static MLI_FORCE_INLINE tensor_private_t<T> mli_prv_get_tensor_hwc(
 template <typename T>
 static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T>
 mli_prv_get_conv2d_weights_tensor_hwcn(
-    const Tensor<
-        InternalBuffer, 5> &weights) {
+    const Tensor<InternalBuffer, 5> &weights) {
     // 5-D tensor [group, out_height, out_width, input_channel, output_channel]
     // The group is ingored when running convolution
     MLI_ASSERT(weights.get_rank() == 5);
@@ -1014,6 +1013,29 @@ mli_prv_get_conv2d_weights_tensor_hwcn(
     int col_mem_stride    = weights.get_mem_stride(kKernelWidthDim);
     int in_ch_mem_stride  = weights.get_mem_stride(kKernelChannelInDim);
     int out_ch_mem_stride = weights.get_mem_stride(kKernelChannelOutDim);
+
+    // The inner-most memory stride should be 1.
+    MLI_CHECK_AND_FIX(out_ch_mem_stride, 1);
+
+    return conv2d_weights_tensor_private_t<T> {
+            weights.get_buf().get_ptr<std::remove_pointer_t<T>>(),
+            width, height, in_ch, out_ch, col_mem_stride, row_mem_stride, in_ch_mem_stride, out_ch_mem_stride };
+}
+
+template <typename T>
+static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T>
+mli_prv_get_conv2d_weights_tensor_hwc(
+    const Tensor<InternalBuffer, 3> &weights) {
+    // 3-D tensor [out_height, out_width, output_channel]
+    MLI_ASSERT(weights.get_rank() == 3);
+    int height       = (int)weights.get_dim(kKernelDWHeightDim);
+    int width        = (int)weights.get_dim(kKernelDWWidthDim);
+    int in_ch        = 1;
+    const int out_ch = (int)weights.get_dim(kKernelDWChannelInDim);
+    int row_mem_stride    = weights.get_mem_stride(kKernelDWHeightDim);
+    int col_mem_stride    = weights.get_mem_stride(kKernelDWWidthDim);
+    int in_ch_mem_stride  = (int)weights.get_dim(kKernelDWChannelInDim);
+    int out_ch_mem_stride = 1;
 
     // The inner-most memory stride should be 1.
     MLI_CHECK_AND_FIX(out_ch_mem_stride, 1);

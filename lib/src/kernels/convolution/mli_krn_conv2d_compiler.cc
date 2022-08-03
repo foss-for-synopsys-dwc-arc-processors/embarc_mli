@@ -200,66 +200,19 @@ mli_status Conv2d_CS::AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
 mli_status Conv2d_CS::EncodeWeights(Tensor<Buffer, 5> &weights,
                                     Buffer &encoded_weights,
                                     compression_mode_t mode){
-  // the element size of source should eqaul to the encoded one's
-  MLI_ASSERT(weights.get_buf().get_size() == encoded_weights.get_size());
-
-  // TODO: support other data types
-  if (weights.get_elem_size() == sizeof(int8_t)) {
-    for (uint32_t i = 0; i < weights.get_buf().get_size(); ++i) {
-      encoded_weights.write(i, weights.read<int8_t>(i));
-    }
-  } else {
-    return MLI_STATUS_NOT_SUPPORTED;
-  }
-
-  return MLI_STATUS_OK;
+  return service::EncodeWeights(weights, encoded_weights);
 }
 
 unsigned Conv2d_CS::GetEncodedWeightsSize() {
   return m_weights_buffer_size;
 }
 
-template <int channel_axis>
-mli_status EncodeZeroPts(const Tensor<Buffer, 1>& zeropts,
-                         Buffer& encoded_zeropts,
-                         int& quant_axis,
-                         uint32_t channel_length) {
-  // should have the same total size
-  MLI_ASSERT(zeropts.get_buf().get_size() == encoded_zeropts.get_size());
-  // the element size of source should less than or equal to the encoded one's
-  MLI_ASSERT(zeropts.get_elem_size() <= encoded_zeropts.get_elem_size());
-  // should have the same number of elements
-  MLI_ASSERT(zeropts.get_dim(0) ==
-    encoded_zeropts.get_size() / encoded_zeropts.get_elem_size());
-
-  if (zeropts.get_dim(0) == 1) {
-    // per-tensor quantization
-    quant_axis = -1;
-  } else if (zeropts.get_dim(0) == channel_length) {
-    // per-channel quantization
-    quant_axis = channel_axis;
-  } else {
-    return MLI_STATUS_SHAPE_MISMATCH;
-  }
-
-  if (zeropts.get_elem_size() == sizeof(int8_t)) {
-    for (uint32_t i = 0; i < zeropts.get_dim(0); ++i) {
-      encoded_zeropts.write(i, static_cast<int16_t>(zeropts.read<int8_t>(i)));
-    }
-  } else {
-    return MLI_STATUS_NOT_SUPPORTED;
-  }
-
-  return MLI_STATUS_OK;
-}
-
 mli_status Conv2d_CS::EncodeInpZeroPts(Tensor<Buffer, 1> &inpzeropts,
                                        Buffer &encoded_inpzeropts) {
   constexpr int channel_axis = mli::kTensorChannelDim;
   uint32_t channel_length = m_input.get_dim(channel_axis);
-  return EncodeZeroPts<channel_axis>(inpzeropts, encoded_inpzeropts,
-                                     m_inp_quant_axis,
-                                     channel_length);
+  return service::EncodeZeroPts<channel_axis>(
+    inpzeropts, encoded_inpzeropts, m_inp_quant_axis, channel_length);
 }
 
 unsigned Conv2d_CS::GetEncodedInpZeroPtsSize() {
@@ -271,9 +224,8 @@ mli_status Conv2d_CS::EncodeWtsZeroPts(Tensor<Buffer, 1> &wtszeropts,
                                        Buffer &encoded_wtszeropts) {
   constexpr int channel_axis = mli::kKernelChannelOutDim;
   uint32_t channel_length = m_weights.get_dim(channel_axis);
-  return EncodeZeroPts<channel_axis>(wtszeropts, encoded_wtszeropts,
-                                     m_wts_quant_axis,
-                                     channel_length);
+  return service::EncodeZeroPts<channel_axis>(
+    wtszeropts, encoded_wtszeropts, m_wts_quant_axis, channel_length);
 }
 
 unsigned Conv2d_CS::GetEncodedWtsZeroPtsSize() {

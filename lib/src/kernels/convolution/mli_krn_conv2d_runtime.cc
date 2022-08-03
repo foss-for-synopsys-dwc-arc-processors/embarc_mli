@@ -77,9 +77,8 @@ Conv2d::Conv2d(void* kernel_private_data_buffer,
     m_tile_metadata.inp_quant_axis = private_data.inp_quant_axis;
     m_tile_metadata.wts_quant_axis = private_data.wts_quant_axis;
   }
- 
-  UpdateTilePaddings();
 
+  UpdateTilePaddings();
 }
 
 mli_status Conv2d::Issue() {
@@ -98,7 +97,8 @@ mli_status Conv2d::Issue() {
       m_tile_metadata.weights, m_tile_metadata.wtszp_buffer, m_tile_metadata.wts_quant_axis};
 
     conv2d_prepare_and_run<int8_t, int8_t, int32_t, mli_8x8_accu_t, LAYOUT_HWC,
-                           ::mli::CONV_GENERAL, /* io_rank */4, /* w_rank */5>(
+                           ::mli::CONV_GENERAL, /* io_rank */ 4, /* w_rank */ 5,
+                           Conv2DConfig>(
         qinput, qweights, m_tile_metadata.output, m_tile_metadata.cfg);
   } else {
     // datatype is not supported yet
@@ -145,7 +145,7 @@ mli_status Conv2d::Update() {
   }
   m_tile_metadata.input = Tensor<InternalBuffer, 4>(m_metadata.input, input_tile_size);
   m_tile_metadata.output = Tensor<InternalBuffer, 4>(m_metadata.output, output_tile_size);
-  
+
   uint32_t weight_tile_size[5]{};
   weight_tile_size[kKernelGroupDim] = 1;
   for (int i = 0; i < 3; i++) {

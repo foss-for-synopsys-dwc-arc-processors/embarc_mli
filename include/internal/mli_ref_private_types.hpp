@@ -16,9 +16,10 @@
 
 namespace lib_mli = ::snps_arc::metaware::mli;
 
-using Layout = mli_layout_type;
-
 namespace snps_arc::metaware::mli::ref {
+
+// the layout of tensor
+using Layout = mli_layout_type;
 
 class Conv2DPrivateData : public PrivateData {
 public:
@@ -56,7 +57,6 @@ public:
     uint32_t m_tile_output_first_inc[4];
     uint32_t m_tile_output_inc[4];
     uint32_t m_tile_weights_inc[4];
-
 };
 
 struct Conv2dMetadata {
@@ -78,48 +78,37 @@ public:
     DepthwiseConv2DPrivateData()
         : PrivateData(kDWConv2dId, sizeof(DepthwiseConv2DPrivateData)) {}
 
-    // currently we support the only i8_w8_o32 case
-    OffsetBuffer input_buffer;
-    OffsetBuffer weights_buffer;
-    OffsetBuffer output_buffer;
+    // In/Out Tensor attached with offset buffer
+    Tensor<OffsetBuffer, 4> input;
+    Tensor<OffsetBuffer, 3> weights;
+    Tensor<OffsetBuffer, 4> output;
+
+    // The layout of input
+    Layout layout;
+
+    // Encoded input and weights zero pointers
     OffsetBuffer inpzp_buffer;
     OffsetBuffer wtszp_buffer;
 
-    uint32_t input_h;
-    uint32_t input_w;
-    uint32_t input_output_c;
+    // the index of quantization axis
+    int inp_quant_axis;
+    int wts_quant_axis;
 
-    uint32_t output_h;
-    uint32_t output_w;
-
-    uint32_t weights_h;
-    uint32_t weights_w;
-
-    int32_t input_h_stride;
-    int32_t input_w_stride;
-
-    int32_t output_h_stride;
-    int32_t output_w_stride;
-
-    int32_t weights_h_stride;
-    int32_t weights_w_stride;
-
-    uint8_t stride_height;
-    uint8_t stride_width;
-    uint8_t dilation_height;
-    uint8_t dilation_width;
-
-    uint8_t padding_left;
-    uint8_t padding_right;
-    uint8_t padding_top;
-    uint8_t padding_bottom;
+    // Convolution config
+    DwConv2DConfig config;
 };
 
 struct DepthwiseConv2dMetadata {
-    mli_conv2d_cfg cfg;
-    mli_tensor input;
-    mli_tensor weights;
-    mli_tensor output;
+    Tensor<InternalBuffer, 4> input;
+    Tensor<InternalBuffer, 3> weights;
+    Tensor<InternalBuffer, 4> output;
+
+    InternalBuffer inpzp_buffer;
+    InternalBuffer wtszp_buffer;
+    int inp_quant_axis;
+    int wts_quant_axis;
+
+    DwConv2DConfig config;
 };
 
 class TransposeConv2DRuntimeData : public PrivateData {

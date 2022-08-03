@@ -481,11 +481,11 @@ namespace snps_arc::metaware::mli::ref {
 
 template <typename i_T, typename w_T, typename o_T, typename acc_T,
           mli_layout_type data_layout, ::mli::mli_conv_type conv_type,
-          unsigned io_rank, unsigned w_rank>
+          unsigned io_rank, unsigned w_rank, typename cfg_T>
 MLI_FORCE_INLINE void conv2d_prepare_and_run(
     const QTensor<InternalBuffer, io_rank> &in,
     const QTensor<InternalBuffer, w_rank> &weights,
-    Tensor<InternalBuffer, io_rank> &out, const Conv2DConfig &cfg) {
+    Tensor<InternalBuffer, io_rank> &out, const cfg_T &cfg) {
 
     using b_T = o_T;
     using quant_T = ::mli::krn::int_quant_specific_params;
@@ -497,20 +497,28 @@ MLI_FORCE_INLINE void conv2d_prepare_and_run(
     MLI_ASSERT(data_layout == LAYOUT_HWC);
 
     // I/O Tensor -> tensor_private_t
-    MLI_ASSERT(in.t.get_dim(kTensorBatchDim) == 1);
     auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(i_T)>(in.t);
 
-    MLI_ASSERT(weights.t.get_dim(kKernelGroupDim) == 1);
-    auto weights_prv =
-        mli_prv_get_conv2d_weights_tensor_hwcn<MLI_PTR(w_T)>(weights.t);
+    conv2d_weights_tensor_private_t<MLI_PTR(w_T)> weights_prv;
+    if constexpr (w_rank == 5) {
+        MLI_ASSERT(weights.t.get_dim(kKernelGroupDim) == 1);
+        weights_prv = mli_prv_get_conv2d_weights_tensor_hwcn<MLI_PTR(w_T)>(weights.t);
+    } else if constexpr (w_rank == 3) {
+        weights_prv = mli_prv_get_conv2d_weights_tensor_hwc<MLI_PTR(w_T)>(weights.t);
+    } else {
+        // not supported yet
+        MLI_ASSERT(false);
+    }
 
-    MLI_ASSERT(out.get_dim(kTileGroupDim) == 1);
     auto out_prv = mli_prv_get_tensor_hwc<MLI_CONV_OUT_PTR(o_T)>(out);
 
     // no bias and relu in MLI3.0
     const MLI_PTR(b_T) bs = nullptr;
     mli_minmax_t val_limit = {std::numeric_limits<o_T>::min(), std::numeric_limits<o_T>::max()};
 
+    if constexpr (std::is_same_v<cfg_T, Conv2DConfig>) {
+        MLI_ASSERT(cfg.groups == 1);
+    }
     mli_conv2d_cfg krn_cfg;
     krn_cfg.stride_height = cfg.stride[0];
     krn_cfg.stride_width = cfg.stride[1];
