@@ -50,6 +50,8 @@ public:
 
     virtual uint32_t ReduceMax_CS_GetSize() const { return 0; }
 
+    virtual uint32_t TransposeConv2D_CS_GetSize() const { return 0; }
+
     virtual lib_mli::Conv2d_CS* Conv2d_CS(void *kernel_buffer,
                                           const Tensor<NoBuffer, 4> input_shape,
                                           const Tensor<NoBuffer, 5> weights,
@@ -143,7 +145,32 @@ public:
     virtual lib_mli::ReduceMax_CS* ReduceMax_CS(void *kernel_buffer,
                                                 const Tensor<NoBuffer, 4> input,
                                                 const ReduceOpConfig &cfg,
-                                                const Tensor<NoBuffer, 4> output) {return nullptr; }
+                                                const Tensor<NoBuffer, 4> output) { return nullptr; }
+
+    /**
+     * @brief Transpose Convolution 2D kernel Compiler Support interface factory
+     * method
+     *
+     * @param kernel_buffer [I] Pointer to the pre-allocated memory to store
+     *                          kernel Compiler Support object
+     * @param input         [I] TensorIterator object containing input Tensor shape and
+     *                          memory strides and IteratorCfg
+     * @param weights       [I] TensorIterator object containing weights Tensor shape
+     *                          and memory strides and IteratorCfg
+     * @param cfg           [I] Kernel configuration structure
+     * @param output        [I] TensorIterator object containing output Tensor shape
+     *                          and memory strides and IteratorCfg
+     *
+     * @return Transpose Convolution 2D kernel Compiler Support interface object
+     */
+    virtual lib_mli::TransposeConv2D_CS* TransposeConv2D_CS(
+        void *kernel_buffer,
+        const TensorIterator<NoBuffer, /* tensorRank = */ 4, /* iterRank = */ 4> input,   /**< layout: BHWC */
+        const TensorIterator<NoBuffer, /* tensorRank = */ 4, /* iterRank = */ 5> weights, /**< layout: GHWCiCo */
+        const TransposeConv2DConfig &cfg,
+        const TensorIterator<NoBuffer, /* tensorRank = */ 4, /* iterRank = */ 4> output   /**< layout: BHWC */) {
+        return nullptr;
+    }
 };
 
 } // namespace snps_arc::metaware::mli

@@ -195,6 +195,67 @@ private:
     lib_mli::PlatformDescription m_pd;
 };
 
+class TransposeConv2D_CS : public lib_mli::TransposeConv2D_CS {
+public:
+    /**
+     * @brief Constructor of the TransposeConv2D_CS object
+     *
+     */
+    TransposeConv2D_CS(const lib_mli::PlatformDescription pd,
+                       const TensorIterator<NoBuffer, /* tensorRank = */ 4, /* iterRank = */ 4> &input,
+                       const TensorIterator<NoBuffer, /* tensorRank = */ 4, /* iterRank = */ 5> &weights,
+                       const TransposeConv2DConfig &cfg,
+                       const TensorIterator<NoBuffer, /* tensorRank = */ 4, /* iterRank = */ 4> &output);
+
+    mli_status EncodeWeights(Tensor<Buffer, 5> &weights, Buffer &encoded_weights,
+                             compression_mode_t mode = compression_mode_t::Uncompressed) override;
+
+    unsigned GetEncodedWeightsSize() const override;
+
+    mli_status EncodeInpZeroPts(Tensor<Buffer, 1> &inpzeropts,
+                                Buffer &encoded_inpzeropts) override;
+
+    unsigned GetEncodedInpZeroPtsSize() const override;
+
+    mli_status EncodeWtsZeroPts(Tensor<Buffer, 1> &wtszeropts,
+                                Buffer &encoded_wtszeropts) override;
+
+    unsigned GetEncodedWtsZeroPtsSize() const override;
+
+    unsigned GetDataBufferSize() const override;
+
+    mli_status AttachBufferOffsets(OffsetBuffer &input,
+                                   OffsetBuffer &output,
+                                   OffsetBuffer &weights,
+                                   OffsetBuffer &inpzeropts,
+                                   OffsetBuffer &wtszeropts,
+                                   OffsetBuffer &descr) override;
+
+    mli_status GetKernelPrivateData(void *kernel_private_data_buffer) override;
+    unsigned GetKernelPrivateDataSize() const override;
+    unsigned GetRuntimeObjectSize() const override;
+
+private:
+    // Input, weights, output tensors with offset buffer attached
+    TensorIterator<OffsetBuffer, 4, 4> m_input;
+    TensorIterator<OffsetBuffer, 4, 5> m_weights;
+    TensorIterator<OffsetBuffer, 4, 4> m_output;
+
+    // Encoded zp buffers for input and weights (optional for FX type)
+    OffsetBuffer m_inpzp_buffer;
+    OffsetBuffer m_wtszp_buffer;
+
+    // The axis to represent the quantization granularity (optional for FX type)
+    int m_inp_quant_axis;
+    int m_wts_quant_axis;
+
+    // Configuration for TransposeConv2DConfig
+    TransposeConv2DConfig m_config;
+
+    // Platform descriptor
+    lib_mli::PlatformDescription m_pd;
+};
+
 class MaxPool2D_CS : public lib_mli::MaxPool2D_CS {
 public:
     /**
@@ -204,10 +265,10 @@ public:
      * object. This kernel computes each value of the output tensor as the maximum 
      * of all values in the related perception area of a single channel of the input tensor.
      *
-     * @param pd [IN] Platform description
-     * @param in [IN] Input tensor (full shape)
-     * @param cfg [IN] PoolOpConfig structure
-     * @param output_tile_shape [OUT] Output tensor (tile shape)
+     * @param pd [I] Platform description
+     * @param in [I] Input tensor (full shape)
+     * @param cfg [I] PoolOpConfig structure
+     * @param output_tile_shape [O] Output tensor (tile shape)
      */
     MaxPool2D_CS(const lib_mli::PlatformDescription pd,
                  const Tensor<NoBuffer, 4> in, /**< layout: BHWC */

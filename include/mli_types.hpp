@@ -63,6 +63,7 @@ typedef enum {
   kRescaleId,
   kClipId,
   kReduceMaxId,
+  kTransConv2DId
 } kernel_id_t;
 
 typedef enum class compression_mode_t {
@@ -614,8 +615,8 @@ struct Conv2DConfig {
     {}
 
     uint32_t stride[2];        /**< Stride along each axis [stride_IH, stride_IW]*/
-    uint32_t padding_begin[2]; /**< Padding size at the begining of spatial demensions of input [pad_IH_beg, pad_IW_end]*/
-    uint32_t padding_end[2];   /**< Padding size at the end of spatial demensions of input [pad_IH_end, pad_IW_end]*/
+    uint32_t padding_begin[2]; /**< Padding size at the beginning of spatial dimensions of input [pad_IH_beg, pad_IW_end]*/
+    uint32_t padding_end[2];   /**< Padding size at the end of spatial dimensions of input [pad_IH_end, pad_IW_end]*/
     uint32_t dilation[2];      /**< Dilation Factor [dilation_IH, dilation_IW].
                                    If set to dilation_I*>1, there will be k-1 implicitly added zero points between each
                                    filter point across appropriate dimension. If set to 1, no dilation logic is used */
@@ -635,11 +636,26 @@ struct DwConv2DConfig {
     {}
 
     uint32_t stride[2];        /**< Stride along each axis [stride_IH, stride_IW]*/
-    uint32_t padding_begin[2]; /**< Padding size at the begining of spatial demensions of input [pad_IH_beg, pad_IW_end]*/
-    uint32_t padding_end[2];   /**< Padding size at the end of spatial demensions of input [pad_IH_end, pad_IW_end]*/
+    uint32_t padding_begin[2]; /**< Padding size at the beginning of spatial dimensions of input [pad_IH_beg, pad_IW_end]*/
+    uint32_t padding_end[2];   /**< Padding size at the end of spatial dimensions of input [pad_IH_end, pad_IW_end]*/
     uint32_t dilation[2];      /**< Dilation Factor [dilation_IH, dilation_IW].
                                     If set to dilation_I*>1, there will be k-1 implicitly added zero points between each
                                     filter point across appropriate dimension. If set to 1, no dilation logic is used */
+};
+
+struct TransposeConv2DConfig {
+    TransposeConv2DConfig() = default;
+    TransposeConv2DConfig(uint32_t stride_ih, uint32_t stride_iw,
+                          uint32_t pad_beg_ih, uint32_t pad_beg_iw,
+                          uint32_t pad_end_ih, uint32_t pad_end_iw,
+                          uint32_t groups)
+        : stride{stride_ih, stride_iw},
+          padding_begin{pad_beg_ih, pad_beg_iw},
+          padding_end{pad_end_ih, pad_end_iw} {}
+
+    uint32_t stride[2]; /**< Stride along each axis [stride_IH, stride_IW]*/
+    uint32_t padding_begin[2]; /**< Padding size at the beginning of spatial dimensions of input [pad_IH_beg, pad_IW_end]*/
+    uint32_t padding_end[2]; /**< Padding size at the end of spatial dimensions of input [pad_IH_end, pad_IW_end]*/
 };
 
 struct PoolOpConfig {
@@ -656,8 +672,8 @@ struct PoolOpConfig {
 
     uint32_t kernel_size[2];   /**< Kernel size of pooling function [kernel_H, kernel_W] */
     uint32_t stride[2];        /**< Stride along each axis [stride_IH, stride_IW] */
-    uint32_t padding_begin[2]; /**< Padding size at the begining of spatial demensions of input [pad_IH_beg, pad_IW_end] */
-    uint32_t padding_end[2];   /**< Padding size at the end of spatial demensions of input [pad_IH_end, pad_IW_end] */
+    uint32_t padding_begin[2]; /**< Padding size at the beginning of spatial dimensions of input [pad_IH_beg, pad_IW_end] */
+    uint32_t padding_end[2];   /**< Padding size at the end of spatial dimensions of input [pad_IH_end, pad_IW_end] */
 };
 
 

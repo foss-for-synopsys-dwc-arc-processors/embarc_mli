@@ -137,6 +137,47 @@ private:
 };
 
 /**
+ * @brief This class implements the TransposeConv2D kernel xop interpreter interface
+ *
+ *
+ */
+class TransposeConv2D : public ExecutionInterface {
+
+public:
+    /**
+     * @brief constructor for the TransposeConv2D
+     *
+     * This Method will create and initialize the object using the information
+     * stored in the kernel_private_data_buffer that has been computed at compile time
+     * by the get_kernel_private_data() method.
+     *
+     * @param kernel_private_data_buffer [I] pointer to the compiletime computed initialization data
+     * @param size        [I] Size of the data is used to check for coding errors
+     * @param membases[]  [I] The kernel private data may contain offsets inside a (vector) memory.
+     *                        At run-time specific locations in memory are allocated for
+     *                        the graph, the membase array contains the start of
+     *                        each memory region.
+     *                        This base will be added to all memory offsets in the constructor
+     *                        according to the memory ID associated with that offset.
+     *                        Each platform can have different (number of) memories. For mli
+     *                        this is completely transparent. Compiler needs to use the same
+     *                        memory id's when attaching the buffers as are used by the
+     *                        xop-interpreter to set the membases.
+     */
+    TransposeConv2D(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
+
+    mli_status Issue() override;
+
+    mli_status Prefetch() override;
+
+    mli_status Update() override;
+
+private:
+    // Data used in the runtime kernel
+    TransposeConv2DRuntimeData m_rt_data;
+};
+
+/**
  * @brief This class implements the Move kernel xop interpreter interface
  *
  *

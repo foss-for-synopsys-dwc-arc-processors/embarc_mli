@@ -186,9 +186,20 @@ public:
         return new(kernel_buffer) lib_ref::Clip_CS(m_pd, input_shape, output_tile_shape);
     }
 
+    uint32_t TransposeConv2D_CS_GetSize() const override { return 0 /*sizeof(lib_ref::TransposeConv2D_CS) */; }
+
+    lib_mli::TransposeConv2D_CS *TransposeConv2D_CS(
+        void *kernel_buffer,
+        const TensorIterator<NoBuffer, /* tensorRank = */ 4, /* iterRank = */ 4> input,
+        const TensorIterator<NoBuffer, /* tensorRank = */ 4, /* iterRank = */ 5> weights,
+        const TransposeConv2DConfig &cfg,
+        const TensorIterator<NoBuffer, /* tensorRank = */ 4, /* iterRank = */ 4> output) override {
+        /* return new(kernel_buffer) lib_ref::TransposeConv2D_CS(m_pd, in, * weights, cfg, output); */
+        return nullptr;
+    }
+
 private:
     lib_mli::PlatformDescription m_pd;
-
 };
 
 } // namespace snps_arc::metaware::mli::ref

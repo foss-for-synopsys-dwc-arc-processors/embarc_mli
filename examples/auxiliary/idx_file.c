@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2021, Synopsys, Inc.
+* Copyright 2022, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -151,7 +151,7 @@ tIdxRetVal idx_file_check_and_get_info(tIdxDescr *descr_) {
     if (file_size < HEADER_ELEM_SZ * (shapes_num + 1) || elements_size == 0)
         return IDX_ERR_INCORR_HEAD;
 
-    // Sequential demensions size reading
+    // Sequential dimensions size reading
     rd_bytes = 0;
     for (i = 0; i < shapes_num; ++i) {
         rd_bytes += fread((void*)buffer, 1, HEADER_ELEM_SZ, descr_->opened_file);
@@ -186,7 +186,7 @@ tIdxRetVal idx_file_read_data(tIdxDescr *descr_, void *data_, uint32_t *shape_) 
     size_t count;
     uint32_t i, elem_in_portion;
 
-    // If shape required than we start reading file from begining and read shape
+    // If shape required than we start reading file from beginning and read shape
     // In other case we continue file reading from current position.
     if (shape_ != NULL) {
         fseek (descr_->opened_file, HEADER_ELEM_SZ, SEEK_SET);

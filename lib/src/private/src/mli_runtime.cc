@@ -27,6 +27,7 @@ using ref::Conv2d;
 using ref::DepthwiseConv2d;
 using ref::Rescale;
 using ref::Clip;
+using ref::TransposeConv2D;
 
 ExecutionInterface* ExecutionInterface::Create(
         void* allocation_memory_buffer,

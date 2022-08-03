@@ -94,11 +94,11 @@ public:
     /**
      * @brief Method to encode the weights (coefficients)
      *
-     * This method will read the weights buffer in a platform independend layout
+     * This method will read the weights buffer in a platform independent layout
      * and translate it into a buffer that can be easily read by the platform specific
      * kernel implementation.
      * This transformation may include compression
-     * The content of the encode_weights buffer is opaque for the compiler.
+     * The content of the encode_weights buffer is opaque for the user.
      *
      * @param weights [I] tensor with the weights
      * @param buffer_t[I] buffer pointer where the encode function can write the encoded weights
@@ -112,17 +112,18 @@ public:
     /**
      * @brief Method to query the size of the encoded weights buffer
      *
-     * This function returns the size of the buffer that is needed by the EncodeWeights method
+     * This function returns the size of the full weights buffer in bytes that
+     * is needed by the EncodeWeights method EncodeWeights method
      */
     virtual unsigned GetEncodedWeightsSize() = 0;
 
     /**
      * @brief Method to encode input zero-points (padding values)
      *
-     * This method will read the input zero-points buffer in a platform independend layout
+     * This method will read the input zero-points buffer in a platform independent layout
      * and translate it into a buffer that can be easily read by the platform specific
      * kernel implementation.
-     * The content of the encode_inpzeropts buffer is opaque for the compiler.
+     * The content of the encoded_inpzeropts buffer is opaque for the user.
      *
      */
     virtual mli_status EncodeInpZeroPts(Tensor<Buffer, 1>& inpzeropts, Buffer& encoded_inpzeropts) = 0;
@@ -137,10 +138,10 @@ public:
     /**
      * @brief Method to encode weights zero-points (padding values)
      *
-     * This method will read the weights zero-points buffer in a platform independend layout
+     * This method will read the weights zero-points buffer in a platform independent layout
      * and translate it into a buffer that can be easily read by the platform specific
      * kernel implementation.
-     * The content of the encode_wtszeropts buffer is opaque for the compiler.
+     * The content of the encode_wtszeropts buffer is opaque for the user.
      *
      */
     virtual mli_status EncodeWtsZeroPts(Tensor<Buffer, 1>& wtszeropts, Buffer& encoded_wtszeropts) = 0;
@@ -166,6 +167,14 @@ public:
     virtual unsigned GetOutputBufferSize() = 0;
     virtual unsigned GetWeightsBufferSize() = 0;
     virtual unsigned GetZeroPointBufferSize() = 0;
+    /**
+     * @brief Method to get the platform-specific descriptor data buffer size
+     *
+     * DataBuffer requires allocation in closely coupled data memory (CCM) on
+     * some platforms
+     *
+     * @return Size of platform-specific descriptor data buffer in bytes
+     */
     virtual unsigned GetDataBufferSize() = 0;
 
     /**
@@ -178,12 +187,12 @@ public:
      *
      * In this method you specify offsets for tensors passed to the constructor
      *
-     * @param input [IN] Tensor descriptor containing input OffsetBuffer and tensor shape and memory strides
-     * @param output [IN] Tensor descriptor containing output OffsetBuffer and tensor shape and memory strides
-     * @param weights [IN] Tensor descriptor containing weights OffsetBuffer and tensor shape and memory strides
-     * @param inpzeropts [IN] Tensor descriptor containing input zero point(s) OffsetBuffer
-     * @param wtszeropts [IN] Tensor descriptor containing weights zero points OffsetBuffer
-     * @param descr [IN] Tensor descriptor containing descriptor data OffsetBuffer
+     * @param input [I] Tensor descriptor containing input OffsetBuffer and tensor shape and memory strides
+     * @param output [I] Tensor descriptor containing output OffsetBuffer and tensor shape and memory strides
+     * @param weights [I] Tensor descriptor containing weights OffsetBuffer and tensor shape and memory strides
+     * @param inpzeropts [I] Tensor descriptor containing input zero point(s) OffsetBuffer
+     * @param wtszeropts [I] Tensor descriptor containing weights zero points OffsetBuffer
+     * @param descr [I] Tensor descriptor containing descriptor data OffsetBuffer
      *
      * @return MLI status code
      */
@@ -233,11 +242,11 @@ public:
     /**
      * @brief Method to encode the weights (coefficients)
      *
-     * This method will read the weights buffer in a platform independend layout
+     * This method will read the weights buffer in a platform independent layout
      * and translate it into a buffer that can be easily read by the platform specific
      * kernel implementation.
      * This transformation may include compression
-     * The content of the encode_weights buffer is opaque for the compiler.
+     * The content of the encode_weights buffer is opaque for the user.
      *
      * @param weights [I] tensor with the weights
      * @param buffer_t[I] buffer pointer where the encode function can write the encoded weights
@@ -272,6 +281,14 @@ public:
     virtual unsigned GetInputBufferSize() = 0;
     virtual unsigned GetOutputBufferSize() = 0;
     virtual unsigned GetParamsBufferSize() = 0;
+    /**
+     * @brief Method to get the platform-specific descriptor data buffer size
+     *
+     * DataBuffer requires allocation in closely coupled data memory (CCM) on
+     * some platforms
+     *
+     * @return Size of platform-specific descriptor data buffer in bytes
+     */
     virtual unsigned GetDataBufferSize() = 0;
 
     /**
@@ -283,7 +300,7 @@ public:
      * the init function.
      *
      * Note that the weights buffer offset in this function is in local memory, where it will be copied by a dma task
-     * the weights buffer passed to the encode_weigths function is in compiler memoryspace because the
+     * the weights buffer passed to the encode_weights function is in compiler memoryspace because the
      * encode function will write the encoded weights data there.
      */
     virtual mli_status AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
@@ -373,6 +390,14 @@ public:
     virtual unsigned GetInputBufferSize() = 0;
     virtual unsigned GetOutputBufferSize() = 0;
     virtual unsigned GetWeightsBufferSize() = 0;
+    /**
+     * @brief Method to get the platform-specific descriptor data buffer size
+     *
+     * DataBuffer requires allocation in closely coupled data memory (CCM) on
+     * some platforms
+     *
+     * @return Size of platform-specific descriptor data buffer in bytes
+     */
     virtual unsigned GetDataBufferSize() = 0;
     virtual unsigned GetInputZeroPtsBufferSize() { return 0; }
     /**
@@ -429,6 +454,14 @@ public:
     virtual unsigned GetOutputBufferSize() const = 0;
     virtual unsigned GetWeightsBufferSize() const = 0;
     virtual unsigned GetZeroPointBufferSize() const = 0;
+    /**
+     * @brief Method to get the platform-specific descriptor data buffer size
+     *
+     * DataBuffer requires allocation in closely coupled data memory (CCM) on
+     * some platforms
+     *
+     * @return Size of platform-specific descriptor data buffer in bytes
+     */
     virtual unsigned GetDataBufferSize() const = 0;
 
     /**
@@ -467,7 +500,8 @@ public:
     /**
      * @brief Method to get the platform-specific descriptor data buffer size
      *
-     * DataBuffer requires allocation in closely coupled data memory (CCM)
+     * DataBuffer requires allocation in closely coupled data memory (CCM) on
+     * some platforms
      *
      * @return Size of platform-specific descriptor data buffer in bytes
      */
@@ -483,9 +517,9 @@ public:
      *
      * In this method you specify offsets for tensors passed to the constructor.
      * 
-     * @param input [IN] Tensor descriptor containing input OffsetBuffer and tensor shape and memory strides
-     * @param output [IN] Tensor descriptor containing output OffsetBuffer and tensor shape and memory strides
-     * @param data [IN] Tensor descriptor containing descriptor data OffsetBuffer
+     * @param input [I] Tensor descriptor containing input OffsetBuffer and tensor shape and memory strides
+     * @param output [I] Tensor descriptor containing output OffsetBuffer and tensor shape and memory strides
+     * @param data [I] Tensor descriptor containing descriptor data OffsetBuffer
      * 
      * @return MLI status code
      */
@@ -496,12 +530,12 @@ public:
     /**
      * @brief Set the Iterators object
      *
-     * @param output_total_size [IN] Size of full output tensor
-     * @param iteration_order [IN] Array which defines the order of dimensions to iterate over
-     * @param input_first_inc [IN] Increment in elements per dimension for the first tile in the input tensor
-     * @param input_inc [IN] Increment in elements per dimension for all tiles except first one in the input tensor
-     * @param output_first_inc [IN] Increment in elements per dimension for the first tile in the output tensor
-     * @param output_inc [IN] Increment in elements per dimension for all tiles except first one in the output tensor
+     * @param output_total_size [I] Size of full output tensor
+     * @param iteration_order [I] Array which defines the order of dimensions to iterate over
+     * @param input_first_inc [I] Increment in elements per dimension for the first tile in the input tensor
+     * @param input_inc [I] Increment in elements per dimension for all tiles except first one in the input tensor
+     * @param output_first_inc [I] Increment in elements per dimension for the first tile in the output tensor
+     * @param output_inc [I] Increment in elements per dimension for all tiles except first one in the output tensor
      *
      * @return MLI status code
      */
@@ -529,6 +563,14 @@ public:
 
     virtual unsigned GetInputBufferSize() const = 0;
     virtual unsigned GetOutputBufferSize() const = 0;
+    /**
+     * @brief Method to get the platform-specific descriptor data buffer size
+     *
+     * DataBuffer requires allocation in closely coupled data memory (CCM) on
+     * some platforms
+     *
+     * @return Size of platform-specific descriptor data buffer in bytes
+     */
     virtual unsigned GetDataBufferSize() const = 0;
 
     /**
@@ -572,6 +614,14 @@ public:
 
     virtual unsigned GetInputBufferSize() const = 0;
     virtual unsigned GetOutputBufferSize() const = 0;
+    /**
+     * @brief Method to get the platform-specific descriptor data buffer size
+     *
+     * DataBuffer requires allocation in closely coupled data memory (CCM) on
+     * some platforms
+     *
+     * @return Size of platform-specific descriptor data buffer in bytes
+     */
     virtual unsigned GetDataBufferSize() const = 0;
 
     /**
@@ -615,6 +665,14 @@ public:
     virtual unsigned GetInputBufferSize() const = 0;
     virtual unsigned GetOutputBufferSize() const = 0;
     virtual unsigned GetParamsBufferSize() const = 0;
+    /**
+     * @brief Method to get the platform-specific descriptor data buffer size
+     *
+     * DataBuffer requires allocation in closely coupled data memory (CCM) on
+     * some platforms
+     *
+     * @return Size of platform-specific descriptor data buffer in bytes
+     */
     virtual unsigned GetDataBufferSize() const = 0;
 
     /**
@@ -642,6 +700,14 @@ public:
     virtual unsigned GetInputLeftBufferSize() = 0;
     virtual unsigned GetInputRightBufferSize() = 0;
     virtual unsigned GetOutputBufferSize() = 0;
+    /**
+     * @brief Method to get the platform-specific descriptor data buffer size
+     *
+     * DataBuffer requires allocation in closely coupled data memory (CCM) on
+     * some platforms
+     *
+     * @return Size of platform-specific descriptor data buffer in bytes
+     */
     virtual unsigned GetDataBufferSize() = 0;
 
     /**
@@ -669,6 +735,14 @@ public:
     virtual unsigned GetInputLeftBufferSize() = 0;
     virtual unsigned GetInputRightBufferSize() = 0;
     virtual unsigned GetOutputBufferSize() = 0;
+    /**
+     * @brief Method to get the platform-specific descriptor data buffer size
+     *
+     * DataBuffer requires allocation in closely coupled data memory (CCM) on
+     * some platforms
+     *
+     * @return Size of platform-specific descriptor data buffer in bytes
+     */
     virtual unsigned GetDataBufferSize() = 0;
 
     /**
@@ -697,6 +771,14 @@ public:
     virtual unsigned GetInputLeftBufferSize() = 0;
     virtual unsigned GetInputRightBufferSize() = 0;
     virtual unsigned GetOutputBufferSize() = 0;
+    /**
+     * @brief Method to get the platform-specific descriptor data buffer size
+     *
+     * DataBuffer requires allocation in closely coupled data memory (CCM) on
+     * some platforms
+     *
+     * @return Size of platform-specific descriptor data buffer in bytes
+     */
     virtual unsigned GetDataBufferSize() = 0;
 
     /**
@@ -724,6 +806,14 @@ public:
     virtual unsigned GetInputLeftBufferSize() = 0;
     virtual unsigned GetInputRightBufferSize() = 0;
     virtual unsigned GetOutputBufferSize() = 0;
+    /**
+     * @brief Method to get the platform-specific descriptor data buffer size
+     *
+     * DataBuffer requires allocation in closely coupled data memory (CCM) on
+     * some platforms
+     *
+     * @return Size of platform-specific descriptor data buffer in bytes
+     */
     virtual unsigned GetDataBufferSize() = 0;
 
     /**
@@ -751,6 +841,14 @@ public:
     virtual unsigned GetInputLeftBufferSize() = 0;
     virtual unsigned GetInputRightBufferSize() = 0;
     virtual unsigned GetOutputBufferSize() = 0;
+    /**
+     * @brief Method to get the platform-specific descriptor data buffer size
+     *
+     * DataBuffer requires allocation in closely coupled data memory (CCM) on
+     * some platforms
+     *
+     * @return Size of platform-specific descriptor data buffer in bytes
+     */
     virtual unsigned GetDataBufferSize() = 0;
 
     /**
@@ -792,6 +890,14 @@ public:
     virtual unsigned GetInputBufferSize() = 0;
     virtual unsigned GetOutputBufferSize() = 0;
     virtual unsigned GetParamsBufferSize() = 0;
+    /**
+     * @brief Method to get the platform-specific descriptor data buffer size
+     *
+     * DataBuffer requires allocation in closely coupled data memory (CCM) on
+     * some platforms
+     *
+     * @return Size of platform-specific descriptor data buffer in bytes
+     */
     virtual unsigned GetDataBufferSize() = 0;
 
     /**
@@ -819,6 +925,14 @@ public:
 
     virtual unsigned GetInputBufferSize() const = 0;
     virtual unsigned GetOutputBufferSize() const = 0;
+    /**
+     * @brief Method to get the platform-specific descriptor data buffer size
+     *
+     * DataBuffer requires allocation in closely coupled data memory (CCM) on
+     * some platforms
+     *
+     * @return Size of platform-specific descriptor data buffer in bytes
+     */
     virtual unsigned GetDataBufferSize() const = 0;
 
     /**
@@ -845,6 +959,14 @@ public:
 
     virtual unsigned GetInputBufferSize() = 0;
     virtual unsigned GetOutputBufferSize() = 0;
+    /**
+     * @brief Method to get the platform-specific descriptor data buffer size
+     *
+     * DataBuffer requires allocation in closely coupled data memory (CCM) on
+     * some platforms
+     *
+     * @return Size of platform-specific descriptor data buffer in bytes
+     */
     virtual unsigned GetDataBufferSize() = 0;
 
     /**
@@ -882,6 +1004,123 @@ public:
                                            const Tensor<OffsetBuffer, kMaxRank> &dst) {
       return MLI_STATUS_NOT_SUPPORTED;
     };
+};
+
+/**
+ * @brief This class implements the Transpose Convolution 2D kernel Compiler
+ * Support interface
+ *
+ *
+ */
+class TransposeConv2D_CS : public CompilerGenericInterface {
+public:
+    /**
+     * @brief Method to encode the weights (coefficients)
+     *
+     * This method will read the weights buffer in a platform independent layout
+     * and translate it into a buffer that can be easily read by the platform
+     * specific kernel implementation. This transformation may include
+     * compression. The content of the encode_weights buffer is opaque for the
+     * user.
+     *
+     * @param weights [I] tensor with the weights
+     * @param buffer_t [I] buffer pointer where the encode function can write
+     * the encoded weights
+     * 
+     * @return MLI status code
+     */
+    virtual mli_status EncodeWeights(
+        Tensor<Buffer, 5> &weights, Buffer &encoded_weights,
+        compression_mode_t mode = compression_mode_t::Uncompressed) = 0;
+
+    /**
+     * @brief Method to query the size of the encoded weights buffer
+     *
+     * This function returns the size of the full weights buffer that
+     * is needed by the EncodeWeights method.
+     *
+     * @return Size of encoded weights buffer in bytes
+     */
+    virtual unsigned GetEncodedWeightsSize() const = 0;
+
+    /**
+     * @brief Method to encode input zero-points (padding values)
+     *
+     * This method will read the input zero-points buffer in a platform
+     * independent layout and translate it into a buffer that can be easily read
+     * by the platform specific kernel implementation. The content of the
+     * encoded_inpzeropts buffer is opaque for the user.
+     *
+     * @return MLI status code
+     */
+    virtual mli_status EncodeInpZeroPts(Tensor<Buffer, 1> &inpzeropts,
+                                        Buffer &encoded_inpzeropts) = 0;
+
+    /**
+     * @brief Method to query the size of the encoded input zero-points buffer
+     *
+     * This function returns the size of the full buffer that is needed by the
+     * EncodeInpZeroPts method
+     *
+     * @return Size of input zero-points buffer in bytes
+     */
+    virtual unsigned GetEncodedInpZeroPtsSize() const = 0;
+
+    /**
+     * @brief Method to encode weights zero-points (padding values)
+     *
+     * This method will read the weights zero-points buffer in a platform
+     * independent layout and translate it into a buffer that can be easily read
+     * by the platform specific kernel implementation. The content of the
+     * encode_wtszeropts buffer is opaque for the user.
+     *
+     * @return MLI status code
+     */
+    virtual mli_status EncodeWtsZeroPts(Tensor<Buffer, 1> &wtszeropts,
+                                        Buffer &encoded_wtszeropts) = 0;
+
+    /**
+     * @brief Method to query the size of the encoded input zero-points buffer
+     *
+     * This function returns the size of the full buffer that is needed by the
+     * EncodeWtsZeroPts method
+     *
+     * @return Size of input zero-points buffer in bytes
+     */
+    virtual unsigned GetEncodedWtsZeroPtsSize() const = 0;
+
+    /**
+     * @brief Method to get the platform-specific descriptor data buffer size
+     *
+     * DataBuffer requires allocation in closely coupled data memory (CCM) on
+     * some platforms
+     *
+     * @return Size of platform-specific descriptor data buffer in bytes
+     */
+    virtual unsigned GetDataBufferSize() const = 0;
+
+    /**
+     * @brief Method to set buffer memory offsets and memory IDs for the kernel
+     * 
+     * The memory ID's are used to index the membases array that will be passed
+     * to the constructor of the runtime class. The offsets will added to the base
+     * addresses provided in the membase array during runtime.
+     *
+     * @param input [I] Tensor descriptor containing input OffsetBuffer
+     * @param output [I] Tensor descriptor containing output OffsetBuffer
+     * @param weights [I] Tensor descriptor containing weights OffsetBuffer
+     * @param inpzeropts [I] Tensor descriptor containing input zero points OffsetBuffer
+     * @param wtszeropts [I] Tensor descriptor containing weights zero points OffsetBuffer
+     * @param descr [I] Tensor descriptor containing descriptor data OffsetBuffer
+     * 
+     * @return MLI status code
+     */
+    virtual mli_status AttachBufferOffsets(OffsetBuffer &input,
+                                           OffsetBuffer &output,
+                                           OffsetBuffer &weights,
+                                           OffsetBuffer &inpzeropts,
+                                           OffsetBuffer &wtszeropts,
+                                           OffsetBuffer &descr) = 0;
 };
 
 } // namespace mli

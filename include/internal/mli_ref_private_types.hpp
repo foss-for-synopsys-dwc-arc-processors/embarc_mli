@@ -122,6 +122,11 @@ struct DepthwiseConv2dMetadata {
     mli_tensor output;
 };
 
+class TransposeConv2DRuntimeData : public PrivateData {
+public:
+    TransposeConv2DRuntimeData() : PrivateData(kTransConv2DId, sizeof(TransposeConv2DRuntimeData)) {}
+};
+
 class FullyConnectedPrivateData : public PrivateData {
 
 public:
