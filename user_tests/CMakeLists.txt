@@ -249,3 +249,8 @@ add_user_test(krn l2_normalize)
 #======================================================
 add_user_test(krn eltwise)
 add_user_test(krn eltwise_30)
+
+#======================================================
+# Reduce Group
+#======================================================
+add_user_test(krn reduce_max_30)

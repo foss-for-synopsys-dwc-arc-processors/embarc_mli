@@ -14,7 +14,7 @@
 #include "mli_types.h"
 
 namespace snps_arc::metaware::mli {
-  namespace krn {
+namespace krn {
 ////////////////////////////////////////////////////////////////////////////////
 // Functions (in *_ref/*_dsp/*vdsp) that can be called from outside their own
 // file must be declared here. This includes all overloads. For example, if we

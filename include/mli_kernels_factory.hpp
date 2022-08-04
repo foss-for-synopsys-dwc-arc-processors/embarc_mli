@@ -143,9 +143,9 @@ public:
                                             const Tensor<NoBuffer, 4> output_tile_shape) { return nullptr; }
 
     virtual lib_mli::ReduceMax_CS* ReduceMax_CS(void *kernel_buffer,
-                                                const Tensor<NoBuffer, 4> input,
+                                                const Tensor<NoBuffer, 4> input_shape,
                                                 const ReduceOpConfig &cfg,
-                                                const Tensor<NoBuffer, 4> output) { return nullptr; }
+                                                const Tensor<NoBuffer, 4> output_tile_shape) { return nullptr; }
 
     /**
      * @brief Transpose Convolution 2D kernel Compiler Support interface factory
@@ -171,6 +171,7 @@ public:
         const TensorIterator<NoBuffer, /* tensorRank = */ 4, /* iterRank = */ 4> output   /**< layout: BHWC */) {
         return nullptr;
     }
+
 };
 
 } // namespace snps_arc::metaware::mli

@@ -340,7 +340,7 @@ public:
 class ReduceMaxPrivateData : public PrivateData {
 
 public:
-    ReduceMaxPrivateData() : PrivateData(kReduceMaxId) {}
+    ReduceMaxPrivateData() : PrivateData(kReduceMaxId, sizeof(ReduceMaxPrivateData)) {}
 
     int32_t reduce_axis;
 

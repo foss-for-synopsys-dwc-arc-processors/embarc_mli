@@ -428,7 +428,7 @@ private:
 
 };
 
-class ReduceMax_CS: public lib_mli::ReduceMax_CS {
+class ReduceMax_CS : public lib_mli::ReduceMax_CS {
 public:
     ReduceMax_CS(const lib_mli::PlatformDescription pd,
                  const Tensor<NoBuffer, 4> input_shape,
@@ -440,7 +440,7 @@ public:
     unsigned GetOutputBufferSize() const override;
     unsigned GetDataBufferSize() const override;
 
-    mli_status GetKernelPrivateData( void *kernel_private_data_buffer ) override;
+    mli_status GetKernelPrivateData(void *kernel_private_data_buffer ) override;
     unsigned GetKernelPrivateDataSize() const override;
     unsigned GetRuntimeObjectSize() const override;
 

@@ -28,6 +28,7 @@ using ref::DepthwiseConv2d;
 using ref::Rescale;
 using ref::Clip;
 using ref::TransposeConv2D;
+using ref::ReduceMax;
 
 ExecutionInterface* ExecutionInterface::Create(
         void* allocation_memory_buffer,
@@ -141,6 +142,13 @@ ExecutionInterface* ExecutionInterface::Create(
                 obj = new (allocation_memory_buffer) Clip(kernel_private_data_buffer, private_data_size, membases, num_mems);
             } else {
                 MLI_PRINTF("\nMLI_ERROR: Insufficient space for [Clip] runtime object\n");
+            }
+            break;
+        case kReduceMaxId:
+            if(alloc_buf_size >= sizeof(ReduceMax)) {
+                obj = new (allocation_memory_buffer) ReduceMax(kernel_private_data_buffer, private_data_size, membases, num_mems);
+            } else {
+                MLI_PRINTF("\nMLI_ERROR: Insufficient space for [ReduceMax] runtime object\n");
             }
             break;
         default:
