@@ -632,6 +632,21 @@ public:
                                            const Tensor<OffsetBuffer, 4> &output,
                                            const OffsetBuffer &encoded_params,
                                            const OffsetBuffer &metadata) = 0;
+    /**
+     * @brief Method to set iteration information used in the .Update()
+     *
+     * NOTE: the use of this method is optional. if there is a single tile, and the .Update() is not used,
+     *       this data doesn't need to be set.
+     * All the increments are following the output tile iterator.
+     * @param output_total_size[4] [I] total size in each dimension
+     * @param iteration_order[4] [I] which dimension of the output to iterate first.
+     * @param output_first_inc[4] [I] increment of the output buffer pointer for the first iteration in each dimension
+     * @param output_inc[4] [I] increment of the output buffer pointer for the other iterations in each dimension
+     */
+        virtual mli_status SetIterators(uint32_t output_total_size[4],
+                                        uint32_t iteration_order[4],
+                                        uint32_t output_first_inc[4],
+                                        uint32_t output_inc[4]) = 0;
 };
 
 /**
@@ -683,6 +698,23 @@ public:
                                            const Tensor<OffsetBuffer, 4> &output,
                                            const OffsetBuffer &encoded_params,
                                            const OffsetBuffer &descr) = 0;
+
+    /**
+     * @brief Method to set iteration information used in the .Update()
+     *
+     * NOTE: the use of this method is optional. if there is a single tile, and the .Update() is not used,
+     *       this data doesn't need to be set.
+     * All the increments are following the output tile iterator.
+     * @param output_total_size[4] [I] total size in each dimension
+     * @param iteration_order[4] [I] which dimension of the output to iterate first.
+     * @param output_first_inc[4] [I] increment of the output buffer pointer for the first iteration in each dimension
+     * @param output_inc[4] [I] increment of the output buffer pointer for the other iterations in each dimension
+     */
+    virtual mli_status SetIterators(uint32_t output_total_size[4],
+                                    uint32_t iteration_order[4],
+                                    uint32_t output_first_inc[4],
+                                    uint32_t output_inc[4]) = 0;
+
 };
 
 /**

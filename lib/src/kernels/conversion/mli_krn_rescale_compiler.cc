@@ -42,17 +42,25 @@ Rescale_CS::Rescale_CS(const lib_mli::PlatformDescription pd,
     m_output_buffer_size =
     service::GetBufferSize(output_tile_shape.get_rank(), out_shape, out_stride);
 
+    m_params_elem_num = in_shape[kTensorChannelDim];
+
     // size_in_bytes = No.of elements multplied by params elements' sizes
-    m_encoded_params_buffer_size = m_output_buffer_size *
+    m_encoded_params_buffer_size = in_shape[input_shape.get_rank() - 1] *
             (sizeof(int32_t) + sizeof(int16_t) + sizeof(int8_t) + sizeof(int8_t));
+
+    m_use_tiling = false;
+    for (int i = 0; i < 4; i++) {
+      m_tile_total_output_size[i] = 0;
+      m_tile_iteration_order[i] = 0;
+      m_tile_output_first_inc[i] = 0;
+      m_tile_output_inc[i] = 0;
+    };
 }
 
 mli_status Rescale_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
                                            const Tensor<OffsetBuffer, 4> &output,
                                            const OffsetBuffer &encoded_params,
                                            const OffsetBuffer &metadata) {
-
-    MLI_ASSERT(input.get_buf().get_size() == m_input_buffer_size * input.get_elem_size());
     MLI_ASSERT(output.get_buf().get_size() == m_output_buffer_size * output.get_elem_size());
 
     m_input.set_buf(input.get_buf());
@@ -67,6 +75,16 @@ mli_status Rescale_CS::GetKernelPrivateData( void *kernel_private_data_buffer ) 
     RescalePrivateData opaque_obj;
 
     MLI_ASSERT(m_input.get_rank() == m_output.get_rank());
+    if (m_use_tiling) {
+      for (uint32_t i = 0; i < m_input.get_rank(); i++) {
+        MLI_ASSERT(m_output.get_dim(i) == MAX(m_tile_output_first_inc[i], m_tile_output_inc[i]));
+      }
+    }
+    else {
+      for (uint32_t i = 0; i < m_input.get_rank(); i++) {
+        MLI_ASSERT(m_output.get_dim(i) == m_input.get_dim(i));
+      }
+    }
     opaque_obj.io_rank = m_input.get_rank();
 
     opaque_obj.input_buffer = m_input.get_buf();
@@ -74,10 +92,6 @@ mli_status Rescale_CS::GetKernelPrivateData( void *kernel_private_data_buffer ) 
     opaque_obj.encoded_params_buffer = m_encoded_params;
 
     opaque_obj.params_elem_num = m_params_elem_num;
-
-    for(uint32_t i = 0; i < opaque_obj.io_rank; i++) {
-        MLI_ASSERT(m_input.get_dim(i) == m_output.get_dim(i));
-    }
 
     opaque_obj.input_b = m_input.get_dim(mli::kTensorBatchDim);
     opaque_obj.input_h = m_input.get_dim(mli::kTensorHeightDim);
@@ -101,6 +115,14 @@ mli_status Rescale_CS::GetKernelPrivateData( void *kernel_private_data_buffer ) 
 
     // Rescale configuration
     opaque_obj.rescale_axis = m_config.axis;
+
+    opaque_obj.m_use_tiling = m_use_tiling;
+    for (int i = 0; i < 4; i++) {
+      opaque_obj.m_tile_total_output_size[i] = m_tile_total_output_size[i];
+      opaque_obj.m_tile_iteration_order[i] = m_tile_iteration_order[i];
+      opaque_obj.m_tile_output_first_inc[i] = m_tile_output_first_inc[i];
+      opaque_obj.m_tile_output_inc[i] = m_tile_output_inc[i];
+    }
 
     std::memcpy(kernel_private_data_buffer, (void *)&opaque_obj, sizeof(opaque_obj));
 
@@ -167,6 +189,20 @@ unsigned Rescale_CS::GetDataBufferSize() const {
 
 unsigned Rescale_CS::GetEncodedParamsSize() const {
     return m_encoded_params_buffer_size; // in bytes
+}
+
+mli_status Rescale_CS::SetIterators(uint32_t output_total_size[4],
+                                    uint32_t iteration_order[4],
+                                    uint32_t output_first_inc[4],
+                                    uint32_t output_inc[4]) {
+  m_use_tiling = true;
+  for (int i = 0; i < 4; i++) {
+    m_tile_total_output_size[i] = output_total_size[i];
+    m_tile_iteration_order[i] = iteration_order[i];
+    m_tile_output_first_inc[i] = output_first_inc[i];
+    m_tile_output_inc[i] = output_inc[i];
+  }
+  return MLI_STATUS_OK;
 }
 
 }  // namespace snps_arc::metaware::mli::ref

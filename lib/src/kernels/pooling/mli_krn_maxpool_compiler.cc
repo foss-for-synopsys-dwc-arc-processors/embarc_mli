@@ -12,6 +12,9 @@
 #include "mli_ref_compiler_api.hpp"
 #include "mli_ref_private_types.hpp"
 #include "mli_ref_runtime_api.hpp"
+#include "mli_service_functions.hpp"
+
+using namespace snps_arc::metaware::mli::service;
 
 namespace snps_arc::metaware::mli::ref {
 
@@ -106,8 +109,6 @@ mli_status MaxPool2D_CS::GetKernelPrivateData(
 mli_status MaxPool2D_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
                                              const Tensor<OffsetBuffer, 4> &output,
                                              const OffsetBuffer &data) {
-
-  MLI_ASSERT(input.get_buf().get_size() >= m_input_buffer_size * input.get_elem_size());
   MLI_ASSERT(output.get_buf().get_size() >= m_output_buffer_size * output.get_elem_size());
 
   m_in.set_buf(input.get_buf());
@@ -143,10 +144,6 @@ mli_status MaxPool2D_CS::SetIterators(uint32_t output_total_size[4],
   }
 
   return MLI_STATUS_OK;
-}
-
-static uint32_t get_conv_input_size(uint32_t output_size, uint32_t padding, uint32_t kernel_size, uint32_t dilation, uint32_t stride) {
-  return output_size * stride - padding + (kernel_size - 1) * dilation;
 }
 
 void MaxPool2D_CS::FillTilingParams(Pool2DPrivateData& pdata) {

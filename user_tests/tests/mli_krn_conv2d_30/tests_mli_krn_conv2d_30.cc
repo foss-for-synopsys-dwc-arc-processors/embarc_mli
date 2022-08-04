@@ -19,6 +19,7 @@
 #include "mli_runtime_api.hpp"
 #include "mli_ref_runtime_api.hpp"
 #include "mli_private_types.h"
+#include "mli_service_functions.hpp"
 
 #include "test_crc32_calc.h"
 #include "test_memory_manager.h"
@@ -30,6 +31,7 @@
 
 #include "vectors_mli_krn_conv2d.inc"
 
+using namespace snps_arc::metaware::mli::service;
 
 using mli::tst::tensor_quantizer;
 using mli::tst::quality_metrics;
@@ -202,7 +204,7 @@ static int8_t g_scratch_mem_out[kMemSize] = { 0 };
 static int8_t g_scratch_mem_bias_out[kMemSize] = { 0 };
 static int8_t g_scratch_mem_w[kMemSize] = { 0 };
 static int8_t g_scratch_mem_b[kMemSize] = { 0 };
-constexpr uint32_t kMemPoolSize = 8192;
+constexpr uint32_t kMemPoolSize = 16384;
 static IO_DATA_ATTR int8_t g_mem_pool[kMemPoolSize] = {0};
 
 
@@ -428,13 +430,23 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   // BHWC layout
   uint32_t total_input_size[4];
   uint32_t total_output_size[4];
+  uint32_t first_tile_size[4];
+  uint32_t tile_size[4];
   uint32_t input_tile_first_inc[4];
   uint32_t output_tile_first_inc[4];
   uint32_t input_tile_inc[4];
   uint32_t output_tile_inc[4];
   tiling.get_io_tiles_parameters(total_input_size, total_output_size,
+                                 first_tile_size, tile_size,
                                  input_tile_first_inc, output_tile_first_inc,
                                  input_tile_inc, output_tile_inc);
+
+  uint32_t tile_input_shape[4];
+  uint32_t tile_output_shape[4];
+  for (int i = 0; i < 4; i++) {
+    tile_input_shape[i] = MAX(first_tile_size[i], tile_size[i]);
+    tile_output_shape[i] = MAX(output_tile_first_inc[i], output_tile_inc[i]);
+  }
 
   // STEP 1.1: Construct [Conv2d] as a specific ExecutionInterface successor
   //==================================================================
@@ -446,30 +458,32 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
                               cnv_op.weights.mem_stride[0], cnv_op.weights.mem_stride[1],
                               cnv_op.weights.mem_stride[2], cnv_op.weights.mem_stride[3]};
 
-  // GHWCo vs. HWCo
-  uint32_t output_shape[4];
+  uint32_t tile_weights_shape[5];
   for (int i = 0; i < 4; i++) {
-    output_shape[i] = MAX(output_tile_first_inc[i], output_tile_inc[i]);
+    tile_weights_shape[i] = weight_shape[i];
   }
+  tile_weights_shape[4] = output_tile_inc[3];
+  
+
   int32_t input_stride[4] = { int32_t(cnv_op.input.shape[0]) * cnv_op.input.mem_stride[0],
                            cnv_op.input.mem_stride[0],
                            cnv_op.input.mem_stride[1],
                            cnv_op.input.mem_stride[2] };
 
-  int32_t output_stride[4] = {int32_t(output_shape[1]) * cnv_op.out_acc.mem_stride[0],
+  int32_t output_stride[4] = {int32_t(tile_output_shape[1]) * cnv_op.out_acc.mem_stride[0],
                               cnv_op.out_acc.mem_stride[0],
                               cnv_op.out_acc.mem_stride[1],
                               cnv_op.out_acc.mem_stride[2]};
 
   // G == 1
-  assert(total_input_size[0] == 1 && output_shape[0] == 1);
+  assert(total_input_size[0] == 1 && tile_output_shape[0] == 1);
   // Input Cin == Weight Cin
   assert(total_input_size[3] == weight_shape[3]);
   // Weight Co = Output Co
   assert(weight_shape[4] == total_output_size[3]);
 
   const lib_mli::Tensor<lib_mli::NoBuffer, 4> in_tensor(total_input_size, input_stride);
-  const lib_mli::Tensor<lib_mli::NoBuffer, 4> out_tensor(output_shape, output_stride);
+  const lib_mli::Tensor<lib_mli::NoBuffer, 4> out_tensor(tile_output_shape, output_stride);
   const lib_mli::Tensor<lib_mli::NoBuffer, 5> wt_tensor(weight_shape, weight_stride);
 
   lib_mli::PlatformDescription pd;
@@ -492,10 +506,6 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   //==================================================================
 
   mli_tensor &rs_input_tsr = cnv_op.out_acc;
-  const mli_tensor &rs_inbias_tsr = rs_op.mli3_bias.get_bias_tsr();
-  const mli_tensor &rs_scale_tsr = rs_op.mli3_scales_keeper.get_scales_tsr();
-  const mli_tensor &rs_shift_tsr = rs_op.mli3_scales_keeper.get_shift_tsr();
-  mli_tensor &rs_outbias_tsr = rs_op.bias_out;
   mli_tensor &rs_output_tsr = rs_op.out;
 
   void* &rescale_instance = rs_op.rescale_instance;
@@ -503,24 +513,21 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   void* &rescale_conf_private = rs_op.rescale_conf_private;
   uint32_t &rescale_conf_private_size = rs_op.rescale_conf_private_size;
 
+  for (int i = 0; i < 3; i++) {
+    assert(rs_input_tsr.shape[i] == total_output_size[1 + i]);
+    assert(rs_input_tsr.mem_stride[i] == output_stride[1 + i]);
+    assert(rs_output_tsr.shape[i] == total_output_size[1 + i]);
+    assert(rs_output_tsr.mem_stride[i] == output_stride[1 + i]);
+  }
 
-  uint32_t input_tensor_shape[4]{};
-  hwc_to_bhwc(rs_input_tsr.shape, input_tensor_shape, 1u);
-  int32_t input_tensor_mem_stride[4]{};
-  hwc_to_bhwc(rs_input_tsr.mem_stride, input_tensor_mem_stride, (int32_t)rs_input_tsr.shape[0] * rs_input_tsr.mem_stride[0]);
-  uint32_t output_tensor_shape[4]{};
-  hwc_to_bhwc(rs_output_tsr.shape, output_tensor_shape, 1u);
-  int32_t output_tensor_mem_stride[4]{};
-  hwc_to_bhwc(rs_output_tsr.mem_stride, output_tensor_mem_stride, (int32_t)rs_output_tsr.shape[0] * rs_output_tsr.mem_stride[0]);
-
-  const lib_mli::Tensor<lib_mli::NoBuffer, 4> input_tensor(input_tensor_shape, input_tensor_mem_stride);
-  const lib_mli::Tensor<lib_mli::NoBuffer, 4> output_tensor(output_tensor_shape, output_tensor_mem_stride);
+  const lib_mli::Tensor<lib_mli::NoBuffer, 4> input_tensor(total_input_size, output_stride);
+  const lib_mli::Tensor<lib_mli::NoBuffer, 4> output_tensor(tile_output_shape, output_stride);
 
   uint32_t rescale_cs_size = kernel_factory.Rescale_CS_GetSize();
   void* rescale_cs_buffer = malloc(rescale_cs_size);
 
   lib_mli::RescaleConfig rs_cfg;
-  if (mli_hlp_count_elem_num(&rs_scale_tsr, 0) == 1) {
+  if (mli_hlp_count_elem_num(&rs_op.mli3_scales_keeper.get_scales_tsr(), 0) == 1) {
       rs_cfg.axis = -1;
   } else {
       rs_cfg.axis = 3;
@@ -539,17 +546,15 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   lib_mli::PrivateData* &clip_conf_private = clp_op.clip_conf_private;
   uint32_t &clip_conf_private_size = clp_op.clip_conf_private_size;
 
-  uint32_t input_tensor_shape_2[4]{};
-  hwc_to_bhwc(clip_input_tsr.shape, input_tensor_shape_2, 1u);
-  int32_t input_tensor_mem_stride_2[4]{};
-  hwc_to_bhwc(clip_input_tsr.mem_stride, input_tensor_mem_stride_2, (int32_t)clip_input_tsr.shape[0] * clip_input_tsr.mem_stride[0]);
-  uint32_t output_tensor_shape_2[4]{};
-  hwc_to_bhwc(clip_output_tsr.shape, output_tensor_shape_2, 1u);
-  int32_t output_tensor_mem_stride_2[4]{};
-  hwc_to_bhwc(clip_output_tsr.mem_stride, output_tensor_mem_stride_2, (int32_t)clip_output_tsr.shape[0] * clip_output_tsr.mem_stride[0]);
+  for (int i = 0; i < 3; i++) {
+    assert(clip_input_tsr.shape[i] == total_output_size[1 + i]);
+    assert(clip_input_tsr.mem_stride[i] == output_stride[1 + i]);
+    assert(clip_output_tsr.shape[i] == total_output_size[1 + i]);
+    assert(clip_output_tsr.mem_stride[i] == output_stride[1 + i]);
+  }
 
-  const lib_mli::Tensor<lib_mli::NoBuffer, 4> clip_input_tensor(input_tensor_shape_2, input_tensor_mem_stride_2);
-  const lib_mli::Tensor<lib_mli::NoBuffer, 4> clip_output_tensor(output_tensor_shape_2, output_tensor_mem_stride_2);
+  const lib_mli::Tensor<lib_mli::NoBuffer, 4> clip_input_tensor(total_output_size, output_stride);
+  const lib_mli::Tensor<lib_mli::NoBuffer, 4> clip_output_tensor(total_output_size, output_stride);
 
   uint32_t clip_cs_size = kernel_factory.Clip_CS_GetSize();
   void* clip_cs_buffer = malloc(clip_cs_size);
@@ -569,7 +574,6 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   assert(cnv_op.weights.el_type == MLI_EL_SA_8);
   assert(cnv_op.out_acc.el_type == MLI_EL_SA_32);
 
-  // Define buffers for in\out tensors
   // Leave space for runtime object
   uint32_t* cnv_offset = &offsets[0];
   uint32_t runtime_obj_size = conv2d_op->GetRuntimeObjectSize();
@@ -583,7 +587,7 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   // conv2d input
   cnv_offset = &offsets[0];
   uint32_t cnv_i_elem_size = mli_hlp_tensor_element_size(&cnv_op.input);
-  uint32_t in_size = conv2d_op->GetInputBufferSize() * cnv_i_elem_size;
+  uint32_t in_size = GetBufferSize(4, tile_input_shape, input_stride) * cnv_i_elem_size;
   lib_mli::OffsetBuffer conv2d_in_buf{*cnv_offset, 0, in_size, cnv_i_elem_size};
   lib_mli::Tensor<lib_mli::OffsetBuffer, 4> conv2d_in_tensor(conv2d_in_buf, total_input_size);
   in_mem_offset = *cnv_offset;
@@ -592,7 +596,7 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   // conv2d weight
   cnv_offset = &offsets[0];
   uint32_t cnv_w_elem_size = mli_hlp_tensor_element_size(&cnv_op.weights);
-  uint32_t w_size = conv2d_op->GetWeightsBufferSize() * cnv_w_elem_size;
+  uint32_t w_size = GetBufferSize(5, tile_weights_shape, weight_stride) * cnv_w_elem_size;
   lib_mli::OffsetBuffer conv2d_w_buf{*cnv_offset, 0, w_size, cnv_w_elem_size};
   w_mem_offset = *cnv_offset;
   *cnv_offset += w_size;
@@ -605,7 +609,7 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   *cnv_offset = CEIL_RND(*cnv_offset, cnv_o_elem_size);
   uint32_t out_size = conv2d_op->GetOutputBufferSize() * cnv_o_elem_size;
   lib_mli::OffsetBuffer conv2d_out_buf{*cnv_offset, 0, out_size, cnv_o_elem_size};
-  lib_mli::Tensor<lib_mli::OffsetBuffer, 4> conv2d_out_tensor(conv2d_out_buf, output_shape);
+  lib_mli::Tensor<lib_mli::OffsetBuffer, 4> conv2d_out_tensor(conv2d_out_buf, tile_output_shape);
   *cnv_offset += out_size;
 
   // conv2d input zero point
@@ -647,10 +651,11 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
 
 
   uint32_t weights_inc[4] = {weight_shape[1], weight_shape[2], weight_shape[3], output_tile_inc[3]};
-  conv2d_op->SetIterators(total_output_size, iteration_order,
+  status = conv2d_op->SetIterators(total_output_size, iteration_order,
                           input_tile_first_inc, input_tile_inc,
                           output_tile_first_inc, output_tile_inc,
                           weights_inc);
+  assert(status == MLI_STATUS_OK);
 
   // STEP 1.2.2: [Rescale] Memory management (Up to user on how to deal with it)
   //==================================================================
@@ -668,24 +673,18 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   uint32_t rs_private_buffer_size = rescale_op->GetKernelPrivateDataSize();
   *rs_offset += rs_private_buffer_size;
 
-  // rescale input
+  // rescale input = conv output
   uint32_t input_elem_size = mli_hlp_tensor_element_size(&rs_input_tsr);
-  uint32_t rs_in_size = rescale_op->GetInputBufferSize() * input_elem_size;
-  lib_mli::OffsetBuffer rescale_in_buf { *rs_offset, 0, rs_in_size,
-                                          input_elem_size };
-  lib_mli::Tensor<lib_mli::OffsetBuffer, 4>
-                      rescale_in_tensor(rescale_in_buf, rs_input_tsr.shape);
-  *rs_offset += rs_in_size;
+  uint32_t rs_in_size = GetBufferSize(4, tile_output_shape, output_stride) * input_elem_size;
+  lib_mli::OffsetBuffer rescale_in_buf { conv2d_out_buf.get_offset(), 0, rs_in_size, input_elem_size };
+  lib_mli::Tensor<lib_mli::OffsetBuffer, 4> rescale_in_tensor(rescale_in_buf, total_output_size);
 
   // rescale output
   rs_offset = &offsets[0];
   uint32_t output_elem_size = mli_hlp_tensor_element_size(&rs_output_tsr);
   uint32_t rs_out_size = rescale_op->GetOutputBufferSize() * output_elem_size;
-  lib_mli::OffsetBuffer rescale_out_buf { *rs_offset, 0, rs_out_size,
-                                           output_elem_size };
-  lib_mli::Tensor<lib_mli::OffsetBuffer, 4>
-                     rescale_out_tensor(rescale_out_buf, rs_output_tsr.shape);
-  uint32_t rs_out_mem_offset = *rs_offset;
+  lib_mli::OffsetBuffer rescale_out_buf { *rs_offset, 0, rs_out_size, output_elem_size };
+  lib_mli::Tensor<lib_mli::OffsetBuffer, 4> rescale_out_tensor(rescale_out_buf, tile_output_shape);
   *rs_offset += rs_out_size;
 
   // rescale params
@@ -702,6 +701,7 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   lib_mli::OffsetBuffer rescale_descr_buf { *rs_offset, 0,
                                           rs_data_buffer_size, sizeof(char) };
   *rs_offset += rs_data_buffer_size;
+  assert(*rs_offset <= kMemPoolSize);
 
   // Attaching buffer (descriptors) to the operation
   status = rescale_op->AttachBufferOffsets(rescale_in_tensor,
@@ -710,10 +710,13 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
                                            rescale_descr_buf);
   assert(status == MLI_STATUS_OK);
 
+  status = rescale_op->SetIterators(total_output_size, iteration_order,
+                                    output_tile_first_inc, output_tile_inc);
+  assert(status == MLI_STATUS_OK);
+
   // STEP 1.2.3: [Clip] Memory management (Up to user on how to deal with it)
   //==================================================================
 
-  // Define buffers for in\out tensors
   // Leave space for runtime object
   uint32_t* clip_offset = &offsets[0];
   int8_t* clip_runtime_obj_addr = (int8_t*)g_mem_pool + offsets[0];
@@ -725,23 +728,19 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   uint32_t clip_private_buffer_size = clip_op->GetKernelPrivateDataSize();
   *clip_offset += clip_private_buffer_size;
 
-  // clip input
+  // clip input = rescale output
   uint32_t clip_input_elem_size = mli_hlp_tensor_element_size(&clip_input_tsr);
-  uint32_t clip_in_size = clip_op->GetInputBufferSize() * clip_input_elem_size;
-  lib_mli::OffsetBuffer clip_in_buf{ *clip_offset, 0, clip_in_size,
-                                    clip_input_elem_size};
-  lib_mli::Tensor<lib_mli::OffsetBuffer, 4>
-                      clip_in_tensor(clip_in_buf, clip_input_tsr.shape);
-  *clip_offset += clip_in_size;
+  uint32_t clip_in_size = GetBufferSize(4, tile_output_shape, output_stride) * clip_input_elem_size;
+  lib_mli::OffsetBuffer clip_in_buf{rescale_out_buf.get_offset(), 0, clip_in_size, clip_input_elem_size};
+  lib_mli::Tensor<lib_mli::OffsetBuffer, 4> clip_in_tensor(clip_in_buf, total_output_size);
 
   // clip output
   clip_offset = &offsets[0];
   uint32_t clip_output_elem_size = mli_hlp_tensor_element_size(&clip_output_tsr);
   uint32_t clip_out_size = clip_op->GetOutputBufferSize() * clip_output_elem_size;
-  lib_mli::OffsetBuffer clip_out_buf{ *clip_offset, 0, clip_out_size,
-                                     clip_output_elem_size};
-  lib_mli::Tensor<lib_mli::OffsetBuffer, 4>
-                     clip_out_tensor(clip_out_buf, clip_output_tsr.shape);
+  lib_mli::OffsetBuffer clip_out_buf{ *clip_offset, 0, clip_out_size, clip_output_elem_size};
+  lib_mli::Tensor<lib_mli::OffsetBuffer, 4> clip_out_tensor(clip_out_buf, total_output_size);
+
   *clip_offset += clip_in_size;
 
   // clip min
@@ -758,6 +757,7 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   lib_mli::OffsetBuffer clip_descr_buf{*clip_offset, 0,
                                        clip_data_buffer_size, sizeof(char)};
   *clip_offset += clip_data_buffer_size;
+  assert(*clip_offset <= kMemPoolSize);
 
   // Attaching buffer (descriptors) to the operation
   status = clip_op->AttachBufferOffsets(clip_in_tensor,
@@ -766,27 +766,24 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
                                         clip_descr_buf);
   assert(status == MLI_STATUS_OK);
 
-  // Copy input zero points and weights zero points to the temp host buffers
+  status = clip_op->SetIterators(total_output_size, iteration_order,
+                                 output_tile_first_inc, output_tile_inc);
+  assert(status == MLI_STATUS_OK);
+
+  // encode input zero points to the global mem pool
   //==================================================================
   size_t shared_buf_size = MAX(inpzp_size, wtszp_size);
   char * host_buf_a = (char*) malloc(shared_buf_size);
   char * host_buf_b = (char*) malloc(shared_buf_size);
   lib_mli::Buffer src_inpzp_buf(host_buf_a, inpzp_size, cnv_i_elem_size);
   lib_mli::Buffer dst_inpzp_buf(host_buf_b, inpzp_size, zp_elem_size);
-  lib_mli::Buffer src_wtszp_buf(host_buf_a, wtszp_size, cnv_w_elem_size);
-  lib_mli::Buffer dst_wtszp_buf(host_buf_b, wtszp_size, zp_elem_size);
   // NOTE: Current the input and weights are int8_t, and zp is int16_t.
   //       Later, we will support other types.
   assert(src_inpzp_buf.get_size() == inpzp_buf.get_size());
   assert(src_inpzp_buf.get_elem_size() * 2 == inpzp_buf.get_elem_size());
-  assert(src_wtszp_buf.get_size() == wtszp_buf.get_size());
-  assert(src_wtszp_buf.get_elem_size() * 2 == wtszp_buf.get_elem_size());
 
   uint32_t inpzp_shape[1] = {1};
   lib_mli::Tensor<lib_mli::Buffer, 1> inpzp_tensor(src_inpzp_buf, inpzp_shape);
-
-  uint32_t wtszp_shape[1] = {weight_shape[4]};
-  lib_mli::Tensor<lib_mli::Buffer, 1> wtszp_tensor(src_wtszp_buf, wtszp_shape);
 
   // input zero points: mli_tensor -> host tensor
   // NOTE: Zero Points should have the same size as the tensor they belong to.
@@ -819,81 +816,7 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   assert(status == MLI_STATUS_OK);
   cnv_op.conv2d_conf_private = (int8_t*)g_mem_pool + cnv_op.conv2d_instance_size;
   cnv_op.conv2d_conf_private_size = conv2d_op->GetKernelPrivateDataSize();
-
-  // STEP 1.3.2: [Rescale] Copy dataset from tensors to the global shared memory pool
-  //==================================================================
-  int8_t * host_src_buf = (int8_t *) malloc(encoded_params_size);
-  int8_t * host_dst_buf = (int8_t *) malloc(encoded_params_size);
-  uint32_t params_shape[1] = {rs_inbias_tsr.shape[0]};
-
-  uint32_t inbias_elem_size = mli_hlp_tensor_element_size(&rs_inbias_tsr);
-  uint32_t scale_elem_size = mli_hlp_tensor_element_size(&rs_scale_tsr);
-  uint32_t shift_elem_size = mli_hlp_tensor_element_size(&rs_shift_tsr);
-  uint32_t outbias_elem_size = mli_hlp_tensor_element_size(&rs_outbias_tsr);
-  uint32_t inbias_size = inbias_elem_size * mli_hlp_count_elem_num(&rs_inbias_tsr, 0);
-  uint32_t scale_size = scale_elem_size * mli_hlp_count_elem_num(&rs_scale_tsr, 0);
-  uint32_t shift_size = shift_elem_size * mli_hlp_count_elem_num(&rs_shift_tsr, 0);
-  uint32_t outbias_size = outbias_elem_size * mli_hlp_count_elem_num(&rs_outbias_tsr, 0);
-
-  lib_mli::Buffer src_inbias_buf(host_src_buf,
-          inbias_size, inbias_elem_size);
-  lib_mli::Buffer src_scale_buf(host_src_buf + inbias_size,
-          scale_size, scale_elem_size);
-  lib_mli::Buffer src_shift_buf(host_src_buf + inbias_size + scale_size,
-          shift_size, shift_elem_size);
-  lib_mli::Buffer src_outbias_buf(host_src_buf + inbias_size + scale_size + shift_size,
-          outbias_size, outbias_elem_size);
-
-  lib_mli::Buffer encoded_params_buffer(host_dst_buf, encoded_params_size, sizeof(int8_t));
-
-  lib_mli::Tensor<lib_mli::Buffer,1> inbias_tensor(src_inbias_buf, params_shape);
-  lib_mli::Tensor<lib_mli::Buffer,1> scale_tensor(src_scale_buf, params_shape);
-  lib_mli::Tensor<lib_mli::Buffer,1> shift_tensor(src_shift_buf, params_shape);
-  lib_mli::Tensor<lib_mli::Buffer,1> outbias_tensor(src_outbias_buf, params_shape);
-
-  if(rs_cfg.axis < 0) { // per-tensor
-      assert(rs_inbias_tsr.rank == 0);
-      assert(rs_scale_tsr.rank == 0);
-      assert(rs_shift_tsr.rank == 0);
-      assert(rs_outbias_tsr.rank == 0);
-      inbias_tensor.write<int32_t>(0, rs_inbias_tsr.data.mem.i32);
-      scale_tensor.write<int16_t>(0, rs_scale_tsr.data.mem.i16);
-      shift_tensor.write<int8_t>(0, rs_shift_tsr.data.mem.i8);
-      outbias_tensor.write<int8_t>(0, rs_outbias_tsr.data.mem.i8);
-  } else { // per-axis
-      for(uint32_t i = 0; i< (inbias_size/inbias_elem_size); i++) {
-          inbias_tensor.write<int32_t>(i, rs_inbias_tsr.data.mem.pi32[i]);
-      }
-      for(uint32_t i = 0; i< (scale_size/scale_elem_size); i++) {
-          scale_tensor.write<int16_t>(i, rs_scale_tsr.data.mem.pi16[i]);
-      }
-      for(uint32_t i = 0; i< (shift_size/shift_elem_size); i++) {
-          shift_tensor.write<int8_t>(i, rs_shift_tsr.data.mem.pi8[i]);
-      }
-      for(uint32_t i = 0; i< (outbias_size/outbias_elem_size); i++) {
-          outbias_tensor.write<int8_t>(i, rs_outbias_tsr.data.mem.pi8[i]);
-      }
-  }
-
-  // host tensors -> encoded host buffer
-  status = rescale_op->EncodeParams(inbias_tensor,
-                                    scale_tensor,
-                                    shift_tensor,
-                                    outbias_tensor,
-                                    encoded_params_buffer);
   assert(status == MLI_STATUS_OK);
-
-  // encoded host buffer -> global mem pool
-  for (uint32_t i = 0; i < encoded_params_size; ++i) {
-      const uint32_t idx = encoded_params_mem_offset + i;
-      g_mem_pool[idx] = encoded_params_buffer.read<int8_t>(i);
-  }
-
-  // Copy output data(including holes due to CRC calculation) to the shared memory pool
-  for (uint32_t i = 0; i < rs_out_size; ++i) {
-      const uint32_t idx = rs_out_mem_offset + i;
-      g_mem_pool[idx] = rs_output_tsr.data.mem.pi8[i];
-  }
 
   // Compile Rescale into the binary data
   //==================================================================
@@ -905,7 +828,8 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   status = rescale_op->GetKernelPrivateData(rescale_conf_private);
 
   assert(status == MLI_STATUS_OK);
-  // STEP 1.3.3: [clip] Copy dataset from tensors to the global shared memory pool
+
+  // STEP 1.3.3: [clip] encode params to the global shared memory pool
   //==================================================================
   // Copy min data to the shared memory pool
   mli_minmax_t val_limit;
@@ -944,7 +868,6 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
       g_mem_pool[idx] = clip_encoded_params_buffer.read<int8_t>(i);
   }
 
-
   // Compile Clip into the binary data
   //==================================================================
   clip_instance = clip_runtime_obj_addr;
@@ -962,8 +885,6 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   free(clip_cs_buffer);
   free(host_buf_a);
   free(host_buf_b);
-  free(host_src_buf);
-  free(host_dst_buf);
   free(clp_host_src_buf);
   free(clp_host_dst_buf);
 }
@@ -1002,6 +923,7 @@ void execution_phase(Conv2dOp& cnv_op, RescaleOp &rs_op, ClipOp &clp_op, uint32_
 
 
   lib_ref::Conv2d* mli_conv2d_pimpl = dynamic_cast<lib_ref::Conv2d*>(mli_conv);
+  lib_ref::Rescale* rescale_pimpl = dynamic_cast<lib_ref::Rescale*>(mli_rescale);
   lib_ref::Conv2DPrivateData * conv2d_private = (lib_ref::Conv2DPrivateData*)(cnv_op.conv2d_conf_private);
   lib_ref::RescalePrivateData * rescale_private = (lib_ref::RescalePrivateData*)(rs_op.rescale_conf_private);
   lib_ref::ClipPrivateData * clip_private = (lib_ref::ClipPrivateData*)(clp_op.clip_conf_private);
@@ -1020,14 +942,12 @@ void execution_phase(Conv2dOp& cnv_op, RescaleOp &rs_op, ClipOp &clp_op, uint32_
   uint32_t output_tile_offsets[4];
   uint32_t weights_tile_offsets[5];
   const uint32_t zero_offsets[5]{};
+  uint32_t enc_param_size = 0, inp_bias_offset = 0, scale_offset = 0, shift_offset = 0, out_bias_offset = 0;
 
   mli_status status = MLI_STATUS_OK;
   for (uint32_t i = 0; i < tiles_num; ++i) {
-    status = mli_conv->Prefetch();
-    assert(status == MLI_STATUS_OK);
-
     mli_conv2d_pimpl->GetIOSizesAndOffsets(input_tile_size, output_tile_size, weights_tile_size,
-                                               input_tile_offsets, output_tile_offsets, weights_tile_offsets);
+                                           input_tile_offsets, output_tile_offsets, weights_tile_offsets);
 
     // copy input from global to local buffer
     strided_copy_with_offsets(4, conv2d_private->input.get_elem_size(),
@@ -1043,48 +963,56 @@ void execution_phase(Conv2dOp& cnv_op, RescaleOp &rs_op, ClipOp &clp_op, uint32_
 
     // copy weights zps from global to local buffer
     int16_t* wtszp_tile_buf = (int16_t*) (g_mem_pool + conv2d_private->wtszp_buffer.get_offset());
-    if (cnv_op.weights.el_params.sa.dim != -1) memcpy(wtszp_tile_buf, cnv_op.weights.el_params.sa.zero_point.mem.pi16 + weights_tile_offsets[3], conv2d_private->wtszp_buffer.get_size());
+    if (cnv_op.weights.el_params.sa.dim != -1) {
+      memcpy(wtszp_tile_buf, cnv_op.weights.el_params.sa.zero_point.mem.pi16 + weights_tile_offsets[3], conv2d_private->wtszp_buffer.get_size());
+    }
     else std::fill_n(wtszp_tile_buf, conv2d_private->wtszp_buffer.get_size() / 2, cnv_op.weights.el_params.sa.zero_point.mem.i16);
 
+    rescale_pimpl->GetIOSizesAndOffsets(enc_param_size, inp_bias_offset, scale_offset, shift_offset, out_bias_offset);
+
+    // copy rescale input bias from global to local buffer
+    memcpy((void*)(g_mem_pool + rescale_private->encoded_params_buffer.get_offset() + inp_bias_offset),
+           (void*)(rs_op.mli3_bias.get_bias_tsr().data.mem.pi32 + output_tile_offsets[3]), sizeof(int32_t) * enc_param_size);
+
+    // copy rescale scale from global to local buffer
+    memcpy((void*)(g_mem_pool + rescale_private->encoded_params_buffer.get_offset() + scale_offset),
+           (void*)(rs_op.mli3_scales_keeper.get_scales_tsr().data.mem.pi16 + output_tile_offsets[3]), sizeof(int16_t) * enc_param_size);
+
+    // copy rescale shift from global to local buffer
+    memcpy((void*)(g_mem_pool + rescale_private->encoded_params_buffer.get_offset() + shift_offset),
+           (void*)(rs_op.mli3_scales_keeper.get_shift_tsr().data.mem.pi8 + output_tile_offsets[3]), sizeof(int8_t) * enc_param_size);
+
+    // copy rescale output bias from global to local buffer
+    memcpy((void*)(g_mem_pool + rescale_private->encoded_params_buffer.get_offset() + out_bias_offset),
+           (void*)(rs_op.bias_out.data.mem.pi8 + output_tile_offsets[3]), sizeof(int8_t) * enc_param_size);
+
+    status = mli_conv->Prefetch();
+    assert(status == MLI_STATUS_OK);
     status = mli_conv->Issue();
     assert(status == MLI_STATUS_OK);
     status = mli_conv->Update();
     assert(status == MLI_STATUS_OK);
 
-    // copy output from local to rescale input buffer
-    strided_copy_with_offsets(4, conv2d_private->output.get_elem_size(),
-                              (int8_t*)(g_mem_pool + conv2d_private->output.get_buf().get_offset()),
+    status = mli_rescale->Prefetch();
+    assert(status == MLI_STATUS_OK);
+    status = mli_rescale->Issue();
+    assert(status == MLI_STATUS_OK);
+    status = mli_rescale->Update();
+    assert(status == MLI_STATUS_OK);
+
+    status = mli_clip->Prefetch();
+    assert(status == MLI_STATUS_OK);
+    status = mli_clip->Issue();
+    assert(status == MLI_STATUS_OK);
+    status = mli_clip->Update();
+    assert(status == MLI_STATUS_OK);
+
+    // copy results from rescale output tile to the global buffer
+    strided_copy_with_offsets(4, clip_private->output_buffer.get_elem_size(),
+                              (int8_t*)g_mem_pool + clip_private->output_buffer.get_offset(),
                               zero_offsets, output_tile_offsets, tile_output_strides,
-                              output_tile_size, (int8_t*)(g_mem_pool + rescale_private->input_buffer.get_offset()));
+                              output_tile_size, clp_op.original_out.data.mem.pi8);
   }
-
-  status = mli_rescale->Prefetch();
-  assert(status == MLI_STATUS_OK);
-  status = mli_rescale->Issue();
-  assert(status == MLI_STATUS_OK);
-  status = mli_rescale->Update();
-  assert(status == MLI_STATUS_OK);
-
-  uint32_t total_output_size[4] = { clip_private->output_b, clip_private->output_h, clip_private->output_w, clip_private->output_c };
-  int32_t output_strides[4] = { clip_private->output_b_stride, clip_private->output_h_stride, clip_private->output_w_stride, clip_private->output_c_stride };
-
-  strided_copy_with_offsets(4, rescale_private->output_buffer.get_elem_size(),
-                            (int8_t*)(g_mem_pool + rescale_private->output_buffer.get_offset()),
-                            zero_offsets, zero_offsets, output_strides,
-                            total_output_size, (int8_t*)(g_mem_pool + clip_private->input_buffer.get_offset()));
-
-  status = mli_clip->Prefetch();
-  assert(status == MLI_STATUS_OK);
-  status = mli_clip->Issue();
-  assert(status == MLI_STATUS_OK);
-  status = mli_clip->Update();
-  assert(status == MLI_STATUS_OK);
-
-  strided_copy_with_offsets(4, clip_private->output_buffer.get_elem_size(),
-                            (int8_t*)(g_mem_pool + clip_private->output_buffer.get_offset()),
-                            zero_offsets, zero_offsets, output_strides,
-                            total_output_size, clp_op.original_out.data.mem.pi8);
-
 }
 
 bool postprocess_phase(const reporter_full& reporter,
@@ -1245,11 +1173,11 @@ int main() {
       cfg.dilation_height, cfg.dilation_width,
       cfg.padding_top, cfg.padding_bottom, cfg.padding_left, cfg.padding_right
     };
+
     uint32_t tile_input_size[4]{ input_size[0], 2, 2, input_size[3] };
     Tiling tiling(input_size, tile_input_size, kernel_info, 2, conv2d_op.weights.shape[3]);
-    
-    prepare_phase(cur_test, tiling, iteration_order,
-                  conv2d_op, rs_op, clp_op);
+
+    prepare_phase(cur_test, tiling, iteration_order, conv2d_op, rs_op, clp_op);
 
     // STEP 2: Executing phase
     //==================================================================

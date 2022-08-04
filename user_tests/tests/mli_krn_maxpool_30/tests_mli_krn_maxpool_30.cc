@@ -25,6 +25,8 @@
 #include "vectors_mli_krn_maxpool.inc"
 #include "mli_ref_runtime_api.hpp"
 
+using namespace snps_arc::metaware::mli::service;
+
 using mli::tst::crc32_calc;
 using mli::tst::quality_metrics;
 using mli::tst::reporter_full;
@@ -121,19 +123,24 @@ void prepare_phase(const maxpool_test_operands* cur_test,
   // BHWC layout
   uint32_t total_input_size[4];
   uint32_t total_output_size[4];
+  uint32_t first_tile_size[4];
+  uint32_t tile_size[4];
   uint32_t input_tile_first_inc[4];
   uint32_t output_tile_first_inc[4];
   uint32_t input_tile_inc[4];
   uint32_t output_tile_inc[4];
   tiling.get_io_tiles_parameters(total_input_size, total_output_size,
+                                 first_tile_size, tile_size,
                                  input_tile_first_inc, output_tile_first_inc,
                                  input_tile_inc, output_tile_inc);
 
   uint32_t input_shape[4];
-  uint32_t output_shape[4];
+  uint32_t input_tile_shape[4];
+  uint32_t output_tile_shape[4];
   for (int i = 0; i < 4; i++) {
       input_shape[i] = total_input_size[i];
-      output_shape[i] = MAX(output_tile_first_inc[i], output_tile_inc[i]);
+      input_tile_shape[i] = MAX(first_tile_size[i], tile_size[i]);
+      output_tile_shape[i] = MAX(output_tile_first_inc[i], output_tile_inc[i]);
   }
 
   int32_t input_stride[4];
@@ -143,12 +150,12 @@ void prepare_phase(const maxpool_test_operands* cur_test,
     output_stride[i] = temp_output_tensor.mem_stride[i - 1];
   }
   input_stride[0] = input_shape[1] * input_stride[1];
-  output_stride[0] = output_shape[1] * output_stride[1];
+  output_stride[0] = output_tile_shape[1] * output_stride[1];
 
   const lib_mli::Tensor<lib_mli::NoBuffer, 4> in_tensor(
       input_shape, input_stride);
   const lib_mli::Tensor<lib_mli::NoBuffer, 4> out_tensor(
-      output_shape, output_stride);
+      output_tile_shape, output_stride);
 
   lib_mli::PlatformDescription pd;
   lib_ref::KernelsFactory kernel_factory(pd);
@@ -176,7 +183,7 @@ void prepare_phase(const maxpool_test_operands* cur_test,
 
   // MaxPool2D Input
   offset = &offsets[0];
-  uint32_t in_size = maxpool2d_op->GetInputBufferSize() * elem_size;
+  uint32_t in_size = GetBufferSize(4, input_tile_shape, input_stride) * elem_size;
   lib_mli::OffsetBuffer maxpool2d_in_buf{*offset, 0, in_size, elem_size};
   lib_mli::Tensor<lib_mli::OffsetBuffer, 4> maxpool2d_in_tensor(maxpool2d_in_buf, input_shape);
   *offset += in_size;
@@ -185,7 +192,7 @@ void prepare_phase(const maxpool_test_operands* cur_test,
   offset = &offsets[0];
   uint32_t out_size = maxpool2d_op->GetOutputBufferSize() * elem_size;
   lib_mli::OffsetBuffer maxpool2d_out_buf{*offset, 0, out_size, elem_size};
-  lib_mli::Tensor<lib_mli::OffsetBuffer, 4> maxpool2d_out_tensor(maxpool2d_out_buf, output_shape);
+  lib_mli::Tensor<lib_mli::OffsetBuffer, 4> maxpool2d_out_tensor(maxpool2d_out_buf, output_tile_shape);
   *offset += out_size;
 
   // DataBuffer size is 0 for reference kernel

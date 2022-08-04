@@ -10,6 +10,9 @@
 
 #include "mli_ref_compiler_api.hpp"
 #include "mli_ref_runtime_api.hpp"
+#include "mli_service_functions.hpp"
+
+using namespace snps_arc::metaware::mli::service;
 
 namespace snps_arc::metaware::mli::ref {
 
@@ -77,10 +80,6 @@ unsigned Conv2d_CS::GetKernelPrivateDataSize() const {
 
 unsigned Conv2d_CS::GetRuntimeObjectSize() const {
   return sizeof(Conv2d);
-}
-
-static uint32_t get_conv_input_size(uint32_t output_size, uint32_t padding, uint32_t kernel_size, uint32_t dilation, uint32_t stride) {
-  return output_size * stride - padding + (kernel_size - 1) * dilation;
 }
 
 void Conv2d_CS::FillTilingParams(Conv2DPrivateData& pdata) {
@@ -181,9 +180,7 @@ mli_status Conv2d_CS::AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
                                           OffsetBuffer &inpzeropts,
                                           OffsetBuffer &wtszeropts,
                                           OffsetBuffer &metadata) {
-  MLI_ASSERT(input.get_buf().get_size() >= m_input_buffer_size * input.get_elem_size());
   MLI_ASSERT(output.get_buf().get_size() >= m_output_buffer_size * output.get_elem_size());
-  MLI_ASSERT(weights.get_size() >= m_weights_buffer_size * weights.get_elem_size());
 
   // The metadata or descriptor is not required for ref kernel
   m_input.set_buf(input.get_buf());

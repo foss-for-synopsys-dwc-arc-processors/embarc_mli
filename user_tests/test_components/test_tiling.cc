@@ -267,6 +267,7 @@ uint32_t Tiling::get_num_tiles() const {
 }
 
 void Tiling::get_io_tiles_parameters(uint32_t total_input_size[4], uint32_t total_output_size[4],
+                                     uint32_t first_tile_size[4], uint32_t tile_size[4],
                                      uint32_t input_tile_first_inc[4], uint32_t output_tile_first_inc[4],
                                      uint32_t input_tile_inc[4], uint32_t output_tile_inc[4]) const {
     for (int i = 0; i < 4; i++) {
@@ -276,6 +277,8 @@ void Tiling::get_io_tiles_parameters(uint32_t total_input_size[4], uint32_t tota
         output_tile_first_inc[i] = m_output_tile_first_increment[i];
         input_tile_inc[i] = m_input_tile_increment[i];
         output_tile_inc[i] = m_output_tile_increment[i];
+        first_tile_size[i] = m_first_tile_size[i];
+        tile_size[i] = m_tile_size[i];
     }
 }
 

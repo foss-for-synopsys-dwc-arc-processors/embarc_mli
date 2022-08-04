@@ -47,6 +47,7 @@ public:
     
     uint32_t get_num_tiles() const;
     void get_io_tiles_parameters(uint32_t total_input_size[4], uint32_t total_output_size[4],
+                                 uint32_t first_tile_size[4], uint32_t tile_size[4],
                                  uint32_t input_tile_first_inc[4], uint32_t output_tile_first_inc[4],
                                  uint32_t input_tile_inc[4], uint32_t output_tile_inc[4]) const;
 };

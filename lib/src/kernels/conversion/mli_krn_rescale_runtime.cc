@@ -80,6 +80,9 @@ Rescale::Rescale(void* kernel_private_data_buffer, size_t size,
     }
 
     InternalBuffer encoded_params_internal(private_buffer.encoded_params_buffer, membases, num_mems);
+    m_tile_param_max_size = private_buffer.m_use_tiling ? MAX(private_buffer.m_tile_output_first_inc[kTensorChannelDim],
+                                                              private_buffer.m_tile_output_inc[kTensorChannelDim]) :
+                            private_buffer.params_elem_num;
 
     {
         // Reconstruct in_bias Tensor
@@ -93,7 +96,7 @@ Rescale::Rescale(void* kernel_private_data_buffer, size_t size,
                 tsr.rank = 1;
                 tsr.data.mem.pi32 = encoded_params_internal.get_ptr<int32_t>();
             }
-            encoded_params_internal.inc(private_buffer.params_elem_num);
+            encoded_params_internal.inc(m_tile_param_max_size);
 
             tsr.el_type = MLI_EL_SA_32;
         }
@@ -113,7 +116,7 @@ Rescale::Rescale(void* kernel_private_data_buffer, size_t size,
             tsr.rank = 1;
             tsr.data.mem.pi16 = encoded_params_internal.get_ptr<int16_t>();
         }
-        encoded_params_internal.inc(private_buffer.params_elem_num);
+        encoded_params_internal.inc(m_tile_param_max_size);
 
         tsr.el_type = MLI_EL_FX_16;
     }
@@ -129,7 +132,7 @@ Rescale::Rescale(void* kernel_private_data_buffer, size_t size,
             tsr.rank = 1;
             tsr.data.mem.pi8 = encoded_params_internal.get_ptr<int8_t>();
         }
-        encoded_params_internal.inc(private_buffer.params_elem_num);
+        encoded_params_internal.inc(m_tile_param_max_size);
 
         tsr.el_type = MLI_EL_FX_8;
     }
@@ -153,6 +156,21 @@ Rescale::Rescale(void* kernel_private_data_buffer, size_t size,
             MLI_ASSERT(0);
         }
     }
+
+    m_tile_metadata = m_metadata;
+    if (private_buffer.m_use_tiling) {
+      m_use_tiling = private_buffer.m_use_tiling;
+      for (int i = 0; i < 4; i++) {
+        m_tile_total_output_size[i] = private_buffer.m_tile_total_output_size[i];
+        m_tile_iteration_order[i] = private_buffer.m_tile_iteration_order[i];
+        m_tile_output_first_inc[i] = private_buffer.m_tile_output_first_inc[i];
+        m_tile_output_inc[i] = private_buffer.m_tile_output_inc[i];
+        m_tile_metadata.input.shape[i] = private_buffer.m_tile_output_first_inc[i];
+        m_tile_metadata.output.shape[i] = private_buffer.m_tile_output_first_inc[i];
+        m_tile_io_offsets[i] = 0;
+      }
+    }
+    else m_use_tiling = false;
 }
 
 mli_status Rescale::Issue() {
@@ -161,13 +179,13 @@ mli_status Rescale::Issue() {
         //TODO: To be implemented for all configurations
         case (sizeof(int32_t)):
             if (m_out_elem_size == sizeof(int8_t)) {
-                mli_krn::mli_krn_rescale<int32_t, int8_t>(&m_metadata.input,
-                                                          &m_metadata.in_bias,
-                                                          &m_metadata.scale,
-                                                          &m_metadata.shift,
-                                                          &m_metadata.out_bias,
-                                                          m_metadata.rescale_axis,
-                                                          &m_metadata.output);
+                mli_krn::mli_krn_rescale<int32_t, int8_t>(&m_tile_metadata.input,
+                                                          &m_tile_metadata.in_bias,
+                                                          &m_tile_metadata.scale,
+                                                          &m_tile_metadata.shift,
+                                                          &m_tile_metadata.out_bias,
+                                                          m_tile_metadata.rescale_axis,
+                                                          &m_tile_metadata.output);
             }
             else if (m_out_elem_size == sizeof(int16_t)) {
                 MLI_ASSERT(0);
@@ -202,6 +220,46 @@ mli_status Rescale::Issue() {
 
 mli_status Rescale::Prefetch() {return MLI_STATUS_OK;}
 
-mli_status Rescale::Update() {return MLI_STATUS_OK;}
+mli_status Rescale::Update() {
+  if (!m_use_tiling) return MLI_STATUS_OK;
+
+  uint32_t rank = m_tile_metadata.input.rank;
+
+  // update state with i/o tile increments, that were used in Issue()
+  for (uint32_t i = 0; i < rank; i++) {
+    uint32_t axis = m_tile_iteration_order[i];
+    bool first_tile = !m_tile_io_offsets[axis];
+    m_tile_io_offsets[axis] += (first_tile ? m_tile_output_first_inc[axis] : m_tile_output_inc[axis]);
+
+    if (m_tile_io_offsets[axis] >= m_tile_total_output_size[axis]) {
+      // end of this axis
+      m_tile_io_offsets[axis] = 0;
+    }
+    else {
+      // not end of this axis
+      break;
+    }
+  }
+
+  // set i/o sizes for next call of Issue()
+  for (uint32_t i = 0; i < rank; i++) {
+    bool first_tile = !m_tile_io_offsets[i];
+    uint32_t tile_size = MIN(first_tile ? m_tile_output_first_inc[i] : m_tile_output_inc[i],
+                             m_tile_total_output_size[i] - m_tile_io_offsets[i]);
+    m_tile_metadata.input.shape[i] = tile_size;
+    m_tile_metadata.output.shape[i] = tile_size;
+  }
+
+  return MLI_STATUS_OK;
+}
+
+void Rescale::GetIOSizesAndOffsets(uint32_t& enc_param_size, uint32_t& inp_bias_offset, uint32_t& scale_offset,
+                                   uint32_t& shift_offset, uint32_t& out_bias_offset) const {
+  enc_param_size = m_tile_metadata.input.shape[kTensorChannelDim];
+  inp_bias_offset = 0;
+  scale_offset = m_tile_param_max_size * sizeof(int32_t);
+  shift_offset = m_tile_param_max_size * (sizeof(int32_t) + sizeof(int16_t));
+  out_bias_offset = m_tile_param_max_size * (sizeof(int32_t) + sizeof(int16_t) + sizeof(int8_t));
+}
 
 }  // namespace snps_arc::metaware::mli::ref

@@ -43,6 +43,13 @@ Clip_CS::Clip_CS(const lib_mli::PlatformDescription pd,
   // 2 == min_value_size() + max_value_size(); each contains one element.
   m_encoded_params_buffer_size = 2 * sizeof(int8_t);
 
+  m_use_tiling = false;
+  for (int i = 0; i < 4; i++) {
+    m_tile_total_output_size[i] = 0;
+    m_tile_iteration_order[i] = 0;
+    m_tile_output_first_inc[i] = 0;
+    m_tile_output_inc[i] = 0;
+  };
 }
 
 unsigned Clip_CS::GetKernelPrivateDataSize() const {
@@ -66,10 +73,6 @@ mli_status Clip_CS::GetKernelPrivateData(void* kernel_private_data_buffer) {
   clip_opaque_obj.encoded_params_buffer = m_encoded_params;
   clip_opaque_obj.params_elem_num = m_params_elem_num;
 
-  for(uint32_t i=0; i<clip_opaque_obj.io_rank; i++) {
-      assert(m_input.get_dim(i) == m_output.get_dim(i));
-  }
-
   clip_opaque_obj.input_b = m_input.get_dim(mli::kTensorBatchDim);
   clip_opaque_obj.input_h = m_input.get_dim(mli::kTensorHeightDim);
   clip_opaque_obj.input_w = m_input.get_dim(mli::kTensorWidthDim);
@@ -90,6 +93,14 @@ mli_status Clip_CS::GetKernelPrivateData(void* kernel_private_data_buffer) {
   clip_opaque_obj.output_w_stride = m_output.get_mem_stride(mli::kTensorWidthDim);
   clip_opaque_obj.output_c_stride = m_output.get_mem_stride(mli::kTensorChannelDim);
 
+  clip_opaque_obj.m_use_tiling = m_use_tiling;
+  for (int i = 0; i < 4; i++) {
+    clip_opaque_obj.m_tile_total_output_size[i] = m_tile_total_output_size[i];
+    clip_opaque_obj.m_tile_iteration_order[i] = m_tile_iteration_order[i];
+    clip_opaque_obj.m_tile_output_first_inc[i] = m_tile_output_first_inc[i];
+    clip_opaque_obj.m_tile_output_inc[i] = m_tile_output_inc[i];
+  }
+
   std::memcpy(kernel_private_data_buffer, (void *)&clip_opaque_obj, sizeof(clip_opaque_obj));
 
   return MLI_STATUS_OK;
@@ -99,7 +110,6 @@ mli_status Clip_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
                                         const Tensor<OffsetBuffer, 4> &output,
                                         const OffsetBuffer &encoded_params,
                                         const OffsetBuffer &metadata) {
-  MLI_ASSERT(input.get_buf().get_size() == m_input_buffer_size * input.get_elem_size());
   MLI_ASSERT(output.get_buf().get_size() == m_output_buffer_size * output.get_elem_size());
 
   m_input.set_buf(input.get_buf());
@@ -144,6 +154,20 @@ unsigned Clip_CS::GetParamsBufferSize() const {
 
 unsigned Clip_CS::GetDataBufferSize() const {
   return 0;
+}
+
+mli_status Clip_CS::SetIterators(uint32_t output_total_size[4],
+                                 uint32_t iteration_order[4],
+                                 uint32_t output_first_inc[4],
+                                 uint32_t output_inc[4]) {
+  m_use_tiling = true;
+  for (int i = 0; i < 4; i++) {
+    m_tile_total_output_size[i] = output_total_size[i];
+    m_tile_iteration_order[i] = iteration_order[i];
+    m_tile_output_first_inc[i] = output_first_inc[i];
+    m_tile_output_inc[i] = output_inc[i];
+  }
+  return MLI_STATUS_OK;
 }
 
 }  // namespace snps_arc::metaware::mli::ref

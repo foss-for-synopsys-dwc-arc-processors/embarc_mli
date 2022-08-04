@@ -508,11 +508,26 @@ public:
 
     mli_status Update() override;
 
+    void GetIOSizesAndOffsets(uint32_t& enc_param_size, uint32_t& inp_bias_offset, uint32_t& scale_offset,
+                              uint32_t& shift_offset, uint32_t& out_bias_offset) const;
+
 private:
     RescaleMetadata m_metadata;
 
     uint32_t m_in_elem_size;
     uint32_t m_out_elem_size;
+
+    // Tile Parameters BHWC
+    bool m_use_tiling;
+    uint32_t m_tile_total_output_size[4];
+    uint32_t m_tile_iteration_order[4];
+    uint32_t m_tile_output_first_inc[4];
+    uint32_t m_tile_output_inc[4];
+    uint32_t m_tile_param_max_size;
+
+    // Tile state
+    uint32_t m_tile_io_offsets[4];
+    RescaleMetadata m_tile_metadata;
 };
 
 /**
@@ -540,6 +555,16 @@ private:
 
     uint32_t m_in_elem_size;
     uint32_t m_out_elem_size;
+
+    // Tile Parameters BHWC
+    bool m_use_tiling;
+    uint32_t m_tile_total_output_size[4];
+    uint32_t m_tile_iteration_order[4];
+    uint32_t m_tile_output_first_inc[4];
+    uint32_t m_tile_output_inc[4];
+
+    // Tile state
+    uint32_t m_tile_io_offsets[4];
 };
 
 /**

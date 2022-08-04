@@ -44,9 +44,12 @@ Conv2d::Conv2d(void* kernel_private_data_buffer,
   m_metadata.cfg = private_data.config;
 
   // tiling
-  if (!private_data.m_use_tiling) m_tile_metadata = m_metadata;
+  if (!private_data.m_use_tiling) {
+    m_tile_metadata = m_metadata;
+    m_use_tiling = false;
+  }
   else {
-    m_use_tiling = private_data.m_use_tiling;
+    m_use_tiling = true;
     for (int i = 0; i < 4; i++) {
       m_tile_total_input_size[i] = private_data.m_tile_total_input_size[i];
       m_tile_total_output_size[i] = private_data.m_tile_total_output_size[i];

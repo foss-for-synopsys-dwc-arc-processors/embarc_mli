@@ -24,6 +24,7 @@ inline const unsigned GetBufferSize(int rank, const uint32_t* shape,
   return ret_val;
 }
 
+
 template <unsigned rank>
 mli_status EncodeWeights(const Tensor<Buffer, rank> &weights,
                          Buffer &encoded_weights) {
@@ -44,9 +45,9 @@ mli_status EncodeWeights(const Tensor<Buffer, rank> &weights,
 
 template <int channel_axis>
 mli_status EncodeZeroPts(const Tensor<Buffer, 1>& zeropts,
-                         Buffer& encoded_zeropts,
-                         int& quant_axis,
-                         uint32_t channel_length) {
+  Buffer& encoded_zeropts,
+  int& quant_axis,
+  uint32_t channel_length) {
   // should have the same total size
   MLI_ASSERT(zeropts.get_buf().get_size() == encoded_zeropts.get_size());
   // the element size of source should less than or equal to the encoded one's
@@ -58,10 +59,12 @@ mli_status EncodeZeroPts(const Tensor<Buffer, 1>& zeropts,
   if (zeropts.get_dim(0) == 1) {
     // per-tensor quantization
     quant_axis = -1;
-  } else if (zeropts.get_dim(0) == channel_length) {
+  }
+  else if (zeropts.get_dim(0) == channel_length) {
     // per-channel quantization
     quant_axis = channel_axis;
-  } else {
+  }
+  else {
     return MLI_STATUS_SHAPE_MISMATCH;
   }
 
@@ -69,11 +72,21 @@ mli_status EncodeZeroPts(const Tensor<Buffer, 1>& zeropts,
     for (uint32_t i = 0; i < zeropts.get_dim(0); ++i) {
       encoded_zeropts.write(i, static_cast<int16_t>(zeropts.read<int8_t>(i)));
     }
-  } else {
+  }
+  else {
     return MLI_STATUS_NOT_SUPPORTED;
   }
 
   return MLI_STATUS_OK;
+}
+
+
+inline const uint32_t get_conv_input_size(uint32_t output_size, uint32_t padding,
+                                          uint32_t kernel_size, uint32_t dilation, uint32_t stride) {
+  int32_t input_size = output_size * stride + (kernel_size - 1) * dilation;
+  input_size -= padding;
+  MLI_ASSERT(input_size > 0);
+  return (uint32_t)input_size;
 }
 
 }  // namespace snps_arc::metaware::mli::service

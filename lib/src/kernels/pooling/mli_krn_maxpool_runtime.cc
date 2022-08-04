@@ -112,6 +112,7 @@ MaxPool2D::MaxPool2D(void* kernel_private_data_buffer, size_t size,
       m_tile_output_offsets[i] = 0;
     }
   }
+  else m_use_tiling = false;
 
   UpdateTilePaddings();
 }

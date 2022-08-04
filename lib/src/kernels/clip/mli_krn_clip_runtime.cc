@@ -113,6 +113,20 @@ Clip::Clip(void* kernel_private_data_buffer,
       m_max.rank = 1;
   }
 
+
+  if (private_data.m_use_tiling) {
+    m_use_tiling = private_data.m_use_tiling;
+    for (int i = 0; i < 4; i++) {
+      m_tile_total_output_size[i] = private_data.m_tile_total_output_size[i];
+      m_tile_iteration_order[i] = private_data.m_tile_iteration_order[i];
+      m_tile_output_first_inc[i] = private_data.m_tile_output_first_inc[i];
+      m_tile_output_inc[i] = private_data.m_tile_output_inc[i];
+      m_input.shape[i] = private_data.m_tile_output_first_inc[i];
+      m_output.shape[i] = private_data.m_tile_output_first_inc[i];
+      m_tile_io_offsets[i] = 0;
+    }
+  }
+  else m_use_tiling = false;
 }
 
 mli_status Clip::Issue() {
@@ -130,6 +144,37 @@ mli_status Clip::Issue() {
 
 mli_status Clip::Prefetch() { return MLI_STATUS_OK; }
 
-mli_status Clip::Update() { return MLI_STATUS_OK; }
+mli_status Clip::Update() { 
+  if (!m_use_tiling) return MLI_STATUS_OK;
+
+  uint32_t rank = m_input.rank;
+
+  // update state with i/o tile increments, that were used in Issue()
+  for (uint32_t i = 0; i < rank; i++) {
+    uint32_t axis = m_tile_iteration_order[i];
+    bool first_tile = !m_tile_io_offsets[axis];
+    m_tile_io_offsets[axis] += (first_tile ? m_tile_output_first_inc[axis] : m_tile_output_inc[axis]);
+
+    if (m_tile_io_offsets[axis] >= m_tile_total_output_size[axis]) {
+      // end of this axis
+      m_tile_io_offsets[axis] = 0;
+    }
+    else {
+      // not end of this axis
+      break;
+    }
+  }
+
+  // set i/o sizes for next call of Issue()
+  for (uint32_t i = 0; i < rank; i++) {
+    bool first_tile = !m_tile_io_offsets[i];
+    uint32_t tile_size = MIN(first_tile ? m_tile_output_first_inc[i] : m_tile_output_inc[i],
+                             m_tile_total_output_size[i] - m_tile_io_offsets[i]);
+    m_input.shape[i] = tile_size;
+    m_output.shape[i] = tile_size;
+  }
+
+  return MLI_STATUS_OK; 
+}
 
 }  // namespace snps_arc::metaware::mli::ref

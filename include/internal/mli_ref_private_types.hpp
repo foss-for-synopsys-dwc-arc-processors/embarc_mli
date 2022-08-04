@@ -276,6 +276,13 @@ public:
     int32_t output_h_stride;
     int32_t output_w_stride;
     int32_t output_c_stride;
+
+    // Tile Parameters BHWC
+    bool m_use_tiling;
+    uint32_t m_tile_total_output_size[4];
+    uint32_t m_tile_iteration_order[4];
+    uint32_t m_tile_output_first_inc[4];
+    uint32_t m_tile_output_inc[4];
 };
 
 struct RescaleMetadata {
@@ -321,6 +328,13 @@ public:
     int32_t output_h_stride;
     int32_t output_w_stride;
     int32_t output_c_stride;
+
+    // Tile Parameters BHWC
+    bool m_use_tiling;
+    uint32_t m_tile_total_output_size[4];
+    uint32_t m_tile_iteration_order[4];
+    uint32_t m_tile_output_first_inc[4];
+    uint32_t m_tile_output_inc[4];
 };
 
 class ReduceMaxPrivateData : public PrivateData {

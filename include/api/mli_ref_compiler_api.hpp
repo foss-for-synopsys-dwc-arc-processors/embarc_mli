@@ -484,6 +484,11 @@ public:
                                    const OffsetBuffer &encoded_params,
                                    const OffsetBuffer &metadata) override;
 
+    mli_status SetIterators(uint32_t output_total_size[4],
+                            uint32_t iteration_order[4],
+                            uint32_t output_first_inc[4],
+                            uint32_t output_inc[4]) override;
+
 private:
     RescaleConfig m_config;
 
@@ -500,6 +505,13 @@ private:
     uint32_t m_encoded_params_buffer_size;
 
     lib_mli::PlatformDescription m_pd;
+
+    // Tile Parameters BHWC
+    bool m_use_tiling;
+    uint32_t m_tile_total_output_size[4];
+    uint32_t m_tile_iteration_order[4];
+    uint32_t m_tile_output_first_inc[4];
+    uint32_t m_tile_output_inc[4];
 };
 
 class Move_CS : public lib_mli::Move_CS {
@@ -795,6 +807,12 @@ class Clip_CS : public lib_mli::Clip_CS {
                                    const OffsetBuffer &encoded_params,
                                    const OffsetBuffer &metadata)  override;
 
+
+    mli_status SetIterators(uint32_t output_total_size[4],
+                            uint32_t iteration_order[4],
+                            uint32_t output_first_inc[4],
+                            uint32_t output_inc[4]) override;
+
 private:
     Tensor<OffsetBuffer, kMaxRank> m_input;
     Tensor<OffsetBuffer, kMaxRank> m_output;
@@ -812,6 +830,12 @@ private:
 
     lib_mli::PlatformDescription m_pd;
 
+    // Tile Parameters BHWC
+    bool m_use_tiling;
+    uint32_t m_tile_total_output_size[4];
+    uint32_t m_tile_iteration_order[4];
+    uint32_t m_tile_output_first_inc[4];
+    uint32_t m_tile_output_inc[4];
 };
 
 } // namespace ref
