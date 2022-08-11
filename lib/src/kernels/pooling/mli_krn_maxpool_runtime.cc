@@ -145,9 +145,7 @@ void MaxPool2D::UpdateTilePaddings() {
   memcpy(&m_tile_cfg, &m_cfg, sizeof(mli_pool_cfg));
 
   int32_t tile_input_offsets[KMaxpoolRank];
-  int32_t tile_output_offsets[KMaxpoolRank];
   m_input.get_pos(tile_input_offsets);
-  m_output.get_pos(tile_output_offsets);
 
   const auto& input_it_cfg = m_input.get_config();
   if (tile_input_offsets[kTensorHeightDim]) m_tile_cfg.padding_top = 0;
@@ -163,10 +161,7 @@ void MaxPool2D::UpdateTilePaddings() {
 void MaxPool2D::GetIOSizesAndOffsets(uint32_t input_size[4], uint32_t output_size[4],
                                      int32_t input_offsets[4], int32_t output_offsets[4]){
   m_input.get_pos(input_offsets);
-  input_size[kTensorBatchDim] = m_tile_batch_size;
-
   m_output.get_pos(output_offsets);
-  output_size[kTensorBatchDim] = m_tile_batch_size;
 
   const auto input_tile_tensor = m_input.GetSubTensor();
   input_tile_tensor.get_dims(input_size);

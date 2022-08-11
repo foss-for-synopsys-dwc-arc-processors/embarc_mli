@@ -64,34 +64,20 @@ public:
     // TODO: remove this method and replace with usage of Move kernel (not possible now)
     void GetIOSizesAndOffsets(uint32_t input_size[KConvIORank], uint32_t output_size[KConvIORank],
                               uint32_t weights_size[KConvWRank],
-                              uint32_t input_offsets[KConvIORank], uint32_t output_offsets[KConvIORank],
-                              uint32_t weights_offsets[KConvWRank]) const;
+                              int32_t input_offsets[KConvIORank], int32_t output_offsets[KConvIORank],
+                              int32_t weights_offsets[KConvWRank]);
 
 private:
     void UpdateTilePaddings();
 
     Conv2dMetadata m_metadata;
 
-    // Tile Parameters BHWC
-    // TODO: remove these fields and replace with TensorIterator usage
-    bool m_use_tiling;
-    uint32_t m_tile_total_input_size[4];
-    uint32_t m_tile_total_output_size[4];
-    uint32_t m_tile_total_weights_size[4];  // KyKxCiCo
-    uint32_t m_tile_iteration_order[4];
-    uint32_t m_tile_first_size[4];
-    uint32_t m_tile_size[4];
-    uint32_t m_tile_input_first_inc[4];
-    uint32_t m_tile_input_inc[4];
-    uint32_t m_tile_output_first_inc[4];
-    uint32_t m_tile_output_inc[4];
-    uint32_t m_tile_weights_inc[4];
-
     // Tile state
-    // TODO: remove these fields and replace with TensorIterator usage
-    uint32_t m_tile_input_offsets[4];
-    uint32_t m_tile_output_offsets[4];
-    Conv2dMetadata m_tile_metadata;
+    Tensor<InternalBuffer, KConvIORank> m_tile_input;
+    Tensor<InternalBuffer, KConvWRank> m_tile_weights;
+    Tensor<InternalBuffer, KConvIORank> m_tile_output;
+    Conv2DConfig m_tile_cfg;
+    Tensor<InternalBuffer, kConvZPRank> m_tile_wzp;
 };
 
 /**

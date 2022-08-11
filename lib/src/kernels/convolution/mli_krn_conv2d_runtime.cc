@@ -33,76 +33,42 @@ Conv2d::Conv2d(void* kernel_private_data_buffer,
 
   MLI_ASSERT(private_data.layout == LAYOUT_HWC);
 
-  // full size
-  m_metadata.input = Tensor<InternalBuffer, KConvIORank>(private_data.input, membases, num_mems);
-  m_metadata.output = Tensor<InternalBuffer, KConvIORank>(private_data.output, membases, num_mems);
-  m_metadata.weights = Tensor<InternalBuffer, KConvWRank>(private_data.weights, membases, num_mems);
+  m_metadata.input = private_data.input;
+  m_metadata.weights = private_data.weights;
+  m_metadata.weights_zp = private_data.weights_zp;
+  m_metadata.output = private_data.output;
   m_metadata.inpzp_buffer = InternalBuffer(private_data.inpzp_buffer, membases, num_mems);
-  m_metadata.wtszp_buffer = InternalBuffer(private_data.wtszp_buffer, membases, num_mems);
+  
   m_metadata.inp_quant_axis = private_data.inp_quant_axis;
   m_metadata.wts_quant_axis = private_data.wts_quant_axis;
   m_metadata.cfg = private_data.config;
 
-  // tiling
-  if (!private_data.m_use_tiling) {
-    m_tile_metadata = m_metadata;
-    m_use_tiling = false;
-  }
-  else {
-    m_use_tiling = true;
-    for (int i = 0; i < 4; i++) {
-      m_tile_total_input_size[i] = private_data.m_tile_total_input_size[i];
-      m_tile_total_output_size[i] = private_data.m_tile_total_output_size[i];
-      m_tile_total_weights_size[i] = private_data.m_tile_total_weights_size[i];
-      m_tile_iteration_order[i] = private_data.m_tile_iteration_order[i];
-      m_tile_first_size[i] = private_data.m_tile_first_size[i];
-      m_tile_size[i] = private_data.m_tile_size[i];
-      m_tile_input_first_inc[i] = private_data.m_tile_input_first_inc[i];
-      m_tile_input_inc[i] = private_data.m_tile_input_inc[i];
-      m_tile_output_first_inc[i] = private_data.m_tile_output_first_inc[i];
-      m_tile_output_inc[i] = private_data.m_tile_output_inc[i];
-      m_tile_weights_inc[i] = private_data.m_tile_weights_inc[i];
-      m_tile_input_offsets[i] = 0;
-      m_tile_output_offsets[i] = 0;
-    }
-    m_tile_metadata.input = Tensor<InternalBuffer, KConvIORank>(m_metadata.input, m_tile_first_size);
-    m_tile_metadata.output = Tensor<InternalBuffer, KConvIORank>(m_metadata.output, m_tile_output_first_inc);
-    uint32_t weight_tile_size[5]{};
-    weight_tile_size[kKernelGroupDim] = 1;
-    for (int i = 0; i < 4; i++) {
-      weight_tile_size[i + 1] = m_tile_weights_inc[i];
-    }
-    m_tile_metadata.weights = Tensor<InternalBuffer, KConvWRank>(m_metadata.weights, weight_tile_size);
-    m_tile_metadata.inpzp_buffer = m_metadata.inpzp_buffer;
-    m_tile_metadata.wtszp_buffer = InternalBuffer();
-    m_tile_metadata.wtszp_buffer.set_buffer(m_metadata.wtszp_buffer.get_ptr<int16_t>(),
-                                            private_data.m_tile_weights_inc[3] * sizeof(int16_t) );
-    m_tile_metadata.inp_quant_axis = private_data.inp_quant_axis;
-    m_tile_metadata.wts_quant_axis = private_data.wts_quant_axis;
-  }
+  m_tile_input = Tensor<InternalBuffer, KConvIORank>(m_metadata.input.GetSubTensor(), membases, num_mems);
+  m_tile_weights = Tensor<InternalBuffer, KConvWRank>(m_metadata.weights.GetSubTensor(), membases, num_mems);
+  m_tile_wzp = Tensor<InternalBuffer, kConvZPRank>(m_metadata.weights_zp.GetSubTensor(), membases, num_mems);
+  m_tile_output = Tensor<InternalBuffer, KConvIORank>(m_metadata.output.GetSubTensor(), membases, num_mems);
 
   UpdateTilePaddings();
 }
 
 mli_status Conv2d::Issue() {
   // element size for input, output and weights in bytes
-  uint32_t i_elem_size = m_tile_metadata.input.get_elem_size();
-  uint32_t o_elem_size = m_tile_metadata.output.get_elem_size();
-  uint32_t w_elem_size = m_tile_metadata.weights.get_elem_size();
+  uint32_t i_elem_size = m_tile_input.get_buf().get_elem_size();
+  uint32_t o_elem_size = m_tile_output.get_buf().get_elem_size();
+  uint32_t w_elem_size = m_tile_weights.get_buf().get_elem_size();
 
   if (i_elem_size == sizeof(int8_t) &&
       w_elem_size == sizeof(int8_t) &&
       o_elem_size == sizeof(int32_t)) {
 
-    QTensor<InternalBuffer, KConvIORank> qinput{
-      m_tile_metadata.input, m_tile_metadata.inpzp_buffer, m_tile_metadata.inp_quant_axis};
-    QTensor<InternalBuffer, KConvWRank> qweights{
-      m_tile_metadata.weights, m_tile_metadata.wtszp_buffer, m_tile_metadata.wts_quant_axis};
+    QTensor<InternalBuffer, KConvIORank> qinput{m_tile_input, m_metadata.inpzp_buffer,
+                                                m_metadata.inp_quant_axis};
+    QTensor<InternalBuffer, KConvWRank> qweights{m_tile_weights, m_tile_wzp.get_buf(),
+                                                 m_metadata.wts_quant_axis};
 
     conv2d_prepare_and_run<int8_t, int8_t, int32_t, mli_8x8_accu_t, LAYOUT_HWC,
                            ::mli::CONV_GENERAL, KConvIORank, KConvWRank,
-                           Conv2DConfig>(
-        qinput, qweights, m_tile_metadata.output, m_tile_metadata.cfg);
+                           Conv2DConfig>(qinput, qweights, m_tile_output, m_tile_cfg);
   } else {
     // datatype is not supported yet
     return MLI_STATUS_NOT_SUPPORTED;
@@ -114,92 +80,86 @@ mli_status Conv2d::Issue() {
 mli_status Conv2d::Prefetch() { return MLI_STATUS_OK; }
 
 mli_status Conv2d::Update() {
-  if (!m_use_tiling) return MLI_STATUS_OK;
 
-  // update state with i/o tile increments, that was used in Issue()
-  for (int i = 0; i < 4; i++) {
-    int axis = m_tile_iteration_order[i];
-    bool first_tile = !m_tile_input_offsets[axis];
-    m_tile_input_offsets[axis] += (first_tile ? m_tile_input_first_inc[axis] : m_tile_input_inc[axis]);
-    m_tile_output_offsets[axis] += (first_tile ? m_tile_output_first_inc[axis] : m_tile_output_inc[axis]);
+  m_metadata.input.Next();
+  m_metadata.output.Next();
 
-    if (m_tile_input_offsets[axis] >= m_tile_total_input_size[axis]) m_tile_input_offsets[axis] = 0;
-
-    if (m_tile_output_offsets[axis] >= m_tile_total_output_size[axis]) {
-      // end of this axis
-      m_tile_input_offsets[axis] = 0;
-      m_tile_output_offsets[axis] = 0;
-    }
-    else {
-      // not end of this axis
-      break;
-    }
+  // TODO: extend for all iter orders (now done for  I/O = {0, 1, 2, 3}, W = {0, 1, 2, 3, 4} )
+  if (m_metadata.output.is_first_tile(kTensorBatchDim) && m_metadata.output.is_first_tile(kTensorWidthDim) &&
+    m_metadata.output.is_first_tile(kTensorHeightDim)) {
+    m_metadata.weights.Next();
+    m_metadata.weights_zp.Next();
   }
 
-  // set i/o/w/w_zp sizes for next call of Issue()
-  uint32_t input_tile_size[4]{};
-  uint32_t output_tile_size[4]{};
-  for (int i = 0; i < 4; i++) {
-    bool first_tile = !m_tile_input_offsets[i];
-    input_tile_size[i] = MIN(first_tile ? m_tile_first_size[i] : m_tile_size[i],
-                             m_tile_total_input_size[i] - m_tile_input_offsets[i]);
-    output_tile_size[i] = MIN(first_tile ? m_tile_output_first_inc[i] : m_tile_output_inc[i],
-                              m_tile_total_output_size[i] - m_tile_output_offsets[i]);
-  }
-  m_tile_metadata.input = Tensor<InternalBuffer, 4>(m_metadata.input, input_tile_size);
-  m_tile_metadata.output = Tensor<InternalBuffer, 4>(m_metadata.output, output_tile_size);
+  // TODO: use only GetSubTensor when it will be possible ( without manual clipping with MIN )
+  const auto input_tile_tensor = m_metadata.input.GetSubTensor();
+  uint32_t input_tile_shape[KConvIORank];
+  input_tile_tensor.get_dims(input_tile_shape);
+  int32_t tile_input_offsets[KConvIORank];
+  m_metadata.input.get_pos(tile_input_offsets);
+  input_tile_shape[kTensorHeightDim] = MIN(input_tile_shape[kTensorHeightDim],
+                                           m_metadata.input.get_dim(kTensorHeightDim) - (uint32_t)tile_input_offsets[kTensorHeightDim]);
+  input_tile_shape[kTensorWidthDim] = MIN(input_tile_shape[kTensorWidthDim],
+                                          m_metadata.input.get_dim(kTensorWidthDim) - (uint32_t)tile_input_offsets[kTensorWidthDim]);
+  m_tile_input = Tensor<InternalBuffer, KConvIORank>(m_tile_input, input_tile_shape);
 
-  uint32_t weight_tile_size[5]{};
-  weight_tile_size[kKernelGroupDim] = 1;
-  for (int i = 0; i < 3; i++) {
-    weight_tile_size[i + 1] = m_tile_weights_inc[i];
-  }
-  weight_tile_size[kKernelChannelOutDim] = MIN(m_tile_weights_inc[3],
-                                               m_tile_total_weights_size[3] - m_tile_output_offsets[kTensorChannelDim]);
+  const auto weights_tile_tensor = m_metadata.weights.GetSubTensor();
+  uint32_t weights_tile_shape[KConvWRank];
+  weights_tile_tensor.get_dims(weights_tile_shape);
+  m_tile_weights = Tensor<InternalBuffer, KConvWRank>(m_tile_weights, weights_tile_shape);
 
-  m_tile_metadata.weights = Tensor<InternalBuffer, 5>(m_metadata.weights, weight_tile_size);
-  m_tile_metadata.inpzp_buffer = m_metadata.inpzp_buffer;
-  m_tile_metadata.wtszp_buffer = InternalBuffer(); ;
-  m_tile_metadata.wtszp_buffer.set_buffer(m_metadata.wtszp_buffer.get_ptr<int16_t>(),
-                                          weight_tile_size[kKernelChannelOutDim] * sizeof(int16_t));
+  const auto wzp_tile_tensor = m_metadata.weights_zp.GetSubTensor();
+  uint32_t wzp_tile_shape[kConvZPRank];
+  wzp_tile_tensor.get_dims(wzp_tile_shape);
+  m_tile_wzp = Tensor<InternalBuffer, kConvZPRank>(m_tile_wzp, wzp_tile_shape);
+  // last tile can be smaller than others
+  if (wzp_tile_shape[0] != m_tile_wzp.get_buf().get_size()) {
+    InternalBuffer buf = m_tile_wzp.get_buf();
+    buf.set_buffer(buf.get_ptr<int16_t>(), wzp_tile_shape[0] * sizeof(int16_t));
+    m_tile_wzp.set_buf(buf);
+  }
+
+  const auto output_tile_tensor = m_metadata.output.GetSubTensor();
+  uint32_t output_tile_shape[KConvIORank];
+  output_tile_tensor.get_dims(output_tile_shape);
+  m_tile_output = Tensor<InternalBuffer, KConvIORank>(m_tile_output, output_tile_shape);
 
   UpdateTilePaddings();
+
   return MLI_STATUS_OK;
 
 }
 
 void Conv2d::UpdateTilePaddings() {
-  memcpy(&m_tile_metadata.cfg, &m_metadata.cfg, sizeof(m_metadata.cfg));
-  if (!m_use_tiling) return;
+  memcpy(&m_tile_cfg, &m_metadata.cfg, sizeof(m_metadata.cfg));
 
-  Conv2DConfig& cfg = m_tile_metadata.cfg;
-  if (m_tile_input_offsets[kTensorHeightDim]) cfg.padding_begin[0] = 0;
-  if (m_tile_input_offsets[kTensorHeightDim] + m_tile_size[kTensorHeightDim] < m_tile_total_input_size[kTensorHeightDim]) {
-    cfg.padding_end[0] = 0;
+  int32_t tile_input_offsets[KConvIORank];
+  const auto& input = m_metadata.input;
+  input.get_pos(tile_input_offsets);
+  const auto& input_it_cfg = input.get_config();
+
+  if (tile_input_offsets[kTensorHeightDim]) m_tile_cfg.padding_begin[0] = 0;
+  if (tile_input_offsets[kTensorHeightDim] + (int32_t)input_it_cfg.get_size(kTensorHeightDim) < (int32_t)input.get_dim(kTensorHeightDim)) {
+    m_tile_cfg.padding_end[0] = 0;
   }
-  if (m_tile_input_offsets[kTensorWidthDim]) cfg.padding_begin[1] = 0;
-  if (m_tile_input_offsets[kTensorWidthDim] + m_tile_size[kTensorWidthDim] < m_tile_total_input_size[kTensorWidthDim]) {
-    cfg.padding_end[1] = 0;
+  if (tile_input_offsets[kTensorWidthDim]) m_tile_cfg.padding_begin[1] = 0;
+  if (tile_input_offsets[kTensorWidthDim] + (int32_t)input_it_cfg.get_size(kTensorWidthDim) < (int32_t) input.get_dim(kTensorWidthDim)) {
+    m_tile_cfg.padding_end[1] = 0;
   }
 }
 
 void Conv2d::GetIOSizesAndOffsets(uint32_t input_size[KConvIORank], uint32_t output_size[KConvIORank],
                                   uint32_t weights_size[KConvWRank],
-                                  uint32_t input_offsets[KConvIORank], uint32_t output_offsets[KConvIORank],
-                                  uint32_t weights_offsets[KConvWRank]) const {
-  for (unsigned i = 0; i < KConvIORank; i++) {
-    input_size[i] = m_tile_metadata.input.get_dim(i);
-    output_size[i] = m_tile_metadata.output.get_dim(i);
-    input_offsets[i] = m_tile_input_offsets[i];
-    output_offsets[i] = m_tile_output_offsets[i];
-  }
-
-  for (unsigned i = 0; i < KConvWRank - 1; i++) {
-    weights_size[i] = m_tile_metadata.weights.get_dim(i);
-    weights_offsets[i] = 0;
-  }
-  weights_size[kKernelChannelOutDim] = m_tile_metadata.weights.get_dim(kKernelChannelOutDim);
-  weights_offsets[kKernelChannelOutDim] = output_offsets[kTensorChannelDim];
+                                  int32_t input_offsets[KConvIORank], int32_t output_offsets[KConvIORank],
+                                  int32_t weights_offsets[KConvWRank]) {
+  
+  m_metadata.input.get_pos(input_offsets);
+  m_metadata.weights.get_pos(weights_offsets);
+  m_metadata.output.get_pos(output_offsets);
+  
+  m_tile_input.get_dims(input_size);
+  m_tile_weights.get_dims(weights_size);
+  m_tile_output.get_dims(output_size);
 }
 
 }  // namespace snps_arc::metaware::mli::ref

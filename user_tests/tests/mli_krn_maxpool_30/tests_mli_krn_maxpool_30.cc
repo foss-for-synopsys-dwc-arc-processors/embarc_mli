@@ -193,7 +193,7 @@ void prepare_phase(const maxpool_test_operands* cur_test,
   int32_t output_first_size[KMaxpoolIterRank];
   int32_t output_size[KMaxpoolIterRank];
   int32_t output_last_size[KMaxpoolIterRank];
-  tiling.get_io_parameters_for_tensor_iterator(count,
+  tiling.get_io_parameters_for_tensor_iterator(count, false,
                                                input_first_increment, input_increment, input_last_increment,
                                                input_first_size, input_size, input_last_size,
                                                output_first_increment, output_increment, output_last_increment,

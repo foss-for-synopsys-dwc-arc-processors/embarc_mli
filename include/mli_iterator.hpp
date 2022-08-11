@@ -427,6 +427,10 @@ class TensorIterator {
       }
     }
 
+    bool is_first_tile(uint32_t dim_idx) const {
+      return !tile_idx_[dim_idx];
+    }
+
     Tensor<buf_T, tensorRank> get_tensor() const {
       return full_tensor_;
     }

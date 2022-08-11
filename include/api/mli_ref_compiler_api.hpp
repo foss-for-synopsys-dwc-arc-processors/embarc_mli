@@ -128,19 +128,17 @@ public:
                             uint32_t input_inc[KConvIORank],
                             uint32_t output_first_inc[KConvIORank],
                             uint32_t output_inc[KConvIORank],
-                            uint32_t weights_inc[4]) override;
+                            uint32_t weights_inc[KConvWRank]) override;
 private:
-    void FillTilingParams(Conv2DPrivateData& pdata);
 
-    // Input, weights, output tensors with offset buffer attached
-    Tensor<OffsetBuffer, KConvIORank> m_input;
+    // Input, weights, weights zp(s), output tensors with offset buffer attached
+    TensorIterator<OffsetBuffer, KConvIORank, KConvIOIterRank> m_input;
+    TensorIterator<OffsetBuffer, KConvWRank, KConvWIterRank> m_weights;
+    TensorIterator<OffsetBuffer, kConvZPRank, kConvZPIterRank> m_weights_zp;
+    TensorIterator<OffsetBuffer, KConvIORank, KConvIOIterRank> m_output;
 
-    Tensor<OffsetBuffer, KConvWRank> m_weights;
-    Tensor<OffsetBuffer, KConvIORank> m_output;
-
-    // encoded zp buffers for input and weights (optional for FX type)
+    // encoded zp buffers for input (optional for FX type)
     OffsetBuffer m_inpzp_buffer;
-    OffsetBuffer m_wtszp_buffer;
 
     // the axis to represent the quantization granularity (optional for FX type)
     int m_inp_quant_axis;
@@ -156,19 +154,6 @@ private:
 
     // Platform descriptor
     lib_mli::PlatformDescription m_pd;
-
-    // Tile Parameters BHWC
-    // TODO: remove these fields and replace with TensorIterator usage
-    bool m_use_tiling;
-    uint32_t m_tile_total_input_size[4];
-    uint32_t m_tile_total_output_size[4];
-    uint32_t m_tile_total_weights_size[4];  // KyKxCiCo
-    uint32_t m_tile_iteration_order[4];
-    uint32_t m_tile_input_first_inc[4];
-    uint32_t m_tile_input_inc[4];
-    uint32_t m_tile_output_first_inc[4];
-    uint32_t m_tile_output_inc[4];
-    uint32_t m_tile_weights_inc[4];
 };
 
 class DepthwiseConv2d_CS : public lib_mli::DepthwiseConv2d_CS {

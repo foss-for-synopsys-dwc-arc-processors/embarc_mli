@@ -46,9 +46,11 @@ constexpr short int kKernelFCChannelOutDim = 1;
 
 constexpr short int kPerTensorQuantDim = -1;
 
+// TODO: fix typo - change K -> k
 constexpr unsigned KMaxpoolRank = 4;
 constexpr unsigned KMaxpoolIterRank = 4;
 
+// TODO: fix typo - change K -> k
 constexpr unsigned KConvIORank = 4;
 constexpr unsigned KConvIOIterRank = 4;
 constexpr unsigned KConvWRank = 5;
@@ -56,6 +58,7 @@ constexpr unsigned KConvWIterRank = 5;
 constexpr unsigned kConvZPRank = 1;
 constexpr unsigned kConvZPIterRank = 1;
 
+// TODO: fix typo - change K -> k
 constexpr unsigned KTransposeConvIORank = 4;
 constexpr unsigned KTransposeConvIOIterRank = 4;
 constexpr unsigned KTransposeConvWRank = 5;

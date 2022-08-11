@@ -31,6 +31,18 @@
 
 #include "vectors_mli_krn_conv2d.inc"
 
+/**
+ * Uncomment USE_DEPRECTED_CONV_CS_CONSTRUCTOR if you want to call a combination of
+ * deprecated Conv2D_CS constructor + SetIterators + AttachBufferOffsets methods.
+ */
+// #define USE_DEPRECTED_CONV_CS_CONSTRUCTOR
+
+ /**
+  * Comment USE_TILING if you want to use single tile.
+  * In case of using together with USE_DEPRECTED_CONV_CS_CONSTRUCTOR - no SetIterators will be called.
+  */
+#define USE_TILING
+
 using namespace snps_arc::metaware::mli::service;
 
 using mli::tst::tensor_quantizer;
@@ -44,6 +56,15 @@ using mli::tst::vectorize_single_elem_tensor;
 
 namespace lib_mli = ::snps_arc::metaware::mli;
 namespace lib_ref = ::snps_arc::metaware::mli::ref;
+
+using lib_mli::KConvIORank;
+using lib_mli::KConvIOIterRank;
+using lib_mli::KConvWRank;
+using lib_mli::KConvWIterRank;
+using lib_mli::kConvZPRank;
+using lib_mli::kConvZPIterRank;
+using lib_mli::kTensorChannelDim;
+using lib_mli::kKernelChannelOutDim;
 
 struct conv2d_test_operands {
     const char* descr;
@@ -424,56 +445,53 @@ static void hwc_to_bhwc(const T src[4], T dst[4], T b_val) {
 }
 
 void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
-                  uint32_t iteration_order[4],
+                  uint32_t iteration_order[KConvIOIterRank],
                   Conv2dOp& cnv_op, RescaleOp &rs_op, ClipOp &clp_op) {
 
   // BHWC layout
-  uint32_t total_input_size[4];
-  uint32_t total_output_size[4];
-  uint32_t first_tile_size[4];
-  uint32_t tile_size[4];
-  uint32_t input_tile_first_inc[4];
-  uint32_t output_tile_first_inc[4];
-  uint32_t input_tile_inc[4];
-  uint32_t output_tile_inc[4];
+  uint32_t total_input_size[KConvIORank];
+  uint32_t total_output_size[KConvIORank];
+  uint32_t first_tile_size[KConvIORank];
+  uint32_t tile_size[KConvIORank];
+  uint32_t input_tile_first_inc[KConvIORank];
+  uint32_t output_tile_first_inc[KConvIORank];
+  uint32_t input_tile_inc[KConvIORank];
+  uint32_t output_tile_inc[KConvIORank];
   tiling.get_io_tiles_parameters(total_input_size, total_output_size,
                                  first_tile_size, tile_size,
                                  input_tile_first_inc, output_tile_first_inc,
                                  input_tile_inc, output_tile_inc);
 
-  uint32_t tile_input_shape[4];
-  uint32_t tile_output_shape[4];
-  for (int i = 0; i < 4; i++) {
+  uint32_t tile_input_shape[KConvIORank];
+  uint32_t tile_output_shape[KConvIORank];
+  for (unsigned i = 0; i < KConvIORank; i++) {
     tile_input_shape[i] = MAX(first_tile_size[i], tile_size[i]);
     tile_output_shape[i] = MAX(output_tile_first_inc[i], output_tile_inc[i]);
   }
 
-  // STEP 1.1: Construct [Conv2d] as a specific ExecutionInterface successor
-  //==================================================================
-
   // GHWCinCo vs. HWCinCo
-  uint32_t weight_shape[5] = { 1, cnv_op.weights.shape[0], cnv_op.weights.shape[1],
+  uint32_t weight_shape[KConvWRank] = { 1, cnv_op.weights.shape[0], cnv_op.weights.shape[1],
                                cnv_op.weights.shape[2], cnv_op.weights.shape[3]};
-  int32_t weight_stride[5] = {int32_t(cnv_op.weights.shape[0] * cnv_op.weights.mem_stride[0]),
+  int32_t weight_stride[KConvWRank] = {int32_t(cnv_op.weights.shape[0] * cnv_op.weights.mem_stride[0]),
                               cnv_op.weights.mem_stride[0], cnv_op.weights.mem_stride[1],
                               cnv_op.weights.mem_stride[2], cnv_op.weights.mem_stride[3]};
 
-  uint32_t tile_weights_shape[5];
-  for (int i = 0; i < 4; i++) {
+  uint32_t tile_weights_shape[KConvWRank];
+  for (unsigned i = 0; i < KConvWRank - 1; i++) {
     tile_weights_shape[i] = weight_shape[i];
   }
-  tile_weights_shape[4] = output_tile_inc[3];
+  tile_weights_shape[4] = output_tile_inc[kTensorChannelDim];
   
 
-  int32_t input_stride[4] = { int32_t(cnv_op.input.shape[0]) * cnv_op.input.mem_stride[0],
-                           cnv_op.input.mem_stride[0],
-                           cnv_op.input.mem_stride[1],
-                           cnv_op.input.mem_stride[2] };
+  int32_t input_stride[KConvIORank] = { int32_t(cnv_op.input.shape[0]) * cnv_op.input.mem_stride[0],
+                                        cnv_op.input.mem_stride[0],
+                                        cnv_op.input.mem_stride[1],
+                                        cnv_op.input.mem_stride[2] };
 
-  int32_t output_stride[4] = {int32_t(tile_output_shape[1]) * cnv_op.out_acc.mem_stride[0],
-                              cnv_op.out_acc.mem_stride[0],
-                              cnv_op.out_acc.mem_stride[1],
-                              cnv_op.out_acc.mem_stride[2]};
+  int32_t output_stride[KConvIORank] = {int32_t(tile_output_shape[1]) * cnv_op.out_acc.mem_stride[0],
+                                        cnv_op.out_acc.mem_stride[0],
+                                        cnv_op.out_acc.mem_stride[1],
+                                        cnv_op.out_acc.mem_stride[2]};
 
   // G == 1
   assert(total_input_size[0] == 1 && tile_output_shape[0] == 1);
@@ -481,15 +499,6 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   assert(total_input_size[3] == weight_shape[3]);
   // Weight Co = Output Co
   assert(weight_shape[4] == total_output_size[3]);
-
-  const lib_mli::Tensor<lib_mli::NoBuffer, 4> in_tensor(total_input_size, input_stride);
-  const lib_mli::Tensor<lib_mli::NoBuffer, 4> out_tensor(tile_output_shape, output_stride);
-  const lib_mli::Tensor<lib_mli::NoBuffer, 5> wt_tensor(weight_shape, weight_stride);
-
-  lib_mli::PlatformDescription pd;
-  lib_ref::KernelsFactory kernel_factory(pd);
-  uint32_t conv2d_cs_size = kernel_factory.Conv2d_CS_GetSize();
-  void* conv2d_cs_buffer = malloc(conv2d_cs_size);
 
   lib_mli::Conv2DConfig cfg(
     cur_test->cfg.stride_height, cur_test->cfg.stride_width,
@@ -499,8 +508,101 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
     /* groups=1 */ total_input_size[0]
   );
 
-  auto conv2d_op = kernel_factory.Conv2d_CS(
-    conv2d_cs_buffer, in_tensor, wt_tensor, cfg, out_tensor);
+  // STEP 1.1: Construct [Conv2d] as a specific ExecutionInterface successor
+  //==================================================================
+  lib_mli::PlatformDescription pd;
+  lib_ref::KernelsFactory kernel_factory(pd);
+  uint32_t conv2d_cs_size = kernel_factory.Conv2d_CS_GetSize();
+  void* conv2d_cs_buffer = malloc(conv2d_cs_size);
+
+  const lib_mli::Tensor<lib_mli::NoBuffer, KConvIORank> in_tensor(total_input_size, input_stride);
+  const lib_mli::Tensor<lib_mli::NoBuffer, KConvWRank> wt_tensor(weight_shape, weight_stride);
+
+#ifdef USE_DEPRECTED_CONV_CS_CONSTRUCTOR
+  const lib_mli::Tensor<lib_mli::NoBuffer, 4> out_tensor(tile_output_shape, output_stride);
+  auto conv2d_op = kernel_factory.Conv2d_CS(conv2d_cs_buffer, in_tensor, wt_tensor, cfg, out_tensor);
+#else
+  int32_t count[KConvIOIterRank];
+  int32_t input_first_increment[KConvIOIterRank];
+  int32_t input_increment[KConvIOIterRank];
+  int32_t input_last_increment[KConvIOIterRank];
+  int32_t input_first_size[KConvIOIterRank];
+  int32_t input_size[KConvIOIterRank];
+  int32_t input_last_size[KConvIOIterRank];
+  int32_t output_first_increment[KConvIOIterRank];
+  int32_t output_increment[KConvIOIterRank];
+  int32_t output_last_increment[KConvIOIterRank];
+  int32_t output_first_size[KConvIOIterRank];
+  int32_t output_size[KConvIOIterRank];
+  int32_t output_last_size[KConvIOIterRank];
+  tiling.get_io_parameters_for_tensor_iterator(count, true,
+                                               input_first_increment, input_increment, input_last_increment,
+                                               input_first_size, input_size, input_last_size,
+                                               output_first_increment, output_increment, output_last_increment,
+                                               output_first_size, output_size, output_last_size);
+  int32_t iteration_order_signed[KConvIOIterRank];
+  for (unsigned i = 0; i < KConvIOIterRank; i++) {
+    iteration_order_signed[i] = (int32_t)iteration_order[i];
+  }
+
+  int32_t weights_iteration_order_signed[KConvWIterRank]{ 0, 1, 2, 3, 4 };  // TODO: maybe add some connection between i/o and w orders
+  int32_t weights_count[KConvWIterRank]{ 1, 1, 1, 1, count[kTensorChannelDim]};
+  int32_t weights_first_increment[KConvWIterRank]{ 0, 0, 0, 0, output_first_increment[kTensorChannelDim] };
+  int32_t weights_increment[KConvWIterRank]{ 0, 0, 0, 0, output_increment[kTensorChannelDim] };
+  int32_t weights_last_increment[KConvWIterRank]{ 0, 0, 0, 0, output_last_increment[kTensorChannelDim]};
+  int32_t weights_first_size[KConvWIterRank];
+  int32_t weights_size[KConvWIterRank];
+  int32_t weights_last_size[KConvWIterRank];
+  for (unsigned i = 0; i < KConvWIterRank - 1; i++) {
+    weights_first_size[i] = tile_weights_shape[i];
+    weights_size[i] = tile_weights_shape[i];
+    weights_last_size[i] = tile_weights_shape[i];
+  }
+  weights_first_size[kKernelChannelOutDim] = output_first_size[kTensorChannelDim];
+  weights_size[kKernelChannelOutDim] = output_size[kTensorChannelDim];
+  weights_last_size[kKernelChannelOutDim] = output_last_size[kTensorChannelDim];
+
+  int32_t wzp_iteration_order[kConvZPIterRank]{ 0 };
+  int32_t wzp_count[kConvZPIterRank]{ count[kTensorChannelDim] };
+  int32_t wzp_first_increment[kConvZPIterRank]{ output_first_increment[kTensorChannelDim] };
+  int32_t wzp_increment[kConvZPIterRank]{ output_increment[kTensorChannelDim] };
+  int32_t wzp_last_increment[kConvZPIterRank]{ output_last_increment[kTensorChannelDim] };
+  int32_t wzp_first_size[kConvZPIterRank]{ output_first_size[kTensorChannelDim] };
+  int32_t wzp_size[kConvZPIterRank]{ output_size[kTensorChannelDim] };
+  int32_t wzp_last_size[kConvZPIterRank]{ output_last_size[kTensorChannelDim] };
+
+  lib_mli::IteratorCfg<KConvIOIterRank> input_it_config(
+    iteration_order_signed, count,
+    input_first_increment, input_increment, input_last_increment,
+    input_first_size, input_size, input_last_size
+  );
+  lib_mli::TensorIterator<lib_mli::NoBuffer, KConvIORank, KConvIOIterRank> in_tensor_it(in_tensor, input_it_config);
+
+  lib_mli::IteratorCfg<KConvWIterRank> weights_it_config(
+    weights_iteration_order_signed, weights_count,
+    weights_first_increment, weights_increment, weights_last_increment,
+    weights_first_size, weights_size, weights_last_size
+  );
+  lib_mli::TensorIterator<lib_mli::NoBuffer, KConvWRank, KConvWIterRank> w_tensor_it(wt_tensor, weights_it_config);
+
+  lib_mli::IteratorCfg<KConvIOIterRank> output_it_config(
+    iteration_order_signed, count,
+    output_first_increment, output_increment, output_last_increment,
+    output_first_size, output_size, output_last_size
+  );
+  lib_mli::Tensor<lib_mli::NoBuffer, KConvIORank> full_out_tensor(total_output_size, output_stride);
+  lib_mli::TensorIterator<lib_mli::NoBuffer, KConvIORank, KConvIOIterRank> out_tensor_it(full_out_tensor, output_it_config);
+
+  uint32_t wzp_shape[kConvZPRank]{tile_output_shape[kTensorChannelDim]};
+  lib_mli::Tensor<lib_mli::NoBuffer, kConvZPIterRank> wzp_tensor(wzp_shape);
+  lib_mli::IteratorCfg<kConvZPIterRank> wzp_it_config(
+    wzp_iteration_order, wzp_count,
+    wzp_first_increment, wzp_increment, wzp_last_increment,
+    wzp_first_size, wzp_size, wzp_last_size
+  );
+  lib_mli::TensorIterator<lib_mli::NoBuffer, kConvZPRank, kConvZPIterRank> wzp_tensor_it(wzp_tensor, wzp_it_config);
+  auto conv2d_op = kernel_factory.Conv2d_CS(conv2d_cs_buffer, in_tensor_it, w_tensor_it, wzp_tensor_it, cfg, out_tensor_it);
+#endif
 
   // STEP 1.1.2: Construct [Rescale] as a specific ExecutionInterface successor
   //==================================================================
@@ -520,7 +622,7 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
     assert(rs_output_tsr.mem_stride[i] == output_stride[1 + i]);
   }
 
-  const lib_mli::Tensor<lib_mli::NoBuffer, 4> input_tensor(total_input_size, output_stride);
+  const lib_mli::Tensor<lib_mli::NoBuffer, 4> input_tensor(tile_output_shape, output_stride);
   const lib_mli::Tensor<lib_mli::NoBuffer, 4> output_tensor(tile_output_shape, output_stride);
 
   uint32_t rescale_cs_size = kernel_factory.Rescale_CS_GetSize();
@@ -530,7 +632,7 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   if (mli_hlp_count_elem_num(&rs_op.mli3_scales_keeper.get_scales_tsr(), 0) == 1) {
       rs_cfg.axis = -1;
   } else {
-      rs_cfg.axis = 3;
+      rs_cfg.axis = kTensorChannelDim;
   }
 
   auto rescale_op = kernel_factory.Rescale_CS(rescale_cs_buffer, input_tensor,
@@ -587,16 +689,16 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   // conv2d input
   cnv_offset = &offsets[0];
   uint32_t cnv_i_elem_size = mli_hlp_tensor_element_size(&cnv_op.input);
-  uint32_t in_size = GetBufferSize(4, tile_input_shape, input_stride) * cnv_i_elem_size;
+  uint32_t in_size = GetBufferSize(KConvIORank, tile_input_shape, input_stride) * cnv_i_elem_size;
   lib_mli::OffsetBuffer conv2d_in_buf{*cnv_offset, 0, in_size, cnv_i_elem_size};
-  lib_mli::Tensor<lib_mli::OffsetBuffer, 4> conv2d_in_tensor(conv2d_in_buf, total_input_size);
+  lib_mli::Tensor<lib_mli::OffsetBuffer, KConvIORank> conv2d_in_tensor(conv2d_in_buf, total_input_size);
   in_mem_offset = *cnv_offset;
   *cnv_offset += in_size;
 
   // conv2d weight
   cnv_offset = &offsets[0];
   uint32_t cnv_w_elem_size = mli_hlp_tensor_element_size(&cnv_op.weights);
-  uint32_t w_size = GetBufferSize(5, tile_weights_shape, weight_stride) * cnv_w_elem_size;
+  uint32_t w_size = GetBufferSize(KConvWRank, tile_weights_shape, weight_stride) * cnv_w_elem_size;
   lib_mli::OffsetBuffer conv2d_w_buf{*cnv_offset, 0, w_size, cnv_w_elem_size};
   w_mem_offset = *cnv_offset;
   *cnv_offset += w_size;
@@ -609,7 +711,7 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   *cnv_offset = CEIL_RND(*cnv_offset, cnv_o_elem_size);
   uint32_t out_size = conv2d_op->GetOutputBufferSize() * cnv_o_elem_size;
   lib_mli::OffsetBuffer conv2d_out_buf{*cnv_offset, 0, out_size, cnv_o_elem_size};
-  lib_mli::Tensor<lib_mli::OffsetBuffer, 4> conv2d_out_tensor(conv2d_out_buf, tile_output_shape);
+  lib_mli::Tensor<lib_mli::OffsetBuffer, KConvIORank> conv2d_out_tensor(conv2d_out_buf, tile_output_shape);
   *cnv_offset += out_size;
 
   // conv2d input zero point
@@ -623,7 +725,7 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
 
   // conv2d weights zero point
   cnv_offset = &offsets[0];
-  uint32_t wtszp_size = conv2d_op->GetEncodedWtsZeroPtsSize() * zp_elem_size;
+  uint32_t wtszp_size = tile_output_shape[kTensorChannelDim] * zp_elem_size;
   lib_mli::OffsetBuffer wtszp_buf{*cnv_offset, 0, wtszp_size, zp_elem_size};
   wtszp_mem_offset = *cnv_offset;
   *cnv_offset += wtszp_size;
@@ -640,6 +742,7 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   // DataBuffer size is 0 for reference kernel
   mli_status status = MLI_STATUS_OK;
 
+#ifdef USE_DEPRECTED_CONV_CS_CONSTRUCTOR
   status = conv2d_op->AttachBufferOffsets(conv2d_in_tensor,
                                           conv2d_out_tensor,
                                           conv2d_w_buf,
@@ -647,15 +750,26 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
                                           wtszp_buf,
                                           conv2d_ctrl_buf);
   assert(status == MLI_STATUS_OK);
-
-
-
-  uint32_t weights_inc[4] = {weight_shape[1], weight_shape[2], weight_shape[3], output_tile_inc[3]};
-  status = conv2d_op->SetIterators(total_output_size, iteration_order,
-                          input_tile_first_inc, input_tile_inc,
-                          output_tile_first_inc, output_tile_inc,
-                          weights_inc);
+#else
+  status = conv2d_op->AttachBufferOffsets(conv2d_in_buf,
+                                          conv2d_out_buf,
+                                          conv2d_w_buf,
+                                          inpzp_buf,
+                                          wtszp_buf,
+                                          conv2d_ctrl_buf);
   assert(status == MLI_STATUS_OK);
+#endif
+
+#ifdef USE_DEPRECTED_CONV_CS_CONSTRUCTOR
+#ifdef USE_TILING
+  uint32_t weights_inc[KConvWRank] = { 1, weight_shape[1], weight_shape[2], weight_shape[3], output_tile_inc[3] };
+  status = conv2d_op->SetIterators(total_output_size, iteration_order,
+                                   input_tile_first_inc, input_tile_inc,
+                                   output_tile_first_inc, output_tile_inc,
+                                   weights_inc);
+  assert(status == MLI_STATUS_OK);
+#endif
+#endif
 
   // STEP 1.2.2: [Rescale] Memory management (Up to user on how to deal with it)
   //==================================================================
@@ -710,9 +824,11 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
                                            rescale_ctrl_buf);
   assert(status == MLI_STATUS_OK);
 
+#ifdef USE_TILING
   status = rescale_op->SetIterators(total_output_size, iteration_order,
                                     output_tile_first_inc, output_tile_inc);
   assert(status == MLI_STATUS_OK);
+#endif
 
   // STEP 1.2.3: [Clip] Memory management (Up to user on how to deal with it)
   //==================================================================
@@ -765,10 +881,11 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
                                         clip_encoded_params_buf,
                                         clip_ctrl_buf);
   assert(status == MLI_STATUS_OK);
-
+#ifdef USE_TILING
   status = clip_op->SetIterators(total_output_size, iteration_order,
                                  output_tile_first_inc, output_tile_inc);
   assert(status == MLI_STATUS_OK);
+#endif
 
   // encode input zero points to the global mem pool
   //==================================================================
@@ -928,20 +1045,20 @@ void execution_phase(Conv2dOp& cnv_op, RescaleOp &rs_op, ClipOp &clp_op, uint32_
   lib_ref::RescalePrivateData * rescale_private = (lib_ref::RescalePrivateData*)(rs_op.rescale_conf_private);
   lib_ref::ClipPrivateData * clip_private = (lib_ref::ClipPrivateData*)(clp_op.clip_conf_private);
  
-  int32_t tile_input_strides[4]{};
+  int32_t tile_input_strides[KConvIORank]{};
   conv2d_private->input.get_mem_strides(tile_input_strides);
-  int32_t tile_output_strides[4]{};
+  int32_t tile_output_strides[KConvIORank]{};
   conv2d_private->output.get_mem_strides(tile_output_strides);
-  int32_t tile_weights_strides[5]{};
+  int32_t tile_weights_strides[KConvWRank]{};
   conv2d_private->weights.get_mem_strides(tile_weights_strides);
   
-  uint32_t input_tile_size[4];
-  uint32_t output_tile_size[4];
-  uint32_t weights_tile_size[5];
-  uint32_t input_tile_offsets[4];
-  uint32_t output_tile_offsets[4];
-  uint32_t weights_tile_offsets[5];
-  const uint32_t zero_offsets[5]{};
+  uint32_t input_tile_size[KConvIOIterRank];
+  uint32_t output_tile_size[KConvIOIterRank];
+  uint32_t weights_tile_size[KConvWIterRank];
+  int32_t input_tile_offsets[KConvIOIterRank];
+  int32_t output_tile_offsets[KConvIOIterRank];
+  int32_t weights_tile_offsets[KConvWIterRank];
+  const int32_t zero_offsets[KConvWIterRank]{};
   uint32_t enc_param_size = 0, inp_bias_offset = 0, scale_offset = 0, shift_offset = 0, out_bias_offset = 0;
 
   mli_status status = MLI_STATUS_OK;
@@ -950,23 +1067,24 @@ void execution_phase(Conv2dOp& cnv_op, RescaleOp &rs_op, ClipOp &clp_op, uint32_
                                            input_tile_offsets, output_tile_offsets, weights_tile_offsets);
 
     // copy input from global to local buffer
-    strided_copy_with_offsets(4, conv2d_private->input.get_elem_size(),
+    strided_copy_with_offsets(KConvIORank, conv2d_private->input.get_buf().get_elem_size(),
                               cnv_op.input.data.mem.pi8,
                               input_tile_offsets, zero_offsets, tile_input_strides,
                               input_tile_size, (int8_t*)(g_mem_pool + conv2d_private->input.get_buf().get_offset()));
 
     // copy weights from global to local buffer
-    strided_copy_with_offsets(5, conv2d_private->weights.get_elem_size(),
+    strided_copy_with_offsets(KConvWRank, conv2d_private->weights.get_buf().get_elem_size(),
                               cnv_op.weights.data.mem.pi8,
                               weights_tile_offsets, zero_offsets, tile_weights_strides,
                               weights_tile_size, (int8_t*)(g_mem_pool + conv2d_private->weights.get_buf().get_offset()));
 
     // copy weights zps from global to local buffer
-    int16_t* wtszp_tile_buf = (int16_t*) (g_mem_pool + conv2d_private->wtszp_buffer.get_offset());
+    int16_t* wtszp_tile_buf = (int16_t*)(g_mem_pool + conv2d_private->weights_zp.get_buf().get_offset());
+    uint32_t wzp_tile_buf_size = weights_tile_size[4] * sizeof(int16_t);
     if (cnv_op.weights.el_params.sa.dim != -1) {
-      memcpy(wtszp_tile_buf, cnv_op.weights.el_params.sa.zero_point.mem.pi16 + weights_tile_offsets[3], conv2d_private->wtszp_buffer.get_size());
+      memcpy(wtszp_tile_buf, cnv_op.weights.el_params.sa.zero_point.mem.pi16 + weights_tile_offsets[4], wzp_tile_buf_size);
     }
-    else std::fill_n(wtszp_tile_buf, conv2d_private->wtszp_buffer.get_size() / 2, cnv_op.weights.el_params.sa.zero_point.mem.i16);
+    else std::fill_n(wtszp_tile_buf, wzp_tile_buf_size / sizeof(int16_t), cnv_op.weights.el_params.sa.zero_point.mem.i16);
 
     rescale_pimpl->GetIOSizesAndOffsets(enc_param_size, inp_bias_offset, scale_offset, shift_offset, out_bias_offset);
 
@@ -1174,8 +1292,14 @@ int main() {
       cfg.padding_top, cfg.padding_bottom, cfg.padding_left, cfg.padding_right
     };
 
-    uint32_t tile_input_size[4]{ input_size[0], 2, 2, input_size[3] };
-    Tiling tiling(input_size, tile_input_size, kernel_info, 2, conv2d_op.weights.shape[3]);
+#ifdef USE_TILING
+    const uint32_t tile_oc = 2;
+    const uint32_t tile_hw = 2;
+    uint32_t tile_input_size[4]{ input_size[0], tile_hw, tile_hw, input_size[3] };
+    Tiling tiling(input_size, tile_input_size, kernel_info, tile_oc, conv2d_op.weights.shape[3]);
+#else
+    Tiling tiling(input_size, input_size, kernel_info, conv2d_op.weights.shape[3], conv2d_op.weights.shape[3]);
+#endif
 
     prepare_phase(cur_test, tiling, iteration_order, conv2d_op, rs_op, clp_op);
 

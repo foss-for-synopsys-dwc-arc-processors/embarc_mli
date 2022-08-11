@@ -25,17 +25,17 @@ class Conv2DPrivateData : public PrivateData {
 public:
     Conv2DPrivateData() : PrivateData(kConv2dId, sizeof(Conv2DPrivateData)) {}
 
-    // In/Out Tensor attached with offset buffer
-    Tensor<OffsetBuffer, KConvIORank> input;
-    Tensor<OffsetBuffer, KConvWRank> weights;
-    Tensor<OffsetBuffer, KConvIORank> output;
+    // In/Out/weights/weights zp(s) tensor iterators with attached offset buffers
+    TensorIterator<OffsetBuffer, KConvIORank, KConvIOIterRank> input;
+    TensorIterator<OffsetBuffer, KConvWRank, KConvWIterRank> weights;
+    TensorIterator<OffsetBuffer, kConvZPRank, kConvZPIterRank> weights_zp;
+    TensorIterator<OffsetBuffer, KConvIORank, KConvIOIterRank> output;
 
     // The layout of input
     Layout layout;
 
-    // Encoded input and weights zero pointers
+    // Encoded input zero point
     OffsetBuffer inpzp_buffer;
-    OffsetBuffer wtszp_buffer;
 
     // the index of quantization axis
     int inp_quant_axis;
@@ -43,30 +43,15 @@ public:
 
     // Convolution config
     Conv2DConfig config;
-
-    // Tile Parameters BHWC
-    // TODO: remove these fields and replace with TensorIterator usage
-    bool m_use_tiling;
-    uint32_t m_tile_total_input_size[4];
-    uint32_t m_tile_total_output_size[4];
-    uint32_t m_tile_total_weights_size[4];  // KyKxCiCo
-    uint32_t m_tile_iteration_order[4];
-    uint32_t m_tile_first_size[4];
-    uint32_t m_tile_size[4];
-    uint32_t m_tile_input_first_inc[4];
-    uint32_t m_tile_input_inc[4];
-    uint32_t m_tile_output_first_inc[4];
-    uint32_t m_tile_output_inc[4];
-    uint32_t m_tile_weights_inc[4];
 };
 
 struct Conv2dMetadata {
-    Tensor<InternalBuffer, KConvIORank> input;
-    Tensor<InternalBuffer, KConvWRank> weights;
-    Tensor<InternalBuffer, KConvIORank> output;
+    TensorIterator<OffsetBuffer, KConvIORank, KConvIOIterRank> input;
+    TensorIterator<OffsetBuffer, KConvWRank, KConvWIterRank> weights;
+    TensorIterator<OffsetBuffer, kConvZPRank, kConvZPIterRank> weights_zp;
+    TensorIterator<OffsetBuffer, KConvIORank, KConvIOIterRank> output;
 
     InternalBuffer inpzp_buffer;
-    InternalBuffer wtszp_buffer;
     int inp_quant_axis;
     int wts_quant_axis;
 

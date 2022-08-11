@@ -25,7 +25,7 @@ MaxPool2D_CS::MaxPool2D_CS(const lib_mli::PlatformDescription pd,
     : m_config(cfg),
       m_pd(pd) {
 
-  DEPRICATED_METHOD
+  DEPRECATED_METHOD
 
   uint32_t input_shape[KMaxpoolRank];
   int32_t input_stride[KMaxpoolRank];
@@ -97,7 +97,7 @@ mli_status MaxPool2D_CS::GetKernelPrivateData(
 mli_status MaxPool2D_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, KMaxpoolRank> &input,
                                              const Tensor<OffsetBuffer, KMaxpoolRank> &output,
                                              const OffsetBuffer &data) {
-  DEPRICATED_METHOD
+  DEPRECATED_METHOD
 
   m_input.set_buf(input.get_buf());
   m_output.set_buf(output.get_buf());
@@ -127,7 +127,7 @@ mli_status MaxPool2D_CS::SetIterators(uint32_t output_total_size[KMaxpoolIterRan
                                       uint32_t input_inc[KMaxpoolIterRank],
                                       uint32_t output_first_inc[KMaxpoolIterRank],
                                       uint32_t output_inc[KMaxpoolIterRank]) {
-  DEPRICATED_METHOD
+  DEPRECATED_METHOD
 
   int32_t output_mem_stride[KMaxpoolRank];
   m_output.get_mem_strides(output_mem_stride);

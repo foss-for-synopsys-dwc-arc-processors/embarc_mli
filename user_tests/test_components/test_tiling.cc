@@ -284,7 +284,7 @@ void Tiling::get_io_tiles_parameters(uint32_t total_input_size[4], uint32_t tota
     }
 }
 
-void Tiling::get_io_parameters_for_tensor_iterator(int32_t count[],
+void Tiling::get_io_parameters_for_tensor_iterator(int32_t count[], bool no_increment_of_ic,
                                                    int32_t input_first_increment[], int32_t input_increment[], int32_t input_last_increment[],
                                                    int32_t input_first_size[], int32_t input_size[], int32_t input_last_size[],
                                                    int32_t output_first_increment[], int32_t output_increment[], int32_t output_last_increment[],
@@ -300,8 +300,13 @@ void Tiling::get_io_parameters_for_tensor_iterator(int32_t count[],
     input_first_increment[i] = (int32_t)m_input_tile_first_increment[i];
     input_increment[i] = (int32_t)m_input_tile_increment[i];
     if (count[i] == 1) input_last_increment[i] = 0;
+    else if (no_increment_of_ic && i == kTensorChannelDim) {
+      input_first_increment[kTensorChannelDim] = 0;
+      input_increment[kTensorChannelDim] = 0;
+      input_last_increment[kTensorChannelDim] = 0;
+    }
     else {
-      input_last_increment[i] = -(input_increment[i] * (count[i] - 2) + input_first_increment[i]);
+      input_last_increment[i] = get_last_increment(count[i], input_first_increment[i], input_increment[i]);
     }
   }
 
@@ -315,12 +320,12 @@ void Tiling::get_io_parameters_for_tensor_iterator(int32_t count[],
   bool single_tile_y = m_output_tile_first_increment[kTensorHeightDim] == m_total_output_size[kTensorHeightDim];
   if (single_tile_y) padding_y += m_kernel_info.pb;
   input_first_size[kTensorHeightDim] = (int32_t)get_conv_input_size(m_output_tile_first_increment[kTensorHeightDim], padding_y,
-                                                                    m_kernel_info.ky, 1, m_kernel_info.sy);
+                                                                    m_kernel_info.ky, m_kernel_info.dy, m_kernel_info.sy);
   input_first_size[kTensorHeightDim] = MIN(input_first_size[kTensorHeightDim], (int32_t)m_total_input_size[kTensorHeightDim]);
   if (single_tile_y) input_size[kTensorHeightDim] = input_first_size[kTensorHeightDim];
   else {
     input_size[kTensorHeightDim] = (int32_t)get_conv_input_size(m_output_tile_increment[kTensorHeightDim], 0,
-                                                                m_kernel_info.ky, 1, m_kernel_info.sy);
+                                                                m_kernel_info.ky, m_kernel_info.dy, m_kernel_info.sy);
     input_size[kTensorHeightDim] = MIN(input_size[kTensorHeightDim], (int32_t)m_total_input_size[kTensorHeightDim]);
   }
 
@@ -329,12 +334,12 @@ void Tiling::get_io_parameters_for_tensor_iterator(int32_t count[],
   bool single_tile_x = m_output_tile_first_increment[kTensorWidthDim] == m_total_output_size[kTensorWidthDim];
   if (single_tile_x) padding_x += m_kernel_info.pr;
   input_first_size[kTensorWidthDim] = (int32_t)get_conv_input_size(m_output_tile_first_increment[kTensorWidthDim], padding_x,
-                                                                   m_kernel_info.kx, 1, m_kernel_info.sx);
+                                                                   m_kernel_info.kx, m_kernel_info.dx, m_kernel_info.sx);
   input_first_size[kTensorWidthDim] = MIN(input_first_size[kTensorWidthDim], (int32_t)m_total_input_size[kTensorWidthDim]);
   if (single_tile_x) input_size[kTensorWidthDim] = input_first_size[kTensorWidthDim];
   else {
     input_size[kTensorWidthDim] = (int32_t)get_conv_input_size(m_output_tile_increment[kTensorWidthDim], 0,
-                                                               m_kernel_info.kx, 1, m_kernel_info.sx);
+                                                               m_kernel_info.kx, m_kernel_info.dx, m_kernel_info.sx);
     input_size[kTensorWidthDim] = MIN(input_size[kTensorWidthDim], (int32_t)m_total_input_size[kTensorWidthDim]);
   }
 
@@ -352,7 +357,7 @@ void Tiling::get_io_parameters_for_tensor_iterator(int32_t count[],
     output_increment[i] = (int32_t)m_output_tile_increment[i];
     if (count[i] == 1) output_last_increment[i] = 0;
     else {
-      output_last_increment[i] = -(output_increment[i] * (count[i] - 2) + output_first_increment[i]);
+      output_last_increment[i] = get_last_increment(count[i], output_first_increment[i], output_increment[i]);
     }
     output_first_size[i] = (int32_t)m_output_tile_first_increment[i];
     output_size[i] = (int32_t)m_output_tile_increment[i];
@@ -360,9 +365,8 @@ void Tiling::get_io_parameters_for_tensor_iterator(int32_t count[],
   }
 }
 
-template <typename T>
-void strided_copy_with_offsets(uint32_t rank, uint32_t elem_size, const int8_t* src, const T* src_offsets,
-                               const T* dst_offsets, const int32_t* strides, const uint32_t* size, int8_t* dst) {
+void strided_copy_with_offsets(uint32_t rank, uint32_t elem_size, const int8_t* src, const int32_t* src_offsets,
+                               const int32_t* dst_offsets, const int32_t* strides, const uint32_t* size, int8_t* dst) {
   assert(rank > 0 && rank <= 5);
   int32_t offsets[5]{};
   uint32_t total = 1;
@@ -389,9 +393,3 @@ void strided_copy_with_offsets(uint32_t rank, uint32_t elem_size, const int8_t* 
     }
   } while (cnt < total);
 }
-
-template void strided_copy_with_offsets<int32_t>(uint32_t rank, uint32_t elem_size, const int8_t* src, const int32_t* src_offsets,
-                                                 const int32_t* dst_offsets, const int32_t* strides, const uint32_t* size, int8_t* dst);
-
-template void strided_copy_with_offsets<uint32_t>(uint32_t rank, uint32_t elem_size, const int8_t* src, const uint32_t* src_offsets,
-                                                  const uint32_t* dst_offsets, const int32_t* strides, const uint32_t* size, int8_t* dst);

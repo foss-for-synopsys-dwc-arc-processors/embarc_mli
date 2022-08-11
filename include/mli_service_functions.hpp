@@ -13,7 +13,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define DEPRICATED_METHOD printf("%s in %s:%d is depricated. "\
+#define DEPRECATED_METHOD printf("%s in %s:%d is deprecated. "\
                                  "It will be removed in future version of library.\n", __func__, __FILE__, __LINE__);
 
 namespace snps_arc::metaware::mli::service {
@@ -27,7 +27,6 @@ inline const unsigned GetBufferSize(int rank, const uint32_t* shape,
   ret_val += 1;
   return ret_val;
 }
-
 
 template <unsigned rank>
 mli_status EncodeWeights(const Tensor<Buffer, rank> &weights,
@@ -91,6 +90,17 @@ inline const uint32_t get_conv_input_size(uint32_t output_size, uint32_t padding
   input_size -= padding;
   MLI_ASSERT(input_size > 0);
   return (uint32_t)input_size;
+}
+
+
+
+inline const int32_t get_last_increment(uint32_t number_of_tiles,  int32_t first_increment, int32_t increment){
+  /**
+   * Following formula is not very intuitive, so here is explanation:
+   * increment[i] * (number_of_tiles - 1)                   - offset of last tile in case of first_increment == increment
+   * increment[i] * (number_of_tiles - 2) + first_increment - offset of last tile in case of first_increment != increment
+   */
+  return -(increment * ((int32_t)number_of_tiles - 2) + first_increment);
 }
 
 }  // namespace snps_arc::metaware::mli::service
