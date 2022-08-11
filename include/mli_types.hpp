@@ -62,7 +62,7 @@ constexpr unsigned KTransposeConvWRank = 5;
 constexpr unsigned KTransposeConvWIterRank = 5;
 constexpr unsigned kTransposeConvZPRank = 1;
 
-typedef enum {
+typedef enum : uint32_t {
   kInvalidId = 0,
   kConv2dId,
   kPreluId,
@@ -96,6 +96,7 @@ class PrivateData {
     uint32_t size;
     bool issue_enable{false};
     bool prefetch_enable{false};
+    uint16_t reserved;
 };
 
 enum MoveDataDirection {
