@@ -26,9 +26,9 @@ public:
     Conv2DPrivateData() : PrivateData(kConv2dId, sizeof(Conv2DPrivateData)) {}
 
     // In/Out Tensor attached with offset buffer
-    Tensor<OffsetBuffer, 4> input;
-    Tensor<OffsetBuffer, 5> weights;
-    Tensor<OffsetBuffer, 4> output;
+    Tensor<OffsetBuffer, KConvIORank> input;
+    Tensor<OffsetBuffer, KConvWRank> weights;
+    Tensor<OffsetBuffer, KConvIORank> output;
 
     // The layout of input
     Layout layout;
@@ -45,6 +45,7 @@ public:
     Conv2DConfig config;
 
     // Tile Parameters BHWC
+    // TODO: remove these fields and replace with TensorIterator usage
     bool m_use_tiling;
     uint32_t m_tile_total_input_size[4];
     uint32_t m_tile_total_output_size[4];
@@ -60,9 +61,9 @@ public:
 };
 
 struct Conv2dMetadata {
-    Tensor<InternalBuffer, 4> input;
-    Tensor<InternalBuffer, 5> weights;
-    Tensor<InternalBuffer, 4> output;
+    Tensor<InternalBuffer, KConvIORank> input;
+    Tensor<InternalBuffer, KConvWRank> weights;
+    Tensor<InternalBuffer, KConvIORank> output;
 
     InternalBuffer inpzp_buffer;
     InternalBuffer wtszp_buffer;
@@ -180,8 +181,8 @@ public:
   MaxPool2DPrivateData(kernel_id_t id)
     : PrivateData(id, sizeof(MaxPool2DPrivateData)) {}
 
-  TensorIterator<OffsetBuffer, 4, 4> input;
-  TensorIterator<OffsetBuffer, 4, 4> output;
+  TensorIterator<OffsetBuffer, KMaxpoolRank, KMaxpoolIterRank> input;
+  TensorIterator<OffsetBuffer, KMaxpoolRank, KMaxpoolIterRank> output;
   PoolOpConfig config;
 };
 

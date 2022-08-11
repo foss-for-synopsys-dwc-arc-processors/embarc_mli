@@ -62,8 +62,10 @@ public:
     mli_status Update() override;
 
     // TODO: remove this method and replace with usage of Move kernel (not possible now)
-    void GetIOSizesAndOffsets(uint32_t input_size[4], uint32_t output_size[4], uint32_t weights_size[4],
-                              uint32_t input_offsets[4], uint32_t output_offsets[4], uint32_t weights_offsets[4]) const;
+    void GetIOSizesAndOffsets(uint32_t input_size[KConvIORank], uint32_t output_size[KConvIORank],
+                              uint32_t weights_size[KConvWRank],
+                              uint32_t input_offsets[KConvIORank], uint32_t output_offsets[KConvIORank],
+                              uint32_t weights_offsets[KConvWRank]) const;
 
 private:
     void UpdateTilePaddings();
@@ -71,6 +73,7 @@ private:
     Conv2dMetadata m_metadata;
 
     // Tile Parameters BHWC
+    // TODO: remove these fields and replace with TensorIterator usage
     bool m_use_tiling;
     uint32_t m_tile_total_input_size[4];
     uint32_t m_tile_total_output_size[4];
@@ -85,6 +88,7 @@ private:
     uint32_t m_tile_weights_inc[4];
 
     // Tile state
+    // TODO: remove these fields and replace with TensorIterator usage
     uint32_t m_tile_input_offsets[4];
     uint32_t m_tile_output_offsets[4];
     Conv2dMetadata m_tile_metadata;
@@ -269,14 +273,14 @@ public:
     mli_status Update() override;
 
     // TODO: remove this method and replace with usage of Move kernel (not possible now)
-    void GetIOSizesAndOffsets(uint32_t input_size[4], uint32_t output_size[4],
-                              int32_t input_offsets[4], int32_t output_offsets[4]);
+    void GetIOSizesAndOffsets(uint32_t input_size[KMaxpoolRank], uint32_t output_size[KMaxpoolRank],
+                              int32_t input_offsets[KMaxpoolRank], int32_t output_offsets[KMaxpoolRank]);
 
 private:
     void UpdateTilePaddings();
 
-    TensorIterator<OffsetBuffer, 4, 4> m_input;
-    TensorIterator<OffsetBuffer, 4, 4> m_output;
+    TensorIterator<OffsetBuffer, KMaxpoolRank, KMaxpoolIterRank> m_input;
+    TensorIterator<OffsetBuffer, KMaxpoolRank, KMaxpoolIterRank> m_output;
 
     mli_pool_cfg m_cfg;
     int32_t m_input_batch_offset;

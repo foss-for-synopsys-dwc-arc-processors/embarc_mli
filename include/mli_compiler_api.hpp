@@ -105,7 +105,7 @@ public:
      *
      * TODO: how to handle sliding in the output channel dimension? is this weights encoding for the complete 'thing' or just for this slide?
      */
-    virtual mli_status EncodeWeights(Tensor<Buffer, 5>& weights,
+    virtual mli_status EncodeWeights(Tensor<Buffer, KConvWRank>& weights,
                                      Buffer& encoded_weights,
                                      compression_mode_t mode = compression_mode_t::Uncompressed) = 0;
 
@@ -126,7 +126,7 @@ public:
      * The content of the encoded_inpzeropts buffer is opaque for the user.
      *
      */
-    virtual mli_status EncodeInpZeroPts(Tensor<Buffer, 1>& inpzeropts, Buffer& encoded_inpzeropts) = 0;
+    virtual mli_status EncodeInpZeroPts(Tensor<Buffer, kConvZPRank>& inpzeropts, Buffer& encoded_inpzeropts) = 0;
 
     /**
      * @brief Method to query the size of the encoded input zero-points buffer
@@ -144,7 +144,7 @@ public:
      * The content of the encode_wtszeropts buffer is opaque for the user.
      *
      */
-    virtual mli_status EncodeWtsZeroPts(Tensor<Buffer, 1>& wtszeropts, Buffer& encoded_wtszeropts) = 0;
+    virtual mli_status EncodeWtsZeroPts(Tensor<Buffer, kConvZPRank>& wtszeropts, Buffer& encoded_wtszeropts) = 0;
 
     /**
      * @brief Method to query the size of the encoded input zero-points buffer
@@ -187,21 +187,49 @@ public:
      *
      * In this method you specify offsets for tensors passed to the constructor
      *
+     * @deprected
      * @param input [I] Tensor descriptor containing input OffsetBuffer and tensor shape and memory strides
      * @param output [I] Tensor descriptor containing output OffsetBuffer and tensor shape and memory strides
-     * @param weights [I] Tensor descriptor containing weights OffsetBuffer and tensor shape and memory strides
-     * @param inpzeropts [I] Tensor descriptor containing input zero point(s) OffsetBuffer
-     * @param wtszeropts [I] Tensor descriptor containing weights zero points OffsetBuffer
-     * @param descr [I] Tensor descriptor containing descriptor data OffsetBuffer
+     * @param weights [I] weights OffsetBuffer and tensor shape and memory strides
+     * @param inpzeropts [I] input zero point(s) OffsetBuffer
+     * @param wtszeropts [I] weights zero points OffsetBuffer
+     * @param descr [I] data OffsetBuffer
      *
      * @return MLI status code
      */
-    virtual mli_status AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
-                                           Tensor<OffsetBuffer, 4> &output,
+    virtual mli_status AttachBufferOffsets(Tensor<OffsetBuffer, KConvIORank> &input,
+                                           Tensor<OffsetBuffer, KConvIORank> &output,
                                            OffsetBuffer &weights,
                                            OffsetBuffer &inpzeropts,
                                            OffsetBuffer &wtszeropts,
                                            OffsetBuffer &descr) = 0;
+
+    /**
+     * @brief Method to set buffer memory offsets and memory IDs for the kernel
+     *
+     * Compiler computes a memory map and buffer offsets are set using this method.
+     * Compiler also needs to indicate in which memory the buffers reside.
+     * These ID's need to match the array of memory bases that the xop-interpreter passes to
+     * the init function.
+     *
+     * In this method you specify offsets for tensors passed to the constructor
+     *
+     * @deprected
+     * @param input [I] input OffsetBuffer and tensor shape and memory strides
+     * @param output [I] output OffsetBuffer and tensor shape and memory strides
+     * @param weights [I] weights OffsetBuffer and tensor shape and memory strides
+     * @param inpzeropts [I] input zero point(s) OffsetBuffer
+     * @param wtszeropts [I] weights zero points OffsetBuffer
+     * @param descr [I] data OffsetBuffer
+     *
+     * @return MLI status code
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer& input,
+                                           const OffsetBuffer& output,
+                                           const OffsetBuffer& weights,
+                                           const OffsetBuffer& inpzeropts,
+                                           const OffsetBuffer& wtszeropts,
+                                           const OffsetBuffer& descr) = 0;
 
     // mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override ;
     // unsigned GetKernelPrivateDataSize() override ;
@@ -213,6 +241,8 @@ public:
      * NOTE: the use of this method is optional. if there is a single tile, and the .Update() is not used,
      *       this data doesn't need to be set.     
      * All the increments are following the output tile iterator.
+     * 
+     * @deprected
      * @param output_total_size[4] [I] total size in each dimension
      * @param iteration_order[4] [I] which dimension of the output to iterate first.
      * @param input_first_inc[4] [I] increment of the input buffer pointer for the first iteration in each dimension
@@ -481,9 +511,6 @@ public:
  */
 class MaxPool2D_CS : public CompilerGenericInterface {
 public:
-    static constexpr unsigned KMaxpoolRank = 4;
-    static constexpr unsigned KMaxpoolIterRank = 4;
-
     virtual ~MaxPool2D_CS() = default;
 
     /**
@@ -523,7 +550,7 @@ public:
      * @deprected
      * @param input [I] Tensor descriptor containing input OffsetBuffer and tensor shape and memory strides
      * @param output [I] Tensor descriptor containing output OffsetBuffer and tensor shape and memory strides
-     * @param data [I] Tensor descriptor containing descriptor data OffsetBuffer
+     * @param data [I] data OffsetBuffer
      * 
      * @return MLI status code
      */
@@ -543,7 +570,7 @@ public:
      *
      * @param input [I] input OffsetBuffer 
      * @param output [I] output OffsetBuffer
-     * @param data [I] descriptor data OffsetBuffer
+     * @param data [I] data OffsetBuffer
      *
      * @return MLI status code
      */
@@ -1087,7 +1114,7 @@ public:
      * @return MLI status code
      */
     virtual mli_status EncodeWeights(
-        Tensor<Buffer, 5> &weights, Buffer &encoded_weights,
+        Tensor<Buffer, KTransposeConvWRank> &weights, Buffer &encoded_weights,
         compression_mode_t mode = compression_mode_t::Uncompressed) = 0;
 
     /**
@@ -1110,7 +1137,7 @@ public:
      *
      * @return MLI status code
      */
-    virtual mli_status EncodeInpZeroPts(Tensor<Buffer, 1> &inpzeropts,
+    virtual mli_status EncodeInpZeroPts(Tensor<Buffer, kTransposeConvZPRank> &inpzeropts,
                                         Buffer &encoded_inpzeropts) = 0;
 
     /**
@@ -1133,7 +1160,7 @@ public:
      *
      * @return MLI status code
      */
-    virtual mli_status EncodeWtsZeroPts(Tensor<Buffer, 1> &wtszeropts,
+    virtual mli_status EncodeWtsZeroPts(Tensor<Buffer, kTransposeConvZPRank> &wtszeropts,
                                         Buffer &encoded_wtszeropts) = 0;
 
     /**

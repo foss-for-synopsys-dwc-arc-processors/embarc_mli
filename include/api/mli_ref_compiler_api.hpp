@@ -32,30 +32,53 @@ public:
      * object. This kernel computes each value of the output tensor as the result of convolution operation 
      * of all values in the related perception area of all channels of the input tensor.
      *
+     * @deprected
      * @param pd [IN] Platform description
-     * @param in [IN] input tensor (full shape)
-     * @param weights [IN] weights tensor (full shape)
+     * @param in [IN] input tensor (full shape, BHWC layout)
+     * @param weights [IN] weights tensor (full shape, GKyKxCiCo layout)
      * @param cfg [IN] Conv2DConfig structure
-     * @param output_tile_shape [OUT] output tensor (tile shape)
+     * @param output_tile_shape [OUT] output tensor (tile shape, BHWC layout)
      */
     Conv2d_CS(const lib_mli::PlatformDescription pd,
-              const Tensor<NoBuffer, 4> &in, /**< layout: BHWC */
-              const Tensor<NoBuffer, 5> &weights, /**< layout: GKyKxCiCo */
-              const Conv2DConfig &cfg,
-              const Tensor<NoBuffer, 4> &output_tile_shape /**< layout: BHWC */);
+              const Tensor<NoBuffer, KConvIORank>& in,
+              const Tensor<NoBuffer, KConvWRank>& weights,
+              const Conv2DConfig& cfg,
+              const Tensor<NoBuffer, KConvIORank>& output_tile_shape);
 
-    mli_status EncodeWeights(Tensor<Buffer, 5> &weights,
+    /**
+      * @brief Constructor to create an Conv2d_CS compiler support object.
+      *
+      * This constructor can be used to create a Convolution 2D compiler support
+      * object. This kernel computes each value of the output tensor as the result of convolution operation
+      * of all values in the related perception area of all channels of the input tensor.
+      * of all values in the related perception area of a single channel of the input tensor.
+      *
+      * @param pd [IN] Platform description
+      * @param input [IN] input TensorIterator (BHWC layout)
+      * @param weights [IN] weights TensorIterator (GKyKxCiCo layout)
+      * @param weights [IN] weights_zp TensorIterator
+      * @param cfg [IN] Conv2DConfig structure
+      * @param output [OUT] output TensorIterator (BHWC layout)
+      */
+    Conv2d_CS(const lib_mli::PlatformDescription pd,
+              const TensorIterator<NoBuffer, KConvIORank, KConvIOIterRank>& input,
+              const TensorIterator<NoBuffer, KConvWRank, KConvWIterRank>& weights,
+              const TensorIterator<NoBuffer, kConvZPRank, kConvZPIterRank>& weights_zp,
+              const Conv2DConfig& cfg,
+              const TensorIterator<NoBuffer, KConvIORank, KConvIOIterRank>& output);
+
+    mli_status EncodeWeights(Tensor<Buffer, KConvWRank> &weights,
                              Buffer &encoded_weights,
                              compression_mode_t mode = compression_mode_t::Uncompressed) override;
 
     unsigned GetEncodedWeightsSize() override;
 
-    mli_status EncodeInpZeroPts(Tensor<Buffer, 1> &inpzeropts,
+    mli_status EncodeInpZeroPts(Tensor<Buffer, kConvZPRank> &inpzeropts,
                                 Buffer &encoded_inpzeropts) override;
 
     unsigned GetEncodedInpZeroPtsSize() override;
 
-    mli_status EncodeWtsZeroPts(Tensor<Buffer, 1> &wtszeropts,
+    mli_status EncodeWtsZeroPts(Tensor<Buffer, kConvZPRank> &wtszeropts,
                                 Buffer &encoded_wtszeropts) override;
 
     unsigned GetEncodedWtsZeroPtsSize() override;
@@ -75,32 +98,46 @@ public:
      */
     unsigned GetDataBufferSize() override;
 
-    mli_status AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
-                                   Tensor<OffsetBuffer, 4> &output,
+    /**
+     * @deprecated
+     */
+    mli_status AttachBufferOffsets(Tensor<OffsetBuffer, KConvIORank> &input,
+                                   Tensor<OffsetBuffer, KConvIORank> &output,
                                    OffsetBuffer &weights,
                                    OffsetBuffer &inpzeropts,
                                    OffsetBuffer &wtszeropts,
                                    OffsetBuffer &metadata) override;
 
+    mli_status AttachBufferOffsets(const OffsetBuffer& input,
+                                   const OffsetBuffer& output,
+                                   const OffsetBuffer& weights,
+                                   const OffsetBuffer& inpzeropts,
+                                   const OffsetBuffer& wtszeropts,
+                                   const OffsetBuffer& descr) override;
+
+
     mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
     unsigned GetKernelPrivateDataSize() const override;
     unsigned GetRuntimeObjectSize() const override;
 
-    mli_status SetIterators(uint32_t output_total_size[4],
-                            uint32_t iteration_order[4],
-                            uint32_t input_first_inc[4],
-                            uint32_t input_inc[4],
-                            uint32_t output_first_inc[4],
-                            uint32_t output_inc[4],
+    /**
+     * @deprecated
+     */
+    mli_status SetIterators(uint32_t output_total_size[KConvIORank],
+                            uint32_t iteration_order[KConvIORank],
+                            uint32_t input_first_inc[KConvIORank],
+                            uint32_t input_inc[KConvIORank],
+                            uint32_t output_first_inc[KConvIORank],
+                            uint32_t output_inc[KConvIORank],
                             uint32_t weights_inc[4]) override;
 private:
     void FillTilingParams(Conv2DPrivateData& pdata);
 
     // Input, weights, output tensors with offset buffer attached
-    Tensor<OffsetBuffer, 4> m_input;
+    Tensor<OffsetBuffer, KConvIORank> m_input;
 
-    Tensor<OffsetBuffer, 5> m_weights;
-    Tensor<OffsetBuffer, 4> m_output;
+    Tensor<OffsetBuffer, KConvWRank> m_weights;
+    Tensor<OffsetBuffer, KConvIORank> m_output;
 
     // encoded zp buffers for input and weights (optional for FX type)
     OffsetBuffer m_inpzp_buffer;
@@ -122,6 +159,7 @@ private:
     lib_mli::PlatformDescription m_pd;
 
     // Tile Parameters BHWC
+    // TODO: remove these fields and replace with TensorIterator usage
     bool m_use_tiling;
     uint32_t m_tile_total_input_size[4];
     uint32_t m_tile_total_output_size[4];
@@ -211,22 +249,22 @@ public:
      *
      */
     TransposeConv2D_CS(const lib_mli::PlatformDescription pd,
-                       const TensorIterator<NoBuffer, /* tensorRank = */ 4, /* iterRank = */ 4> &input,
-                       const TensorIterator<NoBuffer, /* tensorRank = */ 4, /* iterRank = */ 5> &weights,
+                       const TensorIterator<NoBuffer, KTransposeConvIORank, KTransposeConvIOIterRank> &input,
+                       const TensorIterator<NoBuffer, KTransposeConvWRank, KTransposeConvWIterRank> &weights,
                        const TransposeConv2DConfig &cfg,
-                       const TensorIterator<NoBuffer, /* tensorRank = */ 4, /* iterRank = */ 4> &output);
+                       const TensorIterator<NoBuffer, KTransposeConvIORank, KTransposeConvIOIterRank> &output);
 
-    mli_status EncodeWeights(Tensor<Buffer, 5> &weights, Buffer &encoded_weights,
+    mli_status EncodeWeights(Tensor<Buffer, KTransposeConvWRank> &weights, Buffer &encoded_weights,
                              compression_mode_t mode = compression_mode_t::Uncompressed) override;
 
     unsigned GetEncodedWeightsSize() const override;
 
-    mli_status EncodeInpZeroPts(Tensor<Buffer, 1> &inpzeropts,
+    mli_status EncodeInpZeroPts(Tensor<Buffer, kTransposeConvZPRank> &inpzeropts,
                                 Buffer &encoded_inpzeropts) override;
 
     unsigned GetEncodedInpZeroPtsSize() const override;
 
-    mli_status EncodeWtsZeroPts(Tensor<Buffer, 1> &wtszeropts,
+    mli_status EncodeWtsZeroPts(Tensor<Buffer, kTransposeConvZPRank> &wtszeropts,
                                 Buffer &encoded_wtszeropts) override;
 
     unsigned GetEncodedWtsZeroPtsSize() const override;
@@ -246,9 +284,9 @@ public:
 
 private:
     // Input, weights, output tensors with offset buffer attached
-    TensorIterator<OffsetBuffer, 4, 4> m_input;
-    TensorIterator<OffsetBuffer, 4, 5> m_weights;
-    TensorIterator<OffsetBuffer, 4, 4> m_output;
+    TensorIterator<OffsetBuffer, KTransposeConvIORank, KTransposeConvIOIterRank> m_input;
+    TensorIterator<OffsetBuffer, KTransposeConvWRank, KTransposeConvWIterRank> m_weights;
+    TensorIterator<OffsetBuffer, KTransposeConvIORank, KTransposeConvIOIterRank> m_output;
 
     // Encoded zp buffers for input and weights (optional for FX type)
     OffsetBuffer m_inpzp_buffer;
@@ -276,14 +314,14 @@ public:
      *
      * @deprecated
      * @param pd [I] Platform description
-     * @param in [I] Input tensor (full shape)
+     * @param in [I] Input tensor (full shape, BHWC layout)
      * @param cfg [I] PoolOpConfig structure
-     * @param output_tile_shape [O] Output tensor (tile shape)
+     * @param output_tile_shape [O] Output tensor (tile shape, BHWC layout)
      */
     MaxPool2D_CS(const lib_mli::PlatformDescription pd,
-                 const Tensor<NoBuffer, KMaxpoolRank> in,                 /**< layout: BHWC */
+                 const Tensor<NoBuffer, KMaxpoolRank> in,
                  const PoolOpConfig &cfg,
-                 const Tensor<NoBuffer, KMaxpoolRank> output_tile_shape); /**< layout: BHWC */
+                 const Tensor<NoBuffer, KMaxpoolRank> output_tile_shape);
 
      /**
      * @brief Constructor to create a MaxPool2D compiler support object.
@@ -293,14 +331,14 @@ public:
      * of all values in the related perception area of a single channel of the input tensor.
      *
      * @param pd [I] Platform description
-     * @param in [I] Input tensor iterator
+     * @param in [I] Input tensor iterator (BHWC layout)
      * @param cfg [I] PoolOpConfig structure
-     * @param out [O] Output tensor iterator
+     * @param out [O] Output tensor iterator (BHWC layout)
      */
     MaxPool2D_CS(const lib_mli::PlatformDescription pd,
-                 const TensorIterator<NoBuffer, KMaxpoolRank, KMaxpoolIterRank> in,   /**< layout: BHWC */
+                 const TensorIterator<NoBuffer, KMaxpoolRank, KMaxpoolIterRank> in,
                  const PoolOpConfig& cfg,
-                 const TensorIterator<NoBuffer, KMaxpoolRank, KMaxpoolIterRank> out); /**< layout: BHWC */
+                 const TensorIterator<NoBuffer, KMaxpoolRank, KMaxpoolIterRank> out);
 
     unsigned GetKernelPrivateDataSize() const override;
     unsigned GetRuntimeObjectSize() const override;

@@ -46,6 +46,22 @@ constexpr short int kKernelFCChannelOutDim = 1;
 
 constexpr short int kPerTensorQuantDim = -1;
 
+constexpr unsigned KMaxpoolRank = 4;
+constexpr unsigned KMaxpoolIterRank = 4;
+
+constexpr unsigned KConvIORank = 4;
+constexpr unsigned KConvIOIterRank = 4;
+constexpr unsigned KConvWRank = 5;
+constexpr unsigned KConvWIterRank = 5;
+constexpr unsigned kConvZPRank = 1;
+constexpr unsigned kConvZPIterRank = 1;
+
+constexpr unsigned KTransposeConvIORank = 4;
+constexpr unsigned KTransposeConvIOIterRank = 4;
+constexpr unsigned KTransposeConvWRank = 5;
+constexpr unsigned KTransposeConvWIterRank = 5;
+constexpr unsigned kTransposeConvZPRank = 1;
+
 typedef enum {
   kInvalidId = 0,
   kConv2dId,

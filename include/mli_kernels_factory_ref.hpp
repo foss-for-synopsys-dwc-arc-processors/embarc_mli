@@ -31,11 +31,20 @@ public:
     uint32_t Conv2d_CS_GetSize() const override { return sizeof(lib_ref::Conv2d_CS); }
 
     lib_mli::Conv2d_CS* Conv2d_CS(void *kernel_buffer,
-                                  const Tensor<NoBuffer, 4> input_shape,
-                                  const Tensor<NoBuffer, 5> weights,
+                                  const Tensor<NoBuffer, KConvIORank> input_shape,
+                                  const Tensor<NoBuffer, KConvWIterRank> weights,
                                   const Conv2DConfig &cfg,
-                                  const Tensor<NoBuffer, 4> output_tile_shape) override {
+                                  const Tensor<NoBuffer, KConvIORank> output_tile_shape) override {
         return new(kernel_buffer) lib_ref::Conv2d_CS(m_pd, input_shape, weights, cfg, output_tile_shape);
+    }
+
+    lib_mli::Conv2d_CS* Conv2d_CS(void* kernel_buffer,
+                                  const TensorIterator<NoBuffer, KConvIORank, KConvIOIterRank>& input,
+                                  const TensorIterator<NoBuffer, KConvWRank, KConvWIterRank>& weights,
+                                  const TensorIterator<NoBuffer, kConvZPRank, kConvZPIterRank>& weights_zp,
+                                  const Conv2DConfig& cfg,
+                                  const TensorIterator<NoBuffer, KConvIORank, KConvIOIterRank>& output) override {
+        return new(kernel_buffer) lib_ref::Conv2d_CS(m_pd, input, weights, weights_zp, cfg, output);
     }
 
     uint32_t Prelu_CS_GetSize() const override { return 0 /*sizeof(lib_ref::Prelu_CS)*/; }
@@ -116,17 +125,17 @@ public:
     uint32_t MaxPool2D_CS_GetSize() const override { return sizeof(lib_ref::MaxPool2D_CS); }
 
     lib_mli::MaxPool2D_CS* MaxPool2D_CS(void *kernel_buffer,
-                                        const Tensor<NoBuffer, 4> in, // input fmap width, height, channels, batch size
+                                        const Tensor<NoBuffer, KMaxpoolRank> in,
                                         const PoolOpConfig &cfg,
-                                        const Tensor<NoBuffer, 4> output_tile_shape) // output tile width, height, ch, groups
+                                        const Tensor<NoBuffer, KMaxpoolRank> output_tile_shape)
                                         override {
         return new(kernel_buffer) lib_ref::MaxPool2D_CS(m_pd, in, cfg, output_tile_shape);
     }
 
     lib_mli::MaxPool2D_CS* MaxPool2D_CS(void* kernel_buffer,
-                                        const TensorIterator<NoBuffer, 4, 4> in,  // BHWC
+                                        const TensorIterator<NoBuffer, KMaxpoolRank, KMaxpoolIterRank>& in,
                                         const PoolOpConfig& cfg,
-                                        const TensorIterator<NoBuffer, 4, 4> out) // BHWC
+                                        const TensorIterator<NoBuffer, KMaxpoolRank, KMaxpoolIterRank>& out)
                                         override {
         return new(kernel_buffer) lib_ref::MaxPool2D_CS(m_pd, in, cfg, out);
     }
@@ -198,10 +207,10 @@ public:
 
     lib_mli::TransposeConv2D_CS *TransposeConv2D_CS(
         void *kernel_buffer,
-        const TensorIterator<NoBuffer, /* tensorRank = */ 4, /* iterRank = */ 4> input,
-        const TensorIterator<NoBuffer, /* tensorRank = */ 4, /* iterRank = */ 5> weights,
+        const TensorIterator<NoBuffer, KTransposeConvIORank, KTransposeConvIOIterRank> input,
+        const TensorIterator<NoBuffer, KTransposeConvWRank, KTransposeConvWIterRank> weights,
         const TransposeConv2DConfig &cfg,
-        const TensorIterator<NoBuffer, /* tensorRank = */ 4, /* iterRank = */ 4> output) override {
+        const TensorIterator<NoBuffer, KTransposeConvIORank, KTransposeConvIOIterRank> output) override {
         /* return new(kernel_buffer) lib_ref::TransposeConv2D_CS(m_pd, in, * weights, cfg, output); */
         return nullptr;
     }

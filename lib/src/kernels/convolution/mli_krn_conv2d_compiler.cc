@@ -17,25 +17,29 @@ using namespace snps_arc::metaware::mli::service;
 namespace snps_arc::metaware::mli::ref {
 
 Conv2d_CS::Conv2d_CS(const lib_mli::PlatformDescription pd,
-                     const Tensor<NoBuffer, 4> &in, // B, H, W, Cin
-                     const Tensor<NoBuffer, 5> &weights,  // G, H, W, Cin, Co
+                     const Tensor<NoBuffer, KConvIORank> &in, // B, H, W, Cin
+                     const Tensor<NoBuffer, KConvWRank> &weights,  // G, H, W, Cin, Co
                      const Conv2DConfig &cfg,
-                     const Tensor<NoBuffer, 4> &output_tile_shape // G, H, W, Co
+                     const Tensor<NoBuffer, KConvIORank> &output_tile_shape // G, H, W, Co
                     ) : m_pd{pd} {
-  uint32_t input_shape[4];
-  uint32_t output_shape[4];
-  int32_t input_stride[4];
-  int32_t output_stride[4];
-  for (uint32_t i = 0; i < 4; ++i) {
+  
+  // TODO: uncomment DEPRICATED_METHOD after implementation of new version
+  // DEPRICATED_METHOD
+
+  uint32_t input_shape[KConvIORank];
+  uint32_t output_shape[KConvIORank];
+  int32_t input_stride[KConvIORank];
+  int32_t output_stride[KConvIORank];
+  for (uint32_t i = 0; i < KConvIORank; ++i) {
     input_shape[i] = in.get_dim(i);
     input_stride[i] = in.get_mem_stride(i);
     output_shape[i] = output_tile_shape.get_dim(i);
     output_stride[i] = output_tile_shape.get_mem_stride(i);
   }
 
-  uint32_t weights_shape[5];
-  int32_t weights_stride[5];
-  for (uint32_t i = 0; i < 5; ++i) {
+  uint32_t weights_shape[KConvWRank];
+  int32_t weights_stride[KConvWRank];
+  for (uint32_t i = 0; i < KConvWRank; ++i) {
     weights_shape[i] = weights.get_dim(i);
     weights_stride[i] = weights.get_mem_stride(i);
   }
@@ -48,9 +52,9 @@ Conv2d_CS::Conv2d_CS(const lib_mli::PlatformDescription pd,
       = service::GetBufferSize(output_tile_shape.get_rank(), output_shape, output_stride);
 
   // Init in and out tensors with empty offset buffer
-  m_input = Tensor<OffsetBuffer, 4>(OffsetBuffer(), in);
-  m_weights = Tensor<OffsetBuffer, 5>(OffsetBuffer(), weights);
-  m_output = Tensor<OffsetBuffer, 4>(OffsetBuffer(), output_tile_shape);
+  m_input = Tensor<OffsetBuffer, KConvIORank>(OffsetBuffer(), in);
+  m_weights = Tensor<OffsetBuffer, KConvWRank>(OffsetBuffer(), weights);
+  m_output = Tensor<OffsetBuffer, KConvIORank>(OffsetBuffer(), output_tile_shape);
 
   m_inp_quant_axis = kPerTensorQuantDim;
   m_wts_quant_axis = kKernelChannelOutDim;
@@ -58,8 +62,9 @@ Conv2d_CS::Conv2d_CS(const lib_mli::PlatformDescription pd,
   // Init convolution config
   m_config = cfg;
 
+  // TODO: remove these code and replace with TensorIterator usage
   m_use_tiling = false;
-  for (int i = 0; i < 4; i++) {
+  for (unsigned i = 0; i < KConvIORank; i++) {
     m_tile_total_input_size[i] = 0;
     m_tile_total_output_size[i] = 0;
     m_tile_total_weights_size[i] = 0;
@@ -70,8 +75,15 @@ Conv2d_CS::Conv2d_CS(const lib_mli::PlatformDescription pd,
     m_tile_output_inc[i] = 0;
     m_tile_weights_inc[i] = 0;
   };
+}
 
-
+Conv2d_CS::Conv2d_CS(const lib_mli::PlatformDescription pd,
+                     const TensorIterator<NoBuffer, KConvIORank, KConvIOIterRank>& input,
+                     const TensorIterator<NoBuffer, KConvWRank, KConvWIterRank>& weights,
+                     const TensorIterator<NoBuffer, kConvZPRank, kConvZPIterRank>& weights_zp,
+                     const Conv2DConfig& cfg,
+                     const TensorIterator<NoBuffer, KConvIORank, KConvIOIterRank>& output) {
+  // TODO: implementation
 }
 
 unsigned Conv2d_CS::GetKernelPrivateDataSize() const {
@@ -122,7 +134,8 @@ void Conv2d_CS::FillTilingParams(Conv2DPrivateData& pdata) {
   pdata.m_tile_first_size[kTensorChannelDim] = m_tile_input_first_inc[kTensorChannelDim];
   pdata.m_tile_size[kTensorChannelDim] = m_tile_input_inc[kTensorChannelDim];
 
-  for (int i = 0; i < 4; i++) {
+  // TODO: remove these code and replace with TensorIterator usage
+  for (unsigned i = 0; i < KConvIORank; i++) {
     pdata.m_tile_total_output_size[i] = m_tile_total_output_size[i];
     pdata.m_tile_iteration_order[i] = m_tile_iteration_order[i];
     pdata.m_tile_input_first_inc[i] = m_tile_input_first_inc[i];
@@ -174,12 +187,16 @@ mli_status Conv2d_CS::GetKernelPrivateData(void* kernel_private_data_buffer) {
   return MLI_STATUS_OK;
 }
 
-mli_status Conv2d_CS::AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
-                                          Tensor<OffsetBuffer, 4> &output,
+mli_status Conv2d_CS::AttachBufferOffsets(Tensor<OffsetBuffer, KConvIORank> &input,
+                                          Tensor<OffsetBuffer, KConvIORank> &output,
                                           OffsetBuffer &weights,
                                           OffsetBuffer &inpzeropts,
                                           OffsetBuffer &wtszeropts,
                                           OffsetBuffer &metadata) {
+  
+  // TODO: uncomment DEPRICATED_METHOD after implementation of new version
+  // DEPRICATED_METHOD
+  
   MLI_ASSERT(output.get_buf().get_size() >= m_output_buffer_size * output.get_elem_size());
 
   // The metadata or descriptor is not required for ref kernel
@@ -194,7 +211,17 @@ mli_status Conv2d_CS::AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
   return MLI_STATUS_OK;
 }
 
-mli_status Conv2d_CS::EncodeWeights(Tensor<Buffer, 5> &weights,
+mli_status Conv2d_CS::AttachBufferOffsets(const OffsetBuffer& input,
+                                          const OffsetBuffer& output,
+                                          const OffsetBuffer& weights,
+                                          const OffsetBuffer& inpzeropts,
+                                          const OffsetBuffer& wtszeropts,
+                                          const OffsetBuffer& metadata) {
+  // TODO: implementation
+  return MLI_STATUS_OK;
+}
+
+mli_status Conv2d_CS::EncodeWeights(Tensor<Buffer, KConvWRank> &weights,
                                     Buffer &encoded_weights,
                                     compression_mode_t mode){
   return service::EncodeWeights(weights, encoded_weights);
@@ -204,7 +231,7 @@ unsigned Conv2d_CS::GetEncodedWeightsSize() {
   return m_weights_buffer_size;
 }
 
-mli_status Conv2d_CS::EncodeInpZeroPts(Tensor<Buffer, 1> &inpzeropts,
+mli_status Conv2d_CS::EncodeInpZeroPts(Tensor<Buffer, kConvZPRank> &inpzeropts,
                                        Buffer &encoded_inpzeropts) {
   constexpr int channel_axis = mli::kTensorChannelDim;
   uint32_t channel_length = m_input.get_dim(channel_axis);
@@ -217,7 +244,7 @@ unsigned Conv2d_CS::GetEncodedInpZeroPtsSize() {
   return 1;
 }
 
-mli_status Conv2d_CS::EncodeWtsZeroPts(Tensor<Buffer, 1> &wtszeropts,
+mli_status Conv2d_CS::EncodeWtsZeroPts(Tensor<Buffer, kConvZPRank> &wtszeropts,
                                        Buffer &encoded_wtszeropts) {
   constexpr int channel_axis = mli::kKernelChannelOutDim;
   uint32_t channel_length = m_weights.get_dim(channel_axis);
@@ -250,15 +277,19 @@ unsigned Conv2d_CS::GetDataBufferSize() {
   return 0;
 }
 
-mli_status Conv2d_CS::SetIterators(uint32_t output_total_size[4],
-                                   uint32_t iteration_order[4],
-                                   uint32_t input_first_inc[4],
-                                   uint32_t input_inc[4],
-                                   uint32_t output_first_inc[4],
-                                   uint32_t output_inc[4],
+mli_status Conv2d_CS::SetIterators(uint32_t output_total_size[KConvIORank],
+                                   uint32_t iteration_order[KConvIORank],
+                                   uint32_t input_first_inc[KConvIORank],
+                                   uint32_t input_inc[KConvIORank],
+                                   uint32_t output_first_inc[KConvIORank],
+                                   uint32_t output_inc[KConvIORank],
                                    uint32_t weights_inc[4]) {
+  
+  // TODO: uncomment DEPRICATED_METHOD after implementation of new version
+  // DEPRICATED_METHOD
+  
   m_use_tiling = true;
-  for (int i = 0; i < 4; i++) {
+  for (unsigned i = 0; i < KConvIORank; i++) {
     m_tile_total_output_size[i] = output_total_size[i];
     m_tile_iteration_order[i] = iteration_order[i];
     m_tile_input_first_inc[i] = input_first_inc[i];

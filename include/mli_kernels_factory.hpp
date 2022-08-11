@@ -52,11 +52,57 @@ public:
 
     virtual uint32_t TransposeConv2D_CS_GetSize() const { return 0; }
 
+    /**
+     * @brief Convolution 2D kernel Compiler Support interface factory
+     * method
+     *
+     * @deprecated
+     * 
+     * @param kernel_buffer       [I] Pointer to the pre-allocated memory to store
+     *                                kernel Compiler Support object
+     * @param input_shape         [I] Tensor object containing input Tensor shape and
+     *                                memory strides
+     * @param weights             [I] Tensor object containing weights Tensor shape
+     *                                and memory strides
+     * @param cfg                 [I] Kernel configuration structure
+     * @param output_tile_shape   [I] Tensor object containing output Tensor shape
+     *                                and memory strides
+     *
+     * @return Convolution 2D kernel Compiler Support interface object
+     */
     virtual lib_mli::Conv2d_CS* Conv2d_CS(void *kernel_buffer,
-                                          const Tensor<NoBuffer, 4> input_shape,
-                                          const Tensor<NoBuffer, 5> weights,
+                                          const Tensor<NoBuffer, KConvIORank> input_shape,          // BHWC        
+                                          const Tensor<NoBuffer, KConvWRank> weights,               // GKyKxCiCo
                                           const Conv2DConfig &cfg,
-                                          const Tensor<NoBuffer, 4> output_tile_shape) { return nullptr; }
+                                          const Tensor<NoBuffer, KConvIORank> output_tile_shape) {  // BHWC
+      return nullptr;
+    }
+
+    /**
+     * @brief Convolution 2D kernel Compiler Support interface factory
+     * method
+     *
+     * @param kernel_buffer [I] Pointer to the pre-allocated memory to store
+     *                          kernel Compiler Support object
+     * @param input         [I] TensorIterator object containing input Tensor shape and
+     *                          memory strides and IteratorCfg
+     * @param weights       [I] TensorIterator object containing weights Tensor shape
+     *                          and memory strides and IteratorCfg
+     * @param weights_zp    [I] TensorIterator object containing weight zp(s) array
+     * @param cfg           [I] Kernel configuration structure
+     * @param output        [I] TensorIterator object containing output Tensor shape
+     *                          and memory strides and IteratorCfg
+     *
+     * @return Convolution 2D kernel Compiler Support interface object
+     */
+    virtual lib_mli::Conv2d_CS* Conv2d_CS(void* kernel_buffer,
+                                          const TensorIterator<NoBuffer, KConvIORank, KConvIOIterRank>& input,      // BHWC
+                                          const TensorIterator<NoBuffer, KConvWRank, KConvWIterRank>& weights,      // GKyKxCiCo
+                                          const TensorIterator<NoBuffer, kConvZPRank, kConvZPIterRank>& weights_zp,
+                                          const Conv2DConfig& cfg,
+                                          const TensorIterator<NoBuffer, KConvIORank, KConvIOIterRank>& output) {   // BHWC
+      return nullptr;
+    }
 
     virtual lib_mli::Prelu_CS* Prelu_CS(void *kernel_buffer,
                                         const Tensor<NoBuffer, 4> input_shape,
@@ -79,17 +125,47 @@ public:
       return nullptr;
     }
 
+    /**
+     * @brief Maxpool 2D kernel Compiler Support interface factory
+     * method
+     *
+     * @deprecated
+     * 
+     * @param kernel_buffer       [I] Pointer to the pre-allocated memory to store
+     *                                kernel Compiler Support object
+     * @param in                  [I] Tensor object containing input Tensor shape and
+     *                                memory strides
+     * @param cfg                 [I] Kernel configuration structure
+     * @param output_tile_shape   [I] Tensor object containing output Tensor shape
+     *                                and memory strides
+     *
+     * @return Maxpool 2D kernel Compiler Support interface object
+     */
     virtual lib_mli::MaxPool2D_CS* MaxPool2D_CS(void *kernel_buffer,
-                                                const Tensor<NoBuffer, 4> in,                  // BHWC
+                                                const Tensor<NoBuffer, KMaxpoolRank> in,                  // BHWC
                                                 const PoolOpConfig &cfg,
-                                                const Tensor<NoBuffer, 4> output_tile_shape) { // BHWC
+                                                const Tensor<NoBuffer, KMaxpoolRank> output_tile_shape) { // BHWC
       return nullptr;
     } 
 
+    /**
+     * @brief Maxpool 2D kernel Compiler Support interface factory
+     * method
+     *
+     * @param kernel_buffer [I] Pointer to the pre-allocated memory to store
+     *                          kernel Compiler Support object
+     * @param input         [I] TensorIterator object containing input Tensor shape and
+     *                          memory strides and IteratorCfg
+     * @param cfg           [I] Kernel configuration structure
+     * @param output        [I] TensorIterator object containing output Tensor shape
+     *                          and memory strides and IteratorCfg
+     *
+     * @return Maxpool 2D kernel Compiler Support interface object
+     */
     virtual lib_mli::MaxPool2D_CS* MaxPool2D_CS(void* kernel_buffer,
-                                                const TensorIterator<NoBuffer, 4, 4> in,      // BHWC
+                                                const TensorIterator<NoBuffer, KMaxpoolRank, KMaxpoolIterRank>& in,      // BHWC
                                                 const PoolOpConfig& cfg,
-                                                const TensorIterator<NoBuffer, 4, 4> out) {   // BHWC
+                                                const TensorIterator<NoBuffer, KMaxpoolRank, KMaxpoolIterRank>& out) {   // BHWC
       return nullptr;
     } 
 
@@ -172,10 +248,10 @@ public:
      */
     virtual lib_mli::TransposeConv2D_CS* TransposeConv2D_CS(
         void *kernel_buffer,
-        const TensorIterator<NoBuffer, /* tensorRank = */ 4, /* iterRank = */ 4> input,   /**< layout: BHWC */
-        const TensorIterator<NoBuffer, /* tensorRank = */ 4, /* iterRank = */ 5> weights, /**< layout: GHWCiCo */
+        const TensorIterator<NoBuffer, KTransposeConvIORank, KTransposeConvIOIterRank> input,    // BHWC
+        const TensorIterator<NoBuffer, KTransposeConvWRank, KTransposeConvWIterRank> weights,    // GHWCiCo
         const TransposeConv2DConfig &cfg,
-        const TensorIterator<NoBuffer, /* tensorRank = */ 4, /* iterRank = */ 4> output   /**< layout: BHWC */) {
+        const TensorIterator<NoBuffer, KTransposeConvIORank, KTransposeConvIOIterRank> output) { // BHWC
         return nullptr;
     }
 

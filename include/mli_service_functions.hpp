@@ -11,6 +11,10 @@
 
 #include <assert.h>
 #include <stdint.h>
+#include <stdio.h>
+
+#define DEPRICATED_METHOD printf("%s in %s:%d is depricated. "\
+                                 "It will be removed in future version of library.\n", __func__, __FILE__, __LINE__);
 
 namespace snps_arc::metaware::mli::service {
 

@@ -49,9 +49,8 @@ using mli::tst::tensor_quantizer;
 namespace lib_mli = ::snps_arc::metaware::mli;
 namespace lib_ref = ::snps_arc::metaware::mli::ref;
 
-#define KMaxpoolRank lib_mli::MaxPool2D_CS::KMaxpoolRank
-#define KMaxpoolIterRank lib_mli::MaxPool2D_CS::KMaxpoolIterRank
-
+using lib_mli::KMaxpoolRank;
+using lib_mli::KMaxpoolIterRank;
 
 struct maxpool_test_operands {
   const char* descr;
