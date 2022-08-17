@@ -608,6 +608,55 @@ private:
     uint32_t m_out_elem_size;
 };
 
+/**
+ * @brief This class implements the Permute kernel xop interpreter interface
+ *
+ *
+ */
+class Permute : public ExecutionInterface {
+
+public:
+    /**
+     * @brief Construct a new Permute object
+     *
+     * This method will create and initialize the Permute object using the information
+     * stored in the kernel_private_data_buffer that has been computed at compile time
+     * by the GetKernelPrivateData() method.
+     * 
+     * This kernel permutes dimensions of input tensor according to provided order. 
+     * In other words, it transposes input tensors doing explicit data movement. 
+     * 
+     * @param kernel_private_data_buffer [I] Pointer to the compilation time computed initialization data.
+     * @param size        [I] Size of the data is used to check for coding errors.
+     * @param membases[]  [I] The kernel private data may contain offsets inside a (vector) memory.
+     *                        At run-time specific locations in memory are allocated for
+     *                        the graph, the membases array contains the start of
+     *                        each memory region.
+     *                        This base will be added to all memory offsets in the constructor
+     *                        according to the memory ID associated with that offset.
+     *                        Each platform can have different (number of) memories. For mli
+     *                        this is completely transparent. Compiler needs to use the same
+     *                        memory id's when attaching the buffers as are used by the
+     *                        xop-interpreter to set the membases.
+     * @param num_mems    [I] Number of memory regions passed with membases array.
+     */
+    Permute(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
+
+    mli_status Issue() override;
+
+    mli_status Prefetch() override;
+
+    mli_status Update() override;
+
+private:
+    mli_tensor m_input;
+    mli_tensor m_output;
+    uint8_t m_perm_dim[kPermuteRank];
+
+    uint32_t m_in_elem_size;
+    uint32_t m_out_elem_size;
+};
+
 
 } // namespace snps_arc::metaware::mli::ref
 

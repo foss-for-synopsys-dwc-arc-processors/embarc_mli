@@ -25,7 +25,7 @@ namespace ref {
 
 template <typename io_T>
 static void mli_krn_permute_calc(const mli_tensor *in, uint32_t *out_shape, int *out_increments,
-        int *perm_dim, const MLI_PTR(io_T) input, MLI_PTR(io_T) output) {
+                                 int *perm_dim, const MLI_PTR(io_T) input, MLI_PTR(io_T) output) {
 
     auto in_prv =  mli_prv_get_generic_tensor<MLI_PTR(io_T)>(in);
     // Main transpose operation.
@@ -59,7 +59,7 @@ static MLI_FORCE_INLINE mli_status mli_krn_permute_run(const mli_tensor *in, con
 
     int rank = in->rank;
 
-    int perm_dim[MLI_MAX_RANK] = {0, 1, 2, 3};   // default order of output matrix dimension 4
+    int perm_dim[MLI_MAX_RANK] = {0, 1, 2, 3};   // default order of output matrix dimension 4, 4D:[Batch, Height, Width, Channel]
     int out_increments[MLI_MAX_RANK] = {0, 0, 0, 0};
     uint32_t out_shape[MLI_MAX_RANK] = {0, 0, 0, 0};
 

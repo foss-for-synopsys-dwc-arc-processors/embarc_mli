@@ -1053,6 +1053,32 @@ public:
                                            OffsetBuffer &ctrl_buffer) = 0;
 };
 
+/**
+ * @brief This class implements the Permute Compiler Support kernel interface
+ *
+ */
+class Permute_CS : public CompilerGenericInterface {
+public:
+    virtual ~Permute_CS() = default;
+
+     /**
+     * @brief Method to set buffer memory offsets and memory IDs for the kernel
+     * 
+     * The memory ID's are used to index the membases array that will be passed
+     * to the constructor of the runtime class. The offsets will added to the base
+     * addresses provided in the membase array during runtime.
+     *
+     * @param input [I] Tensor descriptor containing input OffsetBuffer
+     * @param output [I] Tensor descriptor containing output OffsetBuffer
+     * @param ctrl_buffer [I] Tensor descriptor containing descriptor data OffsetBuffer
+     * 
+     * @return MLI status code
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                           const OffsetBuffer &output,
+                                           const OffsetBuffer &ctrl_buffer) = 0;
+};
+
 } // namespace mli
 
 #endif // _MLI_COMPILER_API_HPP_

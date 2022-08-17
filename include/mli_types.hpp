@@ -62,6 +62,10 @@ constexpr unsigned KTransposeConvWRank = 5;
 constexpr unsigned KTransposeConvWIterRank = 5;
 constexpr unsigned kTransposeConvZPRank = 1;
 
+constexpr short int kPermuteRank = 4;
+constexpr short int kPermuteIterRank = 4;
+
+
 typedef enum : uint32_t {
   kInvalidId = 0,
   kConv2dId,
@@ -79,7 +83,8 @@ typedef enum : uint32_t {
   kRescaleId,
   kClipId,
   kReduceMaxId,
-  kTransConv2DId
+  kTransConv2DId,
+  kPermuteId
 } kernel_id_t;
 
 typedef enum class compression_mode_t {
@@ -735,6 +740,22 @@ struct ReduceOpConfig {
                        Axis corresponds to index of tensor`s dimension starting from 0.
                        For instance, having future map in HWC layout, axis == 0 corresponds to H dimension.
                        If axis < 0 the function will be applied to the whole tensor */
+};
+
+/**
+ * @brief Permute layer config definition
+ *
+ * Data structure to provide the permutation order to functions.
+ */
+struct PermuteOpConfig {
+  PermuteOpConfig() = default;
+  PermuteOpConfig(int8_t *perm_dim) {
+    for(int8_t i = 0; i < kPermuteRank; i++) {
+      this->perm_dim[i] = perm_dim[i];
+    }
+  }
+
+  uint8_t perm_dim[kPermuteRank];   /**< A permutation array. Dimensions order for output tensor. */
 };
 
 } // namespace snps_arc::metaware::mli

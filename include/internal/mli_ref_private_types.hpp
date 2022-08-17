@@ -366,6 +366,19 @@ public:
     Tensor<OffsetBuffer, 4> output;
 };
 
+class PermutePrivateData : public PrivateData {
+
+public:
+    PermutePrivateData() : PrivateData(kPermuteId, sizeof(PermutePrivateData)) {}
+
+    uint8_t perm_dim[kPermuteRank];
+
+    uint32_t io_rank;
+
+    TensorIterator<OffsetBuffer, kPermuteRank, kPermuteIterRank> input;
+    TensorIterator<OffsetBuffer, kPermuteRank, kPermuteIterRank> output;
+};
+
 } // namespace snps_arc::metaware::mli::ref
 
 #endif // _MLI_REF_PRIVATE_TYPES_HPP_

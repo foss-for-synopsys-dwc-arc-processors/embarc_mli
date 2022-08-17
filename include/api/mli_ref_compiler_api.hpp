@@ -877,6 +877,33 @@ private:
     uint32_t m_tile_output_inc[4];
 };
 
+class Permute_CS : public lib_mli::Permute_CS {
+public:
+    Permute_CS(const lib_mli::PlatformDescription pd,
+               const TensorIterator<NoBuffer, kPermuteRank, kPermuteIterRank> in,
+               const PermuteOpConfig &cfg,
+               const TensorIterator<NoBuffer, kPermuteRank, kPermuteIterRank> out);
+
+    mli_status GetKernelPrivateData(void *kernel_private_data_buffer) override;
+    unsigned GetKernelPrivateDataSize() const override;
+    unsigned GetRuntimeObjectSize() const override;
+
+    mli_status AttachBufferOffsets( const OffsetBuffer &input,
+                                    const OffsetBuffer &output,
+                                    const OffsetBuffer &ctrl_buffer) override;
+
+private:
+    PermuteOpConfig m_cfg;
+    TensorIterator<OffsetBuffer, kPermuteRank, kPermuteIterRank> m_in;
+    TensorIterator<OffsetBuffer, kPermuteRank, kPermuteIterRank> m_out;
+
+    uint32_t m_input_buffer_size;
+    uint32_t m_output_buffer_size;
+
+    lib_mli::PlatformDescription m_pd;
+};
+
+
 } // namespace ref
 
 #endif // _MLI_REF_COMPILER_API_HPP_

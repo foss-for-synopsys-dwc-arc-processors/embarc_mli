@@ -215,6 +215,16 @@ public:
         return nullptr;
     }
 
+    uint32_t Permute_CS_GetSize() const override { return 0 /*sizeof(lib_ref::Permute_CS) */; }
+
+    lib_mli::Permute_CS* Permute_CS(void *kernel_buffer,
+                                    const TensorIterator<NoBuffer, kPermuteRank, kPermuteIterRank> in,
+                                    const PermuteOpConfig &cfg,
+                                    const TensorIterator<NoBuffer, kPermuteRank, kPermuteIterRank> out) override { 
+        /* return new(kernel_buffer) lib_ref::Permute_CS(m_pd, in, cfg, out); */
+        return nullptr;
+    }
+
 private:
     lib_mli::PlatformDescription m_pd;
 };

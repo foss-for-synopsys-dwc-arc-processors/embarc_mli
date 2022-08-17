@@ -29,6 +29,7 @@ using ref::Rescale;
 using ref::Clip;
 using ref::TransposeConv2D;
 using ref::ReduceMax;
+using ref::Permute;
 
 ExecutionInterface* ExecutionInterface::Create(
         void* allocation_memory_buffer,
@@ -151,6 +152,13 @@ ExecutionInterface* ExecutionInterface::Create(
                 MLI_PRINTF("\nMLI_ERROR: Insufficient space for [ReduceMax] runtime object\n");
             }
             break;
+        // case kPermuteId:
+        //     if(alloc_buf_size >= sizeof(Permute)) {
+        //         obj = new (allocation_memory_buffer) Permute(kernel_private_data_buffer, private_data_size, membases, num_mems);
+        //     } else {
+        //         MLI_PRINTF("\nMLI_ERROR: Insufficient space for [Permute] runtime object\n");
+        //     }
+        //     break;
         default:
             MLI_ASSERT(0);
             break;
