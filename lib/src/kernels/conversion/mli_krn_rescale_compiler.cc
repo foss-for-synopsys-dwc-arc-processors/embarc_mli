@@ -60,7 +60,7 @@ Rescale_CS::Rescale_CS(const lib_mli::PlatformDescription pd,
 mli_status Rescale_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
                                            const Tensor<OffsetBuffer, 4> &output,
                                            const OffsetBuffer &encoded_params,
-                                           const OffsetBuffer &metadata) {
+                                           const OffsetBuffer &ctrl_buffer) {
     MLI_ASSERT(output.get_buf().get_size() == m_output_buffer_size * output.get_elem_size());
 
     m_input.set_buf(input.get_buf());
@@ -181,10 +181,6 @@ unsigned Rescale_CS::GetInputBufferSize() const {
 
 unsigned Rescale_CS::GetOutputBufferSize() const {
     return m_output_buffer_size;
-}
-
-unsigned Rescale_CS::GetDataBufferSize() const {
-    return 0;
 }
 
 unsigned Rescale_CS::GetEncodedParamsSize() const {

@@ -795,17 +795,17 @@ void plan_memory(EltwiseOp& op,
 
   // MLI tensor structures and eltwise configuration
   offset = &offsets[0];
-  uint32_t data_buffer_size = eltwise_op->GetDataBufferSize();
-  lib_mli::OffsetBuffer eltwise_descr_buf{*offset, 0, data_buffer_size, sizeof(char)};
-  *offset += data_buffer_size;
+  uint32_t ctrl_buffer_size = eltwise_op->GetCtrlBufferSize();
+  lib_mli::OffsetBuffer eltwise_ctrl_buf{*offset, 0, ctrl_buffer_size, sizeof(char)};
+  *offset += ctrl_buffer_size;
 
-  assert(data_buffer_size == 0);
+  assert(ctrl_buffer_size == 0);
   assert(*offset < kMemSize);
 
   mli_status status = MLI_STATUS_OK;
 
   // Attaching buffer (descriptors) to the operation
-  status = eltwise_op->AttachBufferOffsets(add_in1_tensor, add_in2_tensor, add_out_tensor, eltwise_descr_buf);
+  status = eltwise_op->AttachBufferOffsets(add_in1_tensor, add_in2_tensor, add_out_tensor, eltwise_ctrl_buf);
 
   op.eltwise_instance = (int8_t*)g_mem_pool;
   op.eltwise_instance_size = eltwise_op->GetRuntimeObjectSize();

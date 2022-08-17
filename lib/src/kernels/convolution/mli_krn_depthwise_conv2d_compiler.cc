@@ -97,7 +97,7 @@ mli_status DepthwiseConv2d_CS::AttachBufferOffsets(Tensor<OffsetBuffer, 4> &inpu
                                                    OffsetBuffer &weights,
                                                    OffsetBuffer &inpzeropts,
                                                    OffsetBuffer &wtszeropts,
-                                                   OffsetBuffer &metadata) {
+                                                   OffsetBuffer &ctrl_buffer) {
   MLI_ASSERT(input.get_buf().get_size() >= m_input_buffer_size * input.get_elem_size());
   MLI_ASSERT(output.get_buf().get_size() >= m_output_buffer_size * output.get_elem_size());
   MLI_ASSERT(weights.get_size() >= m_weights_buffer_size * weights.get_elem_size());
@@ -159,10 +159,6 @@ unsigned DepthwiseConv2d_CS::GetWeightsBufferSize() {
 
 unsigned DepthwiseConv2d_CS::GetOutputBufferSize() {
   return m_output_buffer_size;
-}
-
-unsigned DepthwiseConv2d_CS::GetDataBufferSize() {
-  return 0;
 }
 
 }  // namespace snps_arc::metaware::mli::ref

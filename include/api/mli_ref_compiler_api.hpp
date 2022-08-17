@@ -96,7 +96,6 @@ public:
     /**
      * @return Always returns zero for reference kernel.
      */
-    unsigned GetDataBufferSize() override;
 
     /**
      * @deprecated
@@ -106,14 +105,14 @@ public:
                                    OffsetBuffer &weights,
                                    OffsetBuffer &inpzeropts,
                                    OffsetBuffer &wtszeropts,
-                                   OffsetBuffer &metadata) override;
+                                   OffsetBuffer &ctrl_buffer) override;
 
     mli_status AttachBufferOffsets(const OffsetBuffer& input,
                                    const OffsetBuffer& output,
                                    const OffsetBuffer& weights,
                                    const OffsetBuffer& inpzeropts,
                                    const OffsetBuffer& wtszeropts,
-                                   const OffsetBuffer& descr) override;
+                                   const OffsetBuffer& ctrl_buffer) override;
 
 
     mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
@@ -203,14 +202,13 @@ public:
     unsigned GetInputBufferSize() override;
     unsigned GetOutputBufferSize() override;
     unsigned GetWeightsBufferSize() override;
-    unsigned GetDataBufferSize() override;
 
     mli_status AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
                                    Tensor<OffsetBuffer, 4> &output,
                                    OffsetBuffer &weights,
                                    OffsetBuffer &inpzeropts,
                                    OffsetBuffer &wtszeropts,
-                                   OffsetBuffer &descr) override;
+                                   OffsetBuffer &ctrl_buffer) override;
 
     mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
     unsigned GetKernelPrivateDataSize() const override;
@@ -269,14 +267,12 @@ public:
 
     unsigned GetEncodedWtsZeroPtsSize() const override;
 
-    unsigned GetDataBufferSize() const override;
-
     mli_status AttachBufferOffsets(OffsetBuffer &input,
                                    OffsetBuffer &output,
                                    OffsetBuffer &weights,
                                    OffsetBuffer &inpzeropts,
                                    OffsetBuffer &wtszeropts,
-                                   OffsetBuffer &descr) override;
+                                   OffsetBuffer &ctrl_buffer) override;
 
     mli_status GetKernelPrivateData(void *kernel_private_data_buffer) override;
     unsigned GetKernelPrivateDataSize() const override;
@@ -354,7 +350,6 @@ public:
     /**
      * @return Always returns zero for reference kernel.
      */
-    unsigned GetDataBufferSize() const override;
 
     mli_status GetKernelPrivateData(void *kernel_private_data_buffer) override;
 
@@ -363,11 +358,11 @@ public:
      */
     mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, KMaxpoolRank> &input,
                                    const Tensor<OffsetBuffer, KMaxpoolRank> &output,
-                                   const OffsetBuffer &data) override;
+                                   const OffsetBuffer &ctrl_buffer) override;
 
     mli_status AttachBufferOffsets(const OffsetBuffer& input,
                                    const OffsetBuffer& output,
-                                   const OffsetBuffer& data) override;
+                                   const OffsetBuffer& ctrl_buffer) override;
 
     /**
       * @deprecated
@@ -405,12 +400,11 @@ public:
     mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
     mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
                                    const Tensor<OffsetBuffer, 4> &output,
-                                   const OffsetBuffer &data) override;
+                                   const OffsetBuffer &ctrl_buffer) override;
 
     // From SumPool2D_CS
     unsigned GetInputBufferSize() const override;
     unsigned GetOutputBufferSize() const override;
-    unsigned GetDataBufferSize() const override;
 
 private:
     Tensor<OffsetBuffer, 4> m_in;
@@ -455,13 +449,12 @@ public:
     unsigned GetOutputBufferSize() const override;
     unsigned GetWeightsBufferSize() const override;
     unsigned GetZeroPointBufferSize() const override;
-    unsigned GetDataBufferSize() const override;
 
     mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 2> &input,
                                    const Tensor<OffsetBuffer, 2> &output,
                                    const OffsetBuffer &weights,
                                    const OffsetBuffer &wtszeropts,
-                                   const OffsetBuffer &descr) override;
+                                   const OffsetBuffer &ctrl_buffer) override;
 
     mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
     unsigned GetKernelPrivateDataSize() const override;
@@ -493,15 +486,14 @@ public:
     // From ReduceMax_CS
     unsigned GetInputBufferSize() const override;
     unsigned GetOutputBufferSize() const override;
-    unsigned GetDataBufferSize() const override;
-
+    
     mli_status GetKernelPrivateData(void *kernel_private_data_buffer ) override;
     unsigned GetKernelPrivateDataSize() const override;
     unsigned GetRuntimeObjectSize() const override;
 
     mli_status AttachBufferOffsets( const Tensor<OffsetBuffer, 4> &input,
                                     const Tensor<OffsetBuffer, 4> &output,
-                                    const OffsetBuffer &metadata) override;
+                                    const OffsetBuffer &ctrl_buffer) override;
 
 private:
     ReduceOpConfig m_cfg;
@@ -523,7 +515,6 @@ public:
     // From Rescale_CS
     unsigned GetInputBufferSize() const override;
     unsigned GetOutputBufferSize() const override;
-    unsigned GetDataBufferSize() const override;
     unsigned GetEncodedParamsSize() const override;
     mli_status EncodeParams(const Tensor<Buffer, 1> &in_bias,
                             const Tensor<Buffer, 1> &out_bias,
@@ -537,7 +528,7 @@ public:
     mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
                                    const Tensor<OffsetBuffer, 4> &output,
                                    const OffsetBuffer &encoded_params,
-                                   const OffsetBuffer &metadata) override;
+                                   const OffsetBuffer &ctrl_buffer) override;
 
     mli_status SetIterators(uint32_t output_total_size[4],
                             uint32_t iteration_order[4],
@@ -609,7 +600,6 @@ class Move_CS : public lib_mli::Move_CS {
 
   unsigned GetInputBufferSize() const override;
   unsigned GetOutputBufferSize() const override;
-  unsigned GetDataBufferSize() const override;
 
 private:
   IteratorCfg<kMaxRank> m_src_cfg;
@@ -647,13 +637,12 @@ public:
     mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left,
                                    const Tensor<OffsetBuffer, 4> &input_right,
                                    const Tensor<OffsetBuffer, 4> &output,
-                                   const OffsetBuffer &data) override;
+                                   const OffsetBuffer &ctrl_buffer) override;
 
     // From Add_CS
     unsigned GetInputLeftBufferSize() override;
     unsigned GetInputRightBufferSize() override;
     unsigned GetOutputBufferSize() override;
-    unsigned GetDataBufferSize() override;
 
 private:
     Tensor<OffsetBuffer, 4> m_in_left;
@@ -687,13 +676,12 @@ public:
     mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left,
                                    const Tensor<OffsetBuffer, 4> &input_right,
                                    const Tensor<OffsetBuffer, 4> &output,
-                                   const OffsetBuffer &data) override;
+                                   const OffsetBuffer &ctrl_buffer) override;
 
     // From Sub_CS
     unsigned GetInputLeftBufferSize() override;
     unsigned GetInputRightBufferSize() override;
     unsigned GetOutputBufferSize() override;
-    unsigned GetDataBufferSize() override;
 
 private:
     Tensor<OffsetBuffer, 4> m_in_left;
@@ -727,13 +715,12 @@ public:
     mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left,
                                    const Tensor<OffsetBuffer, 4> &input_right,
                                    const Tensor<OffsetBuffer, 4> &output,
-                                   const OffsetBuffer &data) override;
+                                   const OffsetBuffer &ctrl_buffer) override;
 
     // From Mul_CS
     unsigned GetInputLeftBufferSize() override;
     unsigned GetInputRightBufferSize() override;
     unsigned GetOutputBufferSize() override;
-    unsigned GetDataBufferSize() override;
 
 private:
     Tensor<OffsetBuffer, 4> m_in_left;
@@ -767,13 +754,12 @@ public:
     mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left,
                                    const Tensor<OffsetBuffer, 4> &input_right,
                                    const Tensor<OffsetBuffer, 4> &output,
-                                   const OffsetBuffer &data) override;
+                                   const OffsetBuffer &ctrl_buffer) override;
 
     // From Max_CS
     unsigned GetInputLeftBufferSize() override;
     unsigned GetInputRightBufferSize() override;
     unsigned GetOutputBufferSize() override;
-    unsigned GetDataBufferSize() override;
 
 private:
     Tensor<OffsetBuffer, 4> m_in_left;
@@ -807,13 +793,12 @@ public:
     mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left,
                                    const Tensor<OffsetBuffer, 4> &input_right,
                                    const Tensor<OffsetBuffer, 4> &output,
-                                   const OffsetBuffer &data) override;
+                                   const OffsetBuffer &ctrl_buffer) override;
 
     // From Min_CS
     unsigned GetInputLeftBufferSize() override;
     unsigned GetInputRightBufferSize() override;
     unsigned GetOutputBufferSize() override;
-    unsigned GetDataBufferSize() override;
 
 private:
     Tensor<OffsetBuffer, 4> m_in_left;
@@ -851,7 +836,6 @@ class Clip_CS : public lib_mli::Clip_CS {
     unsigned GetInputBufferSize() const override;
     unsigned GetOutputBufferSize() const override;
     unsigned GetParamsBufferSize() const override;
-    unsigned GetDataBufferSize() const override;
 
     /**
      * @brief Methods to set buffer offsets
@@ -860,7 +844,7 @@ class Clip_CS : public lib_mli::Clip_CS {
     mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kMaxRank> &input,
                                    const Tensor<OffsetBuffer, kMaxRank> &output,
                                    const OffsetBuffer &encoded_params,
-                                   const OffsetBuffer &metadata)  override;
+                                   const OffsetBuffer &ctrl_buffer)  override;
 
 
     mli_status SetIterators(uint32_t output_total_size[4],

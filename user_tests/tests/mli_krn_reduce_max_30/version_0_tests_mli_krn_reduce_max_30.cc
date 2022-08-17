@@ -260,16 +260,16 @@ void prepare_phase(const reduce_max_test_operands* cur_test,
 
     // DataBuffer size is 0 for reference kernel
     offset = &offsets[0];
-    uint32_t data_buffer_size = reduce_max_op->GetDataBufferSize();
-    lib_mli::OffsetBuffer reduce_max_descr_buf{*offset, 0, data_buffer_size,
+    uint32_t ctrl_buffer_size = reduce_max_op->GetCtrlBufferSize();
+    lib_mli::OffsetBuffer reduce_max_ctrl_buf{*offset, 0, ctrl_buffer_size,
                                                 sizeof(char)};
-    *offset += data_buffer_size;
+    *offset += ctrl_buffer_size;
 
     // Attaching buffer (descriptors) to the operation
     mli_status status = MLI_STATUS_OK;
 
     status = reduce_max_op->AttachBufferOffsets(reduce_max_in_tensor, reduce_max_out_tensor,
-                                                reduce_max_descr_buf);
+                                                reduce_max_ctrl_buf);
     assert(status == MLI_STATUS_OK);
 
     reduce_max_instance = (int8_t*)g_mem_pool;

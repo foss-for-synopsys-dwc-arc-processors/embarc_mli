@@ -109,7 +109,7 @@ mli_status Clip_CS::GetKernelPrivateData(void* kernel_private_data_buffer) {
 mli_status Clip_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
                                         const Tensor<OffsetBuffer, 4> &output,
                                         const OffsetBuffer &encoded_params,
-                                        const OffsetBuffer &metadata) {
+                                        const OffsetBuffer &ctrl_buffer) {
   MLI_ASSERT(output.get_buf().get_size() == m_output_buffer_size * output.get_elem_size());
 
   m_input.set_buf(input.get_buf());
@@ -150,10 +150,6 @@ unsigned Clip_CS::GetOutputBufferSize() const {
 
 unsigned Clip_CS::GetParamsBufferSize() const {
     return m_encoded_params_buffer_size;
-}
-
-unsigned Clip_CS::GetDataBufferSize() const {
-  return 0;
 }
 
 mli_status Clip_CS::SetIterators(uint32_t output_total_size[4],

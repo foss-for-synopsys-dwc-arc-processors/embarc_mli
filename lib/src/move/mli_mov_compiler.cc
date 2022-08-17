@@ -73,6 +73,4 @@ unsigned Move_CS::GetOutputBufferSize() const {
   return service::GetBufferSize(m_dst_rank, m_dst_shape, m_dst_stride);
 }
 
-unsigned Move_CS::GetDataBufferSize() const { return 0; }
-
 }  // namespace snps_arc::metaware::mli::ref

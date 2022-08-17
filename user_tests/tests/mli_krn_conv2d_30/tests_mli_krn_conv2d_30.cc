@@ -630,11 +630,11 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
 
   // MLI tensor structures and conv2d configuration
   cnv_offset = &offsets[0];
-  uint32_t data_buffer_size = conv2d_op->GetDataBufferSize();
-  lib_mli::OffsetBuffer conv2d_descr_buf{*cnv_offset, 0, data_buffer_size, sizeof(char)};
-  *cnv_offset += data_buffer_size;
+  uint32_t ctrl_buffer_size = conv2d_op->GetCtrlBufferSize();
+  lib_mli::OffsetBuffer conv2d_ctrl_buf{*cnv_offset, 0, ctrl_buffer_size, sizeof(char)};
+  *cnv_offset += ctrl_buffer_size;
 
-  assert(data_buffer_size == 0);
+  assert(ctrl_buffer_size == 0);
   assert(*cnv_offset <= kMemPoolSize);
 
   // DataBuffer size is 0 for reference kernel
@@ -645,7 +645,7 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
                                           conv2d_w_buf,
                                           inpzp_buf,
                                           wtszp_buf,
-                                          conv2d_descr_buf);
+                                          conv2d_ctrl_buf);
   assert(status == MLI_STATUS_OK);
 
 
@@ -697,17 +697,17 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
 
   // DataBuffer size is 0 for reference kernel
   rs_offset = &offsets[0];
-  uint32_t rs_data_buffer_size = rescale_op->GetDataBufferSize();
-  lib_mli::OffsetBuffer rescale_descr_buf { *rs_offset, 0,
-                                          rs_data_buffer_size, sizeof(char) };
-  *rs_offset += rs_data_buffer_size;
+  uint32_t rs_ctrl_buffer_size = rescale_op->GetCtrlBufferSize();
+  lib_mli::OffsetBuffer rescale_ctrl_buf { *rs_offset, 0,
+                                          rs_ctrl_buffer_size, sizeof(char) };
+  *rs_offset += rs_ctrl_buffer_size;
   assert(*rs_offset <= kMemPoolSize);
 
   // Attaching buffer (descriptors) to the operation
   status = rescale_op->AttachBufferOffsets(rescale_in_tensor,
                                            rescale_out_tensor,
                                            encoded_params_buf,
-                                           rescale_descr_buf);
+                                           rescale_ctrl_buf);
   assert(status == MLI_STATUS_OK);
 
   status = rescale_op->SetIterators(total_output_size, iteration_order,
@@ -753,17 +753,17 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
 
   // DataBuffer size is 0 for reference kernel
   clip_offset = &offsets[0];
-  uint32_t clip_data_buffer_size = clip_op->GetDataBufferSize();
-  lib_mli::OffsetBuffer clip_descr_buf{*clip_offset, 0,
-                                       clip_data_buffer_size, sizeof(char)};
-  *clip_offset += clip_data_buffer_size;
+  uint32_t clip_ctrl_buffer_size = clip_op->GetCtrlBufferSize();
+  lib_mli::OffsetBuffer clip_ctrl_buf{*clip_offset, 0,
+                                       clip_ctrl_buffer_size, sizeof(char)};
+  *clip_offset += clip_ctrl_buffer_size;
   assert(*clip_offset <= kMemPoolSize);
 
   // Attaching buffer (descriptors) to the operation
   status = clip_op->AttachBufferOffsets(clip_in_tensor,
                                         clip_out_tensor,
                                         clip_encoded_params_buf,
-                                        clip_descr_buf);
+                                        clip_ctrl_buf);
   assert(status == MLI_STATUS_OK);
 
   status = clip_op->SetIterators(total_output_size, iteration_order,

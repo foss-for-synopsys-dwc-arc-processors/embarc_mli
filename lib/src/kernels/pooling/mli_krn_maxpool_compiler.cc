@@ -107,7 +107,7 @@ mli_status MaxPool2D_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, KMaxpool
 
 mli_status MaxPool2D_CS::AttachBufferOffsets(const OffsetBuffer& input,
                                              const OffsetBuffer& output,
-                                             const OffsetBuffer& data) {
+                                             const OffsetBuffer& ctrl_buffer) {
   m_input.set_buf(input);
   m_output.set_buf(output);
 
@@ -119,9 +119,6 @@ unsigned MaxPool2D_CS::GetInputBufferSize() const {
 }
 unsigned MaxPool2D_CS::GetOutputBufferSize() const {
   return m_output_buffer_size;
-}
-unsigned MaxPool2D_CS::GetDataBufferSize() const {
-  return 0;
 }
 
 mli_status MaxPool2D_CS::SetIterators(uint32_t output_total_size[KMaxpoolIterRank],

@@ -115,7 +115,7 @@ mli_status FullyConnected_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, 2> 
                                                   const Tensor<OffsetBuffer, 2> &output,
                                                   const OffsetBuffer &weights,
                                                   const OffsetBuffer &wtszeropts,
-                                                  const OffsetBuffer &metadata) {
+                                                  const OffsetBuffer &ctrl_buffer) {
   MLI_ASSERT(input.get_buf().get_size() >= m_input_buffer_size * input.get_elem_size());
   MLI_ASSERT(output.get_buf().get_size() >= m_output_buffer_size * output.get_elem_size());
   MLI_ASSERT(weights.get_size() >= m_weights_buffer_size * weights.get_elem_size());
@@ -192,10 +192,6 @@ unsigned FullyConnected_CS::GetOutputBufferSize() const {
   return m_output_buffer_size;
 }
 unsigned FullyConnected_CS::GetZeroPointBufferSize() const {
-  return 0;
-}
-
-unsigned FullyConnected_CS::GetDataBufferSize() const {
   return 0;
 }
 

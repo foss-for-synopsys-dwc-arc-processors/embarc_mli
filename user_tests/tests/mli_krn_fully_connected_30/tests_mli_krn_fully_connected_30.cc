@@ -563,9 +563,9 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
 
   // MLI tensor structures and fully connected configuration
   fc_offset = &offsets[0];
-  uint32_t data_buffer_size = FullyConn->GetDataBufferSize();
-  lib_mli::OffsetBuffer fully_connected_descr_buf{*fc_offset, 0, data_buffer_size, sizeof(char)};
-  *fc_offset += data_buffer_size;
+  uint32_t ctrl_buffer_size = FullyConn->GetCtrlBufferSize();
+  lib_mli::OffsetBuffer fully_connected_descr_buf{*fc_offset, 0, ctrl_buffer_size, sizeof(char)};
+  *fc_offset += ctrl_buffer_size;
 
   // Attaching buffer (descriptors) to the operation
   mli_status status = MLI_STATUS_OK;
@@ -622,16 +622,16 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
 
   // DataBuffer size is 0 for reference kernel
   rs_offset = &offsets[0];
-  uint32_t rs_data_buffer_size = rescale_op->GetDataBufferSize();
-  lib_mli::OffsetBuffer rescale_descr_buf { *rs_offset, 0,
-                                          rs_data_buffer_size, sizeof(char) };
-  *rs_offset += rs_data_buffer_size;
+  uint32_t rs_ctrl_buffer_size = rescale_op->GetCtrlBufferSize();
+  lib_mli::OffsetBuffer rescale_ctrl_buf { *rs_offset, 0,
+                                          rs_ctrl_buffer_size, sizeof(char) };
+  *rs_offset += rs_ctrl_buffer_size;
 
   // Attaching buffer (descriptors) to the operation
   status = rescale_op->AttachBufferOffsets(rescale_in_tensor,
                                            rescale_out_tensor,
                                            encoded_params_buf,
-                                           rescale_descr_buf);
+                                           rescale_ctrl_buf);
   assert(status == MLI_STATUS_OK);
   // STEP 1.2.3: [Clip] Memory management (Up to user on how to deal with it)
   //==================================================================
@@ -677,16 +677,16 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
 
   // DataBuffer size is 0 for reference kernel
   clip_offset = &offsets[0];
-  uint32_t clip_data_buffer_size = clip_op->GetDataBufferSize();
-  lib_mli::OffsetBuffer clip_descr_buf{*clip_offset, 0,
-                                       clip_data_buffer_size, sizeof(char)};
-  *clip_offset += clip_data_buffer_size;
+  uint32_t clip_ctrl_buffer_size = clip_op->GetCtrlBufferSize();
+  lib_mli::OffsetBuffer clip_ctrl_buf{*clip_offset, 0,
+                                       clip_ctrl_buffer_size, sizeof(char)};
+  *clip_offset += clip_ctrl_buffer_size;
 
   // Attaching buffer (descriptors) to the operation
   status = clip_op->AttachBufferOffsets(clip_in_tensor,
                                         clip_out_tensor,
                                         clip_encoded_params_buf,
-                                        clip_descr_buf);
+                                        clip_ctrl_buf);
   assert(status == MLI_STATUS_OK);
 
   // STEP 1.3.1: [FullyConn] Copy dataset from scratch buffer to the global shared memory pool

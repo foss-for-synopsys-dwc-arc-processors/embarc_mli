@@ -468,10 +468,10 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
 
     // DataBuffer size is 0 for reference kernel
     dwc_offset = &offsets[0];
-    uint32_t dwc_data_buffer_size = dw_conv2d_op->GetDataBufferSize();
-    lib_mli::OffsetBuffer dw_conv2d_descr_buf { *dwc_offset, 0,
-                                    dwc_data_buffer_size, sizeof(char) };
-    *dwc_offset += dwc_data_buffer_size;
+    uint32_t dwc_ctrl_buffer_size = dw_conv2d_op->GetCtrlBufferSize();
+    lib_mli::OffsetBuffer dw_conv2d_ctrl_buf { *dwc_offset, 0,
+                                    dwc_ctrl_buffer_size, sizeof(char) };
+    *dwc_offset += dwc_ctrl_buffer_size;
 
     // Attaching buffer (descriptors) to the operation
     mli_status status = MLI_STATUS_OK;
@@ -481,7 +481,7 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
                                                 dw_conv2d_w_buf,
                                                 dw_inpzp_buf,
                                                 dw_wtszp_buf,
-                                                dw_conv2d_descr_buf);
+                                                dw_conv2d_ctrl_buf);
     assert(status == MLI_STATUS_OK);
 
     // STEP 1.2: [Rescale] Memory management (Up to user on how to deal with it)
@@ -529,16 +529,16 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
 
     // DataBuffer size is 0 for reference kernel
     rs_offset = &offsets[0];
-    uint32_t rs_data_buffer_size = rescale_op->GetDataBufferSize();
-    lib_mli::OffsetBuffer rescale_descr_buf { *rs_offset, 0,
-                                            rs_data_buffer_size, sizeof(char) };
-    *rs_offset += rs_data_buffer_size;
+    uint32_t rs_ctrl_buffer_size = rescale_op->GetCtrlBufferSize();
+    lib_mli::OffsetBuffer rescale_ctrl_buf { *rs_offset, 0,
+                                            rs_ctrl_buffer_size, sizeof(char) };
+    *rs_offset += rs_ctrl_buffer_size;
 
     // Attaching buffer (descriptors) to the operation
     status = rescale_op->AttachBufferOffsets(rescale_in_tensor,
                                              rescale_out_tensor,
                                              encoded_params_buf,
-                                             rescale_descr_buf);
+                                             rescale_ctrl_buf);
     assert(status == MLI_STATUS_OK);
 
     // STEP 1.3: [Depthwise_Conv2d] Copy dataset from scratch buffer to the global shared memory pool

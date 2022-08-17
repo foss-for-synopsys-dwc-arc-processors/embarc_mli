@@ -192,11 +192,11 @@ mli_status Conv2d_CS::AttachBufferOffsets(Tensor<OffsetBuffer, KConvIORank> &inp
                                           OffsetBuffer &weights,
                                           OffsetBuffer &inpzeropts,
                                           OffsetBuffer &wtszeropts,
-                                          OffsetBuffer &metadata) {
-  
+                                          OffsetBuffer &ctrl_buffer) {
+
   // TODO: uncomment DEPRICATED_METHOD after implementation of new version
   // DEPRICATED_METHOD
-  
+
   MLI_ASSERT(output.get_buf().get_size() >= m_output_buffer_size * output.get_elem_size());
 
   // The metadata or descriptor is not required for ref kernel
@@ -216,7 +216,7 @@ mli_status Conv2d_CS::AttachBufferOffsets(const OffsetBuffer& input,
                                           const OffsetBuffer& weights,
                                           const OffsetBuffer& inpzeropts,
                                           const OffsetBuffer& wtszeropts,
-                                          const OffsetBuffer& metadata) {
+                                          const OffsetBuffer& ctrl_buffer) {
   // TODO: implementation
   return MLI_STATUS_OK;
 }
@@ -270,10 +270,6 @@ unsigned Conv2d_CS::GetOutputBufferSize() {
 }
 
 unsigned Conv2d_CS::GetZeroPointBufferSize() {
-  return 0;
-}
-
-unsigned Conv2d_CS::GetDataBufferSize() {
   return 0;
 }
 

@@ -245,8 +245,8 @@ void prepare_phase(const maxpool_test_operands* cur_test,
   lib_mli::OffsetBuffer maxpool2d_out_buf{offset, 0, out_size, elem_size};
   offset += out_size;
 
-  assert(maxpool2d_op->GetDataBufferSize() == 0);
-  lib_mli::OffsetBuffer maxpool2d_descr_buf{offset, 0, 0, sizeof(char)};
+  assert(maxpool2d_op->GetCtrlBufferSize() == 0);
+  lib_mli::OffsetBuffer maxpool2d_ctrl_buf{offset, 0, 0, sizeof(char)};
 
   // Attaching buffer (descriptors) to the operation
   mli_status status = MLI_STATUS_OK;
@@ -254,7 +254,7 @@ void prepare_phase(const maxpool_test_operands* cur_test,
 #ifdef USE_DEPRECTED_MAXPOOL_CS_CONSTRUCTOR
   lib_mli::Tensor<lib_mli::OffsetBuffer, KMaxpoolRank> maxpool2d_in_tensor(maxpool2d_in_buf, input_shape);
   lib_mli::Tensor<lib_mli::OffsetBuffer, KMaxpoolRank> maxpool2d_out_tensor(maxpool2d_out_buf, output_tile_shape);
-  status = maxpool2d_op->AttachBufferOffsets(maxpool2d_in_tensor, maxpool2d_out_tensor, maxpool2d_descr_buf);
+  status = maxpool2d_op->AttachBufferOffsets(maxpool2d_in_tensor, maxpool2d_out_tensor, maxpool2d_ctrl_buf);
   assert(status == MLI_STATUS_OK);
 
 #ifdef USE_TILING
@@ -264,7 +264,7 @@ void prepare_phase(const maxpool_test_operands* cur_test,
 #endif
 
 #else
-  status = maxpool2d_op->AttachBufferOffsets(maxpool2d_in_buf, maxpool2d_out_buf, maxpool2d_descr_buf);
+  status = maxpool2d_op->AttachBufferOffsets(maxpool2d_in_buf, maxpool2d_out_buf, maxpool2d_ctrl_buf);
   assert(status == MLI_STATUS_OK);
 #endif
 

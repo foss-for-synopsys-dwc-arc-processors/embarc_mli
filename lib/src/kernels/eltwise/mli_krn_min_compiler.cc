@@ -111,7 +111,7 @@ mli_status Min_CS::GetKernelPrivateData(void* kernel_private_data_buffer) {
 mli_status Min_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left,
                                        const Tensor<OffsetBuffer, 4> &input_right,
                                        const Tensor<OffsetBuffer, 4> &output,
-                                       const OffsetBuffer &data) {
+                                       const OffsetBuffer &ctrl_buffer) {
   MLI_ASSERT(input_left.get_buf().get_size() >= m_in_left_buffer_size * input_left.get_elem_size());
   MLI_ASSERT(input_right.get_buf().get_size() >= m_in_right_buffer_size * input_right.get_elem_size());
   MLI_ASSERT(output.get_buf().get_size() >= m_output_buffer_size * output.get_elem_size());
@@ -131,9 +131,6 @@ unsigned Min_CS::GetInputRightBufferSize() {
 }
 unsigned Min_CS::GetOutputBufferSize() {
   return m_output_buffer_size;
-}
-unsigned Min_CS::GetDataBufferSize() {
-  return 0;
 }
 
 }  // namespace snps_arc::metaware::mli::ref

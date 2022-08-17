@@ -93,7 +93,7 @@ mli_status SumPool2D_CS::GetKernelPrivateData(
 
 mli_status SumPool2D_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
                                              const Tensor<OffsetBuffer, 4> &output,
-                                             const OffsetBuffer &data) {
+                                             const OffsetBuffer &ctrl_buffer) {
   MLI_ASSERT(input.get_buf().get_size() >= m_input_buffer_size * input.get_elem_size());
   MLI_ASSERT(output.get_buf().get_size() >= m_output_buffer_size * output.get_elem_size());
 
@@ -108,9 +108,6 @@ unsigned SumPool2D_CS::GetInputBufferSize() const {
 }
 unsigned SumPool2D_CS::GetOutputBufferSize() const {
   return m_output_buffer_size;
-}
-unsigned SumPool2D_CS::GetDataBufferSize() const {
-  return 0;
 }
 
 }  // namespace snps_arc::metaware::mli::ref

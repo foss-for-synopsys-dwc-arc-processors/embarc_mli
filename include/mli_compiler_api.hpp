@@ -51,7 +51,17 @@ class CompilerGenericInterface {
      */
     virtual unsigned GetRuntimeObjectSize() const = 0;
 
+    /**
+     * @brief Method to get the platform-specific descriptor ctrl buffer size
+     *
+     * CtrlBuffer requires allocation in closely coupled data memory (CCM) on
+     * some platforms
+     *
+     * @return Size of platform-specific descriptor ctrl buffer in bytes
+     */
 
+    virtual unsigned GetCtrlBufferSize() const { return 0; }
+    
     virtual int32_t GetEventPrefetchMask() const { return 0; }
 
     virtual int32_t GetEventIssueMask() const { return 0; }
@@ -168,16 +178,6 @@ public:
     virtual unsigned GetWeightsBufferSize() = 0;
     virtual unsigned GetZeroPointBufferSize() = 0;
     /**
-     * @brief Method to get the platform-specific descriptor data buffer size
-     *
-     * DataBuffer requires allocation in closely coupled data memory (CCM) on
-     * some platforms
-     *
-     * @return Size of platform-specific descriptor data buffer in bytes
-     */
-    virtual unsigned GetDataBufferSize() = 0;
-
-    /**
      * @brief Method to set buffer memory offsets and memory IDs for the kernel
      *
      * Compiler computes a memory map and buffer offsets are set using this method.
@@ -190,10 +190,10 @@ public:
      * @deprected
      * @param input [I] Tensor descriptor containing input OffsetBuffer and tensor shape and memory strides
      * @param output [I] Tensor descriptor containing output OffsetBuffer and tensor shape and memory strides
-     * @param weights [I] weights OffsetBuffer and tensor shape and memory strides
-     * @param inpzeropts [I] input zero point(s) OffsetBuffer
-     * @param wtszeropts [I] weights zero points OffsetBuffer
-     * @param descr [I] data OffsetBuffer
+     * @param weights [I] Tensor descriptor containing weights OffsetBuffer and tensor shape and memory strides
+     * @param inpzeropts [I] Tensor descriptor containing input zero point(s) OffsetBuffer
+     * @param wtszeropts [I] Tensor descriptor containing weights zero points OffsetBuffer
+     * @param ctrl_buffer [I] Tensor descriptor containing descriptor data OffsetBuffer
      *
      * @return MLI status code
      */
@@ -202,7 +202,7 @@ public:
                                            OffsetBuffer &weights,
                                            OffsetBuffer &inpzeropts,
                                            OffsetBuffer &wtszeropts,
-                                           OffsetBuffer &descr) = 0;
+                                           OffsetBuffer &ctrl_buffer) = 0;
 
     /**
      * @brief Method to set buffer memory offsets and memory IDs for the kernel
@@ -220,7 +220,7 @@ public:
      * @param weights [I] weights OffsetBuffer and tensor shape and memory strides
      * @param inpzeropts [I] input zero point(s) OffsetBuffer
      * @param wtszeropts [I] weights zero points OffsetBuffer
-     * @param descr [I] data OffsetBuffer
+     * @param ctrl_buffer [I] data OffsetBuffer
      *
      * @return MLI status code
      */
@@ -229,7 +229,7 @@ public:
                                            const OffsetBuffer& weights,
                                            const OffsetBuffer& inpzeropts,
                                            const OffsetBuffer& wtszeropts,
-                                           const OffsetBuffer& descr) = 0;
+                                           const OffsetBuffer& ctrl_buffer) = 0;
 
     // mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override ;
     // unsigned GetKernelPrivateDataSize() override ;
@@ -312,16 +312,6 @@ public:
     virtual unsigned GetOutputBufferSize() = 0;
     virtual unsigned GetParamsBufferSize() = 0;
     /**
-     * @brief Method to get the platform-specific descriptor data buffer size
-     *
-     * DataBuffer requires allocation in closely coupled data memory (CCM) on
-     * some platforms
-     *
-     * @return Size of platform-specific descriptor data buffer in bytes
-     */
-    virtual unsigned GetDataBufferSize() = 0;
-
-    /**
      * @brief Methods to set buffer offsets
      *
      * Compiler computes a memory map and buffer offsets are set using this method.
@@ -336,7 +326,7 @@ public:
     virtual mli_status AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
                                            Tensor<OffsetBuffer, 4> &output,
                                            OffsetBuffer &params,
-                                           OffsetBuffer &descr) = 0;
+                                           OffsetBuffer &ctrl_buffer) = 0;
 
     // mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override ;
     // unsigned GetKernelPrivateDataSize() override ;
@@ -419,16 +409,7 @@ public:
 
     virtual unsigned GetInputBufferSize() = 0;
     virtual unsigned GetOutputBufferSize() = 0;
-    virtual unsigned GetWeightsBufferSize() = 0;
-    /**
-     * @brief Method to get the platform-specific descriptor data buffer size
-     *
-     * DataBuffer requires allocation in closely coupled data memory (CCM) on
-     * some platforms
-     *
-     * @return Size of platform-specific descriptor data buffer in bytes
-     */
-    virtual unsigned GetDataBufferSize() = 0;
+    virtual unsigned GetWeightsBufferSize() = 0;   
     virtual unsigned GetInputZeroPtsBufferSize() { return 0; }
     /**
      * @brief Methods to set buffer offsets
@@ -439,7 +420,7 @@ public:
                                            OffsetBuffer &weights,
                                            OffsetBuffer &inpzeropts,
                                            OffsetBuffer &wtszeropts,
-                                           OffsetBuffer &metadata) = 0;
+                                           OffsetBuffer &ctrl_buffer) = 0;
 };
 
 /**
@@ -485,16 +466,7 @@ public:
     virtual unsigned GetWeightsBufferSize() const = 0;
     virtual unsigned GetZeroPointBufferSize() const = 0;
     /**
-     * @brief Method to get the platform-specific descriptor data buffer size
-     *
-     * DataBuffer requires allocation in closely coupled data memory (CCM) on
-     * some platforms
-     *
-     * @return Size of platform-specific descriptor data buffer in bytes
-     */
-    virtual unsigned GetDataBufferSize() const = 0;
 
-    /**
      * @brief Methods to set buffer offsets
      *
      */
@@ -502,7 +474,7 @@ public:
                                            const Tensor<OffsetBuffer, 2> &output,
                                            const OffsetBuffer &weights,
                                            const OffsetBuffer &wtszeropts,
-                                           const OffsetBuffer &metadata) = 0;
+                                           const OffsetBuffer &ctrl_buffer) = 0;
 };
 
 /**
@@ -526,17 +498,6 @@ public:
      * @return Size of the output buffer in bytes
      */
     virtual unsigned GetOutputBufferSize() const = 0;
-
-    /**
-     * @brief Method to get the platform-specific descriptor data buffer size
-     *
-     * DataBuffer requires allocation in closely coupled data memory (CCM) on
-     * some platforms
-     *
-     * @return Size of platform-specific descriptor data buffer in bytes
-     */
-    virtual unsigned GetDataBufferSize() const = 0;
-
     /**
      * @brief Method to set buffer memory offsets and memory IDs for the kernel
      * 
@@ -550,13 +511,13 @@ public:
      * @deprected
      * @param input [I] Tensor descriptor containing input OffsetBuffer and tensor shape and memory strides
      * @param output [I] Tensor descriptor containing output OffsetBuffer and tensor shape and memory strides
-     * @param data [I] data OffsetBuffer
+     * @param ctrl_buffer [I] data OffsetBuffer
      * 
      * @return MLI status code
      */
     virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, KMaxpoolRank> &input,
                                            const Tensor<OffsetBuffer, KMaxpoolRank> &output,
-                                           const OffsetBuffer &data) = 0;
+                                           const OffsetBuffer &ctrl_buffer) = 0;
 
     /**
      * @brief Method to set buffer memory offsets and memory IDs for the kernel
@@ -570,13 +531,13 @@ public:
      *
      * @param input [I] input OffsetBuffer 
      * @param output [I] output OffsetBuffer
-     * @param data [I] data OffsetBuffer
+     * @param ctrl_buffer [I] data OffsetBuffer
      *
      * @return MLI status code
      */
     virtual mli_status AttachBufferOffsets(const OffsetBuffer& input,
                                            const OffsetBuffer& output,
-                                           const OffsetBuffer& data)  = 0;
+                                           const OffsetBuffer& ctrl_buffer)  = 0;
     
     /**
      * @brief Set the Iterators object
@@ -616,22 +577,13 @@ public:
     virtual unsigned GetInputBufferSize() const = 0;
     virtual unsigned GetOutputBufferSize() const = 0;
     /**
-     * @brief Method to get the platform-specific descriptor data buffer size
-     *
-     * DataBuffer requires allocation in closely coupled data memory (CCM) on
-     * some platforms
-     *
-     * @return Size of platform-specific descriptor data buffer in bytes
-     */
-    virtual unsigned GetDataBufferSize() const = 0;
 
-    /**
      * @brief Methods to set buffer offsets
      *
      */
     virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
                                            const Tensor<OffsetBuffer, 4> &output,
-                                           const OffsetBuffer &data) = 0;
+                                           const OffsetBuffer &ctrl_buffer) = 0;
 };
 
 
@@ -667,23 +619,14 @@ public:
     virtual unsigned GetInputBufferSize() const = 0;
     virtual unsigned GetOutputBufferSize() const = 0;
     /**
-     * @brief Method to get the platform-specific descriptor data buffer size
-     *
-     * DataBuffer requires allocation in closely coupled data memory (CCM) on
-     * some platforms
-     *
-     * @return Size of platform-specific descriptor data buffer in bytes
-     */
-    virtual unsigned GetDataBufferSize() const = 0;
 
-    /**
      * @brief Methods to set buffer offsets
      *
      */
     virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
                                            const Tensor<OffsetBuffer, 4> &output,
                                            const OffsetBuffer &encoded_params,
-                                           const OffsetBuffer &metadata) = 0;
+                                           const OffsetBuffer &ctrl_buffer) = 0;
     /**
      * @brief Method to set iteration information used in the .Update()
      *
@@ -733,23 +676,13 @@ public:
     virtual unsigned GetOutputBufferSize() const = 0;
     virtual unsigned GetParamsBufferSize() const = 0;
     /**
-     * @brief Method to get the platform-specific descriptor data buffer size
-     *
-     * DataBuffer requires allocation in closely coupled data memory (CCM) on
-     * some platforms
-     *
-     * @return Size of platform-specific descriptor data buffer in bytes
-     */
-    virtual unsigned GetDataBufferSize() const = 0;
-
-    /**
      * @brief Methods to set buffer offsets
      *
      */
     virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
                                            const Tensor<OffsetBuffer, 4> &output,
                                            const OffsetBuffer &encoded_params,
-                                           const OffsetBuffer &descr) = 0;
+                                           const OffsetBuffer &ctrl_buffer) = 0;
 
     /**
      * @brief Method to set iteration information used in the .Update()
@@ -785,23 +718,13 @@ public:
     virtual unsigned GetInputRightBufferSize() = 0;
     virtual unsigned GetOutputBufferSize() = 0;
     /**
-     * @brief Method to get the platform-specific descriptor data buffer size
-     *
-     * DataBuffer requires allocation in closely coupled data memory (CCM) on
-     * some platforms
-     *
-     * @return Size of platform-specific descriptor data buffer in bytes
-     */
-    virtual unsigned GetDataBufferSize() = 0;
-
-    /**
      * @brief Methods to set buffer offsets
      *
      */
     virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_l,
                                            const Tensor<OffsetBuffer, 4> &input_r,
                                            const Tensor<OffsetBuffer, 4> &output,
-                                           const OffsetBuffer &descr) = 0;
+                                           const OffsetBuffer &ctrl_buffer) = 0;
 };
 
 /**
@@ -820,23 +743,13 @@ public:
     virtual unsigned GetInputRightBufferSize() = 0;
     virtual unsigned GetOutputBufferSize() = 0;
     /**
-     * @brief Method to get the platform-specific descriptor data buffer size
-     *
-     * DataBuffer requires allocation in closely coupled data memory (CCM) on
-     * some platforms
-     *
-     * @return Size of platform-specific descriptor data buffer in bytes
-     */
-    virtual unsigned GetDataBufferSize() = 0;
-
-    /**
      * @brief Methods to set buffer offsets
      *
      */
     virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left,
                                            const Tensor<OffsetBuffer, 4> &input_right,
                                            const Tensor<OffsetBuffer, 4> &output,
-                                           const OffsetBuffer &descr) = 0;
+                                           const OffsetBuffer &ctrl_buffer) = 0;
 };
 
 
@@ -856,23 +769,13 @@ public:
     virtual unsigned GetInputRightBufferSize() = 0;
     virtual unsigned GetOutputBufferSize() = 0;
     /**
-     * @brief Method to get the platform-specific descriptor data buffer size
-     *
-     * DataBuffer requires allocation in closely coupled data memory (CCM) on
-     * some platforms
-     *
-     * @return Size of platform-specific descriptor data buffer in bytes
-     */
-    virtual unsigned GetDataBufferSize() = 0;
-
-    /**
      * @brief Methods to set buffer offsets
      *
      */
     virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left,
                                            const Tensor<OffsetBuffer, 4> &input_right,
                                            const Tensor<OffsetBuffer, 4> &output,
-                                           const OffsetBuffer &descr) = 0;
+                                           const OffsetBuffer &ctrl_buffer) = 0;
 };
 
 /**
@@ -891,23 +794,14 @@ public:
     virtual unsigned GetInputRightBufferSize() = 0;
     virtual unsigned GetOutputBufferSize() = 0;
     /**
-     * @brief Method to get the platform-specific descriptor data buffer size
-     *
-     * DataBuffer requires allocation in closely coupled data memory (CCM) on
-     * some platforms
-     *
-     * @return Size of platform-specific descriptor data buffer in bytes
-     */
-    virtual unsigned GetDataBufferSize() = 0;
 
-    /**
      * @brief Methods to set buffer offsets
      *
      */
     virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left,
                                            const Tensor<OffsetBuffer, 4> &input_right,
                                            const Tensor<OffsetBuffer, 4> &output,
-                                           const OffsetBuffer &descr) = 0;
+                                           const OffsetBuffer &ctrl_buffer) = 0;
 };
 
 /**
@@ -926,23 +820,14 @@ public:
     virtual unsigned GetInputRightBufferSize() = 0;
     virtual unsigned GetOutputBufferSize() = 0;
     /**
-     * @brief Method to get the platform-specific descriptor data buffer size
-     *
-     * DataBuffer requires allocation in closely coupled data memory (CCM) on
-     * some platforms
-     *
-     * @return Size of platform-specific descriptor data buffer in bytes
-     */
-    virtual unsigned GetDataBufferSize() = 0;
 
-    /**
      * @brief Methods to set buffer offsets
      *
      */
     virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left,
                                            const Tensor<OffsetBuffer, 4> &input_right,
                                            const Tensor<OffsetBuffer, 4> &output,
-                                           const OffsetBuffer &descr) = 0;
+                                           const OffsetBuffer &ctrl_buffer) = 0;
 };
 
 /**
@@ -975,23 +860,14 @@ public:
     virtual unsigned GetOutputBufferSize() = 0;
     virtual unsigned GetParamsBufferSize() = 0;
     /**
-     * @brief Method to get the platform-specific descriptor data buffer size
-     *
-     * DataBuffer requires allocation in closely coupled data memory (CCM) on
-     * some platforms
-     *
-     * @return Size of platform-specific descriptor data buffer in bytes
-     */
-    virtual unsigned GetDataBufferSize() = 0;
 
-    /**
      * @brief Methods to set buffer offsets
      *
      */
     virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
                                            const OffsetBuffer &output,
                                            const OffsetBuffer &params,
-                                           const OffsetBuffer &data) = 0;
+                                           const OffsetBuffer &ctrl_buffer) = 0;
 };
 
 
@@ -1009,15 +885,6 @@ public:
 
     virtual unsigned GetInputBufferSize() const = 0;
     virtual unsigned GetOutputBufferSize() const = 0;
-    /**
-     * @brief Method to get the platform-specific descriptor data buffer size
-     *
-     * DataBuffer requires allocation in closely coupled data memory (CCM) on
-     * some platforms
-     *
-     * @return Size of platform-specific descriptor data buffer in bytes
-     */
-    virtual unsigned GetDataBufferSize() const = 0;
 
     /**
      * @brief Methods to set buffer offsets
@@ -1025,7 +892,7 @@ public:
      */
     virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
                                            const Tensor<OffsetBuffer, 4> &output,
-                                           const OffsetBuffer &metadata) = 0;
+                                           const OffsetBuffer &ctrl_buffer) = 0;
 };
 
 
@@ -1044,22 +911,12 @@ public:
     virtual unsigned GetInputBufferSize() = 0;
     virtual unsigned GetOutputBufferSize() = 0;
     /**
-     * @brief Method to get the platform-specific descriptor data buffer size
-     *
-     * DataBuffer requires allocation in closely coupled data memory (CCM) on
-     * some platforms
-     *
-     * @return Size of platform-specific descriptor data buffer in bytes
-     */
-    virtual unsigned GetDataBufferSize() = 0;
-
-    /**
      * @brief Methods to set buffer offsets
      *
      */
     virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
                                            const OffsetBuffer &output,
-                                           const OffsetBuffer &data) = 0;
+                                           const OffsetBuffer &ctrl_buffer) = 0;
 };
 
 /**
@@ -1078,8 +935,7 @@ public:
     // Temporary non-pure virtual functions, need to be implemented for other platforms.
     virtual unsigned GetInputBufferSize() const { return 0; };
     virtual unsigned GetOutputBufferSize() const { return 0; };
-    virtual unsigned GetDataBufferSize() const { return 0; };
-
+   
     /**
      * @brief Methods to set buffer offsets
      *
@@ -1174,16 +1030,6 @@ public:
     virtual unsigned GetEncodedWtsZeroPtsSize() const = 0;
 
     /**
-     * @brief Method to get the platform-specific descriptor data buffer size
-     *
-     * DataBuffer requires allocation in closely coupled data memory (CCM) on
-     * some platforms
-     *
-     * @return Size of platform-specific descriptor data buffer in bytes
-     */
-    virtual unsigned GetDataBufferSize() const = 0;
-
-    /**
      * @brief Method to set buffer memory offsets and memory IDs for the kernel
      * 
      * The memory ID's are used to index the membases array that will be passed
@@ -1195,7 +1041,7 @@ public:
      * @param weights [I] Tensor descriptor containing weights OffsetBuffer
      * @param inpzeropts [I] Tensor descriptor containing input zero points OffsetBuffer
      * @param wtszeropts [I] Tensor descriptor containing weights zero points OffsetBuffer
-     * @param descr [I] Tensor descriptor containing descriptor data OffsetBuffer
+     * @param ctrl_buffer [I] Tensor descriptor containing descriptor data OffsetBuffer
      * 
      * @return MLI status code
      */
@@ -1204,7 +1050,7 @@ public:
                                            OffsetBuffer &weights,
                                            OffsetBuffer &inpzeropts,
                                            OffsetBuffer &wtszeropts,
-                                           OffsetBuffer &descr) = 0;
+                                           OffsetBuffer &ctrl_buffer) = 0;
 };
 
 } // namespace mli

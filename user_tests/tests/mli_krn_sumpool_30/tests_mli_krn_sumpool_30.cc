@@ -391,11 +391,11 @@ void prepare_phase(const sumpool2d_test_operands* cur_test,
 
   // MLI tensor structures and sumpool2d configuration
   offset = &offsets[0];
-  uint32_t data_buffer_size = sumpool2d_op->GetDataBufferSize();
-  lib_mli::OffsetBuffer sumpool2d_descr_buf{*offset, 0, data_buffer_size, sizeof(char)};
-  *offset += data_buffer_size;
+  uint32_t ctrl_buffer_size = sumpool2d_op->GetCtrlBufferSize();
+  lib_mli::OffsetBuffer sumpool2d_ctrl_buf{*offset, 0, ctrl_buffer_size, sizeof(char)};
+  *offset += ctrl_buffer_size;
 
-  assert(data_buffer_size == 0);
+  assert(ctrl_buffer_size == 0);
   assert(*offset < kMemSize);
 
   // Attaching buffer (descriptors) to the operation
@@ -403,7 +403,7 @@ void prepare_phase(const sumpool2d_test_operands* cur_test,
 
   status = sumpool2d_op->AttachBufferOffsets(sumpool2d_in_tensor,
                                              sumpool2d_out_tensor,
-                                             sumpool2d_descr_buf);
+                                             sumpool2d_ctrl_buf);
   assert(status == MLI_STATUS_OK);
 
   // STEP 1.3: Copy dataset from scratch buffer to the global shared memory pool
