@@ -42,10 +42,17 @@ Rescale_CS::Rescale_CS(const lib_mli::PlatformDescription pd,
     m_output_buffer_size =
     service::GetBufferSize(output_tile_shape.get_rank(), out_shape, out_stride);
 
-    m_params_elem_num = in_shape[kTensorChannelDim];
+    uint32_t params_elem_num;
+    if (cfg.axis < 0) {
+      params_elem_num = 1;
+    } else {
+      params_elem_num = in_shape[cfg.axis];
+    }
 
+    // size_in_elements
+    m_params_elem_num = params_elem_num;
     // size_in_bytes = No.of elements multplied by params elements' sizes
-    m_encoded_params_buffer_size = in_shape[input_shape.get_rank() - 1] *
+    m_encoded_params_buffer_size = params_elem_num *
             (sizeof(int32_t) + sizeof(int16_t) + sizeof(int8_t) + sizeof(int8_t));
 
     m_use_tiling = false;
