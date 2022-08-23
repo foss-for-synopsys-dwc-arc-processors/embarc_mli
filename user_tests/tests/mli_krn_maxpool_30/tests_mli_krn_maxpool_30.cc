@@ -27,14 +27,7 @@
 #include "vectors_mli_krn_maxpool.inc"
 
 /**
- * Uncomment USE_DEPRECTED_MAXPOOL_CS_CONSTRUCTOR if you want to call a combination of
- * deprecated MaxPool2D_CS constructor + SetIterators + AttachBufferOffsets methods.
- */
-// #define USE_DEPRECTED_MAXPOOL_CS_CONSTRUCTOR
-
-/**
  * Comment USE_TILING if you want to use single tile.
- * In case of using together with USE_DEPRECTED_MAXPOOL_CS_CONSTRUCTOR - no SetIterators will be called.
  */
 #define USE_TILING
 
@@ -115,7 +108,7 @@ constexpr int kTestsNum = sizeof(tests_list) / sizeof(tests_list[0]);
 
 void prepare_phase(const maxpool_test_operands* cur_test,
                    Tiling& tiling,
-                   uint32_t iteration_order[kMaxpoolIterRank],
+                   int32_t iteration_order[kMaxpoolIterRank],
                    void*& maxpool2d_instance,
                    uint32_t& maxpool2d_instance_size,
                    lib_mli::PrivateData*& maxpool2d_conf_private,
@@ -135,26 +128,35 @@ void prepare_phase(const maxpool_test_operands* cur_test,
       cur_test->out.get_not_quantized_tensor(temp_out_container);
 
   // BHWC layout
+  int32_t count[kMaxpoolIterRank];
   uint32_t total_input_size[kMaxpoolIterRank];
   uint32_t total_output_size[kMaxpoolIterRank];
-  uint32_t first_tile_size[kMaxpoolIterRank];
-  uint32_t tile_size[kMaxpoolIterRank];
-  uint32_t input_tile_first_inc[kMaxpoolIterRank];
-  uint32_t output_tile_first_inc[kMaxpoolIterRank];
-  uint32_t input_tile_inc[kMaxpoolIterRank];
-  uint32_t output_tile_inc[kMaxpoolIterRank];
-  tiling.get_io_tiles_parameters(total_input_size, total_output_size,
-                                 first_tile_size, tile_size,
-                                 input_tile_first_inc, output_tile_first_inc,
-                                 input_tile_inc, output_tile_inc);
+  int32_t input_first_increment[kMaxpoolIterRank];
+  int32_t input_increment[kMaxpoolIterRank];
+  int32_t input_last_increment[kMaxpoolIterRank];
+  int32_t input_first_size[kMaxpoolIterRank];
+  int32_t input_size[kMaxpoolIterRank];
+  int32_t input_last_size[kMaxpoolIterRank];
+  int32_t output_first_increment[kMaxpoolIterRank];
+  int32_t output_increment[kMaxpoolIterRank];
+  int32_t output_last_increment[kMaxpoolIterRank];
+  int32_t output_first_size[kMaxpoolIterRank];
+  int32_t output_size[kMaxpoolIterRank];
+  int32_t output_last_size[kMaxpoolIterRank];
+  tiling.get_io_parameters_for_tensor_iterator(count, false,
+                                               total_input_size, total_output_size,
+                                               input_first_increment, input_increment, input_last_increment,
+                                               input_first_size, input_size, input_last_size,
+                                               output_first_increment, output_increment, output_last_increment,
+                                               output_first_size, output_size, output_last_size);
 
   uint32_t input_shape[kMaxpoolIterRank];
   uint32_t input_tile_shape[kMaxpoolIterRank];
   uint32_t output_tile_shape[kMaxpoolIterRank];
   for (unsigned i = 0; i < kMaxpoolIterRank; i++) {
       input_shape[i] = total_input_size[i];
-      input_tile_shape[i] = MAX(first_tile_size[i], tile_size[i]);
-      output_tile_shape[i] = MAX(output_tile_first_inc[i], output_tile_inc[i]);
+      input_tile_shape[i] = (uint32_t)MAX(input_first_size[i], input_size[i]);
+      output_tile_shape[i] = (uint32_t)MAX(output_first_size[i], output_size[i]);
   }
 
   int32_t input_stride[kMaxpoolRank];
@@ -177,40 +179,14 @@ void prepare_phase(const maxpool_test_operands* cur_test,
   lib_ref::KernelsFactory kernel_factory(pd);
   uint32_t maxpool2d_cs_size = kernel_factory.MaxPool2D_CS_GetSize();
   void* maxpool2d_cs_buffer = malloc(maxpool2d_cs_size);
-#ifdef USE_DEPRECTED_MAXPOOL_CS_CONSTRUCTOR
-  auto maxpool2d_op = kernel_factory.MaxPool2D_CS(maxpool2d_cs_buffer, in_tensor, cur_test->cfg, out_tensor);
-#else
-  int32_t count[kMaxpoolIterRank];
-  int32_t input_first_increment[kMaxpoolIterRank];
-  int32_t input_increment[kMaxpoolIterRank];
-  int32_t input_last_increment[kMaxpoolIterRank];
-  int32_t input_first_size[kMaxpoolIterRank];
-  int32_t input_size[kMaxpoolIterRank];
-  int32_t input_last_size[kMaxpoolIterRank];
-  int32_t output_first_increment[kMaxpoolIterRank];
-  int32_t output_increment[kMaxpoolIterRank];
-  int32_t output_last_increment[kMaxpoolIterRank];
-  int32_t output_first_size[kMaxpoolIterRank];
-  int32_t output_size[kMaxpoolIterRank];
-  int32_t output_last_size[kMaxpoolIterRank];
-  tiling.get_io_parameters_for_tensor_iterator(count, false,
-                                               input_first_increment, input_increment, input_last_increment,
-                                               input_first_size, input_size, input_last_size,
-                                               output_first_increment, output_increment, output_last_increment,
-                                               output_first_size, output_size, output_last_size);
-  
-  int32_t iteration_order_signed[kMaxpoolIterRank];
-  for (unsigned i = 0; i < kMaxpoolIterRank; i++) {
-    iteration_order_signed[i] = (int32_t) iteration_order[i];
-  }
 
   lib_mli::IteratorCfg<kMaxpoolIterRank> input_it_config(
-    iteration_order_signed, count,
+    iteration_order, count,
     input_first_increment, input_increment, input_last_increment,
     input_first_size, input_size, input_last_size
   );
   lib_mli::IteratorCfg<kMaxpoolIterRank> output_it_config(
-    iteration_order_signed, count,
+    iteration_order, count,
     output_first_increment, output_increment, output_last_increment,
     output_first_size, output_size, output_last_size
   );
@@ -219,7 +195,6 @@ void prepare_phase(const maxpool_test_operands* cur_test,
   lib_mli::Tensor<lib_mli::NoBuffer, kMaxpoolRank> full_out_tensor(total_output_size, output_stride);
   lib_mli::TensorIterator<lib_mli::NoBuffer, kMaxpoolRank, kMaxpoolIterRank> out_tensor_it(full_out_tensor, output_it_config);
   auto maxpool2d_op = kernel_factory.MaxPool2D_CS(maxpool2d_cs_buffer, in_tensor_it, cur_test->cfg, out_tensor_it);
-#endif
 
   // STEP 2: Memory management (Up to user on how to deal with it)
   //==================================================================
@@ -250,23 +225,8 @@ void prepare_phase(const maxpool_test_operands* cur_test,
 
   // Attaching buffer (descriptors) to the operation
   mli_status status = MLI_STATUS_OK;
-
-#ifdef USE_DEPRECTED_MAXPOOL_CS_CONSTRUCTOR
-  lib_mli::Tensor<lib_mli::OffsetBuffer, kMaxpoolRank> maxpool2d_in_tensor(maxpool2d_in_buf, input_shape);
-  lib_mli::Tensor<lib_mli::OffsetBuffer, kMaxpoolRank> maxpool2d_out_tensor(maxpool2d_out_buf, output_tile_shape);
-  status = maxpool2d_op->AttachBufferOffsets(maxpool2d_in_tensor, maxpool2d_out_tensor, maxpool2d_ctrl_buf);
-  assert(status == MLI_STATUS_OK);
-
-#ifdef USE_TILING
-  maxpool2d_op->SetIterators(total_output_size, iteration_order,
-                             input_tile_first_inc, input_tile_inc,
-                             output_tile_first_inc, output_tile_inc);
-#endif
-
-#else
   status = maxpool2d_op->AttachBufferOffsets(maxpool2d_in_buf, maxpool2d_out_buf, maxpool2d_ctrl_buf);
   assert(status == MLI_STATUS_OK);
-#endif
 
   maxpool2d_instance = (int8_t*)g_mem_pool;
   maxpool2d_instance_size = runtime_obj_size;
@@ -375,7 +335,7 @@ int main() {
   bool final_status = true;
 
   reporter.report_header("MLI3.0|Kernels|Max Pooling Function Tests");
-  uint32_t iteration_order[kMaxpoolIterRank]{ 0, 1, 2, 3 };
+  int32_t iteration_order[kMaxpoolIterRank]{ 0, 1, 2, 3 };
   for (int i = 0; i < kTestsNum; ++i) {
     bool is_test_passed = true;
     const maxpool_test_operands* cur_test = &tests_list[i];

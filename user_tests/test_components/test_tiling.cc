@@ -268,27 +268,18 @@ uint32_t Tiling::get_num_tiles() const {
     return m_num_tiles;
 }
 
-void Tiling::get_io_tiles_parameters(uint32_t total_input_size[4], uint32_t total_output_size[4],
-                                     uint32_t first_tile_size[4], uint32_t tile_size[4],
-                                     uint32_t input_tile_first_inc[4], uint32_t output_tile_first_inc[4],
-                                     uint32_t input_tile_inc[4], uint32_t output_tile_inc[4]) const {
-    for (int i = 0; i < 4; i++) {
-        total_input_size[i] = m_total_input_size[i];
-        total_output_size[i] = m_total_output_size[i];
-        input_tile_first_inc[i] = m_input_tile_first_increment[i];
-        output_tile_first_inc[i] = m_output_tile_first_increment[i];
-        input_tile_inc[i] = m_input_tile_increment[i];
-        output_tile_inc[i] = m_output_tile_increment[i];
-        first_tile_size[i] = m_first_tile_size[i];
-        tile_size[i] = m_tile_size[i];
-    }
-}
-
 void Tiling::get_io_parameters_for_tensor_iterator(int32_t count[], bool no_increment_of_ic,
+                                                   uint32_t total_input_size[], uint32_t total_output_size[],
                                                    int32_t input_first_increment[], int32_t input_increment[], int32_t input_last_increment[],
                                                    int32_t input_first_size[], int32_t input_size[], int32_t input_last_size[],
                                                    int32_t output_first_increment[], int32_t output_increment[], int32_t output_last_increment[],
                                                    int32_t output_first_size[], int32_t output_size[], int32_t output_last_size[]) const {
+  
+  for (int i = 0; i < 4; i++) {
+    total_input_size[i] = m_total_input_size[i];
+    total_output_size[i] = m_total_output_size[i];
+  }
+  
   // set common for input and output IteratorCfg parameters
   for (int i = 0; i < 4; i++) {
     if (m_total_output_size[i] == m_output_tile_first_increment[i]) count[i] = 1;

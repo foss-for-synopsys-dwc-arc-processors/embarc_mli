@@ -48,13 +48,8 @@ public:
     uint32_t get_num_tiles() const;
 
     // TODO: consider adding IterRank template
-    void get_io_tiles_parameters(uint32_t total_input_size[4], uint32_t total_output_size[4],
-                                 uint32_t first_tile_size[4], uint32_t tile_size[4],
-                                 uint32_t input_tile_first_inc[4], uint32_t output_tile_first_inc[4],
-                                 uint32_t input_tile_inc[4], uint32_t output_tile_inc[4]) const;
-
-    // TODO: consider adding IterRank template
     void get_io_parameters_for_tensor_iterator(int32_t count[], bool no_increment_of_ic,
+                                               uint32_t total_input_size[], uint32_t total_output_size[],
                                                int32_t input_first_increment[], int32_t input_increment[], int32_t input_last_increment[],
                                                int32_t input_first_size[], int32_t input_size[], int32_t input_last_size[],
                                                int32_t output_first_increment[], int32_t output_increment[], int32_t output_last_increment[],
