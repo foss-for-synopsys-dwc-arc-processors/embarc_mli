@@ -46,28 +46,34 @@ constexpr short int kKernelFCChannelOutDim = 1;
 
 constexpr short int kPerTensorQuantDim = -1;
 
-// TODO: fix typo - change K -> k
-constexpr unsigned KMaxpoolRank = 4;
-constexpr unsigned KMaxpoolIterRank = 4;
+constexpr unsigned kMaxpoolRank = 4;
+constexpr unsigned kMaxpoolIterRank = 4;
 
-// TODO: fix typo - change K -> k
-constexpr unsigned KConvIORank = 4;
-constexpr unsigned KConvIOIterRank = 4;
-constexpr unsigned KConvWRank = 5;
-constexpr unsigned KConvWIterRank = 5;
+constexpr unsigned kConvIORank = 4;
+constexpr unsigned kConvIOIterRank = 4;
+constexpr unsigned kConvWRank = 5;
+constexpr unsigned kConvWIterRank = 5;
 constexpr unsigned kConvZPRank = 1;
 constexpr unsigned kConvZPIterRank = 1;
 
-// TODO: fix typo - change K -> k
-constexpr unsigned KTransposeConvIORank = 4;
-constexpr unsigned KTransposeConvIOIterRank = 4;
-constexpr unsigned KTransposeConvWRank = 5;
-constexpr unsigned KTransposeConvWIterRank = 5;
+constexpr unsigned kTransposeConvIORank = 4;
+constexpr unsigned kTransposeConvIOIterRank = 4;
+constexpr unsigned kTransposeConvWRank = 5;
+constexpr unsigned kTransposeConvWIterRank = 5;
 constexpr unsigned kTransposeConvZPRank = 1;
 
 constexpr short int kPermuteRank = 4;
 constexpr short int kPermuteIterRank = 4;
 
+constexpr unsigned kClipRank = 4;
+constexpr unsigned kClipIterRank = 4;
+constexpr unsigned kClipParamRank = 1;
+constexpr unsigned kClipParamIterRank = 1;
+
+constexpr unsigned kRescaleRank = 4;
+constexpr unsigned kRescaleIterRank = 4;
+constexpr unsigned kRescaleParamRank = 1;
+constexpr unsigned kRescaleParamIterRank = 1;
 
 typedef enum : uint32_t {
   kInvalidId = 0,

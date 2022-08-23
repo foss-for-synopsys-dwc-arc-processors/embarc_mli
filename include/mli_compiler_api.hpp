@@ -115,7 +115,7 @@ public:
      *
      * TODO: how to handle sliding in the output channel dimension? is this weights encoding for the complete 'thing' or just for this slide?
      */
-    virtual mli_status EncodeWeights(Tensor<Buffer, KConvWRank>& weights,
+    virtual mli_status EncodeWeights(Tensor<Buffer, kConvWRank>& weights,
                                      Buffer& encoded_weights,
                                      compression_mode_t mode = compression_mode_t::Uncompressed) = 0;
 
@@ -197,8 +197,8 @@ public:
      *
      * @return MLI status code
      */
-    virtual mli_status AttachBufferOffsets(Tensor<OffsetBuffer, KConvIORank> &input,
-                                           Tensor<OffsetBuffer, KConvIORank> &output,
+    virtual mli_status AttachBufferOffsets(Tensor<OffsetBuffer, kConvIORank> &input,
+                                           Tensor<OffsetBuffer, kConvIORank> &output,
                                            OffsetBuffer &weights,
                                            OffsetBuffer &inpzeropts,
                                            OffsetBuffer &wtszeropts,
@@ -515,8 +515,8 @@ public:
      * 
      * @return MLI status code
      */
-    virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, KMaxpoolRank> &input,
-                                           const Tensor<OffsetBuffer, KMaxpoolRank> &output,
+    virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kMaxpoolRank> &input,
+                                           const Tensor<OffsetBuffer, kMaxpoolRank> &output,
                                            const OffsetBuffer &ctrl_buffer) = 0;
 
     /**
@@ -552,12 +552,12 @@ public:
      *
      * @return MLI status code
      */
-    virtual mli_status SetIterators(uint32_t output_total_size[KMaxpoolIterRank],
-                                    uint32_t iteration_order[KMaxpoolIterRank],
-                                    uint32_t input_first_inc[KMaxpoolIterRank],
-                                    uint32_t input_inc[KMaxpoolIterRank],
-                                    uint32_t output_first_inc[KMaxpoolIterRank],
-                                    uint32_t output_inc[KMaxpoolIterRank]) = 0;
+    virtual mli_status SetIterators(uint32_t output_total_size[kMaxpoolIterRank],
+                                    uint32_t iteration_order[kMaxpoolIterRank],
+                                    uint32_t input_first_inc[kMaxpoolIterRank],
+                                    uint32_t input_inc[kMaxpoolIterRank],
+                                    uint32_t output_first_inc[kMaxpoolIterRank],
+                                    uint32_t output_inc[kMaxpoolIterRank]) = 0;
 };
 
 /**
@@ -599,10 +599,10 @@ public:
      * @brief Method to encode parameters (scales)
      *
      */
-    virtual mli_status EncodeParams(const Tensor<Buffer, 1> &in_bias,
-                                    const Tensor<Buffer, 1> &out_bias,
-                                    const Tensor<Buffer, 1> &scale,
-                                    const Tensor<Buffer, 1> &shift,
+    virtual mli_status EncodeParams(const Tensor<Buffer, kRescaleParamRank> &in_bias,
+                                    const Tensor<Buffer, kRescaleParamRank> &out_bias,
+                                    const Tensor<Buffer, kRescaleParamRank> &scale,
+                                    const Tensor<Buffer, kRescaleParamRank> &shift,
                                     Buffer &encoded_params) = 0;
 
     /**
@@ -618,30 +618,42 @@ public:
 
     virtual unsigned GetInputBufferSize() const = 0;
     virtual unsigned GetOutputBufferSize() const = 0;
+
     /**
 
      * @brief Methods to set buffer offsets
-     *
+     * @deprecated
      */
-    virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
-                                           const Tensor<OffsetBuffer, 4> &output,
+    virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kRescaleRank> &input,
+                                           const Tensor<OffsetBuffer, kRescaleRank> &output,
                                            const OffsetBuffer &encoded_params,
                                            const OffsetBuffer &ctrl_buffer) = 0;
+
+    /**
+     * @brief Methods to set buffer offsets
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer& input,
+                                           const OffsetBuffer& output,
+                                           const OffsetBuffer& encoded_params,
+                                           const OffsetBuffer& ctrl_buffer) = 0;
+
     /**
      * @brief Method to set iteration information used in the .Update()
      *
      * NOTE: the use of this method is optional. if there is a single tile, and the .Update() is not used,
      *       this data doesn't need to be set.
+     * 
+     * @deprecated
      * All the increments are following the output tile iterator.
      * @param output_total_size[4] [I] total size in each dimension
      * @param iteration_order[4] [I] which dimension of the output to iterate first.
      * @param output_first_inc[4] [I] increment of the output buffer pointer for the first iteration in each dimension
      * @param output_inc[4] [I] increment of the output buffer pointer for the other iterations in each dimension
      */
-        virtual mli_status SetIterators(uint32_t output_total_size[4],
-                                        uint32_t iteration_order[4],
-                                        uint32_t output_first_inc[4],
-                                        uint32_t output_inc[4]) = 0;
+        virtual mli_status SetIterators(uint32_t output_total_size[kRescaleIterRank],
+                                        uint32_t iteration_order[kRescaleIterRank],
+                                        uint32_t output_first_inc[kRescaleIterRank],
+                                        uint32_t output_inc[kRescaleIterRank]) = 0;
 };
 
 /**
@@ -651,14 +663,13 @@ public:
 class Clip_CS : public CompilerGenericInterface {
 public:
     virtual ~Clip_CS() = default;
-    static constexpr unsigned kMaxRank = 4;
 
     /**
      * @brief Method to encode parameters (coefficients)
      *
      */
-    virtual mli_status EncodeParams(Tensor<Buffer, 1> &min_val,
-                                    Tensor<Buffer, 1> &max_val,
+    virtual mli_status EncodeParams(Tensor<Buffer, kClipParamRank> &min_val,
+                                    Tensor<Buffer, kClipParamRank> &max_val,
                                     Buffer &encoded_params) = 0;
 
     /**
@@ -677,12 +688,20 @@ public:
     virtual unsigned GetParamsBufferSize() const = 0;
     /**
      * @brief Methods to set buffer offsets
-     *
+     * @deprected
      */
-    virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
-                                           const Tensor<OffsetBuffer, 4> &output,
+    virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kClipRank> &input,
+                                           const Tensor<OffsetBuffer, kClipRank> &output,
                                            const OffsetBuffer &encoded_params,
                                            const OffsetBuffer &ctrl_buffer) = 0;
+
+    /**
+     * @brief Methods to set buffer offsets
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer& input,
+                                           const OffsetBuffer& output,
+                                           const OffsetBuffer& encoded_params,
+                                           const OffsetBuffer& descr) = 0;
 
     /**
      * @brief Method to set iteration information used in the .Update()
@@ -690,15 +709,17 @@ public:
      * NOTE: the use of this method is optional. if there is a single tile, and the .Update() is not used,
      *       this data doesn't need to be set.
      * All the increments are following the output tile iterator.
+     * 
+     * @deprected
      * @param output_total_size[4] [I] total size in each dimension
      * @param iteration_order[4] [I] which dimension of the output to iterate first.
      * @param output_first_inc[4] [I] increment of the output buffer pointer for the first iteration in each dimension
      * @param output_inc[4] [I] increment of the output buffer pointer for the other iterations in each dimension
      */
-    virtual mli_status SetIterators(uint32_t output_total_size[4],
-                                    uint32_t iteration_order[4],
-                                    uint32_t output_first_inc[4],
-                                    uint32_t output_inc[4]) = 0;
+    virtual mli_status SetIterators(uint32_t output_total_size[kClipIterRank],
+                                    uint32_t iteration_order[kClipIterRank],
+                                    uint32_t output_first_inc[kClipIterRank],
+                                    uint32_t output_inc[kClipIterRank]) = 0;
 
 };
 
@@ -970,7 +991,7 @@ public:
      * @return MLI status code
      */
     virtual mli_status EncodeWeights(
-        Tensor<Buffer, KTransposeConvWRank> &weights, Buffer &encoded_weights,
+        Tensor<Buffer, kTransposeConvWRank> &weights, Buffer &encoded_weights,
         compression_mode_t mode = compression_mode_t::Uncompressed) = 0;
 
     /**

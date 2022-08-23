@@ -75,10 +75,10 @@ public:
    
 
     virtual lib_mli::Conv2d_CS* Conv2d_CS(void *kernel_buffer,
-                                          const Tensor<NoBuffer, KConvIORank> input_shape,          // BHWC        
-                                          const Tensor<NoBuffer, KConvWRank> weights,               // GKyKxCiCo
+                                          const Tensor<NoBuffer, kConvIORank> input_shape,          // BHWC        
+                                          const Tensor<NoBuffer, kConvWRank> weights,               // GKyKxCiCo
                                           const Conv2DConfig &cfg,
-                                          const Tensor<NoBuffer, KConvIORank> output_tile_shape) {  // BHWC
+                                          const Tensor<NoBuffer, kConvIORank> output_tile_shape) {  // BHWC
       return nullptr;
     }
 
@@ -100,11 +100,11 @@ public:
      * @return Convolution 2D kernel Compiler Support interface object
      */
     virtual lib_mli::Conv2d_CS* Conv2d_CS(void* kernel_buffer,
-                                          const TensorIterator<NoBuffer, KConvIORank, KConvIOIterRank>& input,      // BHWC
-                                          const TensorIterator<NoBuffer, KConvWRank, KConvWIterRank>& weights,      // GKyKxCiCo
+                                          const TensorIterator<NoBuffer, kConvIORank, kConvIOIterRank>& input,      // BHWC
+                                          const TensorIterator<NoBuffer, kConvWRank, kConvWIterRank>& weights,      // GKyKxCiCo
                                           const TensorIterator<NoBuffer, kConvZPRank, kConvZPIterRank>& weights_zp,
                                           const Conv2DConfig& cfg,
-                                          const TensorIterator<NoBuffer, KConvIORank, KConvIOIterRank>& output) {   // BHWC
+                                          const TensorIterator<NoBuffer, kConvIORank, kConvIOIterRank>& output) {   // BHWC
       return nullptr;
     }
 
@@ -146,9 +146,9 @@ public:
      * @return Maxpool 2D kernel Compiler Support interface object
      */
     virtual lib_mli::MaxPool2D_CS* MaxPool2D_CS(void *kernel_buffer,
-                                                const Tensor<NoBuffer, KMaxpoolRank> in,                  // BHWC
+                                                const Tensor<NoBuffer, kMaxpoolRank> in,                  // BHWC
                                                 const PoolOpConfig &cfg,
-                                                const Tensor<NoBuffer, KMaxpoolRank> output_tile_shape) { // BHWC
+                                                const Tensor<NoBuffer, kMaxpoolRank> output_tile_shape) { // BHWC
       return nullptr;
     } 
 
@@ -167,9 +167,9 @@ public:
      * @return Maxpool 2D kernel Compiler Support interface object
      */
     virtual lib_mli::MaxPool2D_CS* MaxPool2D_CS(void* kernel_buffer,
-                                                const TensorIterator<NoBuffer, KMaxpoolRank, KMaxpoolIterRank>& in,      // BHWC
+                                                const TensorIterator<NoBuffer, kMaxpoolRank, kMaxpoolIterRank>& in,      // BHWC
                                                 const PoolOpConfig& cfg,
-                                                const TensorIterator<NoBuffer, KMaxpoolRank, KMaxpoolIterRank>& out) {   // BHWC
+                                                const TensorIterator<NoBuffer, kMaxpoolRank, kMaxpoolIterRank>& out) {   // BHWC
       return nullptr;
     } 
 
@@ -195,9 +195,45 @@ public:
                                                           const Tensor<NoBuffer, 1> wtszp,
                                                           const Tensor<NoBuffer, 2> output_tile_shape) { return nullptr; }
 
+    /**
+     * @brief Clip kernel Compiler Support interface factory
+     * method
+     *
+     * @deprecated
+     *
+     * @param kernel_buffer       [I] Pointer to the pre-allocated memory to store
+     *                                kernel Compiler Support object
+     * @param input               [I] Tensor object containing input Tensor shape and
+     *                                memory strides
+     * @param output_tile_shape   [I] Tensor object containing output tile Tensor shape
+     *                                and memory strides
+     *
+     * @return Clip kernel Compiler Support interface object
+     */
     virtual lib_mli::Clip_CS* Clip_CS(void *kernel_buffer,
-                                      const Tensor<NoBuffer, 4> input,
-                                      const Tensor<NoBuffer, 4> output) { return nullptr; }
+                                      const Tensor<NoBuffer, kClipRank>& input,
+                                      const Tensor<NoBuffer, kClipRank>& output_tile_shape) {
+      return nullptr;
+    }
+
+    /**
+     * @brief Clip kernel Compiler Support interface factory
+     * method
+     * 
+     * @param kernel_buffer       [I] Pointer to the pre-allocated memory to store
+     *                                kernel Compiler Support object
+     * @param input               [I] TensorIterator object containing input Tensor shape and
+     *                                memory strides
+     * @param output              [I] TensorIterator object containing output Tensor shape
+     *                                and memory strides
+     *
+     * @return Clip kernel Compiler Support interface object
+     */
+    virtual lib_mli::Clip_CS* Clip_CS(void* kernel_buffer,
+                                      const TensorIterator<NoBuffer, kClipRank, kClipIterRank>& input,
+                                      const TensorIterator<NoBuffer, kClipRank, kClipIterRank>& output) {
+      return nullptr;
+    }
 
     virtual lib_mli::Add_CS* Add_CS(void *kernel_buffer,
                                     const Tensor<NoBuffer, 4> input_left,
@@ -224,10 +260,49 @@ public:
                                     const Tensor<NoBuffer, 4> input_right,
                                     const Tensor<NoBuffer, 4> output) { return nullptr; }
 
-    virtual lib_mli::Rescale_CS* Rescale_CS(void *kernel_buffer,
-                                            const Tensor<NoBuffer, 4> input_shape,
+    /**
+     * @brief Rescale kernel Compiler Support interface factory
+     * method
+     *
+     * @deprecated
+     *
+     * @param kernel_buffer       [I] Pointer to the pre-allocated memory to store
+     *                                kernel Compiler Support object
+     * @param input_shape         [I] Tensor object containing input Tensor shape and
+     *                                memory strides
+     * @param cfg                 [I] Kernel configuration structure
+     * @param output_tile_shape   [I] Tensor object containing output tile Tensor shape
+     *                                and memory strides
+     *
+     * @return Rescale kernel Compiler Support interface object
+     */
+     virtual lib_mli::Rescale_CS* Rescale_CS(void *kernel_buffer,
+                                            const Tensor<NoBuffer, kRescaleRank>& input_shape,
                                             const RescaleConfig &cfg,
-                                            const Tensor<NoBuffer, 4> output_tile_shape) { return nullptr; }
+                                            const Tensor<NoBuffer, kRescaleRank>& output_tile_shape) {
+       return nullptr;
+     }
+
+    /**
+     * @brief Clip kernel Compiler Support interface factory
+     * method
+     *
+     * @param kernel_buffer       [I] Pointer to the pre-allocated memory to store
+     *                                kernel Compiler Support object
+     * @param input               [I] TensorIterator object containing input Tensor shape and
+     *                                memory strides
+     * @param cfg                 [I] Kernel configuration structure
+     * @param output              [I] TensorIterator object containing output Tensor shape
+     *                                and memory strides
+     *
+     * @return Clip kernel Compiler Support interface object
+     */
+     virtual lib_mli::Rescale_CS* Rescale_CS(void* kernel_buffer,
+                                            const TensorIterator<NoBuffer, kRescaleRank, kRescaleIterRank>& input,
+                                            const RescaleConfig& cfg,
+                                            const TensorIterator<NoBuffer, kRescaleRank, kRescaleIterRank>& output) {
+       return nullptr;
+     }
 
     virtual lib_mli::ReduceMax_CS* ReduceMax_CS(void *kernel_buffer,
                                                 const Tensor<NoBuffer, 4> input_shape,
@@ -252,10 +327,10 @@ public:
      */
     virtual lib_mli::TransposeConv2D_CS* TransposeConv2D_CS(
         void *kernel_buffer,
-        const TensorIterator<NoBuffer, KTransposeConvIORank, KTransposeConvIOIterRank> input,    // BHWC
-        const TensorIterator<NoBuffer, KTransposeConvWRank, KTransposeConvWIterRank> weights,    // GHWCiCo
+        const TensorIterator<NoBuffer, kTransposeConvIORank, kTransposeConvIOIterRank> input,    // BHWC
+        const TensorIterator<NoBuffer, kTransposeConvWRank, kTransposeConvWIterRank> weights,    // GHWCiCo
         const TransposeConv2DConfig &cfg,
-        const TensorIterator<NoBuffer, KTransposeConvIORank, KTransposeConvIOIterRank> output) { // BHWC
+        const TensorIterator<NoBuffer, kTransposeConvIORank, kTransposeConvIOIterRank> output) { // BHWC
         return nullptr;
     }
 

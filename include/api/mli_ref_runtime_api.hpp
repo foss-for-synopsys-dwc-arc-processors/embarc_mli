@@ -62,10 +62,10 @@ public:
     mli_status Update() override;
 
     // TODO: remove this method and replace with usage of Move kernel (not possible now)
-    void GetIOSizesAndOffsets(uint32_t input_size[KConvIORank], uint32_t output_size[KConvIORank],
-                              uint32_t weights_size[KConvWRank],
-                              int32_t input_offsets[KConvIORank], int32_t output_offsets[KConvIORank],
-                              int32_t weights_offsets[KConvWRank]);
+    void GetIOSizesAndOffsets(uint32_t input_size[kConvIORank], uint32_t output_size[kConvIORank],
+                              uint32_t weights_size[kConvWRank],
+                              int32_t input_offsets[kConvIORank], int32_t output_offsets[kConvIORank],
+                              int32_t weights_offsets[kConvWRank]);
 
 private:
     void UpdateTilePaddings();
@@ -73,9 +73,9 @@ private:
     Conv2dMetadata m_metadata;
 
     // Tile state
-    Tensor<InternalBuffer, KConvIORank> m_tile_input;
-    Tensor<InternalBuffer, KConvWRank> m_tile_weights;
-    Tensor<InternalBuffer, KConvIORank> m_tile_output;
+    Tensor<InternalBuffer, kConvIORank> m_tile_input;
+    Tensor<InternalBuffer, kConvWRank> m_tile_weights;
+    Tensor<InternalBuffer, kConvIORank> m_tile_output;
     Conv2DConfig m_tile_cfg;
     Tensor<InternalBuffer, kConvZPRank> m_tile_wzp;
 };
@@ -259,14 +259,14 @@ public:
     mli_status Update() override;
 
     // TODO: remove this method and replace with usage of Move kernel (not possible now)
-    void GetIOSizesAndOffsets(uint32_t input_size[KMaxpoolRank], uint32_t output_size[KMaxpoolRank],
-                              int32_t input_offsets[KMaxpoolRank], int32_t output_offsets[KMaxpoolRank]);
+    void GetIOSizesAndOffsets(uint32_t input_size[kMaxpoolRank], uint32_t output_size[kMaxpoolRank],
+                              int32_t input_offsets[kMaxpoolRank], int32_t output_offsets[kMaxpoolRank]);
 
 private:
     void UpdateTilePaddings();
 
-    TensorIterator<OffsetBuffer, KMaxpoolRank, KMaxpoolIterRank> m_input;
-    TensorIterator<OffsetBuffer, KMaxpoolRank, KMaxpoolIterRank> m_output;
+    TensorIterator<OffsetBuffer, kMaxpoolRank, kMaxpoolIterRank> m_input;
+    TensorIterator<OffsetBuffer, kMaxpoolRank, kMaxpoolIterRank> m_output;
 
     mli_pool_cfg m_cfg;
     int32_t m_input_batch_offset;
@@ -490,22 +490,11 @@ public:
                               uint32_t& shift_offset, uint32_t& out_bias_offset) const;
 
 private:
-    RescaleMetadata m_metadata;
+    TensorIterator<OffsetBuffer, kClipRank, kClipIterRank> m_input;
+    TensorIterator<OffsetBuffer, kClipRank, kClipIterRank> m_output;
 
-    uint32_t m_in_elem_size;
-    uint32_t m_out_elem_size;
-
-    // Tile Parameters BHWC
-    bool m_use_tiling;
-    uint32_t m_tile_total_output_size[4];
-    uint32_t m_tile_iteration_order[4];
-    uint32_t m_tile_output_first_inc[4];
-    uint32_t m_tile_output_inc[4];
-    uint32_t m_tile_param_max_size;
-
-    // Tile state
-    uint32_t m_tile_io_offsets[4];
     RescaleMetadata m_tile_metadata;
+    uint32_t m_tile_param_max_size;
 };
 
 /**
@@ -525,24 +514,14 @@ class Clip : public ExecutionInterface {
     mli_status Update() override;
 
 private:
-    mli_tensor m_input;
-    mli_tensor m_output;
+    TensorIterator<OffsetBuffer, kClipRank, kClipIterRank> m_input;
+    TensorIterator<OffsetBuffer, kClipRank, kClipIterRank> m_output;
+
+    mli_tensor m_tile_input;
+    mli_tensor m_tile_output;
 
     mli_tensor m_min;
     mli_tensor m_max;
-
-    uint32_t m_in_elem_size;
-    uint32_t m_out_elem_size;
-
-    // Tile Parameters BHWC
-    bool m_use_tiling;
-    uint32_t m_tile_total_output_size[4];
-    uint32_t m_tile_iteration_order[4];
-    uint32_t m_tile_output_first_inc[4];
-    uint32_t m_tile_output_inc[4];
-
-    // Tile state
-    uint32_t m_tile_io_offsets[4];
 };
 
 /**

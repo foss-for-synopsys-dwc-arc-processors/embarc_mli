@@ -13,61 +13,93 @@
 #include "mli_ref_compiler_api.hpp"
 #include "mli_ref_private_types.hpp"
 
+
 namespace snps_arc::metaware::mli::ref {
 
 Rescale_CS::Rescale_CS(const lib_mli::PlatformDescription pd,
-                       const Tensor<NoBuffer, 4> input_shape,
+                       const Tensor<NoBuffer, kRescaleRank>& input_shape,
                        const RescaleConfig &cfg,
-                       const Tensor<NoBuffer, 4> output_tile_shape)
-                       : m_config {cfg},
-                         m_pd {pd} {
+                       const Tensor<NoBuffer, kRescaleRank>& output_tile_shape)
+    : m_config (cfg),
+      m_pd (pd) {
 
-    uint32_t in_shape[4];
-    uint32_t out_shape[4];
-    int32_t in_stride[4];
-    int32_t out_stride[4];
 
-    for (uint32_t i = 0; i < 4; ++i) {
-        in_shape[i] = input_shape.get_dim(i);
-        in_stride[i] = input_shape.get_mem_stride(i);
-        out_shape[i] = output_tile_shape.get_dim(i);
-        out_stride[i] = output_tile_shape.get_mem_stride(i);
-    }
+  DEPRECATED_METHOD
 
-    m_input = Tensor<OffsetBuffer, 4>(OffsetBuffer(), in_shape, in_stride, input_shape.get_rank());
-    m_output = Tensor<OffsetBuffer, 4>(OffsetBuffer(), out_shape, out_stride, output_tile_shape.get_rank());
+  uint32_t io_rank = input_shape.get_rank();
+  MLI_ASSERT(io_rank == output_tile_shape.get_rank());
+  MLI_ASSERT(io_rank <= kRescaleRank);
 
-    m_input_buffer_size =
-    service::GetBufferSize(input_shape.get_rank(), in_shape, in_stride);
-    m_output_buffer_size =
-    service::GetBufferSize(output_tile_shape.get_rank(), out_shape, out_stride);
+  uint32_t in_shape[kRescaleRank];
+  uint32_t out_shape[kRescaleRank];
+  int32_t in_stride[kRescaleRank];
+  int32_t out_stride[kRescaleRank];
+  input_shape.get_dims(in_shape);
+  input_shape.get_mem_strides(in_stride);
+  output_tile_shape.get_dims(out_shape);
+  output_tile_shape.get_mem_strides(out_stride);
 
-    uint32_t params_elem_num;
-    if (cfg.axis < 0) {
-      params_elem_num = 1;
-    } else {
-      params_elem_num = in_shape[cfg.axis];
-    }
+  uint32_t params_elem_num;
+  if (cfg.axis < 0) {
+    params_elem_num = 1;
+  } else {
+    params_elem_num = in_shape[cfg.axis];
+  }
 
-    // size_in_elements
-    m_params_elem_num = params_elem_num;
-    // size_in_bytes = No.of elements multplied by params elements' sizes
-    m_encoded_params_buffer_size = params_elem_num *
-            (sizeof(int32_t) + sizeof(int16_t) + sizeof(int8_t) + sizeof(int8_t));
+  // size_in_elements
+  m_params_elem_num = params_elem_num;
+  // size_in_bytes = No.of elements multplied by params elements' sizes
+  m_encoded_params_buffer_size = params_elem_num *
+          (sizeof(int32_t) + sizeof(int16_t) + sizeof(int8_t) + sizeof(int8_t));
 
-    m_use_tiling = false;
-    for (int i = 0; i < 4; i++) {
-      m_tile_total_output_size[i] = 0;
-      m_tile_iteration_order[i] = 0;
-      m_tile_output_first_inc[i] = 0;
-      m_tile_output_inc[i] = 0;
-    };
+  m_input_buffer_size = service::GetBufferSize(io_rank, in_shape, in_stride);
+  m_output_buffer_size = service::GetBufferSize(io_rank, out_shape, out_stride);
+
+  Tensor<OffsetBuffer, kRescaleRank> input_tensor(OffsetBuffer(), in_shape, in_stride, io_rank);
+  m_input = TensorIterator<OffsetBuffer, kRescaleRank, kRescaleIterRank>(input_tensor);
+
+  Tensor<OffsetBuffer, kRescaleRank> output_tensor(OffsetBuffer(), out_shape, out_stride, io_rank);
+  m_output = TensorIterator<OffsetBuffer, kRescaleRank, kRescaleIterRank>(output_tensor);
 }
 
-mli_status Rescale_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
-                                           const Tensor<OffsetBuffer, 4> &output,
+Rescale_CS::Rescale_CS(const lib_mli::PlatformDescription pd,
+                       const TensorIterator<NoBuffer, kRescaleRank, kRescaleIterRank>& input,
+                       const RescaleConfig& cfg,
+                       const TensorIterator<NoBuffer, kRescaleRank, kRescaleIterRank>& output)
+  : m_config(cfg),
+    m_input(input),
+    m_output(output),
+    m_pd(pd) {
+
+    uint32_t io_rank = input.get_tensor().get_rank();
+    MLI_ASSERT(io_rank == output.get_tensor().get_rank());
+    MLI_ASSERT(io_rank <= kRescaleRank);
+
+    uint32_t in_shape[kRescaleRank];
+    uint32_t out_shape[kRescaleRank];
+    int32_t in_stride[kRescaleRank];
+    int32_t out_stride[kRescaleRank];
+    input.get_full_shape(in_shape);
+    input.get_mem_strides(in_stride);
+    output.get_full_shape(out_shape);
+    output.get_mem_strides(out_stride);
+
+    m_input_buffer_size =
+      service::GetBufferSize(io_rank, in_shape, in_stride);
+    m_output_buffer_size =
+      service::GetBufferSize(io_rank, out_shape, out_stride);
+
+    m_params_elem_num = in_shape[io_rank - 1];
+    m_encoded_params_buffer_size = m_params_elem_num *
+      (sizeof(int32_t) + sizeof(int16_t) + sizeof(int8_t) + sizeof(int8_t));
+}
+
+mli_status Rescale_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, kRescaleRank> &input,
+                                           const Tensor<OffsetBuffer, kRescaleRank> &output,
                                            const OffsetBuffer &encoded_params,
                                            const OffsetBuffer &ctrl_buffer) {
+    DEPRECATED_METHOD
+  
     MLI_ASSERT(output.get_buf().get_size() == m_output_buffer_size * output.get_elem_size());
 
     m_input.set_buf(input.get_buf());
@@ -77,69 +109,50 @@ mli_status Rescale_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
     return MLI_STATUS_OK;
 }
 
+mli_status Rescale_CS::AttachBufferOffsets(const OffsetBuffer& input,
+                                           const OffsetBuffer& output,
+                                           const OffsetBuffer& encoded_params,
+                                           const OffsetBuffer& metadata) {
+
+    MLI_ASSERT(output.get_size() == m_output_buffer_size * output.get_elem_size());
+
+    m_input.set_buf(input);
+    m_output.set_buf(output);
+    m_encoded_params = encoded_params;
+
+    return MLI_STATUS_OK;
+}
+
 mli_status Rescale_CS::GetKernelPrivateData( void *kernel_private_data_buffer ) {
 
     RescalePrivateData opaque_obj;
+    opaque_obj.size = sizeof(RescalePrivateData);
 
-    MLI_ASSERT(m_input.get_rank() == m_output.get_rank());
-    if (m_use_tiling) {
-      for (uint32_t i = 0; i < m_input.get_rank(); i++) {
-        MLI_ASSERT(m_output.get_dim(i) == MAX(m_tile_output_first_inc[i], m_tile_output_inc[i]));
-      }
+    assert(m_input.get_tensor().get_rank() == m_output.get_tensor().get_rank());
+    
+    for (uint32_t i = 0; i < m_input.get_tensor().get_rank(); i++) {
+      MLI_ASSERT(m_output.get_dim(i) == m_input.get_dim(i));
     }
-    else {
-      for (uint32_t i = 0; i < m_input.get_rank(); i++) {
-        MLI_ASSERT(m_output.get_dim(i) == m_input.get_dim(i));
-      }
-    }
-    opaque_obj.io_rank = m_input.get_rank();
-
-    opaque_obj.input_buffer = m_input.get_buf();
-    opaque_obj.output_buffer = m_output.get_buf();
+    uint32_t io_rank = m_input.get_tensor().get_rank();
+    opaque_obj.input = m_input;
+    opaque_obj.output = m_output;
     opaque_obj.encoded_params_buffer = m_encoded_params;
-
     opaque_obj.params_elem_num = m_params_elem_num;
-
-    opaque_obj.input_b = m_input.get_dim(mli::kTensorBatchDim);
-    opaque_obj.input_h = m_input.get_dim(mli::kTensorHeightDim);
-    opaque_obj.input_w = m_input.get_dim(mli::kTensorWidthDim);
-    opaque_obj.input_c = m_input.get_dim(mli::kTensorChannelDim);
-
-    opaque_obj.output_b = m_output.get_dim(mli::kTensorBatchDim);
-    opaque_obj.output_h = m_output.get_dim(mli::kTensorHeightDim);
-    opaque_obj.output_w = m_output.get_dim(mli::kTensorWidthDim);
-    opaque_obj.output_c = m_output.get_dim(mli::kTensorChannelDim);
-
-    opaque_obj.input_b_stride = m_input.get_mem_stride(mli::kTensorBatchDim);
-    opaque_obj.input_h_stride = m_input.get_mem_stride(mli::kTensorHeightDim);
-    opaque_obj.input_w_stride = m_input.get_mem_stride(mli::kTensorWidthDim);
-    opaque_obj.input_c_stride = m_input.get_mem_stride(mli::kTensorChannelDim);
-
-    opaque_obj.output_b_stride = m_output.get_mem_stride(mli::kTensorBatchDim);
-    opaque_obj.output_h_stride = m_output.get_mem_stride(mli::kTensorHeightDim);
-    opaque_obj.output_w_stride = m_output.get_mem_stride(mli::kTensorWidthDim);
-    opaque_obj.output_c_stride = m_output.get_mem_stride(mli::kTensorChannelDim);
-
-    // Rescale configuration
     opaque_obj.rescale_axis = m_config.axis;
-
-    opaque_obj.m_use_tiling = m_use_tiling;
-    for (int i = 0; i < 4; i++) {
-      opaque_obj.m_tile_total_output_size[i] = m_tile_total_output_size[i];
-      opaque_obj.m_tile_iteration_order[i] = m_tile_iteration_order[i];
-      opaque_obj.m_tile_output_first_inc[i] = m_tile_output_first_inc[i];
-      opaque_obj.m_tile_output_inc[i] = m_tile_output_inc[i];
-    }
+    opaque_obj.tile_params_max_elem_num = (uint32_t) MAX(m_input.get_config().get_first_inc(io_rank - 1),
+                                                         m_input.get_config().get_inc(io_rank - 1));
+    if (!opaque_obj.tile_params_max_elem_num) opaque_obj.tile_params_max_elem_num = m_params_elem_num;
+    MLI_ASSERT(opaque_obj.tile_params_max_elem_num > 0);
 
     std::memcpy(kernel_private_data_buffer, (void *)&opaque_obj, sizeof(opaque_obj));
 
     return MLI_STATUS_OK;
 }
 
-mli_status Rescale_CS::EncodeParams(const Tensor<Buffer, 1> &in_bias,
-                                    const Tensor<Buffer, 1> &scale,
-                                    const Tensor<Buffer, 1> &shift,
-                                    const Tensor<Buffer, 1> &out_bias,
+mli_status Rescale_CS::EncodeParams(const Tensor<Buffer, kRescaleParamRank> &in_bias,
+                                    const Tensor<Buffer, kRescaleParamRank> &scale,
+                                    const Tensor<Buffer, kRescaleParamRank> &shift,
+                                    const Tensor<Buffer, kRescaleParamRank> &out_bias,
                                     Buffer &encoded_params) {
 
     uint32_t i, j, last_count;
@@ -194,17 +207,58 @@ unsigned Rescale_CS::GetEncodedParamsSize() const {
     return m_encoded_params_buffer_size; // in bytes
 }
 
-mli_status Rescale_CS::SetIterators(uint32_t output_total_size[4],
-                                    uint32_t iteration_order[4],
-                                    uint32_t output_first_inc[4],
-                                    uint32_t output_inc[4]) {
-  m_use_tiling = true;
-  for (int i = 0; i < 4; i++) {
-    m_tile_total_output_size[i] = output_total_size[i];
-    m_tile_iteration_order[i] = iteration_order[i];
-    m_tile_output_first_inc[i] = output_first_inc[i];
-    m_tile_output_inc[i] = output_inc[i];
+mli_status Rescale_CS::SetIterators(uint32_t output_total_size[kRescaleIterRank],
+                                    uint32_t iteration_order[kRescaleIterRank],
+                                    uint32_t output_first_inc[kRescaleIterRank],
+                                    uint32_t output_inc[kRescaleIterRank]) {
+  
+  DEPRECATED_METHOD
+
+  int32_t output_mem_stride[kClipRank];
+  m_output.get_mem_strides(output_mem_stride);
+  Tensor<OffsetBuffer, kClipRank> output_tensor(m_output.get_buf(), output_total_size, output_mem_stride);
+  m_output = TensorIterator<OffsetBuffer, kClipRank, kClipIterRank>(output_tensor);
+
+  int32_t iteration_order_signed[kClipIterRank];
+  int32_t count[kClipIterRank];
+  for (unsigned i = 0; i < kClipIterRank; i++) {
+    iteration_order_signed[i] = (int32_t)iteration_order[i];
+
+    if (output_total_size[i] == output_first_inc[i]) count[i] = 1;
+    else count[i] = 1 + (int32_t)CEIL_DIV(output_total_size[i] - output_first_inc[i], output_inc[i]);
   }
+
+  int32_t output_first_increment_signed[kClipIterRank];
+  int32_t output_increment_signed[kClipIterRank];
+  int32_t output_last_increment_signed[kClipIterRank];
+  int32_t output_first_size_signed[kClipIterRank];
+  int32_t output_size_signed[kClipIterRank];
+  int32_t output_last_size_signed[kClipIterRank];
+  for (unsigned i = 0; i < kClipIterRank; i++) {
+    output_first_increment_signed[i] = (int32_t)output_first_inc[i];
+    output_increment_signed[i] = (int32_t)output_inc[i];
+    if (count[i] == 1) output_last_increment_signed[i] = 0;
+    else {
+      output_last_increment_signed[i] = service::get_last_increment(count[i], output_first_increment_signed[i], output_increment_signed[i]);
+    }
+    output_first_size_signed[i] = (int32_t)output_first_inc[i];
+    output_size_signed[i] = (int32_t)output_inc[i];
+    output_last_size_signed[i] = (int32_t)output_total_size[i] + output_last_increment_signed[i];
+  }
+
+  IteratorCfg<kClipIterRank> io_config(
+    iteration_order_signed,
+    count,
+    output_first_increment_signed,
+    output_increment_signed,
+    output_last_increment_signed,
+    output_first_size_signed,
+    output_size_signed,
+    output_last_size_signed
+  );
+  m_input.set_config(io_config);
+  m_output.set_config(io_config);
+  
   return MLI_STATUS_OK;
 }
 

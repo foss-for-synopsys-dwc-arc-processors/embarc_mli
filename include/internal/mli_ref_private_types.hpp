@@ -26,10 +26,10 @@ public:
     Conv2DPrivateData() : PrivateData(kConv2dId, sizeof(Conv2DPrivateData)) {}
 
     // In/Out/weights/weights zp(s) tensor iterators with attached offset buffers
-    TensorIterator<OffsetBuffer, KConvIORank, KConvIOIterRank> input;
-    TensorIterator<OffsetBuffer, KConvWRank, KConvWIterRank> weights;
+    TensorIterator<OffsetBuffer, kConvIORank, kConvIOIterRank> input;
+    TensorIterator<OffsetBuffer, kConvWRank, kConvWIterRank> weights;
     TensorIterator<OffsetBuffer, kConvZPRank, kConvZPIterRank> weights_zp;
-    TensorIterator<OffsetBuffer, KConvIORank, KConvIOIterRank> output;
+    TensorIterator<OffsetBuffer, kConvIORank, kConvIOIterRank> output;
 
     // The layout of input
     Layout layout;
@@ -46,10 +46,10 @@ public:
 };
 
 struct Conv2dMetadata {
-    TensorIterator<OffsetBuffer, KConvIORank, KConvIOIterRank> input;
-    TensorIterator<OffsetBuffer, KConvWRank, KConvWIterRank> weights;
+    TensorIterator<OffsetBuffer, kConvIORank, kConvIOIterRank> input;
+    TensorIterator<OffsetBuffer, kConvWRank, kConvWIterRank> weights;
     TensorIterator<OffsetBuffer, kConvZPRank, kConvZPIterRank> weights_zp;
-    TensorIterator<OffsetBuffer, KConvIORank, KConvIOIterRank> output;
+    TensorIterator<OffsetBuffer, kConvIORank, kConvIOIterRank> output;
 
     InternalBuffer inpzp_buffer;
     int inp_quant_axis;
@@ -166,8 +166,8 @@ public:
   MaxPool2DPrivateData(kernel_id_t id)
     : PrivateData(id, sizeof(MaxPool2DPrivateData)) {}
 
-  TensorIterator<OffsetBuffer, KMaxpoolRank, KMaxpoolIterRank> input;
-  TensorIterator<OffsetBuffer, KMaxpoolRank, KMaxpoolIterRank> output;
+  TensorIterator<OffsetBuffer, kMaxpoolRank, kMaxpoolIterRank> input;
+  TensorIterator<OffsetBuffer, kMaxpoolRank, kMaxpoolIterRank> output;
   PoolOpConfig config;
 };
 
@@ -250,40 +250,12 @@ public:
 
     int32_t rescale_axis;
 
-    uint32_t io_rank;
-
-    OffsetBuffer input_buffer;
-    OffsetBuffer output_buffer;
+    TensorIterator<OffsetBuffer, kRescaleRank, kRescaleIterRank> input;
+    TensorIterator<OffsetBuffer, kRescaleRank, kRescaleIterRank> output;
     OffsetBuffer encoded_params_buffer;
 
     uint32_t params_elem_num;
-
-    uint32_t input_b;
-    uint32_t input_h;
-    uint32_t input_w;
-    uint32_t input_c;
-
-    uint32_t output_b;
-    uint32_t output_h;
-    uint32_t output_w;
-    uint32_t output_c;
-
-    int32_t input_b_stride;
-    int32_t input_h_stride;
-    int32_t input_w_stride;
-    int32_t input_c_stride;
-
-    int32_t output_b_stride;
-    int32_t output_h_stride;
-    int32_t output_w_stride;
-    int32_t output_c_stride;
-
-    // Tile Parameters BHWC
-    bool m_use_tiling;
-    uint32_t m_tile_total_output_size[4];
-    uint32_t m_tile_iteration_order[4];
-    uint32_t m_tile_output_first_inc[4];
-    uint32_t m_tile_output_inc[4];
+    uint32_t tile_params_max_elem_num;
 };
 
 struct RescaleMetadata {
@@ -301,41 +273,10 @@ class ClipPrivateData : public PrivateData {
 public:
     ClipPrivateData() : PrivateData(kClipId, sizeof(ClipPrivateData)) {}
 
-    uint32_t io_rank;
-
     // currently we support the only i8_w8_o32 case
-    OffsetBuffer input_buffer;
-    OffsetBuffer output_buffer;
-    OffsetBuffer encoded_params_buffer;
-
-    uint32_t params_elem_num;
-
-    uint32_t input_b;
-    uint32_t input_h;
-    uint32_t input_w;
-    uint32_t input_c;
-
-    uint32_t output_b;
-    uint32_t output_h;
-    uint32_t output_w;
-    uint32_t output_c;
-
-    int32_t input_b_stride;
-    int32_t input_h_stride;
-    int32_t input_w_stride;
-    int32_t input_c_stride;
-
-    int32_t output_b_stride;
-    int32_t output_h_stride;
-    int32_t output_w_stride;
-    int32_t output_c_stride;
-
-    // Tile Parameters BHWC
-    bool m_use_tiling;
-    uint32_t m_tile_total_output_size[4];
-    uint32_t m_tile_iteration_order[4];
-    uint32_t m_tile_output_first_inc[4];
-    uint32_t m_tile_output_inc[4];
+    TensorIterator<OffsetBuffer, kClipRank, kClipIterRank> input;
+    TensorIterator<OffsetBuffer, kClipRank, kClipIterRank> output;
+    OffsetBuffer encoded_params_buf;
 };
 
 class ReduceMaxPrivateData : public PrivateData {

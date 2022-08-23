@@ -40,10 +40,10 @@ public:
      * @param output_tile_shape [OUT] output tensor (tile shape, BHWC layout)
      */
     Conv2d_CS(const lib_mli::PlatformDescription pd,
-              const Tensor<NoBuffer, KConvIORank>& in,
-              const Tensor<NoBuffer, KConvWRank>& weights,
+              const Tensor<NoBuffer, kConvIORank>& in,
+              const Tensor<NoBuffer, kConvWRank>& weights,
               const Conv2DConfig& cfg,
-              const Tensor<NoBuffer, KConvIORank>& output_tile_shape);
+              const Tensor<NoBuffer, kConvIORank>& output_tile_shape);
 
     /**
       * @brief Constructor to create an Conv2d_CS compiler support object.
@@ -61,13 +61,13 @@ public:
       * @param output [OUT] output TensorIterator (BHWC layout)
       */
     Conv2d_CS(const lib_mli::PlatformDescription pd,
-              const TensorIterator<NoBuffer, KConvIORank, KConvIOIterRank>& input,
-              const TensorIterator<NoBuffer, KConvWRank, KConvWIterRank>& weights,
+              const TensorIterator<NoBuffer, kConvIORank, kConvIOIterRank>& input,
+              const TensorIterator<NoBuffer, kConvWRank, kConvWIterRank>& weights,
               const TensorIterator<NoBuffer, kConvZPRank, kConvZPIterRank>& weights_zp,
               const Conv2DConfig& cfg,
-              const TensorIterator<NoBuffer, KConvIORank, KConvIOIterRank>& output);
+              const TensorIterator<NoBuffer, kConvIORank, kConvIOIterRank>& output);
 
-    mli_status EncodeWeights(Tensor<Buffer, KConvWRank> &weights,
+    mli_status EncodeWeights(Tensor<Buffer, kConvWRank> &weights,
                              Buffer &encoded_weights,
                              compression_mode_t mode = compression_mode_t::Uncompressed) override;
 
@@ -100,8 +100,8 @@ public:
     /**
      * @deprecated
      */
-    mli_status AttachBufferOffsets(Tensor<OffsetBuffer, KConvIORank> &input,
-                                   Tensor<OffsetBuffer, KConvIORank> &output,
+    mli_status AttachBufferOffsets(Tensor<OffsetBuffer, kConvIORank> &input,
+                                   Tensor<OffsetBuffer, kConvIORank> &output,
                                    OffsetBuffer &weights,
                                    OffsetBuffer &inpzeropts,
                                    OffsetBuffer &wtszeropts,
@@ -122,20 +122,20 @@ public:
     /**
      * @deprecated
      */
-    mli_status SetIterators(uint32_t output_total_size[KConvIORank],
-                            uint32_t iteration_order[KConvIORank],
-                            uint32_t input_first_inc[KConvIORank],
-                            uint32_t input_inc[KConvIORank],
-                            uint32_t output_first_inc[KConvIORank],
-                            uint32_t output_inc[KConvIORank],
-                            uint32_t weights_inc[KConvWRank]) override;
+    mli_status SetIterators(uint32_t output_total_size[kConvIORank],
+                            uint32_t iteration_order[kConvIORank],
+                            uint32_t input_first_inc[kConvIORank],
+                            uint32_t input_inc[kConvIORank],
+                            uint32_t output_first_inc[kConvIORank],
+                            uint32_t output_inc[kConvIORank],
+                            uint32_t weights_inc[kConvWRank]) override;
 private:
 
     // Input, weights, weights zp(s), output tensors with offset buffer attached
-    TensorIterator<OffsetBuffer, KConvIORank, KConvIOIterRank> m_input;
-    TensorIterator<OffsetBuffer, KConvWRank, KConvWIterRank> m_weights;
+    TensorIterator<OffsetBuffer, kConvIORank, kConvIOIterRank> m_input;
+    TensorIterator<OffsetBuffer, kConvWRank, kConvWIterRank> m_weights;
     TensorIterator<OffsetBuffer, kConvZPRank, kConvZPIterRank> m_weights_zp;
-    TensorIterator<OffsetBuffer, KConvIORank, KConvIOIterRank> m_output;
+    TensorIterator<OffsetBuffer, kConvIORank, kConvIOIterRank> m_output;
 
     // encoded zp buffers for input (optional for FX type)
     OffsetBuffer m_inpzp_buffer;
@@ -232,12 +232,12 @@ public:
      *
      */
     TransposeConv2D_CS(const lib_mli::PlatformDescription pd,
-                       const TensorIterator<NoBuffer, KTransposeConvIORank, KTransposeConvIOIterRank> &input,
-                       const TensorIterator<NoBuffer, KTransposeConvWRank, KTransposeConvWIterRank> &weights,
+                       const TensorIterator<NoBuffer, kTransposeConvIORank, kTransposeConvIOIterRank> &input,
+                       const TensorIterator<NoBuffer, kTransposeConvWRank, kTransposeConvWIterRank> &weights,
                        const TransposeConv2DConfig &cfg,
-                       const TensorIterator<NoBuffer, KTransposeConvIORank, KTransposeConvIOIterRank> &output);
+                       const TensorIterator<NoBuffer, kTransposeConvIORank, kTransposeConvIOIterRank> &output);
 
-    mli_status EncodeWeights(Tensor<Buffer, KTransposeConvWRank> &weights, Buffer &encoded_weights,
+    mli_status EncodeWeights(Tensor<Buffer, kTransposeConvWRank> &weights, Buffer &encoded_weights,
                              compression_mode_t mode = compression_mode_t::Uncompressed) override;
 
     unsigned GetEncodedWeightsSize() const override;
@@ -265,9 +265,9 @@ public:
 
 private:
     // Input, weights, output tensors with offset buffer attached
-    TensorIterator<OffsetBuffer, KTransposeConvIORank, KTransposeConvIOIterRank> m_input;
-    TensorIterator<OffsetBuffer, KTransposeConvWRank, KTransposeConvWIterRank> m_weights;
-    TensorIterator<OffsetBuffer, KTransposeConvIORank, KTransposeConvIOIterRank> m_output;
+    TensorIterator<OffsetBuffer, kTransposeConvIORank, kTransposeConvIOIterRank> m_input;
+    TensorIterator<OffsetBuffer, kTransposeConvWRank, kTransposeConvWIterRank> m_weights;
+    TensorIterator<OffsetBuffer, kTransposeConvIORank, kTransposeConvIOIterRank> m_output;
 
     // Encoded zp buffers for input and weights (optional for FX type)
     OffsetBuffer m_inpzp_buffer;
@@ -300,9 +300,9 @@ public:
      * @param output_tile_shape [O] Output tensor (tile shape, BHWC layout)
      */
     MaxPool2D_CS(const lib_mli::PlatformDescription pd,
-                 const Tensor<NoBuffer, KMaxpoolRank> in,
+                 const Tensor<NoBuffer, kMaxpoolRank> in,
                  const PoolOpConfig &cfg,
-                 const Tensor<NoBuffer, KMaxpoolRank> output_tile_shape);
+                 const Tensor<NoBuffer, kMaxpoolRank> output_tile_shape);
 
      /**
      * @brief Constructor to create a MaxPool2D compiler support object.
@@ -317,9 +317,9 @@ public:
      * @param out [O] Output tensor iterator (BHWC layout)
      */
     MaxPool2D_CS(const lib_mli::PlatformDescription pd,
-                 const TensorIterator<NoBuffer, KMaxpoolRank, KMaxpoolIterRank> in,
+                 const TensorIterator<NoBuffer, kMaxpoolRank, kMaxpoolIterRank> in,
                  const PoolOpConfig& cfg,
-                 const TensorIterator<NoBuffer, KMaxpoolRank, KMaxpoolIterRank> out);
+                 const TensorIterator<NoBuffer, kMaxpoolRank, kMaxpoolIterRank> out);
 
     unsigned GetKernelPrivateDataSize() const override;
     unsigned GetRuntimeObjectSize() const override;
@@ -341,8 +341,8 @@ public:
     /**
      * @deprecated
      */
-    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, KMaxpoolRank> &input,
-                                   const Tensor<OffsetBuffer, KMaxpoolRank> &output,
+    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kMaxpoolRank> &input,
+                                   const Tensor<OffsetBuffer, kMaxpoolRank> &output,
                                    const OffsetBuffer &ctrl_buffer) override;
 
     mli_status AttachBufferOffsets(const OffsetBuffer& input,
@@ -352,16 +352,16 @@ public:
     /**
       * @deprecated
       */
-    mli_status SetIterators(uint32_t output_total_size[KMaxpoolIterRank],
-                            uint32_t iteration_order[KMaxpoolIterRank],
-                            uint32_t input_first_inc[KMaxpoolIterRank],
-                            uint32_t input_inc[KMaxpoolIterRank],
-                            uint32_t output_first_inc[KMaxpoolIterRank],
-                            uint32_t output_inc[KMaxpoolIterRank]) override;
+    mli_status SetIterators(uint32_t output_total_size[kMaxpoolIterRank],
+                            uint32_t iteration_order[kMaxpoolIterRank],
+                            uint32_t input_first_inc[kMaxpoolIterRank],
+                            uint32_t input_inc[kMaxpoolIterRank],
+                            uint32_t output_first_inc[kMaxpoolIterRank],
+                            uint32_t output_inc[kMaxpoolIterRank]) override;
 
 private:
-    TensorIterator<OffsetBuffer, KMaxpoolRank, KMaxpoolIterRank> m_input;
-    TensorIterator<OffsetBuffer, KMaxpoolRank, KMaxpoolIterRank> m_output;
+    TensorIterator<OffsetBuffer, kMaxpoolRank, kMaxpoolIterRank> m_input;
+    TensorIterator<OffsetBuffer, kMaxpoolRank, kMaxpoolIterRank> m_output;
 
     PoolOpConfig m_config;
 
@@ -493,38 +493,58 @@ private:
 
 class Rescale_CS : public lib_mli::Rescale_CS {
 public:
+    /**
+     * @deprecated
+     */
     Rescale_CS(const lib_mli::PlatformDescription pd,
-               const Tensor<NoBuffer, 4> input_shape,
+               const Tensor<NoBuffer, kRescaleRank>& input_shape,
                const RescaleConfig &cfg,
-               const Tensor<NoBuffer, 4> output_tile_shape);
+               const Tensor<NoBuffer, kRescaleRank>& output_tile_shape);
+
+    Rescale_CS(const lib_mli::PlatformDescription pd,
+               const TensorIterator<NoBuffer, kRescaleRank, kRescaleIterRank>& input,
+               const RescaleConfig& cfg,
+               const TensorIterator<NoBuffer, kRescaleRank, kRescaleIterRank>& output);
+
     // From Rescale_CS
     unsigned GetInputBufferSize() const override;
     unsigned GetOutputBufferSize() const override;
     unsigned GetEncodedParamsSize() const override;
-    mli_status EncodeParams(const Tensor<Buffer, 1> &in_bias,
-                            const Tensor<Buffer, 1> &out_bias,
-                            const Tensor<Buffer, 1> &scale,
-                            const Tensor<Buffer, 1> &shift,
+    mli_status EncodeParams(const Tensor<Buffer, kRescaleParamRank> &in_bias,
+                            const Tensor<Buffer, kRescaleParamRank> &out_bias,
+                            const Tensor<Buffer, kRescaleParamRank> &scale,
+                            const Tensor<Buffer, kRescaleParamRank> &shift,
                             Buffer &encoded_params) override;
     mli_status GetKernelPrivateData( void *kernel_private_data_buffer ) override;
     unsigned GetKernelPrivateDataSize() const override;
     unsigned GetRuntimeObjectSize() const override;
 
-    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
-                                   const Tensor<OffsetBuffer, 4> &output,
+    /**
+     * @deprecated
+     */
+    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kRescaleRank> &input,
+                                   const Tensor<OffsetBuffer, kRescaleRank> &output,
                                    const OffsetBuffer &encoded_params,
                                    const OffsetBuffer &ctrl_buffer) override;
 
-    mli_status SetIterators(uint32_t output_total_size[4],
-                            uint32_t iteration_order[4],
-                            uint32_t output_first_inc[4],
-                            uint32_t output_inc[4]) override;
+    mli_status AttachBufferOffsets(const OffsetBuffer& input,
+                                   const OffsetBuffer& output,
+                                   const OffsetBuffer& encoded_params,
+                                   const OffsetBuffer& metadata) override;
+
+    /**
+     * @deprecated
+     */
+    mli_status SetIterators(uint32_t output_total_size[kRescaleIterRank],
+                            uint32_t iteration_order[kRescaleIterRank],
+                            uint32_t output_first_inc[kRescaleIterRank],
+                            uint32_t output_inc[kRescaleIterRank]) override;
 
 private:
     RescaleConfig m_config;
 
-    Tensor<OffsetBuffer, 4> m_input;
-    Tensor<OffsetBuffer, 4> m_output;
+    TensorIterator<OffsetBuffer, kRescaleRank, kRescaleIterRank> m_input;
+    TensorIterator<OffsetBuffer, kRescaleRank, kRescaleIterRank> m_output;
 
     OffsetBuffer m_encoded_params;
 
@@ -536,13 +556,6 @@ private:
     uint32_t m_encoded_params_buffer_size;
 
     lib_mli::PlatformDescription m_pd;
-
-    // Tile Parameters BHWC
-    bool m_use_tiling;
-    uint32_t m_tile_total_output_size[4];
-    uint32_t m_tile_iteration_order[4];
-    uint32_t m_tile_output_first_inc[4];
-    uint32_t m_tile_output_inc[4];
 };
 
 class Move_CS : public lib_mli::Move_CS {
@@ -803,17 +816,24 @@ private:
 class Clip_CS : public lib_mli::Clip_CS {
 
  public:
+   /**
+     * @deprecated
+     */
     Clip_CS(const lib_mli::PlatformDescription pd,
-            const Tensor<NoBuffer, kMaxRank> &input,
-            const Tensor<NoBuffer, kMaxRank> &output);
+            const Tensor<NoBuffer, kClipRank> &input,
+            const Tensor<NoBuffer, kClipRank> &output);
+
+    Clip_CS(const lib_mli::PlatformDescription pd,
+            const TensorIterator<NoBuffer, kClipRank, kClipIterRank>& input,
+            const TensorIterator<NoBuffer, kClipRank, kClipIterRank>& output);
 
     unsigned GetRuntimeObjectSize() const override;
 
     mli_status GetKernelPrivateData(void *kernel_private_data_buffer) override;
     unsigned GetKernelPrivateDataSize() const override;
 
-    mli_status EncodeParams(Tensor<Buffer, 1> &min_val,
-                            Tensor<Buffer, 1> &max_val,
+    mli_status EncodeParams(Tensor<Buffer, kClipParamRank> &min_val,
+                            Tensor<Buffer, kClipParamRank> &max_val,
                             Buffer &encoded_params) override;
 
     unsigned GetEncodedParamsSize() const override;
@@ -823,43 +843,35 @@ class Clip_CS : public lib_mli::Clip_CS {
     unsigned GetParamsBufferSize() const override;
 
     /**
-     * @brief Methods to set buffer offsets
-     *
+     * @deprecated
      */
-    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kMaxRank> &input,
-                                   const Tensor<OffsetBuffer, kMaxRank> &output,
+    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kClipRank> &input,
+                                   const Tensor<OffsetBuffer, kClipRank> &output,
                                    const OffsetBuffer &encoded_params,
                                    const OffsetBuffer &ctrl_buffer)  override;
 
+    mli_status AttachBufferOffsets(const OffsetBuffer& input,
+                                   const OffsetBuffer& output,
+                                   const OffsetBuffer& encoded_params,
+                                   const OffsetBuffer& descr) override;
 
-    mli_status SetIterators(uint32_t output_total_size[4],
-                            uint32_t iteration_order[4],
-                            uint32_t output_first_inc[4],
-                            uint32_t output_inc[4]) override;
+    /**
+     * @deprecated
+     */
+    mli_status SetIterators(uint32_t output_total_size[kClipIterRank],
+                            uint32_t iteration_order[kClipIterRank],
+                            uint32_t output_first_inc[kClipIterRank],
+                            uint32_t output_inc[kClipIterRank]) override;
 
 private:
-    Tensor<OffsetBuffer, kMaxRank> m_input;
-    Tensor<OffsetBuffer, kMaxRank> m_output;
-
+    TensorIterator<OffsetBuffer, kClipRank, kClipIterRank> m_input;
+    TensorIterator<OffsetBuffer, kClipRank, kClipIterRank> m_output;
     OffsetBuffer m_encoded_params;
-
-    OffsetBuffer m_min;
-    OffsetBuffer m_max;
 
     uint32_t m_input_buffer_size;
     uint32_t m_output_buffer_size;
-    uint32_t m_encoded_params_buffer_size;
-
-    uint32_t m_params_elem_num;
 
     lib_mli::PlatformDescription m_pd;
-
-    // Tile Parameters BHWC
-    bool m_use_tiling;
-    uint32_t m_tile_total_output_size[4];
-    uint32_t m_tile_iteration_order[4];
-    uint32_t m_tile_output_first_inc[4];
-    uint32_t m_tile_output_inc[4];
 };
 
 class Permute_CS : public lib_mli::Permute_CS {

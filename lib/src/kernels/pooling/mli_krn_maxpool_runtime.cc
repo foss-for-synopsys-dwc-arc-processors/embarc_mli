@@ -63,7 +63,7 @@ MaxPool2D::MaxPool2D(void* kernel_private_data_buffer, size_t size,
     MLI_ASSERT(0);
   }
 
-  int32_t input_strides[KMaxpoolRank];
+  int32_t input_strides[kMaxpoolRank];
   maxpool2d_private_buffer.input.get_mem_strides(input_strides);
   for (int i = 0; i < 3; i++) {
     m_tile_input.mem_stride[i] = input_strides[i + 1];         // BHWC -> HWC
@@ -84,7 +84,7 @@ MaxPool2D::MaxPool2D(void* kernel_private_data_buffer, size_t size,
     MLI_ASSERT(0);
   }
 
-  int32_t output_strides[KMaxpoolRank];
+  int32_t output_strides[kMaxpoolRank];
   maxpool2d_private_buffer.output.get_mem_strides(output_strides);
   for (int i = 0; i < 3; i++) {
     m_tile_output.mem_stride[i] = output_strides[i + 1];         // BHWC -> HWC
@@ -144,7 +144,7 @@ mli_status MaxPool2D::Update() {
 void MaxPool2D::UpdateTilePaddings() {
   memcpy(&m_tile_cfg, &m_cfg, sizeof(mli_pool_cfg));
 
-  int32_t tile_input_offsets[KMaxpoolRank];
+  int32_t tile_input_offsets[kMaxpoolRank];
   m_input.get_pos(tile_input_offsets);
 
   const auto& input_it_cfg = m_input.get_config();

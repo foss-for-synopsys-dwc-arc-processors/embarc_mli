@@ -43,10 +43,10 @@ Conv2d::Conv2d(void* kernel_private_data_buffer,
   m_metadata.wts_quant_axis = private_data.wts_quant_axis;
   m_metadata.cfg = private_data.config;
 
-  m_tile_input = Tensor<InternalBuffer, KConvIORank>(m_metadata.input.GetSubTensor(), membases, num_mems);
-  m_tile_weights = Tensor<InternalBuffer, KConvWRank>(m_metadata.weights.GetSubTensor(), membases, num_mems);
+  m_tile_input = Tensor<InternalBuffer, kConvIORank>(m_metadata.input.GetSubTensor(), membases, num_mems);
+  m_tile_weights = Tensor<InternalBuffer, kConvWRank>(m_metadata.weights.GetSubTensor(), membases, num_mems);
   m_tile_wzp = Tensor<InternalBuffer, kConvZPRank>(m_metadata.weights_zp.GetSubTensor(), membases, num_mems);
-  m_tile_output = Tensor<InternalBuffer, KConvIORank>(m_metadata.output.GetSubTensor(), membases, num_mems);
+  m_tile_output = Tensor<InternalBuffer, kConvIORank>(m_metadata.output.GetSubTensor(), membases, num_mems);
 
   UpdateTilePaddings();
 }
@@ -61,13 +61,13 @@ mli_status Conv2d::Issue() {
       w_elem_size == sizeof(int8_t) &&
       o_elem_size == sizeof(int32_t)) {
 
-    QTensor<InternalBuffer, KConvIORank> qinput{m_tile_input, m_metadata.inpzp_buffer,
+    QTensor<InternalBuffer, kConvIORank> qinput{m_tile_input, m_metadata.inpzp_buffer,
                                                 m_metadata.inp_quant_axis};
-    QTensor<InternalBuffer, KConvWRank> qweights{m_tile_weights, m_tile_wzp.get_buf(),
+    QTensor<InternalBuffer, kConvWRank> qweights{m_tile_weights, m_tile_wzp.get_buf(),
                                                  m_metadata.wts_quant_axis};
 
     conv2d_prepare_and_run<int8_t, int8_t, int32_t, mli_8x8_accu_t, LAYOUT_HWC,
-                           ::mli::CONV_GENERAL, KConvIORank, KConvWRank,
+                           ::mli::CONV_GENERAL, kConvIORank, kConvWRank,
                            Conv2DConfig>(qinput, qweights, m_tile_output, m_tile_cfg);
   } else {
     // datatype is not supported yet
@@ -93,20 +93,20 @@ mli_status Conv2d::Update() {
 
   // TODO: use only GetSubTensor when it will be possible ( without manual clipping with MIN )
   const auto input_tile_tensor = m_metadata.input.GetSubTensor();
-  uint32_t input_tile_shape[KConvIORank];
+  uint32_t input_tile_shape[kConvIORank];
   input_tile_tensor.get_dims(input_tile_shape);
-  int32_t tile_input_offsets[KConvIORank];
+  int32_t tile_input_offsets[kConvIORank];
   m_metadata.input.get_pos(tile_input_offsets);
   input_tile_shape[kTensorHeightDim] = MIN(input_tile_shape[kTensorHeightDim],
                                            m_metadata.input.get_dim(kTensorHeightDim) - (uint32_t)tile_input_offsets[kTensorHeightDim]);
   input_tile_shape[kTensorWidthDim] = MIN(input_tile_shape[kTensorWidthDim],
                                           m_metadata.input.get_dim(kTensorWidthDim) - (uint32_t)tile_input_offsets[kTensorWidthDim]);
-  m_tile_input = Tensor<InternalBuffer, KConvIORank>(m_tile_input, input_tile_shape);
+  m_tile_input = Tensor<InternalBuffer, kConvIORank>(m_tile_input, input_tile_shape);
 
   const auto weights_tile_tensor = m_metadata.weights.GetSubTensor();
-  uint32_t weights_tile_shape[KConvWRank];
+  uint32_t weights_tile_shape[kConvWRank];
   weights_tile_tensor.get_dims(weights_tile_shape);
-  m_tile_weights = Tensor<InternalBuffer, KConvWRank>(m_tile_weights, weights_tile_shape);
+  m_tile_weights = Tensor<InternalBuffer, kConvWRank>(m_tile_weights, weights_tile_shape);
 
   const auto wzp_tile_tensor = m_metadata.weights_zp.GetSubTensor();
   uint32_t wzp_tile_shape[kConvZPRank];
@@ -120,9 +120,9 @@ mli_status Conv2d::Update() {
   }
 
   const auto output_tile_tensor = m_metadata.output.GetSubTensor();
-  uint32_t output_tile_shape[KConvIORank];
+  uint32_t output_tile_shape[kConvIORank];
   output_tile_tensor.get_dims(output_tile_shape);
-  m_tile_output = Tensor<InternalBuffer, KConvIORank>(m_tile_output, output_tile_shape);
+  m_tile_output = Tensor<InternalBuffer, kConvIORank>(m_tile_output, output_tile_shape);
 
   UpdateTilePaddings();
 
@@ -133,7 +133,7 @@ mli_status Conv2d::Update() {
 void Conv2d::UpdateTilePaddings() {
   memcpy(&m_tile_cfg, &m_metadata.cfg, sizeof(m_metadata.cfg));
 
-  int32_t tile_input_offsets[KConvIORank];
+  int32_t tile_input_offsets[kConvIORank];
   const auto& input = m_metadata.input;
   input.get_pos(tile_input_offsets);
   const auto& input_it_cfg = input.get_config();
@@ -148,10 +148,10 @@ void Conv2d::UpdateTilePaddings() {
   }
 }
 
-void Conv2d::GetIOSizesAndOffsets(uint32_t input_size[KConvIORank], uint32_t output_size[KConvIORank],
-                                  uint32_t weights_size[KConvWRank],
-                                  int32_t input_offsets[KConvIORank], int32_t output_offsets[KConvIORank],
-                                  int32_t weights_offsets[KConvWRank]) {
+void Conv2d::GetIOSizesAndOffsets(uint32_t input_size[kConvIORank], uint32_t output_size[kConvIORank],
+                                  uint32_t weights_size[kConvWRank],
+                                  int32_t input_offsets[kConvIORank], int32_t output_offsets[kConvIORank],
+                                  int32_t weights_offsets[kConvWRank]) {
   
   m_metadata.input.get_pos(input_offsets);
   m_metadata.weights.get_pos(weights_offsets);
