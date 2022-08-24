@@ -51,6 +51,8 @@ public:
     virtual uint32_t ReduceMax_CS_GetSize() const { return 0; }
 
     virtual uint32_t TransposeConv2D_CS_GetSize() const { return 0; }
+    
+    virtual uint32_t ReduceSum_CS_GetSize() const { return 0; }
 
     virtual uint32_t Permute_CS_GetSize() const { return 0; }
 
@@ -308,6 +310,11 @@ public:
                                                 const Tensor<NoBuffer, 4> input_shape,
                                                 const ReduceOpConfig &cfg,
                                                 const Tensor<NoBuffer, 4> output_tile_shape) { return nullptr; }
+    
+    virtual lib_mli::ReduceSum_CS* ReduceSum_CS(void *kernel_buffer,
+                                                const TensorIterator<NoBuffer, kReduceSumRank, kReduceSumIterRank> in,
+                                                const ReduceOpConfig &cfg,
+                                                const TensorIterator<NoBuffer, kReduceSumRank, kReduceSumIterRank> out) {return nullptr; }
 
     /**
      * @brief Transpose Convolution 2D kernel Compiler Support interface factory

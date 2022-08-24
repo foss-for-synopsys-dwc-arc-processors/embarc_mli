@@ -491,6 +491,45 @@ private:
     lib_mli::PlatformDescription m_pd;
 };
 
+class ReduceSum_CS : public lib_mli::ReduceSum_CS {
+public:
+    /**
+     * @brief Constructor to create a ReduceSum compiler support object.
+     *
+     * This constructor can be used to create a Reduce Sum compiler support
+     * object. This kernel computes each value of the output tensor as the summation 
+     * of all values in the reduction axis of the input tensor 
+     *
+     * @param pd [IN] Platform description
+     * @param input_shape [IN] Input tensor (full shape)
+     * @param cfg [IN] ReduceOpConfig structure
+     * @param output_tile_shape [OUT] Output tensor (tile shape)
+     */
+    ReduceSum_CS(const lib_mli::PlatformDescription pd,
+                 const TensorIterator<NoBuffer, kReduceSumRank, kReduceSumIterRank> in,
+                 const ReduceOpConfig &cfg,
+                 const TensorIterator<NoBuffer, kReduceSumRank, kReduceSumIterRank> out);
+
+
+    mli_status GetKernelPrivateData(void *kernel_private_data_buffer ) override;
+    unsigned GetKernelPrivateDataSize() const override;
+    unsigned GetRuntimeObjectSize() const override;
+
+    mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                   const OffsetBuffer &output,
+                                   const OffsetBuffer &ctrl_buffer) override;
+
+private:
+    ReduceOpConfig m_cfg;
+    TensorIterator<OffsetBuffer, kReduceSumRank, kReduceSumIterRank> m_in;
+    TensorIterator<OffsetBuffer, kReduceSumRank, kReduceSumIterRank> m_out;
+
+    uint32_t m_input_buffer_size;
+    uint32_t m_output_buffer_size;
+
+    lib_mli::PlatformDescription m_pd;
+};
+
 class Rescale_CS : public lib_mli::Rescale_CS {
 public:
     /**

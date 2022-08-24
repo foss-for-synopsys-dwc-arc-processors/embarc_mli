@@ -305,6 +305,19 @@ public:
     TensorIterator<OffsetBuffer, kPermuteRank, kPermuteIterRank> output;
 };
 
+class ReduceSumPrivateData : public PrivateData {
+
+public:
+    ReduceSumPrivateData() : PrivateData(kReduceSumId, sizeof(ReduceSumPrivateData)) {}
+
+    int32_t reduce_axis;
+
+    uint32_t io_rank;
+
+    TensorIterator<OffsetBuffer, kReduceSumRank, kReduceSumIterRank> input;
+    TensorIterator<OffsetBuffer, kReduceSumRank, kReduceSumIterRank> output;
+};
+
 } // namespace snps_arc::metaware::mli::ref
 
 #endif // _MLI_REF_PRIVATE_TYPES_HPP_

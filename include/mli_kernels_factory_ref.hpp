@@ -211,6 +211,15 @@ public:
         return new(kernel_buffer) lib_ref::ReduceMax_CS(m_pd, input_shape, cfg, output_tile_shape);
     }
 
+    uint32_t ReduceSum_CS_GetSize() const override { return 0; } // sizeof(lib_ref::ReduceSum_CS); } to be uncommented after develop implementation
+
+    lib_mli::ReduceSum_CS* ReduceSum_CS(void *kernel_buffer,
+                                        const TensorIterator<NoBuffer, kReduceSumRank, kReduceSumIterRank> in,
+                                        const ReduceOpConfig &cfg,
+                                        const TensorIterator<NoBuffer, kReduceSumRank, kReduceSumIterRank> out) override {
+        return 0; //new(kernel_buffer) lib_ref::ReduceSum_CS(m_pd, in, cfg, out); // to be called after develop implementation
+    }
+
     uint32_t Clip_CS_GetSize() const override { return sizeof(lib_ref::Clip_CS); }
 
     lib_mli::Clip_CS* Clip_CS(void *kernel_buffer,

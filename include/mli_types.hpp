@@ -75,6 +75,9 @@ constexpr unsigned kRescaleIterRank = 4;
 constexpr unsigned kRescaleParamRank = 1;
 constexpr unsigned kRescaleParamIterRank = 1;
 
+constexpr unsigned kReduceSumRank = 4;
+constexpr unsigned kReduceSumIterRank = 4;
+
 typedef enum : uint32_t {
   kInvalidId = 0,
   kConv2dId,
@@ -93,7 +96,8 @@ typedef enum : uint32_t {
   kClipId,
   kReduceMaxId,
   kTransConv2DId,
-  kPermuteId
+  kPermuteId,
+  kReduceSumId,
 } kernel_id_t;
 
 typedef enum class compression_mode_t {

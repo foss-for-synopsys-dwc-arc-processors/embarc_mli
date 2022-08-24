@@ -923,14 +923,9 @@ public:
  */
 class ReduceSum_CS : public CompilerGenericInterface {
 public:
+
     virtual ~ReduceSum_CS() = default;
 
-    /**
-     * @brief Methods to get buffer sizes
-     */
-
-    virtual unsigned GetInputBufferSize() = 0;
-    virtual unsigned GetOutputBufferSize() = 0;
     /**
      * @brief Methods to set buffer offsets
      *
