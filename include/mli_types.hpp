@@ -74,6 +74,11 @@ constexpr unsigned kRescaleRank = 4;
 constexpr unsigned kRescaleIterRank = 4;
 constexpr unsigned kRescaleParamRank = 1;
 constexpr unsigned kRescaleParamIterRank = 1;
+typedef enum {
+  kFirstTile = 0,
+  kMiddleTile,
+  kLastTile
+} kTilePos_t;
 
 constexpr unsigned kReduceSumRank = 4;
 constexpr unsigned kReduceSumIterRank = 4;
