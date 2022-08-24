@@ -46,6 +46,7 @@ namespace ref {
 template <typename i_T, typename w_T, typename o_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void convolution2D(
         const tensor_private_t<MLI_PTR(i_T)> &in,
+        const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights_full,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,
         const tensor_private_t<MLI_CONV_OUT_PTR(o_T)> &out,
@@ -110,6 +111,7 @@ namespace vdsp {
 template <typename i_T, typename w_T, typename o_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void convolution2D(
         const tensor_private_t<MLI_PTR(i_T)> &in,
+        const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights_full,
         const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
         const MLI_PTR(b_T)  __restrict biases,
         const tensor_private_t<MLI_CONV_OUT_PTR(o_T)> &out,

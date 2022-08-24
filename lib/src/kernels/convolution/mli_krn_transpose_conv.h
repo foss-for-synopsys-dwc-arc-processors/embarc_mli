@@ -28,6 +28,7 @@
 namespace mli {
 namespace krn {
 using mli::krn::ref::transpose_conv2d_prepare_and_run;
+using snps_arc::metaware::mli::ref::transpose_conv2d_prepare_and_run;
 } // namespace krn
 } // namespace mli
 

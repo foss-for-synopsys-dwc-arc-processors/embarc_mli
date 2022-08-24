@@ -682,8 +682,7 @@ struct TransposeConv2DConfig {
     TransposeConv2DConfig() = default;
     TransposeConv2DConfig(uint32_t stride_ih, uint32_t stride_iw,
                           uint32_t pad_beg_ih, uint32_t pad_beg_iw,
-                          uint32_t pad_end_ih, uint32_t pad_end_iw,
-                          uint32_t groups)
+                          uint32_t pad_end_ih, uint32_t pad_end_iw)
         : stride{stride_ih, stride_iw},
           padding_begin{pad_beg_ih, pad_beg_iw},
           padding_end{pad_end_ih, pad_end_iw} {}

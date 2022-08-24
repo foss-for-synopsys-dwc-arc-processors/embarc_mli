@@ -17,6 +17,10 @@
 #include "mli_prv_layout.h"
 
 namespace mli {
+enum class mli_transpose_conv_type {
+    TRANSPOSE_CONV_GENERAL = 0,
+    TRANSPOSE_CONV_DEPTHWISE
+};
 
 #define KRN_SZ_VAR 0
 
@@ -43,6 +47,7 @@ MLI_FORCE_INLINE void transpose_conv2d_prepare_and_run(
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int conv_fix_kernel_width, int conv_fix_kernel_height>
 MLI_FORCE_INLINE void transpose_convolution2D(
     const tensor_private_t<MLI_PTR(io_T)>& in,
+    const conv2d_weights_tensor_private_t<MLI_PTR(w_T)>& weights_full,
     const conv2d_weights_tensor_private_t<MLI_PTR(w_T)>& weights,
     const MLI_PTR(b_T)  __restrict biases,
     const tensor_private_t<MLI_CONV_OUT_PTR(io_T)>& out,
@@ -67,5 +72,16 @@ namespace vdsp {
 
 } // namespace krn
 } // namespace mli
+
+namespace snps_arc::metaware::mli::ref {
+
+template <typename i_T, typename w_T, typename o_T, typename acc_T, mli_layout_type data_layout, unsigned io_rank, unsigned w_rank>
+MLI_FORCE_INLINE void transpose_conv2d_prepare_and_run(
+    const QTensor<InternalBuffer, io_rank> &in,
+    const QTensor<InternalBuffer, w_rank> &weights,
+    Tensor<InternalBuffer, io_rank> &out,
+    const TransposeConv2DConfig &cfg);
+
+} // namespace snps_arc::metaware::mli::ref
 
 #endif // _MLI_KRN_TRANSPOSE_CONV_DECL_H_
