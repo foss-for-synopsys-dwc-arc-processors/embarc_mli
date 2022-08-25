@@ -662,6 +662,19 @@ public:
 
     Add_CS();
 
+    /**
+     * @brief Constructor to create an Add compiler support object.
+     *
+     * This constructor can be used to create Add compiler support
+     * object. This kernel computes each value of the output tensor as the result of addition operation 
+     * of the two input tensors element wise.
+     *
+     * @param pd [I] Platform description
+     * @param in_left [I] first Input tensor (full shape)
+     * @param in_right [I] second Input tensor (full shape)
+     * @param output_tile_shape [O] Output tensor (tile shape)
+     */
+
     Add_CS(const lib_mli::PlatformDescription pd,
            const Tensor<NoBuffer, 4> in_left,
            const Tensor<NoBuffer, 4> in_right,
