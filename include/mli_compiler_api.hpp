@@ -891,6 +891,23 @@ public:
                                            const OffsetBuffer &ctrl_buffer) = 0;
 };
 
+/**
+ * @brief This class implements the ArgMax Compiler Support kernel interface
+ *
+ */
+class ArgMax_CS : public CompilerGenericInterface {
+public:
+
+    virtual ~ArgMax_CS() = default;
+
+    /**
+     * @brief Method to set buffer memory offsets and memory IDs for the kernel
+     *
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                           const OffsetBuffer &output,
+                                           const OffsetBuffer &ctrl_buffer) = 0;
+};
 
 /**
  * @brief This class implements the ReduceMax Compiler Support kernel interface

@@ -49,7 +49,7 @@ public:
     virtual uint32_t Min_CS_GetSize() const { return 0; }
 
     virtual uint32_t ReduceMax_CS_GetSize() const { return 0; }
-
+    
     virtual uint32_t TransposeConv2D_CS_GetSize() const { return 0; }
     
     virtual uint32_t ReduceSum_CS_GetSize() const { return 0; }
@@ -75,6 +75,8 @@ public:
      * @return Convolution 2D kernel Compiler Support interface object
      */
    
+
+    virtual uint32_t ArgMax_CS_GetSize() const { return 0; }
 
     virtual lib_mli::Conv2d_CS* Conv2d_CS(void *kernel_buffer,
                                           const Tensor<NoBuffer, kConvIORank> input_shape,          // BHWC        
@@ -332,6 +334,10 @@ public:
                                                 const ReduceOpConfig &cfg,
                                                 const TensorIterator<NoBuffer, kReduceSumRank, kReduceSumIterRank> out) {return nullptr; }
 
+    virtual lib_mli::ArgMax_CS* ArgMax_CS(void *kernel_buffer,
+                                          const TensorIterator<NoBuffer, kArgMaxInRank, kArgMaxInIterRank> in,
+                                          const ArgMaxConfig &cfg,
+                                          const TensorIterator<NoBuffer, kArgMaxOutRank, kArgMaxOutIterRank> out) { return nullptr; }
     /**
      * @brief Transpose Convolution 2D kernel Compiler Support interface factory
      * method

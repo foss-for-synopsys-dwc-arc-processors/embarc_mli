@@ -231,7 +231,16 @@ public:
     lib_mli::Clip_CS* Clip_CS(void* kernel_buffer,
                               const TensorIterator<NoBuffer, kClipRank, kClipIterRank>& input,
                               const TensorIterator<NoBuffer, kClipRank, kClipIterRank>& output) override {
-      return new(kernel_buffer) lib_ref::Clip_CS(m_pd, input, output);;
+        return new(kernel_buffer) lib_ref::Clip_CS(m_pd, input, output);
+    }
+    
+    uint32_t ArgMax_CS_GetSize() const override { return 0; /*sizeof(lib_ref::ArgMax_CS);*/ }
+
+    lib_mli::ArgMax_CS* ArgMax_CS(void *kernel_buffer,
+                                  const TensorIterator<NoBuffer, kArgMaxInRank, kArgMaxInIterRank> in,
+                                  const ArgMaxConfig &cfg,
+                                  const TensorIterator<NoBuffer, kArgMaxOutRank, kArgMaxOutIterRank> out) override {
+        return nullptr;/*new(kernel_buffer) lib_ref::ArgMax_CS(m_pd, input_shape, cfg, output_tile_shape);*/
     }
 
     uint32_t TransposeConv2D_CS_GetSize() const override { return 0 /*sizeof(lib_ref::TransposeConv2D_CS) */; }

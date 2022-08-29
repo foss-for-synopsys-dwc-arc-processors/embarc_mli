@@ -491,6 +491,43 @@ private:
     lib_mli::PlatformDescription m_pd;
 };
 
+class ArgMax_CS : public lib_mli::ArgMax_CS {
+public:
+    /**
+     * @brief Constructor to create a ArgMax compiler support object.
+     *
+     * This constructor can be used to create a ArgMax compiler support object.
+     * This kernel returns the indexes of maximum values across whole Tensor, or for each slice across a dimension.  
+     *
+     * @param pd [IN] Platform description
+     * @param in [IN] Input tensor (full shape)
+     * @param cfg [IN] ArgMaxConfig structure
+     * @param out [OUT] Output tensor (tile shape)
+     */
+    ArgMax_CS(const lib_mli::PlatformDescription pd,
+              const TensorIterator<NoBuffer, kArgMaxInRank, kArgMaxInIterRank> in,
+              const ArgMaxConfig &cfg,
+              const TensorIterator<NoBuffer, kArgMaxOutRank, kArgMaxOutIterRank> out);
+
+    mli_status GetKernelPrivateData(void *kernel_private_data_buffer ) override;
+    unsigned GetKernelPrivateDataSize() const override;
+    unsigned GetRuntimeObjectSize() const override;
+
+    mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                   const OffsetBuffer &output,
+                                   const OffsetBuffer &ctrl_buffer) override;
+
+private:
+    ArgMaxConfig m_cfg;
+    TensorIterator<OffsetBuffer, kArgMaxInRank, kArgMaxInIterRank> m_in;
+    TensorIterator<OffsetBuffer, kArgMaxOutRank, kArgMaxOutIterRank> m_out;
+
+    uint32_t m_input_buffer_size;
+    uint32_t m_output_buffer_size;
+
+    lib_mli::PlatformDescription m_pd;
+};
+
 class ReduceSum_CS : public lib_mli::ReduceSum_CS {
 public:
     /**

@@ -318,6 +318,19 @@ public:
     TensorIterator<OffsetBuffer, kReduceSumRank, kReduceSumIterRank> output;
 };
 
+class ArgMaxPrivateData : public PrivateData {
+
+public:
+    ArgMaxPrivateData() : PrivateData(kArgMaxId, sizeof(ArgMaxPrivateData)) {}
+
+    int8_t argmax_axis;
+
+    uint32_t io_rank;
+
+    TensorIterator<OffsetBuffer, kArgMaxInRank, kArgMaxInIterRank> input;
+    TensorIterator<OffsetBuffer, kArgMaxOutRank, kArgMaxOutIterRank> output;
+};
+
 } // namespace snps_arc::metaware::mli::ref
 
 #endif // _MLI_REF_PRIVATE_TYPES_HPP_

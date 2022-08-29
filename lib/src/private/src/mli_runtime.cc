@@ -30,6 +30,7 @@ using ref::Clip;
 using ref::TransposeConv2D;
 using ref::ReduceMax;
 using ref::Permute;
+using ref::ArgMax;
 
 ExecutionInterface* ExecutionInterface::Create(
         void* allocation_memory_buffer,

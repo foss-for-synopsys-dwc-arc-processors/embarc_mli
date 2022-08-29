@@ -83,6 +83,11 @@ typedef enum {
 constexpr unsigned kReduceSumRank = 4;
 constexpr unsigned kReduceSumIterRank = 4;
 
+constexpr short int kArgMaxInRank = 4;
+constexpr short int kArgMaxInIterRank = 4;
+constexpr short int kArgMaxOutRank = 3;
+constexpr short int kArgMaxOutIterRank = 3;
+
 typedef enum : uint32_t {
   kInvalidId = 0,
   kConv2dId,
@@ -103,6 +108,7 @@ typedef enum : uint32_t {
   kTransConv2DId,
   kPermuteId,
   kReduceSumId,
+  kArgMaxId
 } kernel_id_t;
 
 typedef enum class compression_mode_t {
@@ -773,6 +779,16 @@ struct PermuteOpConfig {
   }
 
   uint8_t perm_dim[kPermuteRank];   /**< A permutation array. Dimensions order for output tensor. */
+};
+
+struct ArgMaxConfig {
+  ArgMaxConfig() = default;
+  ArgMaxConfig(int32_t axis) : axis{axis} {};
+
+  int32_t axis;   /**< An axis along which the function will be computed.
+                       Axis corresponds to index of tensor`s dimension starting from 0.
+                       For instance, having future map in HWC layout, axis == 0 corresponds to H dimension.
+                       If axis < 0 the function will be applied to the whole tensor */
 };
 
 } // namespace snps_arc::metaware::mli
