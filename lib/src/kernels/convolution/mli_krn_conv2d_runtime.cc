@@ -115,7 +115,7 @@ mli_status Conv2d::Update() {
   // last tile can be smaller than others
   if (wzp_tile_shape[0] != m_tile_wzp.get_buf().get_size()) {
     InternalBuffer buf = m_tile_wzp.get_buf();
-    buf.set_buffer(buf.get_ptr<int16_t>(), wzp_tile_shape[0] * sizeof(int16_t));
+    buf.set_buffer(buf.get_ptr<int8_t>(), wzp_tile_shape[0] * sizeof(int8_t));
     m_tile_wzp.set_buf(buf);
   }
 

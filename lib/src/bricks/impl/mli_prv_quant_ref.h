@@ -663,39 +663,42 @@ MLI_FORCE_INLINE out_T mli_prv_convert_fx16_sa8(
 
 namespace snps_arc::metaware::mli::ref {
 
-template <unsigned i_rank, unsigned w_rank>
+// per-tensor quantization
+template <class T>
+MLI_FORCE_INLINE T get_per_tensor_zp(const InternalBuffer& buffer,
+                                     uint32_t length = 1) {
+    MLI_ASSERT(buffer.get_size() / buffer.get_elem_size() == length);
+    return buffer.read<T>(0);
+};
+
+// per-channel quantization
+template <class T>
+MLI_FORCE_INLINE const T* get_per_channel_zp(const InternalBuffer& buffer,
+                                             uint32_t length = 1) {
+    MLI_ASSERT(buffer.get_size() / buffer.get_elem_size() == length);
+    return buffer.get_ptr<T>();
+};
+
+template <typename i_T, typename w_T, unsigned i_rank, unsigned w_rank>
 MLI_FORCE_INLINE void define_quant_params(
     const QTensor<InternalBuffer, i_rank>& in,
     const QTensor<InternalBuffer, w_rank>& weights,
     ::mli::krn::int_quant_specific_params* params) {
 
-    // per-tensor quantization
-    auto get_zp_per_tensor = [] (const InternalBuffer& buffer,
-                                 uint32_t length = 1) {
-        uint32_t elem_size = buffer.get_elem_size();
-        MLI_ASSERT(buffer.get_size() / elem_size == length);
-        MLI_ASSERT(elem_size == sizeof(int16_t));
-        return buffer.read<int16_t>(0);
-    };
-
-    // per-channel quantization
-    auto get_zp_per_channel = [] (const InternalBuffer& buffer,
-                                  uint32_t length = 1) {
-        uint32_t elem_size = buffer.get_elem_size();
-        MLI_ASSERT(buffer.get_size() / elem_size == length);
-        MLI_ASSERT(elem_size == sizeof(int16_t));
-        return buffer.get_ptr<int16_t>();
-    };
-
+    // The data type of ZP should be same as the tensor they belong to.
+    // Besides, to ensure the data type of ZP does not exceed 16 bit,
+    // since the data container of ZP is 16 bit.
+    MLI_ASSERT(sizeof(i_T) <= sizeof(int16_t));
     MLI_ASSERT(in.quant_axis >= -1 &&
                in.quant_axis < static_cast<int>(in.t.get_rank()));
     if (in.quant_axis == -1) {
-        params->in_offset = get_zp_per_tensor(in.zp);
+        params->in_offset = get_per_tensor_zp<i_T>(in.zp);
     } else {
         // not supported yet
         MLI_ASSERT(false);
     }
 
+    MLI_ASSERT(sizeof(w_T) <= sizeof(int16_t));
     MLI_ASSERT(weights.quant_axis >= -1 &&
                weights.quant_axis < static_cast<int>(weights.t.get_rank()));
     if (weights.quant_axis == -1) {
@@ -703,7 +706,7 @@ MLI_FORCE_INLINE void define_quant_params(
         MLI_ASSERT(false);
     } else {
         // If only weights zero points are all zero
-        params->weights_offset = get_zp_per_channel(
+        params->weights_offset = get_per_channel_zp<w_T>(
             weights.zp, weights.t.get_dim(weights.quant_axis))[0];
     }
 }

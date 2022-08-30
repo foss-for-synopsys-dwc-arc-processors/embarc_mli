@@ -51,10 +51,10 @@ mli_status EncodeZeroPts(const Tensor<Buffer, 1>& zeropts,
   Buffer& encoded_zeropts,
   int& quant_axis,
   uint32_t channel_length) {
-  // should have the same total size
+  // should have the same total size, since the zp are not compressed.
   MLI_ASSERT(zeropts.get_buf().get_size() == encoded_zeropts.get_size());
-  // the element size of source should less than or equal to the encoded one's
-  MLI_ASSERT(zeropts.get_elem_size() <= encoded_zeropts.get_elem_size());
+  // the element size of source should equal to the encoded one's
+  MLI_ASSERT(zeropts.get_elem_size() == encoded_zeropts.get_elem_size());
   // should have the same number of elements
   MLI_ASSERT(zeropts.get_dim(0) ==
     encoded_zeropts.get_size() / encoded_zeropts.get_elem_size());
@@ -71,9 +71,19 @@ mli_status EncodeZeroPts(const Tensor<Buffer, 1>& zeropts,
     return MLI_STATUS_SHAPE_MISMATCH;
   }
 
+  // NOTE: if we have more data types, we should think about
+  // how to encode the zp, such as always using 8b in the encoded buffer.
+  // Besides, we need to keep the consistency of ZP Encoding
+  // between different platforms.
+  //
+  // For example, when we support 16b input tensor (zp has 16b as well),
+  // here we still encode the zp as 8b. At runtime, we should restore the
+  // data type based on the tensor's they belong to.
+  //
+  // All above are under the assumption that ZP are copied without compression.
   if (zeropts.get_elem_size() == sizeof(int8_t)) {
     for (uint32_t i = 0; i < zeropts.get_dim(0); ++i) {
-      encoded_zeropts.write(i, static_cast<int16_t>(zeropts.read<int8_t>(i)));
+      encoded_zeropts.write(i, zeropts.read<int8_t>(i));
     }
   }
   else {

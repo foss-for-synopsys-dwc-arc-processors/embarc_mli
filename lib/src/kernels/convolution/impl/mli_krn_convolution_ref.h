@@ -501,7 +501,8 @@ MLI_FORCE_INLINE void conv2d_prepare_and_run(
 
     // Define quantization specific params
     quant_T params;
-    define_quant_params(in, weights, &params);
+    // The data type of ZP should be same as the tensor they belong to
+    define_quant_params<i_T, w_T>(in, weights, &params);
 
     MLI_ASSERT(data_layout == LAYOUT_HWC);
 

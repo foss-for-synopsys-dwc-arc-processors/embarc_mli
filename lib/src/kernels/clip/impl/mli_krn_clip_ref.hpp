@@ -12,7 +12,6 @@
 
 #include "mli_math.h"
 #include "mli_types.h"
-#include <iostream>
 namespace snps_arc::metaware::mli {
 namespace krn {
 namespace ref {

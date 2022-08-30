@@ -695,17 +695,15 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
 
   // conv2d input zero point
   cnv_offset = &offsets[0];
-  // NOTE: ZP has fixed 16 bit in MLI internal
-  uint32_t zp_elem_size = sizeof(int16_t);
-  uint32_t inpzp_size = conv2d_op->GetEncodedInpZeroPtsSize() * zp_elem_size;
-  lib_mli::OffsetBuffer inpzp_buf{*cnv_offset, 0, inpzp_size, zp_elem_size};
+  uint32_t inpzp_size = conv2d_op->GetEncodedInpZeroPtsSize() * cnv_i_elem_size;
+  lib_mli::OffsetBuffer inpzp_buf{*cnv_offset, 0, inpzp_size, cnv_i_elem_size};
   inpzp_mem_offset = *cnv_offset;
   *cnv_offset += inpzp_size;
 
   // conv2d weights zero point
   cnv_offset = &offsets[0];
-  uint32_t wtszp_size = tile_output_shape[kTensorChannelDim] * zp_elem_size;
-  lib_mli::OffsetBuffer wtszp_buf{*cnv_offset, 0, wtszp_size, zp_elem_size};
+  uint32_t wtszp_size = tile_output_shape[kTensorChannelDim] * cnv_w_elem_size;
+  lib_mli::OffsetBuffer wtszp_buf{*cnv_offset, 0, wtszp_size, cnv_w_elem_size};
   wtszp_mem_offset = *cnv_offset;
   *cnv_offset += wtszp_size;
 
@@ -839,34 +837,33 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   char * host_buf_a = (char*) malloc(shared_buf_size);
   char * host_buf_b = (char*) malloc(shared_buf_size);
   lib_mli::Buffer src_inpzp_buf(host_buf_a, inpzp_size, cnv_i_elem_size);
-  lib_mli::Buffer dst_inpzp_buf(host_buf_b, inpzp_size, zp_elem_size);
-  // NOTE: Current the input and weights are int8_t, and zp is int16_t.
+  lib_mli::Buffer dst_inpzp_buf(host_buf_b, inpzp_size, cnv_i_elem_size);
+  // NOTE: Current the input and weights are int8_t, and zp is same as them..
   //       Later, we will support other types.
   assert(src_inpzp_buf.get_size() == inpzp_buf.get_size());
-  assert(src_inpzp_buf.get_elem_size() * 2 == inpzp_buf.get_elem_size());
+  assert(src_inpzp_buf.get_elem_size() == inpzp_buf.get_elem_size());
 
   uint32_t inpzp_shape[1] = {1};
   lib_mli::Tensor<lib_mli::Buffer, 1> inpzp_tensor(src_inpzp_buf, inpzp_shape);
 
   // input zero points: mli_tensor -> host tensor
   // NOTE: Zero Points should have the same size as the tensor they belong to.
-  //       Since ZP is 16b in `mli_tensor`, so we should cast it to the same type as input.
   if (cnv_op.input.el_params.sa.dim == -1) {
     assert(cnv_op.input.el_params.sa.zero_point.capacity == 0);
     inpzp_tensor.write(0, static_cast<int8_t>(cnv_op.input.el_params.sa.zero_point.mem.i16));
   } else {
-    assert(cnv_op.input.el_params.sa.zero_point.capacity == src_inpzp_buf.get_size());
-    for (uint32_t i = 0; i < inpzp_size / zp_elem_size; ++i) {
+    assert(cnv_op.input.el_params.sa.zero_point.capacity / sizeof(int16_t) == src_inpzp_buf.get_size());
+    for (uint32_t i = 0; i < inpzp_size / cnv_i_elem_size; ++i) {
       inpzp_tensor.write(int(i), static_cast<int8_t>(cnv_op.input.el_params.sa.zero_point.mem.pi16[i]));
     }
   }
-  // host tensor 8bit -> encoded host buffer 16bit
+  // host tensor 8bit -> encoded host buffer 8bit
   status = conv2d_op->EncodeInpZeroPts(inpzp_tensor, dst_inpzp_buf);
   assert(status == MLI_STATUS_OK);
   // encoded host buffer -> global mem pool
-  auto inpzp_mem = reinterpret_cast<int16_t*>((int8_t*)g_mem_pool + inpzp_mem_offset);
-  for (uint32_t i = 0; i < inpzp_size / zp_elem_size; ++i) {
-    inpzp_mem[i] = dst_inpzp_buf.read<int16_t>(i);
+  auto inpzp_mem = (int8_t*)g_mem_pool + inpzp_mem_offset;
+  for (uint32_t i = 0; i < inpzp_size / cnv_i_elem_size; ++i) {
+    inpzp_mem[i] = dst_inpzp_buf.read<int8_t>(i);
   }
 
   // Compile conv2d into the binary data
@@ -1025,12 +1022,12 @@ void execution_phase(Conv2dOp& cnv_op, RescaleOp &rs_op, ClipOp &clp_op, uint32_
                               weights_tile_size, (int8_t*)(g_mem_pool + conv2d_private->weights.get_buf().get_offset()));
 
     // copy weights zps from global to local buffer
-    int16_t* wtszp_tile_buf = (int16_t*)(g_mem_pool + conv2d_private->weights_zp.get_buf().get_offset());
-    uint32_t wzp_tile_buf_size = weights_tile_size[4] * sizeof(int16_t);
+    int8_t* wtszp_tile_buf = (int8_t*)(g_mem_pool + conv2d_private->weights_zp.get_buf().get_offset());
+    uint32_t wzp_tile_buf_size = weights_tile_size[4] * sizeof(int8_t);
     if (cnv_op.weights.el_params.sa.dim != -1) {
       memcpy(wtszp_tile_buf, cnv_op.weights.el_params.sa.zero_point.mem.pi16 + weights_tile_offsets[4], wzp_tile_buf_size);
     }
-    else std::fill_n(wtszp_tile_buf, wzp_tile_buf_size / sizeof(int16_t), cnv_op.weights.el_params.sa.zero_point.mem.i16);
+    else std::fill_n(wtszp_tile_buf, wzp_tile_buf_size / sizeof(int8_t), cnv_op.weights.el_params.sa.zero_point.mem.i16);
 
     rescale_pimpl->GetIOSizesAndOffsets(enc_param_size, inp_bias_offset, scale_offset, shift_offset, out_bias_offset);
 
