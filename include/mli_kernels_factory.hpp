@@ -260,6 +260,23 @@ public:
                                     const Tensor<NoBuffer, 4> input_right,
                                     const Tensor<NoBuffer, 4> output_tile_shape) { return nullptr; }
 
+
+    /**
+     * @brief Sub kernel Compiler Support interface factory
+     * method
+     *
+     * @param kernel_buffer [I] Pointer to the pre-allocated memory to store
+     *                          kernel Compiler Support object
+     * @param input_left    [I] Tensor object containing input1 Tensor shape and
+     *                          memory strides
+     * @param input_right    [I] Tensor object containing input2 Tensor shape and
+     *                          memory strides
+     * @param output        [I] Tensor object containing output Tensor shape
+     *                          and memory strides
+     *
+     * @return Sub kernel Compiler Support interface object
+     */                                
+
     virtual lib_mli::Sub_CS* Sub_CS(void *kernel_buffer,
                                     const Tensor<NoBuffer, 4> input_left,
                                     const Tensor<NoBuffer, 4> input_right,

@@ -751,6 +751,19 @@ public:
 
     Sub_CS();
 
+    /**
+     * @brief Constructor to create an Sub compiler support object.
+     *
+     * This constructor can be used to create Sub compiler support
+     * object. This kernel computes each value of the output tensor as the subtraction 
+     * of corresponding values in the two input tensors.
+     *
+     * @param pd                [I] Platform description
+     * @param in_left           [I] First Input tensor (full shape)
+     * @param in_right          [I] Second Input tensor (full shape)
+     * @param output_tile_shape [O] Output tensor (tile shape)
+     */
+
     Sub_CS(const lib_mli::PlatformDescription pd,
            const Tensor<NoBuffer, 4> in_left,
            const Tensor<NoBuffer, 4> in_right,
