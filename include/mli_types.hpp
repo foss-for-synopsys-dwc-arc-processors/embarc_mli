@@ -370,13 +370,13 @@ class Tensor {
   /**
   * A default constructor for a tensor
   */
-  Tensor() : buf_{buf_T()}, shape_{0}, mem_stride_{0}, rank_{0} {}
+  Tensor() : buf_{buf_T()}, offset_(0), shape_{0}, mem_stride_{0}, rank_{0} {}
 
   /**
   * The completely specialized Tensor constructor
   */
   Tensor(buf_T buf, uint32_t shape[], int32_t mem_stride[], uint32_t rank)
-      : buf_{buf}, shape_{0}, mem_stride_{0}, rank_{rank} {
+      : buf_{buf}, offset_(0), shape_{0}, mem_stride_{0}, rank_{rank} {
     assert(rank_ <= maxRank);
     for (uint32_t i = 0; i < rank; ++i) {
       shape_[i] = shape[i];
@@ -388,7 +388,7 @@ class Tensor {
   * The Specialised constructor for tensors with contiguous data
   */
   Tensor(buf_T buf, uint32_t shape[], uint32_t rank) 
-      : buf_{buf}, shape_{0}, mem_stride_{0}, rank_{rank} {
+      : buf_{buf}, offset_(0), shape_{0}, mem_stride_{0}, rank_{rank} {
     assert(rank_ <= maxRank);
     int32_t stride = 1;
     for (uint32_t cur_dim = rank_; cur_dim > 0; --cur_dim) {
@@ -426,6 +426,7 @@ class Tensor {
   Tensor(Tensor<buf_T, N> in) {
     static_assert( N <= maxRank, "Invalid (Input Rank > maxRank)");
     buf_ = in.get_buf();
+    offset_ = in.get_offs();
     for (unsigned i = 0; i < N; i++){
       shape_[i] = in.get_dim(i);
       mem_stride_[i] = in.get_mem_stride(i);
@@ -442,6 +443,7 @@ class Tensor {
   Tensor(Tensor<buf_T, N> in, uint32_t shape[]) {
     static_assert(N <= maxRank, "Invalid (Input Rank > maxRank)");
     buf_ = in.get_buf();
+    offset_ = in.get_offs();
     for (unsigned i = 0; i < N; i++) {
       shape_[i] = shape[i];
       mem_stride_[i] = in.get_mem_stride(i);
@@ -458,6 +460,7 @@ class Tensor {
   Tensor(buf_T buf, Tensor<NoBuffer, N> in) {
     static_assert( N <= maxRank, "Invalid (Input Rank > maxRank)");
     buf_ = buf;
+    offset_ = in.get_offs();
     for (unsigned i = 0; i < N; i++){
       shape_[i] = in.get_dim(i);
       mem_stride_[i] = in.get_mem_stride(i);
@@ -473,6 +476,7 @@ class Tensor {
   Tensor(Tensor<OffsetBuffer, maxRank> in, uint64_t bases[], unsigned num_mems) {
     // this one can only be used to create an InternalBuffer from an OffsetBuffer
     buf_ = InternalBuffer(in.get_buf(), bases, num_mems);
+    offset_ = in.get_offs();
     for (unsigned i = 0; i < maxRank; i++){
       shape_[i] = in.get_dim(i);
       mem_stride_[i] = in.get_mem_stride(i);
@@ -508,11 +512,19 @@ class Tensor {
     }
   }
 
-  unsigned get_rank() const {
+  uint32_t get_offs() const {
+    return offset_;
+  }
+
+  void set_offs(uint32_t offset) {
+    offset_ = offset;
+  }
+
+  uint32_t get_rank() const {
     return rank_;
   }
 
-  void set_rank(unsigned rank) {
+  void set_rank(uint32_t rank) {
     assert(rank <= maxRank);
     rank_ = rank;
   }
@@ -525,12 +537,12 @@ class Tensor {
     buf_ = b;
   }
 
-  unsigned get_elem_size() const {
+  uint32_t get_elem_size() const {
     return buf_.get_elem_size();
   }
 
-  unsigned get_offset(uint32_t pos[]){
-    unsigned offset = 0;
+  uint32_t get_offset(uint32_t pos[]){
+    uint32_t offset = 0;
     for (unsigned i = 0; i < rank_; ++i){
       offset += pos[i] * mem_stride_[i];
     }
@@ -538,13 +550,9 @@ class Tensor {
   }
 
   Tensor<buf_T, maxRank> slice(uint32_t pos[], uint32_t size[]){
-    buf_T buf = buf_;
-    unsigned offset = 0;
-    for (unsigned i = 0; i < rank_; i++){
-      offset += pos[i] * mem_stride_[i];
-    }
-    buf.inc(offset);
-    Tensor<buf_T, maxRank> slice_tens(buf, size, mem_stride_, rank_);
+    uint32_t offset = get_offset(pos);
+    Tensor<buf_T, maxRank> slice_tens(buf_, size, mem_stride_, rank_);
+    slice_tens.set_offs(offset_ + offset);
     return slice_tens;
   }
 
@@ -561,6 +569,7 @@ class Tensor {
       tns.shape_[axis] = shape_[new_order[axis]];
       tns.mem_stride_[axis] = mem_stride_[new_order[axis]];
     }
+    tns.offset_ = offset_;
     tns.buf_ = buf_;
     tns.rank_ = rank_;
     return tns;
@@ -594,6 +603,7 @@ class Tensor {
       }
       ++s;
     }
+    tns.set_offs(offset_);
     tns.set_buf(buf_);
     tns.set_rank(rank_ + 1);
     return tns;
@@ -617,6 +627,7 @@ class Tensor {
       }
       ++s;
     }
+    tns.set_offs(offset_);
     tns.set_buf(buf_);
     tns.set_rank(rank_ - 1);
     return tns;
@@ -624,16 +635,17 @@ class Tensor {
 
   template <typename T>
   T read(uint32_t offset) const {
-    return buf_.template read<T>(offset);
+    return buf_.template read<T>(offset + offset_*get_elem_size()/sizeof(T));
   }
 
   template <typename T>
   void write(uint32_t offset, T data) {
-    buf_.template write<T>(offset, data);
+    buf_.template write<T>(offset + offset_*get_elem_size()/sizeof(T), data);
   }
 
 private:
   buf_T buf_;
+  uint32_t offset_;
   uint32_t shape_[maxRank];
   int32_t mem_stride_[maxRank];
   uint32_t rank_;
