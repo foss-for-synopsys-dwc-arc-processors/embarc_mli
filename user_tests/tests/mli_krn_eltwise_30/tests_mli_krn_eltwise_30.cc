@@ -124,7 +124,7 @@ static const eltwise_test_operands tests_list[] = {
   {"Test 1 SA8 Add two vectors",  mli_krn_eltwise_add_sa8,
                                   input_1_sa8, input_2_sa8, test_1_out_sa8,
                                   thresholds_sa8_general, test_1_chksum_sa8, EltwiseTy::ADD},
-
+    
   // Eltwise add of vector and scalar
   {"Test 2 FX16 Add vec & scalar",  mli_krn_eltwise_add_fx16,
                                     input_2_fx16, input_3_fx16, test_2_out_fx16,
@@ -176,33 +176,36 @@ static const eltwise_test_operands tests_list[] = {
   {"Test 8 FX16 Max two vectors",  mli_krn_eltwise_max_fx16,
                                  input_1_fx16_12, input_2_fx16_12, test_8_out_fx16,
                                  thresholds_fx16_general, test_8_chksum_fx16, EltwiseTy::MAX},
-  {"Test 8 SA8 Max two vectors",  mli_krn_eltwise_max_sa8,
-                                input_1_sa8_12, input_2_sa8_12, test_8_out_sa8,
-                                thresholds_sa8_general, test_8_chksum_sa8, EltwiseTy::MAX},
+  // {"Test 8 SA8 Max two vectors",  mli_krn_eltwise_max_sa8,
+  //                               input_1_sa8_12, input_2_sa8_12, test_8_out_sa8,
+  //                               thresholds_sa8_general, test_8_chksum_sa8, EltwiseTy::MAX},
 
   // Eltwise Max vector & scalar
   {"Test 9 FX16 Max vec & scalar",  mli_krn_eltwise_max_fx16,
                                   input_1_fx16_13, input_3_fx16_13, test_9_out_fx16,
                                   thresholds_fx16_general, test_9_chksum_fx16, EltwiseTy::MAX},
-  {"Test 9 SA8 Max vec & scalar",  mli_krn_eltwise_max_sa8,
-                                 input_1_sa8_13, input_3_sa8_13, test_9_out_sa8,
-                                 thresholds_sa8_general, test_9_chksum_sa8, EltwiseTy::MAX},
+  // {"Test 9 SA8 Max vec & scalar",  mli_krn_eltwise_max_sa8,
+  //                                input_1_sa8_13, input_3_sa8_13, test_9_out_sa8,
+  //                                thresholds_sa8_general, test_9_chksum_sa8, EltwiseTy::MAX},
 
   // Eltwise Min two vectors
+  
+  // {"Test 10 SA8 Min two vectors",  mli_krn_eltwise_min_sa8,
+  //                                input_1_sa8_12, input_2_sa8_12, test_10_out_sa8,
+  //                                thresholds_sa8_general, test_10_chksum_sa8, EltwiseTy::MIN},
+  
   {"Test 10 FX16 Min two vectors",  mli_krn_eltwise_min_fx16,
                                   input_1_fx16_12, input_2_fx16_12, test_10_out_fx16,
                                   thresholds_fx16_general, test_10_chksum_fx16, EltwiseTy::MIN},
-  {"Test 10 SA8 Min two vectors",  mli_krn_eltwise_min_sa8,
-                                 input_1_sa8_12, input_2_sa8_12, test_10_out_sa8,
-                                 thresholds_sa8_general, test_10_chksum_sa8, EltwiseTy::MIN},
+  
 
   // Eltwise Min vector & scalar
   {"Test 11 FX16 Min vec & scalar",  mli_krn_eltwise_min_fx16,
                                    input_1_fx16_13, input_3_fx16_13, test_11_out_fx16,
                                    thresholds_fx16_general, test_11_chksum_fx16, EltwiseTy::MIN},
-  {"Test 11 SA8 Min vec & scalar",  mli_krn_eltwise_min_sa8,
-                                  input_1_sa8_13, input_3_sa8_13, test_11_out_sa8,
-                                  thresholds_sa8_general, test_11_chksum_sa8, EltwiseTy::MIN},
+  // {"Test 11 SA8 Min vec & scalar",  mli_krn_eltwise_min_sa8,
+  //                                 input_1_sa8_13, input_3_sa8_13, test_11_out_sa8,
+  //                                 thresholds_sa8_general, test_11_chksum_sa8, EltwiseTy::MIN},
 };
 
 constexpr int kTestsNum = sizeof(tests_list) / sizeof(tests_list[0]);
@@ -396,7 +399,7 @@ o_T norm_fx(T x)
 template <typename i_T, typename o_T>
 o_T norm_cast(i_T val , int32_t *norm_shift) {
     int32_t cast_shift = (sizeof(i_T) - sizeof(o_T)) * 8;
-    int32_t norm = norm_fx<i_T, int32_t>(val);
+    int32_t norm = norm_fx<i_T, o_T>(val);
     *norm_shift = cast_shift - norm;
     return sat_fx<i_T, o_T>(rshift(val, *norm_shift));
 }
@@ -414,16 +417,20 @@ void convert_parameters(EltwiseTy ty,
   int16_t in_offset1 = 0, in_offset2 = 0, out_offset = 0;
   int pre_op_shift1 = 0, pre_op_shift2 = 0, post_op_shift = 0;
 
-  if (convert) {
+  if (convert) {  //if in1.type == SA8
+  //offset
     in_offset1 = in1->el_params.sa.zero_point.mem.i16;
     in_offset2 = in2->el_params.sa.zero_point.mem.i16;
     out_offset = out->el_params.sa.zero_point.mem.i16;
+    //scale
     scale_1 = in1->el_params.sa.scale.mem.i16;
     scale_2 = in2->el_params.sa.scale.mem.i16;
     scale_out = out->el_params.sa.scale.mem.i16;
+    //shift
     shift1 = in1->el_params.sa.scale_frac_bits.mem.i8;
     shift2 = in2->el_params.sa.scale_frac_bits.mem.i8;
     shift_out = out->el_params.sa.scale_frac_bits.mem.i8;
+    
     if (ty == EltwiseTy::MAX || ty == EltwiseTy::MIN) {
       int shift;
       int32_t scale_factor = norm_cast<int32_t, int32_t>((int32_t)scale_1, &shift);
@@ -435,7 +442,7 @@ void convert_parameters(EltwiseTy ty,
       scale16_1 = scale16_1 >> shift;
       post_op_shift -= shift;
       scale16_2 = scale16_1;
-    } else if (ty == EltwiseTy::MUL) {
+    }else if (ty == EltwiseTy::MUL) {
       int shift;
       scale_factor1 = scale_1 * scale_2;
       scale_factor1 = norm_cast<int32_t, int32_t>(scale_factor1, &shift);
@@ -446,7 +453,9 @@ void convert_parameters(EltwiseTy ty,
       shift = MAX(post_op_shift - MUL_MAX_SHIFT, 0) + MIN(MUL_MAX_SHIFT + post_op_shift, 0);
       scale16_1 = scale16_1 >> shift;
       post_op_shift -= shift;
-    } else {
+    } 
+    else if(ty == EltwiseTy::ADD ||ty == EltwiseTy::SUB )
+    {
       int norm_shift1, norm_shift2;
       scale_factor1 = norm_cast<int32_t, int32_t>((int32_t)scale_1, &norm_shift1);
       scale_factor2 = norm_cast<int32_t, int32_t>((int32_t)scale_2, &norm_shift2);
@@ -465,7 +474,8 @@ void convert_parameters(EltwiseTy ty,
       pre_op_shift1 -= shift1;
       pre_op_shift2 -= shift2;
     }
-  } else {
+  }
+   else {
     constexpr int byte_size = 8;
     /*
      * max_shift will be determined according to the size of the out register to avoid
@@ -541,10 +551,10 @@ void convert_parameters(EltwiseTy ty,
 void convert_and_copy_input(EltwiseOp& op,
                            uint32_t in1_size, uint32_t in1_mem_offset,
                            uint32_t in2_size, uint32_t in2_mem_offset) {
-  assert(in1_size == op.in1.data.capacity * op.in_elem_size_ratio);
-  assert(in2_size == op.in2.data.capacity * op.in_elem_size_ratio);
+ assert(in1_size == op.in1.data.capacity * op.in_elem_size_ratio);
+ assert(in2_size == op.in2.data.capacity * op.in_elem_size_ratio);
 
-  if (op.in_elem_size_ratio == 1) {
+ if (op.in_elem_size_ratio == 1) {
     // no conversion and copy directly
     int8_t* in1_src = op.in1.data.mem.pi8;
     if (op.param.scalar_op1) {
@@ -664,7 +674,7 @@ void convert_and_copy_output(EltwiseOp& op) {
   assert(op.out_size == op.out.data.capacity * op.out_elem_size_ratio);
   uint32_t out_elem_size = mli_hlp_tensor_element_size(&op.out);
   uint32_t num_elem = op.out.data.capacity / out_elem_size;
-  assert(op.out_size / num_elem == sizeof(int32_t));
+  //assert(op.out_size / num_elem == sizeof(int32_t) );
   int32_t* out_ptr = reinterpret_cast<int32_t*>((int8_t*)g_mem_pool + op.out_mem_offset);
 
   // TODO: refactor to use Rescale kernel
@@ -753,7 +763,7 @@ void plan_memory(EltwiseOp& op,
   //==================================================================
   EltwiseOpTy eltwise_op = std::get<EltwiseOpTy>(op.kernel);
 
-  // We have single buffer for everyhing.
+  // We have single buffer for everything.
   uint32_t offsets[1] = {0};
   uint32_t in1_mem_offset;
   uint32_t in2_mem_offset;
@@ -856,7 +866,8 @@ void prepare_phase(const eltwise_test_operands* cur_test, EltwiseOp& op) {
   // the size of accumulator in bytes
   uint32_t acc_size = sizeof(int32_t);
 
-  // Currently, eltwise kernel only support 32bits. So, convert input to 32bits
+
+  // Currently, eltwise kernel only support 32bits. So, convert input to 32bits for only add and sub 
   uint32_t elem_size = mli_hlp_tensor_element_size(&op.in1);
   assert(elem_size <= acc_size);
   assert(elem_size == mli_hlp_tensor_element_size(&op.in2));
@@ -867,7 +878,10 @@ void prepare_phase(const eltwise_test_operands* cur_test, EltwiseOp& op) {
     assert(false);
   }
 
-  if (op.in1.el_type == MLI_EL_SA_8) { op.convert = true; }
+  if (op.in1.el_type == MLI_EL_SA_8) 
+  { 
+    op.convert = true;
+  }
   convert_parameters<int32_t>(op.ty, &op.in1, &op.in2, &op.out, op.convert, &op.param);
 
   uint32_t elem_size_ratio = 1;
@@ -875,25 +889,39 @@ void prepare_phase(const eltwise_test_operands* cur_test, EltwiseOp& op) {
     elem_size_ratio = acc_size / elem_size;
   }
 
-  // i8 + i8 -> (i32) -> i8 or i16 + i16 -> (i32) -> i16
-  if (op.ty == EltwiseTy::MUL) {
+  //i8 + i8 -> (i32) -> i8 or i16 + i16 -> (i32) -> i16
+  if (op.ty == EltwiseTy::MUL ) {
     // For mul, we pass i8 or i16 inputs directly and get i32 output. Then change it back.
     op.in_elem_size = elem_size;
     op.in_elem_size_ratio = 1;
+    
+    op.out_elem_size = acc_size;
+    op.out_elem_size_ratio = elem_size_ratio;
     // NOTE: The complete equation of mul is Sa*Sb * (Xa-Oa) * (Xb-Ob)
     //         Sa is the scale of first input, Xa is the value and Oa is offset.
     //         Sb is the scale of second input, Xb is the value and Ob is offset.
     // In the current implementation, we only do Xa*Xb in mul kernel and leave other
     // parts in testing (convert and copy functions). We have to extend mul to support
     // encode zp methods in order to compute other parts in mli internal.
-  } else {
-    // Except mul operation, we first change inputs to i32 and feed into eltwise kernel
+   } 
+   else if(op.ty == EltwiseTy::MIN || op.ty == EltwiseTy::MAX)
+  {
+    // For min and max, we pass i8 or i16 inputs directly and get output directly
+    op.in_elem_size = elem_size;
+    op.in_elem_size_ratio = 1;
+    
+    op.out_elem_size = elem_size;
+    op.out_elem_size_ratio = 1;
+  }
+   else {
+    // Except mul,max and min operations, we first change inputs to i32 and feed into eltwise kernel
     // to get the i32 output. Then we will change it back to the origial data type i8 or i16.
     op.in_elem_size_ratio = elem_size_ratio;
     op.in_elem_size = acc_size;
-  }
-  op.out_elem_size = acc_size;
-  op.out_elem_size_ratio = elem_size_ratio;
+    op.out_elem_size = acc_size;
+    op.out_elem_size_ratio = elem_size_ratio;
+   }
+   
 
   op.CreateKernel(in1_tensor, in2_tensor, out_tensor);
 
@@ -982,6 +1010,7 @@ bool postprocess_phase(const reporter_full& reporter,
     } else {
       is_per_tensor_quant = false;
       is_test_passed = false;
+  
     }
   }
 

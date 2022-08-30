@@ -796,15 +796,15 @@ static const int input_13_fx8_frac = 7;
 static const int input_23_fx8_frac = 8;
 /* SA8 element paramaeters */
 static const int input_sa_dim = -1;
-static const float input_12_zero_point = 0.07302337884902954f;
-static const float input_13_zero_point = 0.07302337884902954f;
-static const float input_23_zero_point = 0.07277578115463257f;
-static const float input_12_scale = 0.005967388860881329f;
-static const float input_13_scale = 0.005967388860881329f;
-static const float input_23_scale = 0.0033507782500237226f;
-static const int8_t input_12_scales_frac[] = {22};
-static const int8_t input_13_scales_frac[] = {22};
-static const int8_t input_23_scales_frac[] = {23};
+static const float input_12_zero_point = 0.0f;
+static const float input_13_zero_point = 0.0f;
+static const float input_23_zero_point = 0.0f;
+static const float input_12_scale = 1.0f;
+static const float input_13_scale = 1.0f;
+static const float input_23_scale = 1.0f;
+static const int8_t input_12_scales_frac[] = {0};
+static const int8_t input_13_scales_frac[] = {0};
+static const int8_t input_23_scales_frac[] = {0};
 
 extern mli::tst::tensor_quantizer input_1_fx16_12;
 extern mli::tst::tensor_quantizer input_2_fx16_12;
