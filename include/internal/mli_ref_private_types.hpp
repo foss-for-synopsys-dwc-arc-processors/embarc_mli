@@ -268,6 +268,13 @@ struct RescaleMetadata {
     mli_tensor output;
 };
 
+struct TableBuiltinMetadata {
+    TensorIterator<OffsetBuffer, kTableBuiltinIORank, kTableBuiltinIOIterRank> input;
+    TensorIterator<OffsetBuffer, kBiasRank, kBiasIterRank> in_bias;
+    TensorIterator<OffsetBuffer, kTableBuiltinIORank, kTableBuiltinIOIterRank> output;
+    LutType lut_mode;
+};
+
 class ClipPrivateData : public PrivateData {
 
 public:
@@ -277,6 +284,16 @@ public:
     TensorIterator<OffsetBuffer, kClipRank, kClipIterRank> input;
     TensorIterator<OffsetBuffer, kClipRank, kClipIterRank> output;
     OffsetBuffer encoded_params_buf;
+};
+
+class TableBuiltinPrivateData : public PrivateData {
+public:
+    TableBuiltinPrivateData() : PrivateData(kTableBuiltinId, sizeof(TableBuiltinPrivateData)) {}
+    int32_t table_axis;
+    uint32_t io_rank;
+
+    TensorIterator<OffsetBuffer, kTableBuiltinIORank, kTableBuiltinIOIterRank> input;
+    TensorIterator<OffsetBuffer, kTableBuiltinIORank, kTableBuiltinIOIterRank> output;
 };
 
 class ReduceMaxPrivateData : public PrivateData {

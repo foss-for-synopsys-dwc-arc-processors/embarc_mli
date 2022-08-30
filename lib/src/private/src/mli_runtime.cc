@@ -31,6 +31,7 @@ using ref::TransposeConv2D;
 using ref::ReduceMax;
 using ref::Permute;
 using ref::ArgMax;
+using ref::TableBuiltin;
 
 ExecutionInterface* ExecutionInterface::Create(
         void* allocation_memory_buffer,

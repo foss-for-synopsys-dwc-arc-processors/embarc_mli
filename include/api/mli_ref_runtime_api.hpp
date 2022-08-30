@@ -672,6 +672,28 @@ private:
     uint32_t m_out_elem_size;
 };
 
+/**
+ * @brief This class implements the TableBuiltin kernel xop interpreter interface
+ *
+ *
+ */
+class TableBuiltin : public ExecutionInterface {
+
+public:
+    TableBuiltin(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
+
+    mli_status Issue() override;
+
+    mli_status Prefetch() override;
+
+    mli_status Update() override;
+
+private:
+    TableBuiltinMetadata m_metadata;
+
+    uint32_t m_in_elem_size;
+    uint32_t m_out_elem_size;
+};
 
 /**
  * @brief This class implements the ReduceSum kernel xop interpreter interface

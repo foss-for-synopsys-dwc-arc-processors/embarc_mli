@@ -88,6 +88,12 @@ constexpr short int kArgMaxInIterRank = 4;
 constexpr short int kArgMaxOutRank = 3;
 constexpr short int kArgMaxOutIterRank = 3;
 
+constexpr short int kTableBuiltinIORank = 4;
+constexpr short int kTableBuiltinIOIterRank = 4;
+
+constexpr short int kBiasRank = 1;
+constexpr short int kBiasIterRank = 1;
+
 typedef enum : uint32_t {
   kInvalidId = 0,
   kConv2dId,
@@ -108,7 +114,8 @@ typedef enum : uint32_t {
   kTransConv2DId,
   kPermuteId,
   kReduceSumId,
-  kArgMaxId
+  kArgMaxId,
+  kTableBuiltinId,
 } kernel_id_t;
 
 typedef enum class compression_mode_t {
@@ -730,7 +737,8 @@ enum struct LutType: int32_t {
   kSwish,
   kGelu,
   kReciprocSqrt,
-  kReciproc
+  kReciproc,
+  kHswish
 };
 
 struct TableBuiltinConfig {

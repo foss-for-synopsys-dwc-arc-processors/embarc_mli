@@ -50,6 +50,8 @@ public:
 
     virtual uint32_t ReduceMax_CS_GetSize() const { return 0; }
     
+    virtual uint32_t TableBuiltin_CS_GetSize() const { return 0; }
+
     virtual uint32_t TransposeConv2D_CS_GetSize() const { return 0; }
     
     virtual uint32_t ReduceSum_CS_GetSize() const { return 0; }
@@ -355,6 +357,12 @@ public:
                                           const TensorIterator<NoBuffer, kArgMaxInRank, kArgMaxInIterRank> in,
                                           const ArgMaxConfig &cfg,
                                           const TensorIterator<NoBuffer, kArgMaxOutRank, kArgMaxOutIterRank> out) { return nullptr; }
+                                          
+    virtual lib_mli::TableBuiltin_CS* TableBuiltin_CS(void *kernel_buffer,
+                                                      const TensorIterator<NoBuffer, kTableBuiltinIORank, kTableBuiltinIOIterRank> &in,
+                                                      const TableBuiltinConfig &cfg,
+                                                      const TensorIterator<NoBuffer, kTableBuiltinIORank, kTableBuiltinIOIterRank> &out) { return nullptr; }
+
     /**
      * @brief Transpose Convolution 2D kernel Compiler Support interface factory
      * method

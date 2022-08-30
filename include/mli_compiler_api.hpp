@@ -863,7 +863,7 @@ public:
      * @brief Method to encode parameters (coefficients)
      *
      */
-    virtual mli_status EncodeParams(const Tensor<Buffer, 1> &in_bias,
+    virtual mli_status EncodeParams(const TensorIterator<Buffer, kBiasRank, kBiasIterRank> &in_bias,
                                     Buffer &encoded_params) = 0;
 
     /**
@@ -876,12 +876,9 @@ public:
      * @brief Methods to get buffer sizes
      *
      */
-
-    virtual unsigned GetInputBufferSize() = 0;
-    virtual unsigned GetOutputBufferSize() = 0;
     virtual unsigned GetParamsBufferSize() = 0;
+    
     /**
-
      * @brief Methods to set buffer offsets
      *
      */
@@ -942,7 +939,7 @@ class ReduceSum_CS : public CompilerGenericInterface {
 public:
 
     virtual ~ReduceSum_CS() = default;
-
+    
     /**
      * @brief Methods to set buffer offsets
      *

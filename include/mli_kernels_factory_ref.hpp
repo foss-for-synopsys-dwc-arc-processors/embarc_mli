@@ -194,6 +194,14 @@ public:
                                     const Tensor<NoBuffer, kRescaleRank>& output_tile_shape) override {
         return new(kernel_buffer) lib_ref::Rescale_CS(m_pd, input_shape, cfg, output_tile_shape);
     }
+    uint32_t TableBuiltin_CS_GetSize() const override { return 0;/*return sizeof(lib_ref::TableBuiltin_CS);*/ }
+
+    lib_mli::TableBuiltin_CS* TableBuiltin_CS(void *kernel_buffer,
+                                              const TensorIterator<NoBuffer, kTableBuiltinIORank, kTableBuiltinIOIterRank> &in,
+                                              const TableBuiltinConfig &cfg,
+                                              const TensorIterator<NoBuffer, kTableBuiltinIORank, kTableBuiltinIOIterRank> &out) override { return nullptr;
+        /*return new(kernel_buffer) lib_ref::TableBuiltin_CS(m_pd, input_shape, cfg,   );*/
+    }
 
     lib_mli::Rescale_CS* Rescale_CS(void* kernel_buffer,
                                     const TensorIterator<NoBuffer, kRescaleRank, kRescaleIterRank>& input,

@@ -461,6 +461,40 @@ private:
 
 };
 
+class TableBuiltin_CS : public lib_mli::TableBuiltin_CS {
+public:
+
+    TableBuiltin_CS(const lib_mli::PlatformDescription pd,
+                    const TensorIterator<NoBuffer, kTableBuiltinIORank, kTableBuiltinIOIterRank> &in,
+                    const TableBuiltinConfig &cfg,
+                    const TensorIterator<NoBuffer, kTableBuiltinIORank, kTableBuiltinIOIterRank> &out);
+
+    // From TableBuiltin_CS
+    unsigned GetParamsBufferSize() override;
+    unsigned GetEncodedParamsSize() override;
+
+    mli_status EncodeParams(const TensorIterator<Buffer, kBiasRank ,kBiasIterRank> &in_bias,
+                            Buffer &encoded_params) override;
+
+    mli_status GetKernelPrivateData(void *kernel_private_data_buffer) override;
+    unsigned GetKernelPrivateDataSize() const override;
+    unsigned GetRuntimeObjectSize() const override;
+
+    mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                   const OffsetBuffer &output,
+                                   const OffsetBuffer &params,
+                                   const OffsetBuffer &ctrl_buffer) override;
+
+private:
+    TableBuiltinConfig m_config;
+    TensorIterator<OffsetBuffer, kTableBuiltinIORank, kTableBuiltinIOIterRank> m_input;
+    TensorIterator<OffsetBuffer, kTableBuiltinIORank, kTableBuiltinIOIterRank> m_output;
+    OffsetBuffer m_encoded_params;
+
+    uint32_t m_input_buffer_size;
+    uint32_t m_output_buffer_size;
+};
+
 class ReduceMax_CS : public lib_mli::ReduceMax_CS {
 public:
     ReduceMax_CS(const lib_mli::PlatformDescription pd,
