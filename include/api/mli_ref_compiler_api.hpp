@@ -160,26 +160,36 @@ class DepthwiseConv2d_CS : public lib_mli::DepthwiseConv2d_CS {
 public:
     /**
      * @brief Constructor of the DepthwiseConv2d_CS object
-     *
+     * @deprecated
      */
     DepthwiseConv2d_CS(const lib_mli::PlatformDescription pd,
-                       const Tensor<NoBuffer, 4> &in,
-                       const Tensor<NoBuffer, 3> &weights,
+                       const Tensor<NoBuffer, kDepthwiseIORank> &in,
+                       const Tensor<NoBuffer, kDepthwiseWRank> &weights,
                        const DwConv2DConfig &cfg,
-                       const Tensor<NoBuffer, 4> &output_tile_shape);
+                       const Tensor<NoBuffer, kDepthwiseIORank> &output_tile_shape);
 
-    mli_status EncodeWeights(Tensor<Buffer, 3> &weights,
+    /**
+     * @brief Constructor of the DepthwiseConv2d_CS object
+     */
+    DepthwiseConv2d_CS(const lib_mli::PlatformDescription pd,
+                       const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIOIterRank>& input,
+                       const TensorIterator<NoBuffer, kDepthwiseWRank, kDepthwiseWIterRank>& weights,
+                       const TensorIterator<NoBuffer, kDepthwiseZPRank, kDepthwiseZPIterRank>& weights_zp,
+                       const DwConv2DConfig& cfg,
+                       const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIOIterRank>& output);
+
+    mli_status EncodeWeights(Tensor<Buffer, kDepthwiseWRank> &weights,
                              Buffer &encoded_weights,
                              compression_mode_t mode = compression_mode_t::Uncompressed) override;
 
     unsigned GetEncodedWeightsSize() override;
 
-    mli_status EncodeInpZeroPts(Tensor<Buffer, 1> &inpzeropts,
+    mli_status EncodeInpZeroPts(Tensor<Buffer, kDepthwiseZPRank> &inpzeropts,
                                 Buffer &encoded_inpzeropts) override;
 
     unsigned GetEncodedInpZeroPtsSize() override;
 
-    mli_status EncodeWtsZeroPts(Tensor<Buffer, 1> &wtszeropts,
+    mli_status EncodeWtsZeroPts(Tensor<Buffer, kDepthwiseZPRank> &wtszeropts,
                                 Buffer &encoded_wtszeropts) override;
 
     unsigned GetEncodedWtsZeroPtsSize() override;
@@ -188,12 +198,22 @@ public:
     unsigned GetOutputBufferSize() override;
     unsigned GetWeightsBufferSize() override;
 
-    mli_status AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
-                                   Tensor<OffsetBuffer, 4> &output,
+    /**
+     * @deprecated
+     */
+    mli_status AttachBufferOffsets(Tensor<OffsetBuffer, kDepthwiseIORank> &input,
+                                   Tensor<OffsetBuffer, kDepthwiseIORank> &output,
                                    OffsetBuffer &weights,
                                    OffsetBuffer &inpzeropts,
                                    OffsetBuffer &wtszeropts,
                                    OffsetBuffer &ctrl_buffer) override;
+
+    mli_status AttachBufferOffsets(const OffsetBuffer& input,
+                                   const OffsetBuffer& output,
+                                   const OffsetBuffer& weights,
+                                   const OffsetBuffer& inpzeropts,
+                                   const OffsetBuffer& wtszeropts,
+                                   const OffsetBuffer& descr) override;
 
     mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
     unsigned GetKernelPrivateDataSize() const override;
@@ -201,13 +221,13 @@ public:
 
 private:
     // Input, weights, output tensors with offset buffer attached
-    Tensor<OffsetBuffer, 4> m_input;
-    Tensor<OffsetBuffer, 3> m_weights;
-    Tensor<OffsetBuffer, 4> m_output;
+    TensorIterator<OffsetBuffer, kDepthwiseIORank, kDepthwiseIOIterRank> m_input;
+    TensorIterator<OffsetBuffer, kDepthwiseWRank, kDepthwiseWIterRank> m_weights;
+    TensorIterator<OffsetBuffer, kDepthwiseZPRank, kDepthwiseZPIterRank> m_weights_zp;
+    TensorIterator<OffsetBuffer, kDepthwiseIORank, kDepthwiseIOIterRank> m_output;
 
     // encoded zp buffers for input and weights (optional for FX type)
     OffsetBuffer m_inpzp_buffer;
-    OffsetBuffer m_wtszp_buffer;
 
     // the axis to represent the quantization granularity (optional for FX type)
     int m_inp_quant_axis;

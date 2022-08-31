@@ -27,7 +27,7 @@
 #include "vectors_mli_krn_maxpool.inc"
 
 /**
- * Comment USE_TILING if you want to use single tile.
+ * Comment USE_TILING if you want to use single tile (tile size = input size).
  */
 #define USE_TILING
 
@@ -155,8 +155,8 @@ void prepare_phase(const maxpool_test_operands* cur_test,
   uint32_t output_tile_shape[kMaxpoolIterRank];
   for (unsigned i = 0; i < kMaxpoolIterRank; i++) {
       input_shape[i] = total_input_size[i];
-      input_tile_shape[i] = (uint32_t)MAX(input_first_size[i], input_size[i]);
-      output_tile_shape[i] = (uint32_t)MAX(output_first_size[i], output_size[i]);
+      input_tile_shape[i] = (uint32_t) MAX(input_first_size[i], input_size[i]);
+      output_tile_shape[i] = (uint32_t) MAX(output_first_size[i], output_size[i]);
   }
 
   int32_t input_stride[kMaxpoolRank];

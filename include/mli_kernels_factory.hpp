@@ -184,11 +184,58 @@ public:
                                                 const PoolOpConfig &cfg,
                                                 const Tensor<NoBuffer, 4> output_tile_shape) { return nullptr; }
 
+
+    /**
+      * @brief Depthwise Convolution 2D kernel Compiler Support interface factory
+      * method
+      *
+      * @deprecated
+      *
+      * @param kernel_buffer       [I] Pointer to the pre-allocated memory to store
+      *                                kernel Compiler Support object
+      * @param in                  [I] Tensor object containing input Tensor shape and
+      *                                memory strides
+      * @param weights             [I] Tensor object containing weights Tensor shape
+      *                                and memory strides
+      * @param cfg                 [I] Kernel configuration structure
+      * @param output_tile_shape   [I] Tensor object containing output Tensor shape
+      *                                and memory strides
+      *
+      * @return Depthwise Convolution 2D kernel Compiler Support interface object
+      */
     virtual lib_mli::DepthwiseConv2d_CS* DepthwiseConv2d_CS(void *kernel_buffer,
-                                                            const Tensor<NoBuffer, 4> in,
-                                                            const Tensor<NoBuffer, 3> weights,
+                                                            const Tensor<NoBuffer, kDepthwiseIORank> in,                  // BHWC
+                                                            const Tensor<NoBuffer, kDepthwiseWRank> weights,                  // KiKoC
                                                             const DwConv2DConfig &cfg,
-                                                            const Tensor<NoBuffer, 4> output_tile_shape) { return nullptr; }
+                                                            const Tensor<NoBuffer, kDepthwiseIORank> output_tile_shape) { // BHWC
+      return nullptr;
+    }
+
+    /**
+     * @brief Depthwise Convolution 2D kernel Compiler Support interface factory
+     * method
+     *
+     * @param kernel_buffer [I] Pointer to the pre-allocated memory to store
+     *                          kernel Compiler Support object
+     * @param input         [I] TensorIterator object containing input Tensor shape and
+     *                          memory strides and IteratorCfg
+     * @param weights       [I] TensorIterator object containing weights Tensor shape
+     *                          and memory strides and IteratorCfg
+     * @param weights_zp    [I] TensorIterator object containing weight zp(s) array
+     * @param cfg           [I] Kernel configuration structure
+     * @param output        [I] TensorIterator object containing output Tensor shape
+     *                          and memory strides and IteratorCfg
+     *
+     * @return Depthwise Convolution 2D kernel Compiler Support interface object
+     */
+    virtual lib_mli::DepthwiseConv2d_CS* DepthwiseConv2d_CS(void* kernel_buffer,
+                                                            const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIOIterRank>& input,    // BHWC
+                                                            const TensorIterator<NoBuffer, kDepthwiseWRank, kDepthwiseWIterRank>& weights,            // KiKoC
+                                                            const TensorIterator<NoBuffer, kDepthwiseZPRank, kDepthwiseZPIterRank>& weights_zp,       // C
+                                                            const DwConv2DConfig& cfg,
+                                                            const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIOIterRank>& output) { // BHWC
+      return nullptr;
+    }
 
     virtual lib_mli::FullyConnected_CS* FullyConnected_CS(void *kernel_buffer,
                                                           const Tensor<NoBuffer, 2> in,

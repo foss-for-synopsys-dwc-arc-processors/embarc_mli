@@ -274,7 +274,6 @@ void Tiling::get_io_parameters_for_tensor_iterator(int32_t count[], bool no_incr
                                                    int32_t input_first_size[], int32_t input_size[], int32_t input_last_size[],
                                                    int32_t output_first_increment[], int32_t output_increment[], int32_t output_last_increment[],
                                                    int32_t output_first_size[], int32_t output_size[], int32_t output_last_size[]) const {
-  
   for (int i = 0; i < 4; i++) {
     total_input_size[i] = m_total_input_size[i];
     total_output_size[i] = m_total_output_size[i];
@@ -290,12 +289,12 @@ void Tiling::get_io_parameters_for_tensor_iterator(int32_t count[], bool no_incr
   for (int i = 0; i < 4; i++) {
     input_first_increment[i] = (int32_t)m_input_tile_first_increment[i];
     input_increment[i] = (int32_t)m_input_tile_increment[i];
-    if (count[i] == 1) input_last_increment[i] = 0;
-    else if (no_increment_of_ic && i == kTensorChannelDim) {
+    if (no_increment_of_ic && i == kTensorChannelDim) {
       input_first_increment[kTensorChannelDim] = 0;
       input_increment[kTensorChannelDim] = 0;
       input_last_increment[kTensorChannelDim] = 0;
     }
+    else if (count[i] == 1) input_last_increment[i] = 0;
     else {
       input_last_increment[i] = get_last_increment(count[i], input_first_increment[i], input_increment[i]);
     }

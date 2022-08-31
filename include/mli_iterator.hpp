@@ -121,6 +121,7 @@ class IteratorCfg {
         m_first_pos_inc[i] = m_pos_inc[i] = tilesize[dim];
         m_last_pos_inc[i] = tilesize[dim] * (1 - m_count[i]);
       }
+      m_buf_tiles_num = 0;
     }
 
 
@@ -143,6 +144,7 @@ class IteratorCfg {
         m_first_size[i] = m_size[i] - pre_padding[dim];
         m_last_size[i] = tensor.get_dim(dim) + m_last_pos_inc[i];
       }
+      m_buf_tiles_num = icfg.m_buf_tiles_num;
     }
 
 
@@ -454,6 +456,23 @@ class TensorIterator {
    }
 
    /**
+     * @brief constructor
+     *
+     * This constuctor is appropriate for output tiling, for input tiling better to use
+     * special constructor with effective_kernel_size parameter
+     * @param tensor    [I] Full tensor which is tiled by this iterator
+     * @param tile_size [I] Size of tile
+     * @param order     [I] Iteration order
+     */
+   TensorIterator(Tensor<buf_T, tensorRank> tensor, uint32_t tile_size[], const int32_t order[])
+     : m_full_tensor(tensor),
+     m_config(tensor, tile_size, order),
+     m_buffer_itr(m_full_tensor, m_config) {
+     UpdateMemstrides();
+     Reset();
+   }
+
+   /**
     * @brief constructor
     *
     * Simple iterator with default iterator config will iterate in steps of 1
@@ -479,6 +498,25 @@ class TensorIterator {
       m_offset = tensor_iterator.get_offset();
       tensor_iterator.get_pos(m_pos);
       tensor_iterator.get_tile_idx(m_tile_idx);
+    }
+
+
+    /**
+    * Constructor that will compute the number of tiles in each dimension, it will also compute the increment values and sizes.
+    * This constructor takes into account effective kernel size and paddings.
+    * Appropriate usage of this constructor is following: create IteratorCfg icfg for output tiling of conv-like kernels
+    * and use this constructor to create input tiling of same conv-like kernel.
+    */
+    TensorIterator(const Tensor<buf_T, tensorRank>& tensor,  // full tensor
+                   TensorIterator& tensor_iterator,          // origin tensor iterator
+                   uint32_t effective_kernel_size[],         // used to calculate the overlaps between the tiles
+                   uint32_t stride[],                        // used to calculate the overlaps between the tiles
+                   uint32_t pre_padding[])                   // number of virtual pixels added before each dimension
+        : m_full_tensor(tensor),
+        m_config(tensor_iterator.get_config(), tensor, effective_kernel_size, stride, pre_padding),
+        m_buffer_itr(m_full_tensor, m_config) {
+        UpdateMemstrides();
+        Reset();
     }
 
     /**
@@ -728,6 +766,15 @@ class TensorIterator {
 
     bool is_first_tile(uint32_t dim_idx) const {
       return !m_tile_idx[dim_idx];
+    }
+
+    uint32_t get_total_count() const {
+      int32_t cnt = m_config.get_count(0);
+      for (uint32_t i = 1; i < iterRank; i++) {
+        cnt *= m_config.get_count(i);
+      }
+      MLI_ASSERT(cnt > 0);
+      return (uint32_t) cnt;
     }
 
     Tensor<buf_T, tensorRank> get_tensor() const {

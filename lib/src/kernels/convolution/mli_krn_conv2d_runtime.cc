@@ -84,7 +84,8 @@ mli_status Conv2d::Update() {
   m_metadata.input.Next();
   m_metadata.output.Next();
 
-  // TODO: extend for all iter orders (now done for  I/O = {0, 1, 2, 3}, W = {0, 1, 2, 3, 4} )
+  // TODO: add zero increments and maybe something more to m_metadata.output and m_metadata.weights to avoid this "if" block
+  // TODO: add virtual iterator dimensions to m_metadata.weights_zp inside constructot to avoid this "if" block
   if (m_metadata.output.is_first_tile(kTensorBatchDim) && m_metadata.output.is_first_tile(kTensorWidthDim) &&
     m_metadata.output.is_first_tile(kTensorHeightDim)) {
     m_metadata.weights.Next();

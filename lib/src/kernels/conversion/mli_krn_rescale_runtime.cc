@@ -182,7 +182,8 @@ mli_status Rescale::Update() {
 
 void Rescale::GetIOSizesAndOffsets(uint32_t& enc_param_size, uint32_t& inp_bias_offset, uint32_t& scale_offset,
                                    uint32_t& shift_offset, uint32_t& out_bias_offset) const {
-  enc_param_size = m_tile_metadata.input.shape[kTensorChannelDim];
+  const auto& input = m_tile_metadata.input;
+  enc_param_size = input.shape[input.rank - 1];
   inp_bias_offset = 0;
   scale_offset = m_tile_param_max_size * sizeof(int32_t);
   shift_offset = m_tile_param_max_size * (sizeof(int32_t) + sizeof(int16_t));

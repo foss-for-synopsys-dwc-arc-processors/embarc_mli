@@ -158,12 +158,24 @@ public:
 
     uint32_t DepthwiseConv2d_CS_GetSize() const override { return sizeof(lib_ref::DepthwiseConv2d_CS); }
 
+    /**
+     * @deprecated
+     */
     lib_mli::DepthwiseConv2d_CS* DepthwiseConv2d_CS(void *kernel_buffer,
-                                                    const Tensor<NoBuffer, 4> in,
-                                                    const Tensor<NoBuffer, 3> weights,
+                                                    const Tensor<NoBuffer, kDepthwiseIORank> in,
+                                                    const Tensor<NoBuffer, kDepthwiseWRank> weights,
                                                     const DwConv2DConfig &cfg,
-                                                    const Tensor<NoBuffer, 4> output_tile_shape) override {
+                                                    const Tensor<NoBuffer, kDepthwiseIORank> output_tile_shape) override {
         return new(kernel_buffer) lib_ref::DepthwiseConv2d_CS(m_pd, in, weights, cfg, output_tile_shape);
+    }
+
+    lib_mli::DepthwiseConv2d_CS* DepthwiseConv2d_CS(void* kernel_buffer,
+                                                    const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIOIterRank>& input,
+                                                    const TensorIterator<NoBuffer, kDepthwiseWRank, kDepthwiseWIterRank>& weights,
+                                                    const TensorIterator<NoBuffer, kDepthwiseZPRank, kDepthwiseZPIterRank>& weights_zp,
+                                                    const DwConv2DConfig& cfg,
+                                                    const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIOIterRank>& output) override {
+        return new(kernel_buffer) lib_ref::DepthwiseConv2d_CS(m_pd, input, weights, weights_zp, cfg, output);
     }
 
      uint32_t FullyConnected_CS_GetSize() const override { return sizeof(lib_ref:: FullyConnected_CS); }

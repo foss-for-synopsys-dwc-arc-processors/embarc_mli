@@ -504,7 +504,6 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
   //==================================================================
   uint32_t in_mem_offset = 0;
   uint32_t w_mem_offset = 0;
-  uint32_t inpzp_mem_offset = 0;
   uint32_t wtszp_mem_offset = 0;
   uint32_t offsets[1] = {0};
 
@@ -704,7 +703,6 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
 
   // Copy weights zero points to the temp host buffers
   //==================================================================
-  size_t shared_buf_size = wtszp_size;
   char * host_buf_a = (char *) malloc(wtszp_size);
   char * host_buf_b = (char *) malloc(wtszp_size);
   lib_mli::Buffer src_wtszp_buf(host_buf_a, wtszp_size, sizeof(int8_t));

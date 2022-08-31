@@ -114,8 +114,7 @@ mli_status Rescale_CS::AttachBufferOffsets(const OffsetBuffer& input,
                                            const OffsetBuffer& encoded_params,
                                            const OffsetBuffer& metadata) {
 
-    MLI_ASSERT(output.get_size() == m_output_buffer_size * output.get_elem_size());
-
+    MLI_ASSERT(input.get_size() / input.get_elem_size() == output.get_size() / output.get_elem_size());
     m_input.set_buf(input);
     m_output.set_buf(output);
     m_encoded_params = encoded_params;

@@ -56,6 +56,13 @@ constexpr unsigned kConvWIterRank = 5;
 constexpr unsigned kConvZPRank = 1;
 constexpr unsigned kConvZPIterRank = 1;
 
+constexpr unsigned kDepthwiseIORank = 4;
+constexpr unsigned kDepthwiseIOIterRank = 4;
+constexpr unsigned kDepthwiseWRank = 3;
+constexpr unsigned kDepthwiseWIterRank = 3;
+constexpr unsigned kDepthwiseZPRank = 1;
+constexpr unsigned kDepthwiseZPIterRank = 1;
+
 constexpr unsigned kTransposeConvIORank = 4;
 constexpr unsigned kTransposeConvIOIterRank = 4;
 constexpr unsigned kTransposeConvWRank = 5;

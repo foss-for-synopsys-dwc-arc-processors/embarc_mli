@@ -102,7 +102,10 @@ inline const uint32_t get_conv_input_size(uint32_t output_size, uint32_t padding
   return (uint32_t)input_size;
 }
 
-
+inline const uint32_t get_effective_kernel_size(uint32_t kernel_size, uint32_t dilation) {
+    MLI_ASSERT(kernel_size > 0 && dilation > 0);
+    return (kernel_size - 1) * dilation + 1;
+}
 
 inline const int32_t get_last_increment(uint32_t number_of_tiles,  int32_t first_increment, int32_t increment){
   /**

@@ -65,16 +65,16 @@ public:
         : PrivateData(kDWConv2dId, sizeof(DepthwiseConv2DPrivateData)) {}
 
     // In/Out Tensor attached with offset buffer
-    Tensor<OffsetBuffer, 4> input;
-    Tensor<OffsetBuffer, 3> weights;
-    Tensor<OffsetBuffer, 4> output;
+    TensorIterator<OffsetBuffer, kDepthwiseIORank, kDepthwiseIOIterRank> input;
+    TensorIterator<OffsetBuffer, kDepthwiseWRank, kDepthwiseWIterRank> weights;
+    TensorIterator<OffsetBuffer, kDepthwiseZPRank, kDepthwiseZPIterRank> weights_zp;
+    TensorIterator<OffsetBuffer, kDepthwiseIORank, kDepthwiseIOIterRank> output;
 
     // The layout of input
     Layout layout;
 
-    // Encoded input and weights zero pointers
+    // Encoded input zero pointers
     OffsetBuffer inpzp_buffer;
-    OffsetBuffer wtszp_buffer;
 
     // the index of quantization axis
     int inp_quant_axis;
@@ -85,12 +85,12 @@ public:
 };
 
 struct DepthwiseConv2dMetadata {
-    Tensor<InternalBuffer, 4> input;
-    Tensor<InternalBuffer, 3> weights;
-    Tensor<InternalBuffer, 4> output;
+    TensorIterator<OffsetBuffer, kDepthwiseIORank, kDepthwiseIOIterRank> input;
+    TensorIterator<OffsetBuffer, kDepthwiseWRank, kDepthwiseWIterRank> weights;
+    TensorIterator<OffsetBuffer, kDepthwiseZPRank, kDepthwiseZPIterRank> weights_zp;
+    TensorIterator<OffsetBuffer, kDepthwiseIORank, kDepthwiseIOIterRank> output;
 
     InternalBuffer inpzp_buffer;
-    InternalBuffer wtszp_buffer;
     int inp_quant_axis;
     int wts_quant_axis;
 

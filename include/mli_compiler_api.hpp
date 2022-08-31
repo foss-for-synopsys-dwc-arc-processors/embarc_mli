@@ -214,7 +214,6 @@ public:
      *
      * In this method you specify offsets for tensors passed to the constructor
      *
-     * @deprected
      * @param input [I] input OffsetBuffer and tensor shape and memory strides
      * @param output [I] output OffsetBuffer and tensor shape and memory strides
      * @param weights [I] weights OffsetBuffer and tensor shape and memory strides
@@ -366,7 +365,7 @@ public:
      * @brief Method to encode the weights (coefficients).
      * TODO: add description using conv2d_cs as a starting point
      */
-    virtual mli_status EncodeWeights(Tensor<Buffer, 3> &weights,
+    virtual mli_status EncodeWeights(Tensor<Buffer, kDepthwiseWRank> &weights,
                                      Buffer &encoded_weights,
                                      compression_mode_t mode) = 0;
 
@@ -380,7 +379,7 @@ public:
      * @brief Method to encode input zero-points (padding values)
      *
      */
-    virtual mli_status EncodeInpZeroPts(Tensor<Buffer, 1> &inpzeropts,
+    virtual mli_status EncodeInpZeroPts(Tensor<Buffer, kDepthwiseZPRank> &inpzeropts,
                                         Buffer &encoded_inpzeropts) = 0;
 
     /**
@@ -393,7 +392,7 @@ public:
      * @brief Method to encode weights zero-points
      *
      */
-    virtual mli_status EncodeWtsZeroPts(Tensor<Buffer, 1> &wtszeropts,
+    virtual mli_status EncodeWtsZeroPts(Tensor<Buffer, kDepthwiseZPRank> &wtszeropts,
                                         Buffer &encoded_wtszeropts) { return MLI_STATUS_OK; }
 
     /**
@@ -411,16 +410,43 @@ public:
     virtual unsigned GetOutputBufferSize() = 0;
     virtual unsigned GetWeightsBufferSize() = 0;   
     virtual unsigned GetInputZeroPtsBufferSize() { return 0; }
+
     /**
      * @brief Methods to set buffer offsets
-     *
+     * @deprecated
      */
-    virtual mli_status AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
-                                           Tensor<OffsetBuffer, 4> &output,
+    virtual mli_status AttachBufferOffsets(Tensor<OffsetBuffer, kDepthwiseIORank> &input,
+                                           Tensor<OffsetBuffer, kDepthwiseIORank> &output,
                                            OffsetBuffer &weights,
                                            OffsetBuffer &inpzeropts,
                                            OffsetBuffer &wtszeropts,
                                            OffsetBuffer &ctrl_buffer) = 0;
+
+    /**
+     * @brief Method to set buffer memory offsets and memory IDs for the kernel
+     *
+     * Compiler computes a memory map and buffer offsets are set using this method.
+     * Compiler also needs to indicate in which memory the buffers reside.
+     * These ID's need to match the array of memory bases that the xop-interpreter passes to
+     * the init function.
+     *
+     * In this method you specify offsets for tensors passed to the constructor
+     *
+     * @param input [I] input OffsetBuffer
+     * @param output [I] output OffsetBuffer
+     * @param weights [I] weights OffsetBuffer
+     * @param inpzeropts [I] input zero point(s) OffsetBuffer
+     * @param wtszeropts [I] weights zero points OffsetBuffer
+     * @param descr [I] data OffsetBuffer
+     *
+     * @return MLI status code
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer& input,
+                                           const OffsetBuffer& output,
+                                           const OffsetBuffer& weights,
+                                           const OffsetBuffer& inpzeropts,
+                                           const OffsetBuffer& wtszeropts,
+                                           const OffsetBuffer& ctrl_buffer)  = 0;
 };
 
 /**

@@ -447,8 +447,8 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
 
   // BHWC layout
   int32_t count[kConvIOIterRank];
-  uint32_t total_input_size[kConvIOIterRank];
-  uint32_t total_output_size[kConvIOIterRank];
+  uint32_t total_input_size[kConvIORank];
+  uint32_t total_output_size[kConvIORank];
   int32_t input_first_increment[kConvIOIterRank];
   int32_t input_increment[kConvIOIterRank];
   int32_t input_last_increment[kConvIOIterRank];
@@ -467,11 +467,12 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
                                                input_first_size, input_size, input_last_size,
                                                output_first_increment, output_increment, output_last_increment,
                                                output_first_size, output_size, output_last_size);
+
   uint32_t tile_input_shape[kConvIORank];
   uint32_t tile_output_shape[kConvIORank];
   for (unsigned i = 0; i < kConvIORank; i++) {
-    tile_input_shape[i] = (uint32_t)MAX(input_first_size[i], input_size[i]);
-    tile_output_shape[i] = (uint32_t)MAX(output_first_increment[i], output_size[i]);
+    tile_input_shape[i] = (uint32_t) MAX(input_first_size[i], input_size[i]);
+    tile_output_shape[i] = (uint32_t) MAX(output_first_size[i], output_size[i]);
   }
 
   // GHWCinCo vs. HWCinCo
@@ -486,7 +487,6 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
     tile_weights_shape[i] = weight_shape[i];
   }
   tile_weights_shape[4] = tile_output_shape[kTensorChannelDim];
-  
 
   int32_t input_stride[kConvIORank] = { int32_t(cnv_op.input.shape[0]) * cnv_op.input.mem_stride[0],
                                         cnv_op.input.mem_stride[0],
@@ -571,7 +571,7 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   lib_mli::Tensor<lib_mli::NoBuffer, kConvIORank> full_out_tensor(total_output_size, output_stride);
   lib_mli::TensorIterator<lib_mli::NoBuffer, kConvIORank, kConvIOIterRank> out_tensor_it(full_out_tensor, output_it_config);
 
-  uint32_t wzp_shape[kConvZPRank]{tile_output_shape[kTensorChannelDim]};
+  uint32_t wzp_shape[kConvZPRank]{total_output_size[kTensorChannelDim]};
   lib_mli::Tensor<lib_mli::NoBuffer, kConvZPIterRank> wzp_tensor(wzp_shape);
   lib_mli::IteratorCfg<kConvZPIterRank> wzp_it_config(
     wzp_iteration_order, wzp_count,
@@ -688,7 +688,8 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   //       For example, offset is 4 byts aligned if output is int32_t.
   uint32_t cnv_o_elem_size = mli_hlp_tensor_element_size(&cnv_op.out_acc);
   *cnv_offset = CEIL_RND(*cnv_offset, cnv_o_elem_size);
-  uint32_t out_size = conv2d_op->GetOutputBufferSize() * cnv_o_elem_size;
+  uint32_t conv_out_size_in_elements = GetBufferSize(kConvIORank, tile_output_shape, output_stride);
+  uint32_t out_size = conv_out_size_in_elements * cnv_o_elem_size;
   lib_mli::OffsetBuffer conv2d_out_buf{*cnv_offset, 0, out_size, cnv_o_elem_size};
   lib_mli::Tensor<lib_mli::OffsetBuffer, kConvIORank> conv2d_out_tensor(conv2d_out_buf, tile_output_shape);
   *cnv_offset += out_size;
@@ -744,14 +745,14 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
 
   // rescale input = conv output
   uint32_t input_elem_size = mli_hlp_tensor_element_size(&rs_input_tsr);
-  uint32_t rs_in_size = GetBufferSize(kRescaleRank, tile_output_shape, output_stride) * input_elem_size;
+  uint32_t rs_in_size = conv_out_size_in_elements * input_elem_size;
   lib_mli::OffsetBuffer rescale_in_buf { conv2d_out_buf.get_offset(), 0, rs_in_size, input_elem_size };
   lib_mli::Tensor<lib_mli::OffsetBuffer, kRescaleRank> rescale_in_tensor(rescale_in_buf, total_output_size);
 
   // rescale output
   rs_offset = &offsets[0];
   uint32_t output_elem_size = mli_hlp_tensor_element_size(&rs_output_tsr);
-  uint32_t rs_out_size = rescale_op->GetOutputBufferSize() * output_elem_size;
+  uint32_t rs_out_size = conv_out_size_in_elements * output_elem_size;
   lib_mli::OffsetBuffer rescale_out_buf { *rs_offset, 0, rs_out_size, output_elem_size };
   lib_mli::Tensor<lib_mli::OffsetBuffer, kRescaleRank> rescale_out_tensor(rescale_out_buf, tile_output_shape);
   *rs_offset += rs_out_size;
@@ -794,14 +795,14 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
 
   // clip input = rescale output
   uint32_t clip_input_elem_size = mli_hlp_tensor_element_size(&clip_input_tsr);
-  uint32_t clip_in_size = GetBufferSize(kClipRank, tile_output_shape, output_stride) * clip_input_elem_size;
+  uint32_t clip_in_size = conv_out_size_in_elements * clip_input_elem_size;
   lib_mli::OffsetBuffer clip_in_buf{rescale_out_buf.get_offset(), 0, clip_in_size, clip_input_elem_size};
   lib_mli::Tensor<lib_mli::OffsetBuffer, kClipRank> clip_in_tensor(clip_in_buf, total_output_size);
 
   // clip output
   clip_offset = &offsets[0];
   uint32_t clip_output_elem_size = mli_hlp_tensor_element_size(&clip_output_tsr);
-  uint32_t clip_out_size = clip_in_size * clip_output_elem_size;
+  uint32_t clip_out_size = conv_out_size_in_elements * clip_output_elem_size;
   lib_mli::OffsetBuffer clip_out_buf{ *clip_offset, 0, clip_out_size, clip_output_elem_size};
   lib_mli::Tensor<lib_mli::OffsetBuffer, kClipRank> clip_out_tensor(clip_out_buf, total_output_size);
 
@@ -1027,7 +1028,7 @@ void execution_phase(Conv2dOp& cnv_op, RescaleOp &rs_op, ClipOp &clp_op, uint32_
     if (cnv_op.weights.el_params.sa.dim != -1) {
       memcpy(wtszp_tile_buf, cnv_op.weights.el_params.sa.zero_point.mem.pi16 + weights_tile_offsets[4], wzp_tile_buf_size);
     }
-    else std::fill_n(wtszp_tile_buf, wzp_tile_buf_size / sizeof(int8_t), cnv_op.weights.el_params.sa.zero_point.mem.i16);
+    else std::fill_n(wtszp_tile_buf, wzp_tile_buf_size / sizeof(int8_t), (int8_t) cnv_op.weights.el_params.sa.zero_point.mem.i16);
 
     rescale_pimpl->GetIOSizesAndOffsets(enc_param_size, inp_bias_offset, scale_offset, shift_offset, out_bias_offset);
 
@@ -1236,6 +1237,10 @@ int main() {
     };
 
 #ifdef USE_TILING
+    /**
+      * TODO: fix bug one test case fails in vpx dbg with assert
+      * "/lib/src/private\mli_prv_layout.h: Line 70: assert(pad_left >= 0 && pad_top >= 0 && out_h_idx >= 0 && out_w_idx >= 0) failed."
+      */
     const uint32_t tile_oc = 2;
     const uint32_t tile_hw = 2;
     uint32_t tile_input_size[4]{ input_size[0], tile_hw, tile_hw, input_size[3] };

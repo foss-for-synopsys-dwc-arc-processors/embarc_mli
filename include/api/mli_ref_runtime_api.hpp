@@ -116,9 +116,23 @@ public:
 
     mli_status Update() override;
 
+    // TODO: remove this method and replace with usage of Move kernel (not possible now)
+    void GetIOSizesAndOffsets(uint32_t input_size[kDepthwiseIORank], uint32_t output_size[kDepthwiseIORank],
+                              uint32_t weights_size[kDepthwiseWRank],
+                              int32_t input_offsets[kDepthwiseIORank], int32_t output_offsets[kDepthwiseIORank],
+                              int32_t weights_offsets[kDepthwiseWRank]);
 private:
-    // Data used in the runtime kernel
+    void UpdateTilePaddings();
+
+    // object with tensor iterators to update during tiling and get sizes for current tile state 
     DepthwiseConv2dMetadata m_metadata;
+
+    // current tile state
+    Tensor<InternalBuffer, kDepthwiseIORank> m_tile_input;
+    Tensor<InternalBuffer, kDepthwiseWRank> m_tile_weights;
+    Tensor<InternalBuffer, kDepthwiseIORank> m_tile_output;
+    DwConv2DConfig m_tile_cfg;
+    Tensor<InternalBuffer, kDepthwiseZPRank> m_tile_wzp;
 };
 
 /**
