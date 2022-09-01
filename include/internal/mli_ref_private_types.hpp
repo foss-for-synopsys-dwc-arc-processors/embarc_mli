@@ -309,6 +309,7 @@ public:
     Tensor<OffsetBuffer, 4> output;
 };
 
+
 class PermutePrivateData : public PrivateData {
 
 public:
@@ -348,6 +349,19 @@ public:
     TensorIterator<OffsetBuffer, kArgMaxOutRank, kArgMaxOutIterRank> output;
 };
 
+class MatMulPrivateData : public PrivateData {
+
+public:
+    MatMulPrivateData() : PrivateData(kMatMulId, sizeof(MatMulPrivateData)) {}
+
+    TensorIterator<OffsetBuffer, kMatMulRank, kMatMulIterRank> m_in_left;
+    TensorIterator<OffsetBuffer, kMatMulRank, kMatMulIterRank> m_in_right;
+    TensorIterator<OffsetBuffer, kMatMulRank, kMatMulIterRank> m_output;
+    
+    // Encoded input zero points
+    OffsetBuffer encoded_params;
+
+};
 } // namespace snps_arc::metaware::mli::ref
 
 #endif // _MLI_REF_PRIVATE_TYPES_HPP_

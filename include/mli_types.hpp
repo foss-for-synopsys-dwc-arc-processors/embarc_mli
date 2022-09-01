@@ -89,6 +89,8 @@ typedef enum {
 
 constexpr unsigned kReduceSumRank = 4;
 constexpr unsigned kReduceSumIterRank = 4;
+constexpr short int kMatMulRank = 2;
+constexpr short int kMatMulIterRank = 2;
 
 constexpr short int kArgMaxInRank = 4;
 constexpr short int kArgMaxInIterRank = 4;
@@ -123,6 +125,7 @@ typedef enum : uint32_t {
   kReduceSumId,
   kArgMaxId,
   kTableBuiltinId,
+  kMatMulId,
 } kernel_id_t;
 
 typedef enum class compression_mode_t {

@@ -32,6 +32,7 @@ using ref::ReduceMax;
 using ref::Permute;
 using ref::ArgMax;
 using ref::TableBuiltin;
+using ref::MatMul;
 
 ExecutionInterface* ExecutionInterface::Create(
         void* allocation_memory_buffer,
@@ -161,6 +162,15 @@ ExecutionInterface* ExecutionInterface::Create(
         //         MLI_PRINTF("\nMLI_ERROR: Insufficient space for [Permute] runtime object\n");
         //     }
         //     break;
+            case kMatMulId:
+            if(alloc_buf_size >= sizeof(MatMul)) {
+              // obj = new (allocation_memory_buffer) MatMul(kernel_private_data_buffer, private_data_size, membases, num_mems);
+                obj = nullptr; // until the implementation
+            break;
+            } else {
+                MLI_PRINTF("\nMLI_ERROR: Insufficient space for [MatMul] runtime object\n");
+            }
+            break;
         default:
             MLI_ASSERT(0);
             break;

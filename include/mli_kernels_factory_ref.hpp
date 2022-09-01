@@ -283,6 +283,15 @@ public:
                                     const TensorIterator<NoBuffer, kPermuteRank, kPermuteIterRank> out) override { 
         /* return new(kernel_buffer) lib_ref::Permute_CS(m_pd, in, cfg, out); */
         return nullptr;
+                                    }
+    uint32_t MatMul_CS_GetSize() const override { return 0 /*sizeof(lib_ref::MatMul_CS)*/; }
+
+    lib_mli::MatMul_CS* MatMul_CS(void *kernel_buffer,
+                            const TensorIterator<NoBuffer, kMatMulRank, kMatMulIterRank> &in_left,
+                            const TensorIterator<NoBuffer, kMatMulRank, kMatMulIterRank> &in_right,
+                            const TensorIterator<NoBuffer, kMatMulRank, kMatMulIterRank> &output) override {
+       /* return new(kernel_buffer) lib_ref::MatMul_CS(m_pd, in_left, in_right, output);*/
+       return nullptr;
     }
 
 private:

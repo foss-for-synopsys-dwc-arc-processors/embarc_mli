@@ -1115,6 +1115,42 @@ public:
                                            const OffsetBuffer &ctrl_buffer) = 0;
 };
 
+
+/**
+ * @brief This class implements the Matrix Multiply Compiler Support kernel interface
+ *
+ */
+class MatMul_CS : public CompilerGenericInterface {
+public:
+    virtual ~MatMul_CS() = default;
+
+    /**
+     * @brief Method to encode parameters (coefficients)
+     *
+     */
+    virtual mli_status EncodeParams(const Buffer &in_bias1, 
+                                    const Buffer &in_bias2,
+                                    const Buffer &encoded_params) = 0;
+
+    /**
+     * @brief Methods to set buffer offsets
+     * 
+     * The memory ID's are used to index the membases array that will be passed
+     * to the constructor of the runtime class. The offsets will added to the base
+     * addresses provided in the membase array during runtime.
+     * 
+     * @param input_left  [I]  input1 OffsetBuffer
+     * @param input_right [I]  input2 OffsetBuffer
+     * @param output      [I]  output OffsetBuffer
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input_left,
+                                           const OffsetBuffer &input_right,
+                                           const OffsetBuffer &output,
+                                           const OffsetBuffer &encoded_params,
+                                           const OffsetBuffer &ctrl_buffer) = 0;
+};
+
+
 } // namespace mli
 
 #endif // _MLI_COMPILER_API_HPP_

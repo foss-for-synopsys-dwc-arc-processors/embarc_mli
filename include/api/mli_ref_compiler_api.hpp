@@ -1047,6 +1047,53 @@ private:
 };
 
 
+class MatMul_CS : public lib_mli::MatMul_CS {
+public:
+
+    MatMul_CS();
+
+    /**
+     * @brief Constructor to create an MatMul compiler support object.
+     *
+     * This constructor can be used to create MAtMul compiler support
+     * object. This kernel computes matrix multiplication 
+     * of the two input tensors, inputs must be 2D.
+     *
+     * @param pd                [I] Platform description
+     * @param in_left           [I] First Input tensorIterator
+     * @param in_right          [I] Second Input tensorIterator
+     * @param output            [O] Output tensorIterator
+     */
+    MatMul_CS(const lib_mli::PlatformDescription &pd,
+              const TensorIterator<NoBuffer, kMatMulRank, kMatMulIterRank> &in_left,
+              const TensorIterator<NoBuffer, kMatMulRank, kMatMulIterRank> &in_right,
+              const TensorIterator<NoBuffer, kMatMulRank, kMatMulIterRank> &output);
+
+    // From CompilerGenericInterface
+    unsigned GetKernelPrivateDataSize() const override;
+    unsigned GetRuntimeObjectSize() const override;
+    mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
+    mli_status AttachBufferOffsets(const OffsetBuffer &input_left,
+                                   const OffsetBuffer &input_right,
+                                   const OffsetBuffer &output,
+                                   const OffsetBuffer &encoded_params,
+                                   const OffsetBuffer &ctrl_buffer) override;
+    // From MatMul_CS
+    mli_status EncodeParams(const Buffer &in_bias1, 
+                            const Buffer &in_bias2,
+                            const Buffer &encoded_params) override; 
+
+private:
+
+    TensorIterator<OffsetBuffer, kMatMulRank, kMatMulIterRank> m_in_left;
+    TensorIterator<OffsetBuffer, kMatMulRank, kMatMulIterRank> m_in_right;
+    TensorIterator<OffsetBuffer, kMatMulRank, kMatMulIterRank> m_output;
+
+    OffsetBuffer  m_encoded_params;
+
+    lib_mli::PlatformDescription m_pd;
+};
+
 } // namespace ref
 
 #endif // _MLI_REF_COMPILER_API_HPP_

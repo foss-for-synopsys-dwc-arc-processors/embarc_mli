@@ -58,6 +58,8 @@ public:
 
     virtual uint32_t Permute_CS_GetSize() const { return 0; }
 
+    virtual uint32_t MatMul_CS_GetSize() const { return 0; }
+
     /**
      * @brief Convolution 2D kernel Compiler Support interface factory
      * method
@@ -410,6 +412,10 @@ public:
                                                       const TableBuiltinConfig &cfg,
                                                       const TensorIterator<NoBuffer, kTableBuiltinIORank, kTableBuiltinIOIterRank> &out) { return nullptr; }
 
+    virtual lib_mli::MatMul_CS* MatMul_CS(void *kernel_buffer,
+                                          const TensorIterator<NoBuffer, kMatMulRank, kMatMulIterRank> &input_left,
+                                          const TensorIterator<NoBuffer, kMatMulRank, kMatMulIterRank> &input_right,
+                                          const TensorIterator<NoBuffer, kMatMulRank, kMatMulIterRank> &output) { return nullptr; }
     /**
      * @brief Transpose Convolution 2D kernel Compiler Support interface factory
      * method
