@@ -355,7 +355,7 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
     const lib_mli::Tensor<lib_mli::NoBuffer, kDepthwiseIORank> full_out_tensor(total_output_size, output_stride);
     lib_mli::TensorIterator<lib_mli::NoBuffer, kDepthwiseIORank, kDepthwiseIOIterRank> out_tensor_it(full_out_tensor, tile_output_size, iteration_order);
 
-    num_tiles = out_tensor_it.get_total_count();
+    num_tiles = out_tensor_it.GetTotalCount();
 #ifndef USE_TILING
     assert(num_tiles == 1);
 #endif

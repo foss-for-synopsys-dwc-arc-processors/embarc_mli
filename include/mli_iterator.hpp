@@ -768,7 +768,7 @@ class TensorIterator {
       return !m_tile_idx[dim_idx];
     }
 
-    uint32_t get_total_count() const {
+    uint32_t GetTotalCount() const {
       int32_t cnt = m_config.get_count(0);
       for (uint32_t i = 1; i < iterRank; i++) {
         cnt *= m_config.get_count(i);

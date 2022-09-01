@@ -564,26 +564,6 @@ public:
     virtual mli_status AttachBufferOffsets(const OffsetBuffer& input,
                                            const OffsetBuffer& output,
                                            const OffsetBuffer& ctrl_buffer)  = 0;
-    
-    /**
-     * @brief Set the Iterators object
-     *
-     * @deprected
-     * @param output_total_size [I] Size of full output tensor
-     * @param iteration_order [I] Array which defines the order of dimensions to iterate over
-     * @param input_first_inc [I] Increment in elements per dimension for the first tile in the input tensor
-     * @param input_inc [I] Increment in elements per dimension for all tiles except first one in the input tensor
-     * @param output_first_inc [I] Increment in elements per dimension for the first tile in the output tensor
-     * @param output_inc [I] Increment in elements per dimension for all tiles except first one in the output tensor
-     *
-     * @return MLI status code
-     */
-    virtual mli_status SetIterators(uint32_t output_total_size[kMaxpoolIterRank],
-                                    uint32_t iteration_order[kMaxpoolIterRank],
-                                    uint32_t input_first_inc[kMaxpoolIterRank],
-                                    uint32_t input_inc[kMaxpoolIterRank],
-                                    uint32_t output_first_inc[kMaxpoolIterRank],
-                                    uint32_t output_inc[kMaxpoolIterRank]) = 0;
 };
 
 /**

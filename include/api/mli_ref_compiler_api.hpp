@@ -369,16 +369,6 @@ public:
                                    const OffsetBuffer& output,
                                    const OffsetBuffer& ctrl_buffer) override;
 
-    /**
-      * @deprecated
-      */
-    mli_status SetIterators(uint32_t output_total_size[kMaxpoolIterRank],
-                            uint32_t iteration_order[kMaxpoolIterRank],
-                            uint32_t input_first_inc[kMaxpoolIterRank],
-                            uint32_t input_inc[kMaxpoolIterRank],
-                            uint32_t output_first_inc[kMaxpoolIterRank],
-                            uint32_t output_inc[kMaxpoolIterRank]) override;
-
 private:
     TensorIterator<OffsetBuffer, kMaxpoolRank, kMaxpoolIterRank> m_input;
     TensorIterator<OffsetBuffer, kMaxpoolRank, kMaxpoolIterRank> m_output;
