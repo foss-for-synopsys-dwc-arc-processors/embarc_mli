@@ -394,6 +394,32 @@ public:
     OffsetBuffer encoded_params;
 
 };
+
+struct PreluMetadata {
+    Tensor<InternalBuffer, kPreluRank> input;
+    Tensor<InternalBuffer, kPreluRank> output;
+    InternalBuffer in_bias;
+    InternalBuffer posscale;
+    InternalBuffer negscale;
+    InternalBuffer posshift;
+    InternalBuffer negshift;
+    InternalBuffer out_bias;
+    int32_t prelu_axis;
+};
+
+class PreluPrivateData : public PrivateData {
+
+public:
+    PreluPrivateData() : PrivateData(kPreluId, sizeof(PreluPrivateData)) {}
+    
+    int32_t prelu_axis;
+    OffsetBuffer encoded_params_buffer;
+    uint32_t tile_params_max_elem_num;
+
+    TensorIterator<OffsetBuffer, kPreluRank, kPreluIterRank> input;
+    TensorIterator<OffsetBuffer, kPreluRank, kPreluIterRank> output;
+};
+
 } // namespace snps_arc::metaware::mli::ref
 
 #endif // _MLI_REF_PRIVATE_TYPES_HPP_

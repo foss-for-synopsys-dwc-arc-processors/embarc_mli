@@ -1044,6 +1044,19 @@ mli_prv_get_conv2d_weights_tensor_hwc(
             weights.get_buf().get_ptr<std::remove_pointer_t<T>>(),
             width, height, in_ch, out_ch, col_mem_stride, row_mem_stride, in_ch_mem_stride, out_ch_mem_stride };
 }
+template <typename T, bool assign_ptr = true>
+static MLI_FORCE_INLINE generic_tensor_private_t<T> mli_prv_get_generic_tensor_internal(const Tensor<InternalBuffer, kPreluRank> &in)
+{
+    generic_tensor_private_t<T> tsr;
+    tsr.ptr = in.get_buf().get_ptr<std::remove_pointer_t<T>>();
+    tsr.rank = in.get_rank();
+    for(uint32_t i = 0; i < kPreluRank; i++) {
+        tsr.shape[i]      = (int)in.get_dim(i);
+        tsr.mem_stride[i] = in.get_mem_stride(i);
+    }
+
+    return tsr;
+}
 
 } // namespace snps_arc::metaware::mli
 

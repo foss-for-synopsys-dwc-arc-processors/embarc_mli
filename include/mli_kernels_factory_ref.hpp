@@ -50,14 +50,14 @@ public:
         return new(kernel_buffer) lib_ref::Conv2d_CS(m_pd, input, weights, weights_zp, cfg, output);
     }
 
-    uint32_t Prelu_CS_GetSize() const override { return 0 /*sizeof(lib_ref::Prelu_CS)*/; }
+    uint32_t Prelu_CS_GetSize() const override { return sizeof(lib_ref::Prelu_CS); }
 
     lib_mli::Prelu_CS* Prelu_CS(void *kernel_buffer,
-                                const Tensor<NoBuffer, 4> input_shape,
-                                const Tensor<NoBuffer, 4> output_tile_shape,
+                                const TensorIterator<NoBuffer, kPreluRank, kPreluIterRank> &input,
+                                const PreluOpConfig &cfg,
+                                const TensorIterator<NoBuffer, kPreluRank, kPreluIterRank> &output,
                                 int groups) override {
-        //return new(kernel_buffer) lib_ref::Prelu_CS(m_pd, input_shape, output_tile_shape, groups);
-        return nullptr;
+        return new(kernel_buffer) lib_ref::Prelu_CS(m_pd, input, cfg, output);
     }
 
     uint32_t Move_CS_GetSize() const override { return sizeof(lib_ref::Move_CS); }

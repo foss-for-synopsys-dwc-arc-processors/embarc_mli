@@ -386,6 +386,145 @@ static MLI_FORCE_INLINE mli_status prelu_sa8_run(const mli_tensor *in,
     return MLI_STATUS_OK;
 }
 
+template <typename o_T>
+static MLI_FORCE_INLINE o_T scale_value(
+        const int32_t in_val,
+        const int32_t in_bias,
+        const o_T out_bias,
+        const int16_t scale,
+        const int shift_right) {
+    constexpr int max_shift_right = 63;
+    constexpr int max_shift_left = -63;
+    int32_t shift = MAX(max_shift_left, MIN(shift_right, max_shift_right));
+
+    int32_t value = mli_math_sub_fx(in_val, in_bias);
+    int64_t scaled_value =
+    mli_math_mul_fx<int32_t, int64_t> (value, static_cast<int32_t>(scale));
+    scaled_value = mli_math_ashift_right_fx(scaled_value, shift);
+    scaled_value = mli_math_add_fx(scaled_value, static_cast<int64_t>(out_bias));
+    o_T result = mli_math_cast_fx<int64_t, o_T>(scaled_value, 0);
+    return result;
+}
+
+template <typename i_T, typename o_T>
+static MLI_FORCE_INLINE void compute_prelu_per_axis(
+        const generic_tensor_private_t<MLI_PTR(i_T)> &in_data,
+        const int32_t prelu_axis,
+        const i_T *in_bias,
+        const o_T *out_bias,
+        const int16_t *posscale,
+        const int16_t *negscale,
+        const int8_t *posshift,
+        const int8_t *negshift,
+        generic_tensor_private_t<MLI_OUT_PTR(o_T)> &out_data) {
+
+    MLI_ASSERT(prelu_axis < (int32_t)kPreluRank);
+    MLI_ASSERT(kPreluRank <=
+            sizeof(in_data.shape) / sizeof(in_data.shape[0]));
+    MLI_ASSERT(kPreluRank
+            <= sizeof(out_data.shape) / sizeof(out_data.shape[0]));
+
+    int pos[kPreluRank] = {0};
+    for (pos[0] = 0; pos[0] < in_data.shape[0]; pos[0]++) {
+        for (pos[1] = 0; pos[1] < in_data.shape[1]; pos[1]++) {
+            for (pos[2] = 0; pos[2] < in_data.shape[2]; pos[2]++) {
+                for (pos[3] = 0; pos[3] < in_data.shape[3]; pos[3]++) {
+                    const int param_idx = pos[prelu_axis];
+                    i_T in_val = mli_prv_tensor_read(in_data, pos[0], pos[1], pos[2], pos[3]);
+                    o_T out_val;
+                    if(in_val - in_bias[param_idx] >= 0) {
+                        out_val = scale_value(in_val, in_bias[param_idx],
+                                              out_bias[param_idx], posscale[param_idx],
+                                              posshift[param_idx]);
+                    } else {
+                        out_val = scale_value(in_val, in_bias[param_idx],
+                                              out_bias[param_idx], negscale[param_idx],
+                                              negshift[param_idx]);
+                    }
+                    mli_prv_tensor_write(out_val, out_data, pos[0], pos[1], pos[2], pos[3]);
+                }
+            }
+        }
+    }
+}
+
+template <typename i_T, typename o_T>
+static MLI_FORCE_INLINE void compute_prelu_per_tensor(
+        const generic_tensor_private_t<MLI_PTR(i_T)> &in_data,
+        const i_T in_bias,
+        const o_T out_bias,
+        const int16_t posscale,
+        const int16_t negscale,
+        const int8_t posshift,
+        const int8_t negshift,
+        generic_tensor_private_t<MLI_OUT_PTR(o_T)> &out_data) {
+
+    MLI_ASSERT(kPreluRank <=
+            sizeof(in_data.shape) / sizeof(in_data.shape[0]));
+    MLI_ASSERT(kPreluRank
+            <= sizeof(out_data.shape) / sizeof(out_data.shape[0]));
+
+    int pos[kPreluRank] = {0};
+    for (pos[0] = 0; pos[0] < in_data.shape[0]; pos[0]++) {
+        for (pos[1] = 0; pos[1] < in_data.shape[1]; pos[1]++) {
+            for (pos[2] = 0; pos[2] < in_data.shape[2]; pos[2]++) {
+                for (pos[3] = 0; pos[3] < in_data.shape[3]; pos[3]++) {
+                    i_T in_val = mli_prv_tensor_read(in_data, pos[0], pos[1], pos[2], pos[3]);
+                    o_T out_val;
+                    if(in_val - in_bias >= 0) {
+                        out_val = scale_value(in_val, in_bias,
+                                              out_bias, posscale, posshift);
+                    } else {
+                        out_val = scale_value(in_val, in_bias,
+                                              out_bias, negscale, negshift);
+                    }
+                    mli_prv_tensor_write(out_val, out_data, pos[0], pos[1], pos[2], pos[3]);
+                }
+            }
+        }
+    }
+}
+
+template <typename i_T, typename o_T>
+mli_status MLI_FORCE_INLINE mli_krn_prelu(Tensor<InternalBuffer, kPreluRank> &in,
+                                          InternalBuffer &bias_in,
+                                          InternalBuffer &posscale,
+                                          InternalBuffer &negscale,
+                                          InternalBuffer &posshift,
+                                          InternalBuffer &negshift,
+                                          InternalBuffer &bias_out,
+                                          const int32_t prelu_axis,
+                                          Tensor<InternalBuffer, kPreluRank> &out) {
+    const auto in_prv = mli_prv_get_generic_tensor_internal<MLI_PTR(i_T)>(in);
+    auto out_prv = mli_prv_get_generic_tensor_internal<MLI_OUT_PTR(o_T)>(out);
+    if (prelu_axis < 0) {
+        // Asserts are in checkers
+        const i_T in_bias_val = bias_in.read<i_T>(0);
+        const o_T out_bias_val = bias_out.read<i_T>(0);
+
+        const int16_t posscale_val = posscale.read<int16_t>(0);
+        const int16_t negscale_val = negscale.read<int16_t>(0);
+        const int8_t posshift_val = posshift.read<int8_t>(0);
+        const int8_t negshift_val = negshift.read<int8_t>(0);
+        
+        compute_prelu_per_tensor(in_prv, in_bias_val, out_bias_val,
+                                   posscale_val, negscale_val, posshift_val, negshift_val, out_prv);
+    } else {
+        // Asserts are in checkers
+        const i_T *in_bias_ptr = bias_in.get_ptr<i_T>();
+        const o_T *out_bias_ptr = bias_out.get_ptr<o_T>();
+
+        const int8_t *posshift_ptr = posshift.get_ptr<int8_t>();
+        const int8_t *negshift_ptr = negshift.get_ptr<int8_t>();
+        const int16_t *posscale_ptr = posscale.get_ptr<int16_t>();
+        const int16_t *negscale_ptr = negscale.get_ptr<int16_t>();
+        compute_prelu_per_axis(in_prv, prelu_axis, in_bias_ptr, out_bias_ptr,
+                                 posscale_ptr, negscale_ptr, posshift_ptr, negshift_ptr, out_prv);
+    }
+
+    return MLI_STATUS_OK;
+}
+
 } // namespace ref
 } // namespace krn
 } // namespace mli

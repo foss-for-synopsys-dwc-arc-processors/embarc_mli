@@ -269,31 +269,34 @@ class Prelu_CS : public CompilerGenericInterface {
 public:
 
     /**
-     * @brief Method to encode the weights (coefficients)
+     * @brief Method to encode the parameters
      *
-     * This method will read the weights buffer in a platform independent layout
+     * This method will read the different parameters buffer in a platform independent layout
      * and translate it into a buffer that can be easily read by the platform specific
      * kernel implementation.
      * This transformation may include compression
-     * The content of the encode_weights buffer is opaque for the user.
+     * The content of the encode_params buffer is opaque for the user.
      *
-     * @param weights [I] tensor with the weights
-     * @param buffer_t[I] buffer pointer where the encode function can write the encoded weights
-     *
-     * TODO: how to handle sliding in the output channel dimension? is this weights encoding for the complete 'thing' or just for this slide?
+     * @param bias [I] tensor with the input bias
+     * @param posscale[I] tensor with the positive scale
+     * @param negscale[I] tensor with the negative scale
+     * @param posshift[I] tensor with the positive shift
+     * @param negshift[I] tensor with the negative shift
+     * @param asymm[I] tensor with the output bias
+     * @param encoded_params[I] encoded parameters buffer
      */
-    virtual mli_status EncodeParams(Tensor<Buffer, 2> bias,
-                            Tensor<Buffer, 2> posscale,
-                            Tensor<Buffer, 2> negscale,
-                            Tensor<Buffer, 2> posshift,
-                            Tensor<Buffer, 2> negshift,
-                            Tensor<Buffer, 2> asymm,
-                            Buffer encoded_params) = 0;
+    virtual mli_status EncodeParams(Tensor<Buffer, kPreluParamRank> &bias,
+                                    Tensor<Buffer, kPreluParamRank> &posscale,
+                                    Tensor<Buffer, kPreluParamRank> &negscale,
+                                    Tensor<Buffer, kPreluParamRank> &posshift,
+                                    Tensor<Buffer, kPreluParamRank> &negshift,
+                                    Tensor<Buffer, kPreluParamRank> &asymm,
+                                    Buffer &encoded_params) = 0;
 
     /**
-     * @brief Method to query the size of the encoded weights buffer
+     * @brief Method to query the size of the encoded parameters buffer
      *
-     * This function returns the size of the buffer that is needed by the encodeweights method
+     * This function returns the size of the buffer that is needed by the EncodeParams method
      */
     virtual unsigned GetEncodedParamsSize() = 0;
 
@@ -306,12 +309,16 @@ public:
      *
      * TODO: should we have a function per buffer, or one function that returns an array of sizes for all buffers?
      */
-
-    virtual unsigned GetInputBufferSize() = 0;
-    virtual unsigned GetOutputBufferSize() = 0;
+    /**
+     * @deprecated
+     */
+    virtual unsigned GetInputBufferSize() { return 0; }
+    virtual unsigned GetOutputBufferSize() { return 0; }
     virtual unsigned GetParamsBufferSize() = 0;
+
     /**
      * @brief Methods to set buffer offsets
+     * @deprecated
      *
      * Compiler computes a memory map and buffer offsets are set using this method.
      * Compiler also needs to indicate in which memory the buffers reside.
@@ -322,17 +329,33 @@ public:
      * the weights buffer passed to the encode_weights function is in compiler memoryspace because the
      * encode function will write the encoded weights data there.
      */
-    virtual mli_status AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
-                                           Tensor<OffsetBuffer, 4> &output,
+    virtual mli_status AttachBufferOffsets(Tensor<OffsetBuffer, kPreluRank> &input,
+                                           Tensor<OffsetBuffer, kPreluRank> &output,
                                            OffsetBuffer &params,
-                                           OffsetBuffer &ctrl_buffer) = 0;
+                                           OffsetBuffer &ctrl_buffer) { return MLI_STATUS_OK; }
 
-    // mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override ;
-    // unsigned GetKernelPrivateDataSize() override ;
-    // unsigned GetRuntimeObjectSize() override ;
+    /**
+     * @brief Method to set buffer memory offsets and memory IDs for the kernel
+     * 
+     * The memory ID's are used to index the membases array that will be passed
+     * to the constructor of the runtime class. The offsets will added to the base
+     * addresses provided in the membase array during runtime.
+     *
+     * @param input [I] Tensor descriptor containing input OffsetBuffer
+     * @param output [I] Tensor descriptor containing output OffsetBuffer
+     * @param params [I] Tensor descriptor containing paramters OffsetBuffer
+     * @param ctrl_buffer [I] Tensor descriptor containing descriptor data OffsetBuffer
+     * 
+     * @return MLI status code
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                           const OffsetBuffer &output,
+                                           const OffsetBuffer &params,
+                                           const OffsetBuffer &ctrl_buffer) { return MLI_STATUS_OK; }
 
     /**
      * @brief Method to set iteration information used in the .Update()
+     * @deprecated
      *
      * NOTE: the use of this method is optional. if there is a single tile, and the .Update() is not used,
      *       this data doesn't need to be set.     
@@ -349,7 +372,7 @@ public:
                                     uint32_t input_first_inc[4],
                                     uint32_t input_inc[4],
                                     uint32_t output_first_inc[4],
-                                    uint32_t output_inc[4]) = 0;
+                                    uint32_t output_inc[4]) { return MLI_STATUS_OK; }
 };
 
 

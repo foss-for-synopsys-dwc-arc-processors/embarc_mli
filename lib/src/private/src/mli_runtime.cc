@@ -34,6 +34,7 @@ using ref::ArgMax;
 using ref::TableBuiltin;
 using ref::MatMul;
 using ref::ReduceSum;
+using ref::Prelu;
 
 ExecutionInterface* ExecutionInterface::Create(
         void* allocation_memory_buffer,
@@ -70,7 +71,11 @@ ExecutionInterface* ExecutionInterface::Create(
             }
             break;
         case kPreluId:
-            MLI_ASSERT(0);
+            if(alloc_buf_size >= sizeof(Prelu)) {
+                obj = new (allocation_memory_buffer) Prelu(kernel_private_data_buffer, private_data_size, membases, num_mems);
+            } else {
+                MLI_PRINTF("\nMLI_ERROR: Insufficient space for [Prelu] runtime object\n");
+            }
             break;
         case kAddId:
             if(alloc_buf_size >= sizeof(Add)) {

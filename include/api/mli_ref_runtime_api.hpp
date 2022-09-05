@@ -760,6 +760,57 @@ private:
 };
 
 /**
+ * @brief This class implements the PReLU kernel xop interpreter interface
+ *
+ *
+ */
+class Prelu : public ExecutionInterface {
+  public:
+    /**
+     * @brief constructor for the Prelu
+     *
+     * This Method will create and initialize the object using the information
+     * stored in the kernel_private_data_buffer that has been computed at compile time
+     * by the get_kernel_private_data() method.
+     *
+     * @param kernel_private_data_buffer [I] pointer to the compiletime computed initialization data
+     * @param size        [I] Size of the data is used to check for coding errors
+     * @param membases[]  [I] The kernel private data may contain offsets inside a (vector) memory.
+     *                        At run-time specific locations in memory are allocated for
+     *                        the graph, the membase array contains the start of
+     *                        each memory region.
+     *                        The init method will add this base to all the memory offsets
+     *                        inside the descriptor according to the memory number associated
+     *                        with that offset.
+     *                        Each platform can have different (number of) memories. For mli
+     *                        this is completely transparant. Compiler needs to use the same
+     *                        memory id's when attaching the buffers as are used by the
+     *                        xop-interpreter to set the membases.
+     */
+    Prelu(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
+
+    mli_status Issue() override;
+
+    mli_status Prefetch() override;
+
+    mli_status Update() override;
+
+    void GetIOSizesAndOffsets(uint32_t &enc_param_size, uint32_t &inp_bias_offset, 
+                              uint32_t &posscale_offset, uint32_t &negscale_offset,
+                              uint32_t &posshift_offset, uint32_t &negshift_offset, 
+                              uint32_t &out_bias_offset) const;
+
+private:
+
+    TensorIterator<OffsetBuffer, kPreluRank, kPreluIterRank> m_input;
+    TensorIterator<OffsetBuffer, kPreluRank, kPreluIterRank> m_output;
+    
+    PreluMetadata m_tile_metadata;
+    uint32_t m_tile_param_max_size;
+};
+
+
+/**
  * @brief This class implements the ReduceSum kernel xop interpreter interface
  *
  *

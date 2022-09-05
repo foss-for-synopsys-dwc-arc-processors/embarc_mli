@@ -45,6 +45,7 @@ using mli::krn::ref::compute_prelu_no_broadcast;
 using mli::krn::ref::compute_prelu_broadcast;
 using mli::krn::ref::prelu_fx_run;
 using mli::krn::ref::prelu_sa8_run;
+using mli::krn::ref::mli_krn_prelu;
 
 #endif
 } // namespace krn

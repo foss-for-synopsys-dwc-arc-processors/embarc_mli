@@ -60,8 +60,8 @@ using lib_mli::kTensorChannelDim;
 using lib_mli::kKernelChannelOutDim;
 using lib_mli::kClipRank;
 using lib_mli::kClipIterRank;
-using lib_mli::kRescaleRank;
-using lib_mli::kRescaleIterRank;
+using lib_mli::kPreluRank;
+using lib_mli::kPreluIterRank;
 
 struct conv2d_test_operands {
     const char* descr;
@@ -260,9 +260,9 @@ struct Conv2dOp {
   uint32_t conv2d_conf_private_size{0};
 };
 
-struct RescaleOp {
-  // Rescale Kernel
-  RescaleOp(const conv2d_test_operands* cur_test, const mli_tensor& input, const mli_tensor& weights) {
+struct PreluOp {
+  // Prelu Kernel
+  PreluOp(const conv2d_test_operands* cur_test, const mli_tensor& input, const mli_tensor& weights) {
     mem_b_keeper = memory_manager((int8_t*)(g_scratch_mem_b), sizeof(g_scratch_mem_b));
     mem_bias_out_keeper =  memory_manager ((int8_t*)(g_scratch_mem_bias_out), sizeof(g_scratch_mem_bias_out));
     mem_out_keeper =  memory_manager ((int8_t*)(g_scratch_mem_out), sizeof(g_scratch_mem_out));
@@ -308,10 +308,10 @@ struct RescaleOp {
   scales_calc mli3_scales_keeper;
 
   // additional params for MLI3 runtime
-  void* rescale_instance;
-  uint32_t rescale_instance_size;
-  void* rescale_conf_private;
-  uint32_t rescale_conf_private_size;
+  void* prelu_instance;
+  uint32_t prelu_instance_size;
+  void* prelu_conf_private;
+  uint32_t prelu_conf_private_size;
 };
 
 struct ClipOp {
@@ -394,10 +394,9 @@ mli_minmax_t get_val_limit(mli_tensor *out, const mli_relu_cfg *cfg) {
     return val_limit;
 }
 
-
 bool preprocess_phase(const reporter_full& reporter,
                       const conv2d_test_operands* cur_test,
-                      const Conv2dOp& conv2d_op, const RescaleOp& rs_op,
+                      const Conv2dOp& conv2d_op, const PreluOp& pr_op,
                       const ClipOp& clp_op) {
     bool is_test_passed = true;
 
@@ -411,20 +410,20 @@ bool preprocess_phase(const reporter_full& reporter,
         (tensor_quantizer::validate_tensor(conv2d_op.input) != tensor_quantizer::kOk ||
          tensor_quantizer::validate_tensor(conv2d_op.weights) != tensor_quantizer::kOk||
          tensor_quantizer::validate_tensor(conv2d_op.out_acc) != tensor_quantizer::kOk ||
-         tensor_quantizer::validate_tensor(rs_op.bias_out) != tensor_quantizer::kOk ||
-         tensor_quantizer::validate_tensor(rs_op.mli3_bias.get_bias_tsr()) != tensor_quantizer::kOk ||
-         tensor_quantizer::validate_tensor(rs_op.mli3_scales_keeper.get_scales_tsr()) != tensor_quantizer::kOk ||
-         tensor_quantizer::validate_tensor(rs_op.mli3_scales_keeper.get_shift_tsr()) != tensor_quantizer::kOk ||
-         tensor_quantizer::validate_tensor(rs_op.out) != tensor_quantizer::kOk)) {
+         tensor_quantizer::validate_tensor(pr_op.bias_out) != tensor_quantizer::kOk ||
+         tensor_quantizer::validate_tensor(pr_op.mli3_bias.get_bias_tsr()) != tensor_quantizer::kOk ||
+         tensor_quantizer::validate_tensor(pr_op.mli3_scales_keeper.get_scales_tsr()) != tensor_quantizer::kOk ||
+         tensor_quantizer::validate_tensor(pr_op.mli3_scales_keeper.get_shift_tsr()) != tensor_quantizer::kOk ||
+         tensor_quantizer::validate_tensor(pr_op.out) != tensor_quantizer::kOk)) {
       reporter.report_message(cur_test->descr,
                   "FAILED at quantization step: more memory for one of tensors might be required");
       is_test_passed = false;
     }
 
     if (is_test_passed &&
-        (conv2d_op.mem_in_keeper.is_memory_corrupted() || rs_op.mem_out_keeper.is_memory_corrupted() ||
-         conv2d_op.mem_out_acc_keeper.is_memory_corrupted() || rs_op.mem_bias_out_keeper.is_memory_corrupted() ||
-         conv2d_op.mem_w_keeper.is_memory_corrupted() || rs_op.mem_b_keeper.is_memory_corrupted())) {
+        (conv2d_op.mem_in_keeper.is_memory_corrupted() || pr_op.mem_out_keeper.is_memory_corrupted() ||
+         conv2d_op.mem_out_acc_keeper.is_memory_corrupted() || pr_op.mem_bias_out_keeper.is_memory_corrupted() ||
+         conv2d_op.mem_w_keeper.is_memory_corrupted() || pr_op.mem_b_keeper.is_memory_corrupted())) {
       reporter.report_message(cur_test->descr,
         "FAILED at quantization step: memory beside one of operands is corrupted");
       is_test_passed = false;
@@ -443,7 +442,7 @@ static void hwc_to_bhwc(const T src[4], T dst[4], T b_val) {
 
 void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
                   int32_t iteration_order[kConvIOIterRank],
-                  Conv2dOp& cnv_op, RescaleOp &rs_op, ClipOp &clp_op) {
+                  Conv2dOp& cnv_op, PreluOp &pr_op, ClipOp &clp_op) {
 
   // BHWC layout
   int32_t count[kConvIOIterRank];
@@ -581,46 +580,46 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   lib_mli::TensorIterator<lib_mli::NoBuffer, kConvZPRank, kConvZPIterRank> wzp_tensor_it(wzp_tensor, wzp_it_config);
   auto conv2d_op = kernel_factory.Conv2d_CS(conv2d_cs_buffer, in_tensor_it, w_tensor_it, wzp_tensor_it, cfg, out_tensor_it);
 
-  // STEP 1.1.2: Construct [Rescale] as a specific ExecutionInterface successor
+  // STEP 1.1.2: Construct [Prelu] as a specific ExecutionInterface successor
   //==================================================================
 
-  mli_tensor &rs_input_tsr = cnv_op.out_acc;
-  mli_tensor &rs_output_tsr = rs_op.out;
+  mli_tensor &pr_input_tsr = cnv_op.out_acc;
+  mli_tensor &pr_output_tsr = pr_op.out;
 
-  void* &rescale_instance = rs_op.rescale_instance;
-  uint32_t &rescale_instance_size = rs_op.rescale_instance_size;
-  void* &rescale_conf_private = rs_op.rescale_conf_private;
-  uint32_t &rescale_conf_private_size = rs_op.rescale_conf_private_size;
+  void* &prelu_instance = pr_op.prelu_instance;
+  uint32_t &prelu_instance_size = pr_op.prelu_instance_size;
+  void* &prelu_conf_private = pr_op.prelu_conf_private;
+  uint32_t &prelu_conf_private_size = pr_op.prelu_conf_private_size;
 
   for (int i = 0; i < 3; i++) {
-    assert(rs_input_tsr.shape[i] == total_output_size[1 + i]);
-    assert(rs_input_tsr.mem_stride[i] == output_stride[1 + i]);
-    assert(rs_output_tsr.shape[i] == total_output_size[1 + i]);
-    assert(rs_output_tsr.mem_stride[i] == output_stride[1 + i]);
+    assert(pr_input_tsr.shape[i] == total_output_size[1 + i]);
+    assert(pr_input_tsr.mem_stride[i] == output_stride[1 + i]);
+    assert(pr_output_tsr.shape[i] == total_output_size[1 + i]);
+    assert(pr_output_tsr.mem_stride[i] == output_stride[1 + i]);
   }
 
-  const lib_mli::Tensor<lib_mli::NoBuffer, kRescaleRank> input_tensor(total_output_size, output_stride);
-  const lib_mli::Tensor<lib_mli::NoBuffer, kRescaleRank> output_tensor(tile_output_shape, output_stride);
+  const lib_mli::Tensor<lib_mli::NoBuffer, kPreluRank> input_tensor(total_output_size, output_stride);
+  const lib_mli::Tensor<lib_mli::NoBuffer, kPreluRank> output_tensor(tile_output_shape, output_stride);
 
-  uint32_t rescale_cs_size = kernel_factory.Rescale_CS_GetSize();
-  void* rescale_cs_buffer = malloc(rescale_cs_size);
+  uint32_t prelu_cs_size = kernel_factory.Prelu_CS_GetSize();
+  void* prelu_cs_buffer = malloc(prelu_cs_size);
 
-  lib_mli::RescaleConfig rs_cfg;
-  if (mli_hlp_count_elem_num(&rs_op.mli3_scales_keeper.get_scales_tsr(), 0) == 1) {
-      rs_cfg.axis = -1;
+  lib_mli::PreluOpConfig pr_cfg;
+  if (mli_hlp_count_elem_num(&pr_op.mli3_scales_keeper.get_scales_tsr(), 0) == 1) {
+      pr_cfg.axis = -1;
   } else {
-      rs_cfg.axis = kTensorChannelDim;
+      pr_cfg.axis = kTensorChannelDim;
   }
 
-  assert(kRescaleRank == kConvIORank);
-  assert(kRescaleIterRank == kConvIOIterRank);
-  auto rescale_op = kernel_factory.Rescale_CS(rescale_cs_buffer, out_tensor_it, rs_cfg, out_tensor_it);
+  assert(kPreluRank == kConvIORank);
+  assert(kPreluIterRank == kConvIOIterRank);
+  auto prelu_op = kernel_factory.Prelu_CS(prelu_cs_buffer, out_tensor_it, pr_cfg, out_tensor_it, /*groups = */ 1);
 
   // STEP 1.1.3: Construct [Clip] as a specific ExecutionInterface successor
   //==================================================================
 
-  mli_tensor &clip_input_tsr = rs_op.original_out;
-  mli_tensor &clip_output_tsr = rs_op.original_out;
+  mli_tensor &clip_input_tsr = pr_op.original_out;
+  mli_tensor &clip_output_tsr = pr_op.original_out;
   void* &clip_instance = clp_op.clip_instance;
   uint32_t &clip_instance_size = clp_op.clip_instance_size;
   lib_mli::PrivateData* &clip_conf_private = clp_op.clip_conf_private;
@@ -705,46 +704,46 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
                                           conv2d_ctrl_buf);
   assert(status == MLI_STATUS_OK);
 
-  // STEP 1.2.2: [Rescale] Memory management (Up to user on how to deal with it)
+  // STEP 1.2.2: [Prelu] Memory management (Up to user on how to deal with it)
   //==================================================================
 
   // Define buffers for in\out tensors
   // Leave space for runtime object
-  uint32_t* rs_offset = &offsets[0];
-  int8_t* rs_runtime_obj_addr = (int8_t*)g_mem_pool + offsets[0];
-  uint32_t rs_runtime_obj_size = rescale_op->GetRuntimeObjectSize();
-  *rs_offset += rs_runtime_obj_size;
+  uint32_t* pr_offset = &offsets[0];
+  int8_t* pr_runtime_obj_addr = (int8_t*)g_mem_pool + offsets[0];
+  uint32_t pr_runtime_obj_size = prelu_op->GetRuntimeObjectSize();
+  *pr_offset += pr_runtime_obj_size;
 
   // Leave space for private data buffer
-  uint32_t rs_private_buffer_size = rescale_op->GetKernelPrivateDataSize();
-  *rs_offset += rs_private_buffer_size;
+  uint32_t pr_private_buffer_size = prelu_op->GetKernelPrivateDataSize();
+  *pr_offset += pr_private_buffer_size;
 
-  // rescale input = conv output
-  uint32_t input_elem_size = mli_hlp_tensor_element_size(&rs_input_tsr);
-  uint32_t rs_in_size = conv_out_size_in_elements * input_elem_size;
-  lib_mli::OffsetBuffer rescale_in_buf { conv2d_out_buf.get_offset(), 0, rs_in_size, input_elem_size };
+  // prelu input = conv output
+  uint32_t input_elem_size = mli_hlp_tensor_element_size(&pr_input_tsr);
+  uint32_t pr_in_size = conv_out_size_in_elements * input_elem_size;
+  lib_mli::OffsetBuffer prelu_in_buf { conv2d_out_buf.get_offset(), 0, pr_in_size, input_elem_size };
 
-  // rescale output
-  uint32_t output_elem_size = mli_hlp_tensor_element_size(&rs_output_tsr);
-  uint32_t rs_out_size = conv_out_size_in_elements * output_elem_size;
-  lib_mli::OffsetBuffer rescale_out_buf { *rs_offset, 0, rs_out_size, output_elem_size };
-  *rs_offset += rs_out_size;
+  // prelu output
+  uint32_t output_elem_size = mli_hlp_tensor_element_size(&pr_output_tsr);
+  uint32_t pr_out_size = conv_out_size_in_elements * output_elem_size;
+  lib_mli::OffsetBuffer prelu_out_buf { *pr_offset, 0, pr_out_size, output_elem_size };
+  *pr_offset += pr_out_size;
 
-  // rescale params
-  uint32_t encoded_params_size = rescale_op->GetEncodedParamsSize();
-  lib_mli::OffsetBuffer encoded_params_buf { *rs_offset, 0, encoded_params_size,
+  // prelu params
+  uint32_t encoded_params_size = prelu_op->GetEncodedParamsSize();
+  lib_mli::OffsetBuffer encoded_params_buf { *pr_offset, 0, encoded_params_size,
                                               sizeof(int8_t) };
-  *rs_offset += encoded_params_size;
+  *pr_offset += encoded_params_size;
 
   // DataBuffer size is 0 for reference kernel
-  assert(rescale_op->GetCtrlBufferSize() == 0);
-  lib_mli::OffsetBuffer rescale_ctrl_buf { *rs_offset, 0, 0, sizeof(char) };
-  assert(*rs_offset <= kMemPoolSize);
+  assert(prelu_op->GetCtrlBufferSize() == 0);
+  lib_mli::OffsetBuffer prelu_ctrl_buf { *pr_offset, 0, 0, sizeof(char) };
+  assert(*pr_offset <= kMemPoolSize);
 
-  status = rescale_op->AttachBufferOffsets(rescale_in_buf,
-                                           rescale_out_buf,
+  status = prelu_op->AttachBufferOffsets(prelu_in_buf,
+                                           prelu_out_buf,
                                            encoded_params_buf,
-                                           rescale_ctrl_buf);
+                                           prelu_ctrl_buf);
   assert(status == MLI_STATUS_OK);
 
   // STEP 1.2.3: [Clip] Memory management (Up to user on how to deal with it)
@@ -760,10 +759,10 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   uint32_t clip_private_buffer_size = clip_op->GetKernelPrivateDataSize();
   *clip_offset += clip_private_buffer_size;
 
-  // clip input = rescale output
+  // clip input = prelu output
   uint32_t clip_input_elem_size = mli_hlp_tensor_element_size(&clip_input_tsr);
   uint32_t clip_in_size = conv_out_size_in_elements * clip_input_elem_size;
-  lib_mli::OffsetBuffer clip_in_buf{rescale_out_buf.get_offset(), 0, clip_in_size, clip_input_elem_size};
+  lib_mli::OffsetBuffer clip_in_buf{prelu_out_buf.get_offset(), 0, clip_in_size, clip_input_elem_size};
 
   // clip output
   uint32_t clip_output_elem_size = mli_hlp_tensor_element_size(&clip_output_tsr);
@@ -838,14 +837,14 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   cnv_op.conv2d_conf_private_size = conv2d_op->GetKernelPrivateDataSize();
   assert(status == MLI_STATUS_OK);
 
-  // Compile Rescale into the binary data
+  // Compile prelu into the binary data
   //==================================================================
-  rescale_instance = rs_runtime_obj_addr;
-  rescale_instance_size = rescale_op->GetRuntimeObjectSize();
-  rescale_conf_private = rs_runtime_obj_addr + rescale_instance_size;
-  rescale_conf_private_size = rescale_op->GetKernelPrivateDataSize();
+  prelu_instance = pr_runtime_obj_addr;
+  prelu_instance_size = prelu_op->GetRuntimeObjectSize();
+  prelu_conf_private = pr_runtime_obj_addr + prelu_instance_size;
+  prelu_conf_private_size = prelu_op->GetKernelPrivateDataSize();
 
-  status = rescale_op->GetKernelPrivateData(rescale_conf_private);
+  status = prelu_op->GetKernelPrivateData(prelu_conf_private);
 
   assert(status == MLI_STATUS_OK);
 
@@ -853,7 +852,7 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   //==================================================================
   // Copy min data to the shared memory pool
   mli_minmax_t val_limit;
-  val_limit = get_val_limit(&rs_op.out, &cur_test->cfg.relu);
+  val_limit = get_val_limit(&pr_op.out, &cur_test->cfg.relu);
 
   int8_t * clp_host_src_buf = (int8_t*) malloc(clip_encoded_params_size);
   int8_t * clp_host_dst_buf = (int8_t*) malloc(clip_encoded_params_size);
@@ -901,7 +900,7 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   assert(status == MLI_STATUS_OK);
 
   free(conv2d_cs_buffer);
-  free(rescale_cs_buffer);
+  free(prelu_cs_buffer);
   free(clip_cs_buffer);
   free(host_buf_a);
   free(host_buf_b);
@@ -910,7 +909,7 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
 }
 
 
-void execution_phase(Conv2dOp& cnv_op, RescaleOp &rs_op, ClipOp &clp_op, uint32_t tiles_num) {
+void execution_phase(Conv2dOp& cnv_op, PreluOp &pr_op, ClipOp &clp_op, uint32_t tiles_num) {
   // STEP 3: Execution phase
   //==================================================================
 
@@ -923,11 +922,11 @@ void execution_phase(Conv2dOp& cnv_op, RescaleOp &rs_op, ClipOp &clp_op, uint32_
                     cnv_op.conv2d_conf_private_size,
                     membasis, sizeof(membasis) / sizeof(membasis[0]));
 
-  auto mli_rescale = lib_mli::ExecutionInterface::Create(
-                        rs_op.rescale_instance,
-                        rs_op.rescale_instance_size,
-                        rs_op.rescale_conf_private,
-                        rs_op.rescale_conf_private_size,
+  auto mli_prelu = lib_mli::ExecutionInterface::Create(
+                        pr_op.prelu_instance,
+                        pr_op.prelu_instance_size,
+                        pr_op.prelu_conf_private,
+                        pr_op.prelu_conf_private_size,
                         membasis, sizeof(membasis) / sizeof(membasis[0]));
 
   auto mli_clip = lib_mli::ExecutionInterface::Create(
@@ -938,14 +937,14 @@ void execution_phase(Conv2dOp& cnv_op, RescaleOp &rs_op, ClipOp &clp_op, uint32_
                       membasis, sizeof(membasis) / sizeof(membasis[0]));
 
   assert(mli_conv != nullptr);
-  assert(mli_rescale != nullptr);
+  assert(mli_prelu != nullptr);
   assert(mli_clip != nullptr);
 
 
   lib_ref::Conv2d* mli_conv2d_pimpl = dynamic_cast<lib_ref::Conv2d*>(mli_conv);
-  lib_ref::Rescale* rescale_pimpl = dynamic_cast<lib_ref::Rescale*>(mli_rescale);
+  lib_ref::Prelu* prelu_pimpl = dynamic_cast<lib_ref::Prelu*>(mli_prelu);
   lib_ref::Conv2DPrivateData * conv2d_private = (lib_ref::Conv2DPrivateData*)(cnv_op.conv2d_conf_private);
-  lib_ref::RescalePrivateData * rescale_private = (lib_ref::RescalePrivateData*)(rs_op.rescale_conf_private);
+  lib_ref::PreluPrivateData * prelu_private = (lib_ref::PreluPrivateData*)(pr_op.prelu_conf_private);
   lib_ref::ClipPrivateData * clip_private = (lib_ref::ClipPrivateData*)(clp_op.clip_conf_private);
  
   int32_t tile_input_strides[kConvIORank]{};
@@ -962,7 +961,7 @@ void execution_phase(Conv2dOp& cnv_op, RescaleOp &rs_op, ClipOp &clp_op, uint32_
   int32_t output_tile_offsets[kConvIOIterRank];
   int32_t weights_tile_offsets[kConvWIterRank];
   const int32_t zero_offsets[kConvWIterRank]{};
-  uint32_t enc_param_size = 0, inp_bias_offset = 0, scale_offset = 0, shift_offset = 0, out_bias_offset = 0;
+  uint32_t enc_param_size = 0, inp_bias_offset = 0, posscale_offset = 0, negscale_offset = 0, posshift_offset = 0, negshift_offset = 0, out_bias_offset = 0;
 
   mli_status status = MLI_STATUS_OK;
   for (uint32_t i = 0; i < tiles_num; ++i) {
@@ -989,23 +988,31 @@ void execution_phase(Conv2dOp& cnv_op, RescaleOp &rs_op, ClipOp &clp_op, uint32_
     }
     else std::fill_n(wtszp_tile_buf, wzp_tile_buf_size / sizeof(int8_t), (int8_t) cnv_op.weights.el_params.sa.zero_point.mem.i16);
 
-    rescale_pimpl->GetIOSizesAndOffsets(enc_param_size, inp_bias_offset, scale_offset, shift_offset, out_bias_offset);
+    prelu_pimpl->GetIOSizesAndOffsets(enc_param_size, inp_bias_offset, posscale_offset, negscale_offset, posshift_offset, negshift_offset, out_bias_offset);
 
-    // copy rescale input bias from global to local buffer
-    memcpy((void*)(g_mem_pool + rescale_private->encoded_params_buffer.get_offset() + inp_bias_offset),
-           (void*)(rs_op.mli3_bias.get_bias_tsr().data.mem.pi32 + output_tile_offsets[3]), sizeof(int32_t) * enc_param_size);
+    // copy prelu input bias from global to local buffer
+    memcpy((void*)(g_mem_pool + prelu_private->encoded_params_buffer.get_offset() + inp_bias_offset),
+           (void*)(pr_op.mli3_bias.get_bias_tsr().data.mem.pi32 + output_tile_offsets[3]), sizeof(int32_t) * enc_param_size);
 
-    // copy rescale scale from global to local buffer
-    memcpy((void*)(g_mem_pool + rescale_private->encoded_params_buffer.get_offset() + scale_offset),
-           (void*)(rs_op.mli3_scales_keeper.get_scales_tsr().data.mem.pi16 + output_tile_offsets[3]), sizeof(int16_t) * enc_param_size);
+    // copy prelu posscale from global to local buffer
+    memcpy((void*)(g_mem_pool + prelu_private->encoded_params_buffer.get_offset() + posscale_offset),
+           (void*)(pr_op.mli3_scales_keeper.get_scales_tsr().data.mem.pi16 + output_tile_offsets[3]), sizeof(int16_t) * enc_param_size);
 
-    // copy rescale shift from global to local buffer
-    memcpy((void*)(g_mem_pool + rescale_private->encoded_params_buffer.get_offset() + shift_offset),
-           (void*)(rs_op.mli3_scales_keeper.get_shift_tsr().data.mem.pi8 + output_tile_offsets[3]), sizeof(int8_t) * enc_param_size);
+   // copy prelu negscale from global to local buffer
+    memcpy((void*)(g_mem_pool + prelu_private->encoded_params_buffer.get_offset() + negscale_offset),
+           (void*)(pr_op.mli3_scales_keeper.get_scales_tsr().data.mem.pi16 + output_tile_offsets[3]), sizeof(int16_t) * enc_param_size);
 
-    // copy rescale output bias from global to local buffer
-    memcpy((void*)(g_mem_pool + rescale_private->encoded_params_buffer.get_offset() + out_bias_offset),
-           (void*)(rs_op.bias_out.data.mem.pi8 + output_tile_offsets[3]), sizeof(int8_t) * enc_param_size);
+    // copy prelu posshift from global to local buffer
+    memcpy((void*)(g_mem_pool + prelu_private->encoded_params_buffer.get_offset() + posshift_offset),
+           (void*)(pr_op.mli3_scales_keeper.get_shift_tsr().data.mem.pi8 + output_tile_offsets[3]), sizeof(int8_t) * enc_param_size);
+
+    // copy prelu negshift from global to local buffer
+    memcpy((void*)(g_mem_pool + prelu_private->encoded_params_buffer.get_offset() + negshift_offset),
+           (void*)(pr_op.mli3_scales_keeper.get_shift_tsr().data.mem.pi8 + output_tile_offsets[3]), sizeof(int8_t) * enc_param_size);       
+
+    // copy prelu output bias from global to local buffer
+    memcpy((void*)(g_mem_pool + prelu_private->encoded_params_buffer.get_offset() + out_bias_offset),
+           (void*)(pr_op.bias_out.data.mem.pi8 + output_tile_offsets[3]), sizeof(int8_t) * enc_param_size);
 
     status = mli_conv->Prefetch();
     assert(status == MLI_STATUS_OK);
@@ -1014,11 +1021,11 @@ void execution_phase(Conv2dOp& cnv_op, RescaleOp &rs_op, ClipOp &clp_op, uint32_
     status = mli_conv->Update();
     assert(status == MLI_STATUS_OK);
 
-    status = mli_rescale->Prefetch();
+    status = mli_prelu->Prefetch();
     assert(status == MLI_STATUS_OK);
-    status = mli_rescale->Issue();
+    status = mli_prelu->Issue();
     assert(status == MLI_STATUS_OK);
-    status = mli_rescale->Update();
+    status = mli_prelu->Update();
     assert(status == MLI_STATUS_OK);
 
     status = mli_clip->Prefetch();
@@ -1028,7 +1035,7 @@ void execution_phase(Conv2dOp& cnv_op, RescaleOp &rs_op, ClipOp &clp_op, uint32_
     status = mli_clip->Update();
     assert(status == MLI_STATUS_OK);
 
-    // copy results from rescale output tile to the global buffer
+    // copy results from prelu output tile to the global buffer
     strided_copy_with_offsets(kClipRank, clip_private->output.get_buf().get_elem_size(),
                               (int8_t*)g_mem_pool + clip_private->output.get_buf().get_offset(),
                               zero_offsets, output_tile_offsets, tile_output_strides,
@@ -1038,7 +1045,7 @@ void execution_phase(Conv2dOp& cnv_op, RescaleOp &rs_op, ClipOp &clp_op, uint32_
 
 bool postprocess_phase(const reporter_full& reporter,
                        const conv2d_test_operands* cur_test,
-                       Conv2dOp& conv2d_op, RescaleOp& rs_op, ClipOp& clp_op) {
+                       Conv2dOp& conv2d_op, PreluOp& pr_op, ClipOp& clp_op) {
   quality_metrics test_metrics;
   bool is_test_passed = true;
 
@@ -1046,9 +1053,9 @@ bool postprocess_phase(const reporter_full& reporter,
   mli_tensor source_out_tensor = clp_op.original_out;
 
   if (is_test_passed &&
-      (conv2d_op.mem_in_keeper.is_memory_corrupted() || rs_op.mem_out_keeper.is_memory_corrupted() ||
-       conv2d_op.mem_out_acc_keeper.is_memory_corrupted() || rs_op.mem_bias_out_keeper.is_memory_corrupted() ||
-       conv2d_op.mem_w_keeper.is_memory_corrupted() || rs_op.mem_b_keeper.is_memory_corrupted())) {
+      (conv2d_op.mem_in_keeper.is_memory_corrupted() || pr_op.mem_out_keeper.is_memory_corrupted() ||
+       conv2d_op.mem_out_acc_keeper.is_memory_corrupted() || pr_op.mem_bias_out_keeper.is_memory_corrupted() ||
+       conv2d_op.mem_w_keeper.is_memory_corrupted() || pr_op.mem_b_keeper.is_memory_corrupted())) {
     reporter.report_message(cur_test->descr,
         "FAILED after kernel run: memory beside one of operands is corrupted");
     is_test_passed = false;
@@ -1088,7 +1095,7 @@ bool postprocess_phase(const reporter_full& reporter,
     crc32_calc data_crc;
     data_crc(conv2d_op.input);
     data_crc(conv2d_op.weights);
-    data_crc(rs_op.bias_in);
+    data_crc(pr_op.bias_in);
     // Consider: Adding other tensors (scales/shifts/bias_in, etc). But this test is assumed to be temporary.
     data_crc(out);
 
@@ -1145,43 +1152,47 @@ int main() {
     // STEP 0: Preprocessing phase
     //==================================================================
     Conv2dOp conv2d_op(cur_test);
-    RescaleOp rs_op(cur_test, conv2d_op.input, conv2d_op.weights);
-    ClipOp clp_op(cur_test,rs_op.out);
+    PreluOp pr_op(cur_test, conv2d_op.input, conv2d_op.weights);
+    ClipOp clp_op(cur_test,pr_op.out);
 
-    bool is_test_passed = preprocess_phase(reporter, cur_test, conv2d_op, rs_op, clp_op);
+    bool is_test_passed = preprocess_phase(reporter, cur_test, conv2d_op, pr_op, clp_op);
 
     //
-    // Solution to vectorize Rescale params tensors in case of per-axis
+    // Solution to vectorize Prelu params tensors in case of per-axis
     // computation.
     //
     // All params tensors that have one element, should have rank of 0
     // (including out_bias).
     //
-    const mli_tensor& inbias_tsr = rs_op.mli3_bias.get_bias_tsr();
-    auto& outbias_tsr = rs_op.bias_out;
-    auto& shift_tsr  = (mli_tensor&)rs_op.mli3_scales_keeper.get_shift_tsr();
-    auto& scale_tsr  = (mli_tensor&)rs_op.mli3_scales_keeper.get_scales_tsr();
-    void *outbias_data = NULL, *shift_data = NULL, *scale_data = NULL;
+    const mli_tensor& inbias_tsr = pr_op.mli3_bias.get_bias_tsr();
+    auto& outbias_tsr = pr_op.bias_out;
+    auto& posshift_tsr  = (mli_tensor&)pr_op.mli3_scales_keeper.get_shift_tsr();
+    auto& posscale_tsr  = (mli_tensor&)pr_op.mli3_scales_keeper.get_scales_tsr();
+    auto& negshift_tsr  = (mli_tensor&)pr_op.mli3_scales_keeper.get_shift_tsr();
+    auto& negscale_tsr  = (mli_tensor&)pr_op.mli3_scales_keeper.get_scales_tsr();
+    void *outbias_data = NULL, *posshift_data = NULL, *negshift_data = NULL, *posscale_data = NULL, *negscale_data = NULL;
     {
-        int32_t rescale_axis;
-        if (mli_hlp_count_elem_num(&scale_tsr, 0) == 1) {
-            rescale_axis = -1;
+        int32_t prelu_axis;
+        if (mli_hlp_count_elem_num(&posscale_tsr, 0) == 1) {
+            prelu_axis = -1;
         } else {
-            rescale_axis = conv2d_op.out_acc.rank - 1;
+            prelu_axis = conv2d_op.out_acc.rank - 1;
         }
 
         // If per-axis computation && out_bias is one element,
         // so construct out_bias tensor as vector the same as other params.
-        if((rescale_axis != -1) && (mli_hlp_count_elem_num(&outbias_tsr, 0) == 1)) {
+        if((prelu_axis != -1) && (mli_hlp_count_elem_num(&outbias_tsr, 0) == 1)) {
             outbias_data = vectorize_single_elem_tensor(outbias_tsr, inbias_tsr);
         }
 
         // If per-tensor computation && in_bias is vector,
         // so construct out_bias, shift and scale tensors as vectors the same as in_bias.
-        if((rescale_axis == -1) && (mli_hlp_count_elem_num(&inbias_tsr, 0) != 1)) {
+        if((prelu_axis == -1) && (mli_hlp_count_elem_num(&inbias_tsr, 0) != 1)) {
             outbias_data = vectorize_single_elem_tensor(outbias_tsr, inbias_tsr);
-            shift_data = vectorize_single_elem_tensor(shift_tsr, inbias_tsr);
-            scale_data = vectorize_single_elem_tensor(scale_tsr, inbias_tsr);
+            posshift_data = vectorize_single_elem_tensor(posshift_tsr, inbias_tsr);
+            posscale_data = vectorize_single_elem_tensor(posscale_tsr, inbias_tsr);
+            negshift_data = vectorize_single_elem_tensor(negshift_tsr, inbias_tsr);
+            negscale_data = vectorize_single_elem_tensor(negscale_tsr, inbias_tsr);
         }
     }
 
@@ -1208,24 +1219,26 @@ int main() {
     Tiling tiling(input_size, input_size, kernel_info, conv2d_op.weights.shape[3], conv2d_op.weights.shape[3]);
 #endif
 
-    prepare_phase(cur_test, tiling, iteration_order, conv2d_op, rs_op, clp_op);
+    prepare_phase(cur_test, tiling, iteration_order, conv2d_op, pr_op, clp_op);
 
     // STEP 2: Executing phase
     //==================================================================
-    // Run conv2d, rescale and clip MLI3.0 kernels
+    // Run conv2d, prelu and clip MLI3.0 kernels
     uint32_t num_tiles = tiling.get_num_tiles();
-    execution_phase(conv2d_op, rs_op, clp_op, num_tiles);
+    execution_phase(conv2d_op, pr_op, clp_op, num_tiles);
 
     // STEP 3: Postprocessing phase
     //==================================================================
-    is_test_passed &= postprocess_phase(reporter, cur_test, conv2d_op, rs_op, clp_op);
+    is_test_passed &= postprocess_phase(reporter, cur_test, conv2d_op, pr_op, clp_op);
 
     final_status &= is_test_passed;
 
-    // Free buffers for Rescale params
+    // Free buffers for prelu params
     free(outbias_data);
-    free(shift_data);
-    free(scale_data);
+    free(posshift_data);
+    free(posscale_data);
+    free(negshift_data);
+    free(negscale_data);
   }
   reporter.report_outline("[AUTO] Group: mli_krn_conv2d_30", final_status);
 

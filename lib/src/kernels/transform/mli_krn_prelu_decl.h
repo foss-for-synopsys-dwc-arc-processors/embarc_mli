@@ -121,7 +121,17 @@ static MLI_FORCE_INLINE mli_status prelu_sa8_run(const mli_tensor *in,
         const mli_tensor *slope_coeff,
         const mli_prelu_cfg *cfg, 
         mli_tensor *out);
-
+using namespace ::snps_arc::metaware::mli;
+template <typename i_T, typename o_T>
+mli_status MLI_FORCE_INLINE mli_krn_prelu(Tensor<InternalBuffer, 4> &in,
+                                          InternalBuffer &bias_in,
+                                          InternalBuffer &posscale,
+                                          InternalBuffer &negscale,
+                                          InternalBuffer &posshift,
+                                          InternalBuffer &negshift,
+                                          InternalBuffer &bias_out,
+                                          const int32_t prelu_axis,
+                                          Tensor<InternalBuffer, 4> &out);                                     
 } // namespace ref
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -1043,6 +1043,59 @@ private:
     lib_mli::PlatformDescription m_pd;
 };
 
+class Prelu_CS : public lib_mli::Prelu_CS {
+public:
+    /**
+     * @brief Constructor to create a PReLU compiler support object.
+     *
+     * This constructor can be used to create a PReLU compiler support
+     * object. This kernel computes values of the output tensor scaled by 
+     * positive scale and shifted by positive shift if the input value is 
+     * greater than the input bias,
+     * Otherwise It will apply negative scale and negative shift
+     * for all values in the desired axis of the input tensor 
+     *
+     * @param pd [IN] Platform description
+     * @param input [IN] Input tensor (full shape)
+     * @param cfg [IN] PreluOpConfig structure
+     * @param output [OUT] Output tensor (tile shape)
+     */
+    Prelu_CS(const lib_mli::PlatformDescription pd,
+             const TensorIterator<NoBuffer, kPreluRank, kPreluIterRank> &input,
+             const PreluOpConfig &cfg,
+             const TensorIterator<NoBuffer, kPreluRank, kPreluIterRank> &output);
+
+    mli_status EncodeParams(Tensor<Buffer, kPreluParamRank> &bias,
+                            Tensor<Buffer, kPreluParamRank> &posscale,
+                            Tensor<Buffer, kPreluParamRank> &negscale,
+                            Tensor<Buffer, kPreluParamRank> &posshift,
+                            Tensor<Buffer, kPreluParamRank> &negshift,
+                            Tensor<Buffer, kPreluParamRank> &asymm,
+                            Buffer &encoded_params) override;
+
+    unsigned GetEncodedParamsSize() override;
+    unsigned GetParamsBufferSize() override;
+
+    // From CompilerGenericInterface
+    mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
+    unsigned GetKernelPrivateDataSize() const override;
+    unsigned GetRuntimeObjectSize() const override;
+
+    mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                   const OffsetBuffer &output,
+                                   const OffsetBuffer &params,
+                                   const OffsetBuffer &ctrl_buffer) override;
+private:
+    PreluOpConfig m_config;
+    TensorIterator<OffsetBuffer, kPreluRank, kPreluIterRank> m_input;
+    TensorIterator<OffsetBuffer, kPreluRank, kPreluIterRank> m_output;
+
+    OffsetBuffer m_encoded_params;
+    uint32_t m_encoded_params_buffer_size;
+
+    lib_mli::PlatformDescription m_pd;
+};
+
 
 class MatMul_CS : public lib_mli::MatMul_CS {
 public:

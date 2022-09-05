@@ -82,6 +82,12 @@ constexpr unsigned kRescaleRank = 4;
 constexpr unsigned kRescaleIterRank = 4;
 constexpr unsigned kRescaleParamRank = 1;
 constexpr unsigned kRescaleParamIterRank = 1;
+
+constexpr unsigned kPreluRank = 4;
+constexpr unsigned kPreluIterRank = 4;
+constexpr unsigned kPreluParamRank = 2;
+constexpr unsigned kPreluParamIterRank = 2;
+
 typedef enum {
   kFirstTile = 0,
   kMiddleTile,
@@ -509,6 +515,12 @@ class Tensor {
     shape_[idx] = shape;
   }
 
+  void set_dims(uint32_t shape[]) {
+    for (uint32_t i = 0; i < maxRank; i++) {
+      shape_[i] = shape[i];
+    }
+  }
+
   void get_dims(uint32_t shape[]) const {
     for (uint32_t i = 0; i < maxRank; i++) {
       shape[i] = shape_[i];
@@ -826,6 +838,16 @@ struct ArgMaxConfig {
                        Axis corresponds to index of tensor`s dimension starting from 0.
                        For instance, having future map in HWC layout, axis == 0 corresponds to H dimension.
                        If axis < 0 the function will be applied to the whole tensor */
+};
+
+struct PreluOpConfig {
+  PreluOpConfig() = default;
+  PreluOpConfig(int32_t axis) : axis{axis} {};
+
+  int32_t axis; /**< An axis along which the function will be computed.
+                     Axis corresponds to index of tensor`s dimension starting from 0.
+                     For instance, having future map in HWC layout, axis == 0 corresponds to H dimension.
+                     If axis < 0 the function will be applied to the whole tensor */
 };
 
 } // namespace snps_arc::metaware::mli
