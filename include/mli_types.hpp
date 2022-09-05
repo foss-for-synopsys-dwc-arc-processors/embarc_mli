@@ -68,6 +68,7 @@ constexpr unsigned kTransposeConvIOIterRank = 4;
 constexpr unsigned kTransposeConvWRank = 5;
 constexpr unsigned kTransposeConvWIterRank = 5;
 constexpr unsigned kTransposeConvZPRank = 1;
+constexpr unsigned kTransposeConvZPIterRank = 1;
 
 constexpr short int kPermuteRank = 4;
 constexpr short int kPermuteIterRank = 4;

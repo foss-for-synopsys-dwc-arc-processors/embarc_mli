@@ -1009,15 +1009,15 @@ public:
         Tensor<Buffer, kTransposeConvWRank> &weights, Buffer &encoded_weights,
         compression_mode_t mode = compression_mode_t::Uncompressed) = 0;
 
-    /**
-     * @brief Method to query the size of the encoded weights buffer
-     *
-     * This function returns the size of the full weights buffer that
-     * is needed by the EncodeWeights method.
-     *
-     * @return Size of encoded weights buffer in bytes
-     */
-    virtual unsigned GetEncodedWeightsSize() const = 0;
+    // /**
+    //  * @brief Method to query the size of the encoded weights buffer
+    //  *
+    //  * This function returns the size of the full weights buffer that
+    //  * is needed by the EncodeWeights method.
+    //  *
+    //  * @return Size of encoded weights buffer in bytes
+    //  */
+    // virtual unsigned GetEncodedWeightsSize() const = 0;
 
     /**
      * @brief Method to encode input zero-points (padding values)
@@ -1081,12 +1081,12 @@ public:
      * 
      * @return MLI status code
      */
-    virtual mli_status AttachBufferOffsets(OffsetBuffer &input,
-                                           OffsetBuffer &output,
-                                           OffsetBuffer &weights,
-                                           OffsetBuffer &inpzeropts,
-                                           OffsetBuffer &wtszeropts,
-                                           OffsetBuffer &ctrl_buffer) = 0;
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                           const OffsetBuffer &output,
+                                           const OffsetBuffer &weights,
+                                           const OffsetBuffer &inpzeropts,
+                                           const OffsetBuffer &wtszeropts,
+                                           const OffsetBuffer &ctrl_buffer) = 0;
 };
 
 /**

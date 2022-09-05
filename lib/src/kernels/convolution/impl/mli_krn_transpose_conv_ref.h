@@ -265,7 +265,7 @@ MLI_FORCE_INLINE void transpose_conv2d_prepare_and_run(
 
     // Define quantization specific params
     quant_T quant_params;
-    define_quant_params(in, weights, &quant_params);
+    define_quant_params<i_T, w_T>(in, weights, &quant_params);
 
     const auto in_prv = mli_prv_get_tensor_hwc<MLI_PTR(i_T)>(in.t);
     const auto weights_prv = mli_prv_get_conv2d_weights_tensor_hwcn<MLI_PTR(w_T)>(weights.t);

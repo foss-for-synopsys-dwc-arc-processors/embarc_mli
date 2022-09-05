@@ -28,6 +28,17 @@ inline const unsigned GetBufferSize(int rank, const uint32_t* shape,
   return ret_val;
 }
 
+inline const unsigned GetBufferSize(int rank, const uint32_t* shape) {
+  unsigned ret_val = 0;
+  int32_t stride = 1;
+  for (int dim = rank - 1; dim >= 0; --dim) {
+    ret_val += stride * (shape[dim] - 1);
+    stride *= shape[dim];
+  }
+  ret_val += 1;
+  return ret_val;
+}
+
 template <unsigned rank>
 mli_status EncodeWeights(const Tensor<Buffer, rank> &weights,
                          Buffer &encoded_weights) {

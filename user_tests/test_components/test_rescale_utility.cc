@@ -123,7 +123,7 @@ bias_folder::bias_folder(const mli_tensor& b_tsr)
 }
 
 bias_folder::bias_folder(const mli_tensor& b_tsr, const mli_tensor& in_tsr,
-                         const mli_tensor& w_tsr)
+                         const mli_tensor& w_tsr, bool mirror_weights)
         : bias_vec(b_tsr.shape[0])
         , bias_tsr(flat_tensor(bias_vec.data(), bias_vec.size())) {
     assert(b_tsr.rank == 1);
@@ -151,7 +151,18 @@ bias_folder::bias_folder(const mli_tensor& b_tsr, const mli_tensor& in_tsr,
 
     // Lambda to define a linear element position in memory using strides
     auto val_pos = [](int strides[MLI_MAX_RANK], int pos[MLI_MAX_RANK]) -> int {
-        return (strides[0] * pos[0]) + (strides[1] * pos[1]) + (strides[2] * pos[2]) + (strides[3] * pos[3]);
+        return (strides[0] * pos[0]) + (strides[1] * pos[1]) +
+               (strides[2] * pos[2]) + (strides[3] * pos[3]);
+    };
+
+    // Lambda to define a mirrored linear element position in memory using
+    // strides (for transpose convolution)
+    auto val_pos_mirrored = [](int strides[MLI_MAX_RANK], int pos[MLI_MAX_RANK],
+                               int shape[MLI_MAX_RANK]) -> int {
+        return (strides[0] * (shape[0] - pos[0] - 1)) +
+               (strides[1] * (shape[1] - pos[1] - 1)) + 
+               (strides[2] * pos[2]) +
+               (strides[3] * pos[3]);
     };
 
     // currently we asume only 8bit weights.
@@ -168,7 +179,9 @@ bias_folder::bias_folder(const mli_tensor& b_tsr, const mli_tensor& in_tsr,
         for (pos[1] = 0; pos[1] < w_extended_shape[1]; ++pos[1]) {
             for (pos[2] = 0; pos[2] < w_extended_shape[2]; ++pos[2]) {
                 for (pos[3] = 0; pos[3] < w_extended_shape[3]; ++pos[3]) {
-                    const int w_pos = val_pos(w_strides, pos);
+                    const int w_pos = mirror_weights
+                            ? val_pos_mirrored(w_strides, pos, w_extended_shape)
+                            : val_pos(w_strides, pos);
                     const int b_pos = pos[3]; // Asum filters is an innermost channel
                     bias_vec[b_pos] += in_zp * w_tsr.data.mem.pi8[w_pos];
 

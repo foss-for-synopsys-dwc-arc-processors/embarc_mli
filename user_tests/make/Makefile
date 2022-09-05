@@ -60,7 +60,8 @@ KERNELS = \
 	eltwise_30 \
 	conv2d_30 \
 	depthwise_conv_30 \
-	reduce_max_30
+	reduce_max_30 \
+	transpose_conv2d_30
 
 
 

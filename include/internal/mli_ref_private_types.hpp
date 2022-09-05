@@ -97,9 +97,41 @@ struct DepthwiseConv2dMetadata {
     DwConv2DConfig config;
 };
 
-class TransposeConv2DRuntimeData : public PrivateData {
+class TransposeConv2DPrivateData : public PrivateData {
 public:
-    TransposeConv2DRuntimeData() : PrivateData(kTransConv2DId, sizeof(TransposeConv2DRuntimeData)) {}
+    TransposeConv2DPrivateData() : PrivateData(kTransConv2DId, sizeof(TransposeConv2DPrivateData)) {}
+
+    // In/Out/weights/weights zp(s) tensor iterators with attached offset buffers
+    TensorIterator<OffsetBuffer, kTransposeConvIORank, kTransposeConvIOIterRank> input;
+    TensorIterator<OffsetBuffer, kTransposeConvWRank, kTransposeConvWIterRank> weights;
+    TensorIterator<OffsetBuffer, kTransposeConvZPRank, kTransposeConvZPIterRank> weights_zp;
+    TensorIterator<OffsetBuffer, kTransposeConvIORank, kTransposeConvIOIterRank> output;
+    
+    // The layout of input
+    Layout layout;
+
+    // Encoded input zero point
+    OffsetBuffer inpzp_buffer;
+
+    // the index of quantization axis
+    int inp_quant_axis;
+    int wts_quant_axis;
+
+    // Convolution config
+    TransposeConv2DConfig config;
+};
+
+struct TransposeConv2DMetadata {
+    Tensor<InternalBuffer, kTransposeConvIORank> input;
+    Tensor<InternalBuffer, kTransposeConvWRank> weights;
+    Tensor<InternalBuffer, kTransposeConvZPRank> weights_zp;
+    Tensor<InternalBuffer, kTransposeConvIORank> output;
+
+    InternalBuffer inpzp_buffer;
+    int inp_quant_axis;
+    int wts_quant_axis;
+
+    TransposeConv2DConfig cfg;
 };
 
 class FullyConnectedPrivateData : public PrivateData {

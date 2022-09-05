@@ -426,6 +426,7 @@ public:
      *                          memory strides and IteratorCfg
      * @param weights       [I] TensorIterator object containing weights Tensor shape
      *                          and memory strides and IteratorCfg
+     * @param weights_zp    [I] TensorIterator object containing weight zp(s) array
      * @param cfg           [I] Kernel configuration structure
      * @param output        [I] TensorIterator object containing output Tensor shape
      *                          and memory strides and IteratorCfg
@@ -434,10 +435,11 @@ public:
      */
     virtual lib_mli::TransposeConv2D_CS* TransposeConv2D_CS(
         void *kernel_buffer,
-        const TensorIterator<NoBuffer, kTransposeConvIORank, kTransposeConvIOIterRank> input,    // BHWC
-        const TensorIterator<NoBuffer, kTransposeConvWRank, kTransposeConvWIterRank> weights,    // GHWCiCo
+        const TensorIterator<NoBuffer, kTransposeConvIORank, kTransposeConvIOIterRank>& input,    // BHWC
+        const TensorIterator<NoBuffer, kTransposeConvWRank, kTransposeConvWIterRank>& weights,    // GHWCiCo
+        const TensorIterator<NoBuffer, kTransposeConvZPRank, kTransposeConvZPIterRank>& weights_zp,
         const TransposeConv2DConfig &cfg,
-        const TensorIterator<NoBuffer, kTransposeConvIORank, kTransposeConvIOIterRank> output) { // BHWC
+        const TensorIterator<NoBuffer, kTransposeConvIORank, kTransposeConvIOIterRank>& output) { // BHWC
         return nullptr;
     }
 

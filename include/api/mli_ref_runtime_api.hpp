@@ -173,7 +173,7 @@ public:
 
 private:
     // Data used in the runtime kernel
-    TransposeConv2DRuntimeData m_rt_data;
+    TransposeConv2DMetadata m_metadata;
 };
 
 /**

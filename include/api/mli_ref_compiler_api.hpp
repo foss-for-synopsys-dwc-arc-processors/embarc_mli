@@ -254,13 +254,12 @@ public:
     TransposeConv2D_CS(const lib_mli::PlatformDescription pd,
                        const TensorIterator<NoBuffer, kTransposeConvIORank, kTransposeConvIOIterRank> &input,
                        const TensorIterator<NoBuffer, kTransposeConvWRank, kTransposeConvWIterRank> &weights,
+                       const TensorIterator<NoBuffer, kTransposeConvZPRank, kTransposeConvZPIterRank> &weights_zp,
                        const TransposeConv2DConfig &cfg,
                        const TensorIterator<NoBuffer, kTransposeConvIORank, kTransposeConvIOIterRank> &output);
 
     mli_status EncodeWeights(Tensor<Buffer, kTransposeConvWRank> &weights, Buffer &encoded_weights,
                              compression_mode_t mode = compression_mode_t::Uncompressed) override;
-
-    unsigned GetEncodedWeightsSize() const override;
 
     mli_status EncodeInpZeroPts(Tensor<Buffer, kTransposeConvZPRank> &inpzeropts,
                                 Buffer &encoded_inpzeropts) override;
@@ -272,12 +271,12 @@ public:
 
     unsigned GetEncodedWtsZeroPtsSize() const override;
 
-    mli_status AttachBufferOffsets(OffsetBuffer &input,
-                                   OffsetBuffer &output,
-                                   OffsetBuffer &weights,
-                                   OffsetBuffer &inpzeropts,
-                                   OffsetBuffer &wtszeropts,
-                                   OffsetBuffer &ctrl_buffer) override;
+    mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                   const OffsetBuffer &output,
+                                   const OffsetBuffer &weights,
+                                   const OffsetBuffer &inpzeropts,
+                                   const OffsetBuffer &wtszeropts,
+                                   const OffsetBuffer &ctrl_buffer) override;
 
     mli_status GetKernelPrivateData(void *kernel_private_data_buffer) override;
     unsigned GetKernelPrivateDataSize() const override;
@@ -287,6 +286,7 @@ private:
     // Input, weights, output tensors with offset buffer attached
     TensorIterator<OffsetBuffer, kTransposeConvIORank, kTransposeConvIOIterRank> m_input;
     TensorIterator<OffsetBuffer, kTransposeConvWRank, kTransposeConvWIterRank> m_weights;
+    TensorIterator<OffsetBuffer, kTransposeConvZPRank, kTransposeConvZPIterRank> m_weights_zp;
     TensorIterator<OffsetBuffer, kTransposeConvIORank, kTransposeConvIOIterRank> m_output;
 
     // Encoded zp buffers for input and weights (optional for FX type)

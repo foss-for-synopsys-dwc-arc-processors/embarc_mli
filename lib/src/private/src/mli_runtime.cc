@@ -155,6 +155,13 @@ ExecutionInterface* ExecutionInterface::Create(
                 MLI_PRINTF("\nMLI_ERROR: Insufficient space for [ReduceMax] runtime object\n");
             }
             break;
+        case kTransConv2DId:
+            if(alloc_buf_size >= sizeof(TransposeConv2D)) {
+                obj = new (allocation_memory_buffer) TransposeConv2D(kernel_private_data_buffer, private_data_size, membases, num_mems);
+            } else {
+                MLI_PRINTF("\nMLI_ERROR: Insufficient space for [TransposeConv2D] runtime object\n");
+            }
+            break;
         // case kPermuteId:
         //     if(alloc_buf_size >= sizeof(Permute)) {
         //         obj = new (allocation_memory_buffer) Permute(kernel_private_data_buffer, private_data_size, membases, num_mems);
