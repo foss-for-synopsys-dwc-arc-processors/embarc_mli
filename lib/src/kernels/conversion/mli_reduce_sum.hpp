@@ -23,7 +23,7 @@
 namespace snps_arc::metaware::mli {
 namespace krn {
 
-    using snps_arc::metaware::mli::krn::ref::mli_reduce_sum;
+using snps_arc::metaware::mli::krn::ref::mli_reduce_sum;
 
 } // namespace krn
 } // namespace snps_arc::metaware::mli

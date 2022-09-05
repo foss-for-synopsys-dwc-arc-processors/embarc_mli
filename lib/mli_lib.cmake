@@ -76,6 +76,8 @@ set(MLI_LIB_SOURCE_FILES
     ${MLI_LIB_CMAKE_DIR}/src/kernels/conversion/mli_krn_rescale_runtime.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/conversion/mli_reduce_max_compiler.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/conversion/mli_reduce_max_runtime.cc
+    ${MLI_LIB_CMAKE_DIR}/src/kernels/conversion/mli_reduce_sum_compiler.cc
+    ${MLI_LIB_CMAKE_DIR}/src/kernels/conversion/mli_reduce_sum_runtime.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/clip/mli_krn_clip_compiler.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/clip/mli_krn_clip_runtime.cc
 )

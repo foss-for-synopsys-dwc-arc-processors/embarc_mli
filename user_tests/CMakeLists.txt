@@ -255,3 +255,4 @@ add_user_test(krn eltwise_30)
 # Reduce Group
 #======================================================
 add_user_test(krn reduce_max_30)
+add_user_test(krn reduce_sum_30)

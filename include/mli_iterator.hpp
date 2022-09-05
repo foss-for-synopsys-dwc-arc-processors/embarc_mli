@@ -144,7 +144,7 @@ class IteratorCfg {
         m_first_size[i] = m_size[i] - pre_padding[dim];
         m_last_size[i] = tensor.get_dim(dim) + m_last_pos_inc[i];
       }
-      m_buf_tiles_num = icfg.m_buf_tiles_num;
+      m_buf_tiles_num = icfg.get_buf_tiles_num();
     }
 
 
@@ -171,6 +171,7 @@ class IteratorCfg {
         m_first_size[i] = icfg.m_first_size[i];
         m_last_size[i] = icfg.m_last_size[i];
       }
+      m_buf_tiles_num = icfg.get_buf_tiles_num();
     }
 
     // This method will remove the overlap between adjacent tiles in the first iteration dimension to avoid duplicate data transfers

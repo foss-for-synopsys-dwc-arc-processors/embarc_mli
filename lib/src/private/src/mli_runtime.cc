@@ -33,6 +33,7 @@ using ref::Permute;
 using ref::ArgMax;
 using ref::TableBuiltin;
 using ref::MatMul;
+using ref::ReduceSum;
 
 ExecutionInterface* ExecutionInterface::Create(
         void* allocation_memory_buffer,
@@ -160,6 +161,13 @@ ExecutionInterface* ExecutionInterface::Create(
                 obj = new (allocation_memory_buffer) TransposeConv2D(kernel_private_data_buffer, private_data_size, membases, num_mems);
             } else {
                 MLI_PRINTF("\nMLI_ERROR: Insufficient space for [TransposeConv2D] runtime object\n");
+            }
+            break;
+        case kReduceSumId:
+            if(alloc_buf_size >= sizeof(ReduceSum)) {
+                obj = new (allocation_memory_buffer) ReduceSum(kernel_private_data_buffer, private_data_size, membases, num_mems);
+            } else {
+                MLI_PRINTF("\nMLI_ERROR: Insufficient space for [ReduceSum] runtime object\n");
             }
             break;
         // case kPermuteId:

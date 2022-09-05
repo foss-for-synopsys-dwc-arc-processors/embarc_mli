@@ -798,10 +798,16 @@ public:
 
     mli_status Update() override;
 
+    void GetIOSizesAndOffsets(uint32_t input_size[kReduceSumRank], uint32_t output_size[kReduceSumRank],
+                              int32_t input_offsets[kReduceSumRank], int32_t output_offsets[kReduceSumRank]);
+
 private:
     TensorIterator<OffsetBuffer, kReduceSumRank, kReduceSumIterRank> m_input;
     TensorIterator<OffsetBuffer, kReduceSumRank, kReduceSumIterRank> m_output;
     int32_t m_reduce_axis;
+    
+    mli_tensor m_tile_input;
+    mli_tensor m_tile_output;
 
     uint32_t m_in_elem_size;
     uint32_t m_out_elem_size;

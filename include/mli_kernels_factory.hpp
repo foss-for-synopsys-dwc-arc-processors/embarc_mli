@@ -398,9 +398,9 @@ public:
                                                 const Tensor<NoBuffer, 4> output_tile_shape) { return nullptr; }
     
     virtual lib_mli::ReduceSum_CS* ReduceSum_CS(void *kernel_buffer,
-                                                const TensorIterator<NoBuffer, kReduceSumRank, kReduceSumIterRank> in,
+                                                const TensorIterator<NoBuffer, kReduceSumRank, kReduceSumIterRank> &in,
                                                 const ReduceOpConfig &cfg,
-                                                const TensorIterator<NoBuffer, kReduceSumRank, kReduceSumIterRank> out) {return nullptr; }
+                                                const TensorIterator<NoBuffer, kReduceSumRank, kReduceSumIterRank> &out) { return nullptr; }
 
     virtual lib_mli::ArgMax_CS* ArgMax_CS(void *kernel_buffer,
                                           const TensorIterator<NoBuffer, kArgMaxInRank, kArgMaxInIterRank> in,

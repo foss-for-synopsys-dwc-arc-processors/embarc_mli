@@ -587,9 +587,9 @@ public:
      * @param output_tile_shape [OUT] Output tensor (tile shape)
      */
     ReduceSum_CS(const lib_mli::PlatformDescription pd,
-                 const TensorIterator<NoBuffer, kReduceSumRank, kReduceSumIterRank> in,
+                 const TensorIterator<NoBuffer, kReduceSumRank, kReduceSumIterRank> &in,
                  const ReduceOpConfig &cfg,
-                 const TensorIterator<NoBuffer, kReduceSumRank, kReduceSumIterRank> out);
+                 const TensorIterator<NoBuffer, kReduceSumRank, kReduceSumIterRank> &out);
 
 
     mli_status GetKernelPrivateData(void *kernel_private_data_buffer ) override;
@@ -604,9 +604,6 @@ private:
     ReduceOpConfig m_cfg;
     TensorIterator<OffsetBuffer, kReduceSumRank, kReduceSumIterRank> m_in;
     TensorIterator<OffsetBuffer, kReduceSumRank, kReduceSumIterRank> m_out;
-
-    uint32_t m_input_buffer_size;
-    uint32_t m_output_buffer_size;
 
     lib_mli::PlatformDescription m_pd;
 };
