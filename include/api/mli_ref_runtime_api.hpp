@@ -133,6 +133,7 @@ private:
     Tensor<InternalBuffer, kDepthwiseIORank> m_tile_output;
     DwConv2DConfig m_tile_cfg;
     Tensor<InternalBuffer, kDepthwiseZPRank> m_tile_wzp;
+    uint32_t m_tile_batch_size;
 };
 
 /**

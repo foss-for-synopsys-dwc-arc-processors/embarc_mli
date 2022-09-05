@@ -44,11 +44,27 @@ DepthwiseConv2d::DepthwiseConv2d(void* kernel_private_data_buffer,
   m_metadata.wts_quant_axis = private_data.wts_quant_axis;
   m_metadata.config = private_data.config;
 
-  m_tile_input = Tensor<InternalBuffer, kDepthwiseIORank>(m_metadata.input.GetSubTensor(), membases, num_mems);
+  auto input_tile_tensor = m_metadata.input.GetSubTensor();
+  m_tile_batch_size = input_tile_tensor.get_dim(kTensorBatchDim);
+
+  // setup m_tile_input to execute batch by batch m_tile_batch_size times
+  input_tile_tensor.set_dim(kTensorBatchDim, 1);
+  m_tile_input = Tensor<InternalBuffer, kDepthwiseIORank>(input_tile_tensor, membases, num_mems);
+  InternalBuffer inp_buf = m_tile_input.get_buf();
+  InternalBuffer single_batch_inp_buf(inp_buf.get_ptr<int8_t>(), inp_buf.get_size() / m_tile_batch_size);
+  m_tile_input.set_buf(single_batch_inp_buf);
+
   m_tile_weights = Tensor<InternalBuffer, kDepthwiseWRank>(m_metadata.weights.GetSubTensor(), membases, num_mems);
   m_tile_wzp = Tensor<InternalBuffer, kDepthwiseZPRank>(m_metadata.weights_zp.GetSubTensor(), membases, num_mems);
-  m_tile_output = Tensor<InternalBuffer, kDepthwiseIORank>(m_metadata.output.GetSubTensor(), membases, num_mems);
 
+  // setup m_tile_output to execute batch by batch m_tile_batch_size times
+  auto output_tile_tensor = m_metadata.output.GetSubTensor();
+  output_tile_tensor.set_dim(kTensorBatchDim, 1);
+  m_tile_output = Tensor<InternalBuffer, kDepthwiseIORank>(output_tile_tensor, membases, num_mems);
+  InternalBuffer out_buf = m_tile_output.get_buf();
+  InternalBuffer single_batch_out_buf(out_buf.get_ptr<int32_t>(), out_buf.get_size() / m_tile_batch_size);
+  m_tile_output.set_buf(single_batch_out_buf);
+  
   UpdateTilePaddings();
 }
 
@@ -62,15 +78,30 @@ mli_status DepthwiseConv2d::Issue() {
       w_elem_size == sizeof(int8_t) &&
       o_elem_size == sizeof(int32_t)) {
 
+    InternalBuffer inp_buf = m_tile_input.get_buf();
+    InternalBuffer out_buf = m_tile_output.get_buf();
+    InternalBuffer curr_inp_buf(inp_buf);
+    InternalBuffer curr_out_buf(out_buf);
+    m_tile_input.set_buf(curr_inp_buf);
+    m_tile_output.set_buf(curr_out_buf);
+
     QTensor<InternalBuffer, kDepthwiseIORank> qinput{
       m_tile_input, m_metadata.inpzp_buffer, m_metadata.inp_quant_axis};
     QTensor<InternalBuffer, kDepthwiseWRank> qweights{
       m_tile_weights, m_tile_wzp.get_buf(), m_metadata.wts_quant_axis};
 
-    conv2d_prepare_and_run<int8_t, int8_t, int32_t, mli_8x8_accu_t, LAYOUT_HWC,
-                           ::mli::CONV_DEPTHWISE, kDepthwiseIORank,
+
+    for (uint32_t i = 0; i < m_tile_batch_size; i++) {
+      conv2d_prepare_and_run<int8_t, int8_t, int32_t, mli_8x8_accu_t, LAYOUT_HWC,
+                            ::mli::CONV_DEPTHWISE, kDepthwiseIORank,
                             kDepthwiseWRank, DwConv2DConfig>(
                               qinput, qweights, m_tile_output, m_tile_cfg);
+        
+      curr_inp_buf.inc(m_metadata.input.get_mem_stride(kTensorBatchDim));
+      curr_out_buf.inc(m_metadata.output.get_mem_stride(kTensorBatchDim));
+    }
+    m_tile_input.set_buf(inp_buf);
+    m_tile_output.set_buf(out_buf);
   } else {
     // datatype is not supported yet
     return MLI_STATUS_NOT_SUPPORTED;
@@ -101,6 +132,7 @@ mli_status DepthwiseConv2d::Update() {
     m_metadata.input.get_dim(kTensorHeightDim) - (uint32_t)tile_input_offsets[kTensorHeightDim]);
   input_tile_shape[kTensorWidthDim] = MIN(input_tile_shape[kTensorWidthDim],
     m_metadata.input.get_dim(kTensorWidthDim) - (uint32_t)tile_input_offsets[kTensorWidthDim]);
+  input_tile_shape[kTensorBatchDim] = 1;
   m_tile_input = Tensor<InternalBuffer, kDepthwiseIORank>(m_tile_input, input_tile_shape);
 
   const auto weights_tile_tensor = m_metadata.weights.GetSubTensor();
@@ -122,6 +154,7 @@ mli_status DepthwiseConv2d::Update() {
   const auto output_tile_tensor = m_metadata.output.GetSubTensor();
   uint32_t output_tile_shape[kDepthwiseIORank];
   output_tile_tensor.get_dims(output_tile_shape);
+  output_tile_shape[kTensorBatchDim] = 1;
   m_tile_output = Tensor<InternalBuffer, kDepthwiseIORank>(m_tile_output, output_tile_shape);
 
   UpdateTilePaddings();

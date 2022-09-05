@@ -633,9 +633,6 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
     assert(clip_output_tsr.mem_stride[i] == output_stride[1 + i]);
   }
 
-  const lib_mli::Tensor<lib_mli::NoBuffer, kClipRank> clip_input_tensor(total_output_size, output_stride);
-  const lib_mli::Tensor<lib_mli::NoBuffer, kClipRank> clip_output_tensor(tile_output_shape, output_stride);
-
   uint32_t clip_cs_size = kernel_factory.Clip_CS_GetSize();
   void* clip_cs_buffer = malloc(clip_cs_size);
 
@@ -644,10 +641,6 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   auto clip_op = kernel_factory.Clip_CS(clip_cs_buffer, out_tensor_it, out_tensor_it);
   // STEP 1.2.1: [Conv2D] Memory management (Up to user on how to deal with it)
   //==================================================================
-  uint32_t in_mem_offset = 0;
-  uint32_t w_mem_offset = 0;
-  uint32_t inpzp_mem_offset = 0;
-  uint32_t wtszp_mem_offset = 0;
   uint32_t offsets[1] = {0};
 
   // NOTE: Currently, only supoort these data types.
@@ -661,29 +654,22 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   *cnv_offset += runtime_obj_size;
 
   // Leave space for private data buffer
-  cnv_offset = &offsets[0];
   uint32_t private_buffer_size = conv2d_op->GetKernelPrivateDataSize();
   *cnv_offset += private_buffer_size;
 
   // conv2d input
-  cnv_offset = &offsets[0];
   uint32_t cnv_i_elem_size = mli_hlp_tensor_element_size(&cnv_op.input);
   uint32_t in_size = GetBufferSize(kConvIORank, tile_input_shape, input_stride) * cnv_i_elem_size;
   lib_mli::OffsetBuffer conv2d_in_buf{*cnv_offset, 0, in_size, cnv_i_elem_size};
-  lib_mli::Tensor<lib_mli::OffsetBuffer, kConvIORank> conv2d_in_tensor(conv2d_in_buf, total_input_size);
-  in_mem_offset = *cnv_offset;
   *cnv_offset += in_size;
 
   // conv2d weight
-  cnv_offset = &offsets[0];
   uint32_t cnv_w_elem_size = mli_hlp_tensor_element_size(&cnv_op.weights);
   uint32_t w_size = GetBufferSize(kConvWRank, tile_weights_shape, weight_stride) * cnv_w_elem_size;
   lib_mli::OffsetBuffer conv2d_w_buf{*cnv_offset, 0, w_size, cnv_w_elem_size};
-  w_mem_offset = *cnv_offset;
   *cnv_offset += w_size;
 
   // conv2d output
-  cnv_offset = &offsets[0];
   // NOTE: The output should be aligned, otherwise, it will cause `vvst` crash.
   //       For example, offset is 4 byts aligned if output is int32_t.
   uint32_t cnv_o_elem_size = mli_hlp_tensor_element_size(&cnv_op.out_acc);
@@ -691,30 +677,22 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   uint32_t conv_out_size_in_elements = GetBufferSize(kConvIORank, tile_output_shape, output_stride);
   uint32_t out_size = conv_out_size_in_elements * cnv_o_elem_size;
   lib_mli::OffsetBuffer conv2d_out_buf{*cnv_offset, 0, out_size, cnv_o_elem_size};
-  lib_mli::Tensor<lib_mli::OffsetBuffer, kConvIORank> conv2d_out_tensor(conv2d_out_buf, tile_output_shape);
   *cnv_offset += out_size;
 
   // conv2d input zero point
-  cnv_offset = &offsets[0];
   uint32_t inpzp_size = conv2d_op->GetEncodedInpZeroPtsSize() * cnv_i_elem_size;
   lib_mli::OffsetBuffer inpzp_buf{*cnv_offset, 0, inpzp_size, cnv_i_elem_size};
-  inpzp_mem_offset = *cnv_offset;
+  uint32_t inpzp_mem_offset = *cnv_offset;
   *cnv_offset += inpzp_size;
 
   // conv2d weights zero point
-  cnv_offset = &offsets[0];
   uint32_t wtszp_size = tile_output_shape[kTensorChannelDim] * cnv_w_elem_size;
   lib_mli::OffsetBuffer wtszp_buf{*cnv_offset, 0, wtszp_size, cnv_w_elem_size};
-  wtszp_mem_offset = *cnv_offset;
   *cnv_offset += wtszp_size;
 
   // MLI tensor structures and conv2d configuration
-  cnv_offset = &offsets[0];
-  uint32_t ctrl_buffer_size = conv2d_op->GetCtrlBufferSize();
-  lib_mli::OffsetBuffer conv2d_ctrl_buf{*cnv_offset, 0, ctrl_buffer_size, sizeof(char)};
-  *cnv_offset += ctrl_buffer_size;
-
-  assert(ctrl_buffer_size == 0);
+  assert(conv2d_op->GetCtrlBufferSize() == 0);
+  lib_mli::OffsetBuffer conv2d_ctrl_buf{*cnv_offset, 0, 0, sizeof(char)};
   assert(*cnv_offset <= kMemPoolSize);
 
   // DataBuffer size is 0 for reference kernel
@@ -729,7 +707,6 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
 
   // STEP 1.2.2: [Rescale] Memory management (Up to user on how to deal with it)
   //==================================================================
-  uint32_t encoded_params_mem_offset = 0;
 
   // Define buffers for in\out tensors
   // Leave space for runtime object
@@ -739,7 +716,6 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   *rs_offset += rs_runtime_obj_size;
 
   // Leave space for private data buffer
-  rs_offset = &offsets[0];
   uint32_t rs_private_buffer_size = rescale_op->GetKernelPrivateDataSize();
   *rs_offset += rs_private_buffer_size;
 
@@ -747,30 +723,22 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   uint32_t input_elem_size = mli_hlp_tensor_element_size(&rs_input_tsr);
   uint32_t rs_in_size = conv_out_size_in_elements * input_elem_size;
   lib_mli::OffsetBuffer rescale_in_buf { conv2d_out_buf.get_offset(), 0, rs_in_size, input_elem_size };
-  lib_mli::Tensor<lib_mli::OffsetBuffer, kRescaleRank> rescale_in_tensor(rescale_in_buf, total_output_size);
 
   // rescale output
-  rs_offset = &offsets[0];
   uint32_t output_elem_size = mli_hlp_tensor_element_size(&rs_output_tsr);
   uint32_t rs_out_size = conv_out_size_in_elements * output_elem_size;
   lib_mli::OffsetBuffer rescale_out_buf { *rs_offset, 0, rs_out_size, output_elem_size };
-  lib_mli::Tensor<lib_mli::OffsetBuffer, kRescaleRank> rescale_out_tensor(rescale_out_buf, tile_output_shape);
   *rs_offset += rs_out_size;
 
   // rescale params
-  rs_offset = &offsets[0];
   uint32_t encoded_params_size = rescale_op->GetEncodedParamsSize();
   lib_mli::OffsetBuffer encoded_params_buf { *rs_offset, 0, encoded_params_size,
                                               sizeof(int8_t) };
-  encoded_params_mem_offset = *rs_offset;
   *rs_offset += encoded_params_size;
 
   // DataBuffer size is 0 for reference kernel
-  rs_offset = &offsets[0];
-  uint32_t rs_ctrl_buffer_size = rescale_op->GetCtrlBufferSize();
-  lib_mli::OffsetBuffer rescale_ctrl_buf { *rs_offset, 0,
-                                          rs_ctrl_buffer_size, sizeof(char) };
-  *rs_offset += rs_ctrl_buffer_size;
+  assert(rescale_op->GetCtrlBufferSize() == 0);
+  lib_mli::OffsetBuffer rescale_ctrl_buf { *rs_offset, 0, 0, sizeof(char) };
   assert(*rs_offset <= kMemPoolSize);
 
   status = rescale_op->AttachBufferOffsets(rescale_in_buf,
@@ -789,7 +757,6 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   *clip_offset += clip_runtime_obj_size;
 
   // Leave space for private data buffer
-  clip_offset = &offsets[0];
   uint32_t clip_private_buffer_size = clip_op->GetKernelPrivateDataSize();
   *clip_offset += clip_private_buffer_size;
 
@@ -797,19 +764,14 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   uint32_t clip_input_elem_size = mli_hlp_tensor_element_size(&clip_input_tsr);
   uint32_t clip_in_size = conv_out_size_in_elements * clip_input_elem_size;
   lib_mli::OffsetBuffer clip_in_buf{rescale_out_buf.get_offset(), 0, clip_in_size, clip_input_elem_size};
-  lib_mli::Tensor<lib_mli::OffsetBuffer, kClipRank> clip_in_tensor(clip_in_buf, total_output_size);
 
   // clip output
-  clip_offset = &offsets[0];
   uint32_t clip_output_elem_size = mli_hlp_tensor_element_size(&clip_output_tsr);
   uint32_t clip_out_size = conv_out_size_in_elements * clip_output_elem_size;
   lib_mli::OffsetBuffer clip_out_buf{ *clip_offset, 0, clip_out_size, clip_output_elem_size};
-  lib_mli::Tensor<lib_mli::OffsetBuffer, kClipRank> clip_out_tensor(clip_out_buf, total_output_size);
-
   *clip_offset += clip_in_size;
 
   // clip min
-  clip_offset = &offsets[0];
   uint32_t clip_encoded_params_size = clip_op->GetEncodedParamsSize();
   lib_mli::OffsetBuffer clip_encoded_params_buf {*clip_offset, 0, clip_encoded_params_size,
                                  sizeof(int8_t)};
@@ -817,11 +779,8 @@ void prepare_phase(const conv2d_test_operands* cur_test, const Tiling& tiling,
   *clip_offset += clip_encoded_params_size;;
 
   // DataBuffer size is 0 for reference kernel
-  clip_offset = &offsets[0];
-  uint32_t clip_ctrl_buffer_size = clip_op->GetCtrlBufferSize();
-  lib_mli::OffsetBuffer clip_ctrl_buf{*clip_offset, 0,
-                                       clip_ctrl_buffer_size, sizeof(char)};
-  *clip_offset += clip_ctrl_buffer_size;
+  assert(clip_op->GetCtrlBufferSize() == 0);
+  lib_mli::OffsetBuffer clip_ctrl_buf{*clip_offset, 0, 0, sizeof(char)};
   assert(*clip_offset <= kMemPoolSize);
 
   status = clip_op->AttachBufferOffsets(clip_in_buf,

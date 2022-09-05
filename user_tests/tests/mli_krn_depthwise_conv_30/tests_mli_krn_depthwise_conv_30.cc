@@ -37,6 +37,13 @@
  */
 #define USE_TILING
 
+ /**
+   * Initally this user test i/o data was prepared for single batch.
+   * To test batching/tiling in batch dimension same single real batch of data run NUM_VIRTUAL_BATCHES times.
+   * You can change NUM_VIRTUAL_BATCHES, don't change NUM_REAL_BATCHES or you will get "out of the array boarders" errors.
+   */
+#define NUM_VIRTUAL_BATCHES 5
+#define NUM_REAL_BATCHES 1
 
 using mli::tst::tensor_quantizer;
 using mli::tst::quality_metrics;
@@ -51,6 +58,7 @@ namespace lib_mli = ::snps_arc::metaware::mli;
 namespace lib_ref = ::snps_arc::metaware::mli::ref;
 
 using lib_mli::kPerTensorQuantDim;
+using lib_mli::kTensorBatchDim;
 using lib_mli::kTensorHeightDim;
 using lib_mli::kTensorWidthDim;
 using lib_mli::kTensorChannelDim;
@@ -328,10 +336,11 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
 
     
     int32_t iteration_order[kDepthwiseIOIterRank]{ 0, 1, 2, 3 };
-    uint32_t total_input_size[kDepthwiseIORank]{ 1, dwc_op.input.shape[0], dwc_op.input.shape[1], dwc_op.input.shape[2] };
-    uint32_t total_output_size[kDepthwiseIORank]{ 1, dwc_op.out_acc.shape[0], dwc_op.out_acc.shape[1], dwc_op.out_acc.shape[2] };
+    uint32_t total_input_size[kDepthwiseIORank]{ NUM_VIRTUAL_BATCHES, dwc_op.input.shape[0], dwc_op.input.shape[1], dwc_op.input.shape[2] };
+    uint32_t total_output_size[kDepthwiseIORank]{ NUM_VIRTUAL_BATCHES, dwc_op.out_acc.shape[0], dwc_op.out_acc.shape[1], dwc_op.out_acc.shape[2] };
     assert(total_input_size[kTensorChannelDim] == total_output_size[kTensorChannelDim]);
 
+    const uint32_t batch_tile_size = 2;
 #ifdef USE_TILING
     /**
       * TODO: investigate why with smaller tile_output_sizes(1, 3, 3, 2), (1, 2, 2, 2), (1, 1, 1, 2) - fail in dbg mode on assert
@@ -345,9 +354,9 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
       *    S = [1 1], D = [2 2] // (y x), (y x)
       * 
       */
-    uint32_t tile_output_size[kDepthwiseIORank]{ 1, 4, 4, 2 };
+    uint32_t tile_output_size[kDepthwiseIORank]{ batch_tile_size, 4, 4, 2 };
 #else
-    uint32_t tile_output_size[kDepthwiseIORank]{ 1, total_output_size[1], total_output_size[2], total_output_size[3] };
+    uint32_t tile_output_size[kDepthwiseIORank]{ batch_tile_size, total_output_size[1], total_output_size[2], total_output_size[3] };
 #endif
 
     int32_t output_stride[kDepthwiseIORank] = { int32_t(dwc_op.out_acc.shape[0]) * dwc_op.out_acc.mem_stride[0],    // HWCo vs. HW1Co
@@ -357,7 +366,7 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
 
     num_tiles = out_tensor_it.GetTotalCount();
 #ifndef USE_TILING
-    assert(num_tiles == 1);
+    assert(num_tiles == CEIL_DIV(NUM_VIRTUAL_BATCHES, batch_tile_size) );
 #endif
 
     uint32_t effective_kernel_size[kDepthwiseIORank]{
@@ -407,8 +416,9 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
 
     int32_t weights_iteration_order[kDepthwiseWIterRank]{ 0, 1, 2};  // TODO: maybe add some connection between i/o and w orders
     const auto& output_it_config = out_tensor_it.get_config();
-    int32_t weights_count[kDepthwiseWIterRank]{ output_it_config.get_count(kTensorHeightDim), output_it_config.get_count(kTensorWidthDim),
-                                                output_it_config.get_count(kTensorChannelDim)};
+    int32_t weights_count[kDepthwiseWIterRank]{output_it_config.get_count(kTensorHeightDim) * output_it_config.get_count(kTensorBatchDim),
+                                               output_it_config.get_count(kTensorWidthDim),
+                                               output_it_config.get_count(kTensorChannelDim)};
     int32_t weights_first_increment[kDepthwiseWIterRank]{ 0, 0, output_it_config.get_first_inc(kTensorChannelDim) };
     int32_t weights_increment[kDepthwiseWIterRank]{ 0, 0, output_it_config.get_inc(kTensorChannelDim) };
     int32_t weights_last_increment[kDepthwiseWIterRank]{ 0, 0, output_it_config.get_last_inc(kTensorChannelDim) };
@@ -479,7 +489,6 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
 
     // STEP 1.2: [Depthwise_Conv2d] Memory management (Up to user on how to deal with it)
     //==================================================================
-    uint32_t inpzp_mem_offset = 0;
     uint32_t offsets[1] = { 0 };
 
     // NOTE: Currently, only supoort these data types.
@@ -527,7 +536,7 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
             dw_conv2d_op->GetEncodedInpZeroPtsSize() * dwc_i_elem_size;
     lib_mli::OffsetBuffer dw_inpzp_buf { *dwc_offset, 0, inpzp_size,
                                             dwc_i_elem_size };
-    inpzp_mem_offset = *dwc_offset;
+    uint32_t inpzp_mem_offset = *dwc_offset;
     *dwc_offset += inpzp_size;
 
     // depthwise conv2d weights zero point
@@ -538,10 +547,8 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
     *dwc_offset += wtszp_size;
 
     // DataBuffer size is 0 for reference kernel
-    uint32_t dwc_ctrl_buffer_size = dw_conv2d_op->GetCtrlBufferSize();
-    lib_mli::OffsetBuffer dw_conv2d_ctrl_buf { *dwc_offset, 0,
-                                    dwc_ctrl_buffer_size, sizeof(char) };
-    assert(dwc_ctrl_buffer_size == 0);
+    assert(dw_conv2d_op->GetCtrlBufferSize() == 0);
+    lib_mli::OffsetBuffer dw_conv2d_ctrl_buf { *dwc_offset, 0, 0, sizeof(char) };
     assert(*dwc_offset < kMemPoolSize);
 
     // Attaching buffer (descriptors) to the operation
@@ -556,7 +563,6 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
 
     // STEP 1.2: [Rescale] Memory management (Up to user on how to deal with it)
     //==================================================================
-    uint32_t encoded_params_mem_offset = 0;
 
     // Define buffers for in\out tensors
     // Leave space for runtime object
@@ -572,27 +578,22 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
     // rescale input = deptwise output
     assert(dwc_o_elem_size == mli_hlp_tensor_element_size(&rs_input_tsr));
     lib_mli::OffsetBuffer rescale_in_buf{ dw_conv2d_out_buf.get_offset() , 0, dwc_out_size, dwc_o_elem_size };
-    lib_mli::Tensor<lib_mli::OffsetBuffer, kRescaleRank> rescale_in_tensor(rescale_in_buf, total_output_size);
 
     // rescale output
     uint32_t output_elem_size = mli_hlp_tensor_element_size(&rs_output_tsr);
     uint32_t rs_out_size = dwc_out_size_in_elements * output_elem_size;
     lib_mli::OffsetBuffer rescale_out_buf { *rs_offset, 0, rs_out_size, output_elem_size };
-    lib_mli::Tensor<lib_mli::OffsetBuffer, kRescaleRank> rescale_out_tensor(rescale_out_buf, tile_output_shape);
     *rs_offset += rs_out_size;
 
     // rescale params
     uint32_t encoded_params_size = rescale_op->GetEncodedParamsSize();
     lib_mli::OffsetBuffer encoded_params_buf { *rs_offset, 0, encoded_params_size,
                                                 sizeof(int8_t) };
-    encoded_params_mem_offset = *rs_offset;
     *rs_offset += encoded_params_size;
 
     // DataBuffer size is 0 for reference kernel
-    uint32_t rs_ctrl_buffer_size = rescale_op->GetCtrlBufferSize();
-    lib_mli::OffsetBuffer rescale_ctrl_buf { *rs_offset, 0,
-                                            rs_ctrl_buffer_size, sizeof(char) };
-    assert(rs_ctrl_buffer_size == 0);
+    assert(rescale_op->GetCtrlBufferSize() == 0);
+    lib_mli::OffsetBuffer rescale_ctrl_buf { *rs_offset, 0, 0, sizeof(char) };
     assert(*rs_offset < kMemPoolSize);
 
     status = rescale_op->AttachBufferOffsets(rescale_in_buf,
@@ -739,6 +740,8 @@ void execution_phase(DepthwiseConvOp &dwc_op, RescaleOp &rs_op, uint32_t tiles_n
 
         mli_dconv2d_pimpl->GetIOSizesAndOffsets(input_tile_size, output_tile_size, weights_tile_size,
                                                 input_tile_offsets, output_tile_offsets, weights_tile_offsets);
+        input_tile_offsets[kTensorBatchDim] = NUM_REAL_BATCHES - 1;
+        output_tile_offsets[kTensorBatchDim] = NUM_REAL_BATCHES - 1;
 
         // copy input from global to local buffer
         strided_copy_with_offsets(kDepthwiseIORank, dconv2d_private->input.get_buf().get_elem_size(),

@@ -31,6 +31,13 @@
  */
 #define USE_TILING
 
+/**
+  * Initally this user test i/o data was prepared for single batch.
+  * To test batching/tiling in batch dimension same single real batch of data run NUM_VIRTUAL_BATCHES times.
+  * You can change NUM_VIRTUAL_BATCHES, don't change NUM_REAL_BATCHES or you will get "out of the array boarders" errors.
+  */
+#define NUM_VIRTUAL_BATCHES 5
+#define NUM_REAL_BATCHES 1
 
 using namespace snps_arc::metaware::mli::service;
 
@@ -44,6 +51,7 @@ namespace lib_ref = ::snps_arc::metaware::mli::ref;
 
 using lib_mli::kMaxpoolRank;
 using lib_mli::kMaxpoolIterRank;
+using lib_mli::kTensorBatchDim;
 using lib_mli::kTensorChannelDim;
 
 struct maxpool_test_operands {
@@ -99,7 +107,7 @@ const quality_metrics thresholds_sa8_general{
      test_7_cfg, thresholds_sa8_general, test_7_chksum_sa8},
 };
 
-constexpr uint32_t kMemSize = 4096;
+constexpr uint32_t kMemSize = 8192;
 static int8_t g_scratch_mem_in[kMemSize] = {0};
 static int8_t g_scratch_mem_ref[kMemSize] = {0};
 static int8_t g_scratch_mem_out[kMemSize] = {0};
@@ -129,16 +137,17 @@ void prepare_phase(const maxpool_test_operands* cur_test,
 
 
   int32_t iteration_order[kMaxpoolIterRank]{ 0, 1, 2, 3 };
-  uint32_t total_input_size[kMaxpoolRank]{ 1, temp_input_tensor.shape[0], temp_input_tensor.shape[1],
+  uint32_t total_input_size[kMaxpoolRank]{ NUM_VIRTUAL_BATCHES, temp_input_tensor.shape[0], temp_input_tensor.shape[1],
                                           temp_input_tensor.shape[2]};
-  uint32_t total_output_size[kMaxpoolRank]{ 1, temp_output_tensor.shape[0], temp_output_tensor.shape[1],
+  uint32_t total_output_size[kMaxpoolRank]{ NUM_VIRTUAL_BATCHES, temp_output_tensor.shape[0], temp_output_tensor.shape[1],
                                            temp_output_tensor.shape[2] };
   assert(total_input_size[kTensorChannelDim] == total_output_size[kTensorChannelDim]);
 
+  const uint32_t batch_tile_size = 2;
 #ifdef USE_TILING
-  uint32_t tile_output_size[kMaxpoolRank]{ 1, 1, 1, 2 };
+  uint32_t tile_output_size[kMaxpoolRank]{ batch_tile_size, 1, 1, 2 };
 #else
-  uint32_t tile_output_size[kMaxpoolRank]{ 1, total_output_size[1], total_output_size[2], total_output_size[3] };
+  uint32_t tile_output_size[kMaxpoolRank]{ batch_tile_size, total_output_size[1], total_output_size[2], total_output_size[3] };
 #endif
 
   int32_t input_stride[kMaxpoolRank];
@@ -162,7 +171,7 @@ void prepare_phase(const maxpool_test_operands* cur_test,
 
   num_tiles = out_tensor_it.GetTotalCount();
 #ifndef USE_TILING
-  assert(num_tiles == 1);
+  assert(num_tiles == CEIL_DIV(NUM_VIRTUAL_BATCHES, batch_tile_size));
 #endif
 
   uint32_t input_tile_shape[kMaxpoolIterRank];
@@ -261,6 +270,8 @@ void execution_phase(uint32_t num_tiles,
     assert(status == MLI_STATUS_OK);
 
     mli_maxpool2d_pimpl->GetIOSizesAndOffsets(input_tile_size, output_tile_size, input_tile_offsets, output_tile_offsets);
+    input_tile_offsets[kTensorBatchDim] = NUM_REAL_BATCHES - 1;
+    output_tile_offsets[kTensorBatchDim] = NUM_REAL_BATCHES - 1;
 
     // copy input from global buffer to local tile buffer
     strided_copy_with_offsets(kMaxpoolRank, maxpool2d_private->input.get_buf().get_elem_size(),

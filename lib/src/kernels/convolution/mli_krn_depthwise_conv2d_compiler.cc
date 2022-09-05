@@ -117,9 +117,6 @@ unsigned DepthwiseConv2d_CS::GetRuntimeObjectSize() const {
 mli_status DepthwiseConv2d_CS::GetKernelPrivateData(void* kernel_private_data_buffer) {
   MLI_ASSERT(kernel_private_data_buffer != nullptr);
 
-  // Batch checking
-  MLI_ASSERT(m_input.get_dim(mli::kTensorBatchDim) == 1);
-
   // Channel checking
   MLI_ASSERT(m_input.get_dim(mli::kTensorChannelDim) == m_output.get_dim(mli::kTileChannelDim));
   MLI_ASSERT(m_weights.get_dim(mli::kKernelDWChannelInDim) == m_output.get_dim(mli::kTileChannelDim));

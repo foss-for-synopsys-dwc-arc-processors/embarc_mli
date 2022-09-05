@@ -44,7 +44,7 @@ MaxPool2D::MaxPool2D(void* kernel_private_data_buffer, size_t size,
   m_cfg.padding_bottom = maxpool2d_private_buffer.config.padding_end[0];
 
   m_input_batch_offset = maxpool2d_private_buffer.input.get_mem_stride(kTensorBatchDim);
-  m_output_batch_offset = maxpool2d_private_buffer.output.get_mem_stride(kTensorBatchDim);;
+  m_output_batch_offset = maxpool2d_private_buffer.output.get_mem_stride(kTensorBatchDim);
 
   m_input = maxpool2d_private_buffer.input;
   m_output = maxpool2d_private_buffer.output;

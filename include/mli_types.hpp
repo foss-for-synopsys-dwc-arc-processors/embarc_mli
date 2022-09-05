@@ -308,6 +308,12 @@ public:
     elem_size_ = buf.get_elem_size();
   }
 
+  template <typename T>
+  InternalBuffer(T* ptr, uint32_t size) {
+    set_ptr(ptr);
+    size_ = size;
+  }
+
   uint32_t get_size() const {
     return size_;
   }
