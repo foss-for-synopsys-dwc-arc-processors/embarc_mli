@@ -62,7 +62,8 @@ KERNELS = \
 	depthwise_conv_30 \
 	reduce_max_30 \
 	transpose_conv2d_30 \
-	reduce_sum_30
+	reduce_sum_30 \
+	permute_30
 
 
 

@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2021, Synopsys, Inc.
+* Copyright 2019-2022, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -34,16 +34,18 @@ static void mli_krn_permute_calc(const mli_tensor *in, uint32_t *out_shape, int 
     const int inp_stride_1 = in_prv.mem_stride[perm_dim[1]];
     const int inp_stride_0 = in_prv.mem_stride[perm_dim[0]];
 
+    // Increment calculation for each dimention.
     for (int dim_ctr = 0; dim_ctr < MLI_MAX_RANK - 1; dim_ctr++) {
         out_increments[dim_ctr] -= out_increments[dim_ctr + 1] * out_shape[dim_ctr + 1];
     }
 
+    // Re-order the output tensor.
     for (int d0_cnt = 0; d0_cnt < (int)out_shape[0]; d0_cnt++) {
         for (int d1_cnt = 0; d1_cnt < (int)out_shape[1]; d1_cnt++) {
             for (int d2_cnt = 0; d2_cnt < (int)out_shape[2]; d2_cnt++) {
                 for (int d3_cnt = 0; d3_cnt < (int)out_shape[3]; d3_cnt++) {
                     *output = input[d0_cnt * inp_stride_0 + d1_cnt * inp_stride_1 \
-                            + d2_cnt * inp_stride_2 + d3_cnt * inp_stride_3];
+                              + d2_cnt * inp_stride_2 + d3_cnt * inp_stride_3];
                     output += out_increments[3];
                 }
                 output += out_increments[2];
@@ -59,7 +61,7 @@ static MLI_FORCE_INLINE mli_status mli_krn_permute_run(const mli_tensor *in, con
 
     int rank = in->rank;
 
-    int perm_dim[MLI_MAX_RANK] = {0, 1, 2, 3};   // default order of output matrix dimension 4, 4D:[Batch, Height, Width, Channel]
+    int perm_dim[MLI_MAX_RANK] = {0, 1, 2, 3};   // default order of output matrix dimension 4.
     int out_increments[MLI_MAX_RANK] = {0, 0, 0, 0};
     uint32_t out_shape[MLI_MAX_RANK] = {0, 0, 0, 0};
 
@@ -70,6 +72,7 @@ static MLI_FORCE_INLINE mli_status mli_krn_permute_run(const mli_tensor *in, con
         out_shape[k] = out->shape[k];
     }
 
+    // Tensors with rank less than MLI_MAX_RANK, the tensor is automatically filled with 1's
     for (int i = rank; i < MLI_MAX_RANK; i++) {
         out_shape[i] = 1;
     }

@@ -221,6 +221,7 @@ add_user_test(krn sumpool_30)
 #======================================================
 add_user_test(krn argmax)
 add_user_test(krn permute)
+add_user_test(krn permute_30)
 
 #======================================================
 # Fully Connected And Recurrent Group

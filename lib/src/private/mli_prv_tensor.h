@@ -125,8 +125,8 @@ MLI_FORCE_INLINE void mli_prv_tensor_set_data_ptr(
 
 template <typename T>
 MLI_FORCE_INLINE T mli_prv_tensor_data_ptr(
-        const mli_tensor *tensor);
-
+        const mli_tensor *tensor); 
+         
 template <>
 MLI_FORCE_INLINE int8_t* mli_prv_tensor_data_ptr(
         const mli_tensor *tensor) {

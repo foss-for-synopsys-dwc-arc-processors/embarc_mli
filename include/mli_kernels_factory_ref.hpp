@@ -283,15 +283,15 @@ public:
         return new (kernel_buffer)lib_ref::TransposeConv2D_CS(m_pd, input, weights, weights_zp, cfg, output);
     }
 
-    uint32_t Permute_CS_GetSize() const override { return 0 /*sizeof(lib_ref::Permute_CS) */; }
+    uint32_t Permute_CS_GetSize() const override { return sizeof(lib_ref::Permute_CS); }
 
     lib_mli::Permute_CS* Permute_CS(void *kernel_buffer,
                                     const TensorIterator<NoBuffer, kPermuteRank, kPermuteIterRank> in,
                                     const PermuteOpConfig &cfg,
                                     const TensorIterator<NoBuffer, kPermuteRank, kPermuteIterRank> out) override { 
-        /* return new(kernel_buffer) lib_ref::Permute_CS(m_pd, in, cfg, out); */
-        return nullptr;
-                                    }
+        return new(kernel_buffer) lib_ref::Permute_CS(m_pd, in, cfg, out); 
+    }
+    
     uint32_t MatMul_CS_GetSize() const override { return 0 /*sizeof(lib_ref::MatMul_CS)*/; }
 
     lib_mli::MatMul_CS* MatMul_CS(void *kernel_buffer,

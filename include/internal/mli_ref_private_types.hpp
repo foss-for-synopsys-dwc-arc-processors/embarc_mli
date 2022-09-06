@@ -360,6 +360,14 @@ public:
     TensorIterator<OffsetBuffer, kPermuteRank, kPermuteIterRank> output;
 };
 
+struct PermuteMetadata
+{
+    TensorIterator<OffsetBuffer, kPermuteRank, kPermuteIterRank> m_input;
+    TensorIterator<OffsetBuffer, kPermuteRank, kPermuteIterRank> m_output;
+    mli_tensor m_tile_input;
+    mli_tensor m_tile_output;
+};
+
 class ReduceSumPrivateData : public PrivateData {
 
 public:

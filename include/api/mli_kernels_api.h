@@ -1050,6 +1050,7 @@ mli_status mli_krn_eltwise_max_sa8(const mli_tensor * in1, const mli_tensor * in
 mli_status mli_krn_permute_fx8(const mli_tensor * in, const mli_permute_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_permute_fx16(const mli_tensor * in, const mli_permute_cfg * cfg, mli_tensor * out);
 mli_status mli_krn_permute_sa8(const mli_tensor * in, const mli_permute_cfg * cfg, mli_tensor * out);
+mli_status mli_krn_permute_sa32(const mli_tensor * in, const mli_permute_cfg * cfg, mli_tensor * out);
 
 #ifdef __cplusplus
 }

@@ -689,9 +689,12 @@ public:
 
     mli_status Update() override;
 
+    // TODO: remove this method and replace with usage of Move kernel once it implemented.
+    void GetIOSizesAndOffsets(uint32_t input_size[kPermuteRank], uint32_t output_size[kPermuteRank],
+                              int32_t input_offsets[kPermuteRank], int32_t output_offsets[kPermuteRank]);
+
 private:
-    mli_tensor m_input;
-    mli_tensor m_output;
+    PermuteMetadata m_metadata;
     uint8_t m_perm_dim[kPermuteRank];
 
     uint32_t m_in_elem_size;

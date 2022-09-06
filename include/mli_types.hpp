@@ -70,8 +70,8 @@ constexpr unsigned kTransposeConvWIterRank = 5;
 constexpr unsigned kTransposeConvZPRank = 1;
 constexpr unsigned kTransposeConvZPIterRank = 1;
 
-constexpr short int kPermuteRank = 4;
-constexpr short int kPermuteIterRank = 4;
+constexpr unsigned kPermuteRank = 4;
+constexpr unsigned kPermuteIterRank = 4;
 
 constexpr unsigned kClipRank = 4;
 constexpr unsigned kClipIterRank = 4;
@@ -827,8 +827,8 @@ struct ReduceOpConfig {
  */
 struct PermuteOpConfig {
   PermuteOpConfig() = default;
-  PermuteOpConfig(int8_t *perm_dim) {
-    for(int8_t i = 0; i < kPermuteRank; i++) {
+  PermuteOpConfig(uint8_t *perm_dim) {
+    for(uint32_t i = 0; i < kPermuteRank; i++) {
       this->perm_dim[i] = perm_dim[i];
     }
   }

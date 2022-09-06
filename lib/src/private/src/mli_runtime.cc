@@ -175,18 +175,17 @@ ExecutionInterface* ExecutionInterface::Create(
                 MLI_PRINTF("\nMLI_ERROR: Insufficient space for [ReduceSum] runtime object\n");
             }
             break;
-        // case kPermuteId:
-        //     if(alloc_buf_size >= sizeof(Permute)) {
-        //         obj = new (allocation_memory_buffer) Permute(kernel_private_data_buffer, private_data_size, membases, num_mems);
-        //     } else {
-        //         MLI_PRINTF("\nMLI_ERROR: Insufficient space for [Permute] runtime object\n");
-        //     }
-        //     break;
-            case kMatMulId:
+        case kPermuteId:
+            if(alloc_buf_size >= sizeof(Permute)) {
+                obj = new (allocation_memory_buffer) Permute(kernel_private_data_buffer, private_data_size, membases, num_mems);
+            } else {
+                MLI_PRINTF("\nMLI_ERROR: Insufficient space for [Permute] runtime object\n");
+            }
+            break;
+        case kMatMulId:
             if(alloc_buf_size >= sizeof(MatMul)) {
               // obj = new (allocation_memory_buffer) MatMul(kernel_private_data_buffer, private_data_size, membases, num_mems);
                 obj = nullptr; // until the implementation
-            break;
             } else {
                 MLI_PRINTF("\nMLI_ERROR: Insufficient space for [MatMul] runtime object\n");
             }
