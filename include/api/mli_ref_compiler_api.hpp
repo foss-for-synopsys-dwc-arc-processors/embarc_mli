@@ -507,12 +507,43 @@ private:
 
 class ReduceMax_CS : public lib_mli::ReduceMax_CS {
 public:
-    ReduceMax_CS(const lib_mli::PlatformDescription pd,
-                 const Tensor<NoBuffer, 4> input_shape,
-                 const ReduceOpConfig &cfg,
-                 const Tensor<NoBuffer, 4> output_tile_shape);
 
-    // From ReduceMax_CS
+    /**
+     * @brief Constructor to create a ReduceMax compiler support object.
+     *
+     * This constructor can be used to create a ReduceMax compiler support
+     * object. This kernel computes each value of the output tensor as the maximum
+     * of all values in the reduction axis of the input tensor.
+     *
+     * @param pd [I] Platform description
+     * @param in [I] Input tensor iterator (BHWC layout)
+     * @param cfg [I] ReduceOpConfig structure
+     * @param out [O] Output tensor iterator (BHWC layout)
+     */
+    ReduceMax_CS(const lib_mli::PlatformDescription pd,
+                 const TensorIterator<NoBuffer, kReduceMaxRank, kReduceMaxIterRank> &in,
+                 const ReduceOpConfig &cfg,
+                 const TensorIterator<NoBuffer, kReduceMaxRank, kReduceMaxIterRank> &out);
+    
+    /**
+     * @brief Constructor to create a ReduceMax compiler support object.
+     * ( // TODO: to be removed after support TensorIterator).
+     *
+     * This constructor can be used to create a ReduceMax compiler support
+     * object. This kernel computes each value of the output tensor as the maximum
+     * of all values in the reduction axis of the input tensor.
+     *
+     * @param pd [I] Platform description
+     * @param in [I] Input tensor (BHWC layout)
+     * @param cfg [I] ReduceOpConfig structure
+     * @param out [O] Output tensor (BHWC layout)
+     */
+    ReduceMax_CS(const lib_mli::PlatformDescription pd,
+                 const Tensor<NoBuffer, kReduceMaxRank> &input_shape,
+                 const ReduceOpConfig &cfg,
+                 const Tensor<NoBuffer, kReduceMaxRank> &out_tile_shape);
+
+    // TODO: to be removed after support TensorIterator
     unsigned GetInputBufferSize() const override;
     unsigned GetOutputBufferSize() const override;
     
@@ -520,15 +551,25 @@ public:
     unsigned GetKernelPrivateDataSize() const override;
     unsigned GetRuntimeObjectSize() const override;
 
-    mli_status AttachBufferOffsets( const Tensor<OffsetBuffer, 4> &input,
-                                    const Tensor<OffsetBuffer, 4> &output,
-                                    const OffsetBuffer &ctrl_buffer) override;
+    mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                   const OffsetBuffer &output,
+                                   const OffsetBuffer &ctrl_buffer) override;
+    
+    // TODO: to be removed after support IensorIterator
+    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kReduceMaxRank> &input,
+                                   const Tensor<OffsetBuffer, kReduceMaxRank> &output,
+                                   const OffsetBuffer &ctrl_buffer) override;
 
 private:
     ReduceOpConfig m_cfg;
-    Tensor<OffsetBuffer, 4> m_in;
-    Tensor<OffsetBuffer, 4> m_out;
 
+#ifdef REDUCEMAX_TILING
+    TensorIterator<OffsetBuffer, kReduceMaxRank, kReduceMaxIterRank> m_in;
+    TensorIterator<OffsetBuffer, kReduceMaxRank, kReduceMaxIterRank> m_out;
+#else
+    Tensor<OffsetBuffer, kReduceMaxRank> m_in;
+    Tensor<OffsetBuffer, kReduceMaxRank> m_out;
+#endif
     uint32_t m_input_buffer_size;
     uint32_t m_output_buffer_size;
 

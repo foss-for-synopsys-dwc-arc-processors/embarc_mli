@@ -110,6 +110,12 @@ constexpr short int kTableBuiltinIOIterRank = 4;
 constexpr short int kBiasRank = 1;
 constexpr short int kBiasIterRank = 1;
 
+constexpr short int kReduceMaxRank = 4;
+constexpr short int kReduceMaxIterRank = 4;
+// uncomment to build and run for ReduceMax Tiling support 
+// #define REDUCEMAX_TILING
+
+
 typedef enum : uint32_t {
   kInvalidId = 0,
   kConv2dId,

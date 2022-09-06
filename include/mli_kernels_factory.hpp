@@ -418,9 +418,15 @@ public:
      }
 
     virtual lib_mli::ReduceMax_CS* ReduceMax_CS(void *kernel_buffer,
-                                                const Tensor<NoBuffer, 4> input_shape,
+                                                const TensorIterator<NoBuffer, kReduceMaxRank, kReduceMaxIterRank> &in,
                                                 const ReduceOpConfig &cfg,
-                                                const Tensor<NoBuffer, 4> output_tile_shape) { return nullptr; }
+                                                const TensorIterator<NoBuffer, kReduceMaxRank, kReduceMaxIterRank> &out) { return nullptr; }
+
+    // TODO: to be removed after support IensorIterator
+    virtual lib_mli::ReduceMax_CS* ReduceMax_CS(void *kernel_buffer,
+                                                const Tensor<NoBuffer, kReduceMaxRank> &input_shape,
+                                                const ReduceOpConfig &cfg,
+                                                const Tensor<NoBuffer, kReduceMaxRank> &output_tile_shape) { return nullptr; }
     
     virtual lib_mli::ReduceSum_CS* ReduceSum_CS(void *kernel_buffer,
                                                 const TensorIterator<NoBuffer, kReduceSumRank, kReduceSumIterRank> &in,
