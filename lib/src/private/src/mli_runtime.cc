@@ -35,6 +35,7 @@ using ref::TableBuiltin;
 using ref::MatMul;
 using ref::ReduceSum;
 using ref::Prelu;
+using ref::MoveBroadcast;
 
 ExecutionInterface* ExecutionInterface::Create(
         void* allocation_memory_buffer,
@@ -188,6 +189,14 @@ ExecutionInterface* ExecutionInterface::Create(
                 obj = nullptr; // until the implementation
             } else {
                 MLI_PRINTF("\nMLI_ERROR: Insufficient space for [MatMul] runtime object\n");
+            }
+            break;
+        case kMoveBroadcastId:
+            if(alloc_buf_size >= sizeof(MoveBroadcast)) {
+                // obj = new (allocation_memory_buffer) MoveBroadcast(kernel_private_data_buffer, private_data_size, membases, num_mems);
+                obj = nullptr; // until the implementation
+            } else {
+                MLI_PRINTF("\nMLI_ERROR: Insufficient space for [MoveBroadcast] runtime object\n");
             }
             break;
         default:

@@ -928,6 +928,59 @@ private:
     uint32_t m_out_elem_size;
 };
 
+/**
+ * @brief This class implements the MoveBroadcast kernel xop interpreter interface
+ *
+ *
+ */
+class MoveBroadcast : public ExecutionInterface {
+
+public:
+    /**
+     * @brief constructor to create a MoveBroadcast run-time object from a private data buffer from the MoveBroadcast class
+     *
+     * This Method will create and initialize the object using the information
+     * stored in the kernel_private_data_buffer that has been computed at compile time
+     * by the get_kernel_private_data() method.
+     *
+     * @param kernel_private_data_buffer [I] pointer to the compiletime computed initialization data
+     * @param size        [I] Size of the data is used to check for coding errors
+     * @param membases[]  [I] The kernel private data may contain offsets inside a (vector) memory.
+     *                        At run-time specific locations in memory are allocated for
+     *                        the graph, the membases array contains the start of
+     *                        each memory region.
+     *                        This base will be added to all memory offsets in the constructor
+     *                        according to the memory ID associated with that offset.
+     *                        Each platform can have different (number of) memories. For mli
+     *                        this is completely transparent. Compiler needs to use the same
+     *                        memory id's when attaching the buffers as are used by the
+     *                        xop-interpreter to set the membases.
+     */
+    MoveBroadcast(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
+
+    mli_status Issue() override;
+
+    mli_status Prefetch() override;
+
+    mli_status Update() override;
+
+private:
+    TensorIterator<InternalBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> m_src;
+    TensorIterator<InternalBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> m_dst;
+
+    template <typename buf_T, unsigned N>
+    void CopySrcToDst(Tensor<buf_T, N> src, Tensor<buf_T, N> dst);
+
+    TensorIterator<InternalBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> GetSrcTensorTileItr(
+        void* kernel_private_data_buffer, uint64_t membases[], int num_mems);
+
+    TensorIterator<InternalBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> GetDstTensorTileItr(
+        void* kernel_private_data_buffer, uint64_t membases[], int num_mems);
+
+    uint32_t m_in_elem_size;
+    uint32_t m_out_elem_size;
+};
+
 } // namespace snps_arc::metaware::mli::ref
 
 #endif // _MLI_REF_RUNTIME_API_HPP_

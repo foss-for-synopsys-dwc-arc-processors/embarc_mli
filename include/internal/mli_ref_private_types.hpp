@@ -433,6 +433,15 @@ public:
     TensorIterator<OffsetBuffer, kPreluRank, kPreluIterRank> output;
 };
 
+class MoveBroadcastPrivateData : public PrivateData {
+
+public:
+    MoveBroadcastPrivateData() : PrivateData(kMoveBroadcastId, sizeof(MoveBroadcastPrivateData)) {}
+
+    TensorIterator<OffsetBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> src;
+    TensorIterator<OffsetBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> dst;
+};
+
 } // namespace snps_arc::metaware::mli::ref
 
 #endif // _MLI_REF_PRIVATE_TYPES_HPP_

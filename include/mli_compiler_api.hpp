@@ -1215,6 +1215,28 @@ public:
 };
 
 
+/**
+ * @brief This class implements the MoveBroadcast Compiler Support kernel interface
+ *
+ */
+class MoveBroadcast_CS : public CompilerGenericInterface {
+public:
+    virtual ~MoveBroadcast_CS() = default;
+    
+    /**
+     * @brief Method to set buffer memory offsets and memory IDs for the kernel
+     *
+     * @param src [I] Tensor descriptor containing src OffsetBuffer
+     * @param dst [I] Tensor descriptor containing dst OffsetBuffer
+     * @param ctrl_buffer [I] Tensor descriptor containing descriptor data OffsetBuffer
+     * 
+     * @return MLI status code
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &src,
+                                           const OffsetBuffer &dst,
+                                           const OffsetBuffer &ctrl_buffer) = 0;
+};
+
 } // namespace mli
 
 #endif // _MLI_COMPILER_API_HPP_

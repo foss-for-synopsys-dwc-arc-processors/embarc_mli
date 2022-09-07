@@ -115,6 +115,8 @@ constexpr short int kReduceMaxIterRank = 4;
 // uncomment to build and run for ReduceMax Tiling support 
 // #define REDUCEMAX_TILING
 
+constexpr unsigned kMoveBroadcastRank = 5;
+constexpr unsigned kMoveBroadcastIterRank = 5;
 
 typedef enum : uint32_t {
   kInvalidId = 0,
@@ -139,6 +141,7 @@ typedef enum : uint32_t {
   kArgMaxId,
   kTableBuiltinId,
   kMatMulId,
+  kMoveBroadcastId
 } kernel_id_t;
 
 typedef enum class compression_mode_t {

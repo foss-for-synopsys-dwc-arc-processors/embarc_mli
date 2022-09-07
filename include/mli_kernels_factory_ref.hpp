@@ -302,6 +302,16 @@ public:
        return nullptr;
     }
 
+    uint32_t MoveBroadcast_CS_GetSize() const override { return 0 /* sizeof(lib_ref::MoveBroadcast_CS)*/; }
+
+    lib_mli::MoveBroadcast_CS* MoveBroadcast_CS(void *kernel_buffer,
+                                                const TensorIterator<NoBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> &src,
+                                                const TensorIterator<NoBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> &dst,
+                                                const lib_mli::MoveDataDirection data_dir) override {
+      return nullptr; // new (kernel_buffer) lib_ref::MoveBroadcast_CS(m_pd, src, dst);
+    }
+
+
 private:
     lib_mli::PlatformDescription m_pd;
 };

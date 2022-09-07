@@ -1137,7 +1137,6 @@ private:
     lib_mli::PlatformDescription m_pd;
 };
 
-
 class MatMul_CS : public lib_mli::MatMul_CS {
 public:
 
@@ -1183,6 +1182,38 @@ private:
     OffsetBuffer  m_encoded_params;
 
     lib_mli::PlatformDescription m_pd;
+};
+
+class MoveBroadcast_CS : public lib_mli::MoveBroadcast_CS {
+ public:
+    /**
+     * @brief constructor to create an iterating move object and then broadcast its pixels
+     *
+     * This constructor can be used to create a data movement operations which 
+     * allows copy data from one location to another with broadcasting. 
+     * e.g duplicating data to fill wider shape data with narrowed shape data. 
+     *
+     *
+     * @param src [I] source tensor iterator
+     * @param dst [I] destination tensor iterator
+     */
+    MoveBroadcast_CS(const lib_mli::PlatformDescription pd,
+                     const TensorIterator<NoBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> &src,
+                     const TensorIterator<NoBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> &dst);
+
+    unsigned GetKernelPrivateDataSize() const override;
+    unsigned GetRuntimeObjectSize() const override;
+    mli_status GetKernelPrivateData(void *kernel_private_data_buffer) override;
+
+    mli_status AttachBufferOffsets(const OffsetBuffer &src,
+                                   const OffsetBuffer &dst,
+                                   const OffsetBuffer &ctrl_buffer) override;
+
+private:
+    lib_mli::PlatformDescription m_pd;
+
+    TensorIterator<OffsetBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> m_src;
+    TensorIterator<OffsetBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> m_dst;
 };
 
 } // namespace ref

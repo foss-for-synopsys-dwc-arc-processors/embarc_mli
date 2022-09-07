@@ -60,6 +60,8 @@ public:
 
     virtual uint32_t MatMul_CS_GetSize() const { return 0; }
 
+    virtual uint32_t MoveBroadcast_CS_GetSize() const { return 0; }
+
     /**
      * @brief Convolution 2D kernel Compiler Support interface factory
      * method
@@ -495,6 +497,25 @@ public:
         const TensorIterator<NoBuffer, kPermuteRank, kPermuteIterRank> out) { 
         return nullptr; 
       }
+
+    /**
+     * @brief MoveBroadcast kernel Compiler Support interface factory
+     * method
+     *
+     * @param kernel_buffer [I] Pointer to the pre-allocated memory to store
+     *                          kernel Compiler Support object
+
+     * @param src [I] source tensor iterator
+     * @param dst [I] destination tensor iterator
+     *
+     * @return MoveBroadcast kernel Compiler Support interface object
+     */
+    virtual lib_mli::MoveBroadcast_CS *MoveBroadcast_CS(void *kernel_buffer,
+                                                        const TensorIterator<NoBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> &src,
+                                                        const TensorIterator<NoBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> &dst,
+                                                        const lib_mli::MoveDataDirection data_dir) {
+      return nullptr;
+    }
 
 };
 
