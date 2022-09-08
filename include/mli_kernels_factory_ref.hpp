@@ -63,21 +63,29 @@ public:
     uint32_t Move_CS_GetSize() const override { return sizeof(lib_ref::Move_CS); }
 
     lib_mli::Move_CS* Move_CS(void *kernel_buffer,
-                              const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> src,
-                              const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> dst,
+                              const Tensor<NoBuffer, kMoveRank> src,
+                              const Tensor<NoBuffer, kMoveRank> dst,
                               const lib_mli::MoveDataDirection data_dir)
                               override {
         return new(kernel_buffer) lib_ref::Move_CS(m_pd, src, dst);
     }
 
     lib_mli::Move_CS* Move_CS(void *kernel_buffer,
-                              const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> src,
-                              const IteratorCfg<lib_mli::Move_CS::kMaxRank> src_cfg,
-                              const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> dst,
-                              const IteratorCfg<lib_mli::Move_CS::kMaxRank> dst_cfg,
+                              const Tensor<NoBuffer, kMoveRank> src,
+                              const IteratorCfg<kMoveIterRank> src_cfg,
+                              const Tensor<NoBuffer, kMoveRank> dst,
+                              const IteratorCfg<kMoveIterRank> dst_cfg,
                               const lib_mli::MoveDataDirection data_dir)
                               override {
       return new (kernel_buffer) lib_ref::Move_CS(m_pd, src, dst, src_cfg, dst_cfg);
+    }
+
+    lib_mli::Move_CS* Move_CS(void *kernel_buffer,
+                              const TensorIterator<NoBuffer, kMoveRank, kMoveIterRank> &src,
+                              const TensorIterator<NoBuffer, kMoveRank, kMoveIterRank> &dst,
+                              const lib_mli::MoveDataDirection data_dir)
+                              override {
+      return nullptr; /* new (kernel_buffer) lib_ref::Move_CS(m_pd, src, dst); */
     }
 
     uint32_t Add_CS_GetSize() const override { return sizeof(lib_ref::Add_CS); }

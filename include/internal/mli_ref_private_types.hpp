@@ -181,11 +181,11 @@ class MovePrivateData : public PrivateData {
 public:
     MovePrivateData() : PrivateData(kMoveId, sizeof(MovePrivateData)) {}
 
-    Tensor<OffsetBuffer, Move_CS::kMaxRank> src;
-    Tensor<OffsetBuffer, Move_CS::kMaxRank> dst;
+    Tensor<OffsetBuffer, kMoveRank> src;
+    Tensor<OffsetBuffer, kMoveRank> dst;
 
-    IteratorCfg<Move_CS::kMaxRank> src_cfg;
-    IteratorCfg<Move_CS::kMaxRank> dst_cfg;
+    IteratorCfg<kMoveIterRank> src_cfg;
+    IteratorCfg<kMoveIterRank> dst_cfg;
 };
 
 /**

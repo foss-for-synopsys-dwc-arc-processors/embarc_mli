@@ -18,21 +18,21 @@
 namespace snps_arc::metaware::mli::ref {
 
 Move_CS::Move_CS(const lib_mli::PlatformDescription pd,
-                 const Tensor<NoBuffer, kMaxRank> src,
-                 const Tensor<NoBuffer, kMaxRank> dst,
-                 const IteratorCfg<kMaxRank> src_it_cfg,
-                 const IteratorCfg<kMaxRank> dst_it_cfg)
+                 const Tensor<NoBuffer, kMoveRank> src,
+                 const Tensor<NoBuffer, kMoveRank> dst,
+                 const IteratorCfg<kMoveIterRank> src_it_cfg,
+                 const IteratorCfg<kMoveIterRank> dst_it_cfg)
     : m_src_cfg(src_it_cfg), m_dst_cfg(dst_it_cfg) {
   m_src_rank = 0;
   m_dst_rank = 0;
 
-  for (unsigned dim = 0; dim < kMaxRank; dim++) {
+  for (unsigned dim = 0; dim < kMoveRank; dim++) {
     m_src_shape[dim] = src.get_dim(dim);
     if (m_src_shape[dim] > 0) m_src_rank += 1;
     m_src_stride[dim] = src.get_mem_stride(dim);
   }
 
-  for (unsigned dim = 0; dim < kMaxRank; dim++) {
+  for (unsigned dim = 0; dim < kMoveRank; dim++) {
     m_dst_shape[dim] = dst.get_dim(dim);
     if (m_dst_shape[dim] > 0) m_dst_rank += 1;
     m_dst_stride[dim] = dst.get_mem_stride(dim);
@@ -59,8 +59,8 @@ mli_status Move_CS::GetKernelPrivateData(void *kernel_private_data_buffer) {
   return MLI_STATUS_OK;
 }
 
-mli_status Move_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, kMaxRank> &src,
-                                        const Tensor<OffsetBuffer, kMaxRank> &dst) {
+mli_status Move_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, kMoveRank> &src,
+                                        const Tensor<OffsetBuffer, kMoveRank> &dst) {
   m_src = src;
   m_dst = dst;
   return MLI_STATUS_OK;

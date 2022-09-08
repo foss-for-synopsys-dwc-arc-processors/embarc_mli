@@ -63,8 +63,8 @@ void Move::CopySrcToDst(Tensor<buf_T, N> src, Tensor<buf_T, N> dst) {
 }
 
 mli_status Move::Issue() {
-  Tensor<InternalBuffer, Move_CS::kMaxRank> src;
-  Tensor<InternalBuffer, Move_CS::kMaxRank> dst;
+  Tensor<InternalBuffer, kMoveRank> src;
+  Tensor<InternalBuffer, kMoveRank> dst;
   src = m_src_it.GetSubTensor();
   dst = m_dst_it.GetSubTensor();
   CopySrcToDst(src, dst);
@@ -81,7 +81,7 @@ mli_status Move::Update() {
   return MLI_STATUS_OK;
 }
 
-TensorIterator<InternalBuffer, Move_CS::kMaxRank, Move_CS::kMaxRank> Move::GetSrcTensorTileItr(
+TensorIterator<InternalBuffer, kMoveRank, kMoveIterRank> Move::GetSrcTensorTileItr(
     void* kernel_private_data_buffer, uint64_t membases[],
     int num_mems) {
   MovePrivateData private_data;
@@ -89,13 +89,13 @@ TensorIterator<InternalBuffer, Move_CS::kMaxRank, Move_CS::kMaxRank> Move::GetSr
   MLI_ASSERT(private_data.kernel_id == kMoveId);
   MLI_ASSERT(private_data.size == sizeof(MovePrivateData));
 
-  return TensorIterator<InternalBuffer, Move_CS::kMaxRank, Move_CS::kMaxRank>(
-      Tensor<InternalBuffer, Move_CS::kMaxRank>(private_data.src, membases,
+  return TensorIterator<InternalBuffer, kMoveRank, kMoveIterRank>(
+      Tensor<InternalBuffer, kMoveRank>(private_data.src, membases,
                                                 num_mems),
       private_data.src_cfg);
 }
 
-TensorIterator<InternalBuffer, Move_CS::kMaxRank, Move_CS::kMaxRank> Move::GetDstTensorTileItr(
+TensorIterator<InternalBuffer, kMoveRank, kMoveIterRank> Move::GetDstTensorTileItr(
     void* kernel_private_data_buffer, uint64_t membases[],
     int num_mems) {
   MovePrivateData private_data;
@@ -103,8 +103,8 @@ TensorIterator<InternalBuffer, Move_CS::kMaxRank, Move_CS::kMaxRank> Move::GetDs
   MLI_ASSERT(private_data.kernel_id == kMoveId);
   MLI_ASSERT(private_data.size == sizeof(MovePrivateData));
 
-  return TensorIterator<InternalBuffer, Move_CS::kMaxRank, Move_CS::kMaxRank>(
-      Tensor<InternalBuffer, Move_CS::kMaxRank>(private_data.dst, membases,
+  return TensorIterator<InternalBuffer, kMoveRank, kMoveIterRank>(
+      Tensor<InternalBuffer, kMoveIterRank>(private_data.dst, membases,
                                                 num_mems),
       private_data.dst_cfg);
 }

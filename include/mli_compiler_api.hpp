@@ -214,12 +214,12 @@ public:
      *
      * In this method you specify offsets for tensors passed to the constructor
      *
-     * @param input [I] input OffsetBuffer and tensor shape and memory strides
-     * @param output [I] output OffsetBuffer and tensor shape and memory strides
-     * @param weights [I] weights OffsetBuffer and tensor shape and memory strides
-     * @param inpzeropts [I] input zero point(s) OffsetBuffer
-     * @param wtszeropts [I] weights zero points OffsetBuffer
-     * @param ctrl_buffer [I] data OffsetBuffer
+     * @param input       [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param output      [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param weights     [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param inpzeropts  [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param wtszeropts  [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param ctrl_buffer [I] OffsetBuffer containing Memory Identifier and Offset in that memory
      *
      * @return MLI status code
      */
@@ -341,10 +341,10 @@ public:
      * to the constructor of the runtime class. The offsets will added to the base
      * addresses provided in the membase array during runtime.
      *
-     * @param input [I] Tensor descriptor containing input OffsetBuffer
-     * @param output [I] Tensor descriptor containing output OffsetBuffer
-     * @param params [I] Tensor descriptor containing paramters OffsetBuffer
-     * @param ctrl_buffer [I] Tensor descriptor containing descriptor data OffsetBuffer
+     * @param input       [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param output      [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param params      [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param ctrl_buffer [I] OffsetBuffer containing Memory Identifier and Offset in that memory
      * 
      * @return MLI status code
      */
@@ -455,12 +455,12 @@ public:
      *
      * In this method you specify offsets for tensors passed to the constructor
      *
-     * @param input [I] input OffsetBuffer
-     * @param output [I] output OffsetBuffer
-     * @param weights [I] weights OffsetBuffer
-     * @param inpzeropts [I] input zero point(s) OffsetBuffer
-     * @param wtszeropts [I] weights zero points OffsetBuffer
-     * @param descr [I] data OffsetBuffer
+     * @param input       [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param output      [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param weights     [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param inpzeropts  [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param wtszeropts  [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param ctrl_buffer [I] OffsetBuffer containing Memory Identifier and Offset in that memory
      *
      * @return MLI status code
      */
@@ -578,9 +578,9 @@ public:
      *
      * In this method you specify offsets for tensors passed to the constructor.
      *
-     * @param input [I] input OffsetBuffer 
-     * @param output [I] output OffsetBuffer
-     * @param ctrl_buffer [I] data OffsetBuffer
+     * @param input       [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param output      [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param ctrl_buffer [I] OffsetBuffer containing Memory Identifier and Offset in that memory
      *
      * @return MLI status code
      */
@@ -953,9 +953,9 @@ public:
      *
      * In this method you specify offsets for tensors passed to the constructor.
      *
-     * @param input [I] input OffsetBuffer 
-     * @param output [I] output OffsetBuffer
-     * @param ctrl_buffer [I] control OffsetBuffer
+     * @param input       [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param output      [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param ctrl_buffer [I] OffsetBuffer containing Memory Identifier and Offset in that memory
      * 
      * @return MLI status code
      */
@@ -1008,9 +1008,9 @@ public:
      * to the constructor of the runtime class. The offsets will added to the base
      * addresses provided in the membase array during runtime.
      *
-     * @param input [I] Tensor descriptor containing input OffsetBuffer
-     * @param output [I] Tensor descriptor containing output OffsetBuffer
-     * @param ctrl_buffer [I] Tensor descriptor containing descriptor data OffsetBuffer
+     * @param input       [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param output      [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param ctrl_buffer [I] OffsetBuffer containing Memory Identifier and Offset in that memory
      * 
      * @return MLI status code
      */
@@ -1025,7 +1025,6 @@ public:
  */
 class Move_CS : public CompilerGenericInterface {
 public:
-    static constexpr unsigned kMaxRank = 5;
 
     /**
      * @brief Methods to get buffer sizes
@@ -1038,10 +1037,28 @@ public:
    
     /**
      * @brief Methods to set buffer offsets
+     * @deprected
+     */
+    virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kMoveRank> &src,
+                                           const Tensor<OffsetBuffer, kMoveRank> &dst) {
+      return MLI_STATUS_NOT_SUPPORTED;
+    };
+
+    /**
+     * @brief Method to set buffer memory offsets and memory IDs for the kernel
+     *
+     * The memory ID's are used to index the membases array that will be passed
+     * to the constructor of the runtime class. The offsets will be added to
+     * the base addresses provided in the membase array during runtime.
+     *
+     * @param src         [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param dst         [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param ctrl_buffer [I] OffsetBuffer containing Memory Identifier and Offset in that memory
      *
      */
-    virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kMaxRank> &src,
-                                           const Tensor<OffsetBuffer, kMaxRank> &dst) {
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &src,
+                                           const OffsetBuffer &dst,
+                                           const OffsetBuffer &ctrl_buffer) {
       return MLI_STATUS_NOT_SUPPORTED;
     };
 };
@@ -1136,12 +1153,12 @@ public:
      * to the constructor of the runtime class. The offsets will added to the base
      * addresses provided in the membase array during runtime.
      *
-     * @param input [I] Tensor descriptor containing input OffsetBuffer
-     * @param output [I] Tensor descriptor containing output OffsetBuffer
-     * @param weights [I] Tensor descriptor containing weights OffsetBuffer
-     * @param inpzeropts [I] Tensor descriptor containing input zero points OffsetBuffer
-     * @param wtszeropts [I] Tensor descriptor containing weights zero points OffsetBuffer
-     * @param ctrl_buffer [I] Tensor descriptor containing descriptor data OffsetBuffer
+     * @param input       [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param output      [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param weights     [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param inpzeropts  [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param wtszeropts  [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param ctrl_buffer [I] OffsetBuffer containing Memory Identifier and Offset in that memory
      * 
      * @return MLI status code
      */
@@ -1168,9 +1185,9 @@ public:
      * to the constructor of the runtime class. The offsets will added to the base
      * addresses provided in the membase array during runtime.
      *
-     * @param input [I] Tensor descriptor containing input OffsetBuffer
-     * @param output [I] Tensor descriptor containing output OffsetBuffer
-     * @param ctrl_buffer [I] Tensor descriptor containing descriptor data OffsetBuffer
+     * @param input       [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param output      [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param ctrl_buffer [I] OffsetBuffer containing Memory Identifier and Offset in that memory
      * 
      * @return MLI status code
      */
@@ -1203,9 +1220,11 @@ public:
      * to the constructor of the runtime class. The offsets will added to the base
      * addresses provided in the membase array during runtime.
      * 
-     * @param input_left  [I]  input1 OffsetBuffer
-     * @param input_right [I]  input2 OffsetBuffer
-     * @param output      [I]  output OffsetBuffer
+     * @param input_left     [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param input_right    [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param output         [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param encoded_params [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param ctrl_buffer    [I] OffsetBuffer containing Memory Identifier and Offset in that memory
      */
     virtual mli_status AttachBufferOffsets(const OffsetBuffer &input_left,
                                            const OffsetBuffer &input_right,
@@ -1226,9 +1245,9 @@ public:
     /**
      * @brief Method to set buffer memory offsets and memory IDs for the kernel
      *
-     * @param src [I] Tensor descriptor containing src OffsetBuffer
-     * @param dst [I] Tensor descriptor containing dst OffsetBuffer
-     * @param ctrl_buffer [I] Tensor descriptor containing descriptor data OffsetBuffer
+     * @param src         [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param dst         [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param ctrl_buffer [I] OffsetBuffer containing Memory Identifier and Offset in that memory
      * 
      * @return MLI status code
      */

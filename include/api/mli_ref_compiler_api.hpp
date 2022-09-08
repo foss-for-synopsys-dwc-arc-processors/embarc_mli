@@ -726,7 +726,7 @@ class Move_CS : public lib_mli::Move_CS {
    * and dst tensors need to match. the offsets (aka mem_strides) can be
    * different.
    *
-   * The function accepts tensors with a templated rank up to kMaxRank
+   * The function accepts tensors with a templated rank up to kMoveRank
    *
    * Separate iterator configs are needed for src and dst because the increments
    * can be different.
@@ -743,37 +743,37 @@ class Move_CS : public lib_mli::Move_CS {
    */
 
   Move_CS(const lib_mli::PlatformDescription pd,
-          const Tensor<NoBuffer, kMaxRank> src,
-          const Tensor<NoBuffer, kMaxRank> dst,
-          const IteratorCfg<kMaxRank> src_it_cfg = IteratorCfg<kMaxRank>(),
-          const IteratorCfg<kMaxRank> dst_it_cfg = IteratorCfg<kMaxRank>());
+          const Tensor<NoBuffer, kMoveRank> src,
+          const Tensor<NoBuffer, kMoveRank> dst,
+          const IteratorCfg<kMoveIterRank> src_it_cfg = IteratorCfg<kMoveIterRank>(),
+          const IteratorCfg<kMoveIterRank> dst_it_cfg = IteratorCfg<kMoveIterRank>());
 
   unsigned GetKernelPrivateDataSize() const override;
   unsigned GetRuntimeObjectSize() const override;
   mli_status GetKernelPrivateData(void *kernel_private_data_buffer) override;
-  mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kMaxRank> &src,
-                                 const Tensor<OffsetBuffer, kMaxRank> &dst) override;
+  mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kMoveRank> &src,
+                                 const Tensor<OffsetBuffer, kMoveRank> &dst) override;
 
   unsigned GetInputBufferSize() const override;
   unsigned GetOutputBufferSize() const override;
 
 private:
-  IteratorCfg<kMaxRank> m_src_cfg;
-  IteratorCfg<kMaxRank> m_dst_cfg;
+  IteratorCfg<kMoveIterRank> m_src_cfg;
+  IteratorCfg<kMoveIterRank> m_dst_cfg;
 
   lib_mli::PlatformDescription m_pd;
 
-  Tensor<OffsetBuffer, kMaxRank> m_src;
-  Tensor<OffsetBuffer, kMaxRank> m_dst;
+  Tensor<OffsetBuffer, kMoveRank> m_src;
+  Tensor<OffsetBuffer, kMoveRank> m_dst;
 
   uint32_t m_src_rank;
   uint32_t m_dst_rank;
 
-  uint32_t m_src_shape[kMaxRank];
-  uint32_t m_dst_shape[kMaxRank];
+  uint32_t m_src_shape[kMoveRank];
+  uint32_t m_dst_shape[kMoveRank];
 
-  int32_t m_src_stride[kMaxRank];
-  int32_t m_dst_stride[kMaxRank];
+  int32_t m_src_stride[kMoveRank];
+  int32_t m_dst_stride[kMoveRank];
 };
 
 class Add_CS : public lib_mli::Add_CS {

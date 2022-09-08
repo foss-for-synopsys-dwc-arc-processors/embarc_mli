@@ -88,6 +88,9 @@ constexpr unsigned kPreluIterRank = 4;
 constexpr unsigned kPreluParamRank = 2;
 constexpr unsigned kPreluParamIterRank = 2;
 
+constexpr unsigned kMoveRank = 5;
+constexpr unsigned kMoveIterRank = 5;
+
 typedef enum {
   kFirstTile = 0,
   kMiddleTile,

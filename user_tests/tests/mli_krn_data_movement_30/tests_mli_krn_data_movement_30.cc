@@ -32,6 +32,8 @@ using mli::tst::memory_manager;
 namespace lib_mli = ::snps_arc::metaware::mli;
 namespace lib_ref = ::snps_arc::metaware::mli::ref;
 
+using lib_mli::kMoveRank;
+
 struct data_movement_test_operands {
   const char* descr;
   tensor_quantizer in;
@@ -103,7 +105,6 @@ DataMoveConfig current_test_cfg(int n) {
           };
 }
 
-constexpr unsigned kMaxRank = 5;
 constexpr int kMemSize = 2048;
 static int8_t g_scratch_mem_in[kMemSize] = {0};
 static int8_t g_scratch_mem_out[kMemSize] = {0};
@@ -131,10 +132,10 @@ void prepare_phase(int i, memory_manager& mem_in_keeper,
   int8_t* input = temp_input_tensor.data.mem.pi8;
 
     // CWHB layot
-    uint32_t input_shape[kMaxRank] = { 0 };
-    uint32_t output_shape[kMaxRank] = { 0 };
-    int32_t input_stride[kMaxRank]= { 0 };
-    int32_t output_stride[kMaxRank]= { 0 };
+    uint32_t input_shape[kMoveRank] = { 0 };
+    uint32_t output_shape[kMoveRank] = { 0 };
+    int32_t input_stride[kMoveRank]= { 0 };
+    int32_t output_stride[kMoveRank]= { 0 };
 
     for (int i = 0; i < temp_input_tensor.rank; i++) {
       input_shape[i] = temp_input_tensor.shape[i];
@@ -145,8 +146,8 @@ void prepare_phase(int i, memory_manager& mem_in_keeper,
 
     DataMoveConfig temp_move_conf = current_test_cfg(i);
 
-    const lib_mli::Tensor<lib_mli::NoBuffer, kMaxRank> src_shape(input_shape, input_stride);
-    const lib_mli::Tensor<lib_mli::NoBuffer, kMaxRank> dst_shape(output_shape, output_stride);
+    const lib_mli::Tensor<lib_mli::NoBuffer, kMoveRank> src_shape(input_shape, input_stride);
+    const lib_mli::Tensor<lib_mli::NoBuffer, kMoveRank> dst_shape(output_shape, output_stride);
     lib_mli::MoveDataDirection data_dir = lib_mli::MoveDataDirection::kMoveDataDirectionInput;
 
     lib_mli::IteratorCfg<5> src_it_cfg(temp_move_conf.sub_sample_step, input_shape);

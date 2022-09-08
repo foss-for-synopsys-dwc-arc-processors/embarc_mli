@@ -216,19 +216,19 @@ public:
     mli_status Update() override;
 
 private:
-    TensorIterator<InternalBuffer, Move_CS::kMaxRank, Move_CS::kMaxRank> m_src_it;
-    TensorIterator<InternalBuffer, Move_CS::kMaxRank, Move_CS::kMaxRank> m_dst_it;
-    IteratorCfg<Move_CS::kMaxRank> m_src_it_cfg;
-    IteratorCfg<Move_CS::kMaxRank> m_dst_it_cfg;
+    TensorIterator<InternalBuffer, kMoveRank, kMoveIterRank> m_src_it;
+    TensorIterator<InternalBuffer, kMoveRank, kMoveIterRank> m_dst_it;
+    IteratorCfg<kMoveIterRank> m_src_it_cfg;
+    IteratorCfg<kMoveIterRank> m_dst_it_cfg;
 
     template <typename buf_T, unsigned N>
     void CopySrcToDst(Tensor<buf_T, N> src, Tensor<buf_T, N> dst);
 
-    TensorIterator<InternalBuffer, Move_CS::kMaxRank, Move_CS::kMaxRank> GetSrcTensorTileItr(
+    TensorIterator<InternalBuffer, kMoveRank, kMoveIterRank> GetSrcTensorTileItr(
         void* kernel_private_data_buffer, uint64_t membases[],
         int num_mems);
 
-    TensorIterator<InternalBuffer, Move_CS::kMaxRank, Move_CS::kMaxRank> GetDstTensorTileItr(
+    TensorIterator<InternalBuffer, kMoveRank, kMoveIterRank> GetDstTensorTileItr(
         void* kernel_private_data_buffer, uint64_t membases[],
         int num_mems);
 };

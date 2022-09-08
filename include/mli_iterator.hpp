@@ -501,6 +501,16 @@ class TensorIterator {
       tensor_iterator.get_tile_idx(m_tile_idx);
     }
 
+    TensorIterator(
+        const TensorIterator<OffsetBuffer, tensorRank, iterRank> &tns_iter,
+        uint64_t bases[],
+        unsigned num_mem) : m_buffer_itr(m_full_tensor, m_config) {
+      m_full_tensor = Tensor<InternalBuffer, tensorRank>(tns_iter.get_tensor(), bases, num_mem);
+      m_config = tns_iter.get_config();
+      m_offset = tns_iter.get_offset();
+      tns_iter.get_pos(m_pos);
+      tns_iter.get_tile_idx(m_tile_idx);
+    }
 
     /**
     * Constructor that will compute the number of tiles in each dimension, it will also compute the increment values and sizes.

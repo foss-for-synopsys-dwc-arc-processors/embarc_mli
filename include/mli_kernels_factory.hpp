@@ -149,17 +149,39 @@ public:
                                         int groups) { return nullptr; }                                    
 
     virtual lib_mli::Move_CS *Move_CS(void *kernel_buffer,
-                                      const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> src,
-                                      const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> dst,
+                                      const Tensor<NoBuffer, kMoveRank> src,
+                                      const Tensor<NoBuffer, kMoveRank> dst,
                                       const lib_mli::MoveDataDirection data_dir) {
       return nullptr;
     }
 
     virtual lib_mli::Move_CS *Move_CS(void *kernel_buffer,
-                                      const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> src,
-                                      const IteratorCfg<lib_mli::Move_CS::kMaxRank> src_cfg,
-                                      const Tensor<NoBuffer, lib_mli::Move_CS::kMaxRank> dst,
-                                      const IteratorCfg<lib_mli::Move_CS::kMaxRank> dst_cfg,
+                                      const Tensor<NoBuffer, kMoveRank> src,
+                                      const IteratorCfg<kMoveIterRank> src_cfg,
+                                      const Tensor<NoBuffer, kMoveRank> dst,
+                                      const IteratorCfg<kMoveIterRank> dst_cfg,
+                                      const lib_mli::MoveDataDirection data_dir) {
+      return nullptr;
+    }
+
+    /**
+     * @brief Move kernel Compiler Support interface factory method
+     * 
+     * @param kernel_buffer       [I] Pointer to the pre-allocated memory to
+     *                                store kernel Compiler Support object
+     * @param src                 [I] TensorIterator object containing input
+     *                                Tensor shape and memory strides and
+     *                                IteratorCfg
+     * @param dst                 [I] TensorIterator object containing output
+     *                                Tensor shape and memory strides and
+     *                                IteratorCfg
+     * @param data_dir            [I] Define Move Data Direction
+     *
+     * @return Move kernel Compiler Support interface object
+     */
+    virtual lib_mli::Move_CS *Move_CS(void *kernel_buffer,
+                                      const TensorIterator<NoBuffer, kMoveRank, kMoveIterRank> &src,
+                                      const TensorIterator<NoBuffer, kMoveRank, kMoveIterRank> &dst,
                                       const lib_mli::MoveDataDirection data_dir) {
       return nullptr;
     }
