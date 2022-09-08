@@ -320,6 +320,16 @@ public:
     }
 
 
+    uint32_t ResizeBilinear_CS_GetSize() const override { return 0 /*sizeof(lib_ref::ResizeBilinear_CS) */; }
+
+    lib_mli::ResizeBilinear_CS* ResizeBilinear_CS(void *kernel_buffer,
+                                                  const TensorIterator<NoBuffer, kResizeBilinearRank, kResizeBilinearIterRank> &in,
+                                                  const ResizeOpConfig &cfg,
+                                                  const TensorIterator<NoBuffer, kResizeBilinearRank, kResizeBilinearIterRank> &out) override { 
+        /* return new(kernel_buffer) lib_ref::ResizeBilinear_CS(m_pd, in, cfg, out); */
+        return nullptr;
+    }
+
 private:
     lib_mli::PlatformDescription m_pd;
 };

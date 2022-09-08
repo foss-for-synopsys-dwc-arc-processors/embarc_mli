@@ -1196,7 +1196,6 @@ public:
                                            const OffsetBuffer &ctrl_buffer) = 0;
 };
 
-
 /**
  * @brief This class implements the Matrix Multiply Compiler Support kernel interface
  *
@@ -1256,6 +1255,37 @@ public:
                                            const OffsetBuffer &ctrl_buffer) = 0;
 };
 
+/**
+ * @brief This class implements the ResizeBilinear Compiler Support kernel interface
+ *
+ */
+class ResizeBilinear_CS : public CompilerGenericInterface {
+public:
+
+    virtual ~ResizeBilinear_CS() = default;
+
+    /**
+     * @brief Method to set buffer memory offsets and memory IDs for the kernel
+     * 
+     * The memory ID's are used to index the membases array that will be passed
+     * to the constructor of the runtime class. The offsets will added to the base
+     * addresses provided in the membase array during runtime.
+     *
+     * @param input       [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param output      [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param ctrl_buffer [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * 
+     * @return MLI status code
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                           const OffsetBuffer &output,
+                                           const OffsetBuffer &ctrl_buffer) = 0;
+};
+
 } // namespace mli
 
 #endif // _MLI_COMPILER_API_HPP_
+
+
+
+

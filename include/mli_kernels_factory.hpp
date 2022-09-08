@@ -61,6 +61,8 @@ public:
     virtual uint32_t MatMul_CS_GetSize() const { return 0; }
 
     virtual uint32_t MoveBroadcast_CS_GetSize() const { return 0; }
+    
+    virtual uint32_t ResizeBilinear_CS_GetSize() const { return 0; }
 
     /**
      * @brief Convolution 2D kernel Compiler Support interface factory
@@ -519,6 +521,11 @@ public:
         const TensorIterator<NoBuffer, kPermuteRank, kPermuteIterRank> out) { 
         return nullptr; 
       }
+    
+    virtual lib_mli::ResizeBilinear_CS* ResizeBilinear_CS(void *kernel_buffer,
+                                                          const TensorIterator<NoBuffer, kResizeBilinearRank, kResizeBilinearIterRank> &in,
+                                                          const ResizeOpConfig &cfg,
+                                                          const TensorIterator<NoBuffer, kResizeBilinearRank, kResizeBilinearIterRank> &out) { return nullptr; }
 
     /**
      * @brief MoveBroadcast kernel Compiler Support interface factory

@@ -442,6 +442,17 @@ public:
     TensorIterator<OffsetBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> dst;
 };
 
+class ResizeBilinearPrivateData : public PrivateData {
+
+public:
+    ResizeBilinearPrivateData() : PrivateData(kResizeBilinearId, sizeof(ResizeBilinearPrivateData)) {}
+
+    ResizeOpConfig config;
+
+    TensorIterator<OffsetBuffer, kResizeBilinearRank, kResizeBilinearIterRank> input;
+    TensorIterator<OffsetBuffer, kResizeBilinearRank, kResizeBilinearIterRank> output;
+};
+
 } // namespace snps_arc::metaware::mli::ref
 
 #endif // _MLI_REF_PRIVATE_TYPES_HPP_

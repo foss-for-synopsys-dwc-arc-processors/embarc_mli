@@ -1216,6 +1216,42 @@ private:
     TensorIterator<OffsetBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> m_dst;
 };
 
+class ResizeBilinear_CS : public lib_mli::ResizeBilinear_CS {
+public:
+    /**
+     * @brief Constructor to create a ResizeBilinear compiler support object.
+     *
+     * This constructor can be used to create a ResizeBilinear compiler support
+     * object. This kernel computes each value of the output tensor as the interpolation
+     * of the nearest 4 values of the input tensor for each (H * W) plane using bilinear method
+     *
+     * @param pd  [I] Platform description
+     * @param in  [I] Input tensor iterator
+     * @param cfg [I] ResizeOpConfig structure
+     * @param out [I] Output tensor iterator
+     */
+    ResizeBilinear_CS(const lib_mli::PlatformDescription pd,
+                      const TensorIterator<NoBuffer, kResizeBilinearRank, kResizeBilinearIterRank> &in,
+                      const ResizeOpConfig &cfg,
+                      const TensorIterator<NoBuffer, kResizeBilinearRank, kResizeBilinearIterRank> &out);
+
+
+    mli_status GetKernelPrivateData(void *kernel_private_data_buffer ) override;
+    unsigned GetKernelPrivateDataSize() const override;
+    unsigned GetRuntimeObjectSize() const override;
+
+    mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                   const OffsetBuffer &output,
+                                   const OffsetBuffer &ctrl_buffer) override;
+
+private:
+    ResizeOpConfig m_cfg;
+    TensorIterator<OffsetBuffer, kResizeBilinearRank, kResizeBilinearIterRank> m_in;
+    TensorIterator<OffsetBuffer, kResizeBilinearRank, kResizeBilinearIterRank> m_out;
+
+    lib_mli::PlatformDescription m_pd;
+};
+
 } // namespace ref
 
 #endif // _MLI_REF_COMPILER_API_HPP_

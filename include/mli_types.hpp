@@ -121,6 +121,10 @@ constexpr short int kReduceMaxIterRank = 4;
 constexpr unsigned kMoveBroadcastRank = 5;
 constexpr unsigned kMoveBroadcastIterRank = 5;
 
+constexpr short int kResizeDim = 2;
+constexpr short int kResizeBilinearRank = 4;
+constexpr short int kResizeBilinearIterRank = 4;
+
 typedef enum : uint32_t {
   kInvalidId = 0,
   kConv2dId,
@@ -144,7 +148,8 @@ typedef enum : uint32_t {
   kArgMaxId,
   kTableBuiltinId,
   kMatMulId,
-  kMoveBroadcastId
+  kMoveBroadcastId,
+  kResizeBilinearId,
 } kernel_id_t;
 
 typedef enum class compression_mode_t {
@@ -860,6 +865,22 @@ struct PreluOpConfig {
                      Axis corresponds to index of tensor`s dimension starting from 0.
                      For instance, having future map in HWC layout, axis == 0 corresponds to H dimension.
                      If axis < 0 the function will be applied to the whole tensor */
+};
+
+struct ResizeOpConfig {
+  ResizeOpConfig() = default;
+  ResizeOpConfig(int16_t *stride, int16_t *offset, int8_t shift) {
+    for(int8_t i = 0; i < kResizeDim; i++) {
+      this->stride[i] = stride[i];
+      this->offset[i] = offset[i];
+    }
+    this->shift = shift;
+  }
+
+  int16_t stride[kResizeDim];    /**< [stride_H, stride_W] */
+  int16_t offset[kResizeDim];    /**< [offset_H, offset_W] */
+  int8_t shift;         /**< Shift value (for fractional stride and offset) */
+
 };
 
 } // namespace snps_arc::metaware::mli
