@@ -136,7 +136,7 @@ public:
      * The content of the encoded_inpzeropts buffer is opaque for the user.
      *
      */
-    virtual mli_status EncodeInpZeroPts(Tensor<Buffer, kConvZPRank>& inpzeropts, Buffer& encoded_inpzeropts) = 0;
+    virtual mli_status EncodeInpZeroPts(Tensor<Buffer, kInpZPRank>& inpzeropts, Buffer& encoded_inpzeropts) = 0;
 
     /**
      * @brief Method to query the size of the encoded input zero-points buffer
@@ -197,8 +197,8 @@ public:
      *
      * @return MLI status code
      */
-    virtual mli_status AttachBufferOffsets(Tensor<OffsetBuffer, kConvIORank> &input,
-                                           Tensor<OffsetBuffer, kConvIORank> &output,
+    virtual mli_status AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
+                                           Tensor<OffsetBuffer, 4> &output,
                                            OffsetBuffer &weights,
                                            OffsetBuffer &inpzeropts,
                                            OffsetBuffer &wtszeropts,

@@ -32,13 +32,13 @@ TransposeConv2D::TransposeConv2D(void* kernel_private_data_buffer, size_t size,
     MLI_ASSERT(private_data.size == sizeof(TransposeConv2DPrivateData));
     MLI_ASSERT(private_data.layout == LAYOUT_HWC);
 
-    m_metadata.input = Tensor<InternalBuffer, kConvIORank>(
+    m_metadata.input = Tensor<InternalBuffer, kTransposeConvIORank>(
         private_data.input.GetSubTensor(), membases, num_mems);
-    m_metadata.weights = Tensor<InternalBuffer, kConvWRank>(
+    m_metadata.weights = Tensor<InternalBuffer, kTransposeConvWRank>(
         private_data.weights.GetSubTensor(), membases, num_mems);
-    m_metadata.weights_zp = Tensor<InternalBuffer, kConvZPRank>(
+    m_metadata.weights_zp = Tensor<InternalBuffer, kTransposeConvZPRank>(
         private_data.weights_zp.GetSubTensor(), membases, num_mems);
-    m_metadata.output = Tensor<InternalBuffer, kConvIORank>(
+    m_metadata.output = Tensor<InternalBuffer, kTransposeConvIORank>(
         private_data.output.GetSubTensor(), membases, num_mems);
     m_metadata.inpzp_buffer =
         InternalBuffer(private_data.inpzp_buffer, membases, num_mems);
@@ -56,10 +56,10 @@ mli_status TransposeConv2D::Issue() {
   
   if (i_elem_size == sizeof(int8_t) && w_elem_size == sizeof(int8_t) &&
       o_elem_size == sizeof(int32_t)) {
-      QTensor<InternalBuffer, kConvIORank> qinput{m_metadata.input,
+      QTensor<InternalBuffer, kTransposeConvIORank> qinput{m_metadata.input,
                                                   m_metadata.inpzp_buffer,
                                                   m_metadata.inp_quant_axis};
-      QTensor<InternalBuffer, kConvWRank> qweights{m_metadata.weights, 
+      QTensor<InternalBuffer, kTransposeConvWRank> qweights{m_metadata.weights, 
                                                    m_metadata.weights_zp.get_buf(),
                                                    m_metadata.wts_quant_axis};
 

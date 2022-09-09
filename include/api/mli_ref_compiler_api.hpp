@@ -33,17 +33,19 @@ public:
      * of all values in the related perception area of all channels of the input tensor.
      *
      * @deprected
+     * Be carefull - conv2d I/O tensors of rank 4 are deprecated - new interfaces use rank 5 
+     *
      * @param pd [IN] Platform description
-     * @param in [IN] input tensor (full shape, BHWC layout)
+     * @param in [IN] input tensor (full shape, BHWCi layout)
      * @param weights [IN] weights tensor (full shape, GKyKxCiCo layout)
      * @param cfg [IN] Conv2DConfig structure
-     * @param output_tile_shape [OUT] output tensor (tile shape, BHWC layout)
+     * @param output_tile_shape [OUT] output tensor (tile shape, BHWCo layout)
      */
     Conv2d_CS(const lib_mli::PlatformDescription pd,
-              const Tensor<NoBuffer, kConvIORank>& in,
-              const Tensor<NoBuffer, kConvWRank>& weights,
+              const Tensor<NoBuffer, 4>& in,
+              const Tensor<NoBuffer, 5>& weights,
               const Conv2DConfig& cfg,
-              const Tensor<NoBuffer, kConvIORank>& output_tile_shape);
+              const Tensor<NoBuffer, 4>& output_tile_shape);
 
     /**
       * @brief Constructor to create an Conv2d_CS compiler support object.
@@ -54,11 +56,11 @@ public:
       * of all values in the related perception area of a single channel of the input tensor.
       *
       * @param pd [IN] Platform description
-      * @param input [IN] input TensorIterator (BHWC layout)
+      * @param input [IN] input TensorIterator (BHWGCi layout)
       * @param weights [IN] weights TensorIterator (GKyKxCiCo layout)
       * @param weights [IN] weights_zp TensorIterator
       * @param cfg [IN] Conv2DConfig structure
-      * @param output [OUT] output TensorIterator (BHWC layout)
+      * @param output [OUT] output TensorIterator (BHWGCo layout)
       */
     Conv2d_CS(const lib_mli::PlatformDescription pd,
               const TensorIterator<NoBuffer, kConvIORank, kConvIOIterRank>& input,
@@ -73,7 +75,7 @@ public:
 
     unsigned GetEncodedWeightsSize() override;
 
-    mli_status EncodeInpZeroPts(Tensor<Buffer, kConvZPRank> &inpzeropts,
+    mli_status EncodeInpZeroPts(Tensor<Buffer, kInpZPRank> &inpzeropts,
                                 Buffer &encoded_inpzeropts) override;
 
     unsigned GetEncodedInpZeroPtsSize() override;
@@ -93,15 +95,13 @@ public:
     unsigned GetOutputBufferSize() override;
     unsigned GetWeightsBufferSize() override;
     unsigned GetZeroPointBufferSize() override;
-    /**
-     * @return Always returns zero for reference kernel.
-     */
 
     /**
      * @deprecated
+     * Be carefull - conv2d I/O tensors of rank 4 are deprecated - new interfaces use rank 5 
      */
-    mli_status AttachBufferOffsets(Tensor<OffsetBuffer, kConvIORank> &input,
-                                   Tensor<OffsetBuffer, kConvIORank> &output,
+    mli_status AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
+                                   Tensor<OffsetBuffer, 4> &output,
                                    OffsetBuffer &weights,
                                    OffsetBuffer &inpzeropts,
                                    OffsetBuffer &wtszeropts,
@@ -116,19 +116,22 @@ public:
 
 
     mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
+
     unsigned GetKernelPrivateDataSize() const override;
+
     unsigned GetRuntimeObjectSize() const override;
 
     /**
      * @deprecated
+     * Be carefull - conv2d I/O tensors of rank 4 are deprecated - new interfaces use rank 5 
      */
-    mli_status SetIterators(uint32_t output_total_size[kConvIORank],
-                            uint32_t iteration_order[kConvIORank],
-                            uint32_t input_first_inc[kConvIORank],
-                            uint32_t input_inc[kConvIORank],
-                            uint32_t output_first_inc[kConvIORank],
-                            uint32_t output_inc[kConvIORank],
-                            uint32_t weights_inc[kConvWRank]) override;
+    mli_status SetIterators(uint32_t output_total_size[4],
+                            uint32_t iteration_order[4],
+                            uint32_t input_first_inc[4],
+                            uint32_t input_inc[4],
+                            uint32_t output_first_inc[4],
+                            uint32_t output_inc[4],
+                            uint32_t weights_inc[4]) override;
 private:
 
     // Input, weights, weights zp(s), output tensors with offset buffer attached

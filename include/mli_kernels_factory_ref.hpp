@@ -32,12 +32,13 @@ public:
 
     /**
      * @deprecated
+     * Be carefull - conv2d I/O tensors of rank 4 are deprecated - new interfaces use rank 5 
      */
     lib_mli::Conv2d_CS* Conv2d_CS(void *kernel_buffer,
-                                  const Tensor<NoBuffer, kConvIORank> input_shape,
-                                  const Tensor<NoBuffer, kConvWIterRank> weights,
+                                  const Tensor<NoBuffer, 4> input_shape,
+                                  const Tensor<NoBuffer, 5> weights,
                                   const Conv2DConfig &cfg,
-                                  const Tensor<NoBuffer, kConvIORank> output_tile_shape) override {
+                                  const Tensor<NoBuffer, 4> output_tile_shape) override {
         return new(kernel_buffer) lib_ref::Conv2d_CS(m_pd, input_shape, weights, cfg, output_tile_shape);
     }
 

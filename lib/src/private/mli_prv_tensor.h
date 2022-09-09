@@ -977,34 +977,47 @@ mli_prv_get_relu_limits (const mli_relu_cfg * cfg, const mli_tensor * out) {
 
 namespace snps_arc::metaware::mli {
 
-template <typename T>
+template <typename T, unsigned rank>
 static MLI_FORCE_INLINE tensor_private_t<T> mli_prv_get_tensor_hwc(
-    const Tensor<InternalBuffer, 4> &in) {
-    // 4-D tensor [batch, in_height, in_width, input_channel]
+    const Tensor<InternalBuffer, rank> &in) {
     // The batch is ingored when running convolution
-    MLI_ASSERT(in.get_rank() == 4);
-    const int height   = (int)in.get_dim(kTensorHeightDim);
-    const int width    = (int)in.get_dim(kTensorWidthDim);
-    int ch             = (int)in.get_dim(kTensorChannelDim);
-    int row_mem_stride = in.get_mem_stride(kTensorHeightDim);
-    int col_mem_stride = in.get_mem_stride(kTensorWidthDim);
-    int ch_mem_stride  = in.get_mem_stride(kTensorChannelDim);
+    int height = 0, width = 0, ch = 0;
+    int row_mem_stride = 0, col_mem_stride = 0, ch_mem_stride = 0;
+    if (rank == 5) {
+      height = (int)in.get_dim(kGroupTensorHeightDim);
+      width = (int)in.get_dim(kGroupTensorWidthDim);
+      ch = (int)in.get_dim(kGroupTensorChannelDim);
+      row_mem_stride = in.get_mem_stride(kGroupTensorHeightDim);
+      col_mem_stride = in.get_mem_stride(kGroupTensorWidthDim);
+      ch_mem_stride = in.get_mem_stride(kGroupTensorChannelDim);
+    }
+    else if (rank == 4) {
+      height = (int)in.get_dim(kTensorHeightDim);
+      width = (int)in.get_dim(kTensorWidthDim);
+      ch = (int)in.get_dim(kTensorChannelDim);
+      row_mem_stride = in.get_mem_stride(kTensorHeightDim);
+      col_mem_stride = in.get_mem_stride(kTensorWidthDim);
+      ch_mem_stride = in.get_mem_stride(kTensorChannelDim);
+    }
+    else {
+      MLI_ASSERT(0);
+    }
 
     // The inner-most memory stride should be 1.
     MLI_CHECK_AND_FIX(ch_mem_stride, 1);
 
     return tensor_private_t<T> {
-            in.get_buf().get_ptr<std::remove_pointer_t<T>>(),
+            in.get_buf().template get_ptr<std::remove_pointer_t<T>>(),
             width, height, ch, col_mem_stride, row_mem_stride, ch_mem_stride };
 }
 
 template <typename T>
 static MLI_FORCE_INLINE conv2d_weights_tensor_private_t<T>
 mli_prv_get_conv2d_weights_tensor_hwcn(
-    const Tensor<InternalBuffer, 5> &weights) {
+    const Tensor<InternalBuffer, kConvWRank> &weights) {
     // 5-D tensor [group, out_height, out_width, input_channel, output_channel]
     // The group is ingored when running convolution
-    MLI_ASSERT(weights.get_rank() == 5);
+    MLI_ASSERT(weights.get_rank() == kConvWRank);
     int height       = (int)weights.get_dim(kKernelHeightDim);
     int width        = (int)weights.get_dim(kKernelWidthDim);
     int in_ch        = (int)weights.get_dim(kKernelChannelInDim);

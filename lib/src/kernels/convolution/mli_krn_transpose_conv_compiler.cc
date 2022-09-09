@@ -111,7 +111,7 @@ mli_status TransposeConv2D_CS::EncodeWeights(Tensor<Buffer, kTransposeConvWRank>
   return service::EncodeWeights(weights, encoded_weights);
 }
 
-mli_status TransposeConv2D_CS::EncodeInpZeroPts(Tensor<Buffer, kConvZPRank> &inpzeropts,
+mli_status TransposeConv2D_CS::EncodeInpZeroPts(Tensor<Buffer, kTransposeConvZPRank> &inpzeropts,
                                                 Buffer &encoded_inpzeropts) {
   constexpr int channel_axis = mli::kTensorChannelDim;
   uint32_t channel_length = m_input.get_dim(channel_axis);
@@ -119,7 +119,7 @@ mli_status TransposeConv2D_CS::EncodeInpZeroPts(Tensor<Buffer, kConvZPRank> &inp
     inpzeropts, encoded_inpzeropts, m_inp_quant_axis, channel_length);
 }
 
-mli_status TransposeConv2D_CS::EncodeWtsZeroPts(Tensor<Buffer, kConvZPRank> &wtszeropts,
+mli_status TransposeConv2D_CS::EncodeWtsZeroPts(Tensor<Buffer, kTransposeConvZPRank> &wtszeropts,
                                                 Buffer &encoded_wtszeropts) {
   constexpr int channel_axis = mli::kKernelChannelOutDim;
   uint32_t channel_length = m_weights.get_dim(channel_axis);

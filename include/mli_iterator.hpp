@@ -15,7 +15,6 @@
 #include "mli_types.hpp"
 #include "mli_service_functions.hpp"
 
-
 namespace snps_arc::metaware::mli {
 
 
@@ -43,7 +42,26 @@ class IteratorCfg {
       m_buf_tiles_num = 0;
     }
     
-    // Constructor that will create config for a single tile for whole given Tensor
+    // Constructor that will create config for a single tile for whole given Tensor (generic tensorRank, iterRank)
+    template <typename buf_T, uint32_t tensorRank = iterRank>
+    IteratorCfg(Tensor<buf_T, tensorRank> tensor) {
+      static_assert(tensorRank <= iterRank);
+      for (uint32_t i = 0; i < tensorRank; ++i) {
+        m_order[i] = i;
+        m_count[i] = 1;
+        m_size[i] = m_first_size[i] = m_last_size[i] = tensor.get_dim(i);
+        m_pos_inc[i] = m_first_pos_inc[i] = m_last_pos_inc[i] = 0;
+      }
+      for (uint32_t i = tensorRank; i < iterRank; ++i) {
+        m_order[i] = i;
+        m_count[i] = kSkipIterDim;
+        m_size[i] = m_first_size[i] = m_last_size[i] = 0;
+        m_pos_inc[i] = m_first_pos_inc[i] = m_last_pos_inc[i] = 0;
+      }
+      m_buf_tiles_num = 0;
+    }
+
+    // Constructor that will create config for a single tile for whole given Tensor (special case tensorRank = iterRank)
     template <typename buf_T>
     IteratorCfg(Tensor<buf_T, iterRank> tensor) {
       for (uint32_t i = 0; i < iterRank; ++i) {
@@ -131,14 +149,20 @@ class IteratorCfg {
                 Tensor<buf_T, iterRank> tensor,   // full tensor
                 uint32_t effective_kernel_size[], // used to calculate the overlaps between the tiles
                 uint32_t stride[],                // used to calculate the overlaps between the tiles
-                uint32_t pre_padding[]            // number of virtual pixels added before each dimension
-               ) {
+                uint32_t pre_padding[]) {         // number of virtual pixels added before each dimension
       for (uint32_t i = 0; i < iterRank; ++i) {
         int32_t dim = icfg.m_order[i];
         m_order[i] = dim;
         m_count[i] = icfg.m_count[i];
         m_pos_inc[i] = icfg.m_pos_inc[i] * stride[dim];
-        m_first_pos_inc[i] = m_pos_inc[i] - pre_padding[dim];
+        /*
+         *  TODO: extend for situations where m_pos_inc[i] < pre_padding[dim]
+         *  For example in case of left padding = 4 and increment = 2 - first increment is correct = 0, but second is 2, but must be also 0.
+         *  To fix it some kind of pad[iterRank] variable needed and some kind of code
+         *  "m_first_pos_inc[i] = MAX(0, m_pos_inc[i] - (int32_t)pre_padding[dim]);" instead of assert
+         */
+        MLI_ASSERT(m_pos_inc[i] >= (int32_t)pre_padding[dim]);
+        m_first_pos_inc[i] = m_pos_inc[i] - (int32_t)pre_padding[dim];
         m_last_pos_inc[i] = m_count[i] > 1 ? m_pos_inc[i] * (1 - m_count[i]) + pre_padding[dim] : 0;
         m_size[i] = (icfg.m_size[i] - 1) * stride[dim] + effective_kernel_size[dim];
         m_first_size[i] = m_size[i] - pre_padding[dim];
@@ -147,6 +171,25 @@ class IteratorCfg {
       m_buf_tiles_num = icfg.get_buf_tiles_num();
     }
 
+    template <uint32_t srcIterRank>
+    IteratorCfg(const IteratorCfg<srcIterRank>& icfg, uint32_t axis_to_drop) {
+      static_assert(iterRank == srcIterRank - 1);
+      int j = 0;
+      for (uint32_t i = 0; i < srcIterRank; ++i) {
+        if (i == axis_to_drop) continue;
+
+        m_order[j] = j; // icfg.get_order(i); TODO: make it work for any iter order
+        m_count[j] = icfg.get_count(i);
+        m_first_size[j] = icfg.get_first_size(i);
+        m_size[j] = icfg.get_size(i);
+        m_last_size[j] = icfg.get_last_size(i);
+        m_pos_inc[j] = icfg.get_first_inc(i);
+        m_first_pos_inc[j] = icfg.get_inc(i);
+        m_last_pos_inc[j] = icfg.get_last_inc(i);
+        j++;
+      }
+      m_buf_tiles_num = icfg.get_buf_tiles_num();
+    }
 
     // Constructor that updates previously constructed iterator for work on buffer for only one or several tiles
     IteratorCfg(const IteratorCfg& icfg, // origin config
@@ -236,6 +279,40 @@ class IteratorCfg {
         return iter;
     }
 
+    void UpdateOrder(const int32_t iteration_order[iterRank]) {
+      for (uint32_t i = 0; i < iterRank; ++i) {
+        m_order[i] = iteration_order[i];
+        if (iteration_order[i] == kSkipIterDim) {
+            m_first_size[i] = 0;
+            m_size[i] = 0;
+            m_last_size[i] = 0;
+        }
+      }
+    }
+
+    void SetZeroIncrements(const int32_t zero_inc_mask[iterRank]) {
+      for (uint32_t i = 0; i < iterRank; ++i) {
+        if (zero_inc_mask[i]) {
+          m_first_pos_inc[i] = 0;
+          m_pos_inc[i] = 0;
+          m_last_pos_inc[i] = 0;
+        }
+      }
+    }
+
+    template <typename buf_T, uint32_t rank>
+    void DisableTiling(const int32_t disable_mask[rank],
+                       const Tensor<buf_T, rank>& tensor) {
+      for (uint32_t i = 0; i < rank; ++i) {
+        if (disable_mask[i]) {
+          uint32_t size = tensor.get_dim(i);
+          m_first_size[i] = size;
+          m_size[i] = size;
+          m_last_size[i] = size;
+        }
+      }
+    }
+
     int32_t get_order(uint32_t dim) const {
       return m_order[dim];
     }
@@ -301,8 +378,9 @@ class BufferIterator {
      * @param full_tensor [I] Reference to Tensor object
      * @param cfg [I] Reference to IteratorCfg object
      */
-    BufferIterator(Tensor<buf_T, iterRank>& full_tensor,
-                  const IteratorCfg<iterRank>& cfg)
+    template <uint32_t tensorRank>
+    BufferIterator(const Tensor<buf_T, tensorRank>& full_tensor,
+                   const IteratorCfg<iterRank>& cfg)
         : m_buffer_offset{0} {
       for (uint32_t i = 0; i < iterRank; i++) {
         uint32_t buffer_dim = MAX(cfg.get_size(i), cfg.get_first_size(i));
@@ -311,7 +389,7 @@ class BufferIterator {
         // full tensor, otherwise - for number of tiles. Also if dimension of the
         // tensor/tile is 1 or 0, that simply means that dimension doesn't exist
         // in terms of buffer, so offset must be 0.
-        if (cfg.get_buf_tiles_num() == 0 && full_tensor.get_dim(i) > 1) {
+        if (tensorRank == iterRank && cfg.get_buf_tiles_num() == 0 && full_tensor.get_dim(i) > 1) {
           m_first_offset_inc[cfg.get_order(i)] = cfg.get_first_inc(cfg.get_order(i)) * full_tensor.get_mem_stride(cfg.get_order(i));
           m_offset_inc[cfg.get_order(i)] = cfg.get_inc(cfg.get_order(i)) * full_tensor.get_mem_stride(cfg.get_order(i));
           m_last_offset_inc[cfg.get_order(i)] = cfg.get_last_inc(cfg.get_order(i)) * full_tensor.get_mem_stride(cfg.get_order(i));
@@ -322,9 +400,11 @@ class BufferIterator {
           m_last_offset_inc[cfg.get_order(i)] = 0;
         }
 
-        m_buffer_dec[cfg.get_order(i)] = cfg.get_buf_tiles_num() == 0
-                              ? full_tensor.get_dim(cfg.get_order(i)) * full_tensor.get_mem_stride(cfg.get_order(i))
-                              : buffer_dim * full_tensor.get_mem_stride(cfg.get_order(cfg.get_order(i)));
+        if (tensorRank == iterRank) {
+          m_buffer_dec[cfg.get_order(i)] = cfg.get_buf_tiles_num() == 0
+            ? full_tensor.get_dim(cfg.get_order(i)) * full_tensor.get_mem_stride(cfg.get_order(i))
+            : buffer_dim * full_tensor.get_mem_stride(cfg.get_order(cfg.get_order(i)));
+        }
       }
     };
 
@@ -421,6 +501,8 @@ class BufferIterator {
  *
  */
 
+
+
 template <typename buf_T, uint32_t tensorRank, uint32_t iterRank>
 class TensorIterator {
 
@@ -432,8 +514,8 @@ class TensorIterator {
     * @param tensor [I] full tensor which is tiled by this iterator
     *
     */
-   TensorIterator(Tensor<buf_T, tensorRank> tensor) 
-     : m_full_tensor(tensor), 
+   TensorIterator(Tensor<buf_T, tensorRank> tensor)
+     : m_full_tensor(tensor),
        m_config(tensor),
        m_buffer_itr(m_full_tensor, m_config) {
      UpdateMemstrides();      
@@ -513,21 +595,61 @@ class TensorIterator {
     }
 
     /**
-    * Constructor that will compute the number of tiles in each dimension, it will also compute the increment values and sizes.
-    * This constructor takes into account effective kernel size and paddings.
-    * Appropriate usage of this constructor is following: create IteratorCfg icfg for output tiling of conv-like kernels
-    * and use this constructor to create input tiling of same conv-like kernel.
-    */
-    TensorIterator(const Tensor<buf_T, tensorRank>& tensor,  // full tensor
-                   TensorIterator& tensor_iterator,          // origin tensor iterator
-                   uint32_t effective_kernel_size[],         // used to calculate the overlaps between the tiles
-                   uint32_t stride[],                        // used to calculate the overlaps between the tiles
-                   uint32_t pre_padding[])                   // number of virtual pixels added before each dimension
-        : m_full_tensor(tensor),
+      * @brief constructor
+      * 
+      * Constructor that will compute the number of tiles in each dimension, it will also compute the increment values and sizes.
+      * This constructor takes into account effective kernel size and paddings.
+      * Appropriate usage of this constructor is following: create TensorIterator for output tiling of conv-like kernels
+      * and use this constructor to create input tiling of same conv-like kernel.
+      * 
+      * @param tensor                [I] Full tensor which is tiled by this iterator
+      * @param tensor_iterator       [I] Base tensor iterator that defines output tiling
+      * @param effective_kernel_size [I] effective kernel size (used to calculate the overlaps between the tiles)
+      * @param stride                [I] strides (used to calculate the overlaps between the tiles)
+      * @param pre_padding           [I] size of padding before each dimension
+      */
+    TensorIterator(const Tensor<buf_T, tensorRank>& tensor,
+                   TensorIterator& tensor_iterator,
+                   uint32_t effective_kernel_size[],
+                   uint32_t stride[],
+                   uint32_t pre_padding[])
+      : m_full_tensor(tensor),
         m_config(tensor_iterator.get_config(), tensor, effective_kernel_size, stride, pre_padding),
-        m_buffer_itr(m_full_tensor, m_config) {
-        UpdateMemstrides();
-        Reset();
+        m_buffer_itr(m_full_tensor, m_config){
+      UpdateMemstrides();
+      Reset();
+    }
+
+    /**
+     * @brief constructor
+     * 
+     * Appropriate usage of this constructor is following : create IteratorCfg icfg for output tiling of conv - like kernels
+     * and use this constructor to create weights or weights zero points tiling of same conv-like kernel.
+     * 
+     * @param tensor                     [I] Full tensor which is tiled by this iterator
+     * @param tensor_iterator            [I] Base tensor iterator that defines output tiling
+     * @param iteration_order            [I] for conv zps it's { -1, -1, -1, -1, 0 } to leave only Co increments, and nullptr for conv
+     * @param zero_increment_mask        [I] for conv and conv zps it's {1, 1, 1, 1, 0} to make zero increments in first 4 dimensions
+     */
+    template<uint32_t srcTensorRank>
+    TensorIterator(const Tensor<buf_T, tensorRank>& tensor,
+                   TensorIterator<buf_T, srcTensorRank, iterRank>& tensor_iterator,
+                   const int32_t iteration_order[iterRank] = nullptr,
+                   const int32_t zero_increment_mask[iterRank] = nullptr)
+      : m_full_tensor(tensor),
+        m_config(tensor_iterator.get_config()),
+        m_buffer_itr(tensor, m_config){
+
+      if (zero_increment_mask != nullptr) {
+        m_config.SetZeroIncrements(zero_increment_mask);
+        if (srcTensorRank == iterRank) {
+          m_config.template DisableTiling<buf_T, tensorRank>(zero_increment_mask, tensor);
+        }
+      }
+      if (iteration_order != nullptr) m_config.UpdateOrder(iteration_order);
+
+      UpdateMemstrides();
+      Reset();
     }
 
     /**
@@ -661,6 +783,8 @@ class TensorIterator {
       uint32_t r = 0;
       for (r = 0; r < iterRank; r++) {
         int32_t dim = m_config.get_order(r);
+        if (dim == kSkipIterDim) continue;
+
         pos[dim] = (uint32_t)m_pos[r];
         if (m_tile_idx[r] == m_config.get_count(r) - 1) { // Last iteration
               copysize[dim] = m_config.get_last_size(r);

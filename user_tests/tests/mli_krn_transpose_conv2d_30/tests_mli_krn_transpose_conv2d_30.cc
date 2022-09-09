@@ -210,7 +210,7 @@ static int8_t g_scratch_mem_out[kMemSize] = {0};
 static int8_t g_scratch_mem_bias_out[kMemSize] = {0};
 static int8_t g_scratch_mem_w[kMemSize] = {0};
 static int8_t g_scratch_mem_b[kMemSize] = {0};
-constexpr uint32_t kMemPoolSize = 9270;
+constexpr uint32_t kMemPoolSize = 20480;
 static IO_DATA_ATTR int8_t g_mem_pool[kMemPoolSize] = {0};
 
 struct TransposeConv2DOp {
@@ -686,6 +686,7 @@ void prepare_phase(const transpose_conv2d_test_operands* cur_test,
   lib_mli::OffsetBuffer rescale_descr_buf { *rs_offset, 0,
                                           rs_ctrl_buffer_size, sizeof(char) };
   *rs_offset += rs_ctrl_buffer_size;
+  assert(*rs_offset < kMemPoolSize);
 
   // Attaching buffer (descriptors) to the operation
   status = rescale_op->AttachBufferOffsets(rescale_in_tensor,
@@ -742,6 +743,7 @@ void prepare_phase(const transpose_conv2d_test_operands* cur_test,
   lib_mli::OffsetBuffer clip_descr_buf{*clip_offset, 0,
                                        clip_ctrl_buffer_size, sizeof(char)};
   *clip_offset += clip_ctrl_buffer_size;
+  assert(*clip_offset < kMemPoolSize);
 
   // Attaching buffer (descriptors) to the operation
   status = clip_op->AttachBufferOffsets(clip_in_tensor,

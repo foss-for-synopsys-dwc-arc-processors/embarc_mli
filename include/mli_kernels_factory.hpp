@@ -69,6 +69,7 @@ public:
      * method
      *
      * @deprecated
+     * Be carefull - conv2d I/O tensors of rank 4 are deprecated - new interfaces use rank 5 
      * 
      * @param kernel_buffer       [I] Pointer to the pre-allocated memory to store
      *                                kernel Compiler Support object
@@ -82,15 +83,11 @@ public:
      *
      * @return Convolution 2D kernel Compiler Support interface object
      */
-   
-
-    virtual uint32_t ArgMax_CS_GetSize() const { return 0; }
-
     virtual lib_mli::Conv2d_CS* Conv2d_CS(void *kernel_buffer,
-                                          const Tensor<NoBuffer, kConvIORank> input_shape,          // BHWC        
-                                          const Tensor<NoBuffer, kConvWRank> weights,               // GKyKxCiCo
+                                          const Tensor<NoBuffer, 4> input_shape,          // BHWCi       
+                                          const Tensor<NoBuffer, 5> weights,              // GKyKxCiCo
                                           const Conv2DConfig &cfg,
-                                          const Tensor<NoBuffer, kConvIORank> output_tile_shape) {  // BHWC
+                                          const Tensor<NoBuffer, 4> output_tile_shape) {  // BHWCo
       return nullptr;
     }
 
@@ -112,11 +109,11 @@ public:
      * @return Convolution 2D kernel Compiler Support interface object
      */
     virtual lib_mli::Conv2d_CS* Conv2d_CS(void* kernel_buffer,
-                                          const TensorIterator<NoBuffer, kConvIORank, kConvIOIterRank>& input,      // BHWC
+                                          const TensorIterator<NoBuffer, kConvIORank, kConvIOIterRank>& input,      // BHWGCi
                                           const TensorIterator<NoBuffer, kConvWRank, kConvWIterRank>& weights,      // GKyKxCiCo
-                                          const TensorIterator<NoBuffer, kConvZPRank, kConvZPIterRank>& weights_zp,
+                                          const TensorIterator<NoBuffer, kConvZPRank, kConvZPIterRank>& weights_zp, // Co tensor, GKyKxCiCo iterator
                                           const Conv2DConfig& cfg,
-                                          const TensorIterator<NoBuffer, kConvIORank, kConvIOIterRank>& output) {   // BHWC
+                                          const TensorIterator<NoBuffer, kConvIORank, kConvIOIterRank>& output) {   // BHWGCo
       return nullptr;
     }
     
@@ -463,7 +460,9 @@ public:
                                           const TensorIterator<NoBuffer, kArgMaxInRank, kArgMaxInIterRank> in,
                                           const ArgMaxConfig &cfg,
                                           const TensorIterator<NoBuffer, kArgMaxOutRank, kArgMaxOutIterRank> out) { return nullptr; }
-                                          
+
+    virtual uint32_t ArgMax_CS_GetSize() const { return 0; }
+
     virtual lib_mli::TableBuiltin_CS* TableBuiltin_CS(void *kernel_buffer,
                                                       const TensorIterator<NoBuffer, kTableBuiltinIORank, kTableBuiltinIOIterRank> &in,
                                                       const TableBuiltinConfig &cfg,

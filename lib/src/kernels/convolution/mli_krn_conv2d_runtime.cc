@@ -19,7 +19,6 @@ typedef vNx4accshort_t mli_8x8_accu_t;
 typedef mli_acc32_t mli_8x8_accu_t;
 #endif
 
-
 namespace snps_arc::metaware::mli::ref {
 
 Conv2d::Conv2d(void* kernel_private_data_buffer,
@@ -43,7 +42,16 @@ Conv2d::Conv2d(void* kernel_private_data_buffer,
   m_metadata.wts_quant_axis = private_data.wts_quant_axis;
   m_metadata.cfg = private_data.config;
 
-  m_tile_input = Tensor<InternalBuffer, kConvIORank>(m_metadata.input.GetSubTensor(), membases, num_mems);
+  // TODO: use only GetSubTensor when it will be possible ( without manual clipping with MIN ) - maybe put this clip in IteratorCfg or in GetSubTensor
+  const auto input_tile_tensor = m_metadata.input.GetSubTensor();
+  m_tile_input = Tensor<InternalBuffer, kConvIORank>(input_tile_tensor, membases, num_mems);
+  uint32_t input_tile_shape[kConvIORank];
+  input_tile_tensor.get_dims(input_tile_shape);
+  input_tile_shape[kGroupTensorHeightDim] = MIN(input_tile_shape[kGroupTensorHeightDim], m_metadata.input.get_dim(kGroupTensorHeightDim));
+  input_tile_shape[kGroupTensorWidthDim] = MIN(input_tile_shape[kGroupTensorWidthDim], m_metadata.input.get_dim(kGroupTensorWidthDim));
+  m_tile_input = Tensor<InternalBuffer, kConvIORank>(m_tile_input, input_tile_shape);
+
+
   m_tile_weights = Tensor<InternalBuffer, kConvWRank>(m_metadata.weights.GetSubTensor(), membases, num_mems);
   m_tile_wzp = Tensor<InternalBuffer, kConvZPRank>(m_metadata.weights_zp.GetSubTensor(), membases, num_mems);
   m_tile_output = Tensor<InternalBuffer, kConvIORank>(m_metadata.output.GetSubTensor(), membases, num_mems);
@@ -83,25 +91,19 @@ mli_status Conv2d::Update() {
 
   m_metadata.input.Next();
   m_metadata.output.Next();
+  m_metadata.weights.Next();
+  m_metadata.weights_zp.Next();
 
-  // TODO: add zero increments and maybe something more to m_metadata.output and m_metadata.weights to avoid this "if" block
-  // TODO: add virtual iterator dimensions to m_metadata.weights_zp inside constructot to avoid this "if" block
-  if (m_metadata.output.is_first_tile(kTensorBatchDim) && m_metadata.output.is_first_tile(kTensorWidthDim) &&
-    m_metadata.output.is_first_tile(kTensorHeightDim)) {
-    m_metadata.weights.Next();
-    m_metadata.weights_zp.Next();
-  }
-
-  // TODO: use only GetSubTensor when it will be possible ( without manual clipping with MIN )
+  // TODO: use only GetSubTensor when it will be possible ( without manual clipping with MIN ) - maybe put this clip in GetSubTensor
   const auto input_tile_tensor = m_metadata.input.GetSubTensor();
   uint32_t input_tile_shape[kConvIORank];
   input_tile_tensor.get_dims(input_tile_shape);
   int32_t tile_input_offsets[kConvIORank];
   m_metadata.input.get_pos(tile_input_offsets);
-  input_tile_shape[kTensorHeightDim] = MIN(input_tile_shape[kTensorHeightDim],
-                                           m_metadata.input.get_dim(kTensorHeightDim) - (uint32_t)tile_input_offsets[kTensorHeightDim]);
-  input_tile_shape[kTensorWidthDim] = MIN(input_tile_shape[kTensorWidthDim],
-                                          m_metadata.input.get_dim(kTensorWidthDim) - (uint32_t)tile_input_offsets[kTensorWidthDim]);
+  input_tile_shape[kGroupTensorHeightDim] = MIN(input_tile_shape[kGroupTensorHeightDim],
+                                                m_metadata.input.get_dim(kGroupTensorHeightDim) - (uint32_t)tile_input_offsets[kGroupTensorHeightDim]);
+  input_tile_shape[kGroupTensorWidthDim] = MIN(input_tile_shape[kGroupTensorWidthDim],
+                                               m_metadata.input.get_dim(kGroupTensorWidthDim) - (uint32_t)tile_input_offsets[kGroupTensorWidthDim]);
   m_tile_input = Tensor<InternalBuffer, kConvIORank>(m_tile_input, input_tile_shape);
 
   const auto weights_tile_tensor = m_metadata.weights.GetSubTensor();
@@ -109,6 +111,7 @@ mli_status Conv2d::Update() {
   weights_tile_tensor.get_dims(weights_tile_shape);
   m_tile_weights = Tensor<InternalBuffer, kConvWRank>(m_tile_weights, weights_tile_shape);
 
+  // TODO: use only GetSubTensor when it will be possible (wzp_tile_shape and wzp_tile_shape[0] != m_tile_wzp.get_buf().get_size())
   const auto wzp_tile_tensor = m_metadata.weights_zp.GetSubTensor();
   uint32_t wzp_tile_shape[kConvZPRank];
   wzp_tile_tensor.get_dims(wzp_tile_shape);
@@ -139,12 +142,50 @@ void Conv2d::UpdateTilePaddings() {
   input.get_pos(tile_input_offsets);
   const auto& input_it_cfg = input.get_config();
 
-  if (tile_input_offsets[kTensorHeightDim]) m_tile_cfg.padding_begin[0] = 0;
-  if (tile_input_offsets[kTensorHeightDim] + (int32_t)input_it_cfg.get_size(kTensorHeightDim) < (int32_t)input.get_dim(kTensorHeightDim)) {
+  int32_t tile_idx[kConvIORank];
+  input.get_tile_idx(tile_idx);
+
+  // top padding
+  if (!input.is_first_tile(kGroupTensorHeightDim)) {
+    //TODO: if first_inc != 0 get_first_inc + get_inc * (idx - 1)
+    uint32_t pad_used = input_it_cfg.get_inc(kGroupTensorHeightDim) * tile_idx[kGroupTensorHeightDim];
+    if (pad_used < m_tile_cfg.padding_begin[0]) {
+      m_tile_cfg.padding_begin[0] -= pad_used;
+    }
+    else {
+      m_tile_cfg.padding_begin[0] = 0;
+    }
+  }
+
+  // left padding
+  if (!input.is_first_tile(kGroupTensorWidthDim)) {
+    // TODO: if first_inc != 0 get_first_inc + get_inc * (idx - 1)
+    uint32_t pad_used = input_it_cfg.get_inc(kGroupTensorWidthDim) * tile_idx[kGroupTensorWidthDim];
+    if (pad_used < m_tile_cfg.padding_begin[1]) {
+      m_tile_cfg.padding_begin[1] -= pad_used;
+    }
+    else {
+      m_tile_cfg.padding_begin[1] = 0;
+    }
+  }
+
+  // bottom padding
+  uint32_t used_size_y = (int32_t)(input.get_dim(kGroupTensorHeightDim) + m_tile_cfg.padding_begin[0]);
+  int32_t pad_bot = tile_input_offsets[kGroupTensorHeightDim] + (int32_t)input_it_cfg.get_size(kGroupTensorHeightDim) - used_size_y;
+  if (pad_bot > 0) {
+    m_tile_cfg.padding_end[0] = MIN((uint32_t)pad_bot, m_metadata.cfg.padding_end[0]);
+  }
+  else {
     m_tile_cfg.padding_end[0] = 0;
   }
-  if (tile_input_offsets[kTensorWidthDim]) m_tile_cfg.padding_begin[1] = 0;
-  if (tile_input_offsets[kTensorWidthDim] + (int32_t)input_it_cfg.get_size(kTensorWidthDim) < (int32_t) input.get_dim(kTensorWidthDim)) {
+
+  // right padding
+  uint32_t used_size_x = (int32_t)(input.get_dim(kGroupTensorWidthDim) + m_tile_cfg.padding_begin[1]);
+  int32_t pad_right = tile_input_offsets[kGroupTensorWidthDim] + (int32_t)input_it_cfg.get_size(kGroupTensorWidthDim) - used_size_x;
+  if (pad_right > 0) {
+    m_tile_cfg.padding_end[1] = MIN((uint32_t)pad_right, m_metadata.cfg.padding_end[1]);
+  }
+  else {
     m_tile_cfg.padding_end[1] = 0;
   }
 }

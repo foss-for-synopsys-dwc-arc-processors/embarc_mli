@@ -45,16 +45,19 @@ constexpr short int kKernelFCChannelInDim = 0;
 constexpr short int kKernelFCChannelOutDim = 1;
 
 constexpr short int kPerTensorQuantDim = -1;
+constexpr short int kSkipIterDim = -1;
 
 constexpr unsigned kMaxpoolRank = 4;
 constexpr unsigned kMaxpoolIterRank = 4;
 
-constexpr unsigned kConvIORank = 4;
-constexpr unsigned kConvIOIterRank = 4;
+constexpr unsigned kConvIORank = 5;
+constexpr unsigned kConvIOIterRank = 5;
 constexpr unsigned kConvWRank = 5;
 constexpr unsigned kConvWIterRank = 5;
 constexpr unsigned kConvZPRank = 1;
-constexpr unsigned kConvZPIterRank = 1;
+constexpr unsigned kConvZPIterRank = 5;
+
+constexpr unsigned kInpZPRank = 1;
 
 constexpr unsigned kDepthwiseIORank = 4;
 constexpr unsigned kDepthwiseIOIterRank = 4;

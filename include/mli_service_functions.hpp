@@ -57,8 +57,8 @@ mli_status EncodeWeights(const Tensor<Buffer, rank> &weights,
 }
 
 
-template <int channel_axis>
-mli_status EncodeZeroPts(const Tensor<Buffer, 1>& zeropts,
+template <int channel_axis, unsigned rank>
+mli_status EncodeZeroPts(const Tensor<Buffer, rank>& zeropts,
   Buffer& encoded_zeropts,
   int& quant_axis,
   uint32_t channel_length) {
@@ -70,11 +70,13 @@ mli_status EncodeZeroPts(const Tensor<Buffer, 1>& zeropts,
   MLI_ASSERT(zeropts.get_dim(0) ==
     encoded_zeropts.get_size() / encoded_zeropts.get_elem_size());
 
-  if (zeropts.get_dim(0) == 1) {
+  static_assert(rank > 0);
+  unsigned tensor_channel_axis = rank - 1;
+  if (zeropts.get_dim(tensor_channel_axis) == 1) {
     // per-tensor quantization
     quant_axis = -1;
   }
-  else if (zeropts.get_dim(0) == channel_length) {
+  else if (zeropts.get_dim(tensor_channel_axis) == channel_length) {
     // per-channel quantization
     quant_axis = channel_axis;
   }
@@ -93,8 +95,8 @@ mli_status EncodeZeroPts(const Tensor<Buffer, 1>& zeropts,
   //
   // All above are under the assumption that ZP are copied without compression.
   if (zeropts.get_elem_size() == sizeof(int8_t)) {
-    for (uint32_t i = 0; i < zeropts.get_dim(0); ++i) {
-      encoded_zeropts.write(i, zeropts.read<int8_t>(i));
+    for (uint32_t i = 0; i < zeropts.get_dim(tensor_channel_axis); ++i) {
+      encoded_zeropts.write(i, zeropts.template read<int8_t>(i));
     }
   }
   else {
