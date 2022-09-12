@@ -500,7 +500,7 @@ mli_status MLI_FORCE_INLINE mli_krn_prelu(Tensor<InternalBuffer, kPreluRank> &in
     if (prelu_axis < 0) {
         // Asserts are in checkers
         const i_T in_bias_val = bias_in.read<i_T>(0);
-        const o_T out_bias_val = bias_out.read<i_T>(0);
+        const o_T out_bias_val = bias_out.read<o_T>(0);
 
         const int16_t posscale_val = posscale.read<int16_t>(0);
         const int16_t negscale_val = negscale.read<int16_t>(0);
