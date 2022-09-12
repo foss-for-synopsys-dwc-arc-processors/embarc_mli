@@ -119,7 +119,7 @@ constexpr short int kBiasIterRank = 1;
 constexpr short int kReduceMaxRank = 4;
 constexpr short int kReduceMaxIterRank = 4;
 // uncomment to build and run for ReduceMax Tiling support 
-// #define REDUCEMAX_TILING
+#define REDUCEMAX_TILING
 
 constexpr unsigned kMoveBroadcastRank = 5;
 constexpr unsigned kMoveBroadcastIterRank = 5;
