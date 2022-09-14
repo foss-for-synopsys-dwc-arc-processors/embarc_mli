@@ -8,7 +8,6 @@
  */
 
 #include <cstring>
-#include <new>
 
 #include "mli_debug.h"
 #include "mli_ref_compiler_api.hpp"
@@ -17,32 +16,39 @@
 
 namespace snps_arc::metaware::mli::ref {
 
-Move::Move(void* kernel_private_data_buffer, size_t size,
-           uint64_t membases[], int num_mems)
-    : m_src_it(
-          GetSrcTensorTileItr(kernel_private_data_buffer, membases, num_mems)),
-      m_dst_it(
-          GetDstTensorTileItr(kernel_private_data_buffer, membases, num_mems)) {
-
+Move::Move(void* kernel_private_data_buffer, size_t size, uint64_t membases[],
+           int num_mems) {
   MLI_ASSERT(size == sizeof(MovePrivateData));
   MovePrivateData private_data;
   memcpy(&private_data, kernel_private_data_buffer, sizeof(MovePrivateData));
   MLI_ASSERT(private_data.kernel_id == kMoveId);
   MLI_ASSERT(private_data.size == sizeof(MovePrivateData));
 
-  m_src_it_cfg = private_data.src_cfg;
-  m_dst_it_cfg = private_data.dst_cfg;
+  m_src_it = TensorIterator<InternalBuffer, kMoveRank, kMoveIterRank>(private_data.src_it, membases, num_mems);
+
+  m_dst_it = TensorIterator<InternalBuffer, kMoveRank, kMoveIterRank>(private_data.dst_it, membases, num_mems);
+
   m_src_it.Reset();
   m_dst_it.Reset();
 }
 
-template <typename buf_T, unsigned N>
-void Move::CopySrcToDst(Tensor<buf_T, N> src, Tensor<buf_T, N> dst) {
-  TensorIterator<buf_T, N, N> src_it(src, m_src_it_cfg);
-  TensorIterator<buf_T, N, N> dst_it(dst, m_dst_it_cfg);
-  bool done = false;
-  while (!done) {
-    switch (src.get_elem_size()) {
+mli_status Move::Issue() {
+  TensorIterator<InternalBuffer, kMoveRank, kMoveIterRank> src_it =
+      m_src_it.GetSubTensorIterator();
+  TensorIterator<InternalBuffer, kMoveRank, kMoveIterRank> dst_it =
+      m_dst_it.GetSubTensorIterator();
+  int32_t count[kMoveRank] = {0};
+  for (uint32_t i = 0; i < kMoveRank; i++) {
+    count[i] = src_it.GetTensorShape(i);
+    if (count[i] <= 0) count[i] = 1;
+  }
+  src_it.SetCount(count);
+  dst_it.SetCount(count);
+
+  bool src_done = false;
+  bool dst_done = false;
+  while (!src_done) {
+    switch (src_it.get_elem_size()) {
       case 1:
         dst_it.write(src_it.template read<uint8_t>());
         break;
@@ -55,19 +61,10 @@ void Move::CopySrcToDst(Tensor<buf_T, N> src, Tensor<buf_T, N> dst) {
       default:
         MLI_ASSERT(false);
     }
-    done = src_it.Next();
-    // TODO: Better to check one (src or dst) and if second is not done - throw
-    // exception
-    done |= dst_it.Next();
+    src_done = src_it.Next();
+    dst_done = dst_it.Next();
+    MLI_ASSERT(src_done == dst_done);
   }
-}
-
-mli_status Move::Issue() {
-  Tensor<InternalBuffer, kMoveRank> src;
-  Tensor<InternalBuffer, kMoveRank> dst;
-  src = m_src_it.GetSubTensor();
-  dst = m_dst_it.GetSubTensor();
-  CopySrcToDst(src, dst);
   return MLI_STATUS_OK;
 }
 
@@ -76,37 +73,9 @@ mli_status Move::Prefetch() {
 }
 
 mli_status Move::Update() {
-  m_dst_it.Next();
   m_src_it.Next();
+  m_dst_it.Next();
   return MLI_STATUS_OK;
-}
-
-TensorIterator<InternalBuffer, kMoveRank, kMoveIterRank> Move::GetSrcTensorTileItr(
-    void* kernel_private_data_buffer, uint64_t membases[],
-    int num_mems) {
-  MovePrivateData private_data;
-  memcpy(&private_data, kernel_private_data_buffer, sizeof(MovePrivateData));
-  MLI_ASSERT(private_data.kernel_id == kMoveId);
-  MLI_ASSERT(private_data.size == sizeof(MovePrivateData));
-
-  return TensorIterator<InternalBuffer, kMoveRank, kMoveIterRank>(
-      Tensor<InternalBuffer, kMoveRank>(private_data.src, membases,
-                                                num_mems),
-      private_data.src_cfg);
-}
-
-TensorIterator<InternalBuffer, kMoveRank, kMoveIterRank> Move::GetDstTensorTileItr(
-    void* kernel_private_data_buffer, uint64_t membases[],
-    int num_mems) {
-  MovePrivateData private_data;
-  memcpy(&private_data, kernel_private_data_buffer, sizeof(MovePrivateData));
-  MLI_ASSERT(private_data.kernel_id == kMoveId);
-  MLI_ASSERT(private_data.size == sizeof(MovePrivateData));
-
-  return TensorIterator<InternalBuffer, kMoveRank, kMoveIterRank>(
-      Tensor<InternalBuffer, kMoveIterRank>(private_data.dst, membases,
-                                                num_mems),
-      private_data.dst_cfg);
 }
 
 }  // namespace snps_arc::metaware::mli::ref

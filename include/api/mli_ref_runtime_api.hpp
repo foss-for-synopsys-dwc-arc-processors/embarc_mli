@@ -182,16 +182,15 @@ private:
  *
  *
  */
-
 class Move : public ExecutionInterface {
 
 public:
     /**
-     * @brief constructor to create a move run-time object from a private data buffer from the Move_CS class
+     * @brief Construct a new Move object
      *
-     * This Method will create and initialize the object using the information
+     * This method will create and initialize the object using the information
      * stored in the kernel_private_data_buffer that has been computed at compile time
-     * by the get_kernel_private_data() method.
+     * by the GetKernelPrivateData() method.
      *
      * @param kernel_private_data_buffer [I] pointer to the compiletime computed initialization data
      * @param size        [I] Size of the data is used to check for coding errors
@@ -205,6 +204,7 @@ public:
      *                        this is completely transparent. Compiler needs to use the same
      *                        memory id's when attaching the buffers as are used by the
      *                        xop-interpreter to set the membases.
+     * @param num_mems    [I] Number of memory regions passed with membases array.
      */
     Move(void* kernel_private_data_buffer, size_t size,
          uint64_t membases[], int num_mems);
@@ -218,19 +218,6 @@ public:
 private:
     TensorIterator<InternalBuffer, kMoveRank, kMoveIterRank> m_src_it;
     TensorIterator<InternalBuffer, kMoveRank, kMoveIterRank> m_dst_it;
-    IteratorCfg<kMoveIterRank> m_src_it_cfg;
-    IteratorCfg<kMoveIterRank> m_dst_it_cfg;
-
-    template <typename buf_T, unsigned N>
-    void CopySrcToDst(Tensor<buf_T, N> src, Tensor<buf_T, N> dst);
-
-    TensorIterator<InternalBuffer, kMoveRank, kMoveIterRank> GetSrcTensorTileItr(
-        void* kernel_private_data_buffer, uint64_t membases[],
-        int num_mems);
-
-    TensorIterator<InternalBuffer, kMoveRank, kMoveIterRank> GetDstTensorTileItr(
-        void* kernel_private_data_buffer, uint64_t membases[],
-        int num_mems);
 };
 
 /**

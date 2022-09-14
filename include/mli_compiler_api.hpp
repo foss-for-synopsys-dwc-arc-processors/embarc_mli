@@ -906,7 +906,6 @@ public:
      *
      */
     virtual unsigned GetParamsBufferSize() = 0;
-    
     /**
      * @brief Methods to set buffer offsets
      *

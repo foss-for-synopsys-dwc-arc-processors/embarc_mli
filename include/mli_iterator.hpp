@@ -125,10 +125,11 @@ class IteratorCfg {
       m_buf_tiles_num = tiles_num;
     }
 
+
     // Constructor that will compute the number of tiles in each dimension, it will also compute the increment values and sizes.
     template <typename buf_T>
     IteratorCfg(const Tensor<buf_T, iterRank>& tensor,        // full tensor to be iterated
-                uint32_t tilesize[],                          // size of the tile
+                const uint32_t tilesize[],                    // size of the tile
                 const int32_t order[]) {                      // iteration order
       for (uint32_t i = 0; i < iterRank; ++i) {
         int32_t dim = order[i];
@@ -382,29 +383,27 @@ class BufferIterator {
     BufferIterator(const Tensor<buf_T, tensorRank>& full_tensor,
                    const IteratorCfg<iterRank>& cfg)
         : m_buffer_offset{0} {
+      m_buffer_size = 1;
       for (uint32_t i = 0; i < iterRank; i++) {
-        uint32_t buffer_dim = MAX(cfg.get_size(i), cfg.get_first_size(i));
-
+        uint32_t buffer_dim = MAX(cfg.get_size(cfg.get_order(i)), cfg.get_first_size(cfg.get_order(i)));
         // If tiles number equals to 0, that means attached buffer calculated for
         // full tensor, otherwise - for number of tiles. Also if dimension of the
         // tensor/tile is 1 or 0, that simply means that dimension doesn't exist
         // in terms of buffer, so offset must be 0.
-        if (tensorRank == iterRank && cfg.get_buf_tiles_num() == 0 && full_tensor.get_dim(i) > 1) {
-          m_first_offset_inc[cfg.get_order(i)] = cfg.get_first_inc(cfg.get_order(i)) * full_tensor.get_mem_stride(cfg.get_order(i));
-          m_offset_inc[cfg.get_order(i)] = cfg.get_inc(cfg.get_order(i)) * full_tensor.get_mem_stride(cfg.get_order(i));
-          m_last_offset_inc[cfg.get_order(i)] = cfg.get_last_inc(cfg.get_order(i)) * full_tensor.get_mem_stride(cfg.get_order(i));
+        if (cfg.get_buf_tiles_num() == 0 && full_tensor.get_dim(i) > 1) {
+          m_first_offset_inc[cfg.get_order(i)] = cfg.get_first_inc(cfg.get_order(i)) == 0 ? full_tensor.get_mem_stride(cfg.get_order(i)) : cfg.get_first_inc(cfg.get_order(i)) * full_tensor.get_mem_stride(cfg.get_order(i));
+          m_offset_inc[cfg.get_order(i)] = cfg.get_inc(cfg.get_order(i)) == 0 ? full_tensor.get_mem_stride(cfg.get_order(i)) : cfg.get_inc(cfg.get_order(i)) * full_tensor.get_mem_stride(cfg.get_order(i));
+          m_last_offset_inc[cfg.get_order(i)] = cfg.get_last_inc(cfg.get_order(i)) == 0 ? full_tensor.get_mem_stride(cfg.get_order(i)) : cfg.get_last_inc(cfg.get_order(i)) * full_tensor.get_mem_stride(cfg.get_order(i));
 
         } else {
           m_first_offset_inc[cfg.get_order(i)] = 0;
           m_offset_inc[cfg.get_order(i)] = 0;
           m_last_offset_inc[cfg.get_order(i)] = 0;
+          m_buffer_size *= buffer_dim;
         }
-
-        if (tensorRank == iterRank) {
-          m_buffer_dec[cfg.get_order(i)] = cfg.get_buf_tiles_num() == 0
-            ? full_tensor.get_dim(cfg.get_order(i)) * full_tensor.get_mem_stride(cfg.get_order(i))
-            : buffer_dim * full_tensor.get_mem_stride(cfg.get_order(cfg.get_order(i)));
-        }
+        m_buffer_dec[cfg.get_order(i)] = cfg.get_buf_tiles_num() == 0
+                              ? full_tensor.get_dim(cfg.get_order(i)) * full_tensor.get_mem_stride(cfg.get_order(i))
+                              : buffer_dim * full_tensor.get_mem_stride(cfg.get_order(i));
       }
     };
 
@@ -412,7 +411,7 @@ class BufferIterator {
      * @brief Updating BufferIterator in case of Tensor or IteratorCfg changed
      *
      * @param full_tensor [I] Reference to Tensor object
-     * @param cfg [I] Reference to IteratorCfg object
+     * @param cfg         [I] Reference to IteratorCfg object
      */
     void UpdateConfig(const Tensor<buf_T, iterRank>& full_tensor,
                       const IteratorCfg<iterRank>& cfg,
@@ -426,22 +425,11 @@ class BufferIterator {
       m_buffer_offset = buffer_offset;
     }
 
-    // void shrink_buffer_offsets_update(Tensor<buf_T, iterRank>& full_tensor,const IteratorCfg<iterRank>& cfg){
-    //   uint32_t iteration_dim = cfg.get_order(0);
-    //   m_buffer_dec[iteration_dim] *= cfg.get_buf_tiles_num();
-    //   if (iteration_dim > 0){
-    //       full_tensor.set_mem_stride((iteration_dim - 1), full_tensor.get_mem_stride((iteration_dim - 1)*cfg.get_buf_tiles_num()));
-    //       m_first_offset_inc[iteration_dim - 1] *= cfg.get_buf_tiles_num();
-    //       m_offset_inc[iteration_dim - 1] *= cfg.get_buf_tiles_num();
-    //       m_last_offset_inc[iteration_dim - 1] *= cfg.get_buf_tiles_num();
-    //     }
-      
-    // }
     /**
      * @brief Calculating offset in elements inside memory buffer based on
      * pre-calculated offset increments per dimension
      *
-     * @param dim [I] Dimension for incrementing
+     * @param dim      [I] Dimension for incrementing
      * @param tile_pos [I] Using first offset from IteratorCfg or not
      */
     void Next(const uint32_t dim, kTilePos_t tile_pos) {
@@ -452,6 +440,10 @@ class BufferIterator {
       }
       else{
         m_buffer_offset += m_offset_inc[dim];
+      }
+      // if m_buffer_size = 1 then no tiling
+      if (m_buffer_size > 1) {
+        m_buffer_offset %= m_buffer_size;
       }
     }
 
@@ -481,7 +473,7 @@ class BufferIterator {
       return m_last_offset_inc[axis];
     }
     
-
+    
  private:
   int32_t m_first_offset_inc[iterRank];     /**< Buffer offset increment per
                                                  dimension for the first tile */
@@ -491,8 +483,10 @@ class BufferIterator {
                                                  the last tile */
   int32_t m_buffer_dec[iterRank];           /**< Buffer offset decrement per dimension */
 
-  int32_t m_buffer_offset;                 /**< Offset in elements inside attached memory 
+  int32_t m_buffer_offset;                  /**< Offset in elements inside attached memory 
                                                  buffer */
+  int32_t m_buffer_size;
+
 };
 
 /**
@@ -500,81 +494,86 @@ class BufferIterator {
  *
  *
  */
-
-
-
 template <typename buf_T, uint32_t tensorRank, uint32_t iterRank>
 class TensorIterator {
 
   public:
 
-   /**
-    * @brief constructor
-    *
-    * @param tensor [I] full tensor which is tiled by this iterator
-    *
-    */
-   TensorIterator(Tensor<buf_T, tensorRank> tensor)
-     : m_full_tensor(tensor),
-       m_config(tensor),
-       m_buffer_itr(m_full_tensor, m_config) {
-     UpdateMemstrides();      
-     Reset();
+    /**
+      * @brief constructor
+      *
+      * @param tensor [I] full tensor used to create 1 tile equal tensor size
+      *
+      */
+    TensorIterator(Tensor<buf_T, tensorRank> tensor) 
+      : m_full_tensor(tensor), 
+        m_config(tensor),
+        m_buffer_itr(m_full_tensor, m_config) {
+      UpdateMemstrides();      
+      Reset();
     }
 
 
-   /**
-    * @brief constructor
-    *
-    *
-    * @param tensor [I] Full tensor which is tiled by this iterator
-    * @param config [I] Iterator configuration
-    */
-   TensorIterator(Tensor<buf_T, tensorRank> tensor, IteratorCfg<iterRank> config)
-       : m_full_tensor(tensor),
-         m_config(config),
-         m_buffer_itr(m_full_tensor, m_config) {
-     UpdateMemstrides();      
-     Reset();
-   }
+    /**
+      * @brief constructor
+      *
+      *
+      * @param tensor [I] Full tensor which is tiled by this iterator
+      * @param config [I] Iterator configuration
+      */
+    TensorIterator(Tensor<buf_T, tensorRank> tensor, IteratorCfg<iterRank> config)
+        : m_full_tensor(tensor),
+          m_config(config),
+          m_buffer_itr(m_full_tensor, m_config) {
+      UpdateMemstrides();      
+      Reset();
+    }
 
-   /**
+    /**
+       * @brief constructor
+       *
+       * This constuctor is appropriate for output tiling, for input tiling better to use
+       * special constructor with effective_kernel_size parameter
+       * @param tensor    [I] Full tensor which is tiled by this iterator
+       * @param tile_size [I] Size of tile
+       * @param order     [I] Iteration order
+       */
+    TensorIterator(Tensor<buf_T, tensorRank> tensor, uint32_t tile_size[], const int32_t order[])
+      : m_full_tensor(tensor),
+      m_config(tensor, tile_size, order),
+      m_buffer_itr(m_full_tensor, m_config) {
+      UpdateMemstrides();
+      Reset();
+    }
+
+    /**
+      * @brief constructor
+      *
+      * Simple TenosorIterator with default TensorIterator config
+      * @param tensor           [I] Full tensor which is tiled by this TensorIterator
+      * @param offset           [I] Current offset used in TensorIterator
+      * @param iteration_order  [I] The iteration order used for increments
+      */
+    TensorIterator(const Tensor<buf_T, tensorRank>& tensor,
+                    const uint32_t buffer_offset,
+                    const int32_t* iteration_order)
+        : m_full_tensor(tensor),
+          m_config(iteration_order),
+          m_buffer_itr(m_full_tensor, m_config){
+      UpdateMemstrides();      
+      Reset();
+      m_buffer_itr.UpdateConfig(m_full_tensor, m_config,buffer_offset);
+    }
+
+
+     /**
      * @brief constructor
      *
-     * This constuctor is appropriate for output tiling, for input tiling better to use
-     * special constructor with effective_kernel_size parameter
-     * @param tensor    [I] Full tensor which is tiled by this iterator
-     * @param tile_size [I] Size of tile
-     * @param order     [I] Iteration order
+     * TensorIterator constructor using parameters of another TensorIterator
+     * @param tensor_iterator [I] TensorIterator refrence to use its parameters in generate new TensorIterator
      */
-   TensorIterator(Tensor<buf_T, tensorRank> tensor, uint32_t tile_size[], const int32_t order[])
-     : m_full_tensor(tensor),
-     m_config(tensor, tile_size, order),
-     m_buffer_itr(m_full_tensor, m_config) {
-     UpdateMemstrides();
-     Reset();
-   }
-
-   /**
-    * @brief constructor
-    *
-    * Simple iterator with default iterator config will iterate in steps of 1
-    * @param tensor [I] Full tensor which is tiled by this iterator
-    * @param offset [I] Current offset used in TensorIterator
-    * @param iteration_order [I] The iteration order used for increments
-    */
-   TensorIterator(const Tensor<buf_T, tensorRank>& tensor,
-                  const uint32_t buffer_offset,
-                  const int32_t* iteration_order)
-       : m_full_tensor(tensor),
-         m_config(iteration_order),
-         m_buffer_itr(m_full_tensor, m_config){
-     UpdateMemstrides();      
-     Reset();
-     m_buffer_itr.UpdateConfig(m_full_tensor, m_config,buffer_offset);
-   }
-
-    TensorIterator(const TensorIterator<NoBuffer, tensorRank, iterRank>& tensor_iterator):m_buffer_itr(m_full_tensor, m_config) {
+    TensorIterator(const TensorIterator<NoBuffer, tensorRank, iterRank>& tensor_iterator)
+        : m_buffer_itr(m_full_tensor, m_config) {
       Tensor<NoBuffer, tensorRank> tensor = tensor_iterator.get_tensor();
       m_full_tensor = Tensor<buf_T, tensorRank>(buf_T(), tensor);
       m_config = tensor_iterator.get_config();
@@ -586,9 +585,10 @@ class TensorIterator {
     TensorIterator(
         const TensorIterator<OffsetBuffer, tensorRank, iterRank> &tns_iter,
         uint64_t bases[],
-        unsigned num_mem) : m_buffer_itr(m_full_tensor, m_config) {
-      m_full_tensor = Tensor<InternalBuffer, tensorRank>(tns_iter.get_tensor(), bases, num_mem);
-      m_config = tns_iter.get_config();
+        unsigned num_mem) 
+        : m_full_tensor(tns_iter.get_tensor(), bases, num_mem),
+          m_config(tns_iter.get_config()),
+          m_buffer_itr(m_full_tensor, m_config) {
       m_offset = tns_iter.get_offset();
       tns_iter.get_pos(m_pos);
       tns_iter.get_tile_idx(m_tile_idx);
@@ -843,11 +843,11 @@ class TensorIterator {
       void UpdateMemstrides(void){
       if (m_config.get_buf_tiles_num() != 0) {
         uint32_t mem_stride=1;
-             for (unsigned i = iterRank; i > 0; --i)
+             for (uint32_t i = iterRank; i > 0; --i)
         {
-          if(m_config.get_size(i-1)==0)continue;
+          if(m_config.get_size(m_config.get_order(i-1)) == 0)continue;
           m_full_tensor.set_mem_stride(i-1,mem_stride);
-          mem_stride*=m_config.get_size(i-1);
+          mem_stride*=m_config.get_size(m_config.get_order(i-1));
         }        
       }
     }
@@ -881,6 +881,14 @@ class TensorIterator {
 
     const IteratorCfg<iterRank>& get_config() const {
       return m_config;
+    }
+    
+    void SetCount(int32_t * count){
+      m_config.set_count(count);
+    }
+
+    int32_t GetTensorShape(int32_t dim){
+      return m_full_tensor.get_dim(dim);
     }
 
     int32_t get_offset() const {

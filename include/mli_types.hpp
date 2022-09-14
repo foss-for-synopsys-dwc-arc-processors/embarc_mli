@@ -15,6 +15,12 @@
 
 namespace snps_arc::metaware::mli {
 
+typedef enum {
+  kFirstTile = 0,
+  kMiddleTile,
+  kLastTile
+} kTilePos_t;
+
 constexpr short int kTensorBatchDim = 0;
 constexpr short int kTensorHeightDim = 1;
 constexpr short int kTensorWidthDim = 2;
@@ -91,15 +97,6 @@ constexpr unsigned kPreluIterRank = 4;
 constexpr unsigned kPreluParamRank = 2;
 constexpr unsigned kPreluParamIterRank = 2;
 
-constexpr unsigned kMoveRank = 5;
-constexpr unsigned kMoveIterRank = 5;
-
-typedef enum {
-  kFirstTile = 0,
-  kMiddleTile,
-  kLastTile
-} kTilePos_t;
-
 constexpr unsigned kReduceSumRank = 4;
 constexpr unsigned kReduceSumIterRank = 4;
 constexpr short int kMatMulRank = 2;
@@ -127,6 +124,9 @@ constexpr unsigned kMoveBroadcastIterRank = 5;
 constexpr short int kResizeDim = 2;
 constexpr short int kResizeBilinearRank = 4;
 constexpr short int kResizeBilinearIterRank = 4;
+
+constexpr unsigned kMoveRank = 5;
+constexpr unsigned kMoveIterRank = 5;
 
 typedef enum : uint32_t {
   kInvalidId = 0,
@@ -203,8 +203,18 @@ public:
   uint32_t get_size() const {
     return size_;
   }
+
   uint32_t get_elem_size() const {
     return elem_size_;
+  }
+
+  /**
+   * @brief 
+   * 
+   * @param offset [I] offset is in number of elements (not in bytes)
+   */
+  void inc(unsigned offset) {
+    ptr_ += elem_size_ * offset;
   }
 
   template<typename T>
@@ -245,7 +255,7 @@ private:
 
 
 /**
- * @brief Buffer type used to communicate memory allocatios between graph compiler and run-time
+ * @brief Buffer type used to communicate memory allocations between graph compiler and run-time
  *
  * This type contains an offset and a memory identifier.
  * The graph compiler doesn't know which (piece of) memory will be assigned to the graph.
@@ -253,7 +263,7 @@ private:
  * 
  * When the MLI runtime kernel object is created the bases addresses provided by the resource manager
  * are added to the offsets.
- * (e.g. the kernel private data structure contians unlinkedBuffer's and the runtime kernel object contains
+ * (e.g. the kernel private data structure contains unlinkedBuffer's and the runtime kernel object contains
  * DeviceBuffer's, and the constructor of the runtime object translates one into the other.)
  * 
  */
@@ -276,20 +286,33 @@ public:
   uint32_t get_size() const {
     return size_;
   }
+
   uint32_t get_elem_size() const {
     return elem_size_;
   }
+
   void set_elem_size(uint32_t elem_size) {
     assert(elem_size <= size_);
     elem_size_ = elem_size;
   }
+
+  void set_size(uint32_t size) {
+    size_ = size;
+  }
+
   uint32_t get_mem_idx() const {
     return mem_idx_;
   }
+
   uint32_t get_offset() const {
     return offset_;
   }
 
+  /**
+   * @brief 
+   * 
+   * @param offset [I] offset is in number of elements (not in bytes)
+   */
   void inc(unsigned offset) {
     offset_ += elem_size_ * offset;
   }
@@ -390,6 +413,11 @@ public:
     *(reinterpret_cast<T*>(ptr_) + offset) = data;
   }
 
+  /**
+   * @brief 
+   * 
+   * @param offset [I] offset is in number of elements (not in bytes)
+   */
   void inc(unsigned offset) {
     ptr_ += elem_size_ * offset;
   }
@@ -401,9 +429,9 @@ private:
 };
 
 /**
- * @brief Tensor type - main data descriptor for all MLI_CS  kernel operandsalgorithms
+ * @brief Tensor type - main data descriptor for all MLI_CS kernel operands and algorithms
  * 
- * @tparam buf_T type of the buffer handeled by tensor
+ * @tparam buf_T type of the buffer handled by tensor
  * @tparam maxRank maximum rank of the tensor instance might be represent
  */
 template <typename buf_T, unsigned maxRank>
@@ -428,7 +456,7 @@ class Tensor {
   }
 
   /**
-  * The Specialised constructor for tensors with contiguous data
+  * The Specialized constructor for tensors with contiguous data
   */
   Tensor(buf_T buf, uint32_t shape[], uint32_t rank) 
       : buf_{buf}, offset_(0), shape_{0}, mem_stride_{0}, rank_{rank} {
@@ -438,7 +466,7 @@ class Tensor {
       const uint32_t idx = cur_dim - 1;
       shape_[idx] = shape[idx];
       mem_stride_[idx] = stride;
-      if (shape[idx] > 0)
+      if (shape[idx] > 0) 
         stride *= shape[idx];
     }
   }
@@ -462,7 +490,7 @@ class Tensor {
       :  Tensor(NoBuffer(), shape, mem_stride, static_cast<uint32_t>(maxRank)) {}
 
   Tensor(uint32_t shape[], int32_t mem_stride[], uint32_t rank) 
-      :  Tensor(NoBuffer(), shape, mem_stride, rank) {}
+      : Tensor(NoBuffer(), shape, mem_stride, rank) {}
 
   /* copy constructor for tensors with different rank */
   template <unsigned N>
@@ -550,6 +578,10 @@ class Tensor {
   int32_t get_mem_stride(unsigned idx) const {
     return mem_stride_[idx];
   }
+  
+  void set_mem_stride(uint32_t idx, uint32_t val) {
+    mem_stride_[idx] = val;
+  }
 
   void set_mem_stride(unsigned idx, int32_t mem_stride) {
     mem_stride_[idx] = mem_stride;
@@ -585,6 +617,12 @@ class Tensor {
   void set_buf(const buf_T& b) {
     buf_ = b;
   }
+  
+  uint32_t get_total_elem_num() const {
+    uint32_t total_elem_num = 1;
+    for (int i = 0; i < rank_; i++) total_elem_num *= shape_[i];
+    return total_elem_num;
+  }
 
   uint32_t get_elem_size() const {
     return buf_.get_elem_size();
@@ -602,6 +640,19 @@ class Tensor {
     uint32_t offset = get_offset(pos);
     Tensor<buf_T, maxRank> slice_tens(buf_, size, mem_stride_, rank_);
     slice_tens.set_offs(offset_ + offset);
+    return slice_tens;
+  }
+
+  Tensor<buf_T, maxRank> slice(uint32_t offset, uint32_t size[]) {
+    buf_T buf = buf_;
+    buf.inc(offset);
+    Tensor<buf_T, maxRank> slice_tens(buf, size, mem_stride_, rank_);
+    return slice_tens;
+  }
+    
+  Tensor<buf_T, maxRank> slice(uint32_t size[]) {
+    buf_T buf = buf_;
+    Tensor<buf_T, maxRank> slice_tens(buf, size, mem_stride_, rank_);
     return slice_tens;
   }
 

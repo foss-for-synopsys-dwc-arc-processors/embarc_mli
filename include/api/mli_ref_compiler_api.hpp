@@ -722,61 +722,71 @@ private:
 class Move_CS : public lib_mli::Move_CS {
  public:
   /**
-   * @brief constructor to create an iterating move object
+   * @brief Constructor to create a Move compiler support object.
    *
-   * This constructor can be used to create a move object that can transfer the
-   * data from one tensor to the other, in a tiled manner The shapes of both src
-   * and dst tensors need to match. the offsets (aka mem_strides) can be
-   * different.
+   * This constructor can be used to create a Move compiler object. This kernel
+   * can transfer the data from one tensor to another in a tiled manner
+   * The shapes of both src and dst tensors must match. However, memory strides
+   * can be different for src and dst.
    *
    * The function accepts tensors with a templated rank up to kMoveRank
    *
-   * Separate iterator configs are needed for src and dst because the increments
-   * can be different.
-   * The cfg.size needs to be the same for src and dst. (as wel as the
-   * cfg.start_size)
+   * IteratorCfg must be configured with the same tiles sizes for the src and
+   * dst tensors while increments can be different.
+   * @deprecated
    *
-   * TODO: decide if we want to put the IteratorCfg on the interface, or the
-   * individual fields
-   *
-   * @param src [I] source tensor
-   * @param dst [I] destination tensor
-   * @param src_cfg [I] source iterator configuration
-   * @param dst_cfg [I] destination iterator configuration
+   * @param pd      [I] Platform description
+   * @param src     [I] Source tensor shape and memory strides
+   * @param dst     [O] Destination tensor shape and memory strides
+   * @param src_cfg [I] Source iterator configuration
+   * @param dst_cfg [I] Destination iterator configuration
    */
-
   Move_CS(const lib_mli::PlatformDescription pd,
           const Tensor<NoBuffer, kMoveRank> src,
           const Tensor<NoBuffer, kMoveRank> dst,
           const IteratorCfg<kMoveIterRank> src_it_cfg = IteratorCfg<kMoveIterRank>(),
           const IteratorCfg<kMoveIterRank> dst_it_cfg = IteratorCfg<kMoveIterRank>());
 
+  /**
+   * @brief Constructor to create a Move compiler support object.
+   *
+   * This constructor can be used to create a Move compiler support object. This kernel
+   * can transfer the data from one tensor to another in a tiled manner
+   * The shapes of both src and dst tensors must match. However, memory strides
+   * can be different for src and dst.
+   *
+   * The function accepts TensorIterators with a templated rank up to kMoveRank
+   *
+   * @param pd  [I] Platform description
+   * @param src [I] Source TensorIterator with shape and memory strides
+   * @param dst [I] Destination TensorIterator with shape and memory strides
+   */
+  Move_CS(const lib_mli::PlatformDescription pd,
+          const TensorIterator<NoBuffer, kMoveRank, kMoveIterRank> &src,
+          const TensorIterator<NoBuffer, kMoveRank, kMoveIterRank> &dst);
+  
   unsigned GetKernelPrivateDataSize() const override;
   unsigned GetRuntimeObjectSize() const override;
   mli_status GetKernelPrivateData(void *kernel_private_data_buffer) override;
+  /*
+  * @deprecated
+  */
   mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kMoveRank> &src,
                                  const Tensor<OffsetBuffer, kMoveRank> &dst) override;
-
-  unsigned GetInputBufferSize() const override;
-  unsigned GetOutputBufferSize() const override;
+  
+  mli_status AttachBufferOffsets(const OffsetBuffer &src,
+                                 const OffsetBuffer &dst,
+                                 const OffsetBuffer &ctrl_buffer) override;
 
 private:
-  IteratorCfg<kMoveIterRank> m_src_cfg;
-  IteratorCfg<kMoveIterRank> m_dst_cfg;
-
   lib_mli::PlatformDescription m_pd;
 
-  Tensor<OffsetBuffer, kMoveRank> m_src;
-  Tensor<OffsetBuffer, kMoveRank> m_dst;
+  TensorIterator<OffsetBuffer, kMoveRank, kMoveIterRank> m_src_it;
+  TensorIterator<OffsetBuffer, kMoveRank, kMoveIterRank> m_dst_it;
 
-  uint32_t m_src_rank;
-  uint32_t m_dst_rank;
+  OffsetBuffer m_src_offset_buf;
+  OffsetBuffer m_dst_offset_buf;
 
-  uint32_t m_src_shape[kMoveRank];
-  uint32_t m_dst_shape[kMoveRank];
-
-  int32_t m_src_stride[kMoveRank];
-  int32_t m_dst_stride[kMoveRank];
 };
 
 class Add_CS : public lib_mli::Add_CS {

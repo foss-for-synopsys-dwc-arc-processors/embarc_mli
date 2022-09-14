@@ -13,31 +13,24 @@
 #include "mli_ref_runtime_api.hpp"
 #include "mli_ref_private_types.hpp"
 
-
-
 namespace snps_arc::metaware::mli::ref {
 
 Move_CS::Move_CS(const lib_mli::PlatformDescription pd,
                  const Tensor<NoBuffer, kMoveRank> src,
                  const Tensor<NoBuffer, kMoveRank> dst,
-                 const IteratorCfg<kMoveIterRank> src_it_cfg,
-                 const IteratorCfg<kMoveIterRank> dst_it_cfg)
-    : m_src_cfg(src_it_cfg), m_dst_cfg(dst_it_cfg) {
-  m_src_rank = 0;
-  m_dst_rank = 0;
+                 const IteratorCfg<kMoveRank> src_it_cfg,
+                 const IteratorCfg<kMoveRank> dst_it_cfg) {
 
-  for (unsigned dim = 0; dim < kMoveRank; dim++) {
-    m_src_shape[dim] = src.get_dim(dim);
-    if (m_src_shape[dim] > 0) m_src_rank += 1;
-    m_src_stride[dim] = src.get_mem_stride(dim);
-  }
-
-  for (unsigned dim = 0; dim < kMoveRank; dim++) {
-    m_dst_shape[dim] = dst.get_dim(dim);
-    if (m_dst_shape[dim] > 0) m_dst_rank += 1;
-    m_dst_stride[dim] = dst.get_mem_stride(dim);
-  }
+  m_src_it = TensorIterator<NoBuffer, kMoveRank, kMoveIterRank>(src, src_it_cfg);
+  m_dst_it = TensorIterator<NoBuffer, kMoveRank, kMoveIterRank>(dst, dst_it_cfg);
 };
+
+Move_CS::Move_CS(const lib_mli::PlatformDescription pd,
+                 const TensorIterator<NoBuffer, kMoveRank, kMoveIterRank> &src,
+                 const TensorIterator<NoBuffer, kMoveRank, kMoveIterRank> &dst)
+                 : m_pd(pd), m_src_it(src), m_dst_it(dst) {
+    // no body is needed (all is done in the initializer list)
+}
 
 unsigned Move_CS::GetKernelPrivateDataSize() const {
   return sizeof(MovePrivateData);
@@ -49,10 +42,9 @@ unsigned Move_CS::GetRuntimeObjectSize() const {
 
 mli_status Move_CS::GetKernelPrivateData(void *kernel_private_data_buffer) {
   MovePrivateData obj;
-  obj.src = m_src;
-  obj.dst = m_dst;
-  obj.src_cfg = m_src_cfg;
-  obj.dst_cfg = m_dst_cfg;
+
+  obj.src_it = m_src_it;
+  obj.dst_it = m_dst_it;
 
   std::memcpy(kernel_private_data_buffer, (void *)&obj, sizeof(obj));
 
@@ -61,16 +53,24 @@ mli_status Move_CS::GetKernelPrivateData(void *kernel_private_data_buffer) {
 
 mli_status Move_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, kMoveRank> &src,
                                         const Tensor<OffsetBuffer, kMoveRank> &dst) {
-  m_src = src;
-  m_dst = dst;
+  m_src_offset_buf = src.get_buf();
+  m_dst_offset_buf = dst.get_buf();
+
+  assert(src.get_elem_size() == dst.get_elem_size());
+
   return MLI_STATUS_OK;
 }
 
-unsigned Move_CS::GetInputBufferSize() const {
-  return service::GetBufferSize(m_src_rank, m_src_shape, m_src_stride);
+mli_status Move_CS::AttachBufferOffsets(const OffsetBuffer &src,
+                                        const OffsetBuffer &dst,
+                                        const OffsetBuffer &ctrl_buffer) {
+  m_src_it.set_buf(src);
+  m_dst_it.set_buf(dst);
+
+  assert(src.get_elem_size() == dst.get_elem_size());
+
+  return MLI_STATUS_OK;
 }
-unsigned Move_CS::GetOutputBufferSize() const {
-  return service::GetBufferSize(m_dst_rank, m_dst_shape, m_dst_stride);
-}
+
 
 }  // namespace snps_arc::metaware::mli::ref

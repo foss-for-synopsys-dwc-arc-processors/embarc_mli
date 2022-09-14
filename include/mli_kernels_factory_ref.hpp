@@ -86,9 +86,9 @@ public:
                               const TensorIterator<NoBuffer, kMoveRank, kMoveIterRank> &dst,
                               const lib_mli::MoveDataDirection data_dir)
                               override {
-      return nullptr; /* new (kernel_buffer) lib_ref::Move_CS(m_pd, src, dst); */
+        return new(kernel_buffer) lib_ref::Move_CS(m_pd, src, dst);
     }
-
+    
     uint32_t Add_CS_GetSize() const override { return sizeof(lib_ref::Add_CS); }
 
     lib_mli::Add_CS* Add_CS(void *kernel_buffer,
