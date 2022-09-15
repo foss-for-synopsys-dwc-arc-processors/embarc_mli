@@ -17,7 +17,13 @@
 
 namespace snps_arc::metaware::mli {
 
-
+typedef enum : uint8_t {
+  SZ0_SZ0_SZ0 = 0, // also used for SZ0 and SZ0_SZ0 cases
+  SZ0_SZ0_SZ1 = 1, // also used for SZ0_SZ1 case
+  SZ0_SZ1_SZ0 = 2,
+  SZ0_SZ1_SZ1 = 3,
+  SZ0_SZ1_SZ2 = 4
+} TileLayoutCode;
 
 /**
  * @brief 
@@ -38,6 +44,7 @@ class IteratorCfg {
         m_count[i] = 1;
         m_size[i] = m_first_size[i] = m_last_size[i] = 1;
         m_pos_inc[i] = m_first_pos_inc[i] = m_last_pos_inc[i] = 0;
+        m_diff_code[i] = SZ0_SZ0_SZ0;
       }
       m_buf_tiles_num = 0;
     }
@@ -51,12 +58,14 @@ class IteratorCfg {
         m_count[i] = 1;
         m_size[i] = m_first_size[i] = m_last_size[i] = tensor.get_dim(i);
         m_pos_inc[i] = m_first_pos_inc[i] = m_last_pos_inc[i] = 0;
+        m_diff_code[i] = SZ0_SZ0_SZ0;
       }
       for (uint32_t i = tensorRank; i < iterRank; ++i) {
         m_order[i] = i;
         m_count[i] = kSkipIterDim;
         m_size[i] = m_first_size[i] = m_last_size[i] = 0;
         m_pos_inc[i] = m_first_pos_inc[i] = m_last_pos_inc[i] = 0;
+        m_diff_code[i] = SZ0_SZ0_SZ0;
       }
       m_buf_tiles_num = 0;
     }
@@ -69,6 +78,7 @@ class IteratorCfg {
         m_count[i] = 1;
         m_size[i] = m_first_size[i] = m_last_size[i] = tensor.get_dim(i);
         m_pos_inc[i] = m_first_pos_inc[i] = m_last_pos_inc[i] = 0;
+        m_diff_code[i] = SZ0_SZ0_SZ0;
       }
       m_buf_tiles_num = 0;
     }
@@ -84,6 +94,7 @@ class IteratorCfg {
         m_size[i] = m_first_size[i] = m_last_size[i] = size[i];
         m_pos_inc[i] = m_first_pos_inc[i] = increment[i];
         m_last_pos_inc[i] = increment[i] * (1 - m_count[i]);
+        m_diff_code[i] = SZ0_SZ0_SZ0;
       }
       m_buf_tiles_num = 0;
     }
@@ -121,6 +132,7 @@ class IteratorCfg {
         m_first_size[i] = first_size[i];
         m_size[i] = size[i];
         m_last_size[i] = last_size[i];
+        m_diff_code[i] = CalcDiffCode(m_count[i], m_first_size[i], m_size[i], m_last_size[i]);
       }
       m_buf_tiles_num = tiles_num;
     }
@@ -141,6 +153,7 @@ class IteratorCfg {
         m_size[i] = m_pos_inc[i] = tilesize[dim];
         m_last_size[i] = (tensor.get_dim(dim) + skew - 1) % tilesize[dim] + 1;
         m_last_pos_inc[i] = tilesize[dim] * (1 - m_count[i]) + skew;
+        m_diff_code[i] = CalcDiffCode(m_count[i], m_first_size[i], m_size[i], m_last_size[i]);
       }
       m_buf_tiles_num = 0;
     }
@@ -170,6 +183,7 @@ class IteratorCfg {
         m_size[i] = (icfg.m_size[i] - 1) * stride[dim] + effective_kernel_size[dim];
         m_first_size[i] = (icfg.m_first_size[i] - 1) * stride[dim] + effective_kernel_size[dim] - pre_padding[dim];
         m_last_size[i] = tensor.get_dim(dim) + m_last_pos_inc[i];
+        m_diff_code[i] = CalcDiffCode(m_count[i], m_first_size[i], m_size[i], m_last_size[i]);
       }
       m_buf_tiles_num = icfg.get_buf_tiles_num();
     }
@@ -189,6 +203,7 @@ class IteratorCfg {
         m_pos_inc[j] = icfg.get_first_inc(i);
         m_first_pos_inc[j] = icfg.get_inc(i);
         m_last_pos_inc[j] = icfg.get_last_inc(i);
+        m_diff_code[j] = icfg.get_diff_code(i);
         j++;
       }
       m_buf_tiles_num = icfg.get_buf_tiles_num();
@@ -216,6 +231,7 @@ class IteratorCfg {
         m_size[i] = icfg.m_size[i];
         m_first_size[i] = icfg.m_first_size[i];
         m_last_size[i] = icfg.m_last_size[i];
+        m_diff_code[i] = CalcDiffCode(m_count[i], m_first_size[i], m_size[i], m_last_size[i]);
       }
       m_buf_tiles_num = icfg.get_buf_tiles_num();
     }
@@ -229,6 +245,7 @@ class IteratorCfg {
         m_size[0] = m_pos_inc[0];
         m_last_size[0] -= overlap;
         m_last_pos_inc[0] -= overlap;
+        m_diff_code[0] = CalcDiffCode(m_count[0], m_first_size[0], m_size[0], m_last_size[0]);
       }
     }
 
@@ -251,12 +268,14 @@ class IteratorCfg {
           m_pos_inc[i] = in.m_pos_inc[i];
           m_first_pos_inc[i] = in.m_first_pos_inc[i];
           m_last_pos_inc[i] = in.m_last_pos_inc[i];
+          m_diff_code[i] = in.m_diff_code[i];
         }
         for (; i < iterRank; ++i) {
           m_count[i] = 1;
           m_order[i] = -1;
           m_size[i] = m_first_size[i] = m_last_size[i] = 0;
           m_pos_inc[i] = m_first_pos_inc[i] = m_last_pos_inc[i] = 0;
+          m_diff_code[i] = SZ0_SZ0_SZ0;
         }
     }
 
@@ -278,6 +297,7 @@ class IteratorCfg {
           iter.m_pos_inc[axis] = m_pos_inc[axis];
           iter.m_first_pos_inc[axis] = m_first_pos_inc[axis];
           iter.m_last_pos_inc[axis] = m_last_pos_inc[axis];
+          iter.m_diff_code[axis] = m_diff_code[axis];
         }
         return iter;
     }
@@ -289,6 +309,7 @@ class IteratorCfg {
             m_first_size[i] = 0;
             m_size[i] = 0;
             m_last_size[i] = 0;
+            m_diff_code[i] = SZ0_SZ0_SZ0;
         }
       }
     }
@@ -312,6 +333,7 @@ class IteratorCfg {
           m_first_size[i] = size;
           m_size[i] = size;
           m_last_size[i] = size;
+          m_diff_code[i] = SZ0_SZ0_SZ0;
         }
       }
     }
@@ -341,7 +363,9 @@ class IteratorCfg {
     uint32_t get_last_size(uint32_t dim) const {
       return m_last_size[dim];
     }
-
+    TileLayoutCode get_diff_code(uint32_t dim) const {
+      return m_diff_code[dim];
+    }
     uint32_t get_buf_tiles_num() const {
       return m_buf_tiles_num;
     }
@@ -353,6 +377,29 @@ class IteratorCfg {
     }
 
   private:
+    /**
+     * @brief Calculate tile-size difference code along certain dimension
+     *
+     * Output values:
+     * 0 - (First), (middle) and last tiles have the same size: (SZ0), (SZ0, SZ0) or (SZ0, SZ0, SZ0)
+     * 1 - First, (middle) and last tiles have 2 different sizes: (SZ0, SZ1) or (SZ0, SZ0, SZ1)
+     * 2 - First, middle and last tiles have 2 different sizes: (SZ0, SZ1, SZ0)
+     * 3 - First, middle and last tiles have 2 different sizes: (SZ0, SZ1, SZ1)
+     * 4 - First, middle and last tiles have 3 different sizes: (SZ0, SZ1, SZ2)
+     *
+     */
+    TileLayoutCode CalcDiffCode(int32_t count, uint32_t first_size, uint32_t size, uint32_t last_size) {
+        TileLayoutCode diff_code = SZ0_SZ0_SZ0;
+        if (count > 1) {
+          if (first_size != last_size) diff_code = SZ0_SZ0_SZ1;
+          if (count > 2 && first_size != size) {
+            if (first_size == last_size) diff_code = SZ0_SZ1_SZ0;
+            else if (size == last_size) diff_code = SZ0_SZ1_SZ1;
+            else diff_code = SZ0_SZ1_SZ2;
+          }
+        }
+        return diff_code;
+    }
     static constexpr int32_t kDefaultIterOrder[] = {0, 1, 2, 3, 4};
     int32_t m_order[iterRank];
     int32_t m_count[iterRank];
@@ -362,6 +409,7 @@ class IteratorCfg {
     uint32_t m_size[iterRank];
     uint32_t m_first_size[iterRank];
     uint32_t m_last_size[iterRank];
+    TileLayoutCode m_diff_code[iterRank];
     uint32_t m_buf_tiles_num;
 };
 
@@ -924,6 +972,38 @@ class TensorIterator {
 
     Tensor<buf_T, tensorRank> get_tensor() const {
       return m_full_tensor;
+    }
+
+    uint32_t get_update_idx() const {
+      uint32_t upd_idx = 0;
+      uint32_t mul = 1;
+      for (uint32_t i = 0; i < iterRank; ++i) {
+        TileLayoutCode diff_code = m_config.get_diff_code(i);
+        int32_t count = m_config.get_count(i);
+        uint32_t modifier_tile_idx = 0;
+        uint32_t num_diff = 2;
+        switch (diff_code) {
+          case SZ0_SZ0_SZ1:
+            if (m_tile_idx[i] == count - 1) modifier_tile_idx = 1;
+            break;
+          case SZ0_SZ1_SZ0:
+            if (m_tile_idx[i] > 0 && m_tile_idx[i] < count - 1) modifier_tile_idx = 1;
+            break;
+          case SZ0_SZ1_SZ1:
+            if (m_tile_idx[i] > 0) modifier_tile_idx = 1;
+            break;
+          case SZ0_SZ1_SZ2:
+            num_diff = 3;
+            if (m_tile_idx[i] == count - 1) modifier_tile_idx = 2;
+            else if (m_tile_idx[i] > 0) modifier_tile_idx = 1;
+            break;
+          default: // SZ0_SZ0_SZ0
+            num_diff = 1;
+        };
+        upd_idx += modifier_tile_idx * mul;
+        mul *= num_diff;
+      }
+      return upd_idx;
     }
 
   private:
