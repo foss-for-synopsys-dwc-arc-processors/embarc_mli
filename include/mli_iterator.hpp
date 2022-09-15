@@ -128,17 +128,19 @@ class IteratorCfg {
 
     // Constructor that will compute the number of tiles in each dimension, it will also compute the increment values and sizes.
     template <typename buf_T>
-    IteratorCfg(const Tensor<buf_T, iterRank>& tensor,        // full tensor to be iterated
-                const uint32_t tilesize[],                    // size of the tile
-                const int32_t order[]) {                      // iteration order
-      for (uint32_t i = 0; i < iterRank; ++i) {
+    IteratorCfg(const Tensor<buf_T, iterRank>& tensor, // full tensor to be iterated
+                uint32_t tilesize[],                   // size of the tile
+                const int32_t order[],                 // iteration order
+                uint32_t skew = 0) {                   // skewing on first iteration dimension (reduction of the first tile size, used in fused processing to avoid triple buffering)
+      MLI_ASSERT(tilesize[order[0]] >= skew);
+      for (uint32_t i = 0; i < iterRank; ++i, skew = 0) {
         int32_t dim = order[i];
         m_order[i] = dim;
-        m_count[i] = CEIL_DIV(tensor.get_dim(dim), tilesize[dim]);
-        m_first_size[i] = m_size[i] = tilesize[dim];
-        m_last_size[i] = (tensor.get_dim(dim) - 1) % tilesize[dim] + 1;
-        m_first_pos_inc[i] = m_pos_inc[i] = tilesize[dim];
-        m_last_pos_inc[i] = tilesize[dim] * (1 - m_count[i]);
+        m_count[i] = CEIL_DIV(tensor.get_dim(dim) + skew, tilesize[dim]);
+        m_first_size[i] = m_first_pos_inc[i] = tilesize[dim] - skew;
+        m_size[i] = m_pos_inc[i] = tilesize[dim];
+        m_last_size[i] = (tensor.get_dim(dim) + skew - 1) % tilesize[dim] + 1;
+        m_last_pos_inc[i] = tilesize[dim] * (1 - m_count[i]) + skew;
       }
       m_buf_tiles_num = 0;
     }
@@ -162,11 +164,11 @@ class IteratorCfg {
          *  To fix it some kind of pad[iterRank] variable needed and some kind of code
          *  "m_first_pos_inc[i] = MAX(0, m_pos_inc[i] - (int32_t)pre_padding[dim]);" instead of assert
          */
-        MLI_ASSERT(m_pos_inc[i] >= (int32_t)pre_padding[dim]);
-        m_first_pos_inc[i] = m_pos_inc[i] - (int32_t)pre_padding[dim];
-        m_last_pos_inc[i] = m_count[i] > 1 ? m_pos_inc[i] * (1 - m_count[i]) + pre_padding[dim] : 0;
+        MLI_ASSERT(icfg.m_first_pos_inc[i] * stride[dim] >= pre_padding[dim]);
+        m_first_pos_inc[i] = icfg.m_first_pos_inc[i] * stride[dim] - (int32_t)pre_padding[dim];
+        m_last_pos_inc[i] = m_count[i] > 1 ? m_pos_inc[i] * (2 - m_count[i]) - m_first_pos_inc[i] : 0;
         m_size[i] = (icfg.m_size[i] - 1) * stride[dim] + effective_kernel_size[dim];
-        m_first_size[i] = m_size[i] - pre_padding[dim];
+        m_first_size[i] = (icfg.m_first_size[i] - 1) * stride[dim] + effective_kernel_size[dim] - pre_padding[dim];
         m_last_size[i] = tensor.get_dim(dim) + m_last_pos_inc[i];
       }
       m_buf_tiles_num = icfg.get_buf_tiles_num();
