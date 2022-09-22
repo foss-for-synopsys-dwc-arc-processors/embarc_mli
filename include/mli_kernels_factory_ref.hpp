@@ -240,14 +240,6 @@ public:
         return new(kernel_buffer) lib_ref::ReduceMax_CS(m_pd, in, cfg, out);
     }
 
-    // TODO: to be removed after support IensorIterator
-    lib_mli::ReduceMax_CS* ReduceMax_CS(void *kernel_buffer,
-                                        const Tensor<NoBuffer, kReduceMaxRank> &input_shape,
-                                        const ReduceOpConfig &cfg,
-                                        const Tensor<NoBuffer, kReduceMaxRank> &output_tile_shape) override {
-        return new(kernel_buffer) lib_ref::ReduceMax_CS(m_pd, input_shape, cfg, output_tile_shape);
-    }
-
     uint32_t ReduceSum_CS_GetSize() const override { return sizeof(lib_ref::ReduceSum_CS); }
 
     lib_mli::ReduceSum_CS* ReduceSum_CS(void *kernel_buffer,

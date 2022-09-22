@@ -25,15 +25,10 @@ ReduceMax::ReduceMax(void* kernel_private_data_buffer, size_t size, uint64_t mem
     memcpy(&private_buffer, kernel_private_data_buffer, sizeof(ReduceMaxPrivateData));
     MLI_ASSERT(private_buffer.size == sizeof(ReduceMaxPrivateData));
 
-#ifdef REDUCEMAX_TILING
     m_in_elem_size = private_buffer.input.get_tensor().get_elem_size();
     m_out_elem_size = private_buffer.output.get_tensor().get_elem_size();
     m_input = private_buffer.input;
     m_output = private_buffer.output;
-#else
-    m_in_elem_size = private_buffer.input.get_elem_size();
-    m_out_elem_size = private_buffer.output.get_elem_size();
-#endif // REDUCEMAX_TILING
     // construct configurations
     m_reduce_axis = private_buffer.reduce_axis;
 
@@ -102,17 +97,14 @@ mli_status ReduceMax::Issue() {
 mli_status ReduceMax::Prefetch() {return MLI_STATUS_OK;}
 
 mli_status ReduceMax::Update() {
-#ifdef REDUCEMAX_TILING
     m_input.Next();
     m_output.Next();
 
     m_input.GetSubTensor().get_dims(m_tile_input.shape);
     m_output.GetSubTensor().get_dims(m_tile_output.shape);
-#endif // REDUCEMAX_TILING
     return MLI_STATUS_OK;
 }
 
-#ifdef REDUCEMAX_TILING
 void ReduceMax::GetIOSizesAndOffsets(uint32_t input_size[kReduceMaxRank], uint32_t output_size[kReduceMaxRank],
                                      int32_t input_offsets[kReduceMaxRank], int32_t output_offsets[kReduceMaxRank]) {
     
@@ -125,6 +117,5 @@ void ReduceMax::GetIOSizesAndOffsets(uint32_t input_size[kReduceMaxRank], uint32
     const auto output_tile_tensor = m_output.GetSubTensor();
     output_tile_tensor.get_dims(output_size);
 }
-#endif // REDUCEMAX_TILING
 
 }  // namespace snps_arc::metaware::mli::ref

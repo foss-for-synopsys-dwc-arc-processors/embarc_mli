@@ -615,20 +615,14 @@ public:
     mli_status Prefetch() override;
 
     mli_status Update() override;
-#ifdef REDUCEMAX_TILING
+
     void GetIOSizesAndOffsets(uint32_t input_size[kReduceMaxRank], uint32_t output_size[kReduceMaxRank],
                               int32_t input_offsets[kReduceMaxRank], int32_t output_offsets[kReduceMaxRank]);
-#endif // REDUCEMAX_TILING
 private:
-#ifdef REDUCEMAX_TILING
     TensorIterator<OffsetBuffer, kReduceMaxRank, kReduceMaxIterRank> m_input;
     TensorIterator<OffsetBuffer, kReduceMaxRank, kReduceMaxIterRank> m_output;
     mli_tensor m_tile_input;
     mli_tensor m_tile_output;
-#else
-    mli_tensor m_tile_input;
-    mli_tensor m_tile_output;
-#endif // REDUCEMAX_TILING
 
     int32_t m_reduce_axis;
 

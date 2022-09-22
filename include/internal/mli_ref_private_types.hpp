@@ -334,13 +334,8 @@ public:
 
     uint32_t io_rank;
 
-#ifdef REDUCEMAX_TILING
     TensorIterator<OffsetBuffer, kReduceMaxRank, kReduceMaxIterRank> input;
     TensorIterator<OffsetBuffer, kReduceMaxRank, kReduceMaxIterRank> output;
-#else
-    Tensor<OffsetBuffer, kReduceMaxRank> input;
-    Tensor<OffsetBuffer, kReduceMaxRank> output;
-#endif // REDUCEMAX_TILING
 };
 
 

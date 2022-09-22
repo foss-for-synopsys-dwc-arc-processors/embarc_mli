@@ -961,33 +961,6 @@ public:
     virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
                                            const OffsetBuffer &output,
                                            const OffsetBuffer &ctrl_buffer) = 0;
-    
-    /**
-     * @brief Method to set buffer memory offsets and memory IDs for the kernel
-     * TODO: to be removed after support TensorIterator
-     * 
-     * The memory ID's are used to index the membases array that will be passed
-     * to the constructor of the runtime class. The offsets will added to the base
-     * addresses provided in the membase array during runtime.
-     *
-     * In this method you specify tensors with offset for tensors passed to the constructor.
-     *
-     * @param input [I] input Tensor 
-     * @param output [I] output Tensor
-     * @param ctrl_buffer [I] control OffsetBuffer
-     * 
-     * @return MLI status code
-     */
-    virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kReduceMaxRank> &input,
-                                           const Tensor<OffsetBuffer, kReduceMaxRank> &output,
-                                           const OffsetBuffer &ctrl_buffer) = 0;
-
-    /**
-     * @brief Methods to get buffer sizes
-     * TODO: to be removed after support TensorIterator
-     */
-    virtual unsigned GetInputBufferSize() const = 0;
-    virtual unsigned GetOutputBufferSize() const = 0;
 };
 
 

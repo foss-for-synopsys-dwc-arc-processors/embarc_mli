@@ -545,10 +545,6 @@ public:
                  const Tensor<NoBuffer, kReduceMaxRank> &input_shape,
                  const ReduceOpConfig &cfg,
                  const Tensor<NoBuffer, kReduceMaxRank> &out_tile_shape);
-
-    // TODO: to be removed after support TensorIterator
-    unsigned GetInputBufferSize() const override;
-    unsigned GetOutputBufferSize() const override;
     
     mli_status GetKernelPrivateData(void *kernel_private_data_buffer ) override;
     unsigned GetKernelPrivateDataSize() const override;
@@ -557,22 +553,12 @@ public:
     mli_status AttachBufferOffsets(const OffsetBuffer &input,
                                    const OffsetBuffer &output,
                                    const OffsetBuffer &ctrl_buffer) override;
-    
-    // TODO: to be removed after support IensorIterator
-    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kReduceMaxRank> &input,
-                                   const Tensor<OffsetBuffer, kReduceMaxRank> &output,
-                                   const OffsetBuffer &ctrl_buffer) override;
 
 private:
     ReduceOpConfig m_cfg;
 
-#ifdef REDUCEMAX_TILING
     TensorIterator<OffsetBuffer, kReduceMaxRank, kReduceMaxIterRank> m_in;
     TensorIterator<OffsetBuffer, kReduceMaxRank, kReduceMaxIterRank> m_out;
-#else
-    Tensor<OffsetBuffer, kReduceMaxRank> m_in;
-    Tensor<OffsetBuffer, kReduceMaxRank> m_out;
-#endif
     uint32_t m_input_buffer_size;
     uint32_t m_output_buffer_size;
 

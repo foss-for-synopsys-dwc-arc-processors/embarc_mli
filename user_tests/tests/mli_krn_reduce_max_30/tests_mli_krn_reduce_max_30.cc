@@ -87,11 +87,9 @@ static IO_DATA_ATTR int8_t g_mem_pool[kMemSize] = {0};
 constexpr int kTestsNum = sizeof(tests_list) / sizeof(tests_list[0]);
 
 void prepare_phase(const reduce_max_test_operands* cur_test,
-#ifdef REDUCEMAX_TILING
                    int32_t iteration_order[kReduceMaxIterRank],
                    uint32_t input_tile_size[kReduceMaxIterRank],
                    uint32_t output_tile_size[kReduceMaxIterRank],
-#endif // REDUCEMAX_TILING
                    void*& reduce_max_instance,
                    uint32_t& reduce_max_instance_size,
                    lib_mli::PrivateData*& reduce_max_conf_private,
@@ -124,7 +122,6 @@ void prepare_phase(const reduce_max_test_operands* cur_test,
     lib_ref::KernelsFactory kernel_factory(pd);
     uint32_t reduce_max_cs_size = kernel_factory.ReduceMax_CS_GetSize();
     void* reduce_max_cs_buffer = malloc(reduce_max_cs_size);
-#ifdef REDUCEMAX_TILING
     lib_mli::IteratorCfg<kReduceMaxIterRank> input_it_config(in_tensor, input_tile_size, iteration_order);
     lib_mli::IteratorCfg<kReduceMaxIterRank> output_it_config(out_tensor, output_tile_size, iteration_order);
 
@@ -134,9 +131,7 @@ void prepare_phase(const reduce_max_test_operands* cur_test,
     lib_mli::TensorIterator<lib_mli::NoBuffer, kReduceMaxRank, kReduceMaxIterRank> out_tensor_it(full_out_tensor, output_it_config);
 
     auto reduce_max_op = kernel_factory.ReduceMax_CS(reduce_max_cs_buffer, in_tensor_it, cur_test->cfg, out_tensor_it);
-#else
-    auto reduce_max_op = kernel_factory.ReduceMax_CS(reduce_max_cs_buffer, in_tensor, cur_test->cfg, out_tensor);
-#endif // REDUCEMAX_TILING
+
     // STEP 2: Memory management (Up to user on how to deal with it)
     //==================================================================
     mli_status status = MLI_STATUS_OK;
@@ -157,22 +152,14 @@ void prepare_phase(const reduce_max_test_operands* cur_test,
 
     // ReduceMax Input
     offset = &offsets[0];
-#ifdef REDUCEMAX_TILING
     uint32_t in_size = lib_mli::service::GetBufferSize(kReduceMaxRank, input_tile_size, temp_input_tensor.mem_stride) * elem_size;
-#else
-    uint32_t in_size = reduce_max_op->GetInputBufferSize() * elem_size;
-#endif // REDUCEMAX_TILING
     lib_mli::OffsetBuffer reduce_max_in_buf{*offset, 0, in_size, elem_size};
     lib_mli::Tensor<lib_mli::OffsetBuffer, kReduceMaxRank> reduce_max_in_tensor(reduce_max_in_buf, temp_input_tensor.shape);
     *offset += in_size;
 
     // ReduceMax Output
     offset = &offsets[0];
-#ifdef REDUCEMAX_TILING
     uint32_t out_size = lib_mli::service::GetBufferSize(kReduceMaxRank, output_tile_size, temp_output_tensor.mem_stride) * elem_size;
-#else
-    uint32_t out_size = reduce_max_op->GetOutputBufferSize() * elem_size;
-#endif // REDUCEMAX_TILING
     lib_mli::OffsetBuffer reduce_max_out_buf{*offset, 0, out_size, elem_size};
     lib_mli::Tensor<lib_mli::OffsetBuffer, kReduceMaxRank> reduce_max_out_tensor(reduce_max_out_buf, temp_output_tensor.shape);
     *offset += out_size;
@@ -184,12 +171,7 @@ void prepare_phase(const reduce_max_test_operands* cur_test,
     *offset += ctrl_buffer_size;
 
     // Attaching buffer (descriptors) to the operation
-    
-#ifdef REDUCEMAX_TILING
     status = reduce_max_op->AttachBufferOffsets(reduce_max_in_buf, reduce_max_out_buf, reduce_max_ctrl_buf);
-#else
-    status = reduce_max_op->AttachBufferOffsets(reduce_max_in_tensor, reduce_max_out_tensor, reduce_max_ctrl_buf);
-#endif // REDUCEMAX_TILING
     assert(status == MLI_STATUS_OK);
 
     reduce_max_instance = (int8_t*)g_mem_pool;
@@ -203,7 +185,6 @@ void prepare_phase(const reduce_max_test_operands* cur_test,
 
 }
 
-#ifdef REDUCEMAX_TILING
 void execution_phase(uint32_t num_tiles,
                      void* reduce_max_instance, uint32_t reduce_max_instance_size,
                      lib_mli::PrivateData* reduce_max_conf_private, uint32_t reduce_max_conf_private_size) {
@@ -262,87 +243,6 @@ void execution_phase(uint32_t num_tiles,
     }
 
 }
-#else
-void execution_phase(void* reduce_max_instance, uint32_t reduce_max_instance_size,
-                     lib_mli::PrivateData* reduce_max_conf_private, uint32_t reduce_max_conf_private_size) {
-    // STEP 3: Execution phase
-    //==================================================================
-    
-    uint64_t membasis[] = {reinterpret_cast<uint64_t>(g_mem_pool)};
-
-    auto reduce_max_run_op = lib_mli::ExecutionInterface::Create(reduce_max_instance,
-                                                                 reduce_max_instance_size,
-                                                                 reduce_max_conf_private,
-                                                                 reduce_max_conf_private_size,
-                                                                 membasis, sizeof(membasis) / sizeof(membasis[0]));
-    assert(reduce_max_run_op != nullptr);
-    mli_status status = MLI_STATUS_OK;
-
-    lib_ref::ReduceMaxPrivateData* reduce_max_private = (lib_ref::ReduceMaxPrivateData*)(reduce_max_conf_private);
-
-    status = reduce_max_run_op->Prefetch();
-    assert(status == MLI_STATUS_OK);
-
-    if(1 == reduce_max_private->input.get_buf().get_elem_size()) {
-        int8_t* temp_in_mem = (int8_t*)g_scratch_mem_in;
-        int8_t* dst_in_buffer = (int8_t*) (g_mem_pool + reduce_max_private->input.get_buf().get_offset());
-        int num_in_elem = reduce_max_private->input.get_buf().get_size() / reduce_max_private->input.get_buf().get_elem_size();
-        for (int idx = 0; idx < num_in_elem; idx++) {
-            dst_in_buffer[idx] = temp_in_mem[idx];
-        }
-    }
-    else if(2 == reduce_max_private->input.get_buf().get_elem_size()) {
-        int16_t* temp_in_mem = (int16_t*)g_scratch_mem_in;
-        int16_t* dst_in_buffer = (int16_t*) (g_mem_pool + reduce_max_private->input.get_buf().get_offset());
-        int num_in_elem = reduce_max_private->input.get_buf().get_size() / reduce_max_private->input.get_buf().get_elem_size();
-        for (int idx = 0; idx < num_in_elem; idx++) {
-            dst_in_buffer[idx] = temp_in_mem[idx];
-        }
-    }
-    else if(4 == reduce_max_private->input.get_buf().get_elem_size()) {
-        int32_t* temp_in_mem = (int32_t*)g_scratch_mem_in;
-        int32_t* dst_in_buffer = (int32_t*) (g_mem_pool + reduce_max_private->input.get_buf().get_offset());
-        int num_in_elem = reduce_max_private->input.get_buf().get_size() / reduce_max_private->input.get_buf().get_elem_size();
-        for (int idx = 0; idx < num_in_elem; idx++) {
-            dst_in_buffer[idx] = temp_in_mem[idx];
-        }
-    }
-    
-
-    status = reduce_max_run_op->Issue();
-    assert(status == MLI_STATUS_OK);
-
-    if(1 == reduce_max_private->output.get_buf().get_elem_size()) {
-        int8_t* temp_out_mem = (int8_t*)g_scratch_mem_out;
-        int8_t* src_out_buffer = (int8_t*) (g_mem_pool + reduce_max_private->output.get_buf().get_offset());
-        int num_out_elem = reduce_max_private->output.get_buf().get_size() / reduce_max_private->output.get_buf().get_elem_size();
-        for (int idx = 0; idx < num_out_elem; idx++) {
-            temp_out_mem[idx] = src_out_buffer[idx];
-        }
-    }
-    else if(2 == reduce_max_private->output.get_buf().get_elem_size()) {
-        int16_t* temp_out_mem = (int16_t*)g_scratch_mem_out;
-        int16_t* src_out_buffer = (int16_t*) (g_mem_pool + reduce_max_private->output.get_buf().get_offset());
-        int num_out_elem = reduce_max_private->output.get_buf().get_size() / reduce_max_private->output.get_buf().get_elem_size();
-        for (int idx = 0; idx < num_out_elem; idx++) {
-            temp_out_mem[idx] = src_out_buffer[idx];
-        }
-    }
-    else if(4 == reduce_max_private->output.get_buf().get_elem_size()) {
-        int32_t* temp_out_mem = (int32_t*)g_scratch_mem_out;
-        int32_t* src_out_buffer = (int32_t*) (g_mem_pool + reduce_max_private->output.get_buf().get_offset());
-        int num_out_elem = reduce_max_private->output.get_buf().get_size() / reduce_max_private->output.get_buf().get_elem_size();
-        for (int idx = 0; idx < num_out_elem; idx++) {
-            temp_out_mem[idx] = src_out_buffer[idx];
-        }
-    }
-    
-
-    status = reduce_max_run_op->Update();
-    assert(status == MLI_STATUS_OK);
-
-}
-#endif // REDUCEMAX_TILING
 
 bool postprocess_phase(const reporter_full* reporter,
                        const reduce_max_test_operands* cur_test) {
@@ -397,7 +297,7 @@ int main(){
             "FAILED at init: Bad source data for one of tensors");
         is_test_passed = false;
         }
-#ifdef REDUCEMAX_TILING
+
         uint32_t input_tile_size[kReduceMaxRank] = {1, 4, 4, 3};
         uint32_t output_tile_size[kReduceMaxRank] = {1, 4, 4, 3};
 
@@ -422,7 +322,7 @@ int main(){
             uint32_t tiles_per_dim = 1 + CEIL_DIV(temp_input_tensor.shape[i] - input_tile_size[i], input_tile_size[i]);
             num_tiles *= tiles_per_dim;
         }
-#endif // REDUCEMAX_TILING
+
         void* reduce_max_instance = nullptr;
         uint32_t reduce_max_instance_size = 0;
 
@@ -432,21 +332,15 @@ int main(){
 
         /************ Prepare Phase *************/
         prepare_phase(cur_test,
-#ifdef REDUCEMAX_TILING
                       iteration_order, input_tile_size, output_tile_size,
-#endif // REDUCEMAX_TILING
                       reduce_max_instance, reduce_max_instance_size,
                       reduce_max_conf_private, reduce_max_conf_private_size);
 
 
 
         /************ Execution Phase *************/
-#ifdef REDUCEMAX_TILING
         execution_phase(num_tiles,
                         reduce_max_instance, reduce_max_instance_size,
-#else
-        execution_phase(reduce_max_instance, reduce_max_instance_size,
-#endif // REDUCEMAX_TILING
                         reduce_max_conf_private, reduce_max_conf_private_size);
 
 
