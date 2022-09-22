@@ -338,6 +338,21 @@ class IteratorCfg {
       }
     }
 
+    template <typename Buf_T, uint32_t rank>
+    void OverrideIncrements(const int32_t inc_override[iterRank], const Tensor<Buf_T, rank>& tensor) {
+      for (uint32_t i = 0; i < iterRank; i++) {
+        if (inc_override[i] == kSkipIterDim) continue;
+
+        m_first_pos_inc[i] = inc_override[i];
+        m_pos_inc[i] = inc_override[i];
+        m_size[i] = inc_override[i];
+        m_first_size[i] = inc_override[i];
+        m_last_pos_inc[i] = m_count[i] > 1 ? m_pos_inc[i] * (2 - m_count[i]) - m_first_pos_inc[i] : 0;
+        m_last_size[i] = tensor.get_dim(i) + m_last_pos_inc[i];
+        m_diff_code[i] = CalcDiffCode(m_count[i], m_first_size[i], m_size[i], m_last_size[i]);
+      }
+    }
+
     int32_t get_order(uint32_t dim) const {
       return m_order[dim];
     }
@@ -368,6 +383,10 @@ class IteratorCfg {
     }
     uint32_t get_buf_tiles_num() const {
       return m_buf_tiles_num;
+    }
+
+    void SetCount(int32_t val, uint32_t dim) {
+      m_count[dim] = val;
     }
 
     void set_count(int32_t* count){
@@ -827,7 +846,7 @@ class TensorIterator {
 
 
 
-    Tensor<buf_T, tensorRank> GetSubTensor() {
+    Tensor<buf_T, tensorRank> GetSubTensor(bool clip = false) {
       uint32_t pos[tensorRank];
       uint32_t copysize[tensorRank];
       uint32_t r = 0;
@@ -837,12 +856,15 @@ class TensorIterator {
 
         pos[dim] = (uint32_t)m_pos[r];
         if (m_tile_idx[r] == m_config.get_count(r) - 1) { // Last iteration
-              copysize[dim] = m_config.get_last_size(r);
-            } else if (m_tile_idx[r] == 0) { // First iteration
-              copysize[dim] = m_config.get_first_size(r);
-            } else { // Middle iteration
-              copysize[dim] = m_config.get_size(r);
-            }
+          copysize[dim] = m_config.get_last_size(r);
+        } else if (m_tile_idx[r] == 0) { // First iteration
+          copysize[dim] = m_config.get_first_size(r);
+        } else { // Middle iteration
+          copysize[dim] = m_config.get_size(r);
+        }
+        if (clip) {
+          copysize[dim] = MIN(m_full_tensor.get_dim(dim) - m_pos[dim], copysize[dim]);
+        }
       }
       return m_full_tensor.slice(pos, copysize);
     }
@@ -959,6 +981,14 @@ class TensorIterator {
 
     bool is_first_tile(uint32_t dim_idx) const {
       return !m_tile_idx[dim_idx];
+    }
+
+    void SetCount(int32_t val, uint32_t dim) {
+       m_config.SetCount(val, dim);
+    }
+
+    void OverrideIncrements(const int32_t inc_override[iterRank]) {
+      m_config.template OverrideIncrements<buf_T, tensorRank>(inc_override, m_full_tensor);
     }
 
     uint32_t GetTotalCount() const {

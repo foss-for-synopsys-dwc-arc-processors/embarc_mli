@@ -172,9 +172,25 @@ public:
 
     mli_status Update() override;
 
+    // TODO: remove this method and replace with usage of Move kernel (not possible now)
+    void GetIOSizesAndOffsets(uint32_t input_size[kTransposeConvIORank],
+                              uint32_t output_size[kTransposeConvIORank],
+                              uint32_t weights_size[kTransposeConvWRank],
+                              int32_t input_offsets[kTransposeConvIORank],
+                              int32_t output_offsets[kTransposeConvIORank],
+                              int32_t weights_offsets[kTransposeConvWRank]);
+
 private:
-    // Data used in the runtime kernel
+    void UpdateTilePaddings();
+
     TransposeConv2DMetadata m_metadata;
+
+    // Tile state
+    Tensor<InternalBuffer, kTransposeConvIORank> m_tile_input;
+    Tensor<InternalBuffer, kTransposeConvWRank> m_tile_weights;
+    Tensor<InternalBuffer, kTransposeConvIORank> m_tile_output;
+    TransposeConv2DConfig m_tile_cfg;
+    Tensor<InternalBuffer, kTransposeConvZPRank> m_tile_wzp;
 };
 
 /**

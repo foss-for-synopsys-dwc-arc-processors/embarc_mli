@@ -48,7 +48,7 @@ MaxPool2D::MaxPool2D(void* kernel_private_data_buffer, size_t size,
 
   m_input = maxpool2d_private_buffer.input;
   m_output = maxpool2d_private_buffer.output;
-  const auto input_tile_tensor = m_input.GetSubTensor();
+  const auto input_tile_tensor = m_input.GetSubTensor(true);
   const auto output_tile_tensor = m_output.GetSubTensor();
 
   m_tile_input.rank = 3;
@@ -129,7 +129,7 @@ mli_status MaxPool2D::Update() {
   m_input.Next();
   m_output.Next();
 
-  const auto input_tile_tensor = m_input.GetSubTensor();
+  const auto input_tile_tensor = m_input.GetSubTensor(true);
   const auto output_tile_tensor = m_output.GetSubTensor();
   for (int i = 0; i < 3; i++) {
     m_tile_input.shape[i] = input_tile_tensor.get_dim(i + 1);    // BHWC -> HWC
@@ -163,7 +163,7 @@ void MaxPool2D::GetIOSizesAndOffsets(uint32_t input_size[4], uint32_t output_siz
   m_input.get_pos(input_offsets);
   m_output.get_pos(output_offsets);
 
-  const auto input_tile_tensor = m_input.GetSubTensor();
+  const auto input_tile_tensor = m_input.GetSubTensor(true);
   input_tile_tensor.get_dims(input_size);
 
   const auto output_tile_tensor = m_output.GetSubTensor();

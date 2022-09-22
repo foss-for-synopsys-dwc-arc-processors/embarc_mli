@@ -42,16 +42,7 @@ Conv2d::Conv2d(void* kernel_private_data_buffer,
   m_metadata.wts_quant_axis = private_data.wts_quant_axis;
   m_metadata.cfg = private_data.config;
 
-  // TODO: use only GetSubTensor when it will be possible ( without manual clipping with MIN ) - maybe put this clip in IteratorCfg or in GetSubTensor
-  const auto input_tile_tensor = m_metadata.input.GetSubTensor();
-  m_tile_input = Tensor<InternalBuffer, kConvIORank>(input_tile_tensor, membases, num_mems);
-  uint32_t input_tile_shape[kConvIORank];
-  input_tile_tensor.get_dims(input_tile_shape);
-  input_tile_shape[kGroupTensorHeightDim] = MIN(input_tile_shape[kGroupTensorHeightDim], m_metadata.input.get_dim(kGroupTensorHeightDim));
-  input_tile_shape[kGroupTensorWidthDim] = MIN(input_tile_shape[kGroupTensorWidthDim], m_metadata.input.get_dim(kGroupTensorWidthDim));
-  m_tile_input = Tensor<InternalBuffer, kConvIORank>(m_tile_input, input_tile_shape);
-
-
+  m_tile_input = Tensor<InternalBuffer, kConvIORank>(m_metadata.input.GetSubTensor(true), membases, num_mems);
   m_tile_weights = Tensor<InternalBuffer, kConvWRank>(m_metadata.weights.GetSubTensor(), membases, num_mems);
   m_tile_wzp = Tensor<InternalBuffer, kConvZPRank>(m_metadata.weights_zp.GetSubTensor(), membases, num_mems);
   m_tile_output = Tensor<InternalBuffer, kConvIORank>(m_metadata.output.GetSubTensor(), membases, num_mems);
@@ -94,16 +85,9 @@ mli_status Conv2d::Update() {
   m_metadata.weights.Next();
   m_metadata.weights_zp.Next();
 
-  // TODO: use only GetSubTensor when it will be possible ( without manual clipping with MIN ) - maybe put this clip in GetSubTensor
-  const auto input_tile_tensor = m_metadata.input.GetSubTensor();
+  const auto input_tile_tensor = m_metadata.input.GetSubTensor(true);
   uint32_t input_tile_shape[kConvIORank];
   input_tile_tensor.get_dims(input_tile_shape);
-  int32_t tile_input_offsets[kConvIORank];
-  m_metadata.input.get_pos(tile_input_offsets);
-  input_tile_shape[kGroupTensorHeightDim] = MIN(input_tile_shape[kGroupTensorHeightDim],
-                                                m_metadata.input.get_dim(kGroupTensorHeightDim) - (uint32_t)tile_input_offsets[kGroupTensorHeightDim]);
-  input_tile_shape[kGroupTensorWidthDim] = MIN(input_tile_shape[kGroupTensorWidthDim],
-                                               m_metadata.input.get_dim(kGroupTensorWidthDim) - (uint32_t)tile_input_offsets[kGroupTensorWidthDim]);
   m_tile_input = Tensor<InternalBuffer, kConvIORank>(m_tile_input, input_tile_shape);
 
   const auto weights_tile_tensor = m_metadata.weights.GetSubTensor();
@@ -111,12 +95,11 @@ mli_status Conv2d::Update() {
   weights_tile_tensor.get_dims(weights_tile_shape);
   m_tile_weights = Tensor<InternalBuffer, kConvWRank>(m_tile_weights, weights_tile_shape);
 
-  // TODO: use only GetSubTensor when it will be possible (wzp_tile_shape and wzp_tile_shape[0] != m_tile_wzp.get_buf().get_size())
   const auto wzp_tile_tensor = m_metadata.weights_zp.GetSubTensor();
   uint32_t wzp_tile_shape[kConvZPRank];
   wzp_tile_tensor.get_dims(wzp_tile_shape);
   m_tile_wzp = Tensor<InternalBuffer, kConvZPRank>(m_tile_wzp, wzp_tile_shape);
-  // last tile can be smaller than others
+  // TODO: maybe some method to handle instead of this code (last tile can be smaller than others)
   if (wzp_tile_shape[0] != m_tile_wzp.get_buf().get_size()) {
     InternalBuffer buf = m_tile_wzp.get_buf();
     buf.set_buffer(buf.get_ptr<int8_t>(), wzp_tile_shape[0] * sizeof(int8_t));

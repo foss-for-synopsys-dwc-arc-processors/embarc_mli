@@ -122,10 +122,10 @@ public:
 };
 
 struct TransposeConv2DMetadata {
-    Tensor<InternalBuffer, kTransposeConvIORank> input;
-    Tensor<InternalBuffer, kTransposeConvWRank> weights;
-    Tensor<InternalBuffer, kTransposeConvZPRank> weights_zp;
-    Tensor<InternalBuffer, kTransposeConvIORank> output;
+    TensorIterator<OffsetBuffer, kTransposeConvIORank, kTransposeConvIOIterRank> input;
+    TensorIterator<OffsetBuffer, kTransposeConvWRank, kTransposeConvWIterRank> weights;
+    TensorIterator<OffsetBuffer, kTransposeConvZPRank, kTransposeConvZPIterRank> weights_zp;
+    TensorIterator<OffsetBuffer, kTransposeConvIORank, kTransposeConvIOIterRank> output;
 
     InternalBuffer inpzp_buffer;
     int inp_quant_axis;

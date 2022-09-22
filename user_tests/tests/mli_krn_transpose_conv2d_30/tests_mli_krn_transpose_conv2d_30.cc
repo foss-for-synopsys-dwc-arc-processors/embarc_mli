@@ -19,6 +19,9 @@
 #include "mli_runtime_api.hpp"
 #include "mli_private_types.h"
 #include "mli_service_functions.hpp"
+#include "mli_ref_private_types.hpp"
+#include "mli_ref_runtime_api.hpp"
+#include "mli_helpers_api.hpp"
 
 #include "test_crc32_calc.h"
 #include "test_memory_manager.h"
@@ -26,8 +29,17 @@
 #include "test_rescale_utility.h"
 #include "test_tensor_quantizer.h"
 #include "test_report.h"
+#include "test_tiling.hpp"
 
 #include "vectors_mli_krn_transpose_conv2d.inc"
+
+/**
+ * Comment USE_TILING if you want to use single tile (tile size = input size).
+ */
+#define USE_TILING
+
+#define NUM_GROUPS 1  // don't change this
+#define BATCH_SIZE 1  // don't change this
 
 using namespace snps_arc::metaware::mli::service;
 
@@ -51,7 +63,25 @@ using lib_mli::kTransposeConvWIterRank;
 using lib_mli::kTransposeConvZPRank;
 using lib_mli::kTransposeConvZPIterRank;
 using lib_mli::kClipRank;
+using lib_mli::kClipIterRank;
 using lib_mli::kRescaleRank;
+using lib_mli::kRescaleIterRank;
+using lib_mli::kPerTensorQuantDim;
+using lib_mli::kTensorBatchDim;
+using lib_mli::kTensorChannelDim;
+using lib_mli::kGroupTensorBatchDim;
+using lib_mli::kGroupTensorHeightDim;
+using lib_mli::kGroupTensorWidthDim;
+using lib_mli::kGroupTensorGroupDim;
+using lib_mli::kGroupTensorChannelDim;
+using lib_mli::kInpZPRank;
+using lib_mli::kClipParamRank;
+using lib_mli::kKernelGroupDim;
+using lib_mli::kKernelHeightDim;
+using lib_mli::kKernelWidthDim;
+using lib_mli::kKernelChannelInDim;
+using lib_mli::kKernelChannelOutDim;
+
 
 struct transpose_conv2d_test_operands {
     const char* descr;
@@ -421,63 +451,94 @@ bool preprocess_phase(const reporter_full& reporter,
 }
 
 void prepare_phase(const transpose_conv2d_test_operands* cur_test,
-                    TransposeConv2DOp& cnv_op, RescaleOp &rs_op, ClipOp &clp_op,
-                    uint32_t& cnv_out_mem_offset, uint32_t& rs_out_mem_offset,
-                    uint32_t& clp_out_mem_offset) {
+                   TransposeConv2DOp& cnv_op, RescaleOp &rs_op, ClipOp &clp_op,
+                   uint32_t& num_tiles) {
+ 
+  int32_t iteration_order[kTransposeConvIOIterRank]{ 0, 1, 2, 3, 4};
+  uint32_t input_shape[kTransposeConvIORank] = { BATCH_SIZE,
+                                                 cnv_op.input.shape[FMAP_H_DIM_HWC],
+                                                 cnv_op.input.shape[FMAP_W_DIM_HWC],
+                                                 NUM_GROUPS, 
+                                                 cnv_op.input.shape[FMAP_C_DIM_HWC] };
+
+  uint32_t weight_shape[kTransposeConvWRank] = { NUM_GROUPS,
+                                                 cnv_op.weights.shape[KRNL_H_DIM_HWCN],
+                                                 cnv_op.weights.shape[KRNL_W_DIM_HWCN],
+                                                 cnv_op.weights.shape[KRNL_D_DIM_HWCN],
+                                                 cnv_op.weights.shape[KRNL_C_DIM_HWCN] };
+
+  uint32_t tile_oc = weight_shape[kKernelChannelOutDim];
+  uint32_t tile_input_size[kTransposeConvIORank];
+  for (uint32_t i = 0; i < kTransposeConvIORank; i++) {
+    tile_input_size[i] = input_shape[i];
+  }
+
+#ifdef USE_TILING
+  tile_oc = 2;
+  // TODO: now if input last_tile_size is smaller than kernel H/W - tiling will be disabled in this dimension! - some better idea needed
+  const uint32_t tile_hw = 2;
+  tile_input_size[kGroupTensorHeightDim] = MAX(tile_hw, weight_shape[kKernelHeightDim]);
+  tile_input_size[kGroupTensorWidthDim] = MAX(tile_hw, weight_shape[kKernelWidthDim]);
+#endif
+ 
+  int32_t input_stride[kTransposeConvIORank] = { BATCH_SIZE * NUM_GROUPS * int32_t(cnv_op.input.shape[FMAP_H_DIM_HWC]) * \
+                                                cnv_op.input.mem_stride[FMAP_H_DIM_HWC],
+                                                NUM_GROUPS * cnv_op.input.mem_stride[FMAP_H_DIM_HWC],
+                                                NUM_GROUPS * cnv_op.input.mem_stride[FMAP_W_DIM_HWC],
+                                                cnv_op.input.mem_stride[FMAP_W_DIM_HWC],
+                                                cnv_op.input.mem_stride[FMAP_C_DIM_HWC]};
+
+  int32_t weight_stride[kTransposeConvWRank] = { NUM_GROUPS * int32_t(cnv_op.weights.shape[KRNL_H_DIM_HWCN]) * \
+                                                 cnv_op.weights.mem_stride[KRNL_H_DIM_HWCN],
+                                                 cnv_op.weights.mem_stride[KRNL_H_DIM_HWCN],
+                                                 cnv_op.weights.mem_stride[KRNL_W_DIM_HWCN],
+                                                 cnv_op.weights.mem_stride[KRNL_D_DIM_HWCN],
+                                                 cnv_op.weights.mem_stride[KRNL_C_DIM_HWCN] };
+
+  uint32_t output_shape[kTransposeConvIORank] = { BATCH_SIZE,
+                                                  cnv_op.out_acc.shape[FMAP_H_DIM_HWC],
+                                                  cnv_op.out_acc.shape[FMAP_W_DIM_HWC],
+                                                  NUM_GROUPS,
+                                                  cnv_op.out_acc.shape[FMAP_C_DIM_HWC] };
+
+  int32_t output_stride[kTransposeConvIORank] = { BATCH_SIZE * NUM_GROUPS * int32_t(cnv_op.out_acc.shape[FMAP_H_DIM_HWC]) * \
+                                                  cnv_op.out_acc.mem_stride[FMAP_H_DIM_HWC],
+                                                  NUM_GROUPS * cnv_op.out_acc.mem_stride[FMAP_H_DIM_HWC],
+                                                  NUM_GROUPS * cnv_op.out_acc.mem_stride[FMAP_W_DIM_HWC],
+                                                  cnv_op.out_acc.mem_stride[FMAP_W_DIM_HWC],
+                                                  cnv_op.out_acc.mem_stride[FMAP_C_DIM_HWC]};
+
+  assert(input_shape[kGroupTensorBatchDim] == BATCH_SIZE && output_shape[kGroupTensorBatchDim] == BATCH_SIZE);
+  assert(input_shape[kGroupTensorChannelDim] == weight_shape[kKernelChannelInDim]);
+  assert(weight_shape[kKernelChannelOutDim] == output_shape[kGroupTensorChannelDim]);
+
+  const lib_mli::Tensor<lib_mli::NoBuffer, kTransposeConvIORank> full_in_tensor(input_shape, input_stride);
+
+  const lib_mli::Tensor<lib_mli::NoBuffer, kTransposeConvIORank> full_out_tensor(output_shape, output_stride);
+  uint32_t effective_kernel_size[kTransposeConvWRank]{1, weight_shape[kKernelHeightDim], weight_shape[kKernelWidthDim],
+                                                      1, weight_shape[kKernelChannelOutDim]};
+
+  uint32_t stride[kTransposeConvIORank]{ 1, cur_test->cfg.stride_height, cur_test->cfg.stride_width, 1, 1};
+  uint32_t pre_padding[kTransposeConvIORank]{ 0, cur_test->cfg.padding_top, cur_test->cfg.padding_left, 0, 0};
+
+  const lib_mli::Tensor<lib_mli::NoBuffer, kTransposeConvWRank> wt_tensor(weight_shape, weight_stride);
+
+  auto i_w_wzp_o_tensor_its = lib_mli::GetDeconvTensorIterators(full_in_tensor, tile_input_size,
+                                                                full_out_tensor, tile_oc,
+                                                                wt_tensor, effective_kernel_size, stride, pre_padding, iteration_order);
+
+  auto in_tensor_it = std::get<0>(i_w_wzp_o_tensor_its);
+  auto w_tensor_it = std::get<1>(i_w_wzp_o_tensor_its);
+  auto wzp_tensor_it = std::get<2>(i_w_wzp_o_tensor_its);
+  auto out_tensor_it = std::get<3>(i_w_wzp_o_tensor_its);
+
+  num_tiles = in_tensor_it.GetTotalCount();
+#ifndef USE_TILING
+  assert(num_tiles == BATCH_SIZE);
+#endif
+
   // STEP 1.1.1: Construct [TransposeConv2D] as a specific ExecutionInterface successor
   //==================================================================
-
-  // NHWCin vs. HWCin
-  uint32_t input_shape[4] = {1, cnv_op.input.shape[0], cnv_op.input.shape[1], cnv_op.input.shape[2]};
-  int32_t input_stride[4] = {int32_t(cnv_op.input.shape[0]) * cnv_op.input.mem_stride[0],
-                             cnv_op.input.mem_stride[0],
-                             cnv_op.input.mem_stride[1],
-                             cnv_op.input.mem_stride[2]};
-
-  // GHWCinCo vs. HWCinCo
-  uint32_t weight_shape[5] = {1, cnv_op.weights.shape[0], cnv_op.weights.shape[1], cnv_op.weights.shape[2], cnv_op.weights.shape[3]};
-  int32_t weight_stride[5] = {int32_t(cnv_op.weights.shape[0] * cnv_op.weights.mem_stride[0]),
-                              cnv_op.weights.mem_stride[0], cnv_op.weights.mem_stride[1],
-                              cnv_op.weights.mem_stride[2], cnv_op.weights.mem_stride[3]};
-
-  // GHWCo vs. HWCo
-  uint32_t output_shape[4] = {1, cnv_op.out_acc.shape[0], cnv_op.out_acc.shape[1], cnv_op.out_acc.shape[2]};
-
-  int32_t output_stride[4] = {int32_t(cnv_op.out_acc.shape[0]) * cnv_op.out_acc.mem_stride[0],
-                              cnv_op.out_acc.mem_stride[0],
-                              cnv_op.out_acc.mem_stride[1],
-                              cnv_op.out_acc.mem_stride[2]};
-
-  // G == 1
-  assert(input_shape[0] == 1 && output_shape[0] == 1);
-  // Input Cin == Weight Cin
-  assert(input_shape[3] == weight_shape[3]);
-  // Weight Co = Output Co
-  assert(weight_shape[4] == output_shape[3]);
-
-  uint32_t wzp_shape[kTransposeConvZPRank]{output_shape[lib_mli::kTensorChannelDim]};
-
-  const lib_mli::Tensor<lib_mli::NoBuffer, kTransposeConvIORank> in_tensor(input_shape, input_stride);
-  const lib_mli::Tensor<lib_mli::NoBuffer, kTransposeConvIORank> out_tensor(output_shape, output_stride);
-  const lib_mli::Tensor<lib_mli::NoBuffer, kTransposeConvWRank> wt_tensor(weight_shape, weight_stride);
-  const lib_mli::Tensor<lib_mli::NoBuffer, kTransposeConvZPRank> wzp_tensor(wzp_shape);
-
-  const lib_mli::TensorIterator<lib_mli::NoBuffer,
-                                kTransposeConvIORank,
-                                kTransposeConvIOIterRank>
-      in_tensor_it(in_tensor);
-  const lib_mli::TensorIterator<lib_mli::NoBuffer, 
-                                kTransposeConvWRank,
-                                kTransposeConvWIterRank>
-      w_tensor_it(wt_tensor);
-  const lib_mli::TensorIterator<lib_mli::NoBuffer,
-                                kTransposeConvIORank,
-                                kTransposeConvIOIterRank>
-      out_tensor_it(out_tensor);
-  const lib_mli::TensorIterator<lib_mli::NoBuffer,
-                                kTransposeConvZPRank,
-                                kTransposeConvZPIterRank>
-      wzp_tensor_it(wzp_tensor);
 
 
   lib_mli::PlatformDescription pd;
@@ -492,7 +553,7 @@ void prepare_phase(const transpose_conv2d_test_operands* cur_test,
 
   auto transpose_conv2d_op = kernel_factory.TransposeConv2D_CS(
       transpose_conv2d_cs_buffer, in_tensor_it, w_tensor_it, wzp_tensor_it, cfg,
-      out_tensor);
+      out_tensor_it);
 
   // STEP 1.1.2: Construct [Rescale] as a specific ExecutionInterface successor
   //==================================================================
@@ -509,26 +570,28 @@ void prepare_phase(const transpose_conv2d_test_operands* cur_test,
   void* &rescale_conf_private = rs_op.rescale_conf_private;
   uint32_t &rescale_conf_private_size = rs_op.rescale_conf_private_size;
 
-  uint32_t io_rank = rs_input_tsr.rank;
-  uint32_t innermost_axis = io_rank - 1;
+  static_assert(kRescaleRank == kTransposeConvIORank - 1 && kTransposeConvIORank > 0);
+  static_assert(kRescaleIterRank == kTransposeConvIOIterRank - 1 && kTransposeConvIOIterRank > 0);
 
-  const lib_mli::Tensor<lib_mli::NoBuffer, kRescaleRank> input_tensor(rs_input_tsr.shape,
-          rs_input_tsr.mem_stride, io_rank);
-  const lib_mli::Tensor<lib_mli::NoBuffer, kRescaleRank> output_tensor(
-                      rs_output_tsr.shape, rs_output_tsr.mem_stride, io_rank);
+
+  uint32_t io_output_shape[kRescaleRank]{ output_shape[0], output_shape[1], output_shape[2], output_shape[4] };
+  int32_t io_output_strides[kRescaleRank]{ output_stride[0], output_stride[1], output_stride[2], output_stride[4] };
+  lib_mli::Tensor<lib_mli::NoBuffer, kRescaleRank> io_tensor(io_output_shape, io_output_strides);
+  lib_mli::IteratorCfg<kRescaleRank> io_it_cfg(out_tensor_it.get_config(), kGroupTensorGroupDim);
+  lib_mli::TensorIterator<lib_mli::NoBuffer, kRescaleRank, kRescaleIterRank> io_tensor_it(io_tensor, io_it_cfg);
+
 
   uint32_t rescale_cs_size = kernel_factory.Rescale_CS_GetSize();
   void* rescale_cs_buffer = malloc(rescale_cs_size);
 
   lib_mli::RescaleConfig rs_cfg;
   if (mli_hlp_count_elem_num(&rs_scale_tsr, 0) == 1) {
-      rs_cfg.axis = -1;
+      rs_cfg.axis = kPerTensorQuantDim;
   } else {
-      rs_cfg.axis = innermost_axis;
+      rs_cfg.axis = kRescaleRank - 1;
   }
 
-  auto rescale_op = kernel_factory.Rescale_CS(rescale_cs_buffer, input_tensor,
-                                                           rs_cfg, output_tensor);
+  auto rescale_op = kernel_factory.Rescale_CS(rescale_cs_buffer, io_tensor_it, rs_cfg, io_tensor_it);
 
   // STEP 1.1.3: Construct [Clip] as a specific ExecutionInterface successor
   //==================================================================
@@ -540,17 +603,12 @@ void prepare_phase(const transpose_conv2d_test_operands* cur_test,
   lib_mli::PrivateData* &clip_conf_private = clp_op.clip_conf_private;
   uint32_t &clip_conf_private_size = clp_op.clip_conf_private_size;
 
-  io_rank = clip_input_tsr.rank;
-  const lib_mli::Tensor<lib_mli::NoBuffer, kClipRank> clip_input_tensor(clip_input_tsr.shape,
-                      clip_input_tsr.mem_stride, io_rank);
-
-  const lib_mli::Tensor<lib_mli::NoBuffer, kClipRank> clip_output_tensor(
-                      clip_output_tsr.shape, clip_output_tsr.mem_stride, io_rank);
-
   uint32_t clip_cs_size = kernel_factory.Clip_CS_GetSize();
   void* clip_cs_buffer = malloc(clip_cs_size);
 
-  auto clip_op = kernel_factory.Clip_CS(clip_cs_buffer, clip_input_tensor, clip_output_tensor);
+  static_assert(kRescaleRank == kClipRank);
+  static_assert(kRescaleIterRank == kClipIterRank);
+  auto clip_op = kernel_factory.Clip_CS(clip_cs_buffer, io_tensor_it, io_tensor_it);
 
   // STEP 1.2.1: [TransposeConv2D] Memory management (Up to user on how to deal with it)
   //==================================================================
@@ -600,7 +658,7 @@ void prepare_phase(const transpose_conv2d_test_operands* cur_test,
   *cnv_offset = CEIL_RND(*cnv_offset, cnv_o_elem_size);
   uint32_t out_size = GetBufferSize(lib_mli::kTransposeConvIORank, output_shape, output_stride) * cnv_o_elem_size;
   lib_mli::OffsetBuffer transpose_conv2d_out_buf{*cnv_offset, 0, out_size, cnv_o_elem_size};
-  cnv_out_mem_offset = *cnv_offset;
+  uint32_t cnv_out_mem_offset = *cnv_offset;
   *cnv_offset += out_size;
 
   // TransposeConv2D input zero point
@@ -612,7 +670,7 @@ void prepare_phase(const transpose_conv2d_test_operands* cur_test,
 
   // TransposeConv2D weights zero point
   cnv_offset = &offsets[0];
-  uint32_t wtszp_size = transpose_conv2d_op->GetEncodedWtsZeroPtsSize() * cnv_w_elem_size;
+  uint32_t wtszp_size = tile_oc * cnv_w_elem_size;
   lib_mli::OffsetBuffer wtszp_buf{*cnv_offset, 0, wtszp_size, cnv_w_elem_size};
   wtszp_mem_offset = *cnv_offset;
   *cnv_offset += wtszp_size;
@@ -658,8 +716,6 @@ void prepare_phase(const transpose_conv2d_test_operands* cur_test,
   uint32_t rs_in_size = rescale_op->GetInputBufferSize() * input_elem_size;
   lib_mli::OffsetBuffer rescale_in_buf { cnv_out_mem_offset, 0, rs_in_size,
                                           input_elem_size };
-  lib_mli::Tensor<lib_mli::OffsetBuffer, kRescaleRank>
-                      rescale_in_tensor(rescale_in_buf, rs_input_tsr.shape);
 
   // rescale output
   rs_offset = &offsets[0];
@@ -667,9 +723,7 @@ void prepare_phase(const transpose_conv2d_test_operands* cur_test,
   uint32_t rs_out_size = rescale_op->GetOutputBufferSize() * output_elem_size;
   lib_mli::OffsetBuffer rescale_out_buf { *rs_offset, 0, rs_out_size,
                                            output_elem_size };
-  lib_mli::Tensor<lib_mli::OffsetBuffer, kRescaleRank>
-                     rescale_out_tensor(rescale_out_buf, rs_output_tsr.shape);
-  rs_out_mem_offset = *rs_offset;
+  uint32_t rs_out_mem_offset = *rs_offset;
   *rs_offset += rs_out_size;
 
   // rescale params
@@ -689,15 +743,14 @@ void prepare_phase(const transpose_conv2d_test_operands* cur_test,
   assert(*rs_offset < kMemPoolSize);
 
   // Attaching buffer (descriptors) to the operation
-  status = rescale_op->AttachBufferOffsets(rescale_in_tensor,
-                                           rescale_out_tensor,
+  status = rescale_op->AttachBufferOffsets(rescale_in_buf,
+                                           rescale_out_buf,
                                            encoded_params_buf,
                                            rescale_descr_buf);
   assert(status == MLI_STATUS_OK);
 
   // STEP 1.2.3: [Clip] Memory management (Up to user on how to deal with it)
   //==================================================================
-  uint32_t clip_encoded_params_mem_offset = 0;
 
   // Define buffers for in\out tensors
   // Leave space for runtime object
@@ -716,8 +769,6 @@ void prepare_phase(const transpose_conv2d_test_operands* cur_test,
   uint32_t clip_in_size = clip_op->GetInputBufferSize() * clip_input_elem_size;
   lib_mli::OffsetBuffer clip_in_buf{rs_out_mem_offset, 0, clip_in_size,
                                     clip_input_elem_size};
-  lib_mli::Tensor<lib_mli::OffsetBuffer, kClipRank>
-                      clip_in_tensor(clip_in_buf, clip_input_tsr.shape);
 
   // clip output
   clip_offset = &offsets[0];
@@ -725,16 +776,12 @@ void prepare_phase(const transpose_conv2d_test_operands* cur_test,
   uint32_t clip_out_size = clip_op->GetOutputBufferSize() * clip_output_elem_size;
   lib_mli::OffsetBuffer clip_out_buf{rs_out_mem_offset, 0, clip_out_size,
                                      clip_output_elem_size};
-  lib_mli::Tensor<lib_mli::OffsetBuffer, kClipRank>
-                     clip_out_tensor(clip_out_buf, clip_output_tsr.shape);
-  clp_out_mem_offset = rs_out_mem_offset;
 
   // clip min
   clip_offset = &offsets[0];
   uint32_t clip_encoded_params_size = clip_op->GetEncodedParamsSize();
   lib_mli::OffsetBuffer clip_encoded_params_buf {*clip_offset, 0, clip_encoded_params_size,
                                  sizeof(int8_t)};
-  clip_encoded_params_mem_offset = *clip_offset;
   *clip_offset += clip_encoded_params_size;;
 
   // DataBuffer size is 0 for reference kernel
@@ -746,50 +793,40 @@ void prepare_phase(const transpose_conv2d_test_operands* cur_test,
   assert(*clip_offset < kMemPoolSize);
 
   // Attaching buffer (descriptors) to the operation
-  status = clip_op->AttachBufferOffsets(clip_in_tensor,
-                                        clip_out_tensor,
+  status = clip_op->AttachBufferOffsets(clip_in_buf,
+                                        clip_out_buf,
                                         clip_encoded_params_buf,
                                         clip_descr_buf);
   assert(status == MLI_STATUS_OK);
 
   // STEP 1.3.1: [TransposeConv2D] Copy dataset from scratch buffer to the global shared memory pool
   //==================================================================
-  // Copy input data from scratch buffer to the shared memory pool
-  for (uint32_t i = 0; i < cnv_op.input.data.capacity; ++i) {
-    const uint32_t idx = in_mem_offset + i;
-    g_mem_pool[idx] = cnv_op.input.data.mem.pi8[i];
-  }
-  // Copy weights from scratch buffer to the shaped memory pool (EncodeWeights is not supported)
-  for (uint32_t i = 0; i < cnv_op.weights.data.capacity; ++i) {
-    const uint32_t idx = w_mem_offset + i;
-    g_mem_pool[idx] = cnv_op.weights.data.mem.pi8[i];
-  }
 
   // Copy input zero points and weights zero points to the temp host buffers
   //==================================================================
-  size_t shared_buf_size = MAX(inpzp_size, wtszp_size);
+  uint32_t wtszp_full_size = output_shape[kGroupTensorChannelDim];
+  size_t shared_buf_size = MAX(inpzp_size, wtszp_full_size);
   char * host_buf_a = (char*) malloc(shared_buf_size);
   char * host_buf_b = (char*) malloc(shared_buf_size);
   lib_mli::Buffer src_inpzp_buf(host_buf_a, inpzp_size, cnv_i_elem_size);
   lib_mli::Buffer dst_inpzp_buf(host_buf_b, inpzp_size, cnv_i_elem_size);
-  lib_mli::Buffer src_wtszp_buf(host_buf_a, wtszp_size, cnv_w_elem_size);
-  lib_mli::Buffer dst_wtszp_buf(host_buf_b, wtszp_size, cnv_w_elem_size);
+  lib_mli::Buffer src_wtszp_buf(host_buf_a, wtszp_full_size, cnv_w_elem_size);
+  lib_mli::Buffer dst_wtszp_buf(host_buf_b, wtszp_full_size, cnv_w_elem_size);
   // NOTE: Current the input and weights are int8_t, and zp is int8_t.
   //       Later, we will support other types.
   assert(src_inpzp_buf.get_size() == inpzp_buf.get_size());
   assert(src_inpzp_buf.get_elem_size() == inpzp_buf.get_elem_size());
-  assert(src_wtszp_buf.get_size() == wtszp_buf.get_size());
   assert(src_wtszp_buf.get_elem_size() == wtszp_buf.get_elem_size());
 
-  uint32_t inpzp_shape[1] = {1};
+  uint32_t inpzp_shape[kInpZPRank] = {1};
   lib_mli::Tensor<lib_mli::Buffer, kTransposeConvZPRank> inpzp_tensor(src_inpzp_buf, inpzp_shape);
 
-  uint32_t wtszp_shape[1] = {weight_shape[4]};
+  uint32_t wtszp_shape[kTransposeConvZPRank] = {weight_shape[kKernelChannelOutDim]};
   lib_mli::Tensor<lib_mli::Buffer, kTransposeConvZPRank> wtszp_tensor(src_wtszp_buf, wtszp_shape);
 
   // input zero points: mli_tensor -> host tensor
   // NOTE: Zero Points should have the same size as the tensor they belong to.
-  if (cnv_op.input.el_params.sa.dim == -1) {
+  if (cnv_op.input.el_params.sa.dim == kPerTensorQuantDim) {
     assert(cnv_op.input.el_params.sa.zero_point.capacity == 0);
     inpzp_tensor.write(0, static_cast<int8_t>(cnv_op.input.el_params.sa.zero_point.mem.i16));
   } else {
@@ -808,23 +845,18 @@ void prepare_phase(const transpose_conv2d_test_operands* cur_test,
   }
 
   // weights zero points: mli_tensor -> host buffer
-  if (cnv_op.weights.el_params.sa.dim == -1) {
+  if (cnv_op.weights.el_params.sa.dim == kPerTensorQuantDim) {
     assert(cnv_op.weights.el_params.sa.zero_point.capacity == 0);
     wtszp_tensor.write(0, static_cast<int8_t>(cnv_op.weights.el_params.sa.zero_point.mem.i16));
   } else {
-    assert(cnv_op.weights.el_params.sa.zero_point.capacity / sizeof(int16_t) == src_wtszp_buf.get_size());
-    for (size_t i = 0; i < wtszp_size / cnv_w_elem_size; ++i) {
+    assert(wtszp_full_size == src_wtszp_buf.get_size());
+    for (size_t i = 0; i < wtszp_full_size / cnv_w_elem_size; ++i) {
       wtszp_tensor.write(int(i), static_cast<int8_t>(cnv_op.weights.el_params.sa.zero_point.mem.pi16[i]));
     }
   }
   // host tensor -> encoded host buffer
   status = transpose_conv2d_op->EncodeWtsZeroPts(wtszp_tensor, dst_wtszp_buf);
   assert(status == MLI_STATUS_OK);
-  auto wtszp_mem = (int8_t*)g_mem_pool + wtszp_mem_offset;
-  // encoded host buffer -> global mem pool
-  for (uint32_t i = 0; i < wtszp_size / cnv_w_elem_size; ++i) {
-    wtszp_mem[i] = dst_wtszp_buf.read<int8_t>(i);
-  }
 
   // Compile TransposeConv2D into the binary data
   //==================================================================
@@ -863,10 +895,10 @@ void prepare_phase(const transpose_conv2d_test_operands* cur_test,
 
   lib_mli::Buffer encoded_params_buffer(host_dst_buf, encoded_params_size, sizeof(int8_t));
 
-  lib_mli::Tensor<lib_mli::Buffer,1> inbias_tensor(src_inbias_buf, params_shape);
-  lib_mli::Tensor<lib_mli::Buffer,1> scale_tensor(src_scale_buf, params_shape);
-  lib_mli::Tensor<lib_mli::Buffer,1> shift_tensor(src_shift_buf, params_shape);
-  lib_mli::Tensor<lib_mli::Buffer,1> outbias_tensor(src_outbias_buf, params_shape);
+  lib_mli::Tensor<lib_mli::Buffer, 1> inbias_tensor(src_inbias_buf, params_shape);
+  lib_mli::Tensor<lib_mli::Buffer, 1> scale_tensor(src_scale_buf, params_shape);
+  lib_mli::Tensor<lib_mli::Buffer, 1> shift_tensor(src_shift_buf, params_shape);
+  lib_mli::Tensor<lib_mli::Buffer, 1> outbias_tensor(src_outbias_buf, params_shape);
 
   if(rs_cfg.axis < 0) { // per-tensor
       assert(rs_inbias_tsr.rank == 0);
@@ -900,18 +932,6 @@ void prepare_phase(const transpose_conv2d_test_operands* cur_test,
                                     encoded_params_buffer);
   assert(status == MLI_STATUS_OK);
 
-  // encoded host buffer -> global mem pool
-  for (uint32_t i = 0; i < encoded_params_size; ++i) {
-      const uint32_t idx = encoded_params_mem_offset + i;
-      g_mem_pool[idx] = encoded_params_buffer.read<int8_t>(i);
-  }
-
-  // Copy output data(including holes due to CRC calculation) to the shared memory pool
-  for (uint32_t i = 0; i < rs_out_size; ++i) {
-      const uint32_t idx = rs_out_mem_offset + i;
-      g_mem_pool[idx] = rs_output_tsr.data.mem.pi8[i];
-  }
-
   // Compile Rescale into the binary data
   //==================================================================
   rescale_instance = rs_runtime_obj_addr;
@@ -937,11 +957,11 @@ void prepare_phase(const transpose_conv2d_test_operands* cur_test,
   lib_mli::Buffer src_min_buf(clp_host_src_buf, limit_min_size, sizeof(int8_t));
   lib_mli::Buffer src_max_buf(clp_host_src_buf + limit_min_size, limit_max_size, sizeof(int8_t));
   lib_mli::Buffer clip_encoded_params_buffer(clp_host_dst_buf, clip_encoded_params_size, sizeof(int8_t));
-  lib_mli::Tensor<lib_mli::Buffer, 1> min_tensor(src_min_buf,
-                                                 clp_params_shape);
+  lib_mli::Tensor<lib_mli::Buffer, kClipParamRank> min_tensor(src_min_buf,
+                                                              clp_params_shape);
 
-  lib_mli::Tensor<lib_mli::Buffer, 1> max_tensor(src_max_buf,
-                                                 clp_params_shape);
+  lib_mli::Tensor<lib_mli::Buffer, kClipParamRank> max_tensor(src_max_buf,
+                                                              clp_params_shape);
 
   for (uint32_t i = 0; i < limit_min_size; ++i) {
       min_tensor.write<int8_t>(i, (uint8_t)val_limit.min);
@@ -957,13 +977,8 @@ void prepare_phase(const transpose_conv2d_test_operands* cur_test,
 
   // encoded host buffer -> global mem pool
   for (uint32_t i = 0; i < clip_encoded_params_size; ++i) {
-      const uint32_t idx = clip_encoded_params_mem_offset + i;
+      const uint32_t idx = clip_encoded_params_buf.get_offset() + i;
       g_mem_pool[idx] = clip_encoded_params_buffer.read<int8_t>(i);
-  }
-
-  for (uint32_t i = 0; i < clip_out_size; ++i) {
-      const uint32_t idx = clp_out_mem_offset + i;
-      g_mem_pool[idx] = clip_output_tsr.data.mem.pi8[i];
   }
 
   // Compile Clip into the binary data
@@ -987,13 +1002,24 @@ void prepare_phase(const transpose_conv2d_test_operands* cur_test,
   free(host_dst_buf);
   free(clp_host_src_buf);
   free(clp_host_dst_buf);
+
+  /*
+   * It will be overritten later output of tconv -> rescale -> clip chain,
+   * but for some reason this is needed for correct CRC claculation
+   * and tests 4, 5, 6, 7, 8 pass. If you delete this - tests 4, 5, 6, 7, 8 would fail.
+   * TODO: In my opinion this is bug and these tests cases should be fixed to work without this workaround.
+   */ 
+  for (uint32_t i = 0; i < clip_out_size; ++i) {
+    const uint32_t idx = clip_out_buf.get_offset() + i;
+    g_mem_pool[idx] = clip_output_tsr.data.mem.pi8[i];
+  }
+
 }
 
 
-void execution_phase(TransposeConv2DOp& cnv_op, RescaleOp &rs_op, ClipOp &clp_op) {
+void execution_phase(TransposeConv2DOp& cnv_op, RescaleOp &rs_op, ClipOp &clp_op, uint32_t tiles_num) {
   // STEP 3: Execution phase
   //==================================================================
-  uint32_t tiles_num = 1;
 
   uint64_t membasis[] = {reinterpret_cast<uint64_t>(g_mem_pool)};
 
@@ -1022,8 +1048,84 @@ void execution_phase(TransposeConv2DOp& cnv_op, RescaleOp &rs_op, ClipOp &clp_op
   assert(mli_rescale != nullptr);
   assert(mli_clip != nullptr);
 
+
+  auto mli_tconv2d_pimpl = dynamic_cast<lib_ref::TransposeConv2D*>(mli_conv);
+  auto tconv2d_private = (lib_ref::TransposeConv2DPrivateData*)(cnv_op.transpose_conv2d_conf_private);
+  auto rescale_pimpl = dynamic_cast<lib_ref::Rescale*>(mli_rescale);
+  auto rescale_private = (lib_ref::RescalePrivateData*)(rs_op.rescale_conf_private);
+  auto clip_private = (lib_ref::ClipPrivateData*)(clp_op.clip_conf_private);
+
+  int32_t tile_input_strides[kTransposeConvIORank]{};
+  tconv2d_private->input.get_mem_strides(tile_input_strides);
+  int32_t tile_output_strides[kTransposeConvIORank]{};
+  tconv2d_private->output.get_mem_strides(tile_output_strides);
+  int32_t tile_weights_strides[kTransposeConvWRank]{};
+  tconv2d_private->weights.get_mem_strides(tile_weights_strides);
+
+  uint32_t input_tile_size[kTransposeConvIOIterRank]{};
+  uint32_t output_tile_size[kTransposeConvIOIterRank]{};
+  uint32_t weights_tile_size[kTransposeConvWIterRank]{};
+  int32_t input_tile_offsets[kTransposeConvIOIterRank]{};
+  int32_t output_tile_offsets[kTransposeConvIOIterRank]{};
+  int32_t weights_tile_offsets[kTransposeConvWIterRank]{};
+  const int32_t zero_offsets[kTransposeConvWIterRank]{};
+  uint32_t enc_param_size = 0, inp_bias_offset = 0, scale_offset = 0, shift_offset = 0, out_bias_offset = 0;
+  int32_t output_tile_offsets_4d[kClipRank];
+  int32_t tile_output_strides_4d[kClipRank];
+  uint32_t output_tile_size_4d[kClipRank];
+
   mli_status status = MLI_STATUS_OK;
-  for (int i = 0; i < tiles_num; ++i) {
+  for (uint32_t i = 0; i < tiles_num; ++i) {
+
+    mli_tconv2d_pimpl->GetIOSizesAndOffsets(input_tile_size, output_tile_size, weights_tile_size,
+      input_tile_offsets, output_tile_offsets, weights_tile_offsets);
+    for (int i = 0; i < 3; i++) {
+      output_tile_offsets_4d[i] = output_tile_offsets[i];
+      tile_output_strides_4d[i] = tile_output_strides[i];
+      output_tile_size_4d[i] = output_tile_size[i];
+    }
+    output_tile_offsets_4d[3] = output_tile_offsets[4];
+    tile_output_strides_4d[3] = tile_output_strides[4];
+    output_tile_size_4d[3] = output_tile_size[4];
+
+    // copy input from global to local buffer
+    strided_copy_with_offsets(kTransposeConvIORank, tconv2d_private->input.get_buf().get_elem_size(),
+      cnv_op.input.data.mem.pi8,
+      input_tile_offsets, zero_offsets, tile_input_strides,
+      input_tile_size, (int8_t*)(g_mem_pool + tconv2d_private->input.get_buf().get_offset()));
+
+    // copy weights from global to local buffer
+    strided_copy_with_offsets(kTransposeConvWRank, tconv2d_private->weights.get_buf().get_elem_size(),
+      cnv_op.weights.data.mem.pi8,
+      weights_tile_offsets, zero_offsets, tile_weights_strides,
+      weights_tile_size, (int8_t*)(g_mem_pool + tconv2d_private->weights.get_buf().get_offset()));
+
+    // copy weights zps from global to local buffer
+    int8_t* wtszp_tile_buf = (int8_t*)(g_mem_pool + tconv2d_private->weights_zp.get_buf().get_offset());
+    for (uint32_t j = 0; j < weights_tile_size[kKernelChannelOutDim]; j++) {
+      if (cnv_op.weights.el_params.sa.dim == kPerTensorQuantDim) {
+        wtszp_tile_buf[j] = (int8_t)cnv_op.weights.el_params.sa.zero_point.mem.i16;
+      }
+      else {
+        wtszp_tile_buf[j] = (int8_t)cnv_op.weights.el_params.sa.zero_point.mem.pi16[j];
+      }
+    }
+
+    rescale_pimpl->GetIOSizesAndOffsets(enc_param_size, inp_bias_offset, scale_offset, shift_offset, out_bias_offset);
+
+    // copy rescale input bias from global to local buffer
+    memcpy((void*)(g_mem_pool + rescale_private->encoded_params_buffer.get_offset() + inp_bias_offset),
+      (void*)(rs_op.mli3_bias.get_bias_tsr().data.mem.pi32 + output_tile_offsets_4d[3]), sizeof(int32_t) * enc_param_size);
+    // copy rescale scale from global to local buffer
+    memcpy((void*)(g_mem_pool + rescale_private->encoded_params_buffer.get_offset() + scale_offset),
+      (void*)(rs_op.mli3_scales_keeper.get_scales_tsr().data.mem.pi16 + output_tile_offsets_4d[3]), sizeof(int16_t) * enc_param_size);
+    // copy rescale shift from global to local buffer
+    memcpy((void*)(g_mem_pool + rescale_private->encoded_params_buffer.get_offset() + shift_offset),
+      (void*)(rs_op.mli3_scales_keeper.get_shift_tsr().data.mem.pi8 + output_tile_offsets_4d[3]), sizeof(int8_t) * enc_param_size);
+    // copy rescale output bias from global to local buffer
+    memcpy((void*)(g_mem_pool + rescale_private->encoded_params_buffer.get_offset() + out_bias_offset),
+      (void*)(rs_op.bias_out.data.mem.pi8 + output_tile_offsets_4d[3]), sizeof(int8_t) * enc_param_size);
+
     status = mli_conv->Prefetch();
     assert(status == MLI_STATUS_OK);
     status = mli_conv->Issue();
@@ -1044,8 +1146,13 @@ void execution_phase(TransposeConv2DOp& cnv_op, RescaleOp &rs_op, ClipOp &clp_op
     assert(status == MLI_STATUS_OK);
     status = mli_clip->Update();
     assert(status == MLI_STATUS_OK);
+
+    // copy results from clip output tile to the global buffer
+    strided_copy_with_offsets(kClipRank, clip_private->output.get_buf().get_elem_size(),
+                              (int8_t*)g_mem_pool + clip_private->output.get_buf().get_offset(),
+                              zero_offsets, output_tile_offsets_4d, tile_output_strides_4d,
+                              output_tile_size_4d, clp_op.original_out.data.mem.pi8);
   }
-  
 }
 
 bool postprocess_phase(const reporter_full& reporter,
@@ -1212,22 +1319,13 @@ int main() {
 
     // STEP 1: Preparing phase
     //==================================================================
-    uint32_t transpose_conv2d_out_mem_offset = 0;
-    uint32_t rs_out_mem_offset = 0;
-    uint32_t clp_out_mem_offset = 0;
-
-    prepare_phase(cur_test, transpose_conv2d_op, rs_op, clp_op, transpose_conv2d_out_mem_offset,
-            rs_out_mem_offset, clp_out_mem_offset);
+    uint32_t num_tiles = 0; // num_tiles calculated inside prepare_phase
+    prepare_phase(cur_test, transpose_conv2d_op, rs_op, clp_op, num_tiles);
 
     // STEP 2: Executing phase
     //==================================================================
     // Run conv2d, rescale and clip MLI3.0 kernels
-    execution_phase(transpose_conv2d_op, rs_op, clp_op);
-
-    // Get the output of Clip and copy it to clp_op.original_out
-    for (uint32_t j = 0; j < clp_op.original_out.data.capacity; ++j) {
-        clp_op.original_out.data.mem.pi8[j] = *(g_mem_pool + clp_out_mem_offset + j);
-    }
+    execution_phase(transpose_conv2d_op, rs_op, clp_op, num_tiles);
 
     // STEP 3: Postprocessing phase
     //==================================================================

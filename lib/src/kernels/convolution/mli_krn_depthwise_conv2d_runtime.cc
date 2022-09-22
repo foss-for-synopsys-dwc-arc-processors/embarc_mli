@@ -44,7 +44,7 @@ DepthwiseConv2d::DepthwiseConv2d(void* kernel_private_data_buffer,
   m_metadata.wts_quant_axis = private_data.wts_quant_axis;
   m_metadata.config = private_data.config;
 
-  auto input_tile_tensor = m_metadata.input.GetSubTensor();
+  auto input_tile_tensor = m_metadata.input.GetSubTensor(true);
   m_tile_batch_size = input_tile_tensor.get_dim(kTensorBatchDim);
 
   // setup m_tile_input to execute batch by batch m_tile_batch_size times
@@ -122,16 +122,9 @@ mli_status DepthwiseConv2d::Update() {
       m_metadata.output.is_first_tile(kTensorHeightDim)) {
     m_metadata.weights_zp.Next();
   }
-  // TODO: use only GetSubTensor when it will be possible ( without manual clipping with MIN )
-  const auto input_tile_tensor = m_metadata.input.GetSubTensor();
+  const auto input_tile_tensor = m_metadata.input.GetSubTensor(true);
   uint32_t input_tile_shape[kDepthwiseIORank];
   input_tile_tensor.get_dims(input_tile_shape);
-  int32_t tile_input_offsets[kDepthwiseIORank];
-  m_metadata.input.get_pos(tile_input_offsets);
-  input_tile_shape[kTensorHeightDim] = MIN(input_tile_shape[kTensorHeightDim],
-    m_metadata.input.get_dim(kTensorHeightDim) - (uint32_t)tile_input_offsets[kTensorHeightDim]);
-  input_tile_shape[kTensorWidthDim] = MIN(input_tile_shape[kTensorWidthDim],
-    m_metadata.input.get_dim(kTensorWidthDim) - (uint32_t)tile_input_offsets[kTensorWidthDim]);
   input_tile_shape[kTensorBatchDim] = 1;
   m_tile_input = Tensor<InternalBuffer, kDepthwiseIORank>(m_tile_input, input_tile_shape);
 
@@ -144,7 +137,7 @@ mli_status DepthwiseConv2d::Update() {
   uint32_t wzp_tile_shape[kDepthwiseZPRank];
   wzp_tile_tensor.get_dims(wzp_tile_shape);
   m_tile_wzp = Tensor<InternalBuffer, kDepthwiseZPRank>(m_tile_wzp, wzp_tile_shape);
-  // last tile can be smaller than others
+  // TODO: maybe some method to handle instead of this code (last tile can be smaller than others)
   if (wzp_tile_shape[0] != m_tile_wzp.get_buf().get_size()) {
     InternalBuffer buf = m_tile_wzp.get_buf();
     buf.set_buffer(buf.get_ptr<int8_t>(), wzp_tile_shape[0]);

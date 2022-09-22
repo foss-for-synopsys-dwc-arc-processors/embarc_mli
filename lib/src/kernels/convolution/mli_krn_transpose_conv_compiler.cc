@@ -11,6 +11,7 @@
 #include "mli_ref_compiler_api.hpp"
 #include "mli_ref_runtime_api.hpp"
 #include "mli_service_functions.hpp"
+#include "mli_helpers_api.hpp"
 
 
 namespace snps_arc::metaware::mli::ref {
@@ -28,20 +29,6 @@ TransposeConv2D_CS::TransposeConv2D_CS(
       m_output(output),
       m_config(cfg),
       m_pd(pd) {
-  uint32_t input_shape[kConvIORank];
-  int32_t input_stride[kConvIORank];
-  uint32_t output_shape[kConvIORank];
-  int32_t output_stride[kConvIORank];
-  input.get_full_shape(input_shape);
-  input.get_mem_strides(input_stride);
-  output.get_full_shape(output_shape);
-  output.get_mem_strides(output_stride);
-
-  uint32_t weights_shape[kConvWRank];
-  int32_t weights_stride[kConvWRank];
-  weights.get_full_shape(weights_shape);
-  weights.get_mem_strides(weights_stride);
-
   m_inp_quant_axis = kPerTensorQuantDim;
   m_wts_quant_axis = kKernelChannelOutDim;
 }
@@ -59,23 +46,19 @@ mli_status TransposeConv2D_CS::GetKernelPrivateData(
   MLI_ASSERT(kernel_private_data_buffer != nullptr);
 
   // Batch checking
-  MLI_ASSERT(m_input.get_dim(mli::kTensorBatchDim) == 1);
+  MLI_ASSERT(m_input.get_dim(mli::kGroupTensorBatchDim) == 1);
 
   // Channel checking
   MLI_ASSERT(m_weights.get_dim(mli::kKernelChannelOutDim) ==
-      m_output.get_dim(mli::kTileChannelDim));
+      m_output.get_dim(mli::kGroupTensorChannelDim));
 
   MLI_ASSERT(m_weights.get_dim(mli::kKernelChannelInDim) ==
-      m_input.get_dim(mli::kTensorChannelDim));
-
-  MLI_ASSERT(m_input.get_dim(mli::kTensorChannelDim) ==
-             m_weights.get_dim(mli::kKernelChannelInDim));
+      m_input.get_dim(mli::kGroupTensorChannelDim));
 
   // Group checking
   MLI_ASSERT(m_weights.get_dim(mli::kKernelGroupDim) == 1);
 
-  MLI_ASSERT(m_weights.get_dim(mli::kKernelGroupDim) ==
-      m_output.get_dim(mli::kTileGroupDim));
+  MLI_ASSERT(m_weights.get_dim(mli::kKernelGroupDim) == 1);
 
   TransposeConv2DPrivateData prv_data;
   prv_data.input = m_input;

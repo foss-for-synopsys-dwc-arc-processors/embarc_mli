@@ -12,6 +12,7 @@
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
+#include "mli_debug.h"
 
 #define DEPRECATED_METHOD printf("%s in %s:%d is deprecated. "\
                                  "It will be removed in future version of library.\n", __func__, __FILE__, __LINE__);
