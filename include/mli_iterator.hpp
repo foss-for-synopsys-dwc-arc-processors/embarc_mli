@@ -1001,6 +1001,10 @@ class TensorIterator {
     Tensor<buf_T, tensorRank> get_tensor() const {
       return m_full_tensor;
     }
+     
+    uint32_t get_rank() const {
+      return m_full_tensor.get_rank();
+    }
 
     uint32_t get_update_idx() const {
       uint32_t upd_idx = 0;

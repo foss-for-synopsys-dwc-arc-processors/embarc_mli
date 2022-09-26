@@ -187,7 +187,7 @@ public:
      *
      * In this method you specify offsets for tensors passed to the constructor
      *
-     * @deprected
+     * @deprecated
      * @param input [I] Tensor descriptor containing input OffsetBuffer and tensor shape and memory strides
      * @param output [I] Tensor descriptor containing output OffsetBuffer and tensor shape and memory strides
      * @param weights [I] Tensor descriptor containing weights OffsetBuffer and tensor shape and memory strides
@@ -241,7 +241,7 @@ public:
      *       this data doesn't need to be set.     
      * All the increments are following the output tile iterator.
      * 
-     * @deprected
+     * @deprecated
      * @param output_total_size[4] [I] total size in each dimension
      * @param iteration_order[4] [I] which dimension of the output to iterate first.
      * @param input_first_inc[4] [I] increment of the input buffer pointer for the first iteration in each dimension
@@ -498,7 +498,7 @@ public:
      *
      */
     virtual mli_status EncodeWtsZeroPts(const Tensor<Buffer, 1> &wtszeropts,
-                                        Buffer &encoded_wtszeropts) {return MLI_STATUS_OK;}
+                                        Buffer &encoded_wtszeropts) = 0;
     /**
      * @brief Method to query the size of the encoded weights zero-points buffer
      *
@@ -557,7 +557,7 @@ public:
      *
      * In this method you specify offsets for tensors passed to the constructor.
      * 
-     * @deprected
+     * @deprecated
      * @param input [I] Tensor descriptor containing input OffsetBuffer and tensor shape and memory strides
      * @param output [I] Tensor descriptor containing output OffsetBuffer and tensor shape and memory strides
      * @param ctrl_buffer [I] data OffsetBuffer
@@ -717,7 +717,7 @@ public:
     virtual unsigned GetParamsBufferSize() const = 0;
     /**
      * @brief Methods to set buffer offsets
-     * @deprected
+     * @deprecated
      */
     virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kClipRank> &input,
                                            const Tensor<OffsetBuffer, kClipRank> &output,
@@ -739,7 +739,7 @@ public:
      *       this data doesn't need to be set.
      * All the increments are following the output tile iterator.
      * 
-     * @deprected
+     * @deprecated
      * @param output_total_size[4] [I] total size in each dimension
      * @param iteration_order[4] [I] which dimension of the output to iterate first.
      * @param output_first_inc[4] [I] increment of the output buffer pointer for the first iteration in each dimension
@@ -770,11 +770,34 @@ public:
     /**
      * @brief Methods to set buffer offsets
      *
+     * @deprecated
      */
-    virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_l,
-                                           const Tensor<OffsetBuffer, 4> &input_r,
-                                           const Tensor<OffsetBuffer, 4> &output,
+    virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kEltwiseRank> &input_l,
+                                           const Tensor<OffsetBuffer, kEltwiseRank> &input_r,
+                                           const Tensor<OffsetBuffer, kEltwiseRank> &output,
                                            const OffsetBuffer &ctrl_buffer) = 0;
+    
+    /**
+     * @brief Method to set buffer memory offsets and memory IDs for the kernel
+     *
+     * Compiler computes a memory map and buffer offsets are set using this method.
+     * Compiler also needs to indicate in which memory the buffers reside.
+     * These ID's need to match the array of memory bases that the xop-interpreter passes to
+     * the Create function.
+     *
+     * In this method you specify offsets for tensors passed to the constructor.
+     *
+     * @param input_l         [I] input OffsetBuffer 
+     * @param input_r         [I] input OffsetBuffer 
+     * @param output          [I] output OffsetBuffer
+     * @param ctrl_buffer     [I] descriptor data OffsetBuffer
+     *
+     * @return    MLI status code
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input_l,
+                                           const OffsetBuffer &input_r,
+                                           const OffsetBuffer &output,
+                                           const OffsetBuffer &ctrl_buffer) { return MLI_STATUS_OK; }
 };
 
 /**
@@ -794,12 +817,34 @@ public:
     virtual unsigned GetOutputBufferSize() = 0;
     /**
      * @brief Methods to set buffer offsets
-     *
+     * @deprecated
      */
     virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left,
                                            const Tensor<OffsetBuffer, 4> &input_right,
                                            const Tensor<OffsetBuffer, 4> &output,
                                            const OffsetBuffer &ctrl_buffer) = 0;
+
+    /**
+     * @brief Method to set buffer memory offsets and memory IDs for the kernel
+     *
+     * Compiler computes a memory map and buffer offsets are set using this method.
+     * Compiler also needs to indicate in which memory the buffers reside.
+     * These ID's need to match the array of memory bases that the xop-interpreter passes to
+     * the Create function.
+     *
+     * In this method you specify offsets for tensors passed to the constructor.
+     *
+     * @param input_l         [I] input OffsetBuffer 
+     * @param input_r         [I] input OffsetBuffer 
+     * @param output          [I] output OffsetBuffer
+     * @param ctrl_buffer     [I] descriptor data OffsetBuffer
+     *
+     * @return    MLI status code
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input_l,
+                                           const OffsetBuffer &input_r,
+                                           const OffsetBuffer &output,
+                                           const OffsetBuffer &ctrl_buffer){ return MLI_STATUS_OK; }
 };
 
 
@@ -820,12 +865,34 @@ public:
     virtual unsigned GetOutputBufferSize() = 0;
     /**
      * @brief Methods to set buffer offsets
-     *
+     * @deprecated
      */
     virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left,
                                            const Tensor<OffsetBuffer, 4> &input_right,
                                            const Tensor<OffsetBuffer, 4> &output,
                                            const OffsetBuffer &ctrl_buffer) = 0;
+
+    /**
+     * @brief Method to set buffer memory offsets and memory IDs for the kernel
+     *
+     * Compiler computes a memory map and buffer offsets are set using this method.
+     * Compiler also needs to indicate in which memory the buffers reside.
+     * These ID's need to match the array of memory bases that the xop-interpreter passes to
+     * the Create function.
+     *
+     * In this method you specify offsets for tensors passed to the constructor.
+     *
+     * @param input_l         [I] input OffsetBuffer 
+     * @param input_r         [I] input OffsetBuffer 
+     * @param output          [I] output OffsetBuffer
+     * @param ctrl_buffer     [I] descriptor data OffsetBuffer
+     *
+     * @return    MLI status code
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input_l,
+                                           const OffsetBuffer &input_r,
+                                           const OffsetBuffer &output,
+                                           const OffsetBuffer &ctrl_buffer){ return MLI_STATUS_OK; }                                   
 };
 
 /**
@@ -846,12 +913,34 @@ public:
     /**
 
      * @brief Methods to set buffer offsets
-     *
+     * @deprecated
      */
     virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left,
                                            const Tensor<OffsetBuffer, 4> &input_right,
                                            const Tensor<OffsetBuffer, 4> &output,
                                            const OffsetBuffer &ctrl_buffer) = 0;
+
+    /**
+     * @brief Method to set buffer memory offsets and memory IDs for the kernel
+     *
+     * Compiler computes a memory map and buffer offsets are set using this method.
+     * Compiler also needs to indicate in which memory the buffers reside.
+     * These ID's need to match the array of memory bases that the xop-interpreter passes to
+     * the Create function.
+     *
+     * In this method you specify offsets for tensors passed to the constructor.
+     *
+     * @param input_l         [I] input OffsetBuffer 
+     * @param input_r         [I] input OffsetBuffer 
+     * @param output          [I] output OffsetBuffer
+     * @param ctrl_buffer     [I] descriptor data OffsetBuffer
+     *
+     * @return    MLI status code
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input_l,
+                                           const OffsetBuffer &input_r,
+                                           const OffsetBuffer &output,
+                                           const OffsetBuffer &ctrl_buffer){ return MLI_STATUS_OK; } 
 };
 
 /**
@@ -872,12 +961,35 @@ public:
     /**
 
      * @brief Methods to set buffer offsets
-     *
+     * @deprecated
      */
     virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left,
                                            const Tensor<OffsetBuffer, 4> &input_right,
                                            const Tensor<OffsetBuffer, 4> &output,
                                            const OffsetBuffer &ctrl_buffer) = 0;
+
+    /**
+     * @brief Method to set buffer memory offsets and memory IDs for the kernel
+     *
+     * Compiler computes a memory map and buffer offsets are set using this method.
+     * Compiler also needs to indicate in which memory the buffers reside.
+     * These ID's need to match the array of memory bases that the xop-interpreter passes to
+     * the Create function.
+     *
+     * In this method you specify offsets for tensors passed to the constructor.
+     *
+     * @param input_l         [I] input OffsetBuffer 
+     * @param input_r         [I] input OffsetBuffer 
+     * @param output          [I] output OffsetBuffer
+     * @param ctrl_buffer     [I] descriptor data OffsetBuffer
+     *
+     * @return    MLI status code
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input_l,
+                                           const OffsetBuffer &input_r,
+                                           const OffsetBuffer &output,
+                                           const OffsetBuffer &ctrl_buffer){ return MLI_STATUS_OK; }
+
 };
 
 /**
@@ -1009,7 +1121,7 @@ public:
    
     /**
      * @brief Methods to set buffer offsets
-     * @deprected
+     * @deprecated
      */
     virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kMoveRank> &src,
                                            const Tensor<OffsetBuffer, kMoveRank> &dst) {

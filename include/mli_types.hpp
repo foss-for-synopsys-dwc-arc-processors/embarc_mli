@@ -112,6 +112,8 @@ constexpr short int kTableBuiltinIOIterRank = 4;
 
 constexpr short int kBiasRank = 1;
 constexpr short int kBiasIterRank = 1;
+constexpr unsigned kEltwiseIterRank = 4;
+constexpr unsigned kEltwiseRank = 4;
 
 constexpr short int kReduceMaxRank = 4;
 constexpr short int kReduceMaxIterRank = 4;

@@ -352,12 +352,32 @@ public:
      *                          and memory strides
      *
      * @return Add kernel Compiler Support interface object
-     */                                  
-
+     *
+     * @deprecated
+     */
     virtual lib_mli::Add_CS* Add_CS(void *kernel_buffer,
-                                    const Tensor<NoBuffer, 4> input_left,
-                                    const Tensor<NoBuffer, 4> input_right,
-                                    const Tensor<NoBuffer, 4> output_tile_shape) { return nullptr; }
+                                    const Tensor<NoBuffer, kEltwiseRank> input_left,
+                                    const Tensor<NoBuffer, kEltwiseRank> input_right,
+                                    const Tensor<NoBuffer, kEltwiseRank> output) { return nullptr; }
+    /**
+     * @brief Add kernel Compiler Support interface factory
+     * method
+     *
+     * @param kernel_buffer [I] Pointer to the pre-allocated memory to store
+     *                          kernel Compiler Support object
+     * @param input_left    [I] TensorIterator object containing input1 Tensor and
+     *                          tile configuration parameters
+     * @param input_right   [I] TensorIterator object containing input2 Tensor and
+     *                          tile configuration parameters
+     * @param output        [I] TensorIterator object containing output Tensor and
+     *                          tile configuration parameters
+     *
+     * @return Add kernel Compiler Support interface object
+     */ 
+    virtual lib_mli::Add_CS* Add_CS(void *kernel_buffer,
+                                    const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> input_left,
+                                    const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> input_right,
+                                    const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> output) { return nullptr; }
 
 
     /**
@@ -374,27 +394,153 @@ public:
      *                          and memory strides
      *
      * @return Sub kernel Compiler Support interface object
-     */                                
-
+     *
+     * @deprecated
+     */
     virtual lib_mli::Sub_CS* Sub_CS(void *kernel_buffer,
                                     const Tensor<NoBuffer, 4> input_left,
                                     const Tensor<NoBuffer, 4> input_right,
                                     const Tensor<NoBuffer, 4> output) { return nullptr; }
 
+    /**
+     * @brief Sub kernel Compiler Support interface factory
+     * method
+     *
+     * @param kernel_buffer [I] Pointer to the pre-allocated memory to store
+     *                          kernel Compiler Support object
+     * @param input_left    [I] TensorIterator object containing input1 Tensor and
+     *                          tile configuration parameters
+     * @param input_right   [I] TensorIterator object containing input2 Tensor and
+     *                          tile configuration parameters
+     * @param output        [I] TensorIterator object containing output Tensor and
+     *                          tile configuration parameters
+     *
+     * @return Sub kernel Compiler Support interface object
+     */
+    virtual lib_mli::Sub_CS* Sub_CS(void *kernel_buffer,
+                                    const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> input_left,
+                                    const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> input_right,
+                                    const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> output) { return nullptr; }
+    /**
+     * @brief Mul kernel Compiler Support interface factory
+     * method
+     *
+     * @param kernel_buffer [I] Pointer to the pre-allocated memory to store
+     *                          kernel Compiler Support object
+     * @param input_left    [I] Tensor object containing input1 Tensor shape and
+     *                          memory strides
+     * @param input_right    [I] Tensor object containing input2 Tensor shape and
+     *                          memory strides
+     * @param output        [I] Tensor object containing output Tensor shape
+     *                          and memory strides
+     *
+     * @return Mul kernel Compiler Support interface object
+     *
+     * @deprecated
+     */
     virtual lib_mli::Mul_CS* Mul_CS(void *kernel_buffer,
                                     const Tensor<NoBuffer, 4> input_left,
                                     const Tensor<NoBuffer, 4> input_right,
                                     const Tensor<NoBuffer, 4> output) { return nullptr; }
-
+    /**
+     * @brief Mul kernel Compiler Support interface factory
+     * method
+     *
+     * @param kernel_buffer [I] Pointer to the pre-allocated memory to store
+     *                          kernel Compiler Support object
+     * @param input_left    [I] TensorIterator object containing input1 Tensor and
+     *                          tile configuration parameters
+     * @param input_right   [I] TensorIterator object containing input2 Tensor and
+     *                          tile configuration parameters
+     * @param output        [I] TensorIterator object containing output Tensor and
+     *                          tile configuration parameters
+     *
+     * @return Mul kernel Compiler Support interface object
+     */
+    virtual lib_mli::Mul_CS* Mul_CS(void *kernel_buffer,
+                                    const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> input_left,
+                                    const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> input_right,
+                                    const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> output) { return nullptr; }
+    /**
+     * @brief Max kernel Compiler Support interface factory
+     * method
+     *
+     * @param kernel_buffer [I] Pointer to the pre-allocated memory to store
+     *                          kernel Compiler Support object
+     * @param input_left    [I] Tensor object containing input1 Tensor shape and
+     *                          memory strides
+     * @param input_right    [I] Tensor object containing input2 Tensor shape and
+     *                          memory strides
+     * @param output        [I] Tensor object containing output Tensor shape
+     *                          and memory strides
+     *
+     * @return Max kernel Compiler Support interface object
+     *
+     * @deprecated
+     */
     virtual lib_mli::Max_CS* Max_CS(void *kernel_buffer,
                                     const Tensor<NoBuffer, 4> input_left,
                                     const Tensor<NoBuffer, 4> input_right,
                                     const Tensor<NoBuffer, 4> output) { return nullptr; }
-
+    /**
+     * @brief Max kernel Compiler Support interface factory
+     * method
+     *
+     * @param kernel_buffer [I] Pointer to the pre-allocated memory to store
+     *                          kernel Compiler Support object
+     * @param input_left    [I] TensorIterator object containing input1 Tensor and
+     *                          tile configuration parameters
+     * @param input_right   [I] TensorIterator object containing input2 Tensor and
+     *                          tile configuration parameters
+     * @param output        [I] TensorIterator object containing output Tensor and
+     *                          tile configuration parameters
+     *
+     * @return Max kernel Compiler Support interface object
+     */
+    virtual lib_mli::Max_CS* Max_CS(void *kernel_buffer,
+                                    const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> input_left,
+                                    const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> input_right,
+                                    const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> output) { return nullptr; }
+    /**
+     * @brief Min kernel Compiler Support interface factory
+     * method
+     *
+     * @param kernel_buffer [I] Pointer to the pre-allocated memory to store
+     *                          kernel Compiler Support object
+     * @param input_left    [I] Tensor object containing input1 Tensor shape and
+     *                          memory strides
+     * @param input_right    [I] Tensor object containing input2 Tensor shape and
+     *                          memory strides
+     * @param output        [I] Tensor object containing output Tensor shape
+     *                          and memory strides
+     *
+     * @return Min kernel Compiler Support interface object
+     *
+     * @deprecated
+     */
     virtual lib_mli::Min_CS* Min_CS(void *kernel_buffer,
                                     const Tensor<NoBuffer, 4> input_left,
                                     const Tensor<NoBuffer, 4> input_right,
                                     const Tensor<NoBuffer, 4> output) { return nullptr; }
+    /**
+     * @brief Min kernel Compiler Support interface factory
+     * method
+     *
+     * @param kernel_buffer [I] Pointer to the pre-allocated memory to store
+     *                          kernel Compiler Support object
+     * @param input_left    [I] TensorIterator object containing input1 Tensor and
+     *                          tile configuration parameters
+     * @param input_right   [I] TensorIterator object containing input2 Tensor and
+     *                          tile configuration parameters
+     * @param output        [I] TensorIterator object containing output Tensor and
+     *                          tile configuration parameters
+     *
+     * @return Min kernel Compiler Support interface object
+     */
+    virtual lib_mli::Min_CS* Min_CS(void *kernel_buffer,
+                                    const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> input_left,
+                                    const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> input_right,
+                                    const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> output) { return nullptr; }
 
     /**
      * @brief Rescale kernel Compiler Support interface factory

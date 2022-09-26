@@ -376,7 +376,7 @@ private:
 class Add : public ExecutionInterface {
 
 public:
-/**
+    /**
      * @brief Construct a new Add object
      *
      * This method will create and initialize the Add object using the information
@@ -386,19 +386,19 @@ public:
      * This kernel computes each value of the output tensor as the summation 
      * of corresponding values in the two input tensors 
      * 
-     * @param kernel_private_data_buffer [I] Pointer to the compilation time computed initialization data.
-     * @param size        [I] Size of the data is used to check for coding errors.
-     * @param membases[]  [I] The kernel private data may contain offsets inside a (vector) memory.
-     *                        At run-time specific locations in memory are allocated for
-     *                        the graph, the membase array contains the start of
-     *                        each memory region.
-     *                        This base will be added to all memory offsets in the constructor
-     *                        according to the memory ID associated with that offset.
-     *                        Each platform can have different (number of) memories. For mli
-     *                        this is completely transparent. Compiler needs to use the same
-     *                        memory id's when attaching the buffers as are used by the
-     *                        xop-interpreter to set the membases.
-     * @param num_mems    [I] Number of memory regions passed with membases array.
+     * @param kernel_private_data_buffer    [I] Pointer to the compilation time computed initialization data.
+     * @param size                          [I] Size of the data is used to check for coding errors.
+     * @param membases[]                    [I] The kernel private data may contain offsets inside a (vector) memory.
+     *                                          At run-time specific locations in memory are allocated for
+     *                                          the graph, the membase array contains the start of
+     *                                          each memory region.
+     *                                          This base will be added to all memory offsets in the constructor
+     *                                          according to the memory ID associated with that offset.
+     *                                          Each platform can have different (number of) memories. For mli
+     *                                          this is completely transparent. Compiler needs to use the same
+     *                                          memory id's when attaching the buffers as are used by the
+     *                                          xop-interpreter to set the membases.
+     * @param num_mems                      [I] Number of memory regions passed with membases array.
      */
     Add(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
 
@@ -408,12 +408,19 @@ public:
 
     mli_status Update() override;
 
+    // TODO: remove this method and replace with usage of Move kernel (not possible now)
+    void GetIOSizesAndOffsets(uint32_t input_left_size[kEltwiseRank],uint32_t input_right_size[kEltwiseRank], uint32_t output_size[kEltwiseRank],
+                              int32_t input_left_offsets[kEltwiseRank],int32_t input_right_offsets[kEltwiseRank],int32_t output_offsets[kEltwiseRank]);
 private:
-    mli_tensor m_input_left;
-    mli_tensor m_input_right;
-    mli_tensor m_output;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_input_left;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_input_right;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_output;
+    mli_tensor m_tile_input_left;
+    mli_tensor m_tile_input_right;
+    mli_tensor m_tile_output;
     uint32_t m_i_elem_size;
     uint32_t m_o_elem_size;
+
 };
 
 /**
@@ -435,21 +442,20 @@ public:
      * This kernel computes each value of the output tensor as the subtraction 
      * of corresponding values in the two input tensors 
      * 
-     * @param kernel_private_data_buffer [I] Pointer to the compilation time computed initialization data.
-     * @param size        [I] Size of the data is used to check for coding errors.
-     * @param membases[]  [I] The kernel private data may contain offsets inside a (vector) memory.
-     *                        At run-time specific locations in memory are allocated for
-     *                        the graph, the membase array contains the start of
-     *                        each memory region.
-     *                        This base will be added to all memory offsets in the constructor
-     *                        according to the memory ID associated with that offset.
-     *                        Each platform can have different (number of) memories. For mli
-     *                        this is completely transparent. Compiler needs to use the same
-     *                        memory id's when attaching the buffers as are used by the
-     *                        xop-interpreter to set the membases.
-     * @param num_mems    [I] Number of memory regions passed with membases array.
+     * @param kernel_private_data_buffer     [I] Pointer to the compilation time computed initialization data.
+     * @param size                           [I] Size of the data is used to check for coding errors.
+     * @param membases[]                     [I] The kernel private data may contain offsets inside a (vector) memory.
+     *                                           At run-time specific locations in memory are allocated for
+     *                                           the graph, the membase array contains the start of
+     *                                           each memory region.
+     *                                           This base will be added to all memory offsets in the constructor
+     *                                           according to the memory ID associated with that offset.
+     *                                           Each platform can have different (number of) memories. For mli
+     *                                           this is completely transparent. Compiler needs to use the same
+     *                                           memory id's when attaching the buffers as are used by the
+     *                                           xop-interpreter to set the membases.
+     * @param num_mems                       [I] Number of memory regions passed with membases array.
      */
-    
     Sub(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
 
     mli_status Issue() override;
@@ -458,12 +464,19 @@ public:
 
     mli_status Update() override;
 
+// TODO: remove this method and replace with usage of Move kernel (not possible now)
+    void GetIOSizesAndOffsets(uint32_t input_left_size[kEltwiseRank],uint32_t input_right_size[kEltwiseRank], uint32_t output_size[kEltwiseRank],
+                              int32_t input_left_offsets[kEltwiseRank],int32_t input_right_offsets[kEltwiseRank],int32_t output_offsets[kEltwiseRank]);
 private:
-    mli_tensor m_input_left;
-    mli_tensor m_input_right;
-    mli_tensor m_output;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_input_left;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_input_right;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_output;
+    mli_tensor m_tile_input_left;
+    mli_tensor m_tile_input_right;
+    mli_tensor m_tile_output;
     uint32_t m_i_elem_size;
     uint32_t m_o_elem_size;
+
 };
 
 /**
@@ -474,6 +487,31 @@ private:
 class Mul : public ExecutionInterface {
 
 public:
+
+    /**
+     * @brief Construct a new Mul object
+     *
+     * This method will create and initialize the Mul object using the information
+     * stored in the kernel_private_data_buffer that has been computed at compile time
+     * by the GetKernelPrivateData() method.
+     * 
+     * This kernel computes each value of the output tensor as the multiplication 
+     * of corresponding values in the two input tensors.
+     * 
+     * @param kernel_private_data_buffer    [I] Pointer to the compilation time computed initialization data.
+     * @param size                          [I] Size of the data is used to check for coding errors.
+     * @param membases[]                    [I] The kernel private data may contain offsets inside a (vector) memory.
+     *                                          At run-time specific locations in memory are allocated for
+     *                                          the graph, the membase array contains the start of
+     *                                          each memory region.
+     *                                          This base will be added to all memory offsets in the constructor
+     *                                          according to the memory ID associated with that offset.
+     *                                          Each platform can have different (number of) memories. For mli
+     *                                          this is completely transparent. Compiler needs to use the same
+     *                                          memory id's when attaching the buffers as are used by the
+     *                                          xop-interpreter to set the membases.
+     * @param num_mems                      [I] Number of memory regions passed with membases array.
+     */
     Mul(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
 
     mli_status Issue() override;
@@ -482,12 +520,19 @@ public:
 
     mli_status Update() override;
 
+// TODO: remove this method and replace with usage of Move kernel (not possible now)
+    void GetIOSizesAndOffsets(uint32_t input_left_size[kEltwiseRank],uint32_t input_right_size[kEltwiseRank], uint32_t output_size[kEltwiseRank],
+                              int32_t input_left_offsets[kEltwiseRank],int32_t input_right_offsets[kEltwiseRank],int32_t output_offsets[kEltwiseRank]);
 private:
-    mli_tensor m_input_left;
-    mli_tensor m_input_right;
-    mli_tensor m_output;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_input_left;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_input_right;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_output;
+    mli_tensor m_tile_input_left;
+    mli_tensor m_tile_input_right;
+    mli_tensor m_tile_output;
     uint32_t m_i_elem_size;
     uint32_t m_o_elem_size;
+
 };
 
 /**
@@ -498,6 +543,31 @@ private:
 class Max : public ExecutionInterface {
 
 public:
+
+    /**
+     * @brief Construct a new Max object
+     *
+     * This method will create and initialize the Max object using the information
+     * stored in the kernel_private_data_buffer that has been computed at compile time
+     * by the GetKernelPrivateData() method.
+     * 
+     * This kernel computes each value of the output tensor as result of Max operation on the 
+     * corresponding values in the two input tensors.
+     * 
+     * @param kernel_private_data_buffer    [I] Pointer to the compilation time computed initialization data.
+     * @param size                          [I] Size of the data is used to check for coding errors.
+     * @param membases[]                    [I] The kernel private data may contain offsets inside a (vector) memory.
+     *                                          At run-time specific locations in memory are allocated for
+     *                                          the graph, the membase array contains the start of
+     *                                          each memory region.
+     *                                          This base will be added to all memory offsets in the constructor
+     *                                          according to the memory ID associated with that offset.
+     *                                          Each platform can have different (number of) memories. For mli
+     *                                          this is completely transparent. Compiler needs to use the same
+     *                                          memory id's when attaching the buffers as are used by the
+     *                                          xop-interpreter to set the membases.
+     * @param num_mems                      [I] Number of memory regions passed with membases array.
+     */
     Max(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
 
     mli_status Issue() override;
@@ -506,12 +576,20 @@ public:
 
     mli_status Update() override;
 
+    // TODO: remove this method and replace with usage of Move kernel (not possible now)
+    void GetIOSizesAndOffsets(uint32_t input_left_size[kEltwiseRank],uint32_t input_right_size[kEltwiseRank], uint32_t output_size[kEltwiseRank],
+                              int32_t input_left_offsets[kEltwiseRank],int32_t input_right_offsets[kEltwiseRank],int32_t output_offsets[kEltwiseRank]);
+
 private:
-    mli_tensor m_input_left;
-    mli_tensor m_input_right;
-    mli_tensor m_output;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_input_left;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_input_right;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_output;
+    mli_tensor m_tile_input_left;
+    mli_tensor m_tile_input_right;
+    mli_tensor m_tile_output;
     uint32_t m_i_elem_size;
     uint32_t m_o_elem_size;
+
 };
 
 /**
@@ -522,6 +600,31 @@ private:
 class Min : public ExecutionInterface {
 
 public:
+
+   /**
+     * @brief Construct a new Min object
+     *
+     * This method will create and initialize the Min object using the information
+     * stored in the kernel_private_data_buffer that has been computed at compile time
+     * by the GetKernelPrivateData() method.
+     * 
+     * This kernel computes each value of the output tensor as result of Min operation on the 
+     * corresponding values in the two input tensors.
+     * 
+     * @param kernel_private_data_buffer    [I] Pointer to the compilation time computed initialization data.
+     * @param size                          [I] Size of the data is used to check for coding errors.
+     * @param membases[]                    [I] The kernel private data may contain offsets inside a (vector) memory.
+     *                                          At run-time specific locations in memory are allocated for
+     *                                          the graph, the membase array contains the start of
+     *                                          each memory region.
+     *                                          This base will be added to all memory offsets in the constructor
+     *                                          according to the memory ID associated with that offset.
+     *                                          Each platform can have different (number of) memories. For mli
+     *                                          this is completely transparent. Compiler needs to use the same
+     *                                          memory id's when attaching the buffers as are used by the
+     *                                          xop-interpreter to set the membases.
+     * @param num_mems                      [I] Number of memory regions passed with membases array.
+     */
     Min(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
 
     mli_status Issue() override;
@@ -530,12 +633,19 @@ public:
 
     mli_status Update() override;
 
+// TODO: remove this method and replace with usage of Move kernel (not possible now)
+    void GetIOSizesAndOffsets(uint32_t input_left_size[kEltwiseRank],uint32_t input_right_size[kEltwiseRank], uint32_t output_size[kEltwiseRank],
+                              int32_t input_left_offsets[kEltwiseRank],int32_t input_right_offsets[kEltwiseRank],int32_t output_offsets[kEltwiseRank]);
 private:
-    mli_tensor m_input_left;
-    mli_tensor m_input_right;
-    mli_tensor m_output;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_input_left;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_input_right;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_output;
+    mli_tensor m_tile_input_left;
+    mli_tensor m_tile_input_right;
+    mli_tensor m_tile_output;
     uint32_t m_i_elem_size;
     uint32_t m_o_elem_size;
+
 };
 
 /**

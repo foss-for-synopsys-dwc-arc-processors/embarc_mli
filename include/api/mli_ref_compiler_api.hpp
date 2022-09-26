@@ -787,25 +787,49 @@ public:
      * object. This kernel computes each value of the output tensor as the result of addition operation 
      * of the two input tensors element wise.
      *
-     * @param pd [I] Platform description
-     * @param in_left [I] first Input tensor (full shape)
-     * @param in_right [I] second Input tensor (full shape)
-     * @param output_tile_shape [O] Output tensor (tile shape)
+     * @param pd                [I] Platform description
+     * @param in_left           [I] First Input tensor (full shape)
+     * @param in_right          [I] Second Input tensor (full shape)
+     * @param output            [I] Output tensor (full shape)
+     *
+     * @deprecated
      */
+    Add_CS(const lib_mli::PlatformDescription pd,
+           const Tensor<NoBuffer, kEltwiseRank> in_left,
+           const Tensor<NoBuffer, kEltwiseRank> in_right,
+           const Tensor<NoBuffer, kEltwiseRank> output);
+
+    /**
+     * @brief Constructor to create an Add compiler support object.
+     *
+     * This constructor can be used to create Add compiler support
+     * object. This kernel computes each value of the output tensor as the result of addition operation 
+     * of the two input tensors element wise.
+     *
+     * @param pd                [I] Platform description
+     * @param in_left           [I] First Input tensorIterator (full shape)
+     * @param in_right          [I] Second Input tensorIterator (full shape)
+     * @param output            [I] Output tensorIterator (full shape)
+     */       
 
     Add_CS(const lib_mli::PlatformDescription pd,
-           const Tensor<NoBuffer, 4> in_left,
-           const Tensor<NoBuffer, 4> in_right,
-           const Tensor<NoBuffer, 4> output_tile_shape);
+           const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> in_left,
+           const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> in_right,
+           const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> output);
 
     // From CompilerGenericInterface
     unsigned GetKernelPrivateDataSize() const override;
     unsigned GetRuntimeObjectSize() const override;
     mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
-    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left,
-                                   const Tensor<OffsetBuffer, 4> &input_right,
-                                   const Tensor<OffsetBuffer, 4> &output,
+    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kEltwiseRank> &input_left,
+                                   const Tensor<OffsetBuffer, kEltwiseRank> &input_right,
+                                   const Tensor<OffsetBuffer, kEltwiseRank> &output,
                                    const OffsetBuffer &ctrl_buffer) override;
+
+    mli_status AttachBufferOffsets(const OffsetBuffer &input_left,
+                                   const OffsetBuffer &input_right,
+                                   const OffsetBuffer &output,
+                                   const OffsetBuffer &ctrl_buffer) override;    
 
     // From Add_CS
     unsigned GetInputLeftBufferSize() override;
@@ -813,9 +837,10 @@ public:
     unsigned GetOutputBufferSize() override;
 
 private:
-    Tensor<OffsetBuffer, 4> m_in_left;
-    Tensor<OffsetBuffer, 4> m_in_right;
-    Tensor<OffsetBuffer, 4> m_output;
+    
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_in_left;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_in_right;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_output;
 
     uint32_t m_in_left_buffer_size;
     uint32_t m_in_right_buffer_size;
@@ -842,13 +867,31 @@ public:
      * @param pd                [I] Platform description
      * @param in_left           [I] First Input tensor (full shape)
      * @param in_right          [I] Second Input tensor (full shape)
-     * @param output_tile_shape [O] Output tensor (tile shape)
+     * @param output            [I] Output tensor (tile shape)
+     * 
+     * @deprecated
      */
-
     Sub_CS(const lib_mli::PlatformDescription pd,
-           const Tensor<NoBuffer, 4> in_left,
-           const Tensor<NoBuffer, 4> in_right,
-           const Tensor<NoBuffer, 4> output_tile_shape);
+           const Tensor<NoBuffer, kEltwiseRank> in_left,
+           const Tensor<NoBuffer, kEltwiseRank> in_right,
+           const Tensor<NoBuffer, kEltwiseRank> output);
+
+    /**
+     * @brief Constructor to create an Sub compiler support object.
+     *
+     * This constructor can be used to create Sub compiler support
+     * object. This kernel computes each value of the output tensor as the result of subtraction operation 
+     * of the two input tensors element wise.
+     *
+     * @param pd                [I] Platform description
+     * @param in_left           [I] First Input tensor (full shape)
+     * @param in_right          [I] Second Input tensor (full shape)
+     * @param output            [I] Output tensor (full shape)
+     */
+    Sub_CS(const lib_mli::PlatformDescription pd,
+           const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> in_left,
+           const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> in_right,
+           const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> output);
 
     // From CompilerGenericInterface
     unsigned GetKernelPrivateDataSize() const override;
@@ -858,6 +901,11 @@ public:
                                    const Tensor<OffsetBuffer, 4> &input_right,
                                    const Tensor<OffsetBuffer, 4> &output,
                                    const OffsetBuffer &ctrl_buffer) override;
+                                   
+    mli_status AttachBufferOffsets(const OffsetBuffer &input_left,
+                                   const OffsetBuffer &input_right,
+                                   const OffsetBuffer &output,
+                                   const OffsetBuffer &ctrl_buffer) override;
 
     // From Sub_CS
     unsigned GetInputLeftBufferSize() override;
@@ -865,10 +913,10 @@ public:
     unsigned GetOutputBufferSize() override;
 
 private:
-    Tensor<OffsetBuffer, 4> m_in_left;
-    Tensor<OffsetBuffer, 4> m_in_right;
-    Tensor<OffsetBuffer, 4> m_output;
-
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_in_left;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_in_right;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_output;
+   
     uint32_t m_in_left_buffer_size;
     uint32_t m_in_right_buffer_size;
     uint32_t m_output_buffer_size;
@@ -883,19 +931,54 @@ class Mul_CS : public lib_mli::Mul_CS {
 public:
 
     Mul_CS();
-
+    /**
+     * @brief Constructor to create an Mul compiler support object.
+     *
+     * This constructor can be used to create Mul compiler support
+     * object. This kernel computes each value of the output tensor as the result of multiplication operation 
+     * of the two input tensors element wise.
+     *
+     * @param pd                [I] Platform description
+     * @param in_left           [I] First Input tensor (full shape)
+     * @param in_right          [I] Second Input tensor (full shape)
+     * @param output            [I] Output tensor (full shape)
+     *
+     * @deprecated
+     */
     Mul_CS(const lib_mli::PlatformDescription pd,
-           const Tensor<NoBuffer, 4> in_left,
-           const Tensor<NoBuffer, 4> in_right,
-           const Tensor<NoBuffer, 4> output_tile_shape);
+           const Tensor<NoBuffer, kEltwiseRank> in_left,
+           const Tensor<NoBuffer, kEltwiseRank> in_right,
+           const Tensor<NoBuffer, kEltwiseRank> output);
+    
+    /**
+     * @brief Constructor to create an Mul compiler support object.
+     *
+     * This constructor can be used to create Mul compiler support
+     * object. This kernel computes each value of the output tensor as the result of multiplication operation 
+     * of the two input tensors element wise.
+     *
+     * @param pd                [I] Platform description
+     * @param in_left           [I] First Input tensorIterator (full shape)
+     * @param in_right          [I] Second Input tensorIterator (full shape)
+     * @param output            [I] Output tensorIterator (full shape)
+     */
+    Mul_CS(const lib_mli::PlatformDescription pd,
+           const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> in_left,
+           const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> in_right,
+           const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> output);
 
     // From CompilerGenericInterface
     unsigned GetKernelPrivateDataSize() const override;
     unsigned GetRuntimeObjectSize() const override;
     mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
-    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left,
-                                   const Tensor<OffsetBuffer, 4> &input_right,
-                                   const Tensor<OffsetBuffer, 4> &output,
+    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kEltwiseRank> &input_left,
+                                   const Tensor<OffsetBuffer, kEltwiseRank> &input_right,
+                                   const Tensor<OffsetBuffer, kEltwiseRank> &output,
+                                   const OffsetBuffer &ctrl_buffer) override;
+                                   
+    mli_status AttachBufferOffsets(const OffsetBuffer &input_left,
+                                   const OffsetBuffer &input_right,
+                                   const OffsetBuffer &output,
                                    const OffsetBuffer &ctrl_buffer) override;
 
     // From Mul_CS
@@ -904,9 +987,9 @@ public:
     unsigned GetOutputBufferSize() override;
 
 private:
-    Tensor<OffsetBuffer, 4> m_in_left;
-    Tensor<OffsetBuffer, 4> m_in_right;
-    Tensor<OffsetBuffer, 4> m_output;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_in_left;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_in_right;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_output;
 
     uint32_t m_in_left_buffer_size;
     uint32_t m_in_right_buffer_size;
@@ -922,19 +1005,53 @@ class Max_CS : public lib_mli::Max_CS {
 public:
 
     Max_CS();
-
+    /**
+     * @brief Constructor to create an Max compiler support object.
+     *
+     * This constructor can be used to create Max compiler support
+     * object. This kernel computes each value of the output tensor as the result of Max operation 
+     * of the two input tensors element wise.
+     *
+     * @param pd                [I] Platform description
+     * @param in_left           [I] First Input tensor (full shape)
+     * @param in_right          [I] Second Input tensor (full shape)
+     * @param output            [I] Output tensor (full shape)
+     * 
+     * @deprecated
+     */
     Max_CS(const lib_mli::PlatformDescription pd,
-           const Tensor<NoBuffer, 4> in_left,
-           const Tensor<NoBuffer, 4> in_right,
-           const Tensor<NoBuffer, 4> output_tile_shape);
+           const Tensor<NoBuffer, kEltwiseRank> in_left,
+           const Tensor<NoBuffer, kEltwiseRank> in_right,
+           const Tensor<NoBuffer, kEltwiseRank> output);
+    /**
+     * @brief Constructor to create an Max compiler support object.
+     *
+     * This constructor can be used to create Max compiler support
+     * object. This kernel computes each value of the output tensor as the result of Max operation 
+     * of the two input tensors element wise.
+     *
+     * @param pd                [I] Platform description
+     * @param in_left           [I] First Input tensorIterator (full shape)
+     * @param in_right          [I] Second Input tensorIterator (full shape)
+     * @param output            [I] Output tensorIterator (full shape)
+     */
+    Max_CS(const lib_mli::PlatformDescription pd,
+           const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> in_left,
+           const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> in_right,
+           const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> output);
 
     // From CompilerGenericInterface
     unsigned GetKernelPrivateDataSize() const override;
     unsigned GetRuntimeObjectSize() const override;
     mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
-    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input_left,
-                                   const Tensor<OffsetBuffer, 4> &input_right,
-                                   const Tensor<OffsetBuffer, 4> &output,
+    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kEltwiseRank> &input_left,
+                                   const Tensor<OffsetBuffer, kEltwiseRank> &input_right,
+                                   const Tensor<OffsetBuffer, kEltwiseRank> &output,
+                                   const OffsetBuffer &ctrl_buffer) override;
+                                  
+    mli_status AttachBufferOffsets(const OffsetBuffer &input_left,
+                                   const OffsetBuffer &input_right,
+                                   const OffsetBuffer &output,
                                    const OffsetBuffer &ctrl_buffer) override;
 
     // From Max_CS
@@ -943,9 +1060,9 @@ public:
     unsigned GetOutputBufferSize() override;
 
 private:
-    Tensor<OffsetBuffer, 4> m_in_left;
-    Tensor<OffsetBuffer, 4> m_in_right;
-    Tensor<OffsetBuffer, 4> m_output;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_in_left;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_in_right;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_output;
 
     uint32_t m_in_left_buffer_size;
     uint32_t m_in_right_buffer_size;
@@ -961,11 +1078,40 @@ class Min_CS : public lib_mli::Min_CS {
 public:
 
     Min_CS();
-
+    /**
+     * @brief Constructor to create an Min compiler support object.
+     *
+     * This constructor can be used to create Min compiler support
+     * object. This kernel computes each value of the output tensor as the result of Min operation 
+     * of the two input tensors element wise.
+     *
+     * @param pd                [I] Platform description
+     * @param in_left           [I] First Input tensorIterator (full shape)
+     * @param in_right          [I] Second Input tensorIterator (full shape)
+     * @param output            [I] Output tensorIterator (full shape)
+     *
+     * @deprecated
+     */
     Min_CS(const lib_mli::PlatformDescription pd,
-           const Tensor<NoBuffer, 4> in_left,
-           const Tensor<NoBuffer, 4> in_right,
-           const Tensor<NoBuffer, 4> output_tile_shape);
+           const Tensor<NoBuffer, kEltwiseRank> in_left,
+           const Tensor<NoBuffer, kEltwiseRank> in_right,
+           const Tensor<NoBuffer, kEltwiseRank> output);
+    /**
+     * @brief Constructor to create an Min compiler support object.
+     *
+     * This constructor can be used to create Min compiler support
+     * object. This kernel computes each value of the output tensor as the result of Min operation 
+     * of the two input tensors element wise.
+     *
+     * @param pd                [I] Platform description
+     * @param in_left           [I] First Input tensorIterator (full shape)
+     * @param in_right          [I] Second Input tensorIterator (full shape)
+     * @param output            [I] Output tensorIterator (full shape)
+     */
+    Min_CS(const lib_mli::PlatformDescription pd,
+           const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> in_left,
+           const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> in_right,
+           const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> output);
 
     // From CompilerGenericInterface
     unsigned GetKernelPrivateDataSize() const override;
@@ -975,6 +1121,11 @@ public:
                                    const Tensor<OffsetBuffer, 4> &input_right,
                                    const Tensor<OffsetBuffer, 4> &output,
                                    const OffsetBuffer &ctrl_buffer) override;
+                                   
+    mli_status AttachBufferOffsets(const OffsetBuffer &input_left,
+                                   const OffsetBuffer &input_right,
+                                   const OffsetBuffer &output,
+                                   const OffsetBuffer &ctrl_buffer) override;
 
     // From Min_CS
     unsigned GetInputLeftBufferSize() override;
@@ -982,9 +1133,9 @@ public:
     unsigned GetOutputBufferSize() override;
 
 private:
-    Tensor<OffsetBuffer, 4> m_in_left;
-    Tensor<OffsetBuffer, 4> m_in_right;
-    Tensor<OffsetBuffer, 4> m_output;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_in_left;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_in_right;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_output;
 
     uint32_t m_in_left_buffer_size;
     uint32_t m_in_right_buffer_size;

@@ -27,6 +27,7 @@
 #include "test_report.h"
 
 #include "vectors_mli_krn_eltwise.inc"
+#include "test_tiling.hpp"
 
 #define MAX_MIN_UPPER_LIMIT_SHIFT 23
 #define MUL_MAX_SHIFT 31
@@ -63,32 +64,32 @@ struct eltwise_test_operands {
   const crc32_calc check_sum;
   EltwiseTy ty;
 };
-
 // TODO Checksums of test tensors for various mli calculations mode.
 // When developer finished implementation of kernel and consider it as ok, He need to populate
 // proper checksums for tests in order to highlight any change which affects results.
 #if defined(CRC_RM_CONVERGENT) || defined(CRC_RM_UP)
 
 // Shared CRC Results
-const crc32_calc  test_1_chksum_sa8{ 0x8BF4D950 }, test_2_chksum_sa8{ 0x2A1351FD },
-                  test_3_chksum_sa8{ 0x46D90B34 }, test_4_chksum_sa8{ 0xF22D7321 },
-                  test_5_chksum_sa8{ 0xC69DE0A9 }, test_6_chksum_fx16{ 0xfc026def },
+const crc32_calc  test_1_chksum_sa8{ 0x7C0D0256 }, test_2_chksum_sa8{ 0x68801F5B },
+                  test_3_chksum_sa8{ 0x8DBAC877 }, test_4_chksum_sa8{ 0xF6956A3D },
+                  test_5_chksum_sa8{ 0x4845B52A }, test_6_chksum_fx16{ 0xfc026def },
                   test_6_chksum_sa8{ 0x3a54561 }, test_7_chksum_fx16{ 0x488ed527 },
                   test_7_chksum_sa8{ 0xD4B7515B }, test_8_chksum_fx16{ 0x68889D84 },
-                  test_8_chksum_sa8{ 0x2D86F301 }, test_9_chksum_fx16{ 0x9417F3D7 },
-                  test_9_chksum_sa8{ 0x351016DF }, test_10_chksum_fx16{ 0xD728E430 },
-                  test_10_chksum_sa8{ 0xDC1A832D }, test_11_chksum_fx16{ 0xBF03F2E0 },
-                  test_11_chksum_sa8{ 0xD36B7E94 };
+                  test_9_chksum_fx16{ 0x9417F3D7 }, test_9_chksum_sa8{ 0x40280CDD }, 
+                  test_10_chksum_fx16{ 0xD728E430 }, test_10_chksum_sa8{ 0xDAC803C8 }, 
+                  test_11_chksum_fx16{ 0xBF03F2E0 };
 
 // Platform Specific CRC Results
 #if defined(CRC_RM_UP)
-const crc32_calc test_1_chksum_fx16{ 0xAC3BE4B7 }, test_2_chksum_fx16{ 0x170065BD },
-                 test_3_chksum_fx16{ 0x1E1FA5DD }, test_4_chksum_fx16{ 0xE27C401E },
-                 test_5_chksum_fx16{ 0x1a678d57 };
+const crc32_calc test_1_chksum_fx16{ 0xF9491C7A }, test_2_chksum_fx16{ 0xDEA72ABF },
+                 test_3_chksum_fx16{ 0x4B6D5D10 }, test_4_chksum_fx16{ 0x8F033B09 },
+                 test_5_chksum_fx16{ 0xA4DEA778 },  test_8_chksum_sa8{ 0xD66F86D9 },
+                 test_11_chksum_sa8{ 0xCCA960DE };
 #else
-const crc32_calc test_1_chksum_fx16{ 0x5C7970C5 }, test_2_chksum_fx16{ 0x10D03580 },
-                 test_3_chksum_fx16{ 0x6DD8F3E6 }, test_4_chksum_fx16{ 0xE27C401E },
-                 test_5_chksum_fx16{ 0x1DB7DD6A };
+const crc32_calc test_1_chksum_fx16{ 0x090B8808 }, test_2_chksum_fx16{ 0xD9777A82 },
+                 test_3_chksum_fx16{ 0x38AA0B2B }, test_4_chksum_fx16{ 0x8F033B09 },
+                 test_5_chksum_fx16{ 0xA30EF745 }, test_8_chksum_sa8{ 0xF6982830 },
+                 test_11_chksum_sa8{ 0xFB090C15 };
 #endif
 
 #else  // Not defined CRC_*
@@ -105,7 +106,6 @@ const crc32_calc  test_1_chksum_fx16, test_1_chksum_sa8,
                   test_11_chksum_fx16, test_11_chksum_sa8;
 
 #endif
-
 const quality_metrics thresholds_fx16_general {quality_metrics::kPassValueMaxAbsErr,
                                                quality_metrics::kPassValueSnr,
                                                /* SNR DB = */ 60.f,
@@ -176,23 +176,23 @@ static const eltwise_test_operands tests_list[] = {
   {"Test 8 FX16 Max two vectors",  mli_krn_eltwise_max_fx16,
                                  input_1_fx16_12, input_2_fx16_12, test_8_out_fx16,
                                  thresholds_fx16_general, test_8_chksum_fx16, EltwiseTy::MAX},
-  // {"Test 8 SA8 Max two vectors",  mli_krn_eltwise_max_sa8,
-  //                               input_1_sa8_12, input_2_sa8_12, test_8_out_sa8,
-  //                               thresholds_sa8_general, test_8_chksum_sa8, EltwiseTy::MAX},
+  {"Test 8 SA8 Max two vectors",  mli_krn_eltwise_max_sa8,
+                                input_1_sa8_12, input_2_sa8_12, test_8_out_sa8,
+                                thresholds_sa8_general, test_8_chksum_sa8, EltwiseTy::MAX},
 
   // Eltwise Max vector & scalar
   {"Test 9 FX16 Max vec & scalar",  mli_krn_eltwise_max_fx16,
                                   input_1_fx16_13, input_3_fx16_13, test_9_out_fx16,
                                   thresholds_fx16_general, test_9_chksum_fx16, EltwiseTy::MAX},
-  // {"Test 9 SA8 Max vec & scalar",  mli_krn_eltwise_max_sa8,
-  //                                input_1_sa8_13, input_3_sa8_13, test_9_out_sa8,
-  //                                thresholds_sa8_general, test_9_chksum_sa8, EltwiseTy::MAX},
+  {"Test 9 SA8 Max vec & scalar",  mli_krn_eltwise_max_sa8,
+                                 input_1_sa8_13, input_3_sa8_13, test_9_out_sa8,
+                                 thresholds_sa8_general, test_9_chksum_sa8, EltwiseTy::MAX},
 
   // Eltwise Min two vectors
   
-  // {"Test 10 SA8 Min two vectors",  mli_krn_eltwise_min_sa8,
-  //                                input_1_sa8_12, input_2_sa8_12, test_10_out_sa8,
-  //                                thresholds_sa8_general, test_10_chksum_sa8, EltwiseTy::MIN},
+  {"Test 10 SA8 Min two vectors",  mli_krn_eltwise_min_sa8,
+                                 input_1_sa8_12, input_2_sa8_12, test_10_out_sa8,
+                                 thresholds_sa8_general, test_10_chksum_sa8, EltwiseTy::MIN},
   
   {"Test 10 FX16 Min two vectors",  mli_krn_eltwise_min_fx16,
                                   input_1_fx16_12, input_2_fx16_12, test_10_out_fx16,
@@ -203,9 +203,9 @@ static const eltwise_test_operands tests_list[] = {
   {"Test 11 FX16 Min vec & scalar",  mli_krn_eltwise_min_fx16,
                                    input_1_fx16_13, input_3_fx16_13, test_11_out_fx16,
                                    thresholds_fx16_general, test_11_chksum_fx16, EltwiseTy::MIN},
-  // {"Test 11 SA8 Min vec & scalar",  mli_krn_eltwise_min_sa8,
-  //                                 input_1_sa8_13, input_3_sa8_13, test_11_out_sa8,
-  //                                 thresholds_sa8_general, test_11_chksum_sa8, EltwiseTy::MIN},
+  {"Test 11 SA8 Min vec & scalar",  mli_krn_eltwise_min_sa8,
+                                  input_1_sa8_13, input_3_sa8_13, test_11_out_sa8,
+                                  thresholds_sa8_general, test_11_chksum_sa8, EltwiseTy::MIN},
 };
 
 constexpr int kTestsNum = sizeof(tests_list) / sizeof(tests_list[0]);
@@ -241,13 +241,23 @@ struct EltwiseOp {
 
   // Element wise Kernel
   EltwiseOp(const eltwise_test_operands* cur_test) {
-    mem_in1_keeper = memory_manager((int8_t*)(g_scratch_mem_in1), sizeof(g_scratch_mem_in1));
-    mem_in2_keeper = memory_manager((int8_t*)(g_scratch_mem_in2), sizeof(g_scratch_mem_in2));
-    mem_out_keeper = memory_manager((int8_t*)(g_scratch_mem_out), sizeof(g_scratch_mem_out));
+    mli_data_container temp_in1_container{0};
+    mli_data_container temp_in2_container{0};
+    mli_data_container temp_out_container{0};
 
-    in1 = cur_test->in1.get_quantized_tensor(mem_in1_keeper.allocate_memory(cur_test->in1));
-    in2 = cur_test->in2.get_quantized_tensor(mem_in2_keeper.allocate_memory(cur_test->in2));
-    out = cur_test->out.get_not_quantized_tensor(mem_out_keeper.allocate_memory(cur_test->out));
+    temp_in1_container.capacity =
+        cur_test->in1.get_not_quantized_tensor(temp_in1_container).data.capacity;
+    temp_in1_container.mem.pi8 = g_scratch_mem_in1;
+    temp_in2_container.capacity =
+        cur_test->in2.get_not_quantized_tensor(temp_in2_container).data.capacity;
+    temp_in2_container.mem.pi8 = g_scratch_mem_in2;
+    temp_out_container.capacity =
+        cur_test->out.get_not_quantized_tensor(temp_out_container).data.capacity;
+    temp_out_container.mem.pi8 = g_scratch_mem_out;
+
+    in1 =cur_test->in1.get_quantized_tensor(temp_in1_container);
+    in2 =cur_test->in2.get_quantized_tensor(temp_in2_container);    
+    out=cur_test->out.get_not_quantized_tensor(temp_out_container);
     original_out = out;
 
     ty = cur_test->ty;
@@ -259,40 +269,63 @@ struct EltwiseOp {
     }
   };
 
-  void CreateKernel(const lib_mli::Tensor<lib_mli::NoBuffer, 4>& in1_tensor,
-                    const lib_mli::Tensor<lib_mli::NoBuffer, 4>& in2_tensor,
-                    const lib_mli::Tensor<lib_mli::NoBuffer, 4>& out_tensor) {
+  void CreateKernel(EltwiseOp& op,
+                    const lib_mli::Tensor<lib_mli::NoBuffer, lib_mli::kEltwiseRank>& in1_tensor,
+                    const lib_mli::Tensor<lib_mli::NoBuffer, lib_mli::kEltwiseRank>& in2_tensor,
+                    const lib_mli::Tensor<lib_mli::NoBuffer, lib_mli::kEltwiseRank>& out_tensor,
+                    uint32_t *input_tile_size,
+                    uint32_t *output_tile_size,
+                    int32_t *iteration_order
+                    ) {
+    assert(input_tile_size != nullptr);
+    assert(output_tile_size != nullptr);
+    assert(iteration_order != nullptr);
+
     lib_mli::PlatformDescription pd;
     lib_ref::KernelsFactory kernel_factory(pd);
+	uint32_t in1_tile_shape[lib_mli::kEltwiseIterRank] = {1, 1, 1, 1};
+	uint32_t in2_tile_shape[lib_mli::kEltwiseIterRank] = {1, 1, 1, 1};
+    for(uint32_t i = 0; i < lib_mli::kEltwiseRank; ++i) {
+		if(op.in1.rank!=0) {
+			in1_tile_shape[i] = input_tile_size[i];
+		}
+		if(op.in2.rank != 0) {
+			in2_tile_shape[i]=input_tile_size[i];
+		}
+    }
+   
+    lib_mli::TensorIterator<lib_mli::NoBuffer, lib_mli::kEltwiseRank, lib_mli::kEltwiseIterRank> in1_tensor_it(in1_tensor, in1_tile_shape, iteration_order);
+    lib_mli::TensorIterator<lib_mli::NoBuffer, lib_mli::kEltwiseRank, lib_mli::kEltwiseIterRank> in2_tensor_it(in2_tensor, in2_tile_shape, iteration_order);
+    lib_mli::TensorIterator<lib_mli::NoBuffer, lib_mli::kEltwiseRank, lib_mli::kEltwiseIterRank> out_tensor_it(out_tensor, output_tile_size, iteration_order);
     switch (ty) {
     case EltwiseTy::ADD: {
       uint32_t eltwise_size = kernel_factory.Add_CS_GetSize();
       void* eltwise_buffer = malloc(eltwise_size);
-      kernel = kernel_factory.Add_CS(eltwise_buffer, in1_tensor, in2_tensor, out_tensor);
+      kernel = kernel_factory.Add_CS(eltwise_buffer, in1_tensor_it, in2_tensor_it, out_tensor_it);
       break;
     }
     case EltwiseTy::SUB: {
       uint32_t eltwise_size = kernel_factory.Sub_CS_GetSize();
       void* eltwise_buffer = malloc(eltwise_size);
-      kernel = kernel_factory.Sub_CS(eltwise_buffer, in1_tensor, in2_tensor, out_tensor);
+      kernel = kernel_factory.Sub_CS(eltwise_buffer, in1_tensor_it, in2_tensor_it, out_tensor_it);
       break;
     }
     case EltwiseTy::MUL: {
       uint32_t eltwise_size = kernel_factory.Mul_CS_GetSize();
       void* eltwise_buffer = malloc(eltwise_size);
-      kernel = kernel_factory.Mul_CS(eltwise_buffer, in1_tensor, in2_tensor, out_tensor);
+      kernel = kernel_factory.Mul_CS(eltwise_buffer, in1_tensor_it, in2_tensor_it, out_tensor_it);
       break;
     }
     case EltwiseTy::MAX: {
       uint32_t eltwise_size = kernel_factory.Max_CS_GetSize();
       void* eltwise_buffer = malloc(eltwise_size);
-      kernel = kernel_factory.Max_CS(eltwise_buffer, in1_tensor, in2_tensor, out_tensor);
+      kernel = kernel_factory.Max_CS(eltwise_buffer, in1_tensor_it, in2_tensor_it, out_tensor_it);
       break;
     }
     case EltwiseTy::MIN: {
       uint32_t eltwise_size = kernel_factory.Min_CS_GetSize();
       void* eltwise_buffer = malloc(eltwise_size);
-      kernel = kernel_factory.Min_CS(eltwise_buffer, in1_tensor, in2_tensor, out_tensor);
+      kernel = kernel_factory.Min_CS(eltwise_buffer, in1_tensor_it, in2_tensor_it, out_tensor_it);
       break;
     }
     default:
@@ -548,26 +581,20 @@ void convert_parameters(EltwiseTy ty,
   param->scale16_2 = scale16_2;
 }
 
-void convert_and_copy_input(EltwiseOp& op,
+void convert_input(EltwiseOp& op,
                            uint32_t in1_size, uint32_t in1_mem_offset,
                            uint32_t in2_size, uint32_t in2_mem_offset) {
- assert(in1_size == op.in1.data.capacity * op.in_elem_size_ratio);
- assert(in2_size == op.in2.data.capacity * op.in_elem_size_ratio);
 
- if (op.in_elem_size_ratio == 1) {
-    // no conversion and copy directly
-    int8_t* in1_src = op.in1.data.mem.pi8;
+  if (op.in_elem_size_ratio == 1) {
+    // no conversion
     if (op.param.scalar_op1) {
-      in1_src = reinterpret_cast<int8_t*>(&op.param.scalar1);
+      op.ByteCopy(reinterpret_cast<int8_t*>(&op.param.scalar1), 0, (int8_t*)g_mem_pool, in1_mem_offset, in1_size);
     }
-    op.ByteCopy(in1_src, 0, (int8_t*)g_mem_pool, in1_mem_offset, in1_size);
-
-    int8_t* in2_src = op.in2.data.mem.pi8;
     if (op.param.scalar_op2) {
-      in2_src = reinterpret_cast<int8_t*>(&op.param.scalar2);
+      op.ByteCopy(reinterpret_cast<int8_t*>(&op.param.scalar2), 0, (int8_t*)g_mem_pool, in2_mem_offset, in2_size);
     }
-    op.ByteCopy(in2_src, 0, (int8_t*)g_mem_pool, in2_mem_offset, in2_size);
-  } else if (op.in_elem_size_ratio == 2) {
+    
+  }  else if (op.in_elem_size_ratio == 2) {
     // convert int16_t to int32_t (with shifting)
     auto converter = [&op] (int16_t* src, uint32_t length, uint32_t offset, uint32_t byte_size, int pre_op_shift) {
       std::vector<int32_t> in_temp;
@@ -581,21 +608,28 @@ void convert_and_copy_input(EltwiseOp& op,
         in_temp.push_back(temp_value);
       }
       assert(in_temp.size() * sizeof(int32_t) == byte_size);
-      op.ByteCopy(reinterpret_cast<int8_t*>(in_temp.data()), 0, (int8_t*)g_mem_pool, offset, byte_size);
+      op.ByteCopy(reinterpret_cast<int8_t*>(in_temp.data()), 0, (int8_t*)src, 0, byte_size);
     };
 
+    int16_t* in1_src = op.in1.data.mem.pi16;  
     if (!op.param.scalar_op1) {
-      converter(op.in1.data.mem.pi16, op.in1.data.capacity / sizeof(int16_t), in1_mem_offset, in1_size, op.param.pre_op_shift1);
-    } else {
+      converter(in1_src, op.in1.data.capacity / sizeof(int16_t), in1_mem_offset, in1_size, op.param.pre_op_shift1);
+      //in1_src = reinterpret_cast<int16_t*>(&op.in1.data.mem.i16);
+      // converter(op.in1.data.mem.pi16, op.in1.data.capacity / sizeof(int16_t), in1_mem_offset, in1_size, op.param.pre_op_shift1);
+    } else{
       op.ByteCopy(reinterpret_cast<int8_t*>(&op.param.scalar1), 0, (int8_t*)g_mem_pool, in1_mem_offset, in1_size);
     }
+    
 
+    int16_t* in2_src = op.in2.data.mem.pi16;  
     if (!op.param.scalar_op2) {
-      converter(op.in2.data.mem.pi16, op.in2.data.capacity / sizeof(int16_t), in2_mem_offset, in2_size, op.param.pre_op_shift2);
-    } else {
+      //in2_src = reinterpret_cast<int16_t*>(&op.in2.data.mem.i16);
+      converter(in2_src, op.in2.data.capacity / sizeof(int16_t), in2_mem_offset, in2_size, op.param.pre_op_shift2);
+      // converter(op.in2.data.mem.pi16, op.in2.data.capacity / sizeof(int16_t), in2_mem_offset, in2_size, op.param.pre_op_shift2);
+    }
+    else{
       op.ByteCopy(reinterpret_cast<int8_t*>(&op.param.scalar2), 0, (int8_t*)g_mem_pool, in2_mem_offset, in2_size);
     }
-
   } else if (op.in_elem_size_ratio == 4) {
     // convert int8_t to int32_t
     auto converter = [&op] (int8_t* src, uint32_t length, uint32_t offset, uint32_t byte_size,
@@ -611,22 +645,44 @@ void convert_and_copy_input(EltwiseOp& op,
         in_temp.push_back(temp_value);
       }
       assert(in_temp.size() * sizeof(int32_t) == byte_size);
-      op.ByteCopy(reinterpret_cast<int8_t*>(in_temp.data()), 0, (int8_t*)g_mem_pool, offset, byte_size);
+      op.ByteCopy(reinterpret_cast<int8_t*>(in_temp.data()), 0, (int8_t*)src, 0, byte_size);
     };
 
     int8_t* in1_src = op.in1.data.mem.pi8;
-    if (op.param.scalar_op1) {
-      in1_src = reinterpret_cast<int8_t*>(&op.param.scalar1);
-    }
-    converter(in1_src, op.in1.data.capacity, in1_mem_offset, in1_size,
+    if (!op.param.scalar_op1) {
+      converter(in1_src, op.in1.data.capacity, in1_mem_offset, in1_size,
               op.param.in_offset1, op.param.scale16_1, op.param.pre_op_shift1);
+    }
+    else{
+        int32_t temp_value = op.param.scalar1;
+        temp_value = temp_value - op.param.in_offset1;
+        temp_value = temp_value * op.param.scale16_1;
+        if (op.ty == EltwiseTy::ADD || op.ty == EltwiseTy::SUB) {
+          temp_value = rshift(temp_value, op.param.pre_op_shift1);
+        }
+        op.param.scalar1=temp_value;
+      op.ByteCopy(reinterpret_cast<int8_t*>(&op.param.scalar1), 0, (int8_t*)g_mem_pool, in1_mem_offset, in1_size);
+    }
+    
+    
 
     int8_t* in2_src = op.in2.data.mem.pi8;
-    if (op.param.scalar_op2) {
-      in2_src = reinterpret_cast<int8_t*>(&op.param.scalar2);
-    }
-    converter(in2_src, op.in2.data.capacity, in2_mem_offset, in2_size,
+    if (!op.param.scalar_op2) {
+      // in2_src = reinterpret_cast<int8_t*>(&op.in2.data.mem.i8);
+      converter(in2_src, op.in2.data.capacity, in2_mem_offset, in2_size,
               op.param.in_offset2, op.param.scale16_2, op.param.pre_op_shift2);
+    }
+    else{
+      int32_t temp_value = op.param.scalar2;
+        temp_value = temp_value - op.param.in_offset2;
+        temp_value = temp_value * op.param.scale16_2;
+        if (op.ty == EltwiseTy::ADD || op.ty == EltwiseTy::SUB) {
+          temp_value = rshift(temp_value, op.param.pre_op_shift2);
+        }
+        op.param.scalar2=temp_value;
+      op.ByteCopy(reinterpret_cast<int8_t*>(&op.param.scalar2), 0, (int8_t*)g_mem_pool, in2_mem_offset, in2_size);
+    }
+    
 
   } else {
     // not support yet
@@ -669,19 +725,16 @@ T get_input_val (const mli_tensor& in, const mli_tensor& out, uint32_t nth_of_ou
   return 0;
 }
 
-void convert_and_copy_output(EltwiseOp& op) {
+void convert_output(EltwiseOp& op) {
   // Copy back the results for quality metrics
   assert(op.out_size == op.out.data.capacity * op.out_elem_size_ratio);
   uint32_t out_elem_size = mli_hlp_tensor_element_size(&op.out);
   uint32_t num_elem = op.out.data.capacity / out_elem_size;
-  //assert(op.out_size / num_elem == sizeof(int32_t) );
-  int32_t* out_ptr = reinterpret_cast<int32_t*>((int8_t*)g_mem_pool + op.out_mem_offset);
-
-  // TODO: refactor to use Rescale kernel
+  int32_t* out_ptr = reinterpret_cast<int32_t*>(op.out.data.mem.pi8);//reinterpret_cast<int32_t*>((int8_t*)g_mem_pool + op.out_mem_offset);
   if (op.out_elem_size_ratio == 1) {
-    // no conversion and copy directly
-    op.ByteCopy((int8_t*)g_mem_pool, op.out_mem_offset, op.out.data.mem.pi8, 0, op.out_size);
-  } else if (op.out_elem_size_ratio == 2) {
+  }
+  // TODO: refactor to use Rescale kernel
+  else if (op.out_elem_size_ratio == 2) {
     // convert int32 to int16
     std::vector<int16_t> out_temp;
     for (uint32_t i = 0; i < num_elem; ++i) {
@@ -757,8 +810,8 @@ bool preprocess_phase(const reporter_full& reporter,
 
 template<typename EltwiseOpTy>
 void plan_memory(EltwiseOp& op,
-                 uint32_t input1_shape[4],
-                 uint32_t input2_shape[4], uint32_t output_shape[4]) {
+                 uint32_t input1_tile_size[lib_mli::kEltwiseRank],
+                 uint32_t input2_tile_size[lib_mli::kEltwiseRank], uint32_t output_tile_size[lib_mli::kEltwiseRank]) {
   // STEP 1.2.1: Memory management (Up to user on how to deal with it)
   //==================================================================
   EltwiseOpTy eltwise_op = std::get<EltwiseOpTy>(op.kernel);
@@ -779,16 +832,19 @@ void plan_memory(EltwiseOp& op,
   uint32_t private_buffer_size = eltwise_op->GetKernelPrivateDataSize();
   *offset += private_buffer_size;
 
+  int32_t in1_mem_stride[]={1, 1, op.in1.mem_stride[0],op.in1.mem_stride[1]};
+  int32_t in2_mem_stride[]={1, 1, op.in2.mem_stride[0],op.in2.mem_stride[1]};
+  int32_t out_mem_stride[]={1, 1, op.out.mem_stride[0],op.out.mem_stride[1]};
+
+
   // Define buffers for in\out tensors
-  uint32_t in1_size = eltwise_op->GetInputLeftBufferSize() * op.in_elem_size;
+  uint32_t in1_size = lib_mli::service::GetBufferSize(lib_mli::kEltwiseRank, input1_tile_size, in1_mem_stride)  * op.in_elem_size;
   lib_mli::OffsetBuffer add_in1_buf{*offset, 0, in1_size, op.in_elem_size};
-  lib_mli::Tensor<lib_mli::OffsetBuffer, 4> add_in1_tensor(add_in1_buf, input1_shape);
   in1_mem_offset = *offset;
   *offset += in1_size;
 
-  uint32_t in2_size = eltwise_op->GetInputRightBufferSize() * op.in_elem_size;
+  uint32_t in2_size = lib_mli::service::GetBufferSize(lib_mli::kEltwiseRank, input2_tile_size, in2_mem_stride)  * op.in_elem_size;
   lib_mli::OffsetBuffer add_in2_buf{*offset, 0, in2_size, op.in_elem_size};
-  lib_mli::Tensor<lib_mli::OffsetBuffer, 4> add_in2_tensor(add_in2_buf, input2_shape);
   in2_mem_offset = *offset;
   *offset += in2_size;
 
@@ -796,11 +852,10 @@ void plan_memory(EltwiseOp& op,
   // NOTE: The output should be aligned, otherwise, it will cause `vvst` crash.
   //       For example, offset is 4 bytes aligned if output is int32_t.
   *offset = CEIL_RND(*offset, op.out_elem_size);
-  uint32_t out_size = eltwise_op->GetOutputBufferSize() * op.out_elem_size;
+  uint32_t out_size = lib_mli::service::GetBufferSize(lib_mli::kEltwiseRank, output_tile_size, out_mem_stride)  * op.out_elem_size;
   lib_mli::OffsetBuffer add_out_buf{*offset, 0, out_size, op.out_elem_size};
-  lib_mli::Tensor<lib_mli::OffsetBuffer, 4> add_out_tensor(add_out_buf, output_shape);
   op.out_mem_offset = *offset;
-  op.out_size = out_size;
+  op.out_size = op.out.data.capacity * op.out_elem_size_ratio;
   *offset += out_size;
 
   // MLI tensor structures and eltwise configuration
@@ -812,10 +867,12 @@ void plan_memory(EltwiseOp& op,
   assert(ctrl_buffer_size == 0);
   assert(*offset < kMemSize);
 
+  // convert input tensors to 32-bit data type
+  convert_input(op, op.in1.data.capacity * op.in_elem_size_ratio, in1_mem_offset, op.in2.data.capacity * op.in_elem_size_ratio, in2_mem_offset);
+  
   mli_status status = MLI_STATUS_OK;
-
   // Attaching buffer (descriptors) to the operation
-  status = eltwise_op->AttachBufferOffsets(add_in1_tensor, add_in2_tensor, add_out_tensor, eltwise_ctrl_buf);
+  status = eltwise_op->AttachBufferOffsets(add_in1_buf, add_in2_buf, add_out_buf, eltwise_ctrl_buf);
 
   op.eltwise_instance = (int8_t*)g_mem_pool;
   op.eltwise_instance_size = eltwise_op->GetRuntimeObjectSize();
@@ -825,18 +882,17 @@ void plan_memory(EltwiseOp& op,
   op.eltwise_conf_private =
       reinterpret_cast<lib_mli::PrivateData*>((int8_t*)g_mem_pool + op.eltwise_instance_size);
   op.eltwise_conf_private_size = eltwise_op->GetKernelPrivateDataSize();
-
-  // STEP 1.2.2: Copy dataset from scratch buffer to the global shared memory pool
-  //==================================================================
-  // Copy input data from scratch buffer to the shared memory pool
-  convert_and_copy_input(op, in1_size, in1_mem_offset, in2_size, in2_mem_offset);
 }
 
-void prepare_phase(const eltwise_test_operands* cur_test, EltwiseOp& op) {
+void prepare_phase(const eltwise_test_operands* cur_test,
+                   EltwiseOp& op,
+                   uint32_t *input_tile_size,
+                   uint32_t *output_tile_size,
+                   int32_t *iteration_order) {
   // STEP 1.1: Construct EltwiseOp as a specific ExecutionInterface successor
   //==================================================================
-  uint32_t input1_shape[4] = {1, 1, 1, 1};
-  int32_t input1_stride[4] = {1, 1, 1, 1};
+  uint32_t input1_shape[lib_mli::kEltwiseRank] = {1, 1, 1, 1};
+  int32_t input1_stride[lib_mli::kEltwiseRank] = {1, 1, 1, 1};
   if (op.in1.rank > 0) {
     assert(op.in1.rank == 2);
     input1_shape[2] = op.in1.shape[0];
@@ -845,8 +901,8 @@ void prepare_phase(const eltwise_test_operands* cur_test, EltwiseOp& op) {
     input1_stride[3] = op.in1.mem_stride[1];
   }
 
-  uint32_t input2_shape[4] = {1, 1, 1, 1};
-  int32_t input2_stride[4] = {1, 1, 1, 1};
+  uint32_t input2_shape[lib_mli::kEltwiseRank] = {1, 1, 1, 1};
+  int32_t input2_stride[lib_mli::kEltwiseRank] = {1, 1, 1, 1};
   if (op.in2.rank > 0) {
     assert(op.in2.rank == 2);
     input2_shape[2] = op.in2.shape[0];
@@ -856,12 +912,12 @@ void prepare_phase(const eltwise_test_operands* cur_test, EltwiseOp& op) {
   }
 
   assert(op.out.rank == 2);
-  uint32_t output_shape[4] = {1, 1, op.out.shape[0], op.out.shape[1]};
-  int32_t output_stride[4] = {1, 1, op.out.mem_stride[0], op.out.mem_stride[1]};
+  uint32_t output_shape[lib_mli::kEltwiseRank] ={1, 1, op.out.shape[0], op.out.shape[1]};
+  int32_t output_stride[lib_mli::kEltwiseRank] ={1, 1, op.out.mem_stride[0], op.out.mem_stride[1]};
 
-  const lib_mli::Tensor<lib_mli::NoBuffer, 4> in1_tensor(input1_shape, input1_stride);
-  const lib_mli::Tensor<lib_mli::NoBuffer, 4> in2_tensor(input2_shape, input2_stride);
-  const lib_mli::Tensor<lib_mli::NoBuffer, 4> out_tensor(output_shape, output_stride);
+  const lib_mli::Tensor<lib_mli::NoBuffer, lib_mli::kEltwiseRank> in1_tensor(input1_shape, input1_stride);
+  const lib_mli::Tensor<lib_mli::NoBuffer, lib_mli::kEltwiseRank> in2_tensor(input2_shape, input2_stride);
+  const lib_mli::Tensor<lib_mli::NoBuffer, lib_mli::kEltwiseRank> out_tensor(output_shape, output_stride);
 
   // the size of accumulator in bytes
   uint32_t acc_size = sizeof(int32_t);
@@ -890,7 +946,7 @@ void prepare_phase(const eltwise_test_operands* cur_test, EltwiseOp& op) {
   }
 
   //i8 + i8 -> (i32) -> i8 or i16 + i16 -> (i32) -> i16
-  if (op.ty == EltwiseTy::MUL ) {
+if (op.ty == EltwiseTy::MUL ) {
     // For mul, we pass i8 or i16 inputs directly and get i32 output. Then change it back.
     op.in_elem_size = elem_size;
     op.in_elem_size_ratio = 1;
@@ -904,7 +960,8 @@ void prepare_phase(const eltwise_test_operands* cur_test, EltwiseOp& op) {
     // parts in testing (convert and copy functions). We have to extend mul to support
     // encode zp methods in order to compute other parts in mli internal.
    } 
-   else if(op.ty == EltwiseTy::MIN || op.ty == EltwiseTy::MAX)
+   /*sa8 isn't supported yet*/
+   else if((op.ty == EltwiseTy::MIN || op.ty == EltwiseTy::MAX) && (op.in1.el_type == MLI_EL_FX_16) )
   {
     // For min and max, we pass i8 or i16 inputs directly and get output directly
     op.in_elem_size = elem_size;
@@ -921,31 +978,43 @@ void prepare_phase(const eltwise_test_operands* cur_test, EltwiseOp& op) {
     op.out_elem_size = acc_size;
     op.out_elem_size_ratio = elem_size_ratio;
    }
-   
 
-  op.CreateKernel(in1_tensor, in2_tensor, out_tensor);
+  
 
+  op.CreateKernel(op ,in1_tensor, in2_tensor, out_tensor, input_tile_size, output_tile_size, iteration_order);
+  
+  uint32_t in1_tile_shape[lib_mli::kEltwiseRank]={1, 1, 1, 1};
+  uint32_t in2_tile_shape[lib_mli::kEltwiseRank]={1, 1, 1, 1};
+  for (uint32_t i = 0; i < lib_mli::kEltwiseRank; ++i){
+    if (op.in1.rank != 0)
+    {
+      in1_tile_shape[i] = input_tile_size[i];
+    }
+    if (op.in2.rank != 0)
+    {
+      in2_tile_shape[i] = input_tile_size[i];
+    }
+  }
   // STEP 1.2: Memory management And Copy Inputs
   //==================================================================
   if (op.ty == EltwiseTy::ADD) {
-    plan_memory<lib_mli::Add_CS*>(op, input1_shape, input2_shape, output_shape);
+    plan_memory<lib_mli::Add_CS*>(op, in1_tile_shape, in2_tile_shape, output_tile_size);
   } else if (op.ty == EltwiseTy::SUB) {
-    plan_memory<lib_mli::Sub_CS*>(op, input1_shape, input2_shape, output_shape);
+    plan_memory<lib_mli::Sub_CS*>(op, in1_tile_shape, in2_tile_shape, output_tile_size);
   } else if (op.ty == EltwiseTy::MUL) {
-    plan_memory<lib_mli::Mul_CS*>(op, input1_shape, input2_shape, output_shape);
+    plan_memory<lib_mli::Mul_CS*>(op, in1_tile_shape, in2_tile_shape, output_tile_size);
   } else if (op.ty == EltwiseTy::MAX) {
-    plan_memory<lib_mli::Max_CS*>(op, input1_shape, input2_shape, output_shape);
+    plan_memory<lib_mli::Max_CS*>(op, in1_tile_shape, in2_tile_shape, output_tile_size);
   } else if (op.ty == EltwiseTy::MIN) {
-    plan_memory<lib_mli::Min_CS*>(op, input1_shape, input2_shape, output_shape);
+    plan_memory<lib_mli::Min_CS*>(op, in1_tile_shape, in2_tile_shape, output_tile_size);
   } else {
     assert(false);
   }
 }
 
-void execution_phase(const EltwiseOp& op) {
+void execution_phase(EltwiseOp& op, uint32_t tiles_num) {
   // STEP 3: Execution phase
   //==================================================================
-  uint32_t tiles_num = 1;
 
   uint64_t membasis[] = { reinterpret_cast<uint64_t>(g_mem_pool) };
 
@@ -954,15 +1023,88 @@ void execution_phase(const EltwiseOp& op) {
     op.eltwise_conf_private, op.eltwise_conf_private_size,
     membasis, sizeof(membasis) / sizeof(membasis[0]));
 
+  lib_ref::EltwisePrivateData* eltwise_private = (lib_ref::EltwisePrivateData*)(op.eltwise_conf_private);
+  int32_t tile_input_strides[lib_mli::kEltwiseRank];
+  int32_t tile_output_strides[lib_mli::kEltwiseRank];
+  if (op.in1.rank == 0) //if in1 is scaler
+  {
+    eltwise_private->m_in_right_buffer.get_mem_strides(tile_input_strides);
+  }
+  else{
+    eltwise_private->m_in_left_buffer.get_mem_strides(tile_input_strides);
+  }
+  eltwise_private->m_output_buffer.get_mem_strides(tile_output_strides);
+
+  uint32_t input1_tile_size[lib_mli::kEltwiseRank];
+  uint32_t input2_tile_size[lib_mli::kEltwiseRank];
+  uint32_t output_tile_size[lib_mli::kEltwiseRank];
+  int32_t input1_tile_offsets[lib_mli::kEltwiseRank];
+  int32_t input2_tile_offsets[lib_mli::kEltwiseRank];
+  int32_t output_tile_offsets[lib_mli::kEltwiseRank];
+  const int32_t zero_offsets[lib_mli::kEltwiseRank]{};
+
+
   assert(eltwise != nullptr);
 
   auto status = MLI_STATUS_OK;
   for (int i = 0; i < tiles_num; ++i) {
     status = eltwise->Prefetch();
     assert(status == MLI_STATUS_OK);
+  switch(op.ty){
+    case EltwiseTy::ADD: {
+      lib_ref::Add* Add_pimpl = dynamic_cast<lib_ref::Add*>(eltwise);
+      Add_pimpl->GetIOSizesAndOffsets(input1_tile_size, input2_tile_size, output_tile_size,
+                                            input1_tile_offsets, input2_tile_offsets, output_tile_offsets);
+      break;
+      }
+    case EltwiseTy::SUB: {
+      lib_ref::Sub* Sub_pimpl = dynamic_cast<lib_ref::Sub*>(eltwise);
+      Sub_pimpl->GetIOSizesAndOffsets(input1_tile_size, input2_tile_size, output_tile_size,
+                                            input1_tile_offsets, input2_tile_offsets, output_tile_offsets);
+      break;
+      }
+    case EltwiseTy::MUL: {
+      lib_ref::Mul* Mul_pimpl = dynamic_cast<lib_ref::Mul*>(eltwise);
+      Mul_pimpl->GetIOSizesAndOffsets(input1_tile_size, input2_tile_size, output_tile_size,
+                                            input1_tile_offsets, input2_tile_offsets, output_tile_offsets);
+      break;
+    }
+    case EltwiseTy::MAX: {
+      lib_ref::Max* Max_pimpl = dynamic_cast<lib_ref::Max*>(eltwise);
+      Max_pimpl->GetIOSizesAndOffsets(input1_tile_size, input2_tile_size, output_tile_size,
+                                            input1_tile_offsets, input2_tile_offsets, output_tile_offsets);
+      break;
+      }
+    case EltwiseTy::MIN: {
+      lib_ref::Min* Min_pimpl = dynamic_cast<lib_ref::Min*>(eltwise);
+      Min_pimpl->GetIOSizesAndOffsets(input1_tile_size, input2_tile_size, output_tile_size,
+                                            input1_tile_offsets, input2_tile_offsets, output_tile_offsets);
+      break;
+      } 
+    default:
+        assert(false);
+  }
+   
+    // copy inputs from global buffer to local tile buffer
+    if (!op.param.scalar_op1) {
+      strided_copy_with_offsets(lib_mli::kEltwiseRank, eltwise_private->m_in_left_buffer.get_buf().get_elem_size(),
+                                g_scratch_mem_in1, input1_tile_offsets, zero_offsets, tile_input_strides,
+                                input1_tile_size, (int8_t*)(g_mem_pool + eltwise_private->m_in_left_buffer.get_buf().get_offset()));
+    }
+    if (!op.param.scalar_op2) {
+      strided_copy_with_offsets(lib_mli::kEltwiseRank, eltwise_private->m_in_right_buffer.get_buf().get_elem_size(),
+                                g_scratch_mem_in2, input2_tile_offsets, zero_offsets, tile_input_strides,
+                                input2_tile_size, (int8_t*)(g_mem_pool + eltwise_private->m_in_right_buffer.get_buf().get_offset()));
+    }
 
     status = eltwise->Issue();
     assert(status == MLI_STATUS_OK);
+
+    // copy output from local tile buffer to global buffer
+    strided_copy_with_offsets(lib_mli::kEltwiseRank,  eltwise_private->m_output_buffer.get_buf().get_elem_size(),
+                              (int8_t*)(g_mem_pool + eltwise_private->m_output_buffer.get_buf().get_offset()),
+                              zero_offsets, output_tile_offsets, tile_output_strides,
+                              output_tile_size, (int8_t*)g_scratch_mem_out);
 
     status = eltwise->Update();
     assert(status == MLI_STATUS_OK);
@@ -973,7 +1115,7 @@ bool postprocess_phase(const reporter_full& reporter,
                        const eltwise_test_operands* cur_test,
                        EltwiseOp& op) {
 
-  convert_and_copy_output(op);
+  convert_output(op);
 
   auto& out = op.out;
   auto& source_out_tensor = op.original_out;
@@ -1048,14 +1190,39 @@ int main() {
     EltwiseOp op = EltwiseOp(cur_test);
     is_test_passed = preprocess_phase(reporter, cur_test, op);
 
+    /***********************************************************************/
+        uint32_t shape[lib_mli::kEltwiseRank] = {1, 1, 1, 1};
+        if (op.in1.rank == 0) //if in1 is scaler
+        {
+           shape[2] = op.in2.shape[0];
+           shape[3] = op.in2.shape[1];
+        }
+        else
+        {
+          shape[2] = op.in1.shape[0];
+          shape[3] = op.in1.shape[1];
+        }
+        uint32_t input_tile_size[lib_mli::kEltwiseRank] =  {1, 1, 2, 4};
+        uint32_t output_tile_size[lib_mli::kEltwiseRank] = {1, 1, 2, 4};
+        int32_t iteration_order[lib_mli::kEltwiseRank]={0, 1, 2, 3};
+
+        // calculate number of tiles needed
+        uint32_t num_tiles = 1;
+        for(int i = 0; i < lib_mli::kEltwiseRank; i++) {
+            uint32_t tiles_per_dim = 1 + CEIL_DIV(shape[i] - input_tile_size[i], input_tile_size[i]);
+            num_tiles *= tiles_per_dim;
+        }
+
+    /************************************************************************/
+
     // STEP 1: Preparing phase
     //==================================================================
-    prepare_phase(cur_test, op);
+    prepare_phase(cur_test, op, input_tile_size, output_tile_size, iteration_order);
 
     // STEP 2: Executing phase
     //==================================================================
     // Run conv2d MLI3.0 kernel
-    execution_phase(op);
+    execution_phase(op,num_tiles);
 
     // Run eltwise MLI2.0 kernel, for debug purpose
     // if (is_test_passed &&

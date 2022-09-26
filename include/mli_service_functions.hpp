@@ -130,6 +130,32 @@ inline const int32_t get_last_increment(uint32_t number_of_tiles,  int32_t first
   return -(increment * ((int32_t)number_of_tiles - 2) + first_increment);
 }
 
+template <typename T>
+void ReconstructTensor(InternalBuffer& internal_buffer, mli_tensor& tensor,
+                         uint32_t rank, uint32_t* shape, int32_t* stride ) {
+  tensor.rank = rank;
+  // assign pointer or val
+  if (tensor.rank != 0) {
+    MLI_ASSERT(internal_buffer.get_ptr<T>() != nullptr);
+    mli_prv_tensor_set_data_ptr(&tensor, internal_buffer.get_ptr<T>());
+  } else {
+    if constexpr(sizeof(T) == sizeof(int8_t)) {
+      tensor.data.mem.i8 = internal_buffer.read<T>(0);
+    } else if constexpr(sizeof(T) == sizeof(int16_t)) {
+      tensor.data.mem.i16 = internal_buffer.read<T>(0);
+    } else if constexpr(sizeof(T) == sizeof(int32_t)) {
+      tensor.data.mem.i32 = internal_buffer.read<T>(0);
+    } else {
+      MLI_ASSERT(false);
+    }
+  }
+  // assgin shape and stride
+  for (uint32_t i = 0; i < tensor.rank; ++i) {
+    tensor.shape[i] = shape[i];
+    tensor.mem_stride[i] = stride[i];
+  }
+}
+
 }  // namespace snps_arc::metaware::mli::service
 
 #endif /* _MLI_SERVICE_FUNCTIONS_HPP_ */

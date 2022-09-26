@@ -256,19 +256,14 @@ class EltwisePrivateData : public PrivateData {
 public:
     EltwisePrivateData(kernel_id_t id)
         : PrivateData(id, sizeof(EltwisePrivateData)) {}
-    OffsetBuffer m_in_left_buffer;
-    OffsetBuffer m_in_right_buffer;
-    OffsetBuffer m_output_buffer;
 
-    uint32_t m_in_left_rank;
-    uint32_t m_in_left_shape[4];
-    int32_t m_in_left_stride[4];
-    uint32_t m_in_right_rank;
-    uint32_t m_in_right_shape[4];
-    int32_t m_in_right_stride[4];
-    uint32_t m_output_rank;
-    uint32_t m_output_shape[4];
-    int32_t m_output_stride[4];
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_in_left_buffer;
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_in_right_buffer; 
+    TensorIterator<OffsetBuffer, kEltwiseRank, kEltwiseIterRank> m_output_buffer;
+
+    bool is_in_left_scalar;
+    bool is_in_right_scalar;
+    
 };
 
 class RescalePrivateData : public PrivateData {
