@@ -42,10 +42,10 @@ TransposeConv2D::TransposeConv2D(void* kernel_private_data_buffer, size_t size,
     m_metadata.wts_quant_axis = private_data.wts_quant_axis;
     m_metadata.cfg = private_data.config;
 
-    m_tile_input = Tensor<InternalBuffer, kTransposeConvIORank>(m_metadata.input.GetSubTensor(true), membases, num_mems);
+    m_tile_input = Tensor<InternalBuffer, kTransposeConvIORank>(m_metadata.input.GetSubTensor(), membases, num_mems);
     m_tile_weights = Tensor<InternalBuffer, kTransposeConvWRank>(m_metadata.weights.GetSubTensor(), membases, num_mems);
     m_tile_wzp = Tensor<InternalBuffer, kTransposeConvZPRank>(m_metadata.weights_zp.GetSubTensor(), membases, num_mems);
-    m_tile_output = Tensor<InternalBuffer, kTransposeConvIORank>(m_metadata.output.GetSubTensor(true), membases, num_mems);
+    m_tile_output = Tensor<InternalBuffer, kTransposeConvIORank>(m_metadata.output.GetSubTensor(), membases, num_mems);
 
     UpdateTilePaddings();
 }
@@ -86,7 +86,7 @@ mli_status TransposeConv2D::Update() {
   m_metadata.weights.Next();
   m_metadata.weights_zp.Next();
 
-  const auto input_tile_tensor = m_metadata.input.GetSubTensor(true);
+  const auto input_tile_tensor = m_metadata.input.GetSubTensor();
   uint32_t input_tile_shape[kTransposeConvIORank];
   input_tile_tensor.get_dims(input_tile_shape);
   m_tile_input = Tensor<InternalBuffer, kTransposeConvIORank>(m_tile_input, input_tile_shape);
@@ -107,7 +107,7 @@ mli_status TransposeConv2D::Update() {
     m_tile_wzp.set_buf(buf);
   }
 
-  const auto output_tile_tensor = m_metadata.output.GetSubTensor(true);
+  const auto output_tile_tensor = m_metadata.output.GetSubTensor();
   uint32_t output_tile_shape[kTransposeConvIORank];
   output_tile_tensor.get_dims(output_tile_shape);
   m_tile_output = Tensor<InternalBuffer, kTransposeConvIORank>(m_tile_output, output_tile_shape);

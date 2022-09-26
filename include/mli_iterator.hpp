@@ -846,7 +846,7 @@ class TensorIterator {
 
 
 
-    Tensor<buf_T, tensorRank> GetSubTensor(bool clip = false) {
+    Tensor<buf_T, tensorRank> GetSubTensor() {
       uint32_t pos[tensorRank];
       uint32_t copysize[tensorRank];
       uint32_t r = 0;
@@ -862,9 +862,7 @@ class TensorIterator {
         } else { // Middle iteration
           copysize[dim] = m_config.get_size(r);
         }
-        if (clip) {
-          copysize[dim] = MIN(m_full_tensor.get_dim(dim) - m_pos[dim], copysize[dim]);
-        }
+        copysize[dim] = MIN(m_full_tensor.get_dim(dim) - m_pos[dim], copysize[dim]);
       }
       return m_full_tensor.slice(pos, copysize);
     }

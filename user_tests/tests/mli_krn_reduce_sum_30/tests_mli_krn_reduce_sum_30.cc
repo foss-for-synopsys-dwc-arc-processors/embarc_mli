@@ -116,6 +116,14 @@ void prepare_phase(const reduce_sum_test_operands* cur_test,
     // STEP 1: Construct ReduceSum as a specific ExecutionInterface successor
     //==================================================================
 
+    for (uint32_t i = 0; i<kReduceSumRank; i++){
+        // in case of input rank less than 4
+        if (temp_input_tensor.shape[i] == 0) {
+            temp_input_tensor.shape[i] = 1;
+            temp_output_tensor.shape[i] = 1;
+        }
+    }
+    
     const lib_mli::Tensor<lib_mli::NoBuffer, kReduceSumRank> in_tensor(
         temp_input_tensor.shape, temp_input_tensor.mem_stride);
     const lib_mli::Tensor<lib_mli::NoBuffer, kReduceSumRank> out_tensor(
@@ -356,6 +364,8 @@ int main(){
             // in case of input rank less than 4
             if(temp_input_tensor.shape[i] == 0) {
                 temp_input_tensor.shape[i] = 1;
+                input_tile_size[i] = 1;
+                output_tile_size[i] = 1;
             }
             // no tiling along the reduce axis (make the tiling size same as tensor size for the axis of reduction)
             if(cur_test->cfg.axis == i) {

@@ -44,7 +44,7 @@ DepthwiseConv2d::DepthwiseConv2d(void* kernel_private_data_buffer,
   m_metadata.wts_quant_axis = private_data.wts_quant_axis;
   m_metadata.config = private_data.config;
 
-  auto input_tile_tensor = m_metadata.input.GetSubTensor(true);
+  auto input_tile_tensor = m_metadata.input.GetSubTensor();
   m_tile_batch_size = input_tile_tensor.get_dim(kTensorBatchDim);
 
   // setup m_tile_input to execute batch by batch m_tile_batch_size times
@@ -122,7 +122,7 @@ mli_status DepthwiseConv2d::Update() {
       m_metadata.output.is_first_tile(kTensorHeightDim)) {
     m_metadata.weights_zp.Next();
   }
-  const auto input_tile_tensor = m_metadata.input.GetSubTensor(true);
+  const auto input_tile_tensor = m_metadata.input.GetSubTensor();
   uint32_t input_tile_shape[kDepthwiseIORank];
   input_tile_tensor.get_dims(input_tile_shape);
   input_tile_shape[kTensorBatchDim] = 1;

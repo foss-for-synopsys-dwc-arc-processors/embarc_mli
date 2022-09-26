@@ -113,6 +113,14 @@ void prepare_phase(const reduce_max_test_operands* cur_test,
     // STEP 1: Construct ReduceMax as a specific ExecutionInterface successor
     //==================================================================
 
+    for (uint32_t i = 0; i<kReduceMaxRank; i++){
+        // in case of input rank less than 4
+        if (temp_input_tensor.shape[i] == 0) {
+            temp_input_tensor.shape[i] = 1;
+            temp_output_tensor.shape[i] = 1;
+        }
+    }
+
     const lib_mli::Tensor<lib_mli::NoBuffer, kReduceMaxRank> in_tensor(
         temp_input_tensor.shape, temp_input_tensor.mem_stride);
     const lib_mli::Tensor<lib_mli::NoBuffer, kReduceMaxRank> out_tensor(
@@ -308,6 +316,8 @@ int main(){
             // in case of input rank is less than 4
             if (temp_input_tensor.shape[i] == 0) {
                 temp_input_tensor.shape[i] = 1;
+                input_tile_size[i] = 1;
+                output_tile_size[i] = 1;
             }
             // the reduce axis shouldn't be tiled (tiling on reduce axis should be same shape as the tensor itself)
             if (cur_test->cfg.axis == i) {
