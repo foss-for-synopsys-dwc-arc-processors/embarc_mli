@@ -156,6 +156,13 @@ void ReconstructTensor(InternalBuffer& internal_buffer, mli_tensor& tensor,
   }
 }
 
+template<int rank>
+inline void set_default_align(uint32_t align[rank]) {
+  for (uint32_t i = 0; i < rank; i++) {
+    align[i] = 1;
+  }
+}
+
 }  // namespace snps_arc::metaware::mli::service
 
 #endif /* _MLI_SERVICE_FUNCTIONS_HPP_ */

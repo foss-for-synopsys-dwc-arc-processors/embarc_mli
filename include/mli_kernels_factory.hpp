@@ -17,6 +17,7 @@ namespace snps_arc::metaware::mli {
 
 using lib_mli::Tensor;
 using lib_mli::NoBuffer;
+using lib_mli::service::set_default_align;
 
 class KernelsFactory {
 public:
@@ -116,7 +117,39 @@ public:
                                           const TensorIterator<NoBuffer, kConvIORank, kConvIOIterRank>& output) {   // BHWGCo
       return nullptr;
     }
-    
+
+    /**
+     * @brief Convolution 2D kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Input Tensor.
+     * 
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
+     */
+    virtual void Conv2d_CS_GetInputAlign(uint32_t input_align[kConvIORank]) {
+      set_default_align<kConvIORank>(input_align);
+    }
+
+    /**
+     * @brief Convolution 2D kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Output Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
+     */
+    virtual void Conv2d_CS_GetOutputAlign(uint32_t output_align[kConvIORank]) {
+      set_default_align<kConvIORank>(output_align);
+    }
+
     /**
      * @deprecated
      */
@@ -146,6 +179,38 @@ public:
                                         const PreluOpConfig &cfg,
                                         const TensorIterator<NoBuffer, kPreluRank, kPreluIterRank> &output,
                                         int groups) { return nullptr; }                                    
+
+    /**
+     * @brief Prelu kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Input Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
+     */
+    virtual void Prelu_CS_GetInputAlign(uint32_t input_align[kPreluRank]) {
+      set_default_align<kPreluRank>(input_align);
+    }
+
+    /**
+     * @brief Prelu kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Output Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
+     */
+    virtual void Prelu_CS_GetOutputAlign(uint32_t output_align[kPreluRank]) {
+      set_default_align<kPreluRank>(output_align);
+    }
 
     virtual lib_mli::Move_CS *Move_CS(void *kernel_buffer,
                                       const Tensor<NoBuffer, kMoveRank> src,
@@ -183,6 +248,38 @@ public:
                                       const TensorIterator<NoBuffer, kMoveRank, kMoveIterRank> &dst,
                                       const lib_mli::MoveDataDirection data_dir) {
       return nullptr;
+    }
+
+    /**
+     * @brief Move kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Input Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
+     */
+    virtual void Move_CS_GetInputAlign(uint32_t input_align[kMoveRank]) {
+      set_default_align<kMoveRank>(input_align);
+    }
+
+    /**
+     * @brief Move kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Output Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
+     */
+    virtual void Move_CS_GetOutputAlign(uint32_t output_align[kMoveRank]) {
+      set_default_align<kMoveRank>(output_align);
     }
 
     /**
@@ -229,11 +326,74 @@ public:
       return nullptr;
     } 
 
+    /**
+     * @brief Maxpool 2D kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Input Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
+     */
+    virtual void MaxPool2D_CS_GetInputAlign(uint32_t input_align[kMaxpoolRank]) {
+      set_default_align<kMaxpoolRank>(input_align);
+    }
+
+    /**
+     * @brief Maxpool 2D kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Output Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
+     */
+    virtual void MaxPool2D_CS_GetOutputAlign(uint32_t output_align[kMaxpoolRank]) {
+      set_default_align<kMaxpoolRank>(output_align);
+    }
+
     virtual lib_mli::SumPool2D_CS* SumPool2D_CS(void *kernel_buffer,
                                                 const Tensor<NoBuffer, 4> in,
                                                 const PoolOpConfig &cfg,
                                                 const Tensor<NoBuffer, 4> output_tile_shape) { return nullptr; }
 
+    /**
+     * @brief Sumpool 2D kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Input Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
+     */
+    virtual void SumPool2D_CS_GetInputAlign(uint32_t input_align[4]) {
+      set_default_align<4>(input_align);
+    }
+
+    /**
+     * @brief Sumpool 2D kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Output Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
+     */
+    virtual void SumPool2D_CS_GetOutputAlign(uint32_t output_align[4]) {
+      set_default_align<4>(output_align);
+    }
 
     /**
       * @brief Depthwise Convolution 2D kernel Compiler Support interface factory
@@ -287,6 +447,38 @@ public:
       return nullptr;
     }
 
+    /**
+     * @brief Depthwise Convolution 2D kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Input Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
+     */
+    virtual void DepthwiseConv2d_CS_GetInputAlign(uint32_t input_align[kDepthwiseIORank]) {
+      set_default_align<kDepthwiseIORank>(input_align);
+    }
+
+    /**
+     * @brief Depthwise Convolution 2D kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Output Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
+     */
+    virtual void DepthwiseConv2d_CS_GetOutputAlign(uint32_t output_align[kDepthwiseIORank]) {
+      set_default_align<kDepthwiseIORank>(output_align);
+    }
+
     virtual lib_mli::FullyConnected_CS* FullyConnected_CS(void *kernel_buffer,
                                                           const Tensor<NoBuffer, 2> in,
                                                           const Tensor<NoBuffer, 2> weights,
@@ -297,6 +489,38 @@ public:
                                                           const Tensor<NoBuffer, 2> weights,
                                                           const Tensor<NoBuffer, 1> wtszp,
                                                           const Tensor<NoBuffer, 2> output_tile_shape) { return nullptr; }
+
+    /**
+     * @brief FullyConnected kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Input Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
+     */
+    virtual void FullyConnected_CS_GetInputAlign(uint32_t input_align[2]) {
+      set_default_align<2>(input_align);
+    }
+
+    /**
+     * @brief FullyConnected kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Output Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
+     */
+    virtual void FullyConnected_CS_GetOutputAlign(uint32_t output_align[2]) {
+      set_default_align<2>(output_align);
+    }
 
     /**
      * @brief Clip kernel Compiler Support interface factory
@@ -339,6 +563,37 @@ public:
     }
 
     /**
+     * @brief Clip kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Input Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
+     */
+    virtual void ClipCS_GetInputAlign(uint32_t input_align[kClipRank]) {
+      set_default_align<kClipRank>(input_align);
+    }
+
+    /**
+     * @brief Clip kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Output Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
+     */
+    virtual void Clip_CS_GetOutputAlign(uint32_t output_align[kClipRank]) {
+      set_default_align<kClipRank>(output_align);
+    }
+    /**
      * @brief Add kernel Compiler Support interface factory
      * method
      *
@@ -379,6 +634,37 @@ public:
                                     const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> input_right,
                                     const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> output) { return nullptr; }
 
+    /**
+     * @brief Add kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Input Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
+     */
+    virtual void Add_CS_GetInputAlign(uint32_t input_align[kEltwiseRank]) {
+      set_default_align<kEltwiseRank>(input_align);
+    }
+
+    /**
+     * @brief Add kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Output Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
+     */
+    virtual void Add_CS_GetOutputAlign(uint32_t output_align[kEltwiseRank]) {
+      set_default_align<kEltwiseRank>(output_align);
+    }
 
     /**
      * @brief Sub kernel Compiler Support interface factory
@@ -421,6 +707,39 @@ public:
                                     const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> input_left,
                                     const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> input_right,
                                     const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> output) { return nullptr; }
+
+    /**
+     * @brief Sub kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Input Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
+     */
+    virtual void Sub_CS_GetInputAlign(uint32_t input_align[kEltwiseRank]) {
+      set_default_align<kEltwiseRank>(input_align);
+    }
+
+    /**
+     * @brief Sub kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Output Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
+     */
+    virtual void Sub_CS_GetOutputAlign(uint32_t output_align[kEltwiseRank]) {
+      set_default_align<kEltwiseRank>(output_align);
+    }
+
     /**
      * @brief Mul kernel Compiler Support interface factory
      * method
@@ -461,6 +780,39 @@ public:
                                     const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> input_left,
                                     const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> input_right,
                                     const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> output) { return nullptr; }
+
+    /**
+     * @brief Mul kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Input Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
+     */
+    virtual void Mul_GetInputAlign(uint32_t input_align[kEltwiseRank]) {
+      set_default_align<kEltwiseRank>(input_align);
+    }
+
+    /**
+     * @brief Mul kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Output Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
+     */
+    virtual void Mul_GetOutputAlign(uint32_t output_align[kEltwiseRank]) {
+      set_default_align<kEltwiseRank>(output_align);
+    }
+
     /**
      * @brief Max kernel Compiler Support interface factory
      * method
@@ -501,6 +853,39 @@ public:
                                     const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> input_left,
                                     const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> input_right,
                                     const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> output) { return nullptr; }
+
+    /**
+     * @brief Max kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Input Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
+     */
+    virtual void Max_CS_GetInputAlign(uint32_t input_align[kEltwiseRank]) {
+      set_default_align<kEltwiseRank>(input_align);
+    }
+
+    /**
+     * @brief Max kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Output Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
+     */
+    virtual void Max_CS_GetOutputAlign(uint32_t output_align[kEltwiseRank]) {
+      set_default_align<kEltwiseRank>(output_align);
+    }
+
     /**
      * @brief Min kernel Compiler Support interface factory
      * method
@@ -541,6 +926,38 @@ public:
                                     const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> input_left,
                                     const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> input_right,
                                     const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> output) { return nullptr; }
+
+    /**
+     * @brief Min kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Input Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
+     */
+    virtual void Min_GetInputAlign(uint32_t input_align[kEltwiseRank]) {
+      set_default_align<kEltwiseRank>(input_align);
+    }
+
+    /**
+     * @brief Min kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Output Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
+     */
+    virtual void Min_GetOutputAlign(uint32_t output_align[kEltwiseRank]) {
+      set_default_align<kEltwiseRank>(output_align);
+    }
 
     /**
      * @brief Rescale kernel Compiler Support interface factory
@@ -566,7 +983,7 @@ public:
      }
 
     /**
-     * @brief Clip kernel Compiler Support interface factory
+     * @brief Rescale kernel Compiler Support interface factory
      * method
      *
      * @param kernel_buffer       [I] Pointer to the pre-allocated memory to store
@@ -577,30 +994,120 @@ public:
      * @param output              [I] TensorIterator object containing output Tensor shape
      *                                and memory strides
      *
-     * @return Clip kernel Compiler Support interface object
+     * @return Rescale kernel Compiler Support interface object
      */
-     virtual lib_mli::Rescale_CS* Rescale_CS(void* kernel_buffer,
+    virtual lib_mli::Rescale_CS* Rescale_CS(void* kernel_buffer,
                                             const TensorIterator<NoBuffer, kRescaleRank, kRescaleIterRank>& input,
                                             const RescaleConfig& cfg,
                                             const TensorIterator<NoBuffer, kRescaleRank, kRescaleIterRank>& output) {
-       return nullptr;
-     }
+      return nullptr;
+    }
+
+    /**
+     * @brief Rescale kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Input Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
+     */
+    virtual void Rescale_CS_GetInputAlign(uint32_t input_align[kRescaleRank]) {
+      set_default_align<kRescaleRank>(input_align);
+    }
+
+    /**
+     * @brief Rescale kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Output Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
+     */
+    virtual void Rescale_CS_GetOutputAlign(uint32_t output_align[kRescaleRank]) {
+      set_default_align<kRescaleRank>(output_align);
+    }
 
     virtual lib_mli::ReduceMax_CS* ReduceMax_CS(void *kernel_buffer,
                                                 const TensorIterator<NoBuffer, kReduceMaxRank, kReduceMaxIterRank> &in,
                                                 const ReduceOpConfig &cfg,
                                                 const TensorIterator<NoBuffer, kReduceMaxRank, kReduceMaxIterRank> &out) { return nullptr; }
 
-    // TODO: to be removed after support IensorIterator
-    virtual lib_mli::ReduceMax_CS* ReduceMax_CS(void *kernel_buffer,
-                                                const Tensor<NoBuffer, kReduceMaxRank> &input_shape,
-                                                const ReduceOpConfig &cfg,
-                                                const Tensor<NoBuffer, kReduceMaxRank> &output_tile_shape) { return nullptr; }
+    /**
+     * @brief ReduceMax kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Input Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
+     */
+    virtual void ReduceMax_CS_GetInputAlign(uint32_t input_align[kReduceMaxRank]) {
+      set_default_align<kReduceMaxRank>(input_align);
+    }
+
+    /**
+     * @brief ReduceMax kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Output Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
+     */
+    virtual void ReduceMax_CS_GetOutputAlign(uint32_t output_align[kReduceMaxRank]) {
+      set_default_align<kReduceMaxRank>(output_align);
+    }
     
     virtual lib_mli::ReduceSum_CS* ReduceSum_CS(void *kernel_buffer,
                                                 const TensorIterator<NoBuffer, kReduceSumRank, kReduceSumIterRank> &in,
                                                 const ReduceOpConfig &cfg,
                                                 const TensorIterator<NoBuffer, kReduceSumRank, kReduceSumIterRank> &out) { return nullptr; }
+
+    /**
+     * @brief ReduceSum kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Input Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
+     */
+    virtual void ReduceSum_CS_GetInputAlign(uint32_t input_align[kReduceSumRank]) {
+      set_default_align<kReduceSumRank>(input_align);
+    }
+
+    /**
+     * @brief ReduceSum kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Output Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
+     */
+    virtual void ReduceSum_CS_GetOutputAlign(uint32_t output_align[kReduceSumRank]) {
+      set_default_align<kReduceSumRank>(output_align);
+    }
 
     virtual lib_mli::ArgMax_CS* ArgMax_CS(void *kernel_buffer,
                                           const TensorIterator<NoBuffer, kArgMaxInRank, kArgMaxInIterRank> in,
@@ -609,15 +1116,112 @@ public:
 
     virtual uint32_t ArgMax_CS_GetSize() const { return 0; }
 
+    /**
+     * @brief ArgMax kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Input Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
+     */
+    virtual void ArgMax_CS_GetInputAlign(uint32_t input_align[kArgMaxInRank]) {
+      set_default_align<kArgMaxInRank>(input_align);
+    }
+
+    /**
+     * @brief ArgMax kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Output Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
+     */
+    virtual void ArgMax_CS_GetOutputAlign(uint32_t output_align[kArgMaxOutRank]) {
+      set_default_align<kArgMaxOutRank>(output_align);
+    }
+
     virtual lib_mli::TableBuiltin_CS* TableBuiltin_CS(void *kernel_buffer,
                                                       const TensorIterator<NoBuffer, kTableBuiltinIORank, kTableBuiltinIOIterRank> &in,
                                                       const TableBuiltinConfig &cfg,
                                                       const TensorIterator<NoBuffer, kTableBuiltinIORank, kTableBuiltinIOIterRank> &out) { return nullptr; }
 
+    /**
+     * @brief TableBuiltin kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Input Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
+     */
+    virtual void TableBuiltin_CS_GetInputAlign(uint32_t input_align[kTableBuiltinIORank]) {
+      set_default_align<kTableBuiltinIORank>(input_align);
+    }
+
+    /**
+     * @brief TableBuiltin kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Output Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
+     */
+    virtual void TableBuiltin_CS_GetOutputAlign(uint32_t output_align[kTableBuiltinIORank]) {
+      set_default_align<kTableBuiltinIORank>(output_align);
+    }
+
     virtual lib_mli::MatMul_CS* MatMul_CS(void *kernel_buffer,
                                           const TensorIterator<NoBuffer, kMatMulRank, kMatMulIterRank> &input_left,
                                           const TensorIterator<NoBuffer, kMatMulRank, kMatMulIterRank> &input_right,
                                           const TensorIterator<NoBuffer, kMatMulRank, kMatMulIterRank> &output) { return nullptr; }
+
+    /**
+     * @brief MatMul kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Input Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
+     */
+    virtual void MatMul_CS_GetInputAlign(uint32_t input_align[kMatMulRank]) {
+      set_default_align<kMatMulRank>(input_align);
+    }
+
+    /**
+     * @brief MatMul kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Output Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
+     */
+    virtual void MatMul_CS_GetOutputAlign(uint32_t output_align[kMatMulRank]) {
+      set_default_align<kMatMulRank>(output_align);
+    }
+
     /**
      * @brief Transpose Convolution 2D kernel Compiler Support interface factory
      * method
@@ -646,6 +1250,38 @@ public:
     }
 
     /**
+     * @brief Transpose Convolution 2D kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Input Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
+     */
+    virtual void TransposeConv2D_CS_GetInputAlign(uint32_t input_align[kTransposeConvIORank]) {
+      set_default_align<kTransposeConvIORank>(input_align);
+    }
+
+    /**
+     * @brief Transpose Convolution 2D kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Output Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
+     */
+    virtual void TransposeConv2D_CS_GetOutputAlign(uint32_t output_align[kTransposeConvIORank]) {
+      set_default_align<kTransposeConvIORank>(output_align);
+    }
+
+    /**
      * @brief Permute kernel Compiler Support interface factory
      * method
      *
@@ -665,12 +1301,76 @@ public:
         const PermuteOpConfig &cfg,
         const TensorIterator<NoBuffer, kPermuteRank, kPermuteIterRank> out) { 
         return nullptr; 
-      }
-    
+    }
+
+    /**
+     * @brief Permute kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Input Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
+     */
+    virtual void Permute_CS_GetInputAlign(uint32_t input_align[kPermuteRank]) {
+      set_default_align<kPermuteRank>(input_align);
+    }
+
+    /**
+     * @brief Permute kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Output Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
+     */
+    virtual void Permute_CS_GetOutputAlign(uint32_t output_align[kPermuteRank]) {
+      set_default_align<kPermuteRank>(output_align);
+    }
+
     virtual lib_mli::ResizeBilinear_CS* ResizeBilinear_CS(void *kernel_buffer,
                                                           const TensorIterator<NoBuffer, kResizeBilinearRank, kResizeBilinearIterRank> &in,
                                                           const ResizeOpConfig &cfg,
                                                           const TensorIterator<NoBuffer, kResizeBilinearRank, kResizeBilinearIterRank> &out) { return nullptr; }
+
+    /**
+     * @brief ResizeBilinear kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Input Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
+     */
+    virtual void ResizeBilinear_CS_GetInputAlign(uint32_t input_align[kResizeBilinearRank]) {
+      set_default_align<kResizeBilinearRank>(input_align);
+    }
+
+    /**
+     * @brief ResizeBilinear kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Output Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
+     */
+    virtual void ResizeBilinear_CS_GetOutputAlign(uint32_t output_align[kResizeBilinearRank]) {
+      set_default_align<kResizeBilinearRank>(output_align);
+    }
 
     /**
      * @brief MoveBroadcast kernel Compiler Support interface factory
@@ -691,6 +1391,38 @@ public:
                                                         const TensorIterator<NoBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> &dst,
                                                         const lib_mli::MoveDataDirection data_dir) {
       return nullptr;
+    }
+
+    /**
+     * @brief MoveBroadcast kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Input Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
+     */
+    virtual void MoveBroadcast_CS_GetInputAlign(uint32_t input_align[kMoveBroadcastRank]) {
+      set_default_align<kMoveBroadcastRank>(input_align);
+    }
+
+    /**
+     * @brief MoveBroadcast kernel Compiler Support interface
+     *        to get the Alignment Restrictions in Output Tensor.
+     *
+     *        Alignment restriction can be used for
+     *          - Buffer Size Calculation
+     *          - Tile Size Selection
+     *          - Shape Adjustment
+     *          - Pointer Alignment (Pointer should be aligned on the product of alignment)
+     * 
+     * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
+     */
+    virtual void MoveBroadcast_CS_GetOutputAlign(uint32_t output_align[kMoveBroadcastRank]) {
+      set_default_align<kMoveBroadcastRank>(output_align);
     }
 
 };
