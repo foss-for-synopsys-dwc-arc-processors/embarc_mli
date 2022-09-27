@@ -84,6 +84,8 @@ set(MLI_LIB_SOURCE_FILES
     ${MLI_LIB_CMAKE_DIR}/src/kernels/transform/mli_krn_prelu_runtime.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/diverse/mli_krn_permute_compiler.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/diverse/mli_krn_permute_runtime.cc
+    ${MLI_LIB_CMAKE_DIR}/src/move/mli_move_broadcast_compiler.cc
+    ${MLI_LIB_CMAKE_DIR}/src/move/mli_move_broadcast_runtime.cc
 )
 
 set(MLI_LIB_PUBLIC_INCLUDES

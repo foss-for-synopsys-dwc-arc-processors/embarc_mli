@@ -1126,16 +1126,7 @@ private:
     TensorIterator<InternalBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> m_dst;
 
     template <typename buf_T, unsigned N>
-    void CopySrcToDst(Tensor<buf_T, N> src, Tensor<buf_T, N> dst);
-
-    TensorIterator<InternalBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> GetSrcTensorTileItr(
-        void* kernel_private_data_buffer, uint64_t membases[], int num_mems);
-
-    TensorIterator<InternalBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> GetDstTensorTileItr(
-        void* kernel_private_data_buffer, uint64_t membases[], int num_mems);
-
-    uint32_t m_in_elem_size;
-    uint32_t m_out_elem_size;
+    void MoveBroadcastRun(TensorIterator<buf_T, N, N> src, TensorIterator<buf_T, N, N> dst);
 };
 
 } // namespace snps_arc::metaware::mli::ref

@@ -194,6 +194,7 @@ add_user_test(hlp tensor_struct)
 #======================================================
 add_user_test(krn data_movement)
 add_user_test(krn data_movement_30)
+add_user_test(krn move_broadcast_30)
 
 #======================================================
 # Convolution Group

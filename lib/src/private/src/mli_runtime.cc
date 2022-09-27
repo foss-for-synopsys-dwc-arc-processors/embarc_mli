@@ -193,8 +193,7 @@ ExecutionInterface* ExecutionInterface::Create(
             break;
         case kMoveBroadcastId:
             if(alloc_buf_size >= sizeof(MoveBroadcast)) {
-                // obj = new (allocation_memory_buffer) MoveBroadcast(kernel_private_data_buffer, private_data_size, membases, num_mems);
-                obj = nullptr; // until the implementation
+                obj = new (allocation_memory_buffer) MoveBroadcast(kernel_private_data_buffer, private_data_size, membases, num_mems);
             } else {
                 MLI_PRINTF("\nMLI_ERROR: Insufficient space for [MoveBroadcast] runtime object\n");
             }

@@ -678,9 +678,11 @@ public:
      *
      * @param kernel_buffer [I] Pointer to the pre-allocated memory to store
      *                          kernel Compiler Support object
-
-     * @param src [I] source tensor iterator
-     * @param dst [I] destination tensor iterator
+     * @param src           [I] TensorIterator object containing input tensor 
+     *                          shape and memory strides and IteratorCfg
+     * @param dst           [I] TensorIterator object containing output tensor 
+     *                          shape and memory strides and IteratorCfg
+     * @param data_dir      [I] Define Move Data Direction
      *
      * @return MoveBroadcast kernel Compiler Support interface object
      */
