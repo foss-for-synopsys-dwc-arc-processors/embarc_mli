@@ -448,31 +448,34 @@ class BufferIterator {
      * @param full_tensor [I] Reference to Tensor object
      * @param cfg [I] Reference to IteratorCfg object
      */
-    template <uint32_t tensorRank>
-    BufferIterator(const Tensor<buf_T, tensorRank>& full_tensor,
+    template <uint32_t tensorRank, class src_buf_T>
+    BufferIterator(const Tensor<src_buf_T, tensorRank>& full_tensor,
                    const IteratorCfg<iterRank>& cfg)
         : m_buffer_offset{0} {
       m_buffer_size = 1;
       for (uint32_t i = 0; i < iterRank; i++) {
-        uint32_t buffer_dim = MAX(cfg.get_size(cfg.get_order(i)), cfg.get_first_size(cfg.get_order(i)));
+        int32_t axis = cfg.get_order(i);
+        if (axis == kSkipIterDim) continue;
+
+        uint32_t buffer_dim = MAX(cfg.get_size(axis), cfg.get_first_size(axis));
         // If tiles number equals to 0, that means attached buffer calculated for
         // full tensor, otherwise - for number of tiles. Also if dimension of the
         // tensor/tile is 1 or 0, that simply means that dimension doesn't exist
         // in terms of buffer, so offset must be 0.
         if (cfg.get_buf_tiles_num() == 0 && full_tensor.get_dim(i) > 1) {
-          m_first_offset_inc[cfg.get_order(i)] = cfg.get_first_inc(cfg.get_order(i)) == 0 ? full_tensor.get_mem_stride(cfg.get_order(i)) : cfg.get_first_inc(cfg.get_order(i)) * full_tensor.get_mem_stride(cfg.get_order(i));
-          m_offset_inc[cfg.get_order(i)] = cfg.get_inc(cfg.get_order(i)) == 0 ? full_tensor.get_mem_stride(cfg.get_order(i)) : cfg.get_inc(cfg.get_order(i)) * full_tensor.get_mem_stride(cfg.get_order(i));
-          m_last_offset_inc[cfg.get_order(i)] = cfg.get_last_inc(cfg.get_order(i)) == 0 ? full_tensor.get_mem_stride(cfg.get_order(i)) : cfg.get_last_inc(cfg.get_order(i)) * full_tensor.get_mem_stride(cfg.get_order(i));
+          m_first_offset_inc[axis] = cfg.get_first_inc(axis) == 0 ? full_tensor.get_mem_stride(axis) : cfg.get_first_inc(axis) * full_tensor.get_mem_stride(axis);
+          m_offset_inc[axis] = cfg.get_inc(axis) == 0 ? full_tensor.get_mem_stride(axis) : cfg.get_inc(axis) * full_tensor.get_mem_stride(axis);
+          m_last_offset_inc[axis] = cfg.get_last_inc(axis) == 0 ? full_tensor.get_mem_stride(axis) : cfg.get_last_inc(axis) * full_tensor.get_mem_stride(axis);
 
         } else {
-          m_first_offset_inc[cfg.get_order(i)] = 0;
-          m_offset_inc[cfg.get_order(i)] = 0;
-          m_last_offset_inc[cfg.get_order(i)] = 0;
+          m_first_offset_inc[axis] = 0;
+          m_offset_inc[axis] = 0;
+          m_last_offset_inc[axis] = 0;
           m_buffer_size *= buffer_dim;
         }
-        m_buffer_dec[cfg.get_order(i)] = cfg.get_buf_tiles_num() == 0
-                              ? full_tensor.get_dim(cfg.get_order(i)) * full_tensor.get_mem_stride(cfg.get_order(i))
-                              : buffer_dim * full_tensor.get_mem_stride(cfg.get_order(i));
+        m_buffer_dec[axis] = cfg.get_buf_tiles_num() == 0
+                             ? full_tensor.get_dim(axis) * full_tensor.get_mem_stride(axis)
+                             : buffer_dim * full_tensor.get_mem_stride(axis);
       }
     };
 
@@ -642,7 +645,7 @@ class TensorIterator {
      * @param tensor_iterator [I] TensorIterator refrence to use its parameters in generate new TensorIterator
      */
     TensorIterator(const TensorIterator<NoBuffer, tensorRank, iterRank>& tensor_iterator)
-        : m_buffer_itr(m_full_tensor, m_config) {
+        : m_buffer_itr(tensor_iterator.get_tensor(), tensor_iterator.get_config()) {
       Tensor<NoBuffer, tensorRank> tensor = tensor_iterator.get_tensor();
       m_full_tensor = Tensor<buf_T, tensorRank>(buf_T(), tensor);
       m_config = tensor_iterator.get_config();

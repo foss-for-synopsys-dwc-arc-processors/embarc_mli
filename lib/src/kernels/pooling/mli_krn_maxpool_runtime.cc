@@ -145,15 +145,54 @@ void MaxPool2D::UpdateTilePaddings() {
   memcpy(&m_tile_cfg, &m_cfg, sizeof(mli_pool_cfg));
 
   int32_t tile_input_offsets[kMaxpoolRank];
-  m_input.get_pos(tile_input_offsets);
+  const auto& input = m_input;
+  input.get_pos(tile_input_offsets);
+  const auto& input_it_cfg = input.get_config();
 
-  const auto& input_it_cfg = m_input.get_config();
-  if (tile_input_offsets[kTensorHeightDim]) m_tile_cfg.padding_top = 0;
-  if (tile_input_offsets[kTensorHeightDim] + (int32_t) input_it_cfg.get_size(kTensorHeightDim) < (int32_t)m_input.get_dim(kTensorHeightDim)) {
+  int32_t tile_idx[kMaxpoolRank];
+  input.get_tile_idx(tile_idx);
+
+  // top padding
+  if (!input.is_first_tile(kTensorHeightDim)) {
+    //TODO: if first_inc != 0 get_first_inc + get_inc * (idx - 1)
+    uint32_t pad_used = input_it_cfg.get_inc(kTensorHeightDim) * tile_idx[kTensorHeightDim];
+    if (pad_used < m_tile_cfg.padding_top) {
+      m_tile_cfg.padding_top -= pad_used;
+    }
+    else {
+      m_tile_cfg.padding_top = 0;
+    }
+  }
+
+  // left padding
+  if (!input.is_first_tile(kTensorWidthDim)) {
+    // TODO: if first_inc != 0 get_first_inc + get_inc * (idx - 1)
+    uint32_t pad_used = input_it_cfg.get_inc(kTensorWidthDim) * tile_idx[kTensorWidthDim];
+    if (pad_used < m_tile_cfg.padding_left) {
+      m_tile_cfg.padding_left -= pad_used;
+    }
+    else {
+      m_tile_cfg.padding_left = 0;
+    }
+  }
+
+  // bottom padding
+  uint32_t used_size_y = (int32_t)(input.get_dim(kTensorHeightDim) + m_tile_cfg.padding_bottom);
+  int32_t pad_bot = tile_input_offsets[kTensorHeightDim] + (int32_t)input_it_cfg.get_size(kTensorHeightDim) - used_size_y;
+  if (pad_bot > 0) {
+    m_tile_cfg.padding_bottom = MIN((uint32_t)pad_bot, m_cfg.padding_bottom);
+  }
+  else {
     m_tile_cfg.padding_bottom = 0;
   }
-  if (tile_input_offsets[kTensorWidthDim]) m_tile_cfg.padding_left = 0;
-  if (tile_input_offsets[kTensorWidthDim] + (int32_t) input_it_cfg.get_size(kTensorWidthDim) < (int32_t)m_input.get_dim(kTensorWidthDim)) {
+
+  // right padding
+  uint32_t used_size_x = (int32_t)(input.get_dim(kTensorWidthDim) + m_tile_cfg.padding_right);
+  int32_t pad_right = tile_input_offsets[kTensorWidthDim] + (int32_t)input_it_cfg.get_size(kTensorWidthDim) - used_size_x;
+  if (pad_right > 0) {
+    m_tile_cfg.padding_right = MIN((uint32_t)pad_right, m_cfg.padding_right);
+  }
+  else {
     m_tile_cfg.padding_right = 0;
   }
 }

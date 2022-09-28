@@ -41,8 +41,14 @@ Clip::Clip(void* kernel_private_data_buffer,
     InternalBuffer input_internal(private_data.input.get_buf(), membases, num_mems);
     m_tile_input.el_type = MLI_EL_SA_8;
     m_tile_input.data.mem.pi8 = input_internal.get_ptr<int8_t>();
-  } else {
-    MLI_ASSERT(false);
+  } 
+  else if (private_data.input.get_buf().get_elem_size() == sizeof(int32_t)) {
+    InternalBuffer input_internal(private_data.input.get_buf(), membases, num_mems);
+    m_tile_input.el_type = MLI_EL_SA_32;
+    m_tile_input.data.mem.pi32 = input_internal.get_ptr<int32_t>();
+  }
+  else {
+    MLI_ASSERT(0);
   }
   const auto input = m_input.GetSubTensor();
   m_tile_input.rank = input.get_rank();
@@ -54,9 +60,14 @@ Clip::Clip(void* kernel_private_data_buffer,
     InternalBuffer output_internal(private_data.output.get_buf(), membases, num_mems);
     m_tile_output.el_type = MLI_EL_SA_8;
     m_tile_output.data.mem.pi8 = output_internal.get_ptr<int8_t>();
-
-  } else {
-      MLI_ASSERT(false);
+  } 
+  else if (private_data.output.get_buf().get_elem_size() == sizeof(int32_t)) {
+    InternalBuffer output_internal(private_data.output.get_buf(), membases, num_mems);
+    m_tile_output.el_type = MLI_EL_SA_32;
+    m_tile_output.data.mem.pi32 = output_internal.get_ptr<int32_t>();
+  }
+  else {
+      MLI_ASSERT(0);
   }
   const auto output = m_output.GetSubTensor();
   m_tile_output.rank = output.get_rank();
@@ -71,6 +82,12 @@ Clip::Clip(void* kernel_private_data_buffer,
       m_min.el_type = MLI_EL_SA_8;
       encoded_params_internal.inc(1);
   }
+  else if (private_data.input.get_buf().get_elem_size() == sizeof(int32_t)) {
+    encoded_params_internal.set_elem_size(sizeof(int32_t));
+    m_min.data.mem.pi32 = encoded_params_internal.get_ptr<int32_t>();
+    m_min.el_type = MLI_EL_SA_32;
+    encoded_params_internal.inc(1);
+  }
   else {
       MLI_ASSERT(0);
   }
@@ -81,6 +98,11 @@ Clip::Clip(void* kernel_private_data_buffer,
       encoded_params_internal.set_elem_size(sizeof(int8_t));
       m_max.data.mem.pi8 = encoded_params_internal.get_ptr<int8_t>();
       m_max.el_type = MLI_EL_SA_8;
+  }
+  else if (private_data.input.get_buf().get_elem_size() == sizeof(int32_t)) {
+    encoded_params_internal.set_elem_size(sizeof(int32_t));
+    m_max.data.mem.pi32 = encoded_params_internal.get_ptr<int32_t>();
+    m_max.el_type = MLI_EL_SA_32;
   }
   else {
       MLI_ASSERT(0);
@@ -95,9 +117,17 @@ mli_status Clip::Issue() {
                                             &m_min,
                                             &m_max,
                                             &m_tile_output);
-  } else {
-      assert(0);
+  } 
+  else if (m_input.get_buf().get_elem_size() == sizeof(int32_t) && (m_output.get_buf().get_elem_size() == sizeof(int32_t))) {
+      mli_krn::mli_krn_clip<int32_t, int32_t>(&m_tile_input,
+                                              &m_min,
+                                              &m_max,
+                                              &m_tile_output);
   }
+  else {
+      MLI_ASSERT(0);
+  }
+
   return MLI_STATUS_OK;
 }
 

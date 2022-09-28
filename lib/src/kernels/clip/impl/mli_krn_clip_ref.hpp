@@ -18,9 +18,9 @@ namespace ref {
 
 // First priority is 32accum to T value operation.
 template <typename o_T>
-static MLI_FORCE_INLINE o_T clip_value(const int8_t in_val,
-                                       const int8_t min_value,
-                                       const int8_t max_value) {
+static MLI_FORCE_INLINE o_T clip_value(const o_T in_val,
+                                       const o_T min_value,
+                                       const o_T max_value) {
     o_T result = mli_math_max_fx(in_val, min_value);
     result = mli_math_min_fx(result, max_value);
     return result;
