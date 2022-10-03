@@ -28,6 +28,10 @@ public:
 
     KernelsFactory(const lib_mli::PlatformDescription pd): m_pd(pd) {}
 
+    uint32_t Nop_CS_GetSize() const override {return sizeof(lib_ref::Nop_CS);}
+    lib_mli::Nop_CS *Nop_CS(void *kernel_buffer) override {
+        return new(kernel_buffer) lib_ref::Nop_CS();
+    }
     uint32_t Conv2d_CS_GetSize() const override { return sizeof(lib_ref::Conv2d_CS); }
 
     /**

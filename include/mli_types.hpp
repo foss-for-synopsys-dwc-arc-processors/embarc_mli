@@ -130,6 +130,7 @@ constexpr unsigned kMoveIterRank = 5;
 
 typedef enum : uint32_t {
   kInvalidId = 0,
+  kNopId,
   kConv2dId,
   kPreluId,
   kMoveId,

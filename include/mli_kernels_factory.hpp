@@ -21,6 +21,8 @@ using lib_mli::service::set_default_align;
 
 class KernelsFactory {
 public:
+    virtual uint32_t Nop_CS_GetSize() const { return 0; }
+
     virtual uint32_t Conv2d_CS_GetSize() const { return 0; }
 
     virtual uint32_t Prelu_CS_GetSize() const { return 0; }
@@ -64,6 +66,13 @@ public:
     virtual uint32_t MoveBroadcast_CS_GetSize() const { return 0; }
     
     virtual uint32_t ResizeBilinear_CS_GetSize() const { return 0; }
+
+    /**
+     * @brief No-op kernel Compiler Support interface factory
+     *
+     * @return No-op kernel Compiler Support interface object
+     */
+    virtual lib_mli::Nop_CS *Nop_CS(void *kernel_buffer) { return nullptr; }
 
     /**
      * @brief Convolution 2D kernel Compiler Support interface factory

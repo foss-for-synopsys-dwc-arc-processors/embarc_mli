@@ -21,6 +21,13 @@ namespace snps_arc::metaware::mli::ref {
 using lib_mli::ExecutionInterface;
 using lib_mli::PrivateData;
 
+class Nop : public ExecutionInterface {
+public:
+    Nop(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems) {}
+    mli_status Issue() override {return MLI_STATUS_OK;}
+    mli_status Prefetch() override {return MLI_STATUS_OK;}
+    mli_status Update() override {return MLI_STATUS_OK;}
+};
 
 /**
  * @brief This class implements the Conv2d kernel xop interpreter interface

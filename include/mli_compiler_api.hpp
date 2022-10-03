@@ -9,6 +9,8 @@
 #ifndef _MLI_COMPILER_API_HPP_
 #define _MLI_COMPILER_API_HPP_
 
+#include <cstring>
+
 #include "mli_debug.h"
 #include "mli_iterator.hpp"
 #include "mli_types.h"
@@ -92,6 +94,27 @@ class CompilerGenericInterface {
 protected:
     bool m_issue_enable{false};
     bool m_prefetch_enable{false};
+};
+
+/**
+ * @brief This class provides an interface for the no-op kernel Compiler Support
+ */
+class Nop_CS : public CompilerGenericInterface {
+public:
+  Nop_CS() {}
+  unsigned GetKernelPrivateDataSize() const override {
+      return sizeof(PrivateData);
+  }
+  mli_status GetKernelPrivateData(void *kernel_private_data_buffer) override {
+      PrivateData data = PrivateData(kNopId, sizeof(PrivateData));
+      std::memcpy(
+          kernel_private_data_buffer,
+          (void *)&data,
+          sizeof(data)
+      );
+      return MLI_STATUS_OK;
+  }
+  unsigned GetRuntimeObjectSize() const override {return 0;}
 };
 
 /**

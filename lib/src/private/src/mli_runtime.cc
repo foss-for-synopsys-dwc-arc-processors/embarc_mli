@@ -14,6 +14,7 @@
 #include "mli_ref_runtime_api.hpp"
 
 namespace snps_arc::metaware::mli {
+using ref::Nop;
 using ref::MaxPool2D;
 using ref::FullyConnected;
 using ref::SumPool2D;
@@ -56,6 +57,13 @@ ExecutionInterface* ExecutionInterface::Create(
         //  TODO: Update it with MLI REF/EM/VPX Classes
         case kInvalidId:
             MLI_ASSERT(0);
+            break;
+        case kNopId:
+            if(alloc_buf_size >= sizeof(Nop)) {
+                obj = new (allocation_memory_buffer) Nop(kernel_private_data_buffer, private_data_size, membases, num_mems);
+            } else {
+                MLI_PRINTF("\nMLI_ERROR: Insufficient space for [Nop] runtime object\n");
+            }
             break;
         case kConv2dId:
             if(alloc_buf_size >= sizeof(Conv2d)) {

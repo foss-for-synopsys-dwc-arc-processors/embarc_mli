@@ -23,6 +23,8 @@ using lib_mli::NoBuffer;
 class Conv2DPrivateData;
 class Pool2DPrivateData;
 
+class Nop_CS : public lib_mli::Nop_CS {};
+
 class Conv2d_CS : public lib_mli::Conv2d_CS {
 public:
     /**
