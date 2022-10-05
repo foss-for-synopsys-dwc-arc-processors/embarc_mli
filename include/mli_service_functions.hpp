@@ -17,6 +17,8 @@
 #define DEPRECATED_METHOD printf("%s in %s:%d is deprecated. "\
                                  "It will be removed in future version of library.\n", __func__, __FILE__, __LINE__);
 
+#define NOT_IMPLEMENTED_METHOD printf("%s in %s:%d is not implemented yet. \n", __func__, __FILE__, __LINE__);
+
 namespace snps_arc::metaware::mli::service {
 
 inline const unsigned GetBufferSize(int rank, const uint32_t* shape,

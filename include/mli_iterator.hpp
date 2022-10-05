@@ -897,7 +897,11 @@ class TensorIterator {
     }
 
     uint32_t get_elem_size() {
-      return m_full_tensor.get_buf().get_elem_size();
+      return m_full_tensor.get_elem_size();
+    }
+
+    void set_elem_size(uint32_t elem_size) {
+      m_full_tensor.set_elem_size(elem_size);
     }
 
     TensorIterator<buf_T, tensorRank, iterRank> transpose(uint32_t new_order[]) const {

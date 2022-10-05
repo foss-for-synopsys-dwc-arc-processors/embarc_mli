@@ -71,6 +71,29 @@ public:
               const Conv2DConfig& cfg,
               const TensorIterator<NoBuffer, kConvIORank, kConvIOIterRank>& output);
 
+    /**
+      * @brief Constructor to create an Conv2d_CS compiler support object.
+      *
+      * This constructor can be used to create a Convolution 2D compiler support
+      * object. This kernel computes each value of the output tensor as the result of convolution operation
+      * of input with weights.
+      *
+      * @param pd          [I] Platform description
+      * @param input       [I] Input TensorIterator (BHWGCi layout)
+      * @param input_zp    [I] input_zp TensorIterator
+      * @param weights     [I] weights TensorIterator (GKyKxCiCo layout)
+      * @param weights_zp  [I] weights_zp TensorIterator
+      * @param cfg         [I] Conv2DConfig structure
+      * @param output      [I] output TensorIterator (BHWGCo layout)
+      */
+    Conv2d_CS(const lib_mli::PlatformDescription pd,
+              const TensorIterator<NoBuffer, kConvIORank, kConvIterRank> &input,
+              const TensorIterator<NoBuffer, kConvZPRank, kConvIterRank> &input_zp,
+              const TensorIterator<NoBuffer, kConvWRank,  kConvIterRank> &weights,
+              const TensorIterator<NoBuffer, kConvZPRank, kConvIterRank> &weights_zp,
+              const Conv2DConfig &cfg,
+              const TensorIterator<NoBuffer, kConvIORank, kConvIterRank> &output) { NOT_IMPLEMENTED_METHOD; };
+
     mli_status EncodeWeights(Tensor<Buffer, kConvWRank> &weights,
                              Buffer &encoded_weights,
                              compression_mode_t mode = compression_mode_t::Uncompressed) override;
@@ -185,6 +208,29 @@ public:
                        const DwConv2DConfig& cfg,
                        const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIterRank>& output);
 
+    /**
+      * @brief Constructor to create an DepthwiseConv2d_CS compiler support object.
+      *
+      * This constructor can be used to create a Depthwise Convolution 2D compiler support
+      * object. This kernel computes each value of the output tensor as the result of convolution operation
+      * of input with weights.
+      *
+      * @param pd          [I] Platform description
+      * @param input       [I] Input TensorIterator (BHWGCi layout)
+      * @param input_zp    [I] input_zp TensorIterator
+      * @param weights     [I] weights TensorIterator (GKyKxCiCo layout)
+      * @param weights_zp  [I] weights_zp TensorIterator
+      * @param cfg         [I] DwConv2DConfig structure
+      * @param output      [I] output TensorIterator (BHWGCo layout)
+      */
+    DepthwiseConv2d_CS(const lib_mli::PlatformDescription pd,
+                       const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIterRank> &input,
+                       const TensorIterator<NoBuffer, kDepthwiseZPRank, kDepthwiseIterRank> &input_zp,
+                       const TensorIterator<NoBuffer, kDepthwiseWRank,  kDepthwiseIterRank> &weights,
+                       const TensorIterator<NoBuffer, kDepthwiseZPRank, kDepthwiseIterRank> &weights_zp,
+                       const DwConv2DConfig &cfg,
+                       const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIterRank> &output) { NOT_IMPLEMENTED_METHOD; };
+
     mli_status EncodeWeights(Tensor<Buffer, kDepthwiseWRank> &weights,
                              Buffer &encoded_weights,
                              compression_mode_t mode = compression_mode_t::Uncompressed) override;
@@ -265,6 +311,29 @@ public:
                        const TensorIterator<NoBuffer, kTransposeConvZPRank, kTransposeConvZPIterRank> &weights_zp,
                        const TransposeConv2DConfig &cfg,
                        const TensorIterator<NoBuffer, kTransposeConvIORank, kTransposeConvIOIterRank> &output);
+
+    /**
+      * @brief Constructor to create an TransposeConv2d_CS compiler support object.
+      *
+      * This constructor can be used to create a Transpose Convolution 2D compiler support
+      * object. This kernel computes each value of the output tensor as the result of deconvolution operation
+      * of input with weights.
+      *
+      * @param pd          [I] Platform description
+      * @param input       [I] Input TensorIterator (BHWGCi layout)
+      * @param input_zp    [I] input_zp TensorIterator
+      * @param weights     [I] weights TensorIterator (GKyKxCiCo layout)
+      * @param weights_zp  [I] weights_zp TensorIterator
+      * @param cfg         [I] TransposeConv2DConfig structure
+      * @param output      [I] output TensorIterator (BHWGCo layout)
+      */
+    TransposeConv2D_CS(const lib_mli::PlatformDescription pd,
+                       const TensorIterator<NoBuffer, kTransposeConvIORank, kTransposeConvIterRank> &input,
+                       const TensorIterator<NoBuffer, kTransposeConvZPRank, kTransposeConvIterRank> &input_zp,
+                       const TensorIterator<NoBuffer, kTransposeConvWRank,  kTransposeConvIterRank> &weights,
+                       const TensorIterator<NoBuffer, kTransposeConvZPRank, kTransposeConvIterRank> &weights_zp,
+                       const TransposeConv2DConfig &cfg,
+                       const TensorIterator<NoBuffer, kTransposeConvIORank, kTransposeConvIOIterRank> &output) { NOT_IMPLEMENTED_METHOD; };
 
     mli_status EncodeWeights(Tensor<Buffer, kTransposeConvWRank> &weights, Buffer &encoded_weights,
                              compression_mode_t mode = compression_mode_t::Uncompressed) override;
@@ -428,22 +497,43 @@ public:
      *
      */
     FullyConnected_CS(const lib_mli::PlatformDescription pd,
-                      const Tensor<NoBuffer, 2> &in,
-                      const Tensor<NoBuffer, 2> &weights,
-                      const Tensor<NoBuffer, 2> &output_tile_shape);
+                      const Tensor<NoBuffer, kFullyConnectedIORank> &in,
+                      const Tensor<NoBuffer, kFullyConnectedWRank>  &weights,
+                      const Tensor<NoBuffer, kFullyConnectedIORank> &output_tile_shape);
 
     FullyConnected_CS(const lib_mli::PlatformDescription pd,
-                      const Tensor<NoBuffer, 2> &in,
-                      const Tensor<NoBuffer, 2> &weights,
-                      const Tensor<NoBuffer, 1> &wtszp,
-                      const Tensor<NoBuffer, 2> &output_tile_shape);
+                      const Tensor<NoBuffer, kFullyConnectedIORank> &in,
+                      const Tensor<NoBuffer, kFullyConnectedWRank> &weights,
+                      const Tensor<NoBuffer, kFullyConnectedZPRank> &wtszp,
+                      const Tensor<NoBuffer, kFullyConnectedIORank> &output_tile_shape);
 
-    mli_status EncodeWeights(const Tensor<Buffer, 2> &weights,
+    /**
+      * @brief Constructor to create an FullyConnected_CS compiler support object.
+      *
+      * This constructor can be used to create a FullyConnected compiler support
+      * object. This kernel computes each value of the output tensor as the result of convolution operation
+      * for input with weights.
+      *
+      * @param pd          [I] Platform description
+      * @param input       [I] Input TensorIterator (NCi layout)
+      * @param weights     [I] weights TensorIterator (CiCo layout)
+      * @param weights_zp  [I] weights_zp TensorIterator
+      * @param cfg         [I] FullyConnectedConfig structure
+      * @param output      [I] output TensorIterator (NCo layout)
+      */
+    FullyConnected_CS(const lib_mli::PlatformDescription pd,
+                      const TensorIterator<NoBuffer, kFullyConnectedIORank, kFullyConnectedIterRank> &input,
+                      const TensorIterator<NoBuffer, kFullyConnectedWRank,  kFullyConnectedIterRank> &weights,
+                      const TensorIterator<NoBuffer, kFullyConnectedZPRank, kFullyConnectedIterRank> &weights_zp,
+                      const FullyConnectedConfig &cfg,
+                      const TensorIterator<NoBuffer, kFullyConnectedIORank, kFullyConnectedIterRank> &output) { NOT_IMPLEMENTED_METHOD; };
+
+    mli_status EncodeWeights(const Tensor<Buffer, kFullyConnectedWRank> &weights,
                              Buffer &encoded_weights) override;
 
     unsigned GetEncodedWeightsSize() const override;
 
-    mli_status EncodeWtsZeroPts(const Tensor<Buffer, 1> &wtszeropts,
+    mli_status EncodeWtsZeroPts(const Tensor<Buffer, kFullyConnectedZPRank> &wtszeropts,
                                 Buffer &encoded_wtszeropts) override;
 
     unsigned GetEncodedWtsZeroPtsSize() const override;
@@ -453,8 +543,8 @@ public:
     unsigned GetWeightsBufferSize() const override;
     unsigned GetZeroPointBufferSize() const override;
 
-    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 2> &input,
-                                   const Tensor<OffsetBuffer, 2> &output,
+    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kFullyConnectedIORank> &input,
+                                   const Tensor<OffsetBuffer, kFullyConnectedIORank> &output,
                                    const OffsetBuffer &weights,
                                    const OffsetBuffer &wtszeropts,
                                    const OffsetBuffer &ctrl_buffer) override;
@@ -465,10 +555,10 @@ public:
 
 private:
     lib_mli::PlatformDescription m_pd;
-    Tensor<OffsetBuffer, 2> m_in;
-    Tensor<OffsetBuffer, 2> m_weights;
-    Tensor<OffsetBuffer, 1> m_wtszp;
-    Tensor<OffsetBuffer, 2> m_output;
+    Tensor<OffsetBuffer, kFullyConnectedIORank> m_in;
+    Tensor<OffsetBuffer, kFullyConnectedWRank>  m_weights;
+    Tensor<OffsetBuffer, kFullyConnectedZPRank> m_wtszp;
+    Tensor<OffsetBuffer, kFullyConnectedIORank> m_output;
 
     OffsetBuffer m_weights_zp;
 

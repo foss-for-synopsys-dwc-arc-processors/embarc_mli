@@ -16,15 +16,15 @@
 namespace snps_arc::metaware::mli::ref {
 
 FullyConnected_CS::FullyConnected_CS(const lib_mli::PlatformDescription pd,
-                                     const Tensor<NoBuffer, 2> &in,
-                                     const Tensor<NoBuffer, 2> &weights,
-                                     const Tensor<NoBuffer, 1> &wtszp,
-                                     const Tensor<NoBuffer, 2> &output_tile_shape)
+                                     const Tensor<NoBuffer, kFullyConnectedIORank> &in,
+                                     const Tensor<NoBuffer, kFullyConnectedWRank>  &weights,
+                                     const Tensor<NoBuffer, kFullyConnectedZPRank> &wtszp,
+                                     const Tensor<NoBuffer, kFullyConnectedIORank> &output_tile_shape)
     : m_pd{pd},
-      m_in{Tensor<OffsetBuffer, 2>(OffsetBuffer(), in)},
-      m_weights{Tensor<OffsetBuffer, 2>(OffsetBuffer(), weights)},
-      m_wtszp{Tensor<OffsetBuffer, 1>(OffsetBuffer(), wtszp)},
-      m_output{Tensor<OffsetBuffer, 2>(OffsetBuffer(), output_tile_shape)} {
+      m_in{Tensor<OffsetBuffer, kFullyConnectedIORank>(OffsetBuffer(), in)},
+      m_weights{Tensor<OffsetBuffer, kFullyConnectedWRank>(OffsetBuffer(), weights)},
+      m_wtszp{Tensor<OffsetBuffer, kFullyConnectedZPRank>(OffsetBuffer(), wtszp)},
+      m_output{Tensor<OffsetBuffer, kFullyConnectedIORank>(OffsetBuffer(), output_tile_shape)} {
   uint32_t input_shape[2];
   uint32_t output_shape[2];
   int32_t input_stride[2];
@@ -57,10 +57,10 @@ FullyConnected_CS::FullyConnected_CS(const lib_mli::PlatformDescription pd,
 }
 
 FullyConnected_CS::FullyConnected_CS(const lib_mli::PlatformDescription pd,
-                                     const Tensor<NoBuffer, 2> &in,
-                                     const Tensor<NoBuffer, 2> &weights,
-                                     const Tensor<NoBuffer, 2> &output_tile_shape)
-    : FullyConnected_CS(pd, in, weights, Tensor<NoBuffer, 1>(), output_tile_shape) {
+                                     const Tensor<NoBuffer, kFullyConnectedIORank> &in,
+                                     const Tensor<NoBuffer, kFullyConnectedWRank>  &weights,
+                                     const Tensor<NoBuffer, kFullyConnectedIORank> &output_tile_shape)
+    : FullyConnected_CS(pd, in, weights, Tensor<NoBuffer, kFullyConnectedZPRank>(), output_tile_shape) {
 }
 
 unsigned FullyConnected_CS::GetKernelPrivateDataSize() const {
@@ -111,8 +111,8 @@ mli_status FullyConnected_CS::GetKernelPrivateData(void* kernel_private_data_buf
   return MLI_STATUS_OK;
 }
 
-mli_status FullyConnected_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, 2> &input,
-                                                  const Tensor<OffsetBuffer, 2> &output,
+mli_status FullyConnected_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, kFullyConnectedIORank> &input,
+                                                  const Tensor<OffsetBuffer, kFullyConnectedIORank> &output,
                                                   const OffsetBuffer &weights,
                                                   const OffsetBuffer &wtszeropts,
                                                   const OffsetBuffer &ctrl_buffer) {
@@ -128,7 +128,7 @@ mli_status FullyConnected_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, 2> 
   return MLI_STATUS_OK;
 }
 
-mli_status FullyConnected_CS::EncodeWeights(const Tensor<Buffer, 2> &weights,
+mli_status FullyConnected_CS::EncodeWeights(const Tensor<Buffer, kFullyConnectedWRank> &weights,
                                             Buffer &encoded_weights) {
   // the element size of source should eqaul to the encoded one's
   MLI_ASSERT(weights.get_buf().get_size() == encoded_weights.get_size());

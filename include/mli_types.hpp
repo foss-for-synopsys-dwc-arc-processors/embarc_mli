@@ -62,6 +62,7 @@ constexpr unsigned kConvWRank = 5;
 constexpr unsigned kConvWIterRank = 5;
 constexpr unsigned kConvZPRank = 1;
 constexpr unsigned kConvZPIterRank = 5;
+constexpr unsigned kConvIterRank = 5;
 
 constexpr unsigned kInpZPRank = 1;
 
@@ -76,6 +77,12 @@ constexpr unsigned kTransposeConvWRank = 5;
 constexpr unsigned kTransposeConvWIterRank = 5;
 constexpr unsigned kTransposeConvZPRank = 1;
 constexpr unsigned kTransposeConvZPIterRank = 5;
+constexpr unsigned kTransposeConvIterRank = 5;
+
+constexpr unsigned kFullyConnectedIORank = 2;
+constexpr unsigned kFullyConnectedWRank = 2;
+constexpr unsigned kFullyConnectedZPRank = 1;
+constexpr unsigned kFullyConnectedIterRank = 2;
 
 constexpr unsigned kPermuteRank = 4;
 constexpr unsigned kPermuteIterRank = 4;
@@ -154,7 +161,7 @@ typedef enum : uint32_t {
   kResizeBilinearId,
 } kernel_id_t;
 
-typedef enum class compression_mode_t {
+typedef enum class compression_mode_t : uint8_t {
   Uncompressed = 0,
   Compressed,
   Sparse
@@ -181,7 +188,17 @@ enum MoveDataDirection {
  *
  */
 class NoBuffer {
+public:
+  void set_elem_size(uint32_t elem_size) {
+    m_elem_size = elem_size;
+  }
 
+  uint32_t get_elem_size() const {
+    return m_elem_size;
+  }
+
+private:
+  uint32_t m_elem_size;
 };
 
 /**
@@ -205,6 +222,11 @@ public:
 
   uint32_t get_elem_size() const {
     return elem_size_;
+  }
+
+  void set_elem_size(uint32_t elem_size) {
+    assert(elem_size <= size_);
+    elem_size_ = elem_size;
   }
 
   /**
@@ -371,6 +393,7 @@ public:
   }
 
   void set_elem_size(uint32_t elem_size) {
+    assert(elem_size <= size_);
     elem_size_ = elem_size;
   }
 
@@ -627,6 +650,10 @@ class Tensor {
     return buf_.get_elem_size();
   }
 
+  void set_elem_size(uint32_t elem_size) {
+    buf_.set_elem_size(elem_size);
+  }
+
   uint32_t get_offset(uint32_t pos[]){
     uint32_t offset = 0;
     for (unsigned i = 0; i < rank_; ++i){
@@ -770,12 +797,14 @@ struct Conv2DConfig {
                  uint32_t pad_beg_ih, uint32_t pad_beg_iw,
                  uint32_t pad_end_ih, uint32_t pad_end_iw,
                  uint32_t dilation_ih, uint32_t dilation_iw,
-                 uint32_t groups) 
+                 uint32_t groups,
+                 compression_mode_t mode = compression_mode_t::Uncompressed) 
       : stride{stride_ih, stride_iw}
       , padding_begin{pad_beg_ih, pad_beg_iw}
       , padding_end{pad_end_ih, pad_end_iw}
       , dilation{dilation_ih, dilation_iw}
       , groups{groups}
+      , mode{mode}
     {}
 
     uint32_t stride[2];        /**< Stride along each axis [stride_IH, stride_IW]*/
@@ -785,6 +814,7 @@ struct Conv2DConfig {
                                    If set to dilation_I*>1, there will be k-1 implicitly added zero points between each
                                    filter point across appropriate dimension. If set to 1, no dilation logic is used */
     uint32_t groups;           /**< Number of groups input channels and output channels are divided into. */
+    compression_mode_t mode;   /**< compression mode used for weights (Uncompressed - Compressed - Sparse) */
 };
 
 struct DwConv2DConfig {
@@ -792,11 +822,13 @@ struct DwConv2DConfig {
     DwConv2DConfig(uint32_t stride_ih, uint32_t stride_iw,
                    uint32_t pad_beg_ih, uint32_t pad_beg_iw,
                    uint32_t pad_end_ih, uint32_t pad_end_iw,
-                   uint32_t dilation_ih, uint32_t dilation_iw)
+                   uint32_t dilation_ih, uint32_t dilation_iw,
+                   compression_mode_t mode = compression_mode_t::Uncompressed)
       : stride{stride_ih, stride_iw}
       , padding_begin{pad_beg_ih, pad_beg_iw}
       , padding_end{pad_end_ih, pad_end_iw}
       , dilation{dilation_ih, dilation_iw}
+      , mode{mode}
     {}
 
     uint32_t stride[2];        /**< Stride along each axis [stride_IH, stride_IW]*/
@@ -805,20 +837,33 @@ struct DwConv2DConfig {
     uint32_t dilation[2];      /**< Dilation Factor [dilation_IH, dilation_IW].
                                     If set to dilation_I*>1, there will be k-1 implicitly added zero points between each
                                     filter point across appropriate dimension. If set to 1, no dilation logic is used */
+    compression_mode_t mode;   /**< compression mode used for weights (Uncompressed - Compressed - Sparse) */
 };
 
 struct TransposeConv2DConfig {
     TransposeConv2DConfig() = default;
     TransposeConv2DConfig(uint32_t stride_ih, uint32_t stride_iw,
                           uint32_t pad_beg_ih, uint32_t pad_beg_iw,
-                          uint32_t pad_end_ih, uint32_t pad_end_iw)
-        : stride{stride_ih, stride_iw},
-          padding_begin{pad_beg_ih, pad_beg_iw},
-          padding_end{pad_end_ih, pad_end_iw} {}
+                          uint32_t pad_end_ih, uint32_t pad_end_iw,
+                          compression_mode_t mode = compression_mode_t::Uncompressed)
+        : stride{stride_ih, stride_iw}
+        , padding_begin{pad_beg_ih, pad_beg_iw}
+        , padding_end{pad_end_ih, pad_end_iw}
+        , mode{mode}
+      {}
 
-    uint32_t stride[2]; /**< Stride along each axis [stride_IH, stride_IW]*/
+    uint32_t stride[2];        /**< Stride along each axis [stride_IH, stride_IW]*/
     uint32_t padding_begin[2]; /**< Padding size at the beginning of spatial dimensions of input [pad_IH_beg, pad_IW_beg]*/
-    uint32_t padding_end[2]; /**< Padding size at the end of spatial dimensions of input [pad_IH_end, pad_IW_end]*/
+    uint32_t padding_end[2];   /**< Padding size at the end of spatial dimensions of input [pad_IH_end, pad_IW_end]*/
+    compression_mode_t mode;   /**< compression mode used for weights (Uncompressed - Compressed - Sparse) */
+};
+
+struct FullyConnectedConfig {
+    FullyConnectedConfig(compression_mode_t mode = compression_mode_t::Uncompressed)
+        : mode{mode}
+      {}
+
+    compression_mode_t mode;   /**< compression mode used for weights (Uncompressed - Compressed - Sparse) */
 };
 
 struct PoolOpConfig {
