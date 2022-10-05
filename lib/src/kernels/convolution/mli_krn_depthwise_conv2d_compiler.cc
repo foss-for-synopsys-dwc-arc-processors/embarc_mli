@@ -15,11 +15,16 @@
 
 namespace snps_arc::metaware::mli::ref {
 
+/**
+  * @deprecated
+  * Be carefull - this ctor doesn't support tiling - only single tile size of provided tensors
+  * Be carefull - depthwise conv2d I/O tensors of rank 4 are deprecated - new interfaces use rank 5
+  */
 DepthwiseConv2d_CS::DepthwiseConv2d_CS(const lib_mli::PlatformDescription pd,
-                                       const Tensor<NoBuffer, kDepthwiseIORank> &in,
-                                       const Tensor<NoBuffer, kDepthwiseWRank> &weights,
+                                       const Tensor<NoBuffer, 4> &in,
+                                       const Tensor<NoBuffer, 3> &weights,
                                        const DwConv2DConfig &cfg,
-                                       const Tensor<NoBuffer, kDepthwiseIORank> &output_tile_shape)
+                                       const Tensor<NoBuffer, 4> &output)
     : m_config(cfg),
       m_pd(pd) {
 
@@ -31,8 +36,18 @@ DepthwiseConv2d_CS::DepthwiseConv2d_CS(const lib_mli::PlatformDescription pd,
   int32_t output_stride[kDepthwiseIORank];
   in.get_dims(input_shape);
   in.get_mem_strides(input_stride);
-  output_tile_shape.get_dims(output_shape);
-  output_tile_shape.get_mem_strides(output_stride);
+  output.get_dims(output_shape);
+  output.get_mem_strides(output_stride);
+
+  // B, H, W, C -> B, H, W, G=1, C
+  input_shape[kGroupTensorChannelDim] = input_shape[kGroupTensorGroupDim];
+  input_shape[kGroupTensorGroupDim] = 1;
+  input_stride[kGroupTensorChannelDim] = input_stride[kGroupTensorGroupDim];
+  input_stride[kGroupTensorGroupDim] = input_stride[kGroupTensorWidthDim];
+  output_shape[kGroupTensorChannelDim] = output_shape[kGroupTensorGroupDim];
+  output_shape[kGroupTensorGroupDim] = 1;
+  output_stride[kGroupTensorChannelDim] = output_stride[kGroupTensorGroupDim];
+  output_stride[kGroupTensorGroupDim] = output_stride[kGroupTensorWidthDim];
 
   uint32_t weights_shape[kDepthwiseWRank];
   int32_t weights_stride[kDepthwiseWRank];
@@ -40,39 +55,44 @@ DepthwiseConv2d_CS::DepthwiseConv2d_CS(const lib_mli::PlatformDescription pd,
   weights.get_mem_strides(weights_stride);
 
   m_input_buffer_size =
-      service::GetBufferSize(in.get_rank(), input_shape, input_stride);
+      service::GetBufferSize(kDepthwiseIORank, input_shape, input_stride);
   m_weights_buffer_size
-      = service::GetBufferSize(weights.get_rank(), weights_shape, weights_stride);
+      = service::GetBufferSize(kDepthwiseWRank, weights_shape, weights_stride);
   m_output_buffer_size
-      = service::GetBufferSize(output_tile_shape.get_rank(), output_shape, output_stride);
+      = service::GetBufferSize(kDepthwiseIORank, output_shape, output_stride);
 
   m_inp_quant_axis = kPerTensorQuantDim;
   m_wts_quant_axis = kKernelDWChannelInDim;
 
-  // Init in and out tensors with empty offset buffer
-  // Layout: NHWCin
-  auto input_tensor = Tensor<OffsetBuffer, kDepthwiseIORank>(OffsetBuffer(), input_shape, input_stride);
-  m_input = TensorIterator<OffsetBuffer, kDepthwiseIORank, kDepthwiseIOIterRank>(input_tensor);
-  // Layout: HWCo
-  auto weights_tensor = Tensor<OffsetBuffer, kDepthwiseWRank>(OffsetBuffer(), weights_shape, weights_stride);
-  m_weights = TensorIterator<OffsetBuffer, kDepthwiseWRank, kDepthwiseWIterRank>(weights_tensor);
-  // Layout: NHWCo (Cin=Co)
-  auto output_tensor = Tensor<OffsetBuffer, kDepthwiseIORank>(OffsetBuffer(), output_shape, output_stride);
-  m_output = TensorIterator<OffsetBuffer, kDepthwiseIORank, kDepthwiseIOIterRank>(output_tensor);
+  Tensor<OffsetBuffer, kDepthwiseIORank> input_tensor(OffsetBuffer(), input_shape, input_stride);
+  m_input = TensorIterator<OffsetBuffer, kDepthwiseIORank, kDepthwiseIterRank>(input_tensor);
 
-  uint32_t wzp_shape[kDepthwiseZPRank]{ weights_shape[kKernelDWChannelInDim] };
-  Tensor<OffsetBuffer, kDepthwiseZPRank> wzp_tensor(OffsetBuffer(), wzp_shape);
-  m_weights_zp = TensorIterator<OffsetBuffer, kDepthwiseZPRank, kDepthwiseZPIterRank>(wzp_tensor);
+  Tensor<NoBuffer, kDepthwiseIORank> output_tensor(output_shape, output_stride);
+  TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIterRank> output_tensor_it(output_tensor);
+  m_output = TensorIterator<OffsetBuffer, kDepthwiseIORank, kDepthwiseIterRank>(output_tensor_it);
 
+  Tensor<NoBuffer, kDepthwiseWRank> weights_tensor(weights_shape, weights_stride);
+  const int32_t zero_inc_mask[kDepthwiseIterRank]{ 1, 1, 1, 1, 0 };
+  const int32_t weights_it_order[kDepthwiseIterRank]{ kSkipIterDim, 0, 1, kSkipIterDim, 2 };
+  lib_mli::TensorIterator<lib_mli::NoBuffer, kDepthwiseWRank, kDepthwiseIterRank> w_tensor_it(weights_tensor, output_tensor_it,
+                                                                                               weights_it_order, zero_inc_mask);
+  m_weights = TensorIterator<OffsetBuffer, kDepthwiseWRank, kDepthwiseIterRank>(w_tensor_it);
+
+  uint32_t wzp_shape[kDepthwiseZPRank]{ output_tensor.get_dim(kGroupTensorChannelDim) };
+  lib_mli::Tensor<lib_mli::NoBuffer, kDepthwiseZPRank> wzp_tensor(wzp_shape);  
+  const int32_t wzp_it_order[kDepthwiseIterRank]{ kSkipIterDim, kSkipIterDim, kSkipIterDim, kSkipIterDim, 0 };
+  lib_mli::TensorIterator<lib_mli::NoBuffer, kDepthwiseZPRank, kDepthwiseIterRank> wzp_tensor_it(wzp_tensor, output_tensor_it,
+                                                                                                   wzp_it_order, zero_inc_mask);
+  m_weights_zp = TensorIterator<OffsetBuffer, kDepthwiseZPRank, kDepthwiseIterRank>(wzp_tensor_it);
 }
 
 
 DepthwiseConv2d_CS::DepthwiseConv2d_CS(const lib_mli::PlatformDescription pd,
-                                       const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIOIterRank>& input,
-                                       const TensorIterator<NoBuffer, kDepthwiseWRank, kDepthwiseWIterRank>& weights,
-                                       const TensorIterator<NoBuffer, kDepthwiseZPRank, kDepthwiseZPIterRank>& weights_zp,
+                                       const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIterRank>& input,
+                                       const TensorIterator<NoBuffer, kDepthwiseWRank, kDepthwiseIterRank>& weights,
+                                       const TensorIterator<NoBuffer, kDepthwiseZPRank, kDepthwiseIterRank>& weights_zp,
                                        const DwConv2DConfig& cfg,
-                                       const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIOIterRank>& output)
+                                       const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIterRank>& output)
   : m_input(input),
     m_weights(weights),
     m_weights_zp(weights_zp),
@@ -118,8 +138,8 @@ mli_status DepthwiseConv2d_CS::GetKernelPrivateData(void* kernel_private_data_bu
   MLI_ASSERT(kernel_private_data_buffer != nullptr);
 
   // Channel checking
-  MLI_ASSERT(m_input.get_dim(mli::kTensorChannelDim) == m_output.get_dim(mli::kTileChannelDim));
-  MLI_ASSERT(m_weights.get_dim(mli::kKernelDWChannelInDim) == m_output.get_dim(mli::kTileChannelDim));
+  MLI_ASSERT(m_input.get_dim(kGroupTensorChannelDim) == m_output.get_dim(kGroupTensorChannelDim));
+  MLI_ASSERT(m_weights.get_dim(kKernelDWChannelInDim) == m_output.get_dim(kGroupTensorChannelDim));
 
   DepthwiseConv2DPrivateData prv_data;
   prv_data.input = m_input;
@@ -137,8 +157,13 @@ mli_status DepthwiseConv2d_CS::GetKernelPrivateData(void* kernel_private_data_bu
   return MLI_STATUS_OK;
 }
 
-mli_status DepthwiseConv2d_CS::AttachBufferOffsets(Tensor<OffsetBuffer, kDepthwiseIORank> &input,
-                                                   Tensor<OffsetBuffer, kDepthwiseIORank> &output,
+
+/**
+  * @deprecated
+  * Be carefull - depthwise conv2d I/O tensors of rank 4 are deprecated - new interfaces use rank 5
+  */
+mli_status DepthwiseConv2d_CS::AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
+                                                   Tensor<OffsetBuffer, 4> &output,
                                                    OffsetBuffer &weights,
                                                    OffsetBuffer &inpzeropts,
                                                    OffsetBuffer &wtszeropts,
@@ -186,7 +211,7 @@ unsigned DepthwiseConv2d_CS::GetEncodedWeightsSize() {
 
 mli_status DepthwiseConv2d_CS::EncodeInpZeroPts(Tensor<Buffer, kDepthwiseZPRank> &inpzeropts,
                                                 Buffer &encoded_inpzeropts) {
-  constexpr int channel_axis = mli::kTensorChannelDim;
+  constexpr int channel_axis = mli::kGroupTensorChannelDim;
   uint32_t channel_length = m_input.get_dim(channel_axis);
   return service::EncodeZeroPts<channel_axis>(
     inpzeropts, encoded_inpzeropts, m_inp_quant_axis, channel_length);

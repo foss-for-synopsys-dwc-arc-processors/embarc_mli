@@ -460,9 +460,10 @@ public:
     /**
      * @brief Methods to set buffer offsets
      * @deprecated
+     * Be carefull - depthwise conv2d I/O tensors of rank 4 are deprecated - new interfaces use rank 5
      */
-    virtual mli_status AttachBufferOffsets(Tensor<OffsetBuffer, kDepthwiseIORank> &input,
-                                           Tensor<OffsetBuffer, kDepthwiseIORank> &output,
+    virtual mli_status AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
+                                           Tensor<OffsetBuffer, 4> &output,
                                            OffsetBuffer &weights,
                                            OffsetBuffer &inpzeropts,
                                            OffsetBuffer &wtszeropts,

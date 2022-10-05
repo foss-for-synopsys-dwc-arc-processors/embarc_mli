@@ -213,21 +213,23 @@ public:
 
     /**
      * @deprecated
+     * Be carefull - this factory method doesn't support tiling - only single tile size of provided tensors
+     * Be carefull - depthwise conv2d I/O tensors of rank 4 are deprecated - new interfaces use rank 5 
      */
     lib_mli::DepthwiseConv2d_CS* DepthwiseConv2d_CS(void *kernel_buffer,
-                                                    const Tensor<NoBuffer, kDepthwiseIORank> in,
-                                                    const Tensor<NoBuffer, kDepthwiseWRank> weights,
+                                                    const Tensor<NoBuffer, 4> in,
+                                                    const Tensor<NoBuffer, 3> weights,
                                                     const DwConv2DConfig &cfg,
-                                                    const Tensor<NoBuffer, kDepthwiseIORank> output_tile_shape) override {
-        return new(kernel_buffer) lib_ref::DepthwiseConv2d_CS(m_pd, in, weights, cfg, output_tile_shape);
+                                                    const Tensor<NoBuffer, 4> output) override {
+        return new(kernel_buffer) lib_ref::DepthwiseConv2d_CS(m_pd, in, weights, cfg, output);
     }
 
     lib_mli::DepthwiseConv2d_CS* DepthwiseConv2d_CS(void* kernel_buffer,
-                                                    const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIOIterRank>& input,
-                                                    const TensorIterator<NoBuffer, kDepthwiseWRank, kDepthwiseWIterRank>& weights,
-                                                    const TensorIterator<NoBuffer, kDepthwiseZPRank, kDepthwiseZPIterRank>& weights_zp,
+                                                    const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIterRank>& input,
+                                                    const TensorIterator<NoBuffer, kDepthwiseWRank, kDepthwiseIterRank>& weights,
+                                                    const TensorIterator<NoBuffer, kDepthwiseZPRank, kDepthwiseIterRank>& weights_zp,
                                                     const DwConv2DConfig& cfg,
-                                                    const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIOIterRank>& output) override {
+                                                    const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIterRank>& output) override {
         return new(kernel_buffer) lib_ref::DepthwiseConv2d_CS(m_pd, input, weights, weights_zp, cfg, output);
     }
 

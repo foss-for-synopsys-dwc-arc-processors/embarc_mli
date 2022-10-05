@@ -65,10 +65,10 @@ public:
         : PrivateData(kDWConv2dId, sizeof(DepthwiseConv2DPrivateData)) {}
 
     // In/Out Tensor attached with offset buffer
-    TensorIterator<OffsetBuffer, kDepthwiseIORank, kDepthwiseIOIterRank> input;
-    TensorIterator<OffsetBuffer, kDepthwiseWRank, kDepthwiseWIterRank> weights;
-    TensorIterator<OffsetBuffer, kDepthwiseZPRank, kDepthwiseZPIterRank> weights_zp;
-    TensorIterator<OffsetBuffer, kDepthwiseIORank, kDepthwiseIOIterRank> output;
+    TensorIterator<OffsetBuffer, kDepthwiseIORank, kDepthwiseIterRank> input;
+    TensorIterator<OffsetBuffer, kDepthwiseWRank, kDepthwiseIterRank> weights;
+    TensorIterator<OffsetBuffer, kDepthwiseZPRank, kDepthwiseIterRank> weights_zp;
+    TensorIterator<OffsetBuffer, kDepthwiseIORank, kDepthwiseIterRank> output;
 
     // The layout of input
     Layout layout;
@@ -85,10 +85,10 @@ public:
 };
 
 struct DepthwiseConv2dMetadata {
-    TensorIterator<OffsetBuffer, kDepthwiseIORank, kDepthwiseIOIterRank> input;
-    TensorIterator<OffsetBuffer, kDepthwiseWRank, kDepthwiseWIterRank> weights;
-    TensorIterator<OffsetBuffer, kDepthwiseZPRank, kDepthwiseZPIterRank> weights_zp;
-    TensorIterator<OffsetBuffer, kDepthwiseIORank, kDepthwiseIOIterRank> output;
+    TensorIterator<OffsetBuffer, kDepthwiseIORank, kDepthwiseIterRank> input;
+    TensorIterator<OffsetBuffer, kDepthwiseWRank, kDepthwiseIterRank> weights;
+    TensorIterator<OffsetBuffer, kDepthwiseZPRank, kDepthwiseIterRank> weights_zp;
+    TensorIterator<OffsetBuffer, kDepthwiseIORank, kDepthwiseIterRank> output;
 
     InternalBuffer inpzp_buffer;
     int inp_quant_axis;

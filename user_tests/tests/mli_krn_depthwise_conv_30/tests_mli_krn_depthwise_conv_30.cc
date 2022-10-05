@@ -45,6 +45,8 @@
 #define NUM_VIRTUAL_BATCHES 5
 #define NUM_REAL_BATCHES 1
 
+#define NUM_GROUPS 1 // dont change this
+
 using mli::tst::tensor_quantizer;
 using mli::tst::quality_metrics;
 using mli::tst::crc32_calc;
@@ -58,18 +60,26 @@ namespace lib_mli = ::snps_arc::metaware::mli;
 namespace lib_ref = ::snps_arc::metaware::mli::ref;
 
 using lib_mli::kPerTensorQuantDim;
-using lib_mli::kTensorBatchDim;
-using lib_mli::kTensorHeightDim;
-using lib_mli::kTensorWidthDim;
+
 using lib_mli::kTensorChannelDim;
+using lib_mli::kSkipIterDim;
+
+using lib_mli::kGroupTensorBatchDim;
+using lib_mli::kGroupTensorHeightDim;
+using lib_mli::kGroupTensorWidthDim;
+using lib_mli::kGroupTensorGroupDim;
+using lib_mli::kGroupTensorChannelDim;
+
+using lib_mli::kKernelDWHeightDim;
+using lib_mli::kKernelDWWidthDim;
 using lib_mli::kKernelDWChannelInDim;
 
 using lib_mli::kDepthwiseIORank;
-using lib_mli::kDepthwiseIOIterRank;
+using lib_mli::kDepthwiseIterRank;
 using lib_mli::kDepthwiseWRank;
-using lib_mli::kDepthwiseWIterRank;
+using lib_mli::kDepthwiseIterRank;
 using lib_mli::kDepthwiseZPRank;
-using lib_mli::kDepthwiseZPIterRank;
+using lib_mli::kDepthwiseIterRank;
 
 using lib_mli::kRescaleRank;
 using lib_mli::kRescaleIterRank;
@@ -335,10 +345,19 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
                    DepthwiseConvOp& dwc_op, RescaleOp &rs_op, uint32_t& num_tiles) {
 
     
-    int32_t iteration_order[kDepthwiseIOIterRank]{ 0, 1, 2, 3 };
-    uint32_t total_input_size[kDepthwiseIORank]{ NUM_VIRTUAL_BATCHES, dwc_op.input.shape[0], dwc_op.input.shape[1], dwc_op.input.shape[2] };
-    uint32_t total_output_size[kDepthwiseIORank]{ NUM_VIRTUAL_BATCHES, dwc_op.out_acc.shape[0], dwc_op.out_acc.shape[1], dwc_op.out_acc.shape[2] };
-    assert(total_input_size[kTensorChannelDim] == total_output_size[kTensorChannelDim]);
+    int32_t iteration_order[kDepthwiseIterRank]{ 0, 1, 2, 3, 4 };
+    uint32_t total_input_size[kDepthwiseIORank]{ NUM_VIRTUAL_BATCHES,
+                                                 dwc_op.input.shape[FMAP_H_DIM_HWC],
+                                                 dwc_op.input.shape[FMAP_W_DIM_HWC],
+                                                 NUM_GROUPS,
+                                                 dwc_op.input.shape[FMAP_C_DIM_HWC] };
+    uint32_t total_output_size[kDepthwiseIORank]{ NUM_VIRTUAL_BATCHES,
+                                                  dwc_op.out_acc.shape[FMAP_H_DIM_HWC],
+                                                  dwc_op.out_acc.shape[FMAP_W_DIM_HWC],
+                                                  NUM_GROUPS,
+                                                  dwc_op.out_acc.shape[FMAP_C_DIM_HWC] };
+    assert(total_input_size[kGroupTensorGroupDim] == total_output_size[kGroupTensorGroupDim]);
+    assert(total_input_size[kGroupTensorChannelDim] == total_output_size[kGroupTensorChannelDim]);
 
     const uint32_t batch_tile_size = 2;
 #ifdef USE_TILING
@@ -354,32 +373,51 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
       *    S = [1 1], D = [2 2] // (y x), (y x)
       * 
       */
-    uint32_t tile_output_size[kDepthwiseIORank]{ batch_tile_size, 4, 4, 2 };
+    uint32_t tile_output_size[kDepthwiseIORank]{ batch_tile_size, 4, 4, NUM_GROUPS, 2 };
 #else
-    uint32_t tile_output_size[kDepthwiseIORank]{ batch_tile_size, total_output_size[1], total_output_size[2], total_output_size[3] };
+    uint32_t tile_output_size[kDepthwiseIORank]{ batch_tile_size,
+                                                 total_output_size[kGroupTensorHeightDim],
+                                                 total_output_size[kGroupTensorWidthDim],
+                                                 total_output_size[kGroupTensorGroupDim],,
+                                                 total_output_size[kGroupTensorChannelDim] };
 #endif
 
-    int32_t output_stride[kDepthwiseIORank] = { int32_t(dwc_op.out_acc.shape[0]) * dwc_op.out_acc.mem_stride[0],    // HWCo vs. HW1Co
-                                                dwc_op.out_acc.mem_stride[0], dwc_op.out_acc.mem_stride[1], dwc_op.out_acc.mem_stride[2] };
+    int32_t output_stride[kDepthwiseIORank] = { NUM_GROUPS * int32_t(dwc_op.out_acc.shape[FMAP_H_DIM_HWC]) * dwc_op.out_acc.mem_stride[FMAP_H_DIM_HWC],
+                                                NUM_GROUPS * dwc_op.out_acc.mem_stride[FMAP_H_DIM_HWC],
+                                                NUM_GROUPS * dwc_op.out_acc.mem_stride[FMAP_W_DIM_HWC],
+                                                dwc_op.out_acc.mem_stride[FMAP_W_DIM_HWC],
+                                                dwc_op.out_acc.mem_stride[FMAP_C_DIM_HWC]};
+
     const lib_mli::Tensor<lib_mli::NoBuffer, kDepthwiseIORank> full_out_tensor(total_output_size, output_stride);
-    lib_mli::TensorIterator<lib_mli::NoBuffer, kDepthwiseIORank, kDepthwiseIOIterRank> out_tensor_it(full_out_tensor, tile_output_size, iteration_order);
+    lib_mli::TensorIterator<lib_mli::NoBuffer, kDepthwiseIORank, kDepthwiseIterRank> out_tensor_it(full_out_tensor, tile_output_size, iteration_order);
 
     num_tiles = out_tensor_it.GetTotalCount();
 #ifndef USE_TILING
     assert(num_tiles == CEIL_DIV(NUM_VIRTUAL_BATCHES, batch_tile_size) );
 #endif
 
-    uint32_t effective_kernel_size[kDepthwiseIORank]{
-        1, lib_mli::service::get_effective_kernel_size(dwc_op.weights.shape[0], cur_test->cfg.dilation_height),
-        lib_mli::service::get_effective_kernel_size(dwc_op.weights.shape[1], cur_test->cfg.dilation_width), 1
+    uint32_t weight_shape[kDepthwiseWRank] = { dwc_op.weights.shape[KRNL_H_DIM_HWCN],
+                                               dwc_op.weights.shape[KRNL_W_DIM_HWCN],
+                                               dwc_op.weights.shape[KRNL_C_DIM_HWCN] };
+    assert(weight_shape[kKernelDWChannelInDim] == total_output_size[kGroupTensorChannelDim]);
+
+    uint32_t effective_kernel_size[kDepthwiseIterRank]{
+        1,
+        lib_mli::service::get_effective_kernel_size(weight_shape[kKernelDWHeightDim], cur_test->cfg.dilation_height),
+        lib_mli::service::get_effective_kernel_size(weight_shape[kKernelDWWidthDim], cur_test->cfg.dilation_width),
+        1, 1
     };
-    uint32_t stride[kDepthwiseIORank]{ 1, cur_test->cfg.stride_height, cur_test->cfg.stride_width , 1 };
-    uint32_t pre_padding[kDepthwiseIORank]{ 0, cur_test->cfg.padding_top, cur_test->cfg.padding_left, 0};   
-    int32_t input_stride[kDepthwiseIORank] = { int32_t(dwc_op.input.shape[0]) * dwc_op.input.mem_stride[0], // NHWCin vs. HWCin
-                                               dwc_op.input.mem_stride[0], dwc_op.input.mem_stride[1], dwc_op.input.mem_stride[2] };
+    uint32_t stride[kDepthwiseIORank]{ 1, cur_test->cfg.stride_height, cur_test->cfg.stride_width, 1, 1 };
+    uint32_t pre_padding[kDepthwiseIORank]{ 0, cur_test->cfg.padding_top, cur_test->cfg.padding_left, 0, 0};   
+    int32_t input_stride[kDepthwiseIORank] = { NUM_GROUPS * int32_t(dwc_op.input.shape[FMAP_H_DIM_HWC]) * dwc_op.input.mem_stride[FMAP_H_DIM_HWC],
+                                               NUM_GROUPS * dwc_op.input.mem_stride[FMAP_H_DIM_HWC],
+                                               NUM_GROUPS * dwc_op.input.mem_stride[FMAP_W_DIM_HWC],
+                                               dwc_op.input.mem_stride[FMAP_W_DIM_HWC],
+                                               dwc_op.input.mem_stride[FMAP_C_DIM_HWC] };
+
     const lib_mli::Tensor<lib_mli::NoBuffer, kDepthwiseIORank> full_in_tensor(total_input_size, input_stride);
 
-    lib_mli::TensorIterator<lib_mli::NoBuffer, kDepthwiseIORank, kDepthwiseIOIterRank> in_tensor_it(full_in_tensor, out_tensor_it,
+    lib_mli::TensorIterator<lib_mli::NoBuffer, kDepthwiseIORank, kDepthwiseIterRank> in_tensor_it(full_in_tensor, out_tensor_it,
                                                                                                     effective_kernel_size, stride, pre_padding);
 
     uint32_t tile_input_shape[kDepthwiseIORank];
@@ -390,16 +428,14 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
         tile_output_shape[i] = (uint32_t) MAX(out_tensor_it.get_config().get_first_size(i), out_tensor_it.get_config().get_size(i));
     }
 
-    uint32_t weight_shape[kDepthwiseWRank] = { dwc_op.weights.shape[0], dwc_op.weights.shape[1], dwc_op.weights.shape[3] }; // HWCo vs. HW1Co
-    assert(weight_shape[kKernelDWChannelInDim] == total_output_size[kTensorChannelDim]);
-    int32_t weight_stride[kDepthwiseWRank] = { dwc_op.weights.mem_stride[0], dwc_op.weights.mem_stride[1], dwc_op.weights.mem_stride[3] }; // HWCo vs. HW1Co
+    int32_t weight_stride[kDepthwiseWRank] = { dwc_op.weights.mem_stride[KRNL_H_DIM_HWCN],
+                                               dwc_op.weights.mem_stride[KRNL_W_DIM_HWCN],
+                                               dwc_op.weights.mem_stride[KRNL_C_DIM_HWCN] };
     const lib_mli::Tensor<lib_mli::NoBuffer, kDepthwiseWRank> full_w_tensor(weight_shape, weight_stride);
 
-    uint32_t tile_weights_shape[kDepthwiseWRank];
-    for (unsigned i = 0; i < kDepthwiseWRank - 1; i++) {
-      tile_weights_shape[i] = weight_shape[i];
-    }
-    tile_weights_shape[kDepthwiseWRank - 1] = tile_output_shape[kTensorChannelDim];
+    uint32_t tile_weights_shape[kDepthwiseWRank]{ weight_shape[kKernelDWHeightDim],
+                                                  weight_shape[kKernelDWWidthDim],
+                                                  tile_output_shape[kGroupTensorChannelDim] };
 
     // STEP 1.1: Construct [Depthwise_Conv2d] as a specific ExecutionInterface successor
     //==================================================================
@@ -414,50 +450,17 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
             cur_test->cfg.padding_right, cur_test->cfg.dilation_height,
             cur_test->cfg.dilation_width);
 
-    int32_t weights_iteration_order[kDepthwiseWIterRank]{ 0, 1, 2};  // TODO: maybe add some connection between i/o and w orders
-    const auto& output_it_config = out_tensor_it.get_config();
-    int32_t weights_count[kDepthwiseWIterRank]{output_it_config.get_count(kTensorHeightDim) * output_it_config.get_count(kTensorBatchDim),
-                                               output_it_config.get_count(kTensorWidthDim),
-                                               output_it_config.get_count(kTensorChannelDim)};
-    int32_t weights_first_increment[kDepthwiseWIterRank]{ 0, 0, output_it_config.get_first_inc(kTensorChannelDim) };
-    int32_t weights_increment[kDepthwiseWIterRank]{ 0, 0, output_it_config.get_inc(kTensorChannelDim) };
-    int32_t weights_last_increment[kDepthwiseWIterRank]{ 0, 0, output_it_config.get_last_inc(kTensorChannelDim) };
-    int32_t weights_first_size[kDepthwiseWIterRank];
-    int32_t weights_size[kDepthwiseWIterRank];
-    int32_t weights_last_size[kDepthwiseWIterRank];
-    for (unsigned i = 0; i < kDepthwiseWIterRank - 1; i++) {
-        weights_first_size[i] = weight_shape[i];
-        weights_size[i] = weight_shape[i];
-        weights_last_size[i] = weight_shape[i];
-    }
-    weights_first_size[kKernelDWChannelInDim] = output_it_config.get_first_size(kTensorChannelDim);
-    weights_size[kKernelDWChannelInDim] = output_it_config.get_size(kTensorChannelDim);
-    weights_last_size[kKernelDWChannelInDim] = output_it_config.get_last_size(kTensorChannelDim);
+    const lib_mli::Tensor<lib_mli::NoBuffer, kDepthwiseWRank> wt_tensor(weight_shape, weight_stride);
 
-    lib_mli::IteratorCfg<kDepthwiseWIterRank> weights_it_config(
-        weights_iteration_order, weights_count,
-        weights_first_increment, weights_increment, weights_last_increment,
-        weights_first_size, weights_size, weights_last_size
-    );
-    lib_mli::TensorIterator<lib_mli::NoBuffer, kDepthwiseWRank, kDepthwiseWIterRank> w_tensor_it(full_w_tensor, weights_it_config);
+    const int32_t zero_inc_mask[kDepthwiseIterRank]{ 1, 1, 1, 1, 0 };
+    const int32_t weights_it_order[kDepthwiseIterRank]{ kSkipIterDim, 0, 1, kSkipIterDim, 2 };
+    lib_mli::TensorIterator<lib_mli::NoBuffer, kDepthwiseWRank, kDepthwiseIterRank> w_tensor_it(wt_tensor, out_tensor_it,
+                                                                                                 weights_it_order, zero_inc_mask);
 
-    int32_t wzp_iteration_order[kDepthwiseZPIterRank]{ 0 };
-    int32_t wzp_count[kDepthwiseZPIterRank]{ output_it_config.get_count(kTensorChannelDim) };
-    int32_t wzp_first_increment[kDepthwiseZPIterRank]{ output_it_config.get_first_inc(kTensorChannelDim) };
-    int32_t wzp_increment[kDepthwiseZPIterRank]{ output_it_config.get_inc(kTensorChannelDim) };
-    int32_t wzp_last_increment[kDepthwiseZPIterRank]{ output_it_config.get_last_inc(kTensorChannelDim) };
-    int32_t wzp_first_size[kDepthwiseZPIterRank]{ (int32_t)output_it_config.get_first_size(kTensorChannelDim)};
-    int32_t wzp_size[kDepthwiseZPIterRank]{ (int32_t)output_it_config.get_size(kTensorChannelDim) };
-    int32_t wzp_last_size[kDepthwiseZPIterRank]{ (int32_t)output_it_config.get_last_size(kTensorChannelDim) };
-
-    uint32_t wzp_shape[kDepthwiseZPRank]{ total_output_size[kTensorChannelDim] };
+    uint32_t wzp_shape[kDepthwiseZPRank]{ total_output_size[kGroupTensorChannelDim] };
     lib_mli::Tensor<lib_mli::NoBuffer, kDepthwiseZPRank> wzp_tensor(wzp_shape);
-    lib_mli::IteratorCfg<kDepthwiseZPIterRank> wzp_it_config(
-      wzp_iteration_order, wzp_count,
-      wzp_first_increment, wzp_increment, wzp_last_increment,
-      wzp_first_size, wzp_size, wzp_last_size
-    );
-    lib_mli::TensorIterator<lib_mli::NoBuffer, kDepthwiseZPRank, kDepthwiseZPIterRank> wzp_tensor_it(wzp_tensor, wzp_it_config);
+    const int32_t wzp_it_order[kDepthwiseIterRank]{ kSkipIterDim, kSkipIterDim, kSkipIterDim, kSkipIterDim, 0 };
+    lib_mli::TensorIterator<lib_mli::NoBuffer, kDepthwiseZPRank, kDepthwiseIterRank> wzp_tensor_it(wzp_tensor, out_tensor_it, wzp_it_order, zero_inc_mask);
 
     auto dw_conv2d_op = kernel_factory.DepthwiseConv2d_CS(dw_conv2d_cs_buffer, in_tensor_it, w_tensor_it,  wzp_tensor_it, dwc_cfg, out_tensor_it);
 
@@ -483,9 +486,14 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
         rs_cfg.axis = kTensorChannelDim;
     }
 
-    assert(kRescaleRank == kDepthwiseIORank);
-    assert(kRescaleIterRank == kDepthwiseIOIterRank);
-    auto rescale_op = kernel_factory.Rescale_CS(rescale_cs_buffer, out_tensor_it, rs_cfg, out_tensor_it);
+    static_assert(kRescaleRank == kDepthwiseIORank - 1);
+    static_assert(kRescaleIterRank == kDepthwiseIterRank - 1);
+    uint32_t io_output_shape[kRescaleRank]{ total_output_size[0], total_output_size[1], total_output_size[2], total_output_size[4] };
+    int32_t io_output_strides[kRescaleRank]{ output_stride[0], output_stride[1], output_stride[2], output_stride[4] };
+    lib_mli::Tensor<lib_mli::NoBuffer, kRescaleRank> io_tensor(io_output_shape, io_output_strides);
+    lib_mli::IteratorCfg<kRescaleRank> io_it_cfg(out_tensor_it.get_config(), kGroupTensorGroupDim);
+    lib_mli::TensorIterator<lib_mli::NoBuffer, kRescaleRank, kRescaleIterRank> io_tensor_it(io_tensor, io_it_cfg);
+    auto rescale_op = kernel_factory.Rescale_CS(rescale_cs_buffer, io_tensor_it, rs_cfg, io_tensor_it);
 
     // STEP 1.2: [Depthwise_Conv2d] Memory management (Up to user on how to deal with it)
     //==================================================================
@@ -541,7 +549,7 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
 
     // depthwise conv2d weights zero point
     uint32_t full_wtszp_size = dw_conv2d_op->GetEncodedWtsZeroPtsSize() * dwc_w_elem_size;
-    uint32_t wtszp_size = tile_output_shape[kTensorChannelDim] * dwc_w_elem_size;
+    uint32_t wtszp_size = tile_output_shape[kGroupTensorChannelDim] * dwc_w_elem_size;
     lib_mli::OffsetBuffer dw_wtszp_buf { *dwc_offset, 0, wtszp_size,
                                             dwc_w_elem_size };
     *dwc_offset += wtszp_size;
@@ -734,14 +742,25 @@ void execution_phase(DepthwiseConvOp &dwc_op, RescaleOp &rs_op, uint32_t tiles_n
     int32_t weights_tile_offsets[kDepthwiseWRank];
     const int32_t zero_offsets[kDepthwiseIORank]{};
     uint32_t enc_param_size = 0, inp_bias_offset = 0, scale_offset = 0, shift_offset = 0, out_bias_offset = 0;
+    int32_t output_tile_offsets_rescale[kRescaleRank];
+    int32_t tile_output_strides_rescale[kRescaleRank];
+    uint32_t output_tile_size_rescale[kRescaleRank];
 
     mli_status status = MLI_STATUS_OK;
     for (unsigned i = 0; i < tiles_num; ++i) {
 
         mli_dconv2d_pimpl->GetIOSizesAndOffsets(input_tile_size, output_tile_size, weights_tile_size,
                                                 input_tile_offsets, output_tile_offsets, weights_tile_offsets);
-        input_tile_offsets[kTensorBatchDim] = NUM_REAL_BATCHES - 1;
-        output_tile_offsets[kTensorBatchDim] = NUM_REAL_BATCHES - 1;
+        input_tile_offsets[kGroupTensorBatchDim] = NUM_REAL_BATCHES - 1;
+        output_tile_offsets[kGroupTensorBatchDim] = NUM_REAL_BATCHES - 1;
+        for (unsigned i = 0; i < kRescaleRank - 1; i++) {
+          output_tile_offsets_rescale[i] = output_tile_offsets[i];
+          tile_output_strides_rescale[i] = tile_output_strides[i];
+          output_tile_size_rescale[i] = output_tile_size[i];
+        }
+        output_tile_offsets_rescale[kTensorChannelDim] = output_tile_offsets[kGroupTensorChannelDim];
+        tile_output_strides_rescale[kTensorChannelDim] = tile_output_strides[kGroupTensorChannelDim];
+        output_tile_size_rescale[kTensorChannelDim] = output_tile_size[kGroupTensorChannelDim];
 
         // copy input from global to local buffer
         strided_copy_with_offsets(kDepthwiseIORank, dconv2d_private->input.get_buf().get_elem_size(),
@@ -767,22 +786,23 @@ void execution_phase(DepthwiseConvOp &dwc_op, RescaleOp &rs_op, uint32_t tiles_n
         }
 
         rescale_pimpl->GetIOSizesAndOffsets(enc_param_size, inp_bias_offset, scale_offset, shift_offset, out_bias_offset);
+        uint32_t rescale_enc_param_src_offset = output_tile_offsets_rescale[kTensorChannelDim];
 
         // copy rescale input bias from global to local buffer
         memcpy((void*)(g_mem_pool + rescale_private->encoded_params_buffer.get_offset() + inp_bias_offset),
-            (void*)(rs_op.mli3_bias.get_bias_tsr().data.mem.pi32 + output_tile_offsets[3]), sizeof(int32_t) * enc_param_size);
+               (void*)(rs_op.mli3_bias.get_bias_tsr().data.mem.pi32 + rescale_enc_param_src_offset), sizeof(int32_t) * enc_param_size);
 
         // copy rescale scale from global to local buffer
         memcpy((void*)(g_mem_pool + rescale_private->encoded_params_buffer.get_offset() + scale_offset),
-            (void*)(rs_op.mli3_scales_keeper.get_scales_tsr().data.mem.pi16 + output_tile_offsets[3]), sizeof(int16_t) * enc_param_size);
+               (void*)(rs_op.mli3_scales_keeper.get_scales_tsr().data.mem.pi16 + rescale_enc_param_src_offset), sizeof(int16_t) * enc_param_size);
 
         // copy rescale shift from global to local buffer
         memcpy((void*)(g_mem_pool + rescale_private->encoded_params_buffer.get_offset() + shift_offset),
-            (void*)(rs_op.mli3_scales_keeper.get_shift_tsr().data.mem.pi8 + output_tile_offsets[3]), sizeof(int8_t) * enc_param_size);
+               (void*)(rs_op.mli3_scales_keeper.get_shift_tsr().data.mem.pi8 + rescale_enc_param_src_offset), sizeof(int8_t) * enc_param_size);
 
         // copy rescale output bias from global to local buffer
         memcpy((void*)(g_mem_pool + rescale_private->encoded_params_buffer.get_offset() + out_bias_offset),
-            (void*)(rs_op.bias_out.data.mem.pi8 + output_tile_offsets[3]), sizeof(int8_t) * enc_param_size);
+               (void*)(rs_op.bias_out.data.mem.pi8 + rescale_enc_param_src_offset), sizeof(int8_t) * enc_param_size);
 
         status = mli_depthwise_conv->Prefetch();
         assert(status == MLI_STATUS_OK);
@@ -801,8 +821,8 @@ void execution_phase(DepthwiseConvOp &dwc_op, RescaleOp &rs_op, uint32_t tiles_n
         // copy results from rescale output tile to the global buffer
         strided_copy_with_offsets(kRescaleRank, rescale_private->output.get_buf().get_elem_size(),
                                   (int8_t*)g_mem_pool + rescale_private->output.get_buf().get_offset(),
-                                  zero_offsets, output_tile_offsets, tile_output_strides,
-                                  output_tile_size, rs_op.original_out.data.mem.pi8);
+                                  zero_offsets, output_tile_offsets_rescale, tile_output_strides_rescale,
+                                  output_tile_size_rescale, rs_op.original_out.data.mem.pi8);
     }
 
 

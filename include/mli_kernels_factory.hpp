@@ -409,7 +409,9 @@ public:
       * method
       *
       * @deprecated
-      *
+      * Be carefull - this factory method doesn't support tiling - only single tile size of provided tensors
+      * Be carefull - depthwise conv2d I/O tensors of rank 4 are deprecated - new interfaces use rank 5 
+      * 
       * @param kernel_buffer       [I] Pointer to the pre-allocated memory to store
       *                                kernel Compiler Support object
       * @param in                  [I] Tensor object containing input Tensor shape and
@@ -417,16 +419,16 @@ public:
       * @param weights             [I] Tensor object containing weights Tensor shape
       *                                and memory strides
       * @param cfg                 [I] Kernel configuration structure
-      * @param output_tile_shape   [I] Tensor object containing output Tensor shape
+      * @param output              [I] Tensor object containing output Tensor shape
       *                                and memory strides
       *
       * @return Depthwise Convolution 2D kernel Compiler Support interface object
       */
     virtual lib_mli::DepthwiseConv2d_CS* DepthwiseConv2d_CS(void *kernel_buffer,
-                                                            const Tensor<NoBuffer, kDepthwiseIORank> in,                  // BHWC
-                                                            const Tensor<NoBuffer, kDepthwiseWRank> weights,                  // KiKoC
+                                                            const Tensor<NoBuffer, 4> in,       // BHWC
+                                                            const Tensor<NoBuffer, 3> weights,  // KiKoC
                                                             const DwConv2DConfig &cfg,
-                                                            const Tensor<NoBuffer, kDepthwiseIORank> output_tile_shape) { // BHWC
+                                                            const Tensor<NoBuffer, 4> output) { // BHWC
       return nullptr;
     }
 
@@ -448,11 +450,11 @@ public:
      * @return Depthwise Convolution 2D kernel Compiler Support interface object
      */
     virtual lib_mli::DepthwiseConv2d_CS* DepthwiseConv2d_CS(void* kernel_buffer,
-                                                            const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIOIterRank>& input,    // BHWC
-                                                            const TensorIterator<NoBuffer, kDepthwiseWRank, kDepthwiseWIterRank>& weights,            // KiKoC
-                                                            const TensorIterator<NoBuffer, kDepthwiseZPRank, kDepthwiseZPIterRank>& weights_zp,       // C
+                                                            const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIterRank>& input,      // BHWGC
+                                                            const TensorIterator<NoBuffer, kDepthwiseWRank, kDepthwiseIterRank>& weights,      // KiKoC
+                                                            const TensorIterator<NoBuffer, kDepthwiseZPRank, kDepthwiseIterRank>& weights_zp, // C
                                                             const DwConv2DConfig& cfg,
-                                                            const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIOIterRank>& output) { // BHWC
+                                                            const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIterRank>& output) {   // BHWGC
       return nullptr;
     }
 

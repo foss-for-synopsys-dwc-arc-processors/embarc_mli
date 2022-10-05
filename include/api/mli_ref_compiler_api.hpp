@@ -166,22 +166,24 @@ public:
     /**
      * @brief Constructor of the DepthwiseConv2d_CS object
      * @deprecated
+     * Be carefull - this ctor doesn't support tiling - only single tile size of provided tensors
+     * Be carefull - depthwise conv2d I/O tensors of rank 4 are deprecated - new interfaces use rank 5
      */
     DepthwiseConv2d_CS(const lib_mli::PlatformDescription pd,
-                       const Tensor<NoBuffer, kDepthwiseIORank> &in,
-                       const Tensor<NoBuffer, kDepthwiseWRank> &weights,
+                       const Tensor<NoBuffer, 4> &in,
+                       const Tensor<NoBuffer, 3> &weights,
                        const DwConv2DConfig &cfg,
-                       const Tensor<NoBuffer, kDepthwiseIORank> &output_tile_shape);
+                       const Tensor<NoBuffer, 4> &output);
 
     /**
      * @brief Constructor of the DepthwiseConv2d_CS object
      */
     DepthwiseConv2d_CS(const lib_mli::PlatformDescription pd,
-                       const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIOIterRank>& input,
-                       const TensorIterator<NoBuffer, kDepthwiseWRank, kDepthwiseWIterRank>& weights,
-                       const TensorIterator<NoBuffer, kDepthwiseZPRank, kDepthwiseZPIterRank>& weights_zp,
+                       const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIterRank>& input,
+                       const TensorIterator<NoBuffer, kDepthwiseWRank, kDepthwiseIterRank>& weights,
+                       const TensorIterator<NoBuffer, kDepthwiseZPRank, kDepthwiseIterRank>& weights_zp,
                        const DwConv2DConfig& cfg,
-                       const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIOIterRank>& output);
+                       const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIterRank>& output);
 
     mli_status EncodeWeights(Tensor<Buffer, kDepthwiseWRank> &weights,
                              Buffer &encoded_weights,
@@ -205,9 +207,10 @@ public:
 
     /**
      * @deprecated
+     * Be carefull - depthwise conv2d I/O tensors of rank 4 are deprecated - new interfaces use rank 5
      */
-    mli_status AttachBufferOffsets(Tensor<OffsetBuffer, kDepthwiseIORank> &input,
-                                   Tensor<OffsetBuffer, kDepthwiseIORank> &output,
+    mli_status AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
+                                   Tensor<OffsetBuffer, 4> &output,
                                    OffsetBuffer &weights,
                                    OffsetBuffer &inpzeropts,
                                    OffsetBuffer &wtszeropts,
@@ -226,10 +229,10 @@ public:
 
 private:
     // Input, weights, output tensors with offset buffer attached
-    TensorIterator<OffsetBuffer, kDepthwiseIORank, kDepthwiseIOIterRank> m_input;
-    TensorIterator<OffsetBuffer, kDepthwiseWRank, kDepthwiseWIterRank> m_weights;
-    TensorIterator<OffsetBuffer, kDepthwiseZPRank, kDepthwiseZPIterRank> m_weights_zp;
-    TensorIterator<OffsetBuffer, kDepthwiseIORank, kDepthwiseIOIterRank> m_output;
+    TensorIterator<OffsetBuffer, kDepthwiseIORank, kDepthwiseIterRank> m_input;
+    TensorIterator<OffsetBuffer, kDepthwiseWRank, kDepthwiseIterRank> m_weights;
+    TensorIterator<OffsetBuffer, kDepthwiseZPRank, kDepthwiseIterRank> m_weights_zp;
+    TensorIterator<OffsetBuffer, kDepthwiseIORank, kDepthwiseIterRank> m_output;
 
     // encoded zp buffers for input and weights (optional for FX type)
     OffsetBuffer m_inpzp_buffer;

@@ -326,15 +326,20 @@ class IteratorCfg {
 
     template <typename buf_T, uint32_t rank>
     void DisableTiling(const int32_t disable_mask[rank],
-                       const Tensor<buf_T, rank>& tensor) {
-      for (uint32_t i = 0; i < rank; ++i) {
-        if (disable_mask[i]) {
-          uint32_t size = tensor.get_dim(i);
-          m_first_size[i] = size;
-          m_size[i] = size;
-          m_last_size[i] = size;
-          m_diff_code[i] = SZ0_SZ0_SZ0;
+                       const Tensor<buf_T, rank>& tensor,
+                       const int32_t skip_dim[rank] = nullptr) {
+      unsigned tensor_dim = 0;
+      for (uint32_t iter_dim = 0; iter_dim < rank; ++iter_dim) {
+        if (skip_dim != nullptr && skip_dim[iter_dim] == kSkipIterDim) continue;
+
+        if (disable_mask[iter_dim]) {
+          uint32_t size = tensor.get_dim(tensor_dim);
+          m_first_size[iter_dim] = size;
+          m_size[iter_dim] = size;
+          m_last_size[iter_dim] = size;
+          m_diff_code[iter_dim] = SZ0_SZ0_SZ0;
         }
+        tensor_dim++;
       }
     }
 
@@ -715,7 +720,8 @@ class TensorIterator {
       if (zero_increment_mask != nullptr) {
         m_config.SetZeroIncrements(zero_increment_mask);
         if (srcTensorRank == iterRank) {
-          m_config.template DisableTiling<buf_T, tensorRank>(zero_increment_mask, tensor);
+          MLI_ASSERT(tensorRank == iterRank || (tensorRank < iterRank && iteration_order != nullptr) );
+          m_config.template DisableTiling<buf_T, tensorRank>(zero_increment_mask, tensor, iteration_order);
         }
       }
       if (iteration_order != nullptr) m_config.UpdateOrder(iteration_order);
@@ -972,6 +978,10 @@ class TensorIterator {
       for (uint32_t i = 0; i < iterRank; i++) {
         pos[i] = m_pos[i];
       }
+    }
+
+    int32_t GetPos(uint32_t dim) const {
+      return m_pos[dim];
     }
 
     void get_tile_idx(int32_t tile_idx[iterRank]) const {

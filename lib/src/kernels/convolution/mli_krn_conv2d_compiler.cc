@@ -17,6 +17,7 @@ namespace snps_arc::metaware::mli::ref {
 
 /**
   * @deprecated
+  * Be carefull - you need to use another deprected method to set tiling - SetIterators
   * Be carefull - conv2d I/O tensors of rank 4 are deprecated - new interfaces use rank 5 
   */
 Conv2d_CS::Conv2d_CS(const lib_mli::PlatformDescription pd,
