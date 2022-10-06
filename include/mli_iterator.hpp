@@ -141,7 +141,7 @@ class IteratorCfg {
     // Constructor that will compute the number of tiles in each dimension, it will also compute the increment values and sizes.
     template <typename buf_T>
     IteratorCfg(const Tensor<buf_T, iterRank>& tensor, // full tensor to be iterated
-                uint32_t tilesize[],                   // size of the tile
+                const uint32_t tilesize[],             // size of the tile
                 const int32_t order[],                 // iteration order
                 uint32_t skew = 0) {                   // skewing on first iteration dimension (reduction of the first tile size, used in fused processing to avoid triple buffering)
       MLI_ASSERT(tilesize[order[0]] >= skew);
@@ -161,11 +161,11 @@ class IteratorCfg {
 
     // Constructor that updates previously constructed iterator taking into account a kernel apperture and paddings
     template <typename buf_T>
-    IteratorCfg(const IteratorCfg& icfg,          // origin config
-                Tensor<buf_T, iterRank> tensor,   // full tensor
-                uint32_t effective_kernel_size[], // used to calculate the overlaps between the tiles
-                uint32_t stride[],                // used to calculate the overlaps between the tiles
-                uint32_t pre_padding[]) {         // number of virtual pixels added before each dimension
+    IteratorCfg(const IteratorCfg& icfg,                // origin config
+                const Tensor<buf_T, iterRank> tensor,   // full tensor
+                const uint32_t effective_kernel_size[], // used to calculate the overlaps between the tiles
+                const uint32_t stride[],                // used to calculate the overlaps between the tiles
+                const uint32_t pre_padding[]) {         // number of virtual pixels added before each dimension
       for (uint32_t i = 0; i < iterRank; ++i) {
         int32_t dim = icfg.m_order[i];
         m_order[i] = dim;
@@ -211,29 +211,36 @@ class IteratorCfg {
 
     // Constructor that updates previously constructed iterator for work on buffer for only one or several tiles
     IteratorCfg(const IteratorCfg& icfg, // origin config
-                int32_t shrinksz         // 1 or more
+                bool cyclic              // cyclic buffer, even for 1 tile
                ) {
-      assert(shrinksz > 0);
       for (uint32_t i = 0; i < iterRank; ++i) {
         m_order[i] = icfg.m_order[i];
         m_count[i] = icfg.m_count[i];
-        if (shrinksz > 1) { // cyclic buffer for double- (or more) buffering
-          if (i == 0) {
-            m_pos_inc[0] = icfg.m_pos_inc[0];
-            m_first_pos_inc[0] = icfg.m_first_pos_inc[0];
-            m_last_pos_inc[0] = icfg.m_last_size[0];
-          } else {
-            m_pos_inc[i] = m_first_pos_inc[i] = m_last_pos_inc[i] = 0;
-          }
-        } else { // buffer for single tile
+        if (cyclic && i == 0) {
+          m_pos_inc[0] = icfg.m_pos_inc[0];
+          m_first_pos_inc[0] = icfg.m_first_pos_inc[0];
+          m_last_pos_inc[0] = icfg.m_last_size[0];
+        } else {
           m_pos_inc[i] = m_first_pos_inc[i] = m_last_pos_inc[i] = 0;
         }
         m_size[i] = icfg.m_size[i];
         m_first_size[i] = icfg.m_first_size[i];
         m_last_size[i] = icfg.m_last_size[i];
-        m_diff_code[i] = CalcDiffCode(m_count[i], m_first_size[i], m_size[i], m_last_size[i]);
+        m_diff_code[i] = icfg.m_diff_code[i];
       }
       m_buf_tiles_num = icfg.get_buf_tiles_num();
+    }
+
+    // Method that updates the current iterator for work on buffer for only one or several tiles
+	// Does the same as previous constructor but with the current config
+    void ShrinkCfg(bool cyclic = false) {
+      for (uint32_t i = 0; i < iterRank; ++i) {
+        if (cyclic && i == 0) {
+          m_last_pos_inc[0] = m_last_size[0];
+        } else {
+          m_pos_inc[i] = m_first_pos_inc[i] = m_last_pos_inc[i] = 0;
+        }
+      }
     }
 
     // This method will remove the overlap between adjacent tiles in the first iteration dimension to avoid duplicate data transfers
@@ -246,6 +253,18 @@ class IteratorCfg {
         m_last_size[0] -= overlap;
         m_last_pos_inc[0] -= overlap;
         m_diff_code[0] = CalcDiffCode(m_count[0], m_first_size[0], m_size[0], m_last_size[0]);
+      }
+    }
+
+    // Specific method to add extra increments for padding handling
+    template <uint32_t tensorRank>
+    void ApplyPrePadding(const uint32_t pre_padding[tensorRank]) {
+      for (uint32_t i = 0; i < iterRank; ++i) {
+        int32_t dim = m_order[i];
+        if (dim >= 0 && m_count[i] > 1) {
+          m_first_pos_inc[i] += pre_padding[dim];
+          m_last_pos_inc[i] -= pre_padding[dim];
+        }
       }
     }
 
@@ -279,7 +298,7 @@ class IteratorCfg {
         }
     }
 
-        IteratorCfg<iterRank> transpose_order(uint32_t new_order[]) const {
+    IteratorCfg<iterRank> transpose_order(uint32_t new_order[]) const {
         // create a transposed Iterator, reordering the dimensions
         IteratorCfg<iterRank> iter;
         // change order of axes
