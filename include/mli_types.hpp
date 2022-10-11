@@ -246,6 +246,7 @@ public:
    * 
    * @param offset [I] offset is in number of elements (not in bytes)
    */
+  // TODO: Remove this method since it is incorrect!
   void inc(unsigned offset) {
     ptr_ += elem_size_ * offset;
   }
@@ -346,6 +347,7 @@ public:
    * 
    * @param offset [I] offset is in number of elements (not in bytes)
    */
+  // TODO: Remove this method since it is incorrect!
   void inc(unsigned offset) {
     offset_ += elem_size_ * offset;
   }
@@ -452,6 +454,7 @@ public:
    * 
    * @param offset [I] offset is in number of elements (not in bytes)
    */
+  // TODO: Remove this method since it is incorrect!
   void inc(unsigned offset) {
     ptr_ += elem_size_ * offset;
   }
@@ -682,15 +685,13 @@ class Tensor {
   }
 
   Tensor<buf_T, maxRank> slice(uint32_t offset, uint32_t size[]) {
-    buf_T buf = buf_;
-    buf.inc(offset);
-    Tensor<buf_T, maxRank> slice_tens(buf, size, mem_stride_, rank_);
+    Tensor<buf_T, maxRank> slice_tens(buf_, size, mem_stride_, rank_);
+    slice_tens.set_offs(offset_ + offset);
     return slice_tens;
   }
     
   Tensor<buf_T, maxRank> slice(uint32_t size[]) {
-    buf_T buf = buf_;
-    Tensor<buf_T, maxRank> slice_tens(buf, size, mem_stride_, rank_);
+    Tensor<buf_T, maxRank> slice_tens(buf_, size, mem_stride_, rank_);
     return slice_tens;
   }
 
