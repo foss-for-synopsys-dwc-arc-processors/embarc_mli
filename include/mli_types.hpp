@@ -46,6 +46,18 @@ constexpr short int kKernelChannelOutDim = 4;
 constexpr short int kKernelDWHeightDim = 0;
 constexpr short int kKernelDWWidthDim = 1;
 constexpr short int kKernelDWChannelInDim = 2;
+constexpr short int kKernelDWGroupDim = kKernelDWChannelInDim;
+
+constexpr short int kKernelONNXGroupDim = 0;
+constexpr short int kKernelONNXChannelOutDim = 1;
+constexpr short int kKernelONNXChannelInDim = 2;
+constexpr short int kKernelONNXHeightDim = 3;
+constexpr short int kKernelONNXWidthDim = 4;
+
+constexpr short int kKernelONNXDWGroupDim = 0;
+constexpr short int kKernelONNXDWHeightDim = 1;
+constexpr short int kKernelONNXDWWidthDim = 2;
+constexpr short int kKernelONNXDWChannelInDim = kKernelONNXDWGroupDim;
 
 constexpr short int kKernelFCChannelInDim = 0;
 constexpr short int kKernelFCChannelOutDim = 1;
