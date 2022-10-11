@@ -1027,8 +1027,12 @@ mli_prv_get_conv2d_weights_tensor_hwcn(
     int in_ch_mem_stride  = weights.get_mem_stride(kKernelChannelInDim);
     int out_ch_mem_stride = weights.get_mem_stride(kKernelChannelOutDim);
 
-    // The inner-most memory stride should be 1.
+#if defined(__Xvec_width) || defined(__FXAPI__)
+    // The inner-most memory stride should be 1. Some platforms require a
+    // memory stride of 1 for the innermost dimension (out_ch). The encode
+    // function should take care of that.
     MLI_CHECK_AND_FIX(out_ch_mem_stride, 1);
+#endif
 
     return conv2d_weights_tensor_private_t<T> {
             weights.get_buf().get_ptr<std::remove_pointer_t<T>>(),
@@ -1048,10 +1052,16 @@ mli_prv_get_conv2d_weights_tensor_hwc(
     int row_mem_stride    = weights.get_mem_stride(kKernelDWHeightDim);
     int col_mem_stride    = weights.get_mem_stride(kKernelDWWidthDim);
     int in_ch_mem_stride  = (int)weights.get_dim(kKernelDWChannelInDim);
-    int out_ch_mem_stride = 1;
 
-    // The inner-most memory stride should be 1.
+#if defined(__Xvec_width) || defined(__FXAPI__)
+    // The inner-most memory stride should be 1. Some platforms require a
+    // memory stride of 1 for the innermost dimension (out_ch). The encode
+    // function should take care of that.
+    int out_ch_mem_stride = 1;
     MLI_CHECK_AND_FIX(out_ch_mem_stride, 1);
+#else
+    int out_ch_mem_stride = (int)weights.get_mem_stride(kKernelDWChannelInDim);
+#endif
 
     return conv2d_weights_tensor_private_t<T> {
             weights.get_buf().get_ptr<std::remove_pointer_t<T>>(),
