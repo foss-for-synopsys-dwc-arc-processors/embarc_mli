@@ -29,8 +29,6 @@
 #include "test_report.h"
 #include "vectors_mli_krn_fully_connected.inc"
 
-// #include "common/mli_krn_fully_connected.h"
-
 using mli::tst::tensor_quantizer;
 using mli::tst::quality_metrics;
 using mli::tst::crc32_calc;
@@ -42,6 +40,15 @@ using mli::tst::vectorize_single_elem_tensor;
 
 namespace lib_mli = ::snps_arc::metaware::mli;
 namespace lib_ref = ::snps_arc::metaware::mli::ref;
+
+using lib_mli::kKernelFCChannelOutDim;
+
+using lib_mli::kRescaleRank;
+using lib_mli::kRescaleIterRank;
+using lib_mli::kRescaleParamRank;
+
+using lib_mli::kPerTensorQuantDim;
+using lib_mli::kSkipIterDim;
 
 struct fully_connected_test_operands {
   const char* descr;
@@ -173,7 +180,7 @@ static int8_t g_scratch_mem_out[kMemSize] = { 0 };
 static int8_t g_scratch_mem_bias_out[kMemSize] = { 0 };
 static int8_t g_scratch_mem_w[kMemSize] = { 0 };
 static int8_t g_scratch_mem_b[kMemSize] = { 0 };
-constexpr uint32_t kMemPoolSize = 4096;
+constexpr uint32_t kMemPoolSize = 8192;
 static IO_DATA_ATTR int8_t g_mem_pool[kMemPoolSize] = {0};
 
 struct FullyConnectedOp {
@@ -459,23 +466,29 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
   uint32_t io_rank = rs_input_tsr.rank;
   uint32_t innermost_axis = io_rank - 1;
 
-  const lib_mli::Tensor<lib_mli::NoBuffer, 4> input_tensor(rs_input_tsr.shape,
-          rs_input_tsr.mem_stride, io_rank);
-  const lib_mli::Tensor<lib_mli::NoBuffer, 4> output_tensor(
-                      rs_output_tsr.shape, rs_output_tsr.mem_stride, io_rank);
+  const lib_mli::Tensor<lib_mli::NoBuffer, kRescaleRank> input_tensor(rs_input_tsr.shape, rs_input_tsr.mem_stride, io_rank);
+  const lib_mli::Tensor<lib_mli::NoBuffer, kRescaleRank> output_tensor(rs_output_tsr.shape, rs_output_tsr.mem_stride, io_rank);
 
   uint32_t rescale_cs_size = kernel_factory.Rescale_CS_GetSize();
   void* rescale_cs_buffer = malloc(rescale_cs_size);
 
   lib_mli::RescaleConfig rs_cfg;
   if (mli_hlp_count_elem_num(&rs_scale_tsr, 0) == 1) {
-      rs_cfg.axis = -1;
+      rs_cfg.axis = kPerTensorQuantDim;
   } else {
       rs_cfg.axis = innermost_axis;
   }
 
-  auto rescale_op = kernel_factory.Rescale_CS(rescale_cs_buffer, input_tensor,
-                                              rs_cfg, output_tensor);
+  lib_mli::TensorIterator<lib_mli::NoBuffer, kRescaleRank, kRescaleIterRank> io_tensor_it(output_tensor);
+  uint32_t ep_shape[kRescaleParamRank]{ output_tensor.get_dim(innermost_axis)};
+  lib_mli::Tensor<lib_mli::NoBuffer, kRescaleParamRank> ep_tensor(ep_shape);
+  int32_t ep_it_order[kRescaleIterRank]{ kSkipIterDim, kSkipIterDim, kSkipIterDim, kSkipIterDim };
+  ep_it_order[innermost_axis] = 0;
+  int32_t ep_zero_inc_mask[kRescaleIterRank]{ 1, 1, 1, 1 };
+  ep_zero_inc_mask[innermost_axis] = 0;
+  lib_mli::TensorIterator<lib_mli::NoBuffer, kRescaleParamRank, kRescaleIterRank> ep_tensor_it(ep_tensor, io_tensor_it, ep_it_order, ep_zero_inc_mask);
+
+  auto rescale_op = kernel_factory.Rescale_CS(rescale_cs_buffer, io_tensor_it, rs_cfg, ep_tensor_it, io_tensor_it);
 
   // STEP 1.1.3: Construct [Clip] as a specific ExecutionInterface successor
   //==================================================================
@@ -627,8 +640,8 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
   *rs_offset += rs_ctrl_buffer_size;
 
   // Attaching buffer (descriptors) to the operation
-  status = rescale_op->AttachBufferOffsets(rescale_in_tensor,
-                                           rescale_out_tensor,
+  status = rescale_op->AttachBufferOffsets(rescale_in_buf,
+                                           rescale_out_buf,
                                            encoded_params_buf,
                                            rescale_ctrl_buf);
   assert(status == MLI_STATUS_OK);
@@ -680,6 +693,7 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
   lib_mli::OffsetBuffer clip_ctrl_buf{*clip_offset, 0,
                                        clip_ctrl_buffer_size, sizeof(char)};
   *clip_offset += clip_ctrl_buffer_size;
+  assert(*clip_offset <= kMemPoolSize);
 
   // Attaching buffer (descriptors) to the operation
   status = clip_op->AttachBufferOffsets(clip_in_tensor,
@@ -691,11 +705,13 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
   // STEP 1.3.1: [FullyConn] Copy dataset from scratch buffer to the global shared memory pool
   //==================================================================
   // Copy input data from scratch buffer to the shared memory pool
+  assert(in_mem_offset + fc_op.input.data.capacity <= kMemPoolSize);
   for (uint32_t i = 0; i < fc_op.input.data.capacity; ++i) {
     const uint32_t idx = in_mem_offset + i;
     g_mem_pool[idx] = fc_op.input.data.mem.pi8[i];
   }
   // Copy weights from scratch buffer to the shaped memory pool (EncodeWeights is not supported)
+  assert(w_mem_offset + fc_op.weights.data.capacity <= kMemPoolSize);
   for (uint32_t i = 0; i < fc_op.weights.data.capacity; ++i) {
     const uint32_t idx = w_mem_offset + i;
     g_mem_pool[idx] = fc_op.weights.data.mem.pi8[i];
@@ -769,12 +785,12 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
 
   lib_mli::Buffer encoded_params_buffer(host_dst_buf, encoded_params_size, sizeof(int8_t));
 
-  lib_mli::Tensor<lib_mli::Buffer,1> inbias_tensor(src_inbias_buf, params_shape);
-  lib_mli::Tensor<lib_mli::Buffer,1> scale_tensor(src_scale_buf, params_shape);
-  lib_mli::Tensor<lib_mli::Buffer,1> shift_tensor(src_shift_buf, params_shape);
-  lib_mli::Tensor<lib_mli::Buffer,1> outbias_tensor(src_outbias_buf, params_shape);
+  lib_mli::Tensor<lib_mli::Buffer,kRescaleParamRank> inbias_tensor(src_inbias_buf, params_shape);
+  lib_mli::Tensor<lib_mli::Buffer,kRescaleParamRank> scale_tensor(src_scale_buf, params_shape);
+  lib_mli::Tensor<lib_mli::Buffer,kRescaleParamRank> shift_tensor(src_shift_buf, params_shape);
+  lib_mli::Tensor<lib_mli::Buffer,kRescaleParamRank> outbias_tensor(src_outbias_buf, params_shape);
 
-  if(rs_cfg.axis < 0) { // per-tensor
+  if(rs_cfg.axis == kPerTensorQuantDim) {
       assert(rs_inbias_tsr.rank == 0);
       assert(rs_scale_tsr.rank == 0);
       assert(rs_shift_tsr.rank == 0);
@@ -807,7 +823,9 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
   assert(status == MLI_STATUS_OK);
 
   // encoded host buffer -> global mem pool
-  for (uint32_t i = 0; i < encoded_params_size; ++i) {
+  uint32_t params_elem_num = rs_cfg.axis == kPerTensorQuantDim ? 1 : output_tensor.get_dim(rs_cfg.axis);
+  uint32_t encoded_params_size_used = params_elem_num * (sizeof(int32_t) + sizeof(int16_t) + sizeof(int8_t) + sizeof(int8_t));
+  for (uint32_t i = 0; i < encoded_params_size_used; ++i) {
       const uint32_t idx = encoded_params_mem_offset + i;
       g_mem_pool[idx] = encoded_params_buffer.read<int8_t>(i);
   }
@@ -862,11 +880,13 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
 
  
   // encoded host buffer -> global mem pool
+  assert(clip_encoded_params_mem_offset + clip_encoded_params_size <= kMemPoolSize);
   for (uint32_t i = 0; i < clip_encoded_params_size; ++i) {
       const uint32_t idx = clip_encoded_params_mem_offset + i;
       g_mem_pool[idx] = clip_encoded_params_buffer.read<int8_t>(i);
   }
 
+  assert(clp_out_mem_offset + clip_out_size <= kMemPoolSize);
   for (uint32_t i = 0; i < clip_out_size; ++i) {
       const uint32_t idx = clp_out_mem_offset + i;
       g_mem_pool[idx] = clip_output_tsr.data.mem.pi8[i];

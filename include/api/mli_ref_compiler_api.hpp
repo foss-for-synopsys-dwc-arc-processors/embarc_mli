@@ -735,17 +735,10 @@ private:
 
 class Rescale_CS : public lib_mli::Rescale_CS {
 public:
-    /**
-     * @deprecated
-     */
-    Rescale_CS(const lib_mli::PlatformDescription pd,
-               const Tensor<NoBuffer, kRescaleRank>& input_shape,
-               const RescaleConfig &cfg,
-               const Tensor<NoBuffer, kRescaleRank>& output_tile_shape);
-
     Rescale_CS(const lib_mli::PlatformDescription pd,
                const TensorIterator<NoBuffer, kRescaleRank, kRescaleIterRank>& input,
                const RescaleConfig& cfg,
+               const TensorIterator<NoBuffer, kRescaleParamRank, kRescaleIterRank>& enc_param,
                const TensorIterator<NoBuffer, kRescaleRank, kRescaleIterRank>& output);
 
     // From Rescale_CS
@@ -761,34 +754,17 @@ public:
     unsigned GetKernelPrivateDataSize() const override;
     unsigned GetRuntimeObjectSize() const override;
 
-    /**
-     * @deprecated
-     */
-    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kRescaleRank> &input,
-                                   const Tensor<OffsetBuffer, kRescaleRank> &output,
-                                   const OffsetBuffer &encoded_params,
-                                   const OffsetBuffer &ctrl_buffer) override;
-
     mli_status AttachBufferOffsets(const OffsetBuffer& input,
                                    const OffsetBuffer& output,
                                    const OffsetBuffer& encoded_params,
-                                   const OffsetBuffer& metadata) override;
-
-    /**
-     * @deprecated
-     */
-    mli_status SetIterators(uint32_t output_total_size[kRescaleIterRank],
-                            uint32_t iteration_order[kRescaleIterRank],
-                            uint32_t output_first_inc[kRescaleIterRank],
-                            uint32_t output_inc[kRescaleIterRank]) override;
+                                   const OffsetBuffer& ctrl_buffer) override;
 
 private:
     RescaleConfig m_config;
 
     TensorIterator<OffsetBuffer, kRescaleRank, kRescaleIterRank> m_input;
+    TensorIterator<OffsetBuffer, kRescaleParamRank, kRescaleIterRank> m_enc_param;
     TensorIterator<OffsetBuffer, kRescaleRank, kRescaleIterRank> m_output;
-
-    OffsetBuffer m_encoded_params;
 
     uint32_t m_input_buffer_size;
     uint32_t m_output_buffer_size;

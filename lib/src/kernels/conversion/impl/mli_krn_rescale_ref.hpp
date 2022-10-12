@@ -18,10 +18,10 @@ namespace krn {
 namespace ref {
 
 // First priority is 32accum to T value operation.
-template <typename o_T>
+template <typename i_T, typename o_T>
 static MLI_FORCE_INLINE o_T rescale_value(
-        const int32_t in_val,
-        const int32_t in_bias,
+        const i_T in_val,
+        const i_T in_bias,
         const o_T out_bias,
         const int16_t scale,
         const int shift_right) {
@@ -29,9 +29,9 @@ static MLI_FORCE_INLINE o_T rescale_value(
     constexpr int max_shift_left = -63;
     int32_t shift = MAX(max_shift_left, MIN(shift_right, max_shift_right));
 
-    int32_t value = mli_math_sub_fx(in_val, in_bias);
-    int64_t scaled_value =
-    mli_math_mul_fx<int32_t, int64_t> (value, static_cast<int32_t>(scale));
+    i_T value = mli_math_sub_fx(in_val, in_bias);
+    int64_t scaled_value = mli_math_mul_fx<int32_t, int64_t> (static_cast<int32_t>(value),
+                                                              static_cast<int32_t>(scale));
     scaled_value = mli_math_ashift_right_fx(scaled_value, shift);
     scaled_value = mli_math_add_fx(scaled_value, static_cast<int64_t>(out_bias));
     o_T result = mli_math_cast_fx<int64_t, o_T>(scaled_value, 0);

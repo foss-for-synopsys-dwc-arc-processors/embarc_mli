@@ -275,11 +275,8 @@ public:
     int32_t rescale_axis;
 
     TensorIterator<OffsetBuffer, kRescaleRank, kRescaleIterRank> input;
+    TensorIterator<OffsetBuffer, kRescaleParamRank, kRescaleIterRank> enc_param;
     TensorIterator<OffsetBuffer, kRescaleRank, kRescaleIterRank> output;
-    OffsetBuffer encoded_params_buffer;
-
-    uint32_t params_elem_num;
-    uint32_t tile_params_max_elem_num;
 };
 
 struct RescaleMetadata {

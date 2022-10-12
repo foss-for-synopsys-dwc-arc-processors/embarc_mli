@@ -107,7 +107,6 @@ constexpr unsigned kClipParamIterRank = 1;
 constexpr unsigned kRescaleRank = 4;
 constexpr unsigned kRescaleIterRank = 4;
 constexpr unsigned kRescaleParamRank = 1;
-constexpr unsigned kRescaleParamIterRank = 1;
 
 constexpr unsigned kPreluRank = 4;
 constexpr unsigned kPreluIterRank = 4;
@@ -271,14 +270,28 @@ public:
   }
 
   template<typename T>
+  const T* get_ptr(uint32_t offset) const {
+    assert(sizeof(T) == elem_size_);
+    return reinterpret_cast<T*>(ptr_) + offset;
+  }
+
+  template<typename T>
   T read(uint32_t offset) const{
     assert(sizeof(T) == elem_size_);
     return *(reinterpret_cast<T*>(ptr_) + offset);
   }
+
   template<typename T>
   void write(uint32_t offset, T data){
     assert(sizeof(T) == elem_size_);
     *(reinterpret_cast<T*>(ptr_) + offset) = data;
+  }
+
+  template<typename ObjT>
+  void write_obj(uint32_t offset, ObjT data) {
+    assert(elem_size_ == 1);
+    memcpy((void*)(reinterpret_cast<char*>(ptr_) + offset),
+           &data, sizeof(data));
   }
 
 private:

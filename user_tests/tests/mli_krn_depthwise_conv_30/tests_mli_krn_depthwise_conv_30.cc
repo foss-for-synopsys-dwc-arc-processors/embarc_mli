@@ -83,6 +83,9 @@ using lib_mli::kDepthwiseIterRank;
 
 using lib_mli::kRescaleRank;
 using lib_mli::kRescaleIterRank;
+using lib_mli::kRescaleParamRank;
+
+using lib_mli::kSkipIterDim;
 
 struct depthwise_conv2d_test_operands {
     const char* descr;
@@ -191,8 +194,10 @@ static int8_t g_scratch_mem_out[kMemSize] = { 0 };
 static int8_t g_scratch_mem_bias_out[kMemSize] = { 0 };
 static int8_t g_scratch_mem_w[kMemSize] = { 0 };
 static int8_t g_scratch_mem_b[kMemSize] = { 0 };
-constexpr uint32_t kMemPoolSize = 8192;
+constexpr uint32_t kMemPoolSize = 16384;
 static IO_DATA_ATTR int8_t g_mem_pool[kMemPoolSize] = { 0 };
+constexpr uint32_t kRescaleEncodedParamBufSize = 33;
+static int8_t g_rescale_buf_mem[kRescaleEncodedParamBufSize];
 
 struct DepthwiseConvOp {
     // Depthwise Conv2d Kernel
@@ -342,7 +347,8 @@ bool preprocess_phase(const reporter_full& reporter,
 }
 
 void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
-                   DepthwiseConvOp& dwc_op, RescaleOp &rs_op, uint32_t& num_tiles) {
+                   DepthwiseConvOp& dwc_op, RescaleOp &rs_op,
+                   uint32_t& num_tiles, lib_mli::Buffer& encoded_params_buffer) {
 
     
     int32_t iteration_order[kDepthwiseIterRank]{ 0, 1, 2, 3, 4 };
@@ -486,14 +492,23 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
         rs_cfg.axis = kTensorChannelDim;
     }
 
-    static_assert(kRescaleRank == kDepthwiseIORank - 1);
-    static_assert(kRescaleIterRank == kDepthwiseIterRank - 1);
+    assert(kRescaleRank == kDepthwiseIORank - 1);
+    assert(kRescaleIterRank == kDepthwiseIterRank - 1);
     uint32_t io_output_shape[kRescaleRank]{ total_output_size[0], total_output_size[1], total_output_size[2], total_output_size[4] };
     int32_t io_output_strides[kRescaleRank]{ output_stride[0], output_stride[1], output_stride[2], output_stride[4] };
     lib_mli::Tensor<lib_mli::NoBuffer, kRescaleRank> io_tensor(io_output_shape, io_output_strides);
     lib_mli::IteratorCfg<kRescaleRank> io_it_cfg(out_tensor_it.get_config(), kGroupTensorGroupDim);
     lib_mli::TensorIterator<lib_mli::NoBuffer, kRescaleRank, kRescaleIterRank> io_tensor_it(io_tensor, io_it_cfg);
-    auto rescale_op = kernel_factory.Rescale_CS(rescale_cs_buffer, io_tensor_it, rs_cfg, io_tensor_it);
+
+    uint32_t ep_shape[kRescaleParamRank]{ total_output_size[kGroupTensorChannelDim] };
+    lib_mli::Tensor<lib_mli::NoBuffer, kRescaleParamRank> ep_tensor(ep_shape);
+    const int32_t ep_it_order[kRescaleIterRank]{ kSkipIterDim, kSkipIterDim, kSkipIterDim, 0 };
+    const int32_t ep_zero_inc_mask[kRescaleIterRank]{ 1, 1, 1, 0 };
+
+    lib_mli::TensorIterator<lib_mli::NoBuffer, kRescaleParamRank, kRescaleIterRank> ep_tensor_it(ep_tensor, io_tensor_it, ep_it_order, ep_zero_inc_mask);
+
+    auto rescale_op = kernel_factory.Rescale_CS(rescale_cs_buffer, io_tensor_it, rs_cfg, ep_tensor_it, io_tensor_it);
+
 
     // STEP 1.2: [Depthwise_Conv2d] Memory management (Up to user on how to deal with it)
     //==================================================================
@@ -693,13 +708,82 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
     status = rescale_op->GetKernelPrivateData(rescale_conf_private);
     assert(status == MLI_STATUS_OK);
 
+    // [Rescale] encode params into special buffer
+    //==================================================================
+
+    const mli_tensor& rs_inbias_tsr = rs_op.mli3_bias.get_bias_tsr();
+    const mli_tensor& rs_shift_tsr = rs_op.mli3_scales_keeper.get_shift_tsr();
+    const mli_tensor& rs_outbias_tsr = rs_op.bias_out;
+    uint32_t inbias_elem_size = mli_hlp_tensor_element_size(&rs_inbias_tsr);
+    uint32_t scale_elem_size = mli_hlp_tensor_element_size(&rs_scale_tsr);
+    uint32_t shift_elem_size = mli_hlp_tensor_element_size(&rs_shift_tsr);
+    uint32_t outbias_elem_size = mli_hlp_tensor_element_size(&rs_outbias_tsr);
+    uint32_t inbias_size = inbias_elem_size * mli_hlp_count_elem_num(&rs_inbias_tsr, 0);
+    uint32_t scale_size = scale_elem_size * mli_hlp_count_elem_num(&rs_scale_tsr, 0);
+    uint32_t shift_size = shift_elem_size * mli_hlp_count_elem_num(&rs_shift_tsr, 0);
+    uint32_t outbias_size = outbias_elem_size * mli_hlp_count_elem_num(&rs_outbias_tsr, 0);
+    
+    int8_t* host_src_buf = (int8_t*)malloc(encoded_params_size);
+    lib_mli::Buffer src_inbias_buf(host_src_buf,
+      inbias_size, inbias_elem_size);
+    lib_mli::Buffer src_scale_buf(host_src_buf + inbias_size,
+      scale_size, scale_elem_size);
+    lib_mli::Buffer src_shift_buf(host_src_buf + inbias_size + scale_size,
+      shift_size, shift_elem_size);
+    lib_mli::Buffer src_outbias_buf(host_src_buf + inbias_size + scale_size + shift_size,
+      outbias_size, outbias_elem_size);
+
+    assert(encoded_params_size <= kRescaleEncodedParamBufSize);
+    encoded_params_buffer = lib_mli::Buffer(g_rescale_buf_mem, encoded_params_size, sizeof(int8_t));
+
+    uint32_t params_shape[kRescaleParamRank] = { rs_inbias_tsr.shape[0] };
+    lib_mli::Tensor<lib_mli::Buffer, kRescaleParamRank> inbias_tensor(src_inbias_buf, params_shape);
+    lib_mli::Tensor<lib_mli::Buffer, kRescaleParamRank> scale_tensor(src_scale_buf, params_shape);
+    lib_mli::Tensor<lib_mli::Buffer, kRescaleParamRank> shift_tensor(src_shift_buf, params_shape);
+    lib_mli::Tensor<lib_mli::Buffer, kRescaleParamRank> outbias_tensor(src_outbias_buf, params_shape);
+
+    if (rs_cfg.axis == kPerTensorQuantDim) {
+      assert(rs_inbias_tsr.rank == 0);
+      assert(rs_scale_tsr.rank == 0);
+      assert(rs_shift_tsr.rank == 0);
+      assert(rs_outbias_tsr.rank == 0);
+      inbias_tensor.write<int32_t>(0, rs_inbias_tsr.data.mem.i32);
+      scale_tensor.write<int16_t>(0, rs_scale_tsr.data.mem.i16);
+      shift_tensor.write<int8_t>(0, rs_shift_tsr.data.mem.i8);
+      outbias_tensor.write<int8_t>(0, rs_outbias_tsr.data.mem.i8);
+    }
+    else { // per-axis
+      for (uint32_t i = 0; i < (inbias_size / inbias_elem_size); i++) {
+        inbias_tensor.write<int32_t>(i, rs_inbias_tsr.data.mem.pi32[i]);
+      }
+      for (uint32_t i = 0; i < (scale_size / scale_elem_size); i++) {
+        scale_tensor.write<int16_t>(i, rs_scale_tsr.data.mem.pi16[i]);
+      }
+      for (uint32_t i = 0; i < (shift_size / shift_elem_size); i++) {
+        shift_tensor.write<int8_t>(i, rs_shift_tsr.data.mem.pi8[i]);
+      }
+      for (uint32_t i = 0; i < (outbias_size / outbias_elem_size); i++) {
+        outbias_tensor.write<int8_t>(i, rs_outbias_tsr.data.mem.pi8[i]);
+      }
+    }
+
+    // host tensors -> encoded host buffer
+    status = rescale_op->EncodeParams(inbias_tensor,
+                                      scale_tensor,
+                                      shift_tensor,
+                                      outbias_tensor,
+                                      encoded_params_buffer);
+    assert(status == MLI_STATUS_OK);
+
     free(dw_conv2d_cs_buffer);
     free(rescale_cs_buffer);
     free(host_buf_a);
     free(host_buf_b);
+    free(host_src_buf);
 }
 
-void execution_phase(DepthwiseConvOp &dwc_op, RescaleOp &rs_op, uint32_t tiles_num) {
+void execution_phase(DepthwiseConvOp &dwc_op, RescaleOp &rs_op,
+                     uint32_t tiles_num, const lib_mli::Buffer& encoded_params_buffer) {
     // STEP 4: Execution phase
     //==================================================================
 
@@ -788,21 +872,28 @@ void execution_phase(DepthwiseConvOp &dwc_op, RescaleOp &rs_op, uint32_t tiles_n
         rescale_pimpl->GetIOSizesAndOffsets(enc_param_size, inp_bias_offset, scale_offset, shift_offset, out_bias_offset);
         uint32_t rescale_enc_param_src_offset = output_tile_offsets_rescale[kTensorChannelDim];
 
+        const uint32_t enc_param_buf_offset = rescale_private->enc_param.get_buf().get_offset();
+        const uint32_t num_enc_param = rescale_private->enc_param.get_dim(0);
+
         // copy rescale input bias from global to local buffer
-        memcpy((void*)(g_mem_pool + rescale_private->encoded_params_buffer.get_offset() + inp_bias_offset),
-               (void*)(rs_op.mli3_bias.get_bias_tsr().data.mem.pi32 + rescale_enc_param_src_offset), sizeof(int32_t) * enc_param_size);
+        uint32_t enc_param_offset = rescale_enc_param_src_offset * sizeof(int32_t);
+        memcpy((void*)(g_mem_pool + enc_param_buf_offset + inp_bias_offset),
+          (void*)encoded_params_buffer.get_ptr<int8_t>(enc_param_offset), sizeof(int32_t) * enc_param_size);
 
         // copy rescale scale from global to local buffer
-        memcpy((void*)(g_mem_pool + rescale_private->encoded_params_buffer.get_offset() + scale_offset),
-               (void*)(rs_op.mli3_scales_keeper.get_scales_tsr().data.mem.pi16 + rescale_enc_param_src_offset), sizeof(int16_t) * enc_param_size);
+        enc_param_offset = num_enc_param * sizeof(int32_t) + rescale_enc_param_src_offset * sizeof(int16_t);
+        memcpy((void*)(g_mem_pool + enc_param_buf_offset + scale_offset),
+          (void*)encoded_params_buffer.get_ptr<int8_t>(enc_param_offset), sizeof(int16_t) * enc_param_size);
 
         // copy rescale shift from global to local buffer
-        memcpy((void*)(g_mem_pool + rescale_private->encoded_params_buffer.get_offset() + shift_offset),
-               (void*)(rs_op.mli3_scales_keeper.get_shift_tsr().data.mem.pi8 + rescale_enc_param_src_offset), sizeof(int8_t) * enc_param_size);
+        enc_param_offset = num_enc_param * (sizeof(int32_t) + sizeof(int16_t)) + rescale_enc_param_src_offset * sizeof(int8_t);
+        memcpy((void*)(g_mem_pool + enc_param_buf_offset + shift_offset),
+          (void*)encoded_params_buffer.get_ptr<int8_t>(enc_param_offset), sizeof(int8_t) * enc_param_size);
 
         // copy rescale output bias from global to local buffer
-        memcpy((void*)(g_mem_pool + rescale_private->encoded_params_buffer.get_offset() + out_bias_offset),
-               (void*)(rs_op.bias_out.data.mem.pi8 + rescale_enc_param_src_offset), sizeof(int8_t) * enc_param_size);
+        enc_param_offset = num_enc_param * (sizeof(int32_t) + sizeof(int16_t) + sizeof(int8_t)) + rescale_enc_param_src_offset * sizeof(int8_t);
+        memcpy((void*)(g_mem_pool + enc_param_buf_offset + out_bias_offset),
+          (void*)encoded_params_buffer.get_ptr<int8_t>(enc_param_offset), sizeof(int8_t) * enc_param_size);
 
         status = mli_depthwise_conv->Prefetch();
         assert(status == MLI_STATUS_OK);
@@ -990,12 +1081,13 @@ int main() {
         // STEP 1: Preparing phase
         //==================================================================
         uint32_t num_tiles = 0; // num_tiles calculated inside prepare_phase
-        prepare_phase(cur_test, dwc_op, rs_op, num_tiles);
+        lib_mli::Buffer encoded_params_buffer; // initialized inside prepare_phase
+        prepare_phase(cur_test, dwc_op, rs_op, num_tiles, encoded_params_buffer);
 
         // STEP 2: Executing phase
         //==================================================================
         // Run depthwise conv2d and Rescale MLI3.0 kernels
-        execution_phase(dwc_op, rs_op, num_tiles);
+        execution_phase(dwc_op, rs_op, num_tiles, encoded_params_buffer);
 
         // STEP 3: Postprocessing phase
         //==================================================================

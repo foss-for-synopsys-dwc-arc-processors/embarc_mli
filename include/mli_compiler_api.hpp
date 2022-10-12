@@ -736,8 +736,19 @@ public:
     virtual ~Rescale_CS() = default;
 
     /**
-     * @brief Method to encode parameters (scales)
+     * @brief Method to encode the parameters
      *
+     * This method will read the different parameters buffer in a platform independent layout
+     * and translate it into a buffer that can be easily read by the platform specific
+     * kernel implementation.
+     * This transformation may include compression
+     * The content of the encode_params buffer is opaque for the user.
+     *
+     * @param in_bias        [I] tensor with the input bias
+     * @param out_bias       [I] tensor with the output bias
+     * @param scale          [I] tensor with the scale
+     * @param shift          [I] tensor with the shift
+     * @param encoded_params [O] encoded parameters buffer
      */
     virtual mli_status EncodeParams(const Tensor<Buffer, kRescaleParamRank> &in_bias,
                                     const Tensor<Buffer, kRescaleParamRank> &out_bias,
@@ -760,40 +771,26 @@ public:
     virtual unsigned GetOutputBufferSize() const = 0;
 
     /**
-
-     * @brief Methods to set buffer offsets
-     * @deprecated
-     */
-    virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kRescaleRank> &input,
-                                           const Tensor<OffsetBuffer, kRescaleRank> &output,
-                                           const OffsetBuffer &encoded_params,
-                                           const OffsetBuffer &ctrl_buffer) = 0;
-
-    /**
-     * @brief Methods to set buffer offsets
+     * @brief Method to set buffer memory offsets and memory IDs for the kernel
+     *
+     * Compiler computes a memory map and buffer offsets are set using this method.
+     * Compiler also needs to indicate in which memory the buffers reside.
+     * These ID's need to match the array of memory bases that the xop-interpreter passes to
+     * the init function.
+     *
+     * In this method you specify offsets for tensors passed to the constructor
+     *
+     * @param input          [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param output         [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param encoded_params [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param ctrl_buffer    [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     *
+     * @return MLI status code
      */
     virtual mli_status AttachBufferOffsets(const OffsetBuffer& input,
                                            const OffsetBuffer& output,
                                            const OffsetBuffer& encoded_params,
                                            const OffsetBuffer& ctrl_buffer) = 0;
-
-    /**
-     * @brief Method to set iteration information used in the .Update()
-     *
-     * NOTE: the use of this method is optional. if there is a single tile, and the .Update() is not used,
-     *       this data doesn't need to be set.
-     * 
-     * @deprecated
-     * All the increments are following the output tile iterator.
-     * @param output_total_size[4] [I] total size in each dimension
-     * @param iteration_order[4] [I] which dimension of the output to iterate first.
-     * @param output_first_inc[4] [I] increment of the output buffer pointer for the first iteration in each dimension
-     * @param output_inc[4] [I] increment of the output buffer pointer for the other iterations in each dimension
-     */
-        virtual mli_status SetIterators(uint32_t output_total_size[kRescaleIterRank],
-                                        uint32_t iteration_order[kRescaleIterRank],
-                                        uint32_t output_first_inc[kRescaleIterRank],
-                                        uint32_t output_inc[kRescaleIterRank]) = 0;
 };
 
 /**

@@ -249,18 +249,6 @@ public:
         return new(kernel_buffer) lib_ref::FullyConnected_CS(m_pd, in, weights, wtszp, output_tile_shape);
     }
 
-
-    uint32_t Rescale_CS_GetSize() const override { return sizeof(lib_ref::Rescale_CS); }
-
-    /**
-     * @deprecated
-     */
-    lib_mli::Rescale_CS* Rescale_CS(void *kernel_buffer,
-                                    const Tensor<NoBuffer, kRescaleRank>& input_shape,
-                                    const RescaleConfig &cfg,
-                                    const Tensor<NoBuffer, kRescaleRank>& output_tile_shape) override {
-        return new(kernel_buffer) lib_ref::Rescale_CS(m_pd, input_shape, cfg, output_tile_shape);
-    }
     uint32_t TableBuiltin_CS_GetSize() const override { return 0;/*return sizeof(lib_ref::TableBuiltin_CS);*/ }
 
     lib_mli::TableBuiltin_CS* TableBuiltin_CS(void *kernel_buffer,
@@ -270,11 +258,14 @@ public:
         /*return new(kernel_buffer) lib_ref::TableBuiltin_CS(m_pd, input_shape, cfg,   );*/
     }
 
+    uint32_t Rescale_CS_GetSize() const override { return sizeof(lib_ref::Rescale_CS); }
+
     lib_mli::Rescale_CS* Rescale_CS(void* kernel_buffer,
                                     const TensorIterator<NoBuffer, kRescaleRank, kRescaleIterRank>& input,
                                     const RescaleConfig& cfg,
+                                    const TensorIterator<NoBuffer, kRescaleParamRank, kRescaleIterRank>& enc_param,
                                     const TensorIterator<NoBuffer, kRescaleRank, kRescaleIterRank>& output) override {
-      return new(kernel_buffer) lib_ref::Rescale_CS(m_pd, input, cfg, output);
+      return new(kernel_buffer) lib_ref::Rescale_CS(m_pd, input, cfg, enc_param, output);
     }
 
     uint32_t ReduceMax_CS_GetSize() const override { return sizeof(lib_ref::ReduceMax_CS); }

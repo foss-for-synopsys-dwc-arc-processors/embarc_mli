@@ -974,34 +974,13 @@ public:
      * @brief Rescale kernel Compiler Support interface factory
      * method
      *
-     * @deprecated
-     *
-     * @param kernel_buffer       [I] Pointer to the pre-allocated memory to store
-     *                                kernel Compiler Support object
-     * @param input_shape         [I] Tensor object containing input Tensor shape and
-     *                                memory strides
-     * @param cfg                 [I] Kernel configuration structure
-     * @param output_tile_shape   [I] Tensor object containing output tile Tensor shape
-     *                                and memory strides
-     *
-     * @return Rescale kernel Compiler Support interface object
-     */
-     virtual lib_mli::Rescale_CS* Rescale_CS(void *kernel_buffer,
-                                            const Tensor<NoBuffer, kRescaleRank>& input_shape,
-                                            const RescaleConfig &cfg,
-                                            const Tensor<NoBuffer, kRescaleRank>& output_tile_shape) {
-       return nullptr;
-     }
-
-    /**
-     * @brief Rescale kernel Compiler Support interface factory
-     * method
-     *
      * @param kernel_buffer       [I] Pointer to the pre-allocated memory to store
      *                                kernel Compiler Support object
      * @param input               [I] TensorIterator object containing input Tensor shape and
      *                                memory strides
      * @param cfg                 [I] Kernel configuration structure
+     * @param enc_param           [I] TensorIterator object containing encode params Tensor shape and
+     *                                memory strides
      * @param output              [I] TensorIterator object containing output Tensor shape
      *                                and memory strides
      *
@@ -1010,6 +989,7 @@ public:
     virtual lib_mli::Rescale_CS* Rescale_CS(void* kernel_buffer,
                                             const TensorIterator<NoBuffer, kRescaleRank, kRescaleIterRank>& input,
                                             const RescaleConfig& cfg,
+                                            const TensorIterator<NoBuffer, kRescaleParamRank, kRescaleIterRank>& enc_param,
                                             const TensorIterator<NoBuffer, kRescaleRank, kRescaleIterRank>& output) {
       return nullptr;
     }

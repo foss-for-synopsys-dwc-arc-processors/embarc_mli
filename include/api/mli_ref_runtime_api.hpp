@@ -671,12 +671,14 @@ public:
 
     mli_status Update() override;
 
+    // TODO: remove this method and replace with usage of Move kernel (not possible now)
     void GetIOSizesAndOffsets(uint32_t& enc_param_size, uint32_t& inp_bias_offset, uint32_t& scale_offset,
-                              uint32_t& shift_offset, uint32_t& out_bias_offset) const;
+                              uint32_t& shift_offset, uint32_t& out_bias_offset);
 
 private:
-    TensorIterator<OffsetBuffer, kClipRank, kClipIterRank> m_input;
-    TensorIterator<OffsetBuffer, kClipRank, kClipIterRank> m_output;
+    TensorIterator<OffsetBuffer, kRescaleRank, kRescaleIterRank> m_input;
+    TensorIterator<OffsetBuffer, kRescaleParamRank, kRescaleIterRank> m_enc_param;
+    TensorIterator<OffsetBuffer, kRescaleRank, kRescaleIterRank> m_output;
 
     RescaleMetadata m_tile_metadata;
     uint32_t m_tile_param_max_size;
