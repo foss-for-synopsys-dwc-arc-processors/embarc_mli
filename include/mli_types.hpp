@@ -670,7 +670,7 @@ class Tensor {
   
   uint32_t get_total_elem_num() const {
     uint32_t total_elem_num = 1;
-    for (int i = 0; i < rank_; i++) total_elem_num *= shape_[i];
+    for (uint32_t i = 0; i < rank_; i++) total_elem_num *= shape_[i];
     return total_elem_num;
   }
 

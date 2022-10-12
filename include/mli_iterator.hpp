@@ -268,6 +268,17 @@ class IteratorCfg {
       }
     }
 
+    // Method to convert iterator granulatiries along certain dimension
+    void ConvertGran(int32_t tnsDim, int32_t old_vector_size, int32_t new_vector_size) {
+      for (uint32_t i = 0; i < iterRank; ++i) if (m_order[i] == tnsDim) {
+        m_first_size[i] = CEIL_DIV(m_first_size[i] * old_vector_size, new_vector_size);
+        m_size[i] = CEIL_DIV(m_size[i] * old_vector_size, new_vector_size);
+        m_last_size[i] = CEIL_DIV(m_last_size[i] * old_vector_size, new_vector_size);
+        m_first_pos_inc[i] = CEIL_DIV(m_first_pos_inc[i] * old_vector_size, new_vector_size);
+        m_pos_inc[i] = CEIL_DIV(m_pos_inc[i] * old_vector_size, new_vector_size);
+        m_last_pos_inc[i] = CEIL_DIV(m_last_pos_inc[i] * old_vector_size, new_vector_size);
+      }
+    }
 
     /**
      * @brief set config from smaller rank configuration
@@ -775,6 +786,62 @@ class TensorIterator {
       UpdateMemstrides();
       Reset();
       m_offset = tensor_iterator.m_offset;
+    }
+
+    /**
+     * @brief   This method will shrink the buffer, to fit only N tiles
+     *          in case of tiling. It also updates the iterator config.
+     *
+     * @param nTiles [I] Number of tiles fit in the shrinked buffer (usually 1 or 2)
+     * @param cyclic [I] Should the shrinked buffer be cyclic
+     * @param aligns [I] Alignments of the writer to this buffer (alignments of the reader doesn't matter)
+     */
+    uint32_t ShrinkBuffer(uint32_t nTiles,                   // Number of tiles fit in the shrinked buffer (usually 1 or 2)
+                          bool cyclic,                       // Should the shrinked buffer be cyclic
+                          const uint32_t aligns[tensorRank]  // Alignments of the writer to this buffer (alignments of the reader doesn't matter)
+                         ) {
+      uint32_t dims[tensorRank];
+      m_full_tensor.get_dims(dims);
+      for (uint32_t i = 0; i < iterRank; ++i) if (m_config.get_order(i) >= 0) {
+        uint32_t dimsz = m_config.get_last_size(i);
+        if (m_config.get_count(i) > 1) {
+          dimsz = MAX(dimsz, m_config.get_first_size(i));
+          if (m_config.get_count(i) > 2) {
+            dimsz = MAX(dimsz, m_config.get_size(i));
+          }
+        }
+        uint32_t align = aligns[m_config.get_order(i)];
+        if (cyclic && i == 0) {
+          if (nTiles > 1) {
+            if (m_config.get_count(0) == 1) {
+              dimsz *= nTiles;
+            } else if (m_config.get_count(0) == 2) {
+              dimsz = m_config.get_last_size(0) + m_config.get_first_size(0);
+              for (uint32_t j = 2; j < nTiles; ++j) dimsz += static_cast<uint32_t>(m_config.get_inc(0)); // ???? Rare case
+            } else {
+              dimsz += MAX(m_config.get_first_size(0), static_cast<uint32_t>(m_config.get_inc(0)));
+              for (uint32_t j = 2; j < nTiles; ++j) dimsz += static_cast<uint32_t>(m_config.get_inc(0));
+            }
+          }
+          uint32_t overlap = m_config.get_size(0) - static_cast<uint32_t>(m_config.get_inc(0));
+          dims[m_config.get_order(0)] = MAX(dimsz, align * nTiles + overlap);
+        } else {
+          dims[m_config.get_order(i)] = CEIL_RND(dimsz, align);
+        }
+        if (!cyclic) dims[0] *= nTiles;
+      }
+      Tensor<buf_T, tensorRank> new_tensor(m_full_tensor.get_buf(), dims, tensorRank);
+      for (uint32_t i = 0; i < tensorRank; ++i) m_full_tensor.set_mem_stride(i, new_tensor.get_mem_stride(i));
+      m_config.ShrinkCfg(cyclic);
+      return new_tensor.get_total_elem_num();
+    }
+
+    void RemoveOverlapAdjacentTiles() {
+      m_config.RemoveOverlapAdjacentTiles();
+    }
+
+    void ApplyPrePadding(const uint32_t pre_padding[tensorRank]) {
+      m_config.ApplyPrePadding(pre_padding);
     }
 
     /**
