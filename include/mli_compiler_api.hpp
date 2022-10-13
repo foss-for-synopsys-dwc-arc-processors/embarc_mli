@@ -1347,6 +1347,7 @@ public:
      * specific kernel implementation. This transformation may include
      * compression. The content of the encode_weights buffer is opaque for the
      * user.
+     * @deprecated
      *
      * @param weights [I] tensor with the weights
      * @param buffer_t [I] buffer pointer where the encode function can write
@@ -1373,22 +1374,20 @@ public:
      */
     virtual mli_status EncodeWeightsAndZeroPts(TensorIterator<Buffer, kTransposeConvWRank,  kTransposeConvIterRank> &weights,
                                                TensorIterator<Buffer, kTransposeConvZPRank, kTransposeConvIterRank> &weights_zp,
-                                               Buffer &encoded_weights)
-                                               { NOT_IMPLEMENTED_METHOD;
-                                                 return MLI_STATUS_OK; };
-    // /**
-    //  * @brief Method to query the size of the encoded weights buffer
-    //  *
-    //  * This function returns the size of the full weights buffer that
-    //  * is needed by the EncodeWeights method.
-    //  *
-    //  * @return Size of encoded weights buffer in bytes
-    //  */
-    // virtual unsigned GetEncodedWeightsSize() const = 0;
+                                               Buffer &encoded_weights) = 0;
+     /**
+      * @brief Method to query the size of the encoded weights buffer
+      *
+      * This function returns the size of the full weights buffer that
+      * is needed by the EncodeWeights method.
+      *
+      * @return Size of encoded weights buffer in bytes
+      */
+     virtual unsigned GetEncodedWeightsSize() const = 0;
 
     /**
      * @brief Method to encode input zero-points (padding values)
-     *
+     * @deprecated
      * This method will read the input zero-points buffer in a platform
      * independent layout and translate it into a buffer that can be easily read
      * by the platform specific kernel implementation. The content of the
@@ -1412,9 +1411,7 @@ public:
      * 
      */
     virtual mli_status EncodeInpZeroPts(TensorIterator<Buffer, kTransposeConvZPRank, kTransposeConvZPIterRank> &input_zp,
-                                        Buffer& encoded_input_zp)
-                                        { NOT_IMPLEMENTED_METHOD;
-                                          return MLI_STATUS_OK; };
+                                        Buffer& encoded_input_zp) = 0;
 
     /**
      * @brief Method to query the size of the encoded input zero-points buffer

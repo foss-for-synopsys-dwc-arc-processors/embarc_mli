@@ -62,6 +62,8 @@ using lib_mli::kTransposeConvWRank;
 using lib_mli::kTransposeConvWIterRank;
 using lib_mli::kTransposeConvZPRank;
 using lib_mli::kTransposeConvZPIterRank;
+using lib_mli::kTransposeConvIterRank;
+using lib_mli::kWZPRank;
 using lib_mli::kClipRank;
 using lib_mli::kClipIterRank;
 using lib_mli::kRescaleRank;
@@ -246,6 +248,8 @@ constexpr uint32_t kMemPoolSize = 20480;
 static IO_DATA_ATTR int8_t g_mem_pool[kMemPoolSize] = {0};
 constexpr uint32_t kRescaleEncodedParamBufSize = 55;
 static int8_t g_rescale_buf_mem[kRescaleEncodedParamBufSize];
+constexpr uint32_t kWeightsAndWeightsZPBufferSize = 1018;
+static int8_t g_weights_buf_mem[kWeightsAndWeightsZPBufferSize] = { 0 };
 
 struct TransposeConv2DOp {
   // TransposeConv2D Kernel
@@ -555,9 +559,10 @@ void prepare_phase(const transpose_conv2d_test_operands* cur_test,
     cur_test->cfg.padding_top, cur_test->cfg.padding_left,
     cur_test->cfg.padding_bottom, cur_test->cfg.padding_right);
 
-  auto transpose_conv2d_op = kernel_factory.TransposeConv2D_CS(
-      transpose_conv2d_cs_buffer, in_tensor_it, w_tensor_it, wzp_tensor_it, cfg,
-      out_tensor_it);
+  uint32_t izp_shape[kInpZPRank]{ 1 };
+  lib_mli::Tensor<lib_mli::NoBuffer, kInpZPRank> izp_tensor(izp_shape);
+  lib_mli::TensorIterator<lib_mli::NoBuffer, kInpZPRank, kTransposeConvIterRank> izp_tensor_it(izp_tensor);
+  auto transpose_conv2d_op = kernel_factory.TransposeConv2D_CS(transpose_conv2d_cs_buffer, in_tensor_it, izp_tensor_it, w_tensor_it, wzp_tensor_it, cfg, out_tensor_it);
 
   // STEP 1.1.2: Construct [Rescale] as a specific ExecutionInterface successor
   //==================================================================
@@ -818,59 +823,78 @@ void prepare_phase(const transpose_conv2d_test_operands* cur_test,
 
   // Copy input zero points and weights zero points to the temp host buffers
   //==================================================================
-  uint32_t wtszp_full_size = output_shape[kGroupTensorChannelDim];
-  size_t shared_buf_size = MAX(inpzp_size, wtszp_full_size);
-  char * host_buf_a = (char*) malloc(shared_buf_size);
-  char * host_buf_b = (char*) malloc(shared_buf_size);
-  lib_mli::Buffer src_inpzp_buf(host_buf_a, inpzp_size, cnv_i_elem_size);
-  lib_mli::Buffer dst_inpzp_buf(host_buf_b, inpzp_size, cnv_i_elem_size);
-  lib_mli::Buffer src_wtszp_buf(host_buf_a, wtszp_full_size, cnv_w_elem_size);
-  lib_mli::Buffer dst_wtszp_buf(host_buf_b, wtszp_full_size, cnv_w_elem_size);
-  // NOTE: Current the input and weights are int8_t, and zp is int8_t.
-  //       Later, we will support other types.
-  assert(src_inpzp_buf.get_size() == inpzp_buf.get_size());
-  assert(src_inpzp_buf.get_elem_size() == inpzp_buf.get_elem_size());
-  assert(src_wtszp_buf.get_elem_size() == wtszp_buf.get_elem_size());
+  assert(cnv_i_elem_size == sizeof(int8_t) && cnv_w_elem_size == sizeof(int8_t));
+  uint32_t full_weights_size = transpose_conv2d_op->GetEncodedWeightsSize();
+  assert(full_weights_size == lib_mli::service::GetBufferSize(kTransposeConvWRank, weight_shape, weight_stride) * cnv_w_elem_size);
+  uint32_t full_wtszp_size = transpose_conv2d_op->GetEncodedWtsZeroPtsSize();
+  uint32_t full_weights_and_wzp_size = full_wtszp_size + full_weights_size;
+  uint32_t max_dst_encoded_buffer_size = MAX(full_weights_and_wzp_size, inpzp_size);
+  assert(max_dst_encoded_buffer_size <= kWeightsAndWeightsZPBufferSize);
 
-  uint32_t inpzp_shape[kInpZPRank] = {1};
-  lib_mli::Tensor<lib_mli::Buffer, kTransposeConvZPRank> inpzp_tensor(src_inpzp_buf, inpzp_shape);
-
-  uint32_t wtszp_shape[kTransposeConvZPRank] = {weight_shape[kKernelChannelOutDim]};
-  lib_mli::Tensor<lib_mli::Buffer, kTransposeConvZPRank> wtszp_tensor(src_wtszp_buf, wtszp_shape);
-
-  // input zero points: mli_tensor -> host tensor
-  // NOTE: Zero Points should have the same size as the tensor they belong to.
+  // copy input zero point into inpzp_tensor
+  void* src_izp_mem = malloc(inpzp_size);
+  lib_mli::Buffer src_inpzp_buf(src_izp_mem, inpzp_size, cnv_i_elem_size);
+  uint32_t inpzp_shape[kInpZPRank] = { 1 };
+  lib_mli::Tensor<lib_mli::Buffer, kInpZPRank> inpzp_tensor(src_inpzp_buf, inpzp_shape);
   if (cnv_op.input.el_params.sa.dim == kPerTensorQuantDim) {
     assert(cnv_op.input.el_params.sa.zero_point.capacity == 0);
     inpzp_tensor.write(0, static_cast<int8_t>(cnv_op.input.el_params.sa.zero_point.mem.i16));
-  } else {
+  }
+  else {
     assert(cnv_op.input.el_params.sa.zero_point.capacity / sizeof(int16_t) == src_inpzp_buf.get_size());
     for (uint32_t i = 0; i < inpzp_size / cnv_i_elem_size; ++i) {
       inpzp_tensor.write(int(i), static_cast<int8_t>(cnv_op.input.el_params.sa.zero_point.mem.pi16[i]));
     }
   }
-  // host tensor 8bit -> encoded host buffer 16bit
-  status = transpose_conv2d_op->EncodeInpZeroPts(inpzp_tensor, dst_inpzp_buf);
+
+  // encode input zero point into dst_inpzp_buf
+  lib_mli::Buffer dst_inpzp_buf((void*)g_weights_buf_mem, inpzp_size, cnv_i_elem_size);
+  auto izp_tensor_it_with_buf = lib_mli::TensorIterator<lib_mli::Buffer, kInpZPRank, kTransposeConvIterRank>(inpzp_tensor);
+  status = transpose_conv2d_op->EncodeInpZeroPts(izp_tensor_it_with_buf, dst_inpzp_buf);
   assert(status == MLI_STATUS_OK);
-  // encoded host buffer -> global mem pool
+
+  // copy encoded input zero point from dst_inpzp_buf into g_mem_pool
   auto inpzp_mem = (int8_t*)g_mem_pool + inpzp_mem_offset;
   for (uint32_t i = 0; i < inpzp_size / cnv_i_elem_size; ++i) {
     inpzp_mem[i] = dst_inpzp_buf.read<int8_t>(i);
   }
+  free(src_izp_mem);
 
-  // weights zero points: mli_tensor -> host buffer
+  // copy weights zero point(s) into wtszp_tensor
+  void* src_wzp_mem = malloc(full_wtszp_size);
+  lib_mli::Buffer src_wtszp_buf(src_wzp_mem, full_wtszp_size, cnv_w_elem_size);
+  uint32_t wtszp_shape[kWZPRank] = { weight_shape[kKernelChannelOutDim] };
+  lib_mli::Tensor<lib_mli::Buffer, kWZPRank> wtszp_tensor(src_wtszp_buf, wtszp_shape);
   if (cnv_op.weights.el_params.sa.dim == kPerTensorQuantDim) {
     assert(cnv_op.weights.el_params.sa.zero_point.capacity == 0);
     wtszp_tensor.write(0, static_cast<int8_t>(cnv_op.weights.el_params.sa.zero_point.mem.i16));
-  } else {
-    assert(wtszp_full_size == src_wtszp_buf.get_size());
-    for (size_t i = 0; i < wtszp_full_size / cnv_w_elem_size; ++i) {
+  }
+  else {
+    assert(full_wtszp_size == src_wtszp_buf.get_size());
+    for (size_t i = 0; i < full_wtszp_size / cnv_w_elem_size; ++i) {
       wtszp_tensor.write(int(i), static_cast<int8_t>(cnv_op.weights.el_params.sa.zero_point.mem.pi16[i]));
     }
   }
-  // host tensor -> encoded host buffer
-  status = transpose_conv2d_op->EncodeWtsZeroPts(wtszp_tensor, dst_wtszp_buf);
+
+  // copy weights into src_weights_buf
+  void* src_w_mem = malloc(full_weights_size);
+  lib_mli::Buffer src_weights_buf(src_w_mem, full_weights_size, cnv_w_elem_size);
+  lib_mli::Tensor<lib_mli::Buffer, kTransposeConvWRank> weights_tensor(src_weights_buf, weight_shape);
+  int32_t zero_offsets[kTransposeConvWRank]{};
+  strided_copy_with_offsets(kTransposeConvWRank, cnv_w_elem_size,
+                            cnv_op.weights.data.mem.pi8,
+                            zero_offsets, zero_offsets, weight_stride,
+                            weight_shape, weights_tensor.get_buf().get_ptr<int8_t>());
+
+  // encode weights and weights zero point(s) in dst_w_wzp_encoded_buffer
+  lib_mli::Buffer dst_w_wzp_encoded_buffer((void*)g_weights_buf_mem, full_weights_and_wzp_size, cnv_w_elem_size);
+  auto w_tensor_it_with_buf = lib_mli::TensorIterator<lib_mli::Buffer, kTransposeConvWRank, kTransposeConvIterRank>(weights_tensor);
+  auto wzp_tensor_it_with_buf = lib_mli::TensorIterator<lib_mli::Buffer, kWZPRank, kTransposeConvIterRank>(wtszp_tensor);
+  status = transpose_conv2d_op->EncodeWeightsAndZeroPts(w_tensor_it_with_buf, wzp_tensor_it_with_buf, dst_w_wzp_encoded_buffer);
   assert(status == MLI_STATUS_OK);
+
+  free(src_wzp_mem);
+  free(src_w_mem);
 
   // Compile TransposeConv2D into the binary data
   //==================================================================
@@ -1010,8 +1034,6 @@ void prepare_phase(const transpose_conv2d_test_operands* cur_test,
   free(transpose_conv2d_cs_buffer);
   free(rescale_cs_buffer);
   free(clip_cs_buffer);
-  free(host_buf_a);
-  free(host_buf_b);
   free(host_src_buf);
   free(clp_host_src_buf);
   free(clp_host_dst_buf);

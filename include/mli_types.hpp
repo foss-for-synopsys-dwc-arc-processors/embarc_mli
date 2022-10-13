@@ -85,11 +85,11 @@ constexpr unsigned kDepthwiseZPRank = 1;  // TODO: remove and use kWZPRank inste
 constexpr unsigned kDepthwiseIterRank = 5;
 
 constexpr unsigned kTransposeConvIORank = 5;
-constexpr unsigned kTransposeConvIOIterRank = 5;
+constexpr unsigned kTransposeConvIOIterRank = 5;  // TODO: remove and use kTransposeConvIterRank instead
 constexpr unsigned kTransposeConvWRank = 5;
-constexpr unsigned kTransposeConvWIterRank = 5;
-constexpr unsigned kTransposeConvZPRank = 1;  // TODO: remove and use kWZPRank instead
-constexpr unsigned kTransposeConvZPIterRank = 5;
+constexpr unsigned kTransposeConvWIterRank = 5;   // TODO: remove and use kTransposeConvIterRank instead
+constexpr unsigned kTransposeConvZPRank = 1;      // TODO: remove and use kWZPRank instead
+constexpr unsigned kTransposeConvZPIterRank = 5;  // TODO: remove and use kTransposeConvIterRank instead
 constexpr unsigned kTransposeConvIterRank = 5;
 
 constexpr unsigned kFullyConnectedIORank = 2;

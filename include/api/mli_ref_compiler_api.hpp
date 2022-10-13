@@ -341,7 +341,7 @@ class TransposeConv2D_CS : public lib_mli::TransposeConv2D_CS {
 public:
     /**
      * @brief Constructor of the TransposeConv2D_CS object
-     *
+     * @deprecated
      */
     TransposeConv2D_CS(const lib_mli::PlatformDescription pd,
                        const TensorIterator<NoBuffer, kTransposeConvIORank, kTransposeConvIOIterRank> &input,
@@ -371,16 +371,34 @@ public:
                        const TensorIterator<NoBuffer, kTransposeConvWRank,  kTransposeConvIterRank> &weights,
                        const TensorIterator<NoBuffer, kTransposeConvZPRank, kTransposeConvIterRank> &weights_zp,
                        const TransposeConv2DConfig &cfg,
-                       const TensorIterator<NoBuffer, kTransposeConvIORank, kTransposeConvIOIterRank> &output) { NOT_IMPLEMENTED_METHOD; };
+                       const TensorIterator<NoBuffer, kTransposeConvIORank, kTransposeConvIOIterRank> &output);
 
+    /**
+     * @deprecated
+     */
     mli_status EncodeWeights(Tensor<Buffer, kTransposeConvWRank> &weights, Buffer &encoded_weights,
                              compression_mode_t mode = compression_mode_t::Uncompressed) override;
 
+    mli_status EncodeWeightsAndZeroPts(TensorIterator<Buffer, kTransposeConvWRank, kTransposeConvIterRank>& weights,
+                                       TensorIterator<Buffer, kTransposeConvZPRank, kTransposeConvIterRank>& weights_zp,
+                                       Buffer& encoded_weights) override;
+
+    unsigned GetEncodedWeightsSize() const override;
+
+    /**
+     * @deprecated
+     */
     mli_status EncodeInpZeroPts(Tensor<Buffer, kTransposeConvZPRank> &inpzeropts,
                                 Buffer &encoded_inpzeropts) override;
 
+    mli_status EncodeInpZeroPts(TensorIterator<Buffer, kTransposeConvZPRank, kTransposeConvZPIterRank>& input_zp,
+                                Buffer& encoded_input_zp) override;
+
     unsigned GetEncodedInpZeroPtsSize() const override;
 
+    /**
+     * @deprecated
+     */
     mli_status EncodeWtsZeroPts(Tensor<Buffer, kTransposeConvZPRank> &wtszeropts,
                                 Buffer &encoded_wtszeropts) override;
 
@@ -407,6 +425,8 @@ private:
     // Encoded zp buffers for input and weights (optional for FX type)
     OffsetBuffer m_inpzp_buffer;
     OffsetBuffer m_wtszp_buffer;
+
+    uint32_t m_weights_buffer_size;
 
     // The axis to represent the quantization granularity (optional for FX type)
     int m_inp_quant_axis;

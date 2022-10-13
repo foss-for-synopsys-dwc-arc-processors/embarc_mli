@@ -338,6 +338,9 @@ public:
 
     uint32_t TransposeConv2D_CS_GetSize() const override { return sizeof(lib_ref::TransposeConv2D_CS); }
 
+    /**
+     * @deprecated
+     */
     lib_mli::TransposeConv2D_CS* TransposeConv2D_CS(
         void *kernel_buffer,
         const TensorIterator<NoBuffer, kTransposeConvIORank, kTransposeConvIOIterRank> &input,
@@ -346,6 +349,16 @@ public:
         const TransposeConv2DConfig &cfg,
         const TensorIterator<NoBuffer, kTransposeConvIORank, kTransposeConvIOIterRank> &output) override {
         return new (kernel_buffer)lib_ref::TransposeConv2D_CS(m_pd, input, weights, weights_zp, cfg, output);
+    }
+
+    virtual lib_mli::TransposeConv2D_CS* TransposeConv2D_CS(void* kernel_buffer,
+                                                            const TensorIterator<NoBuffer, kTransposeConvIORank, kTransposeConvIOIterRank>& input,
+                                                            const TensorIterator<NoBuffer, kTransposeConvZPRank, kTransposeConvIterRank>& input_zp,
+                                                            const TensorIterator<NoBuffer, kTransposeConvWRank, kTransposeConvWIterRank>& weights,
+                                                            const TensorIterator<NoBuffer, kTransposeConvZPRank, kTransposeConvZPIterRank>& weights_zp,
+                                                            const TransposeConv2DConfig& cfg,
+                                                            const TensorIterator<NoBuffer, kTransposeConvIORank, kTransposeConvIOIterRank>& output) override {
+        return new (kernel_buffer)lib_ref::TransposeConv2D_CS(m_pd, input, input_zp, weights, weights_zp, cfg, output);
     }
 
     uint32_t Permute_CS_GetSize() const override { return sizeof(lib_ref::Permute_CS); }
