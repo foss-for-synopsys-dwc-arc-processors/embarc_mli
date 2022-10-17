@@ -1430,7 +1430,8 @@ public:
     // From MatMul_CS
     mli_status EncodeParams(const Buffer &in_bias1, 
                             const Buffer &in_bias2,
-                            const Buffer &encoded_params) override; 
+                            Buffer &encoded_params) override; 
+    unsigned GetEncodedParamsSize() const override;
 
 private:
 
@@ -1439,6 +1440,7 @@ private:
     TensorIterator<OffsetBuffer, kMatMulRank, kMatMulIterRank> m_output;
 
     OffsetBuffer  m_encoded_params;
+    uint32_t m_encoded_params_buffer_size;
 
     lib_mli::PlatformDescription m_pd;
 };

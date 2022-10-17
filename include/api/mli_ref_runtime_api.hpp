@@ -855,12 +855,19 @@ public:
 
     mli_status Update() override;
 
+    void GetIOSizesAndOffsets(uint32_t input_left_size[kMatMulRank], uint32_t input_right_size[kMatMulRank],
+                              uint32_t output_size[kMatMulRank], int32_t input_left_offsets[kMatMulRank],
+                              int32_t input_right_offsets[kMatMulRank], int32_t output_offsets[kMatMulRank]) const;
+
 private:
     TensorIterator<OffsetBuffer, kMatMulRank, kMatMulIterRank> m_input_left;
     TensorIterator<OffsetBuffer, kMatMulRank, kMatMulIterRank> m_input_right;
     TensorIterator<OffsetBuffer, kMatMulRank, kMatMulIterRank> m_output;
-
-    OffsetBuffer  m_encoded_params;
+    Tensor<InternalBuffer, kMatMulRank> m_tile_input_left;
+    Tensor<InternalBuffer, kMatMulRank> m_tile_input_right;
+    Tensor<InternalBuffer, kMatMulRank> m_tile_output;
+    
+    InternalBuffer  m_encoded_params;
     
     uint32_t m_i_elem_size;
     uint32_t m_o_elem_size;

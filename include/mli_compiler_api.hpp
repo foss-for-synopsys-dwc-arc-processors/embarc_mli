@@ -1439,7 +1439,13 @@ public:
      */
     virtual mli_status EncodeParams(const Buffer &in_bias1, 
                                     const Buffer &in_bias2,
-                                    const Buffer &encoded_params) = 0;
+                                    Buffer &encoded_params) = 0;
+    /**
+     * @brief Method to query the size of the encoded parameters buffer
+     *
+     * This function returns the size of the buffer that is needed by the EncodeParams method
+     */
+    virtual unsigned GetEncodedParamsSize() const = 0;
 
     /**
      * @brief Methods to set buffer offsets

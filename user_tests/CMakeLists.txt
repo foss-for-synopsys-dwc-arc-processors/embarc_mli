@@ -208,6 +208,7 @@ add_user_test(krn transpose_conv2d_30)
 add_user_test(krn group_conv2d FX16)
 add_user_test(krn group_conv2d FX16_FX8_FX8)
 add_user_test(krn group_conv2d SA8_SA8_SA32)
+add_user_test(krn matmul_30)
 
 #======================================================
 # Pooling Group

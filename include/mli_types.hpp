@@ -118,6 +118,8 @@ constexpr unsigned kReduceSumRank = 4;
 constexpr unsigned kReduceSumIterRank = 4;
 constexpr short int kMatMulRank = 2;
 constexpr short int kMatMulIterRank = 2;
+constexpr short int kMatMulHeightDim = 0;
+constexpr short int kMatMulWidthDim = 1;
 
 constexpr short int kArgMaxInRank = 4;
 constexpr short int kArgMaxInIterRank = 4;

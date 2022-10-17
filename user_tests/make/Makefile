@@ -64,7 +64,8 @@ KERNELS = \
 	transpose_conv2d_30 \
 	reduce_sum_30 \
 	permute_30 \
-	move_broadcast_30
+	move_broadcast_30 \
+	matmul_30
 
 
 

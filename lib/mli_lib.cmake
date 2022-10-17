@@ -64,6 +64,8 @@ set(MLI_LIB_SOURCE_FILES
     ${MLI_LIB_CMAKE_DIR}/src/kernels/convolution/mli_krn_group_conv2d_hwcn.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/convolution/mli_krn_depthwise_conv2d_compiler.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/convolution/mli_krn_depthwise_conv2d_runtime.cc
+    ${MLI_LIB_CMAKE_DIR}/src/kernels/convolution/mli_krn_matmul_compiler.cc
+    ${MLI_LIB_CMAKE_DIR}/src/kernels/convolution/mli_krn_matmul_runtime.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/common/mli_krn_fully_connected.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/common/impl/mli_krn_fully_connected_compiler.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/common/impl/mli_krn_fully_connected_runtime.cc
