@@ -1003,7 +1003,7 @@ class TensorIterator {
         } else { // Middle iteration
           copysize[dim] = m_config.get_size(r);
         }
-        copysize[dim] = MIN(m_full_tensor.get_dim(dim) - m_pos[dim], copysize[dim]);
+        copysize[dim] = MIN(m_full_tensor.get_dim(dim) - pos[dim], copysize[dim]);
       }
       return m_full_tensor.slice(pos, copysize);
     }
