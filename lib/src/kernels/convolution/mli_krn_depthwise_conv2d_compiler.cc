@@ -19,6 +19,7 @@ namespace snps_arc::metaware::mli::ref {
   * @deprecated
   * Be carefull - this ctor doesn't support tiling - only single tile size of provided tensors
   * Be carefull - depthwise conv2d I/O tensors of rank 4 are deprecated - new interfaces use rank 5
+  * Be carefull - this is the most deprecated Constructor
   */
 DepthwiseConv2d_CS::DepthwiseConv2d_CS(const lib_mli::PlatformDescription pd,
                                        const Tensor<NoBuffer, 4> &in,
@@ -86,7 +87,9 @@ DepthwiseConv2d_CS::DepthwiseConv2d_CS(const lib_mli::PlatformDescription pd,
   m_weights_zp = TensorIterator<OffsetBuffer, kDepthwiseZPRank, kDepthwiseIterRank>(wzp_tensor_it);
 }
 
-
+/**
+  * @deprecated
+  */
 DepthwiseConv2d_CS::DepthwiseConv2d_CS(const lib_mli::PlatformDescription pd,
                                        const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIterRank>& input,
                                        const TensorIterator<NoBuffer, kDepthwiseWRank, kDepthwiseIterRank>& weights,
@@ -100,31 +103,40 @@ DepthwiseConv2d_CS::DepthwiseConv2d_CS(const lib_mli::PlatformDescription pd,
     m_config(cfg),
     m_pd(pd) {
 
-  uint32_t input_shape[kDepthwiseIORank];
-  int32_t input_stride[kDepthwiseIORank];
-  uint32_t output_shape[kDepthwiseIORank];
-  int32_t output_stride[kDepthwiseIORank];
-  input.get_full_shape(input_shape);
-  input.get_mem_strides(input_stride);
-  output.get_full_shape(output_shape);
-  output.get_mem_strides(output_stride);
+  DEPRECATED_METHOD
 
-  uint32_t weights_shape[kDepthwiseWRank];
-  int32_t weights_stride[kDepthwiseWRank];
-  weights.get_full_shape(weights_shape);
-  weights.get_mem_strides(weights_stride);
-
-  m_input_buffer_size =
-    service::GetBufferSize(kDepthwiseIORank, input_shape, input_stride);
-  m_weights_buffer_size
-    = service::GetBufferSize(kDepthwiseWRank, weights_shape, weights_stride);
-  m_output_buffer_size =
-    service::GetBufferSize(kDepthwiseIORank, output_shape, output_stride);
+  m_input_buffer_size = service::GetBufferSize(input.get_tensor());
+  m_weights_buffer_size = service::GetBufferSize(weights.get_tensor());
+  m_output_buffer_size = service::GetBufferSize(output.get_tensor());
 
   m_inp_quant_axis = kPerTensorQuantDim;
   m_wts_quant_axis = kKernelDWChannelInDim;
 }
 
+
+DepthwiseConv2d_CS::DepthwiseConv2d_CS(const lib_mli::PlatformDescription pd,
+                                       const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIterRank>& input,
+                                       const TensorIterator<NoBuffer, kDepthwiseZPRank, kDepthwiseIterRank>& input_zp,
+                                       const TensorIterator<NoBuffer, kDepthwiseWRank, kDepthwiseIterRank>& weights,
+                                       const TensorIterator<NoBuffer, kDepthwiseZPRank, kDepthwiseIterRank>& weights_zp,
+                                       const DwConv2DConfig& cfg,
+                                       const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIterRank>& output)
+  : m_input(input),
+    m_weights(weights),
+    m_weights_zp(weights_zp),
+    m_output(output),
+    m_config(cfg),
+    m_pd(pd) {
+
+  MLI_ASSERT(input_zp.get_dim(0) == 1); // only per-tensor is supported
+
+  m_input_buffer_size = service::GetBufferSize(input.get_tensor());
+  m_weights_buffer_size = service::GetBufferSize(weights.get_tensor());
+  m_output_buffer_size = service::GetBufferSize(output.get_tensor());
+
+  m_inp_quant_axis = kPerTensorQuantDim;
+  m_wts_quant_axis = kKernelDWChannelInDim;
+}
 
 unsigned DepthwiseConv2d_CS::GetKernelPrivateDataSize() const {
   return sizeof(DepthwiseConv2DPrivateData);
@@ -199,22 +211,50 @@ mli_status DepthwiseConv2d_CS::AttachBufferOffsets(const OffsetBuffer& input,
   return MLI_STATUS_OK;
 }
 
+/**
+  * @deprecated
+  */
 mli_status DepthwiseConv2d_CS::EncodeWeights(Tensor<Buffer, kDepthwiseWRank> &weights,
                                              Buffer &encoded_weights,
                                              compression_mode_t mode){
+  DEPRECATED_METHOD
+
   return service::EncodeWeights(weights, encoded_weights);
 }
+
+
+mli_status DepthwiseConv2d_CS::EncodeWeightsAndZeroPts(TensorIterator<Buffer, kDepthwiseWRank, kDepthwiseIterRank>& weights,
+                                                       TensorIterator<Buffer, kDepthwiseZPRank, kDepthwiseIterRank>& weights_zp,
+                                                       Buffer& encoded_weights) {
+  return service::EncodeWeightsAndZeroPts(weights.get_tensor(), weights_zp.get_tensor(), encoded_weights);
+};
+
+
 
 unsigned DepthwiseConv2d_CS::GetEncodedWeightsSize() {
   return m_weights_buffer_size;
 }
 
+/**
+  * @deprecated
+  */
 mli_status DepthwiseConv2d_CS::EncodeInpZeroPts(Tensor<Buffer, kDepthwiseZPRank> &inpzeropts,
                                                 Buffer &encoded_inpzeropts) {
+  
+  DEPRECATED_METHOD
+
   constexpr int channel_axis = mli::kGroupTensorChannelDim;
   uint32_t channel_length = m_input.get_dim(channel_axis);
   return service::EncodeZeroPts<channel_axis>(
     inpzeropts, encoded_inpzeropts, m_inp_quant_axis, channel_length);
+}
+
+mli_status DepthwiseConv2d_CS::EncodeInpZeroPts(TensorIterator<Buffer, kDepthwiseZPRank, kDepthwiseIterRank>& input_zp,
+                                                Buffer& encoded_input_zp) {
+  constexpr int channel_axis = mli::kGroupTensorChannelDim;
+  uint32_t channel_length = m_input.get_dim(channel_axis);
+  return service::EncodeZeroPts<channel_axis>(
+    input_zp.get_tensor(), encoded_input_zp, m_inp_quant_axis, channel_length);
 }
 
 unsigned DepthwiseConv2d_CS::GetEncodedInpZeroPtsSize() {
@@ -222,8 +262,14 @@ unsigned DepthwiseConv2d_CS::GetEncodedInpZeroPtsSize() {
   return 1;
 }
 
+/**
+  * @deprecated
+  */
 mli_status DepthwiseConv2d_CS::EncodeWtsZeroPts(Tensor<Buffer, kDepthwiseZPRank> &wtszeropts,
                                                 Buffer &encoded_wtszeropts) {
+
+  DEPRECATED_METHOD
+
   constexpr int channel_axis = mli::kKernelDWChannelInDim;
   uint32_t channel_length = m_weights.get_dim(channel_axis);
   return service::EncodeZeroPts<channel_axis>(

@@ -46,6 +46,9 @@ public:
         return new(kernel_buffer) lib_ref::Conv2d_CS(m_pd, input_shape, weights, cfg, output_tile_shape);
     }
 
+    /**
+     * @deprecated
+     */
     lib_mli::Conv2d_CS* Conv2d_CS(void* kernel_buffer,
                                   const TensorIterator<NoBuffer, kConvIORank, kConvIOIterRank>& input,
                                   const TensorIterator<NoBuffer, kConvWRank, kConvWIterRank>& weights,
@@ -53,6 +56,16 @@ public:
                                   const Conv2DConfig& cfg,
                                   const TensorIterator<NoBuffer, kConvIORank, kConvIOIterRank>& output) override {
         return new(kernel_buffer) lib_ref::Conv2d_CS(m_pd, input, weights, weights_zp, cfg, output);
+    }
+
+    lib_mli::Conv2d_CS* Conv2d_CS(void* kernel_buffer,
+                                  const TensorIterator<NoBuffer, kConvIORank, kConvIOIterRank>& input,
+                                  const TensorIterator<NoBuffer, kConvZPRank, kConvZPIterRank>& input_zp,
+                                  const TensorIterator<NoBuffer, kConvWRank, kConvWIterRank>& weights,
+                                  const TensorIterator<NoBuffer, kConvZPRank, kConvZPIterRank>& weights_zp,
+                                  const Conv2DConfig& cfg,
+                                  const TensorIterator<NoBuffer, kConvIORank, kConvIOIterRank>& output) override {
+        return new(kernel_buffer) lib_ref::Conv2d_CS(m_pd, input, input_zp, weights, weights_zp, cfg, output);
     }
 
     uint32_t Prelu_CS_GetSize() const override { return sizeof(lib_ref::Prelu_CS); }
@@ -215,6 +228,7 @@ public:
      * @deprecated
      * Be carefull - this factory method doesn't support tiling - only single tile size of provided tensors
      * Be carefull - depthwise conv2d I/O tensors of rank 4 are deprecated - new interfaces use rank 5 
+     * Be carefull - this is the most deprecated factory method for DepthwiseConv2d_CS
      */
     lib_mli::DepthwiseConv2d_CS* DepthwiseConv2d_CS(void *kernel_buffer,
                                                     const Tensor<NoBuffer, 4> in,
@@ -224,6 +238,9 @@ public:
         return new(kernel_buffer) lib_ref::DepthwiseConv2d_CS(m_pd, in, weights, cfg, output);
     }
 
+    /**
+     * @deprecated
+     */
     lib_mli::DepthwiseConv2d_CS* DepthwiseConv2d_CS(void* kernel_buffer,
                                                     const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIterRank>& input,
                                                     const TensorIterator<NoBuffer, kDepthwiseWRank, kDepthwiseIterRank>& weights,
@@ -233,7 +250,17 @@ public:
         return new(kernel_buffer) lib_ref::DepthwiseConv2d_CS(m_pd, input, weights, weights_zp, cfg, output);
     }
 
-     uint32_t FullyConnected_CS_GetSize() const override { return sizeof(lib_ref:: FullyConnected_CS); }
+    lib_mli::DepthwiseConv2d_CS* DepthwiseConv2d_CS(void* kernel_buffer,
+                                                    const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIterRank>& input,
+                                                    const TensorIterator<NoBuffer, kDepthwiseZPRank, kDepthwiseIterRank>& input_zp,
+                                                    const TensorIterator<NoBuffer, kDepthwiseWRank, kDepthwiseIterRank>& weights,
+                                                    const TensorIterator<NoBuffer, kDepthwiseZPRank, kDepthwiseIterRank>& weights_zp,
+                                                    const DwConv2DConfig& cfg,
+                                                    const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIterRank>& output) override {
+      return new(kernel_buffer) lib_ref::DepthwiseConv2d_CS(m_pd, input, input_zp, weights, weights_zp, cfg, output);
+    }
+
+    uint32_t FullyConnected_CS_GetSize() const override { return sizeof(lib_ref:: FullyConnected_CS); }
 
     lib_mli:: FullyConnected_CS* FullyConnected_CS(void *kernel_buffer,
                                                    const Tensor<NoBuffer, 2> in,

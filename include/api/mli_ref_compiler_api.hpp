@@ -35,7 +35,9 @@ public:
      * of all values in the related perception area of all channels of the input tensor.
      *
      * @deprected
+     * Be carefull - you need to use another deprected method to set tiling - SetIterators
      * Be carefull - conv2d I/O tensors of rank 4 are deprecated - new interfaces use rank 5 
+     * Be carefull - this is the most deprecated Constructor
      *
      * @param pd [IN] Platform description
      * @param in [IN] input tensor (full shape, BHWCi layout)
@@ -51,6 +53,7 @@ public:
 
     /**
       * @brief Constructor to create an Conv2d_CS compiler support object.
+      * @deprecated
       *
       * This constructor can be used to create a Convolution 2D compiler support
       * object. This kernel computes each value of the output tensor as the result of convolution operation
@@ -75,16 +78,16 @@ public:
       * @brief Constructor to create an Conv2d_CS compiler support object.
       *
       * This constructor can be used to create a Convolution 2D compiler support
-      * object. This kernel computes each value of the output tensor as the result of convolution operation
+      * object. This kernel computes each value of the output as the result of convolution operation
       * of input with weights.
       *
       * @param pd          [I] Platform description
       * @param input       [I] Input TensorIterator (BHWGCi layout)
-      * @param input_zp    [I] input_zp TensorIterator
-      * @param weights     [I] weights TensorIterator (GKyKxCiCo layout)
-      * @param weights_zp  [I] weights_zp TensorIterator
-      * @param cfg         [I] Conv2DConfig structure
-      * @param output      [I] output TensorIterator (BHWGCo layout)
+      * @param input_zp    [I] Input zero point(s) TensorIterator
+      * @param weights     [I] Weights TensorIterator (GKyKxCiCo layout)
+      * @param weights_zp  [I] Weights zero point(s) TensorIterator
+      * @param cfg         [I] Conv2DConfig structure with conv parameters (stride, dilation, paddings)
+      * @param output      [I] Output TensorIterator (BHWGCo layout)
       */
     Conv2d_CS(const lib_mli::PlatformDescription pd,
               const TensorIterator<NoBuffer, kConvIORank, kConvIterRank> &input,
@@ -92,19 +95,35 @@ public:
               const TensorIterator<NoBuffer, kConvWRank,  kConvIterRank> &weights,
               const TensorIterator<NoBuffer, kConvZPRank, kConvIterRank> &weights_zp,
               const Conv2DConfig &cfg,
-              const TensorIterator<NoBuffer, kConvIORank, kConvIterRank> &output) { NOT_IMPLEMENTED_METHOD; };
+              const TensorIterator<NoBuffer, kConvIORank, kConvIterRank> &output);
 
+    /**
+     * @deprecated
+     */
     mli_status EncodeWeights(Tensor<Buffer, kConvWRank> &weights,
                              Buffer &encoded_weights,
                              compression_mode_t mode = compression_mode_t::Uncompressed) override;
 
+    mli_status EncodeWeightsAndZeroPts(TensorIterator<Buffer, kConvWRank, kConvIterRank>& weights,
+                                       TensorIterator<Buffer, kConvZPRank, kConvIterRank>& weights_zp,
+                                       Buffer& encoded_weights) override;
+
     unsigned GetEncodedWeightsSize() override;
 
+    /**
+     * @deprecated
+     */
     mli_status EncodeInpZeroPts(Tensor<Buffer, kInpZPRank> &inpzeropts,
                                 Buffer &encoded_inpzeropts) override;
 
+    mli_status EncodeInpZeroPts(TensorIterator<Buffer, kConvZPRank, kConvZPIterRank>& input_zp,
+                                Buffer& encoded_inpzeropts) override;
+
     unsigned GetEncodedInpZeroPtsSize() override;
 
+    /**
+     * @deprecated
+     */
     mli_status EncodeWtsZeroPts(Tensor<Buffer, kConvZPRank> &wtszeropts,
                                 Buffer &encoded_wtszeropts) override;
 
@@ -148,7 +167,8 @@ public:
 
     /**
      * @deprecated
-     * Be carefull - conv2d I/O tensors of rank 4 are deprecated - new interfaces use rank 5 
+     * Be carefull - conv2d I/O tensors of rank 4 are deprecated - new interfaces use rank 5
+     * Be carefull - don't use this method with new Conv2d_CS ctors - only with deprecated ctor that takes tensors
      */
     mli_status SetIterators(uint32_t output_total_size[4],
                             uint32_t iteration_order[4],
@@ -191,6 +211,7 @@ public:
      * @deprecated
      * Be carefull - this ctor doesn't support tiling - only single tile size of provided tensors
      * Be carefull - depthwise conv2d I/O tensors of rank 4 are deprecated - new interfaces use rank 5
+     * Be carefull - this is the most deprecated Constructor
      */
     DepthwiseConv2d_CS(const lib_mli::PlatformDescription pd,
                        const Tensor<NoBuffer, 4> &in,
@@ -200,6 +221,7 @@ public:
 
     /**
      * @brief Constructor of the DepthwiseConv2d_CS object
+     * @deprecated
      */
     DepthwiseConv2d_CS(const lib_mli::PlatformDescription pd,
                        const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIterRank>& input,
@@ -229,19 +251,35 @@ public:
                        const TensorIterator<NoBuffer, kDepthwiseWRank,  kDepthwiseIterRank> &weights,
                        const TensorIterator<NoBuffer, kDepthwiseZPRank, kDepthwiseIterRank> &weights_zp,
                        const DwConv2DConfig &cfg,
-                       const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIterRank> &output) { NOT_IMPLEMENTED_METHOD; };
+                       const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIterRank> &output);
 
+    /**
+      * @deprecated
+      */
     mli_status EncodeWeights(Tensor<Buffer, kDepthwiseWRank> &weights,
                              Buffer &encoded_weights,
                              compression_mode_t mode = compression_mode_t::Uncompressed) override;
 
+    mli_status EncodeWeightsAndZeroPts(TensorIterator<Buffer, kDepthwiseWRank, kDepthwiseIterRank>& weights,
+                                       TensorIterator<Buffer, kDepthwiseZPRank, kDepthwiseIterRank>& weights_zp,
+                                       Buffer& encoded_weights) override;
+
     unsigned GetEncodedWeightsSize() override;
 
+    /**
+      * @deprecated
+      */
     mli_status EncodeInpZeroPts(Tensor<Buffer, kDepthwiseZPRank> &inpzeropts,
                                 Buffer &encoded_inpzeropts) override;
 
+    mli_status EncodeInpZeroPts(TensorIterator<Buffer, kDepthwiseZPRank, kDepthwiseIterRank>& input_zp,
+                                Buffer& encoded_input_zp) override;
+
     unsigned GetEncodedInpZeroPtsSize() override;
 
+    /**
+      * @deprecated
+      */
     mli_status EncodeWtsZeroPts(Tensor<Buffer, kDepthwiseZPRank> &wtszeropts,
                                 Buffer &encoded_wtszeropts) override;
 

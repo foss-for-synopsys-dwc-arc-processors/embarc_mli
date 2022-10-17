@@ -126,15 +126,15 @@ class Conv2d_CS : public CompilerGenericInterface {
 public:
     /**
      * @brief Method to encode the weights (coefficients)
-     *
+     * @deprecated
      * This method will read the weights buffer in a platform independent layout
      * and translate it into a buffer that can be easily read by the platform specific
      * kernel implementation.
      * This transformation may include compression
      * The content of the encode_weights buffer is opaque for the user.
      *
-     * @param weights [I] tensor with the weights
-     * @param buffer_t[I] buffer pointer where the encode function can write the encoded weights
+     * @param weights         [I] tensor with the weights
+     * @param encoded_weights [I] buffer where the encode function write the encoded weights
      *
      * TODO: how to handle sliding in the output channel dimension? is this weights encoding for the complete 'thing' or just for this slide?
      */
@@ -171,7 +171,7 @@ public:
 
     /**
      * @brief Method to encode input zero-points (padding values)
-     *
+     * @deprecated
      * This method will read the input zero-points buffer in a platform independent layout
      * and translate it into a buffer that can be easily read by the platform specific
      * kernel implementation.
@@ -205,7 +205,7 @@ public:
 
     /**
      * @brief Method to encode weights zero-points (padding values)
-     *
+     * @deprecated
      * This method will read the weights zero-points buffer in a platform independent layout
      * and translate it into a buffer that can be easily read by the platform specific
      * kernel implementation.
@@ -298,8 +298,9 @@ public:
      * NOTE: the use of this method is optional. if there is a single tile, and the .Update() is not used,
      *       this data doesn't need to be set.     
      * All the increments are following the output tile iterator.
-     * 
      * @deprecated
+     * Be carefull - don't use this method with new Conv2d_CS ctors - only with deprecated ctor that takes tensors
+     *
      * @param output_total_size[4] [I] total size in each dimension
      * @param iteration_order[4] [I] which dimension of the output to iterate first.
      * @param input_first_inc[4] [I] increment of the input buffer pointer for the first iteration in each dimension
@@ -444,6 +445,7 @@ public:
 
     /**
      * @brief Method to encode the weights (coefficients).
+     * @deprecated
      * TODO: add description using conv2d_cs as a starting point
      */
     virtual mli_status EncodeWeights(Tensor<Buffer, kDepthwiseWRank> &weights,
@@ -476,7 +478,7 @@ public:
 
     /**
      * @brief Method to encode input zero-points (padding values)
-     *
+     * @deprecated
      */
     virtual mli_status EncodeInpZeroPts(Tensor<Buffer, kDepthwiseZPRank> &inpzeropts,
                                         Buffer &encoded_inpzeropts) = 0;
@@ -505,7 +507,7 @@ public:
 
     /**
      * @brief Method to encode weights zero-points
-     *
+     * @deprecated
      */
     virtual mli_status EncodeWtsZeroPts(Tensor<Buffer, kDepthwiseZPRank> &wtszeropts,
                                         Buffer &encoded_wtszeropts) { return MLI_STATUS_OK; }

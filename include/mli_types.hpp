@@ -69,31 +69,32 @@ constexpr unsigned kMaxpoolRank = 4;
 constexpr unsigned kMaxpoolIterRank = 4;
 
 constexpr unsigned kConvIORank = 5;
-constexpr unsigned kConvIOIterRank = 5;
+constexpr unsigned kConvIOIterRank = 5; // TODO: remove and use kConvIterRank instead
 constexpr unsigned kConvWRank = 5;
-constexpr unsigned kConvWIterRank = 5;
-constexpr unsigned kConvZPRank = 1;
-constexpr unsigned kConvZPIterRank = 5;
+constexpr unsigned kConvWIterRank = 5;   // TODO: remove and use kConvIterRank instead
+constexpr unsigned kConvZPRank = 1;      // TODO: remove and use kWZPRank instead
+constexpr unsigned kConvZPIterRank = 5;  // TODO: remove and use kConvIterRank instead
 constexpr unsigned kConvIterRank = 5;
 
 constexpr unsigned kInpZPRank = 1;
+constexpr unsigned kWZPRank = 1;
 
 constexpr unsigned kDepthwiseIORank = 5;
 constexpr unsigned kDepthwiseWRank = 3;
-constexpr unsigned kDepthwiseZPRank = 1;
+constexpr unsigned kDepthwiseZPRank = 1;  // TODO: remove and use kWZPRank instead
 constexpr unsigned kDepthwiseIterRank = 5;
 
 constexpr unsigned kTransposeConvIORank = 5;
 constexpr unsigned kTransposeConvIOIterRank = 5;
 constexpr unsigned kTransposeConvWRank = 5;
 constexpr unsigned kTransposeConvWIterRank = 5;
-constexpr unsigned kTransposeConvZPRank = 1;
+constexpr unsigned kTransposeConvZPRank = 1;  // TODO: remove and use kWZPRank instead
 constexpr unsigned kTransposeConvZPIterRank = 5;
 constexpr unsigned kTransposeConvIterRank = 5;
 
 constexpr unsigned kFullyConnectedIORank = 2;
 constexpr unsigned kFullyConnectedWRank = 2;
-constexpr unsigned kFullyConnectedZPRank = 1;
+constexpr unsigned kFullyConnectedZPRank = 1; // TODO: remove and use kWZPRank instead
 constexpr unsigned kFullyConnectedIterRank = 2;
 
 constexpr unsigned kPermuteRank = 4;

@@ -104,7 +104,8 @@ public:
     /**
      * @brief Convolution 2D kernel Compiler Support interface factory
      * method
-     *
+     * @deprecated
+     * 
      * @param kernel_buffer [I] Pointer to the pre-allocated memory to store
      *                          kernel Compiler Support object
      * @param input         [I] TensorIterator object containing input Tensor shape and
@@ -120,6 +121,34 @@ public:
      */
     virtual lib_mli::Conv2d_CS* Conv2d_CS(void* kernel_buffer,
                                           const TensorIterator<NoBuffer, kConvIORank, kConvIOIterRank>& input,      // BHWGCi
+                                          const TensorIterator<NoBuffer, kConvWRank, kConvWIterRank>& weights,      // GKyKxCiCo
+                                          const TensorIterator<NoBuffer, kConvZPRank, kConvZPIterRank>& weights_zp, // Co tensor, GKyKxCiCo iterator
+                                          const Conv2DConfig& cfg,
+                                          const TensorIterator<NoBuffer, kConvIORank, kConvIOIterRank>& output) {   // BHWGCo
+      return nullptr;
+    }
+
+    /**
+      * @brief Convolution 2D kernel Compiler Support interface factory
+      * method
+      *
+      * @param kernel_buffer [I] Pointer to the pre-allocated memory to store
+      *                          kernel Compiler Support object
+      * @param input         [I] TensorIterator object containing input Tensor shape and
+      *                          memory strides and IteratorCfg
+      * @param input_zp      [I] TensorIterator object containing input zp(s) array
+      * @param weights       [I] TensorIterator object containing weights Tensor shape
+      *                          and memory strides and IteratorCfg
+      * @param weights_zp    [I] TensorIterator object containing weight zp(s) array
+      * @param cfg           [I] Kernel configuration structure
+      * @param output        [I] TensorIterator object containing output Tensor shape
+      *                          and memory strides and IteratorCfg
+      *
+      * @return Convolution 2D kernel Compiler Support interface object
+      */
+    virtual lib_mli::Conv2d_CS* Conv2d_CS(void* kernel_buffer,
+                                          const TensorIterator<NoBuffer, kConvIORank, kConvIOIterRank>& input,      // BHWGCi
+                                          const TensorIterator<NoBuffer, kConvZPRank, kConvZPIterRank>& input_zp,
                                           const TensorIterator<NoBuffer, kConvWRank, kConvWIterRank>& weights,      // GKyKxCiCo
                                           const TensorIterator<NoBuffer, kConvZPRank, kConvZPIterRank>& weights_zp, // Co tensor, GKyKxCiCo iterator
                                           const Conv2DConfig& cfg,
@@ -411,7 +440,7 @@ public:
       * @deprecated
       * Be carefull - this factory method doesn't support tiling - only single tile size of provided tensors
       * Be carefull - depthwise conv2d I/O tensors of rank 4 are deprecated - new interfaces use rank 5 
-      * 
+      * Be carefull - this is the most deprecated factory method for DepthwiseConv2d_CS
       * @param kernel_buffer       [I] Pointer to the pre-allocated memory to store
       *                                kernel Compiler Support object
       * @param in                  [I] Tensor object containing input Tensor shape and
@@ -436,6 +465,7 @@ public:
      * @brief Depthwise Convolution 2D kernel Compiler Support interface factory
      * method
      *
+     * @deprecated
      * @param kernel_buffer [I] Pointer to the pre-allocated memory to store
      *                          kernel Compiler Support object
      * @param input         [I] TensorIterator object containing input Tensor shape and
@@ -452,6 +482,35 @@ public:
     virtual lib_mli::DepthwiseConv2d_CS* DepthwiseConv2d_CS(void* kernel_buffer,
                                                             const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIterRank>& input,      // BHWGC
                                                             const TensorIterator<NoBuffer, kDepthwiseWRank, kDepthwiseIterRank>& weights,      // KiKoC
+                                                            const TensorIterator<NoBuffer, kDepthwiseZPRank, kDepthwiseIterRank>& weights_zp, // C
+                                                            const DwConv2DConfig& cfg,
+                                                            const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIterRank>& output) {   // BHWGC
+      return nullptr;
+    }
+
+    /**
+     * @brief Depthwise Convolution 2D kernel Compiler Support interface factory
+     * method
+     *
+     * @param kernel_buffer [I] Pointer to the pre-allocated memory to store
+     *                          kernel Compiler Support object
+     * @param input         [I] TensorIterator object containing input Tensor shape and
+     *                          memory strides and IteratorCfg
+     * @param input_zp      [I] TensorIterator object containing input zp(s) Tensor shape and
+     *                          memory strides and IteratorCfg
+     * @param weights       [I] TensorIterator object containing weights Tensor shape
+     *                          and memory strides and IteratorCfg
+     * @param weights_zp    [I] TensorIterator object containing weight zp(s) array
+     * @param cfg           [I] Kernel configuration structure
+     * @param output        [I] TensorIterator object containing output Tensor shape
+     *                          and memory strides and IteratorCfg
+     *
+     * @return Depthwise Convolution 2D kernel Compiler Support interface object
+     */
+    virtual lib_mli::DepthwiseConv2d_CS* DepthwiseConv2d_CS(void* kernel_buffer,
+                                                            const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIterRank>& input,      // BHWGC
+                                                            const TensorIterator<NoBuffer, kDepthwiseZPRank, kDepthwiseIterRank>& input_zp,
+                                                            const TensorIterator<NoBuffer, kDepthwiseWRank, kDepthwiseIterRank>& weights,     // KiKoC
                                                             const TensorIterator<NoBuffer, kDepthwiseZPRank, kDepthwiseIterRank>& weights_zp, // C
                                                             const DwConv2DConfig& cfg,
                                                             const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIterRank>& output) {   // BHWGC

@@ -18,9 +18,10 @@ namespace snps_arc::metaware::mli::ref {
 /**
   * @deprecated
   * Be carefull - you need to use another deprected method to set tiling - SetIterators
-  * Be carefull - conv2d I/O tensors of rank 4 are deprecated - new interfaces use rank 5 
+  * Be carefull - conv2d I/O tensors of rank 4 are deprecated - new interfaces use rank 5
+  * Be carefull - this is the most deprecated Constructor
   */
-Conv2d_CS::Conv2d_CS(const lib_mli::PlatformDescription pd,
+Conv2d_CS::Conv2d_CS(const PlatformDescription pd,
                      const Tensor<NoBuffer, 4> &in,                // B, H, W, Ci
                      const Tensor<NoBuffer, 5> &weights,           // G, H, W, Ci, Co
                      const Conv2DConfig &cfg,
@@ -83,7 +84,10 @@ Conv2d_CS::Conv2d_CS(const lib_mli::PlatformDescription pd,
   m_wts_quant_axis = kKernelChannelOutDim;
 }
 
-Conv2d_CS::Conv2d_CS(const lib_mli::PlatformDescription pd,
+/**
+ * @deprecated
+ */
+Conv2d_CS::Conv2d_CS(const PlatformDescription pd,
                      const TensorIterator<NoBuffer, kConvIORank, kConvIOIterRank>& input,
                      const TensorIterator<NoBuffer, kConvWRank, kConvWIterRank>& weights,
                      const TensorIterator<NoBuffer, kConvZPRank, kConvZPIterRank>& weights_zp,
@@ -96,26 +100,33 @@ Conv2d_CS::Conv2d_CS(const lib_mli::PlatformDescription pd,
     m_config(cfg),
     m_pd(pd) {
 
-  uint32_t input_shape[kConvIORank];
-  int32_t input_stride[kConvIORank];
-  uint32_t output_shape[kConvIORank];
-  int32_t output_stride[kConvIORank];
-  input.get_full_shape(input_shape);
-  input.get_mem_strides(input_stride);
-  output.get_full_shape(output_shape);
-  output.get_mem_strides(output_stride);
+  DEPRECATED_METHOD
 
-  uint32_t weights_shape[kConvWRank];
-  int32_t weights_stride[kConvWRank];
-  weights.get_full_shape(weights_shape);
-  weights.get_mem_strides(weights_stride);
+  m_input_buffer_size = service::GetBufferSize(input.get_tensor());
+  m_weights_buffer_size = service::GetBufferSize(weights.get_tensor());
+  m_output_buffer_size = service::GetBufferSize(output.get_tensor());
 
-  m_input_buffer_size =
-    service::GetBufferSize(kConvIORank, input_shape, input_stride);
-  m_weights_buffer_size
-    = service::GetBufferSize(kConvWRank, weights_shape, weights_stride);
-  m_output_buffer_size =
-    service::GetBufferSize(kConvIORank, output_shape, output_stride);
+  m_inp_quant_axis = kPerTensorQuantDim;
+  m_wts_quant_axis = kKernelChannelOutDim;
+}
+
+Conv2d_CS::Conv2d_CS(const PlatformDescription pd,
+                     const TensorIterator<NoBuffer, kConvIORank, kConvIterRank>& input,
+                     const TensorIterator<NoBuffer, kConvZPRank, kConvIterRank>& input_zp,
+                     const TensorIterator<NoBuffer, kConvWRank, kConvIterRank>& weights,
+                     const TensorIterator<NoBuffer, kConvZPRank, kConvIterRank>& weights_zp,
+                     const Conv2DConfig& cfg,
+                     const TensorIterator<NoBuffer, kConvIORank, kConvIterRank>& output) 
+  : m_input(input),
+    m_weights(weights),
+    m_weights_zp(weights_zp),
+    m_output(output),
+    m_config(cfg),
+    m_pd(pd) {
+
+  m_input_buffer_size = service::GetBufferSize(input.get_tensor());
+  m_weights_buffer_size = service::GetBufferSize(weights.get_tensor());
+  m_output_buffer_size = service::GetBufferSize(output.get_tensor());
 
   m_inp_quant_axis = kPerTensorQuantDim;
   m_wts_quant_axis = kKernelChannelOutDim;
@@ -133,18 +144,18 @@ mli_status Conv2d_CS::GetKernelPrivateData(void* kernel_private_data_buffer) {
 
   MLI_ASSERT(kernel_private_data_buffer != nullptr);
 
-  MLI_ASSERT(m_input.get_dim(mli::kGroupTensorBatchDim) == 1);
+  MLI_ASSERT(m_input.get_dim(kGroupTensorBatchDim) == 1);
 
-  MLI_ASSERT(m_weights.get_dim(mli::kKernelChannelOutDim) ==
-      m_output.get_dim(mli::kGroupTensorChannelDim));
+  MLI_ASSERT(m_weights.get_dim(kKernelChannelOutDim) ==
+      m_output.get_dim(kGroupTensorChannelDim));
 
-  MLI_ASSERT(m_weights.get_dim(mli::kKernelChannelInDim) ==
-      m_input.get_dim(mli::kGroupTensorChannelDim));
+  MLI_ASSERT(m_weights.get_dim(kKernelChannelInDim) ==
+      m_input.get_dim(kGroupTensorChannelDim));
 
-  MLI_ASSERT(m_weights.get_dim(mli::kKernelGroupDim) == 1);
+  MLI_ASSERT(m_weights.get_dim(kKernelGroupDim) == 1);
 
-  MLI_ASSERT(m_weights.get_dim(mli::kKernelGroupDim) ==
-      m_output.get_dim(mli::kGroupTensorGroupDim));
+  MLI_ASSERT(m_weights.get_dim(kKernelGroupDim) ==
+      m_output.get_dim(kGroupTensorGroupDim));
 
   Conv2DPrivateData prv_data;
   prv_data.input = m_input;
@@ -203,22 +214,46 @@ mli_status Conv2d_CS::AttachBufferOffsets(const OffsetBuffer& input,
   return MLI_STATUS_OK;
 }
 
+/**
+ * @deprecated
+ */
 mli_status Conv2d_CS::EncodeWeights(Tensor<Buffer, kConvWRank> &weights,
                                     Buffer &encoded_weights,
                                     compression_mode_t mode){
+  DEPRECATED_METHOD
   return service::EncodeWeights(weights, encoded_weights);
+}
+
+
+mli_status Conv2d_CS::EncodeWeightsAndZeroPts(TensorIterator<Buffer, kConvWRank, kConvIterRank>& weights,
+                                              TensorIterator<Buffer, kConvZPRank, kConvIterRank>& weights_zp,
+                                              Buffer& encoded_weights) {
+  return service::EncodeWeightsAndZeroPts(weights.get_tensor(), weights_zp.get_tensor(), encoded_weights);
 }
 
 unsigned Conv2d_CS::GetEncodedWeightsSize() {
   return m_weights_buffer_size;
 }
 
+/**
+ * @deprecated
+ */
 mli_status Conv2d_CS::EncodeInpZeroPts(Tensor<Buffer, kInpZPRank> &inpzeropts,
                                        Buffer &encoded_inpzeropts) {
-  constexpr int channel_axis = mli::kTensorChannelDim;
+  DEPRECATED_METHOD
+  constexpr int channel_axis = kTensorChannelDim;
   uint32_t channel_length = m_input.get_dim(channel_axis);
   return service::EncodeZeroPts<channel_axis>(
     inpzeropts, encoded_inpzeropts, m_inp_quant_axis, channel_length);
+}
+
+
+mli_status Conv2d_CS::EncodeInpZeroPts(TensorIterator<Buffer, kConvZPRank, kConvZPIterRank>& input_zp,
+                                       Buffer& encoded_inpzeropts) {
+  constexpr int channel_axis = kTensorChannelDim;
+  uint32_t channel_length = m_input.get_dim(channel_axis);
+  return service::EncodeZeroPts<channel_axis>(
+    input_zp.get_tensor(), encoded_inpzeropts, m_inp_quant_axis, channel_length);
 }
 
 unsigned Conv2d_CS::GetEncodedInpZeroPtsSize() {
@@ -226,9 +261,13 @@ unsigned Conv2d_CS::GetEncodedInpZeroPtsSize() {
   return 1;
 }
 
+/**
+ * @deprecated
+ */
 mli_status Conv2d_CS::EncodeWtsZeroPts(Tensor<Buffer, kConvZPRank> &wtszeropts,
                                        Buffer &encoded_wtszeropts) {
-  constexpr int channel_axis = mli::kKernelChannelOutDim;
+  DEPRECATED_METHOD
+  constexpr int channel_axis = kKernelChannelOutDim;
   uint32_t channel_length = m_weights.get_dim(channel_axis);
   return service::EncodeZeroPts<channel_axis>(
     wtszeropts, encoded_wtszeropts, m_wts_quant_axis, channel_length);
@@ -236,7 +275,7 @@ mli_status Conv2d_CS::EncodeWtsZeroPts(Tensor<Buffer, kConvZPRank> &wtszeropts,
 
 unsigned Conv2d_CS::GetEncodedWtsZeroPtsSize() {
   // per-channel quantization
-  return m_weights.get_dim(mli::kKernelChannelOutDim) ;
+  return m_weights.get_dim(kKernelChannelOutDim) ;
 }
 
 unsigned Conv2d_CS::GetInputBufferSize() {

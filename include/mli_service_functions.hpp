@@ -21,6 +21,21 @@
 
 namespace snps_arc::metaware::mli::service {
 
+template<typename buf_T, unsigned tensorRank>
+inline const unsigned GetBufferSize(const Tensor<buf_T, tensorRank>& tensor) {
+  
+  uint32_t shape[tensorRank];
+  int32_t stride[tensorRank];
+  tensor.get_dims(shape);
+  tensor.get_mem_strides(stride);
+  unsigned ret_val = 0;
+  for (int dim = tensorRank - 1; dim >= 0; --dim) {
+    ret_val += stride[dim] * (shape[dim] - 1);
+  }
+  ret_val += 1;
+  return ret_val;
+}
+
 inline const unsigned GetBufferSize(int rank, const uint32_t* shape,
                                     const int32_t* stride) {
   unsigned ret_val = 0;
@@ -109,6 +124,31 @@ mli_status EncodeZeroPts(const Tensor<Buffer, rank>& zeropts,
   return MLI_STATUS_OK;
 }
 
+template <unsigned weights_rank>
+mli_status EncodeWeightsAndZeroPts(const Tensor<Buffer, weights_rank>& weights,
+                                   const Tensor<Buffer, kWZPRank>& weights_zp,
+                                   Buffer& encoded) {
+
+  Buffer w_buf = weights.get_buf();
+  Buffer wzp_buf = weights_zp.get_buf();
+  uint32_t w_el_size = w_buf.get_elem_size();
+  uint32_t wzp_el_size = wzp_buf.get_elem_size();
+
+  MLI_ASSERT(w_buf.get_size() + wzp_buf.get_size() == encoded.get_size());
+  MLI_ASSERT(w_el_size == wzp_el_size);
+  MLI_ASSERT(w_el_size == encoded.get_elem_size());
+
+  if (w_el_size == sizeof(int8_t) && wzp_el_size == sizeof(int8_t)) {
+    for (uint32_t i = 0; i < w_buf.get_size(); ++i) {
+      encoded.write(i, w_buf.template read<int8_t>(i));
+    }
+    for (uint32_t i = 0; i < wzp_buf.get_size(); ++i) {
+      encoded.write(i, wzp_buf.template read<int8_t>(i));
+    }
+    return MLI_STATUS_OK;
+  }
+  return MLI_STATUS_NOT_SUPPORTED;
+}
 
 inline const uint32_t get_conv_input_size(uint32_t output_size, uint32_t padding,
                                           uint32_t kernel_size, uint32_t dilation, uint32_t stride) {
