@@ -120,55 +120,28 @@ mli_status Conv2d::Update() {
 void Conv2d::UpdateTilePaddings() {
   memcpy(&m_tile_cfg, &m_metadata.cfg, sizeof(m_metadata.cfg));
 
-  int32_t tile_input_offsets[kConvIORank];
   const auto& input = m_metadata.input;
-  input.get_pos(tile_input_offsets);
-  const auto& input_it_cfg = input.get_config();
 
   int32_t tile_idx[kConvIORank];
   input.get_tile_idx(tile_idx);
 
   // top padding
   if (!input.is_first_tile(kGroupTensorHeightDim)) {
-    //TODO: if first_inc != 0 get_first_inc + get_inc * (idx - 1)
-    uint32_t pad_used = input_it_cfg.get_inc(kGroupTensorHeightDim) * tile_idx[kGroupTensorHeightDim];
-    if (pad_used < m_tile_cfg.padding_begin[0]) {
-      m_tile_cfg.padding_begin[0] -= pad_used;
-    }
-    else {
-      m_tile_cfg.padding_begin[0] = 0;
-    }
+    m_tile_cfg.padding_begin[0] = 0;
   }
 
   // left padding
   if (!input.is_first_tile(kGroupTensorWidthDim)) {
-    // TODO: if first_inc != 0 get_first_inc + get_inc * (idx - 1)
-    uint32_t pad_used = input_it_cfg.get_inc(kGroupTensorWidthDim) * tile_idx[kGroupTensorWidthDim];
-    if (pad_used < m_tile_cfg.padding_begin[1]) {
-      m_tile_cfg.padding_begin[1] -= pad_used;
-    }
-    else {
-      m_tile_cfg.padding_begin[1] = 0;
-    }
+    m_tile_cfg.padding_begin[1] = 0;
   }
 
   // bottom padding
-  uint32_t used_size_y = (int32_t)(input.get_dim(kGroupTensorHeightDim) + m_tile_cfg.padding_begin[0]);
-  int32_t pad_bot = tile_input_offsets[kGroupTensorHeightDim] + (int32_t)input_it_cfg.get_size(kGroupTensorHeightDim) - used_size_y;
-  if (pad_bot > 0) {
-    m_tile_cfg.padding_end[0] = MIN((uint32_t)pad_bot, m_metadata.cfg.padding_end[0]);
-  }
-  else {
+  if (!input.is_last_tile(kGroupTensorHeightDim)) {
     m_tile_cfg.padding_end[0] = 0;
   }
 
   // right padding
-  uint32_t used_size_x = (int32_t)(input.get_dim(kGroupTensorWidthDim) + m_tile_cfg.padding_begin[1]);
-  int32_t pad_right = tile_input_offsets[kGroupTensorWidthDim] + (int32_t)input_it_cfg.get_size(kGroupTensorWidthDim) - used_size_x;
-  if (pad_right > 0) {
-    m_tile_cfg.padding_end[1] = MIN((uint32_t)pad_right, m_metadata.cfg.padding_end[1]);
-  }
-  else {
+  if (!input.is_last_tile(kGroupTensorWidthDim)) {
     m_tile_cfg.padding_end[1] = 0;
   }
 }

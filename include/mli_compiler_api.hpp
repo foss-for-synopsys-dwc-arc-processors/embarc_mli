@@ -288,9 +288,31 @@ public:
                                            const OffsetBuffer& wtszeropts,
                                            const OffsetBuffer& ctrl_buffer) = 0;
 
-    // mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override ;
-    // unsigned GetKernelPrivateDataSize() override ;
-    // unsigned GetRuntimeObjectSize() override ;
+    /**
+     * @brief Method to set buffer memory offsets and memory IDs for the kernel
+     *
+     * Compiler computes a memory map and buffer offsets are set using this method.
+     * Compiler also needs to indicate in which memory the buffers reside.
+     * These ID's need to match the array of memory bases that the xop-interpreter passes to
+     * the init function.
+     *
+     * In this method you specify offsets for tensors passed to the constructor
+     *
+     * @param input               [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param output              [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param weights_and_zeropts [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param inpzeropts          [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param ctrl_buffer         [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     *
+     * @return MLI status code
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                           const OffsetBuffer &output,
+                                           const OffsetBuffer &weights_and_zeropts,
+                                           const OffsetBuffer &inpzeropts,
+                                           const OffsetBuffer &ctrl_buffer) {
+                                            NOT_IMPLEMENTED_METHOD;
+                                            return MLI_STATUS_OK; };
 
     /**
      * @brief Method to set iteration information used in the .Update()
@@ -565,6 +587,33 @@ public:
                                            const OffsetBuffer& inpzeropts,
                                            const OffsetBuffer& wtszeropts,
                                            const OffsetBuffer& ctrl_buffer)  = 0;
+
+    /**
+     * @brief Method to set buffer memory offsets and memory IDs for the kernel
+     *
+     * Compiler computes a memory map and buffer offsets are set using this method.
+     * Compiler also needs to indicate in which memory the buffers reside.
+     * These ID's need to match the array of memory bases that the xop-interpreter passes to
+     * the init function.
+     *
+     * In this method you specify offsets for tensors passed to the constructor
+     *
+     * @param input               [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param output              [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param weights_and_zeropts [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param inpzeropts          [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param ctrl_buffer         [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     *
+     * @return MLI status code
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                           const OffsetBuffer &output,
+                                           const OffsetBuffer &weights_and_zeropts,
+                                           const OffsetBuffer &inpzeropts,
+                                           const OffsetBuffer &ctrl_buffer) {
+                                            NOT_IMPLEMENTED_METHOD;
+                                            return MLI_STATUS_OK; };
+
 };
 
 /**
@@ -637,6 +686,31 @@ public:
                                            const OffsetBuffer &weights,
                                            const OffsetBuffer &wtszeropts,
                                            const OffsetBuffer &ctrl_buffer) = 0;
+
+    /**
+     * @brief Method to set buffer memory offsets and memory IDs for the kernel
+     *
+     * Compiler computes a memory map and buffer offsets are set using this method.
+     * Compiler also needs to indicate in which memory the buffers reside.
+     * These ID's need to match the array of memory bases that the xop-interpreter passes to
+     * the init function.
+     *
+     * In this method you specify offsets for tensors passed to the constructor
+     *
+     * @param input               [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param output              [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param weights_and_zeropts [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param ctrl_buffer         [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     *
+     * @return MLI status code
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                           const OffsetBuffer &output,
+                                           const OffsetBuffer &weights_and_zeropts,
+                                           const OffsetBuffer &ctrl_buffer) {
+                                            NOT_IMPLEMENTED_METHOD;
+                                            return MLI_STATUS_OK; };
+
 };
 
 /**
@@ -1397,6 +1471,33 @@ public:
                                            const OffsetBuffer &inpzeropts,
                                            const OffsetBuffer &wtszeropts,
                                            const OffsetBuffer &ctrl_buffer) = 0;
+
+    /**
+     * @brief Method to set buffer memory offsets and memory IDs for the kernel
+     *
+     * Compiler computes a memory map and buffer offsets are set using this method.
+     * Compiler also needs to indicate in which memory the buffers reside.
+     * These ID's need to match the array of memory bases that the xop-interpreter passes to
+     * the init function.
+     *
+     * In this method you specify offsets for tensors passed to the constructor
+     *
+     * @param input               [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param output              [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param weights_and_zeropts [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param inpzeropts          [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     * @param ctrl_buffer         [I] OffsetBuffer containing Memory Identifier and Offset in that memory
+     *
+     * @return MLI status code
+     */
+    virtual mli_status AttachBufferOffsets(const OffsetBuffer &input,
+                                           const OffsetBuffer &output,
+                                           const OffsetBuffer &weights_and_zeropts,
+                                           const OffsetBuffer &inpzeropts,
+                                           const OffsetBuffer &ctrl_buffer) {
+                                            NOT_IMPLEMENTED_METHOD;
+                                            return MLI_STATUS_OK; };
+
 };
 
 /**

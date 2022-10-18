@@ -1012,10 +1012,18 @@ class TensorIterator {
       uint32_t current_size[tensorRank];
 
       for (uint32_t i = 0; i < tensorRank; i++) {
+        uint32_t tile_size = 0;
+        if (m_tile_idx[i] == m_config.get_count(i) - 1) { // Last iteration
+          tile_size = m_config.get_last_size(i);
+        } else if (m_tile_idx[i] == 0) { // First iteration
+          tile_size = m_config.get_first_size(i);
+        } else { // Middle iteration
+          tile_size = m_config.get_size(i);
+        }
         current_size[i] =
-            m_full_tensor.get_dim(i) - m_pos[i] < m_config.get_size(i)
+            m_full_tensor.get_dim(i) - m_pos[i] < tile_size
                 ? m_full_tensor.get_dim(i) - m_pos[i]
-                : m_config.get_size(i);
+                : tile_size;
       }
       int32_t order[iterRank] = {0};
       for (uint32_t i = 0; i < iterRank; i++) {
@@ -1128,6 +1136,10 @@ class TensorIterator {
 
     bool is_first_tile(uint32_t dim_idx) const {
       return !m_tile_idx[dim_idx];
+    }
+
+    bool is_last_tile(uint32_t dim_idx) const {
+      return m_tile_idx[dim_idx] == (m_config.get_count(dim_idx) - 1);
     }
 
     void SetCount(int32_t val, uint32_t dim) {
