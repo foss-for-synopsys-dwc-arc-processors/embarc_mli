@@ -49,10 +49,12 @@ struct move_broadcast_test_operands {
     uint32_t data_size;
     const quality_metrics threshold;
     const crc32_calc check_sum;
-    uint32_t src_offsets;
-    uint32_t dst_offsets;
-    uint32_t src_size;
-    uint32_t dst_size;
+    int32_t src_offsets;
+    int32_t dst_offsets;
+    int32_t src_size;
+    int32_t dst_size;
+    int32_t src_strides[kMoveBroadcastRank]{0};
+    int32_t dst_strides[kMoveBroadcastRank]{0};
 };
 
 const crc32_calc test_1_chksum_fx16{ 0x942C9DC4 }, test_2_chksum_sa32{ 0x4C375B1B }, test_3_chksum_sa8{ 0xB75ADC0E },
@@ -88,6 +90,9 @@ constexpr int kTestsNum = sizeof(tests_list) / sizeof(tests_list[0]);
 /**************************************************************************************************************/
 
 void prepare_phase(move_broadcast_test_operands* cur_test,
+                   int32_t iteration_order[kMoveBroadcastIterRank],
+                   uint32_t input_tile_size[kMoveBroadcastIterRank],
+                   uint32_t output_tile_size[kMoveBroadcastIterRank],
                    void*& move_broadcast_instance,
                    uint32_t& move_broadcast_instance_size,
                    void*& move_broadcast_conf_private,
@@ -107,8 +112,7 @@ void prepare_phase(move_broadcast_test_operands* cur_test,
     mli_tensor temp_output_tensor = cur_test->out.get_quantized_tensor(temp_out_container);
 
     // input rank less than Max_rank handling
-    // ToDo: when mli_tensor takes [rank=5] -> change condition to iterate to (kMoveBroadcastRank) instead of (kMoveBroadcastRank-1)
-    for(uint32_t i = 0; i < kMoveBroadcastRank-1; i++) {
+    for (uint32_t i = 0; i < kMoveBroadcastRank; i++) {
         if (temp_input_tensor.shape[i] == 0) {
             temp_input_tensor.shape[i] = 1;
         }
@@ -122,8 +126,8 @@ void prepare_phase(move_broadcast_test_operands* cur_test,
     const lib_mli::Tensor<lib_mli::NoBuffer, kMoveBroadcastRank> in_tensor(temp_input_tensor.shape, temp_input_tensor.mem_stride);
     const lib_mli::Tensor<lib_mli::NoBuffer, kMoveBroadcastRank> out_tensor(temp_output_tensor.shape, temp_output_tensor.mem_stride);
 
-    lib_mli::TensorIterator<lib_mli::NoBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> in_tensor_it(in_tensor);
-    lib_mli::TensorIterator<lib_mli::NoBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> out_tensor_it(out_tensor);
+    lib_mli::TensorIterator<lib_mli::NoBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> in_tensor_it(in_tensor, input_tile_size, iteration_order);
+    lib_mli::TensorIterator<lib_mli::NoBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> out_tensor_it(out_tensor, output_tile_size, iteration_order);
 
     lib_mli::PlatformDescription pd;
     lib_ref::KernelsFactory kernel_factory(pd);
@@ -137,6 +141,11 @@ void prepare_phase(move_broadcast_test_operands* cur_test,
     uint32_t offsets[1] = {0};
     uint32_t elem_size = cur_test->data_size;
     mli_status status = MLI_STATUS_OK;
+
+    for (uint32_t i = 0; i < kMoveBroadcastIterRank; i++) {
+        cur_test->src_strides[i] = temp_input_tensor.mem_stride[i];
+        cur_test->dst_strides[i] = temp_output_tensor.mem_stride[i];
+    }
 
     // Define buffers for in/out tensors
     // Leave space for runtime object
@@ -152,7 +161,7 @@ void prepare_phase(move_broadcast_test_operands* cur_test,
     // MoveBroadcast Input
     offset = &offsets[0];
     cur_test->src_offsets = *offset;
-    uint32_t in_size = lib_mli::service::GetBufferSize(lib_mli::kMoveBroadcastRank, temp_input_tensor.shape, temp_input_tensor.mem_stride) * elem_size;
+    uint32_t in_size = lib_mli::service::GetBufferSize(kMoveBroadcastRank, input_tile_size, temp_input_tensor.mem_stride) * elem_size;
     cur_test->src_size = in_size;
     lib_mli::OffsetBuffer move_broadcast_in_buf{*offset, 0, in_size, elem_size};
     *offset += in_size;
@@ -160,7 +169,7 @@ void prepare_phase(move_broadcast_test_operands* cur_test,
     // MoveBroadcast Output
     offset = &offsets[0];
     cur_test->dst_offsets = *offset;
-    uint32_t out_size = lib_mli::service::GetBufferSize(lib_mli::kMoveBroadcastRank, temp_output_tensor.shape, temp_output_tensor.mem_stride) * elem_size;
+    uint32_t out_size = lib_mli::service::GetBufferSize(kMoveBroadcastRank, output_tile_size, temp_output_tensor.mem_stride) * elem_size;
     cur_test->dst_size = out_size;
     lib_mli::OffsetBuffer move_broadcast_out_buf{*offset, 0, out_size, elem_size};
     *offset += out_size;
@@ -190,6 +199,9 @@ void prepare_phase(move_broadcast_test_operands* cur_test,
 /**************************************************************************************************************/
 
 void execution_phase(const move_broadcast_test_operands* cur_test, 
+                     uint32_t num_tiles,
+                     uint32_t input_tile_size[kMoveBroadcastIterRank],
+                     uint32_t output_tile_size[kMoveBroadcastIterRank],
                      void* move_broadcast_instance, 
                      uint32_t move_broadcast_instance_size,
                      void* move_broadcast_conf_private, 
@@ -207,65 +219,38 @@ void execution_phase(const move_broadcast_test_operands* cur_test,
     assert(move_broadcast_run_op != nullptr);
     mli_status status = MLI_STATUS_OK;
 
-    status = move_broadcast_run_op->Prefetch();
-    assert(status == MLI_STATUS_OK);
+    lib_ref::MoveBroadcast* move_broadcast_impl  = dynamic_cast<lib_ref::MoveBroadcast*>(move_broadcast_run_op);
+    int32_t input_tile_offsets[kMoveBroadcastIterRank]{0};
+    int32_t output_tile_offsets[kMoveBroadcastIterRank]{0};
+    const int32_t zero_offsets[kMoveBroadcastIterRank]{0};
 
-    if(sizeof(int8_t) == cur_test->data_size) {
-        int8_t* temp_in_mem = (int8_t*)g_scratch_mem_in;
-        int8_t* dst_in_buffer = (int8_t*) (g_mem_pool + cur_test->src_offsets);
-        int num_in_elem = cur_test->src_size / cur_test->data_size;
-        for (int idx = 0; idx < num_in_elem; idx++) {
-            dst_in_buffer[idx] = temp_in_mem[idx];
-        }
-    }
-    else if(sizeof(int16_t) == cur_test->data_size) {
-        int16_t* temp_in_mem = (int16_t*)g_scratch_mem_in;
-        int16_t* dst_in_buffer = (int16_t*) (g_mem_pool + cur_test->src_offsets);
-        int num_in_elem = cur_test->src_size / cur_test->data_size;
-        for (int idx = 0; idx < num_in_elem; idx++) {
-            dst_in_buffer[idx] = temp_in_mem[idx];
-        }
-    }
-    else if(sizeof(int32_t) == cur_test->data_size) {
-        int32_t* temp_in_mem = (int32_t*)g_scratch_mem_in;
-        int32_t* dst_in_buffer = (int32_t*) (g_mem_pool + cur_test->src_offsets);
-        int num_in_elem = cur_test->src_size / cur_test->data_size;
-        for (int idx = 0; idx < num_in_elem; idx++) {
-            dst_in_buffer[idx] = temp_in_mem[idx];
-        }
-    }
-    
+    for (uint32_t n_tile = 0; n_tile < num_tiles; n_tile++) {
 
-    status = move_broadcast_run_op->Issue();
-    assert(status == MLI_STATUS_OK);
+        status = move_broadcast_run_op->Prefetch();
+        assert(status == MLI_STATUS_OK);
 
-    if(sizeof(int8_t) == cur_test->data_size) {
-        int8_t* temp_out_mem = (int8_t*)g_scratch_mem_out;
-        int8_t* src_out_buffer = (int8_t*) (g_mem_pool + cur_test->dst_offsets);
-        int num_out_elem = cur_test->dst_size / cur_test->data_size;
-        for (int idx = 0; idx < num_out_elem; idx++) {
-            temp_out_mem[idx] = src_out_buffer[idx];
-        }
-    }
-    else if(sizeof(int16_t) == cur_test->data_size) {
-        int16_t* temp_out_mem = (int16_t*)g_scratch_mem_out;
-        int16_t* src_out_buffer = (int16_t*) (g_mem_pool + cur_test->dst_offsets);
-        int num_out_elem = cur_test->dst_size / cur_test->data_size;
-        for (int idx = 0; idx < num_out_elem; idx++) {
-            temp_out_mem[idx] = src_out_buffer[idx];
-        }
-    }
-    else if(sizeof(int32_t) == cur_test->data_size) {
-        int32_t* temp_out_mem = (int32_t*)g_scratch_mem_out;
-        int32_t* src_out_buffer = (int32_t*) (g_mem_pool + cur_test->dst_offsets);
-        int num_out_elem = cur_test->dst_size / cur_test->data_size;
-        for (int idx = 0; idx < num_out_elem; idx++) {
-            temp_out_mem[idx] = src_out_buffer[idx];
-        }
-    }
+        move_broadcast_impl->GetIOSizesAndOffsets(input_tile_size, output_tile_size,
+                                                  input_tile_offsets, output_tile_offsets);
 
-    status = move_broadcast_run_op->Update();
-    assert(status == MLI_STATUS_OK);
+        // copy input from global buffer to local tile buffer
+        strided_copy_with_offsets(kMoveBroadcastIterRank, cur_test->data_size,
+                                  g_scratch_mem_in, input_tile_offsets, zero_offsets, cur_test->src_strides,
+                                  input_tile_size, (int8_t*)(g_mem_pool + cur_test->src_offsets) );
+
+
+        status = move_broadcast_run_op->Issue();
+        assert(status == MLI_STATUS_OK);
+
+        // copy output from local tile buffer to global buffer
+        strided_copy_with_offsets(kMoveBroadcastIterRank, cur_test->data_size,
+                                  (int8_t*)(g_mem_pool + cur_test->dst_offsets),
+                                  zero_offsets, output_tile_offsets, cur_test->dst_strides,
+                                  output_tile_size, (int8_t*) g_scratch_mem_out);
+
+
+        status = move_broadcast_run_op->Update();
+        assert(status == MLI_STATUS_OK);
+    }
 }
 
 /**************************************************************************************************************/
@@ -328,6 +313,43 @@ int main() {
         }
 
         /**************************************************************************************************************/
+
+        mli_data_container temp_container{ 0 };
+        mli_tensor temp_input_tensor = cur_test->in.get_not_quantized_tensor(temp_container);
+        mli_tensor temp_output_tensor = cur_test->out.get_not_quantized_tensor(temp_container);
+
+        int32_t iteration_order[kMoveBroadcastIterRank] = {0, 1, 2, 3};
+        uint32_t input_tile_size[kMoveBroadcastIterRank] = {1, 1, 1, 1};    //Allow tiling in all input dimensions
+        uint32_t output_tile_size[kMoveBroadcastIterRank] = {1, 1, 1, 1};   //Allow tiling in all output dimensions
+
+        // Limitation: No Tile on the Broadcast axis is allowed, i.e: tiling on broadcast axis should be same shape as the tensor itself.
+        for (uint32_t i = 0; i < kMoveBroadcastIterRank; i++) {
+            if ((temp_input_tensor.shape[i] == 1) && (temp_input_tensor.shape[i] != temp_output_tensor.shape[i])) {
+                output_tile_size[i] = temp_output_tensor.shape[i];
+            }
+            if (temp_input_tensor.shape[i] == 0) {    // handling Rank<MaxRank
+                temp_input_tensor.shape[i] = 1;
+            }
+            if (temp_output_tensor.shape[i] == 0) {   // handling Rank<MaxRank
+                temp_output_tensor.shape[i] = 1;
+            }
+        }
+
+        // calculate number of tiles needed
+        uint32_t num_tiles = 1;
+        uint32_t num_tiles_output = 1;
+        for (uint32_t i = 0; i < kMoveBroadcastIterRank; i++) {
+            uint32_t tiles_per_dim = 1 + CEIL_DIV(temp_input_tensor.shape[i] - input_tile_size[i], input_tile_size[i]);
+            num_tiles *= tiles_per_dim;
+        }
+        for (uint32_t i = 0; i < kMoveBroadcastIterRank; i++) {
+            uint32_t tiles_per_dim = 1 + CEIL_DIV(temp_output_tensor.shape[i] - output_tile_size[i], output_tile_size[i]);
+            num_tiles_output *= tiles_per_dim;
+        }
+        // Make sure that input_tiles equal to output_tiles
+        assert(num_tiles == num_tiles_output);
+
+        /**************************************************************************************************************/
         void* move_broadcast_instance = nullptr;
         uint32_t move_broadcast_instance_size = 0;
 
@@ -335,12 +357,14 @@ int main() {
         uint32_t move_broadcast_conf_private_size = 0;
 
         /************ Prepare Phase *************/
-        prepare_phase(cur_test, move_broadcast_instance, move_broadcast_instance_size,
+        prepare_phase(cur_test, iteration_order, input_tile_size, output_tile_size,
+                      move_broadcast_instance, move_broadcast_instance_size,
                       move_broadcast_conf_private, move_broadcast_conf_private_size);
 
 
         /************ Execution Phase *************/
-        execution_phase(cur_test, move_broadcast_instance, move_broadcast_instance_size,
+        execution_phase(cur_test, num_tiles, input_tile_size, output_tile_size,
+                        move_broadcast_instance, move_broadcast_instance_size,
                         move_broadcast_conf_private, move_broadcast_conf_private_size);
 
     

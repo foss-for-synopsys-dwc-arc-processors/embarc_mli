@@ -1137,12 +1137,19 @@ public:
 
     mli_status Update() override;
 
+    // TODO: remove this method and replace with usage of Move kernel once it implemented.
+    void GetIOSizesAndOffsets(uint32_t input_size[kMoveBroadcastRank], uint32_t output_size[kMoveBroadcastRank],
+                              int32_t input_offsets[kMoveBroadcastRank], int32_t output_offsets[kMoveBroadcastRank]);
+
+
 private:
-    TensorIterator<InternalBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> m_src;
-    TensorIterator<InternalBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> m_dst;
+    TensorIterator<OffsetBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> m_src;
+    TensorIterator<OffsetBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> m_dst;
+    Tensor<InternalBuffer, kMoveBroadcastRank> m_tile_src;
+    Tensor<InternalBuffer, kMoveBroadcastRank> m_tile_dst;
 
     template <typename buf_T, unsigned N>
-    void MoveBroadcastRun(TensorIterator<buf_T, N, N> src, TensorIterator<buf_T, N, N> dst);
+    void MoveBroadcastRun(Tensor<buf_T, N> &src, Tensor<buf_T, N> &dst);
 };
 
 } // namespace snps_arc::metaware::mli::ref

@@ -137,8 +137,8 @@ constexpr unsigned kEltwiseRank = 4;
 constexpr short int kReduceMaxRank = 4;
 constexpr short int kReduceMaxIterRank = 4;
 
-constexpr unsigned kMoveBroadcastRank = 5;
-constexpr unsigned kMoveBroadcastIterRank = 5;
+constexpr unsigned kMoveBroadcastRank = 4;      // ToDo: when mli_tensor takes [rank=5] -> change rank from 4 to 5.
+constexpr unsigned kMoveBroadcastIterRank = 4;  // ToDo: when mli_tensor takes [rank=5] -> change rank from 4 to 5.
 
 constexpr short int kResizeDim = 2;
 constexpr short int kResizeBilinearRank = 4;
