@@ -14,7 +14,7 @@ namespace snps_arc::metaware::mli {
 class SynchronizationInterface {
 
   public:
-    virtual mli_status WaitEvent(int32_t mask) = 0;
+    mli_status WaitEvent(int32_t mask);
 };
 
 

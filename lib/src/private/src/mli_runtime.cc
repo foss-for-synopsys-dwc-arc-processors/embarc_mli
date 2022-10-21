@@ -12,6 +12,7 @@
 
 #include "mli_debug.h"
 #include "mli_ref_runtime_api.hpp"
+#include "mli_sync_interface.hpp"
 
 namespace snps_arc::metaware::mli {
 using ref::Nop;
@@ -211,6 +212,10 @@ ExecutionInterface* ExecutionInterface::Create(
     }
 
     return obj;
+}
+
+mli_status SynchronizationInterface::WaitEvent(int32_t mask) {
+    return MLI_STATUS_OK;
 }
 
 } // namespace mli
