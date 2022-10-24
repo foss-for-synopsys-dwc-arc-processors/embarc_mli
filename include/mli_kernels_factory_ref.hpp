@@ -34,7 +34,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Nop_CS();
     }
     uint32_t Conv2d_CS_GetSize() const override { return sizeof(lib_ref::Conv2d_CS); }
@@ -52,7 +52,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Conv2d_CS(m_pd, input_shape, weights, cfg, output_tile_shape);
     }
 
@@ -69,7 +69,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Conv2d_CS(m_pd, input, weights, weights_zp, cfg, output);
     }
 
@@ -94,7 +94,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Prelu_CS(m_pd, input, cfg, output);
     }
 
@@ -109,7 +109,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Move_CS(m_pd, src, dst);
     }
 
@@ -124,7 +124,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new (kernel_buffer) lib_ref::Move_CS(m_pd, src, dst, src_cfg, dst_cfg);
     }
 
@@ -137,7 +137,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Move_CS(m_pd, src, dst);
     }
     
@@ -153,7 +153,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Add_CS(m_pd, in_left, in_right, output_tile_shape);
     }
     lib_mli::Add_CS* Add_CS(void *kernel_buffer,
@@ -164,7 +164,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Add_CS(m_pd, in_left, in_right, output);
     }
 
@@ -180,7 +180,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Sub_CS(m_pd, in_left, in_right, output_tile_shape);
     }
     lib_mli::Sub_CS* Sub_CS(void *kernel_buffer,
@@ -191,7 +191,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Sub_CS(m_pd, in_left, in_right, output);
     }
 
@@ -207,7 +207,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Mul_CS(m_pd, in_left, in_right, output_tile_shape);
     }
     lib_mli::Mul_CS* Mul_CS(void *kernel_buffer,
@@ -218,7 +218,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Mul_CS(m_pd, in_left, in_right, output);
     }
 
@@ -234,7 +234,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Max_CS(m_pd, in_left, in_right, output_tile_shape);
     }
     lib_mli::Max_CS* Max_CS(void *kernel_buffer,
@@ -245,7 +245,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Max_CS(m_pd, in_left, in_right, output);
     }
 
@@ -261,7 +261,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Min_CS(m_pd, in_left, in_right, output_tile_shape);
     }
     lib_mli::Min_CS* Min_CS(void *kernel_buffer,
@@ -272,7 +272,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Min_CS(m_pd, in_left, in_right, output);
     }
 
@@ -290,7 +290,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::MaxPool2D_CS(m_pd, in, cfg, output_tile_shape);
     }
 
@@ -303,7 +303,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::MaxPool2D_CS(m_pd, in, cfg, out);
     }
 
@@ -318,7 +318,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::SumPool2D_CS(m_pd, in, cfg, output_tile_shape);
     }
 
@@ -339,7 +339,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::DepthwiseConv2d_CS(m_pd, in, weights, cfg, output);
     }
 
@@ -356,7 +356,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::DepthwiseConv2d_CS(m_pd, input, weights, weights_zp, cfg, output);
     }
 
@@ -380,7 +380,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::FullyConnected_CS(m_pd, in, weights, output_tile_shape);
     }
     lib_mli:: FullyConnected_CS* FullyConnected_CS(void *kernel_buffer,
@@ -392,7 +392,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::FullyConnected_CS(m_pd, in, weights, wtszp, output_tile_shape);
     }
 
@@ -406,7 +406,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);   
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);   
         return nullptr;
         /*return new(kernel_buffer) lib_ref::TableBuiltin_CS(m_pd, input_shape, cfg,   );*/
     }
@@ -422,7 +422,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Rescale_CS(m_pd, input, cfg, enc_param, output);
     }
 
@@ -436,7 +436,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);   
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);   
         return new(kernel_buffer) lib_ref::ReduceMax_CS(m_pd, in, cfg, out);
     }
 
@@ -450,7 +450,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);   
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);   
         return new(kernel_buffer) lib_ref::ReduceSum_CS(m_pd, in, cfg, out);
     }
 
@@ -463,7 +463,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);   
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);   
         return new(kernel_buffer) lib_ref::Clip_CS(m_pd, input_shape, output_tile_shape);
     }
 
@@ -474,7 +474,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);   
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);   
         return new(kernel_buffer) lib_ref::Clip_CS(m_pd, input, output);
     }
     
@@ -488,7 +488,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);   
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);   
         return nullptr;/*new(kernel_buffer) lib_ref::ArgMax_CS(m_pd, input_shape, cfg, output_tile_shape);*/
     }
 
@@ -508,7 +508,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);   
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);   
         return new (kernel_buffer)lib_ref::TransposeConv2D_CS(m_pd, input, weights, weights_zp, cfg, output);
     }
 
@@ -532,7 +532,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);   
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);   
         return new(kernel_buffer) lib_ref::Permute_CS(m_pd, in, cfg, out); 
     }
     
@@ -546,7 +546,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);  
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);  
         return new(kernel_buffer) lib_ref::MatMul_CS(m_pd, in_left, in_right, output);
        
     }
@@ -561,7 +561,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);   
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);   
         return new (kernel_buffer) lib_ref::MoveBroadcast_CS(m_pd, src, dst);
     }
 
@@ -576,7 +576,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);   
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);   
         /* return new(kernel_buffer) lib_ref::ResizeBilinear_CS(m_pd, in, cfg, out); */
         return nullptr;
     }

@@ -136,7 +136,7 @@ The following is a pseudo-code sample of LUT manipulation functions usage togeth
    int lut_size = mli_krn_<lut_name>_get_lut_size();
    assert(lut_size <= user_pre_allocated_buffer_size);
    assert(user_pre_allocated_buffer != NULL);
-   assert((unsigned long)user_pre_allocated_buffer & 0x03) == 0);
+   assert((size_t)user_pre_allocated_buffer & 0x03) == 0);
 
    // Step 2: Assign a memory region to the data of LUT structure.
    // Implementation can put extra requirements for LUT data memory.

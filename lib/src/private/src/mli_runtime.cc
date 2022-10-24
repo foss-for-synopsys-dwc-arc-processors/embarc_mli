@@ -51,7 +51,7 @@ ExecutionInterface* ExecutionInterface::Create(
      * The MLI classes need to be 32 bit aligned
      */
     assert(allocation_memory_buffer != nullptr);
-    assert(((unsigned long) allocation_memory_buffer % kMliAlignment) == 0);
+    assert(((size_t) allocation_memory_buffer % kMliAlignment) == 0);
     MLI_ASSERT(private_data_size >= sizeof(PrivateData));
     PrivateData private_data;
     memcpy(&private_data, kernel_private_data_buffer, sizeof(PrivateData)); // only copy the base class in order to inspect the kernel_id
