@@ -56,6 +56,8 @@ using mli::tst::scales_calc;
 using mli::tst::bias_folder;
 using mli::tst::vectorize_single_elem_tensor;
 
+using lib_mli::kMliAlignment;
+
 namespace lib_mli = ::snps_arc::metaware::mli;
 namespace lib_ref = ::snps_arc::metaware::mli::ref;
 
@@ -596,6 +598,7 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
     // Define buffers for in\out tensors
     // Leave space for runtime object
     uint32_t* rs_offset = dwc_offset;
+    *rs_offset = CEIL_RND(*rs_offset, kMliAlignment);
     int8_t* rs_runtime_obj_addr = (int8_t*)g_mem_pool + offsets[0];
     uint32_t rs_runtime_obj_size = rescale_op->GetRuntimeObjectSize();
     *rs_offset += rs_runtime_obj_size;

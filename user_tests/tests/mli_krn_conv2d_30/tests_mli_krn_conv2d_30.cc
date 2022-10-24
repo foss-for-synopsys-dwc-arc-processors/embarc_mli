@@ -41,6 +41,8 @@
 
 using namespace snps_arc::metaware::mli::service;
 
+using lib_mli::kMliAlignment;
+
 using mli::tst::tensor_quantizer;
 using mli::tst::quality_metrics;
 using mli::tst::crc32_calc;
@@ -702,6 +704,7 @@ void prepare_phase(const conv2d_test_operands* cur_test, uint32_t& num_tiles,
   // Define buffers for in\out tensors
   // Leave space for runtime object
   uint32_t* pr_offset = &offsets[0];
+  *pr_offset = CEIL_RND(*pr_offset, kMliAlignment);
   int8_t* pr_runtime_obj_addr = (int8_t*)g_mem_pool + offsets[0];
   uint32_t pr_runtime_obj_size = prelu_op->GetRuntimeObjectSize();
   *pr_offset += pr_runtime_obj_size;
@@ -743,6 +746,7 @@ void prepare_phase(const conv2d_test_operands* cur_test, uint32_t& num_tiles,
 
   // Leave space for runtime object
   uint32_t* clip_offset = &offsets[0];
+  *clip_offset = CEIL_RND(*clip_offset, kMliAlignment);
   int8_t* clip_runtime_obj_addr = (int8_t*)g_mem_pool + offsets[0];
   uint32_t clip_runtime_obj_size = clip_op->GetRuntimeObjectSize();
   *clip_offset += clip_runtime_obj_size;

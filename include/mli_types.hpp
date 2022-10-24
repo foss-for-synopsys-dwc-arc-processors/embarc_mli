@@ -147,6 +147,9 @@ constexpr short int kResizeBilinearIterRank = 4;
 constexpr unsigned kMoveRank = 5;
 constexpr unsigned kMoveIterRank = 5;
 
+constexpr unsigned kMliAlignment = 4;
+constexpr unsigned kCtrlBufAlignment = 8;
+
 typedef enum : uint32_t {
   kInvalidId = 0,
   kNopId,

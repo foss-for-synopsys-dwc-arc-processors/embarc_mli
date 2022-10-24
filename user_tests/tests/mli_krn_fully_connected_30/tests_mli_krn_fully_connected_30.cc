@@ -38,6 +38,8 @@ using mli::tst::scales_calc;
 using mli::tst::bias_folder;
 using mli::tst::vectorize_single_elem_tensor;
 
+using lib_mli::kMliAlignment;
+
 namespace lib_mli = ::snps_arc::metaware::mli;
 namespace lib_ref = ::snps_arc::metaware::mli::ref;
 
@@ -444,7 +446,6 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
   lib_ref::KernelsFactory kernel_factory(pd);
   uint32_t fully_connected_cs_size = kernel_factory.FullyConnected_CS_GetSize();
   void* fully_connected_cs_buffer = malloc(fully_connected_cs_size);
-
   auto FullyConn = kernel_factory.FullyConnected_CS(
     fully_connected_cs_buffer, in_tensor, wt_tensor, wtzp_tensor, out_tensor);
 
@@ -471,7 +472,6 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
 
   uint32_t rescale_cs_size = kernel_factory.Rescale_CS_GetSize();
   void* rescale_cs_buffer = malloc(rescale_cs_size);
-
   lib_mli::RescaleConfig rs_cfg;
   if (mli_hlp_count_elem_num(&rs_scale_tsr, 0) == 1) {
       rs_cfg.axis = kPerTensorQuantDim;
@@ -510,7 +510,6 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
 
   uint32_t clip_cs_size = kernel_factory.Clip_CS_GetSize();
   void* clip_cs_buffer = malloc(clip_cs_size);
-
   auto clip_op = kernel_factory.Clip_CS(clip_cs_buffer, clip_input_tensor, clip_output_tensor);
 
   // STEP 1.2.1: [FullyConn] Memory management (Up to user on how to deal with it)
@@ -596,6 +595,7 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
   // Define buffers for in\out tensors
   // Leave space for runtime object
   uint32_t* rs_offset = &offsets[0];
+  *rs_offset = CEIL_RND(*rs_offset, kMliAlignment);
   int8_t* rs_runtime_obj_addr = (int8_t*)g_mem_pool + offsets[0];
   uint32_t rs_runtime_obj_size = rescale_op->GetRuntimeObjectSize();
   *rs_offset += rs_runtime_obj_size;
@@ -652,6 +652,7 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
   // Define buffers for in\out tensors
   // Leave space for runtime object
   uint32_t* clip_offset = &offsets[0];
+  *clip_offset = CEIL_RND(*clip_offset, kMliAlignment);
   int8_t* clip_runtime_obj_addr = (int8_t*)g_mem_pool + offsets[0];
   uint32_t clip_runtime_obj_size = clip_op->GetRuntimeObjectSize();
   *clip_offset += clip_runtime_obj_size;
@@ -937,7 +938,7 @@ void execution_phase(FullyConnectedOp& fc_op, RescaleOp &rs_op, ClipOp &clp_op) 
                       rs_op.rescale_conf_private,
                       rs_op.rescale_conf_private_size,
                       membasis, sizeof(membasis) / sizeof(membasis[0]));
-
+                      
   auto mli_clip = lib_mli::ExecutionInterface::Create(
                       clp_op.clip_instance,
                       clp_op.clip_instance_size,

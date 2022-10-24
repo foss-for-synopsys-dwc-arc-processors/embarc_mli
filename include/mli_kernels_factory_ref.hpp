@@ -30,6 +30,11 @@ public:
 
     uint32_t Nop_CS_GetSize() const override {return sizeof(lib_ref::Nop_CS);}
     lib_mli::Nop_CS *Nop_CS(void *kernel_buffer) override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Nop_CS();
     }
     uint32_t Conv2d_CS_GetSize() const override { return sizeof(lib_ref::Conv2d_CS); }
@@ -43,6 +48,11 @@ public:
                                   const Tensor<NoBuffer, 5> weights,
                                   const Conv2DConfig &cfg,
                                   const Tensor<NoBuffer, 4> output_tile_shape) override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Conv2d_CS(m_pd, input_shape, weights, cfg, output_tile_shape);
     }
 
@@ -55,6 +65,11 @@ public:
                                   const TensorIterator<NoBuffer, kConvZPRank, kConvZPIterRank>& weights_zp,
                                   const Conv2DConfig& cfg,
                                   const TensorIterator<NoBuffer, kConvIORank, kConvIOIterRank>& output) override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Conv2d_CS(m_pd, input, weights, weights_zp, cfg, output);
     }
 
@@ -75,6 +90,11 @@ public:
                                 const PreluOpConfig &cfg,
                                 const TensorIterator<NoBuffer, kPreluRank, kPreluIterRank> &output,
                                 int groups) override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Prelu_CS(m_pd, input, cfg, output);
     }
 
@@ -85,6 +105,11 @@ public:
                               const Tensor<NoBuffer, kMoveRank> dst,
                               const lib_mli::MoveDataDirection data_dir)
                               override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Move_CS(m_pd, src, dst);
     }
 
@@ -95,7 +120,12 @@ public:
                               const IteratorCfg<kMoveIterRank> dst_cfg,
                               const lib_mli::MoveDataDirection data_dir)
                               override {
-      return new (kernel_buffer) lib_ref::Move_CS(m_pd, src, dst, src_cfg, dst_cfg);
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        return new (kernel_buffer) lib_ref::Move_CS(m_pd, src, dst, src_cfg, dst_cfg);
     }
 
     lib_mli::Move_CS* Move_CS(void *kernel_buffer,
@@ -103,6 +133,11 @@ public:
                               const TensorIterator<NoBuffer, kMoveRank, kMoveIterRank> &dst,
                               const lib_mli::MoveDataDirection data_dir)
                               override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Move_CS(m_pd, src, dst);
     }
     
@@ -114,12 +149,22 @@ public:
                             const Tensor<NoBuffer, 4> in_left,
                             const Tensor<NoBuffer, 4> in_right,
                             const Tensor<NoBuffer, 4> output_tile_shape) override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Add_CS(m_pd, in_left, in_right, output_tile_shape);
     }
     lib_mli::Add_CS* Add_CS(void *kernel_buffer,
                             const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> in_left,
                             const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> in_right,
                             const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> output) override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Add_CS(m_pd, in_left, in_right, output);
     }
 
@@ -131,12 +176,22 @@ public:
                             const Tensor<NoBuffer, 4> in_left,
                             const Tensor<NoBuffer, 4> in_right,
                             const Tensor<NoBuffer, 4> output_tile_shape) override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Sub_CS(m_pd, in_left, in_right, output_tile_shape);
     }
     lib_mli::Sub_CS* Sub_CS(void *kernel_buffer,
                             const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> in_left,
                             const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> in_right,
                             const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> output) override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Sub_CS(m_pd, in_left, in_right, output);
     }
 
@@ -148,12 +203,22 @@ public:
                             const Tensor<NoBuffer, 4> in_left,
                             const Tensor<NoBuffer, 4> in_right,
                             const Tensor<NoBuffer, 4> output_tile_shape) override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Mul_CS(m_pd, in_left, in_right, output_tile_shape);
     }
     lib_mli::Mul_CS* Mul_CS(void *kernel_buffer,
                             const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> in_left,
                             const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> in_right,
                             const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> output) override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Mul_CS(m_pd, in_left, in_right, output);
     }
 
@@ -165,12 +230,22 @@ public:
                             const Tensor<NoBuffer, 4> in_left,
                             const Tensor<NoBuffer, 4> in_right,
                             const Tensor<NoBuffer, 4> output_tile_shape) override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Max_CS(m_pd, in_left, in_right, output_tile_shape);
     }
     lib_mli::Max_CS* Max_CS(void *kernel_buffer,
                             const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> in_left,
                             const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> in_right,
                             const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> output) override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Max_CS(m_pd, in_left, in_right, output);
     }
 
@@ -182,12 +257,22 @@ public:
                             const Tensor<NoBuffer, 4> in_left,
                             const Tensor<NoBuffer, 4> in_right,
                             const Tensor<NoBuffer, 4> output_tile_shape) override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Min_CS(m_pd, in_left, in_right, output_tile_shape);
     }
     lib_mli::Min_CS* Min_CS(void *kernel_buffer,
                             const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> in_left,
                             const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> in_right,
                             const TensorIterator<NoBuffer, kEltwiseRank, kEltwiseIterRank> output) override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::Min_CS(m_pd, in_left, in_right, output);
     }
 
@@ -201,6 +286,11 @@ public:
                                         const PoolOpConfig &cfg,
                                         const Tensor<NoBuffer, kMaxpoolRank> output_tile_shape)
                                         override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::MaxPool2D_CS(m_pd, in, cfg, output_tile_shape);
     }
 
@@ -209,6 +299,11 @@ public:
                                         const PoolOpConfig& cfg,
                                         const TensorIterator<NoBuffer, kMaxpoolRank, kMaxpoolIterRank>& out)
                                         override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::MaxPool2D_CS(m_pd, in, cfg, out);
     }
 
@@ -219,6 +314,11 @@ public:
                                         const PoolOpConfig &cfg,
                                         const Tensor<NoBuffer, 4> output_tile_shape)
                                         override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::SumPool2D_CS(m_pd, in, cfg, output_tile_shape);
     }
 
@@ -235,6 +335,11 @@ public:
                                                     const Tensor<NoBuffer, 3> weights,
                                                     const DwConv2DConfig &cfg,
                                                     const Tensor<NoBuffer, 4> output) override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::DepthwiseConv2d_CS(m_pd, in, weights, cfg, output);
     }
 
@@ -247,6 +352,11 @@ public:
                                                     const TensorIterator<NoBuffer, kDepthwiseZPRank, kDepthwiseIterRank>& weights_zp,
                                                     const DwConv2DConfig& cfg,
                                                     const TensorIterator<NoBuffer, kDepthwiseIORank, kDepthwiseIterRank>& output) override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::DepthwiseConv2d_CS(m_pd, input, weights, weights_zp, cfg, output);
     }
 
@@ -266,6 +376,11 @@ public:
                                                    const Tensor<NoBuffer, 2> in,
                                                    const Tensor<NoBuffer, 2> weights,
                                                    const Tensor<NoBuffer, 2> output_tile_shape) override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::FullyConnected_CS(m_pd, in, weights, output_tile_shape);
     }
     lib_mli:: FullyConnected_CS* FullyConnected_CS(void *kernel_buffer,
@@ -273,6 +388,11 @@ public:
                                                    const Tensor<NoBuffer, 2> weights,
                                                    const Tensor<NoBuffer, 1> wtszp,
                                                    const Tensor<NoBuffer, 2> output_tile_shape) override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::FullyConnected_CS(m_pd, in, weights, wtszp, output_tile_shape);
     }
 
@@ -281,7 +401,13 @@ public:
     lib_mli::TableBuiltin_CS* TableBuiltin_CS(void *kernel_buffer,
                                               const TensorIterator<NoBuffer, kTableBuiltinIORank, kTableBuiltinIOIterRank> &in,
                                               const TableBuiltinConfig &cfg,
-                                              const TensorIterator<NoBuffer, kTableBuiltinIORank, kTableBuiltinIOIterRank> &out) override { return nullptr;
+                                              const TensorIterator<NoBuffer, kTableBuiltinIORank, kTableBuiltinIOIterRank> &out) override { 
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);   
+        return nullptr;
         /*return new(kernel_buffer) lib_ref::TableBuiltin_CS(m_pd, input_shape, cfg,   );*/
     }
 
@@ -292,7 +418,12 @@ public:
                                     const RescaleConfig& cfg,
                                     const TensorIterator<NoBuffer, kRescaleParamRank, kRescaleIterRank>& enc_param,
                                     const TensorIterator<NoBuffer, kRescaleRank, kRescaleIterRank>& output) override {
-      return new(kernel_buffer) lib_ref::Rescale_CS(m_pd, input, cfg, enc_param, output);
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        return new(kernel_buffer) lib_ref::Rescale_CS(m_pd, input, cfg, enc_param, output);
     }
 
     uint32_t ReduceMax_CS_GetSize() const override { return sizeof(lib_ref::ReduceMax_CS); }
@@ -301,6 +432,11 @@ public:
                                         const TensorIterator<NoBuffer, kReduceMaxRank, kReduceMaxIterRank> &in,
                                         const ReduceOpConfig &cfg,
                                         const TensorIterator<NoBuffer, kReduceMaxRank, kReduceMaxIterRank> &out) override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);   
         return new(kernel_buffer) lib_ref::ReduceMax_CS(m_pd, in, cfg, out);
     }
 
@@ -310,6 +446,11 @@ public:
                                         const TensorIterator<NoBuffer, kReduceSumRank, kReduceSumIterRank> &in,
                                         const ReduceOpConfig &cfg,
                                         const TensorIterator<NoBuffer, kReduceSumRank, kReduceSumIterRank> &out) override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);   
         return new(kernel_buffer) lib_ref::ReduceSum_CS(m_pd, in, cfg, out);
     }
 
@@ -318,12 +459,22 @@ public:
     lib_mli::Clip_CS* Clip_CS(void *kernel_buffer,
                               const Tensor<NoBuffer, kClipRank>& input_shape,
                               const Tensor<NoBuffer, kClipRank>& output_tile_shape) override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);   
         return new(kernel_buffer) lib_ref::Clip_CS(m_pd, input_shape, output_tile_shape);
     }
 
     lib_mli::Clip_CS* Clip_CS(void* kernel_buffer,
                               const TensorIterator<NoBuffer, kClipRank, kClipIterRank>& input,
                               const TensorIterator<NoBuffer, kClipRank, kClipIterRank>& output) override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);   
         return new(kernel_buffer) lib_ref::Clip_CS(m_pd, input, output);
     }
     
@@ -333,6 +484,11 @@ public:
                                   const TensorIterator<NoBuffer, kArgMaxInRank, kArgMaxInIterRank> in,
                                   const ArgMaxConfig &cfg,
                                   const TensorIterator<NoBuffer, kArgMaxOutRank, kArgMaxOutIterRank> out) override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);   
         return nullptr;/*new(kernel_buffer) lib_ref::ArgMax_CS(m_pd, input_shape, cfg, output_tile_shape);*/
     }
 
@@ -348,6 +504,11 @@ public:
         const TensorIterator<NoBuffer, kTransposeConvZPRank, kTransposeConvZPIterRank>& weights_zp,
         const TransposeConv2DConfig &cfg,
         const TensorIterator<NoBuffer, kTransposeConvIORank, kTransposeConvIOIterRank> &output) override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);   
         return new (kernel_buffer)lib_ref::TransposeConv2D_CS(m_pd, input, weights, weights_zp, cfg, output);
     }
 
@@ -367,6 +528,11 @@ public:
                                     const TensorIterator<NoBuffer, kPermuteRank, kPermuteIterRank> in,
                                     const PermuteOpConfig &cfg,
                                     const TensorIterator<NoBuffer, kPermuteRank, kPermuteIterRank> out) override { 
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);   
         return new(kernel_buffer) lib_ref::Permute_CS(m_pd, in, cfg, out); 
     }
     
@@ -376,7 +542,12 @@ public:
                             const TensorIterator<NoBuffer, kMatMulRank, kMatMulIterRank> &in_left,
                             const TensorIterator<NoBuffer, kMatMulRank, kMatMulIterRank> &in_right,
                             const TensorIterator<NoBuffer, kMatMulRank, kMatMulIterRank> &output) override {
-       return new(kernel_buffer) lib_ref::MatMul_CS(m_pd, in_left, in_right, output);
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);  
+        return new(kernel_buffer) lib_ref::MatMul_CS(m_pd, in_left, in_right, output);
        
     }
 
@@ -386,6 +557,11 @@ public:
                                                 const TensorIterator<NoBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> &src,
                                                 const TensorIterator<NoBuffer, kMoveBroadcastRank, kMoveBroadcastIterRank> &dst,
                                                 const lib_mli::MoveDataDirection data_dir) override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);   
         return new (kernel_buffer) lib_ref::MoveBroadcast_CS(m_pd, src, dst);
     }
 
@@ -396,6 +572,11 @@ public:
                                                   const TensorIterator<NoBuffer, kResizeBilinearRank, kResizeBilinearIterRank> &in,
                                                   const ResizeOpConfig &cfg,
                                                   const TensorIterator<NoBuffer, kResizeBilinearRank, kResizeBilinearIterRank> &out) override { 
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);   
         /* return new(kernel_buffer) lib_ref::ResizeBilinear_CS(m_pd, in, cfg, out); */
         return nullptr;
     }

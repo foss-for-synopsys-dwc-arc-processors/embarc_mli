@@ -1185,6 +1185,20 @@ int main() {
     bool is_test_passed = true;
     const eltwise_test_operands* cur_test = &tests_list[i];
 
+#if PLATFORM == V2DSP_VECTOR
+  if (strstr(cur_test->descr, "Test 8 FX16 Max two vectors") != nullptr ||
+      strstr(cur_test->descr, "Test 8 SA8 Max two vectors") != nullptr ||
+      strstr(cur_test->descr, "Test 9 FX16 Max vec & scalar") != nullptr ||
+      strstr(cur_test->descr, "Test 9 SA8 Max vec & scalar") != nullptr || 
+      strstr(cur_test->descr, "Test 10 SA8 Min two vectors") != nullptr ||
+      strstr(cur_test->descr, "Test 10 FX16 Min two vectors") != nullptr ||
+      strstr(cur_test->descr, "Test 11 FX16 Min vec & scalar") != nullptr ||
+      strstr(cur_test->descr, "Test 11 SA8 Min vec & scalar") != nullptr ){
+      reporter.report_message(cur_test->descr, "SKIPPED due to a known issue");
+      continue;
+  }
+#endif
+
     // STEP 0: Preprocessing phase
     //==================================================================
     EltwiseOp op = EltwiseOp(cur_test);
