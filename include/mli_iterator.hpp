@@ -141,12 +141,13 @@ class IteratorCfg {
     // Constructor that will compute the number of tiles in each dimension, it will also compute the increment values and sizes.
     template <typename buf_T>
     IteratorCfg(const Tensor<buf_T, iterRank>& tensor, // full tensor to be iterated
-                const uint32_t tilesize[],             // size of the tile
-                const int32_t order[],                 // iteration order
+                const uint32_t tilesize[iterRank],     // size of the tile
+                const int32_t order[iterRank],         // iteration order
                 uint32_t skew = 0) {                   // skewing on first iteration dimension (reduction of the first tile size, used in fused processing to avoid triple buffering)
       MLI_ASSERT(tilesize[order[0]] >= skew);
       for (uint32_t i = 0; i < iterRank; ++i, skew = 0) {
         int32_t dim = order[i];
+        MLI_ASSERT(tilesize[dim] <= tensor.get_dim(dim));
         m_order[i] = dim;
         m_count[i] = CEIL_DIV(tensor.get_dim(dim) + skew, tilesize[dim]);
         m_first_size[i] = m_first_pos_inc[i] = tilesize[dim] - skew;
