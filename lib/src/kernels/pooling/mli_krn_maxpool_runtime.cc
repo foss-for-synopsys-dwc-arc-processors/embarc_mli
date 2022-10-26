@@ -25,10 +25,10 @@ namespace mli_krn = ::mli::krn;
 
 MaxPool2D::MaxPool2D(void* kernel_private_data_buffer, size_t size,
                      uint64_t membases[], int num_mems) {
-  MLI_ASSERT(size == sizeof(MaxPool2DPrivateData));
-  MaxPool2DPrivateData maxpool2d_private_buffer(kMaxPool2DId);
-  memcpy(&maxpool2d_private_buffer, kernel_private_data_buffer, sizeof(MaxPool2DPrivateData));
-  MLI_ASSERT(maxpool2d_private_buffer.size == sizeof(MaxPool2DPrivateData));
+  MLI_ASSERT(size == sizeof(Pool2DPrivateData));
+  Pool2DPrivateData maxpool2d_private_buffer(kMaxPool2DId);
+  memcpy(&maxpool2d_private_buffer, kernel_private_data_buffer, sizeof(Pool2DPrivateData));
+  MLI_ASSERT(maxpool2d_private_buffer.size == sizeof(Pool2DPrivateData));
 
   m_io_elem_size = maxpool2d_private_buffer.input.get_buf().get_elem_size();
   MLI_ASSERT(m_io_elem_size == maxpool2d_private_buffer.output.get_buf().get_elem_size());
@@ -63,7 +63,7 @@ MaxPool2D::MaxPool2D(void* kernel_private_data_buffer, size_t size,
     MLI_ASSERT(0);
   }
 
-  int32_t input_strides[kMaxpoolRank];
+  int32_t input_strides[kPoolRank];
   maxpool2d_private_buffer.input.get_mem_strides(input_strides);
   for (int i = 0; i < 3; i++) {
     m_tile_input.mem_stride[i] = input_strides[i + 1];         // BHWC -> HWC
@@ -84,7 +84,7 @@ MaxPool2D::MaxPool2D(void* kernel_private_data_buffer, size_t size,
     MLI_ASSERT(0);
   }
 
-  int32_t output_strides[kMaxpoolRank];
+  int32_t output_strides[kPoolRank];
   maxpool2d_private_buffer.output.get_mem_strides(output_strides);
   for (int i = 0; i < 3; i++) {
     m_tile_output.mem_stride[i] = output_strides[i + 1];         // BHWC -> HWC
@@ -144,12 +144,12 @@ mli_status MaxPool2D::Update() {
 void MaxPool2D::UpdateTilePaddings() {
   memcpy(&m_tile_cfg, &m_cfg, sizeof(mli_pool_cfg));
 
-  int32_t tile_input_offsets[kMaxpoolRank];
+  int32_t tile_input_offsets[kPoolRank];
   const auto& input = m_input;
   input.get_pos(tile_input_offsets);
   const auto& input_it_cfg = input.get_config();
 
-  int32_t tile_idx[kMaxpoolRank];
+  int32_t tile_idx[kPoolRank];
   input.get_tile_idx(tile_idx);
 
   // top padding

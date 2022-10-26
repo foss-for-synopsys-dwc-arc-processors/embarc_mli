@@ -455,9 +455,9 @@ public:
      * @param output_tile_shape [O] Output tensor (tile shape, BHWC layout)
      */
     MaxPool2D_CS(const lib_mli::PlatformDescription pd,
-                 const Tensor<NoBuffer, kMaxpoolRank> in,
+                 const Tensor<NoBuffer, kPoolRank> in,
                  const PoolOpConfig &cfg,
-                 const Tensor<NoBuffer, kMaxpoolRank> output_tile_shape);
+                 const Tensor<NoBuffer, kPoolRank> output_tile_shape);
 
      /**
      * @brief Constructor to create a MaxPool2D compiler support object.
@@ -472,21 +472,16 @@ public:
      * @param out [O] Output tensor iterator (BHWC layout)
      */
     MaxPool2D_CS(const lib_mli::PlatformDescription pd,
-                 const TensorIterator<NoBuffer, kMaxpoolRank, kMaxpoolIterRank> in,
+                 const TensorIterator<NoBuffer, kPoolRank, kPoolIterRank> in,
                  const PoolOpConfig& cfg,
-                 const TensorIterator<NoBuffer, kMaxpoolRank, kMaxpoolIterRank> out);
+                 const TensorIterator<NoBuffer, kPoolRank, kPoolIterRank> out);
 
     unsigned GetKernelPrivateDataSize() const override;
     unsigned GetRuntimeObjectSize() const override;
-    
-    /**
-     * Tensor buffer sizes could depend on the platform and/or parameters.
-     * These functions can be used to query how much memory needs to be allocated for
-     * the input, weights and output tensors.
-     * Note, that these sizes are for full tensors, not tiles. 
-     */
+
     unsigned GetInputBufferSize() const override;
     unsigned GetOutputBufferSize() const override;
+
     /**
      * @return Always returns zero for reference kernel.
      */
@@ -496,8 +491,8 @@ public:
     /**
      * @deprecated
      */
-    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kMaxpoolRank> &input,
-                                   const Tensor<OffsetBuffer, kMaxpoolRank> &output,
+    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kPoolRank> &input,
+                                   const Tensor<OffsetBuffer, kPoolRank> &output,
                                    const OffsetBuffer &ctrl_buffer) override;
 
     mli_status AttachBufferOffsets(const OffsetBuffer& input,
@@ -505,45 +500,62 @@ public:
                                    const OffsetBuffer& ctrl_buffer) override;
 
 private:
-    TensorIterator<OffsetBuffer, kMaxpoolRank, kMaxpoolIterRank> m_input;
-    TensorIterator<OffsetBuffer, kMaxpoolRank, kMaxpoolIterRank> m_output;
+    TensorIterator<OffsetBuffer, kPoolRank, kPoolIterRank> m_input;
+    TensorIterator<OffsetBuffer, kPoolRank, kPoolIterRank> m_output;
 
     PoolOpConfig m_config;
-
-    uint32_t m_input_buffer_size;
-    uint32_t m_output_buffer_size;
 
     lib_mli::PlatformDescription m_pd;
 };
 
 class SumPool2D_CS : public lib_mli::SumPool2D_CS {
 public:
-
     SumPool2D_CS(const lib_mli::PlatformDescription pd,
-                 const Tensor<NoBuffer, 4> in,
+                 const Tensor<NoBuffer, kPoolRank> in,
                  const PoolOpConfig &cfg,
-                 const Tensor<NoBuffer, 4> output_tile_shape);
+                 const Tensor<NoBuffer, kPoolRank> output_tile_shape);
+    /**
+     * @brief Constructor to create a SumPool2D compiler support object.
+     *
+     * This constructor can be used to create a Sum Pooling 2D compiler support
+     * object. This kernel computes each value of the output tensor as the sum 
+     * of all values in the related perception area of a single channel of the input tensor.
+     *
+     * @param pd [I] Platform description
+     * @param in [I] Input tensor iterator (BHWC layout)
+     * @param cfg [I] PoolOpConfig structure
+     * @param out [I] Output tensor iterator (BHWC layout)
+     */
+    SumPool2D_CS(const lib_mli::PlatformDescription pd,
+                 const TensorIterator<NoBuffer, kPoolRank, kPoolIterRank> &in,
+                 const PoolOpConfig &cfg,
+                 const TensorIterator<NoBuffer, kPoolRank, kPoolIterRank> &out);
 
     // From CompilerGenericInterface
     unsigned GetKernelPrivateDataSize() const override;
     unsigned GetRuntimeObjectSize() const override;
-    mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
-    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, 4> &input,
-                                   const Tensor<OffsetBuffer, 4> &output,
-                                   const OffsetBuffer &ctrl_buffer) override;
 
-    // From SumPool2D_CS
     unsigned GetInputBufferSize() const override;
     unsigned GetOutputBufferSize() const override;
 
+    mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
+
+    /**
+     * @deprecated
+    */
+    mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kPoolRank> &input,
+                                   const Tensor<OffsetBuffer, kPoolRank> &output,
+                                   const OffsetBuffer &ctrl_buffer) override;
+
+    mli_status AttachBufferOffsets(const OffsetBuffer& input,
+                                   const OffsetBuffer& output,
+                                   const OffsetBuffer& ctrl_buffer) override;
+
 private:
-    Tensor<OffsetBuffer, 4> m_in;
-    Tensor<OffsetBuffer, 4> m_output;
+    TensorIterator<OffsetBuffer, kPoolRank, kPoolIterRank> m_input;
+    TensorIterator<OffsetBuffer, kPoolRank, kPoolIterRank> m_output;
 
     PoolOpConfig m_config;
-
-    uint32_t m_input_buffer_size;
-    uint32_t m_output_buffer_size;
 
     lib_mli::PlatformDescription m_pd;
 };

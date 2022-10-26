@@ -65,9 +65,6 @@ constexpr short int kKernelFCChannelOutDim = 1;
 constexpr short int kPerTensorQuantDim = -1;
 constexpr short int kSkipIterDim = -1;
 
-constexpr unsigned kMaxpoolRank = 4;
-constexpr unsigned kMaxpoolIterRank = 4;
-
 constexpr unsigned kConvIORank = 5;
 constexpr unsigned kConvIOIterRank = 5; // TODO: remove and use kConvIterRank instead
 constexpr unsigned kConvWRank = 5;
@@ -114,8 +111,12 @@ constexpr unsigned kPreluIterRank = 4;
 constexpr unsigned kPreluParamRank = 2;
 constexpr unsigned kPreluParamIterRank = 2;
 
+constexpr unsigned kPoolRank = 4;
+constexpr unsigned kPoolIterRank = 4;
+
 constexpr unsigned kReduceSumRank = 4;
 constexpr unsigned kReduceSumIterRank = 4;
+
 constexpr short int kMatMulRank = 2;
 constexpr short int kMatMulIterRank = 2;
 constexpr short int kMatMulHeightDim = 0;

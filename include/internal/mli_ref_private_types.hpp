@@ -185,70 +185,15 @@ public:
     TensorIterator<OffsetBuffer, kMoveRank, kMoveIterRank> dst_it;
 };
 
-/**
- *  TODO: to remove this after Pool2DPrivateData will be updated
- *  to do this SumPool2D_CS needs to be updated same was as MaxPool2D_CS
- */ 
-class MaxPool2DPrivateData : public PrivateData {
-
-public:
-  MaxPool2DPrivateData(kernel_id_t id)
-    : PrivateData(id, sizeof(MaxPool2DPrivateData)) {}
-
-  TensorIterator<OffsetBuffer, kMaxpoolRank, kMaxpoolIterRank> input;
-  TensorIterator<OffsetBuffer, kMaxpoolRank, kMaxpoolIterRank> output;
-  PoolOpConfig config;
-};
-
 class Pool2DPrivateData : public PrivateData {
 
 public:
     Pool2DPrivateData(kernel_id_t id)
         : PrivateData(id, sizeof(Pool2DPrivateData)) {}
 
-    OffsetBuffer input_buffer;
-    OffsetBuffer output_buffer;
-
-    uint32_t input_b;
-    uint32_t input_h;
-    uint32_t input_w;
-    uint32_t input_c;
-
-    int32_t input_b_stride;
-    int32_t input_h_stride;
-    int32_t input_w_stride;
-    int32_t input_c_stride;
-
-    uint32_t output_b;
-    uint32_t output_h;
-    uint32_t output_w;
-    uint32_t output_c;
-
-    int32_t output_b_stride;
-    int32_t output_h_stride;
-    int32_t output_w_stride;
-    int32_t output_c_stride;
-
-    uint8_t kernel_height;
-    uint8_t kernel_width;
-    uint8_t stride_height;
-    uint8_t stride_width;
-    uint8_t padding_top;
-    uint8_t padding_bottom;
-    uint8_t padding_left;
-    uint8_t padding_right;
-
-    // Tile Parameters BHWC
-    bool m_use_tiling;
-    uint32_t m_tile_total_input_size[4];
-    uint32_t m_tile_total_output_size[4];
-    uint32_t m_tile_iteration_order[4];
-    uint32_t m_tile_first_size[4];
-    uint32_t m_tile_size[4];
-    uint32_t m_tile_input_first_inc[4];
-    uint32_t m_tile_input_inc[4];
-    uint32_t m_tile_output_first_inc[4];
-    uint32_t m_tile_output_inc[4];
+    TensorIterator<OffsetBuffer, kPoolRank, kPoolIterRank> input;
+    TensorIterator<OffsetBuffer, kPoolRank, kPoolIterRank> output;
+    PoolOpConfig config;
 };
 
 class EltwisePrivateData : public PrivateData {

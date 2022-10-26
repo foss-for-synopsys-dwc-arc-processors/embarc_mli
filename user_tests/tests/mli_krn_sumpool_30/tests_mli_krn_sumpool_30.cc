@@ -6,19 +6,20 @@
 * the LICENSE file in the root directory of this source tree.
 *
 */
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
 #include <cstdlib>
-#include <iostream>
+
 
 #include "mli_api.h"
 #include "mli_config.h"
 #include "mli_types.h"
 #include "mli_types.hpp"
 #include "mli_kernels_factory_ref.hpp"
+#include "mli_ref_private_types.hpp"
 #include "mli_runtime_api.hpp"
 #include "mli_private_types.h"
+#include "mli_compiler_api.hpp"
+#include "mli_ref_runtime_api.hpp"
+#include "mli_iterator.hpp"
 
 #include "test_crc32_calc.h"
 #include "test_memory_manager.h"
@@ -26,10 +27,26 @@
 #include "test_rescale_utility.h"
 #include "test_tensor_quantizer.h"
 #include "test_report.h"
+#include "test_tiling.hpp"
 
 // reuse test vectors of avepool2d
 #include "vectors_mli_krn_avepool.inc"
 
+
+/**
+ * Comment USE_TILING if you want to use single tile (tile size = input size).
+ */
+#define USE_TILING
+
+/**
+  * Initally this user test i/o data was prepared for single batch.
+  * To test batching/tiling in batch dimension same single real batch of data run NUM_VIRTUAL_BATCHES times.
+  * You can change NUM_VIRTUAL_BATCHES, don't change NUM_REAL_BATCHES or you will get "out of the array boarders" errors.
+  */
+#define NUM_VIRTUAL_BATCHES 5
+#define NUM_REAL_BATCHES 1
+
+using namespace snps_arc::metaware::mli::service;
 
 using mli::tst::tensor_quantizer;
 using mli::tst::quality_metrics;
@@ -41,6 +58,11 @@ using mli::tst::bias_folder;
 
 namespace lib_mli = ::snps_arc::metaware::mli;
 namespace lib_ref = ::snps_arc::metaware::mli::ref;
+
+using lib_mli::kPoolRank;
+using lib_mli::kPoolIterRank;
+using lib_mli::kTensorBatchDim;
+using lib_mli::kTensorChannelDim;
 
 typedef mli_status(*rescale_func_ptr)(
   const mli_tensor* /*input*/,
@@ -160,7 +182,7 @@ constexpr int kTestsNum = sizeof(tests_list) / sizeof(tests_list[0]);
 
 // Global Memory Memagement
 //==================================================================
-constexpr uint32_t kMemSize = 2047;
+constexpr uint32_t kMemSize = 8192;
 constexpr int kMemAccSize = kMemSize*sizeof(int32_t); // TODO: for double wide accu, more space might be required
 static int8_t g_scratch_mem_in[kMemSize] = { 0 };
 static int8_t g_scratch_mem_acc_out[kMemAccSize] = { 0 };
@@ -207,6 +229,12 @@ struct SumPool2dOp {
   // conv private data
   lib_mli::PrivateData* sumpool2d_conf_private{nullptr};
   uint32_t sumpool2d_conf_private_size{0};
+
+  uint32_t input_offsets{0};
+	uint32_t output_offsets{0};
+
+  int32_t input_stride[kPoolRank]{0};
+  int32_t output_stride[kPoolRank]{0};
 };
 
 struct RescaleOp {
@@ -306,35 +334,65 @@ bool preprocess_phase(const reporter_full& reporter,
 }
 
 void prepare_phase(const sumpool2d_test_operands* cur_test,
-                   uint32_t& out_mem_offset, SumPool2dOp& op) {
-  // STEP 1.1: Construct SumPool2d as a specific ExecutionInterface successor
-  //==================================================================
-  assert(op.input.rank == 3);
-  assert(op.out_acc.rank == 3);
+                   uint32_t& num_tiles, SumPool2dOp& op) {
+ 
 
-  // NHWCin vs. HWCin
-  uint32_t input_shape[4] = {1, op.input.shape[0], op.input.shape[1], op.input.shape[2]};
-  int32_t input_stride[4] = {int32_t(op.input.shape[0]) * op.input.mem_stride[0],
-                             op.input.mem_stride[0],
-                             op.input.mem_stride[1],
-                             op.input.mem_stride[2]};
+  assert(op.input.rank == kTensorChannelDim);
+  assert(op.out_acc.rank == kTensorChannelDim);
 
-  // NHWCo vs. HWCo
-  uint32_t output_shape[4] = {1, op.out_acc.shape[0], op.out_acc.shape[1], op.out_acc.shape[2]};
-
-  int32_t output_stride[4] = {int32_t(op.out_acc.shape[0]) * op.out_acc.mem_stride[0],
-                              op.out_acc.mem_stride[0],
-                              op.out_acc.mem_stride[1],
-                              op.out_acc.mem_stride[2]};
-
-  // N == 1
-  assert(input_shape[0] == 1 && output_shape[0] == 1);
+  int32_t iteration_order[kPoolIterRank]{ 0, 1, 2, 3 };
+  uint32_t total_input_size[kPoolRank]{ NUM_VIRTUAL_BATCHES, op.input.shape[KRNL_H_DIM_HWCN], op.input.shape[KRNL_W_DIM_HWCN],
+                                          op.input.shape[KRNL_D_DIM_HWCN]};
+  uint32_t total_output_size[kPoolRank]{ NUM_VIRTUAL_BATCHES, op.out_acc.shape[KRNL_H_DIM_HWCN], op.out_acc.shape[KRNL_W_DIM_HWCN],
+                                           op.out_acc.shape[KRNL_D_DIM_HWCN] };
+  
+  // N == NUM_VIRTUAL_BATCHES
+  assert(total_input_size[kTensorBatchDim] == NUM_VIRTUAL_BATCHES && total_output_size[kTensorBatchDim] == NUM_VIRTUAL_BATCHES);
   // Cin == Co
-  assert(input_shape[3] == output_shape[3]);
+  assert(total_input_size[kTensorChannelDim] == total_output_size[kTensorChannelDim]);
 
-  const lib_mli::Tensor<lib_mli::NoBuffer, 4> in_tensor(input_shape, input_stride);
-  const lib_mli::Tensor<lib_mli::NoBuffer, 4> out_tensor(output_shape, output_stride);
 
+  for (unsigned i = KRNL_W_DIM_HWCN; i < kPoolRank; i++) {
+    op.input_stride[i] = op.input.mem_stride[i - KRNL_W_DIM_HWCN];
+    op.output_stride[i] = op.out_acc.mem_stride[i - KRNL_W_DIM_HWCN];
+  }
+  op.input_stride[KRNL_H_DIM_HWCN] = total_input_size[KRNL_W_DIM_HWCN] * op.input_stride[KRNL_W_DIM_HWCN];
+  op.output_stride[KRNL_H_DIM_HWCN] = total_output_size[KRNL_W_DIM_HWCN] * op.output_stride[KRNL_W_DIM_HWCN];
+
+  const uint32_t batch_tile_size = 1;
+#ifdef USE_TILING
+  uint32_t tile_output_size[kPoolRank]{ batch_tile_size, 2, 3, 3 };
+#else
+  uint32_t tile_output_size[kPoolRank]{ batch_tile_size, total_output_size[1], total_output_size[2], total_output_size[3] };
+#endif
+  
+  const lib_mli::Tensor<lib_mli::NoBuffer, kPoolRank> out_tensor(total_output_size, op.output_stride);
+  lib_mli::TensorIterator<lib_mli::NoBuffer, kPoolRank, kPoolIterRank> out_tensor_it(out_tensor, tile_output_size, iteration_order);
+  
+  uint32_t effective_kernel_size[kPoolIterRank]{ 1, cur_test->cfg.kernel_height, cur_test->cfg.kernel_width, 1 };
+  uint32_t stride[kPoolIterRank]{ 1, cur_test->cfg.stride_height, cur_test->cfg.stride_width, 1 };
+  uint32_t pre_padding[kPoolIterRank]{ 0, cur_test->cfg.padding_top, cur_test->cfg.padding_left, 0 };
+  const lib_mli::Tensor<lib_mli::NoBuffer, kPoolRank> full_in_tensor(total_input_size, op.input_stride);
+  lib_mli::TensorIterator<lib_mli::NoBuffer, kPoolRank, kPoolIterRank> in_tensor_it(full_in_tensor, out_tensor_it,
+                                                                                    effective_kernel_size, stride, pre_padding);
+
+  //calculate number of tiles
+  num_tiles = out_tensor_it.GetTotalCount();
+  #ifndef USE_TILING
+    assert(num_tiles == CEIL_DIV(NUM_VIRTUAL_BATCHES, batch_tile_size));
+  #endif
+
+  uint32_t input_tile_shape[kPoolIterRank];
+  uint32_t output_tile_shape[kPoolIterRank];
+  const auto& input_it_config = in_tensor_it.get_config();
+  const auto& output_it_config = out_tensor_it.get_config();
+  for (unsigned i = 0; i < kPoolIterRank; i++) {
+      input_tile_shape[i] = (uint32_t)MAX(input_it_config.get_first_size(i), input_it_config.get_size(i));
+      output_tile_shape[i] = (uint32_t)MAX(output_it_config.get_first_size(i), output_it_config.get_size(i));
+  }
+
+  // STEP 1: Construct SumPool2d as a specific ExecutionInterface successor
+  //==================================================================
   lib_mli::PlatformDescription pd;
   lib_ref::KernelsFactory kernel_factory(pd);
   uint32_t sumpool2d_cs_size = kernel_factory.SumPool2D_CS_GetSize();
@@ -347,12 +405,10 @@ void prepare_phase(const sumpool2d_test_operands* cur_test,
     cur_test->cfg.padding_bottom, cur_test->cfg.padding_right
   );
 
-  auto sumpool2d_op = kernel_factory.SumPool2D_CS(sumpool2d_cs_buffer, in_tensor, cfg, out_tensor);
+  auto sumpool2d_op = kernel_factory.SumPool2D_CS(sumpool2d_cs_buffer, in_tensor_it, cfg, out_tensor_it);
 
   // STEP 1.2: Memory management (Up to user on how to deal with it)
   //==================================================================
-  uint32_t in_mem_offset = 0;
-  // uint32_t inpzp_mem_offset = 0;
   uint32_t offsets[1] = {0};
 
   uint32_t i_elem_size = mli_hlp_tensor_element_size(&op.input);
@@ -373,20 +429,18 @@ void prepare_phase(const sumpool2d_test_operands* cur_test,
 
   // sumpool2d input
   offset = &offsets[0];
-  uint32_t in_size = sumpool2d_op->GetInputBufferSize() * i_elem_size;
+  op.input_offsets = *offset;
+  uint32_t in_size = GetBufferSize(kPoolRank, input_tile_shape, op.input_stride) * i_elem_size;
   lib_mli::OffsetBuffer sumpool2d_in_buf{*offset, 0, in_size, i_elem_size};
-  lib_mli::Tensor<lib_mli::OffsetBuffer, 4> sumpool2d_in_tensor(sumpool2d_in_buf, input_shape);
-  in_mem_offset = *offset;
   *offset += in_size;
 
   // sumpool2d output
   offset = &offsets[0];
   // NOTE: The output should be 4 bytes aligned for int32_t, otherwise, it will cause `vvst` crash.
   *offset = (*offset + 4 - 1) / 4 * 4;
-  uint32_t out_size = sumpool2d_op->GetOutputBufferSize() * o_elem_size;
+  op.output_offsets = *offset;
+  uint32_t out_size = GetBufferSize(kPoolRank, output_tile_shape, op.output_stride) * o_elem_size;
   lib_mli::OffsetBuffer sumpool2d_out_buf{*offset, 0, out_size, o_elem_size};
-  lib_mli::Tensor<lib_mli::OffsetBuffer, 4> sumpool2d_out_tensor(sumpool2d_out_buf, output_shape);
-  out_mem_offset = *offset;
   *offset += out_size;
 
   // MLI tensor structures and sumpool2d configuration
@@ -401,37 +455,26 @@ void prepare_phase(const sumpool2d_test_operands* cur_test,
   // Attaching buffer (descriptors) to the operation
   mli_status status = MLI_STATUS_OK;
 
-  status = sumpool2d_op->AttachBufferOffsets(sumpool2d_in_tensor,
-                                             sumpool2d_out_tensor,
+  status = sumpool2d_op->AttachBufferOffsets(sumpool2d_in_buf,
+                                             sumpool2d_out_buf,
                                              sumpool2d_ctrl_buf);
   assert(status == MLI_STATUS_OK);
-
-  // STEP 1.3: Copy dataset from scratch buffer to the global shared memory pool
-  //==================================================================
-  // Copy input data from scratch buffer to the shared memory pool
-  for (uint32_t i = 0; i < op.input.data.capacity; ++i) {
-    const uint32_t idx = in_mem_offset + i;
-    g_mem_pool[idx] = op.input.data.mem.pi8[i];
-  }
 
   // STEP 1.4: Compile sumpool2d into the binary data
   //==================================================================
   op.sumpool2d_instance = (int8_t*)g_mem_pool;
   op.sumpool2d_instance_size = sumpool2d_op->GetRuntimeObjectSize();
 
-  status =
-      sumpool2d_op->GetKernelPrivateData((int8_t*)g_mem_pool + op.sumpool2d_instance_size);
+  status = sumpool2d_op->GetKernelPrivateData((int8_t*)g_mem_pool + op.sumpool2d_instance_size);
   assert(status == MLI_STATUS_OK);
   op.sumpool2d_conf_private = reinterpret_cast<lib_mli::PrivateData*>(
       (int8_t*)g_mem_pool + op.sumpool2d_instance_size);
   op.sumpool2d_conf_private_size = sumpool2d_op->GetKernelPrivateDataSize();
 }
 
-void execution_phase(SumPool2dOp& op) {
+void execution_phase(uint32_t num_tiles, SumPool2dOp& op) {
   // STEP 3: Execution phase
   //==================================================================
-  uint32_t tiles_num = 1;
-
   uint64_t membasis[] = {reinterpret_cast<uint64_t>(g_mem_pool)};
 
   auto mli_op = lib_mli::ExecutionInterface::Create(
@@ -442,15 +485,39 @@ void execution_phase(SumPool2dOp& op) {
   assert(mli_op != nullptr);
 
   mli_status status = MLI_STATUS_OK;
-  for (int i = 0; i < tiles_num; ++i) {
+
+  lib_ref::SumPool2D* mli_sumoool2_pimpl = dynamic_cast<lib_ref::SumPool2D*>(mli_op);
+  uint32_t input_tile_size[kPoolRank];
+  uint32_t output_tile_size[kPoolRank];
+  int32_t input_tile_offsets[kPoolRank];
+  int32_t output_tile_offsets[kPoolRank];
+  const int32_t zero_offsets[kPoolRank]{};
+
+  for (uint32_t n_tile = 0; n_tile < num_tiles; ++n_tile) {
     status = mli_op->Prefetch();
     assert(status == MLI_STATUS_OK);
+
+    mli_sumoool2_pimpl->GetIOSizesAndOffsets(input_tile_size, output_tile_size, input_tile_offsets, output_tile_offsets);
+    input_tile_offsets[kTensorBatchDim] = NUM_REAL_BATCHES - 1;
+    output_tile_offsets[kTensorBatchDim] = NUM_REAL_BATCHES - 1;
+
+    // copy input from global to local buffer
+    strided_copy_with_offsets(kPoolRank, sizeof(int8_t),
+                              op.input.data.mem.pi8,
+                              input_tile_offsets, zero_offsets, op.input_stride,
+                              input_tile_size, (int8_t*)(g_mem_pool + op.input_offsets));
 
     status = mli_op->Issue();
     assert(status == MLI_STATUS_OK);
 
     status = mli_op->Update();
     assert(status == MLI_STATUS_OK);
+
+    // copy output from local tile buffer to global buffer
+    strided_copy_with_offsets(kPoolRank, sizeof(int32_t),
+                              (int8_t*)(g_mem_pool + op.output_offsets),
+                              zero_offsets, output_tile_offsets, op.output_stride,
+                              output_tile_size, op.out_acc.data.mem.pi8);
   }
 }
 
@@ -466,7 +533,8 @@ bool postprocess_phase(const reporter_full& reporter,
   if (is_test_passed &&
       (sumpool2d_op.mem_in_keeper.is_memory_corrupted() || rs_op.mem_out_keeper.is_memory_corrupted() ||
        sumpool2d_op.mem_out_acc_keeper.is_memory_corrupted() || rs_op.mem_bias_out_keeper.is_memory_corrupted() ||
-       rs_op.mem_b_keeper.is_memory_corrupted())) {
+       rs_op.mem_b_keeper.is_memory_corrupted())) 
+       {
     reporter.report_message(cur_test->descr,
         "FAILED after kernel run: memory beside one of operands is corrupted");
     is_test_passed = false;
@@ -608,34 +676,16 @@ int main() {
 
     // STEP 1: Preparing phase
     //==================================================================
-    uint32_t out_mem_offset = 0;
-    prepare_phase(cur_test, out_mem_offset, sumpool2d_op);
+    uint32_t num_tiles = 0; // num_tiles calculated inside prepare_phase
+    
+    prepare_phase(cur_test, num_tiles, sumpool2d_op);
 
     // STEP 2: Executing phase
     //==================================================================
     // Run sumpool2d MLI3.0 kernel
-    execution_phase(sumpool2d_op);
+    execution_phase(num_tiles, sumpool2d_op);
 
-    // Get the output of SumPool2d and copy it to sumpool2d_op.out_acc
-    for (uint32_t i = 0; i < sumpool2d_op.out_acc.data.capacity; ++i) {
-      sumpool2d_op.out_acc.data.mem.pi8[i] = *((int8_t*)g_mem_pool + out_mem_offset + i);
-    }
-
-    // Run rescale kernel
-    // TODO: Currently, rescale cannot accept matrix sacaling factors, but sumpool2 requires it.
-    //       What is more, the input zero points now folded into rescale. In other words, sumpool2d
-    //       only do summation.
     avg_and_rescale(cur_test, sumpool2d_op, rs_op);
-    // if (is_test_passed &&
-    //     // i32->i8
-    //     mli_krn_rescale_i32_o8(&sumpool2d_op.out_acc,
-    //                            &rs_op.mli3_bias.get_bias_tsr(),
-    //                            &rs_op.mli3_scales_keeper.get_scales_tsr(),
-    //                            &rs_op.mli3_scales_keeper.get_shift_tsr(),
-    //                            &rs_op.bias_out, &rs_op.out) != MLI_STATUS_OK) {
-    //   reporter.report_message(cur_test->descr, "FAILED at kernel run: kernel returned bad status");
-    //   is_test_passed = false;
-    // }
 
     // STEP 3: Postprocessing phase
     //==================================================================

@@ -18,63 +18,33 @@
 namespace snps_arc::metaware::mli::ref {
 
 MaxPool2D_CS::MaxPool2D_CS(const lib_mli::PlatformDescription pd,
-                           const Tensor<NoBuffer, kMaxpoolRank> in,
+                           const Tensor<NoBuffer, kPoolRank> in,
                            const PoolOpConfig &cfg,
-                           const Tensor<NoBuffer, kMaxpoolRank> output_tile_shape)
+                           const Tensor<NoBuffer, kPoolRank> output_tile_shape)
     : m_config(cfg),
       m_pd(pd) {
 
   DEPRECATED_METHOD
 
-  uint32_t input_shape[kMaxpoolRank];
-  int32_t input_stride[kMaxpoolRank];
-  uint32_t output_shape[kMaxpoolRank];
-  int32_t output_stride[kMaxpoolRank];
-  for (unsigned dim = 0; dim < kMaxpoolRank; dim++) {
-    input_shape[dim] = in.get_dim(dim);
-    input_stride[dim] = in.get_mem_stride(dim);
-    output_shape[dim] = output_tile_shape.get_dim(dim);
-    output_stride[dim] = output_tile_shape.get_mem_stride(dim);
-  }
-  Tensor<OffsetBuffer, kMaxpoolRank> input_tensor(OffsetBuffer(), input_shape, input_stride);
-  m_input = TensorIterator<OffsetBuffer, kMaxpoolRank, kMaxpoolIterRank>(input_tensor);
+  Tensor<OffsetBuffer, kPoolRank> input_tensor(OffsetBuffer(), in);
+  m_input = TensorIterator<OffsetBuffer, kPoolRank, kPoolIterRank>(input_tensor);
 
-  Tensor<OffsetBuffer, kMaxpoolRank> output_tensor(OffsetBuffer(), output_shape, output_stride);
-  m_output = TensorIterator<OffsetBuffer, kMaxpoolRank, kMaxpoolIterRank>(output_tensor);
-
-  m_input_buffer_size =
-    service::GetBufferSize(kMaxpoolRank, input_shape, input_stride);
-  m_output_buffer_size =
-    service::GetBufferSize(kMaxpoolRank, output_shape, output_stride);
+  Tensor<OffsetBuffer, kPoolRank> output_tensor(OffsetBuffer(),output_tile_shape);
+  m_output = TensorIterator<OffsetBuffer, kPoolRank, kPoolIterRank>(output_tensor);
 };
 
 MaxPool2D_CS::MaxPool2D_CS(const lib_mli::PlatformDescription pd,
-                          const TensorIterator<NoBuffer, kMaxpoolRank, kMaxpoolIterRank> in,
+                          const TensorIterator<NoBuffer, kPoolRank, kPoolIterRank> in,
                           const PoolOpConfig& cfg,
-                          const TensorIterator<NoBuffer, kMaxpoolRank, kMaxpoolIterRank> out)
+                          const TensorIterator<NoBuffer, kPoolRank, kPoolIterRank> out)
     : m_input(in),
       m_output(out),
       m_config(cfg),
-      m_pd(pd){
-
-  uint32_t input_shape[kMaxpoolRank];
-  int32_t input_stride[kMaxpoolRank];
-  uint32_t output_shape[kMaxpoolRank];
-  int32_t output_stride[kMaxpoolRank];
-  in.get_full_shape(input_shape);
-  in.get_mem_strides(input_stride);
-  out.get_full_shape(output_shape);
-  out.get_mem_strides(output_stride);
-
-  m_input_buffer_size =
-    service::GetBufferSize(kMaxpoolRank, input_shape, input_stride);
-  m_output_buffer_size =
-    service::GetBufferSize(kMaxpoolRank, output_shape, output_stride);
-}
+      m_pd(pd){}
 
 
 unsigned MaxPool2D_CS::GetKernelPrivateDataSize() const {
-  return sizeof(MaxPool2DPrivateData);
+  return sizeof(Pool2DPrivateData);
 }
 
 unsigned MaxPool2D_CS::GetRuntimeObjectSize() const {
@@ -84,7 +54,7 @@ unsigned MaxPool2D_CS::GetRuntimeObjectSize() const {
 mli_status MaxPool2D_CS::GetKernelPrivateData(
     void *kernel_private_data_buffer) {
 
-  MaxPool2DPrivateData obj(kMaxPool2DId);
+  Pool2DPrivateData obj(kMaxPool2DId);
   obj.input = m_input;
   obj.output = m_output;
   obj.config = m_config;
@@ -93,8 +63,8 @@ mli_status MaxPool2D_CS::GetKernelPrivateData(
   return MLI_STATUS_OK;
 }
 
-mli_status MaxPool2D_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, kMaxpoolRank> &input,
-                                             const Tensor<OffsetBuffer, kMaxpoolRank> &output,
+mli_status MaxPool2D_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, kPoolRank> &input,
+                                             const Tensor<OffsetBuffer, kPoolRank> &output,
                                              const OffsetBuffer &data) {
   DEPRECATED_METHOD
 
@@ -114,10 +84,20 @@ mli_status MaxPool2D_CS::AttachBufferOffsets(const OffsetBuffer& input,
 }
 
 unsigned MaxPool2D_CS::GetInputBufferSize() const {
-  return m_input_buffer_size;
+  uint32_t input_shape[kPoolRank];
+  int32_t input_stride[kPoolRank];
+  m_input.get_full_shape(input_shape);
+  m_input.get_mem_strides(input_stride);
+
+  return service::GetBufferSize(m_input.get_rank(), input_shape, input_stride);
 }
 unsigned MaxPool2D_CS::GetOutputBufferSize() const {
-  return m_output_buffer_size;
+  uint32_t output_shape[kPoolRank];
+  int32_t output_stride[kPoolRank];
+  m_output.get_full_shape(output_shape);
+  m_output.get_mem_strides(output_stride);
+
+  return service::GetBufferSize(m_output.get_rank(), output_shape, output_stride);
 }
 
 }  // namespace snps_arc::metaware::mli::ref

@@ -282,9 +282,9 @@ public:
      * @deprecated
      */
     lib_mli::MaxPool2D_CS* MaxPool2D_CS(void *kernel_buffer,
-                                        const Tensor<NoBuffer, kMaxpoolRank> in,
+                                        const Tensor<NoBuffer, kPoolRank> in,
                                         const PoolOpConfig &cfg,
-                                        const Tensor<NoBuffer, kMaxpoolRank> output_tile_shape)
+                                        const Tensor<NoBuffer, kPoolRank> output_tile_shape)
                                         override {
         /**
          * The MLI classes need to be 32 bit aligned
@@ -295,9 +295,9 @@ public:
     }
 
     lib_mli::MaxPool2D_CS* MaxPool2D_CS(void* kernel_buffer,
-                                        const TensorIterator<NoBuffer, kMaxpoolRank, kMaxpoolIterRank>& in,
+                                        const TensorIterator<NoBuffer, kPoolRank, kPoolIterRank>& in,
                                         const PoolOpConfig& cfg,
-                                        const TensorIterator<NoBuffer, kMaxpoolRank, kMaxpoolIterRank>& out)
+                                        const TensorIterator<NoBuffer, kPoolRank, kPoolIterRank>& out)
                                         override {
         /**
          * The MLI classes need to be 32 bit aligned
@@ -310,16 +310,29 @@ public:
     uint32_t SumPool2D_CS_GetSize() const override { return sizeof(lib_ref::SumPool2D_CS); }
 
     lib_mli::SumPool2D_CS* SumPool2D_CS(void *kernel_buffer,
-                                        const Tensor<NoBuffer, 4> in,
+                                        const Tensor<NoBuffer, kPoolRank> &in,
                                         const PoolOpConfig &cfg,
-                                        const Tensor<NoBuffer, 4> output_tile_shape)
+                                        const Tensor<NoBuffer, kPoolRank> &output_tile_shape)
                                         override {
         /**
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::SumPool2D_CS(m_pd, in, cfg, output_tile_shape);
+    }
+
+    lib_mli::SumPool2D_CS* SumPool2D_CS(void *kernel_buffer,
+                                        const TensorIterator<NoBuffer, kPoolRank, kPoolIterRank> &in,
+                                        const PoolOpConfig &cfg,
+                                        const TensorIterator<NoBuffer, kPoolRank, kPoolIterRank> &out)
+                                        override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        return new(kernel_buffer) lib_ref::SumPool2D_CS(m_pd, in, cfg, out);
     }
 
     uint32_t DepthwiseConv2d_CS_GetSize() const override { return sizeof(lib_ref::DepthwiseConv2d_CS); }

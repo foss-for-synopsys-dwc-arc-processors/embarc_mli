@@ -337,9 +337,9 @@ public:
      * @return Maxpool 2D kernel Compiler Support interface object
      */
     virtual lib_mli::MaxPool2D_CS* MaxPool2D_CS(void *kernel_buffer,
-                                                const Tensor<NoBuffer, kMaxpoolRank> in,                  // BHWC
+                                                const Tensor<NoBuffer, kPoolRank> in,                  // BHWC
                                                 const PoolOpConfig &cfg,
-                                                const Tensor<NoBuffer, kMaxpoolRank> output_tile_shape) { // BHWC
+                                                const Tensor<NoBuffer, kPoolRank> output_tile_shape) { // BHWC
       return nullptr;
     } 
 
@@ -358,9 +358,9 @@ public:
      * @return Maxpool 2D kernel Compiler Support interface object
      */
     virtual lib_mli::MaxPool2D_CS* MaxPool2D_CS(void* kernel_buffer,
-                                                const TensorIterator<NoBuffer, kMaxpoolRank, kMaxpoolIterRank>& in,      // BHWC
+                                                const TensorIterator<NoBuffer, kPoolRank, kPoolIterRank>& in,      // BHWC
                                                 const PoolOpConfig& cfg,
-                                                const TensorIterator<NoBuffer, kMaxpoolRank, kMaxpoolIterRank>& out) {   // BHWC
+                                                const TensorIterator<NoBuffer, kPoolRank, kPoolIterRank>& out) {   // BHWC
       return nullptr;
     } 
 
@@ -376,8 +376,8 @@ public:
      * 
      * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
      */
-    virtual void MaxPool2D_CS_GetInputAlign(uint32_t input_align[kMaxpoolRank]) {
-      set_default_align<kMaxpoolRank>(input_align);
+    virtual void MaxPool2D_CS_GetInputAlign(uint32_t input_align[kPoolRank]) {
+      set_default_align<kPoolRank>(input_align);
     }
 
     /**
@@ -392,15 +392,52 @@ public:
      * 
      * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
      */
-    virtual void MaxPool2D_CS_GetOutputAlign(uint32_t output_align[kMaxpoolRank]) {
-      set_default_align<kMaxpoolRank>(output_align);
+     virtual void MaxPool2D_CS_GetOutputAlign(uint32_t output_align[kPoolRank]) {
+      set_default_align<kPoolRank>(output_align);
     }
 
+/**
+     * @brief Sumpool 2D kernel Compiler Support interface factory method
+     *
+     * @deprecated
+     * 
+     * @param kernel_buffer       [I] Pointer to the pre-allocated memory to store
+     *                                kernel Compiler Support object
+     * @param in                  [I] Tensor object containing input Tensor shape and
+     *                                memory strides
+     * @param cfg                 [I] Kernel configuration structure
+     * @param output_tile_shape   [I] Tensor object containing output Tensor shape
+     *                                and memory strides
+     *
+     * @return Sumpool 2D kernel Compiler Support interface object
+     */
     virtual lib_mli::SumPool2D_CS* SumPool2D_CS(void *kernel_buffer,
-                                                const Tensor<NoBuffer, 4> in,
+                                                const Tensor<NoBuffer, kPoolRank> &in,
                                                 const PoolOpConfig &cfg,
-                                                const Tensor<NoBuffer, 4> output_tile_shape) { return nullptr; }
-
+                                                const Tensor<NoBuffer, kPoolRank> &output_tile_shape) { 
+      return nullptr; 
+    }
+    
+    /**
+     * @brief Sumpool 2D kernel Compiler Support interface factory method
+     *
+     * @param kernel_buffer [I] Pointer to the pre-allocated memory to store
+     *                          kernel Compiler Support object
+     * @param in            [I] TensorIterator object containing input Tensor shape and
+     *                          memory strides and IteratorCfg
+     * @param cfg           [I] Kernel configuration structure
+     * @param out           [I] TensorIterator object containing output Tensor shape
+     *                          and memory strides and IteratorCfg
+     *
+     * @return Sumpool 2D kernel Compiler Support interface object
+     */
+    virtual lib_mli::SumPool2D_CS* SumPool2D_CS(void *kernel_buffer,
+                                                const TensorIterator<NoBuffer, kPoolRank, kPoolIterRank> &in,
+                                                const PoolOpConfig &cfg,
+                                                const TensorIterator<NoBuffer, kPoolRank, kPoolIterRank> &out) { 
+      return nullptr; 
+    }
+    
     /**
      * @brief Sumpool 2D kernel Compiler Support interface
      *        to get the Alignment Restrictions in Input Tensor.

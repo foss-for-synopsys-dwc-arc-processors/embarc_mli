@@ -284,14 +284,14 @@ public:
     mli_status Update() override;
 
     // TODO: remove this method and replace with usage of Move kernel (not possible now)
-    void GetIOSizesAndOffsets(uint32_t input_size[kMaxpoolRank], uint32_t output_size[kMaxpoolRank],
-                              int32_t input_offsets[kMaxpoolRank], int32_t output_offsets[kMaxpoolRank]);
+    void GetIOSizesAndOffsets(uint32_t input_size[kPoolRank], uint32_t output_size[kPoolRank],
+                              int32_t input_offsets[kPoolRank], int32_t output_offsets[kPoolRank]);
 
 private:
     void UpdateTilePaddings();
 
-    TensorIterator<OffsetBuffer, kMaxpoolRank, kMaxpoolIterRank> m_input;
-    TensorIterator<OffsetBuffer, kMaxpoolRank, kMaxpoolIterRank> m_output;
+    TensorIterator<OffsetBuffer, kPoolRank, kPoolIterRank> m_input;
+    TensorIterator<OffsetBuffer, kPoolRank, kPoolIterRank> m_output;
 
     mli_pool_cfg m_cfg;
     int32_t m_input_batch_offset;
@@ -356,6 +356,30 @@ private:
 class SumPool2D : public ExecutionInterface {
 
 public:
+    /**
+     * @brief Construct a new Sum Pooling 2D object
+     *
+     * This method will create and initialize the Sum Pooling 2D object using the information
+     * stored in the kernel_private_data_buffer that has been computed at compile time
+     * by the GetKernelPrivateData() method of SumPool2D_CS class
+     * 
+     * This kernel computes each value of the output tensor as the sum 
+     * of all values in the related perception area of a single channel of the input tensor.
+     *
+     * @param kernel_private_data_buffer [I] Pointer to the compilation time computed initialization data.
+     * @param size        [I] Size of the data is used to check for coding errors.
+     * @param membases[]  [I] The kernel private data may contain offsets inside a (vector) memory.
+     *                        At run-time specific locations in memory are allocated for
+     *                        the graph, the membase array contains the start of
+     *                        each memory region.
+     *                        This base will be added to all memory offsets in the constructor
+     *                        according to the memory ID associated with that offset.
+     *                        Each platform can have different (number of) memories. For mli
+     *                        this is completely transparent. Compiler needs to use the same
+     *                        memory id's when attaching the buffers as are used by the
+     *                        xop-interpreter to set the membases.
+     * @param num_mems    [I] Number of memory regions passed with membases array.
+    */
     SumPool2D(void* kernel_private_data_buffer, size_t size, uint64_t membases[], int num_mems);
 
     mli_status Issue() override;
@@ -364,15 +388,29 @@ public:
 
     mli_status Update() override;
 
+    // TODO: remove this method and replace with usage of Move kernel (not possible now)
+    void GetIOSizesAndOffsets(uint32_t input_size[kPoolRank], uint32_t output_size[kPoolRank],
+                              int32_t input_offsets[kPoolRank], int32_t output_offsets[kPoolRank]);
+
 private:
+    void UpdateTilePaddings();
+    
     mli_pool_cfg m_cfg;
-    mli_tensor m_input;
-    mli_tensor m_output;
+
+    TensorIterator<OffsetBuffer, kPoolRank, kPoolIterRank> m_input;
+    TensorIterator<OffsetBuffer, kPoolRank, kPoolIterRank> m_output;
+
     int32_t m_input_batch_offset;
     int32_t m_output_batch_offset;
-    uint32_t m_batch_number;
+    
     uint32_t m_i_elem_size;
     uint32_t m_o_elem_size;
+
+    // Tile state
+    uint32_t m_tile_batch_size;
+    mli_tensor m_tile_input;
+    mli_tensor m_tile_output;
+    mli_pool_cfg m_tile_cfg;
 };
 
 /**
