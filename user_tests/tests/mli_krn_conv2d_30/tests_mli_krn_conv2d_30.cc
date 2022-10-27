@@ -468,6 +468,8 @@ void prepare_phase(const conv2d_test_operands* cur_test, uint32_t& num_tiles,
     assert(pad_left >= 0 && pad_top >= 0 && out_h_idx >= 0 && out_w_idx >= 0) failed.
   */
   uint32_t tile_output_size[kConvIORank]{ BATCH_SIZE, 4, 4, NUM_GROUPS, 2 };
+  tile_output_size[kGroupTensorHeightDim] = MIN(tile_output_size[kGroupTensorHeightDim], total_output_size[kGroupTensorHeightDim]);
+  tile_output_size[kGroupTensorWidthDim] = MIN(tile_output_size[kGroupTensorWidthDim], total_output_size[kGroupTensorWidthDim]);
   // TODO: smaller H/W tile sizes will fail on 9-2, because of MLI_ASSERT I put inside IteratorCfg ctor - do something with it
 
 #else

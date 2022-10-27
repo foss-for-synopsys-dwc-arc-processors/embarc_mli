@@ -385,6 +385,8 @@ void prepare_phase(const depthwise_conv2d_test_operands* cur_test,
       * 
       */
     uint32_t tile_output_size[kDepthwiseIORank]{ batch_tile_size, 4, 4, NUM_GROUPS, 2 };
+    tile_output_size[kGroupTensorHeightDim] = MIN(tile_output_size[kGroupTensorHeightDim], total_output_size[kGroupTensorHeightDim]);
+    tile_output_size[kGroupTensorWidthDim] = MIN(tile_output_size[kGroupTensorWidthDim], total_output_size[kGroupTensorWidthDim]);
 #else
     uint32_t tile_output_size[kDepthwiseIORank]{ batch_tile_size,
                                                  total_output_size[kGroupTensorHeightDim],
