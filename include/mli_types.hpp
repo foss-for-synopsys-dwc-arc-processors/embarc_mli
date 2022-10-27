@@ -62,6 +62,9 @@ constexpr short int kKernelONNXDWChannelInDim = kKernelONNXDWGroupDim;
 constexpr short int kKernelFCChannelInDim = 0;
 constexpr short int kKernelFCChannelOutDim = 1;
 
+constexpr short int kTensorFCGroupDim = 0;
+constexpr short int kTensorFCChannelDim = 1;
+
 constexpr short int kPerTensorQuantDim = -1;
 constexpr short int kSkipIterDim = -1;
 
