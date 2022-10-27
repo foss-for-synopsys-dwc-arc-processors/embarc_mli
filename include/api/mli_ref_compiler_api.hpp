@@ -564,13 +564,17 @@ class FullyConnected_CS : public lib_mli::FullyConnected_CS {
 public:
     /**
      * @brief Constructor of the  FullyConnected_CS object
-     *
+     * @deprecated
      */
     FullyConnected_CS(const lib_mli::PlatformDescription pd,
                       const Tensor<NoBuffer, kFullyConnectedIORank> &in,
                       const Tensor<NoBuffer, kFullyConnectedWRank>  &weights,
                       const Tensor<NoBuffer, kFullyConnectedIORank> &output_tile_shape);
 
+    /**
+     * @brief Constructor of the  FullyConnected_CS object
+     * @deprecated
+     */
     FullyConnected_CS(const lib_mli::PlatformDescription pd,
                       const Tensor<NoBuffer, kFullyConnectedIORank> &in,
                       const Tensor<NoBuffer, kFullyConnectedWRank> &weights,
@@ -591,23 +595,33 @@ public:
       * @param cfg         [I] FullyConnectedConfig structure
       * @param output      [I] output TensorIterator (NCo layout)
       */
-    FullyConnected_CS(const lib_mli::PlatformDescription pd,
+    FullyConnected_CS(const PlatformDescription pd,
                       const TensorIterator<NoBuffer, kFullyConnectedIORank, kFullyConnectedIterRank> &input,
                       const TensorIterator<NoBuffer, kFullyConnectedWRank,  kFullyConnectedIterRank> &weights,
                       const TensorIterator<NoBuffer, kFullyConnectedZPRank, kFullyConnectedIterRank> &weights_zp,
                       const FullyConnectedConfig &cfg,
-                      const TensorIterator<NoBuffer, kFullyConnectedIORank, kFullyConnectedIterRank> &output) { NOT_IMPLEMENTED_METHOD; };
+                      const TensorIterator<NoBuffer, kFullyConnectedIORank, kFullyConnectedIterRank> &output);
 
+    /**
+      * @deprecated
+      */
     mli_status EncodeWeights(const Tensor<Buffer, kFullyConnectedWRank> &weights,
                              Buffer &encoded_weights) override;
 
+
+    mli_status EncodeWeightsAndZeroPts(TensorIterator<Buffer, kFullyConnectedWRank, kFullyConnectedIterRank>& weights,
+                                       TensorIterator<Buffer, kFullyConnectedZPRank, kFullyConnectedIterRank>& weights_zp,
+                                       Buffer& encoded_weights) override;
+
     unsigned GetEncodedWeightsSize() const override;
 
+    /**
+      * @deprecated
+      */
     mli_status EncodeWtsZeroPts(const Tensor<Buffer, kFullyConnectedZPRank> &wtszeropts,
                                 Buffer &encoded_wtszeropts) override;
 
     unsigned GetEncodedWtsZeroPtsSize() const override;
-
     unsigned GetInputBufferSize() const override;
     unsigned GetOutputBufferSize() const override;
     unsigned GetWeightsBufferSize() const override;
@@ -619,24 +633,22 @@ public:
                                    const OffsetBuffer &wtszeropts,
                                    const OffsetBuffer &ctrl_buffer) override;
 
+    mli_status AttachBufferOffsets(const OffsetBuffer& input,
+                                   const OffsetBuffer& output,
+                                   const OffsetBuffer& weights_and_zeropts,
+                                   const OffsetBuffer& ctrl_buffer) override;
+
     mli_status GetKernelPrivateData(void* kernel_private_data_buffer) override;
     unsigned GetKernelPrivateDataSize() const override;
     unsigned GetRuntimeObjectSize() const override;
 
 private:
-    lib_mli::PlatformDescription m_pd;
+    PlatformDescription m_pd;
     Tensor<OffsetBuffer, kFullyConnectedIORank> m_in;
     Tensor<OffsetBuffer, kFullyConnectedWRank>  m_weights;
     Tensor<OffsetBuffer, kFullyConnectedZPRank> m_wtszp;
     Tensor<OffsetBuffer, kFullyConnectedIORank> m_output;
-
     OffsetBuffer m_weights_zp;
-
-    uint32_t m_input_buffer_size;
-    uint32_t m_weights_buffer_size;
-    uint32_t m_wtszp_buffer_size;
-    uint32_t m_output_buffer_size;
-
 };
 
 class TableBuiltin_CS : public lib_mli::TableBuiltin_CS {

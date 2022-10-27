@@ -15,6 +15,9 @@
 
 namespace snps_arc::metaware::mli::ref {
 
+/**
+ * @deprecated
+ */
 FullyConnected_CS::FullyConnected_CS(const lib_mli::PlatformDescription pd,
                                      const Tensor<NoBuffer, kFullyConnectedIORank> &in,
                                      const Tensor<NoBuffer, kFullyConnectedWRank>  &weights,
@@ -25,43 +28,33 @@ FullyConnected_CS::FullyConnected_CS(const lib_mli::PlatformDescription pd,
       m_weights{Tensor<OffsetBuffer, kFullyConnectedWRank>(OffsetBuffer(), weights)},
       m_wtszp{Tensor<OffsetBuffer, kFullyConnectedZPRank>(OffsetBuffer(), wtszp)},
       m_output{Tensor<OffsetBuffer, kFullyConnectedIORank>(OffsetBuffer(), output_tile_shape)} {
-  uint32_t input_shape[2];
-  uint32_t output_shape[2];
-  int32_t input_stride[2];
-  int32_t output_stride[2];
-  uint32_t wtzp_shape[1];
-  int32_t wtzp_stride[1];
-  for (uint32_t i = 0; i < 2; ++i) {
-    input_shape[i] = in.get_dim(i);
-    input_stride[i] = in.get_mem_stride(i);
-    output_shape[i] = output_tile_shape.get_dim(i);
-    output_stride[i] = output_tile_shape.get_mem_stride(i);
-  }
-  uint32_t weights_shape[2];
-  int32_t weights_stride[2];
-  for (uint32_t i = 0; i < 2; ++i) {
-    weights_shape[i] = weights.get_dim(i);
-    weights_stride[i] = weights.get_mem_stride(i);
-  }
-  wtzp_shape[0] = wtszp.get_dim(0);
-  wtzp_stride[0] = wtszp.get_mem_stride(0);
-
-  m_input_buffer_size =
-      service::GetBufferSize(in.get_rank(), input_shape, input_stride);
-  m_weights_buffer_size
-      = service::GetBufferSize(weights.get_rank(), weights_shape, weights_stride);
-  m_wtszp_buffer_size =
-      service::GetBufferSize(wtszp.get_rank(), wtzp_shape, wtzp_stride);
-  m_output_buffer_size = service::GetBufferSize(output_tile_shape.get_rank(),
-                                                output_shape, output_stride);
+  DEPRECATED_METHOD
 }
 
+/**
+ * @deprecated
+ */
 FullyConnected_CS::FullyConnected_CS(const lib_mli::PlatformDescription pd,
                                      const Tensor<NoBuffer, kFullyConnectedIORank> &in,
                                      const Tensor<NoBuffer, kFullyConnectedWRank>  &weights,
                                      const Tensor<NoBuffer, kFullyConnectedIORank> &output_tile_shape)
     : FullyConnected_CS(pd, in, weights, Tensor<NoBuffer, kFullyConnectedZPRank>(), output_tile_shape) {
+  DEPRECATED_METHOD
 }
+
+FullyConnected_CS::FullyConnected_CS(const PlatformDescription pd,
+                                     const TensorIterator<NoBuffer, kFullyConnectedIORank, kFullyConnectedIterRank>& input,
+                                     const TensorIterator<NoBuffer, kFullyConnectedWRank, kFullyConnectedIterRank>& weights,
+                                     const TensorIterator<NoBuffer, kFullyConnectedZPRank, kFullyConnectedIterRank>& weights_zp,
+                                     const FullyConnectedConfig& cfg,
+                                     const TensorIterator<NoBuffer, kFullyConnectedIORank, kFullyConnectedIterRank>& output)
+  : m_pd(pd),
+    m_in(OffsetBuffer(), input.get_tensor()),
+    m_weights(OffsetBuffer(), weights.get_tensor()),
+    m_wtszp(OffsetBuffer(), weights_zp.get_tensor()),
+    m_output(OffsetBuffer(), output.get_tensor()) {
+}
+
 
 unsigned FullyConnected_CS::GetKernelPrivateDataSize() const {
   return sizeof(FullyConnectedPrivateData);
@@ -81,7 +74,7 @@ mli_status FullyConnected_CS::GetKernelPrivateData(void* kernel_private_data_buf
   // Only two types of weights zero point quantization are supported, per-tensor or per-channel.
   // -1 indicates per-tensor, 1 indicates per-channel.
   // Potential bug if m_weights.shape[1] equals 1
-  fc_opaque_obj.qt_wtszp_axis = (m_wtszp_buffer_size == 1) ? -1 : kKernelFCChannelOutDim;
+  fc_opaque_obj.qt_wtszp_axis = (GetEncodedWtsZeroPtsSize() == 1) ? -1 : kKernelFCChannelOutDim;
   MLI_ASSERT(m_in.get_dim(mli::kTensorBatchDim) == m_output.get_dim(mli::kTensorBatchDim));
   MLI_ASSERT(m_in.get_dim(1) == m_weights.get_dim(mli::kKernelFCChannelInDim));
   MLI_ASSERT(m_weights.get_dim(mli::kKernelFCChannelOutDim) == m_output.get_dim(mli::kKernelFCChannelOutDim));
@@ -116,9 +109,10 @@ mli_status FullyConnected_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, kFu
                                                   const OffsetBuffer &weights,
                                                   const OffsetBuffer &wtszeropts,
                                                   const OffsetBuffer &ctrl_buffer) {
-  MLI_ASSERT(input.get_buf().get_size() >= m_input_buffer_size * input.get_elem_size());
-  MLI_ASSERT(output.get_buf().get_size() >= m_output_buffer_size * output.get_elem_size());
-  MLI_ASSERT(weights.get_size() >= m_weights_buffer_size * weights.get_elem_size());
+  DEPRECATED_METHOD
+  MLI_ASSERT(input.get_buf().get_size() >= GetInputBufferSize());
+  MLI_ASSERT(output.get_buf().get_size() >= GetOutputBufferSize());
+  MLI_ASSERT(weights.get_size() >= GetWeightsBufferSize());
   MLI_ASSERT(wtszeropts.get_elem_size() == 2);
   m_in.set_buf(input.get_buf());
   m_output.set_buf(output.get_buf());
@@ -128,8 +122,23 @@ mli_status FullyConnected_CS::AttachBufferOffsets(const Tensor<OffsetBuffer, kFu
   return MLI_STATUS_OK;
 }
 
+mli_status FullyConnected_CS::AttachBufferOffsets(const OffsetBuffer& input,
+                                                  const OffsetBuffer& output,
+                                                  const OffsetBuffer& weights_and_zeropts,
+                                                  const OffsetBuffer& ctrl_buffer) {
+  m_in.set_buf(input);
+  m_output.set_buf(output);
+  m_weights.set_buf(weights_and_zeropts);
+  m_weights_zp = OffsetBuffer(weights_and_zeropts, GetWeightsBufferSize() * weights_and_zeropts.get_elem_size());
+  return MLI_STATUS_OK;
+};
+
+/**
+ * @deprecated
+ */
 mli_status FullyConnected_CS::EncodeWeights(const Tensor<Buffer, kFullyConnectedWRank> &weights,
                                             Buffer &encoded_weights) {
+  DEPRECATED_METHOD
   // the element size of source should eqaul to the encoded one's
   MLI_ASSERT(weights.get_buf().get_size() == encoded_weights.get_size());
   // TODO: support other data types
@@ -146,12 +155,27 @@ mli_status FullyConnected_CS::EncodeWeights(const Tensor<Buffer, kFullyConnected
   return MLI_STATUS_OK;
 }
 
-unsigned FullyConnected_CS::GetEncodedWeightsSize() const {
-  return m_weights_buffer_size;
+
+
+mli_status FullyConnected_CS::EncodeWeightsAndZeroPts(TensorIterator<Buffer, kFullyConnectedWRank, kFullyConnectedIterRank>& weights,
+                                                      TensorIterator<Buffer, kFullyConnectedZPRank, kFullyConnectedIterRank>& weights_zp,
+                                                      Buffer& encoded_weights) {
+  MLI_ASSERT(weights.get_buf().get_size() + weights_zp.get_buf().get_size() == encoded_weights.get_size());
+  MLI_ASSERT(weights.get_elem_size() == sizeof(int8_t));
+  MLI_ASSERT(weights_zp.get_elem_size() == sizeof(int8_t));
+  return service::EncodeWeightsAndZeroPts(weights.get_tensor(), weights_zp.get_tensor(), encoded_weights);
 }
 
+unsigned FullyConnected_CS::GetEncodedWeightsSize() const {
+  return GetWeightsBufferSize();
+}
+
+/**
+ * @deprecated
+ */
 mli_status FullyConnected_CS::EncodeWtsZeroPts(const Tensor<Buffer, 1> &wtszeropts,
                                                Buffer &encoded_wtszeropts) {
+  DEPRECATED_METHOD
   MLI_ASSERT(wtszeropts.get_buf().get_size() == encoded_wtszeropts.get_size());
   // the element size of source less than or equal to the encoded one's
   MLI_ASSERT(wtszeropts.get_elem_size() <= encoded_wtszeropts.get_elem_size());
@@ -177,19 +201,19 @@ mli_status FullyConnected_CS::EncodeWtsZeroPts(const Tensor<Buffer, 1> &wtszerop
 }
 
 unsigned FullyConnected_CS::GetEncodedWtsZeroPtsSize() const {
-  return m_wtszp_buffer_size;
+  return service::GetBufferSize(m_wtszp);
 }
 
 unsigned FullyConnected_CS::GetInputBufferSize() const {
-  return m_input_buffer_size;
+  return service::GetBufferSize(m_in);
 }
 
 unsigned FullyConnected_CS::GetWeightsBufferSize() const {
-  return m_weights_buffer_size;
+  return service::GetBufferSize(m_weights);
 }
 
 unsigned FullyConnected_CS::GetOutputBufferSize() const {
-  return m_output_buffer_size;
+  return service::GetBufferSize(m_output);
 }
 unsigned FullyConnected_CS::GetZeroPointBufferSize() const {
   return 0;

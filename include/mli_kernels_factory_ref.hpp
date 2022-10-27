@@ -383,12 +383,15 @@ public:
       return new(kernel_buffer) lib_ref::DepthwiseConv2d_CS(m_pd, input, input_zp, weights, weights_zp, cfg, output);
     }
 
-    uint32_t FullyConnected_CS_GetSize() const override { return sizeof(lib_ref:: FullyConnected_CS); }
+    uint32_t FullyConnected_CS_GetSize() const override { return sizeof(lib_ref::FullyConnected_CS); }
 
-    lib_mli:: FullyConnected_CS* FullyConnected_CS(void *kernel_buffer,
-                                                   const Tensor<NoBuffer, 2> in,
-                                                   const Tensor<NoBuffer, 2> weights,
-                                                   const Tensor<NoBuffer, 2> output_tile_shape) override {
+    /**
+     * @deprecated
+     */
+    lib_mli::FullyConnected_CS* FullyConnected_CS(void *kernel_buffer,
+                                                  const Tensor<NoBuffer, 2> in,
+                                                  const Tensor<NoBuffer, 2> weights,
+                                                  const Tensor<NoBuffer, 2> output_tile_shape) override {
         /**
          * The MLI classes need to be 32 bit aligned
          */
@@ -396,17 +399,35 @@ public:
         assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::FullyConnected_CS(m_pd, in, weights, output_tile_shape);
     }
-    lib_mli:: FullyConnected_CS* FullyConnected_CS(void *kernel_buffer,
-                                                   const Tensor<NoBuffer, 2> in,
-                                                   const Tensor<NoBuffer, 2> weights,
-                                                   const Tensor<NoBuffer, 1> wtszp,
-                                                   const Tensor<NoBuffer, 2> output_tile_shape) override {
+
+    /**
+     * @deprecated
+     */
+    lib_mli::FullyConnected_CS* FullyConnected_CS(void *kernel_buffer,
+                                                  const Tensor<NoBuffer, 2> in,
+                                                  const Tensor<NoBuffer, 2> weights,
+                                                  const Tensor<NoBuffer, 1> wtszp,
+                                                  const Tensor<NoBuffer, 2> output_tile_shape) override {
         /**
-         * The MLI classes need to be 32 bit aligned
-         */
+          * The MLI classes need to be 32 bit aligned
+          */
         assert(kernel_buffer != nullptr);
         assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::FullyConnected_CS(m_pd, in, weights, wtszp, output_tile_shape);
+    }
+
+    lib_mli::FullyConnected_CS* FullyConnected_CS(void* kernel_buffer,
+                                                  const TensorIterator<NoBuffer, kFullyConnectedIORank, kFullyConnectedIterRank>& input,
+                                                  const TensorIterator<NoBuffer, kFullyConnectedWRank, kFullyConnectedIterRank>& weights,
+                                                  const TensorIterator<NoBuffer, kFullyConnectedZPRank, kFullyConnectedIterRank>& weights_zp,
+                                                  const FullyConnectedConfig& cfg,
+                                                  const TensorIterator<NoBuffer, kFullyConnectedIORank, kFullyConnectedIterRank>& output) override {
+        /**
+          * The MLI classes need to be 32 bit aligned
+          */
+        assert(kernel_buffer != nullptr);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
+        return new(kernel_buffer) lib_ref::FullyConnected_CS(m_pd, input, weights, weights_zp, cfg, output);
     }
 
     uint32_t TableBuiltin_CS_GetSize() const override { return 0;/*return sizeof(lib_ref::TableBuiltin_CS);*/ }

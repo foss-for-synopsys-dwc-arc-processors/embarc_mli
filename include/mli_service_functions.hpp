@@ -21,6 +21,7 @@
 
 namespace snps_arc::metaware::mli::service {
 
+// TODO: return bytes instead of number of elements (bytes = number of elements  * size of element)
 template<typename buf_T, unsigned tensorRank>
 inline const unsigned GetBufferSize(const Tensor<buf_T, tensorRank>& tensor) {
   
@@ -36,6 +37,7 @@ inline const unsigned GetBufferSize(const Tensor<buf_T, tensorRank>& tensor) {
   return ret_val;
 }
 
+// TODO: return bytes instead of number of elements (bytes = number of elements  * size of element)
 inline const unsigned GetBufferSize(int rank, const uint32_t* shape,
                                     const int32_t* stride) {
   unsigned ret_val = 0;
@@ -46,6 +48,7 @@ inline const unsigned GetBufferSize(int rank, const uint32_t* shape,
   return ret_val;
 }
 
+// TODO: return bytes instead of number of elements (bytes = number of elements  * size of element)
 inline const unsigned GetBufferSize(int rank, const uint32_t* shape) {
   unsigned ret_val = 0;
   int32_t stride = 1;
@@ -143,7 +146,7 @@ mli_status EncodeWeightsAndZeroPts(const Tensor<Buffer, weights_rank>& weights,
       encoded.write(i, w_buf.template read<int8_t>(i));
     }
     for (uint32_t i = 0; i < wzp_buf.get_size(); ++i) {
-      encoded.write(i, wzp_buf.template read<int8_t>(i));
+      encoded.write(w_buf.get_size() + i, wzp_buf.template read<int8_t>(i));
     }
     return MLI_STATUS_OK;
   }

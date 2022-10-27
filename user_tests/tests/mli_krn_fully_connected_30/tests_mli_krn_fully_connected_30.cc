@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <cstdlib>
-#include <iostream>
 
 #include "mli_api.h"
 #include "mli_config.h"
@@ -27,6 +26,7 @@
 #include "test_rescale_utility.h"
 #include "test_tensor_quantizer.h"
 #include "test_report.h"
+#include "test_tiling.hpp"
 #include "vectors_mli_krn_fully_connected.inc"
 
 using mli::tst::tensor_quantizer;
@@ -44,6 +44,10 @@ namespace lib_mli = ::snps_arc::metaware::mli;
 namespace lib_ref = ::snps_arc::metaware::mli::ref;
 
 using lib_mli::kKernelFCChannelOutDim;
+using lib_mli::kFullyConnectedIORank;
+using lib_mli::kFullyConnectedWRank;
+using lib_mli::kFullyConnectedZPRank;
+using lib_mli::kFullyConnectedIterRank;
 
 using lib_mli::kRescaleRank;
 using lib_mli::kRescaleIterRank;
@@ -184,6 +188,8 @@ static int8_t g_scratch_mem_w[kMemSize] = { 0 };
 static int8_t g_scratch_mem_b[kMemSize] = { 0 };
 constexpr uint32_t kMemPoolSize = 8192;
 static IO_DATA_ATTR int8_t g_mem_pool[kMemPoolSize] = {0};
+constexpr uint32_t kWeightsAndWeightsZPBufferSize = 1000;
+static int8_t g_weights_buf_mem[kWeightsAndWeightsZPBufferSize] = { 0 };
 
 struct FullyConnectedOp {
   // Fully Connected Kernel
@@ -446,8 +452,13 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
   lib_ref::KernelsFactory kernel_factory(pd);
   uint32_t fully_connected_cs_size = kernel_factory.FullyConnected_CS_GetSize();
   void* fully_connected_cs_buffer = malloc(fully_connected_cs_size);
-  auto FullyConn = kernel_factory.FullyConnected_CS(
-    fully_connected_cs_buffer, in_tensor, wt_tensor, wtzp_tensor, out_tensor);
+  assert(fully_connected_cs_buffer);
+  auto in_tensor_it = lib_mli::TensorIterator<lib_mli::NoBuffer, kFullyConnectedIORank, kFullyConnectedIterRank>(in_tensor);
+  auto wt_tensor_it = lib_mli::TensorIterator<lib_mli::NoBuffer, kFullyConnectedWRank, kFullyConnectedIterRank>(wt_tensor);
+  auto wtzp_tensor_it = lib_mli::TensorIterator<lib_mli::NoBuffer, kFullyConnectedZPRank, kFullyConnectedIterRank>(wtzp_tensor);
+  auto out_tensor_it = lib_mli::TensorIterator<lib_mli::NoBuffer, kFullyConnectedIORank, kFullyConnectedIterRank>(out_tensor);
+  lib_mli::FullyConnectedConfig fc_cfg;
+  auto FullyConn = kernel_factory.FullyConnected_CS(fully_connected_cs_buffer, in_tensor_it, wt_tensor_it, wtzp_tensor_it, fc_cfg, out_tensor_it);
 
   // STEP 1.1.2: Construct [Rescale] as a specific ExecutionInterface successor
   //==================================================================
@@ -516,7 +527,6 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
   //==================================================================
   uint32_t in_mem_offset = 0;
   uint32_t w_mem_offset = 0;
-  uint32_t wtszp_mem_offset = 0;
   uint32_t offsets[1] = {0};
 
   // NOTE: Currently, only supoort these data types.
@@ -540,17 +550,16 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
   uint32_t fc_i_elem_size = mli_hlp_tensor_element_size(&fc_op.input);
   uint32_t in_size = FullyConn->GetInputBufferSize() * fc_i_elem_size;
   lib_mli::OffsetBuffer fully_connected_in_buf{*fc_offset, 0, in_size, fc_i_elem_size};
-  lib_mli::Tensor<lib_mli::OffsetBuffer, 2> fully_connected_in_tensor(fully_connected_in_buf, input_shape);
   in_mem_offset = *fc_offset;
   *fc_offset += in_size;
 
   // fully connected weight
   fc_offset = &offsets[0];
   uint32_t fc_w_elem_size = mli_hlp_tensor_element_size(&fc_op.weights);
-  uint32_t w_size = FullyConn->GetWeightsBufferSize() * fc_w_elem_size;
-  lib_mli::OffsetBuffer fully_connected_w_buf{*fc_offset, 0, w_size, fc_w_elem_size};
+  uint32_t w_and_wzp_size = FullyConn->GetWeightsBufferSize() * fc_w_elem_size + FullyConn->GetEncodedWtsZeroPtsSize() * sizeof(int16_t);
+  lib_mli::OffsetBuffer fully_connected_w_buf{*fc_offset, 0, w_and_wzp_size, fc_w_elem_size};
   w_mem_offset = *fc_offset;
-  *fc_offset += w_size;
+  *fc_offset += w_and_wzp_size;
 
   // fully connected output
   fc_offset = &offsets[0];
@@ -560,17 +569,8 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
   *fc_offset = CEIL_RND(*fc_offset, fc_o_elem_size);
   uint32_t out_size = FullyConn->GetOutputBufferSize() * fc_o_elem_size;
   lib_mli::OffsetBuffer fully_connected_out_buf{*fc_offset, 0, out_size, fc_o_elem_size};
-  lib_mli::Tensor<lib_mli::OffsetBuffer, 2> fully_connected_out_tensor(fully_connected_out_buf, output_shape);
   fc_out_mem_offset = *fc_offset;
   *fc_offset += out_size;
-
-  // fully connected weights zero point
-  uint32_t zp_elem_size = sizeof(int16_t);
-  fc_offset = &offsets[0];
-  uint32_t wtszp_size = FullyConn->GetEncodedWtsZeroPtsSize() * zp_elem_size;
-  lib_mli::OffsetBuffer fc_wtszp_buf{*fc_offset, 0, wtszp_size, zp_elem_size};
-  wtszp_mem_offset = *fc_offset;
-  *fc_offset += wtszp_size;
 
   // MLI tensor structures and fully connected configuration
   fc_offset = &offsets[0];
@@ -581,11 +581,10 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
   // Attaching buffer (descriptors) to the operation
   mli_status status = MLI_STATUS_OK;
 
-  status = FullyConn->AttachBufferOffsets(fully_connected_in_tensor,
-                                             fully_connected_out_tensor,
-                                             fully_connected_w_buf,
-                                             fc_wtszp_buf,
-                                             fully_connected_descr_buf);
+  status = FullyConn->AttachBufferOffsets(fully_connected_in_buf,
+                                          fully_connected_out_buf,
+                                          fully_connected_w_buf,
+                                          fully_connected_descr_buf);
   assert(status == MLI_STATUS_OK);
 
   // STEP 1.2.2: [Rescale] Memory management (Up to user on how to deal with it)
@@ -711,42 +710,56 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
     const uint32_t idx = in_mem_offset + i;
     g_mem_pool[idx] = fc_op.input.data.mem.pi8[i];
   }
-  // Copy weights from scratch buffer to the shaped memory pool (EncodeWeights is not supported)
-  assert(w_mem_offset + fc_op.weights.data.capacity <= kMemPoolSize);
-  for (uint32_t i = 0; i < fc_op.weights.data.capacity; ++i) {
-    const uint32_t idx = w_mem_offset + i;
-    g_mem_pool[idx] = fc_op.weights.data.mem.pi8[i];
-  }
 
-  // Copy weights zero points to the temp host buffers
+  // Copy weights and weights zero points to the Buffer and to the g_mem from it
   //==================================================================
-  char * host_buf_a = (char *) malloc(wtszp_size);
-  char * host_buf_b = (char *) malloc(wtszp_size);
-  lib_mli::Buffer src_wtszp_buf(host_buf_a, wtszp_size, sizeof(int8_t));
-  lib_mli::Buffer dst_wtszp_buf(host_buf_b, wtszp_size, sizeof(int16_t));
-  assert(src_wtszp_buf.get_size() == fc_wtszp_buf.get_size());
-  assert(src_wtszp_buf.get_elem_size() * 2 == fc_wtszp_buf.get_elem_size());
+  assert(fc_i_elem_size == sizeof(int8_t) && fc_w_elem_size == sizeof(int8_t));
+  uint32_t full_weights_size = FullyConn->GetEncodedWeightsSize();
+  assert(full_weights_size == lib_mli::service::GetBufferSize(kFullyConnectedWRank, weight_shape, weight_stride) * fc_w_elem_size);
+  uint32_t full_wtszp_size = FullyConn->GetEncodedWtsZeroPtsSize();
+  uint32_t full_weights_and_wzp_size = full_wtszp_size + full_weights_size;
+  assert(full_weights_and_wzp_size <= kWeightsAndWeightsZPBufferSize);
 
-  uint32_t fc_wtszp_shape[1] = {wtszp_size};
-  lib_mli::Tensor<lib_mli::Buffer, 1> wtszp_tensor(src_wtszp_buf, fc_wtszp_shape);
-
-  // weights zero points: mli_tensor -> host buffer
-  if (fc_op.weights.el_params.sa.dim == -1) {
+  // copy weights zero point(s) into wtszp_tensor
+  void* src_wzp_mem = malloc(full_wtszp_size);
+  assert(src_wzp_mem);
+  lib_mli::Buffer src_wtszp_buf(src_wzp_mem, full_wtszp_size, fc_w_elem_size);
+  uint32_t fc_wtszp_shape[kFullyConnectedZPRank] = { full_wtszp_size };
+  lib_mli::Tensor<lib_mli::Buffer, kFullyConnectedZPRank> wtszp_tensor(src_wtszp_buf, fc_wtszp_shape);
+  if (fc_op.weights.el_params.sa.dim == kPerTensorQuantDim) {
     assert(fc_op.weights.el_params.sa.zero_point.capacity == 0);
     wtszp_tensor.write(0, static_cast<int8_t>(fc_op.weights.el_params.sa.zero_point.mem.i16));
   } else {
-    assert(fc_op.weights.el_params.sa.zero_point.capacity == src_wtszp_buf.get_size());
-    for (size_t i = 0; i < wtszp_size / sizeof(int16_t); ++i) {
+    assert(full_wtszp_size == src_wtszp_buf.get_size());
+    for (size_t i = 0; i < full_wtszp_size; ++i) {
       wtszp_tensor.write(int(i), static_cast<int8_t>(fc_op.weights.el_params.sa.zero_point.mem.pi16[i]));
     }
   }
-  // host tensor -> encoded host buffer
-  status = FullyConn->EncodeWtsZeroPts(wtszp_tensor, dst_wtszp_buf);
+
+  // copy weights into src_weights_buf
+  void* src_w_mem = malloc(full_weights_size);
+  assert(src_w_mem);
+  lib_mli::Buffer src_weights_buf(src_w_mem, full_weights_size, fc_w_elem_size);
+  lib_mli::Tensor<lib_mli::Buffer, kFullyConnectedWRank> weights_tensor(src_weights_buf, weight_shape);
+  int32_t zero_offsets[kFullyConnectedWRank]{};
+  strided_copy_with_offsets(kFullyConnectedWRank, fc_w_elem_size,
+                            fc_op.weights.data.mem.pi8,
+                            zero_offsets, zero_offsets, weight_stride,
+                            weight_shape, weights_tensor.get_buf().get_ptr<int8_t>());
+
+  // encoded weights and weights zero point(s) in dst_w_wzp_encoded_buffer
+  lib_mli::Buffer dst_w_wzp_encoded_buffer((void*)g_weights_buf_mem, full_weights_and_wzp_size, fc_w_elem_size);
+  auto w_tensor_it_with_buf = lib_mli::TensorIterator<lib_mli::Buffer, kFullyConnectedWRank, kFullyConnectedIterRank>(weights_tensor);
+  auto wzp_tensor_it_with_buf = lib_mli::TensorIterator<lib_mli::Buffer, kFullyConnectedZPRank, kFullyConnectedIterRank>(wtszp_tensor);
+  status = FullyConn->EncodeWeightsAndZeroPts(w_tensor_it_with_buf, wzp_tensor_it_with_buf, dst_w_wzp_encoded_buffer);
   assert(status == MLI_STATUS_OK);
-  auto wtszp_mem = reinterpret_cast<int16_t*>((int8_t*)g_mem_pool + wtszp_mem_offset);
-  // encoded host buffer -> global mem pool
-  for (size_t i = 0; i < wtszp_size / sizeof(int16_t); ++i) {
-    wtszp_mem[i] = dst_wtszp_buf.read<int16_t>(i);
+  free(src_wzp_mem);
+  free(src_w_mem);
+
+  // copy encoded weights and weights zp(s) from dst_w_wzp_encoded_buffer to g_mem_pool
+  assert(w_mem_offset + full_weights_and_wzp_size <= kMemPoolSize);
+  for (uint32_t i = 0; i < full_weights_and_wzp_size; ++i) {
+    g_mem_pool[w_mem_offset + i] = dst_w_wzp_encoded_buffer.read<int8_t>(i);
   }
 
   // Compile fully connected into the binary data
@@ -909,8 +922,6 @@ void prepare_phase(const fully_connected_test_operands* cur_test,
   free(fully_connected_cs_buffer);
   free(rescale_cs_buffer);
   free(clip_cs_buffer);
-  free(host_buf_a);
-  free(host_buf_b);
   free(host_src_buf);
   free(host_dst_buf);
   free(clp_host_src_buf);

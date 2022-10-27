@@ -337,6 +337,13 @@ public:
     elem_size_ = elem_size;
   }
 
+  OffsetBuffer(const OffsetBuffer& buf, uint32_t rel_offset) {
+    *this = buf;
+    assert(size_ >= rel_offset);
+    offset_ += rel_offset;
+    size_ -= rel_offset;
+  }
+
   uint32_t get_size() const {
     return size_;
   }

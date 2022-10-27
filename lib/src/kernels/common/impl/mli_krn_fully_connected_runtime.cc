@@ -96,28 +96,28 @@ FullyConnected::FullyConnected(void* kernel_private_data_buffer,
     tsr.mem_stride[1] = private_data.weights_oc_stride;
 
     // weights zero point should have the same size as the tensor they belong to.
-    uint32_t wtszp_elem_size = private_data.wtszp_buffer.get_elem_size();
-    MLI_ASSERT(wtszp_elem_size == sizeof(int16_t));
+    uint32_t wtszp_elem_size = sizeof(int16_t);
     uint32_t wtszp_size = private_data.wtszp_buffer.get_size();
 
     // per-channel quantization
+    // TODO: change zp to support both int8_t and int16_t (now zero int16_t value casted to int8_t and back to int16_t here )
     if (wtszp_size / wtszp_elem_size > 1) {
       MLI_ASSERT(private_data.qt_wtszp_axis < MLI_MAX_RANK);
       MLI_ASSERT(private_data.weights_oc == wtszp_size / wtszp_elem_size);
-      MLI_ASSERT(wtszp_elem_size == sizeof(int16_t));
       tsr.el_params.sa.dim = private_data.qt_wtszp_axis;
 
       tsr.el_params.sa.zero_point.capacity = wtszp_size;
       InternalBuffer wtszp_internal(private_data.wtszp_buffer, membases, num_mems);
+      wtszp_internal.set_elem_size(sizeof(int16_t));
       tsr.el_params.sa.zero_point.mem.pi16 = wtszp_internal.get_ptr<int16_t>();
     } else {
       // per-tensor quantization
       MLI_ASSERT(1 == wtszp_size / wtszp_elem_size);
-      MLI_ASSERT(wtszp_elem_size == sizeof(int16_t));
       tsr.el_params.sa.dim = private_data.qt_wtszp_axis;
       tsr.el_params.sa.zero_point.capacity = 0;
 
       InternalBuffer wtszp_internal(private_data.wtszp_buffer, membases, num_mems);
+      wtszp_internal.set_elem_size(sizeof(int16_t));
       tsr.el_params.sa.zero_point.mem.i16 = wtszp_internal.read<int16_t>(0);
     }
   }

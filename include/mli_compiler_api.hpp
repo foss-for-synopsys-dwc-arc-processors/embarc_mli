@@ -626,6 +626,7 @@ public:
 
     /**
      * @brief Method to encode the weights (coefficients).
+     * @deprecated
      * TODO: add description using conv2d_cs as a starting point
      */
     virtual mli_status EncodeWeights(const Tensor<Buffer, kFullyConnectedWRank> &weights,
@@ -649,6 +650,7 @@ public:
                                                Buffer &encoded_weights)
                                                { NOT_IMPLEMENTED_METHOD;
                                                  return MLI_STATUS_OK; };
+
     /**
      * @brief Method to query the size of the encoded weights buffer
      *
@@ -657,10 +659,11 @@ public:
 
     /**
      * @brief Method to encode weights zero-points
-     *
+     * @deprecated
      */
     virtual mli_status EncodeWtsZeroPts(const Tensor<Buffer, kFullyConnectedZPRank> &wtszeropts,
                                         Buffer &encoded_wtszeropts) = 0;
+
     /**
      * @brief Method to query the size of the encoded weights zero-points buffer
      *
@@ -671,15 +674,13 @@ public:
      * @brief Methods to get buffer sizes
      * TODO: add description using conv2d_cs as a starting point
      */
-
     virtual unsigned GetInputBufferSize() const = 0;
     virtual unsigned GetOutputBufferSize() const = 0;
     virtual unsigned GetWeightsBufferSize() const = 0;
     virtual unsigned GetZeroPointBufferSize() const = 0;
-    /**
 
+    /**
      * @brief Methods to set buffer offsets
-     *
      */
     virtual mli_status AttachBufferOffsets(const Tensor<OffsetBuffer, kFullyConnectedIORank> &input,
                                            const Tensor<OffsetBuffer, kFullyConnectedIORank> &output,
