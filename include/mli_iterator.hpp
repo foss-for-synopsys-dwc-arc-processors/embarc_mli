@@ -169,6 +169,7 @@ class IteratorCfg {
                 const uint32_t pre_padding[]) {         // number of virtual pixels added before each dimension
       for (uint32_t i = 0; i < iterRank; ++i) {
         int32_t dim = icfg.m_order[i];
+        uint32_t tns_dim = tensor.get_dim(dim);
         m_order[i] = dim;
         m_count[i] = icfg.m_count[i];
         m_pos_inc[i] = icfg.m_pos_inc[i] * stride[dim];
@@ -181,9 +182,9 @@ class IteratorCfg {
         MLI_ASSERT(icfg.m_first_pos_inc[i] * stride[dim] >= pre_padding[dim]);
         m_first_pos_inc[i] = icfg.m_first_pos_inc[i] * stride[dim] - (int32_t)pre_padding[dim];
         m_last_pos_inc[i] = m_count[i] > 1 ? m_pos_inc[i] * (2 - m_count[i]) - m_first_pos_inc[i] : 0;
-        m_size[i] = (icfg.m_size[i] - 1) * stride[dim] + effective_kernel_size[dim];
-        m_first_size[i] = (icfg.m_first_size[i] - 1) * stride[dim] + effective_kernel_size[dim] - pre_padding[dim];
-        m_last_size[i] = tensor.get_dim(dim) + m_last_pos_inc[i];
+        m_size[i] = MIN((icfg.m_size[i] - 1) * stride[dim] + effective_kernel_size[dim], tns_dim);
+        m_first_size[i] = MIN((icfg.m_first_size[i] - 1) * stride[dim] + effective_kernel_size[dim] - pre_padding[dim], tns_dim);
+        m_last_size[i] = tns_dim + m_last_pos_inc[i];
         m_diff_code[i] = CalcDiffCode(m_count[i], m_first_size[i], m_size[i], m_last_size[i]);
       }
       m_buf_tiles_num = icfg.get_buf_tiles_num();
@@ -987,15 +988,18 @@ class TensorIterator {
     }
 
 
-
+    /**
+     * @brief Returns the subtensor of the full tensor in current iteration position
+     *
+     */
     Tensor<buf_T, tensorRank> GetSubTensor() {
       uint32_t pos[tensorRank];
       uint32_t copysize[tensorRank];
-      uint32_t r = 0;
-      for (r = 0; r < iterRank; r++) {
+      // If the iterRank is less than the tensorRank we need to return the full size of non-iterable dimension
+      for (uint32_t r = 0; r < tensorRank; ++r) pos[r] = 0, copysize[r] = m_full_tensor.get_dim(r);
+      for (uint32_t r = 0; r < iterRank; ++r) {
         int32_t dim = m_config.get_order(r);
         if (dim == kSkipIterDim) continue;
-
         pos[dim] = (uint32_t)m_pos[r];
         if (m_tile_idx[r] == m_config.get_count(r) - 1) { // Last iteration
           copysize[dim] = m_config.get_last_size(r);
@@ -1004,7 +1008,6 @@ class TensorIterator {
         } else { // Middle iteration
           copysize[dim] = m_config.get_size(r);
         }
-        copysize[dim] = MIN(m_full_tensor.get_dim(dim) - pos[dim], copysize[dim]);
       }
       return m_full_tensor.slice(pos, copysize);
     }
