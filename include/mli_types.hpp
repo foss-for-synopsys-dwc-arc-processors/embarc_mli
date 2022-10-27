@@ -141,7 +141,6 @@ constexpr short int kReduceMaxIterRank = 4;
 constexpr unsigned kMoveBroadcastRank = 4;      // ToDo: when mli_tensor takes [rank=5] -> change rank from 4 to 5.
 constexpr unsigned kMoveBroadcastIterRank = 4;  // ToDo: when mli_tensor takes [rank=5] -> change rank from 4 to 5.
 
-constexpr short int kResizeDim = 2;
 constexpr short int kResizeBilinearRank = 4;
 constexpr short int kResizeBilinearIterRank = 4;
 
@@ -1006,17 +1005,19 @@ struct PreluOpConfig {
 };
 
 struct ResizeOpConfig {
+  static constexpr unsigned kResizeParamRank = 2;
+
   ResizeOpConfig() = default;
-  ResizeOpConfig(int16_t *stride, int16_t *offset, int8_t shift) {
-    for(int8_t i = 0; i < kResizeDim; i++) {
+  ResizeOpConfig(int16_t stride[kResizeParamRank], int16_t offset[kResizeParamRank], int8_t shift) {
+    for(unsigned i = 0; i < kResizeParamRank; i++) {
       this->stride[i] = stride[i];
       this->offset[i] = offset[i];
     }
     this->shift = shift;
   }
 
-  int16_t stride[kResizeDim];    /**< [stride_H, stride_W] */
-  int16_t offset[kResizeDim];    /**< [offset_H, offset_W] */
+  int16_t stride[kResizeParamRank];    /**< [stride_H, stride_W] */
+  int16_t offset[kResizeParamRank];    /**< [offset_H, offset_W] */
   int8_t shift;         /**< Shift value (for fractional stride and offset) */
 
 };

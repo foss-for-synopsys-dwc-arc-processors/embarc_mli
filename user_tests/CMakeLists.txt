@@ -259,3 +259,8 @@ add_user_test(krn eltwise_30)
 #======================================================
 add_user_test(krn reduce_max_30)
 add_user_test(krn reduce_sum_30)
+
+#======================================================
+# Resize Group
+#======================================================
+add_user_test(krn resize_bilinear_30)

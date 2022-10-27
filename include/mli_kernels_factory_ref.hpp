@@ -318,7 +318,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::SumPool2D_CS(m_pd, in, cfg, output_tile_shape);
     }
 
@@ -331,7 +331,7 @@ public:
          * The MLI classes need to be 32 bit aligned
          */
         assert(kernel_buffer != nullptr);
-        assert(((unsigned long) kernel_buffer % kMliAlignment) == 0);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
         return new(kernel_buffer) lib_ref::SumPool2D_CS(m_pd, in, cfg, out);
     }
 

@@ -80,6 +80,8 @@ set(MLI_LIB_SOURCE_FILES
     ${MLI_LIB_CMAKE_DIR}/src/kernels/conversion/mli_reduce_max_runtime.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/conversion/mli_reduce_sum_compiler.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/conversion/mli_reduce_sum_runtime.cc
+    ${MLI_LIB_CMAKE_DIR}/src/kernels/conversion/mli_resize_bilinear_compiler.cc
+    ${MLI_LIB_CMAKE_DIR}/src/kernels/conversion/mli_resize_bilinear_runtime.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/clip/mli_krn_clip_compiler.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/clip/mli_krn_clip_runtime.cc
     ${MLI_LIB_CMAKE_DIR}/src/kernels/transform/mli_krn_prelu_compiler.cc

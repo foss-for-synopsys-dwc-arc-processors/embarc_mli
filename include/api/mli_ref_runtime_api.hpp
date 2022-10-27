@@ -1190,6 +1190,9 @@ private:
     void MoveBroadcastRun(Tensor<buf_T, N> &src, Tensor<buf_T, N> &dst);
 };
 
+// TODO: remove this after standard version of ResizeBilinear with Issue() will be added
+void run_mli_resize_bilinear_standalone(const mli_tensor* in, const ResizeOpConfig& cfg, mli_tensor* out);
+
 } // namespace snps_arc::metaware::mli::ref
 
 #endif // _MLI_REF_RUNTIME_API_HPP_

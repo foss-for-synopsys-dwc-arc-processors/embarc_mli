@@ -65,9 +65,8 @@ KERNELS = \
 	reduce_sum_30 \
 	permute_30 \
 	move_broadcast_30 \
-	matmul_30
-
-
+	matmul_30 \
+	resize_bilinear_30
 
 BIN_FILES=$(patsubst %,$(BIN_PATH)$(PS)test_mli_hlp_%$(BIN_EXT),$(HELPERS))
 BIN_FILES+=$(patsubst %,$(BIN_PATH)$(PS)test_mli_krn_%$(BIN_EXT),$(KERNELS))
