@@ -286,7 +286,15 @@ class IteratorCfg {
       }
     }
 
-    // Method to convert iterator granulatiries along certain dimension
+    /**
+     * @brief 
+     * 
+     * Method to convert IteratorCfg granularities along specific dim
+     * 
+     * @param tnsDim            [I] Tensor Dimension to apply Vectorization to it.
+     * @param old_vector_size   [I] Old Vector Size in bytes.
+     * @param new_vector_size   [I] New Vector Size in bytes.
+     */
     void ConvertGran(int32_t tnsDim, int32_t old_vector_size, int32_t new_vector_size) {
       for (uint32_t i = 0; i < iterRank; ++i) if (m_order[i] == tnsDim) {
         m_first_size[i] = CEIL_DIV(m_first_size[i] * old_vector_size, new_vector_size);
@@ -858,11 +866,25 @@ class TensorIterator {
     }
 
     void ApplyPrePadding(const uint32_t pre_padding[tensorRank]) {
-      m_config.ApplyPrePadding(pre_padding);
+      m_config.template ApplyPrePadding<tensorRank>(pre_padding);
     }
 
     void ApplyAlignsToSizes(const uint32_t aligns[tensorRank]) {
-      m_config.ApplyAlignsToSizes(aligns);
+      m_config.template ApplyAlignsToSizes<tensorRank>(aligns);
+    }
+
+    /**
+     * @brief 
+     * 
+     * Method to convert TensorIterator granularities along inner most dimension
+     * 
+     * @param new_vector_size   [I] New Vector Size in bytes.
+     * @param reverse_order     [I] if false Vectorization is applied on the last dim, otherwise on first dim.
+     */
+    void ConvertGran(int new_vector_size, bool reverse_order = false) {
+      int tns_dim = reverse_order ? 0 : get_rank() - 1;
+      m_config.ConvertGran(tns_dim, get_elem_size(), new_vector_size);
+      m_full_tensor.ConvertGran(new_vector_size, reverse_order);
     }
 
     /**

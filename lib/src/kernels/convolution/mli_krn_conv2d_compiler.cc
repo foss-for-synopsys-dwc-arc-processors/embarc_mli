@@ -17,7 +17,6 @@ namespace snps_arc::metaware::mli::ref {
 
 /**
   * @deprecated
-  * Be carefull - you need to use another deprected method to set tiling - SetIterators
   * Be carefull - conv2d I/O tensors of rank 4 are deprecated - new interfaces use rank 5
   * Be carefull - this is the most deprecated Constructor
   */
@@ -292,82 +291,6 @@ unsigned Conv2d_CS::GetOutputBufferSize() {
 
 unsigned Conv2d_CS::GetZeroPointBufferSize() {
   return 0;
-}
-
-/**
-  * @deprecated
-  * Be carefull - conv2d I/O tensors of rank 4 are deprecated - new interfaces use rank 5 
-  */
-mli_status Conv2d_CS::SetIterators(uint32_t output_total_size[4],
-                                   uint32_t iteration_order[4],
-                                   uint32_t input_first_inc[4],
-                                   uint32_t input_inc[4],
-                                   uint32_t output_first_inc[4],
-                                   uint32_t output_inc[4],
-                                   uint32_t weights_inc[4]) {
-
-  DEPRECATED_METHOD
-
-  // set output tensor iterator
-  int32_t output_mem_stride[kConvIORank];
-  m_output.get_mem_strides(output_mem_stride);
-  uint32_t output_total_size_5d[kConvIORank]; // B, H, W, C -> B, H, W, G=1, C
-  for (int i = 0; i < 4; i++) {
-    output_total_size_5d[i] = output_total_size[i];
-  }
-  output_total_size_5d[kGroupTensorChannelDim] = output_total_size_5d[kGroupTensorGroupDim];
-  output_total_size_5d[kGroupTensorGroupDim] = 1;
-
-  const Tensor<NoBuffer, kConvIORank> output_tensor(output_total_size_5d, output_mem_stride);
-  uint32_t output_inc_5d[kConvIOIterRank]; // B, H, W, C -> B, H, W, G=1, C
-  for (int i = 0; i < 4; i++) {
-    output_inc_5d[i] = output_inc[i];
-  }
-  output_inc_5d[kGroupTensorChannelDim] = output_inc_5d[kGroupTensorGroupDim];
-  output_inc_5d[kGroupTensorGroupDim] = 1;
-
-  int32_t iteration_order_signed[kConvIOIterRank];
-  for (int i = 0; i < 4; i++) {
-    iteration_order_signed[i] = (int32_t)iteration_order[i];
-  }
-  iteration_order_signed[4] = 4;
-
-  TensorIterator<NoBuffer, kConvIORank, kConvIOIterRank> output_tensor_it(output_tensor, output_inc_5d, iteration_order_signed);
-  m_output = TensorIterator<OffsetBuffer, kConvIORank, kConvIOIterRank>(output_tensor_it);
-
-  // set input tensor iterator
-  uint32_t effective_kernel_size[kConvIORank]{
-    1, service::get_effective_kernel_size(m_weights.get_dim(kKernelHeightDim), m_config.dilation[0]),
-    service::get_effective_kernel_size(m_weights.get_dim(kKernelWidthDim), m_config.dilation[1]),
-    1, m_input.get_dim(kGroupTensorChannelDim)
-  };
-  uint32_t stride[kConvIORank]{ 1, m_config.stride[0], m_config.stride[1], 1, 0};
-  uint32_t pre_padding[kConvIORank]{ 0, m_config.padding_begin[0], m_config.padding_begin[1], 0, 0};
-  int32_t input_mem_stride[kConvIORank];
-  m_input.get_mem_strides(input_mem_stride);
-  uint32_t input_shape[kConvIORank];
-  m_input.get_full_shape(input_shape);
-  const Tensor<NoBuffer, kConvIORank> full_in_tensor(input_shape, input_mem_stride);
-  TensorIterator<NoBuffer, kConvIORank, kConvIOIterRank> in_tensor_it(full_in_tensor, output_tensor_it,
-                                                                      effective_kernel_size, stride, pre_padding);
-  // set weights tensor iterator
-  int32_t weights_mem_stride[kConvIORank];
-  m_weights.get_mem_strides(weights_mem_stride);
-  uint32_t weights_shape[kConvWRank];
-  m_weights.get_full_shape(weights_shape);
-  const Tensor<NoBuffer, kConvWRank> wt_tensor(weights_shape, weights_mem_stride);
-  const int32_t zero_inc_mask[kConvWRank]{ 1, 1, 1, 1, 0 };
-  TensorIterator<NoBuffer, kConvWRank, kConvWIterRank> w_tensor_it(wt_tensor, output_tensor_it, nullptr, zero_inc_mask);
-  m_weights = TensorIterator<OffsetBuffer, kConvWRank, kConvWIterRank>(w_tensor_it);
-
-  // set weights ZPs tensor iterator
-  uint32_t wzp_shape[kConvZPRank]{ output_total_size_5d[kGroupTensorChannelDim] };
-  Tensor<NoBuffer, kConvZPRank> wzp_tensor(wzp_shape);
-  const int32_t wzp_it_order[kConvWRank]{ -1, -1, -1, -1, 0 };
-  TensorIterator<NoBuffer, kConvZPRank, kConvZPIterRank> wzp_tensor_it(wzp_tensor, output_tensor_it, wzp_it_order, zero_inc_mask);
-  m_weights_zp = TensorIterator<OffsetBuffer, kConvZPRank, kConvZPIterRank>(wzp_tensor_it);
-
-  return MLI_STATUS_OK;
 }
 
 }  // namespace snps_arc::metaware::mli::ref

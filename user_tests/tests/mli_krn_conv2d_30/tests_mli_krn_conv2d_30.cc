@@ -81,6 +81,11 @@ using lib_mli::kClipIterRank;
 using lib_mli::kPreluRank;
 using lib_mli::kPreluIterRank;
 
+using lib_mli::kPreluParamRank;
+using lib_mli::kTensorChannelDim;
+
+using lib_mli::kSkipIterDim;
+
 struct conv2d_test_operands {
     const char* descr;
     tensor_quantizer in;
@@ -244,6 +249,8 @@ constexpr uint32_t kMemPoolSize = 16384;
 static IO_DATA_ATTR int8_t g_mem_pool[kMemPoolSize] = {0};
 constexpr uint32_t kWeightsAndWeightsZPBufferSize = 1112;
 static int8_t g_weights_buf_mem[kWeightsAndWeightsZPBufferSize] = { 0 };
+constexpr uint32_t kPreluEncodedParamBufSize = 77;
+static int8_t g_prelu_buf_mem[kPreluEncodedParamBufSize];
 
 struct Conv2dOp {
   // Conv2d Kernel
@@ -453,7 +460,7 @@ bool preprocess_phase(const reporter_full& reporter,
 
 
 void prepare_phase(const conv2d_test_operands* cur_test, uint32_t& num_tiles,
-                  Conv2dOp& cnv_op, PreluOp &pr_op, ClipOp &clp_op) {
+                  Conv2dOp& cnv_op, PreluOp &pr_op, ClipOp &clp_op, lib_mli::Buffer &encoded_params_buffer) {
 
   static_assert(BATCH_SIZE == 1 && NUM_GROUPS == 1);
 
@@ -595,17 +602,12 @@ void prepare_phase(const conv2d_test_operands* cur_test, uint32_t& num_tiles,
   if (mli_hlp_count_elem_num(&pr_op.mli3_scales_keeper.get_scales_tsr(), 0) == 1) {
       pr_cfg.axis = -1;
   } else {
-      pr_cfg.axis = 3;
+      pr_cfg.axis = kGroupTensorChannelDim;
   }
 
-  assert(kPreluRank == kConvIORank - 1);
-  assert(kPreluIterRank == kConvIOIterRank - 1);
-  uint32_t io_output_shape[kPreluRank]{ total_output_size[0], total_output_size[1], total_output_size[2], total_output_size[4] };
-  int32_t io_output_strides[kPreluRank]{ output_stride[0], output_stride[1], output_stride[2], output_stride[4] };
-  lib_mli::Tensor<lib_mli::NoBuffer, kPreluRank> io_tensor(io_output_shape, io_output_strides);
-  lib_mli::IteratorCfg<kPreluRank> io_it_cfg(out_tensor_it.get_config(), kGroupTensorGroupDim);
-  lib_mli::TensorIterator<lib_mli::NoBuffer, kPreluRank, kPreluIterRank> io_tensor_it(io_tensor, io_it_cfg);
-  auto prelu_op = kernel_factory.Prelu_CS(prelu_cs_buffer, io_tensor_it, pr_cfg, io_tensor_it, NUM_GROUPS);
+  assert(kPreluRank == kConvIORank);
+  assert(kPreluIterRank == kConvIOIterRank);
+  auto prelu_op = kernel_factory.Prelu_CS(prelu_cs_buffer, out_tensor_it, pr_cfg, out_tensor_it);
 
   // STEP 1.1.3: Construct [Clip] as a specific ExecutionInterface successor
   //==================================================================
@@ -631,8 +633,14 @@ void prepare_phase(const conv2d_test_operands* cur_test, uint32_t& num_tiles,
   uint32_t clip_cs_size = kernel_factory.Clip_CS_GetSize();
   void* clip_cs_buffer = malloc(clip_cs_size);
 
-  assert(kPreluRank == kClipRank);
-  assert(kPreluIterRank == kClipIterRank);
+  assert(kPreluRank - 1 == kClipRank);
+  assert(kPreluIterRank - 1 == kClipIterRank);
+  uint32_t io_output_shape[kClipRank]{ total_output_size[0], total_output_size[1], total_output_size[2], total_output_size[4] };
+  int32_t io_output_strides[kClipRank]{ output_stride[0], output_stride[1], output_stride[2], output_stride[4] };
+  lib_mli::Tensor<lib_mli::NoBuffer, kClipRank> io_tensor(io_output_shape, io_output_strides);
+  // TODO: Remove IteratorCfg and use only TensorIterator when kClipRank becomes 5
+  lib_mli::IteratorCfg<kClipRank> io_it_cfg(out_tensor_it.get_config(), kGroupTensorGroupDim);
+  lib_mli::TensorIterator<lib_mli::NoBuffer, kClipRank, kClipIterRank> io_tensor_it(io_tensor, io_it_cfg);
   auto clip_op = kernel_factory.Clip_CS(clip_cs_buffer, io_tensor_it, io_tensor_it);
   // STEP 1.2.1: [Conv2D] Memory management (Up to user on how to deal with it)
   //==================================================================
@@ -884,6 +892,91 @@ void prepare_phase(const conv2d_test_operands* cur_test, uint32_t& num_tiles,
   status = prelu_op->GetKernelPrivateData(prelu_conf_private);
 
   assert(status == MLI_STATUS_OK);
+  // [PReLU] encode params into special buffer
+  //==================================================================
+  const mli_tensor& pr_inbias_tsr = pr_op.mli3_bias.get_bias_tsr();
+  const mli_tensor& pr_posshift_tsr = pr_op.mli3_scales_keeper.get_shift_tsr();
+  const mli_tensor& pr_negshift_tsr = pr_op.mli3_scales_keeper.get_shift_tsr();
+  const mli_tensor& pr_posscale_tsr = pr_op.mli3_scales_keeper.get_scales_tsr();
+  const mli_tensor& pr_negscale_tsr = pr_op.mli3_scales_keeper.get_scales_tsr();
+  const mli_tensor& pr_outbias_tsr = pr_op.bias_out;
+  uint32_t inbias_elem_size = mli_hlp_tensor_element_size(&pr_inbias_tsr);
+  uint32_t posscale_elem_size = mli_hlp_tensor_element_size(&pr_posscale_tsr);
+  uint32_t posshift_elem_size = mli_hlp_tensor_element_size(&pr_posshift_tsr);
+  uint32_t negscale_elem_size = mli_hlp_tensor_element_size(&pr_negscale_tsr);
+  uint32_t negshift_elem_size = mli_hlp_tensor_element_size(&pr_negshift_tsr);
+  uint32_t outbias_elem_size = mli_hlp_tensor_element_size(&pr_outbias_tsr);
+  uint32_t inbias_size = inbias_elem_size * mli_hlp_count_elem_num(&pr_inbias_tsr, 0);
+  uint32_t posscale_size = posscale_elem_size * mli_hlp_count_elem_num(&pr_posscale_tsr, 0);
+  uint32_t posshift_size = posshift_elem_size * mli_hlp_count_elem_num(&pr_posshift_tsr, 0);
+  uint32_t negscale_size = negscale_elem_size * mli_hlp_count_elem_num(&pr_negscale_tsr, 0);
+  uint32_t negshift_size = negshift_elem_size * mli_hlp_count_elem_num(&pr_negshift_tsr, 0);
+  uint32_t outbias_size = outbias_elem_size * mli_hlp_count_elem_num(&pr_outbias_tsr, 0);
+  
+  int8_t* host_src_buf = (int8_t*)malloc(encoded_params_size);
+  lib_mli::Buffer src_inbias_buf(host_src_buf,
+    inbias_size, inbias_elem_size);
+  lib_mli::Buffer src_posscale_buf(host_src_buf + inbias_size,
+    posscale_size, posscale_elem_size);
+  lib_mli::Buffer src_negscale_buf(host_src_buf + inbias_size + posscale_size,
+    negscale_size, negscale_elem_size);
+  lib_mli::Buffer src_posshift_buf(host_src_buf + inbias_size + posscale_size + negscale_size,
+    posshift_size, posshift_elem_size);
+  lib_mli::Buffer src_negshift_buf(host_src_buf + inbias_size + posscale_size + negscale_size + posshift_size,
+    negshift_size, negshift_elem_size);
+  lib_mli::Buffer src_outbias_buf(host_src_buf + inbias_size + posscale_size + negscale_size + posshift_size + negshift_size,
+    outbias_size, outbias_elem_size);
+  assert(encoded_params_size <= kPreluEncodedParamBufSize);
+  encoded_params_buffer = lib_mli::Buffer(g_prelu_buf_mem, encoded_params_size, sizeof(int8_t));
+  uint32_t params_shape[kPreluParamRank] = { pr_inbias_tsr.shape[0], 0};
+  lib_mli::Tensor<lib_mli::Buffer, kPreluParamRank> inbias_tensor(src_inbias_buf, params_shape);
+  lib_mli::Tensor<lib_mli::Buffer, kPreluParamRank> posscale_tensor(src_posscale_buf, params_shape);
+  lib_mli::Tensor<lib_mli::Buffer, kPreluParamRank> negscale_tensor(src_negscale_buf, params_shape);
+  lib_mli::Tensor<lib_mli::Buffer, kPreluParamRank> posshift_tensor(src_posshift_buf, params_shape);
+  lib_mli::Tensor<lib_mli::Buffer, kPreluParamRank> negshift_tensor(src_negshift_buf, params_shape);
+  lib_mli::Tensor<lib_mli::Buffer, kPreluParamRank> outbias_tensor(src_outbias_buf, params_shape);
+  if (pr_cfg.axis == kPerTensorQuantDim) {
+    assert(pr_inbias_tsr.rank == 0);
+    assert(pr_posscale_tsr.rank == 0);
+    assert(pr_posshift_tsr.rank == 0);
+    assert(pr_negscale_tsr.rank == 0);
+    assert(pr_negshift_tsr.rank == 0);
+    assert(pr_outbias_tsr.rank == 0);
+    inbias_tensor.write<int32_t>(0, pr_inbias_tsr.data.mem.i32);
+    posscale_tensor.write<int16_t>(0, pr_posscale_tsr.data.mem.i16);
+    negscale_tensor.write<int16_t>(0, pr_negscale_tsr.data.mem.i16);
+    posshift_tensor.write<int8_t>(0, pr_posshift_tsr.data.mem.i8);
+    negshift_tensor.write<int8_t>(0, pr_negshift_tsr.data.mem.i8);
+    outbias_tensor.write<int8_t>(0, pr_outbias_tsr.data.mem.i8);
+  } else { // per-axis
+    for (uint32_t i = 0; i < (inbias_size / inbias_elem_size); i++) {
+      inbias_tensor.write<int32_t>(i, pr_inbias_tsr.data.mem.pi32[i]);
+    }
+    for (uint32_t i = 0; i < (posscale_size / posscale_elem_size); i++) {
+      posscale_tensor.write<int16_t>(i, pr_posscale_tsr.data.mem.pi16[i]);
+    }
+    for (uint32_t i = 0; i < (negscale_size / negscale_elem_size); i++) {
+      negscale_tensor.write<int16_t>(i, pr_negscale_tsr.data.mem.pi16[i]);
+    }
+    for (uint32_t i = 0; i < (posshift_size / posshift_elem_size); i++) {
+      posshift_tensor.write<int8_t>(i, pr_posshift_tsr.data.mem.pi8[i]);
+    }
+    for (uint32_t i = 0; i < (negshift_size / negshift_elem_size); i++) {
+      negshift_tensor.write<int8_t>(i, pr_negshift_tsr.data.mem.pi8[i]);
+    }
+    for (uint32_t i = 0; i < (outbias_size / outbias_elem_size); i++) {
+      outbias_tensor.write<int8_t>(i, pr_outbias_tsr.data.mem.pi8[i]);
+    }
+  }
+  // host tensors -> encoded host buffer
+  status = prelu_op->EncodeParams(inbias_tensor,
+                                  posscale_tensor,
+                                  negscale_tensor,
+                                  posshift_tensor,
+                                  negshift_tensor,
+                                  outbias_tensor,
+                                  encoded_params_buffer);
+  assert(status == MLI_STATUS_OK);
 
   // STEP 1.3.3: [clip] encode params to the global shared memory pool
   //==================================================================
@@ -938,13 +1031,14 @@ void prepare_phase(const conv2d_test_operands* cur_test, uint32_t& num_tiles,
 
   free(conv2d_cs_buffer);
   free(prelu_cs_buffer);
+  free(host_src_buf);
   free(clip_cs_buffer);
   free(clp_host_src_buf);
   free(clp_host_dst_buf);
 }
 
 
-void execution_phase(Conv2dOp& cnv_op, PreluOp &pr_op, ClipOp &clp_op, uint32_t tiles_num) {
+void execution_phase(Conv2dOp& cnv_op, PreluOp &pr_op, ClipOp &clp_op, uint32_t tiles_num, lib_mli::Buffer &encoded_params_buffer) {
   // STEP 3: Execution phase
   //==================================================================
 
@@ -1040,30 +1134,38 @@ void execution_phase(Conv2dOp& cnv_op, PreluOp &pr_op, ClipOp &clp_op, uint32_t 
 
 
     prelu_pimpl->GetIOSizesAndOffsets(enc_param_size, inp_bias_offset, posscale_offset, negscale_offset, posshift_offset, negshift_offset, out_bias_offset);
+    const uint32_t enc_param_buf_offset = prelu_private->encoded_params_buffer.get_offset();
+    const uint32_t num_enc_param = cnv_op.out_acc.shape[2];
 
     // copy prelu input bias from global to local buffer
-    memcpy((void*)(g_mem_pool + prelu_private->encoded_params_buffer.get_offset() + inp_bias_offset),
-           (void*)(pr_op.mli3_bias.get_bias_tsr().data.mem.pi32 + output_tile_offsets_4d[3]), sizeof(int32_t) * enc_param_size);
+    uint32_t enc_param_offset = output_tile_offsets_4d[3] * sizeof(int32_t);
+    memcpy((void*)(g_mem_pool + enc_param_buf_offset + inp_bias_offset),
+           (void*)encoded_params_buffer.get_ptr<int8_t>(enc_param_offset), sizeof(int32_t) * enc_param_size);
 
     // copy prelu posscale from global to local buffer
-    memcpy((void*)(g_mem_pool + prelu_private->encoded_params_buffer.get_offset() + posscale_offset),
-           (void*)(pr_op.mli3_scales_keeper.get_scales_tsr().data.mem.pi16 + output_tile_offsets_4d[3]), sizeof(int16_t) * enc_param_size);
+    enc_param_offset = num_enc_param * sizeof(int32_t) + output_tile_offsets_4d[3] * sizeof(int16_t);
+    memcpy((void*)(g_mem_pool + enc_param_buf_offset + posscale_offset),
+           (void*)encoded_params_buffer.get_ptr<int8_t>(enc_param_offset), sizeof(int16_t) * enc_param_size);
 
    // copy prelu negscale from global to local buffer
-    memcpy((void*)(g_mem_pool + prelu_private->encoded_params_buffer.get_offset() + negscale_offset),
-           (void*)(pr_op.mli3_scales_keeper.get_scales_tsr().data.mem.pi16 + output_tile_offsets_4d[3]), sizeof(int16_t) * enc_param_size);
+    enc_param_offset = num_enc_param * (sizeof(int32_t) + sizeof(int16_t)) + output_tile_offsets_4d[3] * sizeof(int16_t);
+    memcpy((void*)(g_mem_pool + enc_param_buf_offset + negscale_offset),
+           (void*)encoded_params_buffer.get_ptr<int8_t>(enc_param_offset), sizeof(int16_t) * enc_param_size);
 
     // copy prelu posshift from global to local buffer
-    memcpy((void*)(g_mem_pool + prelu_private->encoded_params_buffer.get_offset() + posshift_offset),
-           (void*)(pr_op.mli3_scales_keeper.get_shift_tsr().data.mem.pi8 + output_tile_offsets_4d[3]), sizeof(int8_t) * enc_param_size);
+    enc_param_offset = num_enc_param * (sizeof(int32_t) + sizeof(int16_t) + sizeof(int16_t)) + output_tile_offsets_4d[3] * sizeof(int8_t);
+    memcpy((void*)(g_mem_pool + enc_param_buf_offset + posshift_offset),
+           (void*)encoded_params_buffer.get_ptr<int8_t>(enc_param_offset), sizeof(int8_t) * enc_param_size);
 
     // copy prelu negshift from global to local buffer
-    memcpy((void*)(g_mem_pool + prelu_private->encoded_params_buffer.get_offset() + negshift_offset),
-           (void*)(pr_op.mli3_scales_keeper.get_shift_tsr().data.mem.pi8 + output_tile_offsets_4d[3]), sizeof(int8_t) * enc_param_size);
+    enc_param_offset = num_enc_param * (sizeof(int32_t) + sizeof(int16_t) + sizeof(int16_t) + sizeof(int8_t)) + output_tile_offsets_4d[3] * sizeof(int8_t);
+    memcpy((void*)(g_mem_pool + enc_param_buf_offset + negshift_offset),
+           (void*)encoded_params_buffer.get_ptr<int8_t>(enc_param_offset), sizeof(int8_t) * enc_param_size);
 
     // copy prelu output bias from global to local buffer
-    memcpy((void*)(g_mem_pool + prelu_private->encoded_params_buffer.get_offset() + out_bias_offset),
-           (void*)(pr_op.bias_out.data.mem.pi8 + output_tile_offsets_4d[3]), sizeof(int8_t) * enc_param_size);
+    enc_param_offset = num_enc_param * (sizeof(int32_t) + sizeof(int16_t) + sizeof(int16_t) + sizeof(int8_t) + sizeof(int8_t)) + output_tile_offsets_4d[3] * sizeof(int8_t);
+    memcpy((void*)(g_mem_pool + enc_param_buf_offset + out_bias_offset),
+           (void*)encoded_params_buffer.get_ptr<int8_t>(enc_param_offset), sizeof(int8_t) * enc_param_size);
 
 
     status = mli_conv->Prefetch();
@@ -1227,7 +1329,7 @@ int main() {
         if (mli_hlp_count_elem_num(&posscale_tsr, 0) == 1) {
             prelu_axis = -1;
         } else {
-            prelu_axis = conv2d_op.out_acc.rank - 1;
+            prelu_axis = conv2d_op.out_acc.rank;
         }
 
         // If per-axis computation && out_bias is one element,
@@ -1250,13 +1352,14 @@ int main() {
     // STEP 1: Preparing phase
     //==================================================================
     uint32_t num_tiles = 0; // num_tiles calculated inside prepare_phase
-    prepare_phase(cur_test, num_tiles, conv2d_op, pr_op, clp_op);
+    lib_mli::Buffer encoded_params_buffer; // initialized inside prepare_phase
+    prepare_phase(cur_test, num_tiles, conv2d_op, pr_op, clp_op, encoded_params_buffer);
 
     // STEP 2: Executing phase
     //==================================================================
     // Run conv2d, prelu and clip MLI3.0 kernels
     
-    execution_phase(conv2d_op, pr_op, clp_op, num_tiles);
+    execution_phase(conv2d_op, pr_op, clp_op, num_tiles, encoded_params_buffer);
 
     // STEP 3: Postprocessing phase
     //==================================================================

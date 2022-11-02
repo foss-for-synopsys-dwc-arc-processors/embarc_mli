@@ -973,7 +973,7 @@ class Prelu : public ExecutionInterface {
     void GetIOSizesAndOffsets(uint32_t &enc_param_size, uint32_t &inp_bias_offset, 
                               uint32_t &posscale_offset, uint32_t &negscale_offset,
                               uint32_t &posshift_offset, uint32_t &negshift_offset, 
-                              uint32_t &out_bias_offset) const;
+                              uint32_t &out_bias_offset);
 
 private:
 

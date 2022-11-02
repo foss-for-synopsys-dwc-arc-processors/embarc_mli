@@ -11,7 +11,7 @@
 
 #include <stdint.h>
 #include <assert.h>
-
+#include "mli_math_macros.h"
 
 namespace snps_arc::metaware::mli {
 
@@ -109,10 +109,9 @@ constexpr unsigned kRescaleRank = 4;
 constexpr unsigned kRescaleIterRank = 4;
 constexpr unsigned kRescaleParamRank = 1;
 
-constexpr unsigned kPreluRank = 4;
-constexpr unsigned kPreluIterRank = 4;
+constexpr unsigned kPreluRank = 5;
+constexpr unsigned kPreluIterRank = 5;
 constexpr unsigned kPreluParamRank = 2;
-constexpr unsigned kPreluParamIterRank = 2;
 
 constexpr unsigned kPoolRank = 4;
 constexpr unsigned kPoolIterRank = 4;
@@ -778,17 +777,21 @@ class Tensor {
   }
 
   // combine 'axis' and 'axis'+1 dimensions into one dimension if possible
-  Tensor<buf_T, maxRank-1> combine(uint32_t axis) const {
+  Tensor<buf_T, maxRank-1> combine(uint32_t axis, bool reverse_order = true) const {
     assert(axis < maxRank - 1);
     Tensor<buf_T, maxRank-1> tns;
     int s = 0;
-    for (int r = 0; r < maxRank; ++r) {
+    for (uint32_t r = 0; r < maxRank; ++r) {
       if (r < axis || r > axis) {
         tns.set_dim(s, shape_[r]);
         tns.set_mem_stride(s, mem_stride_[r]);
       } else {
         // combine 2 adjacent axis into 1
-        assert(mem_stride_[r+1] == shape_[r]*mem_stride_[r]);
+        if (reverse_order) {
+          assert(mem_stride_[r+1] == (int)shape_[r]*mem_stride_[r]);
+        } else {
+          assert(mem_stride_[r] == (int)shape_[r+1]*mem_stride_[r+1]);
+        }
         tns.set_dim(s, shape_[r]*shape_[r+1]);
         tns.set_mem_stride(s, mem_stride_[r]);
         ++r;
@@ -799,6 +802,31 @@ class Tensor {
     tns.set_buf(buf_);
     tns.set_rank(rank_ - 1);
     return tns;
+  }
+
+  /**
+   * @brief 
+   * 
+   * Method to convert Tensor granularities along inner most dimension
+   * 
+   * @param new_vector_size   [I] New Vector Size in bytes.
+   * @param reverse_order     [I] if false Vectorization is applied on the last dim, otherwise on first dim.
+   */
+  void ConvertGran(int new_vector_size, bool reverse_order = false) {
+    int tns_dim = reverse_order ? 0 : rank_ - 1;
+    uint32_t old_vector_size = buf_.get_elem_size();
+    buf_.set_elem_size(new_vector_size);
+    buf_.set_size(buf_.get_size()*old_vector_size/new_vector_size);
+    assert(mem_stride_[tns_dim] == 1);
+    shape_[tns_dim] = CEIL_DIV(shape_[tns_dim] * old_vector_size, new_vector_size);
+    if (rank_ > 1) {
+      int32_t oldstride = mem_stride_[reverse_order ? tns_dim + 1 : tns_dim - 1];
+      int32_t newstride = CEIL_DIV(oldstride * old_vector_size, new_vector_size);
+      if (reverse_order)
+        for (int i = 1; i < rank_; ++i) mem_stride_[i] = mem_stride_[i] / oldstride * newstride;
+      else
+        for (int i = rank_ - 2; i >= 0; --i) mem_stride_[i] = mem_stride_[i] / oldstride * newstride;
+    }
   }
 
   template <typename T>

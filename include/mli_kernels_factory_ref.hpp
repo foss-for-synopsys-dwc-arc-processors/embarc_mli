@@ -85,10 +85,14 @@ public:
 
     uint32_t Prelu_CS_GetSize() const override { return sizeof(lib_ref::Prelu_CS); }
 
+    /**
+     * @deprecated
+     * Be carefull - Prelu I/O tensors of rank 4 are deprecated - new interfaces use rank 5
+     */
     lib_mli::Prelu_CS* Prelu_CS(void *kernel_buffer,
-                                const TensorIterator<NoBuffer, kPreluRank, kPreluIterRank> &input,
+                                const TensorIterator<NoBuffer, 4, 4> &input,
                                 const PreluOpConfig &cfg,
-                                const TensorIterator<NoBuffer, kPreluRank, kPreluIterRank> &output,
+                                const TensorIterator<NoBuffer, 4, 4> &output,
                                 int groups) override {
         /**
          * The MLI classes need to be 32 bit aligned
@@ -98,6 +102,17 @@ public:
         return new(kernel_buffer) lib_ref::Prelu_CS(m_pd, input, cfg, output);
     }
 
+    lib_mli::Prelu_CS* Prelu_CS(void *kernel_buffer,
+                                const TensorIterator<NoBuffer, kPreluRank, kPreluIterRank> &input,
+                                const PreluOpConfig &cfg,
+                                const TensorIterator<NoBuffer, kPreluRank, kPreluIterRank> &output) override {
+        /**
+         * The MLI classes need to be 32 bit aligned
+         */
+        assert(kernel_buffer != nullptr);
+        assert(((size_t) kernel_buffer % kMliAlignment) == 0);
+        return new(kernel_buffer) lib_ref::Prelu_CS(m_pd, input, cfg, output); 
+    }
     uint32_t Move_CS_GetSize() const override { return sizeof(lib_ref::Move_CS); }
 
     lib_mli::Move_CS* Move_CS(void *kernel_buffer,

@@ -15,6 +15,33 @@
 namespace snps_arc::metaware::mli::ref {
 
 Prelu_CS::Prelu_CS(const lib_mli::PlatformDescription pd,
+                   const TensorIterator<NoBuffer, 4, 4> &input,
+                   const PreluOpConfig &cfg,
+                   const TensorIterator<NoBuffer, 4, 4> &output)
+                   : m_pd(pd) {
+    DEPRECATED_METHOD
+    OffsetBuffer tmp_buffer;
+    Tensor<OffsetBuffer, 4> tmp_in_tensor = Tensor<OffsetBuffer, 4>(tmp_buffer ,input.get_tensor());
+    Tensor<OffsetBuffer, 4> tmp_out_tensor = Tensor<OffsetBuffer, 4>(tmp_buffer ,output.get_tensor());
+    Tensor<OffsetBuffer, kPreluRank> in_tns = tmp_in_tensor.split(3, 1, true);
+    Tensor<OffsetBuffer, kPreluRank> out_tns = tmp_out_tensor.split(3, 1, true);
+    m_input = TensorIterator<OffsetBuffer, kPreluRank, kPreluIterRank>(in_tns);
+    m_output = TensorIterator<OffsetBuffer, kPreluRank, kPreluIterRank>(out_tns);
+    uint32_t io_rank = m_input.get_tensor().get_rank();
+    MLI_ASSERT(io_rank == m_output.get_tensor().get_rank());
+    MLI_ASSERT(io_rank <= kPreluRank);
+
+    uint32_t in_shape[kPreluRank];
+    m_input.get_full_shape(in_shape);
+
+    m_config.axis = io_rank - 1;
+    
+    // size_in_bytes = No.of elements multplied by params elements' sizes
+    m_encoded_params_buffer_size = in_shape[io_rank - 1] *
+            (sizeof(int32_t) + sizeof(int16_t) + sizeof(int16_t) + sizeof(int8_t) + sizeof(int8_t) + sizeof(int8_t));
+}
+
+Prelu_CS::Prelu_CS(const lib_mli::PlatformDescription pd,
                    const TensorIterator<NoBuffer, kPreluRank, kPreluIterRank> &input,
                    const PreluOpConfig &cfg,
                    const TensorIterator<NoBuffer, kPreluRank, kPreluIterRank> &output)
@@ -68,7 +95,7 @@ mli_status Prelu_CS::GetKernelPrivateData( void *kernel_private_data_buffer ) {
     
     opaque_obj.tile_params_max_elem_num = (uint32_t) MAX(m_input.get_config().get_first_inc(io_rank - 1),
                                                          m_input.get_config().get_inc(io_rank - 1));
-    if (!opaque_obj.tile_params_max_elem_num) opaque_obj.tile_params_max_elem_num = m_input.get_tensor().get_dim(kTensorChannelDim);
+    if (!opaque_obj.tile_params_max_elem_num) opaque_obj.tile_params_max_elem_num = m_input.get_tensor().get_dim(kGroupTensorChannelDim);
     MLI_ASSERT(opaque_obj.tile_params_max_elem_num > 0);
     // Prelu configuration
     opaque_obj.prelu_axis = m_config.axis;

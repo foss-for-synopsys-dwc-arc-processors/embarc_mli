@@ -78,18 +78,6 @@ class CompilerGenericInterface {
         return MLI_STATUS_OK;
     }
 
-    /**
-     * @brief this function will return the vectorization in the input channel
-     *        dimension that is used by the platform.
-     */
-    virtual unsigned GetInputChannelMultiple() { return 1; };
-
-    /**
-     * @brief this function will return the vectorization in the output channel
-     *        dimension that is used by the platform.
-     */
-    virtual unsigned GetOutputChannelMultiple() { return 1; };
-
 // TODO add virtual destructor
 protected:
     bool m_issue_enable{false};
@@ -314,31 +302,6 @@ public:
                                             NOT_IMPLEMENTED_METHOD;
                                             return MLI_STATUS_OK; };
 
-    /**
-     * @brief Method to set iteration information used in the .Update()
-     *
-     * NOTE: the use of this method is optional. if there is a single tile, and the .Update() is not used,
-     *       this data doesn't need to be set.     
-     * All the increments are following the output tile iterator.
-     * @deprecated
-     * Be carefull - don't use this method with new Conv2d_CS ctors - only with deprecated ctor that takes tensors
-     *
-     * @param output_total_size[4] [I] total size in each dimension
-     * @param iteration_order[4] [I] which dimension of the output to iterate first.
-     * @param input_first_inc[4] [I] increment of the input buffer pointer for the first iteration in each dimension
-     * @param input_inc[4] [I] increment of the input buffer pointer for the other iterations in each dimension
-     * @param output_first_inc[4] [I] increment of the output buffer pointer for the first iteration in each dimension
-     * @param output_inc[4] [I] increment of the output buffer pointer for the other iterations in each dimension
-     * @param weights_inc[4] [I] increment of the weights buffer pointer for the other iterations in each dimension of the output iterator
-     */
-    virtual mli_status SetIterators(uint32_t output_total_size[4],
-                                    uint32_t iteration_order[4],
-                                    uint32_t input_first_inc[4],
-                                    uint32_t input_inc[4],
-                                    uint32_t output_first_inc[4],
-                                    uint32_t output_inc[4],
-                                    uint32_t weights_inc[4]) = 0;
-
 };
 
 /**
@@ -410,8 +373,8 @@ public:
      * the weights buffer passed to the encode_weights function is in compiler memoryspace because the
      * encode function will write the encoded weights data there.
      */
-    virtual mli_status AttachBufferOffsets(Tensor<OffsetBuffer, kPreluRank> &input,
-                                           Tensor<OffsetBuffer, kPreluRank> &output,
+    virtual mli_status AttachBufferOffsets(Tensor<OffsetBuffer, 4> &input,
+                                           Tensor<OffsetBuffer, 4> &output,
                                            OffsetBuffer &params,
                                            OffsetBuffer &ctrl_buffer) { return MLI_STATUS_OK; }
 
@@ -434,26 +397,6 @@ public:
                                            const OffsetBuffer &params,
                                            const OffsetBuffer &ctrl_buffer) { return MLI_STATUS_OK; }
 
-    /**
-     * @brief Method to set iteration information used in the .Update()
-     * @deprecated
-     *
-     * NOTE: the use of this method is optional. if there is a single tile, and the .Update() is not used,
-     *       this data doesn't need to be set.     
-     * All the increments are following the output tile iterator.
-     * @param output_total_size[4] [I] total size in each dimension
-     * @param iteration_order[4] [I] which dimension of the output to iterate first.
-     * @param input_first_inc[4] [I] increment of the input buffer pointer for the first iteration in each dimension
-     * @param input_inc[4] [I] increment of the input buffer pointer for the other iterations in each dimension
-     * @param output_first_inc[4] [I] increment of the output buffer pointer for the first iteration in each dimension
-     * @param output_inc[4] [I] increment of the output buffer pointer for the other iterations in each dimension
-     */
-    virtual mli_status SetIterators(uint32_t output_total_size[4],
-                                    uint32_t iteration_order[4],
-                                    uint32_t input_first_inc[4],
-                                    uint32_t input_inc[4],
-                                    uint32_t output_first_inc[4],
-                                    uint32_t output_inc[4]) { return MLI_STATUS_OK; }
 };
 
 
@@ -958,24 +901,6 @@ public:
                                            const OffsetBuffer& output,
                                            const OffsetBuffer& encoded_params,
                                            const OffsetBuffer& descr) = 0;
-
-    /**
-     * @brief Method to set iteration information used in the .Update()
-     *
-     * NOTE: the use of this method is optional. if there is a single tile, and the .Update() is not used,
-     *       this data doesn't need to be set.
-     * All the increments are following the output tile iterator.
-     * 
-     * @deprecated
-     * @param output_total_size[4] [I] total size in each dimension
-     * @param iteration_order[4] [I] which dimension of the output to iterate first.
-     * @param output_first_inc[4] [I] increment of the output buffer pointer for the first iteration in each dimension
-     * @param output_inc[4] [I] increment of the output buffer pointer for the other iterations in each dimension
-     */
-    virtual mli_status SetIterators(uint32_t output_total_size[kClipIterRank],
-                                    uint32_t iteration_order[kClipIterRank],
-                                    uint32_t output_first_inc[kClipIterRank],
-                                    uint32_t output_inc[kClipIterRank]) = 0;
 
 };
 

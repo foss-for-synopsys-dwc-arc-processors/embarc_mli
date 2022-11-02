@@ -35,7 +35,6 @@ public:
      * of all values in the related perception area of all channels of the input tensor.
      *
      * @deprected
-     * Be carefull - you need to use another deprected method to set tiling - SetIterators
      * Be carefull - conv2d I/O tensors of rank 4 are deprecated - new interfaces use rank 5 
      * Be carefull - this is the most deprecated Constructor
      *
@@ -165,18 +164,6 @@ public:
 
     unsigned GetRuntimeObjectSize() const override;
 
-    /**
-     * @deprecated
-     * Be carefull - conv2d I/O tensors of rank 4 are deprecated - new interfaces use rank 5
-     * Be carefull - don't use this method with new Conv2d_CS ctors - only with deprecated ctor that takes tensors
-     */
-    mli_status SetIterators(uint32_t output_total_size[4],
-                            uint32_t iteration_order[4],
-                            uint32_t input_first_inc[4],
-                            uint32_t input_inc[4],
-                            uint32_t output_first_inc[4],
-                            uint32_t output_inc[4],
-                            uint32_t weights_inc[4]) override;
 private:
 
     // Input, weights, weights zp(s), output tensors with offset buffer attached
@@ -1342,14 +1329,6 @@ class Clip_CS : public lib_mli::Clip_CS {
                                    const OffsetBuffer& encoded_params,
                                    const OffsetBuffer& descr) override;
 
-    /**
-     * @deprecated
-     */
-    mli_status SetIterators(uint32_t output_total_size[kClipIterRank],
-                            uint32_t iteration_order[kClipIterRank],
-                            uint32_t output_first_inc[kClipIterRank],
-                            uint32_t output_inc[kClipIterRank]) override;
-
 private:
     TensorIterator<OffsetBuffer, kClipRank, kClipIterRank> m_input;
     TensorIterator<OffsetBuffer, kClipRank, kClipIterRank> m_output;
@@ -1403,6 +1382,27 @@ public:
      * @param input [IN] Input tensor (full shape)
      * @param cfg [IN] PreluOpConfig structure
      * @param output [OUT] Output tensor (tile shape)
+     */
+    Prelu_CS(const lib_mli::PlatformDescription pd,
+             const TensorIterator<NoBuffer, 4, 4> &input,
+             const PreluOpConfig &cfg,
+             const TensorIterator<NoBuffer, 4, 4> &output);
+
+    /**
+     * @brief Constructor to create a PReLU compiler support object.
+     *
+     * This constructor can be used to create a PReLU compiler support
+     * object. This kernel computes values of the output tensor scaled by 
+     * positive scale and shifted by positive shift if the input value is 
+     * greater than the input bias,
+     * Otherwise It will apply negative scale and negative shift
+     * for all values in the desired axis of the input tensor 
+     *
+     * @param pd        [IN]  Platform description
+     * @param input     [IN]  Input tensor (full shape)
+     * @param cfg       [IN]  PreluOpConfig structure
+     * @param enc_param [IN]  Encoded parameters tensor
+     * @param output    [OUT] Output tensor (tile shape)
      */
     Prelu_CS(const lib_mli::PlatformDescription pd,
              const TensorIterator<NoBuffer, kPreluRank, kPreluIterRank> &input,

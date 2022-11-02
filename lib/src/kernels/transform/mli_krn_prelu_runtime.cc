@@ -55,6 +55,7 @@ Prelu::Prelu(void* kernel_private_data_buffer, size_t size, uint64_t membases[],
     private_buffer.encoded_params_buffer.set_elem_size(sizeof(int8_t));
     m_tile_metadata.out_bias = InternalBuffer(private_buffer.encoded_params_buffer, membases, num_mems);
 
+
     m_tile_metadata.prelu_axis = private_buffer.prelu_axis;
 
 }
@@ -125,8 +126,8 @@ mli_status Prelu::Update() {
 }
 
 void Prelu::GetIOSizesAndOffsets(uint32_t &enc_param_size, uint32_t &inp_bias_offset, uint32_t &posscale_offset, uint32_t &negscale_offset,
-                                 uint32_t &posshift_offset, uint32_t &negshift_offset, uint32_t &out_bias_offset) const {
-  enc_param_size = m_tile_metadata.input.get_dim(kTensorChannelDim);
+                                 uint32_t &posshift_offset, uint32_t &negshift_offset, uint32_t &out_bias_offset) {
+  enc_param_size = m_tile_metadata.input.get_dim(kGroupTensorChannelDim);
   inp_bias_offset = 0;
   posscale_offset = m_tile_param_max_size * sizeof(int32_t);
   negscale_offset = posscale_offset + m_tile_param_max_size * sizeof(int16_t);

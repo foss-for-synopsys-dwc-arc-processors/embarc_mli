@@ -23,6 +23,11 @@
 #include "mli_types.hpp"
 #include "mli_private_types.h"
 
+namespace lib_mli = ::snps_arc::metaware::mli;
+
+using lib_mli::Tensor;
+using lib_mli::InternalBuffer;
+
 // with a shift of 31, we cannot represent the value one. So we shift only 30
 // and an extra multiplication of 2 is done when bias is loaded.
 #define MLI_BIAS_MUL_SHIFT 30
@@ -52,6 +57,17 @@ static MLI_FORCE_INLINE int mli_prv_get_tensor_idx_pos(
     return res;
 }
 
+static MLI_FORCE_INLINE int mli_prv_get_tensor_idx_pos(
+        Tensor<InternalBuffer, 5> &in,
+        int pos0, int pos1, int pos2, int pos3, int pos4) {
+
+    int res = pos0 * in.get_mem_stride(0) + pos1 * in.get_mem_stride(1) +
+              pos2 * in.get_mem_stride(2) + pos3 * in.get_mem_stride(3) +
+              pos4 * in.get_mem_stride(4);
+
+    return res;
+}
+
 template <typename io_T>
 static MLI_FORCE_INLINE io_T mli_prv_tensor_read(
         const generic_tensor_private_t<MLI_PTR(io_T)> &tsr,
@@ -61,11 +77,29 @@ static MLI_FORCE_INLINE io_T mli_prv_tensor_read(
 }
 
 template <typename io_T>
+static MLI_FORCE_INLINE io_T mli_prv_tensor_read(
+        Tensor<InternalBuffer, 5> &tsr,
+        int pos0, int pos1, int pos2, int pos3, int pos4) {
+    MLI_ASSERT(tsr.get_buf().get_ptr<io_T>() != nullptr);
+    return tsr.read<io_T>(POS(tsr, pos0, pos1, pos2, pos3, pos4));
+}
+
+template <typename io_T>
 static MLI_FORCE_INLINE void mli_prv_tensor_write(
         io_T val, generic_tensor_private_t<MLI_PTR(io_T)> &tsr,
         int pos0, int pos1, int pos2, int pos3) {
     MLI_ASSERT(tsr.ptr != nullptr);
     tsr.ptr[POS(&tsr, pos0, pos1, pos2, pos3)] = val;
+    return;
+}
+
+template <typename io_T>
+static MLI_FORCE_INLINE void mli_prv_tensor_write(
+        io_T val, Tensor<InternalBuffer, 5> &tsr,
+        int pos0, int pos1, int pos2, int pos3, int pos4) {
+    
+    MLI_ASSERT(tsr.get_buf().get_ptr<io_T>() != nullptr);
+    tsr.write<io_T>(POS(tsr, pos0, pos1, pos2, pos3, pos4), val);
     return;
 }
 
@@ -1066,19 +1100,6 @@ mli_prv_get_conv2d_weights_tensor_hwc(
     return conv2d_weights_tensor_private_t<T> {
             weights.get_buf().get_ptr<std::remove_pointer_t<T>>(),
             width, height, in_ch, out_ch, col_mem_stride, row_mem_stride, in_ch_mem_stride, out_ch_mem_stride };
-}
-template <typename T, bool assign_ptr = true>
-static MLI_FORCE_INLINE generic_tensor_private_t<T> mli_prv_get_generic_tensor_internal(const Tensor<InternalBuffer, kPreluRank> &in)
-{
-    generic_tensor_private_t<T> tsr;
-    tsr.ptr = in.get_buf().get_ptr<std::remove_pointer_t<T>>();
-    tsr.rank = in.get_rank();
-    for(uint32_t i = 0; i < kPreluRank; i++) {
-        tsr.shape[i]      = (int)in.get_dim(i);
-        tsr.mem_stride[i] = in.get_mem_stride(i);
-    }
-
-    return tsr;
 }
 
 } // namespace snps_arc::metaware::mli

@@ -158,58 +158,5 @@ unsigned Clip_CS::GetParamsBufferSize() const {
   return GetEncodedParamsSize();
 }
 
-mli_status Clip_CS::SetIterators(uint32_t output_total_size[kClipIterRank],
-                                 uint32_t iteration_order[kClipIterRank],
-                                 uint32_t output_first_inc[kClipIterRank],
-                                 uint32_t output_inc[kClipIterRank]) {
-  DEPRECATED_METHOD
-
-  int32_t output_mem_stride[kClipRank];
-  m_output.get_mem_strides(output_mem_stride);
-  Tensor<OffsetBuffer, kClipRank> output_tensor(m_output.get_buf(), output_total_size, output_mem_stride);
-  m_output = TensorIterator<OffsetBuffer, kClipRank, kClipIterRank>(output_tensor);
-
-  int32_t iteration_order_signed[kClipIterRank];
-  int32_t count[kClipIterRank];
-  for (unsigned i = 0; i < kClipIterRank; i++) {
-    iteration_order_signed[i] = (int32_t)iteration_order[i];
-
-    if (output_total_size[i] == output_first_inc[i]) count[i] = 1;
-    else count[i] = 1 + (int32_t)CEIL_DIV(output_total_size[i] - output_first_inc[i], output_inc[i]);
-  }
-
-  int32_t output_first_increment_signed[kClipIterRank];
-  int32_t output_increment_signed[kClipIterRank];
-  int32_t output_last_increment_signed[kClipIterRank];
-  int32_t output_first_size_signed[kClipIterRank];
-  int32_t output_size_signed[kClipIterRank];
-  int32_t output_last_size_signed[kClipIterRank];
-  for (unsigned i = 0; i < kClipIterRank; i++) {
-    output_first_increment_signed[i] = (int32_t)output_first_inc[i];
-    output_increment_signed[i] = (int32_t)output_inc[i];
-    if (count[i] == 1) output_last_increment_signed[i] = 0;
-    else {
-      output_last_increment_signed[i] = service::get_last_increment(count[i], output_first_increment_signed[i], output_increment_signed[i]);
-    }
-    output_first_size_signed[i] = (int32_t)output_first_inc[i];
-    output_size_signed[i] = (int32_t)output_inc[i];
-    output_last_size_signed[i] = (int32_t)output_total_size[i] + output_last_increment_signed[i];
-  }
-
-  IteratorCfg<kClipIterRank> io_config(
-    iteration_order_signed,
-    count,
-    output_first_increment_signed,
-    output_increment_signed,
-    output_last_increment_signed,
-    output_first_size_signed,
-    output_size_signed,
-    output_last_size_signed
-  );
-  m_input.set_config(io_config);
-  m_output.set_config(io_config);
-
-  return MLI_STATUS_OK;
-}
 
 }  // namespace snps_arc::metaware::mli::ref
