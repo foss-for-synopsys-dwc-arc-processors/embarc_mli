@@ -51,7 +51,6 @@ struct MatMul_test_operands {
   int8_t in2_zp;
   tensor_quantizer out;
   uint32_t data_size;
-
   const quality_metrics threshold;
   const crc32_calc check_sum;
 };
@@ -90,19 +89,19 @@ static IO_DATA_ATTR int8_t g_mem_pool[kMemSize] = {0};
 
 constexpr int kTestsNum = sizeof(tests_list) / sizeof(tests_list[0]);
 
-template <typename in1_t, typename in2_t,typename out_t, uint32_t rank>
-void MatMul_prepare_and_run(Tensor<InternalBuffer, rank> &in_left, 
-                          Tensor<InternalBuffer, rank> &in_right,
-                          Tensor<InternalBuffer, rank> &output,
-                          InternalBuffer &encoded_params);
 
 void prepare_phase(MatMul_test_operands* cur_test,
                    void*& MatMul_instance,
                    uint32_t& MatMul_instance_size,
                    void*& MatMul_conf_private,
                    uint32_t& MatMul_conf_private_size,
-                   uint32_t& output_size,
-                   uint32_t& output_offset ) {
+                   lib_mli::TensorIterator<lib_mli::OffsetBuffer, kMatMulRank, kMatMulIterRank> &input1_tensor,
+                   lib_mli::TensorIterator<lib_mli::OffsetBuffer, kMatMulRank, kMatMulIterRank> &input2_tensor,
+                   lib_mli::TensorIterator<lib_mli::OffsetBuffer, kMatMulRank, kMatMulIterRank> &output_tensor,
+                   uint32_t *input_tile_shape,
+                   uint32_t *output_tile_shape,
+                   int32_t *iteration_order ) {
+
   
     mli_data_container temp_in1_container{0};
     mli_data_container temp_in2_container{0};
@@ -125,9 +124,13 @@ void prepare_phase(MatMul_test_operands* cur_test,
     const lib_mli::Tensor<lib_mli::NoBuffer, kMatMulRank> in2_tensor(temp_input2_tensor.shape, temp_input2_tensor.mem_stride);
     const lib_mli::Tensor<lib_mli::NoBuffer, kMatMulRank> out_tensor(temp_output_tensor.shape, temp_output_tensor.mem_stride);
 
-    lib_mli::TensorIterator<lib_mli::NoBuffer, kMatMulRank, kMatMulIterRank> in1_tensor_it(in1_tensor);
-    lib_mli::TensorIterator<lib_mli::NoBuffer, kMatMulRank, kMatMulIterRank> in2_tensor_it(in2_tensor);
-    lib_mli::TensorIterator<lib_mli::NoBuffer, kMatMulRank, kMatMulIterRank> out_tensor_it(out_tensor);
+    lib_mli::TensorIterator<lib_mli::NoBuffer, kMatMulRank, kMatMulIterRank> in1_tensor_it(in1_tensor, input_tile_shape, iteration_order);
+    lib_mli::TensorIterator<lib_mli::NoBuffer, kMatMulRank, kMatMulIterRank> in2_tensor_it(in2_tensor, temp_input2_tensor.shape, iteration_order);
+    lib_mli::TensorIterator<lib_mli::NoBuffer, kMatMulRank, kMatMulIterRank> out_tensor_it(out_tensor, output_tile_shape, iteration_order);
+
+    input1_tensor = in1_tensor_it;
+    input2_tensor = in2_tensor_it;
+    output_tensor = out_tensor_it;
 
     lib_mli::PlatformDescription pd;
     lib_ref::KernelsFactory kernel_factory(pd);
@@ -156,8 +159,10 @@ void prepare_phase(MatMul_test_operands* cur_test,
 
     // MatMul Input1
     offset = &offsets[0];
-    uint32_t in1_size = lib_mli::service::GetBufferSize(lib_mli::kMatMulRank, temp_input1_tensor.shape, temp_input1_tensor.mem_stride) * elem_size;
+
+    uint32_t in1_size = lib_mli::service::GetBufferSize(lib_mli::kMatMulRank, input_tile_shape, temp_input1_tensor.mem_stride) * elem_size;
     lib_mli::OffsetBuffer MatMul_in1_buf{*offset, 0, in1_size, elem_size};
+    input1_tensor.set_buf(MatMul_in1_buf);
     uint32_t in1_mem_offset = *offset;
     *offset += in1_size;
 
@@ -165,17 +170,18 @@ void prepare_phase(MatMul_test_operands* cur_test,
     offset = &offsets[0];
     uint32_t in2_size = lib_mli::service::GetBufferSize(lib_mli::kMatMulRank, temp_input2_tensor.shape, temp_input2_tensor.mem_stride) * elem_size;
     lib_mli::OffsetBuffer MatMul_in2_buf{*offset, 0, in2_size, elem_size};
+    input2_tensor.set_buf(MatMul_in2_buf);
     uint32_t in2_mem_offset = *offset;
     *offset += in2_size;
 
     // MatMul Output
     offset = &offsets[0];
-    uint32_t out_size = lib_mli::service::GetBufferSize(lib_mli::kMatMulRank, temp_output_tensor.shape, temp_output_tensor.mem_stride) * sizeof(int32_t);
+
+    uint32_t out_size = lib_mli::service::GetBufferSize(lib_mli::kMatMulRank, output_tile_shape, temp_output_tensor.mem_stride) * sizeof(int32_t);
     lib_mli::OffsetBuffer MatMul_out_buf{*offset, 0, out_size, sizeof(int32_t)};
+    output_tensor.set_buf(MatMul_out_buf);
     uint32_t out_mem_offset = *offset;
     *offset += out_size;
-     output_offset = out_mem_offset;
-     output_size = out_size;
 
     // MatMul input zero point
     uint32_t inpzp_size = MatMul_op->GetEncodedParamsSize() * elem_size;
@@ -215,20 +221,6 @@ void prepare_phase(MatMul_test_operands* cur_test,
       const uint32_t idx = inpzp_mem_offset + i;
       g_mem_pool[idx] = encoded_zp_buf.read<int8_t>(i);
     }
-    /*copy in1 from scratch memory to g_mem_pool*/
-    int8_t* temp_mem = (int8_t*)g_scratch_mem_in1;
-    int8_t* dst_buffer = (int8_t*) (g_mem_pool + in1_mem_offset);
-    for (int idx = 0; idx < in1_size; idx++) {
-        dst_buffer[idx] = temp_mem[idx];
-    }
-
-    /*copy in2 from scratch memory to g_mem_pool*/
-    temp_mem = (int8_t*)g_scratch_mem_in2;
-    dst_buffer = (int8_t*) (g_mem_pool + in2_mem_offset);
-    for (int idx = 0; idx < in2_size; idx++) {
-        dst_buffer[idx] = temp_mem[idx];
-
-    }
 
     MatMul_instance = (int8_t*)g_mem_pool;
     MatMul_instance_size = MatMul_op->GetRuntimeObjectSize();
@@ -243,10 +235,13 @@ void prepare_phase(MatMul_test_operands* cur_test,
 void execution_phase(const MatMul_test_operands* cur_test, 
                      void* MatMul_instance, 
                      uint32_t MatMul_instance_size,
-                     void* MatMul_conf_private, 
-                     uint32_t MatMul_conf_private_size,
-                     uint32_t& output_size,
-                     uint32_t& output_offset) {
+                     void*& MatMul_conf_private,
+                     uint32_t& MatMul_conf_private_size,
+                     lib_mli::TensorIterator<lib_mli::OffsetBuffer, kMatMulRank, kMatMulIterRank> &input1_tensor,
+                     lib_mli::TensorIterator<lib_mli::OffsetBuffer, kMatMulRank, kMatMulIterRank> &input2_tensor,
+                     lib_mli::TensorIterator<lib_mli::OffsetBuffer, kMatMulRank, kMatMulIterRank> &output_tensor,
+                     uint32_t& num_tiles,
+                     int32_t* iteration_order) {
   // STEP 3: Execution phase
   //==================================================================
 
@@ -257,24 +252,57 @@ void execution_phase(const MatMul_test_operands* cur_test,
                                                            MatMul_conf_private,
                                                            MatMul_conf_private_size,
                                                            membasis, sizeof(membasis) / sizeof(membasis[0]));
+
+
     assert(MatMul_run_op != nullptr);
     mli_status status = MLI_STATUS_OK;
+
+    uint32_t input1_tile_size[kMatMulRank]{};
+    uint32_t input2_tile_size[kMatMulRank]{};
+    uint32_t output_tile_size[kMatMulRank]{};
+    int32_t input1_tile_offsets[kMatMulRank]{};
+    int32_t input2_tile_offsets[kMatMulRank]{};
+    int32_t output_tile_offsets[kMatMulRank]{};
+    int32_t tile_input1_strides[kMatMulRank]{};
+    int32_t tile_input2_strides[kMatMulRank]{};
+    int32_t tile_output_strides[kMatMulRank]{};
+    const int32_t zero_offsets[kMatMulRank]{};
+
+    input1_tensor.get_mem_strides(tile_input1_strides);
+    input2_tensor.get_mem_strides(tile_input2_strides);
+    output_tensor.get_mem_strides(tile_output_strides);
+
+    for (size_t i = 0; i < num_tiles; i++)
+    {
+    lib_ref::MatMul* pimpl = dynamic_cast<lib_ref::MatMul*>(MatMul_run_op);
+    pimpl->GetIOSizesAndOffsets(input1_tile_size, input2_tile_size, output_tile_size,
+                                input1_tile_offsets, input2_tile_offsets, output_tile_offsets);
+    input2_tile_offsets[0] = input2_tile_offsets[1] = 0;
 
     status = MatMul_run_op->Prefetch();
     assert(status == MLI_STATUS_OK);
     
+     // copy inputs from global buffer to local tile buffer 
+    strided_copy_with_offsets(kMatMulRank, input1_tensor.get_buf().get_elem_size(),
+                            g_scratch_mem_in1, input1_tile_offsets, zero_offsets, tile_input1_strides,
+                            input1_tile_size, (int8_t*)(g_mem_pool + input1_tensor.get_buf().get_offset()));
+
+    strided_copy_with_offsets(kMatMulRank, input2_tensor.get_buf().get_elem_size(),
+                            g_scratch_mem_in2, input2_tile_offsets, zero_offsets, tile_input2_strides,
+                            input2_tile_size, (int8_t*)(g_mem_pool + input2_tensor.get_buf().get_offset()));
+    
+    
     status = MatMul_run_op->Issue();
     assert(status == MLI_STATUS_OK);
 
-    status = MatMul_run_op->Update();
-    assert(status == MLI_STATUS_OK);
-   
+    // copy output from local tile buffer to global buffer
+    strided_copy_with_offsets(kMatMulRank,  output_tensor.get_buf().get_elem_size(),
+                              (int8_t*)(g_mem_pool + output_tensor.get_buf().get_offset()),
+                              zero_offsets, output_tile_offsets, tile_output_strides,
+                              output_tile_size, (int8_t*)g_scratch_mem_out);
 
-    // copy output from g_mem_pool to scratch mem
-    int8_t *dest_mem = (int8_t*)g_scratch_mem_out;
-    int8_t *temp_buffer = (int8_t*) (g_mem_pool + output_offset);
-    for (int idx = 0; idx < output_size; idx++) {
-        dest_mem[idx] = temp_buffer[idx];
+    status = MatMul_run_op->Update();
+    assert(status == MLI_STATUS_OK);    
     }
                      }
 
@@ -343,16 +371,45 @@ int main() {
 
         void* MatMul_conf_private = nullptr;
         uint32_t MatMul_conf_private_size = 0;
-        uint32_t output_size = 0;
-        uint32_t output_offset = 0;
+
+        lib_mli::TensorIterator<lib_mli::OffsetBuffer, kMatMulRank, kMatMulIterRank> in1_tensor_iter;
+        lib_mli::TensorIterator<lib_mli::OffsetBuffer, kMatMulRank, kMatMulIterRank> in2_tensor_iter;
+        lib_mli::TensorIterator<lib_mli::OffsetBuffer, kMatMulRank, kMatMulIterRank> out_tensor_iter;
+
+
+        mli_data_container temp_in1_container{0};
+        mli_data_container temp_in2_container{0};
+        temp_in1_container.capacity = cur_test->in1.get_not_quantized_tensor(temp_in1_container).data.capacity;
+        temp_in2_container.capacity = cur_test->in2.get_not_quantized_tensor(temp_in2_container).data.capacity;
+
+        mli_tensor temp_input1_tensor = cur_test->in1.get_quantized_tensor(temp_in1_container);
+        mli_tensor temp_input2_tensor = cur_test->in2.get_quantized_tensor(temp_in2_container);
+
+        uint32_t input_tile_size[kMatMulRank] =  {1, temp_input1_tensor.shape[1]};
+        uint32_t output_tile_size[kMatMulRank] =  {1, temp_input2_tensor.shape[1]};
+        int32_t iteration_order[kMatMulRank] = {0, 1};
+        uint32_t shape[kMatMulRank] = {temp_input1_tensor.shape[0], temp_input1_tensor.shape[1]};
+        
+        //tiling the Height
+        assert(input_tile_size[1] == temp_input1_tensor.shape[1]);
+        assert(output_tile_size[1] == temp_input2_tensor.shape[1]);
+
+        // calculate number of tiles needed
+        uint32_t num_tiles = 1;
+        for(int i = 0; i < kMatMulRank; i++) {
+            uint32_t tiles_per_dim = 1 + CEIL_DIV(shape[i] - input_tile_size[i], input_tile_size[i]);
+            num_tiles *= tiles_per_dim;
+        }
+
+
         /************ Prepare Phase *************/
-        prepare_phase(cur_test, MatMul_instance, MatMul_instance_size,
-                      MatMul_conf_private, MatMul_conf_private_size, output_size, output_offset);
+        prepare_phase(cur_test, MatMul_instance, MatMul_instance_size, MatMul_conf_private, MatMul_conf_private_size,
+                      in1_tensor_iter, in2_tensor_iter, out_tensor_iter, input_tile_size, output_tile_size, iteration_order);
 
 
         /************ Execution Phase *************/
-        execution_phase(cur_test, MatMul_instance, MatMul_instance_size,
-                        MatMul_conf_private, MatMul_conf_private_size, output_size, output_offset);
+        execution_phase(cur_test, MatMul_instance, MatMul_instance_size, MatMul_conf_private, MatMul_conf_private_size,
+                        in1_tensor_iter, in2_tensor_iter, out_tensor_iter, num_tiles, iteration_order);
 
     
         /************ Postprocess Phase *************/

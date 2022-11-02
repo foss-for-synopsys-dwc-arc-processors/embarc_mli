@@ -48,7 +48,7 @@ mli_status MatMul::Issue() {
   if (m_i_elem_size == sizeof(int8_t) &&
       m_o_elem_size == sizeof(int32_t)) {
 
-    MatMul_prepare_and_run<int8_t, int8_t, int32_t, kMatMulRank>
+    MatMul_prepare_and_run<int8_t, int8_t, int32_t>
                           (m_tile_input_left, m_tile_input_right, m_tile_output, m_encoded_params);
   } else {
     // not supported yet

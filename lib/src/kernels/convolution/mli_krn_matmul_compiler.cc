@@ -11,6 +11,8 @@
 #include "mli_ref_compiler_api.hpp"
 #include "mli_ref_runtime_api.hpp"
 #include "mli_service_functions.hpp"
+
+
 namespace snps_arc::metaware::mli::ref {
 
 MatMul_CS::MatMul_CS(const lib_mli::PlatformDescription &pd,
@@ -38,10 +40,12 @@ mli_status MatMul_CS::GetKernelPrivateData(void* kernel_private_data_buffer) {
 
   MatMulPrivateData prv_data;
 
+
   prv_data.m_in_left = m_in_left;
   prv_data.m_in_right = m_in_right;
   prv_data.m_output = m_output;
   prv_data.encoded_params = m_encoded_params;
+
 
   std::memcpy(kernel_private_data_buffer, (void *)&prv_data, sizeof(prv_data));
 
@@ -69,10 +73,11 @@ mli_status MatMul_CS::EncodeParams(const Buffer &in_bias1,
   assert(in_bias1.get_size() + in_bias2.get_size() == encoded_params.get_size());
   assert(in_bias1.get_size() == in_bias2.get_size() == 1);
 
-  // in_zp must be int8_t
+
+  // in_zp type must be int8_t
   assert(in_bias1.get_elem_size() == sizeof(int8_t));
-  encoded_params.write<int8_t>(0, in_bias1.read<int8_t>(0));
-  encoded_params.write<int8_t>(1, in_bias2.read<int8_t>(0));
+  encoded_params.write<int8_t>(kMatMulHeightDim, in_bias1.read<int8_t>(0));
+  encoded_params.write<int8_t>(kMatMulWidthDim, in_bias2.read<int8_t>(0));
 
   return MLI_STATUS_OK;
 }

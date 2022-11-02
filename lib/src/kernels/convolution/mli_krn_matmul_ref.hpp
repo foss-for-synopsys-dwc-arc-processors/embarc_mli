@@ -28,10 +28,10 @@ namespace ref {
 #pragma MLI_CODE_SECTION_START(".mli_lib")
 
 
-template <typename in1_t, typename in2_t,typename out_t, uint32_t rank>
-void MatMul_prepare_and_run(Tensor<InternalBuffer, rank> &in_left, 
-                            Tensor<InternalBuffer, rank> &in_right,
-                            Tensor<InternalBuffer, rank> &output,
+template <typename in1_t, typename in2_t,typename out_t>
+void MatMul_prepare_and_run(Tensor<InternalBuffer, kMatMulRank> &in_left, 
+                            Tensor<InternalBuffer, kMatMulRank> &in_right,
+                            Tensor<InternalBuffer, kMatMulRank> &output,
                             InternalBuffer &encoded_params) {
   /**
   * layout = HW
@@ -39,7 +39,6 @@ void MatMul_prepare_and_run(Tensor<InternalBuffer, rank> &in_left,
   * output shape must be of shape Hr * Wl
   * rank = 2
   */
-  MLI_ASSERT(rank == kMatMulRank);
   MLI_ASSERT(in_left.get_dim(kMatMulWidthDim) == in_right.get_dim(kMatMulHeightDim));
   MLI_ASSERT(output.get_dim(kMatMulHeightDim) == in_left.get_dim(kMatMulHeightDim));
   MLI_ASSERT(output.get_dim(kMatMulWidthDim) == in_right.get_dim(kMatMulWidthDim));
@@ -49,20 +48,29 @@ void MatMul_prepare_and_run(Tensor<InternalBuffer, rank> &in_left,
   in1_t val1;
   in2_t val2;
   out_t acc;
+
+  /**
+  * leftzp is the first element of the encoded buffer.
+  * rightzp is the second element of the encoded buffer.
+  */
   int8_t in_left_zp = encoded_params.read<int8_t>(kMatMulHeightDim);
   int8_t in_right_zp = encoded_params.read<int8_t>(kMatMulWidthDim);
   uint32_t left_h = in_left.get_dim(kMatMulHeightDim);
   uint32_t right_w = in_right.get_dim(kMatMulWidthDim);
   uint32_t left_w = in_left.get_dim(kMatMulWidthDim);
-  for(uint32_t i = 0; i < left_h; ++i) {
-    for (uint32_t j = 0; j < right_w; ++j) {
+  int32_t left_mem_strides[kMatMulRank];
+  int32_t right_mem_strides[kMatMulRank];
+  in_left.get_mem_strides(left_mem_strides);
+  in_right.get_mem_strides(right_mem_strides);
+  for(uint32_t left_height_index = 0; left_height_index < left_h; ++left_height_index) {
+    for (uint32_t right_width_index = 0; right_width_index < right_w; ++right_width_index) {
       acc = 0;
-      for (uint32_t k = 0; k < left_w; ++k) {
-          val1 = in_left.template read<in1_t>(i * left_w + k) - in_left_zp;
-          val2 = in_right.template read<in2_t>(k * right_w + j) - in_right_zp;
+      for (uint32_t left_width_index = 0, right_height_index = 0; left_width_index < left_w; ++left_width_index, ++right_height_index) {
+          val1 = in_left.template read<in1_t>(left_height_index * left_mem_strides[0] + left_width_index) - in_left_zp;
+          val2 = in_right.template read<in2_t>(right_height_index * right_mem_strides[0] + right_width_index) - in_right_zp;
           acc += val1 * val2;
       }
-        output.template write<out_t>( i * right_w + j, static_cast<out_t>(acc) );
+        output.template write<out_t>( left_height_index * right_w + right_width_index, static_cast<out_t>(acc) );
     }
   }
 }
