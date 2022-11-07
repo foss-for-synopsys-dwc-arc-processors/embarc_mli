@@ -322,7 +322,7 @@ public:
      * 
      * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
      */
-    virtual void Move_CS_GetInputAlign(uint32_t input_align[kMoveRank]) {
+    virtual void Move_CS_GetInputAlign(uint32_t input_align[kMoveRank], const lib_mli::MoveDataDirection data_dir) {
       set_default_align<kMoveRank>(input_align);
     }
 
@@ -338,7 +338,7 @@ public:
      * 
      * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
      */
-    virtual void Move_CS_GetOutputAlign(uint32_t output_align[kMoveRank]) {
+    virtual void Move_CS_GetOutputAlign(uint32_t output_align[kMoveRank], const lib_mli::MoveDataDirection data_dir) {
       set_default_align<kMoveRank>(output_align);
     }
 
@@ -735,7 +735,7 @@ public:
      * 
      * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
      */
-    virtual void ClipCS_GetInputAlign(uint32_t input_align[kClipRank]) {
+    virtual void Clip_CS_GetInputAlign(uint32_t input_align[kClipRank]) {
       set_default_align<kClipRank>(input_align);
     }
 
@@ -954,7 +954,7 @@ public:
      * 
      * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
      */
-    virtual void Mul_GetInputAlign(uint32_t input_align[kEltwiseRank]) {
+    virtual void Mul_CS_GetInputAlign(uint32_t input_align[kEltwiseRank]) {
       set_default_align<kEltwiseRank>(input_align);
     }
 
@@ -970,7 +970,7 @@ public:
      * 
      * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
      */
-    virtual void Mul_GetOutputAlign(uint32_t output_align[kEltwiseRank]) {
+    virtual void Mul_CS_GetOutputAlign(uint32_t output_align[kEltwiseRank]) {
       set_default_align<kEltwiseRank>(output_align);
     }
 
@@ -1100,7 +1100,7 @@ public:
      * 
      * @param input_align  [O] Array to be filled with the Input Alignment Restrictions
      */
-    virtual void Min_GetInputAlign(uint32_t input_align[kEltwiseRank]) {
+    virtual void Min_CS_GetInputAlign(uint32_t input_align[kEltwiseRank]) {
       set_default_align<kEltwiseRank>(input_align);
     }
 
@@ -1116,7 +1116,7 @@ public:
      * 
      * @param output_align  [O] Array to be filled with the Output Alignment Restrictions
      */
-    virtual void Min_GetOutputAlign(uint32_t output_align[kEltwiseRank]) {
+    virtual void Min_CS_GetOutputAlign(uint32_t output_align[kEltwiseRank]) {
       set_default_align<kEltwiseRank>(output_align);
     }
 
