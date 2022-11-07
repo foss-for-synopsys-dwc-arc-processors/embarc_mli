@@ -182,7 +182,7 @@ class IteratorCfg {
         MLI_ASSERT(icfg.m_first_pos_inc[i] * stride[dim] >= pre_padding[dim]);
         m_first_pos_inc[i] = icfg.m_first_pos_inc[i] * stride[dim] - (int32_t)pre_padding[dim];
         m_last_pos_inc[i] = m_count[i] > 1 ? m_pos_inc[i] * (2 - m_count[i]) - m_first_pos_inc[i] : 0;
-        m_size[i] = MIN((icfg.m_size[i] - 1) * stride[dim] + effective_kernel_size[dim], tns_dim);
+        m_size[i] = (icfg.m_size[i] - 1) * stride[dim] + effective_kernel_size[dim];
         m_first_size[i] = MIN((icfg.m_first_size[i] - 1) * stride[dim] + effective_kernel_size[dim] - pre_padding[dim], tns_dim);
         m_last_size[i] = tns_dim + m_last_pos_inc[i];
         m_diff_code[i] = CalcDiffCode(m_count[i], m_first_size[i], m_size[i], m_last_size[i]);
@@ -1028,7 +1028,9 @@ class TensorIterator {
         } else if (m_tile_idx[r] == 0) { // First iteration
           copysize[dim] = m_config.get_first_size(r);
         } else { // Middle iteration
-          copysize[dim] = m_config.get_size(r);
+          // Clip here, since the penultimate tile can have less size due to big post-padding
+          // Clipping of the first/last tiles is handled in the constructor
+          copysize[dim] = MIN(m_full_tensor.get_dim(dim) - pos[dim], m_config.get_size(r));
         }
       }
       return m_full_tensor.slice(pos, copysize);
