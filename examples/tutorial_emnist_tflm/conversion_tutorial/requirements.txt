@@ -1,7 +1,7 @@
 numpy==1.19.3
 matplotlib
 jupyterlab==1.2.21
-tensorflow==2.5.3
+tensorflow==2.11.1
 keras>=2.2.4
 emnist
 
