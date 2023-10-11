@@ -140,7 +140,7 @@ ifeq ($(TOOLCHAIN),mwdt)
  AR = arac
  AS = ccac
  TCF_CFLAGS += -tcf=$(TCF_FILE) -tcf_core_config
- LDFLAGS += -tcf=$(TCF_FILE) $(LCF)
+ LDFLAGS += $(LCF)
 else 
  CC = arc-elf32-gcc
  LD = arc-elf32-ld
