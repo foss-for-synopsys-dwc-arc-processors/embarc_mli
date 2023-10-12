@@ -118,7 +118,6 @@ DEPFLAGS    =
 else
 ifeq ($(TOOLCHAIN),mwdt)
 # place to add MWDT-specific common settings
-CFLAGS     +=-Hon=Long_enums
 CFLAGS     +=-mllvm -gen-lpcc=false
 DEPFLAGS    =-Hdepend=$(BUILD_DIR)/ -MD
 else
@@ -140,7 +139,7 @@ ifeq ($(TOOLCHAIN),mwdt)
  AR = arac
  AS = ccac
  TCF_CFLAGS += -tcf=$(TCF_FILE) -tcf_core_config
- LDFLAGS += -tcf=$(TCF_FILE) $(LCF)
+ LDFLAGS += $(LCF)
 else 
  CC = arc-elf32-gcc
  LD = arc-elf32-ld
