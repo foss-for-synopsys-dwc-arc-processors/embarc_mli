@@ -118,7 +118,6 @@ DEPFLAGS    =
 else
 ifeq ($(TOOLCHAIN),mwdt)
 # place to add MWDT-specific common settings
-CFLAGS     +=-Hon=Long_enums
 CFLAGS     +=-mllvm -gen-lpcc=false
 DEPFLAGS    =-Hdepend=$(BUILD_DIR)/ -MD
 else
