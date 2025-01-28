@@ -42,7 +42,7 @@ static void mli_krn_permute_inner_loop(uint32_t *out_shape, int *out_increments,
                             mli_prv_stride_store_n_samples(output, input_vec, out_increments[3], remaining);
                         }
                     } else {
-                        auto input_vec = mli_prv_stride_load_1vec(&input[idx_inp], inp_stride[3]);
+                        auto input_vec = mli_prv_stride_load_1vec(&input[idx_inp], inp_stride[3], remaining);
                         if (!scatter) {
                             mli_prv_store_n_samples(output, input_vec, remaining);
                         } else {

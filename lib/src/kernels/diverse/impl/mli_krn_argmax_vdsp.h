@@ -36,6 +36,7 @@ static MLI_FORCE_INLINE void inner_loop(const generic_tensor_private_t<MLI_PTR(i
     auto input = mli_prv_load_nx4_samples(src_arr);
     int num_lanes = get_number_lanes(input);
     int remaining_part = count & (num_lanes - 1);
+    const int num_scalar_bits = sizeof(int) * 8;
     if (remaining_part) {
         int remaining_end = dim3_idx + remaining_part;
         for (; dim3_idx < remaining_end; ++dim3_idx) {
@@ -66,15 +67,17 @@ static MLI_FORCE_INLINE void inner_loop(const generic_tensor_private_t<MLI_PTR(i
                 }
             }
 
-            uint32_t high = move_predicate_hi_to_scalar(predicate);
-            vNuint_t high_v = high;
-            while (high_v[0] != 0) {
-                int index = mli_math_trailing_zeros(high_v)[0];
-                high_v &= ~(1 << index);
-                src_pos = POS(src_prv, dim0_idx, dim1_idx, dim2_idx, dim3_idx + index + (num_lanes / 2));
-                if (src_arr[src_pos] >= src_arr[dst_tensor_arr[0]]) {
-                    dst_tensor_arr[0] = (src_pos);
-                    heapify(src_arr, topk, 0, dst_tensor_arr);
+            if (num_lanes > num_scalar_bits) {
+                uint32_t high = move_predicate_hi_to_scalar(predicate);
+                vNuint_t high_v = high;
+                while (high_v[0] != 0) {
+                    int index = mli_math_trailing_zeros(high_v)[0];
+                    high_v &= ~(1 << index);
+                    src_pos = POS(src_prv, dim0_idx, dim1_idx, dim2_idx, dim3_idx + index + (num_lanes / 2));
+                    if (src_arr[src_pos] >= src_arr[dst_tensor_arr[0]]) {
+                        dst_tensor_arr[0] = (src_pos);
+                        heapify(src_arr, topk, 0, dst_tensor_arr);
+                    }
                 }
             }
         }

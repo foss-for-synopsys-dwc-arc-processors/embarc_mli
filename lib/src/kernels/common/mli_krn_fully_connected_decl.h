@@ -1,5 +1,5 @@
 /*
-* Copyright 2020-2020, Synopsys, Inc.
+* Copyright 2020-2025, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -55,7 +55,18 @@ MLI_FORCE_INLINE void fully_connected_prepare_and_run(
 // DSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace dsp {
-
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, bool no_zp>
+MLI_FORCE_INLINE void inner_product(
+        const MLI_PTR(io_T) __restrict in,
+        const MLI_PTR(w_T)  __restrict weights,
+        const MLI_PTR(b_T)  __restrict biases,
+        MLI_CONV_OUT_PTR(io_T) __restrict out,
+        const int in_elements,
+        const int out_elements,
+        const int w_ch_out_mem_stride,
+        quant_T quant_params,
+        const io_T val_min_limit,
+        const io_T val_max_limit);
 } // namespace dsp
 
 ////////////////////////////////////////////////////////////////////////////////

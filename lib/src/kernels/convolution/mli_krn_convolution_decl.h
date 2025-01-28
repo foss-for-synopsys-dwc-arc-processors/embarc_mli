@@ -1,5 +1,5 @@
 /*
-* Copyright 2020-2020, Synopsys, Inc.
+* Copyright 2020-2025, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -87,6 +87,21 @@ MLI_FORCE_INLINE void conv2d_prepare_and_run(
 // DSP
 ////////////////////////////////////////////////////////////////////////////////
 namespace dsp {
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
+MLI_FORCE_INLINE void convolution2D(
+        const tensor_private_t<MLI_PTR(io_T)> &in,
+        const conv2d_weights_tensor_private_t<MLI_PTR(w_T)> &weights,
+        const MLI_PTR(b_T)  __restrict biases,
+        const tensor_private_t<MLI_CONV_OUT_PTR(io_T)> &out,
+        const rect_t &perception_area,
+        quant_T quant_params,
+        const io_T val_min_limit,
+        const io_T val_max_limit,
+        const int stride_height, const int stride_width,
+        const int dilation_height, const int dilation_width,
+        const int padding_top, const int padding_left,
+        const int padding_bot, const int padding_right);
+
 template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, int fix_kernel_width, int fix_kernel_height>
 MLI_FORCE_INLINE void depthwise_convolution2D(
         const tensor_private_t<MLI_PTR(io_T)> &in,

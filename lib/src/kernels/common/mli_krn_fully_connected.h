@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2025, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -32,7 +32,7 @@ using mli::krn::vdsp::inner_product;
 using mli::krn::ref::fully_connected_prepare_and_run;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-using mli::krn::ref::inner_product;
+using mli::krn::dsp::inner_product;
 using mli::krn::ref::fully_connected_prepare_and_run;
 
 #else
@@ -56,7 +56,7 @@ using mli::krn::ref::fully_connected_prepare_and_run;
 #endif
 
 #if !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-//#include "impl/mli_krn_fully_connected_dsp.h"
+#include "impl/mli_krn_fully_connected_dsp.h"
 #endif
 
 #endif  //_MLI_KRN_FULLY_CONNECTED_H_

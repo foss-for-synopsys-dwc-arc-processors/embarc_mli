@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2025, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -33,7 +33,7 @@ using mli::krn::vdsp::depthwise_convolution2D;
 using mli::krn::ref::conv2d_prepare_and_run;
 
 #elif !defined(MLI_BUILD_REFERENCE) && defined(__FXAPI__)
-using mli::krn::ref::convolution2D;
+using mli::krn::dsp::convolution2D;
 using mli::krn::dsp::depthwise_convolution2D;
 using mli::krn::ref::conv2d_prepare_and_run;
 

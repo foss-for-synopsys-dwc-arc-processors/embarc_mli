@@ -358,7 +358,7 @@ static MLI_FORCE_INLINE vNx4short_t make_vindex2(
         int in_row_step,
         int unroll = 1,
         int in_unroll_step = 0) {
-    vNx4short_t vindex;
+    vNx4short_t vindex = 0;
     int vec_length = (sizeof(vNx2short_t) / sizeof(short));
     int idx = 0;
     MLI_ASSERT(width * height * unroll <= 2 * vec_length);

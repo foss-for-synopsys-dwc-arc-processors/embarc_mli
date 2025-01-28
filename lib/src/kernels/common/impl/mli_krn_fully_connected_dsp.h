@@ -1,5 +1,5 @@
 /*
-* Copyright 2019-2020, Synopsys, Inc.
+* Copyright 2019-2025, Synopsys, Inc.
 * All rights reserved.
 *
 * This source code is licensed under the BSD-3-Clause license found in
@@ -7,8 +7,8 @@
 *
 */
 
-#ifndef _MLI_KRN_FULLY_CONNECTED_H_
-#define _MLI_KRN_FULLY_CONNECTED_H_
+#ifndef _MLI_KRN_FULLY_CONNECTED_DSP_H_
+#define _MLI_KRN_FULLY_CONNECTED_DSP_H_
 
 #include "mli_config.h"
 #include "mli_debug.h"
@@ -19,110 +19,114 @@
 #include "math.h"
 #include "mli_prv_quant.h"
 
-//================================================
-// Old version of optimized fully connected code 
-//================================================
+namespace mli {
+namespace krn {
+namespace dsp {
 
-#if 0
-template <typename io_T, typename w_T>
-static MLI_FORCE_INLINE void full_connection(
-        const MLI_PTR(io_T) __restrict in_ptr,
-        const MLI_PTR(w_T) __restrict w_ptr,
-        const MLI_PTR(w_T) bias_p,
-        MLI_CONV_OUT_PTR(io_T) __restrict o_ptr,
-        const int ch_out,
-        const int inp_size,
+#pragma MLI_CODE_SECTION_START(".mli_lib")
+
+//========================================================
+// Unified IP (Inner Product) template
+//========================================================
+template <typename io_T, typename w_T, typename b_T, typename acc_T, typename quant_T, bool no_zp>
+MLI_FORCE_INLINE void inner_product(
+        const MLI_PTR(io_T) __restrict in,
+        const MLI_PTR(w_T)  __restrict weights,
+        const MLI_PTR(b_T)  __restrict biases,
+        MLI_CONV_OUT_PTR(io_T) __restrict out,
+        const int in_elements,
+        const int out_elements,
         const int w_ch_out_mem_stride,
-        const int bias_shift,
-        const int out_shift) {
-    if (_Rarely(inp_size < 8)) {
-        for (int i = 0; i < ch_out; i++) {
-            auto ip_out = mli_prv_init_accu_with_bias(in_ptr, *bias_p++, bias_shift);
-            for (int j = 0; j < inp_size; j++) {
-                mli_prv_load_mac(&ip_out, in_ptr++, w_ptr++);
-            }
-            in_ptr -= inp_size;
-            w_ptr += w_ch_out_mem_stride - inp_size;
+        quant_T quant_params,
+        const io_T val_min_limit,
+        const io_T val_max_limit) {
+    // Unified Inner Product for both quantization scheme:  MLI_FX (symmetric data, scales are power of two)
+    // and s8asym (assymetric data, scales of any value)
+    // Calculation implies dotproduct and bias add:
+    //            out_val = sum_i(x_r * w_r) + b_r
+    //
+    // Considering assymetric types(x_r = (x - x_zp) and w_r = (w - w_zp) + b_r
+    //                    out_val = sum_i((x-x_zp)*(w-w_zp)) + b_r
+    //
+    // when we will open brackets:
+    //      out_val = sum(x*w) - sum_i(w*x_zp) - sum_i(x*w_zp) + sum_i(w_zp*x_zp) + b_r
+    // where:
+    //      sum(x*w)       - generic dotproduct which can't be avoided for any type
+    //      -sum_i(w*x_zp) - weights_additive. 
+    //                       Allways Zero for FX and can be reused in output channel calculations for s8asym
+    //      -sum_i(x*w_zp) - in_additive
+    //                       Allways Zero for both FX and TF_s8asym assuming symmetric weights (w_zp == 0)
+    //     sum_i(w_zp*x_zp)- zp_additive
+    //                       Allways Zero for both FX and TF_s8asym assuming symmetric weights (w_zp == 0)
+    //      b_r             - bias_additive
+    //                        (must be of the same type as accumulator, that may require bias re-quantization)
+    //============================================
+#ifdef __Xdsp_wide
+    if (quant_params_get_weigths_zeropoint(&quant_params) == 0 && (out_elements & 1) == 0) {
+        int32_t bias_e = 1 << (((const fx_quant_specific_params *)(void*)&quant_params)->bias_shift);
+        if(std::is_same<acc_T, mli_acc40_t>::value && std::is_same<io_T, int16_t>::value && std::is_same<w_T, int16_t>::value && bias_e < ((1 << 15) - 1)) {
+            v2q15_t vval_max_limit = fx_replic_v2q15(val_max_limit);
+            v2q15_t vval_min_limit = fx_replic_v2q15(val_min_limit);
 
-            mli_prv_clip_and_store_output(o_ptr++, &ip_out, out_shift);
-        }
-    } else {
-        if ((inp_size & 0x3) == 0) {
-            const MLI_PTR(io_T) start_in_ptr = in_ptr;
-            for (int i = 0; i < ch_out; i++) {
-                auto ip_out = mli_prv_init_accu_with_bias(in_ptr, *bias_p++, bias_shift);
+            int remaining_part = in_elements & 3;
+            for (int o_idx = 0; o_idx < out_elements; o_idx += 2) {
+                v2i16_t vbias_e = fx_create_v2i16(bias_e, bias_e);
+                int32_t out_shift = ((const fx_quant_specific_params *)(void *)&quant_params)->out_shift - 16;
+                v2accum40_t accu = fx_v2a40_mpy_v2q15(*(const v2q15_t *__restrict)(void *)&biases[o_idx], vbias_e);
 
-LOOP_PIPELINE_ENABLE
-LOOP_PIPELINE_ENABLE_BACKTRACKING
-                for (int j = 0; j < (inp_size / 4); j++) {
-                    mli_prv_load_mac_vec4(&ip_out, in_ptr, w_ptr);
-                    in_ptr += 4;
-                    w_ptr += 4;
+                for (int i = 0; i < in_elements - remaining_part; i += 4) {
+                    accu = fx_v2a40_mac_v2q15(accu, fx_replic_v2q15(in[i + 0]), *(const v2q15_t *__restrict)(void *)&weights[o_idx + (i + 0) * w_ch_out_mem_stride]);
+                    accu = fx_v2a40_mac_v2q15(accu, fx_replic_v2q15(in[i + 1]), *(const v2q15_t *__restrict)(void *)&weights[o_idx + (i + 1) * w_ch_out_mem_stride]);
+                    accu = fx_v2a40_mac_v2q15(accu, fx_replic_v2q15(in[i + 2]), *(const v2q15_t *__restrict)(void *)&weights[o_idx + (i + 2) * w_ch_out_mem_stride]);
+                    accu = fx_v2a40_mac_v2q15(accu, fx_replic_v2q15(in[i + 3]), *(const v2q15_t *__restrict)(void *)&weights[o_idx + (i + 3) * w_ch_out_mem_stride]);
                 }
-                in_ptr -= inp_size;
-                w_ptr += w_ch_out_mem_stride - inp_size;
-                MLI_EXTRA_ASSERT(start_in_ptr == in_ptr);
+                
+                for (int r = (in_elements - remaining_part); r < in_elements; r++) {
+                    accu = fx_v2a40_mac_v2q15(accu, fx_replic_v2q15(in[r]), *(const v2q15_t *__restrict)(void *)&weights[o_idx + r * w_ch_out_mem_stride]);
+                }
 
-                mli_prv_clip_and_store_output(o_ptr++, &ip_out, out_shift);
+                // Cast result to output type, apply built-in ReLU Applying and write result
+                v2q15_t out_val = fx_v2q15_cast_nf_asr_rnd_v2a40(accu, out_shift);
+                out_val = fx_min_v2q15(out_val, vval_max_limit);
+                out_val = fx_max_v2q15(out_val, vval_min_limit);
+                    
+                v2q15_t *__restrict out_ptr = (v2q15_t *__restrict)(void *)&out[o_idx];
+                *out_ptr = out_val;
             }
         } else {
-            const MLI_PTR(io_T) start_in_ptr = in_ptr;
-            for (int i = 0; i < ch_out; i++) {
-                auto ip_out = mli_prv_init_accu_with_bias(in_ptr, *bias_p++, bias_shift);
-
-                int odd_rest_of_inp_size = (inp_size & 0x3);
-                for (int k = 0; k < odd_rest_of_inp_size; k++) {
-                    mli_prv_load_mac(&ip_out, in_ptr++, w_ptr++);
-                }
-
-                int even_inp_size = inp_size - odd_rest_of_inp_size;
-LOOP_PIPELINE_ENABLE
-LOOP_PIPELINE_ENABLE_BACKTRACKING
-                for (int j = 0; j < (even_inp_size / 4); j++) {
-                    mli_prv_load_mac_vec4(&ip_out, in_ptr, w_ptr);
-                    in_ptr += 4;
-                    w_ptr += 4;
-                }
-                in_ptr -= inp_size;
-                w_ptr += w_ch_out_mem_stride - inp_size;
-                MLI_EXTRA_ASSERT(start_in_ptr == in_ptr);
-
-                mli_prv_clip_and_store_output(o_ptr++, &ip_out, out_shift);
-            }
+            mli::krn::ref::inner_product<io_T, w_T, b_T, acc_T, quant_T, no_zp>(in, 
+                                                                                weights, 
+                                                                                biases, 
+                                                                                out,
+                                                                                in_elements, 
+                                                                                out_elements,
+                                                                                w_ch_out_mem_stride,
+                                                                                quant_params,
+                                                                                val_min_limit,
+                                                                                val_max_limit);
         }
-    }
+	}
+	else
+#endif // #ifdef __Xdsp_wide
+	{
+        mli::krn::ref::inner_product<io_T, w_T, b_T, acc_T, quant_T, no_zp>(in, 
+                                                                            weights, 
+                                                                            biases, 
+                                                                            out,
+                                                                            in_elements, 
+                                                                            out_elements,
+                                                                            w_ch_out_mem_stride,
+                                                                            quant_params,
+                                                                            val_min_limit,
+                                                                            val_max_limit);
+	}
+
 }
 
-template <typename io_T, typename w_T>
-static MLI_FORCE_INLINE void fully_connected_prepare_and_run_fx(
-        const mli_tensor* in,
-        const mli_tensor* weights,
-        const mli_tensor* bias,
-        mli_tensor* out) {
-    mli_prv_fx_init_dsp_ctrl();
+#pragma MLI_CODE_SECTION_END()
 
-    const MLI_PTR(io_T) in_ptr = mli_prv_tensor_data_ptr<MLI_PTR(io_T)>(in);
-    const MLI_PTR(w_T) w_ptr = mli_prv_tensor_data_ptr<MLI_PTR(w_T)>(weights);
-    const MLI_PTR(w_T) b_ptr = mli_prv_tensor_data_ptr<MLI_PTR(w_T)>(bias);
-    MLI_CONV_OUT_PTR(io_T) out_ptr = mli_prv_tensor_data_ptr<MLI_CONV_OUT_PTR(io_T)>(out);
+} // namespace dsp
+} // namespace krn
+} // namespace mli
 
-    int ch_out = weights->shape[0];
-    int in_sz = mli_prv_count_elem_num(in);
-    int w_ch_out_mem_stride_from_tensor = weights->mem_stride[0];
-    int w_ch_out_mem_stride = (w_ch_out_mem_stride_from_tensor != 0) ?
-        w_ch_out_mem_stride_from_tensor : in_sz;
-
-    // Define shift values
-    const int bias_shift = mli_prv_calc_shift(in, weights, bias);
-    const int out_shift = mli_prv_calc_shift(in, weights, out);
-
-    // Run basic calculation
-    full_connection<io_T, w_T>(in_ptr, w_ptr, b_ptr, out_ptr, ch_out, in_sz, w_ch_out_mem_stride,
-            bias_shift, out_shift);
-
-    // fill output tensor parameters
-    out->el_type = in->el_type;
-    out->shape[0] = ch_out;
-    out->rank = 1;
-}
-#endif
+#endif // _MLI_KRN_FULLY_CONNECTED_DSP_H_
